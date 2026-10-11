@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { findSemanticRelationPath } from "../knowledge/model/relation-graph";
-import {
-  canonicalRelationEndpoints,
-  compareRelationIdsBinary,
-  type SpaceRelation,
-} from "../model/relations/relation";
+import { canonicalRelationEndpoints, type SpaceRelation } from "../model/relations/relation";
+import { compareUtf8Binary } from "../model/text";
 
 function relation(
   relationId: string,
@@ -39,7 +36,7 @@ describe("Space semantic relation paths", () => {
     const privateUse = "\uE000";
     // JavaScript UTF-16 ordering differs for this pair; Rust String and SQLite BINARY use UTF-8 bytes.
     expect(supplementary < privateUse).toBe(true);
-    expect(compareRelationIdsBinary(supplementary, privateUse)).toBeGreaterThan(0);
+    expect(compareUtf8Binary(supplementary, privateUse)).toBeGreaterThan(0);
     expect(canonicalRelationEndpoints(supplementary, privateUse, "contradicts")).toEqual([
       privateUse,
       supplementary,

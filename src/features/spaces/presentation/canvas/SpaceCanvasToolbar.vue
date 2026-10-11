@@ -11,9 +11,9 @@ import SpaceAddMenu from "../creation/SpaceAddMenu.vue";
 
 const tools = useCanvasToolStore();
 const nodeOperations = useNodeOperationGate();
-const icons = { select: MousePointer2, pan: Hand, note: StickyNote, text: Type, section: SquareDashed };
+const ICONS = { select: MousePointer2, pan: Hand, note: StickyNote, text: Type, section: SquareDashed };
 const { t } = useI18n();
-function toolEffect(tool: keyof typeof icons): NodeOperationEffect {
+function toolEffect(tool: keyof typeof ICONS): NodeOperationEffect {
   return tool === "select" || tool === "pan" ? "structure" : "create";
 }
 </script>
@@ -36,7 +36,7 @@ function toolEffect(tool: keyof typeof icons): NodeOperationEffect {
           size="sm"
           @click="nodeOperations.allows(toolEffect(toolCommand.tool)) && tools.selectTool(toolCommand.tool)"
         >
-          <component :is="icons[toolCommand.tool]" class="size-3.5" :stroke-width="1.6" />
+          <component :is="ICONS[toolCommand.tool]" class="size-3.5" :stroke-width="1.6" />
         </UiIconButton>
       </ToolbarButton>
     </template>

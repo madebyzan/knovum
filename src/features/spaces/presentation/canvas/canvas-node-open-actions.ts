@@ -13,7 +13,7 @@ import type { Component } from "vue";
 
 import type { SpaceNodeKind } from "../../model/nodes/node-payload";
 
-export const nodeOpenLabels = {
+export const NODE_OPEN_LABELS = {
   note: "common.edit",
   text: "spaces.inspector.title",
   markdown: "common.edit",
@@ -28,7 +28,7 @@ export const nodeOpenLabels = {
   object: "spaces.inspector.title",
 } satisfies Record<SpaceNodeKind, string>;
 
-export const nodeOpenIcons = {
+export const NODE_OPEN_ICONS = {
   note: Pencil,
   text: Info,
   markdown: Pencil,

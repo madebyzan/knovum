@@ -24,10 +24,24 @@ const emit = defineEmits<{
   open: [taskId: string];
 }>();
 const { t } = useI18n();
+const STATUS_LABEL_KEYS = {
+  queued: "tasks.status.queued",
+  running: "tasks.status.running",
+  attention: "tasks.status.attention",
+  succeeded: "tasks.status.succeeded",
+  failed: "tasks.status.failed",
+  cancelled: "tasks.status.cancelled",
+} satisfies Record<TaskStatus, string>;
 
-const active = (status: TaskStatus) => status === "queued" || status === "running";
-const canCancel = (status: TaskStatus) => active(status) || status === "attention";
-const terminal = (status: TaskStatus) => status === "succeeded" || status === "cancelled";
+function isActive(status: TaskStatus) {
+  return status === "queued" || status === "running";
+}
+function canCancel(status: TaskStatus) {
+  return isActive(status) || status === "attention";
+}
+function isTerminal(status: TaskStatus) {
+  return status === "succeeded" || status === "cancelled";
+}
 
 function statusClass(status: TaskStatus) {
   if (status === "failed") return "text-fg-danger";
@@ -37,20 +51,7 @@ function statusClass(status: TaskStatus) {
 }
 
 function statusLabel(status: TaskStatus) {
-  switch (status) {
-    case "queued":
-      return t("tasks.status.queued");
-    case "running":
-      return t("tasks.status.running");
-    case "attention":
-      return t("tasks.status.attention");
-    case "succeeded":
-      return t("tasks.status.succeeded");
-    case "failed":
-      return t("tasks.status.failed");
-    case "cancelled":
-      return t("tasks.status.cancelled");
-  }
+  return t(STATUS_LABEL_KEYS[status]);
 }
 </script>
 
@@ -138,7 +139,7 @@ function statusLabel(status: TaskStatus) {
           <RotateCcw class="size-3" />
         </UiIconButton>
         <UiIconButton
-          v-if="!active(task.status) && (!task.durable || terminal(task.status))"
+          v-if="!isActive(task.status) && (!task.durable || isTerminal(task.status))"
           :label="t('tasks.dismiss')"
           size="sm"
           @click="emit('dismiss', task.id)"
@@ -161,7 +162,7 @@ function statusLabel(status: TaskStatus) {
       <p
         v-else-if="task.statusMessage && task.status !== 'failed'"
         class="col-start-2 col-end-4 mt-1 text-caption text-fg-tertiary"
-        :class="active(task.status) ? 'truncate' : 'line-clamp-2 wrap-break-word'"
+        :class="isActive(task.status) ? 'truncate' : 'line-clamp-2 wrap-break-word'"
       >
         {{ task.statusMessage }}
       </p>

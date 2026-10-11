@@ -1,4 +1,7 @@
-pub use knovum_inference_contracts::image_wire::*;
+pub use knovum_inference_contracts::image_wire::{
+    ImageSegmentParams, ImageSegmentation, TensorDataType, TensorFileReference,
+    IMAGE_SEGMENTATION_INPUT_BYTES, IMAGE_SEGMENTATION_MASK_BYTES, IMAGE_SEGMENTATION_RESOLUTION,
+};
 
 pub(crate) use crate::local_resources::model_catalog::{
     IMAGE_SEGMENTATION_QUALITY_SPEC_ID, IMAGE_SEGMENTATION_SPEC_ID,

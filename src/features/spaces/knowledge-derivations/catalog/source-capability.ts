@@ -1,6 +1,6 @@
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 
-const knowledgePredicates: ReadonlyArray<(data: SpaceNodePayload) => boolean> = [
+const KNOWLEDGE_PREDICATES: ReadonlyArray<(data: SpaceNodePayload) => boolean> = [
   (data) => data.kind === "note" && Boolean(data.plainText.trim()),
   (data) => data.kind === "markdown" && Boolean(data.text.trim()),
   (data) => data.kind === "website" && Boolean(data.contentPreview?.trim() || data.websiteSections?.length),
@@ -13,5 +13,5 @@ const knowledgePredicates: ReadonlyArray<(data: SpaceNodePayload) => boolean> = 
 ];
 
 export function hasDerivableKnowledge(data: SpaceNodePayload): boolean {
-  return knowledgePredicates.some((predicate) => predicate(data));
+  return KNOWLEDGE_PREDICATES.some((predicate) => predicate(data));
 }

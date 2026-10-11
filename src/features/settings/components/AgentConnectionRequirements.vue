@@ -9,12 +9,12 @@ import type { ExternalAgentDescriptor } from "../../../shared/contracts/generate
 
 const props = defineProps<{ agent: ExternalAgentDescriptor }>();
 const { t } = useI18n();
-const connectionMessageKeys: Record<ExternalAgentDescriptor["help"]["connection"], string> = {
+const CONNECTION_MESSAGE_KEYS: Record<ExternalAgentDescriptor["help"]["connection"], string> = {
   executable_cli: "settings.agents.connections.executableCli",
   node_adapter: "settings.agents.connections.nodeAdapter",
   standalone_server: "settings.agents.connections.standaloneServer",
 };
-const guidance = computed(() => connectionMessageKeys[props.agent.help.connection]);
+const guidance = computed(() => CONNECTION_MESSAGE_KEYS[props.agent.help.connection]);
 const links = computed(() => [
   { label: "settings.agents.officialDocumentation", url: props.agent.help.documentationUrl },
   { label: "settings.agents.acpSetup", url: props.agent.help.setupUrl },

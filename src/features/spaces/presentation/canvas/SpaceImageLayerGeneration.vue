@@ -19,7 +19,7 @@ import { useSpaceStore } from "../../session/space-store";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { imageActionAvailability, promptedLayerAvailability } from "./image-action-availability";
 import { imageActionHelp } from "./image-action-help";
-import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
+import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "./node-action-label";
 import SpaceImageCustomLayerForm from "./SpaceImageCustomLayerForm.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload>; compact?: boolean; open: boolean }>();
@@ -95,7 +95,7 @@ function openAiSettings() {
           :title="compact ? t('spaces.media.imageEditor.layers.title') : undefined"
         >
           <Layers3 class="size-4.5" :stroke-width="1.6" />
-          <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{
+          <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(Boolean(compact))]">{{
             t("spaces.media.imageEditor.layers.title")
           }}</span>
         </button>

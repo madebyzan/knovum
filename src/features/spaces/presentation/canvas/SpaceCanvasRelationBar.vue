@@ -14,7 +14,8 @@ import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { CANVAS_RELATION_COLORS, type CanvasRelationColor } from "../../canvas/schema/document";
-import { SPACE_RELATION_KINDS, type SpaceRelationKind } from "../../model/relations/relation";
+import { relationKinds } from "../../contracts/generated/contract-values";
+import type { RelationKind } from "../../contracts/generated/RelationKind";
 import { useSpaceStore } from "../../session/space-store";
 import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 import SpaceCanvasColorSwatches from "./SpaceCanvasColorSwatches.vue";
@@ -34,7 +35,7 @@ const selected = computed(() => {
 const selectedColor = computed<CanvasRelationColor>(
   () => relationStyles.value?.find(({ relationId }) => relationId === selected.value?.id)?.color ?? "neutral",
 );
-const colorValues: Record<CanvasRelationColor, string> = {
+const COLOR_VALUES: Record<CanvasRelationColor, string> = {
   neutral: "var(--color-fg-secondary)",
   blue: "var(--color-content-blue)",
   green: "var(--color-content-green)",
@@ -45,7 +46,7 @@ const colorValues: Record<CanvasRelationColor, string> = {
 const colorOptions = computed(() =>
   CANVAS_RELATION_COLORS.map((value) => ({
     value,
-    color: colorValues[value],
+    color: COLOR_VALUES[value],
     label: t(`spaces.knowledge.relations.colors.${value}`),
   })),
 );
@@ -69,7 +70,7 @@ watchEffect((cleanup) => {
     );
   }
 });
-async function updateKind(kind: SpaceRelationKind) {
+async function updateKind(kind: RelationKind) {
   if (!selected.value || selected.value.kind === kind || mutationPending.value) return;
   mutationPending.value = true;
   try {
@@ -120,7 +121,7 @@ function setColor(value: string) {
         </UiIconButton>
       </template>
       <UiDropdownMenuItem
-        v-for="kind in SPACE_RELATION_KINDS"
+        v-for="kind in relationKinds"
         :key="kind"
         :disabled="mutationPending"
         @select="updateKind(kind)"

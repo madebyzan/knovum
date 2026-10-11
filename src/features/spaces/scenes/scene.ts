@@ -1,5 +1,6 @@
+import type { RelationKind } from "../contracts/generated/RelationKind";
+import type { RelationStatus } from "../contracts/generated/RelationStatus";
 import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
-import type { SpaceRelationKind, SpaceRelationStatus } from "../model/relations/relation";
 
 export interface SpaceScene {
   id: string;
@@ -11,8 +12,8 @@ export interface SpaceScene {
   viewportZoom: number;
   orderIndex: number;
   focusStructureNodeIds: string[];
-  relationKinds: SpaceRelationKind[];
-  relationStatuses: SpaceRelationStatus[];
+  relationKinds: RelationKind[];
+  relationStatuses: RelationStatus[];
   queryFilter: SpaceSavedViewFilter;
   createdAt: number;
   updatedAt: number;

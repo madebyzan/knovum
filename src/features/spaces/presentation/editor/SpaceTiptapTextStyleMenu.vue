@@ -9,8 +9,8 @@ import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 
 const props = defineProps<{ editor: Editor }>();
 const { t } = useI18n();
-const headings = [1, 2, 3, 4, 5, 6] as const;
-const activeHeading = computed(() => headings.find((level) => props.editor.isActive("heading", { level })));
+const HEADINGS = [1, 2, 3, 4, 5, 6] as const;
+const activeHeading = computed(() => HEADINGS.find((level) => props.editor.isActive("heading", { level })));
 const currentLabel = computed(() =>
   activeHeading.value ? `H${activeHeading.value}` : t("spaces.richtext.paragraph"),
 );
@@ -35,7 +35,7 @@ const currentLabel = computed(() =>
       <Check v-if="editor.isActive('paragraph')" class="ml-auto size-3 text-fg-accent" />
     </UiDropdownMenuItem>
     <UiDropdownMenuItem
-      v-for="level in headings"
+      v-for="level in HEADINGS"
       :key="level"
       @select="editor.chain().focus().toggleHeading({ level }).run()"
     >

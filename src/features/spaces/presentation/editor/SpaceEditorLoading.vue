@@ -5,8 +5,8 @@ import { useI18n } from "vue-i18n";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 
 const { t } = useI18n();
-const toolbarPlaceholders = ["w-8", "w-8", "w-12", "w-8", "w-8", "w-8", "w-16"];
-const paragraphPlaceholders = ["w-full", "w-11/12", "w-4/5", "w-full", "w-2/3"];
+const TOOLBAR_PLACEHOLDERS = ["w-8", "w-8", "w-12", "w-8", "w-8", "w-8", "w-16"];
+const PARAGRAPH_PLACEHOLDERS = ["w-full", "w-11/12", "w-4/5", "w-full", "w-2/3"];
 </script>
 
 <template>
@@ -30,7 +30,7 @@ const paragraphPlaceholders = ["w-full", "w-11/12", "w-4/5", "w-full", "w-2/3"];
       class="flex h-toolbar shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome/80 px-3"
     >
       <span
-        v-for="(placeholder, index) in toolbarPlaceholders"
+        v-for="(placeholder, index) in TOOLBAR_PLACEHOLDERS"
         :key="index"
         class="h-5 rounded-md bg-surface-skeleton"
         :class="placeholder"
@@ -42,7 +42,7 @@ const paragraphPlaceholders = ["w-full", "w-11/12", "w-4/5", "w-full", "w-2/3"];
         <p class="mt-3 text-caption text-fg-secondary">{{ t("spaces.editor.loadingHint") }}</p>
         <div class="mt-10 space-y-3">
           <div
-            v-for="(placeholder, index) in paragraphPlaceholders"
+            v-for="(placeholder, index) in PARAGRAPH_PLACEHOLDERS"
             :key="index"
             class="h-3 rounded-md bg-surface-skeleton"
             :class="placeholder"

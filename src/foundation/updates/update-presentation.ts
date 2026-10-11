@@ -1,7 +1,7 @@
 import type { UpdateFailure } from "../../shared/contracts/generated/UpdateFailure";
 import type { UpdateState } from "../../shared/contracts/generated/UpdateState";
 
-export const updateStatusKeys: Record<Exclude<UpdateState["status"], "failed">, string> = {
+export const UPDATE_STATUS_KEYS: Record<Exclude<UpdateState["status"], "failed">, string> = {
   disabled: "settings.updates.status.disabled",
   idle: "settings.updates.status.idle",
   checking: "settings.updates.status.checking",
@@ -13,7 +13,7 @@ export const updateStatusKeys: Record<Exclude<UpdateState["status"], "failed">, 
   installing: "settings.updates.status.installing",
 };
 
-export const updateFailureKeys: Record<UpdateFailure, string> = {
+export const UPDATE_FAILURE_KEYS: Record<UpdateFailure, string> = {
   check: "settings.updates.failure.check",
   download: "settings.updates.failure.download",
   signature: "settings.updates.failure.signature",

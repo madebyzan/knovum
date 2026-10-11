@@ -16,18 +16,18 @@ const props = withDefaults(
 );
 const emit = defineEmits<{ begin: [tool: ImageEditTool] }>();
 const { t } = useI18n();
-const labels: Record<ImageEditTool, string> = {
+const TOOL_LABEL_KEYS: Record<ImageEditTool, string> = {
   adjust: "spaces.media.imageEditor.adjust.title",
   crop: "spaces.media.imageEditor.crop.title",
   transform: "spaces.media.imageEditor.transform.title",
 };
-const icons = { adjust: SlidersHorizontal, crop: Crop, transform: RotateCw };
+const ICONS = { adjust: SlidersHorizontal, crop: Crop, transform: RotateCw };
 </script>
 
 <template>
   <SpaceCanvasActionTrigger
-    :label="t(labels[mode])"
-    :icon="icons[mode]"
+    :label="t(TOOL_LABEL_KEYS[mode])"
+    :icon="ICONS[mode]"
     :compact="compact"
     :menu-item="menuItem"
     :disabled="disabled"

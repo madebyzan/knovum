@@ -1,10 +1,11 @@
 import { ref, shallowRef } from "vue";
 
+import type { RelationKind } from "../contracts/generated/RelationKind";
+import type { RelationStatus } from "../contracts/generated/RelationStatus";
 import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
 import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
-import type { SpaceRelationKind, SpaceRelationStatus } from "../model/relations/relation";
 
 export interface RevealRequest {
   ids: string[];
@@ -66,8 +67,8 @@ export function createSpaceUiState() {
     outlineRenameStructureNodeId: shallowRef<string | null>(null),
     recentlyDeletedSpaceId: shallowRef<string | null>(),
     thumbnailDirty: ref(true),
-    relationKindFilter: ref<SpaceRelationKind[]>([]),
-    relationStatusFilter: ref<SpaceRelationStatus[]>(["active", "contested"]),
+    relationKindFilter: ref<RelationKind[]>([]),
+    relationStatusFilter: ref<RelationStatus[]>(["active", "contested"]),
     savedQueryFilter: ref<SpaceSavedViewFilter>({}),
   };
 }

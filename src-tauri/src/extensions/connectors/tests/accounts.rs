@@ -1,5 +1,8 @@
 use super::accounts;
-use crate::extensions::{contracts::*, database};
+use crate::extensions::{
+    contracts::{ConnectorAccount, ConnectorAuthorization},
+    database,
+};
 use serde_json::json;
 use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
 

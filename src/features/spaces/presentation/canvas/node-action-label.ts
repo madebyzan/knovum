@@ -1,4 +1,4 @@
-export const nodeActionLabelClass =
+export const NODE_ACTION_LABEL_CLASS =
   "inline-block overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-150 ease-standard motion-reduce:transition-none";
 
 export function nodeActionLabelState(compact: boolean) {

@@ -9,8 +9,8 @@ import CanvasGridLayer from "./presentation/CanvasGridLayer.vue";
 import CanvasMarquee from "./presentation/CanvasMarquee.vue";
 import CanvasSceneLayers from "./presentation/CanvasSceneLayers.vue";
 import CanvasSectionCandidateFeedback from "./presentation/CanvasSectionCandidateFeedback.vue";
+import CanvasStructureEditingLayers from "./presentation/CanvasStructureEditingLayers.vue";
 import CanvasStructureHud from "./presentation/CanvasStructureHud.vue";
-import CanvasStructureInteractionLayer from "./presentation/CanvasStructureInteractionLayer.vue";
 import CanvasStructureSectionsLayer from "./presentation/CanvasStructureSectionsLayer.vue";
 import { useKonvaCanvasRuntime } from "./use-konva-canvas-runtime";
 
@@ -24,6 +24,19 @@ const selectGesturesEnabled = computed(
     props.canvasGesturesEnabled &&
     props.tool === "select" &&
     !runtime.viewport.panning.value,
+);
+const isInteractive = computed(
+  () =>
+    selectGesturesEnabled.value &&
+    !runtime.gestures.busy.value &&
+    !runtime.capturesCanvasInteraction.value &&
+    !runtime.viewport.spacePressed.value,
+);
+const selectionChromeVisible = computed(
+  () =>
+    selectGesturesEnabled.value &&
+    !runtime.viewport.spacePressed.value &&
+    runtime.directManipulation.value !== "drag",
 );
 const cursorClass = computed(() => {
   if (runtime.connectors.draft.value) return "cursor-crosshair";
@@ -75,17 +88,8 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         @error="events.onError"
       />
       <CanvasSceneLayers
-        :interactive="
-          selectGesturesEnabled &&
-          !runtime.gestures.busy.value &&
-          !runtime.capturesCanvasInteraction.value &&
-          !runtime.viewport.spacePressed.value
-        "
-        :selection-chrome-visible="
-          selectGesturesEnabled &&
-          !runtime.viewport.spacePressed.value &&
-          runtime.directManipulation.value !== 'drag'
-        "
+        :interactive="isInteractive"
+        :selection-chrome-visible="selectionChromeVisible"
         :connector-draft="runtime.connectors.draft.value"
         :feedback="runtime.feedback.value"
         :palette="runtime.palette.value"
@@ -116,52 +120,11 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         :palette="runtime.palette.value"
         :zoom="runtime.viewport.viewport.value.zoom"
       />
-      <CanvasStructureInteractionLayer
-        :groups="runtime.structure.structureScene.value.groups"
+      <CanvasStructureEditingLayers
+        :runtime="runtime"
+        :interactive="isInteractive"
+        :selection-chrome-visible="selectionChromeVisible"
         :group-scope-path="groupScopePath"
-        :group-transform-enabled="runtime.canTransformGroups.value"
-        :interactive="
-          selectGesturesEnabled &&
-          !runtime.gestures.busy.value &&
-          !runtime.capturesCanvasInteraction.value &&
-          !runtime.viewport.spacePressed.value
-        "
-        :selection-chrome-visible="
-          selectGesturesEnabled &&
-          !runtime.viewport.spacePressed.value &&
-          runtime.directManipulation.value !== 'drag'
-        "
-        :palette="runtime.palette.value"
-        :sections="runtime.visibility.visibleSections.value"
-        :selected-ids="runtime.selection.structureNodeIds.value"
-        :drop-preview="runtime.structureInteractions.dropPreview.value"
-        :zoom="runtime.viewport.viewport.value.zoom"
-        @collapse="runtime.structureInteractions.collapse"
-        @enter-group="runtime.structureInteractions.enterGroup"
-        @drag-start="runtime.nodeDrag.begin"
-        @drag-move="(_id, event) => runtime.nodeDrag.move(event)"
-        @gesture-end="runtime.finishDrag"
-        @rename="runtime.structureInteractions.beginRename"
-        @resize-start="
-          (id, corner, event) => {
-            runtime.pointer.markSelectionDragged();
-            runtime.structureGestures.beginResize(
-              id,
-              corner,
-              event.target,
-              runtime.pointer.pressedCanvasPoint.value!,
-            );
-          }
-        "
-        @resize-move="runtime.structureGestures.resize"
-        @pointer-down="runtime.pointer.structurePointerDown"
-        @transform-start="
-          (id, event) => {
-            runtime.pointer.markSelectionDragged();
-            runtime.structureGestures.beginTransform(id, event.target);
-          }
-        "
-        @transform="runtime.structureGestures.transform"
       />
       <CanvasMarquee
         :bounds="runtime.selection.marqueeRect.value"

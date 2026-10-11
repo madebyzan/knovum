@@ -5,8 +5,8 @@ import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, h, reactive, shallowRef } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
-import { defaultCreationLibrary } from "../../../foundation/ai/schema/creation-library";
-import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-settings";
+import { DEFAULT_CREATION_LIBRARY } from "../../../foundation/ai/schema/creation-library";
+import { DEFAULT_AI_MODEL_SETTINGS } from "../../../foundation/ai/schema/model-settings";
 import { i18n } from "../../../foundation/i18n/instance";
 import { archiveSettingsKey, type ArchiveSettingsContract } from "../../../shared/contracts/archive-settings";
 import UiSettingsHeaderActions from "../../../shared/ui/UiSettingsHeaderActions.vue";
@@ -35,13 +35,13 @@ vi.mock("@tauri-apps/api/window", () => ({ getCurrentWindow: () => ({ label: "ma
 const ready = shallowRef(false);
 const loadError = shallowRef<Error>();
 const aiStore = reactive({
-  settings: shallowRef(defaultAiModelSettings),
+  settings: shallowRef(DEFAULT_AI_MODEL_SETTINGS),
   ready,
   loadError,
   ensureLoaded: async () => {},
 });
 const creationStore = reactive({
-  library: shallowRef(defaultCreationLibrary),
+  library: shallowRef(DEFAULT_CREATION_LIBRARY),
   ready,
   loadError: shallowRef<Error>(),
   ensureLoaded: async () => {},

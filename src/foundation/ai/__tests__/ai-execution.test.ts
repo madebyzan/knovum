@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { isProxy, reactive } from "vue";
 
 import { availableExecutionTargets, availableModelTargets, defaultExecutionTarget } from "../ai-execution";
-import { defaultAiModelSettings } from "../schema/model-settings";
+import { DEFAULT_AI_MODEL_SETTINGS } from "../schema/model-settings";
 
 describe("execution target options", () => {
   it("returns a plain default target when settings are reactive", () => {
-    const settings = reactive(structuredClone(defaultAiModelSettings));
+    const settings = reactive(structuredClone(DEFAULT_AI_MODEL_SETTINGS));
     settings.defaults.knowledge = {
       type: "model",
       connectionId: "local-provider",
@@ -27,7 +27,7 @@ describe("execution target options", () => {
   it.each(["visual-understanding", "image-generation", "video-generation"] as const)(
     "offers a configured model with the capability required by %s",
     (purpose) => {
-      const settings = structuredClone(defaultAiModelSettings);
+      const settings = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
       settings.connections.push({
         id: "media",
         name: "Media",
@@ -50,7 +50,7 @@ describe("execution target options", () => {
   );
 
   it("does not mix desktop Agents into model execution routes", () => {
-    const settings = structuredClone(defaultAiModelSettings);
+    const settings = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
     settings.desktopAgents.push({ kind: "codex", enabled: true });
     expect(availableModelTargets(settings, "image-generation")).toEqual([]);
   });
@@ -72,7 +72,7 @@ it("keeps distinct model references separate when identifiers contain separators
 });
 
 it("inherits an explicitly selected desktop Agent across product tasks without model connections", () => {
-  const settings = structuredClone(defaultAiModelSettings);
+  const settings = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
   settings.desktopAgents = [{ kind: "codex", enabled: true }];
   settings.defaults.defaultTarget = { type: "agent", runtimeKind: "codex" };
   for (const purpose of [
@@ -93,7 +93,7 @@ it("inherits an explicitly selected desktop Agent across product tasks without m
   expect(settings.connections).toEqual([]);
 });
 it("does not choose an executor just because it was enabled", () => {
-  const settings = structuredClone(defaultAiModelSettings);
+  const settings = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
   settings.desktopAgents = [{ kind: "codex", enabled: true }];
   expect(defaultExecutionTarget(settings, "knowledge")).toBeNull();
 });

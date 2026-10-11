@@ -1,5 +1,8 @@
 use super::tools::CatalogSelection;
-use crate::extensions::contracts::*;
+use crate::extensions::contracts::{
+    AgentConnectionSelection, AgentExtensionSelection, AgentToolBinding, McpCatalogTool,
+    McpConnection, McpConnectionCatalog, McpToolPermission, McpToolPolicy,
+};
 use serde_json::json;
 pub(super) fn fixture() -> (
     McpConnection,

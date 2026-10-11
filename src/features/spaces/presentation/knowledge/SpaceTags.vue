@@ -41,7 +41,9 @@ async function applyTag(tag = draft.value) {
   if (saved && store.activeSpaceId === spaceId && draft.value === initialDraft) draft.value = "";
 }
 
-const removeTag = (tag: string) => updateTags((tags) => without(tags, tag));
+function removeTag(tag: string) {
+  return updateTags((tags) => without(tags, tag));
+}
 
 async function updateTags(update: (tags: readonly string[]) => string[]) {
   if (saving.value || !nodeOperations.allows("edit")) return false;

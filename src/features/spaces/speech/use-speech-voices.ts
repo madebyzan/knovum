@@ -4,19 +4,19 @@ import { computed } from "vue";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import { createPresetVoice, listVoiceRevisions } from "./ipc";
-import { voiceQueryKeys } from "./voice-query-keys";
+import { VOICE_QUERY_KEYS } from "./voice-query-keys";
 
 export function useSpeechVoices() {
   const client = useQueryClient();
-  const query = useQuery({ queryKey: voiceQueryKeys.revisions, queryFn: listVoiceRevisions });
+  const query = useQuery({ queryKey: VOICE_QUERY_KEYS.revisions, queryFn: listVoiceRevisions });
   const creation = useMutation({
     mutationFn: createPresetVoice,
     onSuccess: async (voice) => {
-      client.setQueryData<VoiceLibraryRevision[]>(voiceQueryKeys.revisions, (current) => [
+      client.setQueryData<VoiceLibraryRevision[]>(VOICE_QUERY_KEYS.revisions, (current) => [
         voice,
         ...(current ?? []).filter(({ revisionId }) => revisionId !== voice.revisionId),
       ]);
-      await client.invalidateQueries({ queryKey: voiceQueryKeys.profiles });
+      await client.invalidateQueries({ queryKey: VOICE_QUERY_KEYS.profiles });
     },
   });
 

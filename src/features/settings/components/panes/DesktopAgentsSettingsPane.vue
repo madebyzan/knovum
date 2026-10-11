@@ -39,10 +39,12 @@ const failure = computed(() =>
       : undefined,
 );
 
-const installation = (kind: ExternalAgentKind) =>
-  installations.value.find((agentInstallation) => agentInstallation.kind === kind);
-const isEnabled = (kind: ExternalAgentKind) =>
-  settings.value.desktopAgents.some((agent) => agent.kind === kind);
+function findInstallation(kind: ExternalAgentKind) {
+  return installations.value.find((agentInstallation) => agentInstallation.kind === kind);
+}
+function isEnabled(kind: ExternalAgentKind) {
+  return settings.value.desktopAgents.some((agent) => agent.kind === kind);
+}
 
 async function setEnabled(kind: ExternalAgentKind, enabled: boolean) {
   if (!ready.value || saving.value) return;
@@ -106,7 +108,7 @@ onMounted(load);
             v-for="agent in agents"
             :key="agent.kind"
             :agent="agent"
-            :installation="installation(agent.kind)"
+            :installation="findInstallation(agent.kind)"
             :enabled="isEnabled(agent.kind)"
             :checking="inspecting"
             :check-failed="Boolean(installationError)"

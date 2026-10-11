@@ -10,7 +10,7 @@ import { confirmAction } from "../../../../shared/ui/confirm-action";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceObjectFieldDefinition, SpaceObjectFieldKind } from "../model/object-types";
 import { createObjectType, deleteObjectType, updateObjectType } from "../persistence/knowledge-operations";
-import { spaceKnowledgeQueryKeys } from "../queries/query-options";
+import { SPACE_KNOWLEDGE_QUERY_KEYS } from "../queries/query-options";
 import { useSpaceObjectTypesQuery } from "../queries/use-knowledge-queries";
 
 export function useKnowledgeTypeEditor(open: Ref<boolean>) {
@@ -102,7 +102,7 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
         editingId.value = input.id;
         baseline.value = fingerprint();
       }
-      await queryClient.invalidateQueries({ queryKey: spaceKnowledgeQueryKeys.objectTypes(spaceId) });
+      await queryClient.invalidateQueries({ queryKey: SPACE_KNOWLEDGE_QUERY_KEYS.objectTypes(spaceId) });
     } catch (cause) {
       error.value = getErrorMessage(cause);
     } finally {
@@ -125,7 +125,7 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
       )
         return;
       await deleteObjectType(id, spaceId);
-      await queryClient.invalidateQueries({ queryKey: spaceKnowledgeQueryKeys.objectTypes(spaceId) });
+      await queryClient.invalidateQueries({ queryKey: SPACE_KNOWLEDGE_QUERY_KEYS.objectTypes(spaceId) });
       saving.value = false;
       if (activeSpaceId.value === spaceId) reset();
     } catch (cause) {

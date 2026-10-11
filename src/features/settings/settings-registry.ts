@@ -12,8 +12,8 @@ import {
 } from "@lucide/vue";
 import type { Component } from "vue";
 
-import { aiSettingsDefinition } from "./ai-settings-definition";
-import { backupSettingsDefinition } from "./backup/settings-definition";
+import { AI_SETTINGS_DEFINITION } from "./ai-settings-definition";
+import { BACKUP_SETTINGS_DEFINITION } from "./backup/settings-definition";
 import type { SettingsPaneId } from "./settings-pane";
 
 export type SettingsGroupId = "general" | "intelligence" | "data" | "information";
@@ -74,7 +74,7 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
       },
     ],
   },
-  aiSettingsDefinition,
+  AI_SETTINGS_DEFINITION,
   {
     id: "localModels",
     group: "intelligence",
@@ -142,7 +142,7 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
       },
     ],
   },
-  backupSettingsDefinition,
+  BACKUP_SETTINGS_DEFINITION,
   {
     id: "archivedSpaces",
     group: "data",

@@ -13,10 +13,10 @@ const { t } = useI18n();
 const open = ref(false);
 const rows = ref(1);
 const cols = ref(1);
-const size = 8;
-const cells = range(0, size * size).map((index) => ({
-  row: Math.floor(index / size) + 1,
-  col: (index % size) + 1,
+const TABLE_PICKER_SIZE = 8;
+const cells = range(0, TABLE_PICKER_SIZE * TABLE_PICKER_SIZE).map((index) => ({
+  row: Math.floor(index / TABLE_PICKER_SIZE) + 1,
+  col: (index % TABLE_PICKER_SIZE) + 1,
 }));
 function insertTable() {
   props.editor.chain().focus().insertTable({ rows: rows.value, cols: cols.value, withHeaderRow: true }).run();

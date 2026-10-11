@@ -1,7 +1,7 @@
 import { difference, isPlainObject } from "es-toolkit";
 import { describe, expect, it } from "vitest";
 
-import { dynamicLocaleKeyPrefixes, dynamicLocaleKeys } from "../../../locales/dynamic-keys";
+import { DYNAMIC_LOCALE_KEY_PREFIXES, DYNAMIC_LOCALE_KEYS } from "../../../locales/dynamic-keys";
 import { localeMessages } from "../../../locales/locale-registry";
 
 type LocaleTree = { readonly [key: string]: LocaleTree | string };
@@ -133,21 +133,21 @@ describe("locale completeness", () => {
 
   it("keeps every message key reachable from product code", () => {
     const referenced = collectReferencedKeyLiterals();
-    const runtimeResolved: readonly string[] = dynamicLocaleKeys;
+    const runtimeResolved: readonly string[] = DYNAMIC_LOCALE_KEYS;
     const unreachable = [...enKeys].filter(
       (key) =>
         !referenced.has(key) &&
         !runtimeResolved.includes(key) &&
-        !dynamicLocaleKeyPrefixes.some((prefix) => key.startsWith(prefix)),
+        !DYNAMIC_LOCALE_KEY_PREFIXES.some((prefix) => key.startsWith(prefix)),
     );
     expect(unreachable).toEqual([]);
   });
 
   it("keeps the runtime-resolved key allowlist narrowed to real keys", () => {
-    const stalePrefixes = dynamicLocaleKeyPrefixes.filter(
+    const stalePrefixes = DYNAMIC_LOCALE_KEY_PREFIXES.filter(
       (prefix) => ![...enKeys].some((key) => key.startsWith(prefix)),
     );
-    const staleKeys = dynamicLocaleKeys.filter((key) => !enKeys.has(key));
+    const staleKeys = DYNAMIC_LOCALE_KEYS.filter((key) => !enKeys.has(key));
     expect([...stalePrefixes, ...staleKeys]).toEqual([]);
   });
 });

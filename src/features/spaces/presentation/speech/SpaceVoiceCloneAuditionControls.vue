@@ -10,7 +10,7 @@ import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "../canvas/canvas-action-classes";
-import { nodeActionLabelClass, nodeActionLabelState } from "../canvas/node-action-label";
+import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "../canvas/node-action-label";
 import type { useCanvasVoiceClone } from "./use-canvas-voice-clone";
 import VoiceCandidateReviews from "./VoiceCandidateReviews.vue";
 
@@ -63,7 +63,7 @@ watch(
             :stroke-width="1.6"
           />
           <WandSparkles v-else class="size-4.5" :stroke-width="1.6" />
-          <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
+          <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(compact)]">{{
             t("spaces.speech.voice.candidate.generate")
           }}</span>
         </button>
@@ -119,7 +119,7 @@ watch(
           data-testid="clone-auditions"
         >
           <Headphones class="size-4.5" :stroke-width="1.6" /><span
-            :class="[nodeActionLabelClass, nodeActionLabelState(compact)]"
+            :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(compact)]"
             >{{ t("spaces.speech.voice.candidate.auditions") }}</span
           ><span class="tabular-nums">{{ form.candidates.length }}</span>
         </button>

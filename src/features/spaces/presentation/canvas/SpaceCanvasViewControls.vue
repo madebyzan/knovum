@@ -16,7 +16,7 @@ const { t } = useI18n();
 const session = getCanvasEditorSession();
 const zoom = computed(() => Math.round((session.viewport.value?.zoom ?? 1) * 100));
 const hasSelection = computed(() => Boolean(session.selection.value.nodeIds.length));
-const zoomPresets = [25, 50, 75, 100, 125, 200] as const;
+const ZOOM_PRESETS = [25, 50, 75, 100, 125, 200] as const;
 
 function zoomIn() {
   session.activeEditor.value?.zoomIn();
@@ -71,7 +71,7 @@ function zoomToSelection() {
           </button>
         </ToolbarButton>
       </template>
-      <UiDropdownMenuItem v-for="preset in zoomPresets" :key="preset" @select="setZoom(preset)">
+      <UiDropdownMenuItem v-for="preset in ZOOM_PRESETS" :key="preset" @select="setZoom(preset)">
         <Check class="size-3.5" :class="zoom === preset ? 'visible' : 'invisible'" />
         {{ preset }}%
         <UiKbd v-if="preset === 100" :shortcut="SPACE_COMMAND_SHORTCUTS.resetZoom" class="ml-auto" />

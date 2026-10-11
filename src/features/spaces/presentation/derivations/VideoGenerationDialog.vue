@@ -14,7 +14,7 @@ const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{ sourceTitle: string }>();
 const emit = defineEmits<{ submit: [draft: VideoDraft] }>();
 const { t } = useI18n();
-const durationOptions = [
+const DURATION_OPTIONS = [
   { value: "5", label: "5s", seconds: 5 },
   { value: "10", label: "10s", seconds: 10 },
   { value: "15", label: "15s", seconds: 15 },
@@ -33,7 +33,7 @@ watch(open, (isOpen) => {
 });
 
 function selectDuration(value: string) {
-  const option = durationOptions.find((duration) => duration.value === value);
+  const option = DURATION_OPTIONS.find((duration) => duration.value === value);
   if (option) form.durationSeconds = option.seconds;
 }
 </script>
@@ -61,7 +61,7 @@ function selectDuration(value: string) {
         /><UiSelect
           :model-value="String(form.durationSeconds)"
           :label="t('spaces.creation.video.generation.duration')"
-          :options="durationOptions"
+          :options="DURATION_OPTIONS"
           @update:model-value="selectDuration"
         />
       </div>

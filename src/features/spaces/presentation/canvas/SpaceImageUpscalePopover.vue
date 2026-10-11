@@ -11,7 +11,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { imageActionHelp } from "./image-action-help";
-import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
+import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "./node-action-label";
 import SpaceImageExecutionSelect from "./SpaceImageExecutionSelect.vue";
 import { useImageDerivationActions } from "./use-image-derivation-actions";
 
@@ -38,7 +38,7 @@ const {
   open: toRef(props, "open"),
   close: () => emit("update:open", false),
 });
-const sizes = [2048, 4096, 8192] as const;
+const UPSCALE_SIZES = [2048, 4096, 8192] as const;
 </script>
 
 <template>
@@ -59,7 +59,7 @@ const sizes = [2048, 4096, 8192] as const;
           :title="compact ? t('spaces.media.imageEditor.upscale.action') : undefined"
         >
           <Maximize2 class="size-4.5" :stroke-width="1.6" />
-          <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{
+          <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(Boolean(compact))]">{{
             t("spaces.media.imageEditor.upscale.action")
           }}</span>
         </button>
@@ -73,7 +73,7 @@ const sizes = [2048, 4096, 8192] as const;
       />
     </div>
     <UiTooltip
-      v-for="size in sizes"
+      v-for="size in UPSCALE_SIZES"
       :key="size"
       :text="imageActionHelp(optionAvailability(size), t)?.label ?? ''"
       :disabled="canRunAction(optionAvailability(size))"

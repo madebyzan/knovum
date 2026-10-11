@@ -12,7 +12,9 @@ const props = defineProps<{
   sourceDurationMs: number;
 }>();
 const emit = defineEmits<{ edit: [project: VideoEditProject, mergeKey?: string] }>();
-const seconds = (milliseconds: number) => (milliseconds / 1_000).toFixed(3);
+function formatSeconds(milliseconds: number) {
+  return (milliseconds / 1_000).toFixed(3);
+}
 const maximum = computed(() => Math.max(props.sourceDurationMs, props.clip.endMs));
 
 function patch(change: Partial<VideoClip>, mergeKey?: string) {
@@ -26,7 +28,7 @@ function changeTime(event: Event, edge: "start" | "end") {
   const value = Math.round(Number(input.value) * 1_000);
   if (input.value.trim() && Number.isFinite(value) && value >= 0 && value <= maximum.value)
     patch({ [edge === "start" ? "startMs" : "endMs"]: value });
-  input.value = seconds(edge === "start" ? props.clip.startMs : props.clip.endMs);
+  input.value = formatSeconds(edge === "start" ? props.clip.startMs : props.clip.endMs);
 }
 
 function rotate() {
@@ -58,9 +60,9 @@ function flip(edge: "flipHorizontal" | "flipVertical") {
             size="sm"
             type="number"
             min="0"
-            :max="seconds(clip.endMs - 100)"
+            :max="formatSeconds(clip.endMs - 100)"
             step="0.001"
-            :model-value="seconds(clip.startMs)"
+            :model-value="formatSeconds(clip.startMs)"
             @change="changeTime($event, 'start')"
           />
         </label>
@@ -71,10 +73,10 @@ function flip(edge: "flipHorizontal" | "flipVertical") {
             class="mt-1 tabular-nums"
             size="sm"
             type="number"
-            :min="seconds(clip.startMs + 100)"
-            :max="seconds(maximum)"
+            :min="formatSeconds(clip.startMs + 100)"
+            :max="formatSeconds(maximum)"
             step="0.001"
-            :model-value="seconds(clip.endMs)"
+            :model-value="formatSeconds(clip.endMs)"
             @change="changeTime($event, 'end')"
           />
         </label>

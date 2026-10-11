@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 
 import { isApplicationTransitioning } from "../lifecycle/application-transition";
 import { loadCreationLibrary, resetCreationLibrary, saveCreationLibrary } from "./integration-settings";
-import { defaultCreationLibrary, type CreationLibrary } from "./schema/creation-library";
+import { DEFAULT_CREATION_LIBRARY, type CreationLibrary } from "./schema/creation-library";
 import type { GenerationPreset } from "./schema/models";
 import { useIntegrationSettingsState } from "./use-integration-settings-state";
 
@@ -14,7 +14,7 @@ function admit(operation: () => Promise<void>): Promise<void> {
 
 export const useCreationLibraryStore = defineStore("creation-library", () => {
   const { value: library, ...state } = useIntegrationSettingsState<CreationLibrary>({
-    initial: defaultCreationLibrary,
+    initial: DEFAULT_CREATION_LIBRARY,
     load: loadCreationLibrary,
     save: saveCreationLibrary,
     reset: resetCreationLibrary,

@@ -53,7 +53,7 @@ const emit = defineEmits<{
   dismissCapture: [id: string];
   retryCapture: [capture: SpaceUrlCaptureProjection];
 }>();
-const canvasChromeInsets = { top: 8, right: 16, bottom: 8, left: 16 } as const;
+const CANVAS_CHROME_INSETS = { top: 8, right: 16, bottom: 8, left: 16 } as const;
 const { chromeRects } = useCanvasChromeRects();
 const singleCanvasObjectSelected = computed(
   () =>
@@ -117,7 +117,7 @@ const selectionBarGap = computed(() =>
       :bounds="editorSession.selection.value.bounds"
       :members="editorSession.selection.value.members"
       :canvas-to-viewport-point="canvasToViewportPoint"
-      :safe-area="canvasChromeInsets"
+      :safe-area="CANVAS_CHROME_INSETS"
       :reserved="chromeRects"
       :selection-key="selectionKey"
       :kind="selectionSurfaceKind"
@@ -148,7 +148,7 @@ const selectionBarGap = computed(() =>
     <SpaceCanvasWorkflowSelection
       v-if="store.workflowMode"
       :canvas-to-viewport-point="canvasToViewportPoint"
-      :safe-area="canvasChromeInsets"
+      :safe-area="CANVAS_CHROME_INSETS"
       :reserved="chromeRects"
     />
     <SpaceCanvasFeedback

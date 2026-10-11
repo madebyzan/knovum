@@ -43,17 +43,17 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
-const menuRow =
+const MENU_ITEM_CLASS =
   "flex h-interaction cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover data-[disabled]:opacity-40";
 const submenu = SUBMENU_CONTENT_CLASSES;
 const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
-const directImageActions: readonly CreationIntentId[] = ["remove-image-background"];
-const directVideoActions: readonly CreationIntentId[] = ["add-video-subtitles"];
+const DIRECT_IMAGE_ACTIONS: readonly CreationIntentId[] = ["remove-image-background"];
+const DIRECT_VIDEO_ACTIONS: readonly CreationIntentId[] = ["add-video-subtitles"];
 const excludedActions = computed(() => [
   ...(props.excludeDirectImageActions
-    ? directImageActions
+    ? DIRECT_IMAGE_ACTIONS
     : props.nodeBar && props.actions.selectedVideoNode.value
-      ? directVideoActions
+      ? DIRECT_VIDEO_ACTIONS
       : []),
   ...(props.nodeBar ? DOCUMENT_CONVERSION_ACTION_IDS : []),
 ]);
@@ -119,7 +119,7 @@ const excludedActions = computed(() => [
       <SpaceDerivationMenuItems
         v-if="actions.selectedNodes.value.length"
         :derivations="derivations"
-        :row-class="menuRow"
+        :row-class="MENU_ITEM_CLASS"
         :submenu-class="submenu"
         :exclude="excludedActions"
         @invoke="emit('invokeDerivation', $event)"
@@ -132,15 +132,15 @@ const excludedActions = computed(() => [
       </UiDropdownMenuItem>
       <SpaceCanvasArrangeMenu
         :count="actions.state.value.structureNodeIds.length"
-        :row-class="menuRow"
+        :row-class="MENU_ITEM_CLASS"
         :submenu-class="submenu"
         @align="actions.align"
         @auto-layout="actions.autoLayout"
         @distribute="actions.distribute"
       />
-      <SpaceCanvasLayerMenu :row-class="menuRow" :submenu-class="submenu" @move="actions.moveLayer" />
+      <SpaceCanvasLayerMenu :row-class="MENU_ITEM_CLASS" :submenu-class="submenu" @move="actions.moveLayer" />
       <SpaceCanvasParentMenu
-        :row-class="menuRow"
+        :row-class="MENU_ITEM_CLASS"
         :submenu-class="submenu"
         :targets="actions.parentTargets.value"
         @reparent="actions.reparent"

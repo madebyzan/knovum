@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
 import UiSplitterHandle from "../../shared/ui/UiSplitterHandle.vue";
 import FeatureErrorBoundary from "../FeatureErrorBoundary.vue";
-import { workspaceSidebarGeometry } from "../sidebar-geometry";
+import { WORKSPACE_SIDEBAR_GEOMETRY } from "../sidebar-geometry";
 import { useWorkspaceSplitter } from "../use-workspace-splitter";
 import WorkspaceRightSidebar from "./WorkspaceRightSidebar.vue";
 import WorkspaceSidebar from "./WorkspaceSidebar.vue";
@@ -43,7 +43,7 @@ const { handleLayout, leadingPanel, trailingPanel } = useWorkspaceSplitter({
 function commitSidebarWidth() {
   const size = leadingPanel.value?.getSize();
   if (size === 0) emit("set-sidebar-pinned", false);
-  else if (size && size >= workspaceSidebarGeometry.minSize) emit("set-sidebar-width", size);
+  else if (size && size >= WORKSPACE_SIDEBAR_GEOMETRY.minSize) emit("set-sidebar-width", size);
 }
 function commitRightSidebarWidth() {
   const size = trailingPanel.value?.getSize();
@@ -70,8 +70,8 @@ function onDrag(active: boolean, commit: () => void) {
         :order="1"
         size-unit="px"
         :default-size="sidebarPinned ? sidebarWidth : 0"
-        :min-size="workspaceSidebarGeometry.minSize"
-        :max-size="workspaceSidebarGeometry.maxSize"
+        :min-size="WORKSPACE_SIDEBAR_GEOMETRY.minSize"
+        :max-size="WORKSPACE_SIDEBAR_GEOMETRY.maxSize"
         :collapsed-size="0"
         collapsible
       >

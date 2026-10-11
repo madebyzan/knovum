@@ -7,7 +7,7 @@ import SpaceCanvasActionTrigger from "./SpaceCanvasActionTrigger.vue";
 defineProps<{ compact?: boolean; menuItem?: boolean; canAddSubtitles: boolean }>();
 const emit = defineEmits<{ edit: []; addSubtitles: [] }>();
 const { t } = useI18n();
-const tools = [
+const TOOLS = [
   { id: "edit", icon: Scissors, label: "spaces.media.videoEditor.edit" },
   { id: "subtitles", icon: Captions, label: "spaces.creation.video.subtitles.add" },
 ] as const;
@@ -19,7 +19,7 @@ function invoke(actionId: "edit" | "subtitles") {
 
 <template>
   <SpaceCanvasActionTrigger
-    v-for="tool in tools"
+    v-for="tool in TOOLS"
     :key="tool.id"
     :label="t(tool.label)"
     :icon="tool.icon"

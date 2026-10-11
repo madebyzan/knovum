@@ -22,12 +22,12 @@ const { t } = useI18n();
 const editingId = shallowRef<string>();
 const draftTitle = shallowRef("");
 const libraryRoot = useTemplateRef<HTMLElement>("libraryRoot");
-const titleKeys: Record<SpaceLibraryScope, string> = {
+const TITLE_KEYS: Record<SpaceLibraryScope, string> = {
   all: "spaces.space.sections.all",
   recent: "spaces.space.sections.recent",
   favorites: "spaces.space.sections.favorites",
 };
-const title = computed(() => t(titleKeys[libraryScope.value]));
+const title = computed(() => t(TITLE_KEYS[libraryScope.value]));
 const query = refDebounced(libraryQuery, 150);
 const scrollArea = useTemplateRef<InstanceType<typeof UiScrollArea>>("scrollArea");
 const rowsHost = useTemplateRef<HTMLElement>("rowsHost");

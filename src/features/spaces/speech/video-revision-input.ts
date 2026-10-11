@@ -2,14 +2,16 @@ import type { VideoDubbingOutputConfig } from "../contracts/generated/VideoDubbi
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import { milliseconds, type VideoLineDraft } from "./video-dubbing-draft";
 
-export function videoRevisionInput(input: {
+interface VideoRevisionDraftInput {
   config: VideoDubbingOutputConfig | undefined;
   lines: readonly VideoLineDraft[];
   voices: readonly VoiceLibraryRevision[];
   lexicon: Record<string, string>;
   voiceGain: string;
   backgroundGain: string;
-}) {
+}
+
+export function videoRevisionInput(input: VideoRevisionDraftInput) {
   const currentConfig = input.config;
   if (!currentConfig) throw new Error("Video dubbing output configuration is unavailable");
   const voiceByRevisionId = new Map(input.voices.map((voice) => [voice.revisionId, voice]));

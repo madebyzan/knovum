@@ -9,7 +9,7 @@ import {
   cancelConnectorAuthorization,
   disconnectConnectorAccount,
 } from "../../../../foundation/extensions/connector-operations";
-import { extensionQueryKey } from "../../../../foundation/extensions/extension-query";
+import { EXTENSION_QUERY_KEY } from "../../../../foundation/extensions/extension-query";
 import type { ConnectorAccount } from "../../../../shared/contracts/generated/ConnectorAccount";
 import { useSettingsLeaveContext } from "../../../../shared/contracts/settings-leave";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
@@ -61,7 +61,7 @@ async function authorize() {
     error.value = getErrorMessage(cause);
   } finally {
     for (const name of Object.keys(values)) delete values[name];
-    await client.invalidateQueries({ queryKey: extensionQueryKey });
+    await client.invalidateQueries({ queryKey: EXTENSION_QUERY_KEY });
     busy.value = false;
   }
 }
@@ -75,7 +75,7 @@ async function disconnect() {
   } catch (cause) {
     error.value = getErrorMessage(cause);
   } finally {
-    await client.invalidateQueries({ queryKey: extensionQueryKey });
+    await client.invalidateQueries({ queryKey: EXTENSION_QUERY_KEY });
     busy.value = false;
   }
 }

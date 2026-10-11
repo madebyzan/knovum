@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createSpaceNode } from "../canvas/node";
 import { creationIntentCatalog } from "../knowledge-derivations/catalog/creation-intent-catalog";
-import { creationIntentDefinitions } from "../knowledge-derivations/catalog/creation-intent-definitions";
+import { CREATION_INTENT_DEFINITIONS } from "../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import { transcriptFixture } from "./support/media-transcript-fixture";
 
@@ -61,7 +61,7 @@ const indexedVideo = () =>
 
 describe("selection derivation catalog", () => {
   it("defines each capability once without built-in workflow recipes", () => {
-    const ids = creationIntentDefinitions.map(({ id }) => id);
+    const ids = CREATION_INTENT_DEFINITIONS.map(({ id }) => id);
 
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).not.toContain("video-production");
@@ -141,7 +141,7 @@ it("adds subtitles without requiring published transcript knowledge", () => {
   delete video.data.mediaKnowledge;
   const decisions = creationIntentCatalog([video]).decisions;
   expect(decisions["add-video-subtitles"].state).toBe("ready");
-  expect(creationIntentDefinitions.map(({ id }) => id)).not.toContain("extract-subtitles");
+  expect(CREATION_INTENT_DEFINITIONS.map(({ id }) => id)).not.toContain("extract-subtitles");
   expect(creationIntentCatalog([video, note()]).decisions["add-video-subtitles"].state).toBe("hidden");
   video.data.processingState = "processing";
   expect(creationIntentCatalog([video]).decisions["add-video-subtitles"].state).toBe("hidden");

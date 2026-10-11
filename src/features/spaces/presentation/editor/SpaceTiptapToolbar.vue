@@ -11,7 +11,7 @@ import SpaceTiptapMarkControls from "./SpaceTiptapMarkControls.vue";
 
 defineProps<{ editor: Editor }>();
 const { t } = useI18n();
-const alignments = [
+const ALIGNMENTS = [
   { value: "left", icon: AlignLeft },
   { value: "center", icon: AlignCenter },
   { value: "right", icon: AlignRight },
@@ -46,7 +46,7 @@ const alignments = [
       <SpaceTiptapMarkControls :editor="editor" />
       <UiSeparator orientation="vertical" class="mx-1 !h-5" />
       <UiIconButton
-        v-for="alignment in alignments"
+        v-for="alignment in ALIGNMENTS"
         :key="alignment.value"
         :label="t(`spaces.richtext.align.${alignment.value}`)"
         size="sm"

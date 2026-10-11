@@ -7,7 +7,7 @@ import type { WavPrecision } from "../../contracts/generated/WavPrecision";
 defineProps<{ disabled?: boolean }>();
 const model = defineModel<WavPrecision>({ required: true });
 const { t } = useI18n();
-const options = [
+const WAV_PRECISION_OPTIONS = [
   { value: "pcm16", label: "16-bit PCM" },
   { value: "pcm24", label: "24-bit PCM" },
   { value: "float32", label: "32-bit float" },
@@ -21,7 +21,7 @@ const options = [
       v-model="model"
       size="sm"
       :label="t('spaces.speech.audiobook.wavPrecision')"
-      :options
+      :options="WAV_PRECISION_OPTIONS"
       :disabled
     />
   </label>

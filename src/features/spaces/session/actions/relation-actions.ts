@@ -1,5 +1,6 @@
 import type { Ref } from "vue";
 
+import type { RelationKind } from "../../contracts/generated/RelationKind";
 import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack";
 import {
   createRelation as persistRelation,
@@ -16,7 +17,7 @@ import {
   type CreateRelationInput as OwnedCreateRelationInput,
   type RelationPatch,
 } from "../../knowledge/relations/relation-policy";
-import type { SpaceRelation, SpaceRelationKind } from "../../model/relations/relation";
+import type { SpaceRelation } from "../../model/relations/relation";
 
 export interface RelationContext {
   activeSpaceId: Ref<string | undefined>;
@@ -54,7 +55,7 @@ export async function createSpaceRelation(context: RelationContext, input: Creat
 export async function changeSpaceRelationKind(
   context: RelationContext,
   relationId: string,
-  kind: SpaceRelationKind,
+  kind: RelationKind,
 ) {
   const current = context.relations.value.find((relation) => relation.id === relationId);
   if (!current || current.kind === kind) return;

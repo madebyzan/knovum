@@ -1,16 +1,16 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
 import { setDefaultExecutionTarget, setDesktopAgentEnabled } from "../execution-settings";
-import { aiModelSettingsSchema, defaultAiModelSettings } from "../schema/model-settings";
+import { aiModelSettingsSchema, DEFAULT_AI_MODEL_SETTINGS } from "../schema/model-settings";
 
 const state = vi.hoisted(() => ({
-  settings: {} as typeof defaultAiModelSettings,
+  settings: {} as typeof DEFAULT_AI_MODEL_SETTINGS,
   flush: vi.fn<() => Promise<void>>(),
 }));
 vi.mock("../ai-settings-store", () => ({ useAiSettingsStore: () => state }));
 
 beforeEach(() => {
-  state.settings = structuredClone(defaultAiModelSettings);
+  state.settings = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
   state.settings.desktopAgents = [
     { kind: "codex", enabled: true },
     { kind: "gemini_cli", enabled: true },

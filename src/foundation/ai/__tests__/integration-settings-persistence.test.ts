@@ -8,9 +8,9 @@ import {
   saveAiModelSettings,
   saveCreationLibrary,
 } from "../integration-settings";
-import { creationLibrarySchema, defaultCreationLibrary } from "../schema/creation-library";
+import { creationLibrarySchema, DEFAULT_CREATION_LIBRARY } from "../schema/creation-library";
 import type { CreationLibrary } from "../schema/creation-library";
-import { aiModelSettingsSchema, defaultAiModelSettings } from "../schema/model-settings";
+import { aiModelSettingsSchema, DEFAULT_AI_MODEL_SETTINGS } from "../schema/model-settings";
 
 const boundary = vi.hoisted(() => ({
   get: vi.fn<(key: string) => Promise<unknown>>(),
@@ -47,8 +47,8 @@ it("canonicalizes each save once before persisting", async () => {
   const aiParse = vi.spyOn(aiModelSettingsSchema, "parse");
   const creationParse = vi.spyOn(creationLibrarySchema, "parse");
 
-  await saveAiModelSettings(structuredClone(defaultAiModelSettings));
-  await saveCreationLibrary(structuredClone(defaultCreationLibrary));
+  await saveAiModelSettings(structuredClone(DEFAULT_AI_MODEL_SETTINGS));
+  await saveCreationLibrary(structuredClone(DEFAULT_CREATION_LIBRARY));
 
   expect(aiParse).toHaveBeenCalledOnce();
   expect(creationParse).toHaveBeenCalledOnce();
@@ -58,15 +58,15 @@ it("canonicalizes each save once before persisting", async () => {
 it("continues queued writes and reads after a store write fails", async () => {
   const cause = new Error("Store unavailable");
   boundary.save.mockRejectedValueOnce(cause);
-  boundary.get.mockResolvedValueOnce({ schemaVersion: 1, value: defaultCreationLibrary });
+  boundary.get.mockResolvedValueOnce({ schemaVersion: 1, value: DEFAULT_CREATION_LIBRARY });
 
-  const failedWrite = saveCreationLibrary(structuredClone(defaultCreationLibrary));
+  const failedWrite = saveCreationLibrary(structuredClone(DEFAULT_CREATION_LIBRARY));
   const restoredWrite = resetCreationLibrary();
   const read = loadCreationLibrary();
 
   await expect(failedWrite).rejects.toBe(cause);
   await expect(restoredWrite).resolves.toBeUndefined();
-  await expect(read).resolves.toEqual(defaultCreationLibrary);
+  await expect(read).resolves.toEqual(DEFAULT_CREATION_LIBRARY);
   expect(boundary.save).toHaveBeenCalledTimes(2);
   expect(boundary.save.mock.invocationCallOrder[1]).toBeLessThan(boundary.get.mock.invocationCallOrder[0]!);
 });
@@ -121,7 +121,7 @@ it("loads optional routing preferences without a reset and saves through the exi
 });
 
 it("rejects URL credentials before validation or store writes", async () => {
-  const value = structuredClone(defaultAiModelSettings);
+  const value = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
   value.connections.push({
     id: "unsafe",
     name: "Unsafe",

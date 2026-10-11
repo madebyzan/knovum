@@ -2,7 +2,7 @@ import { Aperture, Blend, CircleDotDashed, Contrast } from "@lucide/vue";
 
 import type { ImageAdjustments } from "../../image-editing/image-edit";
 
-export const imageAdjustmentGroups = [
+export const IMAGE_ADJUSTMENT_GROUPS = [
   {
     id: "light",
     icon: Contrast,
@@ -17,4 +17,4 @@ export const imageAdjustmentGroups = [
   keys: readonly (keyof ImageAdjustments)[];
 }>;
 
-export type ImageAdjustmentGroupId = (typeof imageAdjustmentGroups)[number]["id"];
+export type ImageAdjustmentGroupId = (typeof IMAGE_ADJUSTMENT_GROUPS)[number]["id"];

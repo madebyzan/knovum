@@ -1,6 +1,6 @@
 import { DatabaseBackup } from "@lucide/vue";
 
-export const backupSettingsDefinition = {
+export const BACKUP_SETTINGS_DEFINITION = {
   id: "data",
   group: "data",
   titleKey: "settings.data.title",

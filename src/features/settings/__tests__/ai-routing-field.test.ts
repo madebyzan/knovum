@@ -2,7 +2,7 @@ import { mount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
 import { defineComponent } from "vue";
 
-import { defaultAiModelSettings } from "../../../foundation/ai/schema/model-settings";
+import { DEFAULT_AI_MODEL_SETTINGS } from "../../../foundation/ai/schema/model-settings";
 import AiRoutingSettings from "../components/AiRoutingSettings.vue";
 
 vi.mock("../../../foundation/ai/use-execution-catalog-query", () => ({
@@ -11,7 +11,7 @@ vi.mock("../../../foundation/ai/use-execution-catalog-query", () => ({
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 
 it("selects the exact configured target with separator-containing identities and clears the route", () => {
-  const settings = structuredClone(defaultAiModelSettings);
+  const settings = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
   settings.connections = [
     {
       id: "provider:v1",

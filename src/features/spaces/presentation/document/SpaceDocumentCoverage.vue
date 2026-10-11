@@ -33,7 +33,7 @@ watch(
   },
 );
 type DocumentWarning = DocumentCoverage["warnings"][number];
-const warningMessageKeys: Record<DocumentWarning, string> = {
+const WARNING_MESSAGE_KEYS: Record<DocumentWarning, string> = {
   office_vector_drawings_unsupported: "spaces.processing.document.warnings.officeVectorDrawingsUnsupported",
   spreadsheet_image_cell_anchors_unavailable:
     "spaces.processing.document.warnings.spreadsheetImageCellAnchorsUnavailable",
@@ -81,7 +81,7 @@ const warningMessageKeys: Record<DocumentWarning, string> = {
     </p>
     <p v-if="unsupported">{{ $t("spaces.processing.document.visualUnavailable", { count: unsupported }) }}</p>
     <p v-for="warning in report.warnings" :key="warning">
-      {{ $t(warningMessageKeys[warning]) }}
+      {{ $t(WARNING_MESSAGE_KEYS[warning]) }}
     </p>
     <section v-if="resources.length" class="space-y-2 pt-1">
       <header class="flex items-baseline justify-between gap-2">

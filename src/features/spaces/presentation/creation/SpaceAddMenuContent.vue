@@ -40,7 +40,7 @@ const emit = defineEmits<{
   section: [];
 }>();
 const { t } = useI18n();
-const knowledgeOptions = [
+const KNOWLEDGE_OPTIONS = [
   { kind: "concept", icon: Shapes },
   { kind: "question", icon: CircleHelp },
   { kind: "claim", icon: Lightbulb },
@@ -65,7 +65,7 @@ const knowledgeOptions = [
     <DropdownMenuPortal>
       <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="SUBMENU_CONTENT_CLASSES">
         <UiDropdownMenuItem
-          v-for="option in knowledgeOptions"
+          v-for="option in KNOWLEDGE_OPTIONS"
           :key="option.kind"
           @select="emit('knowledge', option.kind)"
         >

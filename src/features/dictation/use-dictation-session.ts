@@ -5,7 +5,7 @@ import { invokeCommand } from "../../foundation/ipc/invoke-command";
 import type { DictationSnapshot } from "./contracts/generated/DictationSnapshot";
 
 const STATE_EVENT = "knovum://dictation-state";
-const idle: DictationSnapshot = {
+const IDLE_DICTATION_SNAPSHOT: DictationSnapshot = {
   phase: "idle",
   resources: null,
   sessionId: null,
@@ -31,7 +31,7 @@ async function copy() {
 }
 
 export function useDictationSession() {
-  const state = shallowRef<DictationSnapshot>(idle);
+  const state = shallowRef<DictationSnapshot>(IDLE_DICTATION_SNAPSHOT);
   let unlisten: UnlistenFn | undefined;
   let epoch = 0;
 

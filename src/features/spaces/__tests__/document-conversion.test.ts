@@ -10,7 +10,7 @@ vi.mock("../runs/resource-run-observation", () => ({
   observeResourceRun: vi.fn<(...args: unknown[]) => void>(),
 }));
 
-import { creationIntentDefinitions } from "../knowledge-derivations/catalog/creation-intent-definitions";
+import { CREATION_INTENT_DEFINITIONS } from "../knowledge-derivations/catalog/creation-intent-definitions";
 import { convertDocument } from "../knowledge-derivations/document/conversion";
 
 type DocumentConversionOptions = Parameters<typeof convertDocument>[0];
@@ -83,7 +83,7 @@ describe("document conversion", () => {
   });
 
   it("registers a localized TXT conversion action", () => {
-    const action = creationIntentDefinitions.find(
+    const action = CREATION_INTENT_DEFINITIONS.find(
       (definition) => definition.id === "convert-document-to-txt",
     );
     expect(action?.labelKey).toBe("spaces.creation.document.conversion.txt");

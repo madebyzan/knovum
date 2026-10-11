@@ -2,19 +2,15 @@ import { viewportToLocalPoint } from "../../../canvas/viewport-to-local-point";
 import type { ImageCanvasSize } from "../../../image-editing/canvas-image-renderer";
 import type { ImagePixelRect } from "../../../image-editing/image-edit";
 
-export function imageCanvasHit({
-  canvas,
-  size,
-  rect,
-  rotation,
-  event,
-}: {
+interface ImageCanvasHitInput {
   canvas: HTMLCanvasElement | null;
   size: ImageCanvasSize;
   rect: ImagePixelRect | undefined;
   rotation: number;
   event: PointerEvent;
-}) {
+}
+
+export function imageCanvasHit({ canvas, size, rect, rotation, event }: ImageCanvasHitInput) {
   if (!canvas || !rect) return;
   const local = viewportToLocalPoint(canvas, event.clientX, event.clientY, rotation);
   const x = (local.x * size.width) / canvas.offsetWidth;

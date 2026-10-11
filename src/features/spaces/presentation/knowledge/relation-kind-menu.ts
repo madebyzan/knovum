@@ -1,8 +1,8 @@
 import { i18n } from "../../../../foundation/i18n/instance";
-import type { SpaceRelationKind } from "../../model/relations/relation";
+import type { RelationKind } from "../../contracts/generated/RelationKind";
 import { popupSpaceContextMenu, spaceCheckItem } from "../../workspace/space-menu";
 
-const relationKinds: readonly SpaceRelationKind[] = [
+const RELATION_KINDS: readonly RelationKind[] = [
   "reference",
   "related",
   "supports",
@@ -16,12 +16,12 @@ const relationKinds: readonly SpaceRelationKind[] = [
 ];
 
 export async function showSpaceRelationKindMenu(
-  current: SpaceRelationKind,
-  update: (kind: SpaceRelationKind) => void | Promise<void>,
+  current: RelationKind,
+  update: (kind: RelationKind) => void | Promise<void>,
 ) {
   const t = i18n.global.t;
   await popupSpaceContextMenu(
-    relationKinds.map((kind) =>
+    RELATION_KINDS.map((kind) =>
       spaceCheckItem(t(`spaces.knowledge.relations.kinds.${kind}`), current === kind, () => update(kind)),
     ),
   );

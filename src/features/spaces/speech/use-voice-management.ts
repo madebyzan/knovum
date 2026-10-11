@@ -12,7 +12,7 @@ import {
   unarchiveVoiceProfile,
 } from "./ipc";
 import { activeVoiceProfileRevision } from "./voice-profile";
-import { voiceQueryKeys } from "./voice-query-keys";
+import { VOICE_QUERY_KEYS } from "./voice-query-keys";
 
 interface ProfileOperation {
   profileId: string;
@@ -22,7 +22,7 @@ interface ProfileOperation {
 export function useVoiceManagement() {
   const client = useQueryClient();
   const query = useQuery({
-    queryKey: voiceQueryKeys.profiles,
+    queryKey: VOICE_QUERY_KEYS.profiles,
     queryFn: async () => {
       const profiles = await listVoiceProfiles();
       profiles.forEach(activeVoiceProfileRevision);
@@ -33,8 +33,8 @@ export function useVoiceManagement() {
     mutationFn: ({ execute }: ProfileOperation) => execute(),
     onSettled: async () => {
       await Promise.all([
-        client.invalidateQueries({ queryKey: voiceQueryKeys.profiles }),
-        client.invalidateQueries({ queryKey: voiceQueryKeys.revisions }),
+        client.invalidateQueries({ queryKey: VOICE_QUERY_KEYS.profiles }),
+        client.invalidateQueries({ queryKey: VOICE_QUERY_KEYS.revisions }),
       ]);
     },
   });

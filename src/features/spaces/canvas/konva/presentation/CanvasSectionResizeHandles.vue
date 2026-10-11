@@ -8,7 +8,7 @@ import type { ProjectedSection } from "../../document/structure-scene";
 import type { SectionResizeCorner } from "../interaction/structure-gesture-preview";
 import type { CanvasPalette } from "./use-canvas-palette";
 
-const corners = ["north-west", "north-east", "south-west", "south-east"] as const;
+const CORNERS = ["north-west", "north-east", "south-west", "south-east"] as const;
 const props = defineProps<{
   interactive: boolean;
   palette: CanvasPalette;
@@ -43,7 +43,7 @@ onScopeDispose(resetCursor);
 
 <template>
   <KonvaCircle
-    v-for="corner in corners"
+    v-for="corner in CORNERS"
     :key="corner"
     :config="{
       x: corner.endsWith('west') ? 0 : width,

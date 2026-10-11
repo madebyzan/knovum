@@ -19,8 +19,8 @@ const emit = defineEmits<{ edit: [project: VideoEditProject, mergeKey?: string] 
 const durationMs = computed(() => projectDurationMs(props.project));
 const style = computed(() => props.item.style);
 const textDraft = shallowRef(props.item.text);
-const presets = ["plain", "outline", "shadow", "badge"] as const;
-const placements = ["top", "center", "bottom"] as const;
+const TEXT_STYLE_PRESETS = ["plain", "outline", "shadow", "badge"] as const;
+const TEXT_PLACEMENTS = ["top", "center", "bottom"] as const;
 watch(
   () => props.item.text,
   (value) => {
@@ -103,7 +103,7 @@ function changeSize(event: Event) {
       </h3>
       <div class="grid grid-cols-4 gap-1.5">
         <button
-          v-for="preset in presets"
+          v-for="preset in TEXT_STYLE_PRESETS"
           :key="preset"
           type="button"
           class="flex h-14 flex-col items-center justify-center gap-0.5 rounded-md border text-caption-sm focus-visible:outline-2 focus-visible:outline-stroke-focus"
@@ -130,7 +130,7 @@ function changeSize(event: Event) {
       </h3>
       <div class="grid grid-cols-3 gap-1">
         <UiButton
-          v-for="placement in placements"
+          v-for="placement in TEXT_PLACEMENTS"
           :key="placement"
           size="sm"
           :variant="item.placement === placement ? 'primary' : 'secondary'"

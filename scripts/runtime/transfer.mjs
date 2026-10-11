@@ -18,10 +18,14 @@ export async function downloadArtifact(
       return await downloadOnce(source, file, headers);
     } catch (error) {
       const url = new URL(source.url);
-      const detail = describeFailure(error);
+      const diagnosticText = describeFailure(error);
       if (!isTransient(error) || attempt === 3)
-        throw new Error(`Runtime download failed: ${url.origin}${url.pathname}: ${detail}`, { cause: error });
-      console.warn(`Retrying runtime download (${attempt}/2): ${url.origin}${url.pathname}: ${detail}`);
+        throw new Error(`Runtime download failed: ${url.origin}${url.pathname}: ${diagnosticText}`, {
+          cause: error,
+        });
+      console.warn(
+        `Retrying runtime download (${attempt}/2): ${url.origin}${url.pathname}: ${diagnosticText}`,
+      );
       // oxlint-disable-next-line no-await-in-loop
       await setTimeout(attempt * 1000);
     }

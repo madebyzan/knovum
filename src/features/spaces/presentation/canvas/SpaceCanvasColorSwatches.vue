@@ -5,7 +5,7 @@ import { computed } from "vue";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
-import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
+import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "./node-action-label";
 
 interface CanvasColorOption {
   value: string;
@@ -40,7 +40,7 @@ const selectedColor = computed(() => props.options.find(({ value }) => value ===
           class="size-3.5 rounded-full ring-1 ring-stroke-default"
           :style="{ backgroundColor: selectedColor }"
         />
-        <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{ label }}</span>
+        <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(Boolean(compact))]">{{ label }}</span>
       </UiButton>
       <UiIconButton v-else :label="label" size="sm">
         <span

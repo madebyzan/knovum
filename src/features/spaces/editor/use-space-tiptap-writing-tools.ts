@@ -6,9 +6,9 @@ import { toast } from "vue-sonner";
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { transformEditorTextStream } from "../../../foundation/ai/editor-transform";
 import {
-  translationTargetLabelKey,
+  TRANSLATION_TARGET_LABEL_KEYS,
   translateTextStream,
-  translationTargets,
+  TRANSLATION_TARGETS,
   type TranslationTarget,
 } from "../../../foundation/ai/translation";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
@@ -44,7 +44,7 @@ export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefin
       ] as const satisfies readonly (readonly [EditorTransformAction, string])[],
   );
   const translations = computed(() =>
-    translationTargets.map((target) => [target, t(translationTargetLabelKey[target])] as const),
+    TRANSLATION_TARGETS.map((target) => [target, t(TRANSLATION_TARGET_LABEL_KEYS[target])] as const),
   );
 
   function notifyMissingSource(action: EditorTransformAction) {

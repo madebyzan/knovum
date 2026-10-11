@@ -2,9 +2,10 @@ import { maxBy, sortBy } from "es-toolkit";
 import type { Ref } from "vue";
 
 import { cleanupDeletedSpaceAssets } from "../assets/asset-operations";
+import type { RelationKind } from "../contracts/generated/RelationKind";
+import type { RelationStatus } from "../contracts/generated/RelationStatus";
 import { snapshotSpaceQueryFilter } from "../knowledge/model/query-filter";
 import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
-import type { SpaceRelationKind, SpaceRelationStatus } from "../model/relations/relation";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { createStructureIndex } from "../model/structure/structure-index";
 import type { SpaceScene } from "./scene";
@@ -16,8 +17,8 @@ interface SceneActionContext {
   scenes: Ref<SpaceScene[]>;
   editSnapshot: Ref<SpaceEditSnapshot>;
   focusNodeIds: Ref<string[]>;
-  relationKinds: Ref<SpaceRelationKind[]>;
-  relationStatuses: Ref<SpaceRelationStatus[]>;
+  relationKinds: Ref<RelationKind[]>;
+  relationStatuses: Ref<RelationStatus[]>;
   queryFilter: Ref<SpaceSavedViewFilter>;
 }
 

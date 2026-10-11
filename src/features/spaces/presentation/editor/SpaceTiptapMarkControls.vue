@@ -12,7 +12,7 @@ import SpaceTiptapLinkControl from "./SpaceTiptapLinkControl.vue";
 
 const props = defineProps<{ editor: Editor }>();
 const { t } = useI18n();
-const highlights = [
+const HIGHLIGHTS = [
   { name: "yellow", color: "var(--color-content-yellow-subtle)" },
   { name: "green", color: "var(--color-content-green-subtle)" },
   { name: "blue", color: "var(--color-content-blue-subtle)" },
@@ -38,7 +38,7 @@ const highlights = [
     </template>
 
     <UiDropdownMenuItem
-      v-for="option in highlights"
+      v-for="option in HIGHLIGHTS"
       :key="option.name"
       @select="editor.chain().focus().setHighlight({ color: option.color }).run()"
     >

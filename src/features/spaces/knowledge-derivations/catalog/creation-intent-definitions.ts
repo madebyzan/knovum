@@ -18,7 +18,7 @@ function decideVideoGeneration(context: CreationSelectionContext): CreationInten
   return context.imageCount > 10 ? { state: "blocked", reason: "too-many-video-images" } : AVAILABLE;
 }
 
-export const creationIntentDefinitions = [
+export const CREATION_INTENT_DEFINITIONS = [
   {
     id: "draft-document",
     labelKey: "spaces.creation.document.generate",
@@ -86,17 +86,17 @@ export const creationIntentDefinitions = [
   },
 ] as const satisfies readonly CreationIntentDefinition[];
 
-type CreationIntent = (typeof creationIntentDefinitions)[number];
+type CreationIntent = (typeof CREATION_INTENT_DEFINITIONS)[number];
 export type CreationIntentId = CreationIntent["id"];
 export type CreationIntentDecisions = Record<CreationIntentId, CreationIntentDecision>;
 
-export const DOCUMENT_CONVERSION_DEFINITIONS = creationIntentDefinitions.filter(
+export const DOCUMENT_CONVERSION_DEFINITIONS = CREATION_INTENT_DEFINITIONS.filter(
   (definition) => "documentFormat" in definition,
 );
 export const DOCUMENT_CONVERSION_ACTION_IDS = DOCUMENT_CONVERSION_DEFINITIONS.map(({ id }) => id);
 
 export function decideCreationIntents(context: CreationSelectionContext): CreationIntentDecisions {
   return Object.fromEntries(
-    creationIntentDefinitions.map((definition) => [definition.id, definition.decide(context)]),
+    CREATION_INTENT_DEFINITIONS.map((definition) => [definition.id, definition.decide(context)]),
   ) as CreationIntentDecisions;
 }

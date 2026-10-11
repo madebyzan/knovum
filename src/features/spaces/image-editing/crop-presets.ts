@@ -10,7 +10,7 @@ interface CropPresetGroup {
   presets: readonly CropPreset[];
 }
 
-export const cropPresetGroups: readonly CropPresetGroup[] = [
+export const CROP_PRESET_GROUPS: readonly CropPresetGroup[] = [
   {
     id: "general",
     presets: [

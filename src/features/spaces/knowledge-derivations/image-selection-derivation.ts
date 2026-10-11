@@ -4,18 +4,16 @@ import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { defaultImageTarget, deriveImage } from "./image-operation";
 import type { DerivationActionStore } from "./start-action";
 
+interface ImageSelectionDerivationInput {
+  selection: ImageSelection;
+  execution: Extract<ImageExecutionTarget, { type: "local" }>;
+  effect: "extract" | "repair";
+}
+
 export async function deriveImageSelection(
   store: DerivationActionStore,
   source: SpaceCanvasNode,
-  {
-    selection,
-    execution,
-    effect,
-  }: {
-    selection: ImageSelection;
-    execution: Extract<ImageExecutionTarget, { type: "local" }>;
-    effect: "extract" | "repair";
-  },
+  { selection, execution, effect }: ImageSelectionDerivationInput,
 ) {
   const operation =
     effect === "extract"

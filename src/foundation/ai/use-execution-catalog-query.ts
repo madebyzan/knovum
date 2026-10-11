@@ -3,17 +3,17 @@ import { computed } from "vue";
 
 import { detectExternalAgentInstallations, loadExternalAgentDescriptors } from "./external-agents";
 
-const agentDescriptorsQueryKey = ["integrations", "agent-descriptors"] as const;
-const agentInstallationsQueryKey = ["integrations", "agent-installations"] as const;
+const AGENT_DESCRIPTORS_QUERY_KEY = ["integrations", "agent-descriptors"] as const;
+const AGENT_INSTALLATIONS_QUERY_KEY = ["integrations", "agent-installations"] as const;
 
 export function useExecutionCatalogQuery(options: { detectInstallations?: boolean } = {}) {
   const descriptors = useQuery({
-    queryKey: agentDescriptorsQueryKey,
+    queryKey: AGENT_DESCRIPTORS_QUERY_KEY,
     queryFn: loadExternalAgentDescriptors,
     staleTime: 30_000,
   });
   const installations = useQuery({
-    queryKey: agentInstallationsQueryKey,
+    queryKey: AGENT_INSTALLATIONS_QUERY_KEY,
     queryFn: detectExternalAgentInstallations,
     enabled: options.detectInstallations === true,
     staleTime: 30_000,

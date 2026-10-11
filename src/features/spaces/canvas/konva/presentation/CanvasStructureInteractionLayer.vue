@@ -6,6 +6,7 @@ import type { VueKonvaRef } from "vue-konva/core";
 
 import type { SectionDropPreview } from "../../../structure/section-drop-reparent";
 import type { ProjectedGroup, ProjectedSection } from "../../document/structure-scene";
+import type { GroupHandleTransform } from "../interaction/group-handle-transform";
 import type { SectionResizeCorner } from "../interaction/structure-gesture-preview";
 import CanvasGroupChrome from "./CanvasGroupChrome.vue";
 import CanvasSectionChrome from "./CanvasSectionChrome.vue";
@@ -38,7 +39,7 @@ const emit = defineEmits<{
   resizeMove: [event: Konva.KonvaEventObject<DragEvent>];
   pointerDown: [structureNodeId: string, event: Konva.KonvaEventObject<PointerEvent>];
   transformStart: [structureNodeId: string, event: Konva.KonvaEventObject<DragEvent>];
-  transform: [transform: { anchor: { x: number; y: number }; rotationDelta: number; scaleFactor: number }];
+  transform: [transform: GroupHandleTransform];
 }>();
 const selectedGroups = computed(() => {
   const scopeId = props.groupScopePath.at(-1) ?? null;

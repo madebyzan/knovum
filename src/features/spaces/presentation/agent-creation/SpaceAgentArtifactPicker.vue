@@ -17,7 +17,7 @@ const emit = defineEmits<{
   select: [relativePath: string, selected: boolean];
 }>();
 const { t } = useI18n();
-const icons = { image: Image, video: Video, audio: Music, document: File, file: File };
+const ICONS = { image: Image, video: Video, audio: Music, document: File, file: File };
 </script>
 
 <template>
@@ -32,7 +32,7 @@ const icons = { image: Image, video: Video, audio: Music, document: File, file: 
         :label="artifact.name"
         @update:model-value="emit('select', artifact.relativePath, $event)"
       />
-      <component :is="icons[artifact.kind]" class="size-3.5 text-fg-secondary" />
+      <component :is="ICONS[artifact.kind]" class="size-3.5 text-fg-secondary" />
       <div class="min-w-0 flex-1">
         <div class="truncate text-label text-fg-primary">{{ artifact.name }}</div>
         <div class="truncate text-caption text-fg-tertiary">

@@ -20,7 +20,7 @@ const emit = defineEmits<{ update: [crop: ImageCrop] }>();
 const root = useTemplateRef<HTMLDivElement>("root");
 type PointerDrag = { kind: "handle"; origin: CropDragOrigin } | { kind: "draw"; origin: CropDrawOrigin };
 const drag = shallowRef<PointerDrag>();
-const handles: ReadonlyArray<{ handle: Exclude<CropDragHandle, "move">; className: string }> = [
+const HANDLES: ReadonlyArray<{ handle: Exclude<CropDragHandle, "move">; className: string }> = [
   { handle: "nw", className: "top-0 left-0 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize" },
   { handle: "n", className: "top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize" },
   { handle: "ne", className: "top-0 right-0 translate-x-1/2 -translate-y-1/2 cursor-nesw-resize" },
@@ -155,7 +155,7 @@ function complete(event: PointerEvent) {
         @pointercancel="finish"
       />
       <span
-        v-for="handle in handles"
+        v-for="handle in HANDLES"
         :key="handle.handle"
         aria-hidden="true"
         class="pointer-events-auto absolute z-10 size-5 touch-none rounded-full"

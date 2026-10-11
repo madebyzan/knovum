@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { defaultExecutionTarget } from "../ai-execution";
 import { decodeAiModelSettings } from "../integration-settings";
-import { defaultAiModelSettings } from "../schema/model-settings";
+import { DEFAULT_AI_MODEL_SETTINGS } from "../schema/model-settings";
 
 function configuredSettings() {
-  const value = structuredClone(defaultAiModelSettings);
+  const value = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
   value.connections = [
     {
       id: "user-model",
@@ -44,7 +44,7 @@ describe("optional AI execution preferences", () => {
   it("does not select an installed account when all execution preferences are absent", () => {
     const value = configuredSettings();
     const decoded = decodeAiModelSettings({ schemaVersion: 1, value: { ...value, defaults: {} } });
-    expect(decoded).toEqual({ ...value, defaults: defaultAiModelSettings.defaults });
+    expect(decoded).toEqual({ ...value, defaults: DEFAULT_AI_MODEL_SETTINGS.defaults });
     expect(defaultExecutionTarget(decoded, "knowledge")).toBeNull();
   });
 
@@ -58,7 +58,7 @@ describe("optional AI execution preferences", () => {
     expect(defaultExecutionTarget(decoded, "knowledge")).toEqual(target);
   });
 
-  it.each(Object.keys(defaultAiModelSettings.defaults))("rejects an invalid explicit %s", (key) => {
+  it.each(Object.keys(DEFAULT_AI_MODEL_SETTINGS.defaults))("rejects an invalid explicit %s", (key) => {
     const value = configuredSettings();
     expect(() =>
       decodeAiModelSettings({

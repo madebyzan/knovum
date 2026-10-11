@@ -16,7 +16,7 @@ import type {
   CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "../canvas/canvas-action-classes";
-import { nodeActionLabelClass, nodeActionLabelState } from "../canvas/node-action-label";
+import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "../canvas/node-action-label";
 import SpaceDocumentConversionOptions from "./SpaceDocumentConversionOptions.vue";
 
 defineProps<{ decisions: CreationIntentDecisions; isCompact?: boolean; isSubmenu?: boolean }>();
@@ -51,7 +51,7 @@ const { t } = useI18n();
           :title="isCompact ? t('spaces.creation.document.convert.label') : undefined"
         >
           <FileOutput class="size-4.5" :stroke-width="1.6" />
-          <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(isCompact))]">
+          <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(Boolean(isCompact))]">
             {{ t("spaces.creation.document.convert.label") }}
           </span>
         </button>

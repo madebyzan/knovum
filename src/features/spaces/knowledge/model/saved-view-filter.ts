@@ -1,4 +1,5 @@
-import type { SpaceRelationKind, SpaceRelationStatus } from "../../model/relations/relation";
+import type { RelationKind } from "../../contracts/generated/RelationKind";
+import type { RelationStatus } from "../../contracts/generated/RelationStatus";
 import type { SpaceKnowledgeObjectStatus } from "./object-types";
 
 export interface SpaceSavedViewFilter {
@@ -6,6 +7,6 @@ export interface SpaceSavedViewFilter {
   tags?: string[] | undefined;
   objectTypeIds?: string[] | undefined;
   statuses?: SpaceKnowledgeObjectStatus[] | undefined;
-  relationKinds?: SpaceRelationKind[] | undefined;
-  relationStatuses?: SpaceRelationStatus[] | undefined;
+  relationKinds?: RelationKind[] | undefined;
+  relationStatuses?: RelationStatus[] | undefined;
 }

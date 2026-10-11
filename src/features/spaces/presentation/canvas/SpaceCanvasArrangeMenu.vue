@@ -18,8 +18,8 @@ const emit = defineEmits<{
   distribute: [mode: CanvasDistributeMode];
 }>();
 const { t } = useI18n();
-const alignModes: readonly CanvasAlignMode[] = ["left", "center", "right", "top", "middle", "bottom"];
-const distributeModes: readonly CanvasDistributeMode[] = ["horizontal", "vertical"];
+const ALIGN_MODES: readonly CanvasAlignMode[] = ["left", "center", "right", "top", "middle", "bottom"];
+const DISTRIBUTE_MODES: readonly CanvasDistributeMode[] = ["horizontal", "vertical"];
 </script>
 
 <template>
@@ -31,12 +31,12 @@ const distributeModes: readonly CanvasDistributeMode[] = ["horizontal", "vertica
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
       <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="submenuClass">
-        <UiDropdownMenuItem v-for="mode in alignModes" :key="mode" @select="emit('align', mode)">
+        <UiDropdownMenuItem v-for="mode in ALIGN_MODES" :key="mode" @select="emit('align', mode)">
           {{ t(`spaces.canvas.align.${mode}`) }}
         </UiDropdownMenuItem>
         <template v-if="count >= 3">
           <UiSeparator class="my-1" />
-          <UiDropdownMenuItem v-for="mode in distributeModes" :key="mode" @select="emit('distribute', mode)">
+          <UiDropdownMenuItem v-for="mode in DISTRIBUTE_MODES" :key="mode" @select="emit('distribute', mode)">
             {{ t(`spaces.canvas.distribute.${mode}`) }}
           </UiDropdownMenuItem>
         </template>

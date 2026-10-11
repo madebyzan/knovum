@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type Konva from "konva";
-import { nextTick } from "vue";
+import { computed, nextTick } from "vue";
 import {
   Circle as KonvaCircle,
   Group as KonvaGroup,
@@ -11,6 +11,11 @@ import {
 
 import { canvasChromeMetrics } from "../../canvas-chrome-metrics";
 import type { ProjectedGroup } from "../../document/structure-scene";
+import {
+  groupHandleTransform,
+  type GroupHandleOrigin,
+  type GroupHandleTransform,
+} from "../interaction/group-handle-transform";
 import type { CanvasPalette } from "./use-canvas-palette";
 
 const props = defineProps<{
@@ -28,13 +33,13 @@ const emit = defineEmits<{
   transformStart: [event: Konva.KonvaEventObject<DragEvent>];
   rename: [];
   pointerDown: [event: Konva.KonvaEventObject<PointerEvent>];
-  transform: [transform: { anchor: { x: number; y: number }; rotationDelta: number; scaleFactor: number }];
+  transform: [transform: GroupHandleTransform];
 }>();
 let pressedPoint: { x: number; y: number } | undefined;
-let handleOrigin: { point: { x: number; y: number }; center: { x: number; y: number } } | undefined;
-const width = () => props.group.bounds.right - props.group.bounds.left;
-const height = () => props.group.bounds.bottom - props.group.bounds.top;
-const metrics = () => canvasChromeMetrics(props.zoom).group;
+let handleOrigin: GroupHandleOrigin | undefined;
+const width = computed(() => props.group.bounds.right - props.group.bounds.left);
+const height = computed(() => props.group.bounds.bottom - props.group.bounds.top);
+const metrics = computed(() => canvasChromeMetrics(props.zoom).group);
 
 function rename() {
   if (props.interactive && !props.group.locked) emit("rename");
@@ -49,7 +54,7 @@ function beginTransform(event: Konva.KonvaEventObject<DragEvent>) {
   event.cancelBubble = true;
   handleOrigin = {
     point: pressedPoint!,
-    center: { x: props.group.bounds.left + width() / 2, y: props.group.bounds.top + height() / 2 },
+    center: { x: props.group.bounds.left + width.value / 2, y: props.group.bounds.top + height.value / 2 },
   };
   emit("transformStart", event);
 }
@@ -58,26 +63,13 @@ function previewTransform(kind: "rotate" | "scale", event: Konva.KonvaEventObjec
   event.cancelBubble = true;
   if (!handleOrigin) return;
   const next = event.target.getStage()!.getRelativePointerPosition()!;
-  const { point, center } = handleOrigin;
-  const initialVector = { x: point.x - center.x, y: point.y - center.y };
-  const nextVector = { x: next.x - center.x, y: next.y - center.y };
-  const initialDistance = Math.hypot(initialVector.x, initialVector.y);
-  emit("transform", {
-    anchor: center,
-    rotationDelta:
-      kind === "rotate"
-        ? ((Math.atan2(nextVector.y, nextVector.x) - Math.atan2(initialVector.y, initialVector.x)) * 180) /
-          Math.PI
-        : 0,
-    scaleFactor:
-      kind === "scale" && initialDistance
-        ? Math.max(0.01, Math.hypot(nextVector.x, nextVector.y) / initialDistance)
-        : 1,
-  });
+  emit("transform", groupHandleTransform(kind, handleOrigin, next));
   const target = event.target;
   void nextTick(() =>
     target.position(
-      kind === "rotate" ? { x: width() / 2, y: -metrics().rotationOffset } : { x: width(), y: height() },
+      kind === "rotate"
+        ? { x: width.value / 2, y: -metrics.value.rotationOffset }
+        : { x: width.value, y: height.value },
     ),
   );
 }
@@ -106,8 +98,8 @@ function finishTransform(event: Konva.KonvaEventObject<DragEvent>) {
   >
     <KonvaRect
       :config="{
-        width: width(),
-        height: height(),
+        width: width,
+        height: height,
         fill: 'rgba(0,0,0,0.001)',
         stroke: palette.accent,
         strokeWidth: 2 / zoom,
@@ -118,7 +110,7 @@ function finishTransform(event: Konva.KonvaEventObject<DragEvent>) {
       }"
     />
     <KonvaGroup
-      :config="{ x: 8 / zoom, y: -metrics().labelOffset }"
+      :config="{ x: 8 / zoom, y: -metrics.labelOffset }"
       @dblclick="
         $event.cancelBubble = true;
         rename();
@@ -148,7 +140,7 @@ function finishTransform(event: Konva.KonvaEventObject<DragEvent>) {
     </KonvaGroup>
     <KonvaLine
       :config="{
-        points: [width() - 18 / zoom, 8 / zoom, width() - 8 / zoom, 8 / zoom, width() - 8 / zoom, 18 / zoom],
+        points: [width - 18 / zoom, 8 / zoom, width - 8 / zoom, 8 / zoom, width - 8 / zoom, 18 / zoom],
         stroke: palette.accent,
         strokeWidth: 1.5 / zoom,
         lineCap: 'round',
@@ -159,13 +151,13 @@ function finishTransform(event: Konva.KonvaEventObject<DragEvent>) {
     <KonvaCircle
       v-if="handlesVisible && !group.locked"
       :config="{
-        x: width() / 2,
-        y: -metrics().rotationOffset,
-        radius: metrics().handleRadius,
+        x: width / 2,
+        y: -metrics.rotationOffset,
+        radius: metrics.handleRadius,
         fill: palette.panel,
         stroke: palette.accent,
-        strokeWidth: metrics().strokeWidth,
-        hitStrokeWidth: metrics().hitStrokeWidth,
+        strokeWidth: metrics.strokeWidth,
+        hitStrokeWidth: metrics.hitStrokeWidth,
         draggable: interactive && !group.locked,
       }"
       @dragstart="beginTransform"
@@ -175,13 +167,13 @@ function finishTransform(event: Konva.KonvaEventObject<DragEvent>) {
     <KonvaCircle
       v-if="handlesVisible && !group.locked"
       :config="{
-        x: width(),
-        y: height(),
-        radius: metrics().handleRadius,
+        x: width,
+        y: height,
+        radius: metrics.handleRadius,
         fill: palette.panel,
         stroke: palette.accent,
-        strokeWidth: metrics().strokeWidth,
-        hitStrokeWidth: metrics().hitStrokeWidth,
+        strokeWidth: metrics.strokeWidth,
+        hitStrokeWidth: metrics.hitStrokeWidth,
         draggable: interactive && !group.locked,
       }"
       @dragstart="beginTransform"

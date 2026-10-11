@@ -32,7 +32,7 @@ const weeks = computed(() =>
     })),
   })),
 );
-const levelClasses = [
+const LEVEL_CLASSES = [
   "bg-surface-control",
   "bg-surface-accent/20",
   "bg-surface-accent/40",
@@ -85,7 +85,7 @@ function label(date: string, tokens: number) {
             <UiTooltip v-if="cell.tokens > 0 && cell.label" :text="cell.label" side="top">
               <span
                 class="block aspect-square w-full shrink-0 cursor-help rounded-sm hover:ring-1 hover:ring-stroke-strong"
-                :class="levelClasses[cell.level]"
+                :class="LEVEL_CLASSES[cell.level]"
                 :aria-label="cell.label"
                 role="img"
               />
@@ -93,7 +93,7 @@ function label(date: string, tokens: number) {
             <span
               v-else
               class="block aspect-square w-full shrink-0 rounded-sm"
-              :class="cell.inRange ? levelClasses[cell.level] : 'opacity-0'"
+              :class="cell.inRange ? LEVEL_CLASSES[cell.level] : 'opacity-0'"
               :aria-label="cell.label"
               :aria-hidden="!cell.inRange"
               :role="cell.inRange ? 'img' : undefined"
@@ -108,7 +108,7 @@ function label(date: string, tokens: number) {
       </p>
       <div class="flex items-center gap-1.5" aria-hidden="true">
         <span>{{ t("settings.usage.activity.less") }}</span>
-        <span v-for="level in 5" :key="level" class="size-2.5 rounded-sm" :class="levelClasses[level - 1]" />
+        <span v-for="level in 5" :key="level" class="size-2.5 rounded-sm" :class="LEVEL_CLASSES[level - 1]" />
         <span>{{ t("settings.usage.activity.more") }}</span>
       </div>
     </div>

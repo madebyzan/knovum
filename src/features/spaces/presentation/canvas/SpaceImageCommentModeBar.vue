@@ -7,7 +7,7 @@ import { useImageCommentSessionStore } from "../../comments/image-comment-sessio
 import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 
 const session = useImageCommentSessionStore();
-const modes = [
+const MODES = [
   { id: "point", icon: MessageCircle, label: "spaces.media.imageEditor.comments.point" },
   { id: "draw", icon: Pencil, label: "spaces.media.imageEditor.comments.draw" },
   { id: "region", icon: ScanLine, label: "spaces.media.imageEditor.comments.region" },
@@ -25,7 +25,7 @@ const modes = [
       $t("spaces.media.imageEditor.comments.title")
     }}</span>
     <ToolbarSeparator class="bg-border-divider mx-0.5 h-4 w-px" />
-    <ToolbarButton v-for="item in modes" :key="item.id" as-child>
+    <ToolbarButton v-for="item in MODES" :key="item.id" as-child>
       <UiIconButton
         :label="$t(item.label)"
         :active="session.mode === item.id"

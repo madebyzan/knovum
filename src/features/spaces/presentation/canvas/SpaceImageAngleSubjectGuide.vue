@@ -17,7 +17,7 @@ const scale = computed(() => (props.zoom === "close" ? 1.12 : props.zoom === "wi
 const orientation = computed(() => ({
   transform: `rotateY(${props.yaw}deg) rotateX(${-props.pitch}deg) scale(${scale.value})`,
 }));
-const face =
+const FACE_CLASS =
   "absolute inset-0 grid place-items-center rounded-md border border-stroke-strong bg-surface-raised text-label font-medium text-fg-tertiary [backface-visibility:hidden]";
 </script>
 
@@ -27,14 +27,14 @@ const face =
       class="absolute inset-6 transition-transform duration-150 ease-standard [transform-style:preserve-3d] motion-reduce:transition-none"
       :style="orientation"
     >
-      <div :class="face" class="[transform:rotateY(-90deg)_translateZ(64px)]">L</div>
-      <div :class="face" class="[transform:rotateY(90deg)_translateZ(64px)]">R</div>
-      <div :class="face" class="[transform:rotateY(180deg)_translateZ(64px)]" />
-      <div :class="face" class="[transform:rotateX(90deg)_translateZ(64px)]">
+      <div :class="FACE_CLASS" class="[transform:rotateY(-90deg)_translateZ(64px)]">L</div>
+      <div :class="FACE_CLASS" class="[transform:rotateY(90deg)_translateZ(64px)]">R</div>
+      <div :class="FACE_CLASS" class="[transform:rotateY(180deg)_translateZ(64px)]" />
+      <div :class="FACE_CLASS" class="[transform:rotateX(90deg)_translateZ(64px)]">
         <ChevronUp class="size-3 text-fg-tertiary" :stroke-width="1.3" />
       </div>
-      <div :class="face" class="[transform:rotateX(-90deg)_translateZ(64px)]">B</div>
-      <div :class="face" class="[transform:translateZ(64px)] overflow-hidden p-1">
+      <div :class="FACE_CLASS" class="[transform:rotateX(-90deg)_translateZ(64px)]">B</div>
+      <div :class="FACE_CLASS" class="[transform:translateZ(64px)] overflow-hidden p-1">
         <SpaceImageEditedThumbnail :path="path" :revision="revision" :edit="edit" />
       </div>
     </div>

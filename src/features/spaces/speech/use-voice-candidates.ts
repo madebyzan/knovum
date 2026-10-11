@@ -17,7 +17,7 @@ import {
   rejectVoiceCandidate,
   selectVoiceCandidate,
 } from "./voice-candidate-selection";
-import { voiceQueryKeys } from "./voice-query-keys";
+import { VOICE_QUERY_KEYS } from "./voice-query-keys";
 
 interface CandidateOperation {
   execute: () => Promise<void | VoiceLibraryRevision>;
@@ -26,11 +26,11 @@ interface CandidateOperation {
 export function useVoiceCandidates() {
   const client = useQueryClient();
   const candidatesQuery = useQuery({
-    queryKey: voiceQueryKeys.candidates,
+    queryKey: VOICE_QUERY_KEYS.candidates,
     queryFn: listVoiceCandidates,
   });
   const runQuery = useQuery({
-    queryKey: voiceQueryKeys.activeCandidateRun,
+    queryKey: VOICE_QUERY_KEYS.activeCandidateRun,
     queryFn: getActiveVoiceCandidateRun,
   });
   const activeRunId = shallowRef<string>();
@@ -41,7 +41,7 @@ export function useVoiceCandidates() {
   let disposed = false;
   const mutation = useMutation({
     mutationFn: ({ execute }: CandidateOperation) => execute(),
-    onSettled: () => client.invalidateQueries({ queryKey: voiceQueryKeys.candidates }),
+    onSettled: () => client.invalidateQueries({ queryKey: VOICE_QUERY_KEYS.candidates }),
     onError: (cause) => {
       if (decodeAppError(cause)?.code !== "cancelled") localError.value = getErrorMessage(cause);
     },
@@ -59,19 +59,19 @@ export function useVoiceCandidates() {
   ]);
 
   function editCandidates(update: (current: VoiceCandidate[]) => VoiceCandidate[]) {
-    client.setQueryData<VoiceCandidate[]>(voiceQueryKeys.candidates, (current) => update(current ?? []));
+    client.setQueryData<VoiceCandidate[]>(VOICE_QUERY_KEYS.candidates, (current) => update(current ?? []));
   }
 
   function observe(run: RunObservation) {
     if (activeRunId.value === run.id) return;
     stopObservation?.();
     activeRunId.value = run.id;
-    client.setQueryData(voiceQueryKeys.activeCandidateRun, run);
+    client.setQueryData(VOICE_QUERY_KEYS.activeCandidateRun, run);
     const settle = () => {
       stopObservation?.();
       stopObservation = undefined;
       activeRunId.value = undefined;
-      client.setQueryData(voiceQueryKeys.activeCandidateRun, null);
+      client.setQueryData(VOICE_QUERY_KEYS.activeCandidateRun, null);
     };
     stopObservation = observeVoiceCandidateRun(
       run,
@@ -129,8 +129,8 @@ export function useVoiceCandidates() {
           const voice = await selectVoiceCandidate(selected(candidateId), name);
           editCandidates((current) => current.filter((candidate) => candidate.candidateId !== candidateId));
           await Promise.all([
-            client.invalidateQueries({ queryKey: voiceQueryKeys.profiles }),
-            client.invalidateQueries({ queryKey: voiceQueryKeys.revisions }),
+            client.invalidateQueries({ queryKey: VOICE_QUERY_KEYS.profiles }),
+            client.invalidateQueries({ queryKey: VOICE_QUERY_KEYS.revisions }),
           ]);
           return voice;
         },

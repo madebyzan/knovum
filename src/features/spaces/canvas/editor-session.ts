@@ -11,14 +11,14 @@ import type {
 
 const activeEditor = shallowRef<CanvasEditorPort>();
 const viewport = shallowRef<CanvasViewport>();
-const emptySelection: CanvasSelectionSnapshot = {
+const EMPTY_SELECTION: CanvasSelectionSnapshot = {
   nodeIds: [],
   structureNodeIds: [],
   nodePlacements: [],
   members: [],
   relationIds: [],
 };
-const selection = shallowRef<CanvasSelectionSnapshot>(emptySelection);
+const selection = shallowRef<CanvasSelectionSnapshot>(EMPTY_SELECTION);
 const directManipulation = shallowRef(false);
 const transitioning = shallowRef(false);
 const activeTextSelectionNodeId = shallowRef<string>();
@@ -62,7 +62,7 @@ export function registerCanvasEditor(editor: CanvasEditorPort) {
     if (activeEditor.value !== editor) return;
     activeEditor.value = undefined;
     viewport.value = undefined;
-    selection.value = emptySelection;
+    selection.value = EMPTY_SELECTION;
     directManipulation.value = false;
     activeTextSelectionNodeId.value = undefined;
     activeTextEditorNodeId.value = undefined;
