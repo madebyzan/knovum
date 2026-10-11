@@ -5,7 +5,8 @@ import { useI18n } from "vue-i18n";
 import { Rect as KonvaRect } from "vue-konva/core";
 
 import { versionedMediaSource } from "../../../media/media-element-source";
-import { SECTION_HEADER_HEIGHT, type ProjectedSection } from "../../document/structure-scene";
+import { SECTION_HEADER_HEIGHT } from "../../../model/structure/section-metrics";
+import type { ProjectedSection } from "../../document/structure-scene";
 
 const props = defineProps<{ section: ProjectedSection; path: string }>();
 const emit = defineEmits<{ error: [error: Error] }>();

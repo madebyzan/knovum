@@ -52,6 +52,7 @@
     "createEmpty": "New section",
     "removeOnly": "Remove section only",
     "backgroundFailed": "Unable to load the section background image",
+    "drop": { "enter": "Release to move into section", "leave": "Release to move out of section" },
     "fitToContents": "Fit section to contents",
     "untitled": "Untitled section",
     "collapse": "Collapse section",

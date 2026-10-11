@@ -1,22 +1,25 @@
 import { useTimeoutFn } from "@vueuse/core";
-import { onBeforeUnmount, type Ref, type ShallowRef } from "vue";
+import { onScopeDispose, shallowRef, type Ref } from "vue";
 
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
-import { sectionDropCandidateId, sectionDropIndex } from "../../structure/section-drop-reparent";
+import {
+  sectionDropPreview,
+  sectionDropIndex,
+  type SectionDropPreview,
+} from "../../structure/section-drop-reparent";
 
 interface SectionDropPreviewOptions {
-  dropTargetId: ShallowRef<string | undefined>;
   snapshot(): SpaceEditSnapshot;
   temporarilyExpandedSectionId: Ref<string | undefined>;
 }
 
 export function useSectionDropPreview(options: SectionDropPreviewOptions) {
+  const state = shallowRef<SectionDropPreview>();
   let pendingExpansionId: string | undefined;
   const expansion = useTimeoutFn(
     (candidate: string) => {
       pendingExpansionId = undefined;
       options.temporarilyExpandedSectionId.value = candidate;
-      options.dropTargetId.value = candidate;
     },
     600,
     { immediate: false },
@@ -25,32 +28,38 @@ export function useSectionDropPreview(options: SectionDropPreviewOptions) {
   function clear() {
     expansion.stop();
     pendingExpansionId = undefined;
-    options.dropTargetId.value = undefined;
+    state.value = undefined;
     options.temporarilyExpandedSectionId.value = undefined;
   }
 
   function update(rootIds: readonly string[], delta: { x: number; y: number } | undefined) {
     if (!delta) return clear();
     const snapshot = options.snapshot();
-    const candidate = sectionDropCandidateId({ snapshot, rootIds, delta }, true);
-    const layout = candidate ? sectionDropIndex(snapshot).layouts.get(candidate) : undefined;
+    const expandedId = options.temporarilyExpandedSectionId.value;
+    const preview = sectionDropPreview(
+      { snapshot, rootIds, delta },
+      expandedId ? { allowCollapsedSectionId: expandedId } : {},
+    );
+    if (!preview) return clear();
+    const candidate = preview.sectionId;
+    const layout = sectionDropIndex(snapshot).layouts.get(candidate);
     const collapsed = layout?.kind === "section" && layout.collapsed;
-    if (!candidate || !collapsed) {
+    if (!collapsed || preview.kind === "leave") {
       clear();
-      options.dropTargetId.value = candidate;
+      state.value = preview;
       return;
     }
-    if (options.temporarilyExpandedSectionId.value === candidate) {
-      options.dropTargetId.value = candidate;
+    state.value = preview;
+    if (expandedId === candidate) {
       return;
     }
-    options.dropTargetId.value = undefined;
     if (pendingExpansionId === candidate) return;
     clear();
+    state.value = preview;
     pendingExpansionId = candidate;
     expansion.start(candidate);
   }
 
-  onBeforeUnmount(clear);
-  return { clear, update };
+  onScopeDispose(clear);
+  return { state, clear, update };
 }

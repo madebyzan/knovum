@@ -1,7 +1,8 @@
 import { useThrottleFn } from "@vueuse/core";
 import { computed, shallowRef, watch, type Ref } from "vue";
 
-import { SECTION_HEADER_HEIGHT, type ProjectedSection } from "../../document/structure-scene";
+import { SECTION_HEADER_HEIGHT } from "../../../model/structure/section-metrics";
+import type { ProjectedSection } from "../../document/structure-scene";
 import type { CanvasScene } from "./canvas-scene";
 import { createSceneVisibilityIndex, visibleSceneIds } from "./viewport-culling";
 

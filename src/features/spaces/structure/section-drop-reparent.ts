@@ -3,10 +3,10 @@ import { maxBy } from "es-toolkit";
 import type { SpaceEditCommand } from "../contracts/generated/SpaceEditCommand";
 import type { SpacePoint } from "../contracts/generated/SpacePoint";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
+import { SECTION_HEADER_HEIGHT } from "../model/structure/section-metrics";
 import { createStructureIndex, effectiveOperationRoots } from "../model/structure/structure-index";
 import { boundsForOperationRoots, type WorldBounds } from "../model/structure/world-bounds";
 
-const CONTAINMENT_TOLERANCE = 0.5;
 const indexBySnapshot = new WeakMap<SpaceEditSnapshot, ReturnType<typeof buildSectionDropIndex>>();
 
 export function sectionDropIndex(snapshot: SpaceEditSnapshot) {
@@ -34,7 +34,6 @@ interface SectionDropContext {
 
 interface SectionDropReparentOptions {
   allowCollapsedSectionId?: string;
-  inspectCollapsed?: boolean;
 }
 
 export function sectionDropMoveCommand(
@@ -46,13 +45,18 @@ export function sectionDropMoveCommand(
     allowCollapsedSectionId ? { allowCollapsedSectionId } : {},
   );
   if (!reparent) return { kind: "structure.move", rootIds: [...rootIds], delta };
+  const targetLayout = reparent.parentId
+    ? sectionDropIndex(snapshot).layouts.get(reparent.parentId)
+    : undefined;
   return {
     kind: "structure.move-to-container",
     rootIds: [...rootIds],
     delta,
     parentId: reparent.parentId,
     order: reparent.order,
-    ...(allowCollapsedSectionId === reparent.parentId ? { expandSectionId: allowCollapsedSectionId } : {}),
+    ...(targetLayout?.kind === "section" && targetLayout.collapsed
+      ? { expandSectionId: targetLayout.structureNodeId }
+      : {}),
   };
 }
 
@@ -111,42 +115,48 @@ interface SectionDropTargetContext {
   options: SectionDropReparentOptions;
 }
 
-function sectionDropTarget(layout: SpaceEditSnapshot["layouts"][number], context: SectionDropTargetContext) {
+function sectionDropTarget(
+  layout: Extract<SpaceEditSnapshot["layouts"][number], { kind: "section" }>,
+  context: SectionDropTargetContext,
+) {
   const { structureById, selected, moved, options } = context;
   const section = structureById.get(layout.structureNodeId);
-  if (layout.kind !== "section" || section?.kind !== "section") return [];
-  const collapsedUnavailable =
-    layout.collapsed && !options.inspectCollapsed && options.allowCollapsedSectionId !== section.id;
-  if (collapsedUnavailable || section.locked || selected.has(section.id)) return [];
+  if (section?.kind !== "section") throw new Error("Section structure is unavailable");
+  const collapsed = layout.collapsed && options.allowCollapsedSectionId !== section.id;
+  if (section.locked || selected.has(section.id)) return [];
   const frame = {
     left: layout.position.x,
     top: layout.position.y,
     right: layout.position.x + layout.size.width,
-    bottom: layout.position.y + layout.size.height,
+    bottom: layout.position.y + (collapsed ? SECTION_HEADER_HEIGHT : layout.size.height),
   };
-  return contains(frame, moved) ? [{ id: section.id, paintOrder: section.order }] : [];
+  return containsCenter(frame, moved) ? [{ id: section.id, paintOrder: section.order }] : [];
 }
 
-export function sectionDropCandidateId(
+export interface SectionDropPreview {
+  sectionId: string;
+  kind: "enter" | "leave";
+}
+
+export function sectionDropPreview(
   { snapshot, rootIds, delta }: SectionDropContext,
-  inspectCollapsed = false,
-) {
+  options: SectionDropReparentOptions = {},
+): SectionDropPreview | undefined {
   if (!sectionDropIndex(snapshot).sections.length) return undefined;
-  const command = sectionDropReparentCommand({ snapshot, rootIds, delta }, { inspectCollapsed });
+  const command = sectionDropReparentCommand({ snapshot, rootIds, delta }, options);
   if (!command) return undefined;
-  if (command.parentId) return command.parentId;
+  if (command.parentId) return { sectionId: command.parentId, kind: "enter" };
   const cached = sectionDropIndex(snapshot);
   const index = cached.structure;
   const roots = effectiveOperationRoots(rootIds, index);
   const parentId = roots[0]?.parentId;
-  return parentId && index.structureById.get(parentId)?.kind === "section" ? parentId : undefined;
+  return parentId && index.structureById.get(parentId)?.kind === "section"
+    ? { sectionId: parentId, kind: "leave" }
+    : undefined;
 }
 
-function contains(container: WorldBounds, content: WorldBounds) {
-  return (
-    content.left >= container.left - CONTAINMENT_TOLERANCE &&
-    content.top >= container.top - CONTAINMENT_TOLERANCE &&
-    content.right <= container.right + CONTAINMENT_TOLERANCE &&
-    content.bottom <= container.bottom + CONTAINMENT_TOLERANCE
-  );
+function containsCenter(container: WorldBounds, content: WorldBounds) {
+  const x = (content.left + content.right) / 2;
+  const y = (content.top + content.bottom) / 2;
+  return x >= container.left && x <= container.right && y >= container.top && y <= container.bottom;
 }

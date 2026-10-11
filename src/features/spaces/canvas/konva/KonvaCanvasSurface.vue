@@ -134,7 +134,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         :palette="runtime.palette.value"
         :sections="runtime.visibility.visibleSections.value"
         :selected-ids="runtime.selection.structureNodeIds.value"
-        :drop-target-id="runtime.structureInteractions.dropTargetId.value"
+        :drop-preview="runtime.structureInteractions.dropPreview.value"
         :zoom="runtime.viewport.viewport.value.zoom"
         @collapse="runtime.structureInteractions.collapse"
         @enter-group="runtime.structureInteractions.enterGroup"

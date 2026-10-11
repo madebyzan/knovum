@@ -2,9 +2,10 @@ import { compact, groupBy, sortBy } from "es-toolkit";
 
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../../model/relations/relation";
+import { SECTION_HEADER_HEIGHT } from "../../../model/structure/section-metrics";
 import type { WorldBounds } from "../../../model/structure/world-bounds";
 import { canvasNodeInteraction } from "../../canvas-node-interaction";
-import { SECTION_HEADER_HEIGHT, type StructureScene } from "../../document/structure-scene";
+import type { StructureScene } from "../../document/structure-scene";
 import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasScene, CanvasSceneNode, CanvasSceneRelation } from "./canvas-scene";
 import { relationGeometry } from "./relation-path";
