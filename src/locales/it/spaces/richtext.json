@@ -37,9 +37,11 @@
     "previous": "Corrispondenza precedente",
     "next": "Partita successiva",
     "toggleReplace": "Mostra sostituzione",
-    "replace": "Sostituisci",
-    "replaceAll": "Sostituisci tutto",
-    "replacePlaceholder": "Sostituisci con..."
+    "replace": {
+      "action": "Sostituisci",
+      "placeholder": "Sostituisci con..."
+    },
+    "replaceAll": "Sostituisci tutto"
   },
   "paragraph": "Paragrafo",
   "heading1": "Intestazione 1",
@@ -75,24 +77,32 @@
   },
   "image": {
     "insert": "Inserisci immagine",
-    "tabUpload": "File locale",
-    "tabUrl": "URL",
-    "url": "URL immagine",
-    "alt": "Descrizione immagine",
+    "source": {
+      "localFile": "File locale",
+      "url": "URL"
+    },
+    "url": {
+      "label": "URL immagine",
+      "invalid": "Inserisci un indirizzo immagine http:// o https:// valido."
+    },
+    "alt": {
+      "label": "Descrizione immagine",
+      "placeholder": "Descrivi l'immagine per gli screen reader"
+    },
     "choose": "Seleziona immagine",
     "uploadFailed": "Inserimento immagine fallito",
     "dropDocumentHint": "Scegli il file o trascina l'immagine nell'editor di documenti.",
-    "altPlaceholder": "Descrivi l'immagine per gli screen reader",
     "dropNow": "Rilascia per inserire l'immagine",
-    "urlInvalid": "Inserisci un indirizzo immagine http:// o https:// valido.",
     "insertFailed": "Impossibile inserire l'immagine"
   },
   "link": {
     "label": "Collegamento ipertestuale",
     "placeholder": "Inserisci o incolla URL",
     "remove": "Rimuovi collegamento",
-    "editorTitle": "Modifica collegamento",
-    "editorDescription": "Aggiungi un collegamento web o e-mail al testo selezionato.",
+    "editor": {
+      "title": "Modifica collegamento",
+      "description": "Aggiungi un collegamento web o e-mail al testo selezionato."
+    },
     "url": "Collegamento URL",
     "invalid": "Inserisci un collegamento HTTP, HTTPS o mailto valido.",
     "open": "Apri collegamento",
@@ -110,6 +120,8 @@
     "addColumn": "Inserisci colonna a destra",
     "delete": "Elimina tabella"
   },
-  "words": "parole",
-  "characters": "caratteri"
+  "statistics": {
+    "words": "{count} parola | {count} parole",
+    "characters": "{count} carattere | {count} caratteri"
+  }
 }

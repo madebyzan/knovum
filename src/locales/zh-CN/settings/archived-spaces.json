@@ -1,0 +1,23 @@
+{
+  "title": "已归档空间",
+  "description": "恢复或永久删除归档的空间。",
+  "restore": {
+    "action": "恢复空间",
+    "failed": "恢复空间失败"
+  },
+  "load": {
+    "failed": "无法加载已归档空间"
+  },
+  "delete": {
+    "action": "永久删除",
+    "title": "永久删除“{title}”？",
+    "description": "此操作将从设备中彻底清除该空间及其所有关联数据，不可恢复。",
+    "failed": "删除空间失败"
+  },
+  "deleteAll": {
+    "action": "全部删除",
+    "title": "永久删除所有已归档空间？",
+    "description": "永久删除全部 {count} 个已归档空间及其中的内容？此操作无法撤销。"
+  },
+  "empty": "暂无已归档的空间。"
+}

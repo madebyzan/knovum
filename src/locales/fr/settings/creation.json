@@ -5,11 +5,15 @@
     "title": "Préréglages de génération",
     "description": "Paramètres de modèle enregistrés pour la création de contenu.",
     "empty": "Aucun préréglage de génération n'a encore été enregistré.",
-    "deleteConfirm": "Supprimer ce préréglage ?",
+    "delete": {
+      "title": "Supprimer ce préréglage ?"
+    },
     "name": "Nom du préréglage",
     "edit": "Modifier le préréglage de génération",
-    "discardTitle": "Annuler les modifications prédéfinies ?",
-    "discardDescription": "Les modifications non enregistrées apportées à ce préréglage de génération seront perdues."
+    "discard": {
+      "title": "Annuler les modifications prédéfinies ?",
+      "description": "Les modifications non enregistrées apportées à ce préréglage de génération seront perdues."
+    }
   },
   "parameters": "Paramètres",
   "copyName": "Copie {name}",
@@ -30,7 +34,9 @@
   "imageLayers": {
     "title": "Répartition des couches d'images",
     "description": "Connectez fal pour le fractionnement des calques d'image.",
-    "apiKey": "clé API fal",
-    "apiKeyDescription": "Stocké uniquement sur cet appareil."
+    "apiKey": {
+      "label": "clé API fal",
+      "description": "Stocké uniquement sur cet appareil."
+    }
   }
 }

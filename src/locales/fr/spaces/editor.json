@@ -12,7 +12,9 @@
     "title": "Titre Markdown",
     "empty": "Démarquage vide"
   },
-  "loading": "Préparation de l'éditeur…",
-  "loadingHint": "Les documents volumineux peuvent prendre un certain temps à s'ouvrir.",
+  "loading": {
+    "message": "Préparation de l'éditeur…",
+    "hint": "Les documents volumineux peuvent prendre un certain temps à s'ouvrir."
+  },
   "placeholder": "Commencer à écrire…"
 }

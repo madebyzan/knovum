@@ -1,0 +1,39 @@
+{
+  "configuration": {
+    "headers": "Cabeçalhos de solicitação",
+    "environment": "Variáveis ​​de ambiente",
+    "secretsHint": "Somente configuração pública. Defina tokens e outras credenciais em Autorização após salvar.",
+    "invalidName": "Insira um nome de campo sem espaços iniciais ou finais.",
+    "duplicateName": "Os nomes dos campos devem ser exclusivos. Os nomes de cabeçalho HTTP não diferenciam maiúsculas de minúsculas.",
+    "fieldName": "Nome",
+    "fieldValue": "Valor",
+    "fieldNameAt": "Nome do campo {index}",
+    "fieldValueAt": "Valor do campo {index}",
+    "removeField": "Remover campo {index}",
+    "addHeader": "Adicionar cabeçalho",
+    "addVariable": "Adicionar variável",
+    "serverUrl": "URL do servidor",
+    "authorizationHint": "Escolha o método de autorização exigido pelo servidor. As credenciais são configuradas separadamente após salvar.",
+    "advanced": "Variáveis ​​de ambiente e cabeçalhos"
+  },
+  "transport": "Transporte",
+  "allowLocalNetwork": "Permitir acesso ao host local ou endereço LAN configurado",
+  "process": {
+    "executable": {
+      "label": "Executável de serviço instalado (caminho absoluto)",
+      "choose": "Escolha o programa instalado"
+    },
+    "arguments": {
+      "label": "Argumentos",
+      "hint": "Cada campo é um argumento literal, incluindo espaços. Nenhuma análise de shell é executada.",
+      "add": "Adicionar argumento",
+      "at": "Argumento {index}",
+      "remove": "Remover argumento {index}"
+    },
+    "directory": {
+      "label": "Diretório de trabalho (opcional)",
+      "choose": "Escolha o diretório de trabalho"
+    },
+    "authorizationHint": "Habilitar esta conexão permite que o aplicativo inicie o serviço MCP selecionado. A instalação de um plugin nunca instala programas ou executa scripts de pacotes."
+  }
+}

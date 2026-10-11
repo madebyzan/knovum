@@ -60,7 +60,7 @@ function save() {
 <template>
   <UiDialog
     v-model:open="open"
-    :title="t(props.model ? 'settings.ai.editModel' : 'settings.ai.addModel')"
+    :title="t(props.model ? 'settings.ai.models.edit' : 'settings.ai.models.add')"
     :description="connectionName"
   >
     <fieldset :disabled="busy" class="border-0 p-0">

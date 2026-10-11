@@ -11,6 +11,5 @@
   "play": "Seleção de reprodução",
   "sourceChanged": "A origem do nó de áudio foi alterada. Atualize o nó antes de preparar uma referência de voz.",
   "selection": "{seconds}s selecionados · Arraste uma das extremidades",
-  "prepared": "Seleção reconhecida",
-  "playbackFailed": "O áudio de origem não pôde ser reproduzido. Verifique se o arquivo de mídia está legível."
+  "prepared": "Seleção reconhecida"
 }

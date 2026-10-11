@@ -83,13 +83,13 @@ async function visit() {
       </span>
       <div class="min-w-0 flex-1">
         <div class="text-label font-medium text-fg-primary">
-          {{ t("spaces.richtext.link.editorTitle") }}
+          {{ t("spaces.richtext.link.editor.title") }}
         </div>
         <p v-if="selectedLabel" class="mt-0.5 truncate text-caption text-fg-tertiary">
           {{ selectedLabel }}
         </p>
         <p v-else class="mt-0.5 text-caption text-fg-tertiary">
-          {{ t("spaces.richtext.link.editorDescription") }}
+          {{ t("spaces.richtext.link.editor.description") }}
         </p>
       </div>
     </header>

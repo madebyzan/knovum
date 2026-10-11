@@ -21,6 +21,5 @@
   "multipleAudioTracks": "包含多條音軌的視頻",
   "audioTracksHint": "選擇同一原影片的最多八個已產生版本，選取順序即音軌順序。",
   "currentBackground": "目前背景音軌",
-  "mixingSettings": "混音與原聲",
-  "translationTitle": "配音稿翻譯"
+  "mixingSettings": "混音與原聲"
 }

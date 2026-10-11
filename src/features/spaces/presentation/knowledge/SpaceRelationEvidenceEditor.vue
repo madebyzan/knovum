@@ -59,14 +59,16 @@ async function saveRationale() {
   <div class="space-y-2.5">
     <div>
       <template v-if="editing">
-        <label :for="rationaleId" class="sr-only">{{ t("spaces.knowledge.relations.rationale") }}</label>
+        <label :for="rationaleId" class="sr-only">{{
+          t("spaces.knowledge.relations.rationale.label")
+        }}</label>
         <UiTextarea
           ref="rationaleInput"
           v-model="draft"
           :id="rationaleId"
           :rows="2"
           :disabled="saving"
-          :placeholder="t('spaces.knowledge.relations.rationalePlaceholder')"
+          :placeholder="t('spaces.knowledge.relations.rationale.placeholder')"
           @keydown.esc.stop.prevent="cancelEdit"
           @keydown.meta.enter.stop.prevent="saveRationale"
           @keydown.ctrl.enter.stop.prevent="saveRationale"
@@ -84,14 +86,14 @@ async function saveRationale() {
         v-else
         type="button"
         class="flex min-h-16 w-full items-start gap-2 rounded-md border border-stroke-default bg-surface-muted px-2.5 py-2 text-left hover:border-stroke-default-hover hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
-        :aria-label="`${t(relation.rationale.trim() ? 'common.edit' : 'spaces.knowledge.relations.addRationale')} ${t('spaces.knowledge.relations.rationale')}`"
+        :aria-label="`${t(relation.rationale.trim() ? 'common.edit' : 'spaces.knowledge.relations.rationale.add')} ${t('spaces.knowledge.relations.rationale.label')}`"
         @click="beginEdit"
       >
         <span
           class="min-w-0 flex-1 text-body leading-relaxed whitespace-pre-wrap"
           :class="relation.rationale.trim() ? 'text-fg-primary' : 'text-fg-tertiary'"
         >
-          {{ relation.rationale.trim() || t("spaces.knowledge.relations.rationalePlaceholder") }}
+          {{ relation.rationale.trim() || t("spaces.knowledge.relations.rationale.placeholder") }}
         </span>
         <Pencil class="mt-0.5 size-3.5 shrink-0 text-fg-tertiary" :stroke-width="1.6" />
       </button>

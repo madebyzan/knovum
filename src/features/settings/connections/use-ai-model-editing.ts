@@ -69,7 +69,7 @@ export function useAiModelEditing(options: ModelEditingOptions) {
     if (
       connection.models.some(({ id, model: identifier }) => id !== model.id && identifier === model.model)
     ) {
-      error.value = t("settings.ai.duplicateModelIdentifier");
+      error.value = t("settings.ai.models.duplicateIdentifier");
       return;
     }
     admittedMutation = runMutation(async () => {
@@ -86,7 +86,7 @@ export function useAiModelEditing(options: ModelEditingOptions) {
     if (
       !(await confirmAction({
         title: t("common.delete"),
-        description: t("settings.ai.deleteModelConfirm", { name: model.name }),
+        description: t("settings.ai.models.delete.title", { name: model.name }),
         confirmLabel: t("common.delete"),
         danger: true,
       }))
@@ -104,7 +104,7 @@ export function useAiModelEditing(options: ModelEditingOptions) {
     error.value = "";
     const admitted: Promise<boolean> = mutation()
       .catch((cause) => {
-        error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
+        error.value = `${t("settings.general.saveFailed")}: ${getErrorMessage(cause)}`;
         return false;
       })
       .finally(() => {
@@ -116,8 +116,8 @@ export function useAiModelEditing(options: ModelEditingOptions) {
 
   function confirmDiscard() {
     return confirmAction({
-      title: t("settings.ai.discardChangesTitle"),
-      description: t("settings.ai.discardChanges"),
+      title: t("settings.ai.editor.discard.title"),
+      description: t("settings.ai.editor.discard.description"),
       confirmLabel: t("common.discardChanges"),
       danger: true,
     });

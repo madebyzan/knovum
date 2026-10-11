@@ -36,8 +36,10 @@
   "favorite": "Espaço favorito",
   "unfavorite": "Remover dos favoritos",
   "open": "Abrir espaço de trabalho",
-  "loadFailed": "Não foi possível abrir o espaço de trabalho",
-  "loadFailedHint": "Falha ao carregar o banco de dados do espaço de trabalho. Os arquivos locais não são afetados; por favor tente novamente.",
+  "load": {
+    "failed": "Não foi possível abrir o espaço de trabalho",
+    "hint": "Falha ao carregar o banco de dados do espaço de trabalho. Os arquivos locais não são afetados; por favor tente novamente."
+  },
   "archive": "Espaço de arquivo",
   "moveTo": "Mover para o espaço de trabalho",
   "moveNoTargets": "Nenhum outro espaço de trabalho disponível para onde migrar.",

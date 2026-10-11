@@ -1,15 +1,25 @@
 {
-  "target": "Objetivo de ejecución",
-  "targetModelApi": "Modelo API · ejecución directa",
-  "targetExternalAgent": "Desktop Agent · la salida depende de sus herramientas actuales y Skills",
-  "noCompatibleTarget": "Ningún objetivo de ejecución compatible",
-  "desktopAgentNotInstalled": "No detectado",
-  "disabledTitle": "Ningún objetivo AI compatible",
-  "disabledDescription": "Configure un modelo compatible o habilite un Agente de escritorio instalado para esta acción.",
-  "openSettings": "Configurar modelos",
-  "settingsUnavailable": "No se pudo cargar la configuración de AI",
-  "executedWithModel": "Ejecutado con {provider} · {model}",
-  "executedWithAgent": "Ejecutado por {name} · Agente de escritorio",
+  "target": {
+    "label": "Objetivo de ejecución",
+    "modelApi": "Modelo API · ejecución directa",
+    "desktopAgent": "Desktop Agent · la salida depende de sus herramientas actuales y Skills",
+    "none": "Ningún objetivo de ejecución compatible"
+  },
+  "desktopAgent": {
+    "notDetected": "No detectado"
+  },
+  "unavailable": {
+    "title": "Ningún objetivo AI compatible",
+    "description": "Configure un modelo compatible o habilite un Agente de escritorio instalado para esta acción."
+  },
+  "configuration": {
+    "open": "Configurar modelos",
+    "unavailable": "No se pudo cargar la configuración de AI"
+  },
+  "execution": {
+    "model": "Ejecutado con {provider} · {model}",
+    "desktopAgent": "Ejecutado por {name} · Agente de escritorio"
+  },
   "languages": {
     "zhCn": "Chino simplificado",
     "zhTw": "Chino tradicional",
@@ -23,5 +33,10 @@
     "it": "Italiano",
     "ru": "Ruso",
     "ar": "Árabe"
+  },
+  "localModels": {
+    "unavailable": {
+      "memory": "Hace falta memoria; Se requieren al menos 32 GiB. Utilice MOSS-TTS-Nano en su lugar."
+    }
   }
 }

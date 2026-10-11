@@ -74,16 +74,16 @@ watch(
     <header class="mb-3 flex items-end justify-between gap-4 px-0.5">
       <div>
         <h2 class="text-title-sm font-semibold tracking-title text-fg-primary">
-          {{ t("settings.ai.connections") }}
+          {{ t("settings.ai.connections.title") }}
         </h2>
-        <p class="mt-1 text-caption text-fg-secondary">{{ t("settings.ai.connectionsDescription") }}</p>
+        <p class="mt-1 text-caption text-fg-secondary">{{ t("settings.ai.connections.description") }}</p>
       </div>
       <UiButton
         id="settings-ai-create-trigger"
         variant="secondary"
         :disabled="busy || !providers.length"
         @click="openConnection(null)"
-        ><Plus class="size-4" />{{ t("settings.ai.addConnection") }}</UiButton
+        ><Plus class="size-4" />{{ t("settings.ai.connections.add") }}</UiButton
       >
     </header>
     <div v-if="connections.length" class="grid gap-2.5">
@@ -107,7 +107,7 @@ watch(
       v-else
       class="rounded-panel border border-stroke-default bg-surface-raised px-5 py-6 text-caption text-fg-secondary"
     >
-      {{ t("settings.ai.noConnectionsDescription") }}
+      {{ t("settings.ai.connections.empty") }}
     </p>
     <p v-if="error && selectedId === undefined" class="px-1 py-2 text-caption text-fg-danger" role="alert">
       {{ error }}

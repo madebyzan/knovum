@@ -23,8 +23,10 @@
   "cancelling": "Отмена…",
   "forceDismiss": "Удалить из списка",
   "failed": "Эту задачу выполнить не удалось.",
-  "verifyingResource": "Проверка целостности…",
-  "preparingLocalInference": "Подготовка локальных компонентов AI…",
-  "localResourceDownloadSize": "Для первого использования требуется {size} загрузок локальных ресурсов.",
-  "installingResource": "Установка локальных ресурсов…"
+  "resources": {
+    "verifying": "Проверка целостности…",
+    "preparingInference": "Подготовка локальных компонентов AI…",
+    "downloadSize": "Для первого использования требуется {size} загрузок локальных ресурсов.",
+    "installing": "Установка локальных ресурсов…"
+  }
 }

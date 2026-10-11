@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source("../");
 @import "tw-animate-css";
 @import "./tokens.css";
 @import "../features/spaces/presentation/space-tokens.css";

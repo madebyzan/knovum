@@ -66,9 +66,9 @@ function editRelation(relationId: string) {
 
 async function removeRelation(relationId: string, neighborTitle: string) {
   const confirmed = await confirmAction({
-    title: t("spaces.knowledge.relations.remove"),
-    description: t("spaces.knowledge.relations.removeConfirm", { title: neighborTitle }),
-    confirmLabel: t("spaces.knowledge.relations.remove"),
+    title: t("spaces.knowledge.relations.remove.action"),
+    description: t("spaces.knowledge.relations.remove.confirmation", { title: neighborTitle }),
+    confirmLabel: t("spaces.knowledge.relations.remove.action"),
     danger: true,
   });
   if (!confirmed) return;

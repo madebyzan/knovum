@@ -18,10 +18,10 @@ const capabilityTouched = shallowRef(false);
 const capabilities = computed(() =>
   (
     [
-      { value: "text-generation", label: t("settings.ai.capabilities.text") },
-      { value: "vision-understanding", label: t("settings.ai.capabilities.vision") },
-      { value: "image-generation", label: t("settings.ai.capabilities.image") },
-      { value: "video-generation", label: t("settings.ai.capabilities.video") },
+      { value: "text-generation", label: t("settings.ai.models.capabilities.text") },
+      { value: "vision-understanding", label: t("settings.ai.models.capabilities.vision") },
+      { value: "image-generation", label: t("settings.ai.models.capabilities.image") },
+      { value: "video-generation", label: t("settings.ai.models.capabilities.video") },
     ] satisfies { value: ExecutionCapability; label: string }[]
   ).filter(({ value }) => props.allowedCapabilities.includes(value)),
 );
@@ -41,12 +41,12 @@ function toggleCapability(capability: ExecutionCapability) {
   <div class="pt-2 pb-4">
     <div class="grid gap-4">
       <label class="grid min-w-0 gap-1 text-caption text-fg-secondary">
-        {{ t("settings.ai.modelDisplayName") }}
+        {{ t("settings.ai.models.displayName") }}
         <UiInput v-model="model.name" />
         <span v-if="showErrors && !model.name.trim()" class="text-fg-danger">{{ t("common.required") }}</span>
       </label>
       <label class="grid min-w-0 gap-1 text-caption text-fg-secondary">
-        {{ t("settings.ai.modelIdentifier") }}
+        {{ t("settings.ai.models.identifier") }}
         <UiInput v-model="model.model" />
         <span v-if="showErrors && !model.model.trim()" class="text-fg-danger">{{
           t("common.required")
@@ -54,9 +54,13 @@ function toggleCapability(capability: ExecutionCapability) {
       </label>
     </div>
     <p class="mt-5 text-caption font-medium text-fg-secondary">
-      {{ t("settings.ai.modelCapabilitiesHelp") }}
+      {{ t("settings.ai.models.capabilities.label") }}
     </p>
-    <div class="mt-2 flex flex-wrap gap-2" role="group" :aria-label="t('settings.ai.modelCapabilitiesHelp')">
+    <div
+      class="mt-2 flex flex-wrap gap-2"
+      role="group"
+      :aria-label="t('settings.ai.models.capabilities.label')"
+    >
       <button
         v-for="capability in capabilities"
         :key="capability.value"
@@ -79,13 +83,13 @@ function toggleCapability(capability: ExecutionCapability) {
         <span>{{ capability.label }}</span>
       </button>
     </div>
-    <p v-if="protected" class="mt-2 text-caption text-fg-secondary">{{ t("settings.ai.modelInUse") }}</p>
+    <p v-if="protected" class="mt-2 text-caption text-fg-secondary">{{ t("settings.ai.models.inUse") }}</p>
     <p
       v-if="(showErrors || capabilityTouched) && !model.capabilities.length"
       class="mt-2 text-caption text-fg-danger"
       role="alert"
     >
-      {{ t("settings.ai.selectCapability") }}
+      {{ t("settings.ai.models.capabilities.required") }}
     </p>
   </div>
 </template>

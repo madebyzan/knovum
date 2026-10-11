@@ -142,7 +142,7 @@ it("counts and lists only personal Skills, and rejects packaged Skills in the pe
   await router.push("/settings?pane=extensions&extensionTab=skills&extensionId=packaged");
   await flushPromises();
   expect(wrapper.find(".ui-markdown").exists()).toBe(false);
-  expect(wrapper.text()).toContain("extensions.overview.notFound");
+  expect(wrapper.text()).toContain("extensions.overview.notFound.title");
 });
 
 it("places category actions in the settings title area and hides them during inspection", async () => {

@@ -5,11 +5,15 @@
     "title": "세대 사전 설정",
     "description": "콘텐츠 생성을 위한 저장된 모델 설정입니다.",
     "empty": "아직 생성 사전 설정이 저장되지 않았습니다.",
-    "deleteConfirm": "이 사전 설정을 삭제하시겠습니까?",
+    "delete": {
+      "title": "이 사전 설정을 삭제하시겠습니까?"
+    },
     "name": "사전 설정 이름",
     "edit": "생성 사전 설정 편집",
-    "discardTitle": "사전 설정 변경 사항을 취소하시겠습니까?",
-    "discardDescription": "이 세대 사전 설정에 저장되지 않은 변경사항은 손실됩니다."
+    "discard": {
+      "title": "사전 설정 변경 사항을 취소하시겠습니까?",
+      "description": "이 세대 사전 설정에 저장되지 않은 변경사항은 손실됩니다."
+    }
   },
   "parameters": "매개변수",
   "copyName": "{name} 복사",
@@ -30,7 +34,9 @@
   "imageLayers": {
     "title": "이미지 레이어 분할",
     "description": "이미지 레이어 분할을 위해 fal을 연결합니다.",
-    "apiKey": "팔 API 키",
-    "apiKeyDescription": "이 기기에만 저장됩니다."
+    "apiKey": {
+      "label": "팔 API 키",
+      "description": "이 기기에만 저장됩니다."
+    }
   }
 }

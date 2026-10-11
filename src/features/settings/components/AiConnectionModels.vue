@@ -60,13 +60,13 @@ watch(
 <template>
   <div class="border-t border-stroke-divider px-3 pb-2">
     <div class="flex items-center justify-between gap-3 px-2 py-2.5">
-      <p class="text-caption font-medium text-fg-secondary">{{ t("settings.ai.models") }}</p>
+      <p class="text-caption font-medium text-fg-secondary">{{ t("settings.ai.models.title") }}</p>
       <UiButton size="sm" variant="ghost" :disabled="busy" @click="openModel()"
-        ><Plus class="size-3.5" />{{ t("settings.ai.addModel") }}</UiButton
+        ><Plus class="size-3.5" />{{ t("settings.ai.models.add") }}</UiButton
       >
     </div>
     <p v-if="!connection.models.length" class="px-2 py-3 text-caption text-fg-secondary">
-      {{ t("settings.ai.noModelsForConnection") }}
+      {{ t("settings.ai.models.empty") }}
     </p>
     <div v-else class="border-t border-stroke-divider">
       <div
@@ -82,7 +82,9 @@ watch(
           <p class="mt-0.5 truncate text-caption text-fg-secondary">
             {{
               model.capabilities
-                .map((capability) => t(`settings.ai.capabilities.${CAPABILITY_LABEL_KEYS[capability]}`))
+                .map((capability) =>
+                  t(`settings.ai.models.capabilities.${CAPABILITY_LABEL_KEYS[capability]}`),
+                )
                 .join(" · ")
             }}
           </p>

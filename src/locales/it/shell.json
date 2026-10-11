@@ -13,9 +13,11 @@
     "checking": "Verifica disponibilità",
     "busy": "È in corso un'operazione"
   },
-  "toggleRightSidebar": "Mostra o nascondi la barra laterale destra",
-  "toggleSidebar": "Attiva/disattiva la barra laterale",
-  "layoutSaveFailed": "Impossibile salvare il layout del workbench",
+  "layout": {
+    "toggleRightSidebar": "Mostra o nascondi la barra laterale destra",
+    "toggleSidebar": "Attiva/disattiva la barra laterale",
+    "saveFailed": "Impossibile salvare il layout del workbench"
+  },
   "shortcuts": {
     "title": "Scorciatoie da tastiera",
     "search": "Scorciatoie di ricerca",

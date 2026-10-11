@@ -89,8 +89,8 @@ const isLoading = computed(
     </div>
     <ExtensionEmptyState
       v-else-if="connectorId && !error"
-      :title="$t('extensions.overview.notFound')"
-      :description="$t('extensions.overview.notFoundHint')"
+      :title="$t('extensions.overview.notFound.title')"
+      :description="$t('extensions.overview.notFound.description')"
       ><UiButton @click="emit('navigate', { tab: 'apps' })">{{
         $t("extensions.overview.back")
       }}</UiButton></ExtensionEmptyState
@@ -99,8 +99,8 @@ const isLoading = computed(
       <p class="text-caption text-fg-secondary">{{ $t("extensions.apps.description") }}</p>
       <ExtensionEmptyState
         v-if="!error && !visibleApps.length"
-        :title="$t(search ? 'extensions.plugins.search.empty' : 'extensions.apps.empty')"
-        :description="$t(search ? 'extensions.plugins.search.hint' : 'extensions.apps.emptyHint')"
+        :title="$t(search ? 'common.search.empty' : 'extensions.apps.empty.title')"
+        :description="$t(search ? 'common.search.hint' : 'extensions.apps.empty.description')"
       />
       <UiSettingsSection v-if="visibleApps.length">
         <div class="divide-y divide-stroke-divider px-4">

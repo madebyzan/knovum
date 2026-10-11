@@ -11,6 +11,5 @@
   "play": "Play selection",
   "sourceChanged": "The audio node source changed. Refresh the node before preparing a voice reference.",
   "selection": "{seconds}s selected · Drag either end",
-  "prepared": "Selection recognized",
-  "playbackFailed": "The source audio could not be played. Check that the media file is readable."
+  "prepared": "Selection recognized"
 }

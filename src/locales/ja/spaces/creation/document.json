@@ -1,15 +1,17 @@
 {
   "conversion": {
-    "docx": "Word文書に変換",
-    "pdf": "PDF に変換",
-    "docxRunTitle": "Word ドキュメントの生成",
-    "pdfRunTitle": "PDF の生成",
-    "txt": "プレーンテキストに変換する",
-    "txtRunTitle": "プレーン テキストの生成",
-    "html": "HTMLに変換",
-    "htmlRunTitle": "HTML ドキュメントの生成"
-  },
-  "convert": {
+    "actions": {
+      "docx": "Word文書に変換",
+      "pdf": "PDF に変換",
+      "txt": "プレーンテキストに変換する",
+      "html": "HTMLに変換"
+    },
+    "tasks": {
+      "docx": "Word ドキュメントの生成",
+      "pdf": "PDF の生成",
+      "txt": "プレーン テキストの生成",
+      "html": "HTML ドキュメントの生成"
+    },
     "label": "変換",
     "formats": {
       "docx": "Word 文書 (.docx)",
@@ -24,8 +26,10 @@
   "title": "選択した知識からドキュメントを作成する",
   "description": "選択したソースの横に、引用された Markdown リソースを下書きします。",
   "defaultTitle": "ナレッジ ドラフト",
-  "purpose": "ドキュメント概要",
-  "purposePlaceholder": "文書の目的、形式、重要なポイントを説明します。",
+  "purpose": {
+    "label": "ドキュメント概要",
+    "placeholder": "文書の目的、形式、重要なポイントを説明します。"
+  },
   "sources": "{count} 知識源",
   "task": "ドキュメントの生成",
   "generating": "選択された知識から生成…",

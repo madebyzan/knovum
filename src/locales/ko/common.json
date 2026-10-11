@@ -40,6 +40,11 @@
   "archive": "보관",
   "restore": "복원",
   "required": "필수",
-  "closeSaveFailed": "변경사항을 저장할 수 없습니다. 응용 프로그램은 계속 열려있었습니다",
-  "clearSearch": "검색 지우기"
+  "clearSearch": "검색 지우기",
+  "search": {
+    "empty": "일치하는 결과 없음",
+    "hint": "다른 키워드를 시도하거나 검색어를 삭제하세요."
+  },
+  "enable": "{name} 활성화",
+  "disable": "{name} 비활성화"
 }

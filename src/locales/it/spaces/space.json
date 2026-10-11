@@ -36,8 +36,10 @@
   "favorite": "Spazio preferito",
   "unfavorite": "Rimuovi dai preferiti",
   "open": "Spazio di lavoro aperto",
-  "loadFailed": "Impossibile aprire l'area di lavoro",
-  "loadFailedHint": "Impossibile caricare il database dell'area di lavoro. I file locali non sono interessati; per favore riprova.",
+  "load": {
+    "failed": "Impossibile aprire l'area di lavoro",
+    "hint": "Impossibile caricare il database dell'area di lavoro. I file locali non sono interessati; per favore riprova."
+  },
   "archive": "Archiviare l'area di lavoro",
   "moveTo": "Spostarsi nell'area di lavoro",
   "moveNoTargets": "Nessun'altra area di lavoro disponibile in cui spostarsi.",

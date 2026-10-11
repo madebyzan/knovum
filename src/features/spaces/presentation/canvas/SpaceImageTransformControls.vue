@@ -26,15 +26,15 @@ function setRotation(event: Event) {
 <template>
   <ToolbarRoot
     class="flex h-(--knovum-control-height-lg) w-max items-center gap-1 rounded-panel border border-stroke-strong bg-surface-overlay p-px text-fg-primary shadow-control"
-    :aria-label="t('spaces.media.imageEditor.transform.title')"
+    :aria-label="t('spaces.media.transform.title')"
   >
-    <span class="px-2 text-label font-medium">{{ t("spaces.media.imageEditor.transform.title") }}</span>
+    <span class="px-2 text-label font-medium">{{ t("spaces.media.transform.title") }}</span>
     <label
       class="flex h-full items-center gap-0.5 border-l border-stroke-divider px-2 text-label tabular-nums"
     >
       <input
         type="number"
-        :aria-label="t('spaces.media.imageEditor.transform.rotationDegrees')"
+        :aria-label="t('spaces.media.transform.rotationDegrees')"
         :min="0"
         :max="359"
         :value="edit.rotation"
@@ -45,17 +45,13 @@ function setRotation(event: Event) {
     </label>
     <div class="flex h-full items-center border-l border-stroke-divider px-1">
       <ToolbarButton as-child>
-        <UiIconButton
-          :label="t('spaces.media.imageEditor.transform.rotateClockwise')"
-          :disabled="busy"
-          @click="rotate"
-        >
+        <UiIconButton :label="t('spaces.media.transform.rotateClockwise')" :disabled="busy" @click="rotate">
           <RotateCw class="size-3.5" />
         </UiIconButton>
       </ToolbarButton>
       <ToolbarButton as-child>
         <UiIconButton
-          :label="t('spaces.media.imageEditor.transform.flipHorizontal')"
+          :label="t('spaces.media.transform.flipHorizontal')"
           tooltip
           :active="edit.flipHorizontal"
           :disabled="busy"
@@ -66,7 +62,7 @@ function setRotation(event: Event) {
       </ToolbarButton>
       <ToolbarButton as-child>
         <UiIconButton
-          :label="t('spaces.media.imageEditor.transform.flipVertical')"
+          :label="t('spaces.media.transform.flipVertical')"
           tooltip
           :active="edit.flipVertical"
           :disabled="busy"

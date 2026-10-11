@@ -5,21 +5,29 @@
   "backup": {
     "title": "Sicherung",
     "description": "Erstellt ein konsistentes Archiv, während Knovum im Wartungsmodus neu startet.",
-    "contentsTitle": "Verwaltete Daten",
-    "contentsDescription": "Beinhaltet Arbeitsbereiche, Nutzungsverlauf, Einstellungen, verwaltete Arbeitsbereiche und Sprachressourcen sowie installierte Erweiterungen. Anmeldeinformationen, heruntergeladene Modelle, Laufzeiten, Caches und Protokolle sind ausgeschlossen.",
+    "contents": {
+      "title": "Verwaltete Daten",
+      "description": "Beinhaltet Arbeitsbereiche, Nutzungsverlauf, Einstellungen, verwaltete Arbeitsbereiche und Sprachressourcen sowie installierte Erweiterungen. Anmeldeinformationen, heruntergeladene Modelle, Laufzeiten, Caches und Protokolle sind ausgeschlossen."
+    },
     "action": "Backup erstellen",
-    "confirmTitle": "Knovum neu starten, um dieses Backup zu erstellen?",
-    "confirmDescription": "Knovum speichert ausstehende Änderungen, startet neu, erstellt das ausgewählte Backup, bevor es seine Datenbanken öffnet, und fährt dann mit dem Start fort. Aktive Läufe und Verarbeitungsaufträge müssen zuerst abgeschlossen oder abgebrochen werden.",
+    "confirm": {
+      "title": "Knovum neu starten, um dieses Backup zu erstellen?",
+      "description": "Knovum speichert ausstehende Änderungen, startet neu, erstellt das ausgewählte Backup, bevor es seine Datenbanken öffnet, und fährt dann mit dem Start fort. Aktive Läufe und Verarbeitungsaufträge müssen zuerst abgeschlossen oder abgebrochen werden."
+    },
     "failed": "Die Sicherung konnte nicht gestartet werden"
   },
   "restore": {
     "title": "Backup wiederherstellen",
     "description": "Validiert das gesamte Archiv, bevor verwaltete Daten ersetzt werden, mit Rollback, wenn die Veröffentlichung fehlschlägt. Vollständige Backups werden nur an demselben Knovum-Datenspeicherort wiederhergestellt; Verwenden Sie Arbeitsbereichspakete, um Arbeitsbereiche zwischen Installationen zu verschieben.",
-    "credentialsTitle": "Anmeldeinformationen werden nie wiederhergestellt",
-    "credentialsDescription": "Durch die Wiederherstellung werden aktuell gespeicherte Anmeldeinformationen entfernt, um zu verhindern, dass alte Autorisierungen mit wiederhergestellten Datensätzen übereinstimmen. Konfigurieren Sie anschließend die Provider- und Connector-Anmeldeinformationen erneut.",
+    "credentials": {
+      "title": "Anmeldeinformationen werden nie wiederhergestellt",
+      "description": "Durch die Wiederherstellung werden aktuell gespeicherte Anmeldeinformationen entfernt, um zu verhindern, dass alte Autorisierungen mit wiederhergestellten Datensätzen übereinstimmen. Konfigurieren Sie anschließend die Provider- und Connector-Anmeldeinformationen erneut."
+    },
     "action": "Backup wiederherstellen",
-    "confirmTitle": "Knovum neu starten und dieses Backup wiederherstellen?",
-    "confirmDescription": "Knovum speichert ausstehende Änderungen und startet neu. Das Archiv muss genau zu dieser Version passen. Die aktuell verwalteten Daten bleiben für ein Rollback verfügbar, bis die Wiederherstellung erfolgreich ist.",
+    "confirm": {
+      "title": "Knovum neu starten und dieses Backup wiederherstellen?",
+      "description": "Knovum speichert ausstehende Änderungen und startet neu. Das Archiv muss genau zu dieser Version passen. Die aktuell verwalteten Daten bleiben für ein Rollback verfügbar, bis die Wiederherstellung erfolgreich ist."
+    },
     "failed": "Die Wiederherstellung konnte nicht gestartet werden"
   },
   "receipt": {

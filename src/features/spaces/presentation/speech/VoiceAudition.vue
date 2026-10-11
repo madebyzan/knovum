@@ -21,14 +21,14 @@ onScopeDispose(reset);
 <template>
   <section class="space-y-2">
     <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
-      <span>{{ t("spaces.speech.voice.candidate.text") }}</span>
+      <span>{{ t("spaces.speech.preview.text.label") }}</span>
       <UiTextarea
         v-model="text"
         :rows="2"
         :maxlength="500"
         :disabled="disabled || Boolean(jobId)"
-        :placeholder="t('spaces.speech.project.previewText')"
-        :aria-label="t('spaces.speech.project.previewText')"
+        :placeholder="t('spaces.speech.preview.text.placeholder')"
+        :aria-label="t('spaces.speech.preview.text.placeholder')"
       />
     </label>
     <div class="flex items-center gap-2">
@@ -36,11 +36,11 @@ onScopeDispose(reset);
         size="sm"
         :disabled="disabled || Boolean(jobId) || !text.trim()"
         @click="previewSource(text.trim(), source, {})"
-        >{{ t("spaces.speech.project.preview") }}</UiButton
+        >{{ t("spaces.speech.preview.action") }}</UiButton
       >
       <UiButton v-if="jobId" size="sm" @click="cancel">{{ t("common.cancel") }}</UiButton>
       <UiButton v-if="listening" size="sm" @click="stopListening">{{
-        t("spaces.speech.project.stopListening")
+        t("spaces.speech.preview.stop")
       }}</UiButton>
       <slot name="actions" />
     </div>

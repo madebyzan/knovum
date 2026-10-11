@@ -1,13 +1,18 @@
 {
   "new": "Neues starten",
   "language": "Sprache",
-  "scriptPlaceholder": "Geben Sie das Skript für diese Revision ein",
-  "unsavedTitle": "Sprachprojektänderungen speichern?",
-  "unsavedDescription": "Speichern Sie diese Revision vor dem Verlassen oder verwerfen Sie die nicht gespeicherten Änderungen.",
-  "incompleteTitle": "Unvollendete Änderungen verwerfen?",
-  "incompleteDescription": "Kehren Sie zurück, um die Bearbeitung abzuschließen, oder verwerfen Sie diese Änderungen.",
-  "preview": "Vorschau",
-  "stopListening": "Hör auf zuzuhören",
+  "script": {
+    "placeholder": "Geben Sie das Skript für diese Revision ein",
+    "label": "Skript"
+  },
+  "unsaved": {
+    "title": "Sprachprojektänderungen speichern?",
+    "description": "Speichern Sie diese Revision vor dem Verlassen oder verwerfen Sie die nicht gespeicherten Änderungen."
+  },
+  "incomplete": {
+    "title": "Unvollendete Änderungen verwerfen?",
+    "description": "Kehren Sie zurück, um die Bearbeitung abzuschließen, oder verwerfen Sie diese Änderungen."
+  },
   "saving": "Speichern",
   "starting": "Generierung wird vorbereitet",
   "generatedAudio": "Generiertes Audio",
@@ -17,13 +22,17 @@
   "loudness": "Lautheit (LUFS)",
   "truePeak": "Echter Spitzenwert (dB)",
   "role": "Sprecherrolle",
-  "roleBindings": "Rollenstimmen",
-  "roleBindingsHint": "Wählen Sie für jede Rolle eine Stimme.",
+  "roleBindings": {
+    "label": "Rollenstimmen",
+    "hint": "Wählen Sie für jede Rolle eine Stimme."
+  },
   "addRole": "Rolle hinzufügen",
   "removeRole": "Rolle entfernen",
   "defaultRole": "Erzähler",
-  "deliveryInstruction": "Lieferanweisung",
-  "deliveryInstructionPlaceholder": "Optional: Beschreiben Sie das Tempo, den Ton und die Übermittlung für dieses Segment (bis zu 500 Zeichen).",
+  "deliveryInstruction": {
+    "label": "Lieferanweisung",
+    "placeholder": "Optional: Beschreiben Sie das Tempo, den Ton und die Übermittlung für dieses Segment (bis zu 500 Zeichen)."
+  },
   "stages": {
     "preparing": "Ressourcen werden vorbereitet",
     "synthesizing": "Synthesizing-Vorschau",
@@ -34,15 +43,11 @@
     "audiobook": "Hörbuch",
     "videoDubbing": "Video-Überspielung"
   },
-  "previewText": "Geben Sie bis zu 500 Zeichen ein, um diese Stimme anzuhören",
   "generateFromNode": "Sprache generieren",
   "nodeProjects": "Gespeicherte Überspielung",
-  "script": "Skript",
   "settings": "Einstellungen",
   "editorPages": "Spracheditor-Abschnitte",
   "importManuscript": "Knotenmanuskript importieren",
-  "noVoices": "Keine Stimmen zur Auswahl. Fügen Sie eine Stimme hinzu, um loszulegen.",
-  "selectVoice": "Wählen Sie eine Stimme aus",
   "sourceNotReady": "Das Video ist noch nicht zum Überspielen bereit.",
   "emptyManuscript": "Importieren Sie das Manuskript oder fügen Sie ein Kapitel hinzu, um zu beginnen.",
   "emptyVideoScript": "Importieren Sie Untertitel oder fügen Sie eine Synchronisationszeile hinzu.",

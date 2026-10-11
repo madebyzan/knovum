@@ -7,7 +7,8 @@
     "subdirectory": "Sous-répertoire Package",
     "install": "Installer à partir des sources",
     "description": "Choisissez un package local ou un URL distant, puis examinez-le avant l'installation.",
-    "revision": "Révision source"
+    "revision": "Révision source",
+    "choose": "Choisir la source"
   },
   "installation": {
     "preview": "Aperçu",
@@ -70,12 +71,6 @@
     "committing": "Validation des modifications"
   },
   "title": "Plugins installés",
-  "search": {
-    "empty": "Aucun résultat correspondant",
-    "hint": "Essayez un autre mot-clé ou effacez la recherche."
-  },
-  "disable": "Désactiver {name}",
-  "enable": "Activer {name}",
   "actions": "Actions du plugin",
   "capabilities": "Capacités incluses"
 }

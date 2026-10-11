@@ -1,0 +1,30 @@
+{
+  "empty": "Noch keine Modelle hinzugefügt.",
+  "edit": "Modell bearbeiten",
+  "delete": {
+    "title": "Modell {name} löschen?"
+  },
+  "duplicateIdentifier": "Diese Modellkennung wurde dieser Verbindung bereits hinzugefügt",
+  "capabilities": {
+    "label": "Unterstützte Funktionen",
+    "required": "Wählen Sie mindestens eine Fähigkeit aus",
+    "text": "Textgenerierung",
+    "vision": "Visuelles Verständnis",
+    "image": "Bildgenerierung",
+    "video": "Videogenerierung"
+  },
+  "inUse": "Dieses Modell ist im Einsatz. Ändern Sie Aufgabenstandards oder Erstellungsvoreinstellungen, bevor Sie ausgewählte Funktionen oder das Modell entfernen.",
+  "title": "Modelle",
+  "count": "{count}-Modell | {count}-Modelle",
+  "add": "Modell hinzufügen",
+  "displayName": "Modellanzeigename",
+  "identifier": "Anbietermodell-ID",
+  "builtinAgent": {
+    "enabled": "Wird für den integrierten Agenten verwendet",
+    "help": "Es können nur Modelle mit Werkzeugaufruf aktiviert werden. Verwenden Sie die dokumentierten Kontext- und Ausgabebeschränkungen des Anbieters.",
+    "protocol": "Modell-API-Protokoll",
+    "contextWindow": "Kontextfenster (Tokens)",
+    "maxOutputTokens": "Ausgabelimit pro Anfrage (Tokens)",
+    "invalidLimits": "Der Kontext muss mindestens 8.192 Token umfassen. Die Ausgabe muss positiv und kleiner als der Kontext sein."
+  }
+}

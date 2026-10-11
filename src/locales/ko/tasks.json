@@ -23,8 +23,10 @@
   "cancelling": "취소 중…",
   "forceDismiss": "목록에서 제거",
   "failed": "이 작업을 완료할 수 없습니다.",
-  "verifyingResource": "무결성 확인 중…",
-  "preparingLocalInference": "로컬 AI 구성요소 준비 중…",
-  "localResourceDownloadSize": "처음 사용하려면 로컬 리소스 다운로드의 {size}가 필요합니다.",
-  "installingResource": "로컬 리소스 설치 중..."
+  "resources": {
+    "verifying": "무결성 확인 중…",
+    "preparingInference": "로컬 AI 구성요소 준비 중…",
+    "downloadSize": "처음 사용하려면 로컬 리소스 다운로드의 {size}가 필요합니다.",
+    "installing": "로컬 리소스 설치 중..."
+  }
 }

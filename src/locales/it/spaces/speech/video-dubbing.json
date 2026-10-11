@@ -21,6 +21,5 @@
   "multipleAudioTracks": "Video con più tracce audio",
   "audioTracksHint": "Seleziona fino a otto revisioni pubblicate dello stesso video sorgente, nell'ordine delle tracce di riproduzione.",
   "currentBackground": "Traccia di sottofondo corrente",
-  "mixingSettings": "Mix audio",
-  "translationTitle": "Traduci script"
+  "mixingSettings": "Mix audio"
 }

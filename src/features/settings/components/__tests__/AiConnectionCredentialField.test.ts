@@ -31,7 +31,7 @@ describe("AI credential configuration", () => {
     const wrapper = open(false);
     await flushPromises();
     expect(isSecretConfigured).not.toHaveBeenCalled();
-    expect(wrapper.get("input").attributes("placeholder")).toBe("settings.ai.keyOptionalPlaceholder");
+    expect(wrapper.get("input").attributes("placeholder")).toBe("settings.credentials.optionalPlaceholder");
     wrapper.unmount();
   });
 

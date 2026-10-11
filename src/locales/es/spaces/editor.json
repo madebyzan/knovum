@@ -12,7 +12,9 @@
     "title": "Título de Markdown",
     "empty": "Rebaja vacía"
   },
-  "loading": "Preparando editor…",
-  "loadingHint": "Los documentos grandes pueden tardar un momento en abrirse.",
+  "loading": {
+    "message": "Preparando editor…",
+    "hint": "Los documentos grandes pueden tardar un momento en abrirse."
+  },
   "placeholder": "Empezar a escribir…"
 }

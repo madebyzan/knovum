@@ -75,8 +75,8 @@ export function useLocalModelOperations(model: Readonly<Ref<LocalModelAvailabili
     try {
       if (
         !(await confirmAction({
-          title: t("settings.ai.localModels.removeTitle", { name: model.value.name }),
-          description: t("settings.ai.localModels.removeDescription"),
+          title: t("settings.ai.localModels.remove.title", { name: model.value.name }),
+          description: t("settings.ai.localModels.remove.description"),
           confirmLabel: t("common.remove"),
         }))
       )

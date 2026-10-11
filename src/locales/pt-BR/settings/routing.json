@@ -1,6 +1,8 @@
 {
-  "defaultsTitle": "Execução de IA",
-  "defaultsDescription": "Defina cada recurso individualmente ou deixe-o usar o método de execução padrão.",
+  "defaults": {
+    "title": "Execução de IA",
+    "description": "Defina cada recurso individualmente ou deixe-o usar o método de execução padrão."
+  },
   "unassigned": "Use o método de execução padrão",
   "noCompatibleModel": "Configure um modelo para esta tarefa",
   "routes": {
@@ -34,5 +36,7 @@
     }
   },
   "unselected": "Nenhum método de execução selecionado",
-  "capabilitiesTitle": "Por capacidade"
+  "capabilities": {
+    "title": "Por capacidade"
+  }
 }

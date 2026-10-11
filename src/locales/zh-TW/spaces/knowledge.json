@@ -59,9 +59,11 @@
     "empty": "拖曳節點錨點或選取多項建立關係。",
     "inspect": "關聯詳情",
     "kind": "關係類型",
-    "rationale": "關聯說明",
-    "addRationale": "添加",
-    "rationalePlaceholder": "說明這些內容之間的關聯…",
+    "rationale": {
+      "label": "關聯說明",
+      "add": "添加",
+      "placeholder": "說明這些內容之間的關聯…"
+    },
     "color": "關聯線顏色",
     "colors": {
       "neutral": "中性灰",
@@ -71,8 +73,10 @@
       "red": "紅色",
       "purple": "紫色"
     },
-    "remove": "移除關係",
-    "removeConfirm": "移除與「{title}」的關係？",
+    "remove": {
+      "action": "移除關係",
+      "confirmation": "移除與「{title}」的關係？"
+    },
     "kinds": {
       "reference": "引用",
       "related": "相關",
@@ -88,13 +92,17 @@
   },
   "provenance": "來源",
   "portal": {
-    "create": "新建空間入口",
-    "createDescription": "建立快速跳轉至其他空間的入口節點。"
+    "create": {
+      "action": "新建空間入口",
+      "description": "建立快速跳轉至其他空間的入口節點。"
+    }
   },
   "objects": {
     "custom": "自訂知識對象",
-    "create": "新建自訂對象",
-    "createDescription": "根據選定的 Schema 類型建立知識對象節點。"
+    "create": {
+      "action": "新建自訂對象",
+      "description": "根據選定的 Schema 類型建立知識對象節點。"
+    }
   },
   "fields": {
     "add": "新增字段",
@@ -133,12 +141,16 @@
     "description": "描述",
     "icon": "圖示",
     "name": "類型名稱",
-    "manage": "管理知識類型",
-    "manageDescription": "定義目前空間中結構化知識的屬性欄位。",
-    "delete": "刪除類型…",
+    "manage": {
+      "action": "管理知識類型",
+      "description": "定義目前空間中結構化知識的屬性欄位。"
+    },
+    "delete": {
+      "action": "刪除類型…",
+      "description": "刪除“{name}”？已有知識對象使用的類型無法刪除。"
+    },
     "discardChanges": "放棄目前類型尚未儲存的修改？",
     "emptyFields": "新增這類知識需要記錄的屬性。",
-    "deleteConfirmation": "刪除“{name}”？已有知識對象使用的類型無法刪除。",
     "create": "新類型",
     "none": "暫無自訂 Schema 類型。",
     "loadFailed": "無法載入 Schema 類型"

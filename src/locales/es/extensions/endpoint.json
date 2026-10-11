@@ -1,0 +1,39 @@
+{
+  "configuration": {
+    "headers": "Encabezados de solicitud",
+    "environment": "Variables de entorno",
+    "secretsHint": "Sólo configuración pública. Configure tokens y otras credenciales en Autorización después de guardar.",
+    "invalidName": "Introduzca un nombre de campo sin espacios iniciales ni finales.",
+    "duplicateName": "Los nombres de los campos deben ser únicos. Los nombres de encabezado HTTP no distinguen entre mayúsculas y minúsculas.",
+    "fieldName": "Nombre",
+    "fieldValue": "Valor",
+    "fieldNameAt": "Nombre del campo {index}",
+    "fieldValueAt": "Valor del campo {index}",
+    "removeField": "Eliminar campo {index}",
+    "addHeader": "Agregar encabezado",
+    "addVariable": "Agregar variable",
+    "serverUrl": "URL del servidor",
+    "authorizationHint": "Elija el método de autorización requerido por el servidor. Las credenciales se configuran por separado después de guardarlas.",
+    "advanced": "Variables de entorno y encabezados"
+  },
+  "transport": "Transporte",
+  "allowLocalNetwork": "Permitir el acceso al host local configurado o a la dirección LAN",
+  "process": {
+    "executable": {
+      "label": "Ejecutable del servicio instalado (ruta absoluta)",
+      "choose": "Elegir programa instalado"
+    },
+    "arguments": {
+      "label": "Argumentos",
+      "hint": "Cada campo es un argumento literal, incluidos los espacios. No se realiza ningún análisis de shell.",
+      "add": "Agregar argumento",
+      "at": "Argumento {index}",
+      "remove": "Eliminar argumento {index}"
+    },
+    "directory": {
+      "label": "Directorio de trabajo (opcional)",
+      "choose": "Elegir directorio de trabajo"
+    },
+    "authorizationHint": "Habilitar esta conexión permite que la aplicación inicie el servicio MCP seleccionado. La instalación de un complemento nunca instala programas ni ejecuta scripts de paquetes."
+  }
+}

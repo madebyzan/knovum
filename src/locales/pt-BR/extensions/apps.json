@@ -1,8 +1,10 @@
 {
   "browse": "Navegar pelos plug-ins",
   "description": "Os aplicativos vêm com plug-ins. Conecte contas e configure o acesso aqui.",
-  "empty": "Nenhum aplicativo adicionado",
-  "emptyHint": "Instale um fluxo de trabalho de aplicativo do catálogo de plug-ins.",
+  "empty": {
+    "title": "Nenhum aplicativo adicionado",
+    "description": "Instale um fluxo de trabalho de aplicativo do catálogo de plug-ins."
+  },
   "manage": "Gerenciar conexão",
   "accounts": "Contas",
   "access": "Acesso",

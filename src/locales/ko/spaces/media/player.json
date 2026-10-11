@@ -1,4 +1,5 @@
 {
+  "playbackFailed": "원본 미디어를 재생할 수 없습니다. 미디어 파일을 읽을 수 있는지 확인하세요.",
   "followPlayback": "재생 따르기",
   "load": "{title} 로드",
   "play": "재생",

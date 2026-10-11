@@ -27,7 +27,7 @@ async function importFile() {
       preparing: t("spaces.importExport.progress.preparing"),
     });
   } catch (error) {
-    toast.error(t("spaces.importExport.importFailed"), { description: getErrorMessage(error) });
+    toast.error(t("spaces.importExport.import.failed"), { description: getErrorMessage(error) });
   }
 }
 </script>
@@ -43,7 +43,7 @@ async function importFile() {
           <StickyNote class="mr-1.5 size-3" />{{ t("spaces.editor.note.new") }}
         </UiButton>
         <UiButton size="sm" variant="secondary" :disabled="!operations.allows('create')" @click="importFile">
-          <FilePlus2 class="mr-1.5 size-3" />{{ t("spaces.importExport.import") }}
+          <FilePlus2 class="mr-1.5 size-3" />{{ t("spaces.importExport.import.action") }}
         </UiButton>
       </div>
     </div>

@@ -11,8 +11,10 @@
     "editSegment": "Modifier le segment de transcription",
     "search": "Transcription de recherche",
     "noMatches": "Aucun texte de transcription correspondant",
-    "live": "Transcription en direct",
-    "liveHint": "Le texte de la transcription en direct apparaîtra ici comme reconnu.",
+    "live": {
+      "label": "Transcription en direct",
+      "hint": "Le texte de la transcription en direct apparaîtra ici comme reconnu."
+    },
     "alignSelected": "Aligner la sélection",
     "alignmentLimit": "Jusqu'à 8 segments / 5 minutes",
     "alignmentFirstUse": "La première utilisation télécharge automatiquement le modèle sélectionné et les ressources requises. Gérez les choix de modèles dans Paramètres.",

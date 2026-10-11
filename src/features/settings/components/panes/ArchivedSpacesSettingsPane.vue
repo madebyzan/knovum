@@ -24,9 +24,9 @@ onMounted(() => void initialize());
 
 async function permanentlyDelete(space: ArchivedSpace) {
   const confirmed = await confirmAction({
-    title: t("settings.general.archived.delete.title", { title: space.title }),
-    description: t("settings.general.archived.delete.description"),
-    confirmLabel: t("settings.general.archived.delete.label"),
+    title: t("settings.archivedSpaces.delete.title", { title: space.title }),
+    description: t("settings.archivedSpaces.delete.description"),
+    confirmLabel: t("settings.archivedSpaces.delete.action"),
     danger: true,
   });
   if (!confirmed) return;
@@ -34,7 +34,7 @@ async function permanentlyDelete(space: ArchivedSpace) {
   try {
     await archive.permanentlyDelete(space.id);
   } catch (error) {
-    toast.error(t("settings.general.archived.delete.failed"), { description: getErrorMessage(error) });
+    toast.error(t("settings.archivedSpaces.delete.failed"), { description: getErrorMessage(error) });
   } finally {
     finishSpaceOperation(space.id);
   }
@@ -45,10 +45,10 @@ async function initialize() {
   initializing.value = true;
   loadError.value = "";
   try {
-    await archive.initialize(t("settings.general.inboxSpace"));
+    await archive.initialize(t("spaces.space.inbox"));
   } catch (error) {
     loadError.value = getErrorMessage(error);
-    toast.error(t("settings.general.archived.loadFailed"), { description: loadError.value });
+    toast.error(t("settings.archivedSpaces.load.failed"), { description: loadError.value });
   } finally {
     initializing.value = false;
   }
@@ -59,7 +59,7 @@ async function restore(spaceId: string) {
   try {
     await archive.restore(spaceId);
   } catch (error) {
-    toast.error(t("settings.general.archived.restoreFailed"), { description: getErrorMessage(error) });
+    toast.error(t("settings.archivedSpaces.restore.failed"), { description: getErrorMessage(error) });
   } finally {
     finishSpaceOperation(spaceId);
   }
@@ -112,7 +112,7 @@ function finishSpaceOperation(spaceId: string) {
           :disabled="busySpaceIds.has(space.id)"
           @click="restore(space.id)"
         >
-          <RotateCcw class="size-3" />{{ t("settings.general.archived.restore") }}
+          <RotateCcw class="size-3" />{{ t("settings.archivedSpaces.restore.action") }}
         </UiButton>
         <UiButton
           size="sm"
@@ -120,13 +120,13 @@ function finishSpaceOperation(spaceId: string) {
           :disabled="busySpaceIds.has(space.id)"
           @click="permanentlyDelete(space)"
         >
-          <Trash2 class="size-3" />{{ t("settings.general.archived.delete.label") }}
+          <Trash2 class="size-3" />{{ t("settings.archivedSpaces.delete.action") }}
         </UiButton>
       </article>
       <UiSettingsEmptyState
         v-if="archive.spaces.value.length === 0"
         :icon="Archive"
-        :message="t('settings.general.archived.empty')"
+        :message="t('settings.archivedSpaces.empty')"
       />
     </template>
   </UiSettingsSection>

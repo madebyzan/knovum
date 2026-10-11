@@ -1,0 +1,13 @@
+{
+  "title": "評論",
+  "prompt": "添加描述",
+  "save": "保存評論",
+  "addToConversation": "新增到對話",
+  "conversationContext": "圖片標註（{kind}；以左上角為原點，座標單位為圖片寬高的百分比）：{coordinates}\n標註內容：{text}",
+  "delete": "刪除評論",
+  "hint": "點擊圖片位置新增評論",
+  "mode": "評論標註方式",
+  "point": "點選評論",
+  "draw": "自由繪製評論",
+  "region": "框選區域評論"
+}

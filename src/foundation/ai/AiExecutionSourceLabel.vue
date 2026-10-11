@@ -10,11 +10,11 @@ const { t } = useI18n();
 const catalog = useExecutionCatalogQuery({ detectInstallations: false });
 const label = computed(() => {
   const source = props.source;
-  if (source.type === "model") return t("ai.executedWithModel", source);
+  if (source.type === "model") return t("ai.execution.model", source);
   const name =
     catalog.data.value?.agents.find(({ kind }) => kind === source.runtimeKind)?.displayName ??
     source.runtimeKind;
-  return t("ai.executedWithAgent", { name });
+  return t("ai.execution.desktopAgent", { name });
 });
 </script>
 

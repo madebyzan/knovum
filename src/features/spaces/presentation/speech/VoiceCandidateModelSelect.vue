@@ -92,7 +92,7 @@ watchEffect(() => {
       </CollapsibleContent>
     </CollapsibleRoot>
     <p v-if="selected?.unavailableReason" class="text-caption text-fg-secondary">
-      {{ t(`settings.ai.localModels.unavailable.${selected.unavailableReason}`) }}
+      {{ t(`ai.localModels.unavailable.${selected.unavailableReason}`) }}
     </p>
   </div>
 </template>

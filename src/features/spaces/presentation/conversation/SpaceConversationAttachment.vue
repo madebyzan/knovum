@@ -15,7 +15,7 @@ const emit = defineEmits<{ remove: [key: string]; preview: [key: string] }>();
     class="group relative flex h-20 shrink-0 flex-col overflow-hidden rounded-lg border border-stroke-divider bg-surface-raised transition-[border-color,box-shadow] duration-150 focus-within:border-stroke-focus hover:border-stroke-default-hover hover:shadow-control"
     :class="attachment.isImage ? 'w-20' : 'w-28'"
     role="group"
-    :aria-label="`${$t(attachment.kind === 'node' ? 'spaces.conversation.attachments.canvasNodeShort' : 'spaces.conversation.attachments.localFileShort')}: ${attachment.title}`"
+    :aria-label="`${$t(attachment.kind === 'node' ? 'spaces.conversation.attachments.canvasReference.shortLabel' : 'spaces.conversation.attachments.localFile.shortLabel')}: ${attachment.title}`"
   >
     <button
       type="button"

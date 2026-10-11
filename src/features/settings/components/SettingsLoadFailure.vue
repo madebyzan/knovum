@@ -11,11 +11,11 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <UiSettingsSection :title="t('settings.general.load.failed')">
+  <UiSettingsSection :title="t('settings.general.load.failure.title')">
     <div class="px-4 py-3">
       <p class="text-body text-fg-danger">{{ message }}</p>
       <p class="mt-1 text-caption text-fg-secondary">
-        {{ t("settings.general.load.failedDescription") }}
+        {{ t("settings.general.load.failure.description") }}
       </p>
       <div class="mt-3 flex gap-2">
         <UiButton @click="emit('retry')"> <RotateCcw class="size-3.5" />{{ t("common.retry") }} </UiButton>

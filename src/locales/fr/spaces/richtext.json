@@ -37,9 +37,11 @@
     "previous": "Correspondance précédente",
     "next": "Prochain match",
     "toggleReplace": "Afficher le remplacement",
-    "replace": "Remplacer",
-    "replaceAll": "Remplacer tout",
-    "replacePlaceholder": "Remplacer par…"
+    "replace": {
+      "action": "Remplacer",
+      "placeholder": "Remplacer par…"
+    },
+    "replaceAll": "Remplacer tout"
   },
   "paragraph": "Paragraphe",
   "heading1": "Rubrique 1",
@@ -75,24 +77,32 @@
   },
   "image": {
     "insert": "Insérer une image",
-    "tabUpload": "Fichier local",
-    "tabUrl": "URL",
-    "url": "URL de l'image",
-    "alt": "Description de l'image",
+    "source": {
+      "localFile": "Fichier local",
+      "url": "URL"
+    },
+    "url": {
+      "label": "URL de l'image",
+      "invalid": "Veuillez saisir une adresse d'image http:// ou https:// valide."
+    },
+    "alt": {
+      "label": "Description de l'image",
+      "placeholder": "Décrire l'image pour les lecteurs d'écran"
+    },
     "choose": "Sélectionner une image",
     "uploadFailed": "Échec de l'insertion de l'image",
     "dropDocumentHint": "Choisissez un fichier ou faites glisser l'image dans l'éditeur de documents.",
-    "altPlaceholder": "Décrire l'image pour les lecteurs d'écran",
     "dropNow": "Déposer pour insérer une image",
-    "urlInvalid": "Veuillez saisir une adresse d'image http:// ou https:// valide.",
     "insertFailed": "Impossible d'insérer l'image"
   },
   "link": {
     "label": "Lien hypertexte",
     "placeholder": "Saisissez ou collez URL",
     "remove": "Supprimer le lien",
-    "editorTitle": "Modifier le lien",
-    "editorDescription": "Ajoutez un lien Web ou e-mail au texte sélectionné.",
+    "editor": {
+      "title": "Modifier le lien",
+      "description": "Ajoutez un lien Web ou e-mail au texte sélectionné."
+    },
     "url": "URL du lien",
     "invalid": "Veuillez saisir un lien HTTP, HTTPS ou mailto valide.",
     "open": "Ouvrir le lien",
@@ -110,6 +120,8 @@
     "addColumn": "Insérer la colonne de droite",
     "delete": "Supprimer la table"
   },
-  "words": "mots",
-  "characters": "caractères"
+  "statistics": {
+    "words": "{count} mot | {count} mots",
+    "characters": "{count} caractère | {count} caractères"
+  }
 }

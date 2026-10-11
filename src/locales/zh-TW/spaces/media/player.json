@@ -1,4 +1,5 @@
 {
+  "playbackFailed": "無法播放來源媒體。請檢查媒體檔案是否可讀取。",
   "followPlayback": "跟隨播放進度",
   "load": "載入 {title}",
   "play": "播放",

@@ -5,10 +5,12 @@ import { localeMessages } from "../../../locales/locale-registry";
 import { i18n as appI18n } from "../instance";
 
 const examples = [
-  ["settings.ai.modelCount", "model", "models"],
+  ["settings.ai.models.count", "model", "models"],
   ["spaces.inspector.itemsSelected", "item selected", "items selected"],
   ["spaces.trash.structure.deletedCount", "deleted node", "deleted nodes"],
   ["spaces.space.nodeCount", "item", "items"],
+  ["spaces.richtext.statistics.words", "word", "words"],
+  ["spaces.richtext.statistics.characters", "character", "characters"],
 ] as const;
 
 describe("desktop count messages", () => {
@@ -20,10 +22,10 @@ describe("desktop count messages", () => {
     expect(i18n.global.t(key, { count: 0 })).toBe(`0 ${plural}`);
   });
   it("keeps archived deletion and subset counts grammatical at one", () => {
-    expect(i18n.global.t("settings.general.archived.deleteAll.description", { count: 1 })).toBe(
+    expect(i18n.global.t("settings.archivedSpaces.deleteAll.description", { count: 1 })).toBe(
       "Permanently delete 1 archived Space and its contents? This cannot be undone.",
     );
-    expect(i18n.global.t("settings.general.archived.deleteAll.description", { count: 2 })).toBe(
+    expect(i18n.global.t("settings.archivedSpaces.deleteAll.description", { count: 2 })).toBe(
       "Permanently delete 2 archived Spaces and their contents? This cannot be undone.",
     );
     expect(i18n.global.t("spaces.processing.document.textCoverage", { count: 1, total: 1 })).toBe(
@@ -53,7 +55,21 @@ describe("Russian count messages", () => {
     const previous = appI18n.global.locale.value;
     appI18n.global.locale.value = "ru";
     try {
-      expect(appI18n.global.t("settings.ai.modelCount", { count }, count)).toBe(expected);
+      expect(appI18n.global.t("settings.ai.models.count", { count }, count)).toBe(expected);
+    } finally {
+      appI18n.global.locale.value = previous;
+    }
+  });
+  it.each([
+    [1, "1 слово", "1 символ"],
+    [2, "2 слова", "2 символа"],
+    [5, "5 слов", "5 символов"],
+  ])("inflects editor statistics at %s", (count, words, characters) => {
+    const previous = appI18n.global.locale.value;
+    appI18n.global.locale.value = "ru";
+    try {
+      expect(appI18n.global.t("spaces.richtext.statistics.words", { count }, count)).toBe(words);
+      expect(appI18n.global.t("spaces.richtext.statistics.characters", { count }, count)).toBe(characters);
     } finally {
       appI18n.global.locale.value = previous;
     }

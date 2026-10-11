@@ -57,12 +57,16 @@
   "attachments": {
     "add": "Adicionar recurso",
     "attached": "Recursos anexados, role horizontalmente para ver mais",
-    "citeCanvasNode": "Conteúdo da tela de referência",
-    "citeCanvasNodeHint": "Escolha o conteúdo deste espaço de trabalho",
-    "canvasNodeShort": "Referência do Canvas",
-    "uploadLocalFile": "Adicionar arquivo local",
-    "uploadLocalFileHint": "Imagens, PDFs ou documentos",
-    "localFileShort": "Arquivo local",
+    "canvasReference": {
+      "label": "Conteúdo da tela de referência",
+      "hint": "Escolha o conteúdo deste espaço de trabalho",
+      "shortLabel": "Referência do Canvas"
+    },
+    "localFile": {
+      "label": "Adicionar arquivo local",
+      "hint": "Imagens, PDFs ou documentos",
+      "shortLabel": "Arquivo local"
+    },
     "dropFiles": "Solte arquivos para anexar",
     "limit": "Você pode anexar até 32 itens a uma mensagem.",
     "addCurrentSelection": "Adicionar seleção atual ({count})",

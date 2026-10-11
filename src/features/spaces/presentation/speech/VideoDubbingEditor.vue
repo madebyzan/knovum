@@ -40,9 +40,9 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const page = shallowRef("script");
 const pages = computed(() => [
-  { value: "script", label: t("spaces.speech.project.script") },
+  { value: "script", label: t("spaces.speech.project.script.label") },
   { value: "mixing", label: t("spaces.speech.videoDubbing.mixingSettings") },
-  { value: "translation", label: t("spaces.speech.videoDubbing.translationTitle") },
+  { value: "translation", label: t("spaces.speech.translation.translate") },
 ]);
 const translationBusy = shallowRef(false);
 const editingDisabled = computed(() => props.disabled || translationBusy.value);

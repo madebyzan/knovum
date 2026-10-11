@@ -1,0 +1,23 @@
+{
+  "title": "已歸檔空間",
+  "description": "恢復或永久刪除歸檔的空間。",
+  "restore": {
+    "action": "復原空間",
+    "failed": "復原空間失敗"
+  },
+  "load": {
+    "failed": "無法載入已歸檔空間"
+  },
+  "delete": {
+    "action": "永久刪除",
+    "title": "永久刪除“{title}”？",
+    "description": "此操作將從設備中徹底清除該空間及其所有關聯數據，且不可恢復。",
+    "failed": "刪除空間失敗"
+  },
+  "deleteAll": {
+    "action": "全部刪除",
+    "title": "永久刪除所有歸檔空間？",
+    "description": "永久刪除全部 {count} 個已歸檔空間及其中的內容？此操作無法撤銷。"
+  },
+  "empty": "暫無歸檔的空間。"
+}

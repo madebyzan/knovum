@@ -36,7 +36,12 @@
     },
     "placement": "Position",
     "add": "Add text",
-    "content": "Text"
+    "content": "Text",
+    "verticalAlignment": {
+      "top": "Top",
+      "center": "Center",
+      "bottom": "Bottom"
+    }
   },
   "tabs": {
     "captions": "Captions",
@@ -68,22 +73,23 @@
     "startsAt": "Starts (seconds)",
     "endsAt": "Ends (seconds)"
   },
-  "top": "Top",
-  "center": "Center",
-  "bottom": "Bottom",
   "project": {
     "saved": "Video edit project saved"
   },
   "render": {
     "action": "Render video",
     "task": "Video render",
-    "failed": "Video rendering failed"
+    "failed": "Video rendering failed",
+    "stages": {
+      "preparingVideoEdit": "Preparing edit",
+      "renderingVideoEdit": "Rendering video",
+      "savingResource": "Saving resource"
+    }
   },
-  "preparingVideoEdit": "Preparing edit",
-  "renderingVideoEdit": "Rendering video",
-  "savingResource": "Saving resource",
-  "previousStep": "Step back 0.1 second",
-  "nextStep": "Step forward 0.1 second",
+  "playback": {
+    "stepBackward": "Step back 0.1 second",
+    "stepForward": "Step forward 0.1 second"
+  },
   "trim": {
     "start": "Trim clip start",
     "end": "Trim clip end",

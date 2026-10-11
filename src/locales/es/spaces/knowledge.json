@@ -59,9 +59,11 @@
     "empty": "Arrastre los anclajes de los nodos o seleccione varios elementos para crear relaciones.",
     "inspect": "Detalles de conexión",
     "kind": "Tipo de relación",
-    "rationale": "¿Por qué están conectados?",
-    "addRationale": "Agregar",
-    "rationalePlaceholder": "Describe cómo están conectados estos elementos...",
+    "rationale": {
+      "label": "¿Por qué están conectados?",
+      "add": "Agregar",
+      "placeholder": "Describe cómo están conectados estos elementos..."
+    },
     "color": "Color de línea de relación",
     "colors": {
       "neutral": "Neutral",
@@ -71,8 +73,10 @@
       "red": "Rojo",
       "purple": "Púrpura"
     },
-    "remove": "Eliminar relación",
-    "removeConfirm": "¿Eliminar la relación con “{title}”?",
+    "remove": {
+      "action": "Eliminar relación",
+      "confirmation": "¿Eliminar la relación con “{title}”?"
+    },
     "kinds": {
       "reference": "Referencia",
       "related": "Relacionado",
@@ -88,13 +92,17 @@
   },
   "provenance": "Fuente",
   "portal": {
-    "create": "Nuevo nodo del Portal",
-    "createDescription": "Cree un nodo de portal para una navegación rápida a otro espacio de trabajo."
+    "create": {
+      "action": "Nuevo nodo del Portal",
+      "description": "Cree un nodo de portal para una navegación rápida a otro espacio de trabajo."
+    }
   },
   "objects": {
     "custom": "Objeto de conocimiento personalizado",
-    "create": "Nuevo objeto personalizado",
-    "createDescription": "Cree un nodo de objeto de conocimiento utilizando un esquema seleccionado."
+    "create": {
+      "action": "Nuevo objeto personalizado",
+      "description": "Cree un nodo de objeto de conocimiento utilizando un esquema seleccionado."
+    }
   },
   "fields": {
     "add": "Agregar campo",
@@ -133,12 +141,16 @@
     "description": "Descripción",
     "icon": "Icono",
     "name": "Nombre del tipo",
-    "manage": "Gestionar tipos de conocimiento",
-    "manageDescription": "Defina las propiedades del conocimiento estructurado en este espacio de trabajo.",
-    "delete": "Eliminar tipo…",
+    "manage": {
+      "action": "Gestionar tipos de conocimiento",
+      "description": "Defina las propiedades del conocimiento estructurado en este espacio de trabajo."
+    },
+    "delete": {
+      "action": "Eliminar tipo…",
+      "description": "¿Eliminar “{name}”? Los tipos utilizados por los objetos de conocimiento no se pueden eliminar."
+    },
     "discardChanges": "¿Descartar cambios no guardados de este tipo?",
     "emptyFields": "Agregue las propiedades que este tipo de conocimiento necesita.",
-    "deleteConfirmation": "¿Eliminar “{name}”? Los tipos utilizados por los objetos de conocimiento no se pueden eliminar.",
     "create": "Nuevo tipo",
     "none": "No hay tipos de esquemas personalizados.",
     "loadFailed": "No se pudieron cargar los tipos de esquema"

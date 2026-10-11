@@ -11,8 +11,10 @@
     "editSegment": "Modifica segmento di trascrizione",
     "search": "Trascrizione della ricerca",
     "noMatches": "Nessun testo di trascrizione corrispondente",
-    "live": "Trascrizione live",
-    "liveHint": "Il testo della trascrizione in tempo reale verrà visualizzato qui come riconosciuto.",
+    "live": {
+      "label": "Trascrizione live",
+      "hint": "Il testo della trascrizione in tempo reale verrà visualizzato qui come riconosciuto."
+    },
     "alignSelected": "Allinea selezionato",
     "alignmentLimit": "Fino a 8 segmenti/5 minuti",
     "alignmentFirstUse": "Al primo utilizzo scarica automaticamente il modello selezionato e le risorse richieste. Gestisci le scelte del modello in Impostazioni.",

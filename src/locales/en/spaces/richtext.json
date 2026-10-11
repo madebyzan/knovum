@@ -37,9 +37,11 @@
     "previous": "Previous match",
     "next": "Next match",
     "toggleReplace": "Show replace",
-    "replace": "Replace",
-    "replaceAll": "Replace all",
-    "replacePlaceholder": "Replace with…"
+    "replace": {
+      "action": "Replace",
+      "placeholder": "Replace with…"
+    },
+    "replaceAll": "Replace all"
   },
   "paragraph": "Paragraph",
   "heading1": "Heading 1",
@@ -75,24 +77,32 @@
   },
   "image": {
     "insert": "Insert image",
-    "tabUpload": "Local file",
-    "tabUrl": "URL",
-    "url": "Image URL",
-    "alt": "Image description",
+    "source": {
+      "localFile": "Local file",
+      "url": "URL"
+    },
+    "url": {
+      "label": "Image URL",
+      "invalid": "Please enter a valid http:// or https:// image address."
+    },
+    "alt": {
+      "label": "Image description",
+      "placeholder": "Describe the image for screen readers"
+    },
     "choose": "Select image",
     "uploadFailed": "Image insertion failed",
     "dropDocumentHint": "Choose file or drag image into document editor.",
-    "altPlaceholder": "Describe the image for screen readers",
     "dropNow": "Drop to insert image",
-    "urlInvalid": "Please enter a valid http:// or https:// image address.",
     "insertFailed": "Could not insert image"
   },
   "link": {
     "label": "Hyperlink",
     "placeholder": "Enter or paste URL",
     "remove": "Remove link",
-    "editorTitle": "Edit link",
-    "editorDescription": "Add a web or email link to the selected text.",
+    "editor": {
+      "title": "Edit link",
+      "description": "Add a web or email link to the selected text."
+    },
     "url": "Link URL",
     "invalid": "Please enter a valid HTTP, HTTPS, or mailto link.",
     "open": "Open link",
@@ -110,6 +120,8 @@
     "addColumn": "Insert column right",
     "delete": "Delete table"
   },
-  "words": "words",
-  "characters": "characters"
+  "statistics": {
+    "words": "{count} word | {count} words",
+    "characters": "{count} character | {count} characters"
+  }
 }

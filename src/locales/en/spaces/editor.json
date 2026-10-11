@@ -12,7 +12,9 @@
     "title": "Markdown title",
     "empty": "Empty Markdown"
   },
-  "loading": "Preparing editor…",
-  "loadingHint": "Large documents may take a moment to open.",
+  "loading": {
+    "message": "Preparing editor…",
+    "hint": "Large documents may take a moment to open."
+  },
   "placeholder": "Start writing…"
 }

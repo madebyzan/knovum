@@ -11,6 +11,5 @@
   "play": "Sélection de lecture",
   "sourceChanged": "La source du nœud audio a changé. Actualisez le nœud avant de préparer une référence vocale.",
   "selection": "{seconds}s sélectionnés · Faites glisser l'une ou l'autre extrémité",
-  "prepared": "Sélection reconnue",
-  "playbackFailed": "L'audio source n'a pas pu être lu. Vérifiez que le fichier multimédia est lisible."
+  "prepared": "Sélection reconnue"
 }

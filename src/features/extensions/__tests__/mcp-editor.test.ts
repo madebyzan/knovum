@@ -88,7 +88,7 @@ it("rejects case-insensitive duplicate headers without silently overwriting user
   await wrapper.get('[data-testid="connector-editor"]').trigger("submit");
   await flushPromises();
   expect(wrapper.get('[role="alert"]').text()).toBe(
-    i18n.global.t("extensions.connections.configuration.duplicateName"),
+    i18n.global.t("extensions.endpoint.configuration.duplicateName"),
   );
   expect(invoke.mock.calls.some(([command]) => command === "plugin:extensions|create_mcp_server")).toBe(
     false,

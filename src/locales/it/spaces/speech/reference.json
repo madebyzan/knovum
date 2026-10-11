@@ -11,6 +11,5 @@
   "play": "Riproduci selezione",
   "sourceChanged": "La sorgente del nodo audio è cambiata. Aggiorna il nodo prima di preparare un riferimento vocale.",
   "selection": "{seconds} selezionati · Trascina una delle estremità",
-  "prepared": "Selezione riconosciuta",
-  "playbackFailed": "Non è stato possibile riprodurre l'audio sorgente. Verificare che il file multimediale sia leggibile."
+  "prepared": "Selezione riconosciuta"
 }

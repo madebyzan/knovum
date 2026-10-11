@@ -1,0 +1,39 @@
+{
+  "configuration": {
+    "headers": "リクエスト ヘッダー",
+    "environment": "環境変数",
+    "secretsHint": "パブリック構成のみ。保存後、「認証」でトークンとその他の資格情報を設定します。",
+    "invalidName": "先頭または末尾にスペースを入れずにフィールド名を入力します。",
+    "duplicateName": "フィールド名は一意である必要があります。 HTTP ヘッダー名では大文字と小文字が区別されません。",
+    "fieldName": "名前",
+    "fieldValue": "価値",
+    "fieldNameAt": "フィールド {index} 名",
+    "fieldValueAt": "フィールド {index} の値",
+    "removeField": "フィールド {index} を削除",
+    "addHeader": "ヘッダーの追加",
+    "addVariable": "変数の追加",
+    "serverUrl": "サーバー URL",
+    "authorizationHint": "サーバーに必要な認証方法を選択します。資格情報は保存後に個別に構成されます。",
+    "advanced": "環境変数とヘッダー"
+  },
+  "transport": "輸送",
+  "allowLocalNetwork": "設定されたローカルホストまたは LAN アドレスへのアクセスを許可します",
+  "process": {
+    "executable": {
+      "label": "インストールされたサービスの実行可能ファイル (絶対パス)",
+      "choose": "インストールされているプログラムを選択"
+    },
+    "arguments": {
+      "label": "引数",
+      "hint": "各フィールドは、スペースを含む 1 つのリテラル引数です。シェルの解析は実行されません。",
+      "add": "引数の追加",
+      "at": "引数 {index}",
+      "remove": "引数 {index} を削除します"
+    },
+    "directory": {
+      "label": "作業ディレクトリ (オプション)",
+      "choose": "作業ディレクトリを選択"
+    },
+    "authorizationHint": "この接続を有効にすると、アプリケーションは選択した MCP サービスを起動できるようになります。プラグインをインストールしても、プログラムがインストールされたり、パッケージ スクリプトが実行されたりすることはありません。"
+  }
+}

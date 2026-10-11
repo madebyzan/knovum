@@ -5,11 +5,15 @@
     "title": "生成预设",
     "description": "用于内容创作的已保存模型设置。",
     "empty": "尚未保存生成预设。",
-    "deleteConfirm": "删除此预设？",
+    "delete": {
+      "title": "删除此预设？"
+    },
     "name": "预设名称",
     "edit": "编辑生成预设",
-    "discardTitle": "放弃预设更改？",
-    "discardDescription": "对此生成预设的未保存更改将会丢失。"
+    "discard": {
+      "title": "放弃预设更改？",
+      "description": "对此生成预设的未保存更改将会丢失。"
+    }
   },
   "parameters": "参数",
   "copyName": "{name} 副本",
@@ -30,7 +34,9 @@
   "imageLayers": {
     "title": "图片图层拆分",
     "description": "接入 fal，用于拆分图片图层。",
-    "apiKey": "fal API Key",
-    "apiKeyDescription": "仅保存在这台设备上。"
+    "apiKey": {
+      "label": "fal API Key",
+      "description": "仅保存在这台设备上。"
+    }
   }
 }

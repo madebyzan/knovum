@@ -33,8 +33,8 @@ async function perform(operation: "backup" | "restore") {
       :description="t('settings.data.backup.description')"
     >
       <PreferenceField
-        :label="t('settings.data.backup.contentsTitle')"
-        :description="t('settings.data.backup.contentsDescription')"
+        :label="t('settings.data.backup.contents.title')"
+        :description="t('settings.data.backup.contents.description')"
       >
         <UiButton
           variant="primary"
@@ -50,8 +50,8 @@ async function perform(operation: "backup" | "restore") {
       :description="t('settings.data.restore.description')"
     >
       <PreferenceField
-        :label="t('settings.data.restore.credentialsTitle')"
-        :description="t('settings.data.restore.credentialsDescription')"
+        :label="t('settings.data.restore.credentials.title')"
+        :description="t('settings.data.restore.credentials.description')"
       >
         <UiButton
           variant="dangerSubtle"

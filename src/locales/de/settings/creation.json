@@ -5,11 +5,15 @@
     "title": "Generationsvoreinstellungen",
     "description": "Gespeicherte Modelleinstellungen für die Inhaltserstellung.",
     "empty": "Es wurden noch keine Generationsvoreinstellungen gespeichert.",
-    "deleteConfirm": "Diese Voreinstellung löschen?",
+    "delete": {
+      "title": "Diese Voreinstellung löschen?"
+    },
     "name": "Name der Voreinstellung",
     "edit": "Generierungsvoreinstellung bearbeiten",
-    "discardTitle": "Voreingestellte Änderungen verwerfen?",
-    "discardDescription": "Nicht gespeicherte Änderungen an dieser Generationsvoreinstellung gehen verloren."
+    "discard": {
+      "title": "Voreingestellte Änderungen verwerfen?",
+      "description": "Nicht gespeicherte Änderungen an dieser Generationsvoreinstellung gehen verloren."
+    }
   },
   "parameters": "Parameter",
   "copyName": "{name} kopieren",
@@ -30,7 +34,9 @@
   "imageLayers": {
     "title": "Aufteilung der Bildebene",
     "description": "Verbinden Sie Fal für die Aufteilung der Bildebene.",
-    "apiKey": "fal API-Taste",
-    "apiKeyDescription": "Nur auf diesem Gerät gespeichert."
+    "apiKey": {
+      "label": "fal API-Taste",
+      "description": "Nur auf diesem Gerät gespeichert."
+    }
   }
 }

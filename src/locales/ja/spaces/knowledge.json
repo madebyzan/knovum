@@ -59,9 +59,11 @@
     "empty": "ノード アンカーをドラッグするか、複数の項目を選択して関係を作成します。",
     "inspect": "接続の詳細",
     "kind": "関係タイプ",
-    "rationale": "なぜこれらがつながっているのか",
-    "addRationale": "追加",
-    "rationalePlaceholder": "これらのアイテムがどのように接続されているか説明してください...",
+    "rationale": {
+      "label": "なぜこれらがつながっているのか",
+      "add": "追加",
+      "placeholder": "これらのアイテムがどのように接続されているか説明してください..."
+    },
     "color": "関係線の色",
     "colors": {
       "neutral": "中性",
@@ -71,8 +73,10 @@
       "red": "赤",
       "purple": "紫"
     },
-    "remove": "関係の削除",
-    "removeConfirm": "「{title}」との関係を削除しますか?",
+    "remove": {
+      "action": "関係の削除",
+      "confirmation": "「{title}」との関係を削除しますか?"
+    },
     "kinds": {
       "reference": "参照",
       "related": "関連",
@@ -88,13 +92,17 @@
   },
   "provenance": "ソース",
   "portal": {
-    "create": "新しいポータル ノード",
-    "createDescription": "別のワークスペースにすばやく移動できるようにポータル ノードを作成します。"
+    "create": {
+      "action": "新しいポータル ノード",
+      "description": "別のワークスペースにすばやく移動できるようにポータル ノードを作成します。"
+    }
   },
   "objects": {
     "custom": "カスタム ナレッジ オブジェクト",
-    "create": "新しいカスタム オブジェクト",
-    "createDescription": "選択したスキーマを使用してナレッジ オブジェクト ノードを作成します。"
+    "create": {
+      "action": "新しいカスタム オブジェクト",
+      "description": "選択したスキーマを使用してナレッジ オブジェクト ノードを作成します。"
+    }
   },
   "fields": {
     "add": "フィールドの追加",
@@ -133,12 +141,16 @@
     "description": "説明",
     "icon": "アイコン",
     "name": "タイプ名",
-    "manage": "知識タイプの管理",
-    "manageDescription": "このワークスペースで構造化知識のプロパティを定義します。",
-    "delete": "タイプを削除…",
+    "manage": {
+      "action": "知識タイプの管理",
+      "description": "このワークスペースで構造化知識のプロパティを定義します。"
+    },
+    "delete": {
+      "action": "タイプを削除…",
+      "description": "「{name}」を削除しますか?ナレッジ オブジェクトによって使用されるタイプは削除できません。"
+    },
     "discardChanges": "このタイプに対する保存されていない変更を破棄しますか?",
     "emptyFields": "この種の知識に必要なプロパティを追加します。",
-    "deleteConfirmation": "「{name}」を削除しますか?ナレッジ オブジェクトによって使用されるタイプは削除できません。",
     "create": "新しいタイプ",
     "none": "カスタム スキーマ タイプはありません。",
     "loadFailed": "スキーマタイプをロードできませんでした"

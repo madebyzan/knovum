@@ -3,10 +3,10 @@ import type { DocumentFormat } from "../catalog/creation-intent";
 import { startDerivationAction, type DerivationActionStore } from "../start-action";
 import type { DocumentConversionSource } from "./conversion-source";
 const RUN_TITLE_KEY_BY_FORMAT: Record<DocumentFormat, string> = {
-  docx: "spaces.creation.document.conversion.docxRunTitle",
-  pdf: "spaces.creation.document.conversion.pdfRunTitle",
-  txt: "spaces.creation.document.conversion.txtRunTitle",
-  html: "spaces.creation.document.conversion.htmlRunTitle",
+  docx: "spaces.creation.document.conversion.tasks.docx",
+  pdf: "spaces.creation.document.conversion.tasks.pdf",
+  txt: "spaces.creation.document.conversion.tasks.txt",
+  html: "spaces.creation.document.conversion.tasks.html",
   pptx: "spaces.creation.presentation.create",
 };
 

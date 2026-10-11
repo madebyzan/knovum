@@ -12,8 +12,10 @@
     "empty": "선택 항목에 재생 가능한 파생 작업이 없습니다.",
     "sources": "출처: {sources}"
   },
-  "name": "워크플로 이름",
-  "namePlaceholder": "이 워크플로 이름 지정",
+  "name": {
+    "label": "워크플로 이름",
+    "placeholder": "이 워크플로 이름 지정"
+  },
   "saveCaptured": "워크플로로 저장",
   "saved": "워크플로 라이브러리에 저장됨",
   "useSaved": "워크플로 사용",
@@ -65,8 +67,10 @@
     "durationSeconds": "기간(초)",
     "platform": "플랫폼"
   },
-  "delete": "워크플로우 삭제",
-  "deleteConfirm": "'{name}'를 삭제하시겠습니까? 완료된 실행과 해당 출력은 그대로 유지됩니다.",
+  "delete": {
+    "action": "워크플로우 삭제",
+    "confirmation": "'{name}'를 삭제하시겠습니까? 완료된 실행과 해당 출력은 그대로 유지됩니다."
+  },
   "states": {
     "queued": "대기 중",
     "running": "실행 중",

@@ -64,7 +64,7 @@ export function useAddMenu() {
         preparing: t("spaces.importExport.progress.preparing"),
       });
     } catch (error) {
-      toast.error(t("spaces.importExport.importFailed"), { description: getErrorMessage(error) });
+      toast.error(t("spaces.importExport.import.failed"), { description: getErrorMessage(error) });
     }
   }
   async function addWebsite() {

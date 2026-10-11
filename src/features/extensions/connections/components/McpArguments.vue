@@ -13,7 +13,7 @@ const headingId = useId();
   <section class="space-y-2" :aria-labelledby="headingId">
     <header class="flex items-center justify-between gap-2">
       <h3 :id="headingId" class="text-label font-medium">
-        {{ $t("extensions.connectors.process.arguments") }}
+        {{ $t("extensions.endpoint.process.arguments.label") }}
       </h3>
       <UiButton
         size="sm"
@@ -22,7 +22,7 @@ const headingId = useId();
         data-testid="add-mcp-argument"
         @click="args.push('')"
       >
-        <Plus class="size-3.5" />{{ $t("extensions.connectors.process.addArgument") }}
+        <Plus class="size-3.5" />{{ $t("extensions.endpoint.process.arguments.add") }}
       </UiButton>
     </header>
     <div v-for="(argument, index) in args" :key="index" class="flex items-center gap-2">
@@ -31,17 +31,17 @@ const headingId = useId();
         @update:model-value="args[index] = $event"
         :disabled="disabled"
         class="min-w-0 font-mono text-caption"
-        :aria-label="$t('extensions.connectors.process.argumentAt', { index: index + 1 })"
+        :aria-label="$t('extensions.endpoint.process.arguments.at', { index: index + 1 })"
         :data-testid="`mcp-argument-${index}`"
       />
       <UiIconButton
         size="sm"
         :disabled="disabled"
-        :label="$t('extensions.connectors.process.removeArgument', { index: index + 1 })"
+        :label="$t('extensions.endpoint.process.arguments.remove', { index: index + 1 })"
         @click="args.splice(index, 1)"
         ><Trash2 class="size-3.5"
       /></UiIconButton>
     </div>
-    <p class="text-caption text-fg-secondary">{{ $t("extensions.connectors.process.argumentsHint") }}</p>
+    <p class="text-caption text-fg-secondary">{{ $t("extensions.endpoint.process.arguments.hint") }}</p>
   </section>
 </template>

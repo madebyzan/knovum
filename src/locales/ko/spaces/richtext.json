@@ -37,9 +37,11 @@
     "previous": "이전 일치",
     "next": "다음 일치",
     "toggleReplace": "교체 표시",
-    "replace": "교체",
-    "replaceAll": "모두 교체",
-    "replacePlaceholder": "바꾸기..."
+    "replace": {
+      "action": "교체",
+      "placeholder": "바꾸기..."
+    },
+    "replaceAll": "모두 교체"
   },
   "paragraph": "단락",
   "heading1": "제목 1",
@@ -75,24 +77,32 @@
   },
   "image": {
     "insert": "이미지 삽입",
-    "tabUpload": "로컬 파일",
-    "tabUrl": "URL",
-    "url": "이미지 URL",
-    "alt": "이미지 설명",
+    "source": {
+      "localFile": "로컬 파일",
+      "url": "URL"
+    },
+    "url": {
+      "label": "이미지 URL",
+      "invalid": "유효한 http:// 또는 https:// 이미지 주소를 입력하세요."
+    },
+    "alt": {
+      "label": "이미지 설명",
+      "placeholder": "스크린 리더용 이미지 설명"
+    },
     "choose": "이미지 선택",
     "uploadFailed": "이미지 삽입 실패",
     "dropDocumentHint": "파일을 선택하거나 이미지를 문서 편집기로 드래그하세요.",
-    "altPlaceholder": "스크린 리더용 이미지 설명",
     "dropNow": "이미지를 삽입하려면 드롭하세요.",
-    "urlInvalid": "유효한 http:// 또는 https:// 이미지 주소를 입력하세요.",
     "insertFailed": "이미지를 삽입할 수 없습니다."
   },
   "link": {
     "label": "하이퍼링크",
     "placeholder": "URL를 입력하거나 붙여넣으세요.",
     "remove": "링크 제거",
-    "editorTitle": "링크 편집",
-    "editorDescription": "선택한 텍스트에 웹 또는 이메일 링크를 추가합니다.",
+    "editor": {
+      "title": "링크 편집",
+      "description": "선택한 텍스트에 웹 또는 이메일 링크를 추가합니다."
+    },
     "url": "링크 URL",
     "invalid": "유효한 HTTP, HTTPS 또는 mailto 링크를 입력하세요.",
     "open": "링크 열기",
@@ -110,6 +120,8 @@
     "addColumn": "오른쪽에 열 삽입",
     "delete": "테이블 삭제"
   },
-  "words": "단어",
-  "characters": "문자"
+  "statistics": {
+    "words": "{count} 단어",
+    "characters": "{count} 글자"
+  }
 }

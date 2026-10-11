@@ -5,11 +5,15 @@
     "title": "Predefinições de geração",
     "description": "Configurações de modelo salvas para criação de conteúdo.",
     "empty": "Nenhuma predefinição de geração foi salva ainda.",
-    "deleteConfirm": "Excluir esta predefinição?",
+    "delete": {
+      "title": "Excluir esta predefinição?"
+    },
     "name": "Nome predefinido",
     "edit": "Editar predefinição de geração",
-    "discardTitle": "Descartar alterações predefinidas?",
-    "discardDescription": "As alterações não salvas nesta predefinição de geração serão perdidas."
+    "discard": {
+      "title": "Descartar alterações predefinidas?",
+      "description": "As alterações não salvas nesta predefinição de geração serão perdidas."
+    }
   },
   "parameters": "Parâmetros",
   "copyName": "Cópia {name}",
@@ -30,7 +34,9 @@
   "imageLayers": {
     "title": "Divisão da camada de imagem",
     "description": "Conecte fal para divisão da camada de imagem.",
-    "apiKey": "chave API fal",
-    "apiKeyDescription": "Armazenado apenas neste dispositivo."
+    "apiKey": {
+      "label": "chave API fal",
+      "description": "Armazenado apenas neste dispositivo."
+    }
   }
 }

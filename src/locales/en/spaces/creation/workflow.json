@@ -12,8 +12,10 @@
     "empty": "The selection has no replayable derivation actions.",
     "sources": "Sources: {sources}"
   },
-  "name": "Workflow name",
-  "namePlaceholder": "Name this workflow",
+  "name": {
+    "label": "Workflow name",
+    "placeholder": "Name this workflow"
+  },
   "saveCaptured": "Save as workflow",
   "saved": "Saved to your workflow library",
   "useSaved": "Use workflow",
@@ -65,8 +67,10 @@
     "durationSeconds": "Duration (seconds)",
     "platform": "Platform"
   },
-  "delete": "Delete workflow",
-  "deleteConfirm": "Delete “{name}”? Completed runs and their outputs will remain.",
+  "delete": {
+    "action": "Delete workflow",
+    "confirmation": "Delete “{name}”? Completed runs and their outputs will remain."
+  },
   "states": {
     "queued": "Queued",
     "running": "Running",

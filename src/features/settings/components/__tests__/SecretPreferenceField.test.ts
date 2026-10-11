@@ -55,7 +55,7 @@ describe("SecretPreferenceField", () => {
     await flushPromises();
     await wrapper
       .findAll("button")
-      .find((button) => button.text() === "settings.ai.removeSavedKey")!
+      .find((button) => button.text() === "settings.credentials.remove")!
       .trigger("click");
     expect(deleteSecret).toHaveBeenCalledWith("ai.key");
   });

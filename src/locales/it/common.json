@@ -40,6 +40,11 @@
   "archive": "Archivia",
   "restore": "Ripristina",
   "required": "Obbligatorio",
-  "closeSaveFailed": "Impossibile salvare le modifiche; l'applicazione è rimasta aperta",
-  "clearSearch": "Cancella ricerca"
+  "clearSearch": "Cancella ricerca",
+  "search": {
+    "empty": "Nessun risultato corrispondente",
+    "hint": "Prova un'altra parola chiave o cancella la ricerca."
+  },
+  "enable": "Abilita {name}",
+  "disable": "Disabilita {name}"
 }

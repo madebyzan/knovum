@@ -59,9 +59,11 @@
     "empty": "Drag node anchors or select multiple items to create relations.",
     "inspect": "Connection details",
     "kind": "Relation type",
-    "rationale": "Why these are connected",
-    "addRationale": "Add",
-    "rationalePlaceholder": "Describe how these items are connected…",
+    "rationale": {
+      "label": "Why these are connected",
+      "add": "Add",
+      "placeholder": "Describe how these items are connected…"
+    },
     "color": "Relation line color",
     "colors": {
       "neutral": "Neutral",
@@ -71,8 +73,10 @@
       "red": "Red",
       "purple": "Purple"
     },
-    "remove": "Remove relation",
-    "removeConfirm": "Remove the relation with “{title}”?",
+    "remove": {
+      "action": "Remove relation",
+      "confirmation": "Remove the relation with “{title}”?"
+    },
     "kinds": {
       "reference": "Reference",
       "related": "Related",
@@ -88,13 +92,17 @@
   },
   "provenance": "Source",
   "portal": {
-    "create": "New Portal node",
-    "createDescription": "Create a portal node for quick navigation to another Space."
+    "create": {
+      "action": "New Portal node",
+      "description": "Create a portal node for quick navigation to another Space."
+    }
   },
   "objects": {
     "custom": "Custom knowledge object",
-    "create": "New custom object",
-    "createDescription": "Create a knowledge object node using a selected schema."
+    "create": {
+      "action": "New custom object",
+      "description": "Create a knowledge object node using a selected schema."
+    }
   },
   "fields": {
     "add": "Add field",
@@ -133,12 +141,16 @@
     "description": "Description",
     "icon": "Icon",
     "name": "Type name",
-    "manage": "Manage knowledge types",
-    "manageDescription": "Define the properties of structured knowledge in this Space.",
-    "delete": "Delete type…",
+    "manage": {
+      "action": "Manage knowledge types",
+      "description": "Define the properties of structured knowledge in this Space."
+    },
+    "delete": {
+      "action": "Delete type…",
+      "description": "Delete “{name}”? Types used by knowledge objects cannot be deleted."
+    },
     "discardChanges": "Discard unsaved changes to this type?",
     "emptyFields": "Add the properties this kind of knowledge needs.",
-    "deleteConfirmation": "Delete “{name}”? Types used by knowledge objects cannot be deleted.",
     "create": "New type",
     "none": "No custom schema types.",
     "loadFailed": "Could not load schema types"

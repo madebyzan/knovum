@@ -5,21 +5,29 @@
   "backup": {
     "title": "Sauvegarde",
     "description": "Crée une archive cohérente pendant que Knovum redémarre en mode maintenance.",
-    "contentsTitle": "Données gérées",
-    "contentsDescription": "Comprend les espaces de travail, l'historique d'utilisation, les préférences, l'espace de travail géré et les ressources vocales, ainsi que les extensions installées. Les informations d'identification, les modèles téléchargés, les environnements d'exécution, les caches et les journaux sont exclus.",
+    "contents": {
+      "title": "Données gérées",
+      "description": "Comprend les espaces de travail, l'historique d'utilisation, les préférences, l'espace de travail géré et les ressources vocales, ainsi que les extensions installées. Les informations d'identification, les modèles téléchargés, les environnements d'exécution, les caches et les journaux sont exclus."
+    },
     "action": "Créer une sauvegarde",
-    "confirmTitle": "Redémarrer Knovum pour créer cette sauvegarde ?",
-    "confirmDescription": "Knovum enregistrera les modifications en attente, redémarrera, créera la sauvegarde sélectionnée avant d'ouvrir ses bases de données, puis poursuivra le démarrage. Les exécutions actives et les tâches de traitement doivent d'abord se terminer ou être annulées.",
+    "confirm": {
+      "title": "Redémarrer Knovum pour créer cette sauvegarde ?",
+      "description": "Knovum enregistrera les modifications en attente, redémarrera, créera la sauvegarde sélectionnée avant d'ouvrir ses bases de données, puis poursuivra le démarrage. Les exécutions actives et les tâches de traitement doivent d'abord se terminer ou être annulées."
+    },
     "failed": "La sauvegarde n'a pas pu démarrer"
   },
   "restore": {
     "title": "Restaurer la sauvegarde",
     "description": "Valide l'archive complète avant de remplacer les données gérées, avec restauration en cas d'échec de la publication. Les sauvegardes complètes restaurent uniquement vers le même emplacement de données Knovum ; utilisez des packages d'espace de travail pour déplacer des espaces de travail entre les installations.",
-    "credentialsTitle": "Les informations d'identification ne sont jamais restaurées",
-    "credentialsDescription": "La restauration supprime les informations d'identification actuellement enregistrées pour empêcher l'ancienne autorisation de correspondre aux enregistrements restaurés. Configurez à nouveau les informations d'identification du fournisseur et du connecteur par la suite.",
+    "credentials": {
+      "title": "Les informations d'identification ne sont jamais restaurées",
+      "description": "La restauration supprime les informations d'identification actuellement enregistrées pour empêcher l'ancienne autorisation de correspondre aux enregistrements restaurés. Configurez à nouveau les informations d'identification du fournisseur et du connecteur par la suite."
+    },
     "action": "Restaurer la sauvegarde",
-    "confirmTitle": "Redémarrer Knovum et restaurer cette sauvegarde ?",
-    "confirmDescription": "Knovum enregistrera les modifications en attente et redémarrera. L'archive doit correspondre exactement à cette version. Les données gérées actuelles restent disponibles pour la restauration jusqu'à ce que la restauration réussisse.",
+    "confirm": {
+      "title": "Redémarrer Knovum et restaurer cette sauvegarde ?",
+      "description": "Knovum enregistrera les modifications en attente et redémarrera. L'archive doit correspondre exactement à cette version. Les données gérées actuelles restent disponibles pour la restauration jusqu'à ce que la restauration réussisse."
+    },
     "failed": "La restauration n'a pas pu démarrer"
   },
   "receipt": {

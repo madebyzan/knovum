@@ -1,15 +1,25 @@
 {
-  "target": "実行ターゲット",
-  "targetModelApi": "型式 API ・直接実行",
-  "targetExternalAgent": "Desktop Agent · 出力は現在のツールと Skills に依存します",
-  "noCompatibleTarget": "互換性のある実行ターゲットがありません",
-  "desktopAgentNotInstalled": "検出されません",
-  "disabledTitle": "互換性のある AI ターゲットがありません",
-  "disabledDescription": "このアクションに対して互換性のあるモデルを設定するか、インストールされているデスクトップ エージェントを有効にします。",
-  "openSettings": "モデルの構成",
-  "settingsUnavailable": "AI 設定をロードできませんでした",
-  "executedWithModel": "{provider}・{model}で実行",
-  "executedWithAgent": "{name} · デスクトップエージェントによって実行",
+  "target": {
+    "label": "実行ターゲット",
+    "modelApi": "型式 API ・直接実行",
+    "desktopAgent": "Desktop Agent · 出力は現在のツールと Skills に依存します",
+    "none": "互換性のある実行ターゲットがありません"
+  },
+  "desktopAgent": {
+    "notDetected": "検出されません"
+  },
+  "unavailable": {
+    "title": "互換性のある AI ターゲットがありません",
+    "description": "このアクションに対して互換性のあるモデルを設定するか、インストールされているデスクトップ エージェントを有効にします。"
+  },
+  "configuration": {
+    "open": "モデルの構成",
+    "unavailable": "AI 設定をロードできませんでした"
+  },
+  "execution": {
+    "model": "{provider}・{model}で実行",
+    "desktopAgent": "{name} · デスクトップエージェントによって実行"
+  },
   "languages": {
     "zhCn": "簡体字中国語",
     "zhTw": "繁体字中国語",
@@ -23,5 +33,10 @@
     "it": "イタリア語",
     "ru": "ロシア語",
     "ar": "アラビア語"
+  },
+  "localModels": {
+    "unavailable": {
+      "memory": "メモリが足りません。少なくとも 32 GiB が必要です。代わりに MOSS-TTS-Nano を使用してください。"
+    }
   }
 }

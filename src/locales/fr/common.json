@@ -40,6 +40,11 @@
   "archive": "Archiver",
   "restore": "Restaurer",
   "required": "Obligatoire",
-  "closeSaveFailed": "Les modifications n'ont pas pu être enregistrées ; l'application est restée ouverte",
-  "clearSearch": "Effacer la recherche"
+  "clearSearch": "Effacer la recherche",
+  "search": {
+    "empty": "Aucun résultat correspondant",
+    "hint": "Essayez un autre mot-clé ou effacez la recherche."
+  },
+  "enable": "Activer {name}",
+  "disable": "Désactiver {name}"
 }

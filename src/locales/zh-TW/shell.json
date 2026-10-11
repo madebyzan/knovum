@@ -13,9 +13,11 @@
     "checking": "正在檢查可用性",
     "busy": "操作正在進行中"
   },
-  "toggleRightSidebar": "顯示或隱藏右側欄",
-  "toggleSidebar": "切換側邊欄",
-  "layoutSaveFailed": "無法儲存工作台佈局",
+  "layout": {
+    "toggleRightSidebar": "顯示或隱藏右側欄",
+    "toggleSidebar": "切換側邊欄",
+    "saveFailed": "無法儲存工作台佈局"
+  },
   "shortcuts": {
     "title": "快速鍵",
     "search": "搜尋快速鍵",

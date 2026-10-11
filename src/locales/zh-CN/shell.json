@@ -13,9 +13,11 @@
     "checking": "正在检查可用性",
     "busy": "操作正在进行中"
   },
-  "toggleRightSidebar": "显示或隐藏右侧栏",
-  "toggleSidebar": "切换侧边栏",
-  "layoutSaveFailed": "无法保存工作台布局",
+  "layout": {
+    "toggleRightSidebar": "显示或隐藏右侧栏",
+    "toggleSidebar": "切换侧边栏",
+    "saveFailed": "无法保存工作台布局"
+  },
   "shortcuts": {
     "title": "快捷键",
     "search": "搜索快捷键",

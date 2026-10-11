@@ -1,15 +1,17 @@
 {
   "conversion": {
-    "docx": "Convertir a documento de Word",
-    "pdf": "Convertir a PDF",
-    "docxRunTitle": "Generando documento de Word",
-    "pdfRunTitle": "Generando PDF",
-    "txt": "Convertir a texto sin formato",
-    "txtRunTitle": "Generando texto sin formato",
-    "html": "Convertir a HTML",
-    "htmlRunTitle": "Generando documento HTML"
-  },
-  "convert": {
+    "actions": {
+      "docx": "Convertir a documento de Word",
+      "pdf": "Convertir a PDF",
+      "txt": "Convertir a texto sin formato",
+      "html": "Convertir a HTML"
+    },
+    "tasks": {
+      "docx": "Generando documento de Word",
+      "pdf": "Generando PDF",
+      "txt": "Generando texto sin formato",
+      "html": "Generando documento HTML"
+    },
     "label": "Convertir a",
     "formats": {
       "docx": "Documento de Word (.docx)",
@@ -24,8 +26,10 @@
   "title": "Crear un documento a partir de conocimientos seleccionados.",
   "description": "Redacte un recurso de Markdown citado junto a las fuentes seleccionadas.",
   "defaultTitle": "Borrador de conocimientos",
-  "purpose": "Resumen del documento",
-  "purposePlaceholder": "Describe el objetivo, el formato y los puntos clave del documento.",
+  "purpose": {
+    "label": "Resumen del documento",
+    "placeholder": "Describe el objetivo, el formato y los puntos clave del documento."
+  },
   "sources": "Fuente de conocimiento {count} | Fuentes de conocimiento {count}",
   "task": "Generando documento",
   "generating": "Generando a partir de conocimientos seleccionados…",

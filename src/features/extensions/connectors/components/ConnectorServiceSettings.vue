@@ -62,8 +62,8 @@ async function deleteService() {
     </p>
     <ExtensionEmptyState
       v-else-if="!connectors.error.value && !connections.error.value"
-      :title="$t('extensions.overview.notFound')"
-      :description="$t('extensions.overview.notFoundHint')"
+      :title="$t('extensions.overview.notFound.title')"
+      :description="$t('extensions.overview.notFound.description')"
     >
       <UiButton @click="$emit('navigate', { tab: 'mcp' })">{{ $t("extensions.overview.back") }}</UiButton>
     </ExtensionEmptyState>

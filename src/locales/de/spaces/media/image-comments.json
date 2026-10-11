@@ -1,0 +1,13 @@
+{
+  "title": "Kommentar",
+  "prompt": "Beschreibung hinzufügen",
+  "save": "Kommentar speichern",
+  "addToConversation": "Zur Konversation hinzufügen",
+  "conversationContext": "Bildanmerkung ({kind}; Ursprung oben links; Koordinaten sind Prozentsätze der Bildbreite und -höhe): {coordinates}\nAnmerkung: {text}",
+  "delete": "Kommentar löschen",
+  "hint": "Klicken Sie auf eine Bildposition, um einen Kommentar abzugeben",
+  "mode": "Kommentaranmerkungsmodus",
+  "point": "Punktkommentar",
+  "draw": "Kommentar zeichnen",
+  "region": "Regionskommentar"
+}

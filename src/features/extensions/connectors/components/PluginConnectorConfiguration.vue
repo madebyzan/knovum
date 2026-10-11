@@ -29,14 +29,14 @@ const { plugins, changes, configuration, localNetwork, hasConflict, save, choose
             : $t("extensions.connectors.process.configurationRequired")
         }}
       </p>
-      <p class="text-caption text-fg-warning">{{ $t("extensions.connectors.process.authorizationHint") }}</p>
+      <p class="text-caption text-fg-warning">{{ $t("extensions.endpoint.process.authorizationHint") }}</p>
       <UiButton
         size="sm"
         :disabled="changes.isPending.value || hasConflict"
         data-testid="bind-plugin-executable"
         @click="chooseExecutable"
       >
-        {{ $t("extensions.connectors.process.chooseExecutable") }}
+        {{ $t("extensions.endpoint.process.executable.choose") }}
       </UiButton>
     </template>
     <form
@@ -49,15 +49,15 @@ const { plugins, changes, configuration, localNetwork, hasConflict, save, choose
         ><UiCheckbox
           v-model="localNetwork"
           :disabled="changes.isPending.value || hasConflict"
-          :label="$t('extensions.connections.allowLocalNetwork')"
-        />{{ $t("extensions.connections.allowLocalNetwork") }}</label
+          :label="$t('extensions.endpoint.allowLocalNetwork')"
+        />{{ $t("extensions.endpoint.allowLocalNetwork") }}</label
       >
       <UiButton type="submit" size="sm" :disabled="changes.isPending.value || hasConflict">{{
         $t("common.save")
       }}</UiButton>
     </form>
     <p v-if="hasConflict" role="alert" class="text-caption text-fg-warning">
-      {{ $t("extensions.connections.conflict") }}
+      {{ $t("extensions.connectors.conflict") }}
     </p>
     <ExtensionCleanupNotice :errors="changes.data.value?.cleanupErrors ?? []" />
   </section>

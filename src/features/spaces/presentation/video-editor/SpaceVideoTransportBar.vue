@@ -70,7 +70,10 @@ const { t } = useI18n();
       <span class="w-12 text-right text-caption font-medium tabular-nums">{{
         formatVideoTimelineTime(currentMs)
       }}</span>
-      <UiIconButton :label="t('spaces.media.videoEditor.previousStep')" size="sm" @click="$emit('step', -100)"
+      <UiIconButton
+        :label="t('spaces.media.videoEditor.playback.stepBackward')"
+        size="sm"
+        @click="$emit('step', -100)"
         ><SkipBack class="size-3.5"
       /></UiIconButton>
       <UiIconButton
@@ -82,7 +85,10 @@ const { t } = useI18n();
         <Pause v-if="playing" class="size-3.5" fill="currentColor" />
         <Play v-else class="size-3.5" fill="currentColor" />
       </UiIconButton>
-      <UiIconButton :label="t('spaces.media.videoEditor.nextStep')" size="sm" @click="$emit('step', 100)"
+      <UiIconButton
+        :label="t('spaces.media.videoEditor.playback.stepForward')"
+        size="sm"
+        @click="$emit('step', 100)"
         ><SkipForward class="size-3.5"
       /></UiIconButton>
       <span class="w-12 text-caption text-fg-tertiary tabular-nums">{{

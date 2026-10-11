@@ -21,6 +21,5 @@
   "multipleAudioTracks": "여러 오디오 트랙이 포함된 비디오",
   "audioTracksHint": "동일한 소스 비디오의 게시된 버전을 재생 트랙 순서대로 최대 8개까지 선택하세요.",
   "currentBackground": "현재 배경 트랙",
-  "mixingSettings": "오디오 믹스",
-  "translationTitle": "스크립트 번역"
+  "mixingSettings": "오디오 믹스"
 }

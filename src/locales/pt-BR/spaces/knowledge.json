@@ -59,9 +59,11 @@
     "empty": "Arraste as âncoras dos nós ou selecione vários itens para criar relações.",
     "inspect": "Detalhes da conexão",
     "kind": "Tipo de relação",
-    "rationale": "Por que eles estão conectados",
-    "addRationale": "Adicionar",
-    "rationalePlaceholder": "Descreva como esses itens estão conectados...",
+    "rationale": {
+      "label": "Por que eles estão conectados",
+      "add": "Adicionar",
+      "placeholder": "Descreva como esses itens estão conectados..."
+    },
     "color": "Cor da linha de relação",
     "colors": {
       "neutral": "Neutro",
@@ -71,8 +73,10 @@
       "red": "Vermelho",
       "purple": "Roxo"
     },
-    "remove": "Remover relação",
-    "removeConfirm": "Remover a relação com “{title}”?",
+    "remove": {
+      "action": "Remover relação",
+      "confirmation": "Remover a relação com “{title}”?"
+    },
     "kinds": {
       "reference": "Referência",
       "related": "Relacionado",
@@ -88,13 +92,17 @@
   },
   "provenance": "Fonte",
   "portal": {
-    "create": "Novo nó do Portal",
-    "createDescription": "Crie um nó de portal para navegação rápida para outro espaço de trabalho."
+    "create": {
+      "action": "Novo nó do Portal",
+      "description": "Crie um nó de portal para navegação rápida para outro espaço de trabalho."
+    }
   },
   "objects": {
     "custom": "Objeto de conhecimento personalizado",
-    "create": "Novo objeto personalizado",
-    "createDescription": "Crie um nó de objeto de conhecimento usando um esquema selecionado."
+    "create": {
+      "action": "Novo objeto personalizado",
+      "description": "Crie um nó de objeto de conhecimento usando um esquema selecionado."
+    }
   },
   "fields": {
     "add": "Adicionar campo",
@@ -133,12 +141,16 @@
     "description": "Descrição",
     "icon": "Ícone",
     "name": "Nome do tipo",
-    "manage": "Gerenciar tipos de conhecimento",
-    "manageDescription": "Defina as propriedades do conhecimento estruturado nesta área de trabalho.",
-    "delete": "Tipo de exclusão…",
+    "manage": {
+      "action": "Gerenciar tipos de conhecimento",
+      "description": "Defina as propriedades do conhecimento estruturado nesta área de trabalho."
+    },
+    "delete": {
+      "action": "Tipo de exclusão…",
+      "description": "Excluir “{name}”? Os tipos usados ​​por objetos de conhecimento não podem ser excluídos."
+    },
     "discardChanges": "Descartar alterações não salvas neste tipo?",
     "emptyFields": "Adicione as propriedades que esse tipo de conhecimento precisa.",
-    "deleteConfirmation": "Excluir “{name}”? Os tipos usados ​​por objetos de conhecimento não podem ser excluídos.",
     "create": "Novo tipo",
     "none": "Nenhum tipo de esquema personalizado.",
     "loadFailed": "Não foi possível carregar os tipos de esquema"

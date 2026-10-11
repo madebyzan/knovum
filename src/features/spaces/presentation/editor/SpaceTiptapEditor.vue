@@ -39,7 +39,7 @@ async function exportMarkdown() {
   try {
     await persist();
     if (await exportSpaceMarkdown(title.value, editor.value.getMarkdown()))
-      toast.success(t("spaces.importExport.exportCompleted"));
+      toast.success(t("spaces.importExport.export.completed"));
   } catch (error) {
     toast.error(getErrorMessage(error));
   }
@@ -75,8 +75,8 @@ async function exportMarkdown() {
         <Download class="size-3.5" />
       </UiIconButton>
       <span class="hidden text-caption-sm text-fg-tertiary sm:block">
-        {{ wordCount }} {{ t("spaces.richtext.words") }} · {{ characterCount }}
-        {{ t("spaces.richtext.characters") }}
+        {{ t("spaces.richtext.statistics.words", { count: wordCount }, wordCount) }} ·
+        {{ t("spaces.richtext.statistics.characters", { count: characterCount }, characterCount) }}
       </span>
     </header>
     <div v-if="editor" class="border-b border-stroke-divider bg-surface-chrome/80">

@@ -35,7 +35,16 @@
     },
     "language": {
       "english": "English",
-      "simplifiedChinese": "简体中文"
+      "simplifiedChinese": "简体中文",
+      "traditionalChinese": "繁體中文",
+      "japanese": "日本語",
+      "korean": "한국어",
+      "french": "Français",
+      "german": "Deutsch",
+      "spanish": "Español",
+      "italian": "Italiano",
+      "russian": "Русский",
+      "brazilianPortuguese": "巴西葡萄牙语"
     }
   }
 }

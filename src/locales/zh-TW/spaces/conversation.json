@@ -57,12 +57,16 @@
   "attachments": {
     "add": "新增資料",
     "attached": "已新增的資料，可橫向捲動",
-    "citeCanvasNode": "引用畫布內容",
-    "citeCanvasNodeHint": "選擇目前空間的內容",
-    "canvasNodeShort": "畫布引用",
-    "uploadLocalFile": "新增本地文件",
-    "uploadLocalFileHint": "圖片、PDF 或文檔",
-    "localFileShort": "本地文件",
+    "canvasReference": {
+      "label": "引用畫布內容",
+      "hint": "選擇目前空間的內容",
+      "shortLabel": "畫布引用"
+    },
+    "localFile": {
+      "label": "新增本地文件",
+      "hint": "圖片、PDF 或文檔",
+      "shortLabel": "本地文件"
+    },
     "dropFiles": "鬆開以添加文件",
     "limit": "一次對話最多可新增 32 項資料。",
     "addCurrentSelection": "新增目前選取（{count}）",

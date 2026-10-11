@@ -11,13 +11,6 @@
     "referenceSize": "参考サイズ；エクスポートされたピクセルはソース画像に依存します",
     "lockAspect": "クロップのアスペクト比をロックする"
   },
-  "transform": {
-    "rotateClockwise": "時計回りに回転",
-    "flipHorizontal": "水平方向に反転",
-    "flipVertical": "垂直方向に反転",
-    "title": "反転して回転",
-    "rotationDegrees": "回転角度"
-  },
   "removeObject": {
     "tool": "消しゴム",
     "mode": "削除入力",
@@ -27,8 +20,10 @@
     },
     "undo": "選択ストロークを元に戻す",
     "brushSize": "選択ブラシ",
-    "promptLabel": "何を削除するかを説明する",
-    "promptPlaceholder": "何を削除するかを説明してください…",
+    "prompt": {
+      "label": "何を削除するかを説明する",
+      "placeholder": "何を削除するかを説明してください…"
+    },
     "generate": "削除して生成",
     "submitting": "派生イメージ タスクを作成しています…",
     "sizeLimit": "16 メガピクセル、片面あたり 16,384 ピクセル以内のソースを使用してください。",
@@ -72,13 +67,14 @@
   },
   "layers": {
     "title": "レイヤーの分割",
-    "panel": "レイヤーの分割",
     "selectContent": "地域の選択",
     "selectContentUnavailable": "現在のレイヤー モデルは選択した領域を分割できません",
     "auto": "自動分割",
     "custom": "カスタム分割",
-    "prompt": "分離フォーカス",
-    "promptPlaceholder": "何をレイヤーに分割するかを説明する",
+    "prompt": {
+      "label": "分離フォーカス",
+      "placeholder": "何をレイヤーに分割するかを説明する"
+    },
     "split": "分割",
     "task": "画像レイヤーの分割",
     "failed": "レイヤー分割に失敗しました",
@@ -90,19 +86,6 @@
     },
     "keyMissing": "レイヤー分割には false API キーが必要です",
     "promptRequired": "最初に何を分離する必要があるかを説明する"
-  },
-  "comments": {
-    "title": "コメント",
-    "prompt": "説明を追加",
-    "save": "コメントを保存",
-    "addToConversation": "会話に追加",
-    "conversationContext": "画像の注釈 ({kind}、原点は左上、座標は画像の幅と高さのパーセンテージ): {coordinates}\n注釈: {text}",
-    "delete": "コメントの削除",
-    "hint": "コメントするには画像の場所をクリックしてください",
-    "mode": "コメント注釈モード",
-    "point": "ポイント コメント",
-    "draw": "コメントを描画",
-    "region": "地域コメント"
   },
   "applyNow": "今すぐ使用",
   "unsaved": {

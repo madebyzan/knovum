@@ -10,8 +10,10 @@
   "version": "Versione",
   "sourcePlugin": "Visualizza plugin sorgente",
   "pluginPaused": "Questo plugin è disabilitato. Le sue competenze e connessioni non sono disponibili.",
-  "notFound": "Questa estensione non è disponibile",
-  "notFoundHint": "Potrebbe essere stato rimosso o modificato da un aggiornamento del plugin. Torna all'elenco per visualizzare il contenuto corrente.",
+  "notFound": {
+    "title": "Questa estensione non è disponibile",
+    "description": "Potrebbe essere stato rimosso o modificato da un aggiornamento del plugin. Torna all'elenco per visualizzare il contenuto corrente."
+  },
   "usage": "Seleziona plug-in completi, competenze personali o connessioni MCP autonome in una conversazione sullo spazio di lavoro. Un plugin include insieme le sue competenze e i suoi servizi. L'abilitazione lo rende selezionabile; l'accesso esterno richiede comunque l'autorizzazione.",
   "search": {
     "plugins": "Plugin di ricerca…",

@@ -1,0 +1,18 @@
+{
+  "provider": "Fornecedor de modelo",
+  "baseUrl": "URL base da API",
+  "title": "Conexões do provedor",
+  "description": "Gerencie conexões e modelos disponíveis por provedor.",
+  "empty": "Ainda não há provedores.",
+  "name": "Nome da conexão",
+  "add": "Adicionar provedor",
+  "edit": "Editar provedor",
+  "invalidBaseUrl": "Insira um HTTP ou HTTPS URL válido",
+  "delete": {
+    "title": "Excluir {name} e seus modelos e credenciais?",
+    "action": "Excluir conexão"
+  },
+  "credentials": {
+    "saveFailed": "Conexão salva, mas não foi possível salvar a chave. Tente novamente"
+  }
+}

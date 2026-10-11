@@ -1,0 +1,30 @@
+{
+  "empty": "尚未添加模型。",
+  "edit": "編輯模型",
+  "delete": {
+    "title": "確定刪除模型「{name}」嗎？"
+  },
+  "duplicateIdentifier": "此連線中已新增此模型標識",
+  "capabilities": {
+    "label": "支持的能力",
+    "required": "至少選擇一項能力",
+    "text": "文字生成",
+    "vision": "視覺理解",
+    "image": "圖片生成",
+    "video": "影片生成"
+  },
+  "inUse": "此模型正在使用；先更改預設模型或建立預設，才能取消已選能力或移除模型。",
+  "title": "模型",
+  "count": "{count} 個模型",
+  "add": "新增模型",
+  "displayName": "模型顯示名稱",
+  "identifier": "服務商模型標識",
+  "builtinAgent": {
+    "enabled": "用於內建 Agent",
+    "help": "僅可啟用支援工具呼叫的模型。上下文和輸出上限以服務商文件為準。",
+    "protocol": "模型介面協議",
+    "contextWindow": "上下文視窗（token）",
+    "maxOutputTokens": "單次請求輸出上限（token）",
+    "invalidLimits": "上下文至少為 8,192 token；輸出上限必須大於零且小於上下文。"
+  }
+}

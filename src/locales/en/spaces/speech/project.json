@@ -1,13 +1,18 @@
 {
   "new": "Start another",
   "language": "Language",
-  "scriptPlaceholder": "Enter the script for this revision",
-  "unsavedTitle": "Save speech project changes?",
-  "unsavedDescription": "Save this revision before leaving, or discard the unsaved changes.",
-  "incompleteTitle": "Discard unfinished edits?",
-  "incompleteDescription": "Return to finish editing, or discard these changes.",
-  "preview": "Preview",
-  "stopListening": "Stop listening",
+  "script": {
+    "placeholder": "Enter the script for this revision",
+    "label": "Script"
+  },
+  "unsaved": {
+    "title": "Save speech project changes?",
+    "description": "Save this revision before leaving, or discard the unsaved changes."
+  },
+  "incomplete": {
+    "title": "Discard unfinished edits?",
+    "description": "Return to finish editing, or discard these changes."
+  },
   "saving": "Saving",
   "starting": "Preparing generation",
   "generatedAudio": "Generated audio",
@@ -17,13 +22,17 @@
   "loudness": "Loudness (LUFS)",
   "truePeak": "True peak (dB)",
   "role": "Speaker role",
-  "roleBindings": "Role voices",
-  "roleBindingsHint": "Choose a voice for each role.",
+  "roleBindings": {
+    "label": "Role voices",
+    "hint": "Choose a voice for each role."
+  },
   "addRole": "Add role",
   "removeRole": "Remove role",
   "defaultRole": "Narrator",
-  "deliveryInstruction": "Delivery instruction",
-  "deliveryInstructionPlaceholder": "Optional: describe the pacing, tone, and delivery for this segment (up to 500 characters)",
+  "deliveryInstruction": {
+    "label": "Delivery instruction",
+    "placeholder": "Optional: describe the pacing, tone, and delivery for this segment (up to 500 characters)"
+  },
   "stages": {
     "preparing": "Preparing resources",
     "synthesizing": "Synthesizing preview",
@@ -34,15 +43,11 @@
     "audiobook": "Audiobook",
     "videoDubbing": "Video dubbing"
   },
-  "previewText": "Enter up to 500 characters to audition this voice",
   "generateFromNode": "Generate speech",
   "nodeProjects": "Saved dubbing",
-  "script": "Script",
   "settings": "Settings",
   "editorPages": "Speech editor sections",
   "importManuscript": "Import node manuscript",
-  "noVoices": "No voices to choose from. Add a voice to get started.",
-  "selectVoice": "Select a voice",
   "sourceNotReady": "The video is not ready for dubbing yet.",
   "emptyManuscript": "Import the manuscript or add a chapter to begin.",
   "emptyVideoScript": "Import subtitles or add a dubbing line.",

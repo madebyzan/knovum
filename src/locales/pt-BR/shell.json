@@ -13,9 +13,11 @@
     "checking": "Verificando disponibilidade",
     "busy": "Uma operação está em andamento"
   },
-  "toggleRightSidebar": "Mostrar ou ocultar a barra lateral direita",
-  "toggleSidebar": "Alternar barra lateral",
-  "layoutSaveFailed": "Não foi possível salvar o layout do ambiente de trabalho",
+  "layout": {
+    "toggleRightSidebar": "Mostrar ou ocultar a barra lateral direita",
+    "toggleSidebar": "Alternar barra lateral",
+    "saveFailed": "Não foi possível salvar o layout do ambiente de trabalho"
+  },
   "shortcuts": {
     "title": "Atalhos de teclado",
     "search": "Atalhos de pesquisa",

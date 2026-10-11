@@ -1,6 +1,8 @@
 {
-  "import": "导入",
-  "importFailed": "导入失败，请检查文件格式。",
+  "import": {
+    "action": "导入",
+    "failed": "导入失败，请检查文件格式。"
+  },
   "website": {
     "add": "添加网页",
     "description": "保存网页 URL 并提取标题与摘要。",
@@ -13,13 +15,17 @@
   "preview": {
     "system": "预览",
     "show": "预览视图",
-    "instantUnavailable": "暂无即时预览",
-    "instantUnavailableHint": "未提供即时预览器，提取的文本仍参与检索与引用。"
+    "instantUnavailable": {
+      "title": "暂无即时预览",
+      "description": "未提供即时预览器，提取的文本仍参与检索与引用。"
+    }
   },
   "markdown": {
     "export": "导出 Markdown"
   },
-  "exportCompleted": "导出完成",
+  "export": {
+    "completed": "导出完成"
+  },
   "fileName": "文件名",
   "openExternally": "外部应用打开",
   "space": {

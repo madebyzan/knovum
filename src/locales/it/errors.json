@@ -7,5 +7,8 @@
     "title": "Impossibile visualizzare questo contenuto",
     "description": "Puoi riaprire quest'area o navigare altrove.",
     "reopen": "Riapri contenuto"
+  },
+  "windowClose": {
+    "saveFailed": "Impossibile salvare le modifiche; l'applicazione è rimasta aperta"
   }
 }

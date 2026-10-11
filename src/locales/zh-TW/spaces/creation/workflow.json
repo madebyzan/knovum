@@ -12,8 +12,10 @@
     "empty": "選取內容沒有可重播的派生操作。",
     "sources": "資料來源：{sources}"
   },
-  "name": "工作流程名稱",
-  "namePlaceholder": "為這個工作流程命名",
+  "name": {
+    "label": "工作流程名稱",
+    "placeholder": "為這個工作流程命名"
+  },
   "saveCaptured": "儲存為工作流程",
   "saved": "已儲存到個人工作流程庫",
   "useSaved": "使用工作流程",
@@ -65,8 +67,10 @@
     "durationSeconds": "時長（秒）",
     "platform": "平台"
   },
-  "delete": "刪除工作流程",
-  "deleteConfirm": "刪除“{name}”？已完成的運轉記錄和產物仍會保留。",
+  "delete": {
+    "action": "刪除工作流程",
+    "confirmation": "刪除“{name}”？已完成的運轉記錄和產物仍會保留。"
+  },
   "states": {
     "queued": "排隊中",
     "running": "正在運行",

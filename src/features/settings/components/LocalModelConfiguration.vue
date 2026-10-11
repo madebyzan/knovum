@@ -130,7 +130,7 @@ watch(
       </div>
     </div>
     <p v-if="model.unavailableReason" class="text-caption text-fg-secondary">
-      {{ t(`settings.ai.localModels.unavailable.${model.unavailableReason}`) }}
+      {{ t(`ai.localModels.unavailable.${model.unavailableReason}`) }}
     </p>
     <div
       v-if="preparation"

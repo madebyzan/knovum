@@ -69,8 +69,8 @@ async function requestClose() {
   if (
     changed.value &&
     !(await confirmAction({
-      title: t("settings.creation.presets.discardTitle"),
-      description: t("settings.creation.presets.discardDescription"),
+      title: t("settings.creation.presets.discard.title"),
+      description: t("settings.creation.presets.discard.description"),
       confirmLabel: t("common.discardChanges"),
       danger: true,
     }))
@@ -84,8 +84,8 @@ useSettingsLeaveDecision({
     if (admittedSave && !(await admittedSave)) return false;
     if (!open.value || !changed.value) return true;
     return confirmAction({
-      title: t("settings.creation.presets.discardTitle"),
-      description: t("settings.creation.presets.discardDescription"),
+      title: t("settings.creation.presets.discard.title"),
+      description: t("settings.creation.presets.discard.description"),
       confirmLabel: t("common.discardChanges"),
       danger: true,
     });

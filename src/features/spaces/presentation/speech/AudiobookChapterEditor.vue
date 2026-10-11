@@ -72,10 +72,10 @@ function supportsDeliveryInstruction(speakerKey: string) {
           v-model="paragraph.text"
           data-testid="audiobook-paragraph"
           :rows="4"
-          :aria-label="t('spaces.speech.project.script')"
+          :aria-label="t('spaces.speech.project.script.label')"
           :maxlength="1000000"
           :disabled="disabled"
-          :placeholder="t('spaces.speech.project.scriptPlaceholder')"
+          :placeholder="t('spaces.speech.project.script.placeholder')"
         />
         <div class="flex items-center gap-1">
           <UiSelect
@@ -90,7 +90,7 @@ function supportsDeliveryInstruction(speakerKey: string) {
           <UiIconButton
             size="sm"
             tooltip
-            :label="t('spaces.speech.project.preview')"
+            :label="t('spaces.speech.preview.action')"
             :disabled="
               disabled ||
               !draft.lexicon.isValid.value ||
@@ -124,8 +124,8 @@ function supportsDeliveryInstruction(speakerKey: string) {
           :rows="2"
           :maxlength="500"
           :disabled="disabled"
-          :placeholder="t('spaces.speech.project.deliveryInstructionPlaceholder')"
-          :aria-label="t('spaces.speech.project.deliveryInstruction')"
+          :placeholder="t('spaces.speech.project.deliveryInstruction.placeholder')"
+          :aria-label="t('spaces.speech.project.deliveryInstruction.label')"
         />
       </div>
       <UiButton size="sm" variant="ghost" :disabled="disabled" @click="addParagraph(chapter)"

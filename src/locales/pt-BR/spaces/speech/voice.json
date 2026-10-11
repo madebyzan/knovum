@@ -1,4 +1,12 @@
 {
+  "candidate": {
+    "generate": "Gerar amostra",
+    "auditionRequired": "Jogue o candidato uma vez antes de salvar esta voz.",
+    "save": "Salvar voz",
+    "discard": "Descartar amostra",
+    "sample": "Bem-vindo. Hoje é 3 de outubro de 2026 e o ​​número do projeto é 108. Ouça a pronúncia clara, o ritmo constante e os finais de frase naturais.",
+    "auditions": "Resultados da audição"
+  },
   "name": "Nome da voz",
   "add": "Adicionar",
   "usage": "Hora {count} referenciada | Tempos {count} referenciados",
@@ -11,19 +19,15 @@
     "description": "Exclua esta voz arquivada e todas as suas revisões. Uma voz usada por um projeto não pode ser excluída."
   },
   "label": "Voz",
-  "clone": "Clone da referência",
-  "design": "Projete uma voz",
-  "mode": "Fonte de voz",
-  "designDescription": "Descreva a voz, entrega, faixa etária e tom",
-  "candidate": {
-    "text": "Texto de exemplo",
-    "generate": "Gerar amostra",
-    "auditionRequired": "Jogue o candidato uma vez antes de salvar esta voz.",
-    "save": "Salvar voz",
-    "discard": "Descartar amostra",
-    "sample": "Bem-vindo. Hoje é 3 de outubro de 2026 e o ​​número do projeto é 108. Ouça a pronúncia clara, o ritmo constante e os finais de frase naturais.",
-    "auditions": "Resultados da audição"
+  "clone": {
+    "fromReference": "Clone da referência",
+    "action": "Clonar voz"
   },
+  "design": {
+    "action": "Projete uma voz",
+    "placeholder": "Descreva a voz, entrega, faixa etária e tom"
+  },
+  "mode": "Fonte de voz",
   "gender": {
     "female": "Fêmea",
     "male": "Masculino"
@@ -33,6 +37,5 @@
     "reference": "Voz de referência",
     "designed": "Voz projetada"
   },
-  "options": "Configurações de voz",
-  "cloneShort": "Clonar voz"
+  "options": "Configurações de voz"
 }

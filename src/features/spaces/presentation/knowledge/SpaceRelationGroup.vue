@@ -104,7 +104,7 @@ const { t } = useI18n();
             @click="emit('removeRelation', item.relation.id, item.neighbor.data.title)"
           >
             <Trash2 class="size-3.5" :stroke-width="1.6" />
-            {{ t("spaces.knowledge.relations.remove") }}
+            {{ t("spaces.knowledge.relations.remove.action") }}
           </button>
         </div>
       </AccordionContent>

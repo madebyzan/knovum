@@ -21,6 +21,5 @@
   "multipleAudioTracks": "Video mit mehreren Audiospuren",
   "audioTracksHint": "Wählen Sie bis zu acht veröffentlichte Revisionen desselben Quellvideos in der Reihenfolge der Wiedergabespuren aus.",
   "currentBackground": "Aktueller Hintergrundtitel",
-  "mixingSettings": "Audio-Mix",
-  "translationTitle": "Skript übersetzen"
+  "mixingSettings": "Audio-Mix"
 }

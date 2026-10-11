@@ -21,7 +21,7 @@ const conversionActions = computed(() =>
 
 <template>
   <p class="max-w-64 px-2 py-1.5 text-caption text-fg-tertiary">
-    {{ t("spaces.creation.document.convert.help") }}
+    {{ t("spaces.creation.document.conversion.help") }}
   </p>
   <UiDropdownMenuItem
     v-for="action in conversionActions"
@@ -32,6 +32,6 @@ const conversionActions = computed(() =>
     @select="emit('invoke', action.id)"
   >
     <FileOutput class="size-3.5" />
-    {{ t(`spaces.creation.document.convert.formats.${action.documentFormat}`) }}
+    {{ t(`spaces.creation.document.conversion.formats.${action.documentFormat}`) }}
   </UiDropdownMenuItem>
 </template>

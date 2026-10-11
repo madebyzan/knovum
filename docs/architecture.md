@@ -75,7 +75,19 @@ exclusively to the retained Deep Agent.
 Application routes and the remembered workspace destination belong to `app/`. The shell receives
 workspace visibility and emits navigation intent; feature views receive explicit navigation
 operations from application composition. Neither shell nor foundation chooses product route names.
-Shared AI language labels belong to the AI locale namespace rather than a Space editor namespace.
+Locale namespaces follow capability ownership. AI translation targets belong to `ai.languages`;
+display-language choices belong to `settings.appearance.options.language`. Application update
+wording belongs to `updates` across the settings page, notifications and Task Center; close/save
+failures belong to `errors.windowClose`. Shared image/video transformations belong to
+`spaces.media.transform`, while plugin package selection belongs to `extensions.plugins.source`.
+Settings navigation metadata may reference destination titles owned by another capability.
+AI settings messages separate provider connections, model definitions, local models and shared
+editor confirmations under `settings/ai/`. Shared settings API-key controls belong to
+`settings.credentials`, and the archive settings view belongs to `settings.archivedSpaces`.
+`extensions.endpoint` owns the endpoint contract's shared fields; connector definitions and
+connection instances retain their own entity-specific confirmations and conflict messages.
+`spaces.media.imageComments` owns annotations, and `spaces.speech.preview` owns audition controls
+shared by voices and projects. Neutral actions and search empty states belong to `common`.
 Workspace command composables receive explicit shell presentation operations during shell setup;
 they do not resolve descendant providers from the application root. The application router commits
 the resident workspace before leaving its destination; the resident view owns window-close commits.

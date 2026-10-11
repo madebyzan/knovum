@@ -1,6 +1,8 @@
 {
-  "defaultsTitle": "AI 実行",
-  "defaultsDescription": "各機能を個別に設定するか、デフォルトの実行方法を使用させます。",
+  "defaults": {
+    "title": "AI 実行",
+    "description": "各機能を個別に設定するか、デフォルトの実行方法を使用させます。"
+  },
   "unassigned": "デフォルトの実行方法を使用する",
   "noCompatibleModel": "このタスクのモデルを構成する",
   "routes": {
@@ -34,5 +36,7 @@
     }
   },
   "unselected": "実行方法が選択されていません",
-  "capabilitiesTitle": "機能別"
+  "capabilities": {
+    "title": "機能別"
+  }
 }

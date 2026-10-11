@@ -11,13 +11,6 @@
     "referenceSize": "참고 사이즈; 내보낸 픽셀은 소스 이미지에 따라 달라집니다.",
     "lockAspect": "자르기 종횡비 잠금"
   },
-  "transform": {
-    "rotateClockwise": "시계 방향으로 회전",
-    "flipHorizontal": "수평 뒤집기",
-    "flipVertical": "수직 뒤집기",
-    "title": "뒤집기 및 회전",
-    "rotationDegrees": "회전 각도"
-  },
   "removeObject": {
     "tool": "지우개",
     "mode": "제거 입력",
@@ -27,8 +20,10 @@
     },
     "undo": "선택 스트로크 실행 취소",
     "brushSize": "선택 브러시",
-    "promptLabel": "제거할 내용 설명",
-    "promptPlaceholder": "무엇을 제거할지 설명하세요…",
+    "prompt": {
+      "label": "제거할 내용 설명",
+      "placeholder": "무엇을 제거할지 설명하세요…"
+    },
     "generate": "제거 및 생성",
     "submitting": "파생된 이미지 작업 생성 중…",
     "sizeLimit": "16메가픽셀, 한 면당 16,384픽셀 이내의 소스를 사용하세요.",
@@ -72,13 +67,14 @@
   },
   "layers": {
     "title": "레이어 분할",
-    "panel": "레이어 분할",
     "selectContent": "지역 선택",
     "selectContentUnavailable": "현재 레이어 모델은 선택한 영역을 분할할 수 없습니다.",
     "auto": "자동 분할",
     "custom": "사용자 정의 분할",
-    "prompt": "분리 초점",
-    "promptPlaceholder": "무엇을 레이어로 분할할지 설명",
+    "prompt": {
+      "label": "분리 초점",
+      "placeholder": "무엇을 레이어로 분할할지 설명"
+    },
     "split": "분할",
     "task": "이미지 레이어 분할",
     "failed": "레이어 분할 실패",
@@ -90,19 +86,6 @@
     },
     "keyMissing": "레이어 분할에는 fal API 키가 필요합니다.",
     "promptRequired": "무엇을 먼저 분리해야 하는지 설명하세요."
-  },
-  "comments": {
-    "title": "논평",
-    "prompt": "설명 추가",
-    "save": "댓글 저장",
-    "addToConversation": "대화에 추가",
-    "conversationContext": "이미지 주석({kind}, 원점은 왼쪽 상단, 좌표는 이미지 너비와 높이의 백분율임): {coordinates}\n주석: {text}",
-    "delete": "댓글 삭제",
-    "hint": "댓글을 달려면 이미지 위치를 클릭하세요.",
-    "mode": "코멘트 주석 모드",
-    "point": "포인트 코멘트",
-    "draw": "코멘트 작성",
-    "region": "지역 설명"
   },
   "applyNow": "지금 사용",
   "unsaved": {

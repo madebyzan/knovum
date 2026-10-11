@@ -1,0 +1,18 @@
+{
+  "provider": "Proveedor de modelo",
+  "baseUrl": "URL base API",
+  "title": "Conexiones de proveedores",
+  "description": "Administrar conexiones y modelos disponibles por proveedor.",
+  "empty": "Aún no hay proveedores",
+  "name": "Nombre de la conexión",
+  "add": "Agregar proveedor",
+  "edit": "Editar proveedor",
+  "invalidBaseUrl": "Ingrese un HTTP o HTTPS URL válido",
+  "delete": {
+    "title": "¿Eliminar {name} y sus modelos y credenciales?",
+    "action": "Eliminar conexión"
+  },
+  "credentials": {
+    "saveFailed": "La conexión se guardó, pero no se pudo guardar la clave. Intentar otra vez"
+  }
+}

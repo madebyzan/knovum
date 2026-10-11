@@ -7,7 +7,8 @@
     "subdirectory": "包所在子目錄",
     "install": "從來源安裝",
     "description": "選擇本機套件或遠端 URL，確認內容後再安裝。",
-    "revision": "來源版本"
+    "revision": "來源版本",
+    "choose": "選擇來源"
   },
   "installation": {
     "preview": "預覽",
@@ -70,12 +71,6 @@
     "committing": "提交更改"
   },
   "title": "已安裝插件",
-  "search": {
-    "empty": "沒有匹配的結果",
-    "hint": "嘗試其他關鍵字，或清空搜尋。"
-  },
-  "disable": "停用 {name}",
-  "enable": "啟用 {name}",
   "actions": "插件操作",
   "capabilities": "包含的能力"
 }

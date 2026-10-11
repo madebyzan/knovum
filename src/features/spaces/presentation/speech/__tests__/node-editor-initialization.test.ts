@@ -81,7 +81,7 @@ it.each(["short_dubbing", "audiobook"] as const)(
     );
     expect(wrapper.find("form").exists()).toBe(false);
     expect(wrapper.find('[aria-label="More"]').exists()).toBe(false);
-    expect(wrapper.text()).toContain(i18n.global.t("spaces.speech.project.noVoices"));
+    expect(wrapper.text()).toContain(i18n.global.t("spaces.speech.library.selection.empty"));
     expect(wrapper.get('[data-testid="manage-voices"]').attributes("href")).toBe("/settings?pane=voices");
     await wrapper.get('[data-testid="add-reference-voice"]').trigger("click");
     expect(wrapper.findComponent({ name: "VoiceCandidateForm" }).exists()).toBe(true);
@@ -139,7 +139,7 @@ it("closes initialized content without a decision but protects actual incomplete
   await flushPromises();
   expect(dialog.props("open")).toBe(true);
   expect(dialog.props("showSave")).toBe(false);
-  expect(dialog.props("title")).toBe(i18n.global.t("spaces.speech.project.incompleteTitle"));
+  expect(dialog.props("title")).toBe(i18n.global.t("spaces.speech.project.incomplete.title"));
   dialog.vm.$emit("cancel");
   expect(await closing).toBe(false);
 });

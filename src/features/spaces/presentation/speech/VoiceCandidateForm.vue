@@ -109,18 +109,18 @@ async function saveCandidate(candidateId: string, name: string) {
       v-model="description"
       :rows="2"
       :disabled="busy"
-      :placeholder="t('spaces.speech.voice.designDescription')"
-      :aria-label="t('spaces.speech.voice.designDescription')"
+      :placeholder="t('spaces.speech.voice.design.placeholder')"
+      :aria-label="t('spaces.speech.voice.design.placeholder')"
     />
     <div class="space-y-3 border-t border-stroke-divider pt-3">
       <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
-        <span>{{ t("spaces.speech.voice.candidate.text") }}</span>
+        <span>{{ t("spaces.speech.preview.text.label") }}</span>
         <UiTextarea
           v-model="text"
           :rows="2"
           :disabled="busy"
-          :placeholder="t('spaces.speech.voice.candidate.text')"
-          :aria-label="t('spaces.speech.voice.candidate.text')"
+          :placeholder="t('spaces.speech.preview.text.label')"
+          :aria-label="t('spaces.speech.preview.text.label')"
         />
       </label>
       <div class="flex items-center justify-end gap-2">

@@ -50,9 +50,9 @@ async function rename() {
 async function remove() {
   if (busy.value) return;
   const confirmed = await confirmAction({
-    title: t("spaces.creation.workflow.delete"),
-    description: t("spaces.creation.workflow.deleteConfirm", { name: props.workflow.name }),
-    confirmLabel: t("spaces.creation.workflow.delete"),
+    title: t("spaces.creation.workflow.delete.action"),
+    description: t("spaces.creation.workflow.delete.confirmation", { name: props.workflow.name }),
+    confirmLabel: t("spaces.creation.workflow.delete.action"),
     danger: true,
   });
   if (!confirmed) return;
@@ -77,11 +77,11 @@ async function remove() {
       }}</UiButton>
       <UiButton variant="ghost" size="sm" @click="editing = true">{{ t("common.rename") }}</UiButton>
       <UiButton variant="dangerSubtle" size="sm" :disabled="busy" @click="remove">{{
-        t("spaces.creation.workflow.delete")
+        t("spaces.creation.workflow.delete.action")
       }}</UiButton>
     </div>
     <form v-else-if="editing" class="flex gap-2" @submit.prevent="rename">
-      <UiInput v-model="name" :aria-label="t('spaces.creation.workflow.name')" class="min-w-0 flex-1" />
+      <UiInput v-model="name" :aria-label="t('spaces.creation.workflow.name.label')" class="min-w-0 flex-1" />
       <UiButton type="submit" variant="primary" size="sm" :disabled="busy || !name.trim()">{{
         t("common.save")
       }}</UiButton>

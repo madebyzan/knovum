@@ -91,8 +91,8 @@ async function create() {
 <template>
   <UiDialog
     v-model:open="open"
-    :title="t('spaces.knowledge.objects.create')"
-    :description="t('spaces.knowledge.objects.createDescription')"
+    :title="t('spaces.knowledge.objects.create.action')"
+    :description="t('spaces.knowledge.objects.create.description')"
   >
     <p v-if="!typeOptions.length" class="text-caption text-fg-tertiary">
       {{ t("spaces.knowledge.types.none") }}

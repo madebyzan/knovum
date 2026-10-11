@@ -1,15 +1,25 @@
 {
-  "target": "Execution target",
-  "targetModelApi": "Model API · direct execution",
-  "targetExternalAgent": "Desktop Agent · output depends on its current tools and Skills",
-  "noCompatibleTarget": "No compatible execution target",
-  "desktopAgentNotInstalled": "Not detected",
-  "disabledTitle": "No compatible AI target",
-  "disabledDescription": "Configure a compatible model or enable an installed desktop Agent for this action.",
-  "openSettings": "Configure models",
-  "settingsUnavailable": "AI settings could not be loaded",
-  "executedWithModel": "Executed with {provider} · {model}",
-  "executedWithAgent": "Executed by {name} · desktop Agent",
+  "target": {
+    "label": "Execution target",
+    "modelApi": "Model API · direct execution",
+    "desktopAgent": "Desktop Agent · output depends on its current tools and Skills",
+    "none": "No compatible execution target"
+  },
+  "desktopAgent": {
+    "notDetected": "Not detected"
+  },
+  "unavailable": {
+    "title": "No compatible AI target",
+    "description": "Configure a compatible model or enable an installed desktop Agent for this action."
+  },
+  "configuration": {
+    "open": "Configure models",
+    "unavailable": "AI settings could not be loaded"
+  },
+  "execution": {
+    "model": "Executed with {provider} · {model}",
+    "desktopAgent": "Executed by {name} · desktop Agent"
+  },
   "languages": {
     "zhCn": "Simplified Chinese",
     "zhTw": "Traditional Chinese",
@@ -23,5 +33,10 @@
     "it": "Italian",
     "ru": "Russian",
     "ar": "Arabic"
+  },
+  "localModels": {
+    "unavailable": {
+      "memory": "Not enough memory; at least 32 GiB is required. Use MOSS-TTS-Nano instead."
+    }
   }
 }

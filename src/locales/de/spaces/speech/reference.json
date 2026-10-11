@@ -11,6 +11,5 @@
   "play": "Auswahl abspielen",
   "sourceChanged": "Die Audioknotenquelle hat sich geändert. Aktualisieren Sie den Knoten, bevor Sie eine Sprachreferenz vorbereiten.",
   "selection": "{seconds}s ausgewählt · Ziehen Sie an einem der Enden",
-  "prepared": "Auswahl erkannt",
-  "playbackFailed": "Die Audioquelle konnte nicht abgespielt werden. Überprüfen Sie, ob die Mediendatei lesbar ist."
+  "prepared": "Auswahl erkannt"
 }

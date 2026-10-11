@@ -36,7 +36,12 @@
     },
     "placement": "位置",
     "add": "テキストの追加",
-    "content": "テキスト"
+    "content": "テキスト",
+    "verticalAlignment": {
+      "top": "トップ",
+      "center": "中心",
+      "bottom": "下"
+    }
   },
   "tabs": {
     "captions": "キャプション",
@@ -68,22 +73,23 @@
     "startsAt": "開始 (秒)",
     "endsAt": "終了 (秒)"
   },
-  "top": "トップ",
-  "center": "中心",
-  "bottom": "下",
   "project": {
     "saved": "ビデオ編集プロジェクトが保存されました"
   },
   "render": {
     "action": "ビデオのレンダリング",
     "task": "ビデオ レンダリング",
-    "failed": "ビデオ レンダリングに失敗しました"
+    "failed": "ビデオ レンダリングに失敗しました",
+    "stages": {
+      "preparingVideoEdit": "編集準備中",
+      "renderingVideoEdit": "レンダリング ビデオ",
+      "savingResource": "リソースの保存"
+    }
   },
-  "preparingVideoEdit": "編集準備中",
-  "renderingVideoEdit": "レンダリング ビデオ",
-  "savingResource": "リソースの保存",
-  "previousStep": "0.1 秒後退",
-  "nextStep": "0.1 秒前進",
+  "playback": {
+    "stepBackward": "0.1 秒後退",
+    "stepForward": "0.1 秒前進"
+  },
   "trim": {
     "start": "クリップ開始のトリム",
     "end": "クリップの端をトリム",

@@ -57,12 +57,16 @@
   "attachments": {
     "add": "Add resource",
     "attached": "Attached resources, scroll horizontally to see more",
-    "citeCanvasNode": "Reference canvas content",
-    "citeCanvasNodeHint": "Choose content from this Space",
-    "canvasNodeShort": "Canvas reference",
-    "uploadLocalFile": "Add local file",
-    "uploadLocalFileHint": "Images, PDFs, or documents",
-    "localFileShort": "Local file",
+    "canvasReference": {
+      "label": "Reference canvas content",
+      "hint": "Choose content from this Space",
+      "shortLabel": "Canvas reference"
+    },
+    "localFile": {
+      "label": "Add local file",
+      "hint": "Images, PDFs, or documents",
+      "shortLabel": "Local file"
+    },
     "dropFiles": "Drop files to attach",
     "limit": "You can attach up to 32 items to one message.",
     "addCurrentSelection": "Add current selection ({count})",

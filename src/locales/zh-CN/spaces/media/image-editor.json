@@ -11,13 +11,6 @@
     "referenceSize": "参考尺寸；实际导出尺寸取决于原图",
     "lockAspect": "锁定裁剪比例"
   },
-  "transform": {
-    "rotateClockwise": "顺时针旋转",
-    "flipHorizontal": "水平翻转",
-    "flipVertical": "垂直翻转",
-    "title": "翻转与旋转",
-    "rotationDegrees": "旋转角度"
-  },
   "removeObject": {
     "tool": "橡皮擦",
     "mode": "移除方式",
@@ -27,8 +20,10 @@
     },
     "undo": "撤销选区笔画",
     "brushSize": "选区画笔",
-    "promptLabel": "描述要移除的内容",
-    "promptPlaceholder": "描述要移除的内容…",
+    "prompt": {
+      "label": "描述要移除的内容",
+      "placeholder": "描述要移除的内容…"
+    },
     "generate": "移除并生成",
     "submitting": "正在创建派生任务…",
     "sizeLimit": "使用不超过 1600 万像素、每边不超过 16,384 像素的图片。",
@@ -72,13 +67,14 @@
   },
   "layers": {
     "title": "图层拆分",
-    "panel": "拆分图层",
     "selectContent": "框选内容",
     "selectContentUnavailable": "当前图层拆分模型不支持指定图片区域",
     "auto": "自动拆分",
     "custom": "自定义拆分",
-    "prompt": "拆分重点",
-    "promptPlaceholder": "描述想要拆分的内容",
+    "prompt": {
+      "label": "拆分重点",
+      "placeholder": "描述想要拆分的内容"
+    },
     "split": "拆分",
     "task": "正在拆分图片图层",
     "failed": "图层拆分失败",
@@ -90,19 +86,6 @@
     },
     "keyMissing": "图层拆分需要配置 fal 密钥",
     "promptRequired": "请先描述需要拆分的内容"
-  },
-  "comments": {
-    "title": "评论",
-    "prompt": "添加描述",
-    "save": "保存评论",
-    "addToConversation": "添加到对话",
-    "conversationContext": "图片标注（{kind}；以左上角为原点，坐标单位为图片宽高的百分比）：{coordinates}\n标注内容：{text}",
-    "delete": "删除评论",
-    "hint": "点击图片位置添加评论",
-    "mode": "评论标注方式",
-    "point": "点选评论",
-    "draw": "自由绘制评论",
-    "region": "框选区域评论"
   },
   "applyNow": "立即使用",
   "unsaved": {

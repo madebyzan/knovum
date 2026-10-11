@@ -7,7 +7,8 @@
     "subdirectory": "Sottodirectory del pacchetto",
     "install": "Installa dal sorgente",
     "description": "Scegli un pacchetto locale o URL remoto, quindi esaminalo prima dell'installazione.",
-    "revision": "Revisione sorgente"
+    "revision": "Revisione sorgente",
+    "choose": "Scegli fonte"
   },
   "installation": {
     "preview": "Anteprima",
@@ -70,12 +71,6 @@
     "committing": "Conferma modifiche"
   },
   "title": "Plugin installati",
-  "search": {
-    "empty": "Nessun risultato corrispondente",
-    "hint": "Prova un'altra parola chiave o cancella la ricerca."
-  },
-  "disable": "Disabilita {name}",
-  "enable": "Abilita {name}",
   "actions": "Azioni del plug-in",
   "capabilities": "Funzionalità incluse"
 }

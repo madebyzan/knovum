@@ -64,7 +64,7 @@ describe("Archived Spaces settings", () => {
 
     rejectRestore(new Error("restore rejected"));
     await flushPromises();
-    expect(toast.error).toHaveBeenCalledWith("settings.general.archived.restoreFailed", {
+    expect(toast.error).toHaveBeenCalledWith("settings.archivedSpaces.restore.failed", {
       description: "restore rejected",
     });
     expect(button.attributes("disabled")).toBeUndefined();

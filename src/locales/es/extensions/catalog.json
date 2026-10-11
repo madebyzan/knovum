@@ -7,6 +7,5 @@
   "templates": "Plantillas de recursos",
   "prompts": "Avisos",
   "parameters": "Parámetros (JSON)",
-  "read": "Leer contenido seleccionado",
-  "source": "Elegir fuente"
+  "read": "Leer contenido seleccionado"
 }

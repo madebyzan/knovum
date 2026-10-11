@@ -36,7 +36,12 @@
     },
     "placement": "Position",
     "add": "Text hinzufügen",
-    "content": "Text"
+    "content": "Text",
+    "verticalAlignment": {
+      "top": "Spitze",
+      "center": "Center",
+      "bottom": "Unten"
+    }
   },
   "tabs": {
     "captions": "Untertitel",
@@ -68,22 +73,23 @@
     "startsAt": "Startet (Sekunden)",
     "endsAt": "Endet (Sekunden)"
   },
-  "top": "Spitze",
-  "center": "Center",
-  "bottom": "Unten",
   "project": {
     "saved": "Videobearbeitungsprojekt gespeichert"
   },
   "render": {
     "action": "Video rendern",
     "task": "Video rendern",
-    "failed": "Video-Rendering fehlgeschlagen"
+    "failed": "Video-Rendering fehlgeschlagen",
+    "stages": {
+      "preparingVideoEdit": "Bearbeitung wird vorbereitet",
+      "renderingVideoEdit": "Video rendern",
+      "savingResource": "Ressourcen sparen"
+    }
   },
-  "preparingVideoEdit": "Bearbeitung wird vorbereitet",
-  "renderingVideoEdit": "Video rendern",
-  "savingResource": "Ressourcen sparen",
-  "previousStep": "Machen Sie einen Schritt zurück um 0,1 Sekunde",
-  "nextStep": "Machen Sie einen Schritt vorwärts um 0,1 Sekunde",
+  "playback": {
+    "stepBackward": "Machen Sie einen Schritt zurück um 0,1 Sekunde",
+    "stepForward": "Machen Sie einen Schritt vorwärts um 0,1 Sekunde"
+  },
   "trim": {
     "start": "Clipanfang zuschneiden",
     "end": "Clip-Ende trimmen",

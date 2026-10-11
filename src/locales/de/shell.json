@@ -13,9 +13,11 @@
     "checking": "Verfügbarkeit prüfen",
     "busy": "Eine Operation ist im Gange"
   },
-  "toggleRightSidebar": "Rechte Seitenleiste ein- oder ausblenden",
-  "toggleSidebar": "Seitenleiste umschalten",
-  "layoutSaveFailed": "Das Workbench-Layout konnte nicht gespeichert werden",
+  "layout": {
+    "toggleRightSidebar": "Rechte Seitenleiste ein- oder ausblenden",
+    "toggleSidebar": "Seitenleiste umschalten",
+    "saveFailed": "Das Workbench-Layout konnte nicht gespeichert werden"
+  },
   "shortcuts": {
     "title": "Tastaturkürzel",
     "search": "Suchverknüpfungen",

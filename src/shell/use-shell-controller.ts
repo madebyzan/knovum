@@ -139,8 +139,8 @@ export function useShellController(
         settings: t("common.settings"),
         commandPalette: t("shell.commands.title"),
         shortcuts: t("shell.shortcuts.title"),
-        toggleSidebar: t("shell.toggleSidebar"),
-        toggleRightSidebar: t("shell.toggleRightSidebar"),
+        toggleSidebar: t("shell.layout.toggleSidebar"),
+        toggleRightSidebar: t("shell.layout.toggleRightSidebar"),
       },
     }),
   );

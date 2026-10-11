@@ -36,8 +36,10 @@
   "favorite": "Lieblingsplatz",
   "unfavorite": "Aus Favoriten entfernen",
   "open": "Arbeitsbereich öffnen",
-  "loadFailed": "Der Arbeitsbereich konnte nicht geöffnet werden",
-  "loadFailedHint": "Die Arbeitsbereichsdatenbank konnte nicht geladen werden. Lokale Dateien sind davon nicht betroffen; Bitte versuchen Sie es noch einmal.",
+  "load": {
+    "failed": "Der Arbeitsbereich konnte nicht geöffnet werden",
+    "hint": "Die Arbeitsbereichsdatenbank konnte nicht geladen werden. Lokale Dateien sind davon nicht betroffen; Bitte versuchen Sie es noch einmal."
+  },
   "archive": "Archiv-Arbeitsbereich",
   "moveTo": "Wechseln Sie zum Arbeitsbereich",
   "moveNoTargets": "Es sind keine anderen Arbeitsbereiche zum Wechseln verfügbar.",

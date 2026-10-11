@@ -36,7 +36,12 @@
     },
     "placement": "Posição",
     "add": "Adicionar texto",
-    "content": "Texto"
+    "content": "Texto",
+    "verticalAlignment": {
+      "top": "Topo",
+      "center": "Centro",
+      "bottom": "Inferior"
+    }
   },
   "tabs": {
     "captions": "Legendas",
@@ -68,22 +73,23 @@
     "startsAt": "Início (segundos)",
     "endsAt": "Termina (segundos)"
   },
-  "top": "Topo",
-  "center": "Centro",
-  "bottom": "Inferior",
   "project": {
     "saved": "Projeto de edição de vídeo salvo"
   },
   "render": {
     "action": "Renderizar vídeo",
     "task": "Renderização de vídeo",
-    "failed": "Falha na renderização do vídeo"
+    "failed": "Falha na renderização do vídeo",
+    "stages": {
+      "preparingVideoEdit": "Preparando edição",
+      "renderingVideoEdit": "Renderização de vídeo",
+      "savingResource": "Economizando recursos"
+    }
   },
-  "preparingVideoEdit": "Preparando edição",
-  "renderingVideoEdit": "Renderização de vídeo",
-  "savingResource": "Economizando recursos",
-  "previousStep": "Retroceda 0,1 segundo",
-  "nextStep": "Avance 0,1 segundo",
+  "playback": {
+    "stepBackward": "Retroceda 0,1 segundo",
+    "stepForward": "Avance 0,1 segundo"
+  },
   "trim": {
     "start": "Início do clipe de corte",
     "end": "Aparar o final do clipe",

@@ -24,16 +24,16 @@ const { creating, errors, addPresetAsync } = useSpeechVoices();
 let admittedPreset: Promise<boolean> | undefined;
 const creationOptions = computed(() => [
   { value: "preset" as const, label: t("spaces.speech.library.presets") },
-  { value: "reference" as const, label: t("spaces.speech.voice.clone") },
-  { value: "designed" as const, label: t("spaces.speech.voice.design") },
+  { value: "reference" as const, label: t("spaces.speech.voice.clone.fromReference") },
+  { value: "designed" as const, label: t("spaces.speech.voice.design.action") },
 ]);
 
 async function confirmDiscard() {
   if (admittedPreset && !(await admittedPreset)) return false;
   if (!draftDirty.value) return true;
   return confirmAction({
-    title: t("spaces.speech.library.discardTitle"),
-    description: t("spaces.speech.library.discardDescription"),
+    title: t("spaces.speech.library.discard.title"),
+    description: t("spaces.speech.library.discard.description"),
     confirmLabel: t("common.discardChanges"),
     danger: true,
   });
@@ -99,7 +99,7 @@ onScopeDispose(unregisterLeaveParticipant);
       <header class="mb-3 flex items-end justify-between gap-4 px-0.5">
         <div class="min-w-0">
           <h2 class="text-title-sm font-semibold tracking-title text-fg-primary">
-            {{ t("spaces.speech.library.collectionTitle") }}
+            {{ t("spaces.speech.library.collection.title") }}
           </h2>
           <p class="mt-1 text-caption text-fg-secondary">{{ t("spaces.speech.library.manage") }}</p>
         </div>
@@ -117,7 +117,7 @@ onScopeDispose(unregisterLeaveParticipant);
           <div class="space-y-4">
             <div class="flex items-center gap-3">
               <h3 class="min-w-0 flex-1 text-label font-medium text-fg-primary">
-                {{ t("spaces.speech.library.addTitle") }}
+                {{ t("spaces.speech.library.add") }}
               </h3>
               <UiSelect
                 :model-value="creationKind"

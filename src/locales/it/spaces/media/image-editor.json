@@ -11,13 +11,6 @@
     "referenceSize": "Taglia di riferimento; i pixel esportati dipendono dall'immagine sorgente",
     "lockAspect": "Blocca le proporzioni del ritaglio"
   },
-  "transform": {
-    "rotateClockwise": "Ruotare in senso orario",
-    "flipHorizontal": "Capovolgere orizzontalmente",
-    "flipVertical": "Capovolgi verticalmente",
-    "title": "Capovolgi e ruota",
-    "rotationDegrees": "Angolo di rotazione"
-  },
   "removeObject": {
     "tool": "Gomma",
     "mode": "Ingresso di rimozione",
@@ -27,8 +20,10 @@
     },
     "undo": "Annulla tratto di selezione",
     "brushSize": "Pennello di selezione",
-    "promptLabel": "Descrivi cosa rimuovere",
-    "promptPlaceholder": "Descrivi cosa rimuovere...",
+    "prompt": {
+      "label": "Descrivi cosa rimuovere",
+      "placeholder": "Descrivi cosa rimuovere..."
+    },
     "generate": "Rimuovi e genera",
     "submitting": "Creazione dell'attività immagine derivata…",
     "sizeLimit": "Utilizza una sorgente entro 16 megapixel e 16.384 pixel per lato.",
@@ -72,13 +67,14 @@
   },
   "layers": {
     "title": "Dividi livelli",
-    "panel": "Dividi livelli",
     "selectContent": "Seleziona regione",
     "selectContentUnavailable": "Il modello di livello corrente non può dividere una regione selezionata",
     "auto": "Divisione automatica",
     "custom": "Suddivisione personalizzata",
-    "prompt": "Focus di separazione",
-    "promptPlaceholder": "Descrivi cosa dividere in strati",
+    "prompt": {
+      "label": "Focus di separazione",
+      "placeholder": "Descrivi cosa dividere in strati"
+    },
     "split": "Dividi",
     "task": "Divisione dei livelli dell'immagine",
     "failed": "Divisione del livello non riuscita",
@@ -90,19 +86,6 @@
     },
     "keyMissing": "La suddivisione dei livelli richiede una chiave fal API",
     "promptRequired": "Descrivi prima cosa dovrebbe essere separato"
-  },
-  "comments": {
-    "title": "Commento",
-    "prompt": "Aggiungi una descrizione",
-    "save": "Salva commento",
-    "addToConversation": "Aggiungi alla conversazione",
-    "conversationContext": "Annotazione immagine ({kind}; origine in alto a sinistra; le coordinate sono percentuali della larghezza e dell'altezza dell'immagine): {coordinates}\nAnnotazione: {text}",
-    "delete": "Elimina commento",
-    "hint": "Fare clic sulla posizione di un'immagine per commentare",
-    "mode": "Modalità annotazione commenti",
-    "point": "Punto commento",
-    "draw": "Disegna un commento",
-    "region": "Commento regione"
   },
   "applyNow": "Utilizza ora",
   "unsaved": {

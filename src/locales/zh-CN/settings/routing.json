@@ -1,6 +1,8 @@
 {
-  "defaultsTitle": "AI 执行方式",
-  "defaultsDescription": "各项能力可单独设置，未设置时跟随默认执行方式。",
+  "defaults": {
+    "title": "AI 执行方式",
+    "description": "各项能力可单独设置，未设置时跟随默认执行方式。"
+  },
   "unassigned": "跟随默认执行方式",
   "noCompatibleModel": "配置支持此任务的模型",
   "routes": {
@@ -34,5 +36,7 @@
     }
   },
   "unselected": "未选择执行方式",
-  "capabilitiesTitle": "按能力设置"
+  "capabilities": {
+    "title": "按能力设置"
+  }
 }

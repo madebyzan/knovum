@@ -56,29 +56,29 @@ const outputLimit = computed({
   <section v-if="protocols.length" class="mt-5 grid gap-3 border-t border-stroke-divider pt-4">
     <div class="flex items-center justify-between gap-3">
       <label :for="switchId" class="text-label text-fg-primary">{{
-        t("settings.ai.builtinAgentEnabled")
+        t("settings.ai.models.builtinAgent.enabled")
       }}</label>
       <UiSwitch
         :id="switchId"
         v-model="enabled"
         :disabled="disabled"
-        :label="t('settings.ai.builtinAgentEnabled')"
+        :label="t('settings.ai.models.builtinAgent.enabled')"
       />
     </div>
-    <p class="text-caption text-fg-secondary">{{ t("settings.ai.builtinAgentProfileHelp") }}</p>
+    <p class="text-caption text-fg-secondary">{{ t("settings.ai.models.builtinAgent.help") }}</p>
     <div v-if="model" class="grid gap-3">
       <UiSelect
         v-model="model.protocol"
-        :label="t('settings.ai.builtinAgentProtocol')"
+        :label="t('settings.ai.models.builtinAgent.protocol')"
         :options="options"
         :disabled="disabled"
       />
       <label class="grid gap-1 text-caption text-fg-secondary">
-        {{ t("settings.ai.contextWindow") }}
+        {{ t("settings.ai.models.builtinAgent.contextWindow") }}
         <UiInput v-model="contextWindow" type="number" :disabled="disabled" />
       </label>
       <label class="grid gap-1 text-caption text-fg-secondary">
-        {{ t("settings.ai.maxOutputTokens") }}
+        {{ t("settings.ai.models.builtinAgent.maxOutputTokens") }}
         <UiInput v-model="outputLimit" type="number" :disabled="disabled" />
       </label>
       <p
@@ -91,7 +91,7 @@ const outputLimit = computed({
         class="text-caption text-fg-danger"
         role="alert"
       >
-        {{ t("settings.ai.builtinAgentLimitsInvalid") }}
+        {{ t("settings.ai.models.builtinAgent.invalidLimits") }}
       </p>
     </div>
   </section>

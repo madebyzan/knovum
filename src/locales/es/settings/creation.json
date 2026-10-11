@@ -5,11 +5,15 @@
     "title": "Preajustes de generación",
     "description": "Configuración del modelo guardada para la creación de contenido.",
     "empty": "Aún no se han guardado ajustes preestablecidos de generación.",
-    "deleteConfirm": "¿Eliminar este ajuste preestablecido?",
+    "delete": {
+      "title": "¿Eliminar este ajuste preestablecido?"
+    },
     "name": "Nombre preestablecido",
     "edit": "Editar valor preestablecido de generación",
-    "discardTitle": "¿Descartar cambios preestablecidos?",
-    "discardDescription": "Los cambios no guardados en este ajuste preestablecido de generación se perderán."
+    "discard": {
+      "title": "¿Descartar cambios preestablecidos?",
+      "description": "Los cambios no guardados en este ajuste preestablecido de generación se perderán."
+    }
   },
   "parameters": "Parámetros",
   "copyName": "Copia {name}",
@@ -30,7 +34,9 @@
   "imageLayers": {
     "title": "División de capa de imagen",
     "description": "Conecte fal para dividir la capa de imagen.",
-    "apiKey": "clave API fal",
-    "apiKeyDescription": "Almacenado solo en este dispositivo."
+    "apiKey": {
+      "label": "clave API fal",
+      "description": "Almacenado solo en este dispositivo."
+    }
   }
 }

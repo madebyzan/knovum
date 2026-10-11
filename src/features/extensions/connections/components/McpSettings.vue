@@ -108,8 +108,8 @@ function isConnectionEnabled(connectorId: string, enabled: boolean) {
     </div>
     <ExtensionEmptyState
       v-else-if="(connectionId || connectorId) && !error"
-      :title="$t('extensions.overview.notFound')"
-      :description="$t('extensions.overview.notFoundHint')"
+      :title="$t('extensions.overview.notFound.title')"
+      :description="$t('extensions.overview.notFound.description')"
       ><UiButton @click="$emit('navigate', { tab: 'mcp' })">{{
         $t("extensions.overview.back")
       }}</UiButton></ExtensionEmptyState
@@ -118,8 +118,8 @@ function isConnectionEnabled(connectorId: string, enabled: boolean) {
       <p class="text-caption text-fg-secondary">{{ $t("extensions.connections.description") }}</p>
       <ExtensionEmptyState
         v-if="!error && !visibleConnections.length"
-        :title="$t(search ? 'extensions.plugins.search.empty' : 'extensions.connections.emptyServers')"
-        :description="$t(search ? 'extensions.plugins.search.hint' : 'extensions.connections.emptyHint')"
+        :title="$t(search ? 'common.search.empty' : 'extensions.connections.emptyServers.title')"
+        :description="$t(search ? 'common.search.hint' : 'extensions.connections.emptyServers.description')"
       />
       <UiSettingsSection v-if="visibleConnections.length">
         <div class="divide-y divide-stroke-divider px-4">

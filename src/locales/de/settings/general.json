@@ -3,8 +3,10 @@
   "search": "Sucheinstellungen…",
   "noResults": "Keine passenden Einstellungen gefunden.",
   "load": {
-    "failed": "Einstellungen konnten nicht geladen werden",
-    "failedDescription": "Die gespeicherten Daten sind mit dem aktuellen Format nicht kompatibel. Versuchen Sie es noch einmal oder setzen Sie diesen Abschnitt zurück."
+    "failure": {
+      "title": "Einstellungen konnten nicht geladen werden",
+      "description": "Die gespeicherten Daten sind mit dem aktuellen Format nicht kompatibel. Versuchen Sie es noch einmal oder setzen Sie diesen Abschnitt zurück."
+    }
   },
   "reset": {
     "action": "Abschnitt zurücksetzen",
@@ -13,34 +15,17 @@
   "about": {
     "title": "Über",
     "author": "Autor",
-    "description": "Versions- und Systeminformationen."
+    "description": "Versions- und Systeminformationen.",
+    "version": {
+      "value": "Version {version}",
+      "loading": "Leseversion…"
+    }
   },
-  "version": "Version {version}",
-  "readingVersion": "Leseversion…",
-  "archived": {
-    "title": "Archivierte Bereiche",
-    "description": "Archivierte Arbeitsbereiche wiederherstellen oder dauerhaft löschen.",
-    "restore": "Speicherplatz wiederherstellen",
-    "restoreFailed": "Der Arbeitsbereich konnte nicht wiederhergestellt werden",
-    "loadFailed": "Archivierte Arbeitsbereiche konnten nicht geladen werden",
-    "delete": {
-      "label": "Endgültig löschen",
-      "title": "„{title}“ dauerhaft löschen?",
-      "description": "Dadurch werden der Arbeitsbereich und alle zugehörigen Daten dauerhaft von diesem Gerät entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
-      "failed": "Der Arbeitsbereich konnte nicht gelöscht werden"
-    },
-    "deleteAll": {
-      "label": "Alle löschen",
-      "title": "Alle archivierten Arbeitsbereiche dauerhaft löschen?",
-      "description": "Den archivierten Arbeitsbereich {count} und seinen Inhalt dauerhaft löschen? Dies kann nicht rückgängig gemacht werden. | {count} archivierte Arbeitsbereiche und deren Inhalte dauerhaft löschen? Dies kann nicht rückgängig gemacht werden."
-    },
-    "empty": "Keine archivierten Leerzeichen."
-  },
-  "inboxSpace": "Posteingang",
   "groups": {
     "intelligence": "Intelligenz",
     "general": "Allgemein",
     "data": "Daten & Archive",
     "information": "Information"
-  }
+  },
+  "saveFailed": "Die Einstellungen konnten nicht gespeichert werden"
 }

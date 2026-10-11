@@ -1,4 +1,5 @@
 {
+  "playbackFailed": "No se pudo reproducir el medio de origen. Comprueba que se pueda leer el archivo.",
   "followPlayback": "Seguir reproducción",
   "load": "Cargar {title}",
   "play": "Reproducir",

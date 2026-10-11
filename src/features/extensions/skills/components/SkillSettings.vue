@@ -87,16 +87,16 @@ const inspected = computed(() =>
     </div>
     <ExtensionEmptyState
       v-else-if="skillId && !query.error.value"
-      :title="$t('extensions.overview.notFound')"
-      :description="$t('extensions.overview.notFoundHint')"
+      :title="$t('extensions.overview.notFound.title')"
+      :description="$t('extensions.overview.notFound.description')"
       ><UiButton @click="$emit('navigate', { tab: 'skills' })">{{
         $t("extensions.overview.back")
       }}</UiButton></ExtensionEmptyState
     >
     <ExtensionEmptyState
       v-else-if="!query.error.value && !skills.length"
-      :title="$t(search ? 'extensions.plugins.search.empty' : 'extensions.skills.empty.title')"
-      :description="$t(search ? 'extensions.plugins.search.hint' : 'extensions.skills.empty.description')"
+      :title="$t(search ? 'common.search.empty' : 'extensions.skills.empty.title')"
+      :description="$t(search ? 'common.search.hint' : 'extensions.skills.empty.description')"
     />
     <UiSettingsSection v-else-if="!skillId">
       <div class="divide-y divide-stroke-divider px-4">

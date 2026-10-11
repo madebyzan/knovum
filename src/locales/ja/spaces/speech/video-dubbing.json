@@ -21,6 +21,5 @@
   "multipleAudioTracks": "複数のオーディオトラックを含むビデオ",
   "audioTracksHint": "同じソース ビデオの公開済みリビジョンを再生トラック順に最大 8 つ選択します。",
   "currentBackground": "現在のバックグラウンド トラック",
-  "mixingSettings": "オーディオ ミックス",
-  "translationTitle": "スクリプトの翻訳"
+  "mixingSettings": "オーディオ ミックス"
 }

@@ -51,8 +51,8 @@ async function create() {
 <template>
   <UiDialog
     v-model:open="open"
-    :title="t('spaces.knowledge.portal.create')"
-    :description="t('spaces.knowledge.portal.createDescription')"
+    :title="t('spaces.knowledge.portal.create.action')"
+    :description="t('spaces.knowledge.portal.create.description')"
   >
     <div class="space-y-3">
       <UiSelect v-model="targetSpaceId" :label="t('spaces.inspector.targetSpace')" :options="options" />

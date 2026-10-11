@@ -22,7 +22,7 @@ const showHelp = computed(
 <template>
   <section class="text-fg-primary" :aria-label="t('spaces.media.imageEditor.layers.custom')">
     <header class="flex items-center justify-between gap-2 px-1 pb-2">
-      <h3 class="text-title-sm font-semibold">{{ t("spaces.media.imageEditor.layers.panel") }}</h3>
+      <h3 class="text-title-sm font-semibold">{{ t("spaces.media.imageEditor.layers.title") }}</h3>
       <UiTooltip :text="t('spaces.media.imageEditor.layers.selectContentUnavailable')" side="top">
         <button
           type="button"
@@ -39,9 +39,9 @@ const showHelp = computed(
       v-model="prompt"
       rows="2"
       maxlength="1000"
-      :aria-label="t('spaces.media.imageEditor.layers.prompt')"
+      :aria-label="t('spaces.media.imageEditor.layers.prompt.label')"
       class="block min-h-18 w-full resize-none rounded-md bg-transparent px-1 py-2 text-label text-fg-primary outline-none placeholder:text-fg-tertiary focus-visible:ring-2 focus-visible:ring-stroke-focus"
-      :placeholder="t('spaces.media.imageEditor.layers.promptPlaceholder')"
+      :placeholder="t('spaces.media.imageEditor.layers.prompt.placeholder')"
     />
     <footer class="mt-1 flex items-center gap-2">
       <UiButton

@@ -1,0 +1,8 @@
+{
+  "action": "Anteprima",
+  "stop": "Smetti di ascoltare",
+  "text": {
+    "placeholder": "Inserisci fino a 500 caratteri per ascoltare questa voce",
+    "label": "Testo di esempio"
+  }
+}

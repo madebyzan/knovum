@@ -1,0 +1,23 @@
+{
+  "title": "Archived Spaces",
+  "description": "Restore or permanently delete archived Spaces.",
+  "restore": {
+    "action": "Restore Space",
+    "failed": "Could not restore Space"
+  },
+  "load": {
+    "failed": "Could not load archived Spaces"
+  },
+  "delete": {
+    "action": "Delete permanently",
+    "title": "Permanently delete “{title}”?",
+    "description": "This permanently removes the Space and all associated data from this device. This action cannot be undone.",
+    "failed": "Could not delete Space"
+  },
+  "deleteAll": {
+    "action": "Delete all",
+    "title": "Permanently delete all archived Spaces?",
+    "description": "Permanently delete {count} archived Space and its contents? This cannot be undone. | Permanently delete {count} archived Spaces and their contents? This cannot be undone."
+  },
+  "empty": "No archived Spaces."
+}

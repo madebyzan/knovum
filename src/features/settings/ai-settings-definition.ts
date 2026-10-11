@@ -3,15 +3,15 @@ import { Boxes } from "@lucide/vue";
 export const AI_SETTINGS_DEFINITION = {
   id: "aiModels",
   group: "intelligence",
-  titleKey: "settings.ai.title",
-  descriptionKey: "settings.ai.description",
-  searchKeys: ["settings.ai.description", "settings.ai.connections"],
+  titleKey: "settings.ai.overview.title",
+  descriptionKey: "settings.ai.overview.description",
+  searchKeys: ["settings.ai.overview.description", "settings.ai.connections.title"],
   icon: Boxes,
   locations: [
     {
       id: "settings-ai-providers",
-      labelKey: "settings.ai.connections",
-      descriptionKey: "settings.ai.connectionsDescription",
+      labelKey: "settings.ai.connections.title",
+      descriptionKey: "settings.ai.connections.description",
     },
     {
       id: "settings-ai-default-route",
@@ -20,8 +20,8 @@ export const AI_SETTINGS_DEFINITION = {
     },
     {
       id: "settings-ai-routing",
-      labelKey: "settings.routing.capabilitiesTitle",
-      descriptionKey: "settings.routing.defaultsDescription",
+      labelKey: "settings.routing.capabilities.title",
+      descriptionKey: "settings.routing.defaults.description",
     },
   ],
 } as const;

@@ -12,8 +12,10 @@
     "empty": "选中内容没有可重放的派生操作。",
     "sources": "来源：{sources}"
   },
-  "name": "工作流名称",
-  "namePlaceholder": "为这个工作流命名",
+  "name": {
+    "label": "工作流名称",
+    "placeholder": "为这个工作流命名"
+  },
   "saveCaptured": "保存为工作流",
   "saved": "已保存到个人工作流库",
   "useSaved": "使用工作流",
@@ -65,8 +67,10 @@
     "durationSeconds": "时长（秒）",
     "platform": "平台"
   },
-  "delete": "删除工作流",
-  "deleteConfirm": "删除“{name}”？已完成的运行记录和产物仍会保留。",
+  "delete": {
+    "action": "删除工作流",
+    "confirmation": "删除“{name}”？已完成的运行记录和产物仍会保留。"
+  },
   "states": {
     "queued": "排队中",
     "running": "正在运行",

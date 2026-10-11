@@ -27,7 +27,7 @@ onMounted(async () => {
   try {
     configured.value = await isSecretConfigured(props.secretKey);
   } catch (error) {
-    toast.error(`${t("settings.ai.secretLoadFailed")}: ${getErrorMessage(error)}`);
+    toast.error(`${t("settings.credentials.loadFailed")}: ${getErrorMessage(error)}`);
   }
 });
 
@@ -40,7 +40,7 @@ async function save() {
     draft.value = "";
     reveal.value = false;
   } catch (error) {
-    toast.error(`${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(error)}`);
+    toast.error(`${t("settings.credentials.saveFailed")}: ${getErrorMessage(error)}`);
   } finally {
     saving.value = false;
   }
@@ -54,7 +54,7 @@ async function remove() {
     configured.value = false;
     draft.value = "";
   } catch (error) {
-    toast.error(`${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(error)}`);
+    toast.error(`${t("settings.credentials.removeFailed")}: ${getErrorMessage(error)}`);
   } finally {
     saving.value = false;
   }
@@ -74,8 +74,8 @@ async function remove() {
             configured === null
               ? ''
               : configured
-                ? t('settings.ai.keySavedPlaceholder')
-                : t('settings.ai.apiKeyNotSet')
+                ? t('settings.credentials.savedPlaceholder')
+                : t('settings.credentials.notSet')
           "
           :disabled="disabled || saving"
           @commit.prevent="save"
@@ -94,7 +94,7 @@ async function remove() {
         t("common.save")
       }}</UiButton>
       <UiButton v-if="configured" size="sm" variant="ghost" :disabled="disabled || saving" @click="remove">{{
-        t("settings.ai.removeSavedKey")
+        t("settings.credentials.remove")
       }}</UiButton>
     </div>
   </PreferenceField>

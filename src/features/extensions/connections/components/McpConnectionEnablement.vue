@@ -33,7 +33,7 @@ async function toggle() {
       :model-value="connection.enabled"
       :disabled="disabled || changes.isPending.value || (!configured && !connection.enabled)"
       :label="
-        $t(connection.enabled ? 'extensions.plugins.disable' : 'extensions.plugins.enable', {
+        $t(connection.enabled ? 'common.disable' : 'common.enable', {
           name: connection.name,
         })
       "

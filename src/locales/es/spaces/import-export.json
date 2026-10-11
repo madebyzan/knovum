@@ -1,6 +1,8 @@
 {
-  "import": "Importar",
-  "importFailed": "La importación falló. Verifique el formato del archivo e inténtelo nuevamente.",
+  "import": {
+    "action": "Importar",
+    "failed": "La importación falló. Verifique el formato del archivo e inténtelo nuevamente."
+  },
   "website": {
     "add": "Agregar sitio web",
     "description": "Guarde la web URL y extraiga el título y el resumen.",
@@ -13,13 +15,17 @@
   "preview": {
     "system": "Vista previa",
     "show": "Vista previa",
-    "instantUnavailable": "Sin vista previa instantánea",
-    "instantUnavailableHint": "La vista previa instantánea no está disponible; El texto extraído sigue siendo apto para búsquedas."
+    "instantUnavailable": {
+      "title": "Sin vista previa instantánea",
+      "description": "La vista previa instantánea no está disponible; El texto extraído sigue siendo apto para búsquedas."
+    }
   },
   "markdown": {
     "export": "Exportar Markdown"
   },
-  "exportCompleted": "Exportación completa",
+  "export": {
+    "completed": "Exportación completa"
+  },
   "fileName": "Nombre de archivo",
   "openExternally": "Abrir en aplicación externa",
   "space": {

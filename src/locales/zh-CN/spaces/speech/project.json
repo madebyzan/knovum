@@ -1,13 +1,18 @@
 {
   "new": "另建一份",
   "language": "语言",
-  "scriptPlaceholder": "输入此版本的配音稿",
-  "unsavedTitle": "要保存语音项目更改吗？",
-  "unsavedDescription": "离开前保存此版本，或放弃未保存的更改。",
-  "incompleteTitle": "要放弃未完成的编辑吗？",
-  "incompleteDescription": "返回继续编辑，或放弃这些更改。",
-  "preview": "试听",
-  "stopListening": "停止试听",
+  "script": {
+    "placeholder": "输入此版本的配音稿",
+    "label": "稿件"
+  },
+  "unsaved": {
+    "title": "要保存语音项目更改吗？",
+    "description": "离开前保存此版本，或放弃未保存的更改。"
+  },
+  "incomplete": {
+    "title": "要放弃未完成的编辑吗？",
+    "description": "返回继续编辑，或放弃这些更改。"
+  },
   "saving": "正在保存",
   "starting": "正在准备生成",
   "generatedAudio": "完整音频",
@@ -17,13 +22,17 @@
   "loudness": "响度（LUFS）",
   "truePeak": "真峰值（dB）",
   "role": "角色名称",
-  "roleBindings": "角色音色",
-  "roleBindingsHint": "为每个角色选择音色。",
+  "roleBindings": {
+    "label": "角色音色",
+    "hint": "为每个角色选择音色。"
+  },
   "addRole": "添加角色",
   "removeRole": "移除角色",
   "defaultRole": "旁白",
-  "deliveryInstruction": "演绎提示",
-  "deliveryInstructionPlaceholder": "可选：描述这段内容的节奏、语气和表达方式（最多 500 字）",
+  "deliveryInstruction": {
+    "label": "演绎提示",
+    "placeholder": "可选：描述这段内容的节奏、语气和表达方式（最多 500 字）"
+  },
   "stages": {
     "preparing": "准备资源",
     "synthesizing": "生成试听",
@@ -34,15 +43,11 @@
     "audiobook": "有声书",
     "videoDubbing": "视频配音"
   },
-  "previewText": "输入不超过 500 字的试听文本",
   "generateFromNode": "生成语音",
   "nodeProjects": "已保存的配音",
-  "script": "稿件",
   "settings": "设置",
   "editorPages": "配音编辑分区",
   "importManuscript": "导入节点文稿",
-  "noVoices": "音色库中没有可选音色，请添加音色。",
-  "selectVoice": "选择音色",
   "sourceNotReady": "视频尚未就绪，准备完成后即可配音。",
   "emptyManuscript": "导入文稿，或添加章节开始编辑。",
   "emptyVideoScript": "导入字幕，或添加配音片段。",

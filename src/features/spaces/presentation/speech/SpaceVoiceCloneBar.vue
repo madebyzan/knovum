@@ -67,13 +67,13 @@ watch(
   >
     <ToolbarRoot
       :class="CANVAS_ACTION_BAR_CLASSES"
-      :aria-label="t('spaces.speech.voice.clone')"
+      :aria-label="t('spaces.speech.voice.clone.fromReference')"
       :loop="false"
       data-testid="node-voice-clone-bar"
     >
       <template v-if="!compact">
         <Mic2 class="ml-2 size-4.5 shrink-0 text-fg-secondary" :stroke-width="1.6" />
-        <span class="px-1.5 text-label font-medium">{{ t("spaces.speech.voice.cloneShort") }}</span>
+        <span class="px-1.5 text-label font-medium">{{ t("spaces.speech.voice.clone.action") }}</span>
         <ToolbarSeparator class="mx-0.5 h-4 w-px bg-stroke-divider" />
       </template>
       <SpaceVoiceCloneSourceControls

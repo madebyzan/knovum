@@ -86,6 +86,6 @@ describe("document conversion", () => {
     const action = CREATION_INTENT_DEFINITIONS.find(
       (definition) => definition.id === "convert-document-to-txt",
     );
-    expect(action?.labelKey).toBe("spaces.creation.document.conversion.txt");
+    expect(action?.labelKey).toBe("spaces.creation.document.conversion.actions.txt");
   });
 });

@@ -1,4 +1,5 @@
 {
+  "playbackFailed": "Impossibile riprodurre il contenuto multimediale originale. Verifica che il file sia leggibile.",
   "followPlayback": "Segui la riproduzione",
   "load": "Carica {title}",
   "play": "Riproduci",

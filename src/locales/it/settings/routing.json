@@ -1,6 +1,8 @@
 {
-  "defaultsTitle": "Esecuzione AI",
-  "defaultsDescription": "Imposta ciascuna funzionalità individualmente o lascia che utilizzi il metodo di esecuzione predefinito.",
+  "defaults": {
+    "title": "Esecuzione AI",
+    "description": "Imposta ciascuna funzionalità individualmente o lascia che utilizzi il metodo di esecuzione predefinito."
+  },
   "unassigned": "Utilizza il metodo di esecuzione predefinito",
   "noCompatibleModel": "Configura un modello per questa attività",
   "routes": {
@@ -34,5 +36,7 @@
     }
   },
   "unselected": "Nessun metodo di esecuzione selezionato",
-  "capabilitiesTitle": "Per capacità"
+  "capabilities": {
+    "title": "Per capacità"
+  }
 }

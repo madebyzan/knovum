@@ -1,6 +1,8 @@
 {
-  "import": "Importieren",
-  "importFailed": "Der Import ist fehlgeschlagen. Überprüfen Sie das Dateiformat und versuchen Sie es erneut.",
+  "import": {
+    "action": "Importieren",
+    "failed": "Der Import ist fehlgeschlagen. Überprüfen Sie das Dateiformat und versuchen Sie es erneut."
+  },
   "website": {
     "add": "Website hinzufügen",
     "description": "Speichern Sie das Web URL und extrahieren Sie Titel und Zusammenfassung.",
@@ -13,13 +15,17 @@
   "preview": {
     "system": "Vorschau",
     "show": "Vorschauansicht",
-    "instantUnavailable": "Keine sofortige Vorschau",
-    "instantUnavailableHint": "Die Sofortvorschau ist nicht verfügbar. Der extrahierte Text bleibt durchsuchbar."
+    "instantUnavailable": {
+      "title": "Keine sofortige Vorschau",
+      "description": "Die Sofortvorschau ist nicht verfügbar. Der extrahierte Text bleibt durchsuchbar."
+    }
   },
   "markdown": {
     "export": "Markdown exportieren"
   },
-  "exportCompleted": "Export abgeschlossen",
+  "export": {
+    "completed": "Export abgeschlossen"
+  },
   "fileName": "Dateiname",
   "openExternally": "In externer App öffnen",
   "space": {

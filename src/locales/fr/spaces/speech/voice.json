@@ -1,4 +1,12 @@
 {
+  "candidate": {
+    "generate": "Générer un échantillon",
+    "auditionRequired": "Faites écouter le candidat une fois avant de sauvegarder cette voix.",
+    "save": "Enregistrer la voix",
+    "discard": "Rejeter l'échantillon",
+    "sample": "Accueillir. Nous sommes le 3 octobre 2026 et le numéro de projet est le 108. Écoutez une prononciation claire, un rythme régulier et des fins de phrases naturelles.",
+    "auditions": "Résultats de l'audition"
+  },
   "name": "Nom de la voix",
   "add": "Ajouter",
   "usage": "Heure {count} référencée | Heures {count} référencées",
@@ -11,19 +19,15 @@
     "description": "Supprimez cette voix archivée et toutes ses révisions. Une voix utilisée par un projet ne peut pas être supprimée."
   },
   "label": "Voix",
-  "clone": "Cloner à partir de la référence",
-  "design": "Concevoir une voix",
-  "mode": "Source vocale",
-  "designDescription": "Décrire la voix, la prestation, la tranche d'âge et le ton",
-  "candidate": {
-    "text": "Exemple de texte",
-    "generate": "Générer un échantillon",
-    "auditionRequired": "Faites écouter le candidat une fois avant de sauvegarder cette voix.",
-    "save": "Enregistrer la voix",
-    "discard": "Rejeter l'échantillon",
-    "sample": "Accueillir. Nous sommes le 3 octobre 2026 et le numéro de projet est le 108. Écoutez une prononciation claire, un rythme régulier et des fins de phrases naturelles.",
-    "auditions": "Résultats de l'audition"
+  "clone": {
+    "fromReference": "Cloner à partir de la référence",
+    "action": "Cloner la voix"
   },
+  "design": {
+    "action": "Concevoir une voix",
+    "placeholder": "Décrire la voix, la prestation, la tranche d'âge et le ton"
+  },
+  "mode": "Source vocale",
   "gender": {
     "female": "Femme",
     "male": "Mâle"
@@ -33,6 +37,5 @@
     "reference": "Voix de référence",
     "designed": "Voix conçue"
   },
-  "options": "Paramètres vocaux",
-  "cloneShort": "Cloner la voix"
+  "options": "Paramètres vocaux"
 }

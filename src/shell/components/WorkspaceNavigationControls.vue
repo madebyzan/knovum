@@ -23,7 +23,7 @@ const sidebarIcon = computed(() => (props.sidebarPinned ? PanelLeftClose : Panel
       @pointerleave="emit('cancel-sidebar-preview')"
     >
       <UiIconButton
-        :label="t('shell.toggleSidebar')"
+        :label="t('shell.layout.toggleSidebar')"
         shortcut="$mod+B"
         size="md"
         @click="emit('toggle-sidebar')"

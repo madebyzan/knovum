@@ -36,9 +36,7 @@ defineEmits<{ edit: []; toggle: []; copy: []; export: []; delete: [] }>();
     v-if="!skill.pluginId"
     :model-value="skill.enabled"
     :disabled="busy || (!skill.enabled && Boolean(skill.unsupportedRequirements.length))"
-    :label="
-      $t(skill.enabled ? 'extensions.plugins.disable' : 'extensions.plugins.enable', { name: skill.name })
-    "
+    :label="$t(skill.enabled ? 'common.disable' : 'common.enable', { name: skill.name })"
     :data-testid="`toggle-skill-${skill.id}`"
     @update:model-value="$emit('toggle')"
   />

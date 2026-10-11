@@ -8,9 +8,9 @@ import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 
 const session = useImageCommentSessionStore();
 const MODES = [
-  { id: "point", icon: MessageCircle, label: "spaces.media.imageEditor.comments.point" },
-  { id: "draw", icon: Pencil, label: "spaces.media.imageEditor.comments.draw" },
-  { id: "region", icon: ScanLine, label: "spaces.media.imageEditor.comments.region" },
+  { id: "point", icon: MessageCircle, label: "spaces.media.imageComments.point" },
+  { id: "draw", icon: Pencil, label: "spaces.media.imageComments.draw" },
+  { id: "region", icon: ScanLine, label: "spaces.media.imageComments.region" },
 ] as const;
 </script>
 
@@ -19,10 +19,10 @@ const MODES = [
     :class="CANVAS_ACTION_BAR_CLASSES"
     orientation="horizontal"
     :loop="false"
-    :aria-label="$t('spaces.media.imageEditor.comments.mode')"
+    :aria-label="$t('spaces.media.imageComments.mode')"
   >
     <span class="px-2 text-label font-medium text-fg-primary">{{
-      $t("spaces.media.imageEditor.comments.title")
+      $t("spaces.media.imageComments.title")
     }}</span>
     <ToolbarSeparator class="bg-border-divider mx-0.5 h-4 w-px" />
     <ToolbarButton v-for="item in MODES" :key="item.id" as-child>

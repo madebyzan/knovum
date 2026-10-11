@@ -36,8 +36,10 @@
   "favorite": "Espace favori",
   "unfavorite": "Supprimer des favoris",
   "open": "Espace de travail ouvert",
-  "loadFailed": "Impossible d'ouvrir l'espace de travail",
-  "loadFailedHint": "Échec du chargement de la base de données de l'espace de travail. Les fichiers locaux ne sont pas affectés ; veuillez réessayer.",
+  "load": {
+    "failed": "Impossible d'ouvrir l'espace de travail",
+    "hint": "Échec du chargement de la base de données de l'espace de travail. Les fichiers locaux ne sont pas affectés ; veuillez réessayer."
+  },
   "archive": "Espace de travail d'archivage",
   "moveTo": "Déplacer vers l'espace de travail",
   "moveNoTargets": "Aucun autre espace de travail disponible vers lequel déplacer.",

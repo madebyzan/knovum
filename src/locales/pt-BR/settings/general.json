@@ -3,8 +3,10 @@
   "search": "Configurações de pesquisa…",
   "noResults": "Nenhuma configuração correspondente encontrada.",
   "load": {
-    "failed": "Não foi possível carregar as configurações",
-    "failedDescription": "Os dados salvos são incompatíveis com o formato atual. Tente novamente ou redefina esta seção."
+    "failure": {
+      "title": "Não foi possível carregar as configurações",
+      "description": "Os dados salvos são incompatíveis com o formato atual. Tente novamente ou redefina esta seção."
+    }
   },
   "reset": {
     "action": "Redefinir seção",
@@ -13,34 +15,17 @@
   "about": {
     "title": "Sobre",
     "author": "Autor",
-    "description": "Versão e informações do sistema."
+    "description": "Versão e informações do sistema.",
+    "version": {
+      "value": "Versão {version}",
+      "loading": "Versão de leitura…"
+    }
   },
-  "version": "Versão {version}",
-  "readingVersion": "Versão de leitura…",
-  "archived": {
-    "title": "Espaços arquivados",
-    "description": "Restaure ou exclua permanentemente espaços de trabalho arquivados.",
-    "restore": "Restaurar espaço de trabalho",
-    "restoreFailed": "Não foi possível restaurar o espaço de trabalho",
-    "loadFailed": "Não foi possível carregar os espaços de trabalho arquivados",
-    "delete": {
-      "label": "Excluir permanentemente",
-      "title": "Excluir “{title}” permanentemente?",
-      "description": "Isso remove permanentemente o espaço de trabalho e todos os dados associados deste dispositivo. Esta ação não pode ser desfeita.",
-      "failed": "Não foi possível excluir o espaço de trabalho"
-    },
-    "deleteAll": {
-      "label": "Excluir tudo",
-      "title": "Excluir permanentemente todos os espaços de trabalho arquivados?",
-      "description": "Excluir permanentemente o espaço de trabalho arquivado {count} e seu conteúdo? Isto não pode ser desfeito. | Excluir permanentemente os espaços de trabalho arquivados {count} e seu conteúdo? Isto não pode ser desfeito."
-    },
-    "empty": "Nenhum espaço arquivado."
-  },
-  "inboxSpace": "Caixa de entrada",
   "groups": {
     "intelligence": "Inteligência",
     "general": "Geral",
     "data": "Dados e arquivos",
     "information": "Informações"
-  }
+  },
+  "saveFailed": "Não foi possível salvar as configurações"
 }

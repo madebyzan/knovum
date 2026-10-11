@@ -7,5 +7,8 @@
     "title": "Dieser Inhalt konnte nicht angezeigt werden",
     "description": "Sie können diesen Bereich erneut öffnen oder woanders hin navigieren.",
     "reopen": "Inhalt erneut öffnen"
+  },
+  "windowClose": {
+    "saveFailed": "Änderungen konnten nicht gespeichert werden; Die Bewerbung blieb offen"
   }
 }

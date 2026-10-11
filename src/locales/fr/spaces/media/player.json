@@ -1,4 +1,5 @@
 {
+  "playbackFailed": "Impossible de lire le média source. Vérifiez que le fichier est lisible.",
   "followPlayback": "Suivre la lecture",
   "load": "Charger {title}",
   "play": "Lire",

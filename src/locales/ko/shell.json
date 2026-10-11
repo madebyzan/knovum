@@ -13,9 +13,11 @@
     "checking": "가용성 확인 중",
     "busy": "작업이 진행 중입니다."
   },
-  "toggleRightSidebar": "오른쪽 사이드바 표시 또는 숨기기",
-  "toggleSidebar": "사이드바 전환",
-  "layoutSaveFailed": "워크벤치 레이아웃을 저장할 수 없습니다.",
+  "layout": {
+    "toggleRightSidebar": "오른쪽 사이드바 표시 또는 숨기기",
+    "toggleSidebar": "사이드바 전환",
+    "saveFailed": "워크벤치 레이아웃을 저장할 수 없습니다."
+  },
   "shortcuts": {
     "title": "키보드 단축키",
     "search": "바로가기 검색",

@@ -1,0 +1,23 @@
+{
+  "title": "Espacios Archivados",
+  "description": "Restaurar o eliminar permanentemente espacios de trabajo archivados.",
+  "restore": {
+    "action": "Restaurar espacio",
+    "failed": "No se pudo restaurar el espacio de trabajo"
+  },
+  "load": {
+    "failed": "No se pudieron cargar espacios de trabajo archivados"
+  },
+  "delete": {
+    "action": "Eliminar permanentemente",
+    "title": "¿Eliminar permanentemente “{title}”?",
+    "description": "Esto elimina permanentemente el espacio de trabajo y todos los datos asociados de este dispositivo. Esta acción no se puede deshacer.",
+    "failed": "No se pudo eliminar el espacio de trabajo"
+  },
+  "deleteAll": {
+    "action": "Eliminar todo",
+    "title": "¿Eliminar permanentemente todos los espacios de trabajo archivados?",
+    "description": "¿Eliminar permanentemente el espacio de trabajo archivado {count} y su contenido? Esto no se puede deshacer. | ¿Eliminar permanentemente los espacios de trabajo archivados {count} y su contenido? Esto no se puede deshacer."
+  },
+  "empty": "No hay espacios archivados"
+}

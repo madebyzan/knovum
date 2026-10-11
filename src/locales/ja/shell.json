@@ -13,9 +13,11 @@
     "checking": "可用性を確認中",
     "busy": "操作が進行中です"
   },
-  "toggleRightSidebar": "右サイドバーの表示または非表示",
-  "toggleSidebar": "サイドバーの切り替え",
-  "layoutSaveFailed": "ワークベンチのレイアウトを保存できませんでした",
+  "layout": {
+    "toggleRightSidebar": "右サイドバーの表示または非表示",
+    "toggleSidebar": "サイドバーの切り替え",
+    "saveFailed": "ワークベンチのレイアウトを保存できませんでした"
+  },
   "shortcuts": {
     "title": "キーボード ショートカット",
     "search": "検索ショートカット",

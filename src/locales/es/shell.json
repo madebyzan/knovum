@@ -13,9 +13,11 @@
     "checking": "Comprobando disponibilidad",
     "busy": "Hay una operación en curso"
   },
-  "toggleRightSidebar": "Mostrar u ocultar la barra lateral derecha",
-  "toggleSidebar": "Alternar barra lateral",
-  "layoutSaveFailed": "No se pudo guardar el diseño del banco de trabajo",
+  "layout": {
+    "toggleRightSidebar": "Mostrar u ocultar la barra lateral derecha",
+    "toggleSidebar": "Alternar barra lateral",
+    "saveFailed": "No se pudo guardar el diseño del banco de trabajo"
+  },
   "shortcuts": {
     "title": "Atajos de teclado",
     "search": "Atajos de búsqueda",
