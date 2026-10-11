@@ -19,9 +19,7 @@ interface StructureCanvasInteractionOptions {
 export function useStructureCanvasInteractions(options: StructureCanvasInteractionOptions) {
   const renameStructureNodeId = shallowRef<string>();
   const renameError = shallowRef<string>();
-  const dropTargetId = shallowRef<string>();
   const dropPreview = useSectionDropPreview({
-    dropTargetId,
     snapshot: options.snapshot,
     temporarilyExpandedSectionId: options.temporarilyExpandedSectionId,
   });
@@ -93,7 +91,7 @@ export function useStructureCanvasInteractions(options: StructureCanvasInteracti
     commitRename,
     enterGroup,
     exitGroup,
-    dropTargetId,
+    dropPreview: dropPreview.state,
     clearExpansionPreview: dropPreview.clear,
     previewDrop,
     renameTarget,

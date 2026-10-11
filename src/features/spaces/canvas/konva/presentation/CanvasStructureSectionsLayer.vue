@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Layer as KonvaLayer, Rect as KonvaRect } from "vue-konva/core";
 
-import { SECTION_HEADER_HEIGHT, type ProjectedSection } from "../../document/structure-scene";
+import { SECTION_HEADER_HEIGHT } from "../../../model/structure/section-metrics";
+import type { ProjectedSection } from "../../document/structure-scene";
 import CanvasSectionBackgroundImage from "./CanvasSectionBackgroundImage.vue";
 import type { CanvasPalette } from "./use-canvas-palette";
 

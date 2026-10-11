@@ -4,6 +4,7 @@ import { computed, watch, useTemplateRef } from "vue";
 import { Layer as KonvaLayer } from "vue-konva/core";
 import type { VueKonvaRef } from "vue-konva/core";
 
+import type { SectionDropPreview } from "../../../structure/section-drop-reparent";
 import type { ProjectedGroup, ProjectedSection } from "../../document/structure-scene";
 import type { SectionResizeCorner } from "../interaction/structure-gesture-preview";
 import CanvasGroupChrome from "./CanvasGroupChrome.vue";
@@ -19,7 +20,7 @@ const props = defineProps<{
   palette: CanvasPalette;
   sections: readonly ProjectedSection[];
   selectedIds: ReadonlySet<string>;
-  dropTargetId: string | undefined;
+  dropPreview: SectionDropPreview | undefined;
   zoom: number;
 }>();
 const emit = defineEmits<{
@@ -78,7 +79,7 @@ watch([sectionLayer, groupLayer], syncLayerOrder, { flush: "post" });
       :palette="palette"
       :section="section"
       :selected="selectionChromeVisible && selectedIds.has(section.section.id)"
-      :drop-target="dropTargetId === section.section.id"
+      :drop-action="dropPreview?.sectionId === section.section.id ? dropPreview.kind : undefined"
       :zoom="zoom"
       @collapse="emit('collapse', section.section.id, $event)"
       @drag-start="emit('dragStart', section.section.id, $event)"

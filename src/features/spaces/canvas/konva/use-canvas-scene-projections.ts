@@ -1,12 +1,12 @@
 import { computed, type Ref } from "vue";
 
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
+import { SECTION_HEADER_HEIGHT } from "../../model/structure/section-metrics";
 import { ancestorsOf, createStructureIndex } from "../../model/structure/structure-index";
 import { isStructureNodeEffectivelyLocked } from "../../model/structure/structure-queries";
 import type { WorldBounds } from "../../model/structure/world-bounds";
 import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
 import { projectStructureCanvasDocument } from "../document/structure-canvas-document";
-import { SECTION_HEADER_HEIGHT } from "../document/structure-scene";
 import { projectStructureScene } from "../document/structure-scene-projection";
 import type { CanvasDocumentV1 } from "../schema/document";
 import { createCanvasScenePreviewIndex } from "./scene/scene-preview";
