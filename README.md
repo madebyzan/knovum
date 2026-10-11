@@ -1,86 +1,155 @@
-# Knovum
+<p align="center">
+  <img src="public/app-icon.png" width="80" alt="Knovum" />
+</p>
 
-Knovum is a Tauri 2 + Vue 3 local-first desktop knowledge space. It combines an infinite canvas,
-structured knowledge, rich documents, mixed media, retrieval and traceable AI derivations in one
-application.
+<h1 align="center">Knovum</h1>
 
-Author: Zan.
+<p align="center">
+  <strong>A canvas for ideas and the sources behind them.</strong>
+</p>
 
-## License
+<p align="center">
+  A local-first desktop knowledge space for research, learning, and creation.<br />
+  macOS · Windows · Early development
+</p>
 
-Knovum is source-available under the custom [Knovum Personal Noncommercial License 1.0](LICENSE).
-Personal noncommercial use, modification and free sharing are permitted under its terms.
-Organizational use, professional work and commercialization require separate prior written authorization.
-Third-party components retain their own licenses.
+<p align="center">
+  <a href="#from-a-question-to-a-research-brief">Explore the workflow</a> ·
+  <a href="#get-started">Get started</a> ·
+  <a href="docs/README.md">Documentation</a> ·
+  <a href="README.zh-CN.md">简体中文</a>
+</p>
 
-许可说明与使用示例：[个人非商业使用与商业授权](docs/licensing.md)。
+Research rarely stays in one format. A paper sits beside a saved article, a recording, a question,
+and a half-written draft. The useful part is how they connect.
 
-## Foundation stack
+Knovum brings that work into a **Space**: an infinite canvas where sources, ideas, and the things you
+create live together. Build an argument, inspect its evidence, and turn selected material into new
+work with a recorded trail back to its inputs.
 
-- Vue 3 + TypeScript + Vite
-- Tailwind CSS v4 `@theme` desktop tokens
-- Reka UI interaction/accessibility primitives + Vue Sonner
-- Vue I18n with system locale support
-- Pinia + TanStack Vue Query + TanStack Virtual + VueUse + Zod
-- Tauri 2 official desktop plugins plus a dedicated local credential database through Rust
-- Oxlint + Oxfmt + dependency-cruiser + Knip + jscpd
-- Vitest + Vue Test Utils + Tauri WebdriverIO E2E setup
+![An example knowledge flow: saved sources support a working claim, inform a question, and become a research brief with recorded inputs.](docs/assets/readme/source-to-work.svg)
 
-## Desktop settings already owned by the foundation
+<p align="center"><sub>An example knowledge flow, shown schematically. Not an application screenshot.</sub></p>
 
-- System / Light / Dark, synchronized with the Tauri window theme
-- Small / Default / Large semantic desktop type ramp
-- Compact / Comfortable control density
-- System / Simplified Chinese / English locale
-- launch at login
-- persisted window/workspace state
-- macOS Application Menu + menu-bar status item; Windows Tray/Taskbar without a legacy menu bar
+## From a question to a research brief
 
-## Start
+Imagine a personal research project: you have a few papers, articles, and a lecture recording.
+You want to understand the topic and write a brief you can revisit later.
 
-Knovum is a desktop application. A plain browser is not a supported runtime target.
+### 1. Bring the context into view
+
+Save the articles, import the papers and recording, and add your own notes. Keep their relationships
+visible on the canvas, with groups, sections, and saved views for different parts of the project.
+Website captures retain their URLs; extracted PDF passages retain page locations. The original files
+remain accessible through your desktop applications.
+
+### 2. Make the reasoning explicit
+
+Give your project a question. Add **claims, evidence, concepts, experiments, and decisions** as typed
+knowledge objects, then connect them with meaningful relations such as **supports** and **contradicts**.
+Knowledge checks flag unsupported claims, accepted claims with active contradictions, and evidence
+whose sources have changed. Use them to review gaps in the argument. A generated draft and an
+accepted claim remain separate things.
+
+### 3. Work from the material you selected
+
+Find passages with keyword or local semantic search. Ask a question against your sources and follow
+the answer's citations back to their locations. Select relevant material to draft a document or
+create a visualization using a configured model or desktop Agent.
+
+Your result becomes another resource in the Space: something you can edit, search, connect, and use
+as input to the next step. Local transcription can bring the recording into the same research flow.
+
+### 4. Keep the trail, then reuse the process
+
+Inspect a result's derivation to see **which inputs and revisions it used, which action ran, and which
+engine or model produced it**. If a source changes, the recorded inputs still identify the version used;
+the earlier result is never silently rewritten to match new material.
+
+When a sequence works, capture its completed derivations as a **reusable workflow**. Bind it to fresh
+sources for the next project and keep the intermediate results alongside the final output.
+
+**The connection stays useful after the output is finished.** You can return to the evidence behind
+an idea, inspect how a resource was created, or repeat the process with new inputs.
+
+## Beyond the research brief
+
+| Capability                       | What you can do                                                                                                                                                                                                              |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A spatial workspace**          | Mix Markdown, notes, websites, documents, images, audio, video, and code. Organize with groups, sections, tags, and saved views.                                                                                             |
+| **Search across your knowledge** | Retrieve material within a Space or across Spaces, by keyword or meaning. Local semantic search uses on-device embeddings.                                                                                                   |
+| **Media and document creation**  | Transcribe locally, remove image backgrounds, create subtitled videos, and convert supported documents into formats such as DOCX, PDF, HTML, and PPTX. Generative media actions depend on the selected model's capabilities. |
+| **Portable Spaces**              | Export `.knovumspace` packages with content, managed assets, relations, and derivation history. Use JSON Canvas for canvas exchange.                                                                                         |
+
+Supported formats, model requirements, and conversion limits are described in the [Spaces guide](docs/spaces.md),
+[local models guide](docs/local-models.md), and [document conversion guide](docs/document-conversion.md).
+
+## Local by default, AI by choice
+
+Your Spaces, managed files, extracted text, and search indexes are stored on your machine. Canvas
+editing and keyword search work without a generative AI connection. Semantic indexing and transcription
+run locally once you download their models.
+
+For generative actions, choose a model connection or a desktop Agent. Connections include OpenAI,
+Anthropic, Google Gemini, OpenAI-compatible endpoints, and Ollama. Desktop Agents use their own
+authentication and available tools; Skills, plugins, and MCP connections can extend their capabilities.
+
+Selected text or media may be sent to the executor you choose. What runs locally and what uses an
+external service depends on the action and connection. See [AI and local model behavior](docs/local-models.md)
+for the details.
+
+## Get started
+
+**Knovum is in early development.** The setup below runs the desktop app from source. Pre-release data
+formats may change; export important Spaces before updating a development checkout.
+
+| Platform | Target                                              |
+| -------- | --------------------------------------------------- |
+| macOS    | macOS 14 or later, Apple Silicon and Intel          |
+| Windows  | Windows 10 version 2004 / build 19041 or later, x64 |
+
+Install **Node.js 22.13+**, **Corepack**, the repository's **Rust toolchain**, and the native prerequisites
+in the [installation guide](docs/installation.md). These include uv, CMake, Protobuf, LLVM/libclang,
+and the platform tooling required by Tauri. The pnpm version is pinned in `package.json`.
 
 ```bash
+git clone https://github.com/zandko/knovum.git
+cd knovum
 corepack enable
 pnpm install --frozen-lockfile
 pnpm desktop:dev
 ```
 
-Full workstation and installer guidance: `docs/installation.md`.
+The development command prepares the Agent environment and native components before opening the app.
+The first build downloads dependencies and takes longer than subsequent starts.
 
-Dependency changes must include the corresponding pnpm and Cargo lockfile changes.
+Start with one question and two or three sources. Create a Space, add the material, and write a note
+about what you want to find out. Configure an AI connection when you want to ask source-grounded
+questions or create a generated result. Local models download when you request a capability that
+needs them, with progress and cancellation.
 
-## Daily commands
+## Documentation and contributing
 
-| Task                                | Command            |
-| ----------------------------------- | ------------------ |
-| Develop the desktop app             | `pnpm desktop:dev` |
-| Verify all code                     | `pnpm check`       |
-| Run frontend unit tests             | `pnpm test`        |
-| Format frontend/configuration files | `pnpm format`      |
-| Build the host's QA installers      | `pnpm package`     |
+- [Installation](docs/installation.md) — prerequisites and desktop setup.
+- [Spaces](docs/spaces.md) — capture, canvas organization, knowledge, workflows, and export.
+- [Local models](docs/local-models.md) — on-device capabilities, downloads, and hardware requirements.
+- [Troubleshooting](docs/troubleshooting.md) — setup, build, and runtime problems.
+- [Contributing](CONTRIBUTING.md) — how to report issues and propose changes.
+- [Documentation index](docs/README.md) — all product and engineering guides.
 
-Use flags for variants: `pnpm lint --fix`, `pnpm format --check`,
-`pnpm package --bundles msi`, or `pnpm package --release` with production signing configured.
-Focused gates remain `check:web`, `check:rust`, and `check:python`.
-`dev` and `build` are Vite hooks used by Tauri, not independent supported product runtimes.
-Specialized runtime, E2E and contract commands and every internal tool are described in
-[scripts/README.md](scripts/README.md). Signing and target-platform acceptance follow
-[docs/packaging.md](docs/packaging.md) and [docs/release.md](docs/release.md).
+Bug reports, focused feature proposals, translations, and documentation improvements are welcome.
+For [issue reports](https://github.com/zandko/knovum/issues), include your platform, version or commit,
+and reproduction steps. Remove credentials and private material from any attached logs.
 
-## Gates
+Built with **Tauri 2, Vue 3, TypeScript, and Rust**, with **SQLite** for structured knowledge and
+**LanceDB** for vector search. Run `pnpm check` for the repository's web, Rust, and Python checks;
+see [packaging](docs/packaging.md) for desktop builds.
 
-```bash
-pnpm check:web
-pnpm check:rust
-pnpm check
-```
+## License
 
-`check:web` runs Vue/TypeScript type checking, Oxlint, dependency graph rules, Vitest, Knip, jscpd and Oxfmt verification. `check:rust` runs rustfmt, Clippy with warnings denied and Rust tests. The Quality workflow additionally runs production npm advisory/signature checks, Rust advisory checks, signing rejection tests and desktop compile checks on macOS arm64/x64 and Windows x64 before a release commit can be promoted.
+Knovum is **source-available for personal noncommercial use** under the
+[Knovum Personal Noncommercial License 1.0](LICENSE). Individuals may use, modify, and share it
+noncommercially under its terms. Organizational use, professional/client work, and commercialization
+require separate prior written authorization. Third-party components retain their own licenses.
 
-Before feature work, read `AGENTS.md` and `docs/README.md`. The documentation map points to the authoritative architecture, UI, platform, OSS-first, packaging and release contracts.
-
-## Release readiness
-
-Production acceptance, signing, managed-runtime qualification and update promotion follow
-[docs/release.md](docs/release.md). A successful source build alone does not establish release readiness.
+[中文许可说明](docs/licensing.md)
