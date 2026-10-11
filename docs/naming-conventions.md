@@ -418,7 +418,8 @@ See [Tauri commands](https://v2.tauri.app/develop/calling-rust/) and
 
 ## Variables and parameters
 
-- Boolean names use `is*`, `has*`, `can*`, or `should*` when they cross a local expression.
+- Boolean names express their actual state, existence, capability, policy or option. Choose a natural
+  predicate or flag name using the Boolean APIs guidance below; no prefix is mandatory for every boolean.
 - Collections use plural nouns; identifiers use `<entity>Id` / `<entity>_id`, and identifier
   collections use `*Ids` / `*_ids`.
 - A command parameter is never bare `id`; the entity owns the name (`threadId`, `patchId`,
@@ -444,6 +445,28 @@ See [Tauri commands](https://v2.tauri.app/develop/calling-rust/) and
   types are limited to small, obvious local values such as a two-axis point or a single optional flag.
 
 ## Boolean APIs
+
+Choose boolean names by meaning, not by their type alone:
+
+| Meaning                     | Naming examples                                                   |
+| --------------------------- | ----------------------------------------------------------------- |
+| State or classification     | `isLoading`, `isVisible`, `isImage`                               |
+| Existence or possession     | `hasSelection`, `hasCredential`                                   |
+| Permission or ability       | `canDelete`, `canCommitCanvasGestures`                            |
+| Policy or intended decision | `shouldPersist`, `shouldShowAction`                               |
+| Explicit flag or option     | `renderingEnabled`, `editorDisabled`, `readOnly`, `preserveTitle` |
+
+An explicit boolean flag does not need an extra predicate prefix: prefer `renderingEnabled` to
+mechanically expanding it to `isRenderingEnabled`. This applies to props, state, parameters and
+getter options; `navigationEnabled()` can supply the same flag as a `navigationEnabled` prop.
+Predicate functions may naturally ask a question, such as `isConnectionEnabled(connectionId)`.
+Use the same term for the same concept throughout an owning API and its callers.
+
+These are semantic choices, not a prefix allowlist or a ban on `is`. Keep existing names that
+accurately express their meaning; do not bulk add or strip prefixes merely because a value is
+boolean or stored in a Vue ref/computed. Vendor APIs and fixed protocol names retain their spelling.
+Changing a persisted or IPC field requires a concrete semantic reason and coordinated contract
+changes; a style preference alone does not justify changing its wire name or adding aliases.
 
 A named local boolean is fine when its meaning is obvious. Across module boundaries, avoid calls such as `operation(value, true)` when the flag changes behavior. Prefer explicit operations (`copySelection` / `cutSelection`) or a semantic union/options object (`"active" | "dormant"`, `{ preserveTitle: true }`).
 

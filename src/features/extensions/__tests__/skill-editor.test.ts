@@ -86,21 +86,21 @@ it("keeps the editor closed until requested and distinguishes empty search resul
 });
 
 it("disables and re-enables the selected skill through explicit IPC intents", async () => {
-  let isEnabled = true;
+  let skillEnabled = true;
   mocks.invoke.mockImplementation(async (command) => {
     if (command === "plugin:extensions|list_plugin_installations") return [];
     if (command === "plugin:extensions|get_agent_extension_availability")
       return {
         plugins: [],
-        skills: isEnabled ? [skill] : [],
+        skills: skillEnabled ? [skill] : [],
         connections: [],
         connectors: [],
         diagnostics: [],
         defaultSelection: { pluginIds: [], skillIds: [], connections: [] },
       } satisfies AgentExtensionAvailability;
-    if (command === "plugin:extensions|list_skills") return [{ ...skill, enabled: isEnabled }];
-    if (command === "plugin:extensions|disable_skill") isEnabled = false;
-    else if (command === "plugin:extensions|enable_skill") isEnabled = true;
+    if (command === "plugin:extensions|list_skills") return [{ ...skill, enabled: skillEnabled }];
+    if (command === "plugin:extensions|disable_skill") skillEnabled = false;
+    else if (command === "plugin:extensions|enable_skill") skillEnabled = true;
     else throw new Error(`Unexpected command: ${command}`);
   });
 

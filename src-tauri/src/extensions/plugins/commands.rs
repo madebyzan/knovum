@@ -148,19 +148,19 @@ pub async fn disable_plugin(app: AppHandle, plugin_id: String) -> Result<(), Str
     set_enabled(app, plugin_id, false).await
 }
 
-async fn set_enabled(app: AppHandle, plugin_id: String, is_enabled: bool) -> Result<(), String> {
+async fn set_enabled(app: AppHandle, plugin_id: String, enabled: bool) -> Result<(), String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
     let mut plugin = super::load(&pool, &plugin_id).await?;
-    plugin.enabled = is_enabled;
+    plugin.enabled = enabled;
     sqlx::query("UPDATE plugins SET document=$1 WHERE id=$2")
         .bind(sqlx::types::Json(&plugin))
         .bind(&plugin_id)
         .execute(&pool)
         .await
         .map_err(|error| error.to_string())?;
-    if !is_enabled {
+    if !enabled {
         super::super::mcp::sessions::revoke_plugin(&app, &plugin_id).await;
     }
     Ok(())

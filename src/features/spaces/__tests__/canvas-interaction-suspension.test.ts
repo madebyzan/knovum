@@ -30,7 +30,7 @@ it("cancels transient gestures without deselecting or exiting the current Group 
         directManipulation: shallowRef(),
         enterableContentId: inlineEditor,
         groupScopePath: () => group.value,
-        isInteractionEnabled: () => true,
+        interactionEnabled: () => true,
         marquee: shallowRef(),
         panning: shallowRef(false),
         tool: () => "select",

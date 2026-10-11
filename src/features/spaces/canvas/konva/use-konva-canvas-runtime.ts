@@ -127,7 +127,7 @@ export function useKonvaCanvasRuntime(
     enterableContentId: interactiveNodeId,
     exitGroup: structureInteractions.exitGroup,
     groupScopePath: () => props.groupScopePath,
-    isInteractionEnabled: () => props.isInteractionEnabled,
+    interactionEnabled: () => props.interactionEnabled,
     marquee: selection.marqueeRect,
     panning: viewport.panning,
     tool: () => props.tool,

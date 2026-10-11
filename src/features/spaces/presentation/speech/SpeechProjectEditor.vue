@@ -73,12 +73,12 @@ const hasVideoBackground = computed(
     "background" in props.project.revision.outputConfig &&
     Boolean(props.project.revision.outputConfig.background),
 );
-const isEditorDisabled = computed(
+const editorDisabled = computed(
   () => props.running || props.saving || props.submitting || isOperationBusy.value,
 );
 const canGenerate = computed(
   () =>
-    !isEditorDisabled.value &&
+    !editorDisabled.value &&
     (Boolean(draftInput.value) ||
       (!isDirty.value &&
         props.project.segments.length > 0 &&
@@ -112,7 +112,7 @@ function updateDraft(
           :project="project"
           :source-text="narrationText(sourceNode)"
           :voices="voices"
-          :disabled="isEditorDisabled"
+          :disabled="editorDisabled"
           @draft-state="updateDraft"
           @preview="(...args) => emit('preview', ...args)"
         />
@@ -122,7 +122,7 @@ function updateDraft(
           :source-node="sourceNode"
           @busy="isOperationBusy = $event"
           :voices="voices"
-          :disabled="isEditorDisabled"
+          :disabled="editorDisabled"
           @draft-state="updateDraft"
           @preview="(...args) => emit('preview', ...args)"
         />
@@ -130,7 +130,7 @@ function updateDraft(
           v-else-if="project.project.projectType === 'video_dubbing'"
           :project="project"
           :voices="voices"
-          :disabled="isEditorDisabled"
+          :disabled="editorDisabled"
           @draft-state="updateDraft"
           @preview="(...args) => emit('preview', ...args)"
           @busy="isOperationBusy = $event"

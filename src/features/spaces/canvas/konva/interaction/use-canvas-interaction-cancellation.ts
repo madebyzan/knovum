@@ -13,7 +13,7 @@ interface InteractionCancellationOptions {
   enterableContentId: Ref<string | undefined>;
   exitGroup(): void;
   groupScopePath(): readonly string[];
-  isInteractionEnabled(): boolean;
+  interactionEnabled(): boolean;
   marquee: Readonly<Ref<unknown>>;
   panning: Readonly<Ref<boolean>>;
   tool(): unknown;
@@ -26,7 +26,7 @@ export function useCanvasInteractionCancellation(options: InteractionCancellatio
     options.directManipulationChanged,
   );
   watch(options.tool, resetTransientInteraction);
-  watch(options.isInteractionEnabled, (enabled) => {
+  watch(options.interactionEnabled, (enabled) => {
     if (!enabled) suspendInteraction();
   });
 

@@ -138,11 +138,11 @@ pub async fn disable_skill(app: AppHandle, skill_id: String) -> Result<(), Strin
     set_enabled(app, skill_id, false).await
 }
 
-async fn set_enabled(app: AppHandle, skill_id: String, is_enabled: bool) -> Result<(), String> {
+async fn set_enabled(app: AppHandle, skill_id: String, enabled: bool) -> Result<(), String> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
-    revisions::set_enabled(&pool, &skill_id, is_enabled).await
+    revisions::set_enabled(&pool, &skill_id, enabled).await
 }
 
 #[tauri::command]
