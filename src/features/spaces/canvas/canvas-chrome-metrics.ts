@@ -13,6 +13,13 @@ export function canvasChromeMetrics(zoom: number) {
       radius: screenPixelsToCanvasUnits(9),
       strokeWidth: screenPixelsToCanvasUnits(1),
     },
+    group: {
+      labelOffset: screenPixelsToCanvasUnits(26),
+      rotationOffset: screenPixelsToCanvasUnits(30),
+      handleRadius: screenPixelsToCanvasUnits(5),
+      hitStrokeWidth: screenPixelsToCanvasUnits(10),
+      strokeWidth: screenPixelsToCanvasUnits(1),
+    },
     resize: {
       cornerRadius: resizeVisual(RESIZE_HANDLE_DIAMETER / 2),
       hitStrokeWidth: screenPixelsToCanvasUnits(RESIZE_HANDLE_HIT_WIDTH),

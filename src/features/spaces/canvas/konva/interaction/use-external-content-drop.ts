@@ -12,8 +12,9 @@ interface ExternalContentDropOptions {
   reportError(error: unknown): void;
 }
 
-const acceptsExternalText = (transfer: DataTransfer | null) =>
-  Boolean(transfer?.types.includes("text/uri-list") || transfer?.types.includes("text/plain"));
+function acceptsExternalText(transfer: DataTransfer | null) {
+  return Boolean(transfer?.types.includes("text/uri-list") || transfer?.types.includes("text/plain"));
+}
 
 function dragOver(event: DragEvent) {
   if (acceptsExternalText(event.dataTransfer)) event.preventDefault();

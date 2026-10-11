@@ -44,7 +44,7 @@ const emit = defineEmits<{
   connectorStart: [nodeId: string, side: CanvasConnectorSide];
   dragEnd: [nodeId: string];
   dragMove: [nodeId: string, event: Konva.KonvaEventObject<DragEvent>];
-  dragStart: [nodeId: string];
+  dragStart: [nodeId: string, event: Konva.KonvaEventObject<DragEvent>];
   pointerDown: [nodeId: string, event: Konva.KonvaEventObject<PointerEvent>];
   relationPointerDown: [id: string, event: PointerEvent];
   resizeSnap: [guides: readonly CanvasSnapGuide[]];
@@ -106,7 +106,7 @@ watch(interactionLayer, syncInteractionCanvas, { flush: "post" });
       @activate="emit('activate', $event)"
       @drag-end="emit('dragEnd', $event)"
       @drag-move="(nodeId, event) => emit('dragMove', nodeId, event)"
-      @drag-start="emit('dragStart', $event)"
+      @drag-start="(id, event) => emit('dragStart', id, event)"
       @pointer-down="relayPointerDown"
     />
   </KonvaLayer>

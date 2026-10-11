@@ -23,6 +23,8 @@ export interface CanvasSelectionProductState {
   canCreateGroup: boolean;
   canCreateSection: boolean;
   canDissolveGroup: boolean;
+  canFitSection: boolean;
+  canDissolveSection: boolean;
   canToggleLock: boolean;
   canOpen: boolean;
   hasSectionMembership: boolean;
@@ -84,6 +86,7 @@ export function canvasSelectionProductState({
       ancestorsOf(id, index).some((ancestor) => ancestor.kind === "section"),
     ),
     content,
+    ...sectionCapabilities(section, hasLockedRoot, content.length),
     structureNodeIds,
     section: selectedSectionState(section, sectionLayout),
   };
@@ -136,4 +139,9 @@ function canCreateSection(context: SelectionCapabilityContext) {
     context.roots.every((node) => node.kind !== "section" && node.parentId === context.parentId) &&
     (context.parentId === null || context.parent?.kind === "section")
   );
+}
+
+function sectionCapabilities(section: StructureNode | undefined, locked: boolean, contentCount: number) {
+  const editable = Boolean(section) && !locked;
+  return { canFitSection: editable && contentCount > 0, canDissolveSection: editable };
 }

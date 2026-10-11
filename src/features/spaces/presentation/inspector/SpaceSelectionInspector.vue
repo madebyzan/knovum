@@ -2,6 +2,7 @@
 import { FileText, Tag } from "@lucide/vue";
 import { computed } from "vue";
 
+import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { useCanvasSelectionProjection } from "../../canvas/use-canvas-selection-projection";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
@@ -15,8 +16,10 @@ import SpaceNodeCapabilitySections from "./SpaceNodeCapabilitySections.vue";
 import SpaceNodeIdentity from "./SpaceNodeIdentity.vue";
 import SpaceNodeMetadata from "./SpaceNodeMetadata.vue";
 import SpaceNodeOverview from "./SpaceNodeOverview.vue";
+import SpaceStructureInspector from "./SpaceStructureInspector.vue";
 
 const store = useSpaceStore();
+const editor = getCanvasEditorSession();
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
 const selectedNode = computed(() => (selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined));
 
@@ -30,8 +33,9 @@ function saveTitle(node: SpaceCanvasNode, value: string) {
 </script>
 
 <template>
+  <SpaceStructureInspector v-if="editor.selection.value.structureNodeIds.length" />
   <div
-    v-if="selectedNode"
+    v-else-if="selectedNode"
     :key="selectedNode.id"
     class="h-full [scrollbar-gutter:stable] overflow-y-auto overscroll-contain pb-3"
   >

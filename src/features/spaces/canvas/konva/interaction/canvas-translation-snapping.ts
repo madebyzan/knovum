@@ -13,13 +13,6 @@ import type { CanvasNodeFrame } from "../../schema/document";
 import { nearestSortedCanvasSnap, type CanvasSnapGuide } from "./canvas-snapping";
 import type { CanvasTranslationSnapIndex } from "./canvas-translation-snap-index";
 
-export interface CanvasTranslationGestureState {
-  frameByNodeId: ReadonlyMap<string, CanvasNodeFrame>;
-  origin: { x: number; y: number };
-  primaryId: string;
-  snapIndex: CanvasTranslationSnapIndex;
-}
-
 export function snapCanvasTranslation(
   movingFrames: readonly CanvasNodeFrame[],
   index: CanvasTranslationSnapIndex,

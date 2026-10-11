@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type Konva from "konva";
 import { shallowRef } from "vue";
-import { Group as KonvaGroup, Rect as KonvaRect, Text as KonvaText } from "vue-konva/core";
+import { Group as KonvaGroup, Rect as KonvaRect, Text as KonvaText, Line as KonvaLine } from "vue-konva/core";
 
 import { SECTION_HEADER_HEIGHT, type ProjectedSection } from "../../document/structure-scene";
+import type { SectionResizeCorner } from "../interaction/structure-gesture-preview";
 import CanvasSectionResizeHandles from "./CanvasSectionResizeHandles.vue";
 import type { CanvasPalette } from "./use-canvas-palette";
 
@@ -17,33 +18,18 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   collapse: [collapsed: boolean];
-  move: [delta: { x: number; y: number }];
+  dragStart: [event: Konva.KonvaEventObject<DragEvent>];
+  dragMove: [event: Konva.KonvaEventObject<DragEvent>];
+  gestureEnd: [];
+  pointerDown: [event: Konva.KonvaEventObject<PointerEvent>];
   rename: [];
-  resize: [frame: { x: number; y: number; width: number; height: number }];
-  select: [event: PointerEvent];
+  resizeStart: [corner: SectionResizeCorner, event: Konva.KonvaEventObject<DragEvent>];
+  resizeMove: [event: Konva.KonvaEventObject<DragEvent>];
 }>();
-let moveOrigin: { x: number; y: number } | undefined;
 const hovered = shallowRef(false);
 const width = () => props.section.bounds.right - props.section.bounds.left;
 const height = () => props.section.bounds.bottom - props.section.bounds.top;
 const displayCollapsed = () => props.section.layout.collapsed && !props.section.temporarilyExpanded;
-
-function beginMove(event: Konva.KonvaEventObject<DragEvent>) {
-  moveOrigin = { x: event.target.x(), y: event.target.y() };
-}
-
-function finishMove(event: Konva.KonvaEventObject<DragEvent>) {
-  if (!moveOrigin) return;
-  const delta = { x: event.target.x() - moveOrigin.x, y: event.target.y() - moveOrigin.y };
-  event.target.position(moveOrigin);
-  moveOrigin = undefined;
-  if (delta.x || delta.y) emit("move", delta);
-}
-
-function select(event: Konva.KonvaEventObject<PointerEvent>) {
-  event.cancelBubble = true;
-  emit("select", event.evt);
-}
 
 function rename() {
   if (props.interactive && !props.section.locked) emit("rename");
@@ -59,11 +45,12 @@ function rename() {
       y: section.bounds.top,
       draggable: interactive && !section.locked,
     }"
-    @dragstart="beginMove"
-    @dragend="finishMove"
+    @dragstart="emit('dragStart', $event)"
+    @dragmove="emit('dragMove', $event)"
+    @dragend="emit('gestureEnd')"
     @pointerenter="hovered = true"
     @pointerleave="hovered = false"
-    @pointerdown="select"
+    @pointerdown="emit('pointerDown', $event)"
   >
     <KonvaRect
       :config="{
@@ -95,12 +82,15 @@ function rename() {
     <KonvaText
       :config="{
         x: 12,
-        y: 12,
+        y: 0,
+        height: SECTION_HEADER_HEIGHT,
+        verticalAlign: 'middle',
         width: width() - 88,
         text: section.section.title,
         fill: palette.foreground,
-        fontSize: 13,
-        fontStyle: '600',
+        fontFamily: palette.typography.fontFamily,
+        fontSize: palette.typography.labelSize,
+        fontStyle: '500',
         ellipsis: true,
         wrap: 'none',
       }"
@@ -109,37 +99,43 @@ function rename() {
     <KonvaText
       :config="{
         x: width() - 68,
-        y: 13,
+        y: 0,
+        height: SECTION_HEADER_HEIGHT,
+        verticalAlign: 'middle',
         width: 32,
         align: 'right',
         text: String(section.contentCount),
         fill: palette.foregroundSecondary,
-        fontSize: 11,
+        fontFamily: palette.typography.fontFamily,
+        fontSize: palette.typography.captionSize,
         listening: false,
       }"
     />
-    <KonvaText
-      :config="{
-        x: width() - 32,
-        y: 10,
-        width: 20,
-        height: 20,
-        align: 'center',
-        verticalAlign: 'middle',
-        text: displayCollapsed() ? '›' : '⌄',
-        fill: palette.foregroundSecondary,
-        fontSize: 15,
-      }"
-      @pointerdown="$event.cancelBubble = true"
-      @click="emit('collapse', !displayCollapsed())"
-    />
+    <KonvaGroup
+      :config="{ x: width() - 32, y: 10 }"
+      @click="interactive && emit('collapse', !displayCollapsed())"
+    >
+      <KonvaRect :config="{ width: 20, height: 20, fill: 'rgba(0,0,0,0.001)', cornerRadius: 4 }" />
+      <KonvaLine
+        :config="{
+          points: displayCollapsed() ? [8, 5, 13, 10, 8, 15] : [5, 8, 10, 13, 15, 8],
+          stroke: palette.foregroundSecondary,
+          strokeWidth: 1.6,
+          lineCap: 'round',
+          lineJoin: 'round',
+          listening: false,
+        }"
+      />
+    </KonvaGroup>
     <template v-if="selected && !section.locked && !displayCollapsed()">
       <CanvasSectionResizeHandles
         :interactive="interactive"
         :palette="palette"
         :section="section"
         :zoom="zoom"
-        @resize="emit('resize', $event)"
+        @resize-start="(corner, event) => emit('resizeStart', corner, event)"
+        @resize-move="emit('resizeMove', $event)"
+        @gesture-end="emit('gestureEnd')"
       />
     </template>
   </KonvaGroup>

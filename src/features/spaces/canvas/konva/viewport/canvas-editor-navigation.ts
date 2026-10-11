@@ -5,7 +5,9 @@ import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import { screenPointFromCanvas, zoomViewportAt } from "./viewport-math";
 
 /** Canvas layout nodeIds are schema-unique, so the intersection cannot drop a layout. */
-const layoutNodeId = (item: CanvasNodeLayoutV1 | string) => (typeof item === "string" ? item : item.nodeId);
+function layoutNodeId(item: CanvasNodeLayoutV1 | string) {
+  return typeof item === "string" ? item : item.nodeId;
+}
 
 interface CanvasNavigationContext {
   layouts(): readonly CanvasNodeLayoutV1[];

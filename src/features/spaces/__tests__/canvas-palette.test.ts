@@ -17,6 +17,10 @@ beforeEach(() => {
   styles = document.createElement("div").style;
   for (const [, name] of source.matchAll(/(--(?:knovum|color)-[\w-]+):/g))
     styles.setProperty(name!, "rgb(1, 2, 3)");
+  styles.setProperty("--font-sans", "system-ui");
+  styles.setProperty("--text-label", "0.8125rem");
+  styles.setProperty("--text-caption", "0.75rem");
+  styles.fontSize = "16px";
   contrast = globalThis.matchMedia("(prefers-contrast: more)");
   vi.spyOn(globalThis, "matchMedia").mockReturnValue(contrast);
   vi.spyOn(globalThis, "getComputedStyle").mockReturnValue(styles);
@@ -27,6 +31,7 @@ afterEach(() => {
   cleanup = undefined;
   document.documentElement.removeAttribute("data-theme");
   document.documentElement.removeAttribute("data-window-active");
+  document.documentElement.removeAttribute("data-text-size");
   vi.restoreAllMocks();
 });
 
@@ -51,6 +56,7 @@ describe("canvas token projection", () => {
     const palette = mountPalette();
     expect(palette.value.relation.green).toBe("rgb(4, 5, 6)");
     expect(palette.value.canvas).toBe("rgb(1, 2, 3)");
+    expect(palette.value.typography).toEqual({ fontFamily: "system-ui", labelSize: 13, captionSize: 12 });
   });
 
   it.each(["data-theme", "data-window-active"])(
@@ -64,6 +70,13 @@ describe("canvas token projection", () => {
       expect(palette.value.relation.neutral).toBe("rgb(4, 5, 6)");
     },
   );
+
+  it("refreshes container typography when the text-size preference changes", async () => {
+    const palette = mountPalette();
+    styles.setProperty("--text-label", "0.875rem");
+    document.documentElement.setAttribute("data-text-size", "large");
+    await vi.waitFor(() => expect(palette.value.typography.labelSize).toBe(14));
+  });
 
   it("refreshes canvas boundaries when the preferred contrast changes", async () => {
     const palette = mountPalette();

@@ -100,6 +100,7 @@ function drawNodeLabel(
       width: frame.width - 20,
       height: footer ? frame.height * 0.22 : frame.height - 20,
       text: content.slice(0, note ? 350 : 140),
+      fontFamily: palette.typography.fontFamily,
       fontSize: note ? noteFontSize(appearance) : 14,
       fontStyle: noteFontStyle(note, appearance),
       fill: palette.foreground,

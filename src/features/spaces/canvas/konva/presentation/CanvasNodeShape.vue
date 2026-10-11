@@ -18,7 +18,7 @@ const emit = defineEmits<{
   activate: [nodeId: string];
   dragEnd: [nodeId: string];
   dragMove: [nodeId: string, event: Konva.KonvaEventObject<DragEvent>];
-  dragStart: [nodeId: string];
+  dragStart: [nodeId: string, event: Konva.KonvaEventObject<DragEvent>];
   pointerDown: [nodeId: string, event: Konva.KonvaEventObject<PointerEvent>];
 }>();
 
@@ -40,7 +40,7 @@ function moveToLayer(event: Konva.KonvaEventObject<DragEvent>, layerId: string) 
 
 function beginDrag(event: Konva.KonvaEventObject<DragEvent>) {
   moveToLayer(event, "canvas-drag-layer");
-  emit("dragStart", props.sceneNode.node.id);
+  emit("dragStart", props.sceneNode.node.id, event);
 }
 
 function finishDrag(event: Konva.KonvaEventObject<DragEvent>) {

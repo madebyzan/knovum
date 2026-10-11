@@ -51,6 +51,7 @@
     "create": "Create section",
     "createEmpty": "New section",
     "removeOnly": "Remove section only",
+    "backgroundFailed": "Unable to load the section background image",
     "fitToContents": "Fit section to contents",
     "untitled": "Untitled section",
     "collapse": "Collapse section",

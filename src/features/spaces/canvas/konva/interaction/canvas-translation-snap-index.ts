@@ -46,4 +46,6 @@ function alignmentExtents(bounds: readonly CanvasBounds[], axis: "x" | "y") {
   return extentByCoordinate;
 }
 
-const ascending = (left: number, right: number) => left - right;
+function ascending(left: number, right: number) {
+  return left - right;
+}

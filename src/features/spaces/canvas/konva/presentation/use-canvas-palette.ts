@@ -6,6 +6,7 @@ import type { CanvasNodeAppearance, CanvasRelationColor } from "../../schema/doc
 type CanvasFillPreset = NonNullable<CanvasNodeAppearance["fill"]>;
 
 export interface CanvasPalette {
+  typography: { fontFamily: string; labelSize: number; captionSize: number };
   accent: string;
   border: string;
   borderStrong: string;
@@ -27,7 +28,7 @@ export function useCanvasPalette() {
 
   useMutationObserver(document.documentElement, refresh, {
     attributes: true,
-    attributeFilter: ["data-theme", "data-window-active"],
+    attributeFilter: ["data-theme", "data-window-active", "data-density", "data-text-size"],
   });
   useEventListener(globalThis.matchMedia("(prefers-contrast: more)"), "change", refresh);
   return palette;
@@ -36,6 +37,11 @@ export function useCanvasPalette() {
 function readPalette(): CanvasPalette {
   const styles = getComputedStyle(document.documentElement);
   return {
+    typography: {
+      fontFamily: value(styles, "--font-sans"),
+      labelSize: parseFloat(value(styles, "--text-label")) * parseFloat(styles.fontSize),
+      captionSize: parseFloat(value(styles, "--text-caption")) * parseFloat(styles.fontSize),
+    },
     accent: value(styles, "--color-stroke-accent"),
     border: value(styles, "--color-stroke-default"),
     borderStrong: value(styles, "--color-stroke-strong"),

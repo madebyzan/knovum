@@ -2,18 +2,18 @@ import type Konva from "konva";
 import { computed, shallowRef, useTemplateRef } from "vue";
 import type { VueKonvaRef } from "vue-konva/core";
 
+import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
 import type { CanvasDocumentV1 } from "../schema/document";
 import { CanvasDocumentModel } from "./document/canvas-document-model";
 import { useCanvasDocumentSync } from "./document/use-canvas-document-sync";
 import { createCanvasContextMenu } from "./interaction/canvas-context-menu";
-import { createCanvasGestureSession } from "./interaction/canvas-gesture-session";
 import { useCanvasInteractionCancellation } from "./interaction/use-canvas-interaction-cancellation";
+import { useCanvasManipulations } from "./interaction/use-canvas-manipulations";
 import { useConnectorCreation } from "./interaction/use-connector-creation";
-import { useLayoutPreview } from "./interaction/use-layout-preview";
 import { useNodeContentActivation } from "./interaction/use-node-content-activation";
-import { useNodeDragAutoPan } from "./interaction/use-node-drag-auto-pan";
 import { usePointerInteractions } from "./interaction/use-pointer-interactions";
+import { useStructureDragAutoPan } from "./interaction/use-structure-drag-auto-pan";
 import { useCanvasPalette } from "./presentation/use-canvas-palette";
 import { useCanvasScenePreview } from "./scene/use-canvas-scene-preview";
 import { useSceneVisibility } from "./scene/use-scene-visibility";
@@ -35,22 +35,37 @@ export function useKonvaCanvasRuntime(
     documentChanged,
     viewportChanged: props.events.onViewportChange,
   });
-  const sceneDocument = model.sceneDocumentState;
-  const layouts = computed(() => sceneDocument.value.nodes);
+  const layouts = computed(() => model.sceneDocumentState.value.nodes);
   const viewport = useRuntimeViewport(props, host, model);
   const temporarilyExpandedSectionId = shallowRef<string>();
-  const projections = useCanvasSceneProjections(props, sceneDocument, temporarilyExpandedSectionId);
-  const { selection, transformPolicy } = useRuntimeSelection(props, projections);
+  const structurePreview = shallowRef<SpaceEditSnapshot>();
+  const projections = useCanvasSceneProjections(
+    props,
+    model.sceneDocumentState,
+    temporarilyExpandedSectionId,
+    structurePreview,
+  );
+  const { selection, transformPolicy, canTransformGroups } = useRuntimeSelection(props, projections);
   const structureInteractions = useStructureCanvasInteractions({
     clearSelection: selection.clear,
     events: props.events,
     scene: projections.structureScene,
-    selectedIds: selection.structureNodeIds,
     setStructureSelection: selection.setStructureNodeIds,
     snapshot: () => props.sceneInput.editSnapshot,
     temporarilyExpandedSectionId,
   });
-  const preview = useLayoutPreview(structureInteractions.previewContentMove);
+  const manipulations = useCanvasManipulations({
+    props,
+    model,
+    projections,
+    selection,
+    stage,
+    viewport,
+    structureInteractions,
+    structurePreview,
+    temporarilyExpandedSectionId,
+  });
+  const { preview, gestures, structureGestures, directManipulation, cancelGesture } = manipulations;
   const scenePreview = useCanvasScenePreview(projections.previewIndex, preview.gestureUpdateByNodeId);
   const { activateNode, capturesCanvasInteraction, createTextNode, interactiveNodeId } =
     useNodeContentActivation({
@@ -72,21 +87,11 @@ export function useKonvaCanvasRuntime(
     size: viewport.size,
     viewport: viewport.viewport,
   });
-  const gestures = createCanvasGestureSession({
-    document: model,
-    events: props.events,
-    layouts: () => layouts.value,
-    lockedNodeIds: () => projections.lockedNodeIds.value,
-    nodes: () => props.sceneInput.nodes,
-    previewFrames: preview.update,
-    selectedNodeIds: () => selection.nodeIds.value,
-    snapshot: () => props.sceneInput.editSnapshot,
-    temporarilyExpandedSectionId: () => temporarilyExpandedSectionId.value,
-    stage: () => stage.value,
-    zoom: () => viewport.viewport.value.zoom,
-  });
   const pointer = usePointerInteractions({
-    cancelActiveGesture: gestures.cancelActiveGesture,
+    cancelActiveGesture: () => {
+      nodeDrag.cancel();
+      return cancelGesture();
+    },
     host,
     selection,
     viewport,
@@ -96,7 +101,12 @@ export function useKonvaCanvasRuntime(
     createSection: props.events.onCreateSection,
   });
   const contextMenu = createCanvasContextMenu({ host, selection, stage });
-  const nodeDrag = useNodeDragAutoPan({ gestures, viewport });
+  const nodeDrag = useStructureDragAutoPan({
+    gestures: structureGestures,
+    viewport,
+    onBegin: pointer.markSelectionDragged,
+    snapshot: () => props.sceneInput.editSnapshot,
+  });
   const connectors = useConnectorCreation({
     createRelation: props.events.onCreateRelation,
     reportError: props.events.onError,
@@ -106,13 +116,13 @@ export function useKonvaCanvasRuntime(
   });
   const { cancelInteraction } = useCanvasInteractionCancellation({
     cancelConnector: connectors.cancel,
-    cancelGesture: gestures.cancelActiveGesture,
+    cancelGesture,
     cancelNodeDrag: nodeDrag.cancel,
     cancelPointer: pointer.pointerCancel,
     cancelStructurePreview: structureInteractions.clearExpansionPreview,
     clearSelection: selection.clear,
     connectorDraft: connectors.draft,
-    directManipulation: gestures.directManipulation,
+    directManipulation,
     directManipulationChanged: props.events.onDirectManipulationChange,
     enterableContentId: interactiveNodeId,
     exitGroup: structureInteractions.exitGroup,
@@ -131,6 +141,7 @@ export function useKonvaCanvasRuntime(
   useRuntimeEditorRegistration({
     cancelInteraction,
     gestures,
+    nudgeSelection: structureGestures.nudge,
     host,
     layouts,
     model,
@@ -149,15 +160,13 @@ export function useKonvaCanvasRuntime(
     capturesCanvasInteraction,
     connectors,
     contextMenu,
-    finishDrag: (nodeId: string) => void nodeDrag.end(nodeId).catch(props.events.onError),
-    finishTransform: () => void gestures.finish({ kind: "transform" }).catch(props.events.onError),
-    gestures,
-    host,
+    finishDrag: () => void nodeDrag.end().catch(props.events.onError),
+    finishTransform: () => void gestures.finishTransform().catch(props.events.onError),
+    ...manipulations,
     interactiveNodeId,
     nodeDrag,
     palette,
     pointer,
-    preview,
     scene: projections.scene,
     structure: projections,
     structureInteractions,
@@ -166,6 +175,7 @@ export function useKonvaCanvasRuntime(
     selection,
     stage,
     transformPolicy,
+    canTransformGroups,
     viewport,
     visibility,
   };

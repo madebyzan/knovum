@@ -21,7 +21,10 @@ interface InteractionCancellationOptions {
 }
 
 export function useCanvasInteractionCancellation(options: InteractionCancellationOptions) {
-  watch(() => options.directManipulation.value !== undefined, options.directManipulationChanged);
+  watch(
+    () => options.directManipulation.value !== undefined || options.panning.value,
+    options.directManipulationChanged,
+  );
   watch([options.tool, options.interactionEnabled], resetTransientInteraction);
 
   function resetTransientInteraction() {
@@ -40,7 +43,7 @@ export function useCanvasInteractionCancellation(options: InteractionCancellatio
     if (options.marquee.value || options.panning.value) return options.cancelPointer();
     options.cancelNodeDrag();
     options.cancelStructurePreview();
-    if (options.cancelGesture()) return;
+    if (options.cancelGesture()) return options.cancelPointer();
     if (options.groupScopePath().length) return options.exitGroup();
     options.clearSelection();
   }

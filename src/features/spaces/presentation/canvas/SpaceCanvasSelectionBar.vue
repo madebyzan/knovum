@@ -15,6 +15,7 @@ import type { NodeSpeechOperation } from "../speech/node-speech-operations";
 import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 import SpaceCanvasImageActionBar from "./SpaceCanvasImageActionBar.vue";
 import SpaceCanvasNodeActionBar from "./SpaceCanvasNodeActionBar.vue";
+import SpaceCanvasSectionActionBar from "./SpaceCanvasSectionActionBar.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceSelectionMoveMenu from "./SpaceSelectionMoveMenu.vue";
 import { useCanvasSelectionActions } from "./use-canvas-selection-actions";
@@ -52,8 +53,14 @@ const singleSection = computed(
     @update:angle-open="emit('update:angleNodeId', $event ? singleNode?.id : undefined)"
     @invoke-derivation="emit('invokeDerivation', $event)"
   />
+  <SpaceCanvasSectionActionBar
+    v-else-if="singleSection"
+    :actions="actions"
+    :derivations="derivations"
+    :available-width="availableWidth"
+  />
   <SpaceCanvasNodeActionBar
-    v-else-if="singleNode || singleSection"
+    v-else-if="singleNode"
     :actions="actions"
     :derivations="derivations"
     v-model:speech-operation="speechOperation"

@@ -21,6 +21,39 @@ const layouts: CanvasNodeLayoutV1[] = [
 ];
 
 describe("Konva canvas selection", () => {
+  it("preserves mixed selection roots and reports all members when a selected container is pressed", () => {
+    const changed = vi.fn<(selection: CanvasSelectionSnapshot) => void>();
+    const selection = useCanvasSelection({
+      availableStructureNodeIds: shallowRef(new Set(["section", "group"])),
+      changed,
+      layouts: shallowRef(layouts),
+      relationBoundsById: shallowRef(new Map()),
+      structureBoundsById: shallowRef(
+        new Map([
+          ["section", { x: 300, y: 0, width: 400, height: 300 }],
+          ["group", { x: 800, y: 0, width: 100, height: 80 }],
+        ]),
+      ),
+      structureSelectionForNode: () => undefined,
+    });
+    selection.selectNode("a", pointer());
+    selection.selectStructureNode("section", pointer({ shiftKey: true }));
+    selection.selectStructureNode("group", pointer({ shiftKey: true }));
+    selection.selectStructureNode("section", pointer());
+    expect(selection.structureNodeIds.value).toEqual(new Set(["section", "group"]));
+    expect(selection.nodeIds.value).toEqual(new Set(["a"]));
+    expect(changed).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        bounds: { x: 0, y: 0, width: 900, height: 300 },
+        members: [
+          layouts[0]!.frame,
+          { x: 300, y: 0, width: 400, height: 300 },
+          { x: 800, y: 0, width: 100, height: 80 },
+        ],
+      }),
+    );
+  });
+
   it("preserves a multi-selection when an already-selected node begins a drag", () => {
     const changed = vi.fn<(selection: CanvasSelectionSnapshot) => void>();
     const selection = useCanvasSelection({

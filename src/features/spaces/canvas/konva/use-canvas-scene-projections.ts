@@ -1,9 +1,11 @@
 import { computed, type Ref } from "vue";
 
+import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { ancestorsOf, createStructureIndex } from "../../model/structure/structure-index";
 import { isStructureNodeEffectivelyLocked } from "../../model/structure/structure-queries";
 import type { WorldBounds } from "../../model/structure/world-bounds";
 import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
+import { projectStructureCanvasDocument } from "../document/structure-canvas-document";
 import { SECTION_HEADER_HEIGHT } from "../document/structure-scene";
 import { projectStructureScene } from "../document/structure-scene-projection";
 import type { CanvasDocumentV1 } from "../schema/document";
@@ -14,8 +16,10 @@ export function useCanvasSceneProjections(
   props: CanvasSurfaceProps,
   document: Readonly<Ref<CanvasDocumentV1>>,
   temporarilyExpandedSectionId: Readonly<Ref<string | undefined>>,
+  previewSnapshot: Readonly<Ref<SpaceEditSnapshot | undefined>>,
 ) {
-  const structure = computed(() => props.sceneInput.editSnapshot.structure);
+  const snapshot = computed(() => previewSnapshot.value ?? props.sceneInput.editSnapshot);
+  const structure = computed(() => snapshot.value.structure);
   const nodes = computed(() => props.sceneInput.nodes);
   const structureIndex = computed(() => createStructureIndex(structure.value));
   const lockedNodeIds = computed(() => {
@@ -30,7 +34,7 @@ export function useCanvasSceneProjections(
   });
   const structureScene = computed(() =>
     projectStructureScene({
-      snapshot: props.sceneInput.editSnapshot,
+      snapshot: snapshot.value,
       nodes: props.sceneInput.nodes,
       relations: props.sceneInput.relations,
       temporarilyExpandedSectionIds: temporarilyExpandedSectionId.value
@@ -40,7 +44,9 @@ export function useCanvasSceneProjections(
   );
   const scene = computed(() =>
     projectCanvasScene({
-      document: document.value,
+      document: previewSnapshot.value
+        ? projectStructureCanvasDocument(snapshot.value, document.value.viewport)
+        : document.value,
       nodes: props.sceneInput.nodes,
       relations: props.sceneInput.relations,
       lockedNodeIds: lockedNodeIds.value,

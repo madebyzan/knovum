@@ -11,5 +11,6 @@
   "credential": "Credential",
   "object": "Knowledge object",
   "portal": "Space Portal",
+  "group": "Group",
   "section": "Section"
 }
