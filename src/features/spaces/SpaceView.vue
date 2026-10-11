@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { AlertTriangle } from "@lucide/vue";
 import { storeToRefs } from "pinia";
+import { TabsContent, TabsRoot } from "reka-ui";
 import {
   computed,
   defineAsyncComponent,
@@ -17,6 +18,7 @@ import { toast } from "vue-sonner";
 import { normalizeError } from "../../foundation/errors/app-error";
 import { getErrorMessage } from "../../foundation/errors/error-format";
 import { registerWindowCloseCommit } from "../../foundation/lifecycle/window-close-coordinator";
+import { isApplicationLeaveCancelled } from "../../shared/contracts/application-leave";
 import { overlayScopeVisibleKey } from "../../shared/contracts/overlay-scope-visibility";
 import UiButton from "../../shared/ui/UiButton.vue";
 import { selectAndRevealSpaceNode } from "./canvas/selection-actions";
@@ -26,24 +28,16 @@ import {
   restoreConversationRuns,
 } from "./conversation/conversation-run-observation";
 import { useConversationSessionStore } from "./conversation/conversation-session-store";
-import { useDeferredEditorMount } from "./editor/use-deferred-editor-mount";
 import { enrichmentProjectionKey } from "./enrichment/enrichment-projection-key";
 import { useEnrichmentTaskProjection } from "./enrichment/use-enrichment-task-projection";
 import SpaceCanvas from "./presentation/canvas/SpaceCanvas.vue";
 import SpaceImageEditLeaveDialog from "./presentation/canvas/SpaceImageEditLeaveDialog.vue";
-import SpaceEditorLoading from "./presentation/editor/SpaceEditorLoading.vue";
 import SpaceLibrary from "./presentation/library/SpaceLibrary.vue";
 import SpaceAudioRecordingDock from "./presentation/media/SpaceAudioRecordingDock.vue";
+import SpaceEditorTabs from "./presentation/workspace/SpaceEditorTabs.vue";
+import SpaceWorkTabs from "./presentation/workspace/SpaceWorkTabs.vue";
 import { useSpaceStore } from "./session/space-store";
 
-const SpaceTiptapEditor = defineAsyncComponent({
-  loader: () => import("./presentation/editor/SpaceTiptapEditor.vue"),
-  loadingComponent: SpaceEditorLoading,
-  delay: 0,
-});
-const SpaceVideoEditor = defineAsyncComponent(
-  () => import("./presentation/video-editor/SpaceVideoEditor.vue"),
-);
 const SpaceRecentlyDeleted = defineAsyncComponent(
   () => import("./presentation/deletion/SpaceRecentlyDeleted.vue"),
 );
@@ -52,11 +46,23 @@ const conversationSession = useConversationSessionStore();
 const workspaceVisible = inject(overlayScopeVisibleKey)!;
 const canvasVisible = computed(() => workspaceVisible.value && store.workbench.canvas);
 const { ready, surface } = storeToRefs(store);
-const documentNodeId = computed(() => (surface.value.kind === "document" ? surface.value.nodeId : undefined));
+const activeWorkItem = computed(() =>
+  surface.value.kind === "library"
+    ? "library"
+    : store.activeSpaceId
+      ? (store.activeWorkItems.get(store.activeSpaceId) ?? "canvas")
+      : "canvas",
+);
+function activateWorkItem(value: unknown) {
+  if (typeof value !== "string") throw new TypeError("Work item identity must be a string");
+  const operation = value === "canvas" ? store.returnToCanvas() : store.activateEditorTab(value);
+  void operation.catch((error: unknown) => {
+    if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
+  });
+}
 const { t } = useI18n();
 const initializationError = shallowRef<Error>();
 const initializing = shallowRef(false);
-const mountedEditorId = useDeferredEditorMount(documentNodeId);
 onBeforeUnmount(registerWindowCloseCommit(store.commitActiveSession));
 const dock = useContextDock();
 const enrichmentJobs = useEnrichmentTaskProjection({
@@ -102,7 +108,7 @@ onMounted(() => void initialize());
 </script>
 
 <template>
-  <main class="relative isolate h-full min-h-0 bg-surface-canvas">
+  <main class="relative isolate flex h-full min-h-0 flex-col bg-surface-canvas">
     <div v-if="initializationError" class="grid h-full place-items-center p-8 text-center">
       <div class="max-w-sm">
         <AlertTriangle class="mx-auto size-7 text-fg-warning" />
@@ -114,23 +120,38 @@ onMounted(() => void initialize());
         <UiButton class="mt-4" :disabled="initializing" @click="initialize">{{ t("common.retry") }}</UiButton>
       </div>
     </div>
-    <template v-else-if="store.ready">
-      <SpaceCanvas :rendering-enabled="canvasVisible" />
-      <SpaceAudioRecordingDock class="pointer-events-auto absolute bottom-3 left-1/2 z-50 -translate-x-1/2" />
-      <section v-if="surface.kind === 'library'" class="absolute inset-0 z-40 bg-surface-canvas">
-        <SpaceLibrary />
-      </section>
-      <SpaceEditorLoading v-if="documentNodeId && !mountedEditorId" />
-      <SpaceTiptapEditor v-if="mountedEditorId" :key="mountedEditorId" />
-      <SpaceRecentlyDeleted
-        v-if="store.recentlyDeletedSpaceId !== undefined"
-        :key="store.recentlyDeletedSpaceId ?? 'all'"
-        :space-id="store.recentlyDeletedSpaceId"
-        :open="true"
-        @update:open="!$event && (store.recentlyDeletedSpaceId = undefined)"
-      />
-      <SpaceVideoEditor v-if="surface.kind === 'video'" :key="surface.nodeId" />
-      <SpaceImageEditLeaveDialog />
-    </template>
+    <TabsRoot
+      v-else-if="store.ready"
+      :model-value="activeWorkItem"
+      class="flex min-h-0 flex-1 flex-col"
+      @update:model-value="activateWorkItem"
+    >
+      <SpaceWorkTabs />
+      <div class="relative min-h-0 flex-1">
+        <TabsContent
+          value="canvas"
+          force-mount
+          v-show="surface.kind === 'canvas'"
+          class="absolute inset-0 outline-none"
+        >
+          <SpaceCanvas :rendering-enabled="canvasVisible" />
+        </TabsContent>
+        <SpaceAudioRecordingDock
+          class="pointer-events-auto absolute bottom-3 left-1/2 z-50 -translate-x-1/2"
+        />
+        <section v-if="surface.kind === 'library'" class="absolute inset-0 z-40 bg-surface-canvas">
+          <SpaceLibrary />
+        </section>
+        <SpaceEditorTabs />
+        <SpaceRecentlyDeleted
+          v-if="store.recentlyDeletedSpaceId !== undefined"
+          :key="store.recentlyDeletedSpaceId ?? 'all'"
+          :space-id="store.recentlyDeletedSpaceId"
+          :open="true"
+          @update:open="!$event && (store.recentlyDeletedSpaceId = undefined)"
+        />
+        <SpaceImageEditLeaveDialog />
+      </div>
+    </TabsRoot>
   </main>
 </template>

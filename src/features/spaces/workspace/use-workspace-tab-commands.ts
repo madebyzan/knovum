@@ -8,6 +8,35 @@ export function useWorkspaceTabCommands() {
   const store = useSpaceStore();
   const { t } = useI18n();
 
+  const selectedEditorId = computed(() => {
+    if (!store.activeSpaceId || store.surface.kind === "library") return undefined;
+    return store.activeWorkItems.get(store.activeSpaceId);
+  });
+
+  function workTabCommands(
+    activeSpaceId: string | undefined,
+    activeEditorId: string | undefined,
+  ): AppCommand[] {
+    if (!activeSpaceId || store.surface.kind === "library") return [];
+    const items = [
+      undefined,
+      ...store.editorTabs.filter((tab) => tab.spaceId === activeSpaceId).map(({ id }) => id),
+    ];
+    if (items.length < 2) return [];
+    return ([-1, 1] as const).map((direction) => ({
+      id: direction === 1 ? "spaces.next-work-tab" : "spaces.previous-work-tab",
+      title: t(direction === 1 ? "spaces.editor.tabs.next" : "spaces.editor.tabs.previous"),
+      shortcut: direction === 1 ? "Control+Tab" : "Control+Shift+Tab",
+      allowInEditable: true,
+      category: "navigation",
+      run: () => {
+        const index = items.indexOf(activeEditorId);
+        const next = items[(index + direction + items.length) % items.length];
+        return next ? store.activateEditorTab(next) : store.returnToCanvas();
+      },
+    }));
+  }
+
   return computed<readonly AppCommand[]>(() => {
     const commands: AppCommand[] = [
       {
@@ -32,21 +61,22 @@ export function useWorkspaceTabCommands() {
       });
     }
     const activeSpaceId = store.activeSpaceId;
-    if (activeSpaceId && store.openSpaceIds.length > 1) {
+    const activeEditorId = selectedEditorId.value;
+    if (activeSpaceId && (activeEditorId || store.openSpaceIds.length > 1)) {
       commands.push({
         id: "spaces.close-tab",
-        title: t("spaces.space.tabs.close"),
+        title: t(activeEditorId ? "common.close" : "spaces.space.tabs.close"),
         shortcut: "$mod+W",
         appMenuShortcut: true,
         allowInEditable: true,
         category: "navigation",
-        run: () => store.closeSpaceTab(activeSpaceId),
+        run: () =>
+          activeEditorId ? store.closeEditorTab(activeEditorId) : store.closeSpaceTab(activeSpaceId),
       });
     }
-    const numberedTabs = [
-      ...store.openSpaceIds.slice(0, 8),
-      ...(store.openSpaceIds.length > 8 ? [store.openSpaceIds.at(-1)] : []),
-    ].filter((id): id is string => Boolean(id));
+    commands.push(...workTabCommands(activeSpaceId, activeEditorId));
+    const numberedTabs = store.openSpaceIds.slice(0, 8);
+    if (store.openSpaceIds.length > 8) numberedTabs.push(store.openSpaceIds.at(-1)!);
     numberedTabs.forEach((id, index) => {
       const number = index + 1;
       commands.push({

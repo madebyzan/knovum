@@ -1,39 +1,36 @@
-import { useEditor } from "@tiptap/vue-3";
+import type { EditorOptions } from "@tiptap/core";
+import { Editor, useEditor } from "@tiptap/vue-3";
 import { useDebounceFn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { isApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import { currentCanvasEditor } from "../canvas/editor-session";
-import { isSpaceEditorNode, type SpaceEditorNode } from "../canvas/node-capabilities";
 import { useContextDock } from "../canvas/use-context-dock";
 import { loadGroundedDocumentMetadata } from "../knowledge-derivations/document/metadata";
 import { findGroundedCitation } from "../knowledge/model/grounded-citation";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import type { SpaceEditorPayload } from "../model/nodes/capabilities";
 import { useSpaceStore } from "../session/space-store";
+import type { SpaceEditorTab } from "../workspace/work-items";
+import { useDocumentSessionStore } from "./document-session-store";
 import { createSpaceTiptapExtensions } from "./tiptap-extensions";
 import { revealKnowledgeInEditor } from "./tiptap-locator";
 import { spaceTiptapHeadings } from "./tiptap-outline";
-import { createEditingState, persistSpaceTiptapContent, type EditingState } from "./tiptap-persistence";
-import { registerTiptapSessionParticipant } from "./tiptap-session-participant";
 import { createTiptapTextStatistics } from "./tiptap-text-statistics";
+import { useDocumentSave } from "./use-document-save";
 import { useHeadingNavigation } from "./use-heading-navigation";
 
-export function useSpaceTiptapEditor() {
+export function useSpaceTiptapEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
   const store = useSpaceStore();
-  const { editorLocateRequest, surface, nodes } = storeToRefs(store);
+  const { editorLocateRequest } = storeToRefs(store);
   const { t } = useI18n();
   const dock = useContextDock();
-  const state = createEditingState();
-  const saveStatus = ref<"saved" | "saving" | "unsaved">("saved");
-  const editorNode = computed(() =>
-    findEditorNode(nodes.value, surface.value.kind === "document" ? surface.value.nodeId : undefined),
-  );
-  initializeEditingState(state, editorNode.value);
-  const initialContent = editorContent(editorNode.value);
+  const session = useDocumentSessionStore().sessions.get(tab.id);
+  if (!session) throw new Error("Document session is unavailable");
+  const editorNode = session.node;
   const statistics = createTiptapTextStatistics();
   const headings = shallowRef<ReturnType<typeof spaceTiptapHeadings>>([]);
   const derive = useDebounceFn(() => {
@@ -42,36 +39,17 @@ export function useSpaceTiptapEditor() {
     statistics.update(instance.getText());
     headings.value = spaceTiptapHeadings(instance);
   }, 200);
-
-  const persist = async () => {
-    saveStatus.value = "saving";
-    try {
-      await persistSpaceTiptapContent({ nodes: nodes.value, state, editor: editor.value });
-      saveStatus.value = "saved";
-    } catch (error) {
-      saveStatus.value = "unsaved";
-      throw error;
-    }
-  };
-  const persistInBackground = () => {
-    void persist().catch((error) => toast.error(getErrorMessage(error)));
-  };
-  const autoSave = useDebounceFn(persistInBackground, 1000);
-
-  const scheduleAutoSave = () => {
-    saveStatus.value = "unsaved";
-    autoSave();
-  };
-
-  const editor = useEditor({
+  const editorOptions: Partial<EditorOptions> = {
+    editable: active.value && !session.error.value,
     extensions: createSpaceTiptapExtensions(
       t("spaces.editor.placeholder"),
       (error) =>
         toast.error(t("spaces.richtext.image.uploadFailed"), { description: getErrorMessage(error) }),
       async (index) => {
         const node = editorNode.value;
-        if (!node || node.data.kind !== "markdown") return;
+        if (!active.value || node.data.kind !== "markdown") return;
         const metadata = await loadGroundedDocumentMetadata(node.id);
+        if (!active.value) return;
         const citation = findGroundedCitation(metadata?.citations, index);
         if (!citation || citation.state !== "current" || !citation.chunkId) return;
         dock.openSource({
@@ -83,37 +61,47 @@ export function useSpaceTiptapEditor() {
         });
       },
     ),
-    content: initialContent.content,
-    ...(initialContent.contentType === undefined ? {} : { contentType: initialContent.contentType }),
+    ...editorContent(editorNode.value.data),
     editorProps: { attributes: { class: "space-tiptap-prose", spellcheck: "true" } },
     onCreate: ({ editor: instance }) => {
-      instance.commands.focus("start");
+      if (active.value) instance.commands.focus("start");
       void derive();
     },
     onUpdate: () => {
-      state.revision.value += 1;
+      session.state.revision.value += 1;
       void derive();
-      scheduleAutoSave();
     },
-    onSelectionUpdate: ({ editor: instance }) => (state.selection.value = instance.state.selection.from),
-  });
+  };
+  const editor = useEditor(editorOptions);
+  const saving = useDocumentSave(session, editor, active);
   watch(
-    [editorLocateRequest, editorNode, editor],
-    ([request, node, instance]) => {
-      if (!request || request.nodeId !== node?.id || !instance) return;
-      void nextTick(() => revealKnowledgeInEditor(instance, request.locator));
+    [active, session.error, saving.suspended, editor],
+    ([visible, error, suspended]) => {
+      editor.value?.setEditable(visible && !error && !suspended);
     },
     { immediate: true },
   );
-
-  const { activeHeadingId, revealHeading, scrollRoot, syncActiveHeading } = useHeadingNavigation(
+  watch(session.contentVersion, () => {
+    const previous = editor.value;
+    editor.value = new Editor({ ...editorOptions, ...editorContent(editorNode.value.data) });
+    previous?.destroy();
+    session.state.persistedRevision.value = session.state.revision.value;
+    void derive();
+  });
+  watch(
+    [editorLocateRequest, active, editor],
+    ([request, visible, instance]) => {
+      if (!visible || !request || request.nodeId !== tab.nodeId || !instance) return;
+      void nextTick(() => {
+        if (active.value) revealKnowledgeInEditor(instance, request.locator);
+      });
+    },
+    { immediate: true },
+  );
+  const navigation = useHeadingNavigation(
     () => editor.value,
     () => headings.value,
   );
-  const editorLabel = computed(() =>
-    editorNode.value?.data.kind === "note" ? t("spaces.nodeTypes.note") : t("spaces.nodeTypes.markdown"),
-  );
-
   async function close() {
     try {
       await store.returnToCanvas();
@@ -122,60 +110,29 @@ export function useSpaceTiptapEditor() {
       if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
     }
   }
-
-  const detachSessionCommit = registerTiptapSessionParticipant({
-    cancelAutoSave: autoSave.cancel,
-    editor: () => editor.value,
-    persist,
-  });
-
   onBeforeUnmount(() => {
-    detachSessionCommit();
     derive.cancel();
     statistics.dispose();
   });
-
   return {
-    activeHeadingId,
-    characterCount: statistics.characterCount,
+    ...navigation,
+    ...saving,
     close,
-    editorLabel,
-    editorNode,
     editor,
+    editorNode,
     headings,
-    persist,
-    revealHeading,
-    saveStatus,
-    scrollRoot,
-    syncActiveHeading,
-    title: state.title,
+    error: session.error,
+    editorLabel: computed(() =>
+      t(editorNode.value.data.kind === "note" ? "spaces.nodeTypes.note" : "spaces.nodeTypes.markdown"),
+    ),
+    title: session.state.title,
+    characterCount: statistics.characterCount,
     wordCount: statistics.wordCount,
   };
 }
 
-function findEditorNode(nodes: readonly SpaceCanvasNode[], nodeId?: string) {
-  return nodes.find((node): node is SpaceEditorNode => node.id === nodeId && isSpaceEditorNode(node));
-}
-
-function initializeEditingState(state: EditingState, node: SpaceEditorNode | undefined) {
-  if (!node) return;
-  state.loadedId = node.id;
-  state.title.value = node.data.title;
-  if (node.data.kind === "markdown") {
-    state.markdown.value = node.data.text;
-    if (node.data.tiptapContent) state.tiptapContent.value = node.data.tiptapContent;
-    return;
-  }
-  state.tiptapContent.value = node.data.tiptapContent;
-  state.plainText.value = node.data.plainText;
-}
-
-function editorContent(node: SpaceEditorNode | undefined): {
-  content: string | object;
-  contentType?: "markdown";
-} {
-  if (!node) return { content: "", contentType: "markdown" };
-  if (node.data.kind === "note") return { content: node.data.tiptapContent };
-  if (node.data.tiptapContent) return { content: node.data.tiptapContent };
-  return { content: node.data.text, contentType: "markdown" };
+function editorContent(data: SpaceEditorPayload) {
+  if (data.tiptapContent) return { content: data.tiptapContent };
+  if (data.kind === "markdown") return { content: data.text, contentType: "markdown" as const };
+  return { content: data.tiptapContent };
 }

@@ -1,7 +1,7 @@
 import { isEqual } from "es-toolkit";
 import { computed, shallowRef, type Ref } from "vue";
 
-import type { VideoEditProject } from "../../video-editing/project";
+import type { VideoEditProject } from "./project";
 
 const HISTORY_LIMIT = 50;
 
@@ -58,5 +58,18 @@ export function useVideoEditHistory(project: Ref<VideoEditProject | undefined>) 
     lastMergeKey = undefined;
   }
 
-  return { canUndo, canRedo, dirty, reset, markSaved, commit, undo, redo };
+  return {
+    canUndo,
+    canRedo,
+    dirty,
+    reset,
+    markSaved,
+    commit,
+    undo,
+    redo,
+    discard: () => {
+      project.value = savedSnapshot.value;
+      reset(savedSnapshot.value);
+    },
+  };
 }

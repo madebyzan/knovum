@@ -26,7 +26,7 @@ afterEach(() => scope.stop());
 
 function startProxy(nodeId = shallowRef<string | undefined>("source-node")) {
   const proxy = scope.run(() =>
-    useVideoEditProxy(nodeId, shallowRef("source-revision"), shallowRef("space-id")),
+    useVideoEditProxy(nodeId, shallowRef("source-revision"), shallowRef("space-id"), shallowRef(true)),
   );
   if (!proxy) throw new Error("Proxy must run in its effect scope");
   return proxy;
@@ -71,6 +71,34 @@ describe("video editing proxy lifecycle", () => {
     await flushPromises();
     expect(proxy.path.value).toBeUndefined();
     expect(proxy.error.value).toContain("sourceUnavailable");
+  });
+
+  it("cancels hidden preparation, ignores late output and reuses a completed proxy", async () => {
+    const visible = shallowRef(true);
+    let complete: ((path: string) => void) | undefined;
+    mocks.invoke.mockImplementationOnce(() => new Promise<string>((resolve) => (complete = resolve)));
+    const proxy = scope.run(() =>
+      useVideoEditProxy(shallowRef("node"), shallowRef("revision"), shallowRef("space"), visible),
+    )!;
+    visible.value = false;
+    await nextTick();
+    expect(mocks.invoke).toHaveBeenLastCalledWith(
+      "plugin:spaces|cancel_video_edit_proxy",
+      expect.any(Object),
+    );
+    complete?.("/cache/stale.mp4");
+    await flushPromises();
+    expect(proxy.path.value).toBeUndefined();
+    mocks.invoke.mockResolvedValueOnce("/cache/current.mp4");
+    visible.value = true;
+    await flushPromises();
+    expect(proxy.path.value).toBe("/cache/current.mp4");
+    const calls = mocks.invoke.mock.calls.length;
+    visible.value = false;
+    await nextTick();
+    visible.value = true;
+    await flushPromises();
+    expect(mocks.invoke).toHaveBeenCalledTimes(calls);
   });
 
   it("shows a command failure and prepares a new job on retry", async () => {

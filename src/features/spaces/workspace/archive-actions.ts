@@ -6,6 +6,7 @@ import {
 } from "../credentials/credential-storage";
 import { refreshEnrichmentJobs } from "../enrichment/enrichment-jobs-query";
 import type { SpaceCredential } from "../model/schema/credential";
+import { prepareSpaceEditorClose } from "./editor-tab-lifecycle";
 import {
   archiveSpace as persistSpaceArchive,
   deleteSpacePermanently,
@@ -18,11 +19,13 @@ import type { SpaceSessionContext } from "./space-session-context";
 export async function archiveSpace(context: SpaceSessionContext, spaceId: string) {
   const space = editableSpace(context, spaceId);
   if (!space) return;
+  const finishClose = await prepareSpaceEditorClose(context, [spaceId]);
+  await leaveUnavailableSpace(context, spaceId);
   const archivedAt = Date.now();
   await persistSpaceArchive(spaceId);
   Object.assign(space, { archivedAt, updatedAt: archivedAt });
   void refreshEnrichmentJobs();
-  await leaveUnavailableSpace(context, spaceId);
+  await finishClose();
   discardSpaceTab(context, spaceId);
 }
 

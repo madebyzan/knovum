@@ -18,7 +18,7 @@ export async function showSpaceLibrary(
   if (!space) throw new Error("Space requires an active space");
   await transitionActiveSpaceSession(context, async () => {
     state.libraryScope.value = scope;
-    state.surface.value = { kind: "library" };
+    state.workspaceDestination.value = "library";
     await nextTick();
   });
 }

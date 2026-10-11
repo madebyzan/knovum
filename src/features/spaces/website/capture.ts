@@ -19,7 +19,7 @@ interface WebsiteCaptureContext {
   activeSpaceId?: string;
   nodes: SpaceCanvasNode[];
   addContent: (data: SpaceNodePayload, position?: { x: number; y: number }) => Promise<SpaceCanvasNode[]>;
-  saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<void>;
+  saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<unknown>;
 }
 
 export async function addSavedWebsite(

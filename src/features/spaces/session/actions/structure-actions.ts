@@ -23,6 +23,7 @@ interface StructureActionContext {
   relations: Ref<SpaceRelation[]>;
   history: SpaceHistoryState;
   ensureActiveSpacePersisted: () => Promise<unknown>;
+  prepareContentRemoval(rootIds: readonly string[]): Promise<() => Promise<void>>;
 }
 
 export function createStructureActions(context: StructureActionContext) {
@@ -30,6 +31,11 @@ export function createStructureActions(context: StructureActionContext) {
     await context.ensureActiveSpacePersisted();
     const spaceId = context.activeSpaceId.value;
     if (!spaceId) throw new Error("A Space must be active");
+    const finishRemoval =
+      command.kind === "structure.delete-subtrees"
+        ? await context.prepareContentRemoval(command.rootIds)
+        : undefined;
+    if (context.activeSpaceId.value !== spaceId) throw new Error("Structure edit Space changed");
     const releaseMutation = beginSpaceMutation(context.history);
     try {
       const receipt = await spaceEditOperations.execute({
@@ -38,6 +44,7 @@ export function createStructureActions(context: StructureActionContext) {
         expectedEditRevision: context.editSnapshot.value.editRevision,
         command,
       });
+      await finishRemoval?.();
       const projection = spaceEditCommandProjection(command);
       await reloadProjection(spaceId, projection);
       if (spaceEditCommandRecordsHistory(command)) recordRustEdit(spaceId, projection);

@@ -1,95 +1,74 @@
-import { onMounted, onUnmounted, shallowRef, type Ref } from "vue";
+import { onBeforeUnmount, shallowRef, type Ref } from "vue";
+import { toast } from "vue-sonner";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import {
   ApplicationLeaveCancelled,
   isApplicationLeaveCancelled,
 } from "../../../../shared/contracts/application-leave";
 import { registerSpaceSessionParticipant } from "../../workspace/session-participants";
+import type { SpaceEditorTab } from "../../workspace/work-items";
 
 interface VideoEditLeaveOptions {
+  tab: SpaceEditorTab;
   dirty: Readonly<Ref<boolean>>;
   saving: Readonly<Ref<boolean>>;
   save: () => Promise<boolean>;
+  close: () => Promise<void>;
   discard: () => void;
-  close: () => void;
 }
 
 export function useVideoEditLeave(input: VideoEditLeaveOptions) {
   const closeDialogOpen = shallowRef(false);
   let resolveDecision: ((decision: "leave" | "discard" | "cancel") => void) | undefined;
   let pending: Promise<void> | undefined;
-  let closeAfterDecision = false;
   let deferredDiscard = false;
-  let deferredClose = false;
 
-  async function prepareLeave(closeAfter = false): Promise<void> {
-    closeAfterDecision ||= closeAfter;
+  async function prepareLeave(): Promise<void> {
     if (pending) return pending;
     deferredDiscard = false;
-    deferredClose = false;
     if (input.saving.value) {
-      await input.save();
-      return prepareLeave(closeAfter);
+      if (!(await input.save())) throw new Error("Video project save failed");
     }
-    if (!input.dirty.value) {
-      deferredClose = closeAfterDecision;
-      closeAfterDecision = false;
-      return;
-    }
+    if (!input.dirty.value) return;
     closeDialogOpen.value = true;
     pending = new Promise<"leave" | "discard" | "cancel">((resolve) => (resolveDecision = resolve))
       .then((decision) => {
         if (decision === "cancel") throw new ApplicationLeaveCancelled();
         deferredDiscard = decision === "discard";
-        deferredClose = closeAfterDecision;
         return undefined;
       })
       .finally(() => {
-        closeAfterDecision = false;
         pending = undefined;
         resolveDecision = undefined;
       });
     return pending;
   }
-
-  function finalizeLeave() {
-    if (deferredDiscard) input.discard();
-    else if (deferredClose) input.close();
-    deferredDiscard = false;
-    deferredClose = false;
-  }
-
-  async function requestLeave(closeAfter = false) {
-    await prepareLeave(closeAfter);
-    finalizeLeave();
-  }
-
   function finish(decision: "leave" | "discard" | "cancel") {
     closeDialogOpen.value = false;
-    if (decision === "cancel") closeAfterDecision = false;
     resolveDecision?.(decision);
   }
-
-  function requestClose() {
-    void requestLeave(true).catch((error) => {
-      if (!isApplicationLeaveCancelled(error)) throw error;
-    });
-  }
-
-  let unregister: (() => void) | undefined;
-  onMounted(() => {
-    unregister = registerSpaceSessionParticipant({ commit: prepareLeave, finalize: finalizeLeave });
+  const detach = registerSpaceSessionParticipant({
+    editorOwner: { spaceId: input.tab.spaceId, tabId: input.tab.id, commitOnSwitch: false },
+    commit: prepareLeave,
+    finalize: () => {
+      if (deferredDiscard) input.discard();
+      deferredDiscard = false;
+    },
   });
-  onUnmounted(() => {
-    unregister?.();
+  onBeforeUnmount(() => {
+    detach();
     if (pending) finish("cancel");
   });
-
   return {
-    cancel: () => finish("cancel"),
     closeDialogOpen,
+    cancel: () => finish("cancel"),
     discard: () => finish("discard"),
-    requestClose,
+    requestClose: () => {
+      void input.close().catch((error: unknown) => {
+        if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
+      });
+    },
     save: async () => {
       if ((await input.save()) && !input.dirty.value) finish("leave");
     },

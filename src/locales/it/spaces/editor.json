@@ -16,5 +16,17 @@
     "message": "Preparazione editor…",
     "hint": "L'apertura di documenti di grandi dimensioni potrebbe richiedere alcuni minuti."
   },
-  "placeholder": "Inizia a scrivere…"
+  "placeholder": "Inizia a scrivere…",
+  "tabs": {
+    "label": "Contenuti aperti",
+    "canvas": "Area di lavoro",
+    "close": "Chiudi {title}",
+    "missing": "Questa risorsa non è più disponibile. La bozza è conservata. Scartala esplicitamente per chiudere.",
+    "conflict": "Questa risorsa è stata modificata altrove. La bozza è conservata e non può sovrascrivere il contenuto più recente.",
+    "discardClose": "Scarta bozza e chiudi",
+    "rendered": "Il video modificato è pronto",
+    "viewResult": "Visualizza risultato",
+    "next": "Scheda di lavoro successiva",
+    "previous": "Scheda di lavoro precedente"
+  }
 }

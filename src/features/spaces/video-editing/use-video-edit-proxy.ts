@@ -13,15 +13,20 @@ export function useVideoEditProxy(
   nodeId: Ref<string | undefined>,
   sourceRevision: Ref<string | undefined>,
   spaceId: Ref<string | undefined>,
+  visible: Ref<boolean>,
 ) {
   const { t } = useI18n();
   const path = shallowRef<string>();
   const error = shallowRef<string>();
   const attempt = shallowRef(0);
+  let preparedIdentity: string | undefined;
 
   watch(
-    [nodeId, sourceRevision, spaceId, attempt],
-    async ([sourceNodeId, revision, currentSpaceId], _previous, onCleanup) => {
+    [nodeId, sourceRevision, spaceId, attempt, visible],
+    async ([sourceNodeId, revision, currentSpaceId, _attempt, visibleNow], _previous, onCleanup) => {
+      if (!visibleNow) return;
+      const identity = `${currentSpaceId}\0${sourceNodeId}\0${revision}`;
+      if (preparedIdentity === identity && path.value) return;
       path.value = undefined;
       error.value = undefined;
       if (!sourceNodeId || !revision || !currentSpaceId) {
@@ -49,7 +54,10 @@ export function useVideoEditProxy(
           } satisfies PrepareVideoEditProxyRequest,
         });
         const proxyPath = proxyPathSchema.parse(prepared);
-        if (active) path.value = proxyPath;
+        if (active) {
+          path.value = proxyPath;
+          preparedIdentity = identity;
+        }
       } catch (caught) {
         if (active)
           error.value = `${t("spaces.media.videoEditor.preview.proxyFailed")}: ${getErrorMessage(caught)}`;
@@ -60,5 +68,12 @@ export function useVideoEditProxy(
     { immediate: true },
   );
 
-  return { path, error, retry: () => (attempt.value += 1) };
+  return {
+    path,
+    error,
+    retry: () => {
+      preparedIdentity = undefined;
+      attempt.value += 1;
+    },
+  };
 }

@@ -8,7 +8,7 @@ import type { NodePayloadChangeInput } from "../nodes/node-operations";
 
 export interface SavedWebsiteBinding {
   context: {
-    saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<void>;
+    saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<unknown>;
   };
   spaceId: string;
   id: string;

@@ -4,53 +4,81 @@ export interface SpaceSessionParticipant {
   phase?: "content" | "layout" | "persistence";
   resume?(): void;
   suspend?(): void;
+  editorOwner?: { spaceId: string; tabId: string; commitOnSwitch: boolean };
 }
 
-const activeParticipants = new Set<SpaceSessionParticipant>();
+export interface SessionCommitScope {
+  purpose: "switch" | "close";
+  spaceIds?: readonly string[];
+  tabIds?: readonly string[];
+}
+
+const participants = new Set<SpaceSessionParticipant>();
 
 export function registerSpaceSessionParticipant(participant: SpaceSessionParticipant) {
-  activeParticipants.add(participant);
+  participants.add(participant);
   return () => {
-    activeParticipants.delete(participant);
+    participants.delete(participant);
   };
 }
 
 export function snapshotSpaceSessionParticipants(): readonly SpaceSessionParticipant[] {
-  return [...activeParticipants];
+  return [...participants];
 }
 
-export function flushSpaceSessionContent() {
-  return commitParticipants(participantsInPhase(snapshotSpaceSessionParticipants(), "content"));
+export async function flushSpaceSessionContent(scope?: SessionCommitScope) {
+  const selected = participantsInPhase(snapshotSpaceSessionParticipants(), "content").filter(
+    (participant) => !scope || includesParticipant(participant, scope),
+  );
+  await prepareParticipants(selected);
+  finalizeParticipants(selected);
 }
 
-export async function flushSpaceSessionCommits(afterContent?: () => Promise<void>) {
-  const participants = snapshotSpaceSessionParticipants();
-  await prepareParticipants(participantsInPhase(participants, "content"));
+export async function prepareEditorSessionClose(scope: Omit<SessionCommitScope, "purpose">) {
+  const selected = snapshotSpaceSessionParticipants().filter(
+    (participant) =>
+      participant.editorOwner && includesParticipant(participant, { ...scope, purpose: "close" }),
+  );
+  await prepareParticipants(selected);
+  return () => finalizeParticipants(selected);
+}
+
+export async function flushSpaceSessionCommits(
+  afterContent?: () => Promise<void>,
+  scope?: SessionCommitScope,
+) {
+  const selected = snapshotSpaceSessionParticipants().filter(
+    (participant) => !scope || includesParticipant(participant, scope),
+  );
+  await prepareParticipants(participantsInPhase(selected, "content"));
   await afterContent?.();
-  await prepareParticipants(participantsInPhase(participants, "layout"));
-  await prepareParticipants(participantsInPhase(participants, "persistence"));
-  finalizeParticipants(participants);
+  await prepareParticipants(participantsInPhase(selected, "layout"));
+  await prepareParticipants(participantsInPhase(selected, "persistence"));
+  finalizeParticipants(selected);
 }
 
-async function commitParticipants(participants: readonly SpaceSessionParticipant[]) {
-  await prepareParticipants(participants);
-  finalizeParticipants(participants);
+function includesParticipant(participant: SpaceSessionParticipant, scope: SessionCommitScope) {
+  const owner = participant.editorOwner;
+  if (!owner) return !scope.tabIds;
+  if (scope.spaceIds && !scope.spaceIds.includes(owner.spaceId)) return false;
+  if (scope.tabIds && !scope.tabIds.includes(owner.tabId)) return false;
+  return scope.purpose === "close" || owner.commitOnSwitch;
 }
 
-async function prepareParticipants(participants: readonly SpaceSessionParticipant[]) {
-  for (const participant of participants) {
-    // oxlint-disable-next-line eslint/no-await-in-loop -- Leave decisions must be presented one at a time.
+async function prepareParticipants(selected: readonly SpaceSessionParticipant[]) {
+  for (const participant of selected) {
+    // oxlint-disable-next-line eslint/no-await-in-loop -- Save decisions must be presented in a stable order.
     await participant.commit();
   }
 }
 
-function finalizeParticipants(participants: readonly SpaceSessionParticipant[]) {
-  for (const participant of participants) participant.finalize?.();
+function finalizeParticipants(selected: readonly SpaceSessionParticipant[]) {
+  for (const participant of selected) participant.finalize?.();
 }
 
 function participantsInPhase(
-  participants: readonly SpaceSessionParticipant[],
+  selected: readonly SpaceSessionParticipant[],
   phase: NonNullable<SpaceSessionParticipant["phase"]>,
 ) {
-  return participants.filter(({ phase: owner }) => owner === phase || (phase === "content" && !owner));
+  return selected.filter(({ phase: owner }) => owner === phase || (phase === "content" && !owner));
 }

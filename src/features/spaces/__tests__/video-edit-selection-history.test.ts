@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { effectScope, shallowRef } from "vue";
 
-import { useVideoEditHistory } from "../presentation/video-editor/use-video-edit-history";
 import { useVideoEditSelection } from "../presentation/video-editor/use-video-edit-selection";
 import { addTextOverlay, createVideoEditProject, splitClip } from "../video-editing/project";
+import { useVideoEditHistory } from "../video-editing/use-video-edit-history";
 
 describe("video editor selection and history", () => {
   it.each(["clip", "text"] as const)("commits %s deletion as one undoable edit", (kind) => {

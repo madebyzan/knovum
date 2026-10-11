@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, watch } from "vue";
+import { toRef } from "vue";
 
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
-import { useSpaceStore } from "../../session/space-store";
-import { useVideoEditProxy } from "../../video-editing/use-video-edit-proxy";
+import type { SpaceEditorTab } from "../../workspace/work-items";
+import SpaceEditorProblem from "../editor/SpaceEditorProblem.vue";
 import SpaceVideoEditorHeader from "./SpaceVideoEditorHeader.vue";
 import SpaceVideoEditorState from "./SpaceVideoEditorState.vue";
 import SpaceVideoInspector from "./SpaceVideoInspector.vue";
@@ -12,102 +10,67 @@ import SpaceVideoPreview from "./SpaceVideoPreview.vue";
 import SpaceVideoTimeline from "./SpaceVideoTimeline.vue";
 import SpaceVideoTransportBar from "./SpaceVideoTransportBar.vue";
 import SpaceVideoUnsavedDialog from "./SpaceVideoUnsavedDialog.vue";
-import { useVideoEditActions } from "./use-video-edit-actions";
-import { useVideoEditHistory } from "./use-video-edit-history";
-import { useVideoEditPreviewSource } from "./use-video-edit-preview-source";
-import { useVideoEditProject } from "./use-video-edit-project";
-import { useVideoEditSelection } from "./use-video-edit-selection";
-import { useVideoEditorInspector } from "./use-video-editor-inspector";
-import { useVideoEditorMedia } from "./use-video-editor-media";
-import { useVideoProjectPlayback } from "./use-video-project-playback";
+import { useVideoEditor } from "./use-video-editor";
 
-const store = useSpaceStore();
-const node = computed(() =>
-  store.nodes.find(
-    (candidate): candidate is SpaceCanvasNode<SpaceVideoPayload> =>
-      candidate.type === "video" && store.surface.kind === "video" && candidate.id === store.surface.nodeId,
-  ),
-);
-const data = computed(() => (node.value?.data.kind === "video" ? node.value.data : undefined));
+const props = defineProps<{ tab: SpaceEditorTab; active: boolean }>();
 const {
-  path: proxyPath,
-  error: prepareError,
-  retry: retryProxy,
-} = useVideoEditProxy(
-  computed(() => node.value?.id),
-  computed(() => data.value?.sourceRevision),
-  computed(() => store.activeSpaceId),
-);
-const { project, metadataError, initializeFromMetadata } = useVideoEditProject(
-  computed(() => node.value?.id),
+  session,
   data,
   proxyPath,
-);
-const video = shallowRef<HTMLVideoElement | null>(null);
-const editorRoot = shallowRef<HTMLElement | null>(null);
-const timelineZoom = shallowRef(1);
-const selection = useVideoEditSelection(project);
-const playback = useVideoProjectPlayback(video, project);
-const {
-  visible: inspectorVisible,
-  selectText: onSelectText,
-  selectClip: onSelectClip,
-  close: closeInspector,
-} = useVideoEditorInspector({ project, video, editorRoot, selection, playback });
-const {
-  previewPath,
-  error: previewError,
-  onMetadataError,
-} = useVideoEditPreviewSource({
-  data,
-  proxyPath,
-  playing: playback.playing,
-});
-const editorError = computed(
-  () => prepareError.value ?? metadataError.value ?? previewError.value ?? playback.audioError.value,
-);
-const history = useVideoEditHistory(project);
-const actions = useVideoEditActions({ node, data, project, video, history, selection, playback });
-const { sourceDurationMs, onMetadataReady, onPreviewReady } = useVideoEditorMedia({
-  nodeId: computed(() => node.value?.id),
-  data,
+  prepareError,
+  retryProxy,
   project,
   video,
+  editorRoot,
   timelineZoom,
-  history,
   selection,
   playback,
-  initializeFromMetadata,
-});
-
-watch(project, () => playback.seek(playback.timelineMs.value));
-
-async function onAddText() {
-  actions.addText();
-  await nextTick();
-  const input = editorRoot.value?.querySelector<HTMLTextAreaElement>("#video-edit-text");
-  input?.focus();
-  input?.select();
-}
+  inspectorVisible,
+  onSelectText,
+  onSelectClip,
+  closeInspector,
+  previewPath,
+  editorError,
+  history,
+  actions,
+  sourceDurationMs,
+  onMetadataReady,
+  onPreviewReady,
+  onMetadataError,
+  onAddText,
+} = useVideoEditor(props.tab, toRef(props, "active"));
 </script>
 
 <template>
   <section
-    v-if="data"
+    v-if="active"
     :ref="(value) => (editorRoot = value as HTMLElement | null)"
     class="absolute inset-0 z-60 flex min-h-0 flex-col bg-surface-canvas"
   >
     <SpaceVideoEditorHeader
       :title="data.title"
-      :can-save="!!project && history.dirty.value && !actions.saving.value && !actions.rendering.value"
-      :can-render="!!project && !editorError && !actions.saving.value && !actions.rendering.value"
+      :can-save="
+        !session.error.value &&
+        !!project &&
+        history.dirty.value &&
+        !actions.saving.value &&
+        !actions.rendering.value
+      "
+      :can-render="
+        !session.error.value && !!project && !editorError && !actions.saving.value && !actions.rendering.value
+      "
       :preparing="!proxyPath && !prepareError"
       :dirty="history.dirty.value"
       @close="actions.requestClose"
       @save="actions.save()"
       @render="actions.render"
     />
-    <div v-if="project && !editorError" class="flex min-h-0 flex-1 flex-col">
+    <SpaceEditorProblem
+      v-if="session.error.value"
+      :error="session.error.value"
+      @discard="actions.requestClose"
+    />
+    <div v-else-if="project && !editorError" class="flex min-h-0 flex-1 flex-col">
       <div class="relative flex min-h-0 flex-1 bg-surface-control/25" :class="inspectorVisible && 'pr-84'">
         <SpaceVideoPreview
           v-model:element="video"
@@ -183,6 +146,7 @@ async function onAddText() {
   <SpaceVideoUnsavedDialog
     v-model:open="actions.closeDialogOpen.value"
     :saving="actions.saving.value"
+    :can-save="!session.error.value"
     @cancel="actions.cancelLeave"
     @discard="actions.confirmDiscard"
     @save="actions.confirmSave"

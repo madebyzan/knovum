@@ -1,4 +1,4 @@
-import { computed, onMounted, onUnmounted, shallowRef, type Ref } from "vue";
+import { computed, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -15,15 +15,17 @@ import {
   type VideoEditProject,
 } from "../../video-editing/project";
 import { renderVideoEdit } from "../../video-editing/render";
-import { saveVideoEditProject } from "../../video-editing/save";
-import type { useVideoEditHistory } from "./use-video-edit-history";
+import type { useVideoEditHistory } from "../../video-editing/use-video-edit-history";
+import { useVideoProjectSave } from "../../video-editing/use-video-project-save";
+import type { VideoSession } from "../../video-editing/video-session-store";
 import { useVideoEditLeave } from "./use-video-edit-leave";
 import type { useVideoEditSelection } from "./use-video-edit-selection";
 import type { useVideoProjectPlayback } from "./use-video-project-playback";
 
 interface VideoEditActionsOptions {
+  session: VideoSession;
+  active: Ref<boolean>;
   node: Ref<SpaceCanvasNode<SpaceVideoPayload> | undefined>;
-  data: Ref<SpaceVideoPayload | undefined>;
   project: Ref<VideoEditProject | undefined>;
   video: Ref<HTMLVideoElement | null>;
   history: ReturnType<typeof useVideoEditHistory>;
@@ -32,50 +34,25 @@ interface VideoEditActionsOptions {
 }
 
 export function useVideoEditActions(options: VideoEditActionsOptions) {
-  const { node, data, project, video, history, selection, playback } = options;
+  const { node, project, video, history, selection, playback } = options;
   const store = useSpaceStore();
   const { t } = useI18n();
-  const saving = shallowRef(false);
-  const rendering = shallowRef(false);
-  let savePromise: Promise<boolean> | undefined;
+  const saving = options.session.saving;
+  const rendering = options.session.rendering;
+  const save = useVideoProjectSave(options.session);
   const canDelete = computed(
     () =>
       !!selection.selectedTextId.value ||
       (!!selection.selectedClipId.value && (project.value?.videoTrack.clips.length ?? 0) > 1),
   );
 
-  function save(): Promise<boolean> {
-    if (savePromise) return savePromise;
-    const currentNode = node.value;
-    const currentPayload = data.value;
-    const currentProject = project.value;
-    if (!currentNode || !currentPayload || !currentProject) return Promise.resolve(false);
-    // Captured before the await so edits landing mid-save stay dirty.
-    const snapshot = currentProject;
-    saving.value = true;
-    savePromise = saveVideoEditProject(store.updateNodeContents, currentNode, currentPayload, currentProject)
-      .then(() => {
-        history.markSaved(snapshot);
-        toast.success(t("spaces.media.videoEditor.project.saved"));
-        return true;
-      })
-      .catch((error) => {
-        toast.error(getErrorMessage(error));
-        return false;
-      })
-      .finally(() => {
-        saving.value = false;
-        savePromise = undefined;
-      });
-    return savePromise;
-  }
-
   const leave = useVideoEditLeave({
+    tab: options.session.tab,
     dirty: history.dirty,
     saving,
     save,
-    discard: store.closeVideoEditor,
-    close: store.closeVideoEditor,
+    close: () => store.closeEditorTab(options.session.tab.id),
+    discard: history.discard,
   });
   function closeOrDismiss() {
     if (saving.value) return;
@@ -117,14 +94,13 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
   async function render() {
     const sourceNode = node.value;
     const renderProject = project.value;
-    const spaceId = store.activeSpaceId;
-    const sourceSurface = store.surface;
+    const tab = options.session.tab;
     if (rendering.value || !sourceNode || !renderProject) return;
     rendering.value = true;
     try {
       if (history.dirty.value && !(await save())) return;
-      if (store.activeSpaceId !== spaceId || store.surface !== sourceSurface) return;
-      await renderVideoEdit(sourceNode, renderProject);
+      if (options.session.error.value) return;
+      await renderVideoEdit(tab.spaceId, sourceNode, renderProject);
     } catch (error) {
       toast.error(`${t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
     } finally {
@@ -132,25 +108,30 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
     }
   }
 
-  let unregister: (() => void) | undefined;
-  onMounted(() => {
-    unregister = registerVideoEditCommands({
-      canUndo: () => history.canUndo.value,
-      canRedo: () => history.canRedo.value,
-      canDelete: () => canDelete.value,
-      undo: history.undo,
-      redo: history.redo,
-      remove,
-      split,
-      togglePlayback,
-      step,
-      save: async () => {
-        await save();
-      },
-      close: closeOrDismiss,
-    });
-  });
-  onUnmounted(() => unregister?.());
+  watch(
+    [options.active, options.session.error],
+    ([active, error], _previous, cleanup) => {
+      if (!active || error) return;
+      cleanup(
+        registerVideoEditCommands({
+          canUndo: () => history.canUndo.value,
+          canRedo: () => history.canRedo.value,
+          canDelete: () => canDelete.value,
+          undo: history.undo,
+          redo: history.redo,
+          remove,
+          split,
+          togglePlayback,
+          step,
+          save: async () => {
+            await save();
+          },
+          close: closeOrDismiss,
+        }),
+      );
+    },
+    { immediate: true },
+  );
 
   return {
     addText,

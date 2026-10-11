@@ -13,12 +13,15 @@ interface StructureTransferContext {
   nodes: Ref<SpaceCanvasNode[]>;
   relations: Ref<SpaceRelation[]>;
   recordCommittedSpaceEdit(): void;
+  prepareContentRemoval(rootIds: readonly string[]): Promise<() => Promise<void>>;
 }
 
 export function createStructureTransferActions(context: StructureTransferContext) {
   async function moveStructureNodes(rootStructureNodeIds: readonly string[], targetSpaceId: string) {
     const sourceSpaceId = context.activeSpaceId.value;
     if (!sourceSpaceId || sourceSpaceId === targetSpaceId || !rootStructureNodeIds.length) return [];
+    const finishRemoval = await context.prepareContentRemoval(rootStructureNodeIds);
+    if (context.activeSpaceId.value !== sourceSpaceId) throw new Error("Transfer source Space changed");
     const sourceSnapshot = context.editSnapshot.value;
     const targetSnapshot = await spaceEditOperations.load(targetSpaceId);
     const targetOrder = targetSnapshot.structure.filter(({ parentId }) => parentId === null).length;
@@ -32,6 +35,7 @@ export function createStructureTransferActions(context: StructureTransferContext
       expectedSourceEditRevision: sourceSnapshot.editRevision,
       expectedTargetEditRevision: targetSnapshot.editRevision,
     });
+    if (transferReceipt.movedNodeIds.length) await finishRemoval();
     if (context.activeSpaceId.value === sourceSpaceId && transferReceipt.movedNodeIds.length) {
       const projection = await loadSpaceSessionProjection(sourceSpaceId);
       if (context.activeSpaceId.value === sourceSpaceId) {

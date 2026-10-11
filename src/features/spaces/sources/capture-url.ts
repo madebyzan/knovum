@@ -30,7 +30,7 @@ export interface UrlCaptureContext {
   ): void;
   finishUrlCapture(captureId: string): void;
   addContent(data: SpaceNodePayload, position?: { x: number; y: number }): Promise<SpaceCanvasNode[]>;
-  saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<void>;
+  saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<unknown>;
 }
 
 export async function captureSpaceUrl(

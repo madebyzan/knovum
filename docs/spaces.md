@@ -11,18 +11,42 @@ into the stable desktop shell, while Settings is a separate application route.
 
 ## Work surfaces and session ownership
 
-One active Space can show its canvas, one document editor, one video editor or the library. These
-surfaces are mutually exclusive session state, not independent layers. Library navigation, editor
-replacement, same-Space return and Space changes prepare content/layout/persistence through the
-existing leave barrier. Cancelled leave or failed save keeps the active surface and destination filter.
-Video close/render completion may finish the owning editor only after its Save/Discard decision or
-successful publication; a late result cannot close a newer editor.
+Space navigation and content work items are separate. Each open Space retains a fixed canvas and
+zero or more document/video editor tabs. Tabs identify a concrete Space-owned node and editor kind;
+reopening that target activates its existing session. The active surface is a readonly projection of
+the destination and the selected work item, never a second writable editor selector. The library is
+an application navigation destination and preserves the selected work item while hidden.
 
-The retained canvas preserves camera, selection and Group scope. Transient gestures and inline input
-are suspended during a surface handoff; inactive canvas navigation requests wait until the canvas
-becomes active again. A missing editor owner explicitly returns to canvas when its content is removed.
-Details inspects content, containers, relations and mixed selections; Space Knowledge Health appears
-only when nothing is selected. Editor-local citation preview does not request the canvas right pane.
+Content tabs preserve drafts and editor history when switching tabs, Spaces, the library or Settings.
+Space tabs select the Space and restore its selected work item; returning to canvas is explicit.
+Closing an editor prepares only its owner, then releases the tab and its resources. Closing a Space
+prepares all its editor owners; cancelling a later decision never drops earlier drafts or executes a
+prepared discard. Actual application exit prepares every retained editor through the existing window
+close coordinator. Successful durable writes need not be rolled back after a later cancellation.
+Closing a Space releases its work items; reopening it starts at canvas. Editor tabs and unsaved memory
+drafts do not survive application restart. Document auto-save and saved video projects retain their
+existing durable storage owners.
+
+Document sessions own their drafts; retained Tiptap instances own document history and selection.
+Video sessions own project drafts, history, selected items, playback position and timeline zoom.
+Only the active editor registers commands. Hidden video views release media DOM and thumbnail work;
+proxy preparation is cancelled while hidden. Document timers pause while inactive, and navigation
+flushes pending document writes before changing the active Space. Save failures retain the draft and
+block the requested transition. Saves and task callbacks bind to explicit Space/node identities.
+Markdown writes its text and rich document together; Rust validates that document and the saved video
+project at the node boundary. Project saving and rendering share the video owner's structural rules.
+
+The retained canvas preserves camera, selection and Group scope during same-Space handoffs. Transient
+gestures and inline input suspend; inactive canvas navigation requests wait until canvas is active.
+Canvas Outline and contextual side panes belong only to the canvas; editors own their local controls.
+Document citation previews close on content handoff without discarding the document session.
+
+Resource deletion and cross-Space moves prepare affected editor sessions before mutating ownership.
+Clean editors reload changed resources with a fresh history. Dirty conflicts or missing owners keep
+the draft, expose an error and require an explicit discard before closing; they never overwrite new
+content or write back a missing node. Video rendering captures the source Space and project snapshot,
+publishes into that Space through the existing Task Center bridge and offers an explicit result action.
+Completion never closes an editor or changes the current navigation.
 
 ## Product model
 

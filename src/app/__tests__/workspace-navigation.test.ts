@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@tauri-apps/plugin-log", () => ({ error: mocks.logError }));
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
 vi.mock("../../features/spaces/session/space-store", () => ({
-  useSpaceStore: () => ({ commitActiveSession: mocks.commit }),
+  useSpaceStore: () => ({ commitWorkspaceNavigation: mocks.commit }),
 }));
 vi.mock("../../features/spaces/workflows/action-catalog", () => ({ listSpaceActions: async () => [] }));
 vi.mock("../../features/spaces/SpaceView.vue", () => ({ default: { render: () => null } }));

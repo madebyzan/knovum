@@ -11,6 +11,7 @@ import { insertSpaceTiptapImagePaths } from "./tiptap-images";
 export function useSpaceTiptapImageDrop(
   editor: Ref<Editor | undefined>,
   target: Ref<HTMLElement | undefined>,
+  visible: Ref<boolean>,
 ) {
   const { t } = useI18n();
   const active = ref(false);
@@ -20,12 +21,18 @@ export function useSpaceTiptapImageDrop(
     await disposer.attach(
       listenForFileDrops({
         hover: (hovering, position) => {
-          active.value = hovering && isFileDropInside(target.value, position);
+          active.value = visible.value && hovering && isFileDropInside(target.value, position);
         },
         drop: async (payload) => {
           active.value = false;
           const current = editor.value;
-          if (!current || !isFileDropInside(target.value, payload.position) || !payload.paths.length) return;
+          if (
+            !visible.value ||
+            !current ||
+            !isFileDropInside(target.value, payload.position) ||
+            !payload.paths.length
+          )
+            return;
           const position = current.view.posAtCoords({
             left: payload.position.x,
             top: payload.position.y,

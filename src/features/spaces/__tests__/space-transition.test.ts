@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { createSpaceHistoryState } from "../history/history-state";
 import { beginSpaceMutation } from "../history/mutation-barrier";
 import { registerSpaceSessionParticipant } from "../workspace/session-participants";
-import type { SpaceSessionContext } from "../workspace/space-session-context";
 import { transitionActiveSpaceSession } from "../workspace/space-transition";
+import { createTestSessionContext } from "./support/session-context";
 
 describe("space transition", () => {
   it("drains active mutations before the final canvas persistence flush", async () => {
@@ -23,7 +23,7 @@ describe("space transition", () => {
       phase: "layout",
     });
     const transition = transitionActiveSpaceSession(
-      { history, captureOverview: () => void calls.push("capture") } as SpaceSessionContext,
+      createTestSessionContext({ history, captureOverview: () => void calls.push("capture") }),
       async () => void calls.push("transition"),
     );
 

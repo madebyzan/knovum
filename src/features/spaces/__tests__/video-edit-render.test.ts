@@ -18,11 +18,13 @@ const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, args?: InvokeArgs) => Promise<unknown>>(),
   logError: vi.fn<(message: string) => Promise<void>>(),
   toastError: vi.fn<(message: string) => void>(),
+  toastSuccess:
+    vi.fn<(message: string, options?: { action: { label: string; onClick: () => void } }) => void>(),
   // oxfmt-ignore
   tasks: { start: vi.fn<(title: string, statusMessage: string, cancel: () => Promise<void>) => string>(), progress: vi.fn<(taskId: string, progress: number, status?: string) => void>(), succeed: vi.fn<(taskId: string) => void>(), fail: vi.fn<(taskId: string, message: string) => void>(), dismiss: vi.fn<(taskId: string) => void>() },
 }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => mocks.current }));
-vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
+vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError, success: mocks.toastSuccess } }));
 vi.mock("@tauri-apps/plugin-log", () => ({ error: mocks.logError }));
 vi.mock("../../../foundation/tasks/task-store", () => ({ useTaskStore: () => mocks.tasks }));
 vi.mock("../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
@@ -41,7 +43,6 @@ const project = createVideoEditProject({ sourceRevision: "source-revision", dura
 function createStore() {
   return (mocks.current = {
     activeSpaceId: "space-id",
-    surface: { kind: "video", nodeId: source.id },
     createPendingContentForSpace: vi
       .fn<ReturnType<typeof useSpaceStore>["createPendingContentForSpace"]>()
       .mockResolvedValue([pending]),
@@ -50,7 +51,8 @@ function createStore() {
     refreshActiveSpace: vi
       .fn<ReturnType<typeof useSpaceStore>["refreshActiveSpace"]>()
       .mockResolvedValue(undefined),
-    closeVideoEditor: vi.fn<ReturnType<typeof useSpaceStore>["closeVideoEditor"]>(),
+    openSpace: vi.fn<ReturnType<typeof useSpaceStore>["openSpace"]>().mockResolvedValue(),
+    returnToCanvas: vi.fn<ReturnType<typeof useSpaceStore>["returnToCanvas"]>().mockResolvedValue(),
     requestReveal: vi.fn<ReturnType<typeof useSpaceStore>["requestReveal"]>(),
   });
 }
@@ -95,7 +97,7 @@ describe("video render IPC boundary", () => {
         progress.onmessage({ stage: "renderingVideoEdit", progress: 45 } satisfies VideoEditProgress);
       return { nodeId: pending.id, data: source.data };
     });
-    await renderVideoEdit(source, project);
+    await renderVideoEdit("space-id", source, project);
     expect(store.createPendingContentForSpace).toHaveBeenCalledWith(
       "space-id",
       expect.objectContaining({
@@ -124,7 +126,7 @@ describe("video render IPC boundary", () => {
     expect(store.applyNodeContentForSpace).toHaveBeenCalledWith("space-id", pending.id, source.data);
     expect(store.finalizePendingContent).toHaveBeenCalledWith("space-id", [pending], false);
     expect(mocks.tasks.succeed).toHaveBeenCalledWith("task-id");
-    expect(store.closeVideoEditor).toHaveBeenCalledExactlyOnceWith();
+    expect(store.openSpace).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -134,9 +136,9 @@ describe("video render IPC boundary", () => {
   ])("does not publish invalid render output: %j", async (completed) => {
     const store = createStore();
     mocks.invoke.mockResolvedValue(completed);
-    await renderVideoEdit(source, project);
+    await renderVideoEdit("space-id", source, project);
     expect(store.applyNodeContentForSpace).not.toHaveBeenCalled();
-    expect(store.closeVideoEditor).not.toHaveBeenCalled();
+    expect(store.openSpace).not.toHaveBeenCalled();
     expect(mocks.tasks.succeed).not.toHaveBeenCalled();
     expect(mocks.tasks.fail).toHaveBeenCalledWith("task-id", expect.any(String));
     expect(mocks.toastError).toHaveBeenCalled();
@@ -144,7 +146,7 @@ describe("video render IPC boundary", () => {
 
   it("keeps cancellation in the video capability and dismisses the cancelled task", async () => {
     mocks.invoke.mockRejectedValueOnce({ code: "video_edit_render_cancelled", message: "Cancelled" });
-    await renderVideoEdit(source, project);
+    await renderVideoEdit("space-id", source, project);
     expect(mocks.tasks.dismiss).toHaveBeenCalledWith("task-id");
     expect(mocks.toastError).not.toHaveBeenCalled();
     mocks.invoke.mockResolvedValueOnce(undefined);
@@ -161,7 +163,7 @@ describe("video render IPC boundary", () => {
     const store = createStore();
     vi.mocked(store.refreshActiveSpace).mockRejectedValueOnce(new Error("Refresh failed"));
     mocks.invoke.mockResolvedValueOnce({ nodeId: pending.id, data: source.data });
-    await expect(renderVideoEdit(source, project)).resolves.toBeUndefined();
+    await expect(renderVideoEdit("space-id", source, project)).resolves.toBeUndefined();
     expect(mocks.tasks.succeed).toHaveBeenCalledWith("task-id");
     expect(mocks.tasks.fail).not.toHaveBeenCalled();
     expect(mocks.logError).toHaveBeenCalledWith(expect.stringContaining("Refresh failed"));
@@ -172,11 +174,10 @@ describe("video render IPC boundary", () => {
     mocks.allocate.mockReturnValueOnce(allocation.promise);
     mocks.invoke.mockResolvedValueOnce({ nodeId: pending.id, data: source.data });
     const store = createStore();
-    const rendering = renderVideoEdit(source, project);
+    const rendering = renderVideoEdit("space-id", source, project);
     await vi.waitFor(() => expect(mocks.allocate).toHaveBeenCalledOnce());
 
     store.activeSpaceId = target === "reopened" ? "space-id" : "space-b";
-    store.surface = { kind: "video", nodeId: target === "reopened" ? source.id : "new-source" };
     const newerStore = createStore();
     allocation.resolve("/assets/edited-reserved.mp4");
     await rendering;
@@ -188,7 +189,7 @@ describe("video render IPC boundary", () => {
     expect(store.finalizePendingContent).toHaveBeenCalledWith("space-id", [pending], false);
     expect(store.refreshActiveSpace).toHaveBeenCalledTimes(target === "reopened" ? 1 : 0);
     expect(newerStore.refreshActiveSpace).not.toHaveBeenCalled();
-    expect(store.closeVideoEditor).not.toHaveBeenCalled();
+    expect(store.openSpace).not.toHaveBeenCalled();
     expect(store.requestReveal).not.toHaveBeenCalled();
   });
 });

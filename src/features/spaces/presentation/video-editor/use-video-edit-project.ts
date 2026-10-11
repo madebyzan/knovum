@@ -1,4 +1,3 @@
-import { cloneDeep } from "es-toolkit";
 import { shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -6,22 +5,16 @@ import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
 import { createVideoEditProject, type VideoEditProject } from "../../video-editing/project";
 
 export function useVideoEditProject(
-  nodeId: Ref<string | undefined>,
+  project: Ref<VideoEditProject | undefined>,
   data: Ref<SpaceVideoPayload | undefined>,
   proxyPath: Ref<string | undefined>,
 ) {
   const { t } = useI18n();
-  const project = shallowRef<VideoEditProject>();
   const metadataError = shallowRef<string>();
 
   watch(
-    [nodeId, () => data.value?.sourceRevision],
-    () => {
-      const saved = data.value?.videoEditProject;
-      project.value = saved ? cloneDeep(saved) : undefined;
-      metadataError.value = undefined;
-    },
-    { immediate: true },
+    () => data.value?.sourceRevision,
+    () => (metadataError.value = undefined),
   );
 
   function initializeFromMetadata(event: Event) {

@@ -16,5 +16,17 @@
     "message": "Editor wird vorbereitet…",
     "hint": "Das Öffnen großer Dokumente kann einen Moment dauern."
   },
-  "placeholder": "Beginnen Sie mit dem Schreiben…"
+  "placeholder": "Beginnen Sie mit dem Schreiben…",
+  "tabs": {
+    "label": "Offene Arbeitsinhalte",
+    "canvas": "Arbeitsfläche",
+    "close": "{title} schließen",
+    "missing": "Diese Ressource ist nicht mehr verfügbar. Der Entwurf bleibt erhalten. Verwerfen Sie ihn ausdrücklich, um zu schließen.",
+    "conflict": "Diese Ressource wurde außerhalb des Editors geändert. Der Entwurf bleibt erhalten und kann den neueren Inhalt nicht überschreiben.",
+    "discardClose": "Entwurf verwerfen und schließen",
+    "rendered": "Bearbeitetes Video ist fertig",
+    "viewResult": "Ergebnis anzeigen",
+    "next": "Nächster Arbeitstab",
+    "previous": "Vorheriger Arbeitstab"
+  }
 }
