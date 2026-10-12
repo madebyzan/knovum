@@ -276,7 +276,11 @@ owns both sessions and timeline controls in `video-editing/`. Image editing owns
 `inspection/presentation/` owns selection metadata views, while `outline/presentation/` owns the
 structure outline. Source peek and quotation views belong to knowledge presentation.
 Konva's internal layers, overlays and palette live in `canvas/konva/rendering/`. They implement the
-adapter's rendering contract; they are not the capability's product presentation layer.
+adapter's rendering contract; they are not the capability's product presentation layer. A Konva node
+renders no DOM, so one configuration object describes each node completely: geometry, behavior and
+its gesture handlers as `on*` entries. Gestures are never passed as Vue listeners, which the
+renderer cannot inherit, and handler identities stay stable so bindings survive configuration
+updates.
 
 ### Engines and local resources
 

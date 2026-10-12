@@ -31,6 +31,11 @@ const groupConfig = computed(() => ({
   y: frame.value.y,
   rotation: frame.value.rotation,
   draggable: props.interactive && props.sceneNode.interaction.movable,
+  onDblclick: activate,
+  onDragstart: beginDrag,
+  onDragmove: previewDrag,
+  onDragend: finishDrag,
+  onPointerdown: pressNode,
 }));
 
 function moveToLayer(event: Konva.KonvaEventObject<DragEvent>, layerId: string) {
@@ -38,26 +43,31 @@ function moveToLayer(event: Konva.KonvaEventObject<DragEvent>, layerId: string) 
   if (layer) event.target.moveTo(layer);
 }
 
+function activate() {
+  if (props.interactive) emit("activate", props.sceneNode.node.id);
+}
+
 function beginDrag(event: Konva.KonvaEventObject<DragEvent>) {
   moveToLayer(event, "canvas-drag-layer");
   emit("dragStart", props.sceneNode.node.id, event);
+}
+
+function previewDrag(event: Konva.KonvaEventObject<DragEvent>) {
+  emit("dragMove", props.sceneNode.node.id, event);
 }
 
 function finishDrag(event: Konva.KonvaEventObject<DragEvent>) {
   moveToLayer(event, "canvas-node-layer");
   emit("dragEnd", props.sceneNode.node.id);
 }
+
+function pressNode(event: Konva.KonvaEventObject<PointerEvent>) {
+  emit("pointerDown", props.sceneNode.node.id, event);
+}
 </script>
 
 <template>
-  <KonvaGroup
-    :config="groupConfig"
-    @dblclick="interactive && emit('activate', sceneNode.node.id)"
-    @dragend="finishDrag"
-    @dragmove="emit('dragMove', sceneNode.node.id, $event)"
-    @dragstart="beginDrag"
-    @pointerdown="emit('pointerDown', sceneNode.node.id, $event)"
-  >
+  <KonvaGroup :config="groupConfig">
     <KonvaRect
       :config="{
         width: frame.width,

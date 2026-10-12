@@ -26,17 +26,28 @@ const ICONS = { space: LayoutDashboard, document: FileText, video: Film };
     >
       <component :is="ICONS[props.view.kind]" class="size-3.5 shrink-0" :stroke-width="1.6" />
       <span class="truncate">{{ props.view.title }}</span>
-      <span v-if="props.view.dirty" aria-hidden="true">•</span>
       <span v-if="props.view.dirty" class="sr-only">{{ t("common.unsaved") }}</span>
     </TabsTrigger>
-    <button
-      v-if="props.view.canClose"
-      type="button"
-      :aria-label="t('spaces.space.tabs.closeNamed', { title: props.view.title })"
-      class="mr-1.5 grid size-4 shrink-0 place-items-center rounded opacity-0 group-hover:opacity-100 hover:bg-surface-control-hover focus-visible:opacity-100"
-      @click.stop="emit('close')"
-    >
-      <X class="size-3" :stroke-width="1.8" />
-    </button>
+    <!--
+      The unsaved marker and the close button share one reserved slot, so the label keeps its
+      width and never re-truncates while a document saves.
+    -->
+    <div class="relative mr-1.5 size-4 shrink-0">
+      <span
+        v-if="props.view.dirty"
+        class="grid size-4 place-items-center leading-none group-hover:invisible"
+        aria-hidden="true"
+        >•</span
+      >
+      <button
+        v-if="props.view.canClose"
+        type="button"
+        :aria-label="t('spaces.space.tabs.closeNamed', { title: props.view.title })"
+        class="absolute inset-0 grid place-items-center rounded opacity-0 group-hover:opacity-100 hover:bg-surface-control-hover focus-visible:opacity-100"
+        @click.stop="emit('close')"
+      >
+        <X class="size-3" :stroke-width="1.8" />
+      </button>
+    </div>
   </div>
 </template>

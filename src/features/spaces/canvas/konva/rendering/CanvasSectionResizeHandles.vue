@@ -37,38 +37,40 @@ function enter(corner: SectionResizeCorner, event: Konva.KonvaEventObject<Pointe
 function leave(event: Konva.KonvaEventObject<PointerEvent>) {
   if (!event.target.isDragging()) resetCursor();
 }
+function beginResize(corner: SectionResizeCorner, event: Konva.KonvaEventObject<DragEvent>) {
+  event.cancelBubble = true;
+  emit("resizeStart", corner, event);
+}
+function moveResize(event: Konva.KonvaEventObject<DragEvent>) {
+  event.cancelBubble = true;
+  emit("resizeMove", event);
+}
+function endResize(event: Konva.KonvaEventObject<DragEvent>) {
+  event.cancelBubble = true;
+  resetCursor();
+  emit("gestureEnd");
+}
+function handleConfig(corner: SectionResizeCorner) {
+  return {
+    x: corner.endsWith("west") ? 0 : width.value,
+    y: corner.startsWith("north") ? 0 : height.value,
+    radius: metrics.value.cornerRadius,
+    fill: props.palette.accent,
+    stroke: props.palette.panel,
+    strokeWidth: metrics.value.strokeWidth,
+    hitStrokeWidth: metrics.value.hitStrokeWidth,
+    draggable: props.interactive,
+    onPointerenter: (event: Konva.KonvaEventObject<PointerEvent>) => enter(corner, event),
+    onPointerleave: leave,
+    onDragstart: (event: Konva.KonvaEventObject<DragEvent>) => beginResize(corner, event),
+    onDragmove: moveResize,
+    onDragend: endResize,
+  };
+}
 watch(() => props.interactive, resetCursor);
 onScopeDispose(resetCursor);
 </script>
 
 <template>
-  <KonvaCircle
-    v-for="corner in CORNERS"
-    :key="corner"
-    :config="{
-      x: corner.endsWith('west') ? 0 : width,
-      y: corner.startsWith('north') ? 0 : height,
-      radius: metrics.cornerRadius,
-      fill: palette.accent,
-      stroke: palette.panel,
-      strokeWidth: metrics.strokeWidth,
-      hitStrokeWidth: metrics.hitStrokeWidth,
-      draggable: interactive,
-    }"
-    @pointerenter="enter(corner, $event)"
-    @pointerleave="leave"
-    @dragstart="
-      $event.cancelBubble = true;
-      emit('resizeStart', corner, $event);
-    "
-    @dragmove="
-      $event.cancelBubble = true;
-      emit('resizeMove', $event);
-    "
-    @dragend="
-      $event.cancelBubble = true;
-      resetCursor();
-      emit('gestureEnd');
-    "
-  />
+  <KonvaCircle v-for="corner in CORNERS" :key="corner" :config="handleConfig(corner)" />
 </template>

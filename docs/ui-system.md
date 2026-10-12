@@ -565,6 +565,10 @@ The tab strip is the only place that closes an opened thing. Editor surfaces car
 affordance and no Escape-to-close shortcut: their headers hold editing state and editing actions
 only, and leaving an editor means activating another tab.
 
+Each tab reserves one trailing slot that holds either the unsaved marker or, while the tab is
+hovered or its close button is focused, the close button. Autosave therefore never changes how much
+room the label has, so a saving document cannot make its tab title reflow.
+
 Open editor resources show a compact editing indicator, separate from the user-authored lock icon.
 A protected selection disables deletion and cross-Space transfer, explains that its editor tabs must
 be closed first, and offers an explicit action to the affected editor. Keyboard deletion/cut reports

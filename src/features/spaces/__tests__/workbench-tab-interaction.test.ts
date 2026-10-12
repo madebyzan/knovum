@@ -137,3 +137,25 @@ it("rechecks externally changed content after an in-flight save settles", async 
   expect(session.error.value).toBe("conflict");
   expect(session.state.title.value).toBe("a");
 });
+
+/**
+ * Autosave flips the unsaved marker while the user reads the strip, so the marker never takes room
+ * from the label: a reflowing label re-truncates and visibly shakes.
+ */
+it("marks unsaved content without reflowing the tab label", async () => {
+  const store = await setup();
+  const dirty = store.editorTabs[1]!;
+  useDocumentSessionStore().sessions.get(dirty.id)!.state.revision.value += 1;
+  const wrapper = mountStrip();
+  await flushPromises();
+
+  const label = wrapper.get(`[data-tab-id="${dirty.id}"] [role="tab"]`);
+  expect(label.text()).toBe(`b${i18n.global.t("common.unsaved")}`);
+  expect(label.get("span.truncate").text()).toBe("b");
+  expect(markerSlot(wrapper, dirty.id).textContent).toBe("•");
+  expect(markerSlot(wrapper, dirty.id).className).toBe(markerSlot(wrapper, store.tabs[0]!.id).className);
+});
+
+function markerSlot(wrapper: ReturnType<typeof mountStrip>, tabId: string) {
+  return wrapper.get(`[data-tab-id="${tabId}"]`).element.lastElementChild!;
+}

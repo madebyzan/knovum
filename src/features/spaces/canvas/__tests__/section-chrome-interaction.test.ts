@@ -1,4 +1,5 @@
 import { shallowMount } from "@vue/test-utils";
+import type Konva from "konva";
 import type { Canvas } from "konva/lib/Canvas";
 import { HitContext } from "konva/lib/Context";
 import { Rect } from "konva/lib/shapes/Rect";
@@ -12,6 +13,11 @@ import type { ProjectedSection } from "../document/structure-scene";
 import CanvasSectionChrome from "../konva/rendering/CanvasSectionChrome.vue";
 import CanvasSectionResizeHandles from "../konva/rendering/CanvasSectionResizeHandles.vue";
 import type { CanvasPalette } from "../konva/rendering/use-canvas-palette";
+
+type KonvaPointerHandlers = {
+  onPointerenter(event: Konva.KonvaEventObject<PointerEvent>): void;
+  onPointerleave(event: Konva.KonvaEventObject<PointerEvent>): void;
+};
 
 const section: ProjectedSection = {
   section: { id: "section", kind: "section", parentId: null, order: 0, locked: false, title: "Sources" },
@@ -84,14 +90,16 @@ describe("Section chrome interaction", () => {
         getStage: () => ({ container: () => container }),
         isDragging: () => dragging,
       },
-    };
-    const handles = wrapper.findAllComponents(KonvaCircle);
-    handles[0]!.vm.$emit("pointerenter", event);
+    } as unknown as Konva.KonvaEventObject<PointerEvent>;
+    const handles = wrapper
+      .findAllComponents(KonvaCircle)
+      .map((handle) => handle.props("config") as KonvaPointerHandlers);
+    handles[0]!.onPointerenter(event);
     expect(container.style.cursor).toBe("nwse-resize");
-    handles[1]!.vm.$emit("pointerenter", event);
+    handles[1]!.onPointerenter(event);
     expect(container.style.cursor).toBe("nesw-resize");
     dragging = true;
-    handles[1]!.vm.$emit("pointerleave", event);
+    handles[1]!.onPointerleave(event);
     expect(container.style.cursor).toBe("nesw-resize");
     await wrapper.setProps({ interactive: false });
     await nextTick();
