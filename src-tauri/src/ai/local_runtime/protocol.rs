@@ -7,6 +7,9 @@ use tokio::process::{ChildStdin, ChildStdout};
 
 use crate::ai::contracts::runtime::MAX_MESSAGE_BYTES;
 
+/// A worker rejection reason is a diagnostic for logs and dialogs, not a payload.
+const MAX_REASON_BYTES: usize = 512;
+
 pub(super) struct Protocol {
     input: ChildStdin,
     output: BufReader<ChildStdout>,
@@ -87,12 +90,19 @@ impl Protocol {
             (Some(response_payload), None) => serde_json::from_value(response_payload.clone())
                 .map_err(|error| format!("invalid_output: {error}")),
             (None, Some(error)) => {
+                // The worker reports the full reason as the message and its leading code as
+                // data.code. Keep the reason when it refines that code: the code alone cannot tell
+                // apart the rejections that share it.
                 let code = error
                     .get("data")
                     .and_then(|data| data.get("code"))
                     .and_then(Value::as_str)
                     .unwrap_or("invalid_output");
-                Err(code.to_owned())
+                let reason = error
+                    .get("message")
+                    .and_then(Value::as_str)
+                    .filter(|reason| reason.len() <= MAX_REASON_BYTES && reason.starts_with(code));
+                Err(reason.unwrap_or(code).to_owned())
             }
             _ => Err("invalid_output: worker returned an invalid JSON-RPC envelope".into()),
         }

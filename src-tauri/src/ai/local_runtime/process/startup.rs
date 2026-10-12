@@ -7,10 +7,7 @@ use crate::ai::local_runtime::{
     admission,
     protocol::{io_error, Protocol},
 };
-use std::{
-    path::Path,
-    time::{Duration, Instant},
-};
+use std::{path::Path, time::Instant};
 use tokio_util::sync::CancellationToken;
 
 impl Worker {
@@ -106,7 +103,7 @@ impl Worker {
                     _ = exit.cancelled() => Err("cancelled".into()),
                     _ = cancellation.cancelled() => Err("cancelled".into()),
                     startup = tokio::time::timeout(
-                        remaining.min(Duration::from_secs(15)),
+                        remaining.min(runtime.initialization_budget()),
                         protocol.request(&params.session_id, "runtime.initialize", &params),
                     ) => startup
                         .map_err(|_| "deadline_exceeded: worker initialization timed out".to_owned())

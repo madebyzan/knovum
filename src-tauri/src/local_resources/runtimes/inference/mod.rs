@@ -10,6 +10,8 @@ pub(crate) struct InferenceRuntimePaths {
     pub(crate) manifest_path: PathBuf,
     pub(crate) executable: PathBuf,
     pub(crate) digest: String,
+    /// Bytes the worker verifies before it loads the runtime, which bounds its initialization.
+    pub(crate) verified_bytes: u64,
 }
 
 pub(crate) fn resolve<R: Runtime>(app: &AppHandle<R>) -> Result<InferenceRuntimePaths, String> {
@@ -51,22 +53,21 @@ pub(crate) fn resolve<R: Runtime>(app: &AppHandle<R>) -> Result<InferenceRuntime
     };
     let manifest_path = directory.join("inference-runtime-manifest.json");
     let bytes = read_manifest(&manifest_path)?;
-    let runtime = InferenceRuntimePaths {
+    let manifest = supplied_manifest(&bytes)?;
+    Ok(InferenceRuntimePaths {
         manifest_path,
         executable,
         digest: hex::encode(Sha256::digest(&bytes)),
-    };
-    verify_before_spawn(&runtime)?;
-    Ok(runtime)
+        verified_bytes: manifest.files.iter().map(|file| file.size).sum(),
+    })
 }
 
-pub(crate) fn verify_before_spawn(runtime: &InferenceRuntimePaths) -> Result<(), String> {
-    let bytes = read_manifest(&runtime.manifest_path)?;
-    if hex::encode(Sha256::digest(&bytes)) != runtime.digest {
-        return Err("runtime_mismatch: inference manifest changed after resolution".into());
-    }
+/// The supplied inventory must be the one this build was qualified against. Byte verification of the
+/// runtime belongs to [`verify_before_spawn`], which runs once per worker spawn rather than once per
+/// request, so resolving a path stays cheap enough for every caller that only needs its identity.
+fn supplied_manifest(bytes: &[u8]) -> Result<RuntimeManifest, String> {
     let actual: RuntimeManifest =
-        serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
+        serde_json::from_slice(bytes).map_err(|error| error.to_string())?;
     let expected: RuntimeManifest = serde_json::from_slice(include_bytes!(concat!(
         env!("OUT_DIR"),
         "/inference-runtime-manifest.json"
@@ -90,6 +91,15 @@ pub(crate) fn verify_before_spawn(runtime: &InferenceRuntimePaths) -> Result<(),
     {
         return Err("runtime_mismatch: inference runtime supplier inventory differs".into());
     }
+    Ok(actual)
+}
+
+pub(crate) fn verify_before_spawn(runtime: &InferenceRuntimePaths) -> Result<(), String> {
+    let bytes = read_manifest(&runtime.manifest_path)?;
+    if hex::encode(Sha256::digest(&bytes)) != runtime.digest {
+        return Err("runtime_mismatch: inference manifest changed after resolution".into());
+    }
+    let expected = supplied_manifest(&bytes)?;
     let directory = runtime
         .manifest_path
         .parent()

@@ -12,7 +12,7 @@ struct Backend {
 }
 
 pub(crate) fn execution_id(model: LocalModelId, device: &str) -> Result<String, String> {
-    crate::ai::contracts::speech_wire::alignment_execution_id(model.alignment_spec()?, device)
+    crate::ai::contracts::execution_profile::alignment(model.alignment_spec()?, device)
         .ok_or_else(|| "unsupported_device: forced alignment backend is unsupported".into())
 }
 

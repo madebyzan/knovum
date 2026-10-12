@@ -1,16 +1,6 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub fn alignment_execution_id(model_spec_id: &str, device: &str) -> Option<String> {
-    let precision = match model_spec_id {
-        "qwen3-forced-aligner-0.6b-f16-native-v2" => "f16",
-        "qwen3-forced-aligner-0.6b-q8_0-v1" => "q8_0",
-        _ => return None,
-    };
-    matches!(device, "cpu" | "mps" | "vulkan")
-        .then(|| format!("qwen3-forced-aligner-0.6b-{precision}-{device}-native-v2"))
-}
-
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct InferenceRequestIdentity {

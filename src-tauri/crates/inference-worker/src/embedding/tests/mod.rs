@@ -6,7 +6,7 @@ fn obsolete_embedding_identity_or_unadmitted_threads_fail_before_model_loading()
         "runtimeManifestPath": "/inference/manifest.json", "runtimeDigest": "digest",
         "protocolVersion": 1, "sessionId": "session", "capability": "embedding",
         "capabilitySpecId": EMBEDDING_SPEC_ID,
-        "deviceProfile": {"device": "cpu", "executionProfileId": "cpu-f32-threads4-native-v2", "cpuThreads": 4},
+        "deviceProfile": {"device": "cpu", "executionProfileId": execution_profile::embedding("cpu", 4), "cpuThreads": 4},
         "workDirectory": "/work", "modelPaths": {"embedding": "/not-loaded"}
     })).unwrap();
     assert!(Embedding::new(&params).is_ok());

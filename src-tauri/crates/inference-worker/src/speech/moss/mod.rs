@@ -5,6 +5,7 @@ use super::stream::Publisher;
 use crate::{artifact, cancellation::Cancellation, onnx};
 use codec::Codec;
 use knovum_inference_contracts::{
+    execution_profile,
     runtime::RuntimeInitializeParams,
     speech_wire::{SpeechSynthesizeParams, VoiceSourceKind},
 };
@@ -35,10 +36,7 @@ impl Moss {
             || !(1..=8).contains(&params.device_profile.cpu_threads)
             || params.model_paths.speech_synthesis.is_none()
             || params.device_profile.execution_profile_id
-                != format!(
-                    "moss-nano-cpu-f32-threads{}-native-v2",
-                    params.device_profile.cpu_threads
-                )
+                != execution_profile::moss_nano(params.device_profile.cpu_threads)
         {
             return Err("unsupported_device: MOSS execution profile is unavailable".into());
         }

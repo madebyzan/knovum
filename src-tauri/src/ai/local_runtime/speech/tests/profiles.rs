@@ -27,7 +27,7 @@ fn every_inference_transcription_model_has_a_memory_identity() {
             RuntimeCapability::SpeechTranscription,
             &RuntimeDeviceProfile {
                 device: profile.device.into(),
-                execution_profile_id: profile.id.into(),
+                execution_profile_id: profile.id,
                 cpu_threads: 1,
             },
         )

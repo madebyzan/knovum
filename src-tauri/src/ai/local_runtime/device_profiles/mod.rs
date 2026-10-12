@@ -1,5 +1,8 @@
 use crate::{
-    ai::contracts::runtime::{RuntimeCapability, RuntimeDeviceProfile},
+    ai::contracts::{
+        execution_profile,
+        runtime::{RuntimeCapability, RuntimeDeviceProfile},
+    },
     local_resources::model_catalog::LocalModelId,
 };
 
@@ -36,47 +39,48 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
     let device = device_profile.device.as_str();
     let (load_peak_gib, inference_peak_gib, profile_name) = match (capability, id, device) {
         (RuntimeCapability::Embedding, _, "cpu" | "mps")
-            if valid_threaded_profile(device_profile, &format!("{device}-f32-threads")) =>
+            if threaded_profile(
+                device_profile,
+                &execution_profile::embedding(device, device_profile.cpu_threads),
+            ) =>
         {
             (3, EMBEDDING_PEAK_GIB, "Qwen3 embedding F32")
         }
         (RuntimeCapability::ImageSegmentation, _, "cpu")
-            if valid_threaded_profile(device_profile, "cpu-f32-threads") =>
+            if image_profile(device_profile, capability) =>
         {
             (1, 1, "U2Net image segmentation CPU")
         }
         (RuntimeCapability::ImageUpscaling, _, "cpu")
-            if valid_threaded_profile(device_profile, "image-upscaling-cpu-threads") =>
+            if image_profile(device_profile, capability) =>
         {
             (1, 3, "Real-ESRGAN tiled CPU")
         }
         (RuntimeCapability::ImageInpainting, _, "cpu")
-            if valid_threaded_profile(device_profile, "image-inpainting-cpu-threads") =>
+            if image_profile(device_profile, capability) =>
         {
             (1, 2, "MI-GAN selected region CPU")
         }
         (RuntimeCapability::ImageSelection, _, "cpu")
-            if valid_threaded_profile(device_profile, "image-selection-cpu-threads") =>
+            if image_profile(device_profile, capability) =>
         {
             (2, 3, "EfficientSAM CPU")
         }
-        (RuntimeCapability::ImageDepth, _, "cpu")
-            if valid_threaded_profile(device_profile, "image-depth-cpu-threads") =>
-        {
+        (RuntimeCapability::ImageDepth, _, "cpu") if image_profile(device_profile, capability) => {
             (1, 2, "Depth Anything Small CPU")
         }
         (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
-            if id == format!("whisper-tiny-{device}-q8_0-inference-v2") =>
+            if id == execution_profile::whisper("tiny", device, "q8_0") =>
         {
             (1, 2, "Whisper.cpp tiny Q8")
         }
         (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
-            if id == format!("whisper-small-{device}-q8_0-inference-v2") =>
+            if id == execution_profile::whisper("small", device, "q8_0") =>
         {
             (2, 3, "Whisper.cpp small Q8")
         }
         (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
-            if id == format!("whisper-large-v3-{device}-f16-inference-v2") =>
+            if id == execution_profile::whisper("large-v3", device, "f16") =>
         {
             (5, 7, "Whisper.cpp large-v3 F16")
         }
@@ -117,7 +121,10 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
             (14, 16, "VoxCPM2 audio.cpp Q8 GGUF")
         }
         (RuntimeCapability::SpeechSynthesis, _, "cpu")
-            if valid_threaded_profile(device_profile, "moss-nano-cpu-f32-threads") =>
+            if threaded_profile(
+                device_profile,
+                &execution_profile::moss_nano(device_profile.cpu_threads),
+            ) =>
         {
             (1, 2, "MOSS-TTS-Nano CPU F32")
         }
@@ -130,13 +137,14 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
     })
 }
 
-fn valid_threaded_profile(profile: &RuntimeDeviceProfile, prefix: &str) -> bool {
-    profile
-        .execution_profile_id
-        .strip_prefix(prefix)
-        .and_then(|value| value.strip_suffix("-inference-v2"))
-        .and_then(|value| value.parse::<u8>().ok())
-        .is_some_and(|threads| (1..=4).contains(&threads) && threads == profile.cpu_threads)
+/// Threaded profiles are admitted only for thread counts the compute budget can grant.
+fn threaded_profile(profile: &RuntimeDeviceProfile, expected: &str) -> bool {
+    (1..=4).contains(&profile.cpu_threads) && profile.execution_profile_id == expected
+}
+
+fn image_profile(profile: &RuntimeDeviceProfile, capability: RuntimeCapability) -> bool {
+    execution_profile::image(capability, profile.cpu_threads)
+        .is_some_and(|expected| threaded_profile(profile, &expected))
 }
 
 pub(super) fn inference_memory_budget(total_bytes: u64) -> u64 {
