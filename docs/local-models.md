@@ -145,6 +145,14 @@ Process admission, resident-memory checks, idle reuse, cancellation and publicat
 [system-architecture.md](system-architecture.md); corresponding-source and license approval remains a
 [release requirement](release.md). Ollama is an optional generative provider, not an embedding or ASR dependency.
 
+Byte verification of the inference runtime belongs to the worker spawn, which is the moment before
+the libraries are loaded and the only place the cost is unavoidable. Resolving the runtime for its
+identity verifies the supplied inventory against the one this build was qualified against and
+nothing else, so a request no longer rehashes the runtime on the way to a worker that rehashes it
+again. A worker's initialization budget is that verification work at a throughput floor far below
+any supported disk, plus a fixed allowance for the process and its engine, instead of a constant
+that a cold page cache can exhaust.
+
 ## Generative AI and privacy
 
 Knowledge indexing runs locally using the private Qwen3 worker. Vector embeddings and extracted chunk texts do not leave the machine. Grounded answering sends only the explicit prompt plus bounded relevant text context when cloud generative AI is configured. Source files and media binaries are not uploaded by these paths.

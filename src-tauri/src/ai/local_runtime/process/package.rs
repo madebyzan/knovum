@@ -1,5 +1,5 @@
 use crate::local_resources::runtimes::inference::InferenceRuntimePaths;
-use std::process::Stdio;
+use std::{process::Stdio, time::Duration};
 use tokio::process::Command;
 
 #[derive(Clone)]
@@ -19,6 +19,16 @@ impl WorkerPackage {
         .await
         .map_err(|error| format!("Inference verification task failed: {error}"))?
     }
+
+    /// A worker hashes the whole runtime before it loads any library, so its initialization budget
+    /// is that work plus a fixed allowance for spawning the process and building its engine. The
+    /// throughput floor is far below any supported disk, so the budget never races the real cost.
+    pub(super) fn initialization_budget(&self) -> Duration {
+        const VERIFICATION_FLOOR_BYTES_PER_SECOND: u64 = 20 * 1024 * 1024;
+        Duration::from_secs(15)
+            + Duration::from_secs(self.0.verified_bytes / VERIFICATION_FLOOR_BYTES_PER_SECOND)
+    }
+
     pub(super) fn digest(&self) -> &str {
         &self.0.digest
     }

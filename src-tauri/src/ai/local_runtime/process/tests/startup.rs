@@ -9,6 +9,7 @@ async fn missing_inference_runtime_is_rejected_before_admission_or_workspace_cre
         manifest_path: directory.join("runtime-manifest.json"),
         executable: directory.join("knovum-inference-worker"),
         digest: "a".repeat(64),
+        verified_bytes: 0,
     };
     let params = RuntimeInitializeParams {
         runtime_manifest_path: runtime.manifest_path.to_string_lossy().into_owned(),
