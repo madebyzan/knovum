@@ -88,7 +88,7 @@ describe("spaces knowledge index scheduler", () => {
   it("reports readiness inspection failures instead of treating them as unprepared", async () => {
     mocks.getLocalResourcesStatus.mockRejectedValueOnce(new Error("Unable to inspect resources"));
     scheduleSpaceKnowledgeIndex("test-space");
-    await vi.runAllTimersAsync();
+    await vi.advanceTimersByTimeAsync(5_000);
 
     expect(mocks.indexKnowledgeRetrieval).not.toHaveBeenCalled();
     expect(mocks.logError).toHaveBeenCalledOnce();
@@ -108,5 +108,44 @@ describe("spaces knowledge index scheduler", () => {
       "Knowledge semantic indexing failed: [provider_request_failed] Embedding provider request failed",
     );
     expect(knowledgeIndexStatus("structured-ai-error")).toBe("unavailable");
+  });
+
+  it("retains the scope of a failed attempt and retries it with a growing delay", async () => {
+    mocks.indexKnowledgeRetrieval.mockRejectedValueOnce(new Error("deadline_exceeded"));
+
+    scheduleKnowledgeIndex("test-space", ["node-1"]);
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledExactlyOnceWith("test-space", ["node-1"]);
+    expect(knowledgeIndexStatus("test-space")).toBe("unavailable");
+
+    // The retry waits; indexing shares one worker and must not spin on a failing dependency.
+    await vi.advanceTimersByTimeAsync(4_999);
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledOnce();
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenLastCalledWith("test-space", ["node-1"]);
+    expect(knowledgeIndexStatus("test-space")).toBe("ready");
+  });
+
+  it("backs off further for every consecutive failure and recovers immediately on success", async () => {
+    mocks.indexKnowledgeRetrieval.mockRejectedValue(new Error("deadline_exceeded"));
+
+    scheduleSpaceKnowledgeIndex("test-space");
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledOnce();
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledTimes(2);
+
+    await vi.advanceTimersByTimeAsync(9_999);
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledTimes(2);
+
+    mocks.indexKnowledgeRetrieval.mockResolvedValue({ indexed: 1, staleNodeIds: [] });
+    await vi.advanceTimersByTimeAsync(1);
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledTimes(3);
+    // The whole-Space scope survived both failures, so the successful attempt still covers it.
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenLastCalledWith("test-space", undefined);
+    expect(knowledgeIndexStatus("test-space")).toBe("ready");
   });
 });
