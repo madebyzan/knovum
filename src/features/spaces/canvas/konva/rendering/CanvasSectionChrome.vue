@@ -37,24 +37,28 @@ const displayCollapsed = computed(() => props.section.layout.collapsed && !props
 function rename() {
   if (props.interactive && !props.section.locked) emit("rename");
 }
+
+function toggleCollapsed() {
+  if (props.interactive) emit("collapse", !displayCollapsed.value);
+}
+
+const chromeConfig = computed(() => ({
+  id: `canvas-section-chrome-${props.section.section.id}`,
+  structureNodeId: props.section.section.id,
+  x: props.section.bounds.left,
+  y: props.section.bounds.top,
+  draggable: props.interactive && !props.section.locked,
+  onDragstart: (event: Konva.KonvaEventObject<DragEvent>) => emit("dragStart", event),
+  onDragmove: (event: Konva.KonvaEventObject<DragEvent>) => emit("dragMove", event),
+  onDragend: () => emit("gestureEnd"),
+  onPointerenter: () => (hovered.value = true),
+  onPointerleave: () => (hovered.value = false),
+  onPointerdown: (event: Konva.KonvaEventObject<PointerEvent>) => emit("pointerDown", event),
+}));
 </script>
 
 <template>
-  <KonvaGroup
-    :config="{
-      id: `canvas-section-chrome-${section.section.id}`,
-      structureNodeId: section.section.id,
-      x: section.bounds.left,
-      y: section.bounds.top,
-      draggable: interactive && !section.locked,
-    }"
-    @dragstart="emit('dragStart', $event)"
-    @dragmove="emit('dragMove', $event)"
-    @dragend="emit('gestureEnd')"
-    @pointerenter="hovered = true"
-    @pointerleave="hovered = false"
-    @pointerdown="emit('pointerDown', $event)"
-  >
+  <KonvaGroup :config="chromeConfig">
     <KonvaRect
       v-if="dropAction"
       :config="{
@@ -74,8 +78,8 @@ function rename() {
         opacity: 0.94,
         cornerRadius: displayCollapsed ? 8 : [8, 8, 0, 0],
         perfectDrawEnabled: false,
+        onDblclick: rename,
       }"
-      @dblclick="rename"
     />
     <KonvaRect
       :config="{
@@ -108,8 +112,8 @@ function rename() {
         fontStyle: '500',
         ellipsis: true,
         wrap: 'none',
+        onDblclick: rename,
       }"
-      @dblclick="rename"
     />
     <KonvaText
       :config="{
@@ -126,10 +130,7 @@ function rename() {
         listening: false,
       }"
     />
-    <KonvaGroup
-      :config="{ x: width - 32, y: 10 }"
-      @click="interactive && emit('collapse', !displayCollapsed)"
-    >
+    <KonvaGroup :config="{ x: width - 32, y: 10, onClick: toggleCollapsed }">
       <KonvaRect :config="{ width: 20, height: 20, fill: 'rgba(0,0,0,0.001)', cornerRadius: 4 }" />
       <KonvaLine
         :config="{

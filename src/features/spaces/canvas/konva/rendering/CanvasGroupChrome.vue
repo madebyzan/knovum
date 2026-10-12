@@ -18,6 +18,8 @@ import {
 } from "../interaction/group-handle-transform";
 import type { CanvasPalette } from "./use-canvas-palette";
 
+type GroupHandleKind = "rotate" | "scale";
+const HANDLES: readonly GroupHandleKind[] = ["rotate", "scale"];
 const props = defineProps<{
   group: ProjectedGroup;
   interactive: boolean;
@@ -41,10 +43,6 @@ const width = computed(() => props.group.bounds.right - props.group.bounds.left)
 const height = computed(() => props.group.bounds.bottom - props.group.bounds.top);
 const metrics = computed(() => canvasChromeMetrics(props.zoom).group);
 
-function rename() {
-  if (props.interactive && !props.group.locked) emit("rename");
-}
-
 function pointerDown(event: Konva.KonvaEventObject<PointerEvent>) {
   pressedPoint = event.target.getStage()!.getRelativePointerPosition()!;
   emit("pointerDown", event);
@@ -59,19 +57,13 @@ function beginTransform(event: Konva.KonvaEventObject<DragEvent>) {
   emit("transformStart", event);
 }
 
-function previewTransform(kind: "rotate" | "scale", event: Konva.KonvaEventObject<DragEvent>) {
+function previewTransform(kind: GroupHandleKind, event: Konva.KonvaEventObject<DragEvent>) {
   event.cancelBubble = true;
   if (!handleOrigin) return;
   const next = event.target.getStage()!.getRelativePointerPosition()!;
   emit("transform", groupHandleTransform(kind, handleOrigin, next));
   const target = event.target;
-  void nextTick(() =>
-    target.position(
-      kind === "rotate"
-        ? { x: width.value / 2, y: -metrics.value.rotationOffset }
-        : { x: width.value, y: height.value },
-    ),
-  );
+  void nextTick(() => target.position(handlePosition(kind)));
 }
 
 function finishTransform(event: Konva.KonvaEventObject<DragEvent>) {
@@ -79,23 +71,52 @@ function finishTransform(event: Konva.KonvaEventObject<DragEvent>) {
   handleOrigin = undefined;
   emit("gestureEnd");
 }
+
+function handlePosition(kind: GroupHandleKind) {
+  if (kind === "rotate") return { x: width.value / 2, y: -metrics.value.rotationOffset };
+  return { x: width.value, y: height.value };
+}
+
+const chromeConfig = computed(() => ({
+  id: `canvas-group-chrome-${props.group.group.id}`,
+  structureNodeId: props.group.group.id,
+  x: props.group.bounds.left,
+  y: props.group.bounds.top,
+  draggable: props.interactive && !props.group.locked,
+  onDragstart: (event: Konva.KonvaEventObject<DragEvent>) => emit("dragStart", event),
+  onDragmove: (event: Konva.KonvaEventObject<DragEvent>) => emit("dragMove", event),
+  onDragend: () => emit("gestureEnd"),
+  onPointerdown: pointerDown,
+  onDblclick: () => emit("enter"),
+}));
+
+const labelConfig = computed(() => ({
+  x: 8 / props.zoom,
+  y: -metrics.value.labelOffset,
+  onDblclick: (event: Konva.KonvaEventObject<MouseEvent>) => {
+    event.cancelBubble = true;
+    if (props.interactive && !props.group.locked) emit("rename");
+  },
+}));
+
+function handleConfig(kind: GroupHandleKind) {
+  return {
+    ...handlePosition(kind),
+    radius: metrics.value.handleRadius,
+    fill: props.palette.panel,
+    stroke: props.palette.accent,
+    strokeWidth: metrics.value.strokeWidth,
+    hitStrokeWidth: metrics.value.hitStrokeWidth,
+    draggable: props.interactive && !props.group.locked,
+    onDragstart: beginTransform,
+    onDragmove: (event: Konva.KonvaEventObject<DragEvent>) => previewTransform(kind, event),
+    onDragend: finishTransform,
+  };
+}
 </script>
 
 <template>
-  <KonvaGroup
-    :config="{
-      id: `canvas-group-chrome-${group.group.id}`,
-      structureNodeId: group.group.id,
-      x: group.bounds.left,
-      y: group.bounds.top,
-      draggable: interactive && !group.locked,
-    }"
-    @dragstart="emit('dragStart', $event)"
-    @dragmove="emit('dragMove', $event)"
-    @dragend="emit('gestureEnd')"
-    @pointerdown="pointerDown"
-    @dblclick="emit('enter')"
-  >
+  <KonvaGroup :config="chromeConfig">
     <KonvaRect
       :config="{
         width: width,
@@ -109,13 +130,7 @@ function finishTransform(event: Konva.KonvaEventObject<DragEvent>) {
         perfectDrawEnabled: false,
       }"
     />
-    <KonvaGroup
-      :config="{ x: 8 / zoom, y: -metrics.labelOffset }"
-      @dblclick="
-        $event.cancelBubble = true;
-        rename();
-      "
-    >
+    <KonvaGroup :config="labelConfig">
       <KonvaRect
         :config="{
           width: Math.max(72, group.group.title.length * 7 + 20) / zoom,
@@ -148,37 +163,8 @@ function finishTransform(event: Konva.KonvaEventObject<DragEvent>) {
         listening: false,
       }"
     />
-    <KonvaCircle
-      v-if="handlesVisible && !group.locked"
-      :config="{
-        x: width / 2,
-        y: -metrics.rotationOffset,
-        radius: metrics.handleRadius,
-        fill: palette.panel,
-        stroke: palette.accent,
-        strokeWidth: metrics.strokeWidth,
-        hitStrokeWidth: metrics.hitStrokeWidth,
-        draggable: interactive && !group.locked,
-      }"
-      @dragstart="beginTransform"
-      @dragmove="previewTransform('rotate', $event)"
-      @dragend="finishTransform"
-    />
-    <KonvaCircle
-      v-if="handlesVisible && !group.locked"
-      :config="{
-        x: width,
-        y: height,
-        radius: metrics.handleRadius,
-        fill: palette.panel,
-        stroke: palette.accent,
-        strokeWidth: metrics.strokeWidth,
-        hitStrokeWidth: metrics.hitStrokeWidth,
-        draggable: interactive && !group.locked,
-      }"
-      @dragstart="beginTransform"
-      @dragmove="previewTransform('scale', $event)"
-      @dragend="finishTransform"
-    />
+    <template v-if="handlesVisible && !group.locked">
+      <KonvaCircle v-for="kind in HANDLES" :key="kind" :config="handleConfig(kind)" />
+    </template>
   </KonvaGroup>
 </template>

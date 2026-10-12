@@ -47,8 +47,8 @@ function select(event: Konva.KonvaEventObject<PointerEvent>) {
       pointerAtBeginning: canvasRelationArrowheads(relation).source,
       pointerAtEnding: canvasRelationArrowheads(relation).target,
       hitStrokeWidth: 14 / zoom,
+      onPointerdown: select,
     }"
-    @pointerdown="select"
   />
   <KonvaText
     :config="{
