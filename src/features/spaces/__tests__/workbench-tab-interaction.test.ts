@@ -33,6 +33,11 @@ vi.mock("../../../foundation/desktop/workspace-menu", () => ({
 vi.mock("vue-router", () => ({ useRoute: () => ({ name: "spaces" }) }));
 vi.mock("../enrichment/use-enrichment-job-observation", () => ({ useEnrichmentJobObservation: () => {} }));
 vi.mock("../canvas/thumbnail-scheduler", () => ({ captureActiveCanvasThumbnail: () => {} }));
+const menu = vi.hoisted(() => ({ popup: vi.fn<() => Promise<void>>(() => Promise.resolve()) }));
+vi.mock("../workspace/space-menu", () => ({
+  popupSpaceContextMenu: menu.popup,
+  spaceMenuItem: (text: string) => ({ text }),
+}));
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -109,7 +114,10 @@ it("keeps the Inbox tab unclosable and restores focus to the successor tab", asy
   expect(document.activeElement).toBe(wrapper.get('[role="tab"][data-state="active"]').element);
 });
 
-it("activates the neighbouring tab through tab-strip keyboard navigation", async () => {
+/**
+ * Opening a tab loads a surface, so arrow keys only move focus and Enter opens the focused tab.
+ */
+it("opens the neighbouring tab through tab-strip keyboard navigation", async () => {
   const store = await setup();
   const wrapper = mountStrip();
   await flushPromises();
@@ -117,8 +125,26 @@ it("activates the neighbouring tab through tab-strip keyboard navigation", async
   (active.element as HTMLElement).focus();
 
   await active.trigger("keydown", { key: "ArrowLeft" });
+  expect(store.surface).toEqual({ kind: "document", nodeId: "b" });
+
+  await wrapper.get('[role="tab"]:focus').trigger("keydown", { key: "Enter" });
 
   await vi.waitFor(() => expect(store.surface).toEqual({ kind: "document", nodeId: "a" }));
+});
+
+/** The tab menu is a secondary-button gesture: it never doubles as opening the tab. */
+it("opens the tab menu without opening the tab", async () => {
+  const store = await setup();
+  const wrapper = mountStrip();
+  await flushPromises();
+  const inactive = wrapper.get(`[data-tab-id="${store.editorTabs[0]!.id}"]`);
+
+  await inactive.trigger("contextmenu");
+  await inactive.get('[role="tab"]').trigger("focus");
+  await flushPromises();
+
+  expect(menu.popup).toHaveBeenCalledOnce();
+  expect(store.surface).toEqual({ kind: "document", nodeId: "b" });
 });
 
 it("rechecks externally changed content after an in-flight save settles", async () => {
