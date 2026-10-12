@@ -21,7 +21,6 @@ it("undoes the document through its command port instead of canvas history", () 
       hasOutline: () => true,
       focusOutline: () => {},
       save: async () => {},
-      close: async () => {},
     }),
   );
   editor.commands.insertContent("Changed ");

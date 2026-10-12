@@ -21,6 +21,7 @@ preserves the active tab while hidden.
 
 Tabs preserve drafts and editor history when switching tabs, Spaces, the library or Settings.
 Selecting a Space in the sidebar focuses that Space's canvas tab, opening one when it has none.
+Closing a tab is requested from the tab strip alone; editor surfaces expose no close or back action.
 Closing an editor prepares only its owner, then releases the tab and its resources. Archiving or
 deleting a Space prepares all its editor owners; cancelling a later decision never drops earlier
 drafts or executes a prepared discard. Actual application exit prepares every retained editor

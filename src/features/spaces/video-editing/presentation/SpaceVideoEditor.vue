@@ -54,7 +54,6 @@ const {
       "
       :preparing="!proxyPath && !prepareError"
       :dirty="history.dirty.value"
-      @close="actions.requestClose"
       @save="actions.save()"
       @render="actions.render"
     />

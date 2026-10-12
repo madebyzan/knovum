@@ -51,12 +51,6 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
     close: () => store.closeTab(options.session.tab.id),
     discard: history.discard,
   });
-  function closeOrDismiss() {
-    if (saving.value) return;
-    if (leave.closeDialogOpen.value) leave.cancel();
-    else leave.requestClose();
-  }
-
   function split() {
     if (!project.value) return;
     const next = splitClip(project.value, playback.timelineMs.value);
@@ -130,7 +124,6 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
           save: async () => {
             await save();
           },
-          close: closeOrDismiss,
         }),
       );
     },
