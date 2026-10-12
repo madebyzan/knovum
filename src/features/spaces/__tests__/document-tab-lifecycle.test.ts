@@ -65,6 +65,7 @@ async function openDocument(kind: "note" | "markdown" = "note") {
     { global: { plugins: [createI18n({ legacy: false, locale: "en", messages: { en: {} } })] } },
   );
   await flushPromises();
+  await vi.waitFor(() => expect(document.editor.value?.isInitialized).toBe(true));
   return { tab, node, active, document, session: sessions.sessions.get(tab.id)! };
 }
 

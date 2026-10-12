@@ -1,4 +1,7 @@
-import type { VideoClip, VideoEditProject } from "./project";
+import type { SpaceVideoPayload } from "../model/nodes/node-payload";
+
+type VideoEditProject = NonNullable<SpaceVideoPayload["videoEditProject"]>;
+type VideoClip = VideoEditProject["videoTrack"]["clips"][number];
 
 export function clipDurationMs(clip: Pick<VideoClip, "startMs" | "endMs">) {
   return clip.endMs - clip.startMs;
