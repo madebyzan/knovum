@@ -1,4 +1,5 @@
 use super::*;
+use crate::ai::contracts::execution_profile;
 
 mod embedding;
 
@@ -15,32 +16,44 @@ fn exact_profiles_resolve_to_their_declared_peaks() {
     let cases = [
         (
             RuntimeCapability::Embedding,
-            profile("cpu", "cpu-f32-threads4-inference-v2", 4),
+            profile("cpu", &execution_profile::embedding("cpu", 4), 4),
             4,
         ),
         (
             RuntimeCapability::Embedding,
-            profile("mps", "mps-f32-threads4-inference-v2", 4),
+            profile("mps", &execution_profile::embedding("mps", 4), 4),
             4,
         ),
         (
             RuntimeCapability::Embedding,
-            profile("cpu", "cpu-f32-threads2-inference-v2", 2),
+            profile("cpu", &execution_profile::embedding("cpu", 2), 2),
             4,
         ),
         (
             RuntimeCapability::ImageSegmentation,
-            profile("cpu", "cpu-f32-threads2-inference-v2", 2),
+            profile(
+                "cpu",
+                &execution_profile::image(RuntimeCapability::ImageSegmentation, 2).unwrap(),
+                2,
+            ),
             1,
         ),
         (
             RuntimeCapability::SpeechTranscription,
-            profile("mps", "whisper-small-mps-q8_0-inference-v2", 4),
+            profile(
+                "mps",
+                &execution_profile::whisper("small", "mps", "q8_0"),
+                4,
+            ),
             3,
         ),
         (
             RuntimeCapability::SpeechTranscription,
-            profile("cpu", "whisper-small-cpu-q8_0-inference-v2", 4),
+            profile(
+                "cpu",
+                &execution_profile::whisper("small", "cpu", "q8_0"),
+                4,
+            ),
             3,
         ),
         (
@@ -104,7 +117,7 @@ fn exact_profiles_resolve_to_their_declared_peaks() {
         ),
         (
             RuntimeCapability::SpeechSynthesis,
-            profile("cpu", "moss-nano-cpu-f32-threads1-inference-v2", 1),
+            profile("cpu", &execution_profile::moss_nano(1), 1),
             2,
         ),
     ];
@@ -123,15 +136,15 @@ fn profile_manifest_rejects_device_thread_and_capability_mismatches() {
     let cases = [
         (
             RuntimeCapability::Embedding,
-            profile("mps", "cpu-f32-threads4-inference-v2", 4),
+            profile("mps", &execution_profile::embedding("cpu", 4), 4),
         ),
         (
             RuntimeCapability::Embedding,
-            profile("cpu", "cpu-f32-threads4-inference-v2", 3),
+            profile("cpu", &execution_profile::embedding("cpu", 4), 3),
         ),
         (
             RuntimeCapability::Embedding,
-            profile("cpu", "cpu-f32-threads5-inference-v2", 5),
+            profile("cpu", &execution_profile::embedding("cpu", 5), 5),
         ),
         (
             RuntimeCapability::SpeechAlignment,
@@ -147,6 +160,33 @@ fn profile_manifest_rejects_device_thread_and_capability_mismatches() {
             memory_requirement(capability, &profile).unwrap_err(),
             "runtime_mismatch: execution profile has no memory manifest"
         );
+    }
+}
+
+/// The worker derives the same canonical identities, so an unadmitted one means a dead capability.
+#[test]
+fn every_canonical_threaded_profile_has_a_memory_manifest() {
+    for threads in 1..=4 {
+        for device in ["cpu", "mps"] {
+            let value = profile(
+                device,
+                &execution_profile::embedding(device, threads),
+                threads,
+            );
+            assert!(memory_requirement(RuntimeCapability::Embedding, &value).is_ok());
+        }
+        let value = profile("cpu", &execution_profile::moss_nano(threads), threads);
+        assert!(memory_requirement(RuntimeCapability::SpeechSynthesis, &value).is_ok());
+        for capability in [
+            RuntimeCapability::ImageSegmentation,
+            RuntimeCapability::ImageUpscaling,
+            RuntimeCapability::ImageInpainting,
+            RuntimeCapability::ImageSelection,
+            RuntimeCapability::ImageDepth,
+        ] {
+            let id = execution_profile::image(capability, threads).unwrap();
+            assert!(memory_requirement(capability, &profile("cpu", &id, threads)).is_ok());
+        }
     }
 }
 

@@ -2,6 +2,7 @@ use super::{artifacts, audio, ffi};
 use crate::{artifact, cancellation::Cancellation, protocol::Output};
 use ffi::whisper::*;
 use knovum_inference_contracts::{
+    execution_profile::{self, WHISPER_VARIANTS},
     runtime::RuntimeInitializeParams,
     speech_wire::{
         AsrEngine, LanguagePolicy, SpeechTranscribeParams, SpeechTranscriptArtifact,
@@ -32,15 +33,9 @@ impl Drop for Engine {
 impl Transcriber {
     pub(crate) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
         let device = params.device_profile.device.as_str();
-        let allowed = ["tiny-q8_0", "small-q8_0", "large-v3-f16"]
-            .iter()
-            .any(|variant| {
-                let (model, precision) = variant
-                    .rsplit_once('-')
-                    .expect("Static variant has precision");
-                params.capability_spec_id
-                    == format!("whisper-{model}-{device}-{precision}-native-v2")
-            });
+        let allowed = WHISPER_VARIANTS.into_iter().any(|(model, precision)| {
+            params.capability_spec_id == execution_profile::whisper(model, device, precision)
+        });
         if !allowed
             || params.device_profile.execution_profile_id != params.capability_spec_id
             || params.model_paths.speech_transcription.is_none()

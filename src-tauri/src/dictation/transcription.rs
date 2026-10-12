@@ -76,7 +76,7 @@ pub(crate) async fn transcribe<R: Runtime>(
         attempt_id: request_id,
         attempt_epoch,
         input_revision: format!("sha256:{}", audio_ref.sha256),
-        model_spec_id: profile.id.into(),
+        model_spec_id: profile.id.clone(),
         deadline_ms,
     };
     let artifact = speech::transcribe(
@@ -84,7 +84,7 @@ pub(crate) async fn transcribe<R: Runtime>(
         &resources,
         RuntimeDeviceProfile {
             device: profile.device.into(),
-            execution_profile_id: profile.id.into(),
+            execution_profile_id: profile.id,
             cpu_threads: ComputeBudget::detect()
                 .map_err(|error| DictationFailure::classified("transcription_failed", error))?
                 .model_threads,

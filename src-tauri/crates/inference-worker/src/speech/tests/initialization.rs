@@ -1,4 +1,7 @@
-use knovum_inference_contracts::runtime::RuntimeInitializeParams;
+use knovum_inference_contracts::{
+    execution_profile::{moss_nano, whisper, WHISPER_VARIANTS},
+    runtime::RuntimeInitializeParams,
+};
 
 fn params(spec: &str, execution: &str, model: &str) -> RuntimeInitializeParams {
     serde_json::from_value(serde_json::json!({
@@ -13,9 +16,8 @@ fn params(spec: &str, execution: &str, model: &str) -> RuntimeInitializeParams {
 
 #[test]
 fn transcription_rejects_an_execution_identity_that_does_not_match_its_model() {
-    for variant in ["tiny-q8_0", "small-q8_0", "large-v3-f16"] {
-        let (model, precision) = variant.rsplit_once('-').unwrap();
-        let spec = format!("whisper-{model}-cpu-{precision}-native-v2");
+    for (model, precision) in WHISPER_VARIANTS {
+        let spec = whisper(model, "cpu", precision);
         let mut input = params(&spec, &spec, "speechTranscription");
         assert!(super::super::transcription::Transcriber::new(&input).is_ok());
         input.device_profile.execution_profile_id = "obsolete-whisper".into();
@@ -49,13 +51,13 @@ fn vox_rejects_unadmitted_profiles_before_loading_a_inference_library() {
 fn moss_rejects_a_wrong_profile_or_zero_threads_before_graph_loading() {
     let mut input = params(
         "moss-tts-nano-100m-onnx-native-v2",
-        "moss-nano-cpu-f32-threads4-native-v2",
+        &moss_nano(4),
         "speechSynthesis",
     );
     assert!(super::super::moss::Moss::new(&input).is_ok());
     input.device_profile.execution_profile_id = "obsolete-moss".into();
     assert!(super::super::moss::Moss::new(&input).is_err());
-    input.device_profile.execution_profile_id = "moss-nano-cpu-f32-threads4-native-v2".into();
+    input.device_profile.execution_profile_id = moss_nano(4);
     input.device_profile.cpu_threads = 0;
     assert!(super::super::moss::Moss::new(&input).is_err());
     input.device_profile.cpu_threads = 4;

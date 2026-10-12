@@ -145,6 +145,14 @@ Process admission, resident-memory checks, idle reuse, cancellation and publicat
 [system-architecture.md](system-architecture.md); corresponding-source and license approval remains a
 [release requirement](release.md). Ollama is an optional generative provider, not an embedding or ASR dependency.
 
+Byte verification of the inference runtime belongs to the worker spawn, which is the moment before
+the libraries are loaded and the only place the cost is unavoidable. Resolving the runtime for its
+identity verifies the supplied inventory against the one this build was qualified against and
+nothing else, so a request no longer rehashes the runtime on the way to a worker that rehashes it
+again. A worker's initialization budget is that verification work at a throughput floor far below
+any supported disk, plus a fixed allowance for the process and its engine, instead of a constant
+that a cold page cache can exhaust.
+
 ## Generative AI and privacy
 
 Knowledge indexing runs locally using the private Qwen3 worker. Vector embeddings and extracted chunk texts do not leave the machine. Grounded answering sends only the explicit prompt plus bounded relevant text context when cloud generative AI is configured. Source files and media binaries are not uploaded by these paths.
@@ -190,6 +198,11 @@ that frozen identity. Changing defaults affects new work only. Existing voices, 
 requests and accepted outputs retain their model. Removing an idle optional snapshot preserves its
 preference; its next use prepares the same snapshot. Obsolete baselines missing required identities
 fail explicitly, without conversion or automatic deletion. Qwen vectors are fixed by the stored index.
+
+`inference-contracts::execution_profile` is the only definition of a native execution profile
+identity. The host builds the profile it admits memory for from that module, and the worker rebuilds
+its expectation from the same functions, so a revision bump cannot leave one side producing an
+identity the other rejects. No capability repeats the identity as a literal.
 
 U²-Net Compact/full snapshots are 4,574,861 / 175,997,641 bytes and share the same ONNX mask and
 Rust compositing contract. Spleeter FP16/FP32 snapshots are 39,362,041 / 78,636,679 bytes and share

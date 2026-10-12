@@ -1,8 +1,11 @@
 use super::super::{admission, process::Worker, WorkerSlot};
 use crate::{
-    ai::contracts::runtime::{
-        RuntimeCancelParams, RuntimeCapability, RuntimeDeviceProfile, RuntimeInitializeParams,
-        RuntimeModelPaths, PROTOCOL_VERSION,
+    ai::contracts::{
+        execution_profile,
+        runtime::{
+            RuntimeCancelParams, RuntimeCapability, RuntimeDeviceProfile, RuntimeInitializeParams,
+            RuntimeModelPaths, PROTOCOL_VERSION,
+        },
     },
     local_resources::runtimes::inference,
 };
@@ -46,17 +49,10 @@ pub(super) async fn acquire<R: Runtime>(
     let exit = super::super::exit_token();
     let runtime = inference::resolve(app)?;
     let threads = super::super::compute_budget::ComputeBudget::detect()?.model_threads;
-    let profile_name = match capability {
-        RuntimeCapability::ImageSegmentation => "cpu-f32",
-        RuntimeCapability::ImageUpscaling => "image-upscaling-cpu",
-        RuntimeCapability::ImageInpainting => "image-inpainting-cpu",
-        RuntimeCapability::ImageSelection => "image-selection-cpu",
-        RuntimeCapability::ImageDepth => "image-depth-cpu",
-        _ => return Err("runtime_mismatch: not an image capability".into()),
-    };
     let profile = RuntimeDeviceProfile {
         device: "cpu".into(),
-        execution_profile_id: format!("{profile_name}-threads{threads}-inference-v2"),
+        execution_profile_id: execution_profile::image(capability, threads)
+            .ok_or("runtime_mismatch: not an image capability")?,
         cpu_threads: threads,
     };
     super::super::prepare_worker_for_admission(admission::Priority::Interactive, |worker| {

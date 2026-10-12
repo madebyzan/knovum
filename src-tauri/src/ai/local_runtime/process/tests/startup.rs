@@ -9,6 +9,7 @@ async fn missing_inference_runtime_is_rejected_before_admission_or_workspace_cre
         manifest_path: directory.join("runtime-manifest.json"),
         executable: directory.join("knovum-inference-worker"),
         digest: "a".repeat(64),
+        verified_bytes: 0,
     };
     let params = RuntimeInitializeParams {
         runtime_manifest_path: runtime.manifest_path.to_string_lossy().into_owned(),
@@ -19,7 +20,7 @@ async fn missing_inference_runtime_is_rejected_before_admission_or_workspace_cre
         capability_spec_id: "qwen3-embedding-0.6b".into(),
         device_profile: RuntimeDeviceProfile {
             device: "cpu".into(),
-            execution_profile_id: "cpu-f32-threads4-inference-v2".into(),
+            execution_profile_id: crate::ai::contracts::execution_profile::embedding("cpu", 4),
             cpu_threads: 4,
         },
         work_directory: directory.to_string_lossy().into_owned(),

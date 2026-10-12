@@ -2,6 +2,7 @@ pub mod chat;
 pub use knovum_inference_contracts::diagnostics;
 pub mod embedding;
 pub mod embedding_wire;
+pub use knovum_inference_contracts::execution_profile;
 pub mod external_agent;
 pub mod files;
 pub use knovum_inference_contracts::image_compute;

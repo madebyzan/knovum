@@ -2,11 +2,9 @@ use super::{audio, ffi};
 use crate::cancellation::Cancellation;
 use ffi::audio::*;
 use knovum_inference_contracts::{
+    execution_profile::alignment,
     runtime::RuntimeInitializeParams,
-    speech_wire::{
-        alignment_execution_id, AlignedSpeechUnit, AlignmentUnitKind, SpeechAlignParams,
-        SpeechAlignment,
-    },
+    speech_wire::{AlignedSpeechUnit, AlignmentUnitKind, SpeechAlignParams, SpeechAlignment},
 };
 use std::{ffi::CStr, path::PathBuf, ptr};
 
@@ -114,8 +112,7 @@ impl Engine {
 }
 impl Aligner {
     pub(crate) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
-        if alignment_execution_id(&params.capability_spec_id, &params.device_profile.device)
-            .as_deref()
+        if alignment(&params.capability_spec_id, &params.device_profile.device).as_deref()
             != Some(params.device_profile.execution_profile_id.as_str())
             || !(1..=8).contains(&params.device_profile.cpu_threads)
             || params.model_paths.speech_alignment.is_none()
