@@ -2,7 +2,7 @@
   "conversion": {
     "actions": {
       "docx": "Convert to Word document",
-      "pdf": "Convert to PDF",
+      "pdf": "Typesets notes and Markdown as PDF.",
       "txt": "Convert to plain text",
       "html": "Convert to HTML"
     },
@@ -20,7 +20,14 @@
       "html": "HTML document (.html)",
       "pptx": "Presentation (.pptx)"
     },
-    "help": "Creates a related file. PDF content is reflowed without images; Office to Word/HTML keeps supported tables and images. Office files with images cannot convert to PDF. Original layout, animations and scanned PDFs are not supported."
+    "expectations": {
+      "docx": "Editable text and extracted images; PDFs are reflowed.",
+      "pdf": "Typesets notes and Markdown as PDF.",
+      "txt": "Text only, without layout or images.",
+      "html": "Editable, reflowed content with extracted images.",
+      "pptx": "Builds editable slides from the document structure."
+    },
+    "recognitionRequired": "Finish document recognition for every scanned page before converting."
   },
   "generate": "Generate document",
   "title": "Create a document from selected knowledge",

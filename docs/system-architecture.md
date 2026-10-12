@@ -21,7 +21,7 @@ Tauri 2 Rust host
       +-- window, menu, tray/status item, Dock/taskbar, dialogs and notifications
       +-- scoped filesystem, clipboard, secrets and SQLite ownership
       +-- durable feature engines and Run scheduler
-      +-- verified compiled tools, Rust inference workers, bundled frozen Agent and private document workers
+      +-- verified compiled tools, Rust inference workers, bundled frozen Agent
       +-- private MCP/ACP integration boundary
       |
 typed Tauri IPC and Channel events
@@ -55,6 +55,11 @@ replace executable discovery. Required resources fail visibly. Local IPC queries
 `networkMode: always`. Only Renderer-owned network requests use browser connectivity admission.
 Mixed local/remote extension and MCP IPC always reaches Rust, whose transport reports actual network
 failures without blocking local directory, ZIP or stdio operations.
+
+Document conversion uses a bounded private worker for content delivery. Markdown and Note PDF
+output uses Typst; Office original-layout PDF rendering is outside the product boundary. Knovum
+neither installs an Office engine nor discovers an ambient converter. Users export original-layout
+PDF in their external Office application and import the result.
 
 ## Startup and recovery
 
@@ -188,7 +193,7 @@ and managed-asset references. Package restore validates before commit and cannot
 Space-package format belongs to [knowledge.md](knowledge.md); application distribution belongs to
 [packaging.md](packaging.md).
 
-Document conversion uses the current application executable in one private worker mode before desktop initialization. It receives a bounded, strict current v1 source/format frame and returns bounded bytes. Markdown input carries title/body/citations; PDF/Office input carries only a Rust-authorized Space-owned absolute path and SHA-256 revision. The worker reads a bounded snapshot and verifies its digest before vendor parsing; it never receives Run authority, database access or Renderer-chosen filesystem authority. The Run attempt token cancels the process tree, and the host waits for process exit before releasing scheduler capacity. Spaces retains path authorization, file/source/epoch revalidation and publication. Spawn, protocol and conversion failures are explicit. Supported routes and fidelity limits are owned by [document-conversion.md](document-conversion.md).
+Document conversion uses the current application executable in one private worker mode before desktop initialization. It receives a bounded, strict current v2 source/format frame and returns bounded bytes. Markdown and Note inputs carry authoring content, citations and authorized image snapshots; PDF inputs also carry revision-qualified literal recognition. File identities are Rust-authorized Space-owned absolute paths and SHA-256 revisions. The worker reads a bounded snapshot and verifies its digest before vendor parsing; it never receives Run authority, database access or Renderer-chosen filesystem authority. The Run attempt token cancels the process tree, and the host waits for process exit before releasing scheduler capacity. Spaces retains path authorization, file/source/epoch revalidation and publication. Spawn, protocol and conversion failures are explicit. Supported routes and fidelity limits are owned by [document-conversion.md](document-conversion.md).
 
 ## Compiled resources and local inference
 

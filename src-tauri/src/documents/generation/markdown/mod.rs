@@ -1,6 +1,8 @@
 mod blocks;
 mod containers;
 mod inlines;
+pub(crate) mod ir;
+mod ir_inlines;
 
 use pulldown_cmark::{Event, Options, Parser};
 

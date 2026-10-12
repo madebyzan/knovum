@@ -18,6 +18,16 @@ function decideVideoGeneration(context: CreationSelectionContext): CreationInten
   return context.imageCount > 10 ? { state: "blocked", reason: "too-many-video-images" } : AVAILABLE;
 }
 
+function decideDocumentConversion(
+  context: CreationSelectionContext,
+  format: NonNullable<CreationIntentDefinition["documentFormat"]>,
+): CreationIntentDecision {
+  if (!context.documentTargets.includes(format)) return HIDDEN;
+  return context.documentRecognitionRequired
+    ? { state: "blocked", reason: "needs-document-recognition" }
+    : AVAILABLE;
+}
+
 export const CREATION_INTENT_DEFINITIONS = [
   {
     id: "draft-document",
@@ -36,35 +46,35 @@ export const CREATION_INTENT_DEFINITIONS = [
     documentFormat: "docx",
     labelKey: "spaces.creation.document.conversion.actions.docx",
     icon: "file-output",
-    decide: ({ documentTargets }) => (documentTargets.includes("docx") ? AVAILABLE : HIDDEN),
+    decide: (context) => decideDocumentConversion(context, "docx"),
   },
   {
     id: "convert-document-to-pdf",
     documentFormat: "pdf",
     labelKey: "spaces.creation.document.conversion.actions.pdf",
     icon: "file-output",
-    decide: ({ documentTargets }) => (documentTargets.includes("pdf") ? AVAILABLE : HIDDEN),
+    decide: (context) => decideDocumentConversion(context, "pdf"),
   },
   {
     id: "convert-document-to-txt",
     documentFormat: "txt",
     labelKey: "spaces.creation.document.conversion.actions.txt",
     icon: "file-output",
-    decide: ({ documentTargets }) => (documentTargets.includes("txt") ? AVAILABLE : HIDDEN),
+    decide: (context) => decideDocumentConversion(context, "txt"),
   },
   {
     id: "convert-document-to-html",
     documentFormat: "html",
     labelKey: "spaces.creation.document.conversion.actions.html",
     icon: "file-output",
-    decide: ({ documentTargets }) => (documentTargets.includes("html") ? AVAILABLE : HIDDEN),
+    decide: (context) => decideDocumentConversion(context, "html"),
   },
   {
     id: "render-presentation",
     documentFormat: "pptx",
     labelKey: "spaces.creation.presentation.create",
     icon: "file-output",
-    decide: ({ documentTargets }) => (documentTargets.includes("pptx") ? AVAILABLE : HIDDEN),
+    decide: (context) => decideDocumentConversion(context, "pptx"),
   },
   {
     id: "generate-video",

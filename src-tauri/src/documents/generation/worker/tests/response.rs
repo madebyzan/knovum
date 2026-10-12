@@ -9,7 +9,7 @@ fn response(header: serde_json::Value, bytes: &[u8]) -> Vec<u8> {
 
 #[tokio::test]
 async fn accepts_exact_binary_content_and_requires_eof() {
-    let header = serde_json::json!({"version": 1, "outcome": {"status": "rendered", "length": 4}});
+    let header = serde_json::json!({"version": protocol::VERSION, "outcome": {"status": "rendered", "length": 4}});
     let binary = [0, 255, 13, 10];
     assert_eq!(
         read_response(response(header.clone(), &binary).as_slice())
@@ -29,10 +29,10 @@ async fn accepts_exact_binary_content_and_requires_eof() {
 #[tokio::test]
 async fn rejects_unknown_fields_versions_and_oversized_output_before_reading_it() {
     for header in [
-        serde_json::json!({"version": 2, "outcome": {"status": "rendered", "length": 0}}),
-        serde_json::json!({"version": 1, "outcome": {"status": "rendered", "length": 0}, "unexpected": true}),
-        serde_json::json!({"version": 1, "outcome": {"status": "rendered", "length": 0, "unexpected": true}}),
-        serde_json::json!({"version": 1, "outcome": {"status": "rendered", "length": protocol::MAX_OUTPUT_BYTES + 1}}),
+        serde_json::json!({"version": protocol::VERSION + 1, "outcome": {"status": "rendered", "length": 0}}),
+        serde_json::json!({"version": protocol::VERSION, "outcome": {"status": "rendered", "length": 0}, "unexpected": true}),
+        serde_json::json!({"version": protocol::VERSION, "outcome": {"status": "rendered", "length": 0, "unexpected": true}}),
+        serde_json::json!({"version": protocol::VERSION, "outcome": {"status": "rendered", "length": protocol::MAX_OUTPUT_BYTES + 1}}),
     ] {
         assert_eq!(
             read_response(response(header, &[]).as_slice())
@@ -46,7 +46,7 @@ async fn rejects_unknown_fields_versions_and_oversized_output_before_reading_it(
 
 #[tokio::test]
 async fn rejects_truncated_binary_and_unbounded_header_frames() {
-    let header = serde_json::json!({"version": 1, "outcome": {"status": "rendered", "length": 2}});
+    let header = serde_json::json!({"version": protocol::VERSION, "outcome": {"status": "rendered", "length": 2}});
     assert!(read_response(response(header, &[0]).as_slice())
         .await
         .is_err());
@@ -56,7 +56,7 @@ async fn rejects_truncated_binary_and_unbounded_header_frames() {
 
 #[tokio::test]
 async fn rendering_failure_remains_distinct_from_protocol_failure() {
-    let header = serde_json::json!({"version": 1, "outcome": {"status": "failed", "message": "Unsupported document content"}});
+    let header = serde_json::json!({"version": protocol::VERSION, "outcome": {"status": "failed", "message": "Unsupported document content"}});
     let error = read_response(response(header, &[]).as_slice())
         .await
         .unwrap()

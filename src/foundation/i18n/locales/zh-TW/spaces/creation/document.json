@@ -2,7 +2,7 @@
   "conversion": {
     "actions": {
       "docx": "轉換為 Word 文檔",
-      "pdf": "轉換為 PDF",
+      "pdf": "將筆記和 Markdown 排版為 PDF。",
       "txt": "轉換為純文字",
       "html": "轉換為 HTML"
     },
@@ -20,7 +20,14 @@
       "html": "網頁文檔 (.html)",
       "pptx": "簡報 (.pptx)"
     },
-    "help": "建立關聯的新檔案。 PDF 依文字重排，不保留圖片；Office 轉 Word/HTML 保留支援的表格和圖片，含圖片的 Office 暫不支援轉 PDF。原版式、動畫及掃描 PDF 暫不支援。"
+    "expectations": {
+      "docx": "產生可編輯文字並保留擷取的圖片；PDF 內容會重新排版。",
+      "pdf": "將筆記和 Markdown 排版為 PDF。",
+      "txt": "僅保留文字，不含版式或圖片。",
+      "html": "產生可編輯的重排內容，並保留擷取的圖片。",
+      "pptx": "依據文件結構產生可編輯的投影片。"
+    },
+    "recognitionRequired": "請先完成所有掃描頁面的文件辨識，再進行轉換。"
   },
   "generate": "產生文件",
   "title": "用選取知識生成文檔",

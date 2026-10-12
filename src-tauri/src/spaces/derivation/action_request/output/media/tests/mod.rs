@@ -25,6 +25,26 @@ fn document_conversion_admits_one_published_pdf_and_rejects_binary_or_duplicate_
 }
 
 #[test]
+fn office_original_layout_pdf_is_outside_conversion_admission() {
+    for extension in ["doc", "docx", "xls", "xlsx", "ppt", "pptx"] {
+        let inputs = ResolvedInputs {
+            items: vec![],
+            nodes: vec![ResolvedNode {
+                id: "source".into(),
+                kind: "file".into(),
+                revision: "knowledge:1".into(),
+                data: json!({"kind":"file", "title":"Report", "assetPath":format!("/owned/report.{extension}"), "sourceRevision":"sha256:current"}),
+            }],
+        };
+        let mut request = Map::new();
+        let error = document_request(&inputs, "convert-document-to-pdf", &mut request).unwrap_err();
+        assert!(error.contains("original-layout PDF conversion is not supported"));
+        assert!(!request.contains_key("document"));
+        document_request(&inputs, "convert-document-to-html", &mut request).unwrap();
+    }
+}
+
+#[test]
 fn automatic_action_projects_one_video_with_distinct_asset_and_knowledge_revisions() {
     let inputs = ResolvedInputs {
         items: vec![],

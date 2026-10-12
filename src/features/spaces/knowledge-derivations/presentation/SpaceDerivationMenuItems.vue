@@ -41,6 +41,8 @@ const hasActions = computed(() => derivationActions.value.length > 0);
 
 function reasonLabel(reason: DerivationUnavailableReason | undefined) {
   if (reason === "active-node-operation") return t("spaces.creation.shared.finishNodeOperation");
+  if (reason === "needs-document-recognition")
+    return t("spaces.creation.document.conversion.recognitionRequired");
   if (reason === "too-many-video-images") return t("spaces.creation.video.generation.tooManyImages");
   if (reason === "needs-indexed-knowledge") return t("spaces.creation.shared.needsIndexedKnowledge");
   return undefined;

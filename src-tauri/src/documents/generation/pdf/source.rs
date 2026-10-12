@@ -1,7 +1,8 @@
 use super::super::document::{Alignment, Block, Document, Inline, Table};
+use super::super::images::Images;
 use crate::desktop::system_font::SYSTEM_SANS_FAMILY;
 
-pub(super) fn render(document: &Document) -> Result<String, String> {
+pub(super) fn render(document: &Document, images: &Images) -> Result<String, String> {
     let mut output = include_str!("document.typ").to_owned();
     output.push_str(&format!(
         "#set text(font: {}, size: 10.5pt)\n",
@@ -13,26 +14,26 @@ pub(super) fn render(document: &Document) -> Result<String, String> {
             string(&document.title)
         ));
     }
-    blocks(&mut output, &document.blocks)?;
+    blocks(&mut output, &document.blocks, images)?;
     Ok(output)
 }
 
-fn blocks(output: &mut String, content: &[Block]) -> Result<(), String> {
+fn blocks(output: &mut String, content: &[Block], images: &Images) -> Result<(), String> {
     for block in content {
         match block {
             Block::Paragraph(content) => {
                 output.push_str("#par[");
-                inlines(output, content)?;
+                inlines(output, content, images)?;
                 output.push(']');
             }
             Block::Heading { level, content } => {
                 output.push_str(&format!("#heading(level: {level})["));
-                inlines(output, content)?;
+                inlines(output, content, images)?;
                 output.push(']');
             }
             Block::Quote(children) => {
                 output.push_str("#block(inset: (left: 12pt), stroke: (left: 1pt + luma(180)))[\n");
-                blocks(output, children)?;
+                blocks(output, children, images)?;
                 output.push(']');
             }
             Block::Code { language, text } => {
@@ -50,12 +51,12 @@ fn blocks(output: &mut String, content: &[Block]) -> Result<(), String> {
                 }
                 for item in items {
                     output.push_str("[\n");
-                    blocks(output, item)?;
+                    blocks(output, item, images)?;
                     output.push_str("],\n");
                 }
                 output.push(')');
             }
-            Block::Table(value) => table(output, value)?,
+            Block::Table(value) => table(output, value, images)?,
             Block::Rule => output.push_str("#line(length: 100%)"),
         }
         output.push_str("\n\n");
@@ -63,24 +64,33 @@ fn blocks(output: &mut String, content: &[Block]) -> Result<(), String> {
     Ok(())
 }
 
-fn inlines(output: &mut String, content: &[Inline]) -> Result<(), String> {
+fn inlines(output: &mut String, content: &[Inline], images: &Images) -> Result<(), String> {
     for inline in content {
         match inline {
             Inline::Text(text) => output.push_str(&format!("#text({})", string(text))),
             Inline::Code(text) => output.push_str(&format!("#raw({})", string(text))),
-            Inline::Strong(children) => span(output, "strong", children)?,
-            Inline::Emphasis(children) => span(output, "emph", children)?,
-            Inline::Strike(children) => span(output, "strike", children)?,
+            Inline::Strong(children) => span(output, "strong", children, images)?,
+            Inline::Emphasis(children) => span(output, "emph", children, images)?,
+            Inline::Strike(children) => span(output, "strike", children, images)?,
             Inline::Link { url, content } => {
                 super::super::links::validate(url)?;
                 output.push_str(&format!("#link({})[", string(url)));
-                inlines(output, content)?;
+                inlines(output, content, images)?;
                 output.push(']');
             }
-            Inline::Image { .. } => {
-                return Err(
-                    "PDF image export is not implemented; use plain text or remove images".into(),
-                );
+            Inline::Image { destination, alt } => {
+                let name = images.filename(destination)?;
+                let label = super::super::text::inline_text(alt, false);
+                let image = images.get(destination)?;
+                let scale = (468.0 / f64::from(image.width))
+                    .min(595.0 / f64::from(image.height))
+                    .min(0.75);
+                output.push_str(&format!(
+                    "#image({}, width: calc.min(100%, {}pt), alt: {})",
+                    string(&name),
+                    f64::from(image.width) * scale,
+                    string(&label)
+                ));
             }
             Inline::Task(checked) => {
                 output.push_str(if *checked {
@@ -96,14 +106,19 @@ fn inlines(output: &mut String, content: &[Inline]) -> Result<(), String> {
     Ok(())
 }
 
-fn span(output: &mut String, name: &str, content: &[Inline]) -> Result<(), String> {
+fn span(
+    output: &mut String,
+    name: &str,
+    content: &[Inline],
+    images: &Images,
+) -> Result<(), String> {
     output.push_str(&format!("#{name}["));
-    inlines(output, content)?;
+    inlines(output, content, images)?;
     output.push(']');
     Ok(())
 }
 
-fn table(output: &mut String, table: &Table) -> Result<(), String> {
+fn table(output: &mut String, table: &Table, images: &Images) -> Result<(), String> {
     output.push_str(&format!(
         "#table(columns: {}, align: (",
         table.alignments.len()
@@ -118,14 +133,14 @@ fn table(output: &mut String, table: &Table) -> Result<(), String> {
     output.push_str("), table.header(");
     for cell in &table.header {
         output.push_str("[#strong[");
-        inlines(output, cell)?;
+        inlines(output, cell, images)?;
         output.push_str("]],");
     }
     output.push_str("),\n");
     for row in &table.rows {
         for cell in row {
             output.push('[');
-            inlines(output, cell)?;
+            inlines(output, cell, images)?;
             output.push_str("],");
         }
         output.push('\n');
@@ -135,7 +150,7 @@ fn table(output: &mut String, table: &Table) -> Result<(), String> {
 }
 
 // User text is always a quoted argument, never interpolated Typst markup or code.
-fn string(value: &str) -> String {
+pub(super) fn string(value: &str) -> String {
     let escaped = value
         .replace('\\', "\\\\")
         .replace('"', "\\\"")

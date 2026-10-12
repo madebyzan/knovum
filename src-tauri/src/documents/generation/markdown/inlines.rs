@@ -39,7 +39,8 @@ impl<'a> Reader<'a> {
                 url: dest_url.into_string(),
                 content: self.inlines(TagEnd::Link, depth + 1)?,
             },
-            Event::Start(Tag::Image { .. }) => Inline::Image {
+            Event::Start(Tag::Image { dest_url, .. }) => Inline::Image {
+                destination: dest_url.into_string(),
                 alt: self.inlines(TagEnd::Image, depth + 1)?,
             },
             Event::Html(_) | Event::InlineHtml(_) => {

@@ -1,7 +1,7 @@
-use objc2_core_foundation::{CGPoint, CGRect, CGSize, CFURL};
+use objc2_core_foundation::{CFData, CGPoint, CGRect, CGSize, CFURL};
 use objc2_core_graphics::{
-    CGBitmapContextCreate, CGColorSpace, CGContext, CGImageAlphaInfo, CGImageByteOrderInfo,
-    CGPDFBox, CGPDFDocument, CGPDFPage,
+    CGBitmapContextCreate, CGColorSpace, CGContext, CGDataProvider, CGImageAlphaInfo,
+    CGImageByteOrderInfo, CGPDFBox, CGPDFDocument, CGPDFPage,
 };
 use std::{io::Cursor, path::Path};
 
@@ -12,11 +12,32 @@ pub(super) fn render(
 ) -> Result<super::PdfRaster, String> {
     let url = CFURL::from_file_path(source).ok_or("PDF path cannot be represented as a URL")?;
     let document = CGPDFDocument::with_url(Some(&url)).ok_or("Core Graphics could not open PDF")?;
-    if !CGPDFDocument::is_unlocked(Some(&document)) {
+    render_document(&document, page, region)
+}
+
+pub(super) fn render_bytes(
+    bytes: &[u8],
+    page: u32,
+    region: Option<crate::documents::pdf_input::PdfRegion>,
+) -> Result<super::PdfRaster, String> {
+    let data = CFData::from_bytes(bytes);
+    let provider = CGDataProvider::with_cf_data(Some(&data))
+        .ok_or("Core Graphics could not create a PDF data provider")?;
+    let document = CGPDFDocument::with_provider(Some(&provider))
+        .ok_or("Core Graphics could not open PDF snapshot")?;
+    render_document(&document, page, region)
+}
+
+fn render_document(
+    document: &CGPDFDocument,
+    page: u32,
+    region: Option<crate::documents::pdf_input::PdfRegion>,
+) -> Result<super::PdfRaster, String> {
+    if !CGPDFDocument::is_unlocked(Some(document)) {
         return Err("PDF requires a password".into());
     }
     let page =
-        CGPDFDocument::page(Some(&document), page as usize).ok_or("PDF page does not exist")?;
+        CGPDFDocument::page(Some(document), page as usize).ok_or("PDF page does not exist")?;
     let (bounds, box_kind) = visible_bounds(&page);
     let rotation = CGPDFPage::rotation_angle(Some(&page)).rem_euclid(180);
     let (w, h) = if rotation == 90 {

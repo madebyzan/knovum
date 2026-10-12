@@ -1,11 +1,13 @@
 pub(crate) mod document;
 pub(crate) mod docx;
 mod html;
+pub(crate) mod images;
 pub(crate) mod input;
 mod links;
 mod markdown;
 pub(crate) mod pdf;
 pub(crate) mod pptx;
+mod structured;
 mod text;
 pub(crate) mod worker;
 

@@ -2,7 +2,7 @@
   "conversion": {
     "actions": {
       "docx": "Convertir en document Word",
-      "pdf": "Convertir en PDF",
+      "pdf": "Compose les notes et le Markdown au format PDF.",
       "txt": "Convertir en texte brut",
       "html": "Convertir en HTML"
     },
@@ -20,7 +20,14 @@
       "html": "Document HTML (.html)",
       "pptx": "Présentation (.pptx)"
     },
-    "help": "Crée un fichier associé. Le contenu PDF est redistribué sans images ; Office vers Word/HTML conserve les tableaux et images pris en charge. Les fichiers Office contenant des images ne peuvent pas être convertis en PDF. La mise en page originale, les animations et les PDF numérisés ne sont pas pris en charge."
+    "expectations": {
+      "docx": "Texte modifiable et images extraites ; les PDF sont redistribués.",
+      "pdf": "Compose les notes et le Markdown au format PDF.",
+      "txt": "Texte uniquement, sans mise en page ni images.",
+      "html": "Contenu modifiable et redistribué avec les images extraites.",
+      "pptx": "Crée des diapositives modifiables à partir de la structure du document."
+    },
+    "recognitionRequired": "Terminez la reconnaissance de toutes les pages numérisées avant la conversion."
   },
   "generate": "Générer un document",
   "title": "Créer un document à partir de connaissances sélectionnées",

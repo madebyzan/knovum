@@ -5,6 +5,23 @@ pub(crate) struct DocumentSource {
     pub title: String,
     pub markdown: String,
     pub citations: Vec<Citation>,
+    pub images: Vec<ImageSource>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ImageSource {
+    pub destination: String,
+    pub file: super::input::DocumentFileSource,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct NoteSource {
+    pub title: String,
+    pub content: serde_json::Value,
+    pub citations: Vec<Citation>,
+    pub images: Vec<ImageSource>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -62,8 +79,14 @@ pub(crate) enum Inline {
     Emphasis(Vec<Inline>),
     Strike(Vec<Inline>),
     Code(String),
-    Link { url: String, content: Vec<Inline> },
-    Image { alt: Vec<Inline> },
+    Link {
+        url: String,
+        content: Vec<Inline>,
+    },
+    Image {
+        destination: String,
+        alt: Vec<Inline>,
+    },
     Task(bool),
     SoftBreak,
     HardBreak,

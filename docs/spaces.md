@@ -481,37 +481,53 @@ subject or camera movement, yaw from -90 to 90 degrees, pitch from -30 to 60 deg
 close-up, medium or wide-angle framing. Its preview is an interactive orientation guide; the
 model generates the actual new view. Video editing opens a same-window workbench because
 transport, playhead, ordered clips and timed text require persistent timeline context. A strict
-v1 `videoEditProject` stores source frame dimensions, one ordered video track, one text track and
-output transform. Saving
-records the project on the source
-node through normal Space history. The editor opens from the managed source immediately while
-Rust prepares a revision-keyed, short-GOP 960×540 editing proxy in the app cache. Once ready, the
-WebView plays that proxy; video frames never cross IPC. Proxy preparation is cancellable when the
-workbench closes, and its failure is shown rather than hidden. The displayed playhead follows
-presented frames instead of the media element's coarse timeupdate event. Rendering reads the
-managed source, seeks to the first retained source interval, reports measured FFmpeg progress and
-creates a new derived video node. The source bytes and edit project remain available, and render
-cancellation stays in Task Center.
+v1 `videoEditProject` stores revision-bound managed asset references, explicit output dimensions and
+frame rate, one ordered visual track, independent audio clips and a timed-text track. The first asset
+retains the owning video identity. Local videos, still images and audio are selected from the owning
+Space; the native multiple-file dialog uses the existing managed import pipeline. Asset references
+contain no file-path authority. Obsolete pre-release project shapes are rejected explicitly.
 
-The light editor keeps one continuous, ripple-joined video track and one timed-text track. The
-time ruler supports pointer scrubbing; clip-edge handles trim against the original source with
-100 ms snapping, and Alt temporarily enables millisecond precision. Focused trim handles also
-accept arrow keys. No inspector is shown until a clip or timed-text item is selected. Its floating
-panel sits over the preview stage while transport and timeline keep the full workbench width; Escape
-or the close control clears selection and returns focus to the ruler. Timed text is selectable from
-the preview and timeline. The panel offers a searchable subtitle list, live text edits, placement,
-font family, available face weights, size, color and four export-backed styles; clip selection exposes source in/out times, volume,
-rotation and both flips. Text size is expressed in 720p-relative pixels. The system font catalog
-reads installed upright faces once and exposes their families and weights to the inspector. Each
-text overlay saves its selected family and weight; WebView preview and libass export read the same
-values. A font missing from the current computer blocks export explicitly. The ASS script resolution follows the source
-frame aspect ratio after output rotation, including portrait video. Every timed-text item stores its complete
-style; projects missing it fail validation. A local edit history owns undo and redo until Save commits one
-project snapshot through Space history. The workbench shows unsaved state and requires an explicit
-Save, Discard or Cancel choice on close, Space navigation, application route changes, update install
-and application quit. A failed save leaves the draft and leave decision open. Application commands provide the editor's keyboard shortcuts;
-there are no feature-level global key listeners. The preview places timed text within the visible
-video frame and uses the same relative vertical placement as final rendering.
+The visual track supports insert, reorder, duplicate, split, source in/out trimming, per-clip volume,
+rotation, flips, contain/cover framing, zoom and fades. A still image has an editable display duration.
+Dissolve and directional wipes belong to the boundary between adjacent clips: their overlap shortens
+the total timeline, and incoming plus outgoing overlaps must leave at least 100 ms of each clip.
+Changing a connected clip pair removes that pair's transition. Ripple edits retime text and audio
+starts in one operation; tracks outside the remaining project are removed. Reordering retains their
+absolute times. Audio has independent source in/out, timeline start, volume and fades.
+
+Rust prepares revision-keyed, short-GOP editing proxies for video; initialization, material admission
+and video preview use that canonical preparation path. Proxy decoding determines the editing frame
+aspect ratio and duration; users select final output resolution independently. Video frames never
+cross IPC. Preparation is cancellable and failures remain visible. A shared animation-frame clock
+synchronizes active video layers and audio, suspending while those sources buffer. Preview uses the
+same overlap, orientation, framing, zoom and gain rules as export. Pointer scrubbing and exact output
+frame stepping are separate from integer-millisecond persisted edit intervals; trim handles snap to
+the output frame grid, with Alt enabling millisecond precision.
+
+A resizable material browser, preview and selected-item inspector sit above the resizable timeline.
+The inspector is absent until a clip, audio clip or text item is selected; closing it returns focus to
+the ruler. Timed text is selectable from preview and timeline, with searchable subtitles, placement,
+installed font family and face weight, size, color and four export-backed styles. Text size remains
+720p-relative; ASS resolution follows the explicit output frame. A missing selected font blocks
+export. Each overlay stores its full style and preserves its text whitespace across saving and rendering. Application commands own local shortcuts without
+feature-level global keyboard listeners.
+
+Saving records one project snapshot through normal Space history. A local edit history provides
+undo and redo before Save. Close, Space navigation, route changes, update installation and quit
+require an explicit Save, Discard or Cancel decision for unsaved work. Failed writes retain the draft.
+Draft structure is validated on saving; live source admission occurs at rendering so deleted material
+can still be inspected and removed from a draft, and package restore does not depend on insertion
+order. Missing or replaced material is unavailable in preview and prevents rendering until corrected.
+
+Rendering resolves every used asset in the same Space, checks current revision, readiness and managed
+file authorization, and verifies the exact saved project snapshot through the same strict typed contract. JSON integer/float
+spelling does not create a false edit conflict. FFmpeg normalizes each source to
+the output frame and sample clock, supplies explicit silence for images or silent videos, applies
+transitions and subtitle composition, and mixes independent audio. Every used source revision is
+captured and revalidated before atomic publication. Measured progress and cancellation use Task
+Center. Admission, rendering and publication failures settle the pending output visibly; rejected
+publication removes its rendered file. Output is a separate derived video node; original source bytes and the saved edit project
+remain available.
 
 Desktop acceptance for this workbench follows Apple's guidance on
 [undo and redo](https://developer.apple.com/design/human-interface-guidelines/undo-and-redo),

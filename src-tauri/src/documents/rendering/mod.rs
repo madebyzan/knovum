@@ -33,6 +33,26 @@ pub(crate) fn render(source: &std::path::Path, input: &PdfInput) -> Result<PdfRa
     }
 }
 
+/// Conversion rasterizes the same immutable byte snapshot used by its text parser.
+pub(crate) fn render_bytes(bytes: &[u8], input: &PdfInput) -> Result<PdfRaster, String> {
+    if input.page() == 0 || bytes.len() > 128 * 1024 * 1024 {
+        return Err("PDF snapshot page or byte budget is invalid".into());
+    }
+    #[cfg(target_os = "macos")]
+    {
+        macos::render_bytes(bytes, input.page(), input.region())
+    }
+    #[cfg(target_os = "windows")]
+    {
+        windows::render_bytes(bytes, input.page(), input.region())
+            .map_err(|error| format!("Windows PDF rendering failed: {error}"))
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        Err("Native PDF processing is not supported on this platform".into())
+    }
+}
+
 fn viewport(width: f64, height: f64, region: Option<PdfRegion>) -> Result<PdfRegion, String> {
     let page = PdfRegion {
         x: 0.0,

@@ -1,6 +1,6 @@
-use docx_rs::{BreakType, Hyperlink, HyperlinkType, Paragraph, Run};
+use docx_rs::{BreakType, Hyperlink, HyperlinkType, Paragraph, Pic, Run};
 
-use super::super::document::Inline;
+use super::super::{document::Inline, images::Images};
 
 #[derive(Clone, Copy, Default)]
 struct Marks {
@@ -9,11 +9,11 @@ struct Marks {
     strike: bool,
 }
 
-pub(super) fn paragraph(content: &[Inline]) -> Result<Paragraph, String> {
-    append(Paragraph::new(), content, Marks::default())
+pub(super) fn paragraph(content: &[Inline], images: &Images) -> Result<Paragraph, String> {
+    append(Paragraph::new(), content, Marks::default(), images)
 }
 
-pub(super) fn header_paragraph(content: &[Inline]) -> Result<Paragraph, String> {
+pub(super) fn header_paragraph(content: &[Inline], images: &Images) -> Result<Paragraph, String> {
     append(
         Paragraph::new(),
         content,
@@ -21,10 +21,16 @@ pub(super) fn header_paragraph(content: &[Inline]) -> Result<Paragraph, String> 
             bold: true,
             ..Marks::default()
         },
+        images,
     )
 }
 
-fn append(mut paragraph: Paragraph, content: &[Inline], marks: Marks) -> Result<Paragraph, String> {
+fn append(
+    mut paragraph: Paragraph,
+    content: &[Inline],
+    marks: Marks,
+    images: &Images,
+) -> Result<Paragraph, String> {
     for inline in content {
         match inline {
             Inline::Strong(children) => {
@@ -35,6 +41,7 @@ fn append(mut paragraph: Paragraph, content: &[Inline], marks: Marks) -> Result<
                         bold: true,
                         ..marks
                     },
+                    images,
                 )?;
             }
             Inline::Emphasis(children) => {
@@ -45,6 +52,7 @@ fn append(mut paragraph: Paragraph, content: &[Inline], marks: Marks) -> Result<
                         italic: true,
                         ..marks
                     },
+                    images,
                 )?;
             }
             Inline::Strike(children) => {
@@ -55,23 +63,24 @@ fn append(mut paragraph: Paragraph, content: &[Inline], marks: Marks) -> Result<
                         strike: true,
                         ..marks
                     },
+                    images,
                 )?;
             }
             Inline::Link { url, content } => {
                 super::super::links::validate(url)?;
                 let mut link = Hyperlink::new(url, HyperlinkType::External);
-                for run in runs(content, marks)? {
+                for run in runs(content, marks, images)? {
                     link = link.add_run(run.color("0563C1").underline("single"));
                 }
                 paragraph = paragraph.add_hyperlink(link);
             }
-            inline => paragraph = paragraph.add_run(leaf(inline, marks)?),
+            inline => paragraph = paragraph.add_run(leaf(inline, marks, images)?),
         }
     }
     Ok(paragraph)
 }
 
-fn runs(content: &[Inline], marks: Marks) -> Result<Vec<Run>, String> {
+fn runs(content: &[Inline], marks: Marks, images: &Images) -> Result<Vec<Run>, String> {
     let mut output = Vec::new();
     for inline in content {
         let children = match inline {
@@ -99,25 +108,31 @@ fn runs(content: &[Inline], marks: Marks) -> Result<Vec<Run>, String> {
             _ => None,
         };
         if let Some((children, marks)) = children {
-            output.extend(runs(children, marks)?);
+            output.extend(runs(children, marks, images)?);
         } else {
-            output.push(leaf(inline, marks)?);
+            output.push(leaf(inline, marks, images)?);
         }
     }
     Ok(output)
 }
 
-fn leaf(inline: &Inline, marks: Marks) -> Result<Run, String> {
+fn leaf(inline: &Inline, marks: Marks, images: &Images) -> Result<Run, String> {
     let mut run = match inline {
         Inline::Text(text) => text_run(text),
         Inline::Code(text) => text_run(text).style("KnovumCode"),
         Inline::Task(checked) => Run::new().add_text(if *checked { "[x] " } else { "[ ] " }),
         Inline::SoftBreak => Run::new().add_text(" "),
         Inline::HardBreak => Run::new().add_break(BreakType::TextWrapping),
-        Inline::Image { .. } => {
-            return Err(
-                "DOCX image export is not implemented; use plain text or remove images".into(),
-            );
+        Inline::Image { destination, .. } => {
+            let image = images.get(destination)?;
+            let (width, height) = super::image_layout::pixel_size(image.width, image.height);
+            let pic = Pic::new_with_dimensions(
+                images.clone_bytes(destination)?,
+                image.width,
+                image.height,
+            )
+            .size(width as u32, height as u32);
+            Run::new().add_image(pic)
         }
         _ => return Err("Unexpected nested inline in DOCX export".into()),
     };

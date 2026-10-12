@@ -2,7 +2,7 @@
   "conversion": {
     "actions": {
       "docx": "Convertir a documento de Word",
-      "pdf": "Convertir a PDF",
+      "pdf": "Compone notas y Markdown como PDF.",
       "txt": "Convertir a texto sin formato",
       "html": "Convertir a HTML"
     },
@@ -20,7 +20,14 @@
       "html": "Documento HTML (.html)",
       "pptx": "Presentación (.pptx)"
     },
-    "help": "Crea un archivo relacionado. El contenido PDF se redistribuye sin imágenes; Office to Word/HTML mantiene tablas e imágenes compatibles. Los archivos de Office con imágenes no se pueden convertir a PDF. No se admiten el diseño original, las animaciones ni los archivos PDF escaneados."
+    "expectations": {
+      "docx": "Texto editable e imágenes extraídas; los PDF se redistribuyen.",
+      "pdf": "Compone notas y Markdown como PDF.",
+      "txt": "Solo texto, sin diseño ni imágenes.",
+      "html": "Contenido editable y redistribuido con imágenes extraídas.",
+      "pptx": "Crea diapositivas editables a partir de la estructura del documento."
+    },
+    "recognitionRequired": "Finaliza el reconocimiento de todas las páginas escaneadas antes de convertir."
   },
   "generate": "Generar documento",
   "title": "Crear un documento a partir de conocimientos seleccionados.",

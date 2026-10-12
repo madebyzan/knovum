@@ -796,3 +796,15 @@ exclusion, rectangle and brush tools rendered on the source node. Its Extract/Re
 related outputs directly. Relative-depth generation is a direct node-menu action. Temporary masks,
 encoding work and controls do not create detached canvas nodes. Geometry, side selection, gap, More
 migration and focus restoration remain responsibilities of the existing bar and selection owners.
+
+### Lightweight video workbench
+
+The video editor is a compact same-window desktop workbench. Reka splitters own the material/preview/
+selection-inspector columns and the stage/timeline division. Selection opens its owning inspector;
+closing it restores ruler focus. Materials reuse managed Space imports and existing media players.
+The timeline exposes visual clips, boundary transitions, text and independent audio rows, with a
+shared playhead, millisecond timecode, output-frame stepping, pointer trim handles and keyboard trim.
+Clip settings include precise in/out fields, volume, framing and fades; audio settings distinguish
+source time from timeline time. Output resolution and frame rate live in a labelled settings popover.
+Unavailable materials and preparation errors remain visible. All edits share the project's undo/redo
+history; saving and native rendering stay in the workbench header.

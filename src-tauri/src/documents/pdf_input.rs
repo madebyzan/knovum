@@ -32,6 +32,20 @@ pub(crate) enum PdfRecognitionReason {
     VectorText,
 }
 
+impl PdfRecognitionReason {
+    pub(crate) fn from_parser(reason: Option<&str>) -> Result<Option<Self>, String> {
+        match reason {
+            Some(pdf_inspector::OCR_REASON_SCANNED) => Ok(Some(Self::Scanned)),
+            Some(pdf_inspector::OCR_REASON_SUSPECTED_GARBLED_TEXT) => {
+                Ok(Some(Self::SuspectedGarbledText))
+            }
+            Some(pdf_inspector::OCR_REASON_VECTOR_TEXT) => Ok(Some(Self::VectorText)),
+            None | Some(pdf_inspector::OCR_REASON_NO_TEXT) => Ok(None),
+            Some(value) => Err(format!("Unsupported PDF recognition reason: {value}")),
+        }
+    }
+}
+
 #[derive(Clone, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub(crate) enum PdfInput {

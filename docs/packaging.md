@@ -112,6 +112,8 @@ The installer contains FFmpeg, the Rust inference worker and its library/notice 
 complete frozen Agent onedir distribution, and bundled Agent plugin data. Agent dependencies
 are built from the one `python/uv.lock`; users do not download an interpreter or install packages.
 Model weights and optional yt-dlp/Deno remain independently prepared resources.
+Office layout/editing engines are outside the product boundary: they are neither bundled nor
+downloaded. Office original-layout PDF export is performed in the user's external Office application.
 
 The Tauri host package contains only the product binary. Contract generation belongs to the
 separate `tools/contract-exporter` Cargo workspace package and is not distributed with the app.

@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose::STANDARD, Engine};
 use pulldown_cmark::{html::push_html, Event, HeadingLevel, Parser, Tag, TagEnd};
 
 use super::document::DocumentSource;
@@ -5,8 +6,9 @@ use super::document::DocumentSource;
 pub(crate) fn render(source: &DocumentSource, metadata_title: &str) -> Result<Vec<u8>, String> {
     // Keep the export subset, budgets and title policy shared with the other formats.
     let document = super::markdown::parse(source)?;
+    let images = super::images::Images::load(source)?;
     let mut body = Parser::new_ext(&source.markdown, super::markdown::OPTIONS)
-        .map(validate_event)
+        .map(|event| validate_event(event, &images))
         .collect::<Result<Vec<_>, _>>()?
         .into_iter();
     if document.leading_title_removed {
@@ -46,11 +48,16 @@ pub(super) fn build_document(title: &str, body: &str) -> Vec<u8> {
     ).into_bytes()
 }
 
-fn validate_event(event: Event<'_>) -> Result<Event<'_>, String> {
-    match &event {
+fn validate_event<'a>(
+    mut event: Event<'a>,
+    images: &super::images::Images,
+) -> Result<Event<'a>, String> {
+    match &mut event {
         Event::Start(Tag::Link { dest_url, .. }) => super::links::validate(dest_url)?,
-        Event::Start(Tag::Image { .. }) => {
-            return Err("HTML export does not support images".into());
+        Event::Start(Tag::Image { dest_url, .. }) => {
+            let image = images.get(dest_url)?;
+            images.record_embedded_bytes(22 + image.bytes.len().div_ceil(3) * 4)?;
+            *dest_url = format!("data:image/png;base64,{}", STANDARD.encode(&image.bytes)).into();
         }
         _ => {}
     }

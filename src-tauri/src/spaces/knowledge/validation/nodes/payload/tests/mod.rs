@@ -16,12 +16,15 @@ fn video() -> serde_json::Value {
     json!({
         "kind": "video", "title": "Video", "assetPath": "/video.mp4", "fileName": "video.mp4",
         "sourceRevision": "revision",
-        "videoEditProject": {
-            "version": 1, "sourceRevision": "revision", "sourceWidth": 640, "sourceHeight": 480,
-            "videoTrack": {"clips": [{"id": "d51a4384-70ab-4b44-90cc-3bfcf0f5341f", "startMs": 0, "endMs": 2000, "volume": 1.0}]},
-            "textTrack": {"items": []},
-            "transform": {"rotation": 0, "flipHorizontal": false, "flipVertical": false}
-        }
+        "videoEditProject": serde_json::from_str::<serde_json::Value>(r#"{
+ "version":1,"sourceRevision":"revision",
+ "assets":[{"nodeId":"source","sourceRevision":"revision","kind":"video","durationMs":8000,"width":1080,"height":1920}],
+ "output":{"width":1080,"height":1920,"frameRate":30},
+ "videoTrack":{"clips":[
+ {"id":"d51a4384-70ab-4b44-90cc-3bfcf0f5341f","assetId":"source","startMs":1000,"endMs":3000,"volume":1,"fadeInMs":0,"fadeOutMs":0,"transition":null,"transform":{"rotation":90,"flipHorizontal":true,"flipVertical":false,"fit":"contain","zoom":1}},
+ {"id":"d51a4384-70ab-4b44-90cc-3bfcf0f5342f","assetId":"source","startMs":5000,"endMs":8000,"volume":0.5,"fadeInMs":0,"fadeOutMs":0,"transition":null,"transform":{"rotation":0,"flipHorizontal":false,"flipVertical":false,"fit":"cover","zoom":1}}]},
+ "audioTrack":{"clips":[]},"textTrack":{"items":[]}
+}"#).unwrap()
     })
 }
 
