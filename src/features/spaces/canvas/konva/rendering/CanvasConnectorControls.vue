@@ -45,6 +45,17 @@ function setHovered(side: CanvasConnectorSide | undefined, event: Konva.KonvaEve
   if (container) container.style.cursor = side ? "pointer" : "";
 }
 
+function controlConfig(control: (typeof controls.value)[number]) {
+  return {
+    ...control.position,
+    visible: props.visible,
+    listening: props.interactive && props.visible,
+    onPointerenter: (event: Konva.KonvaEventObject<PointerEvent>) => setHovered(control.side, event),
+    onPointerleave: (event: Konva.KonvaEventObject<PointerEvent>) => setHovered(undefined, event),
+    onPointerdown: (event: Konva.KonvaEventObject<PointerEvent>) => begin(control, event),
+  };
+}
+
 function points(side: CanvasConnectorSide) {
   const length = metrics.value.arrowHalfLength;
   if (side === "top") return [0, length, 0, -length];
@@ -55,18 +66,7 @@ function points(side: CanvasConnectorSide) {
 </script>
 
 <template>
-  <KonvaGroup
-    v-for="control in controls"
-    :key="control.side"
-    :config="{
-      ...control.position,
-      visible,
-      listening: interactive && visible,
-    }"
-    @pointerenter="setHovered(control.side, $event)"
-    @pointerleave="setHovered(undefined, $event)"
-    @pointerdown="begin(control, $event)"
-  >
+  <KonvaGroup v-for="control in controls" :key="control.side" :config="controlConfig(control)">
     <KonvaCircle
       :config="{
         radius: metrics.radius,

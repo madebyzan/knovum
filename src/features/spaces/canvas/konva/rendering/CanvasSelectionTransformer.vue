@@ -160,9 +160,9 @@ function finishTransform() {
       padding: 0,
       boundBoxFunc: constrainResize,
       anchorDragBoundFunc: snapAnchor,
+      onTransformstart: beginTransform,
+      onTransform: updateTransform,
+      onTransformend: finishTransform,
     }"
-    @transformstart="beginTransform"
-    @transform="updateTransform"
-    @transformend="finishTransform"
   />
 </template>
