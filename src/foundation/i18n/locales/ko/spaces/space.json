@@ -9,17 +9,20 @@
   },
   "rename": "작업공간 이름 바꾸기",
   "tabs": {
+    "label": "열린 작업",
     "close": "탭 닫기",
+    "closeNamed": "{title} 닫기",
     "closeOthers": "다른 탭 닫기",
     "closeToRight": "오른쪽 탭 닫기",
-    "actionFailed": "작업공간 탭 작업이 실패했습니다.",
+    "next": "다음 작업 탭",
+    "previous": "이전 작업 탭",
     "reopen": "닫은 탭 다시 열기",
-    "switchTo": "{number} 탭으로 전환"
+    "switchTo": "{number} 탭으로 전환",
+    "actionFailed": "작업공간 탭 작업이 실패했습니다."
   },
   "back": "뒤로 가기",
   "forward": "앞으로 이동",
   "sections": {
-    "open": "작업공간 열기",
     "all": "모든 작업공간",
     "recent": "최근 열림",
     "favorites": "즐겨찾기"

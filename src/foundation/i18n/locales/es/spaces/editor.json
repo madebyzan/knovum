@@ -18,16 +18,11 @@
   },
   "placeholder": "Empezar a escribir…",
   "tabs": {
-    "label": "Contenido abierto",
-    "canvas": "Lienzo",
-    "close": "Cerrar {title}",
     "missing": "Este recurso ya no está disponible. El borrador se conserva. Descártalo explícitamente para cerrar.",
     "conflict": "Este recurso cambió fuera del editor. El borrador se conserva y no puede sobrescribir el contenido más reciente.",
     "discardClose": "Descartar borrador y cerrar",
     "rendered": "El vídeo editado está listo",
     "viewResult": "Ver resultado",
-    "next": "Siguiente pestaña de trabajo",
-    "previous": "Pestaña de trabajo anterior",
     "protected": "Cierra las pestañas de edición correspondientes antes de eliminar este contenido o moverlo a otro Space.",
     "goToEditor": "Ir a la pestaña de edición",
     "opened": "Abierto en una pestaña de edición"

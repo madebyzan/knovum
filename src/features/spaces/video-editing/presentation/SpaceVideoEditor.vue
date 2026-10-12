@@ -2,7 +2,7 @@
 import { toRef } from "vue";
 
 import SpaceEditorProblem from "../../document-editing/presentation/SpaceEditorProblem.vue";
-import type { SpaceEditorTab } from "../../workspace/work-items";
+import type { SpaceEditorTab } from "../../workspace/workbench-tab";
 import SpaceVideoEditorHeader from "./SpaceVideoEditorHeader.vue";
 import SpaceVideoEditorState from "./SpaceVideoEditorState.vue";
 import SpaceVideoUnsavedDialog from "./SpaceVideoUnsavedDialog.vue";

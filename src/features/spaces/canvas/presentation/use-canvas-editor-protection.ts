@@ -20,8 +20,7 @@ export function useCanvasEditorProtection(
     canTransfer: computed(() => tabs.value.length === 0),
     goToEditor: () => {
       const tab = tabs.value[0];
-      if (tab)
-        void store.activateEditorTab(tab.id).catch((error: unknown) => toast.error(getErrorMessage(error)));
+      if (tab) void store.activateTab(tab.id).catch((error: unknown) => toast.error(getErrorMessage(error)));
     },
   };
 }

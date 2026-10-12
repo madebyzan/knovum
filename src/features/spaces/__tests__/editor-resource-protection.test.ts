@@ -11,7 +11,7 @@ import {
   EditorResourceProtectedError,
   editorsWithinStructure,
 } from "../workspace/editor-resource-protection";
-import { removeSpaceWorkItems } from "../workspace/work-items";
+import { discardWorkbenchTabs, insertWorkbenchTab } from "../workspace/workbench-tab-state";
 import { activateTestEditor, createTestSessionContext } from "./support/session-context";
 
 const mocks = vi.hoisted(() => ({
@@ -73,10 +73,7 @@ it("blocks cross-Space transfer without committing or closing the editor", async
 
 it("allows layout changes and passes every Space's live editor identities to Rust", async () => {
   const { context, actions, tab, video } = setup();
-  context.editorTabs.value = [
-    ...context.editorTabs.value,
-    { id: "foreign", kind: "document", spaceId: "second", nodeId: "foreign-node" },
-  ];
+  insertWorkbenchTab(context, { id: "foreign", kind: "document", spaceId: "second", nodeId: "foreign-node" });
   mocks.load.mockResolvedValue(context.editSnapshot.value);
   await actions.executeSpaceEdit({ kind: "structure.set-lock", rootIds: ["group"], locked: true });
   expect(mocks.execute).toHaveBeenCalledWith(expect.anything(), [
@@ -115,7 +112,7 @@ it("releases protection only after the editor tab is removed", async () => {
   expect(
     editorsWithinStructure(context.editorTabs.value, "inbox", context.editSnapshot.value, ["group"]),
   ).toEqual([tab]);
-  removeSpaceWorkItems(context, new Set([tab.id]));
+  discardWorkbenchTabs(context, [tab]);
   mocks.projection.mockResolvedValue({
     nodes: [],
     scenes: [],

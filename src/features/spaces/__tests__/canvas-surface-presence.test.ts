@@ -13,6 +13,7 @@ import SpaceCanvas from "../canvas/presentation/SpaceCanvas.vue";
 import SpaceCanvasProductLayer from "../canvas/presentation/SpaceCanvasProductLayer.vue";
 import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { useSpaceStore } from "../session/space-store";
+import { openStoreSpaceTab } from "./support/session-context";
 
 vi.mock("../enrichment/use-enrichment-job-observation", () => ({ useEnrichmentJobObservation: () => {} }));
 vi.mock("../canvas/presentation/use-space-canvas-imports", () => ({
@@ -27,7 +28,7 @@ it("treats a Section-only canvas as populated and suspends hidden canvas input",
   const pinia = createPinia();
   setActivePinia(pinia);
   const store = useSpaceStore();
-  store.activeSpaceId = "inbox";
+  openStoreSpaceTab(store, "inbox");
   onTestFinished(
     registerCanvasEditor({
       getViewport: () => ({ x: 0, y: 0, zoom: 1 }),

@@ -22,7 +22,7 @@ export function useSpacesWorkspace(): WorkspaceDefinition {
         ? { kind: "space", id: store.activeSpace.id, label: store.activeSpace.title }
         : undefined,
     ),
-    toolbar: defineAsyncComponent(() => import("./workspace/presentation/SpaceWorkspaceTabs.vue")),
+    toolbar: defineAsyncComponent(() => import("./workspace/presentation/SpaceWorkbenchTabs.vue")),
     useCommands: useSpaceCommands,
   };
 }

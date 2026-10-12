@@ -9,17 +9,20 @@
   },
   "rename": "Leerzeichen umbenennen",
   "tabs": {
+    "label": "Offene Arbeitsinhalte",
     "close": "Tab schließen",
+    "closeNamed": "{title} schließen",
     "closeOthers": "Andere Registerkarten schließen",
     "closeToRight": "Tabs rechts schließen",
-    "actionFailed": "Die Aktion auf der Registerkarte „Arbeitsbereich“ ist fehlgeschlagen",
+    "next": "Nächster Arbeitstab",
+    "previous": "Vorheriger Arbeitstab",
     "reopen": "Geschlossenen Tab erneut öffnen",
-    "switchTo": "Wechseln Sie zur Registerkarte {number}"
+    "switchTo": "Wechseln Sie zur Registerkarte {number}",
+    "actionFailed": "Die Aktion auf der Registerkarte „Arbeitsbereich“ ist fehlgeschlagen"
   },
   "back": "Zurück",
   "forward": "Weiter",
   "sections": {
-    "open": "Offene Arbeitsbereiche",
     "all": "Alle Bereiche",
     "recent": "Kürzlich geöffnet",
     "favorites": "Favoriten"

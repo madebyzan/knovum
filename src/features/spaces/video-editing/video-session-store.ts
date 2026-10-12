@@ -4,7 +4,7 @@ import { markRaw, shallowRef, type Ref } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
-import type { SpaceEditorTab } from "../workspace/work-items";
+import type { SpaceEditorTab } from "../workspace/workbench-tab";
 import type { VideoEditProject } from "./project";
 import { useVideoEditHistory } from "./use-video-edit-history";
 

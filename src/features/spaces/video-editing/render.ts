@@ -88,7 +88,7 @@ export async function renderVideoEdit(
         onClick: () => {
           void store
             .openSpace(spaceId)
-            .then(() => store.returnToCanvas())
+            .then(() => store.openSpaceCanvas())
             .then(() => store.requestReveal([completed.nodeId], "ensure-visible"))
             .catch((error: unknown) => toast.error(getErrorMessage(error)));
         },

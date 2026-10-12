@@ -34,7 +34,7 @@ export async function runEditorMutation(operation: () => void | Promise<void>) {
 async function revealEditor(tabId: string) {
   const store = useSpaceStore();
   try {
-    await store.activateEditorTab(tabId);
+    await store.activateTab(tabId);
   } catch (error) {
     toast.error(getErrorMessage(error));
   }

@@ -1,19 +1,14 @@
-import { nextTick } from "vue";
-
 import { beginSpaceMutation } from "../history/mutation-barrier";
-import type { Space } from "../model/space";
-import { recordWorkspaceNavigation } from "./navigation-history";
-import { switchSpaceHistory } from "./session-history";
 import { createSpaceDraft, persistAndTrackSpace } from "./space-creation";
 import type { SpaceSessionContext } from "./space-session-context";
-import { transitionActiveSpaceSession } from "./space-transition";
 
-export async function createDraftSpace(context: SpaceSessionContext, title: string) {
-  const existingDraft = context.draftSpace.value;
-  if (existingDraft) return activateDraftSpace(context, existingDraft, true);
+/** One session holds at most one unsaved draft Space; repeated new-Space actions reuse it. */
+export function ensureDraftSpace(context: SpaceSessionContext, title: string) {
+  const existing = context.draftSpace.value;
+  if (existing) return existing;
   const space = createSpaceDraft(title, "space");
   context.draftSpace.value = space;
-  return activateDraftSpace(context, space, true);
+  return space;
 }
 
 export async function materializeActiveSpace(context: SpaceSessionContext) {
@@ -26,28 +21,4 @@ export async function materializeActiveSpace(context: SpaceSessionContext) {
   } finally {
     releaseMutation();
   }
-}
-
-export async function activateDraftSpace(
-  context: SpaceSessionContext,
-  space: Space,
-  recordNavigation: boolean,
-) {
-  return transitionActiveSpaceSession(context, async () => {
-    context.runtime.openGeneration += 1;
-    context.runtime.pendingSpaceId = undefined;
-    context.loading.value = false;
-    context.workspaceDestination.value = "workbench";
-    await nextTick();
-    switchSpaceHistory(context, space.id);
-    context.activeSpaceId.value = space.id;
-    context.nodes.value = [];
-    context.editSnapshot.value = { editRevision: 0, structure: [], layouts: [], relationStyles: [] };
-    context.groupScopePath.value = [];
-    context.scenes.value = [];
-    context.relations.value = [];
-    if (!context.openSpaceIds.value.includes(space.id)) context.openSpaceIds.value.push(space.id);
-    if (recordNavigation) recordWorkspaceNavigation(context, space.id);
-    return true;
-  });
 }

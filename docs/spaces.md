@@ -11,21 +11,23 @@ into the stable desktop shell, while Settings is a separate application route.
 
 ## Work surfaces and session ownership
 
-Space navigation and content work items are separate. Each open Space retains a fixed canvas and
-zero or more document/video editor tabs. Tabs identify a concrete Space-owned node and editor kind;
-reopening that target activates its existing session. The active surface is a readonly projection of
-the destination and the selected work item, never a second writable editor selector. The library is
-an application navigation destination and preserves the selected work item while hidden.
+The workbench owns one ordered list of tabs and one active tab. A tab is a Space canvas, a document
+editor or a video editor; editor tabs identify a concrete Space-owned node and editor kind, and
+reopening that target activates its existing tab instead of creating a second one. The active
+surface is a readonly projection of the active tab and the navigation destination, never a second
+writable editor selector. A Space session stays loaded while at least one tab references it, and is
+released once the last one closes. The library is an application navigation destination and
+preserves the active tab while hidden.
 
-Content tabs preserve drafts and editor history when switching tabs, Spaces, the library or Settings.
-Space tabs select the Space and restore its selected work item; returning to canvas is explicit.
-Closing an editor prepares only its owner, then releases the tab and its resources. Closing a Space
-prepares all its editor owners; cancelling a later decision never drops earlier drafts or executes a
-prepared discard. Actual application exit prepares every retained editor through the existing window
-close coordinator. Successful durable writes need not be rolled back after a later cancellation.
-Closing a Space releases its work items; reopening it starts at canvas. Editor tabs and unsaved memory
-drafts do not survive application restart. Document auto-save and saved video projects retain their
-existing durable storage owners.
+Tabs preserve drafts and editor history when switching tabs, Spaces, the library or Settings.
+Selecting a Space in the sidebar focuses that Space's canvas tab, opening one when it has none.
+Closing an editor prepares only its owner, then releases the tab and its resources. Archiving or
+deleting a Space prepares all its editor owners; cancelling a later decision never drops earlier
+drafts or executes a prepared discard. Actual application exit prepares every retained editor
+through the existing window close coordinator. Successful durable writes need not be rolled back
+after a later cancellation. The Inbox canvas tab is permanent, so the workbench always retains one
+tab. Tabs and unsaved memory drafts do not survive application restart. Document auto-save and
+saved video projects retain their existing durable storage owners.
 
 Document sessions own their drafts; retained Tiptap instances own document history and selection.
 Video sessions own project drafts, history, selected items, playback position and timeline zoom.

@@ -15,7 +15,7 @@ import {
 } from "../../structure/space-edit-command";
 import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { assertEditorResourcesRemovable, editorResources } from "../../workspace/editor-resource-protection";
-import type { SpaceEditorTab } from "../../workspace/work-items";
+import type { SpaceEditorTab } from "../../workspace/workbench-tab";
 import { loadSpaceSessionProjection } from "../space-projection";
 
 interface StructureActionContext {

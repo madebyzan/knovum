@@ -1,12 +1,11 @@
 import { flushPromises } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ref } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { loadSpaceSessionProjection } from "../session/space-projection";
 import { materializeActiveSpace } from "../workspace/draft-space-actions";
-import { createSpace, openSpace } from "../workspace/space-session-actions";
 import type { SpaceSessionContext } from "../workspace/space-session-context";
+import { createSpace, openSpace } from "../workspace/workbench-navigation-actions";
 import { createTestSpace, createTestSessionContext } from "./support/session-context";
 
 type Projection = Awaited<ReturnType<typeof loadSpaceSessionProjection>>;
@@ -37,8 +36,8 @@ function projection(nodes: SpaceCanvasNode[] = []): Projection {
 
 function context(activeSpaceId = "inbox"): SpaceSessionContext {
   return createTestSessionContext({
-    activeSpaceId: ref(activeSpaceId),
-    spaces: ref([createTestSpace(), createTestSpace({ id: "research", kind: "space", title: "Research" })]),
+    activeSpaceId,
+    spaces: [createTestSpace(), createTestSpace({ id: "research", kind: "space", title: "Research" })],
   });
 }
 
@@ -134,7 +133,7 @@ describe("openSpace", () => {
     await expect(openSpace(state, "research")).rejects.toThrow("database unavailable");
 
     expect(state.activeSpaceId.value).toBe("inbox");
-    expect(state.openSpaceIds.value).toEqual(["inbox"]);
+    expect(state.tabs.value.map(({ spaceId }) => spaceId)).toEqual(["inbox"]);
     expect(research.lastOpenedAt).toBe(lastOpenedAt);
     expect(state.loading.value).toBe(false);
   });
@@ -152,7 +151,7 @@ describe("draft Space creation", () => {
 
     expect(draftId).toBeTruthy();
     expect(state.activeSpaceId.value).toBe(draftId);
-    expect(state.openSpaceIds.value).toEqual(["inbox", draftId]);
+    expect(state.tabs.value.map(({ spaceId }) => spaceId)).toEqual(["inbox", draftId]);
     expect(state.spaces.value).toHaveLength(2);
     expect(lifecycleRepository.createSpace).not.toHaveBeenCalled();
   });

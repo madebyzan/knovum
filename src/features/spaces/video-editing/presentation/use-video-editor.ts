@@ -1,7 +1,7 @@
 import { computed, nextTick, shallowRef, type Ref } from "vue";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import type { SpaceEditorTab } from "../../workspace/work-items";
+import type { SpaceEditorTab } from "../../workspace/workbench-tab";
 import { useVideoEditProxy } from "../use-video-edit-proxy";
 import { useVideoSessionStore } from "../video-session-store";
 import { useVideoEditActions } from "./use-video-edit-actions";

@@ -48,7 +48,7 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
     dirty: history.dirty,
     saving,
     save,
-    close: () => store.closeEditorTab(options.session.tab.id),
+    close: () => store.closeTab(options.session.tab.id),
     discard: history.discard,
   });
   function closeOrDismiss() {

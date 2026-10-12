@@ -1,32 +1,38 @@
 <script setup lang="ts">
-import { X } from "@lucide/vue";
+import { FileText, Film, LayoutDashboard, X } from "@lucide/vue";
 import { TabsTrigger } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
-defineProps<{ id: string; title: string; active: boolean; canClose: boolean }>();
+import type { WorkbenchTabView } from "./use-workbench-tab-views";
+
+const props = defineProps<{ view: WorkbenchTabView }>();
 const emit = defineEmits<{ close: []; contextMenu: [] }>();
 const { t } = useI18n();
+const ICONS = { space: LayoutDashboard, document: FileText, video: Film };
 </script>
 
 <template>
   <div
-    :data-space-id="id"
-    :data-active="active"
+    :data-tab-id="props.view.id"
+    :data-active="props.view.active"
     class="group flex h-(--knovum-control-height-sm) w-55 shrink-0 items-center rounded-md bg-(--knovum-tab-bg-inactive) text-label text-fg-secondary hover:bg-surface-raised hover:text-fg-primary hover:shadow-control data-[active=true]:bg-surface-raised data-[active=true]:font-medium data-[active=true]:text-fg-primary data-[active=true]:shadow-control"
-    @auxclick.middle.prevent="canClose && emit('close')"
+    @auxclick.middle.prevent="props.view.canClose && emit('close')"
     @contextmenu.prevent="emit('contextMenu')"
     @keydown.shift.f10.prevent="emit('contextMenu')"
   >
     <TabsTrigger
-      :value="id"
-      class="flex h-full min-w-0 flex-1 items-center truncate px-3 text-left outline-none"
+      :value="props.view.id"
+      class="flex h-full min-w-0 flex-1 items-center gap-1.5 px-3 text-left outline-none"
     >
-      <span class="truncate">{{ title }}</span>
+      <component :is="ICONS[props.view.kind]" class="size-3.5 shrink-0" :stroke-width="1.6" />
+      <span class="truncate">{{ props.view.title }}</span>
+      <span v-if="props.view.dirty" aria-hidden="true">•</span>
+      <span v-if="props.view.dirty" class="sr-only">{{ t("common.unsaved") }}</span>
     </TabsTrigger>
     <button
-      v-if="canClose"
+      v-if="props.view.canClose"
       type="button"
-      :aria-label="t('spaces.space.tabs.close')"
+      :aria-label="t('spaces.space.tabs.closeNamed', { title: props.view.title })"
       class="mr-1.5 grid size-4 shrink-0 place-items-center rounded opacity-0 group-hover:opacity-100 hover:bg-surface-control-hover focus-visible:opacity-100"
       @click.stop="emit('close')"
     >
