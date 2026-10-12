@@ -40,7 +40,6 @@ it("routes commands and contextual panes to the active work surface", async () =
       hasOutline: () => true,
       focusOutline: () => {},
       save: async () => {},
-      close: async () => {},
     }),
   );
   const openPane = vi.fn<() => void>();

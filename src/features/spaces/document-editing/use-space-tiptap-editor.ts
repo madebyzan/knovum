@@ -7,8 +7,6 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { isApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
-import { currentCanvasEditor } from "../canvas/editor-session";
 import { useContextDock } from "../canvas/use-context-dock";
 import { loadGroundedDocumentMetadata } from "../knowledge-derivations/document/metadata";
 import { findGroundedCitation } from "../knowledge/model/grounded-citation";
@@ -102,14 +100,6 @@ export function useSpaceTiptapEditor(tab: SpaceEditorTab, active: Ref<boolean>) 
     () => editor.value,
     () => headings.value,
   );
-  async function close() {
-    try {
-      await store.openSpaceCanvas();
-      await nextTick().then(() => currentCanvasEditor()?.focus());
-    } catch (error) {
-      if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
-    }
-  }
   onBeforeUnmount(() => {
     derive.cancel();
     statistics.dispose();
@@ -117,7 +107,6 @@ export function useSpaceTiptapEditor(tab: SpaceEditorTab, active: Ref<boolean>) 
   return {
     ...navigation,
     ...saving,
-    close,
     editor,
     editorNode,
     headings,

@@ -191,7 +191,10 @@ together with its tab activation inside one transition.
 `workspace/editor-sessions.ts` composes the concrete document and video owners; it is not a generic
 editor registry. Document drafts belong to `document-editing/document-session-store.ts`; video project/history
 state belongs to `video-editing/video-session-store.ts`. Retained presentation keeps document vendor
-instances alive and mounts heavy video media only while active.
+instances alive and mounts heavy video media only while active. A view whose root element is handed
+to a vendor that re-parents it outside the Vue tree — the Tiptap bubble menu is the one case — is
+mounted for the lifetime of that vendor instance and never toggled by surface visibility; the vendor
+owns its own visibility, derived from editability.
 `workspace/editor-resource-protection.ts` projects open tabs into neutral Space/node identities and
 checks affected subtrees for product availability. No editor lock is persisted. Structural mutation
 and history IPC pass those identities to `structure/editor_protection/mod.rs`, which captures live
