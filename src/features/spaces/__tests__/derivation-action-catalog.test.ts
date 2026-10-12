@@ -75,8 +75,8 @@ describe("selection derivation catalog", () => {
     const decisions = creationIntentCatalog([note()]).decisions;
 
     expect(decisions["draft-document"].state).toBe("ready");
-    expect(decisions["convert-document-to-pdf"].state).toBe("hidden");
-    expect(decisions["render-presentation"].state).toBe("hidden");
+    expect(decisions["convert-document-to-pdf"].state).toBe("ready");
+    expect(decisions["render-presentation"].state).toBe("ready");
     expect(decisions["generate-video"].state).toBe("ready");
   });
 
@@ -98,7 +98,7 @@ describe("selection derivation catalog", () => {
     });
   });
 
-  it("exports only an explicit current Markdown resource instead of hiding a synthesis step", () => {
+  it("exports one current note or Markdown resource without hiding a synthesis step", () => {
     const markdown = createSpaceNode(
       {
         kind: "markdown",
@@ -112,8 +112,8 @@ describe("selection derivation catalog", () => {
 
     expect(creationIntentCatalog([markdown]).decisions["convert-document-to-docx"].state).toBe("ready");
     expect(creationIntentCatalog([markdown]).decisions["convert-document-to-html"].state).toBe("ready");
-    expect(creationIntentCatalog([note()]).decisions["convert-document-to-docx"].state).toBe("hidden");
-    expect(creationIntentCatalog([note()]).decisions["convert-document-to-html"].state).toBe("hidden");
+    expect(creationIntentCatalog([note()]).decisions["convert-document-to-docx"].state).toBe("ready");
+    expect(creationIntentCatalog([note()]).decisions["convert-document-to-html"].state).toBe("ready");
     expect(creationIntentCatalog([markdown, note()]).decisions["convert-document-to-html"].state).toBe(
       "hidden",
     );

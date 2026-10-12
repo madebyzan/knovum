@@ -1,3 +1,4 @@
+pub(super) mod image_layout;
 mod inlines;
 mod lists;
 mod styles;
@@ -7,22 +8,27 @@ use std::io::Cursor;
 
 use docx_rs::{Docx, Paragraph, Run};
 
-use super::document::{Block, Document, DocumentSource};
+use super::{
+    document::{Block, Document, DocumentSource},
+    images::Images,
+};
 
 pub(crate) fn render(source: &DocumentSource) -> Result<Vec<u8>, String> {
     let document = super::markdown::parse(source)?;
     let mut cursor = Cursor::new(Vec::new());
-    build_document(&document)?
+    let images = Images::load(source)?;
+    build_document(&document, &images)?
         .build()
         .pack(&mut cursor)
         .map_err(|error| error.to_string())?;
     Ok(cursor.into_inner())
 }
 
-pub(super) fn build_document(document: &Document) -> Result<Docx, String> {
+pub(super) fn build_document(document: &Document, images: &Images) -> Result<Docx, String> {
     let mut writer = Writer {
         document: styles::document(),
         next_numbering: 1,
+        images,
     };
     if !document.title.is_empty() {
         writer.paragraph(
@@ -36,26 +42,24 @@ pub(super) fn build_document(document: &Document) -> Result<Docx, String> {
     Ok(writer.document)
 }
 
-struct Writer {
+struct Writer<'a> {
+    images: &'a Images,
     document: Docx,
     next_numbering: usize,
 }
 
-impl Writer {
+impl Writer<'_> {
     fn blocks(&mut self, blocks: &[Block], indent: i32) -> Result<(), String> {
         for block in blocks {
             match block {
                 Block::Paragraph(content) => {
-                    let paragraph = inlines::paragraph(content)?.style("KnovumBody").indent(
-                        Some(indent),
-                        None,
-                        None,
-                        None,
-                    );
+                    let paragraph = inlines::paragraph(content, self.images)?
+                        .style("KnovumBody")
+                        .indent(Some(indent), None, None, None);
                     self.paragraph(paragraph);
                 }
                 Block::Heading { level, content } => {
-                    let paragraph = inlines::paragraph(content)?
+                    let paragraph = inlines::paragraph(content, self.images)?
                         .style(&format!("Heading{level}"))
                         .outline_lvl(usize::from(*level - 1))
                         .keep_next(true)
@@ -71,7 +75,7 @@ impl Writer {
                 Block::Quote(children) => self.blocks(children, indent + 360)?,
                 Block::List { start, items } => self.list(*start, items, indent)?,
                 Block::Table(value) => {
-                    let table = tables::render(value)?;
+                    let table = tables::render(value, self.images)?;
                     self.document = std::mem::take(&mut self.document).add_table(table);
                 }
                 Block::Rule => {

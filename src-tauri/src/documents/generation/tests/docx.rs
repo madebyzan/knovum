@@ -4,7 +4,12 @@ use super::{fixture, source};
 #[test]
 fn docx_contains_real_tables_numbering_styles_and_hyperlinks() {
     let document = markdown::parse(&fixture()).unwrap();
-    let package = docx::build_document(&document).unwrap().build();
+    let package = docx::build_document(
+        &document,
+        &super::super::images::Images::from_sources(&[]).unwrap(),
+    )
+    .unwrap()
+    .build();
     let body = String::from_utf8(package.document).unwrap();
     let styles = String::from_utf8(package.styles).unwrap();
     let numbering = String::from_utf8(package.numberings).unwrap();
@@ -30,7 +35,12 @@ fn docx_contains_real_tables_numbering_styles_and_hyperlinks() {
 fn code_and_citation_control_syntax_stays_escaped_in_xml() {
     let document =
         markdown::parse(&source("`<>&`\n\n[Link](https://example.com/?a=1&b=2)")).unwrap();
-    let package = docx::build_document(&document).unwrap().build();
+    let package = docx::build_document(
+        &document,
+        &super::super::images::Images::from_sources(&[]).unwrap(),
+    )
+    .unwrap()
+    .build();
     let body = String::from_utf8(package.document).unwrap();
     let relationships = String::from_utf8(package.document_rels).unwrap();
     assert!(body.contains("&lt;&gt;&amp;"));

@@ -72,7 +72,7 @@ fn office_html_preserves_tables_and_embeds_images_without_active_markup() {
     assert!(fixture
         .render(DocumentFormat::Pdf)
         .unwrap_err()
-        .contains("images"));
+        .contains("original-layout PDF conversion is not supported"));
 }
 
 #[test]

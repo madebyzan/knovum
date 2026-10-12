@@ -121,7 +121,14 @@ The resulting lifecycle, permissions and interaction contracts are owned by
   preview fidelity.
 - Mozilla Readability owns readable webpage extraction. Knovum retains security-sensitive fetching,
   normalization and persistence rather than maintaining selector heuristics.
-- `docx-rs` owns editable Word export; Typst owns fixed-layout PDF export. The already pinned
+- `docx-rs` owns Markdown Word export; Typst owns content PDF export. `office_oxide` owns
+  DOCX serialization from its existing Office/Note IR. This overlap is retained for an explicit
+  unmet requirement: the current vendor DOCX writer does not serialize `Image.hyperlink`, while
+  the admitted Markdown writer preserves linked images. A direct swap also requires visible-title,
+  flowing-quote, nested-list, table-style and page-fit-image translation corrections. Neither writer
+  is a fallback for the other. Removing the dedicated writer requires an upstream linked-image
+  implementation and equivalent user-visible output; packaging XML patches are not an alternative.
+  The already pinned
   [`office_oxide` 0.1.13 PPTX writer](https://github.com/yfedoseev/office_oxide/blob/v0.1.13/src/pptx/write.rs)
   owns presentation package serialization. Its `PptxWriter`/`SlideData` APIs accept title/body text
   and `Write + Seek`, so the same private Rust process can return bytes without file access, a new
@@ -131,21 +138,26 @@ The resulting lifecycle, permissions and interaction contracts are owned by
   Python/Node execution and packaging boundary that this bounded Rust export does not need.
   The three formats remain separate capabilities rather than a generic Office framework. Real
   PowerPoint/Keynote viewing remains a platform acceptance requirement.
-- PDF/Office conversion reuses the pinned [pdf-inspector](https://github.com/firecrawl/pdf-inspector)
-  and [office_oxide](https://github.com/yfedoseev/office_oxide) crates already admitted for document
-  extraction. Both are Rust libraries usable on the existing desktop targets with no additional
-  WebView permissions, executable discovery or runtime installation. PDF content flows through the
-  vendor Markdown extractor; Office DOCX/PPTX/HTML/TXT serialization uses its IR writers directly.
-  Knovum retains source authorization/revision checks, bounded admission, supported-route policy,
-  safe-link validation, fidelity rejection and durable derivation publication. No new dependency is
-  introduced. [Pandoc](https://pandoc.org/faqs.html) cannot read PDFs and would duplicate the admitted
-  writer boundary; [LibreOffice](https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html)
-  provides broader Office layout conversion but needs an additional managed executable/profile
-  lifecycle not present in this product. [pdf2docx](https://github.com/ArtifexSoftware/pdf2docx) is no
-  longer actively maintained by Artifex and would add a separate Python dependency closure. Those
-  candidates do not satisfy the current maintained, embedded, local conversion contract. Exact
-  versions/licenses remain manifest, lockfile and dependency-policy owned; fidelity limits belong
-  to [document-conversion.md](document-conversion.md).
+- PDF/Office semantic content export reuses the pinned [pdf-inspector](https://github.com/firecrawl/pdf-inspector)
+  and [office_oxide](https://github.com/yfedoseev/office_oxide) crates. Rich Tiptap Notes translate directly
+  to the existing Office IR; no Markdown round-trip or second persistence model is introduced.
+  The existing native PDF adapter supplies source-page/image rasters. Revision-qualified page
+  recognition is an explicit input, not an automatic AI fallback or cached preview text.
+- Original-layout Office PDF was evaluated separately from content export. A full local layout
+  engine such as [LibreOffice](https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html)
+  would add hundreds of megabytes and runtime installation/maintenance for a capability outside
+  Knovum's knowledge-authoring scope. On-demand installation moves that cost outside the default
+  installer but does not remove it. The lightweight product boundary therefore excludes Office
+  original-layout PDF conversion and engine provisioning; users export PDF in their external Office
+  application. Existing semantic extraction and Markdown/Note typesetting remain supported. No
+  lossy Office-to-Markdown-to-PDF route is presented as original-layout conversion.
+- Presentation pagination reuses [unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation)
+  and [unicode-width](https://github.com/unicode-rs/unicode-width), already present in the compiled
+  dependency closure, as declared direct dependencies. They own grapheme boundaries and CJK width
+  estimates; handwritten Unicode ranges and byte slicing were rejected because they split emoji
+  and combining characters. A general font/layout engine or textwrap framework does not remove
+  Knovum's concrete slide-capacity/table/image policy and would add a second authoring runtime.
+  office_oxide owns serialization; Knovum only maps source content to bounded, readable slides.
 
 Detailed data and interaction contracts live in [spaces.md](spaces.md),
 [document-conversion.md](document-conversion.md) and [data-ownership.md](data-ownership.md).

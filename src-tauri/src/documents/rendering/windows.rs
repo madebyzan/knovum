@@ -6,7 +6,7 @@ use windows::{
     Graphics::Imaging::BitmapEncoder,
     Storage::{
         StorageFile,
-        Streams::{DataReader, InMemoryRandomAccessStream},
+        Streams::{DataReader, DataWriter, InMemoryRandomAccessStream},
     },
     Win32::System::WinRT::{RoInitialize, RoUninitialize, RO_INIT_MULTITHREADED},
 };
@@ -40,6 +40,35 @@ pub(super) fn render(
     let path = HSTRING::from_wide(&source.as_os_str().encode_wide().collect::<Vec<_>>())?;
     let file = StorageFile::GetFileFromPathAsync(&path)?.get()?;
     let document = PdfDocument::LoadFromFileAsync(&file)?.get()?;
+    render_document(&document, page_number, region)
+}
+
+pub(super) fn render_bytes(
+    bytes: &[u8],
+    page_number: u32,
+    region: Option<crate::documents::pdf_input::PdfRegion>,
+) -> Result<super::PdfRaster, Box<dyn std::error::Error>> {
+    unsafe {
+        RoInitialize(RO_INIT_MULTITHREADED)?;
+    }
+    let _apartment = Apartment;
+    let stream = InMemoryRandomAccessStream::new()?;
+    let _stream = CloseOnDrop(stream.cast()?);
+    let writer = DataWriter::CreateDataWriter(&stream.GetOutputStreamAt(0)?)?;
+    let _writer = CloseOnDrop(writer.cast()?);
+    writer.WriteBytes(bytes)?;
+    writer.StoreAsync()?.get()?;
+    writer.FlushAsync()?.get()?;
+    stream.Seek(0)?;
+    let document = PdfDocument::LoadFromStreamAsync(&stream)?.get()?;
+    render_document(&document, page_number, region)
+}
+
+fn render_document(
+    document: &PdfDocument,
+    page_number: u32,
+    region: Option<crate::documents::pdf_input::PdfRegion>,
+) -> Result<super::PdfRaster, Box<dyn std::error::Error>> {
     let page = document.GetPage(page_number - 1)?;
     let _page = CloseOnDrop(page.cast()?);
     let size = page.Size()?;

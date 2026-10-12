@@ -6,7 +6,7 @@ use docx_rs::{
 use super::super::document::Block;
 use super::{inlines, Writer};
 
-impl Writer {
+impl Writer<'_> {
     pub(super) fn list(
         &mut self,
         start: Option<u64>,
@@ -33,7 +33,9 @@ impl Writer {
             .add_numbering(Numbering::new(id, id));
         for item in items {
             let (first, rest) = match item.first() {
-                Some(Block::Paragraph(content)) => (inlines::paragraph(content)?, &item[1..]),
+                Some(Block::Paragraph(content)) => {
+                    (inlines::paragraph(content, self.images)?, &item[1..])
+                }
                 _ => (Paragraph::new(), item.as_slice()),
             };
             self.paragraph(

@@ -46,6 +46,7 @@ pub(super) fn document_request(
     }
     match document.kind.as_str() {
         "markdown" if document.data.get("derivationState").is_none() => {}
+        "note" => {}
         "file" if document.data.get("processingState").is_none() => {
             let path = document
                 .data
@@ -72,6 +73,9 @@ pub(super) fn document_request(
                 return Err(
                     "action-input-invalid: document already has the requested format".into(),
                 );
+            }
+            if target.extension == "pdf" {
+                return Err("action-input-invalid: Office original-layout PDF conversion is not supported; export PDF from the source application".into());
             }
             if target.extension == "pptx"
                 && !path.extension().is_some_and(|extension| {

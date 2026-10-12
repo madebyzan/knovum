@@ -118,6 +118,8 @@ sse-stream = "=0.2.6"
 yaml-rust2 = "=0.13.0"
 iri-string = "=0.7.14"
 unicode-normalization = "=0.1.25"
+unicode-segmentation = "=1.13.3"
+unicode-width = "=0.2.2"
 gix = { version = "=0.88.0", default-features = false, features = [
   "blocking-network-client",
   "blocking-http-transport-reqwest-rust-tls",
@@ -147,6 +149,7 @@ objc2-core-graphics = { version = "=0.3.2", default-features = false, features =
   "CGBitmapContext",
   "CGColorSpace",
   "CGContext",
+  "CGDataProvider",
   "CGImage",
   "CGPDFDocument",
   "CGPDFPage",
@@ -155,6 +158,7 @@ objc2-core-graphics = { version = "=0.3.2", default-features = false, features =
 objc2-core-foundation = { version = "0.3.2", default-features = false, features = [
   "std",
   "CFCGTypes",
+  "CFData",
   "CFString",
   "CFURL",
   "objc2",

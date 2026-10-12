@@ -11,6 +11,7 @@ import { useSpaceStore } from "../session/space-store";
 import { workflowStateLabelKey } from "../workflows/workflow-state-label";
 import { resourcePublicationQueryKey } from "./resource-publication-query";
 import { requestRunControl } from "./run-control";
+import { loadLatestRunFailure } from "./run-failure";
 import { observeRun } from "./run-observation";
 
 type Listener = (run: RunObservation) => void;
@@ -40,6 +41,23 @@ function refreshRunSpace(run: RunObservation) {
   void space.refreshActiveSpace().catch((cause: unknown) => toast.error(getErrorMessage(cause)));
 }
 
+async function reportRunFailure(
+  runId: string,
+  state: RunObservation["state"],
+  stateVersion: number,
+  isCurrent: (version: number) => boolean,
+) {
+  const tasks = useTaskStore();
+  try {
+    const reason = await loadLatestRunFailure(runId);
+    if (!isCurrent(stateVersion)) return;
+    tasks.fail(runId, reason ?? i18n.global.t(workflowStateLabelKey(state)));
+  } catch {
+    if (!isCurrent(stateVersion)) return;
+    tasks.fail(runId, i18n.global.t(workflowStateLabelKey(state)));
+  }
+}
+
 export function observeResourceRun(run: RunObservation, title: string, onUpdate?: Listener) {
   const existing = listenersByRunId.get(run.id);
   if (existing) {
@@ -55,13 +73,20 @@ export function observeResourceRun(run: RunObservation, title: string, onUpdate?
   tasks.restoreRunning({ id: run.id, title, startedAt: run.createdAt }, () => cancelResourceRun(run.id));
   tasks.setOpen(run.id, () => openResourceRun(run));
   const refreshCanvas = debounce(() => refreshRunSpace(run), 400);
+  let latestStateVersion = run.stateVersion;
   observeRun(run.id, {
     update: (next) => {
+      latestStateVersion = next.stateVersion;
       for (const listener of listeners) listener(next);
       refreshCanvas();
       if (next.state === "succeeded") tasks.succeed(next.id);
       else if (next.state === "failed" || next.state === "completed_with_errors") {
-        tasks.fail(next.id, i18n.global.t(workflowStateLabelKey(next.state)));
+        void reportRunFailure(
+          next.id,
+          next.state,
+          next.stateVersion,
+          (stateVersion) => stateVersion === latestStateVersion,
+        );
       } else if (next.state === "cancelled") tasks.cancelled(next.id);
       else tasks.setStatusMessage(next.id, i18n.global.t(workflowStateLabelKey(next.state)));
     },

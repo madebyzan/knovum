@@ -1,8 +1,5 @@
 use pdf_inspector::types::ItemType;
-use pdf_inspector::{
-    TextItem, OCR_REASON_NO_TEXT, OCR_REASON_SCANNED, OCR_REASON_SUSPECTED_GARBLED_TEXT,
-    OCR_REASON_VECTOR_TEXT,
-};
+use pdf_inspector::TextItem;
 
 use crate::documents::pdf_input::{PdfInput, PdfRecognitionReason, PdfRegion};
 
@@ -16,13 +13,7 @@ pub(super) fn plan(
     reason: Option<&str>,
     items: &[TextItem],
 ) -> Result<Vec<PdfVisual>, String> {
-    let recognition = match reason {
-        Some(OCR_REASON_SCANNED) => Some(PdfRecognitionReason::Scanned),
-        Some(OCR_REASON_SUSPECTED_GARBLED_TEXT) => Some(PdfRecognitionReason::SuspectedGarbledText),
-        Some(OCR_REASON_VECTOR_TEXT) => Some(PdfRecognitionReason::VectorText),
-        None | Some(OCR_REASON_NO_TEXT) => None,
-        Some(value) => return Err(format!("Unsupported PDF recognition reason: {value}")),
-    };
+    let recognition = PdfRecognitionReason::from_parser(reason)?;
     if let Some(reason) = recognition {
         return Ok(vec![PdfVisual {
             input: PdfInput::Page { page, reason },

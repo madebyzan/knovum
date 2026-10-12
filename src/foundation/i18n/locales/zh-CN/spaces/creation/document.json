@@ -2,7 +2,7 @@
   "conversion": {
     "actions": {
       "docx": "转换为 Word 文档",
-      "pdf": "转换为 PDF",
+      "pdf": "将笔记和 Markdown 排版为 PDF。",
       "txt": "转换为纯文本",
       "html": "转换为 HTML"
     },
@@ -20,7 +20,14 @@
       "html": "网页文档 (.html)",
       "pptx": "演示文稿 (.pptx)"
     },
-    "help": "创建关联的新文件。PDF 按文本重排，不保留图片；Office 转 Word/HTML 保留支持的表格和图片，含图片的 Office 暂不支持转 PDF。原版式、动画及扫描 PDF 暂不支持。"
+    "expectations": {
+      "docx": "生成可编辑文本并保留提取的图片；PDF 内容会重新排版。",
+      "pdf": "将笔记和 Markdown 排版为 PDF。",
+      "txt": "仅保留文本，不含版式或图片。",
+      "html": "生成可编辑的重排内容，并保留提取的图片。",
+      "pptx": "根据文档结构生成可编辑的幻灯片。"
+    },
+    "recognitionRequired": "请先完成所有扫描页面的文档识别，再进行转换。"
   },
   "generate": "生成文档",
   "title": "用选中知识生成文档",

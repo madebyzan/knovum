@@ -47,17 +47,18 @@ pub(super) async fn execute(
     )?
     .to_owned();
     let execution: Result<Value, AppError> = async {
-        let source = super::super::document_source::load(app, &request).await?;
-        let file = match &source {
-            crate::documents::generation::input::DocumentInput::File(file) => Some(file.clone()),
-            _ => None,
-        };
+        let source = super::super::document_source::load(app, &request, target.format).await?;
+        let snapshots = source.snapshots();
         let bytes =
             crate::documents::generation::worker::render(target.format, source, cancellation)
                 .await?;
-        if let Some(file) = file {
-            crate::foundation::blocking::run(move || file.verify_current()).await?;
-        }
+        crate::foundation::blocking::run(move || {
+            for snapshot in snapshots {
+                snapshot.verify_current()?;
+            }
+            Ok::<(), String>(())
+        })
+        .await?;
         if cancellation.is_cancelled() {
             return Err(AppError::cancelled("Document rendering was cancelled"));
         }

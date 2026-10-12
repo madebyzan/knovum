@@ -1,4 +1,4 @@
-mod validation;
+pub(crate) mod validation;
 
 use std::io::Cursor;
 
@@ -17,11 +17,12 @@ pub(super) fn render(
     xml::reset_truncated_subtrees();
     let document = Document::from_reader(Cursor::new(bytes), input_format)
         .map_err(|error| format!("Office conversion parsing failed: {error}"))?;
-    let ir = document.to_ir();
+    let mut ir = document.to_ir();
     validation::validate(&ir, format)?;
     let output = match format {
         DocumentFormat::Docx => {
             validate_writer_completeness()?;
+            super::super::docx::image_layout::prepare(&mut ir)?;
             let writer = office_oxide::create::ir_to_docx(&ir);
             let mut output = Cursor::new(Vec::new());
             writer
@@ -50,11 +51,9 @@ pub(super) fn render(
             }),
         ),
         DocumentFormat::Text => ir.plain_text().into_bytes(),
-        DocumentFormat::Pdf => format.render(&super::super::document::DocumentSource {
-            title: String::new(),
-            markdown: ir.to_markdown(),
-            citations: vec![],
-        })?,
+        DocumentFormat::Pdf => {
+            return Err("Office original-layout PDF conversion is not supported; export PDF from the source application".into())
+        }
     };
     validate_writer_completeness()?;
     Ok(output)

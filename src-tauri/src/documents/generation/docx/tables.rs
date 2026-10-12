@@ -1,9 +1,9 @@
 use docx_rs::{AlignmentType, Table, TableCell, TableRow};
 
 use super::super::document::{Alignment, Table as DocumentTable};
-use super::inlines;
+use super::{super::images::Images, inlines};
 
-pub(super) fn render(table: &DocumentTable) -> Result<Table, String> {
+pub(super) fn render(table: &DocumentTable, images: &Images) -> Result<Table, String> {
     let mut rows = Vec::new();
     for (index, row) in std::iter::once(&table.header)
         .chain(&table.rows)
@@ -12,9 +12,9 @@ pub(super) fn render(table: &DocumentTable) -> Result<Table, String> {
         let mut cells = Vec::new();
         for (content, alignment) in row.iter().zip(&table.alignments) {
             let paragraph = if index == 0 {
-                inlines::header_paragraph(content)?.keep_next(true)
+                inlines::header_paragraph(content, images)?.keep_next(true)
             } else {
-                inlines::paragraph(content)?
+                inlines::paragraph(content, images)?
             };
             let paragraph = paragraph.style("KnovumBody").align(match alignment {
                 Alignment::Left => AlignmentType::Left,

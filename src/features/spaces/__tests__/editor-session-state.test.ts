@@ -49,6 +49,7 @@ it("reloads clean document content and title without marking them dirty", () => 
 it("retains independent video drafts, histories and positions", () => {
   const store = useVideoSessionStore();
   const saved = createVideoEditProject({
+    nodeId: "source",
     sourceRevision: "r1",
     durationMs: 1000,
     sourceWidth: 640,

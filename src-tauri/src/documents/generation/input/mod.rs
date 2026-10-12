@@ -1,5 +1,6 @@
-mod file;
-mod office;
+pub(crate) mod file;
+pub(super) mod note;
+pub(super) mod office;
 mod pdf;
 
 use std::path::PathBuf;
@@ -15,7 +16,9 @@ use super::{document::DocumentSource, DocumentFormat};
 )]
 pub(crate) enum DocumentInput {
     Markdown(DocumentSource),
+    Note(super::document::NoteSource),
     File(DocumentFileSource),
+    Pdf(pdf::PdfSource),
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
@@ -30,17 +33,48 @@ impl DocumentInput {
     pub(super) fn validate(&self) -> Result<(), String> {
         match self {
             Self::Markdown(source) => super::markdown::validate_source(source),
+            Self::Note(source) => super::markdown::validate_source(&DocumentSource {
+                title: source.title.clone(),
+                markdown: String::new(),
+                citations: vec![],
+                images: vec![],
+            }),
             Self::File(source) => source.validate(),
+            Self::Pdf(source) => source.validate(),
+        }
+    }
+
+    pub(crate) fn snapshots(&self) -> Vec<DocumentFileSource> {
+        match self {
+            Self::Markdown(source) => source
+                .images
+                .iter()
+                .map(|image| image.file.clone())
+                .collect(),
+            Self::Note(source) => source
+                .images
+                .iter()
+                .map(|image| image.file.clone())
+                .collect(),
+            Self::File(source) => vec![source.clone()],
+            Self::Pdf(source) => vec![source.file.clone()],
         }
     }
 
     pub(super) fn render(self, format: DocumentFormat) -> Result<Vec<u8>, String> {
         match self {
             Self::Markdown(source) => format.render(&source),
+            Self::Note(source) => {
+                let ir = note::parse(&source, format)?;
+                super::structured::render(ir, format, &source.title)
+            }
             Self::File(source) => file::render(&source, format),
+            Self::Pdf(source) => pdf::render(&source, format),
         }
     }
 }
+
+pub(crate) use pdf::{PdfSource, RecognizedPage};
 
 impl DocumentFileSource {
     fn validate(&self) -> Result<(), String> {

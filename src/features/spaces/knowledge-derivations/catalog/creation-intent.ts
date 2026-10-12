@@ -3,6 +3,7 @@ import type { ActionAvailability } from "../../../../shared/contracts/action-ava
 export type CreationIntentIcon = "captions" | "file-output" | "file-pen" | "image" | "scan" | "sparkles";
 export type DerivationUnavailableReason =
   | "needs-indexed-knowledge"
+  | "needs-document-recognition"
   | "too-many-video-images"
   | "active-node-operation";
 
@@ -17,6 +18,7 @@ export interface CreationSelectionContext {
   readonly canRemoveBackground: boolean;
   readonly canAddVideoSubtitles: boolean;
   readonly documentTargets: readonly DocumentFormat[];
+  readonly documentRecognitionRequired: boolean;
 }
 
 export interface CreationIntentDefinition {

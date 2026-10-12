@@ -75,7 +75,7 @@ pub(super) fn inline_text(content: &[Inline], include_urls: bool) -> String {
                     output.push_str(&format!(" ({url})"));
                 }
             }
-            Inline::Image { alt } => {
+            Inline::Image { alt, .. } => {
                 output.push_str(&format!("[Image: {}]", inline_text(alt, false)));
             }
             Inline::Task(checked) => output.push_str(if *checked { "[x] " } else { "[ ] " }),

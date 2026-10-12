@@ -68,6 +68,7 @@ function openTool() {
             canAddVideoSubtitles: false,
             hasVideoSources: false,
             documentTargets: [],
+            documentRecognitionRequired: false,
           }),
         ),
         vi.fn<() => void>(),

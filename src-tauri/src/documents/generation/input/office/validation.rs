@@ -10,7 +10,7 @@ struct ContentBudget {
     image_bytes: usize,
 }
 
-pub(super) fn validate(ir: &DocumentIR, format: DocumentFormat) -> Result<(), String> {
+pub(crate) fn validate(ir: &DocumentIR, format: DocumentFormat) -> Result<(), String> {
     let mut budget = ContentBudget::default();
     if ir.sections.is_empty() || ir.sections.len() > 2_000 {
         return Err("Office conversion requires between 1 and 2000 sections".into());
@@ -138,9 +138,6 @@ impl ContentBudget {
         image: &office_oxide::ir::Image,
         format: DocumentFormat,
     ) -> Result<(), String> {
-        if matches!(format, DocumentFormat::Pdf) {
-            return Err("Office images are not supported in PDF conversion".into());
-        }
         if let Some(alt) = &image.alt_text {
             self.validate_text(alt)?;
         }
@@ -149,7 +146,10 @@ impl ContentBudget {
         }
         if matches!(
             format,
-            DocumentFormat::Docx | DocumentFormat::Pptx | DocumentFormat::Html
+            DocumentFormat::Docx
+                | DocumentFormat::Pptx
+                | DocumentFormat::Html
+                | DocumentFormat::Pdf
         ) && (image.data.as_ref().is_none_or(Vec::is_empty) || image.format.is_none())
         {
             return Err(

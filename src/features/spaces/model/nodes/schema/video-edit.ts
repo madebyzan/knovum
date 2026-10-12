@@ -1,24 +1,17 @@
 import { z } from "zod";
 
-const timelineInterval = {
-  startMs: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  endMs: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
-};
-
-const videoClipSchema = z
-  .object({
-    id: z.string().uuid(),
-    ...timelineInterval,
-    volume: z.number().min(0).max(2),
-  })
-  .strict()
-  .refine(({ startMs, endMs }) => endMs > startMs, "A video clip must have a positive duration");
+import { validateVideoComposition } from "./video-edit-constraints";
+import { videoAssetSchema, videoAudioClipSchema, videoClipSchema, videoInterval } from "./video-edit-media";
 
 const videoTextOverlaySchema = z
   .object({
     id: z.string().uuid(),
-    ...timelineInterval,
-    text: z.string().trim().min(1).max(500),
+    ...videoInterval,
+    text: z
+      .string()
+      .min(1)
+      .max(500)
+      .refine((value) => !!value.trim(), "Text cannot be blank"),
     placement: z.enum(["top", "center", "bottom"]),
     style: z
       .object({
@@ -36,21 +29,19 @@ const videoTextOverlaySchema = z
 export const videoEditProjectSchema = z
   .object({
     version: z.literal(1),
-    sourceRevision: z.string().min(1),
-    sourceWidth: z.number().int().min(1).max(16_384),
-    sourceHeight: z.number().int().min(1).max(16_384),
-    videoTrack: z.object({ clips: z.array(videoClipSchema).min(1).max(500) }).strict(),
-    textTrack: z.object({ items: z.array(videoTextOverlaySchema).max(500) }).strict(),
-    transform: z
+    sourceRevision: z.string().min(1).max(128),
+    assets: z.array(videoAssetSchema).min(1).max(100),
+    output: z
       .object({
-        rotation: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]),
-        flipHorizontal: z.boolean(),
-        flipVertical: z.boolean(),
+        width: z.number().int().min(2).max(16_384).multipleOf(2),
+        height: z.number().int().min(2).max(16_384).multipleOf(2),
+        frameRate: z.union([z.literal(24), z.literal(25), z.literal(30), z.literal(60)]),
       })
-      .strict(),
+      .strict()
+      .refine(({ width, height }) => width * height <= 33_177_600, "Video output exceeds the pixel limit"),
+    videoTrack: z.object({ clips: z.array(videoClipSchema).min(1).max(500) }).strict(),
+    audioTrack: z.object({ clips: z.array(videoAudioClipSchema).max(100) }).strict(),
+    textTrack: z.object({ items: z.array(videoTextOverlaySchema).max(500) }).strict(),
   })
   .strict()
-  .refine(
-    ({ sourceWidth, sourceHeight }) => sourceWidth <= sourceHeight * 10 && sourceHeight <= sourceWidth * 10,
-    "Video source aspect ratio is invalid",
-  );
+  .superRefine(validateVideoComposition);

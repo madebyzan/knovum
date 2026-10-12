@@ -19,9 +19,15 @@ type DocumentConversionOptions = Parameters<typeof convertDocument>[0];
 
 const source: DocumentConversionOptions["source"] = {
   id: "source",
-  type: "markdown",
+  type: "note",
   initialPosition: { x: 0, y: 0 },
-  data: { kind: "markdown", title: "Report", knowledgeRevision: "revision-1", text: "Body" },
+  data: {
+    kind: "note",
+    title: "Report",
+    knowledgeRevision: "revision-1",
+    plainText: "Body",
+    tiptapContent: { type: "doc" },
+  },
 };
 
 describe("document conversion", () => {
@@ -30,20 +36,23 @@ describe("document conversion", () => {
     mocks.invoke.mockReset().mockResolvedValue({ nodeId: "output", data: {} });
   });
 
-  it.each(["docx", "pdf", "txt", "html"] as const)("preserves source identity for %s", async (format) => {
-    await convertDocument({ source, format });
-    expect(mocks.invoke).toHaveBeenCalledTimes(1);
-    expect(mocks.invoke).toHaveBeenCalledWith("plugin:spaces|start_space_action", {
-      request: {
-        requestId: expect.any(String),
-        spaceId: "space",
-        actionId: `convert-document-to-${format}`,
-        parameters: {},
-        sources: [{ nodeId: "source", knowledgeRevision: "revision-1" }],
-        target: null,
-      },
-    });
-  });
+  it.each(["docx", "pdf", "txt", "html", "pptx"] as const)(
+    "preserves note identity for %s",
+    async (format) => {
+      await convertDocument({ source, format });
+      expect(mocks.invoke).toHaveBeenCalledTimes(1);
+      expect(mocks.invoke).toHaveBeenCalledWith("plugin:spaces|start_space_action", {
+        request: {
+          requestId: expect.any(String),
+          spaceId: "space",
+          actionId: format === "pptx" ? "render-presentation" : `convert-document-to-${format}`,
+          parameters: {},
+          sources: [{ nodeId: "source", knowledgeRevision: "revision-1" }],
+          target: null,
+        },
+      });
+    },
+  );
 
   it("does not invoke Rust without an active Space", async () => {
     mocks.space.activeSpaceId = undefined;
