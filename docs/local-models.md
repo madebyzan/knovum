@@ -64,6 +64,11 @@ state-based decode receives the original offset and duration, so both segment an
 retain source silence and gaps; no compressed-audio timestamp reconstruction is used.
 With VAD enabled, automatic language detection uses the first speech window through the public
 Whisper API, so leading silence is excluded from language detection while retaining source offsets.
+Detection then holds for the whole request, because Whisper decodes one language per call and was
+trained for monolingual speech. Code-switched media is therefore transcribed in the language of its
+first speech window, and passages in another language are rendered into that language rather than
+their own. Every transcription path currently requests automatic detection; the fixed-language
+policy in the speech contract has no caller, so this limit is not yet overridable by the user.
 Word timings combine complete Unicode token pieces. Chinese, Japanese, Thai, Lao, Burmese and
 Cantonese retain these units; other languages merge non-space subwords using the upstream
 [Whisper tokenizer language policy](https://github.com/openai/whisper/blob/main/whisper/tokenizer.py).
