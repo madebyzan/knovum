@@ -34,7 +34,7 @@ pub(super) async fn download(value: &str, limit: usize) -> Result<Vec<u8>, Strin
         .host_str()
         .ok_or("package-source-host-required")?
         .trim_matches(['[', ']']);
-    let client = reqwest::Client::builder()
+    let client = crate::foundation::http::client_builder()
         .no_proxy()
         .redirect(reqwest::redirect::Policy::none())
         .resolve_to_addrs(host, &addresses)

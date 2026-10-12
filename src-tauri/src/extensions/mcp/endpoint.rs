@@ -146,7 +146,7 @@ pub(crate) async fn http_client(value: &str, allow_local: bool) -> Result<reqwes
     {
         return Err("mcp-endpoint-requires-https-or-explicit-local-network-access".into());
     }
-    reqwest::Client::builder()
+    crate::foundation::http::client_builder()
         .no_proxy()
         .redirect(reqwest::redirect::Policy::none())
         .resolve_to_addrs(host, &addresses)

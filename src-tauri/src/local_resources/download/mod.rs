@@ -26,7 +26,7 @@ impl DownloadError {
 }
 
 pub(crate) fn client() -> Result<reqwest::Client, String> {
-    reqwest::Client::builder()
+    crate::foundation::http::client_builder()
         .https_only(true)
         .connect_timeout(Duration::from_secs(10))
         .read_timeout(Duration::from_secs(30))

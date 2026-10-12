@@ -29,7 +29,7 @@ pub(crate) async fn resource_response(
         {
             return Err("Remote resources must resolve only to public addresses".into());
         }
-        let client = reqwest::Client::builder()
+        let client = super::http::client_builder()
             .no_proxy()
             .timeout(std::time::Duration::from_secs(120))
             .redirect(reqwest::redirect::Policy::none())
