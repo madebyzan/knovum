@@ -1,6 +1,41 @@
 use std::io::Cursor;
 
-use super::{read_frame, BufReader, MAX_MESSAGE_BYTES};
+use super::{read_frame, BufReader, Protocol, MAX_MESSAGE_BYTES, MAX_REASON_BYTES};
+
+/// A rejection reason names which of the invariants sharing a code was violated.
+#[test]
+fn worker_rejection_keeps_the_reason_behind_its_code() {
+    let rejection = |message: &str, code: &str| {
+        Protocol::decode_response::<serde_json::Value>(
+            serde_json::json!({
+                "jsonrpc": "2.0", "id": "request",
+                "error": {"code": -32000, "message": message, "data": {"code": code}}
+            }),
+            "request",
+        )
+        .unwrap_err()
+    };
+    assert_eq!(
+        rejection(
+            "runtime_mismatch: invalid embedding initialization",
+            "runtime_mismatch"
+        ),
+        "runtime_mismatch: invalid embedding initialization"
+    );
+    assert_eq!(rejection("cancelled", "cancelled"), "cancelled");
+    // A reason that does not refine its code, or that is a payload, is not a diagnostic.
+    assert_eq!(
+        rejection("unrelated detail", "worker_crashed"),
+        "worker_crashed"
+    );
+    assert_eq!(
+        rejection(
+            &"runtime_mismatch: ".repeat(MAX_REASON_BYTES),
+            "runtime_mismatch"
+        ),
+        "runtime_mismatch"
+    );
+}
 
 #[tokio::test]
 async fn reads_one_frame_without_consuming_the_next() {
