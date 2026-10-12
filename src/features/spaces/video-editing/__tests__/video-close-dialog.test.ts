@@ -8,14 +8,15 @@ import SpaceVideoUnsavedDialog from "../presentation/SpaceVideoUnsavedDialog.vue
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "windows" }));
 
-it("cancels its own decision with Escape without closing the video behind the modal", async () => {
-  const closeOtherVideo = vi.fn<() => void>();
+it("cancels its own decision with Escape without running an Escape shortcut behind the modal", async () => {
+  const behindTheModal = vi.fn<() => void>();
+  // Stands in for any Escape-bound AppCommand: the modal must swallow the key entirely.
   const command = {
-    id: "video-edit.close",
-    title: "Close",
+    id: "test.escape-probe",
+    title: "Escape probe",
     shortcut: "Escape",
     category: "editing",
-    run: closeOtherVideo,
+    run: behindTheModal,
   } as const;
   const wrapper = mount(SpaceVideoUnsavedDialog, {
     props: { open: true, saving: false, canSave: true },
@@ -27,7 +28,7 @@ it("cancels its own decision with Escape without closing the video behind the mo
   await flushPromises();
   runAppCommand(command);
   await flushPromises();
-  expect(closeOtherVideo).not.toHaveBeenCalled();
+  expect(behindTheModal).not.toHaveBeenCalled();
   const dialog = document.querySelector<HTMLElement>('[role="dialog"][data-state="open"]')!;
   const button = dialog.querySelector<HTMLButtonElement>("button")!;
   button.focus();
@@ -36,5 +37,5 @@ it("cancels its own decision with Escape without closing the video behind the mo
   );
   await flushPromises();
   expect(wrapper.emitted("cancel")).toHaveLength(1);
-  expect(closeOtherVideo).not.toHaveBeenCalled();
+  expect(behindTheModal).not.toHaveBeenCalled();
 });

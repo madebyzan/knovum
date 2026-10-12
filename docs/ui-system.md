@@ -561,6 +561,10 @@ neighbour, otherwise its left one, and keeps focus on the tab that became active
 recently closed tab restores it at its original position. The Spaces Browser stays a navigation
 destination rather than a tab, and replaces the strip with its own toolbar while it is open.
 
+The tab strip is the only place that closes an opened thing. Editor surfaces carry no back or close
+affordance and no Escape-to-close shortcut: their headers hold editing state and editing actions
+only, and leaving an editor means activating another tab.
+
 Open editor resources show a compact editing indicator, separate from the user-authored lock icon.
 A protected selection disables deletion and cross-Space transfer, explains that its editor tabs must
 be closed first, and offers an explicit action to the affected editor. Keyboard deletion/cut reports

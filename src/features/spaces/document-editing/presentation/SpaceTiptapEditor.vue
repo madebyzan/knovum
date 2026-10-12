@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, Download, FileText, ImagePlus, StickyNote } from "@lucide/vue";
+import { Download, FileText, ImagePlus, StickyNote } from "@lucide/vue";
 import { EditorContent } from "@tiptap/vue-3";
 import { toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -27,7 +27,6 @@ const { t } = useI18n();
 const {
   activeHeadingId,
   characterCount,
-  close,
   error,
   editorLabel,
   editorNode,
@@ -66,7 +65,6 @@ watch(
           void outline.value?.focus();
         },
         save: persist,
-        close,
       }),
     );
   },
@@ -89,9 +87,6 @@ async function exportMarkdown() {
     <header
       class="flex h-toolbar shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome px-3"
     >
-      <UiIconButton :label="t('common.back')" size="sm" @click="close">
-        <ArrowLeft class="size-3.5" />
-      </UiIconButton>
       <component
         :is="editorNode.data.kind === 'note' ? StickyNote : FileText"
         class="size-3.5 text-fg-secondary"
@@ -142,11 +137,12 @@ async function exportMarkdown() {
             "
             @blur="persist"
           />
-          <SpaceTiptapBubbleMenu
-            v-if="editor && active && !error && !suspended"
-            :editor="editor"
-            :writing="writing"
-          />
+          <!--
+            The bubble menu moves its root element out of this tree and into the ProseMirror
+            plugin, so its lifetime must follow the editor instance. Visibility is the plugin's
+            own concern: it stays hidden while the editor is not editable or not focused.
+          -->
+          <SpaceTiptapBubbleMenu v-if="editor" :editor="editor" :writing="writing" />
           <EditorContent v-if="editor" :editor="editor" class="mt-7" />
         </article>
       </div>

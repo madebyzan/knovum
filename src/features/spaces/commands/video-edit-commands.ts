@@ -16,7 +16,6 @@ export interface VideoEditCommandPort {
   togglePlayback(): void;
   step(direction: -1 | 1): void;
   save(): Promise<void>;
-  close(): void;
 }
 
 const activeEditor = shallowRef<VideoEditCommandPort>();
@@ -92,13 +91,6 @@ export function videoEditCommands(): AppCommand[] {
       shortcut: "ArrowRight",
       category: "editing",
       run: () => activeEditor.value?.step(1),
-    },
-    {
-      id: "video-edit.close",
-      title: t("common.close"),
-      shortcut: "Escape",
-      category: "editing",
-      run: () => activeEditor.value?.close(),
     },
   ];
 }

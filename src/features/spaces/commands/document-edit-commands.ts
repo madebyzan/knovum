@@ -13,7 +13,6 @@ export interface DocumentEditCommandPort {
   focusOutline(): void;
   hasOutline(): boolean;
   save(): Promise<void>;
-  close(): Promise<void>;
 }
 
 const activeEditor = shallowRef<DocumentEditCommandPort>();
@@ -72,13 +71,6 @@ export function documentEditCommands(): AppCommand[] {
       category: "editing",
       allowInEditable: true,
       run: port.save,
-    },
-    {
-      id: "document.close",
-      title: t("common.back"),
-      shortcut: "Escape",
-      category: "navigation",
-      run: port.close,
     },
   ];
 }
