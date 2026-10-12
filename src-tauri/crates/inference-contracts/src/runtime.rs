@@ -71,6 +71,10 @@ pub struct RuntimeInitializeParams {
     pub device_profile: RuntimeDeviceProfile,
     pub work_directory: String,
     pub model_paths: RuntimeModelPaths,
+    /// Milliseconds the worker may spend reaching a usable state. The host derives it from the
+    /// runtime it must verify and the weights it must load, and both sides honour this one value
+    /// so that a slow cold start cannot be aborted by a budget only one side knows about.
+    pub budget_ms: u64,
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]

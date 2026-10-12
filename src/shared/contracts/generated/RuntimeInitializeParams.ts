@@ -3,4 +3,4 @@ import type { RuntimeCapability } from "./RuntimeCapability";
 import type { RuntimeDeviceProfile } from "./RuntimeDeviceProfile";
 import type { RuntimeModelPaths } from "./RuntimeModelPaths";
 
-export type RuntimeInitializeParams = { runtimeManifestPath: string, protocolVersion: number, runtimeDigest: string, sessionId: string, capability: RuntimeCapability, capabilitySpecId: string, deviceProfile: RuntimeDeviceProfile, workDirectory: string, modelPaths: RuntimeModelPaths, };
+export type RuntimeInitializeParams = { runtimeManifestPath: string, protocolVersion: number, runtimeDigest: string, sessionId: string, capability: RuntimeCapability, capabilitySpecId: string, deviceProfile: RuntimeDeviceProfile, workDirectory: string, modelPaths: RuntimeModelPaths, budgetMs: number, };

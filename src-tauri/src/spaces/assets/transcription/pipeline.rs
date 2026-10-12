@@ -40,14 +40,10 @@ pub struct TranscriptionPipeline<'a> {
 impl TranscriptionPipeline<'_> {
     pub async fn run(&self, audio: &PreparedMediaAudio) -> Result<MediaTranscript, String> {
         let model = self.resources.transcription_model()?;
-        let (attempt_epoch, deadline_ms) = deadline(model, audio.analysis.duration_ms)?;
-        let profile = speech::transcription_execution_profile(
-            self.app,
-            model,
-            self.cancellation,
-            deadline_ms,
-        )
-        .await?;
+        let budget_ms = speech::transcription_budget_ms(model, audio.analysis.duration_ms)?;
+        let attempt_epoch = attempt_epoch()?;
+        let profile =
+            speech::transcription_execution_profile(self.app, model, self.cancellation).await?;
         let engine = profile.engine;
         let device = profile.device;
         let compute_type = profile.compute_type;
@@ -79,7 +75,7 @@ impl TranscriptionPipeline<'_> {
                 attempt_epoch,
                 input_revision: self.source_revision.into(),
                 model_spec_id: profile_id.clone(),
-                deadline_ms,
+                budget_ms,
             },
             audio_ref,
             profile: AsrProfile {
@@ -156,17 +152,9 @@ pub(super) fn audio_reference(wav: &Path) -> Result<AudioFileReference, String> 
     })
 }
 
-fn deadline(
-    model: crate::local_resources::model_catalog::LocalModelId,
-    duration_ms: u64,
-) -> Result<(u64, u64), String> {
+fn attempt_epoch() -> Result<u64, String> {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_err(|error| error.to_string())?;
-    let now_ms = u64::try_from(now.as_millis()).map_err(|error| error.to_string())?;
-    let allowance = speech::transcription_budget_ms(model, duration_ms)?;
-    let deadline_ms = now_ms
-        .checked_add(allowance)
-        .ok_or("ASR deadline exceeds the supported range")?;
-    Ok((now_ms, deadline_ms))
+    u64::try_from(now.as_millis()).map_err(|error| error.to_string())
 }

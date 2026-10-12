@@ -189,16 +189,14 @@ fn read_requests(
                     .get("attemptEpoch")
                     .and_then(Value::as_u64)
                     .unwrap_or(0);
-                let deadline = if request.method == "runtime.initialize" {
-                    now_ms()?.saturating_add(15_000)
-                } else {
-                    request
-                        .params
-                        .get("deadlineMs")
-                        .and_then(Value::as_u64)
-                        .ok_or("invalid_input: missing deadline")?
-                };
-                match active.admit(id, epoch, deadline) {
+                // Both branches read the budget its sender granted: `budgetMs` is the one field
+                // every request and the initialization handshake share.
+                let budget_ms = request
+                    .params
+                    .get("budgetMs")
+                    .and_then(Value::as_u64)
+                    .ok_or("invalid_input: missing execution budget")?;
+                match active.admit(id, epoch, budget_ms) {
                     Err(error) => output.error(Some(id), &error)?,
                     Ok(cancellation) => {
                         if sender
@@ -291,10 +289,4 @@ fn execute(
 
 fn decode<T: DeserializeOwned>(value: &Value) -> Result<T, String> {
     serde_json::from_value(value.clone()).map_err(|error| format!("invalid_input: {error}"))
-}
-fn now_ms() -> Result<u64, String> {
-    Ok(std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_err(|error| error.to_string())?
-        .as_millis() as u64)
 }

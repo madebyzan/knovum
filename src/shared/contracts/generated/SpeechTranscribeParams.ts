@@ -2,4 +2,4 @@
 import type { AsrProfile } from "./AsrProfile";
 import type { AudioFileReference } from "./AudioFileReference";
 
-export type SpeechTranscribeParams = { audioRef: AudioFileReference, profile: AsrProfile, requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, deadlineMs: number, };
+export type SpeechTranscribeParams = { audioRef: AudioFileReference, profile: AsrProfile, requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, budgetMs: number, };

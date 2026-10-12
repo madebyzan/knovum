@@ -74,6 +74,10 @@ Both dictation and media transcription use the native profile's compute budget. 
 Metal execution allow four times the input duration with a two-minute minimum. Large-v3 CPU
 allows 120 times the input duration with a thirty-minute minimum; every profile is capped at six
 hours. These are cancellable task deadlines, not quality or performance acceptance thresholds.
+Such a budget bounds the execution it names and nothing else. It starts when the worker is holding
+the inference slot and ready to receive the request, so waiting behind another capability and
+loading a cold model cannot consume it. Waiting for the slot is bounded by cancellation alone,
+because every holder executes under its own budget and therefore always releases the slot.
 
 Forced alignment and speaker diarization are separate optional speech stages. Neither is required
 to complete plain ASR. Qwen3 Forced Aligner is prepared only for a user-selected range no longer
@@ -139,8 +143,9 @@ Installed weights live under the current `local-resources/models/` application-d
 ## Runtime ownership
 
 Rust verifies resources and freezes the engine, model, device, owner, attempt, audio identity and
-deadline before starting a private worker. Workers load verified snapshots offline, return validated
-results or request-scoped artifacts, and cannot write the Knowledge database or vector index.
+execution budget before starting a private worker. Workers load verified snapshots offline, return
+validated results or request-scoped artifacts, and cannot write the Knowledge database or vector
+index.
 Process admission, resident-memory checks, idle reuse, cancellation and publication are defined in
 [system-architecture.md](system-architecture.md); corresponding-source and license approval remains a
 [release requirement](release.md). Ollama is an optional generative provider, not an embedding or ASR dependency.
@@ -151,7 +156,12 @@ identity verifies the supplied inventory against the one this build was qualifie
 nothing else, so a request no longer rehashes the runtime on the way to a worker that rehashes it
 again. A worker's initialization budget is that verification work at a throughput floor far below
 any supported disk, plus a fixed allowance for the process and its engine, instead of a constant
-that a cold page cache can exhaust.
+that a cold page cache can exhaust. That one value is sent to the worker, so host and worker bound
+the same cold start rather than enforcing two budgets only one of them knows about.
+
+Requests carry a relative execution budget rather than an absolute deadline. Only the executor
+knows when the work it bounds began, and a budget measured from arrival cannot be consumed by a
+suspended machine, an adjusted clock, or time the request spent queueing.
 
 ## Generative AI and privacy
 

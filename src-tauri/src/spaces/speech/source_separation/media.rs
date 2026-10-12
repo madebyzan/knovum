@@ -3,7 +3,7 @@ use std::{
     io::Read,
     path::{Path, PathBuf},
     process::{Command, Stdio},
-    time::{SystemTime, UNIX_EPOCH},
+    time::Instant,
 };
 
 use sha2::{Digest, Sha256};
@@ -114,26 +114,16 @@ pub(super) fn pcm_wav_metadata(path: &Path) -> Result<(u64, u64), String> {
     Ok((metadata.byte_length, sample_count))
 }
 
-pub(super) fn deadline(duration_ms: u64) -> Result<u64, String> {
-    let allowance_ms = duration_ms
-        .checked_mul(3)
-        .map(|value| value.max(10 * 60 * 1_000))
-        .ok_or("Source separation deadline overflow")?;
-    u64::try_from(
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|error| error.to_string())?
-            .as_millis(),
-    )
-    .map_err(|_| "System time exceeds protocol range".to_string())?
-    .checked_add(allowance_ms)
-    .ok_or("Source separation deadline overflow".into())
+/// Separation scales with the audio it splits, so its budget does too. Loading the model is
+/// bounded by the worker's own startup budget.
+pub(super) fn budget_ms(duration_ms: u64) -> u64 {
+    duration_ms.saturating_mul(3).max(10 * 60 * 1_000)
 }
 
 pub(super) fn hash_file(
     path: &Path,
     cancellation: &CancellationToken,
-    deadline_ms: u64,
+    deadline: Instant,
 ) -> Result<String, String> {
     let mut source = fs::File::open(path).map_err(|error| error.to_string())?;
     let mut digest = Sha256::new();
@@ -142,11 +132,7 @@ pub(super) fn hash_file(
         if cancellation.is_cancelled() {
             return Err("Source separation was cancelled".into());
         }
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|error| error.to_string())?
-            .as_millis();
-        if now >= u128::from(deadline_ms) {
+        if Instant::now() >= deadline {
             return Err("deadline_exceeded".into());
         }
         let read = source

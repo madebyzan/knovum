@@ -1,4 +1,4 @@
-use super::super::{admission, process::Worker, WorkerSlot};
+use super::super::{admission, process::Worker, process::WorkerPackage, WorkerSlot};
 use crate::{
     ai::contracts::{
         execution_profile,
@@ -31,7 +31,6 @@ pub(super) struct ImageWorkerConfiguration<'a> {
     pub paths: RuntimeModelPaths,
     pub capability: RuntimeCapability,
     pub spec_id: &'a str,
-    pub deadline_ms: u64,
 }
 
 pub(super) async fn acquire<R: Runtime>(
@@ -44,7 +43,6 @@ pub(super) async fn acquire<R: Runtime>(
         paths,
         capability,
         spec_id,
-        deadline_ms,
     } = configuration;
     let exit = super::super::exit_token();
     let runtime = inference::resolve(app)?;
@@ -59,13 +57,7 @@ pub(super) async fn acquire<R: Runtime>(
         worker.matches(&runtime.digest, model_path, capability, spec_id, &profile)
     })
     .await?;
-    let permit = admission::acquire(
-        admission::Priority::Interactive,
-        cancellation,
-        exit,
-        super::super::deadline_duration(deadline_ms)?,
-    )
-    .await?;
+    let permit = admission::acquire(admission::Priority::Interactive, cancellation, exit).await?;
     let slot = super::super::worker_slot();
     let mut guard = tokio::select! {
         biased;
@@ -87,6 +79,7 @@ pub(super) async fn acquire<R: Runtime>(
             .map_err(|error| error.to_string())?
             .join("inference")
             .join(&session_id);
+        let package = WorkerPackage::from(&runtime);
         let params = RuntimeInitializeParams {
             runtime_manifest_path: runtime.manifest_path.to_string_lossy().into_owned(),
             protocol_version: PROTOCOL_VERSION,
@@ -97,19 +90,9 @@ pub(super) async fn acquire<R: Runtime>(
             device_profile: profile,
             work_directory: work.to_string_lossy().into_owned(),
             model_paths: paths,
+            budget_ms: package.initialization_budget_ms(),
         };
-        *guard = Some(
-            Worker::start(
-                (&runtime).into(),
-                &work,
-                model_path,
-                params,
-                deadline_ms,
-                cancellation,
-                exit,
-            )
-            .await?,
-        );
+        *guard = Some(Worker::start(package, &work, model_path, params, cancellation, exit).await?);
     }
     Ok(ImageWorkerLease {
         guard,
@@ -121,7 +104,7 @@ pub(super) async fn acquire<R: Runtime>(
 pub(super) struct ImageRequestIdentity<'a> {
     pub request_id: &'a str,
     pub attempt_epoch: u64,
-    pub deadline_ms: u64,
+    pub budget_ms: u64,
 }
 
 pub(super) async fn request<P: Serialize, O: DeserializeOwned>(
@@ -136,7 +119,7 @@ pub(super) async fn request<P: Serialize, O: DeserializeOwned>(
             identity.request_id,
             worker.capability.method(),
             params,
-            identity.deadline_ms,
+            identity.budget_ms,
             cancellation,
             exit,
         )

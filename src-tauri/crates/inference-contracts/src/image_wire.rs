@@ -32,7 +32,9 @@ pub struct ImageSegmentParams {
     pub attempt_epoch: u64,
     pub input_revision: String,
     pub model_spec_id: String,
-    pub deadline_ms: u64,
+    /// Milliseconds of execution the worker may spend on this request. See
+    /// [`crate::speech_wire::InferenceRequestIdentity::budget_ms`] for why budgets are relative.
+    pub budget_ms: u64,
     pub tensor_ref: TensorFileReference,
 }
 

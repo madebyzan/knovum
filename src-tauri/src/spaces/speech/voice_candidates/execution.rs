@@ -1,8 +1,4 @@
-use std::{
-    fs,
-    path::Path,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::{fs, path::Path};
 
 use sha2::{Digest, Sha256};
 use sqlx::SqlitePool;
@@ -22,6 +18,10 @@ use crate::{
         runs::{AttemptClaim, StepOutcome},
     },
 };
+
+/// Synthesising one audition line is bounded work once the voice model is loaded; the load itself
+/// is bounded by the worker's startup budget.
+const SYNTHESIS_BUDGET_MS: u64 = 300_000;
 
 pub(crate) async fn execute(
     app: &tauri::AppHandle,
@@ -113,15 +113,6 @@ async fn execute_inner(
         &mut |_| {},
     )
     .await?;
-    let deadline_ms: u64 = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_err(|error| error.to_string())?
-        .as_millis()
-        .try_into()
-        .map_err(|_| "Clock exceeds protocol range")?;
-    let deadline_ms = deadline_ms
-        .checked_add(300_000)
-        .ok_or("Voice candidate deadline overflow")?;
     let input = serde_json::to_vec(request).map_err(db::json_error)?;
     let audio = models
         .synthesize(
@@ -136,7 +127,7 @@ async fn execute_inner(
                         .map_err(|_| "Voice candidate execution epoch is invalid")?,
                     input_revision: hex::encode(Sha256::digest(input)),
                     model_spec_id: request.model.specification().into(),
-                    deadline_ms,
+                    budget_ms: SYNTHESIS_BUDGET_MS,
                 },
                 text: request.text.trim().into(),
                 voice_revision: VoiceRevisionReference {

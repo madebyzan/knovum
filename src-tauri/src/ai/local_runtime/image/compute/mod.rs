@@ -36,7 +36,7 @@ pub(crate) struct ImageComputeRequest {
     pub model: ImageModelVariant,
     pub owner_id: String,
     pub input_revision: String,
-    pub deadline_ms: u64,
+    pub budget_ms: u64,
     pub input: ImageTensor,
     pub operation: ImageTensorOperation,
 }
@@ -73,7 +73,6 @@ pub(crate) async fn execute<R: Runtime>(
             },
             capability: request.model.capability(),
             spec_id: &spec_id,
-            deadline_ms: request.deadline_ms,
         },
         cancellation,
     )
@@ -106,7 +105,7 @@ pub(crate) async fn execute<R: Runtime>(
         attempt_epoch: 1,
         input_revision: request.input_revision,
         model_spec_id: spec_id.clone(),
-        deadline_ms: request.deadline_ms,
+        budget_ms: request.budget_ms,
         tensor_ref: source_ref,
         computation,
     };
@@ -115,7 +114,7 @@ pub(crate) async fn execute<R: Runtime>(
         session::ImageRequestIdentity {
             request_id: &request_id,
             attempt_epoch: 1,
-            deadline_ms: request.deadline_ms,
+            budget_ms: request.budget_ms,
         },
         &params,
         cancellation,

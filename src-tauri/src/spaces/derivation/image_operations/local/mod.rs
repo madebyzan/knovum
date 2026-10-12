@@ -15,6 +15,10 @@ use sha2::Digest;
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
+/// Upscaling, inpainting, selection and depth all run a single pass over one staged tensor. The
+/// budget covers that pass; loading the model is bounded by the worker's own startup budget.
+const COMPUTE_BUDGET_MS: u64 = 20 * 60 * 1_000;
+
 pub(super) async fn execute(
     app: &AppHandle,
     model: LocalModelId,
@@ -108,9 +112,6 @@ async fn infer(
         &mut |_| {},
     )
     .await?;
-    let deadline_ms = u64::try_from(crate::foundation::clock::unix_time_millis()?)
-        .map_err(|_| "System clock is before the Unix epoch")?
-        .saturating_add(20 * 60 * 1000);
     Ok(compute::execute(
         app,
         ImageComputeRequest {
@@ -120,7 +121,7 @@ async fn infer(
                 "sha256:{}",
                 hex::encode(sha2::Sha256::digest(&source.bytes))
             ),
-            deadline_ms,
+            budget_ms: COMPUTE_BUDGET_MS,
             input,
             operation,
         },

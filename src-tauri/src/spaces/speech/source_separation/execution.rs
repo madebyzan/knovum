@@ -7,7 +7,7 @@ use sqlx::SqlitePool;
 use super::super::video_config::SpeechMediaSource;
 use super::{
     contracts::SpeechSourceSeparationPublication,
-    media::{deadline, extract_audio, hash_file, pcm_wav_metadata, workspace, SAMPLE_RATE},
+    media::{budget_ms, extract_audio, hash_file, pcm_wav_metadata, workspace, SAMPLE_RATE},
     repository::{commit_publication, find_publication, load_publication},
     SeparationConfiguration,
 };
@@ -150,7 +150,12 @@ fn resume_completed(
             .source_revision
             .strip_prefix("sha256:")
             .ok_or("Persisted source separation revision is invalid")?;
-        if hash_file(&path, &claim.cancellation, deadline(source.duration_ms)?)? != expected {
+        if hash_file(
+            &path,
+            &claim.cancellation,
+            hash_deadline(source.duration_ms),
+        )? != expected
+        {
             return Err("stale_revision: persisted source separation track changed".into());
         }
     }
@@ -200,8 +205,11 @@ async fn execute_inner(
     extract_audio(&ffmpeg, source, extracted, &claim.cancellation)?;
     crate::file_inspection::verify_content_revision(source, &source_ref.source_revision)?;
     let (byte_length, sample_count) = pcm_wav_metadata(extracted)?;
-    let hash_deadline = deadline(source_ref.duration_ms)?;
-    let sha256 = hash_file(extracted, &claim.cancellation, hash_deadline)?;
+    let sha256 = hash_file(
+        extracted,
+        &claim.cancellation,
+        hash_deadline(source_ref.duration_ms),
+    )?;
     let models = preparation::prepare_models_for_job(
         app,
         config.model.preparation(),
@@ -211,7 +219,6 @@ async fn execute_inner(
         &mut |_| {},
     )
     .await?;
-    let request_deadline = deadline(source_ref.duration_ms)?;
     let identity = InferenceRequestIdentity {
         request_id: claim.run_id.clone(),
         owner_kind: "speech_source_separation".into(),
@@ -221,7 +228,7 @@ async fn execute_inner(
             .map_err(|_| "Source separation execution epoch is invalid")?,
         input_revision: source_ref.source_revision.clone(),
         model_spec_id: config.model.separation_spec()?.into(),
-        deadline_ms: request_deadline,
+        budget_ms: budget_ms(source_ref.duration_ms),
     };
     let metadata = separation::separate_to_paths(
         app,
@@ -250,4 +257,10 @@ async fn execute_inner(
         return Err("invalid_output: separated background timeline differs from its source".into());
     }
     Ok(metadata)
+}
+
+/// Hashing the staged audio is local I/O, so it shares the separation budget, started where the
+/// read begins rather than at an absolute instant decided earlier.
+fn hash_deadline(duration_ms: u64) -> std::time::Instant {
+    std::time::Instant::now() + std::time::Duration::from_millis(budget_ms(duration_ms))
 }

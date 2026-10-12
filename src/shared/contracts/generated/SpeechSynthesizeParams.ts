@@ -2,4 +2,4 @@
 import type { SynthesisProfile } from "./SynthesisProfile";
 import type { VoiceRevisionReference } from "./VoiceRevisionReference";
 
-export type SpeechSynthesizeParams = { text: string, voiceRevision: VoiceRevisionReference, style: string | null, seed: number, profile: SynthesisProfile, requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, deadlineMs: number, };
+export type SpeechSynthesizeParams = { text: string, voiceRevision: VoiceRevisionReference, style: string | null, seed: number, profile: SynthesisProfile, requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, budgetMs: number, };

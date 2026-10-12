@@ -2,6 +2,7 @@ use std::{
     fs,
     io::{Read, Write},
     path::Path,
+    time::{Duration, Instant},
 };
 
 use sha2::{Digest, Sha256};
@@ -99,12 +100,15 @@ fn finish(
     {
         return Err("invalid_output: source separation returned an invalid timeline".into());
     }
+    // Publishing the stems is the last stretch of the same request, so it continues under the
+    // same budget, started here because the worker has only just handed the artifacts over.
+    let deadline = Instant::now() + Duration::from_millis(identity.budget_ms);
     let vocals = copy_artifact(
         work_directory,
         &identity.request_id,
         &separation.vocals_ref,
         separation.sample_count,
-        identity.deadline_ms,
+        deadline,
         cancellation,
         targets.vocals,
     )?;
@@ -113,7 +117,7 @@ fn finish(
         &identity.request_id,
         &separation.background_ref,
         separation.sample_count,
-        identity.deadline_ms,
+        deadline,
         cancellation,
         targets.background,
     ) {
@@ -155,7 +159,7 @@ fn copy_artifact(
     request_id: &str,
     reference: &SynthesizedAudioFileReference,
     sample_count: u64,
-    deadline_ms: u64,
+    deadline: Instant,
     cancellation: &CancellationToken,
     target: &Path,
 ) -> Result<SeparatedAudioMetadata, String> {
@@ -179,7 +183,7 @@ fn copy_artifact(
         let mut written = 0_u64;
         let mut buffer = [0_u8; 1024 * 1024];
         loop {
-            check_active(cancellation, deadline_ms)?;
+            check_active(cancellation, deadline)?;
             let read = input.read(&mut buffer).map_err(|error| error.to_string())?;
             if read == 0 {
                 break;
@@ -223,15 +227,11 @@ fn copy_artifact(
     Ok(metadata)
 }
 
-fn check_active(cancellation: &CancellationToken, deadline_ms: u64) -> Result<(), String> {
+fn check_active(cancellation: &CancellationToken, deadline: Instant) -> Result<(), String> {
     if cancellation.is_cancelled() {
         return Err("cancelled".into());
     }
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_err(|error| error.to_string())?
-        .as_millis();
-    if now >= u128::from(deadline_ms) {
+    if Instant::now() >= deadline {
         return Err("deadline_exceeded".into());
     }
     Ok(())

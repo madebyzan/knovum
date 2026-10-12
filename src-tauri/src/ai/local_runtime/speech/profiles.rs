@@ -45,7 +45,6 @@ pub(crate) async fn transcription_execution_profile<R: tauri::Runtime>(
     _app: &tauri::AppHandle<R>,
     model: LocalModelId,
     cancellation: &tokio_util::sync::CancellationToken,
-    _deadline_ms: u64,
 ) -> Result<TranscriptionProfile, String> {
     if cancellation.is_cancelled() {
         return Err("cancelled".into());

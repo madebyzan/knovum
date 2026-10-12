@@ -80,7 +80,7 @@ fn validated_chunks_advance_in_order_and_finish_removes_attempt_directory() {
         attempt_epoch: 4,
         input_revision: "input-revision".into(),
         model_spec_id: "voxcpm2-2b-gguf-orig-v1".into(),
-        deadline_ms: u64::MAX,
+        budget_ms: u64::MAX,
     };
     let synthesis = SpeechSynthesis {
         request_id,

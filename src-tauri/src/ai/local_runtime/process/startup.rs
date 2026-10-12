@@ -7,7 +7,10 @@ use crate::ai::local_runtime::{
     admission,
     protocol::{io_error, Protocol},
 };
-use std::{path::Path, time::Instant};
+use std::{
+    path::Path,
+    time::{Duration, Instant},
+};
 use tokio_util::sync::CancellationToken;
 
 impl Worker {
@@ -16,7 +19,6 @@ impl Worker {
         work_directory: &Path,
         model_path: &Path,
         params: RuntimeInitializeParams,
-        deadline_ms: u64,
         cancellation: &CancellationToken,
         exit: &CancellationToken,
     ) -> Result<Self, String> {
@@ -25,7 +27,6 @@ impl Worker {
             work_directory,
             model_path,
             params,
-            deadline_ms,
             cancellation,
             exit,
         )
@@ -41,15 +42,17 @@ impl Worker {
         work_directory: &Path,
         model_path: &Path,
         params: RuntimeInitializeParams,
-        deadline_ms: u64,
         cancellation: &CancellationToken,
         exit: &CancellationToken,
     ) -> Result<Self, String> {
+        // A cold start is bounded by the budget it carries, never by the budget of the request
+        // that happened to need this worker: verification and weight loading are shared costs.
+        let budget = Duration::from_millis(params.budget_ms);
         tokio::select! {
             biased;
             _ = exit.cancelled() => return Err("cancelled".into()),
             _ = cancellation.cancelled() => return Err("cancelled".into()),
-            startup = tokio::time::timeout(crate::ai::local_runtime::deadline_duration(deadline_ms)?, async {
+            startup = tokio::time::timeout(budget, async {
                 runtime.verify().await?;
                 crate::ai::local_runtime::prepare_inference_root(work_directory).await?;
                 tokio::fs::create_dir(work_directory)
@@ -95,21 +98,17 @@ impl Worker {
         tokio::spawn(super::diagnostics::observe(diagnostics));
         let mut protocol = Protocol::new(input, output);
         // Once spawned, cancellation must settle the child before releasing its reservation.
-        let initialization: Result<RuntimeSession, String> =
-            match crate::ai::local_runtime::deadline_duration(deadline_ms) {
-                Err(error) => Err(error),
-                Ok(remaining) => tokio::select! {
-                    biased;
-                    _ = exit.cancelled() => Err("cancelled".into()),
-                    _ = cancellation.cancelled() => Err("cancelled".into()),
-                    startup = tokio::time::timeout(
-                        remaining.min(runtime.initialization_budget()),
-                        protocol.request(&params.session_id, "runtime.initialize", &params),
-                    ) => startup
-                        .map_err(|_| "deadline_exceeded: worker initialization timed out".to_owned())
-                        .and_then(std::convert::identity),
-                },
-            };
+        let initialization: Result<RuntimeSession, String> = tokio::select! {
+            biased;
+            _ = exit.cancelled() => Err("cancelled".into()),
+            _ = cancellation.cancelled() => Err("cancelled".into()),
+            startup = tokio::time::timeout(
+                budget,
+                protocol.request(&params.session_id, "runtime.initialize", &params),
+            ) => startup
+                .map_err(|_| "deadline_exceeded: worker initialization timed out".to_owned())
+                .and_then(std::convert::identity),
+        };
         let startup = match initialization {
             Ok(startup) => startup,
             Err(error) => {
