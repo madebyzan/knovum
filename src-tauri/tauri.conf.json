@@ -45,7 +45,8 @@
         "scope": [
           "$APPDATA/spaces/assets/**/*",
           "$APPDATA/spaces/previews/**/*",
-          "$APPCACHE/video-edit-proxies/*.mp4"
+          "$APPCACHE/video-edit-proxies/*.mp4",
+          "$APPCACHE/speech-previews/*.wav"
         ]
       }
     }
