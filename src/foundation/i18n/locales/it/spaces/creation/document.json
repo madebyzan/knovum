@@ -20,13 +20,6 @@
       "html": "Documento HTML (.html)",
       "pptx": "Presentazione (.pptx)"
     },
-    "expectations": {
-      "docx": "Testo modificabile e immagini estratte; i PDF vengono ridisposti.",
-      "pdf": "Impagina note e Markdown in formato PDF.",
-      "txt": "Solo testo, senza layout o immagini.",
-      "html": "Contenuto modificabile e ridisposto con immagini estratte.",
-      "pptx": "Crea diapositive modificabili dalla struttura del documento."
-    },
     "recognitionRequired": "Completa il riconoscimento di tutte le pagine scansionate prima della conversione."
   },
   "generate": "Genera documento",

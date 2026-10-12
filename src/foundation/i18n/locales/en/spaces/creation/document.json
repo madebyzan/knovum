@@ -20,13 +20,6 @@
       "html": "HTML document (.html)",
       "pptx": "Presentation (.pptx)"
     },
-    "expectations": {
-      "docx": "Editable text and extracted images; PDFs are reflowed.",
-      "pdf": "Typesets notes and Markdown as PDF.",
-      "txt": "Text only, without layout or images.",
-      "html": "Editable, reflowed content with extracted images.",
-      "pptx": "Builds editable slides from the document structure."
-    },
     "recognitionRequired": "Finish document recognition for every scanned page before converting."
   },
   "generate": "Generate document",

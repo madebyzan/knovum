@@ -20,13 +20,6 @@
       "html": "Documento HTML (.html)",
       "pptx": "Presentación (.pptx)"
     },
-    "expectations": {
-      "docx": "Texto editable e imágenes extraídas; los PDF se redistribuyen.",
-      "pdf": "Compone notas y Markdown como PDF.",
-      "txt": "Solo texto, sin diseño ni imágenes.",
-      "html": "Contenido editable y redistribuido con imágenes extraídas.",
-      "pptx": "Crea diapositivas editables a partir de la estructura del documento."
-    },
     "recognitionRequired": "Finaliza el reconocimiento de todas las páginas escaneadas antes de convertir."
   },
   "generate": "Generar documento",
