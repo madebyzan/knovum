@@ -9,8 +9,7 @@
     "proxyFailed": "Impossibile preparare un'anteprima reattiva",
     "durationUnavailable": "Impossibile leggere la durata del video",
     "metadataUnavailable": "Impossibile leggere le dimensioni del fotogramma del video",
-    "unavailable": "Impossibile aprire l'anteprima del video",
-    "audioUnavailable": "Impossibile preparare l'anteprima audio"
+    "unavailable": "Impossibile aprire l'anteprima del video"
   },
   "tracks": {
     "video": "Video",
@@ -41,7 +40,8 @@
       "top": "Superiore",
       "center": "Centro",
       "bottom": "In basso"
-    }
+    },
+    "default": "Testo"
   },
   "tabs": {
     "captions": "Didascalie",
@@ -71,7 +71,10 @@
     "inPoint": "Ingresso (secondi)",
     "outPoint": "Uscita (secondi)",
     "startsAt": "Avvia (secondi)",
-    "endsAt": "Fine (secondi)"
+    "endsAt": "Fine (secondi)",
+    "moveLeft": "Sposta prima",
+    "moveRight": "Sposta dopo",
+    "duplicate": "Duplica clip"
   },
   "project": {
     "saved": "Progetto di editing video salvato"
@@ -87,19 +90,60 @@
     }
   },
   "playback": {
-    "stepBackward": "Fai un passo indietro di 0,1 secondi",
-    "stepForward": "Un passo avanti di 0,1 secondi"
+    "stepBackward": "Fotogramma di uscita precedente",
+    "stepForward": "Fotogramma di uscita successivo"
   },
   "trim": {
     "start": "Inizio clip taglio",
     "end": "Taglia fine clip",
     "textStart": "Ritaglia inizio testo",
-    "textEnd": "Taglia fine testo",
-    "hint": "Trascina il bordo della clip per ritagliarla. Tieni premuto Opzione o Alt per una regolazione precisa."
+    "textEnd": "Taglia fine testo"
   },
   "unsaved": {
     "title": "Vuoi salvare le modifiche a questo video?",
     "status": "Modifiche non salvate",
     "description": "Le modifiche andranno perse se chiudi senza salvare."
+  },
+  "materials": {
+    "title": "Materiali",
+    "import": "Importa media",
+    "search": "Cerca materiali",
+    "empty": "Nessun materiale corrispondente. Importa video, immagini o audio.",
+    "add": "Aggiungi “{title}” alla timeline",
+    "preparing": "Preparazione dell’importazione…",
+    "unavailable": "Il materiale è cambiato o non è disponibile.",
+    "audioHint": "Aggiungi musica dall’elenco dei materiali."
+  },
+  "timing": {
+    "invalid": "Inserisci un valore tra {min} e {max} secondi."
+  },
+  "fades": {
+    "in": "Dissolvenza in entrata (secondi)",
+    "out": "Dissolvenza in uscita (secondi)"
+  },
+  "framing": {
+    "title": "Inquadratura",
+    "contain": "Mostra tutta l’immagine",
+    "cover": "Riempi il fotogramma",
+    "zoom": "Zoom"
+  },
+  "output": {
+    "title": "Impostazioni di uscita",
+    "size": "Formato e risoluzione",
+    "frameRate": "Frequenza fotogrammi"
+  },
+  "transitions": {
+    "title": "Transizione",
+    "choose": "Scegli transizione",
+    "dissolve": "Dissolvenza incrociata",
+    "wipeLeft": "Tendina a sinistra",
+    "wipeRight": "Tendina a destra",
+    "duration": "Durata (secondi)",
+    "hint": "Le transizioni sovrappongono clip adiacenti e accorciano il progetto."
+  },
+  "layout": {
+    "materials": "Ridimensiona elenco materiali",
+    "inspector": "Ridimensiona ispettore",
+    "timeline": "Ridimensiona timeline"
   }
 }

@@ -4,12 +4,8 @@ import { computed, shallowRef, watch } from "vue";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
-import {
-  projectDurationMs,
-  type VideoEditProject,
-  type VideoTextOverlay,
-  type VideoTextStyle,
-} from "../project";
+import { type VideoEditProject, type VideoTextOverlay, type VideoTextStyle } from "../project";
+import { projectDurationMs } from "../timing";
 import SpaceVideoFontControls from "./SpaceVideoFontControls.vue";
 import SpaceVideoTextColorField from "./SpaceVideoTextColorField.vue";
 import SpaceVideoTextTiming from "./SpaceVideoTextTiming.vue";

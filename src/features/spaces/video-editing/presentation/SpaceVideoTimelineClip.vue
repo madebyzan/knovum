@@ -2,19 +2,25 @@
 import { clamp } from "es-toolkit";
 import { computed } from "vue";
 
-import type { VideoClip } from "../project";
+import { versionedMediaSource } from "../../media/media-element-source";
+import { stepTrimFrameMs } from "../clip-bounds";
+import type { VideoAsset, VideoClip } from "../project";
 import { formatVideoEditTime } from "../timecode";
-import type { TimelineFrame } from "./use-video-timeline-thumbnails";
+import { useVideoEditProxy } from "../use-video-edit-proxy";
+import { useVideoTimelineThumbnails } from "./use-video-timeline-thumbnails";
 
 const props = defineProps<{
   clip: VideoClip;
   selected: boolean;
-  frames: TimelineFrame[];
+  sourcePath?: string | undefined;
+  title: string;
+  asset: VideoAsset;
+  spaceId: string;
+  frameRate: number;
   waveform?: number[] | undefined;
-  sourceDurationMs: number;
 }>();
 const TIMELINE_EDGES = ["start", "end"] as const;
-defineEmits<{
+const emit = defineEmits<{
   select: [];
   trimStart: [event: PointerEvent, edge: "start" | "end"];
   trimMove: [event: PointerEvent];
@@ -23,9 +29,23 @@ defineEmits<{
   nudge: [edge: "start" | "end", delta: number];
 }>();
 
+function nudge(edge: "start" | "end", direction: -1 | 1) {
+  const value = edge === "start" ? props.clip.startMs : props.clip.endMs;
+  emit("nudge", edge, stepTrimFrameMs(value, props.frameRate, direction) - value);
+}
+const proxy = useVideoEditProxy(
+  computed(() => props.asset.nodeId),
+  computed(() => props.asset.sourceRevision),
+  computed(() => props.spaceId),
+  computed(() => props.asset.kind === "video"),
+);
+const { frames, error } = useVideoTimelineThumbnails(
+  proxy.path,
+  computed(() => props.asset.durationMs),
+);
 const length = computed(() => props.clip.endMs - props.clip.startMs);
 const visibleFrames = computed(() =>
-  props.frames
+  frames.value
     .filter((frame) => frame.endMs > props.clip.startMs && frame.startMs < props.clip.endMs)
     .map((frame) => {
       const left = Math.max(frame.startMs, props.clip.startMs);
@@ -41,9 +61,9 @@ const visibleFrames = computed(() =>
 );
 const peaks = computed(() => {
   const samples = props.waveform;
-  if (!samples?.length || !props.sourceDurationMs) return [];
-  const start = Math.floor((props.clip.startMs / props.sourceDurationMs) * samples.length);
-  const end = Math.ceil((props.clip.endMs / props.sourceDurationMs) * samples.length);
+  if (!samples?.length || !props.asset.durationMs) return [];
+  const start = Math.floor((props.clip.startMs / props.asset.durationMs) * samples.length);
+  const end = Math.ceil((props.clip.endMs / props.asset.durationMs) * samples.length);
   const count = clamp(end - start, 1, 80);
   return Array.from({ length: count }, (_, index) => {
     const from = start + Math.floor((index / count) * (end - start));
@@ -62,6 +82,13 @@ const peaks = computed(() => {
       "
     >
       <img
+        v-if="asset.kind === 'image' && sourcePath"
+        :src="versionedMediaSource(sourcePath, asset.sourceRevision)"
+        alt=""
+        draggable="false"
+        class="pointer-events-none absolute inset-0 size-full object-cover opacity-85"
+      />
+      <img
         v-for="(frame, index) in visibleFrames"
         :key="index"
         :src="frame.image"
@@ -77,7 +104,7 @@ const peaks = computed(() => {
         @click="$emit('select')"
       >
         <span class="rounded-md bg-black/45 px-1 py-0.5 tabular-nums">
-          {{ formatVideoEditTime(clip.startMs) }} – {{ formatVideoEditTime(clip.endMs) }}
+          {{ title }}
         </span>
       </button>
       <button
@@ -93,10 +120,15 @@ const peaks = computed(() => {
         @pointermove="$emit('trimMove', $event)"
         @pointerup="$emit('trimEnd')"
         @pointercancel="$emit('trimCancel')"
-        @keydown.left.prevent="$emit('nudge', edge, -100)"
-        @keydown.right.prevent="$emit('nudge', edge, 100)"
+        @keydown.left.prevent="nudge(edge, -1)"
+        @keydown.right.prevent="nudge(edge, 1)"
       />
     </div>
+    <span
+      v-if="error || proxy.error.value"
+      class="pointer-events-none absolute top-1 right-1 text-caption-sm text-fg-danger"
+      >{{ $t("spaces.media.videoEditor.timeline.thumbnailFailed") }}</span
+    >
     <div
       class="flex h-8 items-center gap-px overflow-hidden border-b border-stroke-accent/25 bg-surface-accent-subtle px-0.5"
     >

@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { effectScope, shallowRef } from "vue";
 
+import { splitClip } from "../clip-edits";
 import { useVideoEditSelection } from "../presentation/use-video-edit-selection";
-import { addTextOverlay, createVideoEditProject, splitClip } from "../project";
+import { addTextOverlay, createVideoEditProject } from "../project";
 import { useVideoEditHistory } from "../use-video-edit-history";
 
 describe("video editor selection and history", () => {
@@ -11,12 +12,13 @@ describe("video editor selection and history", () => {
     try {
       scope.run(() => {
         const source = createVideoEditProject({
+          nodeId: "source",
           sourceRevision: "source",
           durationMs: 2_000,
           sourceWidth: 1280,
           sourceHeight: 720,
         });
-        const initial = addTextOverlay(splitClip(source, 1_000), 200, "Arial");
+        const initial = addTextOverlay(splitClip(source, 1_000), 200, "Arial", "Text");
         const project = shallowRef(initial);
         const history = useVideoEditHistory(project);
         history.reset(initial);

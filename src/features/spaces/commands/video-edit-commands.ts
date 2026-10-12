@@ -8,12 +8,13 @@ export interface VideoEditCommandPort {
   canUndo(): boolean;
   canRedo(): boolean;
   canDelete(): boolean;
+  canSplit(): boolean;
   undo(): void;
   redo(): void;
   remove(): void;
   split(): void;
   togglePlayback(): void;
-  step(milliseconds: number): void;
+  step(direction: -1 | 1): void;
   save(): Promise<void>;
   close(): void;
 }
@@ -59,6 +60,7 @@ export function videoEditCommands(): AppCommand[] {
       title: t("spaces.media.videoEditor.clip.split"),
       shortcut: "S",
       category: "editing",
+      availability: () => availableWhen(!!activeEditor.value?.canSplit(), "selection_not_eligible"),
       run: () => activeEditor.value?.split(),
     },
     {
@@ -82,14 +84,14 @@ export function videoEditCommands(): AppCommand[] {
       title: t("spaces.media.videoEditor.playback.stepBackward"),
       shortcut: "ArrowLeft",
       category: "editing",
-      run: () => activeEditor.value?.step(-100),
+      run: () => activeEditor.value?.step(-1),
     },
     {
       id: "video-edit.next-step",
       title: t("spaces.media.videoEditor.playback.stepForward"),
       shortcut: "ArrowRight",
       category: "editing",
-      run: () => activeEditor.value?.step(100),
+      run: () => activeEditor.value?.step(1),
     },
     {
       id: "video-edit.close",

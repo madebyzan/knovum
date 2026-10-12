@@ -6,15 +6,16 @@ import { computed, shallowRef, watch } from "vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import type { VideoEditProject } from "../project";
+import SpaceVideoAudioInspector from "./SpaceVideoAudioInspector.vue";
 import SpaceVideoCaptionNavigator from "./SpaceVideoCaptionNavigator.vue";
 import SpaceVideoClipInspector from "./SpaceVideoClipInspector.vue";
 import SpaceVideoTextInspector from "./SpaceVideoTextInspector.vue";
 
 const props = defineProps<{
   modelValue: VideoEditProject;
-  sourceDurationMs: number;
   selectedClipId?: string | undefined;
   selectedTextId?: string | undefined;
+  selectedAudioId?: string | undefined;
 }>();
 const emit = defineEmits<{
   edit: [project: VideoEditProject, mergeKey?: string];
@@ -27,6 +28,9 @@ const selectedClip = computed(() =>
 );
 const selectedText = computed(() =>
   props.modelValue.textTrack.items.find(({ id }) => id === props.selectedTextId),
+);
+const selectedAudio = computed(() =>
+  props.modelValue.audioTrack.clips.find(({ id }) => id === props.selectedAudioId),
 );
 const tab = shallowRef<"captions" | "text">("text");
 watch(
@@ -46,7 +50,7 @@ function addText() {
 
 <template>
   <aside
-    class="absolute inset-y-3 right-3 z-30 flex min-h-0 w-80 flex-col overflow-hidden rounded-xl border border-stroke-default bg-surface-overlay shadow-popover"
+    class="flex h-full min-h-0 flex-col overflow-hidden border-l border-stroke-divider bg-surface-panel"
     :aria-label="$t('spaces.media.videoEditor.videoSettings')"
     @keydown.esc.prevent.stop="emit('close')"
   >
@@ -105,10 +109,23 @@ function addText() {
         <SpaceVideoClipInspector
           :project="modelValue"
           :clip="selectedClip"
-          :source-duration-ms="sourceDurationMs"
           @edit="(project, mergeKey) => emit('edit', project, mergeKey)"
         />
       </UiScrollArea>
+    </template>
+    <template v-else-if="selectedAudio">
+      <div class="flex h-11 shrink-0 items-center justify-between border-b border-stroke-divider px-3">
+        <h2 class="text-caption font-semibold">{{ $t("spaces.media.videoEditor.tracks.audio") }}</h2>
+        <UiIconButton :label="$t('spaces.media.videoEditor.closeInspector')" size="sm" @click="emit('close')"
+          ><X class="size-3.5"
+        /></UiIconButton>
+      </div>
+      <UiScrollArea class="min-h-0 flex-1"
+        ><SpaceVideoAudioInspector
+          :project="modelValue"
+          :clip="selectedAudio"
+          @edit="(project, mergeKey) => emit('edit', project, mergeKey)"
+      /></UiScrollArea>
     </template>
   </aside>
 </template>

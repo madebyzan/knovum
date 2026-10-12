@@ -16,13 +16,14 @@ import {
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { formatVideoTimelineTime } from "../timecode";
+import { formatVideoEditTime } from "../timecode";
 
 defineProps<{
   playing: boolean;
   currentMs: number;
   durationMs: number;
   canDelete: boolean;
+  canSplit: boolean;
   canUndo: boolean;
   canRedo: boolean;
   zoom: number;
@@ -34,7 +35,7 @@ defineEmits<{
   undo: [];
   redo: [];
   toggle: [];
-  step: [milliseconds: number];
+  step: [direction: -1 | 1];
   zoom: [value: number];
 }>();
 const { t } = useI18n();
@@ -51,11 +52,12 @@ const { t } = useI18n();
       <UiIconButton :label="t('common.redo')" size="sm" :disabled="!canRedo" @click="$emit('redo')">
         <Redo2 class="size-3.5" />
       </UiIconButton>
-      <span class="bg-border-divider mx-1 h-5 w-px" aria-hidden="true" />
+      <span class="mx-1 h-5 w-px bg-stroke-divider" aria-hidden="true" />
       <UiIconButton
         :label="t('spaces.media.videoEditor.clip.split')"
         tooltip
         size="sm"
+        :disabled="!canSplit"
         @click="$emit('split')"
         ><Scissors class="size-3.5"
       /></UiIconButton>
@@ -67,13 +69,13 @@ const { t } = useI18n();
       /></UiIconButton>
     </div>
     <div class="flex items-center gap-2">
-      <span class="w-12 text-right text-caption font-medium tabular-nums">{{
-        formatVideoTimelineTime(currentMs)
+      <span class="w-24 text-right text-caption font-medium tabular-nums">{{
+        formatVideoEditTime(currentMs)
       }}</span>
       <UiIconButton
         :label="t('spaces.media.videoEditor.playback.stepBackward')"
         size="sm"
-        @click="$emit('step', -100)"
+        @click="$emit('step', -1)"
         ><SkipBack class="size-3.5"
       /></UiIconButton>
       <UiIconButton
@@ -88,11 +90,11 @@ const { t } = useI18n();
       <UiIconButton
         :label="t('spaces.media.videoEditor.playback.stepForward')"
         size="sm"
-        @click="$emit('step', 100)"
+        @click="$emit('step', 1)"
         ><SkipForward class="size-3.5"
       /></UiIconButton>
-      <span class="w-12 text-caption text-fg-tertiary tabular-nums">{{
-        formatVideoTimelineTime(durationMs)
+      <span class="w-24 text-caption text-fg-tertiary tabular-nums">{{
+        formatVideoEditTime(durationMs)
       }}</span>
     </div>
     <div class="flex items-center justify-end gap-1">

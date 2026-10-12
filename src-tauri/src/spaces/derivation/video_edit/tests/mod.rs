@@ -1,68 +1,87 @@
-use super::contracts::{
-    TextOverlay, TextPlacement, TextPreset, TextStyle, TextTrack, VideoClip, VideoTrack,
-    VideoTransform,
+mod render_smoke;
+use super::{
+    contracts::{VideoTransition, VideoTransitionKind},
+    filter_graph,
+    validation::validate_project,
+    VideoEditProject,
 };
-use super::{filter_graph, VideoEditProject};
 
 fn project() -> VideoEditProject {
-    VideoEditProject {
-        version: 1,
-        source_revision: "sha256:source".into(),
-        source_width: 1080,
-        source_height: 1920,
-        video_track: VideoTrack {
-            clips: vec![
-                VideoClip {
-                    id: "a".into(),
-                    start_ms: 1_000,
-                    end_ms: 3_000,
-                    volume: 1.0,
-                },
-                VideoClip {
-                    id: "b".into(),
-                    start_ms: 5_000,
-                    end_ms: 8_000,
-                    volume: 0.5,
-                },
-            ],
-        },
-        text_track: TextTrack {
-            items: vec![TextOverlay {
-                id: "t".into(),
-                start_ms: 500,
-                end_ms: 2_000,
-                text: "Title".into(),
-                placement: TextPlacement::Bottom,
-                style: TextStyle {
-                    family: crate::desktop::system_font::SYSTEM_SANS_FAMILY.into(),
-                    weight: 400,
-                    size: 30,
-                    color: "#FFFFFF".into(),
-                    preset: TextPreset::Outline,
-                },
-            }],
-        },
-        transform: VideoTransform {
-            rotation: 90,
-            flip_horizontal: true,
-            flip_vertical: false,
-        },
-    }
+    serde_json::from_str(r#"{
+ "version":1,"sourceRevision":"revision",
+ "assets":[{"nodeId":"source","sourceRevision":"revision","kind":"video","durationMs":8000,"width":1080,"height":1920}],
+ "output":{"width":1080,"height":1920,"frameRate":30},
+ "videoTrack":{"clips":[
+ {"id":"d51a4384-70ab-4b44-90cc-3bfcf0f5341f","assetId":"source","startMs":1000,"endMs":3000,"volume":1,"fadeInMs":0,"fadeOutMs":0,"transition":null,"transform":{"rotation":90,"flipHorizontal":true,"flipVertical":false,"fit":"contain","zoom":1}},
+ {"id":"d51a4384-70ab-4b44-90cc-3bfcf0f5342f","assetId":"source","startMs":5000,"endMs":8000,"volume":0.5,"fadeInMs":0,"fadeOutMs":0,"transition":null,"transform":{"rotation":0,"flipHorizontal":false,"flipVertical":false,"fit":"cover","zoom":1}}]},
+ "audioTrack":{"clips":[]},"textTrack":{"items":[]}
+}"#).unwrap()
 }
 
 #[test]
-fn builds_trim_concat_transform_and_text_filter() {
-    let filter = filter_graph::build(&project(), true, Some("captions.ass")).expect("filter graph");
-    assert!(filter.contains("trim=start=1.000:end=3.000"));
-    assert!(filter.contains("concat=n=2:v=1:a=1"));
-    assert!(filter.contains("transpose=clock,hflip"));
-    assert!(filter.contains("ass=filename=captions.ass"));
-}
-
-#[test]
-fn omits_audio_graph_when_source_has_no_audio() {
-    let filter =
-        filter_graph::build(&project(), false, Some("captions.ass")).expect("filter graph");
+fn normalizes_each_clip_and_concatenates_audio_and_video() {
+    let filter = filter_graph::build(&project(), &[true, true], None).unwrap();
+    assert!(filter.contains("trim=duration=2.000"));
     assert!(filter.contains("concat=n=2:v=1:a=0"));
-    assert!(!filter.contains("atrim="));
+    assert!(filter.contains("transpose=clock,hflip"));
+    assert!(filter.contains("fps=30,settb=AVTB"));
+    assert!(filter.contains("anull[outa]"));
+}
+#[test]
+fn explicit_silence_keeps_silent_clips_in_sync() {
+    let filter = filter_graph::build(&project(), &[false, false], None).unwrap();
+    assert!(filter.contains("anullsrc=r=48000:cl=stereo,atrim=duration=2.000"));
+    assert!(!filter.contains("[0:a]"));
+}
+#[test]
+fn transition_offsets_and_audio_share_the_overlap() {
+    let mut project = project();
+    project.video_track.clips[0].transition = Some(VideoTransition {
+        kind: VideoTransitionKind::Dissolve,
+        duration_ms: 500,
+    });
+    validate_project(&project, "revision").unwrap();
+    assert_eq!(super::timing::duration_ms(&project), 4500);
+    let filter = filter_graph::build(&project, &[true, false], None).unwrap();
+    assert!(filter.contains("xfade=transition=fade:duration=0.500:offset=1.500"));
+    assert!(filter.contains("acrossfade=d=0.500:c1=tri:c2=tri"));
+}
+#[test]
+fn rejects_unknown_assets_and_impossible_overlaps() {
+    let mut project = project();
+    project.video_track.clips[0].asset_id = "foreign".into();
+    assert!(validate_project(&project, "revision").is_err());
+    project.video_track.clips[0].asset_id = "source".into();
+    project.video_track.clips[0].transition = Some(VideoTransition {
+        kind: VideoTransitionKind::WipeLeft,
+        duration_ms: 2000,
+    });
+    assert!(validate_project(&project, "revision").is_err());
+}
+
+#[test]
+fn rejects_obsolete_and_incomplete_project_shapes() {
+    let mut encoded = serde_json::to_value(project()).unwrap();
+    encoded["videoTrack"]["clips"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("transition");
+    assert!(serde_json::from_value::<VideoEditProject>(encoded).is_err());
+    let mut encoded = serde_json::to_value(project()).unwrap();
+    encoded.as_object_mut().unwrap().remove("audioTrack");
+    assert!(serde_json::from_value::<VideoEditProject>(encoded).is_err());
+}
+
+#[test]
+fn saved_snapshot_compares_typed_values_without_losing_edit_conflict_detection() {
+    let requested = project();
+    let mut data = serde_json::json!({"videoEditProject": requested});
+    data["videoEditProject"]["videoTrack"]["clips"][0]["volume"] = serde_json::json!(1);
+    data["videoEditProject"]["videoTrack"]["clips"][0]["transform"]["zoom"] = serde_json::json!(1);
+    assert!(super::start::validate_saved_project(&data, &requested).is_ok());
+    data["videoEditProject"]["videoTrack"]["clips"][0]["volume"] = serde_json::json!(0.75);
+    assert!(super::start::validate_saved_project(&data, &requested).is_err());
+    data["videoEditProject"]["videoTrack"]["clips"][0]["transition"] =
+        serde_json::json!({"kind":"obsolete", "durationMs":500});
+    assert!(super::start::validate_saved_project(&data, &requested).is_err());
 }

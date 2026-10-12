@@ -1,91 +1,60 @@
-import { computed, nextTick, shallowRef, watch, type Ref } from "vue";
+import { computed, nextTick, shallowRef, type Ref } from "vue";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { SpaceEditorTab } from "../../workspace/work-items";
 import { useVideoEditProxy } from "../use-video-edit-proxy";
 import { useVideoSessionStore } from "../video-session-store";
 import { useVideoEditActions } from "./use-video-edit-actions";
-import { useVideoEditPreviewSource } from "./use-video-edit-preview-source";
 import { useVideoEditProject } from "./use-video-edit-project";
 import { useVideoEditSelection } from "./use-video-edit-selection";
 import { useVideoEditorInspector } from "./use-video-editor-inspector";
-import { useVideoEditorMedia } from "./use-video-editor-media";
+import { useVideoMaterials } from "./use-video-materials";
 import { useVideoProjectPlayback } from "./use-video-project-playback";
 
 export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
   const session = useVideoSessionStore().sessions.get(tab.id);
   if (!session) throw new Error("Video session is unavailable");
-  const node = session.node;
-  const data = computed(() => node.value.data);
-  const {
-    path: proxyPath,
-    error: prepareError,
-    retry: retryProxy,
-  } = useVideoEditProxy(
-    computed(() => node.value?.id),
-    computed(() => data.value?.sourceRevision),
+  const data = computed(() => session.node.value.data);
+  const proxy = useVideoEditProxy(
+    computed(() => tab.nodeId),
+    computed(() => data.value.sourceRevision),
     computed(() => tab.spaceId),
     active,
   );
-  const { project, metadataError, initializeFromMetadata } = useVideoEditProject(
-    session.project,
-    data,
-    proxyPath,
-  );
-  const video = shallowRef<HTMLVideoElement | null>(null);
+  const project = session.project;
   const editorRoot = shallowRef<HTMLElement | null>(null);
-  const timelineZoom = session.timelineZoom;
-  const selection = useVideoEditSelection(project, session.selectedClipId, session.selectedTextId);
-  const playback = useVideoProjectPlayback(video, project, session.timelineMs);
-  const {
-    visible: inspectorVisible,
-    selectText: onSelectText,
-    selectClip: onSelectClip,
-    close: closeInspector,
-  } = useVideoEditorInspector({ project, video, editorRoot, selection, playback });
-  const {
-    previewPath,
-    error: previewError,
-    onMetadataError,
-  } = useVideoEditPreviewSource({
-    data,
-    proxyPath,
-    playing: playback.playing,
-  });
-  const editorError = computed(
-    () => prepareError.value ?? metadataError.value ?? previewError.value ?? playback.audioError.value,
+  const metadata = useVideoEditProject(project, data, tab.nodeId);
+  const previewError = shallowRef<string>();
+  const trimDraft = shallowRef<typeof project.value>();
+  const visibleProject = computed(() => trimDraft.value ?? project.value);
+  const selection = useVideoEditSelection(
+    project,
+    session.selectedClipId,
+    session.selectedTextId,
+    session.selectedAudioId,
   );
+  const playback = useVideoProjectPlayback(visibleProject, active, session.timelineMs);
+  const inspector = useVideoEditorInspector({ project, editorRoot, selection, playback });
   const history = session.history;
   const actions = useVideoEditActions({
     session,
     active,
-    node,
+    node: session.node,
     project,
-    video,
     history,
     selection,
     playback,
   });
-  const { sourceDurationMs, onMetadataReady, onPreviewReady } = useVideoEditorMedia({
-    data,
-    project,
-    video,
-    history,
-    playback,
-    initializeFromMetadata,
-  });
-
-  watch(project, () => playback.seek(playback.timelineMs.value));
-  watch(
-    active,
-    (visible) => {
-      if (!visible) {
-        video.value?.pause();
-        playback.playing.value = false;
-      }
-    },
-    { flush: "sync" },
-  );
-
+  const materials = useVideoMaterials(tab.spaceId, project, history.commit);
+  const editorError = computed(() => proxy.error.value ?? metadata.metadataError.value);
+  function onMetadataReady(event: Event) {
+    metadata.initializeFromMetadata(event);
+    if (project.value) history.reset(data.value.videoEditProject ?? project.value);
+  }
+  function failPreview(error: unknown) {
+    playback.pause();
+    previewError.value = getErrorMessage(error);
+  }
   async function onAddText() {
     actions.addText();
     await nextTick();
@@ -96,27 +65,32 @@ export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
   return {
     session,
     data,
-    proxyPath,
-    prepareError,
-    retryProxy,
     project,
-    video,
+    visibleProject,
+    trimDraft,
     editorRoot,
-    timelineZoom,
+    timelineZoom: session.timelineZoom,
     selection,
     playback,
-    inspectorVisible,
-    onSelectText,
-    onSelectClip,
-    closeInspector,
-    previewPath,
-    editorError,
+    inspector,
     history,
     actions,
-    sourceDurationMs,
+    materials,
+    editorError,
+    previewError,
+    failPreview,
+    proxyPath: proxy.path,
+    prepareError: proxy.error,
+    retryProxy: () => {
+      metadata.metadataError.value = undefined;
+      proxy.retry();
+    },
     onMetadataReady,
-    onPreviewReady,
-    onMetadataError,
     onAddText,
+    failMetadata: (message: string) => {
+      metadata.metadataError.value = message;
+    },
   };
 }
+
+export type VideoEditor = ReturnType<typeof useVideoEditor>;

@@ -9,8 +9,7 @@
     "proxyFailed": "レスポンシブなプレビューを準備できませんでした",
     "durationUnavailable": "動画の長さを読み取れませんでした",
     "metadataUnavailable": "ビデオのフレーム寸法を読み取れませんでした",
-    "unavailable": "ビデオプレビューを開けませんでした",
-    "audioUnavailable": "オーディオプレビューを準備できませんでした"
+    "unavailable": "ビデオプレビューを開けませんでした"
   },
   "tracks": {
     "video": "ビデオ",
@@ -41,7 +40,8 @@
       "top": "トップ",
       "center": "中心",
       "bottom": "下"
-    }
+    },
+    "default": "テキスト"
   },
   "tabs": {
     "captions": "キャプション",
@@ -71,7 +71,10 @@
     "inPoint": "開始位置（秒）",
     "outPoint": "終了位置（秒）",
     "startsAt": "開始 (秒)",
-    "endsAt": "終了 (秒)"
+    "endsAt": "終了 (秒)",
+    "moveLeft": "前に移動",
+    "moveRight": "後ろに移動",
+    "duplicate": "クリップを複製"
   },
   "project": {
     "saved": "ビデオ編集プロジェクトが保存されました"
@@ -87,19 +90,60 @@
     }
   },
   "playback": {
-    "stepBackward": "0.1 秒後退",
-    "stepForward": "0.1 秒前進"
+    "stepBackward": "前の出力フレーム",
+    "stepForward": "次の出力フレーム"
   },
   "trim": {
     "start": "クリップ開始のトリム",
     "end": "クリップの端をトリム",
     "textStart": "テキストの開始をトリムする",
-    "textEnd": "テキストの終了をトリミング",
-    "hint": "クリップの端をドラッグしてトリミングします。正確に調整するには、Option キーまたは Alt キーを押したままにします。"
+    "textEnd": "テキストの終了をトリミング"
   },
   "unsaved": {
     "title": "このビデオへの変更を保存しますか?",
     "status": "未保存の変更",
     "description": "保存せずに閉じると、編集内容は失われます。"
+  },
+  "materials": {
+    "title": "素材",
+    "import": "素材を読み込む",
+    "search": "素材を検索",
+    "empty": "一致する素材がありません。動画、画像、音声を読み込んでください。",
+    "add": "「{title}」をタイムラインに追加",
+    "preparing": "素材の読み込みを準備中…",
+    "unavailable": "素材が変更されたか、利用できません。",
+    "audioHint": "素材一覧から音楽を追加してください。"
+  },
+  "timing": {
+    "invalid": "{min}～{max} 秒の値を入力してください。"
+  },
+  "fades": {
+    "in": "フェードイン（秒）",
+    "out": "フェードアウト（秒）"
+  },
+  "framing": {
+    "title": "画面の配置",
+    "contain": "全体を表示",
+    "cover": "画面いっぱいに表示",
+    "zoom": "ズーム"
+  },
+  "output": {
+    "title": "出力設定",
+    "size": "画面サイズと解像度",
+    "frameRate": "フレームレート"
+  },
+  "transitions": {
+    "title": "トランジション",
+    "choose": "トランジションを選択",
+    "dissolve": "ディゾルブ",
+    "wipeLeft": "左へワイプ",
+    "wipeRight": "右へワイプ",
+    "duration": "長さ（秒）",
+    "hint": "トランジションは隣接するクリップを重ね、全体の長さを短くします。"
+  },
+  "layout": {
+    "materials": "素材一覧の幅を変更",
+    "inspector": "インスペクターの幅を変更",
+    "timeline": "タイムラインの高さを変更"
   }
 }

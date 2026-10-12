@@ -1,7 +1,8 @@
 import { useResizeObserver } from "@vueuse/core";
 import { computed, nextTick, shallowRef, watch, type Ref } from "vue";
 
-import { projectDurationMs, type VideoEditProject } from "../project";
+import { type VideoEditProject } from "../project";
+import { projectDurationMs } from "../timing";
 
 const TICK_INTERVALS_MS = [
   100, 250, 500, 1_000, 2_000, 5_000, 10_000, 15_000, 30_000, 60_000, 120_000, 300_000, 600_000,

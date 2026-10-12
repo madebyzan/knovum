@@ -9,8 +9,7 @@
     "proxyFailed": "Could not prepare a responsive preview",
     "durationUnavailable": "Could not read the video's duration",
     "metadataUnavailable": "Could not read the video's frame dimensions",
-    "unavailable": "Could not open the video preview",
-    "audioUnavailable": "Could not prepare audio preview"
+    "unavailable": "Could not open the video preview"
   },
   "tracks": {
     "video": "Video",
@@ -41,7 +40,8 @@
       "top": "Top",
       "center": "Center",
       "bottom": "Bottom"
-    }
+    },
+    "default": "Text"
   },
   "tabs": {
     "captions": "Captions",
@@ -71,7 +71,10 @@
     "inPoint": "In (seconds)",
     "outPoint": "Out (seconds)",
     "startsAt": "Starts (seconds)",
-    "endsAt": "Ends (seconds)"
+    "endsAt": "Ends (seconds)",
+    "moveLeft": "Move earlier",
+    "moveRight": "Move later",
+    "duplicate": "Duplicate clip"
   },
   "project": {
     "saved": "Video edit project saved"
@@ -87,19 +90,60 @@
     }
   },
   "playback": {
-    "stepBackward": "Step back 0.1 second",
-    "stepForward": "Step forward 0.1 second"
+    "stepBackward": "Previous output frame",
+    "stepForward": "Next output frame"
   },
   "trim": {
     "start": "Trim clip start",
     "end": "Trim clip end",
     "textStart": "Trim text start",
-    "textEnd": "Trim text end",
-    "hint": "Drag a clip edge to trim. Hold Option or Alt for precise adjustment."
+    "textEnd": "Trim text end"
   },
   "unsaved": {
     "title": "Save changes to this video?",
     "status": "Unsaved changes",
     "description": "Your edits will be lost if you close without saving."
+  },
+  "materials": {
+    "title": "Materials",
+    "import": "Import media",
+    "search": "Search materials",
+    "empty": "No matching materials. Import media to get started.",
+    "add": "Add “{title}” to the timeline",
+    "preparing": "Preparing media import…",
+    "unavailable": "Material changed or is unavailable.",
+    "audioHint": "Add music from the material browser."
+  },
+  "timing": {
+    "invalid": "Enter a value between {min} and {max} seconds."
+  },
+  "fades": {
+    "in": "Fade in (seconds)",
+    "out": "Fade out (seconds)"
+  },
+  "framing": {
+    "title": "Framing",
+    "contain": "Fit entire image",
+    "cover": "Fill frame",
+    "zoom": "Zoom"
+  },
+  "output": {
+    "title": "Output settings",
+    "size": "Frame size and resolution",
+    "frameRate": "Frame rate"
+  },
+  "transitions": {
+    "title": "Transition",
+    "choose": "Choose transition",
+    "dissolve": "Dissolve",
+    "wipeLeft": "Wipe left",
+    "wipeRight": "Wipe right",
+    "duration": "Duration (seconds)",
+    "hint": "Transitions overlap adjacent clips and shorten the project."
+  },
+  "layout": {
+    "materials": "Resize material browser",
+    "inspector": "Resize inspector",
+    "timeline": "Resize timeline"
   }
 }

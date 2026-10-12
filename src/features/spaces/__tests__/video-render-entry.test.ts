@@ -45,6 +45,7 @@ function setup() {
   sessions.open({ id: "tab", kind: "video", spaceId: "origin", nodeId: source.id }, source);
   const session = sessions.sessions.get("tab")!;
   const originalProject = createVideoEditProject({
+    nodeId: "source",
     sourceRevision: "revision",
     durationMs: 2000,
     sourceWidth: 640,
@@ -56,16 +57,14 @@ function setup() {
   wrapper = mount(
     {
       setup() {
-        const video = shallowRef<HTMLVideoElement | null>(null);
         actions = useVideoEditActions({
           session,
           active,
           node: session.node,
           project: session.project,
-          video,
           history: session.history,
           selection: useVideoEditSelection(session.project),
-          playback: useVideoProjectPlayback(video, session.project, session.timelineMs),
+          playback: useVideoProjectPlayback(session.project, active, session.timelineMs),
         });
         return () => null;
       },

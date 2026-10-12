@@ -8,8 +8,10 @@ import { registerVideoEditCommands } from "../../commands/video-edit-commands";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
-import { addTextOverlay, locateTimelineTime, splitClip, type VideoEditProject } from "../project";
+import { splitClip } from "../clip-edits";
+import { addTextOverlay, type VideoEditProject } from "../project";
 import { renderVideoEdit } from "../render";
+import { canSplitClip, locateTimelineTime, stepOutputFrame } from "../timing";
 import type { useVideoEditHistory } from "../use-video-edit-history";
 import { useVideoProjectSave } from "../use-video-project-save";
 import type { VideoSession } from "../video-session-store";
@@ -22,14 +24,13 @@ interface VideoEditActionsOptions {
   active: Ref<boolean>;
   node: Ref<SpaceCanvasNode<SpaceVideoPayload> | undefined>;
   project: Ref<VideoEditProject | undefined>;
-  video: Ref<HTMLVideoElement | null>;
   history: ReturnType<typeof useVideoEditHistory>;
   selection: ReturnType<typeof useVideoEditSelection>;
   playback: ReturnType<typeof useVideoProjectPlayback>;
 }
 
 export function useVideoEditActions(options: VideoEditActionsOptions) {
-  const { node, project, video, history, selection, playback } = options;
+  const { node, project, history, selection, playback } = options;
   const store = useSpaceStore();
   const { t } = useI18n();
   const saving = options.session.saving;
@@ -37,6 +38,7 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
   const save = useVideoProjectSave(options.session);
   const canDelete = computed(
     () =>
+      !!selection.selectedAudioId.value ||
       !!selection.selectedTextId.value ||
       (!!selection.selectedClipId.value && (project.value?.videoTrack.clips.length ?? 0) > 1),
   );
@@ -65,7 +67,12 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
 
   function addText() {
     if (!project.value) return;
-    const next = addTextOverlay(project.value, playback.timelineMs.value, systemSansFamily());
+    const next = addTextOverlay(
+      project.value,
+      playback.timelineMs.value,
+      systemSansFamily(),
+      t("spaces.media.videoEditor.text.default"),
+    );
     history.commit(next);
     const added = next.textTrack.items.at(-1);
     if (added) selection.selectText(added.id);
@@ -77,13 +84,14 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
     if (next) history.commit(next);
   }
 
-  function step(milliseconds: number) {
-    video.value?.pause();
-    playback.seek(playback.timelineMs.value + milliseconds);
+  function step(direction: -1 | 1) {
+    if (!project.value) return;
+    playback.pause();
+    playback.seek(stepOutputFrame(project.value, playback.timelineMs.value, direction));
   }
 
   function togglePlayback() {
-    void playback.toggle().catch((error) => toast.error(getErrorMessage(error)));
+    playback.toggle();
   }
 
   async function render() {
@@ -112,6 +120,7 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
           canUndo: () => history.canUndo.value,
           canRedo: () => history.canRedo.value,
           canDelete: () => canDelete.value,
+          canSplit: () => !!project.value && canSplitClip(project.value, playback.timelineMs.value),
           undo: history.undo,
           redo: history.redo,
           remove,
@@ -131,6 +140,7 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
   return {
     addText,
     canDelete,
+    canSplit: computed(() => !!project.value && canSplitClip(project.value, playback.timelineMs.value)),
     cancelLeave: leave.cancel,
     closeDialogOpen: leave.closeDialogOpen,
     confirmDiscard: leave.discard,

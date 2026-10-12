@@ -9,8 +9,7 @@
     "proxyFailed": "반응형 미리보기를 준비할 수 없습니다.",
     "durationUnavailable": "동영상 길이를 읽을 수 없습니다.",
     "metadataUnavailable": "비디오의 프레임 크기를 읽을 수 없습니다.",
-    "unavailable": "동영상 미리보기를 열 수 없습니다.",
-    "audioUnavailable": "오디오 미리보기를 준비할 수 없습니다."
+    "unavailable": "동영상 미리보기를 열 수 없습니다."
   },
   "tracks": {
     "video": "비디오",
@@ -41,7 +40,8 @@
       "top": "상위",
       "center": "센터",
       "bottom": "하단"
-    }
+    },
+    "default": "텍스트"
   },
   "tabs": {
     "captions": "캡션",
@@ -71,7 +71,10 @@
     "inPoint": "시작 지점(초)",
     "outPoint": "종료 지점(초)",
     "startsAt": "시작(초)",
-    "endsAt": "종료(초)"
+    "endsAt": "종료(초)",
+    "moveLeft": "앞으로 이동",
+    "moveRight": "뒤로 이동",
+    "duplicate": "클립 복제"
   },
   "project": {
     "saved": "비디오 편집 프로젝트가 저장되었습니다"
@@ -87,19 +90,60 @@
     }
   },
   "playback": {
-    "stepBackward": "0.1초 뒤로 이동",
-    "stepForward": "0.1초 앞으로 이동"
+    "stepBackward": "이전 출력 프레임",
+    "stepForward": "다음 출력 프레임"
   },
   "trim": {
     "start": "트림 클립 시작",
     "end": "클립 끝 다듬기",
     "textStart": "텍스트 시작 자르기",
-    "textEnd": "텍스트 끝 자르기",
-    "hint": "클립 가장자리를 드래그하여 다듬습니다. 정확한 조정을 위해 Option 또는 Alt를 누르세요."
+    "textEnd": "텍스트 끝 자르기"
   },
   "unsaved": {
     "title": "이 동영상의 변경사항을 저장하시겠습니까?",
     "status": "저장되지 않은 변경 사항",
     "description": "저장하지 않고 닫으면 수정사항이 손실됩니다."
+  },
+  "materials": {
+    "title": "소재",
+    "import": "소재 가져오기",
+    "search": "소재 검색",
+    "empty": "일치하는 소재가 없습니다. 동영상, 이미지 또는 오디오를 가져오세요.",
+    "add": "타임라인에 “{title}” 추가",
+    "preparing": "소재 가져오기 준비 중…",
+    "unavailable": "소재가 변경되었거나 사용할 수 없습니다.",
+    "audioHint": "소재 목록에서 배경 음악을 추가하세요."
+  },
+  "timing": {
+    "invalid": "{min}~{max}초 사이의 값을 입력하세요."
+  },
+  "fades": {
+    "in": "페이드 인(초)",
+    "out": "페이드 아웃(초)"
+  },
+  "framing": {
+    "title": "화면 맞춤",
+    "contain": "전체 표시",
+    "cover": "화면 채우기",
+    "zoom": "확대"
+  },
+  "output": {
+    "title": "출력 설정",
+    "size": "화면 크기 및 해상도",
+    "frameRate": "프레임 속도"
+  },
+  "transitions": {
+    "title": "전환",
+    "choose": "전환 선택",
+    "dissolve": "디졸브",
+    "wipeLeft": "왼쪽 와이프",
+    "wipeRight": "오른쪽 와이프",
+    "duration": "길이(초)",
+    "hint": "전환은 인접한 클립을 겹쳐 전체 길이를 줄입니다."
+  },
+  "layout": {
+    "materials": "소재 목록 너비 조정",
+    "inspector": "검사기 너비 조정",
+    "timeline": "타임라인 높이 조정"
   }
 }
