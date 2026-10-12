@@ -1,31 +1,31 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  createWorkspaceNavigationState,
-  recordWorkspaceNavigation,
-  removeWorkspaceNavigation,
+  createWorkbenchNavigationState,
+  recordWorkbenchNavigation,
+  removeWorkbenchNavigation,
 } from "../navigation-history";
 
-describe("workspace tab navigation", () => {
-  it("drops forward history when a new space is opened after going back", () => {
-    const state = createWorkspaceNavigationState();
-    recordWorkspaceNavigation(state, "a");
-    recordWorkspaceNavigation(state, "b");
-    recordWorkspaceNavigation(state, "c");
+describe("workbench tab navigation", () => {
+  it("drops forward history when a new tab is activated after going back", () => {
+    const state = createWorkbenchNavigationState();
+    recordWorkbenchNavigation(state, "a");
+    recordWorkbenchNavigation(state, "b");
+    recordWorkbenchNavigation(state, "c");
     state.navigationIndex.value = 1;
 
-    recordWorkspaceNavigation(state, "d");
+    recordWorkbenchNavigation(state, "d");
 
     expect(state.navigationHistory.value).toEqual(["a", "b", "d"]);
     expect(state.navigationIndex.value).toBe(2);
   });
 
   it("selects the adjacent history entry when the current tab closes", () => {
-    const state = createWorkspaceNavigationState();
+    const state = createWorkbenchNavigationState();
     state.navigationHistory.value = ["a", "b", "c"];
     state.navigationIndex.value = 2;
 
-    removeWorkspaceNavigation(state, "c");
+    removeWorkbenchNavigation(state, new Set(["c"]));
 
     expect(state.navigationHistory.value).toEqual(["a", "b"]);
     expect(state.navigationIndex.value).toBe(1);
@@ -33,14 +33,14 @@ describe("workspace tab navigation", () => {
     expect(state.canNavigateForward.value).toBe(false);
   });
 
-  it("preserves the current entry when a background tab closes", () => {
-    const state = createWorkspaceNavigationState();
-    state.navigationHistory.value = ["a", "b", "c"];
-    state.navigationIndex.value = 2;
+  it("preserves the current entry when background tabs close", () => {
+    const state = createWorkbenchNavigationState();
+    state.navigationHistory.value = ["a", "b", "c", "d"];
+    state.navigationIndex.value = 3;
 
-    removeWorkspaceNavigation(state, "b");
+    removeWorkbenchNavigation(state, new Set(["b", "c"]));
 
-    expect(state.navigationHistory.value).toEqual(["a", "c"]);
+    expect(state.navigationHistory.value).toEqual(["a", "d"]);
     expect(state.navigationIndex.value).toBe(1);
   });
 });

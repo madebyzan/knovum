@@ -119,7 +119,7 @@ There is no feature-wide component warehouse or parallel Spaces presentation tre
 | Owner                    | Source organization                                                                                                                                                                                 |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Spaces capability        | `<capability>/` holds operations and state; `<capability>/presentation/` holds its view components and UI projections.                                                                              |
-| Spaces workspace         | `workspace/` composes work surfaces, editor tabs and sidebar intent; `workspace/presentation/` composes their views, library and creation UI.                                                       |
+| Spaces workspace         | `workspace/` composes the workbench tab list, work surfaces and sidebar intent; `workspace/presentation/` composes their views, the tab strip, library and creation UI.                             |
 | Spaces canvas            | `canvas/host/` assembles the neutral surface, `canvas/konva/` implements the adapter, and `canvas/presentation/` owns product chrome, selection controls and node views.                            |
 | Settings AI              | `settings/ai/` composes AI settings; `connections/` owns providers, credentials and logos, `models/` owns definitions and routing, and `local-models/` owns installation controls.                  |
 | Other settings           | `desktop-agents/`, `creation/`, `backup/`, `archives/`, `appearance/`, `notifications/`, `usage/` and `about/` own their panes. `navigation/` owns pane registration and leave coordination.        |
@@ -179,8 +179,15 @@ Space. The Spaces Browser is application navigation rather than a second domain 
 database tables, commands, types, and UI use `spaces` for the bounded context and `space` for one
 aggregate; aliases and dual command registrations are forbidden.
 
-Renderer `workspace/work-items.ts` owns typed document/video tab identities and per-Space activation.
-The destination and selected work item derive the readonly `workspace/space-surface.ts` projection.
+Renderer `workspace/workbench-tab.ts` owns one tab identity per opened thing — a Space canvas, a
+document or a video — plus the pure ordering policy: a new tab opens directly right of the active
+tab and existing order is never rearranged. `workspace/workbench-tab-state.ts` holds the single
+ordered tab list and the single active tab; the active Space, the open editor tabs, the permanent
+Inbox tab and the readonly `workspace/space-surface.ts` projection all derive from them, so no
+parallel per-Space selection exists. `workspace/workbench-navigation-actions.ts` owns open,
+activate, reopen and history intents, `workspace/workbench-close-actions.ts` owns close and discard
+intents, and `workspace/space-session-actions.ts` loads one Space session so a caller can apply it
+together with its tab activation inside one transition.
 `workspace/editor-sessions.ts` composes the concrete document and video owners; it is not a generic
 editor registry. Document drafts belong to `document-editing/document-session-store.ts`; video project/history
 state belongs to `video-editing/video-session-store.ts`. Retained presentation keeps document vendor

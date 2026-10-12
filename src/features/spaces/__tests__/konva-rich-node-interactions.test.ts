@@ -15,6 +15,7 @@ import { enrichmentProjectionKey } from "../enrichment/enrichment-projection-key
 import type { SpaceCanvasTextPayload } from "../model/nodes/capabilities";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
+import { openStoreSpaceTab } from "./support/session-context";
 
 describe("Konva rich node interactions", () => {
   beforeEach(() => setActivePinia(createPinia()));
@@ -133,7 +134,7 @@ describe("Konva rich node interactions", () => {
 
   it("identifies a visual analysis job on its own canvas node", () => {
     const store = useSpaceStore();
-    store.activeSpaceId = "space-1";
+    openStoreSpaceTab(store, "space-1");
     const record = {
       job: {
         id: "job-1",

@@ -9,17 +9,20 @@
   },
   "rename": "重命名空间",
   "tabs": {
+    "label": "已打开的工作内容",
     "close": "关闭标签页",
+    "closeNamed": "关闭 {title}",
     "closeOthers": "关闭其他标签页",
     "closeToRight": "关闭右侧标签页",
-    "actionFailed": "工作区标签页操作失败",
+    "next": "下一个工作标签",
+    "previous": "上一个工作标签",
     "reopen": "重新打开关闭的标签页",
-    "switchTo": "切换到标签页 {number}"
+    "switchTo": "切换到标签页 {number}",
+    "actionFailed": "工作区标签页操作失败"
   },
   "back": "后退",
   "forward": "前进",
   "sections": {
-    "open": "已打开空间",
     "all": "全部空间",
     "recent": "最近打开",
     "favorites": "收藏"

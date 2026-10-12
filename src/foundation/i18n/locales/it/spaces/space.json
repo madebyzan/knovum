@@ -9,17 +9,20 @@
   },
   "rename": "Rinomina spazio",
   "tabs": {
+    "label": "Contenuti aperti",
     "close": "Chiudi scheda",
+    "closeNamed": "Chiudi {title}",
     "closeOthers": "Chiudi altre schede",
     "closeToRight": "Chiudi le schede a destra",
-    "actionFailed": "Azione della scheda Area di lavoro non riuscita",
+    "next": "Scheda di lavoro successiva",
+    "previous": "Scheda di lavoro precedente",
     "reopen": "Riapri scheda chiusa",
-    "switchTo": "Passa alla scheda {number}"
+    "switchTo": "Passa alla scheda {number}",
+    "actionFailed": "Azione della scheda Area di lavoro non riuscita"
   },
   "back": "Torna indietro",
   "forward": "Vai avanti",
   "sections": {
-    "open": "Spazi di lavoro aperti",
     "all": "Tutti gli spazi",
     "recent": "Aperto di recente",
     "favorites": "Preferiti"

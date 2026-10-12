@@ -3,10 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 import { createSpacePlacement } from "../canvas/navigation-requests";
 import { createSpaceState } from "../session/session-state";
 import { createRightSidebarActions } from "../workspace/right-sidebar-actions";
+import { openTestSpaceTab } from "./support/session-context";
 
 function setup() {
   const state = createSpaceState();
-  state.activeSpaceId.value = "inbox";
+  openTestSpaceTab(state, "inbox");
   const placement = createSpacePlacement({
     insertionPoint: state.insertionPoint,
     revealRequest: state.revealRequest,

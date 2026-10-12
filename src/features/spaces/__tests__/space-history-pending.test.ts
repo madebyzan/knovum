@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { ref } from "vue";
 
 import { createSpaceHistoryState } from "../history/history-state";
 import {
@@ -62,18 +63,19 @@ describe("space history pending mutations", () => {
     const { history } = createSpaceHistoryState();
     const undoA = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     const undoB = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    const activeSpaceId = ref("space-a");
     const context = {
-      activeSpaceId: { value: "space-a" },
+      activeSpaceId,
       history,
       runtime: { openGeneration: 0, historyBySpace: new Map() },
     } as unknown as SpaceSessionContext;
 
     recordSpaceHistory(history, { undo: undoA, redo: async () => {} });
     switchSpaceHistory(context, "space-b");
-    context.activeSpaceId.value = "space-b";
+    activeSpaceId.value = "space-b";
     recordSpaceHistory(history, { undo: undoB, redo: async () => {} });
     switchSpaceHistory(context, "space-a");
-    context.activeSpaceId.value = "space-a";
+    activeSpaceId.value = "space-a";
 
     await undoSpaceHistory(history);
     expect(undoA).toHaveBeenCalledOnce();

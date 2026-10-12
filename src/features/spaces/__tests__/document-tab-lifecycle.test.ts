@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
   store: {
     saveNodeContentForSpace:
       vi.fn<(spaceId: string, change: NodePayloadChangeInput) => Promise<SpaceNodePayload>>(),
-    returnToCanvas: vi.fn<() => Promise<void>>(),
+    openSpaceCanvas: vi.fn<() => Promise<void>>(),
   },
 }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => mocks.store }));

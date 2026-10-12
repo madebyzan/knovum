@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { AlertTriangle } from "@lucide/vue";
 import { storeToRefs } from "pinia";
-import { TabsContent, TabsRoot } from "reka-ui";
 import {
   computed,
   defineAsyncComponent,
@@ -18,7 +17,6 @@ import { toast } from "vue-sonner";
 import { normalizeError } from "../../foundation/errors/app-error";
 import { getErrorMessage } from "../../foundation/errors/error-format";
 import { registerWindowCloseCommit } from "../../foundation/lifecycle/window-close-coordinator";
-import { isApplicationLeaveCancelled } from "../../shared/contracts/application-leave";
 import { overlayScopeVisibleKey } from "../../shared/contracts/overlay-scope-visibility";
 import UiButton from "../../shared/ui/UiButton.vue";
 import SpaceCanvas from "./canvas/presentation/SpaceCanvas.vue";
@@ -35,8 +33,7 @@ import SpaceImageEditLeaveDialog from "./image-editing/presentation/SpaceImageEd
 import SpaceAudioRecordingDock from "./media/presentation/SpaceAudioRecordingDock.vue";
 import { useSpaceStore } from "./session/space-store";
 import SpaceLibrary from "./workspace/presentation/library/SpaceLibrary.vue";
-import SpaceEditorTabs from "./workspace/presentation/SpaceEditorTabs.vue";
-import SpaceWorkTabs from "./workspace/presentation/SpaceWorkTabs.vue";
+import SpaceEditorSurfaces from "./workspace/presentation/SpaceEditorSurfaces.vue";
 
 const SpaceRecentlyDeleted = defineAsyncComponent(
   () => import("./deletion/presentation/SpaceRecentlyDeleted.vue"),
@@ -46,20 +43,6 @@ const conversationSession = useConversationSessionStore();
 const workspaceVisible = inject(overlayScopeVisibleKey)!;
 const canvasVisible = computed(() => workspaceVisible.value && store.workbench.canvas);
 const { ready, surface } = storeToRefs(store);
-const activeWorkItem = computed(() =>
-  surface.value.kind === "library"
-    ? "library"
-    : store.activeSpaceId
-      ? (store.activeWorkItems.get(store.activeSpaceId) ?? "canvas")
-      : "canvas",
-);
-function activateWorkItem(value: unknown) {
-  if (typeof value !== "string") throw new TypeError("Work item identity must be a string");
-  const operation = value === "canvas" ? store.returnToCanvas() : store.activateEditorTab(value);
-  void operation.catch((error: unknown) => {
-    if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
-  });
-}
 const { t } = useI18n();
 const initializationError = shallowRef<Error>();
 const initializing = shallowRef(false);
@@ -120,29 +103,18 @@ onMounted(() => void initialize());
         <UiButton class="mt-4" :disabled="initializing" @click="initialize">{{ t("common.retry") }}</UiButton>
       </div>
     </div>
-    <TabsRoot
-      v-else-if="store.ready"
-      :model-value="activeWorkItem"
-      class="flex min-h-0 flex-1 flex-col"
-      @update:model-value="activateWorkItem"
-    >
-      <SpaceWorkTabs />
+    <div v-else-if="store.ready" class="flex min-h-0 flex-1 flex-col">
       <div class="relative min-h-0 flex-1">
-        <TabsContent
-          value="canvas"
-          force-mount
-          v-show="surface.kind === 'canvas'"
-          class="absolute inset-0 outline-none"
-        >
+        <section v-show="surface.kind === 'canvas'" class="absolute inset-0 outline-none">
           <SpaceCanvas :rendering-enabled="canvasVisible" />
-        </TabsContent>
+        </section>
         <SpaceAudioRecordingDock
           class="pointer-events-auto absolute bottom-3 left-1/2 z-50 -translate-x-1/2"
         />
         <section v-if="surface.kind === 'library'" class="absolute inset-0 z-40 bg-surface-canvas">
           <SpaceLibrary />
         </section>
-        <SpaceEditorTabs />
+        <SpaceEditorSurfaces />
         <SpaceRecentlyDeleted
           v-if="store.recentlyDeletedSpaceId !== undefined"
           :key="store.recentlyDeletedSpaceId ?? 'all'"
@@ -152,6 +124,6 @@ onMounted(() => void initialize());
         />
         <SpaceImageEditLeaveDialog />
       </div>
-    </TabsRoot>
+    </div>
   </main>
 </template>

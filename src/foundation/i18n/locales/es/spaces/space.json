@@ -9,17 +9,20 @@
   },
   "rename": "Cambiar nombre del espacio",
   "tabs": {
+    "label": "Contenido abierto",
     "close": "Cerrar pestaña",
+    "closeNamed": "Cerrar {title}",
     "closeOthers": "Cerrar otras pestañas",
     "closeToRight": "Cerrar pestañas a la derecha",
-    "actionFailed": "Error en la acción de la pestaña del espacio de trabajo",
+    "next": "Siguiente pestaña de trabajo",
+    "previous": "Pestaña de trabajo anterior",
     "reopen": "Reabrir pestaña cerrada",
-    "switchTo": "Cambiar a la pestaña {number}"
+    "switchTo": "Cambiar a la pestaña {number}",
+    "actionFailed": "Error en la acción de la pestaña del espacio de trabajo"
   },
   "back": "Regresar",
   "forward": "Adelante",
   "sections": {
-    "open": "Espacios abiertos",
     "all": "Todos los espacios",
     "recent": "Abierto recientemente",
     "favorites": "Favoritos"

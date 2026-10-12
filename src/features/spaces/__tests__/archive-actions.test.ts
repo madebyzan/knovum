@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ref } from "vue";
 
 import type { SpaceCredential } from "../model/schema/credential";
 import type { Space } from "../model/space";
@@ -20,7 +19,16 @@ vi.mock("../workspace/space-operations", () => ({
   archiveSpace: lifecycleRepository.archiveSpace,
   deleteSpacePermanently: spaceRepository.deleteSpacePermanently,
   listCredentialNodeIds: spaceRepository.listCredentialNodeIds,
+  markSpaceOpened: vi.fn<(spaceId: string) => Promise<void>>(),
   unarchiveSpace: lifecycleRepository.unarchiveSpace,
+}));
+vi.mock("../session/space-projection", () => ({
+  loadSpaceSessionProjection: vi.fn<() => unknown>(() => ({
+    nodes: [],
+    scenes: [],
+    relations: [],
+    editSnapshot: { editRevision: 0, structure: [], layouts: [], relationStyles: [] },
+  })),
 }));
 const assets = vi.hoisted(() => ({
   cleanupDeletedSpaceAssets: vi.fn<(paths: readonly string[]) => Promise<void>>(),
@@ -44,7 +52,7 @@ function space(): Space {
 }
 
 function context(research: Space): SpaceSessionContext {
-  return createTestSessionContext({ spaces: ref([research]) });
+  return createTestSessionContext({ spaces: [research] });
 }
 
 describe("Space lifecycle", () => {
@@ -56,6 +64,20 @@ describe("Space lifecycle", () => {
     await archiveSpace(state, research.id);
     expect(research.archivedAt).toEqual(expect.any(Number));
     expect(state.spaces.value.some((candidate: Space) => candidate.id === research.id)).toBe(true);
+  });
+
+  it("moves the workbench to the Inbox tab when the active Space is archived", async () => {
+    const research = space();
+    const state = createTestSessionContext({
+      spaces: [createTestSpace(), research],
+      activeSpaceId: research.id,
+    });
+
+    await archiveSpace(state, research.id);
+
+    expect(state.activeSpaceId.value).toBe("inbox");
+    expect(state.tabs.value.map(({ spaceId }) => spaceId)).toEqual(["inbox"]);
+    expect(state.closedTabs.value).toHaveLength(0);
   });
 
   it("restores an archived Space", async () => {

@@ -9,17 +9,20 @@
   },
   "rename": "Rename Space",
   "tabs": {
+    "label": "Open work items",
     "close": "Close tab",
+    "closeNamed": "Close {title}",
     "closeOthers": "Close other tabs",
     "closeToRight": "Close tabs to the right",
-    "actionFailed": "Workspace tab action failed",
+    "next": "Next work tab",
+    "previous": "Previous work tab",
     "reopen": "Reopen closed tab",
-    "switchTo": "Switch to tab {number}"
+    "switchTo": "Switch to tab {number}",
+    "actionFailed": "Workspace tab action failed"
   },
   "back": "Go back",
   "forward": "Go forward",
   "sections": {
-    "open": "Open Spaces",
     "all": "All Spaces",
     "recent": "Recently opened",
     "favorites": "Favorites"

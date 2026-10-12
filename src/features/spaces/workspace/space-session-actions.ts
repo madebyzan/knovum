@@ -1,159 +1,64 @@
-import { difference, without } from "es-toolkit";
+import { nextTick } from "vue";
 
 import { releaseKnowledgeIndex, scheduleSpaceKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
+import type { Space } from "../model/space";
 import { loadSpaceSessionProjection } from "../session/space-projection";
-import { activateDraftSpace, createDraftSpace } from "./draft-space-actions";
-import { prepareSpaceEditorClose } from "./editor-tab-lifecycle";
-import { recordWorkspaceNavigation, removeWorkspaceNavigation } from "./navigation-history";
 import { switchSpaceHistory } from "./session-history";
-import { createAndTrackSpace, markSpaceOpenedAndTrack } from "./space-creation";
-import { listSpaces } from "./space-operations";
+import { markSpaceOpenedAndTrack } from "./space-creation";
 import type { LoadSpaceOptions, SpaceSessionContext } from "./space-session-context";
 import { transitionActiveSpaceSession } from "./space-transition";
+import { referencedSpaceIds } from "./workbench-tab";
+import { discardSpaceWorkbenchTabs } from "./workbench-tab-state";
 
-export async function initializeSpaces(context: SpaceSessionContext, inboxTitle: string) {
-  if (context.ready.value) return;
-  context.spaces.value = await listSpaces();
-  let inbox = context.spaces.value.find((space) => space.kind === "inbox");
-  if (!inbox) inbox = await createAndTrackSpace(context, inboxTitle, "inbox");
-  await openSpace(context, inbox.id);
-  context.ready.value = true;
+/** Applies a loaded Space session synchronously, so no render observes a mixed projection. */
+type ApplySpaceSession = () => void;
+
+export interface SpaceSessionLoad {
+  complete(): Promise<ApplySpaceSession | undefined>;
 }
 
-export async function createSpace(context: SpaceSessionContext, title: string) {
-  await createDraftSpace(context, title);
-}
-
-export async function openSpace(context: SpaceSessionContext, spaceId: string) {
-  await activateSpace(context, spaceId, true);
-}
-
-async function activateSpace(context: SpaceSessionContext, spaceId: string, recordNavigation: boolean) {
-  if (context.runtime.pendingSpaceId === spaceId) return false;
-  if (context.activeSpaceId.value === spaceId) {
-    cancelPendingSpaceOpen(context);
-    context.workspaceDestination.value = "workbench";
-    return true;
-  }
-  if (context.draftSpace.value?.id === spaceId)
-    return activateDraftSpace(context, context.draftSpace.value, recordNavigation);
-  const space = context.spaces.value.find(
-    (candidate) => candidate.id === spaceId && candidate.archivedAt === null,
-  );
-  if (!space) throw new Error(`Cannot open unavailable space: ${spaceId}`);
-  const activated = await loadSpace(context, spaceId, { markOpened: true, resetHistory: true });
-  if (!activated) return false;
-  if (!context.openSpaceIds.value.includes(spaceId)) context.openSpaceIds.value.push(spaceId);
-  if (recordNavigation) recordWorkspaceNavigation(context, spaceId);
-  return true;
-}
-
-export async function closeSpaceTab(context: SpaceSessionContext, spaceId: string) {
-  const index = context.openSpaceIds.value.indexOf(spaceId);
-  if (index < 0 || context.openSpaceIds.value.length === 1) return;
-  const finishClose = await prepareSpaceEditorClose(context, [spaceId]);
-  if (context.activeSpaceId.value === spaceId) {
-    const nextId = context.openSpaceIds.value[index + 1] ?? context.openSpaceIds.value[index - 1];
-    if (nextId && !(await activateSpace(context, nextId, false))) return;
-  }
-  await finishClose();
-  context.openSpaceIds.value.splice(index, 1);
-  if (context.draftSpace.value?.id === spaceId) context.draftSpace.value = undefined;
-  else context.closedSpaceIds.value = [spaceId, ...without(context.closedSpaceIds.value, spaceId)];
-  leaveSpaceSession(context, [spaceId]);
-}
-
-export async function closeOtherSpaceTabs(context: SpaceSessionContext, spaceId: string) {
-  if (!context.openSpaceIds.value.includes(spaceId)) return;
-  const closed = without(context.openSpaceIds.value, spaceId);
-  const finishClose = await prepareSpaceEditorClose(context, closed);
-  if (!(await activateSpace(context, spaceId, false))) return;
-  await finishClose();
-  context.openSpaceIds.value = [spaceId];
-  retireClosedSpaceTabs(context, closed);
-}
-
-export async function closeSpaceTabsToRight(context: SpaceSessionContext, spaceId: string) {
-  const index = context.openSpaceIds.value.indexOf(spaceId);
-  if (index < 0) return;
-  const closed = context.openSpaceIds.value.slice(index + 1);
-  const finishClose = await prepareSpaceEditorClose(context, closed);
-  if (closed.includes(context.activeSpaceId.value ?? "") && !(await activateSpace(context, spaceId, false)))
-    return;
-  await finishClose();
-  context.openSpaceIds.value = context.openSpaceIds.value.slice(0, index + 1);
-  retireClosedSpaceTabs(context, closed);
-}
-
-export async function reopenClosedSpaceTab(context: SpaceSessionContext) {
-  const id = context.closedSpaceIds.value[0];
-  if (!id) return;
-  if (!(await activateSpace(context, id, true))) return;
-  context.closedSpaceIds.value.shift();
-}
-
-export function discardSpaceTab(context: SpaceSessionContext, spaceId: string) {
-  context.openSpaceIds.value = without(context.openSpaceIds.value, spaceId);
-  context.closedSpaceIds.value = without(context.closedSpaceIds.value, spaceId);
-  if (context.draftSpace.value?.id === spaceId) context.draftSpace.value = undefined;
-  leaveSpaceSession(context, [spaceId]);
-}
-
-function retireClosedSpaceTabs(context: SpaceSessionContext, closed: readonly string[]) {
-  const draftId = context.draftSpace.value?.id;
-  if (draftId && closed.includes(draftId)) context.draftSpace.value = undefined;
-  context.closedSpaceIds.value = [
-    ...(draftId ? without(closed, draftId) : closed).toReversed(),
-    ...difference(context.closedSpaceIds.value, closed),
-  ];
-  leaveSpaceSession(context, closed);
-}
-
-function leaveSpaceSession(context: SpaceSessionContext, spaceIds: readonly string[]) {
-  for (const id of spaceIds) {
-    context.runtime.historyBySpace.delete(id);
-    removeWorkspaceNavigation(context, id);
-    releaseKnowledgeIndex(id);
-  }
-}
-
-export async function navigateSpaceHistory(context: SpaceSessionContext, direction: -1 | 1) {
-  const nextIndex = context.navigationIndex.value + direction;
-  const id = context.navigationHistory.value[nextIndex];
-  if (!id) return;
-  if (!(await activateSpace(context, id, false))) return;
-  context.navigationIndex.value = nextIndex;
-}
-
-export async function refreshSpace(context: SpaceSessionContext) {
-  const id = context.activeSpaceId.value;
-  if (!id || context.runtime.pendingSpaceId) return;
-  await loadSpace(context, id, { markOpened: false, resetHistory: false });
-}
-
-async function loadSpace(context: SpaceSessionContext, spaceId: string, options: LoadSpaceOptions) {
+/**
+ * Claims the Space switch immediately, so repeated activations coalesce and the workbench can
+ * show its loading state, then loads the projection without activating it. The caller applies the
+ * result together with its tab activation inside a single transition.
+ */
+export function startSpaceSessionLoad(
+  context: SpaceSessionContext,
+  spaceId: string,
+  options: LoadSpaceOptions,
+): SpaceSessionLoad {
   const generation = ++context.runtime.openGeneration;
+  if (context.draftSpace.value?.id === spaceId) {
+    context.runtime.pendingSpaceId = undefined;
+    context.loading.value = false;
+    const applyDraft = prepareDraftSpaceSession(context);
+    return { complete: async () => (generation === context.runtime.openGeneration ? applyDraft : undefined) };
+  }
   context.runtime.pendingSpaceId = spaceId;
   context.loading.value = true;
+  return { complete: () => loadSpaceSession(context, spaceId, generation, options) };
+}
+
+async function loadSpaceSession(
+  context: SpaceSessionContext,
+  spaceId: string,
+  generation: number,
+  options: LoadSpaceOptions,
+): Promise<ApplySpaceSession | undefined> {
   try {
-    return await transitionActiveSpaceSession(context, async () => {
-      const { nodes, scenes, relations, editSnapshot } = await loadSpaceSessionProjection(spaceId);
-      if (generation !== context.runtime.openGeneration) return false;
-      if (options.markOpened) await markSpaceOpenedAndTrack(context, spaceId);
-      if (generation !== context.runtime.openGeneration) return false;
-      if (options.resetHistory) {
-        switchSpaceHistory(context, spaceId);
-        context.workspaceDestination.value = "workbench";
-      }
-      context.activeSpaceId.value = spaceId;
-      context.nodes.value = nodes;
-      context.scenes.value = scenes;
-      context.relations.value = relations;
-      context.editSnapshot.value = editSnapshot;
+    const projection = await loadSpaceSessionProjection(spaceId);
+    if (generation !== context.runtime.openGeneration) return undefined;
+    if (options.markOpened) await markSpaceOpenedAndTrack(context, spaceId);
+    if (generation !== context.runtime.openGeneration) return undefined;
+    return () => {
+      if (options.resetHistory) switchSpaceHistory(context, spaceId);
+      context.nodes.value = projection.nodes;
+      context.scenes.value = projection.scenes;
+      context.relations.value = projection.relations;
+      context.editSnapshot.value = projection.editSnapshot;
       context.groupScopePath.value = [];
       scheduleSpaceKnowledgeIndex(spaceId);
-      return true;
-    });
+    };
   } finally {
     if (generation === context.runtime.openGeneration) {
       context.runtime.pendingSpaceId = undefined;
@@ -162,8 +67,57 @@ async function loadSpace(context: SpaceSessionContext, spaceId: string, options:
   }
 }
 
-function cancelPendingSpaceOpen(context: SpaceSessionContext) {
+export function cancelPendingSpaceOpen(context: SpaceSessionContext) {
   context.runtime.openGeneration += 1;
   context.runtime.pendingSpaceId = undefined;
   context.loading.value = false;
+}
+
+/** A draft Space has no persisted projection, so its session starts from empty content. */
+function prepareDraftSpaceSession(context: SpaceSessionContext): ApplySpaceSession {
+  return () => {
+    cancelPendingSpaceOpen(context);
+    const draftId = context.draftSpace.value?.id;
+    if (draftId) switchSpaceHistory(context, draftId);
+    context.nodes.value = [];
+    context.scenes.value = [];
+    context.relations.value = [];
+    context.editSnapshot.value = { editRevision: 0, structure: [], layouts: [], relationStyles: [] };
+    context.groupScopePath.value = [];
+  };
+}
+
+export function requireAvailableSpace(context: SpaceSessionContext, spaceId: string): Space {
+  const draft = context.draftSpace.value;
+  if (draft?.id === spaceId) return draft;
+  const space = context.spaces.value.find(
+    (candidate) => candidate.id === spaceId && candidate.archivedAt === null,
+  );
+  if (!space) throw new Error(`Cannot open unavailable space: ${spaceId}`);
+  return space;
+}
+
+export async function refreshSpace(context: SpaceSessionContext) {
+  const spaceId = context.activeSpaceId.value;
+  if (!spaceId || context.runtime.pendingSpaceId) return;
+  const load = startSpaceSessionLoad(context, spaceId, { markOpened: false, resetHistory: false });
+  await transitionActiveSpaceSession(context, async () => {
+    const applySession = await load.complete();
+    if (context.activeSpaceId.value !== spaceId) return;
+    applySession?.();
+    await nextTick();
+  });
+}
+
+/** Releases the retained session of every Space the remaining tabs no longer reference. */
+export function releaseUnreferencedSpaces(context: SpaceSessionContext, previous: readonly string[]) {
+  const referenced = new Set(referencedSpaceIds(context.tabs.value));
+  for (const spaceId of previous) {
+    if (referenced.has(spaceId)) continue;
+    context.runtime.historyBySpace.delete(spaceId);
+    releaseKnowledgeIndex(spaceId);
+    if (context.draftSpace.value?.id !== spaceId) continue;
+    context.draftSpace.value = undefined;
+    discardSpaceWorkbenchTabs(context, spaceId);
+  }
 }

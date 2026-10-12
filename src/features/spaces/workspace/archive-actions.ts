@@ -6,27 +6,31 @@ import {
 } from "../credentials/credential-storage";
 import { refreshEnrichmentJobs } from "../enrichment/enrichment-jobs-query";
 import type { SpaceCredential } from "../model/schema/credential";
-import { prepareSpaceEditorClose } from "./editor-tab-lifecycle";
+import { editorTabsForSpace } from "./editor-tab-lifecycle";
+import { prepareEditorSessionClose } from "./session-participants";
 import {
   archiveSpace as persistSpaceArchive,
   deleteSpacePermanently,
   listCredentialNodeIds,
   unarchiveSpace as persistSpaceUnarchive,
 } from "./space-operations";
-import { discardSpaceTab, openSpace } from "./space-session-actions";
 import type { SpaceSessionContext } from "./space-session-context";
+import { discardSpaceTabs } from "./workbench-close-actions";
+import { openSpace } from "./workbench-navigation-actions";
 
 export async function archiveSpace(context: SpaceSessionContext, spaceId: string) {
   const space = editableSpace(context, spaceId);
   if (!space) return;
-  const finishClose = await prepareSpaceEditorClose(context, [spaceId]);
+  const finalizeClose = await prepareEditorSessionClose({
+    tabIds: editorTabsForSpace(context, spaceId).map(({ id }) => id),
+  });
   await leaveUnavailableSpace(context, spaceId);
   const archivedAt = Date.now();
   await persistSpaceArchive(spaceId);
   Object.assign(space, { archivedAt, updatedAt: archivedAt });
   void refreshEnrichmentJobs();
-  await finishClose();
-  discardSpaceTab(context, spaceId);
+  finalizeClose();
+  await discardSpaceTabs(context, spaceId);
 }
 
 export async function unarchiveSpace(context: SpaceSessionContext, spaceId: string) {
@@ -57,7 +61,7 @@ export async function permanentlyDeleteSpace(context: SpaceSessionContext, space
   }
   context.spaces.value = context.spaces.value.filter((candidate) => candidate.id !== spaceId);
   void refreshEnrichmentJobs();
-  discardSpaceTab(context, spaceId);
+  await discardSpaceTabs(context, spaceId);
   await cleanupDeletedSpaceAssets(paths);
 }
 

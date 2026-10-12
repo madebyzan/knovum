@@ -7,7 +7,7 @@ import {
   isApplicationLeaveCancelled,
 } from "../../../../shared/contracts/application-leave";
 import { registerSpaceSessionParticipant } from "../../workspace/session-participants";
-import type { SpaceEditorTab } from "../../workspace/work-items";
+import type { SpaceEditorTab } from "../../workspace/workbench-tab";
 
 interface VideoEditLeaveOptions {
   tab: SpaceEditorTab;

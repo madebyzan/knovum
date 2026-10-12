@@ -18,16 +18,11 @@
   },
   "placeholder": "Commencer à écrire…",
   "tabs": {
-    "label": "Contenus ouverts",
-    "canvas": "Canevas",
-    "close": "Fermer {title}",
     "missing": "Cette ressource n’est plus disponible. Votre brouillon est conservé. Abandonnez-le explicitement pour fermer.",
     "conflict": "Cette ressource a été modifiée ailleurs. Votre brouillon est conservé et ne peut pas écraser le contenu plus récent.",
     "discardClose": "Abandonner le brouillon et fermer",
     "rendered": "La vidéo montée est prête",
     "viewResult": "Voir le résultat",
-    "next": "Onglet de travail suivant",
-    "previous": "Onglet de travail précédent",
     "protected": "Fermez les onglets d’édition concernés avant de supprimer ce contenu ou de le déplacer vers un autre Space.",
     "goToEditor": "Accéder à l’onglet d’édition",
     "opened": "Ouvert dans un onglet d’édition"

@@ -14,7 +14,7 @@ import { loadGroundedDocumentMetadata } from "../knowledge-derivations/document/
 import { findGroundedCitation } from "../knowledge/model/grounded-citation";
 import type { SpaceEditorPayload } from "../model/nodes/capabilities";
 import { useSpaceStore } from "../session/space-store";
-import type { SpaceEditorTab } from "../workspace/work-items";
+import type { SpaceEditorTab } from "../workspace/workbench-tab";
 import { useDocumentSessionStore } from "./document-session-store";
 import { createSpaceTiptapExtensions } from "./tiptap-extensions";
 import { revealKnowledgeInEditor } from "./tiptap-locator";
@@ -104,7 +104,7 @@ export function useSpaceTiptapEditor(tab: SpaceEditorTab, active: Ref<boolean>) 
   );
   async function close() {
     try {
-      await store.returnToCanvas();
+      await store.openSpaceCanvas();
       await nextTick().then(() => currentCanvasEditor()?.focus());
     } catch (error) {
       if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));

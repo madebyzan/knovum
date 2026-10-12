@@ -8,7 +8,7 @@ import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapsh
 import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { moveStructureSelectionBetweenSpaces } from "../../structure/structure-transfer-operations";
 import { assertEditorResourcesRemovable, editorResources } from "../../workspace/editor-resource-protection";
-import type { SpaceEditorTab } from "../../workspace/work-items";
+import type { SpaceEditorTab } from "../../workspace/workbench-tab";
 import { loadSpaceSessionProjection } from "../space-projection";
 
 interface StructureTransferContext {

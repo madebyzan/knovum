@@ -9,17 +9,20 @@
   },
   "rename": "スペースの名前を変更",
   "tabs": {
+    "label": "開いている作業",
     "close": "タブを閉じる",
+    "closeNamed": "{title} を閉じる",
     "closeOthers": "他のタブを閉じる",
     "closeToRight": "右側のタブを閉じる",
-    "actionFailed": "「ワークスペース」タブのアクションが失敗しました",
+    "next": "次の作業タブ",
+    "previous": "前の作業タブ",
     "reopen": "閉じたタブを再度開く",
-    "switchTo": "タブ {number} に切り替えます"
+    "switchTo": "タブ {number} に切り替えます",
+    "actionFailed": "「ワークスペース」タブのアクションが失敗しました"
   },
   "back": "戻る",
   "forward": "前進してください",
   "sections": {
-    "open": "オープンなワークスペース",
     "all": "すべてのワークスペース",
     "recent": "最近開いた",
     "favorites": "お気に入り"

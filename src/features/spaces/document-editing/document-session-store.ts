@@ -4,7 +4,7 @@ import { computed, markRaw, shallowRef, type Ref, type ComputedRef } from "vue";
 
 import { isSpaceEditorNode, type SpaceEditorNode } from "../canvas/node-capabilities";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceEditorTab } from "../workspace/work-items";
+import type { SpaceEditorTab } from "../workspace/workbench-tab";
 import { createEditingState } from "./editing-state";
 
 export const useDocumentSessionStore = defineStore("spaces-document-sessions", () => {

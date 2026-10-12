@@ -549,11 +549,17 @@ AI writing actions belong to the selection bubble menu. The document toolbar has
 
 The default canvas layout shows the Spaces Sidebar and canvas. The right sidebar starts closed. Its Conversation and Details views share one pane; contextual image and workflow edit panels remain anchored to their canvas objects.
 
-Space tabs retain knowledge-context navigation. A compact content tab strip appears inside the work
-surface when its Space has document/video work items; canvas is fixed and editor tabs are closable.
-Titles identify resources, with type icons and a quiet unsaved marker. Reka owns tab keyboard/ARIA
-behavior; overflow scrolls horizontally and the active item remains visible. Closing an item restores
-focus to its successor. With only canvas open, the extra strip is absent.
+The workbench has exactly one tab strip, in the toolbar. One tab is one opened thing: a Space canvas,
+a document or a video editor. There is no second strip inside the work surface and no fixed canvas
+pseudo-tab, so a Space can be open with only a document tab. A new tab opens directly right of the
+active tab and existing order never rearranges itself. Titles identify the Space or resource, with
+type icons and a quiet unsaved marker. The Inbox canvas tab is permanent: it cannot be closed and
+every close action keeps it, so the workbench is never empty. Opening a resource that already has a
+tab focuses that tab instead of duplicating it. Reka owns tab keyboard/ARIA behavior; overflow
+scrolls horizontally and the active tab remains visible. Closing a tab activates its right
+neighbour, otherwise its left one, and keeps focus on the tab that became active. Reopening the most
+recently closed tab restores it at its original position. The Spaces Browser stays a navigation
+destination rather than a tab, and replaces the strip with its own toolbar while it is open.
 
 Open editor resources show a compact editing indicator, separate from the user-authored lock icon.
 A protected selection disables deletion and cross-Space transfer, explains that its editor tabs must
@@ -562,9 +568,10 @@ the same reason with a navigation action; protected history replay reports the r
 the current history entry. Layout controls remain available. No operation silently skips protected
 members of a multi-selection or closes their tabs as a side effect.
 
-`Control+Tab` / `Control+Shift+Tab` cycle work items; `$mod+W` closes the current editor, or the Space
-when canvas/library is active and another Space exists. `$mod+1` through `$mod+9` retain Space
-navigation. All shortcuts enter through AppCommand, including the native Close Tab menu action.
+`Control+Tab` / `Control+Shift+Tab` cycle the tab strip; `$mod+W` closes the active tab unless it is
+the permanent Inbox tab; `$mod+1` through `$mod+8` select that tab and `$mod+9` selects the last one.
+`Alt+ArrowLeft` / `Alt+ArrowRight` move through tab activation history. All shortcuts enter through
+AppCommand, including the native Close Tab menu action.
 
 The canvas Outline, Conversation/Details pane and canvas commands are available only on the active
 canvas surface. Document and video editors retain Space navigation but own their outlines, histories,

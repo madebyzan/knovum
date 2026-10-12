@@ -5,6 +5,7 @@ import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { importJsonCanvas } from "../canvas-exchange/json-canvas-import-operations";
 import { createJsonCanvasImportActions } from "../session/actions/json-canvas-import-actions";
 import { createSpaceState } from "../session/session-state";
+import { openTestSpaceTab } from "./support/session-context";
 type CanvasImport = typeof importJsonCanvas;
 import type { loadSpaceSessionProjection } from "../session/space-projection";
 type Projection = typeof loadSpaceSessionProjection;
@@ -44,7 +45,7 @@ beforeEach(() => {
 
 function startImport() {
   const state = createSpaceState();
-  state.activeSpaceId.value = "space";
+  openTestSpaceTab(state, "space");
   return createJsonCanvasImportActions({
     state,
     ensureActiveSpacePersisted: async () => {},

@@ -10,7 +10,7 @@ import { useNodeOperationGate } from "../canvas/use-node-operation-gate";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { useSpaceStore } from "../session/space-store";
 import { useSpaceLibraryCommands } from "../workspace/use-space-library-commands";
-import { useWorkspaceTabCommands } from "../workspace/use-workspace-tab-commands";
+import { useWorkbenchTabCommands } from "../workspace/use-workbench-tab-commands";
 import { createCanvasEditingCommands } from "./canvas-editing-commands";
 import { createCanvasExchangeCommands } from "./canvas-exchange-commands";
 import { documentEditCommands } from "./document-edit-commands";
@@ -31,7 +31,7 @@ export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandCont
   const store = useSpaceStore();
   const { activeEditor, selection, transitioning } = getCanvasEditorSession();
   const nodeOperations = useNodeOperationGate();
-  const workspaceTabCommands = useWorkspaceTabCommands();
+  const workbenchTabCommands = useWorkbenchTabCommands();
   const libraryCommands = useSpaceLibraryCommands();
   const canvasNavigationCommands = useCanvasNavigationCommands(rightSidebar);
   const selectedIds = () => selection.value.nodeIds;
@@ -50,11 +50,11 @@ export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandCont
         store.globalFindOpen = true;
       },
     };
-    if (transitioning.value) return workspaceTabCommands.value;
-    if (store.surface.kind === "library") return [...workspaceTabCommands.value, ...libraryCommands.value];
-    if (!store.activeSpaceId) return [...workspaceTabCommands.value, searchAllCommand];
-    if (store.surface.kind === "video") return [...workspaceTabCommands.value, ...videoEditCommands()];
-    if (store.surface.kind === "document") return [...workspaceTabCommands.value, ...documentEditCommands()];
+    if (transitioning.value) return workbenchTabCommands.value;
+    if (store.surface.kind === "library") return [...workbenchTabCommands.value, ...libraryCommands.value];
+    if (!store.activeSpaceId) return [...workbenchTabCommands.value, searchAllCommand];
+    if (store.surface.kind === "video") return [...workbenchTabCommands.value, ...videoEditCommands()];
+    if (store.surface.kind === "document") return [...workbenchTabCommands.value, ...documentEditCommands()];
 
     const hasStructureSelection = selectedStructureNodeIds().length > 0;
     const editingCommands: AppCommand[] = [
@@ -124,7 +124,7 @@ export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandCont
       : [];
     const preview = spacePreviewCommand(store.nodes, selectedIds(), t("spaces.importExport.preview.system"));
     return [
-      ...workspaceTabCommands.value,
+      ...workbenchTabCommands.value,
       ...guardSelectionCommands(editingCommands, nodeOperations.allows),
       ...guardCanvasExchangeCommands(exchangeCommands, nodeOperations.allows),
       ...guardAllCommands(nudgeCommands, "structure", nodeOperations.allows),

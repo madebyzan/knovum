@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent } from "vue";
 
-import type { SpaceEditorTab } from "../../workspace/work-items";
+import type { SpaceEditorTab } from "../../workspace/workbench-tab";
 import { useDeferredEditorMount } from "../use-deferred-editor-mount";
 import SpaceEditorLoading from "./SpaceEditorLoading.vue";
 
