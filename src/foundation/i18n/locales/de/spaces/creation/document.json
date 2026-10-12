@@ -20,13 +20,6 @@
       "html": "HTML-Dokument (.html)",
       "pptx": "Präsentation (.pptx)"
     },
-    "expectations": {
-      "docx": "Bearbeitbarer Text und extrahierte Bilder; PDFs werden neu umbrochen.",
-      "pdf": "Setzt Notizen und Markdown als PDF.",
-      "txt": "Nur Text, ohne Layout oder Bilder.",
-      "html": "Bearbeitbarer, neu umbrochener Inhalt mit extrahierten Bildern.",
-      "pptx": "Erstellt bearbeitbare Folien aus der Dokumentstruktur."
-    },
     "recognitionRequired": "Schließen Sie die Dokumenterkennung für alle gescannten Seiten vor der Konvertierung ab."
   },
   "generate": "Dokument generieren",

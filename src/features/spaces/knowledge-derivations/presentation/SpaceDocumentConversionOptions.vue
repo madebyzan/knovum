@@ -43,9 +43,6 @@ function unavailableReason(actionId: CreationIntentId) {
       <span class="block">{{
         t(`spaces.creation.document.conversion.formats.${action.documentFormat}`)
       }}</span>
-      <span class="block max-w-64 text-caption-sm leading-snug text-fg-tertiary">
-        {{ t(`spaces.creation.document.conversion.expectations.${action.documentFormat}`) }}
-      </span>
     </span>
   </UiDropdownMenuItem>
 </template>
