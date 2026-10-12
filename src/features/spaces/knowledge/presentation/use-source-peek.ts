@@ -64,7 +64,7 @@ export function useSourcePeek() {
     const target = sourcePeek.value;
     if (!target) return;
     try {
-      await store.returnToCanvas();
+      await store.openSpaceCanvas();
       getCanvasEditorSession().reveal([target.nodeId], "focus");
     } catch (error) {
       if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
@@ -74,7 +74,7 @@ export function useSourcePeek() {
     const target = sourcePeek.value;
     if (!target) return;
     try {
-      await store.returnToCanvas();
+      await store.openSpaceCanvas();
       await createSourceEvidence({
         target,
         title: t("spaces.inspector.excerpts.title", { title: target.nodeTitle }),

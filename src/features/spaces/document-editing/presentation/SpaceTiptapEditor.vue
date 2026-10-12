@@ -10,7 +10,7 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { exportSpaceMarkdown } from "../../assets/export";
 import { registerDocumentEditCommands } from "../../commands/document-edit-commands";
 import { useSpaceStore } from "../../session/space-store";
-import type { SpaceEditorTab } from "../../workspace/work-items";
+import type { SpaceEditorTab } from "../../workspace/workbench-tab";
 import { useSpaceTiptapEditor } from "../use-space-tiptap-editor";
 import { useSpaceTiptapImageDrop } from "../use-space-tiptap-image-drop";
 import { useSpaceTiptapWritingTools } from "../use-space-tiptap-writing-tools";

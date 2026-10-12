@@ -7,13 +7,9 @@ import { useDocumentSessionStore } from "../document-editing/document-session-st
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceState } from "../session/session-state";
 import { useVideoSessionStore } from "../video-editing/video-session-store";
-import type { createEditorSurfaceActions } from "./editor-surface-actions";
-import type { SpaceEditorTab } from "./work-items";
+import type { SpaceEditorTab } from "./workbench-tab";
 
-export function useEditorSessionProjection(
-  state: SpaceState,
-  actions: Pick<ReturnType<typeof createEditorSurfaceActions>, "closeEditorTab">,
-) {
+export function useEditorSessionProjection(state: SpaceState, closeTab: (tabId: string) => Promise<void>) {
   const documents = useDocumentSessionStore();
   const videos = useVideoSessionStore();
   function synchronize(tab: SpaceEditorTab, node: SpaceCanvasNode | undefined) {
@@ -29,7 +25,7 @@ export function useEditorSessionProjection(
     const error = session.error.value;
     if (error && error !== previousError) toast.error(i18n.global.t(`spaces.editor.tabs.${error}`));
     if (error === "missing" && !dirty)
-      void actions.closeEditorTab(tab.id).catch((caught: unknown) => toast.error(getErrorMessage(caught)));
+      void closeTab(tab.id).catch((caught: unknown) => toast.error(getErrorMessage(caught)));
   }
   const savingStates = () =>
     state.editorTabs.value.map((tab) =>

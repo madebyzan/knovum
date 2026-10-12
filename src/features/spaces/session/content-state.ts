@@ -1,4 +1,4 @@
-import { computed, ref, shallowRef } from "vue";
+import { ref, shallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceRelation } from "../model/relations/relation";
@@ -10,7 +10,6 @@ import type { SpaceUrlCaptureProjection } from "../sources/url-capture-projectio
 export function createSpaceContentState() {
   const spaces = ref<Space[]>([]);
   const draftSpace = ref<Space>();
-  const activeSpaceId = ref<string>();
   const nodes = shallowRef<SpaceCanvasNode[]>([]);
   const editSnapshot = shallowRef<SpaceEditSnapshot>({
     editRevision: 0,
@@ -28,16 +27,10 @@ export function createSpaceContentState() {
   const libraryLayout = ref<"grid" | "list">("grid");
   const libraryQuery = ref("");
   const librarySearchNonce = ref(0);
-  const activeSpace = computed(
-    () =>
-      spaces.value.find((space) => space.id === activeSpaceId.value) ??
-      (draftSpace.value?.id === activeSpaceId.value ? draftSpace.value : undefined),
-  );
 
   return {
     spaces,
     draftSpace,
-    activeSpaceId,
     nodes,
     editSnapshot,
     groupScopePath,
@@ -50,6 +43,5 @@ export function createSpaceContentState() {
     libraryLayout,
     libraryQuery,
     librarySearchNonce,
-    activeSpace,
   };
 }

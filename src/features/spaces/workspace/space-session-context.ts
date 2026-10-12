@@ -7,14 +7,13 @@ import type { Space } from "../model/space";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import type { SpaceScene } from "../scenes/scene";
 import type { createEditorSessions } from "./editor-sessions";
-import type { SpaceWorkItemState } from "./work-items";
+import type { SpaceWorkbenchTabState } from "./workbench-tab-state";
 
-export interface SpaceSessionContext extends SpaceWorkItemState {
+export interface SpaceSessionContext extends SpaceWorkbenchTabState {
   editors: ReturnType<typeof createEditorSessions>;
   captureOverview(): void;
   spaces: Ref<Space[]>;
   draftSpace: Ref<Space | undefined>;
-  activeSpaceId: Ref<string | undefined>;
   nodes: Ref<SpaceCanvasNode[]>;
   editSnapshot: Ref<SpaceEditSnapshot>;
   groupScopePath: Ref<string[]>;
@@ -31,8 +30,6 @@ export interface SpaceSessionContext extends SpaceWorkItemState {
       { undoStack: readonly ReversibleSpaceChange[]; redoStack: readonly ReversibleSpaceChange[] }
     >;
   };
-  openSpaceIds: Ref<string[]>;
-  closedSpaceIds: Ref<string[]>;
   navigationHistory: Ref<string[]>;
   navigationIndex: Ref<number>;
 }

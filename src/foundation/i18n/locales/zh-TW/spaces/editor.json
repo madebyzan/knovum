@@ -18,16 +18,11 @@
   },
   "placeholder": "開始寫作…",
   "tabs": {
-    "label": "已開啟的工作內容",
-    "canvas": "畫布",
-    "close": "關閉 {title}",
     "missing": "此資源已無法使用。草稿已保留，請明確捨棄草稿後關閉。",
     "conflict": "資源已在編輯器外變更。草稿已保留，無法覆寫較新的內容。",
     "discardClose": "捨棄草稿並關閉",
     "rendered": "剪輯影片已完成",
     "viewResult": "查看結果",
-    "next": "下一個工作分頁",
-    "previous": "上一個工作分頁",
     "protected": "請先關閉相關編輯 Tab，再刪除內容或將其移到其他 Space。",
     "goToEditor": "前往編輯 Tab",
     "opened": "已在編輯 Tab 開啟"

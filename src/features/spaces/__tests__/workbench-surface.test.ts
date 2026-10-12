@@ -4,24 +4,16 @@ import { expect, it, onTestFinished } from "vitest";
 import { ApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import { createSpaceNode } from "../canvas/node";
 import { createSpaceNotePayload } from "../document-editing/tiptap-content";
-import { createSpaceState } from "../session/session-state";
-import { createEditorSurfaceActions } from "../workspace/editor-surface-actions";
 import { showSpaceLibrary } from "../workspace/library-actions";
 import { registerSpaceSessionParticipant } from "../workspace/session-participants";
-import { activateTestEditor, createTestSessionContext, createTestSpace } from "./support/session-context";
+import { openEditorTab } from "../workspace/workbench-navigation-actions";
+import { activateTestEditor, createTestSessionState, createTestSpace } from "./support/session-context";
 
 function setup() {
-  const state = createSpaceState();
-  state.spaces.value = [createTestSpace({ thumbnailPath: "/cover.jpg" })];
-  state.thumbnailDirty.value = false;
-  state.activeSpaceId.value = "inbox";
-  const context = createTestSessionContext({
-    surface: state.surface,
-    nodes: state.nodes,
-    editorTabs: state.editorTabs,
-    activeWorkItems: state.activeWorkItems,
-    workspaceDestination: state.workspaceDestination,
+  const { state, context } = createTestSessionState({
+    spaces: [createTestSpace({ thumbnailPath: "/cover.jpg" })],
   });
+  state.thumbnailDirty.value = false;
   return { state, context };
 }
 
@@ -80,7 +72,7 @@ it.each(["retained", "removed"])("saves before replacing a document whose target
   onTestFinished(
     registerSpaceSessionParticipant({ commit: () => new Promise<void>((resolve) => (accept = resolve)) }),
   );
-  const switching = createEditorSurfaceActions(context).openDocumentEditor("second");
+  const switching = openEditorTab(context, "document", "second");
   await flushPromises();
   expect(state.surface.value).toEqual({ kind: "document", nodeId: "first" });
   if (target === "removed") state.nodes.value = state.nodes.value.filter(({ id }) => id === "first");

@@ -11,6 +11,7 @@ import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { useSpaceStore } from "../session/space-store";
 import { registerSpaceSessionParticipant } from "../workspace/session-participants";
 import { deferred } from "./support/canvas-fixtures";
+import { openStoreSpaceTab } from "./support/session-context";
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
 vi.mock("../enrichment/use-enrichment-job-observation", () => ({ useEnrichmentJobObservation: () => {} }));
@@ -19,7 +20,7 @@ it("routes commands and contextual panes to the active work surface", async () =
   const pinia = createPinia();
   setActivePinia(pinia);
   const store = useSpaceStore();
-  store.activeSpaceId = "inbox";
+  openStoreSpaceTab(store, "inbox");
   store.nodes = [
     createSpaceNode(createSpaceNotePayload("Note"), { x: 0, y: 0 }, "note"),
     createSpaceNode(
@@ -85,8 +86,11 @@ it("routes commands and contextual panes to the active work surface", async () =
   expect(commands.value.map(({ id }) => id)).not.toContain("document.undo");
   expect(store.workbench.rightSidebar).toBe(false);
   await store.openSpace("inbox");
+  expect(store.surface.kind).toBe("canvas");
+  expect(store.workbench.outline).toBe(true);
+  await store.activateTab(store.editorTabs.at(-1)!.id);
   expect(store.surface.kind).toBe("video");
-  await store.returnToCanvas();
+  await store.openSpaceCanvas();
   expect(store.surface.kind).toBe("canvas");
   expect(store.workbench.outline).toBe(true);
 });

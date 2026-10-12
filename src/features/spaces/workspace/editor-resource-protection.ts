@@ -3,7 +3,7 @@ import type { SpaceEditorResource } from "../contracts/generated/SpaceEditorReso
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { contentNodeIdsWithin } from "../model/structure/structure-queries";
-import type { SpaceEditorTab } from "./work-items";
+import type { SpaceEditorTab } from "./workbench-tab";
 
 export function editorResources(tabs: readonly SpaceEditorTab[]): SpaceEditorResource[] {
   return tabs.map(({ spaceId, nodeId }) => ({ spaceId, nodeId }));

@@ -1,8 +1,8 @@
 import { expect, it, onTestFinished, vi } from "vitest";
 
 import { activateTestEditor, createTestSessionContext } from "../../__tests__/support/session-context";
-import { createEditorSurfaceActions } from "../editor-surface-actions";
 import { registerSpaceSessionParticipant } from "../session-participants";
+import { openSpaceCanvas } from "../workbench-navigation-actions";
 
 it.each(["saved", "failed"])("returns to canvas only after its session is %s", async (outcome) => {
   const context = createTestSessionContext();
@@ -17,12 +17,10 @@ it.each(["saved", "failed"])("returns to canvas only after its session is %s", a
       commit: persist,
     }),
   );
-  const leaveFailure = await createEditorSurfaceActions(context)
-    .returnToCanvas()
-    .then(
-      () => undefined,
-      (error: unknown) => error,
-    );
+  const leaveFailure = await openSpaceCanvas(context).then(
+    () => undefined,
+    (error: unknown) => error,
+  );
   expect(leaveFailure).toBe(outcome === "saved" ? undefined : failure);
   expect(context.surface.value.kind).toBe(outcome === "saved" ? "canvas" : "document");
   expect(persist).toHaveBeenCalledOnce();

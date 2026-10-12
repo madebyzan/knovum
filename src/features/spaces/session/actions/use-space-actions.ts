@@ -1,5 +1,4 @@
 import type { SpacePlacement } from "../../canvas/navigation-requests";
-import { captureActiveCanvasThumbnail } from "../../canvas/thumbnail-scheduler";
 import { createWorkflowPanelActions } from "../../canvas/workflow-panel-actions";
 import { useEnrichmentJobObservation } from "../../enrichment/use-enrichment-job-observation";
 import { createSpaceMediaActions } from "../../media/actions";
@@ -8,9 +7,10 @@ import { materializeActiveSpace } from "../../workspace/draft-space-actions";
 import { createEditorSessions } from "../../workspace/editor-sessions";
 import { createEditorSurfaceActions } from "../../workspace/editor-surface-actions";
 import { createRightSidebarActions } from "../../workspace/right-sidebar-actions";
-import type { SpaceSessionContext } from "../../workspace/space-session-context";
 import { useEditorSessionProjection } from "../../workspace/use-editor-session-projection";
+import { closeWorkbenchTab } from "../../workspace/workbench-close-actions";
 import type { SpaceState } from "../session-state";
+import { createSpaceSessionContext } from "../space-session-composition";
 import { assembleSpaceActions } from "./assemble-space-actions";
 import { createJsonCanvasImportActions } from "./json-canvas-import-actions";
 import { createSpaceMutations } from "./node-mutations";
@@ -21,7 +21,7 @@ import { createStructureTransferActions } from "./structure-transfer-actions";
 import { createSpaceViewActions } from "./view-actions";
 
 export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
-  const spaceContext = createSpaceContext(state);
+  const spaceContext = createSpaceSessionContext(state, createEditorSessions());
   const structure = createStructureActions({
     activeSpaceId: state.activeSpaceId,
     editSnapshot: state.editSnapshot,
@@ -81,7 +81,7 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
     history: state.history,
   });
   const editors = createEditorSurfaceActions(spaceContext);
-  useEditorSessionProjection(state, editors);
+  useEditorSessionProjection(state, (tabId) => closeWorkbenchTab(spaceContext, tabId));
   const context = createRightSidebarActions(
     state,
     placement,
@@ -114,32 +114,5 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
     ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
     ...canvasImport,
     ...structure,
-  };
-}
-
-function createSpaceContext(state: SpaceState): SpaceSessionContext {
-  return {
-    captureOverview: () => captureActiveCanvasThumbnail(state),
-    spaces: state.spaces,
-    draftSpace: state.draftSpace,
-    activeSpaceId: state.activeSpaceId,
-    nodes: state.nodes,
-    editSnapshot: state.editSnapshot,
-    groupScopePath: state.groupScopePath,
-    scenes: state.scenes,
-    relations: state.relations,
-    ready: state.ready,
-    loading: state.loading,
-    surface: state.surface,
-    editorTabs: state.editorTabs,
-    activeWorkItems: state.activeWorkItems,
-    workspaceDestination: state.workspaceDestination,
-    editors: createEditorSessions(),
-    history: state.history,
-    runtime: { openGeneration: 0, historyBySpace: new Map() },
-    openSpaceIds: state.openSpaceIds,
-    closedSpaceIds: state.closedSpaceIds,
-    navigationHistory: state.navigationHistory,
-    navigationIndex: state.navigationIndex,
   };
 }

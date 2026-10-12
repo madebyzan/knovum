@@ -1,27 +1,27 @@
-import { computed, readonly } from "vue";
+import { computed } from "vue";
 
 import { createSpaceHistoryState } from "../history/history-state";
 import { createSpaceMediaState } from "../media/media-state";
-import { createWorkspaceNavigationState } from "../workspace/navigation-history";
+import { createWorkbenchNavigationState } from "../workspace/navigation-history";
 import { spaceWorkbenchCapabilities } from "../workspace/space-surface";
-import { createSpaceWorkItems } from "../workspace/work-items";
+import { createSpaceWorkbenchTabs } from "../workspace/workbench-tab-state";
 import { createSpaceContentState } from "./content-state";
 import { createSpaceUiState } from "./workbench-state";
 
 export function createSpaceState() {
   const ui = createSpaceUiState();
   const content = createSpaceContentState();
-  const workItems = createSpaceWorkItems(content.activeSpaceId);
+  const workbench = createSpaceWorkbenchTabs(content);
   return {
     ...content,
-    ...workItems,
+    ...workbench,
     ...ui,
     workbench: computed(() =>
-      spaceWorkbenchCapabilities(workItems.surface.value, Boolean(content.activeSpaceId.value)),
+      spaceWorkbenchCapabilities(workbench.surface.value, Boolean(workbench.activeSpaceId.value)),
     ),
     ...createSpaceMediaState(),
     ...createSpaceHistoryState(),
-    ...createWorkspaceNavigationState(),
+    ...createWorkbenchNavigationState(),
   };
 }
 
@@ -53,8 +53,11 @@ export function spaceSessionBindings(state: SpaceState) {
     workflowMode: state.workflowMode,
     workflowCaptureSelection: state.workflowCaptureSelection,
     surface: state.surface,
-    editorTabs: readonly(state.editorTabs),
-    activeWorkItems: readonly(state.activeWorkItems),
+    tabs: state.tabs,
+    activeTabId: state.activeTabId,
+    editorTabs: state.editorTabs,
+    closedTabs: state.closedTabs,
+    permanentTabId: state.permanentTabId,
     workbench: state.workbench,
     insertionPoint: state.insertionPoint,
     revealRequest: state.revealRequest,
@@ -79,8 +82,6 @@ export function spaceSessionBindings(state: SpaceState) {
     savedQueryFilter: state.savedQueryFilter,
     canUndo: state.canUndo,
     canRedo: state.canRedo,
-    openSpaceIds: state.openSpaceIds,
-    closedSpaceIds: state.closedSpaceIds,
     canNavigateBack: state.canNavigateBack,
     canNavigateForward: state.canNavigateForward,
   };

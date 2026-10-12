@@ -52,7 +52,7 @@ function createStore() {
       .fn<ReturnType<typeof useSpaceStore>["refreshActiveSpace"]>()
       .mockResolvedValue(undefined),
     openSpace: vi.fn<ReturnType<typeof useSpaceStore>["openSpace"]>().mockResolvedValue(),
-    returnToCanvas: vi.fn<ReturnType<typeof useSpaceStore>["returnToCanvas"]>().mockResolvedValue(),
+    openSpaceCanvas: vi.fn<ReturnType<typeof useSpaceStore>["openSpaceCanvas"]>().mockResolvedValue(),
     requestReveal: vi.fn<ReturnType<typeof useSpaceStore>["requestReveal"]>(),
   });
 }

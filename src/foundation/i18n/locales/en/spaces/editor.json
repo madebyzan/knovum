@@ -18,16 +18,11 @@
   },
   "placeholder": "Start writing…",
   "tabs": {
-    "label": "Open work items",
-    "canvas": "Canvas",
-    "close": "Close {title}",
     "missing": "This resource is no longer available. Your draft is retained; discard it explicitly to close.",
     "conflict": "This resource changed outside this editor. Your draft is retained and cannot overwrite the newer content.",
     "discardClose": "Discard draft and close",
     "rendered": "Edited video is ready",
     "viewResult": "View result",
-    "next": "Next work tab",
-    "previous": "Previous work tab",
     "protected": "Close the relevant editor tabs before deleting or moving this content to another Space.",
     "goToEditor": "Go to editor tab",
     "opened": "Open in editor tab"

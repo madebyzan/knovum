@@ -12,20 +12,24 @@ import { archiveSpace, permanentlyDeleteSpace, unarchiveSpace } from "../../work
 import { showSpaceLibrary } from "../../workspace/library-actions";
 import type { createRightSidebarActions } from "../../workspace/right-sidebar-actions";
 import { setSpaceFavorite } from "../../workspace/space-operations";
-import {
-  closeOtherSpaceTabs,
-  closeSpaceTab,
-  closeSpaceTabsToRight,
-  createSpace,
-  initializeSpaces,
-  navigateSpaceHistory,
-  openSpace as navigateToSpace,
-  refreshSpace,
-  reopenClosedSpaceTab,
-} from "../../workspace/space-session-actions";
+import { refreshSpace } from "../../workspace/space-session-actions";
 import type { SpaceSessionContext } from "../../workspace/space-session-context";
 import { renameSpace } from "../../workspace/space-title-actions";
 import { commitActiveSpaceSession, transitionActiveSpaceSession } from "../../workspace/space-transition";
+import {
+  closeOtherWorkbenchTabs,
+  closeWorkbenchTab,
+  closeWorkbenchTabsToRight,
+} from "../../workspace/workbench-close-actions";
+import {
+  activateWorkbenchTab,
+  createSpace,
+  initializeSpaces,
+  navigateWorkbenchHistory,
+  openSpace as navigateToSpace,
+  openSpaceCanvas,
+  reopenClosedWorkbenchTab,
+} from "../../workspace/workbench-navigation-actions";
 import type { SpaceState } from "../session-state";
 import type { createSpaceMutations } from "./node-mutations";
 import type { createPlacementActions } from "./placement-actions";
@@ -74,7 +78,9 @@ export function assembleSpaceActions(input: SpaceActionsInput) {
     queryFilter: state.savedQueryFilter,
   };
   const initialize = (title: string) => initializeSpaces(spaceContext, title);
-  const openSpace = (spaceId: string) => navigateToSpace(spaceContext, spaceId);
+  const openSpace = async (spaceId: string) => {
+    await navigateToSpace(spaceContext, spaceId);
+  };
   const refreshActiveSpace = async () => {
     await refreshSpace(spaceContext);
   };
@@ -113,11 +119,19 @@ export function assembleSpaceActions(input: SpaceActionsInput) {
       if (space) Object.assign(space, { favorite, updatedAt: Date.now() });
     },
     openSpace,
-    closeSpaceTab: (spaceId: string) => closeSpaceTab(spaceContext, spaceId),
-    closeOtherSpaceTabs: (spaceId: string) => closeOtherSpaceTabs(spaceContext, spaceId),
-    closeSpaceTabsToRight: (spaceId: string) => closeSpaceTabsToRight(spaceContext, spaceId),
-    reopenClosedSpaceTab: () => reopenClosedSpaceTab(spaceContext),
-    navigateSpaceHistory: (direction: -1 | 1) => navigateSpaceHistory(spaceContext, direction),
+    openSpaceCanvas: async () => {
+      await openSpaceCanvas(spaceContext);
+    },
+    activateTab: async (tabId: string) => {
+      await activateWorkbenchTab(spaceContext, tabId);
+    },
+    closeTab: (tabId: string) => closeWorkbenchTab(spaceContext, tabId),
+    closeOtherTabs: (tabId: string) => closeOtherWorkbenchTabs(spaceContext, tabId),
+    closeTabsToRight: (tabId: string) => closeWorkbenchTabsToRight(spaceContext, tabId),
+    reopenClosedTab: async () => {
+      await reopenClosedWorkbenchTab(spaceContext);
+    },
+    navigateWorkbenchHistory: (direction: -1 | 1) => navigateWorkbenchHistory(spaceContext, direction),
     refreshActiveSpace,
     beginUrlCapture,
     updateUrlCapture,

@@ -9,17 +9,20 @@
   },
   "rename": "Renommer l'espace",
   "tabs": {
+    "label": "Contenus ouverts",
     "close": "Fermer l'onglet",
+    "closeNamed": "Fermer {title}",
     "closeOthers": "Fermer les autres onglets",
     "closeToRight": "Fermer les onglets à droite",
-    "actionFailed": "L'action de l'onglet Espace de travail a échoué",
+    "next": "Onglet de travail suivant",
+    "previous": "Onglet de travail précédent",
     "reopen": "Rouvrir l'onglet fermé",
-    "switchTo": "Passer à l'onglet {number}"
+    "switchTo": "Passer à l'onglet {number}",
+    "actionFailed": "L'action de l'onglet Espace de travail a échoué"
   },
   "back": "Retour",
   "forward": "Aller de l'avant",
   "sections": {
-    "open": "Espaces de travail ouverts",
     "all": "Tous les espaces",
     "recent": "Récemment ouvert",
     "favorites": "Favoris"

@@ -9,17 +9,20 @@
   },
   "rename": "Renomear espaço",
   "tabs": {
+    "label": "Conteúdos abertos",
     "close": "Fechar guia",
+    "closeNamed": "Fechar {title}",
     "closeOthers": "Fechar outras guias",
     "closeToRight": "Fechar guias à direita",
-    "actionFailed": "Falha na ação da guia Espaço de trabalho",
+    "next": "Próxima aba de trabalho",
+    "previous": "Aba de trabalho anterior",
     "reopen": "Reabrir guia fechada",
-    "switchTo": "Mudar para guia {number}"
+    "switchTo": "Mudar para guia {number}",
+    "actionFailed": "Falha na ação da guia Espaço de trabalho"
   },
   "back": "Voltar",
   "forward": "Avançar",
   "sections": {
-    "open": "Espaços de trabalho abertos",
     "all": "Todos os espaços",
     "recent": "Aberto recentemente",
     "favorites": "Favoritos"

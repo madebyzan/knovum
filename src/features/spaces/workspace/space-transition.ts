@@ -4,7 +4,6 @@ import { runCanvasSessionTransition } from "../canvas/editor-session";
 import { closeSpaceMutationAdmission, waitForSpaceMutations } from "../history/mutation-barrier";
 import { flushSpaceSessionCommits } from "./session-participants";
 import type { SpaceSessionContext } from "./space-session-context";
-import { selectSpaceWorkItem } from "./work-items";
 
 export function transitionActiveSpaceSession<T>(
   context: SpaceSessionContext,
@@ -34,14 +33,4 @@ export function transitionActiveSpaceSession<T>(
 
 export function commitActiveSpaceSession(context: SpaceSessionContext) {
   return transitionActiveSpaceSession(context, async () => {}, "close");
-}
-
-export function activateSpaceWorkItem(context: SpaceSessionContext, tabId?: string) {
-  const spaceId = context.activeSpaceId.value;
-  if (!spaceId) throw new Error("Space requires an active space");
-  return transitionActiveSpaceSession(context, async () => {
-    if (context.activeSpaceId.value !== spaceId) throw new Error("Work item Space changed");
-    selectSpaceWorkItem(context, spaceId, tabId);
-    await nextTick();
-  });
 }
