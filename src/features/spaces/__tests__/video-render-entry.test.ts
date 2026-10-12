@@ -14,7 +14,7 @@ import { useVideoSessionStore } from "../video-editing/video-session-store";
 import { deferred } from "./support/canvas-fixtures";
 
 const context = vi.hoisted(() => ({
-  store: { activeSpaceId: "origin", closeEditorTab: vi.fn<() => Promise<void>>() },
+  store: { activeSpaceId: "origin", closeTab: vi.fn<() => Promise<void>>() },
   save: vi.fn<() => Promise<boolean>>(),
   render: vi.fn<(...args: unknown[]) => Promise<void>>(),
 }));
