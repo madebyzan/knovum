@@ -30,6 +30,11 @@ function createSpace() {
   void store.createSpace(t("spaces.space.untitled")).catch(reportTabFailure);
 }
 
+/**
+ * Opening a tab loads a work surface and commits the outgoing one, so the strip activates manually:
+ * focus — from the secondary button that opens the tab menu or from roving arrow keys — only moves,
+ * and Enter or Space opens the focused tab.
+ */
 function activateTab(tabId: unknown) {
   if (!isString(tabId)) throw new TypeError("Workbench tab identifiers must be strings");
   void store.activateTab(tabId).catch(reportTabFailure);
@@ -88,6 +93,7 @@ watchEffect(() => {
     <SpaceLibraryToolbar v-if="surface.kind === 'library'" @create="createSpace" />
     <TabsRoot
       v-else
+      activation-mode="manual"
       :model-value="activeTabId ?? ''"
       class="min-w-0 flex-1"
       @update:model-value="activateTab"
