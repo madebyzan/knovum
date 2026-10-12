@@ -73,8 +73,7 @@
   }
 
   svg.animate-spin {
-    transform-box: view-box;
-    transform-origin: 50% 50%;
+    transform-origin: center;
     will-change: transform;
   }
 
