@@ -187,7 +187,10 @@ Inbox tab and the readonly `workspace/space-surface.ts` projection all derive fr
 parallel per-Space selection exists. `workspace/workbench-navigation-actions.ts` owns open,
 activate, reopen and history intents, `workspace/workbench-close-actions.ts` owns close and discard
 intents, and `workspace/space-session-actions.ts` loads one Space session so a caller can apply it
-together with its tab activation inside one transition.
+together with its tab activation inside one transition. Opening a tab loads a work surface and
+commits the outgoing one, so the strip activates manually: focus — from the secondary button that
+opens the tab menu or from roving arrow keys — only moves, and the primary button, Enter or Space
+opens the focused tab.
 `workspace/editor-sessions.ts` composes the concrete document and video owners; it is not a generic
 editor registry. Document drafts belong to `document-editing/document-session-store.ts`; video project/history
 state belongs to `video-editing/video-session-store.ts`. Retained presentation keeps document vendor
