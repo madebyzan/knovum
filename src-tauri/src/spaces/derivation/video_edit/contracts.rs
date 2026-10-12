@@ -1,43 +1,49 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct VideoEditProject {
     pub version: u8,
     pub source_revision: String,
-    pub source_width: u32,
-    pub source_height: u32,
+    pub assets: Vec<VideoAsset>,
+    pub output: VideoEditOutput,
     pub video_track: VideoTrack,
     pub text_track: TextTrack,
-    pub transform: VideoTransform,
+    pub audio_track: VideoEditAudioTrack,
 }
 
-#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct VideoTrack {
     pub clips: Vec<VideoClip>,
 }
 
-#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct VideoClip {
     pub id: String,
+    pub asset_id: String,
     pub start_ms: u64,
     pub end_ms: u64,
     pub volume: f64,
+    pub fade_in_ms: u64,
+    pub fade_out_ms: u64,
+    pub transform: VideoTransform,
+    #[serde(deserialize_with = "Option::deserialize")]
+    pub transition: Option<VideoTransition>,
 }
 
-#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TextTrack {
     pub items: Vec<TextOverlay>,
 }
 
-#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TextOverlay {
@@ -49,7 +55,7 @@ pub struct TextOverlay {
     pub style: TextStyle,
 }
 
-#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TextStyle {
@@ -60,7 +66,7 @@ pub struct TextStyle {
     pub preset: TextPreset,
 }
 
-#[derive(Clone, Copy, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, PartialEq, Copy, Deserialize, Serialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase")]
 pub enum TextPreset {
@@ -70,16 +76,18 @@ pub enum TextPreset {
     Badge,
 }
 
-#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct VideoTransform {
     pub rotation: u16,
     pub flip_horizontal: bool,
     pub flip_vertical: bool,
+    pub fit: VideoFit,
+    pub zoom: f64,
 }
 
-#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase")]
 pub enum TextPlacement {
@@ -116,4 +124,73 @@ pub struct PrepareVideoEditProxyRequest {
     pub space_id: String,
     pub source_node_id: String,
     pub source_revision: String,
+}
+
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct VideoAsset {
+    pub node_id: String,
+    pub source_revision: String,
+    pub kind: VideoAssetKind,
+    pub duration_ms: u64,
+    pub width: u32,
+    pub height: u32,
+}
+#[derive(Clone, Copy, PartialEq, Eq, Deserialize, Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase")]
+pub enum VideoAssetKind {
+    Video,
+    Image,
+    Audio,
+}
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct VideoEditOutput {
+    pub width: u32,
+    pub height: u32,
+    pub frame_rate: u16,
+}
+#[derive(Clone, PartialEq, Copy, Deserialize, Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase")]
+pub enum VideoFit {
+    Contain,
+    Cover,
+}
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct VideoTransition {
+    pub kind: VideoTransitionKind,
+    pub duration_ms: u64,
+}
+#[derive(Clone, PartialEq, Copy, Deserialize, Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase")]
+pub enum VideoTransitionKind {
+    Dissolve,
+    WipeLeft,
+    WipeRight,
+}
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct VideoEditAudioTrack {
+    pub clips: Vec<VideoAudioClip>,
+}
+#[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct VideoAudioClip {
+    pub id: String,
+    pub asset_id: String,
+    pub start_ms: u64,
+    pub end_ms: u64,
+    pub timeline_start_ms: u64,
+    pub volume: f64,
+    pub fade_in_ms: u64,
+    pub fade_out_ms: u64,
 }

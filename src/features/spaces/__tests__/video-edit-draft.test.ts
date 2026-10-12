@@ -21,6 +21,7 @@ it("opens a saved reactive video project as an independent draft", () => {
     assetPath: "/owned/video.mp4",
     sourceRevision: "r1",
     videoEditProject: createVideoEditProject({
+      nodeId: "source",
       sourceRevision: "r1",
       durationMs: 1000,
       sourceWidth: 1920,

@@ -9,8 +9,7 @@
     "proxyFailed": "无法准备流畅预览",
     "durationUnavailable": "无法读取视频时长",
     "metadataUnavailable": "无法读取视频画面尺寸",
-    "unavailable": "无法打开视频预览",
-    "audioUnavailable": "无法准备音频预览"
+    "unavailable": "无法打开视频预览"
   },
   "tracks": {
     "video": "视频",
@@ -41,7 +40,8 @@
       "top": "顶部",
       "center": "居中",
       "bottom": "底部"
-    }
+    },
+    "default": "文字"
   },
   "tabs": {
     "captions": "字幕",
@@ -71,7 +71,10 @@
     "inPoint": "入点（秒）",
     "outPoint": "出点（秒）",
     "startsAt": "开始（秒）",
-    "endsAt": "结束（秒）"
+    "endsAt": "结束（秒）",
+    "moveLeft": "向前移动",
+    "moveRight": "向后移动",
+    "duplicate": "复制片段"
   },
   "project": {
     "saved": "视频编辑工程已保存"
@@ -87,19 +90,60 @@
     }
   },
   "playback": {
-    "stepBackward": "后退 0.1 秒",
-    "stepForward": "前进 0.1 秒"
+    "stepBackward": "上一输出帧",
+    "stepForward": "下一输出帧"
   },
   "trim": {
     "start": "修剪片段起点",
     "end": "修剪片段终点",
     "textStart": "修剪文字起点",
-    "textEnd": "修剪文字终点",
-    "hint": "拖动片段边缘修剪；按住 Option 或 Alt 可精细调整。"
+    "textEnd": "修剪文字终点"
   },
   "unsaved": {
     "title": "保存视频修改？",
     "status": "有未保存的修改",
     "description": "关闭前未保存的修改将丢失。"
+  },
+  "materials": {
+    "title": "素材",
+    "import": "导入素材",
+    "search": "搜索素材",
+    "empty": "没有匹配的素材，可以导入视频、图片或音频。",
+    "add": "将「{title}」加入时间线",
+    "preparing": "正在准备导入素材…",
+    "unavailable": "素材已变更或不可用。",
+    "audioHint": "从素材区添加配乐。"
+  },
+  "timing": {
+    "invalid": "请输入 {min}–{max} 秒之间的数值。"
+  },
+  "fades": {
+    "in": "淡入（秒）",
+    "out": "淡出（秒）"
+  },
+  "framing": {
+    "title": "画面适配",
+    "contain": "完整显示",
+    "cover": "填满画幅",
+    "zoom": "缩放"
+  },
+  "output": {
+    "title": "输出设置",
+    "size": "画幅与分辨率",
+    "frameRate": "帧率"
+  },
+  "transitions": {
+    "title": "转场",
+    "choose": "选择转场",
+    "dissolve": "叠化",
+    "wipeLeft": "向左擦除",
+    "wipeRight": "向右擦除",
+    "duration": "时长（秒）",
+    "hint": "转场会重叠相邻片段，缩短工程总时长。"
+  },
+  "layout": {
+    "materials": "调整素材区宽度",
+    "inspector": "调整检查面板宽度",
+    "timeline": "调整时间线高度"
   }
 }

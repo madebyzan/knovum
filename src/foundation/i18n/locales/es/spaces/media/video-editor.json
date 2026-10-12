@@ -9,8 +9,7 @@
     "proxyFailed": "No se pudo preparar una vista previa receptiva",
     "durationUnavailable": "No se pudo leer la duración del video.",
     "metadataUnavailable": "No se pudieron leer las dimensiones del fotograma del video.",
-    "unavailable": "No se pudo abrir la vista previa del video",
-    "audioUnavailable": "No se pudo preparar la vista previa de audio"
+    "unavailable": "No se pudo abrir la vista previa del video"
   },
   "tracks": {
     "video": "Vídeo",
@@ -41,7 +40,8 @@
       "top": "Arriba",
       "center": "Centro",
       "bottom": "Abajo"
-    }
+    },
+    "default": "Texto"
   },
   "tabs": {
     "captions": "Subtítulos",
@@ -71,7 +71,10 @@
     "inPoint": "Entrada (segundos)",
     "outPoint": "Salida (segundos)",
     "startsAt": "Inicios (segundos)",
-    "endsAt": "Finaliza (segundos)"
+    "endsAt": "Finaliza (segundos)",
+    "moveLeft": "Mover antes",
+    "moveRight": "Mover después",
+    "duplicate": "Duplicar clip"
   },
   "project": {
     "saved": "Proyecto de edición de vídeo guardado"
@@ -87,19 +90,60 @@
     }
   },
   "playback": {
-    "stepBackward": "Retrocede 0,1 segundos",
-    "stepForward": "Paso adelante 0,1 segundo"
+    "stepBackward": "Fotograma de salida anterior",
+    "stepForward": "Fotograma de salida siguiente"
   },
   "trim": {
     "start": "Inicio de recorte de clip",
     "end": "Recortar extremo del clip",
     "textStart": "Inicio de recorte de texto",
-    "textEnd": "Recortar final del texto",
-    "hint": "Arrastra el borde de un clip para recortarlo. Mantenga presionada la opción o Alt para un ajuste preciso."
+    "textEnd": "Recortar final del texto"
   },
   "unsaved": {
     "title": "¿Guardar cambios en este vídeo?",
     "status": "Cambios no guardados",
     "description": "Sus ediciones se perderán si cierra sin guardar."
+  },
+  "materials": {
+    "title": "Materiales",
+    "import": "Importar medios",
+    "search": "Buscar materiales",
+    "empty": "No hay materiales coincidentes. Importa vídeo, imágenes o audio.",
+    "add": "Añadir «{title}» a la línea de tiempo",
+    "preparing": "Preparando la importación…",
+    "unavailable": "El material ha cambiado o no está disponible.",
+    "audioHint": "Añade música desde la lista de materiales."
+  },
+  "timing": {
+    "invalid": "Introduce un valor entre {min} y {max} segundos."
+  },
+  "fades": {
+    "in": "Fundido de entrada (segundos)",
+    "out": "Fundido de salida (segundos)"
+  },
+  "framing": {
+    "title": "Encuadre",
+    "contain": "Mostrar imagen completa",
+    "cover": "Rellenar el cuadro",
+    "zoom": "Zoom"
+  },
+  "output": {
+    "title": "Ajustes de salida",
+    "size": "Formato y resolución",
+    "frameRate": "Velocidad de fotogramas"
+  },
+  "transitions": {
+    "title": "Transición",
+    "choose": "Elegir transición",
+    "dissolve": "Fundido cruzado",
+    "wipeLeft": "Barrido a la izquierda",
+    "wipeRight": "Barrido a la derecha",
+    "duration": "Duración (segundos)",
+    "hint": "Las transiciones superponen clips adyacentes y acortan el proyecto."
+  },
+  "layout": {
+    "materials": "Ajustar ancho de materiales",
+    "inspector": "Ajustar ancho del inspector",
+    "timeline": "Ajustar altura de la línea de tiempo"
   }
 }

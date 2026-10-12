@@ -26,6 +26,7 @@ export const useVideoSessionStore = defineStore("spaces-video-sessions", () => {
       error: shallowRef<"missing" | "conflict">(),
       selectedClipId: shallowRef<string>(),
       selectedTextId: shallowRef<string>(),
+      selectedAudioId: shallowRef<string>(),
       timelineMs: shallowRef(0),
       timelineZoom: shallowRef(1),
     });
@@ -53,6 +54,7 @@ export const useVideoSessionStore = defineStore("spaces-video-sessions", () => {
       session.timelineMs.value = 0;
       session.selectedClipId.value = undefined;
       session.selectedTextId.value = undefined;
+      session.selectedAudioId.value = undefined;
     }
   }
   function release(tabId: string) {
@@ -73,6 +75,7 @@ export interface VideoSession {
   error: Ref<"missing" | "conflict" | undefined>;
   selectedClipId: Ref<string | undefined>;
   selectedTextId: Ref<string | undefined>;
+  selectedAudioId: Ref<string | undefined>;
   timelineMs: Ref<number>;
   timelineZoom: Ref<number>;
 }

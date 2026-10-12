@@ -1,20 +1,28 @@
 <script setup lang="ts">
-import { Captions, Film, Volume2 } from "@lucide/vue";
-import { computed } from "vue";
-
-import type { VideoEditProject, VideoTextOverlay } from "../project";
-import { formatVideoEditTime, formatVideoTimelineTime } from "../timecode";
+import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
+import type { VideoMaterialNode } from "../material";
+import type { VideoTextOverlay } from "../project";
+import { clipTimelineStartMs } from "../timing";
+import SpaceVideoAudioLane from "./SpaceVideoAudioLane.vue";
 import SpaceVideoTimelineClip from "./SpaceVideoTimelineClip.vue";
+import SpaceVideoTimelineLabels from "./SpaceVideoTimelineLabels.vue";
 import SpaceVideoTimelineText from "./SpaceVideoTimelineText.vue";
+import SpaceVideoTimeRuler from "./SpaceVideoTimeRuler.vue";
+import SpaceVideoTransition from "./SpaceVideoTransition.vue";
+import { dragVideoClip, videoTimelineDrop } from "./use-video-timeline-drop";
 import { useVideoTimelineInteraction, type VideoTimelineProps } from "./use-video-timeline-interaction";
-import { useVideoTimelineThumbnails } from "./use-video-timeline-thumbnails";
-
-const props = defineProps<VideoTimelineProps>();
+const props = defineProps<
+  VideoTimelineProps & { spaceId: string; materials: ReadonlyMap<string, VideoMaterialNode> }
+>();
 const emit = defineEmits<{
   seek: [milliseconds: number];
-  edit: [project: VideoEditProject];
-  selectClip: [clipId: string];
-  selectText: [textId: string];
+  edit: [project: VideoTimelineProps["project"]];
+  draft: [project: VideoTimelineProps["project"] | undefined];
+  pause: [];
+  selectClip: [id: string];
+  selectText: [id: string];
+  selectAudio: [id: string];
+  addMaterial: [id: string, atMs: number];
 }>();
 const {
   visibleProject,
@@ -30,15 +38,14 @@ const {
   finishTrim,
   cancelTrim,
   nudgeTrim,
+  escape,
 } = useVideoTimelineInteraction(props, {
-  seek: (milliseconds) => emit("seek", milliseconds),
-  trim: (project) => emit("edit", project),
-  selectClip: (clipId) => emit("selectClip", clipId),
+  seek: (value) => emit("seek", value),
+  trim: (value) => emit("edit", value),
+  selectClip: (id) => emit("selectClip", id),
+  draft: (value) => emit("draft", value),
+  pause: () => emit("pause"),
 });
-const thumbnailSource = computed(() => props.thumbnailSource);
-const sourceDurationMs = computed(() => props.sourceDurationMs);
-const { frames, error: thumbnailError } = useVideoTimelineThumbnails(thumbnailSource, sourceDurationMs);
-
 function editText(edited: VideoTextOverlay) {
   emit("edit", {
     ...props.project,
@@ -47,98 +54,122 @@ function editText(edited: VideoTextOverlay) {
     },
   });
 }
+function drop(event: DragEvent) {
+  videoTimelineDrop(event, props.project, props.playheadMs, {
+    edit: (value) => emit("edit", value),
+    add: (id, atMs) => emit("addMaterial", id, atMs),
+  });
+}
+function asset(id: string) {
+  return visibleProject.value.assets.find(({ nodeId }) => nodeId === id)!;
+}
 </script>
-
 <template>
-  <section
-    class="grid h-48 shrink-0 grid-cols-[6rem_minmax(0,1fr)] border-t border-stroke-default bg-surface-panel"
-    :aria-label="$t('spaces.media.player.timeline')"
-  >
-    <div class="border-r border-stroke-divider text-caption text-fg-secondary">
-      <div class="h-8 border-b border-stroke-divider" />
-      <div class="flex h-11 items-center gap-2 border-b border-stroke-divider px-3">
-        <Captions class="size-3.5" />{{ $t("spaces.media.videoEditor.tracks.text") }}
-      </div>
-      <div class="flex h-16 items-center gap-2 border-b border-stroke-divider px-3">
-        <Film class="size-3.5" />{{ $t("spaces.media.videoEditor.tracks.video") }}
-      </div>
-      <div class="flex h-8 items-center gap-2 px-3">
-        <Volume2 class="size-3.5" />{{ $t("spaces.media.videoEditor.tracks.audio") }}
-      </div>
-    </div>
-    <div
-      :ref="(value) => (viewport = value as HTMLElement | null)"
-      class="min-w-0 overflow-x-auto overflow-y-hidden"
+  <UiScrollArea class="h-full" @keydown.esc.capture="escape">
+    <section
+      class="grid min-h-full grid-cols-[5rem_minmax(0,1fr)] bg-surface-panel"
+      :aria-label="$t('spaces.media.player.timeline')"
+      @dragover.prevent
+      @drop="drop"
     >
-      <div class="relative h-full min-w-full" :style="contentStyle">
-        <div
-          role="slider"
-          data-video-timeline-seek
-          tabindex="0"
-          class="relative h-8 cursor-crosshair touch-none border-b border-stroke-divider outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"
-          :aria-label="$t('spaces.media.videoEditor.timeline.seek')"
-          aria-valuemin="0"
-          :aria-valuemax="Math.round(durationMs)"
-          :aria-valuenow="Math.round(playheadMs)"
-          :aria-valuetext="formatVideoEditTime(playheadMs)"
-          @pointerdown="startScrub"
-          @pointermove="moveScrub"
-          @keydown.left.prevent="$emit('seek', Math.max(0, playheadMs - 100))"
-          @keydown.right.prevent="$emit('seek', Math.min(durationMs, playheadMs + 100))"
-        >
-          <span
-            v-for="tick in ticks"
-            :key="tick"
-            class="pointer-events-none absolute top-2 bottom-0 border-l border-stroke-divider"
-            :style="{ left: `${(tick / durationMs) * 100}%` }"
-          >
-            <span class="absolute -top-1 left-1 text-caption-sm text-fg-tertiary tabular-nums">
-              {{ tick % 1_000 === 0 ? formatVideoTimelineTime(tick) : formatVideoEditTime(tick) }}
-            </span>
-          </span>
-        </div>
-        <div data-text-track class="relative h-11 border-b border-stroke-divider bg-surface-canvas/40">
-          <SpaceVideoTimelineText
-            v-for="item in visibleProject.textTrack.items"
-            :key="item.id"
-            :item="item"
+      <SpaceVideoTimelineLabels :audio-count="project.audioTrack.clips.length" />
+      <div
+        :ref="(value) => (viewport = value as HTMLElement | null)"
+        class="min-w-0 overflow-x-auto overflow-y-hidden"
+      >
+        <div class="relative min-h-full min-w-full" :style="contentStyle">
+          <SpaceVideoTimeRuler
+            :project="project"
             :duration-ms="durationMs"
-            :selected="selectedTextId === item.id"
-            @select="$emit('selectText', item.id)"
-            @edit="editText"
+            :playhead-ms="playheadMs"
+            :ticks="ticks"
+            @seek="emit('seek', $event)"
+            @scrub-start="startScrub"
+            @scrub-move="moveScrub"
           />
-        </div>
-        <div data-video-track class="relative flex h-24 border-b border-stroke-divider">
-          <SpaceVideoTimelineClip
-            v-for="clip in visibleProject.videoTrack.clips"
+          <div data-text-track class="relative h-11 border-b border-stroke-divider bg-surface-canvas/40">
+            <SpaceVideoTimelineText
+              v-for="item in visibleProject.textTrack.items"
+              :key="item.id"
+              :item="item"
+              :duration-ms="durationMs"
+              :selected="selectedTextId === item.id"
+              @select="emit('selectText', item.id)"
+              @edit="editText"
+            />
+          </div>
+          <div data-video-track class="relative h-24 border-b border-stroke-divider">
+            <div
+              v-for="(clip, index) in visibleProject.videoTrack.clips"
+              :key="clip.id"
+              class="absolute inset-y-0"
+              :style="{
+                ...clipStyle(clip.endMs - clip.startMs),
+                left: `${(clipTimelineStartMs(visibleProject, clip.id) / durationMs) * 100}%`,
+              }"
+              :data-clip-id="clip.id"
+              draggable="true"
+              @dragstart="dragVideoClip($event, clip.id)"
+            >
+              <SpaceVideoTimelineClip
+                :clip="clip"
+                :selected="selectedClipId === clip.id"
+                :source-path="materials.get(clip.assetId)?.data.assetPath"
+                :asset="asset(clip.assetId)"
+                :space-id="spaceId"
+                :title="
+                  materials.get(clip.assetId)?.data.title ??
+                  $t('spaces.media.videoEditor.materials.unavailable')
+                "
+                :frame-rate="project.output.frameRate"
+                :waveform="clip.assetId === project.assets[0]!.nodeId ? waveform : undefined"
+                @select="emit('selectClip', clip.id)"
+                @trim-start="(event, edge) => startTrim(event, clip, edge)"
+                @trim-move="moveTrim"
+                @trim-end="finishTrim"
+                @trim-cancel="cancelTrim"
+                @nudge="(edge, delta) => nudgeTrim(clip, edge, delta)"
+              />
+              <div
+                v-if="index < visibleProject.videoTrack.clips.length - 1"
+                class="absolute top-5 z-20 -translate-x-1/2"
+                :style="{
+                  left: `${100 - ((clip.transition?.durationMs ?? 0) / (2 * (clip.endMs - clip.startMs))) * 100}%`,
+                }"
+              >
+                <SpaceVideoTransition
+                  :project="project"
+                  :clip="clip"
+                  :index="index"
+                  @edit="emit('edit', $event)"
+                />
+              </div>
+            </div>
+          </div>
+          <SpaceVideoAudioLane
+            v-for="clip in visibleProject.audioTrack.clips"
             :key="clip.id"
             :clip="clip"
-            :selected="selectedClipId === clip.id"
-            :frames="frames"
-            :waveform="waveform"
-            :source-duration-ms="sourceDurationMs"
-            :style="clipStyle(clip.endMs - clip.startMs)"
-            @select="$emit('selectClip', clip.id)"
-            @trim-start="(event, edge) => startTrim(event, clip, edge)"
-            @trim-move="moveTrim"
-            @trim-end="finishTrim"
-            @trim-cancel="cancelTrim"
-            @nudge="(edge, delta) => nudgeTrim(clip, edge, delta)"
+            :title="
+              materials.get(clip.assetId)?.data.title ?? $t('spaces.media.videoEditor.materials.unavailable')
+            "
+            :duration-ms="durationMs"
+            :selected="selectedAudioId === clip.id"
+            @select="emit('selectAudio', clip.id)"
           />
-          <span
-            v-if="thumbnailError"
-            class="pointer-events-none absolute right-2 bottom-9 z-20 rounded-md bg-surface-panel/90 px-2 py-0.5 text-caption-sm text-fg-danger"
+          <div
+            v-if="!project.audioTrack.clips.length"
+            class="flex h-8 items-center px-3 text-caption-sm text-fg-tertiary"
           >
-            {{ $t("spaces.media.videoEditor.timeline.thumbnailFailed") }}
-          </span>
+            {{ $t("spaces.media.videoEditor.materials.audioHint") }}
+          </div>
+          <span
+            class="pointer-events-none absolute inset-y-0 z-30 w-px bg-surface-danger"
+            :style="{ left: `${(playheadMs / durationMs) * 100}%` }"
+            ><span class="absolute top-0 -left-1 size-2 rotate-45 bg-surface-danger"
+          /></span>
         </div>
-        <span
-          class="pointer-events-none absolute inset-y-0 z-20 w-px bg-surface-danger"
-          :style="{ left: `${(playheadMs / durationMs) * 100}%` }"
-        >
-          <span class="absolute top-0 -left-1 size-2 rotate-45 bg-surface-danger" />
-        </span>
       </div>
-    </div>
-  </section>
+    </section>
+  </UiScrollArea>
 </template>

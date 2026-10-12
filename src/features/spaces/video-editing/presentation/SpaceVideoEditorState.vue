@@ -27,8 +27,9 @@ const { t } = useI18n();
   </div>
   <div v-else class="grid min-h-0 flex-1 place-items-center text-body text-fg-secondary">
     <video
+      v-if="proxyPath"
       class="pointer-events-none absolute size-px opacity-0"
-      :src="versionedMediaSource(proxyPath ?? data.assetPath, data.sourceRevision)"
+      :src="versionedMediaSource(proxyPath, data.sourceRevision)"
       preload="metadata"
       aria-hidden="true"
       tabindex="-1"

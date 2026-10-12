@@ -2,128 +2,118 @@
 import { useResizeObserver } from "@vueuse/core";
 import { computed, shallowRef, watch } from "vue";
 
-import { versionedMediaSource } from "../../media/media-element-source";
-import { type VideoEditProject, type VideoTextOverlay } from "../project";
+import type { VideoMaterialNode } from "../material";
+import { previewFrames, previewTimeMs } from "../preview-composition";
+import type { VideoEditProject } from "../project";
+import SpaceVideoPreviewAudio from "./SpaceVideoPreviewAudio.vue";
+import SpaceVideoPreviewClip from "./SpaceVideoPreviewClip.vue";
+import SpaceVideoPreviewText from "./SpaceVideoPreviewText.vue";
 
 const props = defineProps<{
-  sourcePath: string;
   project: VideoEditProject;
+  materials: ReadonlyMap<string, VideoMaterialNode>;
+  spaceId: string;
   timelineMs: number;
+  playing: boolean;
   selectedTextId?: string | undefined;
 }>();
-const emit = defineEmits<{ playing: [value: boolean]; ready: []; failed: []; selectText: [id: string] }>();
-const video = defineModel<HTMLVideoElement | null>("element", { default: null });
+const emit = defineEmits<{ failed: [error: unknown]; ready: [value: boolean]; selectText: [id: string] }>();
 const viewport = shallowRef<HTMLElement | null>(null);
-const frame = shallowRef<{ width: number; height: number; videoWidth: number; videoHeight: number }>();
-const source = computed(() => versionedMediaSource(props.sourcePath));
-const overlays = computed(() =>
-  props.project.textTrack.items.filter(
-    ({ startMs, endMs }) => props.timelineMs >= startMs && props.timelineMs < endMs,
+const bounds = shallowRef({ width: 0, height: 0 });
+const scale = computed(() =>
+  Math.min(
+    bounds.value.width / props.project.output.width,
+    bounds.value.height / props.project.output.height,
   ),
 );
-const rotation = computed(() => props.project.transform.rotation);
-const frameStyle = computed(() =>
-  frame.value ? { width: `${frame.value.width}px`, height: `${frame.value.height}px` } : undefined,
+const readiness = shallowRef<ReadonlyMap<string, boolean>>(new Map());
+function ready(id: string, value: boolean) {
+  if (readiness.value.get(id) !== value) readiness.value = new Map(readiness.value).set(id, value);
+}
+const frames = computed(() =>
+  previewFrames(props.project, props.timelineMs).map((frame) => ({
+    frame,
+    asset: props.project.assets.find((asset) => asset.nodeId === frame.clip.assetId)!,
+    node: props.materials.get(frame.clip.assetId),
+  })),
 );
-const videoStyle = computed(() => {
-  if (!frame.value) return undefined;
-  const value = props.project.transform;
-  return {
-    width: `${frame.value.videoWidth}px`,
-    height: `${frame.value.videoHeight}px`,
-    transform: `translate(-50%, -50%) scale(${value.flipHorizontal ? -1 : 1}, ${value.flipVertical ? -1 : 1}) rotate(${value.rotation}deg)`,
-  };
+const sampleMs = computed(() => previewTimeMs(props.project, props.timelineMs));
+const audio = computed(() =>
+  props.project.audioTrack.clips
+    .filter(
+      (clip) =>
+        sampleMs.value >= clip.timelineStartMs &&
+        sampleMs.value < clip.timelineStartMs + clip.endMs - clip.startMs,
+    )
+    .map((clip) => ({ clip, node: props.materials.get(clip.assetId) })),
+);
+watch([frames, audio], () => {
+  const activeIds = new Set([
+    ...frames.value.map(({ frame }) => frame.clip.id),
+    ...audio.value.map(({ clip }) => clip.id),
+  ]);
+  const retained = [...readiness.value].filter(([id]) => activeIds.has(id));
+  if (retained.length !== readiness.value.size) readiness.value = new Map(retained);
 });
-function textStyle(overlay: VideoTextOverlay) {
-  const style = overlay.style;
-  const scale = (frame.value?.height ?? 0) / 720;
-  const edge = Math.max(0.5, 2 * scale);
-  const outline = `${edge}px ${edge}px 0 rgba(0,0,0,.75), -${edge}px ${edge}px 0 rgba(0,0,0,.75), ${edge}px -${edge}px 0 rgba(0,0,0,.75), -${edge}px -${edge}px 0 rgba(0,0,0,.75)`;
-  return {
-    fontFamily: style.family,
-    fontWeight: style.weight,
-    color: style.color,
-    fontSize: `${Math.max(1, style.size * scale)}px`,
-    textShadow:
-      style.preset === "outline"
-        ? outline
-        : style.preset === "shadow"
-          ? `${edge}px ${edge}px ${edge * 2}px rgba(0,0,0,.8)`
-          : undefined,
-    backgroundColor: style.preset === "badge" ? "rgba(0,0,0,.55)" : undefined,
-    padding: style.preset === "badge" ? `${8 * scale}px` : undefined,
-  };
-}
-
-function updateGeometry() {
-  const element = video.value;
-  const bounds = viewport.value?.getBoundingClientRect();
-  if (!element || !bounds || !hasGeometry(element, bounds)) return;
-  const quarterTurn = rotation.value === 90 || rotation.value === 270;
-  const orientedWidth = quarterTurn ? element.videoHeight : element.videoWidth;
-  const orientedHeight = quarterTurn ? element.videoWidth : element.videoHeight;
-  const scale = Math.min(bounds.width / orientedWidth, bounds.height / orientedHeight);
-  frame.value = {
-    width: orientedWidth * scale,
-    height: orientedHeight * scale,
-    videoWidth: element.videoWidth * scale,
-    videoHeight: element.videoHeight * scale,
-  };
-}
-
-function hasGeometry(element: HTMLVideoElement, bounds: DOMRect) {
-  return element.videoWidth > 0 && element.videoHeight > 0 && bounds.width > 0 && bounds.height > 0;
-}
-
-function onReady() {
-  updateGeometry();
-  emit("ready");
-}
-
-useResizeObserver(viewport, updateGeometry);
-watch(rotation, updateGeometry);
+const unavailable = computed(
+  () => frames.value.some(({ node }) => !node) || audio.value.some(({ node }) => !node),
+);
+useResizeObserver(viewport, ([entry]) => {
+  if (entry) bounds.value = { width: entry.contentRect.width, height: entry.contentRect.height };
+});
+const playable = computed(
+  () =>
+    !unavailable.value &&
+    frames.value.every(({ frame }) => readiness.value.get(frame.clip.id)) &&
+    audio.value.every(({ clip }) => readiness.value.get(clip.id)),
+);
+watch(playable, (value) => emit("ready", value), { immediate: true });
 </script>
-
 <template>
   <div
     :ref="(value) => (viewport = value as HTMLElement | null)"
-    class="relative grid min-h-0 flex-1 place-items-center overflow-hidden bg-surface-control/25"
+    class="relative grid min-h-0 min-w-0 flex-1 place-items-center overflow-hidden bg-surface-muted p-4"
   >
-    <div class="relative max-h-full max-w-full" :style="frameStyle">
-      <video
-        :ref="(value) => (video = value as HTMLVideoElement | null)"
-        :src="source"
-        class="absolute top-1/2 left-1/2 object-contain"
-        :style="videoStyle"
-        preload="metadata"
-        @loadedmetadata="onReady"
-        @error="$emit('failed')"
-        @play="$emit('playing', true)"
-        @pause="$emit('playing', false)"
+    <p v-if="unavailable" role="alert" class="px-4 text-center text-caption text-fg-danger">
+      {{ $t("spaces.media.videoEditor.materials.unavailable") }}
+    </p>
+    <div
+      v-else
+      class="relative isolate overflow-hidden bg-black"
+      :style="{ width: `${project.output.width * scale}px`, height: `${project.output.height * scale}px` }"
+    >
+      <template v-for="entry in frames" :key="entry.frame.clip.id">
+        <SpaceVideoPreviewClip
+          v-if="entry.node"
+          :frame="entry.frame"
+          :asset="entry.asset"
+          :node="entry.node"
+          :output="project.output"
+          :scale="scale"
+          :space-id="spaceId"
+          :playing="playing && playable"
+          @failed="emit('failed', $event)"
+          @ready="ready(entry.frame.clip.id, $event)"
+        />
+      </template>
+      <SpaceVideoPreviewText
+        :project="project"
+        :timeline-ms="sampleMs"
+        :height="project.output.height * scale"
+        :selected-text-id="selectedTextId"
+        @select-text="emit('selectText', $event)"
       />
-      <div
-        v-for="overlay in frame ? overlays : []"
-        :key="overlay.id"
-        class="pointer-events-none absolute inset-x-[8%] flex justify-center text-center"
-        :class="
-          overlay.placement === 'top'
-            ? 'top-[8%]'
-            : overlay.placement === 'center'
-              ? 'top-1/2 -translate-y-1/2'
-              : 'bottom-[8%]'
-        "
-      >
-        <button
-          type="button"
-          class="pointer-events-auto max-w-full cursor-pointer font-normal whitespace-pre-line focus-visible:outline-2 focus-visible:outline-stroke-focus"
-          :class="selectedTextId === overlay.id && 'ring-1 ring-stroke-accent'"
-          :style="textStyle(overlay)"
-          :aria-label="overlay.text"
-          @click="$emit('selectText', overlay.id)"
-        >
-          {{ overlay.text }}
-        </button>
-      </div>
+      <template v-for="entry in audio" :key="entry.clip.id">
+        <SpaceVideoPreviewAudio
+          v-if="entry.node"
+          :clip="entry.clip"
+          :node="entry.node"
+          :timeline-ms="sampleMs"
+          :playing="playing && playable"
+          @failed="emit('failed', $event)"
+          @ready="ready(entry.clip.id, $event)"
+        />
+      </template>
     </div>
   </div>
 </template>

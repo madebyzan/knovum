@@ -41,6 +41,7 @@ pub async fn prepare(
         .get("sourceRevision")
         .and_then(serde_json::Value::as_str)
         != Some(request.source_revision.as_str())
+        || data.get("processingState").is_some()
     {
         return Err("Video source changed before preparation".into());
     }
@@ -50,6 +51,11 @@ pub async fn prepare(
         .filter(|value| !value.is_empty())
         .ok_or("Video asset is unavailable")?
         .to_owned();
+    let source = crate::spaces::assets::authorize_spaces_asset(&app, &PathBuf::from(source))?;
+    if !source.is_file() {
+        return Err("Video editing source must be a managed file".into());
+    }
+    let source = source.to_string_lossy().into_owned();
     blocking::run(move || generate(&app, &source, &request.source_revision, &cancellation)).await
 }
 

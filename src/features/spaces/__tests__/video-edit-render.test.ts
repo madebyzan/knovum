@@ -38,7 +38,7 @@ const source: SpaceCanvasNode<SpaceVideoPayload> = {
 };
 const pending = { ...source, id: "output-node" };
 // oxfmt-ignore
-const project = createVideoEditProject({ sourceRevision: "source-revision", durationMs: 2_000, sourceWidth: 1080, sourceHeight: 1920 });
+const project = createVideoEditProject({ nodeId: source.id, sourceRevision: "source-revision", durationMs: 2_000, sourceWidth: 1080, sourceHeight: 1920 });
 
 function createStore() {
   return (mocks.current = {

@@ -9,8 +9,7 @@
     "proxyFailed": "Es konnte keine responsive Vorschau vorbereitet werden",
     "durationUnavailable": "Die Dauer des Videos konnte nicht gelesen werden",
     "metadataUnavailable": "Die Bildabmessungen des Videos konnten nicht gelesen werden",
-    "unavailable": "Die Videovorschau konnte nicht geöffnet werden",
-    "audioUnavailable": "Die Audiovorschau konnte nicht vorbereitet werden"
+    "unavailable": "Die Videovorschau konnte nicht geöffnet werden"
   },
   "tracks": {
     "video": "Video",
@@ -41,7 +40,8 @@
       "top": "Spitze",
       "center": "Center",
       "bottom": "Unten"
-    }
+    },
+    "default": "Text"
   },
   "tabs": {
     "captions": "Untertitel",
@@ -71,7 +71,10 @@
     "inPoint": "Einstieg (Sekunden)",
     "outPoint": "Ausstieg (Sekunden)",
     "startsAt": "Startet (Sekunden)",
-    "endsAt": "Endet (Sekunden)"
+    "endsAt": "Endet (Sekunden)",
+    "moveLeft": "Nach vorne verschieben",
+    "moveRight": "Nach hinten verschieben",
+    "duplicate": "Clip duplizieren"
   },
   "project": {
     "saved": "Videobearbeitungsprojekt gespeichert"
@@ -87,19 +90,60 @@
     }
   },
   "playback": {
-    "stepBackward": "Machen Sie einen Schritt zurück um 0,1 Sekunde",
-    "stepForward": "Machen Sie einen Schritt vorwärts um 0,1 Sekunde"
+    "stepBackward": "Vorheriges Ausgabebild",
+    "stepForward": "Nächstes Ausgabebild"
   },
   "trim": {
     "start": "Clipanfang zuschneiden",
     "end": "Clip-Ende trimmen",
     "textStart": "Textanfang kürzen",
-    "textEnd": "Textende zuschneiden",
-    "hint": "Ziehen Sie zum Zuschneiden eine Clipkante. Halten Sie Option oder Alt gedrückt, um eine präzise Anpassung vorzunehmen."
+    "textEnd": "Textende zuschneiden"
   },
   "unsaved": {
     "title": "Änderungen an diesem Video speichern?",
     "status": "Nicht gespeicherte Änderungen",
     "description": "Ihre Änderungen gehen verloren, wenn Sie schließen, ohne zu speichern."
+  },
+  "materials": {
+    "title": "Medien",
+    "import": "Medien importieren",
+    "search": "Medien suchen",
+    "empty": "Keine passenden Medien. Importieren Sie Video, Bilder oder Audio.",
+    "add": "„{title}“ zur Zeitleiste hinzufügen",
+    "preparing": "Medienimport wird vorbereitet…",
+    "unavailable": "Das Medium wurde geändert oder ist nicht verfügbar.",
+    "audioHint": "Musik aus der Medienliste hinzufügen."
+  },
+  "timing": {
+    "invalid": "Geben Sie einen Wert zwischen {min} und {max} Sekunden ein."
+  },
+  "fades": {
+    "in": "Einblenden (Sekunden)",
+    "out": "Ausblenden (Sekunden)"
+  },
+  "framing": {
+    "title": "Bildanpassung",
+    "contain": "Ganzes Bild anzeigen",
+    "cover": "Bildfläche ausfüllen",
+    "zoom": "Zoom"
+  },
+  "output": {
+    "title": "Ausgabeeinstellungen",
+    "size": "Bildformat und Auflösung",
+    "frameRate": "Bildrate"
+  },
+  "transitions": {
+    "title": "Übergang",
+    "choose": "Übergang auswählen",
+    "dissolve": "Überblendung",
+    "wipeLeft": "Nach links wischen",
+    "wipeRight": "Nach rechts wischen",
+    "duration": "Dauer (Sekunden)",
+    "hint": "Übergänge überlappen benachbarte Clips und verkürzen das Projekt."
+  },
+  "layout": {
+    "materials": "Medienliste skalieren",
+    "inspector": "Inspektor skalieren",
+    "timeline": "Zeitleiste skalieren"
   }
 }

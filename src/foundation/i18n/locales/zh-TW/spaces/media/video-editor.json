@@ -9,8 +9,7 @@
     "proxyFailed": "無法準備流暢預覽",
     "durationUnavailable": "無法讀取影片時長",
     "metadataUnavailable": "無法讀取影片畫面尺寸",
-    "unavailable": "無法打開影片預覽",
-    "audioUnavailable": "無法準備音訊預覽"
+    "unavailable": "無法打開影片預覽"
   },
   "tracks": {
     "video": "影片",
@@ -41,7 +40,8 @@
       "top": "頂部",
       "center": "居中",
       "bottom": "底部"
-    }
+    },
+    "default": "文字"
   },
   "tabs": {
     "captions": "字幕",
@@ -71,7 +71,10 @@
     "inPoint": "入點（秒）",
     "outPoint": "出點（秒）",
     "startsAt": "開始（秒）",
-    "endsAt": "結束（秒）"
+    "endsAt": "結束（秒）",
+    "moveLeft": "向前移動",
+    "moveRight": "向後移動",
+    "duplicate": "複製片段"
   },
   "project": {
     "saved": "影片編輯工程已儲存"
@@ -87,19 +90,60 @@
     }
   },
   "playback": {
-    "stepBackward": "後退 0.1 秒",
-    "stepForward": "前進 0.1 秒"
+    "stepBackward": "上一輸出影格",
+    "stepForward": "下一輸出影格"
   },
   "trim": {
     "start": "修剪片段起點",
     "end": "修剪片段終點",
     "textStart": "修剪文字起點",
-    "textEnd": "修剪文字終點",
-    "hint": "拖曳片段邊緣修剪；按住 Option 或 Alt 可精細調整。"
+    "textEnd": "修剪文字終點"
   },
   "unsaved": {
     "title": "儲存影片修改？",
     "status": "有未儲存的修改",
     "description": "關閉前未儲存的修改將會遺失。"
+  },
+  "materials": {
+    "title": "素材",
+    "import": "匯入素材",
+    "search": "搜尋素材",
+    "empty": "沒有符合的素材，可匯入影片、圖片或音訊。",
+    "add": "將「{title}」加入時間軸",
+    "preparing": "正在準備匯入素材…",
+    "unavailable": "素材已變更或無法使用。",
+    "audioHint": "從素材區加入配樂。"
+  },
+  "timing": {
+    "invalid": "請輸入 {min}–{max} 秒之間的數值。"
+  },
+  "fades": {
+    "in": "淡入（秒）",
+    "out": "淡出（秒）"
+  },
+  "framing": {
+    "title": "畫面配置",
+    "contain": "完整顯示",
+    "cover": "填滿畫面",
+    "zoom": "縮放"
+  },
+  "output": {
+    "title": "輸出設定",
+    "size": "畫面尺寸與解析度",
+    "frameRate": "影格率"
+  },
+  "transitions": {
+    "title": "轉場",
+    "choose": "選擇轉場",
+    "dissolve": "交叉溶解",
+    "wipeLeft": "向左擦除",
+    "wipeRight": "向右擦除",
+    "duration": "時長（秒）",
+    "hint": "轉場會重疊相鄰片段，縮短專案總時長。"
+  },
+  "layout": {
+    "materials": "調整素材區寬度",
+    "inspector": "調整檢查面板寬度",
+    "timeline": "調整時間軸高度"
   }
 }

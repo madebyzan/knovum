@@ -1,18 +1,19 @@
-import { sumBy } from "es-toolkit";
 import { computed, shallowRef } from "vue";
 
-import { clipDurationMs, replaceClip, type VideoClip, type VideoEditProject } from "../project";
+import { clipTrimBounds } from "../clip-bounds";
+import { replaceClip } from "../clip-edits";
+import { type VideoClip, type VideoEditProject } from "../project";
+import { clipDurationMs, clipTimelineStartMs } from "../timing";
 import { useVideoTimelineScale } from "./use-video-timeline-scale";
 
 export interface VideoTimelineProps {
   project: VideoEditProject;
-  sourceDurationMs: number;
   playheadMs: number;
   selectedClipId?: string | undefined;
   selectedTextId?: string | undefined;
+  selectedAudioId?: string | undefined;
   zoom: number;
   playing: boolean;
-  thumbnailSource?: string | undefined;
   waveform?: number[] | undefined;
 }
 
@@ -28,22 +29,16 @@ interface VideoTimelineActions {
   seek(milliseconds: number): void;
   trim(project: VideoEditProject): void;
   selectClip(clipId: string): void;
+  draft(project: VideoEditProject | undefined): void;
+  pause(): void;
 }
 
 export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: VideoTimelineActions) {
   const gesture = shallowRef<TrimGesture>();
   const draftClip = shallowRef<VideoClip>();
-  const visibleProject = computed(() => {
-    const draft = draftClip.value;
-    return draft
-      ? {
-          ...props.project,
-          videoTrack: {
-            clips: props.project.videoTrack.clips.map((clip) => (clip.id === draft.id ? draft : clip)),
-          },
-        }
-      : props.project;
-  });
+  const visibleProject = computed(() =>
+    draftClip.value ? replaceClip(props.project, draftClip.value) : props.project,
+  );
   const { viewport, durationMs, ticks, contentStyle, clipStyle } = useVideoTimelineScale({
     project: visibleProject,
     zoom: () => props.zoom,
@@ -63,6 +58,7 @@ export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: 
 
   function startScrub(event: PointerEvent) {
     if (event.button !== 0) return;
+    actions.pause();
     (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
     seekFromPointer(event);
   }
@@ -74,6 +70,7 @@ export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: 
   function startTrim(event: PointerEvent, clip: VideoClip, edge: "start" | "end") {
     if (event.button !== 0) return;
     event.stopPropagation();
+    actions.pause();
     const target = event.currentTarget as HTMLElement;
     const trackWidth = target.closest<HTMLElement>("[data-video-track]")?.getBoundingClientRect().width;
     if (!trackWidth) return;
@@ -88,19 +85,25 @@ export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: 
     if (!current) return;
     const delta = ((event.clientX - current.originX) / current.trackWidth) * current.timelineDurationMs;
     const original = current.edge === "start" ? current.clip.startMs : current.clip.endMs;
-    const proposed = event.altKey ? Math.round(original + delta) : Math.round((original + delta) / 100) * 100;
+    const frame = 1000 / props.project.output.frameRate;
+    const proposed = event.altKey
+      ? Math.round(original + delta)
+      : Math.round(Math.round((original + delta) / frame) * frame);
+    const { minimum, maximum } = clipTrimBounds(props.project, current.clip);
     if (current.edge === "start") {
       draftClip.value = {
         ...current.clip,
-        startMs: Math.max(0, Math.min(current.clip.endMs - 100, proposed)),
+        startMs: Math.max(0, Math.min(current.clip.endMs - minimum, proposed)),
       };
     } else {
-      const maximum = Math.max(props.sourceDurationMs, current.clip.endMs);
       draftClip.value = {
         ...current.clip,
-        endMs: Math.max(current.clip.startMs + 100, Math.min(maximum, proposed)),
+        endMs: Math.max(current.clip.startMs + minimum, Math.min(maximum, proposed)),
       };
     }
+    actions.draft(visibleProject.value);
+    const start = clipTimelineStartMs(visibleProject.value, current.clip.id);
+    actions.seek(start + (current.edge === "start" ? 0 : clipDurationMs(draftClip.value!) - 1));
   }
 
   function finishTrim() {
@@ -115,7 +118,7 @@ export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: 
       return;
     const index = props.project.videoTrack.clips.findIndex(({ id }) => id === edited.id);
     if (index < 0) return;
-    const startMs = sumBy(props.project.videoTrack.clips.slice(0, index), clipDurationMs);
+    const startMs = clipTimelineStartMs(props.project, edited.id);
     actions.trim(replaceClip(props.project, edited));
     actions.seek(startMs + (current.edge === "start" ? 0 : clipDurationMs(edited)));
   }
@@ -123,25 +126,29 @@ export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: 
   function cancelTrim() {
     gesture.value = undefined;
     draftClip.value = undefined;
+    actions.draft(undefined);
   }
 
   function nudgeTrim(clip: VideoClip, edge: "start" | "end", delta: number) {
+    const { minimum, maximum } = clipTrimBounds(props.project, clip);
     const edited =
       edge === "start"
-        ? { ...clip, startMs: Math.max(0, Math.min(clip.endMs - 100, clip.startMs + delta)) }
-        : {
-            ...clip,
-            endMs: Math.max(
-              clip.startMs + 100,
-              Math.min(Math.max(props.sourceDurationMs, clip.endMs), clip.endMs + delta),
-            ),
-          };
+        ? { ...clip, startMs: Math.max(0, Math.min(clip.endMs - minimum, clip.startMs + delta)) }
+        : { ...clip, endMs: Math.max(clip.startMs + minimum, Math.min(maximum, clip.endMs + delta)) };
     if (edited.startMs === clip.startMs && edited.endMs === clip.endMs) return;
+    actions.pause();
     actions.selectClip(clip.id);
     actions.trim(replaceClip(props.project, edited));
   }
+  function escape(event: KeyboardEvent) {
+    if (!gesture.value) return;
+    event.preventDefault();
+    event.stopPropagation();
+    cancelTrim();
+  }
 
   return {
+    escape,
     visibleProject,
     viewport,
     durationMs,

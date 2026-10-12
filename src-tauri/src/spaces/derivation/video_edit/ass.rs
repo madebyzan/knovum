@@ -1,11 +1,7 @@
 use super::{TextPlacement, TextPreset, VideoEditProject};
 
 pub(super) fn render(project: &VideoEditProject) -> String {
-    let (width, height) = if matches!(project.transform.rotation, 90 | 270) {
-        (project.source_height, project.source_width)
-    } else {
-        (project.source_width, project.source_height)
-    };
+    let (width, height) = (project.output.width, project.output.height);
     let play_res_x = (u64::from(width) * 720 + u64::from(height) / 2) / u64::from(height);
     let center_x = play_res_x / 2;
     let mut output = format!(

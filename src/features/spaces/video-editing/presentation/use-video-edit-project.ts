@@ -7,7 +7,7 @@ import { createVideoEditProject, type VideoEditProject } from "../project";
 export function useVideoEditProject(
   project: Ref<VideoEditProject | undefined>,
   data: Ref<SpaceVideoPayload | undefined>,
-  proxyPath: Ref<string | undefined>,
+  nodeId: string,
 ) {
   const { t } = useI18n();
   const metadataError = shallowRef<string>();
@@ -20,8 +20,8 @@ export function useVideoEditProject(
   function initializeFromMetadata(event: Event) {
     if (project.value || !data.value) return;
     const element = event.currentTarget as HTMLVideoElement;
-    if (!Number.isFinite(element.duration) || element.duration <= 0) {
-      if (proxyPath.value) metadataError.value = t("spaces.media.videoEditor.preview.durationUnavailable");
+    if (!Number.isFinite(element.duration) || element.duration < 0.1 || element.duration > 86_400) {
+      metadataError.value = t("spaces.media.videoEditor.preview.durationUnavailable");
       return;
     }
     if (!validVideoDimensions(element)) {
@@ -29,7 +29,8 @@ export function useVideoEditProject(
       return;
     }
     project.value = createVideoEditProject({
-      sourceRevision: data.value.sourceRevision ?? data.value.assetPath,
+      nodeId,
+      sourceRevision: data.value.sourceRevision!,
       durationMs: Math.max(1, Math.round(element.duration * 1000)),
       sourceWidth: element.videoWidth,
       sourceHeight: element.videoHeight,

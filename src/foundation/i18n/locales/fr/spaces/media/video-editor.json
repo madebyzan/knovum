@@ -9,8 +9,7 @@
     "proxyFailed": "Impossible de préparer un aperçu réactif",
     "durationUnavailable": "Impossible de lire la durée de la vidéo",
     "metadataUnavailable": "Impossible de lire les dimensions du cadre de la vidéo",
-    "unavailable": "Impossible d'ouvrir l'aperçu vidéo",
-    "audioUnavailable": "Impossible de préparer l'aperçu audio"
+    "unavailable": "Impossible d'ouvrir l'aperçu vidéo"
   },
   "tracks": {
     "video": "Vidéo",
@@ -41,7 +40,8 @@
       "top": "Haut",
       "center": "Centre",
       "bottom": "Bas"
-    }
+    },
+    "default": "Texte"
   },
   "tabs": {
     "captions": "Légendes",
@@ -71,7 +71,10 @@
     "inPoint": "Point d’entrée (secondes)",
     "outPoint": "Point de sortie (secondes)",
     "startsAt": "Démarrages (secondes)",
-    "endsAt": "Fin (secondes)"
+    "endsAt": "Fin (secondes)",
+    "moveLeft": "Déplacer avant",
+    "moveRight": "Déplacer après",
+    "duplicate": "Dupliquer le clip"
   },
   "project": {
     "saved": "Projet de montage vidéo enregistré"
@@ -87,19 +90,60 @@
     }
   },
   "playback": {
-    "stepBackward": "Reculez de 0,1 seconde",
-    "stepForward": "Avancez de 0,1 seconde"
+    "stepBackward": "Image de sortie précédente",
+    "stepForward": "Image de sortie suivante"
   },
   "trim": {
     "start": "Démarrage du clip de découpage",
     "end": "Extrémité du clip de garniture",
     "textStart": "Démarrage du texte Trim",
-    "textEnd": "Couper la fin du texte",
-    "hint": "Faites glisser un bord de clip pour le découper. Maintenez Option ou Alt pour un réglage précis."
+    "textEnd": "Couper la fin du texte"
   },
   "unsaved": {
     "title": "Enregistrer les modifications apportées à cette vidéo ?",
     "status": "Modifications non enregistrées",
     "description": "Vos modifications seront perdues si vous fermez sans enregistrer."
+  },
+  "materials": {
+    "title": "Médias",
+    "import": "Importer des médias",
+    "search": "Rechercher des médias",
+    "empty": "Aucun média correspondant. Importez une vidéo, une image ou du son.",
+    "add": "Ajouter « {title} » à la timeline",
+    "preparing": "Préparation de l’importation…",
+    "unavailable": "Le média a changé ou est indisponible.",
+    "audioHint": "Ajoutez de la musique depuis la liste des médias."
+  },
+  "timing": {
+    "invalid": "Saisissez une valeur entre {min} et {max} secondes."
+  },
+  "fades": {
+    "in": "Fondu entrant (secondes)",
+    "out": "Fondu sortant (secondes)"
+  },
+  "framing": {
+    "title": "Cadrage",
+    "contain": "Afficher toute l’image",
+    "cover": "Remplir le cadre",
+    "zoom": "Zoom"
+  },
+  "output": {
+    "title": "Réglages de sortie",
+    "size": "Dimensions et résolution",
+    "frameRate": "Fréquence d’images"
+  },
+  "transitions": {
+    "title": "Transition",
+    "choose": "Choisir une transition",
+    "dissolve": "Fondu enchaîné",
+    "wipeLeft": "Balayage vers la gauche",
+    "wipeRight": "Balayage vers la droite",
+    "duration": "Durée (secondes)",
+    "hint": "Les transitions superposent les clips adjacents et réduisent la durée du projet."
+  },
+  "layout": {
+    "materials": "Redimensionner la liste des médias",
+    "inspector": "Redimensionner l’inspecteur",
+    "timeline": "Redimensionner la timeline"
   }
 }

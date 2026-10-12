@@ -1,13 +1,8 @@
-import * as log from "@tauri-apps/plugin-log";
 import { shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { z } from "zod";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import type { PrepareVideoEditProxyRequest } from "../contracts/generated/PrepareVideoEditProxyRequest";
-
-const proxyPathSchema = z.string().min(1);
+import { prepareVideoEditProxy } from "./prepare-video-edit-proxy";
 
 export function useVideoEditProxy(
   nodeId: Ref<string | undefined>,
@@ -33,36 +28,24 @@ export function useVideoEditProxy(
         error.value = t("spaces.media.videoEditor.preview.sourceUnavailable");
         return;
       }
-      const jobId = crypto.randomUUID();
-      let active = true;
-      let pending = true;
-      onCleanup(() => {
-        active = false;
-        if (pending) {
-          void invokeCommand<void>("plugin:spaces|cancel_video_edit_proxy", { jobId }).catch((cause) =>
-            log.error(`Failed to cancel video editing proxy preparation: ${getErrorMessage(cause)}`),
-          );
-        }
-      });
+      const controller = new AbortController();
+      onCleanup(() => controller.abort());
       try {
-        const prepared = await invokeCommand<string>("plugin:spaces|prepare_video_edit_proxy", {
-          request: {
-            id: jobId,
+        const proxyPath = await prepareVideoEditProxy(
+          {
             spaceId: currentSpaceId,
             sourceNodeId,
             sourceRevision: revision,
-          } satisfies PrepareVideoEditProxyRequest,
-        });
-        const proxyPath = proxyPathSchema.parse(prepared);
-        if (active) {
+          },
+          controller.signal,
+        );
+        if (!controller.signal.aborted) {
           path.value = proxyPath;
           preparedIdentity = identity;
         }
       } catch (caught) {
-        if (active)
+        if (!controller.signal.aborted)
           error.value = `${t("spaces.media.videoEditor.preview.proxyFailed")}: ${getErrorMessage(caught)}`;
-      } finally {
-        pending = false;
       }
     },
     { immediate: true },
