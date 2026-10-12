@@ -19,7 +19,7 @@ use super::{
 };
 use crate::{
     ai::{
-        contracts::runtime::RuntimeDeviceProfile,
+        contracts::{execution_profile, runtime::RuntimeDeviceProfile},
         local_runtime::{admission::Priority, speech},
     },
     foundation::app_error::AppError,
@@ -222,7 +222,7 @@ pub(super) fn moss_nano_device_profile() -> RuntimeDeviceProfile {
         .unwrap_or(1);
     RuntimeDeviceProfile {
         device: "cpu".into(),
-        execution_profile_id: format!("moss-nano-cpu-f32-threads{threads}-native-v2"),
+        execution_profile_id: execution_profile::moss_nano(threads),
         cpu_threads: threads,
     }
 }

@@ -58,7 +58,7 @@ impl TranscriptionPipeline<'_> {
                 AsrEngine::WhisperCpp => "whisper-cpp",
             }
             .into(),
-            model_spec_id: profile_id.into(),
+            model_spec_id: profile_id.clone(),
             model_revision: crate::local_resources::models::catalog::descriptor(model_kind)
                 .snapshot
                 .digest(),
@@ -78,7 +78,7 @@ impl TranscriptionPipeline<'_> {
                 attempt_id: request_id,
                 attempt_epoch,
                 input_revision: self.source_revision.into(),
-                model_spec_id: profile_id.into(),
+                model_spec_id: profile_id.clone(),
                 deadline_ms,
             },
             audio_ref,
@@ -98,7 +98,7 @@ impl TranscriptionPipeline<'_> {
             self.resources,
             RuntimeDeviceProfile {
                 device: device.into(),
-                execution_profile_id: profile_id.into(),
+                execution_profile_id: profile_id,
                 cpu_threads: threads,
             },
             params,

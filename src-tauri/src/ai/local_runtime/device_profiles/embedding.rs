@@ -1,4 +1,4 @@
-use crate::ai::contracts::runtime::RuntimeDeviceProfile;
+use crate::ai::contracts::{execution_profile, runtime::RuntimeDeviceProfile};
 
 pub(crate) fn profile() -> Result<RuntimeDeviceProfile, String> {
     let threads = super::super::compute_budget::ComputeBudget::detect()?.model_threads;
@@ -9,7 +9,7 @@ pub(crate) fn profile() -> Result<RuntimeDeviceProfile, String> {
     };
     Ok(RuntimeDeviceProfile {
         device: device.into(),
-        execution_profile_id: format!("{device}-f32-threads{threads}-inference-v2"),
+        execution_profile_id: execution_profile::embedding(device, threads),
         cpu_threads: threads,
     })
 }

@@ -46,7 +46,7 @@ pub(super) async fn validate<R: Runtime>(
         &resources,
         RuntimeDeviceProfile {
             device: profile.device.into(),
-            execution_profile_id: profile.id.into(),
+            execution_profile_id: profile.id.clone(),
             cpu_threads: ComputeBudget::detect()?.model_threads,
         },
         SpeechTranscribeParams {
@@ -57,7 +57,7 @@ pub(super) async fn validate<R: Runtime>(
                 attempt_id: job_id.into(),
                 attempt_epoch: 1,
                 input_revision: format!("sha256:{}", reference.sha256),
-                model_spec_id: profile.id.into(),
+                model_spec_id: profile.id,
                 deadline_ms: deadline_ms()?,
             },
             audio_ref: reference,

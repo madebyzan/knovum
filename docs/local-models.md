@@ -191,6 +191,11 @@ requests and accepted outputs retain their model. Removing an idle optional snap
 preference; its next use prepares the same snapshot. Obsolete baselines missing required identities
 fail explicitly, without conversion or automatic deletion. Qwen vectors are fixed by the stored index.
 
+`inference-contracts::execution_profile` is the only definition of a native execution profile
+identity. The host builds the profile it admits memory for from that module, and the worker rebuilds
+its expectation from the same functions, so a revision bump cannot leave one side producing an
+identity the other rejects. No capability repeats the identity as a literal.
+
 U²-Net Compact/full snapshots are 4,574,861 / 175,997,641 bytes and share the same ONNX mask and
 Rust compositing contract. Spleeter FP16/FP32 snapshots are 39,362,041 / 78,636,679 bytes and share
 the exact source timeline and automatic two-node derivation contract. Both separation models execute on CPU;

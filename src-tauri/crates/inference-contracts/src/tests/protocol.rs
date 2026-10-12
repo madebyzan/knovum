@@ -1,7 +1,7 @@
 use crate::{
     image_wire::TensorFileReference,
     runtime::{RuntimeAckChunkParams, RuntimeHealthParams},
-    speech_wire::{alignment_execution_id, AsrEngine},
+    speech_wire::AsrEngine,
 };
 use serde_json::json;
 
@@ -41,7 +41,7 @@ fn tensor_wire_requires_exact_rank_unsigned_shape_and_current_dtype() {
 }
 
 #[test]
-fn inference_engine_and_alignment_identities_do_not_reinterpret_obsolete_values() {
+fn inference_engine_identities_do_not_reinterpret_obsolete_values() {
     for engine in ["faster_whisper", "mlx_whisper"] {
         assert!(serde_json::from_value::<AsrEngine>(json!(engine)).is_err());
     }
@@ -49,17 +49,4 @@ fn inference_engine_and_alignment_identities_do_not_reinterpret_obsolete_values(
         serde_json::from_value::<AsrEngine>(json!("whisper_cpp")).unwrap(),
         AsrEngine::WhisperCpp
     ));
-    for (spec, precision) in [
-        ("qwen3-forced-aligner-0.6b-f16-native-v2", "f16"),
-        ("qwen3-forced-aligner-0.6b-q8_0-v1", "q8_0"),
-    ] {
-        for device in ["cpu", "mps", "vulkan"] {
-            assert_eq!(
-                alignment_execution_id(spec, device).unwrap(),
-                format!("qwen3-forced-aligner-0.6b-{precision}-{device}-native-v2")
-            );
-        }
-        assert!(alignment_execution_id(spec, "cuda").is_none());
-    }
-    assert!(alignment_execution_id("qwen3-forced-aligner-0.6b-v1", "cpu").is_none());
 }

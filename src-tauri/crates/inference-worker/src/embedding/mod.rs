@@ -4,6 +4,7 @@ use candle_nn::VarBuilder;
 use candle_transformers::models::qwen3::{Config, Model};
 use knovum_inference_contracts::{
     embedding_wire::{EmbeddingEncodeParams, EmbeddingEncoding, EmbeddingRole, EMBEDDING_SPEC_ID},
+    execution_profile,
     runtime::RuntimeInitializeParams,
 };
 use std::path::Path;
@@ -32,7 +33,7 @@ impl Embedding {
             || device == "mps" && !cfg!(all(target_os = "macos", target_arch = "aarch64"))
             || !(1..=8).contains(&threads)
             || params.device_profile.execution_profile_id
-                != format!("{device}-f32-threads{threads}-native-v2")
+                != execution_profile::embedding(device, threads)
         {
             return Err("runtime_mismatch: invalid embedding initialization".into());
         }

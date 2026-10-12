@@ -1,11 +1,11 @@
-use crate::ai::contracts::speech_wire::AsrEngine;
+use crate::ai::contracts::{execution_profile, speech_wire::AsrEngine};
 use crate::local_resources::model_catalog::LocalModelId;
 
 pub(crate) struct TranscriptionProfile {
     pub engine: AsrEngine,
     pub device: &'static str,
     pub compute_type: &'static str,
-    pub id: &'static str,
+    pub id: String,
 }
 
 pub(crate) fn transcription_budget_ms(
@@ -26,20 +26,18 @@ pub(crate) fn transcription_budget_ms(
 
 pub(crate) fn transcription_profile(model: LocalModelId) -> Result<TranscriptionProfile, String> {
     let metal = cfg!(all(target_os = "macos", target_arch = "aarch64"));
-    let (compute_type, id) = match (model, metal) {
-        (LocalModelId::WhisperTiny, false) => ("q8_0", "whisper-tiny-cpu-q8_0-inference-v2"),
-        (LocalModelId::WhisperSmall, false) => ("q8_0", "whisper-small-cpu-q8_0-inference-v2"),
-        (LocalModelId::WhisperLargeV3, false) => ("f16", "whisper-large-v3-cpu-f16-inference-v2"),
-        (LocalModelId::WhisperTiny, true) => ("q8_0", "whisper-tiny-mps-q8_0-inference-v2"),
-        (LocalModelId::WhisperSmall, true) => ("q8_0", "whisper-small-mps-q8_0-inference-v2"),
-        (LocalModelId::WhisperLargeV3, true) => ("f16", "whisper-large-v3-mps-f16-inference-v2"),
+    let device = if metal { "mps" } else { "cpu" };
+    let (variant, compute_type) = match model {
+        LocalModelId::WhisperTiny => ("tiny", "q8_0"),
+        LocalModelId::WhisperSmall => ("small", "q8_0"),
+        LocalModelId::WhisperLargeV3 => ("large-v3", "f16"),
         _ => return Err("Selected model cannot transcribe audio".into()),
     };
     Ok(TranscriptionProfile {
         engine: AsrEngine::WhisperCpp,
-        device: if metal { "mps" } else { "cpu" },
+        device,
         compute_type,
-        id,
+        id: execution_profile::whisper(variant, device, compute_type),
     })
 }
 
