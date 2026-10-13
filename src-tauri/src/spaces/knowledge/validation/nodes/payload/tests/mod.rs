@@ -16,15 +16,16 @@ fn video() -> serde_json::Value {
     json!({
         "kind": "video", "title": "Video", "assetPath": "/video.mp4", "fileName": "video.mp4",
         "sourceRevision": "revision",
-        "videoEditProject": serde_json::from_str::<serde_json::Value>(r#"{
- "version":1,"sourceRevision":"revision",
+        "videoEditProject": serde_json::from_str::<serde_json::Value>(r##"{
+ "version":2,"sourceRevision":"revision",
  "assets":[{"nodeId":"source","sourceRevision":"revision","kind":"video","durationMs":8000,"width":1080,"height":1920}],
- "output":{"width":1080,"height":1920,"frameRate":30},
+ "output":{"width":1080,"height":1920,"frameRate":30,"background":"#000000"},
  "videoTrack":{"clips":[
- {"id":"d51a4384-70ab-4b44-90cc-3bfcf0f5341f","assetId":"source","startMs":1000,"endMs":3000,"volume":1,"fadeInMs":0,"fadeOutMs":0,"transition":null,"transform":{"rotation":90,"flipHorizontal":true,"flipVertical":false,"fit":"contain","zoom":1}},
- {"id":"d51a4384-70ab-4b44-90cc-3bfcf0f5342f","assetId":"source","startMs":5000,"endMs":8000,"volume":0.5,"fadeInMs":0,"fadeOutMs":0,"transition":null,"transform":{"rotation":0,"flipHorizontal":false,"flipVertical":false,"fit":"cover","zoom":1}}]},
+ {"id":"d51a4384-70ab-4b44-90cc-3bfcf0f5341f","assetId":"source","sourceInMs":1000,"sourceOutMs":3000,"timelineStartMs":0,"volume":1,"fadeInMs":0,"fadeOutMs":0,"transform":{"x":0,"y":0,"scale":1,"rotation":90,"opacity":1,"fit":"contain","flipHorizontal":true,"flipVertical":false}},
+ {"id":"d51a4384-70ab-4b44-90cc-3bfcf0f5342f","assetId":"source","sourceInMs":5000,"sourceOutMs":8000,"timelineStartMs":1500,"volume":0.5,"fadeInMs":0,"fadeOutMs":0,"transform":{"x":0,"y":0,"scale":1,"rotation":0,"opacity":1,"fit":"cover","flipHorizontal":false,"flipVertical":false}}]},
+ "transitions":[{"id":"6b2f3f4e-0f39-4a51-9d9a-6f0f2dd6f0a1","fromClipId":"d51a4384-70ab-4b44-90cc-3bfcf0f5341f","kind":"dissolve","durationMs":500}],
  "audioTrack":{"clips":[]},"textTrack":{"items":[]}
-}"#).unwrap()
+}"##).unwrap()
     })
 }
 
@@ -44,10 +45,13 @@ fn saved_video_projects_require_a_current_source_and_valid_project() {
     data["videoEditProject"]["sourceRevision"] = json!("stale");
     assert!(validate_payload_shape("video", &data).is_err());
     data = video();
-    data["videoEditProject"]["version"] = json!(2);
+    data["videoEditProject"]["version"] = json!(1);
     assert!(validate_payload_shape("video", &data).is_err());
     data = video();
-    data["videoEditProject"]["videoTrack"]["clips"][0]["endMs"] = json!(0);
+    data["videoEditProject"]["videoTrack"]["clips"][0]["sourceOutMs"] = json!(1000);
+    assert!(validate_payload_shape("video", &data).is_err());
+    data = video();
+    data["videoEditProject"]["transitions"][0]["durationMs"] = json!(4000);
     assert!(validate_payload_shape("video", &data).is_err());
     data = video();
     data["videoEditProject"]["unexpected"] = json!(true);

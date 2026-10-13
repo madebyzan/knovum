@@ -2,52 +2,107 @@
   "edit": "Video bearbeiten",
   "title": "Video-Editor",
   "loading": "Video-Editor wird geladen…",
+  "closeInspector": "Bearbeitungsfeld schließen",
   "preview": {
     "optimizing": "Vorschau im Hintergrund optimieren…",
     "retry": "Vorschauvorbereitung erneut versuchen",
-    "sourceUnavailable": "Die Videoquelle ist nicht verfügbar. Importieren Sie das Video erneut, um es zu bearbeiten.",
     "proxyFailed": "Es konnte keine responsive Vorschau vorbereitet werden",
-    "durationUnavailable": "Die Dauer des Videos konnte nicht gelesen werden",
     "metadataUnavailable": "Die Bildabmessungen des Videos konnten nicht gelesen werden",
-    "unavailable": "Die Videovorschau konnte nicht geöffnet werden"
+    "stage": "Videobild",
+    "zoomIn": "Vergrößern",
+    "zoomOut": "Verkleinern",
+    "fit": "Bild einpassen"
+  },
+  "obsolete": {
+    "title": "Dieses Schnittprojekt hat ein älteres Format",
+    "description": "Das gespeicherte Projekt lässt sich mit dem aktuellen Editor nicht öffnen. Beginne einen neuen Schnitt auf Basis des Originalvideos; die Quelldatei bleibt unverändert.",
+    "action": "Neuen Schnitt beginnen"
+  },
+  "library": {
+    "title": "Bibliothek",
+    "media": "Medien",
+    "text": "Text",
+    "transitions": "Übergänge"
+  },
+  "materials": {
+    "title": "Medien",
+    "import": "Medien importieren",
+    "search": "Medien suchen",
+    "empty": "Keine passenden Medien. Importieren Sie Video, Bilder oder Audio.",
+    "add": "„{title}“ zur Zeitleiste hinzufügen",
+    "preparing": "Medienimport wird vorbereitet…",
+    "unavailable": "Das Medium wurde geändert oder ist nicht verfügbar.",
+    "noRoom": "Auf der Zeitachse ist kein Platz für dieses Material."
   },
   "tracks": {
     "video": "Video",
     "audio": "Audio",
-    "text": "Text"
+    "text": "Text",
+    "lane": "Spur"
   },
   "timeline": {
-    "thumbnailFailed": "Es konnten keine Timeline-Miniaturansichten generiert werden",
     "zoomOut": "Zeitleiste verkleinern",
     "zoomIn": "Zoom in der Zeitleiste",
     "fit": "Gesamtes Video anpassen",
-    "seek": "Zeitleiste suchen"
+    "seek": "Zeitleiste suchen",
+    "clearSelection": "Auswahl aufheben"
+  },
+  "clip": {
+    "selected": "Ausgewählter Clip",
+    "volume": "Lautstärke",
+    "split": "Teilen",
+    "inPoint": "Einstieg (Sekunden)",
+    "outPoint": "Ausstieg (Sekunden)",
+    "startsAt": "Startet (Sekunden)",
+    "endsAt": "Endet (Sekunden)",
+    "moveLeft": "Nach vorne verschieben",
+    "moveRight": "Nach hinten verschieben",
+    "duplicate": "Clip duplizieren",
+    "closeGap": "Lücke schließen",
+    "placement": "Auf der Zeitachse"
+  },
+  "stage": {
+    "move": "Clip verschieben",
+    "resize": "Clip skalieren",
+    "rotate": "Clip drehen",
+    "moveText": "Text verschieben"
+  },
+  "framing": {
+    "title": "Bildanpassung",
+    "contain": "Ganzes Bild anzeigen",
+    "cover": "Bildfläche ausfüllen",
+    "scale": "Skalierung",
+    "rotation": "Drehung",
+    "opacity": "Deckkraft",
+    "reset": "Zurücksetzen",
+    "hint": "Im Bild ziehen zum Positionieren, Ecken zum Skalieren, obere Anfasser zum Drehen. Alt hält freie Werte."
+  },
+  "fades": {
+    "in": "Einblenden (Sekunden)",
+    "out": "Ausblenden (Sekunden)"
   },
   "text": {
-    "tools": "Texttools",
     "invalidColor": "Geben Sie eine sechsstellige Hexadezimalfarbe ein, z. B. #FFFFFF.",
     "presets": {
       "title": "Voreinstellungen",
-      "plain": "Schmucklos",
-      "outline": "Gliederung",
+      "plain": "Einfach",
+      "outline": "Kontur",
       "shadow": "Schatten",
-      "badge": "Abzeichen"
+      "box": "Kasten"
     },
-    "placement": "Position",
     "add": "Text hinzufügen",
     "content": "Text",
-    "verticalAlignment": {
-      "top": "Spitze",
-      "center": "Center",
-      "bottom": "Unten"
+    "default": "Text",
+    "alignment": "Ausrichtung",
+    "alignments": {
+      "left": "Links",
+      "center": "Zentriert",
+      "right": "Rechts"
     },
-    "default": "Text"
+    "strength": "Stärke der Verzierung",
+    "decorationColor": "Verzierungsfarbe",
+    "dragHint": "Text im Bild ziehen, um ihn frei zu platzieren."
   },
-  "tabs": {
-    "captions": "Untertitel",
-    "text": "Text"
-  },
-  "closeInspector": "Bearbeitungsfeld schließen",
   "captions": {
     "search": "Suchuntertitel",
     "none": "Noch keine Untertitel. Fügen Sie oben eines hinzu.",
@@ -62,19 +117,53 @@
     "size": "Größe (720p)",
     "color": "Textfarbe"
   },
-  "videoSettings": "Videoeinstellungen",
-  "clip": {
-    "selected": "Ausgewählter Clip",
-    "volume": "Lautstärke",
-    "rotate": "Drehen",
-    "split": "Teilen",
-    "inPoint": "Einstieg (Sekunden)",
-    "outPoint": "Ausstieg (Sekunden)",
-    "startsAt": "Startet (Sekunden)",
-    "endsAt": "Endet (Sekunden)",
-    "moveLeft": "Nach vorne verschieben",
-    "moveRight": "Nach hinten verschieben",
-    "duplicate": "Clip duplizieren"
+  "transitions": {
+    "title": "Übergang",
+    "choose": "Übergang auswählen",
+    "duration": "Dauer (Sekunden)",
+    "hint": "Übergänge überlappen benachbarte Clips und verkürzen das Projekt.",
+    "remove": "Übergang entfernen",
+    "target": "Gilt für den Schnitt bei {time} s",
+    "unavailable": "Zwei benachbarte Clips mit mindestens 100 ms Reserve auswählen.",
+    "kinds": {
+      "dissolve": "Überblendung",
+      "fadeBlack": "Über Schwarz",
+      "fadeWhite": "Über Weiß",
+      "wipeLeft": "Wischen links",
+      "wipeRight": "Wischen rechts",
+      "wipeUp": "Wischen oben",
+      "wipeDown": "Wischen unten",
+      "slideLeft": "Schieben links",
+      "slideRight": "Schieben rechts",
+      "slideUp": "Schieben oben",
+      "slideDown": "Schieben unten"
+    }
+  },
+  "output": {
+    "title": "Ausgabeeinstellungen",
+    "size": "Bildformat und Auflösung",
+    "frameRate": "Bildrate",
+    "background": "Hintergrund"
+  },
+  "playback": {
+    "stepBackward": "Vorheriges Ausgabebild",
+    "stepForward": "Nächstes Ausgabebild",
+    "goToStart": "Zum Anfang",
+    "goToEnd": "Zum Ende"
+  },
+  "trim": {
+    "start": "Clipanfang zuschneiden",
+    "end": "Clip-Ende trimmen",
+    "textStart": "Textanfang kürzen",
+    "textEnd": "Textende zuschneiden"
+  },
+  "timing": {
+    "invalid": "Geben Sie einen Wert zwischen {min} und {max} Sekunden ein."
+  },
+  "unsaved": {
+    "title": "Änderungen an diesem Video speichern?",
+    "status": "Nicht gespeicherte Änderungen",
+    "description": "Ihre Änderungen gehen verloren, wenn Sie schließen, ohne zu speichern."
   },
   "project": {
     "saved": "Videobearbeitungsprojekt gespeichert"
@@ -88,58 +177,6 @@
       "renderingVideoEdit": "Video rendern",
       "savingResource": "Ressourcen sparen"
     }
-  },
-  "playback": {
-    "stepBackward": "Vorheriges Ausgabebild",
-    "stepForward": "Nächstes Ausgabebild"
-  },
-  "trim": {
-    "start": "Clipanfang zuschneiden",
-    "end": "Clip-Ende trimmen",
-    "textStart": "Textanfang kürzen",
-    "textEnd": "Textende zuschneiden"
-  },
-  "unsaved": {
-    "title": "Änderungen an diesem Video speichern?",
-    "status": "Nicht gespeicherte Änderungen",
-    "description": "Ihre Änderungen gehen verloren, wenn Sie schließen, ohne zu speichern."
-  },
-  "materials": {
-    "title": "Medien",
-    "import": "Medien importieren",
-    "search": "Medien suchen",
-    "empty": "Keine passenden Medien. Importieren Sie Video, Bilder oder Audio.",
-    "add": "„{title}“ zur Zeitleiste hinzufügen",
-    "preparing": "Medienimport wird vorbereitet…",
-    "unavailable": "Das Medium wurde geändert oder ist nicht verfügbar.",
-    "audioHint": "Musik aus der Medienliste hinzufügen."
-  },
-  "timing": {
-    "invalid": "Geben Sie einen Wert zwischen {min} und {max} Sekunden ein."
-  },
-  "fades": {
-    "in": "Einblenden (Sekunden)",
-    "out": "Ausblenden (Sekunden)"
-  },
-  "framing": {
-    "title": "Bildanpassung",
-    "contain": "Ganzes Bild anzeigen",
-    "cover": "Bildfläche ausfüllen",
-    "zoom": "Zoom"
-  },
-  "output": {
-    "title": "Ausgabeeinstellungen",
-    "size": "Bildformat und Auflösung",
-    "frameRate": "Bildrate"
-  },
-  "transitions": {
-    "title": "Übergang",
-    "choose": "Übergang auswählen",
-    "dissolve": "Überblendung",
-    "wipeLeft": "Nach links wischen",
-    "wipeRight": "Nach rechts wischen",
-    "duration": "Dauer (Sekunden)",
-    "hint": "Übergänge überlappen benachbarte Clips und verkürzen das Projekt."
   },
   "layout": {
     "materials": "Medienliste skalieren",

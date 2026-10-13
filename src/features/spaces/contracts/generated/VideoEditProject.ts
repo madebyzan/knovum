@@ -4,5 +4,6 @@ import type { VideoAsset } from "./VideoAsset";
 import type { VideoEditAudioTrack } from "./VideoEditAudioTrack";
 import type { VideoEditOutput } from "./VideoEditOutput";
 import type { VideoTrack } from "./VideoTrack";
+import type { VideoTransition } from "./VideoTransition";
 
-export type VideoEditProject = { version: number, sourceRevision: string, assets: Array<VideoAsset>, output: VideoEditOutput, videoTrack: VideoTrack, textTrack: TextTrack, audioTrack: VideoEditAudioTrack, };
+export type VideoEditProject = { version: number, sourceRevision: string, assets: Array<VideoAsset>, output: VideoEditOutput, videoTrack: VideoTrack, transitions: Array<VideoTransition>, audioTrack: VideoEditAudioTrack, textTrack: TextTrack, };

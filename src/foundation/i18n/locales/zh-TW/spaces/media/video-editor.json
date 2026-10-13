@@ -2,52 +2,107 @@
   "edit": "編輯影片",
   "title": "影片編輯工作台",
   "loading": "正在載入影片編輯器…",
+  "closeInspector": "關閉編輯面板",
   "preview": {
     "optimizing": "正在後台優化預覽…",
     "retry": "重試準備預覽",
-    "sourceUnavailable": "視訊來源檔案不可用，請重新匯入後編輯。",
     "proxyFailed": "無法準備流暢預覽",
-    "durationUnavailable": "無法讀取影片時長",
     "metadataUnavailable": "無法讀取影片畫面尺寸",
-    "unavailable": "無法打開影片預覽"
+    "stage": "畫面",
+    "zoomIn": "放大畫面",
+    "zoomOut": "縮小畫面",
+    "fit": "符合視窗"
+  },
+  "obsolete": {
+    "title": "此剪輯專案為舊格式",
+    "description": "目前的編輯器無法開啟已儲存的專案。可以依原始影片重新開始剪輯，來源檔案不會變更。",
+    "action": "重新開始剪輯"
+  },
+  "library": {
+    "title": "資源庫",
+    "media": "素材",
+    "text": "文字",
+    "transitions": "轉場"
+  },
+  "materials": {
+    "title": "素材",
+    "import": "匯入素材",
+    "search": "搜尋素材",
+    "empty": "沒有符合的素材，可匯入影片、圖片或音訊。",
+    "add": "將「{title}」加入時間軸",
+    "preparing": "正在準備匯入素材…",
+    "unavailable": "素材已變更或無法使用。",
+    "noRoom": "時間軸上沒有可放置此素材的空間。"
   },
   "tracks": {
     "video": "影片",
     "audio": "音訊",
-    "text": "文字"
+    "text": "文字",
+    "lane": "音軌"
   },
   "timeline": {
-    "thumbnailFailed": "無法產生時間軸縮圖",
     "zoomOut": "縮小時間軸",
     "zoomIn": "放大時間軸",
     "fit": "適配整段視頻",
-    "seek": "定位時間軸"
+    "seek": "定位時間軸",
+    "clearSelection": "取消選取"
+  },
+  "clip": {
+    "selected": "所選片段",
+    "volume": "音量",
+    "split": "分割",
+    "inPoint": "入點（秒）",
+    "outPoint": "出點（秒）",
+    "startsAt": "開始（秒）",
+    "endsAt": "結束（秒）",
+    "moveLeft": "向前移動",
+    "moveRight": "向後移動",
+    "duplicate": "複製片段",
+    "closeGap": "消除空隙",
+    "placement": "時間軸位置"
+  },
+  "stage": {
+    "move": "移動片段",
+    "resize": "縮放片段",
+    "rotate": "旋轉片段",
+    "moveText": "移動文字"
+  },
+  "framing": {
+    "title": "畫面配置",
+    "contain": "完整顯示",
+    "cover": "填滿畫面",
+    "scale": "縮放",
+    "rotation": "旋轉",
+    "opacity": "不透明度",
+    "reset": "重設",
+    "hint": "在畫面上拖曳可調整位置，拖曳四角縮放，拖曳上方控點旋轉；按住 Alt 可取消吸附。"
+  },
+  "fades": {
+    "in": "淡入（秒）",
+    "out": "淡出（秒）"
   },
   "text": {
-    "tools": "文字工具",
     "invalidColor": "請輸入六位十六進位顏色，例如 #FFFFFF。",
     "presets": {
       "title": "預設樣式",
       "plain": "簡潔",
       "outline": "描邊",
       "shadow": "陰影",
-      "badge": "底框"
+      "box": "底框"
     },
-    "placement": "畫面位置",
     "add": "新增文字",
     "content": "文字內容",
-    "verticalAlignment": {
-      "top": "頂部",
-      "center": "居中",
-      "bottom": "底部"
+    "default": "文字",
+    "alignment": "對齊",
+    "alignments": {
+      "left": "靠左",
+      "center": "置中",
+      "right": "靠右"
     },
-    "default": "文字"
+    "strength": "裝飾粗細",
+    "decorationColor": "裝飾顏色",
+    "dragHint": "在畫面上拖曳文字即可自由擺放。"
   },
-  "tabs": {
-    "captions": "字幕",
-    "text": "文字"
-  },
-  "closeInspector": "關閉編輯面板",
   "captions": {
     "search": "搜尋字幕文字",
     "none": "暫無字幕。點擊上方按鈕新增。",
@@ -62,19 +117,53 @@
     "size": "字號（720p）",
     "color": "字體顏色"
   },
-  "videoSettings": "影片設定",
-  "clip": {
-    "selected": "所選片段",
-    "volume": "音量",
-    "rotate": "旋轉",
-    "split": "分割",
-    "inPoint": "入點（秒）",
-    "outPoint": "出點（秒）",
-    "startsAt": "開始（秒）",
-    "endsAt": "結束（秒）",
-    "moveLeft": "向前移動",
-    "moveRight": "向後移動",
-    "duplicate": "複製片段"
+  "transitions": {
+    "title": "轉場",
+    "choose": "選擇轉場",
+    "duration": "時長（秒）",
+    "hint": "轉場會重疊相鄰片段，縮短專案總時長。",
+    "remove": "刪除轉場",
+    "target": "套用於 {time} 秒處的剪輯點",
+    "unavailable": "需要兩個相鄰片段，且各自至少保留 100 毫秒。",
+    "kinds": {
+      "dissolve": "疊化",
+      "fadeBlack": "黑場過渡",
+      "fadeWhite": "白場過渡",
+      "wipeLeft": "向左擦除",
+      "wipeRight": "向右擦除",
+      "wipeUp": "向上擦除",
+      "wipeDown": "向下擦除",
+      "slideLeft": "向左滑動",
+      "slideRight": "向右滑動",
+      "slideUp": "向上滑動",
+      "slideDown": "向下滑動"
+    }
+  },
+  "output": {
+    "title": "輸出設定",
+    "size": "畫面尺寸與解析度",
+    "frameRate": "影格率",
+    "background": "背景色"
+  },
+  "playback": {
+    "stepBackward": "上一輸出影格",
+    "stepForward": "下一輸出影格",
+    "goToStart": "回到開頭",
+    "goToEnd": "跳至結尾"
+  },
+  "trim": {
+    "start": "修剪片段起點",
+    "end": "修剪片段終點",
+    "textStart": "修剪文字起點",
+    "textEnd": "修剪文字終點"
+  },
+  "timing": {
+    "invalid": "請輸入 {min}–{max} 秒之間的數值。"
+  },
+  "unsaved": {
+    "title": "儲存影片修改？",
+    "status": "有未儲存的修改",
+    "description": "關閉前未儲存的修改將會遺失。"
   },
   "project": {
     "saved": "影片編輯工程已儲存"
@@ -88,58 +177,6 @@
       "renderingVideoEdit": "正在渲染視頻",
       "savingResource": "正在保存資源"
     }
-  },
-  "playback": {
-    "stepBackward": "上一輸出影格",
-    "stepForward": "下一輸出影格"
-  },
-  "trim": {
-    "start": "修剪片段起點",
-    "end": "修剪片段終點",
-    "textStart": "修剪文字起點",
-    "textEnd": "修剪文字終點"
-  },
-  "unsaved": {
-    "title": "儲存影片修改？",
-    "status": "有未儲存的修改",
-    "description": "關閉前未儲存的修改將會遺失。"
-  },
-  "materials": {
-    "title": "素材",
-    "import": "匯入素材",
-    "search": "搜尋素材",
-    "empty": "沒有符合的素材，可匯入影片、圖片或音訊。",
-    "add": "將「{title}」加入時間軸",
-    "preparing": "正在準備匯入素材…",
-    "unavailable": "素材已變更或無法使用。",
-    "audioHint": "從素材區加入配樂。"
-  },
-  "timing": {
-    "invalid": "請輸入 {min}–{max} 秒之間的數值。"
-  },
-  "fades": {
-    "in": "淡入（秒）",
-    "out": "淡出（秒）"
-  },
-  "framing": {
-    "title": "畫面配置",
-    "contain": "完整顯示",
-    "cover": "填滿畫面",
-    "zoom": "縮放"
-  },
-  "output": {
-    "title": "輸出設定",
-    "size": "畫面尺寸與解析度",
-    "frameRate": "影格率"
-  },
-  "transitions": {
-    "title": "轉場",
-    "choose": "選擇轉場",
-    "dissolve": "交叉溶解",
-    "wipeLeft": "向左擦除",
-    "wipeRight": "向右擦除",
-    "duration": "時長（秒）",
-    "hint": "轉場會重疊相鄰片段，縮短專案總時長。"
   },
   "layout": {
     "materials": "調整素材區寬度",

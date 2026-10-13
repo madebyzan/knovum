@@ -2,52 +2,107 @@
   "edit": "Editar vídeo",
   "title": "Editor de vídeo",
   "loading": "Carregando editor de vídeo…",
+  "closeInspector": "Fechar painel de edição",
   "preview": {
     "optimizing": "Otimizando a visualização em segundo plano…",
     "retry": "Tentar novamente a preparação da visualização",
-    "sourceUnavailable": "A fonte de vídeo não está disponível. Reimporte o vídeo para editá-lo.",
     "proxyFailed": "Não foi possível preparar uma visualização responsiva",
-    "durationUnavailable": "Não foi possível ler a duração do vídeo",
     "metadataUnavailable": "Não foi possível ler as dimensões do quadro do vídeo",
-    "unavailable": "Não foi possível abrir a visualização do vídeo"
+    "stage": "Quadro do vídeo",
+    "zoomIn": "Ampliar",
+    "zoomOut": "Reduzir",
+    "fit": "Ajustar ao quadro"
+  },
+  "obsolete": {
+    "title": "Este projeto de edição está em um formato antigo",
+    "description": "O editor atual não consegue abrir o projeto salvo. Comece uma nova edição a partir do vídeo original; o arquivo de origem não muda.",
+    "action": "Começar uma nova edição"
+  },
+  "library": {
+    "title": "Biblioteca",
+    "media": "Mídia",
+    "text": "Texto",
+    "transitions": "Transições"
+  },
+  "materials": {
+    "title": "Materiais",
+    "import": "Importar mídia",
+    "search": "Buscar materiais",
+    "empty": "Nenhum material correspondente. Importe vídeo, imagens ou áudio.",
+    "add": "Adicionar “{title}” à linha do tempo",
+    "preparing": "Preparando importação…",
+    "unavailable": "O material mudou ou está indisponível.",
+    "noRoom": "Não há espaço livre na linha do tempo para este material."
   },
   "tracks": {
     "video": "Vídeo",
     "audio": "Áudio",
-    "text": "Texto"
+    "text": "Texto",
+    "lane": "Faixa"
   },
   "timeline": {
-    "thumbnailFailed": "Não foi possível gerar miniaturas da linha do tempo",
     "zoomOut": "Diminuir linha do tempo",
     "zoomIn": "Zoom na linha do tempo",
     "fit": "Ajustar todo o vídeo",
-    "seek": "Procurar linha do tempo"
+    "seek": "Procurar linha do tempo",
+    "clearSelection": "Limpar a seleção"
+  },
+  "clip": {
+    "selected": "Clipe selecionado",
+    "volume": "Volume",
+    "split": "Dividir",
+    "inPoint": "Entrada (segundos)",
+    "outPoint": "Saída (segundos)",
+    "startsAt": "Início (segundos)",
+    "endsAt": "Termina (segundos)",
+    "moveLeft": "Mover para antes",
+    "moveRight": "Mover para depois",
+    "duplicate": "Duplicar clipe",
+    "closeGap": "Fechar o intervalo",
+    "placement": "Na linha do tempo"
+  },
+  "stage": {
+    "move": "Mover o clipe",
+    "resize": "Redimensionar o clipe",
+    "rotate": "Girar o clipe",
+    "moveText": "Mover o texto"
+  },
+  "framing": {
+    "title": "Enquadramento",
+    "contain": "Mostrar imagem inteira",
+    "cover": "Preencher quadro",
+    "scale": "Escala",
+    "rotation": "Rotação",
+    "opacity": "Opacidade",
+    "reset": "Redefinir",
+    "hint": "Arraste no quadro para posicionar, use os cantos para redimensionar e a alça superior para girar. Alt mantém valores livres."
+  },
+  "fades": {
+    "in": "Fade-in (segundos)",
+    "out": "Fade-out (segundos)"
   },
   "text": {
-    "tools": "Ferramentas de texto",
     "invalidColor": "Insira uma cor hexadecimal de seis dígitos, como #FFFFFF.",
     "presets": {
       "title": "Predefinições",
       "plain": "Simples",
-      "outline": "Esboço",
+      "outline": "Contorno",
       "shadow": "Sombra",
-      "badge": "Distintivo"
+      "box": "Caixa"
     },
-    "placement": "Posição",
     "add": "Adicionar texto",
     "content": "Texto",
-    "verticalAlignment": {
-      "top": "Topo",
+    "default": "Texto",
+    "alignment": "Alinhamento",
+    "alignments": {
+      "left": "Esquerda",
       "center": "Centro",
-      "bottom": "Inferior"
+      "right": "Direita"
     },
-    "default": "Texto"
+    "strength": "Espessura do adorno",
+    "decorationColor": "Cor do adorno",
+    "dragHint": "Arraste o texto no quadro para posicioná-lo livremente."
   },
-  "tabs": {
-    "captions": "Legendas",
-    "text": "Texto"
-  },
-  "closeInspector": "Fechar painel de edição",
   "captions": {
     "search": "Pesquisar legendas",
     "none": "Ainda não há legendas. Adicione um acima.",
@@ -62,19 +117,53 @@
     "size": "Tamanho (720p)",
     "color": "Cor do texto"
   },
-  "videoSettings": "Configurações de vídeo",
-  "clip": {
-    "selected": "Clipe selecionado",
-    "volume": "Volume",
-    "rotate": "Rodar",
-    "split": "Dividir",
-    "inPoint": "Entrada (segundos)",
-    "outPoint": "Saída (segundos)",
-    "startsAt": "Início (segundos)",
-    "endsAt": "Termina (segundos)",
-    "moveLeft": "Mover para antes",
-    "moveRight": "Mover para depois",
-    "duplicate": "Duplicar clipe"
+  "transitions": {
+    "title": "Transição",
+    "choose": "Escolher transição",
+    "duration": "Duração (segundos)",
+    "hint": "As transições sobrepõem clipes adjacentes e encurtam o projeto.",
+    "remove": "Remover a transição",
+    "target": "Aplica-se ao corte em {time} s",
+    "unavailable": "Selecione dois clipes vizinhos com pelo menos 100 ms de folga.",
+    "kinds": {
+      "dissolve": "Dissolução",
+      "fadeBlack": "Fade pelo preto",
+      "fadeWhite": "Fade pelo branco",
+      "wipeLeft": "Varredura à esquerda",
+      "wipeRight": "Varredura à direita",
+      "wipeUp": "Varredura para cima",
+      "wipeDown": "Varredura para baixo",
+      "slideLeft": "Deslizar à esquerda",
+      "slideRight": "Deslizar à direita",
+      "slideUp": "Deslizar para cima",
+      "slideDown": "Deslizar para baixo"
+    }
+  },
+  "output": {
+    "title": "Configurações de saída",
+    "size": "Formato e resolução",
+    "frameRate": "Taxa de quadros",
+    "background": "Fundo"
+  },
+  "playback": {
+    "stepBackward": "Quadro de saída anterior",
+    "stepForward": "Próximo quadro de saída",
+    "goToStart": "Ir para o início",
+    "goToEnd": "Ir para o fim"
+  },
+  "trim": {
+    "start": "Início do clipe de corte",
+    "end": "Aparar o final do clipe",
+    "textStart": "Início do corte do texto",
+    "textEnd": "Cortar final do texto"
+  },
+  "timing": {
+    "invalid": "Insira um valor entre {min} e {max} segundos."
+  },
+  "unsaved": {
+    "title": "Salvar as alterações neste vídeo?",
+    "status": "Alterações não salvas",
+    "description": "Suas edições serão perdidas se você fechar sem salvar."
   },
   "project": {
     "saved": "Projeto de edição de vídeo salvo"
@@ -88,58 +177,6 @@
       "renderingVideoEdit": "Renderização de vídeo",
       "savingResource": "Economizando recursos"
     }
-  },
-  "playback": {
-    "stepBackward": "Quadro de saída anterior",
-    "stepForward": "Próximo quadro de saída"
-  },
-  "trim": {
-    "start": "Início do clipe de corte",
-    "end": "Aparar o final do clipe",
-    "textStart": "Início do corte do texto",
-    "textEnd": "Cortar final do texto"
-  },
-  "unsaved": {
-    "title": "Salvar as alterações neste vídeo?",
-    "status": "Alterações não salvas",
-    "description": "Suas edições serão perdidas se você fechar sem salvar."
-  },
-  "materials": {
-    "title": "Materiais",
-    "import": "Importar mídia",
-    "search": "Buscar materiais",
-    "empty": "Nenhum material correspondente. Importe vídeo, imagens ou áudio.",
-    "add": "Adicionar “{title}” à linha do tempo",
-    "preparing": "Preparando importação…",
-    "unavailable": "O material mudou ou está indisponível.",
-    "audioHint": "Adicione música pela lista de materiais."
-  },
-  "timing": {
-    "invalid": "Insira um valor entre {min} e {max} segundos."
-  },
-  "fades": {
-    "in": "Fade-in (segundos)",
-    "out": "Fade-out (segundos)"
-  },
-  "framing": {
-    "title": "Enquadramento",
-    "contain": "Mostrar imagem inteira",
-    "cover": "Preencher quadro",
-    "zoom": "Zoom"
-  },
-  "output": {
-    "title": "Configurações de saída",
-    "size": "Formato e resolução",
-    "frameRate": "Taxa de quadros"
-  },
-  "transitions": {
-    "title": "Transição",
-    "choose": "Escolher transição",
-    "dissolve": "Dissolução",
-    "wipeLeft": "Deslizar à esquerda",
-    "wipeRight": "Deslizar à direita",
-    "duration": "Duração (segundos)",
-    "hint": "As transições sobrepõem clipes adjacentes e encurtam o projeto."
   },
   "layout": {
     "materials": "Redimensionar lista de materiais",

@@ -1,7 +1,7 @@
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceAudioPayload, SpaceImagePayload, SpaceVideoPayload } from "../model/nodes/node-payload";
 import { videoAssetSchema } from "../model/nodes/schema/video-edit-media";
-import type { VideoAsset, VideoEditProject } from "./project";
+import type { VideoAsset } from "./project";
 
 type ReadyVideoMaterial = (SpaceVideoPayload | SpaceImagePayload | SpaceAudioPayload) & {
   sourceRevision: string;
@@ -37,13 +37,4 @@ export function measuredVideoAsset(
     kind: node.data.kind,
     ...measurements,
   });
-}
-
-export function keepReferencedVideoAssets(project: VideoEditProject): VideoEditProject {
-  const references = new Set([
-    project.assets[0]!.nodeId,
-    ...project.videoTrack.clips.map(({ assetId }) => assetId),
-    ...project.audioTrack.clips.map(({ assetId }) => assetId),
-  ]);
-  return { ...project, assets: project.assets.filter(({ nodeId }) => references.has(nodeId)) };
 }

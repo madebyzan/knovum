@@ -1,15 +1,20 @@
-import { clamp } from "es-toolkit";
-
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
-import { projectDurationMs } from "./timing";
+import { VIDEO_EDIT_PROJECT_VERSION } from "../model/nodes/schema/video-edit";
 
 export type VideoEditProject = NonNullable<SpaceVideoPayload["videoEditProject"]>;
+export type VideoOutput = VideoEditProject["output"];
 export type VideoClip = VideoEditProject["videoTrack"]["clips"][number];
 export type VideoAsset = VideoEditProject["assets"][number];
 export type VideoAudioClip = VideoEditProject["audioTrack"]["clips"][number];
-export type VideoTransition = NonNullable<VideoClip["transition"]>;
+export type VideoTransition = VideoEditProject["transitions"][number];
+export type VideoTransitionKind = VideoTransition["kind"];
+export type VideoTransform = VideoClip["transform"];
 export type VideoTextOverlay = VideoEditProject["textTrack"]["items"][number];
 export type VideoTextStyle = VideoTextOverlay["style"];
+
+const DEFAULT_BACKGROUND = "#000000";
+export const STILL_IMAGE_MS = 4_000;
+export const MIN_CLIP_MS = 100;
 
 interface VideoEditProjectSource {
   nodeId: string;
@@ -18,25 +23,40 @@ interface VideoEditProjectSource {
   sourceWidth: number;
   sourceHeight: number;
 }
-function defaultVideoTransform(): VideoClip["transform"] {
-  return { rotation: 0, flipHorizontal: false, flipVertical: false, fit: "contain", zoom: 1 };
+
+export function defaultTransform(): VideoTransform {
+  return {
+    x: 0,
+    y: 0,
+    scale: 1,
+    rotation: 0,
+    opacity: 1,
+    fit: "contain",
+    flipHorizontal: false,
+    flipVertical: false,
+  };
 }
-export function createVideoClip(assetId: string, durationMs: number): VideoClip {
+
+export function createVideoClip(
+  assetId: string,
+  window: { sourceOutMs: number; timelineStartMs: number },
+): VideoClip {
   return {
     id: crypto.randomUUID(),
     assetId,
-    startMs: 0,
-    endMs: durationMs,
+    sourceInMs: 0,
+    sourceOutMs: window.sourceOutMs,
+    timelineStartMs: window.timelineStartMs,
+    transform: defaultTransform(),
     volume: 1,
     fadeInMs: 0,
     fadeOutMs: 0,
-    transform: defaultVideoTransform(),
-    transition: null,
   };
 }
+
 export function createVideoEditProject(source: VideoEditProjectSource): VideoEditProject {
   return {
-    version: 1,
+    version: VIDEO_EDIT_PROJECT_VERSION,
     sourceRevision: source.sourceRevision,
     assets: [
       {
@@ -52,27 +72,36 @@ export function createVideoEditProject(source: VideoEditProjectSource): VideoEdi
       width: Math.max(2, source.sourceWidth - (source.sourceWidth % 2)),
       height: Math.max(2, source.sourceHeight - (source.sourceHeight % 2)),
       frameRate: 30,
+      background: DEFAULT_BACKGROUND,
     },
-    videoTrack: { clips: [createVideoClip(source.nodeId, source.durationMs)] },
+    videoTrack: {
+      clips: [createVideoClip(source.nodeId, { sourceOutMs: source.durationMs, timelineStartMs: 0 })],
+    },
+    transitions: [],
     audioTrack: { clips: [] },
     textTrack: { items: [] },
   };
 }
-export function addTextOverlay(
-  project: VideoEditProject,
-  startMs: number,
-  family: string,
-  text: string,
-): VideoEditProject {
-  const durationMs = projectDurationMs(project);
-  const boundedStart = clamp(Math.round(startMs), 0, Math.max(0, durationMs - 100));
-  const item: VideoTextOverlay = {
-    id: crypto.randomUUID(),
-    startMs: boundedStart,
-    endMs: clamp(boundedStart + 3_000, boundedStart + 100, durationMs),
-    text,
-    placement: "bottom",
-    style: { family, weight: 400, size: 30, color: "#FFFFFF", preset: "outline" },
+
+export function defaultTextStyle(family: string): VideoTextStyle {
+  return {
+    family,
+    weight: 600,
+    italic: false,
+    size: 48,
+    color: "#FFFFFF",
+    align: "center",
+    decoration: "outline",
+    decorationStrength: 3,
+    decorationColor: "#000000",
   };
-  return { ...project, textTrack: { items: [...project.textTrack.items, item] } };
+}
+
+export function createTextOverlay(
+  startMs: number,
+  endMs: number,
+  style: VideoTextStyle,
+  text: string,
+): VideoTextOverlay {
+  return { id: crypto.randomUUID(), startMs, endMs, text, x: 0.5, y: 0.82, style };
 }

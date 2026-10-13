@@ -814,12 +814,21 @@ migration and focus restoration remain responsibilities of the existing bar and 
 
 ### Lightweight video workbench
 
-The video editor is a compact same-window desktop workbench. Reka splitters own the material/preview/
+The video editor is a compact same-window desktop workbench. Reka splitters own the library/stage/
 selection-inspector columns and the stage/timeline division. Selection opens its owning inspector;
-closing it restores ruler focus. Materials reuse managed Space imports and existing media players.
-The timeline exposes visual clips, boundary transitions, text and independent audio rows, with a
-shared playhead, millisecond timecode, output-frame stepping, pointer trim handles and keyboard trim.
-Clip settings include precise in/out fields, volume, framing and fades; audio settings distinguish
-source time from timeline time. Output resolution and frame rate live in a labelled settings popover.
-Unavailable materials and preparation errors remain visible. All edits share the project's undo/redo
+closing it restores ruler focus. The library is a tabbed rail of materials, text and transitions that
+reuses managed Space imports and existing media players. The stage paints one canvas frame and hosts
+direct manipulation: a selected clip shows move, corner-scale and rotate affordances, a selected
+overlay is dragged to any position, and the frame can be zoomed or fitted without affecting output
+settings. The timeline exposes placed visual clips with filmstrip thumbnails, cut transitions, text
+and independent audio lanes with waveforms, over a pixels-per-second scale with pointer-anchored
+zoom, a shared playhead, millisecond timecode, output-frame stepping, pointer trim handles, clip
+dragging and keyboard trim; dragged edges snap to clip edges, the playhead and the frame grid.
+Clip settings include precise in/out fields, timeline position, volume, framing, free transform and
+fades; audio settings distinguish source time from timeline time and expose the lane. Transition
+settings expose the kind and a duration bounded by the media the cut can spare. Output resolution,
+frame rate and background colour live in a labelled settings popover. Unavailable materials and
+preparation errors remain visible, and a project stored in an obsolete shape states that plainly and
+offers a fresh edit of the unchanged source. All edits share the project's undo/redo
 history; saving and native rendering stay in the workbench header.
+

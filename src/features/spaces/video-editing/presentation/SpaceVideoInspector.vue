@@ -1,131 +1,62 @@
 <script setup lang="ts">
 import { X } from "@lucide/vue";
-import { TabsContent, TabsList, TabsRoot, TabsTrigger } from "reka-ui";
-import { computed, shallowRef, watch } from "vue";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
-import type { VideoEditProject } from "../project";
 import SpaceVideoAudioInspector from "./SpaceVideoAudioInspector.vue";
-import SpaceVideoCaptionNavigator from "./SpaceVideoCaptionNavigator.vue";
 import SpaceVideoClipInspector from "./SpaceVideoClipInspector.vue";
 import SpaceVideoTextInspector from "./SpaceVideoTextInspector.vue";
+import SpaceVideoTransitionInspector from "./SpaceVideoTransitionInspector.vue";
+import type { VideoEditor } from "./use-video-editor";
 
-const props = defineProps<{
-  modelValue: VideoEditProject;
-  selectedClipId?: string | undefined;
-  selectedTextId?: string | undefined;
-  selectedAudioId?: string | undefined;
-}>();
-const emit = defineEmits<{
-  edit: [project: VideoEditProject, mergeKey?: string];
-  close: [];
-  selectText: [id: string];
-  addText: [];
-}>();
-const selectedClip = computed(() =>
-  props.modelValue.videoTrack.clips.find(({ id }) => id === props.selectedClipId),
-);
-const selectedText = computed(() =>
-  props.modelValue.textTrack.items.find(({ id }) => id === props.selectedTextId),
-);
-const selectedAudio = computed(() =>
-  props.modelValue.audioTrack.clips.find(({ id }) => id === props.selectedAudioId),
-);
-const tab = shallowRef<"captions" | "text">("text");
-watch(
-  () => !!props.selectedTextId,
-  (isText, wasText) => {
-    if (isText && !wasText) tab.value = "text";
-  },
-);
-function setTab(value: unknown) {
-  if (value === "captions" || value === "text") tab.value = value;
-}
-function addText() {
-  tab.value = "text";
-  emit("addText");
-}
+const props = defineProps<{ editor: VideoEditor }>();
+const { t } = useI18n();
+const { selection } = props.editor;
+
+const title = computed(() => {
+  const kind = selection.selection.value?.kind;
+  if (kind === "clip") return t("spaces.media.videoEditor.clip.selected");
+  if (kind === "text") return t("spaces.media.videoEditor.tracks.text");
+  if (kind === "audio") return t("spaces.media.videoEditor.tracks.audio");
+  return t("spaces.media.videoEditor.transitions.title");
+});
 </script>
 
 <template>
   <aside
     class="flex h-full min-h-0 flex-col overflow-hidden border-l border-stroke-divider bg-surface-panel"
-    :aria-label="$t('spaces.media.videoEditor.videoSettings')"
-    @keydown.esc.prevent.stop="emit('close')"
+    :aria-label="title"
+    @keydown.esc.prevent.stop="selection.clear()"
   >
-    <TabsRoot
-      v-if="selectedText"
-      :model-value="tab"
-      class="flex min-h-0 flex-1 flex-col"
-      @update:model-value="setTab"
-    >
-      <div class="flex h-11 shrink-0 items-center border-b border-stroke-divider px-3">
-        <TabsList
-          :aria-label="$t('spaces.media.videoEditor.text.tools')"
-          class="flex h-full flex-1 items-stretch gap-5"
-        >
-          <TabsTrigger
-            value="captions"
-            class="border-b-2 border-transparent px-1 text-caption text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:border-stroke-contrast data-[state=active]:font-semibold data-[state=active]:text-fg-primary"
-            >{{ $t("spaces.media.videoEditor.tabs.captions") }}</TabsTrigger
-          >
-          <TabsTrigger
-            value="text"
-            class="border-b-2 border-transparent px-1 text-caption text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:border-stroke-contrast data-[state=active]:font-semibold data-[state=active]:text-fg-primary"
-            >{{ $t("spaces.media.videoEditor.tabs.text") }}</TabsTrigger
-          >
-        </TabsList>
-        <UiIconButton :label="$t('spaces.media.videoEditor.closeInspector')" size="sm" @click="emit('close')">
-          <X class="size-3.5" />
-        </UiIconButton>
-      </div>
-      <TabsContent value="captions" class="flex min-h-0 flex-1 flex-col outline-none">
-        <SpaceVideoCaptionNavigator
-          :items="modelValue.textTrack.items"
-          :selected-text-id="selectedTextId"
-          @select="emit('selectText', $event)"
-          @add="addText"
-        />
-      </TabsContent>
-      <TabsContent value="text" class="min-h-0 flex-1 outline-none">
-        <UiScrollArea class="h-full">
-          <SpaceVideoTextInspector
-            :project="modelValue"
-            :item="selectedText"
-            @edit="(project, mergeKey) => emit('edit', project, mergeKey)"
-          />
-        </UiScrollArea>
-      </TabsContent>
-    </TabsRoot>
-    <template v-else-if="selectedClip">
-      <div class="flex h-11 shrink-0 items-center justify-between border-b border-stroke-divider px-3">
-        <h2 class="text-caption font-semibold">{{ $t("spaces.media.videoEditor.clip.selected") }}</h2>
-        <UiIconButton :label="$t('spaces.media.videoEditor.closeInspector')" size="sm" @click="emit('close')">
-          <X class="size-3.5" />
-        </UiIconButton>
-      </div>
-      <UiScrollArea class="min-h-0 flex-1">
-        <SpaceVideoClipInspector
-          :project="modelValue"
-          :clip="selectedClip"
-          @edit="(project, mergeKey) => emit('edit', project, mergeKey)"
-        />
-      </UiScrollArea>
-    </template>
-    <template v-else-if="selectedAudio">
-      <div class="flex h-11 shrink-0 items-center justify-between border-b border-stroke-divider px-3">
-        <h2 class="text-caption font-semibold">{{ $t("spaces.media.videoEditor.tracks.audio") }}</h2>
-        <UiIconButton :label="$t('spaces.media.videoEditor.closeInspector')" size="sm" @click="emit('close')"
-          ><X class="size-3.5"
-        /></UiIconButton>
-      </div>
-      <UiScrollArea class="min-h-0 flex-1"
-        ><SpaceVideoAudioInspector
-          :project="modelValue"
-          :clip="selectedAudio"
-          @edit="(project, mergeKey) => emit('edit', project, mergeKey)"
-      /></UiScrollArea>
-    </template>
+    <div class="flex h-10 shrink-0 items-center justify-between border-b border-stroke-divider px-3">
+      <h2 class="text-caption font-semibold">{{ title }}</h2>
+      <UiIconButton
+        :label="t('spaces.media.videoEditor.closeInspector')"
+        size="sm"
+        @click="selection.clear()"
+      >
+        <X class="size-3.5" />
+      </UiIconButton>
+    </div>
+    <UiScrollArea class="min-h-0 flex-1">
+      <SpaceVideoClipInspector v-if="selection.clip.value" :editor="editor" :clip="selection.clip.value" />
+      <SpaceVideoTextInspector
+        v-else-if="selection.text.value"
+        :editor="editor"
+        :item="selection.text.value"
+      />
+      <SpaceVideoAudioInspector
+        v-else-if="selection.audio.value"
+        :editor="editor"
+        :clip="selection.audio.value"
+      />
+      <SpaceVideoTransitionInspector
+        v-else-if="selection.transition.value"
+        :editor="editor"
+        :transition="selection.transition.value"
+      />
+    </UiScrollArea>
   </aside>
 </template>

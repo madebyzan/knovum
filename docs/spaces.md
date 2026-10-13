@@ -31,7 +31,8 @@ tab. Tabs and unsaved memory drafts do not survive application restart. Document
 saved video projects retain their existing durable storage owners.
 
 Document sessions own their drafts; retained Tiptap instances own document history and selection.
-Video sessions own project drafts, history, selected items, playback position and timeline zoom.
+Video sessions own project drafts, history, the selected item, playback position and the rejection
+state of a project stored in an obsolete shape.
 Only the active editor registers commands. Hidden video views release media DOM and thumbnail work;
 proxy preparation is cancelled while hidden. Document timers pause while inactive, and navigation
 flushes pending document writes before changing the active Space. Save failures retain the draft and
@@ -483,34 +484,61 @@ Multi-angle generation accepts
 subject or camera movement, yaw from -90 to 90 degrees, pitch from -30 to 60 degrees, and
 close-up, medium or wide-angle framing. Its preview is an interactive orientation guide; the
 model generates the actual new view. Video editing opens a same-window workbench because
-transport, playhead, ordered clips and timed text require persistent timeline context. A strict
-v1 `videoEditProject` stores revision-bound managed asset references, explicit output dimensions and
-frame rate, one ordered visual track, independent audio clips and a timed-text track. The first asset
+transport, playhead, placed clips and timed text require persistent timeline context. A strict
+v2 `videoEditProject` stores revision-bound managed asset references, explicit output dimensions,
+frame rate and background colour, one visual track of absolutely placed clips, a transition
+collection anchored to cuts, independent audio clips on lanes and a timed-text track. Clips carry
+their own `timelineStartMs`, so a project may expose intentional gaps; a gap shows the project
+background in preview and in export. The first asset
 retains the owning video identity. Local videos, still images and audio are selected from the owning
 Space; the native multiple-file dialog uses the existing managed import pipeline. Asset references
-contain no file-path authority. Obsolete pre-release project shapes are rejected explicitly.
+contain no file-path authority. Obsolete pre-release project shapes, including the pre-release v1
+shape, are rejected explicitly: the workbench states that the stored project cannot be opened and
+offers a new edit from the unchanged source instead of migrating or silently resetting it.
 
-The visual track supports insert, reorder, duplicate, split, source in/out trimming, per-clip volume,
-rotation, flips, contain/cover framing, zoom and fades. A still image has an editable display duration.
-Dissolve and directional wipes belong to the boundary between adjacent clips: their overlap shortens
-the total timeline, and incoming plus outgoing overlaps must leave at least 100 ms of each clip.
-Changing a connected clip pair removes that pair's transition. Ripple edits retime text and audio
-starts in one operation; tracks outside the remaining project are removed. Reordering retains their
-absolute times. Audio has independent source in/out, timeline start, volume and fades.
+The visual track supports insert, reorder, duplicate, split, dragging a clip to a new timeline
+position, closing a gap, source in/out trimming, per-clip volume and fades, and a free transform of
+normalized offset, scale, rotation, opacity, contain/cover framing and flips. Transform values are
+manipulated directly on the stage: dragging moves the layer, corner handles scale it and a top handle
+rotates it, with snapping to the frame centre and quarter turns that Alt disables. A still image has
+an editable display duration and starts at four seconds. No clip is shorter than 100 ms.
+
+A transition is its own record anchored to the cut after one clip. Its duration is exactly the
+overlap it creates, bounded by 100 ms, five seconds and the media both neighbours can spare;
+applying, resizing or removing it retimes the following clips, text and audio in one operation.
+The eleven kinds are a dissolve, fades through black and white, four directional wipes and four
+directional slides, each mapping one-to-one onto the FFmpeg `xfade` transition of the same name so
+that preview and export cannot diverge. Removing, splitting or detaching a connected clip pair
+retires that pair's transition. Ripple edits retime text and audio starts in one operation; music
+that extends past the shortened project is trimmed to the timeline rather than discarded, and text
+that no longer fits is removed. Audio has independent source in/out, timeline start, volume, fades
+and up to four lanes; a lane change that would overlap existing audio is refused.
 
 Rust prepares revision-keyed, short-GOP editing proxies for video; initialization, material admission
 and video preview use that canonical preparation path. Proxy decoding determines the editing frame
 aspect ratio and duration; users select final output resolution independently. Video frames never
-cross IPC. Preparation is cancellable and failures remain visible. A shared animation-frame clock
-synchronizes active video layers and audio, suspending while those sources buffer. Preview uses the
-same overlap, orientation, framing, zoom and gain rules as export. Pointer scrubbing and exact output
-frame stepping are separate from integer-millisecond persisted edit intervals; trim handles snap to
-the output frame grid, with Alt enabling millisecond precision.
+cross IPC. Preparation is cancellable and failures remain visible. One animation-frame clock drives a
+canvas compositor and a single audio graph: every visible layer, overlay and audio lane is painted
+and mixed per frame without Vue reactivity in the render path. A bounded media pool owns the decoding
+elements, pre-rolls the media of the next cut 1.2 seconds ahead and parks it on an exact position, so
+a cut or a transition never starts with an undecoded source. During playback drift is absorbed by
+trimming the element playback rate by at most six percent; a seek happens only beyond an
+unrecoverable 300 ms gap, which is what removes the chunked, dropped-frame playback of the pre-release
+preview. Preview uses the same geometry, framing, opacity, gain, fade and transition math as export.
+Pointer scrubbing and exact output frame stepping are separate from integer-millisecond persisted edit
+intervals; trim handles and dragged clips snap to clip edges, the playhead and the output frame grid,
+with Alt enabling millisecond precision.
 
-A resizable material browser, preview and selected-item inspector sit above the resizable timeline.
-The inspector is absent until a clip, audio clip or text item is selected; closing it returns focus to
-the ruler. Timed text is selectable from preview and timeline, with searchable subtitles, placement,
-installed font family and face weight, size, color and four export-backed styles. Text size remains
+A tabbed library of materials, text and transitions, the stage and the selected-item inspector sit
+above the resizable timeline. The inspector is absent until a clip, transition, audio clip or text
+item is selected; closing it returns focus to the ruler. The timeline is scaled in pixels per second:
+zooming keeps the time under the pointer fixed, fitting shows the whole project with trailing room,
+ruler steps coarsen as the scale shrinks, and the view follows the playhead only once it leaves the
+comfortable band. Filmstrip thumbnails and audio waveforms are decoded in bounded background work
+keyed by asset revision and are released with the materials that produced them. Timed text is
+selectable from the stage and the timeline and is positioned freely by dragging it on the frame, with
+searchable subtitles, installed font family and face weight, size, colour, alignment and four
+export-backed styles. Text size remains
 720p-relative; ASS resolution follows the explicit output frame. A missing selected font blocks
 export. Each overlay stores its full style and preserves its text whitespace across saving and rendering. Application commands own local shortcuts without
 feature-level global keyboard listeners.
@@ -543,8 +571,11 @@ and [designing for macOS](https://developer.apple.com/design/human-interface-gui
   uses millisecond precision and never calls an arbitrary 100 ms step a video frame.
 - Save is explicit, asynchronous work cannot be started twice, and closing with a dirty project
   offers Save, Discard, and Cancel. Failed preview preparation remains visible and retryable.
-- Preview and export share clip ranges, per-clip volume, orientation, and timed-text placement;
-  a removed or shortened interval ripples the text track by the same duration.
+- Preview and export share clip placement, per-clip volume, transform, transition weighting and
+  timed-text position; a removed or shortened interval ripples the text and audio tracks by the same
+  duration.
+- Direct manipulation on the stage and on the timeline is reversible, snaps to meaningful anchors,
+  and reports the resulting value in the inspector rather than only in the gesture.
 
 URL paste reads clipboard HTML, text and, on macOS, the native `public.url` format in one typed Rust operation before applying an explicit product-owned content-URL policy for selected media platforms: YouTube, Bilibili, Douyin, TikTok, Instagram, Vimeo, X/Twitter, and Facebook. Direct media resources and recognized platform content links enter yt-dlp acquisition. The capture projection appears at the paste location as compact desktop transfer chrome rather than an empty media cover; its screen size is capped when zooming in so temporary feedback does not balloon over the canvas. First-use tool preparation and media downloading show measured bytes; resolving shows indeterminate activity; finalizing shows measured media time when FFmpeg prepares a playable asset. yt-dlp prefers H.264/AAC streams, and the import stage converts other selected codecs to H.264/AAC in MP4 or AAC in M4A before the asset is committed. The node persists the canonical local asset size and its media origin (platform/extractor, original URL, and source ID); the canvas shows platform identity, while the inspector exposes origin and file details. The projection transitions into the persisted node on success and remains in place with retry/dismiss actions on failure. Platform homepages, profiles, and all other HTTP(S) URLs become Saved Websites immediately. The automatic clipboard path neither enumerates yt-dlp extractors nor probes arbitrary webpages for embedded video; this avoids blocking ordinary website capture on media-tool startup or network timeouts. A recognized media URL that cannot be acquired reports the media failure instead of silently changing node type. Clipboard file paste is a separate trusted import source: Rust verifies each requested path against the current native clipboard file list before staging it; dialog and drop imports continue to require their explicit filesystem scope.
 

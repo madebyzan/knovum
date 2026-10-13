@@ -2,52 +2,107 @@
   "edit": "ビデオの編集",
   "title": "ビデオ エディター",
   "loading": "ビデオ エディターを読み込み中…",
+  "closeInspector": "編集パネルを閉じる",
   "preview": {
     "optimizing": "バックグラウンドでプレビューを最適化しています…",
     "retry": "プレビューの準備を再試行",
-    "sourceUnavailable": "ビデオソースが利用できません。ビデオを再インポートして編集します。",
     "proxyFailed": "レスポンシブなプレビューを準備できませんでした",
-    "durationUnavailable": "動画の長さを読み取れませんでした",
     "metadataUnavailable": "ビデオのフレーム寸法を読み取れませんでした",
-    "unavailable": "ビデオプレビューを開けませんでした"
+    "stage": "映像フレーム",
+    "zoomIn": "拡大",
+    "zoomOut": "縮小",
+    "fit": "画面に合わせる"
+  },
+  "obsolete": {
+    "title": "この編集プロジェクトは旧形式です",
+    "description": "保存されたプロジェクトは現在のエディターでは開けません。元の動画から新しく編集を始めてください。ソースファイルは変更されません。",
+    "action": "新しく編集を始める"
+  },
+  "library": {
+    "title": "ライブラリ",
+    "media": "素材",
+    "text": "テキスト",
+    "transitions": "トランジション"
+  },
+  "materials": {
+    "title": "素材",
+    "import": "素材を読み込む",
+    "search": "素材を検索",
+    "empty": "一致する素材がありません。動画、画像、音声を読み込んでください。",
+    "add": "「{title}」をタイムラインに追加",
+    "preparing": "素材の読み込みを準備中…",
+    "unavailable": "素材が変更されたか、利用できません。",
+    "noRoom": "この素材を置ける空きがタイムラインにありません。"
   },
   "tracks": {
     "video": "ビデオ",
     "audio": "オーディオ",
-    "text": "テキスト"
+    "text": "テキスト",
+    "lane": "レーン"
   },
   "timeline": {
-    "thumbnailFailed": "タイムラインのサムネイルを生成できませんでした",
     "zoomOut": "タイムラインのズームアウト",
     "zoomIn": "タイムラインのズーム",
     "fit": "ビデオ全体をフィット",
-    "seek": "シーク タイムライン"
+    "seek": "シーク タイムライン",
+    "clearSelection": "選択を解除"
+  },
+  "clip": {
+    "selected": "選択されたクリップ",
+    "volume": "ボリューム",
+    "split": "分割",
+    "inPoint": "開始位置（秒）",
+    "outPoint": "終了位置（秒）",
+    "startsAt": "開始 (秒)",
+    "endsAt": "終了 (秒)",
+    "moveLeft": "前に移動",
+    "moveRight": "後ろに移動",
+    "duplicate": "クリップを複製",
+    "closeGap": "隙間を詰める",
+    "placement": "タイムライン上の位置"
+  },
+  "stage": {
+    "move": "クリップを移動",
+    "resize": "クリップを拡大縮小",
+    "rotate": "クリップを回転",
+    "moveText": "テキストを移動"
+  },
+  "framing": {
+    "title": "画面の配置",
+    "contain": "全体を表示",
+    "cover": "画面いっぱいに表示",
+    "scale": "拡大率",
+    "rotation": "回転",
+    "opacity": "不透明度",
+    "reset": "リセット",
+    "hint": "フレーム上をドラッグで配置、四隅で拡大縮小、上のハンドルで回転します。Alt でスナップを解除できます。"
+  },
+  "fades": {
+    "in": "フェードイン（秒）",
+    "out": "フェードアウト（秒）"
   },
   "text": {
-    "tools": "テキスト ツール",
     "invalidColor": "#FFFFFF などの 6 桁の 16 進数の色を入力します。",
     "presets": {
       "title": "プリセット",
-      "plain": "無地",
-      "outline": "アウトライン",
+      "plain": "標準",
+      "outline": "縁取り",
       "shadow": "影",
-      "badge": "バッジ"
+      "box": "ボックス"
     },
-    "placement": "位置",
     "add": "テキストの追加",
     "content": "テキスト",
-    "verticalAlignment": {
-      "top": "トップ",
-      "center": "中心",
-      "bottom": "下"
+    "default": "テキスト",
+    "alignment": "配置",
+    "alignments": {
+      "left": "左寄せ",
+      "center": "中央",
+      "right": "右寄せ"
     },
-    "default": "テキスト"
+    "strength": "装飾の太さ",
+    "decorationColor": "装飾の色",
+    "dragHint": "フレーム上でテキストをドラッグすると自由に配置できます。"
   },
-  "tabs": {
-    "captions": "キャプション",
-    "text": "テキスト"
-  },
-  "closeInspector": "編集パネルを閉じる",
   "captions": {
     "search": "検索キャプション",
     "none": "まだキャプションはありません。上に 1 つ追加します。",
@@ -62,19 +117,53 @@
     "size": "サイズ (720p)",
     "color": "テキストの色"
   },
-  "videoSettings": "ビデオ設定",
-  "clip": {
-    "selected": "選択されたクリップ",
-    "volume": "ボリューム",
-    "rotate": "回転",
-    "split": "分割",
-    "inPoint": "開始位置（秒）",
-    "outPoint": "終了位置（秒）",
-    "startsAt": "開始 (秒)",
-    "endsAt": "終了 (秒)",
-    "moveLeft": "前に移動",
-    "moveRight": "後ろに移動",
-    "duplicate": "クリップを複製"
+  "transitions": {
+    "title": "トランジション",
+    "choose": "トランジションを選択",
+    "duration": "長さ（秒）",
+    "hint": "トランジションは隣接するクリップを重ね、全体の長さを短くします。",
+    "remove": "トランジションを削除",
+    "target": "{time} 秒のカットに適用",
+    "unavailable": "隣り合う 2 つのクリップに 100 ミリ秒以上の余裕が必要です。",
+    "kinds": {
+      "dissolve": "ディゾルブ",
+      "fadeBlack": "黒へフェード",
+      "fadeWhite": "白へフェード",
+      "wipeLeft": "左へワイプ",
+      "wipeRight": "右へワイプ",
+      "wipeUp": "上へワイプ",
+      "wipeDown": "下へワイプ",
+      "slideLeft": "左へスライド",
+      "slideRight": "右へスライド",
+      "slideUp": "上へスライド",
+      "slideDown": "下へスライド"
+    }
+  },
+  "output": {
+    "title": "出力設定",
+    "size": "画面サイズと解像度",
+    "frameRate": "フレームレート",
+    "background": "背景色"
+  },
+  "playback": {
+    "stepBackward": "前の出力フレーム",
+    "stepForward": "次の出力フレーム",
+    "goToStart": "先頭へ",
+    "goToEnd": "末尾へ"
+  },
+  "trim": {
+    "start": "クリップ開始のトリム",
+    "end": "クリップの端をトリム",
+    "textStart": "テキストの開始をトリムする",
+    "textEnd": "テキストの終了をトリミング"
+  },
+  "timing": {
+    "invalid": "{min}～{max} 秒の値を入力してください。"
+  },
+  "unsaved": {
+    "title": "このビデオへの変更を保存しますか?",
+    "status": "未保存の変更",
+    "description": "保存せずに閉じると、編集内容は失われます。"
   },
   "project": {
     "saved": "ビデオ編集プロジェクトが保存されました"
@@ -88,58 +177,6 @@
       "renderingVideoEdit": "レンダリング ビデオ",
       "savingResource": "リソースの保存"
     }
-  },
-  "playback": {
-    "stepBackward": "前の出力フレーム",
-    "stepForward": "次の出力フレーム"
-  },
-  "trim": {
-    "start": "クリップ開始のトリム",
-    "end": "クリップの端をトリム",
-    "textStart": "テキストの開始をトリムする",
-    "textEnd": "テキストの終了をトリミング"
-  },
-  "unsaved": {
-    "title": "このビデオへの変更を保存しますか?",
-    "status": "未保存の変更",
-    "description": "保存せずに閉じると、編集内容は失われます。"
-  },
-  "materials": {
-    "title": "素材",
-    "import": "素材を読み込む",
-    "search": "素材を検索",
-    "empty": "一致する素材がありません。動画、画像、音声を読み込んでください。",
-    "add": "「{title}」をタイムラインに追加",
-    "preparing": "素材の読み込みを準備中…",
-    "unavailable": "素材が変更されたか、利用できません。",
-    "audioHint": "素材一覧から音楽を追加してください。"
-  },
-  "timing": {
-    "invalid": "{min}～{max} 秒の値を入力してください。"
-  },
-  "fades": {
-    "in": "フェードイン（秒）",
-    "out": "フェードアウト（秒）"
-  },
-  "framing": {
-    "title": "画面の配置",
-    "contain": "全体を表示",
-    "cover": "画面いっぱいに表示",
-    "zoom": "ズーム"
-  },
-  "output": {
-    "title": "出力設定",
-    "size": "画面サイズと解像度",
-    "frameRate": "フレームレート"
-  },
-  "transitions": {
-    "title": "トランジション",
-    "choose": "トランジションを選択",
-    "dissolve": "ディゾルブ",
-    "wipeLeft": "左へワイプ",
-    "wipeRight": "右へワイプ",
-    "duration": "長さ（秒）",
-    "hint": "トランジションは隣接するクリップを重ね、全体の長さを短くします。"
   },
   "layout": {
     "materials": "素材一覧の幅を変更",

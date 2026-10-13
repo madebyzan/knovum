@@ -1,95 +1,147 @@
-import { computed, nextTick, shallowRef, type Ref } from "vue";
+import { computed, onScopeDispose, shallowRef, watch, type Ref } from "vue";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { SpaceEditorTab } from "../../workspace/workbench-tab";
-import { useVideoEditProxy } from "../use-video-edit-proxy";
+import { createPreviewEngine } from "../engine/preview-engine";
+import { isVideoMaterial } from "../material";
+import type { VideoEditProject } from "../project";
+import { createFilmstripCache } from "../timeline/filmstrip";
+import { useTimelineGestures } from "../timeline/use-timeline-gestures";
+import { useTimelineView } from "../timeline/use-timeline-view";
+import { createWaveformCache } from "../timeline/waveform";
 import { useVideoSessionStore } from "../video-session-store";
+import { useVideoProjectBootstrap } from "./use-video-bootstrap";
 import { useVideoEditActions } from "./use-video-edit-actions";
-import { useVideoEditProject } from "./use-video-edit-project";
-import { useVideoEditSelection } from "./use-video-edit-selection";
-import { useVideoEditorInspector } from "./use-video-editor-inspector";
 import { useVideoMaterials } from "./use-video-materials";
-import { useVideoProjectPlayback } from "./use-video-project-playback";
+import { useVideoSelection } from "./use-video-selection";
 
+/**
+ * Composition root of the video editor: one session, one preview engine, one timeline view, and the
+ * editing commands that operate on them.
+ */
 export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
   const session = useVideoSessionStore().sessions.get(tab.id);
   if (!session) throw new Error("Video session is unavailable");
   const data = computed(() => session.node.value.data);
-  const proxy = useVideoEditProxy(
-    computed(() => tab.nodeId),
-    computed(() => data.value.sourceRevision),
-    computed(() => tab.spaceId),
-    active,
-  );
   const project = session.project;
-  const editorRoot = shallowRef<HTMLElement | null>(null);
-  const metadata = useVideoEditProject(project, data, tab.nodeId);
+  const draft = shallowRef<VideoEditProject>();
+  const visibleProject = computed(() => draft.value ?? project.value);
   const previewError = shallowRef<string>();
-  const trimDraft = shallowRef<typeof project.value>();
-  const visibleProject = computed(() => trimDraft.value ?? project.value);
-  const selection = useVideoEditSelection(
+  const editorRoot = shallowRef<HTMLElement | null>(null);
+
+  const materials = useVideoMaterials(tab.spaceId, project, (next) => session.history.commit(next));
+  const engine = createPreviewEngine({
+    spaceId: tab.spaceId,
+    project: () => visibleProject.value,
+    materials: () => materials.available.value,
+    onFailed: (error) => {
+      engine.pause();
+      previewError.value = getErrorMessage(error);
+    },
+  });
+  const filmstrips = createFilmstripCache({ sources: engine.sources, onReady: engine.invalidate });
+  const waveforms = createWaveformCache({ sources: engine.sources, onReady: engine.invalidate });
+  const selection = useVideoSelection({
     project,
-    session.selectedClipId,
-    session.selectedTextId,
-    session.selectedAudioId,
-  );
-  const playback = useVideoProjectPlayback(visibleProject, active, session.timelineMs);
-  const inspector = useVideoEditorInspector({ project, editorRoot, selection, playback });
-  const history = session.history;
+    selection: session.selection,
+    seek: engine.seek,
+    pause: engine.pause,
+    playheadMs: () => engine.timeMs.value,
+  });
+  const timeline = useTimelineView({
+    project: () => visibleProject.value,
+    playheadMs: () => engine.timeMs.value,
+    playing: () => engine.playing.value,
+  });
+  const gestures = useTimelineGestures({
+    project: () => project.value!,
+    timeAt: (event) => timeline.timeAt(event),
+    pxPerSecond: () => timeline.pxPerSecond.value,
+    playheadMs: () => engine.timeMs.value,
+    commit: (next, mergeKey) => session.history.commit(next, mergeKey),
+    seek: engine.seek,
+    select: (value) => selection.select(value, { reveal: false }),
+    pause: engine.pause,
+  });
+  watch(gestures.draft, (value) => (draft.value = value));
+
   const actions = useVideoEditActions({
     session,
     active,
-    node: session.node,
     project,
-    history,
+    commit: (next, mergeKey) => session.history.commit(next, mergeKey),
     selection,
-    playback,
+    playheadMs: () => engine.timeMs.value,
+    seek: engine.seek,
+    pause: engine.pause,
+    toggle: engine.toggle,
+    focusText: () => editorRoot.value?.querySelector<HTMLTextAreaElement>("#video-edit-text")?.select(),
   });
-  const materials = useVideoMaterials(tab.spaceId, project, history.commit);
-  const editorError = computed(() => proxy.error.value ?? metadata.metadataError.value);
-  function onMetadataReady(event: Event) {
-    metadata.initializeFromMetadata(event);
-    if (project.value) history.reset(data.value.videoEditProject ?? project.value);
-  }
-  function failPreview(error: unknown) {
-    playback.pause();
-    previewError.value = getErrorMessage(error);
-  }
-  async function onAddText() {
-    actions.addText();
-    await nextTick();
-    const input = editorRoot.value?.querySelector<HTMLTextAreaElement>("#video-edit-text");
-    input?.focus();
-    input?.select();
-  }
+  const bootstrap = useVideoProjectBootstrap({
+    spaceId: tab.spaceId,
+    node: computed(() => (isVideoMaterial(session.node.value) ? session.node.value : undefined)),
+    project,
+    obsolete: session.obsolete,
+    active,
+    onCreated: (created) => {
+      project.value = created;
+      session.history.reset(created);
+    },
+  });
+
+  watch(
+    active,
+    (isActive) => {
+      if (isActive) {
+        engine.seek(session.timelineMs.value);
+        engine.start();
+      } else engine.stop();
+    },
+    { immediate: true },
+  );
+  watch(engine.timeMs, (value) => (session.timelineMs.value = value));
+  watch([project, materials.available], () => engine.invalidate());
+  watch(
+    () => data.value.sourceRevision,
+    () => (previewError.value = undefined),
+  );
+  onScopeDispose(() => {
+    engine.dispose();
+    filmstrips.dispose();
+    waveforms.dispose();
+  });
+
+  const renderable = computed(
+    () =>
+      !session.error.value &&
+      !!project.value &&
+      !previewError.value &&
+      !actions.saving.value &&
+      !actions.rendering.value &&
+      [...project.value.videoTrack.clips, ...project.value.audioTrack.clips].every(({ assetId }) =>
+        materials.available.value.has(assetId),
+      ),
+  );
+
   return {
     session,
     data,
     project,
     visibleProject,
-    trimDraft,
     editorRoot,
-    timelineZoom: session.timelineZoom,
+    engine,
+    timeline,
+    gestures,
+    filmstrips,
+    waveforms,
     selection,
-    playback,
-    inspector,
-    history,
-    actions,
     materials,
-    editorError,
+    actions,
+    bootstrap,
+    history: session.history,
     previewError,
-    failPreview,
-    proxyPath: proxy.path,
-    prepareError: proxy.error,
-    retryProxy: () => {
-      metadata.metadataError.value = undefined;
-      proxy.retry();
-    },
-    onMetadataReady,
-    onAddText,
-    failMetadata: (message: string) => {
-      metadata.metadataError.value = message;
-    },
+    renderable,
+    commit: (next: VideoEditProject, mergeKey?: string) => session.history.commit(next, mergeKey),
   };
 }
 
