@@ -3,7 +3,6 @@ import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { VideoMaterialNode } from "../material";
-import { measureFrameRate } from "../measure-frame-rate";
 import { createVideoEditProject, type VideoEditProject } from "../project";
 import { readVideoMaterial } from "../read-material";
 
@@ -30,14 +29,12 @@ export function useVideoProjectBootstrap(options: BootstrapOptions) {
     preparing.value = true;
     error.value = undefined;
     try {
-      const asset = await readVideoMaterial(node, signal);
+      const { asset, frameRate } = await readVideoMaterial(node, signal);
       if (signal.aborted) return;
       if (asset.kind !== "video" || asset.durationMs < 100 || !asset.width || !asset.height) {
         error.value = t("spaces.media.videoEditor.preview.metadataUnavailable");
         return;
       }
-      const frameRate = await measureFrameRate(node, signal);
-      if (signal.aborted) return;
       options.onCreated(
         createVideoEditProject({
           nodeId: node.id,

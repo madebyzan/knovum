@@ -40,7 +40,7 @@ export function clipHeadroom(project: VideoEditProject, clip: VideoClip) {
   };
 }
 
-export function fadeGain(clip: VideoClip | VideoAudioClip, offsetMs: number) {
+function fadeGain(clip: VideoClip | VideoAudioClip, offsetMs: number) {
   return rampGain(clipLengthMs(clip), clip.fadeInMs, clip.fadeOutMs, offsetMs);
 }
 
@@ -106,12 +106,6 @@ export function compositionAt(project: VideoEditProject, timeMs: number): Active
     layers,
     transition: { transition, progress: Math.min(1, Math.max(0, elapsed / transition.durationMs)) },
   };
-}
-
-export function audioClipsAt(project: VideoEditProject, timeMs: number) {
-  return project.audioTrack.clips.filter(
-    (clip) => timeMs >= clip.timelineStartMs && timeMs < clipEndMs(clip),
-  );
 }
 
 export function textItemsAt(project: VideoEditProject, timeMs: number) {

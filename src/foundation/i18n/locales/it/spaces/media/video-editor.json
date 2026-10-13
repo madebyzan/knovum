@@ -4,7 +4,6 @@
   "loading": "Caricamento dell'editor video…",
   "closeInspector": "Chiudi pannello di modifica",
   "preview": {
-    "optimizing": "Ottimizzazione dell'anteprima in background…",
     "retry": "Riprova la preparazione dell'anteprima",
     "proxyFailed": "Impossibile preparare un'anteprima reattiva",
     "metadataUnavailable": "Impossibile leggere le dimensioni del fotogramma del video",
@@ -60,12 +59,6 @@
     "duplicate": "Duplica clip",
     "closeGap": "Chiudi il vuoto",
     "placement": "Sulla timeline"
-  },
-  "stage": {
-    "move": "Sposta la clip",
-    "resize": "Ridimensiona la clip",
-    "rotate": "Ruota la clip",
-    "moveText": "Sposta il testo"
   },
   "framing": {
     "title": "Inquadratura",

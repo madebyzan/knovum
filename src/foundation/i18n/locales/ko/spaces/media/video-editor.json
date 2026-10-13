@@ -4,7 +4,6 @@
   "loading": "비디오 편집기 로드 중…",
   "closeInspector": "편집 패널 닫기",
   "preview": {
-    "optimizing": "백그라운드에서 미리보기 최적화 중…",
     "retry": "미리보기 준비 재시도",
     "proxyFailed": "반응형 미리보기를 준비할 수 없습니다.",
     "metadataUnavailable": "비디오의 프레임 크기를 읽을 수 없습니다.",
@@ -60,12 +59,6 @@
     "duplicate": "클립 복제",
     "closeGap": "빈 구간 닫기",
     "placement": "타임라인 위치"
-  },
-  "stage": {
-    "move": "클립 이동",
-    "resize": "클립 크기 조절",
-    "rotate": "클립 회전",
-    "moveText": "텍스트 이동"
   },
   "framing": {
     "title": "화면 맞춤",

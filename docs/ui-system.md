@@ -818,10 +818,12 @@ migration and focus restoration remain responsibilities of the existing bar and 
 The video editor is a compact same-window desktop workbench. Reka splitters own the library/stage/
 selection-inspector columns and the stage/timeline division. Selection opens its owning inspector;
 closing it restores ruler focus. The library is a tabbed rail of materials, text and transitions that
-reuses managed Space imports and existing media players. The stage paints one canvas frame and hosts
-direct manipulation: a selected clip shows move, corner-scale and rotate affordances, a selected
-overlay is dragged to any position, and the frame can be zoomed or fitted without affecting output
-settings. The timeline exposes placed visual clips with filmstrip thumbnails, cut transitions, text
+reuses managed Space imports and existing media players. The stage is a Konva scene: the composed
+frame, its layers and its overlays are real scene nodes, so a selected clip is moved, corner-scaled
+and rotated with transformer handles that keep their size at any stage zoom, a selected overlay is
+dragged to any position, clicking a layer selects it, and the frame can be zoomed or fitted without
+affecting output settings. Every manipulation commits to the project, which remains the only source
+of truth; precise values stay available in the inspector for keyboard editing. The timeline exposes placed visual clips with filmstrip thumbnails, cut transitions, text
 and independent audio lanes with waveforms, over a pixels-per-second scale with pointer-anchored
 zoom, a shared playhead, millisecond timecode, output-frame stepping, pointer trim handles, clip
 dragging and keyboard trim; dragged edges snap to clip edges, the playhead and the frame grid.

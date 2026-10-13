@@ -4,7 +4,6 @@
   "loading": "ビデオ エディターを読み込み中…",
   "closeInspector": "編集パネルを閉じる",
   "preview": {
-    "optimizing": "バックグラウンドでプレビューを最適化しています…",
     "retry": "プレビューの準備を再試行",
     "proxyFailed": "レスポンシブなプレビューを準備できませんでした",
     "metadataUnavailable": "ビデオのフレーム寸法を読み取れませんでした",
@@ -60,12 +59,6 @@
     "duplicate": "クリップを複製",
     "closeGap": "隙間を詰める",
     "placement": "タイムライン上の位置"
-  },
-  "stage": {
-    "move": "クリップを移動",
-    "resize": "クリップを拡大縮小",
-    "rotate": "クリップを回転",
-    "moveText": "テキストを移動"
   },
   "framing": {
     "title": "画面の配置",
