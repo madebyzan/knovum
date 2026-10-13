@@ -16,7 +16,7 @@ import type { VideoEditor } from "./use-video-editor";
 const props = defineProps<{ editor: VideoEditor }>();
 const { t } = useI18n();
 const { editor } = props;
-const { timeline, gestures, visibleProject, materials, engine, selection } = editor;
+const { timeline, gestures, visibleProject, materials, selection } = editor;
 const project = computed(() => visibleProject.value!);
 const rows = computed(() => rowOffsets(project.value));
 const px = (timeMs: number) => timeToPx(timeMs, timeline.pxPerSecond.value);
@@ -57,7 +57,7 @@ function dropMaterial(event: DragEvent) {
       >
         <SpaceVideoTimelineRuler :editor="editor" />
         <div
-          class="absolute inset-x-0 border-b border-stroke-divider bg-surface-panel/40"
+          class="absolute inset-x-0 border-b border-stroke-divider bg-surface-muted/50"
           :style="{ top: `${rows.text}px`, height: `${TIMELINE_ROWS.text}px` }"
         >
           <SpaceVideoTimelineText
@@ -87,7 +87,7 @@ function dropMaterial(event: DragEvent) {
         <div
           v-for="lane in rows.lanes"
           :key="lane"
-          class="absolute inset-x-0 border-b border-stroke-divider"
+          class="absolute inset-x-0 border-b border-stroke-divider bg-surface-muted/50"
           :style="{ top: `${rows.lane(lane - 1)}px`, height: `${TIMELINE_ROWS.audio}px` }"
         >
           <SpaceVideoTimelineAudio
@@ -102,7 +102,7 @@ function dropMaterial(event: DragEvent) {
           class="pointer-events-none absolute inset-y-0 z-20 w-px bg-surface-accent"
           :style="{ transform: `translateX(${px(gestures.snapMs.value)}px)` }"
         />
-        <SpaceVideoPlayhead :time-ms="engine.timeMs.value" :px-per-second="timeline.pxPerSecond.value" />
+        <SpaceVideoPlayhead :editor="editor" />
         <button
           v-if="selection.selection.value"
           type="button"

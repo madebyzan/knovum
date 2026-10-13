@@ -14,7 +14,7 @@ const { timeline, gestures, engine, visibleProject } = props.editor;
 const duration = computed(() => (visibleProject.value ? projectDurationMs(visibleProject.value) : 0));
 
 function step(direction: -1 | 1) {
-  if (visibleProject.value) engine.seek(stepFrame(visibleProject.value, engine.timeMs.value, direction));
+  if (visibleProject.value) engine.seek(stepFrame(visibleProject.value, engine.positionMs(), direction));
 }
 </script>
 
@@ -28,8 +28,8 @@ function step(direction: -1 | 1) {
     :aria-label="t('spaces.media.videoEditor.timeline.seek')"
     aria-valuemin="0"
     :aria-valuemax="Math.round(duration)"
-    :aria-valuenow="Math.round(engine.timeMs.value)"
-    :aria-valuetext="formatVideoEditTime(engine.timeMs.value)"
+    :aria-valuenow="Math.round(engine.displayMs.value)"
+    :aria-valuetext="formatVideoEditTime(engine.displayMs.value)"
     @pointerdown="gestures.begin($event, { kind: 'scrub' })"
     @pointermove="gestures.move"
     @pointerup="gestures.finish"

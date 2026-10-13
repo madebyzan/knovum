@@ -16,6 +16,17 @@ function source() {
   });
 }
 
+function measured(frameRate: 24 | 25 | 30 | 60) {
+  return createVideoEditProject({
+    nodeId: "source",
+    sourceRevision: "revision",
+    durationMs: 10_000,
+    sourceWidth: 3840,
+    sourceHeight: 2160,
+    frameRate,
+  });
+}
+
 describe("video edit project contract", () => {
   it("places the owning source at the timeline origin and derives an even output frame", () => {
     const project = source();
@@ -26,6 +37,12 @@ describe("video edit project contract", () => {
     ]);
     expect(projectDurationMs(project)).toBe(10_000);
     expect(videoEditProjectSchema.safeParse(project).success).toBe(true);
+  });
+
+  it("starts the output at the resolution and cadence of the source it was measured from", () => {
+    expect(measured(60).output).toMatchObject({ width: 3840, height: 2160, frameRate: 60 });
+    expect(measured(24).output.frameRate).toBe(24);
+    expect(source().output.frameRate).toBe(30);
   });
 
   it("rejects a project stored under the previous contract instead of migrating it", () => {

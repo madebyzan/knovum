@@ -114,7 +114,7 @@
     "weight": "Schriftstärke",
     "unavailable": "Die Schriftart {family} ist auf diesem Computer nicht installiert. Wählen Sie eine andere Schriftart.",
     "catalogEmpty": "Es sind keine installierten Schriftarten verfügbar.",
-    "size": "Größe (720p)",
+    "size": "Größe",
     "color": "Textfarbe"
   },
   "transitions": {

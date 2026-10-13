@@ -1,4 +1,4 @@
-import pLimit from "p-limit";
+import { shallowRef } from "vue";
 
 import { waitForMediaMetadata } from "../../media/media-element-source";
 import type { PreviewSources } from "../engine/preview-sources";
@@ -6,7 +6,9 @@ import type { VideoMaterialNode } from "../material";
 import type { VideoAsset } from "../project";
 
 const TILE_WIDTH = 72;
-const TILE_LIMIT = 400;
+const TILE_LIMIT = 240;
+/** Tiles waiting to be decoded; the queue is replaced as the viewport moves, never appended to. */
+const QUEUE_LIMIT = 32;
 const BUCKETS_MS = [250, 500, 1_000, 2_000, 5_000, 10_000, 30_000, 60_000];
 
 /** Tile length that keeps filmstrip frames about one tile wide at the current scale. */
@@ -17,49 +19,78 @@ export function filmstripBucketMs(pxPerSecond: number) {
 
 interface FilmstripOptions {
   sources: PreviewSources;
-  onReady: () => void;
+  /** Playback owns the decoder; thumbnail extraction waits for it to stop. */
+  suspended: () => boolean;
+}
+
+interface Work {
+  asset: VideoAsset;
+  node: VideoMaterialNode;
+  bucketMs: number;
+  index: number;
 }
 
 /**
- * Decodes filmstrip tiles for timeline clips. Tiles are keyed by asset and tile length, so zooming
- * reuses what is already decoded, and extraction is serialized to keep decoding away from playback.
+ * Decodes filmstrip tiles for the visible part of the timeline. Work is bounded and replaceable, so
+ * scrolling or zooming abandons tiles nobody is looking at instead of queueing a decode of every
+ * frame of every clip.
  */
 export function createFilmstripCache(options: FilmstripOptions) {
   const tiles = new Map<string, Map<number, ImageBitmap>>();
-  const pending = new Set<string>();
   const extractors = new Map<string, HTMLVideoElement>();
-  const limit = pLimit(1);
+  /** Published snapshot of the decoded tiles; reading it is what makes a lane repaint. */
+  const decoded = shallowRef<ReadonlyMap<string, ReadonlyMap<number, ImageBitmap>>>(new Map());
+  let queue: Work[] = [];
+  let running = false;
+  let announcing = false;
 
   function tile(asset: VideoAsset, bucketMs: number, index: number) {
-    return tiles.get(bucketKey(asset, bucketMs))?.get(index);
+    return decoded.value.get(bucketKey(asset, bucketMs))?.get(index);
   }
 
+  /** Replaces the outstanding work for one clip window with exactly the tiles it still needs. */
   function request(asset: VideoAsset, node: VideoMaterialNode, bucketMs: number, indices: readonly number[]) {
     if (asset.kind !== "video") return;
     const key = bucketKey(asset, bucketMs);
-    const existing = tiles.get(key) ?? new Map<number, ImageBitmap>();
-    tiles.set(key, existing);
-    for (const index of indices) {
-      const identity = `${key}\u0000${index}`;
-      if (existing.has(index) || pending.has(identity) || existing.size >= TILE_LIMIT) continue;
-      pending.add(identity);
-      void fill(identity, existing, index, () => decode(asset, node, bucketMs, index));
+    const bucket = tiles.get(key) ?? new Map<number, ImageBitmap>();
+    tiles.set(key, bucket);
+    const wanted = indices.filter((index) => !bucket.has(index)).slice(0, QUEUE_LIMIT);
+    queue = queue.filter((item) => bucketKey(item.asset, item.bucketMs) !== key);
+    if (bucket.size < TILE_LIMIT) queue.push(...wanted.map((index) => ({ asset, node, bucketMs, index })));
+    void pump();
+  }
+
+  async function pump() {
+    if (running) return;
+    running = true;
+    try {
+      await drain();
+    } finally {
+      running = false;
     }
   }
 
-  async function fill(
-    identity: string,
-    bucket: Map<number, ImageBitmap>,
-    index: number,
-    task: () => Promise<ImageBitmap | undefined>,
-  ) {
-    try {
-      const bitmap = await limit(task);
-      if (bitmap) bucket.set(index, bitmap);
-    } finally {
-      pending.delete(identity);
-      options.onReady();
+  /** One tile at a time: a timeline thumbnail must never outbid playback for the decoder. */
+  async function drain(): Promise<void> {
+    const work = queue.shift();
+    if (!work || options.suspended()) return;
+    const bucket = tiles.get(bucketKey(work.asset, work.bucketMs));
+    if (bucket && !bucket.has(work.index)) {
+      const bitmap = await decode(work).catch(() => undefined);
+      if (bitmap) bucket.set(work.index, bitmap);
+      announce();
     }
+    return drain();
+  }
+
+  /** One repaint per animation frame, however many tiles land in it. */
+  function announce() {
+    if (announcing) return;
+    announcing = true;
+    requestAnimationFrame(() => {
+      announcing = false;
+      decoded.value = new Map(tiles);
+    });
   }
 
   async function extractor(asset: VideoAsset, node: VideoMaterialNode) {
@@ -82,9 +113,9 @@ export function createFilmstripCache(options: FilmstripOptions) {
     return element;
   }
 
-  async function decode(asset: VideoAsset, node: VideoMaterialNode, bucketMs: number, index: number) {
-    const element = await extractor(asset, node);
-    const position = Math.min(asset.durationMs - 1, (index + 0.5) * bucketMs) / 1000;
+  async function decode(work: Work) {
+    const element = await extractor(work.asset, work.node);
+    const position = Math.min(work.asset.durationMs - 1, (work.index + 0.5) * work.bucketMs) / 1000;
     await seek(element, Math.max(0, position));
     const height = Math.max(
       2,
@@ -110,7 +141,11 @@ export function createFilmstripCache(options: FilmstripOptions) {
   return {
     tile,
     request,
+    /** Called when playback stops, so queued tiles resume decoding. */
+    resume: () => void pump(),
     dispose() {
+      queue = [];
+      decoded.value = new Map();
       for (const key of Array.from(extractors.keys())) release(key);
       for (const bucket of tiles.values()) for (const bitmap of bucket.values()) bitmap.close();
       tiles.clear();

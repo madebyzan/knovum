@@ -114,7 +114,7 @@
     "weight": "Peso da fonte",
     "unavailable": "A fonte {family} não está instalada neste computador. Escolha outra fonte.",
     "catalogEmpty": "Nenhuma fonte instalada está disponível.",
-    "size": "Tamanho (720p)",
+    "size": "Tamanho",
     "color": "Cor do texto"
   },
   "transitions": {

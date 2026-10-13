@@ -26,34 +26,52 @@ export interface CompositionFrame {
 
 /**
  * Paints one output frame. Layers are composed over the project background exactly as the export
- * filter graph does, so the stage is a preview of the render rather than a different renderer.
+ * filter graph does, so the stage previews the render rather than approximating it. The surface is
+ * sized to the pixels it actually occupies on screen while every coordinate stays in output space,
+ * so a 19 % stage costs a 19 % fill instead of a full 4K composite per frame.
  */
 export function createCompositor(canvas: HTMLCanvasElement) {
   const context = canvas.getContext("2d", { alpha: false });
   const buffers = [createBuffer(), createBuffer()] as const;
+  const measuring = createBuffer().context;
 
-  function resize(output: VideoOutput) {
+  function surfaceScale(output: VideoOutput) {
+    const ratio = globalThis.devicePixelRatio || 1;
+    const width = canvas.clientWidth || output.width;
+    return Math.max(0.05, Math.min(1, (width * ratio) / output.width));
+  }
+
+  function resize(output: VideoOutput, scale: number) {
+    const width = Math.max(2, Math.round(output.width * scale));
+    const height = Math.max(2, Math.round(output.height * scale));
     for (const surface of [canvas, buffers[0].canvas, buffers[1].canvas]) {
-      if (surface.width === output.width && surface.height === output.height) continue;
-      surface.width = output.width;
-      surface.height = output.height;
+      if (surface.width === width && surface.height === height) continue;
+      surface.width = width;
+      surface.height = height;
     }
+    return { width, height };
   }
 
   function draw(frame: CompositionFrame) {
     if (!context) return;
-    resize(frame.output);
-    context.imageSmoothingQuality = "high";
+    const scale = surfaceScale(frame.output);
+    const size = resize(frame.output, scale);
+    for (const surface of [context, buffers[0].context, buffers[1].context]) {
+      surface.setTransform(scale, 0, 0, scale, 0, 0);
+      surface.imageSmoothingQuality = "high";
+    }
     const [outgoing, incoming] = frame.layers;
     if (frame.transition && outgoing && incoming) {
       paintLayer(buffers[0].context, outgoing, frame.output);
       paintLayer(buffers[1].context, incoming, frame.output);
+      context.setTransform(1, 0, 0, 1, 0, 0);
       drawTransition(context, {
         kind: frame.transition.kind,
         frames: { from: buffers[0].canvas, to: buffers[1].canvas },
         progress: frame.transition.progress,
-        size: frame.output,
+        size,
       });
+      context.setTransform(scale, 0, 0, scale, 0, 0);
     } else if (incoming ?? outgoing) {
       paintLayer(context, (incoming ?? outgoing)!, frame.output);
     } else {
@@ -62,11 +80,10 @@ export function createCompositor(canvas: HTMLCanvasElement) {
     for (const item of frame.texts) drawText(context, item, frame.output);
   }
 
-  return { draw, resize, context, measureText };
-
-  function measureText(item: VideoTextOverlay, output: VideoOutput) {
-    return context ? textBounds(context, item, output) : undefined;
-  }
+  return {
+    draw,
+    measureText: (item: VideoTextOverlay, output: VideoOutput) => textBounds(measuring, item, output),
+  };
 }
 
 function paintBackground(context: CanvasRenderingContext2D, output: VideoOutput) {
@@ -85,13 +102,12 @@ function paintLayer(context: CanvasRenderingContext2D, layer: CompositionLayer, 
   context.globalAlpha = layer.transform.opacity;
   context.drawImage(layer.media, -geometry.width / 2, -geometry.height / 2, geometry.width, geometry.height);
   context.restore();
-  context.globalAlpha = 1;
   if (layer.fade < 1) {
     context.fillStyle = "#000000";
     context.globalAlpha = 1 - layer.fade;
     context.fillRect(0, 0, output.width, output.height);
-    context.globalAlpha = 1;
   }
+  context.globalAlpha = 1;
 }
 
 export type Compositor = ReturnType<typeof createCompositor>;

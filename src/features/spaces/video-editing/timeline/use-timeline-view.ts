@@ -1,5 +1,5 @@
 import { useEventListener, useResizeObserver } from "@vueuse/core";
-import { computed, shallowRef, watch } from "vue";
+import { computed, onScopeDispose, shallowRef } from "vue";
 
 import type { VideoEditProject } from "../project";
 import { projectDurationMs } from "../timing";
@@ -15,8 +15,8 @@ import {
 
 interface TimelineViewOptions {
   project: () => VideoEditProject | undefined;
-  playheadMs: () => number;
-  playing: () => boolean;
+  /** Per-frame playback position; following the playhead must not re-render the lanes. */
+  subscribe: (listener: (timeMs: number, playing: boolean) => void) => () => void;
 }
 
 /**
@@ -46,6 +46,11 @@ export function useTimelineView(options: TimelineViewOptions) {
       durationMs: durationMs.value,
     }),
   );
+  /** Time window on screen, so lanes only decode thumbnails and waveforms that are visible. */
+  const visible = computed(() => ({
+    fromMs: pxToTime(Math.max(0, scrollLeft.value - viewportWidth.value / 2), pxPerSecond.value),
+    toMs: pxToTime(scrollLeft.value + viewportWidth.value * 1.5, pxPerSecond.value),
+  }));
 
   useResizeObserver(viewport, ([entry]) => {
     viewportWidth.value = entry?.contentRect.width ?? 0;
@@ -54,6 +59,18 @@ export function useTimelineView(options: TimelineViewOptions) {
   useEventListener(viewport, "scroll", () => {
     scrollLeft.value = viewport.value?.scrollLeft ?? 0;
   });
+  onScopeDispose(
+    options.subscribe((timeMs, playing) => {
+      const element = viewport.value;
+      if (!element || !playing) return;
+      element.scrollLeft = scrollToReveal({
+        timeMs,
+        pxPerSecond: pxPerSecond.value,
+        scrollLeft: element.scrollLeft,
+        viewportWidth: viewportWidth.value,
+      });
+    }),
+  );
 
   function fit() {
     pxPerSecond.value = fitPxPerSecond(durationMs.value, viewportWidth.value);
@@ -73,11 +90,6 @@ export function useTimelineView(options: TimelineViewOptions) {
     if (viewport.value) viewport.value.scrollLeft = next.scrollLeft;
   }
 
-  function setPxPerSecond(value: number) {
-    pxPerSecond.value = clampPxPerSecond(value);
-    userScaled = true;
-  }
-
   /** Ctrl/Cmd plus wheel zooms around the pointer; a plain wheel scrolls the lanes. */
   function onWheel(event: WheelEvent) {
     if (!(event.ctrlKey || event.metaKey)) return;
@@ -85,17 +97,6 @@ export function useTimelineView(options: TimelineViewOptions) {
     const bounds = viewport.value?.getBoundingClientRect();
     zoom(event.deltaY < 0 ? 1.15 : 1 / 1.15, bounds ? event.clientX - bounds.left : undefined);
   }
-
-  watch([() => options.playheadMs(), () => options.playing()], () => {
-    const element = viewport.value;
-    if (!element || !options.playing()) return;
-    element.scrollLeft = scrollToReveal({
-      timeMs: options.playheadMs(),
-      pxPerSecond: pxPerSecond.value,
-      scrollLeft: element.scrollLeft,
-      viewportWidth: viewportWidth.value,
-    });
-  });
 
   function timeAt(event: { clientX: number }) {
     const element = surface.value;
@@ -113,9 +114,13 @@ export function useTimelineView(options: TimelineViewOptions) {
     contentWidth,
     durationMs,
     ticks,
+    visible,
     fit,
     zoom,
-    setPxPerSecond,
+    setPxPerSecond: (value: number) => {
+      pxPerSecond.value = clampPxPerSecond(value);
+      userScaled = true;
+    },
     onWheel,
     reveal(timeMs: number) {
       const element = viewport.value;
