@@ -4,9 +4,8 @@ import { insertMaterial } from "../edits/material";
 import { addTextOverlay } from "../edits/text";
 import { applyTransition } from "../edits/transition";
 import { setClipTransform } from "../edits/trim";
-import { planPreview } from "../engine/layer-plan";
-import { HARD_SEEK_MS, playbackRateFor } from "../engine/media-sync";
 import { fitRatio, layerGeometry, scaleFromSize } from "../geometry";
+import { buildScene } from "../playback/scene-plan";
 import { createVideoEditProject, defaultTextStyle, type VideoAsset } from "../project";
 import { lastFrameMs, stepFrame } from "../timing";
 
@@ -27,6 +26,10 @@ const music: VideoAsset = {
   height: 0,
 };
 
+const picture = {} as CanvasImageSource;
+const decoded = () => picture;
+const decoding = () => undefined;
+
 function project() {
   const source = createVideoEditProject({
     nodeId: "source",
@@ -38,46 +41,49 @@ function project() {
   return insertMaterial(source, image, 4_000);
 }
 
-describe("preview plan", () => {
+describe("preview scene", () => {
   it("describes a single layer with its own source position outside a transition", () => {
-    const plan = planPreview(project(), 1_000);
-    expect(plan.layers).toHaveLength(1);
-    expect(plan.layers[0]).toMatchObject({ sourceMs: 1_000, gain: 1 });
-    expect(plan.transition).toBeUndefined();
+    const scene = buildScene(project(), 1_000, (_asset, sourceMs) => {
+      expect(sourceMs).toBe(1_000);
+      return picture;
+    });
+    expect(scene.layers).toHaveLength(1);
+    expect(scene.layers[0]).toMatchObject({ fade: 1, image: picture });
+    expect(scene.transition).toBeUndefined();
   });
 
-  it("weights the two layers of a transition so sound and picture match the export", () => {
+  it("carries both layers of a transition with the progress the export uses", () => {
     const initial = project();
     const mixed = applyTransition(initial, initial.videoTrack.clips[0]!.id, "dissolve", 1_000);
-    const plan = planPreview(mixed, 3_250);
-    expect(plan.transition).toMatchObject({ kind: "dissolve", progress: 0.25 });
-    expect(plan.layers.map(({ gain }) => Number(gain.toFixed(4)))).toEqual([0.75, 0.25]);
-    expect(plan.layers.map(({ sourceMs }) => sourceMs)).toEqual([3_250, 250]);
+    const scene = buildScene(mixed, 3_250, decoded);
+    expect(scene.transition).toMatchObject({ kind: "dissolve", progress: 0.25 });
+    expect(scene.layers.map(({ fade }) => Number(fade.toFixed(4)))).toEqual([1, 1]);
   });
 
-  it("plans the media of an upcoming cut so the next clip is already decoded", () => {
-    const plan = planPreview(project(), 3_200);
-    expect(plan.preroll.map(({ asset }) => asset.nodeId)).toEqual(["image"]);
-    expect(planPreview(project(), 1_000).preroll).toEqual([]);
+  it("omits a layer that is still decoding, and the transition it would be part of", () => {
+    const initial = project();
+    const mixed = applyTransition(initial, initial.videoTrack.clips[0]!.id, "dissolve", 1_000);
+    const scene = buildScene(mixed, 3_250, (asset) => (asset.kind === "video" ? picture : undefined));
+    expect(scene.layers).toHaveLength(1);
+    expect(scene.transition).toBeUndefined();
   });
 
-  it("includes the music and text that cover the position", () => {
+  it("includes the text that covers the position and nothing else", () => {
     const initial = addTextOverlay(
       insertMaterial(project(), music, 0),
       500,
       defaultTextStyle("Arial"),
       "Title",
     );
-    const plan = planPreview(initial, 600);
-    expect(plan.audio.map(({ clip }) => clip.assetId)).toEqual(["music"]);
-    expect(plan.texts.map(({ text }) => text)).toEqual(["Title"]);
-    expect(planPreview(initial, 4_000).texts).toEqual([]);
+    expect(buildScene(initial, 600, decoded).texts.map(({ text }) => text)).toEqual(["Title"]);
+    expect(buildScene(initial, 4_000, decoded).texts).toEqual([]);
   });
 
   it("shows nothing but the background inside a gap", () => {
     const initial = project();
-    const plan = planPreview({ ...initial, videoTrack: { clips: [initial.videoTrack.clips[1]!] } }, 1_000);
-    expect(plan.layers).toEqual([]);
+    const gap = { ...initial, videoTrack: { clips: [initial.videoTrack.clips[1]!] } };
+    expect(buildScene(gap, 1_000, decoded).layers).toEqual([]);
+    expect(buildScene(initial, 1_000, decoding).layers).toEqual([]);
   });
 });
 
@@ -101,16 +107,6 @@ describe("preview framing", () => {
     const geometry = layerGeometry(image, moved.videoTrack.clips[1]!.transform, moved.output);
     expect(geometry).toMatchObject({ width: 810, centerX: 960 });
     expect(scaleFromSize(image, moved.output, "contain", geometry.width)).toBeCloseTo(2, 5);
-  });
-});
-
-describe("playback clock", () => {
-  it("trims the playback rate towards the clock and never exceeds a tolerable nudge", () => {
-    expect(playbackRateFor(0)).toBe(1);
-    expect(playbackRateFor(-20)).toBeCloseTo(1.032, 5);
-    expect(playbackRateFor(20)).toBeCloseTo(0.968, 5);
-    expect(playbackRateFor(-10_000)).toBeCloseTo(1.06, 5);
-    expect(playbackRateFor(HARD_SEEK_MS)).toBeCloseTo(0.94, 5);
   });
 
   it("steps whole output frames and stops on the last displayable frame", () => {

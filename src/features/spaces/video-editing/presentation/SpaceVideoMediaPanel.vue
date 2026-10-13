@@ -14,7 +14,7 @@ import type { VideoEditor } from "./use-video-editor";
 
 const props = defineProps<{ editor: VideoEditor }>();
 const { t } = useI18n();
-const { materials, engine } = props.editor;
+const { materials, player } = props.editor;
 const query = shallowRef("");
 const ICONS = { video: Film, image: ImageIcon, audio: Music2 } as const;
 
@@ -41,7 +41,7 @@ function drag(event: DragEvent, node: VideoMaterialNode) {
 }
 
 function add(node: VideoMaterialNode) {
-  void materials.add(node, engine.positionMs());
+  void materials.add(node, player.positionMs());
 }
 </script>
 

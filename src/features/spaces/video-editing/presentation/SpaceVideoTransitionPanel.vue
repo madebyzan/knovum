@@ -26,7 +26,7 @@ import type { VideoEditor } from "./use-video-editor";
 
 const props = defineProps<{ editor: VideoEditor }>();
 const { t } = useI18n();
-const { project, selection, engine, commit } = props.editor;
+const { project, selection, player, commit } = props.editor;
 
 const KINDS: { kind: VideoTransitionKind; icon: unknown }[] = [
   { kind: "dissolve", icon: Blend },
@@ -55,8 +55,8 @@ const target = computed(() => {
           .slice(0, -1)
           .toSorted(
             (left, right) =>
-              Math.abs(clipEndMs(left) - engine.positionMs()) -
-              Math.abs(clipEndMs(right) - engine.positionMs()),
+              Math.abs(clipEndMs(left) - player.positionMs()) -
+              Math.abs(clipEndMs(right) - player.positionMs()),
           )[0];
   return eligible && maxTransitionMs(current, eligible.id) >= 100 ? eligible : undefined;
 });

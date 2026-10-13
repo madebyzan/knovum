@@ -24,7 +24,7 @@ watchEffect(() => {
   const media = asset.value;
   const node = materials.available.value.get(props.clip.assetId);
   if (!surface || !media || !node || size.value.width <= 0) return;
-  waveforms.request(media, node);
+  waveforms.request(media);
   const envelope = waveforms.get(media);
   surface.width = Math.max(1, Math.round(size.value.width));
   surface.height = Math.max(1, Math.round(size.value.height));

@@ -55,7 +55,7 @@ export function useVideoMaterials(
     if (busy.value || !project.value || controller.signal.aborted) return;
     busy.value = true;
     try {
-      const asset = await readVideoMaterial(node, controller.signal);
+      const { asset } = await readVideoMaterial(node, controller.signal);
       const current = project.value;
       if (!current || controller.signal.aborted || !materialMatches(asset, byId.value.get(node.id))) return;
       const next = insertMaterial(current, asset, atMs);
