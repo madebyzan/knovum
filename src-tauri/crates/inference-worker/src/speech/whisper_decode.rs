@@ -30,7 +30,7 @@ pub(super) fn decode(
         &audio.samples,
         &params.profile.language_policy,
         language,
-        first.start,
+        regions,
         cancel,
     )?;
     let mut options = unsafe {
@@ -41,7 +41,7 @@ pub(super) fn decode(
     options.n_threads = i32::from(engine.threads);
     options.beam_search.beam_size = i32::from(params.profile.beam_size);
     options.language = language.as_ptr();
-    options.no_context = true;
+    options.no_context = false;
     options.token_timestamps = true;
     options.print_special = false;
     options.print_progress = false;

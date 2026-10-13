@@ -96,6 +96,27 @@ pub(super) fn segment(
         return Err("invalid_output: Whisper returned incomplete Unicode token text".into());
     }
     super::whisper_words::finish(&mut words, start_ms, end_ms);
+    let end_ms = if let Some(last_word) = words.last() {
+        if end_ms > last_word.end_ms.saturating_add(1_000) {
+            last_word.end_ms.saturating_add(200).min(end_ms)
+        } else {
+            end_ms
+        }
+    } else {
+        end_ms
+    };
+    let start_ms = if let Some(first_word) = words.first() {
+        if first_word.start_ms > start_ms.saturating_add(1_500) {
+            first_word.start_ms.saturating_sub(100).max(start_ms)
+        } else {
+            start_ms
+        }
+    } else {
+        start_ms
+    };
+    if start_ms > end_ms {
+        return Err("invalid_output: Whisper segment timeline is reversed".into());
+    }
     Ok(SpeechTranscriptSegment {
         start_ms,
         end_ms,
