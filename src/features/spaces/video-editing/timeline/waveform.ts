@@ -1,88 +1,47 @@
 import { shallowRef } from "vue";
 
-import type { AudioGraph } from "../engine/audio-graph";
-import type { PreviewSources } from "../engine/preview-sources";
-import type { VideoMaterialNode } from "../material";
+import { assetIdentity } from "../media/asset-cache";
+import { computePeaks } from "../media/audio-peaks";
+import type { AudioLibrary } from "../media/preview-audio";
 import type { VideoAsset } from "../project";
 
 const PEAKS = 1_200;
-const MAX_DECODE_MS = 15 * 60_000;
 
 interface WaveformOptions {
-  sources: PreviewSources;
-  /** The preview's audio context; decoding here keeps the editor on a single context. */
-  audio: AudioGraph;
+  /** The preview's decoded audio; a waveform never decodes a second copy of a source. */
+  library: AudioLibrary;
 }
 
 /**
- * Peak envelopes for audio lanes. Decoding happens once per asset, one asset at a time, because a
- * waveform is a navigation aid and must never compete with playback for memory or decode time.
+ * Peak envelopes for audio lanes, reduced from the buffers the preview already decoded for
+ * playback. A waveform is a navigation aid, so it never triggers its own decode pass.
  */
 export function createWaveformCache(options: WaveformOptions) {
-  /** Published envelopes; reading this is what makes a lane repaint when decoding lands. */
+  /** Published envelopes; reading this is what makes a lane repaint when peaks land. */
   const peaks = shallowRef<ReadonlyMap<string, Float32Array>>(new Map());
   const pending = new Set<string>();
 
-  function get(asset: VideoAsset) {
-    return peaks.value.get(key(asset));
-  }
-
-  function request(asset: VideoAsset, node: VideoMaterialNode) {
-    const identity = key(asset);
-    if (
-      asset.kind !== "audio" ||
-      peaks.value.has(identity) ||
-      pending.has(identity) ||
-      pending.size > 0 ||
-      asset.durationMs > MAX_DECODE_MS
-    )
-      return;
-    pending.add(identity);
-    void fill(identity, asset, node);
-  }
-
-  async function fill(identity: string, asset: VideoAsset, node: VideoMaterialNode) {
-    let envelope = new Float32Array();
-    try {
-      envelope = await decode(asset, node);
-    } finally {
-      pending.delete(identity);
-      peaks.value = new Map(peaks.value).set(identity, envelope);
-    }
-  }
-
-  async function decode(asset: VideoAsset, node: VideoMaterialNode) {
-    const source = options.sources.ready(asset) ?? (await options.sources.load(asset, node));
-    const response = await fetch(source.url);
-    return envelopeOf(await options.audio.decode(await response.arrayBuffer()));
+  function publish(identity: string, envelope: Float32Array) {
+    pending.delete(identity);
+    peaks.value = new Map(peaks.value).set(identity, envelope);
   }
 
   return {
-    get,
-    request,
+    get: (asset: VideoAsset) => peaks.value.get(assetIdentity(asset)),
+    request(asset: VideoAsset) {
+      const identity = assetIdentity(asset);
+      if (asset.kind === "image" || peaks.value.has(identity) || pending.has(identity)) return;
+      pending.add(identity);
+      void options.library.load(asset).then(
+        (buffer) => publish(identity, buffer ? computePeaks(buffer, PEAKS) : new Float32Array()),
+        () => publish(identity, new Float32Array()),
+      );
+    },
     dispose() {
       peaks.value = new Map();
       pending.clear();
     },
   };
-}
-
-function key(asset: VideoAsset) {
-  return `${asset.nodeId}\u0000${asset.sourceRevision}`;
-}
-
-function envelopeOf(buffer: AudioBuffer) {
-  const samples = buffer.getChannelData(0);
-  const span = Math.max(1, Math.floor(samples.length / PEAKS));
-  const envelope = new Float32Array(Math.ceil(samples.length / span));
-  for (let index = 0; index < envelope.length; index += 1) {
-    let peak = 0;
-    const from = index * span;
-    for (let at = from; at < Math.min(from + span, samples.length); at += 1)
-      peak = Math.max(peak, Math.abs(samples[at]!));
-    envelope[index] = peak;
-  }
-  return envelope;
 }
 
 /** Resamples an envelope to the bars one clip can show for its own source window. */
