@@ -7,7 +7,7 @@ use std::{
 use tauri::{AppHandle, Manager, Runtime};
 use tokio_util::sync::CancellationToken;
 
-use super::process::Worker;
+use super::process::{Worker, WorkerPackage};
 use crate::{
     ai::contracts::{
         embedding_wire::{
@@ -34,7 +34,6 @@ pub(crate) async fn encode_embedding<R: Runtime>(
     resources: &PreparedModels,
     cancellation: &CancellationToken,
 ) -> Result<EmbeddingEncoding, String> {
-    super::deadline_duration(identity.deadline_ms)?;
     let exit = super::exit_token();
     let priority = match role {
         EmbeddingRole::Query => super::admission::Priority::Interactive,
@@ -53,13 +52,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         )
     })
     .await?;
-    let _permit = super::admission::acquire(
-        priority,
-        cancellation,
-        exit,
-        super::deadline_duration(identity.deadline_ms)?,
-    )
-    .await?;
+    let _permit = super::admission::acquire(priority, cancellation, exit).await?;
     let slot = super::worker_slot();
     let mut guard = tokio::select! {
         biased;
@@ -87,6 +80,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
             .map_err(|error| error.to_string())?
             .join("inference")
             .join(&session_id);
+        let package = WorkerPackage::from(&runtime);
         let params = RuntimeInitializeParams {
             runtime_manifest_path: runtime.manifest_path.to_string_lossy().into_owned(),
             protocol_version: PROTOCOL_VERSION,
@@ -106,14 +100,14 @@ pub(crate) async fn encode_embedding<R: Runtime>(
                 image_segmentation: None,
                 image_processing: None,
             },
+            budget_ms: package.initialization_budget_ms(),
         };
         *guard = Some(
             Worker::start(
-                (&runtime).into(),
+                package,
                 &work_directory,
                 model_directory,
                 params,
-                identity.deadline_ms,
                 cancellation,
                 exit,
             )
@@ -130,7 +124,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         attempt_epoch: identity.attempt_epoch,
         input_revision: identity.input_revision.clone(),
         model_spec_id: crate::ai::capabilities::embedding::EMBEDDING_SPEC_ID.into(),
-        deadline_ms: identity.deadline_ms,
+        budget_ms: identity.budget_ms,
         role,
         texts,
         embedding_spec_id: crate::ai::capabilities::embedding::EMBEDDING_SPEC_ID.into(),
@@ -140,7 +134,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
             &request_id,
             "embedding.encode",
             &params,
-            identity.deadline_ms,
+            identity.budget_ms,
             cancellation,
             exit,
         )

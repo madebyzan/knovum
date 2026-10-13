@@ -1,5 +1,3 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
 pub(crate) fn validate_language(language: &str) -> Result<&'static str, String> {
     match language.trim().to_ascii_lowercase().as_str() {
         "zh" | "chinese" => Ok("zh"),
@@ -15,18 +13,12 @@ pub(crate) fn validate_language(language: &str) -> Result<&'static str, String> 
     }
 }
 
-pub(super) fn deadline(duration_ms: u64) -> Result<u64, String> {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_err(|error| error.to_string())?;
-    let now_ms = u64::try_from(now.as_millis()).map_err(|error| error.to_string())?;
-    now_ms
-        .checked_add(
-            duration_ms
-                .saturating_mul(6)
-                .clamp(120_000, 30 * 60 * 1_000),
-        )
-        .ok_or_else(|| "Alignment deadline exceeds the supported range".into())
+/// Forced alignment scales with the audio it aligns, so its budget does too. The budget covers
+/// the alignment itself: loading the model is bounded by the worker's own startup budget.
+pub(super) fn budget_ms(duration_ms: u64) -> u64 {
+    duration_ms
+        .saturating_mul(6)
+        .clamp(120_000, 30 * 60 * 1_000)
 }
 
 pub(super) fn qualified_platform() -> Result<(), String> {

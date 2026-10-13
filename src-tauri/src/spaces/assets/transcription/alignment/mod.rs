@@ -88,15 +88,13 @@ pub(crate) async fn align_media(
         move || audio_reference(&wav)
     })
     .await?;
-    let deadline_ms = profile::deadline(total_duration)?;
+    let budget_ms = profile::budget_ms(total_duration);
     let handle = app.clone();
     let runtime = crate::foundation::blocking::run(move || {
         crate::local_resources::runtimes::inference::resolve(&handle)
     })
     .await?;
-    let device =
-        device_profiles::alignment::profile(&runtime, request.model, cancellation, deadline_ms)
-            .await?;
+    let device = device_profiles::alignment::profile(&runtime, request.model, cancellation).await?;
     let model_spec_id = request.model.alignment_spec()?.to_owned();
     let execution_device = device.device.clone();
     let request_id = uuid::Uuid::new_v4().to_string();
@@ -116,7 +114,7 @@ pub(crate) async fn align_media(
                     request.expected_revision
                 ),
                 model_spec_id: model_spec_id.clone(),
-                deadline_ms,
+                budget_ms,
             },
             audio_ref,
             text_segments: selected,

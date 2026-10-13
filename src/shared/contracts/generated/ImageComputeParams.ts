@@ -2,4 +2,4 @@
 import type { ImageComputation } from "./ImageComputation";
 import type { TensorFileReference } from "./TensorFileReference";
 
-export type ImageComputeParams = { requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, deadlineMs: number, tensorRef: TensorFileReference, computation: ImageComputation, };
+export type ImageComputeParams = { requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, budgetMs: number, tensorRef: TensorFileReference, computation: ImageComputation, };

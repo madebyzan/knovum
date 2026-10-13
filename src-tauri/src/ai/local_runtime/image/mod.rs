@@ -58,7 +58,6 @@ pub(crate) async fn segment_image<R: Runtime>(
             },
             capability: RuntimeCapability::ImageSegmentation,
             spec_id: model_spec_id,
-            deadline_ms: identity.deadline_ms,
         },
         cancellation,
     )
@@ -80,7 +79,7 @@ pub(crate) async fn segment_image<R: Runtime>(
         attempt_epoch: identity.attempt_epoch,
         input_revision: identity.input_revision.clone(),
         model_spec_id: model_spec_id.into(),
-        deadline_ms: identity.deadline_ms,
+        budget_ms: identity.budget_ms,
         tensor_ref: TensorFileReference {
             file_name: tensor_name,
             byte_length: IMAGE_SEGMENTATION_INPUT_BYTES,
@@ -94,7 +93,7 @@ pub(crate) async fn segment_image<R: Runtime>(
         session::ImageRequestIdentity {
             request_id: &request_id,
             attempt_epoch: identity.attempt_epoch,
-            deadline_ms: identity.deadline_ms,
+            budget_ms: identity.budget_ms,
         },
         &params,
         cancellation,

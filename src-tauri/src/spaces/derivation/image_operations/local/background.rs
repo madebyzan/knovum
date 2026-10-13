@@ -7,6 +7,10 @@ use crate::{
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
+/// Background removal runs one segmentation pass over a fixed-resolution tensor. Loading the model
+/// is bounded by the worker's own startup budget.
+const SEGMENTATION_BUDGET_MS: u64 = 120_000;
+
 pub(super) async fn execute(
     app: &AppHandle,
     model: LocalModelId,
@@ -33,9 +37,7 @@ pub(super) async fn execute(
             "sha256:{}",
             hex::encode(<sha2::Sha256 as sha2::Digest>::digest(&source.bytes))
         ),
-        deadline_ms: u64::try_from(crate::foundation::clock::unix_time_millis()?)
-            .map_err(|_| "System clock is before the Unix epoch")?
-            .saturating_add(120_000),
+        budget_ms: SEGMENTATION_BUDGET_MS,
     };
     let image = crate::images::remove_background(
         app,

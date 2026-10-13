@@ -59,7 +59,7 @@ async fn freeze_reference(
     path: std::path::PathBuf,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<(ReferenceSourceSnapshot, String), String> {
-    crate::spaces::assets::authorize_source(app, &path)?;
+    let path = crate::spaces::assets::authorize_media_source(app, &path)?;
     let metadata = std::fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
     validate_source_metadata(&metadata)?;
     publish_snapshot(app, pool, request, &path, metadata.len(), cancellation).await

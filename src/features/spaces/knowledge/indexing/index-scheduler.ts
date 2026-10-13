@@ -12,6 +12,7 @@ interface SpaceIndexState {
   nodeIds: Set<string>;
   full: boolean;
   running: boolean;
+  consecutiveFailures: number;
   timer: ReturnType<typeof setTimeout> | undefined;
 }
 
@@ -19,6 +20,8 @@ const stateBySpaceId = new Map<string, SpaceIndexState>();
 const statusBySpaceId = new Map<string, KnowledgeIndexStatus>();
 const listenersBySpaceId = new Map<string, Set<StatusListener>>();
 const DEBOUNCE_MS = 5_000;
+const MAX_RETRY_DELAY_MS = 60_000;
+const MAX_ATTEMPT_RETRIES = 3;
 
 export function scheduleKnowledgeIndex(spaceId: string, nodeIds: readonly string[]) {
   if (!nodeIds.length) return;
@@ -66,49 +69,110 @@ function stateFor(spaceId: string) {
     nodeIds: new Set(),
     full: false,
     running: false,
+    consecutiveFailures: 0,
     timer: undefined,
   };
   stateBySpaceId.set(spaceId, state);
   return state;
 }
 
-function schedulePending(spaceId: string, state: SpaceIndexState, delayMs = DEBOUNCE_MS) {
+function schedulePending(
+  spaceId: string,
+  state: SpaceIndexState,
+  delayMs = DEBOUNCE_MS,
+  status: KnowledgeIndexStatus = "scheduled",
+) {
   if (state.running) {
-    setStatus(spaceId, "scheduled");
+    setStatus(spaceId, status);
     return;
   }
   if (state.timer) clearTimeout(state.timer);
   state.timer = setTimeout(() => void runPending(spaceId, state), delayMs);
-  setStatus(spaceId, "scheduled");
+  setStatus(spaceId, status);
+}
+
+interface ClaimedScope {
+  generation: number;
+  full: boolean;
+  nodeIds: string[] | undefined;
+}
+
+function claimPendingScope(state: SpaceIndexState): ClaimedScope {
+  const full = state.full;
+  const claimed = { generation: state.generation, full, nodeIds: full ? undefined : [...state.nodeIds] };
+  state.full = false;
+  state.nodeIds.clear();
+  return claimed;
+}
+
+// The scope an attempt claimed is still unindexed when it fails, so it returns to the pending set.
+// Losing it would leave those nodes out of the index until something happened to touch them again.
+function returnPendingScope(state: SpaceIndexState, claimed: ClaimedScope) {
+  state.full ||= claimed.full;
+  for (const id of claimed.nodeIds ?? []) state.nodeIds.add(id);
 }
 
 async function runPending(spaceId: string, state: SpaceIndexState) {
   if (state.running) return;
   state.timer = undefined;
-  const generation = state.generation;
-  const full = state.full;
-  const nodeIds = full ? undefined : [...state.nodeIds];
-  state.full = false;
-  state.nodeIds.clear();
+  const claimed = claimPendingScope(state);
   state.running = true;
   let outcome: KnowledgeIndexStatus = "unavailable";
+  let failed = false;
   try {
-    outcome = await indexIfReady(spaceId, state, nodeIds);
+    outcome = await indexIfReady(spaceId, state, claimed.nodeIds);
   } catch (error) {
+    failed = true;
+    returnPendingScope(state, claimed);
     void logError(`Knowledge semantic indexing failed: ${formatErrorDiagnostic(error)}`);
   } finally {
     state.running = false;
   }
-
-  const hasNewerWork = state.generation !== generation || state.full || state.nodeIds.size > 0;
+  state.consecutiveFailures = failed ? state.consecutiveFailures + 1 : 0;
   // The space can be released while its run is in flight; a released state must not reschedule or
   // write a status, or it would resurrect the entry and clobber a later session for the same space.
   if (stateBySpaceId.get(spaceId) !== state) return;
+  settleAttempt(spaceId, state, {
+    outcome,
+    failed,
+    hasNewerWork: state.generation !== claimed.generation,
+  });
+}
+
+interface AttemptResult {
+  outcome: KnowledgeIndexStatus;
+  failed: boolean;
+  hasNewerWork: boolean;
+}
+
+function settleAttempt(
+  spaceId: string,
+  state: SpaceIndexState,
+  { outcome, failed, hasNewerWork }: AttemptResult,
+) {
+  if (failed) {
+    // A pending retry does not make the index available, so the failure stays visible until an
+    // attempt succeeds. Retries are limited because a permanently unusable embedding runtime must
+    // not be asked again forever; later edits are new evidence and are always attempted.
+    if (state.consecutiveFailures <= MAX_ATTEMPT_RETRIES || hasNewerWork) {
+      schedulePending(spaceId, state, retryDelayMs(state.consecutiveFailures), outcome);
+      return;
+    }
+    setStatus(spaceId, outcome);
+    return;
+  }
   if (hasNewerWork) {
     schedulePending(spaceId, state, 0);
     return;
   }
   setStatus(spaceId, outcome);
+}
+
+// Indexing shares one local inference worker with transcription and synthesis. Retrying a failed
+// attempt immediately spent that worker on work that was about to fail again, which is how a
+// single failure became an unbroken stream of them.
+function retryDelayMs(consecutiveFailures: number) {
+  return Math.min(DEBOUNCE_MS * 2 ** Math.max(consecutiveFailures - 1, 0), MAX_RETRY_DELAY_MS);
 }
 
 async function indexIfReady(

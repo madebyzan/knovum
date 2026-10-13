@@ -2,4 +2,4 @@
 import type { AudioFileReference } from "./AudioFileReference";
 import type { SpeakerCountBounds } from "./SpeakerCountBounds";
 
-export type SpeechDiarizeParams = { audioRef: AudioFileReference, speakerCountBounds: SpeakerCountBounds, requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, deadlineMs: number, };
+export type SpeechDiarizeParams = { audioRef: AudioFileReference, speakerCountBounds: SpeakerCountBounds, requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, budgetMs: number, };

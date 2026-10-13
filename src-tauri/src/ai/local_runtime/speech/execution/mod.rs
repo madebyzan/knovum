@@ -67,7 +67,6 @@ where
         priority,
     } = execution;
     let identity = params.identity();
-    let deadline = super::super::deadline_duration(identity.deadline_ms)?;
     let exit = super::super::exit_token();
     let capability = params.capability();
     let runtime = inference::resolve(app)?;
@@ -81,7 +80,7 @@ where
         )
     })
     .await?;
-    let _permit = super::super::admission::acquire(priority, cancellation, exit, deadline).await?;
+    let _permit = super::super::admission::acquire(priority, cancellation, exit).await?;
     let slot = super::super::worker_slot();
     let mut guard = tokio::select! {
         biased;
@@ -112,7 +111,6 @@ where
                 capability,
                 model_spec_id: identity.model_spec_id.clone(),
                 device_profile,
-                deadline_ms: identity.deadline_ms,
                 cancellation,
                 exit,
             },
@@ -131,7 +129,7 @@ where
             &request_id,
             params.method(),
             &params,
-            identity.deadline_ms,
+            identity.budget_ms,
             cancellation,
             exit,
         )

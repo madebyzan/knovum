@@ -25,6 +25,10 @@ use super::{
     validation::validate_query_vector,
 };
 
+/// A search query waits for a person, so its encode budget is short: one short text through a
+/// loaded model is milliseconds of work, and anything beyond this means the model is unusable.
+const QUERY_ENCODE_BUDGET_MS: u64 = 30_000;
+
 pub(crate) async fn embed_query<R: Runtime>(
     app: &AppHandle<R>,
     query: &str,
@@ -47,7 +51,7 @@ pub(crate) async fn embed_query<R: Runtime>(
         attempt_id: uuid::Uuid::new_v4().to_string(),
         attempt_epoch: 1,
         input_revision: format!("sha256:{}", hex::encode(Sha256::digest(query.as_bytes()))),
-        deadline_ms: deadline_after(30_000)?,
+        budget_ms: QUERY_ENCODE_BUDGET_MS,
     };
     let response = embedding::embed(
         app,
@@ -63,13 +67,6 @@ pub(crate) async fn embed_query<R: Runtime>(
         .into_iter()
         .next()
         .ok_or_else(|| "Embedding provider returned no query vector".to_owned())
-}
-
-fn deadline_after(duration_ms: i64) -> Result<u64, String> {
-    crate::foundation::clock::unix_time_millis()?
-        .checked_add(duration_ms)
-        .and_then(|deadline| u64::try_from(deadline).ok())
-        .ok_or_else(|| "Embedding deadline exceeds the supported range".to_owned())
 }
 
 pub(crate) async fn search_semantic_vector<R: Runtime>(

@@ -1,6 +1,6 @@
 use std::{
     sync::{Arc, OnceLock},
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::Duration,
 };
 
 use tokio::sync::{watch, Mutex};
@@ -123,19 +123,6 @@ where
         *guard = None;
     }
     Ok(())
-}
-
-pub(super) fn deadline_duration(deadline_ms: u64) -> Result<Duration, String> {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_err(|error| error.to_string())?
-        .as_millis();
-    let remaining = u128::from(deadline_ms)
-        .checked_sub(now)
-        .ok_or("deadline_exceeded")?;
-    Ok(Duration::from_millis(
-        remaining.min(u128::from(u64::MAX)) as u64
-    ))
 }
 
 fn reclaim_when_idle(slot: WorkerSlot) {

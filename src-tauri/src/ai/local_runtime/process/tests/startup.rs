@@ -34,13 +34,13 @@ async fn missing_inference_runtime_is_rejected_before_admission_or_workspace_cre
             image_segmentation: None,
             image_processing: None,
         },
+        budget_ms: 5_000,
     };
     let startup = Worker::start(
         (&runtime).into(),
         &directory,
         &directory.join("model"),
         params,
-        deadline_after(5_000),
         &CancellationToken::new(),
         &CancellationToken::new(),
     )
