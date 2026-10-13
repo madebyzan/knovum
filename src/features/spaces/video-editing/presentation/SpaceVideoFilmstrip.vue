@@ -41,7 +41,7 @@ watchEffect(() => {
   if (!surface || !media || !material || media.kind !== "video" || size.value.width <= 0) return;
   const bucketMs = filmstripBucketMs(timeline.pxPerSecond.value);
   const indices = visibleTiles(bucketMs);
-  filmstrips.request(media, material, bucketMs, indices);
+  filmstrips.request(media, bucketMs, indices);
   surface.width = Math.max(1, Math.round(size.value.width));
   surface.height = Math.max(1, Math.round(size.value.height));
   const context = surface.getContext("2d");

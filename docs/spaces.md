@@ -33,8 +33,8 @@ saved video projects retain their existing durable storage owners.
 Document sessions own their drafts; retained Tiptap instances own document history and selection.
 Video sessions own project drafts, history, the selected item, playback position and the rejection
 state of a project stored in an obsolete shape.
-Only the active editor registers commands. Hidden video views release media DOM and thumbnail work;
-proxy preparation is cancelled while hidden. Document timers pause while inactive, and navigation
+Only the active editor registers commands. Hidden video views stop their render loop, silence
+scheduled audio and suspend thumbnail work; preview preparation is cancelled while hidden. Document timers pause while inactive, and navigation
 flushes pending document writes before changing the active Space. Save failures retain the draft and
 block the requested transition. Saves and task callbacks bind to explicit Space/node identities.
 Markdown writes its text and rich document together; Rust validates that document and the saved video
@@ -514,26 +514,31 @@ that extends past the shortened project is trimmed to the timeline rather than d
 that no longer fits is removed. Audio has independent source in/out, timeline start, volume, fades
 and up to four lanes; a lane change that would overlap existing audio is refused.
 
-A project is measured from its own source file: metadata parsing needs no transcode, so admitting
-media never waits for an encoder, and the output starts at the resolution and the measured frame
-cadence of the video instead of resampling it to a house default. Rust prepares revision-keyed,
-short-GOP editing proxies for playback and thumbnails, capped to a 1920-pixel long edge so the stage
-shows the picture the render will produce; the proxy recipe is part of the cache identity, so an
-improved recipe replaces what it supersedes. Video frames never cross IPC. Preparation is cancellable
-and failures remain visible. One animation-frame clock drives a canvas compositor and a single audio
-graph: every visible layer, overlay and audio lane is painted and mixed per frame without Vue
-reactivity in the render path, and the surface is sized to the pixels the stage occupies rather than
-to the output frame. A bounded media pool owns the decoding elements and their transport: it
-pre-rolls the media of the next cut 1.2 seconds ahead, parks it with a single seek, and never pauses
-or repositions an element the clock wants playing. During playback drift is absorbed by trimming the
-element playback rate by at most six percent; a seek happens only beyond an unrecoverable 300 ms gap.
-A frame is painted only when every layer it needs is decoded and positioned, so a slow decode holds
-the last picture and the clock waits with it instead of flashing the background. While the editor is
-paused the preview repaints on media events rather than on a poll. Preview uses the same geometry,
-framing, opacity, gain, fade and transition math as export. Pointer scrubbing and exact output frame
-stepping are separate from integer-millisecond persisted edit intervals; trim handles and dragged
-clips snap to clip edges, the playhead and the output frame grid, with Alt enabling millisecond
-precision.
+A project is measured from its own source file: Mediabunny parses the container, so admitting media
+needs neither a transcode nor playback, and the output starts at the resolution and the frame cadence
+the source itself states instead of resampling it to a house default. Rust prepares revision-keyed,
+short-GOP H.264 preview files for playback and thumbnails, capped to a 1920-pixel long edge so the
+stage shows the picture the render will produce; the recipe is part of the cache identity, so an
+improved recipe replaces what it supersedes. Export always reads the original. Video frames never
+cross IPC. Preparation is cancellable and failures remain visible.
+
+Playback authority is split on one boundary: Rust owns normalization and rendering, and the WebView
+owns interactive presentation of what Rust prepared. No media element takes part. Mediabunny demuxes
+the preview file and decodes its video through WebCodecs; a clip's audio track is copied out of that
+file without re-encoding and decoded by Web Audio, which every supported target implements. Sound is
+scheduled once per voice on the audio timeline with its own gain envelope, and that same audio
+timeline is the clock, so the position can never drift from what is audible and playback costs no
+per-frame audio work. Each animation frame presents the newest decoded frame for the clock's
+position: decoding is pulled one frame at a time, a backwards scrub or a long jump restarts the
+decoder at the new position instead of decoding through, and a frame that has not arrived repeats the
+last picture rather than stalling the transport or flashing the background. While the editor is
+paused the preview repaints only when something changed. Konva owns the stage scene graph, hit areas
+and the transformer that moves, scales and rotates layers and overlays; the project stays the single
+source of truth for every transform, and handle metrics are compensated for the stage zoom. Preview
+uses the same geometry, framing, opacity, gain, fade and transition math as export. Pointer scrubbing
+and exact output frame stepping are separate from integer-millisecond persisted edit intervals; trim
+handles and dragged clips snap to clip edges, the playhead and the output frame grid, with Alt
+enabling millisecond precision.
 
 A tabbed library of materials, text and transitions, the stage and the selected-item inspector sit
 above the resizable timeline. The inspector is absent until a clip, transition, audio clip or text
