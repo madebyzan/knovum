@@ -4,7 +4,6 @@
   "loading": "Video-Editor wird geladen…",
   "closeInspector": "Bearbeitungsfeld schließen",
   "preview": {
-    "optimizing": "Vorschau im Hintergrund optimieren…",
     "retry": "Vorschauvorbereitung erneut versuchen",
     "proxyFailed": "Es konnte keine responsive Vorschau vorbereitet werden",
     "metadataUnavailable": "Die Bildabmessungen des Videos konnten nicht gelesen werden",
@@ -60,12 +59,6 @@
     "duplicate": "Clip duplizieren",
     "closeGap": "Lücke schließen",
     "placement": "Auf der Zeitachse"
-  },
-  "stage": {
-    "move": "Clip verschieben",
-    "resize": "Clip skalieren",
-    "rotate": "Clip drehen",
-    "moveText": "Text verschieben"
   },
   "framing": {
     "title": "Bildanpassung",

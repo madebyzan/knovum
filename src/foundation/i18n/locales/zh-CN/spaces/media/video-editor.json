@@ -4,7 +4,6 @@
   "loading": "正在加载视频编辑器…",
   "closeInspector": "关闭编辑面板",
   "preview": {
-    "optimizing": "正在后台优化预览…",
     "retry": "重试准备预览",
     "proxyFailed": "无法准备流畅预览",
     "metadataUnavailable": "无法读取视频画面尺寸",
@@ -60,12 +59,6 @@
     "duplicate": "复制片段",
     "closeGap": "消除空隙",
     "placement": "时间线位置"
-  },
-  "stage": {
-    "move": "移动片段",
-    "resize": "缩放片段",
-    "rotate": "旋转片段",
-    "moveText": "移动文字"
   },
   "framing": {
     "title": "画面适配",

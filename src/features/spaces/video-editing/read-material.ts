@@ -1,50 +1,70 @@
+import { ALL_FORMATS, Input, UrlSource } from "mediabunny";
+
 import { versionedMediaSource } from "../media/media-element-source";
 import { measuredVideoAsset, type VideoMaterialNode } from "./material";
+import type { VideoAsset, VideoOutput } from "./project";
+
+/** Frame rates the output contract supports; a source is matched to the closest one. */
+const SUPPORTED: VideoOutput["frameRate"][] = [24, 25, 30, 60];
+/** Packets sampled to estimate cadence; enough to tell the supported rates apart. */
+const STATS_SAMPLE = 100;
+
+export interface MeasuredMaterial {
+  asset: VideoAsset;
+  /** Measured source cadence, when the file states one. */
+  frameRate: VideoOutput["frameRate"] | undefined;
+}
+
+function classify(rate: number) {
+  if (!Number.isFinite(rate) || rate <= 0) return undefined;
+  return SUPPORTED.reduce((closest, candidate) =>
+    Math.abs(candidate - rate) < Math.abs(closest - rate) ? candidate : closest,
+  );
+}
+
+async function measureImage(node: VideoMaterialNode, url: string, signal: AbortSignal) {
+  const response = await fetch(url, { signal });
+  if (!response.ok) throw new Error("Cannot read the selected image");
+  const bitmap = await createImageBitmap(await response.blob());
+  try {
+    return {
+      asset: measuredVideoAsset(node, { durationMs: 0, width: bitmap.width, height: bitmap.height }),
+      frameRate: undefined,
+    };
+  } finally {
+    bitmap.close();
+  }
+}
 
 /**
- * Measures a material from its original file. Metadata parsing needs no transcode, so admitting
- * media never waits for an editing proxy, and the measurements describe the source itself rather
- * than a downscaled copy of it.
+ * Measures a material from its original file. Mediabunny parses the container, so admitting media
+ * costs no transcode and no playback: the measurements describe the source itself, including the
+ * cadence the project output starts at, rather than a downscaled or resampled copy of it.
  */
-export async function readVideoMaterial(node: VideoMaterialNode, signal: AbortSignal) {
+export async function readVideoMaterial(
+  node: VideoMaterialNode,
+  signal: AbortSignal,
+): Promise<MeasuredMaterial> {
   if (signal.aborted) throw signal.reason;
-  const element = node.data.kind === "image" ? new Image() : document.createElement(node.data.kind);
-  const eventName = node.data.kind === "image" ? "load" : "loadedmetadata";
   const url = versionedMediaSource(node.data.assetPath, node.data.sourceRevision)!;
+  if (node.data.kind === "image") return measureImage(node, url, signal);
+  const input = new Input({ formats: ALL_FORMATS, source: new UrlSource(url) });
+  const abort = () => input.dispose();
+  signal.addEventListener("abort", abort, { once: true });
   try {
-    await new Promise<void>((resolve, reject) => {
-      const finish = (error?: unknown) => {
-        element.removeEventListener(eventName, ready);
-        element.removeEventListener("error", failed);
-        signal.removeEventListener("abort", abort);
-        if (error) reject(error);
-        else resolve();
-      };
-      const ready = () => finish();
-      const failed = () => finish(new Error("Cannot read the selected media"));
-      const abort = () => finish(signal.reason);
-      element.addEventListener(eventName, ready, { once: true });
-      element.addEventListener("error", failed, { once: true });
-      signal.addEventListener("abort", abort, { once: true });
-      element.src = url;
-      if (element instanceof HTMLMediaElement) {
-        element.preload = "metadata";
-        element.load();
-      }
-    });
-    if (element instanceof HTMLImageElement)
-      return measuredVideoAsset(node, {
-        durationMs: 0,
-        width: element.naturalWidth,
-        height: element.naturalHeight,
-      });
-    return measuredVideoAsset(node, {
-      durationMs: Math.round(element.duration * 1000),
-      width: element instanceof HTMLVideoElement ? element.videoWidth : 0,
-      height: element instanceof HTMLVideoElement ? element.videoHeight : 0,
-    });
+    const video = await input.getPrimaryVideoTrack();
+    const durationMs = Math.round((await input.computeDuration()) * 1000);
+    const stats = video ? await video.computePacketStats(STATS_SAMPLE) : undefined;
+    return {
+      asset: measuredVideoAsset(node, {
+        durationMs,
+        width: video?.displayWidth ?? 0,
+        height: video?.displayHeight ?? 0,
+      }),
+      frameRate: stats ? classify(stats.averagePacketRate) : undefined,
+    };
   } finally {
-    element.removeAttribute("src");
-    if (element instanceof HTMLMediaElement) element.load();
+    signal.removeEventListener("abort", abort);
+    input.dispose();
   }
 }

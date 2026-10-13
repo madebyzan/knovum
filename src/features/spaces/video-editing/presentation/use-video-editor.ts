@@ -2,8 +2,8 @@ import { computed, onScopeDispose, shallowRef, watch, type Ref } from "vue";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { SpaceEditorTab } from "../../workspace/workbench-tab";
-import { createPreviewEngine } from "../engine/preview-engine";
 import { isVideoMaterial } from "../material";
+import { createPreviewPlayer } from "../playback/preview-player";
 import type { VideoEditProject } from "../project";
 import { createFilmstripCache } from "../timeline/filmstrip";
 import { useTimelineGestures } from "../timeline/use-timeline-gestures";
@@ -16,7 +16,7 @@ import { useVideoMaterials } from "./use-video-materials";
 import { useVideoSelection } from "./use-video-selection";
 
 /**
- * Composition root of the video editor: one session, one preview engine, one timeline view, and the
+ * Composition root of the video editor: one session, one preview player, one timeline view, and the
  * editing commands that operate on them.
  */
 export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
@@ -30,40 +30,40 @@ export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
   const editorRoot = shallowRef<HTMLElement | null>(null);
 
   const materials = useVideoMaterials(tab.spaceId, project, (next) => session.history.commit(next));
-  const engine = createPreviewEngine({
+  const player = createPreviewPlayer({
     spaceId: tab.spaceId,
     project: () => visibleProject.value,
     materials: () => materials.available.value,
     onFailed: (error) => {
-      engine.pause();
+      player.pause();
       previewError.value = getErrorMessage(error);
     },
   });
   const filmstrips = createFilmstripCache({
-    sources: engine.sources,
-    suspended: () => engine.playing.value,
+    videos: player.videos,
+    suspended: () => player.playing.value,
   });
-  const waveforms = createWaveformCache({ sources: engine.sources, audio: engine.audio });
+  const waveforms = createWaveformCache({ library: player.audio });
   const selection = useVideoSelection({
     project,
     selection: session.selection,
-    seek: engine.seek,
-    pause: engine.pause,
-    playheadMs: engine.positionMs,
+    seek: player.seek,
+    pause: player.pause,
+    playheadMs: player.positionMs,
   });
   const timeline = useTimelineView({
     project: () => visibleProject.value,
-    subscribe: engine.subscribe,
+    subscribe: player.subscribe,
   });
   const gestures = useTimelineGestures({
     project: () => project.value!,
     timeAt: (event) => timeline.timeAt(event),
     pxPerSecond: () => timeline.pxPerSecond.value,
-    playheadMs: engine.positionMs,
+    playheadMs: player.positionMs,
     commit: (next, mergeKey) => session.history.commit(next, mergeKey),
-    seek: engine.seek,
+    seek: player.seek,
     select: (value) => selection.select(value, { reveal: false }),
-    pause: engine.pause,
+    pause: player.pause,
   });
   watch(gestures.draft, (value) => (draft.value = value));
 
@@ -73,10 +73,10 @@ export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
     project,
     commit: (next, mergeKey) => session.history.commit(next, mergeKey),
     selection,
-    playheadMs: engine.positionMs,
-    seek: engine.seek,
-    pause: engine.pause,
-    toggle: engine.toggle,
+    playheadMs: player.positionMs,
+    seek: player.seek,
+    pause: player.pause,
+    toggle: player.toggle,
     focusText: () => editorRoot.value?.querySelector<HTMLTextAreaElement>("#video-edit-text")?.select(),
   });
 
@@ -95,25 +95,25 @@ export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
     active,
     (isActive) => {
       if (isActive) {
-        engine.seek(session.timelineMs.value);
-        engine.start();
-      } else engine.stop();
+        player.seek(session.timelineMs.value);
+        player.start();
+      } else player.stop();
     },
     { immediate: true },
   );
-  watch(engine.playing, (playing) => {
+  watch(player.playing, (playing) => {
     if (playing) return;
-    session.timelineMs.value = engine.positionMs();
+    session.timelineMs.value = player.positionMs();
     filmstrips.resume();
   });
-  watch([project, materials.available], () => engine.invalidate());
+  watch([project, materials.available], () => player.revise());
   watch(
     () => data.value.sourceRevision,
     () => (previewError.value = undefined),
   );
   onScopeDispose(() => {
-    session.timelineMs.value = engine.positionMs();
-    engine.dispose();
+    session.timelineMs.value = player.positionMs();
+    player.dispose();
     filmstrips.dispose();
     waveforms.dispose();
   });
@@ -136,7 +136,7 @@ export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
     project,
     visibleProject,
     editorRoot,
-    engine,
+    player,
     timeline,
     gestures,
     filmstrips,
