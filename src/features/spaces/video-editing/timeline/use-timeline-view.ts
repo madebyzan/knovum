@@ -63,12 +63,15 @@ export function useTimelineView(options: TimelineViewOptions) {
     options.subscribe((timeMs, playing) => {
       const element = viewport.value;
       if (!element || !playing) return;
-      element.scrollLeft = scrollToReveal({
+      const target = scrollToReveal({
         timeMs,
         pxPerSecond: pxPerSecond.value,
         scrollLeft: element.scrollLeft,
         viewportWidth: viewportWidth.value,
       });
+      if (Math.abs(element.scrollLeft - target) >= 1) {
+        element.scrollLeft = target;
+      }
     }),
   );
 

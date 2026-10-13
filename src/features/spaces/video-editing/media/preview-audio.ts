@@ -17,20 +17,35 @@ interface AudioLibraryOptions {
  * to PCM. Only the audio bytes are read, and decoding stays on the Web Audio decoder that every
  * supported target implements rather than on a WebCodecs audio decoder.
  */
-async function extractTrackAudio(url: string, context: AudioContext) {
-  const input = new Input({ formats: ALL_FORMATS, source: new UrlSource(url) });
+async function extractTrackAudio(url: string, context: AudioContext, signal?: AbortSignal) {
   try {
-    const target = new BufferTarget();
-    const conversion = await Conversion.init({
-      input,
-      output: new Output({ format: new Mp4OutputFormat(), target }),
-      video: { discard: true },
-    });
-    if (!conversion.isValid) return undefined;
-    await conversion.execute();
-    return target.buffer ? await context.decodeAudioData(target.buffer) : undefined;
-  } finally {
-    input.dispose();
+    const input = new Input({ formats: ALL_FORMATS, source: new UrlSource(url) });
+    try {
+      const target = new BufferTarget();
+      const conversion = await Conversion.init({
+        input,
+        output: new Output({ format: new Mp4OutputFormat(), target }),
+        video: { discard: true },
+      });
+      if (conversion.isValid) {
+        await conversion.execute();
+        if (target.buffer && target.buffer.byteLength > 0) {
+          const pcm = await context.decodeAudioData(target.buffer.slice(0));
+          if (pcm) return pcm;
+        }
+      }
+    } finally {
+      input.dispose();
+    }
+  } catch {
+    // Fall back to direct file fetch and decode when demuxing is unavailable
+  }
+  try {
+    const response = await fetch(url, signal ? { signal } : {});
+    if (!response.ok) return undefined;
+    return await context.decodeAudioData(await response.arrayBuffer());
+  } catch {
+    return undefined;
   }
 }
 
@@ -51,7 +66,7 @@ export function createAudioLibrary(options: AudioLibraryOptions) {
     if (asset.kind === "image") return undefined;
     if (asset.kind === "video") {
       const preview = await options.videos.load(asset);
-      return extractTrackAudio(preview.url, options.context());
+      return extractTrackAudio(preview.url, options.context(), controller.signal);
     }
     const node = options.materials().get(asset.nodeId);
     const url = versionedMediaSource(node?.data.assetPath, asset.sourceRevision);

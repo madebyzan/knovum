@@ -15,7 +15,7 @@ use crate::{foundation::blocking, foundation::subprocess, local_resources::tools
 
 const CANCELLED: &str = "VIDEO_EDIT_PREPARATION_CANCELLED";
 /// Identity of the proxy recipe below; changing the recipe invalidates previously cached proxies.
-const RECIPE: &str = "h264-1920-crf20-g12";
+const RECIPE: &str = "h264-1920-fast-g12-v2";
 
 fn generation_lock() -> &'static Mutex<()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -118,15 +118,15 @@ fn encode_proxy(
             "-map",
             "0:a:0?",
             "-vf",
-            "scale=w=1920:h=1920:force_original_aspect_ratio=decrease:force_divisible_by=2",
+            "scale=w='min(1920,iw)':h='min(1920,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2",
             "-c:v",
             "libx264",
             "-preset",
             "veryfast",
             "-threads",
-            "2",
+            "0",
             "-crf",
-            "20",
+            "22",
             "-g",
             "12",
             "-pix_fmt",

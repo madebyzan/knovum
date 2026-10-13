@@ -114,4 +114,14 @@ describe("video frame feed", () => {
     expect(failures).toHaveLength(1);
     expect(feed.frameAt(0, true)).toBeUndefined();
   });
+
+  it("presents the initial frame even when stream packets start with a positive offset", async () => {
+    const offsetStream: Frame[] = [
+      { id: "first", timestamp: 0.08, duration: 0.04 },
+      { id: "second", timestamp: 0.12, duration: 0.04 },
+    ];
+    const frame = feedOf(offsetStream);
+    expect(await present(frame, 0, false)).toBe("first");
+    expect(frame.starts).toEqual([0]);
+  });
 });

@@ -1,8 +1,10 @@
+import Konva from "konva";
 import { describe, expect, it } from "vitest";
 
 import { createVideoEditProject, defaultTextStyle, type VideoTextOverlay } from "../project";
+import { applyGroupStyle } from "../stage/scene-layer";
 import { textAnchorX, textBoxPadding, textConfig } from "../stage/scene-text";
-import { transitionStyle } from "../stage/scene-transition";
+import { PLAIN_LAYER, transitionStyle } from "../stage/scene-transition";
 
 const output = createVideoEditProject({
   nodeId: "source",
@@ -93,5 +95,22 @@ describe("stage text", () => {
     expect(textAnchorX("left", 200)).toBe(0);
     expect(textAnchorX("center", 200)).toBe(100);
     expect(textAnchorX("right", 200)).toBe(200);
+  });
+});
+
+describe("stage layer attrs", () => {
+  it("keeps group unclipped outside transition wipes so the picture renders", () => {
+    const group = new Konva.Group();
+    applyGroupStyle(group, PLAIN_LAYER);
+    expect(group.clipWidth()).toBeFalsy();
+    expect(group.clipHeight()).toBeFalsy();
+
+    const wipe = transitionStyle({ kind: "wipeRight", progress: 0.25 }, output);
+    applyGroupStyle(group, wipe.to);
+    expect(group.clipWidth()).toBe(320);
+    expect(group.clipHeight()).toBe(720);
+
+    applyGroupStyle(group, PLAIN_LAYER);
+    expect(group.clipWidth()).toBeFalsy();
   });
 });
