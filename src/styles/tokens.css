@@ -86,6 +86,7 @@
   --color-surface-scrim: oklch(0.16 0.004 264 / 0.26);
   --color-surface-selected: color-mix(in oklch, var(--color-blue-500) 13%, transparent);
   --color-surface-skeleton: oklch(0.18 0.006 264 / 0.07);
+  --color-surface-stage: oklch(0.21 0.006 264);
   --color-surface-muted: oklch(0.974 0.002 255);
   --color-surface-success-subtle: color-mix(in oklch, var(--color-green-500) 10%, transparent);
   --color-surface-panel: oklch(0.986 0.0015 255);

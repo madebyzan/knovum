@@ -1,10 +1,12 @@
 import type { VideoMaterialNode } from "../material";
 import type { VideoAsset } from "../project";
 import type { AudioGraph } from "./audio-graph";
-import { canPresent, syncMedia, type MediaTarget } from "./media-sync";
+import { canPresent, syncParked, syncPlaying, type MediaSyncResult } from "./media-sync";
 import type { PreviewSource, PreviewSources } from "./preview-sources";
 
 const POOL_LIMIT = 6;
+/** Media events that change what a frame can show, so the preview repaints on fact, not on a poll. */
+const SIGNALS = ["loadeddata", "seeked", "canplay", "playing", "waiting", "stalled"] as const;
 
 export interface PooledMedia {
   kind: VideoAsset["kind"];
@@ -16,90 +18,119 @@ export interface PooledMedia {
 interface PoolEntry extends PooledMedia {
   key: string;
   usedAt: number;
-  failed: boolean;
+  /** A play() call is in flight; pausing or seeking now would abort it. */
+  starting: boolean;
 }
 
 interface MediaPoolOptions {
   sources: PreviewSources;
   audio: AudioGraph;
+  onChanged: () => void;
   onFailed: (error: unknown) => void;
 }
 
+export interface MediaRequest {
+  sourceMs: number;
+  playing: boolean;
+  gain: number;
+}
+
 /**
- * Owns the decoding media elements behind the preview. Elements live for as long as their asset is
- * near the playhead, so a cut plays an element that was already loaded and seeked instead of
- * mounting a fresh one.
+ * Owns the decoding elements behind the preview. One element per asset lives for as long as the
+ * asset is near the playhead, and its transport is driven only from here, so nothing pauses an
+ * element the clock wants playing.
  */
 export function createMediaPool(options: MediaPoolOptions) {
   const entries = new Map<string, PoolEntry>();
 
-  /** Ensures an element exists for the asset and parks it at the requested position. */
-  function prepare(asset: VideoAsset, node: VideoMaterialNode, sourceMs: number) {
+  /** Ensures an element exists for the asset without touching its transport. */
+  function prepare(asset: VideoAsset, node: VideoMaterialNode) {
     const identity = key(asset);
     const existing = entries.get(identity);
     if (existing) {
       existing.usedAt = performance.now();
-      if (existing.element instanceof HTMLMediaElement && existing.element.paused)
-        syncMedia(existing.element, { sourceMs, playing: false });
       return existing;
     }
     const source = options.sources.ready(asset);
     if (!source) {
-      void options.sources.load(asset, node).catch(options.onFailed);
+      void options.sources.load(asset, node).then(options.onChanged).catch(options.onFailed);
       return undefined;
     }
-    const element = create(source);
-    const entry: PoolEntry = {
-      key: identity,
-      kind: asset.kind,
-      element,
-      presentable: false,
-      usedAt: performance.now(),
-      failed: false,
-    };
-    element.addEventListener("error", () => {
-      entry.failed = true;
-      options.onFailed(new Error("Preview media is unavailable"));
-    });
-    if (element instanceof HTMLMediaElement) {
-      element.addEventListener("loadedmetadata", () => syncMedia(element, { sourceMs, playing: false }), {
-        once: true,
-      });
-      options.audio.setGain(element, 0);
-    } else {
-      element.addEventListener("load", () => (entry.presentable = true), { once: true });
-    }
-    entries.set(identity, entry);
+    const entry = admit(identity, asset.kind, create(source));
     evict();
     return entry;
   }
 
-  /** Per-frame correction for one active layer. */
-  function sync(entry: PooledMedia, target: MediaTarget & { gain: number }) {
-    const element = entry.element;
-    if (!(element instanceof HTMLMediaElement)) {
-      entry.presentable = element.complete && element.naturalWidth > 0;
-      return entry.presentable;
-    }
-    options.audio.setGain(element, target.gain);
-    const result = syncMedia(element, target);
-    if (result !== "parked" && target.playing && element.paused) void start(element);
-    entry.presentable = canPresent(element);
-    return result === "playing" || (!target.playing && entry.presentable);
+  function admit(identity: string, kind: VideoAsset["kind"], element: PoolEntry["element"]) {
+    const entry: PoolEntry = {
+      key: identity,
+      kind,
+      element,
+      presentable: false,
+      usedAt: performance.now(),
+      starting: false,
+    };
+    element.addEventListener("error", () => options.onFailed(new Error("Preview media is unavailable")));
+    if (element instanceof HTMLMediaElement) {
+      for (const signal of SIGNALS) element.addEventListener(signal, options.onChanged);
+      options.audio.setGain(element, 0);
+    } else void decodeImage(element, entry);
+    entries.set(identity, entry);
+    return entry;
   }
 
-  async function start(element: HTMLMediaElement) {
+  async function decodeImage(element: HTMLImageElement, entry: PoolEntry) {
+    try {
+      await element.decode();
+      entry.presentable = true;
+    } catch {
+      entry.presentable = false;
+    }
+    options.onChanged();
+  }
+
+  /** Per-frame correction for one layer; returns whether it can be shown at this position. */
+  function sync(entry: PooledMedia, request: MediaRequest) {
+    const element = entry.element;
+    if (!(element instanceof HTMLMediaElement)) return entry.presentable;
+    const pooled = entry as PoolEntry;
+    options.audio.setGain(element, request.gain);
+    const result = transport(pooled, element, request);
+    entry.presentable = canPresent(element);
+    return result !== "waiting";
+  }
+
+  function transport(entry: PoolEntry, element: HTMLMediaElement, request: MediaRequest): MediaSyncResult {
+    if (!request.playing) {
+      if (entry.starting) return "waiting";
+      if (!element.paused) element.pause();
+      return syncParked(element, request.sourceMs);
+    }
+    if (element.paused && !entry.starting) {
+      entry.starting = true;
+      void start(entry, element);
+    }
+    return syncPlaying(element, request.sourceMs);
+  }
+
+  async function start(entry: PoolEntry, element: HTMLMediaElement) {
     try {
       await options.audio.resume();
       await element.play();
     } catch (error) {
       options.onFailed(error);
+    } finally {
+      entry.starting = false;
+      options.onChanged();
     }
   }
 
   function pauseAll() {
     for (const entry of entries.values())
-      if (entry.element instanceof HTMLMediaElement) entry.element.pause();
+      if (entry.element instanceof HTMLMediaElement) {
+        entry.element.pause();
+        entry.element.playbackRate = 1;
+      }
   }
 
   function evict() {
@@ -113,10 +144,12 @@ export function createMediaPool(options: MediaPoolOptions) {
     if (!entry) return;
     entries.delete(identity);
     if (entry.element instanceof HTMLMediaElement) {
+      for (const signal of SIGNALS) entry.element.removeEventListener(signal, options.onChanged);
       entry.element.pause();
-      entry.element.removeAttribute("src");
-      entry.element.load();
-    } else entry.element.removeAttribute("src");
+      options.audio.detach(entry.element);
+    }
+    entry.element.removeAttribute("src");
+    if (entry.element instanceof HTMLMediaElement) entry.element.load();
   }
 
   return {
@@ -153,3 +186,5 @@ function create(source: PreviewSource) {
   element.load();
   return element;
 }
+
+export type MediaPool = ReturnType<typeof createMediaPool>;

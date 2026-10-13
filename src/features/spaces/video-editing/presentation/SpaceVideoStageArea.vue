@@ -16,7 +16,7 @@ const inspecting = computed(() => !!selection.selection.value);
 
 <template>
   <SplitterGroup direction="horizontal" class="min-h-0 flex-1">
-    <SplitterPanel :min-size="16" :default-size="22" :max-size="34" class="flex min-h-0 flex-col">
+    <SplitterPanel :min-size="14" :default-size="19" :max-size="30" class="flex min-h-0 flex-col">
       <SpaceVideoLibrary :editor="editor" />
     </SplitterPanel>
     <SplitterResizeHandle
@@ -31,7 +31,7 @@ const inspecting = computed(() => !!selection.selection.value);
         class="w-px shrink-0 bg-stroke-default transition-colors outline-none hover:w-0.5 hover:bg-surface-accent focus-visible:w-0.5 focus-visible:bg-surface-accent data-[state=drag]:w-0.5 data-[state=drag]:bg-surface-accent"
         :aria-label="t('spaces.media.videoEditor.layout.inspector')"
       />
-      <SplitterPanel :min-size="18" :default-size="24" :max-size="38" class="flex min-h-0 flex-col">
+      <SplitterPanel :min-size="16" :default-size="21" :max-size="34" class="flex min-h-0 flex-col">
         <SpaceVideoInspector :editor="editor" />
       </SplitterPanel>
     </template>

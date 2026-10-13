@@ -114,7 +114,7 @@
     "weight": "Graisse",
     "unavailable": "La police {family} n’est pas installée sur cet ordinateur. Choisissez une autre police.",
     "catalogEmpty": "Aucune police installée n'est disponible.",
-    "size": "Taille (720p)",
+    "size": "Taille",
     "color": "Couleur du texte"
   },
   "transitions": {

@@ -169,6 +169,7 @@ role separation informed by [DTCG](https://www.designtokens.org/TR/2025.10/forma
 | `bg-surface-overlay`                          | floating menus, popovers and overlay chrome            |
 | `bg-surface-inverse` / `text-fg-inverse`      | contrasting action/badge surface pair                  |
 | `bg-surface-document`                         | appearance-independent white HTML document             |
+| `bg-surface-stage`                            | appearance-independent dark media stage and film strip |
 | `text-fg-on-image` / `border-stroke-on-image` | white media-overlay contrast                           |
 | `bg-(--knovum-sidebar-item-bg-hover)`         | navigation hover                                       |
 | `bg-(--knovum-sidebar-item-bg-selected)`      | navigation selection                                   |
@@ -831,4 +832,3 @@ frame rate and background colour live in a labelled settings popover. Unavailabl
 preparation errors remain visible, and a project stored in an obsolete shape states that plainly and
 offers a fresh edit of the unchanged source. All edits share the project's undo/redo
 history; saving and native rendering stay in the workbench header.
-

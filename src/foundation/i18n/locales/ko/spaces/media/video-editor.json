@@ -114,7 +114,7 @@
     "weight": "글꼴 굵기",
     "unavailable": "이 컴퓨터에는 글꼴 {family}가 설치되어 있지 않습니다. 다른 글꼴을 선택하세요.",
     "catalogEmpty": "설치된 글꼴을 사용할 수 없습니다.",
-    "size": "크기(720p)",
+    "size": "크기",
     "color": "텍스트 색상"
   },
   "transitions": {

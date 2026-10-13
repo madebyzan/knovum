@@ -14,6 +14,8 @@ use super::PrepareVideoEditProxyRequest;
 use crate::{foundation::blocking, foundation::subprocess, local_resources::tools, spaces::db};
 
 const CANCELLED: &str = "VIDEO_EDIT_PREPARATION_CANCELLED";
+/// Identity of the proxy recipe below; changing the recipe invalidates previously cached proxies.
+const RECIPE: &str = "h264-1920-crf20-g12";
 
 fn generation_lock() -> &'static Mutex<()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -77,7 +79,7 @@ fn generate(
         .map_err(|error| error.to_string())?
         .join("video-edit-proxies");
     fs::create_dir_all(&cache).map_err(|error| error.to_string())?;
-    let key = Sha256::digest(format!("{source}\0{revision}"));
+    let key = Sha256::digest(format!("{source}\0{revision}\0{RECIPE}"));
     let output = cache.join(format!("{key}.mp4", key = hex::encode(key)));
     if output.metadata().is_ok_and(|metadata| metadata.len() > 0) {
         return Ok(output.to_string_lossy().into_owned());
@@ -116,15 +118,15 @@ fn encode_proxy(
             "-map",
             "0:a:0?",
             "-vf",
-            "scale=w=960:h=540:force_original_aspect_ratio=decrease:force_divisible_by=2",
+            "scale=w=1920:h=1920:force_original_aspect_ratio=decrease:force_divisible_by=2",
             "-c:v",
             "libx264",
             "-preset",
-            "ultrafast",
+            "veryfast",
             "-threads",
             "2",
             "-crf",
-            "25",
+            "20",
             "-g",
             "12",
             "-pix_fmt",
@@ -132,7 +134,7 @@ fn encode_proxy(
             "-c:a",
             "aac",
             "-b:a",
-            "96k",
+            "128k",
             "-movflags",
             "+faststart",
         ])

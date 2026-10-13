@@ -1,23 +1,16 @@
 import { versionedMediaSource } from "../media/media-element-source";
 import { measuredVideoAsset, type VideoMaterialNode } from "./material";
-import { prepareVideoEditProxy } from "./prepare-video-edit-proxy";
 
-export async function readVideoMaterial(node: VideoMaterialNode, spaceId: string, signal: AbortSignal) {
+/**
+ * Measures a material from its original file. Metadata parsing needs no transcode, so admitting
+ * media never waits for an editing proxy, and the measurements describe the source itself rather
+ * than a downscaled copy of it.
+ */
+export async function readVideoMaterial(node: VideoMaterialNode, signal: AbortSignal) {
   if (signal.aborted) throw signal.reason;
-  const path =
-    node.data.kind === "video"
-      ? await prepareVideoEditProxy(
-          {
-            spaceId,
-            sourceNodeId: node.id,
-            sourceRevision: node.data.sourceRevision,
-          },
-          signal,
-        )
-      : node.data.assetPath;
-  signal.throwIfAborted();
   const element = node.data.kind === "image" ? new Image() : document.createElement(node.data.kind);
   const eventName = node.data.kind === "image" ? "load" : "loadedmetadata";
+  const url = versionedMediaSource(node.data.assetPath, node.data.sourceRevision)!;
   try {
     await new Promise<void>((resolve, reject) => {
       const finish = (error?: unknown) => {
@@ -33,7 +26,7 @@ export async function readVideoMaterial(node: VideoMaterialNode, spaceId: string
       element.addEventListener(eventName, ready, { once: true });
       element.addEventListener("error", failed, { once: true });
       signal.addEventListener("abort", abort, { once: true });
-      element.src = versionedMediaSource(path, node.data.sourceRevision)!;
+      element.src = url;
       if (element instanceof HTMLMediaElement) {
         element.preload = "metadata";
         element.load();
