@@ -9,7 +9,8 @@ fn params(spec: &str, execution: &str, model: &str) -> RuntimeInitializeParams {
         "protocolVersion": 1, "sessionId": "session", "capability": "speech_transcription",
         "capabilitySpecId": spec,
         "deviceProfile": {"device": "cpu", "executionProfileId": execution, "cpuThreads": 4},
-        "workDirectory": "/work", "modelPaths": {model: "/not-loaded"}
+        "workDirectory": "/work", "modelPaths": {model: "/not-loaded"},
+        "budgetMs": 60000
     }))
     .unwrap()
 }

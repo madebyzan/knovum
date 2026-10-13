@@ -28,7 +28,7 @@ impl WorkerPackage {
     /// the single budget both sides of a cold start honour.
     pub(in crate::ai::local_runtime) fn initialization_budget_ms(&self) -> u64 {
         const VERIFICATION_FLOOR_BYTES_PER_SECOND: u64 = 20 * 1024 * 1024;
-        const SPAWN_AND_LOAD_ALLOWANCE_MS: u64 = 15_000;
+        const SPAWN_AND_LOAD_ALLOWANCE_MS: u64 = 30_000;
         SPAWN_AND_LOAD_ALLOWANCE_MS
             .saturating_add(self.0.verified_bytes / VERIFICATION_FLOOR_BYTES_PER_SECOND * 1_000)
     }

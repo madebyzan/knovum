@@ -39,6 +39,14 @@ pub(crate) struct Permit {
     active: bool,
 }
 
+impl std::fmt::Debug for Permit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Permit")
+            .field("active", &self.active)
+            .finish()
+    }
+}
+
 pub(super) struct MemoryReservation {
     admission: Arc<Admission>,
     bytes: u64,

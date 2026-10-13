@@ -27,6 +27,7 @@ struct KnowledgeChunkSource {
 /// loaded model. The budget covers that encode alone: the slot wait and the worker's cold start
 /// are bounded separately, so this number no longer has to absorb them.
 const BATCH_ENCODE_BUDGET_MS: u64 = 120_000;
+const REBUILD_BATCH_SIZE: usize = 8;
 
 pub(super) async fn run<R: Runtime>(
     app: AppHandle<R>,
@@ -50,7 +51,7 @@ pub(super) async fn run<R: Runtime>(
             space_id,
             &generation,
             node_ids.as_ref(),
-            embedding::active_text_provider().max_batch_size() as i64,
+            REBUILD_BATCH_SIZE.min(embedding::active_text_provider().max_batch_size()) as i64,
         )
         .await?;
         if chunks.is_empty() {

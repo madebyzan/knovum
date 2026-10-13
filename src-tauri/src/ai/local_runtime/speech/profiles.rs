@@ -13,9 +13,14 @@ pub(crate) fn transcription_budget_ms(
     duration_ms: u64,
 ) -> Result<u64, String> {
     let profile = transcription_profile(model)?;
-    // Portable CPUs can execute Large V3 far slower than the quantized dictation models.
-    let (factor, minimum) = if model == LocalModelId::WhisperLargeV3 && profile.device == "cpu" {
-        (120, 30 * 60 * 1_000)
+    // Portable CPUs execute ASR models far slower than dedicated GPU / Metal backends.
+    let (factor, minimum) = if profile.device == "cpu" {
+        match model {
+            LocalModelId::WhisperLargeV3 => (120, 30 * 60 * 1_000),
+            LocalModelId::WhisperSmall => (16, 3 * 60 * 1_000),
+            LocalModelId::WhisperTiny => (8, 2 * 60 * 1_000),
+            _ => (4, 120_000),
+        }
     } else {
         (4, 120_000)
     };
