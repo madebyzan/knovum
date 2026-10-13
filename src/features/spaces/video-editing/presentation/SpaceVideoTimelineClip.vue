@@ -43,8 +43,12 @@ function nudge(edge: "start" | "end", direction: -1 | 1) {
 
 <template>
   <div
-    class="absolute inset-y-1 overflow-hidden rounded-md border bg-surface-accent-subtle select-none"
-    :class="selected ? 'border-stroke-accent ring-1 ring-stroke-accent' : 'border-stroke-accent/30'"
+    class="group absolute inset-y-1 overflow-hidden rounded-md border bg-surface-stage select-none"
+    :class="
+      selected
+        ? 'border-stroke-accent ring-2 ring-stroke-accent'
+        : 'border-stroke-contrast-subtle/25 hover:border-stroke-accent/60'
+    "
     :style="geometry"
     :data-clip-id="clip.id"
   >
@@ -59,7 +63,7 @@ function nudge(edge: "start" | "end", direction: -1 | 1) {
       @pointercancel="gestures.cancel"
     >
       <span
-        class="absolute top-1 left-1 max-w-[calc(100%-0.5rem)] truncate rounded bg-black/45 px-1 text-caption-sm text-fg-on-image"
+        class="absolute top-0 left-0 max-w-full truncate rounded-br-md bg-surface-scrim/80 px-1.5 py-0.5 text-caption-sm text-fg-on-image"
         >{{ title }}</span
       >
     </button>
@@ -67,8 +71,8 @@ function nudge(edge: "start" | "end", direction: -1 | 1) {
       v-for="edge in EDGES"
       :key="edge"
       type="button"
-      class="absolute inset-y-0 z-10 w-2 cursor-ew-resize touch-none bg-surface-accent/60 hover:bg-surface-accent focus-visible:outline-2 focus-visible:outline-stroke-focus"
-      :class="edge === 'start' ? 'left-0' : 'right-0'"
+      class="absolute inset-y-0 z-10 w-2 cursor-ew-resize touch-none bg-surface-accent/70 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-surface-accent focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-stroke-focus"
+      :class="[edge === 'start' ? 'left-0 rounded-l' : 'right-0 rounded-r', { 'opacity-100': selected }]"
       :aria-label="
         t(edge === 'start' ? 'spaces.media.videoEditor.trim.start' : 'spaces.media.videoEditor.trim.end')
       "

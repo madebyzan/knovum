@@ -114,7 +114,7 @@
     "weight": "Weight",
     "unavailable": "Font {family} is not installed on this computer. Choose another font.",
     "catalogEmpty": "No installed fonts are available.",
-    "size": "Size (720p)",
+    "size": "Size",
     "color": "Text color"
   },
   "transitions": {

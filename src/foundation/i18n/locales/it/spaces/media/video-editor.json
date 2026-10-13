@@ -114,7 +114,7 @@
     "weight": "Spessore",
     "unavailable": "Il carattere {family} non è installato su questo computer. Scegli un altro carattere.",
     "catalogEmpty": "Non sono disponibili caratteri installati.",
-    "size": "Dimensione (720p)",
+    "size": "Dimensione",
     "color": "Colore testo"
   },
   "transitions": {

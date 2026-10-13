@@ -16,12 +16,16 @@ const DEFAULT_BACKGROUND = "#000000";
 export const STILL_IMAGE_MS = 4_000;
 export const MIN_CLIP_MS = 100;
 
+const DEFAULT_FRAME_RATE = 30;
+
 interface VideoEditProjectSource {
   nodeId: string;
   sourceRevision: string;
   durationMs: number;
   sourceWidth: number;
   sourceHeight: number;
+  /** Measured source cadence; the output starts at it instead of resampling the video. */
+  frameRate?: VideoOutput["frameRate"] | undefined;
 }
 
 export function defaultTransform(): VideoTransform {
@@ -71,7 +75,7 @@ export function createVideoEditProject(source: VideoEditProjectSource): VideoEdi
     output: {
       width: Math.max(2, source.sourceWidth - (source.sourceWidth % 2)),
       height: Math.max(2, source.sourceHeight - (source.sourceHeight % 2)),
-      frameRate: 30,
+      frameRate: source.frameRate ?? DEFAULT_FRAME_RATE,
       background: DEFAULT_BACKGROUND,
     },
     videoTrack: {

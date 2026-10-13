@@ -1,3 +1,6 @@
+import { shallowRef } from "vue";
+
+import type { AudioGraph } from "../engine/audio-graph";
 import type { PreviewSources } from "../engine/preview-sources";
 import type { VideoMaterialNode } from "../material";
 import type { VideoAsset } from "../project";
@@ -5,25 +8,32 @@ import type { VideoAsset } from "../project";
 const PEAKS = 1_200;
 const MAX_DECODE_MS = 15 * 60_000;
 
+interface WaveformOptions {
+  sources: PreviewSources;
+  /** The preview's audio context; decoding here keeps the editor on a single context. */
+  audio: AudioGraph;
+}
+
 /**
- * Peak envelopes for audio lanes. Decoding happens once per asset and is capped, because a waveform
- * is a navigation aid and must never compete with playback for memory.
+ * Peak envelopes for audio lanes. Decoding happens once per asset, one asset at a time, because a
+ * waveform is a navigation aid and must never compete with playback for memory or decode time.
  */
-export function createWaveformCache(options: { sources: PreviewSources; onReady: () => void }) {
-  const peaks = new Map<string, Float32Array>();
+export function createWaveformCache(options: WaveformOptions) {
+  /** Published envelopes; reading this is what makes a lane repaint when decoding lands. */
+  const peaks = shallowRef<ReadonlyMap<string, Float32Array>>(new Map());
   const pending = new Set<string>();
-  let context: AudioContext | undefined;
 
   function get(asset: VideoAsset) {
-    return peaks.get(key(asset));
+    return peaks.value.get(key(asset));
   }
 
   function request(asset: VideoAsset, node: VideoMaterialNode) {
     const identity = key(asset);
     if (
       asset.kind !== "audio" ||
-      peaks.has(identity) ||
+      peaks.value.has(identity) ||
       pending.has(identity) ||
+      pending.size > 0 ||
       asset.durationMs > MAX_DECODE_MS
     )
       return;
@@ -32,32 +42,27 @@ export function createWaveformCache(options: { sources: PreviewSources; onReady:
   }
 
   async function fill(identity: string, asset: VideoAsset, node: VideoMaterialNode) {
+    let envelope = new Float32Array();
     try {
-      peaks.set(identity, await decode(asset, node));
-    } catch {
-      peaks.set(identity, new Float32Array());
+      envelope = await decode(asset, node);
     } finally {
       pending.delete(identity);
-      options.onReady();
+      peaks.value = new Map(peaks.value).set(identity, envelope);
     }
   }
 
   async function decode(asset: VideoAsset, node: VideoMaterialNode) {
     const source = options.sources.ready(asset) ?? (await options.sources.load(asset, node));
     const response = await fetch(source.url);
-    const bytes = await response.arrayBuffer();
-    context ??= new AudioContext();
-    const buffer = await context.decodeAudioData(bytes);
-    return envelopeOf(buffer);
+    return envelopeOf(await options.audio.decode(await response.arrayBuffer()));
   }
 
   return {
     get,
     request,
     dispose() {
-      peaks.clear();
-      void context?.close();
-      context = undefined;
+      peaks.value = new Map();
+      pending.clear();
     },
   };
 }

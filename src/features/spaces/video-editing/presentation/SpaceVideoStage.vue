@@ -23,8 +23,8 @@ const output = computed(() => visibleProject.value?.output ?? project.value!.out
 const fitScale = computed(() => {
   if (!bounds.value.width || !bounds.value.height) return 0;
   return Math.min(
-    (bounds.value.width - 48) / output.value.width,
-    (bounds.value.height - 48) / output.value.height,
+    (bounds.value.width - 24) / output.value.width,
+    (bounds.value.height - 24) / output.value.height,
   );
 });
 const scale = computed(() => Math.max(0.02, fitted.value ? fitScale.value : zoom.value));
@@ -54,16 +54,21 @@ function setZoom(factor: number) {
 </script>
 
 <template>
-  <div class="relative flex min-h-0 flex-1 flex-col bg-surface-muted">
+  <div class="relative flex min-h-0 flex-1 flex-col bg-surface-stage">
     <div
       :ref="(value) => (viewport = value as HTMLElement | null)"
       class="relative grid min-h-0 flex-1 place-items-center overflow-hidden"
       @pointerdown="selection.clear()"
     >
-      <div class="relative shadow-panel" data-video-stage-frame :style="frameStyle" @pointerdown.stop>
+      <div
+        class="relative shadow-panel ring-1 ring-white/10"
+        data-video-stage-frame
+        :style="frameStyle"
+        @pointerdown.stop
+      >
         <canvas
           :ref="(value) => (canvas = value as HTMLCanvasElement | null)"
-          class="block size-full rounded-sm"
+          class="block size-full"
           :aria-label="t('spaces.media.videoEditor.preview.stage')"
         />
         <SpaceVideoStageSelection :editor="editor" :scale="scale" :gestures="gestures" />
@@ -71,7 +76,7 @@ function setZoom(factor: number) {
       <p
         v-if="engine.stalled.value"
         role="status"
-        class="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-surface-overlay px-3 py-1 text-caption text-fg-secondary shadow-control"
+        class="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-surface-overlay px-3 py-1 text-caption text-fg-secondary shadow-panel"
       >
         {{ t("spaces.media.videoEditor.preview.optimizing") }}
       </p>
@@ -87,7 +92,7 @@ function setZoom(factor: number) {
       </UiButton>
     </div>
     <footer
-      class="flex h-9 shrink-0 items-center justify-end gap-1 border-t border-stroke-divider px-3 text-caption text-fg-tertiary"
+      class="flex h-9 shrink-0 items-center justify-end gap-1 border-t border-stroke-divider bg-surface-panel px-3 text-caption text-fg-tertiary"
     >
       <span class="mr-auto tabular-nums"
         >{{ output.width }} × {{ output.height }} · {{ output.frameRate }} fps</span

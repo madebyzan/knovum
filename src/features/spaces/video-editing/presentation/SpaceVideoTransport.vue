@@ -88,7 +88,7 @@ const duration = computed(() => (project.value ? projectDurationMs(project.value
     </div>
     <div class="flex items-center gap-1.5">
       <span class="w-22 text-right text-caption font-medium tabular-nums">{{
-        formatVideoEditTime(engine.timeMs.value)
+        formatVideoEditTime(engine.displayMs.value)
       }}</span>
       <UiIconButton
         :label="t('spaces.media.videoEditor.playback.goToStart')"

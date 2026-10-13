@@ -31,8 +31,8 @@ useResizeObserver(canvas, ([entry]) => {
 });
 
 /**
- * Draws the decoded tiles covering the clip's source window. Tiles are requested for the current
- * scale, so zooming reuses the cache instead of decoding the clip again.
+ * Draws the decoded tiles covering the visible part of the clip. Only tiles on screen are
+ * requested, so scrolling a long clip never queues a decode of the whole source.
  */
 watchEffect(() => {
   const surface = canvas.value;
@@ -40,9 +40,7 @@ watchEffect(() => {
   const material = node.value;
   if (!surface || !media || !material || media.kind !== "video" || size.value.width <= 0) return;
   const bucketMs = filmstripBucketMs(timeline.pxPerSecond.value);
-  const first = Math.floor(props.clip.sourceInMs / bucketMs);
-  const last = Math.floor(Math.max(props.clip.sourceInMs, props.clip.sourceOutMs - 1) / bucketMs);
-  const indices = Array.from({ length: last - first + 1 }, (_, offset) => first + offset);
+  const indices = visibleTiles(bucketMs);
   filmstrips.request(media, material, bucketMs, indices);
   surface.width = Math.max(1, Math.round(size.value.width));
   surface.height = Math.max(1, Math.round(size.value.height));
@@ -62,6 +60,18 @@ watchEffect(() => {
     );
   }
 });
+
+/** Tile indices of the clip's source window that currently intersect the timeline viewport. */
+function visibleTiles(bucketMs: number) {
+  const window = timeline.visible.value;
+  const offsetMs = props.clip.sourceInMs - props.clip.timelineStartMs;
+  const fromMs = Math.max(props.clip.sourceInMs, window.fromMs + offsetMs);
+  const toMs = Math.min(Math.max(props.clip.sourceInMs, props.clip.sourceOutMs - 1), window.toMs + offsetMs);
+  if (toMs < fromMs) return [];
+  const first = Math.floor(fromMs / bucketMs);
+  const last = Math.floor(toMs / bucketMs);
+  return Array.from({ length: last - first + 1 }, (_, offset) => first + offset);
+}
 </script>
 
 <template>

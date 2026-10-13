@@ -32,7 +32,8 @@ const rows = computed(() => rowOffsets(props.project));
       class="flex items-center gap-1.5 border-b border-stroke-divider px-2"
       :style="{ height: `${TIMELINE_ROWS.audio}px` }"
     >
-      <Music2 class="size-3.5 shrink-0" />{{ t("spaces.media.videoEditor.tracks.audio") }} {{ lane }}
+      <Music2 class="size-3.5 shrink-0" />{{ t("spaces.media.videoEditor.tracks.audio")
+      }}<span v-if="rows.lanes > 1" class="tabular-nums">&nbsp;{{ lane }}</span>
     </div>
   </div>
 </template>
