@@ -11,7 +11,7 @@ fn main() {
         (
             "whisper/whisper.h",
             "WhisperApi",
-            r"whisper_(version|init_from_file_with_params_no_state|context_default_params|init_state|free|free_state|full_default_params|full_with_state|full_n_segments_from_state|full_get_segment_(t0|t1|text)_from_state|full_n_tokens_from_state|full_get_token_(text|data)_from_state|full_lang_id_from_state|token_eot|lang_id|lang_str|pcm_to_mel_with_state|lang_auto_detect_with_state|vad_.*)",
+            r"whisper_(version|init_from_file_with_params_no_state|context_default_params|init_state|free|free_state|full_default_params|full_with_state|full_n_segments_from_state|full_get_segment_(t0|t1|text)_from_state|full_n_tokens_from_state|full_get_token_(text|data)_from_state|full_lang_id_from_state|token_eot|lang_max_id|lang_id|lang_str|pcm_to_mel_with_state|lang_auto_detect_with_state|vad_.*)",
         ),
         (
             "sherpa-onnx.h",
