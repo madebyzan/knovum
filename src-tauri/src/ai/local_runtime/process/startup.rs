@@ -58,7 +58,7 @@ impl Worker {
                 tokio::fs::create_dir(work_directory)
                     .await
                     .map_err(|error| format!("resource_exhausted: {error}"))
-            }) => startup.map_err(|_| "deadline_exceeded".to_owned())??,
+            }) => startup.map_err(|_| "deadline_exceeded: worker runtime verification timed out".to_owned())??,
         }
         let memory_reservation =
             admission::reserve_memory(params.capability, &params.device_profile)?;

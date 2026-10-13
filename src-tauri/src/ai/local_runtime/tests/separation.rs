@@ -21,12 +21,13 @@ fn source_separation_artifact_copy_validates_timeline_and_cleans_worker_file() {
         sample_format: "pcm_s16le".into(),
     };
     let target = root.join("published.wav");
+    let deadline = Instant::now() + Duration::from_secs(60);
     let metadata = copy_artifact(
         &root,
         &request_id,
         &reference,
         4,
-        u64::MAX,
+        deadline,
         &CancellationToken::new(),
         &target,
     )
@@ -42,7 +43,7 @@ fn source_separation_artifact_copy_validates_timeline_and_cleans_worker_file() {
         &request_id,
         &reference,
         5,
-        u64::MAX,
+        deadline,
         &CancellationToken::new(),
         &invalid_target,
     )
