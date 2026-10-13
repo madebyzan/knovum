@@ -514,28 +514,36 @@ that extends past the shortened project is trimmed to the timeline rather than d
 that no longer fits is removed. Audio has independent source in/out, timeline start, volume, fades
 and up to four lanes; a lane change that would overlap existing audio is refused.
 
-Rust prepares revision-keyed, short-GOP editing proxies for video; initialization, material admission
-and video preview use that canonical preparation path. Proxy decoding determines the editing frame
-aspect ratio and duration; users select final output resolution independently. Video frames never
-cross IPC. Preparation is cancellable and failures remain visible. One animation-frame clock drives a
-canvas compositor and a single audio graph: every visible layer, overlay and audio lane is painted
-and mixed per frame without Vue reactivity in the render path. A bounded media pool owns the decoding
-elements, pre-rolls the media of the next cut 1.2 seconds ahead and parks it on an exact position, so
-a cut or a transition never starts with an undecoded source. During playback drift is absorbed by
-trimming the element playback rate by at most six percent; a seek happens only beyond an
-unrecoverable 300 ms gap, which is what removes the chunked, dropped-frame playback of the pre-release
-preview. Preview uses the same geometry, framing, opacity, gain, fade and transition math as export.
-Pointer scrubbing and exact output frame stepping are separate from integer-millisecond persisted edit
-intervals; trim handles and dragged clips snap to clip edges, the playhead and the output frame grid,
-with Alt enabling millisecond precision.
+A project is measured from its own source file: metadata parsing needs no transcode, so admitting
+media never waits for an encoder, and the output starts at the resolution and the measured frame
+cadence of the video instead of resampling it to a house default. Rust prepares revision-keyed,
+short-GOP editing proxies for playback and thumbnails, capped to a 1920-pixel long edge so the stage
+shows the picture the render will produce; the proxy recipe is part of the cache identity, so an
+improved recipe replaces what it supersedes. Video frames never cross IPC. Preparation is cancellable
+and failures remain visible. One animation-frame clock drives a canvas compositor and a single audio
+graph: every visible layer, overlay and audio lane is painted and mixed per frame without Vue
+reactivity in the render path, and the surface is sized to the pixels the stage occupies rather than
+to the output frame. A bounded media pool owns the decoding elements and their transport: it
+pre-rolls the media of the next cut 1.2 seconds ahead, parks it with a single seek, and never pauses
+or repositions an element the clock wants playing. During playback drift is absorbed by trimming the
+element playback rate by at most six percent; a seek happens only beyond an unrecoverable 300 ms gap.
+A frame is painted only when every layer it needs is decoded and positioned, so a slow decode holds
+the last picture and the clock waits with it instead of flashing the background. While the editor is
+paused the preview repaints on media events rather than on a poll. Preview uses the same geometry,
+framing, opacity, gain, fade and transition math as export. Pointer scrubbing and exact output frame
+stepping are separate from integer-millisecond persisted edit intervals; trim handles and dragged
+clips snap to clip edges, the playhead and the output frame grid, with Alt enabling millisecond
+precision.
 
 A tabbed library of materials, text and transitions, the stage and the selected-item inspector sit
 above the resizable timeline. The inspector is absent until a clip, transition, audio clip or text
 item is selected; closing it returns focus to the ruler. The timeline is scaled in pixels per second:
 zooming keeps the time under the pointer fixed, fitting shows the whole project with trailing room,
-ruler steps coarsen as the scale shrinks, and the view follows the playhead only once it leaves the
-comfortable band. Filmstrip thumbnails and audio waveforms are decoded in bounded background work
-keyed by asset revision and are released with the materials that produced them. Timed text is
+ruler steps coarsen as the scale shrinks, and the view follows the playhead by writing the scroll
+position and the playhead directly, so a moving playhead never re-renders the lanes. Filmstrip
+thumbnails and audio waveforms are decoded in bounded background work keyed by asset revision: only
+what the viewport shows is requested, outstanding work is replaced rather than queued as the view
+moves, extraction yields to playback, and both are released with the materials that produced them. Timed text is
 selectable from the stage and the timeline and is positioned freely by dragging it on the frame, with
 searchable subtitles, installed font family and face weight, size, colour, alignment and four
 export-backed styles. Text size remains

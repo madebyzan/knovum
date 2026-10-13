@@ -39,25 +39,27 @@ export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
       previewError.value = getErrorMessage(error);
     },
   });
-  const filmstrips = createFilmstripCache({ sources: engine.sources, onReady: engine.invalidate });
-  const waveforms = createWaveformCache({ sources: engine.sources, onReady: engine.invalidate });
+  const filmstrips = createFilmstripCache({
+    sources: engine.sources,
+    suspended: () => engine.playing.value,
+  });
+  const waveforms = createWaveformCache({ sources: engine.sources, audio: engine.audio });
   const selection = useVideoSelection({
     project,
     selection: session.selection,
     seek: engine.seek,
     pause: engine.pause,
-    playheadMs: () => engine.timeMs.value,
+    playheadMs: engine.positionMs,
   });
   const timeline = useTimelineView({
     project: () => visibleProject.value,
-    playheadMs: () => engine.timeMs.value,
-    playing: () => engine.playing.value,
+    subscribe: engine.subscribe,
   });
   const gestures = useTimelineGestures({
     project: () => project.value!,
     timeAt: (event) => timeline.timeAt(event),
     pxPerSecond: () => timeline.pxPerSecond.value,
-    playheadMs: () => engine.timeMs.value,
+    playheadMs: engine.positionMs,
     commit: (next, mergeKey) => session.history.commit(next, mergeKey),
     seek: engine.seek,
     select: (value) => selection.select(value, { reveal: false }),
@@ -71,14 +73,14 @@ export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
     project,
     commit: (next, mergeKey) => session.history.commit(next, mergeKey),
     selection,
-    playheadMs: () => engine.timeMs.value,
+    playheadMs: engine.positionMs,
     seek: engine.seek,
     pause: engine.pause,
     toggle: engine.toggle,
     focusText: () => editorRoot.value?.querySelector<HTMLTextAreaElement>("#video-edit-text")?.select(),
   });
+
   const bootstrap = useVideoProjectBootstrap({
-    spaceId: tab.spaceId,
     node: computed(() => (isVideoMaterial(session.node.value) ? session.node.value : undefined)),
     project,
     obsolete: session.obsolete,
@@ -99,13 +101,18 @@ export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
     },
     { immediate: true },
   );
-  watch(engine.timeMs, (value) => (session.timelineMs.value = value));
+  watch(engine.playing, (playing) => {
+    if (playing) return;
+    session.timelineMs.value = engine.positionMs();
+    filmstrips.resume();
+  });
   watch([project, materials.available], () => engine.invalidate());
   watch(
     () => data.value.sourceRevision,
     () => (previewError.value = undefined),
   );
   onScopeDispose(() => {
+    session.timelineMs.value = engine.positionMs();
     engine.dispose();
     filmstrips.dispose();
     waveforms.dispose();

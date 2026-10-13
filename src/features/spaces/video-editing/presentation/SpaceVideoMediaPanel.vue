@@ -41,7 +41,7 @@ function drag(event: DragEvent, node: VideoMaterialNode) {
 }
 
 function add(node: VideoMaterialNode) {
-  void materials.add(node, engine.timeMs.value);
+  void materials.add(node, engine.positionMs());
 }
 </script>
 
@@ -63,25 +63,30 @@ function add(node: VideoMaterialNode) {
         <li v-for="node in visible" :key="node.id" class="group relative">
           <button
             type="button"
-            class="w-full overflow-hidden rounded-lg border border-stroke-default bg-surface-muted text-left transition-colors hover:border-stroke-accent focus-visible:outline-2 focus-visible:outline-stroke-focus"
+            class="w-full overflow-hidden rounded-lg border border-stroke-default bg-surface-raised text-left transition-colors hover:border-stroke-accent focus-visible:outline-2 focus-visible:outline-stroke-focus"
             draggable="true"
             :aria-label="t('spaces.media.videoEditor.materials.add', { title: node.data.title })"
             @dragstart="drag($event, node)"
             @dblclick="add(node)"
             @click="add(node)"
           >
-            <span class="relative block aspect-video bg-surface-skeleton">
+            <span class="relative block aspect-[4/3] bg-surface-stage">
               <img
                 v-if="cover(node)"
                 :src="cover(node)"
                 alt=""
                 draggable="false"
-                class="size-full object-cover"
+                class="size-full object-contain"
               />
               <component
                 :is="ICONS[node.data.kind as keyof typeof ICONS]"
                 v-else
-                class="absolute top-1/2 left-1/2 size-5 -translate-x-1/2 -translate-y-1/2 text-fg-tertiary"
+                class="absolute top-1/2 left-1/2 size-5 -translate-x-1/2 -translate-y-1/2 text-fg-on-image/70"
+              />
+              <component
+                :is="ICONS[node.data.kind as keyof typeof ICONS]"
+                v-if="cover(node)"
+                class="absolute top-1 left-1 size-3.5 text-fg-on-image drop-shadow"
               />
               <span
                 v-if="durationOf(node)"
@@ -89,7 +94,9 @@ function add(node: VideoMaterialNode) {
                 >{{ durationOf(node) }}</span
               >
             </span>
-            <span class="block truncate px-2 py-1.5 text-caption">{{ node.data.title }}</span>
+            <span class="line-clamp-2 block px-2 py-1.5 text-caption leading-snug">{{
+              node.data.title
+            }}</span>
           </button>
           <UiIconButton
             class="absolute top-1 right-1 bg-surface-overlay opacity-0 shadow-control group-focus-within:opacity-100 group-hover:opacity-100"

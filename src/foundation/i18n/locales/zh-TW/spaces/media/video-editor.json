@@ -114,7 +114,7 @@
     "weight": "字重",
     "unavailable": "本機未安裝字型「{family}」，請重新選擇。",
     "catalogEmpty": "本機沒有可用字體。",
-    "size": "字號（720p）",
+    "size": "字號",
     "color": "字體顏色"
   },
   "transitions": {
