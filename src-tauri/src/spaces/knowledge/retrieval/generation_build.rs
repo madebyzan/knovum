@@ -23,6 +23,11 @@ struct KnowledgeChunkSource {
     text: String,
 }
 
+/// One batch is at most [`embedding::active_text_provider`]'s batch size of short chunks through a
+/// loaded model. The budget covers that encode alone: the slot wait and the worker's cold start
+/// are bounded separately, so this number no longer has to absorb them.
+const BATCH_ENCODE_BUDGET_MS: u64 = 120_000;
+
 pub(super) async fn run<R: Runtime>(
     app: AppHandle<R>,
     space_id: &str,
@@ -69,7 +74,7 @@ pub(super) async fn run<R: Runtime>(
             attempt_id: generation.id.clone(),
             attempt_epoch: 1,
             input_revision,
-            deadline_ms: deadline_after(120_000)?,
+            budget_ms: BATCH_ENCODE_BUDGET_MS,
         };
         let response = embedding::embed(
             &app,
@@ -117,13 +122,6 @@ fn batch_revision(chunks: &[KnowledgeChunkSource]) -> String {
         digest.update([0]);
     }
     format!("sha256:{}", hex::encode(digest.finalize()))
-}
-
-fn deadline_after(duration_ms: i64) -> Result<u64, String> {
-    crate::foundation::clock::unix_time_millis()?
-        .checked_add(duration_ms)
-        .and_then(|deadline| u64::try_from(deadline).ok())
-        .ok_or_else(|| "Embedding deadline exceeds the supported range".to_owned())
 }
 
 async fn load_unindexed_chunks(

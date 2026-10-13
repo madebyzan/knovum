@@ -11,7 +11,10 @@ pub struct InferenceRequestIdentity {
     pub attempt_epoch: u64,
     pub input_revision: String,
     pub model_spec_id: String,
-    pub deadline_ms: u64,
+    /// Milliseconds of execution the worker may spend on this request, measured from the moment
+    /// the worker admits it. A budget is relative because only the executor knows when the work
+    /// started: time spent queueing for the inference slot belongs to the host, not to the worker.
+    pub budget_ms: u64,
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]

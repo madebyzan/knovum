@@ -20,7 +20,6 @@ pub(crate) async fn profile(
     runtime: &InferenceRuntimePaths,
     model: LocalModelId,
     cancellation: &CancellationToken,
-    deadline_ms: u64,
 ) -> Result<RuntimeDeviceProfile, String> {
     if !matches!(
         model,
@@ -33,7 +32,6 @@ pub(crate) async fn profile(
         super::backend_probe::Probe::CompiledLibrary(6 * super::GIB),
         cancellation,
         cancellation,
-        deadline_ms,
     )
     .await?;
     let device = report.device;

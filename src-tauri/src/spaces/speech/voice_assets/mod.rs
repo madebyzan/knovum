@@ -49,10 +49,10 @@ pub(super) fn prepare_reference_clip(
     if interval.1 <= interval.0 || !(5000..=30000).contains(&(interval.1 - interval.0)) {
         return Err("Reference selection must contain 5–30 seconds".into());
     }
-    assets::authorize_source(app, source)?;
+    let source = assets::authorize_media_source(app, source)?;
     decode_reference(
         app,
-        source,
+        &source,
         output,
         expected_byte_length,
         cancellation,

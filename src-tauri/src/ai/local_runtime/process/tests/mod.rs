@@ -1,10 +1,6 @@
 mod startup;
 
-use std::{
-    path::PathBuf,
-    process::Stdio,
-    time::{Instant, SystemTime, UNIX_EPOCH},
-};
+use std::{path::PathBuf, process::Stdio, time::Instant};
 
 use tokio::process::Command;
 use tokio_util::sync::CancellationToken;
@@ -69,17 +65,6 @@ async fn worker() -> Worker {
     }
 }
 
-fn deadline_after(ms: u64) -> u64 {
-    u64::try_from(
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis(),
-    )
-    .unwrap()
-        + ms
-}
-
 #[test]
 #[ignore = "subprocess fixture; launched by worker send regression tests"]
 fn stalled_worker() {
@@ -95,18 +80,14 @@ async fn failed_sends_terminate_the_worker_and_remove_its_workspace() {
         if mode == "cancelled" {
             cancellation.cancel();
         }
-        let deadline = if mode == "elapsed" {
-            1
-        } else {
-            deadline_after(200)
-        };
+        let budget_ms = if mode == "elapsed" { 0 } else { 200 };
         let params = serde_json::json!({"text": "x".repeat(900_000)});
         let failure = worker
             .send_request(
                 "request",
                 "embedding.encode",
                 &params,
-                deadline,
+                budget_ms,
                 &cancellation,
                 &CancellationToken::new(),
             )
@@ -133,7 +114,7 @@ async fn successful_send_preserves_the_worker_and_returns_the_response_deadline(
             "request",
             "runtime.health",
             &serde_json::json!({}),
-            deadline_after(5_000),
+            5_000,
             &CancellationToken::new(),
             &CancellationToken::new(),
         )

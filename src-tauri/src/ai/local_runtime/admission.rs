@@ -139,65 +139,73 @@ pub(super) fn memory_pressure() -> Result<bool, String> {
     Ok(super::device_profiles::memory_snapshot()?.available_bytes < ACTIVE_RUNTIME_HEADROOM_BYTES)
 }
 
+/// Waits for the single inference slot.
+///
+/// Waiting is bounded by cancellation alone, never by the caller's execution budget. Every permit
+/// holder executes under its own budget and releases the permit when the permit value drops, so
+/// the queue always drains; charging queue time to the request that is still waiting only made
+/// contended requests expire before they had run at all.
 pub(crate) async fn acquire(
     priority: Priority,
     cancellation: &CancellationToken,
     shutdown: &CancellationToken,
-    deadline: Duration,
 ) -> Result<Permit, String> {
     if shutdown.is_cancelled() || cancellation.is_cancelled() {
         return Err("cancelled".into());
     }
-    if deadline.is_zero() {
-        return Err("deadline_exceeded".into());
-    }
     let admission = admission();
     ensure_runtime_headroom(&admission)?;
-    let (id, receiver) = {
-        let mut state = admission.state.lock().map_err(|_| "resource_busy")?;
-        if !state.busy && state.interactive.is_empty() && state.background.is_empty() {
-            state.busy = true;
-            return Ok(Permit {
-                admission: admission.clone(),
-                active: true,
-            });
-        }
-        let id = state.next_id;
-        state.next_id = state.next_id.wrapping_add(1);
-        let (grant, receiver) = oneshot::channel();
-        let waiter = Waiter {
-            id,
-            since: Instant::now(),
-            grant,
+    let permit = admission.enqueue(priority, cancellation, shutdown).await?;
+    ensure_runtime_headroom(&admission)?;
+    Ok(permit)
+}
+
+impl Admission {
+    async fn enqueue(
+        self: &Arc<Self>,
+        priority: Priority,
+        cancellation: &CancellationToken,
+        shutdown: &CancellationToken,
+    ) -> Result<Permit, String> {
+        let (id, receiver) = {
+            let mut state = self.state.lock().map_err(|_| "resource_busy")?;
+            if !state.busy && state.interactive.is_empty() && state.background.is_empty() {
+                state.busy = true;
+                return Ok(Permit {
+                    admission: self.clone(),
+                    active: true,
+                });
+            }
+            let id = state.next_id;
+            state.next_id = state.next_id.wrapping_add(1);
+            let (grant, receiver) = oneshot::channel();
+            let waiter = Waiter {
+                id,
+                since: Instant::now(),
+                grant,
+            };
+            match priority {
+                Priority::Interactive => state.interactive.push_back(waiter),
+                Priority::Background => state.background.push_back(waiter),
+            }
+            (id, receiver)
         };
-        match priority {
-            Priority::Interactive => state.interactive.push_back(waiter),
-            Priority::Background => state.background.push_back(waiter),
+        let reservation = tokio::select! {
+            biased;
+            _ = shutdown.cancelled() => Err("cancelled".to_owned()),
+            _ = cancellation.cancelled() => Err("cancelled".to_owned()),
+            admission = receiver => match admission {
+                Ok(permit) => Ok(permit),
+                Err(_) => Err("worker_crashed".to_owned()),
+            },
+        };
+        if reservation.is_err() {
+            if let Ok(mut state) = self.state.lock() {
+                state.interactive.retain(|waiter| waiter.id != id);
+                state.background.retain(|waiter| waiter.id != id);
+            }
         }
-        (id, receiver)
-    };
-    let reservation = tokio::select! {
-        biased;
-        _ = shutdown.cancelled() => Err("cancelled".to_owned()),
-        _ = cancellation.cancelled() => Err("cancelled".to_owned()),
-        admission = tokio::time::timeout(deadline, receiver) => match admission {
-            Ok(Ok(permit)) => Ok(permit),
-            Ok(Err(_)) => Err("worker_crashed".to_owned()),
-            Err(_) => Err("deadline_exceeded".to_owned()),
-        },
-    };
-    if reservation.is_err() {
-        if let Ok(mut state) = admission.state.lock() {
-            state.interactive.retain(|waiter| waiter.id != id);
-            state.background.retain(|waiter| waiter.id != id);
-        }
-    }
-    match reservation {
-        Ok(permit) => {
-            ensure_runtime_headroom(&admission)?;
-            Ok(permit)
-        }
-        Err(error) => Err(error),
+        reservation
     }
 }
 

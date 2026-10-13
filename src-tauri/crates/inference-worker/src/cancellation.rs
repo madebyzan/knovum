@@ -2,7 +2,7 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, Mutex,
 };
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant};
 
 use ort::session::RunOptions;
 
@@ -10,15 +10,18 @@ use ort::session::RunOptions;
 pub(crate) struct Cancellation {
     cancelled: Arc<AtomicBool>,
     run: Arc<Mutex<Option<Arc<RunOptions>>>>,
-    deadline_ms: u64,
+    deadline: Instant,
 }
 
 impl Cancellation {
-    pub(crate) fn new(deadline_ms: u64) -> Self {
+    /// Starts the request's execution budget now. The budget is monotonic so that a suspended
+    /// host, a clock adjustment, or time spent queueing before this worker was handed the request
+    /// cannot consume the execution it was granted.
+    pub(crate) fn new(budget_ms: u64) -> Self {
         Self {
             cancelled: Arc::new(AtomicBool::new(false)),
             run: Arc::new(Mutex::new(None)),
-            deadline_ms,
+            deadline: Instant::now() + Duration::from_millis(budget_ms),
         }
     }
 
@@ -35,11 +38,7 @@ impl Cancellation {
         if self.cancelled.load(Ordering::Acquire) {
             return Err("cancelled".into());
         }
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|error| error.to_string())?
-            .as_millis();
-        if now >= u128::from(self.deadline_ms) {
+        if Instant::now() >= self.deadline {
             return Err("deadline_exceeded".into());
         }
         Ok(())
@@ -66,7 +65,7 @@ impl ActiveRequest {
         &self,
         request_id: &str,
         epoch: u64,
-        deadline: u64,
+        budget_ms: u64,
     ) -> Result<Cancellation, String> {
         let mut active = self
             .0
@@ -75,7 +74,7 @@ impl ActiveRequest {
         if active.is_some() {
             return Err("resource_exhausted: worker already has an active request".into());
         }
-        let cancel = Cancellation::new(deadline);
+        let cancel = Cancellation::new(budget_ms);
         cancel.check()?;
         *active = Some((request_id.into(), epoch, cancel.clone()));
         Ok(cancel)

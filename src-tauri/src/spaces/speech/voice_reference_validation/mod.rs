@@ -1,4 +1,3 @@
-use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::Runtime;
 use tokio_util::sync::CancellationToken;
 
@@ -20,6 +19,9 @@ use crate::{
 const MIN_SPEECH_PERCENT: u64 = 60;
 const MAX_TEXT_DISTANCE_PERCENT: usize = 20;
 const MAX_MATCH_CHARACTERS: usize = 3_000;
+/// A voice reference is a five to thirty second clip, so transcribing it is short work once the
+/// model is loaded. Reaching that loaded state is bounded by the worker's own startup budget.
+const VALIDATION_BUDGET_MS: u64 = 120_000;
 
 pub(super) async fn validate<R: Runtime>(
     app: &tauri::AppHandle<R>,
@@ -58,7 +60,7 @@ pub(super) async fn validate<R: Runtime>(
                 attempt_epoch: 1,
                 input_revision: format!("sha256:{}", reference.sha256),
                 model_spec_id: profile.id,
-                deadline_ms: deadline_ms()?,
+                budget_ms: VALIDATION_BUDGET_MS,
             },
             audio_ref: reference,
             profile: AsrProfile {
@@ -173,16 +175,6 @@ fn edit_distance(left: &[char], right: &[char]) -> usize {
         std::mem::swap(&mut previous, &mut current);
     }
     previous[right.len()]
-}
-
-fn deadline_ms() -> Result<u64, String> {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_err(|error| error.to_string())?;
-    u64::try_from(now.as_millis())
-        .map_err(|_| "Clock exceeds speech protocol range".to_owned())?
-        .checked_add(120_000)
-        .ok_or_else(|| "Voice reference deadline exceeds speech protocol range".to_owned())
 }
 
 #[cfg(test)]

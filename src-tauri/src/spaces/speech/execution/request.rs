@@ -7,10 +7,11 @@ use crate::spaces::{
     assets,
     speech::{contracts::VoiceExecution, publication},
 };
-use std::{
-    path::Path,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::path::Path;
+
+/// Synthesising one segment is bounded work once the voice model is loaded; the load itself is
+/// bounded by the worker's startup budget.
+const SYNTHESIS_BUDGET_MS: u64 = 300_000;
 
 pub(in crate::spaces::speech) struct SynthesisAttempt<'a> {
     pub request_id: &'a str,
@@ -57,7 +58,7 @@ pub(in crate::spaces::speech) fn synthesis_params(
             attempt_epoch: attempt.attempt_epoch,
             input_revision: attempt.input_revision.to_owned(),
             model_spec_id: voice.model_spec_id.clone(),
-            deadline_ms: deadline(300)?,
+            budget_ms: SYNTHESIS_BUDGET_MS,
         },
         text: text.to_owned(),
         voice_revision,
@@ -136,17 +137,4 @@ fn reference_audio(
         return Err("Reference voice audio changed while it was inspected".into());
     }
     Ok(reference)
-}
-
-fn deadline(seconds: u64) -> Result<u64, String> {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_err(|error| error.to_string())?;
-    let duration_ms = seconds
-        .checked_mul(1_000)
-        .ok_or("Speech deadline overflow")?;
-    u64::try_from(now.as_millis())
-        .map_err(|_| "System time exceeds protocol range".to_owned())?
-        .checked_add(duration_ms)
-        .ok_or("Speech deadline overflow".to_owned())
 }

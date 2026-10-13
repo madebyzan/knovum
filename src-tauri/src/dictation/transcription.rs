@@ -64,8 +64,8 @@ pub(crate) async fn transcribe<R: Runtime>(
         / (u64::from(audio_ref.sample_rate) * u64::from(audio_ref.channels) * 2);
     let allowance = speech::transcription_budget_ms(model, pcm_duration_ms)
         .map_err(|error| DictationFailure::classified("transcription_failed", error))?;
-    let (attempt_epoch, deadline_ms) = deadline(allowance)?;
-    let profile = speech::transcription_execution_profile(app, model, cancellation, deadline_ms)
+    let attempt_epoch = attempt_epoch()?;
+    let profile = speech::transcription_execution_profile(app, model, cancellation)
         .await
         .map_err(|error| transcription_failure(cancellation, error))?;
     let request_id = uuid::Uuid::new_v4().to_string();
@@ -77,7 +77,7 @@ pub(crate) async fn transcribe<R: Runtime>(
         attempt_epoch,
         input_revision: format!("sha256:{}", audio_ref.sha256),
         model_spec_id: profile.id.clone(),
-        deadline_ms,
+        budget_ms: allowance,
     };
     let artifact = speech::transcribe(
         app,
@@ -173,19 +173,12 @@ fn audio_reference(
     })
 }
 
-fn deadline(allowance_ms: u64) -> Result<(u64, u64), DictationFailure> {
+fn attempt_epoch() -> Result<u64, DictationFailure> {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_err(|error| DictationFailure::classified("dictation_failed", error.to_string()))?;
-    let now_ms = u64::try_from(now.as_millis())
-        .map_err(|error| DictationFailure::classified("dictation_failed", error.to_string()))?;
-    let deadline_ms = now_ms.checked_add(allowance_ms).ok_or_else(|| {
-        DictationFailure::classified(
-            "dictation_failed",
-            "ASR deadline exceeds the supported range",
-        )
-    })?;
-    Ok((now_ms, deadline_ms))
+    u64::try_from(now.as_millis())
+        .map_err(|error| DictationFailure::classified("dictation_failed", error.to_string()))
 }
 
 fn transcription_failure(cancellation: &CancellationToken, message: String) -> DictationFailure {

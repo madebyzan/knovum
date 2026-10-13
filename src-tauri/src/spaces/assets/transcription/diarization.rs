@@ -2,7 +2,6 @@ use crate::ai::local_runtime::compute_budget::ComputeBudget;
 use std::{
     collections::{BTreeMap, HashMap},
     path::Path,
-    time::{SystemTime, UNIX_EPOCH},
 };
 
 use sqlx::Row;
@@ -116,7 +115,7 @@ pub(crate) async fn diarize_media(
                     request.expected_revision
                 ),
                 model_spec_id: variant.spec_id().into(),
-                deadline_ms: deadline(transcript.duration_ms)?,
+                budget_ms: budget_ms(transcript.duration_ms),
             },
             audio_ref,
             speaker_count_bounds: SpeakerCountBounds {
@@ -238,18 +237,10 @@ async fn load_request(app: &AppHandle, job_id: &str) -> Result<Request, String> 
     })
 }
 
-fn deadline(duration_ms: u64) -> Result<u64, String> {
-    let now = u64::try_from(
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|error| error.to_string())?
-            .as_millis(),
-    )
-    .map_err(|error| error.to_string())?;
-    now.checked_add(
-        duration_ms
-            .saturating_mul(4)
-            .clamp(120_000, 8 * 60 * 60 * 1_000),
-    )
-    .ok_or("Diarization deadline exceeds its range".into())
+/// Diarization scales with the audio it labels, so its budget does too. Loading the model is
+/// bounded by the worker's own startup budget.
+fn budget_ms(duration_ms: u64) -> u64 {
+    duration_ms
+        .saturating_mul(4)
+        .clamp(120_000, 8 * 60 * 60 * 1_000)
 }

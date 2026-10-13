@@ -1,21 +1,26 @@
 use serde::Serialize;
+use std::time::Duration;
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
 use super::Worker;
 
 impl Worker {
+    /// Dispatches a request and returns the instant its response is due.
+    ///
+    /// The execution budget starts here, at dispatch, because this is the first moment the work
+    /// can actually proceed: the slot is held and the worker is initialized.
     pub(in crate::ai::local_runtime) async fn send_request<P: Serialize>(
         &mut self,
         request_id: &str,
         method: &str,
         params: &P,
-        deadline_ms: u64,
+        budget_ms: u64,
         cancellation: &CancellationToken,
         exit: &CancellationToken,
     ) -> Result<Instant, String> {
         let sent = async {
-            let deadline = Instant::now() + crate::ai::local_runtime::deadline_duration(deadline_ms)?;
+            let deadline = Instant::now() + Duration::from_millis(budget_ms);
             tokio::select! {
                 biased;
                 _ = exit.cancelled() => Err("cancelled".to_owned()),

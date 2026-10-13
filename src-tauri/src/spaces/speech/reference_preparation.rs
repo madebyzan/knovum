@@ -53,14 +53,10 @@ pub async fn prepare_voice_reference(
         );
     }
     let (cancellation, _lease) = cancellation::acquire(&request.job_id)?;
-    let source = Path::new(&request.source_path).to_owned();
-    assets::authorize_source(&app, &source)?;
+    let source = assets::authorize_media_source(&app, Path::new(&request.source_path))?;
     let length = fs::metadata(&source)
         .map_err(|error| error.to_string())?
         .len();
-    if length == 0 {
-        return Err("Voice reference source is empty".into());
-    }
     let pool = db::pool(&app).await?;
     let directory = assets::asset_directory(&app)?
         .join("speech")

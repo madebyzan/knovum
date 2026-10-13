@@ -2,6 +2,7 @@ mod diagnostics;
 mod environment;
 mod package;
 pub(super) use environment::isolate_environment;
+pub(in crate::ai::local_runtime) use package::WorkerPackage;
 mod request;
 mod startup;
 use crate::foundation::subprocess::process_tree::{KillHandle, ProcessTree};

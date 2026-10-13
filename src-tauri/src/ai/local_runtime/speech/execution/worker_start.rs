@@ -3,7 +3,7 @@ use crate::ai::{
         RuntimeCapability, RuntimeDeviceProfile, RuntimeInitializeParams, RuntimeModelPaths,
         PROTOCOL_VERSION,
     },
-    local_runtime::process::Worker,
+    local_runtime::process::{Worker, WorkerPackage},
 };
 use crate::local_resources::runtimes::inference;
 use std::path::{Path, PathBuf};
@@ -17,7 +17,6 @@ pub(super) struct WorkerStart<'a, R: Runtime> {
     pub(super) capability: RuntimeCapability,
     pub(super) model_spec_id: String,
     pub(super) device_profile: RuntimeDeviceProfile,
-    pub(super) deadline_ms: u64,
     pub(super) cancellation: &'a CancellationToken,
     pub(super) exit: &'a CancellationToken,
 }
@@ -33,7 +32,6 @@ pub(super) async fn start_worker<R: Runtime>(
         capability,
         model_spec_id,
         device_profile,
-        deadline_ms,
         cancellation,
         exit,
     } = start;
@@ -63,6 +61,7 @@ pub(super) async fn start_worker<R: Runtime>(
         RuntimeCapability::SpeechSeparation => model_paths.speech_separation = value,
         _ => return Err("runtime_mismatch: capability is not a speech method".into()),
     }
+    let package = WorkerPackage::from(runtime);
     let params = RuntimeInitializeParams {
         runtime_manifest_path: runtime.manifest_path.to_string_lossy().into_owned(),
         protocol_version: PROTOCOL_VERSION,
@@ -73,14 +72,14 @@ pub(super) async fn start_worker<R: Runtime>(
         device_profile,
         work_directory: work_directory.to_string_lossy().into_owned(),
         model_paths,
+        budget_ms: package.initialization_budget_ms(),
     };
     *slot = Some(
         Worker::start(
-            runtime.into(),
+            package,
             &work_directory,
             model_path,
             params,
-            deadline_ms,
             cancellation,
             exit,
         )
