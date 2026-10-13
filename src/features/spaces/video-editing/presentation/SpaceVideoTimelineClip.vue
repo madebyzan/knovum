@@ -43,11 +43,11 @@ function nudge(edge: "start" | "end", direction: -1 | 1) {
 
 <template>
   <div
-    class="group absolute inset-y-1 overflow-hidden rounded-md border bg-surface-stage select-none"
+    class="group absolute inset-y-1 overflow-hidden rounded-md border bg-surface-raised shadow-xs select-none"
     :class="
       selected
         ? 'border-stroke-accent ring-2 ring-stroke-accent'
-        : 'border-stroke-contrast-subtle/25 hover:border-stroke-accent/60'
+        : 'border-stroke-contrast-subtle/30 hover:border-stroke-accent/60'
     "
     :style="geometry"
     :data-clip-id="clip.id"
@@ -63,7 +63,7 @@ function nudge(edge: "start" | "end", direction: -1 | 1) {
       @pointercancel="gestures.cancel"
     >
       <span
-        class="absolute top-0 left-0 max-w-full truncate rounded-br-md bg-surface-scrim/80 px-1.5 py-0.5 text-caption-sm text-fg-on-image"
+        class="absolute top-0 left-0 max-w-full truncate rounded-br-md bg-surface-scrim/80 px-1.5 py-0.5 text-caption-sm font-medium text-fg-on-image backdrop-blur-xs"
         >{{ title }}</span
       >
     </button>

@@ -35,16 +35,24 @@ function frameAttrs(output: VideoOutput) {
   return { x: 0, y: 0, width: output.width, height: output.height };
 }
 
-function groupAttrs(style: LayerStyle) {
-  return {
-    x: style.dx,
-    y: style.dy,
-    opacity: style.opacity,
-    clipX: style.clip?.x ?? 0,
-    clipY: style.clip?.y ?? 0,
-    clipWidth: style.clip?.width ?? 0,
-    clipHeight: style.clip?.height ?? 0,
-  };
+export function applyGroupStyle(group: Konva.Group, style: LayerStyle) {
+  if (style.clip) {
+    group.setAttrs({
+      x: style.dx,
+      y: style.dy,
+      opacity: style.opacity,
+      clipX: style.clip.x,
+      clipY: style.clip.y,
+      clipWidth: style.clip.width,
+      clipHeight: style.clip.height,
+    });
+  } else {
+    group.setAttrs({ x: style.dx, y: style.dy, opacity: style.opacity });
+    if (typeof group.clipWidth() === "number") {
+      group.clipWidth(null as unknown as number);
+      group.clipHeight(null as unknown as number);
+    }
+  }
 }
 
 function pictureAttrs(layer: SceneLayer, output: VideoOutput) {
@@ -69,7 +77,7 @@ export function updateLayerNode(
   layer: SceneLayer,
   frame: { output: VideoOutput; style: LayerStyle },
 ) {
-  node.group.setAttrs(groupAttrs(frame.style));
+  applyGroupStyle(node.group, frame.style);
   node.backdrop.setAttrs({ ...frameAttrs(frame.output), fill: frame.output.background });
   node.picture.setAttrs(pictureAttrs(layer, frame.output));
   node.curtain.setAttrs({ ...frameAttrs(frame.output), opacity: 1 - layer.fade });

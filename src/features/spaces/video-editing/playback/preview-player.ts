@@ -35,19 +35,9 @@ export function createPreviewPlayer(options: PlayerOptions) {
   const videos = createVideoLibrary(options.spaceId, controller.signal);
   const images = createImageLibrary(options.materials);
   const audio = createAudioLibrary({ context: audioContext, videos, materials: options.materials });
-  const sources = createFrameSources({
-    videos,
-    images,
-    onChanged: invalidate,
-    onFailed: options.onFailed,
-  });
+  const sources = createFrameSources({ videos, images, onChanged: invalidate, onFailed: options.onFailed });
   const clock = createPlaybackClock({ context: audioContext, durationMs });
-  const sound = createSoundTrack({
-    project: options.project,
-    library: audio,
-    clock,
-    onFailed: options.onFailed,
-  });
+  const sound = createSoundTrack({ project: options.project, library: audio, clock, onFailed: options.onFailed });
   const displayMs = shallowRef(0);
   const listeners = new Set<FrameListener>();
   let scene: StageScene | undefined;
@@ -137,10 +127,7 @@ export function createPreviewPlayer(options: PlayerOptions) {
     play,
     pause,
     toggle() {
-      if (clock.playing.value) {
-        pause();
-        return Promise.resolve();
-      }
+      if (clock.playing.value) return (pause(), Promise.resolve());
       return play();
     },
     attach(container: HTMLDivElement) {
@@ -165,6 +152,7 @@ export function createPreviewPlayer(options: PlayerOptions) {
       invalidate();
     },
     start() {
+      sound.prepare();
       handle ??= requestAnimationFrame(tick);
     },
     stop() {

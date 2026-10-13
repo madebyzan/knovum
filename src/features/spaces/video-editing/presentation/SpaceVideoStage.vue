@@ -18,7 +18,7 @@ const stage = useVideoStage(props.editor);
     <div
       :ref="(value) => (stage.viewport.value = value as HTMLElement | null)"
       class="relative grid min-h-0 flex-1 place-items-center overflow-hidden"
-      @pointerdown="selection.clear()"
+      @pointerdown.self="selection.clear()"
     >
       <div
         :ref="(value) => (stage.container.value = value as HTMLDivElement | null)"

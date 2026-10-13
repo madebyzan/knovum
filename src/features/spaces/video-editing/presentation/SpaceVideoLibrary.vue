@@ -33,16 +33,17 @@ function setTab(value: unknown) {
     @update:model-value="setTab"
   >
     <TabsList
-      class="flex h-10 shrink-0 items-stretch gap-1 border-b border-stroke-divider px-2"
+      class="grid shrink-0 grid-cols-3 gap-1 border-b border-stroke-divider bg-surface-panel p-1.5"
       :aria-label="t('spaces.media.videoEditor.library.title')"
     >
       <TabsTrigger
         v-for="entry in tabs"
         :key="entry.value"
         :value="entry.value"
-        class="flex items-center gap-1.5 rounded-md px-2 text-caption text-fg-secondary outline-none hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:bg-surface-selected data-[state=active]:font-medium data-[state=active]:text-fg-accent"
+        class="flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-caption font-medium whitespace-nowrap text-fg-secondary transition-colors outline-none hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:bg-surface-selected data-[state=active]:text-fg-accent data-[state=active]:shadow-xs"
       >
-        <component :is="entry.icon" class="size-3.5" />{{ entry.label }}
+        <component :is="entry.icon" class="size-3.5 shrink-0" />
+        <span class="truncate">{{ entry.label }}</span>
       </TabsTrigger>
     </TabsList>
     <TabsContent value="media" class="flex min-h-0 flex-1 flex-col outline-none">

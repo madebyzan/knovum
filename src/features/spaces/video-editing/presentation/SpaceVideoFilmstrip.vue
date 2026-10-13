@@ -42,24 +42,49 @@ watchEffect(() => {
   const bucketMs = filmstripBucketMs(timeline.pxPerSecond.value);
   const indices = visibleTiles(bucketMs);
   filmstrips.request(media, bucketMs, indices);
-  surface.width = Math.max(1, Math.round(size.value.width));
-  surface.height = Math.max(1, Math.round(size.value.height));
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cssWidth = Math.max(1, Math.round(size.value.width));
+  const cssHeight = Math.max(1, Math.round(size.value.height));
+  surface.width = cssWidth * dpr;
+  surface.height = cssHeight * dpr;
   const context = surface.getContext("2d");
   if (!context) return;
-  context.clearRect(0, 0, surface.width, surface.height);
-  const pxPerMs = surface.width / Math.max(1, clipLengthMs(props.clip));
+  context.scale(dpr, dpr);
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.clearRect(0, 0, cssWidth, cssHeight);
+  const pxPerMs = cssWidth / Math.max(1, clipLengthMs(props.clip));
   for (const index of indices) {
     const tile = filmstrips.tile(media, bucketMs, index);
     if (!tile) continue;
-    context.drawImage(
-      tile,
-      (index * bucketMs - props.clip.sourceInMs) * pxPerMs,
-      0,
-      Math.max(1, bucketMs * pxPerMs),
-      surface.height,
-    );
+    drawTile(context, tile, {
+      x: (index * bucketMs - props.clip.sourceInMs) * pxPerMs,
+      width: Math.max(1, bucketMs * pxPerMs),
+      height: cssHeight,
+    });
   }
 });
+
+function drawTile(
+  context: CanvasRenderingContext2D,
+  tile: CanvasImageSource,
+  target: { x: number; width: number; height: number },
+) {
+  const tw = Number((tile as { width?: number }).width) || target.width;
+  const th = Number((tile as { height?: number }).height) || target.height;
+  const frameWidth = Math.max(1, Math.round(target.height * (tw / th)));
+  context.save();
+  context.beginPath();
+  context.rect(target.x, 0, target.width, target.height);
+  context.clip();
+  let x = target.x;
+  const endX = target.x + target.width;
+  while (x < endX) {
+    context.drawImage(tile, 0, 0, tw, th, x, 0, frameWidth, target.height);
+    x += frameWidth;
+  }
+  context.restore();
+}
 
 /** Tile indices of the clip's source window that currently intersect the timeline viewport. */
 function visibleTiles(bucketMs: number) {

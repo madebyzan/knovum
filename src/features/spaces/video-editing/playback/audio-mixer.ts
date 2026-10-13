@@ -37,11 +37,12 @@ export function createAudioMixer(context: () => AudioContext) {
     const offsetMs = Math.max(0, (startAt - contextTimeOf(voice.timelineStartMs)) * 1000);
     gain.gain.setValueAtTime(levelAt(voice, offsetMs), startAt);
     const risenAt = Math.max(startAt, contextTimeOf(voice.timelineStartMs + voice.fadeInMs));
-    if (voice.fadeInMs > 0) gain.gain.linearRampToValueAtTime(voice.volume, risenAt);
+    if (voice.fadeInMs > 0 && risenAt > startAt) gain.gain.linearRampToValueAtTime(voice.volume, risenAt);
     if (voice.fadeOutMs > 0) {
       const fallsAt = Math.max(risenAt, contextTimeOf(endMs - voice.fadeOutMs));
       gain.gain.setValueAtTime(voice.volume, fallsAt);
-      gain.gain.linearRampToValueAtTime(0, Math.max(fallsAt, contextTimeOf(endMs)));
+      const endsAt = Math.max(fallsAt, contextTimeOf(endMs));
+      if (endsAt > fallsAt) gain.gain.linearRampToValueAtTime(0, endsAt);
     }
     return gain;
   }
@@ -50,6 +51,10 @@ export function createAudioMixer(context: () => AudioContext) {
     const endMs = voice.timelineStartMs + voice.lengthMs;
     const playFromMs = Math.max(fromMs, voice.timelineStartMs);
     if (playing.has(voice.key) || playFromMs >= endMs || voice.volume <= 0) return;
+    const offsetS = Math.max(0, (voice.sourceInMs + (playFromMs - voice.timelineStartMs)) / 1000);
+    if (offsetS >= voice.buffer.duration) return;
+    const durationS = Math.min((endMs - playFromMs) / 1000, voice.buffer.duration - offsetS);
+    if (durationS <= 0) return;
     const audio = context();
     const startAt = Math.max(audio.currentTime, contextTimeOf(playFromMs));
     const gain = envelope(voice, startAt, contextTimeOf);
@@ -62,8 +67,7 @@ export function createAudioMixer(context: () => AudioContext) {
       if (playing.get(voice.key)?.source === source) playing.delete(voice.key);
     };
     source.addEventListener("ended", release, { once: true });
-    const offsetS = (voice.sourceInMs + (playFromMs - voice.timelineStartMs)) / 1000;
-    source.start(startAt, offsetS, (endMs - playFromMs) / 1000);
+    source.start(startAt, offsetS, durationS);
     playing.set(voice.key, { source, gain, release });
   }
 

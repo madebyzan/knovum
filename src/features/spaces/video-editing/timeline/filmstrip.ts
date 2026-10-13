@@ -5,7 +5,7 @@ import { assetIdentity } from "../media/asset-cache";
 import type { VideoLibrary } from "../media/preview-video";
 import type { VideoAsset } from "../project";
 
-const TILE_WIDTH = 72;
+const TILE_WIDTH = 128;
 const TILE_LIMIT = 240;
 /** Tiles waiting to be decoded; the queue is replaced as the viewport moves, never appended to. */
 const QUEUE_LIMIT = 32;
@@ -49,10 +49,10 @@ export function createFilmstripCache(options: FilmstripOptions) {
   let queue: Work[] = [];
   let working = false;
 
-  function sinkOf(asset: VideoAsset) {
+  async function ensureSink(asset: VideoAsset) {
     const known = sinks.get(assetIdentity(asset));
     if (known) return known;
-    const preview = options.videos.ready(asset);
+    const preview = options.videos.ready(asset) ?? (await options.videos.load(asset).catch(() => undefined));
     if (!preview) return undefined;
     const sink = new CanvasSink(preview.track, { width: TILE_WIDTH, poolSize: 0 });
     sinks.set(assetIdentity(asset), sink);
@@ -60,18 +60,36 @@ export function createFilmstripCache(options: FilmstripOptions) {
   }
 
   async function run(work: Work) {
-    const sink = sinkOf(work.asset);
+    const sink = await ensureSink(work.asset);
     if (!sink) return;
     const indices = work.indices.toSorted((left, right) => left - right);
-    const timestamps = indices.map((index) => (index * work.bucketMs) / 1000);
+    const timestamps = indices.map((index) => Math.max(0.05, (index * work.bucketMs) / 1000));
     let at = 0;
+    let lastCanvas: CanvasImageSource | undefined;
+    const pendingIndices: number[] = [];
     for await (const frame of sink.canvasesAtTimestamps(timestamps)) {
       const index = indices[at];
       at += 1;
-      if (frame && index !== undefined) {
-        tiles.value = new Map(tiles.value).set(tileKey(work.asset, work.bucketMs, index), frame.canvas);
+      if (index === undefined) continue;
+      const canvas = frame?.canvas ?? lastCanvas;
+      if (canvas) {
+        lastCanvas = canvas;
+        const next = new Map(tiles.value);
+        while (pendingIndices.length > 0) {
+          next.set(tileKey(work.asset, work.bucketMs, pendingIndices.shift()!), canvas);
+        }
+        next.set(tileKey(work.asset, work.bucketMs, index), canvas);
+        tiles.value = next;
+      } else {
+        pendingIndices.push(index);
       }
-      if (options.suspended()) break;
+      if (options.suspended()) {
+        const remaining = indices.slice(at);
+        if (remaining.length > 0) {
+          queue.unshift({ asset: work.asset, bucketMs: work.bucketMs, indices: remaining });
+        }
+        break;
+      }
     }
   }
 

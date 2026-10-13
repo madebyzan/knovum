@@ -3,9 +3,10 @@ import type { CanvasSink, WrappedCanvas } from "mediabunny";
 /** Frames held ahead of the playhead; the sink decodes further ahead on its own. */
 const QUEUE_LIMIT = 3;
 /** Tolerance behind the request before the window is considered stale and is re-seeked. */
-const REWIND_S = 0.02;
+const REWIND_S = 0.05;
 /** Forward gap that is cheaper to seek to than to decode through. */
 const JUMP_S = 0.75;
+const JUMP_PLAYING_S = 2.0;
 
 export interface FrameFeedEvents {
   onDecoded: () => void;
@@ -13,35 +14,45 @@ export interface FrameFeedEvents {
 }
 
 /**
- * Presents the frame a timeline position needs from one video track. Decoding is pulled one frame
- * at a time from the sink's sequential iterator, so work stays bounded per animation frame and a
- * backwards scrub or a long jump restarts the iterator instead of decoding everything in between.
+ * Presents the frame a timeline position needs from one video track. Decoding is pulled ahead
+ * from the sink's sequential iterator, so frames are already queued when the playhead reaches them
+ * and scrubbing restarts the iterator without decoding unwanted intermediate pictures.
  */
 export function createFrameFeed(sink: CanvasSink, events: FrameFeedEvents) {
   let iterator: AsyncGenerator<WrappedCanvas, void, unknown> | undefined;
   let queue: WrappedCanvas[] = [];
   let current: WrappedCanvas | undefined;
+  let previous: WrappedCanvas | undefined;
+  let lastCanvas: CanvasImageSource | undefined;
   let generation = 0;
   let requesting = false;
   let exhausted = false;
   let startedS = 0;
   let decodedToS = 0;
+  let advanced = false;
+  let isPlaying = false;
 
   function restart(fromS: number) {
     generation += 1;
     void iterator?.return();
     iterator = sink.canvases(Math.max(0, fromS));
     queue = [];
+    previous = current ?? previous;
     current = undefined;
     exhausted = false;
     requesting = false;
     startedS = fromS;
     decodedToS = fromS;
+    advanced = false;
   }
 
-  function stale(atS: number) {
+  function stale(atS: number, playing: boolean) {
     if (!iterator) return true;
-    const floor = current?.timestamp ?? startedS;
+    if (requesting && decodedToS === startedS) return false;
+    if (playing) {
+      return atS > decodedToS + JUMP_PLAYING_S || atS < startedS - 0.2;
+    }
+    const floor = advanced && current ? Math.min(current.timestamp, atS) : startedS;
     return atS + REWIND_S < floor || atS > decodedToS + JUMP_S;
   }
 
@@ -75,7 +86,14 @@ export function createFrameFeed(sink: CanvasSink, events: FrameFeedEvents) {
   }
 
   function advance(atS: number) {
-    while (queue.length > 0 && (!current || queue[0]!.timestamp <= atS)) current = queue.shift();
+    let moved = false;
+    while (queue.length > 0 && (!current || queue[0]!.timestamp <= atS)) {
+      if (current) advanced = true;
+      current = queue.shift();
+      previous = undefined;
+      moved = true;
+    }
+    if (moved && isPlaying) request();
   }
 
   return {
@@ -85,11 +103,17 @@ export function createFrameFeed(sink: CanvasSink, events: FrameFeedEvents) {
      * previous picture stays on screen.
      */
     frameAt(sourceS: number, playing: boolean) {
-      if (stale(sourceS)) restart(sourceS);
+      isPlaying = playing;
+      if (stale(sourceS, playing)) restart(sourceS);
       advance(sourceS);
-      const covered = current && current.timestamp + current.duration > sourceS;
+      const covered =
+        current &&
+        (current.timestamp <= sourceS || !advanced) &&
+        current.timestamp + current.duration > sourceS;
       if (playing || !covered) request();
-      return current?.canvas;
+      const frame = current ?? previous;
+      if (frame?.canvas) lastCanvas = frame.canvas;
+      return lastCanvas;
     },
     dispose() {
       generation += 1;
@@ -97,6 +121,8 @@ export function createFrameFeed(sink: CanvasSink, events: FrameFeedEvents) {
       iterator = undefined;
       queue = [];
       current = undefined;
+      previous = undefined;
+      lastCanvas = undefined;
     },
   };
 }
