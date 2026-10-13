@@ -4,7 +4,6 @@
   "loading": "正在載入影片編輯器…",
   "closeInspector": "關閉編輯面板",
   "preview": {
-    "optimizing": "正在後台優化預覽…",
     "retry": "重試準備預覽",
     "proxyFailed": "無法準備流暢預覽",
     "metadataUnavailable": "無法讀取影片畫面尺寸",
@@ -60,12 +59,6 @@
     "duplicate": "複製片段",
     "closeGap": "消除空隙",
     "placement": "時間軸位置"
-  },
-  "stage": {
-    "move": "移動片段",
-    "resize": "縮放片段",
-    "rotate": "旋轉片段",
-    "moveText": "移動文字"
   },
   "framing": {
     "title": "畫面配置",

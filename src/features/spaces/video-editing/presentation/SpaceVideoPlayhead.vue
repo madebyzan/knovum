@@ -5,9 +5,9 @@ import { timeToPx } from "../timeline/scale";
 import type { VideoEditor } from "./use-video-editor";
 
 const props = defineProps<{ editor: VideoEditor }>();
-const { engine, timeline } = props.editor;
+const { player, timeline } = props.editor;
 const marker = shallowRef<HTMLElement | null>(null);
-let positionMs = engine.positionMs();
+let positionMs = player.positionMs();
 
 /**
  * The playhead is written straight to the element. Routing sixty positions per second through the
@@ -20,7 +20,7 @@ function place() {
 }
 
 onScopeDispose(
-  engine.subscribe((timeMs) => {
+  player.subscribe((timeMs) => {
     positionMs = timeMs;
     place();
   }),

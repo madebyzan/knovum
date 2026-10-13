@@ -4,7 +4,6 @@
   "loading": "Chargement de l'éditeur vidéo…",
   "closeInspector": "Fermer le panneau d'édition",
   "preview": {
-    "optimizing": "Optimisation de l'aperçu en arrière-plan…",
     "retry": "Réessayer la préparation de l'aperçu",
     "proxyFailed": "Impossible de préparer un aperçu réactif",
     "metadataUnavailable": "Impossible de lire les dimensions du cadre de la vidéo",
@@ -60,12 +59,6 @@
     "duplicate": "Dupliquer le clip",
     "closeGap": "Combler le trou",
     "placement": "Sur la timeline"
-  },
-  "stage": {
-    "move": "Déplacer le plan",
-    "resize": "Redimensionner le plan",
-    "rotate": "Faire pivoter le plan",
-    "moveText": "Déplacer le texte"
   },
   "framing": {
     "title": "Cadrage",

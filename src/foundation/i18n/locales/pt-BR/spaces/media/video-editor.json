@@ -4,7 +4,6 @@
   "loading": "Carregando editor de vídeo…",
   "closeInspector": "Fechar painel de edição",
   "preview": {
-    "optimizing": "Otimizando a visualização em segundo plano…",
     "retry": "Tentar novamente a preparação da visualização",
     "proxyFailed": "Não foi possível preparar uma visualização responsiva",
     "metadataUnavailable": "Não foi possível ler as dimensões do quadro do vídeo",
@@ -60,12 +59,6 @@
     "duplicate": "Duplicar clipe",
     "closeGap": "Fechar o intervalo",
     "placement": "Na linha do tempo"
-  },
-  "stage": {
-    "move": "Mover o clipe",
-    "resize": "Redimensionar o clipe",
-    "rotate": "Girar o clipe",
-    "moveText": "Mover o texto"
   },
   "framing": {
     "title": "Enquadramento",

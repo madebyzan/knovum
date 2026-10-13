@@ -97,9 +97,10 @@ The resulting lifecycle, permissions and interaction contracts are owned by
 
 ## Canvas, editing and documents
 
-- Exact-pinned Konva/vue-konva own canvas scene interaction. Adding another scene graph or graph
-  editor would create a second spatial source of truth. Vue owns workbench composition and Knovum
-  persists neutral canvas facts.
+- Exact-pinned Konva/vue-konva own canvas scene interaction, including the video editor's preview
+  stage, where the transformer owns layer and overlay manipulation. Adding another scene graph or
+  graph editor would create a second spatial source of truth. Vue owns workbench composition and
+  Knovum persists neutral canvas facts.
 - Tiptap and its first-party extensions own rich-text editing, tables, file handling and find/replace.
   Markdown text remains canonical only for Markdown items; Notes keep their validated structured
   document. Vendor JSON is not a compatibility model.
@@ -167,8 +168,40 @@ Detailed data and interaction contracts live in [spaces.md](spaces.md),
 - FFmpeg is the single local audio/video processing engine for normalization, cuts, concatenation,
   filters, subtitles and supported hardware encoding. GStreamer Editing Services is credible for a
   full nonlinear editor, but its compiled runtime and project model are excessive for Knovum's bounded
-  timeline. Web timeline packages that embed Pixi/WebCodecs engines were rejected because they would
-  introduce a competing media model.
+  timeline. A web editing SDK that owns its own project model was rejected again below; the preview
+  instead reuses maintained demux/decode and scene-graph libraries under Knovum's own project.
+- The video editor's preview reads frames with [Mediabunny](https://github.com/Vanilagy/mediabunny)
+  and composes them with the already pinned Konva scene graph. Rust/FFmpeg keeps normalization and
+  export; the WebView only decodes the preview file Rust produced.
+
+  ```text
+  Capability and requirements: present any timeline position of a bounded edit, in sync with its
+  sound, on the supported macOS and Windows WebViews; manipulate clip and text layers directly;
+  decode only what the viewport needs; never drive playback through a media element.
+  GitHub and registry candidates: WebAV (@webav/av-cliper, av-canvas), Mediabunny, etro,
+  mp4box.js, hand-written HTMLVideoElement transport (the previous implementation).
+  Maintenance, security, license and platform evidence: Mediabunny 1.61 is actively released,
+  MPL-2.0, consumed unmodified, pure TypeScript with no native or worker build inputs, and
+  documents Safari support; Konva 10 is already pinned for Space canvas interaction.
+  Selected implementation: Mediabunny for container parsing, WebCodecs video decoding, frame
+  sinks and filmstrip batches; Konva for the stage scene graph, hit areas and transformer;
+  Web Audio for decoding and sample-accurate scheduling of clip sound.
+  Rejected alternatives and exact unmet requirements: WebAV supports Chrome and Edge only, so it
+  cannot run in the macOS WKWebView, and it owns a competing clip/sprite project model; etro is
+  unmaintained for this contract; mp4box.js covers demuxing alone and leaves decode, sinks and
+  thumbnails to Knovum; the previous HTMLVideoElement transport cannot satisfy the requirement at
+  all, because the WebView's autoplay policy rejects `play()` and element seeking cannot hold a
+  frame-accurate position for two overlapping clips.
+  WebCodecs audio decoders are absent from the Safari versions Knovum supports, so audio is never
+  decoded through WebCodecs: Mediabunny copies the audio track out of the preview file without
+  re-encoding and Web Audio decodes it.
+  Tauri/security capability impact: none. No new command, permission or WebView authority; the
+  preview reads only the managed preview file Rust already authorizes.
+  Why custom code remains necessary: the project model, transition parity with `xfade`, the ASS
+  text parity, the audio-clock transport and the bounded thumbnail budget are Knovum policy. No
+  library owns them, and no library is wrapped by a rename-only adapter.
+  ```
+
 - Subtitle import retains a bounded SRT/WebVTT parser because the reviewed libraries do not cover
   its reject-the-whole-import contract. [Media Captions](https://github.com/vidstack/captions)
   `0.0.18` and `1.0.4` silently discard reversed or zero-duration cues even in strict mode;

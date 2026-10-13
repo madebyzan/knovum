@@ -4,7 +4,6 @@
   "loading": "Cargando editor de vídeo…",
   "closeInspector": "Cerrar panel de edición",
   "preview": {
-    "optimizing": "Optimizando la vista previa en segundo plano…",
     "retry": "Reintentar preparación de vista previa",
     "proxyFailed": "No se pudo preparar una vista previa receptiva",
     "metadataUnavailable": "No se pudieron leer las dimensiones del fotograma del video.",
@@ -60,12 +59,6 @@
     "duplicate": "Duplicar clip",
     "closeGap": "Cerrar el hueco",
     "placement": "En la línea de tiempo"
-  },
-  "stage": {
-    "move": "Mover el clip",
-    "resize": "Redimensionar el clip",
-    "rotate": "Rotar el clip",
-    "moveText": "Mover el texto"
   },
   "framing": {
     "title": "Encuadre",
