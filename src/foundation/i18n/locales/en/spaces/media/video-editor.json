@@ -4,7 +4,6 @@
   "loading": "Loading video editor…",
   "closeInspector": "Close edit panel",
   "preview": {
-    "optimizing": "Optimizing preview in background…",
     "retry": "Retry preview preparation",
     "proxyFailed": "Could not prepare a responsive preview",
     "metadataUnavailable": "Could not read the video's frame dimensions",
@@ -60,12 +59,6 @@
     "duplicate": "Duplicate clip",
     "closeGap": "Close gap",
     "placement": "On the timeline"
-  },
-  "stage": {
-    "move": "Move the clip",
-    "resize": "Resize the clip",
-    "rotate": "Rotate the clip",
-    "moveText": "Move the text"
   },
   "framing": {
     "title": "Framing",

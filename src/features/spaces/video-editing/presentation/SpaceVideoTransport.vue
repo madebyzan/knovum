@@ -24,7 +24,7 @@ import type { VideoEditor } from "./use-video-editor";
 
 const props = defineProps<{ editor: VideoEditor }>();
 const { t } = useI18n();
-const { engine, project, history, actions, timeline, selection } = props.editor;
+const { player, project, history, actions, timeline, selection } = props.editor;
 const duration = computed(() => (project.value ? projectDurationMs(project.value) : 0));
 </script>
 
@@ -88,7 +88,7 @@ const duration = computed(() => (project.value ? projectDurationMs(project.value
     </div>
     <div class="flex items-center gap-1.5">
       <span class="w-22 text-right text-caption font-medium tabular-nums">{{
-        formatVideoEditTime(engine.displayMs.value)
+        formatVideoEditTime(player.displayMs.value)
       }}</span>
       <UiIconButton
         :label="t('spaces.media.videoEditor.playback.goToStart')"
@@ -99,11 +99,11 @@ const duration = computed(() => (project.value ? projectDurationMs(project.value
       </UiIconButton>
       <UiIconButton
         class="size-8 rounded-full bg-surface-inverse text-fg-inverse hover:bg-surface-inverse-hover hover:text-fg-inverse"
-        :label="engine.playing.value ? t('common.pause') : t('spaces.media.player.play')"
+        :label="player.playing.value ? t('common.pause') : t('spaces.media.player.play')"
         size="sm"
-        @click="engine.toggle"
+        @click="player.toggle"
       >
-        <Pause v-if="engine.playing.value" class="size-3.5" fill="currentColor" />
+        <Pause v-if="player.playing.value" class="size-3.5" fill="currentColor" />
         <Play v-else class="size-3.5" fill="currentColor" />
       </UiIconButton>
       <UiIconButton
