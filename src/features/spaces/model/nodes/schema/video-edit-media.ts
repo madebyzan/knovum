@@ -1,9 +1,5 @@
 import { z } from "zod";
 
-export const videoInterval = {
-  startMs: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  endMs: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
-};
 export const videoAssetSchema = z
   .object({
     nodeId: z.string().min(1).max(128),
@@ -19,39 +15,56 @@ export const videoAssetSchema = z
       ? asset.durationMs > 0 && asset.width === 0 && asset.height === 0
       : asset.width > 0 && asset.height > 0 && (asset.kind === "image" || asset.durationMs > 0),
   );
+
 const videoTransformSchema = z
   .object({
-    rotation: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]),
+    x: z.number().min(-2).max(2),
+    y: z.number().min(-2).max(2),
+    scale: z.number().min(0.05).max(8),
+    rotation: z.number().min(-180).max(180),
+    opacity: z.number().min(0).max(1),
+    fit: z.enum(["contain", "cover"]),
     flipHorizontal: z.boolean(),
     flipVertical: z.boolean(),
-    fit: z.enum(["contain", "cover"]),
-    zoom: z.number().min(1).max(4),
   })
   .strict();
-const videoTransitionSchema = z
-  .object({
-    kind: z.enum(["dissolve", "wipeLeft", "wipeRight"]),
-    durationMs: z.number().int().min(100).max(5_000),
-  })
-  .strict();
-const clipFields = {
+
+const sourceWindowFields = {
   id: z.string().uuid(),
   assetId: z.string().min(1).max(128),
-  ...videoInterval,
+  sourceInMs: z.number().int().nonnegative().max(86_400_000),
+  sourceOutMs: z.number().int().positive().max(86_400_000),
+  timelineStartMs: z.number().int().nonnegative().max(86_400_000),
   volume: z.number().min(0).max(2),
   fadeInMs: z.number().int().nonnegative(),
   fadeOutMs: z.number().int().nonnegative(),
 };
-export const videoClipSchema = z
-  .object({
-    ...clipFields,
-    transform: videoTransformSchema,
-    transition: videoTransitionSchema.nullable(),
-  })
-  .strict();
+
+export const videoClipSchema = z.object({ ...sourceWindowFields, transform: videoTransformSchema }).strict();
+
 export const videoAudioClipSchema = z
+  .object({ ...sourceWindowFields, lane: z.number().int().min(0).max(3) })
+  .strict();
+
+export const videoTransitionKinds = [
+  "dissolve",
+  "fadeBlack",
+  "fadeWhite",
+  "wipeLeft",
+  "wipeRight",
+  "wipeUp",
+  "wipeDown",
+  "slideLeft",
+  "slideRight",
+  "slideUp",
+  "slideDown",
+] as const;
+
+export const videoTransitionSchema = z
   .object({
-    ...clipFields,
-    timelineStartMs: z.number().int().nonnegative(),
+    id: z.string().uuid(),
+    fromClipId: z.string().uuid(),
+    kind: z.enum(videoTransitionKinds),
+    durationMs: z.number().int().min(100).max(5_000),
   })
   .strict();

@@ -75,12 +75,12 @@ it("retains independent video drafts, histories and positions", () => {
     videoTrack: { clips: [{ ...saved.videoTrack.clips[0]!, volume: 0 }] },
   });
   session.timelineMs.value = 420;
-  session.timelineZoom.value = 2;
+  session.selection.value = { kind: "clip", id: saved.videoTrack.clips[0]!.id };
   store.synchronize("a", { ...node, data: { ...node.data, sourceRevision: "r2" } });
   expect(session.error.value).toBe("conflict");
   expect(session.history.canUndo.value).toBe(true);
   expect(session.timelineMs.value).toBe(420);
-  expect(session.timelineZoom.value).toBe(2);
+  expect(session.selection.value).toMatchObject({ kind: "clip" });
   expect(saved.videoTrack.clips[0]!.volume).toBe(1);
   session.history.undo();
   expect(session.project.value).toEqual(saved);

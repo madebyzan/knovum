@@ -1,126 +1,139 @@
-import { computed, watch, type Ref } from "vue";
+import { computed, nextTick, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { systemSansFamily } from "../../../../foundation/typography/system-font";
 import { registerVideoEditCommands } from "../../commands/video-edit-commands";
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
-import { splitClip } from "../clip-edits";
-import { addTextOverlay, type VideoEditProject } from "../project";
+import { duplicateClip, splitClip } from "../edits/arrange";
+import { addTextOverlay } from "../edits/text";
+import { defaultTextStyle, type VideoEditProject } from "../project";
 import { renderVideoEdit } from "../render";
-import { canSplitClip, locateTimelineTime, stepOutputFrame } from "../timing";
-import type { useVideoEditHistory } from "../use-video-edit-history";
+import { canSplitAt, lastFrameMs, stepFrame } from "../timing";
 import { useVideoProjectSave } from "../use-video-project-save";
 import type { VideoSession } from "../video-session-store";
 import { useVideoEditLeave } from "./use-video-edit-leave";
-import type { useVideoEditSelection } from "./use-video-edit-selection";
-import type { useVideoProjectPlayback } from "./use-video-project-playback";
+import type { VideoSelectionController } from "./use-video-selection";
 
-interface VideoEditActionsOptions {
+interface ActionOptions {
   session: VideoSession;
   active: Ref<boolean>;
-  node: Ref<SpaceCanvasNode<SpaceVideoPayload> | undefined>;
   project: Ref<VideoEditProject | undefined>;
-  history: ReturnType<typeof useVideoEditHistory>;
-  selection: ReturnType<typeof useVideoEditSelection>;
-  playback: ReturnType<typeof useVideoProjectPlayback>;
+  commit: (project: VideoEditProject, mergeKey?: string) => void;
+  selection: VideoSelectionController;
+  playheadMs: () => number;
+  seek: (timeMs: number) => void;
+  pause: () => void;
+  toggle: () => void;
+  focusText: () => void;
 }
 
-export function useVideoEditActions(options: VideoEditActionsOptions) {
-  const { node, project, history, selection, playback } = options;
+/** Editing commands shared by the toolbar, the context menus and the command palette. */
+export function useVideoEditActions(options: ActionOptions) {
+  const { session, project, selection } = options;
   const store = useSpaceStore();
   const { t } = useI18n();
-  const saving = options.session.saving;
-  const rendering = options.session.rendering;
-  const save = useVideoProjectSave(options.session);
-  const canDelete = computed(
-    () =>
-      !!selection.selectedAudioId.value ||
-      !!selection.selectedTextId.value ||
-      (!!selection.selectedClipId.value && (project.value?.videoTrack.clips.length ?? 0) > 1),
-  );
+  const save = useVideoProjectSave(session);
+  const canSplit = computed(() => !!project.value && canSplitAt(project.value, options.playheadMs()));
 
   const leave = useVideoEditLeave({
-    tab: options.session.tab,
-    dirty: history.dirty,
-    saving,
+    tab: session.tab,
+    dirty: session.history.dirty,
+    saving: session.saving,
     save,
-    close: () => store.closeTab(options.session.tab.id),
-    discard: history.discard,
+    close: () => store.closeTab(session.tab.id),
+    discard: session.history.discard,
   });
+
   function split() {
-    if (!project.value) return;
-    const next = splitClip(project.value, playback.timelineMs.value);
-    history.commit(next);
-    const right = locateTimelineTime(next, playback.timelineMs.value);
-    if (right) selection.selectClip(right.clip.id);
+    const current = project.value;
+    if (!current) return;
+    const next = splitClip(current, options.playheadMs());
+    if (next === current) return;
+    options.commit(next);
+    const tail = next.videoTrack.clips.find(
+      (clip) => clip.timelineStartMs === Math.round(options.playheadMs()),
+    );
+    if (tail) selection.select({ kind: "clip", id: tail.id }, { reveal: false });
   }
 
-  function addText() {
-    if (!project.value) return;
+  function duplicate() {
+    const current = project.value;
+    const clip = selection.clip.value;
+    if (!current || !clip) return;
+    options.commit(duplicateClip(current, clip.id));
+  }
+
+  async function addText() {
+    const current = project.value;
+    if (!current) return;
     const next = addTextOverlay(
-      project.value,
-      playback.timelineMs.value,
-      systemSansFamily(),
+      current,
+      options.playheadMs(),
+      defaultTextStyle(systemSansFamily()),
       t("spaces.media.videoEditor.text.default"),
     );
-    history.commit(next);
+    options.commit(next);
     const added = next.textTrack.items.at(-1);
-    if (added) selection.selectText(added.id);
+    if (added) selection.select({ kind: "text", id: added.id }, { reveal: false });
+    await nextTick();
+    options.focusText();
   }
 
   function remove() {
-    if (!project.value || !canDelete.value) return;
-    const next = selection.removeSelection();
-    if (next) history.commit(next);
+    const next = selection.removeSelected();
+    if (next) options.commit(next);
   }
 
   function step(direction: -1 | 1) {
     if (!project.value) return;
-    playback.pause();
-    playback.seek(stepOutputFrame(project.value, playback.timelineMs.value, direction));
+    options.pause();
+    options.seek(stepFrame(project.value, options.playheadMs(), direction));
   }
 
-  function togglePlayback() {
-    playback.toggle();
+  function jump(edge: "start" | "end") {
+    if (!project.value) return;
+    options.pause();
+    options.seek(edge === "start" ? 0 : lastFrameMs(project.value));
   }
 
   async function render() {
-    const sourceNode = node.value;
-    const renderProject = project.value;
-    const tab = options.session.tab;
-    if (rendering.value || !sourceNode || !renderProject) return;
-    rendering.value = true;
+    const sourceNode = session.node.value;
+    const current = project.value;
+    if (session.rendering.value || !current) return;
+    session.rendering.value = true;
     try {
-      if (history.dirty.value && !(await save())) return;
-      if (options.session.error.value) return;
-      await renderVideoEdit(tab.spaceId, sourceNode, renderProject);
+      if (session.history.dirty.value && !(await save())) return;
+      if (session.error.value) return;
+      await renderVideoEdit(session.tab.spaceId, sourceNode, current);
     } catch (error) {
       toast.error(`${t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
     } finally {
-      rendering.value = false;
+      session.rendering.value = false;
     }
   }
 
   watch(
-    [options.active, options.session.error],
-    ([active, error], _previous, cleanup) => {
-      if (!active || error) return;
+    [options.active, session.error],
+    ([isActive, error], _previous, cleanup) => {
+      if (!isActive || error) return;
       cleanup(
         registerVideoEditCommands({
-          canUndo: () => history.canUndo.value,
-          canRedo: () => history.canRedo.value,
-          canDelete: () => canDelete.value,
-          canSplit: () => !!project.value && canSplitClip(project.value, playback.timelineMs.value),
-          undo: history.undo,
-          redo: history.redo,
+          canUndo: () => session.history.canUndo.value,
+          canRedo: () => session.history.canRedo.value,
+          canDelete: () => selection.canDelete.value,
+          canSplit: () => canSplit.value,
+          canDuplicate: () => !!selection.clip.value,
+          undo: session.history.undo,
+          redo: session.history.redo,
           remove,
           split,
-          togglePlayback,
+          duplicate,
+          addText: () => void addText(),
+          togglePlayback: options.toggle,
           step,
+          jump,
           save: async () => {
             await save();
           },
@@ -131,21 +144,22 @@ export function useVideoEditActions(options: VideoEditActionsOptions) {
   );
 
   return {
+    canSplit,
+    canDelete: selection.canDelete,
     addText,
-    canDelete,
-    canSplit: computed(() => !!project.value && canSplitClip(project.value, playback.timelineMs.value)),
-    cancelLeave: leave.cancel,
-    closeDialogOpen: leave.closeDialogOpen,
-    confirmDiscard: leave.discard,
-    confirmSave: leave.save,
+    duplicate,
     remove,
     render,
-    rendering,
-    requestClose: leave.requestClose,
+    rendering: session.rendering,
     save,
-    saving,
+    saving: session.saving,
     split,
     step,
-    togglePlayback,
+    jump,
+    closeDialogOpen: leave.closeDialogOpen,
+    cancelLeave: leave.cancel,
+    confirmDiscard: leave.discard,
+    confirmSave: leave.save,
+    requestClose: leave.requestClose,
   };
 }

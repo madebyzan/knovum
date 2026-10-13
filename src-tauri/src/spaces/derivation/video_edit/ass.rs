@@ -1,49 +1,69 @@
-use super::{TextPlacement, TextPreset, VideoEditProject};
+use super::contracts::{TextAlign, TextDecoration, TextOverlay};
+use super::VideoEditProject;
+
+/// Script resolution is fixed at 720 lines so a text size stays 720p-relative while the exported
+/// frame can be any size. Overlays are freely positioned with `\pos` and anchored vertically in the
+/// middle, which is exactly what the canvas preview draws.
+const SCRIPT_HEIGHT: u64 = 720;
 
 pub(super) fn render(project: &VideoEditProject) -> String {
-    let (width, height) = (project.output.width, project.output.height);
-    let play_res_x = (u64::from(width) * 720 + u64::from(height) / 2) / u64::from(height);
-    let center_x = play_res_x / 2;
+    let script_width = (u64::from(project.output.width) * SCRIPT_HEIGHT
+        + u64::from(project.output.height) / 2)
+        / u64::from(project.output.height);
     let mut output = format!(
-        "[Script Info]\nScriptType: v4.00+\nPlayResX: {play_res_x}\nPlayResY: 720\nScaledBorderAndShadow: yes\nWrapStyle: 0\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n"
+        "[Script Info]\nScriptType: v4.00+\nPlayResX: {script_width}\nPlayResY: {SCRIPT_HEIGHT}\nScaledBorderAndShadow: yes\nWrapStyle: 2\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n"
     );
     for (index, item) in project.text_track.items.iter().enumerate() {
-        let size = item.style.size;
-        let family = &item.style.family;
-        let weight = item.style.weight;
-        let color = &item.style.color;
-        let preset = item.style.preset;
-        let (border_style, outline, shadow, back_color) = match preset {
-            TextPreset::Plain => (1, 0, 0, "&H00000000"),
-            TextPreset::Outline => (1, 2, 0, "&H00000000"),
-            TextPreset::Shadow => (1, 0, 2, "&H33000000"),
-            TextPreset::Badge => (3, 8, 0, "&H73000000"),
-        };
-        let alignment = match item.placement {
-            TextPlacement::Top => 8,
-            TextPlacement::Center => 5,
-            TextPlacement::Bottom => 2,
-        };
-        let primary = ass_color(color);
-        output.push_str(&format!(
-            "Style: Text{index},{family},{size},{primary},{primary},&H40000000,{back_color},{weight},0,0,0,100,100,0,0,{border_style},{outline},{shadow},{alignment},36,36,58,1\n"
-        ));
+        output.push_str(&style_line(index, item));
     }
     output.push_str("\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n");
     for (index, item) in project.text_track.items.iter().enumerate() {
-        let y = match item.placement {
-            TextPlacement::Top => 58,
-            TextPlacement::Center => 360,
-            TextPlacement::Bottom => 662,
-        };
+        let x = (item.x * script_width as f64).round() as i64;
+        let y = (item.y * SCRIPT_HEIGHT as f64).round() as i64;
         output.push_str(&format!(
-            "Dialogue: 0,{},{},Text{index},,0,0,0,,{{\\pos({center_x},{y})}}{}\n",
-            timestamp(item.start_ms),
-            timestamp(item.end_ms),
-            escape_text(&item.text)
+            "Dialogue: 0,{start},{end},Text{index},,0,0,0,,{{\\an{anchor}\\pos({x},{y})}}{text}\n",
+            start = timestamp(item.start_ms),
+            end = timestamp(item.end_ms),
+            anchor = anchor(item.style.align),
+            text = escape_text(&item.text)
         ));
     }
     output
+}
+
+fn style_line(index: usize, item: &TextOverlay) -> String {
+    let style = &item.style;
+    let primary = ass_color(&style.color);
+    let decoration = ass_color(&style.decoration_color);
+    let strength = style.decoration_strength;
+    let (border_style, outline, shadow) = match style.decoration {
+        TextDecoration::Plain => (1, 0, 0),
+        TextDecoration::Outline => (1, strength.max(1), 0),
+        TextDecoration::Shadow => (1, 0, strength.max(1)),
+        TextDecoration::Box => (3, strength.max(1), 0),
+    };
+    let (outline_color, back_color) = match style.decoration {
+        TextDecoration::Shadow => (TRANSPARENT.to_owned(), decoration),
+        _ => (decoration, TRANSPARENT.to_owned()),
+    };
+    format!(
+        "Style: Text{index},{family},{size},{primary},{primary},{outline_color},{back_color},{weight},{italic},0,0,100,100,0,0,{border_style},{outline},{shadow},{anchor},0,0,0,1\n",
+        family = style.family,
+        size = style.size,
+        weight = style.weight,
+        italic = i32::from(style.italic),
+        anchor = anchor(style.align)
+    )
+}
+
+const TRANSPARENT: &str = "&HFF000000";
+
+fn anchor(align: TextAlign) -> u8 {
+    match align {
+        TextAlign::Left => 4,
+        TextAlign::Center => 5,
+        TextAlign::Right => 6,
+    }
 }
 
 fn ass_color(hex: &str) -> String {

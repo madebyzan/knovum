@@ -2,52 +2,107 @@
   "edit": "Edit video",
   "title": "Video editor",
   "loading": "Loading video editor…",
+  "closeInspector": "Close edit panel",
   "preview": {
     "optimizing": "Optimizing preview in background…",
     "retry": "Retry preview preparation",
-    "sourceUnavailable": "The video source is unavailable. Reimport the video to edit it.",
     "proxyFailed": "Could not prepare a responsive preview",
-    "durationUnavailable": "Could not read the video's duration",
     "metadataUnavailable": "Could not read the video's frame dimensions",
-    "unavailable": "Could not open the video preview"
+    "stage": "Video frame",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fit": "Fit the frame"
+  },
+  "obsolete": {
+    "title": "This edit project is from an older format",
+    "description": "The stored project cannot be opened by the current editor. Start a new edit from the original video; the source file is unchanged.",
+    "action": "Start a new edit"
+  },
+  "library": {
+    "title": "Library",
+    "media": "Media",
+    "text": "Text",
+    "transitions": "Transitions"
+  },
+  "materials": {
+    "title": "Materials",
+    "import": "Import media",
+    "search": "Search materials",
+    "empty": "No matching materials. Import media to get started.",
+    "add": "Add “{title}” to the timeline",
+    "preparing": "Preparing media import…",
+    "unavailable": "Material changed or is unavailable.",
+    "noRoom": "There is no free space on the timeline for this material."
   },
   "tracks": {
     "video": "Video",
     "audio": "Audio",
-    "text": "Text"
+    "text": "Text",
+    "lane": "Lane"
   },
   "timeline": {
-    "thumbnailFailed": "Could not generate timeline thumbnails",
     "zoomOut": "Zoom out timeline",
     "zoomIn": "Zoom in timeline",
     "fit": "Fit entire video",
-    "seek": "Seek timeline"
+    "seek": "Seek timeline",
+    "clearSelection": "Clear selection"
+  },
+  "clip": {
+    "selected": "Selected clip",
+    "volume": "Volume",
+    "split": "Split",
+    "inPoint": "In (seconds)",
+    "outPoint": "Out (seconds)",
+    "startsAt": "Starts (seconds)",
+    "endsAt": "Ends (seconds)",
+    "moveLeft": "Move earlier",
+    "moveRight": "Move later",
+    "duplicate": "Duplicate clip",
+    "closeGap": "Close gap",
+    "placement": "On the timeline"
+  },
+  "stage": {
+    "move": "Move the clip",
+    "resize": "Resize the clip",
+    "rotate": "Rotate the clip",
+    "moveText": "Move the text"
+  },
+  "framing": {
+    "title": "Framing",
+    "contain": "Fit entire image",
+    "cover": "Fill frame",
+    "scale": "Scale",
+    "rotation": "Rotation",
+    "opacity": "Opacity",
+    "reset": "Reset",
+    "hint": "Drag on the frame to position, use the corners to resize and the top handle to rotate. Hold Alt for free values."
+  },
+  "fades": {
+    "in": "Fade in (seconds)",
+    "out": "Fade out (seconds)"
   },
   "text": {
-    "tools": "Text tools",
     "invalidColor": "Enter a six-digit hex color, such as #FFFFFF.",
     "presets": {
       "title": "Presets",
       "plain": "Plain",
       "outline": "Outline",
       "shadow": "Shadow",
-      "badge": "Badge"
+      "box": "Box"
     },
-    "placement": "Position",
     "add": "Add text",
     "content": "Text",
-    "verticalAlignment": {
-      "top": "Top",
+    "default": "Text",
+    "alignment": "Alignment",
+    "alignments": {
+      "left": "Left",
       "center": "Center",
-      "bottom": "Bottom"
+      "right": "Right"
     },
-    "default": "Text"
+    "strength": "Decoration size",
+    "decorationColor": "Decoration color",
+    "dragHint": "Drag the text on the frame to place it anywhere."
   },
-  "tabs": {
-    "captions": "Captions",
-    "text": "Text"
-  },
-  "closeInspector": "Close edit panel",
   "captions": {
     "search": "Search captions",
     "none": "No captions yet. Add one above.",
@@ -62,19 +117,53 @@
     "size": "Size (720p)",
     "color": "Text color"
   },
-  "videoSettings": "Video settings",
-  "clip": {
-    "selected": "Selected clip",
-    "volume": "Volume",
-    "rotate": "Rotate",
-    "split": "Split",
-    "inPoint": "In (seconds)",
-    "outPoint": "Out (seconds)",
-    "startsAt": "Starts (seconds)",
-    "endsAt": "Ends (seconds)",
-    "moveLeft": "Move earlier",
-    "moveRight": "Move later",
-    "duplicate": "Duplicate clip"
+  "transitions": {
+    "title": "Transition",
+    "choose": "Choose transition",
+    "duration": "Duration (seconds)",
+    "hint": "Transitions overlap adjacent clips and shorten the project.",
+    "remove": "Remove transition",
+    "target": "Applies to the cut at {time}s",
+    "unavailable": "Select two neighbouring clips with at least 100 ms to spare.",
+    "kinds": {
+      "dissolve": "Dissolve",
+      "fadeBlack": "Fade through black",
+      "fadeWhite": "Fade through white",
+      "wipeLeft": "Wipe left",
+      "wipeRight": "Wipe right",
+      "wipeUp": "Wipe up",
+      "wipeDown": "Wipe down",
+      "slideLeft": "Slide left",
+      "slideRight": "Slide right",
+      "slideUp": "Slide up",
+      "slideDown": "Slide down"
+    }
+  },
+  "output": {
+    "title": "Output settings",
+    "size": "Frame size and resolution",
+    "frameRate": "Frame rate",
+    "background": "Background"
+  },
+  "playback": {
+    "stepBackward": "Previous output frame",
+    "stepForward": "Next output frame",
+    "goToStart": "Go to start",
+    "goToEnd": "Go to end"
+  },
+  "trim": {
+    "start": "Trim clip start",
+    "end": "Trim clip end",
+    "textStart": "Trim text start",
+    "textEnd": "Trim text end"
+  },
+  "timing": {
+    "invalid": "Enter a value between {min} and {max} seconds."
+  },
+  "unsaved": {
+    "title": "Save changes to this video?",
+    "status": "Unsaved changes",
+    "description": "Your edits will be lost if you close without saving."
   },
   "project": {
     "saved": "Video edit project saved"
@@ -88,58 +177,6 @@
       "renderingVideoEdit": "Rendering video",
       "savingResource": "Saving resource"
     }
-  },
-  "playback": {
-    "stepBackward": "Previous output frame",
-    "stepForward": "Next output frame"
-  },
-  "trim": {
-    "start": "Trim clip start",
-    "end": "Trim clip end",
-    "textStart": "Trim text start",
-    "textEnd": "Trim text end"
-  },
-  "unsaved": {
-    "title": "Save changes to this video?",
-    "status": "Unsaved changes",
-    "description": "Your edits will be lost if you close without saving."
-  },
-  "materials": {
-    "title": "Materials",
-    "import": "Import media",
-    "search": "Search materials",
-    "empty": "No matching materials. Import media to get started.",
-    "add": "Add “{title}” to the timeline",
-    "preparing": "Preparing media import…",
-    "unavailable": "Material changed or is unavailable.",
-    "audioHint": "Add music from the material browser."
-  },
-  "timing": {
-    "invalid": "Enter a value between {min} and {max} seconds."
-  },
-  "fades": {
-    "in": "Fade in (seconds)",
-    "out": "Fade out (seconds)"
-  },
-  "framing": {
-    "title": "Framing",
-    "contain": "Fit entire image",
-    "cover": "Fill frame",
-    "zoom": "Zoom"
-  },
-  "output": {
-    "title": "Output settings",
-    "size": "Frame size and resolution",
-    "frameRate": "Frame rate"
-  },
-  "transitions": {
-    "title": "Transition",
-    "choose": "Choose transition",
-    "dissolve": "Dissolve",
-    "wipeLeft": "Wipe left",
-    "wipeRight": "Wipe right",
-    "duration": "Duration (seconds)",
-    "hint": "Transitions overlap adjacent clips and shorten the project."
   },
   "layout": {
     "materials": "Resize material browser",
