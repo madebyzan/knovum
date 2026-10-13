@@ -1,118 +1,65 @@
 <script setup lang="ts">
-import { computed, shallowRef } from "vue";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 import type { VideoTextOverlay } from "../project";
+import { timeToPx } from "../timeline/scale";
+import type { VideoEditor } from "./use-video-editor";
 
-const props = defineProps<{
-  item: VideoTextOverlay;
-  durationMs: number;
-  selected: boolean;
-}>();
-const emit = defineEmits<{
-  select: [];
-  edit: [item: VideoTextOverlay];
-}>();
+const props = defineProps<{ item: VideoTextOverlay; editor: VideoEditor }>();
+const { t } = useI18n();
+const { timeline, gestures, selection } = props.editor;
+const EDGES = ["start", "end"] as const;
 
-type GestureKind = "move" | "start" | "end";
-const TIMELINE_EDGES = ["start", "end"] as const;
-const gesture = shallowRef<{ kind: GestureKind; originX: number; trackWidth: number }>();
-const draft = shallowRef<VideoTextOverlay>();
-const visible = computed(() => draft.value ?? props.item);
-const position = computed(() => ({
-  left: `${(visible.value.startMs / props.durationMs) * 100}%`,
-  width: `${((visible.value.endMs - visible.value.startMs) / props.durationMs) * 100}%`,
+const selected = computed(() => selection.selection.value?.id === props.item.id);
+const geometry = computed(() => ({
+  left: `${timeToPx(props.item.startMs, timeline.pxPerSecond.value)}px`,
+  width: `${Math.max(10, timeToPx(props.item.endMs - props.item.startMs, timeline.pxPerSecond.value))}px`,
 }));
 
-function change(kind: GestureKind, delta: number) {
-  const original = props.item;
-  if (kind === "move") {
-    const length = original.endMs - original.startMs;
-    const startMs = Math.max(0, Math.min(props.durationMs - length, original.startMs + delta));
-    return { ...original, startMs, endMs: startMs + length };
-  }
-  if (kind === "start")
-    return { ...original, startMs: Math.max(0, Math.min(original.endMs - 100, original.startMs + delta)) };
-  return {
-    ...original,
-    endMs: Math.max(original.startMs + 100, Math.min(props.durationMs, original.endMs + delta)),
-  };
-}
-
-function start(event: PointerEvent, kind: GestureKind) {
-  if (event.button !== 0) return;
-  const trackWidth = (event.currentTarget as HTMLElement)
-    .closest<HTMLElement>("[data-text-track]")
-    ?.getBoundingClientRect().width;
-  if (!trackWidth) return;
-  event.stopPropagation();
-  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-  gesture.value = { kind, originX: event.clientX, trackWidth };
-  draft.value = props.item;
-  emit("select");
-}
-
-function move(event: PointerEvent) {
-  const current = gesture.value;
-  if (!current) return;
-  const rawDelta = ((event.clientX - current.originX) / current.trackWidth) * props.durationMs;
-  const delta = event.altKey ? Math.round(rawDelta) : Math.round(rawDelta / 100) * 100;
-  draft.value = change(current.kind, delta);
-}
-
-function finish() {
-  const next = draft.value;
-  gesture.value = undefined;
-  draft.value = undefined;
-  if (next && (next.startMs !== props.item.startMs || next.endMs !== props.item.endMs)) emit("edit", next);
-}
-
-function cancel() {
-  gesture.value = undefined;
-  draft.value = undefined;
-}
-
-function nudge(kind: GestureKind, delta: number) {
-  const next = change(kind, delta);
-  if (next.startMs !== props.item.startMs || next.endMs !== props.item.endMs) emit("edit", next);
+function grab(event: PointerEvent) {
+  gestures.begin(event, {
+    kind: "text-move",
+    id: props.item.id,
+    grabMs: timeline.timeAt(event) - props.item.startMs,
+  });
 }
 </script>
 
 <template>
-  <div class="absolute top-1 h-8 min-w-0" :style="position">
+  <div
+    class="absolute inset-y-1 overflow-hidden rounded border bg-surface-selected"
+    :class="selected ? 'border-stroke-accent ring-1 ring-stroke-accent' : 'border-stroke-accent/25'"
+    :style="geometry"
+  >
     <button
       type="button"
-      class="size-full cursor-grab touch-none overflow-hidden rounded-sm border bg-surface-selected px-3 text-left text-caption text-fg-accent focus-visible:outline-2 focus-visible:outline-stroke-focus active:cursor-grabbing"
-      :class="selected ? 'border-stroke-accent ring-1 ring-stroke-accent' : 'border-stroke-accent/25'"
+      class="size-full cursor-grab touch-none truncate px-2 text-left text-caption-sm text-fg-accent focus-visible:outline-2 focus-visible:outline-stroke-focus active:cursor-grabbing"
       :aria-label="item.text"
-      @click="$emit('select')"
-      @pointerdown="start($event, 'move')"
-      @pointermove="move"
-      @pointerup="finish"
-      @pointercancel="cancel"
-      @keydown.left.prevent="nudge('move', -100)"
-      @keydown.right.prevent="nudge('move', 100)"
+      @pointerdown="grab"
+      @pointermove="gestures.move"
+      @pointerup="gestures.finish"
+      @pointercancel="gestures.cancel"
     >
-      <span class="block truncate">{{ item.text }}</span>
+      {{ item.text }}
     </button>
     <button
-      v-for="edge in TIMELINE_EDGES"
+      v-for="edge in EDGES"
       :key="edge"
       type="button"
-      class="absolute inset-y-0 w-2 cursor-ew-resize touch-none bg-surface-accent/25 hover:bg-surface-accent/50 focus-visible:outline-2 focus-visible:outline-stroke-focus"
-      :class="edge === 'start' ? 'left-0 rounded-l-sm' : 'right-0 rounded-r-sm'"
+      class="absolute inset-y-0 w-1.5 cursor-ew-resize touch-none bg-surface-accent/40 hover:bg-surface-accent focus-visible:outline-2 focus-visible:outline-stroke-focus"
+      :class="edge === 'start' ? 'left-0' : 'right-0'"
       :aria-label="
-        $t(
+        t(
           edge === 'start'
             ? 'spaces.media.videoEditor.trim.textStart'
             : 'spaces.media.videoEditor.trim.textEnd',
         )
       "
-      @pointerdown="start($event, edge)"
-      @pointermove="move"
-      @pointerup="finish"
-      @pointercancel="cancel"
-      @keydown.left.prevent="nudge(edge, -100)"
-      @keydown.right.prevent="nudge(edge, 100)"
+      @pointerdown="gestures.begin($event, { kind: 'text-trim', id: item.id, edge })"
+      @pointermove="gestures.move"
+      @pointerup="gestures.finish"
+      @pointercancel="gestures.cancel"
     />
   </div>
 </template>

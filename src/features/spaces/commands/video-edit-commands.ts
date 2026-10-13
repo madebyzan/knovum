@@ -9,12 +9,16 @@ export interface VideoEditCommandPort {
   canRedo(): boolean;
   canDelete(): boolean;
   canSplit(): boolean;
+  canDuplicate(): boolean;
   undo(): void;
   redo(): void;
   remove(): void;
   split(): void;
+  duplicate(): void;
+  addText(): void;
   togglePlayback(): void;
   step(direction: -1 | 1): void;
+  jump(edge: "start" | "end"): void;
   save(): Promise<void>;
 }
 
@@ -91,6 +95,35 @@ export function videoEditCommands(): AppCommand[] {
       shortcut: "ArrowRight",
       category: "editing",
       run: () => activeEditor.value?.step(1),
+    },
+    {
+      id: "video-edit.duplicate",
+      title: t("spaces.media.videoEditor.clip.duplicate"),
+      shortcut: "$mod+D",
+      category: "editing",
+      availability: () => availableWhen(!!activeEditor.value?.canDuplicate(), "no_selection"),
+      run: () => activeEditor.value?.duplicate(),
+    },
+    {
+      id: "video-edit.add-text",
+      title: t("spaces.media.videoEditor.text.add"),
+      shortcut: "T",
+      category: "editing",
+      run: () => activeEditor.value?.addText(),
+    },
+    {
+      id: "video-edit.go-to-start",
+      title: t("spaces.media.videoEditor.playback.goToStart"),
+      shortcut: "Home",
+      category: "editing",
+      run: () => activeEditor.value?.jump("start"),
+    },
+    {
+      id: "video-edit.go-to-end",
+      title: t("spaces.media.videoEditor.playback.goToEnd"),
+      shortcut: "End",
+      category: "editing",
+      run: () => activeEditor.value?.jump("end"),
     },
   ];
 }

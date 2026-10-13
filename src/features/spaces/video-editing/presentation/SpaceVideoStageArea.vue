@@ -1,0 +1,39 @@
+<script setup lang="ts">
+import { SplitterGroup, SplitterPanel, SplitterResizeHandle } from "reka-ui";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+import SpaceVideoInspector from "./SpaceVideoInspector.vue";
+import SpaceVideoLibrary from "./SpaceVideoLibrary.vue";
+import SpaceVideoStage from "./SpaceVideoStage.vue";
+import type { VideoEditor } from "./use-video-editor";
+
+const props = defineProps<{ editor: VideoEditor }>();
+const { t } = useI18n();
+const { selection } = props.editor;
+const inspecting = computed(() => !!selection.selection.value);
+</script>
+
+<template>
+  <SplitterGroup direction="horizontal" class="min-h-0 flex-1">
+    <SplitterPanel :min-size="16" :default-size="22" :max-size="34" class="flex min-h-0 flex-col">
+      <SpaceVideoLibrary :editor="editor" />
+    </SplitterPanel>
+    <SplitterResizeHandle
+      class="w-px shrink-0 bg-stroke-default transition-colors outline-none hover:w-0.5 hover:bg-surface-accent focus-visible:w-0.5 focus-visible:bg-surface-accent data-[state=drag]:w-0.5 data-[state=drag]:bg-surface-accent"
+      :aria-label="t('spaces.media.videoEditor.layout.materials')"
+    />
+    <SplitterPanel :min-size="30" class="flex min-h-0 flex-col">
+      <SpaceVideoStage :editor="editor" />
+    </SplitterPanel>
+    <template v-if="inspecting">
+      <SplitterResizeHandle
+        class="w-px shrink-0 bg-stroke-default transition-colors outline-none hover:w-0.5 hover:bg-surface-accent focus-visible:w-0.5 focus-visible:bg-surface-accent data-[state=drag]:w-0.5 data-[state=drag]:bg-surface-accent"
+        :aria-label="t('spaces.media.videoEditor.layout.inspector')"
+      />
+      <SplitterPanel :min-size="18" :default-size="24" :max-size="38" class="flex min-h-0 flex-col">
+        <SpaceVideoInspector :editor="editor" />
+      </SplitterPanel>
+    </template>
+  </SplitterGroup>
+</template>

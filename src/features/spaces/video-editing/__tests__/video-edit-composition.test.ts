@@ -1,11 +1,29 @@
 import { describe, expect, it } from "vitest";
 
 import { videoEditProjectSchema } from "../../model/nodes/schema/video-edit";
-import { replaceClip, setTransition, splitClip } from "../clip-edits";
-import { duplicateClip, moveClip } from "../clip-order";
-import { appendAsset } from "../material-edits";
-import { addTextOverlay, createVideoEditProject } from "../project";
-import { canSplitClip, locateTimelineFrames, projectDurationMs } from "../timing";
+import {
+  closeGapBefore,
+  duplicateClip,
+  moveBounds,
+  moveClip,
+  removeClip,
+  splitClip,
+  swapClip,
+} from "../edits/arrange";
+import { insertMaterial } from "../edits/material";
+import { addTextOverlay } from "../edits/text";
+import { trimClip } from "../edits/trim";
+import { createVideoEditProject, defaultTextStyle, type VideoAsset } from "../project";
+import { canSplitAt, clipEndMs, compositionAt, projectDurationMs } from "../timing";
+
+const second: VideoAsset = {
+  nodeId: "second",
+  sourceRevision: "second-revision",
+  kind: "video",
+  durationMs: 3_000,
+  width: 1920,
+  height: 1080,
+};
 
 function source() {
   return createVideoEditProject({
@@ -16,125 +34,105 @@ function source() {
     sourceHeight: 720,
   });
 }
+
 function twoClips() {
-  return appendAsset(source(), {
-    nodeId: "second",
-    sourceRevision: "second-revision",
-    kind: "video",
-    durationMs: 3_000,
-    width: 1920,
-    height: 1080,
-  });
+  return insertMaterial(source(), second, 4_000);
 }
 
-describe("video composition", () => {
-  it("inserts another managed source without replacing the first", () => {
+describe("video timeline arrangement", () => {
+  it("places a second source after the first without changing its media window", () => {
     const project = twoClips();
-    expect(project.assets.map(({ nodeId }) => nodeId)).toEqual(["source", "second"]);
-    expect(project.videoTrack.clips.map(({ assetId }) => assetId)).toEqual(["source", "second"]);
+    expect(
+      project.videoTrack.clips.map(({ assetId, timelineStartMs }) => [assetId, timelineStartMs]),
+    ).toEqual([
+      ["source", 0],
+      ["second", 4_000],
+    ]);
     expect(projectDurationMs(project)).toBe(7_000);
     expect(videoEditProjectSchema.safeParse(project).success).toBe(true);
   });
-  it("subtracts a transition overlap and samples both source intervals", () => {
-    const initial = twoClips();
-    const project = setTransition(initial, initial.videoTrack.clips[0]!.id, {
-      kind: "dissolve",
-      durationMs: 1_000,
-    });
-    expect(projectDurationMs(project)).toBe(6_000);
-    const frames = locateTimelineFrames(project, 3_500);
-    expect(frames.map(({ clip, offsetMs }) => [clip.assetId, offsetMs])).toEqual([
-      ["source", 3_500],
-      ["second", 500],
+
+  it("splits a clip into two contiguous clips that keep the total duration", () => {
+    const project = splitClip(source(), 1_500);
+    expect(
+      project.videoTrack.clips.map(({ sourceInMs, sourceOutMs, timelineStartMs }) => [
+        sourceInMs,
+        sourceOutMs,
+        timelineStartMs,
+      ]),
+    ).toEqual([
+      [0, 1_500, 0],
+      [1_500, 4_000, 1_500],
     ]);
-    expect(frames[1]!.progress).toBe(0.5);
-    expect(locateTimelineFrames(project, 4_000).map(({ clip }) => clip.assetId)).toEqual(["second"]);
+    expect(projectDurationMs(project)).toBe(4_000);
   });
-  it("rejects overlapping transitions that consume an entire clip", () => {
-    const initial = twoClips();
-    expect(() =>
-      setTransition(initial, initial.videoTrack.clips[0]!.id, { kind: "dissolve", durationMs: 3_000 }),
-    ).toThrow("Transition overlaps exceed available clip media");
-    const malformed = structuredClone(initial);
-    malformed.videoTrack.clips[0]!.transition = { kind: "dissolve", durationMs: 3_000 };
-    expect(videoEditProjectSchema.safeParse(malformed).success).toBe(false);
+
+  it("refuses a split that would leave less than a tenth of a second on either side", () => {
+    const project = source();
+    expect(canSplitAt(project, 50)).toBe(false);
+    expect(canSplitAt(project, 3_950)).toBe(false);
+    expect(canSplitAt(project, 2_000)).toBe(true);
+    expect(splitClip(project, 50)).toBe(project);
   });
-  it("duplicates and moves a clip as immutable, independently editable items", () => {
+
+  it("ripples the timeline closed when a clip is removed", () => {
     const initial = twoClips();
-    const duplicate = duplicateClip(initial, initial.videoTrack.clips[0]!.id);
-    expect(duplicate.videoTrack.clips).toHaveLength(3);
-    expect(duplicate.videoTrack.clips[1]!.id).not.toBe(initial.videoTrack.clips[0]!.id);
-    const moved = moveClip(duplicate, duplicate.videoTrack.clips[1]!.id, 1);
-    expect(moved.videoTrack.clips.map(({ assetId }) => assetId)).toEqual(["source", "second", "source"]);
+    const project = removeClip(initial, initial.videoTrack.clips[0]!.id);
+    expect(project.videoTrack.clips).toMatchObject([{ assetId: "second", timelineStartMs: 0 }]);
+    expect(projectDurationMs(project)).toBe(3_000);
+  });
+
+  it("keeps the last clip and retains its source among the project assets", () => {
+    const project = source();
+    expect(removeClip(project, project.videoTrack.clips[0]!.id)).toBe(project);
+  });
+
+  it("inserts a duplicate directly after the clip and rolls later media forward", () => {
+    const initial = addTextOverlay(twoClips(), 4_200, defaultTextStyle("Arial"), "Second");
+    const project = duplicateClip(initial, initial.videoTrack.clips[0]!.id);
+    expect(project.videoTrack.clips.map(({ assetId }) => assetId)).toEqual(["source", "source", "second"]);
+    expect(project.videoTrack.clips[1]!.id).not.toBe(initial.videoTrack.clips[0]!.id);
+    expect(project.textTrack.items[0]!.startMs).toBe(8_200);
     expect(initial.videoTrack.clips).toHaveLength(2);
   });
-  it("rejects obsolete projects and forged asset references", () => {
+
+  it("exchanges neighbours while preserving the span the pair occupies", () => {
+    const initial = twoClips();
+    const project = swapClip(initial, initial.videoTrack.clips[0]!.id, 1);
     expect(
-      videoEditProjectSchema.safeParse({
-        version: 1,
-        sourceRevision: "old",
-        sourceWidth: 1280,
-        sourceHeight: 720,
-        videoTrack: { clips: [] },
-        textTrack: { items: [] },
-        transform: { rotation: 0, flipHorizontal: false, flipVertical: false },
-      }).success,
-    ).toBe(false);
-    const forged = source();
-    forged.videoTrack.clips[0]!.assetId = "unknown";
-    expect(videoEditProjectSchema.safeParse(forged).success).toBe(false);
+      project.videoTrack.clips.map(({ assetId, timelineStartMs }) => [assetId, timelineStartMs]),
+    ).toEqual([
+      ["second", 0],
+      ["source", 3_000],
+    ]);
+    expect(projectDurationMs(project)).toBe(7_000);
   });
-});
 
-it("removes a transition only when its connected pair changes during reorder", () => {
-  const initial = twoClips();
-  const mixed = setTransition(initial, initial.videoTrack.clips[0]!.id, {
-    kind: "dissolve",
-    durationMs: 500,
+  it("allows a gap between clips and closes it on request", () => {
+    const initial = twoClips();
+    const clipId = initial.videoTrack.clips[1]!.id;
+    expect(moveBounds(initial, clipId)).toMatchObject({ minMs: 4_000 });
+    const moved = moveClip(initial, clipId, 5_500);
+    expect(moved.videoTrack.clips[1]!.timelineStartMs).toBe(5_500);
+    expect(projectDurationMs(moved)).toBe(8_500);
+    expect(compositionAt(moved, 4_500).layers).toEqual([]);
+    const closed = closeGapBefore(moved, clipId);
+    expect(closed.videoTrack.clips[1]!.timelineStartMs).toBe(4_000);
   });
-  const moved = moveClip(mixed, mixed.videoTrack.clips[0]!.id, 1);
-  expect(moved.videoTrack.clips.map(({ transition }) => transition)).toEqual([null, null]);
-  expect(projectDurationMs(moved)).toBe(7_000);
-});
 
-it("splits at an integer source time after stepping a 30 fps output frame", () => {
-  const initial = source();
-  const next = splitClip(initial, 1000 / 3);
-  expect(next.videoTrack.clips[0]!.endMs).toBe(333);
-  expect(next.videoTrack.clips[1]!.startMs).toBe(333);
-  expect(projectDurationMs(next)).toBe(4000);
-});
+  it("clamps a dragged clip to its neighbour instead of overlapping it", () => {
+    const initial = twoClips();
+    const moved = moveClip(initial, initial.videoTrack.clips[1]!.id, 1_000);
+    expect(moved.videoTrack.clips[1]!.timelineStartMs).toBe(4_000);
+  });
 
-it("keeps fade envelopes intact when deciding split availability", () => {
-  const initial = source();
-  initial.videoTrack.clips[0]!.fadeInMs = 1000;
-  initial.videoTrack.clips[0]!.fadeOutMs = 1000;
-  expect(canSplitClip(initial, 500)).toBe(false);
-  expect(canSplitClip(initial, 3500)).toBe(false);
-  expect(canSplitClip(initial, 2000)).toBe(true);
-});
-
-it("retimes tracks once when both ends of a clip change", () => {
-  const initial = addTextOverlay(source(), 3500, "Arial", "End");
-  initial.videoTrack.clips[0]!.startMs = 1000;
-  initial.videoTrack.clips[0]!.endMs = 4000;
-  initial.textTrack.items[0]!.startMs = 2000;
-  initial.textTrack.items[0]!.endMs = 3000;
-  const next = replaceClip(initial, { ...initial.videoTrack.clips[0]!, startMs: 0, endMs: 3500 });
-  expect(next.textTrack.items[0]).toMatchObject({ startMs: 3000, endMs: 3500 });
-});
-
-it("moves text on the next clip when duplicating a transitioned clip", () => {
-  const initial = twoClips();
-  const mixed = addTextOverlay(
-    setTransition(initial, initial.videoTrack.clips[0]!.id, {
-      kind: "dissolve",
-      durationMs: 500,
-    }),
-    3500,
-    "Arial",
-    "Next",
-  );
-  const duplicate = duplicateClip(mixed, mixed.videoTrack.clips[0]!.id);
-  expect(duplicate.textTrack.items[0]!.startMs).toBe(8000);
+  it("trims one edge without moving the opposite edge or the neighbours", () => {
+    const initial = twoClips();
+    const clip = initial.videoTrack.clips[0]!;
+    const trimmed = trimClip(initial, clip.id, "end", 2_500);
+    expect(trimmed.videoTrack.clips[0]).toMatchObject({ sourceInMs: 0, sourceOutMs: 2_500 });
+    expect(clipEndMs(trimmed.videoTrack.clips[0]!)).toBe(2_500);
+    expect(trimmed.videoTrack.clips[1]!.timelineStartMs).toBe(4_000);
+    expect(trimClip(trimmed, clip.id, "end", 9_000).videoTrack.clips[0]!.sourceOutMs).toBe(4_000);
+  });
 });

@@ -1,140 +1,149 @@
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import UiInput from "../../../../shared/ui/UiInput.vue";
+import UiNumberField from "../../../../shared/ui/UiNumberField.vue";
+import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
-import { type VideoEditProject, type VideoTextOverlay, type VideoTextStyle } from "../project";
+import { updateTextOverlay, updateTextStyle } from "../edits/text";
+import type { VideoTextOverlay, VideoTextStyle } from "../project";
 import { projectDurationMs } from "../timing";
+import SpaceVideoColorField from "./SpaceVideoColorField.vue";
 import SpaceVideoFontControls from "./SpaceVideoFontControls.vue";
-import SpaceVideoTextColorField from "./SpaceVideoTextColorField.vue";
-import SpaceVideoTextTiming from "./SpaceVideoTextTiming.vue";
+import SpaceVideoTimeField from "./SpaceVideoTimeField.vue";
+import type { VideoEditor } from "./use-video-editor";
 
-const props = defineProps<{ project: VideoEditProject; item: VideoTextOverlay }>();
-const emit = defineEmits<{ edit: [project: VideoEditProject, mergeKey?: string] }>();
-const durationMs = computed(() => projectDurationMs(props.project));
-const style = computed(() => props.item.style);
-const textDraft = shallowRef(props.item.text);
-const TEXT_STYLE_PRESETS = ["plain", "outline", "shadow", "badge"] as const;
-const TEXT_PLACEMENTS = ["top", "center", "bottom"] as const;
+const props = defineProps<{ editor: VideoEditor; item: VideoTextOverlay }>();
+const { t } = useI18n();
+const { project, commit } = props.editor;
+const DECORATIONS = ["plain", "outline", "shadow", "box"] as const;
+const ALIGNMENTS = ["left", "center", "right"] as const;
+const draft = shallowRef(props.item.text);
+const duration = computed(() => (project.value ? projectDurationMs(project.value) : 0));
+
 watch(
   () => props.item.text,
-  (value) => {
-    textDraft.value = value;
-  },
+  (value) => (draft.value = value),
 );
+
 function patch(change: Partial<VideoTextOverlay>, mergeKey?: string) {
-  const next = { ...props.item, ...change };
-  if (
-    !next.text.trim() ||
-    next.text.length > 500 ||
-    next.endMs - next.startMs < 100 ||
-    next.endMs > durationMs.value
-  )
-    return;
-  emit(
-    "edit",
-    {
-      ...props.project,
-      textTrack: { items: props.project.textTrack.items.map((item) => (item.id === next.id ? next : item)) },
-    },
-    mergeKey,
-  );
+  if (project.value) commit(updateTextOverlay(project.value, props.item.id, change), mergeKey);
 }
-
-function patchStyle(value: Partial<VideoTextStyle>, mergeKey?: string) {
-  patch({ style: { ...style.value, ...value } }, mergeKey);
+function patchStyle(change: Partial<VideoTextStyle>, mergeKey?: string) {
+  if (project.value) commit(updateTextStyle(project.value, props.item.id, change), mergeKey);
 }
-
-function changeSize(event: Event) {
-  const input = event.currentTarget as HTMLInputElement;
-  const value = Number(input.value);
-  if (Number.isInteger(value) && value >= 16 && value <= 96) patchStyle({ size: value });
-  input.value = String(style.value.size);
+function patchSize(value: number | undefined) {
+  patchStyle({ size: Math.round(value ?? props.item.style.size) }, `size:${props.item.id}`);
+}
+function patchStrength(value: number | undefined) {
+  patchStyle({ decorationStrength: Math.round(value ?? props.item.style.decorationStrength) });
 }
 </script>
 
 <template>
-  <div class="space-y-5 p-4">
+  <div class="space-y-4 p-3">
     <section>
       <label class="mb-1.5 block text-caption font-medium" for="video-edit-text">
-        {{ $t("spaces.media.videoEditor.text.content") }}
+        {{ t("spaces.media.videoEditor.text.content") }}
       </label>
       <UiTextarea
         id="video-edit-text"
-        v-model="textDraft"
-        class="min-h-24 resize-none"
-        :rows="4"
-        @update:model-value="(value) => patch({ text: value }, `text:${item.id}`)"
-        @blur="textDraft = item.text"
+        v-model="draft"
+        class="min-h-20 resize-none"
+        :rows="3"
+        @update:model-value="patch({ text: draft }, `text:${item.id}`)"
+        @blur="draft = item.text"
       />
     </section>
-    <SpaceVideoFontControls :style="style" @change="patchStyle" />
+    <SpaceVideoFontControls :style="item.style" @change="patchStyle" />
     <section class="grid grid-cols-2 gap-2">
-      <label class="text-caption text-fg-secondary" for="video-edit-text-size">
-        {{ $t("spaces.media.videoEditor.font.size") }}
-        <UiInput
-          id="video-edit-text-size"
-          class="mt-1 tabular-nums"
+      <label class="text-caption text-fg-secondary">
+        {{ t("spaces.media.videoEditor.font.size") }}
+        <UiNumberField
+          class="mt-1"
           size="sm"
-          type="number"
-          min="16"
-          max="96"
-          step="1"
-          :model-value="String(style.size)"
-          @change="changeSize"
+          :min="12"
+          :max="200"
+          :step="1"
+          :model-value="item.style.size"
+          @update:model-value="patchSize($event)"
+        />
+      </label>
+      <label class="text-caption text-fg-secondary">
+        {{ t("spaces.media.videoEditor.text.alignment") }}
+        <UiSelect
+          class="mt-1"
+          size="sm"
+          :model-value="item.style.align"
+          :label="t('spaces.media.videoEditor.text.alignment')"
+          :options="
+            ALIGNMENTS.map((value) => ({
+              value,
+              label: t(`spaces.media.videoEditor.text.alignments.${value}`),
+            }))
+          "
+          @update:model-value="patchStyle({ align: $event })"
         />
       </label>
     </section>
-    <section>
-      <SpaceVideoTextColorField
-        :key="item.id"
-        :color="style.color"
-        @change="patchStyle({ color: $event }, `text-color:${item.id}`)"
-      />
-    </section>
+    <SpaceVideoColorField
+      :key="`color-${item.id}`"
+      :label="t('spaces.media.videoEditor.font.color')"
+      :color="item.style.color"
+      @change="patchStyle({ color: $event }, `color:${item.id}`)"
+    />
     <section>
       <h3 class="mb-2 text-caption text-fg-secondary">
-        {{ $t("spaces.media.videoEditor.text.presets.title") }}
+        {{ t("spaces.media.videoEditor.text.presets.title") }}
       </h3>
       <div class="grid grid-cols-4 gap-1.5">
-        <button
-          v-for="preset in TEXT_STYLE_PRESETS"
-          :key="preset"
-          type="button"
-          class="flex h-14 flex-col items-center justify-center gap-0.5 rounded-md border text-caption-sm focus-visible:outline-2 focus-visible:outline-stroke-focus"
-          :class="
-            style.preset === preset
-              ? 'border-stroke-accent bg-surface-selected text-fg-accent'
-              : 'border-stroke-default bg-surface-muted text-fg-secondary hover:bg-surface-control-hover'
-          "
-          :aria-pressed="style.preset === preset"
-          @click="patchStyle({ preset })"
-        >
-          <span
-            class="text-label font-semibold"
-            :class="preset === 'badge' && 'rounded-md bg-surface-inverse px-1 text-fg-inverse'"
-            >T</span
-          >
-          {{ $t(`spaces.media.videoEditor.text.presets.${preset}`) }}
-        </button>
-      </div>
-    </section>
-    <section>
-      <h3 class="mb-2 text-caption text-fg-secondary">
-        {{ $t("spaces.media.videoEditor.text.placement") }}
-      </h3>
-      <div class="grid grid-cols-3 gap-1">
         <UiButton
-          v-for="placement in TEXT_PLACEMENTS"
-          :key="placement"
+          v-for="decoration in DECORATIONS"
+          :key="decoration"
           size="sm"
-          :variant="item.placement === placement ? 'primary' : 'secondary'"
-          @click="patch({ placement })"
-          >{{ $t(`spaces.media.videoEditor.text.verticalAlignment.${placement}`) }}</UiButton
+          :variant="item.style.decoration === decoration ? 'primary' : 'secondary'"
+          class="justify-center"
+          @click="patchStyle({ decoration })"
+          >{{ t(`spaces.media.videoEditor.text.presets.${decoration}`) }}</UiButton
         >
       </div>
     </section>
-    <SpaceVideoTextTiming :item="item" :duration-ms="durationMs" @change="patch" />
+    <section v-if="item.style.decoration !== 'plain'" class="space-y-2">
+      <label class="text-caption text-fg-secondary">
+        {{ t("spaces.media.videoEditor.text.strength") }}
+        <UiNumberField
+          class="mt-1"
+          size="sm"
+          :min="0"
+          :max="20"
+          :step="1"
+          :model-value="item.style.decorationStrength"
+          @update:model-value="patchStrength($event)"
+        />
+      </label>
+      <SpaceVideoColorField
+        :key="`decoration-${item.id}`"
+        :label="t('spaces.media.videoEditor.text.decorationColor')"
+        :color="item.style.decorationColor"
+        @change="patchStyle({ decorationColor: $event }, `decoration:${item.id}`)"
+      />
+    </section>
+    <section class="grid grid-cols-2 gap-2 border-t border-stroke-divider pt-4">
+      <SpaceVideoTimeField
+        :label="t('spaces.media.videoEditor.clip.startsAt')"
+        :value="item.startMs"
+        :max="Math.max(0, duration - 100)"
+        @change="patch({ startMs: $event, endMs: $event + (item.endMs - item.startMs) })"
+      />
+      <SpaceVideoTimeField
+        :label="t('spaces.media.videoEditor.clip.endsAt')"
+        :value="item.endMs"
+        :min="item.startMs + 100"
+        :max="duration"
+        @change="patch({ endMs: $event })"
+      />
+    </section>
+    <p class="text-caption-sm text-fg-tertiary">{{ t("spaces.media.videoEditor.text.dragHint") }}</p>
   </div>
 </template>

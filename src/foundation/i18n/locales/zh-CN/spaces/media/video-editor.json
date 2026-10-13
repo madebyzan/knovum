@@ -2,52 +2,107 @@
   "edit": "编辑视频",
   "title": "视频编辑工作台",
   "loading": "正在加载视频编辑器…",
+  "closeInspector": "关闭编辑面板",
   "preview": {
     "optimizing": "正在后台优化预览…",
     "retry": "重试准备预览",
-    "sourceUnavailable": "视频源文件不可用，请重新导入后编辑。",
     "proxyFailed": "无法准备流畅预览",
-    "durationUnavailable": "无法读取视频时长",
     "metadataUnavailable": "无法读取视频画面尺寸",
-    "unavailable": "无法打开视频预览"
+    "stage": "画面",
+    "zoomIn": "放大画面",
+    "zoomOut": "缩小画面",
+    "fit": "适配窗口"
+  },
+  "obsolete": {
+    "title": "该剪辑工程是旧格式",
+    "description": "当前编辑器无法打开已保存的工程。可以基于原视频重新开始剪辑，源文件不会被改动。",
+    "action": "重新开始剪辑"
+  },
+  "library": {
+    "title": "资源库",
+    "media": "素材",
+    "text": "文字",
+    "transitions": "转场"
+  },
+  "materials": {
+    "title": "素材",
+    "import": "导入素材",
+    "search": "搜索素材",
+    "empty": "没有匹配的素材，可以导入视频、图片或音频。",
+    "add": "将「{title}」加入时间线",
+    "preparing": "正在准备导入素材…",
+    "unavailable": "素材已变更或不可用。",
+    "noRoom": "时间线上没有可以放置该素材的空位。"
   },
   "tracks": {
     "video": "视频",
     "audio": "音频",
-    "text": "文字"
+    "text": "文字",
+    "lane": "音轨"
   },
   "timeline": {
-    "thumbnailFailed": "无法生成时间线缩略图",
     "zoomOut": "缩小时间线",
     "zoomIn": "放大时间线",
     "fit": "适配整段视频",
-    "seek": "定位时间线"
+    "seek": "定位时间线",
+    "clearSelection": "取消选择"
+  },
+  "clip": {
+    "selected": "所选片段",
+    "volume": "音量",
+    "split": "分割",
+    "inPoint": "入点（秒）",
+    "outPoint": "出点（秒）",
+    "startsAt": "开始（秒）",
+    "endsAt": "结束（秒）",
+    "moveLeft": "向前移动",
+    "moveRight": "向后移动",
+    "duplicate": "复制片段",
+    "closeGap": "消除空隙",
+    "placement": "时间线位置"
+  },
+  "stage": {
+    "move": "移动片段",
+    "resize": "缩放片段",
+    "rotate": "旋转片段",
+    "moveText": "移动文字"
+  },
+  "framing": {
+    "title": "画面适配",
+    "contain": "完整显示",
+    "cover": "填满画幅",
+    "scale": "缩放",
+    "rotation": "旋转",
+    "opacity": "不透明度",
+    "reset": "重置",
+    "hint": "在画面上拖动可调整位置，拖动四角缩放，拖动顶部手柄旋转；按住 Alt 可取消吸附。"
+  },
+  "fades": {
+    "in": "淡入（秒）",
+    "out": "淡出（秒）"
   },
   "text": {
-    "tools": "文字工具",
     "invalidColor": "请输入六位十六进制颜色，例如 #FFFFFF。",
     "presets": {
       "title": "预设样式",
       "plain": "简洁",
       "outline": "描边",
       "shadow": "阴影",
-      "badge": "底框"
+      "box": "底框"
     },
-    "placement": "画面位置",
     "add": "添加文字",
     "content": "文字内容",
-    "verticalAlignment": {
-      "top": "顶部",
+    "default": "文字",
+    "alignment": "对齐",
+    "alignments": {
+      "left": "左对齐",
       "center": "居中",
-      "bottom": "底部"
+      "right": "右对齐"
     },
-    "default": "文字"
+    "strength": "装饰粗细",
+    "decorationColor": "装饰颜色",
+    "dragHint": "在画面上拖动文字即可任意摆放。"
   },
-  "tabs": {
-    "captions": "字幕",
-    "text": "文字"
-  },
-  "closeInspector": "关闭编辑面板",
   "captions": {
     "search": "搜索字幕文本",
     "none": "暂无字幕。点击上方按钮添加。",
@@ -62,19 +117,53 @@
     "size": "字号（720p）",
     "color": "字体颜色"
   },
-  "videoSettings": "视频设置",
-  "clip": {
-    "selected": "所选片段",
-    "volume": "音量",
-    "rotate": "旋转",
-    "split": "分割",
-    "inPoint": "入点（秒）",
-    "outPoint": "出点（秒）",
-    "startsAt": "开始（秒）",
-    "endsAt": "结束（秒）",
-    "moveLeft": "向前移动",
-    "moveRight": "向后移动",
-    "duplicate": "复制片段"
+  "transitions": {
+    "title": "转场",
+    "choose": "选择转场",
+    "duration": "时长（秒）",
+    "hint": "转场会重叠相邻片段，缩短工程总时长。",
+    "remove": "删除转场",
+    "target": "应用于 {time} 秒处的剪辑点",
+    "unavailable": "需要两个相邻片段，且各自至少留出 100 毫秒。",
+    "kinds": {
+      "dissolve": "叠化",
+      "fadeBlack": "黑场过渡",
+      "fadeWhite": "白场过渡",
+      "wipeLeft": "向左擦除",
+      "wipeRight": "向右擦除",
+      "wipeUp": "向上擦除",
+      "wipeDown": "向下擦除",
+      "slideLeft": "向左滑动",
+      "slideRight": "向右滑动",
+      "slideUp": "向上滑动",
+      "slideDown": "向下滑动"
+    }
+  },
+  "output": {
+    "title": "输出设置",
+    "size": "画幅与分辨率",
+    "frameRate": "帧率",
+    "background": "背景色"
+  },
+  "playback": {
+    "stepBackward": "上一输出帧",
+    "stepForward": "下一输出帧",
+    "goToStart": "回到开头",
+    "goToEnd": "跳到结尾"
+  },
+  "trim": {
+    "start": "修剪片段起点",
+    "end": "修剪片段终点",
+    "textStart": "修剪文字起点",
+    "textEnd": "修剪文字终点"
+  },
+  "timing": {
+    "invalid": "请输入 {min}–{max} 秒之间的数值。"
+  },
+  "unsaved": {
+    "title": "保存视频修改？",
+    "status": "有未保存的修改",
+    "description": "关闭前未保存的修改将丢失。"
   },
   "project": {
     "saved": "视频编辑工程已保存"
@@ -88,58 +177,6 @@
       "renderingVideoEdit": "正在渲染视频",
       "savingResource": "正在保存资源"
     }
-  },
-  "playback": {
-    "stepBackward": "上一输出帧",
-    "stepForward": "下一输出帧"
-  },
-  "trim": {
-    "start": "修剪片段起点",
-    "end": "修剪片段终点",
-    "textStart": "修剪文字起点",
-    "textEnd": "修剪文字终点"
-  },
-  "unsaved": {
-    "title": "保存视频修改？",
-    "status": "有未保存的修改",
-    "description": "关闭前未保存的修改将丢失。"
-  },
-  "materials": {
-    "title": "素材",
-    "import": "导入素材",
-    "search": "搜索素材",
-    "empty": "没有匹配的素材，可以导入视频、图片或音频。",
-    "add": "将「{title}」加入时间线",
-    "preparing": "正在准备导入素材…",
-    "unavailable": "素材已变更或不可用。",
-    "audioHint": "从素材区添加配乐。"
-  },
-  "timing": {
-    "invalid": "请输入 {min}–{max} 秒之间的数值。"
-  },
-  "fades": {
-    "in": "淡入（秒）",
-    "out": "淡出（秒）"
-  },
-  "framing": {
-    "title": "画面适配",
-    "contain": "完整显示",
-    "cover": "填满画幅",
-    "zoom": "缩放"
-  },
-  "output": {
-    "title": "输出设置",
-    "size": "画幅与分辨率",
-    "frameRate": "帧率"
-  },
-  "transitions": {
-    "title": "转场",
-    "choose": "选择转场",
-    "dissolve": "叠化",
-    "wipeLeft": "向左擦除",
-    "wipeRight": "向右擦除",
-    "duration": "时长（秒）",
-    "hint": "转场会重叠相邻片段，缩短工程总时长。"
   },
   "layout": {
     "materials": "调整素材区宽度",

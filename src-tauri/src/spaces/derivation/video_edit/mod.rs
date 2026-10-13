@@ -26,7 +26,6 @@ use crate::{foundation::app_error::AppError, foundation::blocking};
 pub use contracts::{
     PrepareVideoEditProxyRequest, RenderVideoEditRequest, VideoEditProgress, VideoEditProject,
 };
-use contracts::{TextPlacement, TextPreset};
 pub(in crate::spaces) use validation::validate_project;
 
 pub const CANCELLED: &str = "video-edit-render-cancelled";

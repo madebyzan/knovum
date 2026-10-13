@@ -32,23 +32,12 @@ fn run(ffmpeg: &Path, args: &[&str]) -> std::process::Output {
     output
 }
 
-#[test]
-#[ignore = "requires KNOVUM_TEST_FFMPEG pointing to the qualified bundled FFmpeg"]
-fn renders_real_concat_transitions_images_and_audio_with_the_production_graph() {
-    let ffmpeg =
-        PathBuf::from(std::env::var("KNOVUM_TEST_FFMPEG").expect("set the qualified FFmpeg path"));
-    let directory =
-        Fixture(std::env::temp_dir().join(format!("knovum-video-smoke-{}", uuid::Uuid::new_v4())));
-    fs::create_dir(&directory.0).unwrap();
-    let video = directory
-        .0
-        .join("source.mp4")
-        .to_string_lossy()
-        .into_owned();
-    let image = directory.0.join("image.png").to_string_lossy().into_owned();
-    let music = directory.0.join("music.wav").to_string_lossy().into_owned();
+fn fixtures(ffmpeg: &Path, directory: &Path) -> (String, String, String) {
+    let video = directory.join("source.mp4").to_string_lossy().into_owned();
+    let image = directory.join("image.png").to_string_lossy().into_owned();
+    let music = directory.join("music.wav").to_string_lossy().into_owned();
     run(
-        &ffmpeg,
+        ffmpeg,
         &[
             "-f",
             "lavfi",
@@ -57,7 +46,7 @@ fn renders_real_concat_transitions_images_and_audio_with_the_production_graph() 
             "-f",
             "lavfi",
             "-i",
-            "sine=f=440:r=48000:d=1",
+            "sine=f=440:r=48000:d=8",
             "-c:v",
             "libx264",
             "-threads",
@@ -68,7 +57,7 @@ fn renders_real_concat_transitions_images_and_audio_with_the_production_graph() 
         ],
     );
     run(
-        &ffmpeg,
+        ffmpeg,
         &[
             "-f",
             "lavfi",
@@ -82,9 +71,21 @@ fn renders_real_concat_transitions_images_and_audio_with_the_production_graph() 
         ],
     );
     run(
-        &ffmpeg,
+        ffmpeg,
         &["-f", "lavfi", "-i", "sine=f=220:r=48000:d=1", &music],
     );
+    (video, image, music)
+}
+
+#[test]
+#[ignore = "requires KNOVUM_TEST_FFMPEG pointing to the qualified bundled FFmpeg"]
+fn renders_transitions_holes_images_and_audio_with_the_production_graph() {
+    let ffmpeg =
+        PathBuf::from(std::env::var("KNOVUM_TEST_FFMPEG").expect("set the qualified FFmpeg path"));
+    let directory =
+        Fixture(std::env::temp_dir().join(format!("knovum-video-smoke-{}", uuid::Uuid::new_v4())));
+    fs::create_dir(&directory.0).unwrap();
+    let (video, image, music) = fixtures(&ffmpeg, &directory.0);
     let silent = directory
         .0
         .join("silent.mp4")
@@ -101,24 +102,13 @@ fn renders_real_concat_transitions_images_and_audio_with_the_production_graph() 
     for kind in [
         VideoTransitionKind::Dissolve,
         VideoTransitionKind::WipeLeft,
-        VideoTransitionKind::WipeRight,
+        VideoTransitionKind::SlideUp,
     ] {
         let mut project = super::project();
         project.output.width = 160;
         project.output.height = 90;
         project.assets[0].width = 160;
         project.assets[0].height = 90;
-        project.video_track.clips[1].transition = Some(VideoTransition {
-            kind,
-            duration_ms: 500,
-        });
-        let mut still = project.video_track.clips[1].clone();
-        still.id = uuid::Uuid::new_v4().to_string();
-        still.asset_id = "image".into();
-        still.start_ms = 0;
-        still.end_ms = 1000;
-        still.transition = None;
-        project.video_track.clips.push(still);
         project.assets.push(VideoAsset {
             node_id: "image".into(),
             source_revision: "image-revision".into(),
@@ -135,17 +125,37 @@ fn renders_real_concat_transitions_images_and_audio_with_the_production_graph() 
             width: 0,
             height: 0,
         });
+        // Transition over the first cut, a one-second hole, then a still image.
+        project.video_track.clips[1].timeline_start_ms = 1500;
+        project.transitions.push(VideoTransition {
+            id: uuid::Uuid::new_v4().to_string(),
+            from_clip_id: project.video_track.clips[0].id.clone(),
+            kind,
+            duration_ms: 500,
+        });
+        let mut still = project.video_track.clips[1].clone();
+        still.id = uuid::Uuid::new_v4().to_string();
+        still.asset_id = "image".into();
+        still.source_in_ms = 0;
+        still.source_out_ms = 1000;
+        still.timeline_start_ms = 5500;
+        still.transform.scale = 1.5;
+        still.transform.rotation = 12.0;
+        still.transform.x = 0.1;
+        project.video_track.clips.push(still);
         project.audio_track.clips.push(VideoAudioClip {
             id: uuid::Uuid::new_v4().to_string(),
             asset_id: "music".into(),
-            start_ms: 0,
-            end_ms: 1000,
+            source_in_ms: 0,
+            source_out_ms: 1000,
             timeline_start_ms: 500,
+            lane: 0,
             volume: 1.0,
             fade_in_ms: 100,
             fade_out_ms: 100,
         });
         validation::validate_project(&project, "revision").unwrap();
+        assert_eq!(timing::duration_ms(&project), 6500);
         let source = VideoEditSource {
             project,
             assets: vec![
@@ -204,8 +214,8 @@ fn renders_real_concat_transitions_images_and_audio_with_the_production_graph() 
             .filter(|line| line.starts_with("0,"))
             .count();
         assert_eq!(
-            count, 165,
-            "concat followed by transition must preserve output frame timing"
+            count, 195,
+            "transitions, holes and stills must preserve output frame timing"
         );
     }
 }
