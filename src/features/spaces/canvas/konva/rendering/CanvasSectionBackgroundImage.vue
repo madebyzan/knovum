@@ -33,7 +33,7 @@ const config = computed(() => {
     fillPatternY: style === "repeat" ? 0 : (height - source.naturalHeight * scale) / 2,
     fillPatternRepeat: style === "repeat" ? "repeat" : "no-repeat",
     opacity: 0.26,
-    cornerRadius: 8,
+    cornerRadius: 12,
     listening: false,
     perfectDrawEnabled: false,
   };

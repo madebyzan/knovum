@@ -35,8 +35,8 @@ function fill(section: ProjectedSection) {
               ? SECTION_HEADER_HEIGHT
               : section.bounds.bottom - section.bounds.top,
           fill: fill(section),
-          opacity: 0.26,
-          cornerRadius: 8,
+          opacity: 0.22,
+          cornerRadius: 12,
           listening: false,
           perfectDrawEnabled: false,
         }"
