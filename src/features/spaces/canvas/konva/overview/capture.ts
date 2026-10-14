@@ -80,7 +80,7 @@ async function renderCanvasThumbnail(
             appearance?.customFill ??
             (appearance?.fill ? palette.contentFill[appearance.fill] : palette.panel),
           opacity: 0.26,
-          cornerRadius: 8,
+          cornerRadius: 12,
           listening: false,
         }),
       );
