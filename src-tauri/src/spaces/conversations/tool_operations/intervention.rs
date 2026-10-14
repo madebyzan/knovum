@@ -1,3 +1,4 @@
+use crate::foundation::app_error::{AppError, AppResult};
 use crate::spaces::{db, run_control, runs};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -35,7 +36,7 @@ pub enum ToolOperationDecision {
 pub async fn list_conversation_tool_operations(
     app: AppHandle,
     run_id: String,
-) -> Result<Vec<ConversationToolOperation>, String> {
+) -> AppResult<Vec<ConversationToolOperation>> {
     let pool = db::pool(&app).await?;
     let rows = sqlx::query("SELECT id,run_id,wire_name,source,context,state,approval,output,resolution,attempt FROM spaces_conversation_tool_operations WHERE run_id=$1 ORDER BY created_at,attempt").bind(run_id).fetch_all(pool).await.map_err(db::sql_error)?;
     rows.iter()
@@ -63,7 +64,8 @@ pub async fn list_conversation_tool_operations(
                 attempt: row.try_get("attempt").map_err(db::sql_error)?,
             })
         })
-        .collect()
+        .collect::<Result<Vec<_>, String>>()
+        .map_err(AppError::from)
 }
 
 #[tauri::command]
@@ -71,7 +73,7 @@ pub async fn decide_conversation_tool_operation(
     app: AppHandle,
     operation_id: String,
     decision: ToolOperationDecision,
-) -> Result<(), String> {
+) -> AppResult<()> {
     let pool = db::pool(&app).await?;
     let run_id = super::decisions::apply(pool, &operation_id, decision).await?;
     runs::announce_change();
