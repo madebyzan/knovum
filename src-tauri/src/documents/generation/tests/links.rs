@@ -32,3 +32,16 @@ fn rejects_unsafe_schemes_and_absolute_local_paths() {
     assert!(validate("").is_err());
     assert!(validate("https://example.com\0evil").is_err());
 }
+
+#[test]
+fn rejects_windows_drive_paths_with_the_correct_message() {
+    // A single ASCII letter is syntactically a valid URI scheme, so without
+    // an explicit drive-letter check `extract_scheme` would parse "C" out of
+    // "C:\Windows\..." as an unrecognized *scheme* and reject it with the
+    // wrong message. Both backslash and forward-slash drive paths must be
+    // reported as absolute local filesystem paths.
+    let backslash = validate("C:\\Windows\\System32").unwrap_err();
+    let forward_slash = validate("C:/Users/foo/secret.docx").unwrap_err();
+    assert!(backslash.contains("absolute local filesystem paths"), "{backslash}");
+    assert!(forward_slash.contains("absolute local filesystem paths"), "{forward_slash}");
+}

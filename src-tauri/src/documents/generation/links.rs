@@ -19,11 +19,32 @@ fn extract_scheme(url: &str) -> Option<&str> {
     }
 }
 
+/// Detects the Windows drive-letter quirk (`C:\...`, `C:/...`) where a single
+/// ASCII letter immediately followed by `:` and a path separator is a local
+/// filesystem path, not a URI scheme. Without this check, `extract_scheme`
+/// happily parses `C` out of `C:\Windows\System32` as a syntactically valid
+/// (if unrecognized) scheme, which still gets rejected but with a misleading
+/// "unsupported protocol" message instead of the correct "absolute local
+/// path" one.
+fn is_windows_drive_path(url: &str) -> bool {
+    let mut chars = url.chars();
+    matches!(chars.next(), Some(letter) if letter.is_ascii_alphabetic())
+        && chars.next() == Some(':')
+        && matches!(chars.next(), Some('/') | Some('\\'))
+}
+
 /// Export validates hyperlinks to ensure they use allowed external protocols or safe document-relative paths / fragment anchors.
 pub(super) fn validate(url: &str) -> Result<(), String> {
     let trimmed = url.trim();
     if trimmed.is_empty() || trimmed.chars().any(char::is_control) {
         return Err("Document hyperlinks must not be empty or contain control characters".into());
+    }
+
+    // Absolute local/UNC filesystem paths must be rejected before generic
+    // scheme parsing: both `/...`, `\\...` and Windows drive-letter paths
+    // (`C:\...`) are local paths, not URI schemes.
+    if trimmed.starts_with('/') || trimmed.starts_with('\\') || is_windows_drive_path(trimmed) {
+        return Err("Document hyperlinks must not target absolute local filesystem paths".into());
     }
 
     if let Some(scheme) = extract_scheme(trimmed) {
@@ -37,12 +58,6 @@ pub(super) fn validate(url: &str) -> Result<(), String> {
         }
     } else {
         // No scheme: must be a fragment anchor (#...) or safe relative path.
-        // Disallow absolute local/UNC filesystem paths (/... or \\...).
-        if trimmed.starts_with('/') || trimmed.starts_with('\\') {
-            return Err(
-                "Document hyperlinks must not target absolute local filesystem paths".into(),
-            );
-        }
         Ok(())
     }
 }
