@@ -67,8 +67,7 @@
     "scale": "Escala",
     "rotation": "Rotación",
     "opacity": "Opacidad",
-    "reset": "Restablecer",
-    "hint": "Arrastra en el fotograma para colocar, usa las esquinas para redimensionar y el tirador superior para rotar. Alt mantiene valores libres."
+    "reset": "Restablecer"
   },
   "fades": {
     "in": "Fundido de entrada (segundos)",
@@ -98,7 +97,6 @@
   },
   "captions": {
     "search": "Buscar subtítulos",
-    "none": "Aún no hay subtítulos. Agrega uno arriba.",
     "noMatches": "No hay subtítulos coincidentes"
   },
   "font": {
@@ -116,8 +114,6 @@
     "duration": "Duración (segundos)",
     "hint": "Las transiciones superponen clips adyacentes y acortan el proyecto.",
     "remove": "Quitar la transición",
-    "target": "Se aplica al corte en {time} s",
-    "unavailable": "Selecciona dos clips contiguos con al menos 100 ms de margen.",
     "kinds": {
       "dissolve": "Disolución",
       "fadeBlack": "Fundido a negro",

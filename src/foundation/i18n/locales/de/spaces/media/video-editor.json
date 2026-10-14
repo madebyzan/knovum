@@ -67,8 +67,7 @@
     "scale": "Skalierung",
     "rotation": "Drehung",
     "opacity": "Deckkraft",
-    "reset": "Zurücksetzen",
-    "hint": "Im Bild ziehen zum Positionieren, Ecken zum Skalieren, obere Anfasser zum Drehen. Alt hält freie Werte."
+    "reset": "Zurücksetzen"
   },
   "fades": {
     "in": "Einblenden (Sekunden)",
@@ -98,7 +97,6 @@
   },
   "captions": {
     "search": "Suchuntertitel",
-    "none": "Noch keine Untertitel. Fügen Sie oben eines hinzu.",
     "noMatches": "Keine passenden Untertitel."
   },
   "font": {
@@ -116,8 +114,6 @@
     "duration": "Dauer (Sekunden)",
     "hint": "Übergänge überlappen benachbarte Clips und verkürzen das Projekt.",
     "remove": "Übergang entfernen",
-    "target": "Gilt für den Schnitt bei {time} s",
-    "unavailable": "Zwei benachbarte Clips mit mindestens 100 ms Reserve auswählen.",
     "kinds": {
       "dissolve": "Überblendung",
       "fadeBlack": "Über Schwarz",

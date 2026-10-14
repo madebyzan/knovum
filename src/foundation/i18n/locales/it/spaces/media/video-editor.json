@@ -67,8 +67,7 @@
     "scale": "Scala",
     "rotation": "Rotazione",
     "opacity": "Opacità",
-    "reset": "Reimposta",
-    "hint": "Trascina nel fotogramma per posizionare, usa gli angoli per ridimensionare e la maniglia in alto per ruotare. Alt mantiene valori liberi."
+    "reset": "Reimposta"
   },
   "fades": {
     "in": "Dissolvenza in entrata (secondi)",
@@ -98,7 +97,6 @@
   },
   "captions": {
     "search": "Cerca didascalie",
-    "none": "Ancora nessuna didascalia. Aggiungine uno sopra.",
     "noMatches": "Nessuna didascalia corrispondente."
   },
   "font": {
@@ -116,8 +114,6 @@
     "duration": "Durata (secondi)",
     "hint": "Le transizioni sovrappongono clip adiacenti e accorciano il progetto.",
     "remove": "Rimuovi la transizione",
-    "target": "Si applica al taglio a {time} s",
-    "unavailable": "Seleziona due clip adiacenti con almeno 100 ms di margine.",
     "kinds": {
       "dissolve": "Dissolvenza incrociata",
       "fadeBlack": "Dissolvenza al nero",

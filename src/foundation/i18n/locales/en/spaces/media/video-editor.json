@@ -67,8 +67,7 @@
     "scale": "Scale",
     "rotation": "Rotation",
     "opacity": "Opacity",
-    "reset": "Reset",
-    "hint": "Drag on the frame to position, use the corners to resize and the top handle to rotate. Hold Alt for free values."
+    "reset": "Reset"
   },
   "fades": {
     "in": "Fade in (seconds)",
@@ -98,7 +97,6 @@
   },
   "captions": {
     "search": "Search captions",
-    "none": "No captions yet. Add one above.",
     "noMatches": "No matching captions."
   },
   "font": {
@@ -116,8 +114,6 @@
     "duration": "Duration (seconds)",
     "hint": "Transitions overlap adjacent clips and shorten the project.",
     "remove": "Remove transition",
-    "target": "Applies to the cut at {time}s",
-    "unavailable": "Select two neighbouring clips with at least 100 ms to spare.",
     "kinds": {
       "dissolve": "Dissolve",
       "fadeBlack": "Fade through black",

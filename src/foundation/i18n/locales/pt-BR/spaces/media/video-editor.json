@@ -67,8 +67,7 @@
     "scale": "Escala",
     "rotation": "Rotação",
     "opacity": "Opacidade",
-    "reset": "Redefinir",
-    "hint": "Arraste no quadro para posicionar, use os cantos para redimensionar e a alça superior para girar. Alt mantém valores livres."
+    "reset": "Redefinir"
   },
   "fades": {
     "in": "Fade-in (segundos)",
@@ -98,7 +97,6 @@
   },
   "captions": {
     "search": "Pesquisar legendas",
-    "none": "Ainda não há legendas. Adicione um acima.",
     "noMatches": "Sem legendas correspondentes."
   },
   "font": {
@@ -116,8 +114,6 @@
     "duration": "Duração (segundos)",
     "hint": "As transições sobrepõem clipes adjacentes e encurtam o projeto.",
     "remove": "Remover a transição",
-    "target": "Aplica-se ao corte em {time} s",
-    "unavailable": "Selecione dois clipes vizinhos com pelo menos 100 ms de folga.",
     "kinds": {
       "dissolve": "Dissolução",
       "fadeBlack": "Fade pelo preto",
