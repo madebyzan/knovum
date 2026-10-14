@@ -67,8 +67,7 @@
     "scale": "Échelle",
     "rotation": "Rotation",
     "opacity": "Opacité",
-    "reset": "Réinitialiser",
-    "hint": "Glisse dans l’image pour positionner, les coins pour redimensionner et la poignée du haut pour pivoter. Alt conserve les valeurs libres."
+    "reset": "Réinitialiser"
   },
   "fades": {
     "in": "Fondu entrant (secondes)",
@@ -98,7 +97,6 @@
   },
   "captions": {
     "search": "Légendes de recherche",
-    "none": "Pas encore de légendes. Ajoutez-en un ci-dessus.",
     "noMatches": "Aucune légende correspondante."
   },
   "font": {
@@ -116,8 +114,6 @@
     "duration": "Durée (secondes)",
     "hint": "Les transitions superposent les clips adjacents et réduisent la durée du projet.",
     "remove": "Supprimer la transition",
-    "target": "S’applique à la coupe à {time} s",
-    "unavailable": "Sélectionne deux plans voisins disposant d’au moins 100 ms de marge.",
     "kinds": {
       "dissolve": "Fondu enchaîné",
       "fadeBlack": "Fondu au noir",
