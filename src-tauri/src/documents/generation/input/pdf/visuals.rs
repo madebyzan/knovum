@@ -61,7 +61,7 @@ impl Visuals {
                 .map(|rect| PdfInput::Image { page, rect })
                 .collect()
         };
-        let mut result = Vec::new();
+        let mut elements = Vec::new();
         for input in inputs {
             self.count += 1;
             if self.count > 2000 {
@@ -72,7 +72,7 @@ impl Visuals {
             if self.byte_size > 64 * 1024 * 1024 {
                 return Err("PDF images exceed 64 MiB".into());
             }
-            result.push(Element::Image(Image {
+            elements.push(Element::Image(Image {
                 data: Some(raster.bytes),
                 format: Some(ImageFormat::Png),
                 pixel_width: Some(raster.width),
@@ -81,6 +81,6 @@ impl Visuals {
                 ..Default::default()
             }));
         }
-        Ok(result)
+        Ok(elements)
     }
 }

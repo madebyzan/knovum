@@ -72,11 +72,11 @@ export function createFrameFeed(sink: CanvasSink, events: FrameFeedEvents) {
 
   async function pull(active: AsyncGenerator<WrappedCanvas, void, unknown>, token: number) {
     try {
-      const result = await active.next();
+      const iteration = await active.next();
       if (token !== generation) return;
       requesting = false;
-      if (result.done) exhausted = true;
-      else accept(result.value);
+      if (iteration.done) exhausted = true;
+      else accept(iteration.value);
     } catch (error) {
       if (token !== generation) return;
       requesting = false;

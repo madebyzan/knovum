@@ -70,12 +70,12 @@ impl Selection {
             ))
             .map_err(|error| format!("invalid_input: {error}"))?;
             let options = cancellation.run_options()?;
-            let results = self
+            let encoded = self
                 .encoder
                 .run_with_options(ort::inputs!["batched_images" => tensor], &options)
                 .map_err(|error| format!("invalid_output: {error}"))?;
             cancellation.check()?;
-            let (actual, values) = results["image_embeddings"]
+            let (actual, values) = encoded["image_embeddings"]
                 .try_extract_tensor::<f32>()
                 .map_err(|error| format!("invalid_output: {error}"))?;
             if actual.as_ref() != [1, 256, 64, 64] || values.iter().any(|value| !value.is_finite())
@@ -98,12 +98,12 @@ impl Selection {
         let size = Tensor::from_array(([2usize], vec![i64::from(height), i64::from(width)]))
             .map_err(|error| format!("invalid_input: {error}"))?;
         let options = cancellation.run_options()?;
-        let results = self.decoder.run_with_options(ort::inputs!["image_embeddings" => tensor,"batched_point_coords" => coords,"batched_point_labels" => labels,"orig_im_size" => size],&options).map_err(|error| format!("invalid_output: {error}"))?;
+        let decoded = self.decoder.run_with_options(ort::inputs!["image_embeddings" => tensor,"batched_point_coords" => coords,"batched_point_labels" => labels,"orig_im_size" => size],&options).map_err(|error| format!("invalid_output: {error}"))?;
         cancellation.check()?;
-        let (mask_shape, masks) = results["output_masks"]
+        let (mask_shape, masks) = decoded["output_masks"]
             .try_extract_tensor::<f32>()
             .map_err(|error| format!("invalid_output: {error}"))?;
-        let (score_shape, scores) = results["iou_predictions"]
+        let (score_shape, scores) = decoded["iou_predictions"]
             .try_extract_tensor::<f32>()
             .map_err(|error| format!("invalid_output: {error}"))?;
         if mask_shape.as_ref() != [1, 1, 3, i64::from(height), i64::from(width)]

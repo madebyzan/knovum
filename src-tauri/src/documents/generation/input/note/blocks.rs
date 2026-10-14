@@ -11,16 +11,16 @@ pub(super) fn parse(
     if depth > 64 {
         return Err("Document export nesting exceeds 64 levels".into());
     }
-    let mut result = Vec::new();
+    let mut elements = Vec::new();
     for node in nodes {
         if node.kind == "blockquote" && matches!(context.format, super::DocumentFormat::Docx) {
             reject_block_extras(node)?;
-            result.extend(quote_content(node, context, depth + 1)?);
+            elements.extend(quote_content(node, context, depth + 1)?);
         } else {
-            result.push(block(node, context, depth)?);
+            elements.push(block(node, context, depth)?);
         }
     }
-    Ok(result)
+    Ok(elements)
 }
 
 fn block(node: &Node, context: &Context<'_>, depth: usize) -> Result<Element, String> {

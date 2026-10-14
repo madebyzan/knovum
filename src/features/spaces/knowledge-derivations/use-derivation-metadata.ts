@@ -30,7 +30,7 @@ type FailureQuery = {
 const METADATA_KINDS = new Set<string>(["markdown", "image", "video"]);
 
 export function useDerivationMetadata(node: Ref<SpaceCanvasNode | undefined>) {
-  const results = useQueries({
+  const metadataState = useQueries({
     queries: computed((): [DerivationQuery, FailureQuery] => derivationQueries(node.value)),
     combine: ([metadata, failure]) => {
       const loaded = metadata?.data;
@@ -44,10 +44,10 @@ export function useDerivationMetadata(node: Ref<SpaceCanvasNode | undefined>) {
   });
 
   return {
-    documentMetadata: computed(() => results.value.documentMetadata),
-    imageMetadata: computed(() => results.value.imageMetadata),
-    videoMetadata: computed(() => results.value.videoMetadata),
-    failure: computed(() => results.value.failure),
+    documentMetadata: computed(() => metadataState.value.documentMetadata),
+    imageMetadata: computed(() => metadataState.value.imageMetadata),
+    videoMetadata: computed(() => metadataState.value.videoMetadata),
+    failure: computed(() => metadataState.value.failure),
   };
 }
 

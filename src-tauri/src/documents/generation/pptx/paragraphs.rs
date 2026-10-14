@@ -45,7 +45,7 @@ pub(super) fn split(
     line_width: usize,
     max_lines: usize,
 ) -> Result<Vec<Chunk>, String> {
-    let mut result = Vec::new();
+    let mut chunks = Vec::new();
     let mut chunk = Vec::new();
     let mut lines = 1;
     let mut width = 0;
@@ -60,7 +60,7 @@ pub(super) fn split(
                     if grapheme.contains('\n') || grapheme == "\r" {
                         append_span(&mut chunk, span, std::mem::take(&mut pending));
                         if lines >= max_lines {
-                            result.push(Chunk {
+                            chunks.push(Chunk {
                                 content: std::mem::take(&mut chunk),
                                 lines,
                             });
@@ -76,7 +76,7 @@ pub(super) fn split(
                     if width + units > line_width {
                         if lines >= max_lines {
                             append_span(&mut chunk, span, std::mem::take(&mut pending));
-                            result.push(Chunk {
+                            chunks.push(Chunk {
                                 content: std::mem::take(&mut chunk),
                                 lines,
                             });
@@ -93,7 +93,7 @@ pub(super) fn split(
             }
             InlineContent::LineBreak => {
                 if lines >= max_lines {
-                    result.push(Chunk {
+                    chunks.push(Chunk {
                         content: std::mem::take(&mut chunk),
                         lines,
                     });
@@ -108,18 +108,18 @@ pub(super) fn split(
         }
     }
     if !chunk.is_empty() {
-        result.push(Chunk {
+        chunks.push(Chunk {
             content: chunk,
             lines,
         });
     }
-    if result.is_empty() {
-        result.push(Chunk {
+    if chunks.is_empty() {
+        chunks.push(Chunk {
             content: vec![],
             lines: 1,
         });
     }
-    Ok(result)
+    Ok(chunks)
 }
 
 fn append_span(output: &mut Vec<InlineContent>, original: &TextSpan, text: String) {

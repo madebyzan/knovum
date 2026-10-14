@@ -34,11 +34,11 @@ pub(super) fn inspect(
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|error| format!("Unable to inspect video audio: {error}"))?;
-    let result = subprocess::wait_with_stderr(child, cancellation, super::CANCELLED, |_| Ok(()))?;
-    if result.status.success() {
+    let exit = subprocess::wait_with_stderr(child, cancellation, super::CANCELLED, |_| Ok(()))?;
+    if exit.status.success() {
         return Ok(true);
     }
-    let error = subprocess::diagnostic_error(&result.diagnostics, "Unable to inspect video audio");
+    let error = subprocess::diagnostic_error(&exit.diagnostics, "Unable to inspect video audio");
     if error.contains("does not contain any stream") {
         Ok(false)
     } else {

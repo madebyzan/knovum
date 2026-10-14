@@ -44,7 +44,7 @@ pub(in crate::spaces::assets::enrichment) async fn publish(
 }
 
 #[tokio::test]
-async fn stale_sources_manual_edits_and_cancelled_results_cannot_publish() {
+async fn stale_sources_manual_edits_and_cancelled_jobs_cannot_publish() {
     let original = json!({"kind":"audio","title":"Record","fileName":"record.wav","assetPath":"/assets/record.wav","sourceRevision":"source-1","mediaKnowledge":{"original":true}});
     for change in ["source", "manual", "cancel"] {
         let pool = fixture(&original).await;

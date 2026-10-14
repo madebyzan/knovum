@@ -24,28 +24,30 @@ pub(crate) fn translate(document: &Document, images: &Images) -> Result<Document
 }
 
 pub(super) fn blocks(content: &[Block], images: &Images) -> Result<Vec<Element>, String> {
-    let mut result = Vec::new();
+    let mut elements = Vec::new();
     for block in content {
         match block {
-            Block::Paragraph(value) => result.extend(super::ir_inlines::paragraph(value, images)?),
+            Block::Paragraph(value) => {
+                elements.extend(super::ir_inlines::paragraph(value, images)?)
+            }
             Block::Heading { level, content } => {
-                result.push(Element::Heading(Heading {
+                elements.push(Element::Heading(Heading {
                     level: *level,
                     content: super::ir_inlines::text(content)?,
                     ..Default::default()
                 }));
-                result.extend(super::ir_inlines::image_elements(content, images)?);
+                elements.extend(super::ir_inlines::image_elements(content, images)?);
             }
-            Block::Code { language, text } => result.push(Element::CodeBlock(CodeBlock {
+            Block::Code { language, text } => elements.push(Element::CodeBlock(CodeBlock {
                 language: Some(language.clone()),
                 content: text.clone(),
             })),
-            Block::Quote(value) => result.push(Element::TextBox(TextBox {
+            Block::Quote(value) => elements.push(Element::TextBox(TextBox {
                 content: blocks(value, images)?,
                 ..Default::default()
             })),
-            Block::Rule => result.push(Element::ThematicBreak),
-            Block::List { start, items } => result.push(Element::List(List {
+            Block::Rule => elements.push(Element::ThematicBreak),
+            Block::List { start, items } => elements.push(Element::List(List {
                 ordered: start.is_some(),
                 start_number: start
                     .map(u32::try_from)
@@ -92,14 +94,14 @@ pub(super) fn blocks(content: &[Block], images: &Images) -> Result<Vec<Element>,
                         repeat_as_header: index == 0,
                     });
                 }
-                result.push(Element::Table(Table {
+                elements.push(Element::Table(Table {
                     rows,
                     ..Default::default()
                 }));
             }
         }
     }
-    Ok(result)
+    Ok(elements)
 }
 
 pub(super) fn image(destination: &str, alt: String, images: &Images) -> Result<Element, String> {

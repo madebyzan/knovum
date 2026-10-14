@@ -24,23 +24,23 @@ fn only_the_valid_named_file_is_a_deliverable_and_workspaces_are_cleaned() {
     assert!(!path.exists());
 }
 #[test]
-fn empty_oversized_and_escaping_results_are_rejected() {
+fn empty_oversized_and_escaping_artifacts_are_rejected() {
     let workspace = workspace();
-    fs::write(workspace.0.join("result.txt"), b"").unwrap();
-    assert!(read(&workspace.0, "result.txt", 1024).is_err());
-    fs::write(workspace.0.join("result.txt"), [1u8; 33]).unwrap();
-    assert!(read(&workspace.0, "result.txt", 32).is_err());
-    assert!(read(&workspace.0, "../result.txt", 1024).is_err());
+    fs::write(workspace.0.join("artifact.txt"), b"").unwrap();
+    assert!(read(&workspace.0, "artifact.txt", 1024).is_err());
+    fs::write(workspace.0.join("artifact.txt"), [1u8; 33]).unwrap();
+    assert!(read(&workspace.0, "artifact.txt", 32).is_err());
+    assert!(read(&workspace.0, "../artifact.txt", 1024).is_err());
 }
 #[cfg(unix)]
 #[test]
-fn a_symlink_is_not_an_authorized_result_file() {
+fn a_symlink_is_not_an_authorized_artifact_file() {
     let workspace = workspace();
     fs::write(workspace.0.join("actual.txt"), "output").unwrap();
     std::os::unix::fs::symlink(
         workspace.0.join("actual.txt"),
-        workspace.0.join("result.txt"),
+        workspace.0.join("artifact.txt"),
     )
     .unwrap();
-    assert!(read(&workspace.0, "result.txt", 1024).is_err());
+    assert!(read(&workspace.0, "artifact.txt", 1024).is_err());
 }

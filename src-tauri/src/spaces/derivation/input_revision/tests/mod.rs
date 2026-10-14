@@ -54,9 +54,9 @@ fn rendered_revision_tracks_video_edits_at_current_version() {
         "title": "Video",
         "videoEditProject": project,
     });
-    let result = resolve("video", &video, RevisionBasis::Rendered);
-    assert!(result.is_ok());
-    assert!(result.unwrap().0.starts_with("rendered1:"));
+    let resolved = resolve("video", &video, RevisionBasis::Rendered);
+    assert!(resolved.is_ok());
+    assert!(resolved.unwrap().0.starts_with("rendered1:"));
 
     let mut mismatched = video.clone();
     mismatched["sourceRevision"] = json!("sha256:other");
