@@ -92,8 +92,5 @@ function setFit(value: string) {
         <FlipVertical class="size-3" />{{ t("spaces.media.transform.flipVertical") }}
       </UiButton>
     </div>
-    <p class="text-caption-sm text-fg-tertiary">
-      {{ t("spaces.media.videoEditor.framing.hint") }}
-    </p>
   </section>
 </template>

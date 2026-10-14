@@ -52,14 +52,22 @@ export function useVideoStage(editor: VideoEditor) {
     },
     { immediate: true },
   );
-  watch(
-    [() => selection.clip.value?.id, () => selection.text.value?.id],
-    ([clipId, textId]) => {
-      if (clipId) editing.highlight({ kind: "clip", id: clipId });
-      else if (textId) editing.highlight({ kind: "text", id: textId });
-      else editing.highlight(undefined);
-    },
-    { immediate: true },
+  function updateHighlight() {
+    const clipId = selection.clip.value?.id;
+    const textId = selection.text.value?.id;
+    if (clipId) editing.highlight({ kind: "clip", id: clipId });
+    else if (textId) editing.highlight({ kind: "text", id: textId });
+    else editing.highlight(undefined);
+  }
+
+  watch([() => selection.clip.value?.id, () => selection.text.value?.id], updateHighlight, {
+    immediate: true,
+  });
+  onScopeDispose(
+    player.subscribe((_time, playing) => {
+      if (playing) editing.highlight(undefined);
+      else updateHighlight();
+    }),
   );
   onScopeDispose(() => editing.dispose());
 
