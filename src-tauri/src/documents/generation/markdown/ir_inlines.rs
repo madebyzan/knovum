@@ -123,10 +123,10 @@ fn segments(
 }
 
 pub(super) fn image_elements(content: &[Inline], images: &Images) -> Result<Vec<Element>, String> {
-    let mut result = Vec::new();
+    let mut elements = Vec::new();
     for inline in content {
         match inline {
-            Inline::Image { destination, alt } => result.push(super::ir::image(
+            Inline::Image { destination, alt } => elements.push(super::ir::image(
                 destination,
                 super::super::text::inline_text(alt, false),
                 images,
@@ -136,9 +136,9 @@ pub(super) fn image_elements(content: &[Inline], images: &Images) -> Result<Vec<
             | Inline::Strike(children)
             | Inline::Link {
                 content: children, ..
-            } => result.extend(image_elements(children, images)?),
+            } => elements.extend(image_elements(children, images)?),
             _ => {}
         }
     }
-    Ok(result)
+    Ok(elements)
 }

@@ -139,7 +139,7 @@ async function runPending(spaceId: string, state: SpaceIndexState) {
   });
 }
 
-interface AttemptResult {
+interface AttemptSettlement {
   outcome: KnowledgeIndexStatus;
   failed: boolean;
   hasNewerWork: boolean;
@@ -148,7 +148,7 @@ interface AttemptResult {
 function settleAttempt(
   spaceId: string,
   state: SpaceIndexState,
-  { outcome, failed, hasNewerWork }: AttemptResult,
+  { outcome, failed, hasNewerWork }: AttemptSettlement,
 ) {
   if (failed) {
     // A pending retry does not make the index available, so the failure stays visible until an

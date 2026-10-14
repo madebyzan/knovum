@@ -97,14 +97,14 @@ fn table_rows(table: &Table) -> Result<Vec<Vec<Vec<Run>>>, String> {
             row.cells
                 .iter()
                 .map(|cell| {
-                    let mut result = Vec::new();
+                    let mut cell_runs = Vec::new();
                     for (index, element) in cell.content.iter().enumerate() {
                         if index > 0 {
-                            result.push(Run::line_break());
+                            cell_runs.push(Run::line_break());
                         }
                         match element {
                             Element::Paragraph(paragraph) => {
-                                result.extend(runs(&paragraph.content)?)
+                                cell_runs.extend(runs(&paragraph.content)?)
                             }
                             _ => {
                                 return Err(
@@ -114,11 +114,11 @@ fn table_rows(table: &Table) -> Result<Vec<Vec<Vec<Run>>>, String> {
                         }
                     }
                     if row.is_header {
-                        for run in &mut result {
+                        for run in &mut cell_runs {
                             run.bold = true;
                         }
                     }
-                    Ok(result)
+                    Ok(cell_runs)
                 })
                 .collect()
         })

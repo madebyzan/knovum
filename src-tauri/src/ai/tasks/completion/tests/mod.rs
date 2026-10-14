@@ -132,8 +132,8 @@ async fn agent_failure_never_enters_credentials_or_provider_transport() {
 }
 
 #[tokio::test]
-async fn cancellation_invalidates_an_otherwise_valid_late_result() {
-    let spy = ExecutorSpy::new(Ok("result".into()), true);
+async fn cancellation_invalidates_an_otherwise_valid_late_response() {
+    let spy = ExecutorSpy::new(Ok("response".into()), true);
     let error = execute(
         &spy,
         agent_target(ExecutionCapability::TextGeneration),

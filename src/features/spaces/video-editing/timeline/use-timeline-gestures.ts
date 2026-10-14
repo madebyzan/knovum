@@ -64,7 +64,7 @@ export function useTimelineGestures(options: GestureOptions) {
   }
 
   function snap(event: PointerEvent, exclude: readonly number[] | undefined) {
-    const result = snapTime({
+    const snapped = snapTime({
       project: options.project(),
       timeMs: timeAt(event),
       pxPerSecond: options.pxPerSecond(),
@@ -72,8 +72,8 @@ export function useTimelineGestures(options: GestureOptions) {
       disabled: event.altKey,
       exclude,
     });
-    snapMs.value = result.snappedTo;
-    return result;
+    snapMs.value = snapped.snappedTo;
+    return snapped;
   }
 
   function move(event: PointerEvent) {

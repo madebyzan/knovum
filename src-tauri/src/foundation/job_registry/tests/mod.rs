@@ -83,18 +83,17 @@ fn concurrent_reservation_and_acquire_admit_exactly_one() {
     let registry = registry();
     let start = Arc::new(Barrier::new(3));
     let finish = Arc::new(Barrier::new(3));
-    let (results, received) = mpsc::channel();
+    let (tx, received) = mpsc::channel();
 
     let reservation_thread = {
         let start = start.clone();
         let finish = finish.clone();
-        let results = results.clone();
+        let tx = tx.clone();
         std::thread::spawn(move || {
             start.wait();
             let reservation = registry.reserve_maintenance();
-            results
-                .send(reservation.is_ok())
-                .expect("report reservation result");
+            tx.send(reservation.is_ok())
+                .expect("report reservation outcome");
             finish.wait();
             drop(reservation);
         })
@@ -105,15 +104,15 @@ fn concurrent_reservation_and_acquire_admit_exactly_one() {
         std::thread::spawn(move || {
             start.wait();
             let lease = registry.acquire("concurrent", "running");
-            results.send(lease.is_ok()).expect("report acquire result");
+            tx.send(lease.is_ok()).expect("report acquire outcome");
             finish.wait();
             drop(lease);
         })
     };
 
     start.wait();
-    let first = received.recv().expect("first result");
-    let second = received.recv().expect("second result");
+    let first = received.recv().expect("first outcome");
+    let second = received.recv().expect("second outcome");
     finish.wait();
     reservation_thread.join().expect("reservation thread");
     acquire_thread.join().expect("acquire thread");

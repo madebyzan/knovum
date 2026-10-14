@@ -16,7 +16,7 @@ fn pdf_fixture(contents: &str, image: bool, blank_page: bool) -> Vec<u8> {
         "/Font << /F1 5 0 R >>"
     };
     let object = if image {
-        "<< /Type /XObject /Subtype /Image /Width 1 /Height 1 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length 7 >>\nstream\n000000>\nendstream"
+        "<< /Type /XObject /Subtype /Image /Width 1000 /Height 1000 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length 7 >>\nstream\n000000>\nendstream"
     } else {
         "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
     };

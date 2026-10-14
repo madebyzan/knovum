@@ -158,11 +158,33 @@ fn table_cells_fit_the_writers_fixed_row_height_and_width() {
 
 #[test]
 fn numbering_outside_the_supported_range_fails_without_wrapping() {
-    for markdown in ["4294967296. First", "4294967295. First\n4294967296. Second"] {
-        assert!(super::render(&super::super::document::DocumentSource {
-            markdown: markdown.into(),
+    let ir = DocumentIR {
+        sections: vec![Section {
+            elements: vec![Element::List(office_oxide::ir::List {
+                ordered: true,
+                start_number: Some(u32::MAX),
+                items: vec![
+                    office_oxide::ir::ListItem {
+                        content: vec![Element::Paragraph(Paragraph {
+                            content: vec![InlineContent::Text(TextSpan::plain("First"))],
+                            ..Default::default()
+                        })],
+                        nested: None,
+                    },
+                    office_oxide::ir::ListItem {
+                        content: vec![Element::Paragraph(Paragraph {
+                            content: vec![InlineContent::Text(TextSpan::plain("Second"))],
+                            ..Default::default()
+                        })],
+                        nested: None,
+                    },
+                ],
+                ..Default::default()
+            })],
             ..Default::default()
-        })
-        .is_err());
-    }
+        }],
+        ..Default::default()
+    };
+    let error = super::render_ir(&ir).unwrap_err();
+    assert!(error.contains("numbering range"), "{error}");
 }

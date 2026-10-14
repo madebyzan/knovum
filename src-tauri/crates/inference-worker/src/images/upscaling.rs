@@ -46,12 +46,12 @@ impl Upscaling {
                 let input = Tensor::from_array(([1usize, 3, TILE, TILE], input))
                     .map_err(|error| format!("invalid_input: {error}"))?;
                 let options = cancellation.run_options()?;
-                let results = self
+                let outputs = self
                     .session
                     .run_with_options(ort::inputs!["image" => input], &options)
                     .map_err(|error| format!("invalid_output: {error}"))?;
                 cancellation.check()?;
-                let (actual, pixels) = results["upscaled_image"]
+                let (actual, pixels) = outputs["upscaled_image"]
                     .try_extract_tensor::<f32>()
                     .map_err(|error| format!("invalid_output: {error}"))?;
                 if actual.as_ref() != [1, 3, 512, 512]

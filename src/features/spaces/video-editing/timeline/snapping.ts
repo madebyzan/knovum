@@ -5,7 +5,7 @@ import { pxToTime } from "./scale";
 
 const SNAP_TOLERANCE_PX = 7;
 
-export interface SnapResult {
+export interface TimelineSnap {
   timeMs: number;
   snappedTo?: number | undefined;
 }
@@ -21,7 +21,7 @@ export function snapTime(options: {
   playheadMs?: number | undefined;
   disabled?: boolean | undefined;
   exclude?: readonly number[] | undefined;
-}): SnapResult {
+}): TimelineSnap {
   const frameAligned = snapToFrame(options.project, options.timeMs);
   if (options.disabled) return { timeMs: Math.round(options.timeMs) };
   const tolerance = pxToTime(SNAP_TOLERANCE_PX, options.pxPerSecond);

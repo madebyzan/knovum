@@ -51,7 +51,7 @@ async fn agent_only_visual_uses_prepared_input_without_model_transport() {
     );
 }
 #[tokio::test]
-async fn invalid_visual_results_are_rejected() {
+async fn invalid_visual_responses_are_rejected() {
     for response in [
         "not JSON",
         "```json\n{}\n```",
