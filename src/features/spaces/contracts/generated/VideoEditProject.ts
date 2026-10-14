@@ -6,4 +6,8 @@ import type { VideoEditOutput } from "./VideoEditOutput";
 import type { VideoTrack } from "./VideoTrack";
 import type { VideoTransition } from "./VideoTransition";
 
+/**
+ * Absolute-time video edit project. Clips carry their own timeline placement, transitions are
+ * anchored to a cut between two overlapping clips, and gaps expose the project background.
+ */
 export type VideoEditProject = { version: number, sourceRevision: string, assets: Array<VideoAsset>, output: VideoEditOutput, videoTrack: VideoTrack, transitions: Array<VideoTransition>, audioTrack: VideoEditAudioTrack, textTrack: TextTrack, };

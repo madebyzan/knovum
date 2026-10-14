@@ -66,7 +66,7 @@ function editPreset(presetId: string) {
             @update:model-value="emit('rename', preset.id, $event)"
           />
           <p class="mt-0.5 text-caption text-fg-secondary">
-            {{ t(`settings.creation.knowledgeActions.${camelCase(preset.actionId)}`) }}
+            {{ t(`settings.creation.spaceActions.${camelCase(preset.actionId)}`) }}
           </p>
         </div>
         <UiIconButton :label="t('common.duplicate')" size="sm" @click="duplicatePreset(preset)">

@@ -2,4 +2,9 @@
 import type { ImageComputation } from "./ImageComputation";
 import type { TensorFileReference } from "./TensorFileReference";
 
-export type ImageComputeParams = { requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, budgetMs: number, tensorRef: TensorFileReference, computation: ImageComputation, };
+export type ImageComputeParams = { requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, 
+/**
+ * Milliseconds of execution the worker may spend on this request. See
+ * [`crate::speech_wire::InferenceRequestIdentity::budget_ms`] for why budgets are relative.
+ */
+budgetMs: number, tensorRef: TensorFileReference, computation: ImageComputation, };

@@ -18,7 +18,7 @@
   "parameters": "Параметры",
   "copyName": "{name} копия",
   "saveFailed": "Не удалось сохранить настройки создания.",
-  "knowledgeActions": {
+  "spaceActions": {
     "groundedAnswer": "Обоснованный ответ",
     "structureDocument": "Структурированный документ",
     "writeScript": "Скрипт",

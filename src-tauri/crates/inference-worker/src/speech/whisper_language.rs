@@ -91,10 +91,10 @@ pub(super) fn select(
                             for (p1, p2) in probs.iter_mut().zip(second_probs.iter()) {
                                 *p1 += *p2;
                             }
-                            if let Some((combined_id, _)) = probs
-                                .iter()
-                                .enumerate()
-                                .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+                            if let Some((combined_id, _)) =
+                                probs.iter().enumerate().max_by(|a, b| {
+                                    a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal)
+                                })
                             {
                                 selected_id = combined_id as i32;
                             }
@@ -115,7 +115,11 @@ pub(super) fn best_detection_start(regions: &[Range<u64>]) -> u64 {
     regions
         .iter()
         .find(|region| region.end.saturating_sub(region.start) >= 2_000)
-        .or_else(|| regions.iter().max_by_key(|region| region.end.saturating_sub(region.start)))
+        .or_else(|| {
+            regions
+                .iter()
+                .max_by_key(|region| region.end.saturating_sub(region.start))
+        })
         .or_else(|| regions.first())
         .map(|region| region.start)
         .unwrap_or(0)

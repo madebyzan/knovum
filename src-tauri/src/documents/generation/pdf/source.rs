@@ -86,7 +86,7 @@ fn inlines(output: &mut String, content: &[Inline], images: &Images) -> Result<(
                     .min(595.0 / f64::from(image.height))
                     .min(0.75);
                 output.push_str(&format!(
-                    "#image({}, width: calc.min(100%, {}pt), alt: {})",
+                    "#image({}, width: {}pt, alt: {})",
                     string(&name),
                     f64::from(image.width) * scale,
                     string(&label)

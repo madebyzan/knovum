@@ -42,8 +42,8 @@ fn validate_output(project: &VideoEditProject) -> Result<(), String> {
     let output = &project.output;
     if !(2..=16_384).contains(&output.width)
         || !(2..=16_384).contains(&output.height)
-        || output.width % 2 != 0
-        || output.height % 2 != 0
+        || !output.width.is_multiple_of(2)
+        || !output.height.is_multiple_of(2)
         || !matches!(output.frame_rate, 24 | 25 | 30 | 60)
         || u64::from(output.width) * u64::from(output.height) > 33_177_600
         || !is_hex_color(&output.background)

@@ -18,7 +18,7 @@
   "parameters": "パラメータ",
   "copyName": "{name}コピー",
   "saveFailed": "作成設定を保存できませんでした",
-  "knowledgeActions": {
+  "spaceActions": {
     "groundedAnswer": "根拠のある回答",
     "structureDocument": "構造化ドキュメント",
     "writeScript": "スクリプト",

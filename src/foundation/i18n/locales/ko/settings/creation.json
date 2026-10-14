@@ -18,7 +18,7 @@
   "parameters": "매개변수",
   "copyName": "{name} 복사",
   "saveFailed": "생성 설정을 저장할 수 없습니다.",
-  "knowledgeActions": {
+  "spaceActions": {
     "groundedAnswer": "근거 있는 답변",
     "structureDocument": "구조화된 문서",
     "writeScript": "스크립트",

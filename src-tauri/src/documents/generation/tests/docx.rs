@@ -66,7 +66,6 @@ fn binary_export_rejects_unimplemented_images_and_unsafe_links() {
 
 #[test]
 fn docx_renders_relative_links_and_fragment_anchors() {
-    let bytes =
-        docx::render(&source("[Relative](report.pdf) and [Anchor](#chapter-1)")).unwrap();
+    let bytes = docx::render(&source("[Relative](report.pdf) and [Anchor](#chapter-1)")).unwrap();
     assert!(bytes.starts_with(b"PK"));
 }

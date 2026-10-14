@@ -18,7 +18,7 @@
   "parameters": "参数",
   "copyName": "{name} 副本",
   "saveFailed": "无法保存创作设置",
-  "knowledgeActions": {
+  "spaceActions": {
     "groundedAnswer": "溯源回答",
     "structureDocument": "结构化文档",
     "writeScript": "脚本",

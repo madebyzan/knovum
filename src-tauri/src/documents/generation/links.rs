@@ -39,7 +39,9 @@ pub(super) fn validate(url: &str) -> Result<(), String> {
         // No scheme: must be a fragment anchor (#...) or safe relative path.
         // Disallow absolute local/UNC filesystem paths (/... or \\...).
         if trimmed.starts_with('/') || trimmed.starts_with('\\') {
-            return Err("Document hyperlinks must not target absolute local filesystem paths".into());
+            return Err(
+                "Document hyperlinks must not target absolute local filesystem paths".into(),
+            );
         }
         Ok(())
     }
