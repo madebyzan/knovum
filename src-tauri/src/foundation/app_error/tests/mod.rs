@@ -28,3 +28,10 @@ fn all_product_failures_use_the_same_wire_contract() {
         );
     }
 }
+
+#[test]
+fn app_error_converts_into_string() {
+    let error = AppError::invalid("invalid payload");
+    let message: String = error.into();
+    assert_eq!(message, "invalid payload");
+}

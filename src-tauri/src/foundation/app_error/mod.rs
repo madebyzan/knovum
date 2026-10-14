@@ -57,6 +57,12 @@ impl From<&str> for AppError {
     }
 }
 
+impl From<AppError> for String {
+    fn from(error: AppError) -> Self {
+        error.message
+    }
+}
+
 impl std::fmt::Display for AppError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter.write_str(&self.message)
