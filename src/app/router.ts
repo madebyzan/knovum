@@ -1,21 +1,17 @@
 import { error as logError } from "@tauri-apps/plugin-log";
 import { pick } from "es-toolkit";
-import { defineAsyncComponent } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import { toast } from "vue-sonner";
 
+import AgentExtensionsSettings from "../features/extensions/AgentExtensionsSettings.vue";
+import SettingsView from "../features/settings/SettingsView.vue";
 import { useSpaceStore } from "../features/spaces/session/space-store";
+import SpaceView from "../features/spaces/SpaceView.vue";
+import VoiceLibrarySettings from "../features/spaces/speech/presentation/VoiceLibrarySettings.vue";
 import { listSpaceActions } from "../features/spaces/workflows/action-catalog";
 import { formatErrorDiagnostic, getErrorMessage } from "../foundation/errors/error-format";
 import { isApplicationLeaveCancelled } from "../shared/contracts/application-leave";
 import { returnToWorkspace } from "./workspace-session";
-
-const voiceLibraryComponent = defineAsyncComponent(
-  () => import("../features/spaces/speech/presentation/VoiceLibrarySettings.vue"),
-);
-const extensionsComponent = defineAsyncComponent(
-  () => import("../features/extensions/AgentExtensionsSettings.vue"),
-);
 
 export const router = createRouter({
   history: createWebHashHistory(),
@@ -24,15 +20,15 @@ export const router = createRouter({
     {
       path: "/spaces",
       name: "spaces",
-      component: () => import("../features/spaces/SpaceView.vue"),
+      component: SpaceView,
     },
     {
       path: "/settings",
       name: "settings",
-      component: () => import("../features/settings/SettingsView.vue"),
+      component: SettingsView,
       props: () => ({
-        voiceLibraryComponent,
-        extensionsComponent,
+        voiceLibraryComponent: VoiceLibrarySettings,
+        extensionsComponent: AgentExtensionsSettings,
         returnToWorkspace: () => returnToWorkspace(router),
         loadGenerationActions: async () =>
           (await listSpaceActions()).map((action) => pick(action, ["id", "routingPurpose"])),
