@@ -13,7 +13,7 @@ pub(super) struct Image {
     pub height: u32,
 }
 
-pub(super) struct Images(BTreeMap<String, Image>, Cell<usize>);
+pub(super) struct Images(pub(super) BTreeMap<String, Image>, pub(super) Cell<usize>);
 
 impl Images {
     pub fn load(source: &DocumentSource) -> Result<Self, String> {
@@ -117,28 +117,4 @@ pub(super) fn decode(bytes: &[u8]) -> Result<Image, String> {
         width,
         height,
     })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn repeated_references_share_the_embedded_copy_budget() {
-        let images = Images(
-            BTreeMap::from([(
-                "figure".into(),
-                Image {
-                    bytes: vec![0; 1024 * 1024],
-                    width: 1,
-                    height: 1,
-                },
-            )]),
-            Cell::new(0),
-        );
-        for _ in 0..64 {
-            assert_eq!(images.clone_bytes("figure").unwrap().len(), 1024 * 1024);
-        }
-        assert!(images.clone_bytes("figure").unwrap_err().contains("64 MiB"));
-    }
 }

@@ -18,7 +18,7 @@
   "parameters": "參數",
   "copyName": "{name} 副本",
   "saveFailed": "無法儲存創作設置",
-  "knowledgeActions": {
+  "spaceActions": {
     "groundedAnswer": "溯源回答",
     "structureDocument": "結構化文檔",
     "writeScript": "腳本",

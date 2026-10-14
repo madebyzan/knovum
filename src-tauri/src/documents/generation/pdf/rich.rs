@@ -47,7 +47,7 @@ impl Writer {
             .min(595.0 / f64::from(image_data.height))
             .min(0.75);
         self.source.push_str(&format!(
-            "#image({}, width: calc.min(100%, {}pt), alt: {})",
+            "#image({}, width: {}pt, alt: {})",
             super::source::string(&filename),
             f64::from(image_data.width) * scale,
             super::source::string(image.alt_text.as_deref().unwrap_or(""))

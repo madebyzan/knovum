@@ -3,4 +3,10 @@ import type { AlignmentProfile } from "./AlignmentProfile";
 import type { AlignmentTextSegment } from "./AlignmentTextSegment";
 import type { AudioFileReference } from "./AudioFileReference";
 
-export type SpeechAlignParams = { audioRef: AudioFileReference, textSegments: Array<AlignmentTextSegment>, profile: AlignmentProfile, requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, budgetMs: number, };
+export type SpeechAlignParams = { audioRef: AudioFileReference, textSegments: Array<AlignmentTextSegment>, profile: AlignmentProfile, requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, 
+/**
+ * Milliseconds of execution the worker may spend on this request, measured from the moment
+ * the worker admits it. A budget is relative because only the executor knows when the work
+ * started: time spent queueing for the inference slot belongs to the host, not to the worker.
+ */
+budgetMs: number, };

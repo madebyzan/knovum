@@ -257,6 +257,12 @@
         },
         "modelPaths": {
           "$ref": "#/$defs/RuntimeModelPaths"
+        },
+        "budgetMs": {
+          "description": "Milliseconds the worker may spend reaching a usable state. The host derives it from the\nruntime it must verify and the weights it must load, and both sides honour this one value\nso that a slow cold start cannot be aborted by a budget only one side knows about.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
         }
       },
       "additionalProperties": false,
@@ -269,7 +275,8 @@
         "capabilitySpecId",
         "deviceProfile",
         "workDirectory",
-        "modelPaths"
+        "modelPaths",
+        "budgetMs"
       ]
     },
     "RuntimeCapability": {
@@ -628,7 +635,8 @@
         "modelSpecId": {
           "type": "string"
         },
-        "deadlineMs": {
+        "budgetMs": {
+          "description": "Milliseconds of execution the worker may spend on this request. See\n[`crate::speech_wire::InferenceRequestIdentity::budget_ms`] for why budgets are relative.",
           "type": "integer",
           "format": "uint64",
           "minimum": 0
@@ -655,7 +663,7 @@
         "attemptEpoch",
         "inputRevision",
         "modelSpecId",
-        "deadlineMs",
+        "budgetMs",
         "role",
         "texts",
         "embeddingSpecId"
@@ -739,7 +747,8 @@
         "modelSpecId": {
           "type": "string"
         },
-        "deadlineMs": {
+        "budgetMs": {
+          "description": "Milliseconds of execution the worker may spend on this request. See\n[`crate::speech_wire::InferenceRequestIdentity::budget_ms`] for why budgets are relative.",
           "type": "integer",
           "format": "uint64",
           "minimum": 0
@@ -760,7 +769,7 @@
         "attemptEpoch",
         "inputRevision",
         "modelSpecId",
-        "deadlineMs",
+        "budgetMs",
         "tensorRef",
         "computation"
       ]
@@ -988,7 +997,8 @@
         "modelSpecId": {
           "type": "string"
         },
-        "deadlineMs": {
+        "budgetMs": {
+          "description": "Milliseconds of execution the worker may spend on this request. See\n[`crate::speech_wire::InferenceRequestIdentity::budget_ms`] for why budgets are relative.",
           "type": "integer",
           "format": "uint64",
           "minimum": 0
@@ -1006,7 +1016,7 @@
         "attemptEpoch",
         "inputRevision",
         "modelSpecId",
-        "deadlineMs",
+        "budgetMs",
         "tensorRef"
       ]
     },
@@ -1062,7 +1072,8 @@
         "modelSpecId": {
           "type": "string"
         },
-        "deadlineMs": {
+        "budgetMs": {
+          "description": "Milliseconds of execution the worker may spend on this request, measured from the moment\nthe worker admits it. A budget is relative because only the executor knows when the work\nstarted: time spent queueing for the inference slot belongs to the host, not to the worker.",
           "type": "integer",
           "format": "uint64",
           "minimum": 0
@@ -1083,7 +1094,7 @@
         "attemptEpoch",
         "inputRevision",
         "modelSpecId",
-        "deadlineMs",
+        "budgetMs",
         "audioRef",
         "profile"
       ]
@@ -1418,7 +1429,8 @@
         "modelSpecId": {
           "type": "string"
         },
-        "deadlineMs": {
+        "budgetMs": {
+          "description": "Milliseconds of execution the worker may spend on this request, measured from the moment\nthe worker admits it. A budget is relative because only the executor knows when the work\nstarted: time spent queueing for the inference slot belongs to the host, not to the worker.",
           "type": "integer",
           "format": "uint64",
           "minimum": 0
@@ -1445,7 +1457,7 @@
         "attemptEpoch",
         "inputRevision",
         "modelSpecId",
-        "deadlineMs",
+        "budgetMs",
         "audioRef",
         "textSegments",
         "profile"
@@ -1611,7 +1623,8 @@
         "modelSpecId": {
           "type": "string"
         },
-        "deadlineMs": {
+        "budgetMs": {
+          "description": "Milliseconds of execution the worker may spend on this request, measured from the moment\nthe worker admits it. A budget is relative because only the executor knows when the work\nstarted: time spent queueing for the inference slot belongs to the host, not to the worker.",
           "type": "integer",
           "format": "uint64",
           "minimum": 0
@@ -1632,7 +1645,7 @@
         "attemptEpoch",
         "inputRevision",
         "modelSpecId",
-        "deadlineMs",
+        "budgetMs",
         "audioRef",
         "speakerCountBounds"
       ]
@@ -1740,7 +1753,8 @@
         "modelSpecId": {
           "type": "string"
         },
-        "deadlineMs": {
+        "budgetMs": {
+          "description": "Milliseconds of execution the worker may spend on this request, measured from the moment\nthe worker admits it. A budget is relative because only the executor knows when the work\nstarted: time spent queueing for the inference slot belongs to the host, not to the worker.",
           "type": "integer",
           "format": "uint64",
           "minimum": 0
@@ -1775,7 +1789,7 @@
         "attemptEpoch",
         "inputRevision",
         "modelSpecId",
-        "deadlineMs",
+        "budgetMs",
         "text",
         "voiceRevision",
         "seed",
@@ -2039,7 +2053,8 @@
         "modelSpecId": {
           "type": "string"
         },
-        "deadlineMs": {
+        "budgetMs": {
+          "description": "Milliseconds of execution the worker may spend on this request, measured from the moment\nthe worker admits it. A budget is relative because only the executor knows when the work\nstarted: time spent queueing for the inference slot belongs to the host, not to the worker.",
           "type": "integer",
           "format": "uint64",
           "minimum": 0
@@ -2057,7 +2072,7 @@
         "attemptEpoch",
         "inputRevision",
         "modelSpecId",
-        "deadlineMs",
+        "budgetMs",
         "audioRef"
       ]
     },

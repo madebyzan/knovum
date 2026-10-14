@@ -1,7 +1,12 @@
-use std::io::{Cursor, Read};
+use std::{
+    cell::Cell,
+    collections::BTreeMap,
+    io::{Cursor, Read},
+};
 
 use super::super::{
     document::{DocumentSource, ImageSource},
+    images::{Image, Images},
     input::DocumentFileSource,
     DocumentFormat,
 };
@@ -54,7 +59,7 @@ fn markdown_images_are_embedded_in_every_rich_output() {
         };
         let image = archive
             .file_names()
-            .find(|name| name.starts_with(prefix))
+            .find(|name| name.starts_with(prefix) && name.len() > prefix.len())
             .unwrap()
             .to_owned();
         let mut bytes = Vec::new();
@@ -101,4 +106,23 @@ fn jpeg_camera_orientation_is_applied_before_embedding() {
     assert_eq!((normalized.width, normalized.height), (3, 2));
     let embedded = image::load_from_memory(&normalized.bytes).unwrap();
     assert_eq!((embedded.width(), embedded.height()), (3, 2));
+}
+
+#[test]
+fn repeated_references_share_the_embedded_copy_budget() {
+    let images = Images(
+        BTreeMap::from([(
+            "figure".into(),
+            Image {
+                bytes: vec![0; 1024 * 1024],
+                width: 1,
+                height: 1,
+            },
+        )]),
+        Cell::new(0),
+    );
+    for _ in 0..64 {
+        assert_eq!(images.clone_bytes("figure").unwrap().len(), 1024 * 1024);
+    }
+    assert!(images.clone_bytes("figure").unwrap_err().contains("64 MiB"));
 }

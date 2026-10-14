@@ -18,7 +18,7 @@
   "parameters": "Paramètres",
   "copyName": "Copie {name}",
   "saveFailed": "Impossible d'enregistrer les paramètres de création",
-  "knowledgeActions": {
+  "spaceActions": {
     "groundedAnswer": "Réponse fondée",
     "structureDocument": "Document structuré",
     "writeScript": "Scénario",

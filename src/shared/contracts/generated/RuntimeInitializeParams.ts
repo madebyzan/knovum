@@ -3,4 +3,10 @@ import type { RuntimeCapability } from "./RuntimeCapability";
 import type { RuntimeDeviceProfile } from "./RuntimeDeviceProfile";
 import type { RuntimeModelPaths } from "./RuntimeModelPaths";
 
-export type RuntimeInitializeParams = { runtimeManifestPath: string, protocolVersion: number, runtimeDigest: string, sessionId: string, capability: RuntimeCapability, capabilitySpecId: string, deviceProfile: RuntimeDeviceProfile, workDirectory: string, modelPaths: RuntimeModelPaths, budgetMs: number, };
+export type RuntimeInitializeParams = { runtimeManifestPath: string, protocolVersion: number, runtimeDigest: string, sessionId: string, capability: RuntimeCapability, capabilitySpecId: string, deviceProfile: RuntimeDeviceProfile, workDirectory: string, modelPaths: RuntimeModelPaths, 
+/**
+ * Milliseconds the worker may spend reaching a usable state. The host derives it from the
+ * runtime it must verify and the weights it must load, and both sides honour this one value
+ * so that a slow cold start cannot be aborted by a budget only one side knows about.
+ */
+budgetMs: number, };

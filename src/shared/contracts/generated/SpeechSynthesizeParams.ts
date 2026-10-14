@@ -2,4 +2,10 @@
 import type { SynthesisProfile } from "./SynthesisProfile";
 import type { VoiceRevisionReference } from "./VoiceRevisionReference";
 
-export type SpeechSynthesizeParams = { text: string, voiceRevision: VoiceRevisionReference, style: string | null, seed: number, profile: SynthesisProfile, requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, budgetMs: number, };
+export type SpeechSynthesizeParams = { text: string, voiceRevision: VoiceRevisionReference, style: string | null, seed: number, profile: SynthesisProfile, requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, 
+/**
+ * Milliseconds of execution the worker may spend on this request, measured from the moment
+ * the worker admits it. A budget is relative because only the executor knows when the work
+ * started: time spent queueing for the inference slot belongs to the host, not to the worker.
+ */
+budgetMs: number, };
