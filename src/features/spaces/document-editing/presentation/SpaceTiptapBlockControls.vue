@@ -7,11 +7,11 @@ import { useI18n } from "vue-i18n";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { HEADING_LABEL_KEYS, HEADING_LEVELS } from "../heading-levels";
 
 const props = defineProps<{ editor: Editor }>();
 const { t } = useI18n();
-const HEADINGS = [1, 2, 3, 4, 5, 6] as const;
-const activeHeading = computed(() => HEADINGS.find((level) => props.editor.isActive("heading", { level })));
+const activeHeading = computed(() => HEADING_LEVELS.find((level) => props.editor.isActive("heading", { level })));
 </script>
 
 <template>
@@ -35,12 +35,12 @@ const activeHeading = computed(() => HEADINGS.find((level) => props.editor.isAct
       <Check v-if="editor.isActive('paragraph')" class="ml-auto size-3 text-fg-accent" />
     </UiDropdownMenuItem>
     <UiDropdownMenuItem
-      v-for="level in HEADINGS"
+      v-for="level in HEADING_LEVELS"
       :key="level"
       @select="editor.chain().focus().toggleHeading({ level }).run()"
     >
       <span class="w-5 font-semibold">H{{ level }}</span>
-      <span class="min-w-0 flex-1 truncate">{{ t(`spaces.richtext.heading${level}`) }}</span>
+      <span class="min-w-0 flex-1 truncate">{{ t(HEADING_LABEL_KEYS[level]) }}</span>
       <Check v-if="editor.isActive('heading', { level })" class="ml-auto size-3 text-fg-accent" />
     </UiDropdownMenuItem>
   </UiDropdownMenu>

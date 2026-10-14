@@ -88,7 +88,7 @@ pub(in crate::spaces::structure) fn dissolve(
     if sections.is_empty()
         || sections
             .iter()
-            .any(|id| index.node(&original_structure, id).unwrap().kind_name() != "section")
+            .any(|id| index.node(&original_structure, id).expect("effective_roots ids were already validated against the structure index").kind_name() != "section")
     {
         return Err("Dissolve requires selected Section roots".into());
     }

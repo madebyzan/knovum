@@ -6,7 +6,7 @@ use super::super::{
     database, ExtensionState,
 };
 use super::{installation, operations::PluginOperation, packages, sources};
-use crate::foundation::app_error::AppResult;
+use crate::foundation::app_error::{AppError, AppResult};
 use tauri::{ipc::Channel, AppHandle, Manager};
 
 #[tauri::command]
@@ -133,19 +133,19 @@ pub async fn update_plugin(
 }
 
 #[tauri::command]
-pub async fn list_plugin_installations(app: AppHandle) -> Result<Vec<PluginInstallation>, String> {
+pub async fn list_plugin_installations(app: AppHandle) -> AppResult<Vec<PluginInstallation>> {
     super::reconcile_bundled_plugins(&app).await?;
-    super::list(&database::pool(&app).await?).await
+    super::list(&database::pool(&app).await?).await.map_err(AppError::from)
 }
 
 #[tauri::command]
-pub async fn enable_plugin(app: AppHandle, plugin_id: String) -> Result<(), String> {
-    set_enabled(app, plugin_id, true).await
+pub async fn enable_plugin(app: AppHandle, plugin_id: String) -> AppResult<()> {
+    set_enabled(app, plugin_id, true).await.map_err(AppError::from)
 }
 
 #[tauri::command]
-pub async fn disable_plugin(app: AppHandle, plugin_id: String) -> Result<(), String> {
-    set_enabled(app, plugin_id, false).await
+pub async fn disable_plugin(app: AppHandle, plugin_id: String) -> AppResult<()> {
+    set_enabled(app, plugin_id, false).await.map_err(AppError::from)
 }
 
 async fn set_enabled(app: AppHandle, plugin_id: String, enabled: bool) -> Result<(), String> {
@@ -170,7 +170,7 @@ async fn set_enabled(app: AppHandle, plugin_id: String, enabled: bool) -> Result
 pub async fn uninstall_plugin(
     app: AppHandle,
     plugin_id: String,
-) -> Result<super::super::contracts::ExtensionChange<()>, String> {
+) -> AppResult<super::super::contracts::ExtensionChange<()>> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;

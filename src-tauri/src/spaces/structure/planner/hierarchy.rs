@@ -21,9 +21,13 @@ pub(in crate::spaces::structure) fn reparent(
         .node(&original_structure, &roots[0])?
         .parent_id()
         .map(str::to_owned);
-    if roots
-        .iter()
-        .any(|id| index.node(&original_structure, id).unwrap().parent_id() != old_parent.as_deref())
+    if roots.iter().any(|id| {
+        index
+            .node(&original_structure, id)
+            .expect("effective_roots ids were already validated against the structure index")
+            .parent_id()
+            != old_parent.as_deref()
+    })
     {
         return Err("Reparent requires the same direct parent".into());
     }
@@ -40,7 +44,7 @@ pub(in crate::spaces::structure) fn reparent(
                     &index,
                     parent_id,
                 )
-                .unwrap()
+                .expect("parent_id was validated as a structure node above")
                 .contains(root)
         }) {
             return Err("Structure cycle".into());

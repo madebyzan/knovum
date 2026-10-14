@@ -77,7 +77,7 @@ pub(super) fn verify(root: &Path, trusted: &[u8]) -> Result<(), String> {
             entry
                 .path()
                 .strip_prefix(root)
-                .unwrap()
+                .expect("WalkDir::new(root) guarantees entry paths are descendants of root")
                 .to_str()
                 .ok_or("agent-runtime-resource-path-invalid")?
                 .replace('\\', "/"),

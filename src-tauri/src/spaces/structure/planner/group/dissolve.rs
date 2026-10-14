@@ -17,7 +17,7 @@ pub(in crate::spaces::structure) fn dissolve(
     if groups.is_empty()
         || groups
             .iter()
-            .any(|id| index.node(&original_structure, id).unwrap().kind_name() != "group")
+            .any(|id| index.node(&original_structure, id).expect("effective_roots ids were already validated against the structure index").kind_name() != "group")
     {
         return Err("Dissolve requires selected Group roots".into());
     }
@@ -54,7 +54,7 @@ pub(in crate::spaces::structure) fn dissolve(
         .map(|id| {
             index
                 .node(&original_structure, id)
-                .unwrap()
+                .expect("effective_roots ids were already validated against the structure index")
                 .parent_id()
                 .map(str::to_owned)
         })
