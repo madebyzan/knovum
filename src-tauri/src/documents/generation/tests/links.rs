@@ -42,6 +42,12 @@ fn rejects_windows_drive_paths_with_the_correct_message() {
     // reported as absolute local filesystem paths.
     let backslash = validate("C:\\Windows\\System32").unwrap_err();
     let forward_slash = validate("C:/Users/foo/secret.docx").unwrap_err();
-    assert!(backslash.contains("absolute local filesystem paths"), "{backslash}");
-    assert!(forward_slash.contains("absolute local filesystem paths"), "{forward_slash}");
+    assert!(
+        backslash.contains("absolute local filesystem paths"),
+        "{backslash}"
+    );
+    assert!(
+        forward_slash.contains("absolute local filesystem paths"),
+        "{forward_slash}"
+    );
 }

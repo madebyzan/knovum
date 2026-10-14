@@ -11,7 +11,9 @@ import { HEADING_LABEL_KEYS, HEADING_LEVELS } from "../heading-levels";
 
 const props = defineProps<{ editor: Editor }>();
 const { t } = useI18n();
-const activeHeading = computed(() => HEADING_LEVELS.find((level) => props.editor.isActive("heading", { level })));
+const activeHeading = computed(() =>
+  HEADING_LEVELS.find((level) => props.editor.isActive("heading", { level })),
+);
 </script>
 
 <template>

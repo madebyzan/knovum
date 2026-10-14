@@ -15,9 +15,13 @@ pub(in crate::spaces::structure) fn dissolve(
     let index = Index::new(&original_structure, &original_layouts);
     let groups = effective_roots(&original_structure, &index, requested)?;
     if groups.is_empty()
-        || groups
-            .iter()
-            .any(|id| index.node(&original_structure, id).expect("effective_roots ids were already validated against the structure index").kind_name() != "group")
+        || groups.iter().any(|id| {
+            index
+                .node(&original_structure, id)
+                .expect("effective_roots ids were already validated against the structure index")
+                .kind_name()
+                != "group"
+        })
     {
         return Err("Dissolve requires selected Group roots".into());
     }

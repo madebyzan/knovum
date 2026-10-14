@@ -9,7 +9,9 @@ use tauri::{AppHandle, Manager};
 
 #[tauri::command]
 pub async fn list_connector_accounts(app: AppHandle) -> AppResult<Vec<ConnectorAccount>> {
-    accounts::list(&database::pool(&app).await?).await.map_err(AppError::from)
+    accounts::list(&database::pool(&app).await?)
+        .await
+        .map_err(AppError::from)
 }
 
 #[tauri::command]
@@ -53,7 +55,9 @@ pub async fn authorize_connector_account(
     let pool = database::pool(&app).await?;
     let mut account = accounts::load(&pool, &account_id).await?;
     if account.cleanup_pending {
-        return Err(AppError::invalid("connector-account-disconnect-in-progress"));
+        return Err(AppError::invalid(
+            "connector-account-disconnect-in-progress",
+        ));
     }
     let connector = super::definitions::load(&pool, &account.connector_id).await?;
     let fields =
@@ -92,7 +96,9 @@ pub async fn authorize_connector_account(
         || current.authorization != account.authorization
     {
         super::credential_store::remove(&app, &account_id).await?;
-        return Err(AppError::invalid("connector-account-disconnected-during-authorization"));
+        return Err(AppError::invalid(
+            "connector-account-disconnected-during-authorization",
+        ));
     }
     account.enabled = true;
     account.cleanup_pending = false;
@@ -127,5 +133,7 @@ pub async fn disconnect_connector_account(app: AppHandle, account_id: String) ->
     let lock = authorization::account_lock(&app, &account_id).await;
     let _guard = lock.lock().await;
     super::credential_store::remove(&app, &account_id).await?;
-    accounts::set_status(&pool, &account_id, false, false).await.map_err(AppError::from)
+    accounts::set_status(&pool, &account_id, false, false)
+        .await
+        .map_err(AppError::from)
 }

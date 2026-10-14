@@ -173,7 +173,9 @@ pub async fn refresh_plugin_marketplace(
 #[tauri::command]
 pub async fn remove_plugin_marketplace(app: AppHandle, marketplace_id: String) -> AppResult<()> {
     if marketplace_id == super::bundled::MARKETPLACE_ID {
-        return Err(AppError::invalid("bundled-marketplace-is-application-managed"));
+        return Err(AppError::invalid(
+            "bundled-marketplace-is-application-managed",
+        ));
     }
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;

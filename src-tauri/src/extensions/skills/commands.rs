@@ -9,7 +9,9 @@ use tauri::{AppHandle, Manager};
 #[tauri::command]
 pub async fn list_skills(app: AppHandle) -> AppResult<Vec<SkillRevision>> {
     super::super::plugins::reconcile_bundled_plugins(&app).await?;
-    super::list(&database::pool(&app).await?).await.map_err(AppError::from)
+    super::list(&database::pool(&app).await?)
+        .await
+        .map_err(AppError::from)
 }
 
 #[tauri::command]
@@ -73,7 +75,10 @@ pub async fn save_skill_revision(
 }
 
 #[tauri::command]
-pub async fn import_skill(app: AppHandle, path: String) -> AppResult<ExtensionChange<SkillRevision>> {
+pub async fn import_skill(
+    app: AppHandle,
+    path: String,
+) -> AppResult<ExtensionChange<SkillRevision>> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let directory = std::path::PathBuf::from(path);
@@ -100,7 +105,10 @@ pub async fn import_skill(app: AppHandle, path: String) -> AppResult<ExtensionCh
 }
 
 #[tauri::command]
-pub async fn copy_skill(app: AppHandle, skill_id: String) -> AppResult<ExtensionChange<SkillRevision>> {
+pub async fn copy_skill(
+    app: AppHandle,
+    skill_id: String,
+) -> AppResult<ExtensionChange<SkillRevision>> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let previous = super::load(&database::pool(&app).await?, &skill_id).await?;
@@ -128,12 +136,16 @@ pub async fn export_skill(app: AppHandle, skill_id: String, path: String) -> App
 
 #[tauri::command]
 pub async fn enable_skill(app: AppHandle, skill_id: String) -> AppResult<()> {
-    set_enabled(app, skill_id, true).await.map_err(AppError::from)
+    set_enabled(app, skill_id, true)
+        .await
+        .map_err(AppError::from)
 }
 
 #[tauri::command]
 pub async fn disable_skill(app: AppHandle, skill_id: String) -> AppResult<()> {
-    set_enabled(app, skill_id, false).await.map_err(AppError::from)
+    set_enabled(app, skill_id, false)
+        .await
+        .map_err(AppError::from)
 }
 
 async fn set_enabled(app: AppHandle, skill_id: String, enabled: bool) -> Result<(), String> {

@@ -88,7 +88,10 @@ pub struct McpUserInteraction {
 }
 
 #[tauri::command]
-pub async fn list_mcp_user_interactions(app: AppHandle, run_id: String) -> AppResult<Vec<McpUserInteraction>> {
+pub async fn list_mcp_user_interactions(
+    app: AppHandle,
+    run_id: String,
+) -> AppResult<Vec<McpUserInteraction>> {
     let rows: Vec<(String,String)> = sqlx::query_as("SELECT i.id,i.request FROM spaces_conversation_mcp_interactions i JOIN spaces_runs r ON r.id=i.run_id WHERE i.run_id=$1 AND i.response IS NULL AND r.completed_at IS NULL AND r.wait_reason='mcp_elicitation' ORDER BY i.created_at").bind(run_id).fetch_all(db::pool(&app).await?).await.map_err(db::sql_error)?;
     rows.into_iter()
         .map(|(id, request)| {

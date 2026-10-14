@@ -25,7 +25,10 @@ pub async fn create_mcp_connection(
 }
 
 #[tauri::command]
-pub async fn update_mcp_connection(app: AppHandle, mut connection: McpConnection) -> AppResult<McpConnection> {
+pub async fn update_mcp_connection(
+    app: AppHandle,
+    mut connection: McpConnection,
+) -> AppResult<McpConnection> {
     if connection.name.trim().is_empty() {
         return Err(AppError::invalid("mcp-connection-name-required"));
     }
@@ -34,7 +37,9 @@ pub async fn update_mcp_connection(app: AppHandle, mut connection: McpConnection
     let pool = database::pool(&app).await?;
     let old = super::connections::load(&pool, &connection.id).await?;
     if connection.connector_id != old.connector_id {
-        return Err(AppError::invalid("mcp-connection-service-binding-is-immutable"));
+        return Err(AppError::invalid(
+            "mcp-connection-service-binding-is-immutable",
+        ));
     }
     let connector =
         super::super::connectors::definitions::load(&pool, &connection.connector_id).await?;
@@ -85,7 +90,10 @@ pub async fn list_mcp_connections(app: AppHandle) -> AppResult<Vec<McpConnection
 }
 
 #[tauri::command]
-pub async fn check_mcp_connection(app: AppHandle, connection_id: String) -> AppResult<McpConnectionCatalog> {
+pub async fn check_mcp_connection(
+    app: AppHandle,
+    connection_id: String,
+) -> AppResult<McpConnectionCatalog> {
     let pool = database::pool(&app).await?;
     let connection = super::connections::load(&pool, &connection_id).await?;
     let connector =
@@ -98,7 +106,11 @@ pub async fn check_mcp_connection(app: AppHandle, connection_id: String) -> AppR
 }
 
 #[tauri::command]
-pub async fn delete_mcp_connection(app: AppHandle, connection_id: String, revision: String) -> AppResult<()> {
+pub async fn delete_mcp_connection(
+    app: AppHandle,
+    connection_id: String,
+    revision: String,
+) -> AppResult<()> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
