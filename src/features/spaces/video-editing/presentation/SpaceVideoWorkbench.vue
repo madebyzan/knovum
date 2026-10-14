@@ -16,7 +16,7 @@ const { t } = useI18n();
       <SpaceVideoStageArea :editor="editor" />
     </SplitterPanel>
     <SplitterResizeHandle
-      class="h-px shrink-0 bg-stroke-default transition-colors outline-none hover:h-0.5 hover:bg-surface-accent focus-visible:h-0.5 focus-visible:bg-surface-accent data-[state=drag]:h-0.5 data-[state=drag]:bg-surface-accent"
+      class="h-0.5 shrink-0 bg-stroke-default transition-colors outline-none hover:bg-surface-accent focus-visible:bg-surface-accent data-[state=drag]:bg-surface-accent"
       :aria-label="t('spaces.media.videoEditor.layout.timeline')"
     />
     <SplitterPanel :min-size="20" :default-size="34" :max-size="62" class="flex min-h-0 flex-col">

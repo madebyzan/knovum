@@ -20,7 +20,7 @@ const inspecting = computed(() => !!selection.selection.value);
       <SpaceVideoLibrary :editor="editor" />
     </SplitterPanel>
     <SplitterResizeHandle
-      class="group relative z-20 w-px shrink-0 bg-stroke-default transition-colors outline-none hover:bg-surface-accent focus-visible:bg-surface-accent data-[state=drag]:bg-surface-accent"
+      class="group relative z-20 w-0.5 shrink-0 bg-stroke-default transition-colors outline-none hover:bg-surface-accent focus-visible:bg-surface-accent data-[state=drag]:bg-surface-accent"
       :aria-label="t('spaces.media.videoEditor.layout.materials')"
       @pointerdown.stop
     >
@@ -31,7 +31,7 @@ const inspecting = computed(() => !!selection.selection.value);
     </SplitterPanel>
     <template v-if="inspecting">
       <SplitterResizeHandle
-        class="group relative z-20 w-px shrink-0 bg-stroke-default transition-colors outline-none hover:bg-surface-accent focus-visible:bg-surface-accent data-[state=drag]:bg-surface-accent"
+        class="group relative z-20 w-0.5 shrink-0 bg-stroke-default transition-colors outline-none hover:bg-surface-accent focus-visible:bg-surface-accent data-[state=drag]:bg-surface-accent"
         :aria-label="t('spaces.media.videoEditor.layout.inspector')"
         @pointerdown.stop
       >
