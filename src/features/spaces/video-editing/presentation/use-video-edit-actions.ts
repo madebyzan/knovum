@@ -99,14 +99,13 @@ export function useVideoEditActions(options: ActionOptions) {
   }
 
   async function render() {
-    const sourceNode = session.node.value;
     const current = project.value;
     if (session.rendering.value || !current) return;
     session.rendering.value = true;
     try {
       if (session.history.dirty.value && !(await save())) return;
       if (session.error.value) return;
-      await renderVideoEdit(session.tab.spaceId, sourceNode, current);
+      await renderVideoEdit(session.tab.spaceId, session.node.value, current);
     } catch (error) {
       toast.error(`${t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
     } finally {
