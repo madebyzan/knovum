@@ -71,14 +71,8 @@ watch(
           </span>
           <span class="mt-0.5 block truncate text-caption">{{ item.text }}</span>
         </button>
-        <p v-if="!items.length" class="px-2 py-6 text-center text-caption text-fg-secondary">
-          {{
-            t(
-              query
-                ? "spaces.media.videoEditor.captions.noMatches"
-                : "spaces.media.videoEditor.captions.none",
-            )
-          }}
+        <p v-if="query && !items.length" class="px-2 py-6 text-center text-caption text-fg-secondary">
+          {{ t("spaces.media.videoEditor.captions.noMatches") }}
         </p>
       </div>
     </UiScrollArea>

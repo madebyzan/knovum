@@ -23,7 +23,7 @@ const SNAP_TOLERANCE = 3;
 const MIN_WIDTH = 8;
 const SCALE_RANGE = { min: 0.05, max: 8 };
 /** Handle metrics in screen pixels; they are divided by the stage scale to stay that size. */
-const HANDLE = { anchor: 9, stroke: 1, padding: 2, rotateOffset: 26 };
+const HANDLE = { anchor: 5, stroke: 1, padding: 0, rotateOffset: 14 };
 
 function targetOf(node: Konva.Node): StageTarget | undefined {
   const id = node.id();
@@ -91,6 +91,20 @@ export function createStageEditing(options: StageEditingOptions) {
     flipEnabled: false,
   });
   let scene: StageScene | undefined;
+  let currentTarget: StageTarget | undefined;
+
+  function sync() {
+    if (!scene) return;
+    const prefix = currentTarget?.kind === "clip" ? "picture:" : "text:";
+    const node = currentTarget ? scene.stage.findOne(`#${prefix}${currentTarget.id}`) : undefined;
+    const current = transformer.nodes()[0];
+    if (current !== node) {
+      transformer.nodes(node ? [node] : []);
+      transformer.resizeEnabled(currentTarget?.kind === "clip");
+      transformer.rotateEnabled(currentTarget?.kind === "clip");
+    }
+    scene.overlay.batchDraw();
+  }
 
   function apply(node: Konva.Node, reshaping: boolean) {
     const project = options.project();
@@ -110,16 +124,14 @@ export function createStageEditing(options: StageEditingOptions) {
         const node = transformer.nodes()[0];
         if (node) apply(node, true);
       });
+      sync();
     },
     /** Points the handles at the selected node, or hides them when nothing is selected. */
-    highlight(target: StageTarget | undefined) {
-      const prefix = target?.kind === "clip" ? "picture:" : "text:";
-      const node = target ? scene?.stage.findOne(`#${prefix}${target.id}`) : undefined;
-      transformer.nodes(node ? [node] : []);
-      transformer.resizeEnabled(target?.kind === "clip");
-      transformer.rotateEnabled(target?.kind === "clip");
-      scene?.overlay.batchDraw();
+    highlight(next: StageTarget | undefined) {
+      currentTarget = next;
+      sync();
     },
+    sync,
     /** Keeps the handles the same size on screen at any stage zoom. */
     rescale(scale: number) {
       const ratio = 1 / Math.max(0.01, scale);
