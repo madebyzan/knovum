@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import UiExpandableText from "../../../../shared/ui/UiExpandableText.vue";
 import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { openSpaceNode } from "../../canvas/selection-actions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -80,9 +81,12 @@ async function openPreview() {
       <h3 class="mb-1.5 text-label font-medium text-fg-primary">
         {{ $t("spaces.inspector.excerpts.content") }}
       </h3>
-      <p class="line-clamp-4 text-body leading-relaxed whitespace-pre-wrap text-fg-secondary select-text">
-        {{ excerpt }}
-      </p>
+      <UiExpandableText
+        :text="excerpt"
+        :clamp-lines="4"
+        preformatted
+        class="text-body leading-relaxed text-fg-secondary"
+      />
     </div>
   </section>
 </template>

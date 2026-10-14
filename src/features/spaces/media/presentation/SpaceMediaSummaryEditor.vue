@@ -3,6 +3,7 @@ import { Check, Pencil, X } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import UiExpandableText from "../../../../shared/ui/UiExpandableText.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import { useNodeDraft } from "../../inspection/presentation/use-node-draft";
@@ -64,6 +65,11 @@ function saveMediaSummary() {
       /></UiIconButton>
     </div>
     <UiTextarea v-if="editing" v-model="draft" class="mt-1.5" :rows="5" />
-    <p v-else class="mt-1.5 text-caption leading-relaxed text-fg-secondary">{{ summary }}</p>
+    <UiExpandableText
+      v-else
+      :text="summary"
+      :clamp-lines="4"
+      class="mt-1.5 text-caption leading-relaxed text-fg-secondary"
+    />
   </div>
 </template>
