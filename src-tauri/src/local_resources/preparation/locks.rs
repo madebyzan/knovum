@@ -106,7 +106,11 @@ impl PreparedModels {
                 "runtime_mismatch: ASR requires exactly one prepared model snapshot".into(),
             );
         }
-        match snapshots.into_iter().next().unwrap() {
+        match snapshots
+            .into_iter()
+            .next()
+            .expect("snapshots.len() == 1 was just checked above")
+        {
             S::Whisper(V::Tiny) => Ok(M::WhisperTiny),
             S::Whisper(V::LargeV3) => Ok(M::WhisperLargeV3),
             S::Whisper(V::Small) => Ok(M::WhisperSmall),

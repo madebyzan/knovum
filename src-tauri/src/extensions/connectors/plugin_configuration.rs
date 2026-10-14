@@ -2,6 +2,7 @@ use super::super::{
     contracts::{ConnectorDefinition, ExtensionChange, PluginConnectorConfiguration},
     database, ExtensionState,
 };
+use crate::foundation::app_error::{AppError, AppResult};
 use tauri::{AppHandle, Manager};
 
 #[tauri::command]
@@ -10,13 +11,13 @@ pub async fn configure_plugin_connector(
     connector_id: String,
     revision: String,
     configuration: PluginConnectorConfiguration,
-) -> Result<ExtensionChange<ConnectorDefinition>, String> {
+) -> AppResult<ExtensionChange<ConnectorDefinition>> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
     let previous = super::definitions::load(&pool, &connector_id).await?;
     if previous.revision != revision {
-        return Err("connector-definition-changed-refresh-before-saving".into());
+        return Err(AppError::invalid("connector-definition-changed-refresh-before-saving"));
     }
     let plugin_id = previous
         .plugin_id

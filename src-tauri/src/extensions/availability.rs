@@ -1,10 +1,9 @@
 use super::{contracts::AgentExtensionAvailability, database};
+use crate::foundation::app_error::AppResult;
 use tauri::AppHandle;
 
 #[tauri::command]
-pub async fn get_agent_extension_availability(
-    app: AppHandle,
-) -> Result<AgentExtensionAvailability, String> {
+pub async fn get_agent_extension_availability(app: AppHandle) -> AppResult<AgentExtensionAvailability> {
     super::plugins::reconcile_bundled_plugins(&app).await?;
     let pool = database::pool(&app).await?;
     let plugins = super::plugins::list(&pool).await?;

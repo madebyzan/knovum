@@ -30,7 +30,7 @@ pub(in crate::spaces::structure) fn arrange(
     let area = measures
         .iter()
         .fold(None, |area, (_, bounds)| Some(merge(area, *bounds)))
-        .unwrap();
+        .expect("roots.len() >= minimum (checked above) guarantees measures is non-empty");
     let mut deltas = HashMap::new();
     if let Some(edge) = align {
         for (id, b) in &measures {

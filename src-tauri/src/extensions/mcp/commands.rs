@@ -2,6 +2,7 @@ use super::super::{
     contracts::{McpConnection, McpConnectionCatalog},
     database, ExtensionState,
 };
+use crate::foundation::app_error::{AppError, AppResult};
 use tauri::{AppHandle, Manager};
 
 #[tauri::command]
@@ -9,13 +10,13 @@ pub async fn create_mcp_connection(
     app: AppHandle,
     connector_id: String,
     name: String,
-) -> Result<McpConnection, String> {
+) -> AppResult<McpConnection> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
     let connector = super::super::connectors::definitions::load(&pool, &connector_id).await?;
     if connector.plugin_id.is_some() {
-        return Err("plugin-connections-owned-by-package".into());
+        return Err(AppError::invalid("plugin-connections-owned-by-package"));
     }
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     let connection = super::connections::create_on(&mut tx, connector_id, name).await?;
@@ -24,24 +25,21 @@ pub async fn create_mcp_connection(
 }
 
 #[tauri::command]
-pub async fn update_mcp_connection(
-    app: AppHandle,
-    mut connection: McpConnection,
-) -> Result<McpConnection, String> {
+pub async fn update_mcp_connection(app: AppHandle, mut connection: McpConnection) -> AppResult<McpConnection> {
     if connection.name.trim().is_empty() {
-        return Err("mcp-connection-name-required".into());
+        return Err(AppError::invalid("mcp-connection-name-required"));
     }
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
     let old = super::connections::load(&pool, &connection.id).await?;
     if connection.connector_id != old.connector_id {
-        return Err("mcp-connection-service-binding-is-immutable".into());
+        return Err(AppError::invalid("mcp-connection-service-binding-is-immutable"));
     }
     let connector =
         super::super::connectors::definitions::load(&pool, &connection.connector_id).await?;
     if connector.plugin_id.is_some() && connection.enabled != old.enabled {
-        return Err("plugin-activation-owned-by-package".into());
+        return Err(AppError::invalid("plugin-activation-owned-by-package"));
     }
     connection.apply_binding_change(&old);
     if connector.plugin_id.is_some() {
@@ -62,7 +60,7 @@ pub async fn update_mcp_connection(
             super::super::contracts::ConnectorAuthorization::None
         )
     {
-        return Err("connector-authorized-account-required".into());
+        return Err(AppError::invalid("connector-authorized-account-required"));
     }
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     super::connections::require_revision_on(&mut tx, &connection.id, &connection.revision).await?;
@@ -79,16 +77,15 @@ pub async fn update_mcp_connection(
 }
 
 #[tauri::command]
-pub async fn list_mcp_connections(app: AppHandle) -> Result<Vec<McpConnection>, String> {
+pub async fn list_mcp_connections(app: AppHandle) -> AppResult<Vec<McpConnection>> {
     super::super::plugins::reconcile_bundled_plugins(&app).await?;
-    super::connections::list(&database::pool(&app).await?).await
+    super::connections::list(&database::pool(&app).await?)
+        .await
+        .map_err(AppError::from)
 }
 
 #[tauri::command]
-pub async fn check_mcp_connection(
-    app: AppHandle,
-    connection_id: String,
-) -> Result<McpConnectionCatalog, String> {
+pub async fn check_mcp_connection(app: AppHandle, connection_id: String) -> AppResult<McpConnectionCatalog> {
     let pool = database::pool(&app).await?;
     let connection = super::connections::load(&pool, &connection_id).await?;
     let connector =
@@ -97,14 +94,11 @@ pub async fn check_mcp_connection(
         super::catalog::read(&session.service).await
     })
     .await
+    .map_err(AppError::from)
 }
 
 #[tauri::command]
-pub async fn delete_mcp_connection(
-    app: AppHandle,
-    connection_id: String,
-    revision: String,
-) -> Result<(), String> {
+pub async fn delete_mcp_connection(app: AppHandle, connection_id: String, revision: String) -> AppResult<()> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
@@ -112,7 +106,7 @@ pub async fn delete_mcp_connection(
     let connector =
         super::super::connectors::definitions::load(&pool, &connection.connector_id).await?;
     if connector.plugin_id.is_some() {
-        return Err("plugin-connections-owned-by-package".into());
+        return Err(AppError::invalid("plugin-connections-owned-by-package"));
     }
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     super::connections::require_revision_on(&mut tx, &connection_id, &revision).await?;
