@@ -23,9 +23,9 @@ const emit = defineEmits<{ dragging: [value: boolean] }>();
     :tabindex="disabled ? -1 : 0"
     @dragging="emit('dragging', $event)"
   >
-    <span v-show="!disabled" class="absolute inset-y-0 -left-2 w-4">
+    <span v-show="!disabled" class="absolute inset-y-0 -left-2.5 flex w-5 cursor-col-resize justify-center">
       <span
-        class="group-hover:bg-border-default absolute inset-y-2 left-2 w-px rounded-full bg-transparent transition-colors duration-100 group-focus-visible:bg-surface-accent group-data-[state=drag]:bg-surface-accent"
+        class="absolute inset-y-2 w-0.5 rounded-full bg-transparent transition-colors duration-100 group-hover:bg-surface-accent group-focus-visible:bg-surface-accent group-data-[state=drag]:bg-surface-accent"
       />
     </span>
   </SplitterResizeHandle>

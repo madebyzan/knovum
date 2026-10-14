@@ -84,7 +84,7 @@ function onDrag(active: boolean, commit: () => void) {
       />
 
       <SplitterPanel id="spaces-work-area" :order="2" :min-size="35">
-        <main class="h-full min-w-0 px-2 pb-2 select-text">
+        <main class="h-full min-w-0 pb-2 select-text" :class="sidebarPinned ? 'pr-2 pl-0' : 'px-2'">
           <div
             class="relative h-full min-h-0 overflow-hidden rounded-xl border border-(--knovum-window-border-color) bg-surface-canvas shadow-workspace"
           >
