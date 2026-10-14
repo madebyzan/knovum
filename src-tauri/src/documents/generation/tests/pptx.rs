@@ -85,7 +85,7 @@ fn long_cjk_body_is_paginated_without_losing_text() {
 #[test]
 fn presentation_keeps_rich_runs_real_tables_and_hyperlinks() {
     let bytes = super::super::pptx::render(&super::source(
-        "# Section\n\n**Bold** and [Link](https://example.com)\n\n| A | B |\n|---|---|\n| C | D |",
+        "# Section\n\n**Bold** and [Link](https://example.com) and [Doc](report.pdf)\n\n| A | B |\n|---|---|\n| C | D |",
     ))
     .unwrap();
     let mut archive = zip::ZipArchive::new(Cursor::new(bytes)).unwrap();
@@ -100,4 +100,5 @@ fn presentation_keeps_rich_runs_real_tables_and_hyperlinks() {
     }
     assert!(xml.contains("<a:tbl") && xml.contains("b=\"1\""));
     assert!(xml.contains("https://example.com"));
+    assert!(xml.contains("report.pdf"));
 }

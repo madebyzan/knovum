@@ -53,11 +53,19 @@ fn html_rejects_active_content_private_links_and_unavailable_images() {
         "<script>alert(1)</script>",
         "[Run](javascript:alert)",
         "[Private](file:///private/report)",
-        "[Relative](report.pdf)",
+        "[RootPath](/private/report)",
         "![Image](https://example.com/image.png)",
     ] {
         assert!(render(&source(markdown)).is_err(), "accepted {markdown}");
     }
+}
+
+#[test]
+fn html_renders_relative_links_and_fragment_anchors() {
+    let html =
+        render(&source("[Relative](report.pdf) and [Anchor](#chapter-1)")).expect("render HTML");
+    assert!(html.contains("href=\"report.pdf\""));
+    assert!(html.contains("href=\"#chapter-1\""));
 }
 
 #[test]
