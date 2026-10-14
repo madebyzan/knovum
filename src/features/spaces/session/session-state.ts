@@ -27,62 +27,30 @@ export function createSpaceState() {
 
 export type SpaceState = ReturnType<typeof createSpaceState>;
 
-export function spaceSessionBindings(state: SpaceState) {
-  return {
-    spaces: state.spaces,
-    draftSpace: state.draftSpace,
-    nodes: state.nodes,
-    editSnapshot: state.editSnapshot,
-    groupScopePath: state.groupScopePath,
-    urlCaptures: state.urlCaptures,
-    scenes: state.scenes,
-    relations: state.relations,
-    activeSpace: state.activeSpace,
-    activeSpaceId: state.activeSpaceId,
-    ready: state.ready,
-    loading: state.loading,
-    libraryScope: state.libraryScope,
-    libraryLayout: state.libraryLayout,
-    libraryQuery: state.libraryQuery,
-    librarySearchNonce: state.librarySearchNonce,
-    audioRecordingTarget: state.audioRecordingTarget,
-    findOpen: state.findOpen,
-    globalFindOpen: state.globalFindOpen,
-    askScopeRequest: state.askScopeRequest,
-    rightSidebarView: state.rightSidebarView,
-    workflowMode: state.workflowMode,
-    workflowCaptureSelection: state.workflowCaptureSelection,
-    surface: state.surface,
-    tabs: state.tabs,
-    activeTabId: state.activeTabId,
-    editorTabs: state.editorTabs,
-    closedTabs: state.closedTabs,
-    permanentTabId: state.permanentTabId,
-    workbench: state.workbench,
-    insertionPoint: state.insertionPoint,
-    revealRequest: state.revealRequest,
-    viewportRequest: state.viewportRequest,
-    zoomRequest: state.zoomRequest,
-    selectionClearNonce: state.selectionClearNonce,
-    sceneCue: state.sceneCue,
-    mediaAnalysisIds: state.mediaAnalysisIds,
-    mediaAnalysisPreviews: state.mediaAnalysisPreviews,
-    mediaSeekRequest: state.mediaSeekRequest,
-    mediaToggleRequest: state.mediaToggleRequest,
-    mediaPlayback: state.mediaPlayback,
-    sourcePeek: state.sourcePeek,
-    sourceReturnView: state.sourceReturnView,
-    editorLocateRequest: state.editorLocateRequest,
-    canvasFocusIds: state.canvasFocusIds,
-    outlineFocusRequest: state.outlineFocusRequest,
-    outlineRenameStructureNodeId: state.outlineRenameStructureNodeId,
-    recentlyDeletedSpaceId: state.recentlyDeletedSpaceId,
-    relationKindFilter: state.relationKindFilter,
-    relationStatusFilter: state.relationStatusFilter,
-    savedQueryFilter: state.savedQueryFilter,
-    canUndo: state.canUndo,
-    canRedo: state.canRedo,
-    canNavigateBack: state.canNavigateBack,
-    canNavigateForward: state.canNavigateForward,
-  };
+/**
+ * Public store bindings exposed to the rest of the app.
+ *
+ * A handful of fields are deliberately kept out of the public surface
+ * because they must only be mutated through a dedicated action rather than
+ * assigned directly from a template/component (e.g. `thumbnailDirty` is
+ * only toggled via `markCanvasOverviewDirty()`, navigation history only via
+ * `recordWorkbenchNavigation()`). Everything else in `SpaceState` is
+ * exposed automatically, so adding a new state field never requires a
+ * second manual edit here to actually make it reachable from the store.
+ */
+const INTERNAL_ONLY_STATE_KEYS = [
+  "thumbnailDirty",
+  "workspaceDestination",
+  "activeTab",
+  "history",
+  "navigationHistory",
+  "navigationIndex",
+] as const satisfies readonly (keyof SpaceState)[];
+
+export function spaceSessionBindings(
+  state: SpaceState,
+): Omit<SpaceState, (typeof INTERNAL_ONLY_STATE_KEYS)[number]> {
+  const bindings = { ...state };
+  for (const key of INTERNAL_ONLY_STATE_KEYS) delete bindings[key];
+  return bindings;
 }

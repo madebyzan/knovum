@@ -2,14 +2,15 @@ use super::super::{
     contracts::{ConnectorDefinition, ExtensionChange},
     database, ExtensionState,
 };
+use crate::foundation::app_error::{AppError, AppResult};
 use tauri::{AppHandle, Manager};
 
 #[tauri::command]
-pub async fn list_connector_definitions(
-    app: AppHandle,
-) -> Result<Vec<ConnectorDefinition>, String> {
+pub async fn list_connector_definitions(app: AppHandle) -> AppResult<Vec<ConnectorDefinition>> {
     super::super::plugins::reconcile_bundled_plugins(&app).await?;
-    super::definitions::list(&database::pool(&app).await?).await
+    super::definitions::list(&database::pool(&app).await?)
+        .await
+        .map_err(AppError::from)
 }
 
 pub(super) fn validate(definition: &ConnectorDefinition) -> Result<(), String> {
@@ -26,17 +27,17 @@ pub(super) fn validate(definition: &ConnectorDefinition) -> Result<(), String> {
 pub async fn update_connector_definition(
     app: AppHandle,
     mut definition: ConnectorDefinition,
-) -> Result<ExtensionChange<ConnectorDefinition>, String> {
+) -> AppResult<ExtensionChange<ConnectorDefinition>> {
     validate(&definition)?;
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
     let old = super::definitions::load(&pool, &definition.id).await?;
     if old.plugin_id.is_some() {
-        return Err("plugin-connector-definition-owned-by-plugin".into());
+        return Err(AppError::invalid("plugin-connector-definition-owned-by-plugin"));
     }
     if old.revision != definition.revision {
-        return Err("connector-definition-changed-refresh-before-saving".into());
+        return Err(AppError::invalid("connector-definition-changed-refresh-before-saving"));
     }
     definition.plugin_id = None;
     definition.component_name = None;
@@ -56,16 +57,16 @@ pub async fn delete_connector_definition(
     app: AppHandle,
     connector_id: String,
     revision: String,
-) -> Result<ExtensionChange<()>, String> {
+) -> AppResult<ExtensionChange<()>> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let pool = database::pool(&app).await?;
     let definition = super::definitions::load(&pool, &connector_id).await?;
     if definition.plugin_id.is_some() {
-        return Err("plugin-connector-definition-owned-by-plugin".into());
+        return Err(AppError::invalid("plugin-connector-definition-owned-by-plugin"));
     }
     if definition.revision != revision {
-        return Err("connector-definition-changed-refresh-before-saving".into());
+        return Err(AppError::invalid("connector-definition-changed-refresh-before-saving"));
     }
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     super::definitions::delete_on(&mut tx, &connector_id).await?;

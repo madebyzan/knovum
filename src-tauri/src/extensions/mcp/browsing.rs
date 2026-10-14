@@ -3,6 +3,7 @@ use super::super::{
     contracts::{McpResourceContent, McpResourceSelection},
     database,
 };
+use crate::foundation::app_error::{AppError, AppResult};
 use rmcp::model::{GetPromptRequestParams, ReadResourceRequestParams};
 use serde_json::Value;
 use tauri::AppHandle;
@@ -79,8 +80,10 @@ pub async fn read_mcp_resource(
     revision: String,
     catalog_digest: String,
     selection: McpResourceSelection,
-) -> Result<McpResourceContent, String> {
-    read_resource(&app, &connection_id, &revision, &catalog_digest, &selection).await
+) -> AppResult<McpResourceContent> {
+    read_resource(&app, &connection_id, &revision, &catalog_digest, &selection)
+        .await
+        .map_err(AppError::from)
 }
 
 #[tauri::command]
@@ -91,10 +94,10 @@ pub async fn get_mcp_prompt(
     catalog_digest: String,
     name: String,
     arguments: serde_json::Map<String, Value>,
-) -> Result<Value, String> {
+) -> AppResult<Value> {
     let connection = super::connections::load(&database::pool(&app).await?, &connection_id).await?;
     if connection.revision != revision {
-        return Err("mcp-browse-connection-revised".into());
+        return Err(AppError::invalid("mcp-browse-connection-revised"));
     }
     super::connections::require_current(&app, &connection).await?;
     let connector = super::super::connectors::definitions::load(
@@ -137,4 +140,5 @@ pub async fn get_mcp_prompt(
         serde_json::to_value(response).map_err(|error| error.to_string())
     })
     .await
+    .map_err(AppError::from)
 }
