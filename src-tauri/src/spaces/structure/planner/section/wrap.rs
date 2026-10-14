@@ -21,9 +21,13 @@ pub(in crate::spaces::structure) fn wrap(
     require_new(&index, section_id)?;
     let roots = effective_roots(&original_structure, &index, requested)?;
     if roots.is_empty()
-        || roots
-            .iter()
-            .any(|id| index.node(&original_structure, id).expect("effective_roots ids were already validated against the structure index").kind_name() == "section")
+        || roots.iter().any(|id| {
+            index
+                .node(&original_structure, id)
+                .expect("effective_roots ids were already validated against the structure index")
+                .kind_name()
+                == "section"
+        })
     {
         return Err("Wrapping requires Content or Group roots".into());
     }
@@ -31,10 +35,13 @@ pub(in crate::spaces::structure) fn wrap(
         .node(&original_structure, &roots[0])?
         .parent_id()
         .map(str::to_owned);
-    if roots
-        .iter()
-        .any(|id| index.node(&original_structure, id).expect("effective_roots ids were already validated against the structure index").parent_id() != parent.as_deref())
-    {
+    if roots.iter().any(|id| {
+        index
+            .node(&original_structure, id)
+            .expect("effective_roots ids were already validated against the structure index")
+            .parent_id()
+            != parent.as_deref()
+    }) {
         return Err("Wrapping requires the same direct parent".into());
     }
     if let Some(parent_id) = &parent {

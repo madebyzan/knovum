@@ -27,8 +27,7 @@ pub(in crate::spaces::structure) fn reparent(
             .expect("effective_roots ids were already validated against the structure index")
             .parent_id()
             != old_parent.as_deref()
-    })
-    {
+    }) {
         return Err("Reparent requires the same direct parent".into());
     }
     if let Some(parent_id) = parent {

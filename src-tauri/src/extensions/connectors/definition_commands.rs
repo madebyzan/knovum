@@ -34,10 +34,14 @@ pub async fn update_connector_definition(
     let pool = database::pool(&app).await?;
     let old = super::definitions::load(&pool, &definition.id).await?;
     if old.plugin_id.is_some() {
-        return Err(AppError::invalid("plugin-connector-definition-owned-by-plugin"));
+        return Err(AppError::invalid(
+            "plugin-connector-definition-owned-by-plugin",
+        ));
     }
     if old.revision != definition.revision {
-        return Err(AppError::invalid("connector-definition-changed-refresh-before-saving"));
+        return Err(AppError::invalid(
+            "connector-definition-changed-refresh-before-saving",
+        ));
     }
     definition.plugin_id = None;
     definition.component_name = None;
@@ -63,10 +67,14 @@ pub async fn delete_connector_definition(
     let pool = database::pool(&app).await?;
     let definition = super::definitions::load(&pool, &connector_id).await?;
     if definition.plugin_id.is_some() {
-        return Err(AppError::invalid("plugin-connector-definition-owned-by-plugin"));
+        return Err(AppError::invalid(
+            "plugin-connector-definition-owned-by-plugin",
+        ));
     }
     if definition.revision != revision {
-        return Err(AppError::invalid("connector-definition-changed-refresh-before-saving"));
+        return Err(AppError::invalid(
+            "connector-definition-changed-refresh-before-saving",
+        ));
     }
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     super::definitions::delete_on(&mut tx, &connector_id).await?;

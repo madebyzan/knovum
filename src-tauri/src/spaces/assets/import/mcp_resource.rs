@@ -30,7 +30,9 @@ pub async fn stage_mcp_resource_import(
         browsing::read_resource(&app, &connection_id, &revision, &catalog_digest, &selection)
             .await?;
     if read.digest != content_digest {
-        return Err(AppError::invalid("mcp-resource-content-changed-review-before-import"));
+        return Err(AppError::invalid(
+            "mcp-resource-content-changed-review-before-import",
+        ));
     }
     let content = read
         .contents

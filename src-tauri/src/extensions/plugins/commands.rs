@@ -135,17 +135,23 @@ pub async fn update_plugin(
 #[tauri::command]
 pub async fn list_plugin_installations(app: AppHandle) -> AppResult<Vec<PluginInstallation>> {
     super::reconcile_bundled_plugins(&app).await?;
-    super::list(&database::pool(&app).await?).await.map_err(AppError::from)
+    super::list(&database::pool(&app).await?)
+        .await
+        .map_err(AppError::from)
 }
 
 #[tauri::command]
 pub async fn enable_plugin(app: AppHandle, plugin_id: String) -> AppResult<()> {
-    set_enabled(app, plugin_id, true).await.map_err(AppError::from)
+    set_enabled(app, plugin_id, true)
+        .await
+        .map_err(AppError::from)
 }
 
 #[tauri::command]
 pub async fn disable_plugin(app: AppHandle, plugin_id: String) -> AppResult<()> {
-    set_enabled(app, plugin_id, false).await.map_err(AppError::from)
+    set_enabled(app, plugin_id, false)
+        .await
+        .map_err(AppError::from)
 }
 
 async fn set_enabled(app: AppHandle, plugin_id: String, enabled: bool) -> Result<(), String> {

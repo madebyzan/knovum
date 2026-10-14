@@ -84,9 +84,13 @@ pub(in crate::spaces::structure) fn transform_structure(
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
     let roots = effective_roots(&snapshot.structure, &index, structure_node_ids)?;
     if roots.is_empty()
-        || roots
-            .iter()
-            .any(|id| index.node(&snapshot.structure, id).expect("effective_roots ids were already validated against the structure index").kind_name() == "section")
+        || roots.iter().any(|id| {
+            index
+                .node(&snapshot.structure, id)
+                .expect("effective_roots ids were already validated against the structure index")
+                .kind_name()
+                == "section"
+        })
     {
         return Err("Transform requires selected Content or Group roots".into());
     }

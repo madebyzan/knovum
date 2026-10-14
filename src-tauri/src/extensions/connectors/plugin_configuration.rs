@@ -17,7 +17,9 @@ pub async fn configure_plugin_connector(
     let pool = database::pool(&app).await?;
     let previous = super::definitions::load(&pool, &connector_id).await?;
     if previous.revision != revision {
-        return Err(AppError::invalid("connector-definition-changed-refresh-before-saving"));
+        return Err(AppError::invalid(
+            "connector-definition-changed-refresh-before-saving",
+        ));
     }
     let plugin_id = previous
         .plugin_id

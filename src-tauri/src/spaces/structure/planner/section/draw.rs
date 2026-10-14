@@ -54,7 +54,12 @@ pub(in crate::spaces::structure) fn draw(
     }
     let order = candidates
         .first()
-        .map(|id| index.node(&original_structure, id).expect("effective_roots ids were already validated against the structure index").order())
+        .map(|id| {
+            index
+                .node(&original_structure, id)
+                .expect("effective_roots ids were already validated against the structure index")
+                .order()
+        })
         .unwrap_or(roots.len() as u32);
     append_section(snapshot, section_id, title, frame, order);
     let temporary = Index::new(&snapshot.structure, &snapshot.layouts);

@@ -126,7 +126,9 @@ async fn schedule_backup<R: Runtime>(app: AppHandle<R>, destination: String) -> 
     if paths::entry_exists(&path)? {
         let metadata = std::fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
         if !metadata.is_file() || metadata.file_type().is_symlink() {
-            return Err(AppError::invalid("Backup destination must be a regular file"));
+            return Err(AppError::invalid(
+                "Backup destination must be a regular file",
+            ));
         }
     }
     let _admission = admission::reserve(&app).await?;
