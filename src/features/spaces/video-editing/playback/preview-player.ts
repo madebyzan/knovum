@@ -37,18 +37,22 @@ export function createPreviewPlayer(options: PlayerOptions) {
   const audio = createAudioLibrary({ context: audioContext, videos, materials: options.materials });
   const sources = createFrameSources({ videos, images, onChanged: invalidate, onFailed: options.onFailed });
   const clock = createPlaybackClock({ context: audioContext, durationMs });
-  const sound = createSoundTrack({ project: options.project, library: audio, clock, onFailed: options.onFailed });
+  const sound = createSoundTrack({
+    project: options.project,
+    library: audio,
+    clock,
+    onFailed: options.onFailed,
+  });
   const displayMs = shallowRef(0);
   const listeners = new Set<FrameListener>();
   let scene: StageScene | undefined;
   let handle: number | undefined;
-  let dirty = true;
-  let publishedAt = 0;
-  let viewScale = 1;
+  let dirty = true,
+    publishedAt = 0,
+    viewScale = 1;
 
   function durationMs() {
-    const project = options.project();
-    return project ? projectDurationMs(project) : 0;
+    return options.project() ? projectDurationMs(options.project()!) : 0;
   }
 
   function invalidate() {
@@ -112,6 +116,12 @@ export function createPreviewPlayer(options: PlayerOptions) {
     publish(!playing);
   }
 
+  function stop() {
+    if (handle !== undefined) cancelAnimationFrame(handle);
+    handle = undefined;
+    halt();
+  }
+
   return {
     playing: clock.playing,
     displayMs,
@@ -127,8 +137,7 @@ export function createPreviewPlayer(options: PlayerOptions) {
     play,
     pause,
     toggle() {
-      if (clock.playing.value) return (pause(), Promise.resolve());
-      return play();
+      return clock.playing.value ? (pause(), Promise.resolve()) : play();
     },
     attach(container: HTMLDivElement) {
       scene?.dispose();
@@ -155,17 +164,11 @@ export function createPreviewPlayer(options: PlayerOptions) {
       sound.prepare();
       handle ??= requestAnimationFrame(tick);
     },
-    stop() {
-      if (handle !== undefined) cancelAnimationFrame(handle);
-      handle = undefined;
-      halt();
-    },
+    stop,
     dispose() {
-      if (handle !== undefined) cancelAnimationFrame(handle);
-      handle = undefined;
+      stop();
       listeners.clear();
       controller.abort();
-      sound.stop();
       sources.dispose();
       images.dispose();
       audio.dispose();

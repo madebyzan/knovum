@@ -36,3 +36,32 @@ fn rendered_revision_tracks_image_edits_but_not_annotations() {
         "sha256:asset"
     );
 }
+
+#[test]
+fn rendered_revision_tracks_video_edits_at_current_version() {
+    let project = json!({
+        "version": crate::spaces::derivation::video_edit::PROJECT_VERSION,
+        "sourceRevision": "sha256:asset",
+        "assets": [{"nodeId": "source", "sourceRevision": "sha256:asset", "kind": "video", "durationMs": 8000, "width": 1080, "height": 1920}],
+        "output": {"width": 1080, "height": 1920, "frameRate": 30, "background": "#000000"},
+        "videoTrack": {"clips": [{"id": "d51a4384-70ab-4b44-90cc-3bfcf0f5341f", "assetId": "source", "sourceInMs": 0, "sourceOutMs": 8000, "timelineStartMs": 0, "volume": 1.0, "fadeInMs": 0, "fadeOutMs": 0, "transform": {"x": 0.0, "y": 0.0, "scale": 1.0, "rotation": 0.0, "opacity": 1.0, "fit": "contain", "flipHorizontal": false, "flipVertical": false}}]},
+        "transitions": [],
+        "audioTrack": {"clips": []},
+        "textTrack": {"items": []}
+    });
+    let video = json!({
+        "sourceRevision": "sha256:asset",
+        "title": "Video",
+        "videoEditProject": project,
+    });
+    let result = resolve("video", &video, RevisionBasis::Rendered);
+    assert!(result.is_ok());
+    assert!(result.unwrap().0.starts_with("rendered1:"));
+
+    let mut mismatched = video.clone();
+    mismatched["sourceRevision"] = json!("sha256:other");
+    assert_eq!(
+        resolve("video", &mismatched, RevisionBasis::Rendered).unwrap_err(),
+        "Video edit project does not match its asset"
+    );
+}

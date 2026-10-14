@@ -3,10 +3,10 @@ use uuid::Uuid;
 
 use super::contracts::{
     TextOverlay, VideoAsset, VideoAssetKind, VideoClip, VideoEditProject, VideoTransform,
+    PROJECT_VERSION,
 };
 use super::timing;
 
-const PROJECT_VERSION: u8 = 2;
 const MIN_CLIP_MS: u64 = 100;
 const MAX_MEDIA_MS: u64 = 86_400_000;
 const AUDIO_LANES: u8 = 4;

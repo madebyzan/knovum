@@ -25,6 +25,7 @@ use crate::{foundation::app_error::AppError, foundation::blocking};
 
 pub use contracts::{
     PrepareVideoEditProxyRequest, RenderVideoEditRequest, VideoEditProgress, VideoEditProject,
+    PROJECT_VERSION,
 };
 pub(in crate::spaces) use validation::validate_project;
 

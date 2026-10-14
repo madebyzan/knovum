@@ -88,7 +88,9 @@ pub fn from_snapshot(
                 let project: super::video_edit::VideoEditProject =
                     serde_json::from_value(snapshot["videoEditProject"].clone())
                         .map_err(|error| format!("Invalid video edit project: {error}"))?;
-                if project.version != 1 || project.source_revision != base {
+                if project.version != super::video_edit::PROJECT_VERSION
+                    || project.source_revision != base
+                {
                     return Err("Video edit project does not match its asset".into());
                 }
             }
