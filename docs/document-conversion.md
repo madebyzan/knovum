@@ -84,9 +84,9 @@ capability. These are fixed source routes, never alternate engines after failure
 DOCX are indented flowing paragraphs rather than positioned text boxes, so long quotes paginate.
 Markdown
 HTML uses the library event writer; Note/Office HTML uses the vendor IR writer. Both emit standalone
-UTF-8 documents with the fixed screen/print stylesheet and restrictive CSP. Only HTTP, HTTPS and
-mailto hyperlinks are active. Scripts, forms, external resources and base URLs are disabled;
-embedded data images are allowed. Relative, private-file and executable hyperlinks fail.
+UTF-8 documents with the fixed screen/print stylesheet and restrictive CSP. HTTP, HTTPS, mailto,
+relative and fragment hyperlinks are active. Scripts, forms, external resources and base URLs are disabled;
+embedded data images are allowed. Absolute filesystem, private-file and executable hyperlinks fail.
 
 Content PDF uses the checked-in Typst profile and in-memory image resolver. Text is always a quoted
 function argument. No filesystem or package resolver is installed. Notes go directly from rich IR
