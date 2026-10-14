@@ -7,6 +7,7 @@ import { runApplicationTransition } from "../../../foundation/lifecycle/applicat
 import { flushWindowCloseCommits } from "../../../foundation/lifecycle/window-close-coordinator";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { confirmAction } from "../../../shared/ui/confirm-action";
+import { DATA_MAINTENANCE_LOCALE_KEYS } from "./data-maintenance-locale";
 
 const FILTER = [{ name: "Knovum backup", extensions: ["knovum-backup"] }];
 
@@ -29,10 +30,11 @@ export function useBackupOperations() {
   }
 
   function confirm(operation: "backup" | "restore") {
+    const keys = DATA_MAINTENANCE_LOCALE_KEYS[operation];
     return confirmAction({
-      title: t(`settings.data.${operation}.confirm.title`),
-      description: t(`settings.data.${operation}.confirm.description`),
-      confirmLabel: t(`settings.data.${operation}.action`),
+      title: t(keys.confirmTitle),
+      description: t(keys.confirmDescription),
+      confirmLabel: t(keys.action),
       danger: operation === "restore",
     });
   }
