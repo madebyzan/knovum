@@ -86,7 +86,7 @@ pub(in crate::spaces::structure) fn transform_structure(
     if roots.is_empty()
         || roots
             .iter()
-            .any(|id| index.node(&snapshot.structure, id).unwrap().kind_name() == "section")
+            .any(|id| index.node(&snapshot.structure, id).expect("effective_roots ids were already validated against the structure index").kind_name() == "section")
     {
         return Err("Transform requires selected Content or Group roots".into());
     }
