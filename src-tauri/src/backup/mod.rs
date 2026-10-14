@@ -4,6 +4,8 @@ use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_fs::FsExt;
 use tokio::sync::watch;
 
+use crate::foundation::app_error::{AppError, AppResult};
+
 mod admission;
 mod archive;
 mod archive_format;
@@ -114,17 +116,17 @@ fn start<R: Runtime>(app: &AppHandle<R>) {
 }
 
 #[tauri::command]
-async fn await_data_maintenance<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
-    ready(&app).await
+async fn await_data_maintenance<R: Runtime>(app: AppHandle<R>) -> AppResult<()> {
+    ready(&app).await.map_err(AppError::from)
 }
 
 #[tauri::command]
-async fn schedule_backup<R: Runtime>(app: AppHandle<R>, destination: String) -> Result<(), String> {
+async fn schedule_backup<R: Runtime>(app: AppHandle<R>, destination: String) -> AppResult<()> {
     let path = authorized_path(&app, &destination, false)?;
     if paths::entry_exists(&path)? {
         let metadata = std::fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
         if !metadata.is_file() || metadata.file_type().is_symlink() {
-            return Err("Backup destination must be a regular file".into());
+            return Err(AppError::invalid("Backup destination must be a regular file"));
         }
     }
     let _admission = admission::reserve(&app).await?;
@@ -134,14 +136,15 @@ async fn schedule_backup<R: Runtime>(app: AppHandle<R>, destination: String) -> 
             destination: path_string(path)?,
         },
     )
+    .map_err(AppError::from)
 }
 
 #[tauri::command]
-async fn schedule_restore<R: Runtime>(app: AppHandle<R>, source: String) -> Result<(), String> {
+async fn schedule_restore<R: Runtime>(app: AppHandle<R>, source: String) -> AppResult<()> {
     let path = authorized_path(&app, &source, true)?;
     let metadata = std::fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
     if !metadata.is_file() || metadata.file_type().is_symlink() {
-        return Err("Backup source must be a regular file".into());
+        return Err(AppError::invalid("Backup source must be a regular file"));
     }
     let _admission = admission::reserve(&app).await?;
     schedule(
@@ -150,6 +153,7 @@ async fn schedule_restore<R: Runtime>(app: AppHandle<R>, source: String) -> Resu
             source: path_string(path)?,
         },
     )
+    .map_err(AppError::from)
 }
 
 fn schedule<R: Runtime>(app: &AppHandle<R>, operation: PendingOperation) -> Result<(), String> {
@@ -168,15 +172,13 @@ fn schedule<R: Runtime>(app: &AppHandle<R>, operation: PendingOperation) -> Resu
 }
 
 #[tauri::command]
-fn get_maintenance_receipt<R: Runtime>(
-    app: AppHandle<R>,
-) -> Result<Option<MaintenanceReceipt>, String> {
-    paths::read_receipt(&AppPaths::resolve(&app)?)
+fn get_maintenance_receipt<R: Runtime>(app: AppHandle<R>) -> AppResult<Option<MaintenanceReceipt>> {
+    paths::read_receipt(&AppPaths::resolve(&app)?).map_err(AppError::from)
 }
 
 #[tauri::command]
-fn acknowledge_maintenance_receipt<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
-    paths::acknowledge_receipt(&AppPaths::resolve(&app)?)
+fn acknowledge_maintenance_receipt<R: Runtime>(app: AppHandle<R>) -> AppResult<()> {
+    paths::acknowledge_receipt(&AppPaths::resolve(&app)?).map_err(AppError::from)
 }
 
 fn authorized_path<R: Runtime>(

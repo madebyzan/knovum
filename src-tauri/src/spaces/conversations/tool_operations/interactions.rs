@@ -1,3 +1,4 @@
+use crate::foundation::app_error::{AppError, AppResult};
 use crate::spaces::{db, runs};
 use futures::future::BoxFuture;
 use rmcp::model::{ElicitRequestParams, ElicitResult, ProgressNotificationParam};
@@ -87,10 +88,7 @@ pub struct McpUserInteraction {
 }
 
 #[tauri::command]
-pub async fn list_mcp_user_interactions(
-    app: AppHandle,
-    run_id: String,
-) -> Result<Vec<McpUserInteraction>, String> {
+pub async fn list_mcp_user_interactions(app: AppHandle, run_id: String) -> AppResult<Vec<McpUserInteraction>> {
     let rows: Vec<(String,String)> = sqlx::query_as("SELECT i.id,i.request FROM spaces_conversation_mcp_interactions i JOIN spaces_runs r ON r.id=i.run_id WHERE i.run_id=$1 AND i.response IS NULL AND r.completed_at IS NULL AND r.wait_reason='mcp_elicitation' ORDER BY i.created_at").bind(run_id).fetch_all(db::pool(&app).await?).await.map_err(db::sql_error)?;
     rows.into_iter()
         .map(|(id, request)| {
@@ -99,7 +97,8 @@ pub async fn list_mcp_user_interactions(
                 request: serde_json::from_str(&request).map_err(db::json_error)?,
             })
         })
-        .collect()
+        .collect::<Result<Vec<_>, String>>()
+        .map_err(AppError::from)
 }
 
 #[tauri::command]
@@ -107,7 +106,7 @@ pub async fn answer_mcp_user_interaction(
     app: AppHandle,
     interaction_id: String,
     response: Value,
-) -> Result<(), String> {
+) -> AppResult<()> {
     let response: ElicitResult = serde_json::from_value(response).map_err(db::json_error)?;
     let pool = db::pool(&app).await?;
     let row: (String,String) = sqlx::query_as("SELECT run_id,request FROM spaces_conversation_mcp_interactions WHERE id=$1 AND response IS NULL").bind(&interaction_id).fetch_one(pool).await.map_err(db::sql_error)?;

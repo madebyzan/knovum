@@ -2,6 +2,7 @@ use super::super::{
     contracts::{ConnectorDefinition, ExtensionChange, McpConnection},
     database, ExtensionState,
 };
+use crate::foundation::app_error::AppResult;
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Manager};
 
@@ -9,7 +10,7 @@ use tauri::{AppHandle, Manager};
 pub async fn create_mcp_server(
     app: AppHandle,
     definition: ConnectorDefinition,
-) -> Result<ExtensionChange<McpConnection>, String> {
+) -> AppResult<ExtensionChange<McpConnection>> {
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
     let connection = create(&database::pool(&app).await?, definition).await?;

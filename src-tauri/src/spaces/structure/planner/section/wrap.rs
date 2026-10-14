@@ -23,7 +23,7 @@ pub(in crate::spaces::structure) fn wrap(
     if roots.is_empty()
         || roots
             .iter()
-            .any(|id| index.node(&original_structure, id).unwrap().kind_name() == "section")
+            .any(|id| index.node(&original_structure, id).expect("effective_roots ids were already validated against the structure index").kind_name() == "section")
     {
         return Err("Wrapping requires Content or Group roots".into());
     }
@@ -33,7 +33,7 @@ pub(in crate::spaces::structure) fn wrap(
         .map(str::to_owned);
     if roots
         .iter()
-        .any(|id| index.node(&original_structure, id).unwrap().parent_id() != parent.as_deref())
+        .any(|id| index.node(&original_structure, id).expect("effective_roots ids were already validated against the structure index").parent_id() != parent.as_deref())
     {
         return Err("Wrapping requires the same direct parent".into());
     }

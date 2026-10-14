@@ -6,7 +6,7 @@ use super::super::{
     database, ExtensionState,
 };
 use super::operations::PluginOperation;
-use crate::foundation::app_error::AppResult;
+use crate::foundation::app_error::{AppError, AppResult};
 use serde::Deserialize;
 use tauri::{ipc::Channel, AppHandle, Manager};
 use tokio_util::sync::CancellationToken;
@@ -171,12 +171,9 @@ pub async fn refresh_plugin_marketplace(
 }
 
 #[tauri::command]
-pub async fn remove_plugin_marketplace(
-    app: AppHandle,
-    marketplace_id: String,
-) -> Result<(), String> {
+pub async fn remove_plugin_marketplace(app: AppHandle, marketplace_id: String) -> AppResult<()> {
     if marketplace_id == super::bundled::MARKETPLACE_ID {
-        return Err("bundled-marketplace-is-application-managed".into());
+        return Err(AppError::invalid("bundled-marketplace-is-application-managed"));
     }
     let state = app.state::<ExtensionState>();
     let _guard = state.content_lock.lock().await;
@@ -189,10 +186,7 @@ pub async fn remove_plugin_marketplace(
 }
 
 #[tauri::command]
-pub async fn search_plugins(
-    app: AppHandle,
-    query: String,
-) -> Result<Vec<PluginMarketplace>, String> {
+pub async fn search_plugins(app: AppHandle, query: String) -> AppResult<Vec<PluginMarketplace>> {
     let documents: Vec<String> =
         sqlx::query_scalar("SELECT document FROM marketplaces ORDER BY id")
             .fetch_all(&database::pool(&app).await?)
@@ -220,7 +214,8 @@ pub async fn search_plugins(
             });
             Ok(marketplace)
         })
-        .collect()
+        .collect::<Result<Vec<_>, String>>()
+        .map_err(AppError::from)
 }
 
 pub(super) async fn require_publication(

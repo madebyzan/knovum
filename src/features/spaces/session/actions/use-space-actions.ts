@@ -22,13 +22,17 @@ import { createSpaceViewActions } from "./view-actions";
 
 export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
   const spaceContext = createSpaceSessionContext(state, createEditorSessions());
+  // Shared by every action group below: a single stable reference instead of
+  // a fresh closure per call site, so there is exactly one place that knows
+  // how "ensure the active space is persisted" is implemented.
+  const ensureActiveSpacePersisted = () => materializeActiveSpace(spaceContext);
   const structure = createStructureActions({
     activeSpaceId: state.activeSpaceId,
     editSnapshot: state.editSnapshot,
     nodes: state.nodes,
     relations: state.relations,
     history: state.history,
-    ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
+    ensureActiveSpacePersisted,
     editorTabs: state.editorTabs,
   });
   const mutations = createSpaceMutations({
@@ -38,7 +42,7 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
     activeSpaceId: state.activeSpaceId,
     history: state.history,
     nextInsertionPoint: placement.nextInsertionPoint,
-    ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
+    ensureActiveSpacePersisted,
     recordCommittedSpaceEdit: structure.recordCommittedSpaceEdit,
   });
   const placementActions = createPlacementActions(mutations, placement, state.activeSpaceId);
@@ -67,7 +71,7 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
     activeSpaceId: state.activeSpaceId,
     target: state.audioRecordingTarget,
     nextInsertionPoint: placement.nextInsertionPoint,
-    ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
+    ensureActiveSpacePersisted,
     createPendingContentForSpace: mutations.createPendingContentForSpace,
     finalizePendingContent: placementActions.finalizePendingContent,
   });
@@ -101,7 +105,7 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
     view,
   });
   const canvasImport = createJsonCanvasImportActions({
-    ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
+    ensureActiveSpacePersisted,
     mutations,
     placement,
     state,
@@ -111,7 +115,7 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
     ...editors,
     ...createWorkflowPanelActions(state),
     ...audioRecording,
-    ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
+    ensureActiveSpacePersisted,
     ...canvasImport,
     ...structure,
   };

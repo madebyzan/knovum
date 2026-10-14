@@ -1,3 +1,4 @@
+use crate::foundation::app_error::{AppError, AppResult};
 use crate::{
     extensions::{contracts::McpResourceSelection, mcp::browsing},
     spaces::knowledge::contracts::ExternalContentSource,
@@ -24,12 +25,12 @@ pub async fn stage_mcp_resource_import(
     selection: McpResourceSelection,
     content_digest: String,
     content_index: usize,
-) -> Result<PreparedMcpResourceImport, String> {
+) -> AppResult<PreparedMcpResourceImport> {
     let read =
         browsing::read_resource(&app, &connection_id, &revision, &catalog_digest, &selection)
             .await?;
     if read.digest != content_digest {
-        return Err("mcp-resource-content-changed-review-before-import".into());
+        return Err(AppError::invalid("mcp-resource-content-changed-review-before-import"));
     }
     let content = read
         .contents
@@ -40,7 +41,7 @@ pub async fn stage_mcp_resource_import(
             text, mime_type, ..
         } => {
             if text.len() > 4 * 1024 * 1024 {
-                return Err("mcp-resource-text-import-exceeds-4-mib".into());
+                return Err(AppError::invalid("mcp-resource-text-import-exceeds-4-mib"));
             }
             (
                 text.as_bytes().to_vec(),
@@ -68,7 +69,7 @@ pub async fn stage_mcp_resource_import(
             };
             (bytes, extension)
         }
-        _ => return Err("mcp-resource-content-kind-not-supported".into()),
+        _ => return Err(AppError::invalid("mcp-resource-content-kind-not-supported")),
     };
     let staging_id = uuid::Uuid::new_v4().to_string();
     let directory = staging_root(&app)?.join(&staging_id);
@@ -89,7 +90,7 @@ pub async fn stage_mcp_resource_import(
         Err(error) => {
             std::fs::remove_dir_all(cleanup)
                 .map_err(|cleanup| format!("{error}; staging cleanup failed: {cleanup}"))?;
-            return Err(error);
+            return Err(error.into());
         }
     };
     let external_source = ExternalContentSource::McpResource {
@@ -108,7 +109,7 @@ pub async fn stage_mcp_resource_import(
 }
 
 #[tauri::command]
-pub async fn discard_mcp_resource_import(app: AppHandle, staging_id: String) -> Result<(), String> {
+pub async fn discard_mcp_resource_import(app: AppHandle, staging_id: String) -> AppResult<()> {
     let id = uuid::Uuid::parse_str(&staging_id)
         .map_err(|_| "mcp-resource-staging-id-invalid")?
         .to_string();
@@ -118,6 +119,7 @@ pub async fn discard_mcp_resource_import(app: AppHandle, staging_id: String) -> 
     }
     Ok(())
 }
+
 fn staging_root(app: &AppHandle) -> Result<std::path::PathBuf, String> {
     Ok(app
         .path()
