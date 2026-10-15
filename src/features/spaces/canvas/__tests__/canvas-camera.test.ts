@@ -30,6 +30,40 @@ describe("canvas camera", () => {
     expect(projected).toHaveLength(1);
   });
 
+  it("holds settlement for the length of a gesture and reports it once the hold is released", () => {
+    const camera = createCanvasCamera({ x: 0, y: 0, zoom: 1 });
+    const settled = vi.fn<(value: CanvasViewport) => void>();
+    camera.observeSettled(settled);
+    const release = camera.hold();
+
+    camera.set({ x: 40, y: 0, zoom: 1 });
+    frames.run();
+    frames.run();
+    frames.run();
+    expect(settled).not.toHaveBeenCalled();
+
+    release();
+    release();
+    frames.run();
+    expect(settled).toHaveBeenCalledTimes(1);
+    expect(settled).toHaveBeenLastCalledWith({ x: 40, y: 0, zoom: 1 });
+
+    frames.run();
+    expect(settled).toHaveBeenCalledTimes(1);
+  });
+
+  it("settles a held camera when the surface forces it", () => {
+    const camera = createCanvasCamera({ x: 0, y: 0, zoom: 1 });
+    const settled = vi.fn<(value: CanvasViewport) => void>();
+    camera.observeSettled(settled);
+    camera.hold();
+
+    camera.set({ x: 5, y: 0, zoom: 1 });
+    camera.settle();
+    expect(settled).toHaveBeenCalledTimes(1);
+    expect(frames.pending.size).toBe(0);
+  });
+
   it("defers settlement while the camera keeps moving", () => {
     const camera = createCanvasCamera({ x: 0, y: 0, zoom: 1 });
     const settled = vi.fn<(value: CanvasViewport) => void>();

@@ -11,11 +11,22 @@ import { useTestAnimationFrames } from "./support/animation-frames";
 
 /** Konva stages need a real 2D context, so the projection is verified against the stage contract. */
 function stageDouble(layerCount: number) {
-  const layers = Array.from({ length: layerCount }, () => ({ draw: vi.fn<() => void>() }));
+  const layers = Array.from({ length: layerCount }, () => ({
+    draw: vi.fn<() => void>(),
+    drawScene: vi.fn<() => void>(),
+  }));
   const position = vi.fn<(value: { x: number; y: number }) => void>();
   const scale = vi.fn<(value: { x: number; y: number }) => void>();
-  const stage = { getLayers: () => layers, position, scale } as unknown as Konva.Stage;
-  return { drawCounts: () => layers.map(({ draw }) => draw.mock.calls.length), position, scale, stage };
+  const listening = vi.fn<(value: boolean) => void>();
+  const stage = { getLayers: () => layers, listening, position, scale } as unknown as Konva.Stage;
+  return {
+    drawCounts: () => layers.map(({ draw }) => draw.mock.calls.length),
+    listening,
+    position,
+    scale,
+    sceneCounts: () => layers.map(({ drawScene }) => drawScene.mock.calls.length),
+    stage,
+  };
 }
 
 describe("camera projection", () => {
@@ -31,7 +42,7 @@ describe("camera projection", () => {
     const { drawCounts, position, scale, stage } = stageDouble(3);
     const camera = createCanvasCamera({ x: 0, y: 0, zoom: 1 });
     const scope = effectScope();
-    scope.run(() => useCameraStage(camera, shallowRef(stage)));
+    scope.run(() => useCameraStage(camera, shallowRef(stage), shallowRef(false)));
     expect(drawCounts()).toEqual([1, 1, 1]);
 
     camera.set({ x: -60, y: -20, zoom: 1 });
@@ -52,13 +63,45 @@ describe("camera projection", () => {
     const { scale, stage } = stageDouble(1);
     const camera = createCanvasCamera({ x: 0, y: 0, zoom: 1 });
     const scope = effectScope();
-    scope.run(() => useCameraStage(camera, shallowRef(stage)));
+    scope.run(() => useCameraStage(camera, shallowRef(stage), shallowRef(false)));
     camera.set({ x: 10, y: 0, zoom: 2 });
     runFrames();
     expect(konvaGlobal.autoDrawEnabled).toBe(false);
     expect(scale).toHaveBeenLastCalledWith({ x: 2, y: 2 });
     scope.stop();
     expect(konvaGlobal.autoDrawEnabled).toBe(true);
+  });
+
+  it("skips hit graphs while a pan gesture owns the canvas and restores them on settlement", () => {
+    const { drawCounts, listening, sceneCounts, stage } = stageDouble(2);
+    const camera = createCanvasCamera({ x: 0, y: 0, zoom: 1 });
+    const panning = shallowRef(true);
+    const scope = effectScope();
+    scope.run(() => useCameraStage(camera, shallowRef(stage), panning));
+    const settled = vi.fn<() => void>();
+    camera.observeSettled(settled);
+    const releasePan = camera.hold();
+
+    camera.set({ x: -40, y: 0, zoom: 1 });
+    runFrames();
+    expect(listening).toHaveBeenLastCalledWith(false);
+    expect(sceneCounts()).toEqual([1, 1]);
+    expect(drawCounts()).toEqual([1, 1]);
+
+    // A hand that rests mid-gesture must not settle: that would restore drawing and redraw every hit graph.
+    runFrames();
+    runFrames();
+    expect(settled).not.toHaveBeenCalled();
+    expect(konvaGlobal.autoDrawEnabled).toBe(false);
+
+    releasePan();
+    panning.value = false;
+    runFrames();
+    expect(settled).toHaveBeenCalledTimes(1);
+    expect(listening).toHaveBeenLastCalledWith(true);
+    expect(drawCounts()).toEqual([2, 2]);
+    expect(konvaGlobal.autoDrawEnabled).toBe(true);
+    scope.stop();
   });
 
   it("moves a camera-anchored element without rendering its component again", async () => {

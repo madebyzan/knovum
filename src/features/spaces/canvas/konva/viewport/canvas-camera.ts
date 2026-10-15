@@ -15,6 +15,22 @@ export interface CanvasCamera {
   set(camera: CanvasViewport): void;
   /** Projects a pending change and reports settlement immediately instead of waiting for the next frame. */
   settle(): void;
+  /**
+   * Projects a pending change in the current frame.
+   *
+   * For geometry that must not lag the layout that caused it: a write that waited for the next frame would be
+   * visible as jitter against the layout it is compensating for.
+   */
+  flush(): void;
+  /**
+   * Holds settlement open until the returned release is called.
+   *
+   * Settlement is the expensive edge: it hands drawing back to the vendor, redraws every layer including
+   * the hit graph, and lets the document adopt the camera. Without a hold, a pointer that rests for a
+   * single frame - which a human hand does constantly mid-gesture - would pay all of that and then take it
+   * back on the next move. A gesture therefore holds the camera from start to release.
+   */
+  hold(): () => void;
   /** Called once per animation frame while the camera moves. Subscribers apply the current value themselves. */
   observeFrames(observer: CanvasCameraObserver): () => void;
   /** Called on the first frame after the camera stops moving. */
@@ -25,6 +41,7 @@ export interface CanvasCamera {
 export function createCanvasCamera(initial: CanvasViewport): CanvasCamera {
   const frameObservers = new Set<CanvasCameraObserver>();
   const settledObservers = new Set<CanvasCameraObserver>();
+  const holders = new Set<symbol>();
   let current = initial;
   let projected = initial;
   let movedSinceSettlement = false;
@@ -52,9 +69,15 @@ export function createCanvasCamera(initial: CanvasViewport): CanvasCamera {
 
   function reportSettlement() {
     settlementFrame = undefined;
-    if (!movedSinceSettlement) return;
+    if (holders.size > 0 || !movedSinceSettlement) return;
     movedSinceSettlement = false;
     for (const observer of settledObservers) observer(current);
+  }
+
+  function releaseHold() {
+    if (holders.size > 0 || !movedSinceSettlement) return;
+    if (projectionFrame !== undefined || settlementFrame !== undefined) return;
+    settlementFrame = requestAnimationFrame(reportSettlement);
   }
 
   return {
@@ -69,8 +92,22 @@ export function createCanvasCamera(initial: CanvasViewport): CanvasCamera {
       if (projectionFrame !== undefined) cancelAnimationFrame(projectionFrame);
       projectionFrame = undefined;
       cancelSettlement();
+      holders.clear();
       emitFrame();
       reportSettlement();
+    },
+    flush() {
+      if (projectionFrame === undefined) return;
+      cancelAnimationFrame(projectionFrame);
+      project();
+    },
+    hold() {
+      const token = Symbol("canvas-camera-hold");
+      holders.add(token);
+      return () => {
+        if (!holders.delete(token)) return;
+        releaseHold();
+      };
     },
     observeFrames(observer) {
       frameObservers.add(observer);
@@ -84,6 +121,7 @@ export function createCanvasCamera(initial: CanvasViewport): CanvasCamera {
       if (projectionFrame !== undefined) cancelAnimationFrame(projectionFrame);
       projectionFrame = undefined;
       cancelSettlement();
+      holders.clear();
       frameObservers.clear();
       settledObservers.clear();
     },

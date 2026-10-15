@@ -63,10 +63,11 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       v-if="renderingEnabled"
       :camera="runtime.viewport.camera"
       :palette="runtime.palette.value"
+      :zoom="runtime.viewport.zoom.value"
     />
     <!--
-      The stage transform is written by the camera, not bound here: a reactive position would re-render this
-      whole subtree on every frame of a pan and leave Konva to redraw one frame later than the DOM overlay.
+    The stage transform is written by the camera, not bound here: a reactive position would re-render this
+    whole subtree on every frame of a pan and leave Konva to redraw one frame later than the DOM overlay.
     -->
     <KonvaStage
       ref="stage"

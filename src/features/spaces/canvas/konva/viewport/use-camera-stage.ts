@@ -17,31 +17,53 @@ function applyTransform(node: Konva.Stage, value: CanvasViewport) {
  * overlay follows the camera in the same frame, so a batched redraw would leave the canvases a frame behind
  * the cards. While the camera moves this composable therefore owns the render loop: `autoDrawEnabled`
  * suppresses Konva's own scheduling and each frame draws the layers synchronously, right after the stage
- * transform is written. Non-listening layers skip their hit graph, which is why panning - where pointer
- * interaction is suspended - costs one scene draw per layer and nothing else.
+ * transform is written.
+ *
+ * A pan gesture additionally takes the stage out of hit testing. Konva resolves a hit by reading pixels back
+ * from each listening layer's hit canvas on every pointer move, then dispatches enter and leave events that
+ * reach product state - work that is pure waste while the pointer is dragging the canvas itself, and that
+ * also makes the frame pay a second draw per layer for the hit graph. A non-listening stage short-circuits
+ * all of it, while the stage still receives the pointer events the gesture itself needs. Hit graphs are
+ * restored and redrawn on settlement, which the gesture holds open until it ends.
  */
-export function useCameraStage(camera: CanvasCamera, stage: Readonly<Ref<Konva.Stage | undefined>>) {
+export function useCameraStage(
+  camera: CanvasCamera,
+  stage: Readonly<Ref<Konva.Stage | undefined>>,
+  panning: Readonly<Ref<boolean>>,
+) {
   let owningRenderLoop = false;
+  let hitSuspended = false;
 
-  function releaseRenderLoop() {
-    if (!owningRenderLoop) return;
+  function engage(node: Konva.Stage) {
+    if (owningRenderLoop) return;
+    owningRenderLoop = true;
+    konvaGlobal.autoDrawEnabled = false;
+    if (!panning.value) return;
+    hitSuspended = true;
+    node.listening(false);
+  }
+
+  function release() {
     owningRenderLoop = false;
     konvaGlobal.autoDrawEnabled = true;
+    if (!hitSuspended) return;
+    hitSuspended = false;
+    stage.value?.listening(true);
   }
 
   function drawFrame(value: CanvasViewport) {
     const node = stage.value;
     if (!node) return;
-    if (!owningRenderLoop) {
-      owningRenderLoop = true;
-      konvaGlobal.autoDrawEnabled = false;
-    }
+    engage(node);
     applyTransform(node, value);
-    for (const layer of node.getLayers()) layer.draw();
+    for (const layer of node.getLayers()) {
+      if (hitSuspended) layer.drawScene();
+      else layer.draw();
+    }
   }
 
   function drawSettled(value: CanvasViewport) {
-    releaseRenderLoop();
+    release();
     const node = stage.value;
     if (!node) return;
     applyTransform(node, value);
@@ -54,6 +76,6 @@ export function useCameraStage(camera: CanvasCamera, stage: Readonly<Ref<Konva.S
   onScopeDispose(() => {
     stopFrames();
     stopSettled();
-    releaseRenderLoop();
+    release();
   });
 }

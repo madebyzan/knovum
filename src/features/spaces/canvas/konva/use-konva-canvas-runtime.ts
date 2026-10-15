@@ -35,7 +35,7 @@ export function useKonvaCanvasRuntime(
   const model = new CanvasDocumentModel(props.document, { documentChanged });
   const layouts = computed(() => model.sceneDocumentState.value.nodes);
   const viewport = useRuntimeViewport(props, host, model);
-  useCameraStage(viewport.camera, stage);
+  useCameraStage(viewport.camera, stage, viewport.panning);
   const temporarilyExpandedSectionId = shallowRef<string>();
   const structurePreview = shallowRef<SpaceEditSnapshot>();
   const projections = useCanvasSceneProjections(

@@ -16,6 +16,8 @@
   "layout": {
     "toggleRightSidebar": "Rechte Seitenleiste ein- oder ausblenden",
     "toggleSidebar": "Seitenleiste umschalten",
+    "resizeSidebar": "Seitenleistenbreite anpassen",
+    "resizeRightSidebar": "Breite der rechten Seitenleiste anpassen",
     "saveFailed": "Das Workbench-Layout konnte nicht gespeichert werden"
   },
   "shortcuts": {

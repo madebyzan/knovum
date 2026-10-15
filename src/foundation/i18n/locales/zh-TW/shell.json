@@ -16,6 +16,8 @@
   "layout": {
     "toggleRightSidebar": "顯示或隱藏右側欄",
     "toggleSidebar": "切換側邊欄",
+    "resizeSidebar": "調整側邊欄寬度",
+    "resizeRightSidebar": "調整右側欄寬度",
     "saveFailed": "無法儲存工作台佈局"
   },
   "shortcuts": {

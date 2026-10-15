@@ -15,6 +15,7 @@ interface CameraPanOptions {
 interface CameraPanSession {
   origin: CanvasPoint;
   pointerId: number;
+  releaseCamera(): void;
   viewport: CanvasViewport;
 }
 
@@ -25,7 +26,8 @@ function panButtonPressed(event: PointerEvent, handTool: boolean, spacePressed: 
 
 /**
  * Pointer panning. Every pointer move writes the camera directly; the camera coalesces the writes into one
- * projected frame, so no gesture code schedules animation frames of its own.
+ * projected frame, so no gesture code schedules animation frames of its own. The session holds the camera
+ * for its whole lifetime, so a hand that pauses mid-pan does not settle and immediately start moving again.
  */
 export function createCameraPan(options: CameraPanOptions) {
   const session = shallowRef<CameraPanSession>();
@@ -38,7 +40,12 @@ export function createCameraPan(options: CameraPanOptions) {
     if (!origin) return false;
     event.evt.preventDefault();
     options.abortAnimation();
-    session.value = { origin, pointerId: event.evt.pointerId, viewport: options.camera.get() };
+    session.value = {
+      origin,
+      pointerId: event.evt.pointerId,
+      releaseCamera: options.camera.hold(),
+      viewport: options.camera.get(),
+    };
     return true;
   }
 
@@ -63,6 +70,9 @@ export function createCameraPan(options: CameraPanOptions) {
     move,
     owns,
     panning: computed(() => session.value !== undefined),
-    release: () => (session.value = undefined),
+    release() {
+      session.value?.releaseCamera();
+      session.value = undefined;
+    },
   };
 }

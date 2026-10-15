@@ -12,7 +12,6 @@ import type { WorkspaceDefinition } from "../shared/contracts/workspace-definiti
 import { workspaceRightSidebarKey } from "../shared/contracts/workspace-right-sidebar";
 import { workspaceSidebarKey } from "../shared/contracts/workspace-sidebar";
 import { createShellCommands } from "./commands/commands";
-import { usePanelMotion } from "./layout/use-panel-motion";
 import { useWorkbenchLayoutPreferences } from "./layout/use-workbench-layout-preferences";
 
 export function useShellController(
@@ -34,21 +33,13 @@ export function useShellController(
   );
   const sidebarPreview = shallowRef(false);
   const sidebarPreviewArmed = shallowRef(true);
-  const motion = usePanelMotion();
-  /**
-   * Content of a panel that is still expanding stays unmounted: mounting a conversation or inspector costs
-   * far more than one frame, and doing it while the panel geometry animates drops the whole animation.
-   */
-  const rightSidebarContentMounted = computed(
-    () => rightSidebarOpen.value && !motion.expandingRightSidebar.value,
-  );
+  const rightSidebarContentMounted = computed(() => rightSidebarOpen.value);
   const { start: startSidebarPreviewClose, stop: cancelSidebarPreviewClose } = useTimeoutFn(
     () => (sidebarPreview.value = false),
     160,
     { immediate: false },
   );
   function toggleSidebarPanel() {
-    motion.begin();
     setSidebarPinned(!sidebarPinned.value);
   }
   function toggleSidebarFromControl() {
@@ -64,7 +55,6 @@ export function useShellController(
   }
   function setSidebarWidth(value: number) {
     sidebarWidth.value = Math.round(value);
-    persist();
   }
   function openSidebarPreview() {
     if (sidebarPinned.value || !sidebarPreviewArmed.value) return;
@@ -87,10 +77,8 @@ export function useShellController(
   function toggleRightSidebar() {
     if (!workspaceActive.value || !workspace.rightSidebarAvailable.value) return;
     if (rightSidebarOpen.value) {
-      motion.begin();
       rightSidebarRequested.value = false;
     } else {
-      motion.beginRightSidebarExpansion();
       workspace.openDefaultRightSidebar();
       rightSidebarRequested.value = true;
     }
@@ -98,13 +86,11 @@ export function useShellController(
   }
   function openRightSidebar() {
     if (!workspaceActive.value || !workspace.rightSidebarAvailable.value) return;
-    if (!rightSidebarOpen.value) motion.beginRightSidebarExpansion();
     rightSidebarRequested.value = true;
     persist();
   }
   function setRightSidebarWidth(value: number) {
     rightSidebarWidth.value = Math.round(value);
-    persist();
   }
   function closeRightSidebar() {
     rightSidebarRequested.value = false;
@@ -161,13 +147,13 @@ export function useShellController(
     rightSidebarOpen,
     rightSidebarContentMounted,
     rightSidebarWidth,
-    panelMotion: motion.active,
-    cancelPanelMotion: motion.cancel,
     commands,
     toggleSidebarFromControl,
     setSidebarPinned,
     setSidebarWidth,
     setRightSidebarWidth,
+    /** A sash writes the width on every frame of the gesture; only the release reaches preferences. */
+    persistLayout: persist,
     openSidebarPreview,
     armSidebarPreview,
     scheduleSidebarPreviewClose,
