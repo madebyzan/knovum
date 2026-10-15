@@ -12,9 +12,11 @@ function quantize(extent: number) {
  * Raster size of the stage canvases.
  *
  * Every Konva layer reallocates and fully repaints its scene and hit canvas when the stage is resized, so a
- * host that resizes per frame - a dragged splitter handle, a dragged window edge - would pay that cost on every
- * one of those frames. The raster therefore grows immediately, which keeps newly exposed area painted, and
- * shrinks only once the host size has settled. Panel toggles resize the host in one step and need neither. Quantizing both directions keeps ordinary layout jitter off the canvases.
+ * host that resizes per frame - a dragged sash, a panel animating its width, a dragged window edge - would
+ * pay that cost on every one of those frames. The raster therefore grows immediately, which keeps newly
+ * exposed area painted, and shrinks only once the host size has settled. Quantizing both directions means a
+ * moving edge reallocates once per raster step it crosses rather than on every frame, and keeps ordinary
+ * layout jitter off the canvases.
  */
 export function useStageRasterSize(host: Reactive<{ height: number; width: number }>) {
   const width = shallowRef(quantize(host.width));

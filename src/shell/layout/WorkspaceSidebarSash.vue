@@ -21,10 +21,12 @@ const { begin, dragging, end, keydown, move } = useSidebarResize({
 <template>
   <!--
     The divider takes no layout width: it sits exactly on the seam and reaches out for its hit area, so the
-    gap between the sidebar and the work area stays the gap the layout asked for.
+    gap between the sidebar and the work area stays the gap the layout asked for. A leading sidebar is
+    flush with the work area, so its line sits on the seam; a trailing pane is separated by the work area's
+    gutter, so its line centres in that gutter. It stacks above the sidebar slot it resizes.
   -->
   <div
-    class="workspace-sash relative z-30 w-0 shrink-0 self-stretch outline-none"
+    class="workspace-sash relative z-50 w-0 shrink-0 self-stretch outline-none"
     role="separator"
     aria-orientation="vertical"
     :aria-controls="controls"
@@ -37,7 +39,8 @@ const { begin, dragging, end, keydown, move } = useSidebarResize({
     @keydown="keydown"
   >
     <span
-      class="absolute inset-y-0 -left-2.5 flex w-5 cursor-col-resize touch-none justify-center"
+      class="absolute inset-y-0 flex w-5 cursor-col-resize touch-none justify-center"
+      :class="edge === 'trailing' ? '-left-3.5' : '-left-2.5'"
       @pointerdown="begin"
       @pointermove="move"
       @pointerup="end"
