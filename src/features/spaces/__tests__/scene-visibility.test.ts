@@ -5,6 +5,7 @@ import type { ProjectedSection } from "../canvas/document/structure-scene";
 import type { CanvasScene } from "../canvas/konva/scene/canvas-scene";
 import { projectCanvasScene } from "../canvas/konva/scene/scene-projection";
 import { useSceneVisibility } from "../canvas/konva/scene/use-scene-visibility";
+import { createCanvasCamera } from "../canvas/konva/viewport/canvas-camera";
 import { createSpaceNode } from "../canvas/node";
 import { createSpaceTextPayload } from "../document-editing/tiptap-content";
 
@@ -47,7 +48,7 @@ it("culls collapsed section bodies while retaining selected and temporarily expa
         expanded,
       ]),
       sectionIds: selected,
-      viewport: shallowRef({ x: 0, y: 0, zoom: 1 }),
+      camera: createCanvasCamera({ x: 0, y: 0, zoom: 1 }),
       size: { width: 500, height: 400 },
     }),
   )!;
@@ -95,7 +96,7 @@ it("keeps offscreen selection geometry without mounting its content and retains 
       relationIds: shallowRef(new Set<string>()),
       sections: shallowRef([]),
       sectionIds: shallowRef(new Set<string>()),
-      viewport: shallowRef({ x: 0, y: 0, zoom: 1 }),
+      camera: createCanvasCamera({ x: 0, y: 0, zoom: 1 }),
       size: { width: 500, height: 400 },
     }),
   )!;

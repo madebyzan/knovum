@@ -43,7 +43,7 @@ function beginGroupTransform(structureNodeId: string, event: Konva.KonvaEventObj
     :sections="runtime.visibility.visibleSections.value"
     :selected-ids="runtime.selection.structureNodeIds.value"
     :drop-preview="runtime.structureInteractions.dropPreview.value"
-    :zoom="runtime.viewport.viewport.value.zoom"
+    :zoom="runtime.viewport.zoom.value"
     @collapse="runtime.structureInteractions.collapse"
     @enter-group="runtime.structureInteractions.enterGroup"
     @drag-start="runtime.nodeDrag.begin"

@@ -22,7 +22,7 @@ export function useStructureDragAutoPan(options: StructureDragAutoPanOptions) {
     },
     setViewport: options.viewport.setViewport,
     size: options.viewport.size,
-    viewport: options.viewport.viewport,
+    viewport: options.viewport.getViewport,
   });
 
   function begin(structureNodeId: string, event: Konva.KonvaEventObject<DragEvent>) {

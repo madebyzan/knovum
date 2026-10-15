@@ -38,7 +38,7 @@ export function useCanvasManipulations(options: CanvasManipulationOptions) {
     selectedNodeIds: () => selection.nodeIds.value,
     snapshot: () => props.sceneInput.editSnapshot,
     stage: () => options.stage.value,
-    zoom: () => viewport.viewport.value.zoom,
+    zoom: () => viewport.getViewport().zoom,
   });
   const structureGestures = useStructureGestureSession({
     snapshot: () => props.sceneInput.editSnapshot,
@@ -53,7 +53,7 @@ export function useCanvasManipulations(options: CanvasManipulationOptions) {
     preview: options.structurePreview,
     previewDrop: options.structureInteractions.previewDrop,
     expandedSectionId: () => options.temporarilyExpandedSectionId.value,
-    zoom: () => viewport.viewport.value.zoom,
+    zoom: () => viewport.getViewport().zoom,
   });
   return {
     preview,

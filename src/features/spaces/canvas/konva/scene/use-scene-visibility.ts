@@ -1,20 +1,28 @@
 import { useThrottleFn } from "@vueuse/core";
-import { computed, shallowRef, watch, type Ref } from "vue";
+import { computed, onScopeDispose, shallowRef, watch, type Ref } from "vue";
 
 import { SECTION_HEADER_HEIGHT } from "../../../model/structure/section-metrics";
 import type { ProjectedSection } from "../../document/structure-scene";
+import type { CanvasCamera } from "../viewport/canvas-camera";
 import type { CanvasScene } from "./canvas-scene";
 import { createSceneVisibilityIndex, visibleSceneIds } from "./viewport-culling";
 
+/**
+ * Culling cadence. The index query is cheap, but each result change mounts or discards node content, so the
+ * camera is sampled on a fixed interval instead of every frame; the overscan margin covers the travel in
+ * between.
+ */
+const SAMPLE_INTERVAL_MS = 80;
+
 interface SceneVisibilityOptions {
   activeNodeId: Readonly<Ref<string | undefined>>;
+  camera: CanvasCamera;
   nodeIds: Readonly<Ref<ReadonlySet<string>>>;
   relationIds: Readonly<Ref<ReadonlySet<string>>>;
   scene: Readonly<Ref<CanvasScene>>;
   sections: Readonly<Ref<readonly ProjectedSection[]>>;
   sectionIds: Readonly<Ref<ReadonlySet<string>>>;
   size: { width: number; height: number };
-  viewport: Readonly<Ref<{ x: number; y: number; zoom: number }>>;
 }
 
 export function useSceneVisibility(options: SceneVisibilityOptions) {
@@ -58,18 +66,19 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
   );
 
   function updateVisibility() {
-    const visible = visibleSceneIds(visibilityIndex.value, options.viewport.value, options.size);
+    const visible = visibleSceneIds(visibilityIndex.value, options.camera.get(), options.size);
     culledNodeIds.value = visible.nodes;
     culledSectionIds.value = visible.sections;
     culledRelationIds.value = visible.relations;
   }
 
-  const scheduleVisibilityUpdate = useThrottleFn(updateVisibility, 80, true, true);
+  const scheduleVisibilityUpdate = useThrottleFn(updateVisibility, SAMPLE_INTERVAL_MS, true, true);
   updateVisibility();
   watch(
-    [options.scene, options.sections, options.viewport, () => options.size.width, () => options.size.height],
+    [options.scene, options.sections, () => options.size.width, () => options.size.height],
     scheduleVisibilityUpdate,
   );
+  onScopeDispose(options.camera.observeFrames(scheduleVisibilityUpdate));
   const visibleSections = computed(() =>
     options.sections.value.filter(
       ({ section, temporarilyExpanded }) =>

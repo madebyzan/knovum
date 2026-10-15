@@ -1,10 +1,12 @@
 import { TransitionPresets, transition, useElementSize } from "@vueuse/core";
 import type Konva from "konva";
-import { computed, onBeforeUnmount, reactive, shallowRef, watch, type Ref } from "vue";
+import { computed, onBeforeUnmount, onScopeDispose, reactive, shallowRef, watch, type Ref } from "vue";
 
 import { isScrollableTarget } from "../../../../../foundation/dom/scrollable-target";
-import type { CanvasPoint, CanvasViewport } from "../../contracts/canvas-editor-port";
-import { useViewportMotion } from "./use-viewport-motion";
+import type { CanvasViewport } from "../../contracts/canvas-editor-port";
+import { createCameraPan } from "./camera-pan";
+import { createCanvasCamera } from "./canvas-camera";
+import { useStageRasterSize } from "./use-stage-raster-size";
 import { useViewportSpaceKey } from "./use-viewport-space-key";
 import { normalizedWheelDelta, zoomViewportAt } from "./viewport-math";
 
@@ -12,82 +14,73 @@ interface StageViewportOptions {
   host: Readonly<Ref<HTMLElement | null>>;
   initialViewport: CanvasViewport;
   navigationEnabled(): boolean;
-  update(viewport: CanvasViewport): void;
+  /** Receives every projected camera frame, for screen-anchored product surfaces outside the stage. */
+  project(viewport: CanvasViewport): void;
+  /** Receives the camera once it stops moving, which is when the adapter document adopts it. */
+  commit(viewport: CanvasViewport): void;
 }
 
+const ANIMATION_MS = 180;
+
+/**
+ * Camera ownership for one mounted stage.
+ *
+ * Gestures write the live camera, which projects itself imperatively once per frame. The only reactive
+ * camera value published to the scene tree is the zoom, because zoom changes screen-space chrome metrics;
+ * position never re-renders a component.
+ */
 export function useStageViewport(options: StageViewportOptions) {
-  const stageSizeStep = 128;
   const measuredSize = useElementSize(options.host, { width: 1, height: 1 });
   const size = reactive({
     width: computed(() => Math.max(1, measuredSize.width.value)),
     height: computed(() => Math.max(1, measuredSize.height.value)),
   });
-  const stageSize = reactive({
-    width: computed(() => Math.ceil(size.width / stageSizeStep) * stageSizeStep),
-    height: computed(() => Math.ceil(size.height / stageSizeStep) * stageSizeStep),
-  });
-  const viewport = shallowRef<CanvasViewport>({ ...options.initialViewport });
-  let publishedViewport = viewport.value;
-  let animationGeneration = 0;
-  const panStart = shallowRef<{ pointerId: number; pointer: CanvasPoint; viewport: CanvasViewport }>();
-  const panning = computed(() => panStart.value !== undefined);
-  const { moving, markMoving } = useViewportMotion();
-  watch(viewport, markMoving);
+  const stageSize = useStageRasterSize(size);
+  const camera = createCanvasCamera({ ...options.initialViewport });
+  const zoom = shallowRef(camera.get().zoom);
+  const animated = shallowRef(camera.get());
   const { key, spacePressed } = useViewportSpaceKey();
-  let panFrame: number | undefined;
-  let pendingPanViewport: CanvasViewport | undefined;
-  let publicationFrame: number | undefined;
+  let animationGeneration = 0;
+  const pan = createCameraPan({
+    abortAnimation: () => animationGeneration++,
+    camera,
+    navigationEnabled: options.navigationEnabled,
+    spacePressed,
+  });
 
-  function schedulePublication() {
-    if (publicationFrame !== undefined) return;
-    publicationFrame = requestAnimationFrame(() => {
-      publicationFrame = undefined;
-      publishViewport();
-    });
-  }
+  camera.observeFrames((value) => {
+    zoom.value = value.zoom;
+    options.project(value);
+  });
+  camera.observeSettled(options.commit);
+  watch(animated, (value) => camera.set(value));
+  onScopeDispose(camera.dispose);
 
-  function publishViewport() {
-    if (viewport.value === publishedViewport) return;
-    publishedViewport = viewport.value;
-    options.update(viewport.value);
-  }
-
-  function takeViewportControl() {
+  function takeCameraControl() {
     animationGeneration++;
-    if (panFrame !== undefined) cancelAnimationFrame(panFrame);
-    panFrame = undefined;
-    if (pendingPanViewport) viewport.value = pendingPanViewport;
-    pendingPanViewport = undefined;
-    panStart.value = undefined;
-    if (publicationFrame !== undefined) cancelAnimationFrame(publicationFrame);
-    publicationFrame = undefined;
+    pan.release();
   }
 
   function flushViewport() {
-    takeViewportControl();
-    publishViewport();
+    takeCameraControl();
+    camera.settle();
   }
 
-  function getViewport() {
-    return pendingPanViewport ?? viewport.value;
-  }
-
-  function setViewport(next: CanvasViewport, notify = true) {
-    takeViewportControl();
-    viewport.value = { ...next };
-    if (notify) schedulePublication();
-    else publishedViewport = viewport.value;
+  function setViewport(next: CanvasViewport) {
+    takeCameraControl();
+    camera.set({ ...next });
   }
 
   function animateViewport(next: CanvasViewport) {
-    takeViewportControl();
+    takeCameraControl();
     const generation = animationGeneration;
+    animated.value = camera.get();
     void transition(
-      viewport,
-      { ...viewport.value },
+      animated,
+      { ...animated.value },
       { ...next },
       {
-        duration: 180,
+        duration: ANIMATION_MS,
         easing: TransitionPresets.easeOutCubic,
         abort: () => generation !== animationGeneration,
         interpolation: (from, to, progress) => ({
@@ -96,10 +89,7 @@ export function useStageViewport(options: StageViewportOptions) {
           zoom: from.zoom + (to.zoom - from.zoom) * progress,
         }),
       },
-    ).then(() => {
-      if (generation === animationGeneration) publishViewport();
-      return undefined;
-    });
+    );
   }
 
   function wheel(event: Konva.KonvaEventObject<WheelEvent>) {
@@ -108,57 +98,14 @@ export function useStageViewport(options: StageViewportOptions) {
     if (!options.navigationEnabled()) return;
     const pointer = event.target.getStage()?.getPointerPosition();
     if (!pointer) return;
-    const current = getViewport();
+    const current = camera.get();
     const delta = normalizedWheelDelta(event.evt, size.height);
+    takeCameraControl();
     if (event.evt.ctrlKey || event.evt.metaKey) {
-      setViewport(zoomViewportAt(current, pointer, current.zoom * Math.exp(-delta.y * 0.002)));
+      camera.set(zoomViewportAt(current, pointer, current.zoom * Math.exp(-delta.y * 0.002)));
       return;
     }
-    setViewport({
-      x: current.x - delta.x,
-      y: current.y - delta.y,
-      zoom: current.zoom,
-    });
-  }
-
-  function beginPan(event: Konva.KonvaEventObject<PointerEvent>, handTool = false) {
-    if (!options.navigationEnabled()) return false;
-    if (event.evt.button !== 1 && !(event.evt.button === 0 && (handTool || spacePressed.value))) return false;
-    if (panStart.value) return true;
-    const pointer = event.target.getStage()?.getPointerPosition();
-    if (!pointer) return false;
-    event.evt.preventDefault();
-    takeViewportControl();
-    markMoving();
-    panStart.value = { pointerId: event.evt.pointerId, pointer, viewport: viewport.value };
-    return true;
-  }
-
-  function movePan(event: Konva.KonvaEventObject<PointerEvent>) {
-    const start = panStart.value;
-    if (!start || event.evt.pointerId !== start.pointerId) return;
-    const pointer = event.target.getStage()?.getPointerPosition();
-    if (!pointer) return;
-    pendingPanViewport = {
-      x: start.viewport.x + pointer.x - start.pointer.x,
-      y: start.viewport.y + pointer.y - start.pointer.y,
-      zoom: start.viewport.zoom,
-    };
-    if (panFrame !== undefined) return;
-    panFrame = requestAnimationFrame(flushPanViewport);
-  }
-
-  function endPan(event?: PointerEvent) {
-    if (!panStart.value || (event && event.pointerId !== panStart.value.pointerId)) return;
-    flushViewport();
-  }
-
-  function flushPanViewport() {
-    panFrame = undefined;
-    if (!pendingPanViewport) return;
-    viewport.value = pendingPanViewport;
-    pendingPanViewport = undefined;
-    publishViewport();
+    camera.set({ x: current.x - delta.x, y: current.y - delta.y, zoom: current.zoom });
   }
 
   watch(options.navigationEnabled, (enabled) => {
@@ -166,21 +113,25 @@ export function useStageViewport(options: StageViewportOptions) {
   });
   onBeforeUnmount(flushViewport);
 
+  function endPan(event?: PointerEvent) {
+    if (pan.owns(event)) flushViewport();
+  }
+
   return {
-    beginPan,
     animateViewport,
+    beginPan: (event: Konva.KonvaEventObject<PointerEvent>, handTool = false) => pan.begin(event, handTool),
+    camera,
     endPan,
     flushViewport,
-    getViewport,
+    getViewport: camera.get,
     key,
-    movePan,
-    moving,
-    panning,
+    movePan: pan.move,
+    panning: pan.panning,
     setViewport,
     size,
     stageSize,
     spacePressed,
-    viewport,
     wheel,
+    zoom,
   };
 }

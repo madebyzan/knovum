@@ -110,7 +110,7 @@ watch(interactionLayer, syncInteractionCanvas, { flush: "post" });
       @pointer-down="relayPointerDown"
     />
   </KonvaLayer>
-  <KonvaLayer :config="{ id: 'canvas-drag-layer' }" />
+  <KonvaLayer :config="{ id: 'canvas-drag-layer', listening: false }" />
   <KonvaLayer v-if="selectedFrames.length || connectorDraft || feedback" ref="interactionLayer">
     <CanvasSelectionTransformer
       v-if="stage && !connectorDraft"

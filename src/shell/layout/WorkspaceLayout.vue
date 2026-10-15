@@ -17,6 +17,7 @@ const props = defineProps<{
   sidebarWidth: number;
   sidebarPreview: boolean;
   rightSidebarOpen: boolean;
+  rightSidebarContentMounted: boolean;
   rightSidebarWidth: number;
 }>();
 const emit = defineEmits<{
@@ -119,7 +120,7 @@ function onDrag(active: boolean, commit: () => void) {
           :aria-hidden="!rightSidebarOpen"
         >
           <Transition name="workspace-pane-content">
-            <WorkspaceRightSidebar v-if="rightSidebarOpen" :workspace="workspace" />
+            <WorkspaceRightSidebar v-if="rightSidebarContentMounted" :workspace="workspace" />
           </Transition>
         </div>
       </SplitterPanel>

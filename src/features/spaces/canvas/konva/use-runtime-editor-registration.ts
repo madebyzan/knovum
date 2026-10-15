@@ -57,7 +57,7 @@ export function useRuntimeEditorRegistration(options: RuntimeEditorRegistrationO
     pastePoint: () =>
       canvasPastePoint(
         options.pointer.lastCanvasPoint.value,
-        options.viewport.viewport.value,
+        options.viewport.getViewport(),
         options.viewport.size,
       ),
     selection: options.selection,
