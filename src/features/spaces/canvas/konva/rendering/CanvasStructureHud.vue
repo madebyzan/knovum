@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { CanvasViewport } from "../../contracts/canvas-editor-port";
+import type { CanvasCamera } from "../viewport/canvas-camera";
 import CanvasGroupScopeBar from "./CanvasGroupScopeBar.vue";
 import CanvasStructureRenameOverlay from "./CanvasStructureRenameOverlay.vue";
 
 defineProps<{
+  camera: CanvasCamera;
   groupScopeTitles: readonly string[];
   renameTarget:
     | {
@@ -13,7 +14,7 @@ defineProps<{
       }
     | undefined;
   renameError: string | undefined;
-  viewport: CanvasViewport;
+  zoom: number;
 }>();
 const emit = defineEmits<{
   back: [];
@@ -28,8 +29,9 @@ const emit = defineEmits<{
     v-if="renameTarget"
     :key="renameTarget.structureNodeId"
     :bounds="renameTarget.bounds"
+    :camera="camera"
     :title="renameTarget.title"
-    :viewport="viewport"
+    :zoom="zoom"
     :error="renameError"
     @cancel="emit('cancelRename')"
     @save="emit('saveRename', $event)"

@@ -3,11 +3,13 @@ import type Konva from "konva";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, shallowRef } from "vue";
 
+import type { CanvasViewport } from "../contracts/canvas-editor-port";
 import { useStageViewport } from "../konva/viewport/use-stage-viewport";
 
 it("keeps an empty camera fixed, then accepts navigation when an object exists", () => {
   const enabled = shallowRef(false);
-  const update = vi.fn<(value: { x: number; y: number; zoom: number }) => void>();
+  const commit = vi.fn<(value: CanvasViewport) => void>();
+  const project = vi.fn<(value: CanvasViewport) => void>();
   let viewport!: ReturnType<typeof useStageViewport>;
   const wrapper = mount(
     defineComponent({
@@ -16,7 +18,8 @@ it("keeps an empty camera fixed, then accepts navigation when an object exists",
           host: shallowRef(null),
           initialViewport: { x: 30, y: 40, zoom: 1 },
           navigationEnabled: () => enabled.value,
-          update,
+          commit,
+          project,
         });
         return () => null;
       },
@@ -31,7 +34,7 @@ it("keeps an empty camera fixed, then accepts navigation when an object exists",
   viewport.flushViewport();
   expect(wheel.evt.defaultPrevented).toBe(true);
   expect(viewport.getViewport()).toEqual({ x: 30, y: 40, zoom: 1 });
-  expect(update).not.toHaveBeenCalled();
+  expect(commit).not.toHaveBeenCalled();
   const pointer = {
     ...wheel,
     evt: new PointerEvent("pointerdown", { button: 1, pointerId: 1 }),
@@ -41,6 +44,7 @@ it("keeps an empty camera fixed, then accepts navigation when an object exists",
   viewport.wheel(wheel);
   viewport.flushViewport();
   expect(viewport.getViewport()).toEqual({ x: 30, y: -40, zoom: 1 });
-  expect(update).toHaveBeenCalledOnce();
+  expect(commit).toHaveBeenCalledOnce();
+  expect(commit).toHaveBeenLastCalledWith({ x: 30, y: -40, zoom: 1 });
   expect(viewport.beginPan(pointer)).toBe(true);
 });

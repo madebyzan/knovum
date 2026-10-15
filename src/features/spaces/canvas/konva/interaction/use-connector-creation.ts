@@ -30,14 +30,14 @@ export function useConnectorCreation(options: ConnectorCreationOptions) {
   const controller = new ConnectorGestureController(
     () => targetIndex.value,
     (value) => (draft.value = value),
-    () => options.viewport.viewport.value.zoom,
+    () => options.viewport.getViewport().zoom,
   );
   const autoPan = useCanvasEdgeAutoPan({
     onPan: ({ screenPoint }) =>
-      controller.move(canvasPointFromScreen(screenPoint, options.viewport.viewport.value)),
+      controller.move(canvasPointFromScreen(screenPoint, options.viewport.getViewport())),
     setViewport: options.viewport.setViewport,
     size: options.viewport.size,
-    viewport: options.viewport.viewport,
+    viewport: options.viewport.getViewport,
   });
 
   function pointerMove(event: Konva.KonvaEventObject<PointerEvent>) {

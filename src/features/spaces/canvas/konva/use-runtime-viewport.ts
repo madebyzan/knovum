@@ -14,11 +14,12 @@ export function useRuntimeViewport(
     host,
     navigationEnabled: () => props.interactionEnabled && props.navigationEnabled,
     initialViewport: model.document.viewport,
-    update: (next) => model.setViewport(next),
+    project: props.events.onViewportChange,
+    commit: (next) => model.setViewport(next),
   });
   useExternalContentDrop({
     host,
-    viewport: () => viewport.viewport.value,
+    viewport: viewport.getViewport,
     insertText: props.events.onInsertText,
     insertUrl: props.events.onInsertUrl,
     reportError: props.events.onError,
