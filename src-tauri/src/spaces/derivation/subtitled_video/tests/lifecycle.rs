@@ -49,7 +49,7 @@ async fn fixture(with_transcript: bool) -> (SqlitePool, RenderSubtitledVideoRequ
         .await
         .unwrap();
     let nodes: InsertNodesRequest = serde_json::from_value(json!({
-        "spaceId":"space","mutationId":"create","expectedEditRevision":0,"targetParentId":null,
+        "spaceId":"space","mutationId":"create","targetParentId":null,
         "nodes":[
             {"id":"source","kind":"video","initialX":0,"initialY":0,"width":300,"height":200,"sizingMode":"frame","data":source,"sourceChunks":[]},
             {"id":"output","kind":"video","initialX":400,"initialY":0,"width":300,"height":200,"sizingMode":"frame","data":output,"sourceChunks":[]}

@@ -13,7 +13,6 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../../model/nodes/node-validation";
 import { createNodes } from "../../nodes/node-operations";
-import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { loadSpaceSessionProjection } from "../space-projection";
 import { createNodeContentMutations } from "./node-content-mutations";
 
@@ -88,15 +87,10 @@ function createContentMutations(context: SpaceMutationContext) {
     if (isActive) nodes.value = [...nodes.value, ...contentNodes];
     let persisted = false;
     try {
-      const snapshot = isActive ? context.editSnapshot.value : await spaceEditOperations.load(spaceId);
       await createNodes({
         spaceId,
         nodes: contentNodes,
-        edit: {
-          mutationId: crypto.randomUUID(),
-          expectedEditRevision: snapshot.editRevision,
-          targetParentId,
-        },
+        edit: { mutationId: crypto.randomUUID(), targetParentId },
         sourceChunksByNodeId,
       });
       persisted = true;
@@ -117,10 +111,12 @@ function createContentMutations(context: SpaceMutationContext) {
       if (!committed) throw new Error("Created node projection is unavailable");
       pending.data = committed.data;
     }
-    if (context.activeSpaceId.value === spaceId) {
-      context.nodes.value = projection.nodes;
-      context.editSnapshot.value = projection.editSnapshot;
-    }
+    if (context.activeSpaceId.value !== spaceId) return;
+    // Parallel creations read their projection after their own commit, so a slower read can
+    // return an older Space than the session already holds. Only newer projections win.
+    if (projection.editSnapshot.editRevision < context.editSnapshot.value.editRevision) return;
+    context.nodes.value = projection.nodes;
+    context.editSnapshot.value = projection.editSnapshot;
   }
 
   function commitPendingContent(spaceId: string, contentNodes: readonly SpaceCanvasNode[]) {

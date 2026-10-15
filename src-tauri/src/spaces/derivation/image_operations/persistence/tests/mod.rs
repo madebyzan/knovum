@@ -36,7 +36,7 @@ async fn fixture() -> (SqlitePool, DeriveImageRequest, Value) {
         .await
         .unwrap();
     let nodes: InsertNodesRequest = serde_json::from_value(json!({
-        "spaceId":"space","mutationId":"create","expectedEditRevision":0,"targetParentId":null,
+        "spaceId":"space","mutationId":"create","targetParentId":null,
         "nodes":[
             {"id":"source","kind":"image","initialX":0,"initialY":0,"width":300,"height":200,"sizingMode":"frame","data":source,"sourceChunks":[]},
             {"id":"output","kind":"image","initialX":400,"initialY":0,"width":300,"height":200,"sizingMode":"frame","data":output,"sourceChunks":[]}

@@ -51,9 +51,9 @@ Space persistence is entirely Rust-owned. Reads and writes cross typed Rust comm
 - `plugin:spaces|search_structure_global` — search active Group and Section titles across non-archived Spaces without treating containers as knowledge content;
 - `plugin:spaces|revoke_relations` / `plugin:spaces|restore_relations` — revoke or restore one relation selection in a single database transaction;
 - `plugin:spaces|get_space_edit_receipt` — resolve an ambiguous IPC result by mutation identity without retrying a business operation;
-- `plugin:spaces|create_nodes` — atomically insert content rows and their Structure nodes and layouts at an explicit parent;
+- `plugin:spaces|create_nodes` — atomically insert content rows and their Structure nodes and layouts at an explicit parent, appending to the structure loaded in that write transaction instead of a caller revision;
 - `plugin:spaces|update_nodes` — normalize authoritative knowledge revisions, update affected knowledge atomically, and return the committed node payloads;
-- `plugin:spaces|discard_pending_content` — abandon one failed pending creation by deleting its content and Structure/Layout atomically without creating a Recently Deleted entry;
+- `plugin:spaces|discard_pending_content` — abandon one failed pending creation by deleting its content and Structure/Layout atomically without creating a Recently Deleted entry, against the structure loaded in that write transaction;
 - `plugin:spaces|load_canvas_view_state` and `plugin:spaces|save_canvas_view_state` — persist only the disposable camera;
 - `plugin:spaces|import_structure_clipboard` — validate and commit a remapped structure subtree, content and internal relations as one mutation;
 - `plugin:spaces|index_knowledge` — index current knowledge for a Space or a selected set of nodes;

@@ -159,7 +159,6 @@ async fn context_attachment_does_not_assert_derivation() {
         nodes::contracts::InsertNodesRequest {
             space_id: "space".into(),
             mutation_id: "source-create".into(),
-            expected_edit_revision: 0,
             target_parent_id: None,
             nodes: vec![output("source", "markdown")],
         },
