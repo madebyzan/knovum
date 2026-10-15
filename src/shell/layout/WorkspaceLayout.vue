@@ -40,7 +40,7 @@ const liveSidebarWidth = shallowRef<number>();
  * width is stale by design, and the surface must track the handle rather than jump on release.
  */
 const surfaceWidth = computed(() =>
-  dragging.value && liveSidebarWidth.value ? liveSidebarWidth.value : props.sidebarWidth,
+  dragging.value && liveSidebarWidth.value !== undefined ? liveSidebarWidth.value : props.sidebarWidth,
 );
 const { handleLayout, leadingPanel, trailingPanel } = useWorkspaceSplitter({
   sidebarPinned: () => props.sidebarPinned,
@@ -90,7 +90,7 @@ function schedulePreviewClose() {
       its resize observer, all inside the first frame of the geometry transition.
     -->
     <div
-      class="workspace-sidebar-surface absolute inset-y-0 left-0 z-40 h-full min-h-0"
+      class="workspace-sidebar-surface absolute inset-y-0 left-0 z-40 h-full min-h-0 overflow-hidden"
       :class="{ 'is-visible': sidebarVisible, 'is-preview rounded-r-xl': sidebarPreview && !sidebarPinned }"
       :style="{ width: `${surfaceWidth}px` }"
       :aria-hidden="!sidebarVisible"
