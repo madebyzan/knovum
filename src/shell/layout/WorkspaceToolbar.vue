@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { PanelRightClose, PanelRightOpen } from "@lucide/vue";
 import { computed } from "vue";
 
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
 import UiIconButton from "../../shared/ui/UiIconButton.vue";
+import UiPanelToggleIcon from "../../shared/ui/UiPanelToggleIcon.vue";
 import TaskCenter from "../tasks/TaskCenter.vue";
 import WorkspaceNavigationControls from "./WorkspaceNavigationControls.vue";
 
@@ -67,15 +67,10 @@ const emit = defineEmits<{
           aria-controls="spaces-right-sidebar"
           :aria-expanded="rightSidebarOpen"
           shortcut="$mod+Shift+B"
-          :active="rightSidebarOpen"
           size="md"
           @click="emit('toggle-right-sidebar')"
         >
-          <component
-            :is="rightSidebarOpen ? PanelRightClose : PanelRightOpen"
-            class="size-4.5"
-            :stroke-width="1.55"
-          />
+          <UiPanelToggleIcon class="size-4.5" side="right" :open="rightSidebarOpen" />
         </UiIconButton>
       </div>
     </div>

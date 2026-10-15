@@ -235,14 +235,15 @@ shell and component enter/leave states; do not add a motion runtime for simple o
 - panel visibility animates on one shared clock (`--knovum-panel-motion-duration`,
   `--knovum-panel-motion-easing`): a sidebar's slot animates the layout width it reserves, the sidebar itself
   stays at its own width and rides the slot's edge, and the toolbar columns that align to the work area
-  interpolate with the same duration and curve - the native split-view model. That is cheap for the canvas
-  because of three rules, each of which was once the actual cost: nothing inside a sidebar reflows or mounts
-  during the motion (fixed-width content; the right pane only fades as it mounts), nothing compensates the
-  canvas camera for the moving host, and the stage raster is quantized, grows immediately and shrinks only
-  once the host settles, so a moving edge relayouts the work area without reallocating or repainting layer
-  backings. The curve starts gently: a front-loaded curve covers most of a 240px travel in two frames and
-  reads as a snap. A sash drag suspends the motion (`html[data-sash-dragging]`) and tracks the pointer;
-  reduced motion keeps every state and drops the interpolation;
+  interpolate with the same duration and curve - the native split-view model. That is cheap because the
+  canvas never reacts to it: nothing inside a sidebar reflows or mounts during the motion (fixed-width
+  content; the right pane only fades as it mounts), nothing compensates the canvas camera for the moving
+  host, and the stage surface - every Konva raster, the grid and the culled region - is bounded by the
+  window rather than the host, so a moving work-area edge is a clip. Measured on the real canvas with 1,200
+  notes, a toggle used to reallocate three layer canvases and mount or unmount about 36 cards inside the
+  motion; it now does neither. The curve starts gently: a front-loaded curve covers most of a 240px travel
+  in two frames and reads as a snap. A sash drag suspends the motion (`html[data-sash-dragging]`) and tracks
+  the pointer; reduced motion keeps every state and drops the interpolation;
 - a sidebar is the region its own width sizes, and that width is plain application state in pixels. The shell
   does not route it through a percent-based panel solver: converting to percent and back is lossy, so a panel
   resting on its minimum can report less than its minimum and have its commit silently rejected, leaving the
@@ -262,9 +263,11 @@ shell and component enter/leave states; do not add a motion runtime for simple o
   sidebar slot moves, and interpolated on the panel clock, so the tabs wait for the canvas edge and then ride
   it. The tab column adds no inset of its own, and the trailing column ends where the canvas ends when the
   right pane is open. Without a pinned sidebar the work area keeps one gutter of inset on every side;
-- a toggle control states its state through one glyph and a pressed style, like every other control in the
-  toolbar. Cross-fading two different line glyphs inside an 18px box paints both strokes over each other for
-  the length of the transition, which reads as a flash on every activation;
+- a sidebar toggle states its state through `UiPanelToggleIcon`, one geometry shared by both sidebars: a
+  panel frame whose pane is an empty slot when closed and filled when open, with the fill growing from the
+  window edge on the panel clock. The icon carries the state, so the button takes no pressed background on
+  top of it. Swapping or cross-fading two different line glyphs inside an 18px box paints both strokes over
+  each other for the length of the transition, which reads as a flash on every activation;
 - never animate canvas-object geometry or other layout dimensions, and never interpolate a persisted
   node position while it is dragged, undone or restored; the single exception is a command-initiated rearrange
   (align, distribute, auto layout), which may transition the rendered transform for 150ms and stays subject to

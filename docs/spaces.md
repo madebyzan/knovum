@@ -653,7 +653,20 @@ pointer move and dispatches enter and leave events into product state, which is 
 dragging the canvas itself, and it makes each frame draw a second time per layer for the hit graph. The stage
 still receives the pointer events the gesture needs, and hit graphs are restored and redrawn on settlement.
 
-A panel animates the work area's width, so the canvas host moves and resizes for the length of the motion.
+A panel animates the work area's width, so the canvas host moves and resizes for the length of the motion,
+and the stage is built so that it does not react. Two extents have two jobs: the host is the viewport that
+fitting, centring and wheel normalization mean, while the stage surface - every Konva layer's raster, the
+dot grid and the region culling admits - covers the largest extent the host can take, the window. A moving
+work-area edge is therefore a clip: no layer is reallocated or repainted, no grid is re-rasterized, and no
+card is mounted or unmounted as the edge sweeps across it. Only the window resizes the surface, growing
+immediately and shrinking once the window settles, quantized to 256px steps. The price is a culled region
+up to the sidebars' width wider than the visible host while sidebars are open; cards there are mounted and
+clipped, which is what keeps them from mounting inside the next panel motion. Measured on the real canvas
+with 2,500 notes and both sidebars open, that is about twice the mounted cards (49 instead of 24 at 100%,
+121 instead of 63 zoomed out), and it buys toggles with no layer draw, no canvas reallocation and no card
+mount; culling against the host instead mounted 30-63 cards and redrew every layer inside the motion. A
+pan pays nothing for the extra cards, because the world layer moves them by transform.
+
 The camera lives in the host's own coordinate space and is never compensated for host movement: a trailing
 edge leaves content alone because the origin stays put, and a leading edge carries the content along with the
 work area, which the layout moves on its own without a single canvas draw. Compensating the leading edge
