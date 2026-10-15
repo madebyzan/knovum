@@ -28,6 +28,7 @@ const emit = defineEmits<{
 }>();
 const { t } = useI18n();
 const sidebarVisible = computed(() => props.sidebarPinned || props.sidebarPreview);
+const sidebarFloating = computed(() => props.sidebarPreview && !props.sidebarPinned);
 /** Hover only governs the preview role; a pinned sidebar is already open and owns no hover state. */
 function openPreview() {
   if (props.sidebarPinned) return;
@@ -40,28 +41,34 @@ function schedulePreviewClose() {
 </script>
 
 <template>
-  <div class="relative flex min-h-0 min-w-0 flex-1">
+  <div
+    class="relative flex min-h-0 min-w-0 flex-1 overflow-hidden"
+    :style="{
+      '--workspace-sidebar-width': `${sidebarWidth}px`,
+      '--workspace-right-sidebar-width': `${rightSidebarWidth}px`,
+    }"
+  >
     <!--
-      One element serves both sidebar roles. Pinned, it is the sized region itself, so its width cannot
-      disagree with the space reserved for it; previewing, it leaves the flow and floats over the work
-      area. Moving the subtree between two hosts instead would reset its scroll position and make every
-      outline row report a new height through its resize observer.
+      The slot is the layout width the sidebar reserves; the surface is the sidebar, fixed at its own width
+      and anchored to the slot's trailing edge, so it rides that edge without ever reflowing. Previewing,
+      the slot stays closed and the surface translates out over the work area instead. One element serves
+      both roles: moving the subtree between hosts would reset its scroll position and make every outline
+      row report a new height through its resize observer.
     -->
-    <div
-      id="spaces-sidebar"
-      class="workspace-sidebar-surface"
-      :class="{ 'is-pinned': sidebarPinned, 'is-visible': sidebarVisible }"
-      :style="{ '--workspace-sidebar-width': `${sidebarWidth}px` }"
-      :aria-hidden="!sidebarVisible"
-      :inert="!sidebarVisible"
-      @pointerenter="openPreview"
-      @pointerleave="schedulePreviewClose"
-    >
+    <div class="workspace-sidebar-slot" :class="{ 'is-pinned': sidebarPinned }">
       <div
-        class="workspace-sidebar-content"
-        :class="{ 'overflow-hidden rounded-r-xl shadow-dialog': !sidebarPinned }"
+        id="spaces-sidebar"
+        class="workspace-sidebar-surface"
+        :class="{ 'is-floating': sidebarFloating, 'rounded-r-xl': !sidebarPinned }"
+        :aria-hidden="!sidebarVisible"
+        :inert="!sidebarVisible"
+        @pointerenter="openPreview"
+        @pointerleave="schedulePreviewClose"
       >
-        <WorkspaceSidebar :workspace="workspace" />
+        <div class="workspace-sidebar-elevation rounded-[inherit]" aria-hidden="true" />
+        <div class="relative h-full min-h-0 overflow-hidden rounded-[inherit]">
+          <WorkspaceSidebar :workspace="workspace" />
+        </div>
       </div>
     </div>
 
@@ -76,7 +83,9 @@ function schedulePreviewClose() {
       @commit="emit('commit-layout')"
     />
 
-    <main class="min-h-0 min-w-0 flex-1 pb-2 select-text" :class="sidebarPinned ? 'pr-2 pl-0' : 'px-2'">
+    <main
+      class="min-h-0 min-w-0 flex-1 pr-(--knovum-workspace-gutter) pb-(--knovum-workspace-gutter) select-text"
+    >
       <div
         class="relative h-full min-h-0 overflow-hidden rounded-xl border border-(--knovum-window-border-color) bg-surface-canvas shadow-workspace"
       >
@@ -98,9 +107,8 @@ function schedulePreviewClose() {
     />
     <div
       id="spaces-right-sidebar"
-      class="workspace-right-sidebar-pane"
-      :class="{ 'is-visible': rightSidebarOpen }"
-      :style="{ '--workspace-right-sidebar-width': `${rightSidebarWidth}px` }"
+      class="workspace-right-sidebar-slot"
+      :class="{ 'is-open': rightSidebarOpen }"
       :inert="!rightSidebarOpen"
       :aria-hidden="!rightSidebarOpen"
     >

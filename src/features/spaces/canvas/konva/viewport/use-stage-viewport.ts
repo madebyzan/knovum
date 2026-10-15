@@ -30,10 +30,10 @@ const ANIMATION_MS = 180;
  * position never re-renders a component.
  *
  * The camera is held in the host's own coordinate space and is never compensated for host movement. When
- * a sidebar takes its new width the work area moves, and the scene moves with it, in the one layout step
- * that produced it. Compensation would have to read the host's new origin, which cannot be known earlier
- * than the layout that created it, so it always lands one frame after the pixels it is correcting - and a
- * one-frame correction of the whole scene is exactly the jump it was meant to prevent.
+ * a sidebar moves the work area, the scene moves with it through layout alone, without a canvas draw.
+ * Compensation would have to read the host's new origin, which cannot be known earlier than the layout
+ * that created it, so it always lands one frame after the pixels it is correcting - and a one-frame
+ * correction of the whole scene is exactly the jump it was meant to prevent.
  */
 export function useStageViewport(options: StageViewportOptions) {
   const measuredSize = useElementSize(options.host, { width: 1, height: 1 });
