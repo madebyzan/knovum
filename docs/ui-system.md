@@ -272,10 +272,11 @@ shell and component enter/leave states; do not add a motion runtime for simple o
   then ride it. The tab column adds no inset of its own, and the trailing column ends where the canvas ends when the
   right pane is open. Without a pinned sidebar the work area keeps one gutter of inset on every side;
 - a sidebar toggle states its state through `UiPanelToggleIcon`, one geometry shared by both sidebars and
-  mirrored to its window edge: a window frame with the pane inset from it by the same padding on every side
-  and concentric corners, the way a sidebar sits inside its window. Closed, the pane is an outline - an empty
-  place for the panel; open, it is solid, the fill growing from the window edge on the panel's duration and
-  curve. The outline never moves, so the change is the fill alone. The icon carries the state, so the button
+  mirrored to its window edge: a window frame with a solid pane inset from it by the same padding on every
+  side and concentric corners, the way a sidebar sits inside its window. Open, the pane is full width;
+  closed, the same block narrows to a rail against the window edge, so both states read as one object and
+  the difference is how much room the panel takes. The width itself animates on the panel's duration and
+  curve - not a scale, which would flatten the corners mid-motion. The icon carries the state, so the button
   takes no pressed background on top of it. Swapping or cross-fading two different line glyphs inside an
   18px box paints both strokes over each other for the length of the transition, which reads as a flash;
 - never animate canvas-object geometry or other layout dimensions, and never interpolate a persisted

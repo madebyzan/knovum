@@ -1,10 +1,11 @@
 <script setup lang="ts">
 /**
  * Sidebar toggle glyph, one geometry for both sidebars and both states on Lucide's 24px grid. The pane is a
- * rounded block inset from the window frame, as a sidebar sits inside its window: closed it is an outline,
- * an empty place for the panel; open it is solid. The fill grows from the window edge on the panel clock,
- * so the icon makes the motion the panel makes, and the outline never moves so the state change is the
- * fill alone - two glyphs swapped or cross-faded in 18px read as a flash.
+ * solid block inset from the window frame by the same padding on every side, with corners concentric to the
+ * frame's, as a sidebar sits inside its window. Open, it is a full pane; closed, the same block narrows to a
+ * rail against the window edge. The width itself animates - not a scale - so the corners stay round in every
+ * frame, on the panel's duration and curve, so the icon makes the motion the panel makes. One shape that only
+ * changes width cannot flash the way two glyphs swapped or cross-faded inside 18px do.
  */
 defineProps<{ side: "left" | "right"; open: boolean }>();
 </script>
@@ -24,14 +25,12 @@ defineProps<{ side: "left" | "right"; open: boolean }>();
   >
     <rect x="2.75" y="4.25" width="18.5" height="15.5" rx="3.75" />
     <g :transform="side === 'right' ? 'matrix(-1 0 0 1 24 0)' : undefined">
-      <rect x="6" y="7.5" width="3.5" height="9" rx="0.625" stroke-width="1.25" />
       <rect
-        class="ui-panel-toggle-icon-fill"
+        class="ui-panel-toggle-icon-pane"
         x="5.375"
         y="6.875"
-        width="4.75"
         height="10.25"
-        rx="1.25"
+        rx="1.125"
         fill="currentColor"
         stroke="none"
       />
@@ -40,14 +39,16 @@ defineProps<{ side: "left" | "right"; open: boolean }>();
 </template>
 
 <style scoped>
-.ui-panel-toggle-icon-fill {
-  transform: scaleX(0);
-  transform-box: fill-box;
-  transform-origin: left center;
-  transition: transform var(--knovum-panel-motion-duration) var(--knovum-panel-motion-easing);
+/*
+ * x is the window-edge side (the group mirrors it for the right sidebar), so the width grows away from it.
+ * The rail ends at x = 8, a whole pixel at 18px on 1x and 2x displays, so its edge is crisp at rest.
+ */
+.ui-panel-toggle-icon-pane {
+  width: 2.625px;
+  transition: width var(--knovum-panel-motion-duration) var(--knovum-panel-motion-easing);
 }
 
-.ui-panel-toggle-icon[data-open] .ui-panel-toggle-icon-fill {
-  transform: none;
+.ui-panel-toggle-icon[data-open] .ui-panel-toggle-icon-pane {
+  width: 4.75px;
 }
 </style>

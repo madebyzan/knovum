@@ -20,37 +20,34 @@ describe("panel toggle icon", () => {
     wrapper.unmount();
   });
 
-  it("insets the pane from the frame on every side, with a fill covering exactly its outline", () => {
-    const wrapper = mountIcon("left", true);
-    const [frame, outline, fill] = wrapper.findAll("rect").map((rect) => {
-      const number = (name: string) => Number(rect.attributes(name));
-      const half = Number(rect.attributes("stroke-width") ?? wrapper.attributes("stroke-width")) / 2;
-      const stroked = rect.attributes("stroke") !== "none";
-      const grow = stroked ? half : 0;
-      return {
-        left: number("x") - grow,
-        top: number("y") - grow,
-        right: number("x") + number("width") + grow,
-        bottom: number("y") + number("height") + grow,
-        innerLeft: number("x") + grow,
-        innerTop: number("y") + grow,
-        innerBottom: number("y") + number("height") - grow,
-      };
-    });
+  it("draws the pane solid in both states, inset evenly from the frame", async () => {
+    const wrapper = mountIcon("left", false);
+    const [frame, pane] = wrapper.findAll("rect");
+    const number = (rect: typeof frame, name: string) => Number(rect!.attributes(name));
+    const frameInner = number(frame, "stroke-width") || Number(wrapper.attributes("stroke-width"));
+    const inner = {
+      left: number(frame, "x") + frameInner / 2,
+      top: number(frame, "y") + frameInner / 2,
+      bottom: number(frame, "y") + number(frame, "height") - frameInner / 2,
+    };
     const inset = [
-      fill!.left - frame!.innerLeft,
-      fill!.top - frame!.innerTop,
-      frame!.innerBottom - fill!.bottom,
+      number(pane, "x") - inner.left,
+      number(pane, "y") - inner.top,
+      inner.bottom - number(pane, "y") - number(pane, "height"),
     ];
 
+    expect(wrapper.findAll("rect")).toHaveLength(2);
     expect(new Set(inset).size).toBe(1);
     expect(inset[0]).toBeGreaterThan(1);
-    expect({ ...fill, innerLeft: 0, innerTop: 0, innerBottom: 0 }).toEqual({
-      ...outline,
-      innerLeft: 0,
-      innerTop: 0,
-      innerBottom: 0,
-    });
+    // The width is the state, set by the stylesheet so it can animate; an attribute would pin it.
+    const expectSolidPane = () => {
+      expect(pane!.attributes("fill")).toBe("currentColor");
+      expect(pane!.attributes("stroke")).toBe("none");
+      expect(pane!.attributes("width")).toBeUndefined();
+    };
+    expectSolidPane();
+    await wrapper.setProps({ open: true });
+    expectSolidPane();
     wrapper.unmount();
   });
 
