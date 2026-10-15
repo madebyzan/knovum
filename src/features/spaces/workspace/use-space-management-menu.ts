@@ -31,7 +31,7 @@ export function useSpaceManagementMenu() {
     if (!port || store.activeSpaceId !== space.id || activePort.value !== port) {
       throw new Error("The Space selected for JSON Canvas export is no longer active");
     }
-    return exportJsonCanvasFile(port, space.title);
+    return exportJsonCanvasFile(port, space.kind === "inbox" ? t("spaces.space.inbox") : space.title);
   }
 
   function groups(space: Space): readonly ContextMenuItem[][] {

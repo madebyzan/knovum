@@ -56,8 +56,11 @@ export function useSpacePackageTransfer() {
     }
   }
 
-  async function exportPackage(space: Pick<Space, "id" | "title">) {
-    const target = { id: space.id, title: space.title };
+  async function exportPackage(space: Pick<Space, "id" | "title"> & { kind?: Space["kind"] }) {
+    const target = {
+      id: space.id,
+      title: space.kind === "inbox" ? t("spaces.space.inbox") : space.title,
+    };
     const destination = await chooseSpacePackageExportDestination(target.title);
     if (!destination) return;
     await store.commitActiveSession();

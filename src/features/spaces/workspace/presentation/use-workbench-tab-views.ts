@@ -1,4 +1,5 @@
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { useDocumentSessionStore } from "../../document-editing/document-session-store";
 import { useSpaceStore } from "../../session/space-store";
@@ -20,6 +21,7 @@ export function useWorkbenchTabViews() {
   const store = useSpaceStore();
   const documents = useDocumentSessionStore();
   const videos = useVideoSessionStore();
+  const { t } = useI18n();
 
   function editorTitle(tab: SpaceEditorTab) {
     const document = documents.sessions.get(tab.id);
@@ -32,7 +34,7 @@ export function useWorkbenchTabViews() {
     if (draft?.id === spaceId) return draft.title;
     const space = store.spaces.find((candidate) => candidate.id === spaceId);
     if (!space) throw new Error(`Workbench tab references an unavailable space: ${spaceId}`);
-    return space.title;
+    return space.kind === "inbox" ? t("spaces.space.inbox") : space.title;
   }
 
   function dirty(tab: SpaceWorkbenchTab) {
