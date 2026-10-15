@@ -113,8 +113,9 @@ export function useStageViewport(options: StageViewportOptions) {
   });
   onBeforeUnmount(flushViewport);
 
+  /** Releasing the hold lets settlement run on the next quiet frame, keeping it out of the pointerup frame. */
   function endPan(event?: PointerEvent) {
-    if (pan.owns(event)) flushViewport();
+    if (pan.owns(event)) pan.release();
   }
 
   return {

@@ -642,6 +642,14 @@ settled camera clears at once; a pan into a dense region therefore mounts a few 
 batch inside one frame. The adapter document adopts the camera when it stops moving, which keeps camera
 motion out of document identity, projection and view-state persistence.
 
+Settlement is the expensive edge of camera motion - it hands drawing back to the vendor, redraws every layer
+including the hit graph, and lets the document adopt the camera - so a gesture holds the camera open from its
+first event until it ends, and a pointer that rests mid-gesture never pays for it. A pan gesture additionally
+takes the stage out of hit testing: the vendor otherwise reads pixels back from each listening layer on every
+pointer move and dispatches enter and leave events into product state, which is waste while the pointer is
+dragging the canvas itself, and it makes each frame draw a second time per layer for the hit graph. The stage
+still receives the pointer events the gesture needs, and hit graphs are restored and redrawn on settlement.
+
 Zoom, fit, reveal and selection clearing cross one small editor port and delegate to the mounted engine. Pinia holds the current aggregate projection and session selection but does not mirror vendor records. Rust owns revision-checked structural history; Renderer history groups related Rust edits so one physical action remains one Undo/Redo step. Camera movement stays outside structural history. System preview is a workbench command for one selected managed asset and opens the platform preview directly; it is not a canvas input-mode protocol.
 
 Each still-open Space tab retains its own Renderer Undo/Redo stacks. Switching tabs saves the current
