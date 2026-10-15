@@ -16,6 +16,8 @@
   "layout": {
     "toggleRightSidebar": "Afficher ou masquer la barre latérale droite",
     "toggleSidebar": "Basculer la barre latérale",
+    "resizeSidebar": "Redimensionner la barre latérale",
+    "resizeRightSidebar": "Redimensionner la barre latérale droite",
     "saveFailed": "La disposition de l'atelier n'a pas pu être enregistrée"
   },
   "shortcuts": {

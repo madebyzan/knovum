@@ -654,9 +654,12 @@ dragging the canvas itself, and it makes each frame draw a second time per layer
 still receives the pointer events the gesture needs, and hit graphs are restored and redrawn on settlement.
 
 A panel changes the work area's width in one step rather than over an animation, so the canvas host resizes
-once per toggle. The trailing edge leaves content alone - the stage origin stays put - while the leading edge
-drags the origin along, so the host's origin shift is folded into the camera in the same frame as the layout
-that caused it. Both edges then behave the same: the viewport narrows and content stays where the user left it.
+once per toggle. The camera lives in the host's own coordinate space and is never compensated for host
+movement: a trailing edge leaves content alone because the origin stays put, and a leading edge carries the
+content along with the work area, in the one layout step that produced it. Compensating the leading edge
+would have to read the host's new origin, which no observer can report earlier than the layout that created
+it, so the correction always lands one frame after the pixels it corrects - and a one-frame correction of the
+whole scene is the jump it was meant to prevent.
 
 Zoom, fit, reveal and selection clearing cross one small editor port and delegate to the mounted engine. Pinia holds the current aggregate projection and session selection but does not mirror vendor records. Rust owns revision-checked structural history; Renderer history groups related Rust edits so one physical action remains one Undo/Redo step. Camera movement stays outside structural history. System preview is a workbench command for one selected managed asset and opens the platform preview directly; it is not a canvas input-mode protocol.
 

@@ -1,25 +1,49 @@
 /*
- * One surface serves both sidebar roles: pinned, where the splitter reserves matching width next to it, and
- * preview, where it floats over the work area. Its width is fixed in both, which keeps the subtree out of
- * the panel's per-frame clip, and only transform and opacity animate - a box-shadow transition would repaint
- * the dialog-sized shadow band on the main thread for every frame of the slide, which is exactly the frame
- * budget the slide needs.
+ * One surface serves both sidebar roles. Pinned, it is the sized region: the sash writes its width
+ * directly, so the sidebar and the space reserved for it are the same number and can never disagree.
+ * Previewing, it leaves the flow and floats over the work area without touching the work area's size.
+ *
+ * Width changes in one step, always. The motion belongs to the content, on composited properties only:
+ * animating a region's width would resize the canvas host on every frame of the animation, and a
+ * box-shadow transition would repaint the dialog-sized shadow band on the main thread for every frame
+ * of the slide, which is exactly the frame budget the slide needs.
  */
 .workspace-sidebar-surface {
-  opacity: 0;
-  transform: translate3d(-100%, 0, 0);
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  z-index: 40;
+  width: var(--workspace-sidebar-width);
+  min-height: 0;
+}
+
+.workspace-sidebar-surface.is-pinned {
+  position: relative;
+  z-index: 0;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.workspace-sidebar-content {
+  height: 100%;
+  min-height: 0;
+  opacity: 1;
   transition:
-    transform 180ms var(--ease-standard),
+    transform 200ms var(--ease-standard),
     opacity 150ms var(--ease-decelerate);
 }
 
-.workspace-sidebar-surface.is-visible {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
+/*
+ * Hidden, the surface still occupies its strip of the work area, so it gives up hit testing explicitly
+ * rather than relying on inert alone: the canvas owns every pixel the sidebar is not currently showing.
+ */
+.workspace-sidebar-surface:not(.is-visible) {
+  pointer-events: none;
 }
 
-.workspace-sidebar-surface.is-preview {
-  box-shadow: var(--shadow-dialog);
+.workspace-sidebar-surface:not(.is-visible) > .workspace-sidebar-content {
+  opacity: 0;
+  transform: translate3d(-100%, 0, 0);
 }
 
 .workspace-scrim-enter-active,
@@ -33,10 +57,21 @@
 }
 
 /*
- * The right pane slides itself in. Its panel takes its new width in one step - animating that width would
- * animate the canvas host - so the motion belongs to the content, on composited properties only, which is
- * the same contract the left surface follows.
+ * The right pane is the sized region on its own side, and its content slides itself in and out. Its width
+ * also changes in one step, and it does not clip, so a closing panel travels over the work area instead of
+ * disappearing on the first frame - the same contract the left surface follows.
  */
+.workspace-right-sidebar-pane {
+  position: relative;
+  flex: 0 0 auto;
+  width: 0;
+  min-height: 0;
+}
+
+.workspace-right-sidebar-pane.is-visible {
+  width: var(--workspace-right-sidebar-width);
+}
+
 .workspace-pane-content-enter-active,
 .workspace-pane-content-leave-active {
   transition:

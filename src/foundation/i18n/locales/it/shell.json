@@ -16,6 +16,8 @@
   "layout": {
     "toggleRightSidebar": "Mostra o nascondi la barra laterale destra",
     "toggleSidebar": "Attiva/disattiva la barra laterale",
+    "resizeSidebar": "Ridimensiona la barra laterale",
+    "resizeRightSidebar": "Ridimensiona la barra laterale destra",
     "saveFailed": "Impossibile salvare il layout del workbench"
   },
   "shortcuts": {

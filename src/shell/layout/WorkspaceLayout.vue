@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { SplitterGroup, SplitterPanel } from "reka-ui";
-import { computed, shallowRef } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
-import UiSplitterHandle from "../../shared/ui/UiSplitterHandle.vue";
 import FeatureErrorBoundary from "../FeatureErrorBoundary.vue";
 import { WORKSPACE_SIDEBAR_GEOMETRY } from "./sidebar-geometry";
-import { useWorkspaceSplitter } from "./use-workspace-splitter";
 import WorkspaceRightSidebar from "./WorkspaceRightSidebar.vue";
 import WorkspaceSidebar from "./WorkspaceSidebar.vue";
+import WorkspaceSidebarSash from "./WorkspaceSidebarSash.vue";
 
 const props = defineProps<{
   workspace: WorkspaceDefinition;
@@ -21,52 +19,15 @@ const props = defineProps<{
   rightSidebarWidth: number;
 }>();
 const emit = defineEmits<{
-  "set-sidebar-pinned": [value: boolean];
   "set-sidebar-width": [value: number];
   "set-right-sidebar-width": [value: number];
-  "close-right-sidebar": [];
-  "panel-layout": [sizes: number[]];
+  "commit-layout": [];
   "open-sidebar-preview": [];
   "schedule-sidebar-close": [];
   "close-sidebar-preview": [];
 }>();
 const { t } = useI18n();
 const sidebarVisible = computed(() => props.sidebarPinned || props.sidebarPreview);
-const dragging = shallowRef(false);
-const liveSidebarWidth = shallowRef<number>();
-/**
- * The surface is a floating host, so it cannot inherit the spacer panel's width. During a drag the committed
- * width is stale by design, and the surface must track the handle rather than jump on release.
- */
-const surfaceWidth = computed(() =>
-  dragging.value && liveSidebarWidth.value !== undefined ? liveSidebarWidth.value : props.sidebarWidth,
-);
-const { handleLayout, leadingPanel, trailingPanel } = useWorkspaceSplitter({
-  sidebarPinned: () => props.sidebarPinned,
-  sidebarWidth: () => props.sidebarWidth,
-  rightSidebarOpen: () => props.rightSidebarOpen,
-  rightSidebarWidth: () => props.rightSidebarWidth,
-  onLayout: (sizes) => emit("panel-layout", sizes),
-});
-function onPanelLayout(sizes: number[]) {
-  if (dragging.value) liveSidebarWidth.value = leadingPanel.value?.getSize();
-  handleLayout(sizes);
-}
-function commitSidebarWidth() {
-  const size = leadingPanel.value?.getSize();
-  if (size === 0) emit("set-sidebar-pinned", false);
-  else if (size && size >= WORKSPACE_SIDEBAR_GEOMETRY.minSize) emit("set-sidebar-width", size);
-}
-function commitRightSidebarWidth() {
-  const size = trailingPanel.value?.getSize();
-  if (size === 0) emit("close-right-sidebar");
-  else if (size && size >= props.workspace.rightSidebarLayout.minSize) emit("set-right-sidebar-width", size);
-}
-function onDrag(active: boolean, commit: () => void) {
-  dragging.value = active;
-  if (active) liveSidebarWidth.value = leadingPanel.value?.getSize();
-  else commit();
-}
 /** Hover only governs the preview role; a pinned sidebar is already open and owns no hover state. */
 function openPreview() {
   if (props.sidebarPinned) return;
@@ -81,88 +42,75 @@ function schedulePreviewClose() {
 <template>
   <div class="relative flex min-h-0 min-w-0 flex-1">
     <!--
-      One host serves both sidebar roles, and it precedes the splitter so focus order still starts at the
-      sidebar. Pinning changes only whether the splitter reserves width for it. Moving the subtree between
-      hosts instead would reset its scroll position and make every outline row report a new height through
-      its resize observer, all inside the first frame of the geometry transition.
+      One element serves both sidebar roles. Pinned, it is the sized region itself, so its width cannot
+      disagree with the space reserved for it; previewing, it leaves the flow and floats over the work
+      area. Moving the subtree between two hosts instead would reset its scroll position and make every
+      outline row report a new height through its resize observer.
     -->
     <div
-      class="workspace-sidebar-surface absolute inset-y-0 left-0 z-40 h-full min-h-0 overflow-hidden"
-      :class="{ 'is-visible': sidebarVisible, 'is-preview rounded-r-xl': sidebarPreview && !sidebarPinned }"
-      :style="{ width: `${surfaceWidth}px` }"
+      id="spaces-sidebar"
+      class="workspace-sidebar-surface"
+      :class="{ 'is-pinned': sidebarPinned, 'is-visible': sidebarVisible }"
+      :style="{ '--workspace-sidebar-width': `${sidebarWidth}px` }"
       :aria-hidden="!sidebarVisible"
       :inert="!sidebarVisible"
       @pointerenter="openPreview"
       @pointerleave="schedulePreviewClose"
     >
-      <WorkspaceSidebar :workspace="workspace" />
-    </div>
-    <SplitterGroup
-      direction="horizontal"
-      class="workspace-splitter-group relative z-10 min-h-0 min-w-0 flex-1"
-      @layout="onPanelLayout"
-    >
-      <SplitterPanel
-        ref="leadingPanel"
-        id="spaces-sidebar"
-        :order="1"
-        size-unit="px"
-        :default-size="sidebarPinned ? sidebarWidth : 0"
-        :min-size="WORKSPACE_SIDEBAR_GEOMETRY.minSize"
-        :max-size="WORKSPACE_SIDEBAR_GEOMETRY.maxSize"
-        :collapsed-size="0"
-        collapsible
-      />
-      <UiSplitterHandle
-        :disabled="!sidebarPinned"
-        @dragging="onDrag($event, commitSidebarWidth)"
-        @keyup="commitSidebarWidth"
-      />
-
-      <SplitterPanel id="spaces-work-area" :order="2" :min-size="35">
-        <main class="h-full min-w-0 pb-2 select-text" :class="sidebarPinned ? 'pr-2 pl-0' : 'px-2'">
-          <div
-            class="relative h-full min-h-0 overflow-hidden rounded-xl border border-(--knovum-window-border-color) bg-surface-canvas shadow-workspace"
-          >
-            <FeatureErrorBoundary reset-key="spaces">
-              <component :is="workspace.view" />
-            </FeatureErrorBoundary>
-          </div>
-        </main>
-      </SplitterPanel>
-
-      <UiSplitterHandle
-        :disabled="!rightSidebarOpen"
-        @dragging="onDrag($event, commitRightSidebarWidth)"
-        @keyup="commitRightSidebarWidth"
-      />
-      <SplitterPanel
-        ref="trailingPanel"
-        id="spaces-right-sidebar"
-        class="relative overflow-hidden"
-        :order="3"
-        size-unit="px"
-        :default-size="rightSidebarOpen ? rightSidebarWidth : 0"
-        :min-size="workspace.rightSidebarLayout.minSize"
-        :max-size="workspace.rightSidebarLayout.maxSize"
-        :collapsed-size="0"
-        collapsible
+      <div
+        class="workspace-sidebar-content"
+        :class="{ 'overflow-hidden rounded-r-xl shadow-dialog': !sidebarPinned }"
       >
-        <div
-          class="h-full min-w-0 pr-2 pb-2"
-          :style="{ '--workspace-right-sidebar-width': `${rightSidebarWidth}px` }"
-          :inert="!rightSidebarOpen"
-          :aria-hidden="!rightSidebarOpen"
-        >
-          <Transition name="workspace-pane-content">
-            <WorkspaceRightSidebar v-if="rightSidebarContentMounted" :workspace="workspace" />
-          </Transition>
-        </div>
-      </SplitterPanel>
-    </SplitterGroup>
+        <WorkspaceSidebar :workspace="workspace" />
+      </div>
+    </div>
+
+    <WorkspaceSidebarSash
+      v-if="sidebarPinned"
+      edge="leading"
+      controls="spaces-sidebar"
+      :label="t('shell.layout.resizeSidebar')"
+      :width="sidebarWidth"
+      :geometry="WORKSPACE_SIDEBAR_GEOMETRY"
+      @resize="emit('set-sidebar-width', $event)"
+      @commit="emit('commit-layout')"
+    />
+
+    <main class="min-h-0 min-w-0 flex-1 pb-2 select-text" :class="sidebarPinned ? 'pr-2 pl-0' : 'px-2'">
+      <div
+        class="relative h-full min-h-0 overflow-hidden rounded-xl border border-(--knovum-window-border-color) bg-surface-canvas shadow-workspace"
+      >
+        <FeatureErrorBoundary reset-key="spaces">
+          <component :is="workspace.view" />
+        </FeatureErrorBoundary>
+      </div>
+    </main>
+
+    <WorkspaceSidebarSash
+      v-if="rightSidebarOpen"
+      edge="trailing"
+      controls="spaces-right-sidebar"
+      :label="t('shell.layout.resizeRightSidebar')"
+      :width="rightSidebarWidth"
+      :geometry="workspace.rightSidebarLayout"
+      @resize="emit('set-right-sidebar-width', $event)"
+      @commit="emit('commit-layout')"
+    />
+    <div
+      id="spaces-right-sidebar"
+      class="workspace-right-sidebar-pane"
+      :class="{ 'is-visible': rightSidebarOpen }"
+      :style="{ '--workspace-right-sidebar-width': `${rightSidebarWidth}px` }"
+      :inert="!rightSidebarOpen"
+      :aria-hidden="!rightSidebarOpen"
+    >
+      <Transition name="workspace-pane-content">
+        <WorkspaceRightSidebar v-if="rightSidebarContentMounted" :workspace="workspace" />
+      </Transition>
+    </div>
 
     <div
-      v-if="!sidebarPinned && !sidebarPreview"
+      v-if="!sidebarVisible"
       class="absolute inset-y-0 left-0 z-50 w-3"
       @pointerenter="openPreview"
       @pointermove="openPreview"

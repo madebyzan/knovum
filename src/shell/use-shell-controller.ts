@@ -55,7 +55,6 @@ export function useShellController(
   }
   function setSidebarWidth(value: number) {
     sidebarWidth.value = Math.round(value);
-    persist();
   }
   function openSidebarPreview() {
     if (sidebarPinned.value || !sidebarPreviewArmed.value) return;
@@ -92,7 +91,6 @@ export function useShellController(
   }
   function setRightSidebarWidth(value: number) {
     rightSidebarWidth.value = Math.round(value);
-    persist();
   }
   function closeRightSidebar() {
     rightSidebarRequested.value = false;
@@ -154,6 +152,8 @@ export function useShellController(
     setSidebarPinned,
     setSidebarWidth,
     setRightSidebarWidth,
+    /** A sash writes the width on every frame of the gesture; only the release reaches preferences. */
+    persistLayout: persist,
     openSidebarPreview,
     armSidebarPreview,
     scheduleSidebarPreviewClose,

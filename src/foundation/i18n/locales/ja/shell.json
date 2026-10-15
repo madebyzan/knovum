@@ -16,6 +16,8 @@
   "layout": {
     "toggleRightSidebar": "右サイドバーの表示または非表示",
     "toggleSidebar": "サイドバーの切り替え",
+    "resizeSidebar": "サイドバーの幅を調整",
+    "resizeRightSidebar": "右サイドバーの幅を調整",
     "saveFailed": "ワークベンチのレイアウトを保存できませんでした"
   },
   "shortcuts": {

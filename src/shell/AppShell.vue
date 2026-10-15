@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provide, shallowRef, toRef } from "vue";
+import { computed, provide, toRef } from "vue";
 import { RouterView, useRoute } from "vue-router";
 
 import { overlayScopeVisibleKey } from "../shared/contracts/overlay-scope-visibility";
@@ -27,21 +27,17 @@ const {
   commands,
   toggleSidebarFromControl,
   toggleRightSidebar,
-  closeRightSidebar,
-  setSidebarPinned,
   setSidebarWidth,
   setRightSidebarWidth,
+  persistLayout,
   openSidebarPreview,
   armSidebarPreview,
   scheduleSidebarPreviewClose,
   closeSidebarPreview,
 } = useShellController(props.workspace, workspaceActive, () => emit("openSettings"));
 provide(overlayScopeVisibleKey, workspaceActive);
-const rightSidebarLayoutWidth = shallowRef(0);
-
-function updatePanelLayout(sizes: number[]) {
-  rightSidebarLayoutWidth.value = sizes[2]!;
-}
+/** The toolbar's trailing column tracks the pane it aligns with, and collapses to nothing when it closes. */
+const rightSidebarLayoutWidth = computed(() => (rightSidebarOpen.value ? rightSidebarWidth.value : 0));
 </script>
 
 <template>
@@ -82,11 +78,9 @@ function updatePanelLayout(sizes: number[]) {
       :right-sidebar-open="rightSidebarOpen"
       :right-sidebar-content-mounted="rightSidebarContentMounted"
       :right-sidebar-width="rightSidebarWidth"
-      @panel-layout="updatePanelLayout"
-      @set-sidebar-pinned="setSidebarPinned"
       @set-sidebar-width="setSidebarWidth"
       @set-right-sidebar-width="setRightSidebarWidth"
-      @close-right-sidebar="closeRightSidebar"
+      @commit-layout="persistLayout"
       @open-sidebar-preview="openSidebarPreview"
       @schedule-sidebar-close="scheduleSidebarPreviewClose"
       @close-sidebar-preview="closeSidebarPreview"

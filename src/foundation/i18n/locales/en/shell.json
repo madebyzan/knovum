@@ -16,6 +16,8 @@
   "layout": {
     "toggleRightSidebar": "Show or hide right sidebar",
     "toggleSidebar": "Toggle sidebar",
+    "resizeSidebar": "Resize sidebar",
+    "resizeRightSidebar": "Resize right sidebar",
     "saveFailed": "Workbench layout could not be saved"
   },
   "shortcuts": {

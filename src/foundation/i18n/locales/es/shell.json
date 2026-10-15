@@ -16,6 +16,8 @@
   "layout": {
     "toggleRightSidebar": "Mostrar u ocultar la barra lateral derecha",
     "toggleSidebar": "Alternar barra lateral",
+    "resizeSidebar": "Ajustar el ancho de la barra lateral",
+    "resizeRightSidebar": "Ajustar el ancho de la barra lateral derecha",
     "saveFailed": "No se pudo guardar el diseño del banco de trabajo"
   },
   "shortcuts": {

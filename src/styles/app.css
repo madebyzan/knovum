@@ -72,6 +72,14 @@
     cursor: default;
   }
 
+  /*
+   * A sash drag owns the pointer through pointer capture, so the pointer spends the gesture over the work
+   * area and whatever cursor lives there. The document states the gesture instead, for its whole duration.
+   */
+  html[data-sash-dragging] * {
+    cursor: col-resize !important;
+  }
+
   svg.animate-spin {
     transform-origin: center;
     will-change: transform;

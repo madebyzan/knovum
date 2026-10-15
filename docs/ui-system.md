@@ -236,17 +236,29 @@ shell and component enter/leave states; do not add a motion runtime for simple o
   panel's width animates the canvas host's width, and a canvas cannot follow that for free: every frame would
   reallocate its layer backings, repaint every layer and recompute the viewport. Figma and VS Code resize the
   work area in a single step; tldraw floats its UI over a canvas that never resizes. Sidebars therefore animate
-  themselves on composited properties only - the left surface translates, the right pane's content translates
-  and fades - while the work area resizes once per toggle. Direct splitter dragging and window resizing do
-  track their actual dimensions per frame, which is the feedback being asked for; the canvas stage raster is
-  quantized around its visible host, grows immediately and shrinks only after the host size settles, so those
-  frames do not reallocate and repaint the canvas backings;
-- the left sidebar has one host for both of its roles. The splitter reserves matching width next to it when it
-  is pinned, and the same surface floats over the canvas as a temporary preview; pinning never moves the
-  subtree between hosts, which would reset its scroll position and make every virtualized row re-measure
-  inside the first frame of the transition. Its width follows the live panel size while the handle is
-  dragged and the committed width otherwise, so it tracks the handle and clips its own content. The canvas keeps the same
-  left inset and rounded corner in both states; with the sidebar pinned, workspace tabs align to that inset;
+  themselves on composited properties only - each surface translates and fades its own content, and a closing
+  panel is free to travel over the work area rather than being clipped on the first frame - while the work
+  area resizes once per toggle. Direct sash dragging and window resizing do track their actual dimensions per
+  frame, which is the feedback being asked for; the canvas stage raster is quantized around its visible host,
+  grows immediately and shrinks only after the host size settles, so those frames do not reallocate and
+  repaint the canvas backings;
+- a sidebar is the region its own width sizes, and that width is plain application state in pixels. The shell
+  does not route it through a percent-based panel solver: converting to percent and back is lossy, so a panel
+  resting on its minimum can report less than its minimum and have its commit silently rejected, leaving the
+  committed width and the reserved space disagreeing. The sash is a real element that takes pointer capture
+  for the gesture, writes that one number, and clamps at the geometry instead of collapsing - hiding is the
+  toggle's job, so a drag never removes the handle being dragged, which is the only way a divider can survive
+  its own gesture. Keyboard resizing uses the same path. An n-panel percent solver is still the right tool
+  where the layout genuinely is n panels, as in the video editing workbench;
+- the left sidebar has one host for both of its roles. Pinned, it is the sized region itself, so its width
+  cannot disagree with the space reserved for it; unpinned, the same surface leaves the flow and floats over
+  the canvas as a temporary preview. Pinning never moves the subtree between hosts, which would reset its
+  scroll position and make every virtualized row re-measure inside the first frame of the transition. The
+  canvas keeps the same left inset and rounded corner in both states; with the sidebar pinned, workspace tabs
+  align to that inset;
+- a toggle control states its state through one glyph and a pressed style, like every other control in the
+  toolbar. Cross-fading two different line glyphs inside an 18px box paints both strokes over each other for
+  the length of the transition, which reads as a flash on every activation;
 - never animate canvas-object geometry or other layout dimensions, and never interpolate a persisted
   node position while it is dragged, undone or restored; the single exception is a command-initiated rearrange
   (align, distribute, auto layout), which may transition the rendered transform for 150ms and stays subject to
