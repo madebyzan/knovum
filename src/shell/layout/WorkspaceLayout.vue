@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SplitterGroup, SplitterPanel } from "reka-ui";
-import { computed } from "vue";
+import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
@@ -33,6 +33,15 @@ const emit = defineEmits<{
 }>();
 const { t } = useI18n();
 const sidebarVisible = computed(() => props.sidebarPinned || props.sidebarPreview);
+const dragging = shallowRef(false);
+const liveSidebarWidth = shallowRef<number>();
+/**
+ * The surface is a floating host, so it cannot inherit the spacer panel's width. During a drag the committed
+ * width is stale by design, and the surface must track the handle rather than jump on release.
+ */
+const surfaceWidth = computed(() =>
+  dragging.value && liveSidebarWidth.value ? liveSidebarWidth.value : props.sidebarWidth,
+);
 const { handleLayout, leadingPanel, trailingPanel } = useWorkspaceSplitter({
   sidebarPinned: () => props.sidebarPinned,
   sidebarWidth: () => props.sidebarWidth,
@@ -40,6 +49,10 @@ const { handleLayout, leadingPanel, trailingPanel } = useWorkspaceSplitter({
   rightSidebarWidth: () => props.rightSidebarWidth,
   onLayout: (sizes) => emit("panel-layout", sizes),
 });
+function onPanelLayout(sizes: number[]) {
+  if (dragging.value) liveSidebarWidth.value = leadingPanel.value?.getSize();
+  handleLayout(sizes);
+}
 function commitSidebarWidth() {
   const size = leadingPanel.value?.getSize();
   if (size === 0) emit("set-sidebar-pinned", false);
@@ -51,8 +64,11 @@ function commitRightSidebarWidth() {
   else if (size && size >= props.workspace.rightSidebarLayout.minSize) emit("set-right-sidebar-width", size);
 }
 function onDrag(active: boolean, commit: () => void) {
-  if (active) emit("cancel-panel-motion");
-  else commit();
+  dragging.value = active;
+  if (active) {
+    emit("cancel-panel-motion");
+    liveSidebarWidth.value = leadingPanel.value?.getSize();
+  } else commit();
 }
 /** Hover only governs the preview role; a pinned sidebar is already open and owns no hover state. */
 function openPreview() {
@@ -76,7 +92,7 @@ function schedulePreviewClose() {
     <div
       class="workspace-sidebar-surface absolute inset-y-0 left-0 z-40 h-full min-h-0"
       :class="{ 'is-visible': sidebarVisible, 'is-preview rounded-r-xl': sidebarPreview && !sidebarPinned }"
-      :style="{ width: `${sidebarWidth}px` }"
+      :style="{ width: `${surfaceWidth}px` }"
       :aria-hidden="!sidebarVisible"
       :inert="!sidebarVisible"
       @pointerenter="openPreview"
@@ -87,7 +103,7 @@ function schedulePreviewClose() {
     <SplitterGroup
       direction="horizontal"
       class="workspace-splitter-group relative z-10 min-h-0 min-w-0 flex-1"
-      @layout="handleLayout"
+      @layout="onPanelLayout"
     >
       <SplitterPanel
         ref="leadingPanel"
