@@ -71,7 +71,10 @@ pub(super) async fn reclaim_in_transaction(
     Ok(asset_candidates)
 }
 
-async fn ids_by_space(tx: &mut Transaction<'_, Sqlite>, sql: &str) -> Result<IdsBySpace, String> {
+async fn ids_by_space(
+    tx: &mut Transaction<'_, Sqlite>,
+    sql: &'static str,
+) -> Result<IdsBySpace, String> {
     let rows: Vec<(String, String)> = sqlx::query_as(sql)
         .fetch_all(&mut **tx)
         .await
