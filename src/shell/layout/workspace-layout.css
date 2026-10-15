@@ -1,46 +1,22 @@
 /*
- * Panel motion runs on one clock. A sidebar's slot animates the layout width it reserves, the sidebar
- * itself is fixed at its own width and rides the slot's edge, and the toolbar columns that align to the
- * work area move with the same duration and curve. Nothing inside a sidebar reflows during the motion and
- * nothing compensates the canvas camera, so the work area edge moving is the only per-frame layout change
- * - the same model as a native split view sidebar.
- *
- * A sash drag writes the widths directly and must track the pointer, so motion is suspended for the
- * gesture (`html[data-sash-dragging]`, set by the sash). Reduced motion is the global rule in app.css.
+ * Geometry here is static: the panel clock (use-workspace-edges.ts) writes every frame of panel motion as
+ * whole-pixel inline values, so the slots, the sidebar surface and the toolbar columns cannot drift apart
+ * and a sash drag has no transition to suspend. CSS animates only what has no edge to align: elevation,
+ * scrim and pane content fades, on the same duration and curve.
  */
+/* Never closer to the window than the gutter; the toolbar's leading column uses the same expression. */
 .workspace-sidebar-slot {
-  position: relative;
-  z-index: 40;
   flex: 0 0 auto;
-  width: var(--knovum-workspace-gutter);
-  transition: width var(--knovum-panel-motion-duration) var(--knovum-panel-motion-easing);
+  width: max(var(--knovum-workspace-gutter), var(--workspace-leading-edge));
 }
 
-.workspace-sidebar-slot.is-pinned {
-  width: var(--workspace-sidebar-width);
-}
-
-/*
- * Anchored to the slot's trailing edge. Hidden, it sits a gutter further out so its trailing edge lands
- * exactly on the window edge; floating, it translates out over the work area. Opening from a preview moves
- * the slot and the translation by the same amount on the same curve, so the sidebar stays exactly where it
- * is while the work area makes room for it.
- */
 .workspace-sidebar-surface {
   position: absolute;
   inset-block: 0;
-  right: 0;
+  left: 0;
+  z-index: 40;
   width: var(--workspace-sidebar-width);
-  transform: translate3d(calc(-1 * var(--knovum-workspace-gutter)), 0, 0);
-  transition: transform var(--knovum-panel-motion-duration) var(--knovum-panel-motion-easing);
-}
-
-.workspace-sidebar-slot.is-pinned > .workspace-sidebar-surface {
-  transform: none;
-}
-
-.workspace-sidebar-surface.is-floating {
-  transform: translate3d(calc(100% - var(--knovum-workspace-gutter)), 0, 0);
+  will-change: transform;
 }
 
 /* Elevation belongs to the floating role only and fades on the compositor rather than repainting a shadow. */
@@ -60,12 +36,6 @@
 .workspace-right-sidebar-slot {
   position: relative;
   flex: 0 0 auto;
-  width: 0;
-  transition: width var(--knovum-panel-motion-duration) var(--knovum-panel-motion-easing);
-}
-
-.workspace-right-sidebar-slot.is-open {
-  width: var(--workspace-right-sidebar-width);
 }
 
 /*
@@ -93,10 +63,4 @@
 .workspace-scrim-enter-from,
 .workspace-scrim-leave-to {
   opacity: 0;
-}
-
-/* Scoped rules attach their scope to the last compound only, so the document state can lead the selector. */
-html[data-sash-dragging] .workspace-sidebar-slot,
-html[data-sash-dragging] .workspace-right-sidebar-slot {
-  transition: none;
 }
