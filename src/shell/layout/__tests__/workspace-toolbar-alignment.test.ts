@@ -14,14 +14,13 @@ const workspace = {
   rightSidebarAvailable: computed(() => true),
 } as unknown as WorkspaceDefinition;
 
-function mountToolbar(sidebarPinned: boolean, rightSidebarLayoutWidth = 0) {
+function mountToolbar(sidebarPinned: boolean, trailing = 0) {
   return mount(WorkspaceToolbar, {
     props: {
       workspace,
       sidebarPinned,
-      sidebarWidth: 240,
-      rightSidebarOpen: rightSidebarLayoutWidth > 0,
-      rightSidebarLayoutWidth,
+      rightSidebarOpen: trailing > 0,
+      edges: { leading: sidebarPinned ? 240 : 0, sidebar: sidebarPinned ? 240 : 0, trailing },
     },
     global: {
       plugins: [i18n],
@@ -38,14 +37,18 @@ describe("workspace toolbar alignment", () => {
   it("ends the leading column where a pinned sidebar ends, so the first tab meets the canvas edge", () => {
     const wrapper = mountToolbar(true);
 
-    expect(columns(wrapper)).toBe("minmax(auto, 240px) minmax(0, 1fr) 96px");
+    expect(columns(wrapper)).toBe(
+      "minmax(auto, max(var(--knovum-workspace-gutter), 240px)) minmax(0, 1fr) 96px",
+    );
     wrapper.unmount();
   });
 
   it("follows the work area gutter without a sidebar, never narrower than the navigation cluster", () => {
     const wrapper = mountToolbar(false);
 
-    expect(columns(wrapper)).toBe("minmax(auto, var(--knovum-workspace-gutter)) minmax(0, 1fr) 96px");
+    expect(columns(wrapper)).toBe(
+      "minmax(auto, max(var(--knovum-workspace-gutter), 0px)) minmax(0, 1fr) 96px",
+    );
     expect(wrapper.get(".workspace-toolbar-content > div").classes()).toContain("min-w-max");
     wrapper.unmount();
   });
@@ -58,10 +61,22 @@ describe("workspace toolbar alignment", () => {
     wrapper.unmount();
   });
 
+  it("takes every column from the panel clock's frame, with no transition of its own", async () => {
+    const wrapper = mountToolbar(true);
+    await wrapper.setProps({ edges: { leading: 117, sidebar: 117, trailing: 0 } });
+
+    expect(columns(wrapper)).toBe(
+      "minmax(auto, max(var(--knovum-workspace-gutter), 117px)) minmax(0, 1fr) 96px",
+    );
+    wrapper.unmount();
+  });
+
   it("reserves the trailing column the right pane occupies", () => {
     const wrapper = mountToolbar(true, 320);
 
-    expect(columns(wrapper)).toBe("minmax(auto, 240px) minmax(0, 1fr) 320px");
+    expect(columns(wrapper)).toBe(
+      "minmax(auto, max(var(--knovum-workspace-gutter), 240px)) minmax(0, 1fr) 320px",
+    );
     wrapper.unmount();
   });
 });

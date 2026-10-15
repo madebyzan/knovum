@@ -25,6 +25,7 @@ interface SceneVisibilityOptions {
   scene: Readonly<Ref<CanvasScene>>;
   sections: Readonly<Ref<readonly ProjectedSection[]>>;
   sectionIds: Readonly<Ref<ReadonlySet<string>>>;
+  /** The culled extent: the stage surface, so a moving host edge never changes what is mounted. */
   size: { width: number; height: number };
 }
 

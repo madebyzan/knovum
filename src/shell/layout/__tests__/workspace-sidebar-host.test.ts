@@ -13,20 +13,31 @@ const workspace = {
   rightSidebarLayout: { minSize: 240, maxSize: 480 },
 } as unknown as WorkspaceDefinition;
 
+/** The panel clock at rest: every edge is where its state puts it. */
+function restingEdges(pinned: boolean, visible: boolean, rightOpen: boolean) {
+  return { leading: pinned ? 280 : 0, sidebar: visible ? 280 : 0, trailing: rightOpen ? 320 : 0 };
+}
+
 function mountLayout(props: {
   sidebarPinned: boolean;
   sidebarPreview?: boolean;
   rightSidebarOpen?: boolean;
 }) {
+  const preview = props.sidebarPreview ?? false;
   return mount(WorkspaceLayout, {
     props: {
       workspace,
       sidebarPinned: props.sidebarPinned,
       sidebarWidth: 280,
-      sidebarPreview: props.sidebarPreview ?? false,
+      sidebarPreview: preview,
       rightSidebarOpen: props.rightSidebarOpen ?? false,
       rightSidebarContentMounted: props.rightSidebarOpen ?? false,
       rightSidebarWidth: 320,
+      edges: restingEdges(
+        props.sidebarPinned,
+        props.sidebarPinned || preview,
+        props.rightSidebarOpen ?? false,
+      ),
     },
     global: { plugins: [i18n] },
   });
@@ -49,20 +60,42 @@ describe("workspace layout", () => {
 
   it("reserves width when pinned and floats over the work area when previewing", async () => {
     const wrapper = mountLayout({ sidebarPinned: true });
-    const slot = wrapper.get(".workspace-sidebar-slot");
+    const slot = () => wrapper.get(".workspace-sidebar-slot").attributes("style");
     const surface = wrapper.get(".workspace-sidebar-surface");
-    expect(slot.classes()).toContain("is-pinned");
+    const offset = () => (surface.element as HTMLElement).style.transform;
+    expect(slot()).toBe("--workspace-leading-edge: 280px;");
+    expect(offset()).toBe("translate3d(0px, 0, 0)");
     expect(surface.classes()).not.toContain("is-floating");
     expect(surface.attributes("aria-hidden")).toBe("false");
 
-    await wrapper.setProps({ sidebarPinned: false, sidebarPreview: true });
-    expect(slot.classes()).not.toContain("is-pinned");
+    await wrapper.setProps({
+      sidebarPinned: false,
+      sidebarPreview: true,
+      edges: restingEdges(false, true, false),
+    });
+    expect(slot()).toBe("--workspace-leading-edge: 0px;");
+    expect(offset()).toBe("translate3d(0px, 0, 0)");
     expect(surface.classes()).toContain("is-floating");
     expect(surface.attributes("aria-hidden")).toBe("false");
 
-    await wrapper.setProps({ sidebarPreview: false });
+    await wrapper.setProps({ sidebarPreview: false, edges: restingEdges(false, false, false) });
+    expect(offset()).toBe("translate3d(-280px, 0, 0)");
     expect(surface.classes()).not.toContain("is-floating");
     expect(surface.attributes("aria-hidden")).toBe("true");
+    wrapper.unmount();
+  });
+
+  it("places the slot, the sidebar and the trailing pane from one frame of the panel clock", async () => {
+    const wrapper = mountLayout({ sidebarPinned: true, rightSidebarOpen: true });
+    await wrapper.setProps({ edges: { leading: 131, sidebar: 131, trailing: 47 } });
+
+    expect(wrapper.get(".workspace-sidebar-slot").attributes("style")).toBe(
+      "--workspace-leading-edge: 131px;",
+    );
+    expect((wrapper.get("#spaces-sidebar").element as HTMLElement).style.transform).toBe(
+      "translate3d(-149px, 0, 0)",
+    );
+    expect((wrapper.get("#spaces-right-sidebar").element as HTMLElement).style.width).toBe("47px");
     wrapper.unmount();
   });
 
@@ -107,11 +140,11 @@ describe("workspace layout", () => {
     const wrapper = mountLayout({ sidebarPinned: false });
     const pane = wrapper.get("#spaces-right-sidebar");
     expect(pane.attributes("aria-hidden")).toBe("true");
-    expect(pane.classes()).not.toContain("is-open");
+    expect(pane.attributes("inert")).toBeDefined();
 
     await wrapper.setProps({ rightSidebarOpen: true, rightSidebarContentMounted: true });
     expect(pane.attributes("aria-hidden")).toBe("false");
-    expect(pane.classes()).toContain("is-open");
+    expect(pane.attributes("inert")).toBeUndefined();
     wrapper.unmount();
   });
 });

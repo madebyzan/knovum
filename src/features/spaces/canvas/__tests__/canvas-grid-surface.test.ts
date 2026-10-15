@@ -7,15 +7,27 @@ import type { CanvasPalette } from "../konva/rendering/use-canvas-palette";
 import { createCanvasCamera } from "../konva/viewport/canvas-camera";
 
 const palette = { grid: "#abcdef" } as unknown as CanvasPalette;
+const surface = { width: 1536, height: 1024 };
 
 async function mountGrid(zoom: number) {
   const camera = createCanvasCamera({ x: 0, y: 0, zoom });
-  const wrapper = mount(CanvasGridSurface, { props: { camera, palette, zoom } });
+  const wrapper = mount(CanvasGridSurface, { props: { camera, palette, surface, zoom } });
   await nextTick();
   return { camera, dot: wrapper.get("circle").element, pattern: wrapper.get("pattern").element, wrapper };
 }
 
 describe("canvas grid surface", () => {
+  it("spans the stage surface on its own layer, so a moving host edge only clips it", async () => {
+    const { wrapper } = await mountGrid(1);
+    const svg = wrapper.get("svg");
+
+    expect(svg.attributes("width")).toBe("1536");
+    expect(svg.attributes("height")).toBe("1024");
+    expect(svg.classes()).toContain("will-change-transform");
+    expect(svg.classes()).not.toContain("inset-0");
+    wrapper.unmount();
+  });
+
   it("keeps dots on world multiples of the spacing as the camera moves", async () => {
     const { camera, pattern, wrapper } = await mountGrid(1);
     expect(pattern.getAttribute("patternTransform")).toBe("translate(12.5 12.5)");

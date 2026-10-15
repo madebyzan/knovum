@@ -7,6 +7,7 @@ import type { WorkspaceDefinition } from "../shared/contracts/workspace-definiti
 import CommandPalette from "./commands/CommandPalette.vue";
 import KeyboardShortcutsModal from "./commands/KeyboardShortcutsModal.vue";
 import FeatureErrorBoundary from "./FeatureErrorBoundary.vue";
+import { useWorkspaceEdges } from "./layout/use-workspace-edges";
 import WorkspaceLayout from "./layout/WorkspaceLayout.vue";
 import WorkspaceToolbar from "./layout/WorkspaceToolbar.vue";
 import { useShellController } from "./use-shell-controller";
@@ -36,8 +37,13 @@ const {
   closeSidebarPreview,
 } = useShellController(props.workspace, workspaceActive, () => emit("openSettings"));
 provide(overlayScopeVisibleKey, workspaceActive);
-/** The toolbar's trailing column tracks the pane it aligns with, and collapses to nothing when it closes. */
-const rightSidebarLayoutWidth = computed(() => (rightSidebarOpen.value ? rightSidebarWidth.value : 0));
+const edges = useWorkspaceEdges({
+  sidebarPinned,
+  sidebarVisible: computed(() => sidebarPinned.value || sidebarPreview.value),
+  sidebarWidth,
+  rightSidebarOpen,
+  rightSidebarWidth,
+});
 </script>
 
 <template>
@@ -62,9 +68,8 @@ const rightSidebarLayoutWidth = computed(() => (rightSidebarOpen.value ? rightSi
     <WorkspaceToolbar
       :workspace="workspace"
       :sidebar-pinned="sidebarPinned"
-      :sidebar-width="sidebarWidth"
       :right-sidebar-open="rightSidebarOpen"
-      :right-sidebar-layout-width="rightSidebarLayoutWidth"
+      :edges="edges"
       @toggle-right-sidebar="toggleRightSidebar"
       @toggle-sidebar="toggleSidebarFromControl"
       @preview-sidebar="openSidebarPreview"
@@ -78,6 +83,7 @@ const rightSidebarLayoutWidth = computed(() => (rightSidebarOpen.value ? rightSi
       :right-sidebar-open="rightSidebarOpen"
       :right-sidebar-content-mounted="rightSidebarContentMounted"
       :right-sidebar-width="rightSidebarWidth"
+      :edges="edges"
       @set-sidebar-width="setSidebarWidth"
       @set-right-sidebar-width="setRightSidebarWidth"
       @commit-layout="persistLayout"
