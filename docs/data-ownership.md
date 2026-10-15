@@ -83,7 +83,7 @@ document: it projects an ephemeral Konva adapter document from the committed agg
 Tab transitions await admitted mutations and pending camera writes before leaving. Every mutation
 carries `mutationId`; Rust records a typed receipt in the same transaction. A structural edit that
 expresses intent against the rendered structure — `execute_space_edit`, undo/redo, clipboard paste,
-cross-Space transfer, JSON Canvas import and deletion-batch restore — also carries
+cross-Space transfer and JSON Canvas import — also carries
 `expectedEditRevision`, and Rust distinguishes an absent Space from a revision conflict. Content
 creation (`create_nodes`) and discarding one failed pending creation (`discard_pending_content`)
 carry no caller revision: they are node-scoped appends and removals whose base is the structure

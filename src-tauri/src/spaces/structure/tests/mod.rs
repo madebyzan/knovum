@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
-mod deleted_subtrees;
 mod node_reference_remap;
 mod planner_batches;
 mod portal_integrity;
+mod reclamation;
 mod snapshot_writes;
 mod transactions;
 

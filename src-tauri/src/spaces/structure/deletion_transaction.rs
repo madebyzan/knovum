@@ -3,9 +3,8 @@ use std::collections::HashSet;
 use sqlx::{Sqlite, Transaction};
 
 use super::{
-    edit_contract::ExecuteSpaceEditRequest,
-    planner::delete::Deletion,
-    repository::{self, SpaceStructureSnapshot},
+    edit_contract::ExecuteSpaceEditRequest, planner::delete::Deletion,
+    repository::SpaceStructureSnapshot,
 };
 use crate::spaces::db;
 
@@ -16,19 +15,6 @@ pub(super) async fn apply(
     deletion: &Deletion,
 ) -> Result<(), String> {
     let now = crate::foundation::clock::unix_time_millis()?;
-    repository::store_deletion_in_transaction(
-        tx,
-        repository::DeletionBatch {
-            space_id: &request.space_id,
-            batch_id: &request.mutation_id,
-            roots: &deletion.root_ids,
-            structure: &deletion.structure,
-            layouts: &deletion.layouts,
-            node_ids: &deletion.node_ids,
-            deleted_at: now,
-        },
-    )
-    .await?;
     let trashed =
         crate::spaces::nodes::trash_in_transaction(tx, &request.space_id, &deletion.node_ids, now)
             .await?;

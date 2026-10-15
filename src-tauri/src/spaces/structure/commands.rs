@@ -57,11 +57,6 @@ pub(crate) async fn execute_in_transaction(
     } else {
         None
     };
-    let deletion_batch_id = matches!(
-        &request.command,
-        super::edit_contract::SpaceEditCommand::StructureDeleteSubtrees { .. }
-    )
-    .then_some(request.mutation_id.as_str());
     let plan = match &request.command {
         super::edit_contract::SpaceEditCommand::StructureClone {
             root_ids,
@@ -124,8 +119,6 @@ pub(crate) async fn execute_in_transaction(
             &request.space_id,
             &before,
             &after,
-            deletion_batch_id,
-            deletion_batch_id.map(|_| false),
             applied_at_revision,
         )
         .await?;
@@ -193,22 +186,6 @@ pub(crate) async fn import_structure_clipboard<R: Runtime>(
     request: super::clipboard::ImportStructureClipboardRequest,
 ) -> Result<super::clipboard::ImportStructureClipboardResponse, AppError> {
     super::clipboard::import(&app, request).await
-}
-
-#[tauri::command]
-pub(crate) async fn restore_deleted_structure<R: Runtime>(
-    app: AppHandle<R>,
-    request: super::deletion::RestoreDeletedStructureRequest,
-) -> Result<SpaceEditReceipt, AppError> {
-    super::deletion::restore(&app, request).await
-}
-
-#[tauri::command]
-pub(crate) async fn delete_structure_permanently<R: Runtime>(
-    app: AppHandle<R>,
-    request: super::deletion::DeleteStructurePermanentlyRequest,
-) -> Result<Vec<String>, AppError> {
-    Ok(super::deletion::delete_permanently(&app, request).await?)
 }
 
 #[tauri::command]

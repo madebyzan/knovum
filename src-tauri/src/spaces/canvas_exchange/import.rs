@@ -140,8 +140,6 @@ pub(crate) async fn import_nodes<R: Runtime>(
         &request.space_id,
         &before,
         &after,
-        None,
-        None,
         revision,
     )
     .await?;

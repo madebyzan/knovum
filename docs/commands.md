@@ -53,12 +53,11 @@ Space persistence is entirely Rust-owned. Reads and writes cross typed Rust comm
 - `plugin:spaces|get_space_edit_receipt` — resolve an ambiguous IPC result by mutation identity without retrying a business operation;
 - `plugin:spaces|create_nodes` — atomically insert content rows and their Structure nodes and layouts at an explicit parent, appending to the structure loaded in that write transaction instead of a caller revision;
 - `plugin:spaces|update_nodes` — normalize authoritative knowledge revisions, update affected knowledge atomically, and return the committed node payloads;
-- `plugin:spaces|discard_pending_content` — abandon one failed pending creation by deleting its content and Structure/Layout atomically without creating a Recently Deleted entry, against the structure loaded in that write transaction;
+- `plugin:spaces|discard_pending_content` — abandon one failed pending creation by deleting its content and Structure/Layout atomically without leaving soft-deleted state for undo, against the structure loaded in that write transaction;
 - `plugin:spaces|load_canvas_view_state` and `plugin:spaces|save_canvas_view_state` — persist only the disposable camera;
 - `plugin:spaces|import_structure_clipboard` — validate and commit a remapped structure subtree, content and internal relations as one mutation;
 - `plugin:spaces|index_knowledge` — index current knowledge for a Space or a selected set of nodes;
 - `plugin:spaces|move_structure_selection` — move explicit Structure roots, content and affected relations between two revision-checked Spaces atomically;
-- `plugin:spaces|list_recently_deleted_structure`, `plugin:spaces|restore_deleted_structure` and `plugin:spaces|delete_structure_permanently` — list, restore or purge deletion batches and selected structure roots while preserving subtree identity and retained-reference rules;
 - `plugin:spaces|delete_space_permanently` — require an archived user Space, collect all owned asset paths and cascade-delete the Space atomically;
 - `plugin:spaces|import_space_package` — read a selected current-version archive, validate/remap its references and assets, restore it transactionally, and return the new Space;
 - `plugin:spaces|export_space_package` — collect the Space snapshot and write its archive inside one Rust use case;

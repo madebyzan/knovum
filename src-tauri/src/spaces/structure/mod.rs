@@ -16,6 +16,7 @@ mod planner;
 pub(crate) mod portal_integrity;
 pub(crate) mod queries;
 pub(crate) mod receipts;
+pub(crate) mod reclamation;
 pub(crate) mod repository;
 pub(crate) mod search;
 mod validation;
