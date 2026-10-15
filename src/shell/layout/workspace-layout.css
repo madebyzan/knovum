@@ -1,6 +1,9 @@
 /*
- * Only transform and opacity are animated. A box-shadow transition would repaint the dialog-sized shadow
- * band on every frame of the slide, on the main thread, which is exactly the frame budget the slide needs.
+ * One surface serves both sidebar roles: pinned, where the splitter reserves matching width next to it, and
+ * preview, where it floats over the work area. Its width is fixed in both, which keeps the subtree out of
+ * the panel's per-frame clip, and only transform and opacity animate - a box-shadow transition would repaint
+ * the dialog-sized shadow band on the main thread for every frame of the slide, which is exactly the frame
+ * budget the slide needs.
  */
 .workspace-sidebar-surface {
   opacity: 0;

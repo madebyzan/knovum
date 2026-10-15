@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SplitterGroup, SplitterPanel } from "reka-ui";
-import { useTemplateRef } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
@@ -32,8 +32,7 @@ const emit = defineEmits<{
   "close-sidebar-preview": [];
 }>();
 const { t } = useI18n();
-const pinnedSidebarHost = useTemplateRef<HTMLElement>("pinnedSidebarHost");
-const previewSidebarHost = useTemplateRef<HTMLElement>("previewSidebarHost");
+const sidebarVisible = computed(() => props.sidebarPinned || props.sidebarPreview);
 const { handleLayout, leadingPanel, trailingPanel } = useWorkspaceSplitter({
   sidebarPinned: () => props.sidebarPinned,
   sidebarWidth: () => props.sidebarWidth,
@@ -55,10 +54,36 @@ function onDrag(active: boolean, commit: () => void) {
   if (active) emit("cancel-panel-motion");
   else commit();
 }
+/** Hover only governs the preview role; a pinned sidebar is already open and owns no hover state. */
+function openPreview() {
+  if (props.sidebarPinned) return;
+  emit("open-sidebar-preview");
+}
+function schedulePreviewClose() {
+  if (props.sidebarPinned) return;
+  emit("schedule-sidebar-close");
+}
 </script>
 
 <template>
   <div class="relative flex min-h-0 min-w-0 flex-1">
+    <!--
+      One host serves both sidebar roles, and it precedes the splitter so focus order still starts at the
+      sidebar. Pinning changes only whether the splitter reserves width for it. Moving the subtree between
+      hosts instead would reset its scroll position and make every outline row report a new height through
+      its resize observer, all inside the first frame of the geometry transition.
+    -->
+    <div
+      class="workspace-sidebar-surface absolute inset-y-0 left-0 z-40 h-full min-h-0"
+      :class="{ 'is-visible': sidebarVisible, 'is-preview rounded-r-xl': sidebarPreview && !sidebarPinned }"
+      :style="{ width: `${sidebarWidth}px` }"
+      :aria-hidden="!sidebarVisible"
+      :inert="!sidebarVisible"
+      @pointerenter="openPreview"
+      @pointerleave="schedulePreviewClose"
+    >
+      <WorkspaceSidebar :workspace="workspace" />
+    </div>
     <SplitterGroup
       direction="horizontal"
       class="workspace-splitter-group relative z-10 min-h-0 min-w-0 flex-1"
@@ -67,7 +92,6 @@ function onDrag(active: boolean, commit: () => void) {
       <SplitterPanel
         ref="leadingPanel"
         id="spaces-sidebar"
-        class="overflow-hidden"
         :order="1"
         size-unit="px"
         :default-size="sidebarPinned ? sidebarWidth : 0"
@@ -75,9 +99,7 @@ function onDrag(active: boolean, commit: () => void) {
         :max-size="WORKSPACE_SIDEBAR_GEOMETRY.maxSize"
         :collapsed-size="0"
         collapsible
-      >
-        <div ref="pinnedSidebarHost" class="h-full w-full" :style="{ minWidth: `${sidebarWidth}px` }" />
-      </SplitterPanel>
+      />
       <UiSplitterHandle
         :disabled="!sidebarPinned"
         @dragging="onDrag($event, commitSidebarWidth)"
@@ -127,27 +149,11 @@ function onDrag(active: boolean, commit: () => void) {
     </SplitterGroup>
 
     <div
-      ref="previewSidebarHost"
-      class="workspace-sidebar-surface absolute inset-y-0 left-0 z-40 h-full min-h-0"
-      :class="sidebarPreview ? 'is-visible is-preview rounded-r-xl' : ''"
-      :style="{ width: `${sidebarWidth}px` }"
-      :aria-hidden="!sidebarPreview"
-      :inert="!sidebarPreview"
-      @pointerenter="emit('open-sidebar-preview')"
-      @pointerleave="emit('schedule-sidebar-close')"
-    />
-    <Teleport
-      v-if="pinnedSidebarHost && previewSidebarHost"
-      :to="sidebarPinned ? pinnedSidebarHost : previewSidebarHost"
-    >
-      <WorkspaceSidebar :workspace="workspace" />
-    </Teleport>
-    <div
       v-if="!sidebarPinned && !sidebarPreview"
       class="absolute inset-y-0 left-0 z-50 w-3"
-      @pointerenter="emit('open-sidebar-preview')"
-      @pointermove="emit('open-sidebar-preview')"
-      @pointerleave="emit('schedule-sidebar-close')"
+      @pointerenter="openPreview"
+      @pointermove="openPreview"
+      @pointerleave="schedulePreviewClose"
     />
     <Transition name="workspace-scrim">
       <button

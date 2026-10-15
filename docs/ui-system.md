@@ -238,10 +238,12 @@ shell and component enter/leave states; do not add a motion runtime for simple o
   so an animating panel does not reallocate and repaint the canvas backings on every frame. Panel content that
   is being revealed mounts after the geometry settles and then fades in; content already mounted in another
   panel is never remounted by an unrelated panel animation;
-- the pinned left sidebar stays inside its splitter panel; only its temporary preview overlays the canvas.
-  The sidebar content keeps its chosen width while the panel reveals it, so labels do not reflow through narrow
-  intermediate widths. The canvas keeps the same left inset and rounded corner in both states; with the sidebar
-  pinned, workspace tabs align to that inset;
+- the left sidebar has one host for both of its roles. The splitter reserves matching width next to it when it
+  is pinned, and the same surface floats over the canvas as a temporary preview; pinning never moves the
+  subtree between hosts, which would reset its scroll position and make every virtualized row re-measure
+  inside the first frame of the transition. Its width is fixed in both roles, so labels do not reflow through
+  narrow intermediate widths and the subtree stays out of the panel's per-frame clip. The canvas keeps the same
+  left inset and rounded corner in both states; with the sidebar pinned, workspace tabs align to that inset;
 - never animate canvas-object geometry or other layout dimensions, and never interpolate a persisted
   node position while it is dragged, undone or restored; the single exception is a command-initiated rearrange
   (align, distribute, auto layout), which may transition the rendered transform for 150ms and stays subject to
