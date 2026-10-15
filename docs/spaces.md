@@ -635,7 +635,10 @@ animation frame: the stage transform, the content overlay transform and the scre
 imperatively in that one frame, and the camera owns the vendor draw loop while it moves so the canvases never
 trail the overlay by a frame. Interaction and gesture math always read the live camera. The reactive surface
 sees only the zoom, which governs screen-space chrome metrics and preview level, so panning re-renders no
-component; viewport culling samples the live camera on a fixed interval, and its overscan runs ahead of the
+component. The dot grid is an SVG pattern written imperatively per frame rather than a CSS gradient, because
+the engine pixel-snaps background geometry: a gradient grid steps a whole device pixel at a time while
+subpixel-rendered content moves smoothly, which reads as the grid jittering against the nodes. Viewport
+culling samples the live camera on a fixed interval, and its overscan runs ahead of the
 camera rather than symmetrically around it, so content enters the visible set before it reaches the viewport.
 Scene geometry follows that result immediately while node content mounts under a per-frame budget, which the
 settled camera clears at once; a pan into a dense region therefore mounts a few cards per frame instead of a
