@@ -23,6 +23,7 @@ import { useRuntimeSelection } from "./use-runtime-selection";
 import { useRuntimeViewport } from "./use-runtime-viewport";
 import { useSectionDrawCandidateBounds } from "./use-section-draw-candidate-bounds";
 import { useStructureCanvasInteractions } from "./use-structure-canvas-interactions";
+import { useCameraStage } from "./viewport/use-camera-stage";
 
 export function useKonvaCanvasRuntime(
   props: CanvasSurfaceProps,
@@ -31,12 +32,10 @@ export function useKonvaCanvasRuntime(
   const host = useTemplateRef<HTMLElement>("host");
   const stageComponent = useTemplateRef<VueKonvaRef<Konva.Stage>>("stage");
   const stage = shallowRef<Konva.Stage>();
-  const model = new CanvasDocumentModel(props.document, {
-    documentChanged,
-    viewportChanged: props.events.onViewportChange,
-  });
+  const model = new CanvasDocumentModel(props.document, { documentChanged });
   const layouts = computed(() => model.sceneDocumentState.value.nodes);
   const viewport = useRuntimeViewport(props, host, model);
+  useCameraStage(viewport.camera, stage);
   const temporarilyExpandedSectionId = shallowRef<string>();
   const structurePreview = shallowRef<SpaceEditSnapshot>();
   const projections = useCanvasSceneProjections(
@@ -79,13 +78,13 @@ export function useKonvaCanvasRuntime(
   const palette = useCanvasPalette();
   const visibility = useSceneVisibility({
     activeNodeId: interactiveNodeId,
+    camera: viewport.camera,
     nodeIds: selection.nodeIds,
     sectionIds: selection.structureNodeIds,
     sections: computed(() => projections.structureScene.value.sections),
     relationIds: selection.relationIds,
     scene: projections.scene,
     size: viewport.size,
-    viewport: viewport.viewport,
   });
   const pointer = usePointerInteractions({
     cancelActiveGesture: () => {

@@ -22,6 +22,40 @@ interface IndexedSceneBounds extends BBox {
   id: string;
 }
 
+/** Screen-space band kept around the viewport, per side, before the index is queried. */
+export interface SceneOverscan {
+  bottom: number;
+  left: number;
+  right: number;
+  top: number;
+}
+
+const BASE_OVERSCAN_PX = 240;
+/** Samples of travel the leading sides run ahead of the camera. */
+const LEAD_SAMPLES = 2;
+const MAX_LEAD_PX = 960;
+
+function lead(screenDelta: number) {
+  return Math.min(Math.max(screenDelta, 0) * LEAD_SAMPLES, MAX_LEAD_PX);
+}
+
+/**
+ * Overscan for a camera that moved `travel` screen pixels since the previous sample.
+ *
+ * A symmetric band spends three quarters of its budget behind and beside the camera. Growing the sides the
+ * camera travels towards instead gives content a runway: it enters the visible set before it reaches the
+ * viewport, which is what lets node content mount within a frame budget rather than on demand. The stage
+ * moves opposite to the camera, so a rising stage position travels towards smaller world coordinates.
+ */
+export function sceneOverscan(travel: { x: number; y: number }): SceneOverscan {
+  return {
+    bottom: BASE_OVERSCAN_PX + lead(-travel.y),
+    left: BASE_OVERSCAN_PX + lead(travel.x),
+    right: BASE_OVERSCAN_PX + lead(-travel.x),
+    top: BASE_OVERSCAN_PX + lead(travel.y),
+  };
+}
+
 export function createSceneVisibilityIndex(
   nodes: readonly CullableNode[],
   relations: readonly CullableRelation[],
@@ -53,14 +87,13 @@ export function visibleSceneIds(
   index: ReturnType<typeof createSceneVisibilityIndex>,
   viewport: CanvasViewport,
   size: ViewportSize,
-  overscanPixels = 240,
+  overscan: SceneOverscan = sceneOverscan({ x: 0, y: 0 }),
 ) {
-  const overscan = overscanPixels / viewport.zoom;
   const visible = bounds({
-    x: -viewport.x / viewport.zoom - overscan,
-    y: -viewport.y / viewport.zoom - overscan,
-    width: size.width / viewport.zoom + overscan * 2,
-    height: size.height / viewport.zoom + overscan * 2,
+    x: (-viewport.x - overscan.left) / viewport.zoom,
+    y: (-viewport.y - overscan.top) / viewport.zoom,
+    width: (size.width + overscan.left + overscan.right) / viewport.zoom,
+    height: (size.height + overscan.top + overscan.bottom) / viewport.zoom,
   });
   return {
     nodes: new Set(index.nodes.search(visible).map(({ id }) => id)),

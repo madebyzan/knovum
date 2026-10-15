@@ -234,7 +234,10 @@ shell and component enter/leave states; do not add a motion runtime for simple o
 - controls: 100–150ms paint transitions; toolbar controls never change geometry when pressed;
 - command-initiated panel visibility animates the split width and matching toolbar region over 180ms; direct
   splitter dragging and window resizing track their actual dimensions without interpolation. The canvas stage
-  uses a bounded size step around its visible host to reduce backing reallocations during resize;
+  raster is quantized around its visible host, grows immediately and shrinks only after the host size settles,
+  so an animating panel does not reallocate and repaint the canvas backings on every frame. Panel content that
+  is being revealed mounts after the geometry settles and then fades in; content already mounted in another
+  panel is never remounted by an unrelated panel animation;
 - the pinned left sidebar stays inside its splitter panel; only its temporary preview overlays the canvas.
   The sidebar content keeps its chosen width while the panel reveals it, so labels do not reflow through narrow
   intermediate widths. The canvas keeps the same left inset and rounded corner in both states; with the sidebar

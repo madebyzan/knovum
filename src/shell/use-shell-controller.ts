@@ -1,6 +1,6 @@
 import { listen } from "@tauri-apps/api/event";
 import { error as logError } from "@tauri-apps/plugin-log";
-import { useEventListener, useTimeoutFn } from "@vueuse/core";
+import { useTimeoutFn } from "@vueuse/core";
 import { computed, onMounted, onUnmounted, provide, shallowRef, watchEffect, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -12,6 +12,7 @@ import type { WorkspaceDefinition } from "../shared/contracts/workspace-definiti
 import { workspaceRightSidebarKey } from "../shared/contracts/workspace-right-sidebar";
 import { workspaceSidebarKey } from "../shared/contracts/workspace-sidebar";
 import { createShellCommands } from "./commands/commands";
+import { usePanelMotion } from "./layout/use-panel-motion";
 import { useWorkbenchLayoutPreferences } from "./layout/use-workbench-layout-preferences";
 
 export function useShellController(
@@ -33,28 +34,21 @@ export function useShellController(
   );
   const sidebarPreview = shallowRef(false);
   const sidebarPreviewArmed = shallowRef(true);
-  const panelMotion = shallowRef(false);
-  const { start: endPanelMotion, stop: cancelPanelMotionTimer } = useTimeoutFn(
-    () => (panelMotion.value = false),
-    220,
-    { immediate: false },
+  const motion = usePanelMotion();
+  /**
+   * Content of a panel that is still expanding stays unmounted: mounting a conversation or inspector costs
+   * far more than one frame, and doing it while the panel geometry animates drops the whole animation.
+   */
+  const rightSidebarContentMounted = computed(
+    () => rightSidebarOpen.value && !motion.expandingRightSidebar.value,
   );
-  function beginPanelMotion() {
-    panelMotion.value = true;
-    endPanelMotion();
-  }
-  function cancelPanelMotion() {
-    cancelPanelMotionTimer();
-    panelMotion.value = false;
-  }
-  useEventListener(globalThis, "resize", cancelPanelMotion);
   const { start: startSidebarPreviewClose, stop: cancelSidebarPreviewClose } = useTimeoutFn(
     () => (sidebarPreview.value = false),
     160,
     { immediate: false },
   );
   function toggleSidebarPanel() {
-    beginPanelMotion();
+    motion.begin();
     setSidebarPinned(!sidebarPinned.value);
   }
   function toggleSidebarFromControl() {
@@ -92,10 +86,11 @@ export function useShellController(
   }
   function toggleRightSidebar() {
     if (!workspaceActive.value || !workspace.rightSidebarAvailable.value) return;
-    beginPanelMotion();
     if (rightSidebarOpen.value) {
+      motion.begin();
       rightSidebarRequested.value = false;
     } else {
+      motion.beginRightSidebarExpansion();
       workspace.openDefaultRightSidebar();
       rightSidebarRequested.value = true;
     }
@@ -103,7 +98,7 @@ export function useShellController(
   }
   function openRightSidebar() {
     if (!workspaceActive.value || !workspace.rightSidebarAvailable.value) return;
-    if (!rightSidebarOpen.value) beginPanelMotion();
+    if (!rightSidebarOpen.value) motion.beginRightSidebarExpansion();
     rightSidebarRequested.value = true;
     persist();
   }
@@ -164,9 +159,10 @@ export function useShellController(
     sidebarWidth,
     sidebarPreview,
     rightSidebarOpen,
+    rightSidebarContentMounted,
     rightSidebarWidth,
-    panelMotion,
-    cancelPanelMotion,
+    panelMotion: motion.active,
+    cancelPanelMotion: motion.cancel,
     commands,
     toggleSidebarFromControl,
     setSidebarPinned,

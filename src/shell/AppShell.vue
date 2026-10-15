@@ -22,6 +22,7 @@ const {
   sidebarWidth,
   sidebarPreview,
   rightSidebarOpen,
+  rightSidebarContentMounted,
   rightSidebarWidth,
   panelMotion,
   cancelPanelMotion,
@@ -81,6 +82,7 @@ function updatePanelLayout(sizes: number[]) {
       :sidebar-width="sidebarWidth"
       :sidebar-preview="sidebarPreview"
       :right-sidebar-open="rightSidebarOpen"
+      :right-sidebar-content-mounted="rightSidebarContentMounted"
       :right-sidebar-width="rightSidebarWidth"
       @panel-layout="updatePanelLayout"
       @cancel-panel-motion="cancelPanelMotion"

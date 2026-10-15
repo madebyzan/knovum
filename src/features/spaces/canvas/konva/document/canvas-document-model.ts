@@ -6,7 +6,6 @@ import { sameCanvasViewport } from "./canvas-document-mutations";
 
 interface CanvasDocumentModelEvents {
   documentChanged(document: CanvasDocumentV1): void;
-  viewportChanged(viewport: CanvasViewport): void;
 }
 
 export class CanvasDocumentModel {
@@ -46,7 +45,6 @@ export class CanvasDocumentModel {
     if (sameCanvasViewport(this.document.viewport, viewport)) return;
     this.assign({ ...this.document, viewport: { ...viewport } });
     this.events.documentChanged(this.document);
-    this.events.viewportChanged(viewport);
   }
 
   private update(document: CanvasDocumentV1) {
