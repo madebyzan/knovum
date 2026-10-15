@@ -1,10 +1,13 @@
+/*
+ * Only transform and opacity are animated. A box-shadow transition would repaint the dialog-sized shadow
+ * band on every frame of the slide, on the main thread, which is exactly the frame budget the slide needs.
+ */
 .workspace-sidebar-surface {
   opacity: 0;
   transform: translate3d(-100%, 0, 0);
   transition:
     transform 180ms var(--ease-standard),
-    opacity 150ms var(--ease-decelerate),
-    box-shadow 150ms var(--ease-decelerate);
+    opacity 150ms var(--ease-decelerate);
 }
 
 .workspace-sidebar-surface.is-visible {
