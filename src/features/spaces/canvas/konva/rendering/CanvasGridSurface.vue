@@ -8,7 +8,12 @@ import type { CanvasPalette } from "./use-canvas-palette";
 const GRID_SPACING = 25;
 const DOT_RADIUS = 1.1;
 
-const props = defineProps<{ camera: CanvasCamera; palette: CanvasPalette; zoom: number }>();
+const props = defineProps<{
+  camera: CanvasCamera;
+  palette: CanvasPalette;
+  surface: { height: number; width: number };
+  zoom: number;
+}>();
 const pattern = useTemplateRef<SVGPatternElement>("pattern");
 const dot = useTemplateRef<SVGCircleElement>("dot");
 const patternId = `canvas-grid-${useId()}`;
@@ -48,8 +53,16 @@ props.camera.observeFrames((camera) => pattern.value && applyPhase(pattern.value
     so the grid would step a whole device pixel at a time while subpixel-rendered content moves smoothly -
     visible as the grid jittering against the nodes. A pattern transform is interpolated in floating point,
     and one tile is rasterized rather than a viewport-sized Konva layer being refilled per frame.
+
+    It spans the stage surface rather than the host and sits on its own compositor layer, so a work-area
+    edge moving under a sidebar clips and carries the grid without ever re-rasterizing it.
   -->
-  <svg ref="surface" aria-hidden="true" class="pointer-events-none absolute inset-0 z-0 h-full w-full">
+  <svg
+    aria-hidden="true"
+    class="pointer-events-none absolute top-0 left-0 z-0 will-change-transform"
+    :width="surface.width"
+    :height="surface.height"
+  >
     <defs>
       <pattern :id="patternId" ref="pattern" patternUnits="userSpaceOnUse" width="25" height="25">
         <circle ref="dot" :r="DOT_RADIUS" :fill="palette.grid" cx="12.5" cy="12.5" />

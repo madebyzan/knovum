@@ -84,7 +84,7 @@ export function useKonvaCanvasRuntime(
     sections: computed(() => projections.structureScene.value.sections),
     relationIds: selection.relationIds,
     scene: projections.scene,
-    size: viewport.size,
+    size: viewport.surface,
   });
   const pointer = usePointerInteractions({
     cancelActiveGesture: () => {

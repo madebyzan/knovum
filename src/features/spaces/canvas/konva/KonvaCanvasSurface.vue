@@ -63,6 +63,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       v-if="renderingEnabled"
       :camera="runtime.viewport.camera"
       :palette="runtime.palette.value"
+      :surface="runtime.viewport.surface"
       :zoom="runtime.viewport.zoom.value"
     />
     <!--
@@ -74,8 +75,8 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       :config="{
         visible: renderingEnabled,
         listening: renderingEnabled,
-        width: runtime.viewport.stageSize.width,
-        height: runtime.viewport.stageSize.height,
+        width: runtime.viewport.surface.width,
+        height: runtime.viewport.surface.height,
       }"
       @pointerdown="interactionEnabled && canCommitCanvasGestures && runtime.pointer.pointerDown($event)"
       @pointermove="interactionEnabled && canCommitCanvasGestures && runtime.connectors.pointerMove($event)"

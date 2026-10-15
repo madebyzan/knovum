@@ -40,9 +40,8 @@ it("hides unavailable panel controls while retaining the user's requested layout
           h(WorkspaceToolbar, {
             workspace,
             sidebarPinned: true,
-            sidebarWidth: 260,
             rightSidebarOpen: controller.rightSidebarOpen.value,
-            rightSidebarLayoutWidth: controller.rightSidebarOpen.value ? 380 : 0,
+            edges: { leading: 260, sidebar: 260, trailing: controller.rightSidebarOpen.value ? 380 : 0 },
           });
       },
     },

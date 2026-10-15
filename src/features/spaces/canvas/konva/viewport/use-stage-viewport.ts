@@ -1,4 +1,4 @@
-import { TransitionPresets, transition, useElementSize } from "@vueuse/core";
+import { TransitionPresets, transition, useElementSize, useWindowSize } from "@vueuse/core";
 import type Konva from "konva";
 import { computed, onBeforeUnmount, onScopeDispose, reactive, shallowRef, watch, type Ref } from "vue";
 
@@ -6,7 +6,7 @@ import { isScrollableTarget } from "../../../../../foundation/dom/scrollable-tar
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import { createCameraPan } from "./camera-pan";
 import { createCanvasCamera } from "./canvas-camera";
-import { useStageRasterSize } from "./use-stage-raster-size";
+import { useStageSurfaceSize } from "./use-stage-surface-size";
 import { useViewportSpaceKey } from "./use-viewport-space-key";
 import { normalizedWheelDelta, zoomViewportAt } from "./viewport-math";
 
@@ -29,6 +29,10 @@ const ANIMATION_MS = 180;
  * camera value published to the scene tree is the zoom, because zoom changes screen-space chrome metrics;
  * position never re-renders a component.
  *
+ * Two extents with two jobs: `size` is the host, which is what fitting, centring and wheel normalization
+ * mean by the viewport; `surface` is what is painted and culled, and it is bounded by the window so the
+ * host's edges can move without the stage reacting at all.
+ *
  * The camera is held in the host's own coordinate space and is never compensated for host movement. When
  * a sidebar moves the work area, the scene moves with it through layout alone, without a canvas draw.
  * Compensation would have to read the host's new origin, which cannot be known earlier than the layout
@@ -41,7 +45,7 @@ export function useStageViewport(options: StageViewportOptions) {
     width: computed(() => Math.max(1, measuredSize.width.value)),
     height: computed(() => Math.max(1, measuredSize.height.value)),
   });
-  const stageSize = useStageRasterSize(size);
+  const surface = useStageSurfaceSize(reactive(useWindowSize({ includeScrollbar: false })));
   const camera = createCanvasCamera({ ...options.initialViewport });
   const zoom = shallowRef(camera.get().zoom);
   const animated = shallowRef(camera.get());
@@ -136,7 +140,7 @@ export function useStageViewport(options: StageViewportOptions) {
     panning: pan.panning,
     setViewport,
     size,
-    stageSize,
+    surface,
     spacePressed,
     wheel,
     zoom,

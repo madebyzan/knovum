@@ -232,17 +232,26 @@ shell and component enter/leave states; do not add a motion runtime for simple o
 - scrim: opacity only, 150ms enter and exit;
 - view swaps: at most 150ms with a 4px directional offset;
 - controls: 100–150ms paint transitions; toolbar controls never change geometry when pressed;
-- panel visibility animates on one shared clock (`--knovum-panel-motion-duration`,
-  `--knovum-panel-motion-easing`): a sidebar's slot animates the layout width it reserves, the sidebar itself
-  stays at its own width and rides the slot's edge, and the toolbar columns that align to the work area
-  interpolate with the same duration and curve - the native split-view model. That is cheap for the canvas
-  because of three rules, each of which was once the actual cost: nothing inside a sidebar reflows or mounts
-  during the motion (fixed-width content; the right pane only fades as it mounts), nothing compensates the
-  canvas camera for the moving host, and the stage raster is quantized, grows immediately and shrinks only
-  once the host settles, so a moving edge relayouts the work area without reallocating or repainting layer
-  backings. The curve starts gently: a front-loaded curve covers most of a 240px travel in two frames and
-  reads as a snap. A sash drag suspends the motion (`html[data-sash-dragging]`) and tracks the pointer;
-  reduced motion keeps every state and drops the interpolation;
+- panel motion runs on one clock, `useWorkspaceEdges`. It animates panel _state_ - pinned, visible, open - with
+  one interpolation, and every edge that has to line up derives from the same frame value: the reserved slot
+  widths, the sidebar surface's position (a transform, so the sidebar never reflows) and the toolbar
+  columns. A sash drag changes a width, not a state, so it lands in the same frame with no motion to suspend;
+  reduced motion keeps every state and drops the interpolation. CSS keeps only fades with nothing to align
+  (elevation, scrim, pane content) on `--knovum-panel-motion-*`, which a test holds equal to the clock;
+- panel edges land on whole CSS pixels in every frame. The work area's origin moves with the leading edge,
+  and engines place composited layers - the Konva canvases and the grid - on whole pixels while DOM text
+  keeps the fraction. Measured in WebKit at 2x, an origin at 0.5px moved card text by 0.49 device pixels
+  and the grid by 0; at 1px, text by 1.0 and the grid by 2. A fractional origin therefore shifts card text
+  against its own frame and the grid by a different sub-pixel amount every frame, which reads as the canvas
+  shaking while it slides; at whole pixels every layer agrees. A CSS transition cannot be told to land on
+  pixels, so geometry never animates through one;
+- the canvas never reacts to panel motion: nothing inside a sidebar reflows or mounts during it (fixed-width
+  content; the right pane only fades as it mounts), nothing compensates the canvas camera for the moving
+  host, and the stage surface - every Konva raster, the grid and the culled region - is bounded by the
+  window rather than the host, so a moving work-area edge is a clip. Measured on the real canvas with 1,200
+  notes, a toggle used to reallocate three layer canvases and mount or unmount about 36 cards inside the
+  motion; it now does neither. The curve starts gently: a front-loaded curve covers most of a 240px travel
+  in two frames and reads as a snap;
 - a sidebar is the region its own width sizes, and that width is plain application state in pixels. The shell
   does not route it through a percent-based panel solver: converting to percent and back is lossy, so a panel
   resting on its minimum can report less than its minimum and have its commit silently rejected, leaving the
@@ -251,20 +260,25 @@ shell and component enter/leave states; do not add a motion runtime for simple o
   toggle's job, so a drag never removes the handle being dragged, which is the only way a divider can survive
   its own gesture. Keyboard resizing uses the same path. An n-panel percent solver is still the right tool
   where the layout genuinely is n panels, as in the video editing workbench;
-- the left sidebar has one host for both of its roles. Pinned, its slot reserves the sidebar's width and the
-  sidebar sits exactly in it; previewing, the slot stays closed and the same surface translates out over the
-  canvas, and pinning from a preview moves the slot and the translation by the same amount on the same
-  curve, so the sidebar holds still while the work area makes room. Pinning never moves the subtree between
-  hosts, which would reset its scroll position and make every virtualized row re-measure inside the first
-  frame of the transition;
+- the left sidebar has one surface for both of its roles. Its slot is only the layout width it reserves; the
+  surface is fixed at the sidebar's width and placed by transform at the sidebar's own edge. Pinning from a
+  preview grows the slot while that edge stays put, so the sidebar holds still as the work area makes room;
+  closing moves both by the same frame value, so the sidebar's edge stays on the canvas edge. Pinning never
+  moves the subtree between hosts, which would reset its scroll position and make every virtualized row
+  re-measure inside the first frame of the transition;
 - the first workspace tab starts exactly on the canvas's leading edge. The toolbar's leading column is
-  `minmax(auto, <edge>)`: never narrower than the navigation cluster, otherwise ending at the edge the
-  sidebar slot moves, and interpolated on the panel clock, so the tabs wait for the canvas edge and then ride
-  it. The tab column adds no inset of its own, and the trailing column ends where the canvas ends when the
+  `minmax(auto, max(gutter, <edge>))`: never narrower than the navigation cluster, otherwise ending where
+  the sidebar slot ends - the same expression on the same frame - so the tabs wait for the canvas edge and
+  then ride it. The tab column adds no inset of its own, and the trailing column ends where the canvas ends when the
   right pane is open. Without a pinned sidebar the work area keeps one gutter of inset on every side;
-- a toggle control states its state through one glyph and a pressed style, like every other control in the
-  toolbar. Cross-fading two different line glyphs inside an 18px box paints both strokes over each other for
-  the length of the transition, which reads as a flash on every activation;
+- a sidebar toggle states its state through `UiPanelToggleIcon`, one geometry shared by both sidebars and
+  mirrored to its window edge: a window frame with a solid pane inset from it by the same padding on every
+  side and concentric corners, the way a sidebar sits inside its window. Open, the pane is full width;
+  closed, the same block narrows to a rail against the window edge, so both states read as one object and
+  the difference is how much room the panel takes. The width itself animates on the panel's duration and
+  curve - not a scale, which would flatten the corners mid-motion. The icon carries the state, so the button
+  takes no pressed background on top of it. Swapping or cross-fading two different line glyphs inside an
+  18px box paints both strokes over each other for the length of the transition, which reads as a flash;
 - never animate canvas-object geometry or other layout dimensions, and never interpolate a persisted
   node position while it is dragged, undone or restored; the single exception is a command-initiated rearrange
   (align, distribute, auto layout), which may transition the rendered transform for 150ms and stays subject to

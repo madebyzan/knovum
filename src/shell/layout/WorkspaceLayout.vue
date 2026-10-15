@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
 import FeatureErrorBoundary from "../FeatureErrorBoundary.vue";
 import { WORKSPACE_SIDEBAR_GEOMETRY } from "./sidebar-geometry";
+import type { WorkspaceEdges } from "./use-workspace-edges";
 import WorkspaceRightSidebar from "./WorkspaceRightSidebar.vue";
 import WorkspaceSidebar from "./WorkspaceSidebar.vue";
 import WorkspaceSidebarSash from "./WorkspaceSidebarSash.vue";
@@ -17,6 +18,7 @@ const props = defineProps<{
   rightSidebarOpen: boolean;
   rightSidebarContentMounted: boolean;
   rightSidebarWidth: number;
+  edges: WorkspaceEdges;
 }>();
 const emit = defineEmits<{
   "set-sidebar-width": [value: number];
@@ -49,26 +51,26 @@ function schedulePreviewClose() {
     }"
   >
     <!--
-      The slot is the layout width the sidebar reserves; the surface is the sidebar, fixed at its own width
-      and anchored to the slot's trailing edge, so it rides that edge without ever reflowing. Previewing,
-      the slot stays closed and the surface translates out over the work area instead. One element serves
-      both roles: moving the subtree between hosts would reset its scroll position and make every outline
-      row report a new height through its resize observer.
+      The slot is only the layout width the sidebar reserves. The sidebar is a fixed-width surface placed by
+      transform at its own edge, so it never reflows and moves on the compositor. Both read the same frame
+      of the panel clock: pinning from a preview grows the slot under a sidebar that holds still, and closing
+      keeps the sidebar's edge on the work area's edge in every frame. One surface serves pinned and preview:
+      moving the subtree between hosts would reset its scroll and make every outline row re-measure.
     -->
-    <div class="workspace-sidebar-slot" :class="{ 'is-pinned': sidebarPinned }">
-      <div
-        id="spaces-sidebar"
-        class="workspace-sidebar-surface"
-        :class="{ 'is-floating': sidebarFloating, 'rounded-r-xl': !sidebarPinned }"
-        :aria-hidden="!sidebarVisible"
-        :inert="!sidebarVisible"
-        @pointerenter="openPreview"
-        @pointerleave="schedulePreviewClose"
-      >
-        <div class="workspace-sidebar-elevation rounded-[inherit]" aria-hidden="true" />
-        <div class="relative h-full min-h-0 overflow-hidden rounded-[inherit]">
-          <WorkspaceSidebar :workspace="workspace" />
-        </div>
+    <div class="workspace-sidebar-slot" :style="{ '--workspace-leading-edge': `${edges.leading}px` }" />
+    <div
+      id="spaces-sidebar"
+      class="workspace-sidebar-surface"
+      :class="{ 'is-floating': sidebarFloating, 'rounded-r-xl': !sidebarPinned }"
+      :style="{ transform: `translate3d(${edges.sidebar - sidebarWidth}px, 0, 0)` }"
+      :aria-hidden="!sidebarVisible"
+      :inert="!sidebarVisible"
+      @pointerenter="openPreview"
+      @pointerleave="schedulePreviewClose"
+    >
+      <div class="workspace-sidebar-elevation rounded-[inherit]" aria-hidden="true" />
+      <div class="relative h-full min-h-0 overflow-hidden rounded-[inherit]">
+        <WorkspaceSidebar :workspace="workspace" />
       </div>
     </div>
 
@@ -108,7 +110,7 @@ function schedulePreviewClose() {
     <div
       id="spaces-right-sidebar"
       class="workspace-right-sidebar-slot"
-      :class="{ 'is-open': rightSidebarOpen }"
+      :style="{ width: `${edges.trailing}px` }"
       :inert="!rightSidebarOpen"
       :aria-hidden="!rightSidebarOpen"
     >

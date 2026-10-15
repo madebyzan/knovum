@@ -1,31 +1,29 @@
 <script setup lang="ts">
-import { PanelRightClose, PanelRightOpen } from "@lucide/vue";
 import { computed } from "vue";
 
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
 import UiIconButton from "../../shared/ui/UiIconButton.vue";
+import UiPanelToggleIcon from "../../shared/ui/UiPanelToggleIcon.vue";
 import TaskCenter from "../tasks/TaskCenter.vue";
+import type { WorkspaceEdges } from "./use-workspace-edges";
 import WorkspaceNavigationControls from "./WorkspaceNavigationControls.vue";
 
 const props = defineProps<{
   workspace: WorkspaceDefinition;
   sidebarPinned: boolean;
-  sidebarWidth: number;
   rightSidebarOpen: boolean;
-  rightSidebarLayoutWidth: number;
+  edges: WorkspaceEdges;
 }>();
-const trailingUtilityWidth = computed(() => Math.max(props.rightSidebarLayoutWidth, 96));
 /**
  * The leading column reserves at least the navigation cluster and otherwise ends exactly where the canvas
- * begins, so the first tab lines up with the work area's leading edge. Its limit is the same edge the
- * sidebar slot moves - the sidebar width when pinned, the work area gutter otherwise - interpolated on the
- * same clock, so the tabs ride the canvas edge once it passes the cluster and wait for it before.
+ * begins - the same expression as the sidebar slot, on the same frame of the panel clock - so the first tab
+ * rides the canvas edge once it passes the cluster and waits for it before. The trailing column tracks the
+ * pane it aligns with and never gets narrower than the utilities it holds.
  */
-const leadingColumnLimit = computed(() =>
-  props.sidebarPinned ? `${props.sidebarWidth}px` : "var(--knovum-workspace-gutter)",
-);
 const toolbarColumns = computed(
-  () => `minmax(auto, ${leadingColumnLimit.value}) minmax(0, 1fr) ${trailingUtilityWidth.value}px`,
+  () =>
+    `minmax(auto, max(var(--knovum-workspace-gutter), ${props.edges.leading}px)) minmax(0, 1fr) ` +
+    `${Math.max(props.edges.trailing, 96)}px`,
 );
 const emit = defineEmits<{
   "toggle-sidebar": [];
@@ -67,15 +65,10 @@ const emit = defineEmits<{
           aria-controls="spaces-right-sidebar"
           :aria-expanded="rightSidebarOpen"
           shortcut="$mod+Shift+B"
-          :active="rightSidebarOpen"
           size="md"
           @click="emit('toggle-right-sidebar')"
         >
-          <component
-            :is="rightSidebarOpen ? PanelRightClose : PanelRightOpen"
-            class="size-4.5"
-            :stroke-width="1.55"
-          />
+          <UiPanelToggleIcon class="size-4.5" side="right" :open="rightSidebarOpen" />
         </UiIconButton>
       </div>
     </div>
@@ -85,10 +78,6 @@ const emit = defineEmits<{
 <style scoped>
 .workspace-toolbar-content {
   pointer-events: none;
-  transition: grid-template-columns var(--knovum-panel-motion-duration) var(--knovum-panel-motion-easing);
-}
-html[data-sash-dragging] .workspace-toolbar-content {
-  transition: none;
 }
 .workspace-toolbar-content :deep(button),
 .workspace-toolbar-content :deep(input),
