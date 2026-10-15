@@ -10,7 +10,7 @@ async fn derived_pair_undo_and_redo_preserve_relations_and_source() {
         .await
         .unwrap();
     let request = serde_json::from_value(json!({
-        "spaceId":"space","mutationId":"source-create","expectedEditRevision":0,
+        "spaceId":"space","mutationId":"source-create",
         "targetParentId":null,"nodes":[{"id":"source","kind":"audio",
             "initialX":0,"initialY":0,"width":288,"height":80,"sizingMode":"content",
             "sourceChunks":[],"data":{"kind":"audio","title":"Source",

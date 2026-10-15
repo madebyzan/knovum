@@ -8,13 +8,14 @@ use crate::spaces::{db, structure::StructureNode};
 
 mod cleanup;
 
+/// Discarding one failed pending creation removes that node only; like creation it rebases on
+/// the structure loaded inside its own write transaction instead of a caller revision.
 #[derive(Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct DiscardPendingContentRequest {
     pub(crate) space_id: String,
     pub(crate) node_id: String,
-    pub(crate) expected_edit_revision: i64,
     pub(crate) mutation_id: String,
 }
 
@@ -34,9 +35,6 @@ pub(crate) async fn discard_pending_content<R: Runtime>(
     if request.mutation_id.is_empty() || request.mutation_id.encode_utf16().count() > 128 {
         return Err("Mutation ID must contain 1 to 128 characters".into());
     }
-    if request.expected_edit_revision < 0 {
-        return Err("Expected edit revision must be nonnegative".into());
-    }
     let digest = super::super::receipts::digest(&request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -48,12 +46,6 @@ pub(crate) async fn discard_pending_content<R: Runtime>(
     }
     let (mut snapshot, revision) =
         super::super::repository::load_in_transaction(&mut tx, &request.space_id).await?;
-    if revision != request.expected_edit_revision {
-        return Err(AppError::new(
-            "space_edit_revision_conflict",
-            "Space edit revision conflict",
-        ));
-    }
     let structure_node_id = content_structure_node_id(&snapshot.structure, &request.node_id)?;
     let index =
         super::super::planner::tree_policy::Index::new(&snapshot.structure, &snapshot.layouts);

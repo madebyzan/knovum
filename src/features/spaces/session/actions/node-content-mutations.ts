@@ -85,19 +85,17 @@ export function createNodeContentMutations(context: SpaceMutationContext) {
   }
 
   async function discardPendingContent(spaceId: string, nodeId: string) {
-    const snapshot =
-      context.activeSpaceId.value === spaceId
-        ? context.editSnapshot.value
-        : await spaceEditOperations.load(spaceId);
     const discardReceipt = await persistPendingContentDiscard({
       spaceId,
       nodeId,
-      expectedEditRevision: snapshot.editRevision,
       mutationId: crypto.randomUUID(),
     });
     if (context.activeSpaceId.value === spaceId) {
       const projection = await loadSpaceSessionProjection(spaceId);
-      if (context.activeSpaceId.value === spaceId) {
+      if (
+        context.activeSpaceId.value === spaceId &&
+        projection.editSnapshot.editRevision >= context.editSnapshot.value.editRevision
+      ) {
         context.nodes.value = projection.nodes;
         context.editSnapshot.value = projection.editSnapshot;
       }
