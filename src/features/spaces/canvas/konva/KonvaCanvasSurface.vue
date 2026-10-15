@@ -59,117 +59,124 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       interactionEnabled && !runtime.contextMenu.keyboard($event) && runtime.viewport.key($event, true)
     "
   >
-    <CanvasGridSurface
-      v-if="renderingEnabled"
-      :camera="runtime.viewport.camera"
-      :palette="runtime.palette.value"
-      :zoom="runtime.viewport.zoom.value"
-    />
     <!--
+      The content layer carries the host-anchor compensation, so a panel that moves the leading edge shifts
+      one composited transform instead of redrawing every layer per frame. It cannot sit on the host, which
+      clips the canvas to its panel.
+    -->
+    <div ref="content" class="absolute inset-0">
+      <CanvasGridSurface
+        v-if="renderingEnabled"
+        :camera="runtime.viewport.camera"
+        :palette="runtime.palette.value"
+        :zoom="runtime.viewport.zoom.value"
+      />
+      <!--
       The stage transform is written by the camera, not bound here: a reactive position would re-render this
       whole subtree on every frame of a pan and leave Konva to redraw one frame later than the DOM overlay.
     -->
-    <KonvaStage
-      ref="stage"
-      :config="{
-        visible: renderingEnabled,
-        listening: renderingEnabled,
-        width: runtime.viewport.stageSize.width,
-        height: runtime.viewport.stageSize.height,
-      }"
-      @pointerdown="interactionEnabled && canCommitCanvasGestures && runtime.pointer.pointerDown($event)"
-      @pointermove="interactionEnabled && canCommitCanvasGestures && runtime.connectors.pointerMove($event)"
-      @pointercancel="runtime.pointer.pointerCancel($event.evt)"
-      @pointerup="interactionEnabled && canCommitCanvasGestures && runtime.connectors.pointerUp($event)"
-      @wheel="interactionEnabled && runtime.viewport.wheel($event)"
-    >
-      <CanvasStructureSectionsLayer
-        :palette="runtime.palette.value"
-        :sections="runtime.visibility.visibleSections.value"
-        @error="events.onError"
-      />
-      <CanvasSceneLayers
-        :interactive="isInteractive"
-        :selection-chrome-visible="selectionChromeVisible"
-        :connector-draft="runtime.connectors.draft.value"
-        :feedback="runtime.feedback.value"
-        :palette="runtime.palette.value"
-        :layout-preview-by-node-id="runtime.scenePreview.layoutByNodeId"
-        :relation-preview-by-id="runtime.scenePreview.relationById"
-        :scene="runtime.scene.value"
-        :selected-node-ids="runtime.selection.nodeIds.value"
-        :selected-relation-ids="runtime.visibility.selectedRelationIds.value"
-        :transform-policy="runtime.transformPolicy.value"
-        :zoom="runtime.viewport.zoom.value"
-        v-bind="runtime.stage.value ? { stage: runtime.stage.value } : {}"
-        :visible-node-ids="runtime.visibility.visibleNodeIds.value"
-        :visible-relation-ids="runtime.visibility.visibleRelationIds.value"
-        @activate="runtime.activateNode"
-        @connector-start="runtime.connectors.begin"
-        @drag-end="runtime.finishDrag"
-        @drag-move="(_id, event) => runtime.nodeDrag.move(event)"
-        @drag-start="runtime.nodeDrag.beginNode"
-        @pointer-down="runtime.pointer.nodePointerDown"
-        @relation-pointer-down="runtime.selection.selectRelation"
-        @resize-snap="runtime.gestures.controller.updateResizeGuides"
-        @transform="runtime.gestures.controller.previewTransform($event)"
-        @transform-end="runtime.finishTransform"
-        @transform-start="runtime.gestures.beginTransform()"
-      />
-      <CanvasSectionCandidateFeedback
-        :bounds="runtime.sectionCandidateBounds.value"
-        :palette="runtime.palette.value"
-        :zoom="runtime.viewport.zoom.value"
-      />
-      <CanvasStructureEditingLayers
-        :runtime="runtime"
-        :interactive="isInteractive"
-        :selection-chrome-visible="selectionChromeVisible"
-        :group-scope-path="groupScopePath"
-      />
-      <CanvasMarquee
-        :bounds="runtime.selection.marqueeRect.value"
-        :palette="runtime.palette.value"
-        :zoom="runtime.viewport.zoom.value"
-      />
-      <CanvasMarquee
-        :bounds="runtime.pointer.sectionDraft.value"
-        :palette="runtime.palette.value"
-        :zoom="runtime.viewport.zoom.value"
-      />
-    </KonvaStage>
-    <Teleport v-if="runtime.stage.value" :to="runtime.stage.value.getContent()">
-      <CanvasDomOverlay
-        :camera="runtime.viewport.camera"
-        :rendering-enabled="renderingEnabled"
-        :interaction-enabled="
-          interactionEnabled &&
-          tool === 'select' &&
-          !runtime.viewport.spacePressed.value &&
-          !runtime.viewport.panning.value
-        "
-        :interactive-node-id="interactionEnabled ? runtime.interactiveNodeId.value : undefined"
-        :layout-preview-by-node-id="runtime.scenePreview.layoutByNodeId"
-        :scene="runtime.scene.value"
-        :visible-node-ids="runtime.visibility.visibleContentNodeIds.value"
-        :selected-node-ids="runtime.selection.nodeIds.value"
-        :zoom="runtime.viewport.zoom.value"
+      <KonvaStage
+        ref="stage"
+        :config="{
+          visible: renderingEnabled,
+          listening: renderingEnabled,
+          width: runtime.viewport.stageSize.width,
+          height: runtime.viewport.stageSize.height,
+        }"
+        @pointerdown="interactionEnabled && canCommitCanvasGestures && runtime.pointer.pointerDown($event)"
+        @pointermove="interactionEnabled && canCommitCanvasGestures && runtime.connectors.pointerMove($event)"
+        @pointercancel="runtime.pointer.pointerCancel($event.evt)"
+        @pointerup="interactionEnabled && canCommitCanvasGestures && runtime.connectors.pointerUp($event)"
+        @wheel="interactionEnabled && runtime.viewport.wheel($event)"
       >
-        <template #default="content">
-          <slot name="node-content" v-bind="content" />
-        </template>
-      </CanvasDomOverlay>
-    </Teleport>
-    <CanvasStructureHud
-      :camera="runtime.viewport.camera"
-      :group-scope-titles="runtime.structure.groupScopeTitles.value"
-      :rename-target="runtime.structureInteractions.renameTarget.value"
-      :rename-error="runtime.structureInteractions.renameError.value"
-      :zoom="runtime.viewport.zoom.value"
-      @back="runtime.structureInteractions.exitGroup"
-      @cancel-rename="runtime.structureInteractions.cancelRename"
-      @save-rename="runtime.structureInteractions.commitRename"
-    />
+        <CanvasStructureSectionsLayer
+          :palette="runtime.palette.value"
+          :sections="runtime.visibility.visibleSections.value"
+          @error="events.onError"
+        />
+        <CanvasSceneLayers
+          :interactive="isInteractive"
+          :selection-chrome-visible="selectionChromeVisible"
+          :connector-draft="runtime.connectors.draft.value"
+          :feedback="runtime.feedback.value"
+          :palette="runtime.palette.value"
+          :layout-preview-by-node-id="runtime.scenePreview.layoutByNodeId"
+          :relation-preview-by-id="runtime.scenePreview.relationById"
+          :scene="runtime.scene.value"
+          :selected-node-ids="runtime.selection.nodeIds.value"
+          :selected-relation-ids="runtime.visibility.selectedRelationIds.value"
+          :transform-policy="runtime.transformPolicy.value"
+          :zoom="runtime.viewport.zoom.value"
+          v-bind="runtime.stage.value ? { stage: runtime.stage.value } : {}"
+          :visible-node-ids="runtime.visibility.visibleNodeIds.value"
+          :visible-relation-ids="runtime.visibility.visibleRelationIds.value"
+          @activate="runtime.activateNode"
+          @connector-start="runtime.connectors.begin"
+          @drag-end="runtime.finishDrag"
+          @drag-move="(_id, event) => runtime.nodeDrag.move(event)"
+          @drag-start="runtime.nodeDrag.beginNode"
+          @pointer-down="runtime.pointer.nodePointerDown"
+          @relation-pointer-down="runtime.selection.selectRelation"
+          @resize-snap="runtime.gestures.controller.updateResizeGuides"
+          @transform="runtime.gestures.controller.previewTransform($event)"
+          @transform-end="runtime.finishTransform"
+          @transform-start="runtime.gestures.beginTransform()"
+        />
+        <CanvasSectionCandidateFeedback
+          :bounds="runtime.sectionCandidateBounds.value"
+          :palette="runtime.palette.value"
+          :zoom="runtime.viewport.zoom.value"
+        />
+        <CanvasStructureEditingLayers
+          :runtime="runtime"
+          :interactive="isInteractive"
+          :selection-chrome-visible="selectionChromeVisible"
+          :group-scope-path="groupScopePath"
+        />
+        <CanvasMarquee
+          :bounds="runtime.selection.marqueeRect.value"
+          :palette="runtime.palette.value"
+          :zoom="runtime.viewport.zoom.value"
+        />
+        <CanvasMarquee
+          :bounds="runtime.pointer.sectionDraft.value"
+          :palette="runtime.palette.value"
+          :zoom="runtime.viewport.zoom.value"
+        />
+      </KonvaStage>
+      <Teleport v-if="runtime.stage.value" :to="runtime.stage.value.getContent()">
+        <CanvasDomOverlay
+          :camera="runtime.viewport.camera"
+          :rendering-enabled="renderingEnabled"
+          :interaction-enabled="
+            interactionEnabled &&
+            tool === 'select' &&
+            !runtime.viewport.spacePressed.value &&
+            !runtime.viewport.panning.value
+          "
+          :interactive-node-id="interactionEnabled ? runtime.interactiveNodeId.value : undefined"
+          :layout-preview-by-node-id="runtime.scenePreview.layoutByNodeId"
+          :scene="runtime.scene.value"
+          :visible-node-ids="runtime.visibility.visibleContentNodeIds.value"
+          :selected-node-ids="runtime.selection.nodeIds.value"
+          :zoom="runtime.viewport.zoom.value"
+        >
+          <template #default="content">
+            <slot name="node-content" v-bind="content" />
+          </template>
+        </CanvasDomOverlay>
+      </Teleport>
+      <CanvasStructureHud
+        :camera="runtime.viewport.camera"
+        :group-scope-titles="runtime.structure.groupScopeTitles.value"
+        :rename-target="runtime.structureInteractions.renameTarget.value"
+        :rename-error="runtime.structureInteractions.renameError.value"
+        :zoom="runtime.viewport.zoom.value"
+        @back="runtime.structureInteractions.exitGroup"
+        @cancel-rename="runtime.structureInteractions.cancelRename"
+        @save-rename="runtime.structureInteractions.commitRename"
+      />
+    </div>
   </div>
 </template>
 

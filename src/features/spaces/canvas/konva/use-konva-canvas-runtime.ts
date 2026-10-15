@@ -30,11 +30,12 @@ export function useKonvaCanvasRuntime(
   documentChanged: (document: CanvasDocumentV1) => void,
 ) {
   const host = useTemplateRef<HTMLElement>("host");
+  const content = useTemplateRef<HTMLElement>("content");
   const stageComponent = useTemplateRef<VueKonvaRef<Konva.Stage>>("stage");
   const stage = shallowRef<Konva.Stage>();
   const model = new CanvasDocumentModel(props.document, { documentChanged });
   const layouts = computed(() => model.sceneDocumentState.value.nodes);
-  const viewport = useRuntimeViewport(props, host, model);
+  const viewport = useRuntimeViewport(props, host, model, content);
   useCameraStage(viewport.camera, stage, viewport.panning);
   const temporarilyExpandedSectionId = shallowRef<string>();
   const structurePreview = shallowRef<SpaceEditSnapshot>();

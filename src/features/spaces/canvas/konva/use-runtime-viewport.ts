@@ -9,8 +9,10 @@ export function useRuntimeViewport(
   props: CanvasSurfaceProps,
   host: Readonly<Ref<HTMLElement | null>>,
   model: CanvasDocumentModel,
+  content: Readonly<Ref<HTMLElement | null>>,
 ) {
   const viewport = useStageViewport({
+    content,
     host,
     navigationEnabled: () => props.interactionEnabled && props.navigationEnabled,
     initialViewport: model.document.viewport,

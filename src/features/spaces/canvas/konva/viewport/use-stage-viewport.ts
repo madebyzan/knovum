@@ -12,6 +12,7 @@ import { useViewportSpaceKey } from "./use-viewport-space-key";
 import { normalizedWheelDelta, zoomViewportAt } from "./viewport-math";
 
 interface StageViewportOptions {
+  content: Readonly<Ref<HTMLElement | null>>;
   host: Readonly<Ref<HTMLElement | null>>;
   initialViewport: CanvasViewport;
   navigationEnabled(): boolean;
@@ -55,7 +56,7 @@ export function useStageViewport(options: StageViewportOptions) {
   });
   camera.observeSettled(options.commit);
   watch(animated, (value) => camera.set(value));
-  useCameraHostAnchor(camera, options.host, size);
+  useCameraHostAnchor(camera, options.host, options.content, size);
   onScopeDispose(camera.dispose);
 
   function takeCameraControl() {
