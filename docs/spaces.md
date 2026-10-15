@@ -653,10 +653,10 @@ pointer move and dispatches enter and leave events into product state, which is 
 dragging the canvas itself, and it makes each frame draw a second time per layer for the hit graph. The stage
 still receives the pointer events the gesture needs, and hit graphs are restored and redrawn on settlement.
 
-A panel changes the work area's width in one step rather than over an animation, so the canvas host resizes
-once per toggle. The camera lives in the host's own coordinate space and is never compensated for host
-movement: a trailing edge leaves content alone because the origin stays put, and a leading edge carries the
-content along with the work area, in the one layout step that produced it. Compensating the leading edge
+A panel animates the work area's width, so the canvas host moves and resizes for the length of the motion.
+The camera lives in the host's own coordinate space and is never compensated for host movement: a trailing
+edge leaves content alone because the origin stays put, and a leading edge carries the content along with the
+work area, which the layout moves on its own without a single canvas draw. Compensating the leading edge
 would have to read the host's new origin, which no observer can report earlier than the layout that created
 it, so the correction always lands one frame after the pixels it corrects - and a one-frame correction of the
 whole scene is the jump it was meant to prevent.

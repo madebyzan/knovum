@@ -1,54 +1,93 @@
 /*
- * One surface serves both sidebar roles. Pinned, it is the sized region: the sash writes its width
- * directly, so the sidebar and the space reserved for it are the same number and can never disagree.
- * Previewing, it leaves the flow and floats over the work area without touching the work area's size.
+ * Panel motion runs on one clock. A sidebar's slot animates the layout width it reserves, the sidebar
+ * itself is fixed at its own width and rides the slot's edge, and the toolbar columns that align to the
+ * work area move with the same duration and curve. Nothing inside a sidebar reflows during the motion and
+ * nothing compensates the canvas camera, so the work area edge moving is the only per-frame layout change
+ * - the same model as a native split view sidebar.
  *
- * Width changes in one step, always. The motion belongs to the content, on composited properties only:
- * animating a region's width would resize the canvas host on every frame of the animation, and a
- * box-shadow transition would repaint the dialog-sized shadow band on the main thread for every frame
- * of the slide, which is exactly the frame budget the slide needs.
+ * A sash drag writes the widths directly and must track the pointer, so motion is suspended for the
+ * gesture (`html[data-sash-dragging]`, set by the sash). Reduced motion is the global rule in app.css.
+ */
+.workspace-sidebar-slot {
+  position: relative;
+  z-index: 40;
+  flex: 0 0 auto;
+  width: var(--knovum-workspace-gutter);
+  transition: width var(--knovum-panel-motion-duration) var(--knovum-panel-motion-easing);
+}
+
+.workspace-sidebar-slot.is-pinned {
+  width: var(--workspace-sidebar-width);
+}
+
+/*
+ * Anchored to the slot's trailing edge. Hidden, it sits a gutter further out so its trailing edge lands
+ * exactly on the window edge; floating, it translates out over the work area. Opening from a preview moves
+ * the slot and the translation by the same amount on the same curve, so the sidebar stays exactly where it
+ * is while the work area makes room for it.
  */
 .workspace-sidebar-surface {
   position: absolute;
   inset-block: 0;
-  left: 0;
-  z-index: 40;
+  right: 0;
   width: var(--workspace-sidebar-width);
-  min-height: 0;
+  transform: translate3d(calc(-1 * var(--knovum-workspace-gutter)), 0, 0);
+  transition: transform var(--knovum-panel-motion-duration) var(--knovum-panel-motion-easing);
 }
 
-.workspace-sidebar-surface.is-pinned {
-  position: relative;
-  z-index: 0;
-  flex: 0 0 auto;
-  overflow: hidden;
+.workspace-sidebar-slot.is-pinned > .workspace-sidebar-surface {
+  transform: none;
 }
 
-.workspace-sidebar-content {
-  height: 100%;
-  min-height: 0;
+.workspace-sidebar-surface.is-floating {
+  transform: translate3d(calc(100% - var(--knovum-workspace-gutter)), 0, 0);
+}
+
+/* Elevation belongs to the floating role only and fades on the compositor rather than repainting a shadow. */
+.workspace-sidebar-elevation {
+  position: absolute;
+  inset: 0;
+  box-shadow: var(--shadow-dialog);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--knovum-panel-motion-duration) var(--knovum-panel-motion-easing);
+}
+
+.workspace-sidebar-surface.is-floating > .workspace-sidebar-elevation {
   opacity: 1;
-  transition:
-    transform 200ms var(--ease-standard),
-    opacity 150ms var(--ease-decelerate);
+}
+
+.workspace-right-sidebar-slot {
+  position: relative;
+  flex: 0 0 auto;
+  width: 0;
+  transition: width var(--knovum-panel-motion-duration) var(--knovum-panel-motion-easing);
+}
+
+.workspace-right-sidebar-slot.is-open {
+  width: var(--workspace-right-sidebar-width);
 }
 
 /*
- * Hidden, the surface still occupies its strip of the work area, so it gives up hit testing explicitly
- * rather than relying on inert alone: the canvas owns every pixel the sidebar is not currently showing.
+ * The pane slides with its slot; mounting and unmounting only fades. It arrives quickly so it never reads
+ * as a ghost riding in, and leaves on the slide's own clock so it stays mounted until the slot has closed.
  */
-.workspace-sidebar-surface:not(.is-visible) {
-  pointer-events: none;
+.workspace-pane-content-enter-active {
+  transition: opacity 160ms var(--ease-decelerate);
 }
 
-.workspace-sidebar-surface:not(.is-visible) > .workspace-sidebar-content {
+.workspace-pane-content-leave-active {
+  transition: opacity var(--knovum-panel-motion-duration) var(--knovum-panel-motion-easing);
+}
+
+.workspace-pane-content-enter-from,
+.workspace-pane-content-leave-to {
   opacity: 0;
-  transform: translate3d(-100%, 0, 0);
 }
 
 .workspace-scrim-enter-active,
 .workspace-scrim-leave-active {
-  transition: opacity 150ms var(--ease-decelerate);
+  transition: opacity var(--knovum-panel-motion-duration) var(--ease-decelerate);
 }
 
 .workspace-scrim-enter-from,
@@ -56,31 +95,8 @@
   opacity: 0;
 }
 
-/*
- * The right pane is the sized region on its own side, and its content slides itself in and out. Its width
- * also changes in one step, and it does not clip, so a closing panel travels over the work area instead of
- * disappearing on the first frame - the same contract the left surface follows.
- */
-.workspace-right-sidebar-pane {
-  position: relative;
-  flex: 0 0 auto;
-  width: 0;
-  min-height: 0;
-}
-
-.workspace-right-sidebar-pane.is-visible {
-  width: var(--workspace-right-sidebar-width);
-}
-
-.workspace-pane-content-enter-active,
-.workspace-pane-content-leave-active {
-  transition:
-    opacity 150ms var(--ease-decelerate),
-    transform 180ms var(--ease-standard);
-}
-
-.workspace-pane-content-enter-from,
-.workspace-pane-content-leave-to {
-  opacity: 0;
-  transform: translate3d(12%, 0, 0);
+/* Scoped rules attach their scope to the last compound only, so the document state can lead the selector. */
+html[data-sash-dragging] .workspace-sidebar-slot,
+html[data-sash-dragging] .workspace-right-sidebar-slot {
+  transition: none;
 }
