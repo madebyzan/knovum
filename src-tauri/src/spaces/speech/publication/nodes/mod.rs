@@ -119,7 +119,7 @@ pub(in crate::spaces::speech) async fn publish(
         .await?;
     }
     let after = structure::history::capture(tx, space_id, &snapshot).await?;
-    structure::history::record(tx, space_id, &before, &after, None, None, revision).await?;
+    structure::history::record(tx, space_id, &before, &after, revision).await?;
     sqlx::query("UPDATE spaces SET updated_at=? WHERE id=?")
         .bind(now)
         .bind(space_id)

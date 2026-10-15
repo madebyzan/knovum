@@ -30,11 +30,3 @@ pub(crate) async fn get_space_edit_receipt<R: Runtime>(
     validation::validate_id("Mutation ID", &mutation_id)?;
     Ok((receipts::load_committed_projection(db::pool(&app).await?, &mutation_id).await)?)
 }
-
-#[tauri::command]
-pub(crate) async fn list_recently_deleted_structure<R: Runtime>(
-    app: AppHandle<R>,
-    space_id: Option<String>,
-) -> Result<Vec<super::deletion::DeletedStructureRoot>, AppError> {
-    Ok((super::deletion::list(&app, space_id.as_deref()).await)?)
-}

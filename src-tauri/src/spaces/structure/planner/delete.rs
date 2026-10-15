@@ -4,12 +4,9 @@ use crate::spaces::structure::planner::tree_policy::{
     apply_sequences, effective_roots, require_editable, Index,
 };
 use crate::spaces::structure::repository::SpaceStructureSnapshot;
-use crate::spaces::structure::{StructureLayout, StructureNode};
+use crate::spaces::structure::StructureNode;
 
 pub(in crate::spaces::structure) struct Deletion {
-    pub root_ids: Vec<String>,
-    pub structure: Vec<StructureNode>,
-    pub layouts: Vec<StructureLayout>,
     pub node_ids: Vec<String>,
 }
 
@@ -29,7 +26,7 @@ pub(in crate::spaces::structure) fn plan(
     }
     let mut deleted = HashSet::new();
     let mut node_ids = Vec::new();
-    let mut pending = roots.clone();
+    let mut pending = roots;
     while let Some(id) = pending.pop() {
         if !deleted.insert(id.clone()) {
             continue;
@@ -64,16 +61,6 @@ pub(in crate::spaces::structure) fn plan(
         let Some(id) = empty else { break };
         deleted.insert(id);
     }
-    let deleted_structure = original_structure
-        .iter()
-        .filter(|structure_node| deleted.contains(structure_node.id()))
-        .cloned()
-        .collect();
-    let deleted_layouts = original_layouts
-        .iter()
-        .filter(|layout| deleted.contains(layout.structure_node_id()))
-        .cloned()
-        .collect();
     snapshot
         .structure
         .retain(|structure_node| !deleted.contains(structure_node.id()));
@@ -94,10 +81,5 @@ pub(in crate::spaces::structure) fn plan(
         })
         .collect();
     apply_sequences(&mut snapshot.structure, &sequences)?;
-    Ok(Deletion {
-        root_ids: roots,
-        structure: deleted_structure,
-        layouts: deleted_layouts,
-        node_ids,
-    })
+    Ok(Deletion { node_ids })
 }

@@ -130,41 +130,6 @@ CREATE TABLE spaces_edit_receipts (
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_deleted_structure_batches (
-  id TEXT PRIMARY KEY NOT NULL,
-  space_id TEXT NOT NULL,
-  root_structure_node_ids TEXT NOT NULL CHECK (json_valid(root_structure_node_ids) AND json_type(root_structure_node_ids) = 'array'),
-  deleted_at INTEGER NOT NULL,
-  restored_at INTEGER,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
-);
-
-CREATE TABLE spaces_deleted_structure_nodes (
-  batch_id TEXT NOT NULL,
-  structure_node_id TEXT NOT NULL,
-  data TEXT NOT NULL CHECK (json_valid(data) AND json_type(data) = 'object'),
-  PRIMARY KEY (batch_id, structure_node_id),
-  FOREIGN KEY (batch_id) REFERENCES spaces_deleted_structure_batches(id) ON DELETE CASCADE
-);
-
-CREATE TABLE spaces_deleted_structure_layouts (
-  batch_id TEXT NOT NULL,
-  structure_node_id TEXT NOT NULL,
-  data TEXT NOT NULL CHECK (json_valid(data) AND json_type(data) = 'object'),
-  PRIMARY KEY (batch_id, structure_node_id),
-  FOREIGN KEY (batch_id) REFERENCES spaces_deleted_structure_batches(id) ON DELETE CASCADE
-);
-
-CREATE TABLE spaces_deleted_structure_relations (
-  batch_id TEXT NOT NULL,
-  relation_id TEXT NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('active','contested','invalidated')),
-  status_before_invalidation TEXT CHECK (status_before_invalidation IN ('active','contested')),
-  color TEXT CHECK (color IN ('blue','green','amber','red','purple')),
-  PRIMARY KEY (batch_id, relation_id),
-  FOREIGN KEY (batch_id) REFERENCES spaces_deleted_structure_batches(id) ON DELETE CASCADE
-);
-
 CREATE TABLE spaces_edit_history (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   space_id TEXT NOT NULL,
@@ -174,8 +139,6 @@ CREATE TABLE spaces_edit_history (
   after_node_ids TEXT NOT NULL CHECK (json_valid(after_node_ids) AND json_type(after_node_ids) = 'array'),
   before_relations TEXT NOT NULL CHECK (json_valid(before_relations) AND json_type(before_relations) = 'array'),
   after_relations TEXT NOT NULL CHECK (json_valid(after_relations) AND json_type(after_relations) = 'array'),
-  deletion_batch_id TEXT,
-  deletion_batch_restored_after INTEGER CHECK (deletion_batch_restored_after IN (0,1)),
   history_group_id TEXT,
   expected_revision INTEGER NOT NULL CHECK (expected_revision >= 0),
   undone INTEGER NOT NULL DEFAULT 0 CHECK (undone IN (0,1)),
@@ -840,9 +803,6 @@ END;
 
 CREATE INDEX spaces_edit_receipts_space_revision
   ON spaces_edit_receipts(space_id, applied_revision);
-
-CREATE INDEX spaces_deleted_structure_batches_space
-  ON spaces_deleted_structure_batches(space_id, deleted_at DESC);
 
 CREATE INDEX spaces_edit_history_cursor ON spaces_edit_history(space_id, undone, id);
 

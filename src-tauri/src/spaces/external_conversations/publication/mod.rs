@@ -270,7 +270,7 @@ async fn insert_outputs(
     let next =
         structure::repository::save_in_transaction(tx, space_id, revision, &snapshot).await?;
     let after = structure::history::capture(tx, space_id, &snapshot).await?;
-    structure::history::record(tx, space_id, &before, &after, None, None, next).await?;
+    structure::history::record(tx, space_id, &before, &after, next).await?;
     Ok(())
 }
 

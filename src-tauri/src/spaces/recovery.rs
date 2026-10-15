@@ -13,6 +13,7 @@ pub(super) fn start(app: AppHandle) {
                 super::runs::start_scheduler(app.clone(), super::run_execution::hooks());
                 super::knowledge::retrieval::retired_generations::start(app.clone());
                 super::assets::enrichment::jobs::scheduler::start(app.clone());
+                super::structure::reclamation::start(app.clone());
                 super::conversations::recover_tasks(app.clone());
                 super::external_conversations::recover(app);
             }

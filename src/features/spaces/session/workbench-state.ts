@@ -63,7 +63,6 @@ export function createSpaceUiState() {
     canvasFocusIds: ref<string[]>([]),
     outlineFocusRequest: shallowRef(0),
     outlineRenameStructureNodeId: shallowRef<string | null>(null),
-    recentlyDeletedSpaceId: shallowRef<string | null>(),
     thumbnailDirty: ref(true),
     relationKindFilter: ref<RelationKind[]>([]),
     relationStatusFilter: ref<RelationStatus[]>(["active", "contested"]),
