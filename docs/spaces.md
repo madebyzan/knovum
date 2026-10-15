@@ -635,12 +635,31 @@ animation frame: the stage transform, the content overlay transform and the scre
 imperatively in that one frame, and the camera owns the vendor draw loop while it moves so the canvases never
 trail the overlay by a frame. Interaction and gesture math always read the live camera. The reactive surface
 sees only the zoom, which governs screen-space chrome metrics and preview level, so panning re-renders no
-component; viewport culling samples the live camera on a fixed interval, and its overscan runs ahead of the
+component. The dot grid is an SVG pattern written imperatively per frame rather than a CSS gradient, because
+the engine pixel-snaps background geometry: a gradient grid steps a whole device pixel at a time while
+subpixel-rendered content moves smoothly, which reads as the grid jittering against the nodes. Viewport
+culling samples the live camera on a fixed interval, and its overscan runs ahead of the
 camera rather than symmetrically around it, so content enters the visible set before it reaches the viewport.
 Scene geometry follows that result immediately while node content mounts under a per-frame budget, which the
 settled camera clears at once; a pan into a dense region therefore mounts a few cards per frame instead of a
 batch inside one frame. The adapter document adopts the camera when it stops moving, which keeps camera
 motion out of document identity, projection and view-state persistence.
+
+Settlement is the expensive edge of camera motion - it hands drawing back to the vendor, redraws every layer
+including the hit graph, and lets the document adopt the camera - so a gesture holds the camera open from its
+first event until it ends, and a pointer that rests mid-gesture never pays for it. A pan gesture additionally
+takes the stage out of hit testing: the vendor otherwise reads pixels back from each listening layer on every
+pointer move and dispatches enter and leave events into product state, which is waste while the pointer is
+dragging the canvas itself, and it makes each frame draw a second time per layer for the hit graph. The stage
+still receives the pointer events the gesture needs, and hit graphs are restored and redrawn on settlement.
+
+A panel changes the work area's width in one step rather than over an animation, so the canvas host resizes
+once per toggle. The camera lives in the host's own coordinate space and is never compensated for host
+movement: a trailing edge leaves content alone because the origin stays put, and a leading edge carries the
+content along with the work area, in the one layout step that produced it. Compensating the leading edge
+would have to read the host's new origin, which no observer can report earlier than the layout that created
+it, so the correction always lands one frame after the pixels it corrects - and a one-frame correction of the
+whole scene is the jump it was meant to prevent.
 
 Zoom, fit, reveal and selection clearing cross one small editor port and delegate to the mounted engine. Pinia holds the current aggregate projection and session selection but does not mirror vendor records. Rust owns revision-checked structural history; Renderer history groups related Rust edits so one physical action remains one Undo/Redo step. Camera movement stays outside structural history. System preview is a workbench command for one selected managed asset and opens the platform preview directly; it is not a canvas input-mode protocol.
 

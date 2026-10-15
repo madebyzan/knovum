@@ -72,6 +72,14 @@
     cursor: default;
   }
 
+  /*
+   * A sash drag owns the pointer through pointer capture, so the pointer spends the gesture over the work
+   * area and whatever cursor lives there. The document states the gesture instead, for its whole duration.
+   */
+  html[data-sash-dragging] * {
+    cursor: col-resize !important;
+  }
+
   svg.animate-spin {
     transform-origin: center;
     will-change: transform;
@@ -138,17 +146,12 @@
   backdrop-filter: blur(var(--blur-overlay)) saturate(1.18);
 }
 
-.workspace.is-panel-motion .workspace-splitter-group > [data-panel] {
-  transition: flex-grow 180ms var(--ease-standard);
-}
-
-.workspace.is-panel-motion .workspace-toolbar-content {
-  transition: grid-template-columns 180ms var(--ease-standard);
-}
-
-.workspace.is-panel-motion .workspace-right-sidebar-content {
-  min-width: calc(var(--workspace-right-sidebar-width) - 0.625rem);
-}
+/*
+ * Panel geometry changes in one step, deliberately. Animating a panel's width animates the canvas host's
+ * width, and a canvas cannot follow that for free: every frame would reallocate its backings, repaint every
+ * layer and recompute the viewport. Figma and VS Code resize the work area in a single step, tldraw floats
+ * its UI over a canvas that never resizes. Sidebars animate themselves on the compositor instead.
+ */
 
 @media (prefers-reduced-transparency: reduce) {
   .material-overlay {
@@ -182,10 +185,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .workspace.is-panel-motion .workspace-splitter-group > [data-panel],
-  .workspace.is-panel-motion .workspace-toolbar-content {
-    transition-duration: 0ms;
-  }
   *,
   *::before,
   *::after {

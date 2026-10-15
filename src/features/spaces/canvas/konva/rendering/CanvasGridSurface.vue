@@ -1,44 +1,60 @@
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { useId, useTemplateRef, watch } from "vue";
 
+import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import type { CanvasCamera } from "../viewport/canvas-camera";
-import { useCameraStyle } from "../viewport/use-camera-style";
 import type { CanvasPalette } from "./use-canvas-palette";
 
 const GRID_SPACING = 25;
 const DOT_RADIUS = 1.1;
 
-const props = defineProps<{ camera: CanvasCamera; palette: CanvasPalette }>();
-const surface = useTemplateRef<HTMLElement>("surface");
-const dots = computed(
-  () =>
-    `radial-gradient(circle at center, ${props.palette.grid} 0 ${DOT_RADIUS}px, transparent ${DOT_RADIUS + 0.4}px)`,
-);
+const props = defineProps<{ camera: CanvasCamera; palette: CanvasPalette; zoom: number }>();
+const pattern = useTemplateRef<SVGPatternElement>("pattern");
+const dot = useTemplateRef<SVGCircleElement>("dot");
+const patternId = `canvas-grid-${useId()}`;
 
-/** Tile offset that keeps a dot centered on every world multiple of the grid spacing. */
-function tileOffset(translation: number, spacing: number) {
-  const offset = (translation - spacing / 2) % spacing;
-  return offset < 0 ? offset + spacing : offset;
+/** Phase that keeps a dot centred on every world multiple of the spacing, for any sign of translation. */
+function phase(translation: number, cell: number) {
+  return (((translation - cell / 2) % cell) + cell) % cell;
 }
 
-useCameraStyle(props.camera, surface, ({ x, y, zoom }) => {
-  const spacing = GRID_SPACING * zoom;
-  return {
-    backgroundSize: `${spacing}px ${spacing}px`,
-    backgroundPosition: `${tileOffset(x, spacing)}px ${tileOffset(y, spacing)}px`,
-  };
-});
+function applyPhase(node: SVGPatternElement, camera: CanvasViewport) {
+  const cell = GRID_SPACING * camera.zoom;
+  node.setAttribute("patternTransform", `translate(${phase(camera.x, cell)} ${phase(camera.y, cell)})`);
+}
+
+/** The cell follows the zoom, the dot does not: dots stay the same size on screen at every zoom level. */
+function applyCell(node: SVGPatternElement, circle: SVGCircleElement, camera: CanvasViewport) {
+  const cell = GRID_SPACING * camera.zoom;
+  node.setAttribute("width", String(cell));
+  node.setAttribute("height", String(cell));
+  circle.setAttribute("cx", String(cell / 2));
+  circle.setAttribute("cy", String(cell / 2));
+  applyPhase(node, camera);
+}
+
+watch(
+  [pattern, dot, () => props.zoom],
+  ([node, circle]) => node && circle && applyCell(node, circle, props.camera.get()),
+  { flush: "post", immediate: true },
+);
+props.camera.observeFrames((camera) => pattern.value && applyPhase(pattern.value, camera));
 </script>
 
 <template>
   <!--
-    The dot grid is screen-space CSS rather than a Konva layer: as a layer it refilled a viewport-sized
-    pattern on every camera frame and cost one more full-size scene and hit canvas to clear and composite.
+    The dot grid is an SVG pattern, written imperatively per camera frame like every other camera-anchored
+    surface. A CSS gradient background cannot hold this role: the engine pixel-snaps background geometry,
+    so the grid would step a whole device pixel at a time while subpixel-rendered content moves smoothly -
+    visible as the grid jittering against the nodes. A pattern transform is interpolated in floating point,
+    and one tile is rasterized rather than a viewport-sized Konva layer being refilled per frame.
   -->
-  <div
-    ref="surface"
-    aria-hidden="true"
-    class="pointer-events-none absolute inset-0 z-0"
-    :style="{ backgroundImage: dots }"
-  />
+  <svg ref="surface" aria-hidden="true" class="pointer-events-none absolute inset-0 z-0 h-full w-full">
+    <defs>
+      <pattern :id="patternId" ref="pattern" patternUnits="userSpaceOnUse" width="25" height="25">
+        <circle ref="dot" :r="DOT_RADIUS" :fill="palette.grid" cx="12.5" cy="12.5" />
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" :fill="`url(#${patternId})`" />
+  </svg>
 </template>

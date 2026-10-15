@@ -16,6 +16,8 @@
   "layout": {
     "toggleRightSidebar": "Mostrar ou ocultar a barra lateral direita",
     "toggleSidebar": "Alternar barra lateral",
+    "resizeSidebar": "Redimensionar a barra lateral",
+    "resizeRightSidebar": "Redimensionar a barra lateral direita",
     "saveFailed": "Não foi possível salvar o layout do ambiente de trabalho"
   },
   "shortcuts": {

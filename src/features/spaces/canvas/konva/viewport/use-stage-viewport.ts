@@ -28,6 +28,12 @@ const ANIMATION_MS = 180;
  * Gestures write the live camera, which projects itself imperatively once per frame. The only reactive
  * camera value published to the scene tree is the zoom, because zoom changes screen-space chrome metrics;
  * position never re-renders a component.
+ *
+ * The camera is held in the host's own coordinate space and is never compensated for host movement. When
+ * a sidebar takes its new width the work area moves, and the scene moves with it, in the one layout step
+ * that produced it. Compensation would have to read the host's new origin, which cannot be known earlier
+ * than the layout that created it, so it always lands one frame after the pixels it is correcting - and a
+ * one-frame correction of the whole scene is exactly the jump it was meant to prevent.
  */
 export function useStageViewport(options: StageViewportOptions) {
   const measuredSize = useElementSize(options.host, { width: 1, height: 1 });
@@ -113,8 +119,9 @@ export function useStageViewport(options: StageViewportOptions) {
   });
   onBeforeUnmount(flushViewport);
 
+  /** Releasing the hold lets settlement run on the next quiet frame, keeping it out of the pointerup frame. */
   function endPan(event?: PointerEvent) {
-    if (pan.owns(event)) flushViewport();
+    if (pan.owns(event)) pan.release();
   }
 
   return {
