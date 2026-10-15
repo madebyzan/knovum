@@ -24,8 +24,6 @@ const {
   rightSidebarOpen,
   rightSidebarContentMounted,
   rightSidebarWidth,
-  panelMotion,
-  cancelPanelMotion,
   commands,
   toggleSidebarFromControl,
   toggleRightSidebar,
@@ -61,7 +59,7 @@ function updatePanelLayout(sizes: number[]) {
   <div
     data-testid="workspace"
     class="workspace absolute inset-0 flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-surface-chrome transition-colors duration-220 ease-standard select-none"
-    :class="{ 'opacity-0': !workspaceActive, 'is-panel-motion': panelMotion }"
+    :class="{ 'opacity-0': !workspaceActive }"
     :aria-hidden="!workspaceActive"
     :inert="!workspaceActive"
   >
@@ -85,7 +83,6 @@ function updatePanelLayout(sizes: number[]) {
       :right-sidebar-content-mounted="rightSidebarContentMounted"
       :right-sidebar-width="rightSidebarWidth"
       @panel-layout="updatePanelLayout"
-      @cancel-panel-motion="cancelPanelMotion"
       @set-sidebar-pinned="setSidebarPinned"
       @set-sidebar-width="setSidebarWidth"
       @set-right-sidebar-width="setRightSidebarWidth"

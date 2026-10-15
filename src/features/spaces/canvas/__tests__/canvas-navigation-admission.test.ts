@@ -15,7 +15,6 @@ it("keeps an empty camera fixed, then accepts navigation when an object exists",
     defineComponent({
       setup() {
         viewport = useStageViewport({
-          content: shallowRef(null),
           host: shallowRef(null),
           initialViewport: { x: 30, y: 40, zoom: 1 },
           navigationEnabled: () => enabled.value,

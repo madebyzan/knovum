@@ -26,7 +26,6 @@ const emit = defineEmits<{
   "set-right-sidebar-width": [value: number];
   "close-right-sidebar": [];
   "panel-layout": [sizes: number[]];
-  "cancel-panel-motion": [];
   "open-sidebar-preview": [];
   "schedule-sidebar-close": [];
   "close-sidebar-preview": [];
@@ -65,10 +64,8 @@ function commitRightSidebarWidth() {
 }
 function onDrag(active: boolean, commit: () => void) {
   dragging.value = active;
-  if (active) {
-    emit("cancel-panel-motion");
-    liveSidebarWidth.value = leadingPanel.value?.getSize();
-  } else commit();
+  if (active) liveSidebarWidth.value = leadingPanel.value?.getSize();
+  else commit();
 }
 /** Hover only governs the preview role; a pinned sidebar is already open and owns no hover state. */
 function openPreview() {

@@ -232,17 +232,20 @@ shell and component enter/leave states; do not add a motion runtime for simple o
 - scrim: opacity only, 150ms enter and exit;
 - view swaps: at most 150ms with a 4px directional offset;
 - controls: 100–150ms paint transitions; toolbar controls never change geometry when pressed;
-- command-initiated panel visibility animates the split width and matching toolbar region over 180ms; direct
-  splitter dragging and window resizing track their actual dimensions without interpolation. The canvas stage
-  raster is quantized around its visible host, grows immediately and shrinks only after the host size settles,
-  so an animating panel does not reallocate and repaint the canvas backings on every frame. Panel content that
-  is being revealed mounts after the geometry settles and then fades in; content already mounted in another
-  panel is never remounted by an unrelated panel animation;
+- command-initiated panel visibility takes its new width in one step, never over an animation. Animating a
+  panel's width animates the canvas host's width, and a canvas cannot follow that for free: every frame would
+  reallocate its layer backings, repaint every layer and recompute the viewport. Figma and VS Code resize the
+  work area in a single step; tldraw floats its UI over a canvas that never resizes. Sidebars therefore animate
+  themselves on composited properties only - the left surface translates, the right pane's content translates
+  and fades - while the work area resizes once per toggle. Direct splitter dragging and window resizing do
+  track their actual dimensions per frame, which is the feedback being asked for; the canvas stage raster is
+  quantized around its visible host, grows immediately and shrinks only after the host size settles, so those
+  frames do not reallocate and repaint the canvas backings;
 - the left sidebar has one host for both of its roles. The splitter reserves matching width next to it when it
   is pinned, and the same surface floats over the canvas as a temporary preview; pinning never moves the
   subtree between hosts, which would reset its scroll position and make every virtualized row re-measure
-  inside the first frame of the transition. Its width is fixed in both roles, so labels do not reflow through
-  narrow intermediate widths and the subtree stays out of the panel's per-frame clip. The canvas keeps the same
+  inside the first frame of the transition. Its width follows the live panel size while the handle is
+  dragged and the committed width otherwise, so it tracks the handle and clips its own content. The canvas keeps the same
   left inset and rounded corner in both states; with the sidebar pinned, workspace tabs align to that inset;
 - never animate canvas-object geometry or other layout dimensions, and never interpolate a persisted
   node position while it is dragged, undone or restored; the single exception is a command-initiated rearrange

@@ -141,17 +141,9 @@
 /*
  * Panel geometry changes in one step, deliberately. Animating a panel's width animates the canvas host's
  * width, and a canvas cannot follow that for free: every frame would reallocate its backings, repaint every
- * layer and recompute the viewport. Professional editors do not pay this - Figma and VS Code resize the work
- * area in a single step, tldraw floats its UI over a canvas that never resizes - so the sidebar itself
- * animates, on the compositor, while the work area takes its new width at once.
+ * layer and recompute the viewport. Figma and VS Code resize the work area in a single step, tldraw floats
+ * its UI over a canvas that never resizes. Sidebars animate themselves on the compositor instead.
  */
-.workspace.is-panel-motion .workspace-toolbar-content {
-  transition: grid-template-columns 180ms var(--ease-standard);
-}
-
-.workspace.is-panel-motion .workspace-right-sidebar-content {
-  min-width: calc(var(--workspace-right-sidebar-width) - 0.625rem);
-}
 
 @media (prefers-reduced-transparency: reduce) {
   .material-overlay {
@@ -185,10 +177,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .workspace.is-panel-motion .workspace-splitter-group > [data-panel],
-  .workspace.is-panel-motion .workspace-toolbar-content {
-    transition-duration: 0ms;
-  }
   *,
   *::before,
   *::after {

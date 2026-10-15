@@ -32,12 +32,20 @@
   opacity: 0;
 }
 
+/*
+ * The right pane slides itself in. Its panel takes its new width in one step - animating that width would
+ * animate the canvas host - so the motion belongs to the content, on composited properties only, which is
+ * the same contract the left surface follows.
+ */
 .workspace-pane-content-enter-active,
 .workspace-pane-content-leave-active {
-  transition: opacity 180ms var(--ease-decelerate);
+  transition:
+    opacity 150ms var(--ease-decelerate),
+    transform 180ms var(--ease-standard);
 }
 
 .workspace-pane-content-enter-from,
 .workspace-pane-content-leave-to {
   opacity: 0;
+  transform: translate3d(12%, 0, 0);
 }
