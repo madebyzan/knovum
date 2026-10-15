@@ -22,12 +22,13 @@ pub struct InsertNode {
     pub source_chunks: Vec<KnowledgeChunkInput>,
 }
 
+/// Content creation appends to the Space; it carries no caller revision because the base
+/// structure is the one loaded inside its own write transaction.
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct InsertNodesRequest {
     pub space_id: String,
     pub mutation_id: String,
-    pub expected_edit_revision: i64,
     pub target_parent_id: Option<String>,
     pub nodes: Vec<InsertNode>,
 }

@@ -2,6 +2,73 @@ pub(in crate::spaces) use super::insert::insert_many_in_transaction;
 
 use serde_json::json;
 
+use crate::spaces::{db, nodes::contracts::InsertNodesRequest, structure};
+
+async fn initialized_space() -> sqlx::SqlitePool {
+    let pool = sqlx::sqlite::SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect("sqlite::memory:")
+        .await
+        .unwrap();
+    db::migrate(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
+        .execute(&pool).await.unwrap();
+    let mut tx = db::begin_write(&pool).await.unwrap();
+    structure::repository::initialize_empty_in_transaction(&mut tx, "space")
+        .await
+        .unwrap();
+    tx.commit().await.unwrap();
+    pool
+}
+
+fn import(name: &str) -> InsertNodesRequest {
+    serde_json::from_value(json!({
+        "spaceId":"space","mutationId":name,"targetParentId":null,
+        "nodes":[{"id":name,"kind":"image","initialX":0,"initialY":0,"width":280,"height":180,
+            "sizingMode":"content","sourceChunks":[],
+            "data":{"kind":"image","title":name,"assetPath":format!("/managed/{name}.png"),
+                "fileName":format!("{name}.png")}}]
+    }))
+    .unwrap()
+}
+
+/// Dropping several files runs their imports in parallel. Each request is built from the Space the
+/// user dropped onto, so none of them can know the revision its siblings commit.
+#[tokio::test]
+async fn parallel_imports_append_without_a_caller_revision() {
+    let pool = initialized_space().await;
+    let append = |request| async move {
+        let mut tx = db::begin_write(&pool).await.unwrap();
+        let revision = insert_many_in_transaction(&mut tx, request, None)
+            .await
+            .expect("import appends to the Space it is committed against");
+        tx.commit().await.unwrap();
+        revision
+    };
+    let (first, second, third) = tokio::join!(
+        append(import("first")),
+        append(import("second")),
+        append(import("third"))
+    );
+    let mut applied = [first, second, third];
+    applied.sort_unstable();
+    assert_eq!(applied, [1, 2, 3]);
+    let committed: Vec<String> =
+        sqlx::query_scalar("SELECT id FROM spaces_nodes WHERE space_id='space' ORDER BY id")
+            .fetch_all(&pool)
+            .await
+            .unwrap();
+    assert_eq!(committed, ["first", "second", "third"]);
+    let (revision, structure_nodes): (i64, i64) = sqlx::query_as(
+        "SELECT revision,(SELECT COUNT(*) FROM spaces_structure_nodes WHERE space_id='space' \
+         AND deleted_at IS NULL) FROM spaces_edit_state WHERE space_id='space'",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!((revision, structure_nodes), (3, 3));
+}
+
 #[tokio::test]
 async fn user_edits_receive_a_rust_owned_revision() {
     let pool = sqlx::SqlitePool::connect("sqlite::memory:").await.unwrap();

@@ -33,7 +33,7 @@ async fn database() -> sqlx::SqlitePool {
         "assetPath":source().asset_path,"sourceRevision":source().source_revision,
         "mediaAnalysis":{"schemaVersion":1,"sourceRevision":source().source_revision,"durationMs":1000,"waveform":[0.5]}});
     let request = serde_json::from_value(json!({"spaceId":"space","mutationId":"source-create",
-        "expectedEditRevision":0,"targetParentId":null,"nodes":[{"id":"media","kind":"video",
+        "targetParentId":null,"nodes":[{"id":"media","kind":"video",
         "initialX":0,"initialY":0,"width":320,"height":220,"sizingMode":"content","sourceChunks":[],"data":node_content}]})).unwrap();
     crate::spaces::nodes::tests::insert_many_in_transaction(&mut tx, request, None)
         .await

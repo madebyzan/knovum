@@ -20,7 +20,6 @@ export function parseSpaceNodes(rows: readonly SpaceNodeProjection[]): SpaceCanv
 
 interface NodeCreationMutation {
   mutationId: string;
-  expectedEditRevision: number;
   targetParentId: string | null;
 }
 

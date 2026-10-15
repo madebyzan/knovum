@@ -37,9 +37,6 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
     if request.mutation_id.is_empty() || request.mutation_id.encode_utf16().count() > 128 {
         return Err("Mutation ID must contain 1 to 128 characters".into());
     }
-    if request.expected_edit_revision < 0 {
-        return Err("Expected edit revision must be nonnegative".into());
-    }
     let now = crate::foundation::clock::unix_time_millis()?;
     let digest = structure::receipts::digest(&request)?;
     if let Some(edit_revision) =
@@ -49,12 +46,6 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
     }
     let (mut snapshot, revision) =
         structure::repository::load_in_transaction(tx, &request.space_id).await?;
-    if revision != request.expected_edit_revision {
-        return Err(AppError::new(
-            "space_edit_revision_conflict",
-            "Space edit revision conflict",
-        ));
-    }
     for node in &mut request.nodes {
         crate::spaces::knowledge::validation::normalize_node(
             tx,

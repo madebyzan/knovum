@@ -12,7 +12,7 @@ async fn fixture() -> sqlx::SqlitePool {
         .await
         .unwrap();
     let request = serde_json::from_value(json!({
-        "spaceId":"space","mutationId":"source-create","expectedEditRevision":0,"targetParentId":null,
+        "spaceId":"space","mutationId":"source-create","targetParentId":null,
         "nodes":[{"id":"source","kind":"note","initialX":0,"initialY":0,"width":320,"height":100,
             "sizingMode":"content","sourceChunks":[],"data":{"kind":"note","title":"Source",
                 "plainText":"Hello","tiptapContent":{"type":"doc","content":[{"type":"paragraph"}]}}}]

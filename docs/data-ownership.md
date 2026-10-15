@@ -80,10 +80,20 @@ one readiness promise and retains the current surface. Opening a persisted Space
 Structure/Layout snapshot and separate camera. The Renderer never saves an authoritative canvas
 document: it projects an ephemeral Konva adapter document from the committed aggregate.
 
-Tab transitions await admitted mutations and pending camera writes before leaving. Every structural
-mutation carries `expectedEditRevision` and `mutationId`; Rust distinguishes an absent Space from a
-revision conflict and records a typed receipt in the same transaction. Neither error permits forced
-overwrite, automatic reload-and-retry, or a compatibility path.
+Tab transitions await admitted mutations and pending camera writes before leaving. Every mutation
+carries `mutationId`; Rust records a typed receipt in the same transaction. A structural edit that
+expresses intent against the rendered structure — `execute_space_edit`, undo/redo, clipboard paste,
+cross-Space transfer, JSON Canvas import and deletion-batch restore — also carries
+`expectedEditRevision`, and Rust distinguishes an absent Space from a revision conflict. Content
+creation (`create_nodes`) and discarding one failed pending creation (`discard_pending_content`)
+carry no caller revision: they are node-scoped appends and removals whose base is the structure
+loaded inside their own write transaction, which SQLite serializes against every other writer. A
+parallel import or an agent-written node must not make the next local creation fail. No error permits
+forced overwrite, automatic reload-and-retry, or a compatibility path.
+
+A loaded projection is applied to the session only when it is not older than the snapshot the
+session already holds: parallel creations read their committed projection after their own commit, so
+a slower read must not reinstate a Space that another creation has already moved past.
 
 ## Media assets and derived analysis
 
