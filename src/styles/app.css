@@ -146,13 +146,6 @@
   backdrop-filter: blur(var(--blur-overlay)) saturate(1.18);
 }
 
-/*
- * Panel geometry changes in one step, deliberately. Animating a panel's width animates the canvas host's
- * width, and a canvas cannot follow that for free: every frame would reallocate its backings, repaint every
- * layer and recompute the viewport. Figma and VS Code resize the work area in a single step, tldraw floats
- * its UI over a canvas that never resizes. Sidebars animate themselves on the compositor instead.
- */
-
 @media (prefers-reduced-transparency: reduce) {
   .material-overlay {
     backdrop-filter: none;

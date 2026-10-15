@@ -20,6 +20,14 @@
   --knovum-control-height-lg: 2.25rem;
   --knovum-titlebar-height: 2.5rem;
   --knovum-titlebar-navigation-padding-start: 0.625rem;
+  /*
+   * Sidebars, the work area edge and the toolbar columns that track it move on one shared clock. Panels
+   * travel a long way, so the curve starts gently and settles long: a front-loaded curve covers most of the
+   * distance in the first two frames and reads as a snap rather than as motion.
+   */
+  --knovum-panel-motion-duration: 280ms;
+  --knovum-panel-motion-easing: cubic-bezier(0.2, 0, 0, 1);
+  --knovum-workspace-gutter: 0.5rem;
   --knovum-command-palette-item-height: 2.75rem;
   --knovum-setting-min-height: 3.25rem;
   --knovum-scrollbar-size: 0.5rem;

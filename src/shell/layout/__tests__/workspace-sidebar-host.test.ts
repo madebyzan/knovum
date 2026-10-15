@@ -47,27 +47,31 @@ describe("workspace layout", () => {
     wrapper.unmount();
   });
 
-  it("is the sized region when pinned and leaves the flow when previewing", async () => {
+  it("reserves width when pinned and floats over the work area when previewing", async () => {
     const wrapper = mountLayout({ sidebarPinned: true });
+    const slot = wrapper.get(".workspace-sidebar-slot");
     const surface = wrapper.get(".workspace-sidebar-surface");
-    expect(surface.classes()).toContain("is-pinned");
-    expect(surface.classes()).toContain("is-visible");
+    expect(slot.classes()).toContain("is-pinned");
+    expect(surface.classes()).not.toContain("is-floating");
+    expect(surface.attributes("aria-hidden")).toBe("false");
 
     await wrapper.setProps({ sidebarPinned: false, sidebarPreview: true });
-    expect(surface.classes()).not.toContain("is-pinned");
-    expect(surface.classes()).toContain("is-visible");
+    expect(slot.classes()).not.toContain("is-pinned");
+    expect(surface.classes()).toContain("is-floating");
+    expect(surface.attributes("aria-hidden")).toBe("false");
 
     await wrapper.setProps({ sidebarPreview: false });
-    expect(surface.classes()).not.toContain("is-visible");
+    expect(surface.classes()).not.toContain("is-floating");
+    expect(surface.attributes("aria-hidden")).toBe("true");
     wrapper.unmount();
   });
 
-  it("carries the sidebar width on the host that is sized by it", () => {
+  it("publishes both sidebar widths to the regions sized by them", () => {
     const wrapper = mountLayout({ sidebarPinned: true });
+    const style = wrapper.attributes("style");
 
-    expect(wrapper.get(".workspace-sidebar-surface").attributes("style")).toContain(
-      "--workspace-sidebar-width: 280px",
-    );
+    expect(style).toContain("--workspace-sidebar-width: 280px");
+    expect(style).toContain("--workspace-right-sidebar-width: 320px");
     wrapper.unmount();
   });
 
@@ -103,11 +107,11 @@ describe("workspace layout", () => {
     const wrapper = mountLayout({ sidebarPinned: false });
     const pane = wrapper.get("#spaces-right-sidebar");
     expect(pane.attributes("aria-hidden")).toBe("true");
-    expect(pane.classes()).not.toContain("is-visible");
+    expect(pane.classes()).not.toContain("is-open");
 
     await wrapper.setProps({ rightSidebarOpen: true, rightSidebarContentMounted: true });
     expect(pane.attributes("aria-hidden")).toBe("false");
-    expect(pane.classes()).toContain("is-visible");
+    expect(pane.classes()).toContain("is-open");
     wrapper.unmount();
   });
 });
