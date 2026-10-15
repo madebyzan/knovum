@@ -33,6 +33,7 @@ export async function initializeSpaces(context: SpaceSessionContext, inboxTitle:
   const inbox =
     context.spaces.value.find((space) => space.kind === "inbox") ??
     (await createAndTrackSpace(context, inboxTitle, "inbox"));
+  if (inbox.title !== inboxTitle) inbox.title = inboxTitle;
   await openSpace(context, inbox.id);
   context.ready.value = true;
 }

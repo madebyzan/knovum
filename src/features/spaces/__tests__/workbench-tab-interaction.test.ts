@@ -185,3 +185,21 @@ it("marks unsaved content without reflowing the tab label", async () => {
 function markerSlot(wrapper: ReturnType<typeof mountStrip>, tabId: string) {
   return wrapper.get(`[data-tab-id="${tabId}"]`).element.lastElementChild!;
 }
+
+it("localizes the Inbox tab title dynamically according to the active locale", async () => {
+  const previousLocale = i18n.global.locale.value;
+  onTestFinished(() => {
+    i18n.global.locale.value = previousLocale;
+  });
+  i18n.global.locale.value = "zh-CN";
+  const store = await setup();
+  const wrapper = mountStrip();
+  await flushPromises();
+
+  const inboxLabel = wrapper.get(`[data-tab-id="${store.tabs[0]!.id}"] [role="tab"] span.truncate`);
+  expect(inboxLabel.text()).toBe("收集箱");
+
+  i18n.global.locale.value = "en";
+  await flushPromises();
+  expect(inboxLabel.text()).toBe("Inbox");
+});
