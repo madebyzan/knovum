@@ -168,7 +168,7 @@ async fn insert_output(
     let revision =
         structure::repository::save_in_transaction(&mut tx, space_id, base, &snapshot).await?;
     let after = structure::history::capture(&mut tx, space_id, &snapshot).await?;
-    structure::history::record(&mut tx, space_id, &before, &after, None, None, revision).await?;
+    structure::history::record(&mut tx, space_id, &before, &after, revision).await?;
     Ok(tx.commit().await.map_err(db::sql_error)?)
 }
 

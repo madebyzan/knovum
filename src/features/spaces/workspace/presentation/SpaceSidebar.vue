@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Clock3, Inbox, LayoutGrid, Star, Trash2 } from "@lucide/vue";
+import { Clock3, Inbox, LayoutGrid, Settings, Star } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { RouterLink } from "vue-router";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
@@ -73,10 +74,10 @@ function navigate(operation: () => Promise<void>) {
     <SpaceSidebarOutline v-if="store.workbench.outline" />
     <div v-if="!store.workbench.outline" class="flex-1" />
     <footer class="shrink-0 px-2.5 py-2">
-      <button type="button" :class="ROW_CLASS" @click="store.recentlyDeletedSpaceId = null">
-        <Trash2 class="size-3.5" :stroke-width="1.55" />
-        {{ t("spaces.trash.recent.title") }}
-      </button>
+      <RouterLink :to="{ name: 'settings' }" :class="ROW_CLASS">
+        <Settings class="size-3.5" :stroke-width="1.55" />
+        {{ t("common.settings") }}
+      </RouterLink>
     </footer>
   </aside>
 </template>

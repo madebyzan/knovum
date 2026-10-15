@@ -32,8 +32,6 @@ pub(super) async fn record(
                 space_id,
                 before,
                 after,
-                deletion_batch_id: None,
-                deletion_restored_after: None,
                 group_id: Some(group_id),
                 revision: *revision,
                 now,

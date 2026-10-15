@@ -29,8 +29,6 @@ pub(super) struct HistoryInsert<'a> {
     pub space_id: &'a str,
     pub before: &'a HistoryState,
     pub after: &'a HistoryState,
-    pub deletion_batch_id: Option<&'a str>,
-    pub deletion_restored_after: Option<bool>,
     pub group_id: Option<&'a str>,
     pub revision: i64,
     pub now: i64,
@@ -74,8 +72,6 @@ pub(crate) async fn record(
     space_id: &str,
     before: &HistoryState,
     after: &HistoryState,
-    deletion_batch_id: Option<&str>,
-    deletion_batch_restored_after: Option<bool>,
     applied_revision: i64,
 ) -> Result<(), String> {
     clear_redo(tx, space_id).await?;
@@ -86,8 +82,6 @@ pub(crate) async fn record(
             space_id,
             before,
             after,
-            deletion_batch_id,
-            deletion_restored_after: deletion_batch_restored_after,
             group_id: None,
             revision: applied_revision,
             now,
@@ -101,17 +95,11 @@ pub(super) async fn clear_redo(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<(), String> {
-    let abandoned_batches: Vec<String> = sqlx::query_scalar("SELECT deletion_batch_id FROM spaces_edit_history WHERE space_id=$1 AND undone=1 AND deletion_batch_id IS NOT NULL")
-        .bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     sqlx::query("DELETE FROM spaces_edit_history WHERE space_id=$1 AND undone=1")
         .bind(space_id)
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
-    for batch_id in abandoned_batches {
-        sqlx::query("DELETE FROM spaces_deleted_structure_batches WHERE id=$1 AND space_id=$2 AND restored_at IS NOT NULL")
-            .bind(batch_id).bind(space_id).execute(&mut **tx).await.map_err(db::sql_error)?;
-    }
     Ok(())
 }
 
@@ -128,13 +116,11 @@ async fn insert(tx: &mut Transaction<'_, Sqlite>, entry: HistoryInsert<'_>) -> R
         space_id,
         before,
         after,
-        deletion_batch_id,
-        deletion_restored_after,
         group_id,
         revision,
         now,
     } = entry;
-    sqlx::query("INSERT INTO spaces_edit_history(space_id,before_snapshot,after_snapshot,before_node_ids,after_node_ids,before_relations,after_relations,deletion_batch_id,deletion_batch_restored_after,history_group_id,expected_revision,undone,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,0,$12)")
+    sqlx::query("INSERT INTO spaces_edit_history(space_id,before_snapshot,after_snapshot,before_node_ids,after_node_ids,before_relations,after_relations,history_group_id,expected_revision,undone,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,0,$10)")
         .bind(space_id)
         .bind(sqlx::types::Json(&before.snapshot))
         .bind(sqlx::types::Json(&after.snapshot))
@@ -142,7 +128,7 @@ async fn insert(tx: &mut Transaction<'_, Sqlite>, entry: HistoryInsert<'_>) -> R
         .bind(sqlx::types::Json(&after.node_ids))
         .bind(sqlx::types::Json(&before.relations))
         .bind(sqlx::types::Json(&after.relations))
-        .bind(deletion_batch_id).bind(deletion_restored_after).bind(group_id).bind(revision).bind(now)
+        .bind(group_id).bind(revision).bind(now)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }

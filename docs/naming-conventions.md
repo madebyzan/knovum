@@ -189,8 +189,8 @@ industry mandates one spelling for every use case.
 | Lifecycle   | Create a business object                                       | `create`     |
 | Lifecycle   | Change fields of a business object                             | `update`     |
 | Lifecycle   | Delete a durable business object                               | `delete`     |
-| Lifecycle   | Move a business object into the reversible bin                 | `trash`      |
-| Lifecycle   | Reconstruct a business object from the bin or a package        | `restore`    |
+| Lifecycle   | Soft-delete a business object so undo can reverse it           | `trash`      |
+| Lifecycle   | Reconstruct a business object from soft deletion or a package  | `restore`    |
 | Lifecycle   | Delete an owned file, model or temporary resource              | `remove`     |
 | Lifecycle   | Withdraw a granted relation or authority                       | `revoke`     |
 | Lifecycle   | Take a durable object out of active use, reversibly            | `archive`    |
@@ -252,11 +252,11 @@ an image asset rather than promising cache reuse. Read readiness uses `availabil
 operation set can use `capabilities`.
 
 Deletion is four distinct intents, not four synonyms: `delete` for durable entities, `remove` for
-owned files/models/temporaries, `trash`/`restore` for the reversible bin, and `revoke` for a granted
+owned files/models/temporaries, `trash`/`restore` for soft deletion that undo reverses, and `revoke` for a granted
 relation. Do not use them interchangeably.
 
 Reversible state bits get a domain verb pair, never `set_<thing>(true)`: `archive_space` /
-`unarchive_space`, `delete-subtrees` / `restore_deleted_structure`. A private helper may still take the boolean
+`unarchive_space`. A private helper may still take the boolean
 (`set_archived(app, space_id, true)`) because the flag does not cross a module boundary.
 
 Avoid generic `process`, `manage`, and `do` when they hide the object or effect. `execute` is valid

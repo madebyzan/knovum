@@ -7,7 +7,6 @@ import { localeMessages } from "../locales/locale-registry";
 const examples = [
   ["settings.ai.models.count", "model", "models"],
   ["spaces.inspector.itemsSelected", "item selected", "items selected"],
-  ["spaces.trash.structure.deletedCount", "deleted node", "deleted nodes"],
   ["spaces.space.nodeCount", "item", "items"],
   ["spaces.richtext.statistics.words", "word", "words"],
   ["spaces.richtext.statistics.characters", "character", "characters"],

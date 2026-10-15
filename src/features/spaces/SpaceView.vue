@@ -1,16 +1,7 @@
 <script setup lang="ts">
 import { AlertTriangle } from "@lucide/vue";
 import { storeToRefs } from "pinia";
-import {
-  computed,
-  defineAsyncComponent,
-  inject,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  provide,
-  shallowRef,
-} from "vue";
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -35,9 +26,6 @@ import { useSpaceStore } from "./session/space-store";
 import SpaceLibrary from "./workspace/presentation/library/SpaceLibrary.vue";
 import SpaceEditorSurfaces from "./workspace/presentation/SpaceEditorSurfaces.vue";
 
-const SpaceRecentlyDeleted = defineAsyncComponent(
-  () => import("./deletion/presentation/SpaceRecentlyDeleted.vue"),
-);
 const store = useSpaceStore();
 const conversationSession = useConversationSessionStore();
 const workspaceVisible = inject(overlayScopeVisibleKey)!;
@@ -115,13 +103,6 @@ onMounted(() => void initialize());
           <SpaceLibrary />
         </section>
         <SpaceEditorSurfaces />
-        <SpaceRecentlyDeleted
-          v-if="store.recentlyDeletedSpaceId !== undefined"
-          :key="store.recentlyDeletedSpaceId ?? 'all'"
-          :space-id="store.recentlyDeletedSpaceId"
-          :open="true"
-          @update:open="!$event && (store.recentlyDeletedSpaceId = undefined)"
-        />
         <SpaceImageEditLeaveDialog />
       </div>
     </div>

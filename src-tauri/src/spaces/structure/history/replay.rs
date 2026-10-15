@@ -17,7 +17,7 @@ pub(in crate::spaces) async fn apply(
 ) -> Result<i64, AppError> {
     let order = if redo { "ASC" } else { "DESC" };
     let undone = if redo { 1 } else { 0 };
-    let mut sql = sqlx::QueryBuilder::<Sqlite>::new("SELECT id,before_snapshot,after_snapshot,before_node_ids,after_node_ids,before_relations,after_relations,deletion_batch_id,deletion_batch_restored_after,history_group_id FROM spaces_edit_history WHERE space_id=$1 AND undone=$2 ORDER BY id ");
+    let mut sql = sqlx::QueryBuilder::<Sqlite>::new("SELECT id,before_snapshot,after_snapshot,before_node_ids,after_node_ids,before_relations,after_relations,history_group_id FROM spaces_edit_history WHERE space_id=$1 AND undone=$2 ORDER BY id ");
     sql.push(order).push(" LIMIT 1");
     let row = sql
         .build()
@@ -79,22 +79,6 @@ pub(in crate::spaces) async fn apply(
         .await?;
     let next = repository::save_in_transaction(tx, space_id, current_revision, &snapshot).await?;
     portal_integrity::validate_structure_targets(tx, &[space_id]).await?;
-    let deletion_batch_id: Option<String> =
-        row.try_get("deletion_batch_id").map_err(db::sql_error)?;
-    if let Some(batch_id) = deletion_batch_id {
-        let restored_after: bool = row
-            .try_get::<Option<bool>, _>("deletion_batch_restored_after")
-            .map_err(db::sql_error)?
-            .unwrap_or(false);
-        let should_restore = if redo {
-            restored_after
-        } else {
-            !restored_after
-        };
-        sqlx::query("UPDATE spaces_deleted_structure_batches SET restored_at=$1 WHERE id=$2 AND space_id=$3")
-            .bind(if should_restore { Some(crate::foundation::clock::unix_time_millis()?) } else { None })
-            .bind(batch_id).bind(space_id).execute(&mut **tx).await.map_err(db::sql_error)?;
-    }
     sqlx::query(
         "UPDATE spaces_edit_history SET undone=$1,expected_revision=$2 WHERE id=$3 AND space_id=$4",
     )
