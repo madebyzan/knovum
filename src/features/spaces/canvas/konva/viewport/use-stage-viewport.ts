@@ -6,6 +6,7 @@ import { isScrollableTarget } from "../../../../../foundation/dom/scrollable-tar
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import { createCameraPan } from "./camera-pan";
 import { createCanvasCamera } from "./canvas-camera";
+import { useCameraHostAnchor } from "./use-camera-host-anchor";
 import { useStageRasterSize } from "./use-stage-raster-size";
 import { useViewportSpaceKey } from "./use-viewport-space-key";
 import { normalizedWheelDelta, zoomViewportAt } from "./viewport-math";
@@ -54,6 +55,7 @@ export function useStageViewport(options: StageViewportOptions) {
   });
   camera.observeSettled(options.commit);
   watch(animated, (value) => camera.set(value));
+  useCameraHostAnchor(camera, options.host, size);
   onScopeDispose(camera.dispose);
 
   function takeCameraControl() {

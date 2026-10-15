@@ -16,6 +16,13 @@ export interface CanvasCamera {
   /** Projects a pending change and reports settlement immediately instead of waiting for the next frame. */
   settle(): void;
   /**
+   * Projects a pending change in the current frame.
+   *
+   * For geometry that must not lag the layout that caused it: a write that waited for the next frame would be
+   * visible as jitter against the layout it is compensating for.
+   */
+  flush(): void;
+  /**
    * Holds settlement open until the returned release is called.
    *
    * Settlement is the expensive edge: it hands drawing back to the vendor, redraws every layer including
@@ -88,6 +95,11 @@ export function createCanvasCamera(initial: CanvasViewport): CanvasCamera {
       holders.clear();
       emitFrame();
       reportSettlement();
+    },
+    flush() {
+      if (projectionFrame === undefined) return;
+      cancelAnimationFrame(projectionFrame);
+      project();
     },
     hold() {
       const token = Symbol("canvas-camera-hold");

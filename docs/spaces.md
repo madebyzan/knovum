@@ -650,6 +650,12 @@ pointer move and dispatches enter and leave events into product state, which is 
 dragging the canvas itself, and it makes each frame draw a second time per layer for the hit graph. The stage
 still receives the pointer events the gesture needs, and hit graphs are restored and redrawn on settlement.
 
+A panel animation does not resize the window, it moves one edge of the work area. When that edge is the
+leading one the stage origin travels with it, so world content would slide across the screen although the
+camera never changed - a sidebar dragging the canvas along with it - while the opposite edge leaves content
+alone. The host's origin shift is therefore folded into the camera, in the same frame as the layout that
+caused it, so both edges behave the same: the viewport narrows and content stays where the user left it.
+
 Zoom, fit, reveal and selection clearing cross one small editor port and delegate to the mounted engine. Pinia holds the current aggregate projection and session selection but does not mirror vendor records. Rust owns revision-checked structural history; Renderer history groups related Rust edits so one physical action remains one Undo/Redo step. Camera movement stays outside structural history. System preview is a workbench command for one selected managed asset and opens the platform preview directly; it is not a canvas input-mode protocol.
 
 Each still-open Space tab retains its own Renderer Undo/Redo stacks. Switching tabs saves the current
