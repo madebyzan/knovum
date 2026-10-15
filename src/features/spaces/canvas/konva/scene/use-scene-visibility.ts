@@ -5,12 +5,15 @@ import { SECTION_HEADER_HEIGHT } from "../../../model/structure/section-metrics"
 import type { ProjectedSection } from "../../document/structure-scene";
 import type { CanvasCamera } from "../viewport/canvas-camera";
 import type { CanvasScene } from "./canvas-scene";
-import { createSceneVisibilityIndex, visibleSceneIds } from "./viewport-culling";
+import { useContentAdmission } from "./use-content-admission";
+import { createSceneVisibilityIndex, sceneOverscan, visibleSceneIds } from "./viewport-culling";
 
 /**
- * Culling cadence. The index query is cheap, but each result change mounts or discards node content, so the
- * camera is sampled on a fixed interval instead of every frame; the overscan margin covers the travel in
- * between.
+ * Culling cadence. The index query is cheap, but every result change reprojects the whole visible list and
+ * patches the keyed scene layers, a cost that does not shrink with the size of the change - sampling every
+ * frame would pay it five times as often for the same net work. The camera is therefore sampled on a fixed
+ * interval and the travel-aware overscan covers the gap, while content mounting is spread across frames by
+ * `useContentAdmission`.
  */
 const SAMPLE_INTERVAL_MS = 80;
 
@@ -38,7 +41,7 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
     return ids;
   });
   const visibleContentNodeIds = computed(() => {
-    const ids = new Set(culledNodeIds.value);
+    const ids = new Set(admittedContentIds.value);
     if (options.activeNodeId.value) ids.add(options.activeNodeId.value);
     return ids;
   });
@@ -65,15 +68,21 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
     ),
   );
 
+  let sampled = options.camera.get();
+
   function updateVisibility() {
-    const visible = visibleSceneIds(visibilityIndex.value, options.camera.get(), options.size);
+    const camera = options.camera.get();
+    const travel = { x: camera.x - sampled.x, y: camera.y - sampled.y };
+    sampled = camera;
+    const visible = visibleSceneIds(visibilityIndex.value, camera, options.size, sceneOverscan(travel));
     culledNodeIds.value = visible.nodes;
     culledSectionIds.value = visible.sections;
     culledRelationIds.value = visible.relations;
   }
 
-  const scheduleVisibilityUpdate = useThrottleFn(updateVisibility, SAMPLE_INTERVAL_MS, true, true);
   updateVisibility();
+  const admittedContentIds = useContentAdmission(options.camera, culledNodeIds);
+  const scheduleVisibilityUpdate = useThrottleFn(updateVisibility, SAMPLE_INTERVAL_MS, true, true);
   watch(
     [options.scene, options.sections, () => options.size.width, () => options.size.height],
     scheduleVisibilityUpdate,

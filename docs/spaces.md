@@ -635,9 +635,12 @@ animation frame: the stage transform, the content overlay transform and the scre
 imperatively in that one frame, and the camera owns the vendor draw loop while it moves so the canvases never
 trail the overlay by a frame. Interaction and gesture math always read the live camera. The reactive surface
 sees only the zoom, which governs screen-space chrome metrics and preview level, so panning re-renders no
-component; viewport culling samples the live camera on a fixed interval covered by its overscan margin. The
-adapter document adopts the camera when it stops moving, which keeps camera motion out of document identity,
-projection and view-state persistence.
+component; viewport culling samples the live camera on a fixed interval, and its overscan runs ahead of the
+camera rather than symmetrically around it, so content enters the visible set before it reaches the viewport.
+Scene geometry follows that result immediately while node content mounts under a per-frame budget, which the
+settled camera clears at once; a pan into a dense region therefore mounts a few cards per frame instead of a
+batch inside one frame. The adapter document adopts the camera when it stops moving, which keeps camera
+motion out of document identity, projection and view-state persistence.
 
 Zoom, fit, reveal and selection clearing cross one small editor port and delegate to the mounted engine. Pinia holds the current aggregate projection and session selection but does not mirror vendor records. Rust owns revision-checked structural history; Renderer history groups related Rust edits so one physical action remains one Undo/Redo step. Camera movement stays outside structural history. System preview is a workbench command for one selected managed asset and opens the platform preview directly; it is not a canvas input-mode protocol.
 
