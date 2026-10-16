@@ -106,11 +106,11 @@ Internal provider completion APIs keep their model terminology. Spaces generatio
 transformations use `derive_image`, and deterministic
 video edits use `render_video_edit`; subtitle burn-in uses the `add-video-subtitles` Action and
 image-layer splitting uses the `split-image-layers` Action. Cancellation names the ongoing
-operation (`cancel_run`). Splitting publishes several resources from one invocation, so its Action
-declares `outputArity: discovered`: no output node is reserved before the handler runs, and the
-handler reserves exactly as many as discovery found. The layer count is therefore a property of the
-image rather than an input, and it never appears in the request. One split is one Run, so it is
-cancelled like any other Run while each layer still has its own derivation ID.
+operation (`cancel_run`). Splitting publishes several resources from one invocation: like every
+other Action it reserves one output node before the handler runs, and the handler reserves the rest
+once discovery reports how many layers the image carries. The layer count is therefore a property
+of the image rather than an input, and it never appears in the request. One split is one Run, so it
+is cancelled like any other Run while each layer still has its own derivation ID.
 Video generation and committed video rendering cancellation use `derivationId`; disposable proxy processing retains `jobId`.
 
 `get_image_operation_capabilities`, `check_image_cutout_source` and `list_video_fonts` are queries.

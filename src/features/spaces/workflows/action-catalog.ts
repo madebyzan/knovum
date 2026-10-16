@@ -6,7 +6,6 @@ import {
   spaceActionExecutionModes,
   spaceActionImpacts,
   spaceActionInputRoles,
-  spaceActionOutputArities,
   spaceActionOutputContracts,
 } from "../contracts/generated/contract-values";
 import type { SpaceActionDefinition } from "../contracts/generated/SpaceActionDefinition";
@@ -26,7 +25,6 @@ const spaceActionDefinitionSchema = z
       .nullable(),
     parametersSchema: z.record(z.string(), z.unknown()),
     outputContract: z.enum(spaceActionOutputContracts),
-    outputArity: z.enum(spaceActionOutputArities),
   })
   .strict() satisfies z.ZodType<SpaceActionDefinition>;
 

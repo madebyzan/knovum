@@ -7,4 +7,3 @@ export const spaceActionImpacts = ["read_only","creates_resource","mutates_resou
 export const spaceActionExecutionModes = ["immediate","durable"] as const;
 export const spaceActionInputRoles = ["image","document","knowledge","transcript","video"] as const;
 export const spaceActionOutputContracts = ["answer","document","file","image","knowledge_change_receipt","knowledge_node","presentation","resource_receipt","search_results","space_edit_receipt","space_contents","video"] as const;
-export const spaceActionOutputArities = ["single","discovered"] as const;
