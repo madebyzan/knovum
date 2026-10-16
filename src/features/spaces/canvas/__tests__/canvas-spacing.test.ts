@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createCanvasTranslationSnapIndex } from "../konva/interaction/canvas-translation-snap-index";
-import { snapCanvasTranslation } from "../konva/interaction/canvas-translation-snapping";
+import { createTranslationSnapSession } from "../konva/interaction/translation-snap-session";
 import type { CanvasNodeFrame } from "../schema/document";
 
 function frame(x: number, y = 0): CanvasNodeFrame {
@@ -9,7 +9,10 @@ function frame(x: number, y = 0): CanvasNodeFrame {
 }
 
 function snap(moving: CanvasNodeFrame, stationary: CanvasNodeFrame[]) {
-  return snapCanvasTranslation([moving], createCanvasTranslationSnapIndex(stationary), { x: 0, y: 0 }, 6);
+  return createTranslationSnapSession([moving], createCanvasTranslationSnapIndex(stationary))(
+    { x: 0, y: 0 },
+    1,
+  );
 }
 
 function gaps(result: ReturnType<typeof snap>) {
@@ -72,12 +75,10 @@ describe("equal spacing", () => {
   });
 
   it("uses the moving group's outer bounds without changing internal spacing", () => {
-    const result = snapCanvasTranslation(
+    const result = createTranslationSnapSession(
       [frame(303), frame(413)],
       createCanvasTranslationSnapIndex([frame(0), frame(150)]),
-      { x: 0, y: 0 },
-      6,
-    );
+    )({ x: 0, y: 0 }, 1);
     expect(result.x).toBe(-3);
     expect(gaps(result)).toEqual([50, 50]);
   });
@@ -85,7 +86,7 @@ describe("equal spacing", () => {
   it("keeps the snap radius in screen pixels when the gesture converts zoom", () => {
     for (const zoom of [0.25, 0.5, 1, 2]) {
       const index = createCanvasTranslationSnapIndex([frame(0), frame(150)]);
-      const result = snapCanvasTranslation([frame(300 + 5 / zoom)], index, { x: 0, y: 0 }, 6 / zoom);
+      const result = createTranslationSnapSession([frame(300 + 5 / zoom)], index)({ x: 0, y: 0 }, zoom);
       expect(Math.abs(result.x * zoom)).toBeCloseTo(5);
     }
   });

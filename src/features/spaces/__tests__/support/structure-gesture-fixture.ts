@@ -63,7 +63,9 @@ export function structureGestureFixture() {
       snapshot.value = projectStructureGesture(snapshot.value, command);
     };
     let point = { x: 0, y: 0 };
+    let pointer = { x: 0, y: 0 };
     const node = {
+      getParent: () => ({ getRelativePointerPosition: () => pointer }),
       x: () => point.x,
       y: () => point.y,
       position: (next?: typeof point) => (next ? (point = next) : point),
@@ -85,7 +87,19 @@ export function structureGestureFixture() {
       expandedSectionId: () => undefined,
       zoom: () => 1,
     });
-    return { gestures, node, document, preview, rendered, started, commit, commands, points, renderedPoints };
+    return {
+      setPointer: (next: typeof pointer) => (pointer = next),
+      gestures,
+      node,
+      document,
+      preview,
+      rendered,
+      started,
+      commit,
+      commands,
+      points,
+      renderedPoints,
+    };
   })!;
 }
 

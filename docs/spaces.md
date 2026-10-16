@@ -894,13 +894,19 @@ Translation snapping uses the captured gesture index and moving selection's unio
 chooses the smallest correction among edge/center alignment, centering between neighbors and continuation
 of an existing neighboring pair's positive gap. Exact ties prefer spacing. Spacing participants must share
 an actual cross-axis overlap: another row's gap is never borrowed. Distances are axis-aligned outer bounds,
-including rotated frames, not distances between arbitrary points on rotated edges. The gesture supplies
-`6 / zoom` tolerance, keeping the acquisition radius in screen pixels. Guide coordinates are regenerated
-from the final two-axis position, avoiding stale feedback after the other axis snaps.
+including rotated frames, not distances between arbitrary points on rotated edges. A translation gesture owns its magnetic locks: acquire within 6 screen pixels and release beyond 10,
+independently for each axis. The target and reference guides do not get re-elected while held; a spacing
+lock is also released when its measurement cross-axis leaves the moving object. New guide coordinates are
+captured from the final two-axis placement. Candidate lookup runs only on acquisition, not for a held axis.
+Raw movement comes from the pointer in the draggable node's parent coordinate system, minus the initial
+grab offset, never from the node's snapped position. Edge auto-pan calls the same pointer projection rather
+than accumulating viewport deltas onto a snapped node. This keeps input, magnetic output and rendered
+geometry separate, including during auto-pan.
 
 Equal-gap feedback shows both reference and proposed gaps, numeric canvas-unit distances rounded to one
-decimal, and endpoint ticks. Text, ticks, strokes and badge dimensions stay fixed in screen pixels through
-zoom. A badge for a short gap sits beside the measurement rather than hiding its endpoints. Rendering stays
+decimal, and endpoint ticks. Text, ticks and strokes stay fixed in screen pixels through zoom. Distance text always sits outside the
+measurement line (above a horizontal gap, right of a vertical gap); there is no rounded badge, opaque fill,
+or short-gap placement-mode threshold that can flip during dragging. Rendering stays
 inside the existing Konva feedback layer; there is no second draggable DOM overlay or external snap engine.
 The existing indexed geometry is retained because introducing a DOM-transform controller would add another
 gesture owner around Konva's node and section gestures rather than replace them.

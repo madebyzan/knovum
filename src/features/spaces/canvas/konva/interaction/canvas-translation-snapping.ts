@@ -1,33 +1,9 @@
-import {
-  boundsPoints,
-  canvasFrameBounds,
-  type CanvasBounds,
-  translateCanvasBounds,
-  unionCanvasBounds,
-} from "../../canvas-snap-geometry";
-import type { CanvasNodeFrame } from "../../schema/document";
+import { boundsPoints, type CanvasBounds, translateCanvasBounds } from "../../canvas-snap-geometry";
 import { nearestSortedCanvasSnap, type CanvasSnapGuide } from "./canvas-snapping";
 import type { CanvasTranslationSnapIndex } from "./canvas-translation-snap-index";
 import { spacingSnap } from "./spacing-snap";
 
-export function snapCanvasTranslation(
-  movingFrames: readonly CanvasNodeFrame[],
-  index: CanvasTranslationSnapIndex,
-  proposed: { x: number; y: number },
-  tolerance: number,
-) {
-  const moving = translateCanvasBounds(unionCanvasBounds(movingFrames.map(canvasFrameBounds)), proposed);
-  const horizontal = axisSnap(moving, index, "x", tolerance);
-  const vertical = axisSnap(moving, index, "y", tolerance);
-  const offset = { x: horizontal?.offset ?? 0, y: vertical?.offset ?? 0 };
-  const placed = translateCanvasBounds(moving, offset);
-  // Feedback describes the final two-axis placement, not the intermediate horizontal/vertical proposals.
-  const guidesX = axisSnap(placed, index, "x", 1e-7)?.guides ?? [];
-  const guidesY = axisSnap(placed, index, "y", 1e-7)?.guides ?? [];
-  return { x: proposed.x + offset.x, y: proposed.y + offset.y, guides: [...guidesX, ...guidesY] };
-}
-
-function axisSnap(
+export function axisSnap(
   moving: CanvasBounds,
   index: CanvasTranslationSnapIndex,
   axis: "x" | "y",

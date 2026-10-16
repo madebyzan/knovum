@@ -2,57 +2,49 @@ import { describe, expect, it } from "vitest";
 
 import { frameSnapCoordinates, nearestCanvasSnap } from "../konva/interaction/canvas-snapping";
 import { createCanvasTranslationSnapIndex } from "../konva/interaction/canvas-translation-snap-index";
-import { snapCanvasTranslation } from "../konva/interaction/canvas-translation-snapping";
+import { createTranslationSnapSession } from "../konva/interaction/translation-snap-session";
 import type { CanvasNodeFrame } from "../schema/document";
 
 describe("canvas snapping", () => {
   it("aligns node edges within a canvas-space tolerance", () => {
-    const snappedTranslation = snapCanvasTranslation(
+    const snappedTranslation = createTranslationSnapSession(
       [frame(0, 0, 100, 80)],
       createCanvasTranslationSnapIndex([frame(200, 30, 100, 80)]),
-      { x: 96, y: 0 },
-      5,
-    );
+    )({ x: 96, y: 0 }, 1);
 
     expect(snappedTranslation.x).toBe(100);
     expect(snappedTranslation.guides).toContainEqual({ kind: "alignment", points: [200, 0, 200, 110] });
   });
 
   it("centers a node between aligned neighbors with equal spacing guides", () => {
-    const snappedTranslation = snapCanvasTranslation(
+    const snappedTranslation = createTranslationSnapSession(
       [frame(101, 0, 50, 50)],
       createCanvasTranslationSnapIndex([frame(0, 0, 50, 50), frame(200, 0, 50, 50)]),
-      { x: 0, y: 0 },
-      2,
-    );
+    )({ x: 0, y: 0 }, 1);
 
     expect(snappedTranslation.x).toBe(-1);
     expect(snappedTranslation.guides.filter(({ kind }) => kind === "spacing")).toHaveLength(2);
   });
 
   it("chooses spacing neighbors by main-axis distance across staggered overlaps", () => {
-    const snappedTranslation = snapCanvasTranslation(
+    const snappedTranslation = createTranslationSnapSession(
       [frame(120, 0, 50, 100)],
       createCanvasTranslationSnapIndex([
         frame(40, 90, 50, 40),
         frame(20, 0, 50, 100),
         frame(210, 0, 50, 100),
       ]),
-      { x: 0, y: 0 },
-      6,
-    );
+    )({ x: 0, y: 0 }, 1);
 
     expect(snappedTranslation.x).toBe(5);
     expect(snappedTranslation.guides.filter(({ kind }) => kind === "spacing")).toHaveLength(2);
   });
 
   it("preserves equal-gap snapping between distant authored neighbors", () => {
-    const snappedTranslation = snapCanvasTranslation(
+    const snappedTranslation = createTranslationSnapSession(
       [frame(-49, 0, 100, 50)],
       createCanvasTranslationSnapIndex([frame(-5100, 0, 100, 50), frame(5000, 0, 100, 50)]),
-      { x: 0, y: 0 },
-      6,
-    );
+    )({ x: 0, y: 0 }, 1);
     expect(snappedTranslation.x).toBe(-1);
     expect(snappedTranslation.guides.filter(({ kind }) => kind === "spacing")).toHaveLength(2);
   });
