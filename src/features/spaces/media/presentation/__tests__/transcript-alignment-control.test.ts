@@ -39,12 +39,10 @@ beforeEach(() => {
   });
 });
 
-it("names the selected model before automatic first-use preparation", async () => {
+it("emits align event when the alignment button is clicked", async () => {
   const wrapper = mount(SpaceTranscriptAlignmentControl, {
     props: { disabled: false, canAlign: true, selectedCount: 2 },
   });
-  expect(wrapper.get('[data-testid="alignment-model"]').text()).toContain("Qwen3 Q8");
-  expect(wrapper.find('[data-testid="alignment-first-use"]').exists()).toBe(true);
   await wrapper.get('[data-testid="transcript-align"]').trigger("click");
   expect(wrapper.emitted("align")).toHaveLength(1);
 });

@@ -70,18 +70,9 @@ it("passes an optional known speaker count and rejects invalid counts", async ()
   expect(wrapper.get("button").attributes("disabled")).toBeDefined();
 });
 
-it.each([false, true])("shows the selected variant and its own readiness: verified=%s", (verified) => {
-  mocks.data.value = [
-    {
-      capability: "speechDiarization",
-      selected: false,
-      verified: true,
-      name: "INT8",
-      totalBytes: 41_146_685,
-    },
-    { capability: "speechDiarization", selected: true, verified, name: "FP32", totalBytes: 45_599_092 },
-  ];
-  const wrapper = render();
-  expect(wrapper.get('[data-testid="speaker-model"]').text()).toContain("FP32");
-  expect(wrapper.find('[data-testid="speaker-first-use"]').exists()).toBe(!verified);
+it("displays speaker count when speakers are identified", () => {
+  const wrapper = mount(SpaceDiarizationControl, {
+    props: { nodeId: "node", revision: 2, durationMs: 10_000, speakerCount: 3, disabled: false },
+  });
+  expect(wrapper.text()).toContain("3");
 });

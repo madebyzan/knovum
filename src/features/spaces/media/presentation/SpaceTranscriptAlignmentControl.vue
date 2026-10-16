@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { formatBytes } from "../../../../foundation/format/bytes";
 import { useLocalModelsQuery } from "../../../../foundation/runtime/use-resource-queries";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 
@@ -11,9 +9,6 @@ const props = defineProps<{ disabled: boolean; canAlign: boolean; selectedCount:
 const emit = defineEmits<{ align: [] }>();
 const { t } = useI18n();
 const models = useLocalModelsQuery();
-const selected = computed(() =>
-  models.data.value?.find((model) => model.capability === "speechAlignment" && model.selected),
-);
 </script>
 
 <template>
@@ -29,16 +24,6 @@ const selected = computed(() =>
       </UiButton>
       <span class="text-caption-sm text-fg-tertiary">{{ t("spaces.transcript.text.alignmentLimit") }}</span>
     </div>
-    <p v-if="selected" data-testid="alignment-model" class="text-caption-sm text-fg-tertiary">
-      {{ selected.name }} · {{ formatBytes(selected.totalBytes) }}
-    </p>
-    <p
-      v-if="selected && !selected.verified"
-      data-testid="alignment-first-use"
-      class="text-caption-sm text-fg-tertiary"
-    >
-      {{ t("spaces.transcript.text.alignmentFirstUse") }}
-    </p>
     <p v-if="models.error.value" role="alert" class="text-caption-sm text-fg-danger">
       {{ getErrorMessage(models.error.value) }}
     </p>

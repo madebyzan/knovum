@@ -3,7 +3,6 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { formatBytes } from "../../../../foundation/format/bytes";
 import { useLocalModelsQuery } from "../../../../foundation/runtime/use-resource-queries";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
@@ -24,9 +23,6 @@ const models = useLocalModelsQuery();
 const numSpeakers = shallowRef("");
 const submitting = shallowRef(false);
 const error = shallowRef<string>();
-const selected = computed(() =>
-  models.data.value?.find((model) => model.capability === "speechDiarization" && model.selected),
-);
 const countValid = computed(
   () =>
     numSpeakers.value === "" ||
@@ -61,12 +57,6 @@ async function start() {
   <section class="mt-3 space-y-2 rounded-panel border border-stroke-divider p-2.5">
     <p class="text-caption font-medium text-fg-secondary">
       {{ t("spaces.transcript.speakers.title") }}<span v-if="speakerCount > 0"> · {{ speakerCount }}</span>
-    </p>
-    <p v-if="selected" data-testid="speaker-model" class="text-caption text-fg-tertiary">
-      {{ selected.name }} · {{ formatBytes(selected.totalBytes) }}
-    </p>
-    <p v-if="!selected?.verified" data-testid="speaker-first-use" class="text-caption text-fg-tertiary">
-      {{ t("spaces.transcript.speakers.firstUse") }}
     </p>
     <p v-if="durationMs > 7_200_000" class="text-caption text-fg-tertiary">
       {{ t("spaces.transcript.speakers.durationLimit") }}
