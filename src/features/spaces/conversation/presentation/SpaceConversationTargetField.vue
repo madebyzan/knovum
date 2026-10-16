@@ -167,7 +167,7 @@ onMounted(() => void settings.ensureLoaded());
       <UiSeparator class="my-1.5" />
       <UiDropdownMenuItem
         class="gap-2.5 px-2.5 text-fg-secondary"
-        @select="router.push({ name: 'settings', query: { pane: 'aiModels' } })"
+        @select="router.push({ name: 'settings', query: { pane: 'aiRouting' } })"
       >
         <Settings2 class="size-4" />{{ t("spaces.conversation.agents.manage") }}
       </UiDropdownMenuItem>

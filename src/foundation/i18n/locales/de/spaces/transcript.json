@@ -17,14 +17,12 @@
     },
     "alignSelected": "Ausgewählte ausrichten",
     "alignmentLimit": "Bis zu 8 Segmente / 5 Minuten",
-    "alignmentFirstUse": "Bei der ersten Verwendung werden das ausgewählte Modell und die erforderlichen Ressourcen automatisch heruntergeladen. Verwalten Sie die Modellauswahl in den Einstellungen.",
     "selectForAlignment": "Zur Ausrichtung auswählen"
   },
   "speakers": {
     "title": "Sprecherspuren",
     "durationLimit": "Die Lautsprecheraufzeichnung unterstützt Aufnahmen von bis zu zwei Stunden.",
     "generate": "Sprecher identifizieren",
-    "firstUse": "Lokale Ressourcen werden bei der ersten Verwendung automatisch heruntergeladen. Abbrechen im Task Center.",
     "count": "Bekannte Sprecherzahl (optional)",
     "automatic": "Automatisch"
   }

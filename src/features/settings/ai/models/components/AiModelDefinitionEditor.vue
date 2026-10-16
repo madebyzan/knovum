@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Check } from "@lucide/vue";
-import { computed, shallowRef } from "vue";
+import { Check, Image, PenLine, ScanSearch, Video } from "@lucide/vue";
+import { computed, shallowRef, type Component } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { AiModelDefinition } from "../../../../../shared/contracts/generated/AiModelDefinition";
@@ -15,16 +15,32 @@ const props = defineProps<{
 }>();
 const { t } = useI18n();
 const capabilityTouched = shallowRef(false);
+
+const CAPABILITY_DEFINITIONS: readonly {
+  value: ExecutionCapability;
+  labelKey: string;
+  icon: Component;
+}[] = [
+  { value: "text-generation", labelKey: "settings.ai.models.capabilities.text", icon: PenLine },
+  { value: "vision-understanding", labelKey: "settings.ai.models.capabilities.vision", icon: ScanSearch },
+  { value: "image-generation", labelKey: "settings.ai.models.capabilities.image", icon: Image },
+  { value: "video-generation", labelKey: "settings.ai.models.capabilities.video", icon: Video },
+];
+
 const capabilities = computed(() =>
-  (
-    [
-      { value: "text-generation", label: t("settings.ai.models.capabilities.text") },
-      { value: "vision-understanding", label: t("settings.ai.models.capabilities.vision") },
-      { value: "image-generation", label: t("settings.ai.models.capabilities.image") },
-      { value: "video-generation", label: t("settings.ai.models.capabilities.video") },
-    ] satisfies { value: ExecutionCapability; label: string }[]
-  ).filter(({ value }) => props.allowedCapabilities.includes(value)),
+  CAPABILITY_DEFINITIONS.filter(({ value }) => props.allowedCapabilities.includes(value)).map((item) => ({
+    value: item.value,
+    label: t(item.labelKey),
+    icon: item.icon,
+  })),
 );
+
+const gridColsClass = computed(() => {
+  if (capabilities.value.length === 1) return "grid-cols-1 sm:grid-cols-2";
+  if (capabilities.value.length === 2) return "grid-cols-2";
+  if (capabilities.value.length === 4) return "grid-cols-2 sm:grid-cols-4";
+  return "grid-cols-3";
+});
 
 function toggleCapability(capability: ExecutionCapability) {
   const selected = model.value.capabilities.includes(capability);
@@ -57,7 +73,8 @@ function toggleCapability(capability: ExecutionCapability) {
       {{ t("settings.ai.models.capabilities.label") }}
     </p>
     <div
-      class="mt-2 flex flex-wrap gap-2"
+      class="mt-2 grid gap-2.5"
+      :class="gridColsClass"
       role="group"
       :aria-label="t('settings.ai.models.capabilities.label')"
     >
@@ -67,20 +84,31 @@ function toggleCapability(capability: ExecutionCapability) {
         type="button"
         :aria-pressed="model.capabilities.includes(capability.value)"
         :disabled="protected && model.capabilities.includes(capability.value)"
-        class="inline-flex min-h-interaction items-center gap-1.5 rounded-md border px-3 py-1.5 text-label font-medium transition-colors duration-100 ease-standard focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focus"
+        class="group relative flex flex-col items-center justify-center gap-2 rounded-lg border px-2 py-3 text-center transition-all duration-150 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focus disabled:cursor-not-allowed disabled:opacity-60"
         :class="
           model.capabilities.includes(capability.value)
-            ? 'border-stroke-accent bg-surface-accent-subtle text-fg-accent enabled:hover:bg-surface-selected'
+            ? 'border-stroke-accent bg-surface-accent-subtle text-fg-accent shadow-xs'
             : 'border-stroke-default bg-surface-raised text-fg-secondary hover:border-stroke-default-hover hover:bg-surface-control-hover hover:text-fg-primary'
         "
         @click="toggleCapability(capability.value)"
       >
-        <Check
-          aria-hidden="true"
-          class="size-3.5 shrink-0"
-          :class="model.capabilities.includes(capability.value) ? 'opacity-100' : 'opacity-0'"
-        />
-        <span>{{ capability.label }}</span>
+        <div
+          class="flex size-8 items-center justify-center rounded-md transition-colors"
+          :class="
+            model.capabilities.includes(capability.value)
+              ? 'bg-surface-accent/15 text-fg-accent'
+              : 'bg-surface-control text-fg-tertiary group-hover:text-fg-secondary'
+          "
+        >
+          <component :is="capability.icon" class="size-4 shrink-0" />
+        </div>
+        <span class="text-caption leading-snug font-medium">{{ capability.label }}</span>
+        <span
+          v-if="model.capabilities.includes(capability.value)"
+          class="absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full bg-surface-accent text-fg-on-accent"
+        >
+          <Check class="size-2.5 stroke-[3]" />
+        </span>
       </button>
     </div>
     <p v-if="protected" class="mt-2 text-caption text-fg-secondary">{{ t("settings.ai.models.inUse") }}</p>

@@ -1,10 +1,9 @@
 {
   "defaults": {
-    "title": "Esecuzione AI",
-    "description": "Imposta ciascuna funzionalità individualmente o lascia che utilizzi il metodo di esecuzione predefinito."
+    "title": "Predefinito globale"
   },
-  "unassigned": "Utilizza il metodo di esecuzione predefinito",
-  "noCompatibleModel": "Configura un modello per questa attività",
+  "unassigned": "Usa predefinito globale",
+  "noCompatibleModel": "Configura un modello compatibile per questa attività",
   "routes": {
     "writing": {
       "label": "Scrittura",
@@ -31,12 +30,15 @@
       "description": "Crea video partendo da istruzioni e materiale originale."
     },
     "defaultTarget": {
-      "label": "Metodo di esecuzione predefinito",
-      "description": "Utilizzato dalle funzionalità senza una scelta di esecuzione individuale."
+      "label": "Modello predefinito",
+      "description": "Utilizzato dalle funzionalità senza un'assegnazione specifica."
     }
   },
-  "unselected": "Nessun metodo di esecuzione selezionato",
+  "unselected": "Nessun modello selezionato",
   "capabilities": {
-    "title": "Per capacità"
-  }
+    "title": "Per funzionalità",
+    "description": "Assegna modelli o Agent specifici a ogni funzione, con fallback sul predefinito globale."
+  },
+  "title": "Modelli di funzionalità",
+  "description": "Assegna modelli o Agent a scrittura, assistente, comprensione visiva e traduzione."
 }

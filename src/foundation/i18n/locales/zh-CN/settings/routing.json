@@ -1,9 +1,8 @@
 {
   "defaults": {
-    "title": "AI 执行方式",
-    "description": "各项能力可单独设置，未设置时跟随默认执行方式。"
+    "title": "全局默认"
   },
-  "unassigned": "跟随默认执行方式",
+  "unassigned": "跟随全局默认",
   "noCompatibleModel": "配置支持此任务的模型",
   "routes": {
     "writing": {
@@ -31,12 +30,15 @@
       "description": "根据创作要求与素材生成视频。"
     },
     "defaultTarget": {
-      "label": "默认执行方式",
-      "description": "未单独设置执行方式的功能使用此选择。"
+      "label": "默认模型",
+      "description": "未单独设置模型的功能使用此选择。"
     }
   },
-  "unselected": "未选择执行方式",
+  "unselected": "未选择模型",
   "capabilities": {
-    "title": "按能力设置"
-  }
+    "title": "按功能设置",
+    "description": "为不同功能单独指定模型或 Agent，未设置时跟随全局默认。"
+  },
+  "title": "功能模型",
+  "description": "为写作、智能助手、视觉理解与翻译等各项功能分配对应的模型或 Agent。"
 }

@@ -1,24 +1,18 @@
 <script setup lang="ts">
 import { useQuery } from "@tanstack/vue-query";
 import { storeToRefs } from "pinia";
-import { computed, nextTick, onMounted, shallowRef } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
 import { useCreationLibraryStore } from "../../../foundation/ai/creation-library-store";
-import { setDefaultExecutionTarget } from "../../../foundation/ai/execution-settings";
 import { loadProviderDescriptors } from "../../../foundation/ai/providers";
 import { resetAiSettings } from "../../../foundation/ai/settings-mutations";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import type { AiRoutingDefaults } from "../../../shared/contracts/generated/AiRoutingDefaults";
-import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
-import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import SettingsLoadFailure from "../components/SettingsLoadFailure.vue";
 import AiConnectionsSettings from "./connections/components/AiConnectionsSettings.vue";
-import AiRoutingSettings from "./models/components/AiRoutingSettings.vue";
 import { useProtectedExecutionTargets } from "./use-protected-execution-targets";
 
 const PROVIDER_CATALOG_KEY = ["integrations", "provider-descriptors"] as const;
@@ -34,7 +28,6 @@ const catalog = useQuery({
   staleTime: 30_000,
 });
 const providers = computed(() => catalog.data.value ?? []);
-const createModelRequest = shallowRef<{ purpose: RoutingPurpose }>();
 const failure = computed(() =>
   loadError.value
     ? { source: "ai" as const, cause: loadError.value, canReset: true }
@@ -46,14 +39,6 @@ const failure = computed(() =>
 );
 const ready = computed(() => aiReady.value && creationReady.value && !catalog.isPending.value);
 const { protectedConnectionIds, protectedModelTargets } = useProtectedExecutionTargets();
-
-async function updateDefaultRoute(key: keyof AiRoutingDefaults, target: TaskTargetRef | null) {
-  try {
-    await setDefaultExecutionTarget(key, target);
-  } catch (error) {
-    toast.error(`${t("settings.general.saveFailed")}: ${getErrorMessage(error)}`);
-  }
-}
 
 async function hydrateStores() {
   await Promise.all([aiStore.ensureLoaded(), creationStore.ensureLoaded()]);
@@ -76,17 +61,10 @@ async function resetSection() {
 }
 
 onMounted(hydrateStores);
-
-async function requestModelCreation(purpose: RoutingPurpose) {
-  const request = { purpose };
-  createModelRequest.value = request;
-  await nextTick();
-  if (createModelRequest.value === request) createModelRequest.value = undefined;
-}
 </script>
 
 <template>
-  <section data-testid="ai-models-settings-pane" class="min-w-0">
+  <section data-testid="ai-providers-settings-pane" class="min-w-0">
     <SettingsLoadFailure
       v-if="failure"
       :message="getErrorMessage(failure.cause)"
@@ -96,22 +74,12 @@ async function requestModelCreation(purpose: RoutingPurpose) {
     />
     <div v-else-if="ready">
       <p class="mb-4 max-w-2xl text-body text-fg-secondary">{{ t("settings.ai.overview.description") }}</p>
-      <div class="grid gap-6">
-        <AiConnectionsSettings
-          :connections="settings.connections"
-          :create-model-request="createModelRequest"
-          :providers="providers"
-          :protected-connection-ids="protectedConnectionIds"
-          :protected-model-targets="protectedModelTargets"
-        />
-        <AiRoutingSettings
-          :defaults="settings.defaults"
-          :connections="settings.connections"
-          :desktop-agents="settings.desktopAgents"
-          @request-model-creation="requestModelCreation"
-          @update-route="updateDefaultRoute"
-        />
-      </div>
+      <AiConnectionsSettings
+        :connections="settings.connections"
+        :providers="providers"
+        :protected-connection-ids="protectedConnectionIds"
+        :protected-model-targets="protectedModelTargets"
+      />
     </div>
     <div v-else class="flex items-center gap-2 text-caption text-fg-secondary" role="status">
       <UiSpinner size="sm" />{{ t("common.loading") }}

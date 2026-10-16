@@ -78,7 +78,7 @@ const help = computed(
 
 function openAiSettings() {
   removal.cancel();
-  void router.push({ name: "settings", query: { pane: "aiModels" } });
+  void router.push({ name: "settings", query: { pane: "aiProviders" } });
 }
 
 function generate() {

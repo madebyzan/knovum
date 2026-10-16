@@ -3,7 +3,8 @@ import { z } from "zod";
 const SETTINGS_PANE_IDS = [
   "appearance",
   "notifications",
-  "aiModels",
+  "aiRouting",
+  "aiProviders",
   "localModels",
   "voices",
   "desktopAgents",

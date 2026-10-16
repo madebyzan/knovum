@@ -77,7 +77,7 @@ function setOpen(value: boolean) {
 
 function openAiSettings() {
   setOpen(false);
-  void router.push({ name: "settings", query: { pane: "aiModels", setting: "settings-image-layers" } });
+  void router.push({ name: "settings", query: { pane: "creation", setting: "settings-image-layers" } });
 }
 </script>
 

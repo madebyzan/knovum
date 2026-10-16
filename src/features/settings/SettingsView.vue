@@ -5,7 +5,8 @@ import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
 
 import UiScrollArea from "../../shared/ui/UiScrollArea.vue";
 import AboutSettingsPane from "./about/AboutSettingsPane.vue";
-import AiModelsSettingsPane from "./ai/AiModelsSettingsPane.vue";
+import AiProvidersSettingsPane from "./ai/AiProvidersSettingsPane.vue";
+import AiRoutingSettingsPane from "./ai/AiRoutingSettingsPane.vue";
 import LocalModelsSettings from "./ai/local-models/components/LocalModelsSettings.vue";
 import AppearanceSettingsPane from "./appearance/AppearanceSettingsPane.vue";
 import ArchivedSpacesSettingsPane from "./archives/ArchivedSpacesSettingsPane.vue";
@@ -61,7 +62,8 @@ watch(
 );
 
 const componentByPaneId = {
-  aiModels: AiModelsSettingsPane,
+  aiRouting: AiRoutingSettingsPane,
+  aiProviders: AiProvidersSettingsPane,
   localModels: LocalModelsSettings,
   voices: toRaw(props.voiceLibraryComponent),
   desktopAgents: DesktopAgentsSettingsPane,

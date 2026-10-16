@@ -53,11 +53,11 @@ describe("workspace session persistence", () => {
   );
 
   it("restores query state instead of dropping it", async () => {
-    localStorage.setItem("knovum.workspace.lastRoute", "/settings?pane=aiModels");
+    localStorage.setItem("knovum.workspace.lastRoute", "/settings?pane=aiProviders");
     const router = createTestRouter();
 
     await restoreWorkspaceSession(router);
 
-    expect(router.currentRoute.value.fullPath).toBe("/settings?pane=aiModels");
+    expect(router.currentRoute.value.fullPath).toBe("/settings?pane=aiProviders");
   });
 });

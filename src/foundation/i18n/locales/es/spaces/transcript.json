@@ -17,14 +17,12 @@
     },
     "alignSelected": "Alinear seleccionado",
     "alignmentLimit": "Hasta 8 segmentos / 5 minutos",
-    "alignmentFirstUse": "El primer uso descarga el modelo seleccionado y los recursos necesarios automáticamente. Administre las opciones de modelo en Configuración.",
     "selectForAlignment": "Seleccionar para alineación"
   },
   "speakers": {
     "title": "Pistas de altavoz",
     "durationLimit": "La registro del hablante admite grabaciones de hasta dos horas.",
     "generate": "Identificar hablantes",
-    "firstUse": "Los recursos locales se descargan automáticamente en el primer uso; cancelar en el Centro de tareas.",
     "count": "Recuento de hablantes conocidos (opcional)",
     "automatic": "Automático"
   }
