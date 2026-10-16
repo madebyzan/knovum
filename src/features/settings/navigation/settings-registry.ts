@@ -141,11 +141,6 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
         labelKey: "settings.creation.presets.title",
         descriptionKey: "settings.creation.presets.description",
       },
-      {
-        id: "settings-image-layers",
-        labelKey: "settings.creation.imageLayers.title",
-        descriptionKey: "settings.creation.imageLayers.description",
-      },
     ],
   },
   BACKUP_SETTINGS_DEFINITION,

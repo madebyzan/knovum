@@ -1,5 +1,6 @@
 {
   "removeBackground": "Supprimer l'arrière-plan",
+  "splitLayers": "Séparer les calques",
   "visualization": {
     "title": "Générer une image",
     "description": "Générez une image à côté de ses sources sélectionnées.",

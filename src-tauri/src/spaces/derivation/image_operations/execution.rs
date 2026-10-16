@@ -35,21 +35,12 @@ pub(crate) async fn derive_for_action(
             Ok(value) => value,
             Err(error) => return fail_running(&app, &request, error.into()).await,
         };
-    let rendered = crate::foundation::blocking::run({
-        let render_app = app.clone();
-        let source_edit = request.source_edit.clone();
-        let source_revision = request.source_revision.clone();
-        move || {
-            let source = crate::spaces::assets::authorize_spaces_asset(
-                &render_app,
-                std::path::Path::new(&source_path),
-            )?;
-            crate::file_inspection::verify_content_revision(&source, &source_revision)?;
-            let rendered = crate::images::render_source_png(&source, &source_edit)?;
-            crate::file_inspection::verify_content_revision(&source, &source_revision)?;
-            Ok::<_, String>(rendered)
-        }
-    })
+    let rendered = super::super::source_snapshot::render_pinned_png(
+        &app,
+        &source_path,
+        &request.source_revision,
+        &request.source_edit,
+    )
     .await;
     let source = match rendered {
         Ok(value) => {

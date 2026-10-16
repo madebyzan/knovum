@@ -88,7 +88,7 @@ pub fn export(project_root: &Path) -> Result<(), String> {
     let spaces_output = project_root.join("src/features/spaces/contracts/generated");
     let relation_kinds = schema_for!(crate::spaces::knowledge::contracts::RelationKind);
     let relation_statuses = schema_for!(crate::spaces::knowledge::contracts::RelationStatus);
-    let source = format!(
+    let mut source = format!(
         concat!(
             "// Generated from Rust contracts. Do not edit.\n",
             "export const maxKnowledgePassageBytes = {} as const;\n",
@@ -110,6 +110,28 @@ pub fn export(project_root: &Path) -> Result<(), String> {
             "tag": crate::spaces::knowledge::validation::nodes::visual::MAX_TAG,
         }),
     );
+    source.push_str(&enum_values(&[
+        (
+            "spaceActionImpacts",
+            schema_for!(crate::spaces::actions::SpaceActionImpact),
+        ),
+        (
+            "spaceActionExecutionModes",
+            schema_for!(crate::spaces::actions::SpaceActionExecutionMode),
+        ),
+        (
+            "spaceActionInputRoles",
+            schema_for!(crate::spaces::actions::SpaceActionInputRole),
+        ),
+        (
+            "spaceActionOutputContracts",
+            schema_for!(crate::spaces::actions::SpaceActionOutputContract),
+        ),
+        (
+            "spaceActionOutputArities",
+            schema_for!(crate::spaces::actions::SpaceActionOutputArity),
+        ),
+    ])?);
     std::fs::write(spaces_output.join("contract-values.ts"), source).map_err(io_error)?;
     export_schemas(&spaces_output)
 }
@@ -218,7 +240,14 @@ fn export_runtime_values(output: &Path) -> Result<(), String> {
 }
 
 fn enum_values_source(enums: &[(&str, Schema)]) -> Result<String, String> {
-    let mut source = String::from("// Generated from Rust contracts. Do not edit.\n");
+    Ok(format!(
+        "// Generated from Rust contracts. Do not edit.\n{}",
+        enum_values(enums)?
+    ))
+}
+
+fn enum_values(enums: &[(&str, Schema)]) -> Result<String, String> {
+    let mut source = String::new();
     for (name, schema) in enums {
         let values = schema
             .get("enum")

@@ -53,6 +53,7 @@ pub(super) async fn create(
                 &placement.structure,
                 &placement.layouts,
                 &[],
+                &[],
                 OBJECT_WIDTH,
                 OBJECT_HEIGHT,
             )?,

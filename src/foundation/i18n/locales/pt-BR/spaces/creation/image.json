@@ -1,5 +1,6 @@
 {
   "removeBackground": "Remover fundo",
+  "splitLayers": "Separar camadas",
   "visualization": {
     "title": "Gerar imagem",
     "description": "Gere uma imagem ao lado das fontes selecionadas.",

@@ -5,10 +5,14 @@ import { nextTick, reactive, shallowRef } from "vue";
 import type * as VueI18n from "vue-i18n";
 
 import type { ImageOperationCapabilities } from "../contracts/generated/ImageOperationCapabilities";
-import { decideCreationIntents } from "../knowledge-derivations/catalog/creation-intent-definitions";
+import type { CreationIntentId } from "../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
-import { blockedImageCapabilities, imageSourceNode } from "./support/image-operation-fixtures";
+import {
+  blockedImageCapabilities,
+  imageSourceNode,
+  selectedImageIntents,
+} from "./support/image-operation-fixtures";
 
 const context = vi.hoisted(() => ({
   space: null as null | { activeSpaceId: string; nodes: SpaceCanvasNode[] },
@@ -59,19 +63,8 @@ function openTool() {
     setup() {
       bar = useImageNodeBarState(
         shallowRef(node),
-        shallowRef(
-          decideCreationIntents({
-            selectionCount: 1,
-            imageCount: 1,
-            hasKnowledgeSources: false,
-            canRemoveBackground: false,
-            canAddVideoSubtitles: false,
-            hasVideoSources: false,
-            documentTargets: [],
-            documentRecognitionRequired: false,
-          }),
-        ),
-        vi.fn<() => void>(),
+        shallowRef(selectedImageIntents()),
+        vi.fn<(actionId: CreationIntentId) => void>(),
       );
       return () => null;
     },

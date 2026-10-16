@@ -50,3 +50,25 @@ fn inference_engine_identities_do_not_reinterpret_obsolete_values() {
         AsrEngine::WhisperCpp
     ));
 }
+
+#[test]
+fn layer_discovery_bounds_are_shared_by_both_sides_of_the_worker_boundary() {
+    use crate::image_compute::{validate_discovery, MAX_DISCOVERED_LAYERS, MAX_DISCOVERY_SEEDS};
+    validate_discovery(1, 1).unwrap();
+    validate_discovery(MAX_DISCOVERY_SEEDS, MAX_DISCOVERED_LAYERS).unwrap();
+    for (seeds, layers) in [
+        (0, MAX_DISCOVERED_LAYERS),
+        (MAX_DISCOVERY_SEEDS + 1, MAX_DISCOVERED_LAYERS),
+        (1, 0),
+        (1, MAX_DISCOVERED_LAYERS + 1),
+    ] {
+        assert!(
+            validate_discovery(seeds, layers).is_err(),
+            "{seeds} seeds and {layers} layers are out of bounds"
+        );
+    }
+    // Ranks share a u8 label map with the unassigned 0, and a caller must be able to explore the
+    // canvas beyond the layers it can publish.
+    assert!(MAX_DISCOVERED_LAYERS < u8::MAX);
+    assert!(MAX_DISCOVERY_SEEDS > usize::from(MAX_DISCOVERED_LAYERS));
+}

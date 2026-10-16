@@ -1,6 +1,6 @@
 {
   "title": "Creación",
-  "description": "Administre los ajustes preestablecidos de creación y el servicio utilizado para dividir capas de imágenes.",
+  "description": "Gestiona los ajustes preestablecidos usados para crear contenido.",
   "presets": {
     "title": "Preajustes de generación",
     "description": "Configuración del modelo guardada para la creación de contenido.",
@@ -30,13 +30,5 @@
     "extractSubtitles": "Extracción de subtítulos",
     "renderSubtitledVideo": "Vídeo subtitulado",
     "renderPresentation": "Presentación"
-  },
-  "imageLayers": {
-    "title": "División de capa de imagen",
-    "description": "Conecte fal para dividir la capa de imagen.",
-    "apiKey": {
-      "label": "clave API fal",
-      "description": "Almacenado solo en este dispositivo."
-    }
   }
 }

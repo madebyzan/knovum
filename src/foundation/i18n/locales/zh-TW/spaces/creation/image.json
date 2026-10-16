@@ -1,5 +1,6 @@
 {
   "removeBackground": "去背景",
+  "splitLayers": "拆分圖層",
   "visualization": {
     "title": "生成圖片",
     "description": "在所選來源旁產生圖片。",

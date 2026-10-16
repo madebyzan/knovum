@@ -1,15 +1,15 @@
 use std::{fs, io::Cursor, path::PathBuf};
 
-use base64::{engine::general_purpose::STANDARD, Engine};
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
-const MAX_SOURCE_BYTES: usize = 10 * 1024 * 1024;
-const MAX_LAYER_BYTES: usize = 20 * 1024 * 1024;
+/// Decoder limits for reading back a layer. The bytes are produced in process, so these bound the
+/// memory one decode may claim rather than police an untrusted input.
 const MAX_IMAGE_DIMENSION: u32 = 16_384;
 const MAX_IMAGE_PIXELS: u64 = 25_000_000;
+const MAX_DECODE_BYTES: u64 = 160 * 1024 * 1024;
 
 pub struct PreparedLayer {
     pub path: PathBuf,
@@ -17,14 +17,6 @@ pub struct PreparedLayer {
     pub size: usize,
     pub width: u32,
     pub height: u32,
-}
-
-pub fn encode_source_image_uri(bytes: &[u8]) -> Result<String, String> {
-    if bytes.is_empty() || bytes.len() > MAX_SOURCE_BYTES {
-        return Err("Image layer source must be a PNG no larger than 10 MB".into());
-    }
-    decode_png(bytes, "Image layer source")?;
-    Ok(format!("data:image/png;base64,{}", STANDARD.encode(bytes)))
 }
 
 pub fn prepare(
@@ -47,6 +39,7 @@ pub fn prepare(
     Ok(prepared)
 }
 
+/// Writes one layer and reads back the dimensions its node publishes.
 fn prepare_one(
     directory: &std::path::Path,
     bytes: Vec<u8>,
@@ -55,13 +48,7 @@ fn prepare_one(
     if cancellation.is_cancelled() {
         return Err("Image layer split was cancelled".into());
     }
-    if bytes.is_empty() || bytes.len() > MAX_LAYER_BYTES {
-        return Err("fal returned an invalid layer size".into());
-    }
-    let decoded = decode_png(&bytes, "fal layer")?;
-    if !decoded.color().has_alpha() {
-        return Err("fal returned a layer without an alpha channel".into());
-    }
+    let decoded = decode_png(&bytes)?;
     if cancellation.is_cancelled() {
         return Err("Image layer split was cancelled".into());
     }
@@ -79,21 +66,18 @@ fn prepare_one(
     })
 }
 
-fn decode_png(bytes: &[u8], label: &str) -> Result<image::DynamicImage, String> {
+fn decode_png(bytes: &[u8]) -> Result<image::DynamicImage, String> {
     let mut reader = image::ImageReader::with_format(Cursor::new(bytes), image::ImageFormat::Png);
     let mut limits = image::Limits::default();
     limits.max_image_width = Some(MAX_IMAGE_DIMENSION);
     limits.max_image_height = Some(MAX_IMAGE_DIMENSION);
-    limits.max_alloc = Some(160 * 1024 * 1024);
+    limits.max_alloc = Some(MAX_DECODE_BYTES);
     reader.limits(limits);
     let decoded = reader
         .decode()
-        .map_err(|error| format!("{label} is not a valid PNG: {error}"))?;
-    if decoded.width() == 0
-        || decoded.height() == 0
-        || u64::from(decoded.width()) * u64::from(decoded.height()) > MAX_IMAGE_PIXELS
-    {
-        return Err(format!("{label} dimensions exceed the image layer limit"));
+        .map_err(|error| format!("Generated layer is not a valid PNG: {error}"))?;
+    if u64::from(decoded.width()) * u64::from(decoded.height()) > MAX_IMAGE_PIXELS {
+        return Err("Generated layer dimensions exceed the image layer limit".into());
     }
     Ok(decoded)
 }

@@ -1,6 +1,6 @@
 {
   "title": "創作",
-  "description": "管理創作預設和圖片圖層分割所需的服務。",
+  "description": "管理內容創作所使用的生成預設。",
   "presets": {
     "title": "產生預設",
     "description": "用於內容創作的已儲存模型設定。",
@@ -30,13 +30,5 @@
     "extractSubtitles": "擷取字幕",
     "renderSubtitledVideo": "字幕影片",
     "renderPresentation": "簡報"
-  },
-  "imageLayers": {
-    "title": "圖片圖層拆分",
-    "description": "接入 fal，用於拆分圖片圖層。",
-    "apiKey": {
-      "label": "fal API Key",
-      "description": "僅保存在這台設備上。"
-    }
   }
 }

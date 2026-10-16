@@ -1,6 +1,22 @@
 import { createSpaceNode } from "../../canvas/node";
 import type { ImageOperationCapabilities } from "../../contracts/generated/ImageOperationCapabilities";
+import { decideCreationIntents } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
+
+/** One selected image with every derivation capability withheld. */
+export function selectedImageIntents() {
+  return decideCreationIntents({
+    selectionCount: 1,
+    imageCount: 1,
+    hasKnowledgeSources: false,
+    canRemoveBackground: false,
+    canSplitImageLayers: false,
+    canAddVideoSubtitles: false,
+    hasVideoSources: false,
+    documentTargets: [],
+    documentRecognitionRequired: false,
+  });
+}
 
 export function imageSourceNode() {
   const data: SpaceImagePayload = {

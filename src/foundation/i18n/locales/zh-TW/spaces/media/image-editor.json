@@ -65,28 +65,6 @@
     "turnLeft": "向左旋轉",
     "turnRight": "向右旋轉"
   },
-  "layers": {
-    "title": "圖層拆分",
-    "selectContent": "框選內容",
-    "selectContentUnavailable": "目前圖層拆分模型不支援指定圖片區域",
-    "auto": "自動拆分",
-    "custom": "自訂拆分",
-    "prompt": {
-      "label": "拆分重點",
-      "placeholder": "描述想要拆分的內容"
-    },
-    "split": "分割",
-    "task": "正在拆分圖片圖層",
-    "failed": "圖層拆分失敗",
-    "stage": {
-      "submitting": "正在提交圖片",
-      "processing": "正在拆分圖層",
-      "downloading": "正在取得圖層",
-      "publishing": "正在保存圖層"
-    },
-    "keyMissing": "圖層拆分需要配置 fal 密鑰",
-    "promptRequired": "請先描述需要拆分的內容"
-  },
   "applyNow": "立即使用",
   "unsaved": {
     "title": "要套用圖片更改嗎？",
@@ -96,7 +74,6 @@
     "modelUnavailable": "請檢查圖片模型與憑證配置",
     "providerUnsupported": "當前圖片模型不支援此操作",
     "credentialUnavailable": "無法讀取圖片模型的憑證",
-    "secretDatabaseUnavailable": "本機憑證資料庫不可用",
     "capabilityCheckFailed": "無法檢查操作是否可用",
     "busy": "操作正在進行中"
   },

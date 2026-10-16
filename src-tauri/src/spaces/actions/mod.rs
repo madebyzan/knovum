@@ -30,6 +30,7 @@ pub struct SpaceActionDefinition {
     #[ts(type = "Record<string, unknown>")]
     pub parameters_schema: ParameterSchemaFactory,
     pub output_contract: SpaceActionOutputContract,
+    pub output_arity: SpaceActionOutputArity,
 }
 
 #[derive(Clone, Copy, Serialize, ts_rs::TS)]
@@ -41,7 +42,7 @@ pub struct SpaceActionCollectionInput {
     pub max_items: usize,
 }
 
-#[derive(Clone, Copy, Eq, PartialEq, Serialize, ts_rs::TS)]
+#[derive(Clone, Copy, Eq, PartialEq, Serialize, schemars::JsonSchema, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum SpaceActionImpact {
@@ -50,7 +51,7 @@ pub enum SpaceActionImpact {
     MutatesResource,
 }
 
-#[derive(Clone, Copy, Serialize, ts_rs::TS)]
+#[derive(Clone, Copy, Serialize, schemars::JsonSchema, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum SpaceActionExecutionMode {
@@ -67,7 +68,7 @@ pub enum SpaceActionInputConsistency {
 
 pub type ParameterSchemaFactory = fn() -> &'static Value;
 
-#[derive(Clone, Copy, Eq, PartialEq, Serialize, ts_rs::TS)]
+#[derive(Clone, Copy, Eq, PartialEq, Serialize, schemars::JsonSchema, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum SpaceActionInputRole {
@@ -78,7 +79,7 @@ pub enum SpaceActionInputRole {
     Video,
 }
 
-#[derive(Clone, Copy, Eq, PartialEq, Serialize, ts_rs::TS)]
+#[derive(Clone, Copy, Eq, PartialEq, Serialize, schemars::JsonSchema, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum SpaceActionOutputContract {
@@ -94,6 +95,19 @@ pub enum SpaceActionOutputContract {
     SpaceEditReceipt,
     SpaceContents,
     Video,
+}
+
+/// How many resources one invocation publishes. Every Action has its first output reserved as a
+/// pending node before the handler runs, so the canvas shows the work from the moment it is asked
+/// for. Most Actions publish exactly that one output. Some inputs decide the count themselves —
+/// splitting an image into its layers, for instance — and their handler reserves the rest of the
+/// set once discovery reports how many there are.
+#[derive(Clone, Copy, Eq, PartialEq, Serialize, schemars::JsonSchema, ts_rs::TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub enum SpaceActionOutputArity {
+    Single,
+    Discovered,
 }
 
 pub fn definitions() -> &'static [SpaceActionDefinition] {

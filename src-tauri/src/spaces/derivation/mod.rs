@@ -13,6 +13,7 @@ mod grounded_answer;
 pub(crate) mod grounded_document;
 pub(crate) mod image_layers;
 pub(crate) mod image_operations;
+mod image_tensors;
 pub(crate) mod input_revision;
 pub(crate) mod inputs;
 pub(crate) mod metadata_sources;

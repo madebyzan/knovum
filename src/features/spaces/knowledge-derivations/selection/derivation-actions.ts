@@ -8,6 +8,7 @@ import { convertDocument } from "../document/conversion";
 import { isDocumentConversionSource } from "../document/conversion-source";
 import { generateGroundedDocument, type GroundedDocumentDraft } from "../grounded-document";
 import { createImageCutout } from "../image-cutout";
+import { splitImageLayers } from "../image-layers";
 import { addVideoSubtitles } from "../subtitled-video";
 import { generateVideoFromSources, type VideoDraft } from "../video/generation";
 import { generateVisualization, type VisualizationDraft } from "../visualization";
@@ -33,6 +34,7 @@ export function createDerivationActions({
 }: DerivationActionsOptions) {
   const handlers: Record<CreationIntentId, () => void> = {
     "remove-image-background": () => void (single.value && createImageCutout(single.value)),
+    "split-image-layers": () => void (single.value && splitImageLayers(single.value)),
     "add-video-subtitles": () => void (single.value && addVideoSubtitles(single.value)),
     "draft-document": () => (dialog.value = "document"),
     "generate-visualization": () => (dialog.value = "visualization"),

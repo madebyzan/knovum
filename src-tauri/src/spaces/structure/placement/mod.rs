@@ -4,12 +4,18 @@ use super::{
     StructureLayout, StructureNode,
 };
 
-const GAP: f64 = 48.0;
+/// Clearance kept between canvas content, both around a placement and between siblings placed as
+/// one group.
+pub(crate) const CONTENT_GAP: f64 = 48.0;
 
+/// Places a block of content beside its sources, in the first clear area scanned outward from
+/// them. `placed_node_ids` is content that belongs to the block itself: it was reserved before the
+/// block could be sized, so it must not block its own placement.
 pub(crate) fn place_new_content(
     structure: &[StructureNode],
     layouts: &[StructureLayout],
     source_node_ids: &[String],
+    placed_node_ids: &[String],
     width: f64,
     height: f64,
 ) -> Result<(f64, f64), String> {
@@ -30,9 +36,20 @@ pub(crate) fn place_new_content(
                 .ok_or_else(|| format!("canvas-placement-invalid: source {node_id} has no layout"))
         })
         .collect::<Result<Vec<_>, _>>()?;
+    let placed = structure
+        .iter()
+        .filter_map(|node| match node {
+            StructureNode::Content { id, node_id, .. }
+                if placed_node_ids.iter().any(|placed| placed == node_id) =>
+            {
+                Some(id.as_str())
+            }
+            _ => None,
+        })
+        .collect::<Vec<_>>();
     let occupied = structure
         .iter()
-        .filter(|node| node.parent_id().is_none())
+        .filter(|node| node.parent_id().is_none() && !placed.contains(&node.id()))
         .map(|node| root_bounds(structure, layouts, &index, node.id()))
         .collect::<Result<Vec<_>, _>>()?;
     let anchor = if sources.is_empty() {
@@ -56,8 +73,8 @@ pub(crate) fn place_new_content(
             } else {
                 -(row / 2)
             };
-            let x = anchor.right + GAP + f64::from(column) * (width + GAP);
-            let y = anchor.top + f64::from(offset) * (height + GAP);
+            let x = anchor.right + CONTENT_GAP + f64::from(column) * (width + CONTENT_GAP);
+            let y = anchor.top + f64::from(offset) * (height + CONTENT_GAP);
             let candidate = Bounds {
                 left: x,
                 top: y,
@@ -79,10 +96,10 @@ pub(crate) fn place_new_content(
 }
 
 fn intersects(left: &Bounds, right: &Bounds) -> bool {
-    left.left < right.right + GAP
-        && left.right + GAP > right.left
-        && left.top < right.bottom + GAP
-        && left.bottom + GAP > right.top
+    left.left < right.right + CONTENT_GAP
+        && left.right + CONTENT_GAP > right.left
+        && left.top < right.bottom + CONTENT_GAP
+        && left.bottom + CONTENT_GAP > right.top
 }
 
 #[cfg(test)]

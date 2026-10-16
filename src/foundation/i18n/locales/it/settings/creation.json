@@ -1,6 +1,6 @@
 {
   "title": "Creazione",
-  "description": "Gestisci le preimpostazioni di creazione e il servizio utilizzato per la suddivisione del livello dell'immagine.",
+  "description": "Gestisci i preset utilizzati per la creazione di contenuti.",
   "presets": {
     "title": "Preimpostazioni di generazione",
     "description": "Impostazioni del modello salvate per la creazione di contenuti.",
@@ -30,13 +30,5 @@
     "extractSubtitles": "Estrazione sottotitoli",
     "renderSubtitledVideo": "Video sottotitolato",
     "renderPresentation": "Presentazione"
-  },
-  "imageLayers": {
-    "title": "Suddivisione del livello dell'immagine",
-    "description": "Connetti fal per la suddivisione del livello dell'immagine.",
-    "apiKey": {
-      "label": "tasto fal API",
-      "description": "Memorizzato solo su questo dispositivo."
-    }
   }
 }

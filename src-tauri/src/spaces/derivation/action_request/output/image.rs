@@ -10,7 +10,7 @@ pub(super) fn request(
         .first()
         .ok_or("action-input-invalid: image is required")?;
     if inputs.nodes.len() != 1 || source.kind != "image" {
-        return Err("action-input-invalid: image transform requires one image".into());
+        return Err("action-input-invalid: this Action requires one image".into());
     }
     let revision = source
         .data

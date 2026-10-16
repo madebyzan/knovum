@@ -1,6 +1,6 @@
 {
   "title": "Erstellung",
-  "description": "Verwalten Sie Erstellungsvoreinstellungen und den Dienst, der für die Bildebenenaufteilung verwendet wird.",
+  "description": "Verwalten Sie die Voreinstellungen für die Inhaltserstellung.",
   "presets": {
     "title": "Generationsvoreinstellungen",
     "description": "Gespeicherte Modelleinstellungen für die Inhaltserstellung.",
@@ -30,13 +30,5 @@
     "extractSubtitles": "Untertitelextraktion",
     "renderSubtitledVideo": "Video mit Untertiteln",
     "renderPresentation": "Präsentation"
-  },
-  "imageLayers": {
-    "title": "Aufteilung der Bildebene",
-    "description": "Verbinden Sie Fal für die Aufteilung der Bildebene.",
-    "apiKey": {
-      "label": "fal API-Taste",
-      "description": "Nur auf diesem Gerät gespeichert."
-    }
   }
 }

@@ -1,4 +1,4 @@
-mod pixels;
+pub(super) mod pixels;
 
 #[cfg(test)]
 mod tests;

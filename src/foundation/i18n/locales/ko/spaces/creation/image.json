@@ -1,5 +1,6 @@
 {
   "removeBackground": "배경 제거",
+  "splitLayers": "레이어 분리",
   "visualization": {
     "title": "이미지 생성",
     "description": "선택한 소스 옆에 이미지를 생성합니다.",

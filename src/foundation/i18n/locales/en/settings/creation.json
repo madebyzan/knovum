@@ -1,6 +1,6 @@
 {
   "title": "Creation",
-  "description": "Manage creation presets and the service used for image layer splitting.",
+  "description": "Manage the presets used for content creation.",
   "presets": {
     "title": "Generation presets",
     "description": "Saved model settings for content creation.",
@@ -30,13 +30,5 @@
     "extractSubtitles": "Subtitle extraction",
     "renderSubtitledVideo": "Subtitled video",
     "renderPresentation": "Presentation"
-  },
-  "imageLayers": {
-    "title": "Image layer splitting",
-    "description": "Connect fal for image layer splitting.",
-    "apiKey": {
-      "label": "fal API key",
-      "description": "Stored only on this device."
-    }
   }
 }
