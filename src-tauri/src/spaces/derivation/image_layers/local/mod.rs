@@ -32,12 +32,6 @@ pub(super) struct Layers {
     backdrop: Option<RgbaImage>,
 }
 
-impl Layers {
-    pub(super) fn count(&self) -> u8 {
-        self.decomposition.count
-    }
-}
-
 /// Splits a rendered PNG into layer PNGs, backdrop first. The returned length is the discovered
 /// layer count plus the backdrop.
 pub(super) async fn split(
