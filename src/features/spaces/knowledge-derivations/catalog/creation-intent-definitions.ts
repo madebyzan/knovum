@@ -89,6 +89,12 @@ export const CREATION_INTENT_DEFINITIONS = [
     decide: ({ canRemoveBackground }) => (canRemoveBackground ? AVAILABLE : HIDDEN),
   },
   {
+    id: "split-image-layers",
+    labelKey: "spaces.creation.image.splitLayers",
+    icon: "layers",
+    decide: ({ canSplitImageLayers }) => (canSplitImageLayers ? AVAILABLE : HIDDEN),
+  },
+  {
     id: "add-video-subtitles",
     labelKey: "spaces.creation.video.subtitles.add",
     icon: "captions",

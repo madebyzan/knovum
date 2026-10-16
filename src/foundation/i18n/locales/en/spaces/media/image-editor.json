@@ -65,16 +65,6 @@
     "turnLeft": "Turn left",
     "turnRight": "Turn right"
   },
-  "layers": {
-    "title": "Split layers",
-    "task": "Splitting image layers",
-    "failed": "Layer splitting failed",
-    "stage": {
-      "preparing": "Preparing the image",
-      "analyzing": "Finding layers",
-      "staging": "Saving layers"
-    }
-  },
   "applyNow": "Use now",
   "unsaved": {
     "title": "Apply image changes?",

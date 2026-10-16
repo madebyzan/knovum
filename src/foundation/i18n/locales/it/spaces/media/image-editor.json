@@ -65,16 +65,6 @@
     "turnLeft": "Girare a sinistra",
     "turnRight": "Girare a destra"
   },
-  "layers": {
-    "title": "Dividi livelli",
-    "task": "Divisione dei livelli dell'immagine",
-    "failed": "Divisione del livello non riuscita",
-    "stage": {
-      "preparing": "Preparazione dell'immagine",
-      "analyzing": "Rilevamento dei livelli",
-      "staging": "Salvataggio dei livelli"
-    }
-  },
   "applyNow": "Utilizza ora",
   "unsaved": {
     "title": "Applica modifiche immagine?",

@@ -65,16 +65,6 @@
     "turnLeft": "向左旋轉",
     "turnRight": "向右旋轉"
   },
-  "layers": {
-    "title": "圖層拆分",
-    "task": "正在拆分圖片圖層",
-    "failed": "圖層拆分失敗",
-    "stage": {
-      "preparing": "正在準備圖片",
-      "analyzing": "正在識別圖層",
-      "staging": "正在儲存圖層"
-    }
-  },
   "applyNow": "立即使用",
   "unsaved": {
     "title": "要套用圖片更改嗎？",

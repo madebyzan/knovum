@@ -1,58 +1,62 @@
 #[test]
-fn plan_requests_use_explicit_identity_and_reject_unknown_fields() {
+fn split_requests_use_explicit_identity_and_reject_unknown_fields() {
     let mut request = serde_json::json!({
-        "planId": "plan", "spaceId": "space", "sourceNodeId": "source",
+        "id": "run", "spaceId": "space", "sourceNodeId": "source",
         "sourceRevision": "revision", "sourceEdit": null
     });
-    let decoded: super::PlanImageLayersRequest =
+    let decoded: super::SplitImageLayersRequest =
         serde_json::from_value(request.clone()).expect("current request");
-    super::validate_plan(&decoded).expect("valid plan");
-    assert_eq!(decoded.plan_id, "plan");
+    super::validate(&decoded).expect("valid split");
+    assert_eq!(decoded.id, "run");
     let object = request.as_object_mut().expect("object");
-    object.insert("prompt".into(), "legacy".into());
-    assert!(serde_json::from_value::<super::PlanImageLayersRequest>(request.clone()).is_err());
-    request.as_object_mut().expect("object").remove("prompt");
-    request.as_object_mut().expect("object").remove("planId");
-    assert!(serde_json::from_value::<super::PlanImageLayersRequest>(request).is_err());
+    object.insert("outputNodeIds".into(), serde_json::json!(["legacy"]));
+    assert!(serde_json::from_value::<super::SplitImageLayersRequest>(request.clone()).is_err());
+    request
+        .as_object_mut()
+        .expect("object")
+        .remove("outputNodeIds");
+    request.as_object_mut().expect("object").remove("id");
+    assert!(serde_json::from_value::<super::SplitImageLayersRequest>(request).is_err());
 }
 
 #[test]
-fn generation_requests_bind_a_plan_to_unique_output_nodes() {
-    let request = |outputs: serde_json::Value| {
-        serde_json::json!({
-            "generationId": "generation", "planId": "plan", "spaceId": "space",
-            "sourceNodeId": "source", "sourceRevision": "revision", "sourceEdit": null,
-            "outputNodeIds": outputs
-        })
-    };
-    let decoded: super::GenerateImageLayersRequest =
-        serde_json::from_value(request(serde_json::json!(["one", "two"]))).expect("request");
-    super::validate(&decoded).expect("valid generation");
-    for outputs in [
-        serde_json::json!(["one"]),
-        serde_json::json!(["one", "one"]),
-        serde_json::json!(["one", "source"]),
-    ] {
-        let decoded: super::GenerateImageLayersRequest =
-            serde_json::from_value(request(outputs)).expect("request");
-        assert!(super::validate(&decoded).is_err());
-    }
-}
-
-#[test]
-fn the_output_ceiling_admits_a_discovered_sheet_of_subjects() {
-    let outputs = (0..super::MAX_LAYER_COUNT)
-        .map(|index| format!("layer-{index}"))
-        .collect::<Vec<_>>();
-    let decoded: super::GenerateImageLayersRequest = serde_json::from_value(serde_json::json!({
-        "generationId": "generation", "planId": "plan", "spaceId": "space",
-        "sourceNodeId": "source", "sourceRevision": "revision", "sourceEdit": null,
-        "outputNodeIds": outputs
+fn a_split_rejects_a_source_edit_that_is_not_an_edit() {
+    let decoded: super::SplitImageLayersRequest = serde_json::from_value(serde_json::json!({
+        "id": "run", "spaceId": "space", "sourceNodeId": "source",
+        "sourceRevision": "revision", "sourceEdit": "crop"
     }))
     .expect("request");
-    super::validate(&decoded).expect("the ceiling is inclusive");
+    assert!(super::validate(&decoded).is_err());
+}
+
+#[test]
+fn only_a_layer_stack_settles() {
+    for count in [0, 1, super::MAX_LAYER_COUNT + 1] {
+        assert!(super::validate_count(count).is_err());
+    }
+    for count in [super::MIN_LAYER_COUNT, super::MAX_LAYER_COUNT] {
+        super::validate_count(count).expect("the bounds are inclusive");
+    }
     assert!(
         super::MAX_LAYER_COUNT >= 10,
         "a nine subject sheet plus its backdrop must fit"
+    );
+}
+
+#[test]
+fn outputs_and_derivations_are_named_after_their_split() {
+    assert_eq!(super::output_node_id("run", 0), "run-layer-0");
+    assert_eq!(super::derivation_id("run", 3), "run:layer-3");
+    let ids = (0..super::MAX_LAYER_COUNT)
+        .map(|index| super::output_node_id("run", index))
+        .collect::<std::collections::HashSet<_>>();
+    assert_eq!(
+        ids.len(),
+        super::MAX_LAYER_COUNT,
+        "every output is distinct"
+    );
+    assert!(
+        !ids.contains("run"),
+        "no output collides with its source Run"
     );
 }

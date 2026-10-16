@@ -65,16 +65,6 @@
     "turnLeft": "Tourner à gauche",
     "turnRight": "Tourner à droite"
   },
-  "layers": {
-    "title": "Split layer",
-    "task": "Diviser les calques d'images",
-    "failed": "Échec du fractionnement des couches",
-    "stage": {
-      "preparing": "Préparation de l'image",
-      "analyzing": "Détection des calques",
-      "staging": "Enregistrement des calques"
-    }
-  },
   "applyNow": "Utiliser maintenant",
   "unsaved": {
     "title": "Appliquer les modifications d'image ?",

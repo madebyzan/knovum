@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::Value;
 
 pub const MIN_LAYER_COUNT: usize = 2;
@@ -6,87 +6,45 @@ pub const MIN_LAYER_COUNT: usize = 2;
 /// nodes one split may create. Label maps are `u8`, which leaves ample headroom above this.
 pub const MAX_LAYER_COUNT: usize = 24;
 
-/// First phase: discover the layers and stage them. No node is created yet, because the layer
-/// count is a property of the image rather than an input.
+/// One split request. `id` is the Run that owns it, so the outputs and their derivation rows are
+/// named after it and the split settles against a single authority.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PlanImageLayersRequest {
-    pub plan_id: String,
+pub struct SplitImageLayersRequest {
+    pub id: String,
     pub space_id: String,
     pub source_node_id: String,
     pub source_revision: String,
     pub source_edit: Value,
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ImageLayerPlan {
-    pub plan_id: String,
-    pub layer_count: usize,
-}
-
-/// Second phase: publish the staged layers into the output nodes the caller created for them.
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct GenerateImageLayersRequest {
-    pub generation_id: String,
-    pub plan_id: String,
-    pub space_id: String,
-    pub source_node_id: String,
-    pub source_revision: String,
-    pub source_edit: Value,
-    pub output_node_ids: Vec<String>,
-}
-
-pub fn validate_plan(request: &PlanImageLayersRequest) -> Result<(), String> {
-    identity(&request.plan_id, "Image layer plan")?;
-    source(
-        &request.space_id,
-        &request.source_node_id,
-        &request.source_revision,
-        &request.source_edit,
-    )
-}
-
-pub fn validate(request: &GenerateImageLayersRequest) -> Result<(), String> {
-    identity(&request.generation_id, "Image layer generation")?;
-    identity(&request.plan_id, "Image layer plan")?;
-    source(
-        &request.space_id,
-        &request.source_node_id,
-        &request.source_revision,
-        &request.source_edit,
-    )?;
-    if !(MIN_LAYER_COUNT..=MAX_LAYER_COUNT).contains(&request.output_node_ids.len()) {
-        return Err(format!(
-            "Image layer split requires {MIN_LAYER_COUNT} to {MAX_LAYER_COUNT} output nodes"
-        ));
-    }
-    let mut unique = std::collections::HashSet::new();
-    if request.output_node_ids.iter().any(|id| {
-        id.trim().is_empty()
-            || id.len() > 128
-            || id == &request.source_node_id
-            || !unique.insert(id)
-    }) {
-        return Err("Image layer output nodes must be unique and differ from the source".into());
-    }
-    Ok(())
-}
-
-fn source(
-    space_id: &str,
-    source_node_id: &str,
-    source_revision: &str,
-    source_edit: &Value,
-) -> Result<(), String> {
-    identity(space_id, "Space")?;
-    identity(source_node_id, "Image layer source node")?;
-    identity(source_revision, "Image layer source revision")?;
-    if !(source_edit.is_null() || source_edit.is_object()) {
+pub fn validate(request: &SplitImageLayersRequest) -> Result<(), String> {
+    identity(&request.id, "Image layer split")?;
+    identity(&request.space_id, "Space")?;
+    identity(&request.source_node_id, "Image layer source node")?;
+    identity(&request.source_revision, "Image layer source revision")?;
+    if !(request.source_edit.is_null() || request.source_edit.is_object()) {
         return Err("Image layer source edit must be an object or null".into());
     }
     Ok(())
+}
+
+/// Rejects a discovered count that no longer describes a layer stack.
+pub fn validate_count(count: usize) -> Result<(), String> {
+    if !(MIN_LAYER_COUNT..=MAX_LAYER_COUNT).contains(&count) {
+        return Err("This image did not split into separable layers".into());
+    }
+    Ok(())
+}
+
+/// Identity of one output node of a split. Derived from the Run so a replayed settlement cannot
+/// publish into a node that belongs to another split.
+pub fn output_node_id(split_id: &str, index: usize) -> String {
+    format!("{split_id}-layer-{index}")
+}
+
+pub fn derivation_id(split_id: &str, index: usize) -> String {
+    format!("{split_id}:layer-{index}")
 }
 
 fn identity(value: &str, label: &str) -> Result<(), String> {

@@ -65,16 +65,6 @@
     "turnLeft": "Girar a la izquierda",
     "turnRight": "Gire a la derecha"
   },
-  "layers": {
-    "title": "Dividir capas",
-    "task": "División de capas de imágenes",
-    "failed": "Falló la división de capas",
-    "stage": {
-      "preparing": "Preparando la imagen",
-      "analyzing": "Detectando capas",
-      "staging": "Guardando capas"
-    }
-  },
   "applyNow": "Usar ahora",
   "unsaved": {
     "title": "¿Aplicar cambios de imagen?",

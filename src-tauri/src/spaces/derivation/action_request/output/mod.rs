@@ -3,12 +3,7 @@ use tauri::AppHandle;
 
 use super::inputs::ResolvedInputs;
 use crate::foundation::app_error::AppError;
-use crate::spaces::{
-    db,
-    knowledge::{indexing::KnowledgeChunkInput, model::revision},
-    nodes::{self, contracts::InsertNode},
-    structure::{self, SizingMode},
-};
+use crate::spaces::actions::{SpaceActionInputRole, SpaceActionOutputArity};
 
 mod image;
 mod media;
@@ -22,7 +17,8 @@ pub(super) async fn reserve(
     request: &mut Map<String, Value>,
     authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<(), AppError> {
-    if crate::spaces::actions::is_image_transform(action_id) {
+    let definition = crate::spaces::actions::require(action_id)?;
+    if definition.input_roles == [SpaceActionInputRole::Image] {
         image::request(inputs, request)?;
     }
     match action_id {
@@ -34,22 +30,35 @@ pub(super) async fn reserve(
         | "convert-document-to-html" => media::document_request(inputs, action_id, request)?,
         _ => {}
     }
-    let Some((kind, mut data)) = build_pending_output_content(app, action_id, parameters, inputs)?
+    // A discovered-arity handler reserves its own outputs once it knows how many there are.
+    if definition.output_arity == SpaceActionOutputArity::Discovered {
+        return Ok(());
+    }
+    let Some((kind, data)) = build_pending_output_content(app, action_id, parameters, inputs)?
     else {
         return Ok(());
     };
     let node_id = format!("{}-output", authority.run_id);
     request.insert("outputNodeId".into(), node_id.clone().into());
-    if node_exists(app, space_id, &node_id).await? {
+    if super::super::pending_output::exists(app, space_id, &node_id).await? {
         return Ok(());
     }
-    revision::apply(&mut data)?;
-    let sources = inputs
-        .nodes
-        .iter()
-        .map(|node| node.id.clone())
-        .collect::<Vec<_>>();
-    insert_output(app, space_id, node_id, kind, data, &sources, authority).await
+    super::super::pending_output::reserve(
+        app,
+        space_id,
+        vec![super::super::pending_output::PendingOutput {
+            node_id,
+            kind,
+            data,
+        }],
+        &inputs
+            .nodes
+            .iter()
+            .map(|node| node.id.clone())
+            .collect::<Vec<_>>(),
+        authority,
+    )
+    .await
 }
 
 fn build_pending_output_content(
@@ -106,70 +115,6 @@ fn build_pending_output_content(
         _ => return Ok(None),
     };
     Ok(Some(output))
-}
-
-async fn node_exists(app: &AppHandle, space_id: &str, node_id: &str) -> Result<bool, AppError> {
-    let count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
-    )
-    .bind(node_id)
-    .bind(space_id)
-    .fetch_one(db::pool(app).await?)
-    .await
-    .map_err(db::sql_error)?;
-    Ok(count == 1)
-}
-
-async fn insert_output(
-    app: &AppHandle,
-    space_id: &str,
-    node_id: String,
-    kind: &str,
-    payload: Value,
-    sources: &[String],
-    authority: &super::super::action_execution::ExecutionAuthority,
-) -> Result<(), AppError> {
-    let pool = db::pool(app).await?;
-    let mut tx = db::begin_write(pool).await?;
-    authority.require_active(&mut *tx).await?;
-    let (mut snapshot, base) =
-        structure::repository::load_in_transaction(&mut tx, space_id).await?;
-    let before = structure::history::capture(&mut tx, space_id, &snapshot).await?;
-    let (x, y) = structure::place_new_content(
-        &snapshot.structure,
-        &snapshot.layouts,
-        sources,
-        320.0,
-        220.0,
-    )?;
-    let node = InsertNode {
-        id: node_id,
-        kind: kind.into(),
-        initial_x: x,
-        initial_y: y,
-        width: 320.0,
-        height: 220.0,
-        sizing_mode: SizingMode::Content,
-        appearance: None,
-        file_subpath: None,
-        data: payload,
-        source_chunks: Vec::<KnowledgeChunkInput>::new(),
-    };
-    structure::creation::append_content(&mut snapshot, std::slice::from_ref(&node), None)?;
-    nodes::insert_rows_with_actor(
-        &mut tx,
-        space_id,
-        &[node],
-        crate::spaces::knowledge::events::EventActor::new("system", Some(&authority.run_id)),
-        crate::foundation::clock::unix_time_millis()?,
-        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
-    )
-    .await?;
-    let revision =
-        structure::repository::save_in_transaction(&mut tx, space_id, base, &snapshot).await?;
-    let after = structure::history::capture(&mut tx, space_id, &snapshot).await?;
-    structure::history::record(&mut tx, space_id, &before, &after, revision).await?;
-    Ok(tx.commit().await.map_err(db::sql_error)?)
 }
 
 fn title(parameters: &Value, inputs: &ResolvedInputs) -> Result<String, AppError> {

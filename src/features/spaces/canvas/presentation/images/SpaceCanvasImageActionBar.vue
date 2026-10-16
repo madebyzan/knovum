@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Layers3, ScanLine } from "@lucide/vue";
 import { ToolbarRoot } from "reka-ui";
 import { computed, nextTick, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -6,7 +7,6 @@ import { useI18n } from "vue-i18n";
 import SpaceCanvasImageEditing from "../../../image-editing/presentation/SpaceCanvasImageEditing.vue";
 import SpaceCanvasObjectRemoval from "../../../image-editing/presentation/SpaceCanvasObjectRemoval.vue";
 import SpaceImageAngleInspector from "../../../image-editing/presentation/SpaceImageAngleInspector.vue";
-import SpaceImageLayerGeneration from "../../../image-editing/presentation/SpaceImageLayerGeneration.vue";
 import SpaceImageSelectionControls from "../../../image-editing/presentation/SpaceImageSelectionControls.vue";
 import SpaceImageUpscalePopover from "../../../image-editing/presentation/SpaceImageUpscalePopover.vue";
 import type {
@@ -22,9 +22,9 @@ import SpaceCanvasNodeAccessActions from "../selection/SpaceCanvasNodeAccessActi
 import type { useCanvasSelectionActions } from "../selection/use-canvas-selection-actions";
 import { useNodeActionBarDensity } from "../selection/use-node-action-bar-density";
 import SpaceCanvasImageAngleTrigger from "./SpaceCanvasImageAngleTrigger.vue";
+import SpaceCanvasImageDerivationTrigger from "./SpaceCanvasImageDerivationTrigger.vue";
 import SpaceCanvasImageEditActions from "./SpaceCanvasImageEditActions.vue";
 import SpaceCanvasImageMenu from "./SpaceCanvasImageMenu.vue";
-import SpaceCanvasImageRemoveBackgroundTrigger from "./SpaceCanvasImageRemoveBackgroundTrigger.vue";
 import SpaceCanvasImageRemoveObjectTrigger from "./SpaceCanvasImageRemoveObjectTrigger.vue";
 import SpaceImageCommentModeBar from "./SpaceImageCommentModeBar.vue";
 import { useImageNodeBarState } from "./use-image-node-bar-state";
@@ -55,9 +55,9 @@ const {
   beginAngle,
   setPopover,
   beginComment,
-  removeBackground,
-} = useImageNodeBarState(toRef(props, "node"), toRef(props, "derivations"), () =>
-  emit("invokeDerivation", "remove-image-background"),
+  runDirectDerivation,
+} = useImageNodeBarState(toRef(props, "node"), toRef(props, "derivations"), (actionId) =>
+  emit("invokeDerivation", actionId),
 );
 const imageSelection = useImageSelectionSessionStore();
 const selecting = computed(() => imageSelection.active?.nodeId === props.node.id);
@@ -117,12 +117,14 @@ watch(
         :open="openPopover === 'upscale'"
         @update:open="setPopover('upscale', $event)"
       />
-      <SpaceCanvasImageRemoveBackgroundTrigger
+      <SpaceCanvasImageDerivationTrigger
         v-if="canvasBarPlacement('image-remove-background', minimal) === 'bar'"
         :compact="compact"
-        :availability="directAvailability"
-        :reason="directReason"
-        @begin="removeBackground"
+        :availability="directAvailability['remove-image-background']"
+        :reason="directReason['remove-image-background']"
+        :icon="ScanLine"
+        label-key="spaces.creation.image.removeBackground"
+        @begin="runDirectDerivation('remove-image-background')"
       />
       <SpaceCanvasImageRemoveObjectTrigger
         v-if="canvasBarPlacement('image-remove-object', minimal) === 'bar'"
@@ -131,7 +133,15 @@ watch(
         :reason="removalReason"
         @begin="beginRemoval"
       />
-      <SpaceImageLayerGeneration :node="node" :compact="compact" />
+      <SpaceCanvasImageDerivationTrigger
+        v-if="canvasBarPlacement('image-split-layers', minimal) === 'bar'"
+        :compact="compact"
+        :availability="directAvailability['split-image-layers']"
+        :reason="directReason['split-image-layers']"
+        :icon="Layers3"
+        label-key="spaces.creation.image.splitLayers"
+        @begin="runDirectDerivation('split-image-layers')"
+      />
       <SpaceCanvasImageAngleTrigger
         :compact="compact"
         @begin="beginAngle() && emit('update:angleOpen', true)"

@@ -1,5 +1,6 @@
 {
   "removeBackground": "Hintergrund entfernen",
+  "splitLayers": "Ebenen trennen",
   "visualization": {
     "title": "Bild generieren",
     "description": "Generieren Sie ein Bild neben den ausgewählten Quellen.",

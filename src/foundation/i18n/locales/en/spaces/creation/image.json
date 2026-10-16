@@ -1,5 +1,6 @@
 {
   "removeBackground": "Remove background",
+  "splitLayers": "Split layers",
   "visualization": {
     "title": "Generate image",
     "description": "Generate an image beside its selected sources.",

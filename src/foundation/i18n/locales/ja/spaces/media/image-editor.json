@@ -65,16 +65,6 @@
     "turnLeft": "左に曲がる",
     "turnRight": "右に曲がる"
   },
-  "layers": {
-    "title": "レイヤーの分割",
-    "task": "画像レイヤーの分割",
-    "failed": "レイヤー分割に失敗しました",
-    "stage": {
-      "preparing": "画像を準備しています",
-      "analyzing": "レイヤーを検出しています",
-      "staging": "レイヤーを保存しています"
-    }
-  },
   "applyNow": "今すぐ使用",
   "unsaved": {
     "title": "画像の変更を適用しますか?",

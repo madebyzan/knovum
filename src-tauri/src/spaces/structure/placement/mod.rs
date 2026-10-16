@@ -4,7 +4,9 @@ use super::{
     StructureLayout, StructureNode,
 };
 
-const GAP: f64 = 48.0;
+/// Clearance kept between canvas content, both around a placement and between siblings placed as
+/// one group.
+pub(crate) const CONTENT_GAP: f64 = 48.0;
 
 pub(crate) fn place_new_content(
     structure: &[StructureNode],
@@ -56,8 +58,8 @@ pub(crate) fn place_new_content(
             } else {
                 -(row / 2)
             };
-            let x = anchor.right + GAP + f64::from(column) * (width + GAP);
-            let y = anchor.top + f64::from(offset) * (height + GAP);
+            let x = anchor.right + CONTENT_GAP + f64::from(column) * (width + CONTENT_GAP);
+            let y = anchor.top + f64::from(offset) * (height + CONTENT_GAP);
             let candidate = Bounds {
                 left: x,
                 top: y,
@@ -79,10 +81,10 @@ pub(crate) fn place_new_content(
 }
 
 fn intersects(left: &Bounds, right: &Bounds) -> bool {
-    left.left < right.right + GAP
-        && left.right + GAP > right.left
-        && left.top < right.bottom + GAP
-        && left.bottom + GAP > right.top
+    left.left < right.right + CONTENT_GAP
+        && left.right + CONTENT_GAP > right.left
+        && left.top < right.bottom + CONTENT_GAP
+        && left.bottom + CONTENT_GAP > right.top
 }
 
 #[cfg(test)]

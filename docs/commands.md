@@ -103,14 +103,14 @@ When adding or removing an IPC command, review the Rust handler, build-time plug
 Editor text transformations use `plugin:ai|transform_editor_text_stream`; translation uses
 `plugin:ai|translate_text_stream`. Both operations stream progress and retain explicit cancellation.
 Internal provider completion APIs keep their model terminology. Spaces generation enters `start_space_action` with a concrete versioned Action ID;
-specialized image-layer generation uses `generate_image_layers`; transformations use `derive_image`, and deterministic
-video edits use `render_video_edit`; subtitle burn-in uses the `add-video-subtitles` Action. Cancellation names the ongoing
-operation (`cancel_image_layer_generation`, `cancel_run`). Image-layer splitting runs
-`plan_image_layers` and then `generate_image_layers`, because the layer count is a property of the
-image rather than an input: discovery stages the layers and reports how many there are, and the
-caller then publishes them into the output nodes it created for them. Both calls and the
-cancellation carry the same `splitId`, so one user action remains one cancellable task; each output
-still has its own derivation ID. No legacy `id` or `prompt` field is accepted by those strict requests.
+transformations use `derive_image`, and deterministic
+video edits use `render_video_edit`; subtitle burn-in uses the `add-video-subtitles` Action and
+image-layer splitting uses the `split-image-layers` Action. Cancellation names the ongoing
+operation (`cancel_run`). Splitting publishes several resources from one invocation, so its Action
+declares `outputArity: discovered`: no output node is reserved before the handler runs, and the
+handler reserves exactly as many as discovery found. The layer count is therefore a property of the
+image rather than an input, and it never appears in the request. One split is one Run, so it is
+cancelled like any other Run while each layer still has its own derivation ID.
 Video generation and committed video rendering cancellation use `derivationId`; disposable proxy processing retains `jobId`.
 
 `get_image_operation_capabilities`, `check_image_cutout_source` and `list_video_fonts` are queries.

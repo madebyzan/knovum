@@ -65,16 +65,6 @@
     "turnLeft": "Vire à esquerda",
     "turnRight": "Vire à direita"
   },
-  "layers": {
-    "title": "Camadas divididas",
-    "task": "Dividindo camadas de imagem",
-    "failed": "Falha na divisão da camada",
-    "stage": {
-      "preparing": "Preparando a imagem",
-      "analyzing": "Localizando camadas",
-      "staging": "Salvando camadas"
-    }
-  },
   "applyNow": "Usar agora",
   "unsaved": {
     "title": "Aplicar alterações de imagem?",

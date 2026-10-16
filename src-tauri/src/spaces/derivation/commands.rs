@@ -1,29 +1,7 @@
 use tauri::AppHandle;
 
-use super::{image_layers, video_edit, CompletedDerivationOutput};
+use super::{video_edit, CompletedDerivationOutput};
 use crate::foundation::app_error::AppError;
-
-#[tauri::command]
-pub async fn plan_image_layers(
-    app: AppHandle,
-    request: image_layers::PlanImageLayersRequest,
-    on_stage: tauri::ipc::Channel<String>,
-) -> Result<image_layers::ImageLayerPlan, AppError> {
-    image_layers::plan(app, request, on_stage).await
-}
-
-#[tauri::command]
-pub async fn generate_image_layers(
-    app: AppHandle,
-    request: image_layers::GenerateImageLayersRequest,
-) -> Result<Vec<CompletedDerivationOutput>, AppError> {
-    image_layers::generate(app, request).await
-}
-
-#[tauri::command]
-pub fn cancel_image_layer_generation(split_id: String) -> Result<(), AppError> {
-    Ok((image_layers::cancel(&split_id))?)
-}
 
 #[tauri::command]
 pub async fn render_video_edit(

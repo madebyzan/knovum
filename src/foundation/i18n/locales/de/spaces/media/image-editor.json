@@ -65,16 +65,6 @@
     "turnLeft": "Links abbiegen",
     "turnRight": "Rechts abbiegen"
   },
-  "layers": {
-    "title": "Geteilte Ebenen",
-    "task": "Bildebenen teilen",
-    "failed": "Ebenenaufteilung fehlgeschlagen",
-    "stage": {
-      "preparing": "Bild wird vorbereitet",
-      "analyzing": "Ebenen werden erkannt",
-      "staging": "Ebenen werden gespeichert"
-    }
-  },
   "applyNow": "Jetzt verwenden",
   "unsaved": {
     "title": "Bildänderungen anwenden?",
