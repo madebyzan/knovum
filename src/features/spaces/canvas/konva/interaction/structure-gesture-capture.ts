@@ -9,6 +9,7 @@ import {
 import { isStructureNodeEffectivelyLocked } from "../../../model/structure/structure-queries";
 import type { CanvasRect } from "../../contracts/canvas-editor-port";
 import { createCanvasTranslationSnapIndex } from "./canvas-translation-snap-index";
+import { createTranslationSnapSession } from "./translation-snap-session";
 
 interface StructureGestureCaptureInput {
   id: string;
@@ -45,8 +46,10 @@ export function captureStructureGesture({
     roots,
     target,
     origin: target.position(),
-    frames: roots.map((rootId) => snapFrame(bounds.get(rootId)!)),
-    snapIndex: createCanvasTranslationSnapIndex(stationary.map(([, frame]) => snapFrame(frame))),
+    snap: createTranslationSnapSession(
+      roots.map((rootId) => snapFrame(bounds.get(rootId)!)),
+      createCanvasTranslationSnapIndex(stationary.map(([, frame]) => snapFrame(frame))),
+    ),
   };
 }
 

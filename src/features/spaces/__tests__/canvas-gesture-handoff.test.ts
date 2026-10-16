@@ -7,7 +7,7 @@ describe("structure gesture handoff", () => {
   it("keeps Section and descendant geometry at the drop position through asynchronous commit", async () => {
     const value = fixture();
     value.gestures.beginMove("section", value.node);
-    value.node.position({ x: 120, y: 90 });
+    value.setPointer({ x: 120, y: 90 });
     value.gestures.move();
     await nextTick();
     const dropped = value.document.value;
@@ -39,7 +39,7 @@ describe("structure gesture handoff", () => {
     const value = fixture();
     const before = value.document.value;
     value.gestures.beginMove("section", value.node);
-    value.node.position({ x: 120, y: 90 });
+    value.setPointer({ x: 120, y: 90 });
     value.gestures.move();
     const finished = value.gestures.finish();
     await value.started.promise;
@@ -53,7 +53,7 @@ describe("structure gesture handoff", () => {
   it("cancels before stopping native drag so its dragend cannot commit", async () => {
     const value = fixture();
     value.gestures.beginMove("section", value.node);
-    value.node.position({ x: 120, y: 90 });
+    value.setPointer({ x: 120, y: 90 });
     value.gestures.move();
     expect(value.gestures.cancel()).toBe(true);
     await value.gestures.finish();
@@ -77,5 +77,18 @@ describe("structure gesture handoff", () => {
     await value.gestures.nudge({ x: 1, y: 0 });
     expect(value.commands).toEqual([{ kind: "structure.move", rootIds: ["section"], delta: { x: 1, y: 0 } }]);
     expect(value.document.value.nodes[0]?.frame.x).toBe(41);
+  });
+  it("derives movement from the pointer, not a previous snapped or projected node position", () => {
+    const value = fixture();
+    value.setPointer({ x: 20, y: 10 });
+    value.gestures.beginMove("section", value.node);
+    value.setPointer({ x: 140, y: 100 });
+    value.node.position({ x: -999, y: -999 });
+    value.gestures.move();
+    expect(value.node.position()).toEqual({ x: 120, y: 90 });
+    value.node.position({ x: 999, y: 999 });
+    value.gestures.move();
+    expect(value.node.position()).toEqual({ x: 120, y: 90 });
+    value.gestures.cancel();
   });
 });
