@@ -80,8 +80,7 @@ const position = computed(() => {
   const placed = placement.value;
   if (!placed) return undefined;
   return {
-    left: `${placed.left}px`,
-    top: `${placed.top}px`,
+    transform: `translate3d(${placed.left}px, ${placed.top}px, 0)`,
     maxHeight: `${placed.maxHeight}px`,
   };
 });
@@ -106,7 +105,7 @@ watch(
     <div
       v-if="bounds"
       ref="toolbar"
-      class="pointer-events-auto absolute w-max transition-opacity duration-100 ease-standard motion-reduce:transition-none"
+      class="pointer-events-auto absolute top-0 left-0 w-max transition-opacity duration-100 ease-standard will-change-transform motion-reduce:transition-none"
       :class="[
         position ? 'visible' : 'invisible',
         kind === 'actions' ? '' : 'overflow-x-hidden overflow-y-auto overscroll-contain',

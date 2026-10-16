@@ -16,9 +16,9 @@ interface StructureDragAutoPanOptions {
 export function useStructureDragAutoPan(options: StructureDragAutoPanOptions) {
   let active = false;
   const autoPan = useCanvasEdgeAutoPan({
-    onPan: ({ canvasDelta }) => {
+    onPan: () => {
       if (!active) return;
-      options.gestures.pan(canvasDelta);
+      options.gestures.move();
     },
     setViewport: options.viewport.setViewport,
     size: options.viewport.size,

@@ -42,7 +42,9 @@ describe("selection surface intrinsic measurement", () => {
     context.height.value = 220;
     await nextTick();
     expect(surface.element.style.maxHeight).toBe("220px");
-    expect(surface.element.style.top).toBe("128px");
+    expect(surface.element.style.transform).toContain(", 128px, 0)");
+    expect(surface.element.style.left).toBe("");
+    expect(surface.element.style.top).toBe("");
     context.height.value = 900;
     await nextTick();
     expect(surface.attributes("data-side")).toBe("right");

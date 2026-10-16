@@ -9,7 +9,6 @@ import { sectionDropMoveCommand } from "../../../structure/section-drop-reparent
 import type { CanvasPoint, CanvasRect } from "../../contracts/canvas-editor-port";
 import type { CanvasDirectManipulation } from "./canvas-gesture-session";
 import type { CanvasGestureFeedback } from "./canvas-snapping";
-import { snapCanvasTranslation } from "./canvas-translation-snapping";
 import type { GroupHandleTransform } from "./group-handle-transform";
 import { createSectionFrameGesture } from "./section-frame-gesture";
 import { captureStructureGesture } from "./structure-gesture-capture";
@@ -37,6 +36,7 @@ export function useStructureGestureSession(options: StructureGestureOptions) {
   let active: ReturnType<typeof capture>;
   let command: StructureGestureCommand | undefined;
   let committing = false;
+  let grabOffset: CanvasPoint | undefined;
 
   function capture(structureNodeId: string, target: Konva.Node, kind: CanvasDirectManipulation) {
     if (committing) return undefined;
@@ -54,12 +54,18 @@ export function useStructureGestureSession(options: StructureGestureOptions) {
 
   function beginMove(structureNodeId: string, target: Konva.Node) {
     active = capture(structureNodeId, target, "drag");
+    const point = target.getParent()!.getRelativePointerPosition()!;
+    grabOffset = { x: point.x - target.x(), y: point.y - target.y() };
   }
 
   function move() {
     if (!active) return;
-    const delta = { x: active.target.x() - active.origin.x, y: active.target.y() - active.origin.y };
-    const snapped = snapCanvasTranslation(active.frames, active.snapIndex, delta, 6 / options.zoom());
+    const point = active.target.getParent()!.getRelativePointerPosition()!;
+    const delta = {
+      x: point.x - grabOffset!.x - active.origin.x,
+      y: point.y - grabOffset!.y - active.origin.y,
+    };
+    const snapped = active.snap(delta, options.zoom());
     active.target.position({ x: active.origin.x + snapped.x, y: active.origin.y + snapped.y });
     preview({ kind: "structure.move", rootIds: active.roots, delta: { x: snapped.x, y: snapped.y } });
     feedback.value = { guides: snapped.guides };
@@ -139,6 +145,7 @@ export function useStructureGestureSession(options: StructureGestureOptions) {
 
   function clear() {
     command = undefined;
+    grabOffset = undefined;
     options.preview.value = undefined;
     directManipulation.value = undefined;
     options.previewDrop([], undefined);
@@ -155,12 +162,6 @@ export function useStructureGestureSession(options: StructureGestureOptions) {
     feedback.value = undefined;
     clear();
     return true;
-  }
-
-  function pan(delta: CanvasPoint) {
-    if (!active) return;
-    active.target.position({ x: active.target.x() + delta.x, y: active.target.y() + delta.y });
-    move();
   }
 
   async function nudge(delta: CanvasPoint) {
@@ -180,7 +181,6 @@ export function useStructureGestureSession(options: StructureGestureOptions) {
     finish,
     move,
     nudge,
-    pan,
     resize,
     transform,
   };

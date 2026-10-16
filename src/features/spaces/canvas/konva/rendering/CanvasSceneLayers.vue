@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type Konva from "konva";
 import { watch, shallowRef, useTemplateRef } from "vue";
-import { Layer as KonvaLayer } from "vue-konva/core";
 import type { VueKonvaRef } from "vue-konva/core";
 
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
@@ -10,6 +9,7 @@ import type { CanvasConnectorDraft } from "../interaction/connector-gesture-cont
 import type { CanvasScene, CanvasSceneRelation } from "../scene/canvas-scene";
 import type { CanvasConnectorSide } from "../scene/connector-geometry";
 import type { CanvasSelectionTransformPolicy } from "../selection/selection-transform-policy";
+import { useCanvasRenderLayer } from "./canvas-render-layer";
 import CanvasConnectionTargetHighlight from "./CanvasConnectionTargetHighlight.vue";
 import CanvasConnectorControls from "./CanvasConnectorControls.vue";
 import CanvasInteractionFeedback from "./CanvasInteractionFeedback.vue";
@@ -22,6 +22,7 @@ import { useCanvasSceneLayerProjection } from "./use-canvas-scene-layer-projecti
 function relayPointerDown(nodeId: string, event: Konva.KonvaEventObject<PointerEvent>) {
   emit("pointerDown", nodeId, event);
 }
+const KonvaLayer = useCanvasRenderLayer();
 const props = defineProps<{
   interactive: boolean;
   selectionChromeVisible: boolean;
