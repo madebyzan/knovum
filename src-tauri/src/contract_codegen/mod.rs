@@ -127,10 +127,6 @@ pub fn export(project_root: &Path) -> Result<(), String> {
             "spaceActionOutputContracts",
             schema_for!(crate::spaces::actions::SpaceActionOutputContract),
         ),
-        (
-            "spaceActionOutputArities",
-            schema_for!(crate::spaces::actions::SpaceActionOutputArity),
-        ),
     ])?);
     std::fs::write(spaces_output.join("contract-values.ts"), source).map_err(io_error)?;
     export_schemas(&spaces_output)

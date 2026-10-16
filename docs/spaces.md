@@ -211,10 +211,9 @@ Transformation lineage and epistemic Provenance are different contracts. A Deriv
 
 Long derivations create a pending output node immediately. The pending node reserves the eventual result position and mirrors the feature-owned Rust job's meaningful stage and progress through Task Center. Success replaces it in place; failure remains inspectable and retryable but does not create a false completed resource or semantic lineage.
 
-Layer splitting is the one derivation whose output count is discovered rather than requested, so its
-Action declares `outputArity: discovered`. It still reserves one pending node before the handler
-runs, like every other derivation, so the click lands on the canvas immediately instead of only in
-Task Center. Discovery then reports how many layers the image carries: the first layer publishes
+Layer splitting is the one derivation whose output count is discovered rather than requested. It
+still reserves one pending node before the handler runs, like every other derivation, so the click
+lands on the canvas immediately instead of only in Task Center. Discovery then reports how many layers the image carries: the first layer publishes
 into the node the Run reserved, the rest are reserved in the same transaction, and the whole set is
 laid out as one grid beside the source. It is one Action invocation and therefore one Run, one Task
 Center task and one cancellation; a split that fails or is cancelled settles its reserved nodes —

@@ -80,35 +80,6 @@ fn parameter_contracts_are_json_schema_2020_12() {
 }
 
 #[test]
-fn discovered_output_actions_publish_resources_from_a_run() {
-    use super::{SpaceActionExecutionMode, SpaceActionImpact, SpaceActionOutputArity};
-    let discovered = definitions()
-        .iter()
-        .filter(|definition| definition.output_arity == SpaceActionOutputArity::Discovered)
-        .collect::<Vec<_>>();
-    assert!(
-        discovered
-            .iter()
-            .any(|definition| definition.id == "split-image-layers"),
-        "splitting an image discovers how many layers it carries"
-    );
-    for definition in discovered {
-        // Outputs are reserved while the handler runs, which only a durable Run can authorize.
-        assert_eq!(
-            definition.impact,
-            SpaceActionImpact::CreatesResource,
-            "{} publishes resources",
-            definition.id
-        );
-        assert!(
-            matches!(definition.execution_mode, SpaceActionExecutionMode::Durable),
-            "{} reserves its outputs during execution",
-            definition.id
-        );
-    }
-}
-
-#[test]
 fn every_durable_action_reaches_a_handler() {
     use super::SpaceActionExecutionMode;
     for definition in definitions() {
