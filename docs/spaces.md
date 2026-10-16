@@ -212,17 +212,25 @@ Transformation lineage and epistemic Provenance are different contracts. A Deriv
 Long derivations create a pending output node immediately. The pending node reserves the eventual result position and mirrors the feature-owned Rust job's meaningful stage and progress through Task Center. Success replaces it in place; failure remains inspectable and retryable but does not create a false completed resource or semantic lineage.
 
 Layer splitting is the one derivation whose output count is discovered rather than requested, so its
-Action declares `outputArity: discovered` and reserves no pending node before the handler runs.
-Discovery reports how many layers the image carries, and the handler then reserves exactly that many
-pending nodes in one transaction — laid out as a single row beside the source — and publishes the
-layers into them. It is one Action invocation and therefore one Run, one Task Center task and one
-cancellation; a split that fails or is cancelled settles its reserved nodes and deletes the layer
-files it had written. Each layer is cropped to the pixels it carries, so a subject arrives as a node
-at its own size rather than inside a canvas-sized transparent frame, and a layer that carries no
+Action declares `outputArity: discovered`. It still reserves one pending node before the handler
+runs, like every other derivation, so the click lands on the canvas immediately instead of only in
+Task Center. Discovery then reports how many layers the image carries: the first layer publishes
+into the node the Run reserved, the rest are reserved in the same transaction, and the whole set is
+laid out as one grid beside the source. It is one Action invocation and therefore one Run, one Task
+Center task and one cancellation; a split that fails or is cancelled settles its reserved nodes —
+the node reserved up front included, whether or not the derivations ever opened — and deletes the
+layer files it had written. Each layer is cropped to the pixels it carries, so a subject arrives as a
+node at its own size rather than inside a canvas-sized transparent frame, and a layer that carries no
 content of its own is never published: an empty cut-out, or the flat fill a sticker sheet was drawn
-over. A backdrop becomes the bottom layer only when it is content in its own right — the inpainted
+over. A backdrop becomes a layer only when it is content in its own right — the inpainted
 background of a photograph, or the source with the subject holes left open when no pass could
 complete it.
+
+Outputs reserved together are laid out as equal cells in reading order, as close to square as the
+count allows, each output centred in its cell at the size its content reports. A set therefore stays
+a compact block beside its source instead of a row that runs off the side of the canvas, and because
+a reserved node already carries the pixel size it will publish, nothing moves when the content
+lands.
 
 The dedicated Workflow Studio has been removed. The canvas selection menu opens a floating
 derivation inspector anchored to the selection through the canvas surface placement rule. It

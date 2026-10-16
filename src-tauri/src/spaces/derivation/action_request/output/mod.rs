@@ -3,7 +3,7 @@ use tauri::AppHandle;
 
 use super::inputs::ResolvedInputs;
 use crate::foundation::app_error::AppError;
-use crate::spaces::actions::{SpaceActionInputRole, SpaceActionOutputArity};
+use crate::spaces::actions::SpaceActionInputRole;
 
 mod image;
 mod media;
@@ -30,17 +30,15 @@ pub(super) async fn reserve(
         | "convert-document-to-html" => media::document_request(inputs, action_id, request)?,
         _ => {}
     }
-    // A discovered-arity handler reserves its own outputs once it knows how many there are.
-    if definition.output_arity == SpaceActionOutputArity::Discovered {
-        return Ok(());
-    }
     let Some((kind, data)) = build_pending_output_content(app, action_id, parameters, inputs)?
     else {
         return Ok(());
     };
     let node_id = format!("{}-output", authority.run_id);
     request.insert("outputNodeId".into(), node_id.clone().into());
-    if super::super::pending_output::exists(app, space_id, &node_id).await? {
+    if super::super::pending_output::exists(crate::spaces::db::pool(app).await?, space_id, &node_id)
+        .await?
+    {
         return Ok(());
     }
     super::super::pending_output::reserve(
@@ -79,7 +77,7 @@ fn build_pending_output_content(
             "markdown",
             json!({"kind":"markdown","title":title,"text":"","derivationState":"pending"}),
         ),
-        "generate-visualization" | "generate-image" => (
+        "generate-visualization" | "generate-image" | "split-image-layers" => (
             "image",
             json!({
                 "kind":"image","title":title,"fileName":format!("{title}.png"),

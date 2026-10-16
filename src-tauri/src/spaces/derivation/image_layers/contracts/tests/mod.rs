@@ -1,31 +1,44 @@
+fn request(extra: serde_json::Value) -> serde_json::Value {
+    let mut request = serde_json::json!({
+        "id": "run", "spaceId": "space", "outputNodeId": "run-output",
+        "sourceNodeId": "source", "sourceRevision": "revision", "sourceEdit": null
+    });
+    let object = request.as_object_mut().expect("object");
+    for (key, value) in extra.as_object().expect("object") {
+        object.insert(key.clone(), value.clone());
+    }
+    request
+}
+
 #[test]
 fn split_requests_use_explicit_identity_and_reject_unknown_fields() {
-    let mut request = serde_json::json!({
-        "id": "run", "spaceId": "space", "sourceNodeId": "source",
-        "sourceRevision": "revision", "sourceEdit": null
-    });
+    let mut current = request(serde_json::json!({}));
     let decoded: super::SplitImageLayersRequest =
-        serde_json::from_value(request.clone()).expect("current request");
+        serde_json::from_value(current.clone()).expect("current request");
     super::validate(&decoded).expect("valid split");
     assert_eq!(decoded.id, "run");
-    let object = request.as_object_mut().expect("object");
+    assert_eq!(decoded.output_node_id, "run-output");
+    let object = current.as_object_mut().expect("object");
     object.insert("outputNodeIds".into(), serde_json::json!(["legacy"]));
-    assert!(serde_json::from_value::<super::SplitImageLayersRequest>(request.clone()).is_err());
-    request
-        .as_object_mut()
-        .expect("object")
-        .remove("outputNodeIds");
-    request.as_object_mut().expect("object").remove("id");
-    assert!(serde_json::from_value::<super::SplitImageLayersRequest>(request).is_err());
+    assert!(serde_json::from_value::<super::SplitImageLayersRequest>(current.clone()).is_err());
+    let object = current.as_object_mut().expect("object");
+    object.remove("outputNodeIds");
+    object.remove("id");
+    assert!(serde_json::from_value::<super::SplitImageLayersRequest>(current).is_err());
+}
+
+#[test]
+fn a_split_without_the_node_the_run_reserved_is_rejected() {
+    let decoded: super::SplitImageLayersRequest =
+        serde_json::from_value(request(serde_json::json!({"outputNodeId": " "}))).expect("request");
+    assert!(super::validate(&decoded).is_err());
 }
 
 #[test]
 fn a_split_rejects_a_source_edit_that_is_not_an_edit() {
-    let decoded: super::SplitImageLayersRequest = serde_json::from_value(serde_json::json!({
-        "id": "run", "spaceId": "space", "sourceNodeId": "source",
-        "sourceRevision": "revision", "sourceEdit": "crop"
-    }))
-    .expect("request");
+    let decoded: super::SplitImageLayersRequest =
+        serde_json::from_value(request(serde_json::json!({"sourceEdit": "crop"})))
+            .expect("request");
     assert!(super::validate(&decoded).is_err());
 }
 
@@ -44,11 +57,14 @@ fn only_a_layer_stack_settles() {
 }
 
 #[test]
-fn outputs_and_derivations_are_named_after_their_split() {
-    assert_eq!(super::output_node_id("run", 0), "run-layer-0");
+fn the_first_layer_publishes_into_the_node_the_run_reserved() {
+    let decoded: super::SplitImageLayersRequest =
+        serde_json::from_value(request(serde_json::json!({}))).expect("request");
+    assert_eq!(super::layer_node_id(&decoded, 0), "run-output");
+    assert_eq!(super::layer_node_id(&decoded, 1), "run-layer-1");
     assert_eq!(super::derivation_id("run", 3), "run:layer-3");
     let ids = (0..super::MAX_LAYER_COUNT)
-        .map(|index| super::output_node_id("run", index))
+        .map(|index| super::layer_node_id(&decoded, index))
         .collect::<std::collections::HashSet<_>>();
     assert_eq!(
         ids.len(),

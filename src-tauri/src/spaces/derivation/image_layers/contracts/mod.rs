@@ -9,12 +9,14 @@ pub const MAX_LAYER_COUNT: usize =
     crate::ai::contracts::image_compute::MAX_DISCOVERED_LAYERS as usize;
 
 /// One split request. `id` is the Run that owns it, so the outputs and their derivation rows are
-/// named after it and the split settles against a single authority.
+/// named after it and the split settles against a single authority. `output_node_id` is the node
+/// the Run reserved before discovery ran, which the first layer publishes into.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SplitImageLayersRequest {
     pub id: String,
     pub space_id: String,
+    pub output_node_id: String,
     pub source_node_id: String,
     pub source_revision: String,
     pub source_edit: Value,
@@ -23,6 +25,7 @@ pub struct SplitImageLayersRequest {
 pub fn validate(request: &SplitImageLayersRequest) -> Result<(), String> {
     identity(&request.id, "Image layer split")?;
     identity(&request.space_id, "Space")?;
+    identity(&request.output_node_id, "Image layer output node")?;
     identity(&request.source_node_id, "Image layer source node")?;
     identity(&request.source_revision, "Image layer source revision")?;
     if !(request.source_edit.is_null() || request.source_edit.is_object()) {
@@ -39,10 +42,14 @@ pub fn validate_count(count: usize) -> Result<(), String> {
     Ok(())
 }
 
-/// Identity of one output node of a split. Derived from the Run so a replayed settlement cannot
-/// publish into a node that belongs to another split.
-pub fn output_node_id(split_id: &str, index: usize) -> String {
-    format!("{split_id}-layer-{index}")
+/// Identity of one layer node. The first layer publishes into the node the Run reserved before it
+/// knew how many layers there would be; the rest are named after the Run, so a replayed
+/// settlement cannot publish into a node that belongs to another split.
+pub fn layer_node_id(request: &SplitImageLayersRequest, index: usize) -> String {
+    match index {
+        0 => request.output_node_id.clone(),
+        _ => format!("{}-layer-{index}", request.id),
+    }
 }
 
 pub fn derivation_id(split_id: &str, index: usize) -> String {

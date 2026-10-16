@@ -141,7 +141,8 @@ const fn definition(
     }
 }
 
-/// Marks an Action whose input decides how many outputs it publishes.
+/// Marks an Action whose input decides how many outputs it publishes, so its handler reserves the
+/// rest of the set once it knows the count.
 pub(super) const fn discovered_outputs(
     mut definition: SpaceActionDefinition,
 ) -> SpaceActionDefinition {

@@ -72,6 +72,7 @@ pub(in crate::spaces::speech) async fn publish(
         &snapshot.structure,
         &snapshot.layouts,
         &[source_node_id.into()],
+        &[],
         width,
         height,
     )?;

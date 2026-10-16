@@ -18,7 +18,8 @@ use crate::spaces::{
 const MAX_TITLE: usize = 512;
 
 /// Reserves one pending node per discovered layer. The layers are already on disk, so each node is
-/// reserved with the asset it will publish and stays unpublished until the split settles.
+/// reserved with the asset it will publish and the pixel size it will report, which lets the set be
+/// laid out at the size it keeps. The node the Run reserved up front becomes the first layer.
 pub(super) async fn reserve(
     app: &AppHandle,
     request: &contracts::SplitImageLayersRequest,
@@ -32,11 +33,12 @@ pub(super) async fn reserve(
         .map(|(index, layer)| {
             let title = layer_title(&source.title, index);
             pending_output::PendingOutput {
-                node_id: contracts::output_node_id(&request.id, index),
+                node_id: contracts::layer_node_id(request, index),
                 kind: "image",
                 data: json!({
                     "kind": "image", "title": title, "fileName": format!("{title}.png"),
-                    "assetPath": layer.path.to_string_lossy(), "processingState": "processing"
+                    "assetPath": layer.path.to_string_lossy(), "processingState": "processing",
+                    "intrinsicWidth": layer.width, "intrinsicHeight": layer.height
                 }),
             }
         })
@@ -69,7 +71,7 @@ pub(super) async fn start(
         let derivation_id = contracts::derivation_id(&request.id, index);
         sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'split-image-layers',1,'local:image-layers','running',$4,$4)")
             .bind(&derivation_id).bind(&request.space_id)
-            .bind(contracts::output_node_id(&request.id, index))
+            .bind(contracts::layer_node_id(request, index))
             .bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
         inputs::insert(
             &mut tx,
@@ -102,7 +104,7 @@ pub(super) async fn complete(
     let now = crate::foundation::clock::unix_time_millis()?;
     let mut completed = Vec::with_capacity(layers.len());
     for (index, layer) in layers.iter().enumerate() {
-        let output_id = contracts::output_node_id(&request.id, index);
+        let output_id = contracts::layer_node_id(request, index);
         let mut data =
             load_pending_output(&mut tx, &contracts::derivation_id(&request.id, index)).await?;
         pending_output::validate_unpublished_asset(&data)?;
@@ -154,7 +156,7 @@ pub(super) async fn fail_reserved(
         failure::fail_pending(
             app,
             &request.space_id,
-            &contracts::output_node_id(&request.id, index),
+            &contracts::layer_node_id(request, index),
             failure::PendingNodeState::Processing,
         )
         .await?;

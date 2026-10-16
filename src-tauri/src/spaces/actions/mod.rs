@@ -97,10 +97,11 @@ pub enum SpaceActionOutputContract {
     Video,
 }
 
-/// How many resources one invocation publishes. Most Actions produce exactly one output, which is
-/// reserved as a pending node before the handler runs. Some inputs decide the count themselves —
-/// splitting an image into its layers, for instance — so their handler reserves the outputs once
-/// it knows how many there are.
+/// How many resources one invocation publishes. Every Action has its first output reserved as a
+/// pending node before the handler runs, so the canvas shows the work from the moment it is asked
+/// for. Most Actions publish exactly that one output. Some inputs decide the count themselves —
+/// splitting an image into its layers, for instance — and their handler reserves the rest of the
+/// set once discovery reports how many there are.
 #[derive(Clone, Copy, Eq, PartialEq, Serialize, schemars::JsonSchema, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
