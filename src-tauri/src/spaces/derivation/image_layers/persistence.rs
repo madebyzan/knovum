@@ -98,7 +98,7 @@ pub(super) async fn complete(
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
-    source::validate(&mut tx, request).await?;
+    source::validate(&mut *tx, request).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
     let mut completed = Vec::with_capacity(layers.len());
     for (index, layer) in layers.iter().enumerate() {
