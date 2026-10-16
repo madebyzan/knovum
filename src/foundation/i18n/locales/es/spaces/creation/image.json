@@ -1,5 +1,6 @@
 {
   "removeBackground": "Eliminar fondo",
+  "splitLayers": "Separar capas",
   "visualization": {
     "title": "Generar imagen",
     "description": "Genera una imagen junto a sus fuentes seleccionadas.",

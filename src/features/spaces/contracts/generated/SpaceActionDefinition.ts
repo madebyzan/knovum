@@ -6,6 +6,7 @@ import type { SpaceActionExecutionMode } from "./SpaceActionExecutionMode";
 import type { SpaceActionImpact } from "./SpaceActionImpact";
 import type { SpaceActionInputConsistency } from "./SpaceActionInputConsistency";
 import type { SpaceActionInputRole } from "./SpaceActionInputRole";
+import type { SpaceActionOutputArity } from "./SpaceActionOutputArity";
 import type { SpaceActionOutputContract } from "./SpaceActionOutputContract";
 
-export type SpaceActionDefinition = { id: string, version: number, impact: SpaceActionImpact, executionMode: SpaceActionExecutionMode, inputConsistency: SpaceActionInputConsistency, executionCapability: ExecutionCapability | null, routingPurpose: RoutingPurpose | null, inputRoles: Array<SpaceActionInputRole>, collectionInput: SpaceActionCollectionInput | null, parametersSchema: Record<string, unknown>, outputContract: SpaceActionOutputContract, };
+export type SpaceActionDefinition = { id: string, version: number, impact: SpaceActionImpact, executionMode: SpaceActionExecutionMode, inputConsistency: SpaceActionInputConsistency, executionCapability: ExecutionCapability | null, routingPurpose: RoutingPurpose | null, inputRoles: Array<SpaceActionInputRole>, collectionInput: SpaceActionCollectionInput | null, parametersSchema: Record<string, unknown>, outputContract: SpaceActionOutputContract, outputArity: SpaceActionOutputArity, };

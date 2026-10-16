@@ -1,5 +1,6 @@
 mod document_formats;
 mod failure;
+mod image_tensors;
 
 #[test]
 fn prepared_document_metadata_accepts_resolved_action_fields() {

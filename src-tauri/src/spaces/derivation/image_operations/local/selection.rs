@@ -6,6 +6,7 @@ use crate::{
     },
     foundation::app_error::AppError,
     local_resources::model_catalog::{LocalModelCapability, LocalModelId},
+    spaces::derivation::image_tensors,
 };
 use base64::{engine::general_purpose::STANDARD, Engine};
 use image::{
@@ -112,14 +113,7 @@ pub(in super::super) async fn preview(
 }
 
 pub(super) fn prepare_source(bytes: &[u8]) -> Result<(RgbaImage, ImageTensor), String> {
-    let original = super::raster::decode(bytes)?;
-    let input = if original.width().max(original.height()) > 2048 {
-        let reduced = DynamicImage::ImageRgba8(original.clone())
-            .resize(2048, 2048, FilterType::Lanczos3)
-            .to_rgba8();
-        super::raster::rgb_tensor(&reduced)
-    } else {
-        super::raster::rgb_tensor(&original)
-    };
+    let original = image_tensors::decode(bytes)?;
+    let input = image_tensors::selection_input(&original);
     Ok((original, input))
 }

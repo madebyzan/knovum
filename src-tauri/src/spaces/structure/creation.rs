@@ -70,3 +70,51 @@ fn identity() -> LocalTransform {
         scale: 1.0,
     }
 }
+
+/// Places a root content node that already exists at a position and size. A derivation reserves
+/// its first output before it knows how many outputs there will be, so the set it belongs to can
+/// only be laid out once the rest are known.
+pub(crate) fn place_existing_content(
+    snapshot: &mut SpaceStructureSnapshot,
+    node_id: &str,
+    x: f64,
+    y: f64,
+    size: Size,
+) -> Result<(), String> {
+    let index = Index::new(&snapshot.structure, &snapshot.layouts);
+    let structure_node_id = snapshot
+        .structure
+        .iter()
+        .find_map(|structure_node| match structure_node {
+            StructureNode::Content {
+                id,
+                node_id: resource_id,
+                parent_id: None,
+                ..
+            } if resource_id == node_id => Some(id.clone()),
+            _ => None,
+        })
+        .ok_or_else(|| format!("canvas-placement-invalid: {node_id} is not root content"))?;
+    require_editable(&snapshot.structure, &index, &structure_node_id)?;
+    let layout = snapshot
+        .layouts
+        .iter_mut()
+        .find(|layout| layout.structure_node_id() == structure_node_id)
+        .ok_or("canvas-placement-invalid: reserved output has no layout")?;
+    let StructureLayout::Content {
+        transform,
+        size: current,
+        ..
+    } = layout
+    else {
+        return Err("canvas-placement-invalid: reserved output is not content".into());
+    };
+    *transform = LocalTransform {
+        x,
+        y,
+        rotation: 0.0,
+        scale: 1.0,
+    };
+    *current = size;
+    Ok(())
+}

@@ -94,6 +94,41 @@ pub enum ImageComputation {
         box_rect: Option<ImageSelectionRect>,
     },
     Depth,
+    /// Decomposes the source into disjoint object candidates. The worker encodes the source once,
+    /// decodes one mask per seed, keeps the strongest non-overlapping candidates and returns a
+    /// single label map whose pixel values are candidate ranks: `0` is unassigned and `1` is the
+    /// highest ranked candidate. Ranking stays with the worker because only the decoder output
+    /// carries the logits that stability scoring needs.
+    DiscoverLayers {
+        seeds: Vec<ImageSelectionPoint>,
+        #[serde(rename = "maxLayers")]
+        max_layers: u8,
+    },
+}
+
+/// Seeds one discovery request may carry. The source embedding is encoded once and reused, so a
+/// seed costs one decoder pass over a small probe rather than another encode. The ceiling is
+/// therefore generous on purpose: a caller is expected to spend it on exploring the whole canvas,
+/// because an object that is never prompted can never become a layer.
+pub const MAX_DISCOVERY_SEEDS: usize = 64;
+/// Candidates one discovery request may return. Ranks share a `u8` label map with the unassigned
+/// `0`, which leaves ample headroom above this ceiling.
+pub const MAX_DISCOVERED_LAYERS: u8 = 24;
+
+/// Checks the bounds both sides of the worker boundary agree on. The host keeps its request inside
+/// them and the worker rejects anything outside them.
+pub fn validate_discovery(seeds: usize, max_layers: u8) -> Result<(), String> {
+    if seeds == 0 || seeds > MAX_DISCOVERY_SEEDS {
+        return Err(format!(
+            "invalid_input: layer discovery takes 1 to {MAX_DISCOVERY_SEEDS} seeds"
+        ));
+    }
+    if !(1..=MAX_DISCOVERED_LAYERS).contains(&max_layers) {
+        return Err(format!(
+            "invalid_input: layer discovery takes a budget of 1 to {MAX_DISCOVERED_LAYERS} layers"
+        ));
+    }
+    Ok(())
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]

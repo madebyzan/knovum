@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from "vue";
+
 import type { ImageEditTool } from "../../../image-editing/image-edit-session-store";
 import SpaceImageLocalActions from "../../../image-editing/presentation/SpaceImageLocalActions.vue";
 import type {
@@ -7,13 +9,13 @@ import type {
 } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
-import { canvasBarPlacement } from "../canvas-bar-density-policy";
+import { canvasBarPlacement, type CanvasBarAction } from "../canvas-bar-density-policy";
 import SpaceCanvasSelectionMenu from "../selection/SpaceCanvasSelectionMenu.vue";
 import type { useCanvasSelectionActions } from "../selection/use-canvas-selection-actions";
 import type { ImageActionAvailability } from "./image-action-availability";
 import SpaceCanvasImageOverflowActions from "./SpaceCanvasImageOverflowActions.vue";
 import SpaceCanvasImageRemoveObjectTrigger from "./SpaceCanvasImageRemoveObjectTrigger.vue";
-defineProps<{
+const props = defineProps<{
   node: SpaceCanvasNode<SpaceImagePayload>;
   actions: ReturnType<typeof useCanvasSelectionActions>;
   derivations: CreationIntentDecisions;
@@ -28,6 +30,16 @@ const emit = defineEmits<{
   beginComment: [];
   beginRemoval: [];
 }>();
+/** Derivations the node bar already shows, so the menu does not repeat them. */
+const BAR_DERIVATIONS = [
+  { bar: "image-remove-background", action: "remove-image-background" },
+  { bar: "image-split-layers", action: "split-image-layers" },
+] as const satisfies readonly { bar: CanvasBarAction; action: CreationIntentId }[];
+const barDerivations = computed<readonly CreationIntentId[]>(() =>
+  BAR_DERIVATIONS.filter(({ bar }) => canvasBarPlacement(bar, props.minimal) === "bar").map(
+    ({ action }) => action,
+  ),
+);
 </script>
 <template>
   <SpaceCanvasSelectionMenu
@@ -35,7 +47,7 @@ const emit = defineEmits<{
     :derivations="derivations"
     node-bar
     node-tools-visible
-    :exclude-direct-image-actions="canvasBarPlacement('image-remove-background', minimal) === 'bar'"
+    :exclude-actions="barDerivations"
     @invoke-derivation="emit('invokeDerivation', $event)"
   >
     <template #node-tools>

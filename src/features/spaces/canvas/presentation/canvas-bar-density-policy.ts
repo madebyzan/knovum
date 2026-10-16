@@ -13,6 +13,7 @@ export type CanvasBarAction =
   | "node-transcription"
   | "image-edit"
   | "image-remove-background"
+  | "image-split-layers"
   | "image-remove-object";
 
 /** Presentation-only overflow order; execution availability stays with the owning capability. */
@@ -23,6 +24,7 @@ const MINIMAL_MENU_ACTIONS: ReadonlySet<CanvasBarAction> = new Set([
   "node-transcription",
   "image-edit",
   "image-remove-background",
+  "image-split-layers",
   "image-remove-object",
 ]);
 

@@ -65,28 +65,6 @@
     "turnLeft": "向左旋转",
     "turnRight": "向右旋转"
   },
-  "layers": {
-    "title": "图层拆分",
-    "selectContent": "框选内容",
-    "selectContentUnavailable": "当前图层拆分模型不支持指定图片区域",
-    "auto": "自动拆分",
-    "custom": "自定义拆分",
-    "prompt": {
-      "label": "拆分重点",
-      "placeholder": "描述想要拆分的内容"
-    },
-    "split": "拆分",
-    "task": "正在拆分图片图层",
-    "failed": "图层拆分失败",
-    "stage": {
-      "submitting": "正在提交图片",
-      "processing": "正在拆分图层",
-      "downloading": "正在获取图层",
-      "publishing": "正在保存图层"
-    },
-    "keyMissing": "图层拆分需要配置 fal 密钥",
-    "promptRequired": "请先描述需要拆分的内容"
-  },
   "applyNow": "立即使用",
   "unsaved": {
     "title": "要应用图片更改吗？",
@@ -96,7 +74,6 @@
     "modelUnavailable": "请检查图片模型与凭据配置",
     "providerUnsupported": "当前图片模型不支持此操作",
     "credentialUnavailable": "无法读取图片模型的凭据",
-    "secretDatabaseUnavailable": "本地凭据数据库不可用",
     "capabilityCheckFailed": "无法检查操作是否可用",
     "busy": "操作正在进行中"
   },

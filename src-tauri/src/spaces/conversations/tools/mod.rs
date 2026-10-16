@@ -131,6 +131,7 @@ fn description(definition: &SpaceActionDefinition) -> String {
         "generate-image" => "Generate an image from an editable document brief.".into(),
         "generate-video" => "Generate a video from a document or ordered image sequence.".into(),
         "add-video-subtitles" => "Add subtitles to one video using existing timed cues or local speech recognition and publish a new video. Does not create an intermediate subtitle resource or require a model account.".into(),
+        "split-image-layers" => "Separate one image into its visual layers with local models and publish each layer as its own image. The image decides how many layers it carries, so the number of published resources is discovered rather than requested.".into(),
         "render-presentation" => "Render a presentation from an editable document outline.".into(),
         _ => format!("Execute Knovum Space Action {}.", definition.id),
     }

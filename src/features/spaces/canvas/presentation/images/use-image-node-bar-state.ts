@@ -6,22 +6,29 @@ import {
   useImageEditSessionStore,
   type ImageEditTool,
 } from "../../../image-editing/image-edit-session-store";
-import type { CreationIntentDecisions } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
+import type {
+  CreationIntentDecisions,
+  CreationIntentId,
+} from "../../../knowledge-derivations/catalog/creation-intent-definitions";
 import { useImageRemovalSessionStore } from "../../../knowledge-derivations/image-removal-session-store";
 import { useImageSelectionSessionStore } from "../../../knowledge-derivations/image-selection-session-store";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
 import { useNodeOperationGate } from "../../use-node-operation-gate";
-import { imageToolAvailability } from "./image-action-availability";
+import { imageToolAvailability, type ImageActionAvailability } from "./image-action-availability";
 import { imageActionHelp } from "./image-action-help";
 import { useImageSourceDimensionsStore } from "./image-source-dimensions-store";
 
-type ImagePopover = "upscale" | "layers";
+type ImagePopover = "upscale";
+
+/** Image derivations the node bar offers as a single click. */
+const DIRECT_DERIVATIONS = ["remove-image-background", "split-image-layers"] as const;
+type DirectDerivation = (typeof DIRECT_DERIVATIONS)[number];
 
 export function useImageNodeBarState(
   node: Readonly<Ref<SpaceCanvasNode<SpaceImagePayload>>>,
   derivations: Readonly<Ref<CreationIntentDecisions>>,
-  invokeBackgroundRemoval: () => void,
+  invokeDerivation: (actionId: CreationIntentId) => void,
 ) {
   const session = useImageEditSessionStore();
   const imageDimensions = useImageSourceDimensionsStore();
@@ -36,11 +43,25 @@ export function useImageNodeBarState(
   const commenting = computed(() => comments.activeNodeId === node.value.id);
   const removing = computed(() => removal.active?.nodeId === node.value.id);
   const directAvailability = computed(() => {
-    const decision = derivations.value["remove-image-background"];
-    if (!canRunAction(decision)) return { state: "hidden" as const };
-    return availableWhen(!session.active && !removal.active && !commenting.value, "finish_image_edit");
+    const idle = !session.active && !removal.active && !commenting.value;
+    return Object.fromEntries(
+      DIRECT_DERIVATIONS.map((actionId) => [
+        actionId,
+        canRunAction(derivations.value[actionId])
+          ? availableWhen(idle, "finish_image_edit")
+          : { state: "hidden" as const },
+      ]),
+    ) as Record<DirectDerivation, ImageActionAvailability>;
   });
-  const directReason = computed(() => imageActionHelp(directAvailability.value)?.label ?? "");
+  const directReason = computed(
+    () =>
+      Object.fromEntries(
+        DIRECT_DERIVATIONS.map((actionId) => [
+          actionId,
+          imageActionHelp(directAvailability.value[actionId])?.label ?? "",
+        ]),
+      ) as Record<DirectDerivation, string>,
+  );
   const dimensionsReady = computed(() => {
     const loaded = imageDimensions.forNode(node.value.id, node.value.data.sourceRevision);
     return Boolean(
@@ -93,10 +114,10 @@ export function useImageNodeBarState(
     comments.begin(node.value.id);
   }
 
-  function removeBackground() {
-    if (!nodeOperations.allows("derive") || !canRunAction(directAvailability.value)) return;
+  function runDirectDerivation(actionId: DirectDerivation) {
+    if (!nodeOperations.allows("derive") || !canRunAction(directAvailability.value[actionId])) return;
     openPopover.value = undefined;
-    invokeBackgroundRemoval();
+    invokeDerivation(actionId);
   }
 
   watch(
@@ -129,6 +150,6 @@ export function useImageNodeBarState(
     setPopover,
     beginAngle,
     beginComment,
-    removeBackground,
+    runDirectDerivation,
   };
 }

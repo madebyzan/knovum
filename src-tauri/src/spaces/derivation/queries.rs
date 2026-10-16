@@ -2,9 +2,7 @@ use serde::Serialize;
 use sqlx::Row;
 use tauri::AppHandle;
 
-use super::{
-    grounded_document, image_layers, image_operations, video_edit, video_generation, visualization,
-};
+use super::{grounded_document, image_operations, video_edit, video_generation, visualization};
 use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 
@@ -55,11 +53,6 @@ pub async fn get_derivation_failure(
         error: row.try_get("error").map_err(db::sql_error)?,
         completed_at: row.try_get("completed_at").map_err(db::sql_error)?,
     }))
-}
-
-#[tauri::command]
-pub async fn get_image_layer_availability() -> image_layers::ImageLayerAvailability {
-    image_layers::availability().await
 }
 
 #[tauri::command]

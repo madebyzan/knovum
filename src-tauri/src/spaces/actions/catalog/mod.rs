@@ -8,7 +8,8 @@ use super::{
     SpaceActionOutputContract as Output,
 };
 use definition::{
-    action, durable_query_action, immediate_action, immediate_mutation_action, query_action,
+    action, discovered_outputs, durable_query_action, immediate_action, immediate_mutation_action,
+    query_action,
 };
 use parameters::{
     contents, empty, image, image_transform, knowledge_changes, meeting_summary, node, note,
@@ -64,6 +65,14 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         image_transform,
         Output::Image,
     ),
+    discovered_outputs(action(
+        "split-image-layers",
+        None,
+        None,
+        &[Input::Image],
+        empty,
+        Output::Image,
+    )),
     immediate_action("create-note", &[], note, Output::ResourceReceipt),
     immediate_action(
         "commit-knowledge-changes",

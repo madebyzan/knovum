@@ -1,11 +1,14 @@
 use super::super::{contracts::ImageOperation, output::CanonicalImage};
-use crate::ai::{
-    contracts::image_wire::TensorDataType,
-    local_runtime::image::compute::{ImageTensor, ImageTensorOperation},
+use crate::{
+    ai::{
+        contracts::image_wire::TensorDataType,
+        local_runtime::image::compute::{ImageTensor, ImageTensorOperation},
+    },
+    spaces::derivation::image_tensors,
 };
 use image::{
     imageops::{self, FilterType},
-    DynamicImage, ImageFormat, ImageReader, Limits, RgbaImage,
+    DynamicImage, ImageFormat, RgbaImage,
 };
 use sha2::{Digest, Sha256};
 use std::io::Cursor;
@@ -16,7 +19,7 @@ pub(super) fn prepare(
     operation: &ImageOperation,
     cancellation: &CancellationToken,
 ) -> Result<(RgbaImage, ImageTensor, ImageTensorOperation), String> {
-    let source = decode(bytes)?;
+    let source = image_tensors::decode(bytes)?;
     let (input, computation) = match operation {
         ImageOperation::Upscale { target_long_edge } => {
             if !matches!(target_long_edge, 2048 | 4096 | 8192)
@@ -31,7 +34,10 @@ pub(super) fn prepare(
                     "Upscale source exceeds the admitted 4 megapixel / 4096 pixel budget".into(),
                 );
             }
-            (rgb_tensor(&source), ImageTensorOperation::Upscale)
+            (
+                image_tensors::rgb_tensor(&source),
+                ImageTensorOperation::Upscale,
+            )
         }
         ImageOperation::RemoveObject { strokes } => {
             let mask = super::super::mask::rasterize(
@@ -42,7 +48,7 @@ pub(super) fn prepare(
             )?;
             let selected = mask.pixels().map(|pixel| pixel[0]).collect();
             (
-                rgb_tensor(&source),
+                image_tensors::rgb_tensor(&source),
                 ImageTensorOperation::Inpaint(ImageTensor {
                     bytes: selected,
                     shape: [1, 1, source.height(), source.width()],
@@ -50,55 +56,13 @@ pub(super) fn prepare(
                 }),
             )
         }
-        ImageOperation::GenerateDepth => (depth_tensor(&source)?, ImageTensorOperation::Depth),
+        ImageOperation::GenerateDepth => (
+            image_tensors::depth_tensor(&source)?,
+            ImageTensorOperation::Depth,
+        ),
         _ => return Err("Operation is not supported by local image inference".into()),
     };
     Ok((source, input, computation))
-}
-
-pub(super) fn rgb_tensor(image: &RgbaImage) -> ImageTensor {
-    let mut bytes = Vec::with_capacity(image.width() as usize * image.height() as usize * 3);
-    for channel in 0..3 {
-        bytes.extend(image.pixels().map(|pixel| pixel[channel]));
-    }
-    ImageTensor {
-        bytes,
-        shape: [1, 3, image.height(), image.width()],
-        data_type: TensorDataType::Uint8,
-    }
-}
-
-fn depth_tensor(source: &RgbaImage) -> Result<ImageTensor, String> {
-    let scale_h = 518.0 / f64::from(source.height());
-    let scale_w = 518.0 / f64::from(source.width());
-    let scale = if (1.0 - scale_h).abs() < (1.0 - scale_w).abs() {
-        scale_h
-    } else {
-        scale_w
-    };
-    let width = ((f64::from(source.width()) * scale / 14.0).round_ties_even() as u32 * 14).max(14);
-    let height =
-        ((f64::from(source.height()) * scale / 14.0).round_ties_even() as u32 * 14).max(14);
-    if u64::from(width) * u64::from(height) > 1_048_576 {
-        return Err("Image aspect ratio exceeds the depth processor budget".into());
-    }
-    let resized = imageops::resize(source, width, height, FilterType::CatmullRom);
-    let mut bytes = Vec::with_capacity(width as usize * height as usize * 12);
-    for (channel, (mean, deviation)) in [(0.485, 0.229), (0.456, 0.224), (0.406, 0.225)]
-        .into_iter()
-        .enumerate()
-    {
-        for pixel in resized.pixels() {
-            bytes.extend_from_slice(
-                &((f32::from(pixel[channel]) / 255.0 - mean) / deviation).to_le_bytes(),
-            );
-        }
-    }
-    Ok(ImageTensor {
-        bytes,
-        shape: [1, 3, height, width],
-        data_type: TensorDataType::Float32LittleEndian,
-    })
 }
 
 pub(super) fn materialize(
@@ -185,21 +149,4 @@ pub(super) fn materialize(
         width,
         height,
     })
-}
-
-pub(super) fn decode(bytes: &[u8]) -> Result<RgbaImage, String> {
-    let mut reader = ImageReader::with_format(Cursor::new(bytes), ImageFormat::Png);
-    let mut limits = Limits::default();
-    limits.max_image_width = Some(16384);
-    limits.max_image_height = Some(16384);
-    limits.max_alloc = Some(256 * 1024 * 1024);
-    reader.limits(limits);
-    let source = reader
-        .decode()
-        .map_err(|error| error.to_string())?
-        .to_rgba8();
-    if u64::from(source.width()) * u64::from(source.height()) > 16_777_216 {
-        return Err("Local image source exceeds 16 megapixels".into());
-    }
-    Ok(source)
 }

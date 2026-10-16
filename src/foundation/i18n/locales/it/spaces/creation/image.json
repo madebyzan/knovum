@@ -1,5 +1,6 @@
 {
   "removeBackground": "Rimuovi sfondo",
+  "splitLayers": "Separa livelli",
   "visualization": {
     "title": "Genera immagine",
     "description": "Genera un'immagine accanto alle fonti selezionate.",

@@ -39,7 +39,8 @@ const props = defineProps<{
   derivations: CreationIntentDecisions;
   nodeBar?: boolean;
   nodeToolsVisible?: boolean;
-  excludeDirectImageActions?: boolean;
+  /** Actions the caller already offers outside this menu. */
+  excludeActions?: readonly CreationIntentId[];
 }>();
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
@@ -47,14 +48,10 @@ const MENU_ITEM_CLASS =
   "flex h-interaction cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover data-[disabled]:opacity-40";
 const submenu = SUBMENU_CONTENT_CLASSES;
 const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
-const DIRECT_IMAGE_ACTIONS: readonly CreationIntentId[] = ["remove-image-background"];
 const DIRECT_VIDEO_ACTIONS: readonly CreationIntentId[] = ["add-video-subtitles"];
 const excludedActions = computed(() => [
-  ...(props.excludeDirectImageActions
-    ? DIRECT_IMAGE_ACTIONS
-    : props.nodeBar && props.actions.selectedVideoNode.value
-      ? DIRECT_VIDEO_ACTIONS
-      : []),
+  ...(props.excludeActions ?? []),
+  ...(props.nodeBar && props.actions.selectedVideoNode.value ? DIRECT_VIDEO_ACTIONS : []),
   ...(props.nodeBar ? DOCUMENT_CONVERSION_ACTION_IDS : []),
 ]);
 </script>

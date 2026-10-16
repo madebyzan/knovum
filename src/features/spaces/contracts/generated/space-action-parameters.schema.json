@@ -21,6 +21,9 @@
     "generate-image-depth": {
       "$ref": "#/$defs/ImageTransformParameters"
     },
+    "split-image-layers": {
+      "$ref": "#/$defs/EmptyParameters"
+    },
     "create-note": {
       "$ref": "#/$defs/NoteParameters"
     },
@@ -515,6 +518,11 @@
       },
       "additionalProperties": false
     },
+    "EmptyParameters": {
+      "additionalProperties": false,
+      "title": "EmptyParameters",
+      "type": "object"
+    },
     "NoteParameters": {
       "required": [
         "title",
@@ -853,11 +861,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "EmptyParameters": {
-      "additionalProperties": false,
-      "title": "EmptyParameters",
-      "type": "object"
     }
   },
   "additionalProperties": false

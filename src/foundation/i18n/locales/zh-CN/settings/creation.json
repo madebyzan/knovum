@@ -1,6 +1,6 @@
 {
   "title": "创作",
-  "description": "管理创作预设和图片图层拆分所需的服务。",
+  "description": "管理内容创作所使用的生成预设。",
   "presets": {
     "title": "生成预设",
     "description": "用于内容创作的已保存模型设置。",
@@ -30,13 +30,5 @@
     "extractSubtitles": "提取字幕",
     "renderSubtitledVideo": "字幕视频",
     "renderPresentation": "演示文稿"
-  },
-  "imageLayers": {
-    "title": "图片图层拆分",
-    "description": "接入 fal，用于拆分图片图层。",
-    "apiKey": {
-      "label": "fal API Key",
-      "description": "仅保存在这台设备上。"
-    }
   }
 }

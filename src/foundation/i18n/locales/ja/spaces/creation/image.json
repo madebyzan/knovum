@@ -1,5 +1,6 @@
 {
   "removeBackground": "背景を削除",
+  "splitLayers": "レイヤーに分割",
   "visualization": {
     "title": "画像の生成",
     "description": "選択したソースの横に画像を生成します。",

@@ -65,28 +65,6 @@
     "turnLeft": "Vire à esquerda",
     "turnRight": "Vire à direita"
   },
-  "layers": {
-    "title": "Camadas divididas",
-    "selectContent": "Selecionar região",
-    "selectContentUnavailable": "O modelo de camada atual não pode dividir uma região selecionada",
-    "auto": "Divisão automática",
-    "custom": "Divisão personalizada",
-    "prompt": {
-      "label": "Foco de separação",
-      "placeholder": "Descreva o que dividir em camadas"
-    },
-    "split": "Dividir",
-    "task": "Dividindo camadas de imagem",
-    "failed": "Falha na divisão da camada",
-    "stage": {
-      "submitting": "Enviando imagem",
-      "processing": "Dividindo camadas",
-      "downloading": "Recuperando camadas",
-      "publishing": "Salvar camadas"
-    },
-    "keyMissing": "A divisão de camadas requer uma chave fal API",
-    "promptRequired": "Descreva o que deve ser separado primeiro"
-  },
   "applyNow": "Usar agora",
   "unsaved": {
     "title": "Aplicar alterações de imagem?",
@@ -96,7 +74,6 @@
     "modelUnavailable": "Verifique o modelo de imagem e as configurações de credencial",
     "providerUnsupported": "O modelo de imagem selecionado não suporta esta operação",
     "credentialUnavailable": "Não foi possível ler a credencial do modelo de imagem",
-    "secretDatabaseUnavailable": "O banco de dados de credenciais locais não está disponível",
     "capabilityCheckFailed": "Não foi possível verificar se esta ação está disponível",
     "busy": "Uma operação está em andamento"
   },

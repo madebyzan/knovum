@@ -40,7 +40,6 @@ export const DYNAMIC_LOCALE_KEY_PREFIXES = [
   "spaces.media.imageEditor.adjustments.",
   "spaces.media.imageEditor.angle.modes.",
   "spaces.media.imageEditor.angle.zoomLevels.",
-  "spaces.media.imageEditor.layers.stage.",
   "spaces.media.imageEditor.removeObject.modes.",
   "spaces.media.videoEditor.text.alignments.",
   "spaces.media.videoEditor.text.presets.",

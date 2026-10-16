@@ -28,3 +28,27 @@ pub(super) async fn image_path(
         .map(str::to_owned)
         .ok_or_else(|| "Image derivation source asset is unavailable".into())
 }
+
+/// Renders a pinned source image, with its edits applied, into the PNG a derivation reads. The
+/// content revision is verified around the render so a file replaced mid-render is refused rather
+/// than silently derived from.
+pub(super) async fn render_pinned_png(
+    app: &AppHandle,
+    asset_path: &str,
+    source_revision: &str,
+    edit: &Value,
+) -> Result<crate::images::EditedImageOutput, String> {
+    let app = app.clone();
+    let asset_path = asset_path.to_owned();
+    let source_revision = source_revision.to_owned();
+    let edit = edit.clone();
+    crate::foundation::blocking::run(move || {
+        let source =
+            crate::spaces::assets::authorize_spaces_asset(&app, std::path::Path::new(&asset_path))?;
+        crate::file_inspection::verify_content_revision(&source, &source_revision)?;
+        let rendered = crate::images::render_source_png(&source, &edit)?;
+        crate::file_inspection::verify_content_revision(&source, &source_revision)?;
+        Ok::<_, String>(rendered)
+    })
+    .await
+}

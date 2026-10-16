@@ -18,6 +18,7 @@ enum Handler {
     Subtitles,
     Document,
     ImageTransform,
+    ImageLayers,
 }
 
 fn handler(action_id: &str) -> Option<Handler> {
@@ -32,6 +33,7 @@ fn handler(action_id: &str) -> Option<Handler> {
         "generate-visualization" | "generate-image" => Some(Handler::Image),
         "generate-video" => Some(Handler::Video),
         "add-video-subtitles" => Some(Handler::Subtitles),
+        "split-image-layers" => Some(Handler::ImageLayers),
         "render-presentation"
         | "convert-document-to-docx"
         | "convert-document-to-pdf"
@@ -39,6 +41,11 @@ fn handler(action_id: &str) -> Option<Handler> {
         | "convert-document-to-html" => Some(Handler::Document),
         _ => None,
     }
+}
+
+#[cfg(test)]
+pub(crate) fn has_handler(action_id: &str) -> bool {
+    handler(action_id).is_some()
 }
 
 pub(crate) async fn execute(
@@ -107,6 +114,10 @@ pub(crate) async fn execute(
                 cancellation,
             )
             .await?,
+        )?),
+        Some(Handler::ImageLayers) => Ok(serialize(
+            super::image_layers::split_for_action(app, decode(request)?, &authority, cancellation)
+                .await?,
         )?),
         Some(Handler::Document) => {
             document::execute(app, action_id, request, &authority, cancellation).await

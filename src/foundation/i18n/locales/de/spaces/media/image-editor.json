@@ -65,28 +65,6 @@
     "turnLeft": "Links abbiegen",
     "turnRight": "Rechts abbiegen"
   },
-  "layers": {
-    "title": "Geteilte Ebenen",
-    "selectContent": "Region auswählen",
-    "selectContentUnavailable": "Das aktuelle Ebenenmodell kann eine ausgewählte Region nicht teilen",
-    "auto": "Automatische Aufteilung",
-    "custom": "Benutzerdefinierte Aufteilung",
-    "prompt": {
-      "label": "Trennungsfokus",
-      "placeholder": "Beschreiben Sie, was in Schichten aufgeteilt werden soll"
-    },
-    "split": "Teilen",
-    "task": "Bildebenen teilen",
-    "failed": "Ebenenaufteilung fehlgeschlagen",
-    "stage": {
-      "submitting": "Bild wird übermittelt",
-      "processing": "Ebenen teilen",
-      "downloading": "Ebenen abrufen",
-      "publishing": "Ebenen speichern"
-    },
-    "keyMissing": "Für die Ebenenaufteilung ist ein falscher API-Schlüssel erforderlich",
-    "promptRequired": "Beschreiben Sie, was zuerst getrennt werden soll"
-  },
   "applyNow": "Jetzt verwenden",
   "unsaved": {
     "title": "Bildänderungen anwenden?",
@@ -96,7 +74,6 @@
     "modelUnavailable": "Überprüfen Sie das Bildmodell und die Anmeldeinformationseinstellungen",
     "providerUnsupported": "Das ausgewählte Bildmodell unterstützt diesen Vorgang nicht",
     "credentialUnavailable": "Die Anmeldeinformationen des Bildmodells konnten nicht gelesen werden",
-    "secretDatabaseUnavailable": "Die lokale Anmeldeinformationsdatenbank ist nicht verfügbar",
     "capabilityCheckFailed": "Es konnte nicht überprüft werden, ob diese Aktion verfügbar ist",
     "busy": "Eine Operation ist im Gange"
   },

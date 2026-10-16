@@ -2,7 +2,8 @@ use crate::ai::contracts::{ExecutionCapability, RoutingPurpose};
 
 use super::super::{
     ParameterSchemaFactory, SpaceActionDefinition, SpaceActionExecutionMode, SpaceActionImpact,
-    SpaceActionInputConsistency, SpaceActionInputRole, SpaceActionOutputContract,
+    SpaceActionInputConsistency, SpaceActionInputRole, SpaceActionOutputArity,
+    SpaceActionOutputContract,
 };
 
 struct ActionBinding {
@@ -136,5 +137,15 @@ const fn definition(
         collection_input: None,
         parameters_schema,
         output_contract,
+        output_arity: SpaceActionOutputArity::Single,
     }
+}
+
+/// Marks an Action whose input decides how many outputs it publishes, so its handler reserves the
+/// rest of the set once it knows the count.
+pub(super) const fn discovered_outputs(
+    mut definition: SpaceActionDefinition,
+) -> SpaceActionDefinition {
+    definition.output_arity = SpaceActionOutputArity::Discovered;
+    definition
 }
