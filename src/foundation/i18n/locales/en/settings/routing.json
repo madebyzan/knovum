@@ -1,10 +1,9 @@
 {
   "defaults": {
-    "title": "AI execution",
-    "description": "Set each capability individually, or let it use the default execution method."
+    "title": "Global default"
   },
-  "unassigned": "Use default execution method",
-  "noCompatibleModel": "Configure a model for this task",
+  "unassigned": "Use global default",
+  "noCompatibleModel": "Configure a model supporting this task",
   "routes": {
     "writing": {
       "label": "Writing",
@@ -31,12 +30,15 @@
       "description": "Create videos from instructions and source material."
     },
     "defaultTarget": {
-      "label": "Default execution method",
-      "description": "Used by features without an individual execution choice."
+      "label": "Default model",
+      "description": "Used by features without a specific model assignment."
     }
   },
-  "unselected": "No execution method selected",
+  "unselected": "No model selected",
   "capabilities": {
-    "title": "By capability"
-  }
+    "title": "By feature",
+    "description": "Assign dedicated models or Agents to specific features, falling back to the global default."
+  },
+  "title": "Feature Models",
+  "description": "Assign models or Agents to writing, assistant, visual understanding, and translation."
 }

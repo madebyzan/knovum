@@ -119,17 +119,18 @@ it.each(["loading", "ready", "failed"])(
     expect(wrapper.find("#settings-background-task-notifications").exists()).toBe(false);
     /* oxlint-disable no-await-in-loop -- Each navigation must finish before the next settings switch. */
     for (let cycle = 0; cycle < 2; cycle++) {
-      await router.replace({ path: "/settings", query: { pane: "aiModels" } });
-      expect(router.currentRoute.value.query.pane).toBe("aiModels");
+      await router.replace({ path: "/settings", query: { pane: "aiProviders" } });
+      expect(router.currentRoute.value.query.pane).toBe("aiProviders");
       await flushPromises();
       await vi.waitFor(() =>
-        expect(wrapper.find('[data-testid="ai-models-settings-pane"]').exists()).toBe(true),
+        expect(wrapper.find('[data-testid="ai-providers-settings-pane"]').exists()).toBe(true),
       );
       expect(wrapper.find('[data-testid="python-runtimes"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="model-connections"]').exists()).toBe(state === "ready");
       expect(wrapper.find('[role="status"]').exists()).toBe(state === "loading");
       expect(wrapper.text().includes("Unable to load model settings")).toBe(state === "failed");
       for (const [pane, selector] of [
+        ["aiRouting", '[data-testid="ai-routing-settings-pane"]'],
         ["localModels", '[data-testid="local-models-pane"]'],
         ["appearance", "#settings-appearance-theme"],
         ["notifications", "#settings-background-task-notifications"],

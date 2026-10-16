@@ -1,4 +1,4 @@
 {
-  "title": "Models",
-  "description": "Connect models or desktop Agents and choose how each AI feature runs."
+  "title": "AI Providers",
+  "description": "Connect cloud AI model providers, configure API keys, and manage custom models."
 }

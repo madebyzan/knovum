@@ -12,7 +12,8 @@ import {
 } from "@lucide/vue";
 import type { Component } from "vue";
 
-import { AI_SETTINGS_DEFINITION } from "../ai/settings-definition";
+import { AI_ROUTING_SETTINGS_DEFINITION } from "../ai/routing-settings-definition";
+import { AI_PROVIDERS_SETTINGS_DEFINITION } from "../ai/settings-definition";
 import { BACKUP_SETTINGS_DEFINITION } from "../backup/settings-definition";
 import type { SettingsPaneId } from "./settings-pane";
 
@@ -74,7 +75,8 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
       },
     ],
   },
-  AI_SETTINGS_DEFINITION,
+  AI_ROUTING_SETTINGS_DEFINITION,
+  AI_PROVIDERS_SETTINGS_DEFINITION,
   {
     id: "localModels",
     group: "intelligence",

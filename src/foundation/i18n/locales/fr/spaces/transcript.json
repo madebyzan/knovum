@@ -17,14 +17,12 @@
     },
     "alignSelected": "Aligner la sélection",
     "alignmentLimit": "Jusqu'à 8 segments / 5 minutes",
-    "alignmentFirstUse": "La première utilisation télécharge automatiquement le modèle sélectionné et les ressources requises. Gérez les choix de modèles dans Paramètres.",
     "selectForAlignment": "Sélectionner pour l'alignement"
   },
   "speakers": {
     "title": "Pistes d'enceintes",
     "durationLimit": "La diarisation des haut-parleurs prend en charge les enregistrements jusqu'à deux heures.",
     "generate": "Identifier les intervenants",
-    "firstUse": "Les ressources locales sont téléchargées automatiquement lors de la première utilisation ; annuler dans le centre de tâches.",
     "count": "Nombre de locuteurs connus (facultatif)",
     "automatic": "Automatique"
   }

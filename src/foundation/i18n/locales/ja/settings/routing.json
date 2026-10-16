@@ -1,10 +1,9 @@
 {
   "defaults": {
-    "title": "AI 実行",
-    "description": "各機能を個別に設定するか、デフォルトの実行方法を使用させます。"
+    "title": "全体デフォルト"
   },
-  "unassigned": "デフォルトの実行方法を使用する",
-  "noCompatibleModel": "このタスクのモデルを構成する",
+  "unassigned": "全体デフォルトを使用",
+  "noCompatibleModel": "このタスクに対応するモデルを設定",
   "routes": {
     "writing": {
       "label": "書き込み",
@@ -31,12 +30,15 @@
       "description": "説明書とソース素材からビデオを作成します。"
     },
     "defaultTarget": {
-      "label": "デフォルトの実行方法",
-      "description": "個別の実行を選択することなく、機能によって使用されます。"
+      "label": "デフォルトモデル",
+      "description": "個別にモデルが設定されていない機能に使用されます。"
     }
   },
-  "unselected": "実行方法が選択されていません",
+  "unselected": "モデル未選択",
   "capabilities": {
-    "title": "機能別"
-  }
+    "title": "機能別設定",
+    "description": "機能ごとにモデルや Agent を指定します。未設定の場合は全体デフォルトに従います。"
+  },
+  "title": "機能モデル",
+  "description": "ライティング、アシスタント、視覚理解、翻訳にモデルや Agent を割り当てます。"
 }

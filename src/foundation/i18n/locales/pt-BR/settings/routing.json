@@ -1,10 +1,9 @@
 {
   "defaults": {
-    "title": "Execução de IA",
-    "description": "Defina cada recurso individualmente ou deixe-o usar o método de execução padrão."
+    "title": "Padrão global"
   },
-  "unassigned": "Use o método de execução padrão",
-  "noCompatibleModel": "Configure um modelo para esta tarefa",
+  "unassigned": "Usar padrão global",
+  "noCompatibleModel": "Configurar um modelo compatível com esta tarefa",
   "routes": {
     "writing": {
       "label": "Escrita",
@@ -31,12 +30,15 @@
       "description": "Crie vídeos a partir de instruções e material de origem."
     },
     "defaultTarget": {
-      "label": "Método de execução padrão",
-      "description": "Usado por recursos sem escolha de execução individual."
+      "label": "Modelo padrão",
+      "description": "Usado por recursos sem atribuição específica de modelo."
     }
   },
-  "unselected": "Nenhum método de execução selecionado",
+  "unselected": "Nenhum modelo selecionado",
   "capabilities": {
-    "title": "Por capacidade"
-  }
+    "title": "Por funcionalidade",
+    "description": "Atribua modelos ou Agents específicos a cada função, recorrendo ao padrão global se não definido."
+  },
+  "title": "Modelos por funcionalidade",
+  "description": "Atribua modelos ou Agents à escrita, assistente, compreensão visual e tradução."
 }

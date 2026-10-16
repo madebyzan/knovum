@@ -1,10 +1,9 @@
 {
   "defaults": {
-    "title": "Exécution de l'IA",
-    "description": "Définissez chaque fonctionnalité individuellement ou laissez-la utiliser la méthode d'exécution par défaut."
+    "title": "Défaut global"
   },
-  "unassigned": "Utiliser la méthode d'exécution par défaut",
-  "noCompatibleModel": "Configurer un modèle pour cette tâche",
+  "unassigned": "Utiliser le défaut global",
+  "noCompatibleModel": "Configurer un modèle compatible pour cette tâche",
   "routes": {
     "writing": {
       "label": "Écriture",
@@ -31,12 +30,15 @@
       "description": "Créez des vidéos à partir d’instructions et de matériel source."
     },
     "defaultTarget": {
-      "label": "Méthode d'exécution par défaut",
-      "description": "Utilisé par les fonctionnalités sans choix d’exécution individuel."
+      "label": "Modèle par défaut",
+      "description": "Utilisé par les fonctionnalités sans affectation spécifique."
     }
   },
-  "unselected": "Aucune méthode d'exécution sélectionnée",
+  "unselected": "Aucun modèle sélectionné",
   "capabilities": {
-    "title": "Par capacité"
-  }
+    "title": "Par fonctionnalité",
+    "description": "Attribuez des modèles ou des Agents spécifiques à chaque fonction, avec repli sur le défaut global."
+  },
+  "title": "Modèles de fonctionnalités",
+  "description": "Attribuez des modèles ou des Agents à la rédaction, à l'assistant, à la compréhension visuelle et à la traduction."
 }

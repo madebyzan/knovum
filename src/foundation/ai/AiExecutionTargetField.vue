@@ -118,7 +118,7 @@ onMounted(load);
         <UiButton
           size="sm"
           variant="secondary"
-          @click="router.push({ name: 'settings', query: { pane: 'aiModels' } })"
+          @click="router.push({ name: 'settings', query: { pane: 'aiProviders' } })"
         >
           {{ t("ai.configuration.open") }}
         </UiButton>

@@ -78,7 +78,7 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
 
   function openAiSettings() {
     close();
-    void router.push({ name: "settings", query: { pane: "aiModels" } });
+    void router.push({ name: "settings", query: { pane: "aiProviders" } });
   }
 
   async function run(operation: ImageOperation) {

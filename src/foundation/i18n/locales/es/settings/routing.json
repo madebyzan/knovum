@@ -1,9 +1,8 @@
 {
   "defaults": {
-    "title": "Ejecución de IA",
-    "description": "Configure cada capacidad individualmente o déjela usar el método de ejecución predeterminado."
+    "title": "Predeterminado global"
   },
-  "unassigned": "Usar el método de ejecución predeterminado",
+  "unassigned": "Usar predeterminado global",
   "noCompatibleModel": "Configurar un modelo para esta tarea",
   "routes": {
     "writing": {
@@ -31,12 +30,15 @@
       "description": "Cree videos a partir de instrucciones y material fuente."
     },
     "defaultTarget": {
-      "label": "Método de ejecución predeterminado",
-      "description": "Utilizado por funciones sin una opción de ejecución individual."
+      "label": "Modelo predeterminado",
+      "description": "Utilizado por funciones que no tienen una asignación específica."
     }
   },
-  "unselected": "No se seleccionó ningún método de ejecución",
+  "unselected": "Sin modelo seleccionado",
   "capabilities": {
-    "title": "Por capacidad"
-  }
+    "title": "Por función",
+    "description": "Asigne modelos o Agents específicos a cada función. Si no se asigna, usará el predeterminado global."
+  },
+  "title": "Modelos por función",
+  "description": "Asigne modelos o Agents a redacción, asistente, comprensión visual y traducción."
 }

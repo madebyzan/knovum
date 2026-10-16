@@ -1,10 +1,9 @@
 {
   "defaults": {
-    "title": "AI-Ausführung",
-    "description": "Legen Sie jede Funktion einzeln fest oder lassen Sie sie die Standardausführungsmethode verwenden."
+    "title": "Globaler Standard"
   },
-  "unassigned": "Verwenden Sie die Standardausführungsmethode",
-  "noCompatibleModel": "Konfigurieren Sie ein Modell für diese Aufgabe",
+  "unassigned": "Globalen Standard verwenden",
+  "noCompatibleModel": "Modell für diese Aufgabe konfigurieren",
   "routes": {
     "writing": {
       "label": "Schreiben",
@@ -31,12 +30,15 @@
       "description": "Erstellen Sie Videos aus Anleitungen und Quellmaterial."
     },
     "defaultTarget": {
-      "label": "Standardausführungsmethode",
-      "description": "Wird von Funktionen ohne individuelle Ausführungsauswahl verwendet."
+      "label": "Standardmodell",
+      "description": "Wird von Funktionen ohne eigene Zuweisung verwendet."
     }
   },
-  "unselected": "Keine Ausführungsmethode ausgewählt",
+  "unselected": "Kein Modell ausgewählt",
   "capabilities": {
-    "title": "Nach Fähigkeit"
-  }
+    "title": "Nach Funktion",
+    "description": "Weisen Sie einzelnen Funktionen Modelle oder Agents zu. Nicht konfigurierte Funktionen folgen dem globalen Standard."
+  },
+  "title": "Funktionsmodelle",
+  "description": "Weisen Sie dem Schreiben, Assistenten, visuellen Verständnis und der Übersetzung Modelle oder Agents zu."
 }

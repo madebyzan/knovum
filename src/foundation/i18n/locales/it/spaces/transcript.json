@@ -17,14 +17,12 @@
     },
     "alignSelected": "Allinea selezionato",
     "alignmentLimit": "Fino a 8 segmenti/5 minuti",
-    "alignmentFirstUse": "Al primo utilizzo scarica automaticamente il modello selezionato e le risorse richieste. Gestisci le scelte del modello in Impostazioni.",
     "selectForAlignment": "Seleziona per allineamento"
   },
   "speakers": {
     "title": "Tracce del relatore",
     "durationLimit": "La diarizzazione dell'altoparlante supporta registrazioni fino a due ore.",
     "generate": "Identifica gli altoparlanti",
-    "firstUse": "Le risorse locali vengono scaricate automaticamente al primo utilizzo; annullare nel Centro attività.",
     "count": "Conteggio degli oratori conosciuti (facoltativo)",
     "automatic": "Automatico"
   }

@@ -50,6 +50,8 @@ const routeRows = computed(() =>
         target.type === "agent"
           ? (catalog.data.value?.agents.find(({ kind }) => kind === target.runtimeKind)?.displayName ?? label)
           : label,
+      description:
+        target.type === "agent" ? t("settings.agents.title") : t("settings.ai.connections.provider"),
     })),
   })),
 );
@@ -62,7 +64,7 @@ const routeGroups = computed(() => [
   {
     id: "settings-ai-routing",
     title: t("settings.routing.capabilities.title"),
-    description: t("settings.routing.defaults.description"),
+    description: t("settings.routing.capabilities.description"),
     rows: routeRows.value.slice(1),
   },
 ]);

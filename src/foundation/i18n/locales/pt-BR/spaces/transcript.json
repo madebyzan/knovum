@@ -17,14 +17,12 @@
     },
     "alignSelected": "Alinhar selecionado",
     "alignmentLimit": "Até 8 segmentos/5 minutos",
-    "alignmentFirstUse": "O primeiro uso baixa automaticamente o modelo selecionado e os recursos necessários. Gerencie as opções de modelo em Configurações.",
     "selectForAlignment": "Selecionar para alinhamento"
   },
   "speakers": {
     "title": "Faixas de alto-falante",
     "durationLimit": "A diarização do alto-falante suporta gravações de até duas horas.",
     "generate": "Identificar alto-falantes",
-    "firstUse": "Os recursos locais são baixados automaticamente na primeira utilização; cancelar no Centro de Tarefas.",
     "count": "Contagem de alto-falantes conhecida (opcional)",
     "automatic": "Automático"
   }

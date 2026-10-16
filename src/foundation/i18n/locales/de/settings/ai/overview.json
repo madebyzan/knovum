@@ -1,4 +1,4 @@
 {
-  "title": "Modelle",
-  "description": "Verbinden Sie Modelle oder Desktop-Agenten und wählen Sie aus, wie die einzelnen AI-Funktionen ausgeführt werden."
+  "title": "AI-Anbieter",
+  "description": "Verbinden Sie Cloud-Modellanbieter, konfigurieren Sie API-Schlüssel und verwalten Sie benutzerdefinierte Modelle."
 }

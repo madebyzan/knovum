@@ -17,14 +17,12 @@
     },
     "alignSelected": "Align selected",
     "alignmentLimit": "Up to 8 segments / 5 minutes",
-    "alignmentFirstUse": "First use downloads the selected model and required resources automatically. Manage model choices in Settings.",
     "selectForAlignment": "Select for alignment"
   },
   "speakers": {
     "title": "Speaker tracks",
     "durationLimit": "Speaker diarization supports recordings up to two hours.",
     "generate": "Identify speakers",
-    "firstUse": "Local resources download automatically on first use; cancel in the Task Center.",
     "count": "Known speaker count (optional)",
     "automatic": "Automatic"
   }

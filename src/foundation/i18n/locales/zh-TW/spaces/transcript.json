@@ -17,14 +17,12 @@
     },
     "alignSelected": "對齊所選片段",
     "alignmentLimit": "最多 8 段 / 5 分鐘",
-    "alignmentFirstUse": "首次使用會自動下載所選模型與所需資源；可在設定中下載並選擇其他模型。",
     "selectForAlignment": "選擇此片段進行對齊"
   },
   "speakers": {
     "title": "說話者軌道",
     "durationLimit": "說話者分離支持最長兩小時的媒體。",
     "generate": "辨識說話人",
-    "firstUse": "首次使用將自動下載本機資源，可在任務中心取消。",
     "count": "已知人數（可選）",
     "automatic": "自動識別"
   }

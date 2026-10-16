@@ -1,4 +1,4 @@
 {
-  "title": "模型",
-  "description": "接入模型或桌面 Agent，並設定各項 AI 功能的執行方式。"
+  "title": "AI 服務商",
+  "description": "連接雲端模型服務商，設定 API 金鑰並管理自訂模型。"
 }

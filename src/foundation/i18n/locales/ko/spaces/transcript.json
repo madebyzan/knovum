@@ -17,14 +17,12 @@
     },
     "alignSelected": "선택 항목 정렬",
     "alignmentLimit": "최대 8개 세그먼트/5분",
-    "alignmentFirstUse": "처음 사용은 선택한 모델과 필요한 리소스를 자동으로 다운로드합니다. 설정에서 모델 선택을 관리하세요.",
     "selectForAlignment": "정렬을 위해 선택"
   },
   "speakers": {
     "title": "스피커 트랙",
     "durationLimit": "화자 분할은 최대 2시간까지 녹음을 지원합니다.",
     "generate": "화자 식별",
-    "firstUse": "로컬 리소스는 처음 사용할 때 자동으로 다운로드됩니다. 태스크 센터에서 취소하세요.",
     "count": "알려진 화자 수(선택 사항)",
     "automatic": "자동"
   }
