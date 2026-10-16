@@ -37,13 +37,16 @@ fn import(name: &str) -> InsertNodesRequest {
 #[tokio::test]
 async fn parallel_imports_append_without_a_caller_revision() {
     let pool = initialized_space().await;
-    let append = |request| async move {
-        let mut tx = db::begin_write(&pool).await.unwrap();
-        let revision = insert_many_in_transaction(&mut tx, request, None)
-            .await
-            .expect("import appends to the Space it is committed against");
-        tx.commit().await.unwrap();
-        revision
+    let append = |request| {
+        let pool = pool.clone();
+        async move {
+            let mut tx = db::begin_write(&pool).await.unwrap();
+            let revision = insert_many_in_transaction(&mut tx, request, None)
+                .await
+                .expect("import appends to the Space it is committed against");
+            tx.commit().await.unwrap();
+            revision
+        }
     };
     let (first, second, third) = tokio::join!(
         append(import("first")),
