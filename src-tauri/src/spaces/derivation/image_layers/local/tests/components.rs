@@ -34,20 +34,47 @@ fn diagonally_touching_pixels_belong_to_one_component() {
 }
 
 #[test]
-fn a_part_inside_a_subject_bounding_box_is_merged_into_it() {
-    let mut mask = grid(60, 60, &[(5, 5, 40, 6), (5, 39, 40, 6)]);
+fn a_detached_part_inside_a_subject_merges_into_that_subject() {
+    // A hollow frame with a detached block in its middle: one sticker, not two.
+    let mut mask = grid(
+        60,
+        60,
+        &[(5, 5, 40, 4), (5, 41, 40, 4), (5, 5, 4, 40), (41, 5, 4, 40)],
+    );
     for y in 20..32 {
         for x in 20..32 {
             mask[(y * 60 + x) as usize] = true;
         }
     }
     let found = find(&mask, 60, 60);
-    assert_eq!(found.len(), 3, "two bars and one inner block");
+    assert_eq!(found.len(), 2, "the frame and the block it encloses");
+    let (frame, block) = (found[0].pixels.len(), found[1].pixels.len());
     let merged = merge(found);
+    assert_eq!(merged.len(), 1);
+    assert_eq!(merged[0].pixels.len(), frame + block);
+    assert_eq!(merged[0].bounds, [5, 5, 44, 44]);
+}
+
+#[test]
+fn a_merged_part_extends_the_bounds_of_its_subject() {
+    // The block sits mostly inside the corner the bars open up, but hangs one row below them.
+    let mask = grid(60, 60, &[(5, 5, 4, 40), (5, 5, 40, 4), (30, 34, 12, 12)]);
+    let merged = merge(find(&mask, 60, 60));
+    assert_eq!(merged.len(), 1);
     assert_eq!(
-        merged.len(),
+        merged[0].bounds,
+        [5, 5, 44, 45],
+        "the subject grows to cover the part it absorbed"
+    );
+}
+
+#[test]
+fn subjects_that_only_sit_near_each_other_stay_separate() {
+    let mask = grid(60, 60, &[(5, 5, 40, 6), (5, 39, 40, 6)]);
+    assert_eq!(
+        merge(find(&mask, 60, 60)).len(),
         2,
-        "the inner block sits inside no single bar bounding box and stays separate"
+        "neither bar bounding box holds the other"
     );
 }
 

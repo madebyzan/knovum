@@ -85,7 +85,15 @@ pub(super) fn merge(components: Vec<Component>) -> Vec<Component> {
             .iter_mut()
             .find(|subject| contains(subject.bounds, component.bounds))
         {
-            Some(subject) => subject.pixels.extend(component.pixels),
+            Some(subject) => {
+                subject.pixels.extend(component.pixels);
+                subject.bounds = [
+                    subject.bounds[0].min(component.bounds[0]),
+                    subject.bounds[1].min(component.bounds[1]),
+                    subject.bounds[2].max(component.bounds[2]),
+                    subject.bounds[3].max(component.bounds[3]),
+                ];
+            }
             None => merged.push(component),
         }
     }
