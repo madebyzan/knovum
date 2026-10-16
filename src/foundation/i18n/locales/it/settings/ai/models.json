@@ -13,7 +13,7 @@
     "image": "Generazione di immagini",
     "video": "Generazione video"
   },
-  "inUse": "Questo modello è in uso. Modificare le impostazioni predefinite dell'attività o le preimpostazioni di creazione prima di rimuovere le funzionalità selezionate o il modello.",
+  "inUse": "Questo modello è in uso. Modifica i valori predefiniti delle attività prima di rimuovere le funzionalità selezionate o il modello.",
   "title": "Modelli",
   "count": "Modello {count} | Modelli {count}",
   "add": "Aggiungi modello",

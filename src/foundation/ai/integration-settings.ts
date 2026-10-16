@@ -7,18 +7,13 @@ import { z } from "zod";
 import { formatErrorDiagnostic } from "../errors/error-format";
 import { invokeCommand } from "../ipc/invoke-command";
 import {
-  creationLibrarySchema,
-  DEFAULT_CREATION_LIBRARY,
-  type CreationLibrary,
-} from "./schema/creation-library";
-import {
   aiModelSettingsSchema,
   DEFAULT_AI_MODEL_SETTINGS,
   type AiModelSettings,
 } from "./schema/model-settings";
 
 const SETTINGS_FILE = "settings.json";
-const SETTING_KEYS = { aiModels: "ai.models", creationLibrary: "creation.library" } as const;
+const SETTING_KEYS = { aiModels: "ai.models" } as const;
 const SETTINGS_SCHEMA_VERSION = 1;
 const settingsStore = new LazyStore(SETTINGS_FILE, { autoSave: false });
 
@@ -60,14 +55,4 @@ export async function saveAiModelSettings(value: AiModelSettings) {
 }
 export function resetAiModelSettings() {
   return persistSetting(SETTING_KEYS.aiModels, DEFAULT_AI_MODEL_SETTINGS);
-}
-export function loadCreationLibrary() {
-  return readSetting(SETTING_KEYS.creationLibrary, creationLibrarySchema, DEFAULT_CREATION_LIBRARY);
-}
-export async function saveCreationLibrary(value: CreationLibrary) {
-  const parsed = creationLibrarySchema.parse(value);
-  return persistSetting(SETTING_KEYS.creationLibrary, parsed);
-}
-export function resetCreationLibrary() {
-  return persistSetting(SETTING_KEYS.creationLibrary, DEFAULT_CREATION_LIBRARY);
 }

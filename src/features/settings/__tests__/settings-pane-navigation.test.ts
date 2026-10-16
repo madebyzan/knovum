@@ -5,7 +5,6 @@ import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, h, reactive, shallowRef } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
-import { DEFAULT_CREATION_LIBRARY } from "../../../foundation/ai/schema/creation-library";
 import { DEFAULT_AI_MODEL_SETTINGS } from "../../../foundation/ai/schema/model-settings";
 import { i18n } from "../../../foundation/i18n/instance";
 import { archiveSettingsKey, type ArchiveSettingsContract } from "../../../shared/contracts/archive-settings";
@@ -14,9 +13,6 @@ import SettingsSidebar from "../components/SettingsSidebar.vue";
 import SettingsView from "../SettingsView.vue";
 
 vi.mock("../../../foundation/ai/ai-settings-store", () => ({ useAiSettingsStore: () => aiStore }));
-vi.mock("../../../foundation/ai/creation-library-store", () => ({
-  useCreationLibraryStore: () => creationStore,
-}));
 vi.mock("../../../foundation/ai/providers", () => ({ loadProviderDescriptors: async () => [] }));
 vi.mock("../../../foundation/ai/use-execution-catalog-query", () => ({
   useExecutionCatalogQuery: () => ({
@@ -39,13 +35,6 @@ const aiStore = reactive({
   ready,
   loadError,
   ensureLoaded: async () => {},
-});
-const creationStore = reactive({
-  library: shallowRef(DEFAULT_CREATION_LIBRARY),
-  ready,
-  loadError: shallowRef<Error>(),
-  ensureLoaded: async () => {},
-  flush: async () => {},
 });
 const extensions = defineComponent({
   render: () =>
@@ -74,7 +63,6 @@ it.each(["loading", "ready", "failed"])(
           path: "/settings",
           component: SettingsView,
           props: {
-            loadGenerationActions: async () => [],
             extensionsComponent: extensions,
             voiceLibraryComponent: extensions,
             returnToWorkspace,
@@ -105,7 +93,6 @@ it.each(["loading", "ready", "failed"])(
           AiRoutingSettings: true,
           PythonRuntimeSettings: { template: '<section data-testid="python-runtimes" />' },
           LocalModelsSettings: { template: '<section data-testid="local-models-pane" />' },
-          CreationSettingsPane: { template: '<section data-testid="creation-pane" />' },
           UsageSettingsPane: { template: '<section data-testid="usage-pane" />' },
         },
       },
@@ -137,7 +124,6 @@ it.each(["loading", "ready", "failed"])(
         ["extensions", '[data-testid="extensions-pane"]'],
         ["desktopAgents", "#settings-header-actions button"],
         ["archivedSpaces", '[data-testid="archive-restore-space"]'],
-        ["creation", '[data-testid="creation-pane"]'],
         ["usage", '[data-testid="usage-pane"]'],
       ] as const) {
         await router.replace({ path: "/settings", query: { pane } });

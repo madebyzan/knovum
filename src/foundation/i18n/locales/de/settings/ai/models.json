@@ -13,7 +13,7 @@
     "image": "Bildgenerierung",
     "video": "Videogenerierung"
   },
-  "inUse": "Dieses Modell ist im Einsatz. Ändern Sie Aufgabenstandards oder Erstellungsvoreinstellungen, bevor Sie ausgewählte Funktionen oder das Modell entfernen.",
+  "inUse": "Dieses Modell ist im Einsatz. Ändern Sie die Aufgabenstandards, bevor Sie ausgewählte Funktionen oder das Modell entfernen.",
   "title": "Modelle",
   "count": "{count}-Modell | {count}-Modelle",
   "add": "Modell hinzufügen",

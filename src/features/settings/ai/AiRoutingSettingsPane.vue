@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { computed, onMounted } from "vue";
+import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
-import { useCreationLibraryStore } from "../../../foundation/ai/creation-library-store";
 import { setDefaultExecutionTarget } from "../../../foundation/ai/execution-settings";
 import { resetAiSettings } from "../../../foundation/ai/settings-mutations";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
@@ -21,18 +20,7 @@ const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
 const aiStore = useAiSettingsStore();
-const creationStore = useCreationLibraryStore();
-const { settings, ready: aiReady, loadError } = storeToRefs(aiStore);
-const { ready: creationReady, loadError: creationLoadError } = storeToRefs(creationStore);
-
-const failure = computed(() =>
-  loadError.value
-    ? { source: "ai" as const, cause: loadError.value, canReset: true }
-    : creationLoadError.value
-      ? { source: "creation" as const, cause: creationLoadError.value, canReset: true }
-      : undefined,
-);
-const ready = computed(() => aiReady.value && creationReady.value);
+const { settings, ready, loadError } = storeToRefs(aiStore);
 
 async function updateDefaultRoute(key: keyof AiRoutingDefaults, target: TaskTargetRef | null) {
   try {
@@ -42,12 +30,8 @@ async function updateDefaultRoute(key: keyof AiRoutingDefaults, target: TaskTarg
   }
 }
 
-async function hydrateStores() {
-  await Promise.all([aiStore.ensureLoaded(), creationStore.ensureLoaded()]);
-}
-
 async function reload() {
-  await hydrateStores();
+  await aiStore.ensureLoaded();
 }
 
 async function resetSection() {
@@ -58,8 +42,7 @@ async function resetSection() {
     danger: true,
   });
   if (!confirmed) return;
-  if (failure.value?.source === "creation") await creationStore.reset();
-  else await resetAiSettings();
+  await resetAiSettings();
 }
 
 function handleRequestModelCreation() {
@@ -69,15 +52,15 @@ function handleRequestModelCreation() {
   });
 }
 
-onMounted(hydrateStores);
+onMounted(reload);
 </script>
 
 <template>
   <section data-testid="ai-routing-settings-pane" class="min-w-0">
     <SettingsLoadFailure
-      v-if="failure"
-      :message="getErrorMessage(failure.cause)"
-      :can-reset="failure.canReset"
+      v-if="loadError"
+      :message="getErrorMessage(loadError)"
+      can-reset
       @retry="reload"
       @reset="resetSection"
     />

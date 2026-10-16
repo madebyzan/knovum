@@ -12,8 +12,6 @@ import AppearanceSettingsPane from "./appearance/AppearanceSettingsPane.vue";
 import ArchivedSpacesSettingsPane from "./archives/ArchivedSpacesSettingsPane.vue";
 import BackupSettingsPane from "./backup/BackupSettingsPane.vue";
 import SettingsSidebar from "./components/SettingsSidebar.vue";
-import type { GenerationActionOption } from "./creation/action-option";
-import CreationSettingsPane from "./creation/CreationSettingsPane.vue";
 import DesktopAgentsSettingsPane from "./desktop-agents/DesktopAgentsSettingsPane.vue";
 import { resolveSettingsPaneId, type SettingsPaneId } from "./navigation/settings-pane";
 import { getSettingsDefinition } from "./navigation/settings-registry";
@@ -22,7 +20,6 @@ import NotificationsSettingsPane from "./notifications/NotificationsSettingsPane
 import UsageSettingsPane from "./usage/UsageSettingsPane.vue";
 
 const props = defineProps<{
-  loadGenerationActions: () => Promise<GenerationActionOption[]>;
   extensionsComponent: Component;
   voiceLibraryComponent: Component;
   returnToWorkspace: () => Promise<void>;
@@ -69,7 +66,6 @@ const componentByPaneId = {
   desktopAgents: DesktopAgentsSettingsPane,
   extensions: toRaw(props.extensionsComponent),
   usage: UsageSettingsPane,
-  creation: CreationSettingsPane,
   data: BackupSettingsPane,
   archivedSpaces: ArchivedSpacesSettingsPane,
   about: AboutSettingsPane,
@@ -126,11 +122,7 @@ function selectPane(pane: SettingsPaneId, setting?: string) {
               leave-active-class="animate-out fade-out-0 duration-100 ease-standard motion-reduce:animate-none"
             >
               <div :key="activePane" class="space-y-6">
-                <CreationSettingsPane
-                  v-if="activePane === 'creation'"
-                  :load-generation-actions="props.loadGenerationActions"
-                />
-                <component :is="paneComponent" v-else />
+                <component :is="paneComponent" />
               </div>
             </Transition>
           </div>

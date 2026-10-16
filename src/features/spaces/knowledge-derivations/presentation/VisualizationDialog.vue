@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { isString } from "es-toolkit";
 import { computed, reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import AiExecutionTargetField from "../../../../foundation/ai/AiExecutionTargetField.vue";
-import type { GenerationPreset } from "../../../../foundation/ai/schema/models";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
@@ -12,7 +10,6 @@ import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { GroundedDocumentSource } from "../catalog/grounded-document";
 import { imageAspectRatioSchema, type VisualizationDraft } from "../visualization";
-import GenerationPresetField from "./GenerationPresetField.vue";
 
 const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{ sources: readonly GroundedDocumentSource[] }>();
@@ -24,11 +21,6 @@ const form = reactive<VisualizationDraft>({
   style: "explanatory editorial illustration",
   aspectRatio: "16:9",
 });
-const presetParameters = computed(() => ({
-  intent: form.intent,
-  style: form.style,
-  aspectRatio: form.aspectRatio,
-}));
 const valid = computed(() => Boolean(form.title.trim() && form.intent.trim() && form.target));
 const styles = computed(() => [
   { value: "explanatory editorial illustration", label: t("spaces.creation.image.styles.editorial") },
@@ -41,14 +33,6 @@ watch(open, (isOpen) => {
   form.title = t("spaces.creation.image.visualization.defaultTitle");
   form.intent = "";
 });
-function applyPreset(preset: GenerationPreset) {
-  if (preset.actionId !== "generate-visualization") return;
-  form.target = preset.target;
-  if (isString(preset.parameters.intent)) form.intent = preset.parameters.intent;
-  if (isString(preset.parameters.style)) form.style = preset.parameters.style;
-  const aspectRatio = imageAspectRatioSchema.safeParse(preset.parameters.aspectRatio);
-  if (aspectRatio.success) form.aspectRatio = aspectRatio.data;
-}
 </script>
 
 <template>
@@ -85,13 +69,6 @@ function applyPreset(preset: GenerationPreset) {
         /></label>
       </div>
       <AiExecutionTargetField v-model="form.target" purpose="image-generation" />
-      <GenerationPresetField
-        action-id="generate-visualization"
-        :name="form.title"
-        :target="form.target"
-        :parameters="presetParameters"
-        @apply="applyPreset"
-      />
       <p class="text-caption text-fg-tertiary">
         {{ t("spaces.creation.document.sources", { count: sources.length }) }}
       </p>

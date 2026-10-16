@@ -3,13 +3,6 @@
   "removeFailedOutput": "Eliminar elemento fallido",
   "knowledgeDerivation": "Creado a partir del conocimiento",
   "resourceTask": "Tarea de recursos",
-  "presets": {
-    "save": "Guardar como preestablecido",
-    "saved": "Preajuste de generación guardado",
-    "label": "Generación preestablecida",
-    "empty": "Sin ajustes preestablecidos de generación",
-    "select": "Seleccione un ajuste preestablecido de generación"
-  },
   "source": {
     "knowledge": "Conocimiento fuente",
     "changed": "Algunas fuentes cambiaron después de que se creó este elemento."

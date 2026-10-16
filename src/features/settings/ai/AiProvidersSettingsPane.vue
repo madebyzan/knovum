@@ -5,7 +5,6 @@ import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
-import { useCreationLibraryStore } from "../../../foundation/ai/creation-library-store";
 import { loadProviderDescriptors } from "../../../foundation/ai/providers";
 import { resetAiSettings } from "../../../foundation/ai/settings-mutations";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
@@ -19,9 +18,7 @@ const PROVIDER_CATALOG_KEY = ["integrations", "provider-descriptors"] as const;
 
 const { t } = useI18n();
 const aiStore = useAiSettingsStore();
-const creationStore = useCreationLibraryStore();
 const { settings, ready: aiReady, loadError } = storeToRefs(aiStore);
-const { ready: creationReady, loadError: creationLoadError } = storeToRefs(creationStore);
 const catalog = useQuery({
   queryKey: PROVIDER_CATALOG_KEY,
   queryFn: loadProviderDescriptors,
@@ -30,22 +27,16 @@ const catalog = useQuery({
 const providers = computed(() => catalog.data.value ?? []);
 const failure = computed(() =>
   loadError.value
-    ? { source: "ai" as const, cause: loadError.value, canReset: true }
-    : creationLoadError.value
-      ? { source: "creation" as const, cause: creationLoadError.value, canReset: true }
-      : catalog.error.value
-        ? { source: "catalog" as const, cause: catalog.error.value, canReset: false }
-        : undefined,
+    ? { cause: loadError.value, canReset: true }
+    : catalog.error.value
+      ? { cause: catalog.error.value, canReset: false }
+      : undefined,
 );
-const ready = computed(() => aiReady.value && creationReady.value && !catalog.isPending.value);
+const ready = computed(() => aiReady.value && !catalog.isPending.value);
 const { protectedConnectionIds, protectedModelTargets } = useProtectedExecutionTargets();
 
-async function hydrateStores() {
-  await Promise.all([aiStore.ensureLoaded(), creationStore.ensureLoaded()]);
-}
-
 async function reload() {
-  await Promise.all([hydrateStores(), catalog.refetch()]);
+  await Promise.all([aiStore.ensureLoaded(), catalog.refetch()]);
 }
 
 async function resetSection() {
@@ -56,11 +47,10 @@ async function resetSection() {
     danger: true,
   });
   if (!confirmed) return;
-  if (failure.value?.source === "creation") await creationStore.reset();
-  else await resetAiSettings();
+  await resetAiSettings();
 }
 
-onMounted(hydrateStores);
+onMounted(reload);
 </script>
 
 <template>

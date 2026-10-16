@@ -13,7 +13,7 @@
     "image": "Generación de imágenes",
     "video": "Generación de vídeo"
   },
-  "inUse": "Este modelo está en uso. Cambie los valores predeterminados de las tareas o los ajustes preestablecidos de creación antes de eliminar las capacidades seleccionadas o el modelo.",
+  "inUse": "Este modelo está en uso. Cambie los valores predeterminados de las tareas antes de eliminar las capacidades seleccionadas o el modelo.",
   "title": "Modelos",
   "count": "modelo {count} | Modelos {count}",
   "add": "Agregar modelo",

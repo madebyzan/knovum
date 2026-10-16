@@ -3,13 +3,6 @@
   "removeFailedOutput": "Remove failed item",
   "knowledgeDerivation": "Created from knowledge",
   "resourceTask": "Resource task",
-  "presets": {
-    "save": "Save as preset",
-    "saved": "Generation preset saved",
-    "label": "Generation preset",
-    "empty": "No generation presets",
-    "select": "Select a generation preset"
-  },
   "source": {
     "knowledge": "Source knowledge",
     "changed": "Some sources changed after this item was created."
