@@ -57,6 +57,15 @@ fn a_sticker_sheet_splits_into_one_layer_per_sticker_in_reading_order() {
 }
 
 #[test]
+fn a_flat_sheet_backdrop_is_not_a_layer_of_its_own() {
+    let sheet = detect(&sticker_sheet(Rgba([255, 255, 255, 255])), 24).expect("sheet");
+    assert!(
+        sheet.backdrop.is_none(),
+        "the fill the stickers were drawn over carries no content"
+    );
+}
+
+#[test]
 fn a_transparent_sheet_is_detected_through_its_alpha_channel() {
     let sheet = detect(&sticker_sheet(Rgba([0, 0, 0, 0])), 24).expect("sheet");
     assert_eq!(sheet.decomposition.count, 9);

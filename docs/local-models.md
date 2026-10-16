@@ -276,7 +276,9 @@ where the subjects are and supplies the soft alpha for the salient layer, `image
 those proposals into masks through the `DiscoverLayers` computation, `imageDepth` orders the stack
 from far to near, and `imageInpainting` completes the backdrop the subjects covered. Sources drawn
 over a uniform backdrop, such as sticker sheets, are read from pixel connectivity and need no model
-at all; the path is chosen by measured input structure, and each path is complete on its own.
+at all; the path is chosen by measured input structure, and each path is complete on its own. A
+uniform backdrop is not published as a layer of its own: it is a flat fill, and a layer is only
+worth a node when it carries content the source does not already show for free.
 
 A split can only contain objects that were prompted, and the worker encodes the source once and
 reuses that embedding, so one extra prompt costs one decoder pass over a 192px probe rather than

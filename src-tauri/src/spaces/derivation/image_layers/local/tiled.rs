@@ -3,7 +3,7 @@
 //! connectivity instead of a model.
 
 use super::{components, Decomposition, Layers};
-use image::{Rgba, RgbaImage};
+use image::RgbaImage;
 
 /// Width of the border ring sampled to estimate the backdrop.
 const RING: u32 = 2;
@@ -20,10 +20,9 @@ enum Backdrop {
     Color([u8; 3]),
 }
 
-/// Returns a layer stack when the source is drawn over a uniform backdrop, otherwise `None`.
-/// One subject over a uniform backdrop is a valid result: it splits into the subject and the
-/// backdrop. A uniform backdrop needs no inpainting, so it is completed by filling the subjects
-/// back in with the backdrop itself.
+/// Returns a layer stack when the source is drawn over a uniform backdrop, otherwise `None`. The
+/// backdrop is a flat fill, so it is not a layer of its own: the stack is the subjects the sheet
+/// carries, read in reading order.
 pub(super) fn detect(source: &RgbaImage, max_layers: u8) -> Option<Layers> {
     let backdrop = estimate(source)?;
     let mask = source
@@ -54,7 +53,7 @@ pub(super) fn detect(source: &RgbaImage, max_layers: u8) -> Option<Layers> {
         }
     }
     Some(Layers {
-        backdrop: Some(fill(source, &labels, &backdrop)),
+        backdrop: None,
         alpha: None,
         decomposition: Decomposition {
             labels,
@@ -63,21 +62,6 @@ pub(super) fn detect(source: &RgbaImage, max_layers: u8) -> Option<Layers> {
             height: source.height(),
         },
     })
-}
-
-/// Replaces every labelled subject with the backdrop it was drawn over.
-fn fill(source: &RgbaImage, labels: &[u8], backdrop: &Backdrop) -> RgbaImage {
-    let value = match backdrop {
-        Backdrop::Transparent => Rgba([0, 0, 0, 0]),
-        Backdrop::Color(color) => Rgba([color[0], color[1], color[2], 255]),
-    };
-    let mut filled = source.clone();
-    for (pixel, label) in filled.pixels_mut().zip(labels) {
-        if *label != 0 {
-            *pixel = value;
-        }
-    }
-    filled
 }
 
 fn estimate(source: &RgbaImage) -> Option<Backdrop> {

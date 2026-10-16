@@ -22,12 +22,13 @@ pub(crate) async fn split_for_action(
     cancellation: &CancellationToken,
 ) -> Result<Vec<CompletedDerivationOutput>, AppError> {
     contracts::validate(&request)?;
-    let source = source::describe(app, &request).await?;
+    let source = source::load(crate::spaces::db::pool(app).await?, &request).await?;
     let png = source::render_png(app, &source, &request).await?;
-    // The backdrop is one of the published layers, so discovery is bounded one below the ceiling.
+    // The backdrop can be one of the published layers, so discovery stays one below the ceiling.
     let subjects = u8::try_from(contracts::MAX_LAYER_COUNT - 1)
         .map_err(|_| AppError::from("Image layer ceiling is misconfigured"))?;
     let layers = local::split(app, png, &request.id, subjects, cancellation).await?;
+    contracts::validate_count(layers.len())?;
     let prepared = {
         let app = app.clone();
         let cancellation = cancellation.clone();
@@ -50,7 +51,6 @@ async fn publish(
     layers: &[assets::PreparedLayer],
     authority: &ExecutionAuthority,
 ) -> Result<Vec<CompletedDerivationOutput>, AppError> {
-    contracts::validate_count(layers.len())?;
     persistence::reserve(app, request, source, layers, authority).await?;
     if let Err(error) = persistence::start(app, request, layers.len(), authority).await {
         persistence::fail_reserved(app, request, layers.len()).await?;

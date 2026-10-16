@@ -3,8 +3,22 @@ use crate::spaces::derivation::image_layers::local::{Decomposition, Layers};
 use image::{ImageFormat, Rgba, RgbaImage};
 use tokio_util::sync::CancellationToken;
 
+/// A gradient so no layer is accidentally uniform, which would make it contentless.
 fn source() -> RgbaImage {
     RgbaImage::from_fn(4, 2, |x, _| Rgba([(x * 60) as u8, 10, 20, 255]))
+}
+
+fn layers(labels: Vec<u8>, count: u8, backdrop: Option<RgbaImage>) -> Layers {
+    Layers {
+        decomposition: Decomposition {
+            labels,
+            count,
+            width: 4,
+            height: 2,
+        },
+        alpha: None,
+        backdrop,
+    }
 }
 
 fn decode(png: &[u8]) -> RgbaImage {
@@ -13,69 +27,85 @@ fn decode(png: &[u8]) -> RgbaImage {
         .to_rgba8()
 }
 
-/// Layers are written in stack order, so compositing them back must reproduce the source.
-fn flatten(layers: &[Vec<u8>], width: u32, height: u32) -> RgbaImage {
-    let mut canvas = RgbaImage::new(width, height);
-    for png in layers {
-        image::imageops::overlay(&mut canvas, &decode(png), 0, 0);
-    }
-    canvas
+#[test]
+fn a_subject_is_cropped_to_the_pixels_it_carries() {
+    let labels = vec![0, 1, 1, 2, 0, 1, 2, 2];
+    let encoded = encode(
+        &source(),
+        &layers(labels, 2, None),
+        &CancellationToken::new(),
+    )
+    .expect("layers");
+    assert_eq!(encoded.len(), 2, "one layer per subject, no backdrop");
+    let first = decode(&encoded[0]);
+    assert_eq!(
+        first.dimensions(),
+        (2, 2),
+        "the first subject spans two columns and two rows"
+    );
+    assert_eq!(
+        first.get_pixel(0, 0).0,
+        [60, 10, 20, 255],
+        "the crop starts at the subject, not at the canvas"
+    );
+    assert_eq!(
+        first.get_pixel(1, 1)[3],
+        0,
+        "pixels of other subjects stay transparent inside the crop"
+    );
+    assert_eq!(decode(&encoded[1]).dimensions(), (2, 2));
 }
 
 #[test]
-fn layers_keep_the_canvas_and_composite_back_into_the_source() {
-    let layers = Layers {
-        decomposition: Decomposition {
-            labels: vec![0, 1, 1, 2, 0, 1, 2, 2],
-            count: 2,
-            width: 4,
-            height: 2,
-        },
-        alpha: None,
-        backdrop: None,
-    };
-    let source = source();
-    let encoded = encode(&source, &layers, &CancellationToken::new()).expect("layers");
-    assert_eq!(encoded.len(), 3, "a backdrop plus two subjects");
-    for png in &encoded {
-        let layer = decode(png);
-        assert_eq!((layer.width(), layer.height()), (4, 2));
-    }
-    assert_eq!(flatten(&encoded, 4, 2), source);
-    let backdrop = decode(&encoded[0]);
-    assert_eq!(backdrop.get_pixel(0, 0)[3], 255, "unlabelled pixels remain");
+fn a_subject_that_carries_no_pixel_is_not_published() {
+    let encoded = encode(
+        &source(),
+        &layers(vec![0, 1, 1, 0, 0, 1, 0, 0], 2, None),
+        &CancellationToken::new(),
+    )
+    .expect("layers");
+    assert_eq!(encoded.len(), 1, "the empty second label is left out");
+}
+
+#[test]
+fn a_backdrop_is_published_only_when_it_carries_content() {
+    let labels = vec![1, 1, 0, 0, 0, 0, 0, 0];
+    let flat = RgbaImage::from_pixel(4, 2, Rgba([9, 9, 9, 255]));
+    let encoded = encode(
+        &source(),
+        &layers(labels.clone(), 1, Some(flat)),
+        &CancellationToken::new(),
+    )
+    .expect("layers");
     assert_eq!(
-        backdrop.get_pixel(1, 0)[3],
-        0,
-        "the backdrop keeps a hole where a subject was lifted"
+        encoded.len(),
+        1,
+        "a backdrop of one repeated pixel is not a layer"
     );
-    let first = decode(&encoded[1]);
-    assert_eq!(first.get_pixel(1, 0)[3], 255);
-    assert_eq!(first.get_pixel(3, 0)[3], 0, "other labels are transparent");
+    let encoded = encode(
+        &source(),
+        &layers(labels, 1, Some(source())),
+        &CancellationToken::new(),
+    )
+    .expect("layers");
+    assert_eq!(encoded.len(), 2, "a backdrop with detail leads the stack");
+    assert_eq!(decode(&encoded[0]).dimensions(), (4, 2));
 }
 
 #[test]
 fn a_soft_alpha_replaces_the_binary_mask_of_the_layer_that_owns_it() {
-    let layers = Layers {
-        decomposition: Decomposition {
-            labels: vec![1, 1, 0, 0, 0, 0, 0, 0],
-            count: 1,
-            width: 4,
-            height: 2,
-        },
-        alpha: Some((1, vec![255, 128, 0, 0, 0, 0, 0, 0])),
-        backdrop: Some(RgbaImage::from_pixel(4, 2, Rgba([9, 9, 9, 255]))),
-    };
+    let mut layers = layers(vec![1, 1, 0, 0, 0, 0, 0, 0], 1, None);
+    layers.alpha = Some((1, vec![255, 128, 0, 0, 0, 0, 0, 0]));
     let encoded = encode(&source(), &layers, &CancellationToken::new()).expect("layers");
-    let subject = decode(&encoded[1]);
+    let subject = decode(&encoded[0]);
+    assert_eq!(subject.dimensions(), (2, 1));
     assert_eq!(subject.get_pixel(0, 0)[3], 255);
     assert_eq!(subject.get_pixel(1, 0)[3], 128, "soft coverage is kept");
-    assert_eq!(decode(&encoded[0]).get_pixel(1, 0).0, [9, 9, 9, 255]);
 }
 
 #[test]
 fn a_decomposition_from_another_canvas_is_rejected() {
-    let layers = Layers {
+    let elsewhere = Layers {
         decomposition: Decomposition {
             labels: vec![0, 1],
             count: 1,
@@ -85,5 +115,5 @@ fn a_decomposition_from_another_canvas_is_rejected() {
         alpha: None,
         backdrop: None,
     };
-    assert!(encode(&source(), &layers, &CancellationToken::new()).is_err());
+    assert!(encode(&source(), &elsewhere, &CancellationToken::new()).is_err());
 }

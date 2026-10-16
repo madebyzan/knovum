@@ -1,7 +1,8 @@
-//! Local layer splitting. One rendered source becomes a stack of full-canvas RGBA layers whose
-//! composite reproduces the source. Discovery has two paths, chosen by measured input structure:
-//! sources drawn over a uniform backdrop are read from pixel connectivity, photographic sources
-//! are read with the local image models. Each path is complete on its own.
+//! Local layer splitting. One rendered source becomes a stack of RGBA layers, each cropped to the
+//! pixels it carries so a layer is published at its own size. Discovery has two paths, chosen by
+//! measured input structure: sources drawn over a uniform backdrop are read from pixel
+//! connectivity, photographic sources are read with the local image models. Each path is complete
+//! on its own.
 
 mod components;
 mod compose;
@@ -27,13 +28,14 @@ pub(super) struct Layers {
     decomposition: Decomposition,
     /// Soft alpha for one label, when a pass produced a better edge than the label itself.
     alpha: Option<(u8, Vec<u8>)>,
-    /// The backdrop with every subject removed. Absent when no pass could complete it, in which
-    /// case the backdrop layer keeps the holes the subjects left.
+    /// The backdrop as a layer of its own. Absent when the source was drawn over a flat fill,
+    /// which carries no content a layer could hold, so the stack is then the subjects alone.
     backdrop: Option<RgbaImage>,
 }
 
-/// Splits a rendered PNG into layer PNGs, backdrop first. The returned length is the discovered
-/// layer count plus the backdrop.
+/// Splits a rendered PNG into layer PNGs: the backdrop first when it is a layer of its own, then
+/// one layer per discovered subject. Layers that carry no content are left out, so the returned
+/// length is what the caller publishes.
 pub(super) async fn split(
     app: &AppHandle,
     png: Vec<u8>,

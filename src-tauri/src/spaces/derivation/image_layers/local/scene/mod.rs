@@ -4,7 +4,7 @@
 mod ordering;
 mod passes;
 
-use super::{seeds, Layers};
+use super::{compose, seeds, Layers};
 use crate::foundation::app_error::AppError;
 use image::RgbaImage;
 use sha2::{Digest, Sha256};
@@ -35,15 +35,17 @@ pub(super) async fn decompose(
         .collect::<Vec<_>>();
     // A source covered end to end by subjects has no backdrop to complete, and inpainting that
     // much of the canvas is not worth its cost either; the backdrop layer then keeps the holes.
-    let backdrop = match mask.iter().filter(|value| **value == 255).count() * 4 < mask.len() * 3 {
+    let completed = match mask.iter().filter(|value| **value == 255).count() * 4 < mask.len() * 3 {
         true => passes::complete(app, source, mask, identity, cancellation)
             .await
             .ok(),
         false => None,
     };
+    let backdrop =
+        completed.unwrap_or_else(|| compose::without_subjects(source, &decomposition.labels));
     Ok(Layers {
         alpha: ordering::salient_layer(&decomposition, saliency),
-        backdrop,
+        backdrop: Some(backdrop),
         decomposition,
     })
 }

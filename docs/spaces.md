@@ -217,8 +217,12 @@ Discovery reports how many layers the image carries, and the handler then reserv
 pending nodes in one transaction — laid out as a single row beside the source — and publishes the
 layers into them. It is one Action invocation and therefore one Run, one Task Center task and one
 cancellation; a split that fails or is cancelled settles its reserved nodes and deletes the layer
-files it had written. Every layer keeps the source canvas size, so stacking the layers reproduces the
-source without placement metadata, and the bottom layer is the completed backdrop rather than a hole.
+files it had written. Each layer is cropped to the pixels it carries, so a subject arrives as a node
+at its own size rather than inside a canvas-sized transparent frame, and a layer that carries no
+content of its own is never published: an empty cut-out, or the flat fill a sticker sheet was drawn
+over. A backdrop becomes the bottom layer only when it is content in its own right — the inpainted
+background of a photograph, or the source with the subject holes left open when no pass could
+complete it.
 
 The dedicated Workflow Studio has been removed. The canvas selection menu opens a floating
 derivation inspector anchored to the selection through the canvas surface placement rule. It
