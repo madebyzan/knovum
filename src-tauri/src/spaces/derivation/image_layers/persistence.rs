@@ -22,10 +22,10 @@ const MAX_TITLE: usize = 512;
 pub(super) async fn reserve(
     app: &AppHandle,
     request: &contracts::SplitImageLayersRequest,
+    source: &source::SourceImage,
     layers: &[PreparedLayer],
     authority: &ExecutionAuthority,
 ) -> Result<(), AppError> {
-    let source = source::describe(app, request).await?;
     let outputs = layers
         .iter()
         .enumerate()

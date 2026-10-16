@@ -12,22 +12,22 @@ pub(super) struct SourceImage {
     pub(super) asset_path: String,
 }
 
-/// Renders the source image, with its edits applied, into the PNG the local passes read.
-pub(super) async fn load_png(
+/// Renders the pinned source, with its edits applied, into the PNG the local passes read. The
+/// source is resolved from the request rather than from a derivation row, because a split opens
+/// its derivations only once discovery has reported how many layers there are.
+pub(super) async fn render_png(
     app: &AppHandle,
-    scratch_key: &str,
-    edit: &Value,
+    source: &SourceImage,
+    request: &SplitImageLayersRequest,
 ) -> Result<Vec<u8>, String> {
-    let path = super::super::source_snapshot::image_path(app, scratch_key, edit).await?;
-    let app = app.clone();
-    let edit = edit.clone();
-    let rendered = crate::foundation::blocking::run(move || {
-        let source =
-            crate::spaces::assets::authorize_spaces_asset(&app, std::path::Path::new(&path))?;
-        crate::images::render_source_png(&source, &edit)
-    })
-    .await?;
-    Ok(rendered.png)
+    Ok(super::super::source_snapshot::render_pinned_png(
+        app,
+        &source.asset_path,
+        &request.source_revision,
+        &request.source_edit,
+    )
+    .await?
+    .png)
 }
 
 pub(super) async fn describe(
