@@ -879,3 +879,28 @@ The original PNG is the delivery asset: image and managed-asset exports copy it 
 or 8-bit conversion. Depth nodes expose no photo-edit tools and reject `imageEdit`; their values are
 analysis data rather than photo colors. Depth-based blur remains unavailable until compositing quality
 has passed its own foreground-edge and alpha acceptance.
+
+### Selection navigation and smart spacing
+
+Camera projection owns rendering while navigating. `CanvasRenderLayer`, registered through vue-konva's
+public custom-node API, delegates scheduling to that owner during motion and to Konva during editing.
+Konva's Transformer explicitly invokes `batchDraw()` independently of `autoDrawEnabled`; allowing both
+schedulers redraws the selection layer and its hit graph after the camera already painted it. The layer
+contract suppresses those redundant schedules, not the Transformer or selection UI. Settlement restores
+normal scheduling and hit testing. Floating selection surfaces move with `translate3d`, not layout offsets;
+content size and avoidance remain governed by the existing selection-placement model.
+
+Translation snapping uses the captured gesture index and moving selection's union bounds. Each axis
+chooses the smallest correction among edge/center alignment, centering between neighbors and continuation
+of an existing neighboring pair's positive gap. Exact ties prefer spacing. Spacing participants must share
+an actual cross-axis overlap: another row's gap is never borrowed. Distances are axis-aligned outer bounds,
+including rotated frames, not distances between arbitrary points on rotated edges. The gesture supplies
+`6 / zoom` tolerance, keeping the acquisition radius in screen pixels. Guide coordinates are regenerated
+from the final two-axis position, avoiding stale feedback after the other axis snaps.
+
+Equal-gap feedback shows both reference and proposed gaps, numeric canvas-unit distances rounded to one
+decimal, and endpoint ticks. Text, ticks, strokes and badge dimensions stay fixed in screen pixels through
+zoom. A badge for a short gap sits beside the measurement rather than hiding its endpoints. Rendering stays
+inside the existing Konva feedback layer; there is no second draggable DOM overlay or external snap engine.
+The existing indexed geometry is retained because introducing a DOM-transform controller would add another
+gesture owner around Konva's node and section gestures rather than replace them.

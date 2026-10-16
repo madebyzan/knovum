@@ -1,17 +1,14 @@
 import {
-  boundsEnd,
   boundsPoints,
-  boundsSize,
-  boundsStart,
   canvasFrameBounds,
   type CanvasBounds,
-  crossAxisOverlaps,
   translateCanvasBounds,
   unionCanvasBounds,
 } from "../../canvas-snap-geometry";
 import type { CanvasNodeFrame } from "../../schema/document";
 import { nearestSortedCanvasSnap, type CanvasSnapGuide } from "./canvas-snapping";
 import type { CanvasTranslationSnapIndex } from "./canvas-translation-snap-index";
+import { spacingSnap } from "./spacing-snap";
 
 export function snapCanvasTranslation(
   movingFrames: readonly CanvasNodeFrame[],
@@ -22,11 +19,12 @@ export function snapCanvasTranslation(
   const moving = translateCanvasBounds(unionCanvasBounds(movingFrames.map(canvasFrameBounds)), proposed);
   const horizontal = axisSnap(moving, index, "x", tolerance);
   const vertical = axisSnap(moving, index, "y", tolerance);
-  return {
-    x: proposed.x + (horizontal?.offset ?? 0),
-    y: proposed.y + (vertical?.offset ?? 0),
-    guides: [...(horizontal?.guides ?? []), ...(vertical?.guides ?? [])],
-  };
+  const offset = { x: horizontal?.offset ?? 0, y: vertical?.offset ?? 0 };
+  const placed = translateCanvasBounds(moving, offset);
+  // Feedback describes the final two-axis placement, not the intermediate horizontal/vertical proposals.
+  const guidesX = axisSnap(placed, index, "x", 1e-7)?.guides ?? [];
+  const guidesY = axisSnap(placed, index, "y", 1e-7)?.guides ?? [];
+  return { x: proposed.x + offset.x, y: proposed.y + offset.y, guides: [...guidesX, ...guidesY] };
 }
 
 function axisSnap(
@@ -35,7 +33,11 @@ function axisSnap(
   axis: "x" | "y",
   tolerance: number,
 ) {
-  return spacingSnap(moving, index, axis, tolerance) ?? alignmentSnap(moving, index, axis, tolerance);
+  const spacing = spacingSnap(moving, index, axis, tolerance);
+  const alignment = alignmentSnap(moving, index, axis, tolerance);
+  if (!spacing) return alignment;
+  if (!alignment) return spacing;
+  return Math.abs(alignment.offset) < Math.abs(spacing.offset) ? alignment : spacing;
 }
 
 function alignmentSnap(
@@ -88,70 +90,4 @@ function alignmentGuidePoints(
         Math.max(bounds.right, extent?.[1] ?? bounds.right),
         value,
       ];
-}
-
-function spacingSnap(
-  moving: CanvasBounds,
-  index: CanvasTranslationSnapIndex,
-  axis: "x" | "y",
-  tolerance: number,
-) {
-  const before = nearestSpacingNeighbor(index, moving, axis, "before");
-  const after = nearestSpacingNeighbor(index, moving, axis, "after");
-  if (!before || !after) return undefined;
-  const available = boundsStart(after, axis) - boundsEnd(before, axis) - boundsSize(moving, axis);
-  if (available < 0) return undefined;
-  const offset = boundsEnd(before, axis) + available / 2 - boundsStart(moving, axis);
-  if (Math.abs(offset) > tolerance) return undefined;
-  const moved = translateCanvasBounds(moving, axis === "x" ? { x: offset, y: 0 } : { x: 0, y: offset });
-  const cross = axis === "x" ? moved.centerY : moved.centerX;
-  return {
-    offset,
-    guides: [
-      spacingGuide(boundsEnd(before, axis), boundsStart(moved, axis), cross, axis),
-      spacingGuide(boundsEnd(moved, axis), boundsStart(after, axis), cross, axis),
-    ],
-  };
-}
-
-function nearestSpacingNeighbor(
-  index: CanvasTranslationSnapIndex,
-  moving: CanvasBounds,
-  axis: "x" | "y",
-  side: "after" | "before",
-) {
-  const candidates = index.neighbors[axis][side];
-  const step = side === "before" ? -1 : 1;
-  for (
-    let position = neighborBoundary(candidates, moving, axis, side);
-    position >= 0 && position < candidates.length;
-    position += step
-  ) {
-    const target = candidates[position]!;
-    if (crossAxisOverlaps(moving, target, axis)) return target;
-  }
-  return undefined;
-}
-
-function neighborBoundary(
-  candidates: readonly CanvasBounds[],
-  moving: CanvasBounds,
-  axis: "x" | "y",
-  side: "after" | "before",
-) {
-  const coordinate = side === "before" ? boundsEnd : boundsStart;
-  const boundary = side === "before" ? boundsStart(moving, axis) : boundsEnd(moving, axis);
-  let low = 0;
-  let high = candidates.length;
-  while (low < high) {
-    const middle = (low + high) >>> 1;
-    const value = coordinate(candidates[middle]!, axis);
-    if (value < boundary || (side === "before" && value === boundary)) low = middle + 1;
-    else high = middle;
-  }
-  return side === "before" ? low - 1 : low;
-}
-
-function spacingGuide(from: number, to: number, cross: number, axis: "x" | "y"): CanvasSnapGuide {
-  return { kind: "spacing", points: axis === "x" ? [from, cross, to, cross] : [cross, from, cross, to] };
 }

@@ -13,6 +13,7 @@ import "konva/lib/shapes/Rect";
 import "konva/lib/shapes/Text";
 
 import type { CanvasGestureFeedback } from "../interaction/canvas-snapping";
+import CanvasSpacingGuide from "./CanvasSpacingGuide.vue";
 import type { CanvasPalette } from "./use-canvas-palette";
 
 const props = defineProps<{
@@ -74,16 +75,23 @@ function resizeFeedback(feedback: CanvasGestureFeedback | undefined) {
 
 <template>
   <KonvaGroup :config="{ listening: false, perfectDrawEnabled: false }">
+    <CanvasSpacingGuide
+      v-for="(guide, index) in feedback?.guides.filter(({ kind }) => kind === 'spacing') ?? []"
+      :key="`spacing:${index}`"
+      :guide="guide"
+      :palette="palette"
+      :zoom="zoom"
+    />
     <KonvaLine
-      v-for="(guide, index) in feedback?.guides.filter(({ kind }) => kind !== 'measurement') ?? []"
+      v-for="(guide, index) in feedback?.guides.filter(({ kind }) => kind === 'alignment') ?? []"
       :key="`${guide.kind}:${index}`"
       :config="{
         points: [...guide.points],
         stroke: palette.accent,
         strokeWidth: 1 / zoom,
-        dash: guide.kind === 'spacing' ? [2 / zoom, 4 / zoom] : [5 / zoom, 4 / zoom],
+        dash: [5 / zoom, 4 / zoom],
         lineCap: 'round',
-        opacity: guide.kind === 'spacing' ? 0.9 : 0.72,
+        opacity: 0.72,
       }"
     />
     <KonvaGroup v-if="badge" ref="resizeBadgeGroup">

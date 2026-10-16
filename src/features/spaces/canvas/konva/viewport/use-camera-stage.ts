@@ -3,6 +3,7 @@ import { Konva as konvaGlobal } from "konva/lib/Global";
 import { onScopeDispose, watch, type Ref } from "vue";
 
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
+import { CanvasRenderLayer } from "../rendering/canvas-render-layer";
 import type { CanvasCamera } from "./canvas-camera";
 
 function applyTransform(node: Konva.Stage, value: CanvasViewport) {
@@ -46,6 +47,9 @@ export function useCameraStage(
   function release() {
     owningRenderLoop = false;
     konvaGlobal.autoDrawEnabled = true;
+    for (const layer of stage.value?.getLayers() ?? []) {
+      if (layer instanceof CanvasRenderLayer) layer.setCameraOwned(false);
+    }
     if (!hitSuspended) return;
     hitSuspended = false;
     stage.value?.listening(true);
@@ -55,6 +59,9 @@ export function useCameraStage(
     const node = stage.value;
     if (!node) return;
     engage(node);
+    for (const layer of node.getLayers()) {
+      if (layer instanceof CanvasRenderLayer) layer.setCameraOwned(true);
+    }
     applyTransform(node, value);
     for (const layer of node.getLayers()) {
       if (hitSuspended) layer.drawScene();

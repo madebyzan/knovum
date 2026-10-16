@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { Arrow as KonvaArrow, Layer as KonvaLayer } from "vue-konva/core";
+import { Arrow as KonvaArrow } from "vue-konva/core";
 // oxlint-disable-next-line import/no-unassigned-import
 import "konva/lib/shapes/Arrow";
 
 import type { CanvasConnectorDraft } from "../interaction/connector-gesture-controller";
 import type { CanvasSceneRelation } from "../scene/canvas-scene";
 import { draftRelationPath } from "../scene/relation-path";
+import { useCanvasRenderLayer } from "./canvas-render-layer";
 import CanvasRelationShape from "./CanvasRelationShape.vue";
 import type { CanvasPalette } from "./use-canvas-palette";
 
+const KonvaLayer = useCanvasRenderLayer();
 defineProps<{
   interactive: boolean;
   connectorDraft: CanvasConnectorDraft | undefined;
