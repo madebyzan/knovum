@@ -30,7 +30,6 @@ pub struct SpaceActionDefinition {
     #[ts(type = "Record<string, unknown>")]
     pub parameters_schema: ParameterSchemaFactory,
     pub output_contract: SpaceActionOutputContract,
-    pub output_arity: SpaceActionOutputArity,
 }
 
 #[derive(Clone, Copy, Serialize, ts_rs::TS)]
@@ -95,19 +94,6 @@ pub enum SpaceActionOutputContract {
     SpaceEditReceipt,
     SpaceContents,
     Video,
-}
-
-/// How many resources one invocation publishes. Every Action has its first output reserved as a
-/// pending node before the handler runs, so the canvas shows the work from the moment it is asked
-/// for. Most Actions publish exactly that one output. Some inputs decide the count themselves —
-/// splitting an image into its layers, for instance — and their handler reserves the rest of the
-/// set once discovery reports how many there are.
-#[derive(Clone, Copy, Eq, PartialEq, Serialize, schemars::JsonSchema, ts_rs::TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub enum SpaceActionOutputArity {
-    Single,
-    Discovered,
 }
 
 pub fn definitions() -> &'static [SpaceActionDefinition] {
