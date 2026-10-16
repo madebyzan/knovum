@@ -3,7 +3,6 @@ use sqlx::Sqlite;
 use tauri::AppHandle;
 
 use super::contracts::SplitImageLayersRequest;
-use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 
 /// The pinned source a split reads, as it stood when the split opened.
@@ -30,15 +29,10 @@ pub(super) async fn render_png(
     .png)
 }
 
-pub(super) async fn describe(
-    app: &AppHandle,
-    request: &SplitImageLayersRequest,
-) -> Result<SourceImage, AppError> {
-    Ok(validate(db::pool(app).await?, request).await?)
-}
-
-/// Confirms the source still carries the pinned revision and edit the split opened against.
-pub(super) async fn validate<'e, E>(
+/// Reads the source a split is pinned to, confirming it still carries the revision and edit the
+/// split opened against. Read once to open the split and again to settle it, so a source edited
+/// while the models ran cannot publish layers of an image that no longer exists.
+pub(super) async fn load<'e, E>(
     executor: E,
     request: &SplitImageLayersRequest,
 ) -> Result<SourceImage, String>
