@@ -3,8 +3,10 @@ use serde_json::Value;
 
 pub const MIN_LAYER_COUNT: usize = 2;
 /// Discovery decides how many layers a source carries, so the ceiling only bounds how many output
-/// nodes one split may create. Label maps are `u8`, which leaves ample headroom above this.
-pub const MAX_LAYER_COUNT: usize = 24;
+/// nodes one split may create. It is the worker's own discovery ceiling: the host cannot publish a
+/// layer the worker cannot rank.
+pub const MAX_LAYER_COUNT: usize =
+    crate::ai::contracts::image_compute::MAX_DISCOVERED_LAYERS as usize;
 
 /// One split request. `id` is the Run that owns it, so the outputs and their derivation rows are
 /// named after it and the split settles against a single authority.

@@ -278,6 +278,17 @@ from far to near, and `imageInpainting` completes the backdrop the subjects cove
 over a uniform backdrop, such as sticker sheets, are read from pixel connectivity and need no model
 at all; the path is chosen by measured input structure, and each path is complete on its own.
 
+A split can only contain objects that were prompted, and the worker encodes the source once and
+reuses that embedding, so one extra prompt costs one decoder pass over a 192px probe rather than
+another encode. Prompts are therefore spent to the shared `MAX_DISCOVERY_SEEDS` ceiling and in two
+kinds. Subject prompts take the connected components of the saliency field, one per component,
+which keeps two neighbouring subjects apart and one wide subject together. Exploratory prompts
+cover the cells saliency left empty, because segmentation reports a single foreground and the
+secondary objects of a scene — a second vehicle, an object behind the subject — score below the
+subject threshold and would otherwise never be asked about. The worker's own score, stability and
+area filters reject the prompts that land on flat sky or wall and its overlap election drops the
+duplicates, so exploration is paid for in decoder passes rather than in false layers.
+
 The resource catalog is authoritative for immutable URLs, exact hashes, file sets and bytes. Every
 snapshot includes its license; depth also includes its processor and conversion model card.
 Real-ESRGAN installation verifies the compressed archive and every extracted graph/data member;

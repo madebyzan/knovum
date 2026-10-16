@@ -21,7 +21,7 @@ pub(super) async fn decompose(
     let revision = format!("sha256:{}", hex::encode(Sha256::digest(source.as_raw())));
     let identity = (owner_id, revision.as_str());
     let saliency = passes::saliency(app, source, identity, cancellation).await?;
-    let seeds = seeds::from_saliency(&saliency, (source.width(), source.height()), max_layers);
+    let seeds = seeds::from_saliency(&saliency, (source.width(), source.height()));
     let ranks = passes::discover(app, source, identity, (seeds, max_layers), cancellation).await?;
     let depth = passes::depth(app, source, identity, cancellation).await?;
     let decomposition = ordering::stack(ranks, (source.width(), source.height()), &depth)?;

@@ -1,6 +1,6 @@
 use super::selection::{self, Selection};
 use crate::cancellation::Cancellation;
-use knovum_inference_contracts::image_compute::ImageSelectionPoint;
+use knovum_inference_contracts::image_compute::{validate_discovery, ImageSelectionPoint};
 
 /// Seeds are probed at this long edge. Discovery only needs mask overlap statistics, so small
 /// masks keep the sweep cheap; survivors are decoded again at source resolution.
@@ -16,8 +16,6 @@ const MAX_AREA_RATIO: f32 = 0.95;
 const MAX_OVERLAP: f32 = 0.5;
 /// Containment above which the weaker candidate is a part of a stronger one rather than a peer.
 const MAX_CONTAINMENT: f32 = 0.85;
-pub(super) const MAX_SEEDS: usize = 64;
-pub(super) const MAX_LAYERS: u8 = 24;
 
 struct Candidate {
     seed: usize,
@@ -37,9 +35,7 @@ pub(super) fn discover(
     cancellation: &Cancellation,
 ) -> Result<Vec<u8>, String> {
     let (height, width) = selection::source_size(shape)?;
-    if seeds.is_empty() || seeds.len() > MAX_SEEDS || !(1..=MAX_LAYERS).contains(&max_layers) {
-        return Err("invalid_input: layer discovery seed or layer budget is invalid".into());
-    }
+    validate_discovery(seeds.len(), max_layers)?;
     selection.encode(shape, image, identity, cancellation)?;
     let probe = probe_size(height, width);
     let mut candidates = Vec::new();
