@@ -59,7 +59,7 @@ pub(super) async fn execute(
                 cancellation,
             )
             .await?;
-            let input = raster::rgb_tensor(&source_image);
+            let input = crate::spaces::derivation::image_tensors::rgb_tensor(&source_image);
             (source_image, input, ImageTensorOperation::Inpaint(mask))
         }
         _ => {

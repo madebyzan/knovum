@@ -38,7 +38,7 @@ pub async fn start(app: &AppHandle, request: &GenerateImageLayersRequest) -> Res
     }
     for (index, output_id) in request.output_node_ids.iter().enumerate() {
         let derivation_id = derivation_id(&request.generation_id, index);
-        sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'split-image-layers',1,'fal:qwen-image-layered','running',$4,$4)")
+        sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'split-image-layers',1,'local:image-layers','running',$4,$4)")
             .bind(&derivation_id).bind(&request.space_id).bind(output_id)
             .bind(crate::foundation::clock::unix_time_millis()?).execute(&mut *tx).await.map_err(db::sql_error)?;
         inputs::insert(

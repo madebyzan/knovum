@@ -94,6 +94,16 @@ pub enum ImageComputation {
         box_rect: Option<ImageSelectionRect>,
     },
     Depth,
+    /// Decomposes the source into disjoint object candidates. The worker encodes the source once,
+    /// decodes one mask per seed, keeps the strongest non-overlapping candidates and returns a
+    /// single label map whose pixel values are candidate ranks: `0` is unassigned and `1` is the
+    /// highest ranked candidate. Ranking stays with the worker because only the decoder output
+    /// carries the logits that stability scoring needs.
+    DiscoverLayers {
+        seeds: Vec<ImageSelectionPoint>,
+        #[serde(rename = "maxLayers")]
+        max_layers: u8,
+    },
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]

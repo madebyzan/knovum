@@ -1,12 +1,10 @@
 use std::{fs, io::Cursor, path::PathBuf};
 
-use base64::{engine::general_purpose::STANDARD, Engine};
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
-const MAX_SOURCE_BYTES: usize = 10 * 1024 * 1024;
 const MAX_LAYER_BYTES: usize = 20 * 1024 * 1024;
 const MAX_IMAGE_DIMENSION: u32 = 16_384;
 const MAX_IMAGE_PIXELS: u64 = 25_000_000;
@@ -17,14 +15,6 @@ pub struct PreparedLayer {
     pub size: usize,
     pub width: u32,
     pub height: u32,
-}
-
-pub fn encode_source_image_uri(bytes: &[u8]) -> Result<String, String> {
-    if bytes.is_empty() || bytes.len() > MAX_SOURCE_BYTES {
-        return Err("Image layer source must be a PNG no larger than 10 MB".into());
-    }
-    decode_png(bytes, "Image layer source")?;
-    Ok(format!("data:image/png;base64,{}", STANDARD.encode(bytes)))
 }
 
 pub fn prepare(
@@ -56,11 +46,11 @@ fn prepare_one(
         return Err("Image layer split was cancelled".into());
     }
     if bytes.is_empty() || bytes.len() > MAX_LAYER_BYTES {
-        return Err("fal returned an invalid layer size".into());
+        return Err("A generated layer has an invalid size".into());
     }
-    let decoded = decode_png(&bytes, "fal layer")?;
+    let decoded = decode_png(&bytes, "Generated layer")?;
     if !decoded.color().has_alpha() {
-        return Err("fal returned a layer without an alpha channel".into());
+        return Err("A generated layer has no alpha channel".into());
     }
     if cancellation.is_cancelled() {
         return Err("Image layer split was cancelled".into());

@@ -2,28 +2,21 @@ use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 
-use super::{assets, contracts::GenerateImageLayersRequest};
+use super::contracts::GenerateImageLayersRequest;
 use crate::spaces::db;
 
-pub async fn load_image_uri(
-    app: &AppHandle,
-    request: &GenerateImageLayersRequest,
-) -> Result<String, String> {
-    let path = super::super::source_snapshot::image_path(
-        app,
-        &super::persistence::derivation_id(&request.generation_id, 0),
-        &request.source_edit,
-    )
-    .await?;
+/// Renders the source image, with its edits applied, into the PNG the local passes read.
+pub async fn load_png(app: &AppHandle, scratch_key: &str, edit: &Value) -> Result<Vec<u8>, String> {
+    let path = super::super::source_snapshot::image_path(app, scratch_key, edit).await?;
     let app = app.clone();
-    let edit = request.source_edit.clone();
+    let edit = edit.clone();
     let rendered = crate::foundation::blocking::run(move || {
         let source =
             crate::spaces::assets::authorize_spaces_asset(&app, std::path::Path::new(&path))?;
         crate::images::render_source_png(&source, &edit)
     })
     .await?;
-    assets::encode_source_image_uri(&rendered.png)
+    Ok(rendered.png)
 }
 
 pub async fn validate(

@@ -30,6 +30,10 @@ pub(crate) enum ImageTensorOperation {
         box_rect: Option<ImageSelectionRect>,
     },
     Depth,
+    DiscoverLayers {
+        seeds: Vec<ImageSelectionPoint>,
+        max_layers: u8,
+    },
 }
 
 pub(crate) struct ImageComputeRequest {
@@ -51,6 +55,7 @@ pub(crate) async fn execute<R: Runtime>(
         ImageTensorOperation::Upscale => RuntimeCapability::ImageUpscaling,
         ImageTensorOperation::Inpaint(_) => RuntimeCapability::ImageInpainting,
         ImageTensorOperation::Select { .. } => RuntimeCapability::ImageSelection,
+        ImageTensorOperation::DiscoverLayers { .. } => RuntimeCapability::ImageSelection,
         ImageTensorOperation::Depth => RuntimeCapability::ImageDepth,
     };
     if request.model.capability() != capability {
@@ -94,6 +99,9 @@ pub(crate) async fn execute<R: Runtime>(
         }
         ImageTensorOperation::Select { points, box_rect } => {
             ImageComputation::Select { points, box_rect }
+        }
+        ImageTensorOperation::DiscoverLayers { seeds, max_layers } => {
+            ImageComputation::DiscoverLayers { seeds, max_layers }
         }
         ImageTensorOperation::Depth => ImageComputation::Depth,
     };
@@ -231,7 +239,9 @@ fn output_shape(
             return Err("invalid_input: upscale source exceeds the tile budget".into())
         }
         ImageTensorOperation::Inpaint(_) => (source, TensorDataType::Uint8),
-        ImageTensorOperation::Select { .. } => ([1, 1, height, width], TensorDataType::Uint8),
+        ImageTensorOperation::Select { .. } | ImageTensorOperation::DiscoverLayers { .. } => {
+            ([1, 1, height, width], TensorDataType::Uint8)
+        }
         ImageTensorOperation::Depth => ([1, 1, height, width], TensorDataType::Float32LittleEndian),
     })
 }
