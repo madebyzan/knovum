@@ -67,25 +67,13 @@
   },
   "layers": {
     "title": "Split layer",
-    "selectContent": "Sélectionner la région",
-    "selectContentUnavailable": "Le modèle de calque actuel ne peut pas diviser une région sélectionnée",
-    "auto": "Partage automatique",
-    "custom": "Partage personnalisé",
-    "prompt": {
-      "label": "Focus de séparation",
-      "placeholder": "Décrire ce qu'il faut diviser en couches"
-    },
-    "split": "Diviser",
     "task": "Diviser les calques d'images",
     "failed": "Échec du fractionnement des couches",
     "stage": {
-      "submitting": "Envoi d'une image",
-      "processing": "Splitting layer",
-      "downloading": "Récupération des couches",
-      "publishing": "Sauvegarde des couches"
-    },
-    "keyMissing": "La division des couches nécessite une clé fal API",
-    "promptRequired": "Décrivez ce qui doit être séparé en premier"
+      "preparing": "Préparation de l'image",
+      "analyzing": "Détection des calques",
+      "staging": "Enregistrement des calques"
+    }
   },
   "applyNow": "Utiliser maintenant",
   "unsaved": {
@@ -96,7 +84,6 @@
     "modelUnavailable": "Vérifiez le modèle d'image et les paramètres d'identification",
     "providerUnsupported": "Le modèle d'image sélectionné ne prend pas en charge cette opération",
     "credentialUnavailable": "Les informations d'identification du modèle d'image n'ont pas pu être lues",
-    "secretDatabaseUnavailable": "La base de données locale des informations d'identification n'est pas disponible",
     "capabilityCheckFailed": "Impossible de vérifier si cette action est disponible",
     "busy": "Une opération est en cours"
   },

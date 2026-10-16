@@ -10,7 +10,6 @@ import { confirmAction } from "../../../shared/ui/confirm-action";
 import SettingsLoadFailure from "../components/SettingsLoadFailure.vue";
 import { useSettingsLeaveDecision } from "../navigation/use-settings-leave-decision";
 import type { GenerationActionOption } from "./action-option";
-import FalImageLayerSettings from "./components/FalImageLayerSettings.vue";
 import SavedGenerationPresets from "./components/SavedGenerationPresets.vue";
 
 const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
@@ -70,6 +69,5 @@ onMounted(store.ensureLoaded);
       @duplicate="(id, name) => updatePresets(() => store.duplicatePreset(id, name))"
       @rename="(id, name) => updatePresets(() => store.renamePreset(id, name))"
     />
-    <FalImageLayerSettings />
   </div>
 </template>

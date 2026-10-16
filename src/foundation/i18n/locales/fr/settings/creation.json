@@ -1,6 +1,6 @@
 {
   "title": "Création",
-  "description": "Gérez les préréglages de création et le service utilisé pour le fractionnement des calques d'image.",
+  "description": "Gérez les préréglages utilisés pour la création de contenu.",
   "presets": {
     "title": "Préréglages de génération",
     "description": "Paramètres de modèle enregistrés pour la création de contenu.",
@@ -30,13 +30,5 @@
     "extractSubtitles": "Extraction des sous-titres",
     "renderSubtitledVideo": "Vidéo sous-titrée",
     "renderPresentation": "Présentation"
-  },
-  "imageLayers": {
-    "title": "Répartition des couches d'images",
-    "description": "Connectez fal pour le fractionnement des calques d'image.",
-    "apiKey": {
-      "label": "clé API fal",
-      "description": "Stocké uniquement sur cet appareil."
-    }
   }
 }

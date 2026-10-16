@@ -271,6 +271,13 @@ Selections are strict current v1 preferences, not an arbitrary model-import mech
 | Smart selection | EfficientSAM Ti / S                  | Frozen author encoder + decoder, RGB 0–1, foreground/exclusion points and rectangle; one worker-owned encoding    |
 | Relative depth  | Depth Anything V2 Small FP32 / UINT8 | Frozen ONNX conversion and processor; ImageNet-normalized RGB, dimensions divisible by 14, relative inverse depth |
 
+Layer splitting reuses these capabilities rather than adding a model: `imageSegmentation` proposes
+where the subjects are and supplies the soft alpha for the salient layer, `imageSelection` turns
+those proposals into masks through the `DiscoverLayers` computation, `imageDepth` orders the stack
+from far to near, and `imageInpainting` completes the backdrop the subjects covered. Sources drawn
+over a uniform backdrop, such as sticker sheets, are read from pixel connectivity and need no model
+at all; the path is chosen by measured input structure, and each path is complete on its own.
+
 The resource catalog is authoritative for immutable URLs, exact hashes, file sets and bytes. Every
 snapshot includes its license; depth also includes its processor and conversion model card.
 Real-ESRGAN installation verifies the compressed archive and every extracted graph/data member;

@@ -1,19 +1,15 @@
 import type { ActionAvailability } from "../../../../../shared/contracts/action-availability";
 import type { ImageOperationCapability } from "../../../contracts/generated/ImageOperationCapability";
-import type { LayerAvailability } from "../../../knowledge-derivations/image-layers";
 
 export type ImageActionReason =
   | "image_preparing"
   | "finish_image_edit"
   | "capability_failed"
-  | "missing_credential"
-  | "secret_database_unavailable"
   | "configuration_incomplete"
   | "provider_unsupported"
   | "credential_unavailable"
   | "upscale_source_budget"
-  | "upscale_target_too_small"
-  | "prompt_required";
+  | "upscale_target_too_small";
 
 export type ImageActionAvailability = ActionAvailability<ImageActionReason>;
 
@@ -31,7 +27,7 @@ export function imageToolAvailability(input: {
 interface ImageActionAvailabilityInput {
   sourceReady: boolean;
   editing: boolean;
-  capability: LayerAvailability | ImageOperationCapability | undefined;
+  capability: ImageOperationCapability | undefined;
   failed: boolean;
   busy: boolean;
 }
@@ -61,11 +57,4 @@ export function upscaleAvailability(
   if (Math.max(dimensions.width, dimensions.height) >= target)
     return { state: "blocked", reason: "upscale_target_too_small" };
   return base;
-}
-
-export function promptedLayerAvailability(
-  base: ImageActionAvailability,
-  prompt: string,
-): ImageActionAvailability {
-  return base.state === "ready" && !prompt.trim() ? { state: "blocked", reason: "prompt_required" } : base;
 }

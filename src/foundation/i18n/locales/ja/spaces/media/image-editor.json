@@ -67,25 +67,13 @@
   },
   "layers": {
     "title": "レイヤーの分割",
-    "selectContent": "地域の選択",
-    "selectContentUnavailable": "現在のレイヤー モデルは選択した領域を分割できません",
-    "auto": "自動分割",
-    "custom": "カスタム分割",
-    "prompt": {
-      "label": "分離フォーカス",
-      "placeholder": "何をレイヤーに分割するかを説明する"
-    },
-    "split": "分割",
     "task": "画像レイヤーの分割",
     "failed": "レイヤー分割に失敗しました",
     "stage": {
-      "submitting": "画像の送信",
-      "processing": "レイヤーの分割",
-      "downloading": "レイヤーの取得",
-      "publishing": "レイヤーの保存"
-    },
-    "keyMissing": "レイヤー分割には false API キーが必要です",
-    "promptRequired": "最初に何を分離する必要があるかを説明する"
+      "preparing": "画像を準備しています",
+      "analyzing": "レイヤーを検出しています",
+      "staging": "レイヤーを保存しています"
+    }
   },
   "applyNow": "今すぐ使用",
   "unsaved": {
@@ -96,7 +84,6 @@
     "modelUnavailable": "イメージモデルと認証情報の設定を確認してください",
     "providerUnsupported": "選択した画像モデルはこの操作をサポートしていません",
     "credentialUnavailable": "イメージ モデルの認証情報を読み取れませんでした",
-    "secretDatabaseUnavailable": "ローカル認証情報データベースが使用できません",
     "capabilityCheckFailed": "このアクションが利用可能かどうかを確認できませんでした",
     "busy": "操作が進行中です"
   },

@@ -211,6 +211,14 @@ Transformation lineage and epistemic Provenance are different contracts. A Deriv
 
 Long derivations create a pending output node immediately. The pending node reserves the eventual result position and mirrors the feature-owned Rust job's meaningful stage and progress through Task Center. Success replaces it in place; failure remains inspectable and retryable but does not create a false completed resource or semantic lineage.
 
+Layer splitting is the one derivation whose output count is discovered rather than requested, so it
+cannot create its pending nodes up front. Discovery runs first and reports how many layers the image
+carries, the caller then creates that many pending nodes and publishes the staged layers into them.
+Both phases share one identity and one Task Center task, so this remains a single user action with a
+single cancellation; a plan that is cancelled or superseded discards the files it staged. Every layer
+keeps the source canvas size, so stacking the layers reproduces the source without placement
+metadata, and the bottom layer is the completed backdrop rather than a hole.
+
 The dedicated Workflow Studio has been removed. The canvas selection menu opens a floating
 derivation inspector anchored to the selection through the canvas surface placement rule. It
 closes when the user changes the selection; its header does not drag the native window. It

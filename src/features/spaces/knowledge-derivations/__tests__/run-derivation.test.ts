@@ -26,7 +26,6 @@ it("settles a failed task even if output recovery fails", async () => {
   await expect(
     runDerivation({
       spaceId: "space",
-      pendingId: "output",
       task: { title: "Derive" },
       failureMessageKey: "derivation.failed",
       execute: async () => {
@@ -52,7 +51,6 @@ it("does not run failure recovery after a committed output has a projection erro
   await expect(
     runDerivation({
       spaceId: "space",
-      pendingId: "output",
       task: { title: "Derive" },
       failureMessageKey: "derivation.failed",
       execute: async () => "committed",

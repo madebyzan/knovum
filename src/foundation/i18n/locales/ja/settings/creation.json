@@ -1,6 +1,6 @@
 {
   "title": "創造",
-  "description": "作成プリセットと画像レイヤーの分割に使用されるサービスを管理します。",
+  "description": "コンテンツ作成に使うプリセットを管理します。",
   "presets": {
     "title": "生成プリセット",
     "description": "コンテンツ作成用に保存されたモデル設定。",
@@ -30,13 +30,5 @@
     "extractSubtitles": "字幕抽出",
     "renderSubtitledVideo": "字幕付きビデオ",
     "renderPresentation": "プレゼンテーション"
-  },
-  "imageLayers": {
-    "title": "画像レイヤー分割",
-    "description": "画像レイヤーを分割するには fal を接続します。",
-    "apiKey": {
-      "label": "fal API キー",
-      "description": "このデバイスにのみ保存されます。"
-    }
   }
 }

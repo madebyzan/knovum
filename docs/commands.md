@@ -105,11 +105,14 @@ Editor text transformations use `plugin:ai|transform_editor_text_stream`; transl
 Internal provider completion APIs keep their model terminology. Spaces generation enters `start_space_action` with a concrete versioned Action ID;
 specialized image-layer generation uses `generate_image_layers`; transformations use `derive_image`, and deterministic
 video edits use `render_video_edit`; subtitle burn-in uses the `add-video-subtitles` Action. Cancellation names the ongoing
-operation (`cancel_image_layer_generation`, `cancel_run`). Image-layer generation
-uses `generationId` for its multi-output request and cancellation; each output has its own derivation ID.
-No legacy `id` field is accepted by that strict request. Video generation and committed video rendering cancellation use `derivationId`; disposable proxy processing retains `jobId`.
+operation (`cancel_image_layer_generation`, `cancel_run`). Image-layer splitting runs
+`plan_image_layers` and then `generate_image_layers`, because the layer count is a property of the
+image rather than an input: discovery stages the layers and reports how many there are, and the
+caller then publishes them into the output nodes it created for them. Both calls and the
+cancellation carry the same `splitId`, so one user action remains one cancellable task; each output
+still has its own derivation ID. No legacy `id` or `prompt` field is accepted by those strict requests.
+Video generation and committed video rendering cancellation use `derivationId`; disposable proxy processing retains `jobId`.
 
-`get_image_layer_availability` reads Ready/Blocked environment readiness;
 `get_image_operation_capabilities`, `check_image_cutout_source` and `list_video_fonts` are queries.
 They share the Spaces transport namespace with state-changing commands.
 

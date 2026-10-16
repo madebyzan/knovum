@@ -1,6 +1,6 @@
 {
   "title": "창조",
-  "description": "생성 사전 설정과 이미지 레이어 분할에 사용되는 서비스를 관리합니다.",
+  "description": "콘텐츠 제작에 사용하는 프리셋을 관리합니다.",
   "presets": {
     "title": "세대 사전 설정",
     "description": "콘텐츠 생성을 위한 저장된 모델 설정입니다.",
@@ -30,13 +30,5 @@
     "extractSubtitles": "자막 추출",
     "renderSubtitledVideo": "자막 비디오",
     "renderPresentation": "프레젠테이션"
-  },
-  "imageLayers": {
-    "title": "이미지 레이어 분할",
-    "description": "이미지 레이어 분할을 위해 fal을 연결합니다.",
-    "apiKey": {
-      "label": "팔 API 키",
-      "description": "이 기기에만 저장됩니다."
-    }
   }
 }

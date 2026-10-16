@@ -14,75 +14,63 @@ import { applyDerivationOutput } from "./apply-output";
 import { derivedNodePosition } from "./placement";
 import { runDerivation } from "./run-derivation";
 
-export type LayerAvailability =
-  | { state: "ready" }
-  | { state: "blocked"; reason: "missing_credential" | "secret_database_unavailable" };
 interface LayerOutput {
   nodeId: string;
   data: SpaceImagePayload;
   relation: SpaceRelation;
 }
-
-export function getImageLayerAvailability() {
-  return invokeCommand<LayerAvailability>("plugin:spaces|get_image_layer_availability");
+interface LayerPlan {
+  planId: string;
+  layerCount: number;
+}
+interface SplitSource {
+  spaceId: string;
+  sourceNodeId: string;
+  sourceRevision: string;
+  sourceEdit: unknown;
 }
 
-export async function generateImageLayers(
-  source: SpaceCanvasNode<SpaceImagePayload>,
-  count: number,
-  prompt?: string,
-) {
+/**
+ * Splits an image into layer nodes. The layer count is a property of the image rather than an
+ * input, so discovery runs first and the output nodes are created once it reports how many layers
+ * the image carries. Both phases share one task, so this stays a single user action.
+ */
+export async function splitImageLayers(source: SpaceCanvasNode<SpaceImagePayload>) {
   const store = useSpaceStore();
   const tasks = useTaskStore();
   const spaceId = store.activeSpaceId;
   const sourceRevision = source.data.sourceRevision;
-  if (!spaceId || !sourceRevision || !Number.isInteger(count) || count < 2 || count > 8)
-    throw new Error("Image layer input is invalid");
-  const base = derivedNodePosition([source], getCanvasEditorSession().selection.value.nodePlacements);
-  const width = spaceNodeDimensions(source.data).width;
-  const nodes = await Promise.all(
-    Array.from({ length: count }, async (_, index) => {
-      const assetPath = await invokeCommand<string>("plugin:spaces|allocate_visualization_output_path");
-      const title = `${source.data.title}-layer-${index + 1}`;
-      return createSpaceNode(
-        { kind: "image", title, fileName: `${title}.png`, assetPath, processingState: "processing" },
-        { x: base.x + index * (width + 24), y: base.y },
-      );
-    }),
-  );
-  if (store.activeSpaceId !== spaceId) throw new Error("Image layer target Space changed");
-  const pending = await store.addContents(nodes);
-  const first = pending[0];
-  if (!first) throw new Error("Image layer outputs were not created");
-  const generationId = crypto.randomUUID();
+  if (!spaceId || !sourceRevision) throw new Error("Image layer input is invalid");
+  const splitId = crypto.randomUUID();
+  const split: SplitSource = {
+    spaceId,
+    sourceNodeId: source.id,
+    sourceRevision,
+    sourceEdit: source.data.imageEdit ?? null,
+  };
+  let pending: SpaceCanvasNode[] = [];
   return runDerivation<LayerOutput[]>({
     spaceId,
-    pendingId: first.id,
     task: {
-      id: generationId,
+      id: splitId,
       title: i18n.global.t("spaces.media.imageEditor.layers.task"),
       statusMessage: source.data.title,
-      cancel: () => invokeCommand<void>("plugin:spaces|cancel_image_layer_generation", { generationId }),
+      cancel: () => invokeCommand<void>("plugin:spaces|cancel_image_layer_generation", { splitId }),
     },
     failureMessageKey: "spaces.media.imageEditor.layers.failed",
     execute: async ({ taskId }) => {
-      const onStage = new Channel<string>(
-        taskId
-          ? (stage) =>
-              tasks.setStatusMessage(taskId, i18n.global.t(`spaces.media.imageEditor.layers.stage.${stage}`))
-          : undefined,
-      );
+      const { layerCount } = await invokeCommand<LayerPlan>("plugin:spaces|plan_image_layers", {
+        request: { planId: splitId, ...split },
+        onStage: stageChannel(tasks, taskId),
+      });
+      pending = await createLayerNodes(source, layerCount, spaceId);
       return invokeCommand<LayerOutput[]>("plugin:spaces|generate_image_layers", {
         request: {
-          generationId,
-          spaceId,
-          sourceNodeId: source.id,
-          sourceRevision,
-          sourceEdit: source.data.imageEdit ?? null,
+          generationId: splitId,
+          planId: splitId,
+          ...split,
           outputNodeIds: pending.map(({ id: nodeId }) => nodeId),
-          prompt: prompt?.trim() || null,
         },
-        onStage,
       });
     },
     onSuccess: async (outputs, currentSpaceId) => {
@@ -101,4 +89,37 @@ export async function generateImageLayers(
       if (store.activeSpaceId === spaceId) await store.refreshActiveSpace();
     },
   });
+}
+
+function stageChannel(tasks: ReturnType<typeof useTaskStore>, taskId: string | undefined) {
+  return new Channel<string>(
+    taskId
+      ? (stage) =>
+          tasks.setStatusMessage(taskId, i18n.global.t(`spaces.media.imageEditor.layers.stage.${stage}`))
+      : undefined,
+  );
+}
+
+async function createLayerNodes(
+  source: SpaceCanvasNode<SpaceImagePayload>,
+  layerCount: number,
+  spaceId: string,
+) {
+  const store = useSpaceStore();
+  const base = derivedNodePosition([source], getCanvasEditorSession().selection.value.nodePlacements);
+  const width = spaceNodeDimensions(source.data).width;
+  const nodes = await Promise.all(
+    Array.from({ length: layerCount }, async (_, index) => {
+      const assetPath = await invokeCommand<string>("plugin:spaces|allocate_visualization_output_path");
+      const title = `${source.data.title}-layer-${index + 1}`;
+      return createSpaceNode(
+        { kind: "image", title, fileName: `${title}.png`, assetPath, processingState: "processing" },
+        { x: base.x + index * (width + 24), y: base.y },
+      );
+    }),
+  );
+  if (store.activeSpaceId !== spaceId) throw new Error("Image layer target Space changed");
+  const pending = await store.addContents(nodes);
+  if (pending.length !== layerCount) throw new Error("Image layer outputs were not created");
+  return pending;
 }

@@ -67,25 +67,13 @@
   },
   "layers": {
     "title": "Dividir capas",
-    "selectContent": "Seleccionar región",
-    "selectContentUnavailable": "El modelo de capa actual no puede dividir una región seleccionada",
-    "auto": "División automática",
-    "custom": "División personalizada",
-    "prompt": {
-      "label": "Enfoque de separación",
-      "placeholder": "Describir qué dividir en capas"
-    },
-    "split": "Dividir",
     "task": "División de capas de imágenes",
     "failed": "Falló la división de capas",
     "stage": {
-      "submitting": "Enviando imagen",
-      "processing": "División de capas",
-      "downloading": "Recuperar capas",
-      "publishing": "Guardar capas"
-    },
-    "keyMissing": "La división de capas requiere una clave fal API",
-    "promptRequired": "Describe qué se debe separar primero."
+      "preparing": "Preparando la imagen",
+      "analyzing": "Detectando capas",
+      "staging": "Guardando capas"
+    }
   },
   "applyNow": "Usar ahora",
   "unsaved": {
@@ -96,7 +84,6 @@
     "modelUnavailable": "Verifique el modelo de imagen y la configuración de credenciales",
     "providerUnsupported": "El modelo de imagen seleccionado no admite esta operación",
     "credentialUnavailable": "No se pudo leer la credencial del modelo de imagen",
-    "secretDatabaseUnavailable": "La base de datos de credenciales local no está disponible",
     "capabilityCheckFailed": "No se pudo verificar si esta acción está disponible",
     "busy": "Hay una operación en curso"
   },

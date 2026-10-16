@@ -14,13 +14,11 @@ interface DerivationTask {
 
 interface DerivationExecutionContext {
   spaceId: string;
-  pendingId: string;
   taskId?: string | undefined;
 }
 
 export interface RunDerivationOptions<Output> {
   spaceId: string;
-  pendingId: string;
   task: DerivationTask;
   failureMessageKey: string;
   execute: (context: DerivationExecutionContext) => Promise<Output>;
@@ -31,7 +29,7 @@ export interface RunDerivationOptions<Output> {
 export async function runDerivation<Output>(
   options: RunDerivationOptions<Output>,
 ): Promise<Output | undefined> {
-  const { spaceId, pendingId, task, execute, onSuccess, onError, failureMessageKey } = options;
+  const { spaceId, task, execute, onSuccess, onError, failureMessageKey } = options;
 
   const tasks = useTaskStore();
   const taskId = tasks.start(task.title, task.statusMessage, task.cancel, task.id);
@@ -39,7 +37,7 @@ export async function runDerivation<Output>(
   let completed: Output;
   try {
     await yieldToCanvas();
-    completed = await execute({ spaceId, pendingId, taskId });
+    completed = await execute({ spaceId, taskId });
   } catch (error) {
     tasks.fail(taskId, getErrorMessage(error));
     try {

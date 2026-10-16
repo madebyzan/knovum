@@ -67,25 +67,13 @@
   },
   "layers": {
     "title": "Dividi livelli",
-    "selectContent": "Seleziona regione",
-    "selectContentUnavailable": "Il modello di livello corrente non può dividere una regione selezionata",
-    "auto": "Divisione automatica",
-    "custom": "Suddivisione personalizzata",
-    "prompt": {
-      "label": "Focus di separazione",
-      "placeholder": "Descrivi cosa dividere in strati"
-    },
-    "split": "Dividi",
     "task": "Divisione dei livelli dell'immagine",
     "failed": "Divisione del livello non riuscita",
     "stage": {
-      "submitting": "Invio immagine",
-      "processing": "Divisione dei livelli",
-      "downloading": "Recupero livelli",
-      "publishing": "Salvataggio livelli"
-    },
-    "keyMissing": "La suddivisione dei livelli richiede una chiave fal API",
-    "promptRequired": "Descrivi prima cosa dovrebbe essere separato"
+      "preparing": "Preparazione dell'immagine",
+      "analyzing": "Rilevamento dei livelli",
+      "staging": "Salvataggio dei livelli"
+    }
   },
   "applyNow": "Utilizza ora",
   "unsaved": {
@@ -96,7 +84,6 @@
     "modelUnavailable": "Controlla il modello di immagine e le impostazioni delle credenziali",
     "providerUnsupported": "Il modello di immagine selezionato non supporta questa operazione",
     "credentialUnavailable": "Impossibile leggere le credenziali del modello di immagine",
-    "secretDatabaseUnavailable": "Il database delle credenziali locali non è disponibile",
     "capabilityCheckFailed": "Impossibile verificare se questa azione è disponibile",
     "busy": "È in corso un'operazione"
   },

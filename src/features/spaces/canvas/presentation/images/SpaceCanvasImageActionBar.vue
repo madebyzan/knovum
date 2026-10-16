@@ -131,12 +131,7 @@ watch(
         :reason="removalReason"
         @begin="beginRemoval"
       />
-      <SpaceImageLayerGeneration
-        :node="node"
-        :compact="compact"
-        :open="openPopover === 'layers'"
-        @update:open="setPopover('layers', $event)"
-      />
+      <SpaceImageLayerGeneration :node="node" :compact="compact" />
       <SpaceCanvasImageAngleTrigger
         :compact="compact"
         @begin="beginAngle() && emit('update:angleOpen', true)"
