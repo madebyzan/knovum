@@ -6,7 +6,6 @@ import DesktopAgentsSettingsPane from "../DesktopAgentsSettingsPane.vue";
 
 const calls = vi.hoisted(() => ({
   loadAi: vi.fn<() => Promise<void>>(),
-  loadCreation: vi.fn<() => never>(),
   setDesktopAgentEnabled: vi.fn<() => Promise<void>>(),
 }));
 vi.mock("vue-sonner", () => ({
@@ -16,9 +15,6 @@ vi.mock("../../../../foundation/ai/execution-settings", () => ({
   setDesktopAgentEnabled: calls.setDesktopAgentEnabled,
 }));
 vi.mock("../../../../foundation/ai/ai-settings-store", () => ({ useAiSettingsStore: () => aiStore }));
-vi.mock("../../../../foundation/ai/creation-library-store", () => ({
-  useCreationLibraryStore: calls.loadCreation,
-}));
 vi.mock("../../../../foundation/ai/use-execution-catalog-query", () => ({
   useExecutionCatalogQuery: () => catalog,
 }));
@@ -75,17 +71,13 @@ describe("desktop Agent settings ownership", () => {
     loadError.value = undefined;
     calls.loadAi.mockResolvedValue();
     calls.setDesktopAgentEnabled.mockResolvedValue();
-    calls.loadCreation.mockImplementation(() => {
-      throw new Error("Unrelated creation library is unavailable");
-    });
   });
-  it("remains usable independently of the generation preset store", async () => {
+  it("renders once the owning AI settings are ready", async () => {
     const wrapper = mount(DesktopAgentsSettingsPane, { global });
     await flushPromises();
     expect(wrapper.find('[data-testid="agent-settings"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="settings-failure"]').exists()).toBe(false);
     expect(calls.loadAi).toHaveBeenCalledOnce();
-    expect(calls.loadCreation).not.toHaveBeenCalled();
     wrapper.unmount();
   });
   it("still surfaces the owning AI settings failure", async () => {

@@ -1,11 +1,9 @@
 import { error as logError } from "@tauri-apps/plugin-log";
-import { pick } from "es-toolkit";
 import { defineAsyncComponent } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import { toast } from "vue-sonner";
 
 import { useSpaceStore } from "../features/spaces/session/space-store";
-import { listSpaceActions } from "../features/spaces/workflows/action-catalog";
 import { formatErrorDiagnostic, getErrorMessage } from "../foundation/errors/error-format";
 import { isApplicationLeaveCancelled } from "../shared/contracts/application-leave";
 import { returnToWorkspace } from "./workspace-session";
@@ -34,8 +32,6 @@ export const router = createRouter({
         voiceLibraryComponent,
         extensionsComponent,
         returnToWorkspace: () => returnToWorkspace(router),
-        loadGenerationActions: async () =>
-          (await listSpaceActions()).map((action) => pick(action, ["id", "routingPurpose"])),
       }),
     },
     { path: "/:pathMatch(.*)*", redirect: "/spaces" },

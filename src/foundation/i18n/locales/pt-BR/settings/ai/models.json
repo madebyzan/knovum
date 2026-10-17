@@ -13,7 +13,7 @@
     "image": "Geração de imagem",
     "video": "Geração de vídeo"
   },
-  "inUse": "Este modelo está em uso. Altere os padrões de tarefas ou as predefinições de criação antes de remover os recursos selecionados ou o modelo.",
+  "inUse": "Este modelo está em uso. Altere os padrões de tarefas antes de remover os recursos selecionados ou o modelo.",
   "title": "Modelos",
   "count": "Modelo {count} | Modelos {count}",
   "add": "Adicionar modelo",

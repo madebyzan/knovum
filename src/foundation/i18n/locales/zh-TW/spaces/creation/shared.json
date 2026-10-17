@@ -3,13 +3,6 @@
   "removeFailedOutput": "移除失敗項",
   "knowledgeDerivation": "基於知識創建",
   "resourceTask": "資源任務",
-  "presets": {
-    "save": "儲存為預設",
-    "saved": "生成預設已儲存",
-    "label": "產生預設",
-    "empty": "暫無生成預設",
-    "select": "選擇生成預設"
-  },
   "source": {
     "knowledge": "來源知識",
     "changed": "創建此內容後，部分來源已變更。"

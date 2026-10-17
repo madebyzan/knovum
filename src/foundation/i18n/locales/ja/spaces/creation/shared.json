@@ -3,13 +3,6 @@
   "removeFailedOutput": "失敗した項目を削除",
   "knowledgeDerivation": "知識から作成",
   "resourceTask": "リソース タスク",
-  "presets": {
-    "save": "プリセットとして保存",
-    "saved": "生成プリセットが保存されました",
-    "label": "生成プリセット",
-    "empty": "生成プリセットなし",
-    "select": "生成プリセットを選択します"
-  },
   "source": {
     "knowledge": "ソース知識",
     "changed": "このアイテムの作成後に一部のソースが変更されました。"

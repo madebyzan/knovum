@@ -3,13 +3,6 @@
   "removeFailedOutput": "Supprimer l'élément ayant échoué",
   "knowledgeDerivation": "Créé à partir de la connaissance",
   "resourceTask": "Tâche ressource",
-  "presets": {
-    "save": "Enregistrer comme préréglage",
-    "saved": "Préréglage de génération enregistré",
-    "label": "Génération prédéfinie",
-    "empty": "Pas de préréglages de génération",
-    "select": "Sélectionnez un préréglage de génération"
-  },
   "source": {
     "knowledge": "Source de connaissances",
     "changed": "Certaines sources ont changé après la création de cet élément."
