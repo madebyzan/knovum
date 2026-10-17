@@ -7,6 +7,7 @@ use super::super::{
 
 pub(super) const FIELDS: &[&str] = &[
     "url",
+    "pageTitle",
     "canonicalUrl",
     "siteName",
     "description",
@@ -19,6 +20,7 @@ pub(super) const FIELDS: &[&str] = &[
 
 pub(super) fn validate(object: &Map<String, Value>) -> Result<(), String> {
     validate_url(required_string(object, "url", 4096)?, "Website URL")?;
+    optional_string_allow_empty(object, "pageTitle", 512)?;
     if let Some(url) = optional_string(object, "canonicalUrl", 4096, false)? {
         validate_url(url, "Canonical URL")?;
     }

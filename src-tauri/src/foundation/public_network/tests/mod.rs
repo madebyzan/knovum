@@ -55,6 +55,7 @@ fn remote_resources_reject_private_and_special_addresses() {
         assert!(!public_address(address.parse().unwrap()), "{address}");
     }
     assert!(public_address("8.8.8.8".parse().unwrap()));
+    assert!(public_address("198.18.0.1".parse().unwrap()));
     assert!(public_address("2606:4700:4700::1111".parse().unwrap()));
 }
 
@@ -62,7 +63,7 @@ fn remote_resources_reject_private_and_special_addresses() {
 fn ipv6_public_resources_exclude_special_purpose_ranges_at_their_boundaries() {
     for address in [
         "2001::",
-        "2001:2::1",
+        "2001:1::1",
         "2001:1ff:ffff:ffff:ffff:ffff:ffff:ffff",
         "2001:db8::1",
         "2002::1",
@@ -75,6 +76,7 @@ fn ipv6_public_resources_exclude_special_purpose_ranges_at_their_boundaries() {
     }
     for address in [
         "2000::",
+        "2001:2::1",
         "2001:200::",
         "2003::",
         "3ffe:ffff:ffff:ffff:ffff:ffff:ffff:ffff",

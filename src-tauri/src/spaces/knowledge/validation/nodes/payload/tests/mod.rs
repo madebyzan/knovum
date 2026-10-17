@@ -37,6 +37,11 @@ fn editor_payload_fields_reach_the_node_save_boundary() {
         "tiptapContent": {"type": "doc", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Draft"}]}]}
     });
     validate_payload_shape("markdown", &markdown).unwrap();
+    let website = json!({
+        "kind": "website", "title": "Website Title", "url": "https://example.com",
+        "pageTitle": "Original Page Title", "faviconPath": "favicon.png"
+    });
+    validate_payload_shape("website", &website).unwrap();
 }
 
 #[test]
