@@ -1,6 +1,6 @@
 ---
 name: knovum-document-delivery
-description: Produce a source-grounded document and deliver a requested DOCX, PDF, TXT, or presentation artifact using Knovum's real draft, export, and render Actions.
+description: Produce a source-grounded document resource, or write a requested DOCX, PDF, TXT, or presentation file, using the executor's real capabilities.
 ---
 
 # Document delivery
@@ -16,19 +16,11 @@ Use this skill when the requested outcome is a report, proposal, handout, or pre
 
 ## Deliver the requested artifact
 
-For an existing published document, use its current revision and advertised deterministic Action contract. These are business Action IDs, not literal tool names:
+A format is chosen when a resource is saved, not by creating a second resource that repeats the same content. Knovum has no Action that converts a document, so the built-in Agent delivers the document resource itself and states that DOCX, PDF, TXT, HTML and PPTX are available when the user saves it. Organize content for the requested format: a presentation needs one main point per slide, concise supporting content and evidence references, rather than report-length prose.
 
-- DOCX: `convert-document-to-docx`.
-- PDF: `convert-document-to-pdf`.
-- Plain text: `convert-document-to-txt`.
-- HTML: `convert-document-to-html`.
-- Presentation: `render-presentation`.
+An external Agent creating a new deliverable writes the final file in the requested format to the current task output directory with its own authenticated runtime and document tools; Knovum validates and publishes task outputs after execution ends. Keep intermediates in hidden directories. A Markdown draft is not a completed PDF or DOCX file, and cannot substitute for the requested format. Use only tools actually available to the executor.
 
-Submit only the requested format unless the user asks for alternatives. A presentation should be organized for slides: one main point per slide, concise supporting content, and evidence references. Use the renderer's actual document structure rather than pretending arbitrary Markdown is a finished slide deck.
-
-An external Agent creating a new deliverable writes the final file in the requested format to the current task output directory; Knovum validates and publishes task outputs after execution ends. Keep intermediates in hidden directories. A Markdown draft is not a completed PDF or DOCX export, and cannot substitute for the requested format. Use only tools actually available to the executor.
-
-For Ask or Plan, describe the document and proposed delivery without publishing. For Execute, follow the admitted Run to its real terminal state. If a model, input, renderer, or authorization is missing, identify that concrete blocker; do not claim a successful export or create an empty substitute. Report the published artifact node, format, and completed Action or task output receipt, or accurately identify a file awaiting publication. Do not claim visual review of an artifact you could not inspect.
+For Ask or Plan, describe the document and proposed delivery without publishing. For Execute, follow the admitted Run to its real terminal state. If a model, input, renderer, or authorization is missing, identify that concrete blocker; do not claim a delivered file or create an empty substitute. Report the published resource and its completed Action or task output receipt, or accurately identify a file awaiting publication. Do not claim visual review of an artifact you could not inspect.
 
 ## On-demand resources
 

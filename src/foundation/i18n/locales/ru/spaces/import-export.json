@@ -24,7 +24,25 @@
     "export": "Экспорт Markdown"
   },
   "export": {
-    "completed": "Экспорт завершен"
+    "completed": "Экспорт завершен",
+    "running": "Экспорт…",
+    "formats": {
+      "png": "Изображение PNG (.png)",
+      "jpg": "Изображение JPEG (.jpg)",
+      "md": "Markdown (.md)",
+      "txt": "Обычный текст (.txt)",
+      "json": "JSON (.json)",
+      "html": "Документ HTML (.html)",
+      "docx": "Документ Word (.docx)",
+      "pdf": "Документ PDF (.pdf)",
+      "pptx": "Презентация (.pptx)",
+      "wav": "Аудио WAV (.wav)",
+      "mp3": "Аудио MP3 (.mp3)",
+      "m4a": "Аудио AAC (.m4a)",
+      "flac": "Аудио FLAC (.flac)",
+      "mp4": "Видео MP4 (.mp4)",
+      "mov": "Видео QuickTime (.mov)"
+    }
   },
   "fileName": "Имя файла",
   "openExternally": "Открыть во внешнем приложении",

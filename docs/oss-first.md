@@ -161,7 +161,7 @@ The resulting lifecycle, permissions and interaction contracts are owned by
   office_oxide owns serialization; Knovum only maps source content to bounded, readable slides.
 
 Detailed data and interaction contracts live in [spaces.md](spaces.md),
-[document-conversion.md](document-conversion.md) and [data-ownership.md](data-ownership.md).
+[resource-export.md](resource-export.md) and [data-ownership.md](data-ownership.md).
 
 ## Media processing and acquisition
 

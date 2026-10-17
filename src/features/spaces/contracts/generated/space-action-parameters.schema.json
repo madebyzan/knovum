@@ -68,21 +68,6 @@
     },
     "add-video-subtitles": {
       "$ref": "#/$defs/EmptyParameters"
-    },
-    "convert-document-to-docx": {
-      "$ref": "#/$defs/EmptyParameters"
-    },
-    "convert-document-to-pdf": {
-      "$ref": "#/$defs/EmptyParameters"
-    },
-    "convert-document-to-txt": {
-      "$ref": "#/$defs/EmptyParameters"
-    },
-    "convert-document-to-html": {
-      "$ref": "#/$defs/EmptyParameters"
-    },
-    "render-presentation": {
-      "$ref": "#/$defs/EmptyParameters"
     }
   },
   "$defs": {
@@ -769,7 +754,6 @@
       "required": [
         "title",
         "intent",
-        "style",
         "aspectRatio"
       ],
       "title": "VisualizationParameters",
@@ -784,10 +768,6 @@
           "type": "string",
           "minLength": 1
         },
-        "style": {
-          "type": "string",
-          "minLength": 1
-        },
         "aspectRatio": {
           "$ref": "#/$defs/ImageAspectRatio"
         }
@@ -797,7 +777,6 @@
     "ImageParameters": {
       "required": [
         "title",
-        "imageStyle",
         "aspectRatio"
       ],
       "title": "ImageParameters",
@@ -807,10 +786,6 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 512
-        },
-        "imageStyle": {
-          "type": "string",
-          "minLength": 1
         },
         "aspectRatio": {
           "$ref": "#/$defs/ImageAspectRatio"

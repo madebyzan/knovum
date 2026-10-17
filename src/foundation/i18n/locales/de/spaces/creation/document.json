@@ -1,21 +1,4 @@
 {
-  "conversion": {
-    "tasks": {
-      "docx": "Word-Dokument wird generiert",
-      "pdf": "PDF wird generiert",
-      "txt": "Generieren von Klartext",
-      "html": "HTML-Dokument wird generiert"
-    },
-    "label": "Konvertieren in",
-    "formats": {
-      "docx": "Word-Dokument (.docx)",
-      "pdf": "PDF-Dokument (.pdf)",
-      "txt": "Klarer Text (.txt)",
-      "html": "HTML-Dokument (.html)",
-      "pptx": "Präsentation (.pptx)"
-    },
-    "recognitionRequired": "Schließen Sie die Dokumenterkennung für alle gescannten Seiten vor der Konvertierung ab."
-  },
   "generating": "Aus ausgewähltem Wissen generieren…",
   "failed": "Dokument konnte nicht generiert werden"
 }

@@ -1,21 +1,4 @@
 {
-  "conversion": {
-    "tasks": {
-      "docx": "正在產生 Word 文檔",
-      "pdf": "正在生成 PDF",
-      "txt": "正在生成純文字",
-      "html": "正在產生 HTML 文檔"
-    },
-    "label": "轉換為",
-    "formats": {
-      "docx": "Word 文件 (.docx)",
-      "pdf": "PDF 文件 (.pdf)",
-      "txt": "純文字 (.txt)",
-      "html": "網頁文檔 (.html)",
-      "pptx": "簡報 (.pptx)"
-    },
-    "recognitionRequired": "請先完成所有掃描頁面的文件辨識，再進行轉換。"
-  },
   "generating": "正在用選取知識生成…",
   "failed": "文檔生成失敗"
 }

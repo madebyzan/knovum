@@ -1,5 +1,3 @@
-mod document;
-
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -16,7 +14,6 @@ enum Handler {
     Image,
     Video,
     Subtitles,
-    Document,
     ImageTransform,
     ImageLayers,
 }
@@ -34,11 +31,6 @@ fn handler(action_id: &str) -> Option<Handler> {
         "generate-video" => Some(Handler::Video),
         "add-video-subtitles" => Some(Handler::Subtitles),
         "split-image-layers" => Some(Handler::ImageLayers),
-        "render-presentation"
-        | "convert-document-to-docx"
-        | "convert-document-to-pdf"
-        | "convert-document-to-txt"
-        | "convert-document-to-html" => Some(Handler::Document),
         _ => None,
     }
 }
@@ -119,9 +111,6 @@ pub(crate) async fn execute(
             super::image_layers::split_for_action(app, decode(request)?, &authority, cancellation)
                 .await?,
         )?),
-        Some(Handler::Document) => {
-            document::execute(app, action_id, request, &authority, cancellation).await
-        }
         None => Err(AppError::new(
             "action_executor_unavailable",
             format!("Durable Action {action_id} has no registered handler"),

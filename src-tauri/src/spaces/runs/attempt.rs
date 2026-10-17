@@ -25,8 +25,4 @@ pub(crate) enum StepOutcome {
         output: Value,
         selected_branch: Option<String>,
     },
-    Waiting {
-        reason: super::WaitReason,
-        checkpoint: Value,
-    },
 }

@@ -1,21 +1,4 @@
 {
-  "conversion": {
-    "tasks": {
-      "docx": "Word ドキュメントの生成",
-      "pdf": "PDF の生成",
-      "txt": "プレーン テキストの生成",
-      "html": "HTML ドキュメントの生成"
-    },
-    "label": "変換",
-    "formats": {
-      "docx": "Word 文書 (.docx)",
-      "pdf": "PDF ドキュメント (.pdf)",
-      "txt": "プレーン テキスト (.txt)",
-      "html": "HTML ドキュメント (.html)",
-      "pptx": "プレゼンテーション (.pptx)"
-    },
-    "recognitionRequired": "変換する前に、スキャンされたすべてのページの文書認識を完了してください。"
-  },
   "generating": "選択された知識から生成…",
   "failed": "ドキュメントを生成できませんでした"
 }

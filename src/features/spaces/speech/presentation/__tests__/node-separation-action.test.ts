@@ -1,4 +1,5 @@
 import { flushPromises, mount } from "@vue/test-utils";
+import { ToolbarRoot } from "reka-ui";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, h, shallowRef } from "vue";
 
@@ -58,16 +59,18 @@ function render(nodes = [node]) {
       const { unavailableReason, startSeparation } = useNodeSeparation(shallowRef(node));
       const operation = shallowRef<NodeSpeechOperation>();
       return () => [
-        h(SpaceNodeSpeechActions, {
-          node,
-          separating: Boolean(separation.activeRunId.value),
-          separationBusy: separation.isBusy.value,
-          separationUnavailableReason: unavailableReason.value,
-          onSeparate: () => {
-            operation.value = "separate";
-            if (!separation.activeRunId.value) void startSeparation();
-          },
-        }),
+        h(ToolbarRoot, () =>
+          h(SpaceNodeSpeechActions, {
+            node,
+            separating: Boolean(separation.activeRunId.value),
+            separationBusy: separation.isBusy.value,
+            separationUnavailableReason: unavailableReason.value,
+            onSeparate: () => {
+              operation.value = "separate";
+              if (!separation.activeRunId.value) void startSeparation();
+            },
+          }),
+        ),
         h(
           SpaceNodeSpeechControls,
           {
@@ -86,7 +89,7 @@ function render(nodes = [node]) {
     },
   });
   const wrapper = mount(Operation, {
-    global: { plugins: [i18n], stubs: { ToolbarButton: { template: "<slot />" } } },
+    global: { plugins: [i18n] },
   });
   onTestFinished(() => {
     wrapper.unmount();

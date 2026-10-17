@@ -1,5 +1,5 @@
 import { flushPromises, mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { shallowRef } from "vue";
 
 import {
@@ -19,7 +19,18 @@ function mountPane(contract: ArchiveSettingsContract) {
 }
 
 describe("Archived Spaces settings", () => {
-  beforeEach(() => vi.clearAllMocks());
+  let headerActions: HTMLDivElement;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    headerActions = document.createElement("div");
+    headerActions.id = "settings-header-actions";
+    document.body.appendChild(headerActions);
+  });
+
+  afterEach(() => {
+    headerActions.remove();
+  });
 
   it("shows initialization failure and retries", async () => {
     const initialize = vi

@@ -2,7 +2,8 @@ import { Channel } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import { safeExportFileName } from "../assets/export";
+import { exportAssetFile } from "../assets/export/ipc";
+import { exportFilter, safeExportFileName } from "../assets/export/naming";
 import type { ArchiveVoiceProfileRequest } from "../contracts/generated/ArchiveVoiceProfileRequest";
 import type { CreatePresetVoiceRequest } from "../contracts/generated/CreatePresetVoiceRequest";
 import type { CreateSpeechProjectRequest } from "../contracts/generated/CreateSpeechProjectRequest";
@@ -94,10 +95,10 @@ export async function exportSpeechRender(sourcePath: string, projectTitle: strin
     throw new Error("Unsupported speech export format");
   const destinationPath = await save({
     defaultPath: `${base}.${extension}`,
-    filters: [{ name: extension.toUpperCase(), extensions: [extension] }],
+    filters: [exportFilter(extension)],
   });
   if (!destinationPath) return false;
-  await invokeCommand("plugin:spaces|export_asset", { sourcePath, destinationPath });
+  await exportAssetFile(sourcePath, destinationPath);
   return true;
 }
 

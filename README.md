@@ -82,7 +82,7 @@ an idea, inspect how a resource was created, or repeat the process with new inpu
 | **Portable Spaces**              | Export `.knovumspace` packages with content, managed assets, relations, and derivation history. Use JSON Canvas for canvas exchange.                                                                                         |
 
 Supported formats, model requirements, and conversion limits are described in the [Spaces guide](docs/spaces.md),
-[local models guide](docs/local-models.md), and [document conversion guide](docs/document-conversion.md).
+[local models guide](docs/local-models.md), and [resource export guide](docs/resource-export.md).
 
 ## Local by default, AI by choice
 

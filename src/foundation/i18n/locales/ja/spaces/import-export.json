@@ -24,7 +24,25 @@
     "export": "マークダウンのエクスポート"
   },
   "export": {
-    "completed": "エクスポート完了"
+    "completed": "エクスポート完了",
+    "running": "エクスポート中…",
+    "formats": {
+      "png": "PNG 画像 (.png)",
+      "jpg": "JPEG 画像 (.jpg)",
+      "md": "Markdown (.md)",
+      "txt": "テキスト (.txt)",
+      "json": "JSON (.json)",
+      "html": "HTML 文書 (.html)",
+      "docx": "Word 文書 (.docx)",
+      "pdf": "PDF 文書 (.pdf)",
+      "pptx": "プレゼンテーション (.pptx)",
+      "wav": "WAV 音声 (.wav)",
+      "mp3": "MP3 音声 (.mp3)",
+      "m4a": "AAC 音声 (.m4a)",
+      "flac": "FLAC 音声 (.flac)",
+      "mp4": "MP4 動画 (.mp4)",
+      "mov": "QuickTime 動画 (.mov)"
+    }
   },
   "fileName": "ファイル名",
   "openExternally": "外部アプリで開く",

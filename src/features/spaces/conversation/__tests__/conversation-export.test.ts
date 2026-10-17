@@ -50,7 +50,7 @@ describe("conversation export", () => {
 
     expect(mocks.save).toHaveBeenCalledWith({
       defaultPath: "Research - Notes.json",
-      filters: [{ name: "JSON", extensions: ["json"] }],
+      filters: [{ name: "JSON (.json)", extensions: ["json"] }],
     });
     expect(mocks.invoke).toHaveBeenCalledWith("plugin:spaces|export_text", {
       destinationPath: "/exports/conversation.json",

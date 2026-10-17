@@ -55,6 +55,12 @@ execute_process(COMMAND "${executable}" -hide_banner -encoders OUTPUT_VARIABLE e
 if(NOT encoders MATCHES " ${encoder} ")
   message(FATAL_ERROR "FFmpeg lacks required H.264 encoder: ${encoder}")
 endif()
+# Audiobook production and resource export name these encoders directly.
+foreach(required IN ITEMS libx264 aac libmp3lame flac pcm_s16le pcm_f32le)
+  if(NOT encoders MATCHES " ${required} ")
+    message(FATAL_ERROR "FFmpeg lacks required encoder: ${required}")
+  endif()
+endforeach()
 execute_process(COMMAND "${executable}" -hide_banner -loglevel error -nostdin -y
   -f lavfi -i color=c=black:s=96x64:d=0.3 -vf "scale=64:48,crop=48:32,format=yuv420p"
   -c:v libx264 "${CMAKE_BINARY_DIR}/smoke.mp4" COMMAND_ERROR_IS_FATAL ANY)

@@ -1,21 +1,4 @@
 {
-  "conversion": {
-    "tasks": {
-      "docx": "Word 문서 생성 중",
-      "pdf": "PDF 생성 중",
-      "txt": "일반 텍스트 생성 중",
-      "html": "HTML 문서 생성 중"
-    },
-    "label": "다음으로 변환",
-    "formats": {
-      "docx": "Word 문서(.docx)",
-      "pdf": "PDF 문서(.pdf)",
-      "txt": "일반 텍스트(.txt)",
-      "html": "HTML 문서(.html)",
-      "pptx": "프레젠테이션(.pptx)"
-    },
-    "recognitionRequired": "변환하기 전에 스캔된 모든 페이지의 문서 인식을 완료하세요."
-  },
   "generating": "선택된 지식으로부터 생성…",
   "failed": "문서를 생성할 수 없습니다."
 }

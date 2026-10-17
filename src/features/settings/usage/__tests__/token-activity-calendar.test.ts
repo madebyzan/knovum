@@ -1,8 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
-import { createI18n } from "vue-i18n";
 
-import { localeMessages } from "../../../../foundation/i18n/locales/locale-registry";
+import { i18n } from "../../../../foundation/i18n/instance";
 import type { UsageReport } from "../../../../shared/contracts/generated/UsageReport";
 import { buildTokenActivityWeeks } from "../token-activity-calendar";
 import TokenActivityCalendar from "../TokenActivityCalendar.vue";
@@ -50,7 +49,6 @@ describe("token activity calendar", () => {
       },
       byPurpose: [],
     };
-    const i18n = createI18n({ legacy: false, locale: "en", messages: localeMessages });
     const wrapper = mount(TokenActivityCalendar, {
       props: { report },
       global: {

@@ -892,6 +892,34 @@
             "kind"
           ],
           "additionalProperties": false
+        },
+        {
+          "description": "Decomposes the source into disjoint object candidates. The worker encodes the source once,\ndecodes one mask per seed, keeps the strongest non-overlapping candidates and returns a\nsingle label map whose pixel values are candidate ranks: `0` is unassigned and `1` is the\nhighest ranked candidate. Ranking stays with the worker because only the decoder output\ncarries the logits that stability scoring needs.",
+          "type": "object",
+          "properties": {
+            "seeds": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ImageSelectionPoint"
+              }
+            },
+            "maxLayers": {
+              "type": "integer",
+              "format": "uint8",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "kind": {
+              "type": "string",
+              "const": "discover_layers"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "seeds",
+            "maxLayers"
+          ]
         }
       ]
     },

@@ -6,7 +6,7 @@ use crate::foundation::app_error::AppError;
 use crate::{
     ai::contracts::ExternalAgentKind,
     external_agents::task::{self, ArtifactFormat},
-    spaces::derivation::scratch_file::ScratchFile,
+    foundation::scratch_file::ScratchFile,
 };
 
 pub(super) async fn execute(

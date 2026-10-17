@@ -1,5 +1,4 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { getDocumentConversionTargets, needsDocumentRecognition } from "../document/conversion-source";
 import { canRemoveImageBackground } from "../image-cutout";
 import { canSplitImageLayers } from "../image-layers";
 import { canAddVideoSubtitles } from "../subtitled-video";
@@ -16,8 +15,6 @@ export function creationIntentCatalog(nodes: readonly SpaceCanvasNode[]) {
     canRemoveBackground: canRemoveImageBackground(single),
     canSplitImageLayers: canSplitImageLayers(single),
     canAddVideoSubtitles: canAddVideoSubtitles(single),
-    documentTargets: getDocumentConversionTargets(single),
-    documentRecognitionRequired: needsDocumentRecognition(single),
   });
   return { decisions, single, sources };
 }

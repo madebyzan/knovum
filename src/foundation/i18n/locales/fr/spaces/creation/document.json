@@ -1,21 +1,4 @@
 {
-  "conversion": {
-    "tasks": {
-      "docx": "Génération d'un document Word",
-      "pdf": "Génération de PDF",
-      "txt": "Génération de texte brut",
-      "html": "Génération d'un document HTML"
-    },
-    "label": "Convertir en",
-    "formats": {
-      "docx": "Document Word (.docx)",
-      "pdf": "Document PDF (.pdf)",
-      "txt": "Texte brut (.txt)",
-      "html": "Document HTML (.html)",
-      "pptx": "Présentation (.pptx)"
-    },
-    "recognitionRequired": "Terminez la reconnaissance de toutes les pages numérisées avant la conversion."
-  },
   "generating": "Générer à partir de connaissances sélectionnées…",
   "failed": "Impossible de générer le document"
 }

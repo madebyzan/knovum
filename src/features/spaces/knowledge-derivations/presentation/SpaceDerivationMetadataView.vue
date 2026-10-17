@@ -17,7 +17,7 @@ const metaLine = computed(() => {
   const date = d(props.metadata.createdAt, "short");
   if ("intent" in props.metadata) {
     const meta = props.metadata;
-    return `${meta.style} · ${meta.aspectRatio} · ${date}`;
+    return `${meta.aspectRatio} · ${date}`;
   }
   const meta = props.metadata;
   return `${meta.aspectRatio} · ${meta.durationSeconds}s · ${date}`;

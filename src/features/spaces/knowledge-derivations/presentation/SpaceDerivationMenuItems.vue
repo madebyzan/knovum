@@ -1,14 +1,5 @@
 <script setup lang="ts">
-import {
-  Captions,
-  ChevronRight,
-  FileOutput,
-  FilePenLine,
-  Image,
-  Layers3,
-  ScanLine,
-  Sparkles,
-} from "@lucide/vue";
+import { Captions, ChevronRight, FilePenLine, Image, Layers3, ScanLine, Sparkles } from "@lucide/vue";
 import { DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "reka-ui";
 import { computed, type Component } from "vue";
 import { useI18n } from "vue-i18n";
@@ -34,7 +25,6 @@ const emit = defineEmits<{ invoke: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
 const ICONS = {
   captions: Captions,
-  "file-output": FileOutput,
   "file-pen": FilePenLine,
   image: Image,
   layers: Layers3,
@@ -52,8 +42,6 @@ const hasActions = computed(() => derivationActions.value.length > 0);
 
 function reasonLabel(reason: DerivationUnavailableReason | undefined) {
   if (reason === "active-node-operation") return t("spaces.creation.shared.finishNodeOperation");
-  if (reason === "needs-document-recognition")
-    return t("spaces.creation.document.conversion.recognitionRequired");
   if (reason === "too-many-video-images") return t("spaces.creation.video.generation.tooManyImages");
   if (reason === "too-many-sources") return t("spaces.creation.shared.tooManySources");
   if (reason === "no-usable-source") return t("spaces.creation.shared.noUsableSource");

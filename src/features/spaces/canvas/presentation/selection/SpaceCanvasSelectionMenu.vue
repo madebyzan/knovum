@@ -21,10 +21,9 @@ import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import UiKbd from "../../../../../shared/ui/UiKbd.vue";
 import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
 import { SPACE_COMMAND_SHORTCUTS } from "../../../commands/space-command-shortcuts";
-import {
-  DOCUMENT_CONVERSION_ACTION_IDS,
-  type CreationIntentDecisions,
-  type CreationIntentId,
+import type {
+  CreationIntentDecisions,
+  CreationIntentId,
 } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
 import SpaceDerivationMenuItems from "../../../knowledge-derivations/presentation/SpaceDerivationMenuItems.vue";
 import SpaceCanvasArrangeMenu from "./SpaceCanvasArrangeMenu.vue";
@@ -51,7 +50,6 @@ const DIRECT_VIDEO_ACTIONS: readonly CreationIntentId[] = ["add-video-subtitles"
 const excludedActions = computed(() => [
   ...(props.excludeActions ?? []),
   ...(props.nodeBar && props.actions.selectedVideoNode.value ? DIRECT_VIDEO_ACTIONS : []),
-  ...(props.nodeBar ? DOCUMENT_CONVERSION_ACTION_IDS : []),
 ]);
 </script>
 

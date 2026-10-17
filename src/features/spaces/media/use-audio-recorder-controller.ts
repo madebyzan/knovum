@@ -1,5 +1,5 @@
 import { error as logError } from "@tauri-apps/plugin-log";
-import { computed, onBeforeUnmount, ref } from "vue";
+import { computed, onScopeDispose, ref } from "vue";
 
 import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { removeSpaceAsset } from "../assets/asset-operations";
@@ -178,7 +178,7 @@ export function useAudioRecorderController(options: AudioRecorderControllerOptio
     void logError(`Audio recording lifecycle failed: ${formatErrorDiagnostic(error)}`);
     options.failed();
   }
-  onBeforeUnmount(() => void invalidate().catch(reportFailure));
+  onScopeDispose(() => void invalidate().catch(reportFailure));
   return {
     isRecording,
     isPaused,

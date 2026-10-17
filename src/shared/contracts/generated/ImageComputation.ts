@@ -3,4 +3,4 @@ import type { ImageSelectionPoint } from "./ImageSelectionPoint";
 import type { ImageSelectionRect } from "./ImageSelectionRect";
 import type { TensorFileReference } from "./TensorFileReference";
 
-export type ImageComputation = { "kind": "upscale" } | { "kind": "inpaint", maskRef: TensorFileReference, } | { "kind": "select", points: Array<ImageSelectionPoint>, boxRect: ImageSelectionRect | null, } | { "kind": "depth" };
+export type ImageComputation = { "kind": "upscale" } | { "kind": "inpaint", maskRef: TensorFileReference, } | { "kind": "select", points: Array<ImageSelectionPoint>, boxRect: ImageSelectionRect | null, } | { "kind": "depth" } | { "kind": "discover_layers", seeds: Array<ImageSelectionPoint>, maxLayers: number, };

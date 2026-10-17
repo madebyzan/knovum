@@ -32,9 +32,10 @@ const VoiceManagement = defineComponent({
   template: '<div data-testid="management"><slot v-if="creating" name="create" /></div>',
 });
 const VoiceProfileForm = defineComponent({
+  props: { disabled: Boolean },
   emits: ["create", "dirty"],
   template:
-    '<button data-testid="dirty-preset" @click="$emit(\'dirty\', true)" /><button data-testid="submit-preset" @click="$emit(\'create\', { name: \'Narrator\' })" />',
+    '<div><button data-testid="dirty-preset" @click="$emit(\'dirty\', true)" /><button data-testid="submit-preset" @click="$emit(\'create\', { name: \'Narrator\' })" /></div>',
 });
 const VoiceCandidateForm = defineComponent({ template: '<div data-testid="candidate-form" />' });
 

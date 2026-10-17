@@ -2,4 +2,4 @@
 import type { ExecutionSource } from "../../../../shared/contracts/generated/ExecutionSource";
 import type { DerivationSource } from "./DerivationSource";
 
-export type VisualizationMetadata = { executionSource: ExecutionSource, intent: string, style: string, aspectRatio: string, revisedPrompt: string | null, createdAt: number, sources: Array<DerivationSource>, };
+export type VisualizationMetadata = { executionSource: ExecutionSource, intent: string, aspectRatio: string, revisedPrompt: string | null, createdAt: number, sources: Array<DerivationSource>, };

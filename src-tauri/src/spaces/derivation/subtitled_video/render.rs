@@ -12,14 +12,12 @@ use super::persistence::VideoSubtitleSource;
 use super::{progress, SubtitledVideoProgress, CANCELLED};
 use crate::{
     desktop::system_font::SYSTEM_SANS_FAMILY,
+    foundation::scratch_file::ScratchFile,
     foundation::subprocess,
     local_resources::tools,
     spaces::{
         assets::asset_directory,
-        derivation::{
-            scratch_file::ScratchFile,
-            video_output::{self, RenderedVideo},
-        },
+        derivation::video_output::{self, RenderedVideo},
     },
 };
 

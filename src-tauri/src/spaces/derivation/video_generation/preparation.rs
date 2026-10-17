@@ -5,7 +5,8 @@ use tauri::AppHandle;
 
 use super::GenerateVideoRequest;
 use crate::ai::tasks::TaskExecutionTarget;
-use crate::spaces::derivation::{inputs, pending_output, scratch_file::ScratchFile, source_inputs};
+use crate::foundation::scratch_file::ScratchFile;
+use crate::spaces::derivation::{inputs, pending_output, source_inputs};
 use crate::spaces::{assets::asset_directory, db};
 
 /// Video providers read references from disk, so the rendered pixels are kept

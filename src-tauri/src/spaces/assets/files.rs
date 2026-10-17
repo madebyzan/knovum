@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use super::{
-    access::{asset_directory, authorize_destination, authorize_spaces_asset},
+    access::{asset_directory, authorize_spaces_asset},
     snapshot_to_imported,
     transfer::{copy_then, imported_resource_name},
     PreparedAsset,
@@ -134,35 +134,4 @@ fn cleanup_empty_import_namespace(app: &tauri::AppHandle, parent: Option<&std::p
             );
         }
     }
-}
-
-pub fn export_asset(
-    app: &tauri::AppHandle,
-    source: PathBuf,
-    destination: PathBuf,
-) -> Result<(), String> {
-    let canonical = authorize_spaces_asset(app, &source)?;
-    authorize_destination(app, &destination)?;
-    if destination.exists() {
-        return Err("The export destination already exists".into());
-    }
-    copy_then(&canonical, &destination, || Ok(()))
-}
-
-pub fn export_text(
-    app: &tauri::AppHandle,
-    destination: PathBuf,
-    text: String,
-) -> Result<(), String> {
-    authorize_destination(app, &destination)?;
-    fs::write(destination, text).map_err(|error| error.to_string())
-}
-
-pub fn export_image(
-    app: &tauri::AppHandle,
-    destination: PathBuf,
-    png_bytes: Vec<u8>,
-) -> Result<(), String> {
-    authorize_destination(app, &destination)?;
-    fs::write(destination, png_bytes).map_err(|error| error.to_string())
 }

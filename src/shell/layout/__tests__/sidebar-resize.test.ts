@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { effectScope } from "vue";
 
 import { useSidebarResize } from "../use-sidebar-resize";
 
@@ -98,6 +99,19 @@ describe("sidebar sash gesture", () => {
     expect(document.documentElement.hasAttribute("data-sash-dragging")).toBe(true);
 
     sash.end();
+    expect(document.documentElement.hasAttribute("data-sash-dragging")).toBe(false);
+  });
+
+  it("cleans up document dragging attribute when its scope is disposed during a gesture", () => {
+    const scope = effectScope();
+    let sash!: ReturnType<typeof useSidebarResize>;
+    scope.run(() => {
+      sash = createSash("leading").sash;
+    });
+    sash.begin(pointer(500).event);
+    expect(document.documentElement.hasAttribute("data-sash-dragging")).toBe(true);
+
+    scope.stop();
     expect(document.documentElement.hasAttribute("data-sash-dragging")).toBe(false);
   });
 

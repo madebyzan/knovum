@@ -4,8 +4,8 @@ use serde_json::Value;
 use sqlx::SqlitePool;
 
 use super::SourceInput;
+use crate::foundation::scratch_file::ScratchFile;
 use crate::spaces::db;
-use crate::spaces::derivation::scratch_file::ScratchFile;
 
 /// A selected image, rendered as the user currently sees it: the asset with its
 /// pending edit applied, re-verified so a queued Run cannot send stale pixels.

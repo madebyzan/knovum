@@ -86,7 +86,7 @@ hide an advisory are prohibited.
   [upstream PR #44](https://github.com/typst/citationberg/pull/44), which moves its XML dependency
   off the vulnerable release. Remove the patch when a compatible published `citationberg` release
   contains that change; regenerate `src-tauri/Cargo.lock`, confirm the vulnerable XML versions are
-  absent, and run the affected document-conversion and target-platform checks.
+  absent, and run the affected resource-export and target-platform checks.
 - `tauri-plugin-clipboard-api@2.1.11 > valibot` is overridden to `1.4.2`. Remove the override when a
   compatible plugin release selects a supported secure Valibot version and the valid and malformed
   clipboard payload regressions pass.

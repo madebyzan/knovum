@@ -88,7 +88,7 @@ pub fn export(project_root: &Path) -> Result<(), String> {
     let spaces_output = project_root.join("src/features/spaces/contracts/generated");
     let relation_kinds = schema_for!(crate::spaces::knowledge::contracts::RelationKind);
     let relation_statuses = schema_for!(crate::spaces::knowledge::contracts::RelationStatus);
-    let mut source = format!(
+    let source = format!(
         concat!(
             "// Generated from Rust contracts. Do not edit.\n",
             "export const maxKnowledgePassageBytes = {} as const;\n",

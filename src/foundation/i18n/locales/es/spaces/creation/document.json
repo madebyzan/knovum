@@ -1,21 +1,4 @@
 {
-  "conversion": {
-    "tasks": {
-      "docx": "Generando documento de Word",
-      "pdf": "Generando PDF",
-      "txt": "Generando texto sin formato",
-      "html": "Generando documento HTML"
-    },
-    "label": "Convertir a",
-    "formats": {
-      "docx": "Documento de Word (.docx)",
-      "pdf": "Documento PDF (.pdf)",
-      "txt": "Texto sin formato (.txt)",
-      "html": "Documento HTML (.html)",
-      "pptx": "Presentación (.pptx)"
-    },
-    "recognitionRequired": "Finaliza el reconocimiento de todas las páginas escaneadas antes de convertir."
-  },
   "generating": "Generando a partir de conocimientos seleccionados…",
   "failed": "No se pudo generar el documento"
 }

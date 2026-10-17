@@ -71,12 +71,11 @@ describe("selection derivation catalog", () => {
     expect(Object.keys(creationIntentCatalog([]).decisions)).toEqual(ids);
   });
 
-  it("offers document, presentation and video generation from knowledge without requiring Markdown", () => {
+  it("offers document, image and video generation from knowledge without requiring Markdown", () => {
     const decisions = creationIntentCatalog([note()]).decisions;
 
     expect(decisions["draft-document"].state).toBe("ready");
-    expect(decisions["convert-document-to-pdf"].state).toBe("ready");
-    expect(decisions["render-presentation"].state).toBe("ready");
+    expect(decisions["generate-visualization"].state).toBe("ready");
     expect(decisions["generate-video"].state).toBe("ready");
   });
 
@@ -127,25 +126,15 @@ describe("selection derivation catalog", () => {
     });
   });
 
-  it("exports one current note or Markdown resource without hiding a synthesis step", () => {
-    const markdown = createSpaceNode(
-      {
-        kind: "markdown",
-        title: "Brief",
-        text: "# Brief",
-        knowledgeRevision: "markdown:current",
-      },
-      { x: 0, y: 0 },
-      "markdown",
-    );
+  /**
+   * Saving the same content in another format is an export, not a creation, so
+   * the creation menu never offered a conversion to begin with.
+   */
+  it("keeps format conversion out of the creation menu", () => {
+    const ids: string[] = CREATION_INTENT_DEFINITIONS.map(({ id }) => id);
 
-    expect(creationIntentCatalog([markdown]).decisions["convert-document-to-docx"].state).toBe("ready");
-    expect(creationIntentCatalog([markdown]).decisions["convert-document-to-html"].state).toBe("ready");
-    expect(creationIntentCatalog([note()]).decisions["convert-document-to-docx"].state).toBe("ready");
-    expect(creationIntentCatalog([note()]).decisions["convert-document-to-html"].state).toBe("ready");
-    expect(creationIntentCatalog([markdown, note()]).decisions["convert-document-to-html"].state).toBe(
-      "hidden",
-    );
+    expect(ids.filter((id) => id.startsWith("convert-"))).toEqual([]);
+    expect(ids).not.toContain("render-presentation");
   });
 
   it("keeps the provider reference-image limit explicit", () => {

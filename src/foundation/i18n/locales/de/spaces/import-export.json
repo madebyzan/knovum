@@ -24,7 +24,25 @@
     "export": "Markdown exportieren"
   },
   "export": {
-    "completed": "Export abgeschlossen"
+    "completed": "Export abgeschlossen",
+    "running": "Export läuft…",
+    "formats": {
+      "png": "PNG-Bild (.png)",
+      "jpg": "JPEG-Bild (.jpg)",
+      "md": "Markdown (.md)",
+      "txt": "Einfacher Text (.txt)",
+      "json": "JSON (.json)",
+      "html": "HTML-Dokument (.html)",
+      "docx": "Word-Dokument (.docx)",
+      "pdf": "PDF-Dokument (.pdf)",
+      "pptx": "Präsentation (.pptx)",
+      "wav": "WAV-Audio (.wav)",
+      "mp3": "MP3-Audio (.mp3)",
+      "m4a": "AAC-Audio (.m4a)",
+      "flac": "FLAC-Audio (.flac)",
+      "mp4": "MP4-Video (.mp4)",
+      "mov": "QuickTime-Video (.mov)"
+    }
   },
   "fileName": "Dateiname",
   "openExternally": "In externer App öffnen",

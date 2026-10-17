@@ -1,4 +1,4 @@
-import { mount } from "@vue/test-utils";
+import { shallowMount } from "@vue/test-utils";
 import { Util } from "konva/lib/Util";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Group as KonvaGroup } from "vue-konva/core";
@@ -28,7 +28,7 @@ afterEach(() => vi.restoreAllMocks());
 describe("Konva node event bindings", () => {
   it("describes gestures in the node configuration instead of as vue listeners", () => {
     const warnings: string[] = [];
-    const wrapper = mount(CanvasNodeShape, {
+    const wrapper = shallowMount(CanvasNodeShape, {
       props: { interactive: true, sceneNode, palette, zoom: 1 },
       global: { config: { warnHandler: (message: string) => warnings.push(message) } },
     });
@@ -42,7 +42,7 @@ describe("Konva node event bindings", () => {
   });
 
   it("reports an activation through the configured double click handler", () => {
-    const wrapper = mount(CanvasNodeShape, {
+    const wrapper = shallowMount(CanvasNodeShape, {
       props: { interactive: true, sceneNode, palette, zoom: 1 },
     });
     const config = wrapper.getComponent(KonvaGroup).props("config") as {
@@ -56,7 +56,7 @@ describe("Konva node event bindings", () => {
   });
 
   it("keeps handler identities stable so bindings survive a configuration update", async () => {
-    const wrapper = mount(CanvasNodeShape, {
+    const wrapper = shallowMount(CanvasNodeShape, {
       props: { interactive: true, sceneNode, palette, zoom: 1 },
     });
     const group = wrapper.getComponent(KonvaGroup);

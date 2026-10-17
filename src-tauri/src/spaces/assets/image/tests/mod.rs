@@ -25,19 +25,17 @@ fn editor_image_policy_enforces_the_single_size_limit() {
 }
 
 #[test]
-fn image_document_identifies_lossless_depth_export() {
+fn image_document_loads_payload() {
     let mut payload = serde_json::json!({
-        "assetPath":"/managed/depth.png", "sourceRevision":"sha256:source", "fileName":"depth.png"
-    });
-    assert!(
-        !super::document::from_payload(&payload)
-            .unwrap()
-            .relative_depth
-    );
-    payload["imageDepth"] = serde_json::json!({
-        "encoding":"relative-inverse-depth-u16-v1", "modelSpecId":"depth-spec"
+        "assetPath":"/managed/image.png", "sourceRevision":"sha256:source", "fileName":"image.png"
     });
     let document = super::document::from_payload(&payload).unwrap();
-    assert!(document.relative_depth);
+    assert_eq!(document.source_path, "/managed/image.png");
+    assert_eq!(document.source_revision, "sha256:source");
+    assert_eq!(document.file_name, "image.png");
     assert_eq!(document.edit, serde_json::Value::Null);
+
+    payload["imageEdit"] = serde_json::json!({"crop": [0, 0, 100, 100]});
+    let document = super::document::from_payload(&payload).unwrap();
+    assert_eq!(document.edit, serde_json::json!({"crop": [0, 0, 100, 100]}));
 }

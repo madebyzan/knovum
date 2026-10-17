@@ -1,22 +1,13 @@
 import type { ActionAvailability } from "../../../../shared/contracts/action-availability";
 
-export type CreationIntentIcon =
-  | "captions"
-  | "file-output"
-  | "file-pen"
-  | "image"
-  | "layers"
-  | "scan"
-  | "sparkles";
+export type CreationIntentIcon = "captions" | "file-pen" | "image" | "layers" | "scan" | "sparkles";
 export type DerivationUnavailableReason =
   | "no-usable-source"
   | "too-many-sources"
-  | "needs-document-recognition"
   | "too-many-video-images"
   | "active-node-operation";
 
 export type CreationIntentDecision = ActionAvailability<DerivationUnavailableReason>;
-export type DocumentFormat = "docx" | "pdf" | "txt" | "html" | "pptx";
 
 export interface CreationSelectionContext {
   readonly selectionCount: number;
@@ -26,18 +17,10 @@ export interface CreationSelectionContext {
   readonly canRemoveBackground: boolean;
   readonly canSplitImageLayers: boolean;
   readonly canAddVideoSubtitles: boolean;
-  readonly documentTargets: readonly DocumentFormat[];
-  readonly documentRecognitionRequired: boolean;
 }
 
-/**
- * A creation entry either decides for itself, or converts a document - in which
- * case the format is the whole decision.
- */
-export type CreationIntentDefinition = {
+export interface CreationIntentDefinition {
   readonly id: string;
   readonly icon: CreationIntentIcon;
-} & (
-  | { readonly decide: (context: CreationSelectionContext) => CreationIntentDecision }
-  | { readonly documentFormat: DocumentFormat }
-);
+  readonly decide: (context: CreationSelectionContext) => CreationIntentDecision;
+}

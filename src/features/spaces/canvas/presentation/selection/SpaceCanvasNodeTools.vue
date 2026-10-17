@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { computed, toRef } from "vue";
 
-import { shouldShowAction } from "../../../../../shared/contracts/action-availability";
-import {
-  DOCUMENT_CONVERSION_ACTION_IDS,
-  type CreationIntentDecisions,
-  type CreationIntentId,
+import type {
+  CreationIntentDecisions,
+  CreationIntentId,
 } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
-import SpaceDocumentConversionMenu from "../../../knowledge-derivations/presentation/SpaceDocumentConversionMenu.vue";
 import SpaceNodeTranscriptionAction from "../../../media/presentation/SpaceNodeTranscriptionAction.vue";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import {
@@ -42,9 +39,6 @@ const { primaryLabel, primaryIcon, showPrimary, runPrimaryAction } = useNodePrim
 );
 const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(props.node) : []));
 const isMedia = computed(() => props.node?.data.kind === "audio" || props.node?.data.kind === "video");
-const canConvert = computed(() =>
-  DOCUMENT_CONVERSION_ACTION_IDS.some((id) => shouldShowAction(props.derivations[id])),
-);
 </script>
 
 <template>
@@ -58,13 +52,6 @@ const canConvert = computed(() =>
     @invoke="runPrimaryAction"
   />
   <slot />
-  <SpaceDocumentConversionMenu
-    v-if="!minimal && canConvert"
-    :decisions="derivations"
-    :is-compact="compact"
-    :is-submenu="menuItem"
-    @invoke="emit('invokeDerivation', $event)"
-  />
   <SpaceCanvasVideoActions
     v-if="!minimal && actions.selectedVideoNode.value"
     :compact="compact"

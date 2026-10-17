@@ -2,6 +2,7 @@ import { mount } from "@vue/test-utils";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { computed, shallowRef } from "vue";
 
+import { overlayScopeVisibleKey } from "../../../../../shared/contracts/overlay-scope-visibility";
 import UiScrollArea from "../../../../../shared/ui/UiScrollArea.vue";
 import { SPEECH_EDITOR_VIEWPORT_KEY } from "../speech-editor-viewport";
 import VideoDubbingLines from "../VideoDubbingLines.vue";
@@ -25,7 +26,12 @@ it("virtualizes timed script rows against the project viewport without a second 
       showSource: false,
       disabled: false,
     },
-    global: { provide: { [SPEECH_EDITOR_VIEWPORT_KEY as symbol]: computed(() => viewport) } },
+    global: {
+      provide: {
+        [SPEECH_EDITOR_VIEWPORT_KEY as symbol]: computed(() => viewport),
+        [overlayScopeVisibleKey as symbol]: computed(() => true),
+      },
+    },
   });
   onTestFinished(() => wrapper.unmount());
   expect(wrapper.findComponent(UiScrollArea).exists()).toBe(false);

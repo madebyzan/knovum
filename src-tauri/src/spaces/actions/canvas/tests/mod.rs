@@ -141,7 +141,7 @@ async fn stale_or_malformed_acceptance_rolls_back_grant_and_run() {
     )
     .await;
     let malformed = request(
-        "convert-document-to-docx",
+        "add-video-subtitles",
         &[("doc", &revision)],
         json!({"invalid":true}),
         None,
@@ -151,12 +151,7 @@ async fn stale_or_malformed_acceptance_rolls_back_grant_and_run() {
         .unwrap_err()
         .message
         .contains("parameters are invalid"));
-    let stale = request(
-        "convert-document-to-docx",
-        &[("doc", "old")],
-        json!({}),
-        None,
-    );
+    let stale = request("add-video-subtitles", &[("doc", "old")], json!({}), None);
     assert!(start(&pool, &stale)
         .await
         .unwrap_err()

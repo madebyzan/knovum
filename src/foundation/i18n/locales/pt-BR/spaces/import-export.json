@@ -24,7 +24,25 @@
     "export": "Remarcação de exportação"
   },
   "export": {
-    "completed": "Exportação concluída"
+    "completed": "Exportação concluída",
+    "running": "Exportando…",
+    "formats": {
+      "png": "Imagem PNG (.png)",
+      "jpg": "Imagem JPEG (.jpg)",
+      "md": "Markdown (.md)",
+      "txt": "Texto simples (.txt)",
+      "json": "JSON (.json)",
+      "html": "Documento HTML (.html)",
+      "docx": "Documento do Word (.docx)",
+      "pdf": "Documento PDF (.pdf)",
+      "pptx": "Apresentação (.pptx)",
+      "wav": "Áudio WAV (.wav)",
+      "mp3": "Áudio MP3 (.mp3)",
+      "m4a": "Áudio AAC (.m4a)",
+      "flac": "Áudio FLAC (.flac)",
+      "mp4": "Vídeo MP4 (.mp4)",
+      "mov": "Vídeo QuickTime (.mov)"
+    }
   },
   "fileName": "Nome do arquivo",
   "openExternally": "Abrir em aplicativo externo",

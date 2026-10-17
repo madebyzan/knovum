@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
     saveNodeContentForSpace:
       vi.fn<(spaceId: string, change: NodePayloadChangeInput) => Promise<SpaceNodePayload>>(),
     openSpaceCanvas: vi.fn<() => Promise<void>>(),
+    editorLocateRequest: undefined as unknown,
   },
 }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => mocks.store }));
@@ -40,6 +41,7 @@ let wrapper: ReturnType<typeof mount> | undefined;
 beforeEach(() => {
   setActivePinia(createPinia());
   vi.clearAllMocks();
+  mocks.store.editorLocateRequest = shallowRef();
   mocks.store.saveNodeContentForSpace.mockImplementation(async (_spaceId, change) => change.data);
 });
 afterEach(() => wrapper?.unmount());
@@ -62,7 +64,19 @@ async function openDocument(kind: "note" | "markdown" = "note") {
         return () => null;
       },
     },
-    { global: { plugins: [createI18n({ legacy: false, locale: "en", messages: { en: {} } })] } },
+    {
+      global: {
+        plugins: [
+          createI18n({
+            legacy: false,
+            locale: "en",
+            missingWarn: false,
+            fallbackWarn: false,
+            messages: { en: { spaces: { editor: { placeholder: "Start writing…" } } } },
+          }),
+        ],
+      },
+    },
   );
   await flushPromises();
   await vi.waitFor(() => expect(document.editor.value?.isInitialized).toBe(true));

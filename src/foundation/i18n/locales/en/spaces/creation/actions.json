@@ -1,11 +1,6 @@
 {
   "draftDocument": "Generate document",
   "generateVisualization": "Generate image",
-  "convertDocumentToDocx": "Convert to Word document",
-  "convertDocumentToPdf": "Convert to PDF",
-  "convertDocumentToTxt": "Convert to plain text",
-  "convertDocumentToHtml": "Convert to HTML",
-  "renderPresentation": "Create presentation",
   "generateVideo": "Generate video",
   "removeImageBackground": "Remove background",
   "splitImageLayers": "Split layers",

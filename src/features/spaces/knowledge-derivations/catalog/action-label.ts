@@ -9,10 +9,6 @@ import { i18n } from "../../../../foundation/i18n/instance";
  */
 const LABELED_ACTIONS = new Set([
   "add-video-subtitles",
-  "convert-document-to-docx",
-  "convert-document-to-html",
-  "convert-document-to-pdf",
-  "convert-document-to-txt",
   "draft-document",
   "draft-script",
   "draft-social-post",
@@ -24,7 +20,6 @@ const LABELED_ACTIONS = new Set([
   "generate-visualization",
   "remove-image-background",
   "remove-image-object",
-  "render-presentation",
   "split-image-layers",
   "summarize-meeting",
   "upscale-image",

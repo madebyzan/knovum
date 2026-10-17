@@ -38,20 +38,12 @@ fn agent_video_records_runtime_without_a_fake_provider_operation() {
     assert!(serde_json::from_value::<PackageDerivation>(value).is_err());
 }
 #[test]
-fn accepts_document_conversion_without_provider_metadata() {
+fn rejects_the_withdrawn_document_conversion_derivation() {
     let mut value = derivation();
     value.as_object_mut().unwrap().remove("generatedVideo");
     value["actionKind"] = serde_json::json!("convert-document-to-pdf");
     value["engine"] = serde_json::json!("typst:0.15.1");
-    assert!(validate(&serde_json::from_value(value).unwrap()).is_ok());
-}
-#[test]
-fn accepts_html_conversion_without_generation_metadata() {
-    let mut value = derivation();
-    value.as_object_mut().unwrap().remove("generatedVideo");
-    value["actionKind"] = serde_json::json!("convert-document-to-html");
-    value["engine"] = serde_json::json!("pulldown-cmark:0.13.4;knovum-document-html:1");
-    assert!(validate(&serde_json::from_value(value).unwrap()).is_ok());
+    assert!(validate(&serde_json::from_value(value).unwrap()).is_err());
 }
 #[test]
 fn accepts_object_removal_without_generation_metadata() {

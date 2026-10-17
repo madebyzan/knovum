@@ -1,11 +1,6 @@
 {
   "draftDocument": "生成文档",
   "generateVisualization": "生成图片",
-  "convertDocumentToDocx": "转换为 Word 文档",
-  "convertDocumentToPdf": "转换为 PDF",
-  "convertDocumentToTxt": "转换为纯文本",
-  "convertDocumentToHtml": "转换为 HTML",
-  "renderPresentation": "生成演示文稿",
   "generateVideo": "生成视频",
   "removeImageBackground": "去背景",
   "splitImageLayers": "拆分图层",
