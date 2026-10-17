@@ -48,7 +48,7 @@ impl ImageGenerationCapability for KlingImageAdapter {
                     serde_json::json!({
                         "model": model,
                         "prompt": req.prompt,
-                        "aspect_ratio": aspect_ratio(&req.aspect_ratio),
+                        "aspect_ratio": aspect_ratio(req.require_aspect_ratio()?),
                         "n": 1,
                     }),
                 ),

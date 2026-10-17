@@ -124,18 +124,15 @@ async fn write_references(
             "Video generation accepts at most {MAX_REFERENCES} reference images"
         ));
     }
-    let mut files = Vec::with_capacity(rendered.len());
-    let mut paths = Vec::with_capacity(rendered.len());
-    for image in rendered {
-        let reference = directory.join(format!("video-reference-{}.png", uuid::Uuid::new_v4()));
-        let file = ScratchFile::new(reference.clone());
-        tokio::fs::write(&reference, &image.png)
-            .await
-            .map_err(|error| error.to_string())?;
-        files.push(file);
-        paths.push(reference.to_string_lossy().into_owned());
-    }
-    Ok((paths, files))
+    let (paths, files) =
+        source_inputs::write_png_files(&rendered, directory, "video-reference").await?;
+    Ok((
+        paths
+            .iter()
+            .map(|path| path.to_string_lossy().into_owned())
+            .collect(),
+        files,
+    ))
 }
 
 async fn output(

@@ -83,7 +83,7 @@ impl ImageGenerationCapability for GeminiImageAdapter {
                     "instances": [{ "prompt": req.prompt }],
                     "parameters": {
                         "sampleCount": 1,
-                        "aspectRatio": req.aspect_ratio,
+                        "aspectRatio": req.require_aspect_ratio()?,
                     }
                 });
                 let response = client
@@ -138,7 +138,7 @@ async fn request_body(
     }
     let mut generation_config = json!({ "responseModalities": ["IMAGE"] });
     if req.references.is_empty() {
-        generation_config["imageConfig"] = json!({ "aspectRatio": req.aspect_ratio });
+        generation_config["imageConfig"] = json!({ "aspectRatio": req.require_aspect_ratio()? });
     }
     Ok(json!({
         "contents": [{ "parts": parts }],

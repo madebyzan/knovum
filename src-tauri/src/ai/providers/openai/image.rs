@@ -67,7 +67,7 @@ impl ImageGenerationCapability for OpenAiImageAdapter {
                 });
             }
             let api_key = ctx.require_api_key()?;
-            let dimensions = image_size(&ctx.provider, &ctx.model, &req.aspect_ratio);
+            let dimensions = image_size(&ctx.provider, &ctx.model, req.require_aspect_ratio()?);
             let mut payload = serde_json::json!({
                 "prompt": req.prompt,
                 "model": ctx.model,

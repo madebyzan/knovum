@@ -9,6 +9,9 @@ pub(crate) use edited::render_source_png;
 pub(crate) use edited::render_source_png_within;
 pub(crate) use edited::validate_edit;
 
+/// The engine never produces a PNG larger than this, whoever consumes it.
+pub(crate) const MAX_PNG_BYTES: usize = 64 * 1024 * 1024;
+
 pub(crate) struct BackgroundRemovalOutput {
     pub png: Vec<u8>,
     pub width: u32,

@@ -2,7 +2,7 @@ use serde::Deserialize;
 use sqlx::{Sqlite, Transaction};
 
 mod images;
-pub use images::{render_images, RenderedImage};
+pub use images::{render_images, write_png_files, RenderedImage};
 
 use super::inputs::{DerivationInput, RevisionBasis};
 use super::source_validation;

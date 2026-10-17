@@ -158,11 +158,8 @@ const selectionBarGap = computed(() =>
       @retry-capture="emit('retryCapture', $event)"
     />
     <SpaceCreationDialog
-      v-if="derivations.composing.value"
-      :open="true"
-      :output="derivations.composing.value"
+      v-model:output="derivations.composing.value"
       :sources="derivations.sources.value"
-      @update:open="!$event && (derivations.composing.value = undefined)"
       @submit="derivations.submit"
     />
     <SpaceFind v-model:open="store.findOpen" />

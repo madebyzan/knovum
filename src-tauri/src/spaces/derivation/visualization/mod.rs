@@ -96,27 +96,30 @@ async fn execute(
     let prompt = prompt::build(
         &request.intent,
         &sources.grounding,
-        sources.references.len() + sources.attachments.len(),
+        sources.attached_images(),
     )?;
-    match target {
-        TaskExecutionTarget::Model(target) => image::generate(
+    let aspect_ratio = request.aspect_ratio.as_str();
+    match sources.delivery {
+        sources::Delivery::Model { target, references } => image::generate(
             image::ImageGenerationRequest {
-                target: target.clone(),
+                target,
                 prompt,
-                aspect_ratio: request.aspect_ratio.as_str().to_owned(),
-                references: sources.references,
+                aspect_ratio: Some(aspect_ratio.to_owned()),
+                references,
             },
             cancellation,
         )
         .await
         .map(VisualizationContent::from),
-        TaskExecutionTarget::Agent { runtime_kind } => {
-            let bytes = crate::external_agents::task::artifact(app, *runtime_kind, format!("Create the requested image as PNG with aspect ratio {}. Use your own available tools/Skills.\n{prompt}", request.aspect_ratio.as_str()), sources.attachments, crate::external_agents::task::ArtifactFormat::Png, cancellation.clone()).await?;
+        sources::Delivery::Agent {
+            runtime_kind,
+            attachments,
+            _files,
+        } => {
+            let bytes = crate::external_agents::task::artifact(app, runtime_kind, format!("Create the requested image as PNG with aspect ratio {aspect_ratio}. Use your own available tools/Skills.\n{prompt}"), attachments, crate::external_agents::task::ArtifactFormat::Png, cancellation.clone()).await?;
             Ok(VisualizationContent {
                 bytes,
-                execution_source: ExecutionSource::Agent {
-                    runtime_kind: *runtime_kind,
-                },
+                execution_source: ExecutionSource::Agent { runtime_kind },
                 revised_prompt: None,
             })
         }

@@ -5,6 +5,7 @@ use sqlx::SqlitePool;
 
 use super::SourceInput;
 use crate::spaces::db;
+use crate::spaces::derivation::scratch_file::ScratchFile;
 
 /// A selected image, rendered as the user currently sees it: the asset with its
 /// pending edit applied, re-verified so a queued Run cannot send stale pixels.
@@ -47,6 +48,26 @@ pub async fn render_images(
         rendered.push(render(input, &data, asset_directory, max_bytes_per_image).await?);
     }
     Ok(rendered)
+}
+
+/// Hand rendered pixels to something that reads from disk - a video provider, an
+/// external Agent - as files the Run owns until it is finished with them.
+pub async fn write_png_files(
+    rendered: &[RenderedImage],
+    directory: &Path,
+    name: &str,
+) -> Result<(Vec<std::path::PathBuf>, Vec<ScratchFile>), String> {
+    let mut paths = Vec::with_capacity(rendered.len());
+    let mut files = Vec::with_capacity(rendered.len());
+    for image in rendered {
+        let path = directory.join(format!("{name}-{}.png", uuid::Uuid::new_v4()));
+        files.push(ScratchFile::new(path.clone()));
+        tokio::fs::write(&path, &image.png)
+            .await
+            .map_err(|error| error.to_string())?;
+        paths.push(path);
+    }
+    Ok((paths, files))
 }
 
 async fn render(

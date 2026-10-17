@@ -89,7 +89,7 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
                     }]
                 },
                 "parameters": {
-                    "size": image_size(&req.aspect_ratio),
+                    "size": image_size(req.require_aspect_ratio()?),
                     "n": 1,
                     "prompt_extend": true,
                     "watermark": false

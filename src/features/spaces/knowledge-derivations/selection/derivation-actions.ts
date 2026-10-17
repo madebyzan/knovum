@@ -2,7 +2,11 @@ import type { Ref, ShallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { DocumentFormat } from "../catalog/creation-intent";
-import type { CreationIntentId } from "../catalog/creation-intent-definitions";
+import {
+  CREATION_INTENT_DEFINITIONS,
+  type CreationIntentId,
+  type DocumentConversionIntentId,
+} from "../catalog/creation-intent-definitions";
 import type { CreationSource } from "../catalog/creation-source";
 import { startCreation, type CreationDraft, type CreationOutput } from "../creation";
 import { convertDocument } from "../document/conversion";
@@ -10,6 +14,9 @@ import { isDocumentConversionSource } from "../document/conversion-source";
 import { createImageCutout } from "../image-cutout";
 import { splitImageLayers } from "../image-layers";
 import { addVideoSubtitles } from "../subtitled-video";
+
+/** Everything a document conversion needs is its format, so they share a path. */
+type DirectIntentId = Exclude<CreationIntentId, DocumentConversionIntentId>;
 
 interface DerivationActionsOptions {
   canRun(actionId: CreationIntentId): boolean;
@@ -27,23 +34,25 @@ export function createDerivationActions({
   sources,
   composing,
 }: DerivationActionsOptions) {
-  const handlers: Record<CreationIntentId, () => void> = {
+  const handlers: Record<DirectIntentId, () => void> = {
     "remove-image-background": () => void (single.value && createImageCutout(single.value)),
     "split-image-layers": () => void (single.value && splitImageLayers(single.value)),
     "add-video-subtitles": () => void (single.value && addVideoSubtitles(single.value)),
     "draft-document": () => (composing.value = "document"),
     "generate-visualization": () => (composing.value = "image"),
     "generate-video": () => (composing.value = "video"),
-    "convert-document-to-docx": () => void convertSelectedDocument("docx"),
-    "convert-document-to-pdf": () => void convertSelectedDocument("pdf"),
-    "convert-document-to-txt": () => void convertSelectedDocument("txt"),
-    "convert-document-to-html": () => void convertSelectedDocument("html"),
-    "render-presentation": () => void convertSelectedDocument("pptx"),
   };
 
-  function convertSelectedDocument(format: DocumentFormat) {
+  function convert(format: DocumentFormat) {
     if (!single.value || !isDocumentConversionSource(single.value)) return;
-    return convertDocument({ source: single.value, format });
+    void convertDocument({ source: single.value, format });
+  }
+
+  function run(actionId: CreationIntentId) {
+    if (!canRun(actionId)) return;
+    const definition = CREATION_INTENT_DEFINITIONS.find(({ id }) => id === actionId);
+    if (definition && "documentFormat" in definition) convert(definition.documentFormat);
+    else handlers[actionId as DirectIntentId]();
   }
 
   function submit(draft: CreationDraft) {
@@ -52,10 +61,5 @@ export function createDerivationActions({
     void startCreation(sources.value, draft);
   }
 
-  return {
-    run: (actionId: CreationIntentId) => {
-      if (canRun(actionId)) handlers[actionId]();
-    },
-    submit,
-  };
+  return { run, submit };
 }

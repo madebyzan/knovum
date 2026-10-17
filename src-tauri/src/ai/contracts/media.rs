@@ -8,10 +8,27 @@ use crate::foundation::app_error::AppResult;
 #[derive(Debug, Clone)]
 pub struct ImageGenerationInput {
     pub prompt: String,
-    pub aspect_ratio: String,
+    /// The frame the user asked for. `None` when nobody asked - changing an
+    /// attached picture keeps the picture's frame. An adapter reads it on its
+    /// text-to-image path; on a reference request it applies it only if its API
+    /// has a frame field.
+    pub aspect_ratio: Option<String>,
     /// Pixels the model must see. Empty for a pure text-to-image request.
     /// What to do with them is the prompt's job, not a separate kind of request.
     pub references: Vec<ImageReference>,
+}
+
+impl ImageGenerationInput {
+    /// A text-to-image request always carries a frame; the shared layer checks
+    /// that before an adapter is reached.
+    pub fn require_aspect_ratio(&self) -> AppResult<&str> {
+        self.aspect_ratio.as_deref().ok_or_else(|| {
+            crate::foundation::app_error::AppError::new(
+                "invalid_request",
+                "A text-to-image request needs an aspect ratio",
+            )
+        })
+    }
 }
 
 /// A source rendered as the user currently sees it. References always travel as

@@ -16,7 +16,6 @@ use super::EditedImageOutput;
 const MAX_SOURCE_BYTES: u64 = 64 * 1024 * 1024;
 const MAX_SOURCE_PIXELS: u64 = 100_000_000;
 const MAX_SOURCE_DIMENSION: u32 = 10_000;
-const MAX_OUTPUT_BYTES: usize = 64 * 1024 * 1024;
 /// Below this edge a downscaled reference stops being useful to a model.
 const MIN_FITTED_EDGE: u32 = 256;
 
@@ -26,7 +25,7 @@ pub(crate) fn validate_edit(value: &Value) -> Result<(), String> {
 
 /// The caller owns authorization; the engine enforces image resource limits.
 pub(crate) fn render_source_png(source: &Path, edit: &Value) -> Result<EditedImageOutput, String> {
-    render(source, edit, MAX_OUTPUT_BYTES)
+    render(source, edit, super::MAX_PNG_BYTES)
 }
 
 /// The same render, downscaled until it fits a budget a provider declared.
@@ -35,7 +34,7 @@ pub(crate) fn render_source_png_within(
     edit: &Value,
     max_bytes: usize,
 ) -> Result<EditedImageOutput, String> {
-    render(source, edit, max_bytes.min(MAX_OUTPUT_BYTES))
+    render(source, edit, max_bytes.min(super::MAX_PNG_BYTES))
 }
 
 fn render(source: &Path, edit: &Value, max_bytes: usize) -> Result<EditedImageOutput, String> {
@@ -57,6 +56,9 @@ fn render(source: &Path, edit: &Value, max_bytes: usize) -> Result<EditedImageOu
     encode(pixels::render(&source.to_rgba8(), &edit)?, max_bytes)
 }
 
+/// Encode, and if the result is over budget, downscale and try again. Both
+/// sides shrink by the same factor: a reference image that changed shape would
+/// be a different picture.
 fn encode(image: image::RgbaImage, max_bytes: usize) -> Result<EditedImageOutput, String> {
     let mut image = image;
     loop {
@@ -72,8 +74,8 @@ fn encode(image: image::RgbaImage, max_bytes: usize) -> Result<EditedImageOutput
         }
         image = image::imageops::resize(
             &image,
-            (width * 7 / 10).max(MIN_FITTED_EDGE),
-            (height * 7 / 10).max(MIN_FITTED_EDGE),
+            width * 7 / 10,
+            height * 7 / 10,
             image::imageops::FilterType::CatmullRom,
         );
     }

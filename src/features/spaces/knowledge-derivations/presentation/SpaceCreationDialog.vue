@@ -10,7 +10,7 @@ import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { CreationSource } from "../catalog/creation-source";
 import {
-  CREATION_OUTPUTS,
+  creationOutputs,
   creationTargetPurpose,
   imageAspectRatioSchema,
   videoAspectRatioSchema,
@@ -19,13 +19,15 @@ import {
   type CreationOutput,
 } from "../creation";
 
-const open = defineModel<boolean>("open", { required: true });
-const props = defineProps<{ output: CreationOutput; sources: readonly CreationSource[] }>();
+/** The model is the open state and the output the user picked in the menu. */
+const output = defineModel<CreationOutput | undefined>("output", { required: true });
+defineProps<{ sources: readonly CreationSource[] }>();
 const emit = defineEmits<{ submit: [draft: CreationDraft] }>();
 const { t } = useI18n();
 
+// The output switch is part of the form: the menu only seeds it.
 const form = reactive<CreationDraft>({
-  output: props.output,
+  output: "document",
   title: "",
   requirement: "",
   imageAspectRatio: "16:9",
@@ -34,28 +36,28 @@ const form = reactive<CreationDraft>({
 });
 const valid = computed(() => Boolean(form.title.trim() && form.requirement.trim() && form.target));
 const outputs = computed(() =>
-  CREATION_OUTPUTS.map((value) => ({ value, label: t(`spaces.creation.composer.output.${value}`) })),
+  creationOutputs.map((value) => ({
+    value,
+    label: t(`spaces.creation.composer.output.${value}`),
+  })),
 );
 const imageRatios = imageAspectRatioSchema.options.map((value) => ({ value, label: value }));
 const videoRatios = videoAspectRatioSchema.options.map((value) => ({ value, label: value }));
 const durations = videoDurations.map((seconds) => ({ value: String(seconds), label: `${seconds}s` }));
 
-watch(
-  [open, () => props.output],
-  ([isOpen, output]) => {
-    if (!isOpen) return;
-    form.output = output;
-    form.requirement = "";
-    form.title = t(`spaces.creation.composer.defaultTitle.${output}`);
-  },
-  { immediate: true },
-);
+watch(output, (next) => {
+  if (!next) return;
+  form.output = next;
+  form.target = undefined;
+  form.title = t(`spaces.creation.composer.defaultTitle.${next}`);
+  form.requirement = "";
+});
+
+// Switching output inside the dialog keeps what was typed, but the executor
+// has to be chosen again: the capability it needs is different.
 watch(
   () => form.output,
-  (output) => {
-    form.target = undefined;
-    if (!form.title.trim()) form.title = t(`spaces.creation.composer.defaultTitle.${output}`);
-  },
+  () => (form.target = undefined),
 );
 
 function selectDuration(value: string) {
@@ -66,9 +68,10 @@ function selectDuration(value: string) {
 
 <template>
   <UiDialog
-    v-model:open="open"
+    :open="output !== undefined"
     :title="t('spaces.creation.composer.title')"
     :description="t('spaces.creation.composer.description')"
+    @update:open="output = undefined"
   >
     <div class="space-y-4">
       <label class="block space-y-1.5">
@@ -91,16 +94,14 @@ function selectDuration(value: string) {
           :placeholder="t(`spaces.creation.composer.placeholder.${form.output}`)"
         />
       </label>
-      <div v-if="form.output === 'image'">
-        <label class="block space-y-1.5 text-label font-medium">
-          {{ t("spaces.creation.composer.aspectRatio") }}
-          <UiSelect
-            v-model="form.imageAspectRatio"
-            :label="t('spaces.creation.composer.aspectRatio')"
-            :options="imageRatios"
-          />
-        </label>
-      </div>
+      <label v-if="form.output === 'image'" class="block space-y-1.5 text-label font-medium">
+        {{ t("spaces.creation.composer.aspectRatio") }}
+        <UiSelect
+          v-model="form.imageAspectRatio"
+          :label="t('spaces.creation.composer.aspectRatio')"
+          :options="imageRatios"
+        />
+      </label>
       <div v-else-if="form.output === 'video'" class="grid grid-cols-2 gap-3">
         <label class="space-y-1.5 text-label font-medium">
           {{ t("spaces.creation.composer.aspectRatio") }}
@@ -131,7 +132,7 @@ function selectDuration(value: string) {
       </div>
     </div>
     <template #footer>
-      <UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton>
+      <UiButton variant="ghost" @click="output = undefined">{{ t("common.cancel") }}</UiButton>
       <UiButton variant="primary" :disabled="!valid" @click="emit('submit', { ...form })">
         {{ t("spaces.creation.composer.create") }}
       </UiButton>

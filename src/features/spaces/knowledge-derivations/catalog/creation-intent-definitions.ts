@@ -2,6 +2,7 @@ import type {
   CreationIntentDecision,
   CreationIntentDefinition,
   CreationSelectionContext,
+  DocumentFormat,
 } from "./creation-intent";
 import { MAX_CREATION_SOURCES } from "./creation-source";
 
@@ -27,9 +28,10 @@ function decideVideoGeneration(context: CreationSelectionContext): CreationInten
   return context.imageCount > 10 ? { state: "blocked", reason: "too-many-video-images" } : AVAILABLE;
 }
 
+/** Every conversion follows the same rule, so it is read from the format. */
 function decideDocumentConversion(
   context: CreationSelectionContext,
-  format: NonNullable<CreationIntentDefinition["documentFormat"]>,
+  format: DocumentFormat,
 ): CreationIntentDecision {
   if (!context.documentTargets.includes(format)) return HIDDEN;
   return context.documentRecognitionRequired
@@ -38,51 +40,14 @@ function decideDocumentConversion(
 }
 
 export const CREATION_INTENT_DEFINITIONS = [
-  {
-    id: "draft-document",
-    icon: "file-pen",
-    decide: decideCreation,
-  },
-  {
-    id: "generate-visualization",
-    icon: "image",
-    decide: decideCreation,
-  },
-  {
-    id: "convert-document-to-docx",
-    documentFormat: "docx",
-    icon: "file-output",
-    decide: (context) => decideDocumentConversion(context, "docx"),
-  },
-  {
-    id: "convert-document-to-pdf",
-    documentFormat: "pdf",
-    icon: "file-output",
-    decide: (context) => decideDocumentConversion(context, "pdf"),
-  },
-  {
-    id: "convert-document-to-txt",
-    documentFormat: "txt",
-    icon: "file-output",
-    decide: (context) => decideDocumentConversion(context, "txt"),
-  },
-  {
-    id: "convert-document-to-html",
-    documentFormat: "html",
-    icon: "file-output",
-    decide: (context) => decideDocumentConversion(context, "html"),
-  },
-  {
-    id: "render-presentation",
-    documentFormat: "pptx",
-    icon: "file-output",
-    decide: (context) => decideDocumentConversion(context, "pptx"),
-  },
-  {
-    id: "generate-video",
-    icon: "sparkles",
-    decide: decideVideoGeneration,
-  },
+  { id: "draft-document", icon: "file-pen", decide: decideCreation },
+  { id: "generate-visualization", icon: "image", decide: decideCreation },
+  { id: "convert-document-to-docx", documentFormat: "docx", icon: "file-output" },
+  { id: "convert-document-to-pdf", documentFormat: "pdf", icon: "file-output" },
+  { id: "convert-document-to-txt", documentFormat: "txt", icon: "file-output" },
+  { id: "convert-document-to-html", documentFormat: "html", icon: "file-output" },
+  { id: "render-presentation", documentFormat: "pptx", icon: "file-output" },
+  { id: "generate-video", icon: "sparkles", decide: decideVideoGeneration },
   {
     id: "remove-image-background",
     icon: "scan",
@@ -102,6 +67,7 @@ export const CREATION_INTENT_DEFINITIONS = [
 
 type CreationIntent = (typeof CREATION_INTENT_DEFINITIONS)[number];
 export type CreationIntentId = CreationIntent["id"];
+export type DocumentConversionIntentId = Extract<CreationIntent, { documentFormat: DocumentFormat }>["id"];
 export type CreationIntentDecisions = Record<CreationIntentId, CreationIntentDecision>;
 
 export const DOCUMENT_CONVERSION_DEFINITIONS = CREATION_INTENT_DEFINITIONS.filter(
@@ -111,6 +77,11 @@ export const DOCUMENT_CONVERSION_ACTION_IDS = DOCUMENT_CONVERSION_DEFINITIONS.ma
 
 export function decideCreationIntents(context: CreationSelectionContext): CreationIntentDecisions {
   return Object.fromEntries(
-    CREATION_INTENT_DEFINITIONS.map((definition) => [definition.id, definition.decide(context)]),
+    CREATION_INTENT_DEFINITIONS.map((definition) => [
+      definition.id,
+      "documentFormat" in definition
+        ? decideDocumentConversion(context, definition.documentFormat)
+        : definition.decide(context),
+    ]),
   ) as CreationIntentDecisions;
 }

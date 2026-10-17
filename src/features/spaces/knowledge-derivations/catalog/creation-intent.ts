@@ -30,9 +30,14 @@ export interface CreationSelectionContext {
   readonly documentRecognitionRequired: boolean;
 }
 
-export interface CreationIntentDefinition {
+/**
+ * A creation entry either decides for itself, or converts a document - in which
+ * case the format is the whole decision.
+ */
+export type CreationIntentDefinition = {
   readonly id: string;
   readonly icon: CreationIntentIcon;
-  readonly documentFormat?: DocumentFormat;
-  readonly decide: (context: CreationSelectionContext) => CreationIntentDecision;
-}
+} & (
+  | { readonly decide: (context: CreationSelectionContext) => CreationIntentDecision }
+  | { readonly documentFormat: DocumentFormat }
+);
