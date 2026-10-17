@@ -31,7 +31,9 @@ it("submits one durable split pinned to the source revision and requests no laye
   expect(calls.start).toHaveBeenCalledOnce();
   expect(calls.start).toHaveBeenCalledWith({
     actionId: "split-image-layers",
-    sources: [{ nodeId: "source", title: "Photo", role: "primary", sourceRevision: "node1:frozen" }],
+    sources: [
+      { nodeId: "source", title: "Photo", sourceRevision: "node1:frozen", revisionBasis: "knowledge" },
+    ],
     parameters: {},
     title: expect.stringContaining("spaces.creation.image.splitLayers"),
   });

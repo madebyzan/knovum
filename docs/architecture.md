@@ -224,7 +224,6 @@ The Rust boundary is divided by business responsibility:
 - `authorization/` owns principals, explicit Space/Application Run scopes, grants, and effect-specific approval.
 - `runs/` owns durable runs, steps, attempts, scheduling, recovery, and events. Application voice
   generation shares this engine with Space work and has no implicit Space or Space permissions.
-- `workflows/` owns capture and replay of verified action chains.
 - `conversations/` owns shared conversation history and execution admission; built-in and external
   executors remain separate implementations.
 - `knowledge/` owns semantic contracts, provenance, indexing, retrieval, grounding, patches, and
@@ -240,7 +239,7 @@ The Rust boundary is divided by business responsibility:
 - `package/` owns package validation, snapshots, restore, and failed-import cleanup.
 - `agent_artifacts/` owns agent workspaces, previews, import, recovery, and consumption.
 - `run_execution.rs` composes finite Action, captured Workflow and speech step routing and capability-owned terminal maintenance. `run_control.rs` composes durable Run control with capability interruption. The scheduler receives three concrete hooks at startup; it never selects capabilities itself.
-- `recovery.rs` owns ordered reconciliation of interrupted Space workflows during bootstrap.
+- `recovery.rs` owns ordered reconciliation of interrupted Space Runs during bootstrap.
 
 Space agent workspace roots and session paths are defined in `spaces/agent_artifacts/workspace`.
 `external_agents/artifacts` owns safe artifact collection, output projection and resolution shared by

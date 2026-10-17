@@ -7,11 +7,11 @@ import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { StartSpaceActionRequest } from "../contracts/generated/StartSpaceActionRequest";
 import { observeResourceRun } from "../runs/resource-run-observation";
 import { useSpaceStore } from "../session/space-store";
-import type { GroundedDocumentSource } from "./catalog/grounded-document";
+import type { CreationSource } from "./catalog/creation-source";
 
 interface StartActionOptions {
   actionId: string;
-  sources: readonly GroundedDocumentSource[];
+  sources: readonly CreationSource[];
   parameters: Record<string, unknown>;
   title: string;
   target?: TaskTargetRef | undefined;
@@ -33,7 +33,11 @@ export async function startDerivationAction({
     spaceId,
     actionId,
     parameters,
-    sources: sources.map(({ nodeId, sourceRevision }) => ({ nodeId, knowledgeRevision: sourceRevision })),
+    sources: sources.map(({ nodeId, sourceRevision, revisionBasis }) => ({
+      nodeId,
+      sourceRevision,
+      revisionBasis,
+    })),
     target: target ? { ...target } : null,
   };
   try {

@@ -3,6 +3,7 @@ use serde_json::{json, Value};
 use tauri::AppHandle;
 
 use crate::foundation::app_error::AppError;
+use crate::spaces::derivation::source_inputs::{self, SourceInput};
 use crate::{
     ai::{
         settings,
@@ -22,17 +23,9 @@ use crate::{
 pub(super) struct GroundedAnswerRequest {
     id: String,
     space_id: String,
-    inputs: Vec<AnswerInput>,
+    inputs: Vec<SourceInput>,
     question: String,
     target: TaskTargetSelection,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct AnswerInput {
-    node_id: String,
-    role: String,
-    source_revision: String,
 }
 
 pub(super) async fn answer(
@@ -41,34 +34,17 @@ pub(super) async fn answer(
     authority: &super::action_execution::ExecutionAuthority,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<Value, AppError> {
-    if request.question.trim().is_empty() || request.inputs.is_empty() {
+    if request.question.trim().is_empty() {
         return Err(AppError::new(
             "answer_with_sources_invalid",
             "question and sources are required",
         ));
     }
-    if request
-        .inputs
-        .first()
-        .is_none_or(|input| input.role != "primary")
-    {
-        return Err(AppError::new(
-            "answer_with_sources_invalid",
-            "the first source must be primary",
-        ));
-    }
+    source_inputs::require_single_primary(&request.inputs)
+        .map_err(|error| AppError::new("answer_with_sources_invalid", error))?;
     let pool = crate::spaces::db::pool(app).await?;
     let mut tx = crate::spaces::db::begin_write(pool).await?;
-    for input in &request.inputs {
-        super::source_validation::validate(
-            &mut tx,
-            &request.space_id,
-            &input.node_id,
-            &input.source_revision,
-            super::inputs::RevisionBasis::Knowledge,
-        )
-        .await?;
-    }
+    source_inputs::pin(&mut tx, &request.space_id, &request.inputs).await?;
     tx.commit().await.map_err(crate::spaces::db::sql_error)?;
     let target = settings::resolve_task(
         app,
@@ -79,13 +55,7 @@ pub(super) async fn answer(
     crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
         app,
         &request.space_id,
-        Some(
-            request
-                .inputs
-                .iter()
-                .map(|input| input.node_id.clone())
-                .collect(),
-        ),
+        Some(source_inputs::node_ids(&request.inputs)),
         &request.id,
         cancellation,
     )
@@ -96,13 +66,7 @@ pub(super) async fn answer(
             semantic: true,
             space_id: Some(request.space_id.clone()),
             query: request.question.clone(),
-            node_ids: Some(
-                request
-                    .inputs
-                    .iter()
-                    .map(|input| input.node_id.clone())
-                    .collect(),
-            ),
+            node_ids: Some(source_inputs::node_ids(&request.inputs)),
         },
         cancellation,
     )

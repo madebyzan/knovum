@@ -41,7 +41,7 @@ pub(crate) fn resolve(
                 ExecutionCapability::ImageGeneration,
             )?;
             if let TaskExecutionTarget::Model(model) = &target {
-                if !super::supported_operations(super::backend(model)).allows(operation) {
+                if !super::supports_remote_operations(model) {
                     return Err(
                         "Configured image model does not support this image operation".into(),
                     );

@@ -23,8 +23,8 @@ pub use embedding::{EmbeddingCapability, EmbeddingResponse};
 pub use files::{FileUploadCapability, UploadedFileReference};
 pub use media::{
     GeneratedImage, GeneratedVideo, ImageGenerationCapability, ImageGenerationInput,
-    VideoGenerationCapability, VideoGenerationInput, VideoGenerationStageCallback,
-    VideoGenerationStatus, VideoGenerationSubmission,
+    ImageReference, ImageReferenceSupport, VideoGenerationCapability, VideoGenerationInput,
+    VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
 };
 pub use model_turn::{
     ModelBinarySource, ModelContentPart, ModelFinishReason, ModelMessage, ModelRole,

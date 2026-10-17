@@ -3,7 +3,7 @@ use tauri::AppHandle;
 use super::GenerateGroundedDocumentRequest;
 use crate::spaces::db;
 use crate::spaces::derivation::inputs;
-use crate::spaces::derivation::source_validation;
+use crate::spaces::derivation::source_inputs;
 
 pub async fn start(
     app: &AppHandle,
@@ -14,23 +14,13 @@ pub async fn start(
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
-    for input in &request.inputs {
-        crate::spaces::knowledge::validation::validate_same_space_node(
-            &mut tx,
-            &request.space_id,
-            &input.node_id,
-            &request.output_node_id,
-        )
-        .await?;
-        source_validation::validate(
-            &mut tx,
-            &request.space_id,
-            &input.node_id,
-            &input.source_revision,
-            inputs::RevisionBasis::Knowledge,
-        )
-        .await?;
-    }
+    source_inputs::pin_for_output(
+        &mut tx,
+        &request.space_id,
+        &request.output_node_id,
+        &request.inputs,
+    )
+    .await?;
     let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query(
         "INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,(SELECT json_extract(input_snapshot,'$.actionId') FROM spaces_runs WHERE id=$1 AND kind='action'),1,'knovum-grounded-ai:1','running',$4,$4)",
@@ -42,17 +32,12 @@ pub async fn start(
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    let values = request
-        .inputs
-        .iter()
-        .map(|input| inputs::DerivationInput {
-            node_id: &input.node_id,
-            role: &input.role,
-            source_revision: &input.source_revision,
-            revision_basis: inputs::RevisionBasis::Knowledge,
-        })
-        .collect::<Vec<_>>();
-    inputs::insert(&mut tx, &request.id, &values).await?;
+    inputs::insert(
+        &mut tx,
+        &request.id,
+        &source_inputs::records(&request.inputs),
+    )
+    .await?;
     tx.commit().await.map_err(db::sql_error)
 }
 
@@ -83,19 +68,8 @@ fn validate_request(request: &GenerateGroundedDocumentRequest) -> Result<(), Str
         || request.space_id.trim().is_empty()
         || request.output_node_id.trim().is_empty()
         || request.purpose.trim().is_empty()
-        || request.inputs.is_empty()
-        || request
-            .inputs
-            .first()
-            .is_none_or(|input| input.role != "primary")
-        || request
-            .inputs
-            .iter()
-            .filter(|input| input.role == "primary")
-            .count()
-            != 1
     {
         return Err("Grounded document request is invalid".into());
     }
-    Ok(())
+    source_inputs::require_single_primary(&request.inputs)
 }

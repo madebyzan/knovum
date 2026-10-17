@@ -9,6 +9,7 @@
   },
   "citations": "Citations · {count}",
   "createFromSelection": "Créer à partir de la sélection",
-  "needsIndexedKnowledge": "Les éléments sélectionnés ne contiennent pas encore de texte consultable.",
-  "finishNodeOperation": "Terminez ou annulez d'abord l'opération de nœud en cours."
+  "finishNodeOperation": "Terminez ou annulez d'abord l'opération de nœud en cours.",
+  "tooManySources": "Sélectionnez au maximum 32 ressources pour créer.",
+  "noUsableSource": "La sélection ne contient aucun fichier ni texte lisible par un modèle."
 }

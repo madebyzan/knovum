@@ -166,21 +166,24 @@ Revision identity follows the consumed data: `sourceRevision` identifies managed
 `rendered` identifies bytes plus the normalized image/video edit snapshot; `knowledgeRevision`
 identifies semantic content; Structure's `editRevision` fences layout and membership only.
 Derivation inputs record their `asset`, `rendered` or `knowledge` basis and consumed snapshot.
-Rust rechecks that basis and edit/project before publication. A later source edit marks the old
+The basis is resolved once, where a selection is pinned — pixels for an image, indexed content for
+text — and then travels with the input, so no handler assumes a basis of its own and a resource
+nothing has analyzed yet is still something to create from. Rust rechecks that basis and edit/project
+before publication. A later source edit marks the old
 output historical without rewriting or regenerating it. Image background removal/upscale consume
 `rendered`; subtitle burn-in pins video bytes and transcript knowledge; viewport movement consumes
 neither. Ordinary content edits compare the complete expected payload atomically, so stale edits
 cannot overwrite newer content or comments. Preview and external export use current rendered content.
 
-A **Capability** executes one product operation: document/image/video generation, document export or a media transformation. Selecting several inputs does not turn that operation into a Workflow. A **Workflow** is a reusable dependency chain captured from completed, verified Space Action derivations. There are no built-in Workflow recipes.
+A **Capability** executes one product operation: document/image/video generation, document export or a media transformation. Selecting several inputs grounds that one operation in several sources; it never becomes a hidden multi-step program. Reuse comes from the derivation record a result already carries, not from a separately stored recipe. Asking a model to change an attached image is not a separate kind of request: pixels travel with the prompt, and the prompt says what to do with them. See `creation-sources.md`.
 
 The canvas starts registered generative capabilities and document exports through `start_space_action`. Rust pins the selected inputs, resolves and freezes the execution target, and creates an authorized Action Run in one transaction. Vue observes the shared Task Center; it does not sequence hidden generation steps or publish output bytes.
 
-The Rust Run scheduler is the only execution authority. Personal workflows use the same Action executors, leases, cancellation, result validation and publication rules as an individual capability. A saved workflow contains typed input/output slots, bounded parameters, actual execution selections and dependencies, not executable references to its sample nodes. On reuse, the user binds new resources; each Run freezes their data digests and the workflow definition. Later edits or settings changes cannot silently change a running task.
+The Rust Run scheduler is the only execution authority. Every capability uses the same Action executors, leases, cancellation, result validation and publication rules. Each Run freezes the data digests of its pinned inputs, so later edits or settings changes cannot silently change a running task.
 
-A **Creation Intent** is a localized capability entry with selection availability. The separate Workflow entry opens the canvas inspector to save or reuse verified chains. Immutable numbered workflow definitions remain in the personal library. Each Run has its own execution grant; retry reuses only successful predecessor results whose recorded resources remain valid.
+A **Creation Intent** is a localized capability entry with selection availability. Every Action is named once, in `spaces.creation.actions`, so creation menus and Agent activity cannot drift apart. Each Run has its own execution grant; retry reuses only successful predecessor results whose recorded resources remain valid.
 
-Capture covers registered single-resource Actions: document/image/video generation, subtitle burn-in, supported document conversion/export and image transformations. `upscale-image`, `generate-image-angle`, `remove-image-object`, `remove-image-background`, `extract-image-selection` and `generate-image-depth` use the same authenticated Invocation, durable Run and committed Receipt as other Actions. Capture records their frozen parameters and execution identity; it never reconstructs operations from relations. Transient masks and selection previews do not produce Action receipts.
+Image transformations are ordinary Actions: `upscale-image`, `generate-image-angle`, `remove-image-object`, `remove-image-background`, `extract-image-selection` and `generate-image-depth` use the same authenticated Invocation, durable Run and committed Receipt as generation. Transient masks and selection previews do not produce Action receipts.
 
 The Builtin Agent has one visible conversation and message store for API models and desktop Agents.
 The input chooses an enabled target for each turn. A desktop Agent turn creates a separate ACP
@@ -192,11 +195,11 @@ grounded-answer threads and messages are moved into the Builtin Agent store by a
 database migration; their verified source snapshots remain attached to the corresponding reply.
 Closing an Agent session exposes workspace artifacts through the existing reviewed import path.
 
-Document conversion consumes one explicit current Markdown or supported document-file resource. It creates a managed file through the same Action Run and does not synthesize a hidden document from an arbitrary selection. Supported source/target routes and fidelity limits belong to [document-conversion.md](document-conversion.md). Multi-stage outcomes remain Workflows and keep their independently useful intermediate resources visible.
+Document conversion consumes one explicit current Markdown or supported document-file resource. It creates a managed file through the same Action Run and does not synthesize a hidden document from an arbitrary selection. Supported source/target routes and fidelity limits belong to [document-conversion.md](document-conversion.md).
 
 AI execution selection follows the task's explicit target, then its capability override, then the user's default execution method. An enabled desktop Agent uses its own authentication and tools; a selected user model uses its registered connection and credential reference. Local deterministic Actions do not require either. Missing or failed execution paths remain visible and do not switch to another account.
 
-Each Run freezes the resolved execution selection. Completed derivations record the actual engine or model identity; desktop Agent execution does not invent a model, token count or fee. Changing a default never changes an existing Run or generated resource. Creation Presets capture bounded generation parameters without embedding credentials.
+Each Run freezes the resolved execution selection. Completed derivations record the actual engine or model identity; desktop Agent execution does not invent a model, token count or fee. Changing a default never changes an existing Run or generated resource.
 
 A successful derivation:
 
@@ -231,23 +234,14 @@ a compact block beside its source instead of a row that runs off the side of the
 a reserved node already carries the pixel size it will publish, nothing moves when the content
 lands.
 
-The dedicated Workflow Studio has been removed. The canvas selection menu opens a floating
-derivation inspector anchored to the selection through the canvas surface placement rule. It
-closes when the user changes the selection; its header does not drag the native window. It
-matches Action Run source identities to derivation inputs, then reads
-verified parameters, ordered source inputs and disconnected selection groups without changing
-canvas resources. Selecting a step or input reveals its node on the existing canvas. A validated
-capture can be saved to the personal workflow library; the same canvas menu binds new resources
-and starts a durable Run. Image sequences can be reordered before execution. The inspector lists
-recent Runs from SQLite, allowing a closed panel to reopen one and locate its completed outputs.
-Renaming a captured workflow changes its library label; deleting it leaves prior Runs and their
-published resources intact because each Run holds its own definition snapshot.
-Editing a captured workflow saves a new immutable definition version. The editor can adjust
-step parameters, omit terminal steps, and select and name which verified step results are
-returned. Rust revalidates action versions, typed bindings and dependencies before committing
-the new version. Runs already accepted keep their original definition snapshot.
-Execution dependencies must come from validated action records, not visual proximity or hand-drawn
-relations. Model samplers and provider plumbing remain execution bindings rather than canvas nodes.
+There is no separate program-authoring surface. A recorded chain that can only be replayed with the
+same settings on new material earned neither its storage nor its binding ceremony: it required
+running the chain by hand first, could not vary a parameter for one Run, and scattered one node per
+step across the canvas. Reuse therefore reads the derivation record a result already carries — its
+Action, pinned parameters and execution identity — instead of a separately stored definition.
+Execution dependencies come from validated Action records, never from visual proximity or
+hand-drawn relations. Model samplers and provider plumbing remain execution bindings rather than
+canvas nodes.
 The built-in Agent calls Knovum Space Actions. Desktop Agents manage external tools in their
 own runtime; the Space package does not export Agent tool configuration.
 Conversation has one Agent entry point, without a mode field or mode selector. Users choose an
@@ -746,20 +740,9 @@ this baseline, with an explicit data transition for existing local databases; th
 not silently delete a user's Space data. New derivations capture immutable source metadata when created.
 Rebuildable projections remain derived from their owning nodes and relations.
 
-Canvas workflow capture reads completed derivations and the matching successful action Run in one
-SQLite snapshot. Its candidate rewrites source resources to ordered, typed input slots and internal
-resources to step-output bindings; the executable candidate contains no canvas node IDs. Capture
-rejects incomplete records, mismatched source order, missing execution targets, and action
-parameters that directly reference source node IDs. A source digest covers the selected graph and
-current node contents so a later save can reject a changed preview. The existing personal-template
-table loads only current `schemaVersion: 1` personal definitions; unsupported development definitions
-are not loaded or converted. Saving
-recomputes capture within the same write transaction and checks its digest; a request UUID makes
-retries idempotent. Starting a Run checks action versions, binds distinct new resources, grants
-the selected actions, and records a fixed definition and input snapshot. `captured_action` steps
-resolve only bound slots or successful earlier step outputs. Rust Run changes stream to the
-Task Center through a Tauri Channel. Active workflow Runs are reattached on startup; closing the
-inspector does not cancel the Run. The selected model target is checked when a Run starts. Durable
+Rust Run changes stream to the Task Center through a Tauri Channel. Active Runs are reattached on
+startup; closing a panel does not cancel the Run. The selected model target is checked when a Run
+starts. Durable
 Action outputs reserve canvas space beside their actual sources through the shared structure
 placement rule, searching for a non-overlapping location before publishing the placeholder.
 
@@ -794,7 +777,7 @@ The single `space-store` composes existing owners rather than maintaining parall
 | Component focus, hover and primitive interaction  | Owning component or editor session                  | Component/editor lifetime                                             |
 | Async query results                               | Existing Vue Query keys                             | Space and actual request parameters                                   |
 | Run transport                                     | `runs/run-observation`                              | One Channel/invoke per run ID; removed on terminal completion/failure |
-| Conversation/workflow task mapping                | Owning capability                                   | Attached run; released when shared observation finishes               |
+| Conversation task mapping                         | Owning capability                                   | Attached run; released when shared observation finishes               |
 | Unsent conversation composer draft                | Spaces SQLite `spaces_conversation_drafts`          | `(spaceId, conversationId)`; restored after restart                   |
 
 Navigation flush failure preserves the current Space and reports the failure. Successful website binding publication is independent of best-effort old-file cleanup. Asset refresh generates a new preview, publishes with a revision guard, then reclaims only explicitly owned candidates. The reference graph is read in one SQLite snapshot and retains soft-deleted references for undo. Filesystem deletion is not a database transaction; it is never reported as an atomic commit of both systems.

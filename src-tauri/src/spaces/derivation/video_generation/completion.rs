@@ -7,7 +7,7 @@ use crate::{
     foundation::app_error::AppError,
     spaces::{
         db,
-        derivation::{pending_output, relations, source_validation},
+        derivation::{pending_output, relations, source_inputs},
         knowledge::model::revision,
     },
 };
@@ -39,16 +39,7 @@ pub async fn complete(
     if data.get("assetPath").and_then(Value::as_str) != Some(expected_path) {
         return Err("Generated video output path changed while rendering".into());
     }
-    for input in &request.inputs {
-        source_validation::validate(
-            &mut tx,
-            &request.space_id,
-            &input.node_id,
-            &input.source_revision,
-            super::preparation::input_basis(&input.role)?,
-        )
-        .await?;
-    }
+    source_inputs::pin(&mut tx, &request.space_id, &request.inputs).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
     let object = data
         .as_object_mut()

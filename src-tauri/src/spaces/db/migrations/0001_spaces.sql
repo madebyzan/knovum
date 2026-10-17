@@ -263,7 +263,6 @@ CREATE TABLE spaces_grounded_documents (
 CREATE TABLE spaces_generated_images (
   derivation_id TEXT PRIMARY KEY NOT NULL,
   intent TEXT NOT NULL,
-  style TEXT NOT NULL,
   aspect_ratio TEXT NOT NULL CHECK (aspect_ratio IN ('1:1','3:2','2:3','16:9','9:16')),
   execution_source TEXT NOT NULL CHECK (json_valid(execution_source)),
   revised_prompt TEXT,
@@ -581,14 +580,6 @@ CREATE TABLE spaces_external_output_staging (
   FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_workflow_templates (
-  id TEXT PRIMARY KEY NOT NULL,
-  name TEXT NOT NULL,
-  definition TEXT NOT NULL CHECK (json_valid(definition)),
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
 CREATE TABLE spaces_conversations (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
@@ -730,15 +721,6 @@ CREATE TABLE spaces_conversation_message_projections (
   PRIMARY KEY (segment_id, provider_message_id),
   FOREIGN KEY (segment_id) REFERENCES spaces_builtin_agent_execution_segments(id) ON DELETE CASCADE,
   FOREIGN KEY (message_id) REFERENCES spaces_conversation_messages(id) ON DELETE CASCADE
-);
-
-CREATE TABLE spaces_captured_workflow_versions (
-  workflow_id TEXT NOT NULL,
-  version INTEGER NOT NULL CHECK (version > 0),
-  definition TEXT NOT NULL CHECK (json_valid(definition)),
-  created_at INTEGER NOT NULL,
-  PRIMARY KEY (workflow_id, version),
-  FOREIGN KEY (workflow_id) REFERENCES spaces_workflow_templates(id) ON DELETE CASCADE
 );
 
 INSERT INTO "spaces_object_types" ("id","space_id","name","icon","description","fields","system","created_at","updated_at") VALUES ('system:claim',NULL,'Claim','lightbulb','An atomic assertion that can be supported, challenged, or superseded.','[{"key":"statement","label":"Statement","kind":"text","required":true}]',1,0,0);

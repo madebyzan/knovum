@@ -15,7 +15,6 @@ enum Route {
     VoiceCandidate,
     SourceSeparation,
     Translation,
-    Captured,
     Action,
     Unsupported,
 }
@@ -85,7 +84,6 @@ async fn execute_step(
             crate::spaces::speech::source_separation::execute(app, pool, claim).await
         }
         Route::Translation => crate::spaces::speech::translation::execute(app, pool, claim).await,
-        Route::Captured => crate::spaces::workflows::execute_captured_step(pool, claim).await,
         Route::Action => execute_action(app, claim).await,
         Route::Unsupported => Err(AppError::new(
             "run_step_invalid",
@@ -120,7 +118,6 @@ fn route(node_kind: &str, configuration: &Value) -> Route {
         | "speech_loudness_measurement"
         | "speech_audiobook_encode"
         | "speech_assembly" => Route::Speech,
-        "captured_action" => Route::Captured,
         "action"
             if configuration
                 .as_object()

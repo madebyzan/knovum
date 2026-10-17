@@ -18,8 +18,8 @@ export function addVideoSubtitles(source: SpaceCanvasNode) {
       {
         nodeId: source.id,
         title: source.data.title,
-        role: "primary",
         sourceRevision: source.data.knowledgeRevision,
+        revisionBasis: "knowledge",
       },
     ],
     parameters: {},

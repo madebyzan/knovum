@@ -143,7 +143,7 @@ Durable knowledge work, Actions, Workflows, speech production, and Agent turns u
 scheduler owned by the Spaces capability. `RunScope` is explicit: Space work carries its Space ID,
 while global voice generation uses Application scope. Application grants require a local user and
 empty Space/action permissions; they cannot execute Space routes. Children inherit their parent’s
-exact scope, and workflow retries preserve the original Space scope and authorized action set. A Run freezes its principal, grant,
+exact scope, and Run retries preserve the original Space scope and authorized action set. A Run freezes its principal, grant,
 definition or binding revision, input snapshot,
 resource choice, and budgets. Step instances and attempts own resolved inputs, outputs, leases,
 checkpoints, retry state, and external reconciliation state.
@@ -301,9 +301,9 @@ package. Inspection exposes the precise diagnostics, including unsupported vendo
 
 Each bundled Skill contains focused instructions, task-specific references and an adaptable template.
 DeepAgents' existing SkillsMiddleware discovers metadata first, loads SKILL.md on selection, and reads
-referenced resources only when the workflow needs them. No custom skill loader or script executor is
+referenced resources only when the skill needs them. No custom skill loader or script executor is
 added. These skills orchestrate existing Space Actions and connected catalogs; they grant no extra
-authority and are not published Workflow definitions.
+authority.
 These instructions distinguish business Action IDs from advertised tool names and respect the
 executor's capabilities. External Agents generate new deliverables with their own runtime and
 submit files through the existing task-output publication path; they do not call built-in inference

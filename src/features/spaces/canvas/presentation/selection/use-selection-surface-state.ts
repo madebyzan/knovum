@@ -38,7 +38,6 @@ export function useSelectionSurfaceState() {
     return tool ? "compact-editor" : "actions";
   });
   const showActions = computed(() => {
-    if (store.workflowMode) return false;
     const operation = nodeOperations.active.value;
     return (
       !operation ||
@@ -49,7 +48,7 @@ export function useSelectionSurfaceState() {
     );
   });
   watch(
-    [selectionKey, () => imageEdit.active?.tool, () => imageRemoval.active?.nodeId, () => store.workflowMode],
+    [selectionKey, () => imageEdit.active?.tool, () => imageRemoval.active?.nodeId],
     () => (angleNodeId.value = undefined),
   );
   watch([selectionKey, () => store.activeSpaceId], () => (speechOperation.value = undefined));

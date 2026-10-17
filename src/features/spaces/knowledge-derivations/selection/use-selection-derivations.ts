@@ -3,23 +3,25 @@ import { computed, shallowRef, type Ref } from "vue";
 import { canRunAction } from "../../../../shared/contracts/action-availability";
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { creationIntentCatalog } from "../catalog/creation-intent-catalog";
 import {
   CREATION_INTENT_DEFINITIONS,
   type CreationIntentDecisions,
 } from "../catalog/creation-intent-definitions";
-import type { CreationDialogId } from "./creation-dialog";
+import type { CreationOutput } from "../creation";
 import { createDerivationActions } from "./derivation-actions";
-import { useDerivationCatalog } from "./use-derivation-catalog";
 
 export function useSelectionDerivations(selection: Ref<SpaceCanvasNode[]>) {
-  const dialog = shallowRef<CreationDialogId>();
-  const catalogState = useDerivationCatalog(selection);
+  const composing = shallowRef<CreationOutput>();
+  const catalog = computed(() => creationIntentCatalog(selection.value));
+  const single = computed(() => catalog.value.single);
+  const sources = computed(() => catalog.value.sources);
   const gate = useNodeOperationGate();
   const decisions = computed<CreationIntentDecisions>(
     () =>
       Object.fromEntries(
         CREATION_INTENT_DEFINITIONS.map((definition) => {
-          const decision = catalogState.decisions.value[definition.id];
+          const decision = catalog.value.decisions[definition.id];
           return [
             definition.id,
             canRunAction(decision) && !gate.allows("derive")
@@ -30,20 +32,12 @@ export function useSelectionDerivations(selection: Ref<SpaceCanvasNode[]>) {
       ) as CreationIntentDecisions,
   );
   const actions = createDerivationActions({
-    selection,
-    single: catalogState.single,
-    sources: catalogState.sources,
-    dialog,
+    single,
+    sources,
+    composing,
     canRun: (actionId) => canRunAction(decisions.value[actionId]),
     canSubmit: () => gate.allows("derive"),
   });
 
-  return {
-    single: catalogState.single,
-    decisions,
-    sourceTitle: catalogState.sourceTitle,
-    sources: catalogState.sources,
-    dialog,
-    ...actions,
-  };
+  return { single, decisions, sources, composing, ...actions };
 }

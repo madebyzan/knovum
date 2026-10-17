@@ -1,11 +1,5 @@
 {
   "conversion": {
-    "actions": {
-      "docx": "In ein Word-Dokument konvertieren",
-      "pdf": "Setzt Notizen und Markdown als PDF.",
-      "txt": "In einfachen Text konvertieren",
-      "html": "In HTML konvertieren"
-    },
     "tasks": {
       "docx": "Word-Dokument wird generiert",
       "pdf": "PDF wird generiert",
@@ -22,16 +16,6 @@
     },
     "recognitionRequired": "Schließen Sie die Dokumenterkennung für alle gescannten Seiten vor der Konvertierung ab."
   },
-  "generate": "Dokument generieren",
-  "title": "Erstellen Sie ein Dokument aus ausgewähltem Wissen",
-  "description": "Entwerfen Sie neben den ausgewählten Quellen eine zitierte Markdown-Ressource.",
-  "defaultTitle": "Wissensentwurf",
-  "purpose": {
-    "label": "Dokumentkurzfassung",
-    "placeholder": "Beschreiben Sie das Ziel, das Format und die wichtigsten Punkte des Dokuments."
-  },
-  "sources": "{count} Wissensquelle | {count} Wissensquellen",
-  "task": "Dokument wird generiert",
   "generating": "Aus ausgewähltem Wissen generieren…",
   "failed": "Dokument konnte nicht generiert werden"
 }

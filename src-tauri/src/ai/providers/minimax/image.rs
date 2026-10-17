@@ -39,6 +39,7 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a ImageGenerationInput,
+        _cancellation: &'a tokio_util::sync::CancellationToken,
     ) -> BoxFuture<'a, AppResult<GeneratedImage>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
@@ -51,8 +52,8 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
                 ctx.model.as_str()
             };
 
-            let ratio = match req.aspect_ratio.as_str() {
-                "16:9" | "9:16" | "4:3" | "3:4" => req.aspect_ratio.as_str(),
+            let ratio = match req.require_aspect_ratio()? {
+                requested @ ("16:9" | "9:16" | "4:3" | "3:4") => requested,
                 _ => "1:1",
             };
 

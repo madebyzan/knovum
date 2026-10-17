@@ -89,7 +89,7 @@ fn generated_metadata_matches_the_actual_action_identity() {
         (
             vec!["generate-visualization", "generate-image"],
             "generatedImage",
-            serde_json::json!({"intent":"Explain","style":"Flat","aspectRatio":"1:1","executionSource":{"type":"agent","runtimeKind":"codex"},"revisedPrompt":null}),
+            serde_json::json!({"intent":"Explain","aspectRatio":"1:1","executionSource":{"type":"agent","runtimeKind":"codex"},"revisedPrompt":null}),
         ),
     ] {
         for action in actions {
@@ -130,7 +130,7 @@ async fn restores_agent_execution_sources_into_the_current_sql_baseline() {
             "image",
             "generate-visualization",
             "generatedImage",
-            serde_json::json!({"intent":"Explain","style":"","aspectRatio":"1:1","executionSource":source,"revisedPrompt":null}),
+            serde_json::json!({"intent":"Explain","aspectRatio":"1:1","executionSource":source,"revisedPrompt":null}),
         ),
         (
             "video",

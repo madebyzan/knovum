@@ -1,14 +1,20 @@
 use futures::future::BoxFuture;
 use serde::Deserialize;
+use tokio_util::sync::CancellationToken;
 
-use super::endpoint;
+use super::{endpoint, image_operation::generate_from_reference};
 use crate::ai::{
-    contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
+    contracts::{
+        GeneratedImage, ImageGenerationCapability, ImageGenerationInput, ImageReferenceSupport,
+    },
     transport::{http_client, response, SecurityContext},
 };
 use crate::foundation::app_error::{AppError, AppResult};
 
 pub struct DashScopeImageAdapter;
+
+/// The qwen-image protocol takes one uploaded image per request.
+const MAX_REFERENCE_BYTES: usize = 10 * 1024 * 1024;
 
 #[derive(Deserialize)]
 struct ResponsePayload {
@@ -46,12 +52,32 @@ struct ImageArtifact {
 }
 
 impl ImageGenerationCapability for DashScopeImageAdapter {
+    fn reference_support(&self, _provider: &str, _model: &str) -> Option<ImageReferenceSupport> {
+        Some(ImageReferenceSupport {
+            max_images: 1,
+            max_bytes_per_image: MAX_REFERENCE_BYTES,
+        })
+    }
+
     fn generate<'a>(
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a ImageGenerationInput,
+        cancellation: &'a CancellationToken,
     ) -> BoxFuture<'a, AppResult<GeneratedImage>> {
         Box::pin(async move {
+            if let Some(reference) = req.references.first() {
+                let bytes =
+                    generate_from_reference(ctx, reference.png.clone(), &req.prompt, cancellation)
+                        .await
+                        .map_err(|error| AppError::new("provider_request_failed", error))?;
+                return Ok(GeneratedImage {
+                    bytes,
+                    provider: ctx.provider.clone(),
+                    model: ctx.model.clone(),
+                    revised_prompt: None,
+                });
+            }
             let secret = ctx.require_api_key()?;
             let endpoint = endpoint(&ctx.endpoint);
             let body = serde_json::json!({
@@ -63,7 +89,7 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
                     }]
                 },
                 "parameters": {
-                    "size": image_size(&req.aspect_ratio),
+                    "size": image_size(req.require_aspect_ratio()?),
                     "n": 1,
                     "prompt_extend": true,
                     "watermark": false

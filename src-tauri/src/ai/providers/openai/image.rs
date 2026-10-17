@@ -1,8 +1,12 @@
 use futures::future::BoxFuture;
 use serde::Deserialize;
+use tokio_util::sync::CancellationToken;
 
+use super::super::image_references::{self, ReferenceApi, MAX_INLINE_REFERENCE_BYTES};
 use crate::ai::{
-    contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
+    contracts::{
+        GeneratedImage, ImageGenerationCapability, ImageGenerationInput, ImageReferenceSupport,
+    },
     transport::{http_client, response, SecurityContext},
 };
 use crate::foundation::app_error::{AppError, AppResult};
@@ -25,14 +29,45 @@ struct GeneratedImageSource {
 }
 
 impl ImageGenerationCapability for OpenAiImageAdapter {
+    fn reference_support(&self, provider: &str, model: &str) -> Option<ImageReferenceSupport> {
+        ReferenceApi::for_model(provider, model).map(|_| ImageReferenceSupport {
+            max_images: 1,
+            max_bytes_per_image: MAX_INLINE_REFERENCE_BYTES,
+        })
+    }
+
     fn generate<'a>(
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a ImageGenerationInput,
+        cancellation: &'a CancellationToken,
     ) -> BoxFuture<'a, AppResult<GeneratedImage>> {
         Box::pin(async move {
+            if let Some(reference) = req.references.first() {
+                let api = ReferenceApi::for_model(&ctx.provider, &ctx.model).ok_or_else(|| {
+                    AppError::capability_not_supported(
+                        &ctx.provider,
+                        "image generation from a reference image",
+                    )
+                })?;
+                let bytes = image_references::generate_from_reference(
+                    api,
+                    ctx,
+                    &reference.png,
+                    &req.prompt,
+                    cancellation,
+                )
+                .await
+                .map_err(|error| AppError::new("provider_request_failed", error))?;
+                return Ok(GeneratedImage {
+                    bytes,
+                    provider: ctx.provider.clone(),
+                    model: ctx.model.clone(),
+                    revised_prompt: None,
+                });
+            }
             let api_key = ctx.require_api_key()?;
-            let dimensions = image_size(&ctx.provider, &ctx.model, &req.aspect_ratio);
+            let dimensions = image_size(&ctx.provider, &ctx.model, req.require_aspect_ratio()?);
             let mut payload = serde_json::json!({
                 "prompt": req.prompt,
                 "model": ctx.model,

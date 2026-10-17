@@ -11,7 +11,7 @@ import type { SpeechGenerationProgress } from "../../contracts/generated/SpeechG
 import type { SpeechProjectSnapshot } from "../../contracts/generated/SpeechProjectSnapshot";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { workflowStateLabelKey } from "../../workflows/workflow-state-label";
+import { runStateLabelKey } from "../../runs/run-state-label";
 import { narrationText } from "../narration-text";
 import AudiobookScriptEditor from "./AudiobookScriptEditor.vue";
 import ShortDubbingEditor from "./ShortDubbingEditor.vue";
@@ -84,7 +84,7 @@ const canGenerate = computed(
         props.project.segments.length > 0 &&
         props.project.segments.every((segment) => segment.state !== "needs_edit"))),
 );
-const runLabel = computed(() => (props.runState ? t(workflowStateLabelKey(props.runState)) : undefined));
+const runLabel = computed(() => (props.runState ? t(runStateLabelKey(props.runState)) : undefined));
 
 function stageLabel(stage: SpeechGenerationProgress["stage"]) {
   if (stage === "preparing") return t("spaces.speech.project.stages.preparing");

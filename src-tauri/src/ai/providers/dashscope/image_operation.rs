@@ -3,19 +3,45 @@ use std::time::{Duration, Instant};
 use tokio_util::sync::CancellationToken;
 
 use super::{endpoint, image_operation_protocol as protocol};
+use crate::ai::contracts::FileUploadCapability;
 use crate::ai::transport::{http_client, response, SecurityContext};
 
-pub async fn execute_image_view(
+/// DashScope has a file API, so the pixels are uploaded and referenced by URL
+/// instead of being inlined into the request body.
+pub async fn generate_from_reference(
     ctx: &SecurityContext,
-    data_uri: &str,
+    reference_png: Vec<u8>,
+    prompt: &str,
+    cancellation: &CancellationToken,
+) -> Result<Vec<u8>, String> {
+    let upload = super::DashScopeFileUploadAdapter.upload_ephemeral_file(
+        ctx,
+        reference_png,
+        "image/png",
+        "reference.png",
+    );
+    let uploaded = tokio::select! {
+        _ = cancellation.cancelled() => return Err("Image generation was cancelled".into()),
+        uploaded = upload => uploaded.map_err(|error| error.to_string())?,
+    };
+    let reference = uploaded
+        .access_url
+        .filter(|url| !url.is_empty())
+        .ok_or("DashScope image upload returned no file URL")?;
+    execute(ctx, &reference, prompt, cancellation).await
+}
+
+async fn execute(
+    ctx: &SecurityContext,
+    reference_url: &str,
     prompt: &str,
     cancellation: &CancellationToken,
 ) -> Result<Vec<u8>, String> {
     let secret = ctx.require_api_key().map_err(|error| error.to_string())?;
     let endpoint = endpoint(&ctx.endpoint);
-    let (path, body) = protocol::request(data_uri, prompt);
+    let (path, body) = protocol::request(reference_url, prompt);
     if cancellation.is_cancelled() {
-        return Err("Image operation was cancelled".into());
+        return Err("Image generation was cancelled".into());
     }
     let request = http_client()
         .post(format!("{endpoint}/{path}"))
@@ -24,7 +50,7 @@ pub async fn execute_image_view(
         .json(&body)
         .send();
     let response = tokio::select! {
-        _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
+        _ = cancellation.cancelled() => return Err("Image generation was cancelled".into()),
         response = request => response.map_err(provider_error)?,
     };
     let status = response.status();
@@ -52,10 +78,10 @@ async fn poll(
     let deadline = Instant::now() + Duration::from_secs(300);
     loop {
         if Instant::now() >= deadline {
-            return Err("DashScope image operation timed out".into());
+            return Err("DashScope image generation timed out".into());
         }
         tokio::select! {
-            _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
+            _ = cancellation.cancelled() => return Err("Image generation was cancelled".into()),
             _ = tokio::time::sleep(Duration::from_secs(2)) => {}
         }
         let response = http_client()
@@ -89,7 +115,7 @@ async fn poll(
 
 async fn download(url: &str, cancellation: &CancellationToken) -> Result<Vec<u8>, String> {
     tokio::select! {
-        _ = cancellation.cancelled() => Err("Image operation was cancelled".into()),
+        _ = cancellation.cancelled() => Err("Image generation was cancelled".into()),
         downloaded_image = crate::web_capture::capture_image_bounded(url, 64 * 1024 * 1024, "aliyuncs.com") => {
             downloaded_image.map(|(_, _, bytes)| bytes)
         }
@@ -98,7 +124,7 @@ async fn download(url: &str, cancellation: &CancellationToken) -> Result<Vec<u8>
 
 fn response_error(code: Option<String>, message: Option<String>) -> String {
     format!(
-        "DashScope image operation failed: {} - {}",
+        "DashScope image generation failed: {} - {}",
         code.as_deref().unwrap_or("unknown"),
         message.as_deref().unwrap_or("request failed")
     )

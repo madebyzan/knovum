@@ -20,7 +20,7 @@ export async function splitImageLayers(source: SpaceCanvasNode) {
   if (!sourceRevision) return;
   return startDerivationAction({
     actionId: "split-image-layers",
-    sources: [{ nodeId: source.id, title: source.data.title, role: "primary", sourceRevision }],
+    sources: [{ nodeId: source.id, title: source.data.title, sourceRevision, revisionBasis: "knowledge" }],
     parameters: {},
     title: `${source.data.title} · ${i18n.global.t("spaces.creation.image.splitLayers")}`.slice(0, 512),
   });

@@ -8,7 +8,6 @@ import {
   MoreHorizontal,
   Trash2,
   UnlockKeyhole,
-  Workflow,
 } from "@lucide/vue";
 import { platform } from "@tauri-apps/plugin-os";
 import { ToolbarButton } from "reka-ui";
@@ -125,12 +124,6 @@ const excludedActions = computed(() => [
         :exclude="excludedActions"
         @invoke="emit('invokeDerivation', $event)"
       />
-      <UiDropdownMenuItem v-if="actions.selectedNodes.value.length" @select="actions.inspectWorkflow">
-        <Workflow class="size-3.5" />{{ t("spaces.creation.workflow.createFromSelection") }}
-      </UiDropdownMenuItem>
-      <UiDropdownMenuItem v-if="actions.selectedNodes.value.length" @select="actions.openWorkflowUse">
-        <Workflow class="size-3.5" />{{ t("spaces.creation.workflow.useSaved") }}
-      </UiDropdownMenuItem>
       <SpaceCanvasArrangeMenu
         :count="actions.state.value.structureNodeIds.length"
         :row-class="MENU_ITEM_CLASS"

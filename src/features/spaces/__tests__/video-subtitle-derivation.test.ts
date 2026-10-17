@@ -45,7 +45,7 @@ it("starts one local video Action, with no Workflow, transcript resource or mode
       spaceId: "space",
       actionId: "add-video-subtitles",
       parameters: {},
-      sources: [{ nodeId: "source", knowledgeRevision: "knowledge:1" }],
+      sources: [{ nodeId: "source", sourceRevision: "knowledge:1", revisionBasis: "knowledge" }],
       target: null,
     },
   });

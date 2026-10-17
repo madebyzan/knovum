@@ -53,7 +53,7 @@ pub(crate) async fn preview_image_selection(
         }
     })
     .await?;
-    let source = source::from_rendered(rendered)?;
+    let source = source::SourceImage::from(rendered);
     let mask = local::preview(
         &app,
         request.model,

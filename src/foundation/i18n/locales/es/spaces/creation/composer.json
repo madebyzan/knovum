@@ -1,0 +1,30 @@
+{
+  "title": "Crear a partir de la selección",
+  "description": "Describe lo que necesitas. Los recursos seleccionados son el material.",
+  "outputLabel": "Crear",
+  "output": {
+    "document": "Documento",
+    "image": "Imagen",
+    "video": "Vídeo"
+  },
+  "requirement": "¿Qué necesitas?",
+  "placeholder": {
+    "document": "Describe el objetivo, la estructura y los puntos clave del documento.",
+    "image": "Describe la imagen que quieres. Si hay imágenes seleccionadas, indica cómo cambiarlas.",
+    "video": "Describe la escena, el movimiento, la cámara y el estilo visual."
+  },
+  "defaultTitle": {
+    "document": "Documento nuevo",
+    "image": "Imagen nueva",
+    "video": "Vídeo nuevo"
+  },
+  "aspectRatio": "Relación de aspecto",
+  "duration": "Duración",
+  "create": "Crear",
+  "sources": "{count} recurso seleccionado | {count} recursos seleccionados",
+  "task": {
+    "document": "Generando documento",
+    "image": "Generando imagen",
+    "video": "Generando vídeo"
+  }
+}

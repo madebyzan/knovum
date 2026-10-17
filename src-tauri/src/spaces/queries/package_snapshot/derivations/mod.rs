@@ -69,13 +69,12 @@ pub(super) async fn load(
                 }),
             );
         }
-        let image = sqlx::query("SELECT intent,style,aspect_ratio AS aspectRatio,execution_source AS executionSource,revised_prompt AS revisedPrompt FROM spaces_generated_images WHERE derivation_id=?")
+        let image = sqlx::query("SELECT intent,aspect_ratio AS aspectRatio,execution_source AS executionSource,revised_prompt AS revisedPrompt FROM spaces_generated_images WHERE derivation_id=?")
             .bind(&id).fetch_optional(&mut **tx).await.map_err(db::sql_error)?;
         if let Some(row) = image {
             value.as_object_mut().ok_or("Exported derivation must be an object")?.insert(
                 "generatedImage".into(), serde_json::json!({
                     "intent": row.try_get::<String, _>("intent").map_err(db::sql_error)?,
-                    "style": row.try_get::<String, _>("style").map_err(db::sql_error)?,
                     "aspectRatio": row.try_get::<String, _>("aspectRatio").map_err(db::sql_error)?,
                     "executionSource": super::decode::decode_json(&row, "executionSource")?,
                     "revisedPrompt": row.try_get::<Option<String>, _>("revisedPrompt").map_err(db::sql_error)?,

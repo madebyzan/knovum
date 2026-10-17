@@ -9,7 +9,8 @@ export type CreationIntentIcon =
   | "scan"
   | "sparkles";
 export type DerivationUnavailableReason =
-  | "needs-indexed-knowledge"
+  | "no-usable-source"
+  | "too-many-sources"
   | "needs-document-recognition"
   | "too-many-video-images"
   | "active-node-operation";
@@ -19,8 +20,8 @@ export type DocumentFormat = "docx" | "pdf" | "txt" | "html" | "pptx";
 
 export interface CreationSelectionContext {
   readonly selectionCount: number;
-  readonly hasKnowledgeSources: boolean;
-  readonly hasVideoSources: boolean;
+  /** Resources that can be pinned and sent, whatever their index state. */
+  readonly sourceCount: number;
   readonly imageCount: number;
   readonly canRemoveBackground: boolean;
   readonly canSplitImageLayers: boolean;
@@ -29,10 +30,14 @@ export interface CreationSelectionContext {
   readonly documentRecognitionRequired: boolean;
 }
 
-export interface CreationIntentDefinition {
+/**
+ * A creation entry either decides for itself, or converts a document - in which
+ * case the format is the whole decision.
+ */
+export type CreationIntentDefinition = {
   readonly id: string;
-  readonly labelKey: string;
   readonly icon: CreationIntentIcon;
-  readonly documentFormat?: DocumentFormat;
-  readonly decide: (context: CreationSelectionContext) => CreationIntentDecision;
-}
+} & (
+  | { readonly decide: (context: CreationSelectionContext) => CreationIntentDecision }
+  | { readonly documentFormat: DocumentFormat }
+);

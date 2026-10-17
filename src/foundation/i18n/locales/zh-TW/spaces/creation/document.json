@@ -1,11 +1,5 @@
 {
   "conversion": {
-    "actions": {
-      "docx": "轉換為 Word 文檔",
-      "pdf": "將筆記和 Markdown 排版為 PDF。",
-      "txt": "轉換為純文字",
-      "html": "轉換為 HTML"
-    },
     "tasks": {
       "docx": "正在產生 Word 文檔",
       "pdf": "正在生成 PDF",
@@ -22,16 +16,6 @@
     },
     "recognitionRequired": "請先完成所有掃描頁面的文件辨識，再進行轉換。"
   },
-  "generate": "產生文件",
-  "title": "用選取知識生成文檔",
-  "description": "在所選來源旁產生帶有引用的 Markdown 知識資源。",
-  "defaultTitle": "知識草稿",
-  "purpose": {
-    "label": "文件要求",
-    "placeholder": "說明文件目標、形式和需要保留的重點。"
-  },
-  "sources": "{count} 知識來源",
-  "task": "正在產生知識文檔",
   "generating": "正在用選取知識生成…",
   "failed": "文檔生成失敗"
 }

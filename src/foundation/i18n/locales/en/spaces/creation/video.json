@@ -4,13 +4,6 @@
     "add": "Add subtitles"
   },
   "generation": {
-    "title": "Create video from knowledge",
-    "description": "Generate a video from the selected knowledge and images, linked to its sources.",
-    "name": "Video name",
-    "prompt": "Describe the scene, motion, camera, and visual style",
-    "duration": "Duration",
-    "create": "Generate video",
-    "task": "Generating video",
     "tooManyImages": "Select no more than 10 reference images for video generation."
   }
 }

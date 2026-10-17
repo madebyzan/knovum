@@ -7,7 +7,7 @@ mod tone;
 
 use std::{fs, io::Cursor, path::Path};
 
-use image::{DynamicImage, GenericImageView, ImageFormat, ImageReader, Limits};
+use image::{GenericImageView, ImageFormat, ImageReader, Limits};
 use serde_json::Value;
 
 use self::contracts::ImageEdit;
@@ -16,7 +16,8 @@ use super::EditedImageOutput;
 const MAX_SOURCE_BYTES: u64 = 64 * 1024 * 1024;
 const MAX_SOURCE_PIXELS: u64 = 100_000_000;
 const MAX_SOURCE_DIMENSION: u32 = 10_000;
-const MAX_OUTPUT_BYTES: usize = 64 * 1024 * 1024;
+/// Below this edge a downscaled reference stops being useful to a model.
+const MIN_FITTED_EDGE: u32 = 256;
 
 pub(crate) fn validate_edit(value: &Value) -> Result<(), String> {
     ImageEdit::parse(value).map(|_| ())
@@ -24,6 +25,19 @@ pub(crate) fn validate_edit(value: &Value) -> Result<(), String> {
 
 /// The caller owns authorization; the engine enforces image resource limits.
 pub(crate) fn render_source_png(source: &Path, edit: &Value) -> Result<EditedImageOutput, String> {
+    render(source, edit, super::MAX_PNG_BYTES)
+}
+
+/// The same render, downscaled until it fits a budget a provider declared.
+pub(crate) fn render_source_png_within(
+    source: &Path,
+    edit: &Value,
+    max_bytes: usize,
+) -> Result<EditedImageOutput, String> {
+    render(source, edit, max_bytes.min(super::MAX_PNG_BYTES))
+}
+
+fn render(source: &Path, edit: &Value, max_bytes: usize) -> Result<EditedImageOutput, String> {
     let metadata = fs::metadata(source).map_err(|error| error.to_string())?;
     if metadata.len() == 0 || metadata.len() > MAX_SOURCE_BYTES {
         return Err("Edited-image input must be a non-empty image up to 64 MiB".into());
@@ -39,20 +53,40 @@ pub(crate) fn render_source_png(source: &Path, edit: &Value) -> Result<EditedIma
     reader.limits(limits);
     let source = reader.decode().map_err(|error| error.to_string())?;
     validate_source_dimensions(source.dimensions())?;
-    encode(pixels::render(&source.to_rgba8(), &edit)?)
+    encode(pixels::render(&source.to_rgba8(), &edit)?, max_bytes)
 }
 
-fn encode(image: image::RgbaImage) -> Result<EditedImageOutput, String> {
-    let (width, height) = image.dimensions();
+/// Encode, and if the result is over budget, downscale and try again. Both
+/// sides shrink by the same factor: a reference image that changed shape would
+/// be a different picture.
+fn encode(image: image::RgbaImage, max_bytes: usize) -> Result<EditedImageOutput, String> {
+    let mut image = image;
+    loop {
+        let (width, height) = image.dimensions();
+        let png = encode_png(&image)?;
+        if png.len() <= max_bytes {
+            return Ok(EditedImageOutput { png, width, height });
+        }
+        if width.min(height) <= MIN_FITTED_EDGE {
+            return Err(format!(
+                "Image does not fit the {max_bytes} byte budget even at its smallest useful size"
+            ));
+        }
+        image = image::imageops::resize(
+            &image,
+            width * 7 / 10,
+            height * 7 / 10,
+            image::imageops::FilterType::CatmullRom,
+        );
+    }
+}
+
+fn encode_png(image: &image::RgbaImage) -> Result<Vec<u8>, String> {
     let mut output = Cursor::new(Vec::new());
-    DynamicImage::ImageRgba8(image)
+    image
         .write_to(&mut output, ImageFormat::Png)
         .map_err(|error| error.to_string())?;
-    let png = output.into_inner();
-    if png.len() > MAX_OUTPUT_BYTES {
-        return Err("Edited-image PNG exceeds 64 MiB".into());
-    }
-    Ok(EditedImageOutput { png, width, height })
+    Ok(output.into_inner())
 }
 
 fn validate_source_dimensions((width, height): (u32, u32)) -> Result<(), String> {

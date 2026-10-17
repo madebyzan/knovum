@@ -4,13 +4,6 @@
     "add": "Untertitel hinzufügen"
   },
   "generation": {
-    "title": "Erstellen Sie Videos aus Wissen",
-    "description": "Generieren Sie ein Video aus dem ausgewählten Wissen und den Bildern, verknüpft mit den Quellen.",
-    "name": "Videoname",
-    "prompt": "Beschreiben Sie die Szene, Bewegung, Kamera und den visuellen Stil",
-    "duration": "Dauer",
-    "create": "Video generieren",
-    "task": "Video wird generiert",
     "tooManyImages": "Wählen Sie nicht mehr als 10 Referenzbilder für die Videogenerierung aus."
   }
 }

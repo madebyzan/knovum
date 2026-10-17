@@ -1,0 +1,13 @@
+{
+  "states": {
+    "queued": "В очереди",
+    "running": "Работает",
+    "waiting": "Ожидание",
+    "paused": "Приостановлено",
+    "succeeded": "Завершено",
+    "completedWithErrors": "Завершено с ошибками",
+    "failed": "Ошибка",
+    "cancelled": "Отменено",
+    "cancelling": "Отмена"
+  }
+}

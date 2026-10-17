@@ -7,8 +7,8 @@ import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { queryClient } from "../../../foundation/query/query-client";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { RunObservation } from "../contracts/generated/RunObservation";
+import { runStateLabelKey } from "../runs/run-state-label";
 import { useSpaceStore } from "../session/space-store";
-import { workflowStateLabelKey } from "../workflows/workflow-state-label";
 import { resourcePublicationQueryKey } from "./resource-publication-query";
 import { requestRunControl } from "./run-control";
 import { loadLatestRunFailure } from "./run-failure";
@@ -51,10 +51,10 @@ async function reportRunFailure(
   try {
     const reason = await loadLatestRunFailure(runId);
     if (!isCurrent(stateVersion)) return;
-    tasks.fail(runId, reason ?? i18n.global.t(workflowStateLabelKey(state)));
+    tasks.fail(runId, reason ?? i18n.global.t(runStateLabelKey(state)));
   } catch {
     if (!isCurrent(stateVersion)) return;
-    tasks.fail(runId, i18n.global.t(workflowStateLabelKey(state)));
+    tasks.fail(runId, i18n.global.t(runStateLabelKey(state)));
   }
 }
 
@@ -88,7 +88,7 @@ export function observeResourceRun(run: RunObservation, title: string, onUpdate?
           (stateVersion) => stateVersion === latestStateVersion,
         );
       } else if (next.state === "cancelled") tasks.cancelled(next.id);
-      else tasks.setStatusMessage(next.id, i18n.global.t(workflowStateLabelKey(next.state)));
+      else tasks.setStatusMessage(next.id, i18n.global.t(runStateLabelKey(next.state)));
     },
     error: (cause) => tasks.fail(run.id, getErrorMessage(cause)),
     finished: () => {

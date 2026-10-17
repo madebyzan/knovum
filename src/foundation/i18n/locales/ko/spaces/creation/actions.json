@@ -1,0 +1,22 @@
+{
+  "draftDocument": "문서 생성",
+  "generateVisualization": "이미지 생성",
+  "convertDocumentToDocx": "Word 문서로 변환",
+  "convertDocumentToPdf": "PDF로 변환",
+  "convertDocumentToTxt": "일반 텍스트로 변환",
+  "convertDocumentToHtml": "HTML로 변환",
+  "renderPresentation": "프레젠테이션 만들기",
+  "generateVideo": "비디오 생성",
+  "removeImageBackground": "배경 제거",
+  "splitImageLayers": "레이어 분리",
+  "addVideoSubtitles": "자막 추가",
+  "upscaleImage": "해상도 향상됨",
+  "generateImageAngle": "새 보기",
+  "removeImageObject": "수리됨",
+  "extractImageSelection": "선택",
+  "generateImageDepth": "상대 깊이",
+  "draftScript": "초안 비디오 스크립트",
+  "summarizeMeeting": "회의 요약",
+  "draftSocialPost": "초안 소셜 게시물",
+  "generateImage": "이미지 생성"
+}

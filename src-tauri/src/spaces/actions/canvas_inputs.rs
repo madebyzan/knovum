@@ -2,11 +2,14 @@ use std::collections::HashSet;
 
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
-use sqlx::{Sqlite, Transaction};
+use sqlx::{Row, Sqlite, Transaction};
 
 use super::canvas::SpaceActionSource;
-use crate::spaces::{db, knowledge::model::revision};
+use crate::spaces::{db, derivation::input_revision, knowledge::model::revision};
 
+/// Pin the selection as the user saw it. A resource with indexed knowledge is
+/// pinned on that; a resource that is only an asset - an image nothing has read
+/// yet - is pinned on its bytes, so creation never waits for indexing.
 pub(super) async fn pin(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
@@ -21,16 +24,18 @@ pub(super) async fn pin(
     }
     let mut inputs = Vec::with_capacity(sources.len());
     for (position, source) in sources.iter().enumerate() {
-        let encoded: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL AND kind NOT IN ('credential','portal','text')")
+        let row = sqlx::query("SELECT kind,data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL AND kind NOT IN ('credential','portal','text')")
             .bind(&source.node_id).bind(space_id).fetch_optional(&mut **tx).await.map_err(db::sql_error)?
             .ok_or("action-input-unavailable: selected resource is unavailable or not authorized for derivation")?;
+        let kind: String = row.try_get("kind").map_err(db::sql_error)?;
+        let encoded: String = row.try_get("data").map_err(db::sql_error)?;
         let data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
         revision::validate_declared(&data)?;
-        if data.get("knowledgeRevision").and_then(Value::as_str) != Some(&source.knowledge_revision)
-        {
+        let (current, _) = input_revision::resolve(&kind, &data, source.revision_basis)?;
+        if current != source.source_revision {
             return Err("action-input-stale: selected resource changed before execution".into());
         }
-        inputs.push(json!({"nodeId": source.node_id, "role": if position == 0 {"primary"} else {"source"}, "revisionBasis": "knowledge", "dataDigest": hex::encode(Sha256::digest(encoded.as_bytes()))}));
+        inputs.push(json!({"nodeId": source.node_id, "role": if position == 0 {"primary"} else {"source"}, "revisionBasis": source.revision_basis.as_str(), "dataDigest": hex::encode(Sha256::digest(encoded.as_bytes()))}));
     }
     Ok(Value::Array(inputs))
 }

@@ -49,8 +49,6 @@ export function createSpaceUiState() {
     askScopeRequest: ref<{ scope: ConversationScope; restart: boolean; nodeIds: string[]; nonce: number }>(),
     askScopeNonce: ref(0),
     rightSidebarView: ref<RightSidebarView>("ask"),
-    workflowMode: shallowRef<"capture" | "use">(),
-    workflowCaptureSelection: ref<string[]>([]),
     insertionPoint: ref({ x: 96, y: 84 }),
     revealRequest: ref<RevealRequest>(),
     viewportRequest: ref<ViewportRequest>(),

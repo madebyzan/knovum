@@ -1,0 +1,30 @@
+{
+  "title": "Create from selection",
+  "description": "Say what you need. The selected resources are the material.",
+  "outputLabel": "Create",
+  "output": {
+    "document": "Document",
+    "image": "Image",
+    "video": "Video"
+  },
+  "requirement": "What do you need?",
+  "placeholder": {
+    "document": "Describe the document’s goal, structure, and key points.",
+    "image": "Describe the image you want. With images selected, say how to change them.",
+    "video": "Describe the scene, motion, camera, and visual style."
+  },
+  "defaultTitle": {
+    "document": "New document",
+    "image": "New image",
+    "video": "New video"
+  },
+  "aspectRatio": "Aspect ratio",
+  "duration": "Duration",
+  "create": "Create",
+  "sources": "{count} selected resource | {count} selected resources",
+  "task": {
+    "document": "Generating document",
+    "image": "Generating image",
+    "video": "Generating video"
+  }
+}

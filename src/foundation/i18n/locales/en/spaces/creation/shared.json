@@ -9,6 +9,7 @@
   },
   "citations": "Citations · {count}",
   "createFromSelection": "Create from selection",
-  "needsIndexedKnowledge": "The selected items don’t contain searchable text yet.",
-  "finishNodeOperation": "Finish or cancel the current node operation first."
+  "finishNodeOperation": "Finish or cancel the current node operation first.",
+  "tooManySources": "Select no more than 32 resources to create from.",
+  "noUsableSource": "The selection has no file or text a model can read."
 }

@@ -18,8 +18,14 @@ pub(super) struct ResolvedInputs {
 pub(super) struct ResolvedNode {
     pub id: String,
     pub kind: String,
-    pub revision: String,
+    pub revision: PinnedRevision,
     pub data: Value,
+}
+
+/// The revision a source is pinned to, with the basis that produced it.
+pub(super) struct PinnedRevision {
+    pub basis: RevisionBasis,
+    pub value: String,
 }
 
 pub(super) async fn resolve(
@@ -97,20 +103,20 @@ pub(super) async fn resolve(
                     .ok_or("action-input-invalid: ordered revision basis is missing")?,
             )?;
             crate::spaces::derivation::input_revision::resolve(&kind, &data, basis)?;
-            let field = match basis {
-                RevisionBasis::Knowledge => "knowledgeRevision",
-                RevisionBasis::Asset | RevisionBasis::Rendered => "sourceRevision",
-            };
-            data.get(field)
-                .and_then(Value::as_str)
-                .ok_or("action-input-unindexed: source has no required revision")?
-                .to_owned()
+            PinnedRevision {
+                basis,
+                value: data
+                    .get(revision_field(basis))
+                    .and_then(Value::as_str)
+                    .ok_or("action-input-unindexed: source has no required revision")?
+                    .to_owned(),
+            }
         } else {
             revision(&data)?
         };
         if reviewed
             .get(&id)
-            .is_some_and(|approved| approved != &revision)
+            .is_some_and(|approved| approved != &revision.value)
         {
             return Err("action-input-stale: reviewed content changed before the next step".into());
         }
@@ -131,17 +137,34 @@ pub(super) async fn resolve(
             json!({
                 "nodeId": node.id,
                 "role": ordered.map_or(if index == 0 { "primary" } else { "source" }, |items| items[index]["role"].as_str().expect("ordered role was validated")),
-                "sourceRevision": node.revision,
+                "sourceRevision": node.revision.value,
+                "revisionBasis": node.revision.basis.as_str(),
             })
         })
         .collect();
     Ok(ResolvedInputs { items, nodes })
 }
 
-fn revision(data: &Value) -> Result<String, String> {
-    ["knowledgeRevision", "sourceRevision"]
+fn revision_field(basis: RevisionBasis) -> &'static str {
+    match basis {
+        RevisionBasis::Knowledge => "knowledgeRevision",
+        RevisionBasis::Asset | RevisionBasis::Rendered => "sourceRevision",
+    }
+}
+
+/// Indexed knowledge when the resource has it, otherwise the asset itself: a
+/// resource no model has read yet is still a resource the user can create from.
+fn revision(data: &Value) -> Result<PinnedRevision, String> {
+    [RevisionBasis::Knowledge, RevisionBasis::Asset]
         .into_iter()
-        .find_map(|key| data.get(key).and_then(Value::as_str).map(str::to_owned))
+        .find_map(|basis| {
+            data.get(revision_field(basis))
+                .and_then(Value::as_str)
+                .map(|value| PinnedRevision {
+                    basis,
+                    value: value.to_owned(),
+                })
+        })
         .ok_or_else(|| "action-input-unindexed: source has no current revision".into())
 }
 

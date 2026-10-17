@@ -9,6 +9,7 @@
   },
   "citations": "인용 · {count}",
   "createFromSelection": "선택 항목에서 생성",
-  "needsIndexedKnowledge": "선택한 항목에는 아직 검색 가능한 텍스트가 포함되어 있지 않습니다.",
-  "finishNodeOperation": "먼저 현재 노드 작업을 완료하거나 취소하세요."
+  "finishNodeOperation": "먼저 현재 노드 작업을 완료하거나 취소하세요.",
+  "tooManySources": "만들기에 사용할 리소스는 최대 32개입니다.",
+  "noUsableSource": "선택 항목에 모델이 읽을 수 있는 파일이나 텍스트가 없습니다."
 }
