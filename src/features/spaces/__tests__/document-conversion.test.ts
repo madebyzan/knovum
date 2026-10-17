@@ -48,7 +48,7 @@ describe("document conversion", () => {
           spaceId: "space",
           actionId: format === "pptx" ? "render-presentation" : `convert-document-to-${format}`,
           parameters: {},
-          sources: [{ nodeId: "source", knowledgeRevision: "revision-1" }],
+          sources: [{ nodeId: "source", sourceRevision: "revision-1", revisionBasis: "knowledge" }],
           target: null,
         },
       });
@@ -83,7 +83,7 @@ describe("document conversion", () => {
         spaceId: "space",
         actionId: "convert-document-to-docx",
         parameters: {},
-        sources: [{ nodeId: "pdf", knowledgeRevision: "knowledge:pdf" }],
+        sources: [{ nodeId: "pdf", sourceRevision: "knowledge:pdf", revisionBasis: "knowledge" }],
         target: null,
       },
     });

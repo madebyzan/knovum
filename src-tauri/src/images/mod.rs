@@ -6,6 +6,7 @@ pub(crate) use background_removal::pixels::{
 };
 pub(crate) use background_removal::remove_background;
 pub(crate) use edited::render_source_png;
+pub(crate) use edited::render_source_png_within;
 pub(crate) use edited::validate_edit;
 
 pub(crate) struct BackgroundRemovalOutput {

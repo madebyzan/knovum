@@ -16,16 +16,6 @@
     },
     "recognitionRequired": "Completa il riconoscimento di tutte le pagine scansionate prima della conversione."
   },
-  "generate": "Genera documento",
-  "title": "Crea un documento dalla conoscenza selezionata",
-  "description": "Crea una risorsa Markdown citata accanto alle fonti selezionate.",
-  "defaultTitle": "Bozza della conoscenza",
-  "purpose": {
-    "label": "Breve documento",
-    "placeholder": "Descrivi l’obiettivo, il formato e i punti chiave del documento."
-  },
-  "sources": "Fonte di conoscenza {count} | {count} fonti di conoscenza",
-  "task": "Generazione documento in corso",
   "generating": "Generare da conoscenze selezionate...",
   "failed": "Impossibile generare il documento"
 }

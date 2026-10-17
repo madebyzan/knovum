@@ -1,15 +1,7 @@
-use base64::{engine::general_purpose::STANDARD, Engine};
-
 pub struct SourceImage {
     pub bytes: Vec<u8>,
     pub width: u32,
     pub height: u32,
-}
-
-impl SourceImage {
-    pub fn data_uri(&self) -> String {
-        format!("data:image/png;base64,{}", STANDARD.encode(&self.bytes))
-    }
 }
 
 pub fn from_rendered(output: crate::images::EditedImageOutput) -> Result<SourceImage, String> {

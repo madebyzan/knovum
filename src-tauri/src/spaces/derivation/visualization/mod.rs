@@ -2,21 +2,20 @@ use crate::foundation::app_error::AppError;
 pub(crate) mod metadata;
 mod persistence;
 mod prompt;
+mod sources;
 mod validation;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 
+use super::source_inputs::SourceInput;
 use super::stage;
-use crate::{
-    ai::{
-        capabilities::image,
-        contracts::{ExecutionCapability, GeneratedImage},
-        settings,
-        tasks::{ExecutionSource, TaskExecutionTarget, TaskTargetSelection},
-    },
-    spaces::knowledge::retrieval::hybrid::{self, HybridSearchRequest},
+use crate::ai::{
+    capabilities::image,
+    contracts::{ExecutionCapability, GeneratedImage},
+    settings,
+    tasks::{ExecutionSource, TaskExecutionTarget, TaskTargetSelection},
 };
 
 #[derive(Deserialize)]
@@ -25,19 +24,10 @@ pub struct GenerateVisualizationRequest {
     id: String,
     space_id: String,
     output_node_id: String,
-    inputs: Vec<VisualizationInput>,
+    inputs: Vec<SourceInput>,
     intent: String,
-    style: String,
     aspect_ratio: crate::spaces::actions::catalog::parameters::media::ImageAspectRatio,
     target: TaskTargetSelection,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct VisualizationInput {
-    node_id: String,
-    role: String,
-    source_revision: String,
 }
 
 #[derive(Serialize)]
@@ -88,6 +78,8 @@ pub(super) async fn generate_for_action(
     }
 }
 
+/// Images reach the model as pixels, everything else as retrieved text. A
+/// selection of images alone is a complete request: there is nothing to index.
 async fn execute(
     app: &AppHandle,
     request: &GenerateVisualizationRequest,
@@ -95,58 +87,31 @@ async fn execute(
     stages: &Channel<String>,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<VisualizationContent, AppError> {
-    stage(stages, "retrieving")?;
-    crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
-        app,
-        &request.space_id,
-        Some(
-            request
-                .inputs
-                .iter()
-                .map(|input| input.node_id.clone())
-                .collect(),
-        ),
-        &request.id,
-        cancellation,
-    )
-    .await?;
-    let retrieval = hybrid::search(
-        app,
-        HybridSearchRequest {
-            semantic: true,
-            space_id: Some(request.space_id.clone()),
-            query: request.intent.clone(),
-            node_ids: Some(
-                request
-                    .inputs
-                    .iter()
-                    .map(|input| input.node_id.clone())
-                    .collect(),
-            ),
-        },
-        cancellation,
-    )
-    .await?;
-    let sources = crate::spaces::knowledge::grounding::prompt::select_sources(retrieval.matches)?;
+    stage(stages, "preparingSources")?;
+    let sources = sources::prepare(app, request, target, cancellation).await?;
     if sources.is_empty() {
-        return Err("Selected resources contain no current indexed knowledge".into());
+        return Err("Selected resources contain nothing a model can read".into());
     }
     stage(stages, "generatingImage")?;
-    let prompt = prompt::build(&request.intent, &request.style, &sources)?;
+    let prompt = prompt::build(
+        &request.intent,
+        &sources.grounding,
+        sources.references.len() + sources.attachments.len(),
+    )?;
     match target {
         TaskExecutionTarget::Model(target) => image::generate(
-            app,
             image::ImageGenerationRequest {
                 target: target.clone(),
                 prompt,
                 aspect_ratio: request.aspect_ratio.as_str().to_owned(),
+                references: sources.references,
             },
             cancellation,
         )
         .await
         .map(VisualizationContent::from),
         TaskExecutionTarget::Agent { runtime_kind } => {
-            let bytes = crate::external_agents::task::artifact(app, *runtime_kind, format!("Create the requested image as PNG with aspect ratio {}. Use your own available tools/Skills.\n{prompt}", request.aspect_ratio.as_str()), Vec::new(), crate::external_agents::task::ArtifactFormat::Png, cancellation.clone()).await?;
+            let bytes = crate::external_agents::task::artifact(app, *runtime_kind, format!("Create the requested image as PNG with aspect ratio {}. Use your own available tools/Skills.\n{prompt}", request.aspect_ratio.as_str()), sources.attachments, crate::external_agents::task::ArtifactFormat::Png, cancellation.clone()).await?;
             Ok(VisualizationContent {
                 bytes,
                 execution_source: ExecutionSource::Agent {

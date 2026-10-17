@@ -31,7 +31,10 @@ pub(crate) struct StartSpaceActionRequest {
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct SpaceActionSource {
     pub node_id: String,
-    pub knowledge_revision: String,
+    /// The revision the user saw, on the basis the canvas pinned it with:
+    /// indexed knowledge for text, the asset itself for pixels.
+    pub source_revision: String,
+    pub revision_basis: crate::spaces::derivation::input_revision::RevisionBasis,
 }
 
 #[tauri::command]

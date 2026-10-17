@@ -9,6 +9,7 @@
   },
   "citations": "引用 · {count}",
   "createFromSelection": "選択から作成",
-  "needsIndexedKnowledge": "選択したアイテムには、検索可能なテキストがまだ含まれていません。",
-  "finishNodeOperation": "まず現在のノード操作を終了するかキャンセルしてください。"
+  "finishNodeOperation": "まず現在のノード操作を終了するかキャンセルしてください。",
+  "tooManySources": "作成に使うリソースは最大 32 件です。",
+  "noUsableSource": "選択項目にモデルが読み取れるファイルやテキストがありません。"
 }

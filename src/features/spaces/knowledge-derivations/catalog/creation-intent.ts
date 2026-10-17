@@ -9,7 +9,8 @@ export type CreationIntentIcon =
   | "scan"
   | "sparkles";
 export type DerivationUnavailableReason =
-  | "needs-indexed-knowledge"
+  | "no-usable-source"
+  | "too-many-sources"
   | "needs-document-recognition"
   | "too-many-video-images"
   | "active-node-operation";
@@ -19,8 +20,8 @@ export type DocumentFormat = "docx" | "pdf" | "txt" | "html" | "pptx";
 
 export interface CreationSelectionContext {
   readonly selectionCount: number;
-  readonly hasKnowledgeSources: boolean;
-  readonly hasVideoSources: boolean;
+  /** Resources that can be pinned and sent, whatever their index state. */
+  readonly sourceCount: number;
   readonly imageCount: number;
   readonly canRemoveBackground: boolean;
   readonly canSplitImageLayers: boolean;

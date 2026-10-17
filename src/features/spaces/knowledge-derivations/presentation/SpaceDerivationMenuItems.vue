@@ -55,7 +55,8 @@ function reasonLabel(reason: DerivationUnavailableReason | undefined) {
   if (reason === "needs-document-recognition")
     return t("spaces.creation.document.conversion.recognitionRequired");
   if (reason === "too-many-video-images") return t("spaces.creation.video.generation.tooManyImages");
-  if (reason === "needs-indexed-knowledge") return t("spaces.creation.shared.needsIndexedKnowledge");
+  if (reason === "too-many-sources") return t("spaces.creation.shared.tooManySources");
+  if (reason === "no-usable-source") return t("spaces.creation.shared.noUsableSource");
   return undefined;
 }
 

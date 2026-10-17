@@ -1,74 +1,56 @@
 use tokio_util::sync::CancellationToken;
 
-use super::{contracts::ImageOperation, routing::ImageOperationBackend, source::SourceImage};
-use crate::ai::{
-    models::ModelExecutionTarget,
-    providers::{dashscope::execute_image_view, gemini, image_edit, kling},
-    transport::SecurityContext,
-};
+use super::{contracts::ImageOperation, source::SourceImage};
+use crate::ai::{capabilities::image, contracts::ImageReference, models::ModelExecutionTarget};
 use crate::foundation::app_error::AppError;
 
+/// Every remote image operation is one request: these pixels, this instruction.
+/// The configured model decides the transport, so there is nothing to route here.
 pub(super) async fn execute(
     target: &ModelExecutionTarget,
-    backend: ImageOperationBackend,
     operation: &ImageOperation,
     source: &SourceImage,
     cancellation: &CancellationToken,
 ) -> Result<Vec<u8>, AppError> {
-    if source.bytes.len() > 10 * 1024 * 1024 {
-        return Err("Image operation source exceeds the 10 MB provider limit".into());
+    let (max_images, max_bytes) = image::reference_budget(target).ok_or_else(|| {
+        AppError::new(
+            "capability_not_supported",
+            "Configured image model does not accept an image to work from",
+        )
+    })?;
+    if max_images == 0 || source.bytes.len() > max_bytes {
+        return Err(AppError::invalid(format!(
+            "Image operation source exceeds the {max_bytes} byte limit of the configured model"
+        )));
     }
-    let ctx = SecurityContext::from_target(target).await?;
-    let bytes = match (backend, operation) {
-        (ImageOperationBackend::DashScope, ImageOperation::MultiAngle { .. }) => {
-            let prompt = operation
-                .view_prompt()
-                .ok_or("Image view prompt is unavailable")?;
-            let data_uri = source.data_uri();
-            execute_image_view(&ctx, &data_uri, &prompt, cancellation).await?
-        }
-        (ImageOperationBackend::Gemini, ImageOperation::RemoveObjectPrompt { prompt }) => {
-            gemini::edit_image(
-                &ctx,
-                &source.bytes,
-                &removal_instruction(prompt),
-                cancellation,
-            )
-            .await?
-        }
-        (ImageOperationBackend::Kling, ImageOperation::RemoveObjectPrompt { prompt }) => {
-            kling::edit_image(
-                &ctx,
-                &source.bytes,
-                source.width,
-                source.height,
-                &removal_instruction(prompt),
-                cancellation,
-            )
-            .await?
-        }
-        (ImageOperationBackend::ImageEdit(api), ImageOperation::RemoveObjectPrompt { prompt }) => {
-            image_edit::edit_image(
-                api,
-                &ctx,
-                &source.bytes,
-                &removal_instruction(prompt),
-                cancellation,
-            )
-            .await?
-        }
-        _ => {
-            return Err(AppError::new(
-                "capability_not_supported",
-                "Configured image model does not support this image operation",
-            ))
-        }
-    };
-    Ok(bytes)
+    let generated = image::generate(
+        image::ImageGenerationRequest {
+            target: target.clone(),
+            prompt: instruction(operation)?,
+            aspect_ratio: "1:1".into(),
+            references: vec![ImageReference {
+                png: source.bytes.clone(),
+                width: source.width,
+                height: source.height,
+            }],
+        },
+        cancellation,
+    )
+    .await?;
+    Ok(generated.bytes)
 }
 
-fn removal_instruction(prompt: &str) -> String {
-    format!(
-        "Remove this from the provided image: {prompt}. Fill the area with a natural continuation of the surrounding background. Preserve the rest of the image, its composition, lighting, and style."
-    )
+fn instruction(operation: &ImageOperation) -> Result<String, AppError> {
+    match operation {
+        ImageOperation::MultiAngle { .. } => operation
+            .view_prompt()
+            .ok_or_else(|| "Image view prompt is unavailable".into()),
+        ImageOperation::RemoveObjectPrompt { prompt } => Ok(format!(
+            "Remove this from the provided image: {prompt}. Fill the area with a natural continuation of the surrounding background. Preserve the rest of the image, its composition, lighting, and style."
+        )),
+        _ => Err(AppError::new(
+            "capability_not_supported",
+            "This image operation does not run on a remote model",
+        )),
+    }
 }

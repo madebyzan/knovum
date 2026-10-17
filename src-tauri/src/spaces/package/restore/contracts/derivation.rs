@@ -31,7 +31,6 @@ pub struct PackageGroundedDocument {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct PackageGeneratedImage {
     pub intent: String,
-    pub style: String,
     pub aspect_ratio: String,
     pub execution_source: crate::ai::tasks::ExecutionSource,
     pub revised_prompt: Option<String>,

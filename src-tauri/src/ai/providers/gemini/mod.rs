@@ -1,5 +1,4 @@
 mod image;
-mod image_edit;
 mod upload;
 mod video;
 
@@ -8,7 +7,6 @@ mod video;
 mod video_tests;
 
 pub use image::GeminiImageAdapter;
-pub use image_edit::edit_image;
 pub use upload::GeminiFileUploadAdapter;
 pub use video::GeminiVideoAdapter;
 

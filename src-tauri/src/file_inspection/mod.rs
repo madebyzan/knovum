@@ -5,7 +5,7 @@ mod revision;
 mod text_preview;
 
 pub use archive::archive_entries;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+
 pub use classification::is_sensitive_file;
 pub use classification::{classify_file, ResourceClassification};
 pub use inspect::inspect_file;

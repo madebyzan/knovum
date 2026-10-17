@@ -1,4 +1,6 @@
 use super::*;
+use crate::spaces::derivation::action_request::inputs::PinnedRevision;
+use crate::spaces::derivation::inputs::RevisionBasis;
 use crate::spaces::derivation::subtitled_video::RenderSubtitledVideoRequest;
 
 #[test]
@@ -8,7 +10,10 @@ fn document_conversion_admits_one_published_pdf_and_rejects_binary_or_duplicate_
         nodes: vec![ResolvedNode {
             id: "source".into(),
             kind: "file".into(),
-            revision: "knowledge:1".into(),
+            revision: PinnedRevision {
+                basis: RevisionBasis::Knowledge,
+                value: "knowledge:1".into(),
+            },
             data: json!({"kind":"file", "title":"Report", "assetPath":"/owned/report.pdf", "sourceRevision":"sha256:current"}),
         }],
     };
@@ -32,7 +37,10 @@ fn office_original_layout_pdf_is_outside_conversion_admission() {
             nodes: vec![ResolvedNode {
                 id: "source".into(),
                 kind: "file".into(),
-                revision: "knowledge:1".into(),
+                revision: PinnedRevision {
+                    basis: RevisionBasis::Knowledge,
+                    value: "knowledge:1".into(),
+                },
                 data: json!({"kind":"file", "title":"Report", "assetPath":format!("/owned/report.{extension}"), "sourceRevision":"sha256:current"}),
             }],
         };
@@ -51,7 +59,10 @@ fn automatic_action_projects_one_video_with_distinct_asset_and_knowledge_revisio
         nodes: vec![ResolvedNode {
             id: "video".into(),
             kind: "video".into(),
-            revision: "knowledge:1".into(),
+            revision: PinnedRevision {
+                basis: RevisionBasis::Knowledge,
+                value: "knowledge:1".into(),
+            },
             data: json!({ "sourceRevision": "asset:1" }),
         }],
     };

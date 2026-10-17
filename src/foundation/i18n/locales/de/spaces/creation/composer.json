@@ -1,0 +1,30 @@
+{
+  "title": "Aus Auswahl erstellen",
+  "description": "Beschreibe, was du brauchst. Die ausgewählten Ressourcen sind das Material.",
+  "outputLabel": "Erstellen",
+  "output": {
+    "document": "Dokument",
+    "image": "Bild",
+    "video": "Video"
+  },
+  "requirement": "Was brauchst du?",
+  "placeholder": {
+    "document": "Beschreibe Ziel, Struktur und Kernpunkte des Dokuments.",
+    "image": "Beschreibe das gewünschte Bild. Bei ausgewählten Bildern: wie sie geändert werden sollen.",
+    "video": "Beschreibe Szene, Bewegung, Kamera und visuellen Stil."
+  },
+  "defaultTitle": {
+    "document": "Neues Dokument",
+    "image": "Neues Bild",
+    "video": "Neues Video"
+  },
+  "aspectRatio": "Seitenverhältnis",
+  "duration": "Dauer",
+  "create": "Erstellen",
+  "sources": "{count} ausgewählte Ressource | {count} ausgewählte Ressourcen",
+  "task": {
+    "document": "Dokument wird erstellt",
+    "image": "Bild wird erstellt",
+    "video": "Video wird erstellt"
+  }
+}

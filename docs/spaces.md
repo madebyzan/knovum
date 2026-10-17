@@ -166,13 +166,16 @@ Revision identity follows the consumed data: `sourceRevision` identifies managed
 `rendered` identifies bytes plus the normalized image/video edit snapshot; `knowledgeRevision`
 identifies semantic content; Structure's `editRevision` fences layout and membership only.
 Derivation inputs record their `asset`, `rendered` or `knowledge` basis and consumed snapshot.
-Rust rechecks that basis and edit/project before publication. A later source edit marks the old
+The basis is resolved once, where a selection is pinned — pixels for an image, indexed content for
+text — and then travels with the input, so no handler assumes a basis of its own and a resource
+nothing has analyzed yet is still something to create from. Rust rechecks that basis and edit/project
+before publication. A later source edit marks the old
 output historical without rewriting or regenerating it. Image background removal/upscale consume
 `rendered`; subtitle burn-in pins video bytes and transcript knowledge; viewport movement consumes
 neither. Ordinary content edits compare the complete expected payload atomically, so stale edits
 cannot overwrite newer content or comments. Preview and external export use current rendered content.
 
-A **Capability** executes one product operation: document/image/video generation, document export or a media transformation. Selecting several inputs grounds that one operation in several sources; it never becomes a hidden multi-step program. Reuse comes from the derivation record a result already carries, not from a separately stored recipe.
+A **Capability** executes one product operation: document/image/video generation, document export or a media transformation. Selecting several inputs grounds that one operation in several sources; it never becomes a hidden multi-step program. Reuse comes from the derivation record a result already carries, not from a separately stored recipe. Asking a model to change an attached image is not a separate kind of request: pixels travel with the prompt, and the prompt says what to do with them. See `creation-sources.md`.
 
 The canvas starts registered generative capabilities and document exports through `start_space_action`. Rust pins the selected inputs, resolves and freezes the execution target, and creates an authorized Action Run in one transaction. Vue observes the shared Task Center; it does not sequence hidden generation steps or publish output bytes.
 

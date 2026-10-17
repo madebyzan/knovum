@@ -9,6 +9,7 @@
   },
   "citations": "Zitate · {count}",
   "createFromSelection": "Aus Auswahl erstellen",
-  "needsIndexedKnowledge": "Die ausgewählten Elemente enthalten noch keinen durchsuchbaren Text.",
-  "finishNodeOperation": "Beenden oder brechen Sie zuerst den aktuellen Knotenvorgang ab."
+  "finishNodeOperation": "Beenden oder brechen Sie zuerst den aktuellen Knotenvorgang ab.",
+  "tooManySources": "Wähle höchstens 32 Ressourcen zum Erstellen aus.",
+  "noUsableSource": "Die Auswahl enthält keine Datei und keinen Text, den ein Modell lesen kann."
 }

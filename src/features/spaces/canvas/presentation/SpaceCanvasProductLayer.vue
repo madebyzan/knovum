@@ -4,7 +4,7 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import SpaceDerivationDialogs from "../../knowledge-derivations/presentation/SpaceDerivationDialogs.vue";
+import SpaceCreationDialog from "../../knowledge-derivations/presentation/SpaceCreationDialog.vue";
 import { useSelectionDerivations } from "../../knowledge-derivations/selection/use-selection-derivations";
 import SpaceCanvasSceneControls from "../../scenes/presentation/SpaceCanvasSceneControls.vue";
 import SpaceFind from "../../search/presentation/SpaceFind.vue";
@@ -157,13 +157,13 @@ const selectionBarGap = computed(() =>
       @dismiss-capture="emit('dismissCapture', $event)"
       @retry-capture="emit('retryCapture', $event)"
     />
-    <SpaceDerivationDialogs
-      v-model:open="derivations.dialog.value"
-      :source-title="derivations.sourceTitle.value"
-      :sources="derivations.sources.value ?? []"
-      @document="derivations.submitDocument"
-      @visualization="derivations.submitVisualization"
-      @video="derivations.submitVideo"
+    <SpaceCreationDialog
+      v-if="derivations.composing.value"
+      :open="true"
+      :output="derivations.composing.value"
+      :sources="derivations.sources.value"
+      @update:open="!$event && (derivations.composing.value = undefined)"
+      @submit="derivations.submit"
     />
     <SpaceFind v-model:open="store.findOpen" />
     <SpaceGlobalFind v-model:open="store.globalFindOpen" />

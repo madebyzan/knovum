@@ -1,0 +1,30 @@
+{
+  "title": "Crea dalla selezione",
+  "description": "Descrivi ciò che ti serve. Le risorse selezionate sono il materiale.",
+  "outputLabel": "Crea",
+  "output": {
+    "document": "Documento",
+    "image": "Immagine",
+    "video": "Video"
+  },
+  "requirement": "Cosa ti serve?",
+  "placeholder": {
+    "document": "Descrivi obiettivo, struttura e punti chiave del documento.",
+    "image": "Descrivi l’immagine desiderata. Con immagini selezionate, indica come modificarle.",
+    "video": "Descrivi scena, movimento, inquadratura e stile visivo."
+  },
+  "defaultTitle": {
+    "document": "Nuovo documento",
+    "image": "Nuova immagine",
+    "video": "Nuovo video"
+  },
+  "aspectRatio": "Proporzioni",
+  "duration": "Durata",
+  "create": "Crea",
+  "sources": "{count} risorsa selezionata | {count} risorse selezionate",
+  "task": {
+    "document": "Generazione documento",
+    "image": "Generazione immagine",
+    "video": "Generazione video"
+  }
+}

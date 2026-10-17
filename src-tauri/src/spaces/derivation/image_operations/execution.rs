@@ -71,14 +71,7 @@ pub(crate) async fn derive_for_action(
             routing::ResolvedImageTarget::Remote(target) => {
                 let bytes = match target {
                     crate::ai::tasks::TaskExecutionTarget::Model(model) => {
-                        provider::execute(
-                            model,
-                            routing::backend(model),
-                            &request.operation,
-                            &source,
-                            cancellation,
-                        )
-                        .await?
+                        provider::execute(model, &request.operation, &source, cancellation).await?
                     }
                     crate::ai::tasks::TaskExecutionTarget::Agent { runtime_kind } => {
                         agent::execute(

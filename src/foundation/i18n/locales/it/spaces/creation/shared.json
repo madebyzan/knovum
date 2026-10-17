@@ -9,6 +9,7 @@
   },
   "citations": "Citazioni · {count}",
   "createFromSelection": "Crea da selezione",
-  "needsIndexedKnowledge": "Gli elementi selezionati non contengono ancora testo ricercabile.",
-  "finishNodeOperation": "Termina o annulla prima l'operazione del nodo corrente."
+  "finishNodeOperation": "Termina o annulla prima l'operazione del nodo corrente.",
+  "tooManySources": "Seleziona al massimo 32 risorse da cui creare.",
+  "noUsableSource": "La selezione non contiene file o testo leggibili da un modello."
 }

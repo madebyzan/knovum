@@ -6,7 +6,7 @@ mod image_tensors;
 fn prepared_document_metadata_accepts_resolved_action_fields() {
     let value = serde_json::json!({
         "id":"run", "spaceId":"space", "outputNodeId":"run-output",
-        "inputs":[{"nodeId":"source", "role":"primary", "sourceRevision":"revision"}],
+        "inputs":[{"nodeId":"source", "role":"primary", "sourceRevision":"revision", "revisionBasis":"asset"}],
         "document":{"nodeId":"source", "data":{"title":"Title", "text":"Content"}}
     });
     assert!(

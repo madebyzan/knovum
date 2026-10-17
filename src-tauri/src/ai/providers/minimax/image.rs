@@ -39,6 +39,7 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a ImageGenerationInput,
+        _cancellation: &'a tokio_util::sync::CancellationToken,
     ) -> BoxFuture<'a, AppResult<GeneratedImage>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;

@@ -9,6 +9,7 @@
   },
   "citations": "引用 · {count}",
   "createFromSelection": "用选中项创建",
-  "needsIndexedKnowledge": "选中项暂时没有可供读取的文本。",
-  "finishNodeOperation": "请先完成或取消当前节点操作。"
+  "finishNodeOperation": "请先完成或取消当前节点操作。",
+  "tooManySources": "用于创建的资源最多 32 个。",
+  "noUsableSource": "选中项里没有模型可读取的文件或文本。"
 }

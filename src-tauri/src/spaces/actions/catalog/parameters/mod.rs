@@ -145,8 +145,6 @@ pub(super) struct VisualizationParameters {
     title: String,
     #[schemars(length(min = 1))]
     intent: String,
-    #[schemars(length(min = 1))]
-    style: String,
     aspect_ratio: ImageAspectRatio,
 }
 

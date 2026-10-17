@@ -46,7 +46,9 @@ it("submits one durable cutout invocation pinned to the selected model and sourc
   expect(calls.start).toHaveBeenCalledWith(
     expect.objectContaining({
       actionId: "remove-image-background",
-      sources: [{ nodeId: source.id, title: "Photo", role: "primary", sourceRevision: "node1:frozen" }],
+      sources: [
+        { nodeId: source.id, title: "Photo", sourceRevision: "node1:frozen", revisionBasis: "knowledge" },
+      ],
       parameters: expect.objectContaining({ operation: { kind: "remove-background" }, execution }),
     }),
   );

@@ -22,7 +22,7 @@ async fn exports_real_execution_sources_for_document_image_and_video() {
     }
     let source = json!({"type":"agent","runtimeKind":"codex"});
     sqlx::query("INSERT INTO spaces_grounded_documents(derivation_id,citations,execution_source) VALUES('document','[]',$1)").bind(source.to_string()).execute(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces_generated_images(derivation_id,intent,style,aspect_ratio,execution_source) VALUES('image','Explain','','1:1',$1)").bind(source.to_string()).execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_generated_images(derivation_id,intent,aspect_ratio,execution_source) VALUES('image','Explain','1:1',$1)").bind(source.to_string()).execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_generated_videos(derivation_id,prompt,aspect_ratio,duration_seconds,execution_source,operation_id) VALUES('video','Explain','16:9',10,$1,NULL)").bind(source.to_string()).execute(&pool).await.unwrap();
     let mut tx = pool.begin().await.unwrap();
     let rows = load(&mut tx, "space").await.unwrap();

@@ -16,16 +16,6 @@
     },
     "recognitionRequired": "변환하기 전에 스캔된 모든 페이지의 문서 인식을 완료하세요."
   },
-  "generate": "문서 생성",
-  "title": "선택한 지식으로 문서 만들기",
-  "description": "선택한 소스 옆에 인용된 마크다운 리소스 초안을 작성합니다.",
-  "defaultTitle": "지식 초안",
-  "purpose": {
-    "label": "문서 요약",
-    "placeholder": "문서의 목표, 형식, 핵심 사항을 설명하세요."
-  },
-  "sources": "{count} 지식 소스",
-  "task": "문서 생성 중",
   "generating": "선택된 지식으로부터 생성…",
   "failed": "문서를 생성할 수 없습니다."
 }

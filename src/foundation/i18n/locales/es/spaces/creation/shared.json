@@ -9,6 +9,7 @@
   },
   "citations": "Citas · {count}",
   "createFromSelection": "Crear a partir de la selección",
-  "needsIndexedKnowledge": "Los elementos seleccionados aún no contienen texto que se pueda buscar.",
-  "finishNodeOperation": "Primero finalice o cancele la operación del nodo actual."
+  "finishNodeOperation": "Primero finalice o cancele la operación del nodo actual.",
+  "tooManySources": "Selecciona como máximo 32 recursos para crear.",
+  "noUsableSource": "La selección no tiene ningún archivo ni texto que un modelo pueda leer."
 }

@@ -263,7 +263,6 @@ CREATE TABLE spaces_grounded_documents (
 CREATE TABLE spaces_generated_images (
   derivation_id TEXT PRIMARY KEY NOT NULL,
   intent TEXT NOT NULL,
-  style TEXT NOT NULL,
   aspect_ratio TEXT NOT NULL CHECK (aspect_ratio IN ('1:1','3:2','2:3','16:9','9:16')),
   execution_source TEXT NOT NULL CHECK (json_valid(execution_source)),
   revised_prompt TEXT,

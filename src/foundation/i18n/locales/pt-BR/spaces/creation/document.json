@@ -16,16 +16,6 @@
     },
     "recognitionRequired": "Conclua o reconhecimento de todas as páginas digitalizadas antes da conversão."
   },
-  "generate": "Gerar documento",
-  "title": "Crie um documento a partir do conhecimento selecionado",
-  "description": "Elabore um recurso Markdown citado ao lado das fontes selecionadas.",
-  "defaultTitle": "Rascunho de conhecimento",
-  "purpose": {
-    "label": "Resumo do documento",
-    "placeholder": "Descreva o objetivo, o formato e os pontos principais do documento."
-  },
-  "sources": "Fonte de conhecimento {count} | Fontes de conhecimento {count}",
-  "task": "Gerando documento",
   "generating": "Gerando a partir de conhecimento selecionado…",
   "failed": "Não foi possível gerar o documento"
 }

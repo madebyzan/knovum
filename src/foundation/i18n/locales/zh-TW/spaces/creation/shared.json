@@ -9,6 +9,7 @@
   },
   "citations": "引用 · {count}",
   "createFromSelection": "用選取項目建立",
-  "needsIndexedKnowledge": "選取項目暫時沒有可供讀取的文字。",
-  "finishNodeOperation": "請先完成或取消目前節點操作。"
+  "finishNodeOperation": "請先完成或取消目前節點操作。",
+  "tooManySources": "用於建立的資源最多 32 個。",
+  "noUsableSource": "選取項目中沒有模型可讀取的檔案或文字。"
 }

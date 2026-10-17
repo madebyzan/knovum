@@ -4,13 +4,6 @@
     "add": "Aggiungi sottotitoli"
   },
   "generation": {
-    "title": "Creare video partendo dalla conoscenza",
-    "description": "Genera un video dalla conoscenza e dalle immagini selezionate, collegato alle sue fonti.",
-    "name": "Nome video",
-    "prompt": "Descrivi la scena, il movimento, la telecamera e lo stile visivo",
-    "duration": "Durata",
-    "create": "Genera video",
-    "task": "Generazione video",
     "tooManyImages": "Seleziona non più di 10 immagini di riferimento per la generazione del video."
   }
 }

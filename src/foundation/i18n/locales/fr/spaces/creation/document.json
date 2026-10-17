@@ -16,16 +16,6 @@
     },
     "recognitionRequired": "Terminez la reconnaissance de toutes les pages numérisées avant la conversion."
   },
-  "generate": "Générer un document",
-  "title": "Créer un document à partir de connaissances sélectionnées",
-  "description": "Rédigez une ressource Markdown citée à côté des sources sélectionnées.",
-  "defaultTitle": "Brouillon de connaissances",
-  "purpose": {
-    "label": "Résumé du document",
-    "placeholder": "Décrivez l’objectif, le format et les points clés du document."
-  },
-  "sources": "Source de connaissances {count} | Sources de connaissances {count}",
-  "task": "Génération du document",
   "generating": "Générer à partir de connaissances sélectionnées…",
   "failed": "Impossible de générer le document"
 }
