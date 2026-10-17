@@ -24,7 +24,25 @@
     "export": "Exporter la démarque"
   },
   "export": {
-    "completed": "Exportation terminée"
+    "completed": "Exportation terminée",
+    "running": "Exportation…",
+    "formats": {
+      "png": "Image PNG (.png)",
+      "jpg": "Image JPEG (.jpg)",
+      "md": "Markdown (.md)",
+      "txt": "Texte brut (.txt)",
+      "json": "JSON (.json)",
+      "html": "Document HTML (.html)",
+      "docx": "Document Word (.docx)",
+      "pdf": "Document PDF (.pdf)",
+      "pptx": "Présentation (.pptx)",
+      "wav": "Audio WAV (.wav)",
+      "mp3": "Audio MP3 (.mp3)",
+      "m4a": "Audio AAC (.m4a)",
+      "flac": "Audio FLAC (.flac)",
+      "mp4": "Vidéo MP4 (.mp4)",
+      "mov": "Vidéo QuickTime (.mov)"
+    }
   },
   "fileName": "Nom du fichier",
   "openExternally": "Ouvrir dans une application externe",

@@ -1,6 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
+import { shallowRef } from "vue";
 
 import { i18n } from "../../../../../foundation/i18n/instance";
 import { workspaceRightSidebarKey } from "../../../../../shared/contracts/workspace-right-sidebar";
@@ -18,6 +19,7 @@ const mocks = vi.hoisted(() => ({
     saveNodeContentForSpace:
       vi.fn<(spaceId: string, change: { id: string; data: unknown }) => Promise<unknown>>(),
     discardUnavailableEditorTab: vi.fn<(tabId: string) => Promise<void>>(),
+    editorLocateRequest: undefined as unknown,
   },
 }));
 vi.mock("../../../session/space-store", () => ({ useSpaceStore: () => mocks.store }));
@@ -45,6 +47,7 @@ const tab: SpaceEditorTab = { id: "document-tab", kind: "document", nodeId: "nod
 beforeEach(() => {
   setActivePinia(createPinia());
   vi.clearAllMocks();
+  mocks.store.editorLocateRequest = shallowRef();
   mocks.store.saveNodeContentForSpace.mockImplementation(async (_spaceId, change) =>
     Promise.resolve((change as ContentChange).data),
   );

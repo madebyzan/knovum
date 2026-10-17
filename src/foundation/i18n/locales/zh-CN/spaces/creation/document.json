@@ -1,21 +1,4 @@
 {
-  "conversion": {
-    "tasks": {
-      "docx": "正在生成 Word 文档",
-      "pdf": "正在生成 PDF",
-      "txt": "正在生成纯文本",
-      "html": "正在生成 HTML 文档"
-    },
-    "label": "转换为",
-    "formats": {
-      "docx": "Word 文档 (.docx)",
-      "pdf": "PDF 文档 (.pdf)",
-      "txt": "纯文本 (.txt)",
-      "html": "网页文档 (.html)",
-      "pptx": "演示文稿 (.pptx)"
-    },
-    "recognitionRequired": "请先完成所有扫描页面的文档识别，再进行转换。"
-  },
   "generating": "正在用选中知识生成…",
   "failed": "文档生成失败"
 }

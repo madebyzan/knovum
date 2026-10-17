@@ -195,7 +195,7 @@ grounded-answer threads and messages are moved into the Builtin Agent store by a
 database migration; their verified source snapshots remain attached to the corresponding reply.
 Closing an Agent session exposes workspace artifacts through the existing reviewed import path.
 
-Document conversion consumes one explicit current Markdown or supported document-file resource. It creates a managed file through the same Action Run and does not synthesize a hidden document from an arbitrary selection. Supported source/target routes and fidelity limits belong to [document-conversion.md](document-conversion.md).
+Saving a resource in another format is an export rather than a derivation: the same content in a second file is not new knowledge, so it belongs to the destination the person picked instead of to the canvas. Admitted formats per resource kind and fidelity limits belong to [resource-export.md](resource-export.md).
 
 AI execution selection follows the task's explicit target, then its capability override, then the user's default execution method. An enabled desktop Agent uses its own authentication and tools; a selected user model uses its registered connection and credential reference. Local deterministic Actions do not require either. Missing or failed execution paths remain visible and do not switch to another account.
 
@@ -460,7 +460,7 @@ Opening an owned resource launches the Space-private copy. When Knovum starts, r
 
 PDF/Office **full embedded editing is not a product goal**. `system_preview` is the only canvas renderer for native thumbnails: Quick Look owns the macOS adapter and registered Shell providers own the Windows adapter. `pdf-inspector` owns PDF page-level text extraction; `office_oxide` owns semantic Office extraction. The evidence inspector shows extracted text and opens the original file; it no longer renders PDF pages. PDF coverage distinguishes trusted text from pages requiring recognition. Optional background document visual analysis is implemented through the enrichment job owner, with per-occurrence checkpoints and revision-guarded publication; it requires a configured compatible visual target. This implementation is not a claim that every format and platform has completed acceptance. Extraction, available resource browsing and native thumbnails remain usable without AI. See `knowledge.md` for coverage, limits and cancellation. Import, native visual preview and semantic extraction are separate ordered phases: the pending node appears immediately, the native preview is published through the import channel as soon as it exists, and semantic extraction continues in the background. The original private bytes remain authoritative and professional applications own high-fidelity editing.
 
-Current Markdown knowledge and supported PDF/Office files can produce a converted document in an admitted target format. Every output is a managed Space resource with exact source revision, derivation metadata and `derives-from` lineage. File conversion reads the authorized original asset rather than cached extracted text, verifies its digest before parsing and again before publication, and applies the format policy owned by [document-conversion.md](document-conversion.md).
+Notes, Markdown and supported PDF/Office files can be exported in an admitted target format. The export reads the authorized original asset rather than cached extracted text, verifies its digest before parsing and again before the destination is written, and applies the format policy owned by [resource-export.md](resource-export.md).
 
 ## Canvas cards and Sections
 
@@ -790,7 +790,7 @@ Rust `documents/generation` serializes DOCX, PDF, TXT and PPTX from one revision
 source. Spaces owns authorization, pending output placement and publication; Vue submits intent and
 observes the same Action Run. PPTX produces text slides through `knovum-pptx:1`; more than 100 slides
 fails visibly. The supported Markdown subset and rendering limits belong to
-[document-conversion.md](document-conversion.md).
+[resource-export.md](resource-export.md).
 
 ### Semantic search activation
 

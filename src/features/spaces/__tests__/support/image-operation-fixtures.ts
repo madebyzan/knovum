@@ -12,8 +12,6 @@ export function selectedImageIntents() {
     canRemoveBackground: false,
     canSplitImageLayers: false,
     canAddVideoSubtitles: false,
-    documentTargets: [],
-    documentRecognitionRequired: false,
   });
 }
 

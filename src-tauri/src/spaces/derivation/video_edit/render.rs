@@ -9,14 +9,12 @@ use uuid::Uuid;
 
 use super::{ass, filter_graph, report, start::VideoEditSource, VideoEditProgress, CANCELLED};
 use crate::{
+    foundation::scratch_file::ScratchFile,
     foundation::subprocess,
     local_resources::tools,
     spaces::{
         assets::asset_directory,
-        derivation::{
-            scratch_file::ScratchFile,
-            video_output::{self, RenderedVideo},
-        },
+        derivation::video_output::{self, RenderedVideo},
     },
 };
 

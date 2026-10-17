@@ -176,46 +176,6 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         empty,
         Output::Video,
     ),
-    action(
-        "convert-document-to-docx",
-        None,
-        None,
-        &[Input::Document],
-        empty,
-        Output::File,
-    ),
-    action(
-        "convert-document-to-pdf",
-        None,
-        None,
-        &[Input::Document],
-        empty,
-        Output::File,
-    ),
-    action(
-        "convert-document-to-txt",
-        None,
-        None,
-        &[Input::Document],
-        empty,
-        Output::File,
-    ),
-    action(
-        "convert-document-to-html",
-        None,
-        None,
-        &[Input::Document],
-        empty,
-        Output::File,
-    ),
-    action(
-        "render-presentation",
-        None,
-        None,
-        &[Input::Document],
-        empty,
-        Output::Presentation,
-    ),
 ];
 
 const fn collection_action(

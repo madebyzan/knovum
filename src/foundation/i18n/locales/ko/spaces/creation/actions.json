@@ -1,11 +1,6 @@
 {
   "draftDocument": "문서 생성",
   "generateVisualization": "이미지 생성",
-  "convertDocumentToDocx": "Word 문서로 변환",
-  "convertDocumentToPdf": "PDF로 변환",
-  "convertDocumentToTxt": "일반 텍스트로 변환",
-  "convertDocumentToHtml": "HTML로 변환",
-  "renderPresentation": "프레젠테이션 만들기",
   "generateVideo": "비디오 생성",
   "removeImageBackground": "배경 제거",
   "splitImageLayers": "레이어 분리",

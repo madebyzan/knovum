@@ -84,11 +84,9 @@ pub enum SpaceActionInputRole {
 pub enum SpaceActionOutputContract {
     Answer,
     Document,
-    File,
     Image,
     KnowledgeChangeReceipt,
     KnowledgeNode,
-    Presentation,
     ResourceReceipt,
     SearchResults,
     SpaceEditReceipt,

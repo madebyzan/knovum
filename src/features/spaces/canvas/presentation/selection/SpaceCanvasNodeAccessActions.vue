@@ -5,7 +5,6 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 
-defineProps<{ disabled?: boolean }>();
 const emit = defineEmits<{ inspect: []; export: [] }>();
 const { t } = useI18n();
 </script>
@@ -18,12 +17,7 @@ const { t } = useI18n();
       </UiIconButton>
     </ToolbarButton>
     <ToolbarButton as-child>
-      <UiIconButton
-        :label="t('spaces.canvas.nodeActions.export')"
-        :disabled="disabled"
-        tooltip
-        @click="emit('export')"
-      >
+      <UiIconButton :label="t('spaces.canvas.nodeActions.export')" tooltip @click="emit('export')">
         <Download class="size-4.5" :stroke-width="1.6" />
       </UiIconButton>
     </ToolbarButton>

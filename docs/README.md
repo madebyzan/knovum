@@ -23,7 +23,7 @@ Use one authoritative document per concern.
 - `spaces.md` — Space/Space product model, capture behavior and persistence boundary.
 - `creation-sources.md` — how a selected resource reaches a model: source forms, roles, capability negotiation.
 - `knowledge.md` — current Spaces Knowledge, SQLx baseline, revision/citation/package contracts.
-- `document-conversion.md` — Document conversion routes, backend behavior, limitations and verification.
+- `resource-export.md` — Export formats per resource kind, backend behavior, limitations and verification.
 - [secrets.md](secrets.md) — dedicated local credential database and its security properties.
 - `platform-matrix.md` — macOS/Windows behavior matrix.
 

@@ -161,9 +161,6 @@ async fn execute_attempt(
                 completion => completion,
             }
         }
-        Ok(StepOutcome::Waiting { reason, checkpoint }) => {
-            scheduler::wait_step(pool, claim, reason, &checkpoint).await
-        }
         Err(error) => scheduler::fail_step(pool, claim, &error).await,
     };
     super::signals::announce();

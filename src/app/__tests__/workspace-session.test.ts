@@ -13,6 +13,7 @@ function createTestRouter() {
     routes: [
       { path: "/spaces", name: "spaces", component: { template: "<div />" } },
       { path: "/settings", name: "settings", component: { template: "<div />" } },
+      { path: "/:pathMatch(.*)*", redirect: "/spaces" },
     ],
   });
 }

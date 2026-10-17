@@ -1,22 +1,12 @@
 import type { Ref, ShallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { DocumentFormat } from "../catalog/creation-intent";
-import {
-  CREATION_INTENT_DEFINITIONS,
-  type CreationIntentId,
-  type DocumentConversionIntentId,
-} from "../catalog/creation-intent-definitions";
+import type { CreationIntentId } from "../catalog/creation-intent-definitions";
 import type { CreationSource } from "../catalog/creation-source";
 import { startCreation, type CreationDraft, type CreationOutput } from "../creation";
-import { convertDocument } from "../document/conversion";
-import { isDocumentConversionSource } from "../document/conversion-source";
 import { createImageCutout } from "../image-cutout";
 import { splitImageLayers } from "../image-layers";
 import { addVideoSubtitles } from "../subtitled-video";
-
-/** Everything a document conversion needs is its format, so they share a path. */
-type DirectIntentId = Exclude<CreationIntentId, DocumentConversionIntentId>;
 
 interface DerivationActionsOptions {
   canRun(actionId: CreationIntentId): boolean;
@@ -34,7 +24,7 @@ export function createDerivationActions({
   sources,
   composing,
 }: DerivationActionsOptions) {
-  const handlers: Record<DirectIntentId, () => void> = {
+  const handlers: Record<CreationIntentId, () => void> = {
     "remove-image-background": () => void (single.value && createImageCutout(single.value)),
     "split-image-layers": () => void (single.value && splitImageLayers(single.value)),
     "add-video-subtitles": () => void (single.value && addVideoSubtitles(single.value)),
@@ -43,16 +33,8 @@ export function createDerivationActions({
     "generate-video": () => (composing.value = "video"),
   };
 
-  function convert(format: DocumentFormat) {
-    if (!single.value || !isDocumentConversionSource(single.value)) return;
-    void convertDocument({ source: single.value, format });
-  }
-
   function run(actionId: CreationIntentId) {
-    if (!canRun(actionId)) return;
-    const definition = CREATION_INTENT_DEFINITIONS.find(({ id }) => id === actionId);
-    if (definition && "documentFormat" in definition) convert(definition.documentFormat);
-    else handlers[actionId as DirectIntentId]();
+    if (canRun(actionId)) handlers[actionId]();
   }
 
   function submit(draft: CreationDraft) {

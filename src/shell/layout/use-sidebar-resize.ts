@@ -1,4 +1,4 @@
-import { onScopeDispose, shallowRef } from "vue";
+import { getCurrentScope, onScopeDispose, shallowRef } from "vue";
 
 /**
  * One sash: the divider between a sidebar and the work area.
@@ -72,9 +72,11 @@ export function useSidebarResize(options: SidebarResizeOptions) {
     options.onCommit();
   }
 
-  onScopeDispose(() => {
-    if (dragging.value) setDocumentDragging(false);
-  });
+  if (getCurrentScope()) {
+    onScopeDispose(() => {
+      if (dragging.value) setDocumentDragging(false);
+    });
+  }
 
   function keydown(event: KeyboardEvent) {
     const next = keyboardWidth(event.key, options.width(), options.geometry, grow);

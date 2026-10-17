@@ -2,8 +2,8 @@ import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { nextTick, shallowRef } from "vue";
-import { createI18n } from "vue-i18n";
 
+import { i18n } from "../../../foundation/i18n/instance";
 import { createSpaceNode } from "../canvas/node";
 import { videoEditCommands } from "../commands/video-edit-commands";
 import { useVideoEditActions } from "../video-editing/presentation/use-video-edit-actions";
@@ -86,7 +86,7 @@ function setup() {
         return () => null;
       },
     },
-    { global: { plugins: [createI18n({ legacy: false, locale: "en", messages: { en: {} } })] } },
+    { global: { plugins: [i18n] } },
   );
   return { source, session, originalProject, actions, active, playheadMs };
 }

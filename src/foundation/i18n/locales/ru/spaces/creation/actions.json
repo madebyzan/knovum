@@ -1,11 +1,6 @@
 {
   "draftDocument": "Создать документ",
   "generateVisualization": "Создать изображение",
-  "convertDocumentToDocx": "Преобразовать в документ Word",
-  "convertDocumentToPdf": "Преобразовать в PDF",
-  "convertDocumentToTxt": "Преобразовать в обычный текст",
-  "convertDocumentToHtml": "Конвертировать в HTML",
-  "renderPresentation": "Создать презентацию",
   "generateVideo": "Создать видео",
   "removeImageBackground": "Удалить фон",
   "splitImageLayers": "Разделить на слои",

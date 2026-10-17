@@ -1,18 +1,5 @@
-mod document_formats;
 mod failure;
 mod image_tensors;
-
-#[test]
-fn prepared_document_metadata_accepts_resolved_action_fields() {
-    let value = serde_json::json!({
-        "id":"run", "spaceId":"space", "outputNodeId":"run-output",
-        "inputs":[{"nodeId":"source", "role":"primary", "sourceRevision":"revision", "revisionBasis":"asset"}],
-        "document":{"nodeId":"source", "data":{"title":"Title", "text":"Content"}}
-    });
-    assert!(
-        serde_json::from_value::<super::document_publication::DocumentPublication>(value).is_ok()
-    );
-}
 
 #[tokio::test]
 async fn stale_claim_cannot_adopt_the_current_execution_epoch() {

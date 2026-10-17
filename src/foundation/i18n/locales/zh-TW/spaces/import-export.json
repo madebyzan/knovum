@@ -24,7 +24,25 @@
     "export": "匯出 Markdown"
   },
   "export": {
-    "completed": "匯出完成"
+    "completed": "匯出完成",
+    "running": "正在匯出…",
+    "formats": {
+      "png": "PNG 圖片 (.png)",
+      "jpg": "JPEG 圖片 (.jpg)",
+      "md": "Markdown (.md)",
+      "txt": "純文字 (.txt)",
+      "json": "JSON (.json)",
+      "html": "HTML 文件 (.html)",
+      "docx": "Word 文件 (.docx)",
+      "pdf": "PDF 文件 (.pdf)",
+      "pptx": "簡報 (.pptx)",
+      "wav": "WAV 音訊 (.wav)",
+      "mp3": "MP3 音訊 (.mp3)",
+      "m4a": "AAC 音訊 (.m4a)",
+      "flac": "FLAC 音訊 (.flac)",
+      "mp4": "MP4 影片 (.mp4)",
+      "mov": "QuickTime 影片 (.mov)"
+    }
   },
   "fileName": "檔案名稱",
   "openExternally": "外部應用程式開啟",

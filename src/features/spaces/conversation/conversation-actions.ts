@@ -4,7 +4,8 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/instance";
 import { confirmAction } from "../../../shared/ui/confirm-action";
-import { exportSpaceTextFile, safeExportFileName } from "../assets/export";
+import { exportFilter, safeExportFileName } from "../assets/export/naming";
+import { saveSpaceTextFile } from "../assets/export/text";
 import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
 import {
@@ -74,9 +75,9 @@ export function createConversationActions(state: ConversationActionState) {
     if (!conversation?.branchId) return;
     try {
       const value = await loadConversationBranchMessages(conversation.id, conversation.branchId);
-      await exportSpaceTextFile({
+      await saveSpaceTextFile({
         defaultPath: `${safeExportFileName(conversation.title) || "conversation"}.json`,
-        filters: [{ name: "JSON", extensions: ["json"] }],
+        filters: [exportFilter("json")],
         text: `${JSON.stringify(value, null, 2)}\n`,
       });
     } catch (cause) {

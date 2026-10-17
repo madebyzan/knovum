@@ -1,15 +1,44 @@
-# Document conversion
+# Resource export
 
-This document owns conversion routes, content guarantees and renderer acceptance. Spaces owns
-source authorization, revisions, persistence and lineage; packaging owns runtime distribution.
+This document owns how a resource leaves Knovum: the formats each resource admits, the content
+guarantees of each serialization and renderer acceptance. Spaces owns source authorization,
+revisions and destination authorization; packaging owns runtime distribution.
 
-## Execution and ownership
+## One export, named by its destination
 
-Canvas and Agent/MCP invoke the same local Actions:
-`convert-document-to-docx`, `convert-document-to-pdf`, `convert-document-to-txt`,
-`convert-document-to-html` and `render-presentation`. Vue submits source identity and format intent.
-Rust reserves the derived file node, validates the source revision, renders and atomically publishes
-with `derives-from` lineage. Download saves an existing resource and is a separate operation.
+Saving the same content in another format produces no new knowledge, so an export is not a
+derivation and never places a second resource on the canvas. Export is one operation: the person
+picks a destination in the native save dialog, and the extension of that destination is the whole
+format instruction. A dialog that leaves the format unstated gets the resource's own format.
+
+`list_export_formats` answers what one resource admits, own format first, and is the only place
+that decides. `export_resource` writes the destination the dialog returned: replacing an existing
+file is what the person already confirmed, a failed or cancelled run leaves no partial file, and the
+source revision is checked again afterwards so a resource that changed mid-export is never delivered
+as the current one. Every export is addressable by job identity and can be stopped by the person who
+started it. Formats the Renderer serializes from content it already holds - Markdown, a section
+outline, an object or a credential summary - are written through `export_text` instead; the engine
+truthfully reports no format for them rather than failing.
+
+## Supported formats
+
+| Resource           | Formats, own format first                       | Contract                                                                          |
+| ------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------- |
+| Rich Note          | TXT, HTML, DOCX, PDF, PPTX                      | Structured authoring content; no Markdown intermediate                            |
+| Markdown           | MD, TXT, HTML, DOCX, PDF, PPTX                  | Semantic content and authorized managed images; MD is written by the Renderer     |
+| PDF                | PDF, DOCX, TXT, HTML, PPTX                      | Editable text reflow, source-page images; qualified recognition for scanned pages |
+| DOC/DOCX, XLS/XLSX | own format, DOCX, TXT, HTML                     | Supported semantic Office content; no original-layout PDF                         |
+| PPT/PPTX           | own format, DOCX, TXT, HTML; PPT also adds PPTX | Supported Office IR content and legacy upgrade                                    |
+| Other file         | own format                                      | The managed bytes as they are                                                     |
+| Image              | own format when untouched, PNG, JPG             | The picture as it is currently edited; JPEG composites transparency onto white    |
+| Relative depth     | own format                                      | Measurement data, copied verbatim rather than re-encoded as a picture             |
+| Audio              | own container, WAV, MP3, M4A, FLAC              | The same recording, re-encoded by the qualified bundled FFmpeg encoders           |
+| Video              | own container, MP4, MOV                         | H.264 and AAC, the pair every player and editor admits                            |
+
+A resource that is still being prepared reports that it is unfinished instead of offering a format.
+An extension the resource does not admit is refused in Rust; lossless WebP is neither small nor
+lossy, so it is not offered as an image target. `media-libraries` qualifies every encoder named here,
+so a supplier that lacks one fails the build rather than the export.
 
 The private document worker owns synchronous parsing and serialization. Markdown is parsed with
 `pulldown-cmark`; Notes are translated directly from their validated Tiptap document into the admitted
@@ -19,31 +48,21 @@ translation, presentation pagination and safe typesetting.
 
 Office original-layout PDF is outside this product boundary. Knovum does not install, bundle or
 implicitly discover an Office layout engine. Users open the original file in their external Office
-application, export PDF there and import the result. Office semantic content exports do not claim
-original pagination or positioning. No second persistent document model, universal conversion
-service, compatibility reader or alternate engine after failure is introduced.
+application and export PDF there. Office semantic content exports do not claim original pagination
+or positioning. No second persistent document model, universal conversion service, compatibility
+reader or alternate engine after failure is introduced.
 
-The Run cancellation token owns cancellation. The host kills and reaps the worker
-process tree before releasing execution capacity. Source files and attached image snapshots are
-checked again before publication. Failed/stale output is removed. The private worker protocol is
-strict v2; v1, unknown fields, wrong frame lengths, trailing bytes and unsuccessful exits fail.
+The export cancellation token owns cancellation. The host kills and reaps the worker process tree
+before releasing execution capacity. Source files and attached image snapshots are checked again
+before the destination is written. The private worker protocol is strict v2; v1, unknown fields,
+wrong frame lengths, trailing bytes and unsuccessful exits fail.
 
-## Supported routes
-
-| Input              | Targets, excluding the current format   | Contract                                                                          |
-| ------------------ | --------------------------------------- | --------------------------------------------------------------------------------- |
-| Markdown           | DOCX, PDF, TXT, HTML, PPTX              | Semantic content and authorized managed images                                    |
-| Rich Note          | DOCX, PDF, TXT, HTML, PPTX              | Structured authoring content; no Markdown intermediate                            |
-| PDF                | DOCX, TXT, HTML, PPTX                   | Editable text reflow, source-page images; qualified recognition for scanned pages |
-| DOC/DOCX, XLS/XLSX | DOCX, TXT, HTML                         | Supported semantic Office content; no original-layout PDF                         |
-| PPT/PPTX           | DOCX, TXT, HTML; PPT also supports PPTX | Supported Office IR content and legacy upgrade                                    |
-
-One published current source is required. Unsupported sources, processing/failed resources and
-same-format conversion are rejected in Rust and excluded from the menu. Known scanned PDF pages
-remain blocked until every required page has completed recognition with nonempty text from the
-same source revision. Conversion never triggers an implicit AI request. The host validates the
-recognition manifest; the worker validates required page identities against the original PDF.
-OCR text is written literally, not interpreted as Markdown or executable content.
+One published current source is required. Unsupported sources and processing/failed resources are
+rejected in Rust. Known scanned PDF pages remain blocked until every required page has completed
+recognition with nonempty text from the same source revision. Export never triggers an implicit AI
+request. The host validates the recognition manifest; the worker validates required page identities
+against the original PDF. OCR text is written literally, not interpreted as Markdown or executable
+content.
 
 For text-bearing PDFs, original image regions are rendered with the existing native PDF adapter and
 included as figures associated with their source page. Recognized scanned pages retain a raster of
@@ -51,9 +70,9 @@ the source page alongside editable recognized text. This is content delivery, no
 original editable Word layout. Page geometry and precise reading-order placement are not promised.
 TXT carries semantic text and image alternative text without exporting private paths.
 
-File display titles name the derived resource and HTML metadata. They do not become new body
-headings during file conversion. Markdown and Note title/body handling avoids duplicating a matching
-leading H1. Citations are appended as literal structured paragraphs.
+File display titles name the exported document and HTML metadata. They do not become new body
+headings. Markdown and Note title/body handling avoids duplicating a matching leading H1. Citations
+are appended as literal structured paragraphs.
 
 ## Markdown and Notes
 
@@ -125,23 +144,23 @@ The private worker request is at most 16 MiB, response header 16 KiB and output 
 Office semantic conversion validates supported content, embedded images and links before writing.
 Vector drawings, hidden sections, missing images and unsupported representations fail rather than
 being silently omitted. Spreadsheet content export retains displayed cell content, not workbook
-behavior/formulas. Office-to-PDF is rejected in the menu, Action admission and worker; it never
+behavior/formulas. Office-to-PDF is never offered and is rejected by the worker; it never
 silently becomes a reflowed PDF.
 
 ## Verification
 
-Focused checks cover source identity, strict worker frames, images and changed-resource rejection,
-Note structure/marks/merged tables, literal recognition, PPTX content retention/pagination, action
-admission, failure causes and process lifecycle. Execute after the development changes are complete:
+Focused checks cover the admitted formats of every resource kind, source identity, strict worker
+frames, images and changed-resource rejection, Note structure/marks/merged tables, literal
+recognition, PPTX content retention/pagination, failure causes and process lifecycle. Execute after the development changes are complete:
 
 ```sh
 pnpm check:web
 pnpm check:rust
 cargo test --locked --manifest-path src-tauri/Cargo.toml documents::generation
-cargo test --locked --manifest-path src-tauri/Cargo.toml spaces::derivation::tests::document_formats
+cargo test --locked --manifest-path src-tauri/Cargo.toml spaces::assets::export
 ```
 
-Open representative Word/PDF/PowerPoint outputs and inspect rendered pages. Binary signatures,
+Open representative Word/PDF/PowerPoint, image, audio and video outputs and inspect them. Binary signatures,
 XML assertions and passing unit tests do not establish visual fidelity or pagination quality.
 Source selection evidence belongs to [oss-first.md](oss-first.md). Native PDF image rendering and
 format output require acceptance on each supported platform before release.

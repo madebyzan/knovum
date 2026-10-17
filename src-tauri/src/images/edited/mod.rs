@@ -7,7 +7,7 @@ mod tone;
 
 use std::{fs, io::Cursor, path::Path};
 
-use image::{GenericImageView, ImageFormat, ImageReader, Limits};
+use image::{GenericImageView, ImageEncoder, ImageFormat, ImageReader, Limits};
 use serde_json::Value;
 
 use self::contracts::ImageEdit;
@@ -18,6 +18,8 @@ const MAX_SOURCE_PIXELS: u64 = 100_000_000;
 const MAX_SOURCE_DIMENSION: u32 = 10_000;
 /// Below this edge a downscaled reference stops being useful to a model.
 const MIN_FITTED_EDGE: u32 = 256;
+/// Visually transparent for a photograph, and a fraction of the lossless size.
+const JPEG_QUALITY: u8 = 90;
 
 pub(crate) fn validate_edit(value: &Value) -> Result<(), String> {
     ImageEdit::parse(value).map(|_| ())
@@ -38,6 +40,34 @@ pub(crate) fn render_source_png_within(
 }
 
 fn render(source: &Path, edit: &Value, max_bytes: usize) -> Result<EditedImageOutput, String> {
+    encode(rendered(source, edit)?, max_bytes)
+}
+
+/// The same render, encoded as JPEG for a destination that asked for it.
+/// Transparency has no JPEG representation, so it is composited onto white
+/// rather than turned into noise.
+pub(crate) fn render_source_jpeg(source: &Path, edit: &Value) -> Result<Vec<u8>, String> {
+    let rendered = rendered(source, edit)?;
+    let mut flattened = image::RgbImage::new(rendered.width(), rendered.height());
+    for (target, source) in flattened.pixels_mut().zip(rendered.pixels()) {
+        let alpha = f32::from(source.0[3]) / 255.0;
+        *target = image::Rgb(std::array::from_fn(|channel| {
+            (f32::from(source.0[channel]) * alpha + 255.0 * (1.0 - alpha)).round() as u8
+        }));
+    }
+    let mut output = Cursor::new(Vec::new());
+    image::codecs::jpeg::JpegEncoder::new_with_quality(&mut output, JPEG_QUALITY)
+        .write_image(
+            flattened.as_raw(),
+            flattened.width(),
+            flattened.height(),
+            image::ExtendedColorType::Rgb8,
+        )
+        .map_err(|error| error.to_string())?;
+    Ok(output.into_inner())
+}
+
+fn rendered(source: &Path, edit: &Value) -> Result<image::RgbaImage, String> {
     let metadata = fs::metadata(source).map_err(|error| error.to_string())?;
     if metadata.len() == 0 || metadata.len() > MAX_SOURCE_BYTES {
         return Err("Edited-image input must be a non-empty image up to 64 MiB".into());
@@ -53,7 +83,7 @@ fn render(source: &Path, edit: &Value, max_bytes: usize) -> Result<EditedImageOu
     reader.limits(limits);
     let source = reader.decode().map_err(|error| error.to_string())?;
     validate_source_dimensions(source.dimensions())?;
-    encode(pixels::render(&source.to_rgba8(), &edit)?, max_bytes)
+    pixels::render(&source.to_rgba8(), &edit)
 }
 
 /// Encode, and if the result is over budget, downscale and try again. Both

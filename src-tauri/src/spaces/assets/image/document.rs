@@ -7,7 +7,6 @@ pub(in crate::spaces::assets) struct ImageDocument {
     pub source_revision: String,
     pub file_name: String,
     pub edit: Value,
-    pub relative_depth: bool,
 }
 
 pub(in crate::spaces::assets) async fn load(
@@ -47,6 +46,5 @@ pub(in crate::spaces::assets) fn from_payload(payload: &Value) -> Result<ImageDo
             .ok_or("Image file name is unavailable")?
             .to_owned(),
         edit: payload.get("imageEdit").cloned().unwrap_or(Value::Null),
-        relative_depth: payload.get("imageDepth").is_some(),
     })
 }

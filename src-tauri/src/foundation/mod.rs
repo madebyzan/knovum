@@ -4,5 +4,6 @@ pub(crate) mod clock;
 pub(crate) mod http;
 pub(crate) mod job_registry;
 pub(crate) mod public_network;
+pub(crate) mod scratch_file;
 pub(crate) mod subprocess;
 pub(crate) mod utf16;

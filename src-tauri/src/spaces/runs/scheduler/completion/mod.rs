@@ -43,6 +43,7 @@ pub(crate) async fn complete_step(
     Ok(tx.commit().await.map_err(db::sql_error)?)
 }
 
+#[cfg(test)]
 pub(crate) async fn wait_step(
     pool: &SqlitePool,
     claim: &AttemptClaim,

@@ -7,7 +7,7 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { exportSpaceMarkdown } from "../../assets/export";
+import { exportSpaceMarkdown } from "../../assets/export/text";
 import { registerDocumentEditCommands } from "../../commands/document-edit-commands";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceEditorTab } from "../../workspace/workbench-tab";

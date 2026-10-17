@@ -2,7 +2,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { onScopeDispose, shallowRef, watch } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { safeExportFileName } from "../assets/export";
+import { exportFilter, safeExportFileName } from "../assets/export/naming";
 import type { ExportVideoAudioTracksRequest } from "../contracts/generated/ExportVideoAudioTracksRequest";
 import type { ExportVideoDubbingAssetRequest } from "../contracts/generated/ExportVideoDubbingAssetRequest";
 import type { VideoDeliveryAsset } from "../contracts/generated/VideoDeliveryAsset";
@@ -38,7 +38,7 @@ export function useVideoDelivery(project: () => { projectId: string; revisionId:
     try {
       const destinationPath = await save({
         defaultPath: `${safeExportFileName(project().title)}-${suffix}.${extension}`,
-        filters: [{ name: extension.toUpperCase(), extensions: [extension] }],
+        filters: [exportFilter(extension)],
       });
       if (!destinationPath || epoch !== version) return;
       activeJobId.value = job;

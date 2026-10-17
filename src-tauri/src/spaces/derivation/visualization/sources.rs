@@ -9,7 +9,7 @@ use crate::ai::contracts::{ExternalAgentKind, ImageReference};
 use crate::ai::models::ModelExecutionTarget;
 use crate::ai::tasks::TaskExecutionTarget;
 use crate::foundation::app_error::AppError;
-use crate::spaces::derivation::scratch_file::ScratchFile;
+use crate::foundation::scratch_file::ScratchFile;
 use crate::spaces::derivation::source_inputs::{self, RenderedImage};
 use crate::spaces::knowledge::retrieval::hybrid::{self, HybridSearchRequest};
 use crate::spaces::{assets::asset_directory, db};

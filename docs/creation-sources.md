@@ -41,10 +41,10 @@ preserves identity, composition, palette and text in the image — which is the 
 Each selected resource is pinned to the revision the user is looking at, on the basis that made it
 readable:
 
-| Basis       | Pinned value        | Used for                                            |
-| ----------- | ------------------- | --------------------------------------------------- |
-| `asset`     | the file's bytes    | images, which are readable as pixels on their own   |
-| `knowledge` | the indexed content | text, documents, websites, transcripts              |
+| Basis       | Pinned value        | Used for                                          |
+| ----------- | ------------------- | ------------------------------------------------- |
+| `asset`     | the file's bytes    | images, which are readable as pixels on their own |
+| `knowledge` | the indexed content | text, documents, websites, transcripts            |
 
 The basis is decided once, where the selection is resolved, and then travels with the input through
 the Run and into the derivation record. No handler assumes a basis of its own, which is what used to

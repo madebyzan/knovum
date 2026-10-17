@@ -1,7 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, h } from "vue";
-import { createMemoryHistory, createRouter } from "vue-router";
+import { createMemoryHistory, createRouter, RouterView } from "vue-router";
 
 import { ApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import {
@@ -47,7 +47,10 @@ it("keeps every draft intact when a later settings participant cancels global le
     routes: [{ path: "/settings", component: Provider }],
   });
   await router.push("/settings");
-  const wrapper = mount(Provider, { global: { plugins: [router] } });
+  await router.isReady();
+  const wrapper = mount(defineComponent({ render: () => h(RouterView) }), {
+    global: { plugins: [router] },
+  });
   onTestFinished(() => wrapper.unmount());
 
   await expect(coordinator.requestLeave()).rejects.toBeInstanceOf(ApplicationLeaveCancelled);

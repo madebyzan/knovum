@@ -24,7 +24,25 @@
     "export": "Riduzione dell'esportazione"
   },
   "export": {
-    "completed": "Esportazione completata"
+    "completed": "Esportazione completata",
+    "running": "Esportazione…",
+    "formats": {
+      "png": "Immagine PNG (.png)",
+      "jpg": "Immagine JPEG (.jpg)",
+      "md": "Markdown (.md)",
+      "txt": "Testo semplice (.txt)",
+      "json": "JSON (.json)",
+      "html": "Documento HTML (.html)",
+      "docx": "Documento Word (.docx)",
+      "pdf": "Documento PDF (.pdf)",
+      "pptx": "Presentazione (.pptx)",
+      "wav": "Audio WAV (.wav)",
+      "mp3": "Audio MP3 (.mp3)",
+      "m4a": "Audio AAC (.m4a)",
+      "flac": "Audio FLAC (.flac)",
+      "mp4": "Video MP4 (.mp4)",
+      "mov": "Video QuickTime (.mov)"
+    }
   },
   "fileName": "Nome file",
   "openExternally": "Apri nell'app esterna",

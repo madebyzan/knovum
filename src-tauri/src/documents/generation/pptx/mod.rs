@@ -8,7 +8,6 @@ use super::document::DocumentSource;
 use office_oxide::ir::DocumentIR;
 use std::io::Cursor;
 
-pub(crate) const ENGINE: &str = "office-oxide-pptx:0.1.13;knovum-presentation:2";
 
 pub(crate) fn render(source: &DocumentSource) -> Result<Vec<u8>, String> {
     let document = super::markdown::parse(source)?;
