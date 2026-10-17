@@ -588,7 +588,7 @@ In the Spaces app, one Space is one knowledge context and one infinite canvas; t
 
 AI writing actions belong to the selection bubble menu. The document toolbar has no AI writing entry.
 
-The default canvas layout shows the Spaces Sidebar and canvas. The right sidebar starts closed. Its Conversation and Details views share one pane; contextual image and workflow edit panels remain anchored to their canvas objects.
+The default canvas layout shows the Spaces Sidebar and canvas. The right sidebar starts closed. Its Conversation and Details views share one pane; contextual image edit panels remain anchored to their canvas objects.
 
 The workbench has exactly one tab strip, in the toolbar. One tab is one opened thing: a Space canvas,
 a document or a video editor. There is no second strip inside the work surface and no fixed canvas
@@ -799,7 +799,7 @@ inspection view. It links to the owning plugin for overall activation and remova
 component switches or another custom MCP form. MCP lists raw protocol services, both user-configured
 and package-owned. A packaged service inherits its plugin enablement and cannot be toggled separately.
 
-The discoverable catalog includes optional bundled workflows without requiring an external source.
+The discoverable catalog includes optional bundled extensions without requiring an external source.
 Installed releases lead to their installed inspection rather than offering duplicate installation.
 Localized bundled names describe user outcomes; external package names retain their publisher spelling.
 Catalog browsing is a route state (`extensionAction=browse`) so Apps can lead directly to installation

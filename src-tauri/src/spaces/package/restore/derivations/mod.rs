@@ -56,8 +56,8 @@ pub(super) async fn insert(
                 .bind(sqlx::types::Json(&document.execution_source)).execute(&mut **tx).await.map_err(db::sql_error)?;
         }
         if let Some(image) = &row.generated_image {
-            sqlx::query("INSERT INTO spaces_generated_images(derivation_id,intent,style,aspect_ratio,execution_source,revised_prompt) VALUES($1,$2,$3,$4,$5,$6)")
-                .bind(&row.id).bind(&image.intent).bind(&image.style).bind(&image.aspect_ratio)
+            sqlx::query("INSERT INTO spaces_generated_images(derivation_id,intent,aspect_ratio,execution_source,revised_prompt) VALUES($1,$2,$3,$4,$5)")
+                .bind(&row.id).bind(&image.intent).bind(&image.aspect_ratio)
                 .bind(sqlx::types::Json(&image.execution_source)).bind(&image.revised_prompt)
                 .execute(&mut **tx).await.map_err(db::sql_error)?;
         }

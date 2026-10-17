@@ -3,7 +3,7 @@ import { i18n } from "../../../foundation/i18n/instance";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { VoiceCandidate } from "../contracts/generated/VoiceCandidate";
 import { observeResourceRun } from "../runs/resource-run-observation";
-import { workflowStateLabelKey } from "../workflows/workflow-state-label";
+import { runStateLabelKey } from "../runs/run-state-label";
 import { getVoiceCandidate } from "./voice-candidate-ipc";
 
 const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed", "cancelled"]);
@@ -16,9 +16,7 @@ export function observeVoiceCandidateRun(
   const finished = (observation: RunObservation) => {
     if (observation.state !== "succeeded") {
       settled(
-        observation.state === "cancelled"
-          ? undefined
-          : i18n.global.t(workflowStateLabelKey(observation.state)),
+        observation.state === "cancelled" ? undefined : i18n.global.t(runStateLabelKey(observation.state)),
       );
       return;
     }

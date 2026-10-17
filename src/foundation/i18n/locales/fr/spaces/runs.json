@@ -1,0 +1,13 @@
+{
+  "states": {
+    "queued": "En file d'attente",
+    "running": "En cours d'exécution",
+    "waiting": "En attente",
+    "paused": "En pause",
+    "succeeded": "Terminé",
+    "completedWithErrors": "Terminé avec des erreurs",
+    "failed": "Échec",
+    "cancelled": "Annulé",
+    "cancelling": "Annulation"
+  }
+}

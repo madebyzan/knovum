@@ -1,19 +1,4 @@
 {
   "removeBackground": "Hintergrund entfernen",
-  "splitLayers": "Ebenen trennen",
-  "visualization": {
-    "title": "Bild generieren",
-    "description": "Generieren Sie ein Bild neben den ausgewählten Quellen.",
-    "defaultTitle": "Generiertes Bild",
-    "intent": "Bildfokus",
-    "placeholder": "Beschreiben Sie die Konzepte oder Beziehungen, die gezeigt werden sollen, basierend auf den ausgewählten Quellen.",
-    "task": "Bild wird generiert"
-  },
-  "style": "Visuelle Richtung",
-  "aspectRatio": "Seitenverhältnis",
-  "styles": {
-    "editorial": "Redaktionelle Illustration",
-    "diagram": "Informationsdiagramm",
-    "concept": "Konzeptkunst"
-  }
+  "splitLayers": "Ebenen trennen"
 }

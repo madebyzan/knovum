@@ -1,0 +1,22 @@
+{
+  "draftDocument": "Générer un document",
+  "generateVisualization": "Générer une image",
+  "convertDocumentToDocx": "Convertir en document Word",
+  "convertDocumentToPdf": "Convertir en PDF",
+  "convertDocumentToTxt": "Convertir en texte brut",
+  "convertDocumentToHtml": "Convertir en HTML",
+  "renderPresentation": "Créer une présentation",
+  "generateVideo": "Générer une vidéo",
+  "removeImageBackground": "Supprimer l'arrière-plan",
+  "splitImageLayers": "Séparer les calques",
+  "addVideoSubtitles": "Ajouter des sous-titres",
+  "upscaleImage": "Résolution augmentée",
+  "generateImageAngle": "Nouvelle vue",
+  "removeImageObject": "Réparé",
+  "extractImageSelection": "Sélection",
+  "generateImageDepth": "Profondeur relative",
+  "draftScript": "Brouillon de script vidéo",
+  "summarizeMeeting": "Résumer la réunion",
+  "draftSocialPost": "Brouillon de publication sociale",
+  "generateImage": "Générer une image"
+}

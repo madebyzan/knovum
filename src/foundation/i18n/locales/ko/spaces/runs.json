@@ -1,0 +1,13 @@
+{
+  "states": {
+    "queued": "대기 중",
+    "running": "실행 중",
+    "waiting": "대기 중",
+    "paused": "일시 중지됨",
+    "succeeded": "완료",
+    "completedWithErrors": "완료되었지만 오류가 발생했습니다",
+    "failed": "실패",
+    "cancelled": "취소됨",
+    "cancelling": "취소 중"
+  }
+}

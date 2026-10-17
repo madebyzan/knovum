@@ -1,19 +1,4 @@
 {
   "removeBackground": "Remove background",
-  "splitLayers": "Split layers",
-  "visualization": {
-    "title": "Generate image",
-    "description": "Generate an image beside its selected sources.",
-    "defaultTitle": "Generated image",
-    "intent": "Image focus",
-    "placeholder": "Describe the concepts or relationships to show, grounded in the selected sources.",
-    "task": "Generating image"
-  },
-  "style": "Visual direction",
-  "aspectRatio": "Aspect ratio",
-  "styles": {
-    "editorial": "Editorial illustration",
-    "diagram": "Information diagram",
-    "concept": "Concept art"
-  }
+  "splitLayers": "Split layers"
 }

@@ -9,6 +9,7 @@ use tauri::{ipc::Channel, AppHandle};
 
 use super::stage;
 use crate::foundation::app_error::AppError;
+use crate::spaces::derivation::source_inputs::{self, SourceInput};
 use crate::{
     ai::{
         contracts::ExecutionCapability,
@@ -33,17 +34,9 @@ pub struct GenerateGroundedDocumentRequest {
     id: String,
     space_id: String,
     output_node_id: String,
-    inputs: Vec<DocumentInput>,
+    inputs: Vec<SourceInput>,
     purpose: String,
     target: TaskTargetSelection,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct DocumentInput {
-    node_id: String,
-    role: String,
-    source_revision: String,
 }
 
 #[derive(Serialize)]
@@ -110,13 +103,7 @@ async fn execute(
     crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
         app,
         &request.space_id,
-        Some(
-            request
-                .inputs
-                .iter()
-                .map(|input| input.node_id.clone())
-                .collect(),
-        ),
+        Some(source_inputs::node_ids(&request.inputs)),
         &request.id,
         &cancellation,
     )
@@ -127,13 +114,7 @@ async fn execute(
             semantic: true,
             space_id: Some(request.space_id.clone()),
             query: request.purpose.clone(),
-            node_ids: Some(
-                request
-                    .inputs
-                    .iter()
-                    .map(|input| input.node_id.clone())
-                    .collect(),
-            ),
+            node_ids: Some(source_inputs::node_ids(&request.inputs)),
         },
         &cancellation,
     )

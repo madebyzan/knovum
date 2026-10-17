@@ -142,7 +142,7 @@ it("reflects automatic publication without another confirmation or repeated fail
   expect(wrapper.get('[role="status"]').text()).toBe(i18n.global.t("spaces.speech.separation.completed"));
   expect(wrapper.find('[data-testid="retry-separation"]').exists()).toBe(false);
   state.runState.value = "failed";
-  state.error.value = i18n.global.t("spaces.creation.workflow.states.failed");
+  state.error.value = i18n.global.t("spaces.runs.states.failed");
   await flushPromises();
   expect(wrapper.findAll('[role="alert"]')).toHaveLength(1);
 });

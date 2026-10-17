@@ -1,11 +1,5 @@
 {
   "conversion": {
-    "actions": {
-      "docx": "Convertir a documento de Word",
-      "pdf": "Compone notas y Markdown como PDF.",
-      "txt": "Convertir a texto sin formato",
-      "html": "Convertir a HTML"
-    },
     "tasks": {
       "docx": "Generando documento de Word",
       "pdf": "Generando PDF",
@@ -22,16 +16,6 @@
     },
     "recognitionRequired": "Finaliza el reconocimiento de todas las páginas escaneadas antes de convertir."
   },
-  "generate": "Generar documento",
-  "title": "Crear un documento a partir de conocimientos seleccionados.",
-  "description": "Redacte un recurso de Markdown citado junto a las fuentes seleccionadas.",
-  "defaultTitle": "Borrador de conocimientos",
-  "purpose": {
-    "label": "Resumen del documento",
-    "placeholder": "Describe el objetivo, el formato y los puntos clave del documento."
-  },
-  "sources": "Fuente de conocimiento {count} | Fuentes de conocimiento {count}",
-  "task": "Generando documento",
   "generating": "Generando a partir de conocimientos seleccionados…",
   "failed": "No se pudo generar el documento"
 }

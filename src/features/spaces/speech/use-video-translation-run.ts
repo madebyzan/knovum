@@ -6,7 +6,7 @@ import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { TranslateVideoDubbingRequest } from "../contracts/generated/TranslateVideoDubbingRequest";
 import type { VideoTranslation } from "../contracts/generated/VideoTranslation";
 import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
-import { workflowStateLabelKey } from "../workflows/workflow-state-label";
+import { runStateLabelKey } from "../runs/run-state-label";
 import { getVideoTranslation, getVideoTranslationRun, translateVideoDubbing } from "./ipc";
 
 const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed", "cancelled"]);
@@ -68,7 +68,7 @@ export function useVideoTranslationRun(translated: (translation: VideoTranslatio
         activeRunId.value = undefined;
       } else {
         activeRunId.value = undefined;
-        error.value = t(workflowStateLabelKey(run.state));
+        error.value = t(runStateLabelKey(run.state));
       }
       return;
     }
@@ -81,7 +81,7 @@ export function useVideoTranslationRun(translated: (translation: VideoTranslatio
         activeRunId.value = undefined;
       } else {
         activeRunId.value = undefined;
-        error.value = t(workflowStateLabelKey(next.state));
+        error.value = t(runStateLabelKey(next.state));
       }
     });
   }

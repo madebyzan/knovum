@@ -1,0 +1,22 @@
+{
+  "draftDocument": "產生文件",
+  "generateVisualization": "生成圖片",
+  "convertDocumentToDocx": "轉換為 Word 文檔",
+  "convertDocumentToPdf": "轉換為 PDF",
+  "convertDocumentToTxt": "轉換為純文字",
+  "convertDocumentToHtml": "轉換為 HTML",
+  "renderPresentation": "產生簡報",
+  "generateVideo": "產生影片",
+  "removeImageBackground": "去背景",
+  "splitImageLayers": "拆分圖層",
+  "addVideoSubtitles": "新增字幕",
+  "upscaleImage": "已提升解析度",
+  "generateImageAngle": "新視角",
+  "removeImageObject": "修補",
+  "extractImageSelection": "選區",
+  "generateImageDepth": "相對深度",
+  "draftScript": "編寫影片腳本",
+  "summarizeMeeting": "整理會議摘要",
+  "draftSocialPost": "編寫社交文案",
+  "generateImage": "生成圖片"
+}

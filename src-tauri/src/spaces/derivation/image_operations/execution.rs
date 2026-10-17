@@ -43,12 +43,7 @@ pub(crate) async fn derive_for_action(
     )
     .await;
     let source = match rendered {
-        Ok(value) => {
-            match crate::foundation::blocking::run(move || source::from_rendered(value)).await {
-                Ok(source) => source,
-                Err(error) => return fail_running(&app, &request, error.into()).await,
-            }
-        }
+        Ok(value) => source::SourceImage::from(value),
         Err(error) => return fail_running(&app, &request, error.into()).await,
     };
     if let Err(error) = super::super::stage(&stages, "processing") {
@@ -71,14 +66,7 @@ pub(crate) async fn derive_for_action(
             routing::ResolvedImageTarget::Remote(target) => {
                 let bytes = match target {
                     crate::ai::tasks::TaskExecutionTarget::Model(model) => {
-                        provider::execute(
-                            model,
-                            routing::backend(model),
-                            &request.operation,
-                            &source,
-                            cancellation,
-                        )
-                        .await?
+                        provider::execute(model, &request.operation, &source, cancellation).await?
                     }
                     crate::ai::tasks::TaskExecutionTarget::Agent { runtime_kind } => {
                         agent::execute(

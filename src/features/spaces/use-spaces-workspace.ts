@@ -13,7 +13,6 @@ export function useSpacesWorkspace(): WorkspaceDefinition {
     toolbarLeading: defineAsyncComponent(() => import("./workspace/presentation/SpaceHistoryControls.vue")),
     rightSidebarLayout: { defaultSize: 380, minSize: 300, maxSize: 480 },
     openDefaultRightSidebar: () => {
-      store.workflowMode = undefined;
       store.setRightSidebarView("ask");
     },
     rightSidebarAvailable: computed(() => store.workbench.rightSidebar),

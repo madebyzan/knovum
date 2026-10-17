@@ -7,12 +7,11 @@ import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 export function selectedImageIntents() {
   return decideCreationIntents({
     selectionCount: 1,
+    sourceCount: 1,
     imageCount: 1,
-    hasKnowledgeSources: false,
     canRemoveBackground: false,
     canSplitImageLayers: false,
     canAddVideoSubtitles: false,
-    hasVideoSources: false,
     documentTargets: [],
     documentRecognitionRequired: false,
   });

@@ -4,7 +4,7 @@ use tauri::AppHandle;
 use super::{GenerateGroundedDocumentRequest, GeneratedDocument, GroundedDocumentOutput};
 use crate::foundation::app_error::AppError;
 use crate::spaces::derivation::relations;
-use crate::spaces::derivation::source_validation;
+use crate::spaces::derivation::source_inputs;
 use crate::spaces::{db, knowledge::model::revision};
 
 pub async fn complete(
@@ -20,16 +20,7 @@ pub async fn complete(
     let data: String = sqlx::query_scalar("SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'")
         .bind(&request.id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
         .ok_or("Grounded document derivation is no longer running")?;
-    for input in &request.inputs {
-        source_validation::validate(
-            &mut tx,
-            &request.space_id,
-            &input.node_id,
-            &input.source_revision,
-            crate::spaces::derivation::inputs::RevisionBasis::Knowledge,
-        )
-        .await?;
-    }
+    source_inputs::pin(&mut tx, &request.space_id, &request.inputs).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&data).map_err(db::json_error)?;
     apply_document(&mut data, &generated.text)?;

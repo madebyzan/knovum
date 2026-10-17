@@ -21,8 +21,8 @@ export function convertDocument({ source, format }: DocumentConversionOptions) {
       {
         nodeId: source.id,
         title: source.data.title,
-        role: "primary",
         sourceRevision: source.data.knowledgeRevision,
+        revisionBasis: "knowledge",
       },
     ],
     actionId: format === "pptx" ? "render-presentation" : `convert-document-to-${format}`,

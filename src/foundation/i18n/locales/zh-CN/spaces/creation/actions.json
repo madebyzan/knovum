@@ -1,0 +1,22 @@
+{
+  "draftDocument": "生成文档",
+  "generateVisualization": "生成图片",
+  "convertDocumentToDocx": "转换为 Word 文档",
+  "convertDocumentToPdf": "转换为 PDF",
+  "convertDocumentToTxt": "转换为纯文本",
+  "convertDocumentToHtml": "转换为 HTML",
+  "renderPresentation": "生成演示文稿",
+  "generateVideo": "生成视频",
+  "removeImageBackground": "去背景",
+  "splitImageLayers": "拆分图层",
+  "addVideoSubtitles": "添加字幕",
+  "upscaleImage": "放大",
+  "generateImageAngle": "新视角",
+  "removeImageObject": "修补",
+  "extractImageSelection": "选区",
+  "generateImageDepth": "相对深度",
+  "draftScript": "编写视频脚本",
+  "summarizeMeeting": "整理会议摘要",
+  "draftSocialPost": "编写社交文案",
+  "generateImage": "生成图片"
+}

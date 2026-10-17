@@ -106,7 +106,6 @@ uses these terms consistently:
 | voice profile            | 音色        |
 | transcription            | 转录        |
 | credential               | 凭据        |
-| workflow                 | 工作流      |
 | visual understanding     | 视觉理解    |
 | space portal             | 空间入口    |
 | remove from a collection | 移除        |

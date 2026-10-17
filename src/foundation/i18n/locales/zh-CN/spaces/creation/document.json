@@ -1,11 +1,5 @@
 {
   "conversion": {
-    "actions": {
-      "docx": "转换为 Word 文档",
-      "pdf": "将笔记和 Markdown 排版为 PDF。",
-      "txt": "转换为纯文本",
-      "html": "转换为 HTML"
-    },
     "tasks": {
       "docx": "正在生成 Word 文档",
       "pdf": "正在生成 PDF",
@@ -22,16 +16,6 @@
     },
     "recognitionRequired": "请先完成所有扫描页面的文档识别，再进行转换。"
   },
-  "generate": "生成文档",
-  "title": "用选中知识生成文档",
-  "description": "在所选来源旁生成带引用的 Markdown 知识资源。",
-  "defaultTitle": "知识草稿",
-  "purpose": {
-    "label": "文档要求",
-    "placeholder": "说明文档目标、形式和需要保留的重点。"
-  },
-  "sources": "{count} 个知识来源",
-  "task": "正在生成知识文档",
   "generating": "正在用选中知识生成…",
   "failed": "文档生成失败"
 }

@@ -17,14 +17,7 @@ use crate::ai::{
     settings,
     tasks::{ExecutionSource, TaskExecutionTarget, TaskTargetSelection},
 };
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct VideoInput {
-    node_id: String,
-    role: String,
-    source_revision: String,
-}
+use crate::spaces::derivation::source_inputs::SourceInput;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -32,7 +25,7 @@ pub struct GenerateVideoRequest {
     id: String,
     space_id: String,
     output_node_id: String,
-    inputs: Vec<VideoInput>,
+    inputs: Vec<SourceInput>,
     prompt: String,
     aspect_ratio: crate::spaces::actions::catalog::parameters::media::VideoAspectRatio,
     duration_seconds: u8,

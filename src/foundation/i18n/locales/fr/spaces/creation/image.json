@@ -1,19 +1,4 @@
 {
   "removeBackground": "Supprimer l'arrière-plan",
-  "splitLayers": "Séparer les calques",
-  "visualization": {
-    "title": "Générer une image",
-    "description": "Générez une image à côté de ses sources sélectionnées.",
-    "defaultTitle": "Image générée",
-    "intent": "Mise au point de l'image",
-    "placeholder": "Décrivez les concepts ou les relations à montrer, fondés sur les sources sélectionnées.",
-    "task": "Génération d'image"
-  },
-  "style": "Direction visuelle",
-  "aspectRatio": "Rapport d'aspect",
-  "styles": {
-    "editorial": "Illustration éditoriale",
-    "diagram": "Schéma d'information",
-    "concept": "Art conceptuel"
-  }
+  "splitLayers": "Séparer les calques"
 }

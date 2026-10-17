@@ -1,5 +1,6 @@
 use super::*;
 use crate::foundation::app_error::AppError;
+use crate::spaces::derivation::input_revision::RevisionBasis;
 use crate::spaces::knowledge::model::revision;
 
 pub(super) async fn database() -> SqlitePool {
@@ -25,6 +26,21 @@ pub(super) fn request(
     parameters: Value,
     target: Option<TaskTargetRef>,
 ) -> StartSpaceActionRequest {
+    pinned_request(
+        action,
+        sources,
+        RevisionBasis::Knowledge,
+        parameters,
+        target,
+    )
+}
+pub(super) fn pinned_request(
+    action: &str,
+    sources: &[(&str, &str)],
+    revision_basis: RevisionBasis,
+    parameters: Value,
+    target: Option<TaskTargetRef>,
+) -> StartSpaceActionRequest {
     StartSpaceActionRequest {
         request_id: uuid::Uuid::new_v4().to_string(),
         space_id: "space".into(),
@@ -34,7 +50,8 @@ pub(super) fn request(
             .iter()
             .map(|(id, revision)| SpaceActionSource {
                 node_id: (*id).into(),
-                knowledge_revision: (*revision).into(),
+                source_revision: (*revision).into(),
+                revision_basis,
             })
             .collect(),
         target,
@@ -83,6 +100,37 @@ async fn local_video_action_has_one_idempotent_run_and_no_intermediate_resources
         "knowledge"
     );
 }
+#[tokio::test]
+async fn an_unanalyzed_image_starts_a_creation_run_pinned_on_its_pixels() {
+    let pool = database().await;
+    node(
+        &pool,
+        "image",
+        json!({"kind":"image","title":"Shot","sourceRevision":"asset:1","assetPath":"/owned/shot.png","fileName":"shot.png"}),
+    )
+    .await;
+    let request = pinned_request(
+        "generate-visualization",
+        &[("image", "asset:1")],
+        RevisionBasis::Asset,
+        json!({"title":"Variant","intent":"Make it snow","aspectRatio":"1:1"}),
+        Some(TaskTargetRef::Agent {
+            runtime_kind: crate::ai::contracts::ExternalAgentKind::Codex,
+        }),
+    );
+    let run = start(&pool, &request).await.unwrap();
+    let input: String = sqlx::query_scalar("SELECT input_snapshot FROM spaces_runs WHERE id=$1")
+        .bind(run.id)
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    let input: Value = serde_json::from_str(&input).unwrap();
+    assert_eq!(
+        input["inputs"]["orderedInputs"][0]["revisionBasis"], "asset",
+        "an image with no visual knowledge is still a resource to create from"
+    );
+}
+
 #[tokio::test]
 async fn stale_or_malformed_acceptance_rolls_back_grant_and_run() {
     let pool = database().await;
@@ -137,5 +185,3 @@ fn local_actions_reject_ai_targets_and_immediate_mutations() {
     };
     assert!(invocation(&request, super::super::require(&request.action_id).unwrap()).is_err());
 }
-
-mod chain;

@@ -2,25 +2,36 @@ import type {
   CreationIntentDecision,
   CreationIntentDefinition,
   CreationSelectionContext,
+  DocumentFormat,
 } from "./creation-intent";
+import { MAX_CREATION_SOURCES } from "./creation-source";
 
 const AVAILABLE: CreationIntentDecision = { state: "ready" };
 const HIDDEN: CreationIntentDecision = { state: "hidden" };
 
-function decideKnowledgeIntent(context: CreationSelectionContext): CreationIntentDecision {
-  if (context.hasKnowledgeSources) return AVAILABLE;
-  return context.selectionCount > 0 ? { state: "blocked", reason: "needs-indexed-knowledge" } : HIDDEN;
+/**
+ * Creating from a selection depends on the selection, not on background work:
+ * a resource the Run can send is enough. Readiness of its knowledge is the
+ * Run's problem, and the Run says so while it prepares.
+ */
+function decideCreation(context: CreationSelectionContext): CreationIntentDecision {
+  if (context.selectionCount === 0) return HIDDEN;
+  if (context.selectionCount > MAX_CREATION_SOURCES) {
+    return { state: "blocked", reason: "too-many-sources" };
+  }
+  return context.sourceCount > 0 ? AVAILABLE : { state: "blocked", reason: "no-usable-source" };
 }
 
 function decideVideoGeneration(context: CreationSelectionContext): CreationIntentDecision {
-  const knowledge = context.hasVideoSources ? AVAILABLE : decideKnowledgeIntent(context);
-  if (knowledge.state !== "ready") return knowledge;
+  const creation = decideCreation(context);
+  if (creation.state !== "ready") return creation;
   return context.imageCount > 10 ? { state: "blocked", reason: "too-many-video-images" } : AVAILABLE;
 }
 
+/** Every conversion follows the same rule, so it is read from the format. */
 function decideDocumentConversion(
   context: CreationSelectionContext,
-  format: NonNullable<CreationIntentDefinition["documentFormat"]>,
+  format: DocumentFormat,
 ): CreationIntentDecision {
   if (!context.documentTargets.includes(format)) return HIDDEN;
   return context.documentRecognitionRequired
@@ -29,74 +40,26 @@ function decideDocumentConversion(
 }
 
 export const CREATION_INTENT_DEFINITIONS = [
-  {
-    id: "draft-document",
-    labelKey: "spaces.creation.document.generate",
-    icon: "file-pen",
-    decide: decideKnowledgeIntent,
-  },
-  {
-    id: "generate-visualization",
-    labelKey: "spaces.creation.image.visualization.title",
-    icon: "image",
-    decide: decideKnowledgeIntent,
-  },
-  {
-    id: "convert-document-to-docx",
-    documentFormat: "docx",
-    labelKey: "spaces.creation.document.conversion.actions.docx",
-    icon: "file-output",
-    decide: (context) => decideDocumentConversion(context, "docx"),
-  },
-  {
-    id: "convert-document-to-pdf",
-    documentFormat: "pdf",
-    labelKey: "spaces.creation.document.conversion.actions.pdf",
-    icon: "file-output",
-    decide: (context) => decideDocumentConversion(context, "pdf"),
-  },
-  {
-    id: "convert-document-to-txt",
-    documentFormat: "txt",
-    labelKey: "spaces.creation.document.conversion.actions.txt",
-    icon: "file-output",
-    decide: (context) => decideDocumentConversion(context, "txt"),
-  },
-  {
-    id: "convert-document-to-html",
-    documentFormat: "html",
-    labelKey: "spaces.creation.document.conversion.actions.html",
-    icon: "file-output",
-    decide: (context) => decideDocumentConversion(context, "html"),
-  },
-  {
-    id: "render-presentation",
-    documentFormat: "pptx",
-    labelKey: "spaces.creation.presentation.create",
-    icon: "file-output",
-    decide: (context) => decideDocumentConversion(context, "pptx"),
-  },
-  {
-    id: "generate-video",
-    labelKey: "spaces.creation.video.generation.create",
-    icon: "sparkles",
-    decide: decideVideoGeneration,
-  },
+  { id: "draft-document", icon: "file-pen", decide: decideCreation },
+  { id: "generate-visualization", icon: "image", decide: decideCreation },
+  { id: "convert-document-to-docx", documentFormat: "docx", icon: "file-output" },
+  { id: "convert-document-to-pdf", documentFormat: "pdf", icon: "file-output" },
+  { id: "convert-document-to-txt", documentFormat: "txt", icon: "file-output" },
+  { id: "convert-document-to-html", documentFormat: "html", icon: "file-output" },
+  { id: "render-presentation", documentFormat: "pptx", icon: "file-output" },
+  { id: "generate-video", icon: "sparkles", decide: decideVideoGeneration },
   {
     id: "remove-image-background",
-    labelKey: "spaces.creation.image.removeBackground",
     icon: "scan",
     decide: ({ canRemoveBackground }) => (canRemoveBackground ? AVAILABLE : HIDDEN),
   },
   {
     id: "split-image-layers",
-    labelKey: "spaces.creation.image.splitLayers",
     icon: "layers",
     decide: ({ canSplitImageLayers }) => (canSplitImageLayers ? AVAILABLE : HIDDEN),
   },
   {
     id: "add-video-subtitles",
-    labelKey: "spaces.creation.video.subtitles.add",
     icon: "captions",
     decide: ({ canAddVideoSubtitles }) => (canAddVideoSubtitles ? AVAILABLE : HIDDEN),
   },
@@ -104,6 +67,7 @@ export const CREATION_INTENT_DEFINITIONS = [
 
 type CreationIntent = (typeof CREATION_INTENT_DEFINITIONS)[number];
 export type CreationIntentId = CreationIntent["id"];
+export type DocumentConversionIntentId = Extract<CreationIntent, { documentFormat: DocumentFormat }>["id"];
 export type CreationIntentDecisions = Record<CreationIntentId, CreationIntentDecision>;
 
 export const DOCUMENT_CONVERSION_DEFINITIONS = CREATION_INTENT_DEFINITIONS.filter(
@@ -113,6 +77,11 @@ export const DOCUMENT_CONVERSION_ACTION_IDS = DOCUMENT_CONVERSION_DEFINITIONS.ma
 
 export function decideCreationIntents(context: CreationSelectionContext): CreationIntentDecisions {
   return Object.fromEntries(
-    CREATION_INTENT_DEFINITIONS.map((definition) => [definition.id, definition.decide(context)]),
+    CREATION_INTENT_DEFINITIONS.map((definition) => [
+      definition.id,
+      "documentFormat" in definition
+        ? decideDocumentConversion(context, definition.documentFormat)
+        : definition.decide(context),
+    ]),
   ) as CreationIntentDecisions;
 }

@@ -110,24 +110,6 @@ pub fn export(project_root: &Path) -> Result<(), String> {
             "tag": crate::spaces::knowledge::validation::nodes::visual::MAX_TAG,
         }),
     );
-    source.push_str(&enum_values(&[
-        (
-            "spaceActionImpacts",
-            schema_for!(crate::spaces::actions::SpaceActionImpact),
-        ),
-        (
-            "spaceActionExecutionModes",
-            schema_for!(crate::spaces::actions::SpaceActionExecutionMode),
-        ),
-        (
-            "spaceActionInputRoles",
-            schema_for!(crate::spaces::actions::SpaceActionInputRole),
-        ),
-        (
-            "spaceActionOutputContracts",
-            schema_for!(crate::spaces::actions::SpaceActionOutputContract),
-        ),
-    ])?);
     std::fs::write(spaces_output.join("contract-values.ts"), source).map_err(io_error)?;
     export_schemas(&spaces_output)
 }
@@ -166,10 +148,6 @@ fn export_runtime_values(output: &Path) -> Result<(), String> {
         (
             "executionCapabilities",
             schema_for!(crate::ai::contracts::ExecutionCapability),
-        ),
-        (
-            "routingPurposes",
-            schema_for!(crate::ai::contracts::RoutingPurpose),
         ),
         (
             "chatModelProtocols",

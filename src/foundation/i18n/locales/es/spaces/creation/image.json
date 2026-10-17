@@ -1,19 +1,4 @@
 {
   "removeBackground": "Eliminar fondo",
-  "splitLayers": "Separar capas",
-  "visualization": {
-    "title": "Generar imagen",
-    "description": "Genera una imagen junto a sus fuentes seleccionadas.",
-    "defaultTitle": "Imagen generada",
-    "intent": "Enfoque de imagen",
-    "placeholder": "Describir los conceptos o relaciones a mostrar, fundamentados en las fuentes seleccionadas.",
-    "task": "Generando imagen"
-  },
-  "style": "Dirección visual",
-  "aspectRatio": "Relación de aspecto",
-  "styles": {
-    "editorial": "Ilustración editorial",
-    "diagram": "Diagrama de información",
-    "concept": "Arte conceptual"
-  }
+  "splitLayers": "Separar capas"
 }

@@ -5,7 +5,7 @@ source authorization, revisions, persistence and lineage; packaging owns runtime
 
 ## Execution and ownership
 
-Canvas, Agent/MCP and saved workflows invoke the same local Actions:
+Canvas and Agent/MCP invoke the same local Actions:
 `convert-document-to-docx`, `convert-document-to-pdf`, `convert-document-to-txt`,
 `convert-document-to-html` and `render-presentation`. Vue submits source identity and format intent.
 Rust reserves the derived file node, validates the source revision, renders and atomically publishes

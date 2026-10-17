@@ -5,7 +5,7 @@ use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
 use super::{validation, GenerateVisualizationRequest, VisualizationContent, VisualizationOutput};
-use crate::spaces::derivation::{inputs, pending_output, relations, source_validation};
+use crate::spaces::derivation::{inputs, pending_output, relations, source_inputs};
 use crate::{
     ai::tasks::TaskExecutionTarget,
     foundation::app_error::AppError,
@@ -22,23 +22,13 @@ pub async fn start(
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
-    for input in &request.inputs {
-        crate::spaces::knowledge::validation::validate_same_space_node(
-            &mut tx,
-            &request.space_id,
-            &input.node_id,
-            &request.output_node_id,
-        )
-        .await?;
-        source_validation::validate(
-            &mut tx,
-            &request.space_id,
-            &input.node_id,
-            &input.source_revision,
-            inputs::RevisionBasis::Knowledge,
-        )
-        .await?;
-    }
+    source_inputs::pin_for_output(
+        &mut tx,
+        &request.space_id,
+        &request.output_node_id,
+        &request.inputs,
+    )
+    .await?;
     let output: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL")
         .bind(&request.output_node_id).bind(&request.space_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
         .ok_or("Visualization output node is unavailable")?;
@@ -52,17 +42,12 @@ pub async fn start(
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
         .bind(target.engine()).bind(now)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
-    let values = request
-        .inputs
-        .iter()
-        .map(|input| inputs::DerivationInput {
-            node_id: &input.node_id,
-            role: &input.role,
-            source_revision: &input.source_revision,
-            revision_basis: inputs::RevisionBasis::Knowledge,
-        })
-        .collect::<Vec<_>>();
-    inputs::insert(&mut tx, &request.id, &values).await?;
+    inputs::insert(
+        &mut tx,
+        &request.id,
+        &source_inputs::records(&request.inputs),
+    )
+    .await?;
     tx.commit()
         .await
         .map_err(db::sql_error)
@@ -82,16 +67,7 @@ pub async fn complete(
     authority.require_active(&mut *tx).await?;
     let encoded: String = sqlx::query_scalar("SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'")
         .bind(&request.id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?.ok_or("Visualization is no longer running")?;
-    for input in &request.inputs {
-        source_validation::validate(
-            &mut tx,
-            &request.space_id,
-            &input.node_id,
-            &input.source_revision,
-            inputs::RevisionBasis::Knowledge,
-        )
-        .await?;
-    }
+    source_inputs::pin(&mut tx, &request.space_id, &request.inputs).await?;
     let mut data: Value = serde_json::from_str(&encoded)
         .map_err(db::json_error)
         .map_err(AppError::from)?;
@@ -171,8 +147,8 @@ async fn persist_completion(
         relations::insert(tx, &relation).await?;
         output_relations.push(relation);
     }
-    sqlx::query("INSERT INTO spaces_generated_images(derivation_id,intent,style,aspect_ratio,execution_source,revised_prompt) VALUES($1,$2,$3,$4,$5,$6)")
-        .bind(&request.id).bind(&request.intent).bind(&request.style).bind(request.aspect_ratio.as_str())
+    sqlx::query("INSERT INTO spaces_generated_images(derivation_id,intent,aspect_ratio,execution_source,revised_prompt) VALUES($1,$2,$3,$4,$5)")
+        .bind(&request.id).bind(&request.intent).bind(request.aspect_ratio.as_str())
         .bind(sqlx::types::Json(&generated.execution_source)).bind(&generated.revised_prompt)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")

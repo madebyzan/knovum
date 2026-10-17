@@ -14,7 +14,6 @@ vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
 vi.mock("../../features/spaces/session/space-store", () => ({
   useSpaceStore: () => ({ commitWorkspaceNavigation: mocks.commit }),
 }));
-vi.mock("../../features/spaces/workflows/action-catalog", () => ({ listSpaceActions: async () => [] }));
 vi.mock("../../features/spaces/SpaceView.vue", () => ({ default: { render: () => null } }));
 vi.mock("../../features/settings/SettingsView.vue", () => ({ default: { render: () => null } }));
 

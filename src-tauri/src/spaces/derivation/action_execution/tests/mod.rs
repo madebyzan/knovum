@@ -16,7 +16,7 @@ fn every_durable_action_has_an_execution_handler() {
     }
 }
 fn prepared() -> Value {
-    json!({"outputNodeId":"output", "inputs":[{"nodeId":"note","role":"primary","sourceRevision":"knowledge:1"}], "target":{"type":"agent","runtimeKind":"codex"}})
+    json!({"outputNodeId":"output", "inputs":[{"nodeId":"note","role":"primary","sourceRevision":"knowledge:1","revisionBasis":"knowledge"}], "target":{"type":"agent","runtimeKind":"codex"}})
 }
 #[test]
 fn text_action_parameters_project_to_strict_engine_requests() {
@@ -43,7 +43,7 @@ fn image_and_video_actions_project_to_strict_engine_requests() {
         request_value(
             "run",
             "space",
-            &json!({"title":"Image", "intent":"Explain", "style":"Flat", "aspectRatio":"1:1"}),
+            &json!({"title":"Image", "intent":"Explain", "aspectRatio":"1:1"}),
             &prepared(),
         )
         .unwrap(),

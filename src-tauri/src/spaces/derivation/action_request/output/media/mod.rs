@@ -28,7 +28,10 @@ pub(super) fn subtitled_video_request(
         ("sourceNodeId".into(), video.id.clone().into()),
         ("sourceRevision".into(), asset_revision(video)?.into()),
     ]);
-    request.insert("knowledgeRevision".into(), video.revision.clone().into());
+    request.insert(
+        "knowledgeRevision".into(),
+        video.revision.value.clone().into(),
+    );
     Ok(())
 }
 

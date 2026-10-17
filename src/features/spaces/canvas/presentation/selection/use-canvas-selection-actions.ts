@@ -79,16 +79,6 @@ export function useCanvasSelectionActions() {
     dock.openInspect();
   }
 
-  function inspectWorkflow() {
-    const ids = selectedNodes.value.map(({ id }) => id);
-    if (ids.length) dock.openWorkflowCapture(ids);
-  }
-
-  function openWorkflowUse() {
-    const ids = selectedNodes.value.map(({ id }) => id);
-    if (ids.length) dock.openWorkflowUse(ids);
-  }
-
   function ask() {
     dock.openAsk(state.value.askScope, {
       restart: true,
@@ -164,8 +154,6 @@ export function useCanvasSelectionActions() {
     focus,
     fitSection: structureActions.fitSection,
     inspect,
-    inspectWorkflow,
-    openWorkflowUse,
     editVideo,
     editorProtection,
     moveToSpace,

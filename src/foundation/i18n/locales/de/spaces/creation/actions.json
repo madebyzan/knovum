@@ -1,0 +1,22 @@
+{
+  "draftDocument": "Dokument generieren",
+  "generateVisualization": "Bild generieren",
+  "convertDocumentToDocx": "In ein Word-Dokument konvertieren",
+  "convertDocumentToPdf": "In PDF konvertieren",
+  "convertDocumentToTxt": "In einfachen Text konvertieren",
+  "convertDocumentToHtml": "In HTML konvertieren",
+  "renderPresentation": "Präsentation erstellen",
+  "generateVideo": "Video generieren",
+  "removeImageBackground": "Hintergrund entfernen",
+  "splitImageLayers": "Ebenen trennen",
+  "addVideoSubtitles": "Untertitel hinzufügen",
+  "upscaleImage": "Auflösung erhöht",
+  "generateImageAngle": "Neue Ansicht",
+  "removeImageObject": "Repariert",
+  "extractImageSelection": "Auswahl",
+  "generateImageDepth": "Relative Tiefe",
+  "draftScript": "Entwurf eines Videoskripts",
+  "summarizeMeeting": "Besprechung zusammenfassen",
+  "draftSocialPost": "Entwurf eines Social-Media-Beitrags",
+  "generateImage": "Bild generieren"
+}

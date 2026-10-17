@@ -16,7 +16,7 @@ The database resolves from Tauri's AppConfig directory through the connection po
 Before the first public release, Knovum-owned data formats, packages, private protocols, runtime
 manifests/descriptors and the Agent profile/graph identity start at version 1 with their current
 fields. Dependency and external API versions remain upstream-owned. Record revisions, Run state
-versions and saved Workflow definition versions still advance normally. Renumbering does not
+versions still advance normally. Renumbering does not
 convert development data or runtime publications; unsupported formats fail strict validation.
 
 Before the first public release, Spaces owns one SQLx v1 baseline. Schema changes update that

@@ -102,17 +102,13 @@ pub async fn capabilities(app: &AppHandle) -> ImageOperationCapabilities {
                 }
                 Err(_) => blocked(Reason::CredentialUnavailable),
             };
-            let supported = routing::supported_operations(routing::backend(model));
-            capabilities.multi_angle = if supported.multi_angle {
+            let supported = if routing::supports_remote_operations(model) {
                 available
             } else {
                 blocked(Reason::ProviderUnsupported)
             };
-            capabilities.prompt_removal = if supported.prompt_removal {
-                available
-            } else {
-                blocked(Reason::ProviderUnsupported)
-            };
+            capabilities.multi_angle = supported;
+            capabilities.prompt_removal = supported;
         }
     }
     capabilities.remote = Some(ImageExecutionTarget::Remote { target: reference });

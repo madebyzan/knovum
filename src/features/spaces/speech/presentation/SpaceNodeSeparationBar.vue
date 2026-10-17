@@ -9,7 +9,7 @@ import {
   CANVAS_ACTION_BAR_CLASSES,
   CANVAS_ACTION_BUTTON_CLASSES,
 } from "../../canvas/presentation/canvas-action-classes";
-import { workflowStateLabelKey } from "../../workflows/workflow-state-label";
+import { runStateLabelKey } from "../../runs/run-state-label";
 import type { useSourceSeparation } from "../use-source-separation";
 
 const props = defineProps<{ separation: ReturnType<typeof useSourceSeparation> }>();
@@ -24,7 +24,7 @@ const status = computed(() => {
   if (completed.value) return t("spaces.speech.separation.completed");
   const state = props.separation.runState.value;
   if (state === "running") return t("spaces.speech.separation.running");
-  return state ? t(workflowStateLabelKey(state)) : t("spaces.speech.separation.title");
+  return state ? t(runStateLabelKey(state)) : t("spaces.speech.separation.title");
 });
 </script>
 

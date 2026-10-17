@@ -80,6 +80,35 @@ describe("selection derivation catalog", () => {
     expect(decisions["generate-video"].state).toBe("ready");
   });
 
+  it("offers creation from an image nothing has analysed yet", () => {
+    const unanalysed = createSpaceNode(
+      {
+        kind: "image",
+        knowledgeRevision: "node1:0000000000000009",
+        title: "Fresh shot",
+        fileName: "shot.png",
+        assetPath: "/spaces/assets/shot.png",
+        sourceRevision: "image:fresh",
+      },
+      { x: 0, y: 0 },
+      "fresh",
+    );
+    const decisions = creationIntentCatalog([unanalysed]).decisions;
+
+    expect(decisions["generate-visualization"].state).toBe("ready");
+    expect(decisions["draft-document"].state).toBe("ready");
+    expect(decisions["generate-video"].state).toBe("ready");
+  });
+
+  it("blocks a selection larger than the Run can pin", () => {
+    const many = Array.from({ length: 33 }, (_, index) => image(index));
+
+    expect(creationIntentCatalog(many).decisions["generate-visualization"]).toEqual({
+      state: "blocked",
+      reason: "too-many-sources",
+    });
+  });
+
   it("rejects opaque resources instead of treating every selected file as knowledge", () => {
     const file = createSpaceNode(
       {
@@ -94,7 +123,7 @@ describe("selection derivation catalog", () => {
 
     expect(creationIntentCatalog([file]).decisions["draft-document"]).toEqual({
       state: "blocked",
-      reason: "needs-indexed-knowledge",
+      reason: "no-usable-source",
     });
   });
 

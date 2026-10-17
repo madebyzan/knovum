@@ -1,0 +1,22 @@
+{
+  "draftDocument": "ドキュメントの生成",
+  "generateVisualization": "画像の生成",
+  "convertDocumentToDocx": "Word文書に変換",
+  "convertDocumentToPdf": "PDF に変換",
+  "convertDocumentToTxt": "プレーンテキストに変換する",
+  "convertDocumentToHtml": "HTMLに変換",
+  "renderPresentation": "プレゼンテーションの作成",
+  "generateVideo": "ビデオの生成",
+  "removeImageBackground": "背景を削除",
+  "splitImageLayers": "レイヤーに分割",
+  "addVideoSubtitles": "字幕の追加",
+  "upscaleImage": "高解像度化済み",
+  "generateImageAngle": "新しいビュー",
+  "removeImageObject": "修復済み",
+  "extractImageSelection": "選択",
+  "generateImageDepth": "相対深度",
+  "draftScript": "ドラフト ビデオ スクリプト",
+  "summarizeMeeting": "会議の要約",
+  "draftSocialPost": "ソーシャル投稿のドラフト",
+  "generateImage": "画像の生成"
+}

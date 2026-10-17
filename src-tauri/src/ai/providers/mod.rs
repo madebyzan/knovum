@@ -4,7 +4,7 @@ pub mod dashscope;
 pub mod doubao;
 pub mod gemini;
 pub mod grok;
-pub mod image_edit;
+pub mod image_references;
 pub mod kling;
 pub mod minimax;
 pub mod moonshot;

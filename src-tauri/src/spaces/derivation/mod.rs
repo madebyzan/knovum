@@ -22,6 +22,7 @@ mod pending_output;
 pub(crate) mod queries;
 pub(super) mod relations;
 mod scratch_file;
+pub(crate) mod source_inputs;
 mod source_snapshot;
 mod source_validation;
 pub(crate) mod subtitled_video;

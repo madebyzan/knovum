@@ -4,7 +4,7 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import SpaceDerivationDialogs from "../../knowledge-derivations/presentation/SpaceDerivationDialogs.vue";
+import SpaceCreationDialog from "../../knowledge-derivations/presentation/SpaceCreationDialog.vue";
 import { useSelectionDerivations } from "../../knowledge-derivations/selection/use-selection-derivations";
 import SpaceCanvasSceneControls from "../../scenes/presentation/SpaceCanvasSceneControls.vue";
 import SpaceFind from "../../search/presentation/SpaceFind.vue";
@@ -18,7 +18,6 @@ import { canvasSelectionGap } from "./selection/canvas-selection-gap";
 import SpaceCanvasRelationBar from "./selection/SpaceCanvasRelationBar.vue";
 import SpaceCanvasSelectionAnchor from "./selection/SpaceCanvasSelectionAnchor.vue";
 import SpaceCanvasSelectionBar from "./selection/SpaceCanvasSelectionBar.vue";
-import SpaceCanvasWorkflowSelection from "./selection/SpaceCanvasWorkflowSelection.vue";
 import { useSelectionSurfaceState } from "./selection/use-selection-surface-state";
 import SpaceCanvasFeedback from "./SpaceCanvasFeedback.vue";
 import SpaceCanvasFocusBadge from "./SpaceCanvasFocusBadge.vue";
@@ -145,12 +144,6 @@ const selectionBarGap = computed(() =>
         @invoke-derivation="derivations.run"
       />
     </SpaceCanvasSelectionAnchor>
-    <SpaceCanvasWorkflowSelection
-      v-if="store.workflowMode"
-      :canvas-to-viewport-point="canvasToViewportPoint"
-      :safe-area="CANVAS_CHROME_INSETS"
-      :reserved="chromeRects"
-    />
     <SpaceCanvasFeedback
       :canvas-to-viewport-point="canvasToViewportPoint"
       :captures="captures"
@@ -164,13 +157,10 @@ const selectionBarGap = computed(() =>
       @dismiss-capture="emit('dismissCapture', $event)"
       @retry-capture="emit('retryCapture', $event)"
     />
-    <SpaceDerivationDialogs
-      v-model:open="derivations.dialog.value"
-      :source-title="derivations.sourceTitle.value"
-      :sources="derivations.sources.value ?? []"
-      @document="derivations.submitDocument"
-      @visualization="derivations.submitVisualization"
-      @video="derivations.submitVideo"
+    <SpaceCreationDialog
+      v-model:output="derivations.composing.value"
+      :sources="derivations.sources.value"
+      @submit="derivations.submit"
     />
     <SpaceFind v-model:open="store.findOpen" />
     <SpaceGlobalFind v-model:open="store.globalFindOpen" />

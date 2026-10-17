@@ -1,11 +1,5 @@
 {
   "conversion": {
-    "actions": {
-      "docx": "Word文書に変換",
-      "pdf": "ノートと Markdown を PDF として組版します。",
-      "txt": "プレーンテキストに変換する",
-      "html": "HTMLに変換"
-    },
     "tasks": {
       "docx": "Word ドキュメントの生成",
       "pdf": "PDF の生成",
@@ -22,16 +16,6 @@
     },
     "recognitionRequired": "変換する前に、スキャンされたすべてのページの文書認識を完了してください。"
   },
-  "generate": "ドキュメントの生成",
-  "title": "選択した知識からドキュメントを作成する",
-  "description": "選択したソースの横に、引用された Markdown リソースを下書きします。",
-  "defaultTitle": "ナレッジ ドラフト",
-  "purpose": {
-    "label": "ドキュメント概要",
-    "placeholder": "文書の目的、形式、重要なポイントを説明します。"
-  },
-  "sources": "{count} 知識源",
-  "task": "ドキュメントの生成",
   "generating": "選択された知識から生成…",
   "failed": "ドキュメントを生成できませんでした"
 }

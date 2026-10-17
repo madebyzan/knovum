@@ -16,6 +16,7 @@ import { useI18n } from "vue-i18n";
 import { canRunAction, shouldShowAction } from "../../../../shared/contracts/action-availability";
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
+import { spaceActionLabel } from "../catalog/action-label";
 import type { CreationIntentIcon, DerivationUnavailableReason } from "../catalog/creation-intent";
 import {
   CREATION_INTENT_DEFINITIONS,
@@ -54,7 +55,8 @@ function reasonLabel(reason: DerivationUnavailableReason | undefined) {
   if (reason === "needs-document-recognition")
     return t("spaces.creation.document.conversion.recognitionRequired");
   if (reason === "too-many-video-images") return t("spaces.creation.video.generation.tooManyImages");
-  if (reason === "needs-indexed-knowledge") return t("spaces.creation.shared.needsIndexedKnowledge");
+  if (reason === "too-many-sources") return t("spaces.creation.shared.tooManySources");
+  if (reason === "no-usable-source") return t("spaces.creation.shared.noUsableSource");
   return undefined;
 }
 
@@ -93,7 +95,7 @@ function selectAction(event: Event, actionId: CreationIntentId) {
             :aria-disabled="!canRunAction(props.derivations[action.id])"
             @select="selectAction($event, action.id)"
           >
-            <component :is="ICONS[action.icon]" class="size-3.5" />{{ t(action.labelKey) }}
+            <component :is="ICONS[action.icon]" class="size-3.5" />{{ spaceActionLabel(action.id) }}
           </UiDropdownMenuItem>
         </UiTooltip>
       </DropdownMenuSubContent>

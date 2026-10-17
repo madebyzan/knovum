@@ -12,6 +12,7 @@ vi.mock("../runs/resource-run-observation", () => ({
   observeResourceRun: vi.fn<(...args: unknown[]) => void>(),
 }));
 
+import { spaceActionLabel } from "../knowledge-derivations/catalog/action-label";
 import { CREATION_INTENT_DEFINITIONS } from "../knowledge-derivations/catalog/creation-intent-definitions";
 import { convertDocument } from "../knowledge-derivations/document/conversion";
 
@@ -47,7 +48,7 @@ describe("document conversion", () => {
           spaceId: "space",
           actionId: format === "pptx" ? "render-presentation" : `convert-document-to-${format}`,
           parameters: {},
-          sources: [{ nodeId: "source", knowledgeRevision: "revision-1" }],
+          sources: [{ nodeId: "source", sourceRevision: "revision-1", revisionBasis: "knowledge" }],
           target: null,
         },
       });
@@ -82,7 +83,7 @@ describe("document conversion", () => {
         spaceId: "space",
         actionId: "convert-document-to-docx",
         parameters: {},
-        sources: [{ nodeId: "pdf", knowledgeRevision: "knowledge:pdf" }],
+        sources: [{ nodeId: "pdf", sourceRevision: "knowledge:pdf", revisionBasis: "knowledge" }],
         target: null,
       },
     });
@@ -92,6 +93,8 @@ describe("document conversion", () => {
     const action = CREATION_INTENT_DEFINITIONS.find(
       (definition) => definition.id === "convert-document-to-txt",
     );
-    expect(action?.labelKey).toBe("spaces.creation.document.conversion.actions.txt");
+    expect(action).toBeDefined();
+    // A labeled Action resolves through the shared label source instead of showing its identifier.
+    expect(spaceActionLabel("convert-document-to-txt")).not.toBe("convert-document-to-txt");
   });
 });

@@ -1,0 +1,13 @@
+{
+  "states": {
+    "queued": "排队中",
+    "running": "正在运行",
+    "waiting": "等待处理",
+    "paused": "已暂停",
+    "succeeded": "已完成",
+    "completedWithErrors": "已完成，但有错误",
+    "failed": "失败",
+    "cancelled": "已取消",
+    "cancelling": "正在取消"
+  }
+}
