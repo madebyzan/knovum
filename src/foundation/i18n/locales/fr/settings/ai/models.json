@@ -13,7 +13,7 @@
     "image": "Génération d'images",
     "video": "Génération vidéo"
   },
-  "inUse": "Ce modèle est utilisé. Modifiez les valeurs par défaut des tâches ou les préréglages de création avant de supprimer les fonctionnalités sélectionnées ou le modèle.",
+  "inUse": "Ce modèle est utilisé. Modifiez les valeurs par défaut des tâches avant de supprimer les capacités sélectionnées ou le modèle.",
   "title": "Modèles",
   "count": "Modèle {count} | Modèles {count}",
   "add": "Ajouter un modèle",

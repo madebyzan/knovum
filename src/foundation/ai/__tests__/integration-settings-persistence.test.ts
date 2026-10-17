@@ -2,14 +2,7 @@ import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { useAiSettingsStore } from "../ai-settings-store";
-import {
-  loadCreationLibrary,
-  resetCreationLibrary,
-  saveAiModelSettings,
-  saveCreationLibrary,
-} from "../integration-settings";
-import { creationLibrarySchema, DEFAULT_CREATION_LIBRARY } from "../schema/creation-library";
-import type { CreationLibrary } from "../schema/creation-library";
+import { loadAiModelSettings, resetAiModelSettings, saveAiModelSettings } from "../integration-settings";
 import { aiModelSettingsSchema, DEFAULT_AI_MODEL_SETTINGS } from "../schema/model-settings";
 
 const boundary = vi.hoisted(() => ({
@@ -45,28 +38,25 @@ afterEach(() => {
 
 it("canonicalizes each save once before persisting", async () => {
   const aiParse = vi.spyOn(aiModelSettingsSchema, "parse");
-  const creationParse = vi.spyOn(creationLibrarySchema, "parse");
 
   await saveAiModelSettings(structuredClone(DEFAULT_AI_MODEL_SETTINGS));
-  await saveCreationLibrary(structuredClone(DEFAULT_CREATION_LIBRARY));
 
   expect(aiParse).toHaveBeenCalledOnce();
-  expect(creationParse).toHaveBeenCalledOnce();
-  expect(boundary.set).toHaveBeenCalledTimes(2);
+  expect(boundary.set).toHaveBeenCalledOnce();
 });
 
 it("continues queued writes and reads after a store write fails", async () => {
   const cause = new Error("Store unavailable");
   boundary.save.mockRejectedValueOnce(cause);
-  boundary.get.mockResolvedValueOnce({ schemaVersion: 1, value: DEFAULT_CREATION_LIBRARY });
+  boundary.get.mockResolvedValueOnce({ schemaVersion: 1, value: DEFAULT_AI_MODEL_SETTINGS });
 
-  const failedWrite = saveCreationLibrary(structuredClone(DEFAULT_CREATION_LIBRARY));
-  const restoredWrite = resetCreationLibrary();
-  const read = loadCreationLibrary();
+  const failedWrite = resetAiModelSettings();
+  const restoredWrite = resetAiModelSettings();
+  const read = loadAiModelSettings();
 
   await expect(failedWrite).rejects.toBe(cause);
   await expect(restoredWrite).resolves.toBeUndefined();
-  await expect(read).resolves.toEqual(DEFAULT_CREATION_LIBRARY);
+  await expect(read).resolves.toEqual(DEFAULT_AI_MODEL_SETTINGS);
   expect(boundary.save).toHaveBeenCalledTimes(2);
   expect(boundary.save.mock.invocationCallOrder[1]).toBeLessThan(boundary.get.mock.invocationCallOrder[0]!);
 });
@@ -133,24 +123,6 @@ it("rejects URL credentials before validation or store writes", async () => {
   await expect(saveAiModelSettings(value)).rejects.toThrow("Invalid AI provider URL");
 
   expect(boundary.invoke).not.toHaveBeenCalled();
-  expect(boundary.set).not.toHaveBeenCalled();
-  expect(boundary.save).not.toHaveBeenCalled();
-});
-
-it("rejects duplicate preset identities and unknown creation-library fields before persistence", async () => {
-  const preset = {
-    id: "duplicate",
-    name: "Preset",
-    actionId: "write",
-    target: { type: "agent" as const, runtimeKind: "codex" as const },
-    parameters: {},
-  };
-  await expect(saveCreationLibrary({ generationPresets: [preset, structuredClone(preset)] })).rejects.toThrow(
-    "Duplicate generation preset id",
-  );
-  await expect(
-    saveCreationLibrary({ generationPresets: [], legacyPresets: [] } as unknown as CreationLibrary),
-  ).rejects.toThrow(/unrecognized/i);
   expect(boundary.set).not.toHaveBeenCalled();
   expect(boundary.save).not.toHaveBeenCalled();
 });

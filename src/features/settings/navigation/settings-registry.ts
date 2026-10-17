@@ -8,7 +8,6 @@ import {
   MonitorCog,
   Puzzle,
   Terminal,
-  WandSparkles,
 } from "@lucide/vue";
 import type { Component } from "vue";
 
@@ -127,21 +126,6 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
     descriptionKey: "settings.usage.description",
     searchKeys: ["settings.usage.activity.title", "settings.usage.tokens.total"],
     icon: Activity,
-  },
-  {
-    id: "creation",
-    group: "intelligence",
-    titleKey: "settings.creation.title",
-    descriptionKey: "settings.creation.description",
-    searchKeys: ["settings.creation.description", "settings.creation.presets.title"],
-    icon: WandSparkles,
-    locations: [
-      {
-        id: "settings-generation-presets",
-        labelKey: "settings.creation.presets.title",
-        descriptionKey: "settings.creation.presets.description",
-      },
-    ],
   },
   BACKUP_SETTINGS_DEFINITION,
   {

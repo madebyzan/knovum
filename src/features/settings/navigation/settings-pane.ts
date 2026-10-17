@@ -10,7 +10,6 @@ const SETTINGS_PANE_IDS = [
   "desktopAgents",
   "extensions",
   "usage",
-  "creation",
   "data",
   "archivedSpaces",
   "about",

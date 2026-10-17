@@ -107,11 +107,9 @@ fn invalid_journal_target_is_rejected_without_touching_live_data() {
 }
 
 #[test]
-fn settings_validation_rejects_duplicate_presets_and_unknown_preferences() {
+fn settings_validation_rejects_unknown_preferences() {
     let fixture = Fixture::new();
     let path = fixture.paths.data.join("settings.json");
-    fs::write(&path, duplicate_presets()).expect("settings file");
-    assert!(settings::validate(&path).is_err());
     fs::write(&path, preferences_with_unknown_field()).expect("settings file");
     assert!(settings::validate(&path).is_err());
 }
@@ -243,10 +241,6 @@ fn append(path: &Path, suffix: &str) -> PathBuf {
     let mut value: OsString = path.as_os_str().into();
     value.push(suffix);
     value.into()
-}
-
-fn duplicate_presets() -> &'static [u8] {
-    br#"{"creation.library":{"schemaVersion":1,"value":{"generationPresets":[{"id":"same","name":"One","actionId":"write","target":{"type":"agent","runtimeKind":"codex"},"parameters":{}},{"id":"same","name":"Two","actionId":"write","target":{"type":"agent","runtimeKind":"codex"},"parameters":{}}]}}}"#
 }
 
 fn preferences_with_unknown_field() -> &'static [u8] {

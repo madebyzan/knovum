@@ -13,7 +13,7 @@
     "image": "Image generation",
     "video": "Video generation"
   },
-  "inUse": "This model is in use. Change task defaults or creation presets before removing selected capabilities or the model.",
+  "inUse": "This model is in use. Change the task defaults before removing selected capabilities or the model.",
   "title": "Models",
   "count": "{count} model | {count} models",
   "add": "Add model",

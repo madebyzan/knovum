@@ -70,13 +70,6 @@ fn validate_value(key: &str, value: &Value) -> Result<(), String> {
             .map_err(|error| format!("Preferences do not match the current schema: {error}"))?;
         return preferences.validate();
     }
-    if key == "creation.library" {
-        let library = serde_json::from_value::<
-            crate::ai::settings::creation_library::CreationLibrary,
-        >(value.clone())
-        .map_err(|error| format!("Creation library does not match the current schema: {error}"))?;
-        return library.validate();
-    }
     if key.starts_with("localResources.") {
         return crate::local_resources::model_selection::validate_persisted_value(
             key,
