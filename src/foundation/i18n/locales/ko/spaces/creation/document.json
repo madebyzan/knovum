@@ -1,11 +1,5 @@
 {
   "conversion": {
-    "actions": {
-      "docx": "Word 문서로 변환",
-      "pdf": "노트와 Markdown을 PDF로 조판합니다.",
-      "txt": "일반 텍스트로 변환",
-      "html": "HTML로 변환"
-    },
     "tasks": {
       "docx": "Word 문서 생성 중",
       "pdf": "PDF 생성 중",

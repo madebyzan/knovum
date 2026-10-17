@@ -1,11 +1,5 @@
 {
   "conversion": {
-    "actions": {
-      "docx": "Word文書に変換",
-      "pdf": "ノートと Markdown を PDF として組版します。",
-      "txt": "プレーンテキストに変換する",
-      "html": "HTMLに変換"
-    },
     "tasks": {
       "docx": "Word ドキュメントの生成",
       "pdf": "PDF の生成",

@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
-import { captureActionLabel } from "../../workflows/presentation/workflow-capture-labels";
+import { spaceActionLabel } from "../../knowledge-derivations/catalog/action-label";
 import { conversationActivityItems } from "../conversation-activity-items";
 import ConversationToolHistory from "./ConversationToolHistory.vue";
 import SpaceConversationPlan from "./SpaceConversationPlan.vue";
@@ -31,7 +31,7 @@ const items = computed(() =>
     messages: props.messages,
     runId: props.runId,
     labels: {
-      action: (actionId) => captureActionLabel(actionId),
+      action: (actionId) => spaceActionLabel(actionId),
       default: t("spaces.conversation.activity.tool"),
     },
   }),

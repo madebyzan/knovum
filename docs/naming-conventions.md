@@ -2,16 +2,14 @@
 
 ## Knowledge-work execution language
 
-- `SpaceAction` is the only name for a stable business capability shared by UI, Workflow, Builtin Agent
-  and MCP. Do not introduce `KnowledgeAction`, generic `Capability` or `Task` synonyms.
+- `SpaceAction` is the only name for a stable business capability shared by UI, Builtin Agent and
+  MCP. Do not introduce `KnowledgeAction`, generic `Capability` or `Task` synonyms.
 - `Invocation` identifies one authenticated SpaceAction call; `Receipt` identifies its committed
   result.
 - `AgentExecutionObservation` reports an executor's checkpoint, execution state and interruptions;
   it does not represent a committed SpaceAction receipt.
 - `Run`, `StepInstance` and `Attempt` describe durable execution. `Job` remains local to an engine or
   process.
-- `Workflow` is the only product term for a user-owned published program. Do not use `Pipeline` or
-  `Flow` for the same object.
 - `Conversation` means shared dialogue and history for built-in and external execution.
 - `Builtin Agent` means Knovum's built-in executor. `Agent Runtime` means its graph execution mechanism
   and process boundary. `External Agent` means an ACP or equivalent external controller.
@@ -22,8 +20,7 @@
 - Space Action IDs use one imperative verb-object phrase (`draft-document`, `generate-video`,
   `render-presentation`). Resource type names stay nouns (`video`, `presentation`); do not prefix
   them with `knowledge-` merely because they live in a Space.
-- Workflow definitions are user-owned captures of verified Action derivations. Durable event types use
-  the CloudEvents reverse-DNS convention; local Run event names are closed Rust enums serialized as `snake_case`.
+- Durable event types use the CloudEvents reverse-DNS convention; local Run event names are closed Rust enums serialized as `snake_case`.
 
 Do not use `Card`, `Box`, `Widget`, `Manager`, `Details`, `List`, `Row`, `Entry` or `Record` as project-owned component identity. Name the actual
 interaction or information: `SpaceAgentArtifactPicker`, `SpaceVisualAnalysis`,
@@ -414,7 +411,7 @@ Shared/foundation modules must never depend on a feature solely to reuse a helpe
 The `queries`/`commands` split follows observable business effects, not an annotation or first-word
 scan. A Tauri `#[command]` is a transport entry point and may be a query. Reads return projections;
 mutations persist state or control execution and may return receipts or accepted identifiers.
-Opening an OS preview window is a command; calculating a workflow preview without writes is a query.
+Opening an OS preview window is a command; computing a projection without writes is a query.
 Shared execution registries belong to their engine owner, not a query module. This does not require
 separate databases, a CQRS bus or new layers.
 See [Tauri commands](https://v2.tauri.app/develop/calling-rust/) and

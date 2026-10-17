@@ -18,7 +18,6 @@ import { canvasSelectionGap } from "./selection/canvas-selection-gap";
 import SpaceCanvasRelationBar from "./selection/SpaceCanvasRelationBar.vue";
 import SpaceCanvasSelectionAnchor from "./selection/SpaceCanvasSelectionAnchor.vue";
 import SpaceCanvasSelectionBar from "./selection/SpaceCanvasSelectionBar.vue";
-import SpaceCanvasWorkflowSelection from "./selection/SpaceCanvasWorkflowSelection.vue";
 import { useSelectionSurfaceState } from "./selection/use-selection-surface-state";
 import SpaceCanvasFeedback from "./SpaceCanvasFeedback.vue";
 import SpaceCanvasFocusBadge from "./SpaceCanvasFocusBadge.vue";
@@ -145,12 +144,6 @@ const selectionBarGap = computed(() =>
         @invoke-derivation="derivations.run"
       />
     </SpaceCanvasSelectionAnchor>
-    <SpaceCanvasWorkflowSelection
-      v-if="store.workflowMode"
-      :canvas-to-viewport-point="canvasToViewportPoint"
-      :safe-area="CANVAS_CHROME_INSETS"
-      :reserved="chromeRects"
-    />
     <SpaceCanvasFeedback
       :canvas-to-viewport-point="canvasToViewportPoint"
       :captures="captures"

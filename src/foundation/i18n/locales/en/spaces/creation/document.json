@@ -1,11 +1,5 @@
 {
   "conversion": {
-    "actions": {
-      "docx": "Convert to Word document",
-      "pdf": "Typesets notes and Markdown as PDF.",
-      "txt": "Convert to plain text",
-      "html": "Convert to HTML"
-    },
     "tasks": {
       "docx": "Generating Word document",
       "pdf": "Generating PDF",

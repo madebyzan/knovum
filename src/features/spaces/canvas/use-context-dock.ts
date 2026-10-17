@@ -21,7 +21,6 @@ export function createContextDock(rightSidebar: WorkspaceRightSidebarController)
   const editorSession = getCanvasEditorSession();
 
   function openInspect() {
-    store.workflowMode = undefined;
     store.setRightSidebarView("inspect");
     rightSidebar.open();
   }
@@ -32,26 +31,14 @@ export function createContextDock(rightSidebar: WorkspaceRightSidebarController)
   }
 
   function openAsk(scope?: ConversationScope, options: AskSidebarOptions = {}) {
-    store.workflowMode = undefined;
     if (scope) store.requestAsk(scope, options);
     else store.setRightSidebarView("ask");
     rightSidebar.open();
   }
 
   function openSource(target: KnowledgePeekTarget, options: OpenSourceOptions = {}) {
-    store.workflowMode = undefined;
     store.openSource(target, options);
     if (store.workbench.rightSidebar) rightSidebar.open();
-  }
-
-  function openWorkflowCapture(nodeIds: string[]) {
-    store.openWorkflowCapture(nodeIds);
-    rightSidebar.close();
-  }
-
-  function openWorkflowUse(nodeIds: string[]) {
-    store.openWorkflowUse(nodeIds);
-    rightSidebar.close();
   }
 
   function closeDock() {
@@ -64,8 +51,6 @@ export function createContextDock(rightSidebar: WorkspaceRightSidebarController)
     openKnowledgeHealth,
     openAsk,
     openSource,
-    openWorkflowCapture,
-    openWorkflowUse,
     closeDock,
   };
 }

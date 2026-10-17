@@ -1,11 +1,5 @@
 {
   "conversion": {
-    "actions": {
-      "docx": "Convertir a documento de Word",
-      "pdf": "Compone notas y Markdown como PDF.",
-      "txt": "Convertir a texto sin formato",
-      "html": "Convertir a HTML"
-    },
     "tasks": {
       "docx": "Generando documento de Word",
       "pdf": "Generando PDF",

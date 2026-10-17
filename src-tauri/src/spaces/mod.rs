@@ -25,7 +25,6 @@ mod run_execution;
 pub(crate) mod runs;
 pub(crate) mod speech;
 pub(crate) mod structure;
-pub(crate) mod workflows;
 
 pub(crate) use recovery::ready as await_runtime;
 pub(crate) use run_control::RunControlReceipt;

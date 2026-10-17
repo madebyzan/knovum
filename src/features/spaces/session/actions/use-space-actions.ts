@@ -1,5 +1,4 @@
 import type { SpacePlacement } from "../../canvas/navigation-requests";
-import { createWorkflowPanelActions } from "../../canvas/workflow-panel-actions";
 import { useEnrichmentJobObservation } from "../../enrichment/use-enrichment-job-observation";
 import { createSpaceMediaActions } from "../../media/actions";
 import { createSpaceAudioRecordingActions } from "../../media/audio-recording-actions";
@@ -113,7 +112,6 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
   return {
     ...actions,
     ...editors,
-    ...createWorkflowPanelActions(state),
     ...audioRecording,
     ensureActiveSpacePersisted,
     ...canvasImport,

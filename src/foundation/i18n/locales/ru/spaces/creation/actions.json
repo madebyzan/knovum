@@ -1,0 +1,22 @@
+{
+  "draftDocument": "Создать документ",
+  "generateVisualization": "Создать изображение",
+  "convertDocumentToDocx": "Преобразовать в документ Word",
+  "convertDocumentToPdf": "Преобразовать в PDF",
+  "convertDocumentToTxt": "Преобразовать в обычный текст",
+  "convertDocumentToHtml": "Конвертировать в HTML",
+  "renderPresentation": "Создать презентацию",
+  "generateVideo": "Создать видео",
+  "removeImageBackground": "Удалить фон",
+  "splitImageLayers": "Разделить на слои",
+  "addVideoSubtitles": "Добавить субтитры",
+  "upscaleImage": "Разрешение увеличено",
+  "generateImageAngle": "Новый вид",
+  "removeImageObject": "Восстановлено",
+  "extractImageSelection": "Выбор",
+  "generateImageDepth": "Относительная глубина",
+  "draftScript": "Черновик сценария видео",
+  "summarizeMeeting": "Подвести итоги совещания",
+  "draftSocialPost": "Черновик публикации в социальной сети",
+  "generateImage": "Создать изображение"
+}

@@ -137,5 +137,3 @@ fn local_actions_reject_ai_targets_and_immediate_mutations() {
     };
     assert!(invocation(&request, super::super::require(&request.action_id).unwrap()).is_err());
 }
-
-mod chain;

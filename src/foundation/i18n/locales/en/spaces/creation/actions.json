@@ -1,0 +1,22 @@
+{
+  "draftDocument": "Generate document",
+  "generateVisualization": "Generate image",
+  "convertDocumentToDocx": "Convert to Word document",
+  "convertDocumentToPdf": "Convert to PDF",
+  "convertDocumentToTxt": "Convert to plain text",
+  "convertDocumentToHtml": "Convert to HTML",
+  "renderPresentation": "Create presentation",
+  "generateVideo": "Generate video",
+  "removeImageBackground": "Remove background",
+  "splitImageLayers": "Split layers",
+  "addVideoSubtitles": "Add subtitles",
+  "upscaleImage": "Upscaled",
+  "generateImageAngle": "New view",
+  "removeImageObject": "Repaired",
+  "extractImageSelection": "Selection",
+  "generateImageDepth": "Relative depth",
+  "draftScript": "Draft video script",
+  "summarizeMeeting": "Summarize meeting",
+  "draftSocialPost": "Draft social post",
+  "generateImage": "Generate image"
+}

@@ -31,7 +31,6 @@ export interface CreationSelectionContext {
 
 export interface CreationIntentDefinition {
   readonly id: string;
-  readonly labelKey: string;
   readonly icon: CreationIntentIcon;
   readonly documentFormat?: DocumentFormat;
   readonly decide: (context: CreationSelectionContext) => CreationIntentDecision;

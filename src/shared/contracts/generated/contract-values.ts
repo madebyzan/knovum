@@ -2,7 +2,6 @@
 export const usagePurposes = ["builtin_agent","editor","knowledge","knowledge_indexing","translation","visual_analysis"] as const;
 export const providerKinds = ["openai","openai-compatible","openrouter","anthropic","gemini","qwen","deepseek","zhipu","siliconflow","kling","grok","groq","mistral","together","stepfun","moonshot","doubao","minimax","ollama"] as const;
 export const executionCapabilities = ["text-generation","vision-understanding","image-generation","video-generation","embedding"] as const;
-export const routingPurposes = ["writing","knowledge","visual-understanding","translation","image-generation","video-generation"] as const;
 export const chatModelProtocols = ["open_ai_chat","open_ai_responses","anthropic","gemini","ollama","deep_seek","groq"] as const;
 export const externalAgentKinds = ["codex","claude_code","gemini_cli","github_copilot","open_code","qwen_code","qoder_cli","kimi_cli","auggie_cli","cline","cursor","antigravity"] as const;
 export const preferenceThemes = ["system","light","dark"] as const;

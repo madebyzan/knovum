@@ -42,7 +42,7 @@ ordered progress within an execution; events publish enrichment observations to 
 
 ## Durable Run projection
 
-Spaces persists Builtin Agent and Workflow execution as Runs. [runs/run-observation.ts](../src/features/spaces/runs/run-observation.ts) observes `Channel<RunObservation>` via `plugin:spaces|observe_run`. Conversation and Workflow owners project the observed states and cancellation handlers into Task Center and restore active Runs after reload. Closing the conversation panel does not end the Rust Run.
+Spaces persists Builtin Agent and long media generation as Runs. [runs/run-observation.ts](../src/features/spaces/runs/run-observation.ts) observes `Channel<RunObservation>` via `plugin:spaces|observe_run`. Conversation and resource owners project the observed states and cancellation handlers into Task Center and restore active Runs after reload. Closing the conversation panel does not end the Rust Run.
 
 Speech projects use the same durable Run authority. One accepted start owns a stable request ID;
 segment synthesis and final assembly receive separate attempt identities; audiobooks additionally

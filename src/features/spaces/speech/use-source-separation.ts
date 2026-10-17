@@ -5,7 +5,7 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource";
 import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
-import { workflowStateLabelKey } from "../workflows/workflow-state-label";
+import { runStateLabelKey } from "../runs/run-state-label";
 import { getLatestSourceSeparationRun, startSpeechSourceSeparation } from "./source-separation-ipc";
 
 const TERMINAL_STATES = new Set(["succeeded", "completed_with_errors", "failed", "cancelled"]);
@@ -35,9 +35,7 @@ export function useSourceSeparation() {
   function settle(run: RunObservation) {
     runState.value = run.state;
     activeRunId.value = undefined;
-    error.value = ["succeeded", "cancelled"].includes(run.state)
-      ? undefined
-      : t(workflowStateLabelKey(run.state));
+    error.value = ["succeeded", "cancelled"].includes(run.state) ? undefined : t(runStateLabelKey(run.state));
   }
 
   function observe(run: RunObservation, currentEpoch: number) {

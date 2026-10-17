@@ -22,7 +22,6 @@ export const useSpaceStore = defineStore("spaces", () => {
       if (state.rightSidebarView.value === "source")
         state.rightSidebarView.value = state.sourceReturnView.value;
       state.editorLocateRequest.value = undefined;
-      state.workflowMode.value = undefined;
       state.findOpen.value = false;
       state.globalFindOpen.value = false;
     },

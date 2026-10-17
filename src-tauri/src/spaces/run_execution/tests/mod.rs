@@ -2,10 +2,6 @@ use super::*;
 
 #[test]
 fn finite_route_assigns_each_owned_step_kind() {
-    assert_eq!(
-        route("captured_action", &serde_json::json!({})),
-        Route::Captured
-    );
     assert_eq!(route("action", &serde_json::json!({})), Route::Action);
     assert_eq!(
         route("speech_voice_candidate", &serde_json::json!({})),

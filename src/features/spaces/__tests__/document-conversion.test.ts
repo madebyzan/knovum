@@ -12,6 +12,7 @@ vi.mock("../runs/resource-run-observation", () => ({
   observeResourceRun: vi.fn<(...args: unknown[]) => void>(),
 }));
 
+import { spaceActionLabel } from "../knowledge-derivations/catalog/action-label";
 import { CREATION_INTENT_DEFINITIONS } from "../knowledge-derivations/catalog/creation-intent-definitions";
 import { convertDocument } from "../knowledge-derivations/document/conversion";
 
@@ -92,6 +93,8 @@ describe("document conversion", () => {
     const action = CREATION_INTENT_DEFINITIONS.find(
       (definition) => definition.id === "convert-document-to-txt",
     );
-    expect(action?.labelKey).toBe("spaces.creation.document.conversion.actions.txt");
+    expect(action).toBeDefined();
+    // A labeled Action resolves through the shared label source instead of showing its identifier.
+    expect(spaceActionLabel("convert-document-to-txt")).not.toBe("convert-document-to-txt");
   });
 });

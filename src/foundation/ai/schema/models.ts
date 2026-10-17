@@ -5,7 +5,6 @@ import type { AiModelDefinition } from "../../../shared/contracts/generated/AiMo
 import {
   providerKinds,
   executionCapabilities,
-  routingPurposes,
   chatModelProtocols,
 } from "../../../shared/contracts/generated/contract-values";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
@@ -13,7 +12,6 @@ import { externalAgentKindSchema } from "./external-agents";
 
 export const aiProviderSchema = z.enum(providerKinds);
 export const aiCapabilitySchema = z.enum(executionCapabilities);
-export const aiRoutingPurposeSchema = z.enum(routingPurposes);
 const INVALID_PROVIDER_URL = "Invalid AI provider URL";
 
 export const aiConnectionBaseUrlSchema = z

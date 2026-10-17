@@ -36,7 +36,6 @@ const store = reactive({
   permanentTabId: undefined,
   nodes: [],
   scenes: [],
-  workflowMode: undefined,
   focusSpaceLibrarySearch: vi.fn<() => void>(),
   setRightSidebarView: vi.fn<(view: string) => void>(),
 });

@@ -1,11 +1,5 @@
 {
   "conversion": {
-    "actions": {
-      "docx": "In ein Word-Dokument konvertieren",
-      "pdf": "Setzt Notizen und Markdown als PDF.",
-      "txt": "In einfachen Text konvertieren",
-      "html": "In HTML konvertieren"
-    },
     "tasks": {
       "docx": "Word-Dokument wird generiert",
       "pdf": "PDF wird generiert",

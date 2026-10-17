@@ -72,10 +72,9 @@ Agent artifact commands never accept an app-owned absolute source path from the 
 
 ## Governed execution commands
 
-- `plugin:spaces|list_space_actions` projects the single versioned Action catalog. `plugin:spaces|start_space_action` accepts canvas resource creation with source IDs/revisions and an optional explicit target; Rust owns authorization, target resolution and the Action Run. Builtin Agent, Workflow and MCP reuse the same invocation/execution boundary.
-- Workflow commands save and revise personal workflows captured from canvas derivations, start a selected personal workflow, and inspect its Run.
+- `plugin:spaces|list_space_actions` projects the single versioned Action catalog. `plugin:spaces|start_space_action` accepts canvas resource creation with source IDs/revisions and an optional explicit target; Rust owns authorization, target resolution and the Action Run. Builtin Agent and MCP reuse the same invocation/execution boundary.
 - External conversation commands start one explicit ACP runtime session, send additional turns with explicitly selected attachments only while that exact session remains connected, list durable history and close the session without silent reconnection.
-- Run commands list Runs, steps and ordered events; request pause/resume/cancel; resolve a resource review; reconcile unknown external outcomes; retry failed workflow steps into a new Run; and produce a content-redacted diagnostic bundle.
+- Run commands list Runs, steps and ordered events; request pause/resume/cancel; resolve a resource review; reconcile unknown external outcomes; retry failed Run steps into a new Run; and produce a content-redacted diagnostic bundle.
 - Conversation drafts use `load_conversation_draft`, `save_conversation_draft`,
   `remove_conversation_draft` and `move_conversation_draft`; the Spaces baseline owns unsent text
   and managed attachment references. External-file display names require picker/drop authorization

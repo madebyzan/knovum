@@ -1,11 +1,5 @@
 {
   "conversion": {
-    "actions": {
-      "docx": "轉換為 Word 文檔",
-      "pdf": "將筆記和 Markdown 排版為 PDF。",
-      "txt": "轉換為純文字",
-      "html": "轉換為 HTML"
-    },
     "tasks": {
       "docx": "正在產生 Word 文檔",
       "pdf": "正在生成 PDF",
