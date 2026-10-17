@@ -79,14 +79,13 @@ pub(crate) fn public_address(ip: IpAddr) -> bool {
                 && !(first == 192 && second == 0 && third == 0)
                 && !(first == 192 && second == 88 && third == 99)
                 && !(first == 100 && (64..=127).contains(&second))
-                && !(first == 198 && (18..=19).contains(&second))
         }
         IpAddr::V6(ip) => ip.to_ipv4_mapped().map_or_else(
             || {
                 let [first, second, ..] = ip.segments();
                 (first & 0xe000) == 0x2000
                     && first != 0x2002
-                    && !(first == 0x2001 && (second < 0x0200 || second == 0x0db8))
+                    && !(first == 0x2001 && ((second < 0x0200 && second != 2) || second == 0x0db8))
                     && !(first == 0x3fff && (second & 0xf000) == 0)
             },
             |ip| public_address(IpAddr::V4(ip)),
