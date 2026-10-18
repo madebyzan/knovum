@@ -107,15 +107,13 @@ pub(in crate::spaces::speech) async fn publish(
             .map_err(|error| error.to_string())?;
     structure::portal_integrity::validate_structure_targets(tx, &[space_id]).await?;
     for output in outputs {
-        relations::insert(
+        relations::derives_from(
             tx,
-            &relations::derives_from(
-                space_id,
-                &output.node_id,
-                source_node_id,
-                "Media derived from its source node",
-                now,
-            ),
+            space_id,
+            &output.node_id,
+            source_node_id,
+            "Media derived from its source node",
+            now,
         )
         .await?;
     }
