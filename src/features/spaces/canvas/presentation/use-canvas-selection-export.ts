@@ -2,7 +2,7 @@ import { computed, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { SECTION_EXPORT_FORMATS, nodeExportFormats } from "../../assets/export/formats";
+import { SECTION_EXPORT_FORMATS, nodeExportFormats, type ExportFormats } from "../../assets/export/formats";
 import { cancelResourceExport } from "../../assets/export/ipc";
 import { exportSpaceNode } from "../../assets/export/node";
 import { exportSpaceSection } from "../../assets/export/section";
@@ -14,7 +14,7 @@ import type { CanvasSelectionProductState } from "./selection/selection-product-
 export interface CanvasSelectionExport {
   /** Identifies the listing, so formats are never reused across selections. */
   key: string;
-  formats: () => Promise<readonly string[]>;
+  formats: () => Promise<ExportFormats>;
   /** Writes the file; `onStart` opens the work that can still be cancelled. */
   save: (format: string, onStart: (jobId: string) => void) => Promise<boolean>;
 }

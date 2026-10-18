@@ -15,18 +15,30 @@ use self::targets::{Export, Managed};
 use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 
-/// Lists the formats one resource can be saved as, own format first.
+/// What one resource can be saved as, and why anything further is unavailable.
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportFormats {
+    /// The offered formats, in order; the first is the resource's own format.
+    pub formats: Vec<String>,
+    /// Why the engine offers nothing, when the resource's content is outside a contract. A
+    /// resource whose kind simply has no engine format states nothing, because nothing is wrong.
+    pub unavailable: Option<String>,
+}
+
+/// Lists the formats one resource can be saved as, own format first, and why
+/// anything further is unavailable.
 ///
 /// A conversion carries the same content as its source, so it belongs to the
 /// destination the user picks rather than to a new resource on the canvas. The
-/// requested file extension is therefore the whole format instruction, and this
-/// is the only place that decides which extensions a resource admits.
+/// chosen format is therefore the whole format instruction, and this is the only
+/// place that decides which formats a resource admits.
 #[tauri::command]
 pub async fn list_export_formats(
     app: AppHandle,
     space_id: String,
     node_id: String,
-) -> Result<Vec<String>, AppError> {
+) -> Result<ExportFormats, AppError> {
     Ok(targets::of(&load(&app, &space_id, &node_id).await?)?)
 }
 
