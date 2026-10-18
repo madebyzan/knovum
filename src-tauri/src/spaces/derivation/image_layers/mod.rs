@@ -17,6 +17,10 @@ use super::{action_execution::ExecutionAuthority, failure, CompletedDerivationOu
 use crate::foundation::app_error::AppError;
 pub use contracts::SplitImageLayersRequest;
 
+/// Why one layer derives from the picture it was separated from. Both the Run's first output and
+/// the layers reserved beside it carry the same lineage, so one place states it.
+pub(in crate::spaces::derivation) const LINEAGE: &str = "Image layer separated from source image";
+
 pub(crate) async fn split_for_action(
     app: &AppHandle,
     request: SplitImageLayersRequest,

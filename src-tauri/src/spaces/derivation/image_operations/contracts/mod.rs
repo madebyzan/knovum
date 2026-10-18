@@ -221,21 +221,6 @@ impl ImageOperation {
             Self::RemoveObjectPrompt { .. } => format!("{provider}:{model}:prompt"),
         }
     }
-
-    pub fn rationale(&self) -> &'static str {
-        match self {
-            Self::RemoveBackground => "Background removed from source image",
-            Self::ExtractSelection { .. } => "Selection extracted from source image",
-            Self::GenerateDepth => "Relative inverse depth estimated from source image",
-            Self::Upscale { .. } => "Image upscaled from source image",
-            Self::MultiAngle { .. } => "View generated from source image",
-            Self::RemoveObject { .. }
-            | Self::RemoveObjectPrompt { .. }
-            | Self::RemoveSelectedObject { .. } => {
-                "Object removed and background completed from source image"
-            }
-        }
-    }
 }
 
 #[derive(Deserialize, ts_rs::TS)]

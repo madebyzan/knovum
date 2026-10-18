@@ -7,7 +7,7 @@ use super::{contracts::DeriveImageRequest, output::CanonicalImage, output_file, 
 use crate::foundation::app_error::AppError;
 use crate::spaces::{
     db,
-    derivation::{inputs, pending_output, relations, source_validation, CompletedDerivationOutput},
+    derivation::{inputs, pending_output, source_validation, CompletedDerivationOutput},
     knowledge::model::revision,
 };
 
@@ -119,7 +119,7 @@ async fn complete_persistence(
         .map_err(db::json_error)
         .map_err(AppError::from)?;
     pending_output::validate_unpublished_asset(&data)?;
-    let relation = persist(&mut tx, request, &mut data, image, path).await?;
+    persist(&mut tx, request, &mut data, image, path).await?;
     if cancellation.is_cancelled() {
         return Err("Image operation was cancelled".into());
     }
@@ -130,7 +130,6 @@ async fn complete_persistence(
     Ok(CompletedDerivationOutput {
         node_id: request.output_node_id.clone(),
         data,
-        relation,
     })
 }
 
@@ -140,7 +139,7 @@ async fn persist(
     payload: &mut Value,
     image: &CanonicalImage,
     path: &Path,
-) -> Result<super::super::DerivationRelation, AppError> {
+) -> Result<(), AppError> {
     let now = crate::foundation::clock::unix_time_millis()?;
     let object = payload
         .as_object_mut()
@@ -175,14 +174,6 @@ async fn persist(
         .await?;
     crate::spaces::derivation::persist_output_node(tx, &request.output_node_id, payload, now)
         .await?;
-    let relation = relations::derives_from(
-        &request.space_id,
-        &request.output_node_id,
-        &request.source_node_id,
-        request.operation.rationale(),
-        now,
-    );
-    relations::insert(tx, &relation).await?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2 AND status='running'")
         .bind(now).bind(&request.id).execute(&mut **tx).await.map_err(db::sql_error)?;
     sqlx::query("UPDATE spaces SET updated_at=$1 WHERE id=$2")
@@ -191,7 +182,7 @@ async fn persist(
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
-    Ok(relation)
+    Ok(())
 }
 
 #[cfg(test)]

@@ -35,7 +35,6 @@ pub struct GenerateVisualizationRequest {
 pub struct VisualizationOutput {
     node_id: String,
     data: Value,
-    relations: Vec<super::DerivationRelation>,
 }
 
 pub(super) async fn generate_for_action(

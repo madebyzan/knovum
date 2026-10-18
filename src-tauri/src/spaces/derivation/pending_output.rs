@@ -10,6 +10,7 @@ use tauri::AppHandle;
 
 use super::action_execution::ExecutionAuthority;
 use super::placement::{self, DerivedOutputs, PLACEHOLDER};
+use super::relations;
 use crate::foundation::app_error::AppError;
 use crate::spaces::{
     db,
@@ -24,14 +25,18 @@ pub(super) struct PendingOutput {
     pub(super) data: Value,
 }
 
-/// Reserves pending output nodes in their sources' derivation field. An output that is already
-/// reserved is placed into the set rather than inserted a second time, which is how an Action that
-/// reserved its first output up front settles the whole set.
+/// Reserves pending output nodes in their sources' derivation field, together with the lineage
+/// that explains them: a derived node and its `derives-from` Relations are created in one
+/// transaction, so the canvas never shows an output floating unconnected while its work runs. An
+/// output that is already reserved is placed into the set rather than inserted a second time,
+/// which is how an Action that reserved its first output up front settles the whole set; its
+/// lineage was recorded when it was first reserved.
 pub(super) async fn reserve(
     app: &AppHandle,
     space_id: &str,
     outputs: Vec<PendingOutput>,
     sources: &[String],
+    lineage: &'static str,
     authority: &ExecutionAuthority,
 ) -> Result<(), AppError> {
     let pool = db::pool(app).await?;
@@ -105,6 +110,15 @@ pub(super) async fn reserve(
             crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
         )
         .await?;
+        for insert in &inserts {
+            for source in sources {
+                relations::insert(
+                    &mut tx,
+                    &relations::derives_from(space_id, &insert.id, source, lineage, now),
+                )
+                .await?;
+            }
+        }
     }
     let revision =
         structure::repository::save_in_transaction(&mut tx, space_id, base, &snapshot).await?;

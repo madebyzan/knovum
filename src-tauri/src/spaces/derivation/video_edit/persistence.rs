@@ -2,7 +2,7 @@ use serde_json::Value;
 use tauri::AppHandle;
 
 use super::super::{
-    inputs, pending_output, relations, video_output::RenderedVideo, CompletedDerivationOutput,
+    inputs, pending_output, video_output::RenderedVideo, CompletedDerivationOutput,
 };
 use crate::{
     foundation::app_error::AppError,
@@ -28,22 +28,13 @@ pub async fn complete(
     pending_output::validate_separate_asset(&data, &row.4)?;
     apply_output(&mut data, &output, now)?;
     crate::spaces::knowledge::validation::validate_node(&mut tx, &row.0, "video", &data).await?;
-    let relation = relations::derives_from(
-        &row.0,
-        &row.2,
-        &row.1,
-        "Video rendered from a non-destructive edit project",
-        now,
-    );
     crate::spaces::derivation::persist_output_node(&mut tx, &row.2, &data, now).await?;
-    relations::insert(&mut tx, &relation).await?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
         .bind(now).bind(derivation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(CompletedDerivationOutput {
         node_id: row.2,
         data,
-        relation,
     })
 }
 

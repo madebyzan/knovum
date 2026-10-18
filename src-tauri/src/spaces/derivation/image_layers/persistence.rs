@@ -7,7 +7,7 @@ use crate::foundation::app_error::AppError;
 use crate::spaces::{
     db,
     derivation::{
-        action_execution::ExecutionAuthority, failure, inputs, pending_output, relations,
+        action_execution::ExecutionAuthority, failure, inputs, pending_output,
         CompletedDerivationOutput,
     },
     knowledge::model::revision,
@@ -51,6 +51,7 @@ pub(super) async fn reserve(
         &request.space_id,
         outputs,
         std::slice::from_ref(&request.source_node_id),
+        super::LINEAGE,
         authority,
     )
     .await
@@ -117,20 +118,11 @@ pub(super) async fn complete(
         )
         .await?;
         crate::spaces::derivation::persist_output_node(&mut tx, &output_id, &data, now).await?;
-        let relation = relations::derives_from(
-            &request.space_id,
-            &output_id,
-            &request.source_node_id,
-            "Image layer separated from source image",
-            now,
-        );
-        relations::insert(&mut tx, &relation).await?;
         sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2 AND status='running'")
             .bind(now).bind(contracts::derivation_id(&request.id, index)).execute(&mut *tx).await.map_err(db::sql_error)?;
         completed.push(CompletedDerivationOutput {
             node_id: output_id,
             data,
-            relation,
         });
     }
     sqlx::query("UPDATE spaces SET updated_at=$1 WHERE id=$2")
