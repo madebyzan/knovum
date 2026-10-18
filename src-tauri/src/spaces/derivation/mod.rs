@@ -13,6 +13,7 @@ pub(crate) mod inputs;
 pub(crate) mod metadata_sources;
 pub(crate) mod output_paths;
 mod pending_output;
+pub(super) mod placement;
 pub(crate) mod queries;
 pub(super) mod relations;
 pub(crate) mod source_inputs;

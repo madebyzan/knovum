@@ -1,6 +1,22 @@
 use super::*;
 use crate::spaces::structure::{Point, Size};
 
+fn block<'a>(
+    sources: &'a [String],
+    placed: &'a [String],
+    siblings: usize,
+    width: f64,
+    height: f64,
+) -> DerivedBlock<'a> {
+    DerivedBlock {
+        source_node_ids: sources,
+        placed_node_ids: placed,
+        siblings,
+        width,
+        height,
+    }
+}
+
 #[test]
 fn unanchored_content_is_placed_beside_sections() {
     let structure = vec![StructureNode::Section {
@@ -21,11 +37,11 @@ fn unanchored_content_is_placed_beside_sections() {
         appearance: None,
     }];
     assert_eq!(
-        place_new_content(&structure, &layouts, &[], &[], 280.0, 350.0).unwrap(),
+        place_new_content(&structure, &layouts, 280.0, 350.0).unwrap(),
         (448.0, 0.0)
     );
     assert_eq!(
-        place_new_content(&[], &[], &[], &[], 280.0, 350.0).unwrap(),
+        place_new_content(&[], &[], 280.0, 350.0).unwrap(),
         (0.0, 0.0)
     );
 }
@@ -43,21 +59,48 @@ fn content_being_placed_does_not_block_its_own_block() {
         content_layout("reserved", 448.0, 0.0, 320.0, 220.0),
     ];
     let sources = ["source-node".to_owned()];
-    let blocked = place_new_content(&structure, &layouts, &sources, &[], 700.0, 500.0).unwrap();
-    let placed = place_new_content(
-        &structure,
-        &layouts,
-        &sources,
-        &["reserved-node".to_owned()],
-        700.0,
-        500.0,
-    )
-    .unwrap();
-    assert_eq!(placed, (448.0, 0.0), "the set starts where its output sits");
-    assert!(
-        blocked.0 > placed.0,
-        "an output that was not declared as part of the set pushes it aside"
+    let placed = ["reserved-node".to_owned()];
+    assert_eq!(
+        place_derived_content(&structure, &layouts, &block(&sources, &placed, 0, 700.0, 500.0))
+            .unwrap(),
+        (448.0, 0.0),
+        "the set starts where its output sits"
     );
+    assert_eq!(
+        place_derived_content(&structure, &layouts, &block(&sources, &[], 0, 700.0, 500.0))
+            .unwrap(),
+        (448.0, 548.0),
+        "an output that is not part of the set is followed instead of overlapped"
+    );
+}
+
+#[test]
+fn a_field_fills_its_row_before_starting_the_next() {
+    // The source already has one derived output sitting in the first cell of its field.
+    let structure = vec![
+        content("source", "source-node", 0),
+        content("output", "output-node", 1),
+    ];
+    let layouts = vec![
+        content_layout("source", 0.0, 0.0, 400.0, 300.0),
+        content_layout("output", 448.0, 0.0, 320.0, 220.0),
+    ];
+    let sources = ["source-node".to_owned()];
+    assert_eq!(
+        place_derived_content(&structure, &layouts, &block(&sources, &[], 1, 320.0, 220.0))
+            .unwrap(),
+        (816.0, 0.0),
+        "a second derivation widens the field into its next column"
+    );
+    assert_eq!(
+        place_derived_content(&structure, &layouts, &block(&sources, &[], 0, 320.0, 220.0))
+            .unwrap(),
+        (448.0, 268.0),
+        "a single-column field continues downward"
+    );
+    assert_eq!(field_columns(0), 1);
+    assert_eq!(field_columns(3), 2);
+    assert_eq!(field_columns(8), 3);
 }
 
 fn content(id: &str, node_id: &str, order: u32) -> StructureNode {

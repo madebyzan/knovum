@@ -8,7 +8,9 @@ use crate::{
     foundation::app_error::AppError,
     spaces::{
         conversations::ConversationMessageOutput,
-        db, knowledge,
+        db,
+        derivation::placement::{self, DerivedOutputs},
+        knowledge,
         nodes::{self, contracts::InsertNode},
         structure,
     },
@@ -212,44 +214,22 @@ async fn insert_outputs(
 ) -> Result<(), AppError> {
     let (mut snapshot, revision) = structure::repository::load_in_transaction(tx, space_id).await?;
     let before = structure::history::capture(tx, space_id, &snapshot).await?;
-    let mut anchor = sources.first().cloned().or_else(|| {
-        snapshot.structure.iter().rev().find_map(|item| match item {
-            structure::StructureNode::Content {
-                node_id,
-                parent_id: None,
-                ..
-            } => Some(node_id.clone()),
-            _ => None,
-        })
-    });
-    for output in outputs {
+    let cells = placement::plan(
+        tx,
+        space_id,
+        &snapshot.structure,
+        &snapshot.layouts,
+        DerivedOutputs {
+            sources,
+            reserved: &[],
+            sizes: outputs.iter().map(requested_size).collect(),
+        },
+    )
+    .await?;
+    for (output, cell) in outputs.iter().zip(&cells) {
         let mut node = output.clone();
-        let requested = structure::Size {
-            width: node.width,
-            height: node.height,
-        };
-        let size = nodes::fitted_content_size(&node.data, &requested, node.sizing_mode)
-            .unwrap_or(requested);
-        let (x, y) = match &anchor {
-            Some(id) => structure::place_new_content(
-                &snapshot.structure,
-                &snapshot.layouts,
-                std::slice::from_ref(id),
-                &[],
-                size.width,
-                size.height,
-            )?,
-            None => structure::place_new_content(
-                &snapshot.structure,
-                &snapshot.layouts,
-                &[],
-                &[],
-                size.width,
-                size.height,
-            )?,
-        };
-        node.initial_x = x;
-        node.initial_y = y;
+        node.initial_x = cell.x;
+        node.initial_y = cell.y;
         crate::spaces::knowledge::validation::normalize_node(
             tx,
             space_id,
@@ -267,13 +247,22 @@ async fn insert_outputs(
             enrichment_target,
         )
         .await?;
-        anchor = Some(node.id);
     }
     let next =
         structure::repository::save_in_transaction(tx, space_id, revision, &snapshot).await?;
     let after = structure::history::capture(tx, space_id, &snapshot).await?;
     structure::history::record(tx, space_id, &before, &after, next).await?;
     Ok(())
+}
+
+/// The footprint the canvas gives one staged output, which is what its content reports or the size
+/// its kind was staged with.
+fn requested_size(node: &InsertNode) -> structure::Size {
+    let requested = structure::Size {
+        width: node.width,
+        height: node.height,
+    };
+    placement::fitted(&node.data, &requested, node.sizing_mode)
 }
 
 async fn attach_outputs(

@@ -3,12 +3,13 @@ use sqlx::{Sqlite, Transaction};
 
 use super::super::contracts::SpeechAudioOutput;
 use crate::spaces::{
-    derivation::relations,
+    derivation::{
+        placement::{self, DerivedCell, DerivedOutputs},
+        relations,
+    },
     nodes::{self, contracts::InsertNode},
-    structure::{self, SizingMode},
+    structure::{self, Size, SizingMode},
 };
-
-const OUTPUT_GAP: f64 = 48.0;
 
 pub(in crate::spaces::speech) struct MediaNodeOutput {
     pub node_id: String,
@@ -18,27 +19,30 @@ pub(in crate::spaces::speech) struct MediaNodeOutput {
 }
 
 impl MediaNodeOutput {
-    fn size(&self) -> (f64, f64) {
+    /// Separated media has no intrinsic canvas size, so the kind decides its footprint.
+    fn size(&self) -> Size {
         if self.kind == "audio" {
-            (288.0, 80.0)
+            Size {
+                width: 288.0,
+                height: 80.0,
+            }
         } else {
-            (320.0, 220.0)
+            placement::PLACEHOLDER
         }
     }
 
-    fn build_insert_node(&self, x: f64, y: f64) -> Result<InsertNode, String> {
+    fn build_insert_node(&self, cell: &DerivedCell) -> Result<InsertNode, String> {
         let file_name = std::path::Path::new(&self.output.path)
             .file_name()
             .and_then(|name| name.to_str())
             .ok_or("Speech output has no file name")?;
-        let (width, height) = self.size();
         Ok(InsertNode {
             id: self.node_id.clone(),
             kind: self.kind.into(),
-            initial_x: x,
-            initial_y: y,
-            width,
-            height,
+            initial_x: cell.x,
+            initial_y: cell.y,
+            width: cell.size.width,
+            height: cell.size.height,
             sizing_mode: SizingMode::Content,
             appearance: None,
             file_subpath: None,
@@ -59,26 +63,23 @@ pub(in crate::spaces::speech) async fn publish(
     let (mut snapshot, edit_revision) =
         structure::repository::load_in_transaction(tx, space_id).await?;
     let before = structure::history::capture(tx, space_id, &snapshot).await?;
-    let width = outputs
-        .iter()
-        .map(|output| output.size().0)
-        .fold(0.0, f64::max);
-    let height = outputs
-        .iter()
-        .map(|output| output.size().1 + OUTPUT_GAP)
-        .sum::<f64>()
-        - OUTPUT_GAP;
-    let (x, mut y) = structure::place_new_content(
+    let sources = [source_node_id.to_owned()];
+    let cells = placement::plan(
+        tx,
+        space_id,
         &snapshot.structure,
         &snapshot.layouts,
-        &[source_node_id.into()],
-        &[],
-        width,
-        height,
-    )?;
+        DerivedOutputs {
+            sources: &sources,
+            reserved: &[],
+            sizes: outputs.iter().map(MediaNodeOutput::size).collect(),
+        },
+    )
+    .await
+    .map_err(|error| error.to_string())?;
     let mut nodes = Vec::with_capacity(outputs.len());
-    for output in outputs {
-        let mut node = output.build_insert_node(x, y)?;
+    for (output, cell) in outputs.iter().zip(&cells) {
+        let mut node = output.build_insert_node(cell)?;
         crate::spaces::knowledge::validation::normalize_node(
             tx,
             space_id,
@@ -87,7 +88,6 @@ pub(in crate::spaces::speech) async fn publish(
         )
         .await?;
         nodes.push(node);
-        y += output.size().1 + OUTPUT_GAP;
     }
     let now = crate::foundation::clock::unix_time_millis()?;
     structure::creation::append_content(&mut snapshot, &nodes, None)?;

@@ -21,14 +21,8 @@ pub(crate) async fn execute(
     let title = required_text(object, "title", 512)?;
     let content = required_text(object, "content", 4 * 1024 * 1024)?;
     let (mut snapshot, revision) = structure::repository::load_in_transaction(tx, space_id).await?;
-    let (initial_x, initial_y) = structure::place_new_content(
-        &snapshot.structure,
-        &snapshot.layouts,
-        &[],
-        &[],
-        320.0,
-        220.0,
-    )?;
+    let (initial_x, initial_y) =
+        structure::place_new_content(&snapshot.structure, &snapshot.layouts, 320.0, 220.0)?;
     let node_id = uuid::Uuid::new_v4().to_string();
     let mut node = InsertNode {
         id: node_id.clone(),
