@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { GitBranch, MoreHorizontal, Plus } from "@lucide/vue";
+import { GitBranch, MoreHorizontal, Pencil, Plus } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -63,7 +63,7 @@ async function saveTitle() {
 </script>
 
 <template>
-  <SpaceContextHeader :title="selectedConversation?.title || t('spaces.conversation.conversations.create')">
+  <SpaceContextHeader>
     <template #leading><SpaceRightSidebarViewPicker /></template>
     <template #actions>
       <UiDropdownMenu v-if="branches.length > 1" :items="branchItems" align="end">
@@ -104,12 +104,31 @@ async function saveTitle() {
       </UiDropdownMenu>
     </template>
   </SpaceContextHeader>
+  <div
+    v-if="selectedConversation && !renaming"
+    class="flex h-7.5 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider bg-surface-control/25 px-3 text-caption"
+  >
+    <span class="truncate font-medium text-fg-secondary" :title="selectedConversation.title">
+      {{ selectedConversation.title }}
+    </span>
+    <UiIconButton
+      :label="t('common.rename')"
+      size="sm"
+      class="size-5 shrink-0 text-fg-tertiary hover:text-fg-primary"
+      @click="renaming = true"
+    >
+      <Pencil class="size-3" />
+    </UiIconButton>
+  </div>
   <form
-    v-if="renaming"
-    class="flex shrink-0 gap-1 border-b border-stroke-divider p-2"
+    v-else-if="renaming"
+    class="flex shrink-0 gap-1 border-b border-stroke-divider bg-surface-panel p-2"
     @submit.prevent="saveTitle"
   >
     <UiInput v-model="titleDraft" class="min-w-0 flex-1" autofocus />
     <UiButton size="sm" variant="primary" type="submit">{{ t("common.save") }}</UiButton>
+    <UiButton size="sm" variant="ghost" type="button" @click="renaming = false">{{
+      t("common.cancel")
+    }}</UiButton>
   </form>
 </template>

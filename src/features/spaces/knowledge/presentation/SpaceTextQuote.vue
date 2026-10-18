@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-const props = defineProps<{ text: string; exact?: string }>();
+const props = defineProps<{ text: string; exact?: string | undefined }>();
+const hasExact = computed(() => Boolean(props.exact?.trim()));
 const parts = computed(() => {
   const exact = props.exact?.trim();
   if (!exact) return [{ text: props.text, match: false }];
@@ -16,12 +17,16 @@ const parts = computed(() => {
 </script>
 
 <template>
-  <p class="text-caption leading-relaxed whitespace-pre-wrap text-fg-secondary">
-    <template v-for="(part, index) in parts" :key="index"
-      ><mark v-if="part.match" class="rounded-sm bg-surface-selected px-0.5 text-fg-primary">{{
-        part.text
-      }}</mark
-      ><template v-else>{{ part.text }}</template></template
-    >
-  </p>
+  <div class="relative border-l-2 border-surface-accent/70 py-0.5 pl-3">
+    <p class="text-body leading-relaxed whitespace-pre-wrap text-fg-primary">
+      <template v-for="(part, index) in parts" :key="index">
+        <mark
+          v-if="part.match"
+          class="rounded border-b border-surface-accent/40 bg-surface-selected/90 px-1 py-0.5 font-medium text-fg-primary"
+          >{{ part.text }}</mark
+        >
+        <span v-else :class="hasExact ? 'text-fg-secondary' : 'text-fg-primary'">{{ part.text }}</span>
+      </template>
+    </p>
+  </div>
 </template>
