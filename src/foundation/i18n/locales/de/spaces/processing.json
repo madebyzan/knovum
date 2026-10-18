@@ -55,7 +55,12 @@
       "occurrences": "Verwendete {count}-Zeit | {count} mal verwendet",
       "embedded": "Aus dem Dokument extrahiertes eingebettetes Bild.",
       "rendered": "Vom PDF gerenderte Seite oder visueller Bereich.",
-      "detectedText": "Erkannter Text"
+      "detectedText": "Erkannter Text",
+      "context": "Kontext",
+      "altText": "Alternativtext",
+      "description": "Beschreibung",
+      "embeddedBadge": "Eingebettet",
+      "renderedBadge": "Gerendert"
     },
     "warnings": {
       "officeVectorDrawingsUnsupported": "Office-Vektorzeichnungen werden nicht visuell analysiert; sie verbleiben in der Originaldatei.",

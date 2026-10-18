@@ -55,7 +55,12 @@
       "occurrences": "出现 {count} 次 | 出现 {count} 次",
       "embedded": "从文档中提取的嵌入图片。",
       "rendered": "从 PDF 页面视觉区域渲染的图片。",
-      "detectedText": "识别文字"
+      "detectedText": "识别文字",
+      "context": "上下文",
+      "altText": "替代文本",
+      "description": "内容描述",
+      "embeddedBadge": "嵌入图片",
+      "renderedBadge": "页面渲染"
     },
     "warnings": {
       "officeVectorDrawingsUnsupported": "Office 矢量绘图不参与视觉理解，完整内容保留在原文件中。",

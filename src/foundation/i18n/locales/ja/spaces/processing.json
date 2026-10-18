@@ -55,7 +55,12 @@
       "occurrences": "使用時間 {count}",
       "embedded": "ドキュメントから抽出された埋め込み画像。",
       "rendered": "PDF からレンダリングされたページまたはビジュアル領域。",
-      "detectedText": "検出されたテキスト"
+      "detectedText": "検出されたテキスト",
+      "context": "コンテキスト",
+      "altText": "代替テキスト",
+      "description": "説明",
+      "embeddedBadge": "埋め込み",
+      "renderedBadge": "レンダリング"
     },
     "warnings": {
       "officeVectorDrawingsUnsupported": "Office のベクター図面は視覚的に分析されません。それらは元のファイルに残ります。",

@@ -55,7 +55,12 @@
       "occurrences": "出現 {count} 次",
       "embedded": "從文件中提取的嵌入圖片。",
       "rendered": "從 PDF 頁面視覺區域渲染的圖片。",
-      "detectedText": "辨識文字"
+      "detectedText": "辨識文字",
+      "context": "上下文",
+      "altText": "替代文字",
+      "description": "內容描述",
+      "embeddedBadge": "嵌入圖片",
+      "renderedBadge": "頁面渲染"
     },
     "warnings": {
       "officeVectorDrawingsUnsupported": "Office 向量圖不參與視覺理解，完整內容保留在原始文件中。",
