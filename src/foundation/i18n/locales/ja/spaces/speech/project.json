@@ -15,6 +15,7 @@
   },
   "saving": "保存",
   "starting": "生成の準備中",
+  "generatingInTasks": "生成中です。進行状況と中止は「タスク」にあります。",
   "generatedAudio": "生成されたオーディオ",
   "generatedVideo": "生成されたビデオ",
   "format": "フォーマット",
