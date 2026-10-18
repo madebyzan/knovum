@@ -77,6 +77,7 @@ pub(super) async fn publish<R: Runtime>(
             &mux_part,
             &mux_cancellation,
             retain_original_track,
+            video_samples,
         )
     })
     .await;
@@ -108,8 +109,8 @@ pub(super) async fn publish<R: Runtime>(
             "0:a:0",
             &verify_cancellation,
         )?;
-        if final_audio_us.abs_diff(video_duration_us) > 25_000 {
-            return Err("Published video audio does not reach the source video EOF".into());
+        if final_audio_us.abs_diff(video_duration_us) > super::AUDIO_FRAME_US + 2_000 {
+            return Err("Published video audio does not end with the source video".into());
         }
         Ok(())
     })

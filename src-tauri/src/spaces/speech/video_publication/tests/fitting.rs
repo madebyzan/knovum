@@ -68,7 +68,7 @@ fn a_line_is_never_heard_past_the_end_of_the_video() {
     assert_eq!(
         planned(&[(4.0, 2_000, 3_000)], 3 * u64::from(SAMPLE_RATE)),
         [(96_000, 48_000)],
-        "the last line is compressed as much as it takes to be heard in full"
+        "the last line keeps its tolerable pace and stops with the picture"
     );
 }
 

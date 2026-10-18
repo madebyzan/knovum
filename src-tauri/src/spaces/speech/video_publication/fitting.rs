@@ -52,15 +52,14 @@ fn placement(item: &TimedRender, room: u64, video_samples: u64) -> Result<Placem
         .filter(|value| *value > 0)
         .ok_or("Video target window starts after the source ends")?;
     let preferred = item.window_samples.min(room - item.start_sample);
-    let mut tempo = if preferred > 0 && natural > preferred {
+    let tempo = if preferred > 0 && natural > preferred {
         (natural as f64 / preferred as f64).min(MAX_COMPRESSION)
     } else {
         1.0
     };
+    // A line is never compressed past what the ear tolerates, not even to fit before the picture
+    // ends: whatever still does not fit there simply cannot be heard, because the video is over.
     let sample_count = scaled(natural, tempo).clamp(1, limit);
-    if sample_count == limit && natural > limit {
-        tempo = natural as f64 / limit as f64;
-    }
     Ok(Placement {
         start_sample: item.start_sample,
         sample_count,
