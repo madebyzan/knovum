@@ -54,10 +54,7 @@ pub(super) fn validate(
         if delivery != row.delivery_instruction.as_deref() {
             return Err("Package delivery instruction is not canonical".into());
         }
-        if !matches!(
-            row.state.as_str(),
-            "pending" | "ready" | "rendered" | "needs_edit" | "failed"
-        ) {
+        if !matches!(row.state.as_str(), "ready" | "rendered" | "failed") {
             return Err("Package speech segment state is not stable".into());
         }
         match (row.target_start_ms, row.target_end_ms) {

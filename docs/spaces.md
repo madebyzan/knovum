@@ -383,6 +383,13 @@ source/model provenance. The product does not claim that spoken dialogue was com
 or that environmental sound was preserved. Space packages preserve the Run identity, source node
 identity, both managed stems, their relations and pinned provenance.
 
+A segment's state reports its latest render attempt; it is not a lock and never a dead end. The
+executing attempt is a segment's only writer — the Run lease, the execution epoch and the active
+revision are verified in the claim transaction — so claiming a segment overwrites whatever an earlier
+interrupted attempt left behind. The lifecycle is `ready → rendering → rendered | failed`, and
+generation is always available again on the active revision. Space packages carry only settled
+states: `ready`, `rendered` or `failed`.
+
 The voice library is application-wide: profiles and immutable revisions have no Space owner, and
 each Space speech project pins a global revision. Settings owns library presentation through app
 composition; the speech capability owns its data, generation and asset lifecycle.
