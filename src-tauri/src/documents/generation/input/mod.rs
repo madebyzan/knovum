@@ -86,10 +86,10 @@ pub(crate) enum AuthoringContent<'a> {
 /// Whether every serialization can read this authoring content.
 ///
 /// All five formats read the same authoring model, so content outside the authoring contract -
-/// raw HTML in Markdown, an unsupported Note node - is unavailable in every format alike. Export
-/// asks this before it offers a format, which is why the question is answered without image bytes:
-/// the contract is about the content itself, and the files it points at are checked when they are
-/// read.
+/// an unsupported Note node, a Markdown element the engine has no counterpart for - is
+/// unavailable in every format alike. Export asks this before it offers a format, which is why
+/// the question is answered without image bytes: the contract is about the content itself, and
+/// the files it points at are checked when they are read.
 pub(crate) fn admits(content: AuthoringContent<'_>) -> Result<(), String> {
     match content {
         AuthoringContent::Markdown(markdown) => super::markdown::parse(&DocumentSource {

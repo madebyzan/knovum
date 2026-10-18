@@ -26,9 +26,9 @@ pub(super) enum Managed {
     Media(&'static media::Target),
 }
 
-/// Every editable document source carries the same content, so it reaches every
-/// target the engine can serialize - as long as the engine can read that content.
-const EDITABLE_DOCUMENT_TARGETS: &[DocumentFormat] = &[Text, Html, Docx, Pdf, Pptx];
+/// Every document source carries the same content, so it reaches every serialization the engine
+/// can write - as long as the engine can read that content.
+const DOCUMENT_TARGETS: &[DocumentFormat] = &[Text, Html, Docx, Pdf, Pptx];
 
 /// Why a resource that is still being prepared has no file yet.
 const UNSETTLED: &str = "Wait for this resource to finish before exporting it";
@@ -37,10 +37,7 @@ const UNSETTLED: &str = "Wait for this resource to finish before exporting it";
 pub(super) fn of(payload: &Value) -> Result<ExportFormats, String> {
     let (routes, unavailable) = offered(payload)?;
     Ok(ExportFormats {
-        formats: routes
-            .into_iter()
-            .map(|(extension, _)| extension)
-            .collect(),
+        formats: routes.into_iter().map(|(extension, _)| extension).collect(),
         unavailable,
     })
 }
@@ -86,7 +83,7 @@ fn offered(payload: &Value) -> Result<(Vec<(String, Export)>, Option<String>), S
         "image" => image_routes(payload)?,
         "audio" | "video" => media_routes(payload, media::targets(kind))?,
         "file" => file_routes(payload)?,
-        "note" | "markdown" => return editable_routes(kind, payload),
+        "note" | "markdown" | "text" => return editable_routes(kind, payload),
         // A website summary, an object or a credential is serialized from the
         // content the Renderer already holds, so the engine offers nothing.
         _ => vec![],
@@ -94,7 +91,7 @@ fn offered(payload: &Value) -> Result<(Vec<(String, Export)>, Option<String>), S
     Ok((deduplicated(routes), None))
 }
 
-/// An editable document reaches every serialization or none of them: each format reads the same
+/// An editable resource reaches every serialization or none of them: each format reads the same
 /// authoring model, so content the engine cannot read is unavailable in all of them.
 fn editable_routes(
     kind: &str,
@@ -115,7 +112,7 @@ fn editable_routes(
         )
     };
     Ok(match admits(content) {
-        Ok(()) => (document_routes(EDITABLE_DOCUMENT_TARGETS), None),
+        Ok(()) => (document_routes(DOCUMENT_TARGETS), None),
         Err(reason) => (vec![], Some(reason)),
     })
 }
@@ -176,12 +173,13 @@ fn document_routes(formats: &[DocumentFormat]) -> Vec<(String, Export)> {
         .collect()
 }
 
-/// Supported semantic content, as owned by `documents/generation`. Original-layout
-/// PDF of an Office file is outside the product boundary and is therefore absent.
+/// Supported semantic content, as owned by `documents/generation`. Slides are only slides when
+/// the source was a presentation, and a PDF the engine read page by page is already a PDF.
 fn convertible(extension: &str) -> &'static [DocumentFormat] {
     match extension {
-        "pdf" | "ppt" => &[Docx, Text, Html, Pptx],
-        "doc" | "docx" | "xls" | "xlsx" | "pptx" => &[Docx, Text, Html],
+        "ppt" => DOCUMENT_TARGETS,
+        "pdf" => &[Text, Html, Docx, Pptx],
+        "doc" | "docx" | "xls" | "xlsx" | "pptx" => &[Text, Html, Docx, Pdf],
         _ => &[],
     }
 }

@@ -1,8 +1,30 @@
 use std::io::Cursor;
 
-use office_oxide::{core::xml, ir::DocumentIR};
+use office_oxide::{
+    core::xml,
+    ir::{DocumentIR, Element, Metadata, Section},
+    DocumentFormat as OfficeFormat,
+};
 
 use super::DocumentFormat;
+
+/// One section of elements, as a document every writer accepts. Whoever reads a resource into
+/// elements says what it holds; how a document is framed is said once, here.
+pub(super) fn document(title: Option<String>, elements: Vec<Element>) -> DocumentIR {
+    DocumentIR {
+        metadata: Metadata {
+            format: OfficeFormat::Docx,
+            title,
+            author: Some("Knovum".into()),
+            ..Default::default()
+        },
+        sections: vec![Section {
+            elements,
+            ..Default::default()
+        }],
+        defined_names: Vec::new(),
+    }
+}
 
 /// Rich Notes already have an authoring model. Preserve its vendor IR through serialization.
 pub(super) fn render(

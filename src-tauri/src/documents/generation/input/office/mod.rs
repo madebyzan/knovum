@@ -6,6 +6,9 @@ use office_oxide::{core::xml, Document, DocumentFormat as OfficeFormat};
 
 use super::{DocumentFileSource, DocumentFormat};
 
+/// Reads an Office resource into the authoring model, which is then serialized the same way every
+/// other document is: one reading, one writer per format. Slides are the exception, because they
+/// are only slides when the source was a presentation.
 pub(super) fn render(
     source: &DocumentFileSource,
     bytes: Vec<u8>,
@@ -13,55 +16,19 @@ pub(super) fn render(
 ) -> Result<Vec<u8>, String> {
     let input_format =
         OfficeFormat::from_path(&source.path).ok_or("Unsupported Office source format")?;
+    if format == DocumentFormat::Pptx && input_format != OfficeFormat::Ppt {
+        return Err("Office slide conversion requires a legacy PowerPoint source".into());
+    }
     crate::documents::extraction::office::budget::preflight_archive(&bytes, input_format)?;
     xml::reset_truncated_subtrees();
     let document = Document::from_reader(Cursor::new(bytes), input_format)
         .map_err(|error| format!("Office conversion parsing failed: {error}"))?;
-    let mut ir = document.to_ir();
-    validation::validate(&ir, format)?;
-    let output = match format {
-        DocumentFormat::Docx => {
-            validate_writer_completeness()?;
-            super::super::docx::image_layout::prepare(&mut ir)?;
-            let writer = office_oxide::create::ir_to_docx(&ir);
-            let mut output = Cursor::new(Vec::new());
-            writer
-                .write_to(&mut output)
-                .map_err(|error| error.to_string())?;
-            output.into_inner()
-        }
-        DocumentFormat::Pptx => {
-            if input_format != OfficeFormat::Ppt {
-                return Err("Office slide conversion requires a legacy PowerPoint source".into());
-            }
-            if ir.sections.len() > 100 {
-                return Err("Office presentation conversion exceeds 100 slides".into());
-            }
-            let writer = office_oxide::create::ir_to_pptx(&ir);
-            let mut output = Cursor::new(Vec::new());
-            writer
-                .write_to(&mut output)
-                .map_err(|error| error.to_string())?;
-            output.into_inner()
-        }
-        DocumentFormat::Html => super::super::html::build_document(
-            &source.title,
-            &ir.to_html_with(office_oxide::ir_render::HtmlOptions {
-                image_embed: office_oxide::ir_render::ImageEmbed::Base64,
-            }),
-        ),
-        DocumentFormat::Text => ir.plain_text().into_bytes(),
-        DocumentFormat::Pdf => {
-            return Err("Office original-layout PDF conversion is not supported; export PDF from the source application".into())
-        }
-    };
-    validate_writer_completeness()?;
-    Ok(output)
-}
-
-fn validate_writer_completeness() -> Result<(), String> {
+    let ir = document.to_ir();
     if xml::truncated_subtrees() != 0 {
-        return Err("Office conversion exceeded the writer nesting budget".into());
+        return Err("Office conversion exceeded the reader nesting budget".into());
     }
-    Ok(())
+    if format == DocumentFormat::Pptx && ir.sections.len() > 100 {
+        return Err("Office presentation conversion exceeds 100 slides".into());
+    }
+    super::super::structured::render(ir, format, &source.title)
 }
