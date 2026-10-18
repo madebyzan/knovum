@@ -145,8 +145,5 @@ function selectVoice(voiceRevisionId: string) {
       :aria-label="t('spaces.speech.project.deliveryInstruction.label')"
       @update:model-value="update('deliveryInstruction', $event)"
     />
-    <p v-if="line.needsTimingEdit" class="text-caption text-fg-danger">
-      {{ t("spaces.speech.videoDubbing.needsTimingEdit") }}
-    </p>
   </section>
 </template>

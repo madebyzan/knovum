@@ -8,7 +8,6 @@
   "endSeconds": "Fim (segundos)",
   "addLine": "Adicionar linha cronometrada",
   "removeLine": "Remover linha cronometrada",
-  "needsTimingEdit": "A fala gerada não se enquadra neste intervalo alvo. Ajuste o texto ou intervalo e salve uma nova revisão.",
   "retainOriginalTrack": "Incluir o áudio original como uma faixa separada",
   "preserveOriginalOutsideDialogue": "Preservar o som original fora dos intervalos de diálogo da fonte",
   "importSubtitles": "Importar script SRT/WebVTT",

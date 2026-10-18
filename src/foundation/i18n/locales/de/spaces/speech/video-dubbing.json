@@ -8,7 +8,6 @@
   "endSeconds": "Ende (Sekunden)",
   "addLine": "Zeitgesteuerte Leitung hinzufügen",
   "removeLine": "Zeitgesteuerte Leitung entfernen",
-  "needsTimingEdit": "Die generierte Sprache passt nicht in dieses Zielintervall. Passen Sie den Text oder das Intervall an und speichern Sie dann eine neue Revision.",
   "retainOriginalTrack": "Fügen Sie Original-Audio als separate Spur hinzu",
   "preserveOriginalOutsideDialogue": "Behalten Sie den Originalton außerhalb der Dialogintervalle der Quelle bei",
   "importSubtitles": "SRT/WebVTT-Skript importieren",

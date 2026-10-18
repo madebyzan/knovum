@@ -148,63 +148,6 @@ pub(super) async fn fail_render(
     tx.commit().await.map_err(db::sql_error)
 }
 
-pub(super) async fn mark_needs_edit(
-    pool: &sqlx::SqlitePool,
-    claim: &AttemptClaim,
-    render_id: &str,
-    segment_id: &str,
-    reason: &str,
-) -> Result<(), String> {
-    let mut tx = db::begin_write(pool).await?;
-    let failed = sqlx::query(
-        "UPDATE spaces_speech_renders SET state='failed',asset_path=NULL \
-         WHERE id=? AND state='staged' AND run_attempt_id=? AND run_execution_epoch=?",
-    )
-    .bind(render_id)
-    .bind(&claim.attempt_id)
-    .bind(claim.execution_epoch)
-    .execute(&mut *tx)
-    .await
-    .map_err(db::sql_error)?;
-    if failed.rows_affected() == 1 {
-        sqlx::query(
-            "UPDATE spaces_speech_segments SET state='needs_edit',state_reason=?,updated_at=? \
-             WHERE id=? AND state='rendering'",
-        )
-        .bind(reason)
-        .bind(crate::foundation::clock::unix_time_millis()?)
-        .bind(segment_id)
-        .execute(&mut *tx)
-        .await
-        .map_err(db::sql_error)?;
-    }
-    tx.commit().await.map_err(db::sql_error)
-}
-
-pub(super) async fn mark_segment_needs_edit(
-    pool: &sqlx::SqlitePool,
-    claim: &AttemptClaim,
-    project_id: &str,
-    revision_id: &str,
-    segment_id: &str,
-    reason: &str,
-) -> Result<(), String> {
-    let mut tx = db::begin_write(pool).await?;
-    require_active(&mut tx, claim, project_id, revision_id, segment_id).await?;
-    let updated = sqlx::query(
-        "UPDATE spaces_speech_segments SET state='needs_edit',state_reason=?,updated_at=? \
-         WHERE id=? AND state IN ('ready','failed','rendered')",
-    )
-    .bind(reason)
-    .bind(crate::foundation::clock::unix_time_millis()?)
-    .bind(segment_id)
-    .execute(&mut *tx)
-    .await
-    .map_err(db::sql_error)?;
-    db::require_one(updated, "Speech segment changed before duration validation")?;
-    tx.commit().await.map_err(db::sql_error)
-}
-
 async fn next_epoch(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     segment_id: &str,

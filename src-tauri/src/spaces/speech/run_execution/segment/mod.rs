@@ -1,4 +1,4 @@
-use synthesis::{synthesize, validate_segment_timing, SegmentTiming};
+use synthesis::synthesize;
 mod synthesis;
 use crate::spaces::speech::asset_publication::PublicationOwnerKind;
 
@@ -56,8 +56,8 @@ pub(super) async fn execute(
         .map_err(|_| "Speech revision identity is invalid")?;
     uuid::Uuid::parse_str(&config.segment_id).map_err(|_| "Speech segment identity is invalid")?;
     let row = sqlx::query(
-        "SELECT p.space_id,p.project_type,s.id,s.normalized_text,s.delivery_instruction,s.voice_revision_id,s.language, \
-         s.target_start_ms,s.target_end_ms FROM spaces_speech_projects p \
+        "SELECT p.space_id,s.id,s.normalized_text,s.delivery_instruction,s.voice_revision_id,s.language \
+         FROM spaces_speech_projects p \
          JOIN spaces_speech_segments s ON s.project_revision_id=p.active_revision_id \
          WHERE p.id=? AND p.active_revision_id=? AND s.id=? AND s.ordinal=?",
     )
@@ -77,11 +77,6 @@ pub(super) async fn execute(
         language: row.try_get("language").map_err(db::sql_error)?,
     };
     let space_id: String = row.try_get("space_id").map_err(db::sql_error)?;
-    let timing = SegmentTiming {
-        project_type: row.try_get("project_type").map_err(db::sql_error)?,
-        start_ms: row.try_get("target_start_ms").map_err(db::sql_error)?,
-        end_ms: row.try_get("target_end_ms").map_err(db::sql_error)?,
-    };
     if space_id.as_str() != run_space_id {
         return Err("permission-denied: Speech project belongs to another Space".into());
     }
@@ -117,21 +112,6 @@ pub(super) async fn execute(
             generation_attempt::cached_output(&segment, &cached)?,
         ) {
             Ok(output) => {
-                if let Err(reason) =
-                    validate_segment_timing(&timing, output.sample_rate, output.sample_count)
-                {
-                    let reason = format!("duration_out_of_range: {reason}");
-                    generation_attempt::mark_segment_needs_edit(
-                        pool,
-                        claim,
-                        &config.project_id,
-                        &config.revision_id,
-                        &segment.id,
-                        &reason,
-                    )
-                    .await?;
-                    return Err(AppError::new("duration_out_of_range", reason));
-                }
                 generation_attempt::publish_cached(
                     pool,
                     claim,
@@ -211,11 +191,6 @@ pub(super) async fn execute(
         let error = "invalid_output: synthesized sample rate differs from the voice revision";
         generation_attempt::fail_render(pool, claim, &render_id, &segment.id, error, false).await?;
         return Err(error.into());
-    }
-    if let Err(reason) = validate_segment_timing(&timing, audio.sample_rate, audio.sample_count) {
-        let reason = format!("duration_out_of_range: {reason}");
-        generation_attempt::mark_needs_edit(pool, claim, &render_id, &segment.id, &reason).await?;
-        return Err(AppError::new("duration_out_of_range", reason));
     }
     let part_path = target_path.with_extension("wav.part");
     let publication_id = match super::super::asset_publication::stage_for_attempt(
