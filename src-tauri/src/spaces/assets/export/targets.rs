@@ -2,9 +2,11 @@ use std::path::Path;
 
 use serde_json::Value;
 
-use super::{image::Encoding, media, ExportFormats};
+use super::{capture, media, ExportFormats};
 use crate::documents::generation::input::{admits, AuthoringContent};
 use crate::documents::generation::DocumentFormat::{self, Docx, Html, Pdf, Pptx, Text};
+use crate::documents::generation::MAX_AUTHORING_BYTES;
+use crate::images::Encoding;
 
 /// What an export produces. The requested file extension selects exactly one of
 /// these, so choosing a format never needs a second instruction.
@@ -14,6 +16,8 @@ pub(super) enum Export {
     Document(DocumentFormat),
     /// A rendering of the managed asset bytes.
     Managed(Managed),
+    /// The summary a capture holds, as the engine assembles it.
+    Summary,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -29,6 +33,17 @@ pub(super) enum Managed {
 /// Every document source carries the same content, so it reaches every serialization the engine
 /// can write - as long as the engine can read that content.
 const DOCUMENT_TARGETS: &[DocumentFormat] = &[Text, Html, Docx, Pdf, Pptx];
+
+/// A listing is the characters of a file, set as a document. Slides are not a listing.
+const LISTING_TARGETS: &[DocumentFormat] = &[Text, Html, Docx, Pdf];
+
+/// Every encoding a picture can be saved in. The picture is one render; these are its spellings.
+const PICTURE_ENCODINGS: [Encoding; 4] = [
+    Encoding::Png,
+    Encoding::Jpeg,
+    Encoding::WebP,
+    Encoding::Tiff,
+];
 
 /// Why a resource that is still being prepared has no file yet.
 const UNSETTLED: &str = "Wait for this resource to finish before exporting it";
@@ -81,14 +96,54 @@ fn offered(payload: &Value) -> Result<(Vec<(String, Export)>, Option<String>), S
     }
     let routes = match kind {
         "image" => image_routes(payload)?,
-        "audio" | "video" => media_routes(payload, media::targets(kind))?,
+        "audio" | "video" => media_routes(payload, &media::targets(kind))?,
         "file" => file_routes(payload)?,
+        "code" => code_routes(payload)?,
         "note" | "markdown" | "text" => return editable_routes(kind, payload),
-        // A website summary, an object or a credential is serialized from the
-        // content the Renderer already holds, so the engine offers nothing.
+        "website" => return capture_routes(payload),
+        // A credential and a Portal are references rather than content, and an object is
+        // structured data: the Renderer serializes what they hold, so the engine offers nothing.
         _ => vec![],
     };
     Ok((deduplicated(routes), None))
+}
+
+/// A capture has no file, so its own format is the summary the engine assembles. That summary
+/// stays available even when its text is outside the authoring contract, because writing it needs
+/// no reading.
+fn capture_routes(payload: &Value) -> Result<(Vec<(String, Export)>, Option<String>), String> {
+    let own = ("md".to_owned(), Export::Summary);
+    let summary = capture::summary(payload)?;
+    Ok(match admits(AuthoringContent::Markdown(&summary)) {
+        Ok(()) => (
+            std::iter::once(own)
+                .chain(document_routes(DOCUMENT_TARGETS))
+                .collect(),
+            None,
+        ),
+        Err(reason) => (vec![own], Some(reason)),
+    })
+}
+
+/// A code resource is a text file: its own bytes, and a listing of them the document writers can
+/// set. The listing is offered where the Space has already read the file as text and it fits the
+/// authoring budget, so the offer rests on evidence rather than on hope.
+fn code_routes(payload: &Value) -> Result<Vec<(String, Export)>, String> {
+    let own = (
+        source_extension(payload)?,
+        Export::Managed(Managed::Original),
+    );
+    let readable = payload.get("previewText").and_then(Value::as_str).is_some()
+        && payload
+            .get("size")
+            .and_then(Value::as_u64)
+            .is_none_or(|size| size <= MAX_AUTHORING_BYTES as u64);
+    if !readable {
+        return Ok(vec![own]);
+    }
+    Ok(std::iter::once(own)
+        .chain(document_routes(LISTING_TARGETS))
+        .collect())
 }
 
 /// An editable resource reaches every serialization or none of them: each format reads the same
@@ -128,7 +183,7 @@ fn image_routes(payload: &Value) -> Result<Vec<(String, Export)>, String> {
     if payload.get("imageDepth").is_some() {
         return Ok(vec![original]);
     }
-    let encodings = [Encoding::Png, Encoding::Jpeg].map(|encoding| {
+    let encodings = PICTURE_ENCODINGS.map(|encoding| {
         (
             encoding.extension().to_owned(),
             Export::Managed(Managed::Image(encoding)),
@@ -142,14 +197,14 @@ fn image_routes(payload: &Value) -> Result<Vec<(String, Export)>, String> {
 
 fn media_routes(
     payload: &Value,
-    targets: &'static [media::Target],
+    targets: &[&'static media::Target],
 ) -> Result<Vec<(String, Export)>, String> {
     Ok([(
         source_extension(payload)?,
         Export::Managed(Managed::Original),
     )]
     .into_iter()
-    .chain(targets.iter().map(|target| {
+    .chain(targets.iter().copied().map(|target| {
         (
             target.extension.to_owned(),
             Export::Managed(Managed::Media(target)),
@@ -184,8 +239,12 @@ fn convertible(extension: &str) -> &'static [DocumentFormat] {
     }
 }
 
+/// A resource the Space is still preparing has no settled content to save: an asset being
+/// imported or processed, a derivation still running, a capture still being read.
 fn unsettled(payload: &Value) -> bool {
-    payload.get("processingState").is_some() || payload.get("derivationState").is_some()
+    payload.get("processingState").is_some()
+        || payload.get("derivationState").is_some()
+        || payload.get("metadataState").and_then(Value::as_str) == Some("loading")
 }
 
 fn source_extension(payload: &Value) -> Result<String, String> {

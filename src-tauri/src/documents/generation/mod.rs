@@ -11,6 +11,10 @@ mod structured;
 mod text;
 pub(crate) mod worker;
 
+/// How much authoring content one document may carry. Whoever reads a resource as a document
+/// answers to this budget, so the engine never promises what it would refuse to write.
+pub(crate) const MAX_AUTHORING_BYTES: usize = markdown::MAX_SOURCE_BYTES;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum DocumentFormat {

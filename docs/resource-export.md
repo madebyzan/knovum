@@ -23,30 +23,41 @@ resource, so its one format is the outline of what it holds.
 file is what the person already confirmed, a failed or cancelled run leaves no partial file, and the
 source revision is checked again afterwards so a resource that changed mid-export is never delivered
 as the current one. Every export is addressable by job identity and can be stopped by the person who
-started it. Formats the Renderer serializes from content it already holds - Markdown, a section
-outline, an object or a credential summary - are written through `export_text` instead; the engine
-truthfully reports no format for them rather than failing, and they stay available even when the
-engine admits nothing.
+started it. Formats the Renderer serializes from content the engine cannot read - a Markdown
+resource's own text, a section outline, an object, a Portal or a credential summary - are written
+through `export_text` instead; the engine truthfully reports no format for those rather than
+failing. The two never offer the same format: whatever the engine can read or assemble is the
+engine's to serialize, so the lists are concatenated rather than merged.
 
 ## Supported formats
 
-| Resource           | Formats, own format first                       | Contract                                                                          |
-| ------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------- |
-| Rich Note, text    | TXT, HTML, DOCX, PDF, PPTX                      | Structured authoring content; no Markdown intermediate                            |
-| Markdown           | MD, TXT, HTML, DOCX, PDF, PPTX                  | Semantic content and authorized managed images; MD is written by the Renderer     |
-| PDF                | PDF, TXT, HTML, DOCX, PPTX                      | Editable text reflow, source-page images; qualified recognition for scanned pages |
-| DOC/DOCX, XLS/XLSX | own format, TXT, HTML, DOCX, PDF                | Supported semantic Office content, reflowed rather than laid out as the original  |
-| PPT/PPTX           | own format, TXT, HTML, DOCX, PDF; PPT adds PPTX | Supported Office IR content and legacy upgrade                                    |
-| Other file         | own format                                      | The managed bytes as they are                                                     |
-| Image              | own format when untouched, PNG, JPG             | The picture as it is currently edited; JPEG composites transparency onto white    |
-| Relative depth     | own format                                      | Measurement data, copied verbatim rather than re-encoded as a picture             |
-| Audio              | own container, WAV, MP3, M4A, FLAC              | The same recording, re-encoded by the qualified bundled FFmpeg encoders           |
-| Video              | own container, MP4, MOV                         | H.264 and AAC, the pair every player and editor admits                            |
+Four content forms answer for every resource: a document is serialized, a picture is encoded, a
+recording is re-encoded, and data is written as what it holds.
 
-A resource that is still being prepared reports that it is unfinished instead of offering a format.
-An extension the resource does not admit is refused in Rust; lossless WebP is neither small nor
-lossy, so it is not offered as an image target. `media-libraries` qualifies every encoder named here,
-so a supplier that lacks one fails the build rather than the export.
+| Resource                   | Formats, own format first                              | Contract                                                                          |
+| -------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| Rich Note, text            | TXT, HTML, DOCX, PDF, PPTX                             | Structured authoring content; no Markdown intermediate                            |
+| Markdown                   | MD, TXT, HTML, DOCX, PDF, PPTX                         | Semantic content and authorized managed images; MD is written by the Renderer     |
+| Website capture            | MD, TXT, HTML, DOCX, PDF, PPTX                         | The summary the engine assembles; the saved MD and the saved PDF are one document |
+| PDF                        | PDF, TXT, HTML, DOCX, PPTX                             | Editable text reflow, source-page images; qualified recognition for scanned pages |
+| DOC/DOCX, XLS/XLSX         | own format, TXT, HTML, DOCX, PDF                       | Supported semantic Office content, reflowed rather than laid out as the original  |
+| PPT/PPTX                   | own format, TXT, HTML, DOCX, PDF; PPT adds PPTX        | Supported Office IR content and legacy upgrade                                    |
+| Code                       | own format, TXT, HTML, DOCX, PDF                       | The characters of the file, fenced and set as a listing rather than as prose      |
+| Other file                 | own format                                             | The managed bytes as they are                                                     |
+| Image                      | own format when untouched, PNG, JPG, WebP, TIFF        | The picture as it is currently edited; JPEG composites transparency onto white    |
+| Relative depth             | own format                                             | Measurement data, copied verbatim rather than re-encoded as a picture             |
+| Audio                      | own container, WAV, MP3, M4A, FLAC                     | The same recording, re-encoded by the qualified bundled FFmpeg encoders           |
+| Video                      | own container, MP4, MOV, MKV, and every audio encoding | H.264 and AAC in any of three containers; an audio target keeps only the sound    |
+| Section                    | JSON                                                   | An arrangement rather than a resource: the outline of what it holds               |
+| Object, credential, Portal | JSON                                                   | Structured data and references, serialized from what the Renderer holds           |
+
+A resource that is still being prepared - an asset being imported, a derivation still running, a
+capture still being read - reports that it is unfinished instead of offering a format. An extension
+the resource does not admit is refused in Rust. Every picture encoding earns its place: PNG keeps
+every pixel, JPEG is the small lossy one, WebP keeps every pixel in less space than PNG, and TIFF
+is what print and archival tools accept. A video carries sound as well as pictures, so taking the
+sound out of it is one of its encodings rather than a separate feature. `media-libraries` qualifies
+every encoder named here, so a supplier that lacks one fails the build rather than the export.
 
 The private document worker owns synchronous parsing and serialization. Markdown is parsed with
 `pulldown-cmark`; Notes are translated directly from their validated Tiptap document into the admitted

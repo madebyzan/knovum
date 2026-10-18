@@ -29,6 +29,8 @@
     "formats": {
       "png": "PNG 画像 (.png)",
       "jpg": "JPEG 画像 (.jpg)",
+      "webp": "WebP 画像 (.webp)",
+      "tiff": "TIFF 画像 (.tiff)",
       "md": "Markdown (.md)",
       "txt": "テキスト (.txt)",
       "json": "JSON (.json)",
@@ -41,7 +43,8 @@
       "m4a": "AAC 音声 (.m4a)",
       "flac": "FLAC 音声 (.flac)",
       "mp4": "MP4 動画 (.mp4)",
-      "mov": "QuickTime 動画 (.mov)"
+      "mov": "QuickTime 動画 (.mov)",
+      "mkv": "Matroska 動画 (.mkv)"
     }
   },
   "fileName": "ファイル名",
