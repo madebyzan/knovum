@@ -4,6 +4,43 @@ use serde_json::json;
 
 use crate::spaces::{db, nodes::contracts::InsertNodesRequest, structure};
 
+/// One node as the canvas asks for it, which is what every fixture that needs something on the
+/// canvas is really building.
+pub(in crate::spaces) fn insert_request(
+    space_id: &str,
+    mutation_id: &str,
+    node_id: &str,
+    kind: &str,
+    data: serde_json::Value,
+) -> InsertNodesRequest {
+    serde_json::from_value(json!({
+        "spaceId":space_id,"mutationId":mutation_id,"targetParentId":null,
+        "nodes":[{"id":node_id,"kind":kind,"initialX":0,"initialY":0,"width":320,"height":180,
+            "sizingMode":"content","sourceChunks":[],"data":data}]
+    }))
+    .expect("a node insertion request")
+}
+
+/// Inserts the node a fixture will derive from.
+pub(in crate::spaces) async fn insert_source_in_transaction(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    space_id: &str,
+    node_id: &str,
+    kind: &str,
+    data: serde_json::Value,
+) -> Result<(), String> {
+    let request = insert_request(space_id, &format!("{node_id}-create"), node_id, kind, data);
+    insert_many_in_transaction(tx, request, None)
+        .await
+        .map(|_| ())
+}
+
+/// The plain text source a narration or a document is made from.
+pub(in crate::spaces) fn source_note(title: &str) -> serde_json::Value {
+    json!({"kind":"note","title":title,"plainText":"Hello",
+        "tiptapContent":{"type":"doc","content":[{"type":"paragraph"}]}})
+}
+
 async fn initialized_space() -> sqlx::SqlitePool {
     let pool = sqlx::sqlite::SqlitePoolOptions::new()
         .max_connections(1)
@@ -22,14 +59,14 @@ async fn initialized_space() -> sqlx::SqlitePool {
 }
 
 fn import(name: &str) -> InsertNodesRequest {
-    serde_json::from_value(json!({
-        "spaceId":"space","mutationId":name,"targetParentId":null,
-        "nodes":[{"id":name,"kind":"image","initialX":0,"initialY":0,"width":280,"height":180,
-            "sizingMode":"content","sourceChunks":[],
-            "data":{"kind":"image","title":name,"assetPath":format!("/managed/{name}.png"),
-                "fileName":format!("{name}.png")}}]
-    }))
-    .unwrap()
+    insert_request(
+        "space",
+        name,
+        name,
+        "image",
+        json!({"kind":"image","title":name,"assetPath":format!("/managed/{name}.png"),
+            "fileName":format!("{name}.png")}),
+    )
 }
 
 /// Dropping several files runs their imports in parallel. Each request is built from the Space the

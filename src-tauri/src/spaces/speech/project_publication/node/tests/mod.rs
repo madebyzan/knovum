@@ -25,13 +25,7 @@ async fn fixture(
     sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('run','space','space','user','local-user','workflow','running',0,'{}','{}','{}',1,1)")
         .execute(&mut *tx).await.unwrap();
     let kind = source["kind"].as_str().unwrap().to_owned();
-    let request = serde_json::from_value(json!({
-        "spaceId":"space","mutationId":"source-create","targetParentId":null,
-        "nodes":[{"id":"source","kind":kind,"initialX":0,"initialY":0,"width":320,"height":180,
-            "sizingMode":"content","sourceChunks":[],"data":source}]
-    }))
-    .unwrap();
-    nodes::tests::insert_many_in_transaction(&mut tx, request, None)
+    nodes::tests::insert_source_in_transaction(&mut tx, "space", "source", &kind, source)
         .await
         .unwrap();
     sqlx::query("INSERT INTO spaces_speech_projects(id,space_id,source_node_id,project_type,title,created_at,updated_at) VALUES('project','space','source',?,'Narration',1,1)")
@@ -63,11 +57,6 @@ async fn fixture(
     pool
 }
 
-fn narration_source() -> serde_json::Value {
-    json!({"kind":"note","title":"Source","plainText":"Hello",
-        "tiptapContent":{"type":"doc","content":[{"type":"paragraph"}]}})
-}
-
 fn output() -> SpeechAudioOutput {
     SpeechAudioOutput {
         path: "/managed/narration.wav".into(),
@@ -79,7 +68,12 @@ fn output() -> SpeechAudioOutput {
 
 #[tokio::test]
 async fn publication_settles_the_reserved_node_and_retries_are_idempotent() {
-    let pool = fixture("short_dubbing", narration_source(), "audio").await;
+    let pool = fixture(
+        "short_dubbing",
+        nodes::tests::source_note("Source"),
+        "audio",
+    )
+    .await;
     for _ in 0..2 {
         let mut tx = db::begin_write(&pool).await.unwrap();
         super::settle(&mut tx, "project", "run", &output(), None, None)
@@ -173,7 +167,12 @@ async fn a_dubbed_video_gets_its_own_cover_and_keeps_only_what_the_new_voice_lea
 
 #[tokio::test]
 async fn publication_is_atomic_and_a_deleted_source_cannot_receive_outputs() {
-    let pool = fixture("short_dubbing", narration_source(), "audio").await;
+    let pool = fixture(
+        "short_dubbing",
+        nodes::tests::source_note("Source"),
+        "audio",
+    )
+    .await;
     let mut tx = db::begin_write(&pool).await.unwrap();
     super::settle(&mut tx, "project", "run", &output(), None, None)
         .await
@@ -200,7 +199,12 @@ async fn publication_is_atomic_and_a_deleted_source_cannot_receive_outputs() {
 
 #[tokio::test]
 async fn an_output_whose_run_ended_without_publishing_stops_waiting() {
-    let pool = fixture("short_dubbing", narration_source(), "audio").await;
+    let pool = fixture(
+        "short_dubbing",
+        nodes::tests::source_note("Source"),
+        "audio",
+    )
+    .await;
     sqlx::query("UPDATE spaces_runs SET state='failed',completed_at=2 WHERE id='run'")
         .execute(&pool)
         .await

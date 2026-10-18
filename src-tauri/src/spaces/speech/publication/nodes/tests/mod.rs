@@ -52,18 +52,17 @@ async fn reserved_outputs_carry_their_lineage_and_settle_without_touching_the_so
         .unwrap();
     sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('run','space','space','user','local-user','workflow','running',0,'{}','{}','{}',1,1)")
         .execute(&mut *tx).await.unwrap();
-    let request = serde_json::from_value(json!({
-        "spaceId":"space","mutationId":"source-create",
-        "targetParentId":null,"nodes":[{"id":"source","kind":"audio",
-            "initialX":0,"initialY":0,"width":288,"height":80,"sizingMode":"content",
-            "sourceChunks":[],"data":{"kind":"audio","title":"Source",
-                "assetPath":"/managed/source.wav","fileName":"source.wav",
-                "sourceRevision":format!("sha256:{}", "a".repeat(64)),"durationSeconds":1}}]
-    }))
+    nodes::tests::insert_source_in_transaction(
+        &mut tx,
+        "space",
+        "source",
+        "audio",
+        json!({"kind":"audio","title":"Source","assetPath":"/managed/source.wav",
+            "fileName":"source.wav","sourceRevision":format!("sha256:{}", "a".repeat(64)),
+            "durationSeconds":1}),
+    )
+    .await
     .unwrap();
-    nodes::tests::insert_many_in_transaction(&mut tx, request, None)
-        .await
-        .unwrap();
     let source_before: String =
         sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id='source'")
             .fetch_one(&mut *tx)
@@ -153,17 +152,16 @@ async fn an_output_that_was_never_reserved_cannot_be_settled() {
     structure::repository::initialize_empty_in_transaction(&mut tx, "space")
         .await
         .unwrap();
-    let request = serde_json::from_value(json!({
-        "spaceId":"space","mutationId":"source-create","targetParentId":null,
-        "nodes":[{"id":"source","kind":"audio","initialX":0,"initialY":0,"width":288,"height":80,
-            "sizingMode":"content","sourceChunks":[],"data":{"kind":"audio","title":"Source",
-                "assetPath":"/managed/source.wav","fileName":"source.wav",
-                "sourceRevision":format!("sha256:{}", "a".repeat(64))}}]
-    }))
+    nodes::tests::insert_source_in_transaction(
+        &mut tx,
+        "space",
+        "source",
+        "audio",
+        json!({"kind":"audio","title":"Source","assetPath":"/managed/source.wav",
+            "fileName":"source.wav","sourceRevision":format!("sha256:{}", "a".repeat(64))}),
+    )
+    .await
     .unwrap();
-    nodes::tests::insert_many_in_transaction(&mut tx, request, None)
-        .await
-        .unwrap();
     assert!(
         settle(&mut tx, "space", "source", &[published("vocals")], None)
             .await

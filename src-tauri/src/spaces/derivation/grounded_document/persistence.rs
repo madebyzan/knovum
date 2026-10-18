@@ -42,25 +42,7 @@ pub async fn start(
 }
 
 pub async fn fail(app: &AppHandle, derivation_id: &str, message: &str) -> Result<(), String> {
-    let pool = db::pool(app).await?;
-    let mut tx = db::begin_write(pool).await?;
-    let data: Option<String> = sqlx::query_scalar(
-        "SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'",
-    )
-    .bind(derivation_id)
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(db::sql_error)?;
-    let Some(data) = data else { return Ok(()) };
-    let now = crate::foundation::clock::unix_time_millis()?;
-    let mut value: serde_json::Value = serde_json::from_str(&data).map_err(db::json_error)?;
-    value["derivationState"] = "failed".into();
-    sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=(SELECT output_node_id FROM spaces_knowledge_derivations WHERE id=$3)")
-        .bind(sqlx::types::Json(&value))
-        .bind(now).bind(derivation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
-    sqlx::query("UPDATE spaces_knowledge_derivations SET status='failed',error=$1,completed_at=$2,updated_at=$2 WHERE id=$3 AND status='running'")
-        .bind(message).bind(now).bind(derivation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
-    tx.commit().await.map_err(db::sql_error)
+    crate::spaces::derivation::failure::fail_message(app, derivation_id, message).await
 }
 
 fn validate_request(request: &GenerateGroundedDocumentRequest) -> Result<(), String> {

@@ -30,10 +30,20 @@ pub(super) async fn reserve(
     };
     let node_id = format!("{}-output", authority.run_id);
     request.insert("outputNodeId".into(), node_id.clone().into());
-    if super::super::pending_output::exists(crate::spaces::db::pool(app).await?, space_id, &node_id)
-        .await?
+    // A retry of this Run finds its output already reserved, and reserving is what rejects an
+    // output a person has deleted meanwhile, so both answers come from one place.
+    match super::super::pending_output::node_state(
+        crate::spaces::db::pool(app).await?,
+        space_id,
+        &node_id,
+    )
+    .await?
     {
-        return Ok(());
+        super::super::pending_output::NodeState::Live => return Ok(()),
+        super::super::pending_output::NodeState::Deleted => {
+            return Err(super::super::pending_output::OUTPUT_DELETED.into())
+        }
+        super::super::pending_output::NodeState::Absent => {}
     }
     super::super::pending_output::reserve(
         app,

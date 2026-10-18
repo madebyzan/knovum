@@ -1,5 +1,6 @@
 mod failure;
 mod image_tensors;
+mod reserved_outputs;
 
 #[tokio::test]
 async fn stale_claim_cannot_adopt_the_current_execution_epoch() {

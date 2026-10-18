@@ -132,6 +132,13 @@ when a Run ends without publishing, its reserved outputs are settled as failed. 
 (`processingState` for an asset, `derivationState` for a document) is recorded when the output is
 reserved, so nothing has to re-derive it later.
 
+The relationship holds in the other direction too. Deleting a reserved output calls off the Run
+that owes it content, the way deleting a node cancels the enrichment queued for it — work nobody is
+waiting for stops. Publishing into a node that is gone fails instead of succeeding quietly: a Run
+cannot report a result nobody can see, and it cannot resurrect what a person removed, so a repeat
+of the same work starts over cleanly rather than finding the deleted node and calling itself done.
+A deleted output that is restored shows that its work is over rather than spinning forever.
+
 ## Settling
 
 A derived node settles onto an asset the Space itself published, and it reaches the same standing

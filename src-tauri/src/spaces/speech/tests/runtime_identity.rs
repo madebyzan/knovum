@@ -32,16 +32,15 @@ async fn project_generation_requires_every_engine_package_and_freezes_the_exact_
     crate::spaces::structure::repository::initialize_empty_in_transaction(&mut tx, "space")
         .await
         .unwrap();
-    let request = serde_json::from_value(json!({
-        "spaceId":"space","mutationId":"source-create","targetParentId":null,
-        "nodes":[{"id":"source","kind":"note","initialX":0,"initialY":0,"width":320,"height":100,
-            "sizingMode":"content","sourceChunks":[],"data":{"kind":"note","title":"Source",
-                "plainText":"Hello","tiptapContent":{"type":"doc","content":[{"type":"paragraph"}]}}}]
-    }))
+    crate::spaces::nodes::tests::insert_source_in_transaction(
+        &mut tx,
+        "space",
+        "source",
+        "note",
+        crate::spaces::nodes::tests::source_note("Source"),
+    )
+    .await
     .unwrap();
-    crate::spaces::nodes::tests::insert_many_in_transaction(&mut tx, request, None)
-        .await
-        .unwrap();
     tx.commit().await.unwrap();
     sqlx::query("INSERT INTO spaces_speech_projects(id,space_id,source_node_id,project_type,title,created_at,updated_at) VALUES(?,'space','source','short_dubbing','Draft',1,1)")
         .bind(&project_id).execute(&pool).await.unwrap();

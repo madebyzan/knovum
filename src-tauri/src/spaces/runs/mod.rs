@@ -24,7 +24,10 @@ pub(crate) use contracts::{RunKind, RunObservation, RunState, StepState, WaitRea
 pub(crate) use events::append_event;
 pub use events::RunEventKind;
 pub(crate) use observation::{RunEvent, StepObservation};
-pub(crate) use repository::{create_run_in_transaction, load_run, transition_run, NewRun};
+pub(crate) use repository::{
+    create_run_in_transaction, load_run, request_cancellation_in_transaction, transition_run,
+    NewRun,
+};
 pub(crate) use runtime::{start as start_scheduler, SchedulerHooks};
 pub(crate) use signals::{announce as announce_change, subscribe as subscribe_to_changes};
 
