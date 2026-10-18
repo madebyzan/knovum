@@ -11,7 +11,9 @@ import { useSpaceStore } from "../../../session/space-store";
 import { nodePayloadWork } from "./canvas-node-work";
 import SpaceCanvasProcessingState from "./SpaceCanvasProcessingState.vue";
 
-const props = defineProps<{ id: string; data: SpaceMediaPayload }>();
+const props = withDefaults(defineProps<{ id: string; data: SpaceMediaPayload; interactive?: boolean }>(), {
+  interactive: false,
+});
 const store = useSpaceStore();
 const { t } = useI18n();
 const { mediaSeekRequest, mediaToggleRequest } = storeToRefs(store);
@@ -58,6 +60,7 @@ async function consumeSeekRequest(request: typeof mediaSeekRequest.value) {
       v-if="work?.surface !== 'content'"
       ref="player"
       :data="data"
+      :interactive="interactive"
       @playback="store.updateMediaPlayback(id, $event)"
       @unload="store.clearMediaPlayback(id)"
       @playback-error="toast.error($event)"

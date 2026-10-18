@@ -14,7 +14,9 @@ import { useMediaPlayback } from "../use-media-playback";
 
 const WAVEFORM_BAR_COUNT = 52;
 
-const props = defineProps<{ data: SpaceMediaPayload }>();
+const props = withDefaults(defineProps<{ data: SpaceMediaPayload; interactive?: boolean }>(), {
+  interactive: false,
+});
 const emit = defineEmits<{
   playbackError: [message: string];
   playback: [state: SpaceMediaPlaybackState];
@@ -43,6 +45,7 @@ const durationLabel = computed(() => (analysis.value ? formatDurationMs(analysis
 const playedRatio = computed(() =>
   analysis.value ? Math.min(currentMs.value / analysis.value.durationMs, 1) : 0,
 );
+const seekable = computed(() => Boolean(props.interactive && loaded.value));
 
 function requestPlayback() {
   void togglePlayback().catch((error) => emit("playbackError", getErrorMessage(error)));
@@ -116,12 +119,13 @@ defineExpose({ seekTo, togglePlayback });
       </span>
       <input
         v-if="analysis"
-        class="nodrag pointer-events-auto absolute inset-0 size-full cursor-pointer opacity-0 disabled:cursor-default"
+        class="nodrag absolute inset-0 size-full opacity-0"
+        :class="seekable ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none cursor-default'"
         type="range"
         min="0"
         :max="analysis.durationMs"
         :value="currentMs"
-        :disabled="!loaded"
+        :disabled="!seekable"
         :aria-label="t('spaces.media.player.timeline')"
         @input="seekFromSlider"
       />
