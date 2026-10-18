@@ -6,7 +6,9 @@ import type { SpaceMediaPlaybackState } from "../playback";
 import SpaceAudioPlayer from "./SpaceAudioPlayer.vue";
 import SpaceVideoPlayer from "./SpaceVideoPlayer.vue";
 
-const props = defineProps<{ data: SpaceMediaPayload }>();
+const props = withDefaults(defineProps<{ data: SpaceMediaPayload; interactive?: boolean }>(), {
+  interactive: false,
+});
 const emit = defineEmits<{
   playbackError: [message: string];
   playback: [state: SpaceMediaPlaybackState];
@@ -33,6 +35,7 @@ defineExpose({ seekTo, togglePlayback });
       v-if="data.kind === 'audio'"
       ref="audioPlayer"
       :data="data"
+      :interactive="interactive"
       @playback="emit('playback', $event)"
       @unload="emit('unload')"
       @playback-error="emit('playbackError', $event)"

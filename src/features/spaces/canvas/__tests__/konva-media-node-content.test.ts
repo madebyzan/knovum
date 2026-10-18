@@ -30,11 +30,18 @@ describe("Konva media node content", () => {
       },
       global: {
         plugins: [createPinia(), i18n],
-        stubs: { SpaceCanvasMedia: { template: '<div data-testid="audio-transport" />' } },
+        stubs: {
+          SpaceCanvasMedia: {
+            name: "SpaceCanvasMedia",
+            props: ["interactive"],
+            template: '<div data-testid="audio-transport" />',
+          },
+        },
       },
     });
 
     expect(wrapper.find('[data-testid="audio-transport"]').exists()).toBe(true);
+    expect(wrapper.findComponent({ name: "SpaceCanvasMedia" }).props("interactive")).toBe(false);
     expect(wrapper.text()).not.toContain(data.title);
   });
 

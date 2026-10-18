@@ -52,6 +52,7 @@ const work = computed(() => nodePayloadWork(props.data));
     v-if="data.kind === 'audio' || (data.kind === 'video' && presentationContext.mode === 'interactive')"
     :id="id"
     :data="data"
+    :interactive="interactive"
   />
   <SpaceCanvasImage
     v-else-if="data.kind === 'image'"

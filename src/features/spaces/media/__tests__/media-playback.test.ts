@@ -2,7 +2,8 @@ import { mount } from "@vue/test-utils";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { i18n } from "../../../../foundation/i18n/instance";
-import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
+import type { SpaceAudioPayload, SpaceVideoPayload } from "../../model/nodes/node-payload";
+import SpaceAudioPlayer from "../presentation/SpaceAudioPlayer.vue";
 import SpaceVideoPlayer from "../presentation/SpaceVideoPlayer.vue";
 
 vi.mock("../media-element-source", () => ({
@@ -45,4 +46,29 @@ it("reports playback failures from the player's button as a component event", as
   wrappers.push(wrapper);
   await wrapper.get("button").trigger("click");
   await vi.waitFor(() => expect(wrapper.emitted("playbackError")).toEqual([["Metadata failed"]]));
+});
+
+it("keeps waveform timeline pointer-events-none when audio is unloaded or inactive to allow canvas dragging", () => {
+  const audioData: SpaceAudioPayload = {
+    kind: "audio",
+    title: "Podcast",
+    assetPath: "/podcast.mp3",
+    fileName: "podcast.mp3",
+    sourceRevision: "rev-1",
+    mediaAnalysis: {
+      schemaVersion: 1,
+      sourceRevision: "rev-1",
+      durationMs: 60_000,
+      waveform: [0.1, 0.5, 0.9],
+    },
+  };
+  const wrapper = mount(SpaceAudioPlayer, {
+    props: { data: audioData, interactive: false },
+    global: { plugins: [i18n] },
+  });
+  wrappers.push(wrapper);
+  const slider = wrapper.find('input[type="range"]');
+  expect(slider.exists()).toBe(true);
+  expect(slider.classes()).toContain("pointer-events-none");
+  expect(slider.attributes("disabled")).toBeDefined();
 });
