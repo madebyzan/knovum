@@ -1,38 +1,41 @@
 import { info as logInfo, warn as logWarn } from "@tauri-apps/plugin-log";
-import { toast } from "vue-sonner";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
-import { i18n } from "../../../foundation/i18n/instance";
 import { removeSpaceAssets } from "../assets/asset-operations";
 import { acquireMediaSource } from "../media/import/acquisition";
-import type { MediaImportProgress } from "../media/import/schema/import";
+import type { ResolvedMedia } from "../media/import/schema/import";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import type { SpaceMediaPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { NodePayloadChangeInput } from "../nodes/node-operations";
 import { addSavedWebsite } from "../website/capture";
-import { normalizeSpaceUrl, websiteDefaultTitle } from "../website/url";
-import type { SpaceUrlCaptureProjection } from "./url-capture-projection";
+import { normalizeSpaceUrl } from "../website/url";
 import { classifyUrlSource } from "./url-source-kind";
 
 export interface UrlCaptureContext {
   getActiveSpaceId(): string | undefined;
   nodes: SpaceCanvasNode[];
-  beginUrlCapture(input: Omit<SpaceUrlCaptureProjection, "id">): SpaceUrlCaptureProjection;
-  updateUrlCapture(
-    captureId: string,
-    patch: Partial<
-      Pick<
-        SpaceUrlCaptureProjection,
-        "status" | "downloadedBytes" | "totalBytes" | "processedMs" | "durationMs"
-      >
-    >,
-  ): void;
-  finishUrlCapture(captureId: string): void;
+  createPendingContentForSpace(
+    spaceId: string,
+    data: SpaceNodePayload,
+    position?: { x: number; y: number },
+  ): Promise<SpaceCanvasNode[]>;
+  savePendingNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<void>;
+  finalizePendingContent(spaceId: string, contentNodes: readonly SpaceCanvasNode[], reveal?: boolean): void;
+  discardPendingContent(spaceId: string, nodeId: string): Promise<void>;
   addContent(data: SpaceNodePayload, position?: { x: number; y: number }): Promise<SpaceCanvasNode[]>;
   saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<unknown>;
 }
 
+/**
+ * Captures what a link points at.
+ *
+ * A page is saved as a website. A media link is downloaded into a node that is reserved as soon as
+ * the link says what it is, so the arriving media is ordinary canvas content from the first moment:
+ * it can be moved, selected and left alone while it finishes, and the Task Center carries the
+ * progress of the work that belongs to it.
+ */
 export async function captureSpaceUrl(
   context: UrlCaptureContext,
   url: string,
@@ -43,105 +46,96 @@ export async function captureSpaceUrl(
   const normalized = normalizeSpaceUrl(url);
   if (!normalized) throw new Error("The URL must be HTTP or HTTPS");
   const target = position ?? { x: 0, y: 0 };
-  const projection = context.beginUrlCapture({
-    spaceId,
-    url: normalized,
-    title: websiteDefaultTitle(normalized),
-    position: target,
-    status: "resolving",
-    downloadedBytes: 0,
-    totalBytes: null,
-    processedMs: null,
-    durationMs: null,
-  });
-  let retainFailure = false;
-  try {
-    const sourceKind = classifyUrlSource(new URL(normalized));
-    void logInfo(`[spaces.url-capture] route=${sourceKind}`);
-    if (context.getActiveSpaceId() !== spaceId) return undefined;
-    if (sourceKind === "website") {
-      return await addSavedWebsite({ ...context, activeSpaceId: spaceId }, normalized, target);
-    }
-    const outcome = await importMediaSource(context, {
-      spaceId,
-      url: normalized,
-      target,
-      captureId: projection.id,
-    });
-    retainFailure = outcome.failed;
-    return outcome.node;
-  } catch (error) {
-    void logWarn(`URL capture failed for ${normalized}: ${formatErrorDiagnostic(error)}`);
-    toast.error(i18n.global.t("spaces.importExport.website.captureFailed"));
-    retainFailure = true;
-    context.updateUrlCapture(projection.id, { status: "failed" });
-    return undefined;
-  } finally {
-    if (!retainFailure) context.finishUrlCapture(projection.id);
+  const sourceKind = classifyUrlSource(new URL(normalized));
+  void logInfo(`[spaces.url-capture] route=${sourceKind}`);
+  if (sourceKind === "website") {
+    return addSavedWebsite({ ...context, activeSpaceId: spaceId }, normalized, target);
   }
+  return importMediaSource(context, { spaceId, url: normalized, target });
 }
 
 interface MediaSourceImportInput {
   spaceId: string;
   url: string;
   target: { x: number; y: number };
-  captureId: string;
 }
 
 async function importMediaSource(context: UrlCaptureContext, input: MediaSourceImportInput) {
+  let reserved: SpaceCanvasNode | undefined;
   try {
-    const acquisition = await acquireMediaSource(input.url, (progress: MediaImportProgress) =>
-      context.updateUrlCapture(input.captureId, {
-        status: progress.stage,
-        downloadedBytes: progress.downloadedBytes,
-        totalBytes: progress.totalBytes,
-        processedMs: progress.processedMs,
-        durationMs: progress.durationMs,
-      }),
-    );
-    if (context.getActiveSpaceId() !== input.spaceId) {
-      if (acquisition.outcome === "imported") {
-        try {
-          await removeImportedMedia(acquisition.payload);
-        } catch (error) {
-          void logWarn(
-            `Media import completed after navigation, but downloaded assets could not be removed: ${formatErrorDiagnostic(error)}`,
-          );
-        }
-      }
-      return { failed: false };
-    }
-    if (acquisition.outcome === "imported") {
-      try {
-        void logInfo(`[spaces.url-capture] media acquired; kind=${acquisition.payload.kind}; saving node`);
-        const [node] = await context.addContent(acquisition.payload, input.target);
-        void logInfo(`[spaces.url-capture] media node saved; created=${Boolean(node)}`);
-        return { failed: false, node };
-      } catch (error) {
-        try {
-          await removeImportedMedia(acquisition.payload);
-        } catch (cleanupError) {
-          throw new AggregateError(
-            [error, cleanupError],
-            "Media node could not be saved and downloaded assets could not be removed",
-            { cause: error },
-          );
-        }
-        throw error;
-      }
-    }
-    throw new Error(`Media source is unsupported: ${input.url}`);
+    const acquisition = await acquireMediaSource(input.url, {
+      resolved: async (media) => {
+        const [node] = await context.createPendingContentForSpace(
+          input.spaceId,
+          arrivingMedia(media),
+          input.target,
+        );
+        if (!node) throw new Error("The arriving media could not be placed on the canvas");
+        reserved = node;
+        return { nodeId: node.id, title: media.title };
+      },
+    });
+    if (acquisition.outcome !== "imported") throw new Error(`Media source is unsupported: ${input.url}`);
+    return await settle(context, input.spaceId, requireReserved(reserved), acquisition.payload);
   } catch (error) {
-    if (decodeAppError(error)?.code === "media_acquisition_cancelled") return { failed: false };
+    // Whatever was reserved for this media never arrived, so it is taken away with its asset. The
+    // failure itself belongs to whoever asked for the capture.
+    await discard(context, input.spaceId, reserved);
+    if (decodeAppError(error)?.code === "media_acquisition_cancelled") return undefined;
     void logWarn(`Media import failed for ${input.url}: ${formatErrorDiagnostic(error)}`);
-    toast.error(i18n.global.t("spaces.media.import.failed"));
-    context.updateUrlCapture(input.captureId, { status: "failed" });
-    return { failed: true };
+    throw error;
   }
 }
 
-async function removeImportedMedia(media: { assetPath: string; previewPath?: string | undefined }) {
-  await removeSpaceAssets(
-    [media.assetPath, media.previewPath].filter((path): path is string => path !== undefined),
-  );
+/** The content of a media node whose bytes are still arriving. */
+function arrivingMedia(media: ResolvedMedia): SpaceMediaPayload {
+  const common = {
+    title: media.title,
+    assetPath: media.assetPath,
+    fileName: media.assetPath.split(/[/\\]/u).at(-1) ?? media.title,
+    processingState: "importing",
+    ...(media.durationSeconds === null ? {} : { durationSeconds: media.durationSeconds }),
+  } as const;
+  return media.kind === "audio" ? { kind: "audio", ...common } : { kind: "video", ...common };
+}
+
+function requireReserved(node: SpaceCanvasNode | undefined) {
+  if (!node) throw new Error("The media source was never identified");
+  return node;
+}
+
+async function settle(
+  context: UrlCaptureContext,
+  spaceId: string,
+  node: SpaceCanvasNode,
+  payload: SpaceMediaPayload,
+) {
+  // The engine publishes into the asset it named when the link resolved, which is the asset this
+  // node was reserved with.
+  if ("assetPath" in node.data && node.data.assetPath !== payload.assetPath)
+    throw new Error("The imported media was written somewhere other than its reserved asset");
+  await context.savePendingNodeContentForSpace(spaceId, {
+    id: node.id,
+    expectedContent: node.data,
+    data: payload,
+  });
+  node.data = payload;
+  context.finalizePendingContent(spaceId, [node], context.getActiveSpaceId() === spaceId);
+  void logInfo("[spaces.url-capture] media node settled");
+  return node;
+}
+
+async function discard(context: UrlCaptureContext, spaceId: string, node: SpaceCanvasNode | undefined) {
+  if (!node) return;
+  const assetPath = "assetPath" in node.data ? node.data.assetPath : undefined;
+  const removals = await Promise.allSettled([
+    context.discardPendingContent(spaceId, node.id),
+    ...(assetPath ? [removeSpaceAssets([assetPath])] : []),
+  ]);
+  for (const removal of removals) {
+    if (removal.status === "rejected")
+      void logWarn(
+        `Arriving media could not be removed after a failed import: ${formatErrorDiagnostic(removal.reason)}`,
+      );
+  }
 }

@@ -8,7 +8,6 @@
     "description": "ウェブ URL を保存し、タイトルと概要を抽出します。",
     "previewUnavailable": "ウェブサイトの詳細を取得できませんでした。 URL は保存されます。詳細から再試行してください。",
     "refresh": "Web コンテンツを更新",
-    "captureFailed": "このリンクを追加できませんでした",
     "loading": "Web メタデータを取得中…",
     "refreshFailed": "Web コンテンツの取得に失敗しました"
   },

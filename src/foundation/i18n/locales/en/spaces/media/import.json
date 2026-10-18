@@ -1,6 +1,5 @@
 {
   "title": "Import media",
-  "failed": "Media could not be imported.",
   "preparing": "Preparing media support…",
   "resolving": "Reading media information…",
   "downloading": "Downloading media…",

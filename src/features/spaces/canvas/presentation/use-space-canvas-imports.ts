@@ -14,7 +14,6 @@ import { useSpaceStore } from "../../session/space-store";
 import { captureSpaceUrl } from "../../sources/capture-url";
 import { classifySpaceUrl } from "../../sources/classify-url";
 import { urlCaptureContext } from "../../sources/url-capture-context";
-import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
 import type { CanvasFileImportRequest, CanvasFileImportReceipt } from "../contracts/canvas-editor";
 import { importDroppedFiles } from "../drop";
 import { getCanvasEditorSession } from "../editor-session";
@@ -50,12 +49,6 @@ export function useSpaceCanvasImports(dropTarget: Readonly<Ref<HTMLElement | nul
   async function insertUrl(url: string, point: { x: number; y: number }) {
     if (!operations.allows("create")) return;
     void captureSpaceUrl(urlCaptureContext(), url, point).catch(reportError);
-  }
-
-  function retryCapture(capture: SpaceUrlCaptureProjection) {
-    if (!operations.allows("create")) return;
-    store.finishUrlCapture(capture.id);
-    void insertUrl(capture.url, capture.position);
   }
 
   async function pasteClipboard(point: { x: number; y: number }) {
@@ -169,7 +162,6 @@ export function useSpaceCanvasImports(dropTarget: Readonly<Ref<HTMLElement | nul
     fileHoverPosition,
     insertText,
     insertUrl,
-    retryCapture,
     importFiles,
     pasteNodes: pasteClipboard,
   };

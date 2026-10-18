@@ -1,6 +1,5 @@
 {
   "title": "导入媒体",
-  "failed": "无法导入媒体。",
   "preparing": "正在准备媒体导入能力…",
   "resolving": "正在读取媒体信息…",
   "downloading": "正在下载媒体…",

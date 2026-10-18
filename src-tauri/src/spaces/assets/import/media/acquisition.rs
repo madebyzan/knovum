@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use super::{contracts::ImportedMedia, publish};
 use crate::media::acquisition::{
-    contracts::AcquisitionProgress,
+    contracts::{AcquisitionEvent, AcquisitionProgress, ResolvedMedia},
     metadata::is_http_url,
     tools::AcquisitionTools,
     yt_dlp::{self, AcquisitionError},
@@ -17,7 +17,7 @@ pub(super) fn run(
     job_id: &str,
     source_url: String,
     tools: AcquisitionTools,
-    progress: &Channel<AcquisitionProgress>,
+    progress: &Channel<AcquisitionEvent>,
     cancellation: &CancellationToken,
 ) -> Result<Option<ImportedMedia>, String> {
     let id = parse_job_id(job_id)?;
@@ -49,7 +49,7 @@ fn execute(
     job_id: Uuid,
     source_url: String,
     tools: AcquisitionTools,
-    progress: &Channel<AcquisitionProgress>,
+    progress: &Channel<AcquisitionEvent>,
     cancellation: &CancellationToken,
 ) -> Result<Option<ImportedMedia>, String> {
     match yt_dlp::acquire(
@@ -59,6 +59,20 @@ fn execute(
         &source_url,
         workspace,
         progress,
+        // The canvas reserves its node from this, so the asset it will hold is named here rather
+        // than when the bytes land.
+        &|source| {
+            progress
+                .send(AcquisitionEvent::Resolved(ResolvedMedia {
+                    asset_path: publish::reserved_asset(assets, job_id, source.kind)
+                        .to_string_lossy()
+                        .into_owned(),
+                    kind: source.kind,
+                    title: source.title,
+                    duration_seconds: source.duration_seconds,
+                }))
+                .map_err(|error| error.to_string())
+        },
         cancellation,
     ) {
         Ok(()) => {}
@@ -66,13 +80,13 @@ fn execute(
         Err(AcquisitionError::Failed(error)) => return Err(error),
     }
     progress
-        .send(AcquisitionProgress {
+        .send(AcquisitionEvent::Progress(AcquisitionProgress {
             stage: "finalizing",
             downloaded_bytes: 0,
             total_bytes: None,
             processed_ms: None,
             duration_ms: None,
-        })
+        }))
         .map_err(|error| error.to_string())?;
     publish::commit(
         assets,

@@ -1,26 +1,31 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
-import type { MediaImportProgress } from "../media/import/schema/import";
+import type { MediaAcquisitionObserver } from "../media/import/acquisition";
 import type { SpaceMediaPayload } from "../model/nodes/capabilities";
-import { captureHarness, importedVideo, POSITION, URL } from "./support/capture-url-harness";
+import {
+  captureHarness,
+  importedVideo,
+  POSITION,
+  RESERVED_ASSET,
+  resolvedVideo,
+  URL,
+} from "./support/capture-url-harness";
 
 const mocks = vi.hoisted(() => ({
   acquireMediaSource:
     vi.fn<
       (
         url: string,
-        onProgress: (progress: MediaImportProgress) => void,
+        observer: MediaAcquisitionObserver,
       ) => Promise<{ outcome: "imported"; payload: SpaceMediaPayload } | { outcome: "unsupported" }>
     >(),
   addSavedWebsite: vi.fn<() => Promise<void>>(),
   logInfo: vi.fn<(message: string) => void>(),
   logWarn: vi.fn<(message: string) => void>(),
   removeSpaceAssets: vi.fn<(paths: readonly string[]) => Promise<void>>(),
-  toastError: vi.fn<(message: string) => void>(),
 }));
 
 vi.mock("@tauri-apps/plugin-log", () => ({ info: mocks.logInfo, warn: mocks.logWarn }));
-vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
 vi.mock("../../../foundation/i18n/instance", () => ({
   i18n: { global: { t: (key: string) => key } },
 }));
@@ -35,15 +40,19 @@ beforeEach(() => {
   mocks.addSavedWebsite.mockResolvedValue(undefined);
 });
 
-it("preserves persistence and downloaded asset cleanup failures", async () => {
-  mocks.acquireMediaSource.mockResolvedValue({ outcome: "imported", payload: importedVideo() });
+it("reports both the settlement failure and the asset cleanup that could not follow it", async () => {
+  mocks.acquireMediaSource.mockImplementation(async (_url, observer) => {
+    await observer.resolved(resolvedVideo());
+    return { outcome: "imported", payload: importedVideo() };
+  });
   mocks.removeSpaceAssets.mockRejectedValueOnce(new Error("asset locked"));
   const harness = captureHarness();
-  harness.addContent.mockRejectedValue(new Error("revision rejected"));
+  harness.savePending.mockRejectedValue(new Error("revision rejected"));
 
-  await captureSpaceUrl(harness.context, URL, POSITION);
+  await expect(captureSpaceUrl(harness.context, URL, POSITION)).rejects.toThrow("revision rejected");
 
   expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining("revision rejected"));
   expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining("asset locked"));
-  expect(harness.update).toHaveBeenCalledWith("import-1", { status: "failed" });
+  expect(harness.discard).toHaveBeenCalledWith("space-1", "media");
+  expect(mocks.removeSpaceAssets).toHaveBeenCalledWith([RESERVED_ASSET]);
 });

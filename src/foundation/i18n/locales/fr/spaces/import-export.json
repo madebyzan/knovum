@@ -8,7 +8,6 @@
     "description": "Enregistrez le Web URL et extrayez le titre et le résumé.",
     "previewUnavailable": "Les détails du site Web n'ont pas pu être récupérés. Le URL est enregistré ; réessayez à partir des détails.",
     "refresh": "Actualiser le contenu Web",
-    "captureFailed": "Impossible d'ajouter ce lien",
     "loading": "Récupération des métadonnées Web…",
     "refreshFailed": "Échec de la récupération du contenu Web"
   },

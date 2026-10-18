@@ -8,7 +8,6 @@
     "description": "Save web URL and extract title and summary.",
     "previewUnavailable": "Website details couldn't be fetched. The URL is saved; retry from details.",
     "refresh": "Refresh web content",
-    "captureFailed": "Could not add this link",
     "loading": "Fetching web metadata…",
     "refreshFailed": "Failed to fetch web content"
   },

@@ -9,9 +9,10 @@ export function urlCaptureContext(): UrlCaptureContext {
     get nodes() {
       return store.nodes;
     },
-    beginUrlCapture: store.beginUrlCapture,
-    updateUrlCapture: store.updateUrlCapture,
-    finishUrlCapture: store.finishUrlCapture,
+    createPendingContentForSpace: store.createPendingContentForSpace,
+    savePendingNodeContentForSpace: store.savePendingNodeContentForSpace,
+    finalizePendingContent: store.finalizePendingContent,
+    discardPendingContent: store.discardPendingContent,
     addContent: store.addContent,
     saveNodeContentForSpace: store.saveNodeContentForSpace,
   };

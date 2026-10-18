@@ -8,7 +8,6 @@
     "description": "Guarde la web URL y extraiga el título y el resumen.",
     "previewUnavailable": "No se pudieron recuperar los detalles del sitio web. El URL se guarda; Vuelva a intentarlo desde los detalles.",
     "refresh": "Actualizar contenido web",
-    "captureFailed": "No se pudo agregar este enlace",
     "loading": "Obteniendo metadatos web…",
     "refreshFailed": "No se pudo recuperar el contenido web"
   },

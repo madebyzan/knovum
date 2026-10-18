@@ -5,7 +5,6 @@ import type { SpaceRelation } from "../model/relations/relation";
 import type { Space, SpaceLibraryScope } from "../model/space";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import type { SpaceScene } from "../scenes/scene";
-import type { SpaceUrlCaptureProjection } from "../sources/url-capture-projection";
 
 export function createSpaceContentState() {
   const spaces = ref<Space[]>([]);
@@ -18,7 +17,6 @@ export function createSpaceContentState() {
     relationStyles: [],
   });
   const groupScopePath = shallowRef<string[]>([]);
-  const urlCaptures = shallowRef<SpaceUrlCaptureProjection[]>([]);
   const scenes = ref<SpaceScene[]>([]);
   const relations = ref<SpaceRelation[]>([]);
   const ready = ref(false);
@@ -34,7 +32,6 @@ export function createSpaceContentState() {
     nodes,
     editSnapshot,
     groupScopePath,
-    urlCaptures,
     scenes,
     relations,
     ready,

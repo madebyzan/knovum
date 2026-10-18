@@ -1,61 +1,24 @@
 <script setup lang="ts">
 import { AlertCircle, X } from "@lucide/vue";
-import { clamp } from "es-toolkit";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import SpaceCanvasSceneFeedback from "../../scenes/presentation/SpaceCanvasSceneFeedback.vue";
-import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
 import SpaceEmptyState from "../../workspace/presentation/SpaceEmptyState.vue";
-import { getCanvasEditorSession } from "../editor-session";
-import SpaceCanvasMediaImport from "./SpaceCanvasMediaImport.vue";
 
-const props = defineProps<{
-  canvasToViewportPoint(point: { x: number; y: number }): { x: number; y: number };
-  captures: readonly SpaceUrlCaptureProjection[];
+defineProps<{
   empty: boolean;
   error?: string;
   fileHover: boolean;
   fileHoverPosition?: { x: number; y: number };
 }>();
-const emit = defineEmits<{
-  dismissError: [];
-  dismissCapture: [id: string];
-  retryCapture: [capture: SpaceUrlCaptureProjection];
-}>();
+const emit = defineEmits<{ dismissError: [] }>();
 const { t } = useI18n();
-const editorSession = getCanvasEditorSession();
-
-function captureStyle(capture: SpaceUrlCaptureProjection) {
-  const position = props.canvasToViewportPoint(capture.position);
-  const zoom = editorSession.viewport.value?.zoom ?? 1;
-  return {
-    transform: `translate(${position.x}px, ${position.y}px) scale(${clamp(zoom, 0.75, 1)})`,
-  };
-}
 </script>
 
 <template>
   <SpaceCanvasSceneFeedback />
   <SpaceEmptyState v-if="empty" />
-  <TransitionGroup
-    tag="div"
-    class="contents"
-    enter-active-class="transition-opacity duration-150 ease-standard motion-reduce:transition-none"
-    enter-from-class="opacity-0"
-    leave-active-class="transition-opacity duration-100 ease-standard motion-reduce:transition-none"
-    leave-to-class="opacity-0"
-  >
-    <SpaceCanvasMediaImport
-      v-for="capture in captures"
-      :key="capture.id"
-      class="pointer-events-auto absolute top-0 left-0 z-20 origin-top-left"
-      :style="captureStyle(capture)"
-      :capture="capture"
-      @dismiss="emit('dismissCapture', capture.id)"
-      @retry="emit('retryCapture', capture)"
-    />
-  </TransitionGroup>
   <div
     v-if="fileHover && fileHoverPosition"
     class="pointer-events-none fixed z-40 -translate-y-full pb-3 pl-3"

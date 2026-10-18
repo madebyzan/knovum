@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { importedMediaSchema, mediaImportProgressSchema } from "../media/import/schema/import";
+import {
+  importedMediaSchema,
+  mediaAcquisitionEventSchema,
+  mediaImportProgressSchema,
+} from "../media/import/schema/import";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import { classifySpaceUrl } from "../sources/classify-url";
 
@@ -73,5 +77,30 @@ describe("Space media import contracts", () => {
     } as const;
     expect(mediaImportProgressSchema.parse(progress)).toEqual(progress);
     expect(() => mediaImportProgressSchema.parse({ ...progress, percent: 50 })).toThrow("Unrecognized key");
+  });
+
+  /** The canvas reserves its node from the resolved event, so both events are one contract. */
+  it("reads what the acquisition reports: the identified source, then its progress", () => {
+    const resolved = {
+      event: "resolved",
+      kind: "audio",
+      title: "Interview",
+      durationSeconds: 1800,
+      assetPath: "/spaces/assets/import.m4a",
+    } as const;
+    expect(mediaAcquisitionEventSchema.parse(resolved)).toEqual(resolved);
+    const progress = {
+      event: "progress",
+      stage: "finalizing",
+      downloadedBytes: 0,
+      totalBytes: null,
+      processedMs: 1200,
+      durationMs: 1800,
+    } as const;
+    expect(mediaAcquisitionEventSchema.parse(progress)).toEqual(progress);
+    expect(() => mediaAcquisitionEventSchema.parse({ ...resolved, assetPath: "" })).toThrow("Too small");
+    expect(() => mediaAcquisitionEventSchema.parse({ ...resolved, event: "named" })).toThrow(
+      "No matching discriminator",
+    );
   });
 });

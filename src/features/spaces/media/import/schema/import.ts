@@ -33,3 +33,23 @@ export const mediaImportProgressSchema = z
   .strict();
 
 export type MediaImportProgress = z.infer<typeof mediaImportProgressSchema>;
+
+/** What the link turned out to be, reported before the download starts. */
+export const resolvedMediaSchema = z
+  .object({
+    kind: z.enum(["video", "audio"]),
+    title: z.string().trim().min(1).max(512),
+    durationSeconds: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
+    assetPath: z.string().min(1).max(4096),
+  })
+  .strict();
+
+export type ResolvedMedia = z.infer<typeof resolvedMediaSchema>;
+
+/** What an acquisition reports while it runs: what the source is, then how far it has got. */
+export const mediaAcquisitionEventSchema = z.discriminatedUnion("event", [
+  resolvedMediaSchema.extend({ event: z.literal("resolved") }),
+  mediaImportProgressSchema.extend({ event: z.literal("progress") }),
+]);
+
+export type MediaAcquisitionEvent = z.infer<typeof mediaAcquisitionEventSchema>;

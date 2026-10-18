@@ -99,6 +99,15 @@ already reserved when the user clicked. A disabled menu entry is reserved for th
 be fixed by waiting: a selection larger than a Run can pin, or a selection with nothing a model can
 read, each stated plainly.
 
+The same rule covers content that arrives from outside. A pasted media link is downloaded into a
+node reserved the moment the link says what it is - its kind, its title and the asset it will hold -
+so arriving media is ordinary canvas content from the first moment: it can be moved, selected and
+left alone while it finishes, and it survives a restart. Work names the node it belongs to, so the
+node shows the stage it is in and offers to stop it, while the Task Center carries the same work as
+a Run. An output's `derives-from` Relations are written with the node, not when it settles, so
+lineage is visible for the whole time the work takes rather than appearing at the end. Nothing is
+left behind: an import that fails or is cancelled takes its reserved node and its asset away.
+
 ## Reuse
 
 A derived node records its Action, pinned parameters, sources and execution identity. That is

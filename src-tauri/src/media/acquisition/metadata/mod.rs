@@ -18,13 +18,28 @@ pub(crate) struct YtDlpMetadata {
     pub acodec: Option<String>,
 }
 
+/// What kind of media a selected format is. One rule answers it for the line yt-dlp prints before
+/// the download and for the metadata it writes afterwards, so the node reserved at the start and
+/// the resource published at the end can never disagree.
+pub(crate) fn media_kind(vcodec: Option<&str>) -> Result<MediaKind, String> {
+    match vcodec {
+        Some("none") => Ok(MediaKind::Audio),
+        Some(_) => Ok(MediaKind::Video),
+        None => Err("yt-dlp omitted the selected video codec".into()),
+    }
+}
+
+/// A duration in whole seconds, when yt-dlp reported one a resource can carry.
+pub(crate) fn duration_seconds(duration: Option<f64>) -> Option<u64> {
+    const JS_MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991.0;
+    duration
+        .filter(|value| value.is_finite() && (0.0..=JS_MAX_SAFE_INTEGER).contains(value))
+        .map(|value| value.round() as u64)
+}
+
 impl YtDlpMetadata {
     pub(crate) fn media_kind(&self) -> Result<MediaKind, String> {
-        match self.vcodec.as_deref() {
-            Some("none") => Ok(MediaKind::Audio),
-            Some(_) => Ok(MediaKind::Video),
-            None => Err("yt-dlp omitted the selected video codec".into()),
-        }
+        media_kind(self.vcodec.as_deref())
     }
 
     pub(crate) fn is_playable(&self, kind: MediaKind, extension: &str) -> Result<bool, String> {
@@ -56,10 +71,7 @@ impl YtDlpMetadata {
     }
 
     pub(crate) fn duration_seconds(&self) -> Option<u64> {
-        const JS_MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991.0;
-        self.duration
-            .filter(|value| value.is_finite() && (0.0..=JS_MAX_SAFE_INTEGER).contains(value))
-            .map(|value| value.round() as u64)
+        duration_seconds(self.duration)
     }
 
     pub(crate) fn display_dimensions(&self) -> Option<(u32, u32)> {

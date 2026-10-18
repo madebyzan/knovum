@@ -1,56 +1,58 @@
 import { vi } from "vitest";
 
+import type { ResolvedMedia } from "../../media/import/schema/import";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import type { NodePayloadChangeInput } from "../../nodes/node-operations";
-import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
 
 type Point = { x: number; y: number };
+type CreatePending = (
+  spaceId: string,
+  data: SpaceNodePayload,
+  position?: Point,
+) => Promise<SpaceCanvasNode[]>;
+type SavePending = (spaceId: string, change: NodePayloadChangeInput) => Promise<void>;
+type Finalize = (spaceId: string, nodes: readonly SpaceCanvasNode[], reveal?: boolean) => void;
+type Discard = (spaceId: string, nodeId: string) => Promise<void>;
 type AddContent = (data: SpaceNodePayload, position?: Point) => Promise<SpaceCanvasNode[]>;
-type SaveNodeContent = (spaceId: string, change: NodePayloadChangeInput) => Promise<void>;
 
 export const URL = "https://www.youtube.com/watch?v=abc123";
 export const POSITION = { x: 120, y: 80 };
+export const RESERVED_ASSET = "/spaces/assets/import-1.mp4";
 
 export function captureHarness() {
   let activeSpaceId = "space-1";
-  const projection: SpaceUrlCaptureProjection = {
-    id: "import-1",
-    spaceId: activeSpaceId,
-    url: URL,
-    title: "youtube.com",
-    position: POSITION,
-    status: "resolving",
-    downloadedBytes: 0,
-    totalBytes: null,
-    processedMs: null,
-    durationMs: null,
-  };
-  const begin = vi.fn<(input: Omit<SpaceUrlCaptureProjection, "id">) => SpaceUrlCaptureProjection>(
-    () => projection,
-  );
-  const finish = vi.fn<(captureId: string) => void>();
-  const update = vi.fn<(captureId: string, patch: object) => void>();
-  const addContent = vi.fn<AddContent>(async (data, position = POSITION) => [mediaNode(data, position)]);
+  const createPending = vi.fn<CreatePending>(async (_spaceId, data, position = POSITION) => [
+    mediaNode(data, position),
+  ]);
+  const savePending = vi.fn<SavePending>();
+  const finalize = vi.fn<Finalize>();
+  const discard = vi.fn<Discard>();
   return {
     context: {
       getActiveSpaceId: () => activeSpaceId,
       nodes: [],
-      beginUrlCapture: begin,
-      updateUrlCapture: update,
-      finishUrlCapture: finish,
-      addContent,
-      saveNodeContentForSpace: vi.fn<SaveNodeContent>(),
+      createPendingContentForSpace: createPending,
+      savePendingNodeContentForSpace: savePending,
+      finalizePendingContent: finalize,
+      discardPendingContent: discard,
+      addContent: vi.fn<AddContent>(),
+      saveNodeContentForSpace: vi.fn<SavePending>(),
     },
-    begin,
-    finish,
-    update,
-    addContent,
+    createPending,
+    savePending,
+    finalize,
+    discard,
     setActiveSpace: (spaceId: string) => {
       activeSpaceId = spaceId;
     },
   };
+}
+
+/** What the engine reports once the link says what it is. */
+export function resolvedVideo(): ResolvedMedia {
+  return { kind: "video", title: "Video", durationSeconds: 12, assetPath: RESERVED_ASSET };
 }
 
 export function pendingImport() {
@@ -71,8 +73,8 @@ export function importedVideo(): SpaceMediaPayload {
     kind: "video",
     title: "Video",
     durationSeconds: 12,
-    assetPath: "/spaces/assets/video.mp4",
-    fileName: "video.mp4",
+    assetPath: RESERVED_ASSET,
+    fileName: "import-1.mp4",
     size: 1024,
     modifiedAt: 1,
     sourceRevision: "asset1",

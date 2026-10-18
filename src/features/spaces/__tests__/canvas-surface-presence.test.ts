@@ -50,23 +50,6 @@ it("treats a Section-only canvas as populated and suspends hidden canvas input",
   const chrome = wrapper.findComponent(SpaceCanvasProductLayer);
   expect(host.props("navigationEnabled")).toBe(false);
   expect(chrome.props("empty")).toBe(true);
-  store.urlCaptures = [
-    {
-      id: "capture",
-      spaceId: "elsewhere",
-      url: "https://example.com",
-      title: "Capture",
-      position: { x: 0, y: 0 },
-      status: "preparing",
-      downloadedBytes: 0,
-      totalBytes: null,
-      processedMs: null,
-      durationMs: null,
-    },
-  ];
-  await wrapper.vm.$nextTick();
-  expect(chrome.props("empty")).toBe(true);
-  expect(chrome.props("captures")).toEqual([]);
   await useCanvasToolStore().selectTool("section");
   await wrapper.vm.$nextTick();
   expect(chrome.props("empty")).toBe(false);

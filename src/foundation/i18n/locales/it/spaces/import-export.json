@@ -8,7 +8,6 @@
     "description": "Salva web URL ed estrai titolo e riepilogo.",
     "previewUnavailable": "Impossibile recuperare i dettagli del sito web. Lo URL viene salvato; riprovare dai dettagli.",
     "refresh": "Aggiorna contenuto web",
-    "captureFailed": "Impossibile aggiungere questo collegamento",
     "loading": "Recupero metadati web…",
     "refreshFailed": "Impossibile recuperare il contenuto web"
   },
