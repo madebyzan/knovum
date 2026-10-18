@@ -8,7 +8,6 @@
   "endSeconds": "結束時間（秒）",
   "addLine": "加入定時片段",
   "removeLine": "移除定時片段",
-  "needsTimingEdit": "生成語音的時長超出目標區間。請修改文字或時間區間，再儲存新版本。",
   "retainOriginalTrack": "保留獨立原聲音軌",
   "preserveOriginalOutsideDialogue": "在原對白區間外保留原始聲音",
   "importSubtitles": "導入 SRT / WebVTT 配音稿",

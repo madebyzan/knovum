@@ -96,7 +96,6 @@ describe("speech architecture policies", () => {
         deliveryInstruction: "",
         startSeconds: "0",
         endSeconds: "1",
-        needsTimingEdit: false,
         sourceSegmentId: "source-1",
         sourceSegmentRevision: 4,
       },
@@ -138,7 +137,6 @@ describe("speech architecture policies", () => {
       deliveryInstruction: "Quiet and measured",
       startSeconds: "0",
       endSeconds: "1",
-      needsTimingEdit: false,
     };
     expect(bindVideoSpeaker([line], "Narrator", "compact", false)[0]?.deliveryInstruction).toBe("");
     expect(bindVideoSpeaker([line], "Narrator", "expressive", true)[0]?.deliveryInstruction).toBe(

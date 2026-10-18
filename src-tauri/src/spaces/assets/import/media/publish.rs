@@ -9,13 +9,13 @@ use uuid::Uuid;
 use super::contracts::{ImportedMedia, MediaOrigin};
 use crate::file_inspection::{content_revision, modified_millis};
 use crate::media::acquisition::{
-    contracts::{AcquisitionEvent, MediaKind},
+    contracts::{AcquisitionProgress, MediaKind},
     metadata::YtDlpMetadata,
     output, playable_asset,
 };
 
-/// Where a downloaded media asset lives. The container follows the kind, so the path the canvas
-/// reserved when the link resolved is the path the import publishes into.
+/// Where a downloaded media asset lives. The container follows the kind the link asked for, so the
+/// path the canvas reserved when the link was dropped is the path the import publishes into.
 pub(super) fn reserved_asset(assets: &Path, job_id: Uuid, kind: MediaKind) -> PathBuf {
     assets.join(format!(
         "{job_id}.{}",
@@ -30,25 +30,25 @@ pub(super) fn commit(
     assets: &Path,
     workspace: &Path,
     job_id: Uuid,
+    kind: MediaKind,
     ffmpeg: &Path,
-    progress: &Channel<AcquisitionEvent>,
+    progress: &Channel<AcquisitionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<ImportedMedia, String> {
     let metadata = output::load_metadata(workspace)?;
     let downloaded = output::downloaded_path(workspace, &metadata.filepath)?;
-    let media_kind = metadata.media_kind()?;
     let downloaded_extension = output::extension(&downloaded)?;
     let playable = playable_asset::prepare(playable_asset::Preparation {
         source: &downloaded,
         workspace,
         ffmpeg,
         metadata: &metadata,
-        kind: media_kind,
+        kind,
         extension: &downloaded_extension,
         progress,
         cancellation,
     })?;
-    let target = reserved_asset(assets, job_id, media_kind);
+    let target = reserved_asset(assets, job_id, kind);
     fs::rename(&playable, &target)
         .map_err(|error| format!("Unable to commit downloaded media asset: {error}"))?;
     let preview_path = match commit_preview(workspace, assets, job_id) {
@@ -58,7 +58,7 @@ pub(super) fn commit(
             return Err(error);
         }
     };
-    match build_import(metadata, media_kind, &target, preview_path.clone()) {
+    match build_import(metadata, kind, &target, preview_path.clone()) {
         Ok(value) => Ok(value),
         Err(error) => {
             let _ = fs::remove_file(&target);

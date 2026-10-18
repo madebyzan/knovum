@@ -8,7 +8,6 @@
   "endSeconds": "종료(초)",
   "addLine": "시간 제한 라인 추가",
   "removeLine": "시간 제한선 제거",
-  "needsTimingEdit": "생성된 음성이 이 목표 간격에 맞지 않습니다. 텍스트나 간격을 조정한 다음 새 개정판을 저장하세요.",
   "retainOriginalTrack": "원본 오디오를 별도의 트랙으로 포함",
   "preserveOriginalOutsideDialogue": "소스 대화 간격 외부에서 원래 사운드 유지",
   "importSubtitles": "SRT/WebVTT 스크립트 가져오기",

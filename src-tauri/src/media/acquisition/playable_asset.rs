@@ -8,7 +8,7 @@ use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    contracts::{AcquisitionEvent, AcquisitionProgress, MediaKind},
+    contracts::{AcquisitionProgress, MediaKind},
     metadata::YtDlpMetadata,
 };
 use crate::foundation::subprocess;
@@ -20,7 +20,7 @@ pub(crate) struct Preparation<'a> {
     pub metadata: &'a YtDlpMetadata,
     pub kind: MediaKind,
     pub extension: &'a str,
-    pub progress: &'a Channel<AcquisitionEvent>,
+    pub progress: &'a Channel<AcquisitionProgress>,
     pub cancellation: &'a CancellationToken,
 }
 
@@ -117,7 +117,7 @@ pub(crate) fn prepare(request: Preparation<'_>) -> Result<PathBuf, String> {
 fn report_progress(
     line: &str,
     duration_ms: Option<u64>,
-    progress: &Channel<AcquisitionEvent>,
+    progress: &Channel<AcquisitionProgress>,
 ) -> Result<(), String> {
     let Some(processed_us) = line
         .strip_prefix("out_time_ms=")
@@ -126,12 +126,12 @@ fn report_progress(
         return Ok(());
     };
     progress
-        .send(AcquisitionEvent::Progress(AcquisitionProgress {
+        .send(AcquisitionProgress {
             stage: "finalizing",
             downloaded_bytes: 0,
             total_bytes: None,
             processed_ms: Some(processed_us / 1000),
             duration_ms,
-        }))
+        })
         .map_err(|error| error.to_string())
 }

@@ -422,10 +422,14 @@ is supplied, its normalized character edit distance from recognition must not ex
 is bounded to 3,000 characters. Audio-only references remain supported, and inferred ASR text is
 never saved as a confirmed cloning condition.
 
-Video dialogue may be stretched only from 0.9 through 1.1 to fit its assigned interval. A larger
-mismatch becomes `needs_edit`, and overlapping dialogue is represented by explicit lanes. The editor
-offers source-voice mute or a separately imported background track. Knovum does not claim to retain
-environmental sound because no legally distributable, qualified dialogue-separation model is selected.
+A subtitle interval is the target a dubbed line aims at, not a condition it must meet. A line is
+spoken at its own pace and fitted when the mix is planned: it is compressed by up to 1.25× to land
+inside its interval, and a line that needs more than that keeps speaking into the room before the
+next one rather than being cut or refused. Nothing is slowed down to fill an interval, no line is
+heard past the end of the video, and overlapping dialogue is represented by explicit lanes. The
+editor offers source-voice mute or a separately imported background track. Knovum does not claim to
+retain environmental sound because no legally distributable, qualified dialogue-separation model is
+selected.
 
 Video translation owns restore, submission, observation and result loading. Editing and synthesis
 remain disabled until the matching result is applied or the job settles; revision changes invalidate
@@ -847,6 +851,9 @@ normal action bar. No duplicate result-review bar or insertion state is maintain
 The shared resource-run observer invalidates the owning space's resource-publication queries on
 completion, including when its editor is closed or another space is selected. Published-result
 selectors use that query namespace; canvas refresh and query-cache refresh remain separate.
+Refreshing the Space a Run publishes into is a reload, not a navigation: the canvas session stays
+mounted, edits stay admitted while the Run reports, and the view changes only where the reloaded
+projection differs from the one the session already holds.
 
 The current pre-release v1 database/package baseline records the source node and both stem paths
 and digests, without review states. Obsolete baselines are rejected by the existing strict schema
