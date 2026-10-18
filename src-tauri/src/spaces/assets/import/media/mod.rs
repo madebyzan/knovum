@@ -4,7 +4,7 @@ mod jobs;
 mod publish;
 
 use crate::foundation::app_error::AppError;
-use crate::media::acquisition::contracts::{AcquisitionEvent, AcquisitionProgress};
+use crate::media::acquisition::contracts::{AcquisitionProgress, MediaKind};
 pub(crate) use contracts::ImportedMedia;
 
 pub(crate) fn cleanup_stale_workspaces(app: &tauri::AppHandle) -> Result<(), String> {
@@ -16,16 +16,35 @@ pub(super) fn reserve_maintenance(
     jobs::reserve_maintenance()
 }
 
+/// Names the asset a media import will publish into, before it starts.
+///
+/// The canvas reserves its node from this, so arriving media is ordinary canvas content from the
+/// moment the link is dropped: it can be moved, selected and left alone while it finishes.
+#[tauri::command]
+pub fn reserve_media_import_asset(
+    app: tauri::AppHandle,
+    job_id: String,
+    kind: MediaKind,
+) -> Result<String, AppError> {
+    let id = acquisition::parse_job_id(&job_id)?;
+    Ok(
+        publish::reserved_asset(&crate::spaces::assets::asset_directory(&app)?, id, kind)
+            .to_string_lossy()
+            .into_owned(),
+    )
+}
+
 #[tauri::command]
 pub async fn import_media_from_url(
     app: tauri::AppHandle,
     job_id: String,
     resource_title: String,
+    kind: MediaKind,
     url: String,
-    on_progress: tauri::ipc::Channel<AcquisitionEvent>,
+    on_progress: tauri::ipc::Channel<AcquisitionProgress>,
 ) -> Result<Option<ImportedMedia>, AppError> {
     acquisition::validate_source_url(&url)?;
-    acquisition::validate_job_id(&job_id)?;
+    let execution_id = acquisition::parse_job_id(&job_id)?;
     let (cancellation, _lease) = jobs::acquire(job_id.clone())?;
     let resource_job_id = format!("resource:{job_id}");
     let tools = crate::media::acquisition::tools::prepare_required_for_job(
@@ -58,10 +77,17 @@ pub async fn import_media_from_url(
             duration_ms: None,
         },
     );
-    let execution_id = job_id;
     crate::foundation::blocking::run(move || {
         let _job = _lease;
-        acquisition::run(&app, &execution_id, url, tools, &on_progress, &cancellation)
+        acquisition::run(
+            &app,
+            execution_id,
+            kind,
+            url,
+            tools,
+            &on_progress,
+            &cancellation,
+        )
     })
     .await
     .map_err(media_acquisition_error)
@@ -88,8 +114,8 @@ fn media_acquisition_error(error: String) -> AppError {
     }
 }
 
-fn observe(channel: &tauri::ipc::Channel<AcquisitionEvent>, progress: AcquisitionProgress) {
-    if let Err(error) = channel.send(AcquisitionEvent::Progress(progress)) {
+fn observe(channel: &tauri::ipc::Channel<AcquisitionProgress>, progress: AcquisitionProgress) {
+    if let Err(error) = channel.send(progress) {
         log::debug!("media import progress observer disconnected: {error}");
     }
 }

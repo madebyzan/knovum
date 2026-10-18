@@ -48,6 +48,7 @@ macro_rules! knovum_workspace_commands {
         crate::spaces::assets::import::web::capture_web_resource,
         crate::spaces::assets::import::web::import_web_image,
         crate::spaces::clipboard_content::read_space_clipboard_content,
+        crate::spaces::assets::import::media::reserve_media_import_asset,
         crate::spaces::assets::import::media::import_media_from_url,
         crate::spaces::assets::import::media::cancel_media_import,
         crate::spaces::canvas_view_state::load_canvas_view_state,

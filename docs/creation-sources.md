@@ -99,14 +99,17 @@ already reserved when the user clicked. A disabled menu entry is reserved for th
 be fixed by waiting: a selection larger than a Run can pin, or a selection with nothing a model can
 read, each stated plainly.
 
-The same rule covers content that arrives from outside. A pasted media link is downloaded into a
-node reserved the moment the link says what it is - its kind, its title and the asset it will hold -
-so arriving media is ordinary canvas content from the first moment: it can be moved, selected and
-left alone while it finishes, and it survives a restart. Work names the node it belongs to, so the
-node shows the stage it is in and offers to stop it, while the Task Center carries the same work as
-a Run. An output's `derives-from` Relations are written with the node, not when it settles, so
-lineage is visible for the whole time the work takes rather than appearing at the end. Nothing is
-left behind: an import that fails or is cancelled takes its reserved node and its asset away.
+The same rule covers content that arrives from outside. A pasted media link already says what it
+will become - a link to a page is saved as a website, and a link to media says whether it is audio
+or video - so its node is reserved the moment the link is dropped, before anything is downloaded.
+Arriving media is ordinary canvas content from the first moment: it can be moved, selected and left
+alone while it finishes, and it survives a restart. The import is asked for the kind the link
+promised and must publish into the asset the node holds, so the node the canvas has been showing is
+the node that settles. Work names the node it belongs to, so the node shows the stage it is in and
+offers to stop it, while the Task Center carries the same work as a Run. An output's `derives-from`
+Relations are written with the node, not when it settles, so lineage is visible for the whole time
+the work takes rather than appearing at the end. Nothing is left behind: an import that fails or is
+cancelled takes its reserved node and its asset away.
 
 ## Reuse
 
