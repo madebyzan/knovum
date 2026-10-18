@@ -8,7 +8,6 @@
   "endSeconds": "End (seconds)",
   "addLine": "Add timed line",
   "removeLine": "Remove timed line",
-  "needsTimingEdit": "The generated speech does not fit this target interval. Adjust the text or interval, then save a new revision.",
   "retainOriginalTrack": "Include original audio as a separate track",
   "preserveOriginalOutsideDialogue": "Preserve original sound outside source dialogue intervals",
   "importSubtitles": "Import SRT / WebVTT script",

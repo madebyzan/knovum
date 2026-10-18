@@ -11,17 +11,20 @@ fn metadata(vcodec: &str, acodec: &str) -> YtDlpMetadata {
 
 #[test]
 fn mp4_container_does_not_make_av1_playable() {
-    let source = metadata("av01.0.08M.08", "mp4a.40.2");
-    assert_eq!(source.media_kind().unwrap(), MediaKind::Video);
-    assert!(!source.is_playable(MediaKind::Video, "mp4").unwrap());
+    assert!(!metadata("av01.0.08M.08", "mp4a.40.2")
+        .is_playable(MediaKind::Video, "mp4")
+        .unwrap());
     assert!(metadata("avc1.640028", "mp4a.40.2")
         .is_playable(MediaKind::Video, "mp4")
         .unwrap());
 }
 
 #[test]
-fn audio_kind_uses_the_selected_codec() {
-    let source = metadata("none", "opus");
-    assert_eq!(source.media_kind().unwrap(), MediaKind::Audio);
-    assert!(!source.is_playable(MediaKind::Audio, "webm").unwrap());
+fn an_audio_asset_is_playable_only_in_an_aac_container() {
+    assert!(!metadata("none", "opus")
+        .is_playable(MediaKind::Audio, "webm")
+        .unwrap());
+    assert!(metadata("none", "mp4a.40.2")
+        .is_playable(MediaKind::Audio, "m4a")
+        .unwrap());
 }

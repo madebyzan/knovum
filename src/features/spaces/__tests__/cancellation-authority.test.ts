@@ -149,7 +149,10 @@ describe("producer cancellation authority", () => {
       if (cancellation === "rejected") media.cancel.mockRejectedValueOnce(new Error("cancel rejected"));
       media.request.mockReturnValueOnce(producer.promise);
       const pending = acquireMediaSource("https://example.com/video", {
-        resolved: vi.fn<() => Promise<{ nodeId: string; title: string }>>(),
+        jobId: "media-job",
+        nodeId: "media",
+        kind: "video",
+        title: "example.com/video",
       });
       await tasks.cancel(tasks.tasks[0]!.id);
       expect(tasks.tasks[0]).toMatchObject(expectedCancellationState(cancellation));

@@ -67,7 +67,6 @@ export function useVideoDubbingDraft(
       deliveryInstruction: "",
       startSeconds: "0",
       endSeconds: "1",
-      needsTimingEdit: false,
     });
   }
   function importTranscript(transcript: SpaceMediaTranscript, initialize = false) {
@@ -80,7 +79,6 @@ export function useVideoDubbingDraft(
       deliveryInstruction: "",
       startSeconds: String(segment.startMs / 1000),
       endSeconds: String(segment.endMs / 1000),
-      needsTimingEdit: false,
       sourceSegmentId: segment.id,
       sourceSegmentRevision: segment.revision,
       sourceText: segment.text,
@@ -102,7 +100,6 @@ export function useVideoDubbingDraft(
       deliveryInstruction: "",
       startSeconds: String(cue.startMs / 1000),
       endSeconds: String(cue.endMs / 1000),
-      needsTimingEdit: false,
     }));
     if (config.value)
       config.value = {

@@ -8,30 +8,32 @@ import { formatByteSize } from "../../assets/format-byte-size";
 import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
 import { nodeTaskSubject } from "../../nodes/node-task-subject";
 import { cancelMediaImport, requestMediaImport } from "./ipc";
-import type { ImportedMedia, MediaImportProgress, ResolvedMedia } from "./schema/import";
+import type { ImportedMedia, MediaImportProgress } from "./schema/import";
 
 export type MediaSourceAcquisition =
   | { outcome: "imported"; payload: SpaceMediaPayload }
   | { outcome: "unsupported" };
 
-/** Whoever asked for the media decides what to do the moment the link is identified. */
-export interface MediaAcquisitionObserver {
-  /**
-   * Called once, before the first byte, with what the link turned out to be. The canvas reserves
-   * the node for the media here, so the work has somewhere to show itself and someone to belong
-   * to; the node it returns becomes the subject of this acquisition's task.
-   */
-  resolved: (media: ResolvedMedia) => Promise<{ nodeId: string; title: string }>;
+/** The media node this acquisition belongs to, reserved by the canvas before it starts. */
+export interface MediaAcquisitionSubject {
+  jobId: string;
+  nodeId: string;
+  kind: "audio" | "video";
+  title: string;
 }
 
+/**
+ * Downloads what a link points at into the asset reserved for it. The work belongs to the node
+ * the canvas already holds, so the Task Center can carry its progress and cancellation from the
+ * first moment.
+ */
 export async function acquireMediaSource(
   url: string,
-  observer: MediaAcquisitionObserver,
+  subject: MediaAcquisitionSubject,
 ): Promise<MediaSourceAcquisition> {
   const tasks = useTaskStore();
-  const jobId = crypto.randomUUID();
+  const { jobId } = subject;
   let loggedStage: MediaImportProgress["stage"] | undefined;
-  let reservation: Promise<{ nodeId: string; title: string }> | undefined;
   tasks.restoreRunning(
     {
       id: jobId,
@@ -41,23 +43,20 @@ export async function acquireMediaSource(
     },
     () => cancelMediaImport(jobId),
   );
+  tasks.describeSubject(jobId, nodeTaskSubject(subject.nodeId, subject.kind, subject.title));
   try {
     void logInfo("[spaces.url-capture] media acquisition started");
     const mediaAcquisition = await requestMediaImport({
       jobId,
       resourceTitle: i18n.global.t("spaces.media.import.preparing"),
+      kind: subject.kind,
       url,
-      onEvent: (event) => {
-        if (event.event === "resolved") {
-          void logInfo(`[spaces.url-capture] media resolved; kind=${event.kind}`);
-          reservation ??= reserve(jobId, event, observer);
-          return;
+      onProgress: (progress) => {
+        if (progress.stage !== loggedStage) {
+          loggedStage = progress.stage;
+          void logInfo(`[spaces.url-capture] media stage=${progress.stage}`);
         }
-        if (event.stage !== loggedStage) {
-          loggedStage = event.stage;
-          void logInfo(`[spaces.url-capture] media stage=${event.stage}`);
-        }
-        updateProgress(jobId, event);
+        updateProgress(jobId, progress);
       },
     });
     if (mediaAcquisition.outcome === "unsupported") {
@@ -65,10 +64,6 @@ export async function acquireMediaSource(
       tasks.dismiss(jobId);
       return mediaAcquisition;
     }
-    // The engine names the source before it downloads it, so an import that never named one has
-    // nowhere to land.
-    if (!reservation) throw new Error("The media source was never identified");
-    await reservation;
     tasks.succeed(jobId);
     void logInfo("[spaces.url-capture] media acquisition completed");
     return { outcome: "imported", payload: mediaPayloadFromImport(mediaAcquisition.media) };
@@ -80,14 +75,6 @@ export async function acquireMediaSource(
     tasks.fail(jobId, getErrorMessage(error));
     throw error;
   }
-}
-
-async function reserve(jobId: string, media: ResolvedMedia, observer: MediaAcquisitionObserver) {
-  const tasks = useTaskStore();
-  const reserved = await observer.resolved(media);
-  tasks.title(jobId, reserved.title);
-  tasks.describeSubject(jobId, nodeTaskSubject(reserved.nodeId, media.kind, reserved.title));
-  return reserved;
 }
 
 function mediaPayloadFromImport(imported: ImportedMedia): SpaceMediaPayload {

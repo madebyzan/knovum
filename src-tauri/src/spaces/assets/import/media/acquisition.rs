@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use super::{contracts::ImportedMedia, publish};
 use crate::media::acquisition::{
-    contracts::{AcquisitionEvent, AcquisitionProgress, ResolvedMedia},
+    contracts::{AcquisitionProgress, MediaKind},
     metadata::is_http_url,
     tools::AcquisitionTools,
     yt_dlp::{self, AcquisitionError},
@@ -14,21 +14,22 @@ use crate::spaces::assets::asset_directory;
 
 pub(super) fn run(
     app: &tauri::AppHandle,
-    job_id: &str,
+    job_id: Uuid,
+    kind: MediaKind,
     source_url: String,
     tools: AcquisitionTools,
-    progress: &Channel<AcquisitionEvent>,
+    progress: &Channel<AcquisitionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<Option<ImportedMedia>, String> {
-    let id = parse_job_id(job_id)?;
     let assets = asset_directory(app)?;
-    let workspace = assets.join(format!(".media-import-{id}"));
+    let workspace = assets.join(format!(".media-import-{job_id}"));
     fs::create_dir(&workspace)
         .map_err(|error| format!("Unable to create media import workspace: {error}"))?;
     let acquired_media = execute(
         &assets,
         &workspace,
-        id,
+        job_id,
+        kind,
         source_url,
         tools,
         progress,
@@ -47,9 +48,10 @@ fn execute(
     assets: &Path,
     workspace: &Path,
     job_id: Uuid,
+    kind: MediaKind,
     source_url: String,
     tools: AcquisitionTools,
-    progress: &Channel<AcquisitionEvent>,
+    progress: &Channel<AcquisitionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<Option<ImportedMedia>, String> {
     match yt_dlp::acquire(
@@ -57,22 +59,9 @@ fn execute(
         &tools.deno,
         &tools.ffmpeg,
         &source_url,
+        kind,
         workspace,
         progress,
-        // The canvas reserves its node from this, so the asset it will hold is named here rather
-        // than when the bytes land.
-        &|source| {
-            progress
-                .send(AcquisitionEvent::Resolved(ResolvedMedia {
-                    asset_path: publish::reserved_asset(assets, job_id, source.kind)
-                        .to_string_lossy()
-                        .into_owned(),
-                    kind: source.kind,
-                    title: source.title,
-                    duration_seconds: source.duration_seconds,
-                }))
-                .map_err(|error| error.to_string())
-        },
         cancellation,
     ) {
         Ok(()) => {}
@@ -80,18 +69,19 @@ fn execute(
         Err(AcquisitionError::Failed(error)) => return Err(error),
     }
     progress
-        .send(AcquisitionEvent::Progress(AcquisitionProgress {
+        .send(AcquisitionProgress {
             stage: "finalizing",
             downloaded_bytes: 0,
             total_bytes: None,
             processed_ms: None,
             duration_ms: None,
-        }))
+        })
         .map_err(|error| error.to_string())?;
     publish::commit(
         assets,
         workspace,
         job_id,
+        kind,
         &tools.ffmpeg,
         progress,
         cancellation,
@@ -99,16 +89,12 @@ fn execute(
     .map(Some)
 }
 
-fn parse_job_id(value: &str) -> Result<Uuid, String> {
+pub(super) fn parse_job_id(value: &str) -> Result<Uuid, String> {
     let id = Uuid::parse_str(value).map_err(|_| "Media import job ID must be a UUID")?;
     if id.to_string() != value {
         return Err("Media import job ID must use canonical UUID form".into());
     }
     Ok(id)
-}
-
-pub(super) fn validate_job_id(value: &str) -> Result<(), String> {
-    parse_job_id(value).map(|_| ())
 }
 
 pub(super) fn validate_source_url(value: &str) -> Result<(), String> {

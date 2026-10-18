@@ -1,12 +1,13 @@
-import { nextTick } from "vue";
+import { isEqual } from "es-toolkit";
+import type { Ref } from "vue";
 
+import { waitForSpaceMutations } from "../history/mutation-barrier";
 import { releaseKnowledgeIndex, scheduleSpaceKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
 import type { Space } from "../model/space";
 import { loadSpaceSessionProjection } from "../session/space-projection";
 import { switchSpaceHistory } from "./session-history";
 import { markSpaceOpenedAndTrack } from "./space-creation";
 import type { LoadSpaceOptions, SpaceSessionContext } from "./space-session-context";
-import { transitionActiveSpaceSession } from "./space-transition";
 import { referencedSpaceIds } from "./workbench-tab";
 import { discardSpaceWorkbenchTabs } from "./workbench-tab-state";
 
@@ -97,16 +98,36 @@ export function requireAvailableSpace(context: SpaceSessionContext, spaceId: str
   return space;
 }
 
+/**
+ * Reloads the projection of the Space that is already open.
+ *
+ * A reload is not a navigation: the canvas session stays mounted, edits stay admitted, and the
+ * view changes only where the content changed. Work that publishes into an open Space can
+ * therefore report itself as often as it likes without the session flickering underneath the
+ * person using it.
+ */
 export async function refreshSpace(context: SpaceSessionContext) {
   const spaceId = context.activeSpaceId.value;
   if (!spaceId || context.runtime.pendingSpaceId) return;
-  const load = startSpaceSessionLoad(context, spaceId, { markOpened: false, resetHistory: false });
-  await transitionActiveSpaceSession(context, async () => {
-    const applySession = await load.complete();
-    if (context.activeSpaceId.value !== spaceId) return;
-    applySession?.();
-    await nextTick();
-  });
+  const generation = ++context.runtime.openGeneration;
+  await waitForSpaceMutations(context.history);
+  const projection = await loadSpaceSessionProjection(spaceId);
+  if (
+    generation !== context.runtime.openGeneration ||
+    context.activeSpaceId.value !== spaceId ||
+    // A slower read can return an older Space than the session already holds.
+    projection.editSnapshot.editRevision < context.editSnapshot.value.editRevision
+  )
+    return;
+  applyChanged(context.nodes, projection.nodes);
+  applyChanged(context.scenes, projection.scenes);
+  applyChanged(context.relations, projection.relations);
+  applyChanged(context.editSnapshot, projection.editSnapshot);
+}
+
+/** Keeps what the reload found identical, so unchanged content keeps its rendered identity. */
+function applyChanged<T>(target: Ref<T>, next: T) {
+  if (!isEqual(target.value, next)) target.value = next;
 }
 
 /** Releases the retained session of every Space the remaining tabs no longer reference. */

@@ -79,10 +79,7 @@ const editorDisabled = computed(
 const canGenerate = computed(
   () =>
     !editorDisabled.value &&
-    (Boolean(draftInput.value) ||
-      (!isDirty.value &&
-        props.project.segments.length > 0 &&
-        props.project.segments.every((segment) => segment.state !== "needs_edit"))),
+    (Boolean(draftInput.value) || (!isDirty.value && props.project.segments.length > 0)),
 );
 const runLabel = computed(() => (props.runState ? t(runStateLabelKey(props.runState)) : undefined));
 

@@ -1,4 +1,4 @@
-use super::{mixing::TimedRender, SAMPLE_RATE};
+use super::{fitting::Placement, SAMPLE_RATE};
 use std::{
     cmp::Reverse,
     collections::BinaryHeap,
@@ -7,12 +7,14 @@ use std::{
 };
 use tokio_util::sync::CancellationToken;
 
-pub(super) fn assign(timed: &[TimedRender]) -> Vec<Vec<usize>> {
+/// Groups lines that can be heard one after another into the same lane. Lines that overlap —
+/// because one spoke into the time of the next — get a lane of their own and are mixed together.
+pub(super) fn assign(placements: &[Placement]) -> Vec<Vec<usize>> {
     let mut available = BinaryHeap::<Reverse<(u64, usize)>>::new();
     let mut lanes: Vec<Vec<usize>> = Vec::new();
-    for (index, item) in timed.iter().enumerate() {
+    for (index, placement) in placements.iter().enumerate() {
         let lane = if let Some(Reverse((end, lane))) = available.peek().copied() {
-            if end <= item.start_sample {
+            if end <= placement.start_sample {
                 available.pop();
                 lane
             } else {
@@ -25,7 +27,7 @@ pub(super) fn assign(timed: &[TimedRender]) -> Vec<Vec<usize>> {
             lanes.push(Vec::new());
         }
         lanes[lane].push(index);
-        available.push(Reverse((item.end_sample, lane)));
+        available.push(Reverse((placement.end_sample(), lane)));
     }
     lanes
 }
@@ -33,7 +35,7 @@ pub(super) fn assign(timed: &[TimedRender]) -> Vec<Vec<usize>> {
 pub(super) fn write(
     path: &Path,
     lane: &[usize],
-    timed: &[TimedRender],
+    placements: &[Placement],
     fitted: &[PathBuf],
     video_samples: u64,
     cancellation: &CancellationToken,
@@ -55,13 +57,14 @@ pub(super) fn write(
         .map_err(|error| error.to_string())?;
     let mut cursor = 0_u64;
     for index in lane {
+        let placement = &placements[*index];
         crate::media::wav::write_silence(
             &mut writer,
-            timed[*index].start_sample - cursor,
+            placement.start_sample - cursor,
             cancellation,
         )?;
         crate::media::wav::copy_float_samples(&fitted[*index], &mut writer, cancellation)?;
-        cursor = timed[*index].end_sample;
+        cursor = placement.end_sample();
     }
     crate::media::wav::write_silence(&mut writer, video_samples - cursor, cancellation)?;
     writer.finalize().map_err(|error| error.to_string())?;
