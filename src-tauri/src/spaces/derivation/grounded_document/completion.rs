@@ -3,7 +3,6 @@ use tauri::AppHandle;
 
 use super::{GenerateGroundedDocumentRequest, GeneratedDocument, GroundedDocumentOutput};
 use crate::foundation::app_error::AppError;
-use crate::spaces::derivation::relations;
 use crate::spaces::derivation::source_inputs;
 use crate::spaces::{db, knowledge::model::revision};
 
@@ -33,7 +32,6 @@ pub async fn complete(
     .await?;
     crate::spaces::derivation::persist_output_node(&mut tx, &request.output_node_id, &data, now)
         .await?;
-    let output_relations = create_relations(&mut tx, request, now).await?;
     persist_generation(&mut tx, &request.id, &generated).await?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
         .bind(now).bind(&request.id).execute(&mut *tx).await.map_err(db::sql_error)?;
@@ -44,7 +42,6 @@ pub async fn complete(
     Ok(GroundedDocumentOutput {
         node_id: request.output_node_id.clone(),
         data,
-        relations: output_relations,
     })
 }
 
@@ -59,26 +56,6 @@ fn apply_document(payload: &mut Value, text: &str) -> Result<(), AppError> {
     object.insert("text".into(), text.into());
     object.remove("derivationState");
     revision::apply(payload).map(|_| ()).map_err(AppError::from)
-}
-
-async fn create_relations(
-    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    request: &GenerateGroundedDocumentRequest,
-    now: i64,
-) -> Result<Vec<crate::spaces::derivation::DerivationRelation>, AppError> {
-    let mut output = Vec::with_capacity(request.inputs.len());
-    for input in &request.inputs {
-        let relation = relations::derives_from(
-            &request.space_id,
-            &request.output_node_id,
-            &input.node_id,
-            "Grounded document drafted from selected knowledge",
-            now,
-        );
-        relations::insert(tx, &relation).await?;
-        output.push(relation);
-    }
-    Ok(output)
 }
 
 async fn persist_generation(

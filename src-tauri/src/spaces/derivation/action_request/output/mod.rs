@@ -25,8 +25,7 @@ pub(super) async fn reserve(
         "add-video-subtitles" => media::subtitled_video_request(inputs, request)?,
         _ => {}
     }
-    let Some((kind, data)) = build_pending_output_content(app, action_id, parameters, inputs)?
-    else {
+    let Some(output) = build_pending_output_content(app, action_id, parameters, inputs)? else {
         return Ok(());
     };
     let node_id = format!("{}-output", authority.run_id);
@@ -41,17 +40,27 @@ pub(super) async fn reserve(
         space_id,
         vec![super::super::pending_output::PendingOutput {
             node_id,
-            kind,
-            data,
+            kind: output.kind,
+            data: output.data,
         }],
         &inputs
             .nodes
             .iter()
             .map(|node| node.id.clone())
             .collect::<Vec<_>>(),
+        output.lineage,
         authority,
     )
     .await
+}
+
+/// The content an Action reserves for its output, and why that output derives from its inputs.
+/// One place decides both: the lineage is recorded with the node, so it cannot describe something
+/// the output is not.
+struct PendingOutputContent {
+    kind: &'static str,
+    data: Value,
+    lineage: &'static str,
 }
 
 fn build_pending_output_content(
@@ -59,39 +68,75 @@ fn build_pending_output_content(
     action_id: &str,
     parameters: &Value,
     inputs: &ResolvedInputs,
-) -> Result<Option<(&'static str, Value)>, AppError> {
+) -> Result<Option<PendingOutputContent>, AppError> {
     let title = title(parameters, inputs)?;
     if crate::spaces::actions::is_image_transform(action_id) {
-        return Ok(Some((
-            "image",
-            json!({"kind":"image","title":title,"fileName":format!("{title}.png"),"assetPath":super::super::output_paths::reserve(app,"generated","png")?,"processingState":"processing"}),
-        )));
+        return Ok(Some(PendingOutputContent {
+            kind: "image",
+            data: generated_image_content(app, &title)?,
+            lineage: image_transform_lineage(action_id)?,
+        }));
     }
     let output = match action_id {
-        "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post" => (
-            "markdown",
-            json!({"kind":"markdown","title":title,"text":"","derivationState":"pending"}),
-        ),
-        "generate-visualization" | "generate-image" | "split-image-layers" => (
-            "image",
-            json!({
-                "kind":"image","title":title,"fileName":format!("{title}.png"),
-                "assetPath": super::super::output_paths::reserve(app, "generated", "png")?,
-                "processingState":"processing"
-            }),
-        ),
-        "generate-video" => (
-            "video",
-            json!({
+        "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post" => {
+            PendingOutputContent {
+                kind: "markdown",
+                data: json!({
+                    "kind":"markdown","title":title,"text":"","derivationState":"pending"
+                }),
+                lineage: "Grounded document drafted from selected knowledge",
+            }
+        }
+        "generate-visualization" | "generate-image" => PendingOutputContent {
+            kind: "image",
+            data: generated_image_content(app, &title)?,
+            lineage: "Visualization generated from selected knowledge",
+        },
+        "split-image-layers" => PendingOutputContent {
+            kind: "image",
+            data: generated_image_content(app, &title)?,
+            lineage: super::super::image_layers::LINEAGE,
+        },
+        "generate-video" => PendingOutputContent {
+            kind: "video",
+            data: json!({
                 "kind":"video","title":title,"fileName":format!("{title}.mp4"),
                 "assetPath": super::super::output_paths::reserve(app, "generated", "mp4")?,
                 "processingState":"processing"
             }),
-        ),
-        "add-video-subtitles" => ("video", media::build_subtitled_video_content(app, &title)?),
+            lineage: "Video generated from selected knowledge",
+        },
+        "add-video-subtitles" => PendingOutputContent {
+            kind: "video",
+            data: media::build_subtitled_video_content(app, &title)?,
+            lineage: "Subtitle video created from source video knowledge",
+        },
         _ => return Ok(None),
     };
     Ok(Some(output))
+}
+
+/// Why a transformed picture derives from its source, in the words of the transform that was asked
+/// for. The transform is chosen by the Action, so the Action names the lineage; an image transform
+/// the engine cannot explain is a gap rather than a default.
+fn image_transform_lineage(action_id: &str) -> Result<&'static str, AppError> {
+    match action_id {
+        "upscale-image" => Ok("Image upscaled from source image"),
+        "generate-image-angle" => Ok("View generated from source image"),
+        "remove-image-object" => Ok("Object removed and background completed from source image"),
+        "remove-image-background" => Ok("Background removed from source image"),
+        "extract-image-selection" => Ok("Selection extracted from source image"),
+        "generate-image-depth" => Ok("Relative inverse depth estimated from source image"),
+        _ => Err(format!("Image transform {action_id} states no lineage").into()),
+    }
+}
+
+fn generated_image_content(app: &AppHandle, title: &str) -> Result<Value, AppError> {
+    Ok(json!({
+        "kind":"image","title":title,"fileName":format!("{title}.png"),
+        "assetPath": super::super::output_paths::reserve(app, "generated", "png")?,
+        "processingState":"processing"
+    }))
 }
 
 fn title(parameters: &Value, inputs: &ResolvedInputs) -> Result<String, AppError> {

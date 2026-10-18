@@ -4,7 +4,7 @@ use tauri::AppHandle;
 use super::{fonts, validate_project, RenderVideoEditRequest, VideoEditProject};
 use crate::spaces::{
     db,
-    derivation::{inputs, pending_output},
+    derivation::{inputs, pending_output, relations},
 };
 
 pub(super) struct VideoEditSource {
@@ -72,6 +72,22 @@ pub(super) async fn start(
         })
         .collect::<Vec<_>>();
     inputs::insert(&mut tx, &request.id, &inputs).await?;
+    // The output node was reserved before this render was asked for, so its lineage is recorded
+    // here, when the work starts, rather than when it settles: a rendering node is already
+    // connected to every asset it is made of.
+    for input in &inputs {
+        relations::insert(
+            &mut tx,
+            &relations::derives_from(
+                &request.space_id,
+                &request.output_node_id,
+                input.node_id,
+                "Video rendered from a non-destructive edit project",
+                now,
+            ),
+        )
+        .await?;
+    }
     tx.commit().await.map_err(db::sql_error)?;
     Ok(VideoEditSource {
         assets,

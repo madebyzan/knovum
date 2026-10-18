@@ -206,7 +206,7 @@ A successful derivation:
 - preserves its input resource IDs and exact source revisions;
 - records the action, bounded parameters, engine/model identity, actor, timing and outcome in a structured Derivation record;
 - creates the output as an ordinary Space resource that can be edited, searched, exported and used as a later input;
-- creates `derives-from` Relations from the output to its inputs;
+- creates `derives-from` Relations from the output to its inputs in the same transaction that reserves the output, so lineage is visible while the work runs instead of appearing when it finishes;
 - places the result in the derivation field beside its sources without moving the inputs;
 - distinguishes generated artifacts from accepted Knowledge claims.
 

@@ -7,7 +7,7 @@ use crate::{
     foundation::app_error::AppError,
     spaces::{
         db,
-        derivation::{pending_output, relations, source_inputs},
+        derivation::{pending_output, source_inputs},
         knowledge::model::revision,
     },
 };
@@ -56,18 +56,6 @@ pub async fn complete(
         .await?;
     crate::spaces::derivation::persist_output_node(&mut tx, &request.output_node_id, &data, now)
         .await?;
-    let mut output_relations = Vec::with_capacity(request.inputs.len());
-    for input in &request.inputs {
-        let relation = relations::derives_from(
-            &request.space_id,
-            &request.output_node_id,
-            &input.node_id,
-            "Video generated from selected knowledge",
-            now,
-        );
-        relations::insert(&mut tx, &relation).await?;
-        output_relations.push(relation);
-    }
     sqlx::query("INSERT INTO spaces_generated_videos(derivation_id,prompt,aspect_ratio,duration_seconds,execution_source,operation_id) VALUES($1,$2,$3,$4,$5,$6)")
         .bind(&request.id).bind(&request.prompt).bind(request.aspect_ratio.as_str()).bind(request.duration_seconds)
         .bind(sqlx::types::Json(&generated.execution_source)).bind(generated.operation_id)
@@ -81,6 +69,5 @@ pub async fn complete(
     Ok(VideoOutput {
         node_id: request.output_node_id.clone(),
         data,
-        relations: output_relations,
     })
 }

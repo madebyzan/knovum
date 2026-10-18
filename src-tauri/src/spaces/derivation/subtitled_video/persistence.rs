@@ -3,7 +3,7 @@ use sqlx::SqlitePool;
 use tokio_util::sync::CancellationToken;
 
 use super::super::video_output::RenderedVideo;
-use super::super::{pending_output, relations, CompletedDerivationOutput};
+use super::super::{pending_output, CompletedDerivationOutput};
 use crate::foundation::app_error::AppError;
 use crate::spaces::{db, knowledge::model::revision};
 
@@ -36,15 +36,7 @@ pub async fn complete(
     pending_output::validate_unpublished_asset(&data)?;
     apply_output(&mut data, &output, now)?;
     crate::spaces::knowledge::validation::validate_node(&mut tx, &row.0, "video", &data).await?;
-    let relation = relations::derives_from(
-        &row.0,
-        &row.2,
-        &row.1,
-        "Subtitle video created from source video knowledge",
-        now,
-    );
     crate::spaces::derivation::persist_output_node(&mut tx, &row.2, &data, now).await?;
-    relations::insert(&mut tx, &relation).await?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
         .bind(now).bind(derivation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     if cancellation.is_cancelled() {
@@ -54,7 +46,6 @@ pub async fn complete(
     Ok(CompletedDerivationOutput {
         node_id: row.2,
         data,
-        relation,
     })
 }
 

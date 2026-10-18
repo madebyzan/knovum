@@ -5,7 +5,7 @@ use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
 use super::{validation, GenerateVisualizationRequest, VisualizationContent, VisualizationOutput};
-use crate::spaces::derivation::{inputs, pending_output, relations, source_inputs};
+use crate::spaces::derivation::{inputs, pending_output, source_inputs};
 use crate::{
     ai::tasks::TaskExecutionTarget,
     foundation::app_error::AppError,
@@ -80,7 +80,7 @@ pub async fn complete(
     )
     .await;
     match persisted {
-        Ok(relations) => {
+        Ok(()) => {
             if cancellation.is_cancelled() {
                 let _ = tokio::fs::remove_file(&path).await;
                 return Err("Visualization generation was cancelled".into());
@@ -92,7 +92,6 @@ pub async fn complete(
             Ok(VisualizationOutput {
                 node_id: request.output_node_id.clone(),
                 data,
-                relations,
             })
         }
         Err(error) => {
@@ -116,7 +115,7 @@ async fn persist_completion(
     bytes: &[u8],
     width: u32,
     height: u32,
-) -> Result<Vec<super::super::DerivationRelation>, AppError> {
+) -> Result<(), AppError> {
     let now = crate::foundation::clock::unix_time_millis()?;
     let object = payload
         .as_object_mut()
@@ -135,23 +134,11 @@ async fn persist_completion(
         .await?;
     crate::spaces::derivation::persist_output_node(tx, &request.output_node_id, payload, now)
         .await?;
-    let mut output_relations = Vec::with_capacity(request.inputs.len());
-    for input in &request.inputs {
-        let relation = relations::derives_from(
-            &request.space_id,
-            &request.output_node_id,
-            &input.node_id,
-            "Visualization generated from selected knowledge",
-            now,
-        );
-        relations::insert(tx, &relation).await?;
-        output_relations.push(relation);
-    }
     sqlx::query("INSERT INTO spaces_generated_images(derivation_id,intent,aspect_ratio,execution_source,revised_prompt) VALUES($1,$2,$3,$4,$5)")
         .bind(&request.id).bind(&request.intent).bind(request.aspect_ratio.as_str())
         .bind(sqlx::types::Json(&generated.execution_source)).bind(&generated.revised_prompt)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
         .bind(now).bind(&request.id).execute(&mut **tx).await.map_err(db::sql_error)?;
-    Ok(output_relations)
+    Ok(())
 }
