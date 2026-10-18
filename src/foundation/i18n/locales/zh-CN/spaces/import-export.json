@@ -26,6 +26,7 @@
   "export": {
     "completed": "导出完成",
     "running": "正在导出…",
+    "noFormats": "此资源没有可保存的文件。",
     "formats": {
       "png": "PNG 图片 (.png)",
       "jpg": "JPEG 图片 (.jpg)",

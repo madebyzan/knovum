@@ -4,15 +4,19 @@ This document owns how a resource leaves Knovum: the formats each resource admit
 guarantees of each serialization and renderer acceptance. Spaces owns source authorization,
 revisions and destination authorization; packaging owns runtime distribution.
 
-## One export, named by its destination
+## One export, chosen in the bar and named by its destination
 
 Saving the same content in another format produces no new knowledge, so an export is not a
-derivation and never places a second resource on the canvas. Export is one operation: the person
-picks a destination in the native save dialog, and the extension of that destination is the whole
-format instruction. A dialog that leaves the format unstated gets the resource's own format.
+derivation and never places a second resource on the canvas. Export is two steps: the node bar
+offers the formats the selection admits, and the chosen format is the whole format instruction. The
+native save dialog then only names the file; a destination that does not carry the chosen extension
+is given it.
 
 `list_export_formats` answers what one resource admits, own format first, and is the only place
-that decides. `export_resource` writes the destination the dialog returned: replacing an existing
+that decides. The bar asks it when the formats are looked at, and a resource that admits nothing
+says so where it was asked instead of failing after a destination was picked. A section is an
+arrangement rather than a resource, so its one format is the outline of what it holds.
+`export_resource` writes the destination the dialog returned: replacing an existing
 file is what the person already confirmed, a failed or cancelled run leaves no partial file, and the
 source revision is checked again afterwards so a resource that changed mid-export is never delivered
 as the current one. Every export is addressable by job identity and can be stopped by the person who

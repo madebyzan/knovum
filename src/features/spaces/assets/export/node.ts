@@ -2,43 +2,35 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { extname } from "pathe";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { exportResource, exportTextFile, listExportFormats } from "./ipc";
+import { exportResource, exportTextFile } from "./ipc";
 import { exportFilter, safeExportFileName } from "./naming";
 import { payloadExports } from "./payloads";
 
 export interface NodeExportOptions {
-  /** Called once a format is chosen and work that can be cancelled begins. */
+  /** Called once work that can be cancelled begins. */
   onStart?: (jobId: string) => void;
 }
 
 /**
- * Saves one resource in the format its destination names.
+ * Saves one resource in the format that was already chosen for it.
  *
- * A converted document, picture or recording carries the same content as its
- * source, so it belongs to the file the user is saving rather than to a second
- * resource on the canvas. The chosen extension is therefore the whole format
- * instruction, and the offered formats come from whoever owns the bytes.
+ * The format is the instruction, so the destination only names the file: a
+ * destination that does not carry the chosen extension is given it.
  */
 export async function exportSpaceNode(
   spaceId: string,
   node: SpaceCanvasNode,
+  format: string,
   options: NodeExportOptions = {},
 ): Promise<boolean> {
-  const payloads = payloadExports(node.data);
-  const formats = [
-    ...payloads.map(({ extension }) => extension),
-    ...(await listExportFormats(spaceId, node.id)),
-  ];
-  const [fallback] = formats;
-  if (!fallback) throw new Error("This resource has no exportable file");
   const destination = await save({
-    defaultPath: `${safeExportFileName(node.data.title) || node.data.kind}.${fallback}`,
-    filters: formats.map(exportFilter),
+    defaultPath: `${safeExportFileName(node.data.title) || node.data.kind}.${format}`,
+    filters: [exportFilter(format)],
   });
   if (!destination) return false;
-  // Dialogs that let the name be typed may leave the format unstated.
-  const path = extname(destination) ? destination : `${destination}.${fallback}`;
-  const payload = payloads.find(({ extension }) => extension === extname(path).slice(1).toLowerCase());
+  const named = extname(destination).slice(1).toLowerCase() === format;
+  const path = named ? destination : `${destination}.${format}`;
+  const payload = payloadExports(node.data).find(({ extension }) => extension === format);
   if (payload) {
     await exportTextFile(path, payload.text());
     return true;

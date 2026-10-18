@@ -26,6 +26,7 @@
   "export": {
     "completed": "エクスポート完了",
     "running": "エクスポート中…",
+    "noFormats": "このリソースには保存できるファイルがありません。",
     "formats": {
       "png": "PNG 画像 (.png)",
       "jpg": "JPEG 画像 (.jpg)",

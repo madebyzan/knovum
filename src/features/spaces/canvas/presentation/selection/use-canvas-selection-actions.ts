@@ -14,8 +14,8 @@ import { openSpaceNode } from "../../selection-actions";
 import { useCanvasSelectionProjection } from "../../use-canvas-selection-projection";
 import { useContextDock } from "../../use-context-dock";
 import { useCanvasEditorProtection } from "../use-canvas-editor-protection";
-import { useCanvasNodeExport } from "../use-canvas-node-export";
 import { useCanvasOperationRunner } from "../use-canvas-operation-runner";
+import { useCanvasSelectionExport } from "../use-canvas-selection-export";
 import { createCanvasStructureSelectionActions } from "./canvas-structure-selection-actions";
 import { canvasSelectionProductState } from "./selection-product-state";
 import { useCanvasReparentActions } from "./use-canvas-reparent-actions";
@@ -38,7 +38,7 @@ export function useCanvasSelectionActions() {
     }),
   );
   const editorProtection = useCanvasEditorProtection(selection, () => state.value.structureNodeIds);
-  const exportSelected = useCanvasNodeExport(state, selectedNodes);
+  const selectionExport = useCanvasSelectionExport(state, selectedNodes);
   const visible = computed(
     () =>
       Boolean(selection.value.nodeIds.length) ||
@@ -149,7 +149,8 @@ export function useCanvasSelectionActions() {
     dissolveGroup: structureActions.dissolveGroup,
     dissolveSection: structureActions.dissolveSection,
     distribute,
-    exportSelection: () => runNodeOperation("export", exportSelected),
+    exportTarget: selectionExport.target,
+    exportFormat: (format: string) => runNodeOperation("export", () => selectionExport.run(format)),
     duplicate,
     focus,
     fitSection: structureActions.fitSection,

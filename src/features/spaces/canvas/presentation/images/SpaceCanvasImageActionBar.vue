@@ -159,7 +159,11 @@ watch(
         @begin-comment="beginComment"
         @begin-removal="beginRemoval"
       />
-      <SpaceCanvasNodeAccessActions @inspect="actions.inspect" @export="actions.exportSelection" />
+      <SpaceCanvasNodeAccessActions
+        :export-target="actions.exportTarget.value"
+        @inspect="actions.inspect"
+        @save="actions.exportFormat"
+      />
     </ToolbarRoot>
   </div>
 </template>

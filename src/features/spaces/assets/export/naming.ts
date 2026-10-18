@@ -18,13 +18,15 @@ function safeFileNameCharacter(character: string) {
 }
 
 /**
- * Names one format in a save dialog. A format the product talks about has a
- * translated name; anything else is named by the extension it already carries.
+ * Names one format wherever it is offered. A format the product talks about has
+ * a translated name; anything else is named by the extension it carries.
  */
-export function exportFilter(extension: string) {
+export function exportFormatLabel(extension: string) {
   const key = `spaces.importExport.export.formats.${extension}`;
-  return {
-    name: i18n.global.te(key) ? i18n.global.t(key) : extension.toUpperCase(),
-    extensions: [extension],
-  };
+  return i18n.global.te(key) ? i18n.global.t(key) : extension.toUpperCase();
+}
+
+/** Names the chosen format in the save dialog. */
+export function exportFilter(extension: string) {
+  return { name: exportFormatLabel(extension), extensions: [extension] };
 }
