@@ -180,7 +180,8 @@ pub async fn generate_speech_project(
     if cancellation.is_cancelled() {
         return Err(AppError::cancelled("Speech preparation cancelled"));
     }
-    let run = run_start::start(pool, request, &digests).await?;
+    let output = super::output_reservation::OutputContext::resolve(&app)?;
+    let run = run_start::start(pool, request, &digests, &output).await?;
     if cancellation.is_cancelled() {
         cancellation::cancel_project_run(pool, &run.id).await?;
     }

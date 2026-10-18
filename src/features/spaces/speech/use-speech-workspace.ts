@@ -168,6 +168,5 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     startGeneration,
     cancelPreview: generation.cancelPreviewJob,
     stopPreviewListening: generation.stopListening,
-    exportRender: generation.exportRender,
   };
 }

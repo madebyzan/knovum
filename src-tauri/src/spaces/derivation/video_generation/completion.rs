@@ -41,28 +41,22 @@ pub async fn complete(
     }
     source_inputs::pin(&mut tx, &request.space_id, &request.inputs).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
-    let cover = {
-        let app = app.clone();
-        let source = std::path::PathBuf::from(expected_path);
-        let cancellation = cancellation.clone();
-        crate::foundation::blocking::run(move || {
-            crate::spaces::previews::generate_for_published_asset(&app, &source, &cancellation)
-        })
-        .await?
-    };
+    let cover = crate::spaces::previews::generate_for_published_asset_off_thread(
+        app,
+        std::path::Path::new(expected_path),
+        cancellation,
+    )
+    .await?;
     let object = data
         .as_object_mut()
         .ok_or("Generated video node data is invalid")?;
-    object.insert(
-        "sourceRevision".into(),
-        format!("sha256:{}", hex::encode(Sha256::digest(&generated.bytes))).into(),
-    );
-    object.insert("size".into(), (generated.bytes.len() as u64).into());
-    object.insert("modifiedAt".into(), now.into());
-    object.remove("processingState");
-    if let Some(cover) = &cover {
-        cover.settle_onto(object);
+    crate::spaces::assets::published_asset::PublishedAsset {
+        path: expected_path,
+        revision: format!("sha256:{}", hex::encode(Sha256::digest(&generated.bytes))),
+        size: Some(generated.bytes.len() as u64),
+        cover: cover.as_ref(),
     }
+    .settle_onto(object, now)?;
     revision::apply(&mut data)?;
     crate::spaces::knowledge::validation::validate_node(&mut tx, &request.space_id, "video", &data)
         .await?;

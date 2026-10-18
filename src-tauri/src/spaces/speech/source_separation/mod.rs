@@ -2,7 +2,7 @@ pub(crate) mod commands;
 mod contracts;
 mod execution;
 mod media;
-mod publication;
+pub(super) mod publication;
 mod repository;
 
 #[cfg(test)]

@@ -1,5 +1,4 @@
 {
-  "new": "다른 시작",
   "language": "언어",
   "script": {
     "placeholder": "이 버전의 스크립트를 입력하세요.",
@@ -16,8 +15,6 @@
   "saving": "저장",
   "starting": "생성 준비 중",
   "generatingInTasks": "생성 중입니다. 진행 상황과 취소는 '작업'에 있습니다.",
-  "generatedAudio": "생성된 오디오",
-  "generatedVideo": "생성된 비디오",
   "format": "형식",
   "sampleRate": "샘플링 속도",
   "loudness": "라우드니스(LUFS)",
@@ -45,7 +42,6 @@
     "videoDubbing": "비디오 더빙"
   },
   "generateFromNode": "음성 생성",
-  "nodeProjects": "저장된 더빙",
   "settings": "설정",
   "editorPages": "음성 편집기 섹션",
   "importManuscript": "노드 원고 가져오기",

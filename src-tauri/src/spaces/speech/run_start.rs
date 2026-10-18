@@ -14,6 +14,7 @@ pub(super) async fn start(
     pool: &SqlitePool,
     request: GenerateSpeechProjectRequest,
     runtime_digests: &super::runtime_identity::RuntimeDigests,
+    output: &super::output_reservation::OutputContext,
 ) -> Result<RunObservation, String> {
     uuid::Uuid::parse_str(&request.request_id)
         .map_err(|_| "Speech generation request identity must be a UUID")?;
@@ -62,8 +63,8 @@ pub(super) async fn start(
         tx.commit().await.map_err(db::sql_error)?;
         return crate::spaces::runs::load_run(pool, &request.request_id).await;
     }
-    let active: Option<(String, String, String, i64, String, String)> = sqlx::query_as(
-        "SELECT p.space_id,p.project_type,p.active_revision_id,r.revision,r.output_config,p.source_node_id \
+    let active: Option<(String, String, String, i64, String, String, String)> = sqlx::query_as(
+        "SELECT p.space_id,p.project_type,p.active_revision_id,r.revision,r.output_config,p.source_node_id,p.title \
          FROM spaces_speech_projects p JOIN spaces_speech_project_revisions r \
          ON r.id=p.active_revision_id JOIN spaces_nodes n ON n.id=p.source_node_id AND n.space_id=p.space_id \
          WHERE p.id=? AND n.deleted_at IS NULL",
@@ -72,7 +73,7 @@ pub(super) async fn start(
     .fetch_optional(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    let Some((space_id, project_type, revision_id, revision, output_config, source_node_id)) =
+    let Some((space_id, project_type, revision_id, revision, output_config, source_node_id, title)) =
         active
     else {
         return Err("Speech project no longer exists".into());
@@ -134,9 +135,61 @@ pub(super) async fn start(
         runtime_digests,
     )
     .await?;
+    reserve_output(
+        output,
+        &mut tx,
+        &request.request_id,
+        &space_id,
+        &source_node_id,
+        &title,
+        &config,
+    )
+    .await?;
     tx.commit().await.map_err(db::sql_error)?;
     crate::spaces::runs::announce_change();
     crate::spaces::runs::load_run(pool, &request.request_id).await
+}
+
+/// Reserves the node this Run will publish into, so the canvas shows the work and what it comes
+/// from for as long as it runs.
+async fn reserve_output(
+    context: &super::output_reservation::OutputContext,
+    tx: &mut Transaction<'_, Sqlite>,
+    run_id: &str,
+    space_id: &str,
+    source_node_id: &str,
+    title: &str,
+    config: &super::project_config::ProjectOutputConfig,
+) -> Result<(), String> {
+    use super::project_config::ProjectOutputConfig;
+    let (kind, extension, lineage) = match config {
+        ProjectOutputConfig::VideoDubbing(_) => ("video", "mp4", "Video dubbed from its source"),
+        ProjectOutputConfig::Audiobook(config) => (
+            "audio",
+            config.format.as_str(),
+            "Audiobook narrated from source text",
+        ),
+        ProjectOutputConfig::ShortDubbing(config) => (
+            "audio",
+            config.format.as_str(),
+            "Speech narrated from source text",
+        ),
+    };
+    super::output_reservation::reserve(
+        context,
+        tx,
+        space_id,
+        run_id,
+        source_node_id,
+        vec![super::output_reservation::ReservedOutput {
+            node_id: super::project_publication::output_node_id(run_id),
+            kind,
+            title: title.to_owned(),
+            extension: extension.to_owned(),
+        }],
+        lineage,
+    )
+    .await
 }
 
 fn validate_audiobook_segments(

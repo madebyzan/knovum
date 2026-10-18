@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, provide, shallowRef, useTemplateRef, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
+import { RouterLink } from "vue-router";
 
-import { overlayScopeVisibleKey } from "../../../../shared/contracts/overlay-scope-visibility";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import type { SaveSpeechProjectRevisionRequest } from "../../contracts/generated/SaveSpeechProjectRevisionRequest";
 import type { SpeechAudioOutput } from "../../contracts/generated/SpeechAudioOutput";
@@ -15,15 +15,14 @@ import AudiobookScriptEditor from "./AudiobookScriptEditor.vue";
 import ShortDubbingEditor from "./ShortDubbingEditor.vue";
 import { SPEECH_EDITOR_VIEWPORT_KEY } from "./speech-editor-viewport";
 import SpeechMediaPlayer from "./SpeechMediaPlayer.vue";
-import SpeechOutputReview from "./SpeechOutputReview.vue";
 import SpeechProjectActions from "./SpeechProjectActions.vue";
 import SpeechSettingsDisclosure from "./SpeechSettingsDisclosure.vue";
+import SpeechSignalInspection from "./SpeechSignalInspection.vue";
 import VideoDeliveryExport from "./VideoDeliveryExport.vue";
 import VideoDubbingEditor from "./VideoDubbingEditor.vue";
 
 const props = defineProps<{
   sourceNode: SpaceCanvasNode;
-  visible?: boolean;
   project: DeepReadonly<SpeechProjectSnapshot>;
   voices: readonly VoiceLibraryRevision[];
   preview?: (SpeechAudioOutput & { source: string }) | undefined;
@@ -48,7 +47,6 @@ const emit = defineEmits<{
   generate: [input?: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">];
   cancel: [];
   stopListening: [];
-  export: [path: string];
   draftState: [
     value: boolean,
     input?: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">,
@@ -60,10 +58,6 @@ provide(
   SPEECH_EDITOR_VIEWPORT_KEY,
   computed(() => scrollerRef.value?.viewportElement ?? null),
 );
-provide(
-  overlayScopeVisibleKey,
-  computed(() => props.visible !== false),
-);
 const isDirty = shallowRef(false);
 const draftInput = shallowRef<Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">>();
 const isOperationBusy = shallowRef(false);
@@ -73,6 +67,8 @@ const hasVideoBackground = computed(
     "background" in props.project.revision.outputConfig &&
     Boolean(props.project.revision.outputConfig.background),
 );
+/** Voices are managed once, in Settings; here we only say when there is none to choose. */
+const hasVoice = computed(() => props.voices.some((voice) => voice.isActive && voice.archivedAt == null));
 const editorDisabled = computed(
   () => props.previewing || props.generating || props.saving || props.submitting || isOperationBusy.value,
 );
@@ -99,9 +95,18 @@ function updateDraft(
 </script>
 
 <template>
-  <section v-show="visible !== false" class="flex min-h-0 flex-col">
+  <section class="flex min-h-0 flex-col">
     <UiScrollArea ref="scrollerRef" class="max-h-96 min-h-0" viewport-class="max-h-[inherit]">
       <div class="space-y-3 p-3">
+        <p v-if="!hasVoice" class="text-caption text-fg-secondary" role="status">
+          {{ t("spaces.speech.library.selection.empty") }}
+          <RouterLink
+            class="text-fg-accent underline"
+            data-testid="manage-voices"
+            :to="{ path: '/settings', query: { pane: 'voices' } }"
+            >{{ t("spaces.speech.library.manage") }}</RouterLink
+          >
+        </p>
         <ShortDubbingEditor
           v-if="project.project.projectType === 'short_dubbing'"
           :project="project"
@@ -148,12 +153,9 @@ function updateDraft(
             :has-background="hasVideoBackground"
           />
         </SpeechSettingsDisclosure>
-        <SpeechOutputReview
-          v-if="output && !isDirty"
-          :project="project"
-          :output="output"
-          @export="emit('export', $event)"
-        />
+        <SpeechSettingsDisclosure v-if="output && !isDirty" :title="t('spaces.speech.signal.inspect')">
+          <SpeechSignalInspection :project-id="project.project.id" :revision-id="project.revision.id" />
+        </SpeechSettingsDisclosure>
       </div>
     </UiScrollArea>
     <div v-if="previewing || generating" class="shrink-0 px-3 pb-2" role="status">

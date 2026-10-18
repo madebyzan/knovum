@@ -62,7 +62,7 @@ fn apply_output(
     let object = payload
         .as_object_mut()
         .ok_or("Rendered video data is invalid")?;
-    video_output::apply_published(object, output, now);
+    video_output::apply_published(object, output, now)?;
     DerivedOutput::EditedVideo.inherit(payload, source)?;
     revision::apply(payload).map(|_| ()).map_err(AppError::from)
 }

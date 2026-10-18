@@ -69,13 +69,7 @@ async fn execute(
     let prepared = match preparation::start(app, request, target, authority).await {
         Ok(prepared) => prepared,
         Err(error) => {
-            let settlement = super::failure::fail_pending(
-                app,
-                &request.space_id,
-                &request.output_node_id,
-                super::failure::PendingNodeState::Processing,
-            )
-            .await;
+            let settlement = super::failure::fail_pending(app, &request.output_node_id).await;
             return Err(super::failure::with_settlement(error.into(), settlement));
         }
     };

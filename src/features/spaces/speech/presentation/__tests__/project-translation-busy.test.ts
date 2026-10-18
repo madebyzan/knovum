@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { expect, it, onTestFinished } from "vitest";
+import { createMemoryHistory, createRouter } from "vue-router";
 
 import { i18n } from "../../../../../foundation/i18n/instance";
 import type { SpeechProjectSnapshot } from "../../../contracts/generated/SpeechProjectSnapshot";
@@ -71,8 +72,17 @@ it("prevents synthesis while the dubbing script is being translated and releases
       previewListening: false,
     },
     global: {
-      plugins: [i18n],
-      stubs: { VideoDubbingEditor: true, VideoDeliveryExport: true, SpeechOutputReview: true },
+      plugins: [
+        i18n,
+        createRouter({
+          history: createMemoryHistory(),
+          routes: [
+            { path: "/", component: { template: "<div />" } },
+            { path: "/settings", component: { template: "<div />" } },
+          ],
+        }),
+      ],
+      stubs: { VideoDubbingEditor: true, VideoDeliveryExport: true, SpeechSignalInspection: true },
     },
   });
   onTestFinished(() => wrapper.unmount());

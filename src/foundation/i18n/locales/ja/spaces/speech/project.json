@@ -1,5 +1,4 @@
 {
-  "new": "別のを始める",
   "language": "言語",
   "script": {
     "placeholder": "このリビジョンのスクリプトを入力してください",
@@ -16,8 +15,6 @@
   "saving": "保存",
   "starting": "生成の準備中",
   "generatingInTasks": "生成中です。進行状況と中止は「タスク」にあります。",
-  "generatedAudio": "生成されたオーディオ",
-  "generatedVideo": "生成されたビデオ",
   "format": "フォーマット",
   "sampleRate": "サンプル レート",
   "loudness": "ラウドネス（LUFS）",
@@ -45,7 +42,6 @@
     "videoDubbing": "ビデオ ダビング"
   },
   "generateFromNode": "音声を生成する",
-  "nodeProjects": "保存されたダビング",
   "settings": "設定",
   "editorPages": "スピーチ エディター セクション",
   "importManuscript": "インポート ノード原稿",

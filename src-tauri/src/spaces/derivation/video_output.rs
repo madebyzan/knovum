@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf};
 use serde_json::{Map, Value};
 use tokio_util::sync::CancellationToken;
 
-use crate::spaces::previews::GeneratedPreview;
+use crate::spaces::{assets::published_asset::PublishedAsset, previews::GeneratedPreview};
 
 pub struct RenderedVideo {
     pub path: String,
@@ -34,17 +34,19 @@ pub fn inspect(
     })
 }
 
-/// Settles a derived video node onto the asset it now owns. Knowledge an output keeps of its
-/// source is declared by `inheritance`; this is only what the published file itself establishes.
-pub fn apply_published(object: &mut Map<String, Value>, output: &RenderedVideo, now: i64) {
-    object.insert("assetPath".into(), output.path.clone().into());
-    object.insert("sourceRevision".into(), output.revision.clone().into());
-    object.insert("size".into(), output.size.into());
-    object.insert("modifiedAt".into(), now.into());
-    object.remove("processingState");
-    if let Some(cover) = &output.cover {
-        cover.settle_onto(object);
+/// Settles a derived video node onto the asset it now owns.
+pub fn apply_published(
+    object: &mut Map<String, Value>,
+    output: &RenderedVideo,
+    now: i64,
+) -> Result<(), String> {
+    PublishedAsset {
+        path: &output.path,
+        revision: output.revision.clone(),
+        size: Some(output.size as u64),
+        cover: output.cover.as_ref(),
     }
+    .settle_onto(object, now)
 }
 
 /// Discards a rendered video that will not be published, together with the cover made from it.

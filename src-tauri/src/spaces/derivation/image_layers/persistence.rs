@@ -40,6 +40,7 @@ pub(super) async fn reserve(
                     "assetPath": layer.path.to_string_lossy(), "processingState": "processing",
                     "intrinsicWidth": layer.width, "intrinsicHeight": layer.height
                 }),
+                footprint: pending_output::PLACEHOLDER,
             }
         })
         .collect::<Vec<_>>();
@@ -153,13 +154,7 @@ pub(super) async fn fail_reserved(
     count: usize,
 ) -> Result<(), String> {
     for index in 0..count {
-        failure::fail_pending(
-            app,
-            &request.space_id,
-            &contracts::layer_node_id(request, index),
-            failure::PendingNodeState::Processing,
-        )
-        .await?;
+        failure::fail_pending(app, &contracts::layer_node_id(request, index)).await?;
     }
     Ok(())
 }

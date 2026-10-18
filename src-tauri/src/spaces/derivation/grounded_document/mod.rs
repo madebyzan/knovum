@@ -60,13 +60,7 @@ pub(super) async fn generate_for_action(
     )?;
     authority.require_active(db::pool(&app).await?).await?;
     if let Err(error) = persistence::start(&app, &request, &authority).await {
-        let settlement = super::failure::fail_pending(
-            &app,
-            &request.space_id,
-            &request.output_node_id,
-            super::failure::PendingNodeState::Derivation,
-        )
-        .await;
+        let settlement = super::failure::fail_pending(&app, &request.output_node_id).await;
         return Err(super::failure::with_settlement(error.into(), settlement));
     }
     let generated_document = execute(&app, &request, &target, &stages, cancellation.clone()).await;

@@ -48,13 +48,7 @@ pub(super) async fn render_for_action(
         match start::start(crate::spaces::db::pool(&app).await?, &request, &authority).await {
             Ok(source) => source,
             Err(error) => {
-                let settlement = failure::fail_pending(
-                    &app,
-                    &request.space_id,
-                    &request.output_node_id,
-                    failure::PendingNodeState::Processing,
-                )
-                .await;
+                let settlement = failure::fail_pending(&app, &request.output_node_id).await;
                 return Err(failure::with_settlement(error.into(), settlement));
             }
         };

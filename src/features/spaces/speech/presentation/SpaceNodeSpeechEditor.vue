@@ -3,7 +3,6 @@ import { computed, shallowRef, watch } from "vue";
 
 import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import SpaceUnsavedChangesDialog from "../../workspace/presentation/SpaceUnsavedChangesDialog.vue";
@@ -15,15 +14,11 @@ import { useSpeechProjectLeave } from "../use-speech-project-leave";
 import { useSpeechWorkspace } from "../use-speech-workspace";
 import SpeechNodeEditorHeader from "./SpeechNodeEditorHeader.vue";
 import SpeechProjectEditor from "./SpeechProjectEditor.vue";
-import SpeechProjectSelection from "./SpeechProjectSelection.vue";
-import SpeechVoiceAccess from "./SpeechVoiceAccess.vue";
-import VoiceCandidateForm from "./VoiceCandidateForm.vue";
 
 const emit = defineEmits<{ close: [] }>();
 const props = defineProps<{ node: SpaceCanvasNode; projectType: NodeSpeechProjectType }>();
 const {
   voices,
-  projects,
   initializationReady,
   selectedProject,
   preview,
@@ -46,13 +41,11 @@ const {
   startGeneration,
   cancelPreview,
   stopPreviewListening,
-  exportRender,
 } = useSpeechWorkspace(
   () => props.node.id,
   () => props.projectType,
 );
 
-const isAddingVoice = shallowRef(false);
 const { videos } = useSpeechMediaSources();
 const initialInput = computed(() =>
   speechProjectInput(
@@ -89,13 +82,10 @@ async function requestClose() {
     throw error;
   }
 }
-async function createProject() {
-  if (!initialInput.value || creatingProject.value || !(await requestClose())) return;
-  await addProject(initialInput.value);
-}
 /**
- * Generating hands the work to the Task Center, which reports and cancels it. The composer has
- * nothing left to show, so it steps out of the way instead of sitting over the canvas.
+ * Generating hands the work to the Task Center, which reports and cancels it, and to the canvas,
+ * where the output node is already waiting for it. The composer has nothing left to show, so it
+ * steps out of the way instead of sitting over the canvas.
  */
 async function generate(input?: Parameters<typeof startGeneration>[0]) {
   if (!(await startGeneration(input))) return;
@@ -111,54 +101,21 @@ defineExpose({ requestClose });
 
 <template>
   <div class="flex min-h-0 flex-col" :aria-busy="loading || creatingProject">
-    <SpeechNodeEditorHeader
-      :node
-      :project-type
-      :is-adding-voice="isAddingVoice"
-      @back="isAddingVoice = false"
-      @close="emit('close')"
-    />
+    <SpeechNodeEditorHeader :node :project-type @close="emit('close')" />
     <div v-if="errors.length" class="space-y-1 bg-surface-danger-subtle px-3 py-2" role="alert">
       <p v-for="message in errors" :key="message" class="text-caption text-fg-danger">{{ message }}</p>
     </div>
     <div v-if="loading || creatingProject" class="flex items-center gap-2 p-3 text-caption text-fg-secondary">
       <UiSpinner size="sm" />{{ $t("common.loading") }}
     </div>
-    <SpeechVoiceAccess
-      v-if="!loading && !creatingProject && !isAddingVoice"
-      :empty="!voices.some((voice) => voice.isActive && voice.archivedAt == null)"
-      :disabled="previewing || generating || savingRevision || generationSubmitting"
-      @add="isAddingVoice = true"
-    >
-      <UiButton
-        v-if="selectedProject"
-        size="sm"
-        variant="ghost"
-        class="ml-auto"
-        :disabled="previewing || generating || savingRevision || generationSubmitting"
-        @click="createProject"
-        >{{ $t("spaces.speech.project.new") }}</UiButton
-      >
-    </SpeechVoiceAccess>
     <div v-if="!loading && !creatingProject && !selectedProject" class="space-y-2 p-3">
       <p v-if="!initialInput" class="text-caption text-fg-secondary" role="status">
         {{ $t("spaces.speech.project.sourceNotReady") }}
       </p>
       <UiButton v-else size="sm" @click="retryInitialization">{{ $t("common.retry") }}</UiButton>
     </div>
-    <UiScrollArea v-if="isAddingVoice" class="max-h-96 min-h-0" viewport-class="max-h-[inherit]">
-      <div class="p-3"><VoiceCandidateForm /></div>
-    </UiScrollArea>
-    <SpeechProjectSelection
-      v-if="selectedProject && projects.length > 1 && !isAddingVoice"
-      :projects="projects"
-      :selected-id="selectedProject.project.id"
-      :disabled="creatingProject || savingRevision || previewing || generating || generationSubmitting"
-      @select="projectLeave.selectProject"
-    />
     <SpeechProjectEditor
       v-if="selectedProject"
-      :visible="!isAddingVoice"
       :key="`${selectedProject.project.id}:${draftEpoch}`"
       :source-node="node"
       :project="selectedProject"
@@ -177,7 +134,6 @@ defineExpose({ requestClose });
       @generate="generate"
       @cancel="cancelPreview"
       @stop-listening="stopPreviewListening"
-      @export="exportRender"
     />
   </div>
   <SpaceUnsavedChangesDialog

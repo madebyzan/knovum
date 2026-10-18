@@ -253,6 +253,17 @@ CREATE TABLE spaces_agent_artifact_sessions (
   FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE
 );
 
+CREATE TABLE spaces_reserved_outputs (
+  node_id TEXT PRIMARY KEY NOT NULL,
+  space_id TEXT NOT NULL,
+  run_id TEXT NOT NULL,
+  state_field TEXT NOT NULL CHECK (state_field IN ('processingState', 'derivationState')),
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+  FOREIGN KEY (node_id) REFERENCES spaces_nodes(id) ON DELETE CASCADE,
+  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE
+);
+
 CREATE TABLE spaces_grounded_documents (
   derivation_id TEXT PRIMARY KEY NOT NULL,
   citations TEXT NOT NULL CHECK (json_valid(citations) AND json_type(citations) = 'array'),
@@ -1457,6 +1468,7 @@ CREATE INDEX spaces_speech_asset_publications_space ON spaces_speech_asset_publi
 CREATE INDEX spaces_speech_segments_revision ON spaces_speech_segments(project_revision_id, ordinal);
 CREATE INDEX spaces_speech_renders_segment ON spaces_speech_renders(segment_id, attempt_epoch DESC);
 CREATE INDEX spaces_speech_source_separations_space ON spaces_speech_source_separations(space_id, created_at DESC);
+CREATE INDEX spaces_reserved_outputs_run ON spaces_reserved_outputs(run_id);
 CREATE UNIQUE INDEX spaces_speech_renders_run_attempt
   ON spaces_speech_renders(run_attempt_id) WHERE run_attempt_id IS NOT NULL;
 CREATE UNIQUE INDEX spaces_speech_asset_publications_attempt_asset

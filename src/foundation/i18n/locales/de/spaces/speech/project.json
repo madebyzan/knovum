@@ -1,5 +1,4 @@
 {
-  "new": "Neues starten",
   "language": "Sprache",
   "script": {
     "placeholder": "Geben Sie das Skript für diese Revision ein",
@@ -16,8 +15,6 @@
   "saving": "Speichern",
   "starting": "Generierung wird vorbereitet",
   "generatingInTasks": "Wird erzeugt. Fortschritt und Abbruch stehen unter Aufgaben.",
-  "generatedAudio": "Generiertes Audio",
-  "generatedVideo": "Generiertes Video",
   "format": "Format",
   "sampleRate": "Abtastrate",
   "loudness": "Lautheit (LUFS)",
@@ -45,7 +42,6 @@
     "videoDubbing": "Video-Überspielung"
   },
   "generateFromNode": "Sprache generieren",
-  "nodeProjects": "Gespeicherte Überspielung",
   "settings": "Einstellungen",
   "editorPages": "Spracheditor-Abschnitte",
   "importManuscript": "Knotenmanuskript importieren",
