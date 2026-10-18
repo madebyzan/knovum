@@ -23,7 +23,7 @@ const scroller = useTemplateRef<HTMLDivElement>("scroller");
 const width = shallowRef(0);
 const RESOURCE_COLUMNS = 2;
 const RESOURCE_GAP = 8;
-const columnWidth = computed(() => (width.value - RESOURCE_GAP) / RESOURCE_COLUMNS);
+const columnWidth = computed(() => Math.floor((width.value - RESOURCE_GAP) / RESOURCE_COLUMNS));
 const focusedResourceId = shallowRef<string>();
 const virtualizer = useVirtualizer<HTMLDivElement, HTMLDivElement>(
   computed(() => {
@@ -33,7 +33,7 @@ const virtualizer = useVirtualizer<HTMLDivElement, HTMLDivElement>(
       count: resources.length,
       getScrollElement: () => scroller.value,
       getItemKey: (index: number) => resources[index]!.resource.id,
-      estimateSize: (index: number) => previewHeight(resources[index]!) + 48,
+      estimateSize: (index: number) => previewHeight(resources[index]!),
       lanes: RESOURCE_COLUMNS,
       gap: RESOURCE_GAP,
       overscan: 4,
@@ -42,7 +42,9 @@ const virtualizer = useVirtualizer<HTMLDivElement, HTMLDivElement>(
         callback: (rect: Rect) => void,
       ) =>
         observeElementRect(instance, (rect) => {
-          width.value = rect.width;
+          const scrollEl = instance.scrollElement;
+          const availableWidth = scrollEl && scrollEl.clientWidth > 0 ? scrollEl.clientWidth : rect.width;
+          width.value = availableWidth;
           callback(rect);
         }),
       rangeExtractor: (range: Range) => {
@@ -62,12 +64,18 @@ const items = computed(() =>
 const totalSize = computed(() => virtualizer.value.getTotalSize());
 const scrollerStyle = computed(() => ({ height: `${Math.min(totalSize.value, 384)}px` }));
 function previewHeight({ resource }: DocumentResourceProjection) {
-  return Math.min(288, Math.max(64, (columnWidth.value * resource.height) / resource.width));
+  return Math.min(288, Math.max(64, Math.round((columnWidth.value * resource.height) / resource.width)));
 }
 function measureItem(element: Element | ComponentPublicInstance | null) {
   virtualizer.value.measureElement(element as HTMLDivElement | null);
 }
 watch(width, () => virtualizer.value.measure(), { flush: "post" });
+watch(totalSize, () => {
+  const scrollEl = scroller.value;
+  if (scrollEl && scrollEl.clientWidth > 0 && Math.abs(scrollEl.clientWidth - width.value) > 1) {
+    width.value = scrollEl.clientWidth;
+  }
+});
 </script>
 
 <template>
@@ -75,7 +83,7 @@ watch(width, () => virtualizer.value.measure(), { flush: "post" });
     ref="scroller"
     role="list"
     :aria-label="t('spaces.processing.document.resources.title')"
-    class="overflow-y-auto overscroll-contain"
+    class="overflow-x-hidden overflow-y-auto overscroll-contain"
     :style="scrollerStyle"
   >
     <div class="relative w-full" :style="{ height: `${totalSize}px` }">
