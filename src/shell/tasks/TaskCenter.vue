@@ -10,12 +10,21 @@ import { useTaskStore } from "../../foundation/tasks/task-store";
 import type { TaskReference } from "../../shared/contracts/task-reference";
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiPopover from "../../shared/ui/UiPopover.vue";
-import UiSpinner from "../../shared/ui/UiSpinner.vue";
+import TaskActivityIndicator, { type TaskIndicatorVariant } from "./TaskActivityIndicator.vue";
 import TaskCenterActivity from "./TaskCenterActivity.vue";
 
 type TaskFilter = "all" | "current";
 
-const props = defineProps<{ currentScope?: TaskReference | undefined }>();
+const props = withDefaults(
+  defineProps<{
+    currentScope?: TaskReference | undefined;
+    variant?: TaskIndicatorVariant;
+  }>(),
+  {
+    currentScope: undefined,
+    variant: "waveform",
+  },
+);
 const store = useTaskStore();
 const { completed, failed, tasks, running } = storeToRefs(store);
 const { t } = useI18n();
@@ -24,6 +33,10 @@ const filter = shallowRef<TaskFilter>("all");
 const queued = computed(() => tasks.value.filter((task) => task.status === "queued"));
 const attention = computed(() => tasks.value.filter((task) => task.status === "attention"));
 const activeCount = computed(() => running.value.length + queued.value.length);
+const activeProgress = computed(() => {
+  const taskWithProgress = running.value.find((task) => task.progress !== undefined);
+  return taskWithProgress?.progress;
+});
 const visibleTasks = computed(() => {
   const scope = props.currentScope;
   if (filter.value === "all" || !scope) return tasks.value;
@@ -61,7 +74,7 @@ watch(
         :aria-label="t('tasks.summary', { count: tasks.length })"
         class="inline-flex h-(--knovum-control-height-md) min-w-(--knovum-control-height-md) items-center justify-center gap-1 rounded-md px-1.5 text-caption text-fg-secondary transition-colors duration-100 ease-standard outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus motion-reduce:transition-none"
       >
-        <UiSpinner v-if="activeCount" size="sm" tone="accent" />
+        <TaskActivityIndicator v-if="activeCount" :variant="variant" :progress="activeProgress" />
         <CircleX v-else-if="failed.length" class="size-3 text-fg-danger" />
         <CircleAlert v-else-if="attention.length" class="size-3 text-fg-secondary" />
         <CircleCheck v-else-if="completed.length" class="size-3 text-fg-success" />
