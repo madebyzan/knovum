@@ -103,6 +103,15 @@ pub async fn start_speech_source_separation(
         now,
     )
     .await?;
+    super::publication::reserve_outputs(
+        &crate::spaces::speech::output_reservation::OutputContext::resolve(&app)?,
+        &mut tx,
+        &request.space_id,
+        &request.request_id,
+        &request.source_node_id,
+        [&request.vocals_label, &request.background_label],
+    )
+    .await?;
     sqlx::query(
         "INSERT INTO spaces_run_steps(id,run_id,definition_node_id,instance_path,node_kind,depends_on,configuration,state,state_version,resolved_input,created_at,updated_at) \
          VALUES(?,?,'separate','separate','speech_source_separation','[]',?,'ready',0,'{}',?,?)",
@@ -120,15 +129,6 @@ pub async fn start_speech_source_separation(
         .execute(&mut *tx)
         .await
         .map_err(db::sql_error)?;
-    super::publication::reserve_outputs(
-        &crate::spaces::speech::output_reservation::OutputContext::resolve(&app)?,
-        &mut tx,
-        &request.space_id,
-        &request.request_id,
-        &request.source_node_id,
-        [&request.vocals_label, &request.background_label],
-    )
-    .await?;
     tx.commit().await.map_err(db::sql_error)?;
     crate::spaces::runs::announce_change();
     Ok(crate::spaces::runs::load_run(pool, &request.request_id).await?)
