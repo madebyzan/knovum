@@ -10,7 +10,8 @@ function render() {
     props: {
       canGenerate: true,
       projectType: "short_dubbing",
-      isRunning: false,
+      isPreviewing: false,
+      isGenerating: false,
       isSubmitting: false,
       isSaving: false,
       isCancelling: false,
@@ -36,9 +37,16 @@ it("keeps generation as the primary action and preserves focus while saving", as
   expect(wrapper.findAll("button")).toHaveLength(1);
 });
 
-it("presents explicit cancellation while running and locks it during cancellation", async () => {
+it("offers no generation while the Task Center is carrying a Run for this project", async () => {
   const wrapper = render();
-  await wrapper.setProps({ isRunning: true });
+  await wrapper.setProps({ isGenerating: true });
+  expect(wrapper.find('[data-testid="speech-cancel"]').exists()).toBe(false);
+  expect(wrapper.get('[data-testid="speech-generate"]').attributes("disabled")).toBeDefined();
+});
+
+it("cancels the audition it is running and locks the control during cancellation", async () => {
+  const wrapper = render();
+  await wrapper.setProps({ isPreviewing: true });
   expect(wrapper.findAll("button")).toHaveLength(1);
   await wrapper.get('[data-testid="speech-cancel"]').trigger("click");
   expect(wrapper.emitted("cancel")).toHaveLength(1);

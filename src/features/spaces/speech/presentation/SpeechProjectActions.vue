@@ -9,7 +9,8 @@ import type { SpeechProjectOverview } from "../../contracts/generated/SpeechProj
 const props = defineProps<{
   canGenerate: boolean;
   projectType: SpeechProjectOverview["projectType"];
-  isRunning: boolean;
+  isPreviewing: boolean;
+  isGenerating: boolean;
   isSubmitting: boolean;
   isSaving: boolean;
   isCancelling: boolean;
@@ -38,7 +39,7 @@ const generationLabelKey = computed(() => {
     </UiButton>
     <div class="ml-auto flex items-center gap-2">
       <UiButton
-        v-if="isRunning"
+        v-if="isPreviewing"
         size="sm"
         :disabled="isCancelling"
         data-testid="speech-cancel"
@@ -53,7 +54,7 @@ const generationLabelKey = computed(() => {
         size="sm"
         variant="primary"
         class="bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
-        :disabled="!canGenerate || isSaving || isSubmitting"
+        :disabled="!canGenerate || isSaving || isSubmitting || isGenerating"
         @click="emit('generate')"
       >
         <LoaderCircle

@@ -15,6 +15,7 @@
   },
   "saving": "Saving",
   "starting": "Preparing generation",
+  "generatingInTasks": "Generating. Progress and cancellation are in Tasks.",
   "generatedAudio": "Generated audio",
   "generatedVideo": "Generated video",
   "format": "Format",

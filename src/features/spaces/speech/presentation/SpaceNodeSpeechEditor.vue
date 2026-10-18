@@ -28,13 +28,13 @@ const {
   selectedProject,
   preview,
   previewListening,
-  runState,
-  generationProgress,
-  hasActiveExecution,
+  previewProgress,
+  previewing,
+  generating,
   creatingProject,
   savingRevision,
   generationSubmitting,
-  generationCancelling,
+  previewCancelling,
   loading,
   errors,
   addProject,
@@ -44,7 +44,7 @@ const {
   settleRevisionSave,
   previewSelection,
   startGeneration,
-  cancelGeneration,
+  cancelPreview,
   stopPreviewListening,
   exportRender,
 } = useSpeechWorkspace(
@@ -93,6 +93,15 @@ async function createProject() {
   if (!initialInput.value || creatingProject.value || !(await requestClose())) return;
   await addProject(initialInput.value);
 }
+/**
+ * Generating hands the work to the Task Center, which reports and cancels it. The composer has
+ * nothing left to show, so it steps out of the way instead of sitting over the canvas.
+ */
+async function generate(input?: Parameters<typeof startGeneration>[0]) {
+  if (!(await startGeneration(input))) return;
+  projectLeave.updateDraft(false);
+  emit("close");
+}
 async function retryInitialization() {
   initializationAttempted.value = false;
   await refresh();
@@ -118,7 +127,7 @@ defineExpose({ requestClose });
     <SpeechVoiceAccess
       v-if="!loading && !creatingProject && !isAddingVoice"
       :empty="!voices.some((voice) => voice.isActive && voice.archivedAt == null)"
-      :disabled="hasActiveExecution || savingRevision || generationSubmitting"
+      :disabled="previewing || generating || savingRevision || generationSubmitting"
       @add="isAddingVoice = true"
     >
       <UiButton
@@ -126,7 +135,7 @@ defineExpose({ requestClose });
         size="sm"
         variant="ghost"
         class="ml-auto"
-        :disabled="hasActiveExecution || savingRevision || generationSubmitting"
+        :disabled="previewing || generating || savingRevision || generationSubmitting"
         @click="createProject"
         >{{ $t("spaces.speech.project.new") }}</UiButton
       >
@@ -144,7 +153,7 @@ defineExpose({ requestClose });
       v-if="selectedProject && projects.length > 1 && !isAddingVoice"
       :projects="projects"
       :selected-id="selectedProject.project.id"
-      :disabled="creatingProject || savingRevision || hasActiveExecution || generationSubmitting"
+      :disabled="creatingProject || savingRevision || previewing || generating || generationSubmitting"
       @select="projectLeave.selectProject"
     />
     <SpeechProjectEditor
@@ -157,16 +166,16 @@ defineExpose({ requestClose });
       :preview="preview"
       :preview-listening="previewListening"
       :output="publishedSpeechOutput(selectedProject.revision)"
-      :progress="generationProgress"
-      :run-state="runState"
-      :running="hasActiveExecution"
+      :progress="previewProgress"
+      :previewing="previewing"
+      :generating="generating"
       :saving="savingRevision"
       :submitting="generationSubmitting"
-      :cancelling="generationCancelling"
+      :cancelling="previewCancelling"
       @draft-state="projectLeave.updateDraft"
       @preview="previewSelection"
-      @generate="startGeneration"
-      @cancel="cancelGeneration"
+      @generate="generate"
+      @cancel="cancelPreview"
       @stop-listening="stopPreviewListening"
       @export="exportRender"
     />
