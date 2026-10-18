@@ -16,7 +16,7 @@ fn exports_exact_timings_and_escaped_webvtt_speaker() {
         source_segment_revision: None,
         delivery_instruction: None,
         source_text: None,
-        state: "pending".into(),
+        state: "rendered".into(),
         state_reason: None,
     };
     assert_eq!(encode(&[cue], true).unwrap(), "WEBVTT\n\n1\n00:00:01.250 --> 00:00:03.500\n<v Alice &amp; Bob>Hello &lt;world&gt;</v>\n\n");

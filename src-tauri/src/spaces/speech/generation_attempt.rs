@@ -107,10 +107,14 @@ pub(super) async fn stage_render(
     .bind(input_digest).bind(&voice.model_spec_id).bind(env!("CARGO_PKG_VERSION"))
     .bind(i64::from(super::contracts::parse_synthesis_config(&serde_json::from_str(&voice.synthesis_config).map_err(db::json_error)?)?.seed)).bind(&voice.synthesis_config).bind(target_path.to_string_lossy().as_ref()).bind(now)
     .execute(&mut *tx).await.map_err(db::sql_error)?;
+    // The executing attempt is this segment's only writer: `require_active` already proved the
+    // lease, the epoch and the active revision. The segment's own state is a report of its latest
+    // attempt, so the claim overwrites it instead of filtering on it — a state left behind by an
+    // interrupted attempt must never make a segment unrenderable.
     let claimed = sqlx::query(
-        "UPDATE spaces_speech_segments SET state='rendering',state_reason=NULL,updated_at=?          WHERE id=? AND state IN ('ready','failed','rendered')",
+        "UPDATE spaces_speech_segments SET state='rendering',state_reason=NULL,updated_at=? WHERE id=?",
     ).bind(now).bind(&segment.id).execute(&mut *tx).await.map_err(db::sql_error)?;
-    db::require_one(claimed, "Speech segment changed before attempt claim")?;
+    db::require_one(claimed, "Speech segment no longer exists")?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok((
         render_id,

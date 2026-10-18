@@ -1321,7 +1321,7 @@ CREATE TABLE spaces_speech_segments (
   source_segment_id TEXT,
   source_segment_revision INTEGER CHECK (source_segment_revision IS NULL OR source_segment_revision > 0),
   source_text TEXT CHECK (source_text IS NULL OR length(trim(source_text)) > 0),
-  state TEXT NOT NULL CHECK (state IN ('pending','ready','rendering','rendered','needs_edit','failed')),
+  state TEXT NOT NULL CHECK (state IN ('ready','rendering','rendered','failed')),
   state_reason TEXT,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
