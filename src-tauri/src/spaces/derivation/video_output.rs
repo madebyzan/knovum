@@ -34,28 +34,27 @@ pub fn inspect(
     })
 }
 
-/// Settles a derived video node onto the asset it now owns. Knowledge an Action preserves is the
-/// Action's own business; this is only what the published file itself establishes.
+/// Settles a derived video node onto the asset it now owns. Knowledge an output keeps of its
+/// source is declared by `inheritance`; this is only what the published file itself establishes.
 pub fn apply_published(object: &mut Map<String, Value>, output: &RenderedVideo, now: i64) {
     object.insert("assetPath".into(), output.path.clone().into());
     object.insert("sourceRevision".into(), output.revision.clone().into());
     object.insert("size".into(), output.size.into());
     object.insert("modifiedAt".into(), now.into());
     object.remove("processingState");
-    apply_cover(object, output.cover.as_ref());
+    if let Some(cover) = &output.cover {
+        cover.settle_onto(object);
+    }
 }
 
-pub fn apply_cover(object: &mut Map<String, Value>, cover: Option<&GeneratedPreview>) {
-    match cover {
-        Some(cover) => {
-            object.insert("previewPath".into(), cover.path.clone().into());
-            object.insert("intrinsicWidth".into(), cover.width.into());
-            object.insert("intrinsicHeight".into(), cover.height.into());
-        }
-        None => {
-            object.remove("previewPath");
-        }
+/// Discards a rendered video that will not be published, together with the cover made from it.
+pub async fn discard(app: &tauri::AppHandle, path: &str) -> Result<(), String> {
+    match tokio::fs::remove_file(path).await {
+        Ok(()) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(error.to_string()),
     }
+    crate::spaces::previews::remove_generated(app, std::path::Path::new(path))
 }
 
 pub const fn platform_h264_encoder() -> Result<&'static str, &'static str> {

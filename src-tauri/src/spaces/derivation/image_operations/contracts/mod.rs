@@ -180,6 +180,20 @@ impl ImageOperation {
         }
     }
 
+    pub(crate) fn derived_output(&self) -> crate::spaces::derivation::inheritance::DerivedOutput {
+        use crate::spaces::derivation::inheritance::DerivedOutput;
+        match self {
+            Self::Upscale { .. } => DerivedOutput::UpscaledImage,
+            Self::RemoveBackground => DerivedOutput::BackgroundRemovedImage,
+            Self::ExtractSelection { .. } => DerivedOutput::ExtractedObject,
+            Self::GenerateDepth => DerivedOutput::DepthMap,
+            Self::MultiAngle { .. } => DerivedOutput::NewView,
+            Self::RemoveObject { .. }
+            | Self::RemoveObjectPrompt { .. }
+            | Self::RemoveSelectedObject { .. } => DerivedOutput::ObjectRemovedImage,
+        }
+    }
+
     pub fn engine(&self, provider: &str, configured_model: &str) -> String {
         let model = match (provider, self) {
             ("qwen", Self::Upscale { .. } | Self::RemoveObject { .. }) => "wanx2.1-imageedit",

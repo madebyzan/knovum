@@ -159,15 +159,34 @@ where
     Ok(count == 1)
 }
 
+/// What a reserved output may hold before it publishes: its name, where its asset will live, the
+/// size it will be laid out at, and labels a person gave it meanwhile. Everything else it will
+/// carry is either established by its own published file or kept of its source by `inheritance`,
+/// so a reservation that already carries knowledge has taken it from somewhere it should not.
+const RESERVATION_FIELDS: &[&str] = &[
+    "kind",
+    "title",
+    "tags",
+    "knowledgeRevision",
+    "fileName",
+    "assetPath",
+    "processingState",
+    "intrinsicWidth",
+    "intrinsicHeight",
+];
+
 pub(super) fn validate_unpublished_asset(output: &Value) -> Result<&str, String> {
     let output_path = output
         .get("assetPath")
         .and_then(Value::as_str)
         .filter(|path| !path.is_empty())
         .ok_or("Derived output path is unavailable")?;
-    if output.get("processingState").and_then(Value::as_str) != Some("processing")
-        || output.get("sourceRevision").is_some()
-        || output.get("previewPath").is_some()
+    let reserved_only = output.as_object().is_some_and(|fields| {
+        fields
+            .keys()
+            .all(|field| RESERVATION_FIELDS.contains(&field.as_str()))
+    });
+    if output.get("processingState").and_then(Value::as_str) != Some("processing") || !reserved_only
     {
         return Err("Derived output must be an unpublished asset".into());
     }

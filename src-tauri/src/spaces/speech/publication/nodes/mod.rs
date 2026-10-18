@@ -1,13 +1,15 @@
-use serde_json::json;
+use serde_json::{json, Value};
 use sqlx::{Sqlite, Transaction};
 
 use super::super::contracts::SpeechAudioOutput;
 use crate::spaces::{
     derivation::{
+        inheritance::DerivedOutput,
         placement::{self, DerivedCell, DerivedOutputs},
         relations,
     },
     nodes::{self, contracts::InsertNode},
+    previews::GeneratedPreview,
     structure::{self, Size, SizingMode},
 };
 
@@ -16,6 +18,9 @@ pub(in crate::spaces::speech) struct MediaNodeOutput {
     pub kind: &'static str,
     pub title: String,
     pub output: SpeechAudioOutput,
+    pub derived: DerivedOutput,
+    /// The cover a published video shows, made from its own file.
+    pub cover: Option<GeneratedPreview>,
 }
 
 impl MediaNodeOutput {
@@ -31,11 +36,18 @@ impl MediaNodeOutput {
         }
     }
 
-    fn build_insert_node(&self, cell: &DerivedCell) -> Result<InsertNode, String> {
+    fn build_insert_node(&self, cell: &DerivedCell, source: &Value) -> Result<InsertNode, String> {
         let file_name = std::path::Path::new(&self.output.path)
             .file_name()
             .and_then(|name| name.to_str())
             .ok_or("Speech output has no file name")?;
+        let mut data = json!({ "kind":self.kind, "title":self.title, "assetPath":self.output.path,
+            "fileName":file_name, "sourceRevision":format!("sha256:{}", self.output.sha256),
+            "durationSeconds": self.output.sample_count / u64::from(self.output.sample_rate) });
+        if let (Some(cover), Some(object)) = (&self.cover, data.as_object_mut()) {
+            cover.settle_onto(object);
+        }
+        self.derived.inherit(&mut data, source)?;
         Ok(InsertNode {
             id: self.node_id.clone(),
             kind: self.kind.into(),
@@ -47,9 +59,7 @@ impl MediaNodeOutput {
             appearance: None,
             file_subpath: None,
             source_chunks: Vec::new(),
-            data: json!({ "kind":self.kind, "title":self.title, "assetPath":self.output.path,
-                "fileName":file_name, "sourceRevision":format!("sha256:{}", self.output.sha256),
-                "durationSeconds": self.output.sample_count / u64::from(self.output.sample_rate) }),
+            data,
         })
     }
 }
@@ -63,6 +73,16 @@ pub(in crate::spaces::speech) async fn publish(
     let (mut snapshot, edit_revision) =
         structure::repository::load_in_transaction(tx, space_id).await?;
     let before = structure::history::capture(tx, space_id, &snapshot).await?;
+    let source: String = sqlx::query_scalar(
+        "SELECT data FROM spaces_nodes WHERE id=? AND space_id=? AND deleted_at IS NULL",
+    )
+    .bind(source_node_id)
+    .bind(space_id)
+    .fetch_optional(&mut **tx)
+    .await
+    .map_err(crate::spaces::db::sql_error)?
+    .ok_or("Speech source node is no longer available")?;
+    let source: Value = serde_json::from_str(&source).map_err(crate::spaces::db::json_error)?;
     let sources = [source_node_id.to_owned()];
     let cells = placement::plan(
         tx,
@@ -79,7 +99,7 @@ pub(in crate::spaces::speech) async fn publish(
     .map_err(|error| error.to_string())?;
     let mut nodes = Vec::with_capacity(outputs.len());
     for (output, cell) in outputs.iter().zip(&cells) {
-        let mut node = output.build_insert_node(cell)?;
+        let mut node = output.build_insert_node(cell, &source)?;
         crate::spaces::knowledge::validation::normalize_node(
             tx,
             space_id,

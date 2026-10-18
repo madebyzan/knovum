@@ -1,5 +1,8 @@
 use super::{publish, MediaNodeOutput};
-use crate::spaces::{db, nodes, speech::contracts::SpeechAudioOutput, structure};
+use crate::spaces::{
+    db, derivation::inheritance::DerivedOutput, nodes, speech::contracts::SpeechAudioOutput,
+    structure,
+};
 use serde_json::json;
 
 #[tokio::test]
@@ -36,6 +39,8 @@ async fn derived_pair_undo_and_redo_preserve_relations_and_source() {
             sample_rate: 44_100,
             sample_count: 44_100,
         },
+        derived: DerivedOutput::SeparatedBackground,
+        cover: None,
     });
     publish(&mut tx, "space", "source", &outputs).await.unwrap();
     tx.commit().await.unwrap();

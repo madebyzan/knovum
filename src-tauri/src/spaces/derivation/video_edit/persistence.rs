@@ -2,6 +2,7 @@ use serde_json::Value;
 use tauri::AppHandle;
 
 use super::super::{
+    inheritance::DerivedOutput,
     inputs, pending_output,
     video_output::{self, RenderedVideo},
     CompletedDerivationOutput,
@@ -19,7 +20,7 @@ pub async fn complete(
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     let row: (String, String, String, String, String) = sqlx::query_as(
-        "SELECT d.space_id,i.node_id,d.output_node_id,n.data,json_extract(source.data,'$.assetPath') FROM spaces_knowledge_derivations d \
+        "SELECT d.space_id,i.node_id,d.output_node_id,n.data,source.data FROM spaces_knowledge_derivations d \
          JOIN spaces_knowledge_derivation_inputs i ON i.derivation_id=d.id AND i.position=0 AND i.role='primary' \
          JOIN spaces_nodes source ON source.id=i.node_id AND source.space_id=d.space_id \
          JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'",
@@ -27,8 +28,13 @@ pub async fn complete(
     inputs::validate_current(&mut tx, derivation_id).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&row.3).map_err(db::json_error)?;
-    pending_output::validate_separate_asset(&data, &row.4)?;
-    apply_output(&mut data, &output, now)?;
+    let source: Value = serde_json::from_str(&row.4).map_err(db::json_error)?;
+    let source_path = source
+        .get("assetPath")
+        .and_then(Value::as_str)
+        .ok_or("Video edit source asset is unavailable")?;
+    pending_output::validate_separate_asset(&data, source_path)?;
+    apply_output(&mut data, &source, &output, now)?;
     crate::spaces::knowledge::validation::validate_node(&mut tx, &row.0, "video", &data).await?;
     crate::spaces::derivation::persist_output_node(
         &mut tx,
@@ -47,16 +53,16 @@ pub async fn complete(
     })
 }
 
-fn apply_output(payload: &mut Value, output: &RenderedVideo, now: i64) -> Result<(), AppError> {
+fn apply_output(
+    payload: &mut Value,
+    source: &Value,
+    output: &RenderedVideo,
+    now: i64,
+) -> Result<(), AppError> {
     let object = payload
         .as_object_mut()
         .ok_or("Rendered video data is invalid")?;
     video_output::apply_published(object, output, now);
-    // An edit re-cuts the timeline, so measured duration, waveform and transcript are the source's
-    // alone. Dropping them is what asks enrichment to establish this node's own.
-    object.remove("videoEditProject");
-    object.remove("mediaKnowledge");
-    object.remove("mediaAnalysis");
-    object.remove("durationSeconds");
+    DerivedOutput::EditedVideo.inherit(payload, source)?;
     revision::apply(payload).map(|_| ()).map_err(AppError::from)
 }

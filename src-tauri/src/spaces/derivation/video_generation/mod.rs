@@ -157,13 +157,11 @@ async fn fail_output(
     path: &str,
     mut primary: AppError,
 ) -> AppError {
-    if let Err(cleanup) = tokio::fs::remove_file(path).await {
-        if cleanup.kind() != std::io::ErrorKind::NotFound {
-            primary.message = format!(
-                "{}; derived video cleanup also failed: {cleanup}",
-                primary.message
-            );
-        }
+    if let Err(cleanup) = super::video_output::discard(app, path).await {
+        primary.message = format!(
+            "{}; derived video cleanup also failed: {cleanup}",
+            primary.message
+        );
     }
     let settlement = super::failure::fail_message(app, derivation_id, &primary.message).await;
     super::failure::with_settlement(primary, settlement)

@@ -5,6 +5,7 @@ use super::SeparationConfiguration;
 use crate::{
     ai::local_runtime::separation::SeparatedAudio,
     spaces::{
+        derivation::inheritance::DerivedOutput,
         runs::AttemptClaim,
         speech::{
             contracts::SpeechAudioOutput,
@@ -26,15 +27,22 @@ pub(super) async fn publish(
         super::media::require_owned_source(tx, space_id, &config.source_node_id, &config.source)
             .await?;
     let outputs = [
-        ("vocals", &config.vocals_label, vocals, &metadata.vocals),
+        (
+            "vocals",
+            &config.vocals_label,
+            vocals,
+            &metadata.vocals,
+            DerivedOutput::SeparatedVocals,
+        ),
         (
             "background",
             &config.background_label,
             background,
             &metadata.background,
+            DerivedOutput::SeparatedBackground,
         ),
     ]
-    .map(|(stem, label, path, audio)| MediaNodeOutput {
+    .map(|(stem, label, path, audio, derived)| MediaNodeOutput {
         node_id: format!("{}-{stem}", claim.run_id),
         kind: "audio",
         title: format!("{title} · {label}"),
@@ -44,6 +52,8 @@ pub(super) async fn publish(
             sample_rate: audio.sample_rate,
             sample_count: audio.sample_count,
         },
+        derived,
+        cover: None,
     });
     nodes::publish(tx, space_id, &config.source_node_id, &outputs).await
 }

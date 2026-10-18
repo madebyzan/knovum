@@ -7,7 +7,7 @@ use crate::{
     foundation::app_error::AppError,
     spaces::{
         db,
-        derivation::{pending_output, source_inputs, video_output},
+        derivation::{pending_output, source_inputs},
         knowledge::model::revision,
     },
 };
@@ -60,7 +60,9 @@ pub async fn complete(
     object.insert("size".into(), (generated.bytes.len() as u64).into());
     object.insert("modifiedAt".into(), now.into());
     object.remove("processingState");
-    video_output::apply_cover(object, cover.as_ref());
+    if let Some(cover) = &cover {
+        cover.settle_onto(object);
+    }
     revision::apply(&mut data)?;
     crate::spaces::knowledge::validation::validate_node(&mut tx, &request.space_id, "video", &data)
         .await?;

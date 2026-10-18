@@ -98,15 +98,13 @@ describe("video render IPC boundary", () => {
       return { nodeId: pending.id, data: source.data };
     });
     await renderVideoEdit("space-id", source, project);
-    expect(store.createPendingContentForSpace).toHaveBeenCalledWith(
-      "space-id",
-      expect.objectContaining({
-        assetPath: "/assets/edited-reserved.mp4",
-        processingState: "processing",
-      }),
-    );
-    const pendingContent = vi.mocked(store.createPendingContentForSpace).mock.calls[0]?.[1];
-    expect(pendingContent?.sourceRevision).toBeUndefined();
+    expect(store.createPendingContentForSpace).toHaveBeenCalledWith("space-id", {
+      kind: "video",
+      title: "Source video-edited.mp4",
+      fileName: "source-edited.mp4",
+      assetPath: "/assets/edited-reserved.mp4",
+      processingState: "processing",
+    });
     expect(mocks.invoke).toHaveBeenCalledExactlyOnceWith("plugin:spaces|render_video_edit", {
       request: {
         id: expect.any(String),

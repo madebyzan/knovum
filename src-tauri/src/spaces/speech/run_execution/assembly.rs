@@ -122,15 +122,36 @@ pub(super) async fn execute(
         )
         .await?
     };
-    if let Err(error) = project_publication::commit_project_output(
-        pool,
-        claim,
-        &config.project_id,
-        &config.revision_id,
-        &output,
-    )
-    .await
-    {
+    // A dubbed video is a new file with the source's picture, so it gets a cover of its own.
+    let mut cover_path = None;
+    let committed: Result<(), String> = async {
+        let cover = if config.project_type == "video_dubbing" {
+            let app = app.clone();
+            let path = std::path::PathBuf::from(&output.path);
+            let cancellation = claim.cancellation.clone();
+            crate::foundation::blocking::run(move || {
+                crate::spaces::previews::generate_for_published_asset(&app, &path, &cancellation)
+            })
+            .await?
+        } else {
+            None
+        };
+        cover_path = cover.as_ref().map(|cover| cover.path.clone());
+        project_publication::commit_project_output(
+            pool,
+            claim,
+            &config.project_id,
+            &config.revision_id,
+            &output,
+            cover,
+        )
+        .await
+    }
+    .await;
+    if let Err(error) = committed {
+        if let Some(path) = cover_path {
+            let _ = std::fs::remove_file(path);
+        }
         super::super::asset_publication::abandon_attempt(app, pool, claim).await?;
         return Err(command_error(error, claim.cancellation.is_cancelled()));
     }

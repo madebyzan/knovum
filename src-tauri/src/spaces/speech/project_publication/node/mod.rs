@@ -4,7 +4,7 @@ use super::super::{
     contracts::SpeechAudioOutput,
     publication::nodes::{self, MediaNodeOutput},
 };
-use crate::spaces::db;
+use crate::spaces::{db, derivation::inheritance::DerivedOutput, previews::GeneratedPreview};
 #[cfg(test)]
 mod tests;
 
@@ -13,6 +13,7 @@ pub(super) async fn publish(
     project_id: &str,
     revision_id: &str,
     output: &SpeechAudioOutput,
+    cover: Option<GeneratedPreview>,
 ) -> Result<(), String> {
     let (space_id, source_node_id, title, project_type): (String, String, String, String) = sqlx::query_as(
         "SELECT p.space_id,p.source_node_id,p.title,p.project_type FROM spaces_speech_projects p JOIN spaces_nodes n ON n.id=p.source_node_id AND n.space_id=p.space_id WHERE p.id=? AND n.deleted_at IS NULL",
@@ -34,12 +35,17 @@ pub(super) async fn publish(
         {
             return Err("Speech revision already published a different node output".into());
         }
+        // The node published by an earlier attempt keeps the cover it was published with.
+        if let Some(cover) = cover {
+            let _ = std::fs::remove_file(cover.path);
+        }
         return Ok(());
     }
-    let kind = if project_type == "video_dubbing" {
-        "video"
+    // Dubbing gives a video a new voice; every other project narrates a text into new audio.
+    let (kind, derived) = if project_type == "video_dubbing" {
+        ("video", DerivedOutput::DubbedVideo)
     } else {
-        "audio"
+        ("audio", DerivedOutput::Narration)
     };
     nodes::publish(
         tx,
@@ -50,6 +56,8 @@ pub(super) async fn publish(
             kind,
             title,
             output: output.clone(),
+            derived,
+            cover,
         }],
     )
     .await

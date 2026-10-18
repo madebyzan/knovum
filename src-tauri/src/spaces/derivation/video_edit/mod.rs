@@ -69,7 +69,7 @@ pub async fn render(
                 Err(error) => {
                     let settlement = failure::fail_message(&app, &request.id, &error.message).await;
                     let mut error = failure::with_settlement(error, settlement);
-                    if let Err(cleanup) = tokio::fs::remove_file(path).await {
+                    if let Err(cleanup) = super::video_output::discard(&app, &path).await {
                         error
                             .message
                             .push_str(&format!("; rendered video cleanup failed: {cleanup}"));

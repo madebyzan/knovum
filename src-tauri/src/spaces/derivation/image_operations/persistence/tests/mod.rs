@@ -11,22 +11,14 @@ use super::super::{
 use crate::{
     local_resources::model_catalog::LocalModelId,
     spaces::{
-        db, derivation::action_execution::ExecutionAuthority, knowledge::model::revision,
+        assets::enrichment::jobs::revision::visual_revision, db,
+        derivation::action_execution::ExecutionAuthority, knowledge::model::revision,
         nodes::contracts::InsertNodesRequest, structure::repository,
     },
 };
 
 async fn fixture() -> (SqlitePool, DeriveImageRequest, Value) {
-    let pool = sqlx::sqlite::SqlitePoolOptions::new()
-        .max_connections(1)
-        .connect("sqlite::memory:")
-        .await
-        .unwrap();
-    db::migrate(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
-        .execute(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('job','space','space','user','local-user','action','running',0,'{}','{}','{}',1,1)")
-        .execute(&pool).await.unwrap();
+    let pool = crate::spaces::derivation::tests::running_action_pool("job").await;
     let mut source = json!({"kind":"image","title":"Source","fileName":"source.png","assetPath":"/owned/source.png","sourceRevision":"asset:1"});
     revision::apply(&mut source).unwrap();
     let mut output = json!({"kind":"image","title":"Depth","fileName":"depth.png","assetPath":"/owned/pending.png","processingState":"processing"});
@@ -91,6 +83,7 @@ async fn complete(
             execution_epoch: 0,
         },
         token,
+        None,
     )
     .await
 }
@@ -178,6 +171,67 @@ async fn selection_extraction_publishes_a_photo_without_depth_metadata() {
         .unwrap();
     assert!(publication.data.get("imageDepth").is_none());
     assert_eq!(publication.data["assetPath"], "/owned/depth.png");
+}
+
+#[tokio::test]
+async fn an_upscaled_picture_keeps_its_labels_and_what_it_shows() {
+    let (pool, mut request, mut source) = fixture().await;
+    source["tags"] = json!(["poster"]);
+    let shown = visual_revision(&source).unwrap().unwrap();
+    source["visualKnowledge"] = json!({
+        "sourceRevision":shown,"description":"A red poster","tags":[],"generatedAt":1,
+        "executionSource":{"type":"model","provider":"openai","model":"vision"}
+    });
+    revision::apply(&mut source).unwrap();
+    sqlx::query("UPDATE spaces_nodes SET data=$1 WHERE id='source'")
+        .bind(source.to_string())
+        .execute(&pool)
+        .await
+        .unwrap();
+    let model = LocalModelId::RealEsrganGeneralX4v3;
+    request.operation = ImageOperation::Upscale {
+        target_long_edge: 2048,
+    };
+    request.execution = ImageExecutionTarget::Local {
+        model,
+        spec_id: model.image_spec().unwrap(),
+    };
+    let publication = complete(&pool, &request, &CancellationToken::new())
+        .await
+        .unwrap();
+    assert_eq!(publication.data["tags"], json!(["poster"]));
+    assert_eq!(
+        publication.data["visualKnowledge"]["description"],
+        "A red poster"
+    );
+    assert_eq!(
+        publication.data["visualKnowledge"]["sourceRevision"],
+        visual_revision(&publication.data)
+            .unwrap()
+            .unwrap()
+            .as_str()
+    );
+    let queued: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM spaces_enrichment_jobs WHERE node_id='output'")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert_eq!(queued, 0, "a kept reading is not taken again");
+}
+
+#[tokio::test]
+async fn a_depth_map_is_a_new_work_and_keeps_nothing_of_its_source() {
+    let (pool, request, mut source) = fixture().await;
+    source["tags"] = json!(["poster"]);
+    sqlx::query("UPDATE spaces_nodes SET data=$1 WHERE id='source'")
+        .bind(source.to_string())
+        .execute(&pool)
+        .await
+        .unwrap();
+    let publication = complete(&pool, &request, &CancellationToken::new())
+        .await
+        .unwrap();
+    assert!(publication.data.get("tags").is_none());
 }
 
 async fn assert_unpublished(pool: &SqlitePool) {

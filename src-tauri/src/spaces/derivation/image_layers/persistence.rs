@@ -208,14 +208,7 @@ fn apply_layer_content(
     object.insert("modifiedAt".into(), now.into());
     object.insert("intrinsicWidth".into(), layer.width.into());
     object.insert("intrinsicHeight".into(), layer.height.into());
-    for field in [
-        "processingState",
-        "imageEdit",
-        "previewPath",
-        "visualKnowledge",
-    ] {
-        object.remove(field);
-    }
+    object.remove("processingState");
     revision::apply(payload)?;
     Ok(())
 }

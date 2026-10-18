@@ -178,6 +178,7 @@ pub(super) async fn execute_audiobook(
         &config.project_id,
         &config.revision_id,
         &output,
+        None,
     )
     .await
     {
