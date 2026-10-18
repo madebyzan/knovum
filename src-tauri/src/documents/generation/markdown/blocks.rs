@@ -35,11 +35,14 @@ impl Reader<'_> {
                 Event::Start(Tag::List(start)) => self.list(start, depth + 1)?,
                 Event::Start(Tag::Table(alignments)) => self.table(alignments, depth + 1)?,
                 Event::Rule => Block::Rule,
+                // Markdown hands a whole block to HTML to lay something out. The layout is not
+                // document content, but what it wraps is.
                 Event::Start(Tag::HtmlBlock) => {
-                    return Err("Raw HTML is not supported by document export".into())
+                    self.html_block(depth + 1, &mut loose)?;
+                    continue;
                 }
                 event => {
-                    loose.push(self.inline(event, depth + 1)?);
+                    self.push_inline(event, depth + 1, &mut loose)?;
                     continue;
                 }
             };
@@ -51,6 +54,17 @@ impl Reader<'_> {
         }
         flush(&mut blocks, &mut loose);
         Ok(blocks)
+    }
+
+    fn html_block(&mut self, depth: usize, output: &mut Vec<Inline>) -> Result<(), String> {
+        Self::check_depth(depth)?;
+        while let Some(event) = self.next()? {
+            match event {
+                Event::End(TagEnd::HtmlBlock) => return Ok(()),
+                event => self.push_inline(event, depth, output)?,
+            }
+        }
+        Err("Unclosed Markdown HTML block".into())
     }
 
     fn code_block(&mut self, kind: CodeBlockKind<'_>) -> Result<Block, String> {

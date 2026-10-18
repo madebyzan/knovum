@@ -1,8 +1,10 @@
 mod blocks;
 mod containers;
+mod html;
 mod inlines;
 pub(crate) mod ir;
 mod ir_inlines;
+mod pictures;
 
 use pulldown_cmark::{Event, Options, Parser};
 
@@ -22,6 +24,14 @@ pub(crate) fn parse(source: &DocumentSource) -> Result<Document, String> {
         events: 0,
     };
     let mut blocks = reader.blocks(None, 0)?;
+    pictures::held(
+        &mut blocks,
+        &source
+            .images
+            .iter()
+            .map(|image| image.destination.as_str())
+            .collect(),
+    );
     let title = source.title.trim().to_owned();
     let leading_title_removed = blocks.first().is_some_and(|block| {
         matches!(block, Block::Heading { level: 1, content }

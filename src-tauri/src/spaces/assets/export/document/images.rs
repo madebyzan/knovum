@@ -31,39 +31,45 @@ pub(super) fn load(
     if destinations.len() > 2_000 {
         return Err("Document exceeds 2000 image resources".into());
     }
-    destinations
+    Ok(destinations
         .into_iter()
-        .map(|(destination, path)| {
-            let path = Path::new(&path);
-            let path = if path.is_absolute() {
-                path.to_owned()
-            } else {
-                crate::spaces::assets::asset_directory(app)?.join(path)
-            };
-            if std::fs::symlink_metadata(&path)
-                .map_err(|error| error.to_string())?
-                .file_type()
-                .is_symlink()
-            {
-                return Err("Document images must not be symbolic links".into());
-            }
-            let path = crate::spaces::assets::authorize_spaces_asset(app, &path)?;
-            let metadata = std::fs::metadata(&path).map_err(|error| error.to_string())?;
-            if !metadata.is_file()
-                || metadata.len() > crate::documents::generation::images::MAX_IMAGE_BYTES
-            {
-                return Err("Document image must be a regular file of at most 32 MiB".into());
-            }
-            Ok(ImageSource {
-                destination,
-                file: DocumentFileSource {
-                    title: String::new(),
-                    source_revision: crate::file_inspection::content_revision(&path)?,
-                    path,
-                },
-            })
-        })
-        .collect()
+        .filter_map(|(destination, path)| held(app, destination, &path))
+        .collect())
+}
+
+/// The picture behind one reference, when this Space holds it.
+///
+/// A conversion embeds bytes, so it can only embed what was imported. A reference it cannot read
+/// - a badge served over the network, a path outside the Space, a file that is gone - is not
+/// held, and the document model reads such a reference as its alt text.
+fn held(app: &tauri::AppHandle, destination: String, path: &str) -> Option<ImageSource> {
+    let path = Path::new(path);
+    let path = if path.is_absolute() {
+        path.to_owned()
+    } else {
+        crate::spaces::assets::asset_directory(app).ok()?.join(path)
+    };
+    if std::fs::symlink_metadata(&path)
+        .ok()?
+        .file_type()
+        .is_symlink()
+    {
+        return None;
+    }
+    let path = crate::spaces::assets::authorize_spaces_asset(app, &path).ok()?;
+    let metadata = std::fs::metadata(&path).ok()?;
+    if !metadata.is_file() || metadata.len() > crate::documents::generation::images::MAX_IMAGE_BYTES
+    {
+        return None;
+    }
+    Some(ImageSource {
+        destination,
+        file: DocumentFileSource {
+            title: String::new(),
+            source_revision: crate::file_inspection::content_revision(&path).ok()?,
+            path,
+        },
+    })
 }
 
 fn collect_note(

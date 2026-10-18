@@ -17,12 +17,16 @@ export interface ExportFormats {
  * source, so it belongs to the file being saved rather than to a second
  * resource on the canvas. Which formats exist is answered by whoever owns the
  * bytes: the Renderer for content it already holds, the engine for the rest.
- * Content the engine cannot read admits nothing and says why.
+ * A format both of them can write is offered once, by the Renderer, because
+ * that is the resource's own serialization. Content the engine cannot read
+ * admits nothing and says why.
  */
 export async function nodeExportFormats(spaceId: string, node: SpaceCanvasNode): Promise<ExportFormats> {
   const engine = await listExportFormats(spaceId, node.id);
   return {
-    formats: [...payloadExports(node.data).map(({ extension }) => extension), ...engine.formats],
+    formats: [
+      ...new Set([...payloadExports(node.data).map(({ extension }) => extension), ...engine.formats]),
+    ],
     unavailable: engine.unavailable,
   };
 }

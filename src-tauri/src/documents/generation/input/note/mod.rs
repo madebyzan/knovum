@@ -8,10 +8,7 @@ mod preflight;
 mod table_cells;
 mod tables;
 
-use office_oxide::{
-    ir::{DocumentIR, Element, Heading, InlineContent, Metadata, Paragraph, Section, TextSpan},
-    DocumentFormat as OfficeFormat,
-};
+use office_oxide::ir::{DocumentIR, Element, Heading, InlineContent, Paragraph, TextSpan};
 
 use self::model::Node;
 use super::super::{
@@ -40,19 +37,10 @@ pub(super) fn parse(source: &NoteSource, format: DocumentFormat) -> Result<Docum
         elements.insert(0, heading(1, title.clone()));
     }
     append_citations(&mut elements, &source.citations);
-    Ok(DocumentIR {
-        metadata: Metadata {
-            format: OfficeFormat::Docx,
-            title: (!title.is_empty()).then_some(title),
-            author: Some("Knovum".into()),
-            ..Default::default()
-        },
-        sections: vec![Section {
-            elements,
-            ..Default::default()
-        }],
-        defined_names: Vec::new(),
-    })
+    Ok(super::super::structured::document(
+        (!title.is_empty()).then_some(title),
+        elements,
+    ))
 }
 
 pub(super) struct Context<'a> {

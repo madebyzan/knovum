@@ -56,10 +56,11 @@ replace executable discovery. Required resources fail visibly. Local IPC queries
 Mixed local/remote extension and MCP IPC always reaches Rust, whose transport reports actual network
 failures without blocking local directory, ZIP or stdio operations.
 
-Document conversion uses a bounded private worker for content delivery. Markdown and Note PDF
-output uses Typst; Office original-layout PDF rendering is outside the product boundary. Knovum
-neither installs an Office engine nor discovers an ambient converter. Users export original-layout
-PDF in their external Office application and import the result.
+Document conversion uses a bounded private worker for content delivery. Every document source is
+read into the authoring model and typeset to PDF with Typst; original-layout PDF rendering is
+outside the product boundary. Knovum neither installs an Office engine nor discovers an ambient
+converter. Users export original-layout PDF in their external Office application and import the
+result.
 
 ## Startup and recovery
 

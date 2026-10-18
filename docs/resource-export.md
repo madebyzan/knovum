@@ -32,11 +32,11 @@ engine admits nothing.
 
 | Resource           | Formats, own format first                       | Contract                                                                          |
 | ------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------- |
-| Rich Note          | TXT, HTML, DOCX, PDF, PPTX                      | Structured authoring content; no Markdown intermediate                            |
+| Rich Note, text    | TXT, HTML, DOCX, PDF, PPTX                      | Structured authoring content; no Markdown intermediate                            |
 | Markdown           | MD, TXT, HTML, DOCX, PDF, PPTX                  | Semantic content and authorized managed images; MD is written by the Renderer     |
-| PDF                | PDF, DOCX, TXT, HTML, PPTX                      | Editable text reflow, source-page images; qualified recognition for scanned pages |
-| DOC/DOCX, XLS/XLSX | own format, DOCX, TXT, HTML                     | Supported semantic Office content; no original-layout PDF                         |
-| PPT/PPTX           | own format, DOCX, TXT, HTML; PPT also adds PPTX | Supported Office IR content and legacy upgrade                                    |
+| PDF                | PDF, TXT, HTML, DOCX, PPTX                      | Editable text reflow, source-page images; qualified recognition for scanned pages |
+| DOC/DOCX, XLS/XLSX | own format, TXT, HTML, DOCX, PDF                | Supported semantic Office content, reflowed rather than laid out as the original  |
+| PPT/PPTX           | own format, TXT, HTML, DOCX, PDF; PPT adds PPTX | Supported Office IR content and legacy upgrade                                    |
 | Other file         | own format                                      | The managed bytes as they are                                                     |
 | Image              | own format when untouched, PNG, JPG             | The picture as it is currently edited; JPEG composites transparency onto white    |
 | Relative depth     | own format                                      | Measurement data, copied verbatim rather than re-encoded as a picture             |
@@ -54,11 +54,13 @@ The private document worker owns synchronous parsing and serialization. Markdown
 recognition supplied as a separate literal page input. Knovum keeps source/asset policy, format
 translation, presentation pagination and safe typesetting.
 
-Office original-layout PDF is outside this product boundary. Knovum does not install, bundle or
-implicitly discover an Office layout engine. Users open the original file in their external Office
-application and export PDF there. Office semantic content exports do not claim original pagination
-or positioning. No second persistent document model, universal conversion service, compatibility
-reader or alternate engine after failure is introduced.
+Original-layout fidelity is outside this product boundary. Knovum does not install, bundle or
+implicitly discover an Office layout engine; every document source is read into the authoring model
+and written by the same writers, so one reading reaches every format a document can become. Office
+content therefore reflows - PDF included - and claims no original pagination or positioning. Users
+who need the original layout open the file in their external Office application. No second
+persistent document model, universal conversion service, compatibility reader or alternate engine
+after failure is introduced.
 
 The export cancellation token owns cancellation. The host kills and reaps the worker process tree
 before releasing execution capacity. Source files and attached image snapshots are checked again
@@ -86,10 +88,18 @@ are appended as literal structured paragraphs.
 
 Markdown supports CommonMark paragraphs, H1–H6 headings, quotes, rules, line breaks, links, inline
 and block code, nested ordered/unordered lists, tables, strikethrough and task lists. Parser upgrades
-must not expand the contract implicitly through `Options::all()`. Raw HTML is rejected, and that
-rejection is reported when the formats are listed rather than when the file is written. Math and
-footnote extensions remain outside the Markdown authoring contract; custom templates are not an
-export parameter.
+must not expand the contract implicitly through `Options::all()`. Math and footnote extensions remain
+outside the Markdown authoring contract; custom templates are not an export parameter.
+
+Markdown carries HTML, so a document is the content that markup wraps rather than the markup: text
+belongs to the document, `<br>` is a line break, an `<img>` reads as what it shows, and a tag that
+says nothing about content contributes nothing. Elements whose text is not prose - scripts, styles,
+embedded markup languages - and comments contribute nothing at all. Content outside the authoring
+contract is still unavailable in every format alike, and that is reported when the formats are
+listed rather than when the file is written.
+
+A text block is the same editable content as a Rich Note, presented without prose styling, so it
+reaches the same formats through the same reading.
 
 Rich Notes retain headings, aligned paragraphs, lists and checked task state, code blocks, quotes,
 rules, tables including merged cells in DOCX/PDF/HTML, and images. Supported text marks include
@@ -100,7 +110,9 @@ is not part of the saved authoring document. Structured data is translated direc
 Image resources are authorized by Spaces and revision-pinned before rendering. Markdown image
 URLs may resolve through their stored editor asset identity, or an absolute/relative path within the
 managed Space asset directory. Remote images are not downloaded; external/private file access is
-not authorized by conversion. A missing image fails rich output rather than disappearing. TXT uses
+not authorized by conversion. A conversion embeds bytes, so it embeds only the pictures this Space
+holds: a reference it cannot read - a badge served over the network, a path outside the Space, a
+file that is gone - reads as its alternative text instead of failing the document. TXT uses
 alternative text and does not require image bytes. Workers read bounded snapshots, decode under
 pixel/allocation limits, apply camera orientation metadata and normalize supported raster inputs to PNG.
 DOCX applies one shared image-size policy across Markdown, Note, PDF and Office content routes:
