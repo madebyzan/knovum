@@ -76,15 +76,13 @@ pub(super) async fn start(
     // here, when the work starts, rather than when it settles: a rendering node is already
     // connected to every asset it is made of.
     for input in &inputs {
-        relations::insert(
+        relations::derives_from(
             &mut tx,
-            &relations::derives_from(
-                &request.space_id,
-                &request.output_node_id,
-                input.node_id,
-                "Video rendered from a non-destructive edit project",
-                now,
-            ),
+            &request.space_id,
+            &request.output_node_id,
+            input.node_id,
+            "Video rendered from a non-destructive edit project",
+            now,
         )
         .await?;
     }

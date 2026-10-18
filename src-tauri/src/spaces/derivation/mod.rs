@@ -29,7 +29,7 @@ use tauri::AppHandle;
 
 use crate::foundation::app_error::AppError;
 pub(crate) use action_execution::{execute as execute_action, ExecutionAuthority};
-pub use contracts::{CompletedDerivationOutput, DerivationRelation};
+pub use contracts::CompletedDerivationOutput;
 
 pub(crate) async fn reconcile_interrupted(app: &AppHandle) -> Result<(), String> {
     failure::reconcile_interrupted(app).await
