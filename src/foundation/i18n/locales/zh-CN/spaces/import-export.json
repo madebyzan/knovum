@@ -29,6 +29,8 @@
     "formats": {
       "png": "PNG 图片 (.png)",
       "jpg": "JPEG 图片 (.jpg)",
+      "webp": "WebP 图片 (.webp)",
+      "tiff": "TIFF 图片 (.tiff)",
       "md": "Markdown (.md)",
       "txt": "纯文本 (.txt)",
       "json": "JSON (.json)",
@@ -41,7 +43,8 @@
       "m4a": "AAC 音频 (.m4a)",
       "flac": "FLAC 音频 (.flac)",
       "mp4": "MP4 视频 (.mp4)",
-      "mov": "QuickTime 视频 (.mov)"
+      "mov": "QuickTime 视频 (.mov)",
+      "mkv": "Matroska 视频 (.mkv)"
     }
   },
   "fileName": "文件名",

@@ -21,9 +21,69 @@ pub(super) async fn load(
     match kind {
         // A Note and a text block are the same editable content, presented differently.
         "markdown" | "note" | "text" => editable(app, node_id, payload, format, title).await,
+        "website" => Ok(authored(title, super::super::capture::summary(payload)?)),
+        "code" => listing(app, payload, title).await,
         "file" => file(app, payload, title),
         _ => Err(format!("A {kind} resource is not a document source").into()),
     }
+}
+
+/// A document the engine assembled from what the Space recorded, which points at no files of its
+/// own: a capture's summary carries its pictures as addresses nobody imported.
+fn authored(title: String, markdown: String) -> DocumentInput {
+    DocumentInput::Markdown(DocumentSource {
+        title,
+        markdown,
+        citations: vec![],
+        images: vec![],
+    })
+}
+
+/// A code resource is set as the listing it is: the characters of the file, fenced so that
+/// nothing inside it can become markup.
+async fn listing(
+    app: &AppHandle,
+    payload: &Value,
+    title: String,
+) -> Result<DocumentInput, AppError> {
+    let file = managed_file(app, payload, String::new())?;
+    let language = language(payload);
+    let text = crate::foundation::blocking::run(move || {
+        let bytes = crate::documents::generation::input::file::read_snapshot(
+            &file,
+            crate::documents::generation::MAX_AUTHORING_BYTES as u64,
+        )?;
+        String::from_utf8(bytes).map_err(|_| "This resource is not text".to_owned())
+    })
+    .await?;
+    Ok(authored(title, fenced(&text, &language)))
+}
+
+/// The fence is longer than any run of backticks in the file, so the listing cannot end itself.
+fn fenced(text: &str, language: &str) -> String {
+    let mut longest = 0usize;
+    let mut run = 0usize;
+    for character in text.chars() {
+        run = if character == '`' { run + 1 } else { 0 };
+        longest = longest.max(run);
+    }
+    let fence = "`".repeat(longest.max(2) + 1);
+    format!("{fence}{language}\n{text}\n{fence}\n")
+}
+
+/// The language the Space recognized, as an info string: a word, or nothing.
+fn language(payload: &Value) -> String {
+    payload
+        .get("previewLanguage")
+        .and_then(Value::as_str)
+        .filter(|value| {
+            !value.is_empty()
+                && value.chars().all(|character| {
+                    character.is_ascii_alphanumeric() || character == '+' || character == '-'
+                })
+        })
+        .unwrap_or_default()
+        .to_ascii_lowercase()
 }
 
 async fn editable(
@@ -76,19 +136,7 @@ async fn editable(
 }
 
 fn file(app: &AppHandle, payload: &Value, title: String) -> Result<DocumentInput, AppError> {
-    let path = required(payload, "assetPath")?;
-    if std::fs::symlink_metadata(path)
-        .map_err(|error| error.to_string())?
-        .file_type()
-        .is_symlink()
-    {
-        return Err("Document source must not be a symbolic link".into());
-    }
-    let file = DocumentFileSource {
-        title,
-        path: crate::spaces::assets::authorize_spaces_asset(app, std::path::Path::new(path))?,
-        source_revision: required(payload, "sourceRevision")?.to_owned(),
-    };
+    let file = managed_file(app, payload, title)?;
     if file
         .path
         .extension()
@@ -100,6 +148,27 @@ fn file(app: &AppHandle, payload: &Value, title: String) -> Result<DocumentInput
         }));
     }
     Ok(DocumentInput::File(file))
+}
+
+/// The managed file behind a resource, authorized and pinned to the revision it was published at.
+fn managed_file(
+    app: &AppHandle,
+    payload: &Value,
+    title: String,
+) -> Result<DocumentFileSource, AppError> {
+    let path = required(payload, "assetPath")?;
+    if std::fs::symlink_metadata(path)
+        .map_err(|error| error.to_string())?
+        .file_type()
+        .is_symlink()
+    {
+        return Err("Document source must not be a symbolic link".into());
+    }
+    Ok(DocumentFileSource {
+        title,
+        path: crate::spaces::assets::authorize_spaces_asset(app, std::path::Path::new(path))?,
+        source_revision: required(payload, "sourceRevision")?.to_owned(),
+    })
 }
 
 /// A file resource keeps its own name as its display title, which would read as

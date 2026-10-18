@@ -13,12 +13,17 @@ export interface PayloadExport {
 }
 
 export function payloadExports(data: SpaceNodePayload): readonly PayloadExport[] {
-  // A note is editable document content: the document engine renders it.
-  if (isSpaceManagedAssetPayload(data) || data.kind === "note") return [];
-  if (data.kind === "text") return [{ extension: "txt", text: () => data.plainText }];
+  // Content the engine can read or assemble is serialized by the engine: managed assets, the
+  // editable documents a Note and a text block hold, and the summary of a capture.
+  if (
+    isSpaceManagedAssetPayload(data) ||
+    data.kind === "note" ||
+    data.kind === "text" ||
+    data.kind === "website"
+  )
+    return [];
   if (data.kind === "markdown")
     return [{ extension: "md", text: () => formatExportMarkdown(data.title, data.text) }];
-  if (data.kind === "website") return [{ extension: "md", text: () => websiteMarkdown(data) }];
   if (data.kind === "credential") return [json(() => credentialMetadata(data))];
   if (data.kind === "object") return [json(() => objectDocument(data))];
   if (data.kind === "portal") return [json(() => portalDocument(data))];
@@ -28,19 +33,6 @@ export function payloadExports(data: SpaceNodePayload): readonly PayloadExport[]
 
 export function json(value: () => unknown): PayloadExport {
   return { extension: "json", text: () => `${JSON.stringify(value(), undefined, 2)}\n` };
-}
-
-function websiteMarkdown(data: Extract<SpaceNodePayload, { kind: "website" }>) {
-  const lines = [`# ${data.title}`, "", `Source: ${data.url}`];
-  if (data.canonicalUrl && data.canonicalUrl !== data.url) lines.push(`Canonical: ${data.canonicalUrl}`);
-  if (data.siteName) lines.push(`Site: ${data.siteName}`);
-  if (data.description) lines.push("", data.description);
-  if (data.contentPreview) lines.push("", data.contentPreview);
-  for (const section of data.websiteSections ?? []) {
-    if (section.heading) lines.push("", `## ${section.heading}`);
-    lines.push("", section.text);
-  }
-  return `${lines.join("\n")}\n`;
 }
 
 export function credentialMetadata(data: Extract<SpaceNodePayload, { kind: "credential" }>) {

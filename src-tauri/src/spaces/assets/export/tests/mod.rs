@@ -19,7 +19,7 @@ fn note(text: &str) -> Value {
 #[test]
 fn an_untouched_picture_keeps_its_own_format_and_can_be_encoded_again() {
     let payload = json!({"kind":"image","fileName":"cover.webp","assetPath":"/owned/cover.webp"});
-    assert_eq!(offered(&payload), ["webp", "png", "jpg"]);
+    assert_eq!(offered(&payload), ["webp", "png", "jpg", "tiff"]);
     assert_eq!(
         targets::requested(&payload, Path::new("/out/cover.webp")).unwrap(),
         Export::Managed(Managed::Original),
@@ -37,7 +37,7 @@ fn an_edited_picture_is_only_offered_as_a_new_encoding() {
         "kind":"image", "fileName":"cover.png", "assetPath":"/owned/cover.png",
         "imageEdit":{"crop":{"x":0.0,"y":0.0,"width":1.0,"height":1.0}},
     });
-    assert_eq!(offered(&payload), ["png", "jpg"]);
+    assert_eq!(offered(&payload), ["png", "jpg", "webp", "tiff"]);
     assert!(matches!(
         targets::requested(&payload, Path::new("/out/cover.png")).unwrap(),
         Export::Managed(Managed::Image(_)),
@@ -58,6 +58,8 @@ fn a_depth_field_is_measurement_data_rather_than_a_picture() {
     assert!(targets::requested(&payload, Path::new("/out/depth.jpg")).is_err());
 }
 
+/// A video carries sound as well as pictures, so taking the sound out of it is one of its
+/// encodings rather than a separate feature.
 #[test]
 fn recordings_offer_their_own_container_and_the_qualified_encodings() {
     assert_eq!(
@@ -65,8 +67,8 @@ fn recordings_offer_their_own_container_and_the_qualified_encodings() {
         ["m4a", "wav", "mp3", "flac"]
     );
     assert_eq!(
-        offered(&json!({"kind":"video","fileName":"clip.mkv","assetPath":"/owned/clip.mkv"})),
-        ["mkv", "mp4", "mov"]
+        offered(&json!({"kind":"video","fileName":"clip.avi","assetPath":"/owned/clip.avi"})),
+        ["avi", "mp4", "mov", "mkv", "wav", "mp3", "m4a", "flac"]
     );
 }
 
@@ -191,17 +193,97 @@ fn unsettled_resources_report_why_they_have_no_file_yet() {
     .unwrap()
     .unavailable
     .is_some_and(|reason| reason.contains("Wait for this resource")));
+    assert!(targets::of(
+        &json!({"kind":"website","title":"Page","url":"https://example.com","metadataState":"loading"})
+    )
+    .unwrap()
+    .unavailable
+    .is_some_and(|reason| reason.contains("Wait for this resource")));
 }
 
-/// A website summary or an object is serialized by the Renderer from content it
-/// already holds, so the engine truthfully offers nothing rather than failing.
+/// A credential, a Portal or an object is a reference or structured data, which the Renderer
+/// serializes from what it already holds, so the engine truthfully offers nothing rather than
+/// failing.
 #[test]
 fn renderer_owned_content_is_offered_no_engine_format() {
-    let formats = targets::of(&json!({"kind":"website","title":"Page"})).unwrap();
-    assert!(formats.formats.is_empty());
+    for payload in [
+        json!({"kind":"credential","title":"Publishing API","credentialKind":"api-key"}),
+        json!({"kind":"portal","title":"Elsewhere","targetSpaceId":"space"}),
+        json!({"kind":"object","title":"Account","objectTypeId":"type","status":"active",
+               "properties":{}}),
+    ] {
+        let formats = targets::of(&payload).unwrap();
+        assert!(formats.formats.is_empty());
+        assert!(
+            formats.unavailable.is_none(),
+            "nothing is wrong with a resource whose kind simply has no engine format"
+        );
+    }
+}
+
+/// A capture has no file: the engine assembles the summary it holds, so the Markdown it saves and
+/// the PDF it saves are the same document.
+#[test]
+fn a_capture_is_offered_the_summary_it_holds_and_every_document_format() {
+    let payload = json!({"kind":"website","title":"Release notes","url":"https://example.com/notes",
+                         "siteName":"Example","description":"What changed",
+                         "websiteSections":[{"heading":"Fixes","text":"Many"}]});
+    assert_eq!(
+        offered(&payload),
+        ["md", "txt", "html", "docx", "pdf", "pptx"]
+    );
+    assert_eq!(
+        targets::requested(&payload, Path::new("/out/notes.md")).unwrap(),
+        Export::Summary
+    );
+    assert_eq!(
+        targets::requested(&payload, Path::new("/out/notes.docx")).unwrap(),
+        Export::Document(DocumentFormat::Docx)
+    );
+}
+
+/// The summary is the capture: its address, where it came from, and the prose that was read from
+/// it, in the order a reader meets them.
+#[test]
+fn a_capture_summary_carries_what_the_space_recorded() {
+    let summary = super::capture::summary(&json!({
+        "kind":"website","title":"Release notes","url":"https://example.com/notes",
+        "canonicalUrl":"https://example.com/notes/","siteName":"Example",
+        "description":"What changed","contentPreview":"Highlights",
+        "websiteSections":[{"heading":"Fixes","text":"Many"},{"text":"No heading"}]
+    }))
+    .unwrap();
+    assert_eq!(
+        summary,
+        "# Release notes\n\nSource: https://example.com/notes\nCanonical: https://example.com/notes/\nSite: Example\n\nWhat changed\n\nHighlights\n\n## Fixes\n\nMany\n\nNo heading\n"
+    );
     assert!(
-        formats.unavailable.is_none(),
-        "nothing is wrong with a resource whose kind simply has no engine format"
+        super::capture::summary(&json!({"kind":"website","title":"Page"}))
+            .unwrap_err()
+            .contains("address"),
+        "a capture without its address is not a document"
+    );
+}
+
+/// A code resource is a text file, so it keeps its own bytes and is also offered as the listing
+/// the document writers can set. Slides are not a listing.
+#[test]
+fn a_code_resource_keeps_its_bytes_and_is_offered_as_a_listing() {
+    let payload = json!({"kind":"code","title":"main.rs","fileName":"main.rs",
+                         "assetPath":"/owned/main.rs","sourceRevision":"sha256:current",
+                         "previewLanguage":"rust","previewText":"fn main() {}","size":12});
+    assert_eq!(offered(&payload), ["rs", "txt", "html", "docx", "pdf"]);
+    assert_eq!(
+        targets::requested(&payload, Path::new("/out/main.pdf")).unwrap(),
+        Export::Document(DocumentFormat::Pdf)
+    );
+    let unread = json!({"kind":"code","title":"blob.bin","fileName":"blob.bin",
+                        "assetPath":"/owned/blob.bin","sourceRevision":"sha256:current",
+                        "previewLanguage":"text"});
+    assert_eq!(
+        offered(&unread),
+        ["bin"],
+        "a listing is offered where the Space has read the file as text"
     );
 }
 
