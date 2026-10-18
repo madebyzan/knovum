@@ -61,12 +61,12 @@ const { compact, minimal, ready } = useNodeActionBarDensity(bar, toRef(props, "a
           @invoke="actions.focus"
         />
       </template>
+      <SpaceCanvasSelectionMenu :actions="actions" :derivations="derivations" node-bar />
       <SpaceCanvasNodeAccessActions
         :export-target="actions.exportTarget.value"
         @inspect="actions.inspect"
         @save="actions.exportFormat"
       />
-      <SpaceCanvasSelectionMenu :actions="actions" :derivations="derivations" node-bar />
     </ToolbarRoot>
   </div>
 </template>
