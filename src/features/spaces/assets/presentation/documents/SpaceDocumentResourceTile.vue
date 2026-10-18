@@ -26,13 +26,13 @@ watch(source, () => {
   <button
     type="button"
     :data-resource-id="item.resource.id"
-    class="group relative block w-full cursor-pointer overflow-hidden rounded-lg bg-surface-panel text-left ring-1 ring-stroke-divider transition-colors duration-150 select-none ring-inset hover:bg-surface-control-hover hover:ring-stroke-default-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-stroke-focus"
+    class="group relative isolate block w-full [transform:translateZ(0)] cursor-pointer appearance-none overflow-hidden rounded-lg border border-stroke-divider bg-surface-panel text-left transition-colors duration-150 select-none [-webkit-mask-image:-webkit-radial-gradient(white,black)] hover:border-stroke-default-hover hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-stroke-focus"
     :aria-label="`${t('spaces.processing.document.resources.open', { index: index + 1 })}: ${item.locationLabel}${failed ? ` · ${t('spaces.processing.imageUnavailable')}` : ''}`"
     @click="emit('select')"
   >
     <div
       data-resource-preview
-      class="relative grid size-full place-items-center overflow-hidden bg-surface-muted"
+      class="relative grid size-full place-items-center overflow-hidden rounded-[inherit] bg-surface-muted"
       :style="{ height: `${previewHeight}px` }"
     >
       <div v-if="failed" class="flex flex-col items-center gap-1.5 px-2 text-center text-fg-tertiary">

@@ -55,7 +55,12 @@
       "occurrences": "{count} 시간 사용",
       "embedded": "문서에서 추출된 삽입된 이미지입니다.",
       "rendered": "PDF에서 렌더링된 페이지 또는 시각적 영역입니다.",
-      "detectedText": "감지된 텍스트"
+      "detectedText": "감지된 텍스트",
+      "context": "컨텍스트",
+      "altText": "대체 텍스트",
+      "description": "설명",
+      "embeddedBadge": "삽입됨",
+      "renderedBadge": "렌더링됨"
     },
     "warnings": {
       "officeVectorDrawingsUnsupported": "Office 벡터 드로잉은 시각적으로 분석되지 않습니다. 원본 파일에 남아 있습니다.",

@@ -74,38 +74,45 @@ function save() {
 
 <template>
   <div
-    class="group border-b border-stroke-divider/50 transition-colors duration-100"
-    :class="active ? 'bg-(--knovum-sidebar-item-bg-selected)' : 'hover:bg-surface-control-hover/60'"
+    class="group border-b border-stroke-divider/40 transition-colors duration-100"
+    :class="active ? 'bg-(--knovum-sidebar-item-bg-selected)' : 'hover:bg-surface-control-hover/50'"
   >
-    <div class="flex gap-2 px-2.5 py-1.5">
-      <UiCheckbox
-        :model-value="Boolean(selected)"
-        :disabled="selectionDisabled"
-        :label="t('spaces.transcript.text.selectForAlignment')"
-        @update:model-value="emit('select', $event)"
-      />
+    <div
+      v-if="active"
+      class="absolute top-1 bottom-1 left-0 w-0.5 rounded-r bg-surface-accent"
+      aria-hidden="true"
+    />
+    <div class="flex items-start gap-2 px-2.5 py-1.5">
+      <span class="flex h-5 shrink-0 items-center">
+        <UiCheckbox
+          :model-value="Boolean(selected)"
+          :disabled="selectionDisabled"
+          :label="t('spaces.transcript.text.selectForAlignment')"
+          class="transition-colors group-hover:border-stroke-contrast/70"
+          @update:model-value="emit('select', $event)"
+        />
+      </span>
       <button
         type="button"
-        class="w-11 shrink-0 pt-0.5 text-left font-mono text-caption-sm font-medium text-fg-tertiary tabular-nums hover:text-fg-primary"
+        class="flex h-5 w-10 shrink-0 items-center justify-start rounded-xs font-mono text-caption-sm font-medium tabular-nums transition-colors hover:text-fg-primary"
+        :class="active ? 'font-semibold text-fg-accent' : 'text-fg-tertiary'"
+        :title="t('spaces.transcript.chapters.seek')"
         @click="emit('seek', segment.startMs)"
       >
         {{ formatDurationMs(segment.startMs) }}
       </button>
 
-      <div
-        class="min-w-0 flex-1 border-l-2 pl-2"
-        :class="active ? 'border-stroke-accent' : 'border-transparent'"
-      >
+      <div class="min-w-0 flex-1">
         <p
-          class="text-caption leading-snug break-words whitespace-pre-wrap"
-          :class="active ? 'text-fg-primary' : 'text-fg-secondary'"
+          class="text-caption leading-5 break-words whitespace-pre-wrap select-text"
+          :class="active ? 'font-medium text-fg-primary' : 'text-fg-secondary'"
         >
           {{ segment.text }}
         </p>
       </div>
 
       <UiIconButton
-        class="shrink-0 transition-opacity"
+        class="size-5 shrink-0 transition-opacity"
         :class="active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
         :label="t('common.edit')"
         size="sm"

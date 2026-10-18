@@ -55,7 +55,12 @@
       "occurrences": "Used {count} time | Used {count} times",
       "embedded": "Embedded image extracted from the document.",
       "rendered": "Page or visual region rendered from the PDF.",
-      "detectedText": "Detected text"
+      "detectedText": "Detected text",
+      "context": "Context",
+      "altText": "Alt text",
+      "description": "Description",
+      "embeddedBadge": "Embedded",
+      "renderedBadge": "Rendered"
     },
     "warnings": {
       "officeVectorDrawingsUnsupported": "Office vector drawings are not visually analyzed; they remain in the original file.",

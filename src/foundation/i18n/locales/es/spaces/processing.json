@@ -55,7 +55,12 @@
       "occurrences": "Tiempo usado {count} | Usado {count} veces",
       "embedded": "Imagen incrustada extraída del documento.",
       "rendered": "Página o región visual renderizada desde PDF.",
-      "detectedText": "Texto detectado"
+      "detectedText": "Texto detectado",
+      "context": "Contexto",
+      "altText": "Texto alternativo",
+      "description": "Descripción",
+      "embeddedBadge": "Incrustada",
+      "renderedBadge": "Renderizada"
     },
     "warnings": {
       "officeVectorDrawingsUnsupported": "Los dibujos vectoriales de Office no se analizan visualmente; permanecen en el archivo original.",
