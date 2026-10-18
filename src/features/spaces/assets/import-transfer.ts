@@ -5,6 +5,7 @@ import type { PreparedSpaceImport } from "../contracts/generated/PreparedSpaceIm
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
+import { nodeTaskSubject } from "../nodes/node-task-subject";
 import { cancelSpaceAssetImport, copyStagedSpaceAsset, removeSpaceAsset } from "./asset-operations";
 import { runSpaceAssetTransfer } from "./concurrency-budget";
 import { formatByteSize } from "./format-byte-size";
@@ -51,6 +52,7 @@ async function performManagedImport(options: CommitManagedImportOptions, progres
   );
   if (!node) throw new Error("Space import did not create a node");
   progress.node = node;
+  useTaskStore().describeSubject(taskId, nodeTaskSubject(node.id, node.data.kind, node.data.title));
   const copied = await runSpaceAssetTransfer(() =>
     copyStagedSpaceAsset(prepared.jobId!, (copyProgress) => updateCopyProgress(taskId, copyProgress)),
   );

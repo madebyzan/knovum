@@ -10,6 +10,7 @@ import { projectMarkdownPreview } from "./markdown-preview-projection";
 import SpaceCanvasProcessingState from "./SpaceCanvasProcessingState.vue";
 
 const props = defineProps<{
+  id: string;
   data: SpaceMarkdownPayload;
   presentationContext: CanvasNodePresentationContext;
 }>();
@@ -42,6 +43,7 @@ const projection = computed(() =>
       <SpaceCanvasProcessingState
         v-if="work?.surface === 'content'"
         class="absolute inset-0"
+        :node-id="id"
         :label="t(work.labelKey)"
         :phase="work.phase"
       />

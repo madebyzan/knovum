@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => ({
   toastSuccess:
     vi.fn<(message: string, options?: { action: { label: string; onClick: () => void } }) => void>(),
   // oxfmt-ignore
-  tasks: { start: vi.fn<(title: string, statusMessage: string, cancel: () => Promise<void>) => string>(), progress: vi.fn<(taskId: string, progress: number, status?: string) => void>(), succeed: vi.fn<(taskId: string) => void>(), fail: vi.fn<(taskId: string, message: string) => void>(), dismiss: vi.fn<(taskId: string) => void>() },
+  tasks: { start: vi.fn<(title: string, statusMessage: string, cancel: () => Promise<void>) => string>(), progress: vi.fn<(taskId: string, progress: number, status?: string) => void>(), succeed: vi.fn<(taskId: string) => void>(), fail: vi.fn<(taskId: string, message: string) => void>(), dismiss: vi.fn<(taskId: string) => void>(), describeSubject: vi.fn<(taskId: string, subject: unknown) => void>() },
 }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => mocks.current }));
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError, success: mocks.toastSuccess } }));

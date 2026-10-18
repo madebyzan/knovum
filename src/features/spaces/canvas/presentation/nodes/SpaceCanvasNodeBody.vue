@@ -84,11 +84,13 @@ const work = computed(() => nodePayloadWork(props.data));
   />
   <SpaceCanvasMarkdown
     v-else-if="data.kind === 'markdown'"
+    :id="id"
     :data="data"
     :presentation-context="presentationContext"
   />
   <SpaceCanvasProcessingState
     v-else-if="work?.surface === 'content'"
+    :node-id="id"
     :label="t(work.labelKey)"
     :phase="work.phase"
   />

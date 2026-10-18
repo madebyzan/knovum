@@ -47,7 +47,11 @@ const applyingRegion = computed<CSSProperties | undefined>(() => {
       :key="unavailableWork.phase"
       class="pointer-events-none absolute inset-0 flex"
     >
-      <SpaceCanvasProcessingState :label="t(unavailableWork.labelKey)" :phase="unavailableWork.phase" />
+      <SpaceCanvasProcessingState
+        :node-id="id"
+        :label="t(unavailableWork.labelKey)"
+        :phase="unavailableWork.phase"
+      />
     </div>
   </Transition>
   <div v-if="applyingRegion" class="pointer-events-none absolute overflow-hidden" :style="applyingRegion">
