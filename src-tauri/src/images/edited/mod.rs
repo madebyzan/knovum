@@ -25,9 +25,47 @@ pub(crate) fn validate_edit(value: &Value) -> Result<(), String> {
     ImageEdit::parse(value).map(|_| ())
 }
 
+/// The encodings a rendered picture can be written in.
+///
+/// Every one of them earns its place: PNG keeps every pixel, JPEG is the small lossy one, WebP
+/// keeps every pixel in less space than PNG, and TIFF is the one print and archival tools accept.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum Encoding {
+    Png,
+    Jpeg,
+    WebP,
+    Tiff,
+}
+
+impl Encoding {
+    pub(crate) const fn extension(self) -> &'static str {
+        match self {
+            Self::Png => "png",
+            Self::Jpeg => "jpg",
+            Self::WebP => "webp",
+            Self::Tiff => "tiff",
+        }
+    }
+}
+
 /// The caller owns authorization; the engine enforces image resource limits.
 pub(crate) fn render_source_png(source: &Path, edit: &Value) -> Result<EditedImageOutput, String> {
     render(source, edit, super::MAX_PNG_BYTES)
+}
+
+/// One render, written in the encoding the destination asked for.
+pub(crate) fn render_source_as(
+    source: &Path,
+    edit: &Value,
+    encoding: Encoding,
+) -> Result<Vec<u8>, String> {
+    let rendered = rendered(source, edit)?;
+    match encoding {
+        Encoding::Png => encoded(&rendered, ImageFormat::Png),
+        Encoding::Jpeg => jpeg(&rendered),
+        Encoding::WebP => encoded(&rendered, ImageFormat::WebP),
+        Encoding::Tiff => encoded(&rendered, ImageFormat::Tiff),
+    }
 }
 
 /// The same render, downscaled until it fits a budget a provider declared.
@@ -40,14 +78,12 @@ pub(crate) fn render_source_png_within(
 }
 
 fn render(source: &Path, edit: &Value, max_bytes: usize) -> Result<EditedImageOutput, String> {
-    encode(rendered(source, edit)?, max_bytes)
+    fitted(rendered(source, edit)?, max_bytes)
 }
 
-/// The same render, encoded as JPEG for a destination that asked for it.
-/// Transparency has no JPEG representation, so it is composited onto white
-/// rather than turned into noise.
-pub(crate) fn render_source_jpeg(source: &Path, edit: &Value) -> Result<Vec<u8>, String> {
-    let rendered = rendered(source, edit)?;
+/// Transparency has no JPEG representation, so it is composited onto white rather than turned
+/// into noise, and the quality is chosen here rather than left to a default.
+fn jpeg(rendered: &image::RgbaImage) -> Result<Vec<u8>, String> {
     let mut flattened = image::RgbImage::new(rendered.width(), rendered.height());
     for (target, source) in flattened.pixels_mut().zip(rendered.pixels()) {
         let alpha = f32::from(source.0[3]) / 255.0;
@@ -89,11 +125,11 @@ fn rendered(source: &Path, edit: &Value) -> Result<image::RgbaImage, String> {
 /// Encode, and if the result is over budget, downscale and try again. Both
 /// sides shrink by the same factor: a reference image that changed shape would
 /// be a different picture.
-fn encode(image: image::RgbaImage, max_bytes: usize) -> Result<EditedImageOutput, String> {
+fn fitted(image: image::RgbaImage, max_bytes: usize) -> Result<EditedImageOutput, String> {
     let mut image = image;
     loop {
         let (width, height) = image.dimensions();
-        let png = encode_png(&image)?;
+        let png = encoded(&image, ImageFormat::Png)?;
         if png.len() <= max_bytes {
             return Ok(EditedImageOutput { png, width, height });
         }
@@ -111,10 +147,10 @@ fn encode(image: image::RgbaImage, max_bytes: usize) -> Result<EditedImageOutput
     }
 }
 
-fn encode_png(image: &image::RgbaImage) -> Result<Vec<u8>, String> {
+fn encoded(image: &image::RgbaImage, format: ImageFormat) -> Result<Vec<u8>, String> {
     let mut output = Cursor::new(Vec::new());
     image
-        .write_to(&mut output, ImageFormat::Png)
+        .write_to(&mut output, format)
         .map_err(|error| error.to_string())?;
     Ok(output.into_inner())
 }
