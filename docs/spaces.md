@@ -422,10 +422,14 @@ is supplied, its normalized character edit distance from recognition must not ex
 is bounded to 3,000 characters. Audio-only references remain supported, and inferred ASR text is
 never saved as a confirmed cloning condition.
 
-Video dialogue may be stretched only from 0.9 through 1.1 to fit its assigned interval. A larger
-mismatch becomes `needs_edit`, and overlapping dialogue is represented by explicit lanes. The editor
-offers source-voice mute or a separately imported background track. Knovum does not claim to retain
-environmental sound because no legally distributable, qualified dialogue-separation model is selected.
+A subtitle interval is the target a dubbed line aims at, not a condition it must meet. A line is
+spoken at its own pace and fitted when the mix is planned: it is compressed by up to 1.25× to land
+inside its interval, and a line that needs more than that keeps speaking into the room before the
+next one rather than being cut or refused. Nothing is slowed down to fill an interval, no line is
+heard past the end of the video, and overlapping dialogue is represented by explicit lanes. The
+editor offers source-voice mute or a separately imported background track. Knovum does not claim to
+retain environmental sound because no legally distributable, qualified dialogue-separation model is
+selected.
 
 Video translation owns restore, submission, observation and result loading. Editing and synthesis
 remain disabled until the matching result is applied or the job settles; revision changes invalidate

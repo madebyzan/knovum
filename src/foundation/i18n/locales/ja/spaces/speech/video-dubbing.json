@@ -8,7 +8,6 @@
   "endSeconds": "終了 (秒)",
   "addLine": "タイムラインの追加",
   "removeLine": "タイムラインの削除",
-  "needsTimingEdit": "生成された音声は、このターゲット間隔に適合しません。テキストまたは間隔を調整して、新しいリビジョンを保存します。",
   "retainOriginalTrack": "オリジナルのオーディオを別のトラックとして含める",
   "preserveOriginalOutsideDialogue": "ソース対話間隔以外の元のサウンドを維持",
   "importSubtitles": "SRT / WebVTT スクリプトのインポート",

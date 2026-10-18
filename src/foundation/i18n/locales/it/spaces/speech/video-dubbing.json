@@ -8,7 +8,6 @@
   "endSeconds": "Fine (secondi)",
   "addLine": "Aggiungi linea temporizzata",
   "removeLine": "Rimuovi linea temporizzata",
-  "needsTimingEdit": "Il parlato generato non rientra in questo intervallo target. Modifica il testo o l'intervallo, quindi salva una nuova revisione.",
   "retainOriginalTrack": "Includi l'audio originale come traccia separata",
   "preserveOriginalOutsideDialogue": "Conserva il suono originale al di fuori degli intervalli di dialogo della sorgente",
   "importSubtitles": "Importa script SRT/WebVTT",

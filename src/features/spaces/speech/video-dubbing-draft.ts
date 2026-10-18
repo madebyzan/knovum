@@ -12,7 +12,6 @@ export interface VideoLineDraft {
   deliveryInstruction: string;
   startSeconds: string;
   endSeconds: string;
-  needsTimingEdit: boolean;
   sourceSegmentId?: string;
   sourceSegmentRevision?: number;
   sourceText?: string;
@@ -65,7 +64,6 @@ export function videoLineFromSegment(segment: SpeechSegment): VideoLineDraft {
     deliveryInstruction: segment.deliveryInstruction ?? "",
     startSeconds: String((segment.targetStartMs ?? 0) / 1000),
     endSeconds: String((segment.targetEndMs ?? 0) / 1000),
-    needsTimingEdit: segment.state === "needs_edit",
     ...(segment.sourceSegmentId === undefined ? {} : { sourceSegmentId: segment.sourceSegmentId }),
     ...(segment.sourceSegmentRevision === undefined
       ? {}
@@ -134,7 +132,6 @@ export function applyTranslation(
       sourceSegmentId,
       sourceSegmentRevision: translated.sourceSegmentRevision,
       sourceText: translated.sourceText,
-      needsTimingEdit: false,
     };
   });
 }

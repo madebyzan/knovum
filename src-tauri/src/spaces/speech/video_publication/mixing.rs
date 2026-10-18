@@ -1,24 +1,22 @@
 use std::{
-    fs,
     path::{Path, PathBuf},
     process::Command,
 };
 
 use tokio_util::sync::CancellationToken;
 
-use super::super::{
-    contracts::SpeechSegmentRenderOutput, publication::hash_file,
-    video_config::VideoDubbingOutputConfig,
-};
+use super::super::{contracts::SpeechSegmentRenderOutput, video_config::VideoDubbingOutputConfig};
 use super::{
     final_mix::{input_labels, mix_final, FinalMixSpec, MixOutput},
-    MAX_MIX_INPUTS, SAMPLE_RATE,
+    fitting, MAX_MIX_INPUTS, SAMPLE_RATE,
 };
 
+/// A line and the time the subtitles gave it. How long it is actually heard for is decided when
+/// the mix is planned, because the window is a target rather than a contract.
 pub(in crate::spaces::speech) struct TimedRender {
     pub(super) render: SpeechSegmentRenderOutput,
     pub(super) start_sample: u64,
-    pub(super) end_sample: u64,
+    pub(super) window_samples: u64,
 }
 
 pub(in crate::spaces::speech) fn timed_renders(
@@ -34,31 +32,28 @@ pub(in crate::spaces::speech) fn timed_renders(
             let (Some(start), Some(end)) = *window else {
                 return Err("Video dubbing segment has no target time window".into());
             };
-            let start = u64::try_from(start)
-                .map_err(|_| "Video target start is invalid")?
-                .checked_mul(u64::from(SAMPLE_RATE))
-                .ok_or("Video target start overflow")?
-                / 1_000;
-            let mut end = u64::try_from(end)
-                .map_err(|_| "Video target end is invalid")?
-                .checked_mul(u64::from(SAMPLE_RATE))
-                .ok_or("Video target end overflow")?
-                / 1_000;
-            if end > video_samples && end - video_samples <= u64::from(SAMPLE_RATE) / 1_000 {
-                end = video_samples;
+            let start = samples_at(start, "Video target start")?;
+            if start >= video_samples {
+                return Err("Video target window starts after the source ends".into());
             }
-            if start >= end || end > video_samples {
-                return Err("Video target window exceeds the verified source duration".into());
-            }
+            let end = samples_at(end, "Video target end")?.min(video_samples);
             Ok(TimedRender {
                 render,
                 start_sample: start,
-                end_sample: end,
+                window_samples: end.saturating_sub(start),
             })
         })
         .collect::<Result<Vec<_>, String>>()?;
-    timed.sort_by_key(|item| (item.start_sample, item.end_sample));
+    timed.sort_by_key(|item| (item.start_sample, item.window_samples));
     Ok(timed)
+}
+
+fn samples_at(milliseconds: i64, label: &str) -> Result<u64, String> {
+    Ok(u64::try_from(milliseconds)
+        .map_err(|_| format!("{label} is invalid"))?
+        .checked_mul(u64::from(SAMPLE_RATE))
+        .ok_or_else(|| format!("{label} overflow"))?
+        / 1_000)
 }
 
 pub(in crate::spaces::speech) fn build_mix(
@@ -124,18 +119,33 @@ fn build_artifact(request: MixRequest<'_>, kind: MixOutput) -> Result<PathBuf, S
     if kind == MixOutput::Background && background.is_none() {
         return Err("This dubbing revision has no background audio".into());
     }
+    let placements = fitting::plan(timed, video_samples)?;
     let mut fitted = Vec::with_capacity(timed.len());
-    for (index, item) in timed.iter().enumerate() {
-        fitted.push(fit_render(ffmpeg, work, index, item, cancellation)?);
+    for ((index, item), placement) in timed.iter().enumerate().zip(&placements) {
+        fitted.push(fitting::render(
+            ffmpeg,
+            work,
+            index,
+            item,
+            placement,
+            cancellation,
+        )?);
     }
-    let lanes = super::voice_lanes::assign(timed);
+    let lanes = super::voice_lanes::assign(&placements);
     let mut lane_paths = Vec::with_capacity(lanes.len());
     for (index, lane) in lanes.iter().enumerate() {
         if cancellation.is_cancelled() {
             return Err("cancelled".into());
         }
         let path = work.join(format!("lane-{index}.wav"));
-        super::voice_lanes::write(&path, lane, timed, &fitted, video_samples, cancellation)?;
+        super::voice_lanes::write(
+            &path,
+            lane,
+            &placements,
+            &fitted,
+            video_samples,
+            cancellation,
+        )?;
         if super::policy::wav_sample_count(&path, 1)? != video_samples {
             return Err("Video voice lane has an invalid duration".into());
         }
@@ -173,68 +183,6 @@ fn build_artifact(request: MixRequest<'_>, kind: MixOutput) -> Result<PathBuf, S
         cancellation,
     )?;
     Ok(mixed)
-}
-
-fn cleanup_failure(mut cause: String, path: &Path) -> String {
-    if let Err(error) = fs::remove_file(path) {
-        if error.kind() != std::io::ErrorKind::NotFound {
-            cause.push_str(&format!("; failed to remove {}: {error}", path.display()));
-        }
-    }
-    cause
-}
-
-fn fit_render(
-    ffmpeg: &Path,
-    work: &Path,
-    index: usize,
-    item: &TimedRender,
-    cancellation: &CancellationToken,
-) -> Result<PathBuf, String> {
-    let source = Path::new(&item.render.path);
-    if hash_file(source)? != item.render.sha256 {
-        return Err("Video speech segment digest differs from its render metadata".into());
-    }
-    let samples = item.end_sample - item.start_sample;
-    let path = work.join(format!("fit-{index}.wav"));
-    let tempo = (item.render.sample_count as f64 * f64::from(SAMPLE_RATE))
-        / (f64::from(item.render.sample_rate) * samples as f64);
-    if !(0.9..=1.1).contains(&tempo) {
-        return Err("Video speech segment no longer fits its target window".into());
-    }
-    let tempo_filter = if tempo == 1.0 {
-        String::new()
-    } else {
-        format!("atempo={tempo:.9},")
-    };
-    let filter = format!(
-        "aresample={SAMPLE_RATE},{tempo_filter}apad,atrim=end_sample={samples},aformat=sample_fmts=flt:channel_layouts=mono"
-    );
-    crate::media::ffmpeg::run(
-        Command::new(ffmpeg)
-            .args(["-hide_banner", "-loglevel", "error", "-nostdin", "-n", "-i"])
-            .arg(source)
-            .args([
-                "-map",
-                "0:a:0",
-                "-af",
-                &filter,
-                "-c:a",
-                "pcm_f32le",
-                "-f",
-                "wav",
-            ])
-            .arg(&path),
-        cancellation,
-        "FFmpeg could not fit speech to its video window",
-    )?;
-    if super::policy::wav_sample_count(&path, 1)? != samples {
-        return Err(cleanup_failure(
-            "Fitted speech does not match its target sample count".into(),
-            &path,
-        ));
-    }
-    Ok(path)
 }
 
 fn reduce_mix_inputs(
