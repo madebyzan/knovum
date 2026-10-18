@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Layers3, ScanLine } from "@lucide/vue";
 import { ToolbarRoot } from "reka-ui";
 import { computed, nextTick, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -17,15 +16,13 @@ import { useImageSelectionSessionStore } from "../../../knowledge-derivations/im
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
 import { CANVAS_ACTION_BAR_CLASSES } from "../canvas-action-classes";
-import { canvasBarPlacement } from "../canvas-bar-density-policy";
 import SpaceCanvasNodeAccessActions from "../selection/SpaceCanvasNodeAccessActions.vue";
 import type { useCanvasSelectionActions } from "../selection/use-canvas-selection-actions";
 import { useNodeActionBarDensity } from "../selection/use-node-action-bar-density";
 import SpaceCanvasImageAngleTrigger from "./SpaceCanvasImageAngleTrigger.vue";
-import SpaceCanvasImageDerivationTrigger from "./SpaceCanvasImageDerivationTrigger.vue";
+import SpaceCanvasImageDerivationActions from "./SpaceCanvasImageDerivationActions.vue";
 import SpaceCanvasImageEditActions from "./SpaceCanvasImageEditActions.vue";
 import SpaceCanvasImageMenu from "./SpaceCanvasImageMenu.vue";
-import SpaceCanvasImageRemoveObjectTrigger from "./SpaceCanvasImageRemoveObjectTrigger.vue";
 import SpaceImageCommentModeBar from "./SpaceImageCommentModeBar.vue";
 import { useImageNodeBarState } from "./use-image-node-bar-state";
 const props = defineProps<{
@@ -50,8 +47,11 @@ const {
   dimensionsReady,
   removalAvailability,
   removalReason,
+  selectionAvailability,
+  selectionReason,
   beginTool,
   beginRemoval,
+  beginSelection,
   beginAngle,
   setPopover,
   beginComment,
@@ -105,7 +105,7 @@ watch(
       :aria-label="t('spaces.canvas.nodeActions.label')"
     >
       <SpaceCanvasImageEditActions
-        v-if="!node.data.imageDepth && canvasBarPlacement('image-edit', minimal) === 'bar'"
+        v-if="!node.data.imageDepth && !minimal"
         :compact="compact"
         :dimensions-ready="dimensionsReady"
         @begin-tool="beginTool"
@@ -117,34 +117,27 @@ watch(
         :open="openPopover === 'upscale'"
         @update:open="setPopover('upscale', $event)"
       />
-      <SpaceCanvasImageDerivationTrigger
-        v-if="canvasBarPlacement('image-remove-background', minimal) === 'bar'"
+      <SpaceCanvasImageDerivationActions
+        v-if="!minimal"
         :compact="compact"
-        :availability="directAvailability['remove-image-background']"
-        :reason="directReason['remove-image-background']"
-        :icon="ScanLine"
-        label-key="spaces.creation.image.removeBackground"
-        @begin="runDirectDerivation('remove-image-background')"
-      />
-      <SpaceCanvasImageRemoveObjectTrigger
-        v-if="canvasBarPlacement('image-remove-object', minimal) === 'bar'"
-        :compact="compact"
-        :disabled="removalAvailability.state !== 'ready'"
-        :reason="removalReason"
-        @begin="beginRemoval"
-      />
-      <SpaceCanvasImageDerivationTrigger
-        v-if="canvasBarPlacement('image-split-layers', minimal) === 'bar'"
-        :compact="compact"
-        :availability="directAvailability['split-image-layers']"
-        :reason="directReason['split-image-layers']"
-        :icon="Layers3"
-        label-key="spaces.creation.image.splitLayers"
-        @begin="runDirectDerivation('split-image-layers')"
+        :availability="directAvailability"
+        :reason="directReason"
+        :removal-availability="removalAvailability"
+        :removal-reason="removalReason"
+        :selection-availability="selectionAvailability"
+        :selection-reason="selectionReason"
+        @run-direct="runDirectDerivation"
+        @begin-removal="beginRemoval"
+        @begin-selection="beginSelection"
       />
       <SpaceCanvasImageAngleTrigger
         :compact="compact"
         @begin="beginAngle() && emit('update:angleOpen', true)"
+      />
+      <SpaceCanvasNodeAccessActions
+        :export-target="actions.exportTarget.value"
+        @inspect="actions.inspect"
+        @save="actions.exportFormat"
       />
       <SpaceCanvasImageMenu
         :node="node"
@@ -152,17 +145,18 @@ watch(
         :derivations="derivations"
         :minimal="minimal"
         :dimensions-ready="dimensionsReady"
+        :availability="directAvailability"
+        :reason="directReason"
         :removal-availability="removalAvailability"
         :removal-reason="removalReason"
+        :selection-availability="selectionAvailability"
+        :selection-reason="selectionReason"
         @invoke-derivation="emit('invokeDerivation', $event)"
         @begin-tool="beginTool"
         @begin-comment="beginComment"
         @begin-removal="beginRemoval"
-      />
-      <SpaceCanvasNodeAccessActions
-        :export-target="actions.exportTarget.value"
-        @inspect="actions.inspect"
-        @save="actions.exportFormat"
+        @begin-selection="beginSelection"
+        @run-direct="runDirectDerivation"
       />
     </ToolbarRoot>
   </div>

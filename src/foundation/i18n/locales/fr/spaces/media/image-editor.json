@@ -45,7 +45,7 @@
     "sourceBudget": "Cette image rendue dépasse le budget d’entrée du modèle sélectionné."
   },
   "angle": {
-    "title": "Multi-angle",
+    "title": "Nouvelle vue",
     "mode": "Ajuster la cible",
     "modes": {
       "subject": "Sujet",
@@ -105,7 +105,7 @@
     "glow": "Briller"
   },
   "selection": {
-    "title": "Sélection intelligente",
+    "title": "Sélectionner un objet",
     "tools": "Outils de sélection",
     "include": "Point de premier plan",
     "exclude": "Point d'exclusion",
@@ -113,10 +113,10 @@
     "brush": "Affiner avec le pinceau",
     "processing": "Mise à jour de la sélection…",
     "help": "Cliquez sur le sujet ; ajoutez des points d'exclusion ou une case. Brossez pour inclure les détails. Jusqu'à six invites de points.",
-    "repair": "Réparer",
-    "extract": "Extraire",
+    "repair": "Supprimer et combler",
+    "extract": "Détacher l’objet",
     "undo": "Annuler la sélection",
-    "modelUnavailable": "Sélectionnez un modèle de sélection disponible dans Paramètres.",
+    "modelUnavailable": "Choisissez un modèle de sélection d’objet disponible dans les Réglages.",
     "promptLimit": "Jusqu'à six invites. Annulez une invite pour continuer."
   },
   "depth": {
@@ -127,7 +127,7 @@
     "multiAngle": "Nouvelle vue",
     "removeObject": "Réparé",
     "removeBackground": "Détourage",
-    "extractSelection": "Sélection",
+    "extractSelection": "Objet sélectionné",
     "generateDepth": "Profondeur relative"
   }
 }

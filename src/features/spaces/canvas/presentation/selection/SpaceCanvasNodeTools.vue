@@ -33,23 +33,20 @@ const emit = defineEmits<{
   beginSpeech: [operation: NodeSpeechOperation];
   separate: [];
 }>();
-const { primaryLabel, primaryIcon, showPrimary, runPrimaryAction } = useNodePrimaryAction(
-  toRef(props, "node"),
-  props.actions,
-);
+const { primary } = useNodePrimaryAction(toRef(props, "node"), props.actions);
 const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(props.node) : []));
 const isMedia = computed(() => props.node?.data.kind === "audio" || props.node?.data.kind === "video");
 </script>
 
 <template>
   <SpaceCanvasActionTrigger
-    v-if="showPrimary && !minimal"
-    :label="primaryLabel"
-    :icon="primaryIcon"
+    v-if="primary && !minimal"
+    :label="primary.label"
+    :icon="primary.icon"
     :compact="compact"
     :menu-item="menuItem"
     class="font-medium text-fg-primary"
-    @invoke="runPrimaryAction"
+    @invoke="primary.run"
   />
   <slot />
   <SpaceCanvasVideoActions

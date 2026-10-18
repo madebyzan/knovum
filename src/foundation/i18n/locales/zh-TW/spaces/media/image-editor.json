@@ -45,7 +45,7 @@
     "sourceBudget": "目前圖片尺寸超出所選模型的輸入限制。"
   },
   "angle": {
-    "title": "多角度",
+    "title": "新視角",
     "mode": "調整對象",
     "modes": {
       "subject": "主體",
@@ -105,18 +105,18 @@
     "glow": "輝光"
   },
   "selection": {
-    "title": "智慧選區",
-    "tools": "選區工具",
+    "title": "選擇物件",
+    "tools": "選擇工具",
     "include": "前景點",
     "exclude": "排除點",
     "box": "框選",
     "brush": "筆刷補充",
     "processing": "正在更新選區…",
     "help": "點選主體，新增排除點或框選，再用筆刷補充。最多六個點提示。",
-    "repair": "修補選區",
-    "extract": "提取選區",
+    "repair": "移除並填補",
+    "extract": "裁出物件",
     "undo": "撤銷選區",
-    "modelUnavailable": "請在設定中選擇可用的智慧選區模型。",
+    "modelUnavailable": "請在設定中選擇可用的物件選擇模型。",
     "promptLimit": "最多六個提示，請撤銷一個提示後繼續。"
   },
   "depth": {
@@ -127,7 +127,7 @@
     "multiAngle": "新視角",
     "removeObject": "修補",
     "removeBackground": "去背影像",
-    "extractSelection": "選區",
+    "extractSelection": "所選物件",
     "generateDepth": "相對深度"
   }
 }

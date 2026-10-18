@@ -45,7 +45,7 @@
     "sourceBudget": "This rendered image exceeds the selected model’s input budget."
   },
   "angle": {
-    "title": "Multi-angle",
+    "title": "New view",
     "mode": "Adjust target",
     "modes": {
       "subject": "Subject",
@@ -105,7 +105,7 @@
     "glow": "Glow"
   },
   "selection": {
-    "title": "Smart selection",
+    "title": "Select object",
     "tools": "Selection tools",
     "include": "Foreground point",
     "exclude": "Exclude point",
@@ -113,10 +113,10 @@
     "brush": "Refine with brush",
     "processing": "Updating selection…",
     "help": "Click the subject; add exclusion points or a box. Brush to include details. Up to six point prompts.",
-    "repair": "Repair",
-    "extract": "Extract",
+    "repair": "Remove and fill",
+    "extract": "Cut out",
     "undo": "Undo selection",
-    "modelUnavailable": "Select an available selection model in Settings.",
+    "modelUnavailable": "Select an available object-selection model in Settings.",
     "promptLimit": "Up to six prompts. Undo a prompt to continue."
   },
   "depth": {
@@ -127,7 +127,7 @@
     "multiAngle": "New view",
     "removeObject": "Repaired",
     "removeBackground": "Cutout",
-    "extractSelection": "Selection",
+    "extractSelection": "Selected object",
     "generateDepth": "Relative depth"
   }
 }

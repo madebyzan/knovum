@@ -45,7 +45,7 @@
     "sourceBudget": "이 렌더링된 이미지는 선택한 모델의 입력 예산을 초과합니다."
   },
   "angle": {
-    "title": "다중 각도",
+    "title": "새 시점",
     "mode": "대상 조정",
     "modes": {
       "subject": "주제",
@@ -105,7 +105,7 @@
     "glow": "불타는 듯한 빛깔"
   },
   "selection": {
-    "title": "스마트 선택",
+    "title": "객체 선택",
     "tools": "선택 도구",
     "include": "전경 지점",
     "exclude": "점 제외",
@@ -113,10 +113,10 @@
     "brush": "브러시로 다듬기",
     "processing": "선택 항목 업데이트 중…",
     "help": "주제를 클릭하세요. 제외 지점이나 상자를 추가합니다. 세부 사항을 포함하는 브러시입니다. 최대 6개 포인트 프롬프트.",
-    "repair": "수리",
-    "extract": "추출",
+    "repair": "제거 후 채우기",
+    "extract": "잘라내기",
     "undo": "선택 취소",
-    "modelUnavailable": "설정에서 사용 가능한 선택 모델을 선택하세요.",
+    "modelUnavailable": "설정에서 사용할 수 있는 객체 선택 모델을 선택하세요.",
     "promptLimit": "최대 6개의 프롬프트. 계속하려면 프롬프트를 실행 취소하세요."
   },
   "depth": {
@@ -124,10 +124,10 @@
   },
   "results": {
     "upscale": "해상도 향상됨",
-    "multiAngle": "새 보기",
+    "multiAngle": "새 시점",
     "removeObject": "수리됨",
     "removeBackground": "배경 제거 이미지",
-    "extractSelection": "선택",
+    "extractSelection": "선택한 객체",
     "generateDepth": "상대 깊이"
   }
 }

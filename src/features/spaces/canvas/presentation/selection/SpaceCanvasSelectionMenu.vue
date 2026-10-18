@@ -37,6 +37,8 @@ const props = defineProps<{
   derivations: CreationIntentDecisions;
   nodeBar?: boolean;
   nodeToolsVisible?: boolean;
+  /** The bar already leads with Ask, so the menu does not repeat it. */
+  excludeAsk?: boolean;
   /** Actions the caller already offers outside this menu. */
   excludeActions?: readonly CreationIntentId[];
 }>();
@@ -67,7 +69,7 @@ const excludedActions = computed(() => [
       <UiSeparator class="my-1" />
     </template>
     <template v-if="actions.state.value.structureNodeIds.length === 1">
-      <UiDropdownMenuItem v-if="actions.state.value.canAsk" @select="actions.ask">
+      <UiDropdownMenuItem v-if="actions.state.value.canAsk && !excludeAsk" @select="actions.ask">
         <MessageSquareText class="size-3.5" />{{ t("spaces.conversation.askSelection") }}
       </UiDropdownMenuItem>
       <SpaceSelectionMoveMenu

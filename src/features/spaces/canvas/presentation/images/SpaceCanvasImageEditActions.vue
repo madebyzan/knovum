@@ -7,8 +7,8 @@ import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
 import UiTooltip from "../../../../../shared/ui/UiTooltip.vue";
 import type { ImageEditTool } from "../../../image-editing/image-edit-session-store";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "../canvas-action-classes";
-import { IMAGE_EDIT_TOOL_ORDER } from "../canvas-bar-density-policy";
 import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "../selection/node-action-label";
+import { IMAGE_EDIT_TOOL_ORDER } from "./image-edit-tool-order";
 import SpaceCanvasImageToolTrigger from "./SpaceCanvasImageToolTrigger.vue";
 
 defineProps<{ compact: boolean; dimensionsReady: boolean }>();

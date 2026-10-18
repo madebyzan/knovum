@@ -45,7 +45,7 @@
     "sourceBudget": "Esta imagem renderizada excede o orçamento de entrada do modelo selecionado."
   },
   "angle": {
-    "title": "Multi-ângulo",
+    "title": "Nova vista",
     "mode": "Ajustar alvo",
     "modes": {
       "subject": "Assunto",
@@ -105,7 +105,7 @@
     "glow": "Brilho"
   },
   "selection": {
-    "title": "Seleção inteligente",
+    "title": "Selecionar objeto",
     "tools": "Ferramentas de seleção",
     "include": "Ponto de primeiro plano",
     "exclude": "Ponto de exclusão",
@@ -113,10 +113,10 @@
     "brush": "Refinar com pincel",
     "processing": "Atualizando seleção…",
     "help": "Clique no assunto; adicione pontos de exclusão ou uma caixa. Pincele para incluir detalhes. Avisos de até seis pontos.",
-    "repair": "Reparar",
-    "extract": "Extrair",
+    "repair": "Remover e preencher",
+    "extract": "Recortar objeto",
     "undo": "Desfazer seleção",
-    "modelUnavailable": "Selecione um modelo de seleção disponível em Configurações.",
+    "modelUnavailable": "Selecione um modelo de seleção de objetos disponível nas Configurações.",
     "promptLimit": "Até seis avisos. Desfaça uma solicitação para continuar."
   },
   "depth": {
@@ -124,10 +124,10 @@
   },
   "results": {
     "upscale": "Resolução aumentada",
-    "multiAngle": "Nova visualização",
+    "multiAngle": "Nova vista",
     "removeObject": "Reparado",
     "removeBackground": "Recorte",
-    "extractSelection": "Seleção",
+    "extractSelection": "Objeto selecionado",
     "generateDepth": "Profundidade relativa"
   }
 }
