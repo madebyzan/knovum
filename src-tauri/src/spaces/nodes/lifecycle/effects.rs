@@ -96,6 +96,7 @@ pub(super) async fn mark_nodes_deleted(
         .await?;
     remove_nodes_from_scene_focus(tx, space_id, node_ids, now).await?;
     cancel_enrichment_jobs_for_nodes(tx, space_id, node_ids, now).await?;
+    crate::spaces::derivation::pending_output::stop_runs_owing(tx, space_id, node_ids, now).await?;
     for id in node_ids {
         sqlx::query(
             "UPDATE spaces_nodes SET deleted_at=$1,updated_at=$1 WHERE id=$2 AND space_id=$3",

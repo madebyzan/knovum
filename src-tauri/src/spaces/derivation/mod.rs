@@ -59,13 +59,16 @@ pub(crate) async fn persist_output_node(
     now: i64,
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), AppError> {
-    sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=$3")
-        .bind(sqlx::types::Json(payload))
-        .bind(now)
-        .bind(node_id)
-        .execute(&mut **tx)
-        .await
-        .map_err(crate::spaces::db::sql_error)?;
+    let settled = sqlx::query(
+        "UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=$3 AND deleted_at IS NULL",
+    )
+    .bind(sqlx::types::Json(payload))
+    .bind(now)
+    .bind(node_id)
+    .execute(&mut **tx)
+    .await
+    .map_err(crate::spaces::db::sql_error)?;
+    crate::spaces::db::require_one(settled, pending_output::OUTPUT_DELETED)?;
     pending_output::release(tx, node_id).await?;
     let space_id: String = sqlx::query_scalar("SELECT space_id FROM spaces_nodes WHERE id=$1")
         .bind(node_id)

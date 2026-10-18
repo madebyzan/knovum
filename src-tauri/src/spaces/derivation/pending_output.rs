@@ -24,6 +24,10 @@ use crate::spaces::{
     structure::{self, Size, SizingMode},
 };
 
+/// What a Run is told when the node it owes content to has been removed by a person. Publishing
+/// would resurrect it, and reporting success would claim a result nobody can see.
+pub(crate) const OUTPUT_DELETED: &str = "Its output node was deleted";
+
 /// Canvas footprint of content that cannot report a size until it is published.
 pub(crate) const PLACEHOLDER: Size = placement::PLACEHOLDER;
 
@@ -229,9 +233,10 @@ pub(crate) async fn settle_failed(
         return Ok(());
     };
     let now = crate::foundation::clock::unix_time_millis()?;
+    // Settled even if the node is in the bin: restoring it must not restore work that is over.
     sqlx::query(
         "UPDATE spaces_nodes SET data=json_set(data,'$.'||$1,'failed'),updated_at=$2 \
-         WHERE id=$3 AND space_id=$4 AND deleted_at IS NULL",
+         WHERE id=$3 AND space_id=$4",
     )
     .bind(&state_field)
     .bind(now)
@@ -241,6 +246,30 @@ pub(crate) async fn settle_failed(
     .await
     .map_err(db::sql_error)?;
     release(tx, node_id).await.map_err(|error| error.message)
+}
+
+/// Calls off the Runs that owe content to nodes a person has just deleted, the way deleting a node
+/// cancels the enrichment queued for it: work nobody is waiting for stops. The reservations stay,
+/// so each is settled when its Run ends — including if the deletion is undone meanwhile.
+pub(crate) async fn stop_runs_owing(
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: &str,
+    node_ids: &[String],
+    now: i64,
+) -> Result<(), String> {
+    let runs: Vec<String> = sqlx::query_scalar(
+        "SELECT DISTINCT run_id FROM spaces_reserved_outputs \
+         WHERE space_id=$1 AND node_id IN (SELECT value FROM json_each($2)) ORDER BY run_id",
+    )
+    .bind(space_id)
+    .bind(sqlx::types::Json(node_ids))
+    .fetch_all(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    for run_id in runs {
+        crate::spaces::runs::request_cancellation_in_transaction(tx, &run_id, now).await?;
+    }
+    Ok(())
 }
 
 /// Settles outputs whose Run ended without publishing them. A Run can stop at any step, so the
@@ -267,6 +296,9 @@ pub(crate) async fn settle_abandoned(pool: &sqlx::SqlitePool) -> Result<(), Stri
 
 /// Which of these outputs are already reserved, so they are placed into the set instead of
 /// inserted again — and so they do not count as content blocking the set's own placement.
+///
+/// An identity that is taken by a node someone deleted is neither: reserving would resurrect what
+/// a person removed, so the Run is told plainly that its output is gone.
 async fn reserved_outputs(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
@@ -274,30 +306,43 @@ async fn reserved_outputs(
 ) -> Result<Vec<String>, AppError> {
     let mut reserved = Vec::new();
     for output in outputs {
-        if exists(&mut **tx, space_id, &output.node_id).await? {
-            reserved.push(output.node_id.clone());
+        match node_state(&mut **tx, space_id, &output.node_id).await? {
+            NodeState::Absent => {}
+            NodeState::Live => reserved.push(output.node_id.clone()),
+            NodeState::Deleted => return Err(OUTPUT_DELETED.into()),
         }
     }
     Ok(reserved)
 }
 
-pub(super) async fn exists<'e, E>(
+/// What stands at a node identity. Deleted is its own answer: the identity is taken, but the node
+/// a Run was going to publish into is gone.
+pub(super) enum NodeState {
+    Absent,
+    Live,
+    Deleted,
+}
+
+pub(super) async fn node_state<'e, E>(
     executor: E,
     space_id: &str,
     node_id: &str,
-) -> Result<bool, AppError>
+) -> Result<NodeState, AppError>
 where
     E: sqlx::Executor<'e, Database = Sqlite>,
 {
-    let count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
-    )
-    .bind(node_id)
-    .bind(space_id)
-    .fetch_one(executor)
-    .await
-    .map_err(db::sql_error)?;
-    Ok(count == 1)
+    let deleted_at: Option<Option<i64>> =
+        sqlx::query_scalar("SELECT deleted_at FROM spaces_nodes WHERE id=$1 AND space_id=$2")
+            .bind(node_id)
+            .bind(space_id)
+            .fetch_optional(executor)
+            .await
+            .map_err(db::sql_error)?;
+    Ok(match deleted_at {
+        None => NodeState::Absent,
+        Some(None) => NodeState::Live,
+        Some(Some(_)) => NodeState::Deleted,
+    })
 }
 
 /// What a reserved output may hold before it publishes: its name, where its asset will live, the
