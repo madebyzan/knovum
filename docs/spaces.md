@@ -847,6 +847,9 @@ normal action bar. No duplicate result-review bar or insertion state is maintain
 The shared resource-run observer invalidates the owning space's resource-publication queries on
 completion, including when its editor is closed or another space is selected. Published-result
 selectors use that query namespace; canvas refresh and query-cache refresh remain separate.
+Refreshing the Space a Run publishes into is a reload, not a navigation: the canvas session stays
+mounted, edits stay admitted while the Run reports, and the view changes only where the reloaded
+projection differs from the one the session already holds.
 
 The current pre-release v1 database/package baseline records the source node and both stem paths
 and digests, without review states. Obsolete baselines are rejected by the existing strict schema
