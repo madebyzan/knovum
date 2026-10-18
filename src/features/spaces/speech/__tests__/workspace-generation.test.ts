@@ -23,7 +23,8 @@ vi.mock("../use-speech-voices", () => ({
 vi.mock("../use-speech-generation", () => ({
   useSpeechGeneration: (owner: { project: () => SpeechProjectSnapshot | undefined }) => ({
     errors: shallowRef([]),
-    hasActiveExecution: shallowRef(false),
+    previewing: shallowRef(false),
+    generating: shallowRef(false),
     submitting: shallowRef(false),
     reset: vi.fn<() => void>(),
     clearPreview: vi.fn<() => void>(),

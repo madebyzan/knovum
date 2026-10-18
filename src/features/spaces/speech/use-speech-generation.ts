@@ -1,12 +1,12 @@
-import { computed, onScopeDispose, readonly, shallowRef } from "vue";
+import { computed, onScopeDispose, readonly, shallowRef, type DeepReadonly } from "vue";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
+import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
+import { observeResourceRun } from "../runs/resource-run-observation";
 import { useSpaceStore } from "../session/space-store";
 import { cancelSpeechGeneration, exportSpeechRender, generateSpeechProject } from "./ipc";
 import { useSpeechPreview } from "./use-speech-preview";
-import { useSpeechRunObservation, type SpeechRunOwner } from "./use-speech-run-observation";
 
 interface SubmissionContext {
   epoch: number;
@@ -15,7 +15,15 @@ interface SubmissionContext {
   spaceId: string;
 }
 
-export function useSpeechGeneration(owner: SpeechRunOwner) {
+/**
+ * Composing speech and running it are owned by different places. Auditioning a line is a short job
+ * that belongs to the editor, because its result is heard there. Generating the deliverable is a
+ * Run: the Task Center carries its progress, its cancellation and its outcome, and the editor's
+ * part ends the moment the Run exists.
+ */
+export function useSpeechGeneration(owner: {
+  project: () => DeepReadonly<SpeechProjectSnapshot> | undefined;
+}) {
   const store = useSpaceStore();
   const {
     preview,
@@ -29,31 +37,23 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
     cancel: cancelPreview,
     stopListening,
   } = useSpeechPreview();
-  const {
-    runState,
-    error: observationError,
-    attachRun,
-    reset: resetObservation,
-  } = useSpeechRunObservation(owner);
   const submitting = shallowRef(false);
   const preparingRunId = shallowRef<string>();
   const cancelling = shallowRef(false);
   const operationError = shallowRef<string>();
   const errors = computed(() =>
-    [operationError.value, previewError.value, observationError.value].filter((message): message is string =>
-      Boolean(message),
-    ),
+    [operationError.value, previewError.value].filter((message): message is string => Boolean(message)),
   );
-  const hasActiveExecution = computed(() =>
-    Boolean(jobId.value ?? preparingRunId.value ?? owner.project()?.project.activeRunId),
-  );
+  /** A job the editor itself is running: an audition, or the preparation before a Run exists. */
+  const previewing = computed(() => Boolean(jobId.value ?? preparingRunId.value));
+  /** A Run the Task Center is carrying for this project. */
+  const generating = computed(() => Boolean(owner.project()?.project.activeRunId));
   let submissionEpoch = 0;
   let operationEpoch = 0;
   let cancellationEpoch = 0;
 
   function reset() {
     resetPreview();
-    resetObservation();
     submissionEpoch += 1;
     operationEpoch += 1;
     cancellationEpoch += 1;
@@ -78,10 +78,11 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
     )
       operationError.value = getErrorMessage(cause);
   }
+  /** Resolves to whether a Run was handed over, so the editor can step out of the way. */
   async function generateProject() {
     const project = owner.project()?.project;
     const spaceId = store.activeSpaceId;
-    if (!project || !spaceId || hasActiveExecution.value || submitting.value) return;
+    if (!project || !spaceId || previewing.value || generating.value || submitting.value) return false;
     const context = {
       epoch: ++submissionEpoch,
       errorEpoch: ++operationEpoch,
@@ -98,15 +99,11 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
         projectId: project.id,
         expectedRevision: project.activeRevision,
       });
-      if (!isCurrentSubmission(context)) {
-        observeResourceRun(run, project.title);
-        return;
-      }
-      attachRun(run, project.id, spaceId);
-      await owner.reloadProject(project.id);
-      if (context.errorEpoch === operationEpoch) operationError.value = undefined;
+      observeResourceRun(run, project.title);
+      return true;
     } catch (cause) {
       reportSubmissionError(cause, context);
+      return false;
     } finally {
       if (context.epoch === submissionEpoch) {
         submitting.value = false;
@@ -115,7 +112,8 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
     }
   }
 
-  async function cancelGeneration() {
+  /** Cancels the editor's own job. A Run is cancelled where it is reported: the Task Center. */
+  async function cancelPreviewJob() {
     if (cancelling.value) return;
     const epoch = ++operationEpoch;
     const cancelEpoch = ++cancellationEpoch;
@@ -124,10 +122,6 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
     try {
       if (jobId.value) await cancelPreview();
       else if (preparingRunId.value) await cancelSpeechGeneration(preparingRunId.value);
-      else {
-        const runId = owner.project()?.project.activeRunId;
-        if (runId) await cancelResourceRun(runId);
-      }
       if (epoch === operationEpoch) operationError.value = undefined;
     } catch (cause) {
       if (epoch === operationEpoch) operationError.value = getErrorMessage(cause);
@@ -154,16 +148,16 @@ export function useSpeechGeneration(owner: SpeechRunOwner) {
     preview,
     progress,
     listening,
-    runState,
     errors,
-    hasActiveExecution,
+    previewing,
+    generating,
     submitting: readonly(submitting),
     cancelling: readonly(cancelling),
     reset,
     clearPreview,
     previewSelection,
     generateProject,
-    cancelGeneration,
+    cancelPreviewJob,
     stopListening,
     exportRender,
   };

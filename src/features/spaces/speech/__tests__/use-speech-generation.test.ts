@@ -12,7 +12,6 @@ const mocks = vi.hoisted(() => ({
   cancelSpeechGeneration: vi.fn<() => Promise<boolean>>(),
   cancelResourceRun: vi.fn<() => Promise<void>>(),
   observeResourceRun: vi.fn<(run: RunObservation, title: string) => void>(),
-  attachRun: vi.fn<(run: RunObservation, projectId: string, spaceId: string) => void>(),
 }));
 vi.mock("../ipc", () => mocks);
 vi.mock("../../session/space-store", () => ({ useSpaceStore: () => mocks }));
@@ -31,15 +30,6 @@ vi.mock("../use-speech-preview", () => ({
     stopListening: vi.fn<() => void>(),
   }),
 }));
-vi.mock("../use-speech-run-observation", () => ({
-  useSpeechRunObservation: () => ({
-    runState: shallowRef(),
-    error: shallowRef(),
-    attachRun: mocks.attachRun,
-    reset: vi.fn<() => void>(),
-  }),
-}));
-
 const run: RunObservation = {
   id: "run",
   scope: { kind: "space", spaceId: "space" },
@@ -86,10 +76,7 @@ const project: SpeechProjectSnapshot = {
 const scopes: ReturnType<typeof effectScope>[] = [];
 function setup() {
   const selected = shallowRef(project);
-  const owner = {
-    project: () => selected.value,
-    reloadProject: vi.fn<(projectId: string) => Promise<void>>().mockResolvedValue(undefined),
-  };
+  const owner = { project: () => selected.value };
   const scope = effectScope();
   scopes.push(scope);
   const generation = scope.run(() => useSpeechGeneration(owner))!;
@@ -114,33 +101,47 @@ it("uses the request identity to cancel while first-use resources are being prep
   const { generation, resolve } = setup();
   const pending = generation.generateProject();
   const requestId = mocks.generateSpeechProject.mock.calls[0]![0].requestId;
-  expect(generation.hasActiveExecution.value).toBe(true);
+  expect(generation.previewing.value).toBe(true);
   expect(requestId).toBeTypeOf("string");
-  await generation.cancelGeneration();
+  await generation.cancelPreviewJob();
   expect(mocks.cancelSpeechGeneration).toHaveBeenCalledExactlyOnceWith(requestId);
   expect(mocks.cancelResourceRun).not.toHaveBeenCalled();
   resolve(run);
   await pending;
-  expect(generation.hasActiveExecution.value).toBe(false);
+  expect(generation.previewing.value).toBe(false);
 });
 
-it("keeps a late created Run in Task Center without attaching it to another node", async () => {
-  const { generation, owner, resolve, selected } = setup();
+it("hands every created Run to Task Center and reports the handover to its caller", async () => {
+  const { generation, resolve } = setup();
+  const pending = generation.generateProject();
+  resolve(run);
+  await expect(pending).resolves.toBe(true);
+  expect(mocks.observeResourceRun).toHaveBeenCalledWith(run, "Speech");
+});
+
+it("hands over a Run created after the editor moved on, without reporting a handover", async () => {
+  const { generation, resolve, selected } = setup();
   const pending = generation.generateProject();
   selected.value = { ...project, project: { ...project.project, id: "other" } };
   generation.reset();
   resolve(run);
   await pending;
   expect(mocks.observeResourceRun).toHaveBeenCalledWith(run, "Speech");
-  expect(mocks.attachRun).not.toHaveBeenCalled();
-  expect(owner.reloadProject).not.toHaveBeenCalled();
+});
+
+it("leaves a Run that Task Center already carries alone", async () => {
+  const { generation, selected } = setup();
+  selected.value = { ...project, project: { ...project.project, activeRunId: "run" } };
+  expect(generation.generating.value).toBe(true);
+  await expect(generation.generateProject()).resolves.toBe(false);
+  expect(mocks.generateSpeechProject).not.toHaveBeenCalled();
 });
 
 it("treats preparation cancellation as an expected user action", async () => {
   const { generation, reject } = setup();
   const pending = generation.generateProject();
   reject(new Error("Cancelled", { cause: { code: "cancelled", message: "Cancelled" } }));
-  await pending;
+  await expect(pending).resolves.toBe(false);
   expect(generation.errors.value).toEqual([]);
   expect(generation.submitting.value).toBe(false);
 });
