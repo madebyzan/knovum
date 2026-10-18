@@ -112,6 +112,21 @@ impl GeneratedPreview {
 /// Makes the cover of an asset a Space itself published. A derived asset carries its own cover
 /// rather than its source's: the picture is new even when its subject is not, and a preview
 /// belongs to the asset it was made from, which is also what reclamation tracks.
+/// Makes the cover off the executor, which is where image and video decoding belongs.
+pub(crate) async fn generate_for_published_asset_off_thread(
+    app: &tauri::AppHandle,
+    source: &Path,
+    cancellation: &CancellationToken,
+) -> Result<Option<GeneratedPreview>, String> {
+    let app = app.clone();
+    let source = source.to_path_buf();
+    let cancellation = cancellation.clone();
+    crate::foundation::blocking::run(move || {
+        generate_for_published_asset(&app, &source, &cancellation)
+    })
+    .await
+}
+
 pub(crate) fn generate_for_published_asset(
     app: &tauri::AppHandle,
     source: &Path,

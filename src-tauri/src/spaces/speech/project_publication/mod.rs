@@ -9,6 +9,7 @@ use commit::{reusable_committed_output, CommittedOutputSpec};
 mod commit;
 mod node;
 use crate::spaces::speech::asset_publication::PublicationOwnerKind;
+pub(in crate::spaces::speech) use node::output_node_id;
 
 mod audiobook;
 mod encoding;

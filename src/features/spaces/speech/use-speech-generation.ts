@@ -5,7 +5,7 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { SpeechProjectSnapshot } from "../contracts/generated/SpeechProjectSnapshot";
 import { observeResourceRun } from "../runs/resource-run-observation";
 import { useSpaceStore } from "../session/space-store";
-import { cancelSpeechGeneration, exportSpeechRender, generateSpeechProject } from "./ipc";
+import { cancelSpeechGeneration, generateSpeechProject } from "./ipc";
 import { useSpeechPreview } from "./use-speech-preview";
 
 interface SubmissionContext {
@@ -130,19 +130,6 @@ export function useSpeechGeneration(owner: {
     }
   }
 
-  async function exportRender(path: string) {
-    const title = owner.project()?.project.title;
-    if (!title) return;
-    const epoch = ++operationEpoch;
-    operationError.value = undefined;
-    try {
-      await exportSpeechRender(path, title);
-      if (epoch === operationEpoch) operationError.value = undefined;
-    } catch (cause) {
-      if (epoch === operationEpoch) operationError.value = getErrorMessage(cause);
-    }
-  }
-
   onScopeDispose(reset);
   return {
     preview,
@@ -159,6 +146,5 @@ export function useSpeechGeneration(owner: {
     generateProject,
     cancelPreviewJob,
     stopListening,
-    exportRender,
   };
 }

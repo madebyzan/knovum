@@ -172,16 +172,18 @@ async fn persist(
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), AppError> {
     let now = crate::foundation::clock::unix_time_millis()?;
+    let asset_path = path.to_string_lossy();
     let object = payload
         .as_object_mut()
         .ok_or("Image operation node data is invalid")?;
-    object.insert(
-        "assetPath".into(),
-        path.to_string_lossy().into_owned().into(),
-    );
-    object.insert("sourceRevision".into(), image.digest.clone().into());
-    object.insert("size".into(), (image.png.len() as u64).into());
-    object.insert("modifiedAt".into(), now.into());
+    crate::spaces::assets::published_asset::PublishedAsset {
+        path: &asset_path,
+        revision: image.digest.clone(),
+        size: Some(image.png.len() as u64),
+        // An image is its own cover; the canvas renders the file itself.
+        cover: None,
+    }
+    .settle_onto(object, now)?;
     object.insert("intrinsicWidth".into(), image.width.into());
     object.insert("intrinsicHeight".into(), image.height.into());
     if matches!(
@@ -197,7 +199,6 @@ async fn persist(
             serde_json::json!({"encoding":"relative-inverse-depth-u16-v1","modelSpecId":spec_id}),
         );
     }
-    object.remove("processingState");
     request
         .operation
         .derived_output()

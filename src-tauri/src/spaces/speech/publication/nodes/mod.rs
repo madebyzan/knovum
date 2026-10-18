@@ -1,151 +1,124 @@
-use serde_json::{json, Value};
+//! Settling a speech Run's output onto the node reserved for it.
+//!
+//! The node, its place on the canvas and the lineage that explains it were established when the
+//! Run was created. What is left here is content: the published file, the cover it shows, and what
+//! it keeps of its source.
+
+use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 
 use super::super::contracts::SpeechAudioOutput;
 use crate::spaces::{
-    derivation::{
-        inheritance::DerivedOutput,
-        placement::{self, DerivedCell, DerivedOutputs},
-        relations,
-    },
-    nodes::{self, contracts::InsertNode},
+    assets::published_asset::PublishedAsset,
+    db,
+    derivation::{self, inheritance::DerivedOutput},
+    knowledge::model::revision,
     previews::GeneratedPreview,
-    structure::{self, Size, SizingMode},
 };
 
 pub(in crate::spaces::speech) struct MediaNodeOutput {
     pub node_id: String,
-    pub kind: &'static str,
-    pub title: String,
     pub output: SpeechAudioOutput,
     pub derived: DerivedOutput,
     /// The cover a published video shows, made from its own file.
     pub cover: Option<GeneratedPreview>,
 }
 
-impl MediaNodeOutput {
-    /// Separated media has no intrinsic canvas size, so the kind decides its footprint.
-    fn size(&self) -> Size {
-        if self.kind == "audio" {
-            Size {
-                width: 288.0,
-                height: 80.0,
-            }
-        } else {
-            placement::PLACEHOLDER
-        }
-    }
-
-    fn build_insert_node(&self, cell: &DerivedCell, source: &Value) -> Result<InsertNode, String> {
-        let file_name = std::path::Path::new(&self.output.path)
-            .file_name()
-            .and_then(|name| name.to_str())
-            .ok_or("Speech output has no file name")?;
-        let mut data = json!({ "kind":self.kind, "title":self.title, "assetPath":self.output.path,
-            "fileName":file_name, "sourceRevision":format!("sha256:{}", self.output.sha256),
-            "durationSeconds": self.output.sample_count / u64::from(self.output.sample_rate) });
-        if let (Some(cover), Some(object)) = (&self.cover, data.as_object_mut()) {
-            cover.settle_onto(object);
-        }
-        self.derived.inherit(&mut data, source)?;
-        Ok(InsertNode {
-            id: self.node_id.clone(),
-            kind: self.kind.into(),
-            initial_x: cell.x,
-            initial_y: cell.y,
-            width: cell.size.width,
-            height: cell.size.height,
-            sizing_mode: SizingMode::Content,
-            appearance: None,
-            file_subpath: None,
-            source_chunks: Vec::new(),
-            data,
-        })
-    }
-}
-
-pub(in crate::spaces::speech) async fn publish(
+pub(in crate::spaces::speech) async fn settle(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     source_node_id: &str,
     outputs: &[MediaNodeOutput],
+    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
-    let (mut snapshot, edit_revision) =
-        structure::repository::load_in_transaction(tx, space_id).await?;
-    let before = structure::history::capture(tx, space_id, &snapshot).await?;
-    let source: String = sqlx::query_scalar(
-        "SELECT data FROM spaces_nodes WHERE id=? AND space_id=? AND deleted_at IS NULL",
-    )
-    .bind(source_node_id)
-    .bind(space_id)
-    .fetch_optional(&mut **tx)
-    .await
-    .map_err(crate::spaces::db::sql_error)?
-    .ok_or("Speech source node is no longer available")?;
-    let source: Value = serde_json::from_str(&source).map_err(crate::spaces::db::json_error)?;
-    let sources = [source_node_id.to_owned()];
-    let cells = placement::plan(
-        tx,
-        space_id,
-        &snapshot.structure,
-        &snapshot.layouts,
-        DerivedOutputs {
-            sources: &sources,
-            reserved: &[],
-            sizes: outputs.iter().map(MediaNodeOutput::size).collect(),
-        },
-    )
-    .await
-    .map_err(|error| error.to_string())?;
-    let mut nodes = Vec::with_capacity(outputs.len());
-    for (output, cell) in outputs.iter().zip(&cells) {
-        let mut node = output.build_insert_node(cell, &source)?;
-        crate::spaces::knowledge::validation::normalize_node(
-            tx,
-            space_id,
-            &node.kind,
-            &mut node.data,
-        )
-        .await?;
-        nodes.push(node);
-    }
+    let source = node_data(tx, space_id, source_node_id)
+        .await?
+        .ok_or("Speech source node is no longer available")?;
     let now = crate::foundation::clock::unix_time_millis()?;
-    structure::creation::append_content(&mut snapshot, &nodes, None)?;
-    nodes::insert_rows_with_actor(
-        tx,
-        space_id,
-        &nodes,
-        crate::spaces::knowledge::events::EventActor::new("system", None),
-        now,
-        None,
-    )
-    .await
-    .map_err(|error| error.to_string())?;
-    let revision =
-        structure::repository::save_in_transaction(tx, space_id, edit_revision, &snapshot)
-            .await
-            .map_err(|error| error.to_string())?;
-    structure::portal_integrity::validate_structure_targets(tx, &[space_id]).await?;
     for output in outputs {
-        relations::derives_from(
-            tx,
-            space_id,
-            &output.node_id,
-            source_node_id,
-            "Media derived from its source node",
-            now,
-        )
-        .await?;
+        let mut data = node_data(tx, space_id, &output.node_id)
+            .await?
+            .ok_or("Speech output node is no longer reserved")?;
+        if data.get("processingState").is_none() {
+            require_same_output(&data, &output.output)?;
+            continue;
+        }
+        apply_published(&mut data, output, &source, now)?;
+        let kind = data["kind"]
+            .as_str()
+            .ok_or("Speech output node kind is invalid")?
+            .to_owned();
+        crate::spaces::knowledge::validation::validate_node(tx, space_id, &kind, &data).await?;
+        derivation::persist_output_node(tx, &output.node_id, &data, now, enrichment_target)
+            .await
+            .map_err(|error| error.message)?;
     }
-    let after = structure::history::capture(tx, space_id, &snapshot).await?;
-    structure::history::record(tx, space_id, &before, &after, revision).await?;
     sqlx::query("UPDATE spaces SET updated_at=? WHERE id=?")
         .bind(now)
         .bind(space_id)
         .execute(&mut **tx)
         .await
-        .map_err(crate::spaces::db::sql_error)?;
+        .map_err(db::sql_error)?;
     Ok(())
+}
+
+fn apply_published(
+    data: &mut Value,
+    output: &MediaNodeOutput,
+    source: &Value,
+    now: i64,
+) -> Result<(), String> {
+    let fields = data
+        .as_object_mut()
+        .ok_or("Speech output node data is invalid")?;
+    PublishedAsset {
+        path: &output.output.path,
+        revision: revision_of(&output.output),
+        // Encoded audio reports its length in samples rather than bytes.
+        size: None,
+        cover: output.cover.as_ref(),
+    }
+    .settle_onto(fields, now)?;
+    fields.insert(
+        "durationSeconds".into(),
+        (output.output.sample_count / u64::from(output.output.sample_rate)).into(),
+    );
+    output.derived.inherit(data, source)?;
+    revision::apply(data)?;
+    Ok(())
+}
+
+/// A publication that settled in an earlier attempt stands; a different one would mean this Run's
+/// node already belongs to another output.
+fn require_same_output(data: &Value, output: &SpeechAudioOutput) -> Result<(), String> {
+    if data.get("assetPath").and_then(Value::as_str) != Some(output.path.as_str())
+        || data.get("sourceRevision").and_then(Value::as_str) != Some(revision_of(output).as_str())
+    {
+        return Err("Speech Run already published a different node output".into());
+    }
+    Ok(())
+}
+
+fn revision_of(output: &SpeechAudioOutput) -> String {
+    format!("sha256:{}", output.sha256)
+}
+
+async fn node_data(
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: &str,
+    node_id: &str,
+) -> Result<Option<Value>, String> {
+    let encoded: Option<String> = sqlx::query_scalar(
+        "SELECT data FROM spaces_nodes WHERE id=? AND space_id=? AND deleted_at IS NULL",
+    )
+    .bind(node_id)
+    .bind(space_id)
+    .fetch_optional(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    encoded
+        .map(|encoded| serde_json::from_str(&encoded).map_err(db::json_error))
+        .transpose()
 }
 
 #[cfg(test)]

@@ -42,6 +42,7 @@ pub(super) async fn reserve(
             node_id,
             kind: output.kind,
             data: output.data,
+            footprint: super::super::pending_output::PLACEHOLDER,
         }],
         &inputs
             .nodes

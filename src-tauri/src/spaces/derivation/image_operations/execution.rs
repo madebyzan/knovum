@@ -109,12 +109,6 @@ async fn fail_pending<T>(
     request: &DeriveImageRequest,
     error: AppError,
 ) -> Result<T, AppError> {
-    super::super::failure::fail_pending(
-        app,
-        &request.space_id,
-        &request.output_node_id,
-        super::super::failure::PendingNodeState::Processing,
-    )
-    .await?;
+    super::super::failure::fail_pending(app, &request.output_node_id).await?;
     Err(error)
 }

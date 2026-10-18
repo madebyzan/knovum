@@ -40,13 +40,15 @@ fn after_attempt_hook<'a>(
     pool: &'a SqlitePool,
     claim: &'a AttemptClaim,
 ) -> Pin<Box<dyn Future<Output = Result<(), String>> + Send + 'a>> {
-    Box::pin(
+    Box::pin(async move {
         crate::spaces::speech::voice_candidates::cleanup_terminal_snapshot(
             app,
             pool,
             &claim.run_id,
-        ),
-    )
+        )
+        .await?;
+        crate::spaces::derivation::settle_abandoned_outputs(pool).await
+    })
 }
 
 fn after_controls_hook<'a>(
@@ -59,7 +61,7 @@ fn after_controls_hook<'a>(
             crate::spaces::speech::voice_candidates::reconcile_terminal_snapshots(app, pool)
                 .await?;
         }
-        Ok(())
+        crate::spaces::derivation::settle_abandoned_outputs(pool).await
     })
 }
 

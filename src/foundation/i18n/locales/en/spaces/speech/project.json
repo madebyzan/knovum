@@ -1,5 +1,4 @@
 {
-  "new": "Start another",
   "language": "Language",
   "script": {
     "placeholder": "Enter the script for this revision",
@@ -16,8 +15,6 @@
   "saving": "Saving",
   "starting": "Preparing generation",
   "generatingInTasks": "Generating. Progress and cancellation are in Tasks.",
-  "generatedAudio": "Generated audio",
-  "generatedVideo": "Generated video",
   "format": "Format",
   "sampleRate": "Sample rate",
   "loudness": "Loudness (LUFS)",
@@ -45,7 +42,6 @@
     "videoDubbing": "Video dubbing"
   },
   "generateFromNode": "Generate speech",
-  "nodeProjects": "Saved dubbing",
   "settings": "Settings",
   "editorPages": "Speech editor sections",
   "importManuscript": "Import node manuscript",

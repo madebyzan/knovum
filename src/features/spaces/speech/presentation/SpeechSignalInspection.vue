@@ -6,7 +6,6 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import { useSpeechSignalInspection } from "../use-speech-signal-inspection";
 
 const props = defineProps<{ projectId: string; revisionId: string }>();
-const emit = defineEmits<{ seek: [positionMs: number] }>();
 const { t } = useI18n();
 const { cancel, error, inspect, jobId, report, scannedMs } = useSpeechSignalInspection({
   projectId: computed(() => props.projectId),
@@ -36,11 +35,9 @@ function formatTimestamp(ms: number) {
         {{ t("spaces.speech.signal.truncated") }}
       </p>
       <ul class="space-y-1">
-        <li v-for="(warning, index) in report.warnings" :key="index">
-          <UiButton size="sm" variant="ghost" @click="emit('seek', warning.startMs)">
-            {{ formatTimestamp(warning.startMs) }}–{{ formatTimestamp(warning.endMs) }} ·
-            {{ t(`spaces.speech.signal.issues.${warning.kind}`) }}
-          </UiButton>
+        <li v-for="(warning, index) in report.warnings" :key="index" class="text-caption text-fg-secondary">
+          {{ formatTimestamp(warning.startMs) }}–{{ formatTimestamp(warning.endMs) }} ·
+          {{ t(`spaces.speech.signal.issues.${warning.kind}`) }}
         </li>
       </ul>
     </template>

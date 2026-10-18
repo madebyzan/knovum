@@ -858,11 +858,15 @@ relations. Choosing parameters or invoking Generate is the operation's execution
 successfully validated derived result requires no later acceptance or “add node” click. Cloning
 creates a reusable voice-library resource, and retains its own audition and managed-reference validation contract.
 
-Speech-project output publication and source separation share one focused media-node publisher.
-It uses the existing content insertion, source-adjacent collision-aware placement, history and
-semantic-relation contracts. Both separated stems are inserted in one history operation. Each
-stem is an ordinary audio node with its own playback/export actions; the original retains its
-normal action bar. No duplicate result-review bar or insertion state is maintained in the UI.
+Speech-project generation and source separation reserve their output nodes in the same write
+transaction that creates their Run, through the reservation contract every derivation uses
+([creation-sources.md](creation-sources.md)): content insertion, source-adjacent collision-aware
+placement, history and `derives-from` relations. Both separated stems are reserved in one history
+operation, and publication only settles content onto nodes the canvas has been showing all along.
+A Run that ends without publishing settles its reserved outputs as failed, so nothing waits on
+finished work. Each stem is an ordinary audio node with its own playback/export actions; the
+original retains its normal action bar. No duplicate result-review bar or insertion state is
+maintained in the UI.
 The shared resource-run observer invalidates the owning space's resource-publication queries on
 completion, including when its editor is closed or another space is selected. Published-result
 selectors use that query namespace; canvas refresh and query-cache refresh remain separate.

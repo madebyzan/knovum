@@ -96,6 +96,7 @@ pub(super) async fn commit_publication(
     vocals: &Path,
     metadata: &separation::SeparatedAudio,
     duration_ms: u64,
+    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
     if claim.cancellation.is_cancelled() {
         return Err("cancelled".into());
@@ -154,7 +155,16 @@ pub(super) async fn commit_publication(
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    super::publication::publish(&mut tx, claim, &config, background, vocals, metadata).await?;
+    super::publication::publish(
+        &mut tx,
+        claim,
+        &config,
+        background,
+        vocals,
+        metadata,
+        enrichment_target,
+    )
+    .await?;
     for (path, digest) in [
         (background, &metadata.background.sha256),
         (vocals, &metadata.vocals.sha256),

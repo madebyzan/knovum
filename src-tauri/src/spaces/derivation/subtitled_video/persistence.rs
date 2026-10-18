@@ -63,7 +63,7 @@ fn apply_output(
     let object = payload
         .as_object_mut()
         .ok_or("Derived video data is invalid")?;
-    video_output::apply_published(object, output, now);
+    video_output::apply_published(object, output, now)?;
     DerivedOutput::SubtitledVideo.inherit(payload, source)?;
     revision::apply(payload).map(|_| ()).map_err(AppError::from)
 }

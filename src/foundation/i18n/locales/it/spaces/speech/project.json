@@ -1,5 +1,4 @@
 {
-  "new": "Avviane un altro",
   "language": "Lingua",
   "script": {
     "placeholder": "Inserisci lo script per questa revisione",
@@ -16,8 +15,6 @@
   "saving": "Salvataggio in corso",
   "starting": "Preparazione della generazione",
   "generatingInTasks": "Generazione in corso. Avanzamento e annullamento sono in Attività.",
-  "generatedAudio": "Audio generato",
-  "generatedVideo": "Video generato",
   "format": "Formato",
   "sampleRate": "Frequenza di campionamento",
   "loudness": "Loudness (LUFS)",
@@ -45,7 +42,6 @@
     "videoDubbing": "Doppiaggio video"
   },
   "generateFromNode": "Genera voce",
-  "nodeProjects": "Duplicazione salvata",
   "settings": "Impostazioni",
   "editorPages": "Sezioni dell'editor vocale",
   "importManuscript": "Importa manoscritto del nodo",

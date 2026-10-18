@@ -9,6 +9,7 @@ pub(in crate::spaces) mod delivery_instruction;
 pub(crate) mod execution;
 mod generation_attempt;
 mod media_source;
+mod output_reservation;
 pub(crate) mod preset_voices;
 pub(crate) mod project_config;
 mod project_publication;

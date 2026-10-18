@@ -1,9 +1,6 @@
 import { Channel } from "@tauri-apps/api/core";
-import { save } from "@tauri-apps/plugin-dialog";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import { exportAssetFile } from "../assets/export/ipc";
-import { exportFilter, safeExportFileName } from "../assets/export/naming";
 import type { ArchiveVoiceProfileRequest } from "../contracts/generated/ArchiveVoiceProfileRequest";
 import type { CreatePresetVoiceRequest } from "../contracts/generated/CreatePresetVoiceRequest";
 import type { CreateSpeechProjectRequest } from "../contracts/generated/CreateSpeechProjectRequest";
@@ -86,20 +83,6 @@ export function cancelSpeechGeneration(jobId: string) {
 
 export function discardSpeechPreview(path: string) {
   return invokeCommand<void>("plugin:spaces|discard_speech_preview", { path });
-}
-
-export async function exportSpeechRender(sourcePath: string, projectTitle: string) {
-  const base = safeExportFileName(projectTitle) || "speech";
-  const extension = sourcePath.split(".").at(-1)?.toLowerCase();
-  if (!extension || !["wav", "mp3", "m4b", "mp4"].includes(extension))
-    throw new Error("Unsupported speech export format");
-  const destinationPath = await save({
-    defaultPath: `${base}.${extension}`,
-    filters: [exportFilter(extension)],
-  });
-  if (!destinationPath) return false;
-  await exportAssetFile(sourcePath, destinationPath);
-  return true;
 }
 
 export function getSpeechProject(projectId: string) {

@@ -62,7 +62,7 @@ function render(projectType: "short_dubbing" | "audiobook" | "video_dubbing" = "
     props: { node, projectType },
     global: {
       plugins: [i18n, router],
-      stubs: { SpeechProjectEditor: true, VoiceCandidateForm: true, SpaceUnsavedChangesDialog: true },
+      stubs: { SpeechProjectEditor: true, SpaceUnsavedChangesDialog: true },
     },
   });
   onTestFinished(() => wrapper.unmount());
@@ -81,10 +81,8 @@ it.each(["short_dubbing", "audiobook"] as const)(
     );
     expect(wrapper.find("form").exists()).toBe(false);
     expect(wrapper.find('[aria-label="More"]').exists()).toBe(false);
-    expect(wrapper.text()).toContain(i18n.global.t("spaces.speech.library.selection.empty"));
-    expect(wrapper.get('[data-testid="manage-voices"]').attributes("href")).toBe("/settings?pane=voices");
-    await wrapper.get('[data-testid="add-reference-voice"]').trigger("click");
-    expect(wrapper.findComponent({ name: "VoiceCandidateForm" }).exists()).toBe(true);
+    // Voices belong to Settings: the composer offers no second library of its own.
+    expect(wrapper.find('[data-testid="add-reference-voice"]').exists()).toBe(false);
   },
 );
 

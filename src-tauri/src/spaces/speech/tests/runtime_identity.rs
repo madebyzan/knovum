@@ -28,8 +28,21 @@ async fn project_generation_requires_every_engine_package_and_freezes_the_exact_
     use crate::spaces::speech::{contracts::GenerateSpeechProjectRequest, run_start};
     let pool = crate::spaces::speech::tests::database().await;
     let project_id = uuid::Uuid::new_v4().to_string();
-    sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('source','space','note',0,0,'{\"kind\":\"note\",\"title\":\"Source\",\"plainText\":\"Hello\"}',1,1)")
-        .execute(&pool).await.unwrap();
+    let mut tx = crate::spaces::db::begin_write(&pool).await.unwrap();
+    crate::spaces::structure::repository::initialize_empty_in_transaction(&mut tx, "space")
+        .await
+        .unwrap();
+    let request = serde_json::from_value(json!({
+        "spaceId":"space","mutationId":"source-create","targetParentId":null,
+        "nodes":[{"id":"source","kind":"note","initialX":0,"initialY":0,"width":320,"height":100,
+            "sizingMode":"content","sourceChunks":[],"data":{"kind":"note","title":"Source",
+                "plainText":"Hello","tiptapContent":{"type":"doc","content":[{"type":"paragraph"}]}}}]
+    }))
+    .unwrap();
+    crate::spaces::nodes::tests::insert_many_in_transaction(&mut tx, request, None)
+        .await
+        .unwrap();
+    tx.commit().await.unwrap();
     sqlx::query("INSERT INTO spaces_speech_projects(id,space_id,source_node_id,project_type,title,created_at,updated_at) VALUES(?,'space','source','short_dubbing','Draft',1,1)")
         .bind(&project_id).execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_speech_project_revisions(id,project_id,revision,source_revision,pronunciation_lexicon,output_config,created_at) VALUES('revision',?,1,'source','{}',?,1)")
@@ -53,16 +66,25 @@ async fn project_generation_requires_every_engine_package_and_freezes_the_exact_
         project_id: project_id.clone(),
         expected_revision: 1,
     };
+    let outputs = crate::spaces::speech::output_reservation::OutputContext::for_tests(
+        std::env::temp_dir().join("knovum-speech-reservation"),
+    );
     let mut digests = RuntimeDigests::new();
-    assert!(run_start::start(&pool, request(), &digests).await.is_err());
+    assert!(run_start::start(&pool, request(), &digests, &outputs)
+        .await
+        .is_err());
     let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_runs")
         .fetch_one(&pool)
         .await
         .unwrap();
     assert_eq!(count, 0);
     digests.insert("native-inference-v2".into(), "b".repeat(64));
-    run_start::start(&pool, request(), &digests).await.unwrap();
-    run_start::start(&pool, request(), &digests).await.unwrap();
+    run_start::start(&pool, request(), &digests, &outputs)
+        .await
+        .unwrap();
+    run_start::start(&pool, request(), &digests, &outputs)
+        .await
+        .unwrap();
     let snapshot: String = sqlx::query_scalar("SELECT input_snapshot FROM spaces_runs WHERE id=?")
         .bind(&request_id)
         .fetch_one(&pool)
@@ -73,5 +95,7 @@ async fn project_generation_requires_every_engine_package_and_freezes_the_exact_
         digests
     );
     digests.insert("native-inference-v2".into(), "c".repeat(64));
-    assert!(run_start::start(&pool, request(), &digests).await.is_err());
+    assert!(run_start::start(&pool, request(), &digests, &outputs)
+        .await
+        .is_err());
 }

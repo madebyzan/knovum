@@ -53,13 +53,7 @@ pub(super) async fn generate_for_action(
         .require_active(crate::spaces::db::pool(&app).await?)
         .await?;
     if let Err(error) = persistence::start(&app, &request, &target, &authority).await {
-        let settlement = super::failure::fail_pending(
-            &app,
-            &request.space_id,
-            &request.output_node_id,
-            super::failure::PendingNodeState::Processing,
-        )
-        .await;
+        let settlement = super::failure::fail_pending(&app, &request.output_node_id).await;
         return Err(super::failure::with_settlement(error, settlement));
     }
     let generated_visualization = execute(&app, &request, &target, &stages, cancellation).await;

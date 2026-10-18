@@ -1,6 +1,7 @@
-use serde_json::Value;
+use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 
+use super::pending_output;
 use crate::spaces::db;
 
 pub(super) fn with_settlement(
@@ -16,31 +17,6 @@ pub(super) fn with_settlement(
                 primary.message
             ),
         },
-    }
-}
-
-pub enum PendingNodeState {
-    Processing,
-    Derivation,
-}
-
-impl PendingNodeState {
-    pub const fn field_name(&self) -> &'static str {
-        match self {
-            Self::Processing => "processingState",
-            Self::Derivation => "derivationState",
-        }
-    }
-}
-
-pub fn state_field_for(action_kind: &str) -> &'static str {
-    if matches!(
-        action_kind,
-        "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post"
-    ) {
-        "derivationState"
-    } else {
-        "processingState"
     }
 }
 
@@ -65,43 +41,11 @@ pub(super) async fn fail_messages(
     tx.commit().await.map_err(db::sql_error)
 }
 
-pub async fn fail_pending(
-    app: &AppHandle,
-    space_id: &str,
-    node_id: &str,
-    field: PendingNodeState,
-) -> Result<(), String> {
+/// Settles the output a Run reserved as failed, so the canvas stops showing work that is over.
+pub async fn fail_pending(app: &AppHandle, node_id: &str) -> Result<(), String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    let encoded = sqlx::query_scalar::<_, String>(
-        "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
-    )
-    .bind(node_id)
-    .bind(space_id)
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(db::sql_error)?;
-    let Some(encoded) = encoded else {
-        return Ok(());
-    };
-    let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
-    let key = field.field_name();
-    let pending = match field {
-        PendingNodeState::Processing => "processing",
-        PendingNodeState::Derivation => "pending",
-    };
-    if data.get(key).and_then(Value::as_str) != Some(pending) {
-        return Ok(());
-    }
-    data[key] = "failed".into();
-    sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=$3 AND space_id=$4")
-        .bind(sqlx::types::Json(&data))
-        .bind(crate::foundation::clock::unix_time_millis()?)
-        .bind(node_id)
-        .bind(space_id)
-        .execute(&mut *tx)
-        .await
-        .map_err(db::sql_error)?;
+    pending_output::settle_failed(&mut tx, node_id).await?;
     tx.commit().await.map_err(db::sql_error)
 }
 
@@ -122,26 +66,22 @@ pub(crate) async fn reconcile_interrupted(app: &AppHandle) -> Result<(), String>
 }
 
 async fn mark_failed(
-    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    tx: &mut Transaction<'_, Sqlite>,
     derivation_id: &str,
     error: &str,
 ) -> Result<(), String> {
     let now = crate::foundation::clock::unix_time_millis()?;
-    let row: Option<(String, String)> = sqlx::query_as(
-        "SELECT n.data,d.action_kind FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'",
+    let output_node_id: Option<String> = sqlx::query_scalar(
+        "SELECT output_node_id FROM spaces_knowledge_derivations WHERE id=$1 AND status='running'",
     )
     .bind(derivation_id)
     .fetch_optional(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    let Some((data, action_kind)) = row else {
+    let Some(node_id) = output_node_id else {
         return Ok(());
     };
-    let mut value: Value = serde_json::from_str(&data).map_err(db::json_error)?;
-    let state_field = state_field_for(&action_kind);
-    value[state_field] = Value::String("failed".into());
-    sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=(SELECT output_node_id FROM spaces_knowledge_derivations WHERE id=$3)")
-        .bind(sqlx::types::Json(&value)).bind(now).bind(derivation_id).execute(&mut **tx).await.map_err(db::sql_error)?;
+    pending_output::settle_failed(tx, &node_id).await?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='failed',error=$1,completed_at=$2,updated_at=$2 WHERE id=$3 AND status='running'")
         .bind(error).bind(now).bind(derivation_id).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())

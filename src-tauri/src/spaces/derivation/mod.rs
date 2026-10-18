@@ -13,7 +13,7 @@ pub(crate) mod input_revision;
 pub(crate) mod inputs;
 pub(crate) mod metadata_sources;
 pub(crate) mod output_paths;
-mod pending_output;
+pub(crate) mod pending_output;
 pub(super) mod placement;
 pub(crate) mod queries;
 pub(super) mod relations;
@@ -34,6 +34,11 @@ pub use contracts::CompletedDerivationOutput;
 
 pub(crate) async fn reconcile_interrupted(app: &AppHandle) -> Result<(), String> {
     failure::reconcile_interrupted(app).await
+}
+
+/// Settles outputs whose Run ended without publishing them, so no node waits on finished work.
+pub(crate) async fn settle_abandoned_outputs(pool: &sqlx::SqlitePool) -> Result<(), String> {
+    pending_output::settle_abandoned(pool).await
 }
 
 pub(crate) fn stage(channel: &tauri::ipc::Channel<String>, value: &str) -> Result<(), String> {
@@ -61,6 +66,7 @@ pub(crate) async fn persist_output_node(
         .execute(&mut **tx)
         .await
         .map_err(crate::spaces::db::sql_error)?;
+    pending_output::release(tx, node_id).await?;
     let space_id: String = sqlx::query_scalar("SELECT space_id FROM spaces_nodes WHERE id=$1")
         .bind(node_id)
         .fetch_one(&mut **tx)

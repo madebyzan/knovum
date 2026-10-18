@@ -111,14 +111,38 @@ Relations are written with the node, not when it settles, so lineage is visible 
 the work takes rather than appearing at the end. Nothing is left behind: an import that fails or is
 cancelled takes its reserved node and its asset away.
 
+## Reservation
+
+Any Run that will put content on the canvas reserves its output node as it is created, inside the
+same transaction, so a Run cannot exist without the node it owes content to. This is one mechanism
+for every such output — an Action's output, generated speech, an audiobook, a dubbed video, the two
+tracks separation pulls apart — and it is what makes the work visible: the node shows its stage from
+the moment it is asked for, its `derives-from` Relations are written with it rather than at the end,
+and the Task Center carries the same work as a Run.
+
+A reservation names where its output intends to publish; the file itself is named by whoever writes
+it, which is also what settles the node, so a path reserved for a file that is never written is
+simply forgotten. A reserved node holds only its name, that path, the size it will be laid out at,
+and labels — never knowledge, which is either established by its own published file or kept of its
+source by the rules below.
+
+A reservation never outlives its Run. A Run can stop at any step, so the question "is this node
+still waiting?" is answered by the Run's own outcome rather than by whichever step happened to fail:
+when a Run ends without publishing, its reserved outputs are settled as failed. Which field says so
+(`processingState` for an asset, `derivationState` for a document) is recorded when the output is
+reserved, so nothing has to re-derive it later.
+
 ## Settling
 
 A derived node settles onto an asset the Space itself published, and it reaches the same standing
-an imported node has. It carries its own cover, made from the file that was just published rather
-than borrowed from its source: the picture is new even when its subject is not, and the geometry
-that cover reports is what gives a rendered video its aspect ratio on the canvas. A cover made for
-an output that then fails to publish leaves with its file. What its new asset still has to say
-about itself is then scheduled exactly as an import's is, and the payload decides what that is.
+an imported node has. Every publisher states the same facts about its file — where it is, what it
+is called, its revision, its size and the cover the canvas shows — so a node says the same thing
+about its asset no matter which work produced it. It carries its own cover, made from the file that
+was just published rather than borrowed from its source: the picture is new even when its subject is
+not, and the geometry that cover reports is what gives a rendered video its aspect ratio on the
+canvas. A cover made for an output that then fails to publish leaves with its file. What its new
+asset still has to say about itself is then scheduled exactly as an import's is, and the payload
+decides what that is.
 
 ## Inheritance
 
@@ -160,7 +184,9 @@ images, videos and documents, visualizations, the layers a picture is split into
 
 The reservation enforces this: a reserved output holds only its name, the path and size of the
 asset it will publish, and labels. A reservation that already carries knowledge has taken it from
-somewhere it should not, and it cannot publish.
+somewhere it should not, and it cannot publish. Generated speech, audiobooks and separated tracks
+go through the same two rules: narration is a new work and keeps nothing, a dubbed video keeps the
+picture it did not change, separated vocals keep the words they still contain.
 
 ## Reuse
 

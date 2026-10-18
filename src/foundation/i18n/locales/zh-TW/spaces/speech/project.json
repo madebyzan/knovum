@@ -1,5 +1,4 @@
 {
-  "new": "另建一份",
   "language": "語言",
   "script": {
     "placeholder": "輸入此版本的配音稿",
@@ -16,8 +15,6 @@
   "saving": "正在保存",
   "starting": "正在準備生成",
   "generatingInTasks": "正在產生，進度與取消在「任務」中。",
-  "generatedAudio": "完整音訊",
-  "generatedVideo": "完整影片",
   "format": "格式",
   "sampleRate": "取樣率",
   "loudness": "響度（LUFS）",
@@ -45,7 +42,6 @@
     "videoDubbing": "視訊配音"
   },
   "generateFromNode": "生成語音",
-  "nodeProjects": "已儲存的配音",
   "settings": "設定",
   "editorPages": "配音編輯分區",
   "importManuscript": "導入節點文稿",

@@ -33,13 +33,7 @@ pub(crate) async fn split_for_action(
             // Until the derivations open, the node the Run reserved is the only record of the
             // split on the canvas, so it carries the failure. Settling only acts on a node that
             // is still pending, so a split that already settled its own outputs passes through.
-            let settlement = failure::fail_pending(
-                app,
-                &request.space_id,
-                &request.output_node_id,
-                failure::PendingNodeState::Processing,
-            )
-            .await;
+            let settlement = failure::fail_pending(app, &request.output_node_id).await;
             Err(failure::with_settlement(error, settlement))
         }
     }
