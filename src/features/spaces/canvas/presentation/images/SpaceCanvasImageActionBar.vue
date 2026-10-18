@@ -134,11 +134,6 @@ watch(
         :compact="compact"
         @begin="beginAngle() && emit('update:angleOpen', true)"
       />
-      <SpaceCanvasNodeAccessActions
-        :export-target="actions.exportTarget.value"
-        @inspect="actions.inspect"
-        @save="actions.exportFormat"
-      />
       <SpaceCanvasImageMenu
         :node="node"
         :actions="actions"
@@ -157,6 +152,11 @@ watch(
         @begin-removal="beginRemoval"
         @begin-selection="beginSelection"
         @run-direct="runDirectDerivation"
+      />
+      <SpaceCanvasNodeAccessActions
+        :export-target="actions.exportTarget.value"
+        @inspect="actions.inspect"
+        @save="actions.exportFormat"
       />
     </ToolbarRoot>
   </div>

@@ -116,11 +116,6 @@ const textKind = computed(() => {
         />
       </SpaceCanvasNodeTools>
       <UiActionHelp v-if="separation.error.value" :label="separation.error.value" />
-      <SpaceCanvasNodeAccessActions
-        :export-target="actions.exportTarget.value"
-        @inspect="actions.inspect"
-        @save="actions.exportFormat"
-      />
       <SpaceCanvasSelectionMenu
         :actions="actions"
         :derivations="derivations"
@@ -150,6 +145,11 @@ const textKind = computed(() => {
           />
         </template>
       </SpaceCanvasSelectionMenu>
+      <SpaceCanvasNodeAccessActions
+        :export-target="actions.exportTarget.value"
+        @inspect="actions.inspect"
+        @save="actions.exportFormat"
+      />
     </ToolbarRoot>
   </div>
 </template>
