@@ -13,7 +13,7 @@ const SUCCESS_DISMISS_DELAY_MS = 10_000;
 
 export const useTaskStore = defineStore("tasks", () => {
   const tasks = ref<AppTask[]>([]);
-  const { progress, indeterminate, setStatusMessage, title } = createTaskProgress(tasks);
+  const { progress, indeterminate, setStatusMessage, title, describeSubject } = createTaskProgress(tasks);
   const completionTimerByTaskId = new Map<string, ReturnType<typeof setTimeout>>();
   const handlers = new TaskExecutionHandlers();
   const externallySettledTaskIds = new Set<string>();
@@ -173,6 +173,7 @@ export const useTaskStore = defineStore("tasks", () => {
     progress,
     setStatusMessage,
     title,
+    describeSubject,
     cancel,
     setCancellation,
     setOpen,

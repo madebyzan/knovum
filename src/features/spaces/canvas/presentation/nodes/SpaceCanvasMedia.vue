@@ -72,6 +72,7 @@ async function consumeSeekRequest(request: typeof mediaSeekRequest.value) {
       <SpaceCanvasProcessingState
         v-if="work?.surface === 'content'"
         class="absolute inset-0"
+        :node-id="id"
         :label="t(work.labelKey)"
         :phase="work.phase"
       />

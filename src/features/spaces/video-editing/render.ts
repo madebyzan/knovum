@@ -16,6 +16,7 @@ import type { VideoEditProgress } from "../contracts/generated/VideoEditProgress
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
+import { nodeTaskSubject } from "../nodes/node-task-subject";
 import { useSpaceStore } from "../session/space-store";
 import type { VideoEditProject } from "./project";
 
@@ -61,6 +62,7 @@ export async function renderVideoEdit(
     source.data.title,
     cancel,
   );
+  tasks.describeSubject(taskId, nodeTaskSubject(pending.id, "video", pendingContent.title));
   const progress = new Channel<VideoEditProgress>((event) => {
     const { stage, progress: value } = videoEditProgressSchema.parse(event);
     tasks.progress(taskId, value, i18n.global.t(`spaces.media.videoEditor.render.stages.${stage}`));
