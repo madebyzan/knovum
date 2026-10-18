@@ -23,7 +23,7 @@ type ImagePopover = "upscale";
 
 /** Image derivations the node bar offers as a single click. */
 const DIRECT_DERIVATIONS = ["remove-image-background", "split-image-layers"] as const;
-type DirectDerivation = (typeof DIRECT_DERIVATIONS)[number];
+export type DirectImageDerivation = (typeof DIRECT_DERIVATIONS)[number];
 
 export function useImageNodeBarState(
   node: Readonly<Ref<SpaceCanvasNode<SpaceImagePayload>>>,
@@ -51,7 +51,7 @@ export function useImageNodeBarState(
           ? availableWhen(idle, "finish_image_edit")
           : { state: "hidden" as const },
       ]),
-    ) as Record<DirectDerivation, ImageActionAvailability>;
+    ) as Record<DirectImageDerivation, ImageActionAvailability>;
   });
   const directReason = computed(
     () =>
@@ -60,7 +60,7 @@ export function useImageNodeBarState(
           actionId,
           imageActionHelp(directAvailability.value[actionId])?.label ?? "",
         ]),
-      ) as Record<DirectDerivation, string>,
+      ) as Record<DirectImageDerivation, string>,
   );
   const dimensionsReady = computed(() => {
     const loaded = imageDimensions.forNode(node.value.id, node.value.data.sourceRevision);
@@ -69,14 +69,16 @@ export function useImageNodeBarState(
       (node.value.data.intrinsicHeight ?? loaded?.height),
     );
   });
-  const removalAvailability = computed(() =>
+  const interactiveAvailability = (busy: boolean) =>
     imageToolAvailability({
       sourceReady: Boolean(node.value.data.sourceRevision),
       editing: !nodeOperations.allows("derive"),
-      busy: removal.submitting,
-    }),
-  );
+      busy,
+    });
+  const removalAvailability = computed(() => interactiveAvailability(removal.submitting));
   const removalReason = computed(() => imageActionHelp(removalAvailability.value)?.label ?? "");
+  const selectionAvailability = computed(() => interactiveAvailability(imageSelection.submitting));
+  const selectionReason = computed(() => imageActionHelp(selectionAvailability.value)?.label ?? "");
 
   function beginTool(tool: ImageEditTool) {
     if (
@@ -97,6 +99,12 @@ export function useImageNodeBarState(
     removal.begin(node.value.id);
   }
 
+  function beginSelection() {
+    if (!canRunAction(selectionAvailability.value)) return;
+    openPopover.value = undefined;
+    void imageSelection.begin(node.value);
+  }
+
   function setPopover(mode: ImagePopover, open: boolean) {
     if (!nodeOperations.allows("derive")) return;
     openPopover.value = open ? mode : openPopover.value === mode ? undefined : openPopover.value;
@@ -114,7 +122,7 @@ export function useImageNodeBarState(
     comments.begin(node.value.id);
   }
 
-  function runDirectDerivation(actionId: DirectDerivation) {
+  function runDirectDerivation(actionId: DirectImageDerivation) {
     if (!nodeOperations.allows("derive") || !canRunAction(directAvailability.value[actionId])) return;
     openPopover.value = undefined;
     invokeDerivation(actionId);
@@ -145,8 +153,11 @@ export function useImageNodeBarState(
     dimensionsReady,
     removalAvailability,
     removalReason,
+    selectionAvailability,
+    selectionReason,
     beginTool,
     beginRemoval,
+    beginSelection,
     setPopover,
     beginAngle,
     beginComment,

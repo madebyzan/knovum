@@ -45,7 +45,7 @@
     "sourceBudget": "このレンダリングされたイメージは、選択したモデルの入力バジェットを超えています。"
   },
   "angle": {
-    "title": "マルチアングル",
+    "title": "新しい視点",
     "mode": "ターゲットの調整",
     "modes": {
       "subject": "件名",
@@ -105,7 +105,7 @@
     "glow": "グロー"
   },
   "selection": {
-    "title": "スマート選択",
+    "title": "オブジェクトを選択",
     "tools": "選択ツール",
     "include": "前景ポイント",
     "exclude": "ポイントを除外",
@@ -113,10 +113,10 @@
     "brush": "ブラシで調整",
     "processing": "選択内容を更新中…",
     "help": "件名をクリックします。除外ポイントまたはボックスを追加します。ブラシで細部を含めます。最大 6 つのポイント プロンプト。",
-    "repair": "修復",
-    "extract": "抽出",
+    "repair": "削除して補完",
+    "extract": "切り抜く",
     "undo": "選択を元に戻す",
-    "modelUnavailable": "[設定] で利用可能な選択モデルを選択します。",
+    "modelUnavailable": "設定で利用可能なオブジェクト選択モデルを選んでください。",
     "promptLimit": "最大 6 つのプロンプト。続行するにはプロンプトを元に戻します。"
   },
   "depth": {
@@ -124,10 +124,10 @@
   },
   "results": {
     "upscale": "高解像度化済み",
-    "multiAngle": "新しいビュー",
+    "multiAngle": "新しい視点",
     "removeObject": "修復済み",
     "removeBackground": "切り抜き画像",
-    "extractSelection": "選択",
+    "extractSelection": "選択オブジェクト",
     "generateDepth": "相対深度"
   }
 }

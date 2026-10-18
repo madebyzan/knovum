@@ -1,45 +1,41 @@
 <script setup lang="ts">
-import { computed } from "vue";
-
 import type { ImageEditTool } from "../../../image-editing/image-edit-session-store";
-import SpaceImageLocalActions from "../../../image-editing/presentation/SpaceImageLocalActions.vue";
+import SpaceImageDepthAction from "../../../image-editing/presentation/SpaceImageDepthAction.vue";
 import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
-import { canvasBarPlacement, type CanvasBarAction } from "../canvas-bar-density-policy";
 import SpaceCanvasSelectionMenu from "../selection/SpaceCanvasSelectionMenu.vue";
 import type { useCanvasSelectionActions } from "../selection/use-canvas-selection-actions";
 import type { ImageActionAvailability } from "./image-action-availability";
+import SpaceCanvasImageDerivationActions from "./SpaceCanvasImageDerivationActions.vue";
 import SpaceCanvasImageOverflowActions from "./SpaceCanvasImageOverflowActions.vue";
-import SpaceCanvasImageRemoveObjectTrigger from "./SpaceCanvasImageRemoveObjectTrigger.vue";
-const props = defineProps<{
+import type { DirectImageDerivation } from "./use-image-node-bar-state";
+defineProps<{
   node: SpaceCanvasNode<SpaceImagePayload>;
   actions: ReturnType<typeof useCanvasSelectionActions>;
   derivations: CreationIntentDecisions;
   minimal: boolean;
   dimensionsReady: boolean;
+  availability: Record<DirectImageDerivation, ImageActionAvailability>;
+  reason: Record<DirectImageDerivation, string>;
   removalAvailability: ImageActionAvailability;
   removalReason: string;
+  selectionAvailability: ImageActionAvailability;
+  selectionReason: string;
 }>();
 const emit = defineEmits<{
   invokeDerivation: [actionId: CreationIntentId];
   beginTool: [tool: ImageEditTool];
   beginComment: [];
   beginRemoval: [];
+  beginSelection: [];
+  runDirect: [actionId: DirectImageDerivation];
 }>();
-/** Derivations the node bar already shows, so the menu does not repeat them. */
-const BAR_DERIVATIONS = [
-  { bar: "image-remove-background", action: "remove-image-background" },
-  { bar: "image-split-layers", action: "split-image-layers" },
-] as const satisfies readonly { bar: CanvasBarAction; action: CreationIntentId }[];
-const barDerivations = computed<readonly CreationIntentId[]>(() =>
-  BAR_DERIVATIONS.filter(({ bar }) => canvasBarPlacement(bar, props.minimal) === "bar").map(
-    ({ action }) => action,
-  ),
-);
+/** The decomposition family has its own controls here, so the creation submenu does not repeat it. */
+const FAMILY_DERIVATIONS: readonly CreationIntentId[] = ["remove-image-background", "split-image-layers"];
 </script>
 <template>
   <SpaceCanvasSelectionMenu
@@ -47,24 +43,30 @@ const barDerivations = computed<readonly CreationIntentId[]>(() =>
     :derivations="derivations"
     node-bar
     node-tools-visible
-    :exclude-actions="barDerivations"
+    :exclude-actions="FAMILY_DERIVATIONS"
     @invoke-derivation="emit('invokeDerivation', $event)"
   >
     <template #node-tools>
-      <SpaceImageLocalActions :node="node" />
       <SpaceCanvasImageOverflowActions
-        v-if="!node.data.imageDepth && canvasBarPlacement('image-edit', minimal) === 'menu'"
+        v-if="!node.data.imageDepth && minimal"
         :dimensions-ready="dimensionsReady"
         @begin-tool="emit('beginTool', $event)"
         @begin-comment="emit('beginComment')"
       />
-      <SpaceCanvasImageRemoveObjectTrigger
-        v-if="canvasBarPlacement('image-remove-object', minimal) === 'menu'"
+      <SpaceCanvasImageDerivationActions
+        v-if="minimal"
         menu-item
-        :disabled="removalAvailability.state !== 'ready'"
-        :reason="removalReason"
-        @begin="emit('beginRemoval')"
+        :availability="availability"
+        :reason="reason"
+        :removal-availability="removalAvailability"
+        :removal-reason="removalReason"
+        :selection-availability="selectionAvailability"
+        :selection-reason="selectionReason"
+        @run-direct="emit('runDirect', $event)"
+        @begin-removal="emit('beginRemoval')"
+        @begin-selection="emit('beginSelection')"
       />
+      <SpaceImageDepthAction :node="node" />
     </template>
   </SpaceCanvasSelectionMenu>
 </template>

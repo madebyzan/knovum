@@ -55,7 +55,7 @@ const { compact, minimal, ready } = useNodeActionBarDensity(
   toRef(props, "availableWidth"),
   densityIdentity,
 );
-const { showPrimary } = useNodePrimaryAction(toRef(props, "node"), props.actions);
+const { primary, asksInstead } = useNodePrimaryAction(toRef(props, "node"), props.actions);
 watch(
   [ready, focusOperation],
   async ([isReady, operation]) => {
@@ -115,13 +115,20 @@ const textKind = computed(() => {
           @update="actions.setAppearance"
         />
       </SpaceCanvasNodeTools>
+      <UiActionHelp v-if="separation.error.value" :label="separation.error.value" />
+      <SpaceCanvasNodeAccessActions
+        :export-target="actions.exportTarget.value"
+        @inspect="actions.inspect"
+        @save="actions.exportFormat"
+      />
       <SpaceCanvasSelectionMenu
         :actions="actions"
         :derivations="derivations"
         node-bar
+        :exclude-ask="asksInstead"
         :node-tools-visible="
           minimal &&
-          (showPrimary ||
+          (Boolean(primary) ||
             Boolean(speechOperations.length) ||
             isMedia ||
             Boolean(actions.selectedVideoNode.value))
@@ -143,12 +150,6 @@ const textKind = computed(() => {
           />
         </template>
       </SpaceCanvasSelectionMenu>
-      <UiActionHelp v-if="separation.error.value" :label="separation.error.value" />
-      <SpaceCanvasNodeAccessActions
-        :export-target="actions.exportTarget.value"
-        @inspect="actions.inspect"
-        @save="actions.exportFormat"
-      />
     </ToolbarRoot>
   </div>
 </template>
