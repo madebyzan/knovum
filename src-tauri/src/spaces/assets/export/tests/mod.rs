@@ -140,17 +140,25 @@ fn a_file_with_no_conversion_route_is_still_saved_as_itself() {
 
 #[test]
 fn unsettled_resources_report_why_they_have_no_file_yet() {
-    assert!(targets::of(&json!({
+    let processing = json!({
         "kind":"image", "fileName":"cover.png", "assetPath":"/owned/cover.png",
         "processingState":"processing"
-    }))
-    .unwrap_err()
-    .contains("Wait for this resource"));
-    assert!(targets::of(
-        &json!({"kind":"markdown","title":"D","text":"","derivationState":"pending"})
-    )
-    .unwrap_err()
-    .contains("Wait for this resource"));
+    });
+    let formats = targets::of(&processing).unwrap();
+    assert!(formats.formats.is_empty());
+    assert_eq!(
+        formats.unavailable.as_deref(),
+        Some("Wait for this resource to finish before exporting it")
+    );
+    assert!(targets::requested(&processing, Path::new("/out/cover.png"))
+        .unwrap_err()
+        .contains("Wait for this resource"));
+    assert!(
+        targets::of(&json!({"kind":"markdown","title":"D","text":"","derivationState":"pending"}))
+            .unwrap()
+            .unavailable
+            .is_some_and(|reason| reason.contains("Wait for this resource"))
+    );
 }
 
 /// A website summary or an object is serialized by the Renderer from content it

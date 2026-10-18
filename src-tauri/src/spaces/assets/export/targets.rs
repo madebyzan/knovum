@@ -30,6 +30,9 @@ pub(super) enum Managed {
 /// target the engine can serialize - as long as the engine can read that content.
 const EDITABLE_DOCUMENT_TARGETS: &[DocumentFormat] = &[Text, Html, Docx, Pdf, Pptx];
 
+/// Why a resource that is still being prepared has no file yet.
+const UNSETTLED: &str = "Wait for this resource to finish before exporting it";
+
 /// The formats of one resource, as the person asking is told them.
 pub(super) fn of(payload: &Value) -> Result<ExportFormats, String> {
     let (routes, unavailable) = offered(payload)?;
@@ -66,12 +69,19 @@ pub(super) fn requested(payload: &Value, destination: &Path) -> Result<Export, S
         })
 }
 
+/// What the engine offers for this resource, and why it offers nothing when that is the answer.
+///
+/// Nothing-to-offer is an answer, not a failure: a resource still being prepared and a document
+/// the engine cannot read both report their reason here, so the person asking is told the same way
+/// in both cases. Only a payload that cannot be read at all fails.
 fn offered(payload: &Value) -> Result<(Vec<(String, Export)>, Option<String>), String> {
     let kind = payload
         .get("kind")
         .and_then(Value::as_str)
         .ok_or("The resource kind is unavailable")?;
-    require_settled(payload)?;
+    if unsettled(payload) {
+        return Ok((vec![], Some(UNSETTLED.into())));
+    }
     let routes = match kind {
         "image" => image_routes(payload)?,
         "audio" | "video" => media_routes(payload, media::targets(kind))?,
@@ -85,8 +95,7 @@ fn offered(payload: &Value) -> Result<(Vec<(String, Export)>, Option<String>), S
 }
 
 /// An editable document reaches every serialization or none of them: each format reads the same
-/// authoring model, so content the engine cannot read is unavailable in all of them, and the
-/// reason belongs where the formats were asked for rather than after a destination was picked.
+/// authoring model, so content the engine cannot read is unavailable in all of them.
 fn editable_routes(
     kind: &str,
     payload: &Value,
@@ -105,10 +114,10 @@ fn editable_routes(
                 .ok_or("The document content is unavailable")?,
         )
     };
-    match admits(content) {
-        Ok(()) => Ok((document_routes(EDITABLE_DOCUMENT_TARGETS), None)),
-        Err(reason) => Ok((vec![], Some(reason))),
-    }
+    Ok(match admits(content) {
+        Ok(()) => (document_routes(EDITABLE_DOCUMENT_TARGETS), None),
+        Err(reason) => (vec![], Some(reason)),
+    })
 }
 
 /// A depth field is measurement data rather than a picture, so only its own
@@ -177,11 +186,8 @@ fn convertible(extension: &str) -> &'static [DocumentFormat] {
     }
 }
 
-fn require_settled(payload: &Value) -> Result<(), String> {
-    if payload.get("processingState").is_some() || payload.get("derivationState").is_some() {
-        return Err("Wait for this resource to finish before exporting it".into());
-    }
-    Ok(())
+fn unsettled(payload: &Value) -> bool {
+    payload.get("processingState").is_some() || payload.get("derivationState").is_some()
 }
 
 fn source_extension(payload: &Value) -> Result<String, String> {
