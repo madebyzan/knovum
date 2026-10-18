@@ -2,7 +2,9 @@ use serde_json::Value;
 use tauri::AppHandle;
 
 use super::super::{
-    inputs, pending_output, video_output::RenderedVideo, CompletedDerivationOutput,
+    inputs, pending_output,
+    video_output::{self, RenderedVideo},
+    CompletedDerivationOutput,
 };
 use crate::{
     foundation::app_error::AppError,
@@ -28,7 +30,14 @@ pub async fn complete(
     pending_output::validate_separate_asset(&data, &row.4)?;
     apply_output(&mut data, &output, now)?;
     crate::spaces::knowledge::validation::validate_node(&mut tx, &row.0, "video", &data).await?;
-    crate::spaces::derivation::persist_output_node(&mut tx, &row.2, &data, now).await?;
+    crate::spaces::derivation::persist_output_node(
+        &mut tx,
+        &row.2,
+        &data,
+        now,
+        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
+    )
+    .await?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
         .bind(now).bind(derivation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
@@ -42,14 +51,12 @@ fn apply_output(payload: &mut Value, output: &RenderedVideo, now: i64) -> Result
     let object = payload
         .as_object_mut()
         .ok_or("Rendered video data is invalid")?;
-    object.insert("assetPath".into(), output.path.clone().into());
-    object.insert("sourceRevision".into(), output.revision.clone().into());
-    object.insert("size".into(), output.size.into());
-    object.insert("modifiedAt".into(), now.into());
-    object.remove("previewPath");
-    object.remove("processingState");
+    video_output::apply_published(object, output, now);
+    // An edit re-cuts the timeline, so measured duration, waveform and transcript are the source's
+    // alone. Dropping them is what asks enrichment to establish this node's own.
     object.remove("videoEditProject");
     object.remove("mediaKnowledge");
     object.remove("mediaAnalysis");
+    object.remove("durationSeconds");
     revision::apply(payload).map(|_| ()).map_err(AppError::from)
 }

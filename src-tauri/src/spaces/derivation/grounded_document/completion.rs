@@ -30,8 +30,14 @@ pub async fn complete(
         &data,
     )
     .await?;
-    crate::spaces::derivation::persist_output_node(&mut tx, &request.output_node_id, &data, now)
-        .await?;
+    crate::spaces::derivation::persist_output_node(
+        &mut tx,
+        &request.output_node_id,
+        &data,
+        now,
+        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
+    )
+    .await?;
     persist_generation(&mut tx, &request.id, &generated).await?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
         .bind(now).bind(&request.id).execute(&mut *tx).await.map_err(db::sql_error)?;

@@ -41,7 +41,7 @@ pub fn render(
         cancellation,
     )?;
     progress(channel, "savingResource", 94)?;
-    let rendered = video_output::inspect(output.path().to_path_buf())?;
+    let rendered = video_output::inspect(app, output.path().to_path_buf(), cancellation)?;
     output.retain();
     Ok(rendered)
 }
