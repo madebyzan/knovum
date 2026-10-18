@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUpRight, FilePlus2, LocateFixed } from "@lucide/vue";
+import { ArrowUpRight, Clock, FileEdit, FilePlus2, FileText, LocateFixed, Quote } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -36,66 +36,130 @@ const {
 </script>
 
 <template>
-  <section v-if="sourcePeek" class="flex h-full min-h-0 flex-col bg-surface-muted">
-    <div class="min-h-0 flex-1 overflow-y-auto p-3">
-      <div v-if="sourceContext.length" class="space-y-2">
-        <div
-          v-for="chunk in sourceContext"
-          :key="chunk.id"
-          class="border-b border-stroke-divider py-2.5 last:border-b-0"
-        >
-          <p class="mb-1 text-caption-sm text-fg-tertiary">
-            {{ knowledgeLocationLabel(chunk.locator) }}
-          </p>
-          <p v-if="chunk.metadata?.role === 'document_ocr'" class="mb-1 text-caption-sm text-fg-secondary">
-            {{ t("spaces.processing.document.ocrEvidence") }}
-          </p>
-          <p
-            v-if="chunk.metadata?.role === 'document_interpretation'"
-            class="mb-1 text-caption-sm text-fg-secondary"
+  <section v-if="sourcePeek" class="flex h-full min-h-0 flex-col bg-surface-panel">
+    <div class="min-h-0 flex-1 space-y-3.5 overflow-y-auto p-4">
+      <div class="space-y-2 rounded-xl border border-stroke-divider bg-surface-control/30 p-3.5">
+        <div class="flex items-start gap-2.5">
+          <div
+            class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-surface-control text-fg-secondary"
           >
-            {{ t("spaces.processing.document.interpretationEvidence") }}
-          </p>
-          <SpaceTextQuote
-            :text="chunk.text"
-            v-bind="
-              chunk.id === sourcePeek.chunkId && sourcePeek.locator.quote?.exact
-                ? { exact: sourcePeek.locator.quote.exact }
-                : {}
-            "
-          />
+            <FileText class="size-4" :stroke-width="1.6" />
+          </div>
+          <div class="min-w-0 flex-1">
+            <h3
+              class="text-body leading-snug font-semibold break-words text-fg-primary"
+              :title="sourcePeek.nodeTitle"
+            >
+              {{ sourcePeek.nodeTitle }}
+            </h3>
+          </div>
+        </div>
+
+        <div
+          v-if="knowledgeLocationLabel(sourcePeek.locator) || sourcePeek.locator.quote?.exact"
+          class="flex flex-wrap items-center gap-1.5 pt-0.5"
+        >
+          <span
+            v-if="knowledgeLocationLabel(sourcePeek.locator)"
+            class="inline-flex items-center gap-1 rounded-md border border-stroke-divider/60 bg-surface-raised px-2 py-0.5 text-caption-sm font-medium text-fg-secondary shadow-2xs"
+          >
+            <Clock class="size-3 text-fg-tertiary" />{{ knowledgeLocationLabel(sourcePeek.locator) }}
+          </span>
+          <span
+            v-if="sourcePeek.locator.quote?.exact"
+            class="inline-flex items-center gap-1 rounded-md bg-surface-accent-subtle px-2 py-0.5 text-caption-sm font-medium text-fg-primary"
+          >
+            <Quote class="size-3 text-fg-secondary" />{{ t("spaces.inspector.fields.source") }}
+          </span>
         </div>
       </div>
-      <SpaceTextQuote
-        v-else-if="sourcePeek.text"
-        :text="sourcePeek.text"
-        v-bind="sourcePeek.locator.quote?.exact ? { exact: sourcePeek.locator.quote.exact } : {}"
-      />
-      <p v-else class="text-caption text-fg-tertiary">
-        {{ t("spaces.conversation.sourcePeek.noText") }}
-      </p>
+
+      <div class="space-y-3 rounded-xl border border-stroke-divider bg-surface-raised p-4 shadow-2xs">
+        <div class="flex items-center gap-1.5 text-caption font-medium text-fg-tertiary">
+          <Quote class="size-3.5 text-fg-tertiary" />
+          <span>{{ t("spaces.conversation.evidence.sourceRationale") }}</span>
+        </div>
+
+        <div v-if="sourceContext.length" class="space-y-3">
+          <div
+            v-for="chunk in sourceContext"
+            :key="chunk.id"
+            class="space-y-1.5 border-b border-stroke-divider/50 pb-3 last:border-b-0 last:pb-0"
+          >
+            <div class="flex items-center gap-2 text-caption-sm text-fg-tertiary">
+              <span>{{ knowledgeLocationLabel(chunk.locator) }}</span>
+              <span v-if="chunk.metadata?.role === 'document_ocr'" class="text-fg-secondary">
+                · {{ t("spaces.processing.document.ocrEvidence") }}
+              </span>
+              <span v-if="chunk.metadata?.role === 'document_interpretation'" class="text-fg-secondary">
+                · {{ t("spaces.processing.document.interpretationEvidence") }}
+              </span>
+            </div>
+            <SpaceTextQuote
+              :text="chunk.text"
+              :exact="chunk.id === sourcePeek.chunkId ? sourcePeek.locator.quote?.exact : undefined"
+            />
+          </div>
+        </div>
+
+        <SpaceTextQuote
+          v-else-if="sourcePeek.text"
+          :text="sourcePeek.text"
+          :exact="sourcePeek.locator.quote?.exact"
+        />
+
+        <p v-else class="py-3 text-center text-caption text-fg-tertiary">
+          {{ t("spaces.conversation.sourcePeek.noText") }}
+        </p>
+      </div>
     </div>
 
-    <footer
-      class="flex flex-wrap items-center justify-end gap-1 border-t border-(--knovum-window-border-color) px-2.5 py-2"
-    >
-      <UiButton size="sm" variant="ghost" @click="extractSource">
-        <FilePlus2 class="size-3" />{{ t("spaces.conversation.evidence.extract") }}
+    <footer class="shrink-0 space-y-2 border-t border-(--knovum-window-border-color) bg-surface-panel p-3">
+      <UiButton
+        variant="primary"
+        size="md"
+        class="w-full justify-center gap-2 shadow-xs"
+        @click="extractSource"
+      >
+        <FilePlus2 class="size-4" />
+        <span>{{ t("spaces.conversation.evidence.extract") }}</span>
       </UiButton>
-      <UiButton size="sm" variant="ghost" @click="revealSource">
-        <LocateFixed class="size-3" />{{ t("spaces.canvas.revealInCanvas") }}
-      </UiButton>
-      <UiButton v-if="editableSource" size="sm" @click="openEditor">
-        {{ t("spaces.importExport.openInEditor") }}
-      </UiButton>
-      <template v-if="hasAsset">
-        <UiButton v-if="preciseExternal" size="sm" variant="secondary" @click="openSourceAtLocation">
-          {{ t("spaces.conversation.sourcePeek.open") }}
+      <div class="flex items-center gap-2">
+        <UiButton variant="secondary" size="sm" class="flex-1 justify-center gap-1.5" @click="revealSource">
+          <LocateFixed class="size-3.5" />
+          <span>{{ t("spaces.canvas.revealInCanvas") }}</span>
         </UiButton>
-        <UiButton size="sm" @click="openSourceExternally">
-          <ArrowUpRight class="size-3" />{{ t("spaces.importExport.openExternally") }}
+        <UiButton
+          v-if="editableSource"
+          variant="secondary"
+          size="sm"
+          class="flex-1 justify-center gap-1.5"
+          @click="openEditor"
+        >
+          <FileEdit class="size-3.5" />
+          <span>{{ t("spaces.importExport.openInEditor") }}</span>
         </UiButton>
-      </template>
+        <template v-else-if="hasAsset">
+          <UiButton
+            v-if="preciseExternal"
+            variant="secondary"
+            size="sm"
+            class="flex-1 justify-center gap-1.5"
+            @click="openSourceAtLocation"
+          >
+            {{ t("spaces.conversation.sourcePeek.open") }}
+          </UiButton>
+          <UiButton
+            variant="secondary"
+            size="sm"
+            class="flex-1 justify-center gap-1.5"
+            @click="openSourceExternally"
+          >
+            <ArrowUpRight class="size-3.5" />
+            <span>{{ t("spaces.importExport.openExternally") }}</span>
+          </UiButton>
+        </template>
+      </div>
     </footer>
   </section>
 </template>
