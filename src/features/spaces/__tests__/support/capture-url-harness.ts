@@ -1,6 +1,5 @@
 import { vi } from "vitest";
 
-import type { ResolvedMedia } from "../../media/import/schema/import";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
@@ -20,6 +19,8 @@ type AddContent = (data: SpaceNodePayload, position?: Point) => Promise<SpaceCan
 export const URL = "https://www.youtube.com/watch?v=abc123";
 export const POSITION = { x: 120, y: 80 };
 export const RESERVED_ASSET = "/spaces/assets/import-1.mp4";
+/** What the canvas calls media that has not introduced itself yet. */
+export const ARRIVING_TITLE = "www.youtube.com/watch?v=abc123";
 
 export function captureHarness() {
   let activeSpaceId = "space-1";
@@ -48,11 +49,6 @@ export function captureHarness() {
       activeSpaceId = spaceId;
     },
   };
-}
-
-/** What the engine reports once the link says what it is. */
-export function resolvedVideo(): ResolvedMedia {
-  return { kind: "video", title: "Video", durationSeconds: 12, assetPath: RESERVED_ASSET };
 }
 
 export function pendingImport() {

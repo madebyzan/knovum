@@ -6,17 +6,16 @@ use std::{
 use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 
-use super::contracts::{AcquisitionEvent, AcquisitionProgress, ResolvedSource};
-use super::metadata;
+use super::contracts::{AcquisitionProgress, MediaKind};
 use crate::foundation::subprocess;
 
 pub(crate) const ACQUISITION_CANCELLED: &str = "media-acquisition-cancelled";
-const FORMAT: &str = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/bestvideo+bestaudio/best";
+/// What to download for each kind of media a link can be imported as. The kind is decided by the
+/// link, so the download is asked for the resource the canvas already reserved a node for.
+const VIDEO_FORMAT: &str =
+    "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/bestvideo+bestaudio/best";
+const AUDIO_FORMAT: &str = "bestaudio[ext=m4a]/bestaudio/best";
 const PROGRESS_PREFIX: &str = "knovum-progress:";
-/// yt-dlp prints what it is about to download once the format is chosen, which is where the kind
-/// of the media is settled. The canvas reserves its node from this line, so it arrives before the
-/// first byte rather than after the last one.
-const RESOLVED_PREFIX: &str = "knovum-resolved:";
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum AcquisitionError {
@@ -29,9 +28,9 @@ pub(crate) fn acquire(
     deno: &Path,
     ffmpeg: &Path,
     url: &str,
+    kind: MediaKind,
     workspace: &Path,
-    progress: &Channel<AcquisitionEvent>,
-    on_resolved: &dyn Fn(ResolvedSource) -> Result<(), String>,
+    progress: &Channel<AcquisitionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<(), AcquisitionError> {
     let js_runtime = format!("deno:{}", deno.to_string_lossy());
@@ -63,7 +62,10 @@ pub(crate) fn acquire(
             "--extractor-retries",
             "2",
             "--format",
-            FORMAT,
+            match kind {
+                MediaKind::Video => VIDEO_FORMAT,
+                MediaKind::Audio => AUDIO_FORMAT,
+            },
             "--format-sort",
             "+codec:avc:m4a",
             "--merge-output-format",
@@ -81,8 +83,6 @@ pub(crate) fn acquire(
         .args(["--print-to-file", "after_move:%()j"])
         .arg(metadata)
         .args([
-            "--print",
-            "before_dl:knovum-resolved:%(.{title,vcodec,duration})j",
             "--progress-template",
             "download:knovum-progress:%(progress.downloaded_bytes)s:%(progress.total_bytes_estimate)s",
             "--",
@@ -98,7 +98,7 @@ pub(crate) fn acquire(
         child,
         cancellation,
         ACQUISITION_CANCELLED,
-        |line| report(line, progress, on_resolved),
+        |line| report(line, progress),
         |_| Ok(()),
     )
     .map_err(failed)?;
@@ -114,45 +114,21 @@ pub(crate) fn acquire(
     )))
 }
 
-/// Reads one line of yt-dlp output: what it resolved the link to, or how far the download has got.
-fn report(
-    line: &str,
-    progress: &Channel<AcquisitionEvent>,
-    on_resolved: &dyn Fn(ResolvedSource) -> Result<(), String>,
-) -> Result<(), String> {
-    if let Some(value) = line.strip_prefix(RESOLVED_PREFIX) {
-        return on_resolved(resolved(value)?);
-    }
+/// Reads one line of yt-dlp output: how far the download has got.
+fn report(line: &str, progress: &Channel<AcquisitionProgress>) -> Result<(), String> {
     let Some(value) = line.strip_prefix(PROGRESS_PREFIX) else {
         return Ok(());
     };
     let mut fields = value.splitn(2, ':');
     progress
-        .send(AcquisitionEvent::Progress(AcquisitionProgress {
+        .send(AcquisitionProgress {
             stage: "downloading",
             downloaded_bytes: parse_bytes(fields.next()).unwrap_or(0),
             total_bytes: parse_bytes(fields.next()),
             processed_ms: None,
             duration_ms: None,
-        }))
+        })
         .map_err(|error| error.to_string())
-}
-
-#[derive(serde::Deserialize)]
-struct ResolvedFields {
-    title: Option<String>,
-    vcodec: Option<String>,
-    duration: Option<f64>,
-}
-
-fn resolved(value: &str) -> Result<ResolvedSource, String> {
-    let fields: ResolvedFields = serde_json::from_str(value)
-        .map_err(|error| format!("yt-dlp named the media source invalidly: {error}"))?;
-    Ok(ResolvedSource {
-        kind: metadata::media_kind(fields.vcodec.as_deref())?,
-        title: super::output::required_text(fields.title.unwrap_or_default(), "media title", 512)?,
-        duration_seconds: metadata::duration_seconds(fields.duration),
-    })
 }
 
 fn parse_bytes(value: Option<&str>) -> Option<u64> {
