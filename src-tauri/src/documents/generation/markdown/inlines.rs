@@ -15,9 +15,24 @@ impl<'a> Reader<'a> {
                     Err("Unexpected Markdown inline boundary".into())
                 };
             }
-            output.push(self.inline(event, depth + 1)?);
+            self.push_inline(event, depth + 1, &mut output)?;
         }
         Err("Unclosed Markdown inline element".into())
+    }
+
+    /// One event, as the content it adds. Raw HTML is the event that adds more than one thing -
+    /// or nothing - so inline content is built through here rather than one value at a time.
+    pub(super) fn push_inline(
+        &mut self,
+        event: Event<'a>,
+        depth: usize,
+        output: &mut Vec<Inline>,
+    ) -> Result<(), String> {
+        match event {
+            Event::Html(value) | Event::InlineHtml(value) => super::html::read(&value, output),
+            event => output.push(self.inline(event, depth)?),
+        }
+        Ok(())
     }
 
     pub(super) fn inline(&mut self, event: Event<'a>, depth: usize) -> Result<Inline, String> {
@@ -43,9 +58,6 @@ impl<'a> Reader<'a> {
                 destination: dest_url.into_string(),
                 alt: self.inlines(TagEnd::Image, depth + 1)?,
             },
-            Event::Html(_) | Event::InlineHtml(_) => {
-                return Err("Raw HTML is not supported by document export".into());
-            }
             _ => return Err("Unsupported Markdown element in document export".into()),
         })
     }

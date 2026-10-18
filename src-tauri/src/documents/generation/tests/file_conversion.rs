@@ -69,10 +69,11 @@ fn office_html_preserves_tables_and_embeds_images_without_active_markup() {
     assert!(output.contains("Literal &lt;script&gt; &amp; content"));
     assert!(output.contains("<title>Report &lt;&amp;&gt;</title>"));
     assert!(!output.contains("<script>"));
-    assert!(fixture
-        .render(DocumentFormat::Pdf)
-        .unwrap_err()
-        .contains("original-layout PDF conversion is not supported"));
+    let pdf = fixture.render(DocumentFormat::Pdf).unwrap();
+    assert!(
+        pdf.starts_with(b"%PDF-"),
+        "one reading reaches every format a document can become, PDF included"
+    );
 }
 
 #[test]

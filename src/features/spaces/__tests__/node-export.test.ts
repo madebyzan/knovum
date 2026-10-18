@@ -79,11 +79,21 @@ describe("Space resource export", () => {
 
   /** Every document format reads the same content, so one unreadable document rules them all out. */
   it("keeps the format the Renderer holds and carries the engine's reason for the rest", async () => {
-    engineOffers([], "Raw HTML is not supported by document export");
+    engineOffers([], "Document export input contains unsupported control characters");
 
     await expect(nodeExportFormats("space", canvasNode("markdown", markdownData()))).resolves.toEqual({
       formats: ["md"],
-      unavailable: "Raw HTML is not supported by document export",
+      unavailable: "Document export input contains unsupported control characters",
+    });
+  });
+
+  /** A format both of them can write belongs to the resource's own serializer, and is offered once. */
+  it("offers a format the Renderer and the engine share only once", async () => {
+    engineOffers(["txt", "html", "docx", "pdf", "pptx"]);
+
+    await expect(nodeExportFormats("space", editableNode("text", "Notes"))).resolves.toEqual({
+      formats: ["txt", "html", "docx", "pdf", "pptx"],
+      unavailable: null,
     });
   });
 
@@ -91,7 +101,7 @@ describe("Space resource export", () => {
     mocks.save.mockResolvedValue("/exports/Meeting notes.docx");
     const onStart = vi.fn<(jobId: string) => void>();
 
-    await exportSpaceNode("space", noteNode(), "docx", { onStart });
+    await exportSpaceNode("space", editableNode("note", "Meeting notes"), "docx", { onStart });
 
     expect(mocks.save).toHaveBeenCalledWith({
       defaultPath: "Meeting notes.docx",
@@ -146,10 +156,11 @@ function markdownData(): SpaceCanvasNode["data"] {
   return { kind: "markdown", title: "Plan", text: "# Plan" };
 }
 
-function noteNode() {
-  return canvasNode("note", {
-    kind: "note",
-    title: "Meeting notes",
+/** A Note and a text block carry the same editable content, so one fixture describes both. */
+function editableNode(kind: "note" | "text", title: string) {
+  return canvasNode(kind, {
+    kind,
+    title,
     tiptapContent: {
       type: "doc",
       content: [{ type: "paragraph", content: [{ type: "text", text: "Decision" }] }],

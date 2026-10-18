@@ -112,11 +112,8 @@ pub(super) async fn reserve(
         .await?;
         for insert in &inserts {
             for source in sources {
-                relations::insert(
-                    &mut tx,
-                    &relations::derives_from(space_id, &insert.id, source, lineage, now),
-                )
-                .await?;
+                relations::derives_from(&mut tx, space_id, &insert.id, source, lineage, now)
+                    .await?;
             }
         }
     }
