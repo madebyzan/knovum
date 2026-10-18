@@ -110,3 +110,14 @@ async fn action_pool() -> sqlx::SqlitePool {
         .unwrap();
     pool
 }
+
+/// A Space with one running Action Run, which is the ground every derivation fixture stands on.
+pub(super) async fn running_action_pool(run_id: &str) -> sqlx::SqlitePool {
+    let pool = action_pool().await;
+    sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES($1,'space','space','user','local-user','action','running',0,'{}','{}','{}',1,1)")
+        .bind(run_id)
+        .execute(&pool)
+        .await
+        .unwrap();
+    pool
+}

@@ -123,6 +123,15 @@ async fn complete_persistence(
     )
     .await?;
     validation::source_edit(&mut tx, request).await?;
+    let source: String = sqlx::query_scalar(
+        "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
+    )
+    .bind(&request.source_node_id)
+    .bind(&request.space_id)
+    .fetch_one(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
+    let source: Value = serde_json::from_str(&source).map_err(db::json_error)?;
     let encoded: String = sqlx::query_scalar("SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id AND n.space_id=d.space_id WHERE d.id=$1 AND d.status='running' AND n.kind='image' AND n.deleted_at IS NULL")
         .bind(&request.id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
         .ok_or("Image operation is no longer running")?;
@@ -130,7 +139,16 @@ async fn complete_persistence(
         .map_err(db::json_error)
         .map_err(AppError::from)?;
     pending_output::validate_unpublished_asset(&data)?;
-    persist(&mut tx, request, &mut data, image, path, enrichment_target).await?;
+    persist(
+        &mut tx,
+        request,
+        &mut data,
+        &source,
+        image,
+        path,
+        enrichment_target,
+    )
+    .await?;
     if cancellation.is_cancelled() {
         return Err("Image operation was cancelled".into());
     }
@@ -148,6 +166,7 @@ async fn persist(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &DeriveImageRequest,
     payload: &mut Value,
+    source: &Value,
     image: &CanonicalImage,
     path: &Path,
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
@@ -179,8 +198,10 @@ async fn persist(
         );
     }
     object.remove("processingState");
-    object.remove("imageEdit");
-    object.remove("previewPath");
+    request
+        .operation
+        .derived_output()
+        .inherit(payload, source)?;
     revision::apply(payload)?;
     crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "image", payload)
         .await?;

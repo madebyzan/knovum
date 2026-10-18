@@ -106,7 +106,7 @@ pub(super) async fn render_for_action(
                 Ok(completed) => Ok(completed),
                 Err(error) => {
                     let mut primary = error;
-                    if let Err(cleanup) = tokio::fs::remove_file(path).await {
+                    if let Err(cleanup) = super::video_output::discard(&app, &path).await {
                         primary.message = format!(
                             "{}; derived video cleanup failed: {cleanup}",
                             primary.message

@@ -1,6 +1,5 @@
 import { Channel } from "@tauri-apps/api/core";
 import { error as logError } from "@tauri-apps/plugin-log";
-import { omit } from "es-toolkit";
 import { parse } from "pathe";
 import { toast } from "vue-sonner";
 import { z } from "zod";
@@ -34,19 +33,9 @@ export async function renderVideoEdit(
   const sourceRevision = source.data.sourceRevision;
   if (!spaceId || !sourceRevision) throw new Error("Video source revision is unavailable");
   const assetPath = await invokeCommand<string>("plugin:spaces|allocate_video_edit_output_path");
-  const sourceContent = omit(source.data, [
-    "videoEditProject",
-    "sourceRevision",
-    "knowledgeRevision",
-    "previewPath",
-    "previewText",
-    "size",
-    "modifiedAt",
-    "mediaKnowledge",
-    "mediaAnalysis",
-  ]);
+  // A reserved output starts empty: what it keeps of its source is decided when it publishes.
   const pendingContent: SpaceVideoPayload = {
-    ...sourceContent,
+    kind: "video",
     title: editedName(source.data.title),
     fileName: editedName(source.data.fileName),
     assetPath,

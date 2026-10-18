@@ -100,6 +100,15 @@ pub(crate) struct GeneratedPreview {
     pub height: u32,
 }
 
+impl GeneratedPreview {
+    /// Makes this the cover of the visual node `object` describes.
+    pub(crate) fn settle_onto(&self, object: &mut serde_json::Map<String, serde_json::Value>) {
+        object.insert("previewPath".into(), self.path.clone().into());
+        object.insert("intrinsicWidth".into(), self.width.into());
+        object.insert("intrinsicHeight".into(), self.height.into());
+    }
+}
+
 /// Makes the cover of an asset a Space itself published. A derived asset carries its own cover
 /// rather than its source's: the picture is new even when its subject is not, and a preview
 /// belongs to the asset it was made from, which is also what reclamation tracks.

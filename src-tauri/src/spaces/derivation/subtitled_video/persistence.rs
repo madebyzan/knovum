@@ -1,7 +1,8 @@
-use serde_json::{Map, Value};
+use serde_json::Value;
 use sqlx::SqlitePool;
 use tokio_util::sync::CancellationToken;
 
+use super::super::inheritance::DerivedOutput;
 use super::super::video_output::{self, RenderedVideo};
 use super::super::{pending_output, CompletedDerivationOutput};
 use crate::foundation::app_error::AppError;
@@ -63,26 +64,6 @@ fn apply_output(
         .as_object_mut()
         .ok_or("Derived video data is invalid")?;
     video_output::apply_published(object, output, now);
-    inherit_unchanged(object, source, &output.revision);
+    DerivedOutput::SubtitledVideo.inherit(payload, source)?;
     revision::apply(payload).map(|_| ()).map_err(AppError::from)
-}
-
-/// Subtitles are drawn into the picture; the timeline, the audio and what is said in it are the
-/// source's own and are carried over rather than measured and recognized a second time. Each
-/// carried field is pinned to the asset it now describes, which is also what tells enrichment that
-/// this node needs no analysis of its own.
-fn inherit_unchanged(object: &mut Map<String, Value>, source: &Value, revision: &str) {
-    for field in ["mediaAnalysis", "mediaKnowledge"] {
-        let Some(mut knowledge) = source.get(field).cloned() else {
-            continue;
-        };
-        let Some(pinned) = knowledge.as_object_mut() else {
-            continue;
-        };
-        pinned.insert("sourceRevision".into(), revision.to_owned().into());
-        object.insert(field.into(), knowledge);
-    }
-    if let Some(duration) = source.get("durationSeconds") {
-        object.insert("durationSeconds".into(), duration.clone());
-    }
 }

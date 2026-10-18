@@ -1,6 +1,7 @@
 use super::encoding::wav_sample_count;
 use crate::spaces::{
     assets, db,
+    previews::GeneratedPreview,
     runs::AttemptClaim,
     speech::{contracts::SpeechAudioOutput, publication::hash_file},
 };
@@ -107,6 +108,7 @@ pub async fn commit_project_output(
     project_id: &str,
     revision_id: &str,
     output: &SpeechAudioOutput,
+    cover: Option<GeneratedPreview>,
 ) -> Result<(), String> {
     let mut tx = db::begin_write(pool).await?;
     let was_referenced: bool = sqlx::query_scalar(
@@ -138,7 +140,7 @@ pub async fn commit_project_output(
         }
         return Err(error);
     }
-    super::node::publish(&mut tx, project_id, revision_id, output).await?;
+    super::node::publish(&mut tx, project_id, revision_id, output, cover).await?;
     if !was_referenced {
         crate::spaces::speech::asset_publication::remove_attempt_in_transaction(
             &mut tx,
