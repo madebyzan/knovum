@@ -8,7 +8,6 @@ use super::document::DocumentSource;
 use office_oxide::ir::DocumentIR;
 use std::io::Cursor;
 
-
 pub(crate) fn render(source: &DocumentSource) -> Result<Vec<u8>, String> {
     let document = super::markdown::parse(source)?;
     let images = super::images::Images::load(source)?;
