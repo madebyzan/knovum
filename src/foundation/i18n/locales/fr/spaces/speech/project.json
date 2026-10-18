@@ -15,6 +15,7 @@
   },
   "saving": "Sauvegarde",
   "starting": "Préparation de la génération",
+  "generatingInTasks": "Génération en cours. La progression et l’annulation sont dans Tâches.",
   "generatedAudio": "Audio généré",
   "generatedVideo": "Vidéo générée",
   "format": "Format",

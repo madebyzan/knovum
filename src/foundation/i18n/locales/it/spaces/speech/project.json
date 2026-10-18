@@ -15,6 +15,7 @@
   },
   "saving": "Salvataggio in corso",
   "starting": "Preparazione della generazione",
+  "generatingInTasks": "Generazione in corso. Avanzamento e annullamento sono in Attività.",
   "generatedAudio": "Audio generato",
   "generatedVideo": "Video generato",
   "format": "Formato",

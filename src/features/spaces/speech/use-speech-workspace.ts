@@ -46,18 +46,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     isCurrent: isCurrentSpace,
   });
 
-  const generation = useSpeechGeneration({
-    project: () => selectedProject.value,
-    reloadProject: async (projectId) => {
-      const spaceId = store.activeSpaceId;
-      const epoch = refreshEpoch;
-      if (!spaceId) return;
-      const project = await getSpeechProject(projectId);
-      if (isCurrentProject(spaceId, epoch, projectId) && belongsToNode(project, spaceId)) {
-        selectRevision(project);
-      }
-    },
-  });
+  const generation = useSpeechGeneration({ project: () => selectedProject.value });
   watch(
     selectedProject,
     (snapshot, previous) => {
@@ -133,14 +122,16 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     selectRevision(created.snapshot);
   }
 
+  /** Resolves to whether the Run was handed to the Task Center, which ends the editor's part. */
   async function startGeneration(input?: SpeechRevisionInput) {
-    if (savingRevision.value || generation.hasActiveExecution.value || generation.submitting.value) return;
+    if (savingRevision.value || generation.generating.value || generation.submitting.value) return false;
     const projectId = selectedProject.value?.project.id;
     const spaceId = store.activeSpaceId;
     const epoch = refreshEpoch;
-    if (!projectId || !spaceId) return;
-    if (input && !(await saveRevision(input))) return;
-    if (isCurrentProject(spaceId, epoch, projectId)) await generation.generateProject();
+    if (!projectId || !spaceId) return false;
+    if (input && !(await saveRevision(input))) return false;
+    if (!isCurrentProject(spaceId, epoch, projectId)) return false;
+    return generation.generateProject();
   }
 
   watch([() => store.activeSpaceId, sourceNodeId, projectType], () => void refresh(), {
@@ -163,11 +154,11 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     savingRevision,
     preview: generation.preview,
     previewListening: generation.listening,
-    runState: generation.runState,
-    generationProgress: generation.progress,
-    hasActiveExecution: generation.hasActiveExecution,
+    previewProgress: generation.progress,
+    previewing: generation.previewing,
+    generating: generation.generating,
     generationSubmitting: generation.submitting,
-    generationCancelling: generation.cancelling,
+    previewCancelling: generation.cancelling,
     addProject,
     refresh,
     openProject,
@@ -175,7 +166,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
     settleRevisionSave,
     previewSelection: generation.previewSelection,
     startGeneration,
-    cancelGeneration: generation.cancelGeneration,
+    cancelPreview: generation.cancelPreviewJob,
     stopPreviewListening: generation.stopListening,
     exportRender: generation.exportRender,
   };

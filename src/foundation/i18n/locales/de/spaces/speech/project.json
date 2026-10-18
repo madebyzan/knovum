@@ -15,6 +15,7 @@
   },
   "saving": "Speichern",
   "starting": "Generierung wird vorbereitet",
+  "generatingInTasks": "Wird erzeugt. Fortschritt und Abbruch stehen unter Aufgaben.",
   "generatedAudio": "Generiertes Audio",
   "generatedVideo": "Generiertes Video",
   "format": "Format",

@@ -15,6 +15,7 @@
   },
   "saving": "正在保存",
   "starting": "正在准备生成",
+  "generatingInTasks": "正在生成，进度和取消在「任务」里。",
   "generatedAudio": "完整音频",
   "generatedVideo": "完整视频",
   "format": "格式",

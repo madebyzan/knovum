@@ -4,14 +4,12 @@ import { useI18n } from "vue-i18n";
 
 import { overlayScopeVisibleKey } from "../../../../shared/contracts/overlay-scope-visibility";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
-import type { RunState } from "../../contracts/generated/RunState";
 import type { SaveSpeechProjectRevisionRequest } from "../../contracts/generated/SaveSpeechProjectRevisionRequest";
 import type { SpeechAudioOutput } from "../../contracts/generated/SpeechAudioOutput";
 import type { SpeechGenerationProgress } from "../../contracts/generated/SpeechGenerationProgress";
 import type { SpeechProjectSnapshot } from "../../contracts/generated/SpeechProjectSnapshot";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { runStateLabelKey } from "../../runs/run-state-label";
 import { narrationText } from "../narration-text";
 import AudiobookScriptEditor from "./AudiobookScriptEditor.vue";
 import ShortDubbingEditor from "./ShortDubbingEditor.vue";
@@ -31,8 +29,10 @@ const props = defineProps<{
   preview?: (SpeechAudioOutput & { source: string }) | undefined;
   output?: SpeechAudioOutput | undefined;
   progress?: SpeechGenerationProgress | undefined;
-  runState?: RunState | undefined;
-  running: boolean;
+  /** An audition this editor is running: it is reported and cancelled here. */
+  previewing: boolean;
+  /** A Run the Task Center is carrying: it is reported and cancelled there. */
+  generating: boolean;
   submitting: boolean;
   saving: boolean;
   cancelling: boolean;
@@ -74,15 +74,13 @@ const hasVideoBackground = computed(
     Boolean(props.project.revision.outputConfig.background),
 );
 const editorDisabled = computed(
-  () => props.running || props.saving || props.submitting || isOperationBusy.value,
+  () => props.previewing || props.generating || props.saving || props.submitting || isOperationBusy.value,
 );
 const canGenerate = computed(
   () =>
     !editorDisabled.value &&
     (Boolean(draftInput.value) || (!isDirty.value && props.project.segments.length > 0)),
 );
-const runLabel = computed(() => (props.runState ? t(runStateLabelKey(props.runState)) : undefined));
-
 function stageLabel(stage: SpeechGenerationProgress["stage"]) {
   if (stage === "preparing") return t("spaces.speech.project.stages.preparing");
   if (stage === "synthesizing") return t("spaces.speech.project.stages.synthesizing");
@@ -158,16 +156,19 @@ function updateDraft(
         />
       </div>
     </UiScrollArea>
-    <div v-if="running" class="shrink-0 px-3 pb-2" role="status">
-      <p v-if="runLabel && running" class="text-caption-sm text-fg-tertiary">{{ runLabel }}</p>
-      <p v-if="progress && running" class="text-caption-sm text-fg-tertiary">
+    <div v-if="previewing || generating" class="shrink-0 px-3 pb-2" role="status">
+      <p v-if="generating" class="text-caption-sm text-fg-tertiary">
+        {{ t("spaces.speech.project.generatingInTasks") }}
+      </p>
+      <p v-else-if="progress" class="text-caption-sm text-fg-tertiary">
         {{ stageLabel(progress.stage) }} · {{ progress.completed }}/{{ progress.total }}
       </p>
     </div>
     <SpeechProjectActions
       :can-generate="canGenerate"
       :project-type="project.project.projectType"
-      :is-running="running"
+      :is-previewing="previewing"
+      :is-generating="generating"
       :is-submitting="submitting"
       :is-saving="saving"
       :is-cancelling="cancelling"

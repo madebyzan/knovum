@@ -390,6 +390,14 @@ interrupted attempt left behind. The lifecycle is `ready → rendering → rende
 generation is always available again on the active revision. Space packages carry only settled
 states: `ready`, `rendered` or `failed`.
 
+The verified picture is the only authority on how long a published dubbed video is. Every audio
+track it carries — the dubbed mix and the retained original — is padded and then trimmed to the
+sample count the picture was measured at, so the published length is stated rather than left for the
+muxer to infer from whichever stream happens to end first. The length of the source's own audio
+track never reaches the published file. The mix is verified sample-exactly against the picture
+before it is encoded, and the published track is then verified to end with the picture within one
+audio frame, which is as precisely as a frame-granular codec can land.
+
 The voice library is application-wide: profiles and immutable revisions have no Space owner, and
 each Space speech project pins a global revision. Settings owns library presentation through app
 composition; the speech capability owns its data, generation and asset lifecycle.

@@ -1,6 +1,14 @@
 use std::{path::Path, process::Command};
 use tokio_util::sync::CancellationToken;
 
+use super::SAMPLE_RATE;
+
+/// Publishes the dubbed video.
+///
+/// Every published track is as long as the verified picture, stated here rather than negotiated:
+/// each one is padded and then trimmed to the sample count the picture was measured at. The
+/// alternative - padding without a bound and letting `-shortest` end the file - makes the published
+/// length depend on the length of the source's own audio track, which is unrelated to the picture.
 pub(super) fn mux_video(
     ffmpeg: &Path,
     video: &Path,
@@ -8,11 +16,13 @@ pub(super) fn mux_video(
     output: &Path,
     cancellation: &CancellationToken,
     retain_original: bool,
+    video_samples: u64,
 ) -> Result<(), String> {
+    let dubbed = format!("[1:a:0]apad,atrim=end_sample={video_samples}[audio]");
     let filter = if retain_original {
-        "[1:a:0]apad[audio];[0:a:0]apad[original]"
+        format!("{dubbed};[0:a:0]aresample={SAMPLE_RATE},apad,atrim=end_sample={video_samples}[original]")
     } else {
-        "[1:a:0]apad[audio]"
+        dubbed
     };
     let mut command = Command::new(ffmpeg);
     command
@@ -22,7 +32,7 @@ pub(super) fn mux_video(
         .arg(audio)
         .args([
             "-filter_complex",
-            filter,
+            &filter,
             "-map",
             "0:v:0",
             "-map",
@@ -39,7 +49,6 @@ pub(super) fn mux_video(
             "2",
             "-b:a",
             "192k",
-            "-shortest",
             "-movflags",
             "+faststart",
             "-f",
