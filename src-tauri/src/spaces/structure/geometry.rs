@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use super::appearance::{validate_content_appearance, validate_section_appearance};
 use super::contracts::{LocalTransform, Point, Size, StructureLayout, StructureNode};
 
-const MAX_COORDINATE: f64 = 1_000_000_000.0;
+pub(super) const MAX_COORDINATE: f64 = 1_000_000_000.0;
 const MIN_SCALE: f64 = 0.000_001;
 const MAX_SCALE: f64 = 1_000_000.0;
 

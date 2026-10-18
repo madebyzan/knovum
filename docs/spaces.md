@@ -207,7 +207,7 @@ A successful derivation:
 - records the action, bounded parameters, engine/model identity, actor, timing and outcome in a structured Derivation record;
 - creates the output as an ordinary Space resource that can be edited, searched, exported and used as a later input;
 - creates `derives-from` Relations from the output to its inputs;
-- places the result beside its source or selection bounds without moving the inputs;
+- places the result in the derivation field beside its sources without moving the inputs;
 - distinguishes generated artifacts from accepted Knowledge claims.
 
 Transformation lineage and epistemic Provenance are different contracts. A Derivation explains how an artifact was produced. Provenance records evidence supporting a Knowledge claim or Relation. Generated factual or semantic changes enter durable Knowledge only after complete KnowledgeChangeSet validation and one atomic transaction.
@@ -228,11 +228,16 @@ over. A backdrop becomes a layer only when it is content in its own right — th
 background of a photograph, or the source with the subject holes left open when no pass could
 complete it.
 
-Outputs reserved together are laid out as equal cells in reading order, as close to square as the
-count allows, each output centred in its cell at the size its content reports. A set therefore stays
-a compact block beside its source instead of a row that runs off the side of the canvas, and because
-a reserved node already carries the pixel size it will publish, nothing moves when the content
-lands.
+Outputs published together are laid out as equal cells in reading order, as close to square as the
+count allows, each output centred in its cell at the size its content reports. That set is then
+placed as one block into its sources' derivation field: the area beside the sources where
+everything they produce accumulates, filled in reading order with as many columns as keep the field
+close to square. One rule covers every derivation — an Action's outputs, separated speech, an
+Agent's files — so repeated derivations of one source gather into a tidy block instead of
+scattering, and a set stays a compact block instead of a row that runs off the side of the canvas.
+Occupied cells are skipped rather than reclaimed, so nothing already on the canvas moves: an output
+someone dragged elsewhere stays where it was put, and because a reserved node already carries the
+pixel size it will publish, nothing moves when the content lands.
 
 There is no separate program-authoring surface. A recorded chain that can only be replayed with the
 same settings on new material earned neither its storage nor its binding ceremony: it required
@@ -743,8 +748,8 @@ Rebuildable projections remain derived from their owning nodes and relations.
 Rust Run changes stream to the Task Center through a Tauri Channel. Active Runs are reattached on
 startup; closing a panel does not cancel the Run. The selected model target is checked when a Run
 starts. Durable
-Action outputs reserve canvas space beside their actual sources through the shared structure
-placement rule, searching for a non-overlapping location before publishing the placeholder.
+Action outputs reserve canvas space in their sources' derivation field through the shared structure
+placement rule, taking the first clear cell of that field before publishing the placeholder.
 
 Structured state lives in SQLite. Imported binary assets and cached website assets live under Knovum's app-data `spaces/assets` directory. Markdown imports are read as UTF-8 text into SQLite instead of being copied as opaque attachments.
 

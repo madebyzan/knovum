@@ -26,7 +26,7 @@ pub(crate) use contracts::{
     StructureNode,
 };
 pub(crate) use edit_contract::{ExecuteSpaceEditRequest, SpaceEditSnapshotResponse};
-pub(crate) use placement::{place_new_content, CONTENT_GAP};
+pub(crate) use placement::{place_derived_content, place_new_content, DerivedBlock, CONTENT_GAP};
 pub(crate) use repository::initialize_empty_in_transaction;
 pub(crate) use validation::{validate_content_coverage, validate_space_snapshot};
 

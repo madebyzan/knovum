@@ -52,8 +52,6 @@ pub(super) async fn create(
             None => structure::place_new_content(
                 &placement.structure,
                 &placement.layouts,
-                &[],
-                &[],
                 OBJECT_WIDTH,
                 OBJECT_HEIGHT,
             )?,
