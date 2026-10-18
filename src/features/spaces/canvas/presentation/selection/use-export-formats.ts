@@ -15,7 +15,7 @@ export function useExportFormats(
     computed(() =>
       queryOptions({
         queryKey: ["spaces", "export-formats", target.value?.key ?? "none"] as const,
-        queryFn: () => target.value?.formats() ?? [],
+        queryFn: () => target.value?.formats() ?? { formats: [], unavailable: null },
         enabled: open.value && target.value !== undefined,
         staleTime: 0,
         retry: false,

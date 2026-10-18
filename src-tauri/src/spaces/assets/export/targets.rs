@@ -2,7 +2,8 @@ use std::path::Path;
 
 use serde_json::Value;
 
-use super::{image::Encoding, media};
+use super::{image::Encoding, media, ExportFormats};
+use crate::documents::generation::input::{admits, AuthoringContent};
 use crate::documents::generation::DocumentFormat::{self, Docx, Html, Pdf, Pptx, Text};
 
 /// What an export produces. The requested file extension selects exactly one of
@@ -26,15 +27,22 @@ pub(super) enum Managed {
 }
 
 /// Every editable document source carries the same content, so it reaches every
-/// target the engine can serialize.
+/// target the engine can serialize - as long as the engine can read that content.
 const EDITABLE_DOCUMENT_TARGETS: &[DocumentFormat] = &[Text, Html, Docx, Pdf, Pptx];
 
-/// The offered formats of one resource, in order; the first is its own format.
-pub(super) fn of(payload: &Value) -> Result<Vec<String>, String> {
-    Ok(routes(payload)?
-        .into_iter()
-        .map(|(extension, _)| extension)
-        .collect())
+/// Why a resource that is still being prepared has no file yet.
+const UNSETTLED: &str = "Wait for this resource to finish before exporting it";
+
+/// The formats of one resource, as the person asking is told them.
+pub(super) fn of(payload: &Value) -> Result<ExportFormats, String> {
+    let (routes, unavailable) = offered(payload)?;
+    Ok(ExportFormats {
+        formats: routes
+            .into_iter()
+            .map(|(extension, _)| extension)
+            .collect(),
+        unavailable,
+    })
 }
 
 /// The one export the destination asks for, or why this resource cannot produce it.
@@ -50,29 +58,66 @@ pub(super) fn requested(payload: &Value, destination: &Path) -> Result<Export, S
     } else {
         &extension
     };
-    routes(payload)?
+    let (routes, unavailable) = offered(payload)?;
+    routes
         .into_iter()
         .find(|(offered, _)| offered == requested)
         .map(|(_, export)| export)
-        .ok_or_else(|| format!("This resource cannot be exported as .{extension}"))
+        .ok_or_else(|| {
+            unavailable
+                .unwrap_or_else(|| format!("This resource cannot be exported as .{extension}"))
+        })
 }
 
-fn routes(payload: &Value) -> Result<Vec<(String, Export)>, String> {
+/// What the engine offers for this resource, and why it offers nothing when that is the answer.
+///
+/// Nothing-to-offer is an answer, not a failure: a resource still being prepared and a document
+/// the engine cannot read both report their reason here, so the person asking is told the same way
+/// in both cases. Only a payload that cannot be read at all fails.
+fn offered(payload: &Value) -> Result<(Vec<(String, Export)>, Option<String>), String> {
     let kind = payload
         .get("kind")
         .and_then(Value::as_str)
         .ok_or("The resource kind is unavailable")?;
-    require_settled(payload)?;
+    if unsettled(payload) {
+        return Ok((vec![], Some(UNSETTLED.into())));
+    }
     let routes = match kind {
         "image" => image_routes(payload)?,
         "audio" | "video" => media_routes(payload, media::targets(kind))?,
         "file" => file_routes(payload)?,
-        "note" | "markdown" => document_routes(EDITABLE_DOCUMENT_TARGETS),
+        "note" | "markdown" => return editable_routes(kind, payload),
         // A website summary, an object or a credential is serialized from the
         // content the Renderer already holds, so the engine offers nothing.
         _ => vec![],
     };
-    Ok(deduplicated(routes))
+    Ok((deduplicated(routes), None))
+}
+
+/// An editable document reaches every serialization or none of them: each format reads the same
+/// authoring model, so content the engine cannot read is unavailable in all of them.
+fn editable_routes(
+    kind: &str,
+    payload: &Value,
+) -> Result<(Vec<(String, Export)>, Option<String>), String> {
+    let content = if kind == "markdown" {
+        AuthoringContent::Markdown(
+            payload
+                .get("text")
+                .and_then(Value::as_str)
+                .ok_or("The document content is unavailable")?,
+        )
+    } else {
+        AuthoringContent::Note(
+            payload
+                .get("tiptapContent")
+                .ok_or("The document content is unavailable")?,
+        )
+    };
+    Ok(match admits(content) {
+        Ok(()) => (document_routes(EDITABLE_DOCUMENT_TARGETS), None),
+        Err(reason) => (vec![], Some(reason)),
+    })
 }
 
 /// A depth field is measurement data rather than a picture, so only its own
@@ -141,11 +186,8 @@ fn convertible(extension: &str) -> &'static [DocumentFormat] {
     }
 }
 
-fn require_settled(payload: &Value) -> Result<(), String> {
-    if payload.get("processingState").is_some() || payload.get("derivationState").is_some() {
-        return Err("Wait for this resource to finish before exporting it".into());
-    }
-    Ok(())
+fn unsettled(payload: &Value) -> bool {
+    payload.get("processingState").is_some() || payload.get("derivationState").is_some()
 }
 
 fn source_extension(payload: &Value) -> Result<String, String> {

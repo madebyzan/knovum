@@ -1,8 +1,17 @@
 import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 
+/** What the engine can save this resource as, and why it offers nothing further. */
+export interface EngineExportFormats {
+  formats: string[];
+  unavailable: string | null;
+}
+
 /** The formats this resource can be saved as, its own format first. */
 export function listExportFormats(spaceId: string, nodeId: string) {
-  return invokeCommand<string[]>("plugin:spaces|list_export_formats", { spaceId, nodeId });
+  return invokeCommand<EngineExportFormats>("plugin:spaces|list_export_formats", {
+    spaceId,
+    nodeId,
+  });
 }
 
 /** Writes the resource into the destination, in the format the destination names. */

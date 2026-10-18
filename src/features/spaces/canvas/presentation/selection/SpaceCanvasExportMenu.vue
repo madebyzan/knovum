@@ -20,17 +20,18 @@ const query = useExportFormats(
   open,
 );
 const items = computed(() =>
-  (query.data.value ?? []).map((format) => ({
+  (query.data.value?.formats ?? []).map((format) => ({
     id: format,
     label: exportFormatLabel(format),
     onSelect: () => emit("save", format),
   })),
 );
-/** Why nothing can be chosen, when that is the answer. */
+/** Why nothing can be chosen, said by whoever knows: the engine, or the listing itself. */
 const unavailable = computed(() => {
   if (query.error.value) return getErrorMessage(query.error.value);
   if (query.isPending.value) return t("common.loading");
-  return items.value.length ? undefined : t("spaces.importExport.export.noFormats");
+  if (items.value.length) return undefined;
+  return query.data.value?.unavailable ?? t("spaces.importExport.export.noFormats");
 });
 </script>
 

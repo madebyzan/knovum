@@ -76,6 +76,40 @@ impl DocumentInput {
 
 pub(crate) use pdf::{PdfSource, RecognizedPage};
 
+/// The authoring content of one editable resource, without its images or citations: the question
+/// admission asks is whether the engine can read the content at all.
+pub(crate) enum AuthoringContent<'a> {
+    Markdown(&'a str),
+    Note(&'a serde_json::Value),
+}
+
+/// Whether every serialization can read this authoring content.
+///
+/// All five formats read the same authoring model, so content outside the authoring contract -
+/// raw HTML in Markdown, an unsupported Note node - is unavailable in every format alike. Export
+/// asks this before it offers a format, which is why the question is answered without image bytes:
+/// the contract is about the content itself, and the files it points at are checked when they are
+/// read.
+pub(crate) fn admits(content: AuthoringContent<'_>) -> Result<(), String> {
+    match content {
+        AuthoringContent::Markdown(markdown) => super::markdown::parse(&DocumentSource {
+            markdown: markdown.to_owned(),
+            ..Default::default()
+        })
+        .map(|_| ()),
+        AuthoringContent::Note(content) => note::parse(
+            &super::document::NoteSource {
+                title: String::new(),
+                content: content.clone(),
+                citations: vec![],
+                images: vec![],
+            },
+            DocumentFormat::Text,
+        )
+        .map(|_| ()),
+    }
+}
+
 impl DocumentFileSource {
     fn validate(&self) -> Result<(), String> {
         if !self.path.is_absolute() || self.source_revision.is_empty() {

@@ -13,16 +13,20 @@ native save dialog then only names the file; a destination that does not carry t
 is given it.
 
 `list_export_formats` answers what one resource admits, own format first, and is the only place
-that decides. The bar asks it when the formats are looked at, and a resource that admits nothing
-says so where it was asked instead of failing after a destination was picked. A section is an
-arrangement rather than a resource, so its one format is the outline of what it holds.
+that decides. It answers from the content, not only from the kind: every serialization reads the
+same authoring model, so a document outside the authoring contract offers no format at all and
+reports why. The bar asks when the formats are looked at and shows that reason where it was asked,
+instead of accepting a format and failing after a destination was picked. A source file's own bytes
+are admitted by extension and checked when they are read. A section is an arrangement rather than a
+resource, so its one format is the outline of what it holds.
 `export_resource` writes the destination the dialog returned: replacing an existing
 file is what the person already confirmed, a failed or cancelled run leaves no partial file, and the
 source revision is checked again afterwards so a resource that changed mid-export is never delivered
 as the current one. Every export is addressable by job identity and can be stopped by the person who
 started it. Formats the Renderer serializes from content it already holds - Markdown, a section
 outline, an object or a credential summary - are written through `export_text` instead; the engine
-truthfully reports no format for them rather than failing.
+truthfully reports no format for them rather than failing, and they stay available even when the
+engine admits nothing.
 
 ## Supported formats
 
@@ -82,7 +86,8 @@ are appended as literal structured paragraphs.
 
 Markdown supports CommonMark paragraphs, H1–H6 headings, quotes, rules, line breaks, links, inline
 and block code, nested ordered/unordered lists, tables, strikethrough and task lists. Parser upgrades
-must not expand the contract implicitly through `Options::all()`. Raw HTML is rejected. Math and
+must not expand the contract implicitly through `Options::all()`. Raw HTML is rejected, and that
+rejection is reported when the formats are listed rather than when the file is written. Math and
 footnote extensions remain outside the Markdown authoring contract; custom templates are not an
 export parameter.
 

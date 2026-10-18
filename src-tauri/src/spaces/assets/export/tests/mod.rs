@@ -6,7 +6,14 @@ use super::targets::{self, Export, Managed};
 use crate::documents::generation::DocumentFormat;
 
 fn offered(payload: &Value) -> Vec<String> {
-    targets::of(payload).unwrap()
+    targets::of(payload).unwrap().formats
+}
+
+/// A Note document the engine can read, which is what admission answers about.
+fn note(text: &str) -> Value {
+    json!({"kind":"note","title":"Notes","tiptapContent":{"type":"doc","content":[
+        {"type":"paragraph","content":[{"type":"text","text":text}]}
+    ]}})
 }
 
 #[test]
@@ -66,7 +73,7 @@ fn recordings_offer_their_own_container_and_the_qualified_encodings() {
 #[test]
 fn documents_reach_the_formats_the_engine_serializes() {
     assert_eq!(
-        offered(&json!({"kind":"note","title":"Notes"})),
+        offered(&note("Decision")),
         ["txt", "html", "docx", "pdf", "pptx"]
     );
     assert_eq!(
@@ -77,6 +84,21 @@ fn documents_reach_the_formats_the_engine_serializes() {
         .unwrap(),
         Export::Document(DocumentFormat::Pdf)
     );
+}
+
+/// Every serialization reads the same authoring model, so content outside the authoring contract
+/// is unavailable in all of them and says so where the formats were asked for.
+#[test]
+fn a_document_the_engine_cannot_read_offers_no_format_and_says_why() {
+    let payload = json!({"kind":"markdown","title":"D","text":"<div>raw</div>"});
+    let formats = targets::of(&payload).unwrap();
+    assert!(formats.formats.is_empty());
+    assert!(formats
+        .unavailable
+        .is_some_and(|reason| reason.contains("Raw HTML")));
+    assert!(targets::requested(&payload, Path::new("/out/d.docx"))
+        .unwrap_err()
+        .contains("Raw HTML"));
 }
 
 /// Original-layout PDF of an Office file is outside the product boundary, and a
@@ -118,34 +140,44 @@ fn a_file_with_no_conversion_route_is_still_saved_as_itself() {
 
 #[test]
 fn unsettled_resources_report_why_they_have_no_file_yet() {
-    assert!(targets::of(&json!({
+    let processing = json!({
         "kind":"image", "fileName":"cover.png", "assetPath":"/owned/cover.png",
         "processingState":"processing"
-    }))
-    .unwrap_err()
-    .contains("Wait for this resource"));
-    assert!(targets::of(
-        &json!({"kind":"markdown","title":"D","text":"","derivationState":"pending"})
-    )
-    .unwrap_err()
-    .contains("Wait for this resource"));
+    });
+    let formats = targets::of(&processing).unwrap();
+    assert!(formats.formats.is_empty());
+    assert_eq!(
+        formats.unavailable.as_deref(),
+        Some("Wait for this resource to finish before exporting it")
+    );
+    assert!(targets::requested(&processing, Path::new("/out/cover.png"))
+        .unwrap_err()
+        .contains("Wait for this resource"));
+    assert!(
+        targets::of(&json!({"kind":"markdown","title":"D","text":"","derivationState":"pending"}))
+            .unwrap()
+            .unavailable
+            .is_some_and(|reason| reason.contains("Wait for this resource"))
+    );
 }
 
 /// A website summary or an object is serialized by the Renderer from content it
 /// already holds, so the engine truthfully offers nothing rather than failing.
 #[test]
 fn renderer_owned_content_is_offered_no_engine_format() {
-    assert!(targets::of(&json!({"kind":"website","title":"Page"}))
-        .unwrap()
-        .is_empty());
+    let formats = targets::of(&json!({"kind":"website","title":"Page"})).unwrap();
+    assert!(formats.formats.is_empty());
+    assert!(
+        formats.unavailable.is_none(),
+        "nothing is wrong with a resource whose kind simply has no engine format"
+    );
 }
 
 #[test]
 fn a_destination_without_an_extension_names_no_format() {
-    assert!(targets::requested(
-        &json!({"kind":"note","title":"Notes"}),
-        Path::new("/out/notes")
-    )
-    .unwrap_err()
-    .contains("needs a file extension"));
+    assert!(
+        targets::requested(&note("Decision"), Path::new("/out/notes"))
+            .unwrap_err()
+            .contains("needs a file extension")
+    );
 }
