@@ -87,14 +87,18 @@ describe("Space resource export", () => {
     });
   });
 
-  /** A format both of them can write belongs to the resource's own serializer, and is offered once. */
-  it("offers a format the Renderer and the engine share only once", async () => {
+  /** Content the engine reads is the engine's to serialize, so the Renderer adds nothing to it. */
+  it("leaves the formats of content the engine reads to the engine", async () => {
     engineOffers(["txt", "html", "docx", "pdf", "pptx"]);
 
-    await expect(nodeExportFormats("space", editableNode("text", "Notes"))).resolves.toEqual({
-      formats: ["txt", "html", "docx", "pdf", "pptx"],
-      unavailable: null,
-    });
+    const formats = await Promise.all(
+      [editableNode("text", "Notes"), captureNode()].map((node) => nodeExportFormats("space", node)),
+    );
+
+    expect(formats).toEqual([
+      { formats: ["txt", "html", "docx", "pdf", "pptx"], unavailable: null },
+      { formats: ["txt", "html", "docx", "pdf", "pptx"], unavailable: null },
+    ]);
   });
 
   it("asks for a destination in the chosen format and lets the engine write it", async () => {
@@ -166,6 +170,15 @@ function editableNode(kind: "note" | "text", title: string) {
       content: [{ type: "paragraph", content: [{ type: "text", text: "Decision" }] }],
     },
     plainText: "Decision",
+  });
+}
+
+/** A capture has no file: the engine assembles the summary it holds and every format of it. */
+function captureNode() {
+  return canvasNode("website", {
+    kind: "website",
+    title: "Release notes",
+    url: "https://example.com/notes",
   });
 }
 

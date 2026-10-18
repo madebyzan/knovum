@@ -1,3 +1,4 @@
+mod capture;
 mod document;
 mod files;
 mod image;
@@ -76,6 +77,13 @@ async fn write(
     match targets::requested(&payload, &destination)? {
         Export::Document(format) => {
             document::write(&app, node_id, &payload, format, &destination, cancellation).await
+        }
+        Export::Summary => {
+            let summary = capture::summary(&payload)?;
+            Ok(crate::foundation::blocking::run(move || {
+                files::write(&app, &destination, summary.as_bytes())
+            })
+            .await?)
         }
         Export::Managed(managed) => {
             let source = managed_source(&payload)?;

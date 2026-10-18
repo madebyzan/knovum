@@ -29,6 +29,8 @@
     "formats": {
       "png": "PNG-Bild (.png)",
       "jpg": "JPEG-Bild (.jpg)",
+      "webp": "WebP-Bild (.webp)",
+      "tiff": "TIFF-Bild (.tiff)",
       "md": "Markdown (.md)",
       "txt": "Einfacher Text (.txt)",
       "json": "JSON (.json)",
@@ -41,7 +43,8 @@
       "m4a": "AAC-Audio (.m4a)",
       "flac": "FLAC-Audio (.flac)",
       "mp4": "MP4-Video (.mp4)",
-      "mov": "QuickTime-Video (.mov)"
+      "mov": "QuickTime-Video (.mov)",
+      "mkv": "Matroska-Video (.mkv)"
     }
   },
   "fileName": "Dateiname",
