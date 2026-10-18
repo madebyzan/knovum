@@ -100,8 +100,13 @@
 
   * {
     box-sizing: border-box;
-    scrollbar-color: var(--knovum-scrollbar-thumb-bg) transparent;
-    scrollbar-width: thin;
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-color: var(--knovum-scrollbar-thumb-bg) transparent;
+      scrollbar-width: thin;
+    }
   }
 
   *::-webkit-scrollbar {

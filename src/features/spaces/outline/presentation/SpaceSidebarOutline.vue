@@ -31,7 +31,7 @@ watch(
       <div
         ref="content"
         tabindex="-1"
-        class="h-full px-2.5 pb-3 outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus focus-visible:ring-inset"
+        class="h-full pr-1 pb-3 pl-2.5 outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus focus-visible:ring-inset"
       >
         <SpaceOutline />
       </div>
