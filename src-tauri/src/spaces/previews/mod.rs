@@ -92,21 +92,53 @@ fn attach_thumbnail_at(
     apply_thumbnail(path, asset)
 }
 
+/// The cover of a managed asset, as the canvas shows it. Its own geometry stands in for the
+/// geometry a media file does not report, which is how an imported video gets its aspect ratio.
+pub(crate) struct GeneratedPreview {
+    pub path: String,
+    pub width: u32,
+    pub height: u32,
+}
+
+/// Makes the cover of an asset a Space itself published. A derived asset carries its own cover
+/// rather than its source's: the picture is new even when its subject is not, and a preview
+/// belongs to the asset it was made from, which is also what reclamation tracks.
+pub(crate) fn generate_for_published_asset(
+    app: &tauri::AppHandle,
+    source: &Path,
+    cancellation: &CancellationToken,
+) -> Result<Option<GeneratedPreview>, String> {
+    ensure_active(cancellation)?;
+    let Some(path) = thumbnail::generate(app, source, cancellation)? else {
+        return Ok(None);
+    };
+    let (width, height) = measure(&path)?;
+    Ok(Some(GeneratedPreview {
+        path: path.to_string_lossy().into_owned(),
+        width,
+        height,
+    }))
+}
+
 fn apply_thumbnail(path: std::path::PathBuf, asset: &mut PreparedAsset) -> Result<(), String> {
     // The system preview is the visual representation shown on the canvas. Its aspect ratio is
     // authoritative when the source inspector did not provide geometry (notably video and audio).
     if asset.intrinsic_width.is_none() || asset.intrinsic_height.is_none() {
-        let (width, height) = image::image_dimensions(&path).map_err(|error| {
-            if let Err(cleanup) = std::fs::remove_file(&path) {
-                log::warn!("invalid thumbnail cleanup failed: {cleanup}");
-            }
-            format!("failed to read system thumbnail dimensions: {error}")
-        })?;
+        let (width, height) = measure(&path)?;
         asset.intrinsic_width.get_or_insert(width);
         asset.intrinsic_height.get_or_insert(height);
     }
     asset.preview_path = Some(path.to_string_lossy().into_owned());
     Ok(())
+}
+
+fn measure(path: &Path) -> Result<(u32, u32), String> {
+    image::image_dimensions(path).map_err(|error| {
+        if let Err(cleanup) = std::fs::remove_file(path) {
+            log::warn!("invalid thumbnail cleanup failed: {cleanup}");
+        }
+        format!("failed to read system thumbnail dimensions: {error}")
+    })
 }
 
 pub fn remove_generated(app: &tauri::AppHandle, source: &Path) -> Result<(), String> {

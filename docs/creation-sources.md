@@ -111,6 +111,23 @@ Relations are written with the node, not when it settles, so lineage is visible 
 the work takes rather than appearing at the end. Nothing is left behind: an import that fails or is
 cancelled takes its reserved node and its asset away.
 
+## Settling
+
+A derived node settles onto an asset the Space itself published, and it reaches the same standing
+an imported node has. It carries its own cover, made from the file that was just published rather
+than borrowed from its source: the picture is new even when its subject is not, and the geometry
+that cover reports is what gives a rendered video its aspect ratio on the canvas. What its new asset
+still has to say about itself is then scheduled exactly as an import's is, and the payload decides
+what that is.
+
+That makes preservation an explicit decision of each Action, taken where the new revision is known.
+Adding subtitles draws into the picture and changes nothing else, so the measured duration, the
+waveform and the transcript are carried over and re-pinned to the published asset — the Action that
+burned in those very words does not pay to recognize them again, and nothing is scheduled. An edit
+re-cuts the timeline, so the same fields are dropped and read afresh from the result. Provenance is
+never carried: where the source came from is the source's own, and what explains a derived node is
+its Relations and its Action record.
+
 ## Reuse
 
 A derived node records its Action, pinned parameters, sources and execution identity. That is

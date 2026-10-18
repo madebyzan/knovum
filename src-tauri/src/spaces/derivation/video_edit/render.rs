@@ -136,5 +136,5 @@ pub(super) fn render(
         ));
     }
     report(progress, "savingResource", 94)?;
-    video_output::inspect(output.retain())
+    video_output::inspect(app, output.retain(), cancellation)
 }

@@ -7,7 +7,7 @@ use crate::{
     foundation::app_error::AppError,
     spaces::{
         db,
-        derivation::{pending_output, source_inputs},
+        derivation::{pending_output, source_inputs, video_output},
         knowledge::model::revision,
     },
 };
@@ -41,6 +41,15 @@ pub async fn complete(
     }
     source_inputs::pin(&mut tx, &request.space_id, &request.inputs).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
+    let cover = {
+        let app = app.clone();
+        let source = std::path::PathBuf::from(expected_path);
+        let cancellation = cancellation.clone();
+        crate::foundation::blocking::run(move || {
+            crate::spaces::previews::generate_for_published_asset(&app, &source, &cancellation)
+        })
+        .await?
+    };
     let object = data
         .as_object_mut()
         .ok_or("Generated video node data is invalid")?;
@@ -51,11 +60,18 @@ pub async fn complete(
     object.insert("size".into(), (generated.bytes.len() as u64).into());
     object.insert("modifiedAt".into(), now.into());
     object.remove("processingState");
+    video_output::apply_cover(object, cover.as_ref());
     revision::apply(&mut data)?;
     crate::spaces::knowledge::validation::validate_node(&mut tx, &request.space_id, "video", &data)
         .await?;
-    crate::spaces::derivation::persist_output_node(&mut tx, &request.output_node_id, &data, now)
-        .await?;
+    crate::spaces::derivation::persist_output_node(
+        &mut tx,
+        &request.output_node_id,
+        &data,
+        now,
+        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
+    )
+    .await?;
     sqlx::query("INSERT INTO spaces_generated_videos(derivation_id,prompt,aspect_ratio,duration_seconds,execution_source,operation_id) VALUES($1,$2,$3,$4,$5,$6)")
         .bind(&request.id).bind(&request.prompt).bind(request.aspect_ratio.as_str()).bind(request.duration_seconds)
         .bind(sqlx::types::Json(&generated.execution_source)).bind(generated.operation_id)

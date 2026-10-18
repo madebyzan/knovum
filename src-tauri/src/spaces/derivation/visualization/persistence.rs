@@ -75,8 +75,16 @@ pub async fn complete(
     tokio::fs::write(&path, &bytes)
         .await
         .map_err(|error| error.to_string())?;
+    let enrichment_target = crate::spaces::assets::enrichment::jobs::intent::selection(app)?;
     let persisted = persist_completion(
-        &mut tx, request, &generated, &mut data, &bytes, width, height,
+        &mut tx,
+        request,
+        &generated,
+        &mut data,
+        &bytes,
+        width,
+        height,
+        enrichment_target.as_ref(),
     )
     .await;
     match persisted {
@@ -115,6 +123,7 @@ async fn persist_completion(
     bytes: &[u8],
     width: u32,
     height: u32,
+    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), AppError> {
     let now = crate::foundation::clock::unix_time_millis()?;
     let object = payload
@@ -132,8 +141,14 @@ async fn persist_completion(
     revision::apply(payload)?;
     crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "image", payload)
         .await?;
-    crate::spaces::derivation::persist_output_node(tx, &request.output_node_id, payload, now)
-        .await?;
+    crate::spaces::derivation::persist_output_node(
+        tx,
+        &request.output_node_id,
+        payload,
+        now,
+        enrichment_target,
+    )
+    .await?;
     sqlx::query("INSERT INTO spaces_generated_images(derivation_id,intent,aspect_ratio,execution_source,revised_prompt) VALUES($1,$2,$3,$4,$5)")
         .bind(&request.id).bind(&request.intent).bind(request.aspect_ratio.as_str())
         .bind(sqlx::types::Json(&generated.execution_source)).bind(&generated.revised_prompt)

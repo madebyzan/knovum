@@ -10,6 +10,7 @@ use crate::spaces::{
     derivation::{action_execution::ExecutionAuthority, video_output::RenderedVideo},
     knowledge::model::revision,
     nodes::contracts::InsertNodesRequest,
+    previews::GeneratedPreview,
     structure::repository,
 };
 
@@ -22,7 +23,9 @@ async fn fixture(with_transcript: bool) -> (SqlitePool, RenderSubtitledVideoRequ
     db::migrate(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)").execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('job','space','space','user','local-user','action','running',0,'{}','{}','{}',1,1)").execute(&pool).await.unwrap();
-    let mut source = json!({"kind":"video","title":"Interview","assetPath":"/owned/source.mp4","fileName":"source.mp4","sourceRevision":"asset:1"});
+    let mut source = json!({"kind":"video","title":"Interview","assetPath":"/owned/source.mp4","fileName":"source.mp4","sourceRevision":"asset:1",
+        "durationSeconds":42,
+        "mediaAnalysis":{"schemaVersion":1,"sourceRevision":"asset:1","durationMs":42_000,"waveform":[0.5]}});
     if with_transcript {
         source["mediaKnowledge"] = crate::media::transcript::tests::knowledge_fixture(
             "asset:1",
@@ -74,6 +77,11 @@ fn rendered() -> RenderedVideo {
         path: "/owned/subtitled.mp4".into(),
         size: 100,
         revision: "asset:output".into(),
+        cover: Some(GeneratedPreview {
+            path: "/previews/subtitled.png".into(),
+            width: 640,
+            height: 360,
+        }),
     }
 }
 
@@ -88,11 +96,40 @@ async fn automatic_subtitles_publish_only_a_derived_video_and_leave_source_uncha
         rendered(),
         &authority(),
         &CancellationToken::new(),
+        None,
     )
     .await
     .unwrap();
     assert_eq!(completion.data["sourceRevision"], "asset:output");
     assert!(completion.data.get("processingState").is_none());
+    // The picture is new, so it carries its own cover and the geometry that cover reports.
+    assert_eq!(completion.data["previewPath"], "/previews/subtitled.png");
+    assert_eq!(completion.data["intrinsicWidth"], 640);
+    // The timeline and what is said in it did not change, so they are carried over and re-pinned
+    // instead of being measured and recognized again.
+    assert_eq!(completion.data["durationSeconds"], 42);
+    assert_eq!(completion.data["mediaAnalysis"]["durationMs"], 42_000);
+    assert_eq!(
+        completion.data["mediaAnalysis"]["sourceRevision"],
+        "asset:output"
+    );
+    assert_eq!(
+        completion.data["mediaKnowledge"]["sourceRevision"],
+        "asset:output"
+    );
+    assert!(
+        completion.data["mediaKnowledge"]["transcript"]["subtitleCues"][0]["text"]
+            .as_str()
+            .is_some_and(|text| text.contains("Hello"))
+    );
+    // Nothing carried over is read again: the only work left is understanding the new picture.
+    let queued: Vec<String> = sqlx::query_scalar(
+        "SELECT job_type FROM spaces_enrichment_jobs WHERE node_id='output' ORDER BY job_type",
+    )
+    .fetch_all(&pool)
+    .await
+    .unwrap();
+    assert_eq!(queued, ["analyze_visual"]);
     // Lineage was written when the output was reserved, so publication only settles content.
     let counts: (i64, i64, i64) = sqlx::query_as("SELECT (SELECT COUNT(*) FROM spaces_nodes),(SELECT COUNT(*) FROM spaces_nodes WHERE kind='subtitle'),(SELECT COUNT(*) FROM spaces_relations)").fetch_one(&pool).await.unwrap();
     assert_eq!(counts, (2, 0, 0));
@@ -146,7 +183,7 @@ async fn source_change_and_cancellation_prevent_publication() {
             cancellation.cancel();
         }
         assert!(
-            persistence::complete(&pool, "job", rendered(), &authority(), &cancellation)
+            persistence::complete(&pool, "job", rendered(), &authority(), &cancellation, None)
                 .await
                 .is_err()
         );

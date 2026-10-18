@@ -91,12 +91,15 @@ pub(super) async fn render_for_action(
     match rendered {
         Ok(output) => {
             let path = output.path.clone();
+            let enrichment_target =
+                crate::spaces::assets::enrichment::jobs::intent::selection(&app)?;
             match persistence::complete(
                 crate::spaces::db::pool(&app).await?,
                 &request.id,
                 output,
                 &authority,
                 cancellation,
+                enrichment_target.as_ref(),
             )
             .await
             {
