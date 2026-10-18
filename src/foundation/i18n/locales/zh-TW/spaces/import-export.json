@@ -26,6 +26,7 @@
   "export": {
     "completed": "匯出完成",
     "running": "正在匯出…",
+    "noFormats": "此資源沒有可儲存的檔案。",
     "formats": {
       "png": "PNG 圖片 (.png)",
       "jpg": "JPEG 圖片 (.jpg)",

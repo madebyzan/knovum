@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { Download, Info } from "@lucide/vue";
+import { Info } from "@lucide/vue";
 import { ToolbarButton } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
+import type { CanvasSelectionExport } from "../use-canvas-selection-export";
+import SpaceCanvasExportMenu from "./SpaceCanvasExportMenu.vue";
 
-const emit = defineEmits<{ inspect: []; export: [] }>();
+defineProps<{ exportTarget: CanvasSelectionExport | undefined }>();
+const emit = defineEmits<{ inspect: []; save: [format: string] }>();
 const { t } = useI18n();
 </script>
 
@@ -16,10 +19,6 @@ const { t } = useI18n();
         <Info class="size-4.5" :stroke-width="1.6" />
       </UiIconButton>
     </ToolbarButton>
-    <ToolbarButton as-child>
-      <UiIconButton :label="t('spaces.canvas.nodeActions.export')" tooltip @click="emit('export')">
-        <Download class="size-4.5" :stroke-width="1.6" />
-      </UiIconButton>
-    </ToolbarButton>
+    <SpaceCanvasExportMenu :target="exportTarget" @save="emit('save', $event)" />
   </div>
 </template>

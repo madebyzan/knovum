@@ -26,6 +26,7 @@
   "export": {
     "completed": "내보내기 완료",
     "running": "내보내는 중…",
+    "noFormats": "이 리소스에는 저장할 파일이 없습니다.",
     "formats": {
       "png": "PNG 이미지 (.png)",
       "jpg": "JPEG 이미지 (.jpg)",

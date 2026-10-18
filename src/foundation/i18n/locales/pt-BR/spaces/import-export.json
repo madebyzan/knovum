@@ -26,6 +26,7 @@
   "export": {
     "completed": "Exportação concluída",
     "running": "Exportando…",
+    "noFormats": "Este recurso não tem nenhum arquivo para salvar.",
     "formats": {
       "png": "Imagem PNG (.png)",
       "jpg": "Imagem JPEG (.jpg)",

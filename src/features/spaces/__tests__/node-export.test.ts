@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@tauri-apps/api/core", () => ({ invoke: mocks.invoke }));
 vi.mock("@tauri-apps/plugin-dialog", () => ({ save: mocks.save }));
 
+import { nodeExportFormats } from "../assets/export/formats";
 import { exportSpaceNode } from "../assets/export/node";
 
 /** The formats the engine reports for the resource under test. */
@@ -43,7 +44,7 @@ describe("Space resource export", () => {
     } as const;
 
     await expect(
-      exportSpaceNode("space", canvasNode("credential", data as SpaceCanvasNode["data"])),
+      exportSpaceNode("space", canvasNode("credential", data as SpaceCanvasNode["data"]), "json"),
     ).resolves.toBe(true);
 
     const call = invocation("plugin:spaces|export_text") as { text: string };
@@ -57,22 +58,35 @@ describe("Space resource export", () => {
     expect(call.text).not.toContain(data.token);
   });
 
-  it("offers every format the resource admits and saves the one the destination names", async () => {
+  /** A markdown resource is the one case the Renderer and the engine both serve. */
+  it("admits its own format first, then the ones the engine converts to", async () => {
     engineOffers(["txt", "html", "docx", "pdf", "pptx"]);
+
+    await expect(nodeExportFormats("space", canvasNode("markdown", markdownData()))).resolves.toEqual([
+      "md",
+      "txt",
+      "html",
+      "docx",
+      "pdf",
+      "pptx",
+    ]);
+  });
+
+  it("admits nothing for a resource that has no file of its own", async () => {
+    engineOffers([]);
+
+    await expect(nodeExportFormats("space", imageNode())).resolves.toEqual([]);
+  });
+
+  it("asks for a destination in the chosen format and lets the engine write it", async () => {
     mocks.save.mockResolvedValue("/exports/Meeting notes.docx");
     const onStart = vi.fn<(jobId: string) => void>();
 
-    await exportSpaceNode("space", noteNode(), { onStart });
+    await exportSpaceNode("space", noteNode(), "docx", { onStart });
 
     expect(mocks.save).toHaveBeenCalledWith({
-      defaultPath: "Meeting notes.txt",
-      filters: [
-        { name: "Plain text (.txt)", extensions: ["txt"] },
-        { name: "HTML document (.html)", extensions: ["html"] },
-        { name: "Word document (.docx)", extensions: ["docx"] },
-        { name: "PDF document (.pdf)", extensions: ["pdf"] },
-        { name: "Presentation (.pptx)", extensions: ["pptx"] },
-      ],
+      defaultPath: "Meeting notes.docx",
+      filters: [{ name: "Word document (.docx)", extensions: ["docx"] }],
     });
     expect(invocation("plugin:spaces|export_resource")).toEqual({
       spaceId: "space",
@@ -83,17 +97,11 @@ describe("Space resource export", () => {
     expect(onStart).toHaveBeenCalledOnce();
   });
 
-  /** A markdown resource is the one case the Renderer and the engine both serve. */
-  it("keeps its own format first and lets the Renderer write it", async () => {
-    engineOffers(["txt", "html", "docx", "pdf", "pptx"]);
+  it("lets the Renderer write a format it holds itself", async () => {
     mocks.save.mockResolvedValue("/exports/Plan.md");
 
-    await exportSpaceNode(
-      "space",
-      canvasNode("markdown", { kind: "markdown", title: "Plan", text: "# Plan" }),
-    );
+    await exportSpaceNode("space", canvasNode("markdown", markdownData()), "md");
 
-    expect(mocks.save.mock.calls[0]?.[0]).toMatchObject({ defaultPath: "Plan.md" });
     expect(invocation("plugin:spaces|export_text")).toEqual({
       destinationPath: "/exports/Plan.md",
       text: "# Plan",
@@ -101,37 +109,32 @@ describe("Space resource export", () => {
     expect(invocation("plugin:spaces|export_resource")).toBeUndefined();
   });
 
-  it("names a format that the dialog left unstated", async () => {
-    engineOffers(["png", "jpg"]);
-    mocks.save.mockResolvedValue("/exports/Cover");
+  it("names the chosen format on a destination that states another one", async () => {
+    mocks.save.mockResolvedValue("/exports/Cover.txt");
 
-    await exportSpaceNode("space", imageNode());
+    await exportSpaceNode("space", imageNode(), "png");
 
     expect(invocation("plugin:spaces|export_resource")).toMatchObject({
-      destinationPath: "/exports/Cover.png",
+      destinationPath: "/exports/Cover.txt.png",
     });
   });
 
   it("writes nothing when the destination is not chosen", async () => {
-    engineOffers(["png", "jpg"]);
     mocks.save.mockResolvedValue(null);
 
-    await expect(exportSpaceNode("space", imageNode())).resolves.toBe(false);
+    await expect(exportSpaceNode("space", imageNode(), "png")).resolves.toBe(false);
 
     expect(invocation("plugin:spaces|export_resource")).toBeUndefined();
     expect(invocation("plugin:spaces|export_text")).toBeUndefined();
-  });
-
-  it("refuses a resource that has no file of its own", async () => {
-    engineOffers([]);
-    await expect(exportSpaceNode("space", imageNode())).rejects.toThrow(
-      "This resource has no exportable file",
-    );
   });
 });
 
 function canvasNode(nodeId: string, data: SpaceCanvasNode["data"]): SpaceCanvasNode {
   return createSpaceNode(data, { x: 0, y: 0 }, nodeId);
+}
+
+function markdownData(): SpaceCanvasNode["data"] {
+  return { kind: "markdown", title: "Plan", text: "# Plan" };
 }
 
 function noteNode() {

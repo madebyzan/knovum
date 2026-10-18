@@ -144,7 +144,11 @@ const textKind = computed(() => {
         </template>
       </SpaceCanvasSelectionMenu>
       <UiActionHelp v-if="separation.error.value" :label="separation.error.value" />
-      <SpaceCanvasNodeAccessActions @inspect="actions.inspect" @export="actions.exportSelection" />
+      <SpaceCanvasNodeAccessActions
+        :export-target="actions.exportTarget.value"
+        @inspect="actions.inspect"
+        @save="actions.exportFormat"
+      />
     </ToolbarRoot>
   </div>
 </template>
