@@ -8,7 +8,6 @@
     "description": "儲存網頁 URL 並擷取標題與摘要。",
     "previewUnavailable": "未能抓取網站訊息，連結已儲存。可在詳情中重試。",
     "refresh": "刷新網頁內容",
-    "captureFailed": "無法添加此鏈接",
     "loading": "正在抓取網頁元資料…",
     "refreshFailed": "網頁抓取失敗"
   },

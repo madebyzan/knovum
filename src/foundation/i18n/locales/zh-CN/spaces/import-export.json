@@ -8,7 +8,6 @@
     "description": "保存网页 URL 并提取标题与摘要。",
     "previewUnavailable": "未能抓取网站信息，链接已保存。可在详情中重试。",
     "refresh": "刷新网页内容",
-    "captureFailed": "无法添加此链接",
     "loading": "正在抓取网页元数据…",
     "refreshFailed": "网页抓取失败"
   },

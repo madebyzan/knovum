@@ -4,7 +4,7 @@ mod jobs;
 mod publish;
 
 use crate::foundation::app_error::AppError;
-use crate::media::acquisition::contracts::AcquisitionProgress;
+use crate::media::acquisition::contracts::{AcquisitionEvent, AcquisitionProgress};
 pub(crate) use contracts::ImportedMedia;
 
 pub(crate) fn cleanup_stale_workspaces(app: &tauri::AppHandle) -> Result<(), String> {
@@ -22,7 +22,7 @@ pub async fn import_media_from_url(
     job_id: String,
     resource_title: String,
     url: String,
-    on_progress: tauri::ipc::Channel<AcquisitionProgress>,
+    on_progress: tauri::ipc::Channel<AcquisitionEvent>,
 ) -> Result<Option<ImportedMedia>, AppError> {
     acquisition::validate_source_url(&url)?;
     acquisition::validate_job_id(&job_id)?;
@@ -88,8 +88,8 @@ fn media_acquisition_error(error: String) -> AppError {
     }
 }
 
-fn observe(channel: &tauri::ipc::Channel<AcquisitionProgress>, progress: AcquisitionProgress) {
-    if let Err(error) = channel.send(progress) {
+fn observe(channel: &tauri::ipc::Channel<AcquisitionEvent>, progress: AcquisitionProgress) {
+    if let Err(error) = channel.send(AcquisitionEvent::Progress(progress)) {
         log::debug!("media import progress observer disconnected: {error}");
     }
 }

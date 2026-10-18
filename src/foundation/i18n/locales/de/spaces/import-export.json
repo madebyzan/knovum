@@ -8,7 +8,6 @@
     "description": "Speichern Sie das Web URL und extrahieren Sie Titel und Zusammenfassung.",
     "previewUnavailable": "Website-Details konnten nicht abgerufen werden. Der URL wird gespeichert; Versuchen Sie es erneut mit den Details.",
     "refresh": "Webinhalt aktualisieren",
-    "captureFailed": "Dieser Link konnte nicht hinzugefügt werden",
     "loading": "Web-Metadaten werden abgerufen…",
     "refreshFailed": "Webinhalt konnte nicht abgerufen werden"
   },

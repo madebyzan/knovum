@@ -84,27 +84,6 @@ export function assembleSpaceActions(input: SpaceActionsInput) {
   const refreshActiveSpace = async () => {
     await refreshSpace(spaceContext);
   };
-  const beginUrlCapture = (capture: Omit<(typeof state.urlCaptures.value)[number], "id">) => {
-    const projection = { ...capture, id: crypto.randomUUID() };
-    state.urlCaptures.value = [...state.urlCaptures.value, projection];
-    return projection;
-  };
-  const finishUrlCapture = (captureId: string) => {
-    state.urlCaptures.value = state.urlCaptures.value.filter((capture) => capture.id !== captureId);
-  };
-  const updateUrlCapture = (
-    captureId: string,
-    patch: Partial<
-      Pick<
-        (typeof state.urlCaptures.value)[number],
-        "status" | "downloadedBytes" | "totalBytes" | "processedMs" | "durationMs"
-      >
-    >,
-  ) => {
-    state.urlCaptures.value = state.urlCaptures.value.map((capture) =>
-      capture.id === captureId ? { ...capture, ...patch } : capture,
-    );
-  };
   return {
     initialize,
     commitActiveSession: () => commitActiveSpaceSession(spaceContext),
@@ -133,9 +112,6 @@ export function assembleSpaceActions(input: SpaceActionsInput) {
     },
     navigateWorkbenchHistory: (direction: -1 | 1) => navigateWorkbenchHistory(spaceContext, direction),
     refreshActiveSpace,
-    beginUrlCapture,
-    updateUrlCapture,
-    finishUrlCapture,
     renameSpace: (spaceId: string, title: string) => renameSpace(spaceContext, spaceId, title),
     archiveSpace: (spaceId: string) => archiveSpace(spaceContext, spaceId),
     unarchiveSpace: (spaceId: string) => unarchiveSpace(spaceContext, spaceId),

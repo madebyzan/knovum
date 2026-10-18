@@ -1,37 +1,37 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createAppError } from "../../../foundation/errors/app-error";
-import type { MediaImportProgress } from "../media/import/schema/import";
+import type { MediaAcquisitionObserver } from "../media/import/acquisition";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceMediaPayload } from "../model/nodes/capabilities";
-import { captureHarness, importedVideo, pendingImport, POSITION, URL } from "./support/capture-url-harness";
+import {
+  captureHarness,
+  importedVideo,
+  pendingImport,
+  POSITION,
+  RESERVED_ASSET,
+  resolvedVideo,
+  URL,
+} from "./support/capture-url-harness";
 
 type Point = { x: number; y: number };
-type WebsiteCapture = (
-  context: object,
+type Acquisition = (
   url: string,
-  position?: Point,
-) => Promise<SpaceCanvasNode | undefined>;
+  observer: MediaAcquisitionObserver,
+) => Promise<{ outcome: "imported"; payload: SpaceMediaPayload } | { outcome: "unsupported" }>;
 
 const mocks = vi.hoisted(() => {
   return {
-    addSavedWebsite: vi.fn<WebsiteCapture>(),
-    acquireMediaSource:
-      vi.fn<
-        (
-          url: string,
-          onProgress: (progress: MediaImportProgress) => void,
-        ) => Promise<{ outcome: "imported"; payload: SpaceMediaPayload } | { outcome: "unsupported" }>
-      >(),
+    addSavedWebsite:
+      vi.fn<(context: object, url: string, position?: Point) => Promise<SpaceCanvasNode | undefined>>(),
+    acquireMediaSource: vi.fn<Acquisition>(),
     logWarn: vi.fn<(message: string) => void>(),
     logInfo: vi.fn<(message: string) => void>(),
     removeSpaceAssets: vi.fn<(paths: readonly string[]) => Promise<void>>(),
-    toastError: vi.fn<(message: string) => void>(),
   };
 });
 
 vi.mock("@tauri-apps/plugin-log", () => ({ info: mocks.logInfo, warn: mocks.logWarn }));
-vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
 vi.mock("../../../foundation/i18n/instance", () => ({
   i18n: { global: { t: (key: string) => key } },
 }));
@@ -43,6 +43,16 @@ vi.mock("../website/capture", () => ({ addSavedWebsite: mocks.addSavedWebsite })
 
 import { captureSpaceUrl } from "../sources/capture-url";
 
+/** Runs the acquisition up to the point where the engine has named the source. */
+async function resolveWhilePending() {
+  const deferred = pendingImport();
+  mocks.acquireMediaSource.mockImplementation(async (_url, observer) => {
+    await observer.resolved(resolvedVideo());
+    return deferred.promise;
+  });
+  return deferred;
+}
+
 describe("Space URL capture", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -50,32 +60,39 @@ describe("Space URL capture", () => {
     mocks.removeSpaceAssets.mockResolvedValue(undefined);
   });
 
-  it("shows a transient projection before resolution and persists one media node", async () => {
-    const deferred = pendingImport();
-    mocks.acquireMediaSource.mockReturnValue(deferred.promise);
+  it("reserves the media node as soon as the link is identified, before the download ends", async () => {
+    const deferred = await resolveWhilePending();
     const harness = captureHarness();
     const capture = captureSpaceUrl(harness.context, URL, POSITION);
 
-    expect(harness.begin).toHaveBeenCalledWith({
-      spaceId: "space-1",
-      url: URL,
-      title: "youtube.com",
-      position: POSITION,
-      status: "resolving",
-      downloadedBytes: 0,
-      totalBytes: null,
-      processedMs: null,
-      durationMs: null,
-    });
-    expect(harness.addContent).not.toHaveBeenCalled();
-    expect(mocks.logInfo).toHaveBeenCalledWith("[spaces.url-capture] route=media");
+    await vi.waitFor(() => expect(harness.createPending).toHaveBeenCalledOnce());
+    expect(harness.createPending).toHaveBeenCalledWith(
+      "space-1",
+      {
+        kind: "video",
+        title: "Video",
+        assetPath: RESERVED_ASSET,
+        fileName: "import-1.mp4",
+        processingState: "importing",
+        durationSeconds: 12,
+      },
+      POSITION,
+    );
+    expect(harness.finalize).not.toHaveBeenCalled();
 
     deferred.resolve({ outcome: "imported", payload: importedVideo() });
     await capture;
-    expect(harness.addContent).toHaveBeenCalledOnce();
-    expect(harness.addContent).toHaveBeenCalledWith(importedVideo(), POSITION);
-    expect(mocks.logInfo).toHaveBeenCalledWith("[spaces.url-capture] media node saved; created=true");
-    expect(harness.finish).toHaveBeenCalledWith("import-1");
+    expect(harness.savePending).toHaveBeenCalledWith("space-1", {
+      id: "media",
+      expectedContent: expect.objectContaining({ processingState: "importing" }),
+      data: importedVideo(),
+    });
+    expect(harness.finalize).toHaveBeenCalledWith(
+      "space-1",
+      [expect.objectContaining({ id: "media" })],
+      true,
+    );
+    expect(harness.discard).not.toHaveBeenCalled();
   });
 
   it("creates an ordinary website immediately without invoking media acquisition", async () => {
@@ -88,108 +105,88 @@ describe("Space URL capture", () => {
       POSITION,
     );
     expect(mocks.acquireMediaSource).not.toHaveBeenCalled();
-    expect(harness.begin).toHaveBeenCalledOnce();
-    expect(harness.finish).toHaveBeenCalledWith("import-1");
+    expect(harness.createPending).not.toHaveBeenCalled();
   });
 
   it("sends the reported YouTube watch URL to media acquisition, not website capture", async () => {
     const harness = captureHarness();
     const watchUrl = "https://www.youtube.com/watch?v=CmjNjWeRE0Y";
-    mocks.acquireMediaSource.mockResolvedValue({ outcome: "imported", payload: importedVideo() });
+    mocks.acquireMediaSource.mockImplementation(async (_url, observer) => {
+      await observer.resolved(resolvedVideo());
+      return { outcome: "imported", payload: importedVideo() };
+    });
     await captureSpaceUrl(harness.context, watchUrl, POSITION);
-    expect(mocks.acquireMediaSource).toHaveBeenCalledWith(watchUrl, expect.any(Function));
+    expect(mocks.acquireMediaSource).toHaveBeenCalledWith(watchUrl, expect.any(Object));
     expect(mocks.addSavedWebsite).not.toHaveBeenCalled();
   });
 
-  it("reports an unsupported explicit media source without creating a website", async () => {
+  it("settles into its own Space after the person navigated away, without revealing it", async () => {
+    const deferred = await resolveWhilePending();
+    const harness = captureHarness();
+    const capture = captureSpaceUrl(harness.context, URL, POSITION);
+    await vi.waitFor(() => expect(harness.createPending).toHaveBeenCalledOnce());
+    harness.setActiveSpace("space-2");
+    deferred.resolve({ outcome: "imported", payload: importedVideo() });
+
+    await capture;
+    expect(harness.savePending).toHaveBeenCalledOnce();
+    expect(harness.finalize).toHaveBeenCalledWith(
+      "space-1",
+      [expect.objectContaining({ id: "media" })],
+      false,
+    );
+  });
+
+  it("takes the arriving node and its asset away when the import fails, and reports why", async () => {
+    const failure = new Error("runtime unavailable");
+    mocks.acquireMediaSource.mockImplementation(async (_url, observer) => {
+      await observer.resolved(resolvedVideo());
+      throw failure;
+    });
+    const harness = captureHarness();
+
+    await expect(captureSpaceUrl(harness.context, URL, POSITION)).rejects.toBe(failure);
+
+    expect(harness.discard).toHaveBeenCalledWith("space-1", "media");
+    expect(mocks.removeSpaceAssets).toHaveBeenCalledWith([RESERVED_ASSET]);
+    expect(harness.savePending).not.toHaveBeenCalled();
+  });
+
+  it("takes the arriving node away quietly when the import is cancelled", async () => {
+    mocks.acquireMediaSource.mockImplementation(async (_url, observer) => {
+      await observer.resolved(resolvedVideo());
+      throw createAppError("media_acquisition_cancelled", "Cancelled");
+    });
+    const harness = captureHarness();
+    await expect(captureSpaceUrl(harness.context, URL, POSITION)).resolves.toBeUndefined();
+    expect(harness.discard).toHaveBeenCalledWith("space-1", "media");
+    expect(mocks.logWarn).not.toHaveBeenCalled();
+  });
+
+  it("reports an unsupported media source and leaves nothing behind", async () => {
     mocks.acquireMediaSource.mockResolvedValue({ outcome: "unsupported" });
     const harness = captureHarness();
-    await captureSpaceUrl(harness.context, URL, POSITION);
+
+    await expect(captureSpaceUrl(harness.context, URL, POSITION)).rejects.toThrow("unsupported");
+
     expect(mocks.addSavedWebsite).not.toHaveBeenCalled();
-    expect(mocks.toastError).toHaveBeenCalledWith("spaces.media.import.failed");
-    expect(harness.update).toHaveBeenCalledWith("import-1", { status: "failed" });
-    expect(harness.finish).not.toHaveBeenCalled();
+    expect(harness.createPending).not.toHaveBeenCalled();
+    expect(harness.discard).not.toHaveBeenCalled();
   });
 
-  it("keeps a failed capture visible instead of silently removing it", async () => {
-    mocks.acquireMediaSource.mockRejectedValue(new Error("runtime unavailable"));
-    const harness = captureHarness();
-    await captureSpaceUrl(harness.context, URL, POSITION);
-    expect(harness.update).toHaveBeenCalledWith("import-1", { status: "failed" });
-    expect(harness.finish).not.toHaveBeenCalled();
-    expect(harness.addContent).not.toHaveBeenCalled();
-    expect(mocks.toastError).toHaveBeenCalledWith("spaces.media.import.failed");
-  });
-
-  it("updates canvas capture progress from the media task", async () => {
-    const deferred = pendingImport();
-    mocks.acquireMediaSource.mockReturnValue(deferred.promise);
-    const harness = captureHarness();
-    const capture = captureSpaceUrl(harness.context, URL, POSITION);
-    const onProgress = mocks.acquireMediaSource.mock.calls[0]?.[1];
-    onProgress?.({
-      stage: "downloading",
-      downloadedBytes: 512,
-      totalBytes: 1024,
-      processedMs: null,
-      durationMs: null,
+  it("refuses an import that published somewhere other than the reserved asset", async () => {
+    mocks.acquireMediaSource.mockImplementation(async (_url, observer) => {
+      await observer.resolved(resolvedVideo());
+      return {
+        outcome: "imported",
+        payload: { ...importedVideo(), assetPath: "/spaces/assets/elsewhere.mp4" },
+      };
     });
-    expect(harness.update).toHaveBeenCalledWith("import-1", {
-      status: "downloading",
-      downloadedBytes: 512,
-      totalBytes: 1024,
-      processedMs: null,
-      durationMs: null,
-    });
-    deferred.resolve({ outcome: "imported", payload: importedVideo() });
-    await capture;
-  });
-
-  it("removes the projection quietly when the import is cancelled", async () => {
-    mocks.acquireMediaSource.mockRejectedValue(createAppError("media_acquisition_cancelled", "Cancelled"));
     const harness = captureHarness();
-    await captureSpaceUrl(harness.context, URL, POSITION);
-    expect(harness.finish).toHaveBeenCalledWith("import-1");
-    expect(mocks.toastError).not.toHaveBeenCalled();
-  });
 
-  it("does not persist into another space after navigation", async () => {
-    const deferred = pendingImport();
-    mocks.acquireMediaSource.mockReturnValue(deferred.promise);
-    const harness = captureHarness();
-    const capture = captureSpaceUrl(harness.context, URL, POSITION);
-    await vi.waitFor(() => expect(mocks.acquireMediaSource).toHaveBeenCalledOnce());
-    harness.setActiveSpace("space-2");
-    deferred.resolve({ outcome: "imported", payload: importedVideo() });
-    await capture;
-    expect(harness.addContent).not.toHaveBeenCalled();
-    expect(mocks.removeSpaceAssets).toHaveBeenCalledWith(["/spaces/assets/video.mp4"]);
-    expect(harness.finish).toHaveBeenCalledWith("import-1");
-  });
+    await expect(captureSpaceUrl(harness.context, URL, POSITION)).rejects.toThrow("reserved asset");
 
-  it("keeps navigation successful and reports downloaded asset cleanup failure", async () => {
-    const deferred = pendingImport();
-    mocks.acquireMediaSource.mockReturnValue(deferred.promise);
-    mocks.removeSpaceAssets.mockRejectedValue(new Error("asset locked"));
-    const harness = captureHarness();
-    const capture = captureSpaceUrl(harness.context, URL, POSITION);
-    await vi.waitFor(() => expect(mocks.acquireMediaSource).toHaveBeenCalledOnce());
-    harness.setActiveSpace("space-2");
-    deferred.resolve({ outcome: "imported", payload: importedVideo() });
-
-    await expect(capture).resolves.toBeUndefined();
-    expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining("asset locked"));
-    expect(harness.finish).toHaveBeenCalledWith("import-1");
-  });
-
-  it("removes downloaded assets when the media node cannot be persisted", async () => {
-    mocks.acquireMediaSource.mockResolvedValue({ outcome: "imported", payload: importedVideo() });
-    const harness = captureHarness();
-    harness.addContent.mockRejectedValue(new Error("revision rejected"));
-    await captureSpaceUrl(harness.context, URL, POSITION);
-    expect(mocks.removeSpaceAssets).toHaveBeenCalledWith(["/spaces/assets/video.mp4"]);
-    expect(harness.update).toHaveBeenCalledWith("import-1", { status: "failed" });
-    expect(harness.finish).not.toHaveBeenCalled();
-    expect(mocks.toastError).toHaveBeenCalledWith("spaces.media.import.failed");
+    expect(harness.savePending).not.toHaveBeenCalled();
+    expect(harness.discard).toHaveBeenCalledWith("space-1", "media");
   });
 });

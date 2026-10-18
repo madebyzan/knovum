@@ -10,7 +10,6 @@ import SpaceCanvasSceneControls from "../../scenes/presentation/SpaceCanvasScene
 import SpaceFind from "../../search/presentation/SpaceFind.vue";
 import SpaceGlobalFind from "../../search/presentation/SpaceGlobalFind.vue";
 import { useSpaceStore } from "../../session/space-store";
-import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
 import { useCanvasToolStore } from "../canvas-tool-store";
 import { getCanvasEditorSession } from "../editor-session";
 import { useCanvasSelectionProjection } from "../use-canvas-selection-projection";
@@ -26,7 +25,6 @@ import SpaceCanvasViewControls from "./SpaceCanvasViewControls.vue";
 import { useCanvasChromeRects } from "./use-canvas-chrome-rects";
 defineProps<{
   canvasToViewportPoint(point: { x: number; y: number }): { x: number; y: number };
-  captures: readonly SpaceUrlCaptureProjection[];
   empty: boolean;
   navigationEnabled: boolean;
   error?: string;
@@ -47,11 +45,7 @@ const {
 const scenesCollapsed = shallowRef(false);
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
 const derivations = useSelectionDerivations(selectedNodes);
-const emit = defineEmits<{
-  dismissError: [];
-  dismissCapture: [id: string];
-  retryCapture: [capture: SpaceUrlCaptureProjection];
-}>();
+const emit = defineEmits<{ dismissError: [] }>();
 const CANVAS_CHROME_INSETS = { top: 8, right: 16, bottom: 8, left: 16 } as const;
 const { chromeRects } = useCanvasChromeRects();
 const singleCanvasObjectSelected = computed(
@@ -145,8 +139,6 @@ const selectionBarGap = computed(() =>
       />
     </SpaceCanvasSelectionAnchor>
     <SpaceCanvasFeedback
-      :canvas-to-viewport-point="canvasToViewportPoint"
-      :captures="captures"
       :empty="empty"
       :file-hover="fileHover"
       v-bind="{
@@ -154,8 +146,6 @@ const selectionBarGap = computed(() =>
         ...(fileHoverPosition ? { fileHoverPosition } : {}),
       }"
       @dismiss-error="emit('dismissError')"
-      @dismiss-capture="emit('dismissCapture', $event)"
-      @retry-capture="emit('retryCapture', $event)"
     />
     <SpaceCreationDialog
       v-model:output="derivations.composing.value"

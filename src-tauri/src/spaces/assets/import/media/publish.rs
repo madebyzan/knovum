@@ -1,4 +1,7 @@
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
@@ -6,17 +9,29 @@ use uuid::Uuid;
 use super::contracts::{ImportedMedia, MediaOrigin};
 use crate::file_inspection::{content_revision, modified_millis};
 use crate::media::acquisition::{
-    contracts::{AcquisitionProgress, MediaKind},
+    contracts::{AcquisitionEvent, MediaKind},
     metadata::YtDlpMetadata,
     output, playable_asset,
 };
+
+/// Where a downloaded media asset lives. The container follows the kind, so the path the canvas
+/// reserved when the link resolved is the path the import publishes into.
+pub(super) fn reserved_asset(assets: &Path, job_id: Uuid, kind: MediaKind) -> PathBuf {
+    assets.join(format!(
+        "{job_id}.{}",
+        match kind {
+            MediaKind::Video => "mp4",
+            MediaKind::Audio => "m4a",
+        }
+    ))
+}
 
 pub(super) fn commit(
     assets: &Path,
     workspace: &Path,
     job_id: Uuid,
     ffmpeg: &Path,
-    progress: &Channel<AcquisitionProgress>,
+    progress: &Channel<AcquisitionEvent>,
     cancellation: &CancellationToken,
 ) -> Result<ImportedMedia, String> {
     let metadata = output::load_metadata(workspace)?;
@@ -33,8 +48,7 @@ pub(super) fn commit(
         progress,
         cancellation,
     })?;
-    let extension = output::extension(&playable)?;
-    let target = assets.join(format!("{job_id}.{extension}"));
+    let target = reserved_asset(assets, job_id, media_kind);
     fs::rename(&playable, &target)
         .map_err(|error| format!("Unable to commit downloaded media asset: {error}"))?;
     let preview_path = match commit_preview(workspace, assets, job_id) {
@@ -44,13 +58,7 @@ pub(super) fn commit(
             return Err(error);
         }
     };
-    match build_import(
-        metadata,
-        media_kind,
-        &target,
-        &extension,
-        preview_path.clone(),
-    ) {
+    match build_import(metadata, media_kind, &target, preview_path.clone()) {
         Ok(value) => Ok(value),
         Err(error) => {
             let _ = fs::remove_file(&target);
@@ -66,9 +74,9 @@ fn build_import(
     metadata: YtDlpMetadata,
     media_kind: MediaKind,
     target: &Path,
-    extension: &str,
     preview_path: Option<String>,
 ) -> Result<ImportedMedia, String> {
+    let extension = output::extension(target)?;
     let creator = output::optional_text(metadata.creator(), "creator", 512)?;
     let duration_seconds = metadata.duration_seconds();
     let dimensions = metadata.display_dimensions();

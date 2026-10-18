@@ -53,11 +53,9 @@ const sceneInput = computed<CanvasSceneInput>(() => ({
   nodes: store.nodes,
   relations: visibleRelations.value,
 }));
-const captures = computed(() => store.urlCaptures.filter(({ spaceId }) => spaceId === store.activeSpaceId));
 const hasCanvasObjects = computed(() => store.editSnapshot.structure.length > 0);
 const initialEmpty = computed(
-  () =>
-    !hasCanvasObjects.value && !captures.value.length && (tools.tool === "select" || tools.tool === "pan"),
+  () => !hasCanvasObjects.value && (tools.tool === "select" || tools.tool === "pan"),
 );
 const navigationRequests = useCanvasNavigationRequests();
 const contentLayout = createCanvasContentLayoutCoordinator({
@@ -161,7 +159,6 @@ const canvasEvents = createSpaceCanvasEvents({
     </CanvasSurfaceHost>
     <SpaceCanvasProductLayer
       v-if="renderingEnabled && editorSession.activeEditor.value && !editorSession.transitioning.value"
-      :captures="captures"
       :canvas-to-viewport-point="canvasToViewportPoint"
       :empty="initialEmpty"
       :navigation-enabled="hasCanvasObjects"
@@ -171,8 +168,6 @@ const canvasEvents = createSpaceCanvasEvents({
         ...(imports.fileHoverPosition.value ? { fileHoverPosition: imports.fileHoverPosition.value } : {}),
       }"
       @dismiss-error="dismissError"
-      @dismiss-capture="store.finishUrlCapture"
-      @retry-capture="imports.retryCapture"
     />
   </section>
 </template>
