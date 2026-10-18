@@ -15,11 +15,11 @@ import { nodeExportFormats } from "../assets/export/formats";
 import { exportSpaceNode } from "../assets/export/node";
 
 /** The formats the engine reports for the resource under test. */
-function engineOffers(formats: string[]) {
+function engineOffers(formats: string[], unavailable: string | null = null) {
   mocks.invoke
     .mockReset()
     .mockImplementation((command) =>
-      Promise.resolve(command === "plugin:spaces|list_export_formats" ? formats : undefined),
+      Promise.resolve(command === "plugin:spaces|list_export_formats" ? { formats, unavailable } : undefined),
     );
 }
 
@@ -62,20 +62,29 @@ describe("Space resource export", () => {
   it("admits its own format first, then the ones the engine converts to", async () => {
     engineOffers(["txt", "html", "docx", "pdf", "pptx"]);
 
-    await expect(nodeExportFormats("space", canvasNode("markdown", markdownData()))).resolves.toEqual([
-      "md",
-      "txt",
-      "html",
-      "docx",
-      "pdf",
-      "pptx",
-    ]);
+    await expect(nodeExportFormats("space", canvasNode("markdown", markdownData()))).resolves.toEqual({
+      formats: ["md", "txt", "html", "docx", "pdf", "pptx"],
+      unavailable: null,
+    });
   });
 
   it("admits nothing for a resource that has no file of its own", async () => {
     engineOffers([]);
 
-    await expect(nodeExportFormats("space", imageNode())).resolves.toEqual([]);
+    await expect(nodeExportFormats("space", imageNode())).resolves.toEqual({
+      formats: [],
+      unavailable: null,
+    });
+  });
+
+  /** Every document format reads the same content, so one unreadable document rules them all out. */
+  it("keeps the format the Renderer holds and carries the engine's reason for the rest", async () => {
+    engineOffers([], "Raw HTML is not supported by document export");
+
+    await expect(nodeExportFormats("space", canvasNode("markdown", markdownData()))).resolves.toEqual({
+      formats: ["md"],
+      unavailable: "Raw HTML is not supported by document export",
+    });
   });
 
   it("asks for a destination in the chosen format and lets the engine write it", async () => {
