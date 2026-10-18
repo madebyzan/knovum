@@ -1,4 +1,3 @@
-use crate::spaces::knowledge::contracts::{KnowledgeActorKind, RelationKind, RelationStatus};
 use serde::Serialize;
 use serde_json::Value;
 
@@ -11,19 +10,4 @@ use serde_json::Value;
 pub struct CompletedDerivationOutput {
     pub node_id: String,
     pub data: Value,
-}
-
-/// One `derives-from` Relation an output carries. It is written when the output is reserved, so it
-/// never leaves the engine as part of a completion result.
-pub struct DerivationRelation {
-    pub id: String,
-    pub space_id: String,
-    pub source_id: String,
-    pub target_id: String,
-    pub kind: RelationKind,
-    pub rationale: &'static str,
-    pub status: RelationStatus,
-    pub actor_kind: KnowledgeActorKind,
-    pub created_at: i64,
-    pub updated_at: i64,
 }

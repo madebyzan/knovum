@@ -26,7 +26,7 @@ watch(source, () => {
   <button
     type="button"
     :data-resource-id="item.resource.id"
-    class="group relative block w-full cursor-pointer select-none overflow-hidden rounded-lg bg-surface-panel text-left ring-1 ring-stroke-divider ring-inset transition-colors duration-150 hover:bg-surface-control-hover hover:ring-stroke-default-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-stroke-focus"
+    class="group relative block w-full cursor-pointer overflow-hidden rounded-lg bg-surface-panel text-left ring-1 ring-stroke-divider transition-colors duration-150 select-none ring-inset hover:bg-surface-control-hover hover:ring-stroke-default-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-stroke-focus"
     :aria-label="`${t('spaces.processing.document.resources.open', { index: index + 1 })}: ${item.locationLabel}${failed ? ` · ${t('spaces.processing.imageUnavailable')}` : ''}`"
     @click="emit('select')"
   >
@@ -54,7 +54,7 @@ watch(source, () => {
       />
       <span
         v-if="!failed"
-        class="pointer-events-none absolute top-1.5 right-1.5 grid size-6 place-items-center rounded-md bg-black/55 text-fg-on-image shadow-control ring-1 ring-stroke-on-image/20 backdrop-blur-md opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+        class="pointer-events-none absolute top-1.5 right-1.5 grid size-6 place-items-center rounded-md bg-black/55 text-fg-on-image opacity-0 shadow-control ring-1 ring-stroke-on-image/20 backdrop-blur-md transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
         aria-hidden="true"
       >
         <Maximize2 class="size-3" :stroke-width="1.8" />
@@ -70,7 +70,8 @@ watch(source, () => {
           {{ item.locationLabel }}
         </strong>
         <span class="mt-0.5 block truncate text-caption-sm text-fg-on-image/80 drop-shadow-sm">
-          {{ item.resource.width }} × {{ item.resource.height }} · {{ formatByteSize(item.resource.byteSize) }}
+          {{ item.resource.width }} × {{ item.resource.height }} ·
+          {{ formatByteSize(item.resource.byteSize) }}
         </span>
       </div>
     </div>

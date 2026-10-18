@@ -149,9 +149,10 @@ The resulting lifecycle, permissions and interaction contracts are owned by
   would add hundreds of megabytes and runtime installation/maintenance for a capability outside
   Knovum's knowledge-authoring scope. On-demand installation moves that cost outside the default
   installer but does not remove it. The lightweight product boundary therefore excludes Office
-  original-layout PDF conversion and engine provisioning; users export PDF in their external Office
-  application. Existing semantic extraction and Markdown/Note typesetting remain supported. No
-  lossy Office-to-Markdown-to-PDF route is presented as original-layout conversion.
+  original-layout PDF conversion and engine provisioning; users who need the original layout export
+  PDF in their external Office application. Semantic Office content reaches PDF through the same
+  reflowed typesetting as every other document, and no such route is presented as original-layout
+  conversion.
 - Presentation pagination reuses [unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation)
   and [unicode-width](https://github.com/unicode-rs/unicode-width), already present in the compiled
   dependency closure, as declared direct dependencies. They own grapheme boundaries and CJK width

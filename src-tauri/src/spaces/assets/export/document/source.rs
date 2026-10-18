@@ -19,7 +19,8 @@ pub(super) async fn load(
     let kind = required(payload, "kind")?;
     let title = title(kind, payload)?;
     match kind {
-        "markdown" | "note" => editable(app, node_id, payload, format, title).await,
+        // A Note and a text block are the same editable content, presented differently.
+        "markdown" | "note" | "text" => editable(app, node_id, payload, format, title).await,
         "file" => file(app, payload, title),
         _ => Err(format!("A {kind} resource is not a document source").into()),
     }

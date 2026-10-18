@@ -89,6 +89,20 @@ fn changed_image_bytes_fail_instead_of_publishing_an_unpinned_picture() {
     assert!(text.contains("[Image: 示意图]") && !text.contains("figure.png"));
 }
 
+/// A conversion embeds bytes, so it can only embed pictures this Space holds. A reference to
+/// anything else says what it shows and nothing more, which is what keeps a document full of
+/// badges convertible.
+#[test]
+fn a_picture_the_space_does_not_hold_reads_as_its_alt_text() {
+    let source = DocumentSource {
+        markdown: "![build passing](https://img.example/badge.svg) ok\n\n![](gone.png)".into(),
+        ..DocumentSource::default()
+    };
+    let text = String::from_utf8(DocumentFormat::Text.render(&source).unwrap()).unwrap();
+    assert_eq!(text, "build passing ok\n\n");
+    assert!(DocumentFormat::Docx.render(&source).is_ok());
+}
+
 #[test]
 fn jpeg_camera_orientation_is_applied_before_embedding() {
     let mut jpeg = Cursor::new(Vec::new());

@@ -70,12 +70,43 @@ fn common_fixture_preserves_tables_code_and_ordered_start() {
         .any(|b| matches!(b, Block::Code { language, .. } if language == "rust")));
 }
 
+/// Markdown carries HTML all the time - badge rows, centred headers, `<sub>` captions - and a
+/// document is the content that markup wraps.
 #[test]
-fn unsupported_html_is_not_silently_removed() {
-    for markdown in ["<script>danger()</script>", "text <b>bold</b>"] {
-        assert!(markdown::parse(&source(markdown))
-            .unwrap_err()
-            .contains("HTML"));
+fn html_markup_contributes_the_content_it_wraps() {
+    let markdown = concat!(
+        "<div align=\"center\">\n",
+        "<b>Knovum</b>&nbsp;&#8212; one&amp;all\n",
+        "<br>\n",
+        "<img src=\"https://img.example/badge.svg\" alt=\"build passing\">\n",
+        "</div>"
+    );
+    let document = markdown::parse(&source(markdown)).unwrap();
+    let Block::Paragraph(content) = &document.blocks[0] else {
+        panic!("expected the wrapped content as a paragraph");
+    };
+    assert_eq!(
+        text::inline_text(content, true),
+        "Knovum\u{a0}— one&all \nbuild passing",
+        "text and line breaks are content; a no-break space is not spacing"
+    );
+}
+
+/// A script or a stylesheet is markup whose text is not prose, so none of it reaches the document.
+#[test]
+fn markup_without_prose_contributes_nothing() {
+    for markdown in [
+        "<script>if (a < b) danger()</script>",
+        "<style>.a { color: red }</style>",
+        "<!-- a remark -->",
+    ] {
+        assert!(
+            markdown::parse(&source(markdown))
+                .unwrap()
+                .blocks
+                .is_empty(),
+            "{markdown} says nothing about the document"
+        );
     }
 }
 

@@ -121,7 +121,9 @@ async fn depth_publication_preserves_source_and_creates_one_related_output() {
         .is_err());
     // Lineage belongs to the reservation, so settling content never writes a Relation.
     let relation_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_relations")
-        .fetch_one(&pool).await.unwrap();
+        .fetch_one(&pool)
+        .await
+        .unwrap();
     assert_eq!(relation_count, 0);
 }
 

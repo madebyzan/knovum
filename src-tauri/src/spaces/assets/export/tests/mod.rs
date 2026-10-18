@@ -90,29 +90,61 @@ fn documents_reach_the_formats_the_engine_serializes() {
 /// is unavailable in all of them and says so where the formats were asked for.
 #[test]
 fn a_document_the_engine_cannot_read_offers_no_format_and_says_why() {
-    let payload = json!({"kind":"markdown","title":"D","text":"<div>raw</div>"});
+    let payload = json!({"kind":"note","title":"D","tiptapContent":{"type":"doc","content":[
+        {"type":"mermaid","attrs":{"diagram":"graph TD;"}}
+    ]}});
     let formats = targets::of(&payload).unwrap();
     assert!(formats.formats.is_empty());
     assert!(formats
         .unavailable
-        .is_some_and(|reason| reason.contains("Raw HTML")));
+        .is_some_and(|reason| reason.contains("mermaid")));
     assert!(targets::requested(&payload, Path::new("/out/d.docx"))
         .unwrap_err()
-        .contains("Raw HTML"));
+        .contains("mermaid"));
 }
 
-/// Original-layout PDF of an Office file is outside the product boundary, and a
-/// deck is only derived from content that carries one.
+/// Markdown carries HTML - badges, centred headers - and a document is the content that markup
+/// wraps, so such a document converts like any other.
 #[test]
-fn office_files_keep_their_own_bytes_and_offer_only_semantic_content() {
+fn markdown_that_carries_html_still_reaches_every_format() {
+    let payload = json!({"kind":"markdown","title":"D","text":"<div>raw</div>"});
+    let formats = targets::of(&payload).unwrap();
+    assert_eq!(formats.formats, ["txt", "html", "docx", "pdf", "pptx"]);
+    assert!(formats.unavailable.is_none());
+}
+
+/// A text block is the same editable content as a Note, presented differently, so it reaches the
+/// same formats. Its own `.txt` is the Renderer's to write, so the engine is not asked for it.
+#[test]
+fn a_text_block_reaches_the_document_formats_too() {
+    let payload = json!({"kind":"text","title":"Notes","plainText":"Decision",
+    "tiptapContent":{"type":"doc","content":[
+        {"type":"paragraph","content":[{"type":"text","text":"Decision"}]}
+    ]}});
+    assert_eq!(offered(&payload), ["txt", "html", "docx", "pdf", "pptx"]);
+    assert_eq!(
+        targets::requested(&payload, Path::new("/out/notes.pdf")).unwrap(),
+        Export::Document(DocumentFormat::Pdf)
+    );
+}
+
+/// Every document file reaches every serialization the engine can write. Slides are the one
+/// exception: a deck is only derived from a source that carries slides.
+#[test]
+fn document_files_keep_their_own_bytes_and_reach_the_engine_formats() {
     let office = |extension: &str| {
         json!({"kind":"file","title":"Report","fileName":format!("report.{extension}"),
                "assetPath":format!("/owned/report.{extension}"),"sourceRevision":"sha256:current"})
     };
-    for extension in ["doc", "docx", "xls", "xlsx", "pptx"] {
+    for (extension, expected) in [
+        ("doc", vec!["doc", "txt", "html", "docx", "pdf"]),
+        ("docx", vec!["docx", "txt", "html", "pdf"]),
+        ("xls", vec!["xls", "txt", "html", "docx", "pdf"]),
+        ("xlsx", vec!["xlsx", "txt", "html", "docx", "pdf"]),
+        ("pptx", vec!["pptx", "txt", "html", "docx", "pdf"]),
+    ] {
         let payload = office(extension);
-        assert!(!offered(&payload).contains(&"pdf".to_owned()));
-        assert!(!offered(&payload).contains(&"pptx".to_owned()) || extension == "pptx");
+        assert_eq!(offered(&payload), expected);
         assert_eq!(
             targets::requested(&payload, Path::new(&format!("/out/report.{extension}"))).unwrap(),
             Export::Managed(Managed::Original),
@@ -120,11 +152,11 @@ fn office_files_keep_their_own_bytes_and_offer_only_semantic_content() {
     }
     assert_eq!(
         offered(&office("pdf")),
-        ["pdf", "docx", "txt", "html", "pptx"]
+        ["pdf", "txt", "html", "docx", "pptx"]
     );
     assert_eq!(
         offered(&office("ppt")),
-        ["ppt", "docx", "txt", "html", "pptx"]
+        ["ppt", "txt", "html", "docx", "pdf", "pptx"]
     );
 }
 
@@ -153,12 +185,12 @@ fn unsettled_resources_report_why_they_have_no_file_yet() {
     assert!(targets::requested(&processing, Path::new("/out/cover.png"))
         .unwrap_err()
         .contains("Wait for this resource"));
-    assert!(
-        targets::of(&json!({"kind":"markdown","title":"D","text":"","derivationState":"pending"}))
-            .unwrap()
-            .unavailable
-            .is_some_and(|reason| reason.contains("Wait for this resource"))
-    );
+    assert!(targets::of(
+        &json!({"kind":"markdown","title":"D","text":"","derivationState":"pending"})
+    )
+    .unwrap()
+    .unavailable
+    .is_some_and(|reason| reason.contains("Wait for this resource")));
 }
 
 /// A website summary or an object is serialized by the Renderer from content it
