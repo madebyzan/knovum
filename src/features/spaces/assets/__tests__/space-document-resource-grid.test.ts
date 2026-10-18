@@ -68,7 +68,7 @@ describe("document resource grid", () => {
     vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockImplementation(function (this: HTMLElement) {
       if (this.hasAttribute("data-index")) {
         const preview = this.querySelector<HTMLElement>("[data-resource-preview]");
-        return Math.round(Number.parseFloat(preview?.style.height ?? "0") + 48);
+        return Math.round(Number.parseFloat(preview?.style.height ?? "0"));
       }
       return 384;
     });
@@ -102,7 +102,7 @@ describe("document resource grid", () => {
     const tiles = () => wrapper.findAll<HTMLElement>("[data-index]");
     expect(tiles()[0]!.element.style.width).toBe("156px");
     expect(tiles()[1]!.element.style.transform).toBe("translate(164px, 0px)");
-    expect(tiles()[2]!.element.style.transform).toBe("translate(0px, 160px)");
+    expect(tiles()[2]!.element.style.transform).toBe("translate(0px, 112px)");
     const previews = wrapper.findAll<HTMLElement>("[data-resource-preview]");
     expect(previews[0]!.element.style.height).toBe("104px");
     expect(previews[1]!.element.style.height).toBe("234px");
