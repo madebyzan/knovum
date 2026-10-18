@@ -7,68 +7,77 @@ use crate::{
     local_resources::tools, media::ffmpeg,
 };
 
-/// One encoding the bundled FFmpeg is qualified to produce. The arguments are
-/// the whole definition of the target, so adding a format adds a row.
+/// One encoding the bundled FFmpeg is qualified to produce. A row is the whole definition of a
+/// target: what to encode with, and what its container asks for on top of that.
 #[derive(Debug, Eq, PartialEq)]
 pub(super) struct Target {
     pub extension: &'static str,
-    arguments: &'static [&'static str],
+    codecs: &'static [&'static str],
+    container: &'static [&'static str],
 }
 
-const AUDIO: &[Target] = &[
+/// Every encoding the bundled FFmpeg is qualified to write sound in: lossless and large,
+/// the one every device plays, the one every Apple tool prefers, and lossless and compressed.
+static AUDIO: [Target; 4] = [
     Target {
         extension: "wav",
-        arguments: &["-vn", "-c:a", "pcm_s16le"],
+        codecs: &["-vn", "-c:a", "pcm_s16le"],
+        container: &[],
     },
     Target {
         extension: "mp3",
-        arguments: &["-vn", "-c:a", "libmp3lame", "-q:a", "2"],
+        codecs: &["-vn", "-c:a", "libmp3lame", "-q:a", "2"],
+        container: &[],
     },
     Target {
         extension: "m4a",
-        arguments: &["-vn", "-c:a", "aac", "-b:a", "192k"],
+        codecs: &["-vn", "-c:a", "aac", "-b:a", "192k"],
+        container: &[],
     },
     Target {
         extension: "flac",
-        arguments: &["-vn", "-c:a", "flac"],
+        codecs: &["-vn", "-c:a", "flac"],
+        container: &[],
     },
 ];
 
-const VIDEO: &[Target] = &[
+/// The containers that carry the one qualified codec pair. The codecs are the whole of what a
+/// player admits, so a container is a choice of wrapper rather than of quality.
+static VIDEO: [Target; 3] = [
     Target {
         extension: "mp4",
-        arguments: VIDEO_ARGUMENTS,
+        codecs: VIDEO_CODECS,
+        container: FASTSTART,
     },
     Target {
         extension: "mov",
-        arguments: VIDEO_ARGUMENTS,
+        codecs: VIDEO_CODECS,
+        container: FASTSTART,
+    },
+    Target {
+        extension: "mkv",
+        codecs: VIDEO_CODECS,
+        container: &[],
     },
 ];
 
-/// H.264 and AAC, the pair every player and editor admits. `faststart` costs one
-/// rewrite of the index and makes the result playable while it downloads.
-const VIDEO_ARGUMENTS: &[&str] = &[
-    "-c:v",
-    "libx264",
-    "-preset",
-    "medium",
-    "-crf",
-    "20",
-    "-pix_fmt",
-    "yuv420p",
-    "-c:a",
-    "aac",
-    "-b:a",
-    "192k",
-    "-movflags",
-    "+faststart",
+/// H.264 and AAC, the pair every player and editor admits.
+const VIDEO_CODECS: &[&str] = &[
+    "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac",
+    "-b:a", "192k",
 ];
 
-pub(super) fn targets(kind: &str) -> &'static [Target] {
+/// `faststart` costs one rewrite of the index and makes the result playable while it downloads.
+/// It is an MP4-family option, so Matroska does not ask for it.
+const FASTSTART: &[&str] = &["-movflags", "+faststart"];
+
+pub(super) fn targets(kind: &str) -> Vec<&'static Target> {
     match kind {
-        "audio" => AUDIO,
-        "video" => VIDEO,
-        _ => &[],
+        "audio" => AUDIO.iter().collect(),
+        // A video carries sound as well as pictures, so taking the sound out of it is one of its
+        // encodings rather than a separate feature. Every audio target drops the video stream.
+        "video" => VIDEO.iter().chain(AUDIO.iter()).collect(),
+        _ => vec![],
     }
 }
 
@@ -91,7 +100,8 @@ pub(super) fn transcode(
     command
         .args(["-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-i"])
         .arg(source)
-        .args(target.arguments)
+        .args(target.codecs)
+        .args(target.container)
         .arg(destination);
     ffmpeg::run(
         &mut command,
