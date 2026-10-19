@@ -24,7 +24,8 @@ pub(crate) struct ExtensionState {
     sessions: Mutex<mcp::sessions::Sessions>,
     credential_locks: Mutex<HashMap<String, Arc<Mutex<()>>>>,
     account_locks: Mutex<HashMap<String, Arc<Mutex<()>>>>,
-    authorizations: Mutex<HashMap<String, tokio_util::sync::CancellationToken>>,
+    /// The authorization attempt in flight per account, as `(attempt id, the user's cancel)`.
+    authorizations: Mutex<HashMap<String, (String, tokio_util::sync::CancellationToken)>>,
     oauth_clients: Mutex<
         HashMap<
             String,
