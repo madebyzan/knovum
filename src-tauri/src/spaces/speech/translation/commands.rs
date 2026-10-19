@@ -27,25 +27,16 @@ pub async fn translate_video_dubbing(
         ExecutionCapability::TextGeneration,
     )?;
     target.temperature = 0.0;
-    if request.local_only && !target.is_local() {
-        return Err(AppError::invalid(
-            "Local-only video dubbing requires an Ollama model on a loopback endpoint",
-        ));
-    }
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let project = repository::active_project(&mut tx, &request.project_id).await?;
     repository::require_expected_revision(&project, request.expected_revision)?;
-    repository::require_current_segments(
-        &mut tx,
-        &project.revision_id,
-        project.translated,
-        &request.segments,
-    )
-    .await?;
+    let segments =
+        repository::source_segments(&mut tx, &project.revision_id, project.translated).await?;
     let input_revision = input_revision(
         &request,
         &project.revision_id,
+        &segments,
         target.provider(),
         target.model(),
         &target.base_url,
@@ -57,12 +48,11 @@ pub async fn translate_video_dubbing(
         expected_revision: request.expected_revision,
         input_revision,
         target_language: request.target_language.clone(),
-        local_only: request.local_only,
         provider: target.provider().into(),
         model: target.model().into(),
         base_url: target.base_url.clone(),
         execution_target: request.execution_target.clone(),
-        segments: request.segments.clone(),
+        segments,
     };
     if let Some(existing) =
         repository::existing_request(&mut tx, &request.job_id, &project.space_id).await?
@@ -122,6 +112,7 @@ pub async fn get_video_translation(
 fn input_revision(
     request: &TranslateVideoDubbingRequest,
     revision_id: &str,
+    segments: &[super::contracts::VideoTranslationSegmentInput],
     provider: &str,
     model: &str,
     base_url: &str,
@@ -131,11 +122,10 @@ fn input_revision(
         "revisionId": revision_id,
         "expectedRevision": request.expected_revision,
         "targetLanguage": request.target_language,
-        "localOnly": request.local_only,
         "provider": provider,
         "model": model,
         "baseUrl": base_url,
-        "segments": request.segments,
+        "segments": segments,
     }))
     .map_err(db::json_error)?;
     Ok(format!("sha256:{}", hex::encode(Sha256::digest(bytes))))
@@ -166,7 +156,6 @@ async fn create_run(
         "workflow": WORKFLOW,
         "provider": input.provider,
         "model": input.model,
-        "localOnly": input.local_only,
     });
     let step_attempts = i64::try_from(input.segments.len())
         .map_err(|_| "Video translation has too many segments")?
@@ -195,7 +184,6 @@ async fn create_run(
             expected_revision: input.expected_revision,
             input_revision: input.input_revision.clone(),
             target_language: input.target_language.clone(),
-            local_only: input.local_only,
             provider: input.provider.clone(),
             model: input.model.clone(),
             base_url: input.base_url.clone(),

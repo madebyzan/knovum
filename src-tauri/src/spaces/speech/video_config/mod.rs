@@ -55,7 +55,6 @@ pub struct VideoTranslationProvenance {
     pub target_language: String,
     pub provider: String,
     pub model: String,
-    pub local_only: bool,
 }
 
 pub(crate) fn parse(value: &serde_json::Value) -> Result<VideoDubbingOutputConfig, String> {
@@ -99,7 +98,6 @@ pub(crate) fn validate(config: &VideoDubbingOutputConfig) -> Result<(), String> 
             || translation.provider.encode_utf16().count() > 128
             || translation.model.trim().is_empty()
             || translation.model.encode_utf16().count() > 256
-            || (translation.local_only && translation.provider != "ollama")
         {
             return Err("Video translation provenance is invalid".into());
         }

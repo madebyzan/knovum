@@ -12,14 +12,13 @@ pub struct TranslateVideoDubbingRequest {
     pub project_id: String,
     pub expected_revision: i64,
     pub target_language: String,
-    pub local_only: bool,
     pub execution_target: ModelTargetSelection,
-    pub segments: Vec<VideoTranslationSegmentInput>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, ts_rs::TS)]
+/// A line as the Run was created to translate it. The script is derived in Rust, so this never
+/// crosses the IPC boundary on its own.
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct VideoTranslationSegmentInput {
     pub source_segment_id: String,
     pub source_segment_revision: u32,
@@ -54,7 +53,6 @@ pub(super) struct TranslationRunInput {
     pub expected_revision: i64,
     pub input_revision: String,
     pub target_language: String,
-    pub local_only: bool,
     pub provider: String,
     pub model: String,
     pub base_url: String,
@@ -70,7 +68,6 @@ pub(super) struct TranslationStepConfiguration {
     pub expected_revision: i64,
     pub input_revision: String,
     pub target_language: String,
-    pub local_only: bool,
     pub provider: String,
     pub model: String,
     pub base_url: String,

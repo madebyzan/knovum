@@ -1,10 +1,9 @@
 {
+  "description": "Übersetzt die Zeilen in die Zielsprache. Die Übersetzung ersetzt jede Zeile, das Original bleibt darunter sichtbar.",
   "language": "Übersetzungssprache",
   "model": "Übersetzungsmodell",
   "translate": "Skript übersetzen",
   "cancel": "Übersetzung abbrechen",
   "failed": "Die Übersetzung des Videoskripts ist fehlgeschlagen",
-  "source": "Quelle",
-  "localOnly": "Halten Sie die Übersetzung vollständig lokal",
-  "localUnavailable": "Es ist kein lokales Übersetzungsmodell konfiguriert. Geben Sie das Zielsprachenskript ein oder konfigurieren Sie ein Loopback-Ollama-Modell."
+  "source": "Quelle"
 }

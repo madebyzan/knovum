@@ -1,10 +1,9 @@
 {
+  "description": "Traduz as falas para o idioma de destino. A tradução substitui cada fala e o original fica abaixo.",
   "language": "Idioma de tradução",
   "model": "Modelo de tradução",
   "translate": "Traduzir script",
   "cancel": "Cancelar tradução",
   "failed": "Falha na tradução do script de vídeo",
-  "source": "Fonte",
-  "localOnly": "Mantenha a tradução totalmente local",
-  "localUnavailable": "Nenhum modelo de tradução local está configurado. Insira o script do idioma de destino ou configure um modelo Ollama de loopback."
+  "source": "Fonte"
 }

@@ -2,6 +2,7 @@ use std::fs;
 
 mod asset_transaction;
 mod dialogue_envelope;
+mod dialogue_track;
 pub(in crate::spaces::speech) mod final_mix;
 mod fitting;
 pub(in crate::spaces::speech) mod mixing;
@@ -10,7 +11,6 @@ mod recovery;
 #[cfg(test)]
 mod tests;
 mod video_mux;
-mod voice_lanes;
 
 use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
@@ -23,7 +23,6 @@ use crate::{
 };
 
 const SAMPLE_RATE: u32 = 48_000;
-const MAX_MIX_INPUTS: usize = 16;
 /// AAC codes 1024 samples at a time, so a published track can only end on one of its own frame
 /// boundaries. The mix itself is checked sample-exactly against the picture before it is encoded.
 const AUDIO_FRAME_US: u64 = 1_024 * 1_000_000 / SAMPLE_RATE as u64;

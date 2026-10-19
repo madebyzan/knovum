@@ -5,7 +5,7 @@ use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 use super::{
     contracts::{
         TranslateVideoDubbingRequest, TranslationRunInput, TranslationStepConfiguration,
-        VideoTranslation, VideoTranslationSegmentOutput,
+        VideoTranslation, VideoTranslationSegmentInput, VideoTranslationSegmentOutput,
     },
     WORKFLOW,
 };
@@ -24,34 +24,8 @@ pub(super) fn validate_request(request: &TranslateVideoDubbingRequest) -> Result
     require_canonical_uuid(&request.project_id, "Speech project identity")?;
     crate::ai::capabilities::translation::validate_target(&request.target_language)
         .map_err(|error| error.to_string())?;
-    if request.expected_revision < 1
-        || request.segments.is_empty()
-        || request.segments.len() > 10_000
-    {
-        return Err(
-            "Video translation requires a current project revision and 1 to 10000 segments".into(),
-        );
-    }
-    let mut identities = HashSet::with_capacity(request.segments.len());
-    let mut characters = 0_usize;
-    for segment in &request.segments {
-        let id = segment.source_segment_id.trim();
-        let text = segment.text.trim();
-        if id.is_empty()
-            || id.encode_utf16().count() > 240
-            || segment.source_segment_revision == 0
-            || text.is_empty()
-            || text.chars().count() > 10_000
-            || !identities.insert(id)
-        {
-            return Err("Video translation segment identity or text is invalid".into());
-        }
-        characters = characters
-            .checked_add(text.chars().count())
-            .ok_or("Video translation input is too large")?;
-    }
-    if characters > 1_000_000 {
-        return Err("Video translation input exceeds one million characters".into());
+    if request.expected_revision < 1 {
+        return Err("Video translation requires a current project revision".into());
     }
     Ok(())
 }
@@ -97,36 +71,15 @@ pub(super) fn require_expected_revision(
     Ok(())
 }
 
-pub(super) async fn require_current_segments(
+/// The script a translation Run works on: the lines of the active revision, in script order,
+/// each with the source identity and the source-language text to translate. Deriving this here is
+/// what makes a translation request unambiguous — there is no client copy of the script that could
+/// already be stale by the time the Run is created.
+pub(super) async fn source_segments(
     tx: &mut Transaction<'_, Sqlite>,
     revision_id: &str,
     translated: bool,
-    requested: &[super::contracts::VideoTranslationSegmentInput],
-) -> Result<(), String> {
-    if current_segments_match(tx, revision_id, translated, requested).await? {
-        return Ok(());
-    }
-    Err("stale_revision: video translation input differs from the active script".into())
-}
-
-pub(super) async fn require_run_source_segments(
-    tx: &mut Transaction<'_, Sqlite>,
-    revision_id: &str,
-    translated: bool,
-    requested: &[super::contracts::VideoTranslationSegmentInput],
-) -> Result<(), String> {
-    if current_segments_match(tx, revision_id, translated, requested).await? {
-        return Ok(());
-    }
-    Err("Video translation Run source snapshot differs from its base revision".into())
-}
-
-async fn current_segments_match(
-    tx: &mut Transaction<'_, Sqlite>,
-    revision_id: &str,
-    translated: bool,
-    requested: &[super::contracts::VideoTranslationSegmentInput],
-) -> Result<bool, String> {
+) -> Result<Vec<VideoTranslationSegmentInput>, String> {
     let rows = sqlx::query(
         "SELECT id,text,source_segment_id,source_segment_revision,source_text \
          FROM spaces_speech_segments WHERE project_revision_id=? ORDER BY ordinal",
@@ -135,10 +88,13 @@ async fn current_segments_match(
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    if rows.len() != requested.len() {
-        return Ok(false);
+    if rows.is_empty() || rows.len() > 10_000 {
+        return Err("Video translation requires a script of 1 to 10000 lines".into());
     }
-    for (row, requested) in rows.into_iter().zip(requested) {
+    let mut segments = Vec::with_capacity(rows.len());
+    let mut identities = HashSet::with_capacity(rows.len());
+    let mut characters = 0_usize;
+    for row in rows {
         let id: String = row.try_get("id").map_err(db::sql_error)?;
         let text: String = row.try_get("text").map_err(db::sql_error)?;
         let source_id: Option<String> = row.try_get("source_segment_id").map_err(db::sql_error)?;
@@ -146,30 +102,56 @@ async fn current_segments_match(
             .try_get("source_segment_revision")
             .map_err(db::sql_error)?;
         let source_text: Option<String> = row.try_get("source_text").map_err(db::sql_error)?;
-        let expected_id = source_id.as_deref().unwrap_or(&id);
-        let source_changed = !translated
+        // Re-translating keeps the source language text; translating a line whose text was edited
+        // after an earlier translation makes that edit the new source.
+        let changed = !translated
             && source_text
                 .as_deref()
                 .is_some_and(|source| source.trim() != text.trim());
-        let expected_revision = source_revision
-            .unwrap_or(1)
-            .checked_add(if source_changed { 1 } else { 0 })
-            .ok_or("Video source segment revision is exhausted")?;
-        let expected_text = if translated {
-            source_text
-                .as_deref()
-                .ok_or("Translated video segment source text is unavailable")?
+        let source = if translated {
+            source_text.ok_or("Translated video segment source text is unavailable")?
         } else {
-            &text
+            text
         };
-        if requested.source_segment_id != expected_id
-            || i64::from(requested.source_segment_revision) != expected_revision
-            || requested.text.trim() != expected_text.trim()
-        {
-            return Ok(false);
+        let source = source.trim();
+        if source.is_empty() || source.chars().count() > 10_000 {
+            return Err(
+                "Video translation line must contain between 1 and 10000 characters".into(),
+            );
         }
+        characters = characters
+            .checked_add(source.chars().count())
+            .filter(|total| *total <= 1_000_000)
+            .ok_or("Video translation script exceeds one million characters")?;
+        let revision = source_revision
+            .unwrap_or(1)
+            .checked_add(i64::from(changed))
+            .and_then(|revision| u32::try_from(revision).ok())
+            .ok_or("Video source segment revision is exhausted")?;
+        let source_segment_id = source_id.unwrap_or(id);
+        if !identities.insert(source_segment_id.clone()) {
+            return Err("Video translation script repeats a source line identity".into());
+        }
+        segments.push(VideoTranslationSegmentInput {
+            source_segment_id,
+            source_segment_revision: revision,
+            text: source.to_owned(),
+        });
     }
-    Ok(true)
+    Ok(segments)
+}
+
+/// A Run that resumes must still be translating the script it was created for.
+pub(super) async fn require_run_source_segments(
+    tx: &mut Transaction<'_, Sqlite>,
+    revision_id: &str,
+    translated: bool,
+    expected: &[VideoTranslationSegmentInput],
+) -> Result<(), String> {
+    if source_segments(tx, revision_id, translated).await? == expected {
+        return Ok(());
+    }
+    Err("Video translation Run source snapshot differs from its base revision".into())
 }
 
 pub(super) async fn existing_request(
@@ -307,7 +289,6 @@ pub(super) async fn load_translation(
             || config.expected_revision != input.expected_revision
             || config.input_revision != input.input_revision
             || config.target_language != input.target_language
-            || config.local_only != input.local_only
             || config.provider != input.provider
             || config.model != input.model
             || config.base_url != input.base_url
@@ -327,7 +308,6 @@ pub(super) async fn load_translation(
             target_language: input.target_language,
             provider: input.provider,
             model: input.model,
-            local_only: input.local_only,
         },
         segments,
     })

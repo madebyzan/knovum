@@ -22,6 +22,8 @@ import VideoTranslationControls from "./VideoTranslationControls.vue";
 const props = defineProps<{
   project: DeepReadonly<SpeechProjectSnapshot>;
   voices: readonly VoiceLibraryRevision[];
+  /** Commits the script on screen, which translating a revision requires. */
+  save: () => Promise<boolean>;
   disabled: boolean;
 }>();
 const emit = defineEmits<{
@@ -42,7 +44,6 @@ const page = shallowRef("script");
 const pages = computed(() => [
   { value: "script", label: t("spaces.speech.project.script.label") },
   { value: "mixing", label: t("spaces.speech.videoDubbing.mixingSettings") },
-  { value: "translation", label: t("spaces.speech.translation.translate") },
 ]);
 const translationBusy = shallowRef(false);
 const editingDisabled = computed(() => props.disabled || translationBusy.value);
@@ -125,6 +126,17 @@ watchEffect(() =>
       >
         {{ t("spaces.speech.videoDubbing.importTranscript") }}
       </UiButton>
+      <VideoTranslationControls
+        v-if="draft.lines.value.length"
+        :project-id="project.project.id"
+        :expected-revision="project.project.activeRevision"
+        :line-count="draft.lines.value.length"
+        :provenance="draft.config.value?.translation"
+        :save="save"
+        :disabled="editingDisabled"
+        @translated="draft.applyTranslation"
+        @busy="translationBusy = $event"
+      />
       <VideoDubbingLines
         :lines="draft.lines.value"
         :voice-options="voiceOptions"
@@ -167,17 +179,6 @@ watchEffect(() =>
           :disabled="editingDisabled"
         />
       </SpeechSettingsDisclosure>
-    </SpeechEditorPage>
-    <SpeechEditorPage value="translation" :active="page">
-      <VideoTranslationControls
-        :project-id="project.project.id"
-        :expected-revision="project.project.activeRevision"
-        :segments="draft.translationInputs()"
-        :provenance="draft.config.value?.translation"
-        :disabled="editingDisabled"
-        @translated="draft.applyTranslation"
-        @busy="translationBusy = $event"
-      />
     </SpeechEditorPage>
   </SpeechEditorTabs>
 </template>

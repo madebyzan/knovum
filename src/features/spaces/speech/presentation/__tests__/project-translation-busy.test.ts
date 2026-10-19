@@ -70,6 +70,7 @@ it("prevents synthesis while the dubbing script is being translated and releases
       saving: false,
       cancelling: false,
       previewListening: false,
+      save: () => Promise.resolve(true),
     },
     global: {
       plugins: [

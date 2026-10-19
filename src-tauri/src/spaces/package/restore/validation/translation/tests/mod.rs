@@ -52,7 +52,7 @@ fn run(source: Value) -> Value {
         "stateVersion":3,"policySnapshot":{},"inputSnapshot":{
             "workflow":super::WORKFLOW,"projectId":"project","revisionId":"base",
             "expectedRevision":1,"inputRevision":"sha256:input","targetLanguage":"zh-CN",
-            "localOnly":false,"provider":"openai","model":"model","baseUrl":"https://example.test/v1",
+            "provider":"openai","model":"model","baseUrl":"https://example.test/v1",
             "executionTarget":target(),"segments":[source]},
         "budget":{},"inputTokens":0,"outputTokens":0,"totalTokens":0,"stepAttempts":1,
         "expandedSteps":1,"outputBytes":0,"createdAt":1,"updatedAt":3,"completedAt":3
@@ -64,7 +64,7 @@ fn step(source: Value, output: Value) -> Value {
         "id":"step","runId":"run","definitionNodeId":"translation:0","instancePath":"translation:0",
         "nodeKind":super::NODE_KIND,"dependsOn":[],"configuration":{
             "projectId":"project","revisionId":"base","expectedRevision":1,
-            "inputRevision":"sha256:input","targetLanguage":"zh-CN","localOnly":false,
+            "inputRevision":"sha256:input","targetLanguage":"zh-CN",
             "provider":"openai","model":"model","baseUrl":"https://example.test/v1",
             "executionTarget":target(),"ordinal":0,"segment":source},
         "state":"succeeded","stateVersion":2,"resolvedInput":{},"output":output,
@@ -86,7 +86,7 @@ fn target() -> Value {
 }
 
 fn provenance() -> Value {
-    json!({"runId":"run","targetLanguage":"zh-CN","provider":"openai","model":"model","localOnly":false})
+    json!({"runId":"run","targetLanguage":"zh-CN","provider":"openai","model":"model"})
 }
 
 fn revision(id: &str, revision: i64, translation: Value) -> Value {

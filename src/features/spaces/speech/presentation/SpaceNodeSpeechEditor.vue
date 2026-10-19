@@ -127,6 +127,7 @@ defineExpose({ requestClose });
       :previewing="previewing"
       :generating="generating"
       :saving="savingRevision"
+      :save="saveRevision"
       :submitting="generationSubmitting"
       :cancelling="previewCancelling"
       @draft-state="projectLeave.updateDraft"

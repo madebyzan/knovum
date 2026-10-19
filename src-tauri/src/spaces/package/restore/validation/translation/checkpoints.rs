@@ -43,7 +43,6 @@ pub(super) fn validate_steps(run: &PackageRun, steps: &[&PackageRunStep]) -> Res
             || field(&step.configuration, "provider")? != field(&run.input_snapshot, "provider")?
             || field(&step.configuration, "model")? != field(&run.input_snapshot, "model")?
             || field(&step.configuration, "baseUrl")? != field(&run.input_snapshot, "baseUrl")?
-            || step.configuration.get("localOnly") != run.input_snapshot.get("localOnly")
             || step.configuration.get("executionTarget")
                 != run.input_snapshot.get("executionTarget")
             || segment != &segments[ordinal]

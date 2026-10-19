@@ -1,10 +1,9 @@
 {
+  "description": "將台詞翻譯成目標語言：譯文取代台詞文字，原文保留在每行下方。",
   "language": "翻譯目標語言",
   "model": "翻譯模型",
   "translate": "翻譯腳本",
   "cancel": "取消翻譯",
   "failed": "視訊腳本翻譯失敗",
-  "source": "原文",
-  "localOnly": "翻譯全程僅在本機執行",
-  "localUnavailable": "未配置本地翻譯模型。請直接輸入目標語言腳本，或設定僅監聽本機位址的 Ollama 模型。"
+  "source": "原文"
 }

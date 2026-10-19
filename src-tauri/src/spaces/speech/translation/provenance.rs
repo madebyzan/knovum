@@ -46,7 +46,6 @@ pub(crate) async fn validate_saved_provenance(
         || provenance.target_language != input.target_language
         || provenance.provider != input.provider
         || provenance.model != input.model
-        || provenance.local_only != input.local_only
     {
         return Err("Video translation provenance differs from its succeeded Run".into());
     }
@@ -116,7 +115,6 @@ async fn validate_outputs(
             || config.expected_revision != input.expected_revision
             || config.input_revision != input.input_revision
             || config.target_language != input.target_language
-            || config.local_only != input.local_only
             || config.provider != input.provider
             || config.model != input.model
             || config.base_url != input.base_url
@@ -169,7 +167,6 @@ async fn validate_successor(
         || active_provenance.target_language != input.target_language
         || active_provenance.provider != input.provider
         || active_provenance.model != input.model
-        || active_provenance.local_only != input.local_only
     {
         return Err("Edited translated revision does not preserve its Run provenance".into());
     }

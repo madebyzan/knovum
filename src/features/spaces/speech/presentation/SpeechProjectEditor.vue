@@ -36,6 +36,8 @@ const props = defineProps<{
   saving: boolean;
   cancelling: boolean;
   previewListening: boolean;
+  /** Persists a draft as a new revision, for operations that run on a saved script. */
+  save: (input: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">) => Promise<boolean>;
 }>();
 const emit = defineEmits<{
   preview: [
@@ -84,6 +86,13 @@ function stageLabel(stage: SpeechGenerationProgress["stage"]) {
   return t("spaces.speech.project.stages.done");
 }
 
+/** Commits what the editor is showing, so an operation can work on a saved revision. */
+async function saveDraft() {
+  const input = draftInput.value;
+  if (!input) return !isDirty.value;
+  return await props.save(input);
+}
+
 function updateDraft(
   value: boolean,
   input?: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">,
@@ -130,6 +139,7 @@ function updateDraft(
           v-else-if="project.project.projectType === 'video_dubbing'"
           :project="project"
           :voices="voices"
+          :save="saveDraft"
           :disabled="editorDisabled"
           @draft-state="updateDraft"
           @preview="(...args) => emit('preview', ...args)"
