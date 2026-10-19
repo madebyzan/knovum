@@ -80,10 +80,9 @@ pub enum PluginConnectorConfiguration {
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ConnectorAccount {
-    pub id: String,
-    pub revision: String,
+    /// A service is connected once, so the connector this authorization belongs to is its identity.
     pub connector_id: String,
-    pub display_name: String,
+    pub revision: String,
     pub resource: String,
     pub issuer: Option<String>,
     pub scopes: Vec<String>,
@@ -116,18 +115,8 @@ pub struct McpConnection {
     pub connector_id: String,
     pub name: String,
     pub revision: String,
-    pub account_id: Option<String>,
     pub enabled: bool,
     pub tools: Vec<McpToolPermission>,
-}
-
-impl McpConnection {
-    pub(crate) fn apply_binding_change(&mut self, previous: &Self) {
-        if previous.account_id != self.account_id {
-            self.enabled = false;
-            self.tools.clear();
-        }
-    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]

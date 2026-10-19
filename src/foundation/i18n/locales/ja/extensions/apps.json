@@ -6,7 +6,7 @@
     "description": "プラグイン カタログからアプリのワークフローをインストールします。"
   },
   "manage": "接続の管理",
-  "accounts": "アカウント",
   "access": "アクセス",
-  "configurationRequired": "このアプリの接続は不完全です。ソースプラグインを確認してください。"
+  "configurationRequired": "このアプリの接続は不完全です。ソースプラグインを確認してください。",
+  "connection": "接続"
 }

@@ -22,7 +22,6 @@ pub(super) fn fixture() -> (
         connector_id: "connector".into(),
         name: "Fixture".into(),
         revision: "revision".into(),
-        account_id: Some("selected-account".into()),
         enabled: true,
         tools: vec![McpToolPermission {
             name: tool.name.clone(),
@@ -66,9 +65,7 @@ fn host_review_controls_effect_classification_and_selected_identity() {
     assert_eq!(execute.len(), 3);
     assert!(!execute[0].read_only);
     assert!(execute[1..].iter().all(|tool| tool.read_only));
-    assert!(
-        matches!(&execute[0].binding,AgentToolBinding::McpTool{ account_id:Some(id),.. } if id=="selected-account")
-    );
+
     assert_eq!(execute[0].policy, McpToolPolicy::Confirm);
 }
 #[test]

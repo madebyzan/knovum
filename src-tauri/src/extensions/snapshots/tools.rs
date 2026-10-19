@@ -69,7 +69,6 @@ pub(super) fn project(
             input_schema: schema,
             binding: AgentToolBinding::McpTool {
                 connection_id: connection.id.clone(),
-                account_id: connection.account_id.clone(),
                 tool_name: name.clone(),
                 schema_digest: digest,
             },

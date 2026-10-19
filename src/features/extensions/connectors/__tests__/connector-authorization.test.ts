@@ -5,19 +5,17 @@ import { expect, it, vi } from "vitest";
 import { i18n } from "../../../../foundation/i18n/instance";
 import type { ConnectorAccount } from "../../../../shared/contracts/generated/ConnectorAccount";
 import { settingsLeaveCoordinatorKey } from "../../../../shared/contracts/settings-leave";
-import ConnectorAccounts from "../components/ConnectorAccounts.vue";
+import ConnectorAuthorization from "../components/ConnectorAuthorization.vue";
 
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, payload?: Record<string, unknown>) => Promise<unknown>>(),
 }));
 vi.mock("../../../../foundation/ipc/invoke-command", () => ({ invokeCommand: mocks.invoke }));
 
-it("refreshes authorization state after a failed authorization flow", async () => {
+it("refreshes the connection state after a failed authorization", async () => {
   let account: ConnectorAccount = {
-    id: "account",
-    revision: "one",
     connectorId: "service",
-    displayName: "Work",
+    revision: "one",
     resource: "https://example.com/mcp",
     issuer: null,
     scopes: [],
@@ -27,14 +25,14 @@ it("refreshes authorization state after a failed authorization flow", async () =
   };
   mocks.invoke.mockImplementation(async (command: string) => {
     if (command === "plugin:extensions|list_connector_accounts") return [{ ...account }];
-    if (command === "plugin:extensions|authorize_connector_account") {
+    if (command === "plugin:extensions|connect_connector") {
       account = { ...account, enabled: false, cleanupPending: true };
       throw new Error("credential-write-failed");
     }
     throw new Error(`Unexpected command: ${command}`);
   });
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const wrapper = mount(ConnectorAccounts, {
+  const wrapper = mount(ConnectorAuthorization, {
     props: {
       connector: {
         id: "service",

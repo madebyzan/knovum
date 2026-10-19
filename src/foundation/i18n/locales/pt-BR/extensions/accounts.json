@@ -9,15 +9,14 @@
   "cleanupPending": "Desconectado · Limpeza de credenciais pendente",
   "authorized": "Autorizado",
   "required": "Autorização necessária",
-  "authorizeInBrowser": "Autorizar no navegador",
-  "authorize": "Autorizar",
   "disconnect": "Desconecte e exclua credenciais locais",
-  "name": "Nome de exibição da conta",
-  "add": "Adicionar conta",
   "billingHint": "Serviços externos poderão ser cobrados à parte; essas cobranças não estão incluídas no uso do token do aplicativo.",
   "pending": "A autorização está em andamento. Conclua ou cancele antes de sair desta página.",
   "discard": {
-    "title": "Descartar informações da conta não salvas?",
-    "description": "O nome da conta ou os campos de autorização não enviados serão limpos."
-  }
+    "title": "Descartar os campos de autorização inseridos?",
+    "description": "Os campos de autorização não enviados serão apagados."
+  },
+  "title": "Conexão",
+  "connect": "Conectar",
+  "reconnect": "Reconectar"
 }

@@ -10,14 +10,8 @@
     "serverReadOnlyHint": "서버 클레임 읽기 전용",
     "savePermissions": "도구 권한 저장"
   },
-  "account": {
-    "label": "이 연결에 사용되는 계정",
-    "none": "계정 바인딩 없음",
-    "changeHint": "계정을 변경하면 도구 권한이 삭제됩니다. 연결을 다시 사용하기 전에 권한을 검토하세요."
-  },
   "add": "연결 추가",
   "configure": "구성",
-  "accountsAndTools": "계정 및 도구",
   "check": "연결 확인 및 카탈로그 읽기",
   "empty": "이 서비스에 대한 연결이 없습니다",
   "cleanupPending": "변경사항이 저장되었지만 정리가 완료되지 않았습니다. 영향을 받은 계정은 계속 사용할 수 없습니다.",
@@ -25,7 +19,6 @@
     "title": "연결 {name}를 삭제하시겠습니까?",
     "description": "이 연결만 삭제됩니다. 서비스에 대한 다른 연결은 유지됩니다."
   },
-  "accounts": "계정",
   "title": "연결",
   "addServer": "MCP 서버 추가",
   "description": "MCP 서비스, 계정 및 도구 권한을 구성합니다. 플러그인 서비스는 패키지의 일부로 구성됩니다.",
@@ -33,7 +26,6 @@
     "title": "MCP 서버 없음",
     "description": "MCP 서버를 추가하세요. 소유 플러그인 내에서 플러그인 제공 서비스를 구성합니다."
   },
-  "serviceAndAccounts": "서비스 및 계정 관리",
   "configureServiceFirst": "먼저 이 서비스의 구성을 완료하세요.",
   "conflict": "이 연결은 다른 곳에서 변경되었습니다. 편집 내용은 유지됩니다. 저장하기 전에 해당 항목을 삭제하고 연결을 다시 엽니다.",
   "saveBeforeCheck": "계정을 변경하거나 카탈로그를 다시 확인하기 전에 변경 사항을 저장하세요.",
@@ -41,5 +33,7 @@
   "discard": {
     "title": "연결 변경 사항을 취소하시겠습니까?",
     "description": "이 연결의 저장되지 않은 변경 사항이 손실됩니다."
-  }
+  },
+  "toolPermissions": "도구 권한",
+  "manageService": "서비스 관리"
 }

@@ -10,14 +10,8 @@
     "serverReadOnlyHint": "Le serveur revendique une lecture seule",
     "savePermissions": "Enregistrer les autorisations de l'outil"
   },
-  "account": {
-    "label": "Compte utilisé par cette connexion",
-    "none": "Aucun compte lié",
-    "changeHint": "La modification des comptes efface les autorisations de l'outil. Vérifiez les autorisations avant d’utiliser à nouveau la connexion."
-  },
   "add": "Ajouter une connexion",
   "configure": "Configurer",
-  "accountsAndTools": "Comptes et outils",
   "check": "Vérifier la connexion et lire le catalogue",
   "empty": "Aucune connexion pour ce service",
   "cleanupPending": "Modifications enregistrées, mais le nettoyage est incomplet. Les comptes concernés restent indisponibles.",
@@ -25,7 +19,6 @@
     "title": "Supprimer la connexion {name} ?",
     "description": "Seule cette connexion est supprimée. Les autres connexions au service sont conservées."
   },
-  "accounts": "Comptes",
   "title": "Connexions",
   "addServer": "Ajouter un serveur MCP",
   "description": "Configurez les services, les comptes et les autorisations des outils MCP. Les services de plugin sont configurés dans le cadre de leur package.",
@@ -33,7 +26,6 @@
     "title": "Pas de serveurs MCP",
     "description": "Ajoutez votre serveur MCP. Configurez les services fournis par le plugin dans leur plugin propriétaire."
   },
-  "serviceAndAccounts": "Gérer le service et les comptes",
   "configureServiceFirst": "Terminez d’abord la configuration de ce service.",
   "conflict": "Cette connexion a changé ailleurs. Vos modifications sont conservées. Jetez-les et rouvrez la connexion avant de sauvegarder.",
   "saveBeforeCheck": "Enregistrez vos modifications avant de changer de compte ou de consulter à nouveau le catalogue.",
@@ -41,5 +33,7 @@
   "discard": {
     "title": "Abandonner les modifications de la connexion ?",
     "description": "Les modifications non enregistrées de cette connexion seront perdues."
-  }
+  },
+  "toolPermissions": "Autorisations des outils",
+  "manageService": "Gérer le service"
 }

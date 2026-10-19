@@ -19,11 +19,10 @@ watch(
 
 <template>
   <TabsRoot v-model="page" class="space-y-3">
-    <div class="sticky top-0 z-10 -mx-3 -mt-3 border-b border-stroke-divider bg-surface-overlay px-3 pt-3 pb-2">
-      <TabsList
-        :aria-label="label"
-        class="flex gap-0.5 rounded-panel bg-surface-control p-0.5"
-      >
+    <div
+      class="sticky top-0 z-10 -mx-3 -mt-3 border-b border-stroke-divider bg-surface-overlay px-3 pt-3 pb-2"
+    >
+      <TabsList :aria-label="label" class="flex gap-0.5 rounded-panel bg-surface-control p-0.5">
         <TabsTrigger
           v-for="item in items"
           :key="item.value"
