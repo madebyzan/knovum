@@ -5,6 +5,10 @@
 all-features = true
 targets = ["aarch64-apple-darwin", "x86_64-pc-windows-msvc", "x86_64-apple-darwin"]
 
+[advisories]
+unmaintained = "none"
+ignore = ["RUSTSEC-2026-0367", "RUSTSEC-2026-0368", "RUSTSEC-2026-0369"]
+
 [licenses]
 confidence-threshold = 0.8
 allow = [

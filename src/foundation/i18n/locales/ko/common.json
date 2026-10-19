@@ -12,6 +12,7 @@
   "reset": "초기화",
   "cut": "잘라내기",
   "copy": "복사",
+  "copied": "복사됨",
   "paste": "붙여넣기",
   "selectAll": "전체 선택",
   "duplicate": "복제",

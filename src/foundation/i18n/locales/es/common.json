@@ -12,6 +12,7 @@
   "reset": "Restablecer",
   "cut": "Cortar",
   "copy": "Copiar",
+  "copied": "Copiado",
   "paste": "Pegar",
   "selectAll": "Seleccionar todo",
   "duplicate": "Duplicar",
