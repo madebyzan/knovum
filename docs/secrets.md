@@ -45,3 +45,12 @@ MCP form elicitation cannot ask for credential fields; account authorization is 
 The credentials database remains unencrypted and a copy exposes its values.
 
 SDK CredentialStore instances capture the connector account revision when created. Load, save and clear share the per-account credential lock and require that same revision and current authority; only the captured, uncancelled authorization flow may access credentials before the public grant is enabled. An old client cannot read, overwrite or clear a renewed account’s credentials. Revocation cleanup remains an explicit owner operation.
+
+An authorization attempt distinguishes two cancellations. The token registered for an account
+means only that the user asked to stop, and the flow never cancels it, so an authorization that
+finishes is never reported as cancelled. Shutting down the loopback callback and closing the window
+in which credentials may be written uses a child token the attempt cancels itself. Starting an
+attempt supersedes whatever attempt that account had in flight, and an attempt only deregisters
+itself, so a cancel can only stop the attempt it was asked for. A provider that redirects back with
+an `error` parameter is reported as a denial, because there is no authorization code to exchange.
+

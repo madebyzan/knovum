@@ -118,6 +118,7 @@ pub async fn cancel_connector_authorization(app: AppHandle, account_id: String) 
         .lock()
         .await
         .get(&account_id)
+        .map(|(_, cancellation)| cancellation.clone())
     {
         cancellation.cancel();
     }
