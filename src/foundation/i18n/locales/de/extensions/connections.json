@@ -10,14 +10,8 @@
     "serverReadOnlyHint": "Server beansprucht schreibgeschützt",
     "savePermissions": "Tool-Berechtigungen speichern"
   },
-  "account": {
-    "label": "Von dieser Verbindung verwendetes Konto",
-    "none": "Kein Konto gebunden",
-    "changeHint": "Durch das Ändern von Konten werden Werkzeugberechtigungen gelöscht. Überprüfen Sie die Berechtigungen, bevor Sie die Verbindung erneut verwenden."
-  },
   "add": "Verbindung hinzufügen",
   "configure": "Konfigurieren",
-  "accountsAndTools": "Konten und Tools",
   "check": "Verbindung prüfen und Katalog lesen",
   "empty": "Keine Verbindungen für diesen Dienst",
   "cleanupPending": "Änderungen gespeichert, aber die Bereinigung ist unvollständig. Betroffene Konten sind weiterhin nicht verfügbar.",
@@ -25,7 +19,6 @@
     "title": "Verbindung {name} löschen?",
     "description": "Nur diese Verbindung wird gelöscht. Andere Verbindungen zum Dienst bleiben erhalten."
   },
-  "accounts": "Konten",
   "title": "Verbindungen",
   "addServer": "MCP-Server hinzufügen",
   "description": "Konfigurieren Sie MCP-Dienste, Konten und Tool-Berechtigungen. Plugin-Dienste werden als Teil ihres Pakets konfiguriert.",
@@ -33,7 +26,6 @@
     "title": "Keine MCP-Server",
     "description": "Fügen Sie Ihren MCP-Server hinzu. Konfigurieren Sie vom Plugin bereitgestellte Dienste in ihrem eigenen Plugin."
   },
-  "serviceAndAccounts": "Dienste und Konten verwalten",
   "configureServiceFirst": "Schließen Sie zunächst die Konfiguration dieses Dienstes ab.",
   "conflict": "Dieser Zusammenhang hat sich an anderer Stelle geändert. Ihre Änderungen bleiben erhalten. Verwerfen Sie sie und öffnen Sie die Verbindung erneut, bevor Sie sie speichern.",
   "saveBeforeCheck": "Speichern Sie Ihre Änderungen, bevor Sie das Konto wechseln oder den Katalog erneut überprüfen.",
@@ -41,5 +33,7 @@
   "discard": {
     "title": "Änderungen an der Verbindung verwerfen?",
     "description": "Nicht gespeicherte Änderungen an dieser Verbindung gehen verloren."
-  }
+  },
+  "toolPermissions": "Werkzeugberechtigungen",
+  "manageService": "Dienst verwalten"
 }

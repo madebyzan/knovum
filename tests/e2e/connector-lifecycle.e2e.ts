@@ -71,12 +71,7 @@ describe("external service connector lifecycle", () => {
       const revised = (await listConnections()).filter(
         (connection) => connection.connectorId === definition!.id,
       );
-      expect(
-        revised.every(
-          (connection) =>
-            !connection.enabled && connection.accountId === null && connection.tools.length === 0,
-        ),
-      ).toBe(true);
+      expect(revised.every((connection) => !connection.enabled && connection.tools.length === 0)).toBe(true);
       const currentWork = revised.find((connection) => connection.id === work.id)!;
       await extensionCommand("delete_mcp_connection", {
         connectionId: currentWork.id,

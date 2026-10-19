@@ -46,7 +46,6 @@ pub async fn update_mcp_connection(
     if connector.plugin_id.is_some() && connection.enabled != old.enabled {
         return Err(AppError::invalid("plugin-activation-owned-by-package"));
     }
-    connection.apply_binding_change(&old);
     if connector.plugin_id.is_some() {
         connection.enabled = old.enabled;
     }
@@ -54,18 +53,21 @@ pub async fn update_mcp_connection(
     if standalone_enabled {
         connector.configured_endpoint()?;
     }
-    if let Some(id) = &connection.account_id {
-        if standalone_enabled || old.account_id != connection.account_id {
-            let account = super::super::connectors::accounts::load(&pool, id).await?;
-            super::super::connectors::accounts::validate_binding(&connector, &account)?;
+    // Enabling a connection requires its service to be connected; the authorization is the
+    // connector's, so there is nothing here for the user to pick.
+    if standalone_enabled {
+        match super::super::connectors::accounts::of_connector(&pool, &connection.connector_id)
+            .await?
+        {
+            Some(account) => {
+                super::super::connectors::accounts::validate_binding(&connector, &account)?
+            }
+            None if matches!(
+                connector.authorization,
+                super::super::contracts::ConnectorAuthorization::None
+            ) => {}
+            None => return Err(AppError::invalid("connector-not-connected")),
         }
-    } else if standalone_enabled
-        && !matches!(
-            connector.authorization,
-            super::super::contracts::ConnectorAuthorization::None
-        )
-    {
-        return Err(AppError::invalid("connector-authorized-account-required"));
     }
     let mut tx = pool.begin().await.map_err(|error| error.to_string())?;
     super::connections::require_revision_on(&mut tx, &connection.id, &connection.revision).await?;

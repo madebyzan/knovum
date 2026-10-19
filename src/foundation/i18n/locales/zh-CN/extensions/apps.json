@@ -6,7 +6,7 @@
     "description": "从插件目录安装需要的应用工作流。"
   },
   "manage": "管理连接",
-  "accounts": "账号",
   "access": "访问权限",
-  "configurationRequired": "此应用的连接配置不完整，请检查来源插件。"
+  "configurationRequired": "此应用的连接配置不完整，请检查来源插件。",
+  "connection": "连接"
 }

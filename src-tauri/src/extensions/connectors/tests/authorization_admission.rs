@@ -26,10 +26,8 @@ async fn invalid_reauthorization_input_leaves_current_authority_unchanged() {
         .await
         .unwrap();
     let account = ConnectorAccount {
-        id: "account".into(),
-        revision: "authorized".into(),
         connector_id: "service".into(),
-        display_name: "Work".into(),
+        revision: "authorized".into(),
         resource: "https://example.com/mcp".into(),
         issuer: None,
         scopes: vec![],

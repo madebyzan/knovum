@@ -6,7 +6,7 @@
     "description": "從插件目錄安裝所需的應用程式工作流程。"
   },
   "manage": "管理連線",
-  "accounts": "帳號",
   "access": "存取權限",
-  "configurationRequired": "此應用程式的連接配置不完整，請檢查來源插件。"
+  "configurationRequired": "此應用程式的連接配置不完整，請檢查來源插件。",
+  "connection": "連線"
 }

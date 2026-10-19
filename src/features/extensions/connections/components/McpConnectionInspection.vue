@@ -88,7 +88,7 @@ async function deleteConnection() {
       size="sm"
       variant="ghost"
       @click="$emit('navigate', { tab: 'mcp', connectorId: connector.id })"
-      >{{ $t("extensions.connections.serviceAndAccounts") }}</UiButton
+      >{{ $t("extensions.connections.manageService") }}</UiButton
     >
     <p v-if="!connector.endpoint" class="text-caption text-fg-warning">
       {{ $t("extensions.connections.configureServiceFirst") }}

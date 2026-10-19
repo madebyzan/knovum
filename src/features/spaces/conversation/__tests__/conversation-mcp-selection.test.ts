@@ -14,7 +14,6 @@ it("locks the selected MCP tools and catalog controls while the conversation ext
     connectorId: "sources-definition",
     name: "Sources",
     revision: "one",
-    accountId: null,
     enabled: true,
     tools: [{ name: "search", schemaDigest: "one", readOnly: true, policy: "allow" }],
   };

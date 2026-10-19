@@ -10,14 +10,8 @@
     "serverReadOnlyHint": "Il server dichiara di sola lettura",
     "savePermissions": "Salva permessi dello strumento"
   },
-  "account": {
-    "label": "Account utilizzato da questa connessione",
-    "none": "Nessun account vincolato",
-    "changeHint": "La modifica degli account cancella le autorizzazioni dello strumento. Rivedere le autorizzazioni prima di utilizzare nuovamente la connessione."
-  },
   "add": "Aggiungi connessione",
   "configure": "Configura",
-  "accountsAndTools": "Account e strumenti",
   "check": "Controllare la connessione e leggere il catalogo",
   "empty": "Nessuna connessione per questo servizio",
   "cleanupPending": "Modifiche salvate, ma la pulizia è incompleta. Gli account interessati rimangono non disponibili.",
@@ -25,7 +19,6 @@
     "title": "Eliminare la connessione {name}?",
     "description": "Viene eliminata solo questa connessione. Le altre connessioni al servizio vengono mantenute."
   },
-  "accounts": "Account",
   "title": "Connessioni",
   "addServer": "Aggiungi server MCP",
   "description": "Configura i servizi, gli account e le autorizzazioni degli strumenti MCP. I servizi plugin sono configurati come parte del loro pacchetto.",
@@ -33,7 +26,6 @@
     "title": "Nessun server MCP",
     "description": "Aggiungi il tuo server MCP. Configura i servizi forniti dal plug-in all'interno del plug-in proprietario."
   },
-  "serviceAndAccounts": "Gestisci servizi e account",
   "configureServiceFirst": "Completa prima la configurazione di questo servizio.",
   "conflict": "Questa connessione è cambiata altrove. Le tue modifiche verranno mantenute. Scartateli e riaprite la connessione prima di salvare.",
   "saveBeforeCheck": "Salva le modifiche prima di cambiare account o controllare nuovamente il catalogo.",
@@ -41,5 +33,7 @@
   "discard": {
     "title": "Scartare le modifiche alla connessione?",
     "description": "Le modifiche non salvate a questa connessione andranno perse."
-  }
+  },
+  "toolPermissions": "Autorizzazioni degli strumenti",
+  "manageService": "Gestisci servizio"
 }

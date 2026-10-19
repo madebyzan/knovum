@@ -91,7 +91,7 @@ const {
           variant="ghost"
           :aria-expanded="selectedConnectionId === connection.id"
           @click="toggleSelected(connection.id)"
-          >{{ $t("extensions.connections.accountsAndTools") }}</UiButton
+          >{{ $t("extensions.connections.toolPermissions") }}</UiButton
         >
         <UiButton
           size="sm"
@@ -110,7 +110,7 @@ const {
     </p>
     <section v-if="selected" class="space-y-3 border-t border-stroke-divider pt-4">
       <h4 class="text-body font-medium">
-        {{ selected.name }} · {{ $t("extensions.connections.accountsAndTools") }}
+        {{ selected.name }} · {{ $t("extensions.connections.toolPermissions") }}
       </h4>
       <McpConnectionSettings :key="selected.id" :connection="selected" :connector="connector" />
     </section>
