@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Check, Code2, Compass, Copy } from "@lucide/vue";
 import { useMutation } from "@tanstack/vue-query";
 import { computed, ref, shallowRef } from "vue";
 
@@ -10,12 +11,16 @@ import type { McpConnectionCatalog } from "../../../../shared/contracts/generate
 import type { McpResourceSelection } from "../../../../shared/contracts/generated/McpResourceSelection";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
+import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
+
 const props = defineProps<{ connection: McpConnection; catalog: McpConnectionCatalog }>();
 const kind = ref<"resource" | "template" | "prompt">("resource");
 const name = ref("");
 const parameters = ref("{}");
 const content = shallowRef<unknown>();
+const copied = shallowRef(false);
+
 const items = computed(() => {
   if (kind.value === "resource")
     return props.catalog.resources.map((item) => ({ value: item.uri, label: `${item.name} · ${item.uri}` }));
@@ -30,6 +35,7 @@ const items = computed(() => {
     description: item.description ?? undefined,
   }));
 });
+
 const reading = useMutation({
   mutationFn: async () => {
     if (kind.value === "prompt")
@@ -52,6 +58,7 @@ const reading = useMutation({
     content.value = value;
   },
 });
+
 function displayContent(value: unknown) {
   return JSON.stringify(
     value,
@@ -62,53 +69,103 @@ function displayContent(value: unknown) {
     2,
   );
 }
+
 function change() {
   name.value = "";
   content.value = undefined;
   reading.reset();
 }
+
+async function copyOutput() {
+  if (!content.value) return;
+  await navigator.clipboard.writeText(displayContent(content.value));
+  copied.value = true;
+  setTimeout(() => {
+    copied.value = false;
+  }, 1500);
+}
 </script>
 
 <template>
-  <section class="space-y-3" data-testid="mcp-catalog-browser">
-    <h3 class="text-body font-medium">{{ $t("extensions.catalog.browse") }}</h3>
-    <form class="space-y-2" @submit.prevent="reading.mutate()">
-      <div class="space-y-1.5">
-        <span class="text-caption text-fg-secondary">{{ $t("extensions.catalog.kind") }}</span
-        ><UiSelect
-          v-model="kind"
+  <section
+    class="rounded-panel border border-stroke-default bg-surface-raised p-4 space-y-4"
+    data-testid="mcp-catalog-browser"
+  >
+    <div class="flex items-center gap-2">
+      <span class="flex size-6 shrink-0 items-center justify-center rounded bg-surface-control text-fg-secondary">
+        <Compass class="size-3.5" />
+      </span>
+      <h3 class="text-body font-semibold text-fg-primary">{{ $t("extensions.catalog.browse") }}</h3>
+    </div>
+
+    <form class="space-y-3" @submit.prevent="reading.mutate()">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div class="space-y-1">
+          <span class="text-caption text-fg-secondary">{{ $t("extensions.catalog.kind") }}</span>
+          <UiSelect
+            v-model="kind"
+            size="sm"
+            :disabled="reading.isPending.value"
+            :label="$t('extensions.catalog.kind')"
+            :options="[
+              { value: 'resource', label: $t('extensions.catalog.resources') },
+              { value: 'template', label: $t('extensions.catalog.templates') },
+              { value: 'prompt', label: $t('extensions.catalog.prompts') },
+            ]"
+            @update:model-value="change"
+          />
+        </div>
+        <div class="space-y-1">
+          <span class="text-caption text-fg-secondary">{{ $t("extensions.catalog.item") }}</span>
+          <UiSelect
+            v-model="name"
+            size="sm"
+            :disabled="reading.isPending.value || !items.length"
+            :label="$t('extensions.catalog.item')"
+            :options="items"
+          />
+        </div>
+      </div>
+
+      <label v-if="kind !== 'resource'" class="block space-y-1 text-caption text-fg-secondary">
+        <span>{{ $t("extensions.catalog.parameters") }}</span>
+        <UiTextarea
+          v-model="parameters"
           :disabled="reading.isPending.value"
-          :label="$t('extensions.catalog.kind')"
-          :options="[
-            { value: 'resource', label: $t('extensions.catalog.resources') },
-            { value: 'template', label: $t('extensions.catalog.templates') },
-            { value: 'prompt', label: $t('extensions.catalog.prompts') },
-          ]"
-          @update:model-value="change"
+          class="font-mono text-caption bg-surface-canvas"
+          :rows="3"
         />
-      </div>
-      <div class="space-y-1.5">
-        <span class="text-caption text-fg-secondary">{{ $t("extensions.catalog.item") }}</span
-        ><UiSelect
-          v-model="name"
-          :disabled="reading.isPending.value || !items.length"
-          :label="$t('extensions.catalog.item')"
-          :options="items"
-        />
-      </div>
-      <label v-if="kind !== 'resource'" class="block space-y-1.5 text-caption text-fg-secondary"
-        >{{ $t("extensions.catalog.parameters")
-        }}<UiTextarea v-model="parameters" :disabled="reading.isPending.value" class="font-mono" :rows="3"
-      /></label>
-      <UiButton size="sm" type="submit" :disabled="reading.isPending.value || !name || !connection.enabled">{{
-        $t("extensions.catalog.read")
-      }}</UiButton>
+      </label>
+
+      <UiButton
+        size="sm"
+        type="submit"
+        :disabled="reading.isPending.value || !name || !connection.enabled"
+      >
+        <UiSpinner v-if="reading.isPending.value" class="size-3.5" />
+        <span>{{ $t("extensions.catalog.read") }}</span>
+      </UiButton>
     </form>
+
     <p v-if="reading.error.value" role="alert" class="text-caption text-fg-danger">
       {{ getErrorMessage(reading.error.value) }}
     </p>
-    <pre v-if="content" class="max-h-80 overflow-auto text-caption break-all whitespace-pre-wrap">{{
-      displayContent(content)
-    }}</pre>
+
+    <div
+      v-if="content"
+      class="overflow-hidden rounded-md border border-stroke-default bg-surface-canvas"
+    >
+      <div class="flex items-center justify-between border-b border-stroke-divider px-3 py-1.5 bg-surface-control/40">
+        <div class="flex items-center gap-1.5 text-caption-sm text-fg-secondary">
+          <Code2 class="size-3.5" />
+          <span>JSON</span>
+        </div>
+        <UiButton size="sm" variant="ghost" class="h-6 px-1.5 text-caption-sm" @click="copyOutput">
+          <component :is="copied ? Check : Copy" class="size-3" />
+          <span>{{ copied ? $t("common.copied") : $t("common.copy") }}</span>
+        </UiButton>
+      </div>
+      <pre class="max-h-80 overflow-auto p-3 text-caption font-mono text-fg-primary leading-relaxed break-all whitespace-pre-wrap select-text">{{ displayContent(content) }}</pre>
+    </div>
   </section>
 </template>
