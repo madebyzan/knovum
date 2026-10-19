@@ -38,7 +38,12 @@ const {
   remove,
 } = useKnowledgeTypeEditor(toRef(() => open.value));
 const confirming = shallowRef(false);
-async function changeEditor(action: () => void) {
+/**
+ * Switching the edited type inside the dialog would drop the draft without the user asking for it,
+ * so that is the only move worth confirming. Cancelling, Escape and the close button are the user
+ * saying they are done with this draft, which closes right away.
+ */
+async function switchType(action: () => void) {
   if (saving.value || confirming.value) return;
   confirming.value = true;
   try {
@@ -60,12 +65,7 @@ async function changeEditor(action: () => void) {
 
 <template>
   <UiDialog
-    :open="open"
-    @update:open="
-      changeEditor(() => {
-        open = $event;
-      })
-    "
+    v-model:open="open"
     :title="t('spaces.knowledge.types.manage.action')"
     :description="t('spaces.knowledge.types.manage.description')"
     size="wide"
@@ -84,7 +84,7 @@ async function changeEditor(action: () => void) {
           type="button"
           :disabled="saving"
           class="flex h-(--knovum-control-height-md) w-full shrink-0 items-center gap-1 rounded-md px-2 text-left text-label text-fg-secondary outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:bg-surface-control-hover"
-          @click="changeEditor(reset)"
+          @click="switchType(reset)"
         >
           <Plus class="mr-1 inline size-3" />{{ t("spaces.knowledge.types.create") }}
         </button>
@@ -105,7 +105,7 @@ async function changeEditor(action: () => void) {
                 :disabled="saving"
                 :aria-current="editingId === type.id ? 'true' : undefined"
                 class="h-(--knovum-control-height-md) min-w-0 flex-1 truncate text-left outline-none focus-visible:text-fg-accent"
-                @click="editingId !== type.id && changeEditor(() => selectType(type.id))"
+                @click="editingId !== type.id && switchType(() => selectType(type.id))"
               >
                 {{ type.name }}
               </button>
@@ -149,16 +149,7 @@ async function changeEditor(action: () => void) {
       </UiScrollArea>
     </div>
     <template #footer>
-      <UiButton
-        variant="ghost"
-        :disabled="saving"
-        @click="
-          changeEditor(() => {
-            open = false;
-          })
-        "
-        >{{ t("common.cancel") }}</UiButton
-      >
+      <UiButton variant="ghost" :disabled="saving" @click="open = false">{{ t("common.cancel") }}</UiButton>
       <UiButton variant="primary" :disabled="saving || !name.trim()" :aria-busy="saving" @click="save">{{
         t("common.save")
       }}</UiButton>

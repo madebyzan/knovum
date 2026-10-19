@@ -13,7 +13,7 @@ import { computed, type HTMLAttributes } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { cn } from "./cn";
-import { POPUP_ANIMATE_CLASSES } from "./ui-classes";
+import { DIALOG_LAYER_CLASSES, POPUP_ANIMATE_CLASSES, type DialogLayer } from "./ui-classes";
 import UiIconButton from "./UiIconButton.vue";
 
 const open = defineModel<boolean>("open", { required: true });
@@ -23,6 +23,7 @@ const props = withDefaults(
     description?: string | undefined;
     size?: "default" | "wide" | undefined;
     closable?: boolean | undefined;
+    layer?: DialogLayer | undefined;
     class?: HTMLAttributes["class"];
     bodyClass?: HTMLAttributes["class"];
     allowedCommandIds?: readonly string[] | undefined;
@@ -31,19 +32,26 @@ const props = withDefaults(
     description: undefined,
     size: "default",
     closable: true,
+    layer: "dialog",
     allowedCommandIds: () => [],
   },
 );
 
 const { t } = useI18n();
 const widthClass = computed(() => (props.size === "wide" ? "max-w-[720px]" : "max-w-md"));
+const layerClasses = computed(() => DIALOG_LAYER_CLASSES[props.layer]);
 </script>
 
 <template>
   <DialogRoot v-model:open="open">
     <DialogPortal>
       <DialogOverlay
-        class="fixed inset-0 z-40 bg-surface-scrim duration-150 ease-standard data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+        :class="
+          cn(
+            'fixed inset-0 bg-surface-scrim duration-150 ease-standard data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0',
+            layerClasses.overlay,
+          )
+        "
       />
       <DialogContent
         :data-app-command-scope="allowedCommandIds.join(' ')"
@@ -51,7 +59,8 @@ const widthClass = computed(() => (props.size === "wide" ? "max-w-[720px]" : "ma
         :class="
           cn(
             POPUP_ANIMATE_CLASSES,
-            'fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100vh-5rem)] w-[calc(100vw-2.5rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-stroke-default bg-surface-overlay shadow-dialog duration-150 ease-standard outline-none',
+            'fixed top-1/2 left-1/2 flex max-h-[calc(100vh-5rem)] w-[calc(100vw-2.5rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-stroke-default bg-surface-overlay shadow-dialog duration-150 ease-standard outline-none',
+            layerClasses.content,
             widthClass,
             props.class,
           )
