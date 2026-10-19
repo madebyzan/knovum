@@ -27,6 +27,7 @@ describe("canvas editing commands", () => {
     const paste = command(commands, "spaces.paste");
 
     expect(copy.shortcut).toBe("$mod+C");
+    expect(copy.appMenuShortcut).toBe(true);
     expect(copy.allowInEditable).toBeUndefined();
     expect(copy.availability?.()).toEqual({ state: "blocked", reason: "no_selection" });
     expect(paste.shortcut).toBe("$mod+V");
