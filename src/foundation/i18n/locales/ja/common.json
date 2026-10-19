@@ -12,6 +12,7 @@
   "reset": "リセット",
   "cut": "切り取り",
   "copy": "コピー",
+  "copied": "コピーしました",
   "paste": "貼り付け",
   "selectAll": "すべてを選択",
   "duplicate": "複製",
