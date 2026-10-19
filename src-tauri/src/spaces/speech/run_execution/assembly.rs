@@ -1,10 +1,9 @@
-use serde::Deserialize;
 use sqlx::Row;
 
 use super::super::{
     contracts::{SpeechProjectRenderOutput, SpeechSegmentRenderOutput},
     execution::command_error,
-    project_publication, publication,
+    project_publication, publication, steps,
 };
 use crate::{
     foundation::app_error::AppError,
@@ -14,23 +13,13 @@ use crate::{
     },
 };
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct AssemblyConfiguration {
-    project_id: String,
-    revision_id: String,
-    revision: i64,
-    project_type: String,
-}
-
 pub(super) async fn execute(
     app: &tauri::AppHandle,
     pool: &sqlx::SqlitePool,
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
     let run_space_id = claim.scope.require_space_id()?;
-    let config: AssemblyConfiguration =
-        serde_json::from_value(claim.configuration.clone()).map_err(db::json_error)?;
+    let config: steps::AssemblyStep = steps::parse(&claim.configuration)?;
     let revision: Option<(String, String, i64, String, String)> = sqlx::query_as(
         "SELECT p.active_revision_id,r.output_config,r.revision,p.project_type,p.space_id          FROM spaces_speech_projects p JOIN spaces_speech_project_revisions r          ON r.id=p.active_revision_id WHERE p.id=? AND r.id=?",
     ).bind(&config.project_id).bind(&config.revision_id)

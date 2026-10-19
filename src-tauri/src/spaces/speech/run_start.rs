@@ -1,7 +1,7 @@
 use serde_json::json;
 use sqlx::{sqlite::SqliteRow, Row, Sqlite, SqlitePool, Transaction};
 
-use super::contracts::GenerateSpeechProjectRequest;
+use super::{contracts::GenerateSpeechProjectRequest, steps};
 use crate::spaces::{
     authorization::{create_grant, local_user_grant, RunScope},
     db,
@@ -301,8 +301,21 @@ async fn create(
         let segment_id: String = row.try_get("id").map_err(db::sql_error)?;
         let ordinal: i64 = row.try_get("ordinal").map_err(db::sql_error)?;
         let node_id = format!("segment:{segment_id}");
-        insert_step(tx, &request.request_id, &node_id, "speech_segment", &[],
-            &json!({"projectId":request.project_id,"revisionId":revision_id,"segmentId":segment_id,"ordinal":ordinal}), now).await?;
+        insert_step(
+            tx,
+            &request.request_id,
+            &node_id,
+            "speech_segment",
+            &[],
+            &steps::SegmentStep {
+                project_id: request.project_id.clone(),
+                revision_id: revision_id.clone(),
+                segment_id,
+                ordinal,
+            },
+            now,
+        )
+        .await?;
         dependencies.push(node_id);
     }
     if project_type == "audiobook" {
@@ -328,17 +341,65 @@ async fn create(
         let mut chapter_nodes = Vec::with_capacity(chapters.len());
         for (index, (chapter_key, segment_nodes)) in chapters.iter().enumerate() {
             let node_id = format!("chapter:{index}");
-            insert_step(tx, &request.request_id, &node_id, "speech_chapter_pcm", segment_nodes,
-                &json!({"projectId":request.project_id,"revisionId":revision_id,"revision":request.expected_revision,"chapterKey":chapter_key,"chapterIndex":index}), now).await?;
+            insert_step(
+                tx,
+                &request.request_id,
+                &node_id,
+                "speech_chapter_pcm",
+                segment_nodes,
+                &steps::ChapterStep {
+                    project_id: request.project_id.clone(),
+                    revision_id: revision_id.clone(),
+                    revision: request.expected_revision,
+                    chapter_key: chapter_key.clone(),
+                    chapter_index: index,
+                },
+                now,
+            )
+            .await?;
             chapter_nodes.push(node_id);
         }
-        insert_step(tx, &request.request_id, "loudness", "speech_loudness_measurement", &chapter_nodes,
-            &json!({"projectId":request.project_id,"revisionId":revision_id,"revision":request.expected_revision}), now).await?;
-        insert_step(tx, &request.request_id, "assembly", "speech_audiobook_encode", &["loudness".into()],
-            &json!({"projectId":request.project_id,"revisionId":revision_id,"revision":request.expected_revision,"projectType":project_type}), now).await?;
+        let anchor = || steps::RevisionStep {
+            project_id: request.project_id.clone(),
+            revision_id: revision_id.clone(),
+            revision: request.expected_revision,
+        };
+        insert_step(
+            tx,
+            &request.request_id,
+            "loudness",
+            "speech_loudness_measurement",
+            &chapter_nodes,
+            &anchor(),
+            now,
+        )
+        .await?;
+        insert_step(
+            tx,
+            &request.request_id,
+            "assembly",
+            "speech_audiobook_encode",
+            &["loudness".into()],
+            &anchor(),
+            now,
+        )
+        .await?;
     } else {
-        insert_step(tx, &request.request_id, "assembly", "speech_assembly", &dependencies,
-            &json!({"projectId":request.project_id,"revisionId":revision_id,"revision":request.expected_revision,"projectType":project_type}), now).await?;
+        insert_step(
+            tx,
+            &request.request_id,
+            "assembly",
+            "speech_assembly",
+            &dependencies,
+            &steps::AssemblyStep {
+                project_id: request.project_id.clone(),
+                revision_id: revision_id.clone(),
+                revision: request.expected_revision,
+                project_type,
+            },
+            now,
+        )
+        .await?;
     }
     sqlx::query("UPDATE spaces_runs SET expanded_steps=? WHERE id=?")
         .bind(i64::try_from(step_count).map_err(|_| "Speech Run step count overflow")?)
@@ -355,7 +416,7 @@ async fn insert_step(
     node_id: &str,
     node_kind: &str,
     dependencies: &[String],
-    configuration: &serde_json::Value,
+    configuration: &impl serde::Serialize,
     now: i64,
 ) -> Result<(), String> {
     sqlx::query(

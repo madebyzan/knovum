@@ -2,13 +2,12 @@ use synthesis::synthesize;
 mod synthesis;
 use crate::spaces::speech::asset_publication::PublicationOwnerKind;
 
-use serde::Deserialize;
 use sqlx::Row;
 
 use super::super::{
     contracts::{ProjectRevisionIdentity, SpeechSegmentExecution, SpeechSegmentRenderOutput},
     execution::{command_error, input_digest, load_voice, parse_config, SynthesisAttempt},
-    generation_attempt, publication,
+    generation_attempt, publication, steps,
 };
 use crate::{
     foundation::app_error::AppError,
@@ -18,23 +17,13 @@ use crate::{
     },
 };
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct SegmentConfiguration {
-    project_id: String,
-    revision_id: String,
-    segment_id: String,
-    ordinal: i64,
-}
-
 pub(super) async fn execute(
     app: &tauri::AppHandle,
     pool: &sqlx::SqlitePool,
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
     let run_space_id = claim.scope.require_space_id()?;
-    let config: SegmentConfiguration =
-        serde_json::from_value(claim.configuration.clone()).map_err(db::json_error)?;
+    let config: steps::SegmentStep = steps::parse(&claim.configuration)?;
     let input: Option<String> =
         sqlx::query_scalar("SELECT input_snapshot FROM spaces_runs WHERE id=?")
             .bind(&claim.run_id)

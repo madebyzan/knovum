@@ -1,10 +1,9 @@
-use serde::Deserialize;
 use sqlx::Row;
 
 use super::super::{
     contracts::{SpeechProjectRenderOutput, SpeechSegmentRenderOutput},
     execution::command_error,
-    project_publication, publication,
+    project_publication, publication, steps,
 };
 use crate::{
     foundation::app_error::AppError,
@@ -14,40 +13,12 @@ use crate::{
     },
 };
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct ChapterConfiguration {
-    project_id: String,
-    revision_id: String,
-    revision: i64,
-    chapter_key: String,
-    #[serde(rename = "chapterIndex")]
-    _chapter_index: usize,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct AudiobookStageConfiguration {
-    project_id: String,
-    revision_id: String,
-    revision: i64,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct AssemblyConfiguration {
-    project_id: String,
-    revision_id: String,
-    revision: i64,
-}
-
 pub(super) async fn execute_chapter(
     app: &tauri::AppHandle,
     pool: &sqlx::SqlitePool,
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
-    let config: ChapterConfiguration =
-        serde_json::from_value(claim.configuration.clone()).map_err(db::json_error)?;
+    let config: steps::ChapterStep = steps::parse(&claim.configuration)?;
     let output_config = require_audiobook_revision(
         pool,
         claim,
@@ -105,8 +76,7 @@ pub(super) async fn execute_loudness(
     pool: &sqlx::SqlitePool,
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
-    let config: AudiobookStageConfiguration =
-        serde_json::from_value(claim.configuration.clone()).map_err(db::json_error)?;
+    let config: steps::RevisionStep = steps::parse(&claim.configuration)?;
     let output_config = require_audiobook_revision(
         pool,
         claim,
@@ -136,8 +106,7 @@ pub(super) async fn execute_audiobook(
     pool: &sqlx::SqlitePool,
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
-    let config: AssemblyConfiguration =
-        serde_json::from_value(claim.configuration.clone()).map_err(db::json_error)?;
+    let config: steps::RevisionStep = steps::parse(&claim.configuration)?;
     let output_config = require_audiobook_revision(
         pool,
         claim,
