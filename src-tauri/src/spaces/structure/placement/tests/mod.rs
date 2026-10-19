@@ -61,8 +61,12 @@ fn content_being_placed_does_not_block_its_own_block() {
     let sources = ["source-node".to_owned()];
     let placed = ["reserved-node".to_owned()];
     assert_eq!(
-        place_derived_content(&structure, &layouts, &block(&sources, &placed, 0, 700.0, 500.0))
-            .unwrap(),
+        place_derived_content(
+            &structure,
+            &layouts,
+            &block(&sources, &placed, 0, 700.0, 500.0)
+        )
+        .unwrap(),
         (448.0, 0.0),
         "the set starts where its output sits"
     );

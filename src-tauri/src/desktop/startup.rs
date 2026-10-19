@@ -12,7 +12,7 @@ pub(crate) fn begin<R: Runtime>(app: &AppHandle<R>) {
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
         loop {
-            tokio::time::sleep(std::time::Duration::from_secs(30)).await;
+            tokio::time::sleep(std::time::Duration::from_secs(60)).await;
             if GENERATION.load(Ordering::SeqCst) != generation || SETTLED.load(Ordering::SeqCst) {
                 return;
             }
@@ -21,7 +21,7 @@ pub(crate) fn begin<R: Runtime>(app: &AppHandle<R>) {
             }
             fail(
                 &app,
-                "The application did not reach a usable state within 30 seconds.",
+                "The application did not reach a usable state within 60 seconds.",
             );
             return;
         }

@@ -8,7 +8,7 @@ listed in [platform-matrix.md](platform-matrix.md); visual composition belongs t
 ## Lifecycle
 
 - The main window starts hidden and appears only after bootstrap reaches a usable or recoverable-error
-  state. There is no splash WebView. Rust starts the 30-second startup deadline before renderer
+  state. There is no splash WebView. Rust starts the 60-second startup deadline before renderer
   initialization; entry/import/mount failures report to its native Retry/Quit error dialog. A retry
   reloads the existing main WebView and starts a new startup generation. Explicit data maintenance
   holds the deadline while native progress reports the operation. No timer forces an exit.
