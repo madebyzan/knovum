@@ -64,6 +64,10 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/" DESTINATION build-evidence/cmak
   FILES_MATCHING PATTERN "*.cmake" PATTERN "CMakeLists.txt" PATTERN "*.cpp" PATTERN "*.in")
 
 if(WIN32)
+  if(NOT CMAKE_DUMPBIN)
+    get_filename_component(_cl_dir "${CMAKE_C_COMPILER}" DIRECTORY)
+    find_program(CMAKE_DUMPBIN NAMES dumpbin HINTS "${_cl_dir}")
+  endif()
   configure_file(windows-qualification.cmake.in windows-qualification.cmake @ONLY)
   install(SCRIPT "${CMAKE_BINARY_DIR}/windows-qualification.cmake")
   install(FILES "${CMAKE_BINARY_DIR}/windows-qualification.cmake" DESTINATION build-evidence)

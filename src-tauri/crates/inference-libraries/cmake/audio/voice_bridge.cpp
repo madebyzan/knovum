@@ -3,6 +3,7 @@
 #include "engine/framework/core/backend.h"
 #include <algorithm>
 #include <exception>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <cstdint>
