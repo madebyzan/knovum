@@ -47,7 +47,16 @@ Spaces persists Builtin Agent and long media generation as Runs. [runs/run-obser
 Speech projects use the same durable Run authority. One accepted start owns a stable request ID;
 segment synthesis and final assembly receive separate attempt identities; audiobooks additionally
 checkpoint chapter PCM and loudness measurement in independent steps. Every claim carries
-the current execution epoch. Segment completion, output reservation and publication use epoch-aware
+the current execution epoch.
+
+A workflow plans each step with the same Rust type its executor reads, so a step can never be
+persisted in a shape its executor refuses — see
+[speech/steps.rs](../src-tauri/src/spaces/speech/steps.rs),
+`source_separation::SeparationConfiguration` and `TranslationStepConfiguration`. A step kind carries
+only what its executor needs to re-check: the revision anchor it was planned against, plus the facts
+that kind cannot derive. Step kinds that serve a single project type never restate it; assembly,
+which serves every non-audiobook type, carries the type it was planned for. Segment completion,
+output reservation and publication use epoch-aware
 compare-and-swap writes, so a recovered or cancelled worker cannot publish late output. Startup
 reconciles interrupted attempts and resumes only durable work. Audio normalization, video stretching
 and assembly artifacts remain attempt-owned until final publication; Task Center observes these

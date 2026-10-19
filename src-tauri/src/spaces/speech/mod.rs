@@ -23,6 +23,7 @@ mod run_start;
 pub(in crate::spaces) mod runtime_identity;
 pub(crate) mod signal_quality;
 pub(crate) mod source_separation;
+mod steps;
 pub(crate) mod subtitle_import;
 #[cfg(test)]
 mod tests;

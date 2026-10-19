@@ -3,6 +3,7 @@ mod configuration;
 mod delivery_instruction;
 mod ownership;
 mod publication;
+mod step_plan;
 
 use crate::spaces::speech::asset_publication::PublicationOwnerKind;
 
@@ -18,6 +19,60 @@ pub(super) async fn database() -> sqlx::SqlitePool {
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
         .execute(&pool).await.unwrap();
     pool
+}
+
+/// Builds a speech project with one segment per `segments` entry, each entry
+/// naming the engine to synthesize with and the chapter it belongs to.
+pub(super) async fn speech_project(
+    pool: &sqlx::SqlitePool,
+    project_type: &str,
+    segments: &[(&str, Option<&str>)],
+) -> String {
+    let project_id = uuid::Uuid::new_v4().to_string();
+    let mut tx = crate::spaces::db::begin_write(pool).await.unwrap();
+    crate::spaces::structure::repository::initialize_empty_in_transaction(&mut tx, "space")
+        .await
+        .unwrap();
+    crate::spaces::nodes::tests::insert_source_in_transaction(
+        &mut tx,
+        "space",
+        "source",
+        "note",
+        crate::spaces::nodes::tests::source_note("Source"),
+    )
+    .await
+    .unwrap();
+    tx.commit().await.unwrap();
+    sqlx::query("INSERT INTO spaces_speech_projects(id,space_id,source_node_id,project_type,title,created_at,updated_at) VALUES(?,'space','source',?,'Draft',1,1)")
+        .bind(&project_id).bind(project_type).execute(pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_speech_project_revisions(id,project_id,revision,source_revision,pronunciation_lexicon,output_config,created_at) VALUES('revision',?,1,'source','{}',?,1)")
+        .bind(&project_id)
+        .bind(serde_json::json!({"format":"wav","wavPrecision":"pcm16"}).to_string())
+        .execute(pool).await.unwrap();
+    sqlx::query("UPDATE spaces_speech_projects SET active_revision_id='revision' WHERE id=?")
+        .bind(&project_id)
+        .execute(pool)
+        .await
+        .unwrap();
+    for (ordinal, (engine, chapter_key)) in segments.iter().enumerate() {
+        sqlx::query("INSERT OR IGNORE INTO spaces_voice_profiles(id,name,source_kind,created_at,updated_at) VALUES(?,?,'reference',1,1)")
+            .bind(engine).bind(engine).execute(pool).await.unwrap();
+        sqlx::query("INSERT OR IGNORE INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,reference_asset_id,reference_source_revision,synthesis_config,authorization,created_at) VALUES(?,?,1,?,'model','en','reference','sha256:reference','{}','{}',1)")
+            .bind(engine).bind(engine).bind(engine).execute(pool).await.unwrap();
+        sqlx::query("INSERT INTO spaces_speech_segments(id,project_revision_id,ordinal,chapter_key,text,normalized_text,voice_revision_id,language,state,created_at,updated_at) VALUES(?,'revision',?,?,'Hello','Hello',?,'en','ready',1,1)")
+            .bind(format!("segment-{ordinal}"))
+            .bind(i64::try_from(ordinal).unwrap())
+            .bind(*chapter_key)
+            .bind(engine)
+            .execute(pool).await.unwrap();
+    }
+    project_id
+}
+
+pub(super) fn reservation_context() -> crate::spaces::speech::output_reservation::OutputContext {
+    crate::spaces::speech::output_reservation::OutputContext::for_tests(
+        std::env::temp_dir().join("knovum-speech-reservation"),
+    )
 }
 
 #[tokio::test]
