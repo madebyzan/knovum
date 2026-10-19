@@ -114,9 +114,14 @@ export function useShellController(
         toggleRightSidebar,
       },
       labels: {
-        copy: t("common.copy"),
-        cut: t("common.cut"),
-        paste: t("common.paste"),
+        editing: {
+          undo: t("common.undo"),
+          redo: t("common.redo"),
+          cut: t("common.cut"),
+          copy: t("common.copy"),
+          paste: t("common.paste"),
+          "select-all": t("common.selectAll"),
+        },
         settings: t("common.settings"),
         commandPalette: t("shell.commands.title"),
         shortcuts: t("shell.shortcuts.title"),

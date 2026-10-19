@@ -29,9 +29,14 @@ function commands(workspaceActive: boolean) {
       toggleRightSidebar: vi.fn<() => void>(),
     },
     labels: {
-      copy: "copy",
-      cut: "cut",
-      paste: "paste",
+      editing: {
+        undo: "undo",
+        redo: "redo",
+        cut: "cut",
+        copy: "copy",
+        paste: "paste",
+        "select-all": "select all",
+      },
       settings: "settings",
       commandPalette: "palette",
       shortcuts: "shortcuts",
@@ -44,7 +49,14 @@ function commands(workspaceActive: boolean) {
 describe("shell commands", () => {
   it("keeps native menu editing targets out of the shortcut bindings", () => {
     const editing = commands(true).filter(({ id }) => id.startsWith("editing."));
-    expect(editing.map(({ id }) => id)).toEqual(["editing.cut", "editing.copy", "editing.paste"]);
+    expect(editing.map(({ id }) => id)).toEqual([
+      "editing.undo",
+      "editing.redo",
+      "editing.cut",
+      "editing.copy",
+      "editing.paste",
+      "editing.select-all",
+    ]);
     for (const command of editing) {
       expect(command.shortcut).toBeUndefined();
       expect(command.keybindings).toBeUndefined();
@@ -83,9 +95,14 @@ describe("shell commands", () => {
         toggleRightSidebar: vi.fn<() => void>(),
       },
       labels: {
-        copy: "copy",
-        cut: "cut",
-        paste: "paste",
+        editing: {
+          undo: "undo",
+          redo: "redo",
+          cut: "cut",
+          copy: "copy",
+          paste: "paste",
+          "select-all": "select all",
+        },
         settings: "settings",
         commandPalette: "palette",
         toggleSidebar: "sidebar",
