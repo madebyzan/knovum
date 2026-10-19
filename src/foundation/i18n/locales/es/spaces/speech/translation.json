@@ -1,10 +1,9 @@
 {
+  "description": "Traduce las líneas al idioma de destino. La traducción sustituye cada línea y el original queda debajo.",
   "language": "Idioma de traducción",
   "model": "Modelo de traducción",
   "translate": "Traducir script",
   "cancel": "Cancelar traducción",
   "failed": "Error en la traducción del guión del vídeo",
-  "source": "Fuente",
-  "localOnly": "Mantenga la traducción completamente local",
-  "localUnavailable": "No hay ningún modelo de traducción local configurado. Ingrese la secuencia de comandos del idioma de destino o configure un modelo Ollama de bucle invertido."
+  "source": "Fuente"
 }

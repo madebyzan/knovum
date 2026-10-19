@@ -377,6 +377,16 @@ rolls back the complete publication. Retrying an already committed attempt reuse
 never inserts duplicate tracks or relations. Publication belongs to the durable Run and continues
 when the initiating view closes or another Space opens.
 
+Dubbed dialogue is heard in script order and never on top of itself. A line starts at its subtitle
+time or as soon as the line before it has stopped speaking, whichever is later; a line that would
+run into the next one is compressed only as far as the ear tolerates, and past that the next line
+waits. Lateness is paid back by the silence between lines, and nothing is heard past the end of the
+picture. One dialogue track therefore carries every line, so the mix never sums speech onto itself.
+
+A translation Run derives the script from the revision it was created for, so a translation request
+cannot carry a script that has already gone stale. Translating commits the editor's script first
+and returns the translated lines for review; the original stays with each line as its source text.
+
 Video dubbing may select the published background through its mix configuration. This is a choice
 of input, not a second approval of the derivation. Selecting a background preserves its frozen
 source/model provenance. The product does not claim that spoken dialogue was completely removed

@@ -1,10 +1,9 @@
 {
+  "description": "Translates the lines into the target language. The translation replaces each line and the original stays below it.",
   "language": "Translation language",
   "model": "Translation model",
   "translate": "Translate script",
   "cancel": "Cancel translation",
   "failed": "Video script translation failed",
-  "source": "Source",
-  "localOnly": "Keep translation fully local",
-  "localUnavailable": "No local translation model is configured. Enter the target-language script or configure a loopback Ollama model."
+  "source": "Source"
 }

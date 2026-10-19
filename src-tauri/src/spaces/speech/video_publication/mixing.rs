@@ -1,14 +1,11 @@
-use std::{
-    path::{Path, PathBuf},
-    process::Command,
-};
+use std::path::{Path, PathBuf};
 
 use tokio_util::sync::CancellationToken;
 
 use super::super::{contracts::SpeechSegmentRenderOutput, video_config::VideoDubbingOutputConfig};
 use super::{
-    final_mix::{input_labels, mix_final, FinalMixSpec, MixOutput},
-    fitting, MAX_MIX_INPUTS, SAMPLE_RATE,
+    final_mix::{mix_final, FinalMixSpec, MixOutput},
+    fitting, SAMPLE_RATE,
 };
 
 /// A line and the time the subtitles gave it. How long it is actually heard for is decided when
@@ -120,38 +117,30 @@ fn build_artifact(request: MixRequest<'_>, kind: MixOutput) -> Result<PathBuf, S
         return Err("This dubbing revision has no background audio".into());
     }
     let placements = fitting::plan(timed, video_samples)?;
-    let mut fitted = Vec::with_capacity(timed.len());
-    for ((index, item), placement) in timed.iter().enumerate().zip(&placements) {
+    let mut fitted = Vec::with_capacity(placements.len());
+    for (ordinal, placement) in placements.iter().enumerate() {
+        if cancellation.is_cancelled() {
+            return Err("cancelled".into());
+        }
         fitted.push(fitting::render(
             ffmpeg,
             work,
-            index,
-            item,
+            ordinal,
+            &timed[placement.index],
             placement,
             cancellation,
         )?);
     }
-    let lanes = super::voice_lanes::assign(&placements);
-    let mut lane_paths = Vec::with_capacity(lanes.len());
-    for (index, lane) in lanes.iter().enumerate() {
-        if cancellation.is_cancelled() {
-            return Err("cancelled".into());
-        }
-        let path = work.join(format!("lane-{index}.wav"));
-        super::voice_lanes::write(
-            &path,
-            lane,
-            &placements,
-            &fitted,
-            video_samples,
-            cancellation,
-        )?;
+    let dialogue = if placements.is_empty() {
+        None
+    } else {
+        let path = work.join("dialogue.wav");
+        super::dialogue_track::write(&path, &placements, &fitted, video_samples, cancellation)?;
         if super::policy::wav_sample_count(&path, 1)? != video_samples {
-            return Err("Video voice lane has an invalid duration".into());
+            return Err("Video dialogue track has an invalid duration".into());
         }
-        lane_paths.push(path);
-    }
-    let voice_inputs = reduce_mix_inputs(ffmpeg, work, lane_paths, cancellation)?;
+        Some(path)
+    };
     let envelope = if config.preserve_original_outside_dialogue && background.is_some() {
         let path = work.join("dialogue-envelope.wav");
         super::dialogue_envelope::write(
@@ -167,7 +156,7 @@ fn build_artifact(request: MixRequest<'_>, kind: MixOutput) -> Result<PathBuf, S
     let mixed = work.join("mixed.wav");
     mix_final(
         ffmpeg,
-        &voice_inputs,
+        dialogue.as_deref(),
         background,
         &mixed,
         FinalMixSpec {
@@ -183,51 +172,4 @@ fn build_artifact(request: MixRequest<'_>, kind: MixOutput) -> Result<PathBuf, S
         cancellation,
     )?;
     Ok(mixed)
-}
-
-fn reduce_mix_inputs(
-    ffmpeg: &Path,
-    work: &Path,
-    mut inputs: Vec<PathBuf>,
-    cancellation: &CancellationToken,
-) -> Result<Vec<PathBuf>, String> {
-    let mut round = 0;
-    while inputs.len() > MAX_MIX_INPUTS {
-        let mut next = Vec::new();
-        for (group, chunk) in inputs.chunks(MAX_MIX_INPUTS).enumerate() {
-            let output = work.join(format!("voice-{round}-{group}.caf"));
-            mix_group(ffmpeg, chunk, &output, cancellation)?;
-            next.push(output);
-        }
-        inputs = next;
-        round += 1;
-    }
-    Ok(inputs)
-}
-
-fn mix_group(
-    ffmpeg: &Path,
-    inputs: &[PathBuf],
-    output: &Path,
-    cancellation: &CancellationToken,
-) -> Result<(), String> {
-    let mut command = Command::new(ffmpeg);
-    command.args(["-hide_banner", "-loglevel", "error", "-nostdin", "-y"]);
-    for input in inputs {
-        command.arg("-i").arg(input);
-    }
-    command
-        .arg("-filter_complex")
-        .arg(format!(
-            "{}amix=inputs={}:duration=longest:normalize=0[out]",
-            input_labels(inputs.len()),
-            inputs.len(),
-        ))
-        .args(["-map", "[out]", "-c:a", "pcm_f32le", "-f", "caf"])
-        .arg(output);
-    crate::media::ffmpeg::run(
-        &mut command,
-        cancellation,
-        "FFmpeg could not combine video voice lanes",
-    )
 }

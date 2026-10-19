@@ -1,8 +1,5 @@
 use super::SAMPLE_RATE;
-use std::{
-    path::{Path, PathBuf},
-    process::Command,
-};
+use std::{path::Path, process::Command};
 use tokio_util::sync::CancellationToken;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -23,7 +20,7 @@ pub(super) struct FinalMixSpec<'a> {
 
 pub(super) fn mix_final(
     ffmpeg: &Path,
-    voices: &[PathBuf],
+    dialogue: Option<&Path>,
     background: Option<&Path>,
     output: &Path,
     spec: FinalMixSpec<'_>,
@@ -39,8 +36,8 @@ pub(super) fn mix_final(
     } = spec;
     let mut command = Command::new(ffmpeg);
     command.args(["-hide_banner", "-loglevel", "error", "-nostdin", "-y"]);
-    for input in voices {
-        command.arg("-i").arg(input);
+    if let Some(dialogue) = dialogue {
+        command.arg("-i").arg(dialogue);
     }
     if let Some(background) = background {
         command.arg("-i").arg(background);
@@ -48,17 +45,11 @@ pub(super) fn mix_final(
     if let (Some(original), Some(envelope)) = (original, envelope) {
         command.arg("-i").arg(original).arg("-i").arg(envelope);
     }
-    let voice = if voices.is_empty() {
-        String::new()
-    } else {
-        format!(
-            "{}amix=inputs={}:duration=longest:normalize=0,volume={voice_gain_db}dB[voice];",
-            input_labels(voices.len()),
-            voices.len()
-        )
-    };
+    let voice = dialogue
+        .map(|_| format!("[0:a:0]volume={voice_gain_db}dB[voice];"))
+        .unwrap_or_default();
     let bed = if background.is_some() {
-        let index = voices.len();
+        let index = usize::from(dialogue.is_some());
         let separated = format!("[{index}:a:0]aresample={SAMPLE_RATE},aformat=channel_layouts=stereo,volume={background_gain_db}dB,apad,atrim=end_sample={sample_count}");
         if original.is_some() {
             format!("{separated}[bed];[{}:a:0]aresample={SAMPLE_RATE},aformat=channel_layouts=stereo,apad,atrim=end_sample={sample_count}[original];[{}:a:0]pan=stereo|c0=c0|c1=c0,asplit=2[inside][invert];[invert]aeval=exprs='1-val(0)|1-val(1)'[outside];[bed][inside]amultiply[separated];[original][outside]amultiply[ambient];[separated][ambient]amix=inputs=2:normalize=0[background];", index + 1, index + 2)
@@ -93,11 +84,4 @@ pub(super) fn mix_final(
         return Err("Mixed video dubbing audio has an invalid duration".into());
     }
     Ok(())
-}
-
-pub(super) fn input_labels(count: usize) -> String {
-    (0..count).fold(String::new(), |mut labels, index| {
-        labels.push_str(&format!("[{index}:a:0]"));
-        labels
-    })
 }

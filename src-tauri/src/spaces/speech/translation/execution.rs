@@ -45,9 +45,6 @@ pub(crate) async fn execute(
     {
         return Err("stale_revision: video translation model configuration changed".into());
     }
-    if config.local_only && !target.is_local() {
-        return Err("stale_revision: local-only translation target is no longer local".into());
-    }
     let output = tasks::completion::complete(
         app,
         TaskExecutionTarget::Model(target),

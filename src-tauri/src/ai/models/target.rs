@@ -47,17 +47,4 @@ impl ModelExecutionTarget {
     pub fn temperature(&self) -> Option<f64> {
         Some(self.temperature)
     }
-
-    pub fn is_local(&self) -> bool {
-        self.provider == ProviderKind::Ollama.as_str()
-            && reqwest::Url::parse(&self.base_url)
-                .ok()
-                .and_then(|url| url.host_str().map(str::to_owned))
-                .is_some_and(|host| {
-                    host.eq_ignore_ascii_case("localhost")
-                        || host
-                            .parse::<std::net::IpAddr>()
-                            .is_ok_and(|address| address.is_loopback())
-                })
-    }
 }

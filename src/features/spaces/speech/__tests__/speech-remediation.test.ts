@@ -4,13 +4,8 @@ import { DEFAULT_AI_MODEL_SETTINGS } from "../../../../foundation/ai/schema/mode
 import type { SpeechSourceSeparationPublication } from "../../contracts/generated/SpeechSourceSeparationPublication";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
 import { selectBackground, selectSeparatedBackground } from "../video-background-selection";
-import {
-  applyTranslation,
-  bindVideoSpeaker,
-  translationInputs,
-  type VideoLineDraft,
-} from "../video-dubbing-draft";
-import { isLocalTranslationTarget, persistedTranslationTarget } from "../video-translation-targets";
+import { applyTranslation, bindVideoSpeaker, type VideoLineDraft } from "../video-dubbing-draft";
+import { persistedTranslationTarget } from "../video-translation-targets";
 import { voiceRevisionOptions } from "../voice-options";
 
 function voice(
@@ -38,15 +33,15 @@ function voice(
 }
 
 describe("speech architecture policies", () => {
-  it("allows local-only translation only through loopback Ollama and restores exact provenance", () => {
+  it("restores the model that produced a translation from its provenance", () => {
     const settings = structuredClone(DEFAULT_AI_MODEL_SETTINGS);
     settings.connections = [
       {
-        id: "remote",
-        name: "Remote",
-        provider: "ollama",
-        baseUrl: "https://models.example.com/v1",
-        models: [{ id: "remote-model", name: "Remote", model: "qwen", capabilities: ["text-generation"] }],
+        id: "openai",
+        name: "OpenAI",
+        provider: "openai",
+        baseUrl: "https://api.openai.com/v1",
+        models: [{ id: "gpt", name: "GPT", model: "qwen", capabilities: ["text-generation"] }],
       },
       {
         id: "local",
@@ -56,20 +51,23 @@ describe("speech architecture policies", () => {
         models: [{ id: "local-model", name: "Local", model: "qwen", capabilities: ["text-generation"] }],
       },
     ];
-    const local = { type: "model" as const, connectionId: "local", modelId: "local-model" };
-    const remote = { type: "model" as const, connectionId: "remote", modelId: "remote-model" };
 
-    expect(isLocalTranslationTarget(settings, local)).toBe(true);
-    expect(isLocalTranslationTarget(settings, remote)).toBe(false);
     expect(
       persistedTranslationTarget(settings, {
         runId: "translation-run",
         targetLanguage: "zh-CN",
         provider: "ollama",
         model: "qwen",
-        localOnly: true,
       }),
-    ).toEqual(local);
+    ).toEqual({ type: "model", connectionId: "local", modelId: "local-model" });
+    expect(
+      persistedTranslationTarget(settings, {
+        runId: "translation-run",
+        targetLanguage: "zh-CN",
+        provider: "anthropic",
+        model: "qwen",
+      }),
+    ).toBeUndefined();
   });
 
   it("offers active voice revisions plus an already-bound archived revision", () => {
@@ -100,31 +98,24 @@ describe("speech architecture policies", () => {
         sourceSegmentRevision: 4,
       },
     ];
-    const request = translationInputs(lines, false);
-    expect(request).toEqual([{ sourceSegmentId: "source-1", sourceSegmentRevision: 4, text: "Original" }]);
     expect(() =>
-      applyTranslation(
-        lines,
-        {
-          provenance: {
-            runId: "translation-run",
-            targetLanguage: "zh-CN",
-            provider: "ollama",
-            model: "qwen",
-            localOnly: true,
-          },
-          segments: [
-            {
-              stepId: "translation-step",
-              sourceSegmentId: "stale-source",
-              sourceSegmentRevision: 4,
-              sourceText: "Original",
-              translatedText: "译文",
-            },
-          ],
+      applyTranslation(lines, {
+        provenance: {
+          runId: "translation-run",
+          targetLanguage: "zh-CN",
+          provider: "ollama",
+          model: "qwen",
         },
-        false,
-      ),
+        segments: [
+          {
+            stepId: "translation-step",
+            sourceSegmentId: "stale-source",
+            sourceSegmentRevision: 4,
+            sourceText: "Original",
+            translatedText: "译文",
+          },
+        ],
+      }),
     ).toThrow("does not match");
   });
 

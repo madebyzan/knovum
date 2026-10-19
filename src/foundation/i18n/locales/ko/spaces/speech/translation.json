@@ -1,10 +1,9 @@
 {
+  "description": "대사를 대상 언어로 번역합니다. 번역문이 각 줄을 대체하고 원문은 그 아래에 남습니다.",
   "language": "번역 언어",
   "model": "번역 모델",
   "translate": "스크립트 번역",
   "cancel": "번역 취소",
   "failed": "동영상 스크립트 번역 실패",
-  "source": "소스",
-  "localOnly": "번역을 완전히 로컬로 유지",
-  "localUnavailable": "로컬 번역 모델이 구성되지 않았습니다. 대상 언어 스크립트를 입력하거나 루프백 Ollama 모델을 구성하세요."
+  "source": "소스"
 }

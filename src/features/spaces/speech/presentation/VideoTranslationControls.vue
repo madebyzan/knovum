@@ -11,16 +11,12 @@ import {
   TRANSLATION_TARGETS,
   type TranslationTarget,
 } from "../../../../foundation/ai/translation";
-import type { ModelTargetSelection } from "../../../../shared/contracts/generated/ModelTargetSelection";
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { VideoTranslation } from "../../contracts/generated/VideoTranslation";
 import type { VideoTranslationProvenance } from "../../contracts/generated/VideoTranslationProvenance";
-import type { VideoTranslationSegmentInput } from "../../contracts/generated/VideoTranslationSegmentInput";
 import { useVideoTranslationRun } from "../use-video-translation-run";
 import {
-  isLocalTranslationTarget,
   persistedTranslationTarget,
   sameTranslationTarget,
   type TranslationModelTarget,
@@ -29,8 +25,10 @@ import {
 const props = defineProps<{
   projectId: string;
   expectedRevision: number;
-  segments: readonly VideoTranslationSegmentInput[];
+  lineCount: number;
   provenance?: VideoTranslationProvenance | null | undefined;
+  /** Commits the script the user is looking at, because a Run translates a saved revision. */
+  save: () => Promise<boolean>;
   disabled: boolean;
 }>();
 const emit = defineEmits<{ translated: [translation: VideoTranslation]; busy: [value: boolean] }>();
@@ -39,21 +37,18 @@ const store = useAiSettingsStore();
 const { settings, ready } = storeToRefs(store);
 const target = shallowRef<TranslationModelTarget>();
 const targetLanguage = shallowRef<TranslationTarget>("en");
-const localOnly = shallowRef(false);
+const saving = shallowRef(false);
 const { activeRunId, submitting, cancelling, error, restore, start, cancel } = useVideoTranslationRun(
   (translation) => emit("translated", translation),
 );
-const translating = computed(() => Boolean(activeRunId.value) || submitting.value || cancelling.value);
+const translating = computed(
+  () => Boolean(activeRunId.value) || submitting.value || cancelling.value || saving.value,
+);
 watch(translating, (value) => emit("busy", value), { immediate: true });
 const languageOptions = computed(() =>
   TRANSLATION_TARGETS.map((value) => ({ value, label: t(TRANSLATION_TARGET_LABEL_KEYS[value]) })),
 );
-const allTargets = computed(() => availableModelTargets(settings.value, "translation"));
-const targets = computed(() =>
-  allTargets.value.filter(
-    ({ target: candidate }) => !localOnly.value || isLocalTranslationTarget(settings.value, candidate),
-  ),
-);
+const targets = computed(() => availableModelTargets(settings.value, "translation"));
 const targetValue = computed(() => {
   const selected = target.value;
   return selected
@@ -62,7 +57,7 @@ const targetValue = computed(() => {
 });
 
 watch(
-  [ready, targets, localOnly],
+  [ready, targets],
   () => {
     const selected = target.value;
     if (
@@ -93,24 +88,29 @@ watch(
   () => {
     const language = props.provenance?.targetLanguage;
     targetLanguage.value = isTranslationTarget(language) ? language : "en";
-    localOnly.value = props.provenance?.localOnly ?? false;
   },
   { immediate: true },
 );
 
 onMounted(() => store.ensureLoaded());
 
+/**
+ * A Run translates the lines of a saved revision, so the script on screen is committed first.
+ * That is also why the translated lines come back for review instead of being saved for the user.
+ */
 async function translate() {
-  if (!target.value || translating.value || props.segments.length === 0) return;
-  const executionTarget: ModelTargetSelection = { ...target.value, temperature: 0 };
+  if (!target.value || translating.value || props.lineCount === 0) return;
+  saving.value = true;
+  const saved = await props.save().finally(() => {
+    saving.value = false;
+  });
+  if (!saved) return;
   await start({
     jobId: crypto.randomUUID(),
     projectId: props.projectId,
     expectedRevision: props.expectedRevision,
     targetLanguage: targetLanguage.value,
-    localOnly: localOnly.value,
-    executionTarget,
-    segments: [...props.segments],
+    executionTarget: { ...target.value, temperature: 0 },
   });
 }
 
@@ -124,9 +124,10 @@ function isTranslationTarget(value: string | undefined): value is TranslationTar
 </script>
 
 <template>
-  <section class="space-y-3">
-    <div class="space-y-3">
-      <label class="block space-y-1 text-caption text-fg-secondary">
+  <section class="space-y-2">
+    <p class="text-caption text-fg-secondary">{{ t("spaces.speech.translation.description") }}</p>
+    <div class="flex flex-wrap items-end gap-2">
+      <label class="min-w-32 flex-1 space-y-1 text-caption text-fg-secondary">
         <span>{{ t("spaces.speech.translation.language") }}</span>
         <UiSelect
           size="sm"
@@ -137,7 +138,7 @@ function isTranslationTarget(value: string | undefined): value is TranslationTar
           @update:model-value="selectLanguage"
         />
       </label>
-      <label class="block space-y-1 text-caption text-fg-secondary">
+      <label class="min-w-32 flex-1 space-y-1 text-caption text-fg-secondary">
         <span>{{ t("spaces.speech.translation.model") }}</span>
         <UiSelect
           size="sm"
@@ -149,23 +150,7 @@ function isTranslationTarget(value: string | undefined): value is TranslationTar
           @update:model-value="target = targets.find(({ value }) => value === $event)?.target"
         />
       </label>
-    </div>
-    <label class="flex items-center gap-2 text-caption text-fg-secondary">
-      <UiCheckbox
-        v-model="localOnly"
-        :label="t('spaces.speech.translation.localOnly')"
-        :disabled="disabled || translating"
-      />
-      {{ t("spaces.speech.translation.localOnly") }}
-    </label>
-    <p v-if="localOnly && ready && targets.length === 0" class="text-caption text-fg-danger">
-      {{ t("spaces.speech.translation.localUnavailable") }}
-    </p>
-    <div class="flex gap-2">
-      <UiButton
-        size="sm"
-        :disabled="disabled || translating || !target || segments.length === 0"
-        @click="translate"
+      <UiButton size="sm" :disabled="disabled || translating || !target || lineCount === 0" @click="translate"
         ><Languages class="size-3.5" />{{ t("spaces.speech.translation.translate") }}</UiButton
       >
       <UiButton v-if="activeRunId" size="sm" variant="dangerSubtle" :disabled="cancelling" @click="cancel">

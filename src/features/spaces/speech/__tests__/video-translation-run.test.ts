@@ -31,9 +31,7 @@ const request: TranslateVideoDubbingRequest = {
   projectId: "project",
   expectedRevision: 1,
   targetLanguage: "en",
-  localOnly: false,
   executionTarget: { type: "model", connectionId: "connection", modelId: "model", temperature: 0 },
-  segments: [{ sourceSegmentId: "line", sourceSegmentRevision: 1, text: "你好" }],
 };
 const completed: RunObservation = {
   id: "run",
@@ -115,7 +113,6 @@ it("keeps the script busy until the completed run's result has arrived", async (
     provenance: {
       runId: "run",
       targetLanguage: "en",
-      localOnly: false,
       provider: "connection",
       model: "model",
     },

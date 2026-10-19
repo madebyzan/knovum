@@ -15,7 +15,6 @@ import { selectBackground, selectSeparatedBackground } from "./video-background-
 import {
   applyTranslation as applyTranslatedLines,
   bindVideoSpeaker,
-  translationInputs as buildTranslationInputs,
   videoLineIsValid,
   videoLineFromSegment,
   type VideoLineDraft,
@@ -148,9 +147,8 @@ export function useVideoDubbingDraft(
       voiceGain: voiceGain.value,
       backgroundGain: backgroundGain.value,
     });
-  const translationInputs = () => buildTranslationInputs(lines.value, Boolean(config.value?.translation));
   function applyTranslation(translation: VideoTranslation) {
-    lines.value = applyTranslatedLines(lines.value, translation, Boolean(config.value?.translation));
+    lines.value = applyTranslatedLines(lines.value, translation);
     if (!config.value) throw new Error("Video dubbing output configuration is unavailable");
     config.value = { ...config.value, translation: translation.provenance };
   }
@@ -171,7 +169,6 @@ export function useVideoDubbingDraft(
     importTranscript,
     importSubtitles,
     bindSpeaker,
-    translationInputs,
     applyTranslation,
     revisionInput,
   };

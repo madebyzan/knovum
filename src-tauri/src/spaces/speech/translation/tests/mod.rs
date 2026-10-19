@@ -28,13 +28,13 @@ async fn accepts_user_edited_text_on_first_translation_save() {
         json!({"type":"model","connectionId":"connection","modelId":"model","temperature":0.0});
     let input = json!({
         "workflow":WORKFLOW,"projectId":"project","revisionId":"base","expectedRevision":1,
-        "inputRevision":"sha256:input","targetLanguage":"zh-CN","localOnly":false,
+        "inputRevision":"sha256:input","targetLanguage":"zh-CN",
         "provider":"openai","model":"model","baseUrl":"https://example.test/v1",
         "executionTarget":target,"segments":[source.clone()]
     });
     let configuration = json!({
         "projectId":"project","revisionId":"base","expectedRevision":1,
-        "inputRevision":"sha256:input","targetLanguage":"zh-CN","localOnly":false,
+        "inputRevision":"sha256:input","targetLanguage":"zh-CN",
         "provider":"openai","model":"model","baseUrl":"https://example.test/v1",
         "executionTarget":target,"ordinal":0,"segment":source
     });
@@ -85,7 +85,6 @@ async fn accepts_user_edited_text_on_first_translation_save() {
             target_language: "zh-CN".into(),
             provider: "openai".into(),
             model: "model".into(),
-            local_only: false,
         }),
     };
     let segments = [SpeechSegmentInput {

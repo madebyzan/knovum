@@ -284,11 +284,6 @@ fn validate_provenance(provenance: &Value, input: &Value) -> Result<(), String> 
             );
         }
     }
-    if provenance.get("localOnly").and_then(Value::as_bool)
-        != input.get("localOnly").and_then(Value::as_bool)
-    {
-        return Err("Package video translation locality differs from its Run snapshot".into());
-    }
     Ok(())
 }
 
