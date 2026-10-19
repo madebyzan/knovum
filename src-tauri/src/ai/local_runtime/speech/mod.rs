@@ -7,6 +7,7 @@ pub(crate) use profiles::{
 mod execution;
 mod stream;
 mod timing;
+mod trim;
 
 use std::path::Path;
 

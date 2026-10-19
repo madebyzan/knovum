@@ -79,12 +79,14 @@ pub(super) fn finish_synthesis(
     }
     let attempt_directory = work_directory.join(format!("attempt-{}", identity.request_id));
     fs::remove_dir(&attempt_directory).map_err(|error| format!("invalid_output: {error}"))?;
-    let bytes = wave_from_pcm(&stream.pcm, sample_rate)?;
+    // The line is published as the speech it contains, so its stored duration is spoken time.
+    let speech = &stream.pcm[super::trim::speech_span(&stream.pcm, sample_rate)?];
+    let bytes = wave_from_pcm(speech, sample_rate)?;
     Ok(SynthesizedAudio {
         sha256: hex::encode(Sha256::digest(&bytes)),
         bytes,
         sample_rate,
-        sample_count: synthesis.sample_count,
+        sample_count: speech.len() as u64 / 4,
     })
 }
 

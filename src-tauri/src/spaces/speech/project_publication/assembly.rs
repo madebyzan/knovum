@@ -21,6 +21,10 @@ pub(super) struct AssemblyInput {
     pub measurement: Option<LoudnessMeasurement>,
 }
 
+/// What separates the lines of a plain read, matching the pause an audiobook puts between
+/// paragraphs by default, so a short read is heard as sentences rather than one long one.
+const SENTENCE_PAUSE_MS: u32 = 250;
+
 pub(super) fn assemble(
     input: &AssemblyInput,
     cancellation: &CancellationToken,
@@ -34,15 +38,18 @@ pub(super) fn assemble(
         &input.work_directory,
         cancellation,
     )?;
-    if let Some(config) = &profile.audiobook {
-        normalized = pauses::insert(
-            &normalized,
-            profile.sample_rate,
-            config.chapter_pause_ms,
-            &input.work_directory,
-            cancellation,
-        )?;
-    }
+    // Lines carry only their speech, so the read needs its own separation: an audiobook separates
+    // the chapters it is assembled from, and a plain read separates its lines by a sentence pause.
+    normalized = pauses::insert(
+        &normalized,
+        profile.sample_rate,
+        profile
+            .audiobook
+            .as_ref()
+            .map_or(SENTENCE_PAUSE_MS, |config| config.chapter_pause_ms),
+        &input.work_directory,
+        cancellation,
+    )?;
     let sample_count = normalized.iter().try_fold(0_u64, |total, source| {
         total
             .checked_add(source.sample_count)

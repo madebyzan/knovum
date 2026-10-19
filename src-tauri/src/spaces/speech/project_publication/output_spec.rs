@@ -45,11 +45,16 @@ pub(super) fn output_profile(
     }
 }
 
+/// Identifies how a project's audio is assembled, so a published output is only reused while the
+/// rules that produced it still hold. It changes whenever line trimming or pausing changes.
+const ASSEMBLY_RULES: &str = "speech-assembly-v2-trimmed-lines";
+
 pub(super) fn digest_render_order(
     renders: &[SpeechSegmentRenderOutput],
     output_config: &serde_json::Value,
 ) -> String {
     let mut digest = Sha256::new();
+    digest.update(ASSEMBLY_RULES.as_bytes());
     for render in renders {
         digest.update(render.segment_id.as_bytes());
         digest.update([0]);
