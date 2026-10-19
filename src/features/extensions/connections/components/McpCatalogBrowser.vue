@@ -88,11 +88,13 @@ async function copyOutput() {
 
 <template>
   <section
-    class="rounded-panel border border-stroke-default bg-surface-raised p-4 space-y-4"
+    class="space-y-4 rounded-panel border border-stroke-default bg-surface-raised p-4"
     data-testid="mcp-catalog-browser"
   >
     <div class="flex items-center gap-2">
-      <span class="flex size-6 shrink-0 items-center justify-center rounded bg-surface-control text-fg-secondary">
+      <span
+        class="flex size-6 shrink-0 items-center justify-center rounded bg-surface-control text-fg-secondary"
+      >
         <Compass class="size-3.5" />
       </span>
       <h3 class="text-body font-semibold text-fg-primary">{{ $t("extensions.catalog.browse") }}</h3>
@@ -132,16 +134,12 @@ async function copyOutput() {
         <UiTextarea
           v-model="parameters"
           :disabled="reading.isPending.value"
-          class="font-mono text-caption bg-surface-canvas"
+          class="bg-surface-canvas font-mono text-caption"
           :rows="3"
         />
       </label>
 
-      <UiButton
-        size="sm"
-        type="submit"
-        :disabled="reading.isPending.value || !name || !connection.enabled"
-      >
+      <UiButton size="sm" type="submit" :disabled="reading.isPending.value || !name || !connection.enabled">
         <UiSpinner v-if="reading.isPending.value" class="size-3.5" />
         <span>{{ $t("extensions.catalog.read") }}</span>
       </UiButton>
@@ -151,11 +149,10 @@ async function copyOutput() {
       {{ getErrorMessage(reading.error.value) }}
     </p>
 
-    <div
-      v-if="content"
-      class="overflow-hidden rounded-md border border-stroke-default bg-surface-canvas"
-    >
-      <div class="flex items-center justify-between border-b border-stroke-divider px-3 py-1.5 bg-surface-control/40">
+    <div v-if="content" class="overflow-hidden rounded-md border border-stroke-default bg-surface-canvas">
+      <div
+        class="flex items-center justify-between border-b border-stroke-divider bg-surface-control/40 px-3 py-1.5"
+      >
         <div class="flex items-center gap-1.5 text-caption-sm text-fg-secondary">
           <Code2 class="size-3.5" />
           <span>JSON</span>
@@ -165,7 +162,9 @@ async function copyOutput() {
           <span>{{ copied ? $t("common.copied") : $t("common.copy") }}</span>
         </UiButton>
       </div>
-      <pre class="max-h-80 overflow-auto p-3 text-caption font-mono text-fg-primary leading-relaxed break-all whitespace-pre-wrap select-text">{{ displayContent(content) }}</pre>
+      <pre
+        class="max-h-80 overflow-auto p-3 font-mono text-caption leading-relaxed break-all whitespace-pre-wrap text-fg-primary select-text"
+        >{{ displayContent(content) }}</pre>
     </div>
   </section>
 </template>
