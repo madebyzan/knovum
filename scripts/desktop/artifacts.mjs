@@ -15,7 +15,7 @@ function uv(repository, args, env = process.env) {
 }
 export function prepareArtifacts(repository, options, cargo) {
   const resources = join(repository, "src-tauri/resources");
-  const mode = options.production ? "production" : options.target.startsWith("macos-") ? "adhoc" : "unsigned";
+  const mode = options.target.startsWith("macos-") ? "adhoc" : "unsigned";
   const inference = join(resources, "inference-runtime");
   copyTree(cargo.inference, inference);
   const workerName =

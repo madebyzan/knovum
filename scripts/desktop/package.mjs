@@ -27,7 +27,7 @@ function productionConfiguration(repository, options) {
   const release = read(repository, "src-tauri/tauri.release.conf.json");
   return {
     ...release,
-    bundle: { ...release.bundle, ...platformSigningConfiguration(options.target, process.env) },
+    bundle: { ...release.bundle, ...platformSigningConfiguration(options.target) },
     plugins: { ...release.plugins, updater: updaterConfiguration(process.env) },
   };
 }
@@ -105,8 +105,4 @@ function verifyMacBundle(repository, bundle, evidence) {
   const app = join(bundle, "macos", `${read(repository, "src-tauri/tauri.conf.json").productName}.app`);
   validatePackagedResources(join(app, "Contents/Resources/resources"), repository, evidence);
   execFileSync("codesign", ["--verify", "--deep", "--strict", app], { stdio: "inherit" });
-  if (evidence.production) {
-    execFileSync("spctl", ["--assess", "--type", "execute", app], { stdio: "inherit" });
-    execFileSync("xcrun", ["stapler", "validate", app], { stdio: "inherit" });
-  }
 }

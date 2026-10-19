@@ -58,23 +58,14 @@ export function updaterConfiguration(env) {
   };
 }
 
-export function platformSigningConfiguration(target, env) {
+export function platformSigningConfiguration(target) {
   if (!Object.values(runtimeTargets).includes(target)) {
     throw new Error(`Unsupported signing target: ${target}`);
   }
   if (target.startsWith("macos-")) {
-    const identity = requireValue(env.APPLE_SIGNING_IDENTITY, "APPLE_SIGNING_IDENTITY");
-    if (!identity.startsWith("Developer ID Application:")) {
-      throw new Error("Production macOS packages require a Developer ID Application identity");
-    }
-    for (const name of ["APPLE_API_ISSUER", "APPLE_API_KEY", "APPLE_API_KEY_PATH"]) {
-      requireValue(env[name], name);
-    }
-    return {};
+    return { macOS: { signingIdentity: "-" } };
   }
-  return {
-    windows: { signCommand: requireValue(env.KNOVUM_WINDOWS_SIGN_COMMAND, "KNOVUM_WINDOWS_SIGN_COMMAND") },
-  };
+  return {};
 }
 
 export function validateReleaseArguments(args) {

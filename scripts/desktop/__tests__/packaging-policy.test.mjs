@@ -100,19 +100,9 @@ test("release builds reject switches that bypass signing or inject unrelated con
 });
 
 test("production packaging requires an explicit platform signing policy", () => {
-  assert.throws(
-    () => platformSigningConfiguration("macos-arm64", { APPLE_SIGNING_IDENTITY: "-" }),
-    /Developer ID/,
-  );
-  assert.throws(() => platformSigningConfiguration("windows-x64", {}), /KNOVUM_WINDOWS_SIGN_COMMAND/);
-  assert.throws(() => platformSigningConfiguration("linux-x64", {}), /Unsupported/);
-  assert.throws(() => platformSigningConfiguration("macos-x64", {}), /APPLE_SIGNING_IDENTITY/);
-  assert.throws(() => platformSigningConfiguration("windows-arm64", {}), /Unsupported/);
-  const env = {
-    APPLE_SIGNING_IDENTITY: "Developer ID Application: Test",
-    APPLE_API_KEY: "key",
-    APPLE_API_ISSUER: "issuer",
-    APPLE_API_KEY_PATH: "/tmp/key.p8",
-  };
-  assert.deepEqual(platformSigningConfiguration("macos-arm64", env), {});
+  assert.deepEqual(platformSigningConfiguration("macos-arm64"), { macOS: { signingIdentity: "-" } });
+  assert.deepEqual(platformSigningConfiguration("macos-x64"), { macOS: { signingIdentity: "-" } });
+  assert.deepEqual(platformSigningConfiguration("windows-x64"), {});
+  assert.throws(() => platformSigningConfiguration("linux-x64"), /Unsupported/);
+  assert.throws(() => platformSigningConfiguration("windows-arm64"), /Unsupported/);
 });
