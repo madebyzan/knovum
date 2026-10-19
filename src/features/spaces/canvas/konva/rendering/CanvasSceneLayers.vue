@@ -9,7 +9,7 @@ import type { CanvasConnectorDraft } from "../interaction/connector-gesture-cont
 import type { CanvasScene, CanvasSceneRelation } from "../scene/canvas-scene";
 import type { CanvasConnectorSide } from "../scene/connector-geometry";
 import type { CanvasSelectionTransformPolicy } from "../selection/selection-transform-policy";
-import { useCanvasRenderLayer } from "./canvas-render-layer";
+import { KonvaCanvasLayer } from "./canvas-render-layer";
 import CanvasConnectionTargetHighlight from "./CanvasConnectionTargetHighlight.vue";
 import CanvasConnectorControls from "./CanvasConnectorControls.vue";
 import CanvasInteractionFeedback from "./CanvasInteractionFeedback.vue";
@@ -22,7 +22,6 @@ import { useCanvasSceneLayerProjection } from "./use-canvas-scene-layer-projecti
 function relayPointerDown(nodeId: string, event: Konva.KonvaEventObject<PointerEvent>) {
   emit("pointerDown", nodeId, event);
 }
-const KonvaLayer = useCanvasRenderLayer();
 const props = defineProps<{
   interactive: boolean;
   selectionChromeVisible: boolean;
@@ -96,7 +95,7 @@ watch(interactionLayer, syncInteractionCanvas, { flush: "post" });
     :zoom="zoom"
     @pointer-down="(id, event) => emit('relationPointerDown', id, event)"
   />
-  <KonvaLayer :config="{ id: 'canvas-node-layer', listening: interactive }">
+  <KonvaCanvasLayer :config="{ id: 'canvas-node-layer', listening: interactive }">
     <CanvasNodeShape
       :interactive="interactive"
       v-for="sceneNode in visibleContentNodes"
@@ -110,9 +109,9 @@ watch(interactionLayer, syncInteractionCanvas, { flush: "post" });
       @drag-start="(id, event) => emit('dragStart', id, event)"
       @pointer-down="relayPointerDown"
     />
-  </KonvaLayer>
-  <KonvaLayer :config="{ id: 'canvas-drag-layer', listening: false }" />
-  <KonvaLayer v-if="selectedFrames.length || connectorDraft || feedback" ref="interactionLayer">
+  </KonvaCanvasLayer>
+  <KonvaCanvasLayer :config="{ id: 'canvas-drag-layer', listening: false }" />
+  <KonvaCanvasLayer v-if="selectedFrames.length || connectorDraft || feedback" ref="interactionLayer">
     <CanvasSelectionTransformer
       v-if="stage && !connectorDraft"
       :interactive="interactive"
@@ -144,5 +143,5 @@ watch(interactionLayer, syncInteractionCanvas, { flush: "post" });
       :zoom="zoom"
     />
     <CanvasInteractionFeedback :feedback="feedback" :palette="palette" :zoom="zoom" />
-  </KonvaLayer>
+  </KonvaCanvasLayer>
 </template>

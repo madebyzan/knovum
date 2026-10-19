@@ -6,11 +6,10 @@ import "konva/lib/shapes/Arrow";
 import type { CanvasConnectorDraft } from "../interaction/connector-gesture-controller";
 import type { CanvasSceneRelation } from "../scene/canvas-scene";
 import { draftRelationPath } from "../scene/relation-path";
-import { useCanvasRenderLayer } from "./canvas-render-layer";
+import { KonvaCanvasLayer } from "./canvas-render-layer";
 import CanvasRelationShape from "./CanvasRelationShape.vue";
 import type { CanvasPalette } from "./use-canvas-palette";
 
-const KonvaLayer = useCanvasRenderLayer();
 defineProps<{
   interactive: boolean;
   connectorDraft: CanvasConnectorDraft | undefined;
@@ -24,7 +23,7 @@ const emit = defineEmits<{ pointerDown: [id: string, event: PointerEvent] }>();
 </script>
 
 <template>
-  <KonvaLayer
+  <KonvaCanvasLayer
     v-if="relations.length || connectorDraft"
     :config="{ perfectDrawEnabled: false, listening: interactive }"
   >
@@ -59,5 +58,5 @@ const emit = defineEmits<{ pointerDown: [id: string, event: PointerEvent] }>();
         listening: false,
       }"
     />
-  </KonvaLayer>
+  </KonvaCanvasLayer>
 </template>
