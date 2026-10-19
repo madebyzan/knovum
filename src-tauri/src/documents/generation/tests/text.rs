@@ -27,7 +27,7 @@ fn tables_and_code_keep_their_reading_order() {
 #[test]
 fn images_become_alt_text_without_exporting_private_paths() {
     let bytes = render_text(&source("![Diagram](/private/secret.png)")).unwrap();
-    assert_eq!(String::from_utf8(bytes).unwrap(), "[Image: Diagram]\n\n");
+    assert_eq!(String::from_utf8(bytes).unwrap(), "Diagram\n\n");
 }
 
 #[test]

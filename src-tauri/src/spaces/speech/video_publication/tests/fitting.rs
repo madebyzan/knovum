@@ -82,9 +82,10 @@ fn a_line_is_never_heard_past_the_end_of_the_video() {
 #[test]
 fn a_line_that_overruns_delays_the_next_one_instead_of_talking_over_it() {
     let overrun = (4.0 * f64::from(SAMPLE_RATE) / MAX_COMPRESSION).ceil() as u64;
+    let delayed = (1.0 * f64::from(SAMPLE_RATE) / MAX_COMPRESSION).ceil() as u64;
     assert_eq!(
         planned(&[(4.0, 0, 1_000), (1.0, 1_000, 2_000)], VIDEO_SAMPLES),
-        [(0, 0, overrun), (1, overrun, 48_000)],
+        [(0, 0, overrun), (1, overrun, delayed)],
         "the next line waits for the floor instead of two voices speaking at once"
     );
 }

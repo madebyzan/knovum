@@ -20,6 +20,6 @@
   "ignoreIssues": {
     "src/**/contracts/generated/*.ts": ["types"]
   },
-  "ignoreBinaries": ["cmake", "spctl", "uv"],
+  "ignoreBinaries": ["cmake", "uv"],
   "ignoreDependencies": ["@wdio/local-runner"]
 }

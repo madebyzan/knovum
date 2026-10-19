@@ -44,6 +44,7 @@ pub(super) fn run(
     acquired_media
 }
 
+#[allow(clippy::too_many_arguments)]
 fn execute(
     assets: &Path,
     workspace: &Path,

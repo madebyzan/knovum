@@ -88,6 +88,7 @@ fn decode_publication(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(super) async fn commit_publication(
     pool: &SqlitePool,
     claim: &AttemptClaim,

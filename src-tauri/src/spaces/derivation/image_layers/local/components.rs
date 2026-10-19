@@ -28,7 +28,7 @@ pub(super) fn find(mask: &[bool], width: u32, height: u32) -> Vec<Component> {
             found.push(component);
         }
     }
-    found.sort_by(|left, right| right.pixels.len().cmp(&left.pixels.len()));
+    found.sort_by_key(|component| std::cmp::Reverse(component.pixels.len()));
     found
 }
 

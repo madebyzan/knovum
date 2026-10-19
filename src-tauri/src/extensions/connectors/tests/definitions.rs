@@ -191,7 +191,7 @@ async fn retiring_service_removes_only_its_instances_and_retains_credentials_for
     assert!(connections::load(&pool, "work").await.is_err());
     assert!(connections::load(&pool, "other").await.is_ok());
     assert!(definitions::load(&pool, "unrelated").await.is_ok());
-    assert!(accounts::load(&pool, "account").await.is_ok());
+    assert!(accounts::load(&pool, &old.id).await.is_ok());
 }
 
 #[test]

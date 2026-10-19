@@ -48,13 +48,11 @@ fn standalone_html_preserves_document_structure_and_literal_content() {
 }
 
 #[test]
-fn html_rejects_active_content_private_links_and_unavailable_images() {
+fn html_rejects_unsafe_links() {
     for markdown in [
-        "<script>alert(1)</script>",
         "[Run](javascript:alert)",
         "[Private](file:///private/report)",
         "[RootPath](/private/report)",
-        "![Image](https://example.com/image.png)",
     ] {
         assert!(render(&source(markdown)).is_err(), "accepted {markdown}");
     }

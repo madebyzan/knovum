@@ -50,10 +50,12 @@ fn only_a_layer_stack_settles() {
     for count in [super::MIN_LAYER_COUNT, super::MAX_LAYER_COUNT] {
         super::validate_count(count).expect("the bounds are inclusive");
     }
-    assert!(
-        super::MAX_LAYER_COUNT >= 10,
-        "a nine subject sheet plus its backdrop must fit"
-    );
+    const {
+        assert!(
+            super::MAX_LAYER_COUNT >= 10,
+            "a nine subject sheet plus its backdrop must fit"
+        );
+    }
 }
 
 #[test]

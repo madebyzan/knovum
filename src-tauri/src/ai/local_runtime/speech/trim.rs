@@ -1,12 +1,12 @@
-use std::ops::Range;
+//! A synthesized line is the speech itself, not the silence a model happens to leave around it.
+//!
+//! Models pad their output by varying amounts, and that padding is indistinguishable from spoken
+//! time to everything downstream: a dubbed line would start late and hold the floor after it had
+//! stopped speaking, and an audiobook's configured paragraph pause would be that pause plus
+//! whatever the model added. Trimming here, where a line's audio is assembled, is what makes the
+//! stored duration of a line mean the duration of its speech.
 
-/// A synthesized line is the speech itself, not the silence a model happens to leave around it.
-///
-/// Models pad their output by varying amounts, and that padding is indistinguishable from spoken
-/// time to everything downstream: a dubbed line would start late and hold the floor after it had
-/// stopped speaking, and an audiobook's configured paragraph pause would be that pause plus
-/// whatever the model added. Trimming here, where a line's audio is assembled, is what makes the
-/// stored duration of a line mean the duration of its speech.
+use std::ops::Range;
 
 /// Speech is looked for in short frames, so a boundary is found close to the word itself.
 const FRAME_MS: u64 = 10;

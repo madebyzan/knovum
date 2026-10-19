@@ -67,6 +67,11 @@ async fn trash(pool: &sqlx::SqlitePool, node_id: &str) {
             .await
             .unwrap();
     assert_eq!(trashed, [node_id.to_owned()]);
+    sqlx::query("UPDATE spaces_structure_nodes SET deleted_at=2 WHERE node_id=$1")
+        .bind(node_id)
+        .execute(&mut *tx)
+        .await
+        .unwrap();
     tx.commit().await.unwrap();
 }
 

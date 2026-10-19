@@ -13,9 +13,9 @@ async fn planned_steps_deserialize_into_the_executor_configuration_of_their_kind
         (
             "audiobook",
             &[
-                ("moss_nano", Some("one")),
-                ("moss_nano", Some("one")),
-                ("voxcpm2", Some("two")),
+                ("moss_nano", Some("00000000-0000-0000-0000-000000000001")),
+                ("moss_nano", Some("00000000-0000-0000-0000-000000000001")),
+                ("voxcpm2", Some("00000000-0000-0000-0000-000000000002")),
             ][..],
             7,
         ),
