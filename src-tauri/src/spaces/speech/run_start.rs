@@ -309,7 +309,7 @@ async fn create(
             &[],
             &steps::SegmentStep {
                 project_id: request.project_id.clone(),
-                revision_id: revision_id.clone(),
+                revision_id: revision_id.to_owned(),
                 segment_id,
                 ordinal,
             },
@@ -349,7 +349,7 @@ async fn create(
                 segment_nodes,
                 &steps::ChapterStep {
                     project_id: request.project_id.clone(),
-                    revision_id: revision_id.clone(),
+                    revision_id: revision_id.to_owned(),
                     revision: request.expected_revision,
                     chapter_key: chapter_key.clone(),
                     chapter_index: index,
@@ -361,7 +361,7 @@ async fn create(
         }
         let anchor = || steps::RevisionStep {
             project_id: request.project_id.clone(),
-            revision_id: revision_id.clone(),
+            revision_id: revision_id.to_owned(),
             revision: request.expected_revision,
         };
         insert_step(
@@ -393,9 +393,9 @@ async fn create(
             &dependencies,
             &steps::AssemblyStep {
                 project_id: request.project_id.clone(),
-                revision_id: revision_id.clone(),
+                revision_id: revision_id.to_owned(),
                 revision: request.expected_revision,
-                project_type,
+                project_type: project_type.to_owned(),
             },
             now,
         )
