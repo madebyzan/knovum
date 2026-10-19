@@ -6,6 +6,8 @@ use crate::foundation::app_error::AppError;
 #[derive(Clone, Copy, serde::Deserialize, ts_rs::TS)]
 #[serde(rename_all = "kebab-case")]
 pub(crate) enum EditingCommand {
+    Undo,
+    Redo,
     Cut,
     Copy,
     Paste,
@@ -59,6 +61,8 @@ fn perform_macos(command: EditingCommand) -> Result<bool, AppError> {
         )
     })?;
     let selector = match command {
+        EditingCommand::Undo => sel!(undo:),
+        EditingCommand::Redo => sel!(redo:),
         EditingCommand::Cut => sel!(cut:),
         EditingCommand::Copy => sel!(copy:),
         EditingCommand::Paste => sel!(paste:),

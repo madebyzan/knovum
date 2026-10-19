@@ -17,6 +17,7 @@ function handleOpenChange(open: boolean) {
     :open="Boolean(activeConfirmation)"
     :title="activeConfirmation?.title ?? ''"
     :closable="false"
+    layer="confirmation"
     @update:open="handleOpenChange"
   >
     <p class="text-body leading-relaxed text-fg-secondary">{{ activeConfirmation?.description }}</p>

@@ -54,6 +54,7 @@ export function createCanvasEditingCommands(options: CanvasEditingCommandOptions
       id: "spaces.redo",
       title: options.labels.redo,
       shortcut: "$mod+Shift+Z",
+      keybindings: ["$mod+Shift+Z", "$mod+Y"],
       appMenuShortcut: true,
       category: "editing",
       availability: () => availableWhen(options.canRedo(), "nothing_to_redo"),
