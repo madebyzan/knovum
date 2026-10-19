@@ -10,14 +10,8 @@
     "serverReadOnlyHint": "Server claims read-only",
     "savePermissions": "Save tool permissions"
   },
-  "account": {
-    "label": "Account used by this connection",
-    "none": "No account bound",
-    "changeHint": "Changing accounts clears tool permissions. Review permissions before using the connection again."
-  },
   "add": "Add connection",
   "configure": "Configure",
-  "accountsAndTools": "Accounts and tools",
   "check": "Check connection and read catalog",
   "empty": "No connections for this service",
   "cleanupPending": "Changes saved, but cleanup is incomplete. Affected accounts remain unavailable.",
@@ -25,7 +19,6 @@
     "title": "Delete connection {name}?",
     "description": "Only this connection is deleted. Other connections to the service are kept."
   },
-  "accounts": "Accounts",
   "title": "Connections",
   "addServer": "Add MCP server",
   "description": "Configure MCP services, accounts and tool permissions. Plugin services are configured as part of their package.",
@@ -33,7 +26,6 @@
     "title": "No MCP servers",
     "description": "Add your MCP server. Configure plugin-provided services inside their owning plugin."
   },
-  "serviceAndAccounts": "Manage service and accounts",
   "configureServiceFirst": "Complete this service's configuration first.",
   "conflict": "This connection changed elsewhere. Your edits are retained. Discard them and reopen the connection before saving.",
   "saveBeforeCheck": "Save your changes before changing accounts or checking the catalog again.",
@@ -41,5 +33,7 @@
   "discard": {
     "title": "Discard connection changes?",
     "description": "Unsaved changes to this connection will be lost."
-  }
+  },
+  "toolPermissions": "Tool permissions",
+  "manageService": "Manage service"
 }

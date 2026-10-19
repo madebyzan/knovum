@@ -4,10 +4,8 @@ use tokio_util::sync::CancellationToken;
 
 fn account() -> ConnectorAccount {
     ConnectorAccount {
-        id: "account".into(),
-        revision: "original".into(),
         connector_id: "connector".into(),
-        display_name: "Account".into(),
+        revision: "original".into(),
         resource: "https://example.com/mcp".into(),
         issuer: None,
         scopes: vec![],

@@ -10,14 +10,8 @@
     "serverReadOnlyHint": "Servidor afirma ser somente leitura",
     "savePermissions": "Salvar permissões da ferramenta"
   },
-  "account": {
-    "label": "Conta usada por esta conexão",
-    "none": "Sem conta vinculada",
-    "changeHint": "Alterar contas limpa as permissões da ferramenta. Revise as permissões antes de usar a conexão novamente."
-  },
   "add": "Adicionar conexão",
   "configure": "Configurar",
-  "accountsAndTools": "Contas e ferramentas",
   "check": "Verifique a conexão e leia o catálogo",
   "empty": "Nenhuma conexão para este serviço",
   "cleanupPending": "As alterações foram salvas, mas a limpeza está incompleta. As contas afetadas permanecem indisponíveis.",
@@ -25,7 +19,6 @@
     "title": "Excluir conexão {name}?",
     "description": "Somente esta conexão é excluída. Outras ligações ao serviço são mantidas."
   },
-  "accounts": "Contas",
   "title": "Conexões",
   "addServer": "Adicionar servidor MCP",
   "description": "Configure serviços, contas e permissões de ferramentas MCP. Os serviços de plug-in são configurados como parte de seu pacote.",
@@ -33,7 +26,6 @@
     "title": "Sem servidores MCP",
     "description": "Adicione seu servidor MCP. Configure os serviços fornecidos pelo plug-in dentro do plug-in de sua propriedade."
   },
-  "serviceAndAccounts": "Gerenciar serviços e contas",
   "configureServiceFirst": "Conclua primeiro a configuração deste serviço.",
   "conflict": "Esta conexão mudou em outro lugar. Suas edições são mantidas. Descarte-os e reabra a conexão antes de salvar.",
   "saveBeforeCheck": "Salve suas alterações antes de mudar de conta ou verificar o catálogo novamente.",
@@ -41,5 +33,7 @@
   "discard": {
     "title": "Descartar alterações da conexão?",
     "description": "As alterações não salvas desta conexão serão perdidas."
-  }
+  },
+  "toolPermissions": "Permissões das ferramentas",
+  "manageService": "Gerenciar serviço"
 }

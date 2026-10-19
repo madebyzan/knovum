@@ -9,7 +9,7 @@ import type { ConnectorDefinition } from "../../../../shared/contracts/generated
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import ExtensionInspectionHeader from "../../components/ExtensionInspectionHeader.vue";
 import McpConnectionSettings from "../../connections/components/McpConnectionSettings.vue";
-import ConnectorAccounts from "../../connectors/components/ConnectorAccounts.vue";
+import ConnectorAuthorization from "../../connectors/components/ConnectorAuthorization.vue";
 import PluginConnectorConfiguration from "../../connectors/components/PluginConnectorConfiguration.vue";
 import type { ExtensionDestination } from "../../navigation/extension-destination";
 import { usePluginLabels } from "../../plugins/use-plugin-labels";
@@ -65,9 +65,9 @@ const error = computed(() => plugins.error.value || connections.error.value);
     <PluginConnectorConfiguration v-if="shouldConfigureEndpoint" :connector="connector" />
     <section v-if="connector.endpoint && connector.authorization.type !== 'none'" class="space-y-3">
       <h3 class="border-b border-stroke-divider pb-2 text-body font-medium">
-        {{ $t("extensions.apps.accounts") }}
+        {{ $t("extensions.apps.connection") }}
       </h3>
-      <ConnectorAccounts :connector="connector" />
+      <ConnectorAuthorization :connector="connector" />
     </section>
     <section v-if="connector.endpoint && appConnections.length === 1" class="space-y-3">
       <h3 class="text-body font-medium">{{ $t("extensions.apps.access") }}</h3>

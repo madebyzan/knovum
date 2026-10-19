@@ -10,14 +10,8 @@
     "serverReadOnlyHint": "服务端声明只读",
     "savePermissions": "保存工具权限"
   },
-  "account": {
-    "label": "当前连接使用的账号",
-    "none": "不绑定账号",
-    "changeHint": "更换账号会清除工具权限。请重新审核后再使用。"
-  },
   "add": "添加连接实例",
   "configure": "配置",
-  "accountsAndTools": "账号与工具",
   "check": "检查连接并读取目录",
   "empty": "该服务尚未添加连接实例",
   "cleanupPending": "更改已保存，但清理尚未完成。相关账号仍不可用。",
@@ -25,7 +19,6 @@
     "title": "删除连接 {name}？",
     "description": "仅删除此连接实例，同一服务的其他连接仍会保留。"
   },
-  "accounts": "账号",
   "title": "连接实例",
   "addServer": "添加 MCP 服务",
   "description": "配置 MCP 服务、账号和工具权限。插件内的服务随插件整体使用。",
@@ -33,7 +26,6 @@
     "title": "尚未添加 MCP 服务",
     "description": "添加自己的 MCP 服务。插件提供的服务请在所属插件中配置。"
   },
-  "serviceAndAccounts": "管理服务与账号",
   "configureServiceFirst": "请先完成此服务的配置。",
   "conflict": "连接已在其他位置更改。当前修改已保留，请放弃修改并重新打开后再保存。",
   "saveBeforeCheck": "先保存当前修改，再更换账号或重新检查目录。",
@@ -41,5 +33,7 @@
   "discard": {
     "title": "放弃连接更改？",
     "description": "此连接未保存的更改将丢失。"
-  }
+  },
+  "toolPermissions": "工具权限",
+  "manageService": "管理服务"
 }

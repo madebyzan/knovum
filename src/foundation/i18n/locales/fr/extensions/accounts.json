@@ -9,15 +9,14 @@
   "cleanupPending": "Déconnecté · Nettoyage des informations d'identification en attente",
   "authorized": "Autorisé",
   "required": "Autorisation requise",
-  "authorizeInBrowser": "Autoriser dans le navigateur",
-  "authorize": "Autoriser",
   "disconnect": "Déconnecter et supprimer les informations d'identification locales",
-  "name": "Nom d'affichage du compte",
-  "add": "Ajouter un compte",
   "billingHint": "Les services externes peuvent être facturés séparément ; ces frais ne sont pas inclus dans l'utilisation du jeton d'application.",
   "pending": "L'autorisation est en cours. Complétez-le ou annulez-le avant de quitter cette page.",
   "discard": {
-    "title": "Supprimer les informations de compte non enregistrées ?",
-    "description": "Le nom de compte ou les champs d'autorisation non soumis seront effacés."
-  }
+    "title": "Abandonner les champs d'autorisation saisis ?",
+    "description": "Les champs d'autorisation non soumis seront effacés."
+  },
+  "title": "Connexion",
+  "connect": "Connecter",
+  "reconnect": "Reconnecter"
 }

@@ -18,10 +18,11 @@ pub(crate) async fn collect(app: &AppHandle) -> Result<(), String> {
         })
     {
         let cleanup = async {
-            super::commands::disconnect_connector_account(app.clone(), account.id.clone()).await?;
+            super::commands::disconnect_connector(app.clone(), account.connector_id.clone())
+                .await?;
             if !retained.contains(&account.connector_id) {
-                sqlx::query("DELETE FROM connector_accounts WHERE id=$1")
-                    .bind(&account.id)
+                sqlx::query("DELETE FROM connector_accounts WHERE connector_id=$1")
+                    .bind(&account.connector_id)
                     .execute(&pool)
                     .await
                     .map_err(|error| error.to_string())?;
@@ -30,7 +31,7 @@ pub(crate) async fn collect(app: &AppHandle) -> Result<(), String> {
         }
         .await;
         if let Err(error) = cleanup {
-            errors.push(format!("{}: {error}", account.display_name));
+            errors.push(format!("{}: {error}", account.connector_id));
         }
     }
     if errors.is_empty() {

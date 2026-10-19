@@ -67,7 +67,6 @@ pub enum AgentToolBinding {
     },
     McpTool {
         connection_id: String,
-        account_id: Option<String>,
         tool_name: String,
         schema_digest: String,
     },

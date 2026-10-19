@@ -13,23 +13,22 @@ fn definition() -> ConnectorDefinition {
         authorization: ConnectorAuthorization::None,
     }
 }
-fn connection(id: &str, account: &str) -> McpConnection {
+fn connection(id: &str, connector_id: &str) -> McpConnection {
     McpConnection {
         id: id.into(),
-        connector_id: "service".into(),
+        connector_id: connector_id.into(),
         name: id.into(),
         revision: "one".into(),
-        account_id: Some(account.into()),
         enabled: false,
         tools: vec![],
     }
 }
 
 #[tokio::test]
-async fn account_revocation_cancels_pending_inspection_and_task_scopes_together() {
+async fn authorization_revocation_cancels_pending_inspection_and_task_scopes_together() {
     let sessions = Mutex::new(Sessions::new());
     let shutdown = CancellationToken::new();
-    let connection = connection("connection", "account");
+    let connection = connection("connection", "service");
     let inspection = register(
         &sessions,
         &shutdown,
@@ -43,12 +42,12 @@ async fn account_revocation_cancels_pending_inspection_and_task_scopes_together(
         &sessions,
         &shutdown,
         "unrelated",
-        &self::connection("other", "other-account"),
+        &self::connection("other", "other-service"),
         &definition(),
     )
     .await;
     revoke_matching(&sessions, |_, slot| {
-        slot.connection.account_id.as_deref() == Some("account")
+        slot.connection.connector_id == "service"
     })
     .await;
     assert!(inspection.cancellation.is_cancelled());
@@ -61,7 +60,7 @@ async fn account_revocation_cancels_pending_inspection_and_task_scopes_together(
 async fn releasing_inspection_preserves_task_and_shutdown_cancels_remaining_scope() {
     let sessions = Mutex::new(Sessions::new());
     let shutdown = CancellationToken::new();
-    let connection = connection("connection", "account");
+    let connection = connection("connection", "service");
     let inspection = register(
         &sessions,
         &shutdown,

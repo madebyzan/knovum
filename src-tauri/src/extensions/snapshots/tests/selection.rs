@@ -153,7 +153,6 @@ fn packaged_services_require_exactly_one_binding_and_cannot_be_selected_directly
         connector_id: connector.id.clone(),
         revision: "one".into(),
         name: "Sources".into(),
-        account_id: None,
         enabled: true,
         tools: vec![],
     };

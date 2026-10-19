@@ -45,10 +45,8 @@ async fn fixture() -> (SqlitePool, ConnectorDefinition, ConnectorAccount) {
     }
     tx.commit().await.unwrap();
     let account = ConnectorAccount {
-        id: "account".into(),
-        revision: "authorized-one".into(),
         connector_id: connector.id.clone(),
-        display_name: "Work".into(),
+        revision: "authorized-one".into(),
         resource: "https://example.com/mcp".into(),
         issuer: None,
         scopes: vec![],
@@ -58,7 +56,6 @@ async fn fixture() -> (SqlitePool, ConnectorDefinition, ConnectorAccount) {
     };
     accounts::save(&pool, &account).await.unwrap();
     let mut other_account = account.clone();
-    other_account.id = "other-account".into();
     other_account.connector_id = "unrelated".into();
     accounts::save(&pool, &other_account).await.unwrap();
     for (id, connector_id) in [
@@ -71,11 +68,6 @@ async fn fixture() -> (SqlitePool, ConnectorDefinition, ConnectorAccount) {
             connector_id: connector_id.into(),
             name: id.into(),
             revision: "instance-one".into(),
-            account_id: Some(if connector_id == "shared" {
-                account.id.clone()
-            } else {
-                other_account.id.clone()
-            }),
             enabled: true,
             tools: vec![McpToolPermission {
                 name: "list_issues".into(),
@@ -95,7 +87,7 @@ async fn fixture() -> (SqlitePool, ConnectorDefinition, ConnectorAccount) {
 }
 
 #[tokio::test]
-async fn service_description_changes_preserve_shared_accounts_and_instance_policies() {
+async fn service_description_changes_preserve_the_authorization_and_instance_policies() {
     let (pool, old, account) = fixture().await;
     let mut updated = old.clone();
     updated.description = "Updated service description".into();
@@ -111,7 +103,6 @@ async fn service_description_changes_preserve_shared_accounts_and_instance_polic
     for id in ["personal", "work"] {
         let connection = connections::load(&pool, id).await.unwrap();
         assert!(connection.enabled);
-        assert_eq!(connection.account_id.as_deref(), Some("account"));
         assert_eq!(connection.tools.len(), 1);
         assert_eq!(connection.name, id);
         assert_ne!(connection.revision, "instance-one");
@@ -144,7 +135,7 @@ async fn endpoint_or_authorization_changes_revoke_all_shared_instances_atomicall
             .await
             .unwrap();
         tx.commit().await.unwrap();
-        let account = accounts::load(&pool, "account").await.unwrap();
+        let account = accounts::load(&pool, "shared").await.unwrap();
         assert!(!account.enabled);
         assert!(account.cleanup_pending);
         assert_eq!(
@@ -159,7 +150,6 @@ async fn endpoint_or_authorization_changes_revoke_all_shared_instances_atomicall
         for id in ["personal", "work"] {
             let connection = connections::load(&pool, id).await.unwrap();
             assert!(!connection.enabled);
-            assert!(connection.account_id.is_none());
             assert!(connection.tools.is_empty());
             assert_ne!(connection.revision, "instance-one");
         }
@@ -168,7 +158,7 @@ async fn endpoint_or_authorization_changes_revoke_all_shared_instances_atomicall
 }
 
 #[tokio::test]
-async fn stale_definition_cannot_change_accounts_or_instances() {
+async fn stale_definition_cannot_change_the_authorization_or_instances() {
     let (pool, current, account) = fixture().await;
     let mut stale = current.clone();
     stale.revision = "obsolete".into();
@@ -208,10 +198,8 @@ async fn retiring_service_removes_only_its_instances_and_retains_credentials_for
 fn account_authority_is_scoped_to_one_service_definition() {
     let connector = definition("service");
     let mut account = ConnectorAccount {
-        id: "account".into(),
-        revision: "authorized".into(),
         connector_id: "other".into(),
-        display_name: "Work".into(),
+        revision: "authorized".into(),
         resource: "https://example.com/mcp".into(),
         issuer: None,
         scopes: vec![],

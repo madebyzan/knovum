@@ -21,27 +21,21 @@ export function deleteConnectorDefinition(definition: ConnectorDefinition) {
     revision: definition.revision,
   });
 }
-export function createConnectorAccount(connectorId: string, displayName: string) {
-  return invokeCommand<ConnectorAccount>("plugin:extensions|create_connector_account", {
-    connectorId,
-    displayName,
-  });
-}
-
 export function listConnectorAccounts() {
   return invokeCommand<ConnectorAccount[]>("plugin:extensions|list_connector_accounts");
 }
-export function authorizeConnectorAccount(accountId: string, secretFields: Record<string, string>) {
-  return invokeCommand<ConnectorAccount>("plugin:extensions|authorize_connector_account", {
-    accountId,
+/** Connects a service, or renews the authorization of one that is already connected. */
+export function connectConnector(connectorId: string, secretFields: Record<string, string>) {
+  return invokeCommand<ConnectorAccount>("plugin:extensions|connect_connector", {
+    connectorId,
     secretFields,
   });
 }
-export function cancelConnectorAuthorization(accountId: string) {
-  return invokeCommand<void>("plugin:extensions|cancel_connector_authorization", { accountId });
+export function cancelConnectorAuthorization(connectorId: string) {
+  return invokeCommand<void>("plugin:extensions|cancel_connector_authorization", { connectorId });
 }
-export function disconnectConnectorAccount(accountId: string) {
-  return invokeCommand<void>("plugin:extensions|disconnect_connector_account", { accountId });
+export function disconnectConnector(connectorId: string) {
+  return invokeCommand<void>("plugin:extensions|disconnect_connector", { connectorId });
 }
 
 export function configurePluginConnector(

@@ -6,7 +6,7 @@
     "description": "Installieren Sie einen App-Workflow aus dem Plugin-Katalog."
   },
   "manage": "Verbindung verwalten",
-  "accounts": "Konten",
   "access": "Zugriff",
-  "configurationRequired": "Diese App hat eine unvollständige Verbindung. Überprüfen Sie das Quell-Plugin."
+  "configurationRequired": "Diese App hat eine unvollständige Verbindung. Überprüfen Sie das Quell-Plugin.",
+  "connection": "Verbindung"
 }

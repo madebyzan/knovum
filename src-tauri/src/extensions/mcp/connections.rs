@@ -73,10 +73,7 @@ async fn require_access(
 ) -> Result<(), String> {
     let pool = database::pool(app).await?;
     let current = load(&pool, &frozen.id).await?;
-    if (require_enabled && !current.enabled)
-        || current.revision != frozen.revision
-        || current.account_id != frozen.account_id
-    {
+    if (require_enabled && !current.enabled) || current.revision != frozen.revision {
         return Err("mcp-connection-revoked-or-revised".into());
     }
     let connector =
@@ -88,14 +85,15 @@ async fn require_access(
             return Err("mcp-plugin-disabled".into());
         }
     }
-    if let Some(id) = &current.account_id {
-        let account = super::super::connectors::accounts::load(&pool, id).await?;
-        super::super::connectors::accounts::validate_binding(&connector, &account)?;
-    } else if !matches!(
-        connector.authorization,
-        super::super::contracts::ConnectorAuthorization::None
-    ) {
-        return Err("connector-authorized-account-required".into());
+    match super::super::connectors::accounts::of_connector(&pool, &connector.id).await? {
+        Some(account) => {
+            super::super::connectors::accounts::validate_binding(&connector, &account)?
+        }
+        None if matches!(
+            connector.authorization,
+            super::super::contracts::ConnectorAuthorization::None
+        ) => {}
+        None => return Err("connector-not-connected".into()),
     }
     Ok(())
 }
@@ -117,7 +115,6 @@ pub(in crate::extensions) async fn create_on(
         connector_id,
         name,
         revision: uuid::Uuid::new_v4().to_string(),
-        account_id: None,
         enabled: false,
         tools: Vec::new(),
     };
