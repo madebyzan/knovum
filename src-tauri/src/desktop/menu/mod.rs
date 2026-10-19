@@ -3,7 +3,7 @@ use tauri::{
     AppHandle, Emitter, Runtime,
 };
 
-use super::locale::labels;
+use super::locale::{labels, MenuLabels};
 use crate::preferences::LocalePreference;
 mod state;
 
@@ -14,6 +14,27 @@ const NEW_SPACE_ID: &str = "spaces.new-space";
 const REOPEN_CLOSED_TAB_ID: &str = "spaces.reopen-closed-tab";
 const CLOSE_TAB_ID: &str = "spaces.close-tab";
 const FILE_MENU_ID: &str = "knovum.file";
+const EDIT_MENU_ID: &str = "knovum.edit";
+const UNDO_ID: &str = "editing.undo";
+const REDO_ID: &str = "editing.redo";
+const CUT_ID: &str = "editing.cut";
+const COPY_ID: &str = "editing.copy";
+const PASTE_ID: &str = "editing.paste";
+const SELECT_ALL_ID: &str = "editing.select-all";
+/// Every menu item is a renderer command, so the identifier is the whole contract between them.
+const COMMAND_IDS: [&str; 11] = [
+    COMMAND_PALETTE_ID,
+    SETTINGS_ID,
+    NEW_SPACE_ID,
+    REOPEN_CLOSED_TAB_ID,
+    CLOSE_TAB_ID,
+    UNDO_ID,
+    REDO_ID,
+    CUT_ID,
+    COPY_ID,
+    PASTE_ID,
+    SELECT_ALL_ID,
+];
 
 pub fn build<R: Runtime>(app: &AppHandle<R>, locale: LocalePreference) -> tauri::Result<Menu<R>> {
     let labels = labels(locale).map_err(std::io::Error::other)?.menu;
@@ -68,20 +89,42 @@ pub fn build<R: Runtime>(app: &AppHandle<R>, locale: LocalePreference) -> tauri:
     menu.insert(&file_submenu, 1)?;
     remove_window_close_item(&menu)?;
 
-    let cut = MenuItem::with_id(app, "editing.cut", labels.cut, true, None::<&str>)?;
-    let copy = MenuItem::with_id(app, "editing.copy", labels.copy, true, None::<&str>)?;
-    let paste = MenuItem::with_id(app, "editing.paste", labels.paste, true, None::<&str>)?;
-    let edit = Submenu::with_id_and_items(
-        app,
-        "knovum.edit",
-        labels.edit,
-        true,
-        &[&cut, &copy, &paste],
-    )?;
+    let edit = edit_submenu(app, &labels)?;
     menu.remove_at(2)?;
     menu.insert(&edit, 2)?;
 
     Ok(menu)
+}
+
+/// macOS resolves the standard editing chords through the Application Menu, never inside the
+/// webview, so every item owns its native accelerator and the renderer decides whether the focused
+/// text control or the active surface performs it.
+fn edit_submenu<R: Runtime>(app: &AppHandle<R>, labels: &MenuLabels) -> tauri::Result<Submenu<R>> {
+    let item = |id: &str, text: &str, accelerator: &str| {
+        MenuItem::with_id(app, id, text, true, Some(accelerator))
+    };
+    let undo = item(UNDO_ID, labels.undo, "CmdOrCtrl+Z")?;
+    let redo = item(REDO_ID, labels.redo, "CmdOrCtrl+Shift+Z")?;
+    let cut = item(CUT_ID, labels.cut, "CmdOrCtrl+X")?;
+    let copy = item(COPY_ID, labels.copy, "CmdOrCtrl+C")?;
+    let paste = item(PASTE_ID, labels.paste, "CmdOrCtrl+V")?;
+    let select_all = item(SELECT_ALL_ID, labels.select_all, "CmdOrCtrl+A")?;
+    Submenu::with_id_and_items(
+        app,
+        EDIT_MENU_ID,
+        labels.edit,
+        true,
+        &[
+            &undo,
+            &redo,
+            &PredefinedMenuItem::separator(app)?,
+            &cut,
+            &copy,
+            &paste,
+            &PredefinedMenuItem::separator(app)?,
+            &select_all,
+        ],
+    )
 }
 
 fn remove_window_close_item<R: Runtime>(menu: &Menu<R>) -> tauri::Result<()> {
@@ -116,14 +159,11 @@ pub fn set_workspace_state<R: Runtime>(
 }
 
 pub fn handle_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
-    let handled = match event.id().as_ref() {
-        id @ (COMMAND_PALETTE_ID | SETTINGS_ID | NEW_SPACE_ID | REOPEN_CLOSED_TAB_ID
-        | CLOSE_TAB_ID | "editing.cut" | "editing.copy" | "editing.paste") => app
-            .emit(COMMAND_EVENT, id)
-            .map_err(|error| error.to_string()),
-        _ => Ok(()),
-    };
-    if let Err(error) = handled {
+    let command_id = event.id().as_ref();
+    if !COMMAND_IDS.contains(&command_id) {
+        return;
+    }
+    if let Err(error) = app.emit(COMMAND_EVENT, command_id) {
         log::error!("failed to handle application menu command: {error}");
     }
 }
