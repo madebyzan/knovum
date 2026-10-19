@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   attestations: read
 
 concurrency:
@@ -15,7 +15,6 @@ concurrency:
 
 jobs:
   build:
-    environment: ${{ github.event_name == 'push' && 'release-signing' || 'runtime-qa' }}
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -56,16 +55,6 @@ jobs:
           corepack enable
           pnpm install --frozen-lockfile
           rustup target add '${{ matrix.target }}'
-      - name: Validate public distribution repository
-        id: distribution
-        env:
-          GH_TOKEN: ${{ github.token }}
-          DISTRIBUTION_REPOSITORY: ${{ vars.KNOVUM_DISTRIBUTION_REPOSITORY }}
-        shell: bash
-        run: |
-          test "$(gh repo view "$DISTRIBUTION_REPOSITORY" --json visibility --jq .visibility)" = PUBLIC
-          echo "owner=${DISTRIBUTION_REPOSITORY%%/*}" >> "$GITHUB_OUTPUT"
-          echo "repo=${DISTRIBUTION_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
       - name: Validate tag and reviewed release notes
         if: github.event_name == 'push'
         shell: bash
@@ -80,39 +69,6 @@ jobs:
         run: cargo deny --manifest-path src-tauri/Cargo.toml check advisories licenses
       - name: Run quality gates
         run: pnpm check
-      - name: Install Windows signing client
-        if: github.event_name == 'push' && runner.os == 'Windows'
-        run: cargo install artifact-signing-cli --version 0.11.0 --locked
-      - name: Import macOS signing certificate
-        if: github.event_name == 'push' && runner.os == 'macOS'
-        uses: apple-actions/import-codesign-certs@5142e029c445c10ffc7149d172e540235a065466 # v7.0.0
-        with:
-          p12-file-base64: ${{ secrets.APPLE_CERTIFICATE }}
-          p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      - name: Import Windows signing certificate
-        if: github.event_name == 'push' && runner.os == 'Windows'
-        env:
-          WINDOWS_CERTIFICATE: ${{ secrets.KNOVUM_WINDOWS_CERTIFICATE }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.KNOVUM_WINDOWS_CERTIFICATE_PASSWORD }}
-          APPROVED_THUMBPRINT: ${{ vars.KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT }}
-        shell: pwsh
-        run: |
-          if (!$env:WINDOWS_CERTIFICATE) { throw 'Missing KNOVUM_WINDOWS_CERTIFICATE' }
-          $certificatePath = Join-Path $env:RUNNER_TEMP 'runtime-signing.pfx'
-          [IO.File]::WriteAllBytes($certificatePath, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
-          $password = ConvertTo-SecureString $env:WINDOWS_CERTIFICATE_PASSWORD -AsPlainText -Force
-          $certificates = @(Import-PfxCertificate -FilePath $certificatePath -Password $password -CertStoreLocation Cert:\CurrentUser\My)
-          $signers = @($certificates | Where-Object { $_.HasPrivateKey })
-          if (!$env:APPROVED_THUMBPRINT) { throw 'Missing approved resource certificate thumbprint' }
-          if ($signers.Count -eq 1 -and $signers[0].Thumbprint -ne $env:APPROVED_THUMBPRINT) { throw 'Resource signer differs from the approved certificate' }
-          if ($signers.Count -ne 1) { throw 'Expected exactly one private signing certificate' }
-          "KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT=$($signers[0].Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-      - name: Prepare Apple notarization key
-        if: github.event_name == 'push' && runner.os == 'macOS'
-        env:
-          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
-        run: |
-          node --input-type=module -e 'import { writeFileSync, appendFileSync } from "node:fs"; import { join } from "node:path"; const file = join(process.env.RUNNER_TEMP, "knovum-notary.p8"); const key = process.env.APPLE_API_PRIVATE_KEY; if (!key?.trim()) throw Error("Missing APPLE_API_PRIVATE_KEY"); writeFileSync(file, key, { mode: 0o600 }); appendFileSync(process.env.GITHUB_ENV, `APPLE_API_KEY_PATH=${file}\n`);'
       - name: Read reviewed release notes
         id: notes
         if: github.event_name == 'push'
@@ -125,26 +81,17 @@ jobs:
       - name: Build and upload a signed draft with the official Tauri action
         if: github.event_name == 'push'
         env:
-          GITHUB_TOKEN: ${{ secrets.KNOVUM_DISTRIBUTION_TOKEN }}
-          KNOVUM_UPDATER_ENDPOINT: ${{ vars.KNOVUM_UPDATER_ENDPOINT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KNOVUM_UPDATER_ENDPOINT: https://github.com/${{ github.repository }}/releases/latest/download/latest.json
           KNOVUM_UPDATER_PUBKEY: ${{ vars.KNOVUM_UPDATER_PUBKEY }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ vars.APPLE_SIGNING_IDENTITY }}
-          APPLE_API_ISSUER: ${{ vars.APPLE_API_ISSUER }}
-          APPLE_API_KEY: ${{ vars.APPLE_API_KEY }}
-          KNOVUM_WINDOWS_SIGN_COMMAND: ${{ vars.KNOVUM_WINDOWS_SIGN_COMMAND }}
-          KNOVUM_WINDOWS_SIGNTOOL: ${{ vars.KNOVUM_WINDOWS_SIGNTOOL }}
-          KNOVUM_WINDOWS_TIMESTAMP_URL: ${{ vars.KNOVUM_WINDOWS_TIMESTAMP_URL }}
-          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
-          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
         with:
           tauriScript: node scripts/desktop/tauri.mjs
           args: --release --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} --config src-tauri/tauri.release.conf.json
-          owner: ${{ steps.distribution.outputs.owner }}
-          repo: ${{ steps.distribution.outputs.repo }}
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
           releaseCommitish: main
           tagName: ${{ github.ref_name }}
           releaseName: Knovum ${{ github.ref_name }}
@@ -155,8 +102,6 @@ jobs:
           updaterJsonPreferNsis: true
       - name: Build QA package
         if: github.event_name == 'workflow_dispatch'
-        env:
-          APPLE_SIGNING_IDENTITY: ${{ runner.os == 'macOS' && '-' || '' }}
         run: pnpm package --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
       - uses: actions/upload-artifact@v4
         if: github.event_name == 'workflow_dispatch'
@@ -168,12 +113,3 @@ jobs:
             src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe
           if-no-files-found: error
           retention-days: 14
-      - name: Remove Windows resource signing certificate
-        if: always() && github.event_name == 'push' && runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          if ($env:KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT) { Remove-Item "Cert:\CurrentUser\My\$env:KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT" }
-          Remove-Item -ErrorAction SilentlyContinue (Join-Path $env:RUNNER_TEMP 'runtime-signing.pfx')
-      - name: Remove notarization material
-        if: always() && github.event_name == 'push' && runner.os == 'macOS'
-        run: rm -f "$RUNNER_TEMP/knovum-notary.p8"
