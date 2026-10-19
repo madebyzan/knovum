@@ -14,6 +14,12 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/zandko/knovum/actions/workflows/quality.yml"><img src="https://github.com/zandko/knovum/actions/workflows/quality.yml/badge.svg" alt="Quality CI" /></a>
+  <a href="https://github.com/zandko/knovum/releases"><img src="https://img.shields.io/github/v/release/zandko/knovum?color=blue" alt="Latest Release" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/zandko/knovum" alt="License" /></a>
+</p>
+
+<p align="center">
   <a href="#从一个问题到一份研究简报">了解工作流程</a> ·
   <a href="#开始使用">开始使用</a> ·
   <a href="docs/README.md">文档</a> ·

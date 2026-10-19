@@ -14,6 +14,12 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/zandko/knovum/actions/workflows/quality.yml"><img src="https://github.com/zandko/knovum/actions/workflows/quality.yml/badge.svg" alt="Quality CI" /></a>
+  <a href="https://github.com/zandko/knovum/releases"><img src="https://img.shields.io/github/v/release/zandko/knovum?color=blue" alt="Latest Release" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/zandko/knovum" alt="License" /></a>
+</p>
+
+<p align="center">
   <a href="#from-a-question-to-a-research-brief">Explore the workflow</a> ·
   <a href="#get-started">Get started</a> ·
   <a href="docs/README.md">Documentation</a> ·
