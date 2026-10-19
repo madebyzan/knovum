@@ -1,3 +1,4 @@
+import { mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { registerAppCommands } from "../../../foundation/commands/run-app-command";
@@ -13,9 +14,10 @@ function surfaceCommand(id: string): AppCommand & { run: ReturnType<typeof vi.fn
   return { id, title: id, run: vi.fn<() => void>() };
 }
 
-function focus(element: HTMLElement) {
-  document.body.append(element);
-  element.focus();
+function focus(markup: string) {
+  const wrapper = mount({ template: `<div>${markup}</div>` }, { attachTo: document.body });
+  wrapper.get<HTMLElement>("[data-testid='target']").element.focus();
+  return wrapper;
 }
 
 beforeEach(() => {
@@ -26,14 +28,16 @@ beforeEach(() => {
 describe("application menu editing", () => {
   it("lets the platform edit the focused text control", async () => {
     const canvasCopy = surfaceCommand("spaces.copy");
-    registerAppCommands([canvasCopy]);
-    const field = document.createElement("input");
-    focus(field);
+    const canvasUndo = surfaceCommand("spaces.undo");
+    registerAppCommands([canvasCopy, canvasUndo]);
+    focus(`<input data-testid="target" />`);
 
     await runEditingCommand("copy");
+    await runEditingCommand("undo");
 
-    expect(editing.native).toHaveBeenCalledWith("copy");
+    expect(editing.native.mock.calls).toEqual([["copy"], ["undo"]]);
     expect(canvasCopy.run).not.toHaveBeenCalled();
+    expect(canvasUndo.run).not.toHaveBeenCalled();
   });
 
   it("hands clipboard and selection to the active surface outside a text control", async () => {
@@ -43,17 +47,18 @@ describe("application menu editing", () => {
     await Promise.all(
       (["cut", "copy", "paste", "select-all"] as const).map((intent) => runEditingCommand(intent)),
     );
+
     await vi.waitFor(() => {
       for (const command of commands) expect(command.run).toHaveBeenCalledOnce();
     });
     expect(editing.native).not.toHaveBeenCalled();
   });
 
-  it("keeps undo with the surface that owns the history, even inside a text control", async () => {
+  it("undoes a rich-text surface through its own history, not the platform stack", async () => {
     const documentUndo = surfaceCommand("document.undo");
     const canvasUndo = surfaceCommand("spaces.undo");
     registerAppCommands([documentUndo, canvasUndo]);
-    focus(document.createElement("textarea"));
+    focus(`<div data-testid="target" contenteditable="true"></div>`);
 
     await runEditingCommand("undo");
 
@@ -69,5 +74,16 @@ describe("application menu editing", () => {
     await runEditingCommand("redo");
 
     await vi.waitFor(() => expect(canvasRedo.run).toHaveBeenCalledOnce());
+  });
+
+  it("gives the clipboard to a rich-text surface so its own paste handling runs", async () => {
+    const canvasPaste = surfaceCommand("spaces.paste");
+    registerAppCommands([canvasPaste]);
+    focus(`<div data-testid="target" contenteditable="true"></div>`);
+
+    await runEditingCommand("paste");
+
+    expect(editing.native).toHaveBeenCalledWith("paste");
+    expect(canvasPaste.run).not.toHaveBeenCalled();
   });
 });

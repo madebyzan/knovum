@@ -1,13 +1,11 @@
 import { getAppCommand, runAppCommand } from "../../foundation/commands/run-app-command";
 import { performApplicationMenuEditing } from "../../foundation/commands/text-editing";
-import { isEditableTarget } from "../../foundation/dom/editable-target";
+import { isEditableTarget, isTextControlTarget } from "../../foundation/dom/editable-target";
 import type { EditingCommand } from "../../shared/contracts/generated/EditingCommand";
 
 // The macOS Application Menu owns every standard editing chord, so each one arrives here as an
-// intent instead of a key press. Clipboard and selection belong to the focused text control when
-// there is one, because only the platform can edit a native text field. Undo belongs to whichever
-// surface keeps the history, so it always resolves to that surface's own command.
-export type EditingIntent = EditingCommand | "undo" | "redo";
+// intent instead of a key press. This router answers one question: who owns the text being edited?
+export type EditingIntent = EditingCommand;
 
 export const EDITING_INTENTS: readonly EditingIntent[] = [
   "undo",
@@ -18,6 +16,10 @@ export const EDITING_INTENTS: readonly EditingIntent[] = [
   "select-all",
 ];
 
+/**
+ * The surface command that performs the intent when the platform does not. A document keeps its own
+ * edit history, so it answers before the canvas does.
+ */
 const SURFACE_COMMANDS: Record<EditingIntent, readonly string[]> = {
   undo: ["document.undo", "spaces.undo"],
   redo: ["document.redo", "spaces.redo"],
@@ -27,15 +29,18 @@ const SURFACE_COMMANDS: Record<EditingIntent, readonly string[]> = {
   "select-all": ["spaces.select-all"],
 };
 
-function textControlAction(intent: EditingIntent): EditingCommand | undefined {
-  return intent === "undo" || intent === "redo" ? undefined : intent;
+/**
+ * Clipboard and selection belong to any focused editable target, because only the platform can put
+ * the system clipboard into it and a custom editor still receives the resulting DOM events. Edit
+ * history is narrower: a native text control owns its own, while a rich-text surface keeps history
+ * in its own stack and must be undone through its command.
+ */
+function platformOwns(intent: EditingIntent, target: EventTarget | null) {
+  return intent === "undo" || intent === "redo" ? isTextControlTarget(target) : isEditableTarget(target);
 }
 
 export function runEditingCommand(intent: EditingIntent): void | Promise<void> {
-  const action = textControlAction(intent);
-  if (action && isEditableTarget(document.activeElement)) {
-    return performApplicationMenuEditing(action);
-  }
+  if (platformOwns(intent, document.activeElement)) return performApplicationMenuEditing(intent);
   for (const commandId of SURFACE_COMMANDS[intent]) {
     const command = getAppCommand(commandId);
     if (command) {
