@@ -133,7 +133,8 @@ async fn supersede(
 
 /// Forgets an attempt, unless a later one has already taken its place.
 async fn release(app: &AppHandle, connector_id: &str, attempt: &str) {
-    let mut authorizations = app.state::<ExtensionState>().authorizations.lock().await;
+    let state = app.state::<ExtensionState>();
+    let mut authorizations = state.authorizations.lock().await;
     if authorizations
         .get(connector_id)
         .is_some_and(|(current, _)| current == attempt)
