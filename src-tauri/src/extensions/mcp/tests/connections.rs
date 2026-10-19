@@ -1,4 +1,4 @@
-use crate::extensions::contracts::{ConnectorAuthorization, ConnectorDefinition, McpConnection};
+use crate::extensions::contracts::{ConnectorAuthorization, ConnectorDefinition};
 
 #[tokio::test]
 async fn packaged_connection_enablement_follows_the_package_and_missing_owners_fail_visibly() {
