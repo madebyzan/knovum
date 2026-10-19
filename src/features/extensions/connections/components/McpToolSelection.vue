@@ -65,7 +65,7 @@ function change(name: string, policy: McpToolPolicy, readOnly: boolean) {
                     : 'neutral'
               "
             >
-              {{ $t(`extensions.connections.tools.${permission(tool.name)?.policy ?? 'deny'}`) }}
+              {{ $t(`extensions.connections.tools.${permission(tool.name)?.policy ?? "deny"}`) }}
             </UiBadge>
           </div>
         </div>
@@ -77,9 +77,13 @@ function change(name: string, policy: McpToolPolicy, readOnly: boolean) {
           class="mt-2 text-caption leading-relaxed text-fg-secondary"
         />
 
-        <div class="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-stroke-divider/80 pt-3">
+        <div
+          class="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-stroke-divider/80 pt-3"
+        >
           <div class="flex items-center gap-2">
-            <span class="text-caption text-fg-secondary">{{ $t("extensions.connections.tools.policy") }}</span>
+            <span class="text-caption text-fg-secondary">{{
+              $t("extensions.connections.tools.policy")
+            }}</span>
             <UiSelect
               :model-value="permission(tool.name)?.policy ?? 'deny'"
               :label="$t('extensions.connections.tools.policy')"
@@ -95,7 +99,7 @@ function change(name: string, policy: McpToolPolicy, readOnly: boolean) {
             />
           </div>
           <label
-            class="flex cursor-pointer select-none items-center gap-2 text-caption text-fg-secondary transition-colors hover:text-fg-primary"
+            class="flex cursor-pointer items-center gap-2 text-caption text-fg-secondary transition-colors select-none hover:text-fg-primary"
           >
             <UiCheckbox
               :model-value="permission(tool.name)?.readOnly ?? false"
