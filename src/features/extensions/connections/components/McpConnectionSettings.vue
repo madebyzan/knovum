@@ -1,14 +1,12 @@
 <script setup lang="ts">
+import { RefreshCw } from "@lucide/vue";
 import { useMutation } from "@tanstack/vue-query";
 import { cloneDeep, isEqual } from "es-toolkit";
 import { computed, onScopeDispose, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import {
-  updateMcpConnection,
-  checkMcpConnection,
-} from "../../../../foundation/extensions/connection-operations";
+import { updateMcpConnection, checkMcpConnection } from "../../../../foundation/extensions/connection-operations";
 import type { ConnectorDefinition } from "../../../../shared/contracts/generated/ConnectorDefinition";
 import type { McpConnection } from "../../../../shared/contracts/generated/McpConnection";
 import type { McpConnectionCatalog } from "../../../../shared/contracts/generated/McpConnectionCatalog";
@@ -17,6 +15,7 @@ import { useSettingsLeaveContext } from "../../../../shared/contracts/settings-l
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
+import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import { useExtensionChanges } from "../../use-extension-changes";
 import McpCatalogBrowser from "./McpCatalogBrowser.vue";
 import McpToolSelection from "./McpToolSelection.vue";
@@ -115,44 +114,51 @@ onScopeDispose(unregister);
 </script>
 
 <template>
-  <section class="space-y-3 border-t border-stroke-divider pt-3">
-    <form v-if="!connector.pluginId" class="flex items-end gap-2" @submit.prevent="save">
-      <label class="min-w-0 flex-1 text-caption"
-        >{{ $t("extensions.connections.name")
-        }}<UiInput
-          v-model="name"
-          :disabled="changes.isPending.value || checking.isPending.value || hasConflict"
-      /></label>
+  <section class="space-y-4 pt-1">
+    <div v-if="!connector.pluginId" class="rounded-panel border border-stroke-default bg-surface-raised p-4 space-y-3">
+      <form class="flex items-end gap-2.5" @submit.prevent="save">
+        <label class="min-w-0 flex-1 space-y-1 text-caption text-fg-secondary">
+          <span>{{ $t("extensions.connections.name") }}</span>
+          <UiInput v-model="name" :disabled="changes.isPending.value || checking.isPending.value || hasConflict" />
+        </label>
+        <UiButton
+          type="submit"
+          size="md"
+          :disabled="!name.trim() || !dirty || hasConflict || changes.isPending.value || checking.isPending.value"
+        >{{ $t("common.save") }}</UiButton>
+      </form>
+      <div class="flex flex-wrap items-center justify-between gap-2 border-t border-stroke-divider/80 pt-3">
+        <UiButton
+          :disabled="checking.isPending.value || changes.isPending.value || dirty || !connector.endpoint"
+          data-testid="check-mcp-connection"
+          size="sm"
+          variant="secondary"
+          @click="checking.mutate(connection)"
+        >
+          <UiSpinner v-if="checking.isPending.value" class="size-3.5" />
+          <RefreshCw v-else class="size-3.5" />
+          <span>{{ $t("extensions.connections.check") }}</span>
+        </UiButton>
+      </div>
+      <p v-if="changes.error.value || checking.error.value" role="alert" class="text-caption text-fg-danger">{{ getErrorMessage(changes.error.value || checking.error.value) }}</p>
+      <p v-if="hasConflict" role="alert" class="text-caption text-fg-warning">{{ $t("extensions.connections.conflict") }}</p>
+      <p v-else-if="dirty" class="text-caption text-fg-secondary">{{ $t("extensions.connections.saveBeforeCheck") }}</p>
+    </div>
+    <div v-else class="flex flex-wrap items-center justify-between gap-2 rounded-panel border border-stroke-default bg-surface-raised p-3">
       <UiButton
-        type="submit"
+        :disabled="checking.isPending.value || changes.isPending.value || dirty || !connector.endpoint"
+        data-testid="check-mcp-connection"
         size="sm"
-        :disabled="
-          !name.trim() || !dirty || hasConflict || changes.isPending.value || checking.isPending.value
-        "
-        >{{ $t("common.save") }}</UiButton
+        variant="secondary"
+        @click="checking.mutate(connection)"
       >
-    </form>
-    <UiButton
-      :disabled="checking.isPending.value || changes.isPending.value || dirty || !connector.endpoint"
-      data-testid="check-mcp-connection"
-      @click="checking.mutate(connection)"
-      >{{ $t("extensions.connections.check") }}</UiButton
-    >
-    <p v-if="changes.error.value || checking.error.value" role="alert" class="text-caption text-fg-danger">
-      {{ getErrorMessage(changes.error.value || checking.error.value) }}
-    </p>
-    <p v-if="hasConflict" role="alert" class="text-caption text-fg-warning">
-      {{ $t("extensions.connections.conflict") }}
-    </p>
-    <p v-else-if="dirty" class="text-caption text-fg-secondary">
-      {{ $t("extensions.connections.saveBeforeCheck") }}
-    </p>
-    <McpCatalogBrowser
-      v-if="catalog"
-      :key="connection.revision"
-      :connection="connection"
-      :catalog="catalog"
-    />
+        <UiSpinner v-if="checking.isPending.value" class="size-3.5" />
+        <RefreshCw v-else class="size-3.5" />
+        <span>{{ $t("extensions.connections.check") }}</span>
+      </UiButton>
+      <p v-if="changes.error.value || checking.error.value" role="alert" class="text-caption text-fg-danger">{{ getErrorMessage(changes.error.value || checking.error.value) }}</p>
+    </div>
+    <McpCatalogBrowser v-if="catalog" :key="connection.revision" :connection="connection" :catalog="catalog" />
     <McpToolSelection
       v-if="catalog"
       v-model="permissions"
