@@ -93,10 +93,9 @@ pub(crate) fn plugin() -> TauriPlugin<Wry> {
             connectors::definition_commands::update_connector_definition,
             connectors::definition_commands::delete_connector_definition,
             connectors::plugin_configuration::configure_plugin_connector,
-            connectors::commands::create_connector_account,
-            connectors::commands::authorize_connector_account,
+            connectors::commands::connect_connector,
             connectors::commands::cancel_connector_authorization,
-            connectors::commands::disconnect_connector_account,
+            connectors::commands::disconnect_connector,
             availability::get_agent_extension_availability,
         ])
         .build()

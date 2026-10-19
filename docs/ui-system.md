@@ -797,8 +797,10 @@ native form submission and dialog behavior.
 
 Extensions use four searchable, counted categories: Plugins, Apps, MCP, and Skills.
 Plugins are complete installed capability packages; Skills lists only independent personal instructions.
-Apps lists package-declared integrations and manages accounts and reviewed access in a dedicated
-inspection view. It links to the owning plugin for overall activation and removal; it does not offer
+Apps lists package-declared integrations and manages the connection and reviewed access in a
+dedicated inspection view. Connecting a service is one action, not a list: there is no name to
+invent, no account to choose and nothing to bind afterwards, and reconnecting renews the
+authorization in place. Disconnecting is offered beside it. It links to the owning plugin for overall activation and removal; it does not offer
 component switches or another custom MCP form. MCP lists raw protocol services, both user-configured
 and package-owned. A packaged service inherits its plugin enablement and cannot be toggled separately.
 

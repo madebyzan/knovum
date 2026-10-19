@@ -54,9 +54,15 @@ pub(in crate::extensions) async fn replace_on(
         let access_changed = previous.endpoint != definition.endpoint
             || previous.authorization != definition.authorization;
         if access_changed {
-            let documents: Vec<String> = sqlx::query_scalar("SELECT document FROM connector_accounts WHERE json_extract(document,'$.connectorId')=$1")
-                .bind(&definition.id).fetch_all(&mut *tx).await.map_err(|error| error.to_string())?;
-            for document in documents {
+            // The service a connection speaks to changed, so its authorization no longer applies
+            // and whatever the user approved was approved against the old one.
+            let document: Option<String> =
+                sqlx::query_scalar("SELECT document FROM connector_accounts WHERE connector_id=$1")
+                    .bind(&definition.id)
+                    .fetch_optional(&mut *tx)
+                    .await
+                    .map_err(|error| error.to_string())?;
+            if let Some(document) = document {
                 let mut account: super::super::contracts::ConnectorAccount =
                     database::decode(&document)?;
                 account.enabled = false;
@@ -68,14 +74,14 @@ pub(in crate::extensions) async fn replace_on(
                 account.authorization = definition.authorization.clone();
                 account.issuer = None;
                 account.scopes.clear();
-                sqlx::query("UPDATE connector_accounts SET document=$1 WHERE id=$2")
+                sqlx::query("UPDATE connector_accounts SET document=$1 WHERE connector_id=$2")
                     .bind(sqlx::types::Json(&account))
-                    .bind(&account.id)
+                    .bind(&account.connector_id)
                     .execute(&mut *tx)
                     .await
                     .map_err(|error| error.to_string())?;
             }
-            sqlx::query("UPDATE connections SET document=json_set(document,'$.enabled',json('false'),'$.accountId',NULL,'$.tools',json('[]')) WHERE json_extract(document,'$.connectorId')=$1")
+            sqlx::query("UPDATE connections SET document=json_set(document,'$.enabled',json('false'),'$.tools',json('[]')) WHERE json_extract(document,'$.connectorId')=$1")
                 .bind(&definition.id).execute(&mut *tx).await.map_err(|error| error.to_string())?;
         }
         sqlx::query("UPDATE connections SET document=json_set(document,'$.revision',$1) WHERE json_extract(document,'$.connectorId')=$2")

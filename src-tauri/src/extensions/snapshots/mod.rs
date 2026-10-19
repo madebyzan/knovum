@@ -102,15 +102,15 @@ pub(crate) async fn prepare(
         super::mcp::connections::require_current(app, &connection).await?;
         let connector =
             super::connectors::definitions::load(&pool, &connection.connector_id).await?;
-        if let Some(account_id) = &connection.account_id {
+        if let Some(account) =
+            super::connectors::accounts::of_connector(&pool, &connection.connector_id).await?
+        {
             if !snapshot
                 .accounts
                 .iter()
-                .any(|account| &account.id == account_id)
+                .any(|frozen| frozen.connector_id == account.connector_id)
             {
-                snapshot
-                    .accounts
-                    .push(super::connectors::accounts::load(&pool, account_id).await?);
+                snapshot.accounts.push(account);
             }
         }
         if !snapshot

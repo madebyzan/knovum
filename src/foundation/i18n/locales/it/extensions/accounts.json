@@ -9,15 +9,14 @@
   "cleanupPending": "Disconnesso · Pulizia delle credenziali in sospeso",
   "authorized": "Autorizzato",
   "required": "Autorizzazione richiesta",
-  "authorizeInBrowser": "Autorizza nel browser",
-  "authorize": "Autorizza",
   "disconnect": "Disconnetti ed elimina le credenziali locali",
-  "name": "Nome visualizzato dell'account",
-  "add": "Aggiungi account",
   "billingHint": "I servizi esterni possono essere addebitati separatamente; questi addebiti non sono inclusi nell'utilizzo del token dell'applicazione.",
   "pending": "L'autorizzazione è in corso. Completalo o annullalo prima di lasciare questa pagina.",
   "discard": {
-    "title": "Eliminare le informazioni dell'account non salvate?",
-    "description": "Il nome dell'account o i campi di autorizzazione non inviati verranno cancellati."
-  }
+    "title": "Scartare i campi di autorizzazione inseriti?",
+    "description": "I campi di autorizzazione non inviati verranno cancellati."
+  },
+  "title": "Connessione",
+  "connect": "Connetti",
+  "reconnect": "Riconnetti"
 }

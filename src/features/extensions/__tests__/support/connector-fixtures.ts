@@ -23,7 +23,6 @@ export function mcpConnectionFixture(connectionId: string, name = connectionId):
     connectorId: connectorFixture.id,
     name,
     revision: "connection-one",
-    accountId: null,
     enabled: false,
     tools: [],
   };

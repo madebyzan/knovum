@@ -6,7 +6,7 @@
     "description": "Instale um fluxo de trabalho de aplicativo do catálogo de plug-ins."
   },
   "manage": "Gerenciar conexão",
-  "accounts": "Contas",
   "access": "Acesso",
-  "configurationRequired": "Este aplicativo tem uma conexão incompleta. Verifique seu plugin de origem."
+  "configurationRequired": "Este aplicativo tem uma conexão incompleta. Verifique seu plugin de origem.",
+  "connection": "Conexão"
 }

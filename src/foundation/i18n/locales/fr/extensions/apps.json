@@ -6,7 +6,7 @@
     "description": "Installez un workflow d'application à partir du catalogue de plugins."
   },
   "manage": "Gérer la connexion",
-  "accounts": "Comptes",
   "access": "Accès",
-  "configurationRequired": "Cette application a une connexion incomplète. Vérifiez son plugin source."
+  "configurationRequired": "Cette application a une connexion incomplète. Vérifiez son plugin source.",
+  "connection": "Connexion"
 }

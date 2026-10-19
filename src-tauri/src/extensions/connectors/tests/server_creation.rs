@@ -46,7 +46,6 @@ async fn creates_a_custom_service_and_disabled_first_connection_together() {
     assert!(connector.component_name.is_none());
     assert_eq!(connection.name, connector.name);
     assert!(!connection.enabled);
-    assert!(connection.account_id.is_none());
     assert!(connection.tools.is_empty());
     assert_eq!(connections::list(&pool).await.unwrap().len(), 1);
 }

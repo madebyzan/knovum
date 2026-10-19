@@ -6,7 +6,7 @@
     "description": "플러그인 카탈로그에서 앱 워크플로를 설치합니다."
   },
   "manage": "연결 관리",
-  "accounts": "계정",
   "access": "액세스",
-  "configurationRequired": "이 앱의 연결이 불완전합니다. 소스 플러그인을 확인하세요."
+  "configurationRequired": "이 앱의 연결이 불완전합니다. 소스 플러그인을 확인하세요.",
+  "connection": "연결"
 }

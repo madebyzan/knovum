@@ -9,7 +9,7 @@ use std::{collections::BTreeMap, sync::Arc};
 use tauri::{AppHandle, Manager};
 pub(super) struct AccountCredentialStore {
     pub app: AppHandle,
-    pub account_id: String,
+    pub connector_id: String,
     pub account_revision: String,
     pub authorization: Option<tokio_util::sync::CancellationToken>,
 }
@@ -33,7 +33,7 @@ impl AccountCredentialStore {
             &database::pool(&self.app)
                 .await
                 .map_err(AuthError::InternalError)?,
-            &self.account_id,
+            &self.connector_id,
         )
         .await
         .map_err(AuthError::InternalError)?;
@@ -45,41 +45,41 @@ impl AccountCredentialStore {
     }
 }
 
-pub(super) async fn lock(app: &AppHandle, account_id: &str) -> Arc<tokio::sync::Mutex<()>> {
+pub(super) async fn lock(app: &AppHandle, connector_id: &str) -> Arc<tokio::sync::Mutex<()>> {
     app.state::<ExtensionState>()
         .credential_locks
         .lock()
         .await
-        .entry(account_id.into())
+        .entry(connector_id.into())
         .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
         .clone()
 }
 
-pub(super) async fn remove(app: &AppHandle, account_id: &str) -> Result<(), String> {
-    let lock = lock(app, account_id).await;
+pub(super) async fn remove(app: &AppHandle, connector_id: &str) -> Result<(), String> {
+    let lock = lock(app, connector_id).await;
     let _guard = lock.lock().await;
-    crate::secrets::remove_secret(&key(account_id)).await
+    crate::secrets::remove_secret(&key(connector_id)).await
 }
 
-pub(super) fn key(account_id: &str) -> String {
-    format!("agent-extension:{account_id}")
+pub(super) fn key(connector_id: &str) -> String {
+    format!("agent-extension:{connector_id}")
 }
 
 pub(crate) async fn credentials(
     app: &AppHandle,
-    account_id: &str,
+    connector_id: &str,
     resource: &str,
 ) -> Result<BTreeMap<String, String>, String> {
-    let lock = super::authorization::account_lock(app, account_id).await;
+    let lock = super::authorization::account_lock(app, connector_id).await;
     let _guard = lock.lock().await;
-    let account = accounts::load(&database::pool(app).await?, account_id).await?;
+    let account = accounts::load(&database::pool(app).await?, connector_id).await?;
     if !account.enabled || account.cleanup_pending || account.resource != resource {
         return Err("connector-account-revoked-or-resource-changed".into());
     }
     match &account.authorization {
         ConnectorAuthorization::None => Ok(BTreeMap::new()),
         ConnectorAuthorization::Bearer | ConnectorAuthorization::SecretFields { .. } => {
-            let document = crate::secrets::read_secret(&key(account_id))
+            let document = crate::secrets::read_secret(&key(connector_id))
                 .await?
                 .ok_or("connector-authorization-required")?;
             serde_json::from_str(&document).map_err(|_| "connector-secret-fields-invalid".into())
@@ -93,10 +93,10 @@ pub(crate) async fn credentials(
 #[async_trait::async_trait]
 impl CredentialStore for AccountCredentialStore {
     async fn load(&self) -> Result<Option<StoredCredentials>, AuthError> {
-        let lock = lock(&self.app, &self.account_id).await;
+        let lock = lock(&self.app, &self.connector_id).await;
         let _guard = lock.lock().await;
         self.require_authority().await?;
-        let secret = crate::secrets::read_secret(&key(&self.account_id))
+        let secret = crate::secrets::read_secret(&key(&self.connector_id))
             .await
             .map_err(AuthError::InternalError)?;
         secret
@@ -108,20 +108,20 @@ impl CredentialStore for AccountCredentialStore {
             .transpose()
     }
     async fn save(&self, credentials: StoredCredentials) -> Result<(), AuthError> {
-        let lock = lock(&self.app, &self.account_id).await;
+        let lock = lock(&self.app, &self.connector_id).await;
         let _guard = lock.lock().await;
         self.require_authority().await?;
         let document = serde_json::to_string(&credentials)
             .map_err(|_| AuthError::InternalError("credential serialization failed".into()))?;
-        crate::secrets::write_secret(&key(&self.account_id), &document)
+        crate::secrets::write_secret(&key(&self.connector_id), &document)
             .await
             .map_err(AuthError::InternalError)
     }
     async fn clear(&self) -> Result<(), AuthError> {
-        let lock = lock(&self.app, &self.account_id).await;
+        let lock = lock(&self.app, &self.connector_id).await;
         let _guard = lock.lock().await;
         self.require_authority().await?;
-        crate::secrets::remove_secret(&key(&self.account_id))
+        crate::secrets::remove_secret(&key(&self.connector_id))
             .await
             .map_err(AuthError::InternalError)
     }

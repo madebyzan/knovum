@@ -53,10 +53,8 @@ where
 {
     super::connections::require_reviewable(app, connection).await?;
     let pool = super::super::database::pool(app).await?;
-    let account = match &connection.account_id {
-        Some(id) => Some(super::super::connectors::accounts::load(&pool, id).await?),
-        None => None,
-    };
+    let account =
+        super::super::connectors::accounts::of_connector(&pool, &connection.connector_id).await?;
     let scope = uuid::Uuid::new_v4().to_string();
     let state = app.state::<ExtensionState>();
     let slot = register(
@@ -220,16 +218,14 @@ pub(in crate::extensions) async fn shutdown(app: &AppHandle) {
 pub(crate) async fn revoke_connection(app: &AppHandle, connection_id: &str) {
     revoke(app, |(_, id), _| id == connection_id).await;
 }
-pub(crate) async fn revoke_account(app: &AppHandle, account_id: &str) {
-    revoke(app, |_, slot| {
-        slot.connection.account_id.as_deref() == Some(account_id)
-    })
-    .await;
+/// Drops every session that spoke to a service, because its authorization no longer holds.
+pub(crate) async fn revoke_account(app: &AppHandle, connector_id: &str) {
+    revoke(app, |_, slot| slot.connection.connector_id == connector_id).await;
     app.state::<ExtensionState>()
         .oauth_clients
         .lock()
         .await
-        .remove(account_id);
+        .remove(connector_id);
 }
 pub(crate) async fn revoke_plugin(app: &AppHandle, plugin_id: &str) {
     revoke(app, |_, slot| slot.plugin_id.as_deref() == Some(plugin_id)).await;

@@ -17,10 +17,8 @@ async fn fixture() -> (SqlitePool, ConnectorAccount) {
         .await
         .unwrap();
     let account = ConnectorAccount {
-        id: "account".into(),
-        revision: "first-authorization".into(),
         connector_id: "connector".into(),
-        display_name: "Account".into(),
+        revision: "first-authorization".into(),
         resource: "https://example.com/mcp".into(),
         issuer: None,
         scopes: vec![],
@@ -29,8 +27,8 @@ async fn fixture() -> (SqlitePool, ConnectorAccount) {
         cleanup_pending: false,
     };
     accounts::save(&pool, &account).await.unwrap();
-    for (id, account_id) in [("bound", "account"), ("unrelated", "other-account")] {
-        let document = json!({"id":id,"accountId":account_id,"revision":"reviewed","tools":[{"name":"publish"}]});
+    for (id, connector_id) in [("bound", "connector"), ("unrelated", "other-connector")] {
+        let document = json!({"id":id,"connectorId":connector_id,"revision":"reviewed","tools":[{"name":"publish"}]});
         sqlx::query("INSERT INTO connections(id,document) VALUES($1,$2)")
             .bind(id)
             .bind(document.to_string())
@@ -51,12 +49,12 @@ async fn connection(pool: &SqlitePool, id: &str) -> serde_json::Value {
 }
 
 #[tokio::test]
-async fn reauthorization_invalidates_frozen_identity_and_bound_tool_review_atomically() {
+async fn reauthorization_invalidates_frozen_identity_and_its_connections_tool_review() {
     let (pool, frozen) = fixture().await;
-    accounts::set_status(&pool, &frozen.id, false, false)
+    accounts::set_status(&pool, &frozen.connector_id, false, false)
         .await
         .unwrap();
-    let previous = accounts::load(&pool, &frozen.id).await.unwrap();
+    let previous = accounts::load(&pool, &frozen.connector_id).await.unwrap();
     let mut renewed = frozen.clone();
     renewed.revision = "second-authorization".into();
     accounts::commit_authorization(&pool, &renewed, &previous)
@@ -66,6 +64,7 @@ async fn reauthorization_invalidates_frozen_identity_and_bound_tool_review_atomi
     accounts::require_current(&pool, &renewed).await.unwrap();
     let bound = connection(&pool, "bound").await;
     assert_eq!(bound["tools"], json!([]));
+    assert_eq!(bound["enabled"], json!(false));
     assert_ne!(bound["revision"], "reviewed");
     let mut tx = pool.begin().await.unwrap();
     assert!(
@@ -82,9 +81,9 @@ async fn reauthorization_invalidates_frozen_identity_and_bound_tool_review_atomi
 #[tokio::test]
 async fn concurrent_disconnect_prevents_commit_and_preserves_tool_review() {
     let (pool, mut renewed) = fixture().await;
-    let previous = accounts::load(&pool, &renewed.id).await.unwrap();
+    let previous = accounts::load(&pool, &renewed.connector_id).await.unwrap();
     renewed.revision = "second-authorization".into();
-    accounts::set_status(&pool, &renewed.id, false, true)
+    accounts::set_status(&pool, &renewed.connector_id, false, true)
         .await
         .unwrap();
     assert_eq!(
@@ -93,7 +92,7 @@ async fn concurrent_disconnect_prevents_commit_and_preserves_tool_review() {
             .unwrap_err(),
         "connector-account-revoked-during-authorization"
     );
-    let current = accounts::load(&pool, &renewed.id).await.unwrap();
+    let current = accounts::load(&pool, &renewed.connector_id).await.unwrap();
     assert!(!current.enabled);
     assert!(current.cleanup_pending);
     assert_eq!(current.revision, previous.revision);
@@ -111,7 +110,7 @@ async fn concurrent_disconnect_prevents_commit_and_preserves_tool_review() {
 async fn disabled_and_cleanup_pending_accounts_cannot_dispatch() {
     let (pool, frozen) = fixture().await;
     for (enabled, cleanup_pending) in [(false, false), (true, true)] {
-        accounts::set_status(&pool, &frozen.id, enabled, cleanup_pending)
+        accounts::set_status(&pool, &frozen.connector_id, enabled, cleanup_pending)
             .await
             .unwrap();
         assert!(accounts::require_current(&pool, &frozen).await.is_err());

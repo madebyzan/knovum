@@ -56,12 +56,15 @@ fn callback_page(denial: Option<String>) -> axum::response::Html<String> {
     ))
 }
 
-pub(super) async fn account_lock(app: &AppHandle, account_id: &str) -> Arc<tokio::sync::Mutex<()>> {
+pub(super) async fn account_lock(
+    app: &AppHandle,
+    connector_id: &str,
+) -> Arc<tokio::sync::Mutex<()>> {
     app.state::<ExtensionState>()
         .account_locks
         .lock()
         .await
-        .entry(account_id.to_owned())
+        .entry(connector_id.to_owned())
         .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
         .clone()
 }
@@ -80,7 +83,7 @@ pub(super) async fn create_authorization_manager(
     .map_err(|_| "connector-oauth-resource-invalid")?;
     manager.set_credential_store(AccountCredentialStore {
         app: app.clone(),
-        account_id: account.id.clone(),
+        connector_id: account.connector_id.clone(),
         account_revision: account.revision.clone(),
         authorization,
     });
@@ -100,12 +103,12 @@ pub(super) async fn authorize(
 ) -> Result<(), String> {
     let attempt = uuid::Uuid::new_v4().to_string();
     let cancellation = app.state::<ExtensionState>().shutdown.child_token();
-    supersede(app, &account.id, &attempt, cancellation.clone()).await;
+    supersede(app, &account.connector_id, &attempt, cancellation.clone()).await;
     let authorization = tokio::select! {
         _ = cancellation.cancelled() => Err("connector-authorization-cancelled".into()),
         authorization = authorize_flow(app, account, allow_local, &cancellation) => authorization,
     };
-    release(app, &account.id, &attempt).await;
+    release(app, &account.connector_id, &attempt).await;
     authorization
 }
 
@@ -113,7 +116,7 @@ pub(super) async fn authorize(
 /// window for one account is never what the user meant.
 async fn supersede(
     app: &AppHandle,
-    account_id: &str,
+    connector_id: &str,
     attempt: &str,
     cancellation: tokio_util::sync::CancellationToken,
 ) {
@@ -122,20 +125,20 @@ async fn supersede(
         .authorizations
         .lock()
         .await
-        .insert(account_id.to_owned(), (attempt.to_owned(), cancellation))
+        .insert(connector_id.to_owned(), (attempt.to_owned(), cancellation))
     {
         previous.cancel();
     }
 }
 
 /// Forgets an attempt, unless a later one has already taken its place.
-async fn release(app: &AppHandle, account_id: &str, attempt: &str) {
+async fn release(app: &AppHandle, connector_id: &str, attempt: &str) {
     let mut authorizations = app.state::<ExtensionState>().authorizations.lock().await;
     if authorizations
-        .get(account_id)
+        .get(connector_id)
         .is_some_and(|(current, _)| current == attempt)
     {
-        authorizations.remove(account_id);
+        authorizations.remove(connector_id);
     }
 }
 
@@ -223,7 +226,7 @@ async fn authorize_flow(
             return Err(format!("connector-authorization-denied: {reason}"));
         }
         state.handle_callback_url(&callback).await.map_err(|error| format!("connector-oauth-callback-rejected: {}", error_category(&error)))?;
-        let stored = crate::secrets::read_secret(&key(&account.id)).await?.ok_or("connector-credentials-not-saved")?;
+        let stored = crate::secrets::read_secret(&key(&account.connector_id)).await?.ok_or("connector-credentials-not-saved")?;
         let stored: rmcp::transport::auth::StoredCredentials = serde_json::from_str(&stored).map_err(|_| "connector-credentials-invalid")?;
         account.issuer = stored.issuer; account.scopes = stored.granted_scopes;
         Ok(())
@@ -258,9 +261,9 @@ pub(crate) async fn oauth_client(
     rmcp::transport::auth::AuthClient<crate::extensions::mcp::http_client::BoundedHttpClient>,
     String,
 > {
-    let lock = account_lock(app, &account.id).await;
+    let lock = account_lock(app, &account.connector_id).await;
     let _guard = lock.lock().await;
-    let current = accounts::load(&database::pool(app).await?, &account.id).await?;
+    let current = accounts::load(&database::pool(app).await?, &account.connector_id).await?;
     if !current.enabled
         || current.cleanup_pending
         || current.resource != account.resource
@@ -269,7 +272,13 @@ pub(crate) async fn oauth_client(
         return Err("connector-account-revoked-or-resource-changed".into());
     }
     let state = app.state::<ExtensionState>();
-    if let Some(client) = state.oauth_clients.lock().await.get(&account.id).cloned() {
+    if let Some(client) = state
+        .oauth_clients
+        .lock()
+        .await
+        .get(&account.connector_id)
+        .cloned()
+    {
         return Ok(client);
     }
     let mut manager = create_authorization_manager(app, account, allow_local, None).await?;
@@ -281,7 +290,7 @@ pub(crate) async fn oauth_client(
         return Err("connector-authorization-required".into());
     }
     let mut clients = state.oauth_clients.lock().await;
-    let current = accounts::load(&database::pool(app).await?, &account.id).await?;
+    let current = accounts::load(&database::pool(app).await?, &account.connector_id).await?;
     if !current.enabled
         || current.cleanup_pending
         || current.resource != account.resource
@@ -290,7 +299,7 @@ pub(crate) async fn oauth_client(
         return Err("connector-account-revoked-or-resource-changed".into());
     }
     let client = rmcp::transport::auth::AuthClient::new(client, manager);
-    clients.insert(account.id.clone(), client.clone());
+    clients.insert(account.connector_id.clone(), client.clone());
     Ok(client)
 }
 

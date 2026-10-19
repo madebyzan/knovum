@@ -119,15 +119,14 @@ pub(super) async fn connect(
             return Err("mcp-plugin-disabled".into());
         }
     }
-    let account = if let Some(id) = &connection.account_id {
-        let account = connectors::accounts::load(&pool, id).await?;
-        connectors::accounts::validate_binding(connector, &account)?;
-        Some(account)
-    } else {
-        if !matches!(connector.authorization, ConnectorAuthorization::None) {
-            return Err("connector-authorized-account-required".into());
+    // A connection speaks through its connector's authorization, so there is nothing to choose.
+    let account = match connectors::accounts::of_connector(&pool, &connection.connector_id).await? {
+        Some(account) => {
+            connectors::accounts::validate_binding(connector, &account)?;
+            Some(account)
         }
-        None
+        None if matches!(connector.authorization, ConnectorAuthorization::None) => None,
+        None => return Err("connector-not-connected".into()),
     };
     let handler = ExtensionClient { interaction };
     let (service, process) = match endpoint {
@@ -178,8 +177,10 @@ pub(super) async fn connect(
                 .map_err(|_| "mcp-handshake-timeout")?
                 .map_err(|_| "mcp-handshake-failed")?
             } else {
-                if let Some(id) = &connection.account_id {
-                    for (name, value) in connectors::credentials(app, id, url).await? {
+                if let Some(account) = &account {
+                    for (name, value) in
+                        connectors::credentials(app, &account.connector_id, url).await?
+                    {
                         if super::endpoint::reserved_header(&name) {
                             return Err("connector-cannot-override-mcp-transport-header".into());
                         }
@@ -213,10 +214,16 @@ pub(super) async fn connect(
         } => {
             let plugin_environment =
                 super::super::plugins::process_configuration::environment(app, connector).await?;
-            let secrets = if let Some(id) = &connection.account_id {
-                connectors::credentials(app, id, &super::endpoint::resource(endpoint)).await?
-            } else {
-                Default::default()
+            let secrets = match &account {
+                Some(account) => {
+                    connectors::credentials(
+                        app,
+                        &account.connector_id,
+                        &super::endpoint::resource(endpoint),
+                    )
+                    .await?
+                }
+                None => Default::default(),
             };
             let mut environment = environment.clone();
             environment.extend(plugin_environment);

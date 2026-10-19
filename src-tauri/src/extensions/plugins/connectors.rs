@@ -121,7 +121,6 @@ pub(super) async fn publish_on(
                 connector_id: definition.id.clone(),
                 name: definition.name.clone(),
                 revision: uuid::Uuid::new_v4().to_string(),
-                account_id: None,
                 enabled: false,
                 tools: Vec::new(),
             };

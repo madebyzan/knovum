@@ -6,7 +6,7 @@
     "description": "Install an app workflow from the plugin catalog."
   },
   "manage": "Manage connection",
-  "accounts": "Accounts",
   "access": "Access",
-  "configurationRequired": "This app has an incomplete connection. Check its source plugin."
+  "configurationRequired": "This app has an incomplete connection. Check its source plugin.",
+  "connection": "Connection"
 }

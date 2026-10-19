@@ -7,7 +7,7 @@ import type { McpConnection } from "../../../../shared/contracts/generated/McpCo
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import ExtensionInspectionHeader from "../../components/ExtensionInspectionHeader.vue";
 import type { ExtensionDestination } from "../../navigation/extension-destination";
-import ConnectorAccounts from "./ConnectorAccounts.vue";
+import ConnectorAuthorization from "./ConnectorAuthorization.vue";
 import ConnectorConnections from "./ConnectorConnections.vue";
 import PluginConnectorConfiguration from "./PluginConnectorConfiguration.vue";
 const props = defineProps<{ connector: ConnectorDefinition; connections: McpConnection[]; busy: boolean }>();
@@ -51,9 +51,9 @@ const connectorConnections = computed(() =>
     <PluginConnectorConfiguration v-if="connector.pluginId" :connector="connector" />
     <section v-if="connector.endpoint && connector.authorization.type !== 'none'" class="space-y-3">
       <h3 class="border-b border-stroke-divider pb-2 text-body font-medium">
-        {{ $t("extensions.connections.accounts") }}
+        {{ $t("extensions.accounts.title") }}
       </h3>
-      <ConnectorAccounts :connector="connector" />
+      <ConnectorAuthorization :connector="connector" />
     </section>
     <ConnectorConnections :connector="connector" :connections="connectorConnections" :busy="busy" />
     <p class="text-caption text-fg-tertiary">{{ $t("extensions.accounts.billingHint") }}</p>

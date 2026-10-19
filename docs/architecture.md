@@ -332,8 +332,10 @@ recovery supplies retained snapshot IDs to extension-owned lease reconciliation;
 share the extension content lock without making account cleanup depend on Space recovery.
 `features/extensions` owns management UI, while foundation exposes neutral IPC/query contracts.
 Settings and Spaces do not import extension business UI. Connector definitions, connection
-instances, accounts, and protocol execution retain distinct identities and owners; MCP operation
-does not become service-definition policy.
+instances, authorizations, and protocol execution retain distinct identities and owners; MCP
+operation does not become service-definition policy. A service is connected once: its authorization
+is identified by the connector it belongs to, so connections do not select one and nothing binds
+them together after the fact.
 
 The complete agent host, security, and extension runtime contracts belong to
 [system-architecture.md](system-architecture.md).

@@ -26,15 +26,19 @@ Capability checks that need a credential run when the user opens the relevant ac
 
 ## Agent connector accounts
 
-Account metadata lives in `extensions.db`; tokens and SDK `StoredCredentials` live only in
-`secrets.db` under `agent-extension:<account UUID>`. The SDK CredentialStore adapter coordinates
+A service is connected once. An authorization is identified by the connector it belongs to, so
+`connector_accounts` is keyed by connector, connections never select one, and a second connect
+renews the same authorization instead of adding another. Account metadata lives in `extensions.db`;
+tokens and SDK `StoredCredentials` live only in `secrets.db` under
+`agent-extension:<connector id>`. The SDK CredentialStore adapter coordinates
 refresh writes with account revocation. Manual credentials go directly through the authorization
 command, with local UI fields cleared; query caches, settings, packages and graph checkpoints
 contain no account secret values. OAuth uses public SDK discovery, PKCE, state validation and
 an ephemeral loopback callback. Registered public client IDs are explicit; absent registration
 support is a visible error. Accounts bind the exact resource endpoint and auth requirements.
-Every successful authorization creates a new public account revision. Its commit also clears the
-tool permissions of bound connections. Task snapshots freeze that revision; reauthorization
+Every successful authorization creates a new public account revision. Its commit also disables the
+connector's connections and clears their tool permissions, because what the user approved was
+approved against the authorization that has just been replaced. Task snapshots freeze that revision; reauthorization
 requires fresh tool review and cannot substitute credentials in an existing checkpoint.
 
 Disconnect first marks the account inactive with cleanup pending, cancels authorization and
@@ -53,4 +57,3 @@ in which credentials may be written uses a child token the attempt cancels itsel
 attempt supersedes whatever attempt that account had in flight, and an attempt only deregisters
 itself, so a cancel can only stop the attempt it was asked for. A provider that redirects back with
 an `error` parameter is reported as a denial, because there is no authorization code to exchange.
-

@@ -30,7 +30,6 @@ const connection = {
   revision: "one",
   name: "GitHub",
   connectorId: "github",
-  accountId: null,
   enabled: true,
   tools: [],
 };
@@ -104,10 +103,11 @@ it("lists packaged integrations separately from custom MCP and navigates to the 
   expect(wrapper.emitted("navigate")?.at(-1)).toEqual([{ tab: "apps", connectorId: "github" }]);
 });
 
-it("manages packaged account access without a custom endpoint form or component switch", async () => {
+it("connects a packaged app in one action, without a custom endpoint form or component switch", async () => {
   await render("github");
   expect(wrapper.findComponent(AppInspection).exists()).toBe(true);
-  expect(wrapper.find('[data-testid="connector-account-name"]').exists()).toBe(true);
+  expect(wrapper.find('[data-testid="connect-connector"]').exists()).toBe(true);
+  expect(wrapper.find('[data-testid="select-connector-account"]').exists()).toBe(false);
   expect(wrapper.find('[data-testid="check-mcp-connection"]').exists()).toBe(true);
   expect(wrapper.find('[data-testid="plugin-connector-configuration"]').exists()).toBe(false);
   expect(wrapper.find('[role="switch"]').exists()).toBe(false);

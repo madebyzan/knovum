@@ -18,7 +18,6 @@ import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import { useExtensionChanges } from "../../use-extension-changes";
-import ConnectionAccountSelection from "./ConnectionAccountSelection.vue";
 import McpCatalogBrowser from "./McpCatalogBrowser.vue";
 import McpToolSelection from "./McpToolSelection.vue";
 
@@ -133,19 +132,8 @@ onScopeDispose(unregister);
         >{{ $t("common.save") }}</UiButton
       >
     </form>
-    <ConnectionAccountSelection
-      v-if="connector.authorization.type !== 'none'"
-      :connection="connection"
-      :disabled="dirty || checking.isPending.value"
-    />
     <UiButton
-      :disabled="
-        checking.isPending.value ||
-        changes.isPending.value ||
-        dirty ||
-        !connector.endpoint ||
-        (connector.authorization.type !== 'none' && !connection.accountId)
-      "
+      :disabled="checking.isPending.value || changes.isPending.value || dirty || !connector.endpoint"
       data-testid="check-mcp-connection"
       @click="checking.mutate(connection)"
       >{{ $t("extensions.connections.check") }}</UiButton
