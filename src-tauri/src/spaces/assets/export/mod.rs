@@ -172,9 +172,9 @@ async fn load(app: &AppHandle, space_id: &str, node_id: &str) -> Result<Value, A
     .await
     .map_err(db::sql_error)?
     .ok_or("The resource is no longer in this Space")?;
-    Ok(serde_json::from_str(&encoded)
+    serde_json::from_str(&encoded)
         .map_err(db::json_error)
-        .map_err(AppError::from)?)
+        .map_err(AppError::from)
 }
 
 #[cfg(test)]

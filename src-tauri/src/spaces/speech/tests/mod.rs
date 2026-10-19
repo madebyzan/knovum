@@ -45,9 +45,58 @@ pub(super) async fn speech_project(
     tx.commit().await.unwrap();
     sqlx::query("INSERT INTO spaces_speech_projects(id,space_id,source_node_id,project_type,title,created_at,updated_at) VALUES(?,'space','source',?,'Draft',1,1)")
         .bind(&project_id).bind(project_type).execute(pool).await.unwrap();
+    let output_config = if project_type == "audiobook" {
+        let mut chapters = Vec::new();
+        for (_, chapter_key) in segments {
+            if let Some(key) = chapter_key {
+                if !chapters
+                    .iter()
+                    .any(|c: &serde_json::Value| c["key"] == *key)
+                {
+                    chapters.push(serde_json::json!({
+                        "key": key,
+                        "title": format!("Chapter {}", chapters.len() + 1)
+                    }));
+                }
+            }
+        }
+        let mut roles = Vec::new();
+        for (engine, _) in segments {
+            if !roles
+                .iter()
+                .any(|r: &serde_json::Value| r["key"] == *engine)
+            {
+                let voice_id =
+                    uuid::Uuid::new_v5(&uuid::Uuid::NAMESPACE_OID, engine.as_bytes()).to_string();
+                roles.push(serde_json::json!({
+                    "key": engine,
+                    "voiceRevisionId": voice_id
+                }));
+            }
+        }
+        serde_json::json!({
+            "format": "m4b",
+            "sampleRate": 24000,
+            "loudnessLufs": -20.0,
+            "truePeakDb": -2.0,
+            "paragraphPauseMs": 250,
+            "chapterPauseMs": 1000,
+            "wavPrecision": "pcm24",
+            "metadata": {
+                "title": "Audiobook",
+                "author": "Author",
+                "narrator": "Narrator",
+                "cover": null
+            },
+            "chapters": chapters,
+            "roles": roles
+        })
+    } else {
+        serde_json::json!({"format":"wav","wavPrecision":"pcm16"})
+    };
     sqlx::query("INSERT INTO spaces_speech_project_revisions(id,project_id,revision,source_revision,pronunciation_lexicon,output_config,created_at) VALUES('revision',?,1,'source','{}',?,1)")
         .bind(&project_id)
-        .bind(serde_json::json!({"format":"wav","wavPrecision":"pcm16"}).to_string())
+        .bind(output_config.to_string())
         .execute(pool).await.unwrap();
     sqlx::query("UPDATE spaces_speech_projects SET active_revision_id='revision' WHERE id=?")
         .bind(&project_id)
@@ -55,15 +104,26 @@ pub(super) async fn speech_project(
         .await
         .unwrap();
     for (ordinal, (engine, chapter_key)) in segments.iter().enumerate() {
+        let voice_id = if project_type == "audiobook" {
+            uuid::Uuid::new_v5(&uuid::Uuid::NAMESPACE_OID, engine.as_bytes()).to_string()
+        } else {
+            (*engine).to_owned()
+        };
         sqlx::query("INSERT OR IGNORE INTO spaces_voice_profiles(id,name,source_kind,created_at,updated_at) VALUES(?,?,'reference',1,1)")
             .bind(engine).bind(engine).execute(pool).await.unwrap();
         sqlx::query("INSERT OR IGNORE INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,reference_asset_id,reference_source_revision,synthesis_config,authorization,created_at) VALUES(?,?,1,?,'model','en','reference','sha256:reference','{}','{}',1)")
-            .bind(engine).bind(engine).bind(engine).execute(pool).await.unwrap();
-        sqlx::query("INSERT INTO spaces_speech_segments(id,project_revision_id,ordinal,chapter_key,text,normalized_text,voice_revision_id,language,state,created_at,updated_at) VALUES(?,'revision',?,?,'Hello','Hello',?,'en','ready',1,1)")
+            .bind(&voice_id).bind(engine).bind(engine).execute(pool).await.unwrap();
+        let speaker_key = if project_type == "audiobook" {
+            Some(*engine)
+        } else {
+            None
+        };
+        sqlx::query("INSERT INTO spaces_speech_segments(id,project_revision_id,ordinal,chapter_key,speaker_key,text,normalized_text,voice_revision_id,language,state,created_at,updated_at) VALUES(?,'revision',?,?,?,'Hello','Hello',?,'en','ready',1,1)")
             .bind(format!("segment-{ordinal}"))
             .bind(i64::try_from(ordinal).unwrap())
             .bind(*chapter_key)
-            .bind(engine)
+            .bind(speaker_key)
+            .bind(&voice_id)
             .execute(pool).await.unwrap();
     }
     project_id

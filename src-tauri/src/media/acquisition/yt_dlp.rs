@@ -23,6 +23,7 @@ pub(crate) enum AcquisitionError {
     Failed(String),
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn acquire(
     executable: &Path,
     deno: &Path,

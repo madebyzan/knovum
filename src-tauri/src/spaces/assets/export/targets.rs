@@ -20,6 +20,8 @@ pub(super) enum Export {
     Summary,
 }
 
+pub(super) type ExportOffer = (Vec<(String, Export)>, Option<String>);
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) enum Managed {
     /// The bytes as they are.
@@ -86,7 +88,7 @@ pub(super) fn requested(payload: &Value, destination: &Path) -> Result<Export, S
 /// Nothing-to-offer is an answer, not a failure: a resource still being prepared and a document
 /// the engine cannot read both report their reason here, so the person asking is told the same way
 /// in both cases. Only a payload that cannot be read at all fails.
-fn offered(payload: &Value) -> Result<(Vec<(String, Export)>, Option<String>), String> {
+fn offered(payload: &Value) -> Result<ExportOffer, String> {
     let kind = payload
         .get("kind")
         .and_then(Value::as_str)
@@ -111,7 +113,7 @@ fn offered(payload: &Value) -> Result<(Vec<(String, Export)>, Option<String>), S
 /// A capture has no file, so its own format is the summary the engine assembles. That summary
 /// stays available even when its text is outside the authoring contract, because writing it needs
 /// no reading.
-fn capture_routes(payload: &Value) -> Result<(Vec<(String, Export)>, Option<String>), String> {
+fn capture_routes(payload: &Value) -> Result<ExportOffer, String> {
     let own = ("md".to_owned(), Export::Summary);
     let summary = capture::summary(payload)?;
     Ok(match admits(AuthoringContent::Markdown(&summary)) {
@@ -148,10 +150,7 @@ fn code_routes(payload: &Value) -> Result<Vec<(String, Export)>, String> {
 
 /// An editable resource reaches every serialization or none of them: each format reads the same
 /// authoring model, so content the engine cannot read is unavailable in all of them.
-fn editable_routes(
-    kind: &str,
-    payload: &Value,
-) -> Result<(Vec<(String, Export)>, Option<String>), String> {
+fn editable_routes(kind: &str, payload: &Value) -> Result<ExportOffer, String> {
     let content = if kind == "markdown" {
         AuthoringContent::Markdown(
             payload

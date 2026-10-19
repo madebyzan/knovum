@@ -97,6 +97,6 @@ fn the_seed_budget_is_never_exceeded() {
 
 #[test]
 fn a_field_that_does_not_match_its_source_is_ignored() {
-    assert!(from_saliency(&vec![250; 10], (EDGE, EDGE)).is_empty());
+    assert!(from_saliency(&[250; 10], (EDGE, EDGE)).is_empty());
     assert!(from_saliency(&saliency(&[]), (0, EDGE)).is_empty());
 }

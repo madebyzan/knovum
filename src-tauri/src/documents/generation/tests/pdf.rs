@@ -28,7 +28,5 @@ fn typst_control_syntax_is_quoted_not_interpolated() {
 
 #[test]
 fn unsupported_binary_content_fails_before_typst_compilation() {
-    for markdown in ["![Diagram](image.png)", "[Link](file:///private/a)"] {
-        assert!(pdf::tests::render_source(&source(markdown)).is_err());
-    }
+    assert!(pdf::tests::render_source(&source("[Link](file:///private/a)")).is_err());
 }

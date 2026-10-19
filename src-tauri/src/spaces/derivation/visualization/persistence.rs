@@ -115,6 +115,7 @@ pub async fn fail(app: &AppHandle, derivation_id: &str, error: &str) -> Result<(
         .map_err(AppError::from)
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn persist_completion(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &GenerateVisualizationRequest,

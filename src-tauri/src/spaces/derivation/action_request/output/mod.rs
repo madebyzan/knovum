@@ -21,9 +21,8 @@ pub(super) async fn reserve(
     if definition.input_roles == [SpaceActionInputRole::Image] {
         image::request(inputs, request)?;
     }
-    match action_id {
-        "add-video-subtitles" => media::subtitled_video_request(inputs, request)?,
-        _ => {}
+    if action_id == "add-video-subtitles" {
+        media::subtitled_video_request(inputs, request)?;
     }
     let Some(output) = build_pending_output_content(app, action_id, parameters, inputs)? else {
         return Ok(());

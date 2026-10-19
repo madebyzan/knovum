@@ -28,11 +28,6 @@ export function cancelResourceExport(jobId: string) {
   return invokeCommand<boolean>("plugin:spaces|cancel_resource_export", { jobId });
 }
 
-/** Saves a managed file by path, for resources that are not canvas nodes. */
-export function exportAssetFile(sourcePath: string, destinationPath: string) {
-  return invokeCommand<void>("plugin:spaces|export_asset", { sourcePath, destinationPath });
-}
-
 export function exportTextFile(destinationPath: string, text: string) {
   return invokeCommand<void>("plugin:spaces|export_text", { destinationPath, text });
 }

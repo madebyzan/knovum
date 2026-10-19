@@ -28,6 +28,22 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
     sqlx::query("INSERT INTO spaces_run_attempts(id,run_id,step_instance_id,attempt_number,state,request_digest,executor_id,idempotency_key,execution_epoch,lease_until,started_at) VALUES(?,?,?,1,'executing',?,'executor','key',2,?,1)")
         .bind(&attempt_id).bind(&run_id).bind(&step_id).bind("b".repeat(64)).bind(now - 1)
         .execute(&pool).await.unwrap();
+    {
+        let mut tx = crate::spaces::db::begin_write(&pool).await.unwrap();
+        super::super::publication::reserve_outputs(
+            &crate::spaces::speech::output_reservation::OutputContext::for_tests(
+                std::env::temp_dir().join("knovum-speech-reservation"),
+            ),
+            &mut tx,
+            "space",
+            &run_id,
+            "media",
+            ["Vocals", "Background"],
+        )
+        .await
+        .unwrap();
+        tx.commit().await.unwrap();
+    }
     let claim = AttemptClaim {
         attempt_id: attempt_id.clone(),
         run_id: run_id.clone(),
@@ -147,16 +163,22 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
         .await
         .unwrap()
         .is_none());
-    let nodes: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_nodes WHERE kind='audio'")
-        .fetch_one(&pool)
-        .await
-        .unwrap();
-    assert_eq!(nodes, 0, "a missing stem journal must roll back both nodes");
-    let relations: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_relations")
-        .fetch_one(&pool)
-        .await
-        .unwrap();
-    assert_eq!(relations, 0);
+    let published: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM spaces_nodes WHERE kind='audio' AND json_extract(data,'$.processingState') IS NULL",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(
+        published, 0,
+        "a missing stem journal must roll back both nodes"
+    );
+    let relations: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM spaces_relations WHERE kind='derives-from'")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert_eq!(relations, 2);
     let remaining: i64 =
         sqlx::query_scalar("SELECT count(*) FROM spaces_speech_asset_publications")
             .fetch_one(&pool)

@@ -40,7 +40,7 @@ pub(super) fn load(
 /// The picture behind one reference, when this Space holds it.
 ///
 /// A conversion embeds bytes, so it can only embed what was imported. A reference it cannot read
-/// - a badge served over the network, a path outside the Space, a file that is gone - is not
+/// (a badge served over the network, a path outside the Space, a file that is gone) is not
 /// held, and the document model reads such a reference as its alt text.
 fn held(app: &tauri::AppHandle, destination: String, path: &str) -> Option<ImageSource> {
     let path = Path::new(path);

@@ -74,7 +74,7 @@ fn exploratory_seeds(saliency: &[u8], (width, height): (u32, u32)) -> Vec<(u32, 
             (highest < MIN_SUBJECT).then_some((highest, (left + right) / 2, (top + bottom) / 2))
         })
         .collect::<Vec<_>>();
-    cells.sort_by(|left, right| right.0.cmp(&left.0));
+    cells.sort_by_key(|cell| std::cmp::Reverse(cell.0));
     cells.into_iter().map(|(_, x, y)| (x, y)).collect()
 }
 

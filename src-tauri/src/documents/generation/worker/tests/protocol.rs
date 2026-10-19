@@ -52,11 +52,11 @@ fn worker_rejects_oversized_input_before_reading_payload() {
 #[test]
 fn worker_render_failure_is_a_typed_response_without_output_bytes() {
     let source = DocumentSource {
-        markdown: "<script>bad</script>".into(),
+        markdown: "[Bad](javascript:alert)".into(),
         ..Default::default()
     };
     let request =
-        protocol::encode_request(DocumentFormat::Text, DocumentInput::Markdown(source)).unwrap();
+        protocol::encode_request(DocumentFormat::Docx, DocumentInput::Markdown(source)).unwrap();
     let mut output = Vec::new();
     super::serve(&mut Cursor::new(request), &mut output).unwrap();
     let mut reader = Cursor::new(output);

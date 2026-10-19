@@ -53,9 +53,8 @@ fn docx_is_packaged_as_a_zip_document() {
 }
 
 #[test]
-fn binary_export_rejects_unimplemented_images_and_unsafe_links() {
+fn binary_export_rejects_unsafe_links() {
     for markdown in [
-        "![Diagram](image.png)",
         "[Link](javascript:alert)",
         "[Link](file:///private/a)",
         "[Link](/private/a)",
