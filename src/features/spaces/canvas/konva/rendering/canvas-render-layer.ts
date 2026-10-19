@@ -1,6 +1,6 @@
 import { Layer } from "konva/lib/Layer";
-import { getCurrentInstance, resolveComponent } from "vue";
-import { install } from "vue-konva/core";
+import type { Component } from "vue";
+import { install, type KonvaNodeConstructor, type Layer as KonvaLayer } from "vue-konva/core";
 
 /** A layer has one scheduler: Konva while editing, the camera while navigating. */
 export class CanvasRenderLayer extends Layer {
@@ -17,11 +17,26 @@ export class CanvasRenderLayer extends Layer {
   }
 }
 
-/** Register through vue-konva's public custom-node API, without replacing vendor prototypes. */
-export function useCanvasRenderLayer() {
-  const app = getCurrentInstance()!.appContext.app;
-  if (!app.component("CanvasLayer")) {
-    install(app, { prefix: "Canvas", customNodes: { Layer: CanvasRenderLayer } });
+function createKonvaNodeComponent<T extends Component>(
+  name: string,
+  nodeConstructor: KonvaNodeConstructor,
+): T {
+  let nodeComponent: T | undefined;
+  install(
+    {
+      component(registeredName: string, component: Component) {
+        if (registeredName === `V${name}`) {
+          nodeComponent = component as T;
+        }
+      },
+    },
+    { customNodes: { [name]: nodeConstructor } },
+  );
+  if (!nodeComponent) {
+    throw new Error(`Failed to create vue-konva component for ${name}`);
   }
-  return resolveComponent("CanvasLayer");
+  return nodeComponent;
 }
+
+/** Vue Konva component backed by `CanvasRenderLayer`. */
+export const KonvaCanvasLayer = createKonvaNodeComponent<typeof KonvaLayer>("Layer", CanvasRenderLayer);
