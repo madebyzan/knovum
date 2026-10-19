@@ -43,6 +43,7 @@ export function documentEditCommands(): AppCommand[] {
       id: "document.redo",
       title: t("common.redo"),
       shortcut: "$mod+Shift+Z",
+      keybindings: ["$mod+Shift+Z", "$mod+Y"],
       appMenuShortcut: true,
       category: "editing",
       allowInEditable: true,

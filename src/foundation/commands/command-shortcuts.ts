@@ -5,6 +5,7 @@ import type { AppCommand } from "../../shared/contracts/app-command";
 import { isEditableTarget } from "../dom/editable-target";
 import { isInteractiveTarget } from "../dom/interactive-target";
 import { runAppCommand } from "./run-app-command";
+import { TEXT_EDITING_CHORDS } from "./text-editing";
 
 export function bindCommandShortcuts(commands: readonly AppCommand[]): () => void {
   const bindings: Record<string, (event: KeyboardEvent) => void> = {};
@@ -16,10 +17,13 @@ export function bindCommandShortcuts(commands: readonly AppCommand[]): () => voi
       // A modifier chord belongs to the application, but a bare key is the class the platform hands
       // to the focused control, so Space on a button and the arrows on a slider stay theirs.
       const bareKey = !keybinding.includes("+");
+      // Text editing stays with the text being edited: a command may keep working while the user
+      // types, but never by taking the chord that edits what they are typing.
+      const platformOwnsWhileTyping = TEXT_EDITING_CHORDS.includes(keybinding);
 
       bindings[keybinding] = (event) => {
         const editable = isEditableTarget(event.target);
-        if (editable && !command.allowInEditable) return;
+        if (editable && (platformOwnsWhileTyping || !command.allowInEditable)) return;
         if (bareKey && isInteractiveTarget(event.target)) return;
         event.preventDefault();
         runAppCommand(command);
