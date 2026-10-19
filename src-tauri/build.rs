@@ -123,10 +123,9 @@ fn main() {
                         "update_connector_definition",
                         "delete_connector_definition",
                         "configure_plugin_connector",
-                        "create_connector_account",
-                        "authorize_connector_account",
+                        "connect_connector",
                         "cancel_connector_authorization",
-                        "disconnect_connector_account",
+                        "disconnect_connector",
                         "get_agent_extension_availability",
                     ])
                     .default_permission(tauri_build::DefaultPermissionRule::AllowAllCommands),
