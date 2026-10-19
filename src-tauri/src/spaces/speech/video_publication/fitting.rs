@@ -17,6 +17,10 @@ use crate::spaces::speech::publication::hash_file;
 /// window: speech that is shorter than its window simply leaves silence behind it.
 const MAX_COMPRESSION: f64 = 1.25;
 
+/// The fade every placed line ends with: long enough to avoid a click, short enough to be
+/// inaudible as a fade.
+const FADE_SAMPLES: u64 = 480;
+
 /// Where a line is heard and for how long, after fitting it to the time it was given.
 pub(super) struct Placement {
     /// The line this placement speaks, as indexed into the timed renders it was planned from.
@@ -133,8 +137,12 @@ pub(super) fn render(
         format!("atempo={:.9},", placement.tempo)
     };
     let samples = placement.sample_count;
+    // Every placed line ends with a short fade, so a line the picture cuts short never clicks. A
+    // line that ends in its own silence fades that silence and is unchanged.
+    let fade_start = samples.saturating_sub(FADE_SAMPLES) as f64 / f64::from(SAMPLE_RATE);
+    let fade = FADE_SAMPLES.min(samples) as f64 / f64::from(SAMPLE_RATE);
     let filter = format!(
-        "aresample={SAMPLE_RATE},{tempo}apad,atrim=end_sample={samples},aformat=sample_fmts=flt:channel_layouts=mono"
+        "aresample={SAMPLE_RATE},{tempo}apad,atrim=end_sample={samples},afade=t=out:st={fade_start:.9}:d={fade:.9},aformat=sample_fmts=flt:channel_layouts=mono"
     );
     crate::media::ffmpeg::run(
         Command::new(ffmpeg)

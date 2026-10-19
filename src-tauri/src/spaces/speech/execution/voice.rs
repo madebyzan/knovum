@@ -74,6 +74,7 @@ pub(in crate::spaces::speech) fn input_digest(
         "engineVersion": env!("CARGO_PKG_VERSION"),
         "runtimeDigest": runtime_digest,
         "preprocessingVersion": "speech-text-v1",
+        "renderVersion": "speech-render-v2-trimmed",
     });
     Ok(hex::encode(Sha256::digest(
         serde_json::to_vec(&value).map_err(db::json_error)?,

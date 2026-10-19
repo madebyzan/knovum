@@ -377,11 +377,20 @@ rolls back the complete publication. Retrying an already committed attempt reuse
 never inserts duplicate tracks or relations. Publication belongs to the durable Run and continues
 when the initiating view closes or another Space opens.
 
+A synthesized line is published as the speech it contains: the silence a model leaves before the
+first word and after the last is trimmed, keeping a short guard so no onset or tail is clipped, and
+a line that is silent throughout is invalid output. A line's stored duration therefore means spoken
+time, which is what every consumer places. Separation between lines is then stated rather than
+inherited from a model: an audiobook keeps its configured paragraph and chapter pauses, and a plain
+read separates its lines by a sentence pause. Trimming and pausing are identified in the assembly
+digest, so an output published under earlier rules is never reused as if it matched.
+
 Dubbed dialogue is heard in script order and never on top of itself. A line starts at its subtitle
 time or as soon as the line before it has stopped speaking, whichever is later; a line that would
 run into the next one is compressed only as far as the ear tolerates, and past that the next line
 waits. Lateness is paid back by the silence between lines, and nothing is heard past the end of the
-picture. One dialogue track therefore carries every line, so the mix never sums speech onto itself.
+picture. One dialogue track therefore carries every line, so the mix never sums speech onto itself,
+and every placed line ends with a short fade, so a line the picture cuts short never clicks.
 
 A translation Run derives the script from the revision it was created for, so a translation request
 cannot carry a script that has already gone stale. Translating commits the editor's script first
