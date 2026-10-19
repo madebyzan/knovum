@@ -39,7 +39,7 @@ async fn project_generation_requires_every_engine_package_and_freezes_the_exact_
         project_id: project_id.clone(),
         expected_revision: 1,
     };
-    let outputs = super::reservation_context();
+    let outputs = crate::spaces::speech::tests::reservation_context();
     let mut digests = RuntimeDigests::new();
     assert!(run_start::start(&pool, request(), &digests, &outputs)
         .await

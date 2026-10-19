@@ -33,6 +33,7 @@ pub(in crate::spaces) async fn insert_source_in_transaction(
     insert_many_in_transaction(tx, request, None)
         .await
         .map(|_| ())
+        .map_err(|e| e.to_string())
 }
 
 /// The plain text source a narration or a document is made from.

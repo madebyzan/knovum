@@ -189,6 +189,7 @@ fn mux_retains_original_track_without_shortening_video() {
         &output,
         &CancellationToken::new(),
         true,
+        2 * u64::from(SAMPLE_RATE),
     )
     .unwrap();
     let duration =

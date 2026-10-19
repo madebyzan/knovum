@@ -69,6 +69,6 @@ fn layer_discovery_bounds_are_shared_by_both_sides_of_the_worker_boundary() {
     }
     // Ranks share a u8 label map with the unassigned 0, and a caller must be able to explore the
     // canvas beyond the layers it can publish.
-    assert!(MAX_DISCOVERED_LAYERS < u8::MAX);
-    assert!(MAX_DISCOVERY_SEEDS > usize::from(MAX_DISCOVERED_LAYERS));
+    const { assert!(MAX_DISCOVERED_LAYERS < u8::MAX) };
+    const { assert!(MAX_DISCOVERY_SEEDS > MAX_DISCOVERED_LAYERS as usize) };
 }
