@@ -19,7 +19,7 @@ export const i18n = createI18n({
   fallbackLocale: false,
   messages: localeMessages,
   numberFormats: Object.fromEntries(locales.map((locale) => [locale, { compact: COMPACT_NUMBER_FORMAT }])),
-  dateTimeFormats: Object.fromEntries(locales.map((locale) => [locale, DATE_TIME_FORMATS])),
+  datetimeFormats: Object.fromEntries(locales.map((locale) => [locale, DATE_TIME_FORMATS])),
   pluralRules: {
     fr: (count) => (count === 0 || count === 1 ? 0 : 1),
     "pt-BR": (count) => (count === 0 || count === 1 ? 0 : 1),
