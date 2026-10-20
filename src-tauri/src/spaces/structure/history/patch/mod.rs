@@ -65,7 +65,7 @@ impl Side {
         }
     }
 
-    pub fn row<'a, T>(self, change: &'a Change<T>) -> Option<&'a T> {
+    pub fn row<T>(self, change: &Change<T>) -> Option<&T> {
         match self {
             Self::Before => change.before.as_ref(),
             Self::After => change.after.as_ref(),
