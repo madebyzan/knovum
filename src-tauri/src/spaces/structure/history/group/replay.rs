@@ -71,7 +71,7 @@ pub(super) async fn apply(
 }
 
 /// Which Space each moved node belongs to on this side: the record that expects to find it owns it.
-fn owners<'a>(targets: &'a [TargetState], side: Side) -> HashMap<String, &'a str> {
+fn owners(targets: &[TargetState], side: Side) -> HashMap<String, &str> {
     targets
         .iter()
         .flat_map(|target| {
@@ -84,7 +84,7 @@ fn owners<'a>(targets: &'a [TargetState], side: Side) -> HashMap<String, &'a str
         .collect()
 }
 
-fn containers<'a>(targets: &'a [TargetState], side: Side) -> HashMap<&'a str, &'a str> {
+fn containers(targets: &[TargetState], side: Side) -> HashMap<&str, &str> {
     targets
         .iter()
         .flat_map(|target| {
