@@ -4,6 +4,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use sqlx::{sqlite::SqliteConnectOptions, Connection, SqliteConnection};
+
 use super::{
     database,
     journal::{self, Journal, JournalPhase, PublicationTarget, ReconcileOutcome},
@@ -112,6 +114,67 @@ fn settings_validation_rejects_unknown_preferences() {
     let path = fixture.paths.data.join("settings.json");
     fs::write(&path, preferences_with_unknown_field()).expect("settings file");
     assert!(settings::validate(&path).is_err());
+}
+
+/// A snapshot is produced by `VACUUM INTO`, which may renumber the rowids the search indexes are
+/// addressed by. The copy therefore has to carry a rebuilt index, and a copy whose index no longer
+/// answers for its own rows must not pass validation on the way back in.
+#[tokio::test]
+async fn a_database_snapshot_carries_a_search_index_that_answers_for_its_rows() {
+    let fixture = Fixture::new();
+    let live = fixture.paths.config.join("spaces.db");
+    let snapshot = fixture.paths.maintenance.join("spaces.db");
+    let mut connection = SqliteConnection::connect_with(
+        &SqliteConnectOptions::new()
+            .filename(&live)
+            .create_if_missing(true),
+    )
+    .await
+    .expect("live database");
+    database::migrator("spaces.db")
+        .run(&mut connection)
+        .await
+        .expect("baseline");
+    sqlx::query(
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
+    )
+    .execute(&mut connection)
+    .await
+    .expect("space");
+    for index in 0..40 {
+        sqlx::query("INSERT INTO spaces_structure_nodes(id,space_id,kind,node_id,parent_id,order_index,title,locked) VALUES($1,'s','section',NULL,NULL,$2,$3,0)")
+            .bind(format!("c{index}")).bind(index).bind(format!("Chapter {index}"))
+            .execute(&mut connection).await.expect("container");
+    }
+    sqlx::query("DELETE FROM spaces_structure_nodes WHERE id IN ('c3','c9')")
+        .execute(&mut connection)
+        .await
+        .expect("churn so the rowids are sparse");
+    connection.close().await.expect("close live database");
+
+    database::snapshot("spaces.db", &live, &snapshot)
+        .await
+        .expect("snapshot");
+    database::validate("spaces.db", &snapshot)
+        .await
+        .expect("a fresh snapshot validates");
+
+    let mut copy = SqliteConnection::connect_with(&SqliteConnectOptions::new().filename(&snapshot))
+        .await
+        .expect("snapshot database");
+    let found: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM spaces_structure_title_fts \
+         WHERE spaces_structure_title_fts MATCH 'Chapter'",
+    )
+    .fetch_one(&mut copy)
+    .await
+    .expect("search the copy");
+    assert_eq!(found, 38);
+    sqlx::query("DELETE FROM spaces_structure_title_fts WHERE rowid=(SELECT rowid FROM spaces_structure_nodes LIMIT 1)")
+        .execute(&mut copy).await.expect("break the index");
+    copy.close().await.expect("close the copy");
+
+    assert!(database::validate("spaces.db", &snapshot).await.is_err());
 }
 
 #[test]

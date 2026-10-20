@@ -1,40 +1,81 @@
-use super::{enqueue_update, AgentSessionUpdate, MAX_UPDATE_TEXT_BYTES};
+use super::super::repository::AgentMessageWrite;
+use super::{message_write, Streamed};
+use crate::spaces::runs::RunEventKind;
 
-#[test]
-fn update_queue_rejects_a_burst_above_its_capacity() {
-    let (sender, _receiver) = tokio::sync::mpsc::channel(1);
-    assert!(enqueue_update(&sender, AgentSessionUpdate::Message("first".into())).is_ok());
-    assert!(enqueue_update(&sender, AgentSessionUpdate::Message("second".into())).is_err());
-    assert!(enqueue_update(&sender, AgentSessionUpdate::Thought("ignored".into())).is_ok());
+fn message(text: &str) -> Streamed {
+    Streamed {
+        kind: RunEventKind::ExternalAgentMessage,
+        payload: serde_json::json!({"text": text}),
+    }
+}
+
+fn tool(kind: RunEventKind) -> Streamed {
+    Streamed {
+        kind,
+        payload: serde_json::json!({"toolCallId": "call", "title": "Read"}),
+    }
 }
 
 #[test]
-fn update_queue_rejects_an_oversized_message() {
-    let (sender, _receiver) = tokio::sync::mpsc::channel(1);
-    assert!(enqueue_update(
-        &sender,
-        AgentSessionUpdate::Message("x".repeat(MAX_UPDATE_TEXT_BYTES + 1))
-    )
-    .is_err());
+fn commentary_in_a_batch_continues_the_assistant_message() {
+    let batch = [message("Looking "), message("into it.")];
+    assert!(matches!(
+        message_write(&batch),
+        Some(AgentMessageWrite::Append(text)) if text == "Looking into it."
+    ));
+}
+
+#[test]
+fn a_tool_call_in_a_batch_ends_the_commentary_before_it() {
+    let batch = [
+        message("Reading "),
+        message("the file."),
+        tool(RunEventKind::ExternalAgentToolStarted),
+        message("Done."),
+    ];
+    assert!(matches!(
+        message_write(&batch),
+        Some(AgentMessageWrite::Replace(text)) if text == "Done."
+    ));
+}
+
+#[test]
+fn a_batch_that_ends_on_a_tool_call_leaves_no_commentary() {
+    let batch = [
+        message("Reading."),
+        tool(RunEventKind::ExternalAgentToolStarted),
+    ];
+    assert!(matches!(
+        message_write(&batch),
+        Some(AgentMessageWrite::Replace(text)) if text.is_empty()
+    ));
+}
+
+#[test]
+fn a_batch_without_commentary_leaves_the_assistant_message_alone() {
+    let batch = [tool(RunEventKind::ExternalAgentToolUpdated)];
+    assert!(message_write(&batch).is_none());
 }
 
 #[tokio::test]
 async fn an_accepted_flush_survives_session_registry_release() {
+    let pool = sqlx::sqlite::SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect("sqlite::memory:")
+        .await
+        .unwrap();
+    crate::spaces::db::migrate(&pool).await.unwrap();
     let id = uuid::Uuid::new_v4().to_string();
-    let (sender, mut receiver) = tokio::sync::mpsc::channel(1);
-    super::active_updates()
-        .lock()
-        .unwrap()
-        .insert(id.clone(), sender);
+    super::active_updates().lock().unwrap().insert(
+        id.clone(),
+        crate::spaces::runs::stream::open(
+            pool,
+            "run".to_owned(),
+            crate::spaces::runs::stream::RunEventsOnly,
+        ),
+    );
     let flush = super::flush(&id);
     super::release(&id);
-    let worker = tokio::spawn(async move {
-        let Some(super::UpdateCommand::Flush(acknowledge)) = receiver.recv().await else {
-            panic!("accepted flush must keep the update queue alive");
-        };
-        acknowledge.send(Ok(())).unwrap();
-    });
     flush.await.unwrap();
-    worker.await.unwrap();
     assert!(super::flush(&id).await.is_err());
 }

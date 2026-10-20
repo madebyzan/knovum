@@ -63,6 +63,25 @@ pub(crate) async fn insert_typed<T: Serialize>(
 ) -> Result<(), String> {
     let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_edit_receipts(mutation_id,space_id,request_digest,applied_revision,selection_suggestion,committed_projection,created_at) VALUES($1,$2,$3,$4,$5,$6,$7)").bind(mutation_id).bind(space_id).bind(digest).bind(applied_revision).bind(sqlx::types::Json(selection)).bind(sqlx::types::Json(committed_projection)).bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
+    prune(tx, space_id).await
+}
+
+/// A receipt exists so that a client replaying the same mutation sees the same committed
+/// projection, which only matters while that call could still be retried. Without a bound the
+/// table grows for the life of the library, each row carrying a committed projection. The window
+/// is the Space's editing memory, the same one the undo history keeps, so a receipt can only be
+/// dropped after a hundred later edits have made any replay of it meaningless.
+async fn prune(tx: &mut Transaction<'_, Sqlite>, space_id: &str) -> Result<(), String> {
+    sqlx::query(
+        "DELETE FROM spaces_edit_receipts WHERE space_id=$1 AND mutation_id NOT IN ( \
+           SELECT mutation_id FROM spaces_edit_receipts WHERE space_id=$1 \
+           ORDER BY applied_revision DESC LIMIT $2)",
+    )
+    .bind(space_id)
+    .bind(super::history::RETAINED_EDITS)
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
     Ok(())
 }
 

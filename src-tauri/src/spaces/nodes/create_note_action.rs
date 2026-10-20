@@ -59,7 +59,7 @@ pub(crate) async fn execute(
     let edit_revision =
         structure::repository::save_in_transaction(tx, space_id, revision, &snapshot).await?;
     let after = structure::history::capture(tx, space_id, &snapshot).await?;
-    structure::history::record(tx, space_id, &before, &after, edit_revision).await?;
+    structure::history::record(tx, space_id, &before, &after).await?;
     Ok(json!({
         "nodeId": node_id, "editRevision": edit_revision,
         "principal": {"kind": principal.kind, "id": principal.id},

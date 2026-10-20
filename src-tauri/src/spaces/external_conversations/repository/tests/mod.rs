@@ -55,3 +55,62 @@ async fn turn_links_external_session_to_shared_conversation_history() {
     .unwrap();
     assert_eq!(updated, 1);
 }
+
+#[tokio::test]
+async fn streamed_commentary_accumulates_until_a_tool_call_replaces_it() {
+    let pool = sqlx::sqlite::SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect("sqlite::memory:")
+        .await
+        .unwrap();
+    db::migrate(&pool).await.unwrap();
+    sqlx::raw_sql("INSERT INTO spaces(id,kind,title,created_at,updated_at)
+        VALUES('space','space','Space',1,1);
+        INSERT INTO spaces_conversations(id,space_id,title,active_branch_id,created_at,updated_at)
+        VALUES('history','space','Conversation','branch',1,1);
+        INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at)
+        VALUES('run','space','space','external_agent','session','external_agent','running','{}','{}','{}',1,1);
+        INSERT INTO spaces_external_agent_conversations(id,run_id,space_id,conversation_id,branch_id,runtime_kind,title,state,created_at,updated_at)
+        VALUES('session','run','space','history','branch','codex','Agent','connected',1,1);")
+        .execute(&pool).await.unwrap();
+    let turn_id = start_turn(&pool, "session", "Question", &[]).await.unwrap();
+
+    for write in [
+        AgentMessageWrite::Append("Looking ".into()),
+        AgentMessageWrite::Append("into it.".into()),
+    ] {
+        let mut tx = db::begin_write(&pool).await.unwrap();
+        write_agent_message_in_transaction(&mut tx, "session", write)
+            .await
+            .unwrap();
+        tx.commit().await.unwrap();
+    }
+    let commentary: String = sqlx::query_scalar(
+        "SELECT json_extract(m.content,'$.parts[0].text') FROM spaces_conversation_messages m
+         JOIN spaces_external_agent_turns t ON t.message_id=m.id WHERE t.id=$1",
+    )
+    .bind(&turn_id)
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(commentary, "Looking into it.");
+
+    let mut tx = db::begin_write(&pool).await.unwrap();
+    write_agent_message_in_transaction(
+        &mut tx,
+        "session",
+        AgentMessageWrite::Replace("Done.".into()),
+    )
+    .await
+    .unwrap();
+    tx.commit().await.unwrap();
+    let answer: String = sqlx::query_scalar(
+        "SELECT json_extract(m.content,'$.parts[0].text') FROM spaces_conversation_messages m
+         JOIN spaces_external_agent_turns t ON t.message_id=m.id WHERE t.id=$1",
+    )
+    .bind(&turn_id)
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(answer, "Done.");
+}

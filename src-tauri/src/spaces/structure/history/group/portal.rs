@@ -2,47 +2,30 @@ use std::collections::HashMap;
 
 use sqlx::{Row, Sqlite, Transaction};
 
-use super::TargetState;
 use crate::spaces::db;
 
-pub(super) fn node_owners(targets: &[TargetState]) -> HashMap<&str, &str> {
-    targets
-        .iter()
-        .flat_map(|target| {
-            target
-                .node_ids
-                .iter()
-                .map(move |id| (id.as_str(), target.space_id.as_str()))
-        })
-        .collect()
-}
-
-pub(super) fn structure_owners(targets: &[TargetState]) -> HashMap<&str, &str> {
-    targets
-        .iter()
-        .flat_map(|target| {
-            target
-                .snapshot
-                .structure
-                .iter()
-                .filter_map(move |structure_node| {
-                    (structure_node.kind_name() != "content")
-                        .then_some((structure_node.id(), target.space_id.as_str()))
-                })
-        })
-        .collect()
-}
-
+/// A Portal records which Space its target lives in, so the Portals that point at moved content
+/// are rewritten — and they are found by their target, not by scanning every Portal in the library.
 pub(super) async fn update_targets(
     tx: &mut Transaction<'_, Sqlite>,
-    node_owners: &HashMap<&str, &str>,
-    structure_owners: &HashMap<&str, &str>,
+    node_owners: &HashMap<String, &str>,
+    container_owners: &HashMap<&str, &str>,
+    moved_nodes: &[String],
 ) -> Result<(), String> {
-    let rows =
-        sqlx::query("SELECT id,data FROM spaces_nodes WHERE kind='portal' AND deleted_at IS NULL")
-            .fetch_all(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
+    let containers = container_owners.keys().copied().collect::<Vec<_>>();
+    if moved_nodes.is_empty() && containers.is_empty() {
+        return Ok(());
+    }
+    let rows = sqlx::query(
+        "SELECT id,data FROM spaces_nodes WHERE kind='portal' AND deleted_at IS NULL AND ( \
+           json_extract(data,'$.targetNodeId') IN (SELECT value FROM json_each($1)) \
+           OR json_extract(data,'$.targetStructureNodeId') IN (SELECT value FROM json_each($2)))",
+    )
+    .bind(sqlx::types::Json(moved_nodes))
+    .bind(sqlx::types::Json(&containers))
+    .fetch_all(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
     for row in rows {
         let id: String = row.try_get("id").map_err(db::sql_error)?;
         let raw: String = row.try_get("data").map_err(db::sql_error)?;
@@ -54,7 +37,7 @@ pub(super) async fn update_targets(
             .or_else(|| {
                 data.get("targetStructureNodeId")
                     .and_then(serde_json::Value::as_str)
-                    .and_then(|target| structure_owners.get(target))
+                    .and_then(|target| container_owners.get(target))
             });
         let Some(owner) = owner else { continue };
         data["targetSpaceId"] = serde_json::Value::String((*owner).to_owned());

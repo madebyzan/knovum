@@ -16,6 +16,56 @@ pub(crate) async fn prepare_package_staging<R: tauri::Runtime>(
         .map_err(|error| format!("spaces-backup-not-quiescent: {error}"))
 }
 
+/// The search indexes address their rows by the owner's rowid, and `VACUUM INTO` is free to
+/// renumber the rowids of a table whose primary key is not an integer. A snapshot therefore rebuilds
+/// both indexes in the copy it just produced: it is one pass over data that is already quiescent,
+/// and it is the only moment at which the two can fall out of step.
+pub(crate) async fn reindex_search(connection: &mut SqliteConnection) -> Result<(), String> {
+    for statement in [
+        "DELETE FROM spaces_structure_title_fts",
+        "INSERT INTO spaces_structure_title_fts(rowid,structure_node_id,space_id,kind,title) \
+         SELECT rowid,id,space_id,kind,title FROM spaces_structure_nodes \
+         WHERE deleted_at IS NULL AND kind IN ('group','section')",
+        "DELETE FROM spaces_knowledge_fts",
+        "INSERT INTO spaces_knowledge_fts(rowid,chunk_id,space_id,node_id,text) \
+         SELECT rowid,id,space_id,node_id,text FROM spaces_knowledge_chunks",
+    ] {
+        sqlx::query(statement)
+            .execute(&mut *connection)
+            .await
+            .map_err(super::db::sql_error)?;
+    }
+    Ok(())
+}
+
+/// Refuses a database whose search index no longer answers for its own rows. Every maintained row
+/// must be reachable at its owner's rowid and name that owner, because that identity is what every
+/// later delete and retitle relies on.
+pub(crate) async fn assert_search_aligned(connection: &mut SqliteConnection) -> Result<(), String> {
+    let misaligned: Option<String> = sqlx::query_scalar(
+        "SELECT reason FROM ( \
+           SELECT 'structure titles' AS reason WHERE EXISTS( \
+             SELECT 1 FROM spaces_structure_nodes n \
+             LEFT JOIN spaces_structure_title_fts f ON f.rowid=n.rowid \
+             WHERE n.deleted_at IS NULL AND n.kind IN ('group','section') \
+               AND (f.rowid IS NULL OR f.structure_node_id<>n.id)) \
+           UNION ALL SELECT 'knowledge text' WHERE EXISTS( \
+             SELECT 1 FROM spaces_knowledge_chunks c \
+             LEFT JOIN spaces_knowledge_fts f ON f.rowid=c.rowid \
+             WHERE f.rowid IS NULL OR f.chunk_id<>c.id) \
+         ) LIMIT 1",
+    )
+    .fetch_optional(&mut *connection)
+    .await
+    .map_err(super::db::sql_error)?;
+    match misaligned {
+        Some(reason) => Err(format!(
+            "spaces-search-index-misaligned: {reason} cannot be addressed by row"
+        )),
+        None => Ok(()),
+    }
+}
+
 /// Rejects a snapshot that could resume or reconcile Spaces-owned side effects after restore.
 /// Unsent conversation drafts are durable local data and do not prevent a snapshot.
 pub(crate) async fn assert_quiescent(connection: &mut SqliteConnection) -> Result<(), String> {

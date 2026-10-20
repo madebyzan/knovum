@@ -10,17 +10,24 @@ pub(super) async fn invalidate_relations_for_nodes(
     node_ids: &[String],
     now: i64,
 ) -> Result<(), String> {
-    let removed_node_ids: HashSet<&str> = node_ids.iter().map(String::as_str).collect();
-    let rows = sqlx::query("SELECT id,source_id,target_id FROM spaces_relations WHERE space_id=$1 AND status <> 'invalidated'")
-        .bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
-    for row in rows {
-        let id: String = row.try_get("id").map_err(db::sql_error)?;
-        let source: String = row.try_get("source_id").map_err(db::sql_error)?;
-        let target: String = row.try_get("target_id").map_err(db::sql_error)?;
-        if removed_node_ids.contains(source.as_str()) || removed_node_ids.contains(target.as_str())
-        {
-            invalidation::invalidate_relation(tx, &id, "human", None, now).await?;
-        }
+    // Two indexed lookups, one per endpoint. A single OR over both endpoints cannot use either
+    // index, which made trashing one node read every relation in the Space.
+    let ids: Vec<String> = sqlx::query_scalar(
+        "SELECT id FROM spaces_relations \
+         WHERE space_id=$1 AND status <> 'invalidated' \
+           AND source_id IN (SELECT value FROM json_each($2)) \
+         UNION \
+         SELECT id FROM spaces_relations \
+         WHERE space_id=$1 AND status <> 'invalidated' \
+           AND target_id IN (SELECT value FROM json_each($2))",
+    )
+    .bind(space_id)
+    .bind(sqlx::types::Json(node_ids))
+    .fetch_all(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    for id in ids {
+        invalidation::invalidate_relation(tx, &id, "human", None, now).await?;
     }
     Ok(())
 }
@@ -31,18 +38,17 @@ pub(super) async fn cancel_enrichment_jobs_for_nodes(
     node_ids: &[String],
     now: i64,
 ) -> Result<(), String> {
-    for id in node_ids {
-        sqlx::query(
-            "UPDATE spaces_enrichment_jobs SET status='cancelled', updated_at=$1 \
-             WHERE space_id=$2 AND node_id=$3 AND status IN ('pending','running','awaiting_configuration')",
-        )
-        .bind(now)
-        .bind(space_id)
-        .bind(id)
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    }
+    sqlx::query(
+        "UPDATE spaces_enrichment_jobs SET status='cancelled', updated_at=$1 \
+         WHERE space_id=$2 AND node_id IN (SELECT value FROM json_each($3)) \
+           AND status IN ('pending','running','awaiting_configuration')",
+    )
+    .bind(now)
+    .bind(space_id)
+    .bind(sqlx::types::Json(node_ids))
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
     Ok(())
 }
 
@@ -53,12 +59,19 @@ pub(super) async fn remove_nodes_from_scene_focus(
     now: i64,
 ) -> Result<(), String> {
     let removed_node_ids: HashSet<&str> = node_ids.iter().map(String::as_str).collect();
-    let rows =
-        sqlx::query("SELECT id,focus_structure_node_ids FROM spaces_scenes WHERE space_id=$1")
-            .bind(space_id)
-            .fetch_all(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
+    // Only the scenes that actually focus one of these nodes need rewriting, so the cost follows
+    // the deletion rather than the number of scenes in the Space.
+    let rows = sqlx::query(
+        "SELECT id,focus_structure_node_ids FROM spaces_scenes \
+         WHERE space_id=$1 AND EXISTS ( \
+           SELECT 1 FROM json_each(focus_structure_node_ids) \
+           WHERE value IN (SELECT value FROM json_each($2)))",
+    )
+    .bind(space_id)
+    .bind(sqlx::types::Json(node_ids))
+    .fetch_all(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
     for row in rows {
         let id: String = row.try_get("id").map_err(db::sql_error)?;
         let raw: String = row
