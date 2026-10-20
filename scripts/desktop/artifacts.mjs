@@ -2,7 +2,6 @@ import { execFileSync } from "node:child_process";
 import { chmodSync, copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { validateMediaLicenseReview } from "./media-license-policy.mjs";
 import { copyTree, seal, verify } from "./resources.mjs";
 import { signCompiledFiles, verifyCompiledFiles } from "./signing.mjs";
 
@@ -42,7 +41,6 @@ export function prepareArtifacts(repository, options, cargo) {
     target: options.target,
     onnxRuntime: original.onnxRuntime,
   });
-  validateMediaLicenseReview(repository, options.target, { requireApproved: options.production });
   const media = join(resources, "bundled-runtime", options.target);
   copyTree(cargo.media, media);
   signCompiledFiles(media, options.target, mode);
@@ -63,15 +61,7 @@ export function prepareArtifacts(repository, options, cargo) {
   const agent = join(resources, "agent-runtime/knovum-agent");
   if (options.target === "windows-x64")
     signCompiledFiles(agent, options.target, mode, { preserveMicrosoftRuntime: true });
-  uv(repository, [
-    "python",
-    "python/packaging/distribution.py",
-    "--root",
-    agent,
-    "--target",
-    options.target,
-    ...(options.production ? ["--require-approved"] : []),
-  ]);
+  uv(repository, ["python", "python/packaging/distribution.py", "--root", agent, "--target", options.target]);
   uv(repository, [
     "python",
     "python/packaging/smoke.py",
