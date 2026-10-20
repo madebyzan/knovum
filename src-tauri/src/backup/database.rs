@@ -12,7 +12,7 @@ pub const DATABASES: &[(&str, &str)] = &[
     ("ai-usage.db", "data/config/ai-usage.db"),
 ];
 
-fn migrator(name: &str) -> &'static Migrator {
+pub(super) fn migrator(name: &str) -> &'static Migrator {
     match name {
         "spaces.db" => &SPACES,
         "extensions.db" => &EXTENSIONS,
@@ -50,6 +50,11 @@ pub async fn snapshot(name: &str, source: &Path, destination: &Path) -> Result<(
         .await
         .map_err(|error| format!("{name} snapshot failed: {error}"))?;
     drop(connection);
+    if name == "spaces.db" {
+        let mut copy = connect(destination).await?;
+        crate::spaces::backup::reindex_search(&mut copy).await?;
+        drop(copy);
+    }
     validate(name, destination).await
 }
 
@@ -58,6 +63,7 @@ pub async fn validate(name: &str, path: &Path) -> Result<(), String> {
     validate_connection(name, &mut connection).await?;
     if name == "spaces.db" {
         crate::spaces::backup::assert_quiescent(&mut connection).await?;
+        crate::spaces::backup::assert_search_aligned(&mut connection).await?;
     }
     Ok(())
 }

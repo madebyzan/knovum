@@ -776,11 +776,15 @@ CREATE UNIQUE INDEX spaces_structure_active_order
 CREATE INDEX spaces_structure_children
   ON spaces_structure_nodes(space_id, parent_id, deleted_at, order_index);
 
+-- An FTS5 table has one key, its rowid: it supports no secondary index, so addressing a row by the
+-- owner id stored beside the text makes every delete scan the whole index. These triggers mirror
+-- the owner's rowid into the index and address rows by it, which is the difference between a seek
+-- and a scan on each removed row — and between linear and quadratic when a Space is deleted.
 CREATE TRIGGER spaces_structure_title_fts_insert AFTER INSERT ON spaces_structure_nodes
 WHEN NEW.deleted_at IS NULL AND NEW.kind IN ('group','section')
 BEGIN
-  INSERT INTO spaces_structure_title_fts(structure_node_id,space_id,kind,title)
-  VALUES(NEW.id,NEW.space_id,NEW.kind,NEW.title);
+  INSERT INTO spaces_structure_title_fts(rowid,structure_node_id,space_id,kind,title)
+  VALUES(NEW.rowid,NEW.id,NEW.space_id,NEW.kind,NEW.title);
 END;
 
 -- Only the indexed columns may rewrite the index. Reordering a Space updates order_index on
@@ -789,15 +793,15 @@ CREATE TRIGGER spaces_structure_title_fts_update AFTER UPDATE ON spaces_structur
 WHEN OLD.title IS NOT NEW.title OR OLD.deleted_at IS NOT NEW.deleted_at
   OR OLD.kind <> NEW.kind OR OLD.space_id <> NEW.space_id
 BEGIN
-  DELETE FROM spaces_structure_title_fts WHERE structure_node_id=OLD.id;
-  INSERT INTO spaces_structure_title_fts(structure_node_id,space_id,kind,title)
-  SELECT NEW.id,NEW.space_id,NEW.kind,NEW.title
+  DELETE FROM spaces_structure_title_fts WHERE rowid=OLD.rowid;
+  INSERT INTO spaces_structure_title_fts(rowid,structure_node_id,space_id,kind,title)
+  SELECT NEW.rowid,NEW.id,NEW.space_id,NEW.kind,NEW.title
   WHERE NEW.deleted_at IS NULL AND NEW.kind IN ('group','section');
 END;
 
 CREATE TRIGGER spaces_structure_title_fts_delete AFTER DELETE ON spaces_structure_nodes
 BEGIN
-  DELETE FROM spaces_structure_title_fts WHERE structure_node_id=OLD.id;
+  DELETE FROM spaces_structure_title_fts WHERE rowid=OLD.rowid;
 END;
 
 CREATE INDEX spaces_edit_receipts_space_revision
@@ -846,19 +850,19 @@ CREATE INDEX spaces_knowledge_space_kind ON spaces_knowledge_chunks(space_id, ki
 CREATE INDEX spaces_knowledge_revision ON spaces_knowledge_chunks(node_id, source_revision);
 
 CREATE TRIGGER spaces_knowledge_chunks_fts_insert AFTER INSERT ON spaces_knowledge_chunks BEGIN
-  INSERT INTO spaces_knowledge_fts(chunk_id, space_id, node_id, text)
-  VALUES (NEW.id, NEW.space_id, NEW.node_id, NEW.text);
+  INSERT INTO spaces_knowledge_fts(rowid, chunk_id, space_id, node_id, text)
+  VALUES (NEW.rowid, NEW.id, NEW.space_id, NEW.node_id, NEW.text);
 END;
 
 CREATE TRIGGER spaces_knowledge_chunks_fts_update AFTER UPDATE ON spaces_knowledge_chunks
 WHEN OLD.text != NEW.text BEGIN
-  DELETE FROM spaces_knowledge_fts WHERE chunk_id = OLD.id;
-  INSERT INTO spaces_knowledge_fts(chunk_id, space_id, node_id, text)
-  VALUES (NEW.id, NEW.space_id, NEW.node_id, NEW.text);
+  DELETE FROM spaces_knowledge_fts WHERE rowid = OLD.rowid;
+  INSERT INTO spaces_knowledge_fts(rowid, chunk_id, space_id, node_id, text)
+  VALUES (NEW.rowid, NEW.id, NEW.space_id, NEW.node_id, NEW.text);
 END;
 
 CREATE TRIGGER spaces_knowledge_chunks_fts_delete AFTER DELETE ON spaces_knowledge_chunks BEGIN
-  DELETE FROM spaces_knowledge_fts WHERE chunk_id = OLD.id;
+  DELETE FROM spaces_knowledge_fts WHERE rowid = OLD.rowid;
 END;
 
 CREATE TRIGGER spaces_node_chunk_remove AFTER UPDATE OF deleted_at ON spaces_nodes
@@ -1530,7 +1534,10 @@ CREATE INDEX spaces_relations_source ON spaces_relations(source_id, space_id);
 CREATE INDEX spaces_relations_target ON spaces_relations(target_id, space_id);
 CREATE INDEX spaces_nodes_object_type_reference ON spaces_nodes(object_type_id);
 CREATE INDEX spaces_structure_nodes_node ON spaces_structure_nodes(space_id, node_id);
-CREATE INDEX spaces_structure_layouts_node ON spaces_structure_layouts(space_id, structure_node_id, kind);
+-- No index for spaces_structure_layouts: its primary key (space_id, structure_node_id) already
+-- seeks every row of its foreign key, which carries only `kind` beyond that unique pair. A third
+-- index would duplicate the table key for every card and earn nothing; SQLite chooses the primary
+-- key for the cascade either way.
 CREATE INDEX spaces_enrichment_jobs_node ON spaces_enrichment_jobs(node_id);
 CREATE INDEX spaces_enrichment_jobs_space ON spaces_enrichment_jobs(space_id);
 CREATE INDEX spaces_chunk_embeddings_chunk ON spaces_chunk_embeddings(chunk_id);

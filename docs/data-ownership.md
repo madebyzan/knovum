@@ -83,6 +83,13 @@ review:
 - **Anything that only serves a replay is bounded by the replay window.** `RETAINED_EDITS` bounds
   undo depth, and the edit receipts that make a mutation idempotent are bounded by the same window:
   a receipt can only be dropped once a hundred later edits have made replaying it meaningless.
+- **A full-text index is addressed by row, never by a column beside the text.** FTS5 has one key,
+  its rowid, and supports no secondary index: a trigger that deletes `WHERE chunk_id = OLD.id`
+  reads the whole index for every row removed, which made deleting one Space's knowledge quadratic
+  (measured: 1600 chunks took 4.3 s, one chunk in a 24 MiB index 6.4 ms). The maintaining triggers
+  mirror the owner's rowid into the index and address rows by it. `VACUUM INTO` may renumber the
+  rowids of a table whose primary key is not an integer, so a database snapshot rebuilds both
+  indexes in the copy and validation refuses a copy whose index no longer answers for its own rows.
 - **A record of a change is proportional to the change.** History stores the rows an edit touched,
   never the state it produced. A whole-state record makes every edit cost the size of the Space, so
   a large Space would pay megabytes per keystroke and keep a hundred copies of itself; it also

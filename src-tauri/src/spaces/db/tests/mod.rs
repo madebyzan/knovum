@@ -39,7 +39,10 @@ async fn table_names(pool: &SqlitePool) -> Vec<String> {
 /// A foreign key without an index on its child columns turns every parent delete into a scan of
 /// the whole child table, so removing one Space or one node slows down with the size of the
 /// library. The rule holds for every foreign key, with no table-by-table exceptions to argue
-/// about: a partial index cannot serve a foreign key, and only a leading-column match can.
+/// about: a partial index cannot serve a foreign key, and the index must seek the child rows. A
+/// unique index over a prefix of the child columns does seek them — it identifies a single row,
+/// which the engine then checks for the remaining columns — so it counts, and demanding a longer
+/// index on top of it would only duplicate the table key on every write.
 #[tokio::test]
 async fn every_foreign_key_is_indexed() {
     let pool = migrated().await;
@@ -60,6 +63,7 @@ async fn every_foreign_key_is_indexed() {
         {
             let name: String = index.get("name");
             let partial: i64 = index.get("partial");
+            let unique: i64 = index.get("unique");
             if partial == 1 {
                 continue;
             }
@@ -69,7 +73,7 @@ async fn every_foreign_key_is_indexed() {
             .fetch_all(&pool)
             .await
             .expect("index columns");
-            indexes.push(columns);
+            indexes.push((columns, unique == 1));
         }
         let mut constraints: std::collections::BTreeMap<i64, Vec<(i64, String)>> =
             std::collections::BTreeMap::new();
@@ -82,15 +86,110 @@ async fn every_foreign_key_is_indexed() {
         for (_, mut columns) in constraints {
             columns.sort_by_key(|(seq, _)| *seq);
             let child: Vec<String> = columns.into_iter().map(|(_, name)| name).collect();
-            let covered = indexes
-                .iter()
-                .any(|index| index.len() >= child.len() && index[..child.len()] == child[..]);
+            let covered = indexes.iter().any(|(index, unique)| {
+                if index.len() >= child.len() {
+                    index[..child.len()] == child[..]
+                } else {
+                    *unique && child[..index.len()] == index[..]
+                }
+            });
             if !covered {
                 unindexed.push(format!("{table}({})", child.join(",")));
             }
         }
     }
     assert_eq!(unindexed, Vec::<String>::new());
+}
+
+/// A full-text index has exactly one key, its rowid: FTS5 supports no secondary index, so a
+/// statement that addresses a row by the owner id stored beside the text reads the entire index.
+/// Per-row triggers turn that into quadratic work — deleting one Space's knowledge took seconds —
+/// so every trigger that maintains an index must address its rows by rowid.
+#[tokio::test]
+async fn search_index_rows_are_addressed_by_row() {
+    let pool = migrated().await;
+    let virtual_tables: Vec<String> = sqlx::query_scalar(
+        "SELECT name FROM sqlite_master WHERE type='table' AND sql LIKE 'CREATE VIRTUAL TABLE%'",
+    )
+    .fetch_all(&pool)
+    .await
+    .expect("virtual tables");
+    let triggers: Vec<String> =
+        sqlx::query_scalar("SELECT sql FROM sqlite_master WHERE type='trigger'")
+            .fetch_all(&pool)
+            .await
+            .expect("triggers");
+    let mut scanning = Vec::new();
+    for sql in triggers {
+        for table in &virtual_tables {
+            for statement in sql.split(';') {
+                let Some((_, predicate)) =
+                    statement.split_once(&format!("DELETE FROM {table} WHERE "))
+                else {
+                    continue;
+                };
+                if !predicate.trim_start().starts_with("rowid") {
+                    scanning.push(format!("{table}: {}", predicate.trim()));
+                }
+            }
+        }
+    }
+    assert_eq!(scanning, Vec::<String>::new());
+}
+
+/// What the rowid addressing buys, stated as behaviour: the index follows its owner exactly, so a
+/// deleted Space leaves nothing searchable behind and a retitled container is found under its new
+/// title and not its old one.
+#[tokio::test]
+async fn deleting_and_retitling_keeps_the_search_index_exact() {
+    let pool = migrated().await;
+    for space in ["kept", "removed"] {
+        sqlx::query(
+            "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES($1,'space','S',1,1)",
+        )
+        .bind(space)
+        .execute(&pool)
+        .await
+        .expect("space");
+        for index in 0..20 {
+            sqlx::query("INSERT INTO spaces_structure_nodes(id,space_id,kind,node_id,parent_id,order_index,title,locked) VALUES($1,$2,'section',NULL,NULL,$3,$4,0)")
+                .bind(format!("{space}-{index}")).bind(space).bind(index)
+                .bind(format!("Chapter {index}")).execute(&pool).await.expect("container");
+        }
+    }
+    let indexed: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_structure_title_fts")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(indexed, 40);
+
+    sqlx::query("UPDATE spaces_structure_nodes SET title='Appendix' WHERE id='kept-3'")
+        .execute(&pool)
+        .await
+        .unwrap();
+    sqlx::query("DELETE FROM spaces WHERE id='removed'")
+        .execute(&pool)
+        .await
+        .unwrap();
+
+    let remaining: Vec<String> = sqlx::query_scalar(
+        "SELECT structure_node_id FROM spaces_structure_title_fts \
+         WHERE spaces_structure_title_fts MATCH 'Appendix OR Chapter' \
+         ORDER BY structure_node_id",
+    )
+    .fetch_all(&pool)
+    .await
+    .unwrap();
+    assert_eq!(remaining.len(), 20, "only the kept Space stays searchable");
+    assert!(remaining.iter().all(|id| id.starts_with("kept-")));
+    let appendix: Vec<String> = sqlx::query_scalar(
+        "SELECT structure_node_id FROM spaces_structure_title_fts \
+         WHERE spaces_structure_title_fts MATCH 'Appendix'",
+    )
+    .fetch_all(&pool)
+    .await
+    .unwrap();
+    assert_eq!(appendix, ["kept-3"]);
 }
 
 /// A table whose rows must outlive the rows they name. Presence in a retained-reference table
