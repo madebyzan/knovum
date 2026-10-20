@@ -7,7 +7,7 @@ import {
   deleteConnectorDefinition,
   updateConnectorDefinition,
 } from "../../../foundation/extensions/connector-operations";
-import { useEditorLeave } from "../../../foundation/lifecycle/use-editor-leave";
+import { useSettingsEditorLeave } from "../../../foundation/lifecycle/use-settings-editor-leave";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { ExtensionChange } from "../../../shared/contracts/generated/ExtensionChange";
 import { confirmAction } from "../../../shared/ui/confirm-action";
@@ -44,7 +44,7 @@ export function useConnectorEditing() {
     editing.value = true;
   }
 
-  const closeEditor = useEditorLeave({
+  const closeEditor = useSettingsEditorLeave({
     pending: () => pendingMutation,
     dirty: () => dirty.value,
     confirmDiscard,

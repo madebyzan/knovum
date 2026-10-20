@@ -23,10 +23,10 @@ const usage = useTokenUsage();
   <div v-else data-testid="usage-settings-pane" class="grid gap-8" :aria-busy="usage.isPending.value">
     <p class="max-w-2xl text-body text-fg-secondary">{{ t("settings.usage.description") }}</p>
     <template v-if="usage.data.value">
-      <TokenUsageMetrics :summary="usage.data.value.summary" />
+      <TokenUsageMetrics :metrics="usage.data.value.metrics" />
       <TokenActivityCalendar :report="usage.data.value" />
       <div class="grid gap-8 lg:grid-cols-2 lg:gap-10">
-        <UsageActivityInsights :summary="usage.data.value.summary" />
+        <UsageActivityInsights :metrics="usage.data.value.metrics" />
         <UsagePurposeBreakdown :report="usage.data.value" />
       </div>
     </template>

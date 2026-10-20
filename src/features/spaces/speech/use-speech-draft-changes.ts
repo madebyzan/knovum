@@ -11,8 +11,11 @@ export function useSpeechDraftChanges(snapshot: () => string) {
     persisted.value = snapshot();
     initialized.value = persisted.value;
   }
-  function acceptInitialization() {
-    initialized.value = snapshot();
+  /** Applies a source-derived change; it stays clean unless the person had already edited. */
+  function initialize(change: () => void) {
+    const wasDirty = dirty.value;
+    change();
+    if (!wasDirty) initialized.value = snapshot();
   }
-  return { dirty, needsRevision, acceptRevision, acceptInitialization };
+  return { dirty, needsRevision, acceptRevision, initialize };
 }

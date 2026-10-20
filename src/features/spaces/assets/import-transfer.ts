@@ -65,7 +65,7 @@ async function performManagedImport(options: CommitManagedImportOptions, progres
   });
   node.data = data;
   if (typeof source !== "string") await source.finalize?.();
-  context.finalizePendingContent(spaceId, [node], reveal);
+  context.finalizePendingContent(spaceId, [node], { reveal });
   return { node, data };
 }
 

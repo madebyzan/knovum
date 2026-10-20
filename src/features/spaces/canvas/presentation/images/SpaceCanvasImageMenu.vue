@@ -19,8 +19,8 @@ defineProps<{
   derivations: CreationIntentDecisions;
   minimal: boolean;
   dimensionsReady: boolean;
-  availability: Record<DirectImageDerivation, ImageActionAvailability>;
-  reason: Record<DirectImageDerivation, string>;
+  availabilityByDerivation: Record<DirectImageDerivation, ImageActionAvailability>;
+  reasonByDerivation: Record<DirectImageDerivation, string>;
   removalAvailability: ImageActionAvailability;
   removalReason: string;
   selectionAvailability: ImageActionAvailability;
@@ -56,8 +56,8 @@ const FAMILY_DERIVATIONS: readonly CreationIntentId[] = ["remove-image-backgroun
       <SpaceCanvasImageDerivationActions
         v-if="minimal"
         menu-item
-        :availability="availability"
-        :reason="reason"
+        :availability-by-derivation="availabilityByDerivation"
+        :reason-by-derivation="reasonByDerivation"
         :removal-availability="removalAvailability"
         :removal-reason="removalReason"
         :selection-availability="selectionAvailability"

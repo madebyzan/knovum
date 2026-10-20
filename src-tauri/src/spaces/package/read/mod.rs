@@ -64,7 +64,7 @@ fn validate_index(
         return Err("Space package contains too many assets".into());
     }
     let mut tokens = HashSet::new();
-    let mut revisions = HashMap::new();
+    let mut revision_by_token = HashMap::new();
     for asset in index {
         super::control::check(cancellation)?;
         validation::validate_token(&asset.token)?;
@@ -74,7 +74,7 @@ fn validate_index(
         }
         match asset.source_revision.as_deref() {
             Some(value) if value.starts_with("sha256:") && value.len() == 71 => {
-                revisions.insert(asset.token.as_str(), value);
+                revision_by_token.insert(asset.token.as_str(), value);
             }
             _ => return Err("Space package asset index requires a SHA-256 sourceRevision".into()),
         }
@@ -84,8 +84,8 @@ fn validate_index(
             "Space package asset index must exactly match assets referenced by the manifest".into(),
         );
     }
-    for (token, expected) in &manifest.source_revisions {
-        if revisions.get(token.as_str()).copied() != Some(expected.as_str()) {
+    for (token, expected) in &manifest.source_revision_by_token {
+        if revision_by_token.get(token.as_str()).copied() != Some(expected.as_str()) {
             return Err("Packaged asset revision does not match its indexed asset digest".into());
         }
     }

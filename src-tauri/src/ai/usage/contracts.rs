@@ -67,7 +67,7 @@ pub struct UsageMetrics {
 pub struct UsageReport {
     pub from_date: String,
     pub to_date: String,
-    pub summary: UsageMetrics,
+    pub metrics: UsageMetrics,
     pub activity: Vec<UsageDay>,
     pub by_purpose: Vec<UsagePurposeTotal>,
 }

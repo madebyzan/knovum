@@ -25,7 +25,7 @@ const mocks = vi.hoisted(() => {
     addSavedWebsite:
       vi.fn<(context: object, url: string, position?: Point) => Promise<SpaceCanvasNode | undefined>>(),
     acquireMediaSource: vi.fn<Acquisition>(),
-    reserveMediaImportAsset: vi.fn<(jobId: string, kind: "audio" | "video") => Promise<string>>(),
+    allocateMediaImportAsset: vi.fn<(jobId: string, kind: "audio" | "video") => Promise<string>>(),
     logWarn: vi.fn<(message: string) => void>(),
     logInfo: vi.fn<(message: string) => void>(),
     removeSpaceAssets: vi.fn<(paths: readonly string[]) => Promise<void>>(),
@@ -40,7 +40,7 @@ vi.mock("../assets/asset-operations", () => ({ removeSpaceAssets: mocks.removeSp
 vi.mock("../media/import/acquisition", () => ({
   acquireMediaSource: mocks.acquireMediaSource,
 }));
-vi.mock("../media/import/ipc", () => ({ reserveMediaImportAsset: mocks.reserveMediaImportAsset }));
+vi.mock("../media/import/ipc", () => ({ allocateMediaImportAsset: mocks.allocateMediaImportAsset }));
 vi.mock("../website/capture", () => ({ addSavedWebsite: mocks.addSavedWebsite }));
 
 import { captureSpaceUrl } from "../sources/capture-url";
@@ -58,7 +58,7 @@ describe("Space URL capture", () => {
     vi.clearAllMocks();
     mocks.addSavedWebsite.mockResolvedValue(undefined);
     mocks.removeSpaceAssets.mockResolvedValue(undefined);
-    mocks.reserveMediaImportAsset.mockResolvedValue(RESERVED_ASSET);
+    mocks.allocateMediaImportAsset.mockResolvedValue(RESERVED_ASSET);
   });
 
   it("reserves the media node before the download starts, not when it ends", async () => {
@@ -68,7 +68,7 @@ describe("Space URL capture", () => {
     const capture = captureSpaceUrl(harness.context, URL, POSITION);
 
     await vi.waitFor(() => expect(harness.createPending).toHaveBeenCalledOnce());
-    expect(mocks.reserveMediaImportAsset).toHaveBeenCalledWith(expect.any(String), "video");
+    expect(mocks.allocateMediaImportAsset).toHaveBeenCalledWith(expect.any(String), "video");
     expect(harness.createPending).toHaveBeenCalledWith("space-1", ARRIVING_VIDEO, POSITION);
     expect(mocks.acquireMediaSource).toHaveBeenCalledWith(URL, {
       jobId: expect.any(String),
@@ -85,16 +85,14 @@ describe("Space URL capture", () => {
       expectedContent: expect.objectContaining({ processingState: "importing" }),
       data: importedVideo(),
     });
-    expect(harness.finalize).toHaveBeenCalledWith(
-      "space-1",
-      [expect.objectContaining({ id: "media" })],
-      true,
-    );
+    expect(harness.finalize).toHaveBeenCalledWith("space-1", [expect.objectContaining({ id: "media" })], {
+      reveal: true,
+    });
     expect(harness.discard).not.toHaveBeenCalled();
   });
 
   it("reserves an audio node for a link that serves audio", async () => {
-    mocks.reserveMediaImportAsset.mockResolvedValue("/spaces/assets/import-1.m4a");
+    mocks.allocateMediaImportAsset.mockResolvedValue("/spaces/assets/import-1.m4a");
     mocks.acquireMediaSource.mockResolvedValue({ outcome: "unsupported" });
     const harness = captureHarness();
 
@@ -102,7 +100,7 @@ describe("Space URL capture", () => {
       "unsupported",
     );
 
-    expect(mocks.reserveMediaImportAsset).toHaveBeenCalledWith(expect.any(String), "audio");
+    expect(mocks.allocateMediaImportAsset).toHaveBeenCalledWith(expect.any(String), "audio");
     expect(harness.createPending).toHaveBeenCalledWith(
       "space-1",
       expect.objectContaining({ kind: "audio", assetPath: "/spaces/assets/import-1.m4a" }),
@@ -154,11 +152,9 @@ describe("Space URL capture", () => {
 
     await capture;
     expect(harness.savePending).toHaveBeenCalledOnce();
-    expect(harness.finalize).toHaveBeenCalledWith(
-      "space-1",
-      [expect.objectContaining({ id: "media" })],
-      false,
-    );
+    expect(harness.finalize).toHaveBeenCalledWith("space-1", [expect.objectContaining({ id: "media" })], {
+      reveal: false,
+    });
   });
 
   it("takes the arriving node and its asset away when the import fails, and reports why", async () => {

@@ -5,7 +5,7 @@ import { computed, shallowRef, watch } from "vue";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { connectorQuery, skillQuery } from "../../../../foundation/extensions/extension-query";
-import { copySkill } from "../../../../foundation/extensions/skill-operations";
+import { duplicateSkill } from "../../../../foundation/extensions/skill-operations";
 import type { PluginInstallation } from "../../../../shared/contracts/generated/PluginInstallation";
 import type { SkillRevision } from "../../../../shared/contracts/generated/SkillRevision";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
@@ -33,7 +33,7 @@ const label = computed(() =>
 const skills = useQuery(skillQuery);
 const changes = useExtensionChanges();
 function copy(skill: SkillRevision) {
-  void changes.mutateAsync(() => copySkill(skill.id)).catch(() => {});
+  void changes.mutateAsync(() => duplicateSkill(skill.id)).catch(() => {});
 }
 function exportSkill(skill: SkillRevision) {
   void changes.mutateAsync(() => exportSkillDirectory(skill.id)).catch(() => {});

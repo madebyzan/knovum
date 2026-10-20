@@ -11,10 +11,10 @@ export type FrameResolver = (asset: VideoAsset, sourceMs: number) => CanvasImage
  * hole in the composition.
  */
 export function buildScene(project: VideoEditProject, timeMs: number, resolve: FrameResolver): Scene {
-  const assets = new Map(project.assets.map((asset) => [asset.nodeId, asset]));
+  const assetByNodeId = new Map(project.assets.map((asset) => [asset.nodeId, asset]));
   const composition = compositionAt(project, timeMs);
   const layers = composition.layers.flatMap((layer) => {
-    const asset = assets.get(layer.clip.assetId);
+    const asset = assetByNodeId.get(layer.clip.assetId);
     const image = asset ? resolve(asset, layer.sourceMs) : undefined;
     if (!asset || !image) return [];
     return [

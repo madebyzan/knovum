@@ -29,10 +29,10 @@ function play() {
   if (distance <= 0) return;
   measuredDistance = distance;
   scrolling.value = true;
-  const travel = (distance / 32) * 1_000;
+  const travelMs = (distance / 32) * 1_000;
   const end = `translateX(-${distance}px)`;
   animation = text.value.animate([{ transform: "translateX(0)" }, { transform: end }], {
-    duration: travel,
+    duration: travelMs,
     delay: 900,
     fill: "forwards",
     easing: "linear",

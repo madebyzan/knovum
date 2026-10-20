@@ -8,7 +8,7 @@ use crate::spaces::assets::{visit_asset_references, AssetReference, PACKAGE_ASSE
 
 pub(super) struct ManifestAssets {
     pub used_tokens: HashSet<String>,
-    pub source_revisions: HashMap<String, String>,
+    pub source_revision_by_token: HashMap<String, String>,
 }
 
 pub(super) fn parse_cancellable(
@@ -18,7 +18,7 @@ pub(super) fn parse_cancellable(
     super::control::check(cancellation)?;
     let value: Value = serde_json::from_str(manifest).map_err(|error| error.to_string())?;
     let mut used_tokens = HashSet::new();
-    let mut source_revisions = HashMap::new();
+    let mut source_revision_by_token = HashMap::new();
     for node in value
         .get("nodes")
         .and_then(Value::as_array)
@@ -41,7 +41,7 @@ pub(super) fn parse_cancellable(
             };
             used_tokens.insert(token.to_owned());
             if *kind == AssetReference::Source {
-                record_source_revision(&mut source_revisions, token, data)?;
+                record_source_revision(&mut source_revision_by_token, token, data)?;
             }
         }
     }
@@ -66,19 +66,19 @@ pub(super) fn parse_cancellable(
     collect_speech_assets(
         &value,
         &mut used_tokens,
-        &mut source_revisions,
+        &mut source_revision_by_token,
         cancellation,
     )?;
     Ok(ManifestAssets {
         used_tokens,
-        source_revisions,
+        source_revision_by_token,
     })
 }
 
 fn collect_speech_assets(
     value: &Value,
     used_tokens: &mut HashSet<String>,
-    source_revisions: &mut HashMap<String, String>,
+    source_revision_by_token: &mut HashMap<String, String>,
     cancellation: &CancellationToken,
 ) -> Result<(), crate::foundation::app_error::AppError> {
     for separation in value
@@ -110,7 +110,7 @@ fn collect_speech_assets(
             if !valid_revision(&revision) {
                 return Err("Package source separation digest is invalid".into());
             }
-            record_digest(used_tokens, source_revisions, token, &revision)?;
+            record_digest(used_tokens, source_revision_by_token, token, &revision)?;
         }
     }
     for revision in value
@@ -129,7 +129,7 @@ fn collect_speech_assets(
             .and_then(Value::as_str)
             .filter(|value| valid_revision(value))
             .ok_or("Package voice reference requires a SHA-256 source revision")?;
-        record_digest(used_tokens, source_revisions, token, digest)?;
+        record_digest(used_tokens, source_revision_by_token, token, digest)?;
     }
     for render in value
         .get("speechRenders")
@@ -148,7 +148,7 @@ fn collect_speech_assets(
             .filter(|value| value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit()))
             .map(|value| format!("sha256:{value}"))
             .ok_or("Package speech render requires a SHA-256 output digest")?;
-        record_digest(used_tokens, source_revisions, token, &digest)?;
+        record_digest(used_tokens, source_revision_by_token, token, &digest)?;
     }
     for revision in value
         .get("speechProjectRevisions")
@@ -166,7 +166,7 @@ fn collect_speech_assets(
                     .ok_or("Package video dubbing sources require managed asset tokens")?;
                 record_digest(
                     used_tokens,
-                    source_revisions,
+                    source_revision_by_token,
                     token,
                     &source.source_revision,
                 )?;
@@ -189,7 +189,7 @@ fn collect_speech_assets(
                 .and_then(Value::as_str)
                 .filter(|value| valid_revision(value))
                 .ok_or("Package audiobook cover requires an exact content revision")?;
-            record_digest(used_tokens, source_revisions, token, revision)?;
+            record_digest(used_tokens, source_revision_by_token, token, revision)?;
         }
         let Some(reference) = revision.get("outputAssetPath").and_then(Value::as_str) else {
             continue;
@@ -202,7 +202,7 @@ fn collect_speech_assets(
             .filter(|value| value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit()))
             .map(|value| format!("sha256:{value}"))
             .ok_or("Package speech project output requires a SHA-256 digest")?;
-        record_digest(used_tokens, source_revisions, token, &digest)?;
+        record_digest(used_tokens, source_revision_by_token, token, &digest)?;
     }
     Ok(())
 }

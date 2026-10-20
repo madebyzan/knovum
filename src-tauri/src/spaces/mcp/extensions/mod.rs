@@ -56,5 +56,4 @@ impl SpaceMcpServer {
 }
 
 #[cfg(test)]
-#[path = "tests/catalog_projection.rs"]
-mod catalog_projection_tests;
+mod tests;

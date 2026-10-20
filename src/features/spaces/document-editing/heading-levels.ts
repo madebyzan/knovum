@@ -10,7 +10,7 @@ export const HEADING_LEVELS = [1, 2, 3, 4, 5, 6] as const;
 
 export type HeadingLevel = (typeof HEADING_LEVELS)[number];
 
-export const HEADING_LABEL_KEYS: Record<HeadingLevel, string> = {
+export const LABEL_KEY_BY_HEADING_LEVEL: Record<HeadingLevel, string> = {
   1: "spaces.richtext.heading1",
   2: "spaces.richtext.heading2",
   3: "spaces.richtext.heading3",

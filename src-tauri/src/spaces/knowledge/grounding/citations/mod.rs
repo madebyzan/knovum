@@ -48,9 +48,9 @@ async fn validate_live_refs(
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    let mut stored = HashMap::with_capacity(rows.len());
+    let mut node_revision_by_chunk_id = HashMap::with_capacity(rows.len());
     for row in rows {
-        stored.insert(
+        node_revision_by_chunk_id.insert(
             row.try_get::<String, _>("id").map_err(db::sql_error)?,
             (
                 row.try_get::<String, _>("node_id").map_err(db::sql_error)?,
@@ -60,7 +60,7 @@ async fn validate_live_refs(
         );
     }
     for citation in refs {
-        let Some((node_id, revision)) = stored.get(&citation.chunk_id) else {
+        let Some((node_id, revision)) = node_revision_by_chunk_id.get(&citation.chunk_id) else {
             return Err("Grounded AI citation chunk is unavailable or stale".into());
         };
         if node_id != &citation.node_id {

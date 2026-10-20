@@ -1,5 +1,5 @@
 import { useResizeObserver } from "@vueuse/core";
-import { computed, onScopeDispose, shallowRef, watch } from "vue";
+import { computed, onScopeDispose, shallowRef, watch, type ShallowRef } from "vue";
 
 import { createStageEditing, type StageTarget } from "../stage/stage-editing";
 import type { VideoEditor } from "./use-video-editor";
@@ -11,10 +11,13 @@ const ZOOM_RANGE = { min: 0.05, max: 4 };
  * Stage viewport: how much of the output fits on screen, and the bridge between the Konva scene and
  * the editor's selection. The scene is created once per container and reused for every frame.
  */
-export function useVideoStage(editor: VideoEditor) {
+interface VideoStageElements {
+  viewport: Readonly<ShallowRef<HTMLElement | null>>;
+  container: Readonly<ShallowRef<HTMLDivElement | null>>;
+}
+
+export function useVideoStage(editor: VideoEditor, { viewport, container }: VideoStageElements) {
   const { player, project, visibleProject, selection, commit } = editor;
-  const viewport = shallowRef<HTMLElement | null>(null);
-  const container = shallowRef<HTMLDivElement | null>(null);
   const bounds = shallowRef({ width: 0, height: 0 });
   const zoom = shallowRef(1);
   const fitted = shallowRef(true);
@@ -72,8 +75,6 @@ export function useVideoStage(editor: VideoEditor) {
   onScopeDispose(() => editing.dispose());
 
   return {
-    viewport,
-    container,
     output,
     scale,
     fitted,

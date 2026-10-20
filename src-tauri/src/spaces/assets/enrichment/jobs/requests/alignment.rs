@@ -78,10 +78,10 @@ pub async fn request_media_alignment(
     {
         return Err(AppError::invalid("Alignment segment is invalid"));
     }
-    let duration = selected.iter().try_fold(0_u64, |total, segment| {
+    let duration_ms = selected.iter().try_fold(0_u64, |total, segment| {
         total.checked_add(segment.end_ms.saturating_sub(segment.start_ms))
     });
-    if duration.is_none_or(|duration| duration > 300_000) {
+    if duration_ms.is_none_or(|duration_ms| duration_ms > 300_000) {
         return Err(AppError::invalid(
             "Selected alignment audio must not exceed five minutes",
         ));

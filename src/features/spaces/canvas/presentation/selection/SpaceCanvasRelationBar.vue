@@ -35,7 +35,7 @@ const selected = computed(() => {
 const selectedColor = computed<CanvasRelationColor>(
   () => relationStyles.value?.find(({ relationId }) => relationId === selected.value?.id)?.color ?? "neutral",
 );
-const COLOR_VALUES: Record<CanvasRelationColor, string> = {
+const CSS_COLOR_BY_RELATION_COLOR: Record<CanvasRelationColor, string> = {
   neutral: "var(--color-fg-secondary)",
   blue: "var(--color-content-blue)",
   green: "var(--color-content-green)",
@@ -46,7 +46,7 @@ const COLOR_VALUES: Record<CanvasRelationColor, string> = {
 const colorOptions = computed(() =>
   CANVAS_RELATION_COLORS.map((value) => ({
     value,
-    color: COLOR_VALUES[value],
+    color: CSS_COLOR_BY_RELATION_COLOR[value],
     label: t(`spaces.knowledge.relations.colors.${value}`),
   })),
 );

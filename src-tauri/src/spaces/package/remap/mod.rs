@@ -14,8 +14,8 @@ use tokio_util::sync::CancellationToken;
 pub(super) struct IdMaps {
     source_space: String,
     target_space: String,
-    entities: HashMap<&'static str, HashMap<String, String>>,
-    assets: HashMap<String, String>,
+    id_map_by_collection: HashMap<&'static str, HashMap<String, String>>,
+    path_by_token: HashMap<String, String>,
 }
 
 const ENTITIES: &[&str] = &[
@@ -98,26 +98,27 @@ pub(super) fn prepare_cancellable(
     let mut maps = IdMaps {
         source_space,
         target_space: target_space.into(),
-        entities: HashMap::new(),
-        assets: assets
+        id_map_by_collection: HashMap::new(),
+        path_by_token: assets
             .iter()
             .map(|a| (a.token.clone(), a.path.clone()))
             .collect(),
     };
     for &collection in ENTITIES {
         super::control::check(cancellation)?;
-        let mut ids = HashMap::new();
+        let mut new_id_by_old_id = HashMap::new();
         for row in array(&value, collection)? {
             super::control::check(cancellation)?;
             let id = string(row, "id")?;
-            if ids
+            if new_id_by_old_id
                 .insert(id.into(), uuid::Uuid::new_v4().to_string())
                 .is_some()
             {
                 return Err(format!("Duplicate package {collection} identity").into());
             }
         }
-        maps.entities.insert(collection, ids);
+        maps.id_map_by_collection
+            .insert(collection, new_id_by_old_id);
     }
     knowledge::validate_source(&value)?;
     super::control::check(cancellation)?;
@@ -191,9 +192,9 @@ pub(super) fn prepare_cancellable(
 
 impl IdMaps {
     fn id(&self, collection: &str, source: &str) -> Result<String, String> {
-        self.entities
+        self.id_map_by_collection
             .get(collection)
-            .and_then(|ids| ids.get(source))
+            .and_then(|new_id_by_old_id| new_id_by_old_id.get(source))
             .cloned()
             .ok_or_else(|| format!("Package references unknown {collection} identity {source}"))
     }
@@ -219,7 +220,7 @@ impl IdMaps {
         let token = source
             .strip_prefix(crate::spaces::assets::PACKAGE_ASSET_PREFIX)
             .ok_or("Managed package reference is not an asset token")?;
-        self.assets
+        self.path_by_token
             .get(token)
             .cloned()
             .ok_or("Package references an unknown asset".into())

@@ -13,9 +13,9 @@ export function addTextOverlay(
   style: VideoTextStyle,
   text: string,
 ): VideoEditProject {
-  const duration = projectDurationMs(project);
-  const startMs = clamp(Math.round(atMs), 0, Math.max(0, duration - MIN_CLIP_MS));
-  const endMs = clamp(startMs + DEFAULT_TEXT_MS, startMs + MIN_CLIP_MS, duration);
+  const durationMs = projectDurationMs(project);
+  const startMs = clamp(Math.round(atMs), 0, Math.max(0, durationMs - MIN_CLIP_MS));
+  const endMs = clamp(startMs + DEFAULT_TEXT_MS, startMs + MIN_CLIP_MS, durationMs);
   return commitProject({
     ...project,
     textTrack: { items: [...project.textTrack.items, createTextOverlay(startMs, endMs, style, text)] },
@@ -29,12 +29,12 @@ export function updateTextOverlay(
 ): VideoEditProject {
   const item = project.textTrack.items.find((candidate) => candidate.id === id);
   if (!item) return project;
-  const duration = projectDurationMs(project);
+  const durationMs = projectDurationMs(project);
   const merged = { ...item, ...patch };
   const next = {
     ...merged,
-    startMs: clamp(merged.startMs, 0, Math.max(0, duration - MIN_CLIP_MS)),
-    endMs: clamp(merged.endMs, merged.startMs + MIN_CLIP_MS, duration),
+    startMs: clamp(merged.startMs, 0, Math.max(0, durationMs - MIN_CLIP_MS)),
+    endMs: clamp(merged.endMs, merged.startMs + MIN_CLIP_MS, durationMs),
   };
   if (!next.text.trim()) return project;
   return commitProject({

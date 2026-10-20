@@ -1,6 +1,6 @@
 use sqlx::{types::Json, Sqlite, SqlitePool, Transaction};
 
-use super::run_rows::{enum_text, optional_enum_text, parse_summary};
+use super::run_rows::{enum_text, optional_enum_text, parse_observation};
 use super::{RunKind, RunObservation, RunState, WaitReason};
 use crate::spaces::{
     authorization::{Principal, RunScope},
@@ -70,7 +70,7 @@ pub(crate) async fn load_run(pool: &SqlitePool, run_id: &str) -> Result<RunObser
         .await
         .map_err(db::sql_error)?
         .ok_or("Run is unavailable")?;
-    parse_summary(&row)
+    parse_observation(&row)
 }
 
 pub(crate) async fn list_runs(
@@ -85,7 +85,7 @@ pub(crate) async fn list_runs(
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;
-    rows.iter().map(parse_summary).collect()
+    rows.iter().map(parse_observation).collect()
 }
 
 pub(crate) async fn transition_run(

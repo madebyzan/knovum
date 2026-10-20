@@ -45,7 +45,7 @@ export function useStructureGestureSession(options: StructureGestureOptions) {
       target,
       snapshot: options.snapshot(),
       selectedIds: options.selectedRootIds(),
-      bounds: options.bounds(),
+      boundsByNodeId: options.bounds(),
     });
     if (captured) directManipulation.value = kind;
     command = undefined;

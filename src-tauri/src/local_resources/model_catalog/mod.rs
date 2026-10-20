@@ -275,7 +275,6 @@ where
 }
 
 #[cfg(test)]
-#[path = "../tests/model_catalog.rs"]
 mod tests;
 
 fn transcription_snapshot(model: LocalModelId) -> SnapshotKind {

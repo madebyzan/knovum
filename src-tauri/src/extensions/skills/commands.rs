@@ -105,7 +105,7 @@ pub async fn import_skill(
 }
 
 #[tauri::command]
-pub async fn copy_skill(
+pub async fn duplicate_skill(
     app: AppHandle,
     skill_id: String,
 ) -> AppResult<ExtensionChange<SkillRevision>> {

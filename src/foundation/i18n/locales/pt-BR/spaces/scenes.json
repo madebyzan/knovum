@@ -17,10 +17,7 @@
   "save": "Salvar cena atual",
   "delete": "Excluir cena",
   "empty": "Salve a posição da janela de visualização para retornar rapidamente a áreas específicas.",
-  "open": "Navegar até a cena",
   "update": "Atualizar para a janela de visualização atual",
   "duplicate": "Cena duplicada",
-  "moveUp": "Mover para cima",
-  "moveDown": "Mover para baixo",
   "rename": "Renomear cena"
 }

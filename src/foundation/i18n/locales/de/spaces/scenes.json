@@ -17,10 +17,7 @@
   "save": "Aktuelle Szene speichern",
   "delete": "Szene löschen",
   "empty": "Speichern Sie die Position des Ansichtsfensters, um schnell zu bestimmten Bereichen zurückzukehren.",
-  "open": "Zur Szene navigieren",
   "update": "Auf das aktuelle Ansichtsfenster aktualisieren",
   "duplicate": "Szene duplizieren",
-  "moveUp": "Nach oben verschieben",
-  "moveDown": "Nach unten bewegen",
   "rename": "Szene umbenennen"
 }

@@ -65,7 +65,7 @@ pub(crate) fn fail<R: Runtime>(app: &AppHandle<R>, reason: &str) {
 }
 
 #[tauri::command]
-pub(crate) fn report_startup_failure<R: Runtime>(
+pub(crate) fn fail_startup<R: Runtime>(
     app: AppHandle<R>,
     reason: String,
 ) -> Result<(), crate::foundation::app_error::AppError> {

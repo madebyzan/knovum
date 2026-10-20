@@ -16,7 +16,7 @@ const usageDaySchema = z
   })
   .strict();
 
-const usageSummarySchema = z
+const usageMetricsSchema = z
   .object({
     inputTokens: z.number().int().nonnegative(),
     outputTokens: z.number().int().nonnegative(),
@@ -33,7 +33,7 @@ const tokenUsageReportSchema: z.ZodType<UsageReport> = z
   .object({
     fromDate: z.iso.date(),
     toDate: z.iso.date(),
-    summary: usageSummarySchema,
+    metrics: usageMetricsSchema,
     activity: z.array(usageDaySchema),
     byPurpose: z.array(
       z

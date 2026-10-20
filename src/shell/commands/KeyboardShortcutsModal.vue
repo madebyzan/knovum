@@ -21,7 +21,7 @@ interface ShortcutListing {
 
 const CATEGORY_ORDER: readonly CommandCategory[] = ["general", "navigation", "canvas", "editing"];
 
-const CATEGORY_LOCALE_KEYS: Readonly<Record<CommandCategory, string>> = {
+const LOCALE_KEY_BY_CATEGORY: Readonly<Record<CommandCategory, string>> = {
   general: "shell.shortcuts.categories.general",
   navigation: "shell.shortcuts.categories.navigation",
   canvas: "shell.shortcuts.categories.canvas",
@@ -77,11 +77,11 @@ const filteredShortcuts = computed(() => {
 });
 
 const groupedSections = computed(() => {
-  const groups = groupBy(filteredShortcuts.value, (shortcut) => shortcut.category);
-  return CATEGORY_ORDER.filter((cat) => groups[cat]?.length).map((cat) => ({
+  const shortcutsByCategory = groupBy(filteredShortcuts.value, (shortcut) => shortcut.category);
+  return CATEGORY_ORDER.filter((cat) => shortcutsByCategory[cat]?.length).map((cat) => ({
     category: cat,
-    title: t(CATEGORY_LOCALE_KEYS[cat]),
-    shortcuts: groups[cat]!,
+    title: t(LOCALE_KEY_BY_CATEGORY[cat]),
+    shortcuts: shortcutsByCategory[cat]!,
   }));
 });
 </script>

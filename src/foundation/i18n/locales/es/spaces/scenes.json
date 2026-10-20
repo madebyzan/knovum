@@ -17,10 +17,7 @@
   "save": "Guardar escena actual",
   "delete": "Eliminar escena",
   "empty": "Guarde la posición de la ventana gráfica para regresar rápidamente a áreas específicas.",
-  "open": "Navegar a la escena",
   "update": "Actualizar a la ventana gráfica actual",
   "duplicate": "Escena duplicada",
-  "moveUp": "Mover hacia arriba",
-  "moveDown": "Mover hacia abajo",
   "rename": "Cambiar nombre de escena"
 }

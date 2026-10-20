@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
-import { videoTransitionKinds } from "../../model/nodes/schema/video-edit-media";
+import { VIDEO_TRANSITION_KINDS } from "../../model/nodes/schema/video-edit-media";
 import { applyTransition, maxTransitionMs, removeTransition, resizeTransition } from "../edits/transition";
 import type { VideoTransition, VideoTransitionKind } from "../project";
 import SpaceVideoTimeField from "./SpaceVideoTimeField.vue";
@@ -18,7 +18,7 @@ const maximum = computed(() =>
   project.value ? maxTransitionMs(project.value, props.transition.fromClipId) : 0,
 );
 const kinds = computed(() =>
-  videoTransitionKinds.map((kind) => ({
+  VIDEO_TRANSITION_KINDS.map((kind) => ({
     value: kind,
     label: t(`spaces.media.videoEditor.transitions.kinds.${kind}`),
   })),

@@ -35,18 +35,18 @@ async fn resolve_dependent(
     let dependencies: Vec<String> = serde_json::from_str(&encoded).map_err(db::json_error)?;
     let facts = dependency_facts(tx, run_id, &dependencies).await?;
     let policy = run_failure_policy(tx, run_id).await?;
-    let collect_results = node_kind == "join" && join_policy(&configuration)? == "collect_results";
+    let collect_outputs = node_kind == "join" && join_policy(&configuration)? == "collect_outputs";
     let Some(state) = next_state(
         &facts
             .iter()
             .map(|(state, _)| state.clone())
             .collect::<Vec<_>>(),
-        collect_results || policy == "collect_errors",
+        collect_outputs || policy == "collect_errors",
     ) else {
         return Ok(false);
     };
     let input =
-        (state == "ready").then(|| dependency_input(&dependencies, &facts, collect_results));
+        (state == "ready").then(|| dependency_input(&dependencies, &facts, collect_outputs));
     let dependency_write = sqlx::query("UPDATE spaces_run_steps SET state=$1,resolved_input=COALESCE($2,resolved_input),state_version=state_version+1,updated_at=$3 WHERE id=$4 AND state='pending'")
         .bind(state).bind(input.as_ref().map(sqlx::types::Json)).bind(now).bind(&id).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(dependency_write.rows_affected() == 1)

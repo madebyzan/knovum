@@ -65,9 +65,9 @@ pub(crate) fn plugin() -> TauriPlugin<Wry> {
             plugins::commands::enable_plugin,
             plugins::commands::disable_plugin,
             plugins::commands::uninstall_plugin,
-            plugins::marketplaces::add_plugin_marketplace,
+            plugins::marketplaces::create_plugin_marketplace,
             plugins::marketplaces::refresh_plugin_marketplace,
-            plugins::marketplaces::remove_plugin_marketplace,
+            plugins::marketplaces::delete_plugin_marketplace,
             plugins::marketplaces::search_plugins,
             skills::commands::list_skills,
             skills::commands::read_skill,
@@ -76,7 +76,7 @@ pub(crate) fn plugin() -> TauriPlugin<Wry> {
             skills::commands::save_skill_revision,
             skills::commands::import_skill,
             skills::commands::export_skill,
-            skills::commands::copy_skill,
+            skills::commands::duplicate_skill,
             skills::commands::enable_skill,
             skills::commands::disable_skill,
             skills::commands::delete_skill,
@@ -114,5 +114,4 @@ async fn shutdown(app: &tauri::AppHandle) {
 }
 
 #[cfg(test)]
-#[path = "tests/content.rs"]
-mod content_tests;
+mod tests;

@@ -77,5 +77,5 @@ pub(super) fn salient_layer(
 }
 
 #[cfg(test)]
-#[path = "../tests/ordering.rs"]
+#[path = "tests/ordering.rs"]
 mod tests;

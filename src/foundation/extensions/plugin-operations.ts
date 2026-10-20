@@ -54,10 +54,14 @@ export function uninstallPlugin(pluginId: string) {
 export function searchPlugins(query: string) {
   return invokeCommand<PluginMarketplace[]>("plugin:extensions|search_plugins", { query });
 }
-export function addPluginMarketplace(source: MarketplaceSource) {
-  return runPluginOperation<PluginMarketplace>("add_plugin_marketplace", "extensions.plugins.tasks.catalog", {
-    source,
-  });
+export function createPluginMarketplace(source: MarketplaceSource) {
+  return runPluginOperation<PluginMarketplace>(
+    "create_plugin_marketplace",
+    "extensions.plugins.tasks.catalog",
+    {
+      source,
+    },
+  );
 }
 export function refreshPluginMarketplace(marketplaceId: string) {
   return runPluginOperation<PluginMarketplace>(
@@ -68,8 +72,8 @@ export function refreshPluginMarketplace(marketplaceId: string) {
     },
   );
 }
-export function removePluginMarketplace(marketplaceId: string) {
-  return invokeCommand<void>("plugin:extensions|remove_plugin_marketplace", { marketplaceId });
+export function deletePluginMarketplace(marketplaceId: string) {
+  return invokeCommand<void>("plugin:extensions|delete_plugin_marketplace", { marketplaceId });
 }
 
 export function inspectPluginUpdate(pluginId: string) {

@@ -74,7 +74,7 @@ pub(super) async fn resolve(
             "name": name.clone(), "sourceRevision": source_revision,
             "size": size, "charactersRead": characters_read,
         }),
-        summary: crate::spaces::conversations::ConversationMessageAttachment::File {
+        message_attachment: crate::spaces::conversations::ConversationMessageAttachment::File {
             title: name,
             kind: kind_name.to_owned(),
             thumbnail,

@@ -80,7 +80,7 @@ async fn execute(
                 target: model.clone(),
                 prompt: prepared.provider_prompt,
                 ratio: request.aspect_ratio.as_str().to_owned(),
-                duration: request.duration_seconds,
+                duration_seconds: request.duration_seconds,
                 reference_images: prepared.reference_images,
             },
             cancellation,

@@ -11,7 +11,7 @@ pub(super) fn validate(request: &RestorePackageRequest) -> Result<(), String> {
     let index = SpeechIndex::new(request)?;
     separation::validate(request, &index)?;
     voices::validate(request, &index)?;
-    let lexicons = request
+    let lexicon_by_project_revision_id = request
         .speech_project_revisions
         .iter()
         .map(|revision| {
@@ -20,7 +20,7 @@ pub(super) fn validate(request: &RestorePackageRequest) -> Result<(), String> {
         })
         .collect::<Result<HashMap<_, _>, _>>()?;
     projects::validate(request, &index)?;
-    segments::validate(request, &index, &lexicons)?;
+    segments::validate(request, &index, &lexicon_by_project_revision_id)?;
     renders::validate(request, &index)
 }
 
@@ -30,12 +30,12 @@ struct SpeechIndex<'a> {
     projects: HashSet<&'a str>,
     project_revisions: HashSet<&'a str>,
     segments: HashSet<&'a str>,
-    revision_owners: HashMap<&'a str, &'a str>,
-    voice_languages: HashMap<&'a str, &'a str>,
-    voice_deliveries: HashMap<&'a str, bool>,
-    project_types: HashMap<&'a str, &'a str>,
-    project_revision_owners: HashMap<&'a str, &'a str>,
-    separation_rows: HashMap<
+    profile_id_by_revision_id: HashMap<&'a str, &'a str>,
+    language_by_revision_id: HashMap<&'a str, &'a str>,
+    delivery_by_revision_id: HashMap<&'a str, bool>,
+    project_type_by_id: HashMap<&'a str, &'a str>,
+    project_id_by_revision_id: HashMap<&'a str, &'a str>,
+    separation_by_id: HashMap<
         &'a str,
         &'a crate::spaces::package::restore::contracts::PackageSpeechSourceSeparation,
     >,
@@ -78,26 +78,26 @@ impl<'a> SpeechIndex<'a> {
             "speech render",
         )?;
 
-        let revision_owners = request
+        let profile_id_by_revision_id = request
             .voice_revisions
             .iter()
             .map(|row| (row.id.as_str(), row.profile_id.as_str()))
             .collect::<HashMap<_, _>>();
-        let voice_languages = request
+        let language_by_revision_id = request
             .voice_revisions
             .iter()
             .map(|row| (row.id.as_str(), row.language.as_str()))
             .collect::<HashMap<_, _>>();
-        let voice_sources = request
+        let source_by_profile_id = request
             .voice_profiles
             .iter()
             .map(|row| (row.id.as_str(), row.source_kind.as_str()))
             .collect::<HashMap<_, _>>();
-        let voice_deliveries = request
+        let delivery_by_revision_id = request
             .voice_revisions
             .iter()
             .map(|row| {
-                let source = voice_sources
+                let source = source_by_profile_id
                     .get(row.profile_id.as_str())
                     .ok_or("Package voice profile is unavailable")?;
                 Ok((
@@ -110,17 +110,17 @@ impl<'a> SpeechIndex<'a> {
                 ))
             })
             .collect::<Result<HashMap<_, _>, String>>()?;
-        let project_types = request
+        let project_type_by_id = request
             .speech_projects
             .iter()
             .map(|row| (row.id.as_str(), row.project_type.as_str()))
             .collect::<HashMap<_, _>>();
-        let project_revision_owners = request
+        let project_id_by_revision_id = request
             .speech_project_revisions
             .iter()
             .map(|row| (row.id.as_str(), row.project_id.as_str()))
             .collect::<HashMap<_, _>>();
-        let separation_rows = request
+        let separation_by_id = request
             .speech_source_separations
             .iter()
             .map(|row| (row.id.as_str(), row))
@@ -136,12 +136,12 @@ impl<'a> SpeechIndex<'a> {
             projects,
             project_revisions,
             segments,
-            revision_owners,
-            voice_languages,
-            voice_deliveries,
-            project_types,
-            project_revision_owners,
-            separation_rows,
+            profile_id_by_revision_id,
+            language_by_revision_id,
+            delivery_by_revision_id,
+            project_type_by_id,
+            project_id_by_revision_id,
+            separation_by_id,
             run_ids,
         })
     }

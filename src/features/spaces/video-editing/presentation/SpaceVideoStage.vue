@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Maximize2, ZoomIn, ZoomOut } from "@lucide/vue";
+import { useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -10,18 +11,20 @@ import { useVideoStage } from "./use-video-stage";
 const props = defineProps<{ editor: VideoEditor }>();
 const { t } = useI18n();
 const { previewError, selection } = props.editor;
-const stage = useVideoStage(props.editor);
+const viewport = useTemplateRef<HTMLElement>("viewport");
+const container = useTemplateRef<HTMLDivElement>("container");
+const stage = useVideoStage(props.editor, { viewport, container });
 </script>
 
 <template>
   <div class="relative flex min-h-0 flex-1 flex-col bg-surface-stage">
     <div
-      :ref="(value) => (stage.viewport.value = value as HTMLElement | null)"
+      ref="viewport"
       class="relative grid min-h-0 flex-1 place-items-center overflow-hidden"
       @pointerdown.self="selection.clear()"
     >
       <div
-        :ref="(value) => (stage.container.value = value as HTMLDivElement | null)"
+        ref="container"
         class="relative shadow-panel ring-1 ring-white/10"
         :style="stage.frameStyle.value"
         :aria-label="t('spaces.media.videoEditor.preview.stage')"

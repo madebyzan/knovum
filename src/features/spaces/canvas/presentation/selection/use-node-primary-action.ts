@@ -3,7 +3,7 @@ import { computed, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
-import { NODE_OPEN_ACTIONS } from "../canvas-node-open-actions";
+import { OPEN_ACTION_BY_NODE_KIND } from "../canvas-node-open-actions";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 
 /**
@@ -19,7 +19,7 @@ export function useNodePrimaryAction(
   const { t } = useI18n();
   const openAction = computed(() => {
     const kind = node.value?.data.kind;
-    return kind && actions.state.value.canOpen ? NODE_OPEN_ACTIONS[kind] : undefined;
+    return kind && actions.state.value.canOpen ? OPEN_ACTION_BY_NODE_KIND[kind] : undefined;
   });
   const asksInstead = computed(() => !openAction.value && actions.state.value.canAsk);
   const primary = computed(() => {

@@ -8,14 +8,14 @@ import { useI18n } from "vue-i18n";
 import UiScrollArea from "../../../shared/ui/UiScrollArea.vue";
 import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
 import type { SettingsPaneId } from "../navigation/settings-pane";
-import { SETTINGS_GROUP_TITLE_KEYS, SETTINGS_REGISTRY } from "../navigation/settings-registry";
+import { TITLE_KEY_BY_SETTINGS_GROUP, SETTINGS_REGISTRY } from "../navigation/settings-registry";
 
 const props = defineProps<{ activePane: SettingsPaneId; activeSetting?: string | undefined }>();
 const emit = defineEmits<{ back: []; select: [pane: SettingsPaneId, location?: string] }>();
 const { t } = useI18n();
 const query = shallowRef("");
 const groups = computed(() =>
-  Object.entries(SETTINGS_GROUP_TITLE_KEYS).map(([group, titleKey]) => ({
+  Object.entries(TITLE_KEY_BY_SETTINGS_GROUP).map(([group, titleKey]) => ({
     id: group,
     label: t(titleKey),
     settings: SETTINGS_REGISTRY.filter((definition) => definition.group === group).map((definition) => ({

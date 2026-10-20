@@ -37,7 +37,7 @@ const KBD_SYMBOLS = {
   end: "↘",
 } as const;
 
-const NON_MAC_OVERRIDE: Readonly<Record<string, string>> = {
+const NON_MAC_LABEL_BY_TOKEN: Readonly<Record<string, string>> = {
   command: "Ctrl",
   cmd: "Ctrl",
   meta: "Ctrl",
@@ -64,8 +64,8 @@ export function formatKey(key: string): string {
     return isMac() ? "⌘" : "Ctrl";
   }
 
-  if (!isMac() && NON_MAC_OVERRIDE[normalized]) {
-    return NON_MAC_OVERRIDE[normalized];
+  if (!isMac() && NON_MAC_LABEL_BY_TOKEN[normalized]) {
+    return NON_MAC_LABEL_BY_TOKEN[normalized];
   }
 
   const symbol = KBD_SYMBOLS[normalized as keyof typeof KBD_SYMBOLS];

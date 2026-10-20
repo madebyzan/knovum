@@ -126,9 +126,4 @@ pub(crate) async fn download(url: &str, limit: usize) -> Result<Vec<u8>, String>
 }
 
 #[cfg(test)]
-#[path = "tests/archive.rs"]
-mod archive_tests;
-
-#[cfg(test)]
-#[path = "tests/network.rs"]
-mod network_tests;
+mod tests;

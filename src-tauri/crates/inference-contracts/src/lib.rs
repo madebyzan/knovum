@@ -8,5 +8,4 @@ pub mod runtime_manifest;
 pub mod speech_wire;
 
 #[cfg(test)]
-#[path = "tests/protocol.rs"]
 mod tests;

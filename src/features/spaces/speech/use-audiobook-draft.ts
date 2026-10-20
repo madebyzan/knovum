@@ -37,7 +37,7 @@ export function useAudiobookDraft(
       output.value(),
       lexicon.entries.value,
     ]);
-  const { dirty, needsRevision, acceptRevision, acceptInitialization } = useSpeechDraftChanges(snapshot);
+  const { dirty, needsRevision, acceptRevision, initialize } = useSpeechDraftChanges(snapshot);
 
   watch(
     () => project().revision.id,
@@ -48,8 +48,7 @@ export function useAudiobookDraft(
   function hydrate(projectSnapshot: DeepReadonly<SpeechProjectSnapshot>) {
     try {
       const loaded = readAudiobookRevision(projectSnapshot);
-      const config = loaded.config;
-      output.load(config);
+      output.load(loaded.config);
       roles.value = loaded.roles;
       chapters.value = loaded.chapters;
       configurationError.value = undefined;
@@ -61,13 +60,12 @@ export function useAudiobookDraft(
     acceptRevision();
   }
 
-  watch(voices, () => {
-    const wasDirty = dirty.value;
+  watch(voices, () => initialize(assignDefaultRoleVoices));
+  function assignDefaultRoleVoices() {
     const voiceId = defaultVoiceRevisionId(voices());
     if (voiceId)
       roles.value.filter((role) => !role.voiceRevisionId).forEach((role) => setRoleVoice(role, voiceId));
-    if (!wasDirty) acceptInitialization();
-  });
+  }
 
   function addRole(name: string) {
     const key = nextAudiobookRoleKey(name, roles.value);
@@ -98,13 +96,14 @@ export function useAudiobookDraft(
     chapters.value.push(chapter);
     configurationError.value = undefined;
   }
-  function importScript(script: ImportedAudiobookScript, initialize = false) {
-    const wasDirty = dirty.value;
+  function importScript(script: ImportedAudiobookScript) {
     const imported = importedAudiobookDraft(script, roles.value, defaultVoiceRevisionId(voices()));
     roles.value = imported.roles;
     chapters.value = imported.chapters;
     configurationError.value = undefined;
-    if (initialize && !wasDirty) acceptInitialization();
+  }
+  function initializeFromScript(script: ImportedAudiobookScript) {
+    initialize(() => importScript(script));
   }
   const usedRoleKeys = computed(() => [
     ...new Set(
@@ -176,6 +175,7 @@ export function useAudiobookDraft(
     removeChapter,
     removeParagraph,
     importScript,
+    initializeFromScript,
     roleVoiceRevisionId,
     setRoleVoice,
     setParagraphSpeaker,

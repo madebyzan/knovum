@@ -5,9 +5,8 @@ import type { EditingCommand } from "../../shared/contracts/generated/EditingCom
 
 // The macOS Application Menu owns every standard editing chord, so each one arrives here as an
 // intent instead of a key press. This router answers one question: who owns the text being edited?
-export type EditingIntent = EditingCommand;
 
-export const EDITING_INTENTS: readonly EditingIntent[] = [
+export const EDITING_COMMANDS: readonly EditingCommand[] = [
   "undo",
   "redo",
   "cut",
@@ -20,7 +19,7 @@ export const EDITING_INTENTS: readonly EditingIntent[] = [
  * The surface command that performs the intent when the platform does not. A document keeps its own
  * edit history, so it answers before the canvas does.
  */
-const SURFACE_COMMANDS: Record<EditingIntent, readonly string[]> = {
+const SURFACE_COMMAND_IDS_BY_EDITING_COMMAND: Record<EditingCommand, readonly string[]> = {
   undo: ["document.undo", "spaces.undo"],
   redo: ["document.redo", "spaces.redo"],
   cut: ["spaces.cut"],
@@ -35,13 +34,13 @@ const SURFACE_COMMANDS: Record<EditingIntent, readonly string[]> = {
  * history is narrower: a native text control owns its own, while a rich-text surface keeps history
  * in its own stack and must be undone through its command.
  */
-function platformOwns(intent: EditingIntent, target: EventTarget | null) {
+function platformOwns(intent: EditingCommand, target: EventTarget | null) {
   return intent === "undo" || intent === "redo" ? isTextControlTarget(target) : isEditableTarget(target);
 }
 
-export function runEditingCommand(intent: EditingIntent): void | Promise<void> {
+export function runEditingCommand(intent: EditingCommand): void | Promise<void> {
   if (platformOwns(intent, document.activeElement)) return performApplicationMenuEditing(intent);
-  for (const commandId of SURFACE_COMMANDS[intent]) {
+  for (const commandId of SURFACE_COMMAND_IDS_BY_EDITING_COMMAND[intent]) {
     const command = getAppCommand(commandId);
     if (command) {
       runAppCommand(command);

@@ -10,7 +10,7 @@ import { importSpaceSource } from "../assets/import-session";
 import { useNodeOperationGate } from "../canvas/use-node-operation-gate";
 import type { RecoverableAgentCreation } from "../contracts/generated/RecoverableAgentCreation";
 import { useSpaceStore } from "../session/space-store";
-import { consumeAgentArtifact, discardAgentCreation, previewAgentArtifact } from "./agent-artifacts";
+import { removeAgentArtifact, discardAgentCreation, previewAgentArtifact } from "./agent-artifacts";
 
 export function useAgentArtifacts(open: Ref<boolean>) {
   const { t } = useI18n();
@@ -101,7 +101,7 @@ export function useAgentArtifacts(open: Ref<boolean>) {
           spaceId,
           source: {
             prepare: () => prepareAgentArtifactImport(spaceId, currentSessionId, artifact.relativePath),
-            finalize: () => consumeAgentArtifact(spaceId, currentSessionId, artifact.relativePath),
+            finalize: () => removeAgentArtifact(spaceId, currentSessionId, artifact.relativePath),
           },
           position: store.nextInsertionPoint(),
           labels: {

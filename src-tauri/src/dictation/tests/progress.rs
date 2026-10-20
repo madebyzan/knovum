@@ -3,7 +3,7 @@ use super::*;
 fn preparation_keeps_the_recording_owner_and_releases_progress_before_asr() {
     let current = DictationSnapshot {
         session_id: Some("session".into()),
-        target_application: Some("Editor".into()),
+        target_application_name: Some("Editor".into()),
         ..Default::default()
     };
     let progress = ResourcePreparationProgress {
@@ -28,5 +28,5 @@ fn preparation_keeps_the_recording_owner_and_releases_progress_before_asr() {
     );
     assert!(matches!(completed.phase, DictationPhase::Transcribing));
     assert!(completed.resources.is_none());
-    assert_eq!(completed.target_application.as_deref(), Some("Editor"));
+    assert_eq!(completed.target_application_name.as_deref(), Some("Editor"));
 }

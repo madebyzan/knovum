@@ -5,6 +5,7 @@ import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import { getConversationTaskError, listActiveConversationRuns } from "./conversation-ipc";
 import { observeConversationRun } from "./conversation-run-observation";
+import type { ConversationSelectionOptions } from "./conversation-selection";
 
 interface ConversationRunRestorationState {
   spaceId: Ref<string | undefined>;
@@ -18,7 +19,7 @@ interface ConversationRunRestorationState {
   error: ShallowRef<string | undefined>;
   activityRevision: ShallowRef<number>;
   refresh: () => Promise<void>;
-  select: (conversationId: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
+  select: (conversationId: string, options?: ConversationSelectionOptions) => Promise<void>;
   onDetach: () => void;
 }
 
@@ -107,7 +108,7 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
           .then(() => {
             if (!isCurrentRun(currentRevision, run.id)) return;
             if (state.selectedConversationId.value === active.conversationId)
-              return state.select(active.conversationId, false, active.branchId);
+              return state.select(active.conversationId, { branchId: active.branchId });
             return undefined;
           })
           .catch((cause: unknown) => {

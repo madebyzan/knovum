@@ -2,7 +2,9 @@ import { canvasFrameBounds, type CanvasBounds } from "../../canvas-snap-geometry
 import type { CanvasNodeFrame } from "../../schema/document";
 
 export interface CanvasTranslationSnapIndex {
-  neighbors: Readonly<Record<"x" | "y", { before: readonly CanvasBounds[]; after: readonly CanvasBounds[] }>>;
+  neighborsByAxis: Readonly<
+    Record<"x" | "y", { before: readonly CanvasBounds[]; after: readonly CanvasBounds[] }>
+  >;
   x: readonly number[];
   extentByX: ReadonlyMap<number, readonly [number, number]>;
   y: readonly number[];
@@ -12,7 +14,7 @@ export interface CanvasTranslationSnapIndex {
 export function createCanvasTranslationSnapIndex(frames: readonly CanvasNodeFrame[]) {
   const bounds = frames.map(canvasFrameBounds);
   return {
-    neighbors: {
+    neighborsByAxis: {
       x: {
         before: bounds.toSorted((a, b) => a.right - b.right),
         after: bounds.toSorted((a, b) => a.left - b.left),

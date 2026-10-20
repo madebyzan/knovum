@@ -72,12 +72,12 @@ async fn validate_properties(
         .get("properties")
         .and_then(Value::as_object)
         .ok_or_else(|| "Knowledge object properties must be an object".to_string())?;
-    let definitions: HashMap<&str, &FieldDefinition> = fields
+    let definition_by_key: HashMap<&str, &FieldDefinition> = fields
         .iter()
         .map(|field| (field.key.as_str(), field))
         .collect();
     for key in properties.keys() {
-        if !definitions.contains_key(key.as_str()) {
+        if !definition_by_key.contains_key(key.as_str()) {
             return Err(format!(
                 "Knowledge object property '{key}' is not declared by its type"
             ));

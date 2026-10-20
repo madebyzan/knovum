@@ -1,4 +1,4 @@
-use super::{archive, directory_files};
+use super::super::{archive, directory_files};
 use std::io::{Cursor, Write};
 use tokio_util::sync::CancellationToken;
 use zip::{write::SimpleFileOptions, ZipWriter};

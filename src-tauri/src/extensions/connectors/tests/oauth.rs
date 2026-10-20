@@ -50,7 +50,7 @@ impl OAuthFixture {
     async fn state(&self, store: InMemoryCredentialStore) -> OAuthState {
         let mut manager = AuthorizationManager::new_with_oauth_http_client(
             &self.resource,
-            super::oauth_http::client(true),
+            super::super::oauth_http::client(true),
         )
         .await
         .unwrap();
@@ -90,7 +90,7 @@ async fn sdk_oauth_uses_pkce_state_resource_and_refresh_with_bounded_host_http()
         .unwrap();
     let mut refresh = AuthorizationManager::new_with_oauth_http_client(
         &fixture.resource,
-        super::oauth_http::client(true),
+        super::super::oauth_http::client(true),
     )
     .await
     .unwrap();

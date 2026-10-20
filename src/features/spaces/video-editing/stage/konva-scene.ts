@@ -6,11 +6,11 @@ import { createLayerNode, updateLayerNode, type LayerNode } from "./scene-layer"
 import { createTextNode, updateTextNode, type TextNode } from "./scene-text-node";
 import { PLAIN_LAYER, transitionStyle, type TransitionStyle } from "./scene-transition";
 
-function prune(nodes: Map<string, { group: Konva.Group }>, keep: Set<string>) {
-  for (const [id, node] of nodes) {
+function prune(nodeById: Map<string, { group: Konva.Group }>, keep: Set<string>) {
+  for (const [id, node] of nodeById) {
     if (keep.has(id)) continue;
     node.group.destroy();
-    nodes.delete(id);
+    nodeById.delete(id);
   }
 }
 
@@ -29,8 +29,8 @@ export function createStageScene(container: HTMLDivElement) {
   const content = new Konva.Layer();
   const overlay = new Konva.Layer();
   const backdrop = new Konva.Rect({ listening: false });
-  const layers = new Map<string, LayerNode>();
-  const texts = new Map<string, TextNode>();
+  const layerById = new Map<string, LayerNode>();
+  const textById = new Map<string, TextNode>();
   let applied = "";
   content.add(backdrop);
   stage.add(content);
@@ -39,32 +39,32 @@ export function createStageScene(container: HTMLDivElement) {
   function syncLayers(scene: Scene, transition: TransitionStyle | undefined) {
     const order: Konva.Group[] = [];
     for (const [index, layer] of scene.layers.entries()) {
-      let node = layers.get(layer.id);
+      let node = layerById.get(layer.id);
       if (!node) {
         node = createLayerNode(layer.id);
-        layers.set(layer.id, node);
+        layerById.set(layer.id, node);
         content.add(node.group);
       }
       updateLayerNode(node, layer, { output: scene.output, style: styleOf(transition, index) });
       order.push(node.group);
     }
-    prune(layers, new Set(scene.layers.map(({ id }) => id)));
+    prune(layerById, new Set(scene.layers.map(({ id }) => id)));
     return order;
   }
 
   function syncTexts(scene: Scene) {
     const order: Konva.Group[] = [];
     for (const item of scene.texts) {
-      let node = texts.get(item.id);
+      let node = textById.get(item.id);
       if (!node) {
         node = createTextNode(item.id);
-        texts.set(item.id, node);
+        textById.set(item.id, node);
         content.add(node.group);
       }
       updateTextNode(node, item, scene.output);
       order.push(node.group);
     }
-    prune(texts, new Set(scene.texts.map(({ id }) => id)));
+    prune(textById, new Set(scene.texts.map(({ id }) => id)));
     return order;
   }
 
@@ -97,8 +97,8 @@ export function createStageScene(container: HTMLDivElement) {
       stage.scale({ x: scale, y: scale });
     },
     dispose() {
-      layers.clear();
-      texts.clear();
+      layerById.clear();
+      textById.clear();
       stage.destroy();
     },
   };

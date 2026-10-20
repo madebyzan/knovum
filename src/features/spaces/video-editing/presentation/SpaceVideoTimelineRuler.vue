@@ -11,7 +11,7 @@ import type { VideoEditor } from "./use-video-editor";
 const props = defineProps<{ editor: VideoEditor }>();
 const { t } = useI18n();
 const { timeline, gestures, player, visibleProject } = props.editor;
-const duration = computed(() => (visibleProject.value ? projectDurationMs(visibleProject.value) : 0));
+const durationMs = computed(() => (visibleProject.value ? projectDurationMs(visibleProject.value) : 0));
 
 function step(direction: -1 | 1) {
   if (visibleProject.value) player.seek(stepFrame(visibleProject.value, player.positionMs(), direction));
@@ -27,7 +27,7 @@ function step(direction: -1 | 1) {
     :style="{ height: `${TIMELINE_ROWS.ruler}px` }"
     :aria-label="t('spaces.media.videoEditor.timeline.seek')"
     aria-valuemin="0"
-    :aria-valuemax="Math.round(duration)"
+    :aria-valuemax="Math.round(durationMs)"
     :aria-valuenow="Math.round(player.displayMs.value)"
     :aria-valuetext="formatVideoEditTime(player.displayMs.value)"
     @pointerdown="gestures.begin($event, { kind: 'scrub' })"
@@ -37,7 +37,7 @@ function step(direction: -1 | 1) {
     @keydown.left.prevent.stop="step(-1)"
     @keydown.right.prevent.stop="step(1)"
     @keydown.home.prevent="player.seek(0)"
-    @keydown.end.prevent="player.seek(duration)"
+    @keydown.end.prevent="player.seek(durationMs)"
   >
     <span
       v-for="tick in timeline.ticks.value"

@@ -9,7 +9,7 @@ import {
   saveSkillRevision,
   deleteSkill,
 } from "../../../foundation/extensions/skill-operations";
-import { useEditorLeave } from "../../../foundation/lifecycle/use-editor-leave";
+import { useSettingsEditorLeave } from "../../../foundation/lifecycle/use-settings-editor-leave";
 import type { ExtensionChange } from "../../../shared/contracts/generated/ExtensionChange";
 import type { SkillContent } from "../../../shared/contracts/generated/SkillContent";
 import { confirmAction } from "../../../shared/ui/confirm-action";
@@ -61,7 +61,7 @@ export function useSkillEditing() {
     });
     await pendingMutation;
   }
-  const closeEditor = useEditorLeave({
+  const closeEditor = useSettingsEditorLeave({
     pending: () => pendingMutation,
     dirty: () => dirty.value,
     confirmDiscard,

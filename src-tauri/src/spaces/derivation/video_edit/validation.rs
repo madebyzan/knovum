@@ -27,10 +27,10 @@ pub(in crate::spaces) fn validate_project(
     validate_assets(project, revision)?;
     let overlaps = transition_overlaps(project, &mut ids)?;
     validate_video_track(project, &overlaps, &mut ids)?;
-    let duration = timing::duration_ms(project);
-    validate_audio_track(project, duration, &mut ids)?;
+    let duration_ms = timing::duration_ms(project);
+    validate_audio_track(project, duration_ms, &mut ids)?;
     for item in &project.text_track.items {
-        validate_text(item, duration)?;
+        validate_text(item, duration_ms)?;
         if !ids.insert(&item.id) {
             return Err("Video project identities must be unique".into());
         }
@@ -173,7 +173,7 @@ fn validate_placement(previous: &VideoClip, clip: &VideoClip, overlap: u64) -> R
 
 fn validate_audio_track<'a>(
     project: &'a VideoEditProject,
-    duration: u64,
+    duration_ms: u64,
     ids: &mut HashSet<&'a String>,
 ) -> Result<(), String> {
     let mut lane_cursor = [0_u64; AUDIO_LANES as usize];
@@ -188,7 +188,7 @@ fn validate_audio_track<'a>(
         if asset.kind != VideoAssetKind::Audio
             || clip.source_out_ms > asset.duration_ms
             || clip.lane >= AUDIO_LANES
-            || clip.timeline_start_ms + clip.length_ms() > duration
+            || clip.timeline_start_ms + clip.length_ms() > duration_ms
         {
             return Err("Audio clip source, lane or timing is invalid".into());
         }
@@ -204,11 +204,11 @@ fn validate_audio_track<'a>(
     Ok(())
 }
 
-fn validate_text(item: &TextOverlay, duration: u64) -> Result<(), String> {
+fn validate_text(item: &TextOverlay, duration_ms: u64) -> Result<(), String> {
     let style = &item.style;
     if Uuid::parse_str(&item.id).is_err()
         || item.end_ms < item.start_ms.saturating_add(MIN_CLIP_MS)
-        || item.end_ms > duration
+        || item.end_ms > duration_ms
         || item.text.trim().is_empty()
         || item.text.encode_utf16().count() > 500
         || !(-0.5..=1.5).contains(&item.x)
@@ -264,7 +264,7 @@ fn validate_transform(transform: &VideoTransform) -> Result<(), String> {
 fn validate_source_window(
     id: &str,
     source: (u64, u64),
-    fades: (u64, u64),
+    fades_ms: (u64, u64),
     volume: f64,
 ) -> Result<(), String> {
     let (start, end) = source;
@@ -272,7 +272,7 @@ fn validate_source_window(
         || end < start.saturating_add(MIN_CLIP_MS)
         || end > MAX_MEDIA_MS
         || !(0.0..=2.0).contains(&volume)
-        || fades.0 + fades.1 > end - start
+        || fades_ms.0 + fades_ms.1 > end - start
     {
         return Err("Video clip interval, volume or fade is invalid".into());
     }

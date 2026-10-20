@@ -20,7 +20,7 @@ pub(super) struct NewBuiltinAgentTaskState<'a> {
     pub extensions: &'a crate::extensions::contracts::AgentExtensionSnapshot,
     pub context_manifest: &'a serde_json::Value,
     pub space_context: &'a crate::spaces::queries::knowledge_projection::ContentsPage,
-    pub attachment_summaries: &'a [crate::spaces::conversations::ConversationMessageAttachment],
+    pub message_attachments: &'a [crate::spaces::conversations::ConversationMessageAttachment],
     pub target: &'a crate::ai::models::ModelExecutionTarget,
     pub profile: &'a crate::ai::settings::contracts::BuiltinAgentModelSettings,
     pub messages: &'a [crate::agent_runtime::protocol::messages::AgentInputMessage],
@@ -46,7 +46,7 @@ pub(super) async fn persist_task(
         extensions,
         context_manifest,
         space_context,
-        attachment_summaries,
+        message_attachments,
         target,
         profile,
         messages,
@@ -139,7 +139,7 @@ pub(super) async fn persist_task(
         &json!({
             "parts": [{"type": "text", "text": request.prompt}],
             "runId": ids.run_id,
-            "attachments": attachment_summaries,
+            "attachments": message_attachments,
         }),
         now,
     )

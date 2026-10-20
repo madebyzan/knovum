@@ -7,6 +7,8 @@ import { SECTION_HEADER_HEIGHT } from "../../../model/structure/section-metrics"
 import type { SectionDropPreview } from "../../../structure/section-drop-reparent";
 import type { ProjectedSection } from "../../document/structure-scene";
 import type { SectionResizeCorner } from "../interaction/structure-gesture-preview";
+import CanvasSectionCollapseToggle from "./CanvasSectionCollapseToggle.vue";
+import CanvasSectionContentCount from "./CanvasSectionContentCount.vue";
 import CanvasSectionDropFeedback from "./CanvasSectionDropFeedback.vue";
 import CanvasSectionResizeHandles from "./CanvasSectionResizeHandles.vue";
 import type { CanvasPalette } from "./use-canvas-palette";
@@ -30,7 +32,6 @@ const emit = defineEmits<{
   resizeMove: [event: Konva.KonvaEventObject<DragEvent>];
 }>();
 const hovered = shallowRef(false);
-const collapseHovered = shallowRef(false);
 const width = computed(() => props.section.bounds.right - props.section.bounds.left);
 const height = computed(() => props.section.bounds.bottom - props.section.bounds.top);
 const displayCollapsed = computed(() => props.section.layout.collapsed && !props.section.temporarilyExpanded);
@@ -40,7 +41,7 @@ const badgeWidth = computed(() => Math.max(20, countText.value.length * 7 + 12))
 const sectionFill = computed(() => {
   const appearance = props.section.layout.appearance;
   if (appearance?.customFill) return appearance.customFill;
-  if (appearance?.fill) return props.palette.contentFill[appearance.fill];
+  if (appearance?.fill) return props.palette.contentFillByPreset[appearance.fill];
   return props.palette.panel;
 });
 
@@ -148,53 +149,18 @@ const chromeConfig = computed(() => ({
         onDblclick: rename,
       }"
     />
-    <KonvaGroup :config="{ x: width - 34 - badgeWidth, y: 11, listening: false }">
-      <KonvaRect
-        :config="{ width: badgeWidth, height: 18, fill: palette.border, cornerRadius: 9, opacity: 0.8 }"
-      />
-      <KonvaText
-        :config="{
-          width: badgeWidth,
-          height: 18,
-          text: countText,
-          align: 'center',
-          verticalAlign: 'middle',
-          fill: palette.foregroundSecondary,
-          fontFamily: palette.typography.fontFamily,
-          fontSize: Math.max(10, palette.typography.captionSize - 1),
-          fontStyle: '500',
-        }"
-      />
-    </KonvaGroup>
-    <KonvaGroup
-      :config="{
-        x: width - 30,
-        y: 9,
-        onClick: toggleCollapsed,
-        onPointerenter: () => (collapseHovered = true),
-        onPointerleave: () => (collapseHovered = false),
-      }"
-    >
-      <KonvaRect
-        :config="{
-          width: 22,
-          height: 22,
-          fill: collapseHovered ? palette.border : 'rgba(0,0,0,0.001)',
-          cornerRadius: 6,
-          opacity: collapseHovered ? 0.6 : 1,
-        }"
-      />
-      <KonvaLine
-        :config="{
-          points: displayCollapsed ? [8, 6, 13, 11, 8, 16] : [6, 8, 11, 13, 16, 8],
-          stroke: collapseHovered ? palette.foreground : palette.foregroundSecondary,
-          strokeWidth: 1.5,
-          lineCap: 'round',
-          lineJoin: 'round',
-          listening: false,
-        }"
-      />
-    </KonvaGroup>
+    <CanvasSectionContentCount
+      :x="width - 34 - badgeWidth"
+      :width="badgeWidth"
+      :text="countText"
+      :palette="palette"
+    />
+    <CanvasSectionCollapseToggle
+      :x="width - 30"
+      :collapsed="displayCollapsed"
+      :palette="palette"
+      @toggle="toggleCollapsed"
+    />
     <template v-if="selected && !section.locked && !displayCollapsed">
       <CanvasSectionResizeHandles
         :interactive="interactive"

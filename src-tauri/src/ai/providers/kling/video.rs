@@ -31,7 +31,11 @@ impl VideoGenerationCapability for KlingVideoAdapter {
                 "1:1" | "square" => "1:1",
                 _ => "16:9",
             };
-            let duration_str = if req.duration >= 10 { "10" } else { "5" };
+            let duration_str = if req.duration_seconds >= 10 {
+                "10"
+            } else {
+                "5"
+            };
 
             let has_image = req.reference_images.first();
             let action = if has_image.is_some() {

@@ -16,7 +16,7 @@ interface StructureGestureCaptureInput {
   target: Konva.Node;
   snapshot: SpaceEditSnapshot;
   selectedIds: readonly string[];
-  bounds: ReadonlyMap<string, CanvasRect>;
+  boundsByNodeId: ReadonlyMap<string, CanvasRect>;
 }
 
 export function captureStructureGesture({
@@ -24,7 +24,7 @@ export function captureStructureGesture({
   target,
   snapshot,
   selectedIds,
-  bounds,
+  boundsByNodeId,
 }: StructureGestureCaptureInput) {
   const index = createStructureIndex(snapshot.structure);
   const selectedAncestor = ancestorsOf(id, index).some((ancestor) => selectedIds.includes(ancestor.id));
@@ -36,7 +36,7 @@ export function captureStructureGesture({
     .map(({ id: rootId }) => rootId);
   if (!roots.length) return undefined;
   const moving = new Set(roots);
-  const stationary = [...bounds].filter(
+  const stationary = [...boundsByNodeId].filter(
     ([rootId]) =>
       !moving.has(rootId) && !ancestorsOf(rootId, index).some((ancestor) => moving.has(ancestor.id)),
   );
@@ -47,7 +47,7 @@ export function captureStructureGesture({
     target,
     origin: target.position(),
     snap: createTranslationSnapSession(
-      roots.map((rootId) => snapFrame(bounds.get(rootId)!)),
+      roots.map((rootId) => snapFrame(boundsByNodeId.get(rootId)!)),
       createCanvasTranslationSnapIndex(stationary.map(([, frame]) => snapFrame(frame))),
     ),
   };

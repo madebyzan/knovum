@@ -6,7 +6,7 @@ export interface ImageActionHelp {
   actionLabel?: string | undefined;
 }
 
-const REASON_KEYS: Record<ImageActionReason, string> = {
+const MESSAGE_KEY_BY_REASON: Record<ImageActionReason, string> = {
   image_preparing: "spaces.media.imageEditor.status.imagePreparing",
   finish_image_edit: "spaces.media.imageEditor.finishImageEdit",
   capability_failed: "spaces.media.imageEditor.errors.capabilityCheckFailed",
@@ -27,7 +27,7 @@ export function imageActionHelp(availability: ImageActionAvailability): ImageAct
   const setup =
     availability.reason === "configuration_incomplete" || availability.reason === "provider_unsupported";
   return {
-    label: t(REASON_KEYS[availability.reason]),
+    label: t(MESSAGE_KEY_BY_REASON[availability.reason]),
     ...(setup ? { actionLabel: t("spaces.media.imageEditor.openAiSettings") } : {}),
   };
 }

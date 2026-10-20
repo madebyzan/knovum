@@ -122,14 +122,6 @@ function reorderArray<T>(array: readonly T[], fromIndex: number, toIndex: number
   return copy;
 }
 
-export async function moveSpaceScene(context: SceneActionContext, sceneId: string, direction: -1 | 1) {
-  const ordered = sortBy(context.scenes.value, [(scene) => scene.orderIndex, (scene) => scene.createdAt]);
-  const from = ordered.findIndex((scene) => scene.id === sceneId);
-  const to = from + direction;
-  if (from < 0 || to < 0 || to >= ordered.length) return;
-  await persistReorderedScenes(context, reorderArray(ordered, from, to));
-}
-
 export async function reorderSpaceScenes(context: SceneActionContext, sourceId: string, targetId: string) {
   const ordered = sortBy(context.scenes.value, [(scene) => scene.orderIndex, (scene) => scene.createdAt]);
   const from = ordered.findIndex((s) => s.id === sourceId);

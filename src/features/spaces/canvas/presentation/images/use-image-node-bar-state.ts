@@ -42,7 +42,7 @@ export function useImageNodeBarState(
   );
   const commenting = computed(() => comments.activeNodeId === node.value.id);
   const removing = computed(() => removal.active?.nodeId === node.value.id);
-  const directAvailability = computed(() => {
+  const availabilityByDerivation = computed(() => {
     const idle = !session.active && !removal.active && !commenting.value;
     return Object.fromEntries(
       DIRECT_DERIVATIONS.map((actionId) => [
@@ -53,12 +53,12 @@ export function useImageNodeBarState(
       ]),
     ) as Record<DirectImageDerivation, ImageActionAvailability>;
   });
-  const directReason = computed(
+  const reasonByDerivation = computed(
     () =>
       Object.fromEntries(
         DIRECT_DERIVATIONS.map((actionId) => [
           actionId,
-          imageActionHelp(directAvailability.value[actionId])?.label ?? "",
+          imageActionHelp(availabilityByDerivation.value[actionId])?.label ?? "",
         ]),
       ) as Record<DirectImageDerivation, string>,
   );
@@ -123,7 +123,7 @@ export function useImageNodeBarState(
   }
 
   function runDirectDerivation(actionId: DirectImageDerivation) {
-    if (!nodeOperations.allows("derive") || !canRunAction(directAvailability.value[actionId])) return;
+    if (!nodeOperations.allows("derive") || !canRunAction(availabilityByDerivation.value[actionId])) return;
     openPopover.value = undefined;
     invokeDerivation(actionId);
   }
@@ -148,8 +148,8 @@ export function useImageNodeBarState(
     activeTool,
     removing,
     commenting,
-    directAvailability,
-    directReason,
+    availabilityByDerivation,
+    reasonByDerivation,
     dimensionsReady,
     removalAvailability,
     removalReason,

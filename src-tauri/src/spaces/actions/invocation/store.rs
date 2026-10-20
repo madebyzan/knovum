@@ -42,7 +42,7 @@ pub(super) async fn save_outcome(
     now: i64,
 ) -> Result<(), String> {
     let kind = match outcome {
-        ActionInvocationOutcome::QueryResult { .. } => "query_result",
+        ActionInvocationOutcome::Projection { .. } => "projection",
         ActionInvocationOutcome::CommittedReceipt { .. } => "committed_receipt",
         ActionInvocationOutcome::AcceptedRun { .. } => "accepted_run",
     };

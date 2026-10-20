@@ -1,15 +1,10 @@
 <script setup lang="ts">
-import { RefreshCw } from "@lucide/vue";
-import { useMutation } from "@tanstack/vue-query";
 import { cloneDeep, isEqual } from "es-toolkit";
 import { computed, onScopeDispose, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import {
-  updateMcpConnection,
-  checkMcpConnection,
-} from "../../../../foundation/extensions/connection-operations";
+import { updateMcpConnection } from "../../../../foundation/extensions/connection-operations";
 import { useSettingsLeaveContext } from "../../../../foundation/lifecycle/use-settings-leave-context";
 import type { ConnectorDefinition } from "../../../../shared/contracts/generated/ConnectorDefinition";
 import type { McpConnection } from "../../../../shared/contracts/generated/McpConnection";
@@ -18,9 +13,10 @@ import type { McpToolPermission } from "../../../../shared/contracts/generated/M
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
-import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import { useExtensionChanges } from "../../use-extension-changes";
+import { useMcpCatalogCheck } from "../use-mcp-catalog-check";
 import McpCatalogBrowser from "./McpCatalogBrowser.vue";
+import McpConnectionCheck from "./McpConnectionCheck.vue";
 import McpToolSelection from "./McpToolSelection.vue";
 
 const props = defineProps<{ connection: McpConnection; connector: ConnectorDefinition }>();
@@ -37,13 +33,7 @@ const dirty = computed(
   () => name.value !== savedName.value || !isEqual(permissions.value, savedPermissions.value),
 );
 let admittedSave: Promise<boolean> | undefined;
-const checking = useMutation({
-  mutationFn: (connection: McpConnection) => checkMcpConnection(connection.id),
-  onSuccess: (value, connection) => {
-    if (connection.id !== props.connection.id || connection.revision !== props.connection.revision) return;
-    catalog.value = value;
-  },
-});
+const checking = useMcpCatalogCheck(() => props.connection, catalog);
 watch(
   () => [props.connection.id, props.connection.revision],
   () => {
@@ -140,17 +130,11 @@ onScopeDispose(unregister);
         >
       </form>
       <div class="flex flex-wrap items-center justify-between gap-2 border-t border-stroke-divider/80 pt-3">
-        <UiButton
+        <McpConnectionCheck
           :disabled="checking.isPending.value || changes.isPending.value || dirty || !connector.endpoint"
-          data-testid="check-mcp-connection"
-          size="sm"
-          variant="secondary"
-          @click="checking.mutate(connection)"
-        >
-          <UiSpinner v-if="checking.isPending.value" class="size-3.5" />
-          <RefreshCw v-else class="size-3.5" />
-          <span>{{ $t("extensions.connections.check") }}</span>
-        </UiButton>
+          :checking="checking.isPending.value"
+          @check="checking.mutate(connection)"
+        />
       </div>
       <p v-if="changes.error.value || checking.error.value" role="alert" class="text-caption text-fg-danger">
         {{ getErrorMessage(changes.error.value || checking.error.value) }}
@@ -166,17 +150,11 @@ onScopeDispose(unregister);
       v-else
       class="flex flex-wrap items-center justify-between gap-2 rounded-panel border border-stroke-default bg-surface-raised p-3"
     >
-      <UiButton
+      <McpConnectionCheck
         :disabled="checking.isPending.value || changes.isPending.value || dirty || !connector.endpoint"
-        data-testid="check-mcp-connection"
-        size="sm"
-        variant="secondary"
-        @click="checking.mutate(connection)"
-      >
-        <UiSpinner v-if="checking.isPending.value" class="size-3.5" />
-        <RefreshCw v-else class="size-3.5" />
-        <span>{{ $t("extensions.connections.check") }}</span>
-      </UiButton>
+        :checking="checking.isPending.value"
+        @check="checking.mutate(connection)"
+      />
       <p v-if="changes.error.value || checking.error.value" role="alert" class="text-caption text-fg-danger">
         {{ getErrorMessage(changes.error.value || checking.error.value) }}
       </p>

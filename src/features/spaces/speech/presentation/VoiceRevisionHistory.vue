@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { VoiceProfileHistory } from "../../contracts/generated/VoiceProfileHistory";
-import { VOICE_ENGINE_LABELS } from "../voice-options";
+import { LABEL_BY_VOICE_ENGINE } from "../voice-options";
 import VoiceAudition from "./VoiceAudition.vue";
 
 const props = defineProps<{ profile: DeepReadonly<VoiceProfileHistory>; disabled: boolean }>();
@@ -20,7 +20,7 @@ watch(
 const options = computed(() =>
   props.profile.revisions.map((revision) => ({
     value: revision.id,
-    label: `v${revision.revision} · ${revision.language} · ${VOICE_ENGINE_LABELS[revision.engineId]} · ${revision.speed}×`,
+    label: `v${revision.revision} · ${revision.language} · ${LABEL_BY_VOICE_ENGINE[revision.engineId]} · ${revision.speed}×`,
   })),
 );
 </script>

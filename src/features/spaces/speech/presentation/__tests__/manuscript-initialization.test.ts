@@ -33,7 +33,8 @@ it("imports a first manuscript directly and exposes the busy state", async () =>
   const wrapper = render(true);
   await flushPromises();
   expect(reader).toHaveBeenCalledTimes(1);
-  expect(wrapper.emitted("imported")).toEqual([[script, true]]);
+  expect(wrapper.emitted("initialized")).toEqual([[script]]);
+  expect(wrapper.emitted("imported")).toBeUndefined();
   expect(wrapper.emitted("busy")).toEqual([[false], [true], [false]]);
 });
 
@@ -44,5 +45,6 @@ it("does not replace a saved manuscript until the user explicitly imports again"
   expect(reader).not.toHaveBeenCalled();
   await wrapper.get("button").trigger("click");
   await flushPromises();
-  expect(wrapper.emitted("imported")).toEqual([[script, false]]);
+  expect(wrapper.emitted("imported")).toEqual([[script]]);
+  expect(wrapper.emitted("initialized")).toBeUndefined();
 });

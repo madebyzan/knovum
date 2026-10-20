@@ -86,16 +86,16 @@ fn valid_scale(value: f64) -> bool {
 
 pub(super) fn validate_world_transform(
     structure_node: &StructureNode,
-    structure: &HashMap<&str, &StructureNode>,
-    layouts: &HashMap<&str, &StructureLayout>,
+    node_by_id: &HashMap<&str, &StructureNode>,
+    layout_by_node_id: &HashMap<&str, &StructureLayout>,
 ) -> Result<(), String> {
     let mut chain = vec![structure_node];
     while let Some(parent_id) = chain.last().and_then(|ancestor| ancestor.parent_id()) {
-        chain.push(structure[parent_id]);
+        chain.push(node_by_id[parent_id]);
     }
     let (mut x, mut y, mut rotation, mut scale) = (0.0, 0.0, 0.0_f64, 1.0);
     for ancestor in chain.into_iter().rev() {
-        let (local_x, local_y, local_rotation, local_scale) = match layouts[ancestor.id()] {
+        let (local_x, local_y, local_rotation, local_scale) = match layout_by_node_id[ancestor.id()] {
             StructureLayout::Content { transform, .. }
             | StructureLayout::Group { transform, .. } => (
                 transform.x,

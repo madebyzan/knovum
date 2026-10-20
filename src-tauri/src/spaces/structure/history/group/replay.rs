@@ -99,10 +99,10 @@ fn containers(targets: &[TargetState], side: Side) -> HashMap<&str, &str> {
 
 async fn move_nodes(
     tx: &mut Transaction<'_, Sqlite>,
-    owners: &HashMap<String, &str>,
+    owner_by_node_id: &HashMap<String, &str>,
 ) -> Result<(), AppError> {
     let now = crate::foundation::clock::unix_time_millis()?;
-    for (node, space) in owners {
+    for (node, space) in owner_by_node_id {
         sqlx::query(
             "UPDATE spaces_nodes SET space_id=$1,updated_at=$2 \
              WHERE id=$3 AND space_id<>$1 AND deleted_at IS NULL",

@@ -82,10 +82,13 @@ impl Side {
 
 pub(super) fn diff(before: &HistoryState, after: &HistoryState) -> HistoryPatch {
     HistoryPatch {
-        structure: changes(&before.structure, &after.structure),
-        relation_styles: changes(&before.relation_styles, &after.relation_styles),
+        structure: changes(&before.row_by_node_id, &after.row_by_node_id),
+        relation_styles: changes(&before.style_by_relation_id, &after.style_by_relation_id),
         nodes: presences(&before.live_nodes(), &after.live_nodes()),
-        relations: changes(&before.relations, &after.relations),
+        relations: changes(
+            &before.lifecycle_by_relation_id,
+            &after.lifecycle_by_relation_id,
+        ),
     }
 }
 
@@ -217,29 +220,4 @@ fn layout_content_size(layout: &StructureLayout) -> Option<ContentSize> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::Change;
-    use serde::{Deserialize, Serialize};
-
-    // A row need not invent a default value just because one side of an edit is absent.
-    #[derive(Deserialize, Serialize)]
-    struct Row {
-        title: String,
-    }
-
-    #[test]
-    fn absent_sides_round_trip_without_a_default_row() {
-        for (json, before, after) in [
-            (r#"{"id":"node","after":{"title":"created"}}"#, false, true),
-            (r#"{"id":"node","before":{"title":"deleted"}}"#, true, false),
-        ] {
-            let change: Change<Row> = serde_json::from_str(json).unwrap();
-            assert_eq!(change.before.is_some(), before);
-            assert_eq!(change.after.is_some(), after);
-            assert_eq!(
-                serde_json::to_value(&change).unwrap(),
-                serde_json::from_str::<serde_json::Value>(json).unwrap()
-            );
-        }
-    }
-}
+mod tests;

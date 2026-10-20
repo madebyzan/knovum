@@ -14,11 +14,11 @@ const props = withDefaults(
   },
 );
 
-const circumference = 37.7;
+const PROGRESS_RING_CIRCUMFERENCE = 37.7;
 const strokeDashoffset = computed(() => {
   if (props.progress === undefined) return undefined;
   const clamped = Math.max(0, Math.min(100, props.progress));
-  return circumference * (1 - clamped / 100);
+  return PROGRESS_RING_CIRCUMFERENCE * (1 - clamped / 100);
 });
 </script>
 
@@ -77,7 +77,7 @@ const strokeDashoffset = computed(() => {
       stroke="currentColor"
       stroke-width="1.8"
       stroke-linecap="round"
-      :stroke-dasharray="circumference"
+      :stroke-dasharray="PROGRESS_RING_CIRCUMFERENCE"
       :stroke-dashoffset="strokeDashoffset ?? 12"
       :class="{ 'origin-center -rotate-90 transition-all duration-300': progress !== undefined }"
     />

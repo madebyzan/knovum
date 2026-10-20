@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 
 import { cn } from "./cn";
 
-const CLAMP_CLASSES: Record<number, string> = {
+const CLASSES_BY_LINE_COUNT: Record<number, string> = {
   1: "line-clamp-1",
   2: "line-clamp-2",
   3: "line-clamp-3",
@@ -62,7 +62,7 @@ onMounted(async () => {
 
 const clampClass = computed(() => {
   if (expanded.value) return undefined;
-  return CLAMP_CLASSES[props.clampLines] ?? "line-clamp-4";
+  return CLASSES_BY_LINE_COUNT[props.clampLines] ?? "line-clamp-4";
 });
 
 function toggle() {

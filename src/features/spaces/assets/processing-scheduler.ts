@@ -49,7 +49,7 @@ export function scheduleSpaceAssetProcessing(input: SpaceAssetProcessingInput) {
           spaceId,
           nodeId,
           jobId,
-          onUpdate: (updated) => {
+          onPayload: (updated) => {
             currentContent = updated;
             context.applyNodeContentForSpace(spaceId, nodeId, updated);
           },

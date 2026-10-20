@@ -5,7 +5,7 @@ import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { removeSpaceAssets } from "../assets/asset-operations";
 import type { PendingContentContext } from "../assets/import-contract";
 import { acquireMediaSource } from "../media/import/acquisition";
-import { reserveMediaImportAsset } from "../media/import/ipc";
+import { allocateMediaImportAsset } from "../media/import/ipc";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceMediaPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
@@ -56,7 +56,7 @@ interface MediaSourceImportInput {
 
 async function importMediaSource(context: UrlCaptureContext, input: MediaSourceImportInput) {
   const jobId = crypto.randomUUID();
-  const assetPath = await reserveMediaImportAsset(jobId, input.kind);
+  const assetPath = await allocateMediaImportAsset(jobId, input.kind);
   const [node] = await context.createPendingContentForSpace(
     input.spaceId,
     arrivingMedia(input, assetPath),
@@ -117,7 +117,7 @@ async function settle(
     data: payload,
   });
   node.data = payload;
-  context.finalizePendingContent(spaceId, [node], context.getActiveSpaceId() === spaceId);
+  context.finalizePendingContent(spaceId, [node], { reveal: context.getActiveSpaceId() === spaceId });
   void logInfo("[spaces.url-capture] media node settled");
   return node;
 }

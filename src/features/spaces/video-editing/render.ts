@@ -43,7 +43,7 @@ export async function renderVideoEdit(
   };
   const [pending] = await store.createPendingContentForSpace(spaceId, pendingContent);
   if (!pending) throw new Error("Could not create the edited video output");
-  store.finalizePendingContent(spaceId, [pending], false);
+  store.finalizePendingContent(spaceId, [pending], { reveal: false });
   const derivationId = crypto.randomUUID();
   const cancel = () => invokeCommand<void>("plugin:spaces|cancel_video_edit_render", { derivationId });
   const taskId = tasks.start(

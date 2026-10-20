@@ -24,7 +24,7 @@ export function createDerivationActions({
   sources,
   composing,
 }: DerivationActionsOptions) {
-  const handlers: Record<CreationIntentId, () => void> = {
+  const handlerByIntent: Record<CreationIntentId, () => void> = {
     "remove-image-background": () => void (single.value && createImageCutout(single.value)),
     "split-image-layers": () => void (single.value && splitImageLayers(single.value)),
     "add-video-subtitles": () => void (single.value && addVideoSubtitles(single.value)),
@@ -34,7 +34,7 @@ export function createDerivationActions({
   };
 
   function run(actionId: CreationIntentId) {
-    if (canRun(actionId)) handlers[actionId]();
+    if (canRun(actionId)) handlerByIntent[actionId]();
   }
 
   function submit(draft: CreationDraft) {

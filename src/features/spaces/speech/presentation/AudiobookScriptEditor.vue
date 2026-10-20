@@ -94,7 +94,8 @@ watchEffect(() =>
         :node="sourceNode"
         :disabled="disabled"
         :initialize="project.project.activeRevision === 1 && !project.segments.length"
-        @imported="(script, initialize) => draft.importScript(script, initialize)"
+        @imported="draft.importScript($event)"
+        @initialized="draft.initializeFromScript($event)"
         @busy="importing = $event"
       />
       <p v-if="!draft.chapters.value.length && !importing" class="text-caption text-fg-secondary">

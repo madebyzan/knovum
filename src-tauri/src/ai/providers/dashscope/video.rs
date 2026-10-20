@@ -28,7 +28,7 @@ impl VideoGenerationCapability for DashScopeVideoAdapter {
                 &ctx.model,
                 &req.prompt,
                 &req.ratio,
-                req.duration,
+                req.duration_seconds,
                 &req.reference_images,
             );
             let submission_response = client

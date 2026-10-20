@@ -37,7 +37,7 @@ describe("token activity calendar", () => {
       fromDate: "2026-09-22",
       toDate: "2026-09-22",
       activity: [{ date: "2026-09-22", inputTokens: 100, outputTokens: 300, totalTokens: 400, requests: 1 }],
-      summary: {
+      metrics: {
         inputTokens: 100,
         outputTokens: 300,
         totalTokens: 400,

@@ -9,7 +9,12 @@ import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
 import { tiptapContentSchema } from "../../../model/nodes/schema/content";
 import { truncateUtf16 } from "../../../model/text";
 import { registerSpaceSessionParticipant } from "../../../workspace/session-participants";
-import { updateCanvasTextEditorProjection, updateCanvasTextSelectionProjection } from "../../editor-session";
+import {
+  activateCanvasTextEditor,
+  activateCanvasTextSelection,
+  deactivateCanvasTextEditor,
+  deactivateCanvasTextSelection,
+} from "../../editor-session";
 
 interface CanvasTextEditorOptions {
   id: string;
@@ -28,8 +33,8 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
 
   watch(options.interactive, (interactive) => (interactive ? void beginEditing() : void saveQuietly()));
   onBeforeUnmount(() => {
-    updateCanvasTextEditorProjection(options.id, false);
-    updateCanvasTextSelectionProjection(options.id, false);
+    deactivateCanvasTextEditor(options.id);
+    deactivateCanvasTextSelection(options.id);
     editor.value?.destroy();
     editor.value = undefined;
     detachCommit?.();
@@ -38,7 +43,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   async function beginEditing() {
     if (editing.value || !options.interactive.value) return;
     editing.value = true;
-    updateCanvasTextEditorProjection(options.id, true);
+    activateCanvasTextEditor(options.id);
     editor.value = new Editor({
       content: options.data.value.tiptapContent,
       editable: true,
@@ -51,7 +56,8 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
       },
       onSelectionUpdate: ({ editor: instance }) => {
         const { from, to } = instance.state.selection;
-        updateCanvasTextSelectionProjection(options.id, from !== to);
+        if (from === to) deactivateCanvasTextSelection(options.id);
+        else activateCanvasTextSelection(options.id);
       },
       onUpdate: () => {
         dirty.value = true;
@@ -111,9 +117,9 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   function finishEditing() {
     const instance = editor.value;
     editing.value = false;
-    updateCanvasTextEditorProjection(options.id, false);
+    deactivateCanvasTextEditor(options.id);
     editor.value = undefined;
-    updateCanvasTextSelectionProjection(options.id, false);
+    deactivateCanvasTextSelection(options.id);
     detachCommit?.();
     detachCommit = undefined;
     instance?.destroy();

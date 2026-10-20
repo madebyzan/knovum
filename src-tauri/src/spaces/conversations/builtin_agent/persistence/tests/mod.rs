@@ -83,7 +83,7 @@ async fn frozen_execution_preserves_image_input_and_space_snapshot() {
             extensions: &serde_json::from_value(json!({"plugins":[],"id":"snapshot","digest":"digest","skills":[],"files":[],"skillToolBindings":{},"connectors":[],"connections":[],"accounts":[],"catalogs":{},"tools":[]})).unwrap(),
             context_manifest: &attachments,
             space_context: &space,
-            attachment_summaries: &[],
+            message_attachments: &[],
             target: &target,
             profile: &profile,
             messages: &messages,

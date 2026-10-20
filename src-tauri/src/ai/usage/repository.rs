@@ -42,7 +42,7 @@ pub async fn report(
     Ok(UsageReport {
         from_date: from.to_string(),
         to_date: to.to_string(),
-        summary: summarize(&activity, to)?,
+        metrics: measure(&activity, to)?,
         activity,
         by_purpose,
     })
@@ -76,8 +76,8 @@ fn parse_purpose(row: &sqlx::sqlite::SqliteRow) -> Result<UsagePurposeTotal, Str
     })
 }
 
-pub(super) fn summarize(days: &[UsageDay], to: NaiveDate) -> Result<UsageMetrics, String> {
-    let mut summary = UsageMetrics {
+pub(super) fn measure(days: &[UsageDay], to: NaiveDate) -> Result<UsageMetrics, String> {
+    let mut metrics = UsageMetrics {
         input_tokens: days.iter().map(|day| day.input_tokens).sum(),
         output_tokens: days.iter().map(|day| day.output_tokens).sum(),
         total_tokens: days.iter().map(|day| day.total_tokens).sum(),
@@ -96,9 +96,9 @@ pub(super) fn summarize(days: &[UsageDay], to: NaiveDate) -> Result<UsageMetrics
     } else {
         to.checked_sub_days(Days::new(1)).unwrap_or(to)
     };
-    summary.current_streak_days = streak_ending_at(&dates, current_end);
-    summary.longest_streak_days = longest_streak(&dates);
-    Ok(summary)
+    metrics.current_streak_days = streak_ending_at(&dates, current_end);
+    metrics.longest_streak_days = longest_streak(&dates);
+    Ok(metrics)
 }
 
 fn streak_ending_at(dates: &std::collections::BTreeSet<NaiveDate>, mut day: NaiveDate) -> u64 {

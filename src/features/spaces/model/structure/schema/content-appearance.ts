@@ -1,25 +1,25 @@
 import { z } from "zod";
 
-export const CANVAS_TYPOGRAPHY_SCALE_MIN = 0.25;
-export const CANVAS_TYPOGRAPHY_SCALE_MAX = 4;
-export const CANVAS_TEXT_COLORS = ["ink", "muted", "red", "blue", "green", "purple"] as const;
-export const CANVAS_FILL_PRESETS = ["yellow", "green", "blue", "pink", "gray"] as const;
+export const CONTENT_TYPOGRAPHY_SCALE_MIN = 0.25;
+export const CONTENT_TYPOGRAPHY_SCALE_MAX = 4;
+export const CONTENT_TEXT_COLOR_NAMES = ["ink", "muted", "red", "blue", "green", "purple"] as const;
+export const CONTENT_FILL_PRESETS = ["yellow", "green", "blue", "pink", "gray"] as const;
 
 /** The same content appearance is validated in stored structure and canvas projections. */
 export const contentAppearanceSchema = z
   .object({
-    fill: z.enum(CANVAS_FILL_PRESETS).optional(),
+    fill: z.enum(CONTENT_FILL_PRESETS).optional(),
     customFill: z
       .string()
       .regex(/^#[\da-f]{6}$/iu)
       .optional(),
-    textColor: z.enum(CANVAS_TEXT_COLORS).optional(),
+    textColor: z.enum(CONTENT_TEXT_COLOR_NAMES).optional(),
     fontSize: z.number().finite().min(2.5).max(576).optional(),
     typographyScale: z
       .number()
       .finite()
-      .min(CANVAS_TYPOGRAPHY_SCALE_MIN)
-      .max(CANVAS_TYPOGRAPHY_SCALE_MAX)
+      .min(CONTENT_TYPOGRAPHY_SCALE_MIN)
+      .max(CONTENT_TYPOGRAPHY_SCALE_MAX)
       .optional(),
     fontWeight: z.enum(["regular", "bold"]).optional(),
     fontStyle: z.enum(["normal", "italic"]).optional(),

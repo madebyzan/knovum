@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useResizeObserver } from "@vueuse/core";
-import { computed, shallowRef, watchEffect } from "vue";
+import { computed, shallowRef, useTemplateRef, watchEffect } from "vue";
 
 import { versionedMediaSource } from "../../media/media-element-source";
 import type { VideoClip } from "../project";
@@ -10,7 +10,7 @@ import type { VideoEditor } from "./use-video-editor";
 
 const props = defineProps<{ clip: VideoClip; editor: VideoEditor }>();
 const { timeline, filmstrips, materials, visibleProject } = props.editor;
-const canvas = shallowRef<HTMLCanvasElement | null>(null);
+const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
 const size = shallowRef({ width: 0, height: 0 });
 
 const asset = computed(() =>
@@ -109,7 +109,7 @@ function visibleTiles(bucketMs: number) {
   />
   <canvas
     v-else
-    :ref="(value) => (canvas = value as HTMLCanvasElement | null)"
+    ref="canvas"
     class="pointer-events-none absolute inset-0 size-full opacity-85"
     aria-hidden="true"
   />

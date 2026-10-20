@@ -42,8 +42,8 @@ const {
   activeTool,
   removing,
   commenting,
-  directAvailability,
-  directReason,
+  availabilityByDerivation,
+  reasonByDerivation,
   dimensionsReady,
   removalAvailability,
   removalReason,
@@ -120,8 +120,8 @@ watch(
       <SpaceCanvasImageDerivationActions
         v-if="!minimal"
         :compact="compact"
-        :availability="directAvailability"
-        :reason="directReason"
+        :availability-by-derivation="availabilityByDerivation"
+        :reason-by-derivation="reasonByDerivation"
         :removal-availability="removalAvailability"
         :removal-reason="removalReason"
         :selection-availability="selectionAvailability"
@@ -140,8 +140,8 @@ watch(
         :derivations="derivations"
         :minimal="minimal"
         :dimensions-ready="dimensionsReady"
-        :availability="directAvailability"
-        :reason="directReason"
+        :availability-by-derivation="availabilityByDerivation"
+        :reason-by-derivation="reasonByDerivation"
         :removal-availability="removalAvailability"
         :removal-reason="removalReason"
         :selection-availability="selectionAvailability"

@@ -114,7 +114,7 @@ export function useShellController(
         toggleRightSidebar,
       },
       labels: {
-        editing: {
+        editingLabelByCommand: {
           undo: t("common.undo"),
           redo: t("common.redo"),
           cut: t("common.cut"),

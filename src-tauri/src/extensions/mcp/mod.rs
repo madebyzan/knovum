@@ -12,5 +12,4 @@ mod stdio;
 pub(crate) use client::McpInteraction;
 
 #[cfg(test)]
-#[path = "tests/resource_selection.rs"]
-mod resource_selection_tests;
+mod tests;

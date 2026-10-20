@@ -16,7 +16,7 @@ it("shows resource preparation and cancellation, then switches to transcription 
     resources: { stage: "downloading", downloaded: 1024, total: 2048, percent: 50 },
     sessionId: "recording",
     startedAt: 1,
-    targetApplication: "Editor",
+    targetApplicationName: "Editor",
     text: null,
     language: null,
     insertion: null,

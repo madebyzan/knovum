@@ -1,7 +1,7 @@
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpListener;
 
-use super::http_client;
+use super::super::http_client;
 
 #[tokio::test]
 async fn custom_api_keys_cannot_follow_a_cross_origin_redirect() {

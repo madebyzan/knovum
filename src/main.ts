@@ -54,7 +54,7 @@ async function start(): Promise<void> {
 void start().catch(async (reason: unknown) => {
   const diagnostic = formatErrorDiagnostic(reason);
   await Promise.allSettled([
-    invokeCommand("plugin:desktop|report_startup_failure", { reason: diagnostic.slice(0, 4096) }),
+    invokeCommand("plugin:desktop|fail_startup", { reason: diagnostic.slice(0, 4096) }),
     logError(`Application entry failed: ${diagnostic}`),
   ]);
 });

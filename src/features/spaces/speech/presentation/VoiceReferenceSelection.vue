@@ -9,7 +9,7 @@ const start = defineModel<string>("start", { required: true });
 const end = defineModel<string>("end", { required: true });
 defineProps<{ durationMs: number | undefined; disabled: boolean; valid: boolean }>();
 const { t } = useI18n();
-const duration = computed(() => Math.max(0, Number(end.value) - Number(start.value)));
+const durationSeconds = computed(() => Math.max(0, Number(end.value) - Number(start.value)));
 function setRange(from: number, to: number) {
   start.value = String(from);
   end.value = String(to);
@@ -60,7 +60,7 @@ function setRange(from: number, to: number) {
         )
       }}
       <span v-if="valid" class="mt-1 block text-fg-tertiary">{{
-        t("spaces.speech.reference.selection", { seconds: duration.toFixed(1) })
+        t("spaces.speech.reference.selection", { seconds: durationSeconds.toFixed(1) })
       }}</span>
     </p>
   </div>

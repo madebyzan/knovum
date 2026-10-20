@@ -101,10 +101,10 @@ export function compositionAt(project: VideoEditProject, timeMs: number): Active
   if (!outgoing || !incoming) return { layers };
   const transition = transitionFrom(project, outgoing.clip.id);
   if (!transition) return { layers: [incoming] };
-  const elapsed = timeMs - incoming.clip.timelineStartMs;
+  const elapsedMs = timeMs - incoming.clip.timelineStartMs;
   return {
     layers,
-    transition: { transition, progress: Math.min(1, Math.max(0, elapsed / transition.durationMs)) },
+    transition: { transition, progress: Math.min(1, Math.max(0, elapsedMs / transition.durationMs)) },
   };
 }
 

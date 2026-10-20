@@ -80,7 +80,7 @@ pub(super) fn remap(value: &mut Value, maps: &mut IdMaps, types: &[Value]) -> Re
         {
             let source = id.as_str().ok_or("Saved View focus identity is invalid")?;
             let ids = maps
-                .entities
+                .id_map_by_collection
                 .get_mut("structureNodes")
                 .ok_or("Missing structure identity map")?;
             // A detached navigation target stays detached, with a fresh identity in the imported Space.

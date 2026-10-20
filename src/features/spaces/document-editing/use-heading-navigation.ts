@@ -1,4 +1,4 @@
-import { nextTick, onScopeDispose, ref, watch } from "vue";
+import { nextTick, onScopeDispose, ref, watch, type ShallowRef } from "vue";
 
 import { activeHeadingFromScroll, type spaceTiptapHeadings } from "./tiptap-outline";
 
@@ -11,16 +11,16 @@ function headingElement(
 }
 
 export function useHeadingNavigation(
+  scrollRoot: Readonly<ShallowRef<HTMLElement | null>>,
   editor: () => Parameters<typeof activeHeadingFromScroll>[0],
   headings: () => ReturnType<typeof spaceTiptapHeadings>,
 ) {
-  const scrollRoot = ref<HTMLElement>();
   const activeHeadingId = ref<string>();
   let scrollFrame = 0;
   const syncActiveHeading = () => {
     globalThis.cancelAnimationFrame(scrollFrame);
     scrollFrame = globalThis.requestAnimationFrame(() => {
-      activeHeadingId.value = activeHeadingFromScroll(editor(), headings(), scrollRoot.value);
+      activeHeadingId.value = activeHeadingFromScroll(editor(), headings(), scrollRoot.value ?? undefined);
     });
   };
   const revealHeading = (position: number) => {
@@ -32,5 +32,5 @@ export function useHeadingNavigation(
   };
   watch(headings, () => void nextTick(syncActiveHeading));
   onScopeDispose(() => globalThis.cancelAnimationFrame(scrollFrame));
-  return { activeHeadingId, revealHeading, scrollRoot, syncActiveHeading };
+  return { activeHeadingId, revealHeading, syncActiveHeading };
 }

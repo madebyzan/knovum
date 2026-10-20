@@ -47,10 +47,10 @@ pub(super) fn require_new(index: &Index, structure_node_id: &str) -> Result<(), 
 }
 pub(super) fn replace_layouts(
     layouts: &mut [StructureLayout],
-    updates: &HashMap<String, StructureLayout>,
+    layout_by_structure_node_id: &HashMap<String, StructureLayout>,
 ) {
     for layout in layouts {
-        if let Some(update) = updates.get(layout.structure_node_id()) {
+        if let Some(update) = layout_by_structure_node_id.get(layout.structure_node_id()) {
             *layout = update.clone();
         }
     }

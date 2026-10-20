@@ -53,7 +53,7 @@ pub async fn enrich_asset(
     space_id: String,
     node_id: String,
     job_id: String,
-    on_update: tauri::ipc::Channel<serde_json::Value>,
+    on_payload: tauri::ipc::Channel<serde_json::Value>,
 ) -> Result<serde_json::Value, AppError> {
     let (cancellation, _lease) = enrichment::registry::acquire(job_id)?;
     enrichment::enrich_node_with_cancellation(
@@ -61,7 +61,7 @@ pub async fn enrich_asset(
         space_id,
         node_id,
         &cancellation,
-        Some(&on_update),
+        Some(&on_payload),
         None,
     )
     .await

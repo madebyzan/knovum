@@ -89,8 +89,8 @@ fn restores_markdown_image_tokens_to_imported_asset_paths() {
     let mut maps = IdMaps {
         source_space: "source".into(),
         target_space: "target".into(),
-        entities: HashMap::new(),
-        assets: HashMap::from([("photo".into(), "/imported/photo.png".into())]),
+        id_map_by_collection: HashMap::new(),
+        path_by_token: HashMap::from([("photo".into(), "/imported/photo.png".into())]),
     };
     content::remap(&mut value, &mut maps, &[]).unwrap();
     assert_eq!(

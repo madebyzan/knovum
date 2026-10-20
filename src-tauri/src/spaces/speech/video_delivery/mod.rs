@@ -93,14 +93,14 @@ pub async fn export_video_dubbing_asset(
                             )
                         })
                         .transpose()?;
-                    let duration = policy::verified_duration_us(
+                    let duration_us = policy::verified_duration_us(
                         &ffmpeg,
                         &video,
                         "0:v:0",
                         config.video.duration_ms,
                         &cancellation,
                     )?;
-                    let samples = policy::samples_for_duration(duration)?;
+                    let samples = policy::samples_for_duration(duration_us)?;
                     let renders = renders
                         .into_iter()
                         .map(|render| publication::validate_cached(&app, render))

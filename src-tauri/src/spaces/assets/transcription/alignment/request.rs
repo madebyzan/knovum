@@ -72,11 +72,11 @@ pub(super) fn segments(
     {
         return Err("Alignment segment is invalid".into());
     }
-    let duration = selected.iter().try_fold(0_u64, |total, segment| {
+    let duration_ms = selected.iter().try_fold(0_u64, |total, segment| {
         total.checked_add(segment.end_ms - segment.start_ms)
     });
-    match duration {
-        Some(duration) if duration <= 300_000 => Ok((selected, duration)),
+    match duration_ms {
+        Some(duration_ms) if duration_ms <= 300_000 => Ok((selected, duration_ms)),
         _ => Err("Selected alignment audio must not exceed five minutes".into()),
     }
 }

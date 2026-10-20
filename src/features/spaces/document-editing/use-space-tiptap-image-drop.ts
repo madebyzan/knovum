@@ -1,5 +1,5 @@
 import type { Editor } from "@tiptap/vue-3";
-import { onBeforeUnmount, onMounted, ref, type Ref } from "vue";
+import { onBeforeUnmount, onMounted, ref, type Ref, type ShallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -10,7 +10,7 @@ import { insertSpaceTiptapImagePaths } from "./tiptap-images";
 
 export function useSpaceTiptapImageDrop(
   editor: Ref<Editor | undefined>,
-  target: Ref<HTMLElement | undefined>,
+  target: Readonly<ShallowRef<HTMLElement | null>>,
   visible: Ref<boolean>,
 ) {
   const { t } = useI18n();

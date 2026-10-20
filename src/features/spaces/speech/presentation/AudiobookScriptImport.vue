@@ -10,7 +10,8 @@ import { useAudiobookScriptImport } from "../use-audiobook-script-import";
 
 const props = defineProps<{ node: SpaceCanvasNode; disabled: boolean; initialize: boolean }>();
 const emit = defineEmits<{
-  imported: [script: ImportedAudiobookScript, initialize: boolean];
+  imported: [script: ImportedAudiobookScript];
+  initialized: [script: ImportedAudiobookScript];
   busy: [value: boolean];
 }>();
 const { t } = useI18n();
@@ -21,13 +22,17 @@ const {
   importScript: runImport,
 } = useAudiobookScriptImport(computed(() => props.node));
 
-async function importScript(initialize = false) {
+async function importScript() {
   const script = await runImport();
-  if (script) emit("imported", script, initialize);
+  if (script) emit("imported", script);
+}
+async function initializeScript() {
+  const script = await runImport();
+  if (script) emit("initialized", script);
 }
 watch(importing, (value) => emit("busy", value), { immediate: true });
 onMounted(() => {
-  if (props.initialize) void importScript(true);
+  if (props.initialize) void initializeScript();
 });
 </script>
 

@@ -1,7 +1,7 @@
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{SocketAddr, TcpListener};
 
-use super::upload::GeminiFileUploadAdapter;
+use super::super::upload::GeminiFileUploadAdapter;
 use crate::ai::{contracts::FileUploadCapability, transport::SecurityContext};
 
 #[tokio::test]

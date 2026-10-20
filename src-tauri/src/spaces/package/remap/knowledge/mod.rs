@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 use std::collections::HashMap;
 
 pub(super) fn remap(value: &mut Value, maps: &IdMaps) -> Result<(), String> {
-    let revisions = array(value, "nodes")?
+    let knowledge_revision_by_node_id = array(value, "nodes")?
         .iter()
         .filter_map(|v| {
             Some((
@@ -14,13 +14,13 @@ pub(super) fn remap(value: &mut Value, maps: &IdMaps) -> Result<(), String> {
         .collect::<HashMap<_, _>>();
     for row in array_mut(value, "chunks")? {
         maps.field(row, "nodeId", "nodes")?;
-        remap_revision(row, "nodeId", &revisions)?;
+        remap_revision(row, "nodeId", &knowledge_revision_by_node_id)?;
     }
     for row in array_mut(value, "provenance")? {
         let collection = entity_collection(string(row, "targetKind")?)?;
         maps.field(row, "targetId", collection)?;
         maps.field(row, "sourceNodeId", "nodes")?;
-        remap_revision(row, "sourceNodeId", &revisions)?;
+        remap_revision(row, "sourceNodeId", &knowledge_revision_by_node_id)?;
     }
     for row in array_mut(value, "knowledgeEvents")? {
         let kind = string(row, "entityKind")?;
@@ -39,7 +39,7 @@ pub(super) fn remap(value: &mut Value, maps: &IdMaps) -> Result<(), String> {
     }
     for row in array_mut(value, "conversationMessages")? {
         if let Some(citations) = row.get_mut("content").and_then(|v| v.get_mut("citations")) {
-            remap_citations(citations, maps, &revisions)?;
+            remap_citations(citations, maps, &knowledge_revision_by_node_id)?;
         }
     }
     for row in array_mut(value, "derivations")? {
@@ -47,7 +47,7 @@ pub(super) fn remap(value: &mut Value, maps: &IdMaps) -> Result<(), String> {
             .get_mut("groundedDocument")
             .and_then(|v| v.get_mut("citations"))
         {
-            remap_citations(citations, maps, &revisions)?;
+            remap_citations(citations, maps, &knowledge_revision_by_node_id)?;
         }
     }
     Ok(())
@@ -64,13 +64,13 @@ fn entity_collection(kind: &str) -> Result<&'static str, String> {
 fn remap_revision(
     row: &mut Value,
     node_field: &str,
-    revisions: &HashMap<String, String>,
+    knowledge_revision_by_node_id: &HashMap<String, String>,
 ) -> Result<(), String> {
     if row["sourceRevision"]
         .as_str()
         .is_some_and(|v| v.starts_with("node1:"))
     {
-        let revision = revisions
+        let revision = knowledge_revision_by_node_id
             .get(string(row, node_field)?)
             .ok_or("Canonical reference node has no Knowledge revision")?;
         row["sourceRevision"] = json!(revision);
@@ -83,7 +83,7 @@ fn remap_revision(
 fn remap_citations(
     value: &mut Value,
     maps: &IdMaps,
-    revisions: &HashMap<String, String>,
+    knowledge_revision_by_node_id: &HashMap<String, String>,
 ) -> Result<(), String> {
     for citation in value.as_array_mut().ok_or("Citations must be an array")? {
         if citation["state"] == "detached" {
@@ -95,14 +95,14 @@ fn remap_citations(
         if canonical {
             let node = string(citation, "nodeId")?.to_owned();
             citation["chunkId"] = json!(format!("node:{node}"));
-            let revision = revisions
+            let revision = knowledge_revision_by_node_id
                 .get(&node)
                 .ok_or("Canonical citation node has no Knowledge revision")?;
             citation["sourceRevision"] = json!(revision);
             citation["locator"]["sourceRevision"] = json!(revision);
         } else {
             maps.field(citation, "chunkId", "chunks")?;
-            remap_revision(citation, "nodeId", revisions)?;
+            remap_revision(citation, "nodeId", knowledge_revision_by_node_id)?;
         }
     }
     Ok(())

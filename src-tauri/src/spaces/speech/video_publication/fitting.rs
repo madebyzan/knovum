@@ -79,8 +79,8 @@ struct Room {
 
 fn placement(index: usize, item: &TimedRender, room: Room) -> Result<Placement, String> {
     let natural = natural_samples(item)?;
-    let delay = room.start - item.start_sample;
-    let window = item.window_samples.saturating_sub(delay);
+    let delay_samples = room.start - item.start_sample;
+    let window = item.window_samples.saturating_sub(delay_samples);
     // A line that is already late compresses as far as it may to catch up, because the room left
     // before the next line is due is the only room it can claim without talking over it.
     let preferred = window

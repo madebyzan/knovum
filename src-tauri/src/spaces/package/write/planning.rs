@@ -86,7 +86,7 @@ fn validate_source_revision(
     token: &str,
     actual: &str,
 ) -> Result<(), String> {
-    if let Some(expected) = manifest_assets.source_revisions.get(token) {
+    if let Some(expected) = manifest_assets.source_revision_by_token.get(token) {
         if expected != actual {
             return Err("A managed Space asset changed after its sourceRevision was recorded; refresh it before exporting the Space".into());
         }

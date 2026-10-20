@@ -77,8 +77,4 @@ fn serve(reader: &mut impl Read, writer: &mut impl Write) -> Result<(), String> 
 }
 
 #[cfg(test)]
-#[path = "tests/process.rs"]
-mod process_tests;
-#[cfg(test)]
-#[path = "tests/protocol.rs"]
-mod protocol_tests;
+mod tests;
