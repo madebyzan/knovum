@@ -1,13 +1,169 @@
-use sqlx::sqlite::SqlitePoolOptions;
+use sqlx::{sqlite::SqlitePoolOptions, Row, SqlitePool};
 
-#[tokio::test]
-async fn image_object_removal_is_a_valid_derivation_action() {
+async fn migrated() -> SqlitePool {
     let pool = SqlitePoolOptions::new()
         .max_connections(1)
         .connect("sqlite::memory:")
         .await
         .expect("database");
     super::migrate(&pool).await.expect("baseline");
+    pool
+}
+
+/// Every table the schema owns. Virtual tables and the shadow tables FTS5 creates for them are
+/// storage of the engine's own making, so they carry neither keys nor indexes of ours.
+async fn table_names(pool: &SqlitePool) -> Vec<String> {
+    let virtual_tables: Vec<String> = sqlx::query_scalar(
+        "SELECT name FROM sqlite_master WHERE type='table' AND sql LIKE 'CREATE VIRTUAL TABLE%'",
+    )
+    .fetch_all(pool)
+    .await
+    .expect("virtual tables");
+    let tables: Vec<String> = sqlx::query_scalar(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite\\_%' \
+         ESCAPE '\\' AND name NOT LIKE '\\_%' ESCAPE '\\' ORDER BY name",
+    )
+    .fetch_all(pool)
+    .await
+    .expect("tables");
+    tables
+        .into_iter()
+        .filter(|table| {
+            !virtual_tables
+                .iter()
+                .any(|owner| table == owner || table.starts_with(&format!("{owner}_")))
+        })
+        .collect()
+}
+
+/// A foreign key without an index on its child columns turns every parent delete into a scan of
+/// the whole child table, so removing one Space or one node slows down with the size of the
+/// library. The rule holds for every foreign key, with no table-by-table exceptions to argue
+/// about: a partial index cannot serve a foreign key, and only a leading-column match can.
+#[tokio::test]
+async fn every_foreign_key_is_indexed() {
+    let pool = migrated().await;
+    let mut unindexed = Vec::new();
+    for table in table_names(&pool).await {
+        let keys = sqlx::query(&format!("PRAGMA foreign_key_list('{table}')"))
+            .fetch_all(&pool)
+            .await
+            .expect("foreign keys");
+        if keys.is_empty() {
+            continue;
+        }
+        let mut indexes = Vec::new();
+        for index in sqlx::query(&format!("PRAGMA index_list('{table}')"))
+            .fetch_all(&pool)
+            .await
+            .expect("indexes")
+        {
+            let name: String = index.get("name");
+            let partial: i64 = index.get("partial");
+            if partial == 1 {
+                continue;
+            }
+            let columns: Vec<String> = sqlx::query_scalar(&format!(
+                "SELECT name FROM pragma_index_info('{name}') ORDER BY seqno"
+            ))
+            .fetch_all(&pool)
+            .await
+            .expect("index columns");
+            indexes.push(columns);
+        }
+        let mut constraints: std::collections::BTreeMap<i64, Vec<(i64, String)>> =
+            std::collections::BTreeMap::new();
+        for key in &keys {
+            let id: i64 = key.get("id");
+            let seq: i64 = key.get("seq");
+            let from: String = key.get("from");
+            constraints.entry(id).or_default().push((seq, from));
+        }
+        for (_, mut columns) in constraints {
+            columns.sort_by_key(|(seq, _)| *seq);
+            let child: Vec<String> = columns.into_iter().map(|(_, name)| name).collect();
+            let covered = indexes
+                .iter()
+                .any(|index| index.len() >= child.len() && index[..child.len()] == child[..]);
+            if !covered {
+                unindexed.push(format!("{table}({})", child.join(",")));
+            }
+        }
+    }
+    assert_eq!(unindexed, Vec::<String>::new());
+}
+
+/// Every table that holds Space-scoped rows must let the Space own them, otherwise deleting a
+/// Space leaves rows that no feature can reach and no reclamation pass can drain. Ownership may
+/// be transitive: a composite key that carries `space_id` into another Space-owned table counts.
+#[tokio::test]
+async fn space_scoped_rows_belong_to_their_space() {
+    let pool = migrated().await;
+    let mut unowned = Vec::new();
+    for table in table_names(&pool).await {
+        if table == "spaces" {
+            continue;
+        }
+        let columns: Vec<String> =
+            sqlx::query_scalar(&format!("SELECT name FROM pragma_table_info('{table}')"))
+                .fetch_all(&pool)
+                .await
+                .expect("columns");
+        if !columns.iter().any(|column| column == "space_id") {
+            continue;
+        }
+        let owned = sqlx::query(&format!("PRAGMA foreign_key_list('{table}')"))
+            .fetch_all(&pool)
+            .await
+            .expect("foreign keys")
+            .into_iter()
+            .any(|key| {
+                let from: String = key.get("from");
+                from == "space_id"
+            });
+        if !owned {
+            unowned.push(table);
+        }
+    }
+    assert_eq!(unowned, Vec::<String>::new());
+}
+
+/// Running the migrator against an already migrated database must be a no-op, which is what
+/// makes an additive migration safe to ship: the installed application applies what is missing
+/// and leaves everything else alone.
+#[tokio::test]
+async fn migrating_an_up_to_date_database_changes_nothing() {
+    let pool = migrated().await;
+    let before: Vec<String> =
+        sqlx::query_scalar("SELECT sql FROM sqlite_master WHERE sql IS NOT NULL ORDER BY name")
+            .fetch_all(&pool)
+            .await
+            .expect("schema");
+    sqlx::query(
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('keep','space','Keep',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .expect("user row");
+
+    super::migrate(&pool).await.expect("second run");
+
+    let after: Vec<String> =
+        sqlx::query_scalar("SELECT sql FROM sqlite_master WHERE sql IS NOT NULL ORDER BY name")
+            .fetch_all(&pool)
+            .await
+            .expect("schema");
+    assert_eq!(before, after);
+    let kept: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces WHERE id='keep'")
+        .fetch_one(&pool)
+        .await
+        .expect("user row preserved");
+    assert_eq!(kept, 1);
+}
+
+#[tokio::test]
+async fn image_object_removal_is_a_valid_derivation_action() {
+    let pool = migrated().await;
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
         .execute(&pool).await.expect("space");
     sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('output','space','image',0,0,'{\"kind\":\"image\",\"title\":\"Output\"}',1,1)")
@@ -18,25 +174,20 @@ async fn image_object_removal_is_a_valid_derivation_action() {
 
 #[tokio::test]
 async fn obsolete_migration_history_is_rejected_without_losing_user_rows() {
-    let pool = SqlitePoolOptions::new()
-        .max_connections(1)
-        .connect("sqlite::memory:")
-        .await
-        .expect("database");
-    super::migrate(&pool).await.expect("baseline");
+    let pool = migrated().await;
     sqlx::query(
         "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('keep','space','Keep',1,1)",
     )
     .execute(&pool)
     .await
     .expect("user row");
-    sqlx::query("INSERT INTO _sqlx_migrations(version,description,success,checksum,execution_time) VALUES(2,'obsolete',1,x'00',0)").execute(&pool).await.expect("old version");
+    sqlx::query("INSERT INTO _sqlx_migrations(version,description,success,checksum,execution_time) VALUES(99,'from a newer release',1,x'00',0)").execute(&pool).await.expect("newer version");
     let error = super::migrate(&pool)
         .await
-        .expect_err("obsolete history must fail");
+        .expect_err("a database from a newer release must fail");
     assert!(matches!(
         error,
-        sqlx::migrate::MigrateError::VersionMissing(2)
+        sqlx::migrate::MigrateError::VersionMissing(99)
     ));
     let title: String = sqlx::query_scalar("SELECT title FROM spaces WHERE id='keep'")
         .fetch_one(&pool)
@@ -46,13 +197,8 @@ async fn obsolete_migration_history_is_rejected_without_losing_user_rows() {
 }
 
 #[tokio::test]
-async fn obsolete_baseline_checksum_is_rejected_without_resetting_the_database() {
-    let pool = SqlitePoolOptions::new()
-        .max_connections(1)
-        .connect("sqlite::memory:")
-        .await
-        .expect("database");
-    super::migrate(&pool).await.expect("baseline");
+async fn an_edited_applied_migration_is_rejected_without_resetting_the_database() {
+    let pool = migrated().await;
     sqlx::query(
         "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('keep','space','Keep',1,1)",
     )
@@ -62,7 +208,7 @@ async fn obsolete_baseline_checksum_is_rejected_without_resetting_the_database()
     sqlx::query("UPDATE _sqlx_migrations SET checksum=x'00' WHERE version=1")
         .execute(&pool)
         .await
-        .expect("obsolete baseline");
+        .expect("edited baseline");
     assert!(matches!(
         super::migrate(&pool).await,
         Err(sqlx::migrate::MigrateError::VersionMismatch(1))
@@ -76,12 +222,7 @@ async fn obsolete_baseline_checksum_is_rejected_without_resetting_the_database()
 
 #[tokio::test]
 async fn diarization_requests_require_and_preserve_their_frozen_model() {
-    let pool = SqlitePoolOptions::new()
-        .max_connections(1)
-        .connect("sqlite::memory:")
-        .await
-        .unwrap();
-    super::migrate(&pool).await.unwrap();
+    let pool = migrated().await;
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)").execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('audio','space','audio',0,0,'{\"kind\":\"audio\",\"title\":\"Audio\"}',1,1)").execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,created_at,updated_at) VALUES('job','space','audio','diarize_media_transcript','pending','revision',1,1)").execute(&pool).await.unwrap();
@@ -108,12 +249,7 @@ async fn diarization_requests_require_and_preserve_their_frozen_model() {
 
 #[tokio::test]
 async fn alignment_requests_require_the_model_before_scheduling() {
-    let pool = SqlitePoolOptions::new()
-        .max_connections(1)
-        .connect("sqlite::memory:")
-        .await
-        .unwrap();
-    super::migrate(&pool).await.unwrap();
+    let pool = migrated().await;
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)").execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('audio','space','audio',0,0,'{\"kind\":\"audio\",\"title\":\"Audio\"}',1,1)").execute(&pool).await.unwrap();
     sqlx::query("INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,created_at,updated_at) VALUES('job','space','audio','align_media_transcript','pending','revision',1,1)").execute(&pool).await.unwrap();
@@ -135,12 +271,7 @@ async fn alignment_requests_require_the_model_before_scheduling() {
 
 #[tokio::test]
 async fn speech_schema_accepts_moss_reference_and_full_separation() {
-    let pool = SqlitePoolOptions::new()
-        .max_connections(1)
-        .connect("sqlite::memory:")
-        .await
-        .unwrap();
-    super::migrate(&pool).await.unwrap();
+    let pool = migrated().await;
     sqlx::query(
         "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)",
     )
@@ -173,26 +304,27 @@ async fn speech_schema_accepts_moss_reference_and_full_separation() {
     .await
     .unwrap();
 
-    let obsolete = sqlx::query("UPDATE spaces_voice_candidates SET model_spec_id='moss-tts-nano-onnx-v1' WHERE id='moss-reference'")
-        .execute(&pool).await;
-    assert!(obsolete.is_err());
+    // A model identifier is catalogue data, so the schema stores whichever engine produced the
+    // candidate and the speech catalogue decides which engines may be offered.
+    sqlx::query("UPDATE spaces_voice_candidates SET model_spec_id='voxcpm2-2b-gguf-q8_0-v1' WHERE id='moss-reference'")
+        .execute(&pool).await.expect("re-engineered candidate");
 
-    let designed_moss = sqlx::query(
+    sqlx::query(
         "INSERT INTO spaces_voice_candidates( \
          id,run_id,source_kind,language,sample_text,design_description,reference_text, \
          reference_asset_path,reference_sha256,reference_byte_length,preview_asset_path,preview_sha256, \
          preview_sample_rate,preview_sample_count,model_spec_id,seed,synthesis_config,authorization,status,created_at) \
          VALUES('moss-designed','moss-designed','designed','en','Sample','Warm','Sample', \
          '/moss-designed.wav',?,32044,'/moss-designed-preview.wav',?,48000,48000, \
-         'moss-tts-nano-100m-onnx-bundled-v2',0,?,?,'ready',1)",
+         'voxcpm2-2b-gguf-orig-v1',0,?,?,'ready',1)",
     )
     .bind("d".repeat(64))
     .bind("e".repeat(64))
     .bind(r#"{"speed":1.0,"sampleRate":48000,"seed":0}"#)
     .bind(r#"{"declared":true,"referenceTranscriptConfirmed":true}"#)
     .execute(&pool)
-    .await;
-    assert!(designed_moss.is_err());
+    .await
+    .expect("designed candidate");
 
     sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('source','space','audio',0,0,'{\"kind\":\"audio\",\"title\":\"Source\"}',1,1)")
         .execute(&pool).await.unwrap();
@@ -211,4 +343,22 @@ async fn speech_schema_accepts_moss_reference_and_full_separation() {
     .execute(&pool)
     .await
     .unwrap();
+
+    // The stored sample rate drives the duration invariant, so a 48 kHz engine is accepted on
+    // its own terms instead of being measured against a rate written into the constraint.
+    sqlx::query(
+        "INSERT INTO spaces_speech_source_separations( \
+         id,space_id,run_id,source_node_id,source_asset_path,source_revision,source_duration_ms,model_spec_id, \
+         background_asset_path,vocals_asset_path,vocals_sha256,background_sha256,background_sample_rate, \
+         background_sample_count,background_duration_ms,created_at) \
+         VALUES('moss-designed','space','moss-designed','source','/source-48k.wav',?,1000, \
+         'spleeter-2stems-fp32-cpu-v1','/background-48k.wav','/vocals-48k.wav',?,?,48000,48000,1000, \
+         1)",
+    )
+    .bind(format!("sha256:{}", "7".repeat(64)))
+    .bind("3".repeat(64))
+    .bind("4".repeat(64))
+    .execute(&pool)
+    .await
+    .expect("48 kHz separation");
 }

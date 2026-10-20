@@ -13,28 +13,64 @@ The database resolves from Tauri's AppConfig directory through the connection po
 
 ## Migration policy
 
-Before the first public release, Knovum-owned data formats, packages, private protocols, runtime
-manifests/descriptors and the Agent profile/graph identity start at version 1 with their current
-fields. Dependency and external API versions remain upstream-owned. Record revisions, Run state
-versions still advance normally. Renumbering does not
-convert development data or runtime publications; unsupported formats fail strict validation.
+Knovum-owned data formats, packages, private protocols, runtime manifests/descriptors and the Agent
+profile/graph identity start at version 1 with their current fields. Dependency and external API
+versions remain upstream-owned. Record revisions and Run state versions still advance normally.
+Renumbering does not convert development data or runtime publications; unsupported formats fail
+strict validation. Store, package and protocol envelopes remain separate contracts with their own
+explicit versions. Spaces conversations contain no product mode. The current Space package is v1 and
+the private Agent RPC is v1.
 
-Before the first public release, Spaces owns one SQLx v1 baseline. Schema changes update that
-baseline and require deleting obsolete development databases. The embedded SQLx migrator runs
-before the Spaces pool is exposed, installs the baseline transactionally, and rejects checksum
-divergence. Store, package and protocol envelopes remain separate contracts with their own explicit versions.
-Spaces conversations contain no product mode. The current Space package is v1 and the private
-Agent RPC is v1; removing conversation modes changes both strict contracts without a compatibility
-reader. Obsolete development databases fail visibly and are never reset automatically.
+The embedded SQLx migrator runs before the Spaces pool is exposed and installs each pending
+migration transactionally.
+
+**Until the first public release**, Spaces owns one SQLx v1 baseline: a schema change edits
+`0001_spaces.sql`, which changes its checksum, so the developer deletes their own obsolete
+development database. Obsolete development databases fail visibly and are never reset
+automatically.
+
+**From the first public release**, the baseline is frozen and every schema change ships as the next
+numbered migration in `src-tauri/src/spaces/db/migrations/`. An installed application must never ask
+the person using it to delete their library, so the two failure modes mean different things and are
+tested separately in `spaces/db/tests`:
+
+- a checksum that no longer matches an applied migration (`VersionMismatch`) means somebody edited a
+  migration that had already shipped. That is a developer mistake, caught before release;
+- a recorded version the binary does not carry (`VersionMissing`) means the database was written by a
+  newer release. The older binary refuses to touch it and says so, instead of downgrading data.
+
+Neither case resets or rewrites user data. Running the migrator against an up-to-date database is a
+no-op, which is what makes an additive migration safe to install.
+
+A forward migration adds; it does not reinterpret. New tables, columns with defaults, indexes and
+triggers are additive. SQLite cannot alter a `CHECK` or add a foreign key in place, so a constraint
+change is a documented table rebuild inside one migration, never a compatibility reader beside the
+old shape.
 
 Install the matching SQLx CLI with
 `cargo install sqlx-cli --no-default-features --features sqlite --version 0.8.6 --locked`.
 `pnpm check:rust` runs Rust tests against fresh in-memory databases initialized by the same embedded
 SQLx Migrator used in production.
 
-After the first public release, this document must be revised before introducing append-only forward
-migrations. Until then, no compatibility readers, repair migrations, or parallel schema paths are
-maintained.
+## Schema invariants
+
+These hold for every table and are enforced by tests in `src-tauri/src/spaces/db/tests/`, not by
+review:
+
+- **Every foreign key is indexed.** Without an index on the child columns SQLite scans the whole
+  child table for each parent row it deletes or nulls, so removing one Space or one node degrades
+  with the size of the library. A partial index cannot serve a foreign key, and only a
+  leading-column match counts.
+- **Space-scoped rows belong to their Space.** A table with `space_id` carries it in a foreign key,
+  directly or through a composite key into another Space-owned table. Otherwise deleting a Space
+  leaves rows no feature can reach and no reclamation pass can drain.
+- **Constraints state invariants, not catalogue membership.** Row state machines, structural shape,
+  JSON validity, identity and physical ranges belong in the schema. A model, engine, action or
+  aspect-ratio identifier is catalogue data owned by Rust: listing those values in a `CHECK` makes
+  every new model a table rebuild, and the edge already validates them.
+- **A stored identity is not a reference.** Columns that record which execution produced a row, or
+  which voice a candidate was promoted into, outlive the Run or profile they name and say so in the
+  schema. Everything else that points at a live row has a foreign key.
 
 ## Renderer boundary
 
