@@ -40,6 +40,10 @@ if(WIN32)
   file(ARCHIVE_EXTRACT INPUT "${CMAKE_BINARY_DIR}/ort-import.zip" DESTINATION "${CMAKE_BINARY_DIR}/ort-import")
   file(COPY "${CMAKE_BINARY_DIR}/ort-import/onnxruntime-win-x64-1.22.1/lib/onnxruntime.lib" DESTINATION "${CMAKE_BINARY_DIR}/ort-lib")
   file(COPY "${CMAKE_INSTALL_PREFIX}/onnxruntime.dll" DESTINATION "${CMAKE_BINARY_DIR}/ort-lib")
+  # sherpa-onnx links a pre-installed Windows onnxruntime through the import library it reads from
+  # location_onnxruntime_lib2, but derives that path only for GPU builds.
+  set(sherpa_flags -Dlocation_onnxruntime_lib2=${CMAKE_BINARY_DIR}/ort-lib/onnxruntime.lib)
 else()
   file(COPY_FILE "${CMAKE_INSTALL_PREFIX}/${onnx_name}" "${CMAKE_BINARY_DIR}/ort-lib/libonnxruntime.dylib")
+  set(sherpa_flags)
 endif()
