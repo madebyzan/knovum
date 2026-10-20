@@ -1,10 +1,10 @@
 use crate::foundation::app_error::AppError;
 mod history;
 mod read;
+pub(crate) mod rows;
 mod write;
 
 pub(crate) use history::invalidate_for_nodes as invalidate_history_for_nodes;
-pub(crate) use write::remove_transferred_structure_nodes_in_transaction;
 
 use sqlx::{Sqlite, Transaction};
 
@@ -44,6 +44,8 @@ pub(crate) async fn initialize_empty_in_transaction(
     Ok(())
 }
 
+/// Reads the Space and proves it is coherent. Every writer loads through here, and a replay that
+/// wrote only the rows one record named validates its result the same way.
 pub(crate) async fn load_in_transaction(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
@@ -84,6 +86,16 @@ pub(crate) async fn save_in_transaction(
         ));
     }
     write::persist_snapshot(tx, space_id, snapshot).await?;
+    advance_revision(tx, space_id, base_revision).await
+}
+
+/// Publishes a write that already happened. A revision is the Space's edit identity, so it moves
+/// exactly once per committed edit whether that edit was written as a snapshot or as rows.
+pub(crate) async fn advance_revision(
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: &str,
+    base_revision: i64,
+) -> Result<i64, AppError> {
     let next_revision = base_revision
         .checked_add(1)
         .ok_or("Space edit revision overflow")?;

@@ -18,6 +18,7 @@ pub async fn pool<R: Runtime>(app: &AppHandle<R>) -> Result<&'static SqlitePool,
                 .run(&pool)
                 .await
                 .map_err(|error| format!("Failed to migrate AI usage database: {error}"))?;
+            crate::sqlite::optimize(&pool).await;
             Ok(pool)
         })
         .await

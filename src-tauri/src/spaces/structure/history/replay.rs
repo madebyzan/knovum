@@ -1,13 +1,15 @@
-use crate::foundation::app_error::AppError;
 use std::collections::HashSet;
 
+use crate::foundation::app_error::AppError;
 use sqlx::{Row, Sqlite, Transaction};
 
-use super::{apply_relations, group, RelationLifecycle};
+use super::patch::{HistoryPatch, Side};
+use super::{apply_relation_styles, apply_relations, apply_structure, fit_restored_content, group};
 use crate::spaces::{
     db,
     structure::{portal_integrity, repository, repository::SpaceStructureSnapshot},
 };
+
 pub(in crate::spaces) async fn apply(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
@@ -15,14 +17,40 @@ pub(in crate::spaces) async fn apply(
     current_snapshot: &SpaceStructureSnapshot,
     redo: bool,
 ) -> Result<i64, AppError> {
-    let order = if redo { "ASC" } else { "DESC" };
-    let undone = if redo { 1 } else { 0 };
-    let mut sql = sqlx::QueryBuilder::<Sqlite>::new("SELECT id,before_snapshot,after_snapshot,before_node_ids,after_node_ids,before_relations,after_relations,history_group_id FROM spaces_edit_history WHERE space_id=$1 AND undone=$2 ORDER BY id ");
-    sql.push(order).push(" LIMIT 1");
-    let row = sql
-        .build()
+    let (id, group_id, patch) = top(tx, space_id, redo).await?;
+    if let Some(group_id) = group_id {
+        return group::apply(tx, &group_id, space_id, current_revision, redo).await;
+    }
+    let side = Side::of(redo);
+    apply_nodes(tx, space_id, &patch, side).await?;
+    apply_relations(tx, &patch, side).await?;
+    repository::rows::vacate(tx, space_id, &patch.structure_ids()).await?;
+    apply_structure(tx, space_id, &patch, side, current_snapshot).await?;
+    apply_relation_styles(tx, space_id, &patch, side).await?;
+    let (mut snapshot, _) = repository::load_in_transaction(tx, space_id).await?;
+    fit_restored_content(tx, space_id, &mut snapshot, &patch.present_nodes(side)).await?;
+    portal_integrity::validate_structure_targets(tx, &[space_id]).await?;
+    let next = repository::advance_revision(tx, space_id, current_revision).await?;
+    settle(tx, id, redo).await?;
+    Ok(next)
+}
+
+/// The record a Space would undo or redo next. Undo takes the newest applied edit, redo the oldest
+/// undone one, so the two walk the same stack from opposite ends.
+pub(super) async fn top(
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: &str,
+    redo: bool,
+) -> Result<(i64, Option<String>, HistoryPatch), AppError> {
+    let sql = if redo {
+        "SELECT id,history_group_id,patch FROM spaces_edit_history \
+         WHERE space_id=$1 AND undone=1 ORDER BY id ASC LIMIT 1"
+    } else {
+        "SELECT id,history_group_id,patch FROM spaces_edit_history \
+         WHERE space_id=$1 AND undone=0 ORDER BY id DESC LIMIT 1"
+    };
+    let row = sqlx::query(sql)
         .bind(space_id)
-        .bind(undone)
         .fetch_optional(&mut **tx)
         .await
         .map_err(db::sql_error)?
@@ -33,86 +61,60 @@ pub(in crate::spaces) async fn apply(
                 "Nothing to undo".to_string()
             }
         })?;
-    let id: i64 = row.try_get("id").map_err(db::sql_error)?;
-    let group_id: Option<String> = row.try_get("history_group_id").map_err(db::sql_error)?;
-    if let Some(group_id) = group_id {
-        return group::apply(tx, &group_id, space_id, current_revision, redo).await;
-    }
-    let before_snapshot_json: String = row.try_get("before_snapshot").map_err(db::sql_error)?;
-    let after_snapshot_json: String = row.try_get("after_snapshot").map_err(db::sql_error)?;
-    let node_ids_json: String = if redo {
-        row.try_get("after_node_ids")
-    } else {
-        row.try_get("before_node_ids")
-    }
-    .map_err(db::sql_error)?;
-    let relations_json: String = if redo {
-        row.try_get("after_relations")
-    } else {
-        row.try_get("before_relations")
-    }
-    .map_err(db::sql_error)?;
-    let before_snapshot: SpaceStructureSnapshot =
-        serde_json::from_str(&before_snapshot_json).map_err(db::json_error)?;
-    let after_snapshot: SpaceStructureSnapshot =
-        serde_json::from_str(&after_snapshot_json).map_err(db::json_error)?;
-    let mut snapshot = if redo {
-        after_snapshot.clone()
-    } else {
-        before_snapshot.clone()
-    };
-    let current_sizes = super::neutral::content_size_states(std::iter::once(current_snapshot));
-    let before_sizes = super::neutral::content_size_states(std::iter::once(&before_snapshot));
-    let after_sizes = super::neutral::content_size_states(std::iter::once(&after_snapshot));
-    super::neutral::preserve_content_sizes(
-        &mut snapshot,
-        &current_sizes,
-        &before_sizes,
-        &after_sizes,
-    );
-    let node_ids: Vec<String> = serde_json::from_str(&node_ids_json).map_err(db::json_error)?;
-    let relations: Vec<RelationLifecycle> =
-        serde_json::from_str(&relations_json).map_err(db::json_error)?;
-    apply_nodes(tx, space_id, &node_ids).await?;
-    apply_relations(tx, &relations).await?;
-    crate::spaces::nodes::fit_content_sizes_in_snapshot(tx, space_id, &mut snapshot, &node_ids)
-        .await?;
-    let next = repository::save_in_transaction(tx, space_id, current_revision, &snapshot).await?;
-    portal_integrity::validate_structure_targets(tx, &[space_id]).await?;
-    sqlx::query(
-        "UPDATE spaces_edit_history SET undone=$1,expected_revision=$2 WHERE id=$3 AND space_id=$4",
-    )
-    .bind(if redo { 0 } else { 1 })
-    .bind(next)
-    .bind(id)
-    .bind(space_id)
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    Ok(next)
+    let encoded: String = row.try_get("patch").map_err(db::sql_error)?;
+    Ok((
+        row.try_get("id").map_err(db::sql_error)?,
+        row.try_get("history_group_id").map_err(db::sql_error)?,
+        serde_json::from_str(&encoded).map_err(db::json_error)?,
+    ))
 }
 
+pub(super) async fn settle(
+    tx: &mut Transaction<'_, Sqlite>,
+    id: i64,
+    redo: bool,
+) -> Result<(), String> {
+    sqlx::query("UPDATE spaces_edit_history SET undone=$1 WHERE id=$2")
+        .bind(i64::from(!redo))
+        .bind(id)
+        .execute(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
+    Ok(())
+}
+
+/// Content leaves and returns through the Trash, so a replay only has to move the nodes whose
+/// presence the record changed; the node rows themselves are never rewritten.
 async fn apply_nodes(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    target: &[String],
+    patch: &HistoryPatch,
+    side: Side,
 ) -> Result<(), AppError> {
-    let current: Vec<String> =
-        sqlx::query_scalar("SELECT id FROM spaces_nodes WHERE space_id=$1 AND deleted_at IS NULL")
-            .bind(space_id)
-            .fetch_all(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-    let current_set: HashSet<&str> = current.iter().map(String::as_str).collect();
-    let target_set: HashSet<&str> = target.iter().map(String::as_str).collect();
-    let trash = current
+    let touched = patch.touched_nodes();
+    if touched.is_empty() {
+        return Ok(());
+    }
+    let expected: HashSet<String> = patch.present_nodes(side).into_iter().collect();
+    let live: HashSet<String> = sqlx::query_scalar(
+        "SELECT id FROM spaces_nodes WHERE space_id=$1 AND deleted_at IS NULL \
+         AND id IN (SELECT value FROM json_each($2))",
+    )
+    .bind(space_id)
+    .bind(sqlx::types::Json(&touched))
+    .fetch_all(&mut **tx)
+    .await
+    .map_err(db::sql_error)?
+    .into_iter()
+    .collect();
+    let trash = touched
         .iter()
-        .filter(|id| !target_set.contains(id.as_str()))
+        .filter(|id| live.contains(*id) && !expected.contains(*id))
         .cloned()
         .collect::<Vec<_>>();
-    let restore = target
+    let restore = touched
         .iter()
-        .filter(|id| !current_set.contains(id.as_str()))
+        .filter(|id| !live.contains(*id) && expected.contains(*id))
         .cloned()
         .collect::<Vec<_>>();
     let now = crate::foundation::clock::unix_time_millis()?;

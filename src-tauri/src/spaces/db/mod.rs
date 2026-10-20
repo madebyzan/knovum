@@ -14,6 +14,7 @@ pub async fn pool<R: Runtime>(app: &AppHandle<R>) -> Result<&'static SqlitePool,
                     sqlx::migrate::MigrateError::VersionMismatch(_) | sqlx::migrate::MigrateError::VersionMissing(_) => "spaces-database-obsolete: This pre-release database uses an obsolete schema. Back up spaces.db before explicitly resetting it; no automatic reset or data conversion was performed.".to_owned(),
                     _ => format!("Failed to initialize Spaces database: {error}"),
                 })?;
+            crate::sqlite::optimize(&pool).await;
             Ok(pool)
         })
         .await

@@ -94,13 +94,11 @@ pub(super) async fn complete(
                 &request.source_space_id,
                 context.source_before,
                 &source_after,
-                source_edit_revision,
             ),
             (
                 &request.target_space_id,
                 context.target_before,
                 &target_after,
-                target_edit_revision,
             ),
         ],
     )

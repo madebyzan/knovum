@@ -1,115 +1,65 @@
-use crate::foundation::app_error::AppError;
 use std::collections::{HashMap, HashSet};
 
+use crate::foundation::app_error::AppError;
 use sqlx::{Sqlite, Transaction};
 
-use super::TargetState;
-use crate::spaces::{db, structure::StructureNode};
+use super::portal;
+use super::{Side, TargetState};
+use crate::spaces::{
+    db,
+    structure::{portal_integrity, repository, StructureNode},
+};
 
-pub(super) fn preserve_history_neutral_content_sizes(targets: &mut [TargetState]) {
-    let current = super::super::neutral::content_size_states(
-        targets.iter().map(|target| &target.current_snapshot),
-    );
-    let before = super::super::neutral::content_size_states(
-        targets.iter().map(|target| &target.before_snapshot),
-    );
-    let after = super::super::neutral::content_size_states(
-        targets.iter().map(|target| &target.after_snapshot),
-    );
-    for target in targets {
-        super::super::neutral::preserve_content_sizes(
-            &mut target.snapshot,
-            &current,
-            &before,
-            &after,
-        );
-    }
-}
-
-pub(super) async fn remove_current_structures(
-    tx: &mut Transaction<'_, Sqlite>,
-    targets: &[TargetState],
-) -> Result<(), AppError> {
-    for target in targets {
-        let (current, _) =
-            super::super::super::repository::load_in_transaction(tx, &target.space_id).await?;
-        let absent = removed_structure_deepest(&current.structure, &target.snapshot.structure);
-        super::super::super::repository::remove_transferred_structure_nodes_in_transaction(
-            tx,
-            &target.space_id,
-            &absent,
-        )
-        .await?;
-        sqlx::query("DELETE FROM spaces_relation_styles WHERE space_id=$1")
-            .bind(&target.space_id)
-            .execute(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-    }
-    Ok(())
-}
-
-pub(super) async fn move_nodes(
-    tx: &mut Transaction<'_, Sqlite>,
-    owners: &HashMap<&str, &str>,
-) -> Result<(), AppError> {
-    for (node, space) in owners {
-        sqlx::query("UPDATE spaces_nodes SET space_id=$1 WHERE id=$2 AND deleted_at IS NULL")
-            .bind(space)
-            .bind(node)
-            .execute(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-    }
-    Ok(())
-}
-
-pub(super) async fn reconcile_knowledge_ownership(
-    tx: &mut Transaction<'_, Sqlite>,
-    targets: &[TargetState],
-) -> Result<(), AppError> {
-    let ids: HashSet<&str> = targets
-        .iter()
-        .flat_map(|target| target.relations.iter().map(|relation| relation.id.as_str()))
-        .collect();
-    let now = crate::foundation::clock::unix_time_millis()?;
-    for id in ids {
-        sqlx::query("UPDATE spaces_relations SET space_id=(SELECT space_id FROM spaces_nodes WHERE id=source_id),updated_at=$1 WHERE id=$2 AND (SELECT space_id FROM spaces_nodes WHERE id=source_id)=(SELECT space_id FROM spaces_nodes WHERE id=target_id)").bind(now).bind(id).execute(&mut **tx).await.map_err(db::sql_error)?;
-    }
-    sqlx::query("UPDATE spaces_provenance SET space_id=(SELECT space_id FROM spaces_nodes WHERE id=source_node_id) WHERE source_node_id IN (SELECT id FROM spaces_nodes)").execute(&mut **tx).await.map_err(db::sql_error)?;
-    sqlx::query("UPDATE spaces_knowledge_chunks SET space_id=(SELECT space_id FROM spaces_nodes WHERE id=node_id) WHERE node_id IN (SELECT id FROM spaces_nodes)").execute(&mut **tx).await.map_err(db::sql_error)?;
-    Ok(())
-}
-
-pub(super) async fn save_targets(
+pub(super) async fn apply(
     tx: &mut Transaction<'_, Sqlite>,
     targets: &[TargetState],
     requested: &str,
+    side: Side,
     redo: bool,
 ) -> Result<i64, AppError> {
+    for target in targets {
+        repository::rows::vacate(tx, &target.space_id, &target.patch.structure_ids()).await?;
+    }
+    // A structure row that this side does not expect has left the Space for its sibling Space
+    // under the same identity, so it is erased rather than kept in the Trash.
+    for target in targets {
+        let absent = deepest_first(
+            &target.current.structure,
+            &target.patch.absent_structure(side),
+        );
+        repository::rows::erase(tx, &target.space_id, &absent).await?;
+    }
+    let node_owners = owners(targets, side);
+    let moved = targets
+        .iter()
+        .flat_map(|target| target.patch.touched_nodes())
+        .collect::<Vec<_>>();
+    move_nodes(tx, &node_owners).await?;
+    follow_nodes(tx, &moved).await?;
+    for target in targets {
+        super::super::apply_structure(tx, &target.space_id, &target.patch, side, &target.current)
+            .await?;
+        super::super::apply_relations(tx, &target.patch, side).await?;
+        super::super::apply_relation_styles(tx, &target.space_id, &target.patch, side).await?;
+    }
+    portal::update_targets(tx, &node_owners, &containers(targets, side), &moved).await?;
     let mut requested_next = 0;
     for target in targets {
-        super::super::apply_relations(tx, &target.relations).await?;
-        let revision = super::current_revision(tx, &target.space_id).await?;
-        let next = super::super::super::repository::save_in_transaction(
+        let (mut snapshot, _) = repository::load_in_transaction(tx, &target.space_id).await?;
+        super::super::fit_restored_content(
             tx,
             &target.space_id,
-            revision,
-            &target.snapshot,
+            &mut snapshot,
+            &target.patch.present_nodes(side),
         )
         .await?;
-        sqlx::query("UPDATE spaces_edit_history SET undone=$1,expected_revision=$2 WHERE id=$3")
-            .bind(if redo { 0 } else { 1 })
-            .bind(next)
-            .bind(target.history_id)
-            .execute(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
+        let next = repository::advance_revision(tx, &target.space_id, target.revision).await?;
+        super::super::replay::settle(tx, target.history_id, redo).await?;
         if target.space_id == requested {
             requested_next = next;
         }
     }
-    super::super::super::portal_integrity::validate_structure_targets(
+    portal_integrity::validate_structure_targets(
         tx,
         &targets
             .iter()
@@ -120,16 +70,113 @@ pub(super) async fn save_targets(
     Ok(requested_next)
 }
 
-fn removed_structure_deepest(current: &[StructureNode], desired: &[StructureNode]) -> Vec<String> {
-    let desired: HashSet<&str> = desired.iter().map(StructureNode::id).collect();
+/// Which Space each moved node belongs to on this side: the record that expects to find it owns it.
+fn owners<'a>(targets: &'a [TargetState], side: Side) -> HashMap<String, &'a str> {
+    targets
+        .iter()
+        .flat_map(|target| {
+            target
+                .patch
+                .present_nodes(side)
+                .into_iter()
+                .map(move |id| (id, target.space_id.as_str()))
+        })
+        .collect()
+}
+
+fn containers<'a>(targets: &'a [TargetState], side: Side) -> HashMap<&'a str, &'a str> {
+    targets
+        .iter()
+        .flat_map(|target| {
+            target
+                .patch
+                .containers(side)
+                .into_iter()
+                .map(move |id| (id, target.space_id.as_str()))
+        })
+        .collect()
+}
+
+async fn move_nodes(
+    tx: &mut Transaction<'_, Sqlite>,
+    owners: &HashMap<String, &str>,
+) -> Result<(), AppError> {
+    let now = crate::foundation::clock::unix_time_millis()?;
+    for (node, space) in owners {
+        sqlx::query(
+            "UPDATE spaces_nodes SET space_id=$1,updated_at=$2 \
+             WHERE id=$3 AND space_id<>$1 AND deleted_at IS NULL",
+        )
+        .bind(space)
+        .bind(now)
+        .bind(node)
+        .execute(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
+    }
+    Ok(())
+}
+
+/// Relations, Provenance and Knowledge chunks are owned by the Space of the content they describe,
+/// so they follow the nodes that moved — and only those rows: the rest of the library is untouched.
+async fn follow_nodes(
+    tx: &mut Transaction<'_, Sqlite>,
+    node_ids: &[String],
+) -> Result<(), AppError> {
+    if node_ids.is_empty() {
+        return Ok(());
+    }
+    let relations: Vec<String> = sqlx::query_scalar(
+        "SELECT id FROM spaces_relations WHERE source_id IN (SELECT value FROM json_each($1)) \
+         UNION \
+         SELECT id FROM spaces_relations WHERE target_id IN (SELECT value FROM json_each($1))",
+    )
+    .bind(sqlx::types::Json(node_ids))
+    .fetch_all(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    let now = crate::foundation::clock::unix_time_millis()?;
+    sqlx::query(
+        "UPDATE spaces_relations SET space_id=(SELECT space_id FROM spaces_nodes WHERE id=source_id),updated_at=$1 \
+         WHERE id IN (SELECT value FROM json_each($2)) \
+         AND (SELECT space_id FROM spaces_nodes WHERE id=source_id) \
+           = (SELECT space_id FROM spaces_nodes WHERE id=target_id)",
+    )
+    .bind(now)
+    .bind(sqlx::types::Json(&relations))
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    sqlx::query(
+        "UPDATE spaces_provenance SET space_id=(SELECT space_id FROM spaces_nodes WHERE id=source_node_id) \
+         WHERE source_node_id IN (SELECT value FROM json_each($1))",
+    )
+    .bind(sqlx::types::Json(node_ids))
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    sqlx::query(
+        "UPDATE spaces_knowledge_chunks SET space_id=(SELECT space_id FROM spaces_nodes WHERE id=node_id),updated_at=$1 \
+         WHERE node_id IN (SELECT value FROM json_each($2))",
+    )
+    .bind(now)
+    .bind(sqlx::types::Json(node_ids))
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    Ok(())
+}
+
+fn deepest_first(current: &[StructureNode], removed: &[String]) -> Vec<String> {
     let structure_node_by_id: HashMap<&str, &StructureNode> = current
         .iter()
         .map(|structure_node| (structure_node.id(), structure_node))
         .collect();
-    let mut removed = current
+    let present: HashSet<&str> = structure_node_by_id.keys().copied().collect();
+    let mut removed = removed
         .iter()
-        .filter(|structure_node| !desired.contains(structure_node.id()))
-        .map(|structure_node| structure_node.id().to_owned())
+        .filter(|id| present.contains(id.as_str()))
+        .cloned()
         .collect::<Vec<_>>();
     removed.sort_by_key(|id| std::cmp::Reverse(depth(id, &structure_node_by_id)));
     removed

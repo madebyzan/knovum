@@ -9,7 +9,7 @@ pub(crate) struct RelationStyle {
     pub color: RelationColor,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "lowercase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) enum RelationColor {
@@ -92,7 +92,7 @@ impl StructureNode {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct LocalTransform {
@@ -102,7 +102,7 @@ pub(crate) struct LocalTransform {
     pub scale: f64,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, ts_rs::TS)]
 #[serde(deny_unknown_fields)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct Point {
@@ -110,7 +110,7 @@ pub(crate) struct Point {
     pub y: f64,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, ts_rs::TS)]
 #[serde(deny_unknown_fields)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct Size {
@@ -126,7 +126,7 @@ pub(crate) enum SizingMode {
     Frame,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, ts_rs::TS)]
 #[serde(
     tag = "kind",
     rename_all = "lowercase",

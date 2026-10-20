@@ -1,7 +1,15 @@
+//! A single edit that spans two Spaces.
+//!
+//! Moving a subtree between Spaces changes two Spaces at once, so it is remembered as one record
+//! per Space under a shared group identity and replayed as one step. Structure rows keep their
+//! identity across the move, which is why a replay first takes them out of the Space that is
+//! giving them up and only then writes them into the one receiving them.
+
 use crate::foundation::app_error::AppError;
 use sqlx::{Row, Sqlite, Transaction};
 
-use super::{clear_redo, insert, prune, HistoryInsert, HistoryState, RelationLifecycle};
+use super::patch::{self, HistoryPatch, HistoryState, Side};
+use super::{insert, HistoryInsert};
 use crate::spaces::{db, structure::repository::SpaceStructureSnapshot};
 
 mod portal;
@@ -10,35 +18,30 @@ mod replay;
 struct TargetState {
     history_id: i64,
     space_id: String,
-    snapshot: SpaceStructureSnapshot,
-    before_snapshot: SpaceStructureSnapshot,
-    after_snapshot: SpaceStructureSnapshot,
-    current_snapshot: SpaceStructureSnapshot,
-    node_ids: Vec<String>,
-    relations: Vec<RelationLifecycle>,
+    revision: i64,
+    patch: HistoryPatch,
+    current: SpaceStructureSnapshot,
 }
 
 pub(super) async fn record(
     tx: &mut Transaction<'_, Sqlite>,
     group_id: &str,
-    entries: &[(&str, &HistoryState, &HistoryState, i64)],
+    entries: &[(&str, &HistoryState, &HistoryState)],
 ) -> Result<(), AppError> {
     let now = crate::foundation::clock::unix_time_millis()?;
-    for (space_id, before, after, revision) in entries {
-        clear_redo(tx, space_id).await?;
+    for (space_id, before, after) in entries {
+        super::clear_redo(tx, space_id).await?;
         insert(
             tx,
             HistoryInsert {
                 space_id,
-                before,
-                after,
+                patch: &patch::diff(before, after),
                 group_id: Some(group_id),
-                revision: *revision,
                 now,
             },
         )
         .await?;
-        prune(tx, space_id).await?;
+        super::prune(tx, space_id).await?;
     }
     Ok(())
 }
@@ -50,24 +53,8 @@ pub(super) async fn apply(
     requested_revision: i64,
     redo: bool,
 ) -> Result<i64, AppError> {
-    let mut targets = load_targets(tx, group_id, requested_space, requested_revision, redo).await?;
-    replay::preserve_history_neutral_content_sizes(&mut targets);
-    replay::remove_current_structures(tx, &targets).await?;
-    let owners = portal::node_owners(&targets);
-    let structure_owners = portal::structure_owners(&targets);
-    replay::move_nodes(tx, &owners).await?;
-    replay::reconcile_knowledge_ownership(tx, &targets).await?;
-    portal::update_targets(tx, &owners, &structure_owners).await?;
-    for target in &mut targets {
-        crate::spaces::nodes::fit_content_sizes_in_snapshot(
-            tx,
-            &target.space_id,
-            &mut target.snapshot,
-            &target.node_ids,
-        )
-        .await?;
-    }
-    replay::save_targets(tx, &targets, requested_space, redo).await
+    let targets = load_targets(tx, group_id, requested_space, requested_revision, redo).await?;
+    replay::apply(tx, &targets, requested_space, Side::of(redo), redo).await
 }
 
 async fn load_targets(
@@ -77,16 +64,24 @@ async fn load_targets(
     requested_revision: i64,
     redo: bool,
 ) -> Result<Vec<TargetState>, AppError> {
-    let rows = sqlx::query("SELECT id,space_id,before_snapshot,after_snapshot,before_node_ids,after_node_ids,before_relations,after_relations FROM spaces_edit_history WHERE history_group_id=$1 AND undone=$2 ORDER BY id").bind(group_id).bind(if redo {1}else{0}).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
+    let rows = sqlx::query(
+        "SELECT id,space_id,patch FROM spaces_edit_history \
+         WHERE history_group_id=$1 AND undone=$2 ORDER BY id",
+    )
+    .bind(group_id)
+    .bind(i64::from(redo))
+    .fetch_all(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
     if rows.len() != 2 {
         return Err("Coordinated Space history is incomplete".into());
     }
     let mut targets = Vec::new();
     for row in rows {
         let space_id: String = row.try_get("space_id").map_err(db::sql_error)?;
-        let (current_snapshot, current) =
+        let (current, revision) =
             super::super::repository::load_in_transaction(tx, &space_id).await?;
-        if space_id == requested_space && current != requested_revision {
+        if space_id == requested_space && revision != requested_revision {
             return Err(AppError::new(
                 "space_edit_revision_conflict",
                 "Space edit revision conflict",
@@ -94,73 +89,28 @@ async fn load_targets(
         }
         let history_id: i64 = row.try_get("id").map_err(db::sql_error)?;
         ensure_top(tx, &space_id, history_id, redo).await?;
-        let before_snapshot_json: String = row.try_get("before_snapshot").map_err(db::sql_error)?;
-        let after_snapshot_json: String = row.try_get("after_snapshot").map_err(db::sql_error)?;
-        let before_snapshot: SpaceStructureSnapshot =
-            serde_json::from_str(&before_snapshot_json).map_err(db::json_error)?;
-        let after_snapshot: SpaceStructureSnapshot =
-            serde_json::from_str(&after_snapshot_json).map_err(db::json_error)?;
-        let snapshot = if redo {
-            after_snapshot.clone()
-        } else {
-            before_snapshot.clone()
-        };
-        let nodes: String = if redo {
-            row.try_get("after_node_ids")
-        } else {
-            row.try_get("before_node_ids")
-        }
-        .map_err(db::sql_error)?;
-        let relations: String = if redo {
-            row.try_get("after_relations")
-        } else {
-            row.try_get("before_relations")
-        }
-        .map_err(db::sql_error)?;
+        let encoded: String = row.try_get("patch").map_err(db::sql_error)?;
         targets.push(TargetState {
             history_id,
             space_id,
-            snapshot,
-            before_snapshot,
-            after_snapshot,
-            current_snapshot,
-            node_ids: serde_json::from_str(&nodes).map_err(db::json_error)?,
-            relations: serde_json::from_str(&relations).map_err(db::json_error)?,
+            revision,
+            patch: serde_json::from_str(&encoded).map_err(db::json_error)?,
+            current,
         });
     }
     Ok(targets)
 }
 
-async fn current_revision(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-) -> Result<i64, AppError> {
-    Ok(
-        sqlx::query_scalar("SELECT revision FROM spaces_edit_state WHERE space_id=$1")
-            .bind(space_id)
-            .fetch_one(&mut **tx)
-            .await
-            .map_err(db::sql_error)?,
-    )
-}
-
+/// Neither Space may have moved on since this edit: a coordinated replay has to be the next step
+/// on both stacks or it would reorder one Space's history against the other's.
 async fn ensure_top(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     history_id: i64,
     redo: bool,
 ) -> Result<(), AppError> {
-    let sql = if redo {
-        "SELECT id FROM spaces_edit_history WHERE space_id=$1 AND undone=1 ORDER BY id ASC LIMIT 1"
-    } else {
-        "SELECT id FROM spaces_edit_history WHERE space_id=$1 AND undone=0 ORDER BY id DESC LIMIT 1"
-    };
-    let top: Option<i64> = sqlx::query_scalar(sql)
-        .bind(space_id)
-        .fetch_optional(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    if top != Some(history_id) {
+    let (top, _, _) = super::replay::top(tx, space_id, redo).await?;
+    if top != history_id {
         return Err("Coordinated Space history has diverged".into());
     }
     Ok(())

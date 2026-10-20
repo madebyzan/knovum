@@ -21,6 +21,7 @@ const MAX_EMBEDDED_RESOURCE_BYTES: usize = 32 * 1024 * 1024;
 const MAX_EMBEDDED_IMAGE_BYTES: usize = 64 * 1024 * 1024;
 const MAX_EMBEDDED_AUDIO_BYTES: usize = 128 * 1024 * 1024;
 
+#[derive(Clone)]
 pub enum AgentSessionUpdate {
     Thought(String),
     Message(String),

@@ -59,8 +59,12 @@ pub async fn start(
             return Err(error);
         }
     };
-    let callback = match super::updates::callback(app.clone(), id.clone(), run_id.clone(), updates)
-    {
+    let callback = match super::updates::callback(
+        db::pool(&app).await?,
+        id.clone(),
+        run_id.clone(),
+        updates,
+    ) {
         Ok(callback) => callback,
         Err(error) => {
             mark_disconnected(db::pool(&app).await?, &id, &run_id, &error).await?;

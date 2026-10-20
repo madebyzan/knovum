@@ -15,14 +15,20 @@ type IdsBySpace = BTreeMap<String, Vec<String>>;
 
 /// Live Portals never target these: every structure save rejects a Portal to a deleted container.
 const UNREACHABLE_STRUCTURE: &str = "WITH reachable(id) AS ( \
-     SELECT json_extract(s.value,'$.id') FROM spaces_edit_history h, json_each(h.before_snapshot,'$.structure') s \
-     UNION SELECT json_extract(s.value,'$.id') FROM spaces_edit_history h, json_each(h.after_snapshot,'$.structure') s) \
+     SELECT json_extract(s.value,'$.id') FROM spaces_edit_history h, json_each(h.patch,'$.structure') s \
+     WHERE json_extract(s.value,'$.id') IS NOT NULL) \
      SELECT space_id,id FROM spaces_structure_nodes \
      WHERE deleted_at IS NOT NULL AND id NOT IN (SELECT id FROM reachable) ORDER BY space_id,id";
 
 const UNREACHABLE_NODES: &str = "WITH reachable(id) AS ( \
-     SELECT n.value FROM spaces_edit_history h, json_each(h.before_node_ids) n \
-     UNION SELECT n.value FROM spaces_edit_history h, json_each(h.after_node_ids) n) \
+     SELECT json_extract(n.value,'$.id') FROM spaces_edit_history h, json_each(h.patch,'$.nodes') n \
+     WHERE json_extract(n.value,'$.id') IS NOT NULL \
+     UNION \
+     SELECT json_extract(s.value,'$.before.node.nodeId') FROM spaces_edit_history h, json_each(h.patch,'$.structure') s \
+     WHERE json_extract(s.value,'$.before.node.nodeId') IS NOT NULL \
+     UNION \
+     SELECT json_extract(s.value,'$.after.node.nodeId') FROM spaces_edit_history h, json_each(h.patch,'$.structure') s \
+     WHERE json_extract(s.value,'$.after.node.nodeId') IS NOT NULL) \
      SELECT space_id,id FROM spaces_nodes \
      WHERE deleted_at IS NOT NULL AND id NOT IN (SELECT id FROM reachable) ORDER BY space_id,id";
 

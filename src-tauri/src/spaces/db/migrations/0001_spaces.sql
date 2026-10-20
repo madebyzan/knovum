@@ -130,17 +130,15 @@ CREATE TABLE spaces_edit_receipts (
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
 
+-- One edit remembers the rows it touched, not the state it produced: `patch` holds the before and
+-- after value of every changed structure row, layout, relation style, relation lifecycle and node
+-- presence, and nothing else. An edit of one card therefore costs the same in a Space of ten
+-- thousand cards as in a Space of ten.
 CREATE TABLE spaces_edit_history (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   space_id TEXT NOT NULL,
-  before_snapshot TEXT NOT NULL CHECK (json_valid(before_snapshot)),
-  after_snapshot TEXT NOT NULL CHECK (json_valid(after_snapshot)),
-  before_node_ids TEXT NOT NULL CHECK (json_valid(before_node_ids) AND json_type(before_node_ids) = 'array'),
-  after_node_ids TEXT NOT NULL CHECK (json_valid(after_node_ids) AND json_type(after_node_ids) = 'array'),
-  before_relations TEXT NOT NULL CHECK (json_valid(before_relations) AND json_type(before_relations) = 'array'),
-  after_relations TEXT NOT NULL CHECK (json_valid(after_relations) AND json_type(after_relations) = 'array'),
+  patch TEXT NOT NULL CHECK (json_valid(patch) AND json_type(patch) = 'object'),
   history_group_id TEXT,
-  expected_revision INTEGER NOT NULL CHECK (expected_revision >= 0),
   undone INTEGER NOT NULL DEFAULT 0 CHECK (undone IN (0,1)),
   created_at INTEGER NOT NULL,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
@@ -201,8 +199,8 @@ CREATE TABLE spaces_knowledge_derivations (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
   output_node_id TEXT NOT NULL,
-  action_kind TEXT NOT NULL CHECK (action_kind IN ('remove-image-background', 'remove-image-object', 'split-image-layers', 'upscale-image', 'generate-image-angle', 'extract-image-selection', 'generate-image-depth', 'generate-visualization', 'generate-image', 'add-video-subtitles', 'render-video-edit', 'draft-document', 'draft-script', 'summarize-meeting', 'draft-social-post', 'convert-document-to-docx', 'convert-document-to-pdf', 'convert-document-to-txt', 'convert-document-to-html', 'render-presentation', 'generate-video')),
-  action_version INTEGER NOT NULL CHECK (action_version = 1),
+  action_kind TEXT NOT NULL CHECK (length(trim(action_kind)) > 0),
+  action_version INTEGER NOT NULL CHECK (action_version > 0),
   engine TEXT NOT NULL,
   status TEXT NOT NULL CHECK (status IN ('running', 'completed', 'failed')),
   error TEXT NOT NULL DEFAULT '',
@@ -274,7 +272,7 @@ CREATE TABLE spaces_grounded_documents (
 CREATE TABLE spaces_generated_images (
   derivation_id TEXT PRIMARY KEY NOT NULL,
   intent TEXT NOT NULL,
-  aspect_ratio TEXT NOT NULL CHECK (aspect_ratio IN ('1:1','3:2','2:3','16:9','9:16')),
+  aspect_ratio TEXT NOT NULL CHECK (length(trim(aspect_ratio)) > 0),
   execution_source TEXT NOT NULL CHECK (json_valid(execution_source)),
   revised_prompt TEXT,
   FOREIGN KEY (derivation_id) REFERENCES spaces_knowledge_derivations(id) ON DELETE CASCADE
@@ -283,8 +281,8 @@ CREATE TABLE spaces_generated_images (
 CREATE TABLE spaces_generated_videos (
   derivation_id TEXT PRIMARY KEY NOT NULL,
   prompt TEXT NOT NULL,
-  aspect_ratio TEXT NOT NULL CHECK (aspect_ratio IN ('1:1','16:9','9:16')),
-  duration_seconds INTEGER NOT NULL CHECK (duration_seconds BETWEEN 5 AND 15),
+  aspect_ratio TEXT NOT NULL CHECK (length(trim(aspect_ratio)) > 0),
+  duration_seconds INTEGER NOT NULL CHECK (duration_seconds > 0),
   execution_source TEXT NOT NULL CHECK (json_valid(execution_source)),
   operation_id TEXT,
   FOREIGN KEY (derivation_id) REFERENCES spaces_knowledge_derivations(id) ON DELETE CASCADE
@@ -371,6 +369,10 @@ CREATE TABLE spaces_chunk_embeddings (
   FOREIGN KEY (chunk_id) REFERENCES spaces_knowledge_chunks(id) ON DELETE CASCADE
 );
 
+-- A tombstone queue, deliberately without foreign keys. Each row asks the retrieval writer to
+-- delete the vectors of a Space or a node from LanceDB, so it must outlive the very rows it names:
+-- a cascade would erase the instruction together with its subject and leave the vectors in the
+-- index forever. Rows are removed on settlement, not by referential integrity.
 CREATE TABLE spaces_retrieval_invalidations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   space_id TEXT NOT NULL CHECK (length(space_id) > 0),
@@ -774,30 +776,42 @@ CREATE UNIQUE INDEX spaces_structure_active_order
 CREATE INDEX spaces_structure_children
   ON spaces_structure_nodes(space_id, parent_id, deleted_at, order_index);
 
+-- An FTS5 table has one key, its rowid: it supports no secondary index, so addressing a row by the
+-- owner id stored beside the text makes every delete scan the whole index. These triggers mirror
+-- the owner's rowid into the index and address rows by it, which is the difference between a seek
+-- and a scan on each removed row — and between linear and quadratic when a Space is deleted.
 CREATE TRIGGER spaces_structure_title_fts_insert AFTER INSERT ON spaces_structure_nodes
 WHEN NEW.deleted_at IS NULL AND NEW.kind IN ('group','section')
 BEGIN
-  INSERT INTO spaces_structure_title_fts(structure_node_id,space_id,kind,title)
-  VALUES(NEW.id,NEW.space_id,NEW.kind,NEW.title);
+  INSERT INTO spaces_structure_title_fts(rowid,structure_node_id,space_id,kind,title)
+  VALUES(NEW.rowid,NEW.id,NEW.space_id,NEW.kind,NEW.title);
 END;
 
+-- Only the indexed columns may rewrite the index. Reordering a Space updates order_index on
+-- every sibling, and an unguarded trigger reindexed each of those titles for nothing.
 CREATE TRIGGER spaces_structure_title_fts_update AFTER UPDATE ON spaces_structure_nodes
+WHEN OLD.title IS NOT NEW.title OR OLD.deleted_at IS NOT NEW.deleted_at
+  OR OLD.kind <> NEW.kind OR OLD.space_id <> NEW.space_id
 BEGIN
-  DELETE FROM spaces_structure_title_fts WHERE structure_node_id=OLD.id;
-  INSERT INTO spaces_structure_title_fts(structure_node_id,space_id,kind,title)
-  SELECT NEW.id,NEW.space_id,NEW.kind,NEW.title
+  DELETE FROM spaces_structure_title_fts WHERE rowid=OLD.rowid;
+  INSERT INTO spaces_structure_title_fts(rowid,structure_node_id,space_id,kind,title)
+  SELECT NEW.rowid,NEW.id,NEW.space_id,NEW.kind,NEW.title
   WHERE NEW.deleted_at IS NULL AND NEW.kind IN ('group','section');
 END;
 
 CREATE TRIGGER spaces_structure_title_fts_delete AFTER DELETE ON spaces_structure_nodes
 BEGIN
-  DELETE FROM spaces_structure_title_fts WHERE structure_node_id=OLD.id;
+  DELETE FROM spaces_structure_title_fts WHERE rowid=OLD.rowid;
 END;
 
 CREATE INDEX spaces_edit_receipts_space_revision
   ON spaces_edit_receipts(space_id, applied_revision);
 
 CREATE INDEX spaces_edit_history_cursor ON spaces_edit_history(space_id, undone, id);
+
+-- A coordinated edit stores one record per Space and replays both together.
+CREATE INDEX spaces_edit_history_group ON spaces_edit_history(history_group_id, undone, id)
+  WHERE history_group_id IS NOT NULL;
 
 CREATE VIEW spaces_semantic_nodes AS
   SELECT * FROM spaces_nodes
@@ -836,19 +850,19 @@ CREATE INDEX spaces_knowledge_space_kind ON spaces_knowledge_chunks(space_id, ki
 CREATE INDEX spaces_knowledge_revision ON spaces_knowledge_chunks(node_id, source_revision);
 
 CREATE TRIGGER spaces_knowledge_chunks_fts_insert AFTER INSERT ON spaces_knowledge_chunks BEGIN
-  INSERT INTO spaces_knowledge_fts(chunk_id, space_id, node_id, text)
-  VALUES (NEW.id, NEW.space_id, NEW.node_id, NEW.text);
+  INSERT INTO spaces_knowledge_fts(rowid, chunk_id, space_id, node_id, text)
+  VALUES (NEW.rowid, NEW.id, NEW.space_id, NEW.node_id, NEW.text);
 END;
 
 CREATE TRIGGER spaces_knowledge_chunks_fts_update AFTER UPDATE ON spaces_knowledge_chunks
 WHEN OLD.text != NEW.text BEGIN
-  DELETE FROM spaces_knowledge_fts WHERE chunk_id = OLD.id;
-  INSERT INTO spaces_knowledge_fts(chunk_id, space_id, node_id, text)
-  VALUES (NEW.id, NEW.space_id, NEW.node_id, NEW.text);
+  DELETE FROM spaces_knowledge_fts WHERE rowid = OLD.rowid;
+  INSERT INTO spaces_knowledge_fts(rowid, chunk_id, space_id, node_id, text)
+  VALUES (NEW.rowid, NEW.id, NEW.space_id, NEW.node_id, NEW.text);
 END;
 
 CREATE TRIGGER spaces_knowledge_chunks_fts_delete AFTER DELETE ON spaces_knowledge_chunks BEGIN
-  DELETE FROM spaces_knowledge_fts WHERE chunk_id = OLD.id;
+  DELETE FROM spaces_knowledge_fts WHERE rowid = OLD.rowid;
 END;
 
 CREATE TRIGGER spaces_node_chunk_remove AFTER UPDATE OF deleted_at ON spaces_nodes
@@ -1173,7 +1187,7 @@ CREATE TABLE spaces_voice_profiles (
   id TEXT PRIMARY KEY NOT NULL,
   name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 120),
   source_kind TEXT NOT NULL CHECK (source_kind IN ('preset','reference','designed')),
-  active_revision_id TEXT,
+  active_revision_id TEXT REFERENCES spaces_voice_revisions(id) ON DELETE SET NULL,
   archived_at INTEGER,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
@@ -1212,7 +1226,7 @@ CREATE TABLE spaces_voice_candidates (
   id TEXT PRIMARY KEY NOT NULL,
   run_id TEXT NOT NULL UNIQUE,
   source_kind TEXT NOT NULL CHECK (source_kind IN ('reference','designed')),
-  language TEXT NOT NULL CHECK (language IN ('zh-CN','en')),
+  language TEXT NOT NULL CHECK (length(trim(language)) > 0),
   sample_text TEXT NOT NULL CHECK (length(trim(sample_text)) BETWEEN 1 AND 500),
   design_description TEXT,
   reference_text TEXT,
@@ -1225,15 +1239,14 @@ CREATE TABLE spaces_voice_candidates (
   preview_sha256 TEXT NOT NULL CHECK (length(preview_sha256)=64),
   preview_sample_rate INTEGER NOT NULL CHECK (preview_sample_rate > 0),
   preview_sample_count INTEGER NOT NULL CHECK (preview_sample_count > 0),
-  model_spec_id TEXT NOT NULL CHECK (
-    (model_spec_id='moss-tts-nano-100m-onnx-bundled-v2' AND source_kind='reference' AND reference_text IS NULL)
-    OR model_spec_id IN ('voxcpm2-2b-gguf-orig-v1','voxcpm2-2b-gguf-q8_0-v1')
-  ),
+  model_spec_id TEXT NOT NULL CHECK (length(trim(model_spec_id)) > 0),
   seed INTEGER NOT NULL,
   synthesis_config TEXT NOT NULL CHECK (json_valid(synthesis_config) AND json_type(synthesis_config)='object'),
   authorization TEXT NOT NULL CHECK (json_valid(authorization) AND json_type(authorization)='object'),
   status TEXT NOT NULL CHECK (status IN ('ready','selected')),
   auditioned_at INTEGER,
+  -- The selected profile and revision are the identities this candidate was promoted into,
+  -- kept for audit after the voice itself is archived or replaced.
   selected_voice_profile_id TEXT,
   selected_voice_revision_id TEXT,
   selected_at INTEGER,
@@ -1258,7 +1271,7 @@ CREATE TABLE spaces_speech_projects (
   source_node_id TEXT NOT NULL,
   project_type TEXT NOT NULL CHECK (project_type IN ('short_dubbing','audiobook','video_dubbing')),
   title TEXT NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 200),
-  active_revision_id TEXT,
+  active_revision_id TEXT REFERENCES spaces_speech_project_revisions(id) ON DELETE SET NULL,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
@@ -1395,11 +1408,15 @@ CREATE TABLE spaces_speech_asset_publications (
   asset_path TEXT NOT NULL UNIQUE,
   part_path TEXT,
   sha256 TEXT NOT NULL CHECK (length(sha256)=64),
+  -- run_id, run_step_id and run_attempt_id record which execution produced the file. They are
+  -- provenance identities rather than references: a Run can be pruned without unpublishing an
+  -- asset, and the all-or-none CHECK below rules out clearing one of them on delete.
   run_id TEXT,
   run_step_id TEXT,
   run_attempt_id TEXT,
   run_execution_epoch INTEGER CHECK (run_execution_epoch IS NULL OR run_execution_epoch >= 0),
   created_at INTEGER NOT NULL,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
   CHECK ((scope_kind='application' AND space_id IS NULL
       AND owner_kind IN ('voice_reference','voice_candidate','voice_candidate_input'))
     OR (scope_kind='space' AND space_id IS NOT NULL AND length(trim(space_id))>0
@@ -1443,15 +1460,15 @@ CREATE TABLE spaces_speech_source_separations (
   source_asset_path TEXT NOT NULL,
   source_revision TEXT NOT NULL CHECK (length(source_revision)=71 AND substr(source_revision,1,7)='sha256:'),
   source_duration_ms INTEGER NOT NULL CHECK (source_duration_ms > 0 AND source_duration_ms <= 600000),
-  model_spec_id TEXT NOT NULL CHECK (model_spec_id IN ('spleeter-2stems-fp16-cpu-v1','spleeter-2stems-fp32-cpu-v1')),
+  model_spec_id TEXT NOT NULL CHECK (length(trim(model_spec_id)) > 0),
   background_asset_path TEXT NOT NULL UNIQUE,
   vocals_asset_path TEXT NOT NULL UNIQUE,
   vocals_sha256 TEXT NOT NULL CHECK (length(vocals_sha256)=64),
   background_sha256 TEXT NOT NULL CHECK (length(background_sha256)=64),
-  background_sample_rate INTEGER NOT NULL CHECK (background_sample_rate=44100),
-  background_sample_count INTEGER NOT NULL CHECK (background_sample_count > 0 AND background_sample_count <= 26460000),
+  background_sample_rate INTEGER NOT NULL CHECK (background_sample_rate > 0),
+  background_sample_count INTEGER NOT NULL CHECK (background_sample_count > 0),
   background_duration_ms INTEGER NOT NULL CHECK (
-    background_duration_ms=(background_sample_count * 1000 + 44099) / 44100
+    background_duration_ms=(background_sample_count * 1000 + background_sample_rate - 1) / background_sample_rate
   ),
   created_at INTEGER NOT NULL,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
@@ -1502,3 +1519,54 @@ WHEN NEW.active_revision_id IS NOT NULL BEGIN
     SELECT 1 FROM spaces_speech_project_revisions r WHERE r.id=NEW.active_revision_id AND r.project_id=NEW.id
   ) THEN RAISE(ABORT, 'Active speech revision does not belong to its project') END;
 END;
+
+-- Every foreign key needs an index on its child columns: without one SQLite scans the whole
+-- child table for each parent row it deletes or nulls out, so a Space or node removal degrades
+-- with the size of the library. `spaces/db/tests` enforces this for every foreign key.
+-- Trashing a node must prove no live portal or object still points at it. Only those two kinds
+-- can, so they are indexed apart from the rest of the Space.
+CREATE INDEX spaces_nodes_reference_holders ON spaces_nodes(space_id, kind)
+  WHERE deleted_at IS NULL AND kind IN ('portal','object');
+
+-- Endpoint first so the index serves the foreign key, Space second so invalidating the
+-- relations of a deleted node stays a pair of index lookups.
+CREATE INDEX spaces_relations_source ON spaces_relations(source_id, space_id);
+CREATE INDEX spaces_relations_target ON spaces_relations(target_id, space_id);
+CREATE INDEX spaces_nodes_object_type_reference ON spaces_nodes(object_type_id);
+CREATE INDEX spaces_structure_nodes_node ON spaces_structure_nodes(space_id, node_id);
+-- No index for spaces_structure_layouts: its primary key (space_id, structure_node_id) already
+-- seeks every row of its foreign key, which carries only `kind` beyond that unique pair. A third
+-- index would duplicate the table key for every card and earn nothing; SQLite chooses the primary
+-- key for the cascade either way.
+CREATE INDEX spaces_enrichment_jobs_node ON spaces_enrichment_jobs(node_id);
+CREATE INDEX spaces_enrichment_jobs_space ON spaces_enrichment_jobs(space_id);
+CREATE INDEX spaces_chunk_embeddings_chunk ON spaces_chunk_embeddings(chunk_id);
+CREATE INDEX spaces_retrieval_generations_space ON spaces_retrieval_generations(space_id);
+-- The drain reads whole-Space tombstones before node tombstones, in insertion order.
+CREATE INDEX spaces_retrieval_invalidations_drain
+  ON spaces_retrieval_invalidations(space_id, node_id, id);
+CREATE INDEX spaces_reserved_outputs_space ON spaces_reserved_outputs(space_id);
+CREATE INDEX spaces_action_invocations_space ON spaces_action_invocations(space_id);
+CREATE INDEX spaces_agent_artifact_sessions_space ON spaces_agent_artifact_sessions(space_id);
+CREATE INDEX spaces_authorization_grants_space ON spaces_authorization_grants(home_space_id);
+CREATE INDEX spaces_runs_parent ON spaces_runs(parent_run_id);
+CREATE INDEX spaces_runs_retry_of ON spaces_runs(retry_of_run_id);
+CREATE INDEX spaces_runs_fork_of ON spaces_runs(fork_of_run_id);
+CREATE INDEX spaces_run_attempts_run ON spaces_run_attempts(run_id);
+CREATE INDEX spaces_conversation_mcp_interactions_run ON spaces_conversation_mcp_interactions(run_id);
+CREATE INDEX spaces_conversation_messages_parent ON spaces_conversation_messages(parent_message_id);
+CREATE INDEX spaces_conversation_tool_operations_task ON spaces_conversation_tool_operations(task_id);
+CREATE INDEX spaces_external_agent_conversations_conversation ON spaces_external_agent_conversations(conversation_id);
+CREATE INDEX spaces_external_agent_turns_conversation ON spaces_external_agent_turns(conversation_id);
+CREATE INDEX spaces_external_agent_turns_message ON spaces_external_agent_turns(message_id);
+CREATE INDEX spaces_builtin_agent_execution_segments_conversation ON spaces_builtin_agent_execution_segments(conversation_id);
+CREATE INDEX spaces_builtin_agent_tasks_conversation ON spaces_builtin_agent_tasks(conversation_id);
+CREATE INDEX spaces_builtin_agent_tasks_segment ON spaces_builtin_agent_tasks(segment_id);
+CREATE INDEX spaces_builtin_agent_tasks_grant ON spaces_builtin_agent_tasks(grant_id);
+CREATE INDEX spaces_builtin_agent_model_calls_task ON spaces_builtin_agent_model_calls(task_id);
+CREATE INDEX spaces_builtin_agent_tool_admissions_task ON spaces_builtin_agent_tool_admissions(task_id);
+CREATE INDEX spaces_speech_projects_source ON spaces_speech_projects(source_node_id);
+CREATE INDEX spaces_speech_source_separations_source ON spaces_speech_source_separations(source_node_id);
+CREATE INDEX spaces_speech_segments_voice_revision ON spaces_speech_segments(voice_revision_id);
+CREATE INDEX spaces_voice_profiles_active_revision ON spaces_voice_profiles(active_revision_id);
+CREATE INDEX spaces_speech_projects_active_revision ON spaces_speech_projects(active_revision_id);

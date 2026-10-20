@@ -13,28 +13,109 @@ The database resolves from Tauri's AppConfig directory through the connection po
 
 ## Migration policy
 
-Before the first public release, Knovum-owned data formats, packages, private protocols, runtime
-manifests/descriptors and the Agent profile/graph identity start at version 1 with their current
-fields. Dependency and external API versions remain upstream-owned. Record revisions, Run state
-versions still advance normally. Renumbering does not
-convert development data or runtime publications; unsupported formats fail strict validation.
+Knovum-owned data formats, packages, private protocols, runtime manifests/descriptors and the Agent
+profile/graph identity start at version 1 with their current fields. Dependency and external API
+versions remain upstream-owned. Record revisions and Run state versions still advance normally.
+Renumbering does not convert development data or runtime publications; unsupported formats fail
+strict validation. Store, package and protocol envelopes remain separate contracts with their own
+explicit versions. Spaces conversations contain no product mode. The current Space package is v1 and
+the private Agent RPC is v1.
 
-Before the first public release, Spaces owns one SQLx v1 baseline. Schema changes update that
-baseline and require deleting obsolete development databases. The embedded SQLx migrator runs
-before the Spaces pool is exposed, installs the baseline transactionally, and rejects checksum
-divergence. Store, package and protocol envelopes remain separate contracts with their own explicit versions.
-Spaces conversations contain no product mode. The current Space package is v1 and the private
-Agent RPC is v1; removing conversation modes changes both strict contracts without a compatibility
-reader. Obsolete development databases fail visibly and are never reset automatically.
+The embedded SQLx migrator runs before the Spaces pool is exposed and installs each pending
+migration transactionally.
+
+**Until the first public release**, Spaces owns one SQLx v1 baseline: a schema change edits
+`0001_spaces.sql`, which changes its checksum, so the developer deletes their own obsolete
+development database. Obsolete development databases fail visibly and are never reset
+automatically.
+
+**From the first public release**, the baseline is frozen and every schema change ships as the next
+numbered migration in `src-tauri/src/spaces/db/migrations/`. An installed application must never ask
+the person using it to delete their library, so the two failure modes mean different things and are
+tested separately in `spaces/db/tests`:
+
+- a checksum that no longer matches an applied migration (`VersionMismatch`) means somebody edited a
+  migration that had already shipped. That is a developer mistake, caught before release;
+- a recorded version the binary does not carry (`VersionMissing`) means the database was written by a
+  newer release. The older binary refuses to touch it and says so, instead of downgrading data.
+
+Neither case resets or rewrites user data. Running the migrator against an up-to-date database is a
+no-op, which is what makes an additive migration safe to install.
+
+A forward migration adds; it does not reinterpret. New tables, columns with defaults, indexes and
+triggers are additive. SQLite cannot alter a `CHECK` or add a foreign key in place, so a constraint
+change is a documented table rebuild inside one migration, never a compatibility reader beside the
+old shape.
 
 Install the matching SQLx CLI with
 `cargo install sqlx-cli --no-default-features --features sqlite --version 0.8.6 --locked`.
 `pnpm check:rust` runs Rust tests against fresh in-memory databases initialized by the same embedded
 SQLx Migrator used in production.
 
-After the first public release, this document must be revised before introducing append-only forward
-migrations. Until then, no compatibility readers, repair migrations, or parallel schema paths are
-maintained.
+## Schema invariants
+
+These hold for every table and are enforced by tests in `src-tauri/src/spaces/db/tests/`, not by
+review:
+
+- **Every foreign key is indexed.** Without an index on the child columns SQLite scans the whole
+  child table for each parent row it deletes or nulls, so removing one Space or one node degrades
+  with the size of the library. A partial index cannot serve a foreign key, and only a
+  leading-column match counts.
+- **Space-scoped rows belong to their Space.** A table with `space_id` carries it in a foreign key,
+  directly or through a composite key into another Space-owned table. Otherwise deleting a Space
+  leaves rows no feature can reach and no reclamation pass can drain.
+- **Constraints state invariants, not catalogue membership.** Row state machines, structural shape,
+  JSON validity, identity and physical ranges belong in the schema. A model, engine, action or
+  aspect-ratio identifier is catalogue data owned by Rust: listing those values in a `CHECK` makes
+  every new model a table rebuild, and the edge already validates them.
+- **A stored identity is not a reference.** Columns that record which execution produced a row, or
+  which voice a candidate was promoted into, outlive the Run or profile they name and say so in the
+  schema. Everything else that points at a live row has a foreign key.
+- **Cleanup direction decides the key.** A retained-reference table says "keep this file": it must
+  cascade with its owner, or the reclamation sweep treats the file as still in use forever. A
+  tombstone table says "delete this thing": it must survive its owner, or the instruction is erased
+  together with its subject and the vectors or files it named are never removed.
+  `spaces_speech_asset_publications` is the first kind; `spaces_retrieval_invalidations`, which
+  drives LanceDB deletion, is the second and is listed as such in the schema tests.
+- **Only indexed columns may rewrite an index.** A trigger without a `WHEN` guard reindexed every
+  sibling title when a Space was reordered. An index-maintaining trigger states which columns it
+  reacts to.
+- **Anything that only serves a replay is bounded by the replay window.** `RETAINED_EDITS` bounds
+  undo depth, and the edit receipts that make a mutation idempotent are bounded by the same window:
+  a receipt can only be dropped once a hundred later edits have made replaying it meaningless.
+- **A full-text index is addressed by row, never by a column beside the text.** FTS5 has one key,
+  its rowid, and supports no secondary index: a trigger that deletes `WHERE chunk_id = OLD.id`
+  reads the whole index for every row removed, which made deleting one Space's knowledge quadratic
+  (measured: 1600 chunks took 4.3 s, one chunk in a 24 MiB index 6.4 ms). The maintaining triggers
+  mirror the owner's rowid into the index and address rows by it. `VACUUM INTO` may renumber the
+  rowids of a table whose primary key is not an integer, so a database snapshot rebuilds both
+  indexes in the copy and validation refuses a copy whose index no longer answers for its own rows.
+- **A record of a change is proportional to the change.** History stores the rows an edit touched,
+  never the state it produced. A whole-state record makes every edit cost the size of the Space, so
+  a large Space would pay megabytes per keystroke and keep a hundred copies of itself; it also
+  overwrites work it never meant to touch when replayed. `spaces_edit_history.patch` holds the
+  before and after value of each changed structure row, layout, relation style, relation lifecycle
+  and node presence, and a replay writes exactly those back and then revalidates the Space it
+  produced through `repository::load_in_transaction`.
+- **A streamed record costs one commit per batch, not one per chunk.** An Agent answer arrives as
+  hundreds of chunks of a few dozen bytes. A transaction per chunk spends a commit on each one and
+  rewrites the accumulating assistant message from its start, so the cost grows with the number of
+  chunks rather than the size of the answer (measured: a 129 KiB answer in 4000 chunks took 51 s
+  and rewrote 252 MiB; recorded in batches it takes 1.3 s in 126 commits). `spaces::runs::stream`
+  records whatever has queued in one transaction, in arrival order, and the screen follows the
+  stream itself rather than its durability. Streamed updates are never recorded from independently
+  spawned tasks: `spaces_run_events.sequence` is the order the conversation is read back in.
+
+## Storage settings
+
+`src-tauri/src/sqlite.rs` owns the pragmas every feature database shares. WAL is paired with
+`synchronous=NORMAL`, the mode WAL is designed for: commits stop waiting on an fsync, the file
+stays safe from corruption, and the exposure is losing the last transactions to a power cut, which
+local recovery archives cover. The cache and mmap windows keep index pages of a growing library in
+memory, and temp tables stay in memory so the sorts query plans ask for never touch the filesystem.
+
+`PRAGMA optimize` runs once each feature database is migrated. Without statistics the planner falls
+back to heuristics and can choose a Space-wide index where a selective one exists.
 
 ## Renderer boundary
 
@@ -151,6 +232,26 @@ Separate SQLite databases and filesystem changes cannot commit atomically togeth
 Permanent Space deletion therefore treats the committed database mutation as authoritative and performs returned managed-file cleanup afterward. Cleanup failures are reported/logged as cleanup failures rather than pretending that the database transaction rolled back.
 
 Credential deletion keeps an explicit read-backup/restore compensation path because the credential database and Spaces database have separate transactions.
+
+## Execution ledger retention
+
+`spaces_runs`, `spaces_run_steps`, `spaces_run_attempts`, `spaces_run_events`,
+`spaces_knowledge_events` and `ai_token_usage_events` are **retained for the life of the library**.
+There is no retention job and no age cutoff.
+
+They are provenance, not telemetry: the Run is the answer to "what produced this node", the
+knowledge events are the answer to "who changed this and when", and the usage ledger is the answer
+to "what did this cost me". Deleting them to save space would delete the user's own history, which
+is exactly what local data ownership exists to prevent.
+
+The cost is measured and bounded. A six-step workflow Run with its attempts and events occupies
+**13.7 KiB** including indexes, so fifty Runs a day for a year is 245 MiB — an order of magnitude
+less than the media assets the same year of work produces. A knowledge event costs **183 bytes**
+and a token usage event **122 bytes** including indexes, so twenty thousand of either is under
+4 MiB. A streamed Agent answer records about 2.7× its own text.
+
+Deletion remains driven by ownership, not by age: the ledger of a Space leaves with the Space
+through `home_space_id`, and the Runs of an external conversation leave with the conversation.
 
 ## Builtin Agent state
 

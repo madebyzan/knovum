@@ -114,14 +114,7 @@ pub(crate) async fn execute_in_transaction(
     super::portal_integrity::validate_structure_targets(&mut *tx, &[&request.space_id]).await?;
     if let Some(before) = before {
         let after = history::capture(&mut *tx, &request.space_id, &snapshot).await?;
-        history::record(
-            &mut *tx,
-            &request.space_id,
-            &before,
-            &after,
-            applied_at_revision,
-        )
-        .await?;
+        history::record(&mut *tx, &request.space_id, &before, &after).await?;
     }
     let receipt = SpaceEditReceipt {
         mutation_id: request.mutation_id,

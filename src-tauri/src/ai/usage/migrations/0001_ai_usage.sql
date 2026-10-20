@@ -5,9 +5,9 @@ CREATE TABLE ai_token_usage_events (
     length(local_date) = 10
     AND local_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
   ),
-  purpose TEXT NOT NULL CHECK (
-    purpose IN ('builtin_agent', 'editor', 'knowledge', 'knowledge_indexing', 'translation', 'visual_analysis')
-  ),
+  -- Which capability spent the tokens is catalogue data owned by Rust: a CHECK list would make
+  -- every new capability a table rebuild of an append-only ledger.
+  purpose TEXT NOT NULL CHECK (length(trim(purpose)) > 0),
   provider TEXT NOT NULL CHECK (length(provider) > 0),
   model TEXT NOT NULL CHECK (length(model) > 0),
   input_tokens INTEGER NOT NULL CHECK (input_tokens >= 0),
