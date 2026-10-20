@@ -20,7 +20,9 @@ set(ENGINE_ENABLE_LLAMAFILE OFF CACHE BOOL "" FORCE)
 if(APPLE)
     set(GGML_METAL_EMBED_LIBRARY OFF CACHE BOOL "" FORCE)
 endif()
-add_subdirectory("${KNOVUM_AUDIOCPP_SOURCE}" supplier EXCLUDE_FROM_ALL)
+# The supplier tree builds under "s" so its own nested ExternalProject paths stay inside the
+# 260-character limit that MSVC applies to intermediate build files.
+add_subdirectory("${KNOVUM_AUDIOCPP_SOURCE}" s EXCLUDE_FROM_ALL)
 if(GGML_BACKEND_DL)
     set(KNOVUM_BACKEND_TARGETS ggml ggml-base ${GGML_AVAILABLE_BACKENDS})
     if(APPLE)

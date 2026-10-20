@@ -43,7 +43,7 @@ data = [
     (str(root / "uv.lock"), "build-evidence"),
     (str(root / "pyproject.toml"), "build-evidence"),
 ]
-for name in ["agent.spec", "entry.py", "policy.py", "windows.manifest", "license-review.json"]:
+for name in ["agent.spec", "entry.py", "policy.py", "windows.manifest"]:
     data.append((str(root / "packaging" / name), "build-evidence"))
 hidden = []
 for package in packages:

@@ -109,21 +109,17 @@ Every conveyed target inventory must be bound to:
 - relocation and target execution evidence for that target.
 
 Package metadata, a top-level repository license, populated hashes or execution on another target do
-not approve distribution. GPL/LGPL and other source-offer obligations apply to the complete conveyed
+not describe the conveyed closure. GPL/LGPL and other source-offer obligations apply to the complete conveyed
 compiled dependency closure, including FFmpeg, eSpeak NG, piper and any libraries embedded by a wheel or archive.
-The compiled-source evidence and license-review records remain required packaging inputs.
+PyInstaller's bootloader is GPL with a distribution exception, and the frozen Agent conveys it
+together with CPython and the resolved runtime closure.
 
-The Agent `python/packaging/license-review.json` starts unapproved. PyInstaller uses GPL with
-a bootloader distribution exception; review the actual scope of that exception alongside the
-frozen dependency closure, rather than treating the package name as distribution approval. Production
-packaging may consume it only after an accountable reviewer binds the frozen requirements/lock
-identity to each target's resolved dependency evidence. `reviewInputSha256` binds the single lock,
-project/spec/build-policy inputs, installed runtime package versions, CPython and PyInstaller versions,
-and the original complete binary input inventory from PyInstaller Analysis before relocation/signing;
-`reviewer`, timezone-qualified `reviewedAt` and durable HTTPS `evidenceLocation` identify the decision.
-A changed dependency or build policy invalidates that review. Complete frozen file inventories and
-SBOMs independently bind the actual signed bytes of each candidate. QA results cannot substitute for legal/license
-approval.
+Build outputs carry those obligations, not a separate review record: the packaged notice trees, the
+generated SBOM for the actual published inventory, and the pinned supplier `source.json` records that
+name every archive with its URL and SHA-256. Packaging fails when any of them is missing or stops
+matching the sealed inventory, so keep them complete when a dependency, supplier archive or build
+policy changes. Complete frozen file inventories and SBOMs bind the actual signed bytes of each
+candidate; QA results do not describe the conveyed closure.
 
 Model files are independently downloaded resources. Their source, license, hash and runtime
 compatibility are reviewed independently from both the desktop installer and Python runtime. Model
