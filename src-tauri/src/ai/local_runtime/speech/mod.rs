@@ -234,7 +234,7 @@ fn validate_identity(
 }
 
 macro_rules! speech_request {
-    ($request:ty, $response:ty, $capability:expr, $method:literal) => {
+    ($request:ty, $response:ty, $capability:expr) => {
         impl SpeechRequest for $request {
             type Response = $response;
 
@@ -245,10 +245,6 @@ macro_rules! speech_request {
             fn capability(&self) -> RuntimeCapability {
                 $capability
             }
-
-            fn method(&self) -> &'static str {
-                $method
-            }
         }
     };
 }
@@ -256,30 +252,25 @@ macro_rules! speech_request {
 speech_request!(
     SpeechTranscribeParams,
     SpeechTranscription,
-    RuntimeCapability::SpeechTranscription,
-    "speech.transcribe"
+    RuntimeCapability::SpeechTranscription
 );
 speech_request!(
     SpeechSynthesizeParams,
     SpeechSynthesis,
-    RuntimeCapability::SpeechSynthesis,
-    "speech.synthesize"
+    RuntimeCapability::SpeechSynthesis
 );
 speech_request!(
     SpeechAlignParams,
     SpeechAlignment,
-    RuntimeCapability::SpeechAlignment,
-    "speech.align"
+    RuntimeCapability::SpeechAlignment
 );
 speech_request!(
     SpeechDiarizeParams,
     SpeechDiarization,
-    RuntimeCapability::SpeechDiarization,
-    "speech.diarize"
+    RuntimeCapability::SpeechDiarization
 );
 speech_request!(
     SpeechSeparateParams,
     SpeechSeparation,
-    RuntimeCapability::SpeechSeparation,
-    "speech.separate"
+    RuntimeCapability::SpeechSeparation
 );

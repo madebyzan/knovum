@@ -37,6 +37,24 @@ pub(crate) fn verify_regular_directory(path: &Path) -> Result<(), String> {
     Ok(())
 }
 
+/// Installed bytes of a verified snapshot, which bound the load that reads it.
+///
+/// Metadata only: these bytes were hashed when the snapshot was installed, and the caller needs
+/// their size rather than their content.
+pub(crate) fn installed_bytes(path: &Path) -> Result<u64, String> {
+    let mut total = 0;
+    for entry in walkdir::WalkDir::new(path).follow_links(false) {
+        let metadata = entry
+            .map_err(|error| error.to_string())?
+            .metadata()
+            .map_err(|error| error.to_string())?;
+        if metadata.is_file() {
+            total = total.saturating_add(metadata.len());
+        }
+    }
+    Ok(total)
+}
+
 pub(crate) fn verify_managed_root<R: Runtime>(
     app: &AppHandle<R>,
     root: &Path,

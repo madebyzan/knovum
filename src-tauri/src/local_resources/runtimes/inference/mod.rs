@@ -1,17 +1,42 @@
-use knovum_inference_contracts::runtime_manifest::RuntimeManifest;
+use knovum_inference_contracts::runtime_manifest::{RuntimeFile, RuntimeManifest};
 use sha2::{Digest, Sha256};
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 #[cfg(not(debug_assertions))]
 use tauri::Manager;
 use tauri::{AppHandle, Runtime};
+
+/// The image the host spawns.
+///
+/// A worker cannot verify the bytes it is already executing, so the host owns this one check. A
+/// packaged build executes a pinned inventory member; a development build executes this
+/// repository's Cargo artifact, which no inventory pins.
+#[derive(Clone)]
+pub(crate) enum SpawnedImage {
+    Pinned(RuntimeFile),
+    DeveloperBuild,
+}
 
 #[derive(Clone)]
 pub(crate) struct InferenceRuntimePaths {
     pub(crate) manifest_path: PathBuf,
     pub(crate) executable: PathBuf,
     pub(crate) digest: String,
-    /// Bytes the worker verifies before it loads the runtime, which bounds its initialization.
-    pub(crate) verified_bytes: u64,
+    pub(crate) spawned_image: SpawnedImage,
+    /// Bytes the worker hashes before it loads a library, which bounds its initialization.
+    pub(crate) library_bytes: u64,
+}
+
+impl InferenceRuntimePaths {
+    /// Bytes the host hashes before it spawns the worker, which bounds [`verify_before_spawn`].
+    pub(crate) fn spawn_verified_bytes(&self) -> u64 {
+        match &self.spawned_image {
+            SpawnedImage::Pinned(image) => image.size,
+            SpawnedImage::DeveloperBuild => 0,
+        }
+    }
 }
 
 pub(crate) fn resolve<R: Runtime>(app: &AppHandle<R>) -> Result<InferenceRuntimePaths, String> {
@@ -55,16 +80,40 @@ pub(crate) fn resolve<R: Runtime>(app: &AppHandle<R>) -> Result<InferenceRuntime
     let bytes = read_manifest(&manifest_path)?;
     let manifest = supplied_manifest(&bytes)?;
     Ok(InferenceRuntimePaths {
+        spawned_image: spawned_image(&manifest, &directory, &executable)?,
+        library_bytes: manifest.files.iter().map(|file| file.size).sum(),
         manifest_path,
         executable,
         digest: hex::encode(Sha256::digest(&bytes)),
-        verified_bytes: manifest.files.iter().map(|file| file.size).sum(),
     })
 }
 
-/// The supplied inventory must be the one this build was qualified against. Byte verification of the
-/// runtime belongs to [`verify_before_spawn`], which runs once per worker spawn rather than once per
-/// request, so resolving a path stays cheap enough for every caller that only needs its identity.
+/// Classifies the image this build executes. An image inside the runtime directory must be an
+/// inventory member; one outside it belongs to a development build of this repository.
+fn spawned_image(
+    manifest: &RuntimeManifest,
+    directory: &Path,
+    executable: &Path,
+) -> Result<SpawnedImage, String> {
+    let Ok(relative) = executable.strip_prefix(directory) else {
+        return Ok(SpawnedImage::DeveloperBuild);
+    };
+    let relative = relative
+        .to_str()
+        .ok_or("runtime_mismatch: inference worker path is invalid")?
+        .replace('\\', "/");
+    manifest
+        .files
+        .iter()
+        .find(|file| file.path == relative)
+        .cloned()
+        .map(SpawnedImage::Pinned)
+        .ok_or_else(|| "runtime_mismatch: inference worker is not an inventory member".to_owned())
+}
+
+/// The supplied inventory must be the one this build was qualified against. Hashing a library
+/// belongs to the worker that loads it, so resolving a path stays cheap enough for every caller
+/// that only needs its identity.
 fn supplied_manifest(bytes: &[u8]) -> Result<RuntimeManifest, String> {
     let actual: RuntimeManifest =
         serde_json::from_slice(bytes).map_err(|error| error.to_string())?;
@@ -94,74 +143,40 @@ fn supplied_manifest(bytes: &[u8]) -> Result<RuntimeManifest, String> {
     Ok(actual)
 }
 
+/// Establishes that the host is about to execute the qualified image from the inventory it
+/// resolved.
+///
+/// Hashing a library belongs to the worker that loads it: that is the only process whose check
+/// cannot be invalidated between the verification and the load, and the only place the cost is
+/// unavoidable. The host verifies the one thing a worker cannot verify about itself.
 pub(crate) fn verify_before_spawn(runtime: &InferenceRuntimePaths) -> Result<(), String> {
     let bytes = read_manifest(&runtime.manifest_path)?;
     if hex::encode(Sha256::digest(&bytes)) != runtime.digest {
         return Err("runtime_mismatch: inference manifest changed after resolution".into());
     }
-    let expected = supplied_manifest(&bytes)?;
-    let directory = runtime
-        .manifest_path
-        .parent()
-        .ok_or("runtime_missing: inference directory is missing")?;
-    crate::local_resources::filesystem::verify_regular_directory(directory)?;
-    let mut files = 0;
-    for entry in walkdir::WalkDir::new(directory)
-        .min_depth(1)
-        .follow_links(false)
-    {
-        let entry = entry.map_err(|error| format!("runtime_mismatch: {error}"))?;
-        let metadata = fs::symlink_metadata(entry.path()).map_err(|error| error.to_string())?;
-        if metadata.is_dir() {
-            crate::local_resources::filesystem::verify_regular_directory(entry.path())?;
-            continue;
-        }
-        let relative = entry
-            .path()
-            .strip_prefix(directory)
-            .map_err(|error| error.to_string())?
-            .to_string_lossy()
-            .replace('\\', "/");
-        if !metadata.is_file()
-            || relative != "inference-runtime-manifest.json"
-                && !expected.files.iter().any(|file| file.path == relative)
-        {
-            return Err("runtime_mismatch: inference runtime contains an unverified file".into());
-        }
-        files += 1;
-        if files > 257 {
-            return Err("runtime_mismatch: inference runtime inventory exceeds its bound".into());
-        }
-    }
-    if files != expected.files.len() + 1 {
-        return Err("runtime_mismatch: inference runtime inventory is incomplete".into());
-    }
-    for file in &expected.files {
-        let path = directory.join(&file.path);
-        let metadata =
-            fs::symlink_metadata(&path).map_err(|error| format!("runtime_missing: {error}"))?;
-        if !metadata.is_file()
-            || metadata.len() != file.size
-            || !crate::local_resources::verification::verify_cancellable(
-                &path,
-                &file.sha256,
-                &tokio_util::sync::CancellationToken::new(),
-                "cancelled",
-            )?
-        {
-            return Err("runtime_mismatch: inference runtime library differs".into());
-        }
-    }
-    if !fs::symlink_metadata(&runtime.executable)
-        .map_err(|error| format!("runtime_missing: {error}"))?
-        .is_file()
-    {
+    supplied_manifest(&bytes)?;
+    let metadata = fs::symlink_metadata(&runtime.executable)
+        .map_err(|error| format!("runtime_missing: {error}"))?;
+    if !metadata.is_file() {
         return Err("runtime_missing: inference worker is not a regular file".into());
+    }
+    let SpawnedImage::Pinned(image) = &runtime.spawned_image else {
+        return Ok(());
+    };
+    if metadata.len() != image.size
+        || !crate::local_resources::verification::verify_cancellable(
+            &runtime.executable,
+            &image.sha256,
+            &tokio_util::sync::CancellationToken::new(),
+            "cancelled",
+        )?
+    {
+        return Err("runtime_mismatch: inference worker differs".into());
     }
     Ok(())
 }
 
-fn read_manifest(path: &std::path::Path) -> Result<Vec<u8>, String> {
+fn read_manifest(path: &Path) -> Result<Vec<u8>, String> {
     let metadata =
         fs::symlink_metadata(path).map_err(|error| format!("runtime_missing: {error}"))?;
     if !metadata.is_file() || metadata.len() > 1_048_576 {

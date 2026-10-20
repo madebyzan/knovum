@@ -1,5 +1,5 @@
 use super::{credits::Credits, moss::Moss, stream::Publisher, voxcpm::VoxCpm};
-use crate::{cancellation::Cancellation, protocol::Output};
+use crate::{cancellation::Cancellation, initialization::VerifiedRuntime, protocol::Output};
 use knovum_inference_contracts::{
     runtime::{RuntimeAckChunkParams, RuntimeInitializeParams},
     speech_wire::{SpeechSynthesis, SpeechSynthesisEngine, SpeechSynthesizeParams},
@@ -26,11 +26,14 @@ pub(crate) enum Synthesizer {
     Vox(Box<VoxCpm>),
 }
 impl Synthesizer {
-    pub(crate) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
+    pub(crate) fn new(
+        params: &RuntimeInitializeParams,
+        runtime: &VerifiedRuntime,
+    ) -> Result<Self, String> {
         match params.capability_spec_id.as_str() {
             "moss-tts-nano-100m-onnx-bundled-v2" => Ok(Self::Moss(Box::new(Moss::new(params)?))),
             "voxcpm2-2b-gguf-orig-v1" | "voxcpm2-2b-gguf-q8_0-v1" => {
-                Ok(Self::Vox(Box::new(VoxCpm::new(params)?)))
+                Ok(Self::Vox(Box::new(VoxCpm::new(params, runtime)?)))
             }
             _ => Err("runtime_mismatch: synthesis model is unsupported".into()),
         }

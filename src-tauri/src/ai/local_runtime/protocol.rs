@@ -5,10 +5,22 @@ use serde_json::{json, Value};
 use tokio::io::{AsyncBufRead, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{ChildStdin, ChildStdout};
 
-use crate::ai::contracts::runtime::MAX_MESSAGE_BYTES;
+use crate::ai::contracts::runtime::{RuntimeAckChunkParams, MAX_MESSAGE_BYTES};
 
 /// A worker rejection reason is a diagnostic for logs and dialogs, not a payload.
 const MAX_REASON_BYTES: usize = 512;
+
+/// Interprets a notification a worker publishes while a request is in flight and returns the chunk
+/// acknowledgement it owes, if any.
+pub(super) type EventHandler<'a> =
+    dyn FnMut(&str, Value) -> Result<Option<RuntimeAckChunkParams>, String> + Send + 'a;
+
+/// Rejects every notification, for the requests whose worker answers with a response and nothing
+/// else.
+pub(super) fn reject_events(
+) -> impl FnMut(&str, Value) -> Result<Option<RuntimeAckChunkParams>, String> + Send {
+    |_, _| Err("invalid_output: unexpected worker notification".into())
+}
 
 pub(super) struct Protocol {
     input: ChildStdin,
@@ -47,16 +59,18 @@ impl Protocol {
         &mut self,
         request_id: &str,
     ) -> Result<R, String> {
-        self.read_response_with_events(request_id, |_, _| {
-            Err("invalid_output: unexpected worker notification".into())
-        })
-        .await
+        self.read_response_with_events(request_id, &mut reject_events())
+            .await
     }
 
+    /// Reads until the worker answers `request_id`, handing every notification it publishes first.
+    ///
+    /// A handler that returns an acknowledgement is answered here, because the stream credit a
+    /// chunk consumes is part of this protocol rather than of the capability that reads the chunk.
     pub(super) async fn read_response_with_events<R: DeserializeOwned>(
         &mut self,
         request_id: &str,
-        mut on_event: impl FnMut(&str, Value) -> Result<(), String>,
+        on_event: &mut EventHandler<'_>,
     ) -> Result<R, String> {
         loop {
             let response = self.read().await?;
@@ -70,7 +84,10 @@ impl Protocol {
                     .get("params")
                     .cloned()
                     .ok_or("invalid_output: worker notification has no parameters")?;
-                on_event(method, params)?;
+                let acknowledgement = on_event(method, params)?;
+                if let Some(acknowledgement) = acknowledgement {
+                    self.notify("runtime.ackChunk", &acknowledgement).await?;
+                }
                 continue;
             }
             return Self::decode_response(response, request_id);

@@ -1,5 +1,5 @@
 use super::{audio, ffi};
-use crate::cancellation::Cancellation;
+use crate::{cancellation::Cancellation, initialization::VerifiedRuntime};
 use ffi::audio::*;
 use knovum_inference_contracts::{
     execution_profile::alignment,
@@ -9,8 +9,8 @@ use knovum_inference_contracts::{
 use std::{ffi::CStr, path::PathBuf, ptr};
 
 pub(crate) struct Aligner {
-    params: RuntimeInitializeParams,
-    engine: Option<Engine>,
+    engine: Engine,
+    device: String,
 }
 struct Engine {
     api: AudioApi,
@@ -110,118 +110,103 @@ impl Engine {
         outcome
     }
 }
+/// Admits an alignment profile and returns the snapshot it names. Pure in its initialization
+/// message, so an obsolete profile is rejected before the audio.cpp library is loaded.
+pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<&str, String> {
+    if alignment(&params.capability_spec_id, &params.device_profile.device).as_deref()
+        != Some(params.device_profile.execution_profile_id.as_str())
+        || !(1..=8).contains(&params.device_profile.cpu_threads)
+    {
+        return Err("unsupported_device: alignment profile is unavailable".into());
+    }
+    params.model.snapshot()
+}
+
 impl Aligner {
-    pub(crate) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
-        if alignment(&params.capability_spec_id, &params.device_profile.device).as_deref()
-            != Some(params.device_profile.execution_profile_id.as_str())
-            || !(1..=8).contains(&params.device_profile.cpu_threads)
-            || params.model_paths.speech_alignment.is_none()
+    pub(crate) fn new(
+        params: &RuntimeInitializeParams,
+        runtime: &VerifiedRuntime,
+    ) -> Result<Self, String> {
+        let directory = PathBuf::from(admit(params)?);
+        let api =
+            unsafe { AudioApi::from_library(ffi::load(&ffi::library(runtime, "audiocpp")?)?) }
+                .map_err(|error| format!("runtime_mismatch: {error}"))?;
+        if unsafe { api.audiocpp_abi_version() } != 0x000200 {
+            return Err("runtime_mismatch: alignment ABI differs".into());
+        }
+        let model_path = if params.capability_spec_id == "qwen3-forced-aligner-0.6b-f16-bundled-v2"
         {
-            return Err("unsupported_device: alignment profile is unavailable".into());
+            directory.join("qwen3-forced-aligner-0.6b-f16.gguf")
+        } else {
+            directory.join("qwen3-forced-aligner-0.6b-q8_0.gguf")
+        };
+        let path = ffi::string(
+            model_path
+                .to_str()
+                .ok_or("model_corrupt: alignment path is invalid")?,
+        )?;
+        let backend = match params.device_profile.device.as_str() {
+            "cpu" => c"cpu",
+            "mps" => c"metal",
+            "vulkan" => c"vulkan",
+            _ => return Err("unsupported_device: alignment backend is invalid".into()),
+        };
+        let mut registry = ptr::null_mut();
+        let mut model = ptr::null_mut();
+        let mut session = ptr::null_mut();
+        check(&api, unsafe {
+            api.audiocpp_registry_create(ptr::null(), &mut registry)
+        })?;
+        let initialization = (|| {
+            let config = audiocpp_model_config {
+                family_hint: c"qwen3_forced_aligner".as_ptr(),
+                config_id: ptr::null(),
+                weight_id: ptr::null(),
+                model_spec_override: ptr::null(),
+            };
+            check(&api, unsafe {
+                api.audiocpp_model_load(registry, path.as_ptr(), &config, ptr::null(), &mut model)
+            })?;
+            let config = audiocpp_backend_config {
+                backend: backend.as_ptr(),
+                device: 0,
+                threads: i32::from(params.device_profile.cpu_threads),
+            };
+            check(&api, unsafe {
+                api.audiocpp_session_create(
+                    model,
+                    c"align".as_ptr(),
+                    c"offline".as_ptr(),
+                    &config,
+                    ptr::null(),
+                    &mut session,
+                )
+            })
+        })();
+        unsafe {
+            api.audiocpp_model_free(model);
+            api.audiocpp_registry_free(registry);
+        }
+        if let Err(error) = initialization {
+            unsafe {
+                api.audiocpp_session_free(session);
+            }
+            return Err(error);
+        }
+        if session.is_null() {
+            return Err("model_corrupt: alignment session is absent".into());
         }
         Ok(Self {
-            params: params.clone(),
-            engine: None,
+            engine: Engine { api, session },
+            device: params.device_profile.device.clone(),
         })
-    }
-    fn load(&mut self) -> Result<&Engine, String> {
-        if self.engine.is_none() {
-            let api = unsafe {
-                AudioApi::from_library(ffi::load(&ffi::path(&self.params, "audiocpp")?)?)
-            }
-            .map_err(|error| format!("runtime_mismatch: {error}"))?;
-            if unsafe { api.audiocpp_abi_version() } != 0x000200 {
-                return Err("runtime_mismatch: alignment ABI differs".into());
-            }
-            let directory = PathBuf::from(
-                self.params
-                    .model_paths
-                    .speech_alignment
-                    .as_ref()
-                    .ok_or("model_missing: alignment model is missing")?,
-            );
-            let model_path =
-                if self.params.capability_spec_id == "qwen3-forced-aligner-0.6b-f16-bundled-v2" {
-                    directory.join("qwen3-forced-aligner-0.6b-f16.gguf")
-                } else {
-                    directory.join("qwen3-forced-aligner-0.6b-q8_0.gguf")
-                };
-            let path = ffi::string(
-                model_path
-                    .to_str()
-                    .ok_or("model_corrupt: alignment path is invalid")?,
-            )?;
-            let mut registry = ptr::null_mut();
-            let mut model = ptr::null_mut();
-            let mut session = ptr::null_mut();
-            check(&api, unsafe {
-                api.audiocpp_registry_create(ptr::null(), &mut registry)
-            })?;
-            let initialization = (|| {
-                let config = audiocpp_model_config {
-                    family_hint: c"qwen3_forced_aligner".as_ptr(),
-                    config_id: ptr::null(),
-                    weight_id: ptr::null(),
-                    model_spec_override: ptr::null(),
-                };
-                check(&api, unsafe {
-                    api.audiocpp_model_load(
-                        registry,
-                        path.as_ptr(),
-                        &config,
-                        ptr::null(),
-                        &mut model,
-                    )
-                })?;
-                let backend = match self.params.device_profile.device.as_str() {
-                    "cpu" => c"cpu",
-                    "mps" => c"metal",
-                    "vulkan" => c"vulkan",
-                    _ => return Err("unsupported_device: alignment backend is invalid".into()),
-                };
-                let config = audiocpp_backend_config {
-                    backend: backend.as_ptr(),
-                    device: 0,
-                    threads: i32::from(self.params.device_profile.cpu_threads),
-                };
-                check(&api, unsafe {
-                    api.audiocpp_session_create(
-                        model,
-                        c"align".as_ptr(),
-                        c"offline".as_ptr(),
-                        &config,
-                        ptr::null(),
-                        &mut session,
-                    )
-                })
-            })();
-            unsafe {
-                api.audiocpp_model_free(model);
-                api.audiocpp_registry_free(registry);
-            }
-            if let Err(error) = initialization {
-                unsafe {
-                    api.audiocpp_session_free(session);
-                }
-                return Err(error);
-            }
-            if session.is_null() {
-                return Err("model_corrupt: alignment session is absent".into());
-            }
-            self.engine = Some(Engine { api, session });
-        }
-        self.engine
-            .as_ref()
-            .ok_or("worker_crashed: alignment engine is unavailable".into())
     }
     pub(crate) fn align(
         &mut self,
         params: SpeechAlignParams,
         cancel: &Cancellation,
     ) -> Result<SpeechAlignment, String> {
-        if params.profile.device != self.params.device_profile.device
-            || !(1..=8).contains(&params.text_segments.len())
-        {
+        if params.profile.device != self.device || !(1..=8).contains(&params.text_segments.len()) {
             return Err("runtime_mismatch: alignment request differs from its session".into());
         }
         let language = match params.profile.language.as_str() {
@@ -247,7 +232,7 @@ impl Aligner {
                 return Err("invalid_input: alignment segment exceeds its source timeline".into());
             }
         }
-        let engine = self.load()?;
+        let engine = &self.engine;
         cancel.check()?;
         let mut units = Vec::new();
         for segment in params.text_segments {

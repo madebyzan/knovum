@@ -5,9 +5,10 @@ use std::{process::Stdio, time::Duration};
 use tokio::process::Command;
 use tokio_util::sync::CancellationToken;
 
-/// The probe process only prints its backend inventory, so it is bounded on its own rather than by
-/// the request that needed a device profile.
-const PROBE_BUDGET: Duration = Duration::from_secs(15);
+/// The probe process hashes the inventory and loads one library, exactly as a worker's
+/// initialization does, so it is bounded by that phase rather than by a constant a cold page
+/// cache can exhaust. It loads no model and prints only its backend inventory.
+const PROBE_MODEL_BYTES: u64 = 0;
 
 #[derive(Clone, Copy)]
 pub(in crate::ai::local_runtime) enum Probe {
@@ -30,9 +31,10 @@ async fn detect(
     cancellation: &CancellationToken,
     exit: &CancellationToken,
 ) -> Result<Vec<u8>, String> {
-    // Verification reads the same bytes a worker start-up would, so it shares that budget.
-    let verification_budget =
-        Duration::from_millis(WorkerPackage::from(runtime).initialization_budget_ms());
+    // The host hashes the image it is about to execute; the probe process hashes the libraries it
+    // loads. Each phase is bounded by the bytes that phase reads.
+    let package = WorkerPackage::from(runtime);
+    let verification_budget = Duration::from_millis(package.spawn_verification_budget_ms());
     tokio::select! {
         biased;
         _ = exit.cancelled() => return Err("cancelled".into()),
@@ -67,11 +69,12 @@ async fn detect(
         .env("MKL_NUM_THREADS", "1")
         .kill_on_drop(true);
     super::super::process::isolate_environment(command.as_std_mut());
+    let probe_budget = Duration::from_millis(package.initialization_budget_ms(PROBE_MODEL_BYTES));
     let output = tokio::select! {
         biased;
         _ = exit.cancelled() => return Err("cancelled".into()),
         _ = cancellation.cancelled() => return Err("cancelled".into()),
-        output = tokio::time::timeout(PROBE_BUDGET,
+        output = tokio::time::timeout(probe_budget,
             command.output()) => output.map_err(|_| "deadline_exceeded: GPU detection timed out")?
             .map_err(|_| "runtime_mismatch: GPU detection could not start")?,
     };
