@@ -17,22 +17,24 @@ pub(super) async fn run(
     crate::external_agents::artifacts::prepare(workspace)?;
     let (cancellation, _lease) =
         executions::acquire(request.session_id.clone()).map_err(AppError::from)?;
-    let event_app = app.clone();
-    let event_run_id = request.session_id.clone();
-    let callback = Arc::new(move |update| {
-        if let Some((kind, payload)) = durable_update(&update) {
-            let app = event_app.clone();
-            let run_id = event_run_id.clone();
-            tauri::async_runtime::spawn(async move {
-                if let Err(error) = record_update(&app, &run_id, kind, payload).await {
-                    log::error!("External Agent Run event failed: {error}");
-                }
-            });
-        }
-        on_event
-            .send(event_from_update(update))
-            .map_err(|error| AppError::internal(error.to_string()))
-    });
+    let pool = crate::spaces::db::pool(app)
+        .await
+        .map_err(AppError::internal)?;
+    let recorder = crate::spaces::runs::stream::open(
+        pool.clone(),
+        request.session_id.clone(),
+        crate::spaces::runs::stream::RunEventsOnly,
+    );
+    let callback = Arc::new(
+        move |update: external_agents::session::AgentSessionUpdate| {
+            if let Err(error) = recorder.record(update.clone()) {
+                log::error!("External Agent Run event failed: {error}");
+            }
+            on_event
+                .send(event_from_update(update))
+                .map_err(|error| AppError::internal(error.to_string()))
+        },
+    );
     let prompt = external_agents::prompt::AgentPrompt::from_renderer(
         app,
         creation_prompt(&request, &space_context(app, &request.space_id).await?),
@@ -71,48 +73,6 @@ pub(super) async fn run(
         ));
     }
     crate::external_agents::artifacts::collect(workspace)
-}
-
-fn durable_update(
-    update: &external_agents::session::AgentSessionUpdate,
-) -> Option<(crate::spaces::runs::RunEventKind, serde_json::Value)> {
-    use external_agents::session::AgentSessionUpdate;
-    match update {
-        AgentSessionUpdate::ToolCall { id, title, .. } => Some((
-            crate::spaces::runs::RunEventKind::ExternalAgentToolStarted,
-            serde_json::json!({"toolCallId": id, "title": title}),
-        )),
-        AgentSessionUpdate::ToolUpdate { id, .. } => Some((
-            crate::spaces::runs::RunEventKind::ExternalAgentToolUpdated,
-            serde_json::json!({"toolCallId": id}),
-        )),
-        AgentSessionUpdate::Message(text) => Some((
-            crate::spaces::runs::RunEventKind::ExternalAgentMessage,
-            serde_json::json!({"text": text}),
-        )),
-        AgentSessionUpdate::Thought(_) => None,
-    }
-}
-
-async fn record_update(
-    app: &AppHandle,
-    run_id: &str,
-    kind: crate::spaces::runs::RunEventKind,
-    payload: serde_json::Value,
-) -> Result<(), String> {
-    let pool = crate::spaces::db::pool(app).await?;
-    let mut tx = crate::spaces::db::begin_write(pool).await?;
-    crate::spaces::runs::append_event(
-        &mut tx,
-        run_id,
-        None,
-        None,
-        kind,
-        &payload,
-        crate::foundation::clock::unix_time_millis()?,
-    )
-    .await?;
-    tx.commit().await.map_err(crate::spaces::db::sql_error)
 }
 
 fn event_from_update(

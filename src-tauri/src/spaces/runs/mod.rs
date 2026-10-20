@@ -16,6 +16,7 @@ mod run_rows;
 mod runtime;
 mod scheduler;
 mod signals;
+pub(crate) mod stream;
 
 pub(crate) use attempt::{AttemptClaim, StepOutcome};
 pub(crate) use budget::{record_tokens_in_transaction, record_usage};

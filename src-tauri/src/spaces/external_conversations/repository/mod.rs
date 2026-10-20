@@ -85,43 +85,32 @@ pub async fn start_turn(
     Ok(id)
 }
 
-pub async fn append_agent_message_in_transaction(
-    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    conversation_id: &str,
-    content: &str,
-) -> Result<(), String> {
-    let message_id: Option<String> = sqlx::query_scalar(
-        "SELECT message_id FROM spaces_external_agent_turns
-         WHERE conversation_id=$1 AND state='running'
-         ORDER BY created_at DESC LIMIT 1",
-    )
-    .bind(conversation_id)
-    .fetch_optional(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    if let Some(message_id) = message_id {
-        sqlx::query(
-            "UPDATE spaces_conversation_messages SET content=json_set(content,'$.parts[0].text',
-             json_extract(content,'$.parts[0].text') || $1) WHERE id=$2",
-        )
-        .bind(content)
-        .bind(message_id)
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    }
-    Ok(())
+/// How a batch of streamed updates leaves the assistant message of the running turn.
+pub enum AgentMessageWrite {
+    /// Commentary continues the text already there.
+    Append(String),
+    /// A tool call ended the previous commentary, so this text replaces it.
+    Replace(String),
 }
 
-pub async fn clear_agent_message_in_transaction(
+pub async fn write_agent_message_in_transaction(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     conversation_id: &str,
+    write: AgentMessageWrite,
 ) -> Result<(), String> {
+    let (text, replaces) = match write {
+        AgentMessageWrite::Append(text) => (text, false),
+        AgentMessageWrite::Replace(text) => (text, true),
+    };
     sqlx::query(
-        "UPDATE spaces_conversation_messages SET content=json_set(content,'$.parts[0].text','')
+        "UPDATE spaces_conversation_messages SET content=json_set(content,'$.parts[0].text',
+           CASE WHEN $1 THEN $2 ELSE json_extract(content,'$.parts[0].text') || $2 END)
          WHERE id=(SELECT message_id FROM spaces_external_agent_turns
-           WHERE conversation_id=$1 AND state='running' ORDER BY created_at DESC LIMIT 1)",
+           WHERE conversation_id=$3 AND state='running'
+           ORDER BY created_at DESC LIMIT 1)",
     )
+    .bind(replaces)
+    .bind(text)
     .bind(conversation_id)
     .execute(&mut **tx)
     .await

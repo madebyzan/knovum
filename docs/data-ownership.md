@@ -97,6 +97,14 @@ review:
   before and after value of each changed structure row, layout, relation style, relation lifecycle
   and node presence, and a replay writes exactly those back and then revalidates the Space it
   produced through `repository::load_in_transaction`.
+- **A streamed record costs one commit per batch, not one per chunk.** An Agent answer arrives as
+  hundreds of chunks of a few dozen bytes. A transaction per chunk spends a commit on each one and
+  rewrites the accumulating assistant message from its start, so the cost grows with the number of
+  chunks rather than the size of the answer (measured: a 129 KiB answer in 4000 chunks took 51 s
+  and rewrote 252 MiB; recorded in batches it takes 1.3 s in 126 commits). `spaces::runs::stream`
+  records whatever has queued in one transaction, in arrival order, and the screen follows the
+  stream itself rather than its durability. Streamed updates are never recorded from independently
+  spawned tasks: `spaces_run_events.sequence` is the order the conversation is read back in.
 
 ## Storage settings
 
@@ -224,6 +232,26 @@ Separate SQLite databases and filesystem changes cannot commit atomically togeth
 Permanent Space deletion therefore treats the committed database mutation as authoritative and performs returned managed-file cleanup afterward. Cleanup failures are reported/logged as cleanup failures rather than pretending that the database transaction rolled back.
 
 Credential deletion keeps an explicit read-backup/restore compensation path because the credential database and Spaces database have separate transactions.
+
+## Execution ledger retention
+
+`spaces_runs`, `spaces_run_steps`, `spaces_run_attempts`, `spaces_run_events`,
+`spaces_knowledge_events` and `ai_token_usage_events` are **retained for the life of the library**.
+There is no retention job and no age cutoff.
+
+They are provenance, not telemetry: the Run is the answer to "what produced this node", the
+knowledge events are the answer to "who changed this and when", and the usage ledger is the answer
+to "what did this cost me". Deleting them to save space would delete the user's own history, which
+is exactly what local data ownership exists to prevent.
+
+The cost is measured and bounded. A six-step workflow Run with its attempts and events occupies
+**13.7 KiB** including indexes, so fifty Runs a day for a year is 245 MiB — an order of magnitude
+less than the media assets the same year of work produces. A knowledge event costs **183 bytes**
+and a token usage event **122 bytes** including indexes, so twenty thousand of either is under
+4 MiB. A streamed Agent answer records about 2.7× its own text.
+
+Deletion remains driven by ownership, not by age: the ledger of a Space leaves with the Space
+through `home_space_id`, and the Runs of an external conversation leave with the conversation.
 
 ## Builtin Agent state
 
