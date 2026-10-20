@@ -40,7 +40,7 @@ export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
     await logError(formatErrorDiagnostic(reason));
   } finally {
     try {
-      await invokeCommand("plugin:desktop|reveal_main_window");
+      await invokeCommand("plugin:desktop|open_main_window");
     } catch (reason) {
       await logError(`Failed to reveal main window: ${formatErrorDiagnostic(reason)}`);
     }

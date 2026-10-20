@@ -81,7 +81,7 @@ pub async fn start(
                 extensions: &extensions,
                 context_manifest: &context.manifest,
                 space_context: &context.space,
-                attachment_summaries: &context.summaries,
+                message_attachments: &context.message_attachments,
                 target: &target,
                 profile: &profile,
                 messages: &messages,

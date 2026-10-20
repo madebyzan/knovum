@@ -62,7 +62,7 @@ pub fn discard(path: &Path) -> AppResult<()> {
     Ok(())
 }
 
-pub fn consume(root: &Path, relative_path: &str) -> AppResult<()> {
+pub fn remove(root: &Path, relative_path: &str) -> AppResult<()> {
     let artifact = resolve(root, relative_path)?;
     fs::remove_file(artifact).map_err(|error| AppError::internal(error.to_string()))
 }

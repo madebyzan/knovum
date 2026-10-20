@@ -52,7 +52,7 @@ fn formats_with_product_owned_presentations_are_skipped() {
 }
 
 #[test]
-fn credentials_are_never_rendered_into_app_data() {
+fn credentials_are_never_rendered_into_thumbnails() {
     let names = [
         ".env",
         ".ENV.production",

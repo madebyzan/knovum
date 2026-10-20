@@ -5,9 +5,9 @@ import { useI18n } from "vue-i18n";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { marketplaceQuery } from "../../../../foundation/extensions/extension-query";
 import {
-  addPluginMarketplace,
+  createPluginMarketplace,
   refreshPluginMarketplace,
-  removePluginMarketplace,
+  deletePluginMarketplace,
 } from "../../../../foundation/extensions/plugin-operations";
 import type { MarketplaceSource } from "../../../../shared/contracts/generated/MarketplaceSource";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
@@ -28,7 +28,7 @@ function mutate(operation: () => Promise<unknown>) {
     .catch(() => {});
 }
 function add(source: MarketplaceSource) {
-  mutate(() => addPluginMarketplace(source));
+  mutate(() => createPluginMarketplace(source));
 }
 async function remove(marketplaceId: string) {
   if (
@@ -40,7 +40,7 @@ async function remove(marketplaceId: string) {
     })
   ) {
     emit("removed", marketplaceId);
-    mutate(() => removePluginMarketplace(marketplaceId));
+    mutate(() => deletePluginMarketplace(marketplaceId));
   }
 }
 </script>

@@ -3,7 +3,7 @@ use sqlx::{Row, SqliteConnection};
 
 use crate::spaces::db;
 
-pub(crate) async fn get_node(
+pub(crate) async fn load_node(
     connection: &mut SqliteConnection,
     space_id: &str,
     node_id: &str,

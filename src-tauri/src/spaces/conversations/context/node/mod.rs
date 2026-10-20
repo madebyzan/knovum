@@ -27,7 +27,7 @@ pub(super) async fn resolve(
     } = reference;
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
     let node =
-        crate::spaces::queries::knowledge_projection::get_node(&mut tx, space_id, node_id).await?;
+        crate::spaces::queries::knowledge_projection::load_node(&mut tx, space_id, node_id).await?;
     tx.commit().await.map_err(db::sql_error)?;
     let kind = node["kind"]
         .as_str()
@@ -100,7 +100,7 @@ pub(super) async fn resolve(
             "role": role, "locator": locator, "kind": kind.clone(), "title": title,
             "representation": "current-node-data", "charactersRead": characters_read,
         }),
-        summary: crate::spaces::conversations::ConversationMessageAttachment::Node {
+        message_attachment: crate::spaces::conversations::ConversationMessageAttachment::Node {
             title: title.to_owned(),
             node_id: node_id.to_owned(),
             kind,

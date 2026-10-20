@@ -84,8 +84,8 @@ export function listConversationBranches(conversationId: string): Promise<string
   return invokeCommand("plugin:spaces|list_conversation_branches", { conversationId });
 }
 
-export function activateConversationBranch(conversationId: string, branchId: string): Promise<void> {
-  return invokeCommand("plugin:spaces|activate_conversation_branch", { conversationId, branchId });
+export function selectConversationBranch(conversationId: string, branchId: string): Promise<void> {
+  return invokeCommand("plugin:spaces|select_conversation_branch", { conversationId, branchId });
 }
 
 export async function startConversationTask(

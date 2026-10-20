@@ -69,7 +69,7 @@ pub fn set_workspace_menu_state<R: Runtime>(
 }
 
 #[tauri::command]
-pub fn reveal_main_window<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError> {
+pub fn open_main_window<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError> {
     let reveal = || -> Result<(), String> {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         tray::ensure_installed(&app, crate::preferences::LocalePreference::English)
@@ -96,15 +96,16 @@ pub fn plugin() -> TauriPlugin<Wry> {
         .invoke_handler(tauri::generate_handler![
             set_locale,
             set_workspace_menu_state,
-            reveal_main_window,
+            open_main_window,
             exit::mark_exit_coordinator_ready,
             exit::acknowledge_app_exit_request,
             exit::decide_app_exit_request,
-            startup::report_startup_failure,
-            tasks::project_session_tasks,
-            tasks::set_task_notifications,
+            startup::fail_startup,
+            tasks::set_session_tasks,
+            tasks::enable_task_notifications,
+            tasks::disable_task_notifications,
             editing::execute_editing_command,
-            window_close::begin_window_close,
+            window_close::start_window_close,
             window_close::acknowledge_window_close,
             window_close::complete_window_close
         ])

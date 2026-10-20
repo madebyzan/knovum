@@ -83,7 +83,7 @@ pub async fn start(
         app.clone(),
         &session.id,
         &prompt,
-        &context.summaries,
+        &context.message_attachments,
     )
     .await
     {

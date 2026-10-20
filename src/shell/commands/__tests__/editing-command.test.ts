@@ -5,9 +5,9 @@ import { registerAppCommands } from "../../../foundation/commands/run-app-comman
 import type { AppCommand } from "../../../shared/contracts/app-command";
 import { runEditingCommand } from "../editing-command";
 
-const editing = vi.hoisted(() => ({ native: vi.fn<(command: string) => void>() }));
+const editing = vi.hoisted(() => ({ applicationMenu: vi.fn<(command: string) => void>() }));
 vi.mock("../../../foundation/commands/text-editing", () => ({
-  performApplicationMenuEditing: editing.native,
+  performApplicationMenuEditing: editing.applicationMenu,
 }));
 
 function surfaceCommand(id: string): AppCommand & { run: ReturnType<typeof vi.fn> } {
@@ -35,7 +35,7 @@ describe("application menu editing", () => {
     await runEditingCommand("copy");
     await runEditingCommand("undo");
 
-    expect(editing.native.mock.calls).toEqual([["copy"], ["undo"]]);
+    expect(editing.applicationMenu.mock.calls).toEqual([["copy"], ["undo"]]);
     expect(canvasCopy.run).not.toHaveBeenCalled();
     expect(canvasUndo.run).not.toHaveBeenCalled();
   });
@@ -51,7 +51,7 @@ describe("application menu editing", () => {
     await vi.waitFor(() => {
       for (const command of commands) expect(command.run).toHaveBeenCalledOnce();
     });
-    expect(editing.native).not.toHaveBeenCalled();
+    expect(editing.applicationMenu).not.toHaveBeenCalled();
   });
 
   it("undoes a rich-text surface through its own history, not the platform stack", async () => {
@@ -64,7 +64,7 @@ describe("application menu editing", () => {
 
     await vi.waitFor(() => expect(documentUndo.run).toHaveBeenCalledOnce());
     expect(canvasUndo.run).not.toHaveBeenCalled();
-    expect(editing.native).not.toHaveBeenCalled();
+    expect(editing.applicationMenu).not.toHaveBeenCalled();
   });
 
   it("falls back to the canvas history when no document is open", async () => {
@@ -83,7 +83,7 @@ describe("application menu editing", () => {
 
     await runEditingCommand("paste");
 
-    expect(editing.native).toHaveBeenCalledWith("paste");
+    expect(editing.applicationMenu).toHaveBeenCalledWith("paste");
     expect(canvasPaste.run).not.toHaveBeenCalled();
   });
 });

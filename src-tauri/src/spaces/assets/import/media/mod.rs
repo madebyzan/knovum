@@ -21,7 +21,7 @@ pub(super) fn reserve_maintenance(
 /// The canvas reserves its node from this, so arriving media is ordinary canvas content from the
 /// moment the link is dropped: it can be moved, selected and left alone while it finishes.
 #[tauri::command]
-pub fn reserve_media_import_asset(
+pub fn allocate_media_import_asset(
     app: tauri::AppHandle,
     job_id: String,
     kind: MediaKind,

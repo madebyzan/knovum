@@ -4,7 +4,7 @@ use sqlx::Row;
 use super::RunObservation;
 use crate::spaces::{authorization::RunScope, db};
 
-pub(super) fn parse_summary(row: &sqlx::sqlite::SqliteRow) -> Result<RunObservation, String> {
+pub(super) fn parse_observation(row: &sqlx::sqlite::SqliteRow) -> Result<RunObservation, String> {
     Ok(RunObservation {
         id: row.try_get("id").map_err(db::sql_error)?,
         scope: parse_scope(row)?,

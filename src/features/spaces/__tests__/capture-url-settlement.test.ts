@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
         subject: MediaAcquisitionSubject,
       ) => Promise<{ outcome: "imported"; payload: SpaceMediaPayload } | { outcome: "unsupported" }>
     >(),
-  reserveMediaImportAsset: vi.fn<(jobId: string, kind: "audio" | "video") => Promise<string>>(),
+  allocateMediaImportAsset: vi.fn<(jobId: string, kind: "audio" | "video") => Promise<string>>(),
   addSavedWebsite: vi.fn<() => Promise<void>>(),
   logInfo: vi.fn<(message: string) => void>(),
   logWarn: vi.fn<(message: string) => void>(),
@@ -25,7 +25,7 @@ vi.mock("../../../foundation/i18n/instance", () => ({
 }));
 vi.mock("../assets/asset-operations", () => ({ removeSpaceAssets: mocks.removeSpaceAssets }));
 vi.mock("../media/import/acquisition", () => ({ acquireMediaSource: mocks.acquireMediaSource }));
-vi.mock("../media/import/ipc", () => ({ reserveMediaImportAsset: mocks.reserveMediaImportAsset }));
+vi.mock("../media/import/ipc", () => ({ allocateMediaImportAsset: mocks.allocateMediaImportAsset }));
 vi.mock("../website/capture", () => ({ addSavedWebsite: mocks.addSavedWebsite }));
 
 import { captureSpaceUrl } from "../sources/capture-url";
@@ -33,7 +33,7 @@ import { captureSpaceUrl } from "../sources/capture-url";
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.addSavedWebsite.mockResolvedValue(undefined);
-  mocks.reserveMediaImportAsset.mockResolvedValue(RESERVED_ASSET);
+  mocks.allocateMediaImportAsset.mockResolvedValue(RESERVED_ASSET);
 });
 
 it("reports both the settlement failure and the asset cleanup that could not follow it", async () => {

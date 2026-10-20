@@ -92,9 +92,12 @@ async fn inventory_includes_unindexed_resources_and_excludes_deleted_secrets_and
         .await
         .is_err());
     for id in ["deleted", "secret", "portal", "other-node"] {
-        assert!(super::get_node(&mut tx, "space", id).await.is_err(), "{id}");
+        assert!(
+            super::load_node(&mut tx, "space", id).await.is_err(),
+            "{id}"
+        );
     }
-    let node = super::get_node(&mut tx, "space", "a").await.unwrap();
+    let node = super::load_node(&mut tx, "space", "a").await.unwrap();
     assert_eq!(node["data"]["assetPath"], "/managed/source.png");
     assert_eq!(node["chunks"], json!([]));
     let (rendered_revision, _) = crate::spaces::derivation::input_revision::resolve(
@@ -109,7 +112,7 @@ async fn inventory_includes_unindexed_resources_and_excludes_deleted_secrets_and
 }
 
 #[tokio::test]
-async fn search_actions_and_mcp_share_chinese_search_and_revision_aware_results() {
+async fn search_actions_and_mcp_share_chinese_search_and_revision_aware_matches() {
     let pool = database().await;
     let data = json!({"kind":"note","title":"Space evidence","plainText":"画布有图片资料","tiptapContent":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"画布有图片资料"}]}]}});
     let mut normalized = data;
@@ -162,7 +165,7 @@ async fn search_actions_and_mcp_share_chinese_search_and_revision_aware_results(
     assert!(super::search_knowledge(&mut tx, "space", " ", 20)
         .await
         .is_err());
-    let direct = super::get_node(&mut tx, "space", "note").await.unwrap();
+    let direct = super::load_node(&mut tx, "space", "note").await.unwrap();
     let action = crate::spaces::action_execution::execute_immediate(
         &mut tx,
         &principal,

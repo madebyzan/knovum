@@ -13,7 +13,7 @@ use image::ImageAttachmentContent;
 
 struct ResolvedPart {
     manifest: Value,
-    summary: crate::spaces::conversations::ConversationMessageAttachment,
+    message_attachment: crate::spaces::conversations::ConversationMessageAttachment,
     excerpt: Option<String>,
     image: Option<ImageAttachmentContent>,
     agent_path: Option<(std::path::PathBuf, AgentPathOrigin)>,
@@ -35,7 +35,7 @@ pub(crate) enum ContextTarget {
 
 pub(crate) struct ResolvedContext {
     pub manifest: Value,
-    pub summaries: Vec<crate::spaces::conversations::ConversationMessageAttachment>,
+    pub message_attachments: Vec<crate::spaces::conversations::ConversationMessageAttachment>,
     excerpts: Vec<String>,
     images: Vec<ImageAttachmentContent>,
     agent_paths: Vec<(std::path::PathBuf, AgentPathOrigin)>,
@@ -153,7 +153,7 @@ pub(crate) async fn resolve(
         .await
         .map_err(crate::spaces::db::sql_error)?;
     let mut manifest = Vec::with_capacity(attachments.len());
-    let mut summaries = Vec::with_capacity(attachments.len());
+    let mut message_attachments = Vec::with_capacity(attachments.len());
     let mut excerpts = Vec::new();
     let mut images = Vec::new();
     let mut agent_paths = Vec::new();
@@ -198,11 +198,11 @@ pub(crate) async fn resolve(
             agent_paths.push(path);
         }
         manifest.push(part.manifest);
-        summaries.push(part.summary);
+        message_attachments.push(part.message_attachment);
     }
     Ok(ResolvedContext {
         manifest: Value::Array(manifest),
-        summaries,
+        message_attachments,
         excerpts,
         images,
         agent_paths,

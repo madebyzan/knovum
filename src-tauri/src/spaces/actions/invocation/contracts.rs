@@ -23,7 +23,7 @@ pub struct ActionInvocationRequest {
     rename_all_fields = "camelCase"
 )]
 pub enum ActionInvocationOutcome {
-    QueryResult { result: Value },
+    Projection { projection: Value },
     CommittedReceipt { receipt: Value },
     AcceptedRun { run_id: String },
 }

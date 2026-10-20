@@ -3,4 +3,4 @@ import type { ResourcePreparationProgress } from "../../../../shared/contracts/g
 import type { DictationPhase } from "./DictationPhase";
 import type { InsertionOutcome } from "./InsertionOutcome";
 
-export type DictationSnapshot = { phase: DictationPhase, resources: ResourcePreparationProgress | null, sessionId: string | null, startedAt: number | null, targetApplication: string | null, text: string | null, language: string | null, insertion: InsertionOutcome | null, errorCode: string | null, errorMessage: string | null, };
+export type DictationSnapshot = { phase: DictationPhase, resources: ResourcePreparationProgress | null, sessionId: string | null, startedAt: number | null, targetApplicationName: string | null, text: string | null, language: string | null, insertion: InsertionOutcome | null, errorCode: string | null, errorMessage: string | null, };

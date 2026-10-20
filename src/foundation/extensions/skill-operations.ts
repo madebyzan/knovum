@@ -26,8 +26,8 @@ export function saveSkillRevision(skillId: string, expectedDigest: string, markd
 export function importSkill(path: string) {
   return invokeCommand<ExtensionChange<SkillRevision>>("plugin:extensions|import_skill", { path });
 }
-export function copySkill(skillId: string) {
-  return invokeCommand<ExtensionChange<SkillRevision>>("plugin:extensions|copy_skill", { skillId });
+export function duplicateSkill(skillId: string) {
+  return invokeCommand<ExtensionChange<SkillRevision>>("plugin:extensions|duplicate_skill", { skillId });
 }
 export function exportSkill(skillId: string, path: string) {
   return invokeCommand<void>("plugin:extensions|export_skill", { skillId, path });

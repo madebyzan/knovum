@@ -108,8 +108,8 @@ function reportFailure(error: unknown) {
       >
         {{ resourceProgress }}
       </p>
-      <p v-if="session.state.value.targetApplication" class="truncate text-caption text-fg-secondary">
-        {{ session.state.value.targetApplication }}
+      <p v-if="session.state.value.targetApplicationName" class="truncate text-caption text-fg-secondary">
+        {{ session.state.value.targetApplicationName }}
       </p>
     </div>
     <UiButton size="sm" variant="ghost" @click="cancel">

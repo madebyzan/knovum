@@ -71,7 +71,7 @@ pub async fn branch_conversation(
 }
 
 #[tauri::command]
-pub async fn activate_conversation_branch(
+pub async fn select_conversation_branch(
     app: tauri::AppHandle,
     conversation_id: String,
     branch_id: String,

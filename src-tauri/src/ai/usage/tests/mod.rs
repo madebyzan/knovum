@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 
-use super::{contracts::UsageDay, repository::summarize};
+use super::{contracts::UsageDay, repository::measure};
 
 fn day(date: &str, total_tokens: u64) -> UsageDay {
     UsageDay {
@@ -13,7 +13,7 @@ fn day(date: &str, total_tokens: u64) -> UsageDay {
 }
 
 #[test]
-fn summarizes_totals_peak_and_streaks() {
+fn measures_totals_peak_and_streaks() {
     let activity = vec![
         day("2026-09-17", 100),
         day("2026-09-18", 250),
@@ -21,29 +21,29 @@ fn summarizes_totals_peak_and_streaks() {
         day("2026-09-21", 400),
         day("2026-09-22", 500),
     ];
-    let summary = summarize(
+    let metrics = measure(
         &activity,
         NaiveDate::from_ymd_opt(2026, 9, 22).expect("valid date"),
     )
-    .expect("summary");
+    .expect("metrics");
 
-    assert_eq!(summary.total_tokens, 1_550);
-    assert_eq!(summary.requests, 5);
-    assert_eq!(summary.active_days, 5);
-    assert_eq!(summary.peak_daily_tokens, 500);
-    assert_eq!(summary.current_streak_days, 3);
-    assert_eq!(summary.longest_streak_days, 3);
+    assert_eq!(metrics.total_tokens, 1_550);
+    assert_eq!(metrics.requests, 5);
+    assert_eq!(metrics.active_days, 5);
+    assert_eq!(metrics.peak_daily_tokens, 500);
+    assert_eq!(metrics.current_streak_days, 3);
+    assert_eq!(metrics.longest_streak_days, 3);
 }
 
 #[test]
 fn current_streak_remains_active_during_the_next_day() {
     let activity = vec![day("2026-09-20", 100), day("2026-09-21", 100)];
-    let summary = summarize(
+    let metrics = measure(
         &activity,
         NaiveDate::from_ymd_opt(2026, 9, 22).expect("valid date"),
     )
-    .expect("summary");
+    .expect("metrics");
 
-    assert_eq!(summary.current_streak_days, 2);
-    assert_eq!(summary.longest_streak_days, 2);
+    assert_eq!(metrics.current_streak_days, 2);
+    assert_eq!(metrics.longest_streak_days, 2);
 }

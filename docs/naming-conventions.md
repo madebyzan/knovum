@@ -181,62 +181,90 @@ an explicit boundary operation rather than an in-memory attribute getter. Preser
 methods and vendor API names. Semantic verb selection below is Knovum policy, not a claim that
 industry mandates one spelling for every use case.
 
-| Group       | Intent                                                         | Verb         |
-| ----------- | -------------------------------------------------------------- | ------------ |
-| Lifecycle   | Create a business object                                       | `create`     |
-| Lifecycle   | Change fields of a business object                             | `update`     |
-| Lifecycle   | Delete a durable business object                               | `delete`     |
-| Lifecycle   | Soft-delete a business object so undo can reverse it           | `trash`      |
-| Lifecycle   | Reconstruct a business object from soft deletion or a package  | `restore`    |
-| Lifecycle   | Delete an owned file, model or temporary resource              | `remove`     |
-| Lifecycle   | Withdraw a granted relation or authority                       | `revoke`     |
-| Lifecycle   | Take a durable object out of active use, reversibly            | `archive`    |
-| Lifecycle   | Return an archived object to active use                        | `unarchive`  |
-| Persistence | Write the current state of a record idempotently               | `save`       |
-| Persistence | Write renderer-produced bytes under app ownership              | `persist`    |
-| Staged work | Create a temporary authorized resource pending completion      | `stage`      |
-| Staged work | Finalize a staged resource                                     | `commit`     |
-| Staged work | Apply a patch or a prepared command                            | `apply`      |
-| Staged work | Activate a downloaded artifact as the running version          | `install`    |
-| Staged work | Decline a staged proposal                                      | `reject`     |
-| Async work  | Begin a long-lived activity or service                         | `start`      |
-| Async work  | End a running activity or service                              | `stop`       |
-| Async work  | Abandon an in-flight job                                       | `cancel`     |
-| Async work  | Record that a job ended in error                               | `fail`       |
-| Async work  | Run one unit of queued Rust work                               | `run`        |
-| Async work  | Hand a renderer-produced result to Rust for recording          | `submit`     |
-| Async work  | Return a completed generation or response                      | `complete`   |
-| Async work  | Close out a multi-step capture                                 | `finalize`   |
-| Read        | Read one known identity                                        | `get`        |
-| Read        | Return a collection                                            | `list`       |
-| Read        | Query by free text or criteria                                 | `search`     |
-| Read        | Load a durable aggregate or session projection                 | `load`       |
-| Read        | Read from a network boundary                                   | `fetch`      |
-| Read        | Assemble a snapshot or aggregate representation                | `collect`    |
-| Sync        | Bring derived state back in sync                               | `reconcile`  |
-| Sync        | Discard and reconstruct a derived index                        | `rebuild`    |
-| Sync        | Re-read from the authoritative source                          | `refresh`    |
-| Sync        | Return persisted state to its baseline                         | `reset`      |
-| Sync        | Write a copy for safekeeping                                   | `backup`     |
-| Assignment  | Assign a scalar or preference directly                         | `set`        |
-| Assignment  | Record a state transition or timestamp                         | `mark`       |
-| Assignment  | Reserve a managed output path                                  | `allocate`   |
-| Assignment  | Move an object between containers                              | `move`       |
-| Assignment  | Append to an ordered stream                                    | `append`     |
-| Assignment  | Reveal a resource in its owning surface                        | `open`       |
-| Transfer    | Bring external data under app ownership                        | `import`     |
-| Transfer    | Write app-owned data to a user-selected location               | `export`     |
-| Transfer    | Transfer bytes down from a remote source                       | `download`   |
-| Transfer    | Store a network response for reuse                             | `cache`      |
-| Compare     | Compare local state against an authoritative source and report | `check`      |
-| Domain      | Produce vector embeddings for knowledge                        | `embed`      |
-| Domain      | Produce derived knowledge from a source asset                  | `enrich`     |
-| Domain      | Produce a transcript from media                                | `transcribe` |
-| Domain      | Produce the same text in another language                      | `translate`  |
-| Domain      | Produce a transformed editor document                          | `transform`  |
-| Domain      | Reply to a question with grounded evidence                     | `answer`     |
-| Domain      | Produce a rendered artifact                                    | `render`     |
-| Domain      | Produce a copy of an object                                    | `duplicate`  |
+| Group       | Intent                                                            | Verb          |
+| ----------- | ----------------------------------------------------------------- | ------------- |
+| Lifecycle   | Create a business object                                          | `create`      |
+| Lifecycle   | Change fields of a business object                                | `update`      |
+| Lifecycle   | Delete a durable business object                                  | `delete`      |
+| Lifecycle   | Soft-delete a business object so undo can reverse it              | `trash`       |
+| Lifecycle   | Reconstruct a business object from soft deletion or a package     | `restore`     |
+| Lifecycle   | Delete an owned file, model or temporary resource                 | `remove`      |
+| Lifecycle   | Withdraw a granted relation or authority                          | `revoke`      |
+| Lifecycle   | Take a durable object out of active use, reversibly               | `archive`     |
+| Lifecycle   | Return an archived object to active use                           | `unarchive`   |
+| Lifecycle   | Change only the title of an object                                | `rename`      |
+| Lifecycle   | Create a new revision of a revisioned object                      | `revise`      |
+| Lifecycle   | Mark a durable object as a favorite                               | `favorite`    |
+| Lifecycle   | Remove the favorite mark                                          | `unfavorite`  |
+| Lifecycle   | Deactivate and remove an installed artifact                       | `uninstall`   |
+| Lifecycle   | Drop work that was never committed, leaving nothing durable       | `discard`     |
+| Persistence | Write the current state of a record idempotently                  | `save`        |
+| Persistence | Write renderer-produced bytes under app ownership                 | `persist`     |
+| Staged work | Create a temporary authorized resource pending completion         | `stage`       |
+| Staged work | Finalize a staged resource                                        | `commit`      |
+| Staged work | Apply a patch or a prepared command                               | `apply`       |
+| Staged work | Activate a downloaded artifact as the running version             | `install`     |
+| Staged work | Decline a staged proposal                                         | `reject`      |
+| Staged work | Produce an editable proposal for review                           | `draft`       |
+| Staged work | Arrange maintenance to run at a later lifecycle point             | `schedule`    |
+| Async work  | Begin a long-lived activity or service                            | `start`       |
+| Async work  | End a running activity or service                                 | `stop`        |
+| Async work  | Abandon an in-flight job                                          | `cancel`      |
+| Async work  | Record that a job ended in error                                  | `fail`        |
+| Async work  | Run one unit of queued Rust work                                  | `run`         |
+| Async work  | Hand a renderer-produced result to Rust for recording             | `submit`      |
+| Async work  | Return a completed generation or response                         | `complete`    |
+| Async work  | Close out a multi-step capture                                    | `finalize`    |
+| Async work  | Make a resource ready for a later operation                       | `prepare`     |
+| Async work  | Suspend a running activity without abandoning it                  | `pause`       |
+| Async work  | Continue a paused activity                                        | `resume`      |
+| Async work  | Run failed work again as a new attempt                            | `retry`       |
+| Async work  | Subscribe to state snapshots of a running activity                | `observe`     |
+| Read        | Read one known identity                                           | `get`         |
+| Read        | Return a collection                                               | `list`        |
+| Read        | Query by free text or criteria                                    | `search`      |
+| Read        | Load a durable aggregate or session projection                    | `load`        |
+| Read        | Read from a network boundary                                      | `fetch`       |
+| Read        | Assemble a snapshot or aggregate representation                   | `collect`     |
+| Read        | Show or produce a non-committing view of content                  | `preview`     |
+| Sync        | Bring derived state back in sync                                  | `reconcile`   |
+| Sync        | Discard and reconstruct a derived index                           | `rebuild`     |
+| Sync        | Re-read from the authoritative source                             | `refresh`     |
+| Sync        | Return persisted state to its baseline                            | `reset`       |
+| Sync        | Write a copy for safekeeping                                      | `backup`      |
+| Assignment  | Assign a scalar or preference directly                            | `set`         |
+| Assignment  | Record a state transition or timestamp                            | `mark`        |
+| Assignment  | Reserve a managed output path                                     | `allocate`    |
+| Assignment  | Move an object between containers                                 | `move`        |
+| Assignment  | Append to an ordered stream                                       | `append`      |
+| Assignment  | Reveal a resource in its owning surface                           | `open`        |
+| Assignment  | Choose which of several alternatives is active                    | `select`      |
+| Assignment  | Fork a conversation at a message into a new branch                | `branch`      |
+| Transfer    | Bring external data under app ownership                           | `import`      |
+| Transfer    | Write app-owned data to a user-selected location                  | `export`      |
+| Transfer    | Transfer bytes down from a remote source                          | `download`    |
+| Transfer    | Store a network response for reuse                                | `cache`       |
+| Compare     | Compare local state against an authoritative source and report    | `check`       |
+| Compare     | Check an input against its invariants without writing it          | `validate`    |
+| Domain      | Produce vector embeddings for knowledge                           | `embed`       |
+| Domain      | Produce derived knowledge from a source asset                     | `enrich`      |
+| Domain      | Produce a transcript from media                                   | `transcribe`  |
+| Domain      | Produce the same text in another language                         | `translate`   |
+| Domain      | Produce a transformed editor document                             | `transform`   |
+| Domain      | Reply to a question with grounded evidence                        | `answer`      |
+| Domain      | Produce a rendered artifact                                       | `render`      |
+| Domain      | Produce a copy of an object                                       | `duplicate`   |
+| Domain      | Write content into the retrieval index                            | `index`       |
+| Domain      | Reverse a recorded edit                                           | `undo`        |
+| Domain      | Re-apply an edit that was undone                                  | `redo`        |
+| Transfer    | Write content to the system clipboard                             | `copy`        |
+| Response    | Confirm receipt of a request so its owner stops waiting           | `acknowledge` |
+| Response    | Record a user's decision on a pending request or review           | `decide`      |
+| Response    | Close a transient surface without acting on its content           | `dismiss`     |
+| Authority   | Record consent for a use the authorization model guards           | `authorize`   |
+| Authority   | Supply user configuration to a definition another owner publishes | `configure`   |
+| Authority   | Establish an authorized external connection                       | `connect`     |
+| Authority   | End an authorized external connection                             | `disconnect`  |
 
 Model-produced text and artifacts use `generate` (`generate_grounded_document`,
 `generate_video`). `render` names deterministic media/artifact processing

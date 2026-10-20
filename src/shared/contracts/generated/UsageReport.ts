@@ -3,4 +3,4 @@ import type { UsageDay } from "./UsageDay";
 import type { UsageMetrics } from "./UsageMetrics";
 import type { UsagePurposeTotal } from "./UsagePurposeTotal";
 
-export type UsageReport = { fromDate: string, toDate: string, summary: UsageMetrics, activity: Array<UsageDay>, byPurpose: Array<UsagePurposeTotal>, };
+export type UsageReport = { fromDate: string, toDate: string, metrics: UsageMetrics, activity: Array<UsageDay>, byPurpose: Array<UsagePurposeTotal>, };

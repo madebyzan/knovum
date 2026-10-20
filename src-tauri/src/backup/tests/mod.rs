@@ -45,7 +45,7 @@ impl Drop for Fixture {
 }
 
 #[test]
-fn prepared_journal_restores_original_data() {
+fn prepared_journal_restores_the_original_file() {
     let fixture = Fixture::new();
     let token = uuid::Uuid::new_v4();
     let live = fixture.paths.data.join("settings.json");
@@ -64,7 +64,7 @@ fn prepared_journal_restores_original_data() {
 }
 
 #[test]
-fn committed_cleanup_is_idempotent_and_keeps_published_data() {
+fn committed_cleanup_is_idempotent_and_keeps_published_files() {
     let fixture = Fixture::new();
     let token = uuid::Uuid::new_v4();
     let live = fixture.paths.data.join("settings.json");
@@ -88,7 +88,7 @@ fn committed_cleanup_is_idempotent_and_keeps_published_data() {
 }
 
 #[test]
-fn invalid_journal_target_is_rejected_without_touching_live_data() {
+fn invalid_journal_target_is_rejected_without_touching_live_files() {
     let fixture = Fixture::new();
     let outside = fixture.root.join("outside.txt");
     fs::write(&outside, b"keep").expect("outside data");

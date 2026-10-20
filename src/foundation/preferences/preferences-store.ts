@@ -90,9 +90,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
 
       await currentWindow.setTheme(preferences.theme === "system" ? null : preferences.theme);
       await syncSystemLocale(preferences.locale);
-      await invokeCommand("plugin:desktop|set_task_notifications", {
-        enabled: preferences.backgroundTaskNotifications,
-      });
+      await syncTaskNotifications(preferences.backgroundTaskNotifications);
       applyPreferences(snapshot(preferences));
 
       if (!stopThemeListener) {
@@ -160,7 +158,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
 
   function setBackgroundTaskNotifications(enabled: boolean) {
     return mutate(async () => {
-      await invokeCommand("plugin:desktop|set_task_notifications", { enabled });
+      await syncTaskNotifications(enabled);
       preferences.backgroundTaskNotifications = enabled;
     });
   }
@@ -183,4 +181,11 @@ if (import.meta.hot) {
     stopThemeListener?.();
     stopThemeListener = undefined;
   });
+}
+
+/** Desktop task notifications follow the preference through their explicit enable and disable intents. */
+function syncTaskNotifications(enabled: boolean) {
+  return invokeCommand(
+    enabled ? "plugin:desktop|enable_task_notifications" : "plugin:desktop|disable_task_notifications",
+  );
 }

@@ -18,7 +18,7 @@ const snapshot: DictationSnapshot = {
   resources: null,
   sessionId: null,
   startedAt: null,
-  targetApplication: null,
+  targetApplicationName: null,
   text: null,
   language: null,
   insertion: null,

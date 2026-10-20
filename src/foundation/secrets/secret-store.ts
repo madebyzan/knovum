@@ -5,7 +5,7 @@ export function getSecret(secretKey: string): Promise<string | null> {
 }
 
 export function isSecretConfigured(secretKey: string): Promise<boolean> {
-  return invokeCommand<boolean>("plugin:secrets|is_configured", { secretKey });
+  return invokeCommand<boolean>("plugin:secrets|inspect", { secretKey });
 }
 
 export function setSecret(secretKey: string, secret: string): Promise<void> {

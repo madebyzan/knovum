@@ -1,6 +1,7 @@
 import type { AppCommand } from "../../shared/contracts/app-command";
+import type { EditingCommand } from "../../shared/contracts/generated/EditingCommand";
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
-import { EDITING_INTENTS, runEditingCommand, type EditingIntent } from "./editing-command";
+import { EDITING_COMMANDS, runEditingCommand } from "./editing-command";
 
 interface ShellCommandActions {
   openCommandPalette: () => void;
@@ -11,7 +12,7 @@ interface ShellCommandActions {
 }
 
 interface ShellCommandLabels {
-  editing: Record<EditingIntent, string>;
+  editing: Record<EditingCommand, string>;
   settings: string;
   commandPalette: string;
   shortcuts?: string;
@@ -54,7 +55,7 @@ export function createShellCommands(
 
   const baseCommands: AppCommand[] = [
     // The Application Menu owns the chord for these, so they carry no keyboard binding of their own.
-    ...EDITING_INTENTS.map<AppCommand>((intent) => ({
+    ...EDITING_COMMANDS.map<AppCommand>((intent) => ({
       id: `editing.${intent}`,
       title: labels.editing[intent],
       category: "editing",

@@ -3,7 +3,11 @@ import { Plus, FolderInput } from "@lucide/vue";
 import { computed } from "vue";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { copySkill, enableSkill, disableSkill } from "../../../../foundation/extensions/skill-operations";
+import {
+  duplicateSkill,
+  enableSkill,
+  disableSkill,
+} from "../../../../foundation/extensions/skill-operations";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiSettingsHeaderActions from "../../../../shared/ui/UiSettingsHeaderActions.vue";
@@ -74,7 +78,7 @@ const inspected = computed(() =>
       @back="$emit('navigate', { tab: 'skills' })"
       @edit="reading.mutate(inspected.id)"
       @toggle="mutate(() => (inspected!.enabled ? disableSkill(inspected!.id) : enableSkill(inspected!.id)))"
-      @copy="mutate(() => copySkill(inspected!.id))"
+      @copy="mutate(() => duplicateSkill(inspected!.id))"
       @export="mutate(() => exportSkillDirectory(inspected!.id))"
       @delete="deletePersonalSkill(inspected.id, inspected.name)"
     />
@@ -108,7 +112,7 @@ const inspected = computed(() =>
           @inspect="$emit('navigate', { tab: 'skills', id: skill.id })"
           @edit="reading.mutate(skill.id)"
           @toggle="mutate(() => (skill.enabled ? disableSkill(skill.id) : enableSkill(skill.id)))"
-          @copy="mutate(() => copySkill(skill.id))"
+          @copy="mutate(() => duplicateSkill(skill.id))"
           @export="mutate(() => exportSkillDirectory(skill.id))"
           @delete="deletePersonalSkill(skill.id, skill.name)"
         />

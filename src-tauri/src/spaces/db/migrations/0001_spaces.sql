@@ -452,7 +452,7 @@ CREATE TABLE spaces_action_invocations (
   action_version INTEGER NOT NULL CHECK (action_version > 0),
   idempotency_key TEXT NOT NULL,
   request_digest TEXT NOT NULL CHECK (length(request_digest) = 64),
-  outcome_kind TEXT NOT NULL CHECK (outcome_kind IN ('query_result','committed_receipt','accepted_run')),
+  outcome_kind TEXT NOT NULL CHECK (outcome_kind IN ('projection','committed_receipt','accepted_run')),
   outcome TEXT NOT NULL CHECK (json_valid(outcome)),
   created_at INTEGER NOT NULL,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,

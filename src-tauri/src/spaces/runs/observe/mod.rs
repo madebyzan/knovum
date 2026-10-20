@@ -22,7 +22,7 @@ async fn active_resource_runs(pool: &SqlitePool) -> Result<Vec<RunObservation>, 
     .await
     .map_err(db::sql_error)?;
     rows.iter()
-        .map(run_rows::parse_summary)
+        .map(run_rows::parse_observation)
         .collect::<Result<_, _>>()
 }
 

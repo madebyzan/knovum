@@ -13,7 +13,7 @@ impl SpaceMcpServer {
             .begin()
             .await
             .map_err(|error| mcp_error(error.to_string()))?;
-        let node = crate::spaces::queries::knowledge_projection::get_node(
+        let node = crate::spaces::queries::knowledge_projection::load_node(
             &mut tx,
             &args.space_id,
             &args.node_id,

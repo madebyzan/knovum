@@ -85,7 +85,7 @@ pub fn discard_artifact_workspace(
 }
 
 #[tauri::command]
-pub fn consume_agent_artifact(
+pub fn remove_agent_artifact(
     app: AppHandle,
     space_id: String,
     session_id: String,
@@ -93,5 +93,5 @@ pub fn consume_agent_artifact(
 ) -> AppResult<()> {
     let workspace =
         crate::spaces::agent_artifacts::workspace::session_directory(&app, &space_id, &session_id)?;
-    crate::external_agents::artifacts::consume(&workspace, &relative_path)
+    crate::external_agents::artifacts::remove(&workspace, &relative_path)
 }

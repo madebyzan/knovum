@@ -2,7 +2,7 @@
 async fn space_snapshot_remains_distinct_from_the_user_input() {
     let context = super::ResolvedContext {
         manifest: serde_json::json!([]),
-        summaries: vec![],
+        message_attachments: vec![],
         excerpts: vec![],
         images: vec![],
         agent_paths: vec![],

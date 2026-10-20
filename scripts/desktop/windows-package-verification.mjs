@@ -19,13 +19,13 @@ export function verifyWindowsApplicationPackage(packagePath, options) {
   const staging = mkdtempSync(join(tmpdir(), "knovum-windows-package-"));
   try {
     extractPackage(packageFile, staging, options.sevenZipPath ?? defaultSevenZip);
-    return verifyExtractedWindowsApplication(staging, options);
+    return verifyExtractedPackage(staging, options);
   } finally {
     rmSync(staging, { recursive: true, force: true });
   }
 }
 
-function verifyExtractedWindowsApplication(extractionRoot, options) {
+function verifyExtractedPackage(extractionRoot, options) {
   const resources = locateApplicationResources(extractionRoot, options.target);
   validatePackagedResources(resources, resolve(options.repository), options);
   return resources;

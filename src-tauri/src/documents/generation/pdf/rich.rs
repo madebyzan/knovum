@@ -32,27 +32,27 @@ impl Writer {
     }
 
     pub fn image(&mut self, image: &Image) -> Result<(), String> {
-        let image_data = super::super::images::decode(
+        let decoded = super::super::images::decode(
             image
                 .data
                 .as_deref()
                 .ok_or("Document image bytes are missing")?,
         )?;
-        self.image_bytes += image_data.bytes.len();
+        self.image_bytes += decoded.bytes.len();
         if self.image_bytes > 64 * 1024 * 1024 {
             return Err("Document images exceed 64 MiB".into());
         }
         let filename = format!("image-{}.png", self.binaries.len());
-        let scale = (468.0 / f64::from(image_data.width))
-            .min(595.0 / f64::from(image_data.height))
+        let scale = (468.0 / f64::from(decoded.width))
+            .min(595.0 / f64::from(decoded.height))
             .min(0.75);
         self.source.push_str(&format!(
             "#image({}, width: {}pt, alt: {})",
             super::source::string(&filename),
-            f64::from(image_data.width) * scale,
+            f64::from(decoded.width) * scale,
             super::source::string(image.alt_text.as_deref().unwrap_or(""))
         ));
-        self.binaries.push((filename, image_data.bytes));
+        self.binaries.push((filename, decoded.bytes));
         Ok(())
     }
 }

@@ -22,7 +22,7 @@ export function installSessionTaskProjection(pinia: Pinia): void {
         })),
     (tasks) => {
       publication = publication
-        .then(() => invokeCommand<void>("plugin:desktop|project_session_tasks", { tasks }))
+        .then(() => invokeCommand<void>("plugin:desktop|set_session_tasks", { tasks }))
         .catch((reason) => logError(`Desktop task projection failed: ${formatErrorDiagnostic(reason)}`));
     },
     { deep: true, immediate: true },
