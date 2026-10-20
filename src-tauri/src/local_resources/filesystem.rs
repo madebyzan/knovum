@@ -42,7 +42,7 @@ pub(crate) fn verify_regular_directory(path: &Path) -> Result<(), String> {
 /// Metadata only: these bytes were hashed when the snapshot was installed, and the caller needs
 /// their size rather than their content.
 pub(crate) fn installed_bytes(path: &Path) -> Result<u64, String> {
-    let mut total = 0;
+    let mut total: u64 = 0;
     for entry in walkdir::WalkDir::new(path).follow_links(false) {
         let metadata = entry
             .map_err(|error| error.to_string())?

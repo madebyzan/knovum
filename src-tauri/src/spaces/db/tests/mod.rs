@@ -48,7 +48,8 @@ async fn every_foreign_key_is_indexed() {
     let pool = migrated().await;
     let mut unindexed = Vec::new();
     for table in table_names(&pool).await {
-        let keys = sqlx::query(&format!("PRAGMA foreign_key_list('{table}')"))
+        let keys = sqlx::query("SELECT * FROM pragma_foreign_key_list($1)")
+            .bind(&table)
             .fetch_all(&pool)
             .await
             .expect("foreign keys");
@@ -56,7 +57,8 @@ async fn every_foreign_key_is_indexed() {
             continue;
         }
         let mut indexes = Vec::new();
-        for index in sqlx::query(&format!("PRAGMA index_list('{table}')"))
+        for index in sqlx::query("SELECT * FROM pragma_index_list($1)")
+            .bind(&table)
             .fetch_all(&pool)
             .await
             .expect("indexes")
@@ -67,12 +69,12 @@ async fn every_foreign_key_is_indexed() {
             if partial == 1 {
                 continue;
             }
-            let columns: Vec<String> = sqlx::query_scalar(&format!(
-                "SELECT name FROM pragma_index_info('{name}') ORDER BY seqno"
-            ))
-            .fetch_all(&pool)
-            .await
-            .expect("index columns");
+            let columns: Vec<String> =
+                sqlx::query_scalar("SELECT name FROM pragma_index_info($1) ORDER BY seqno")
+                    .bind(&name)
+                    .fetch_all(&pool)
+                    .await
+                    .expect("index columns");
             indexes.push((columns, unique == 1));
         }
         let mut constraints: std::collections::BTreeMap<i64, Vec<(i64, String)>> =
@@ -210,15 +212,16 @@ async fn space_scoped_rows_belong_to_their_space() {
         if table == "spaces" || TOMBSTONE_TABLES.contains(&table.as_str()) {
             continue;
         }
-        let columns: Vec<String> =
-            sqlx::query_scalar(&format!("SELECT name FROM pragma_table_info('{table}')"))
-                .fetch_all(&pool)
-                .await
-                .expect("columns");
+        let columns: Vec<String> = sqlx::query_scalar("SELECT name FROM pragma_table_info($1)")
+            .bind(&table)
+            .fetch_all(&pool)
+            .await
+            .expect("columns");
         if !columns.iter().any(|column| column == "space_id") {
             continue;
         }
-        let owned = sqlx::query(&format!("PRAGMA foreign_key_list('{table}')"))
+        let owned = sqlx::query("SELECT * FROM pragma_foreign_key_list($1)")
+            .bind(&table)
             .fetch_all(&pool)
             .await
             .expect("foreign keys")

@@ -22,7 +22,7 @@ pub(crate) struct Session {
 pub(crate) enum Engine {
     Images(Images),
     Embedding(Box<crate::embedding::Embedding>),
-    Transcription(crate::speech::transcription::Transcriber),
+    Transcription(Box<crate::speech::transcription::Transcriber>),
     Separation(crate::speech::separation::Separator),
     Alignment(crate::speech::alignment::Aligner),
     Synthesis(crate::speech::synthesis::Synthesizer),
@@ -77,9 +77,9 @@ impl Engine {
             RuntimeCapability::Embedding => Ok(Self::Embedding(Box::new(
                 crate::embedding::Embedding::new(params)?,
             ))),
-            RuntimeCapability::SpeechTranscription => {
-                Ok(Self::Transcription(Transcriber::new(params, runtime)?))
-            }
+            RuntimeCapability::SpeechTranscription => Ok(Self::Transcription(Box::new(
+                Transcriber::new(params, runtime)?,
+            ))),
             RuntimeCapability::SpeechSeparation => {
                 Ok(Self::Separation(Separator::new(params, runtime)?))
             }

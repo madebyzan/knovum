@@ -19,6 +19,8 @@ pub(crate) mod system_memory;
 pub(crate) mod tools;
 mod verification;
 
+pub(crate) use filesystem::installed_bytes;
+
 #[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct LocalResourcesStatus {
