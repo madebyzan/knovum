@@ -1,5 +1,5 @@
 import { cloneDeep, isEqual } from "es-toolkit";
-import { computed, onScopeDispose, ref, shallowRef, watch } from "vue";
+import { computed, ref, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { createMcpServer } from "../../../foundation/extensions/connection-operations";
@@ -7,7 +7,7 @@ import {
   deleteConnectorDefinition,
   updateConnectorDefinition,
 } from "../../../foundation/extensions/connector-operations";
-import { useSettingsLeaveContext } from "../../../foundation/lifecycle/use-settings-leave-context";
+import { useEditorLeave } from "../../../foundation/lifecycle/use-editor-leave";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { ExtensionChange } from "../../../shared/contracts/generated/ExtensionChange";
 import { confirmAction } from "../../../shared/ui/confirm-action";
@@ -44,22 +44,14 @@ export function useConnectorEditing() {
     editing.value = true;
   }
 
-  const leaveParticipant = {
-    async prepare() {
-      if (pendingMutation && !(await pendingMutation)) return false;
-      return !dirty.value || confirmDiscard();
-    },
-    finalize() {
+  const closeEditor = useEditorLeave({
+    pending: () => pendingMutation,
+    dirty: () => dirty.value,
+    confirmDiscard,
+    close() {
       editing.value = false;
     },
-  };
-  onScopeDispose(useSettingsLeaveContext().register(leaveParticipant));
-
-  async function closeEditor() {
-    if (!(await leaveParticipant.prepare())) return false;
-    leaveParticipant.finalize();
-    return true;
-  }
+  });
 
   function save() {
     pendingMutation = trackMutation(async () => {

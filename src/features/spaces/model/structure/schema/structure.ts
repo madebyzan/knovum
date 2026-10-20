@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { SECTION_MINIMUM_SIZE } from "../section-metrics";
+import { contentAppearanceSchema } from "./content-appearance";
 
 export const MAX_STRUCTURE_NODES = 100_000;
 export const MAX_STRUCTURE_DEPTH = 64;
@@ -46,26 +47,6 @@ const sectionSize = z
   })
   .strict();
 const layoutBase = { structureNodeId };
-const contentAppearance = z
-  .object({
-    fill: z.enum(["yellow", "green", "blue", "pink", "gray"]).optional(),
-    customFill: z
-      .string()
-      .regex(/^#[\da-f]{6}$/iu)
-      .optional(),
-    textColor: z.enum(["ink", "muted", "red", "blue", "green", "purple"]).optional(),
-    fontSize: z.number().finite().min(2.5).max(576).optional(),
-    typographyScale: z.number().finite().min(0.25).max(4).optional(),
-    fontWeight: z.enum(["regular", "bold"]).optional(),
-    fontStyle: z.enum(["normal", "italic"]).optional(),
-    textDecoration: z.enum(["none", "underline"]).optional(),
-    textAlign: z.enum(["left", "center", "right"]).optional(),
-    verticalAlign: z.enum(["top", "middle", "bottom"]).optional(),
-    background: z.string().optional(),
-    backgroundStyle: z.enum(["cover", "ratio", "repeat"]).optional(),
-  })
-  .strict()
-  .refine(({ fill, customFill }) => !(fill && customFill));
 const sectionAppearance = z
   .object({
     fill: z.enum(["yellow", "green", "blue", "pink", "gray"]).optional(),
@@ -88,7 +69,7 @@ export const structureLayoutSchema = z.discriminatedUnion("kind", [
       transform: localTransformSchema,
       size,
       sizingMode: z.enum(["content", "frame"]),
-      appearance: contentAppearance.optional(),
+      appearance: contentAppearanceSchema.optional(),
       fileSubpath: z.string().startsWith("#").optional(),
     })
     .strict(),
