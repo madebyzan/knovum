@@ -53,11 +53,7 @@ pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<&str, String> {
     {
         return Err("unsupported_device: Whisper execution profile is unavailable".into());
     }
-    params
-        .model_paths
-        .speech_transcription
-        .as_deref()
-        .ok_or_else(|| "model_missing: transcription model is missing".into())
+    params.model.snapshot()
 }
 
 impl Transcriber {

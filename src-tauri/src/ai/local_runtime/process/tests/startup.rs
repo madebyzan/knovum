@@ -1,6 +1,6 @@
 use super::super::WorkerSpecification;
 use super::*;
-use crate::ai::contracts::runtime::RuntimeModelPaths;
+use crate::ai::contracts::runtime::RuntimeModel;
 use crate::local_resources::runtimes::inference::{InferenceRuntimePaths, SpawnedImage};
 
 #[tokio::test]
@@ -13,7 +13,6 @@ async fn missing_inference_runtime_is_rejected_before_admission_or_workspace_cre
         spawned_image: SpawnedImage::DeveloperBuild,
         library_bytes: 0,
     };
-    let model_path = directory.join("model");
     let startup = Worker::start(
         &runtime,
         &directory,
@@ -25,10 +24,8 @@ async fn missing_inference_runtime_is_rejected_before_admission_or_workspace_cre
                 execution_profile_id: crate::ai::contracts::execution_profile::embedding("cpu", 4),
                 cpu_threads: 4,
             },
-            model_path: &model_path,
-            model_paths: RuntimeModelPaths {
-                embedding: Some(model_path.to_string_lossy().into_owned()),
-                ..Default::default()
+            model: RuntimeModel::Snapshot {
+                path: directory.join("model").to_string_lossy().into_owned(),
             },
         },
         &CancellationToken::new(),

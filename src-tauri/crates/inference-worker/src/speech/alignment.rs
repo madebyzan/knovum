@@ -119,11 +119,7 @@ pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<&str, String> {
     {
         return Err("unsupported_device: alignment profile is unavailable".into());
     }
-    params
-        .model_paths
-        .speech_alignment
-        .as_deref()
-        .ok_or_else(|| "model_missing: alignment model is missing".into())
+    params.model.snapshot()
 }
 
 impl Aligner {

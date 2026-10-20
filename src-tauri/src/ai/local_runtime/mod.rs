@@ -11,6 +11,7 @@ mod artifact;
 pub(crate) mod compute_budget;
 pub(crate) mod device_profiles;
 pub(crate) mod image;
+mod lease;
 mod process;
 mod protocol;
 pub(crate) mod separation;

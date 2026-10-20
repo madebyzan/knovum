@@ -34,11 +34,7 @@ pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<&str, String> {
     {
         return Err("unsupported_device: diarization profile is unavailable".into());
     }
-    params
-        .model_paths
-        .speech_diarization
-        .as_deref()
-        .ok_or_else(|| "model_missing: diarization model is missing".into())
+    params.model.snapshot()
 }
 
 impl Diarizer {

@@ -46,17 +46,40 @@ pub struct RuntimeDeviceProfile {
     pub cpu_threads: u8,
 }
 
-#[derive(Clone, Debug, Default, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct RuntimeModelPaths {
-    pub embedding: Option<String>,
-    pub speech_transcription: Option<String>,
-    pub speech_alignment: Option<String>,
-    pub speech_diarization: Option<String>,
-    pub speech_synthesis: Option<String>,
-    pub speech_separation: Option<String>,
-    pub image_segmentation: Option<String>,
-    pub image_processing: Option<super::image_compute::ImageRuntimeModelPath>,
+/// The verified snapshot a worker loads.
+///
+/// A worker freezes one capability at initialization, so it is handed exactly one model. The
+/// capability names every graph that model contains, except for the image capabilities that admit
+/// more than one frozen variant, which name the variant the host prepared.
+#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+pub enum RuntimeModel {
+    Snapshot {
+        path: String,
+    },
+    ImageVariant {
+        path: String,
+        variant: super::image_compute::ImageModelVariant,
+    },
+}
+
+impl RuntimeModel {
+    /// The path this worker loads, whichever shape its model takes.
+    pub fn path(&self) -> &str {
+        match self {
+            Self::Snapshot { path } | Self::ImageVariant { path, .. } => path,
+        }
+    }
+
+    /// The snapshot of a capability whose graphs it alone determines.
+    pub fn snapshot(&self) -> Result<&str, String> {
+        match self {
+            Self::Snapshot { path } => Ok(path),
+            Self::ImageVariant { .. } => {
+                Err("runtime_mismatch: capability does not take an image variant".into())
+            }
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
@@ -70,7 +93,7 @@ pub struct RuntimeInitializeParams {
     pub capability_spec_id: String,
     pub device_profile: RuntimeDeviceProfile,
     pub work_directory: String,
-    pub model_paths: RuntimeModelPaths,
+    pub model: RuntimeModel,
     /// Milliseconds the worker may spend reaching a usable state. The host derives it from the
     /// runtime it must verify and the weights it must load, and both sides honour this one value
     /// so that a slow cold start cannot be aborted by a budget only one side knows about.

@@ -16,7 +16,8 @@ use tokio::process::Child;
 
 use super::protocol::Protocol;
 use crate::ai::contracts::runtime::{
-    RuntimeCapability, RuntimeHealthObservation, RuntimeHealthParams,
+    RuntimeCapability, RuntimeDeviceProfile, RuntimeHealthObservation, RuntimeHealthParams,
+    RuntimeModel,
 };
 
 #[cfg(windows)]
@@ -27,15 +28,13 @@ use crate::foundation::subprocess::windows_job;
 /// Everything else about starting a worker — its session identity, its private work directory and
 /// the budget of its cold start — is derived by [`Worker::start`], so no capability can describe
 /// those differently from another.
-pub(in crate::ai::local_runtime) struct WorkerSpecification<'a> {
-    pub(in crate::ai::local_runtime) capability: RuntimeCapability,
-    pub(in crate::ai::local_runtime) capability_spec_id: String,
-    pub(in crate::ai::local_runtime) device_profile:
-        crate::ai::contracts::runtime::RuntimeDeviceProfile,
+pub(super) struct WorkerSpecification {
+    pub(super) capability: RuntimeCapability,
+    pub(super) capability_spec_id: String,
+    pub(super) device_profile: RuntimeDeviceProfile,
     /// The verified snapshot this worker loads. Worker reuse and its initialization budget are
     /// both measured against it.
-    pub(in crate::ai::local_runtime) model_path: &'a Path,
-    pub(in crate::ai::local_runtime) model_paths: crate::ai::contracts::runtime::RuntimeModelPaths,
+    pub(super) model: RuntimeModel,
 }
 
 pub(super) struct Worker {
@@ -49,7 +48,7 @@ pub(super) struct Worker {
     pub(super) model_path: PathBuf,
     pub(super) capability: RuntimeCapability,
     pub(super) capability_spec_id: String,
-    pub(super) device_profile: crate::ai::contracts::runtime::RuntimeDeviceProfile,
+    pub(super) device_profile: RuntimeDeviceProfile,
     work_directory: PathBuf,
     pub(super) last_used: Instant,
 }
@@ -59,19 +58,16 @@ impl Worker {
         &self.work_directory
     }
 
-    pub(super) fn matches(
-        &self,
-        runtime_digest: &str,
-        model_path: &Path,
-        capability: RuntimeCapability,
-        capability_spec_id: &str,
-        device_profile: &crate::ai::contracts::runtime::RuntimeDeviceProfile,
-    ) -> bool {
+    /// Establishes that this worker is the worker a specification asks for.
+    ///
+    /// A worker freezes its runtime, model, capability and device profile at initialization, so a
+    /// specification that differs in any of them cannot be served by it and must start its own.
+    pub(super) fn serves(&self, runtime_digest: &str, specification: &WorkerSpecification) -> bool {
         self.runtime_digest == runtime_digest
-            && self.model_path == model_path
-            && self.capability == capability
-            && self.capability_spec_id == capability_spec_id
-            && self.device_profile == *device_profile
+            && self.model_path == Path::new(specification.model.path())
+            && self.capability == specification.capability
+            && self.capability_spec_id == specification.capability_spec_id
+            && self.device_profile == specification.device_profile
     }
 
     pub(super) async fn resident_bytes(&mut self) -> Result<u64, String> {

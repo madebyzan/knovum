@@ -36,11 +36,7 @@ pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<&str, String> {
     {
         return Err("unsupported_device: MOSS execution profile is unavailable".into());
     }
-    params
-        .model_paths
-        .speech_synthesis
-        .as_deref()
-        .ok_or_else(|| "model_missing: synthesis model is missing".into())
+    params.model.snapshot()
 }
 
 impl Moss {

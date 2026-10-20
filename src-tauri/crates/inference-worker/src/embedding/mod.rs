@@ -34,11 +34,7 @@ fn admit(params: &RuntimeInitializeParams) -> Result<&str, String> {
     {
         return Err("runtime_mismatch: invalid embedding initialization".into());
     }
-    params
-        .model_paths
-        .embedding
-        .as_deref()
-        .ok_or_else(|| "model_missing: embedding path is missing".into())
+    params.model.snapshot()
 }
 
 impl Embedding {

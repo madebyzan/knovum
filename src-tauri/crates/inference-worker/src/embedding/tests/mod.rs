@@ -1,4 +1,7 @@
 use super::*;
+use knovum_inference_contracts::{
+    image_compute::ImageModelVariant, runtime::RuntimeModel as Model,
+};
 
 #[test]
 fn obsolete_embedding_identity_or_unadmitted_threads_fail_before_model_loading() {
@@ -7,7 +10,7 @@ fn obsolete_embedding_identity_or_unadmitted_threads_fail_before_model_loading()
         "protocolVersion": 1, "sessionId": "session", "capability": "embedding",
         "capabilitySpecId": EMBEDDING_SPEC_ID,
         "deviceProfile": {"device": "cpu", "executionProfileId": execution_profile::embedding("cpu", 4), "cpuThreads": 4},
-        "workDirectory": "/work", "modelPaths": {"embedding": "/not-loaded"},
+        "workDirectory": "/work", "model": {"kind": "snapshot", "path": "/not-loaded"},
         "budgetMs": 60000
     })).unwrap();
     assert_eq!(admit(&params).unwrap(), "/not-loaded");
@@ -20,7 +23,10 @@ fn obsolete_embedding_identity_or_unadmitted_threads_fail_before_model_loading()
     params.device_profile.execution_profile_id = "cpu-unknown".into();
     assert!(admit(&params).is_err());
     params.device_profile.execution_profile_id = execution_profile::embedding("cpu", 4);
-    params.model_paths.embedding = None;
+    params.model = Model::ImageVariant {
+        path: "/not-loaded".into(),
+        variant: ImageModelVariant::Migan,
+    };
     assert!(admit(&params).is_err());
 }
 

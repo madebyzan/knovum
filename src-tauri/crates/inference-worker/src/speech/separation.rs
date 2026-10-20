@@ -37,11 +37,7 @@ pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<&str, String> {
     {
         return Err("unsupported_device: source separation profile is unavailable".into());
     }
-    params
-        .model_paths
-        .speech_separation
-        .as_deref()
-        .ok_or_else(|| "model_missing: source separation model is missing".into())
+    params.model.snapshot()
 }
 
 impl Separator {

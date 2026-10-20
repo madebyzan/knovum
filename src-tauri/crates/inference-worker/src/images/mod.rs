@@ -13,7 +13,7 @@ use engine::ImageEngine;
 use knovum_inference_contracts::{
     image_compute::{ImageComputationOutput, ImageComputeParams},
     image_wire::{ImageSegmentParams, ImageSegmentation},
-    runtime::RuntimeInitializeParams,
+    runtime::{RuntimeCapability, RuntimeInitializeParams, RuntimeModel},
 };
 use std::path::Path;
 
@@ -27,8 +27,12 @@ fn admit(params: &RuntimeInitializeParams) -> Result<(), String> {
     {
         return Err("unsupported_device: images require admitted CPU threads".into());
     }
-    if ImageEngine::capability(params) != Some(params.capability) {
-        return Err("runtime_mismatch: image model path and capability differ".into());
+    let implemented = match &params.model {
+        RuntimeModel::Snapshot { .. } => RuntimeCapability::ImageSegmentation,
+        RuntimeModel::ImageVariant { variant, .. } => variant.capability(),
+    };
+    if implemented != params.capability {
+        return Err("runtime_mismatch: image model and capability differ".into());
     }
     Ok(())
 }

@@ -35,8 +35,6 @@ impl ImageModelVariant {
             Self::DepthAnythingV2Small => "depth-anything-v2-small-fp32",
         }
     }
-}
-impl ImageModelVariant {
     pub fn capability(self) -> RuntimeCapability {
         match self {
             Self::RealEsrganGeneralX4v3 | Self::RealEsrganX4plus => {
@@ -55,13 +53,6 @@ use super::image_wire::TensorFileReference;
 use super::runtime::RuntimeCapability;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct ImageRuntimeModelPath {
-    pub variant: ImageModelVariant,
-    pub directory: String,
-}
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

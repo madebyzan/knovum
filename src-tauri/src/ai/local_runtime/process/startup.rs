@@ -23,7 +23,7 @@ impl Worker {
     pub(in crate::ai::local_runtime) async fn start(
         runtime: &InferenceRuntimePaths,
         inference_root: &Path,
-        specification: WorkerSpecification<'_>,
+        specification: WorkerSpecification,
         cancellation: &CancellationToken,
         exit: &CancellationToken,
     ) -> Result<Self, String> {
@@ -48,7 +48,7 @@ impl Worker {
         runtime: WorkerPackage,
         work_directory: &Path,
         session_id: String,
-        specification: WorkerSpecification<'_>,
+        specification: WorkerSpecification,
         cancellation: &CancellationToken,
         exit: &CancellationToken,
     ) -> Result<Self, String> {
@@ -57,7 +57,7 @@ impl Worker {
         // never bounded by the budget of the request that happened to need this worker:
         // verification and weight loading are shared costs.
         let verification = Duration::from_millis(runtime.spawn_verification_budget_ms());
-        let model_path = specification.model_path;
+        let model_path = PathBuf::from(specification.model.path());
         let model_bytes = tokio::select! {
             biased;
             _ = exit.cancelled() => return Err("cancelled".into()),
@@ -68,7 +68,7 @@ impl Worker {
                 tokio::fs::create_dir(work_directory)
                     .await
                     .map_err(|error| format!("resource_exhausted: {error}"))?;
-                snapshot_bytes(model_path).await
+                snapshot_bytes(&model_path).await
             }) => startup.map_err(|_| "deadline_exceeded: worker runtime verification timed out".to_owned())??,
         };
         let params = RuntimeInitializeParams {
@@ -80,7 +80,7 @@ impl Worker {
             capability_spec_id: specification.capability_spec_id,
             device_profile: specification.device_profile,
             work_directory: work_directory.to_string_lossy().into_owned(),
-            model_paths: specification.model_paths,
+            model: specification.model,
             // Derived where both the verified runtime and the snapshot it loads are known.
             budget_ms: runtime.initialization_budget_ms(model_bytes),
         };
@@ -153,7 +153,7 @@ impl Worker {
             protocol,
             session_id: params.session_id,
             runtime_digest: runtime.digest().to_owned(),
-            model_path: model_path.to_owned(),
+            model_path,
             capability: params.capability,
             capability_spec_id: params.capability_spec_id,
             device_profile: params.device_profile,
@@ -174,7 +174,7 @@ async fn settle(mut child: tokio::process::Child, mut process_tree: ProcessTree)
 /// Measures the snapshot this worker is about to load, so its initialization budget accounts for
 /// the weights as well as the libraries.
 async fn snapshot_bytes(model_path: &Path) -> Result<u64, String> {
-    let path: PathBuf = model_path.to_owned();
+    let path = model_path.to_owned();
     crate::foundation::blocking::run(move || {
         crate::local_resources::filesystem::installed_bytes(&path)
     })

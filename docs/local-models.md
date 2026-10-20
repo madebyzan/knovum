@@ -156,6 +156,19 @@ Process admission, resident-memory checks, idle reuse, cancellation and publicat
 [system-architecture.md](system-architecture.md); corresponding-source and license approval remains a
 [release requirement](release.md). Ollama is an optional generative provider, not an embedding or ASR dependency.
 
+A worker is initialized with one capability and the one model that capability loads. The
+initialization message names that model once: its capability determines every graph inside it,
+except for the image capabilities that admit more than one frozen variant, which also name the
+variant the host prepared. A worker therefore never infers what it is from which of several
+optional paths happens to be set, and no capability can be handed another capability's snapshot.
+
+Every capability reaches that worker through one lease on the single inference slot. The lease owns
+admission order, the compatibility check that decides whether the resident worker is reused or
+replaced, the dispatch of the one method its capability answers, the notifications that method may
+publish, the grace an interrupted worker is given to abandon its request, and the reclamation of an
+idle worker. A caller decides what it asks for and validates what it got; it cannot leave a
+half-cancelled worker in the slot, because it never cancels or terminates one itself.
+
 Byte verification of a cold start happens once per byte, at the side responsible for it. The host
 hashes the image it is about to execute, because a worker cannot verify the bytes it is already
 running; a packaged build executes a pinned inventory member, while a development build executes

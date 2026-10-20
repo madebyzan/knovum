@@ -3,6 +3,7 @@ pub(crate) mod compute;
 mod session;
 mod tensor;
 
+use super::lease::RequestIdentity;
 use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
@@ -15,7 +16,7 @@ use crate::{
             IMAGE_SEGMENTATION_MASK_BYTES, IMAGE_SEGMENTATION_QUALITY_SPEC_ID,
             IMAGE_SEGMENTATION_RESOLUTION, IMAGE_SEGMENTATION_SPEC_ID,
         },
-        runtime::{RuntimeCapability, RuntimeModelPaths},
+        runtime::{RuntimeCapability, RuntimeModel},
     },
     local_resources::{models::catalog::ModelKind, preparation::PreparedModels},
 };
@@ -50,22 +51,16 @@ pub(crate) async fn segment_image<R: Runtime>(
     let model_path = resources.path(model)?;
     let mut lease = session::acquire(
         app,
-        session::ImageWorkerConfiguration {
-            model_path,
-            paths: RuntimeModelPaths {
-                image_segmentation: Some(model_path.to_string_lossy().into_owned()),
-                ..Default::default()
-            },
-            capability: RuntimeCapability::ImageSegmentation,
-            spec_id: model_spec_id,
+        RuntimeCapability::ImageSegmentation,
+        model_spec_id,
+        RuntimeModel::Snapshot {
+            path: model_path.to_string_lossy().into_owned(),
         },
         cancellation,
     )
     .await?;
-    let guard = &mut lease.guard;
-    let worker = guard.as_mut().ok_or("worker_crashed")?;
     let request_id = uuid::Uuid::new_v4().to_string();
-    let work_directory = worker.work_directory().to_owned();
+    let work_directory = lease.work_directory()?.to_owned();
     let tensor_name = format!("tensor-{request_id}.f32");
     let tensor_path = work_directory.join(&tensor_name);
     let tensor_bytes = encode_f32(&input);
@@ -88,26 +83,19 @@ pub(crate) async fn segment_image<R: Runtime>(
             data_type: TensorDataType::Float32LittleEndian,
         },
     };
-    let request = session::request::<_, ImageSegmentation>(
-        worker,
-        session::ImageRequestIdentity {
-            request_id: &request_id,
-            attempt_epoch: identity.attempt_epoch,
-            budget_ms: identity.budget_ms,
-        },
-        &params,
-        cancellation,
-    )
-    .await;
+    let segmentation = lease
+        .request::<ImageSegmentation>(
+            &RequestIdentity {
+                request_id: &request_id,
+                attempt_epoch: identity.attempt_epoch,
+                budget_ms: identity.budget_ms,
+            },
+            &params,
+            cancellation,
+        )
+        .await;
     let _ = tokio::fs::remove_file(&tensor_path).await;
-    let output = match request {
-        Ok(output) => output,
-        Err(error) => {
-            worker.terminate().await;
-            **guard = None;
-            return Err(error);
-        }
-    };
+    let output = segmentation?;
     let expected_mask = format!("mask-{request_id}.f32");
     if output.request_id != request_id
         || output.attempt_epoch != identity.attempt_epoch
@@ -121,22 +109,21 @@ pub(crate) async fn segment_image<R: Runtime>(
             TensorDataType::Float32LittleEndian
         )
     {
-        worker.terminate().await;
-        **guard = None;
+        lease.discard().await;
         return Err("invalid_output: image segmentation response identity differs".into());
     }
-    let mask_path = work_directory.join(expected_mask);
+    let mask_path = work_directory.join(&expected_mask);
     let mask_sha256 = output.mask_ref.sha256;
-    let mask = crate::foundation::blocking::run(move || read_mask(&mask_path, &mask_sha256)).await;
-    let mask_path = work_directory.join(format!("mask-{request_id}.f32"));
-    let _ = tokio::fs::remove_file(&mask_path).await;
-    let mask = match mask {
-        Ok(mask) => mask,
-        Err(error) => {
-            worker.terminate().await;
-            **guard = None;
-            return Err(error);
-        }
+    let reading = {
+        let path = mask_path.clone();
+        crate::foundation::blocking::run(move || read_mask(&path, &mask_sha256)).await
     };
-    Ok(mask)
+    let _ = tokio::fs::remove_file(&mask_path).await;
+    match reading {
+        Ok(mask) => Ok(mask),
+        Err(error) => {
+            lease.discard().await;
+            Err(error)
+        }
+    }
 }

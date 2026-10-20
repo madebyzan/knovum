@@ -40,12 +40,7 @@ pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<(&'static str, &
     {
         return Err("runtime_mismatch: VoxCPM2 model specification differs".into());
     }
-    let directory = params
-        .model_paths
-        .speech_synthesis
-        .as_deref()
-        .ok_or("model_missing: synthesis model is missing")?;
-    Ok((weights, directory))
+    Ok((weights, params.model.snapshot()?))
 }
 
 impl VoxCpm {

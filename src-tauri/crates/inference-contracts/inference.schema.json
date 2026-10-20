@@ -255,8 +255,8 @@
         "workDirectory": {
           "type": "string"
         },
-        "modelPaths": {
-          "$ref": "#/$defs/RuntimeModelPaths"
+        "model": {
+          "$ref": "#/$defs/RuntimeModel"
         },
         "budgetMs": {
           "description": "Milliseconds the worker may spend reaching a usable state. The host derives it from the\nruntime it must verify and the weights it must load, and both sides honour this one value\nso that a slow cold start cannot be aborted by a budget only one side knows about.",
@@ -275,7 +275,7 @@
         "capabilitySpecId",
         "deviceProfile",
         "workDirectory",
-        "modelPaths",
+        "model",
         "budgetMs"
       ]
     },
@@ -318,78 +318,47 @@
         "cpuThreads"
       ]
     },
-    "RuntimeModelPaths": {
-      "type": "object",
-      "properties": {
-        "embedding": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "speechTranscription": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "speechAlignment": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "speechDiarization": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "speechSynthesis": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "speechSeparation": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "imageSegmentation": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "imageProcessing": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/ImageRuntimeModelPath"
+    "RuntimeModel": {
+      "description": "The verified snapshot a worker loads.\n\nA worker freezes one capability at initialization, so it is handed exactly one model. The\ncapability names every graph that model contains, except for the image capabilities that admit\nmore than one frozen variant, which name the variant the host prepared.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "snapshot"
             },
-            {
-              "type": "null"
+            "path": {
+              "type": "string"
             }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "path"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "image_variant"
+            },
+            "path": {
+              "type": "string"
+            },
+            "variant": {
+              "$ref": "#/$defs/ImageModelVariant"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "path",
+            "variant"
           ]
         }
-      },
-      "additionalProperties": false
-    },
-    "ImageRuntimeModelPath": {
-      "type": "object",
-      "properties": {
-        "variant": {
-          "$ref": "#/$defs/ImageModelVariant"
-        },
-        "directory": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "variant",
-        "directory"
       ]
     },
     "ImageModelVariant": {

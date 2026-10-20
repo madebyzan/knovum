@@ -1,13 +1,14 @@
+use super::super::lease::RequestIdentity;
 use super::{session, tensor};
 use crate::local_resources::models::catalog::ImageModelCatalog;
 use crate::{
     ai::contracts::{
         image_compute::{
-            ImageComputation, ImageComputationOutput, ImageComputeParams, ImageRuntimeModelPath,
-            ImageSelectionPoint, ImageSelectionRect,
+            ImageComputation, ImageComputationOutput, ImageComputeParams, ImageSelectionPoint,
+            ImageSelectionRect,
         },
         image_wire::{TensorDataType, TensorFileReference},
-        runtime::{RuntimeCapability, RuntimeModelPaths},
+        runtime::{RuntimeCapability, RuntimeModel},
     },
     local_resources::{models::catalog::ImageModelVariant, preparation::PreparedModels},
 };
@@ -67,24 +68,17 @@ pub(crate) async fn execute<R: Runtime>(
     let spec_id = request.model.spec_id();
     let mut lease = session::acquire(
         app,
-        session::ImageWorkerConfiguration {
-            model_path: &directory,
-            paths: RuntimeModelPaths {
-                image_processing: Some(ImageRuntimeModelPath {
-                    variant: request.model,
-                    directory: directory.to_string_lossy().into_owned(),
-                }),
-                ..Default::default()
-            },
-            capability: request.model.capability(),
-            spec_id: &spec_id,
+        capability,
+        &spec_id,
+        RuntimeModel::ImageVariant {
+            path: directory.to_string_lossy().into_owned(),
+            variant: request.model,
         },
         cancellation,
     )
     .await?;
-    let worker = lease.guard.as_mut().ok_or("worker_crashed")?;
     let request_id = uuid::Uuid::new_v4().to_string();
-    let work = worker.work_directory().to_owned();
+    let work = lease.work_directory()?.to_owned();
     let source_name = format!("source-{request_id}.tensor");
     let source_ref = stage(&work, &source_name, request.input).await?;
     let mask_name = format!("selection-{request_id}.tensor");
@@ -117,17 +111,17 @@ pub(crate) async fn execute<R: Runtime>(
         tensor_ref: source_ref,
         computation,
     };
-    let response = session::request::<_, ImageComputationOutput>(
-        worker,
-        session::ImageRequestIdentity {
-            request_id: &request_id,
-            attempt_epoch: 1,
-            budget_ms: request.budget_ms,
-        },
-        &params,
-        cancellation,
-    )
-    .await;
+    let response = lease
+        .request::<ImageComputationOutput>(
+            &RequestIdentity {
+                request_id: &request_id,
+                attempt_epoch: 1,
+                budget_ms: request.budget_ms,
+            },
+            &params,
+            cancellation,
+        )
+        .await;
     let _ = tokio::fs::remove_file(work.join(source_name)).await;
     let _ = tokio::fs::remove_file(work.join(mask_name)).await;
     let validated = async {
@@ -148,8 +142,7 @@ pub(crate) async fn execute<R: Runtime>(
     .await;
     let _ = tokio::fs::remove_file(work.join(format!("image-{request_id}.tensor"))).await;
     if validated.is_err() {
-        worker.terminate().await;
-        *lease.guard = None;
+        lease.discard().await;
     }
     validated
 }
