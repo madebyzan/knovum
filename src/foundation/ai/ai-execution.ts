@@ -1,6 +1,6 @@
 import { routingCapabilities } from "../../shared/contracts/generated/contract-values";
 import type { RoutingPurpose } from "../../shared/contracts/generated/RoutingPurpose";
-import type { TaskTargetRef } from "../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../shared/contracts/generated/TaskTarget";
 import { useAiSettingsStore } from "./ai-settings-store";
 import type { AiModelSettings } from "./schema/model-settings";
 import type { ResolvedAiModelTarget, ResolvedAiTaskTarget } from "./schema/models";
@@ -17,13 +17,13 @@ const DEFAULT_TARGET_KEY: Record<RoutingPurpose, keyof AiModelSettings["defaults
 export interface ExecutionTargetOption {
   value: string;
   label: string;
-  target: TaskTargetRef;
+  target: TaskTarget;
 }
 
 export function defaultExecutionTarget(
   settings: AiModelSettings,
   purpose: RoutingPurpose,
-): TaskTargetRef | null {
+): TaskTarget | null {
   const target = settings.defaults[DEFAULT_TARGET_KEY[purpose]] ?? settings.defaults.defaultTarget;
   return target ? { ...target } : null;
 }
@@ -31,7 +31,7 @@ export function defaultExecutionTarget(
 function resolveModelTarget(
   settings: AiModelSettings,
   purpose: RoutingPurpose,
-  target: Extract<TaskTargetRef, { type: "model" }>,
+  target: Extract<TaskTarget, { type: "model" }>,
 ): ResolvedAiModelTarget {
   const connection = settings.connections.find(({ id }) => id === target.connectionId);
   if (!connection) throw new Error(`AI connection is unavailable: ${target.connectionId}`);
@@ -45,7 +45,7 @@ function resolveModelTarget(
 
 export async function loadAiExecutionTarget(
   purpose: RoutingPurpose,
-  target?: TaskTargetRef,
+  target?: TaskTarget,
 ): Promise<ResolvedAiTaskTarget> {
   const store = useAiSettingsStore();
   await store.ensureLoaded();
@@ -73,12 +73,12 @@ export function aiExecutionTargetPayload(target: ResolvedAiTaskTarget, temperatu
 export function availableModelTargets(
   settings: Pick<AiModelSettings, "connections">,
   purpose?: RoutingPurpose,
-): (Omit<ExecutionTargetOption, "target"> & { target: Extract<TaskTargetRef, { type: "model" }> })[] {
+): (Omit<ExecutionTargetOption, "target"> & { target: Extract<TaskTarget, { type: "model" }> })[] {
   return settings.connections.flatMap((connection) =>
     connection.models
       .filter((model) => !purpose || model.capabilities.includes(routingCapabilities[purpose]))
       .map((model) => {
-        const target: TaskTargetRef = { type: "model", connectionId: connection.id, modelId: model.id };
+        const target: TaskTarget = { type: "model", connectionId: connection.id, modelId: model.id };
         return { value: JSON.stringify(target), label: `${model.name} · ${connection.name}`, target };
       }),
   );
@@ -91,7 +91,7 @@ export function availableExecutionTargets(
   const agents = settings.desktopAgents
     .filter(({ enabled }) => enabled)
     .map(({ kind }) => {
-      const target: TaskTargetRef = { type: "agent", runtimeKind: kind };
+      const target: TaskTarget = { type: "agent", runtimeKind: kind };
       return { value: JSON.stringify(target), label: kind, target };
     });
   return [...availableModelTargets(settings, purpose), ...agents];

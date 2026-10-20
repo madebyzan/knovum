@@ -40,7 +40,7 @@ const modelsQuery = {
   isFetching: shallowRef(false),
   refetch: vi.fn<() => Promise<void>>(),
 };
-vi.mock("../../../../../foundation/runtime/use-resource-queries", () => ({
+vi.mock("../../../../../foundation/runtime/use-local-models-query", () => ({
   useLocalModelsQuery: () => modelsQuery,
 }));
 beforeEach(() => {

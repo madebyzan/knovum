@@ -6,11 +6,11 @@ use std::{collections::BTreeSet, fs, path::Path};
 struct Manifest {
     schema_version: u8,
     target: String,
-    files: Vec<Entry>,
+    files: Vec<ManifestFile>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Entry {
+struct ManifestFile {
     path: String,
     size: Option<u64>,
     sha256: Option<String>,

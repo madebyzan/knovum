@@ -6,9 +6,9 @@ pub(in crate::spaces) type RuntimeDigests = BTreeMap<String, String>;
 
 pub(in crate::spaces) fn profile_for_engine(engine: &str) -> Result<String, String> {
     if matches!(engine, "moss_nano" | "voxcpm2") {
-        Ok("native-inference-v2".into())
+        Ok("bundled-inference-v2".into())
     } else {
-        Err("runtime_mismatch: speech engine has no native runtime".into())
+        Err("runtime_mismatch: speech engine has no bundled inference runtime".into())
     }
 }
 
@@ -72,7 +72,7 @@ pub(super) fn validate(digests: &RuntimeDigests) -> Result<(), String> {
     if digests.is_empty()
         || digests
             .iter()
-            .any(|(profile, digest)| profile != "native-inference-v2" || !valid_digest(digest))
+            .any(|(profile, digest)| profile != "bundled-inference-v2" || !valid_digest(digest))
     {
         return Err("runtime_mismatch: Speech Run runtime package identities are invalid".into());
     }

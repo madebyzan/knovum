@@ -19,7 +19,7 @@ const mocks = vi.hoisted(() => ({
   request: vi.fn<() => Promise<void>>(),
   refresh: vi.fn<() => Promise<void>>(),
 }));
-vi.mock("../../../foundation/runtime/use-resource-queries", () => ({ useLocalModelsQuery: () => mocks }));
+vi.mock("../../../foundation/runtime/use-local-models-query", () => ({ useLocalModelsQuery: () => mocks }));
 vi.mock("../media/transcription", () => ({ requestMediaDiarization: mocks.request }));
 vi.mock("../enrichment/enrichment-jobs-query", () => ({ refreshEnrichmentJobs: mocks.refresh }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => ({ activeSpaceId: "space" }) }));

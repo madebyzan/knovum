@@ -1,6 +1,6 @@
 import { computed, shallowRef, watch, type Ref } from "vue";
 
-import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
 import { useSpaceStore } from "../session/space-store";
@@ -25,7 +25,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const selectedConversationId = shallowRef("");
   const extensionSession = useConversationExtensions(spaceId, selectedConversationId);
   const prompt = shallowRef("");
-  const target = shallowRef<TaskTargetRef>();
+  const target = shallowRef<TaskTarget>();
   const conversationQuery = shallowRef("");
   const showingArchived = shallowRef(false);
   const selectedConversation = computed(() =>

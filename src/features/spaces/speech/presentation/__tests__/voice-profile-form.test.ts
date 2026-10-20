@@ -27,7 +27,7 @@ it("starts with a named preset when no custom library name is entered", async ()
       name: "Default speaker",
       presetVoiceId: "0",
       engineId: "moss_nano",
-      modelSpecId: "moss-tts-nano-100m-onnx-native-v2",
+      modelSpecId: "moss-tts-nano-100m-onnx-bundled-v2",
     }),
   );
   expect(wrapper.emitted("create")?.[0]?.[0]).not.toHaveProperty("spaceId");

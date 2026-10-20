@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::ai::{contracts::RoutingPurpose, tasks::TaskTargetRef};
+use crate::ai::{contracts::RoutingPurpose, tasks::TaskTarget};
 use crate::foundation::app_error::{AppError, AppResult};
 
 use super::contracts::AiSettings;
@@ -98,16 +98,16 @@ fn validate_defaults(settings: &AiSettings) -> AppResult<()> {
 
 fn validate_default(
     settings: &AiSettings,
-    target: Option<&TaskTargetRef>,
+    target: Option<&TaskTarget>,
     purpose: Option<RoutingPurpose>,
 ) -> AppResult<()> {
     let Some(target) = target else {
         return Ok(());
     };
-    if let TaskTargetRef::Agent { runtime_kind } = target {
+    if let TaskTarget::Agent { runtime_kind } = target {
         return super::ensure_enabled(settings, *runtime_kind);
     }
-    let TaskTargetRef::Model {
+    let TaskTarget::Model {
         connection_id,
         model_id,
     } = target

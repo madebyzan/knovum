@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
 import type { RoutingPurpose } from "../../shared/contracts/generated/RoutingPurpose";
-import type { TaskTargetRef } from "../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../shared/contracts/generated/TaskTarget";
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiSelect from "../../shared/ui/UiSelect.vue";
 import { getErrorMessage } from "../errors/error-format";
@@ -19,7 +19,7 @@ const props = defineProps<{
   compact?: boolean | undefined;
   class?: HTMLAttributes["class"];
 }>();
-const target = defineModel<TaskTargetRef | undefined>();
+const target = defineModel<TaskTarget | undefined>();
 const { t } = useI18n();
 const router = useRouter();
 const store = useAiSettingsStore();
@@ -54,7 +54,7 @@ function currentTargetIsSelectable(): boolean {
   return target.value !== undefined && isSelectableExecutionTarget(JSON.stringify(target.value));
 }
 
-function resolveConfiguredTarget(): TaskTargetRef | undefined {
+function resolveConfiguredTarget(): TaskTarget | undefined {
   const configured = defaultExecutionTarget(settings.value, props.purpose) ?? undefined;
   if (!configured) return;
   return isSelectableExecutionTarget(JSON.stringify(configured)) ? configured : undefined;

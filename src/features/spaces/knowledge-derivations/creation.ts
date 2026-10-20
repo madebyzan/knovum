@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { i18n } from "../../../foundation/i18n/instance";
-import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import type { CreationSource } from "./catalog/creation-source";
 import { startDerivationAction } from "./start-action";
 
@@ -17,7 +17,7 @@ export interface CreationDraft {
   imageAspectRatio: z.infer<typeof imageAspectRatioSchema>;
   videoAspectRatio: z.infer<typeof videoAspectRatioSchema>;
   durationSeconds: (typeof videoDurations)[number];
-  target?: TaskTargetRef | undefined;
+  target?: TaskTarget | undefined;
 }
 
 /**

@@ -2,7 +2,7 @@
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { useLocalModelsQuery } from "../../../../foundation/runtime/use-resource-queries";
+import { useLocalModelsQuery } from "../../../../foundation/runtime/use-local-models-query";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 
 const props = defineProps<{ disabled: boolean; canAlign: boolean; selectedCount: number }>();

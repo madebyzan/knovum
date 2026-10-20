@@ -1,7 +1,7 @@
 import { cloneDeep } from "es-toolkit";
 
 import type { AgentExtensionSelection } from "../../../shared/contracts/generated/AgentExtensionSelection";
-import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
@@ -10,7 +10,7 @@ interface ConversationTaskRequestInput {
   spaceId: string | undefined;
   conversation: Conversation | undefined;
   prompt: string;
-  target: TaskTargetRef | undefined;
+  target: TaskTarget | undefined;
   attachments: ConversationAttachment[];
   extensions: AgentExtensionSelection;
 }

@@ -254,7 +254,7 @@ previous release available. Do not claim automatic application/database rollback
 ## Agent and inference distribution acceptance
 
 The desktop installer contains the complete frozen Agent and the Rust inference closure. Record
-installer hashes, the Agent manifest/SBOM digest and Rust worker/native manifest digests from the
+installer hashes, the Agent manifest/SBOM digest and Rust worker/inference-runtime manifest digests from the
 actual final artifact. Every frozen file and safe relative symlink must match the sealed build input.
 Native signing precedes inventory sealing and host compilation. Final artifact verification runs
 before upload; production OS signature and notarization acceptance remain separate mandatory gates.
@@ -268,7 +268,7 @@ retirement, repair service or interpreter migration remains.
 
 Models and optional media-import tools retain their own hash/permission/download/cancellation
 contracts. Model weights are prepared before inference deadlines. Inference capture provenance
-binds the bundled worker and sealed native manifest; another runtime’s outputs are rejected.
+binds the bundled worker and sealed inference runtime manifest; another runtime’s outputs are rejected.
 
 ## Deep Agents acceptance
 

@@ -10,9 +10,9 @@ import { useTimelineGestures } from "../timeline/use-timeline-gestures";
 import { useTimelineView } from "../timeline/use-timeline-view";
 import { createWaveformCache } from "../timeline/waveform";
 import { useVideoSessionStore } from "../video-session-store";
-import { useVideoProjectBootstrap } from "./use-video-bootstrap";
 import { useVideoEditActions } from "./use-video-edit-actions";
 import { useVideoMaterials } from "./use-video-materials";
+import { useVideoProjectBootstrap } from "./use-video-project-bootstrap";
 import { useVideoSelection } from "./use-video-selection";
 
 /**

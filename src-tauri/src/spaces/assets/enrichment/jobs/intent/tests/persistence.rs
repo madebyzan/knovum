@@ -153,7 +153,7 @@ async fn execution_choice_is_frozen_at_creation_and_survives_retry_and_restart()
         .execute(&pool)
         .await
         .unwrap();
-    persistence::set_status(&pool, id, "'failed'", "pending", None, 5, false)
+    persistence::set_status(&pool, id, "'failed'", "pending", None, 5)
         .await
         .unwrap();
     assert_eq!(

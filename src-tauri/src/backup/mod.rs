@@ -51,7 +51,7 @@ pub fn plugin<R: Runtime>() -> tauri::plugin::TauriPlugin<R> {
             schedule_restore,
             get_maintenance_receipt,
             acknowledge_maintenance_receipt,
-            await_data_maintenance,
+            await_maintenance,
         ])
         .setup(|app, _| {
             app.manage(MaintenanceState::default());
@@ -116,7 +116,7 @@ fn start<R: Runtime>(app: &AppHandle<R>) {
 }
 
 #[tauri::command]
-async fn await_data_maintenance<R: Runtime>(app: AppHandle<R>) -> AppResult<()> {
+async fn await_maintenance<R: Runtime>(app: AppHandle<R>) -> AppResult<()> {
     ready(&app).await.map_err(AppError::from)
 }
 
@@ -185,10 +185,10 @@ fn acknowledge_maintenance_receipt<R: Runtime>(app: AppHandle<R>) -> AppResult<(
 
 fn authorized_path<R: Runtime>(
     app: &AppHandle<R>,
-    value: &str,
+    path: &str,
     must_exist: bool,
 ) -> Result<PathBuf, String> {
-    let raw = Path::new(value);
+    let raw = Path::new(path);
     if !app.fs_scope().is_allowed(raw) {
         return Err("Selected path is not authorized".into());
     }

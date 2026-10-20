@@ -62,7 +62,7 @@ describe("Space resource export", () => {
   it("admits its own format first, then the ones the engine converts to", async () => {
     engineOffers(["txt", "html", "docx", "pdf", "pptx"]);
 
-    await expect(nodeExportFormats("space", canvasNode("markdown", markdownData()))).resolves.toEqual({
+    await expect(nodeExportFormats("space", canvasNode("markdown", markdownPayload()))).resolves.toEqual({
       formats: ["md", "txt", "html", "docx", "pdf", "pptx"],
       unavailable: null,
     });
@@ -81,7 +81,7 @@ describe("Space resource export", () => {
   it("keeps the format the Renderer holds and carries the engine's reason for the rest", async () => {
     engineOffers([], "Document export input contains unsupported control characters");
 
-    await expect(nodeExportFormats("space", canvasNode("markdown", markdownData()))).resolves.toEqual({
+    await expect(nodeExportFormats("space", canvasNode("markdown", markdownPayload()))).resolves.toEqual({
       formats: ["md"],
       unavailable: "Document export input contains unsupported control characters",
     });
@@ -123,7 +123,7 @@ describe("Space resource export", () => {
   it("lets the Renderer write a format it holds itself", async () => {
     mocks.save.mockResolvedValue("/exports/Plan.md");
 
-    await exportSpaceNode("space", canvasNode("markdown", markdownData()), "md");
+    await exportSpaceNode("space", canvasNode("markdown", markdownPayload()), "md");
 
     expect(invocation("plugin:spaces|export_text")).toEqual({
       destinationPath: "/exports/Plan.md",
@@ -156,7 +156,7 @@ function canvasNode(nodeId: string, data: SpaceCanvasNode["data"]): SpaceCanvasN
   return createSpaceNode(data, { x: 0, y: 0 }, nodeId);
 }
 
-function markdownData(): SpaceCanvasNode["data"] {
+function markdownPayload(): SpaceCanvasNode["data"] {
   return { kind: "markdown", title: "Plan", text: "# Plan" };
 }
 

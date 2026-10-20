@@ -103,7 +103,7 @@ pub fn plugin() -> TauriPlugin<Wry> {
             startup::report_startup_failure,
             tasks::project_session_tasks,
             tasks::set_task_notifications,
-            editing::perform_editing,
+            editing::execute_editing_command,
             window_close::begin_window_close,
             window_close::acknowledge_window_close,
             window_close::complete_window_close

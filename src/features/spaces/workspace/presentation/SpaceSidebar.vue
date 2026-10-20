@@ -10,10 +10,10 @@ import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import SpaceSidebarOutline from "../../outline/presentation/SpaceSidebarOutline.vue";
 import { useSpaceStore } from "../../session/space-store";
-import { useSpaceManagementMenu } from "../use-space-management-menu";
+import { useSpaceContextMenu } from "../use-space-context-menu";
 
 const store = useSpaceStore();
-const { show: showSpaceMenu } = useSpaceManagementMenu();
+const { show: showSpaceMenu } = useSpaceContextMenu();
 const { spaces, activeSpaceId, surface, libraryScope } = storeToRefs(store);
 const { t } = useI18n();
 const ROW_CLASS =

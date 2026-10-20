@@ -20,7 +20,7 @@ async function reportExchange(operation: () => Promise<boolean>, success: string
   }
 }
 
-export function useSpaceManagementMenu() {
+export function useSpaceContextMenu() {
   const store = useSpaceStore();
   const dock = useContextDock();
   const packages = useSpacePackageTransfer();

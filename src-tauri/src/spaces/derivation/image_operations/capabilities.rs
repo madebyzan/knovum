@@ -9,7 +9,7 @@ use crate::{
     ai::{
         contracts::{ExecutionCapability, RoutingPurpose},
         settings,
-        tasks::{TaskExecutionTarget, TaskTargetRef, TaskTargetSelection},
+        tasks::{TaskExecutionTarget, TaskTarget, TaskTargetSelection},
     },
     local_resources::{
         model_catalog::{LocalModelCapability as C, MODELS},
@@ -77,11 +77,11 @@ pub async fn capabilities(app: &AppHandle) -> ImageOperationCapabilities {
             connection_id,
             model_id,
             ..
-        } => TaskTargetRef::Model {
+        } => TaskTarget::Model {
             connection_id: connection_id.clone(),
             model_id: model_id.clone(),
         },
-        TaskTargetSelection::Agent { runtime_kind } => TaskTargetRef::Agent {
+        TaskTargetSelection::Agent { runtime_kind } => TaskTarget::Agent {
             runtime_kind: *runtime_kind,
         },
     };

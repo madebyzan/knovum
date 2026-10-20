@@ -10,8 +10,8 @@ import {
   disconnectConnector,
 } from "../../../../foundation/extensions/connector-operations";
 import { accountQuery, EXTENSION_QUERY_KEY } from "../../../../foundation/extensions/extension-query";
+import { useSettingsLeaveContext } from "../../../../foundation/lifecycle/use-settings-leave-context";
 import type { ConnectorDefinition } from "../../../../shared/contracts/generated/ConnectorDefinition";
-import { useSettingsLeaveContext } from "../../../../shared/contracts/settings-leave";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";

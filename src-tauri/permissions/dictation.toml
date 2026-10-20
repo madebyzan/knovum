@@ -1,4 +1,0 @@
-[[permission]]
-identifier = "allow-dictation-session"
-description = "Allows the main window to read, cancel, dismiss and copy the Rust-owned dictation session."
-commands.allow = ["get_state", "cancel", "dismiss_transcription", "copy_transcription"]

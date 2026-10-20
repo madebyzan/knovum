@@ -3,7 +3,7 @@ use serde_json::json;
 
 #[test]
 fn mixed_voice_runs_freeze_one_inference_package_and_reject_obsolete_identity() {
-    let snapshot = json!({"runtimeDigests": {"native-inference-v2": "a".repeat(64)}});
+    let snapshot = json!({"runtimeDigests": {"bundled-inference-v2": "a".repeat(64)}});
     let digests = read_snapshot(&snapshot).unwrap();
     assert_eq!(
         digests[&profile_for_engine("moss_nano").unwrap()],
@@ -49,7 +49,7 @@ async fn project_generation_requires_every_engine_package_and_freezes_the_exact_
         .await
         .unwrap();
     assert_eq!(count, 0);
-    digests.insert("native-inference-v2".into(), "b".repeat(64));
+    digests.insert("bundled-inference-v2".into(), "b".repeat(64));
     run_start::start(&pool, request(), &digests, &outputs)
         .await
         .unwrap();
@@ -65,7 +65,7 @@ async fn project_generation_requires_every_engine_package_and_freezes_the_exact_
         read_snapshot(&serde_json::from_str(&snapshot).unwrap()).unwrap(),
         digests
     );
-    digests.insert("native-inference-v2".into(), "c".repeat(64));
+    digests.insert("bundled-inference-v2".into(), "c".repeat(64));
     assert!(run_start::start(&pool, request(), &digests, &outputs)
         .await
         .is_err());

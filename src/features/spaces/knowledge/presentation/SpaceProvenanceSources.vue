@@ -13,7 +13,7 @@ import { useContextDock } from "../../canvas/use-context-dock";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceProvenanceTargetKind } from "../model/provenance";
 import { attachProvenanceFromPeek, detachProvenance } from "../provenance-actions";
-import { useSpaceProvenanceQuery } from "../queries/use-knowledge-queries";
+import { useSpaceProvenanceQuery } from "../queries/use-space-provenance-query";
 import { knowledgeLocationLabel } from "./knowledge-location-label";
 
 const props = defineProps<{

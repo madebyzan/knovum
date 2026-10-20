@@ -24,7 +24,7 @@ pub(super) fn request(
     action: &str,
     sources: &[(&str, &str)],
     parameters: Value,
-    target: Option<TaskTargetRef>,
+    target: Option<TaskTarget>,
 ) -> StartSpaceActionRequest {
     pinned_request(
         action,
@@ -39,7 +39,7 @@ pub(super) fn pinned_request(
     sources: &[(&str, &str)],
     revision_basis: RevisionBasis,
     parameters: Value,
-    target: Option<TaskTargetRef>,
+    target: Option<TaskTarget>,
 ) -> StartSpaceActionRequest {
     StartSpaceActionRequest {
         request_id: uuid::Uuid::new_v4().to_string(),
@@ -114,7 +114,7 @@ async fn an_unanalyzed_image_starts_a_creation_run_pinned_on_its_pixels() {
         &[("image", "asset:1")],
         RevisionBasis::Asset,
         json!({"title":"Variant","intent":"Make it snow","aspectRatio":"1:1"}),
-        Some(TaskTargetRef::Agent {
+        Some(TaskTarget::Agent {
             runtime_kind: crate::ai::contracts::ExternalAgentKind::Codex,
         }),
     );
@@ -163,7 +163,7 @@ async fn stale_or_malformed_acceptance_rolls_back_grant_and_run() {
 
 #[test]
 fn local_actions_reject_ai_targets_and_immediate_mutations() {
-    let target = Some(TaskTargetRef::Agent {
+    let target = Some(TaskTarget::Agent {
         runtime_kind: crate::ai::contracts::ExternalAgentKind::Codex,
     });
     let request = request(

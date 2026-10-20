@@ -20,5 +20,5 @@ export const TEXT_EDITING_CHORDS: readonly string[] = [
 
 export function performApplicationMenuEditing(command: EditingCommand): void | Promise<void> {
   if (platform() !== "macos") return;
-  return invokeCommand<boolean>("plugin:desktop|perform_editing", { command }).then(() => undefined);
+  return invokeCommand<boolean>("plugin:desktop|execute_editing_command", { command }).then(() => undefined);
 }

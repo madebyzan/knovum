@@ -3,7 +3,7 @@ use std::path::Path;
 use schemars::{schema_for, Schema};
 use ts_rs::Config;
 
-// Collect the neutral native worker protocol into a closed schema graph.
+// Collect the neutral inference worker protocol into a closed schema graph.
 #[allow(dead_code)]
 #[derive(schemars::JsonSchema)]
 struct InferenceWireSchemas {

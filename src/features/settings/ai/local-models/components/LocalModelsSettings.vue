@@ -3,7 +3,7 @@ import { computed, shallowRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../../foundation/errors/error-format";
-import { useLocalModelsQuery } from "../../../../../foundation/runtime/use-resource-queries";
+import { useLocalModelsQuery } from "../../../../../foundation/runtime/use-local-models-query";
 import type { LocalModelAvailability } from "../../../../../shared/contracts/generated/LocalModelAvailability";
 import UiButton from "../../../../../shared/ui/UiButton.vue";
 import UiSearchInput from "../../../../../shared/ui/UiSearchInput.vue";

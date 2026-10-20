@@ -4,7 +4,7 @@
   "description": "Explicit user-selected product data backup and restore maintenance.",
   "windows": ["main"],
   "permissions": [
-    "backup:allow-await-data-maintenance",
+    "backup:allow-await-maintenance",
     "backup:allow-schedule-backup",
     "backup:allow-schedule-restore",
     "backup:allow-get-maintenance-receipt",

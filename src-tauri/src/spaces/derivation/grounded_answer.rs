@@ -36,12 +36,12 @@ pub(super) async fn answer(
 ) -> Result<Value, AppError> {
     if request.question.trim().is_empty() {
         return Err(AppError::new(
-            "answer_with_sources_invalid",
+            "answer_question_invalid",
             "question and sources are required",
         ));
     }
     source_inputs::require_single_primary(&request.inputs)
-        .map_err(|error| AppError::new("answer_with_sources_invalid", error))?;
+        .map_err(|error| AppError::new("answer_question_invalid", error))?;
     let pool = crate::spaces::db::pool(app).await?;
     let mut tx = crate::spaces::db::begin_write(pool).await?;
     source_inputs::pin(&mut tx, &request.space_id, &request.inputs).await?;
@@ -74,7 +74,7 @@ pub(super) async fn answer(
     let sources = prompt::select_sources(retrieval.matches)?;
     if sources.is_empty() {
         return Err(AppError::new(
-            "answer_with_sources_empty",
+            "answer_question_empty",
             "no indexed source supports the question",
         ));
     }

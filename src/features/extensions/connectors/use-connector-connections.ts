@@ -5,13 +5,13 @@ import {
   createMcpConnection,
   deleteMcpConnection,
 } from "../../../foundation/extensions/connection-operations";
+import { useSettingsLeaveContext } from "../../../foundation/lifecycle/use-settings-leave-context";
 import { ApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { McpConnection } from "../../../shared/contracts/generated/McpConnection";
 import {
   settingsLeaveCoordinatorKey,
   type SettingsLeaveParticipant,
-  useSettingsLeaveContext,
 } from "../../../shared/contracts/settings-leave";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { useExtensionChanges } from "../use-extension-changes";

@@ -8,9 +8,9 @@ import { createAppError, decodeAppError } from "../errors/app-error";
 import { formatErrorDiagnostic, getErrorMessage } from "../errors/error-format";
 import { useTaskStore } from "../tasks/task-store";
 import { cancelResourcePreparation, listResourcePreparations, prepareResources } from "./local-resources";
+import { invalidateLocalResources } from "./local-resources-query";
 import { restoreRunningPreparation } from "./resource-preparation-observation";
 import { buildResourcePreparationTask, updateTaskProgress } from "./resource-progress";
-import { invalidateLocalResources } from "./use-resource-queries";
 
 const CANCELLED_CODE = "local_resource_preparation_cancelled";
 

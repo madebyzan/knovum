@@ -33,9 +33,9 @@ impl SnapshotKind {
         match self {
             Self::Image(variant) => variant.name(),
             Self::Whisper(variant) => match variant {
-                catalog::WhisperVariant::Tiny => "whisper-tiny-q8-native",
-                catalog::WhisperVariant::Small => "whisper-small-q8-native",
-                catalog::WhisperVariant::LargeV3 => "whisper-large-v3-f16-native",
+                catalog::WhisperVariant::Tiny => "whisper-tiny-q8-bundled",
+                catalog::WhisperVariant::Small => "whisper-small-q8-bundled",
+                catalog::WhisperVariant::LargeV3 => "whisper-large-v3-f16-bundled",
             },
             Self::ImageSegmentation => "u2netp",
             Self::ImageSegmentationQuality => "u2net",
@@ -43,7 +43,7 @@ impl SnapshotKind {
             Self::MossNano => "moss-tts-nano",
             Self::VoxCpm2 => "voxcpm2",
             Self::VoxCpm2Q8 => "voxcpm2-q8_0",
-            Self::SpeechAlignment => "qwen3-forced-aligner-0.6b-f16-native",
+            Self::SpeechAlignment => "qwen3-forced-aligner-0.6b-f16-bundled",
             Self::SpeechAlignmentQ8 => "qwen3-forced-aligner-0.6b-q8_0",
             Self::SpeechSeparation => "spleeter-2stems-fp16",
             Self::SpeechSeparationFull => "spleeter-2stems-fp32",

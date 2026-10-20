@@ -8,10 +8,10 @@ use crate::spaces::db;
 
 use super::{
     arrow_batch::records_to_batch,
+    chunk_loader::{load_indexed_chunks, write_index_markers, EmbeddingSource},
     generation::{self, IndexGeneration},
     invalidation_outbox,
     lancedb_store::connect_retrieval_db,
-    record_loader::{load_records, write_index_markers, EmbeddingSource},
     schema::TABLE_KNOWLEDGE_CHUNKS,
 };
 
@@ -48,17 +48,16 @@ pub(super) async fn publish_embeddings(
     let mut tx = db::begin_write(pool).await?;
     let generation = generation_from_batch(&embeddings)?;
     generation::require_writable(&mut tx, &generation).await?;
-    let records = load_records(&mut tx, embeddings.into_iter().map(into_source).collect()).await?;
-    let spaces: std::collections::BTreeSet<_> = records
-        .iter()
-        .map(|record| record.space_id.as_str())
-        .collect();
+    let chunks =
+        load_indexed_chunks(&mut tx, embeddings.into_iter().map(into_source).collect()).await?;
+    let spaces: std::collections::BTreeSet<_> =
+        chunks.iter().map(|chunk| chunk.space_id.as_str()).collect();
     for space_id in spaces {
         invalidation_outbox::drain_pending(index, &mut tx, Some(space_id)).await?;
     }
-    let written = records.len();
-    let dimensions = records[0].dimensions;
-    let batch = records_to_batch(&records, dimensions)?;
+    let written = chunks.len();
+    let dimensions = chunks[0].dimensions;
+    let batch = records_to_batch(&chunks, dimensions)?;
     let existing = index
         .table_names()
         .execute()
@@ -87,7 +86,7 @@ pub(super) async fn publish_embeddings(
             .await
             .map_err(|error| format!("Failed to create LanceDB knowledge table: {error}"))?;
     }
-    write_index_markers(&mut tx, &records).await?;
+    write_index_markers(&mut tx, &chunks).await?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(written)
 }

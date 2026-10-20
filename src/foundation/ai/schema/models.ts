@@ -7,7 +7,7 @@ import {
   executionCapabilities,
   chatModelProtocols,
 } from "../../../shared/contracts/generated/contract-values";
-import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import { externalAgentKindSchema } from "./external-agents";
 
 export const aiProviderSchema = z.enum(providerKinds);
@@ -119,4 +119,4 @@ export function aiConnectionSecretKey(connectionId: string) {
   return `integrations.ai.connections.${connectionId}.api-key`;
 }
 
-export type ResolvedAiTaskTarget = ResolvedAiModelTarget | Extract<TaskTargetRef, { type: "agent" }>;
+export type ResolvedAiTaskTarget = ResolvedAiModelTarget | Extract<TaskTarget, { type: "agent" }>;

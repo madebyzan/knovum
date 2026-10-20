@@ -7,9 +7,9 @@ import {
   deleteConnectorDefinition,
   updateConnectorDefinition,
 } from "../../../foundation/extensions/connector-operations";
+import { useSettingsLeaveContext } from "../../../foundation/lifecycle/use-settings-leave-context";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { ExtensionChange } from "../../../shared/contracts/generated/ExtensionChange";
-import { useSettingsLeaveContext } from "../../../shared/contracts/settings-leave";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { buildEndpointFields } from "../connections/endpoint-fields";
 import { useExtensionChanges } from "../use-extension-changes";

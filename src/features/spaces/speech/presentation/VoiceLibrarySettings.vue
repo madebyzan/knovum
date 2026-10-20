@@ -3,7 +3,7 @@ import { Plus, X } from "@lucide/vue";
 import { computed, onScopeDispose, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useSettingsLeaveContext } from "../../../../shared/contracts/settings-leave";
+import { useSettingsLeaveContext } from "../../../../foundation/lifecycle/use-settings-leave-context";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
@@ -11,7 +11,7 @@ import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { CreatePresetVoiceRequest } from "../../contracts/generated/CreatePresetVoiceRequest";
 import { useSpeechVoices } from "../use-speech-voices";
 import VoiceCandidateForm from "./VoiceCandidateForm.vue";
-import VoiceManagement from "./VoiceManagement.vue";
+import VoiceProfileAdministration from "./VoiceProfileAdministration.vue";
 import VoiceProfileForm from "./VoiceProfileForm.vue";
 
 type CreationKind = "preset" | "reference" | "designed";
@@ -107,7 +107,7 @@ onScopeDispose(unregisterLeaveParticipant);
           <Plus class="size-4" />{{ t("spaces.speech.voice.add") }}
         </UiButton>
       </header>
-      <VoiceManagement
+      <VoiceProfileAdministration
         :expanded-id="editingTarget === 'new' ? undefined : editingTarget"
         :creating="editingTarget === 'new'"
         @dirty="draftDirty = $event"
@@ -151,7 +151,7 @@ onScopeDispose(unregisterLeaveParticipant);
             />
           </div>
         </template>
-      </VoiceManagement>
+      </VoiceProfileAdministration>
     </section>
   </section>
 </template>

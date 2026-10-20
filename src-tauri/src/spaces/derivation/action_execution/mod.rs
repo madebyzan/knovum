@@ -23,7 +23,7 @@ fn handler(action_id: &str) -> Option<Handler> {
         return Some(Handler::ImageTransform);
     }
     match action_id {
-        "answer-with-sources" => Some(Handler::Answer),
+        "answer-question" => Some(Handler::Answer),
         "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post" => {
             Some(Handler::Text)
         }

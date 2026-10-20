@@ -9,7 +9,7 @@ import type { AiConnectionSettings } from "../../../../../shared/contracts/gener
 import type { AiRoutingDefaults } from "../../../../../shared/contracts/generated/AiRoutingDefaults";
 import type { DesktopAgentSettings } from "../../../../../shared/contracts/generated/DesktopAgentSettings";
 import type { RoutingPurpose } from "../../../../../shared/contracts/generated/RoutingPurpose";
-import type { TaskTargetRef } from "../../../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../../../shared/contracts/generated/TaskTarget";
 import UiButton from "../../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../../shared/ui/UiSelect.vue";
 import UiSettingsSection from "../../../../../shared/ui/UiSettingsSection.vue";
@@ -22,7 +22,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   requestModelCreation: [purpose: RoutingPurpose];
-  updateRoute: [key: keyof AiRoutingDefaults, target: TaskTargetRef | null];
+  updateRoute: [key: keyof AiRoutingDefaults, target: TaskTarget | null];
 }>();
 const { t } = useI18n();
 const UNASSIGNED = "__unassigned__";

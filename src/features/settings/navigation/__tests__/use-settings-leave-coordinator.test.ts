@@ -3,11 +3,9 @@ import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import { createMemoryHistory, createRouter, RouterView } from "vue-router";
 
+import { useSettingsLeaveContext } from "../../../../foundation/lifecycle/use-settings-leave-context";
 import { ApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
-import {
-  type SettingsLeaveCoordinator,
-  useSettingsLeaveContext,
-} from "../../../../shared/contracts/settings-leave";
+import type { SettingsLeaveCoordinator } from "../../../../shared/contracts/settings-leave";
 import { useSettingsLeaveCoordinator } from "../use-settings-leave-coordinator";
 
 vi.mock("../../../../foundation/lifecycle/window-close-coordinator", () => ({

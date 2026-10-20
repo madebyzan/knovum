@@ -15,13 +15,13 @@ import { availableModelTargets, defaultExecutionTarget } from "../../../../found
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/use-execution-catalog-query";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../../shared/contracts/generated/TaskTarget";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
 
-const target = defineModel<TaskTargetRef | undefined>();
+const target = defineModel<TaskTarget | undefined>();
 const available = defineModel<boolean>("available", { default: false });
 const { t } = useI18n();
 const router = useRouter();
@@ -85,7 +85,7 @@ watch(
   { immediate: true },
 );
 
-function select(selected: TaskTargetRef) {
+function select(selected: TaskTarget) {
   target.value = selected;
   settings.settings.defaults.defaultTarget = { ...selected };
 }

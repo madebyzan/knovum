@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
-import { setDesktopAgentEnabled } from "../../../foundation/ai/execution-settings";
+import { disableDesktopAgent, enableDesktopAgent } from "../../../foundation/ai/execution-settings";
 import { resetAiSettings } from "../../../foundation/ai/settings-mutations";
 import { useExecutionCatalogQuery } from "../../../foundation/ai/use-execution-catalog-query";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
@@ -50,7 +50,8 @@ async function setEnabled(kind: ExternalAgentKind, enabled: boolean) {
   if (!ready.value || saving.value) return;
   saving.value = true;
   try {
-    await setDesktopAgentEnabled(kind, enabled);
+    if (enabled) await enableDesktopAgent(kind);
+    else await disableDesktopAgent(kind);
   } catch (error) {
     toast.error(`${t("settings.general.saveFailed")}: ${getErrorMessage(error)}`);
   } finally {

@@ -2,7 +2,7 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { StartSpaceActionRequest } from "../contracts/generated/StartSpaceActionRequest";
 import { observeResourceRun } from "../runs/resource-run-observation";
@@ -14,7 +14,7 @@ interface StartActionOptions {
   sources: readonly CreationSource[];
   parameters: Record<string, unknown>;
   title: string;
-  target?: TaskTargetRef | undefined;
+  target?: TaskTarget | undefined;
 }
 
 export async function startDerivationAction({

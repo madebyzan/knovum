@@ -33,7 +33,7 @@ fn absent_global_preference_preserves_accounts_and_explicit_overrides() {
     assert_eq!(settings.defaults.target(RoutingPurpose::Knowledge), None);
     assert_eq!(
         settings.defaults.target(RoutingPurpose::Writing),
-        Some(TaskTargetRef::Model {
+        Some(TaskTarget::Model {
             connection_id: "user-model".into(),
             model_id: "text".into(),
         })
@@ -42,7 +42,7 @@ fn absent_global_preference_preserves_accounts_and_explicit_overrides() {
         settings
             .defaults
             .target(RoutingPurpose::VisualUnderstanding),
-        Some(TaskTargetRef::Agent {
+        Some(TaskTarget::Agent {
             runtime_kind: ExternalAgentKind::Codex,
         })
     );
@@ -63,7 +63,7 @@ fn absent_overrides_inherit_only_an_explicit_global_preference() {
     validation::validate(&envelope.value).unwrap();
     assert_eq!(
         envelope.value.defaults.target(RoutingPurpose::Knowledge),
-        Some(TaskTargetRef::Agent {
+        Some(TaskTarget::Agent {
             runtime_kind: ExternalAgentKind::Codex,
         })
     );

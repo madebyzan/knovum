@@ -17,7 +17,7 @@ pub(super) struct EmbeddingSource {
 /// Loads the persisted chunk metadata for each embedding input and combines it with the
 /// caller-provided vector under the publication write transaction. Revision mismatch
 /// is an explicit stale-job failure.
-pub(super) async fn load_records(
+pub(super) async fn load_indexed_chunks(
     tx: &mut Transaction<'_, Sqlite>,
     embeddings: Vec<EmbeddingSource>,
 ) -> Result<Vec<IndexedKnowledgeChunk>, String> {
@@ -40,15 +40,15 @@ pub(super) async fn load_records(
     .await
     .map_err(db::sql_error)?;
 
-    let mut record_by_chunk_id = std::collections::HashMap::with_capacity(rows.len());
+    let mut row_by_chunk_id = std::collections::HashMap::with_capacity(rows.len());
     for row in rows {
         let id: String = row.try_get("chunk_id").map_err(db::sql_error)?;
-        record_by_chunk_id.insert(id, row);
+        row_by_chunk_id.insert(id, row);
     }
 
-    let mut records = Vec::with_capacity(embeddings.len());
+    let mut chunks = Vec::with_capacity(embeddings.len());
     for embedding in embeddings {
-        let row = record_by_chunk_id.get(&embedding.chunk_id);
+        let row = row_by_chunk_id.get(&embedding.chunk_id);
         let row = match row {
             Some(row) => {
                 let rev: String = row.try_get("source_revision").map_err(db::sql_error)?;
@@ -66,7 +66,7 @@ pub(super) async fn load_records(
                 embedding.chunk_id, embedding.source_revision
             )
         })?;
-        records.push(IndexedKnowledgeChunk {
+        chunks.push(IndexedKnowledgeChunk {
             generation_id: embedding.generation_id,
             embedding_spec_id: embedding.embedding_spec_id,
             chunk_id: row.try_get("chunk_id").map_err(db::sql_error)?,
@@ -87,16 +87,16 @@ pub(super) async fn load_records(
             updated_at: now,
         });
     }
-    Ok(records)
+    Ok(chunks)
 }
 
 /// Persists a marker row per successfully indexed chunk. The marker is used by
 /// `list_missing_embedding_chunks` — the vector itself lives only in LanceDB.
 pub(super) async fn write_index_markers(
     tx: &mut Transaction<'_, Sqlite>,
-    records: &[IndexedKnowledgeChunk],
+    chunks: &[IndexedKnowledgeChunk],
 ) -> Result<(), String> {
-    for record in records {
+    for chunk in chunks {
         sqlx::query(
             "INSERT INTO spaces_chunk_embeddings(\
                generation_id,chunk_id,source_revision,embedding_spec_id,dimensions,updated_at\
@@ -106,12 +106,12 @@ pub(super) async fn write_index_markers(
                embedding_spec_id=excluded.embedding_spec_id, \
                dimensions=excluded.dimensions, updated_at=excluded.updated_at",
         )
-        .bind(&record.generation_id)
-        .bind(&record.chunk_id)
-        .bind(&record.source_revision)
-        .bind(&record.embedding_spec_id)
-        .bind(record.dimensions)
-        .bind(record.updated_at)
+        .bind(&chunk.generation_id)
+        .bind(&chunk.chunk_id)
+        .bind(&chunk.source_revision)
+        .bind(&chunk.embedding_spec_id)
+        .bind(chunk.dimensions)
+        .bind(chunk.updated_at)
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;

@@ -4,9 +4,9 @@ import { TabsContent, TabsList, TabsRoot, TabsTrigger } from "reka-ui";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import SpaceVideoMediaPanel from "./SpaceVideoMediaPanel.vue";
-import SpaceVideoTextPanel from "./SpaceVideoTextPanel.vue";
-import SpaceVideoTransitionPanel from "./SpaceVideoTransitionPanel.vue";
+import SpaceVideoMaterialBrowser from "./SpaceVideoMaterialBrowser.vue";
+import SpaceVideoTextTrackPicker from "./SpaceVideoTextTrackPicker.vue";
+import SpaceVideoTransitionEditor from "./SpaceVideoTransitionEditor.vue";
 import type { VideoEditor } from "./use-video-editor";
 
 const props = defineProps<{ editor: VideoEditor }>();
@@ -47,13 +47,13 @@ function setTab(value: unknown) {
       </TabsTrigger>
     </TabsList>
     <TabsContent value="media" class="flex min-h-0 flex-1 flex-col outline-none">
-      <SpaceVideoMediaPanel :editor="props.editor" />
+      <SpaceVideoMaterialBrowser :editor="props.editor" />
     </TabsContent>
     <TabsContent value="text" class="flex min-h-0 flex-1 flex-col outline-none">
-      <SpaceVideoTextPanel :editor="props.editor" />
+      <SpaceVideoTextTrackPicker :editor="props.editor" />
     </TabsContent>
     <TabsContent value="transitions" class="flex min-h-0 flex-1 flex-col outline-none">
-      <SpaceVideoTransitionPanel :editor="props.editor" />
+      <SpaceVideoTransitionEditor :editor="props.editor" />
     </TabsContent>
   </TabsRoot>
 </template>

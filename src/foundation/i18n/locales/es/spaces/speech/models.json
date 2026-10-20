@@ -6,5 +6,5 @@
     "voxCpm2": "Precisión total · Clonación y diseño de voz. Requiere al menos 32 GiB de memoria.",
     "voxCpm2Q8": "Cuantizado · Descarga y uso de disco más pequeños. Todavía requiere al menos 32 GiB de memoria."
   },
-  "details": "Detalles del modelo"
+  "specs": "Detalles del modelo"
 }

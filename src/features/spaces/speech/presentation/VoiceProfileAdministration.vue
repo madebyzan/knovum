@@ -6,14 +6,14 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSettingsEmptyState from "../../../../shared/ui/UiSettingsEmptyState.vue";
 import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
-import { useVoiceManagement } from "../use-voice-management";
+import { useVoiceProfileOperations } from "../use-voice-profile-operations";
 import VoiceProfileConfiguration from "./VoiceProfileConfiguration.vue";
 
 const props = defineProps<{ expandedId?: string | undefined; creating?: boolean | undefined }>();
 const emit = defineEmits<{ dirty: [value: boolean]; toggle: [profileId: string] }>();
 const { t } = useI18n();
 const { reload, profiles, loading, busyProfileId, errors, rename, revise, archive, unarchive, remove } =
-  useVoiceManagement();
+  useVoiceProfileOperations();
 </script>
 
 <template>

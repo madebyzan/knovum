@@ -11,7 +11,7 @@ import { searchSpace } from "../../search/search-actions";
 import { archiveSpace, permanentlyDeleteSpace, unarchiveSpace } from "../../workspace/archive-actions";
 import { showSpaceLibrary } from "../../workspace/library-actions";
 import type { createRightSidebarActions } from "../../workspace/right-sidebar-actions";
-import { setSpaceFavorite } from "../../workspace/space-operations";
+import { favoriteSpace, unfavoriteSpace } from "../../workspace/space-operations";
 import { refreshSpace } from "../../workspace/space-session-actions";
 import type { SpaceSessionContext } from "../../workspace/space-session-context";
 import { renameSpace } from "../../workspace/space-title-actions";
@@ -92,10 +92,13 @@ export function assembleSpaceActions(input: SpaceActionsInput) {
     showSpaceLibrary: (scope: Parameters<typeof showSpaceLibrary>[2]) =>
       showSpaceLibrary(state, spaceContext, scope),
     focusSpaceLibrarySearch: () => (state.librarySearchNonce.value += 1),
-    setSpaceFavorite: async (spaceId: string, favorite: boolean) => {
-      await setSpaceFavorite(spaceId, favorite);
+    toggleSpaceFavorite: async (spaceId: string) => {
       const space = state.spaces.value.find((candidate) => candidate.id === spaceId);
-      if (space) Object.assign(space, { favorite, updatedAt: Date.now() });
+      if (!space) return;
+      const favorite = !space.favorite;
+      if (favorite) await favoriteSpace(spaceId);
+      else await unfavoriteSpace(spaceId);
+      Object.assign(space, { favorite, updatedAt: Date.now() });
     },
     openSpace,
     openSpaceCanvas: async () => {

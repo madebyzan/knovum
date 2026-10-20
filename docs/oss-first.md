@@ -142,7 +142,8 @@ The resulting lifecycle, permissions and interaction contracts are owned by
 - PDF/Office semantic content export reuses the pinned [pdf-inspector](https://github.com/firecrawl/pdf-inspector)
   and [office_oxide](https://github.com/yfedoseev/office_oxide) crates. Rich Tiptap Notes translate directly
   to the existing Office IR; no Markdown round-trip or second persistence model is introduced.
-  The existing native PDF adapter supplies source-page/image rasters. Revision-qualified page
+  The existing platform PDF adapter (Core Graphics PDF on macOS, `Windows.Data.Pdf` on Windows)
+  supplies source-page/image rasters. Revision-qualified page
   recognition is an explicit input, not an automatic AI fallback or cached preview text.
 - Original-layout Office PDF was evaluated separately from content export. A full local layout
   engine such as [LibreOffice](https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html)
@@ -182,7 +183,7 @@ Detailed data and interaction contracts live in [spaces.md](spaces.md),
   GitHub and registry candidates: WebAV (@webav/av-cliper, av-canvas), Mediabunny, etro,
   mp4box.js, hand-written HTMLVideoElement transport (the previous implementation).
   Maintenance, security, license and platform evidence: Mediabunny 1.61 is actively released,
-  MPL-2.0, consumed unmodified, pure TypeScript with no native or worker build inputs, and
+  MPL-2.0, consumed unmodified, pure TypeScript with no compiled-code or worker build inputs, and
   documents Safari support; Konva 10 is already pinned for Space canvas interaction.
   Selected implementation: Mediabunny for container parsing, WebCodecs video decoding, frame
   sinks and filmstrip batches; Konva for the stage scene graph, hit areas and transformer;
@@ -249,7 +250,7 @@ The maintained moss-tts-nano Rust candidate was evaluated: its private fixed 375
 adaptive codec chunking cannot satisfy the required streaming/reference/cancellation contract.
 audio.cpp exposes MOSS only as a synchronous result. Knovum therefore retains a narrow graph
 orchestrator for this concrete gap; it does not implement neural layers, codecs, resamplers or RNG.
-Its new frozen identity is `moss-tts-nano-100m-onnx-native-v2`.
+Its new frozen identity is `moss-tts-nano-100m-onnx-bundled-v2`.
 
 VoxCPM2 uses the frozen upstream audio.cpp supplier and GGUF exports. A narrow C++ callback bridge
 is required because the public pull API exposes output after synchronous generation; callback ABI 3

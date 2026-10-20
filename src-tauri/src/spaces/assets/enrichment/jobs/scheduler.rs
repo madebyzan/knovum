@@ -99,7 +99,6 @@ async fn dispatch(
                     "failed",
                     Some(error.to_string()),
                     crate::foundation::clock::unix_time_millis()?,
-                    false,
                 )
                 .await?;
                 continue;

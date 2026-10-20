@@ -115,6 +115,6 @@ fn forced_alignment_uses_the_inference_f16_package() {
         snapshot.files().iter().map(|f| f.path).collect::<Vec<_>>(),
         vec!["qwen3-forced-aligner-0.6b-f16.gguf", "LICENSE", "README.md"]
     );
-    assert_eq!(snapshot.name(), "qwen3-forced-aligner-0.6b-f16-native");
+    assert_eq!(snapshot.name(), "qwen3-forced-aligner-0.6b-f16-bundled");
     assert_eq!(snapshot.total_bytes(), 1_840_118_458);
 }

@@ -51,7 +51,7 @@ async fn connection(pool: &SqlitePool, id: &str) -> serde_json::Value {
 #[tokio::test]
 async fn reauthorization_invalidates_frozen_identity_and_its_connections_tool_review() {
     let (pool, frozen) = fixture().await;
-    accounts::set_status(&pool, &frozen.connector_id, false, false)
+    accounts::disable_account(&pool, &frozen.connector_id)
         .await
         .unwrap();
     let previous = accounts::load(&pool, &frozen.connector_id).await.unwrap();
@@ -83,7 +83,10 @@ async fn concurrent_disconnect_prevents_commit_and_preserves_tool_review() {
     let (pool, mut renewed) = fixture().await;
     let previous = accounts::load(&pool, &renewed.connector_id).await.unwrap();
     renewed.revision = "second-authorization".into();
-    accounts::set_status(&pool, &renewed.connector_id, false, true)
+    accounts::disable_account(&pool, &renewed.connector_id)
+        .await
+        .unwrap();
+    accounts::mark_cleanup_pending(&pool, &renewed.connector_id)
         .await
         .unwrap();
     assert_eq!(
@@ -109,10 +112,17 @@ async fn concurrent_disconnect_prevents_commit_and_preserves_tool_review() {
 #[tokio::test]
 async fn disabled_and_cleanup_pending_accounts_cannot_dispatch() {
     let (pool, frozen) = fixture().await;
-    for (enabled, cleanup_pending) in [(false, false), (true, true)] {
-        accounts::set_status(&pool, &frozen.connector_id, enabled, cleanup_pending)
-            .await
-            .unwrap();
-        assert!(accounts::require_current(&pool, &frozen).await.is_err());
-    }
+    // Pending cleanup blocks dispatch even while the account is still enabled...
+    accounts::mark_cleanup_pending(&pool, &frozen.connector_id)
+        .await
+        .unwrap();
+    assert!(accounts::require_current(&pool, &frozen).await.is_err());
+    // ...and a disabled account blocks dispatch once the cleanup is done.
+    accounts::clear_cleanup_pending(&pool, &frozen.connector_id)
+        .await
+        .unwrap();
+    accounts::disable_account(&pool, &frozen.connector_id)
+        .await
+        .unwrap();
+    assert!(accounts::require_current(&pool, &frozen).await.is_err());
 }

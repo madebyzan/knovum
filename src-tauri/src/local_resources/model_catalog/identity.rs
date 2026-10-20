@@ -6,7 +6,7 @@ use super::{
 impl LocalModelId {
     pub(crate) fn alignment_spec(self) -> Result<&'static str, String> {
         match self {
-            Self::Qwen3Aligner => Ok("qwen3-forced-aligner-0.6b-f16-native-v2"),
+            Self::Qwen3Aligner => Ok("qwen3-forced-aligner-0.6b-f16-bundled-v2"),
             Self::Qwen3AlignerQ8 => Ok("qwen3-forced-aligner-0.6b-q8_0-v1"),
             _ => Err("Model does not support forced alignment".into()),
         }

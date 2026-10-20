@@ -8,7 +8,7 @@ import type { ImageExecutionTarget } from "../../../contracts/generated/ImageExe
 import type { ImageOperation } from "../../../contracts/generated/ImageOperation";
 import { imageEditOf, rotatedImageSize } from "../../../image-editing/image-edit";
 import { deriveImage } from "../../../knowledge-derivations/image-operation";
-import { useImageOperationCapabilities } from "../../../knowledge-derivations/use-image-capabilities";
+import { useImageOperationCapabilities } from "../../../knowledge-derivations/use-image-operation-capabilities";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
 import { useNodeOperationGate } from "../../use-node-operation-gate";

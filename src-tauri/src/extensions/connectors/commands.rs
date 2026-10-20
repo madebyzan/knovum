@@ -76,9 +76,10 @@ pub async fn connect_connector(
     }
     .await;
     if let Err(error) = authorization {
-        accounts::set_status(&pool, &connector_id, false, true).await?;
+        accounts::disable_account(&pool, &connector_id).await?;
+        accounts::mark_cleanup_pending(&pool, &connector_id).await?;
         super::credential_store::remove(&app, &connector_id).await?;
-        accounts::set_status(&pool, &connector_id, false, false).await?;
+        accounts::clear_cleanup_pending(&pool, &connector_id).await?;
         return Err(error.into());
     }
     let current = accounts::load(&pool, &connector_id).await?;
@@ -121,12 +122,13 @@ pub async fn cancel_connector_authorization(app: AppHandle, connector_id: String
 pub async fn disconnect_connector(app: AppHandle, connector_id: String) -> AppResult<()> {
     cancel_connector_authorization(app.clone(), connector_id.clone()).await?;
     let pool = database::pool(&app).await?;
-    accounts::set_status(&pool, &connector_id, false, true).await?;
+    accounts::disable_account(&pool, &connector_id).await?;
+    accounts::mark_cleanup_pending(&pool, &connector_id).await?;
     super::super::mcp::sessions::revoke_account(&app, &connector_id).await;
     let lock = authorization::account_lock(&app, &connector_id).await;
     let _guard = lock.lock().await;
     super::credential_store::remove(&app, &connector_id).await?;
-    accounts::set_status(&pool, &connector_id, false, false)
+    accounts::clear_cleanup_pending(&pool, &connector_id)
         .await
         .map_err(AppError::from)
 }

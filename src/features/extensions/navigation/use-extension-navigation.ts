@@ -8,8 +8,8 @@ import {
 } from "vue-router";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import { useSettingsLeaveContext } from "../../../foundation/lifecycle/use-settings-leave-context";
 import { isApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
-import { useSettingsLeaveContext } from "../../../shared/contracts/settings-leave";
 import { isExtensionTab, type ExtensionDestination } from "./extension-destination";
 
 export function useExtensionNavigation() {
