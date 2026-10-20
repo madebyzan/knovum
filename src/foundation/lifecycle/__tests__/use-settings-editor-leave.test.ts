@@ -2,21 +2,21 @@ import { expect, it, vi } from "vitest";
 import { effectScope } from "vue";
 
 import type { SettingsLeaveParticipant } from "../../../shared/contracts/settings-leave";
-import { useEditorLeave } from "../use-editor-leave";
+import { useSettingsEditorLeave } from "../use-settings-editor-leave";
 
 const coordinator = vi.hoisted(() => ({
   register: vi.fn<(participant: SettingsLeaveParticipant) => () => void>(),
 }));
 vi.mock("../use-settings-leave-context", () => ({ useSettingsLeaveContext: () => coordinator }));
 
-function editor(options: Partial<Parameters<typeof useEditorLeave>[0]> = {}) {
+function editor(options: Partial<Parameters<typeof useSettingsEditorLeave>[0]> = {}) {
   const unregister = vi.fn<() => void>();
   coordinator.register.mockReturnValue(unregister);
   const scope = effectScope();
   const close = vi.fn<() => void>();
   const confirmDiscard = vi.fn<() => Promise<boolean>>(async () => true);
   const requestClose = scope.run(() =>
-    useEditorLeave({
+    useSettingsEditorLeave({
       pending: () => undefined,
       dirty: () => false,
       confirmDiscard,

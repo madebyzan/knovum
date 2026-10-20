@@ -2,13 +2,15 @@ import { onScopeDispose } from "vue";
 
 import { useSettingsLeaveContext } from "./use-settings-leave-context";
 
-/** Leaving an editor waits for its admitted write before deciding whether to discard. */
-export function useEditorLeave(options: {
+export interface SettingsEditorLeaveOptions {
   pending: () => Promise<boolean> | undefined;
   dirty: () => boolean;
   confirmDiscard: () => Promise<boolean>;
   close: () => void;
-}) {
+}
+
+/** Leaving a settings editor waits for its admitted write before deciding whether to discard. */
+export function useSettingsEditorLeave(options: SettingsEditorLeaveOptions) {
   const participant = {
     async prepare() {
       const pending = options.pending();

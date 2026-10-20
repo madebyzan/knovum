@@ -3,7 +3,7 @@ import { useI18n } from "vue-i18n";
 
 import { removeAiConnection, saveAiConnection } from "../../../../foundation/ai/connection-settings";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { useEditorLeave } from "../../../../foundation/lifecycle/use-editor-leave";
+import { useSettingsEditorLeave } from "../../../../foundation/lifecycle/use-settings-editor-leave";
 import type { AiConnectionSettings } from "../../../../shared/contracts/generated/AiConnectionSettings";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import { useAiEditorMutation } from "../use-ai-editor-mutation";
@@ -37,7 +37,7 @@ export function useAiConnectionEditing(options: ConnectionEditingOptions) {
     error.value = "";
   }
 
-  const requestClose = useEditorLeave({
+  const requestClose = useSettingsEditorLeave({
     pending: mutation.pending,
     dirty: () => dirty.value,
     confirmDiscard,

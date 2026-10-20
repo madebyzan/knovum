@@ -1,5 +1,8 @@
+import {
+  CONTENT_TYPOGRAPHY_SCALE_MAX,
+  CONTENT_TYPOGRAPHY_SCALE_MIN,
+} from "../../../model/structure/schema/content-appearance";
 import type { SpaceNodeResizeMode } from "../../node-size";
-import { CANVAS_TYPOGRAPHY_SCALE_MAX, CANVAS_TYPOGRAPHY_SCALE_MIN } from "../../schema/document";
 import type { CanvasSceneNode } from "../scene/canvas-scene";
 
 export interface CanvasSelectionTransformPolicy {
@@ -48,8 +51,8 @@ export function projectSelectionTransformPolicy(
           proportionalScale: {
             baseHeight: node.layout.frame.height,
             baseWidth: node.layout.frame.width,
-            min: CANVAS_TYPOGRAPHY_SCALE_MIN / typographyScale,
-            max: CANVAS_TYPOGRAPHY_SCALE_MAX / typographyScale,
+            min: CONTENT_TYPOGRAPHY_SCALE_MIN / typographyScale,
+            max: CONTENT_TYPOGRAPHY_SCALE_MAX / typographyScale,
           },
         }
       : {}),

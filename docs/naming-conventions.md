@@ -402,7 +402,7 @@ Use names that reflect ownership:
 - `spaces/commands`: atomic state-changing Space application operations.
 - `spaces/knowledge`: semantic contracts and knowledge governance.
 - `spaces/derivation`: source-grounded artifact generation, rendering, persistence and their read projections; `commands.rs` owns execution, `queries.rs` owns reads.
-- `spaces/db.rs`: Space connection/error foundation.
+- `spaces/db/`: Space connection/error foundation.
 - `local_resources/models/`: locally installed AI model descriptors, downloads, integrity verification and installation lifecycle.
 - `local_resources/tools/`: discovery of application-bundled executables and shared compiled libraries.
 
@@ -582,7 +582,7 @@ Evaluate a persisted or external field before renaming it; do not add compatibil
 revision content. `PluginPublication` binds an explicit catalog, publisher ID and package name.
 `SkillRevision` identifies personal or plugin-owned Skill content. `McpConnection` is a protocol
 instance; `ConnectorDefinition` describes authorization requirements and `ConnectorAccount`
-is one selected identity. `AgentExtensionSelection` is user choice; `AgentExtensionSnapshot`
+is the single authorization identity owned by its connector. `AgentExtensionSelection` is user choice; `AgentExtensionSnapshot`
 is frozen execution input. `AgentToolBinding` distinguishes real Space Actions, MCP tools,
 resource reads and prompt retrieval. `ConversationToolOperation` records durable attempts
 for both built-in and ACP runs. Protocol `assistant`, `result`, `data` and `content` fields keep
