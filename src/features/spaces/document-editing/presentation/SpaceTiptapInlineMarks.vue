@@ -5,49 +5,49 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 
-defineProps<{ editor: Editor }>();
+type InlineMark = "bold" | "italic" | "underline" | "strike" | "code";
+withDefaults(defineProps<{ editor: Editor; marks?: readonly InlineMark[] }>(), {
+  marks: () => ["bold", "italic", "underline", "strike", "code"],
+});
+const controls = {
+  bold: {
+    icon: Bold,
+    label: "spaces.richtext.bold",
+    toggle: (editor: Editor) => editor.chain().focus().toggleBold().run(),
+  },
+  italic: {
+    icon: Italic,
+    label: "spaces.richtext.italic",
+    toggle: (editor: Editor) => editor.chain().focus().toggleItalic().run(),
+  },
+  underline: {
+    icon: Underline,
+    label: "spaces.richtext.underline",
+    toggle: (editor: Editor) => editor.chain().focus().toggleUnderline().run(),
+  },
+  strike: {
+    icon: Strikethrough,
+    label: "spaces.richtext.strike",
+    toggle: (editor: Editor) => editor.chain().focus().toggleStrike().run(),
+  },
+  code: {
+    icon: Code2,
+    label: "spaces.richtext.inlineCode",
+    toggle: (editor: Editor) => editor.chain().focus().toggleCode().run(),
+  },
+};
 const { t } = useI18n();
 </script>
 
 <template>
   <UiIconButton
-    :label="t('spaces.richtext.bold')"
+    v-for="mark in marks"
+    :key="mark"
+    :label="t(controls[mark].label)"
     size="sm"
-    :active="editor.isActive('bold')"
-    @click="editor.chain().focus().toggleBold().run()"
+    :active="editor.isActive(mark)"
+    @click="controls[mark].toggle(editor)"
   >
-    <Bold class="size-3.5" :stroke-width="1.7" />
-  </UiIconButton>
-  <UiIconButton
-    :label="t('spaces.richtext.italic')"
-    size="sm"
-    :active="editor.isActive('italic')"
-    @click="editor.chain().focus().toggleItalic().run()"
-  >
-    <Italic class="size-3.5" :stroke-width="1.7" />
-  </UiIconButton>
-  <UiIconButton
-    :label="t('spaces.richtext.underline')"
-    size="sm"
-    :active="editor.isActive('underline')"
-    @click="editor.chain().focus().toggleUnderline().run()"
-  >
-    <Underline class="size-3.5" :stroke-width="1.7" />
-  </UiIconButton>
-  <UiIconButton
-    :label="t('spaces.richtext.strike')"
-    size="sm"
-    :active="editor.isActive('strike')"
-    @click="editor.chain().focus().toggleStrike().run()"
-  >
-    <Strikethrough class="size-3.5" :stroke-width="1.7" />
-  </UiIconButton>
-  <UiIconButton
-    :label="t('spaces.richtext.inlineCode')"
-    size="sm"
-    :active="editor.isActive('code')"
-    @click="editor.chain().focus().toggleCode().run()"
-  >
-    <Code2 class="size-3.5" :stroke-width="1.6" />
+    <component :is="controls[mark].icon" class="size-3.5" :stroke-width="mark === 'code' ? 1.6 : 1.7" />
   </UiIconButton>
 </template>

@@ -5,11 +5,11 @@ import {
   removeAiConnectionModel,
   saveAiConnectionModel,
 } from "../../../../foundation/ai/connection-settings";
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import { useEditorLeave } from "../../../../foundation/lifecycle/use-editor-leave";
 import type { AiConnectionSettings } from "../../../../shared/contracts/generated/AiConnectionSettings";
 import type { AiModelDefinition } from "../../../../shared/contracts/generated/AiModelDefinition";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
-import { useSettingsLeaveDecision } from "../../navigation/use-settings-leave-decision";
+import { useAiEditorMutation } from "../use-ai-editor-mutation";
 
 interface ModelEditingOptions {
   connection: () => AiConnectionSettings;
@@ -20,10 +20,9 @@ export function useAiModelEditing(options: ModelEditingOptions) {
   const { t } = useI18n();
   const selected = shallowRef<string | null>();
   const dirty = shallowRef(false);
-  const busy = shallowRef(false);
-  const error = shallowRef("");
+  const mutation = useAiEditorMutation();
+  const { busy, error } = mutation;
   const editingModel = computed(() => options.connection().models.find(({ id }) => id === selected.value));
-  let admittedMutation: Promise<boolean> | undefined;
 
   function modelInUse(modelId: string) {
     return options.protectedModelTargets().includes(
@@ -48,22 +47,11 @@ export function useAiModelEditing(options: ModelEditingOptions) {
     error.value = "";
   }
 
-  async function requestClose() {
-    if (admittedMutation) {
-      const succeeded = await admittedMutation;
-      if (!succeeded) return false;
-      if (selected.value === undefined) return true;
-    }
-    if (dirty.value && !(await confirmDiscard())) return false;
-    closeEditor();
-    return true;
-  }
-  useSettingsLeaveDecision({
-    async prepare() {
-      if (admittedMutation && !(await admittedMutation)) return false;
-      return !dirty.value || confirmDiscard();
-    },
-    finalize: closeEditor,
+  const requestClose = useEditorLeave({
+    pending: mutation.pending,
+    dirty: () => dirty.value,
+    confirmDiscard,
+    close: closeEditor,
   });
 
   async function saveModel(model: AiModelDefinition) {
@@ -75,12 +63,11 @@ export function useAiModelEditing(options: ModelEditingOptions) {
       error.value = t("settings.ai.models.duplicateIdentifier");
       return;
     }
-    admittedMutation = runMutation(async () => {
+    await mutation.run(async () => {
       await saveAiConnectionModel(connection.id, model);
       closeEditor();
       return true;
     });
-    await admittedMutation;
   }
 
   async function removeModel(model: AiModelDefinition) {
@@ -95,26 +82,10 @@ export function useAiModelEditing(options: ModelEditingOptions) {
       }))
     )
       return;
-    admittedMutation = runMutation(async () => {
+    await mutation.run(async () => {
       await removeAiConnectionModel(connection.id, model.id);
       return true;
     });
-    await admittedMutation;
-  }
-
-  function runMutation(mutation: () => Promise<boolean>) {
-    busy.value = true;
-    error.value = "";
-    const admitted: Promise<boolean> = mutation()
-      .catch((cause) => {
-        error.value = `${t("settings.general.saveFailed")}: ${getErrorMessage(cause)}`;
-        return false;
-      })
-      .finally(() => {
-        busy.value = false;
-        if (admittedMutation === admitted) admittedMutation = undefined;
-      });
-    return admitted;
   }
 
   function confirmDiscard() {
