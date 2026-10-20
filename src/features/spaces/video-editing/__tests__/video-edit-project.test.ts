@@ -30,7 +30,7 @@ function measured(frameRate: 24 | 25 | 30 | 60) {
 describe("video edit project contract", () => {
   it("places the owning source at the timeline origin and derives an even output frame", () => {
     const project = source();
-    expect(project.version).toBe(2);
+    expect(project.version).toBe(1);
     expect(project.output).toMatchObject({ width: 1080, height: 1920, frameRate: 30 });
     expect(project.videoTrack.clips).toMatchObject([
       { assetId: "source", sourceInMs: 0, sourceOutMs: 10_000, timelineStartMs: 0 },
@@ -47,7 +47,7 @@ describe("video edit project contract", () => {
 
   it("rejects a project stored under the previous contract instead of migrating it", () => {
     const legacy = {
-      version: 1,
+      version: 0,
       sourceRevision: "revision",
       sourceWidth: 1280,
       sourceHeight: 720,
@@ -56,6 +56,8 @@ describe("video edit project contract", () => {
       transform: { rotation: 0, flipHorizontal: false, flipVertical: false },
     };
     expect(videoEditProjectSchema.safeParse(legacy).success).toBe(false);
+    const obsoleteVersion = { ...source(), version: 2 };
+    expect(videoEditProjectSchema.safeParse(obsoleteVersion).success).toBe(false);
   });
 
   it("rejects clips, audio and transitions that reference media the project does not own", () => {

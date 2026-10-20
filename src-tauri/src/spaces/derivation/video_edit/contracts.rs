@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROJECT_VERSION: u8 = 2;
+pub const PROJECT_VERSION: u8 = 1;
 
 /// Absolute-time video edit project. Clips carry their own timeline placement, transitions are
 /// anchored to a cut between two overlapping clips, and gaps expose the project background.

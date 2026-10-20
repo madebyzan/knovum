@@ -9,7 +9,7 @@ use super::{
 pub(super) fn project() -> VideoEditProject {
     serde_json::from_str(
         r##"{
- "version":2,"sourceRevision":"revision",
+ "version":1,"sourceRevision":"revision",
  "assets":[{"nodeId":"source","sourceRevision":"revision","kind":"video","durationMs":8000,"width":1080,"height":1920}],
  "output":{"width":1080,"height":1920,"frameRate":30,"background":"#000000"},
  "videoTrack":{"clips":[
@@ -101,8 +101,11 @@ fn rejects_unknown_assets_and_impossible_overlaps() {
 
 #[test]
 fn rejects_obsolete_and_incomplete_project_shapes() {
-    let version_one = r#"{"version":1,"sourceRevision":"revision","assets":[],"output":{"width":2,"height":2,"frameRate":30},"videoTrack":{"clips":[]},"audioTrack":{"clips":[]},"textTrack":{"items":[]}}"#;
-    assert!(serde_json::from_str::<VideoEditProject>(version_one).is_err());
+    let incomplete_shape = r#"{"version":1,"sourceRevision":"revision","assets":[],"output":{"width":2,"height":2,"frameRate":30},"videoTrack":{"clips":[]},"audioTrack":{"clips":[]},"textTrack":{"items":[]}}"#;
+    assert!(serde_json::from_str::<VideoEditProject>(incomplete_shape).is_err());
+    let mut bad_version = project();
+    bad_version.version = 2;
+    assert!(validate_project(&bad_version, "revision").is_err());
     let mut encoded = serde_json::to_value(project()).unwrap();
     encoded["videoTrack"]["clips"][0]
         .as_object_mut()

@@ -17,7 +17,7 @@ fn video() -> serde_json::Value {
         "kind": "video", "title": "Video", "assetPath": "/video.mp4", "fileName": "video.mp4",
         "sourceRevision": "revision",
         "videoEditProject": serde_json::from_str::<serde_json::Value>(r##"{
- "version":2,"sourceRevision":"revision",
+ "version":1,"sourceRevision":"revision",
  "assets":[{"nodeId":"source","sourceRevision":"revision","kind":"video","durationMs":8000,"width":1080,"height":1920}],
  "output":{"width":1080,"height":1920,"frameRate":30,"background":"#000000"},
  "videoTrack":{"clips":[
@@ -50,7 +50,7 @@ fn saved_video_projects_require_a_current_source_and_valid_project() {
     data["videoEditProject"]["sourceRevision"] = json!("stale");
     assert!(validate_payload_shape("video", &data).is_err());
     data = video();
-    data["videoEditProject"]["version"] = json!(1);
+    data["videoEditProject"]["version"] = json!(2);
     assert!(validate_payload_shape("video", &data).is_err());
     data = video();
     data["videoEditProject"]["videoTrack"]["clips"][0]["sourceOutMs"] = json!(1000);

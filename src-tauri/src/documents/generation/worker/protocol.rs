@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use super::super::{input::DocumentInput, DocumentFormat};
 
-pub(super) const VERSION: u16 = 2;
-pub(super) const ARGUMENT: &str = "--knovum-document-worker-v2";
+pub(super) const VERSION: u16 = 1;
+pub(super) const ARGUMENT: &str = "--knovum-document-worker-v1";
 pub(super) const MAX_REQUEST_BYTES: u32 = 16 * 1024 * 1024;
 pub(super) const MAX_HEADER_BYTES: u32 = 16 * 1024;
 pub(super) const MAX_OUTPUT_BYTES: u32 = 64 * 1024 * 1024;

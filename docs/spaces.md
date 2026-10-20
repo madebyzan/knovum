@@ -542,15 +542,15 @@ subject or camera movement, yaw from -90 to 90 degrees, pitch from -30 to 60 deg
 close-up, medium or wide-angle framing. Its preview is an interactive orientation guide; the
 model generates the actual new view. Video editing opens a same-window workbench because
 transport, playhead, placed clips and timed text require persistent timeline context. A strict
-v2 `videoEditProject` stores revision-bound managed asset references, explicit output dimensions,
+v1 `videoEditProject` stores revision-bound managed asset references, explicit output dimensions,
 frame rate and background colour, one visual track of absolutely placed clips, a transition
 collection anchored to cuts, independent audio clips on lanes and a timed-text track. Clips carry
 their own `timelineStartMs`, so a project may expose intentional gaps; a gap shows the project
 background in preview and in export. The first asset
 retains the owning video identity. Local videos, still images and audio are selected from the owning
 Space; the native multiple-file dialog uses the existing managed import pipeline. Asset references
-contain no file-path authority. Obsolete pre-release project shapes, including the pre-release v1
-shape, are rejected explicitly: the workbench states that the stored project cannot be opened and
+contain no file-path authority. Obsolete pre-release project shapes are rejected explicitly: the
+workbench states that the stored project cannot be opened and
 offers a new edit from the unchanged source instead of migrating or silently resetting it.
 
 The visual track supports insert, reorder, duplicate, split, dragging a clip to a new timeline
