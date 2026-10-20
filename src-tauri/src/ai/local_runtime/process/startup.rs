@@ -102,7 +102,7 @@ impl Worker {
             let _ = child.wait().await;
             return Err(error);
         }
-        let mut process_tree = ProcessTree::new(
+        let process_tree = ProcessTree::new(
             &child,
             #[cfg(windows)]
             job,
@@ -175,8 +175,5 @@ async fn settle(mut child: tokio::process::Child, mut process_tree: ProcessTree)
 /// the weights as well as the libraries.
 async fn snapshot_bytes(model_path: &Path) -> Result<u64, String> {
     let path = model_path.to_owned();
-    crate::foundation::blocking::run(move || {
-        crate::local_resources::filesystem::installed_bytes(&path)
-    })
-    .await
+    crate::foundation::blocking::run(move || crate::local_resources::installed_bytes(&path)).await
 }
