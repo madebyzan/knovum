@@ -49,7 +49,7 @@ it("reports playback failures from the player's button as a component event", as
 });
 
 it("keeps waveform timeline pointer-events-none when audio is unloaded or inactive to allow canvas dragging", () => {
-  const audioData: SpaceAudioPayload = {
+  const podcastAudio: SpaceAudioPayload = {
     kind: "audio",
     title: "Podcast",
     assetPath: "/podcast.mp3",
@@ -63,7 +63,7 @@ it("keeps waveform timeline pointer-events-none when audio is unloaded or inacti
     },
   };
   const wrapper = mount(SpaceAudioPlayer, {
-    props: { data: audioData, interactive: false },
+    props: { data: podcastAudio, interactive: false },
     global: { plugins: [i18n] },
   });
   wrappers.push(wrapper);

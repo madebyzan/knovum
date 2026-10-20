@@ -141,7 +141,7 @@ impl Aligner {
                     .ok_or("model_missing: alignment model is missing")?,
             );
             let model_path =
-                if self.params.capability_spec_id == "qwen3-forced-aligner-0.6b-f16-native-v2" {
+                if self.params.capability_spec_id == "qwen3-forced-aligner-0.6b-f16-bundled-v2" {
                     directory.join("qwen3-forced-aligner-0.6b-f16.gguf")
                 } else {
                     directory.join("qwen3-forced-aligner-0.6b-q8_0.gguf")

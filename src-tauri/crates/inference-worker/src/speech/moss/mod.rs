@@ -32,7 +32,7 @@ const VOICES: [&str; 10] = [
 impl Moss {
     pub(super) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
         if params.device_profile.device != "cpu"
-            || params.capability_spec_id != "moss-tts-nano-100m-onnx-native-v2"
+            || params.capability_spec_id != "moss-tts-nano-100m-onnx-bundled-v2"
             || !(1..=8).contains(&params.device_profile.cpu_threads)
             || params.model_paths.speech_synthesis.is_none()
             || params.device_profile.execution_profile_id

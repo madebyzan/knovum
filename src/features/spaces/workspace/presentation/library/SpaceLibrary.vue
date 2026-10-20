@@ -11,12 +11,12 @@ import UiScrollArea from "../../../../../shared/ui/UiScrollArea.vue";
 import type { Space, SpaceLibraryScope } from "../../../model/space";
 import { useSpaceStore } from "../../../session/space-store";
 import { popupSpaceContextMenu, spaceCheckItem, spaceMenuItem } from "../../space-menu";
-import { useSpaceManagementMenu } from "../../use-space-management-menu";
+import { useSpaceContextMenu } from "../../use-space-context-menu";
 import SpaceLibrarySpace from "./SpaceLibrarySpace.vue";
 import { useLibraryViewport } from "./use-library-viewport";
 
 const store = useSpaceStore();
-const { groups: spaceMenuGroups } = useSpaceManagementMenu();
+const { groups: spaceMenuGroups } = useSpaceContextMenu();
 const { spaces, libraryScope, libraryLayout, libraryQuery } = storeToRefs(store);
 const { t } = useI18n();
 const editingId = shallowRef<string>();
@@ -83,11 +83,7 @@ function showSpaceMenu(space: Space) {
   void popupSpaceContextMenu([
     [spaceMenuItem(t("spaces.space.open"), () => store.openSpace(space.id))],
     [spaceMenuItem(t("spaces.space.rename"), () => beginRenaming(space))],
-    [
-      spaceCheckItem(t("spaces.space.favorite"), space.favorite, () =>
-        store.setSpaceFavorite(space.id, !space.favorite),
-      ),
-    ],
+    [spaceCheckItem(t("spaces.space.favorite"), space.favorite, () => store.toggleSpaceFavorite(space.id))],
     ...spaceMenuGroups(space),
     [spaceMenuItem(t("spaces.space.archive"), () => archiveSpace(space))],
   ]);
@@ -135,7 +131,7 @@ function showSpaceMenu(space: Space) {
             @focusin="viewport.focus(space.id)"
             @open="store.openSpace(space.id)"
             @menu="showSpaceMenu(space)"
-            @favorite="store.setSpaceFavorite(space.id, !space.favorite)"
+            @favorite="store.toggleSpaceFavorite(space.id)"
             @finish="finishRenaming"
             @cancel="editingId = undefined"
           />

@@ -22,7 +22,7 @@ fn explicit_override_precedes_the_default_execution_method() {
         settings
             .defaults
             .target(crate::ai::contracts::RoutingPurpose::Knowledge),
-        Some(crate::ai::tasks::TaskTargetRef::Agent {
+        Some(crate::ai::tasks::TaskTarget::Agent {
             runtime_kind: crate::ai::contracts::ExternalAgentKind::QoderCli
         })
     );
@@ -30,7 +30,7 @@ fn explicit_override_precedes_the_default_execution_method() {
         settings
             .defaults
             .target(crate::ai::contracts::RoutingPurpose::Writing),
-        Some(crate::ai::tasks::TaskTargetRef::Agent {
+        Some(crate::ai::tasks::TaskTarget::Agent {
             runtime_kind: crate::ai::contracts::ExternalAgentKind::Codex
         })
     );

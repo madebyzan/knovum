@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../../shared/contracts/generated/TaskTarget";
 import { conversationTaskRequest } from "../conversation-task-request";
 
 describe("Agent conversation submission", () => {
-  it.each<TaskTargetRef>([
+  it.each<TaskTarget>([
     { type: "model", connectionId: "connection", modelId: "model" },
     { type: "agent", runtimeKind: "codex" },
   ])("submits the task and frozen extension selection for $type", (target) => {

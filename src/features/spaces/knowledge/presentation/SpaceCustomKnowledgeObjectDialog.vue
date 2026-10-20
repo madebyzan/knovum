@@ -15,7 +15,7 @@ import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import type { SpaceKnowledgeObjectPropertyValue } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 import { isSpaceSemanticNode } from "../model/semantic-node";
-import { useSpaceObjectTypesQuery } from "../queries/use-knowledge-queries";
+import { useSpaceObjectTypesQuery } from "../queries/use-space-object-types-query";
 import SpaceKnowledgeFieldEditor from "./SpaceKnowledgeFieldEditor.vue";
 
 const open = defineModel<boolean>("open", { required: true });

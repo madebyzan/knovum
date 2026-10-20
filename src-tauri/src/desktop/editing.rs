@@ -15,7 +15,7 @@ pub(crate) enum EditingCommand {
 }
 
 #[tauri::command]
-pub(crate) async fn perform_editing<R: Runtime>(
+pub(crate) async fn execute_editing_command<R: Runtime>(
     app: AppHandle<R>,
     command: EditingCommand,
 ) -> Result<bool, AppError> {

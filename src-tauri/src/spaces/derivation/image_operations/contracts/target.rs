@@ -1,5 +1,5 @@
 use super::{ImageOperation, ImageOperationCapability};
-use crate::{ai::tasks::TaskTargetRef, local_resources::model_catalog::LocalModelId};
+use crate::{ai::tasks::TaskTarget, local_resources::model_catalog::LocalModelId};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -17,7 +17,7 @@ pub enum ImageExecutionTarget {
         spec_id: String,
     },
     Remote {
-        target: TaskTargetRef,
+        target: TaskTarget,
     },
 }
 

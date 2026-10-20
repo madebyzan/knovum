@@ -16,7 +16,7 @@ import type {
 import { useSpaceStore } from "../../session/space-store";
 import { knowledgeObjectStatusesForType } from "../model/object-types";
 import { isSpaceSemanticNode } from "../model/semantic-node";
-import { useSpaceObjectTypesQuery } from "../queries/use-knowledge-queries";
+import { useSpaceObjectTypesQuery } from "../queries/use-space-object-types-query";
 import SpaceKnowledgeFieldEditor from "./SpaceKnowledgeFieldEditor.vue";
 
 const props = defineProps<{ nodeId: string; data: SpaceKnowledgeObjectPayload }>();

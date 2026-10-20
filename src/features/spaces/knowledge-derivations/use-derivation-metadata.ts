@@ -5,8 +5,8 @@ import type { DerivationFailure } from "../contracts/generated/DerivationFailure
 import type { GeneratedVideoMetadata } from "../contracts/generated/GeneratedVideoMetadata";
 import type { VisualizationMetadata } from "../contracts/generated/VisualizationMetadata";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import { loadDerivationFailure } from "./derivation-failure";
 import { loadGroundedDocumentMetadata, type GroundedDocumentMetadata } from "./document/metadata";
-import { loadDerivationFailure } from "./failure-metadata";
 import { loadVisualizationMetadata } from "./image/metadata";
 import { loadGeneratedVideoMetadata } from "./video/metadata";
 

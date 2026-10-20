@@ -10,7 +10,7 @@ import { setDefaultExecutionTarget } from "../../../foundation/ai/execution-sett
 import { resetAiSettings } from "../../../foundation/ai/settings-mutations";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { AiRoutingDefaults } from "../../../shared/contracts/generated/AiRoutingDefaults";
-import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import SettingsLoadFailure from "../components/SettingsLoadFailure.vue";
@@ -22,7 +22,7 @@ const route = useRoute();
 const aiStore = useAiSettingsStore();
 const { settings, ready, loadError } = storeToRefs(aiStore);
 
-async function updateDefaultRoute(key: keyof AiRoutingDefaults, target: TaskTargetRef | null) {
+async function updateDefaultRoute(key: keyof AiRoutingDefaults, target: TaskTarget | null) {
   try {
     await setDefaultExecutionTarget(key, target);
   } catch (error) {

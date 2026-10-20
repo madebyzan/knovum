@@ -92,23 +92,19 @@ pub async fn mark_space_opened<R: Runtime>(
 }
 
 #[tauri::command]
-pub async fn set_space_favorite<R: Runtime>(
+pub async fn favorite_space<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-    favorite: bool,
 ) -> Result<(), AppError> {
-    let now = crate::foundation::clock::unix_time_millis()?;
-    let pool = db::pool(&app).await?;
-    let executed = sqlx::query(
-        "UPDATE spaces SET favorite = ?, updated_at = ? WHERE id = ? AND kind = 'space'",
-    )
-    .bind(favorite)
-    .bind(now)
-    .bind(space_id)
-    .execute(pool)
-    .await
-    .map_err(db::sql_error)?;
-    Ok((db::require_one(executed, "Space no longer exists or cannot be favorited"))?)
+    Ok((set_favorite(&app, space_id, true).await)?)
+}
+
+#[tauri::command]
+pub async fn unfavorite_space<R: Runtime>(
+    app: AppHandle<R>,
+    space_id: String,
+) -> Result<(), AppError> {
+    Ok((set_favorite(&app, space_id, false).await)?)
 }
 
 #[tauri::command]
@@ -161,4 +157,23 @@ async fn set_archived<R: Runtime>(
     .await
     .map_err(db::sql_error)?;
     db::require_one(executed, "Space no longer exists or cannot be archived")
+}
+
+async fn set_favorite<R: Runtime>(
+    app: &AppHandle<R>,
+    space_id: String,
+    favorite: bool,
+) -> Result<(), String> {
+    let now = crate::foundation::clock::unix_time_millis()?;
+    let pool = db::pool(app).await?;
+    let executed = sqlx::query(
+        "UPDATE spaces SET favorite = ?, updated_at = ? WHERE id = ? AND kind = 'space'",
+    )
+    .bind(favorite)
+    .bind(now)
+    .bind(space_id)
+    .execute(pool)
+    .await
+    .map_err(db::sql_error)?;
+    db::require_one(executed, "Space no longer exists or cannot be favorited")
 }

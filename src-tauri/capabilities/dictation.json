@@ -4,5 +4,10 @@
   "description": "Main-window access to the Rust-owned dictation session and result state.",
   "windows": ["main"],
   "platforms": ["macOS", "windows"],
-  "permissions": ["allow-dictation-session"]
+  "permissions": [
+    "dictation:allow-get-state",
+    "dictation:allow-cancel",
+    "dictation:allow-dismiss-transcription",
+    "dictation:allow-copy-transcription"
+  ]
 }

@@ -40,11 +40,20 @@ fn main() {
             .plugin(
                 "backup",
                 tauri_build::InlinedPlugin::new().commands(&[
-                    "await_data_maintenance",
+                    "await_maintenance",
                     "schedule_backup",
                     "schedule_restore",
                     "get_maintenance_receipt",
                     "acknowledge_maintenance_receipt",
+                ]),
+            )
+            .plugin(
+                "dictation",
+                tauri_build::InlinedPlugin::new().commands(&[
+                    "get_state",
+                    "cancel",
+                    "dismiss_transcription",
+                    "copy_transcription",
                 ]),
             )
             .plugin(

@@ -6,5 +6,5 @@
     "voxCpm2": "Volle Präzision · Klonen und Entwerfen von Stimmen. Erfordert mindestens 32 GiB Speicher.",
     "voxCpm2Q8": "Quantisiert · Geringerer Download- und Festplattenverbrauch. Erfordert immer noch mindestens 32 GiB Speicher."
   },
-  "details": "Modelldetails"
+  "specs": "Modelldetails"
 }

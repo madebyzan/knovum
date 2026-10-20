@@ -6,5 +6,5 @@
     "voxCpm2": "Précision totale · Clonage et conception de la voix. Nécessite au moins 32 Gio de mémoire.",
     "voxCpm2Q8": "Quantifié · Téléchargement et utilisation du disque réduits. Nécessite toujours au moins 32 Gio de mémoire."
   },
-  "details": "Détails du modèle"
+  "specs": "Détails du modèle"
 }

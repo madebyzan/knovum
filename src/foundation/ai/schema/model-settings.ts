@@ -4,7 +4,7 @@ import type { AiSettings } from "../../../shared/contracts/generated/AiSettings"
 import { routingCapabilities } from "../../../shared/contracts/generated/contract-values";
 import type { ExecutionCapability } from "../../../shared/contracts/generated/ExecutionCapability";
 import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
-import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import { desktopAgentSettingsSchema } from "./external-agents";
 import { aiConnectionSettingsSchema, aiDefaultsSchema } from "./models";
 
@@ -44,7 +44,7 @@ function rejectDuplicateDesktopAgents(settings: AiSettings, context: SettingsRef
 }
 
 function rejectInvalidDefaultTargets(settings: AiSettings, context: SettingsRefinement) {
-  const targets: ReadonlyArray<readonly [TaskTargetRef | null, RoutingPurpose | undefined]> = [
+  const targets: ReadonlyArray<readonly [TaskTarget | null, RoutingPurpose | undefined]> = [
     [settings.defaults.defaultTarget, undefined],
     [settings.defaults.writing, "writing"],
     [settings.defaults.knowledge, "knowledge"],
@@ -70,7 +70,7 @@ function rejectInvalidDefaultTargets(settings: AiSettings, context: SettingsRefi
 
 function resolvesToCapability(
   connections: AiSettings["connections"],
-  target: Extract<TaskTargetRef, { type: "model" }>,
+  target: Extract<TaskTarget, { type: "model" }>,
   capability: ExecutionCapability | undefined,
 ) {
   const connection = connections.find(({ id }) => id === target.connectionId);

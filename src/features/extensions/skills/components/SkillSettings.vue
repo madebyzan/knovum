@@ -13,7 +13,7 @@ import ExtensionCleanupNotice from "../../components/ExtensionCleanupNotice.vue"
 import ExtensionEmptyState from "../../components/ExtensionEmptyState.vue";
 import type { ExtensionDestination } from "../../navigation/extension-destination";
 import { importSkillDirectory, exportSkillDirectory } from "../skill-directory";
-import { useSkillManagement } from "../use-skill-management";
+import { useSkillEditing } from "../use-skill-editing";
 import SkillContentEditor from "./SkillContentEditor.vue";
 import SkillContents from "./SkillContents.vue";
 import SkillOverview from "./SkillOverview.vue";
@@ -36,7 +36,7 @@ const {
   save,
   closeEditor,
   deletePersonalSkill,
-} = useSkillManagement();
+} = useSkillEditing();
 const skills = computed(() =>
   (query.data.value ?? []).filter(
     (skill) =>

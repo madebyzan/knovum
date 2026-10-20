@@ -71,6 +71,9 @@ pub(crate) async fn defer_for_configuration(
     Ok(executed.rows_affected() == 1)
 }
 
+/// Writes one guarded status transition. Attempt counting is not a status-write concern:
+/// `claim_job` already increments `attempts` when it moves a job to running, so every caller
+/// records its outcome without touching the counter.
 pub(crate) async fn set_status(
     pool: &sqlx::SqlitePool,
     job_id: &str,
@@ -78,12 +81,10 @@ pub(crate) async fn set_status(
     status: &str,
     error: Option<String>,
     now: i64,
-    increment_attempts: bool,
 ) -> Result<bool, String> {
     let mut sql = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
-        "UPDATE spaces_enrichment_jobs SET status=$1, error=$2, updated_at=$3, \
-         attempts=attempts + CASE WHEN $4 THEN 1 ELSE 0 END \
-         WHERE id=$5 AND status IN (",
+        "UPDATE spaces_enrichment_jobs SET status=$1, error=$2, updated_at=$3 \
+         WHERE id=$4 AND status IN (",
     );
     sql.push(from).push(")");
     let executed = sql
@@ -91,7 +92,6 @@ pub(crate) async fn set_status(
         .bind(status)
         .bind(error)
         .bind(now)
-        .bind(increment_attempts)
         .bind(job_id)
         .execute(pool)
         .await

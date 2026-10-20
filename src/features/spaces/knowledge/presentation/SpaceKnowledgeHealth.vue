@@ -14,7 +14,7 @@ import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import { useSpaceStore } from "../../session/space-store";
 import { rebuildKnowledgeRetrievalIndex } from "../indexing/rebuild-index";
 import type { SpaceKnowledgeHealthIssue } from "../model/health";
-import { useSpaceKnowledgeHealthQuery } from "../queries/use-knowledge-queries";
+import { useSpaceKnowledgeHealthQuery } from "../queries/use-space-knowledge-health-query";
 
 const props = defineProps<{ compact?: boolean }>();
 const store = useSpaceStore();

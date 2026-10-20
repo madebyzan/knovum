@@ -98,7 +98,7 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
     ),
     query_action("read-node", None, None, &[], node, Output::KnowledgeNode),
     durable_query_action(
-        "answer-with-sources",
+        "answer-question",
         ExecutionCapability::TextGeneration,
         RoutingPurpose::Knowledge,
         &[Input::Knowledge],

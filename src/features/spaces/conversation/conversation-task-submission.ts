@@ -2,7 +2,7 @@ import type { Ref, ShallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { AgentExtensionSelection } from "../../../shared/contracts/generated/AgentExtensionSelection";
-import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import type { Conversation } from "../contracts/generated/Conversation";
 import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
 import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
@@ -37,7 +37,7 @@ export interface ConversationSubmissionInput {
   selectedConversationId: Ref<string>;
   conversation: Ref<Conversation | undefined>;
   prompt: Ref<string>;
-  target: Ref<TaskTargetRef | undefined>;
+  target: Ref<TaskTarget | undefined>;
   attachments: Ref<ConversationAttachment[]>;
   visibleAttachments: Ref<readonly VisibleConversationAttachment[]>;
   hasUnresolvedFileReferences: Ref<boolean>;

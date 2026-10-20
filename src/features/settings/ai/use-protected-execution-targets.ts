@@ -3,12 +3,12 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
-import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 
 export function useProtectedExecutionTargets() {
   const { settings } = storeToRefs(useAiSettingsStore());
-  const targets = computed<TaskTargetRef[]>(() =>
-    Object.values(settings.value.defaults).filter((target): target is TaskTargetRef => Boolean(target)),
+  const targets = computed<TaskTarget[]>(() =>
+    Object.values(settings.value.defaults).filter((target): target is TaskTarget => Boolean(target)),
   );
 
   return {

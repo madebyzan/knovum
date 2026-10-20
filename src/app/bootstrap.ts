@@ -19,7 +19,7 @@ export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
   const state = useBootstrapStore(pinia);
 
   try {
-    await invokeCommand("plugin:backup|await_data_maintenance");
+    await invokeCommand("plugin:backup|await_maintenance");
     await invokeCommand("plugin:ai|await_ai_runtime");
     installSettingsPersistence(pinia);
     await initializeExitCoordination();

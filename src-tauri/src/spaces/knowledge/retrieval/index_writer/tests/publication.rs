@@ -4,7 +4,7 @@ use super::super::{into_source, publish_embeddings};
 use super::fixture::Fixture;
 use crate::spaces::{
     db,
-    knowledge::retrieval::{invalidation_outbox, record_loader},
+    knowledge::retrieval::{chunk_loader, invalidation_outbox},
 };
 
 #[tokio::test]
@@ -95,7 +95,7 @@ async fn stale_embedding_cannot_replace_current_vectors() {
 async fn chunk_deletion_waits_until_index_publication_commits() {
     let fixture = Fixture::new().await;
     let mut publication = db::begin_write(&fixture.pool).await.expect("publication");
-    let records = record_loader::load_records(
+    let chunks = chunk_loader::load_indexed_chunks(
         &mut publication,
         fixture.input().into_iter().map(into_source).collect(),
     )
@@ -110,7 +110,7 @@ async fn chunk_deletion_waits_until_index_publication_commits() {
             .await
             .is_err()
     );
-    record_loader::write_index_markers(&mut publication, &records)
+    chunk_loader::write_index_markers(&mut publication, &chunks)
         .await
         .expect("marker remains valid");
     publication.commit().await.expect("publication commit");

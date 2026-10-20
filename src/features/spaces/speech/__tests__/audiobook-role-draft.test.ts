@@ -52,7 +52,7 @@ describe("audiobook role drafts", () => {
       revision: 1,
       isActive: true,
       engineId: "moss_nano",
-      modelSpecId: "moss-tts-nano-100m-onnx-native-v2",
+      modelSpecId: "moss-tts-nano-100m-onnx-bundled-v2",
       language: "en",
       supportsDeliveryInstruction: false,
       updatedAt: 1,

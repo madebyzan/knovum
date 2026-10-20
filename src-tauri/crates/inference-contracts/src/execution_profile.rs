@@ -1,4 +1,4 @@
-//! Canonical native execution profile identities.
+//! Canonical execution profile identities for the bundled inference runtime.
 //!
 //! An execution profile identity is the handshake between the host and an inference worker over one
 //! frozen numeric setup: the host reserves memory for that exact profile and the worker refuses to
@@ -7,9 +7,10 @@
 
 use crate::runtime::RuntimeCapability;
 
-/// Revision of the frozen native execution profiles. Bump it whenever the numerics behind a profile
-/// change, so a stale host and worker refuse to pair instead of exchanging incomparable results.
-const REVISION: &str = "native-v2";
+/// Revision of the frozen bundled-runtime execution profiles. Bump it whenever the numerics behind
+/// a profile change, so a stale host and worker refuse to pair instead of exchanging incomparable
+/// results.
+const REVISION: &str = "bundled-v2";
 
 /// Whisper transcription variants as model and precision pairs, in ascending capability order.
 pub const WHISPER_VARIANTS: [(&str, &str); 3] =
@@ -51,7 +52,7 @@ pub fn moss_nano(threads: u8) -> String {
 /// Qwen3 forced alignment on a probed GGUF backend.
 pub fn alignment(model_spec_id: &str, device: &str) -> Option<String> {
     let precision = match model_spec_id {
-        "qwen3-forced-aligner-0.6b-f16-native-v2" => "f16",
+        "qwen3-forced-aligner-0.6b-f16-bundled-v2" => "f16",
         "qwen3-forced-aligner-0.6b-q8_0-v1" => "q8_0",
         _ => return None,
     };

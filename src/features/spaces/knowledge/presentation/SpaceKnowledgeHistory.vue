@@ -7,7 +7,7 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import SpaceInspectorSection from "../../inspection/presentation/SpaceInspectorSection.vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
-import { useSpaceKnowledgeHistoryQuery } from "../queries/use-knowledge-queries";
+import { useSpaceKnowledgeHistoryQuery } from "../queries/use-space-knowledge-history-query";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const { d, t } = useI18n();

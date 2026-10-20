@@ -10,7 +10,7 @@ Platform-specific runtime binaries belong to the application release and are nev
 - the Rust inference worker with its verified ONNX Runtime, audio.cpp, Sherpa and Whisper libraries
 - the complete frozen CPython 3.11.17 Deep Agent distribution and trusted file/link inventory
 
-`pnpm desktop:dev` runs standard uv project sync and Cargo's native dependency graph before starting Tauri. CI builds complete application resources on all three desktop targets. Models use the same verified application-owned installation locations in development and release; no individual-file environment overrides exist. Release builds package FFmpeg from `src-tauri/resources/bundled-runtime/<platform>/` into `resources/bundled-runtime/<platform>/`. The native manifest lists every worker/library/notice file, size and SHA-256. The Agent uses the editable project in development and its bundled frozen inventory in release; it has no on-demand interpreter installation or resource-preparation task. Rust verifies each private subprocess's resources before launch; Vue has no process-launch permission. Feature execution prepares missing models and optional media-import tools through the shared cancellable Task Center. Missing required bundled infrastructure fails visibly.
+`pnpm desktop:dev` runs standard uv project sync and Cargo's compiled dependency graph before starting Tauri. CI builds complete application resources on all three desktop targets. Models use the same verified application-owned installation locations in development and release; no individual-file environment overrides exist. Release builds package FFmpeg from `src-tauri/resources/bundled-runtime/<platform>/` into `resources/bundled-runtime/<platform>/`. The inference runtime manifest lists every worker/library/notice file, size and SHA-256. The Agent uses the editable project in development and its bundled frozen inventory in release; it has no on-demand interpreter installation or resource-preparation task. Rust verifies each private subprocess's resources before launch; Vue has no process-launch permission. Feature execution prepares missing models and optional media-import tools through the shared cancellable Task Center. Missing required bundled infrastructure fails visibly.
 
 ## Prepared on first use
 
@@ -75,7 +75,7 @@ Cantonese retain these units; other languages merge non-space subwords using the
 The upstream decoder pads its final window with 30 seconds of zeros. Native timestamps are
 validated against that bounded context, then clipped to the source audio. Published word spans
 must have positive duration within their segment; untimed punctuation remains in segment text.
-Both dictation and media transcription use the native profile's compute budget. Tiny/Small and
+Both dictation and media transcription use the bundled inference profile's compute budget. Tiny/Small and
 Metal execution allow four times the input duration with a two-minute minimum. Large-v3 CPU
 allows 120 times the input duration with a thirty-minute minimum; every profile is capped at six
 hours. These are cancellable task deadlines, not quality or performance acceptance thresholds.
@@ -87,7 +87,7 @@ because every holder executes under its own budget and therefore always releases
 Forced alignment and speaker diarization are separate optional speech stages. Neither is required
 to complete plain ASR. Qwen3 Forced Aligner is prepared only for a user-selected range no longer
 than eight transcript segments or 300 seconds. Settings offers a smaller Q8_0 GGUF model (default)
-and the native F16 GGUF. Both exports are fixed at
+and the bundled F16 GGUF. Both exports are fixed at
 `audio-cpp/audio.cpp-gguf` revision `09fe073ba154561f4474162e8bd4ab233a848eca`.
 Q8_0 weighs 1,129,966,496 bytes and F16 weighs 1,840,097,696 bytes; the catalog also owns
 model-license evidence. The original HF file set cannot satisfy this supplier's required generation
@@ -107,7 +107,7 @@ results remain visible, while a manual edit invalidates timing only for the edit
 The locked aligner profile covers Chinese, English, Cantonese, French, German,
 Italian, Portuguese, Russian and Spanish. Japanese and Korean require optional
 upstream tokenizers absent from this reviewed runtime and return
-`unsupported_language`. Prepared PCM16 WAV samples are validated in Rust and passed to the native supplier as finite float samples.
+`unsupported_language`. Prepared PCM16 WAV samples are validated in Rust and passed to the audio.cpp supplier as finite float samples.
 
 Speaker diarization offers the official Sherpa-ONNX Pyannote 3.0 INT8 (default) and FP32 segmentation
 exports, both with 3D-Speaker ERes2Net base embeddings. Weights and MIT/Apache-2.0 notices total
@@ -115,7 +115,7 @@ exports, both with 3D-Speaker ERes2Net base embeddings. Weights and MIT/Apache-2
 upstream revision, path, size and SHA-256;
 verified staging is atomically published. Downloads require no token, account, manual model import
 or terms form. No external configuration enters the worker. The node action and Settings model
-entry share the same cancellable capability preparation request and native runtime inventory.
+entry share the same cancellable capability preparation request and inference runtime inventory.
 
 Diarization is bounded to two hours of mono 16 kHz PCM16 WAV. The user may leave the speaker count
 automatic or provide one exact known count from 1 through 32. Sherpa clustering does not expose
@@ -184,9 +184,9 @@ packages or implementation backends.
 
 Qwen3 uses Candle Metal on Apple Silicon and CPU on Intel macOS and Windows. Whisper uses
 Metal on Apple Silicon and CPU on the other targets. Images, Sherpa and MOSS use explicit CPU
-profiles with bounded threads. audio.cpp alignment and VoxCPM2 use its public native device
+profiles with bounded threads. audio.cpp alignment and VoxCPM2 use its public C device
 probe, admitted Metal/Vulkan capacity and portable CPU dispatch. CUDA is not shipped or advertised.
-Backend probing runs in a separate verified native process; it does not load Python or Torch.
+Backend probing runs in a separate verified inference worker process; it does not load Python or Torch.
 Windows Vulkan remains subject to real hardware qualification. No request retries on another device.
 
 ## Hardware guidance
@@ -214,7 +214,7 @@ requests and accepted outputs retain their model. Removing an idle optional snap
 preference; its next use prepares the same snapshot. Obsolete baselines missing required identities
 fail explicitly, without conversion or automatic deletion. Qwen vectors are fixed by the stored index.
 
-`inference-contracts::execution_profile` is the only definition of a native execution profile
+`inference-contracts::execution_profile` is the only definition of a bundled-runtime execution profile
 identity. The host builds the profile it admits memory for from that module, and the worker rebuilds
 its expectation from the same functions, so a revision bump cannot leave one side producing an
 identity the other rejects. No capability repeats the identity as a literal.
@@ -295,7 +295,7 @@ The resource catalog is authoritative for immutable URLs, exact hashes, file set
 snapshot includes its license; depth also includes its processor and conversion model card.
 Real-ESRGAN installation verifies the compressed archive and every extracted graph/data member;
 transfer size is distinct from installed size. Complete multi-file snapshots are required before use.
-The capability specification incorporates the complete snapshot digest. The sealed native runtime and its
+The capability specification incorporates the complete snapshot digest. The sealed inference runtime and its
 existing ONNX Runtime 1.22.1 are reused; no Torch training dependency or second download service is added.
 
 Initial CPU admission reservations are conservative guards, not measured performance claims.

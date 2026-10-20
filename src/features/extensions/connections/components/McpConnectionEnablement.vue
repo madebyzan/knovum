@@ -3,9 +3,9 @@ import { shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { updateMcpConnection } from "../../../../foundation/extensions/connection-operations";
+import { useSettingsLeaveContext } from "../../../../foundation/lifecycle/use-settings-leave-context";
 import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import type { McpConnection } from "../../../../shared/contracts/generated/McpConnection";
-import { useSettingsLeaveContext } from "../../../../shared/contracts/settings-leave";
 import UiSwitch from "../../../../shared/ui/UiSwitch.vue";
 import { useExtensionChanges } from "../../use-extension-changes";
 const props = defineProps<{ connection: McpConnection; configured: boolean; disabled?: boolean }>();

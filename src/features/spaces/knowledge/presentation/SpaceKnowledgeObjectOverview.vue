@@ -10,7 +10,7 @@ import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import type { SpaceKnowledgeObjectPayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 import { knowledgeObjectTypeKey } from "../model/object-presentation";
-import { useSpaceObjectTypesQuery } from "../queries/use-knowledge-queries";
+import { useSpaceObjectTypesQuery } from "../queries/use-space-object-types-query";
 
 const props = withDefaults(
   defineProps<{ data: SpaceKnowledgeObjectPayload; editable?: boolean; editDisabled?: boolean }>(),

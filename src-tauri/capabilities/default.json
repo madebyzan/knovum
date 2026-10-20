@@ -26,7 +26,7 @@
     "desktop:allow-report-startup-failure",
     "desktop:allow-project-session-tasks",
     "desktop:allow-set-task-notifications",
-    "desktop:allow-perform-editing",
+    "desktop:allow-execute-editing-command",
     "desktop:allow-begin-window-close",
     "desktop:allow-acknowledge-window-close",
     "desktop:allow-complete-window-close",

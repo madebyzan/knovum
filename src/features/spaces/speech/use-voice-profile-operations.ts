@@ -19,7 +19,7 @@ interface ProfileOperation {
   execute: () => Promise<unknown>;
 }
 
-export function useVoiceManagement() {
+export function useVoiceProfileOperations() {
   const client = useQueryClient();
   const query = useQuery({
     queryKey: VOICE_QUERY_KEYS.profiles,

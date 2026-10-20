@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
 import type { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/events";
-import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../../shared/contracts/generated/TaskTarget";
 import SpaceConversationComposer from "../presentation/SpaceConversationComposer.vue";
 
 vi.mock("../../../../foundation/file-drop/events", () => ({
@@ -12,7 +12,7 @@ vi.mock("../../../../foundation/file-drop/events", () => ({
 }));
 
 describe("Agent composer", () => {
-  it.each<TaskTargetRef>([
+  it.each<TaskTarget>([
     { type: "model", connectionId: "connection", modelId: "model" },
     { type: "agent", runtimeKind: "codex" },
   ])("submits for $type with no mode selection while retaining admission guards", async (target) => {

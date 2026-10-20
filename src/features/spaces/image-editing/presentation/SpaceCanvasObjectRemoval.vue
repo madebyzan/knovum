@@ -14,7 +14,7 @@ import {
 } from "../../canvas/presentation/images/image-source-dimensions-store";
 import type { ImageExecutionTarget } from "../../contracts/generated/ImageExecutionTarget";
 import { useImageRemovalSessionStore } from "../../knowledge-derivations/image-removal-session-store";
-import { useImageOperationCapabilities } from "../../knowledge-derivations/use-image-capabilities";
+import { useImageOperationCapabilities } from "../../knowledge-derivations/use-image-operation-capabilities";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import SpaceImageExecutionSelect from "./SpaceImageExecutionSelect.vue";

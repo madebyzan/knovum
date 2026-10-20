@@ -51,7 +51,7 @@ fn vox_rejects_unadmitted_profiles_before_loading_a_inference_library() {
 #[test]
 fn moss_rejects_a_wrong_profile_or_zero_threads_before_graph_loading() {
     let mut input = params(
-        "moss-tts-nano-100m-onnx-native-v2",
+        "moss-tts-nano-100m-onnx-bundled-v2",
         &moss_nano(4),
         "speechSynthesis",
     );

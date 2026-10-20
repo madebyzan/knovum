@@ -9,13 +9,13 @@ import {
   saveSkillRevision,
   deleteSkill,
 } from "../../../foundation/extensions/skill-operations";
+import { useSettingsLeaveContext } from "../../../foundation/lifecycle/use-settings-leave-context";
 import type { ExtensionChange } from "../../../shared/contracts/generated/ExtensionChange";
 import type { SkillContent } from "../../../shared/contracts/generated/SkillContent";
-import { useSettingsLeaveContext } from "../../../shared/contracts/settings-leave";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { useExtensionChanges } from "../use-extension-changes";
 
-export function useSkillManagement() {
+export function useSkillEditing() {
   const { t } = useI18n();
   const query = useQuery(skillQuery);
   const changes = useExtensionChanges();

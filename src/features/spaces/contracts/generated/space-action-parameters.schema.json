@@ -42,7 +42,7 @@
     "read-node": {
       "$ref": "#/$defs/NodeParameters"
     },
-    "answer-with-sources": {
+    "answer-question": {
       "$ref": "#/$defs/QuestionParameters"
     },
     "draft-document": {
@@ -406,7 +406,7 @@
           "type": "object",
           "properties": {
             "target": {
-              "$ref": "#/$defs/TaskTargetRef"
+              "$ref": "#/$defs/TaskTarget"
             },
             "type": {
               "type": "string",
@@ -421,7 +421,7 @@
         }
       ]
     },
-    "TaskTargetRef": {
+    "TaskTarget": {
       "oneOf": [
         {
           "type": "object",

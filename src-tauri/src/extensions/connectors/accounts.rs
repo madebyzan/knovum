@@ -45,13 +45,53 @@ pub(super) async fn save(pool: &SqlitePool, account: &ConnectorAccount) -> Resul
     Ok(())
 }
 
-pub(super) async fn set_status(
+/// Takes the account out of use. Re-enabling happens only through `commit_authorization`,
+/// which writes the whole reviewed authorization document.
+pub(super) async fn disable_account(pool: &SqlitePool, connector_id: &str) -> Result<(), String> {
+    apply(
+        pool,
+        "UPDATE connector_accounts SET document=json_set(document,'$.enabled',json('false')) WHERE connector_id=$1",
+        connector_id,
+    )
+    .await
+}
+
+/// Records that credential and session cleanup is owed for this account. Dispatch refuses an
+/// account with pending cleanup even while it is still enabled.
+pub(super) async fn mark_cleanup_pending(
     pool: &SqlitePool,
     connector_id: &str,
-    enabled: bool,
-    cleanup_pending: bool,
 ) -> Result<(), String> {
-    let updated=sqlx::query("UPDATE connector_accounts SET document=json_set(document,'$.enabled',json($1),'$.cleanupPending',json($2)) WHERE connector_id=$3").bind(enabled.to_string()).bind(cleanup_pending.to_string()).bind(connector_id).execute(pool).await.map_err(|error|error.to_string())?;
+    apply(
+        pool,
+        "UPDATE connector_accounts SET document=json_set(document,'$.cleanupPending',json('true')) WHERE connector_id=$1",
+        connector_id,
+    )
+    .await
+}
+
+/// Records that the owed cleanup has been performed; the account stays in the disabled state
+/// written before it.
+pub(super) async fn clear_cleanup_pending(
+    pool: &SqlitePool,
+    connector_id: &str,
+) -> Result<(), String> {
+    apply(
+        pool,
+        "UPDATE connector_accounts SET document=json_set(document,'$.cleanupPending',json('false')) WHERE connector_id=$1",
+        connector_id,
+    )
+    .await
+}
+
+/// Runs one prepared single-flag write against the account row and fails when the connector
+/// is not connected. Flag values never cross the module boundary as parameters.
+async fn apply(pool: &SqlitePool, sql: &'static str, connector_id: &str) -> Result<(), String> {
+    let updated = sqlx::query(sql)
+        .bind(connector_id)
+        .execute(pool)
+        .await
+        .map_err(|error| error.to_string())?;
     if updated.rows_affected() != 1 {
         return Err("connector-not-connected".into());
     }

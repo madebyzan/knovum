@@ -222,7 +222,7 @@ async fn voice_catalog_retains_distinct_historical_and_archived_revisions() {
     let pool = database().await;
     sqlx::query("INSERT INTO spaces_voice_profiles(id,name,source_kind,created_at,updated_at) VALUES('profile','Voice','preset',1,1)").execute(&pool).await.unwrap();
     for (id, revision, seed) in [("first", 1, 17), ("second", 2, 29)] {
-        sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,synthesis_config,authorization,created_at) VALUES(?,'profile',?,'moss_nano','moss-tts-nano-100m-onnx-native-v2','en','6',?,'{}',1)")
+        sqlx::query("INSERT INTO spaces_voice_revisions(id,profile_id,revision,engine_id,model_spec_id,language,preset_voice_id,synthesis_config,authorization,created_at) VALUES(?,'profile',?,'moss_nano','moss-tts-nano-100m-onnx-bundled-v2','en','6',?,'{}',1)")
             .bind(id).bind(revision).bind(serde_json::json!({"speed":1,"sampleRate":48000,"seed":seed}).to_string()).execute(&pool).await.unwrap();
     }
     sqlx::query("UPDATE spaces_voice_profiles SET active_revision_id='second',archived_at=2 WHERE id='profile'").execute(&pool).await.unwrap();
@@ -266,7 +266,7 @@ fn synthesis_seed_affects_cache_and_is_required_in_current_config() {
         revision_id: "revision".into(),
         source_kind: "preset".into(),
         engine_id: "moss_nano".into(),
-        model_spec_id: "moss-tts-nano-100m-onnx-native-v2".into(),
+        model_spec_id: "moss-tts-nano-100m-onnx-bundled-v2".into(),
         language: "en".into(),
         preset_voice_id: Some("6".into()),
         reference_asset_id: None,

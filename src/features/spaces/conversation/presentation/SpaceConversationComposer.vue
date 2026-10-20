@@ -7,7 +7,7 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/events";
 import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
-import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
+import type { TaskTarget } from "../../../../shared/contracts/generated/TaskTarget";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import type {
   ConversationAttachmentCandidatePresentation,
@@ -18,7 +18,7 @@ import SpaceConversationAttachmentTray from "./SpaceConversationAttachmentTray.v
 import SpaceConversationTargetField from "./SpaceConversationTargetField.vue";
 
 const prompt = defineModel<string>({ required: true });
-const target = defineModel<TaskTargetRef | undefined>("target");
+const target = defineModel<TaskTarget | undefined>("target");
 const targetAvailable = ref(false);
 const props = defineProps<{
   busy: boolean;

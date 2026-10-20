@@ -5,10 +5,10 @@ import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { deleteMcpConnection } from "../../../../foundation/extensions/connection-operations";
+import { useSettingsLeaveContext } from "../../../../foundation/lifecycle/use-settings-leave-context";
 import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import type { ConnectorDefinition } from "../../../../shared/contracts/generated/ConnectorDefinition";
 import type { McpConnection } from "../../../../shared/contracts/generated/McpConnection";
-import { useSettingsLeaveContext } from "../../../../shared/contracts/settings-leave";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import ExtensionAvailability from "../../components/ExtensionAvailability.vue";

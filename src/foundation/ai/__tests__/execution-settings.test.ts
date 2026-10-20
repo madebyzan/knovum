@@ -1,6 +1,6 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
-import { setDefaultExecutionTarget, setDesktopAgentEnabled } from "../execution-settings";
+import { disableDesktopAgent, enableDesktopAgent, setDefaultExecutionTarget } from "../execution-settings";
 import { aiModelSettingsSchema, DEFAULT_AI_MODEL_SETTINGS } from "../schema/model-settings";
 
 const state = vi.hoisted(() => ({
@@ -22,10 +22,18 @@ beforeEach(() => {
 });
 
 it("disables an Agent and clears exactly the defaults that reference it", async () => {
-  await setDesktopAgentEnabled("codex", false);
+  await disableDesktopAgent("codex");
   expect(state.settings.defaults.defaultTarget).toBeNull();
   expect(state.settings.defaults.writing).toBeNull();
   expect(state.settings.defaults.translation).toEqual({ type: "agent", runtimeKind: "gemini_cli" });
+  expect(aiModelSettingsSchema.safeParse(state.settings).success).toBe(true);
+});
+
+it("enables an Agent without touching the existing routes", async () => {
+  const previousDefaults = structuredClone(state.settings.defaults);
+  await enableDesktopAgent("qoder_cli");
+  expect(state.settings.desktopAgents).toContainEqual({ kind: "qoder_cli", enabled: true });
+  expect(state.settings.defaults).toEqual(previousDefaults);
   expect(aiModelSettingsSchema.safeParse(state.settings).success).toBe(true);
 });
 
@@ -33,7 +41,7 @@ it("restores the enabled Agent and its routes when saving fails", async () => {
   const previous = structuredClone(state.settings);
   const failure = new Error("save failed");
   state.flush.mockRejectedValueOnce(failure);
-  await expect(setDesktopAgentEnabled("codex", false)).rejects.toBe(failure);
+  await expect(disableDesktopAgent("codex")).rejects.toBe(failure);
   expect(state.settings).toEqual(previous);
 });
 
@@ -44,7 +52,7 @@ it("queues route edits until a failed Agent mutation has rolled back", async () 
       rejectSave = reject;
     }),
   );
-  const disabling = setDesktopAgentEnabled("codex", false);
+  const disabling = disableDesktopAgent("codex");
   const failure = new Error("Agent save failed");
   const settlement = disabling.catch((error: unknown) => error);
   await vi.waitFor(() => expect(state.flush).toHaveBeenCalledOnce());

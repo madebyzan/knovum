@@ -37,7 +37,7 @@ fn denial(query: &str) -> Option<String> {
 /// What the browser shows when it comes back. The page states the outcome, tells the user the app
 /// has it from here, and closes itself when the browser allows it.
 fn callback_page(denial: Option<String>) -> axum::response::Html<String> {
-    let (title, detail) = match &denial {
+    let (title, explanation) = match &denial {
         Some(reason) => ("Authorization was declined", reason.as_str()),
         None => (
             "Authorization complete",
@@ -50,7 +50,7 @@ fn callback_page(denial: Option<String>) -> axum::response::Html<String> {
          'Segoe UI',system-ui,sans-serif;color:#1c1c1e;background:#fff;margin:0;display:flex;\
          min-height:100vh;align-items:center;justify-content:center}}main{{text-align:center;\
          padding:24px}}h1{{font-size:17px;font-weight:600;margin:0 0 8px}}p{{margin:0;color:#6b6b70}}\
-         </style></head><body><main><h1>{title}</h1><p>{detail}</p>\
+         </style></head><body><main><h1>{title}</h1><p>{explanation}</p>\
          <p>You can close this tab and return to Knovum.</p></main>\
          <script>setTimeout(function(){{window.close()}},1200)</script></body></html>"
     ))

@@ -6,7 +6,7 @@ import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { textEmbeddingReady } from "../../../foundation/runtime/local-resources";
 import { startResourcePreparation } from "../../../foundation/runtime/resource-preparation";
-import { useLocalResourcesQuery } from "../../../foundation/runtime/use-resource-queries";
+import { useLocalResourcesQuery } from "../../../foundation/runtime/use-local-resources-query";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { indexKnowledgeRetrieval } from "../knowledge/persistence/retrieval-index";
 import { useSpaceStore } from "../session/space-store";

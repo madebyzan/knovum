@@ -29,7 +29,7 @@ vi.mock("../canvas/use-node-operation-gate", () => ({
   useNodeOperationGate: () => ({ allows: () => context.allowed }),
 }));
 vi.mock("../knowledge-derivations/image-operation", () => ({ deriveImage: context.derive }));
-vi.mock("../knowledge-derivations/use-image-capabilities", () => ({
+vi.mock("../knowledge-derivations/use-image-operation-capabilities", () => ({
   useImageOperationCapabilities: () => context.capabilities!,
 }));
 vi.mock("../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));

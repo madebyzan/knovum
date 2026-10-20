@@ -162,7 +162,7 @@ async fn speech_schema_accepts_moss_reference_and_full_separation() {
          synthesis_config,authorization,status,created_at) \
          VALUES('moss-reference','moss-reference','reference','en','Sample',NULL,NULL,?,32044, \
          '/moss-reference.wav',?,32044,'/moss-preview.wav',?,48000,48000, \
-         'moss-tts-nano-100m-onnx-native-v2',0,?,?,'ready',1)",
+         'moss-tts-nano-100m-onnx-bundled-v2',0,?,?,'ready',1)",
     )
     .bind(format!("sha256:{}", "a".repeat(64)))
     .bind("b".repeat(64))
@@ -184,7 +184,7 @@ async fn speech_schema_accepts_moss_reference_and_full_separation() {
          preview_sample_rate,preview_sample_count,model_spec_id,seed,synthesis_config,authorization,status,created_at) \
          VALUES('moss-designed','moss-designed','designed','en','Sample','Warm','Sample', \
          '/moss-designed.wav',?,32044,'/moss-designed-preview.wav',?,48000,48000, \
-         'moss-tts-nano-100m-onnx-native-v2',0,?,?,'ready',1)",
+         'moss-tts-nano-100m-onnx-bundled-v2',0,?,?,'ready',1)",
     )
     .bind("d".repeat(64))
     .bind("e".repeat(64))

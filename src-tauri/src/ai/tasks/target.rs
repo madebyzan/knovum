@@ -12,7 +12,7 @@ use crate::ai::{
     rename_all_fields = "camelCase",
     deny_unknown_fields
 )]
-pub enum TaskTargetRef {
+pub enum TaskTarget {
     Model {
         connection_id: String,
         model_id: String,
@@ -22,7 +22,7 @@ pub enum TaskTargetRef {
     },
 }
 
-impl TaskTargetRef {
+impl TaskTarget {
     pub fn with_temperature(self, temperature: f64) -> TaskTargetSelection {
         match self {
             Self::Model {

@@ -1,4 +1,5 @@
 pub(crate) mod arrow_batch;
+pub(crate) mod chunk_loader;
 mod current_chunks;
 mod generation;
 mod generation_build;
@@ -9,7 +10,6 @@ pub(crate) mod invalidation_outbox;
 pub(crate) mod lancedb_store;
 pub(crate) mod predicates;
 pub(crate) mod rebuild;
-pub(crate) mod record_loader;
 pub(crate) mod related;
 pub(crate) mod retired_generations;
 pub(crate) mod schema;

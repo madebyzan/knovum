@@ -10,11 +10,11 @@ import {
   updateMcpConnection,
   checkMcpConnection,
 } from "../../../../foundation/extensions/connection-operations";
+import { useSettingsLeaveContext } from "../../../../foundation/lifecycle/use-settings-leave-context";
 import type { ConnectorDefinition } from "../../../../shared/contracts/generated/ConnectorDefinition";
 import type { McpConnection } from "../../../../shared/contracts/generated/McpConnection";
 import type { McpConnectionCatalog } from "../../../../shared/contracts/generated/McpConnectionCatalog";
 import type { McpToolPermission } from "../../../../shared/contracts/generated/McpToolPermission";
-import { useSettingsLeaveContext } from "../../../../shared/contracts/settings-leave";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";

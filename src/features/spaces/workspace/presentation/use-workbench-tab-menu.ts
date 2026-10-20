@@ -3,7 +3,7 @@ import { useI18n } from "vue-i18n";
 import type { ContextMenuItem } from "../../../../foundation/context-menu/popup";
 import { useSpaceStore } from "../../session/space-store";
 import { popupSpaceContextMenu, spaceMenuItem } from "../space-menu";
-import { useSpaceManagementMenu } from "../use-space-management-menu";
+import { useSpaceContextMenu } from "../use-space-context-menu";
 import type { WorkbenchTabView } from "./use-workbench-tab-views";
 
 interface WorkbenchTabMenuActions {
@@ -13,10 +13,10 @@ interface WorkbenchTabMenuActions {
   closeTabsToRight: (tabId: string) => void;
 }
 
-/** One context menu for every tab; Space tabs additionally offer Space management. */
+/** One context menu for every tab; Space tabs additionally offer the Space context menu groups. */
 export function useWorkbenchTabMenu(actions: WorkbenchTabMenuActions) {
   const store = useSpaceStore();
-  const { groups: spaceGroups } = useSpaceManagementMenu();
+  const { groups: spaceGroups } = useSpaceContextMenu();
   const { t } = useI18n();
 
   function tabActions(view: WorkbenchTabView): readonly ContextMenuItem[] {

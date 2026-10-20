@@ -113,7 +113,7 @@ fn wire_name(definition: &SpaceActionDefinition) -> String {
 fn description(definition: &SpaceActionDefinition) -> String {
     match definition.id {
         "create-note" => "Create an editable note in the current Space.".into(),
-        "answer-with-sources" => {
+        "answer-question" => {
             "Answer a question using selected knowledge sources and return verified citations."
                 .into()
         }

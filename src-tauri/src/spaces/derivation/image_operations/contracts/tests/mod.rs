@@ -52,13 +52,13 @@ fn normalized_selection_prompts_have_a_fixed_budget() {
 #[test]
 fn local_operations_reject_provider_and_agent_execution_targets() {
     use super::ImageExecutionTarget;
-    use crate::ai::{contracts::ExternalAgentKind, tasks::TaskTargetRef};
+    use crate::ai::{contracts::ExternalAgentKind, tasks::TaskTarget};
     for target in [
-        TaskTargetRef::Model {
+        TaskTarget::Model {
             connection_id: "connection".into(),
             model_id: "model".into(),
         },
-        TaskTargetRef::Agent {
+        TaskTarget::Agent {
             runtime_kind: ExternalAgentKind::QoderCli,
         },
     ] {

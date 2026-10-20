@@ -26,10 +26,10 @@ vi.mock("vue-i18n", async (importOriginal) => ({
   useI18n: () => ({ t: (key: string) => key }),
 }));
 
-const VoiceManagement = defineComponent({
+const VoiceProfileAdministration = defineComponent({
   props: { creating: Boolean, expandedId: String },
   emits: ["dirty", "toggle"],
-  template: '<div data-testid="management"><slot v-if="creating" name="create" /></div>',
+  template: '<div data-testid="administration"><slot v-if="creating" name="create" /></div>',
 });
 const VoiceProfileForm = defineComponent({
   props: { disabled: Boolean },
@@ -59,7 +59,7 @@ function render() {
           requestLeave: vi.fn<() => Promise<void>>(),
         },
       },
-      stubs: { VoiceManagement, VoiceProfileForm, VoiceCandidateForm },
+      stubs: { VoiceProfileAdministration, VoiceProfileForm, VoiceCandidateForm },
     },
   });
   onTestFinished(() => {
@@ -115,7 +115,7 @@ it("waits for a submitted preset before closing the creation row", async () => {
     name: "Narrator",
     sourceKind: "preset",
     engineId: "moss_nano",
-    modelSpecId: "moss-tts-nano-100m-onnx-native-v2",
+    modelSpecId: "moss-tts-nano-100m-onnx-bundled-v2",
     language: "zh-CN",
     supportsDeliveryInstruction: false,
     isActive: true,

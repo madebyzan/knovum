@@ -5,9 +5,9 @@ import { useI18n } from "vue-i18n";
 
 import { configurePluginConnector } from "../../../foundation/extensions/connector-operations";
 import { pluginQuery } from "../../../foundation/extensions/extension-query";
+import { useSettingsLeaveContext } from "../../../foundation/lifecycle/use-settings-leave-context";
 import type { ConnectorDefinition } from "../../../shared/contracts/generated/ConnectorDefinition";
 import type { PluginConnectorConfiguration } from "../../../shared/contracts/generated/PluginConnectorConfiguration";
-import { useSettingsLeaveContext } from "../../../shared/contracts/settings-leave";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { useExtensionChanges } from "../use-extension-changes";
 

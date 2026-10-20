@@ -22,7 +22,7 @@ vi.mock("../../../../../../foundation/runtime/local-resources", () => ({
   removeLocalModel: mocks.remove,
   selectLocalModel: mocks.select,
 }));
-vi.mock("../../../../../../foundation/runtime/use-resource-queries", () => ({
+vi.mock("../../../../../../foundation/runtime/local-resources-query", () => ({
   invalidateLocalResources: mocks.invalidate,
 }));
 vi.mock("../../../../../../shared/ui/confirm-action", () => ({ confirmAction: mocks.confirm }));

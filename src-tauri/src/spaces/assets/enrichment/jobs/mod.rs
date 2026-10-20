@@ -27,7 +27,7 @@ pub async fn cancel_enrichment_job<R: Runtime>(
 ) -> Result<(), AppError> {
     // The row is cancelled before the token is signalled so the execution being stopped cannot race
     // its own failure write in first. Cancelling an already finished job is a normal no-op.
-    set_status(&app, &job_id, FROM_LIVE, STATUS_CANCELLED, None, false).await?;
+    set_status(&app, &job_id, FROM_LIVE, STATUS_CANCELLED, None).await?;
     crate::ai::executions::cancel(&job_id)?;
     crate::spaces::assets::transcription::cancel_transcription(&job_id)?;
     Ok(())
@@ -53,14 +53,13 @@ async fn set_status<R: Runtime>(
     from: &'static str,
     status: &str,
     error: Option<String>,
-    increment_attempts: bool,
 ) -> Result<bool, String> {
     if job_id.trim().is_empty() {
         return Err("Enrichment job id is required".to_owned());
     }
     let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(app).await?;
-    persistence::set_status(pool, job_id, from, status, error, now, increment_attempts).await
+    persistence::set_status(pool, job_id, from, status, error, now).await
 }
 
 fn validate_request(request: &EnqueueEnrichmentJobRequest) -> Result<(), String> {
@@ -84,7 +83,7 @@ async fn claim<R: Runtime>(
 }
 
 async fn mark_succeeded<R: Runtime>(app: &AppHandle<R>, job_id: &str) -> Result<bool, String> {
-    set_status(app, job_id, FROM_RUNNING, STATUS_SUCCEEDED, None, false).await
+    set_status(app, job_id, FROM_RUNNING, STATUS_SUCCEEDED, None).await
 }
 
 async fn mark_failed<R: Runtime>(
@@ -92,5 +91,5 @@ async fn mark_failed<R: Runtime>(
     job_id: &str,
     error: String,
 ) -> Result<bool, String> {
-    set_status(app, job_id, FROM_RUNNING, STATUS_FAILED, Some(error), false).await
+    set_status(app, job_id, FROM_RUNNING, STATUS_FAILED, Some(error)).await
 }

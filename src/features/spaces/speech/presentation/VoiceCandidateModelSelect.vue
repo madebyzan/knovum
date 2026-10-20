@@ -5,7 +5,7 @@ import { computed, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { formatBytes } from "../../../../foundation/format/bytes";
-import { useLocalModelsQuery } from "../../../../foundation/runtime/use-resource-queries";
+import { useLocalModelsQuery } from "../../../../foundation/runtime/use-local-models-query";
 import type { LocalModelOperation } from "../../../../shared/contracts/generated/LocalModelOperation";
 import type { LocalModelReferenceTranscript } from "../../../../shared/contracts/generated/LocalModelReferenceTranscript";
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -83,7 +83,7 @@ watchEffect(() => {
       <CollapsibleTrigger
         class="inline-flex items-center gap-1 py-1 text-left hover:text-fg-primary focus-visible:outline-stroke-focus"
       >
-        {{ t("spaces.speech.models.details") }}<ChevronDown class="size-3" />
+        {{ t("spaces.speech.models.specs") }}<ChevronDown class="size-3" />
       </CollapsibleTrigger>
       <CollapsibleContent class="space-y-1 pb-1 leading-relaxed">
         <p>{{ formatBytes(selected.totalBytes) }}</p>

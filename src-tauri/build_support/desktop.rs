@@ -7,7 +7,7 @@ pub(crate) const COMMANDS: &[&str] = &[
     "report_startup_failure",
     "project_session_tasks",
     "set_task_notifications",
-    "perform_editing",
+    "execute_editing_command",
     "begin_window_close",
     "acknowledge_window_close",
     "complete_window_close",

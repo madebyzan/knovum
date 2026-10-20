@@ -24,7 +24,7 @@ async fn planned_steps_deserialize_into_the_executor_configuration_of_their_kind
         let project_id = super::speech_project(&pool, project_type, segments).await;
         let request_id = uuid::Uuid::new_v4().to_string();
         let mut digests = crate::spaces::speech::runtime_identity::RuntimeDigests::new();
-        digests.insert("native-inference-v2".into(), "b".repeat(64));
+        digests.insert("bundled-inference-v2".into(), "b".repeat(64));
         run_start::start(
             &pool,
             GenerateSpeechProjectRequest {

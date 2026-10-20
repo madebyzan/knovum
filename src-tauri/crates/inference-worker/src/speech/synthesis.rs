@@ -28,7 +28,7 @@ pub(crate) enum Synthesizer {
 impl Synthesizer {
     pub(crate) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
         match params.capability_spec_id.as_str() {
-            "moss-tts-nano-100m-onnx-native-v2" => Ok(Self::Moss(Box::new(Moss::new(params)?))),
+            "moss-tts-nano-100m-onnx-bundled-v2" => Ok(Self::Moss(Box::new(Moss::new(params)?))),
             "voxcpm2-2b-gguf-orig-v1" | "voxcpm2-2b-gguf-q8_0-v1" => {
                 Ok(Self::Vox(Box::new(VoxCpm::new(params)?)))
             }

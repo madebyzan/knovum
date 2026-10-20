@@ -11,7 +11,7 @@ import { useSpaceStore } from "../../session/space-store";
 import type { SpaceObjectFieldDefinition, SpaceObjectFieldKind } from "../model/object-types";
 import { createObjectType, deleteObjectType, updateObjectType } from "../persistence/knowledge-operations";
 import { SPACE_KNOWLEDGE_QUERY_KEYS } from "../queries/query-options";
-import { useSpaceObjectTypesQuery } from "../queries/use-knowledge-queries";
+import { useSpaceObjectTypesQuery } from "../queries/use-space-object-types-query";
 
 export function useKnowledgeTypeEditor(open: Ref<boolean>) {
   const queryClient = useQueryClient();

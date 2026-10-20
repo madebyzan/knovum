@@ -5,7 +5,7 @@ use sqlx::SqlitePool;
 use super::{
     ActionInvocationOutcome, ActionInvocationRequest, SpaceActionExecutionMode, SpaceActionImpact,
 };
-use crate::ai::tasks::TaskTargetRef;
+use crate::ai::tasks::TaskTarget;
 use crate::foundation::app_error::AppError;
 use crate::spaces::{
     authorization::{create_grant, local_user_grant, PrincipalKind, RunScope},
@@ -23,7 +23,7 @@ pub(crate) struct StartSpaceActionRequest {
     #[ts(type = "Record<string, unknown>")]
     pub parameters: Value,
     pub sources: Vec<SpaceActionSource>,
-    pub target: Option<TaskTargetRef>,
+    pub target: Option<TaskTarget>,
 }
 
 #[derive(Deserialize, ts_rs::TS)]

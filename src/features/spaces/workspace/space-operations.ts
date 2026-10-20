@@ -37,8 +37,12 @@ export function markSpaceOpened(spaceId: string): Promise<void> {
   return invokeCommand("plugin:spaces|mark_space_opened", { spaceId });
 }
 
-export function setSpaceFavorite(spaceId: string, favorite: boolean): Promise<void> {
-  return invokeCommand("plugin:spaces|set_space_favorite", { spaceId, favorite });
+export function favoriteSpace(spaceId: string): Promise<void> {
+  return invokeCommand("plugin:spaces|favorite_space", { spaceId });
+}
+
+export function unfavoriteSpace(spaceId: string): Promise<void> {
+  return invokeCommand("plugin:spaces|unfavorite_space", { spaceId });
 }
 
 export function updateSpaceThumbnail(spaceId: string, thumbnailPath: string): Promise<string[]> {
