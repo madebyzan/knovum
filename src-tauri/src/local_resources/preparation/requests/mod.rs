@@ -123,7 +123,9 @@ pub(crate) fn begin(
         .map_err(|_| "Resource preparation snapshot lock poisoned".to_string())?
         .state = ResourcePreparationState::Preparing;
     registry.completed.retain(|item| item.job_id != job_id);
-    registry.active_by_job_id.insert(job_id.to_owned(), active.clone());
+    registry
+        .active_by_job_id
+        .insert(job_id.to_owned(), active.clone());
     desktop_tasks::announce();
     Ok(PreparationRequest {
         job_id: job_id.to_owned(),

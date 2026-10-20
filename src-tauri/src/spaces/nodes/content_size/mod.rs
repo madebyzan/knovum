@@ -82,7 +82,9 @@ pub(in crate::spaces) async fn fit_in_snapshot(
         .structure
         .iter()
         .filter_map(|node| match node {
-            StructureNode::Content { id, node_id, .. } if payload_by_node_id.contains_key(node_id) => {
+            StructureNode::Content { id, node_id, .. }
+                if payload_by_node_id.contains_key(node_id) =>
+            {
                 Some((id.as_str(), node_id.as_str()))
             }
             _ => None,

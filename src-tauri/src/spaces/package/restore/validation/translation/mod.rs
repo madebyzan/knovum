@@ -45,7 +45,10 @@ pub(super) fn validate(request: &RestorePackageRequest) -> Result<(), String> {
             return Err("Package video translation Run base revision number differs".into());
         }
         validate_run(run, &revision.project_id)?;
-        let run_steps = steps_by_run_id.get(run.id.as_str()).map(Vec::as_slice).unwrap_or(&[]);
+        let run_steps = steps_by_run_id
+            .get(run.id.as_str())
+            .map(Vec::as_slice)
+            .unwrap_or(&[]);
         validate_steps(run, run_steps)?;
         validate_attempts(request, run, run_steps)?;
     }

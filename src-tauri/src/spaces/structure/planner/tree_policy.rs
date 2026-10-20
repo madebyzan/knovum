@@ -131,14 +131,15 @@ pub(in crate::spaces::structure) fn apply_sequences(
     structure: &mut [StructureNode],
     child_ids_by_parent: &HashMap<Option<String>, Vec<String>>,
 ) -> Result<(), String> {
-    let position_by_structure_node_id: HashMap<&str, (&Option<String>, usize)> = child_ids_by_parent
-        .iter()
-        .flat_map(|(parent, ids)| {
-            ids.iter()
-                .enumerate()
-                .map(move |(order, id)| (id.as_str(), (parent, order)))
-        })
-        .collect();
+    let position_by_structure_node_id: HashMap<&str, (&Option<String>, usize)> =
+        child_ids_by_parent
+            .iter()
+            .flat_map(|(parent, ids)| {
+                ids.iter()
+                    .enumerate()
+                    .map(move |(order, id)| (id.as_str(), (parent, order)))
+            })
+            .collect();
     for structure_node in structure {
         if let Some((parent, order)) = position_by_structure_node_id.get(structure_node.id()) {
             set_parent(structure_node, (*parent).clone());

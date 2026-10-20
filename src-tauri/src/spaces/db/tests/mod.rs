@@ -83,7 +83,10 @@ async fn every_foreign_key_is_indexed() {
             let id: i64 = key.get("id");
             let seq: i64 = key.get("seq");
             let from: String = key.get("from");
-            columns_by_foreign_key.entry(id).or_default().push((seq, from));
+            columns_by_foreign_key
+                .entry(id)
+                .or_default()
+                .push((seq, from));
         }
         for (_, mut columns) in columns_by_foreign_key {
             columns.sort_by_key(|(seq, _)| *seq);

@@ -95,7 +95,8 @@ pub(super) fn validate_world_transform(
     }
     let (mut x, mut y, mut rotation, mut scale) = (0.0, 0.0, 0.0_f64, 1.0);
     for ancestor in chain.into_iter().rev() {
-        let (local_x, local_y, local_rotation, local_scale) = match layout_by_node_id[ancestor.id()] {
+        let (local_x, local_y, local_rotation, local_scale) = match layout_by_node_id[ancestor.id()]
+        {
             StructureLayout::Content { transform, .. }
             | StructureLayout::Group { transform, .. } => (
                 transform.x,
