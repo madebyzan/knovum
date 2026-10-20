@@ -43,3 +43,9 @@ export function deliveryInstructionIsValid(
     [...instruction].length <= 500 && (!instruction || voiceSupportsDeliveryInstruction(voices, revisionId))
   );
 }
+
+export function deliveryInstructionVoiceIds(voices: readonly VoiceLibraryRevision[]) {
+  return new Set(
+    voices.filter((voice) => voice.supportsDeliveryInstruction).map((voice) => voice.revisionId),
+  );
+}

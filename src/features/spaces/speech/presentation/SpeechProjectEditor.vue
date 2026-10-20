@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, provide, shallowRef, useTemplateRef, type DeepReadonly } from "vue";
+import { computed, shallowRef, useTemplateRef, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
-import { RouterLink } from "vue-router";
 
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import type { SaveSpeechProjectRevisionRequest } from "../../contracts/generated/SaveSpeechProjectRevisionRequest";
@@ -13,11 +12,12 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { narrationText } from "../narration-text";
 import AudiobookScriptEditor from "./AudiobookScriptEditor.vue";
 import ShortDubbingEditor from "./ShortDubbingEditor.vue";
-import { SPEECH_EDITOR_VIEWPORT_KEY } from "./speech-editor-viewport";
 import SpeechMediaPlayer from "./SpeechMediaPlayer.vue";
 import SpeechProjectActions from "./SpeechProjectActions.vue";
 import SpeechSettingsDisclosure from "./SpeechSettingsDisclosure.vue";
 import SpeechSignalInspection from "./SpeechSignalInspection.vue";
+import SpeechVoiceAvailability from "./SpeechVoiceAvailability.vue";
+import { useSpeechEditorViewport } from "./use-speech-editor-viewport";
 import VideoDeliveryExport from "./VideoDeliveryExport.vue";
 import VideoDubbingEditor from "./VideoDubbingEditor.vue";
 
@@ -56,10 +56,7 @@ const emit = defineEmits<{
 }>();
 const { t } = useI18n();
 const scrollerRef = useTemplateRef("scrollerRef");
-provide(
-  SPEECH_EDITOR_VIEWPORT_KEY,
-  computed(() => scrollerRef.value?.viewportElement ?? null),
-);
+useSpeechEditorViewport(scrollerRef);
 const isDirty = shallowRef(false);
 const draftInput = shallowRef<Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">>();
 const isOperationBusy = shallowRef(false);
@@ -69,8 +66,6 @@ const hasVideoBackground = computed(
     "background" in props.project.revision.outputConfig &&
     Boolean(props.project.revision.outputConfig.background),
 );
-/** Voices are managed once, in Settings; here we only say when there is none to choose. */
-const hasVoice = computed(() => props.voices.some((voice) => voice.isActive && voice.archivedAt == null));
 const editorDisabled = computed(
   () => props.previewing || props.generating || props.saving || props.submitting || isOperationBusy.value,
 );
@@ -107,15 +102,7 @@ function updateDraft(
   <section class="flex min-h-0 flex-col">
     <UiScrollArea ref="scrollerRef" class="max-h-96 min-h-0" viewport-class="max-h-[inherit]">
       <div class="space-y-3 p-3">
-        <p v-if="!hasVoice" class="text-caption text-fg-secondary" role="status">
-          {{ t("spaces.speech.library.selection.empty") }}
-          <RouterLink
-            class="text-fg-accent underline"
-            data-testid="manage-voices"
-            :to="{ path: '/settings', query: { pane: 'voices' } }"
-            >{{ t("spaces.speech.library.manage") }}</RouterLink
-          >
-        </p>
+        <SpeechVoiceAvailability :voices="voices" />
         <ShortDubbingEditor
           v-if="project.project.projectType === 'short_dubbing'"
           :project="project"
