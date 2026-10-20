@@ -253,7 +253,8 @@ verified and preserved; Knovum does not re-sign those vendor files. The exact-pi
 Vulkan loader and its archive license are installed beside the worker in `bin`. This loader
 does not supply a GPU driver. The sealed inventory records these dependencies and their source
 evidence. `dumpbin /DEPENDENTS` checks every packaged PE binary: imports must resolve beside
-the importing binary, in sealed `bin`, or in the Windows system-library/API-set allowlist.
+the importing binary, in the runtime root or its sealed `bin` (the directories the inference
+worker adds ahead of System32), or in the Windows system-library/API-set allowlist.
 Missing MSVC, Vulkan or other non-system DLLs fail packaging rather than relying on a developer
 machine's installed copies. Microsoft redistribution permission remains a release review item.
 Windows development requires the MSVC runtime and Vulkan loader installed with its C++
