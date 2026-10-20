@@ -1,17 +1,20 @@
-use super::super::{admission, process::Worker, process::WorkerPackage, WorkerSlot};
+use super::super::{
+    admission,
+    process::{Worker, WorkerSpecification},
+    WorkerSlot,
+};
 use crate::{
     ai::contracts::{
         execution_profile,
         runtime::{
-            RuntimeCancelParams, RuntimeCapability, RuntimeDeviceProfile, RuntimeInitializeParams,
-            RuntimeModelPaths, PROTOCOL_VERSION,
+            RuntimeCancelParams, RuntimeCapability, RuntimeDeviceProfile, RuntimeModelPaths,
         },
     },
     local_resources::runtimes::inference,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::{path::Path, time::Instant};
-use tauri::{AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
 
 pub(super) struct ImageWorkerLease {
@@ -72,27 +75,22 @@ pub(super) async fn acquire<R: Runtime>(
         }
     }
     if guard.is_none() {
-        let session_id = uuid::Uuid::new_v4().to_string();
-        let work = app
-            .path()
-            .app_cache_dir()
-            .map_err(|error| error.to_string())?
-            .join("inference")
-            .join(&session_id);
-        let package = WorkerPackage::from(&runtime);
-        let params = RuntimeInitializeParams {
-            runtime_manifest_path: runtime.manifest_path.to_string_lossy().into_owned(),
-            protocol_version: PROTOCOL_VERSION,
-            runtime_digest: runtime.digest.clone(),
-            session_id,
-            capability,
-            capability_spec_id: spec_id.into(),
-            device_profile: profile,
-            work_directory: work.to_string_lossy().into_owned(),
-            model_paths: paths,
-            budget_ms: package.initialization_budget_ms(),
-        };
-        *guard = Some(Worker::start(package, &work, model_path, params, cancellation, exit).await?);
+        *guard = Some(
+            Worker::start(
+                &runtime,
+                &super::super::inference_root(app)?,
+                WorkerSpecification {
+                    capability,
+                    capability_spec_id: spec_id.into(),
+                    device_profile: profile,
+                    model_path,
+                    model_paths: paths,
+                },
+                cancellation,
+                exit,
+            )
+            .await?,
+        );
     }
     Ok(ImageWorkerLease {
         guard,

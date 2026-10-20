@@ -24,6 +24,18 @@ static INFERENCE_ROOT_READY: OnceLock<watch::Receiver<Option<Result<(), String>>
     OnceLock::new();
 const IDLE_TTL: Duration = Duration::from_secs(60);
 
+/// The private root that holds one work directory per worker session.
+fn inference_root<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+) -> Result<std::path::PathBuf, String> {
+    use tauri::Manager;
+    Ok(app
+        .path()
+        .app_cache_dir()
+        .map_err(|error| error.to_string())?
+        .join("inference"))
+}
+
 async fn prepare_inference_root(work_directory: &std::path::Path) -> Result<(), String> {
     let root = work_directory
         .parent()

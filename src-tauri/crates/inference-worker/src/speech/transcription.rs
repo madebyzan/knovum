@@ -1,5 +1,7 @@
 use super::{artifacts, audio, ffi};
-use crate::{artifact, cancellation::Cancellation, protocol::Output};
+use crate::{
+    artifact, cancellation::Cancellation, initialization::VerifiedRuntime, protocol::Output,
+};
 use ffi::whisper::*;
 use knovum_inference_contracts::{
     execution_profile::{self, WHISPER_VARIANTS},
@@ -9,11 +11,16 @@ use knovum_inference_contracts::{
         SpeechTranscription,
     },
 };
-use std::path::{Path, PathBuf};
+use std::{
+    ffi::CString,
+    path::{Path, PathBuf},
+};
 
 pub(crate) struct Transcriber {
-    params: RuntimeInitializeParams,
-    engine: Option<Engine>,
+    engine: Engine,
+    device: String,
+    compute_type: &'static str,
+    vad: CString,
 }
 pub(super) struct Engine {
     pub(super) api: WhisperApi,
@@ -30,93 +37,101 @@ impl Drop for Engine {
         }
     }
 }
+
+/// Admits a Whisper execution profile and returns the snapshot it names. Pure in its initialization
+/// message, so an obsolete profile is rejected before a library or a weight is read.
+pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<&str, String> {
+    let device = params.device_profile.device.as_str();
+    let allowed = WHISPER_VARIANTS.into_iter().any(|(model, precision)| {
+        params.capability_spec_id == execution_profile::whisper(model, device, precision)
+    });
+    if !allowed
+        || params.device_profile.execution_profile_id != params.capability_spec_id
+        || !matches!(device, "cpu" | "mps")
+        || device == "mps" && !cfg!(all(target_os = "macos", target_arch = "aarch64"))
+        || !(1..=8).contains(&params.device_profile.cpu_threads)
+    {
+        return Err("unsupported_device: Whisper execution profile is unavailable".into());
+    }
+    params
+        .model_paths
+        .speech_transcription
+        .as_deref()
+        .ok_or_else(|| "model_missing: transcription model is missing".into())
+}
+
 impl Transcriber {
-    pub(crate) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
-        let device = params.device_profile.device.as_str();
-        let allowed = WHISPER_VARIANTS.into_iter().any(|(model, precision)| {
-            params.capability_spec_id == execution_profile::whisper(model, device, precision)
+    pub(crate) fn new(
+        params: &RuntimeInitializeParams,
+        runtime: &VerifiedRuntime,
+    ) -> Result<Self, String> {
+        let directory = PathBuf::from(admit(params)?);
+        let model = directory.join("model.bin");
+        require_bounded_weight(&model, 3_100_000_000, "Whisper")?;
+        let vad_model = directory.join("vad.bin");
+        require_bounded_weight(&vad_model, 16 * 1024 * 1024, "Silero VAD")?;
+        let vad = ffi::string(
+            vad_model
+                .to_str()
+                .ok_or("model_corrupt: VAD path is invalid")?,
+        )?;
+        let library = ffi::library(runtime, "whisper")?;
+        let ggml_library = library.with_file_name(if cfg!(windows) {
+            "ggml.dll"
+        } else {
+            "libggml.0.dylib"
         });
-        if !allowed
-            || params.device_profile.execution_profile_id != params.capability_spec_id
-            || params.model_paths.speech_transcription.is_none()
-            || !matches!(device, "cpu" | "mps")
-            || device == "mps" && !cfg!(all(target_os = "macos", target_arch = "aarch64"))
-            || !(1..=8).contains(&params.device_profile.cpu_threads)
-        {
-            return Err("unsupported_device: Whisper execution profile is unavailable".into());
+        let ggml = unsafe { GgmlApi::from_library(ffi::load(&ggml_library)?) }
+            .map_err(|error| format!("runtime_mismatch: {error}"))?;
+        let backends = ffi::string(
+            library
+                .parent()
+                .and_then(Path::to_str)
+                .ok_or("runtime_mismatch: Whisper backend directory is invalid")?,
+        )?;
+        // Upstream selects the best supported CPU variant only from the sealed supplier directory.
+        unsafe { ggml.ggml_backend_load_all_from_path(backends.as_ptr()) };
+        require_device(&ggml, &params.device_profile.device)?;
+        let api = unsafe { WhisperApi::from_library(ffi::load(&library)?) }
+            .map_err(|error| format!("runtime_mismatch: {error}"))?;
+        let path = ffi::string(
+            model
+                .to_str()
+                .ok_or("model_corrupt: Whisper path is invalid")?,
+        )?;
+        let mut options = unsafe { api.whisper_context_default_params() };
+        options.use_gpu = params.device_profile.device != "cpu";
+        // Upstream's file loader converts UTF-8 to UTF-16 on Windows; no path aliases are required.
+        let context =
+            unsafe { api.whisper_init_from_file_with_params_no_state(path.as_ptr(), options) };
+        if context.is_null() {
+            return Err("model_corrupt: Whisper could not load".into());
+        }
+        let state = unsafe { api.whisper_init_state(context) };
+        if state.is_null() {
+            unsafe {
+                api.whisper_free(context);
+            }
+            return Err("resource_exhausted: Whisper state allocation failed".into());
         }
         Ok(Self {
-            params: params.clone(),
-            engine: None,
-        })
-    }
-    fn load(&mut self) -> Result<&Engine, String> {
-        if self.engine.is_none() {
-            let directory = PathBuf::from(
-                self.params
-                    .model_paths
-                    .speech_transcription
-                    .as_ref()
-                    .ok_or("model_missing: transcription model is missing")?,
-            );
-            let model = directory.join("model.bin");
-            let file = artifact::open_regular(&model)?;
-            if !(1..=3_100_000_000)
-                .contains(&file.metadata().map_err(|error| error.to_string())?.len())
-            {
-                return Err("model_corrupt: Whisper weight size is invalid".into());
-            }
-            let library = ffi::path(&self.params, "whisper")?;
-            let ggml_library = library.with_file_name(if cfg!(windows) {
-                "ggml.dll"
-            } else {
-                "libggml.0.dylib"
-            });
-            let ggml = unsafe { GgmlApi::from_library(ffi::load(&ggml_library)?) }
-                .map_err(|error| format!("runtime_mismatch: {error}"))?;
-            let backends = ffi::string(
-                library
-                    .parent()
-                    .and_then(Path::to_str)
-                    .ok_or("runtime_mismatch: Whisper backend directory is invalid")?,
-            )?;
-            // Upstream selects the best supported CPU variant only from the sealed supplier directory.
-            unsafe { ggml.ggml_backend_load_all_from_path(backends.as_ptr()) };
-            require_device(&ggml, &self.params.device_profile.device)?;
-            let api = unsafe { WhisperApi::from_library(ffi::load(&library)?) }
-                .map_err(|error| format!("runtime_mismatch: {error}"))?;
-            let path = ffi::string(
-                model
-                    .to_str()
-                    .ok_or("model_corrupt: Whisper path is invalid")?,
-            )?;
-            let mut options = unsafe { api.whisper_context_default_params() };
-            options.use_gpu = self.params.device_profile.device != "cpu";
-            // Upstream's file loader converts UTF-8 to UTF-16 on Windows; no path aliases are required.
-            let context =
-                unsafe { api.whisper_init_from_file_with_params_no_state(path.as_ptr(), options) };
-            if context.is_null() {
-                return Err("model_corrupt: Whisper could not load".into());
-            }
-            let state = unsafe { api.whisper_init_state(context) };
-            if state.is_null() {
-                unsafe {
-                    api.whisper_free(context);
-                }
-                return Err("resource_exhausted: Whisper state allocation failed".into());
-            }
-            self.engine = Some(Engine {
+            engine: Engine {
                 api,
-                threads: self.params.device_profile.cpu_threads,
+                threads: params.device_profile.cpu_threads,
                 _ggml: ggml,
                 context,
                 state,
-            });
-        }
-        self.engine
-            .as_ref()
-            .ok_or("worker_crashed: Whisper engine is unavailable".into())
+            },
+            device: params.device_profile.device.clone(),
+            compute_type: if params.capability_spec_id.contains("-f16-") {
+                "f16"
+            } else {
+                "q8_0"
+            },
+            vad,
+        })
     }
+
     pub(crate) fn transcribe(
         &mut self,
         work: &Path,
@@ -125,33 +140,14 @@ impl Transcriber {
         output: &Output,
     ) -> Result<SpeechTranscription, String> {
         if !matches!(params.profile.engine, AsrEngine::WhisperCpp)
-            || params.profile.device != self.params.device_profile.device
-            || params.profile.compute_type
-                != if self.params.capability_spec_id.contains("-f16-") {
-                    "f16"
-                } else {
-                    "q8_0"
-                }
+            || params.profile.device != self.device
+            || params.profile.compute_type != self.compute_type
             || !(1..=10).contains(&params.profile.beam_size)
         {
             return Err("runtime_mismatch: transcription profile differs".into());
         }
         let audio = audio::read(&params.audio_ref, 16_000, 1, 16_000 * 7200, cancel)?;
-        let threads = self.params.device_profile.cpu_threads;
-        let directory = PathBuf::from(
-            self.params
-                .model_paths
-                .speech_transcription
-                .as_ref()
-                .ok_or("model_missing: transcription model is missing")?,
-        );
-        let vad = ffi::string(
-            directory
-                .join("vad.bin")
-                .to_str()
-                .ok_or("model_corrupt: VAD path is invalid")?,
-        )?;
-        let engine = self.load()?;
+        let engine = &self.engine;
         cancel.check()?;
         let language = match params.profile.language_policy {
             LanguagePolicy::Detect => ffi::string("auto")?,
@@ -171,13 +167,13 @@ impl Transcriber {
         };
         let duration_ms = audio.frames() as u64 / 16;
         let regions = if params.profile.vad_enabled {
-            let file = artifact::open_regular(&directory.join("vad.bin"))?;
-            if !(1..=16 * 1024 * 1024)
-                .contains(&file.metadata().map_err(|error| error.to_string())?.len())
-            {
-                return Err("model_corrupt: Silero VAD weight size is invalid".into());
-            }
-            super::whisper_vad::regions(&engine.api, &vad, &audio.samples, threads, cancel)?
+            super::whisper_vad::regions(
+                &engine.api,
+                &self.vad,
+                &audio.samples,
+                engine.threads,
+                cancel,
+            )?
         } else {
             std::iter::once(0..duration_ms).collect()
         };
@@ -187,7 +183,7 @@ impl Transcriber {
         let speech_duration_ms = regions.iter().map(|region| region.end - region.start).sum();
         let transcript = SpeechTranscriptArtifact {
             language,
-            duration_ms: audio.frames() as u64 / 16,
+            duration_ms,
             speech_duration_ms,
             segments,
         };
@@ -200,6 +196,17 @@ impl Transcriber {
         })
     }
 }
+
+/// Establishes that a supplied weight is a regular file within its frozen size bound, once, while
+/// the worker initializes rather than on every request that reads it.
+fn require_bounded_weight(path: &Path, maximum: u64, subject: &str) -> Result<(), String> {
+    let file = artifact::open_regular(path)?;
+    if !(1..=maximum).contains(&file.metadata().map_err(|error| error.to_string())?.len()) {
+        return Err(format!("model_corrupt: {subject} weight size is invalid"));
+    }
+    Ok(())
+}
+
 fn require_device(api: &GgmlApi, device: &str) -> Result<(), String> {
     let count = unsafe { api.ggml_backend_dev_count() };
     if !(1..=256).contains(&count) {

@@ -10,15 +10,18 @@ fn obsolete_embedding_identity_or_unadmitted_threads_fail_before_model_loading()
         "workDirectory": "/work", "modelPaths": {"embedding": "/not-loaded"},
         "budgetMs": 60000
     })).unwrap();
-    assert!(Embedding::new(&params).is_ok());
+    assert_eq!(admit(&params).unwrap(), "/not-loaded");
     params.capability_spec_id = "obsolete-python-embedding".into();
-    assert!(Embedding::new(&params).is_err());
+    assert!(admit(&params).is_err());
     params.capability_spec_id = EMBEDDING_SPEC_ID.into();
     params.device_profile.cpu_threads = 0;
-    assert!(Embedding::new(&params).is_err());
+    assert!(admit(&params).is_err());
     params.device_profile.cpu_threads = 4;
     params.device_profile.execution_profile_id = "cpu-unknown".into();
-    assert!(Embedding::new(&params).is_err());
+    assert!(admit(&params).is_err());
+    params.device_profile.execution_profile_id = execution_profile::embedding("cpu", 4);
+    params.model_paths.embedding = None;
+    assert!(admit(&params).is_err());
 }
 
 #[test]

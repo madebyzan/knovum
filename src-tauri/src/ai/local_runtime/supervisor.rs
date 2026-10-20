@@ -4,18 +4,18 @@ use std::{
     time::{Duration, Instant},
 };
 
-use tauri::{AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
 
-use super::process::{Worker, WorkerPackage};
+use super::process::{Worker, WorkerSpecification};
 use crate::{
     ai::contracts::{
         embedding_wire::{
             EmbeddingEncodeParams, EmbeddingEncoding, EmbeddingExecutionIdentity, EmbeddingRole,
         },
         runtime::{
-            RuntimeCancelParams, RuntimeCapability, RuntimeInitializeParams, RuntimeModelPaths,
-            RuntimeShutdownAcknowledgement, RuntimeShutdownParams, PROTOCOL_VERSION,
+            RuntimeCancelParams, RuntimeCapability, RuntimeModelPaths,
+            RuntimeShutdownAcknowledgement, RuntimeShutdownParams,
         },
     },
     local_resources::{
@@ -73,41 +73,21 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         }
     }
     if guard.is_none() {
-        let session_id = uuid::Uuid::new_v4().to_string();
-        let work_directory = app
-            .path()
-            .app_cache_dir()
-            .map_err(|error| error.to_string())?
-            .join("inference")
-            .join(&session_id);
-        let package = WorkerPackage::from(&runtime);
-        let params = RuntimeInitializeParams {
-            runtime_manifest_path: runtime.manifest_path.to_string_lossy().into_owned(),
-            protocol_version: PROTOCOL_VERSION,
-            runtime_digest: runtime.digest.clone(),
-            session_id,
-            capability: RuntimeCapability::Embedding,
-            capability_spec_id: crate::ai::capabilities::embedding::EMBEDDING_SPEC_ID.into(),
-            device_profile: device_profile.clone(),
-            work_directory: work_directory.to_string_lossy().into_owned(),
-            model_paths: RuntimeModelPaths {
-                embedding: Some(model_directory.to_string_lossy().into_owned()),
-                speech_transcription: None,
-                speech_alignment: None,
-                speech_diarization: None,
-                speech_synthesis: None,
-                speech_separation: None,
-                image_segmentation: None,
-                image_processing: None,
-            },
-            budget_ms: package.initialization_budget_ms(),
-        };
         *guard = Some(
             Worker::start(
-                package,
-                &work_directory,
-                model_directory,
-                params,
+                &runtime,
+                &super::inference_root(app)?,
+                WorkerSpecification {
+                    capability: RuntimeCapability::Embedding,
+                    capability_spec_id: crate::ai::capabilities::embedding::EMBEDDING_SPEC_ID
+                        .into(),
+                    device_profile: device_profile.clone(),
+                    model_path: model_directory,
+                    model_paths: RuntimeModelPaths {
+                        embedding: Some(model_directory.to_string_lossy().into_owned()),
+                        ..Default::default()
+                    },
+                },
                 cancellation,
                 exit,
             )

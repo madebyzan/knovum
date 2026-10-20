@@ -77,7 +77,7 @@ pub struct RuntimeInitializeParams {
     pub budget_ms: u64,
 }
 
-#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[derive(Clone, Debug, Deserialize, JsonSchema, PartialEq, Eq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct RuntimeLimits {
     pub max_message_bytes: u32,
@@ -85,6 +85,20 @@ pub struct RuntimeLimits {
     pub max_embedding_tokens: u32,
     pub max_unconsumed_chunk_files: u8,
     pub max_unconsumed_chunk_bytes: u32,
+}
+
+impl RuntimeLimits {
+    /// The limits this protocol version fixes.
+    ///
+    /// The worker announces these and the host requires them, both from here, so a revision
+    /// cannot leave one side declaring a bound the other rejects.
+    pub const CURRENT: Self = Self {
+        max_message_bytes: MAX_MESSAGE_BYTES as u32,
+        max_embedding_texts: 32,
+        max_embedding_tokens: 2048,
+        max_unconsumed_chunk_files: 8,
+        max_unconsumed_chunk_bytes: 16 * 1024 * 1024,
+    };
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
@@ -98,6 +112,23 @@ pub struct RuntimeSession {
     pub device_profile: RuntimeDeviceProfile,
     pub capabilities: Vec<String>,
     pub limits: RuntimeLimits,
+}
+
+impl RuntimeSession {
+    /// Establishes that the worker that answered is the worker that was asked for.
+    ///
+    /// A session the host did not describe, or one that announces a capability or bound this
+    /// protocol version does not fix, is not usable by the request that started it.
+    pub fn matches(&self, params: &RuntimeInitializeParams) -> bool {
+        self.protocol_version == params.protocol_version
+            && self.runtime_digest == params.runtime_digest
+            && self.session_id == params.session_id
+            && self.capability == params.capability
+            && self.capability_spec_id == params.capability_spec_id
+            && self.device_profile == params.device_profile
+            && self.capabilities == [params.capability.method()]
+            && self.limits == RuntimeLimits::CURRENT
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]

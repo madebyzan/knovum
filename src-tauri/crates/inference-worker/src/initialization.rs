@@ -1,10 +1,13 @@
 use crate::{artifact, images::Images};
 use knovum_inference_contracts::{
-    runtime::{RuntimeInitializeParams, RuntimeLimits, RuntimeSession, PROTOCOL_VERSION},
+    runtime::{
+        RuntimeCapability, RuntimeInitializeParams, RuntimeLimits, RuntimeSession, PROTOCOL_VERSION,
+    },
     runtime_manifest::RuntimeManifest,
 };
 use sha2::{Digest, Sha256};
 use std::{
+    collections::HashSet,
     fs,
     io::Read,
     path::{Path, PathBuf},
@@ -39,31 +42,11 @@ impl Session {
             return Err("invalid_input: work directory must be absolute".into());
         }
         artifact::require_directory(&work)?;
-        initialize_ort(
+        let runtime = VerifiedRuntime::initialize(
             Path::new(&params.runtime_manifest_path),
             &params.runtime_digest,
         )?;
-        let engine = match params.capability {
-            knovum_inference_contracts::runtime::RuntimeCapability::Embedding => {
-                Engine::Embedding(Box::new(crate::embedding::Embedding::new(&params)?))
-            }
-            knovum_inference_contracts::runtime::RuntimeCapability::SpeechTranscription => {
-                Engine::Transcription(crate::speech::transcription::Transcriber::new(&params)?)
-            }
-            knovum_inference_contracts::runtime::RuntimeCapability::SpeechSeparation => {
-                Engine::Separation(crate::speech::separation::Separator::new(&params)?)
-            }
-            knovum_inference_contracts::runtime::RuntimeCapability::SpeechDiarization => {
-                Engine::Diarization(crate::speech::diarization::Diarizer::new(&params)?)
-            }
-            knovum_inference_contracts::runtime::RuntimeCapability::SpeechAlignment => {
-                Engine::Alignment(crate::speech::alignment::Aligner::new(&params)?)
-            }
-            knovum_inference_contracts::runtime::RuntimeCapability::SpeechSynthesis => {
-                Engine::Synthesis(crate::speech::synthesis::Synthesizer::new(&params)?)
-            }
-            _ => Engine::Images(Images::new(&params)?),
-        };
+        let engine = Engine::load(&params, &runtime)?;
         Ok(Self {
             work,
             engine,
@@ -75,29 +58,104 @@ impl Session {
                 capability_spec_id: params.capability_spec_id,
                 device_profile: params.device_profile,
                 capabilities: vec![params.capability.method().into()],
-                limits: RuntimeLimits {
-                    max_message_bytes: 1_048_576,
-                    max_embedding_texts: 32,
-                    max_embedding_tokens: 2048,
-                    max_unconsumed_chunk_files: 8,
-                    max_unconsumed_chunk_bytes: 16 * 1024 * 1024,
-                },
+                limits: RuntimeLimits::CURRENT,
             },
         })
     }
 }
 
-pub(crate) fn initialize_ort(path: &Path, expected_digest: &str) -> Result<(), String> {
-    #[cfg(windows)]
-    if windows_version::OsVersion::current() < windows_version::OsVersion::new(10, 0, 0, 19041) {
-        return Err(
-            "unsupported_device: Rust inference requires Windows 10 2004 (build 19041) or later"
-                .into(),
-        );
+impl Engine {
+    /// A worker freezes one capability and one model at initialization and serves nothing else for
+    /// the rest of its life, so its engine is built here rather than on first use: these bytes
+    /// belong to the initialization budget, and no request pays for a load it did not ask for.
+    fn load(params: &RuntimeInitializeParams, runtime: &VerifiedRuntime) -> Result<Self, String> {
+        use crate::speech::{
+            alignment::Aligner, diarization::Diarizer, separation::Separator,
+            synthesis::Synthesizer, transcription::Transcriber,
+        };
+        match params.capability {
+            RuntimeCapability::Embedding => Ok(Self::Embedding(Box::new(
+                crate::embedding::Embedding::new(params)?,
+            ))),
+            RuntimeCapability::SpeechTranscription => {
+                Ok(Self::Transcription(Transcriber::new(params, runtime)?))
+            }
+            RuntimeCapability::SpeechSeparation => {
+                Ok(Self::Separation(Separator::new(params, runtime)?))
+            }
+            RuntimeCapability::SpeechDiarization => {
+                Ok(Self::Diarization(Diarizer::new(params, runtime)?))
+            }
+            RuntimeCapability::SpeechAlignment => {
+                Ok(Self::Alignment(Aligner::new(params, runtime)?))
+            }
+            RuntimeCapability::SpeechSynthesis => {
+                Ok(Self::Synthesis(Synthesizer::new(params, runtime)?))
+            }
+            RuntimeCapability::ImageSegmentation
+            | RuntimeCapability::ImageUpscaling
+            | RuntimeCapability::ImageInpainting
+            | RuntimeCapability::ImageSelection
+            | RuntimeCapability::ImageDepth => Ok(Self::Images(Images::new(params)?)),
+        }
     }
-    if !path.is_absolute() {
-        return Err("runtime_mismatch: inference manifest path is relative".into());
+}
+
+/// The inference runtime as this process verified it: the supplied inventory, hashed byte for byte
+/// immediately before any of it is loaded.
+///
+/// The host cannot stand in for this check. A hash it computes can be invalidated between its
+/// verification and the worker's load, so the host verifies the one thing a worker cannot verify
+/// about itself — the image it executes — and the worker verifies what it is about to load.
+pub(crate) struct VerifiedRuntime {
+    directory: PathBuf,
+    manifest: RuntimeManifest,
+}
+
+impl VerifiedRuntime {
+    pub(crate) fn initialize(manifest_path: &Path, expected_digest: &str) -> Result<Self, String> {
+        #[cfg(windows)]
+        if windows_version::OsVersion::current() < windows_version::OsVersion::new(10, 0, 0, 19041)
+        {
+            return Err(
+                "unsupported_device: Rust inference requires Windows 10 2004 (build 19041) or later"
+                    .into(),
+            );
+        }
+        if !manifest_path.is_absolute() {
+            return Err("runtime_mismatch: inference manifest path is relative".into());
+        }
+        let manifest = read_manifest(manifest_path, expected_digest)?;
+        let directory = manifest_path
+            .parent()
+            .ok_or("runtime_mismatch: inference manifest parent is missing")?
+            .to_path_buf();
+        artifact::require_directory(&directory)?;
+        verify_inventory(&directory, &manifest)?;
+        #[cfg(windows)]
+        crate::speech::ffi::prepare_search_directory(&directory)?;
+        ort::init_from(directory.join(&manifest.onnx_runtime))
+            .map_err(|error| format!("runtime_mismatch: {error}"))?
+            .with_telemetry(false)
+            .commit();
+        Ok(Self {
+            directory,
+            manifest,
+        })
     }
+
+    /// Resolves a verified inventory member. A path the inventory does not list is refused: the
+    /// runtime directory is on this worker's library search path, so an unlisted file inside it
+    /// must never be loaded.
+    pub(crate) fn member(&self, relative: &str) -> Result<PathBuf, String> {
+        if !self.manifest.files.iter().any(|file| file.path == relative) {
+            return Err("runtime_mismatch: library is absent from the verified runtime".into());
+        }
+        Ok(self.directory.join(relative))
+    }
+}
+
+fn read_manifest(path: &Path, expected_digest: &str) -> Result<RuntimeManifest, String> {
     let mut bytes = Vec::new();
     artifact::open_regular(path)?
         .take(1_048_577)
@@ -125,10 +183,10 @@ pub(crate) fn initialize_ort(path: &Path, expected_digest: &str) -> Result<(), S
     {
         return Err("runtime_mismatch: inference runtime manifest is invalid".into());
     }
-    let directory = path
-        .parent()
-        .ok_or("runtime_mismatch: inference manifest parent is missing")?;
-    artifact::require_directory(directory)?;
+    Ok(manifest)
+}
+
+fn verify_inventory(directory: &Path, manifest: &RuntimeManifest) -> Result<(), String> {
     let mut actual = 0;
     for entry in walkdir::WalkDir::new(directory).follow_links(false) {
         let entry = entry.map_err(|error| format!("runtime_mismatch: {error}"))?;
@@ -169,7 +227,7 @@ pub(crate) fn initialize_ort(path: &Path, expected_digest: &str) -> Result<(), S
     if actual != manifest.files.len() + 1 {
         return Err("runtime_mismatch: inference inventory is incomplete".into());
     }
-    let mut names = std::collections::HashSet::new();
+    let mut names = HashSet::new();
     for file in &manifest.files {
         if !valid_inventory_path(directory, &file.path)
             || !names.insert(&file.path)
@@ -197,12 +255,6 @@ pub(crate) fn initialize_ort(path: &Path, expected_digest: &str) -> Result<(), S
             return Err("runtime_mismatch: inference runtime file hash differs".into());
         }
     }
-    #[cfg(windows)]
-    crate::speech::ffi::prepare_search_directory(directory)?;
-    ort::init_from(directory.join(&manifest.onnx_runtime))
-        .map_err(|error| format!("runtime_mismatch: {error}"))?
-        .with_telemetry(false)
-        .commit();
     Ok(())
 }
 

@@ -13,74 +13,43 @@ use tokenizers::Tokenizer;
 const QUERY_PROMPT: &str = "Instruct: Given a knowledge-space search query, retrieve relevant passages from the user's documents, notes, media transcripts, code, and web captures.\nQuery:";
 
 pub(crate) struct Embedding {
-    params: RuntimeInitializeParams,
-    loaded: Option<Loaded>,
-}
-
-struct Loaded {
     base: Model,
     tokenizer: Tokenizer,
     device: Device,
 }
 
-impl Embedding {
-    pub(crate) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
-        let device = params.device_profile.device.as_str();
-        let threads = params.device_profile.cpu_threads;
-        if params.capability_spec_id != EMBEDDING_SPEC_ID
-            || params.model_paths.embedding.is_none()
-            || !matches!(params.device_profile.device.as_str(), "cpu" | "mps")
-            || device == "mps" && !cfg!(all(target_os = "macos", target_arch = "aarch64"))
-            || !(1..=8).contains(&threads)
-            || params.device_profile.execution_profile_id
-                != execution_profile::embedding(device, threads)
-        {
-            return Err("runtime_mismatch: invalid embedding initialization".into());
-        }
-        Ok(Self {
-            params: params.clone(),
-            loaded: None,
-        })
+/// Admits the frozen embedding identity and execution profile and returns the snapshot it names.
+///
+/// This is a pure function of the initialization message, so an obsolete identity or an
+/// unadmitted thread count is rejected before any weight is read.
+fn admit(params: &RuntimeInitializeParams) -> Result<&str, String> {
+    let device = params.device_profile.device.as_str();
+    let threads = params.device_profile.cpu_threads;
+    if params.capability_spec_id != EMBEDDING_SPEC_ID
+        || !matches!(device, "cpu" | "mps")
+        || device == "mps" && !cfg!(all(target_os = "macos", target_arch = "aarch64"))
+        || !(1..=8).contains(&threads)
+        || params.device_profile.execution_profile_id
+            != execution_profile::embedding(device, threads)
+    {
+        return Err("runtime_mismatch: invalid embedding initialization".into());
     }
-    pub(crate) fn encode(
-        &mut self,
-        params: EmbeddingEncodeParams,
-        cancel: &Cancellation,
-    ) -> Result<EmbeddingEncoding, String> {
-        cancel.check()?;
-        if params.texts.is_empty()
-            || params.texts.len() > 32
-            || params.embedding_spec_id != params.model_spec_id
-            || params.model_spec_id != EMBEDDING_SPEC_ID
-        {
-            return Err("invalid_input: invalid embedding batch or identity".into());
-        }
-        if self.loaded.is_none() {
-            self.loaded = Some(Loaded::new(&self.params)?);
-        }
-        cancel.check()?;
-        self.loaded
-            .as_ref()
-            .expect("Embedding model was loaded")
-            .encode(params, cancel)
-    }
+    params
+        .model_paths
+        .embedding
+        .as_deref()
+        .ok_or_else(|| "model_missing: embedding path is missing".into())
 }
 
-impl Loaded {
-    fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
+impl Embedding {
+    pub(crate) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
+        let directory = Path::new(admit(params)?);
         let device = match params.device_profile.device.as_str() {
             "cpu" => Device::Cpu,
             #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
             "mps" => Device::new_metal(0).map_err(model_error)?,
             _ => return Err("unsupported_device: embedding device is unavailable".into()),
         };
-        let directory = Path::new(
-            params
-                .model_paths
-                .embedding
-                .as_deref()
-                .ok_or("model_missing: embedding path is missing")?,
-        );
         let config_path = directory.join("config.json");
         let config: Config =
             serde_json::from_reader(artifact::open_regular(&config_path)?).map_err(model_error)?;
@@ -118,6 +87,14 @@ impl Loaded {
         params: EmbeddingEncodeParams,
         cancel: &Cancellation,
     ) -> Result<EmbeddingEncoding, String> {
+        cancel.check()?;
+        if params.texts.is_empty()
+            || params.texts.len() > 32
+            || params.embedding_spec_id != params.model_spec_id
+            || params.model_spec_id != EMBEDDING_SPEC_ID
+        {
+            return Err("invalid_input: invalid embedding batch or identity".into());
+        }
         let mut tokens = Vec::with_capacity(params.texts.len());
         let mut input_tokens = 0u32;
         for text in &params.texts {

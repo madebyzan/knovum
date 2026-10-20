@@ -21,6 +21,23 @@ use crate::ai::contracts::runtime::{
 
 #[cfg(windows)]
 use crate::foundation::subprocess::windows_job;
+
+/// What a capability decides about the worker it needs.
+///
+/// Everything else about starting a worker — its session identity, its private work directory and
+/// the budget of its cold start — is derived by [`Worker::start`], so no capability can describe
+/// those differently from another.
+pub(in crate::ai::local_runtime) struct WorkerSpecification<'a> {
+    pub(in crate::ai::local_runtime) capability: RuntimeCapability,
+    pub(in crate::ai::local_runtime) capability_spec_id: String,
+    pub(in crate::ai::local_runtime) device_profile:
+        crate::ai::contracts::runtime::RuntimeDeviceProfile,
+    /// The verified snapshot this worker loads. Worker reuse and its initialization budget are
+    /// both measured against it.
+    pub(in crate::ai::local_runtime) model_path: &'a Path,
+    pub(in crate::ai::local_runtime) model_paths: crate::ai::contracts::runtime::RuntimeModelPaths,
+}
+
 pub(super) struct Worker {
     pub(super) child: Child,
     process_tree: ProcessTree,

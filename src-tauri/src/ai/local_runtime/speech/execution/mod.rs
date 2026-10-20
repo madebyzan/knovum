@@ -1,6 +1,4 @@
 use crate::local_resources::runtimes::inference;
-use worker_start::{start_worker, WorkerStart};
-mod worker_start;
 use std::{
     path::Path,
     time::{Duration, Instant},
@@ -10,11 +8,15 @@ use serde::{de::DeserializeOwned, Serialize};
 use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
 
-use super::super::{admission::Priority, process::Worker};
+use super::super::{
+    admission::Priority,
+    process::{Worker, WorkerSpecification},
+};
 use super::stream::{consume_synthesis_chunk, SynthesisChunkCallback, SynthesisStream};
 use crate::ai::contracts::{
     runtime::{
         RuntimeAckChunkParams, RuntimeCancelParams, RuntimeCapability, RuntimeDeviceProfile,
+        RuntimeModelPaths,
     },
     speech_wire::{
         InferenceRequestIdentity, SpeechProgressEvent, SpeechProgressEventType,
@@ -23,6 +25,27 @@ use crate::ai::contracts::{
 };
 
 const CANCEL_GRACE: Duration = Duration::from_secs(5);
+
+/// Places the snapshot where the worker's speech capability reads it.
+///
+/// This is the only mapping from a speech capability to its model-path field, so a new capability
+/// cannot be served by a worker that was handed the previous one's path.
+fn speech_model_paths(
+    capability: RuntimeCapability,
+    model_path: &Path,
+) -> Result<RuntimeModelPaths, String> {
+    let mut paths = RuntimeModelPaths::default();
+    let value = Some(model_path.to_string_lossy().into_owned());
+    match capability {
+        RuntimeCapability::SpeechTranscription => paths.speech_transcription = value,
+        RuntimeCapability::SpeechAlignment => paths.speech_alignment = value,
+        RuntimeCapability::SpeechDiarization => paths.speech_diarization = value,
+        RuntimeCapability::SpeechSynthesis => paths.speech_synthesis = value,
+        RuntimeCapability::SpeechSeparation => paths.speech_separation = value,
+        _ => return Err("runtime_mismatch: capability is not a speech method".into()),
+    }
+    Ok(paths)
+}
 
 pub(in crate::ai::local_runtime) struct Execution<'a, R: Runtime> {
     pub(in crate::ai::local_runtime) app: &'a AppHandle<R>,
@@ -103,20 +126,23 @@ where
     let work_directory = if let Some(worker) = guard.as_ref() {
         worker.work_directory().to_owned()
     } else {
-        start_worker(
-            WorkerStart {
-                app,
-                runtime: &runtime,
-                model_path,
+        let worker = Worker::start(
+            &runtime,
+            &super::super::inference_root(app)?,
+            WorkerSpecification {
                 capability,
-                model_spec_id: identity.model_spec_id.clone(),
+                capability_spec_id: identity.model_spec_id.clone(),
                 device_profile,
-                cancellation,
-                exit,
+                model_path,
+                model_paths: speech_model_paths(capability, model_path)?,
             },
-            &mut guard,
+            cancellation,
+            exit,
         )
-        .await?
+        .await?;
+        let work_directory = worker.work_directory().to_owned();
+        *guard = Some(worker);
+        work_directory
     };
     let worker = guard.as_mut().ok_or("worker_crashed")?;
     let request_id = identity.request_id.clone();
