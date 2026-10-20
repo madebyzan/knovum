@@ -74,7 +74,7 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
             .await?;
     structure::portal_integrity::validate_structure_targets(tx, &[&request.space_id]).await?;
     let after = structure::history::capture(tx, &request.space_id, &snapshot).await?;
-    structure::history::record(tx, &request.space_id, &before, &after, edit_revision).await?;
+    structure::history::record(tx, &request.space_id, &before, &after).await?;
     structure::receipts::insert_typed(
         tx,
         &request.mutation_id,

@@ -48,10 +48,9 @@ pub(super) async fn execute(
     links::add_provenance(tx, space_id, actor, operations, now, &state).await?;
     if let Some((mut snapshot, revision, before)) = structure_change {
         structure::creation::append_content(&mut snapshot, &state.created_nodes, None)?;
-        let edit_revision =
-            structure::repository::save_in_transaction(tx, space_id, revision, &snapshot).await?;
+        structure::repository::save_in_transaction(tx, space_id, revision, &snapshot).await?;
         let after = structure::history::capture(tx, space_id, &snapshot).await?;
-        structure::history::record(tx, space_id, &before, &after, edit_revision).await?;
+        structure::history::record(tx, space_id, &before, &after).await?;
     }
     Ok(serde_json::json!({"resolvedIds": state.resolved_id_by_temp_id}))
 }

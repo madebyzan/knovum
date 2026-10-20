@@ -128,7 +128,7 @@ pub(crate) async fn import<R: Runtime>(
             .await?;
     super::portal_integrity::validate_structure_targets(&mut tx, &[&request.space_id]).await?;
     let after = history::capture(&mut tx, &request.space_id, &snapshot).await?;
-    history::record(&mut tx, &request.space_id, &before, &after, next).await?;
+    history::record(&mut tx, &request.space_id, &before, &after).await?;
     let clipboard_receipt = ImportStructureClipboardResponse {
         snapshot: SpaceEditSnapshotResponse {
             edit_revision: next,

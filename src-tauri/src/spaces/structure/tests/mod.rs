@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+mod history;
 mod node_reference_remap;
 mod planner_batches;
 mod portal_integrity;

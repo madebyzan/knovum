@@ -130,17 +130,15 @@ CREATE TABLE spaces_edit_receipts (
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
 
+-- One edit remembers the rows it touched, not the state it produced: `patch` holds the before and
+-- after value of every changed structure row, layout, relation style, relation lifecycle and node
+-- presence, and nothing else. An edit of one card therefore costs the same in a Space of ten
+-- thousand cards as in a Space of ten.
 CREATE TABLE spaces_edit_history (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   space_id TEXT NOT NULL,
-  before_snapshot TEXT NOT NULL CHECK (json_valid(before_snapshot)),
-  after_snapshot TEXT NOT NULL CHECK (json_valid(after_snapshot)),
-  before_node_ids TEXT NOT NULL CHECK (json_valid(before_node_ids) AND json_type(before_node_ids) = 'array'),
-  after_node_ids TEXT NOT NULL CHECK (json_valid(after_node_ids) AND json_type(after_node_ids) = 'array'),
-  before_relations TEXT NOT NULL CHECK (json_valid(before_relations) AND json_type(before_relations) = 'array'),
-  after_relations TEXT NOT NULL CHECK (json_valid(after_relations) AND json_type(after_relations) = 'array'),
+  patch TEXT NOT NULL CHECK (json_valid(patch) AND json_type(patch) = 'object'),
   history_group_id TEXT,
-  expected_revision INTEGER NOT NULL CHECK (expected_revision >= 0),
   undone INTEGER NOT NULL DEFAULT 0 CHECK (undone IN (0,1)),
   created_at INTEGER NOT NULL,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
@@ -806,6 +804,10 @@ CREATE INDEX spaces_edit_receipts_space_revision
   ON spaces_edit_receipts(space_id, applied_revision);
 
 CREATE INDEX spaces_edit_history_cursor ON spaces_edit_history(space_id, undone, id);
+
+-- A coordinated edit stores one record per Space and replays both together.
+CREATE INDEX spaces_edit_history_group ON spaces_edit_history(history_group_id, undone, id)
+  WHERE history_group_id IS NOT NULL;
 
 CREATE VIEW spaces_semantic_nodes AS
   SELECT * FROM spaces_nodes

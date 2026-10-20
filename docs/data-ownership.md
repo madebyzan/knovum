@@ -83,6 +83,13 @@ review:
 - **Anything that only serves a replay is bounded by the replay window.** `RETAINED_EDITS` bounds
   undo depth, and the edit receipts that make a mutation idempotent are bounded by the same window:
   a receipt can only be dropped once a hundred later edits have made replaying it meaningless.
+- **A record of a change is proportional to the change.** History stores the rows an edit touched,
+  never the state it produced. A whole-state record makes every edit cost the size of the Space, so
+  a large Space would pay megabytes per keystroke and keep a hundred copies of itself; it also
+  overwrites work it never meant to touch when replayed. `spaces_edit_history.patch` holds the
+  before and after value of each changed structure row, layout, relation style, relation lifecycle
+  and node presence, and a replay writes exactly those back and then revalidates the Space it
+  produced through `repository::load_in_transaction`.
 
 ## Storage settings
 

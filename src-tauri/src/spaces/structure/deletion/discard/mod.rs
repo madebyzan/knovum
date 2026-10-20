@@ -90,12 +90,7 @@ pub(crate) async fn discard_pending_content<R: Runtime>(
         .relation_styles
         .retain(|style| !relations.contains(&style.relation_id));
     normalize_orders(&mut snapshot.structure, &snapshot.layouts)?;
-    super::super::repository::remove_transferred_structure_nodes_in_transaction(
-        &mut tx,
-        &request.space_id,
-        &[structure_node_id],
-    )
-    .await?;
+    super::super::repository::rows::erase(&mut tx, &request.space_id, &[structure_node_id]).await?;
     sqlx::query("DELETE FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL")
         .bind(&request.node_id)
         .bind(&request.space_id)

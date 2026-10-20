@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use sqlx::{Row, Sqlite, Transaction};
 
 use super::super::contracts::StructureNode;
-use super::SpaceStructureSnapshot;
+use super::{rows, SpaceStructureSnapshot};
 use crate::spaces::db;
 
 pub(super) async fn persist_snapshot(
@@ -67,71 +67,17 @@ pub(super) async fn persist_snapshot(
             .get(structure_node.id())
             .is_some_and(|(current, deleted)| !deleted && current == structure_node)
         {
-            upsert_structure_node(tx, space_id, structure_node).await?;
+            rows::upsert_structure_node(tx, space_id, structure_node).await?;
         }
     }
-    sqlx::query(
-        "INSERT INTO spaces_structure_layouts(space_id,structure_node_id,kind,data) \
-         SELECT $1,json_extract(value,'$.structureNodeId'),json_extract(value,'$.kind'),value \
-         FROM json_each($2) WHERE 1 \
-         ON CONFLICT(space_id,structure_node_id) DO UPDATE SET data=excluded.data,kind=excluded.kind \
-         WHERE spaces_structure_layouts.data<>excluded.data OR spaces_structure_layouts.kind<>excluded.kind",
-    )
-    .bind(space_id)
-    .bind(sqlx::types::Json(&snapshot.layouts))
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
+    rows::write_layouts(tx, space_id, &snapshot.layouts.iter().collect::<Vec<_>>()).await?;
     sqlx::query("DELETE FROM spaces_relation_styles WHERE space_id=$1 AND relation_id NOT IN (SELECT value FROM json_each($2))")
         .bind(space_id)
         .bind(sqlx::types::Json(snapshot.relation_styles.iter().map(|style| &style.relation_id).collect::<Vec<_>>()))
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
-    sqlx::query(
-        "INSERT INTO spaces_relation_styles(space_id,relation_id,color) \
-         SELECT $1,json_extract(value,'$.relationId'),json_extract(value,'$.color') \
-         FROM json_each($2) WHERE 1 \
-         ON CONFLICT(space_id,relation_id) DO UPDATE SET color=excluded.color \
-         WHERE spaces_relation_styles.color<>excluded.color",
-    )
-    .bind(space_id)
-    .bind(sqlx::types::Json(&snapshot.relation_styles))
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    Ok(())
-}
-
-pub(crate) async fn remove_transferred_structure_nodes_in_transaction(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-    structure_node_ids_deepest_first: &[String],
-) -> Result<(), String> {
-    for structure_node_id in structure_node_ids_deepest_first {
-        sqlx::query(
-            "DELETE FROM spaces_structure_layouts WHERE space_id=$1 AND structure_node_id=$2",
-        )
-        .bind(space_id)
-        .bind(structure_node_id)
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-        let structure_write = sqlx::query(
-            "DELETE FROM spaces_structure_nodes WHERE space_id=$1 AND id=$2 AND deleted_at IS NULL",
-        )
-        .bind(space_id)
-        .bind(structure_node_id)
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-        if structure_write.rows_affected() != 1 {
-            return Err(format!(
-                "Transferred structure node changed during transaction: {structure_node_id}"
-            ));
-        }
-    }
-    Ok(())
+    rows::write_relation_styles(tx, space_id, &snapshot.relation_styles).await
 }
 
 async fn existing_structure(
@@ -155,44 +101,4 @@ async fn existing_structure(
             Ok((node.id().to_owned(), (node, deleted.is_some())))
         })
         .collect()
-}
-
-async fn upsert_structure_node(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-    structure_node: &StructureNode,
-) -> Result<(), String> {
-    let (node_id, title) = match structure_node {
-        StructureNode::Content { node_id, .. } => (Some(node_id.as_str()), None),
-        StructureNode::Group { title, .. } | StructureNode::Section { title, .. } => {
-            (None, Some(title.as_str()))
-        }
-    };
-    let structure_write = sqlx::query(
-        "INSERT INTO spaces_structure_nodes \
-         (id,space_id,kind,node_id,parent_id,order_index,title,locked,deleted_at) \
-         VALUES($1,$2,$3,$4,$5,$6,$7,$8,NULL) \
-         ON CONFLICT(id) DO UPDATE SET parent_id=excluded.parent_id,order_index=excluded.order_index, \
-         title=excluded.title,locked=excluded.locked,deleted_at=NULL \
-         WHERE spaces_structure_nodes.space_id=excluded.space_id \
-         AND spaces_structure_nodes.kind=excluded.kind",
-    )
-    .bind(structure_node.id())
-    .bind(space_id)
-    .bind(structure_node.kind_name())
-    .bind(node_id)
-    .bind(structure_node.parent_id())
-    .bind(i64::from(structure_node.order()))
-    .bind(title)
-    .bind(structure_node.locked())
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    if structure_write.rows_affected() != 1 {
-        return Err(format!(
-            "Structure node ID belongs to another Space: {}",
-            structure_node.id()
-        ));
-    }
-    Ok(())
 }

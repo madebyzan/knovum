@@ -82,7 +82,7 @@ pub async fn transfer_selection<R: Runtime>(
     let moved_provenance_ids =
         operations::moved_provenance_ids(&mut tx, &request.source_space_id, &selected_set).await?;
 
-    structure::repository::remove_transferred_structure_nodes_in_transaction(
+    structure::repository::rows::erase(
         &mut tx,
         &request.source_space_id,
         &structure_plan.source_structure_node_ids_deepest_first,

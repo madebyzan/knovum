@@ -135,14 +135,7 @@ pub(crate) async fn import_nodes<R: Runtime>(
     .await?;
     let after =
         crate::spaces::structure::history::capture(&mut tx, &request.space_id, &snapshot).await?;
-    crate::spaces::structure::history::record(
-        &mut tx,
-        &request.space_id,
-        &before,
-        &after,
-        revision,
-    )
-    .await?;
+    crate::spaces::structure::history::record(&mut tx, &request.space_id, &before, &after).await?;
     let import_receipt = JsonCanvasImportReceipt {
         imported_nodes,
         revision,
