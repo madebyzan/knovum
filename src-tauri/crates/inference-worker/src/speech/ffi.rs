@@ -1,8 +1,5 @@
-use crate::artifact;
-use knovum_inference_contracts::{
-    runtime::RuntimeInitializeParams, runtime_manifest::RuntimeManifest,
-};
-use std::{ffi::CString, io::Read, path::PathBuf};
+use crate::initialization::VerifiedRuntime;
+use std::{ffi::CString, path::PathBuf};
 
 #[allow(
     non_snake_case,
@@ -46,18 +43,11 @@ pub(super) mod audio {
     include!(concat!(env!("OUT_DIR"), "/AudioApi.rs"));
 }
 
-pub(super) fn path(params: &RuntimeInitializeParams, name: &str) -> Result<PathBuf, String> {
-    library_path(std::path::Path::new(&params.runtime_manifest_path), name)
-}
-
-pub(super) fn library_path(manifest_path: &std::path::Path, name: &str) -> Result<PathBuf, String> {
-    let mut bytes = Vec::new();
-    artifact::open_regular(manifest_path)?
-        .take(1_048_577)
-        .read_to_end(&mut bytes)
-        .map_err(|error| error.to_string())?;
-    let manifest: RuntimeManifest =
-        serde_json::from_slice(&bytes).map_err(|error| format!("runtime_mismatch: {error}"))?;
+/// Resolves a pinned speech library inside the runtime this worker verified.
+///
+/// Library naming belongs here; inventory membership belongs to [`VerifiedRuntime`], which holds
+/// the manifest this process hashed. Nothing re-reads the manifest from disk after verification.
+pub(super) fn library(runtime: &VerifiedRuntime, name: &str) -> Result<PathBuf, String> {
     let extension = if cfg!(windows) { "dll" } else { "dylib" };
     let relative = if name == "whisper" {
         format!(
@@ -71,13 +61,24 @@ pub(super) fn library_path(manifest_path: &std::path::Path, name: &str) -> Resul
     } else {
         format!("compiled-libraries/{name}.{extension}")
     };
-    if !manifest.files.iter().any(|file| file.path == relative) {
-        return Err("runtime_mismatch: speech library is absent from the verified runtime".into());
+    runtime.member(&relative)
+}
+
+/// Loads the pinned Sherpa C API from the verified runtime.
+///
+/// Both Sherpa capabilities load the same pinned library, so its supplier version is established
+/// here once instead of in whichever capability remembered to check it.
+pub(super) fn sherpa_api(runtime: &VerifiedRuntime) -> Result<sherpa::SherpaApi, String> {
+    let api =
+        unsafe { sherpa::SherpaApi::from_library(load(&library(runtime, "sherpa-onnx-c-api")?)?) }
+            .map_err(|error| format!("runtime_mismatch: {error}"))?;
+    let version = unsafe { std::ffi::CStr::from_ptr(api.SherpaOnnxGetVersionStr()) }
+        .to_str()
+        .map_err(|error| error.to_string())?;
+    if version != "1.13.8" {
+        return Err("runtime_mismatch: Sherpa version differs".into());
     }
-    Ok(manifest_path
-        .parent()
-        .ok_or("runtime_mismatch: inference runtime directory is missing")?
-        .join(relative))
+    Ok(api)
 }
 
 pub(super) fn load(path: &std::path::Path) -> Result<libloading::Library, String> {

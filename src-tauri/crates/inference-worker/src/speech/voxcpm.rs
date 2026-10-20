@@ -1,5 +1,5 @@
 use super::{audio, ffi, stream::Publisher};
-use crate::cancellation::Cancellation;
+use crate::{cancellation::Cancellation, initialization::VerifiedRuntime};
 use ffi::voice::*;
 use knovum_inference_contracts::{
     runtime::RuntimeInitializeParams,
@@ -11,10 +11,7 @@ use std::{
     ptr,
 };
 
-pub(crate) struct VoxCpm {
-    params: RuntimeInitializeParams,
-    engine: Option<Engine>,
-}
+pub(crate) struct VoxCpm(Engine);
 struct Engine {
     api: VoiceApi,
     handle: *mut c_void,
@@ -26,83 +23,70 @@ impl Drop for Engine {
         }
     }
 }
+
+/// Admits a VoxCPM2 profile and returns its quantized weight file and snapshot. Pure in its
+/// initialization message, so an obsolete specification is rejected before a library is loaded.
+pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<(&'static str, &str), String> {
+    let (quantization, weights) = match params.capability_spec_id.as_str() {
+        "voxcpm2-2b-gguf-orig-v1" => ("orig", "voxcpm2-orig.gguf"),
+        "voxcpm2-2b-gguf-q8_0-v1" => ("q8_0", "voxcpm2-q8_0.gguf"),
+        _ => return Err("runtime_mismatch: VoxCPM2 model specification differs".into()),
+    };
+    let device = params.device_profile.device.as_str();
+    if !matches!(device, "cpu" | "mps" | "vulkan")
+        || !(1..=8).contains(&params.device_profile.cpu_threads)
+        || params.device_profile.execution_profile_id
+            != format!("voxcpm2-{device}-gguf-{quantization}-v1")
+    {
+        return Err("runtime_mismatch: VoxCPM2 model specification differs".into());
+    }
+    Ok((weights, params.model.snapshot()?))
+}
+
 impl VoxCpm {
-    pub(super) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
-        let quantization = match params.capability_spec_id.as_str() {
-            "voxcpm2-2b-gguf-orig-v1" => "orig",
-            "voxcpm2-2b-gguf-q8_0-v1" => "q8_0",
-            _ => return Err("runtime_mismatch: VoxCPM2 model specification differs".into()),
+    pub(super) fn new(
+        params: &RuntimeInitializeParams,
+        runtime: &VerifiedRuntime,
+    ) -> Result<Self, String> {
+        let (weights, directory) = admit(params)?;
+        let api =
+            unsafe { VoiceApi::from_library(ffi::load(&ffi::library(runtime, "knovum_voice")?)?) }
+                .map_err(|error| format!("runtime_mismatch: {error}"))?;
+        if unsafe { api.knovum_voice_abi() } != 3 {
+            return Err("runtime_mismatch: VoxCPM2 bridge ABI differs".into());
+        }
+        let device = match params.device_profile.device.as_str() {
+            "cpu" => 0,
+            "mps" => 1,
+            "vulkan" => 3,
+            _ => return Err("unsupported_device: VoxCPM2 backend is unavailable".into()),
         };
-        let device = params.device_profile.device.as_str();
-        if !matches!(device, "cpu" | "mps" | "vulkan")
-            || !(1..=8).contains(&params.device_profile.cpu_threads)
-            || params.model_paths.speech_synthesis.is_none()
-            || params.device_profile.execution_profile_id
-                != format!("voxcpm2-{device}-gguf-{quantization}-v1")
-        {
-            return Err("runtime_mismatch: VoxCPM2 model specification differs".into());
+        let devices = unsafe { api.knovum_audio_devices(8 * 1024 * 1024 * 1024) };
+        if devices < 0 {
+            return Err(failure(&api, "runtime_mismatch"));
         }
-        Ok(Self {
-            params: params.clone(),
-            engine: None,
-        })
-    }
-    fn load(&mut self) -> Result<&Engine, String> {
-        if self.engine.is_none() {
-            let api = unsafe {
-                VoiceApi::from_library(ffi::load(&ffi::path(&self.params, "knovum_voice")?)?)
-            }
-            .map_err(|error| format!("runtime_mismatch: {error}"))?;
-            if unsafe { api.knovum_voice_abi() } != 3 {
-                return Err("runtime_mismatch: VoxCPM2 bridge ABI differs".into());
-            }
-            let device = match self.params.device_profile.device.as_str() {
-                "cpu" => 0,
-                "mps" => 1,
-                "vulkan" => 3,
-                _ => return Err("unsupported_device: VoxCPM2 backend is unavailable".into()),
-            };
-            let devices = unsafe { api.knovum_audio_devices(8 * 1024 * 1024 * 1024) };
-            if devices < 0 {
-                return Err(failure(&api, "runtime_mismatch"));
-            }
-            if devices & (1 << device) == 0 {
-                return Err("unsupported_device: VoxCPM2 backend capacity is unavailable".into());
-            }
-            let directory = PathBuf::from(
-                self.params
-                    .model_paths
-                    .speech_synthesis
-                    .as_ref()
-                    .ok_or("model_missing: synthesis model is missing")?,
-            );
-            let file = if self.params.capability_spec_id == "voxcpm2-2b-gguf-orig-v1" {
-                "voxcpm2-orig.gguf"
-            } else {
-                "voxcpm2-q8_0.gguf"
-            };
-            let path = ffi::string(
-                directory
-                    .join(file)
-                    .to_str()
-                    .ok_or("model_corrupt: VoxCPM2 path is invalid")?,
-            )?;
-            let handle = unsafe {
-                api.knovum_voice_open(
-                    path.as_ptr(),
-                    device,
-                    i32::from(self.params.device_profile.cpu_threads),
-                )
-            };
-            if handle.is_null() {
-                return Err(failure(&api, "model_corrupt"));
-            }
-            self.engine = Some(Engine { api, handle });
+        if devices & (1 << device) == 0 {
+            return Err("unsupported_device: VoxCPM2 backend capacity is unavailable".into());
         }
-        self.engine
-            .as_ref()
-            .ok_or("worker_crashed: VoxCPM2 engine is unavailable".into())
+        let path = ffi::string(
+            PathBuf::from(directory)
+                .join(weights)
+                .to_str()
+                .ok_or("model_corrupt: VoxCPM2 path is invalid")?,
+        )?;
+        let handle = unsafe {
+            api.knovum_voice_open(
+                path.as_ptr(),
+                device,
+                i32::from(params.device_profile.cpu_threads),
+            )
+        };
+        if handle.is_null() {
+            return Err(failure(&api, "model_corrupt"));
+        }
+        Ok(Self(Engine { api, handle }))
     }
+
     pub(super) fn generate(
         &mut self,
         params: &SpeechSynthesizeParams,
@@ -112,7 +96,7 @@ impl VoxCpm {
         let (text, reference, transcript) = inputs(params, cancel)?;
         let text = ffi::string(&text)?;
         let transcript = transcript.as_deref().map(ffi::string).transpose()?;
-        let engine = self.load()?;
+        let engine = &self.0;
         cancel.check()?;
         let mut observer = Observer {
             publisher,

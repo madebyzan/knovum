@@ -1,21 +1,19 @@
-use crate::local_resources::runtimes::inference;
-use std::{
-    path::Path,
-    time::{Duration, Instant},
-};
+use std::{path::Path, time::Duration};
 
-use tauri::{AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
 
-use super::process::{Worker, WorkerPackage};
+use super::{
+    lease::{RequestIdentity, WorkerLease},
+    process::WorkerSpecification,
+};
 use crate::{
     ai::contracts::{
         embedding_wire::{
             EmbeddingEncodeParams, EmbeddingEncoding, EmbeddingExecutionIdentity, EmbeddingRole,
         },
         runtime::{
-            RuntimeCancelParams, RuntimeCapability, RuntimeInitializeParams, RuntimeModelPaths,
-            RuntimeShutdownAcknowledgement, RuntimeShutdownParams, PROTOCOL_VERSION,
+            RuntimeCapability, RuntimeModel, RuntimeShutdownAcknowledgement, RuntimeShutdownParams,
         },
     },
     local_resources::{
@@ -23,8 +21,6 @@ use crate::{
         preparation::PreparedModels,
     },
 };
-
-const CANCEL_GRACE: Duration = Duration::from_secs(5);
 
 pub(crate) async fn encode_embedding<R: Runtime>(
     app: &AppHandle<R>,
@@ -34,87 +30,25 @@ pub(crate) async fn encode_embedding<R: Runtime>(
     resources: &PreparedModels,
     cancellation: &CancellationToken,
 ) -> Result<EmbeddingEncoding, String> {
-    let exit = super::exit_token();
     let priority = match role {
         EmbeddingRole::Query => super::admission::Priority::Interactive,
         EmbeddingRole::Document => super::admission::Priority::Background,
     };
-    let runtime = inference::resolve(app)?;
     let model_directory = embedding_directory(resources)?;
-    let device_profile = super::device_profiles::embedding::profile()?;
-    super::prepare_worker_for_admission(priority, |worker| {
-        worker.matches(
-            &runtime.digest,
-            model_directory,
-            RuntimeCapability::Embedding,
-            crate::ai::capabilities::embedding::EMBEDDING_SPEC_ID,
-            &device_profile,
-        )
-    })
-    .await?;
-    let _permit = super::admission::acquire(priority, cancellation, exit).await?;
-    let slot = super::worker_slot();
-    let mut guard = tokio::select! {
-        biased;
-        _ = exit.cancelled() => return Err("cancelled".into()),
-        _ = cancellation.cancelled() => return Err("cancelled".into()),
-        guard = slot.lock() => guard,
-    };
-    if let Some(worker) = guard.as_mut() {
-        if !worker.matches(
-            &runtime.digest,
-            model_directory,
-            RuntimeCapability::Embedding,
-            crate::ai::capabilities::embedding::EMBEDDING_SPEC_ID,
-            &device_profile,
-        ) {
-            worker.terminate().await;
-            *guard = None;
-        }
-    }
-    if guard.is_none() {
-        let session_id = uuid::Uuid::new_v4().to_string();
-        let work_directory = app
-            .path()
-            .app_cache_dir()
-            .map_err(|error| error.to_string())?
-            .join("inference")
-            .join(&session_id);
-        let package = WorkerPackage::from(&runtime);
-        let params = RuntimeInitializeParams {
-            runtime_manifest_path: runtime.manifest_path.to_string_lossy().into_owned(),
-            protocol_version: PROTOCOL_VERSION,
-            runtime_digest: runtime.digest.clone(),
-            session_id,
+    let mut lease = WorkerLease::acquire(
+        app,
+        priority,
+        WorkerSpecification {
             capability: RuntimeCapability::Embedding,
             capability_spec_id: crate::ai::capabilities::embedding::EMBEDDING_SPEC_ID.into(),
-            device_profile: device_profile.clone(),
-            work_directory: work_directory.to_string_lossy().into_owned(),
-            model_paths: RuntimeModelPaths {
-                embedding: Some(model_directory.to_string_lossy().into_owned()),
-                speech_transcription: None,
-                speech_alignment: None,
-                speech_diarization: None,
-                speech_synthesis: None,
-                speech_separation: None,
-                image_segmentation: None,
-                image_processing: None,
+            device_profile: super::device_profiles::embedding::profile()?,
+            model: RuntimeModel::Snapshot {
+                path: model_directory.to_string_lossy().into_owned(),
             },
-            budget_ms: package.initialization_budget_ms(),
-        };
-        *guard = Some(
-            Worker::start(
-                package,
-                &work_directory,
-                model_directory,
-                params,
-                cancellation,
-                exit,
-            )
-            .await?,
-        );
-    }
-    let worker = guard.as_mut().ok_or("worker_crashed")?;
+        },
+        cancellation,
+    )
+    .await?;
     let request_id = uuid::Uuid::new_v4().to_string();
     let params = EmbeddingEncodeParams {
         request_id: request_id.clone(),
@@ -129,66 +63,25 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         texts,
         embedding_spec_id: crate::ai::capabilities::embedding::EMBEDDING_SPEC_ID.into(),
     };
-    let deadline = match worker
-        .send_request(
-            &request_id,
-            "embedding.encode",
+    let output: EmbeddingEncoding = lease
+        .request(
+            &RequestIdentity {
+                request_id: &request_id,
+                attempt_epoch: identity.attempt_epoch,
+                budget_ms: identity.budget_ms,
+            },
             &params,
-            identity.budget_ms,
             cancellation,
-            exit,
         )
-        .await
-    {
-        Ok(deadline) => deadline,
-        Err(error) => {
-            *guard = None;
-            return Err(error);
-        }
-    };
-    let encoding = tokio::select! {
-        biased;
-        _ = exit.cancelled() => {
-            cancel(worker, &request_id, identity.attempt_epoch).await;
-            *guard = None;
-            return Err("cancelled".into());
-        }
-        _ = cancellation.cancelled() => {
-            cancel(worker, &request_id, identity.attempt_epoch).await;
-            *guard = None;
-            return Err("cancelled".into());
-        }
-        encoding = tokio::time::timeout_at(deadline, worker.protocol.read_response::<EmbeddingEncoding>(&request_id)) => {
-            match encoding {
-                Ok(value) => value,
-                Err(_) => {
-                    cancel(worker, &request_id, identity.attempt_epoch).await;
-                    *guard = None;
-                    return Err("deadline_exceeded".into());
-                }
-            }
-        }
-    };
-    worker.last_used = Instant::now();
-    let output = match encoding {
-        Ok(output) => output,
-        Err(error) => {
-            worker.terminate().await;
-            *guard = None;
-            return Err(error);
-        }
-    };
+        .await?;
     if output.request_id != request_id
         || output.attempt_epoch != identity.attempt_epoch
         || output.embedding_spec_id != params.embedding_spec_id
         || output.dimensions != 1024
     {
-        worker.terminate().await;
-        *guard = None;
+        lease.discard().await;
         return Err("invalid_output: embedding response identity differs".into());
     }
-    drop(guard);
-    super::reclaim_when_idle(slot);
     Ok(output)
 }
 
@@ -240,25 +133,4 @@ fn embedding_directory(resources: &PreparedModels) -> Result<&Path, String> {
         }
     }
     Ok(directory)
-}
-
-async fn cancel(worker: &mut Worker, request_id: &str, attempt_epoch: u64) {
-    let _ = tokio::time::timeout(CANCEL_GRACE, async {
-        worker
-            .protocol
-            .notify(
-                "runtime.cancel",
-                &RuntimeCancelParams {
-                    target_request_id: request_id.into(),
-                    attempt_epoch,
-                },
-            )
-            .await?;
-        worker
-            .protocol
-            .read_response::<EmbeddingEncoding>(request_id)
-            .await
-    })
-    .await;
-    worker.terminate().await;
 }

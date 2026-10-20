@@ -80,8 +80,9 @@ Metal execution allow four times the input duration with a two-minute minimum. L
 allows 120 times the input duration with a thirty-minute minimum; every profile is capped at six
 hours. These are cancellable task deadlines, not quality or performance acceptance thresholds.
 Such a budget bounds the execution it names and nothing else. It starts when the worker is holding
-the inference slot and ready to receive the request, so waiting behind another capability and
-loading a cold model cannot consume it. Waiting for the slot is bounded by cancellation alone,
+the inference slot and ready to receive the request, so waiting behind another capability cannot
+consume it, and a worker holds its weights before it accepts any request, so loading them cannot
+consume it either. Waiting for the slot is bounded by cancellation alone,
 because every holder executes under its own budget and therefore always releases the slot.
 
 Forced alignment and speaker diarization are separate optional speech stages. Neither is required
@@ -155,14 +156,36 @@ Process admission, resident-memory checks, idle reuse, cancellation and publicat
 [system-architecture.md](system-architecture.md); corresponding-source and license approval remains a
 [release requirement](release.md). Ollama is an optional generative provider, not an embedding or ASR dependency.
 
-Byte verification of the inference runtime belongs to the worker spawn, which is the moment before
-the libraries are loaded and the only place the cost is unavoidable. Resolving the runtime for its
-identity verifies the supplied inventory against the one this build was qualified against and
-nothing else, so a request no longer rehashes the runtime on the way to a worker that rehashes it
-again. A worker's initialization budget is that verification work at a throughput floor far below
-any supported disk, plus a fixed allowance for the process and its engine, instead of a constant
-that a cold page cache can exhaust. That one value is sent to the worker, so host and worker bound
-the same cold start rather than enforcing two budgets only one of them knows about.
+A worker is initialized with one capability and the one model that capability loads. The
+initialization message names that model once: its capability determines every graph inside it,
+except for the image capabilities that admit more than one frozen variant, which also name the
+variant the host prepared. A worker therefore never infers what it is from which of several
+optional paths happens to be set, and no capability can be handed another capability's snapshot.
+
+Every capability reaches that worker through one lease on the single inference slot. The lease owns
+admission order, the compatibility check that decides whether the resident worker is reused or
+replaced, the dispatch of the one method its capability answers, the notifications that method may
+publish, the grace an interrupted worker is given to abandon its request, and the reclamation of an
+idle worker. A caller decides what it asks for and validates what it got; it cannot leave a
+half-cancelled worker in the slot, because it never cancels or terminates one itself.
+
+Byte verification of a cold start happens once per byte, at the side responsible for it. The host
+hashes the image it is about to execute, because a worker cannot verify the bytes it is already
+running; a packaged build executes a pinned inventory member, while a development build executes
+the Cargo artifact no inventory pins. The worker hashes every library before it loads one, which is
+both the only place that cost is unavoidable and the only process whose check cannot be invalidated
+between the verification and the load. Resolving the runtime for its identity verifies the supplied
+inventory against the one this build was qualified against and nothing else, so no caller rehashes
+anything on the way to a worker.
+
+Each of those two phases is bounded by the bytes that phase reads, at a throughput floor far below
+any supported disk, plus one allowance for the work that is not proportional to bytes. A worker
+loads the snapshot it was initialized for while it initializes, so those bytes belong to that phase
+too: an engine is never half-built, and no request pays for a load it did not ask for. The host
+derives that value where both the verified runtime and the measured snapshot are known and sends it
+to the worker, so both sides bound that phase with the same number rather than enforcing two
+budgets only one of them knows about. The GPU backend probe is bounded the same way, because it
+hashes the same inventory and loads one library without loading a model.
 
 Requests carry a relative execution budget rather than an absolute deadline. Only the executor
 knows when the work it bounds began, and a budget measured from arrival cannot be consumed by a

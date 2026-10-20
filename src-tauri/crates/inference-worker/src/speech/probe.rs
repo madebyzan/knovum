@@ -2,8 +2,8 @@ use super::ffi;
 use std::path::Path;
 
 pub(crate) fn devices(manifest: &Path, digest: &str, reserve: u64) -> Result<String, String> {
-    crate::initialization::initialize_ort(manifest, digest)?;
-    let path = ffi::library_path(manifest, "knovum_voice")?;
+    let runtime = crate::initialization::VerifiedRuntime::initialize(manifest, digest)?;
+    let path = ffi::library(&runtime, "knovum_voice")?;
     let api = unsafe { ffi::voice::VoiceApi::from_library(ffi::load(&path)?) }
         .map_err(|error| format!("runtime_mismatch: {error}"))?;
     if unsafe { api.knovum_voice_abi() } != 3 {

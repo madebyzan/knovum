@@ -1,5 +1,5 @@
 use super::{audio, ffi};
-use crate::cancellation::Cancellation;
+use crate::{cancellation::Cancellation, initialization::VerifiedRuntime};
 use ffi::sherpa::*;
 use knovum_inference_contracts::{
     runtime::RuntimeInitializeParams,
@@ -7,10 +7,7 @@ use knovum_inference_contracts::{
 };
 use std::{path::PathBuf, ptr};
 
-pub(crate) struct Diarizer {
-    params: RuntimeInitializeParams,
-    engine: Option<Engine>,
-}
+pub(crate) struct Diarizer(Engine);
 struct Engine {
     api: SherpaApi,
     handle: *const SherpaOnnxOfflineSpeakerDiarization,
@@ -24,64 +21,53 @@ impl Drop for Engine {
     }
 }
 
+/// Admits a diarization profile and returns the snapshot it names. Pure in its initialization
+/// message, so a precision that differs from the frozen exports is rejected before a graph loads.
+pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<&str, String> {
+    if params.device_profile.device != "cpu"
+        || params.device_profile.execution_profile_id != params.capability_spec_id
+        || !(1..=8).contains(&params.device_profile.cpu_threads)
+        || !matches!(
+            params.capability_spec_id.as_str(),
+            "sherpa-diarization-cpu-v1" | "sherpa-diarization-fp32-cpu-v1"
+        )
+    {
+        return Err("unsupported_device: diarization profile is unavailable".into());
+    }
+    params.model.snapshot()
+}
+
 impl Diarizer {
-    pub(crate) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
-        if params.device_profile.device != "cpu"
-            || params.device_profile.execution_profile_id != params.capability_spec_id
-            || params.model_paths.speech_diarization.is_none()
-            || !(1..=8).contains(&params.device_profile.cpu_threads)
-            || !matches!(
-                params.capability_spec_id.as_str(),
-                "sherpa-diarization-cpu-v1" | "sherpa-diarization-fp32-cpu-v1"
-            )
-        {
-            return Err("unsupported_device: diarization profile is unavailable".into());
+    pub(crate) fn new(
+        params: &RuntimeInitializeParams,
+        runtime: &VerifiedRuntime,
+    ) -> Result<Self, String> {
+        let directory = PathBuf::from(admit(params)?);
+        let segment = ffi::string(
+            directory
+                .join("segmentation.onnx")
+                .to_str()
+                .ok_or("model_corrupt: model path is invalid")?,
+        )?;
+        let embedding = ffi::string(
+            directory
+                .join("embedding.onnx")
+                .to_str()
+                .ok_or("model_corrupt: model path is invalid")?,
+        )?;
+        let api = ffi::sherpa_api(runtime)?;
+        let mut config = configuration(-1);
+        config.segmentation.pyannote.model = segment.as_ptr();
+        config.embedding.model = embedding.as_ptr();
+        config.segmentation.num_threads = i32::from(params.device_profile.cpu_threads);
+        config.embedding.num_threads = config.segmentation.num_threads;
+        let handle = unsafe { api.SherpaOnnxCreateOfflineSpeakerDiarization(&config) };
+        if handle.is_null() {
+            return Err("model_corrupt: diarization engine could not load".into());
         }
-        Ok(Self {
-            params: params.clone(),
-            engine: None,
-        })
+        Ok(Self(Engine { api, handle }))
     }
-    fn load(&mut self) -> Result<&Engine, String> {
-        if self.engine.is_none() {
-            let directory = PathBuf::from(
-                self.params
-                    .model_paths
-                    .speech_diarization
-                    .as_ref()
-                    .ok_or("model_missing: diarization model is missing")?,
-            );
-            let segment = ffi::string(
-                directory
-                    .join("segmentation.onnx")
-                    .to_str()
-                    .ok_or("model_corrupt: model path is invalid")?,
-            )?;
-            let embedding = ffi::string(
-                directory
-                    .join("embedding.onnx")
-                    .to_str()
-                    .ok_or("model_corrupt: model path is invalid")?,
-            )?;
-            let api = unsafe {
-                SherpaApi::from_library(ffi::load(&ffi::path(&self.params, "sherpa-onnx-c-api")?)?)
-            }
-            .map_err(|error| format!("runtime_mismatch: {error}"))?;
-            let mut config = configuration(-1);
-            config.segmentation.pyannote.model = segment.as_ptr();
-            config.embedding.model = embedding.as_ptr();
-            config.segmentation.num_threads = i32::from(self.params.device_profile.cpu_threads);
-            config.embedding.num_threads = config.segmentation.num_threads;
-            let handle = unsafe { api.SherpaOnnxCreateOfflineSpeakerDiarization(&config) };
-            if handle.is_null() {
-                return Err("model_corrupt: diarization engine could not load".into());
-            }
-            self.engine = Some(Engine { api, handle });
-        }
-        self.engine
-            .as_ref()
-            .ok_or("worker_crashed: diarization engine is unavailable".into())
-    }
+
     pub(crate) fn diarize(
         &mut self,
         params: SpeechDiarizeParams,
@@ -98,7 +84,7 @@ impl Diarizer {
             );
         }
         let audio = audio::read(&params.audio_ref, 16_000, 1, 16_000 * 7200, cancel)?;
-        let engine = self.load()?;
+        let engine = &self.0;
         cancel.check()?;
         let config = configuration(bounds.minimum.map_or(-1, i32::from));
         unsafe {
