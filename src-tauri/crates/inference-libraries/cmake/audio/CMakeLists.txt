@@ -47,3 +47,9 @@ if(APPLE)
     add_dependencies(knovum_voice ggml-metal-lib)
     install(FILES "${CMAKE_BINARY_DIR}/bin/default.metallib" DESTINATION bin COMPONENT knovum-voice)
 endif()
+# The installed supplier artifacts join the default target, so the build command never names a
+# target that lives in the supplier subdirectory. Visual Studio generators resolve such names
+# through the generated solution, and MSBuild receives an unusable project path when that lookup
+# misses.
+add_custom_target(knovum_audio ALL)
+add_dependencies(knovum_audio audiocpp ${KNOVUM_BACKEND_TARGETS})
