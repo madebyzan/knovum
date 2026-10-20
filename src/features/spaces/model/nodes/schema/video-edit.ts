@@ -9,7 +9,7 @@ import {
 } from "./video-edit-media";
 import { videoOutputColor, videoTextOverlaySchema } from "./video-edit-text";
 
-export const VIDEO_EDIT_PROJECT_VERSION = 2;
+export const VIDEO_EDIT_PROJECT_VERSION = 1;
 
 export const videoEditProjectSchema = z
   .object({
