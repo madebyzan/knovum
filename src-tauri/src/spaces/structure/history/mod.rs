@@ -74,10 +74,7 @@ pub(crate) async fn record_group(
     group::record(tx, group_id, entries).await
 }
 
-async fn clear_redo(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-) -> Result<(), String> {
+async fn clear_redo(tx: &mut Transaction<'_, Sqlite>, space_id: &str) -> Result<(), String> {
     sqlx::query("DELETE FROM spaces_edit_history WHERE space_id=$1 AND undone=1")
         .bind(space_id)
         .execute(&mut **tx)
