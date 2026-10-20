@@ -48,7 +48,11 @@ if(NOT runtimes)
   message(FATAL_ERROR "The licensed MSVC runtime closure is missing")
 endif()
 foreach(path IN LISTS runtimes)
-  execute_process(COMMAND "@CMAKE_COMMAND@" -E env "KNOVUM_SIGNATURE_VERIFY_PATH=${path}" powershell.exe -NoProfile -NonInteractive -Command
+  # A pwsh parent (the Actions default shell) leaves its PowerShell 7 module directories in
+  # PSModulePath; Windows PowerShell 5.1 would autoload that incompatible Security module, so it
+  # rebuilds its own path instead (PowerShell/PowerShell#27774).
+  execute_process(COMMAND "@CMAKE_COMMAND@" -E env --unset=PSModulePath "KNOVUM_SIGNATURE_VERIFY_PATH=${path}"
+    powershell.exe -NoProfile -NonInteractive -Command
     "$ErrorActionPreference='Stop'; $s=Get-AuthenticodeSignature -LiteralPath $env:KNOVUM_SIGNATURE_VERIFY_PATH; if($s.Status -ne 'Valid' -or $s.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation'){throw 'Invalid Microsoft runtime publisher'}"
     COMMAND_ERROR_IS_FATAL ANY)
 endforeach()
