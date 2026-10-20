@@ -48,7 +48,7 @@ const weight = computed({
 });
 
 function weightName(value: number): string {
-  const names: Record<number, string> = {
+  const nameByWeight: Record<number, string> = {
     100: "Thin",
     200: "Extra Light",
     300: "Light",
@@ -59,7 +59,7 @@ function weightName(value: number): string {
     800: "Extra Bold",
     900: "Black",
   };
-  return names[value] ?? String(value);
+  return nameByWeight[value] ?? String(value);
 }
 </script>
 

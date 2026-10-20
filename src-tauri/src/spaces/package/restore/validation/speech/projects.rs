@@ -9,9 +9,9 @@ pub(super) fn validate(
     let SpeechIndex {
         revisions,
         projects,
-        project_types,
-        project_revision_owners,
-        separation_rows,
+        project_type_by_id,
+        project_id_by_revision_id,
+        separation_by_id,
         ..
     } = index;
     let mut chapter_segments: HashMap<
@@ -46,7 +46,7 @@ pub(super) fn validate(
             .active_revision_id
             .as_deref()
             .ok_or("Package speech project requires an active revision")?;
-        if project_revision_owners.get(active) != Some(&row.id.as_str()) {
+        if project_id_by_revision_id.get(active) != Some(&row.id.as_str()) {
             return Err("Package speech project active revision has a different owner".into());
         }
     }
@@ -65,7 +65,7 @@ pub(super) fn validate(
         {
             return Err("Package speech project revision metadata is invalid".into());
         }
-        let project_type = project_types
+        let project_type = project_type_by_id
             .get(row.project_id.as_str())
             .ok_or("Package speech revision owner is unavailable")?;
         let config =
@@ -106,7 +106,7 @@ pub(super) fn validate(
         ) = &config
         {
             if let Some(provenance) = &config.background_separation {
-                let separation = separation_rows
+                let separation = separation_by_id
                     .get(provenance.separation_id.as_str())
                     .ok_or("Package video references an unavailable source separation")?;
                 let background = config

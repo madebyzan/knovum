@@ -12,7 +12,7 @@ import { useDictationSession } from "./use-dictation-session";
 
 const { t } = useI18n();
 const session = useDictationSession();
-const ERROR_MESSAGES: Record<string, string> = {
+const MESSAGE_KEY_BY_ERROR_CODE: Record<string, string> = {
   microphone_permission_denied: "dictation.errors.microphonePermissionDenied",
   microphone_unavailable: "dictation.errors.microphoneUnavailable",
   recording_limit_reached: "dictation.errors.recordingLimitReached",
@@ -51,7 +51,7 @@ const resourceProgress = computed(() =>
 );
 const transcriptDescription = computed(() => {
   const value = session.state.value;
-  const key = value.errorCode ? ERROR_MESSAGES[value.errorCode] : undefined;
+  const key = value.errorCode ? MESSAGE_KEY_BY_ERROR_CODE[value.errorCode] : undefined;
   return t(key ?? "dictation.result.description");
 });
 
@@ -108,8 +108,8 @@ function reportFailure(error: unknown) {
       >
         {{ resourceProgress }}
       </p>
-      <p v-if="session.state.value.targetApplication" class="truncate text-caption text-fg-secondary">
-        {{ session.state.value.targetApplication }}
+      <p v-if="session.state.value.targetApplicationName" class="truncate text-caption text-fg-secondary">
+        {{ session.state.value.targetApplicationName }}
       </p>
     </div>
     <UiButton size="sm" variant="ghost" @click="cancel">

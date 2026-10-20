@@ -50,7 +50,7 @@ pub(super) async fn list_publications_for_source(
 fn decode_publication(
     row: sqlx::sqlite::SqliteRow,
 ) -> Result<SpeechSourceSeparationPublication, String> {
-    let duration = |column: &str| -> Result<u64, String> {
+    let read_duration_ms = |column: &str| -> Result<u64, String> {
         u64::try_from(row.try_get::<i64, _>(column).map_err(db::sql_error)?)
             .map_err(|_| "Source separation duration is invalid".into())
     };
@@ -62,7 +62,7 @@ fn decode_publication(
         source: SpeechMediaSource {
             asset_path: row.try_get("source_asset_path").map_err(db::sql_error)?,
             source_revision: row.try_get("source_revision").map_err(db::sql_error)?,
-            duration_ms: duration("source_duration_ms")?,
+            duration_ms: read_duration_ms("source_duration_ms")?,
         },
         background: SpeechMediaSource {
             asset_path: row
@@ -73,7 +73,7 @@ fn decode_publication(
                 row.try_get::<String, _>("background_sha256")
                     .map_err(db::sql_error)?
             ),
-            duration_ms: duration("background_duration_ms")?,
+            duration_ms: read_duration_ms("background_duration_ms")?,
         },
         vocals: SpeechMediaSource {
             asset_path: row.try_get("vocals_asset_path").map_err(db::sql_error)?,
@@ -82,7 +82,7 @@ fn decode_publication(
                 row.try_get::<String, _>("vocals_sha256")
                     .map_err(db::sql_error)?
             ),
-            duration_ms: duration("background_duration_ms")?,
+            duration_ms: read_duration_ms("background_duration_ms")?,
         },
         model_spec_id: row.try_get("model_spec_id").map_err(db::sql_error)?,
     })

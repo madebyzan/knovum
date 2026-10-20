@@ -5,10 +5,9 @@ mod execution;
 mod recovery;
 mod repository;
 mod source_snapshot;
-#[cfg(test)]
-#[path = "tests/source_snapshot.rs"]
-mod source_snapshot_tests;
 mod start;
+#[cfg(test)]
+mod tests;
 
 pub use contracts::{
     CreateCandidateVoiceRequest, DraftVoiceCandidateRequest, VoiceCandidate, VoiceCandidateSource,

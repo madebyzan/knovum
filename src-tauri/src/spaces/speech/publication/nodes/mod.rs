@@ -31,12 +31,12 @@ pub(in crate::spaces::speech) async fn settle(
     outputs: &[MediaNodeOutput],
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
-    let source = node_data(tx, space_id, source_node_id)
+    let source = load_node_payload(tx, space_id, source_node_id)
         .await?
         .ok_or("Speech source node is no longer available")?;
     let now = crate::foundation::clock::unix_time_millis()?;
     for output in outputs {
-        let mut data = node_data(tx, space_id, &output.node_id)
+        let mut data = load_node_payload(tx, space_id, &output.node_id)
             .await?
             .ok_or("Speech output node is no longer reserved")?;
         if data.get("processingState").is_none() {
@@ -103,7 +103,7 @@ fn revision_of(output: &SpeechAudioOutput) -> String {
     format!("sha256:{}", output.sha256)
 }
 
-async fn node_data(
+async fn load_node_payload(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     node_id: &str,

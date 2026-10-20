@@ -4,15 +4,15 @@ import { useI18n } from "vue-i18n";
 
 import type { UsageReport } from "../../../shared/contracts/generated/UsageReport";
 
-const props = defineProps<{ summary: UsageReport["summary"] }>();
+const props = defineProps<{ metrics: UsageReport["metrics"] }>();
 const { locale, t } = useI18n();
 const dayFormatter = computed(
   () => new Intl.NumberFormat(locale.value, { style: "unit", unit: "day", unitDisplay: "long" }),
 );
 const rows = computed(() => [
-  { label: t("settings.usage.activeDays"), days: props.summary.activeDays },
-  { label: t("settings.usage.streak.current"), days: props.summary.currentStreakDays },
-  { label: t("settings.usage.streak.longest"), days: props.summary.longestStreakDays },
+  { label: t("settings.usage.activeDays"), days: props.metrics.activeDays },
+  { label: t("settings.usage.streak.current"), days: props.metrics.currentStreakDays },
+  { label: t("settings.usage.streak.longest"), days: props.metrics.longestStreakDays },
 ]);
 </script>
 

@@ -75,7 +75,7 @@ it("inspects packaged instructions within the plugin with no child switch and ca
         };
       case "plugin:extensions|read_skill":
         return { skill, markdown: "# Compare sources\nUse evidence.", files: [] };
-      case "plugin:extensions|copy_skill":
+      case "plugin:extensions|duplicate_skill":
         return { value: { ...skill, id: "personal", pluginId: null }, cleanupErrors: [] };
       default:
         throw new Error(`Unexpected command: ${command}`);
@@ -94,7 +94,7 @@ it("inspects packaged instructions within the plugin with no child switch and ca
   expect(wrapper.emitted("navigate")).toBeUndefined();
   wrapper.getComponent(SkillActions).vm.$emit("copy");
   await flushPromises();
-  expect(invoke).toHaveBeenCalledWith("plugin:extensions|copy_skill", { skillId: "packaged" });
+  expect(invoke).toHaveBeenCalledWith("plugin:extensions|duplicate_skill", { skillId: "packaged" });
   await wrapper.get('[data-testid="extension-back"]').trigger("click");
   expect(wrapper.find('[data-testid="plugin-skill-packaged"]').exists()).toBe(true);
   expect(wrapper.emitted("navigate")).toBeUndefined();

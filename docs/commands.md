@@ -69,7 +69,7 @@ Space persistence is entirely Rust-owned. Reads and writes cross typed Rust comm
 - `plugin:spaces|generate_media_insights` — generate and publish insights against the captured current media knowledge;
 - `plugin:spaces|await_space_runtime` — await the Rust-owned startup recovery gate without rerunning recovery.
 
-Agent artifact commands never accept an app-owned absolute source path from the Renderer. `plugin:spaces|stage_generated_artifact_import` resolves a validated Space/session/relative artifact identity in Rust and enters the same prepared Space import pipeline used by user-selected sources; `plugin:spaces|consume_agent_artifact` removes that source only after import succeeds. Preview, discard, recovery listing and creation use the same identity boundary.
+Agent artifact commands never accept an app-owned absolute source path from the Renderer. `plugin:spaces|stage_generated_artifact_import` resolves a validated Space/session/relative artifact identity in Rust and enters the same prepared Space import pipeline used by user-selected sources; `plugin:spaces|remove_agent_artifact` removes that source only after import succeeds. Preview, discard, recovery listing and creation use the same identity boundary.
 
 ## Governed execution commands
 
@@ -117,7 +117,7 @@ Video generation and committed video rendering cancellation use `derivationId`; 
 They share the Spaces transport namespace with state-changing commands.
 
 Desktop startup calls `plugin:desktop|mark_exit_coordinator_ready` to announce that exit decisions can
-be handled, and `reveal_main_window` to show either the usable product or recoverable error surface.
+be handled, and `open_main_window` to show either the usable product or recoverable error surface.
 The latter does not claim bootstrap succeeded. The flat updater commands are
 `get_update_configuration`, `check_for_update` and `install_update`; their manual permission grants
 are synchronized with the app handler and Renderer callers.

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { AlertCircle } from "@lucide/vue";
-import { computed, nextTick, watch, type ComponentPublicInstance } from "vue";
+import { computed, nextTick, useTemplateRef, watch } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
@@ -43,8 +43,10 @@ const visibleMessages = computed(() =>
         Boolean(props.streamedText && message.id === props.messages.at(-1)?.id)),
   ),
 );
-const { scroller, atTail, rows, totalSize, measureElement, updateScrollPosition, scrollToTail, loadOlder } =
+const scroller = useTemplateRef<HTMLDivElement>("scroller");
+const { atTail, rows, totalSize, measureElement, updateScrollPosition, scrollToTail, loadOlder } =
   useConversationScroll(
+    scroller,
     {
       get messages() {
         return visibleMessages.value;
@@ -85,10 +87,6 @@ watch(
     scrollToTail();
   },
 );
-
-function bindScroller(element: Element | ComponentPublicInstance | null) {
-  scroller.value = element instanceof HTMLDivElement ? element : null;
-}
 </script>
 
 <template>
@@ -99,7 +97,7 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
       </UiButton>
     </div>
     <div
-      :ref="bindScroller"
+      ref="scroller"
       class="min-h-0 flex-1 overflow-y-auto px-4 pt-5 pb-4"
       @scroll.passive="updateScrollPosition"
     >

@@ -15,7 +15,10 @@ import { toast } from "vue-sonner";
 
 import { formatErrorDiagnostic } from "../foundation/errors/error-format";
 import { useTaskStore } from "../foundation/tasks/task-store";
-import { UPDATE_FAILURE_KEYS, UPDATE_STATUS_KEYS } from "../foundation/updates/update-presentation";
+import {
+  MESSAGE_KEY_BY_UPDATE_FAILURE,
+  LABEL_KEY_BY_UPDATE_STATUS,
+} from "../foundation/updates/update-presentation";
 import { UPDATE_TASK_ID, useUpdateStore } from "../foundation/updates/update-store";
 import type { UpdateState } from "../shared/contracts/generated/UpdateState";
 
@@ -53,7 +56,7 @@ function reflectProgress(state: Extract<UpdateState, { status: "downloading" | "
     );
     tasks.setOpen(UPDATE_TASK_ID, reviewUpdate);
   }
-  const message = t(UPDATE_STATUS_KEYS[state.status]);
+  const message = t(LABEL_KEY_BY_UPDATE_STATUS[state.status]);
   if (state.status === "downloading" && state.total) {
     tasks.progress(UPDATE_TASK_ID, (state.downloaded / state.total) * 100, message);
   } else {
@@ -72,7 +75,7 @@ function reflectTask(state: UpdateState) {
       tasks.succeed(UPDATE_TASK_ID);
       break;
     case "failed":
-      tasks.fail(UPDATE_TASK_ID, t(UPDATE_FAILURE_KEYS[state.reason]));
+      tasks.fail(UPDATE_TASK_ID, t(MESSAGE_KEY_BY_UPDATE_FAILURE[state.reason]));
       break;
     case "available":
       tasks.cancelled(UPDATE_TASK_ID);

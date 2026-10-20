@@ -24,12 +24,8 @@ export function discardAgentCreation(spaceId: string, sessionId: string): Promis
   return invokeCommand<void>("plugin:spaces|discard_artifact_workspace", { spaceId, sessionId });
 }
 
-export function consumeAgentArtifact(
-  spaceId: string,
-  sessionId: string,
-  relativePath: string,
-): Promise<void> {
-  return invokeCommand<void>("plugin:spaces|consume_agent_artifact", { spaceId, sessionId, relativePath });
+export function removeAgentArtifact(spaceId: string, sessionId: string, relativePath: string): Promise<void> {
+  return invokeCommand<void>("plugin:spaces|remove_agent_artifact", { spaceId, sessionId, relativePath });
 }
 
 export function listRecoverableAgentCreations(spaceId: string): Promise<RecoverableAgentCreation[]> {

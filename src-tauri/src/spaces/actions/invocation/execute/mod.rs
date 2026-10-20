@@ -83,8 +83,8 @@ async fn execute(
             )
             .await?;
             Ok(if impact == SpaceActionImpact::ReadOnly {
-                ActionInvocationOutcome::QueryResult {
-                    result: action_output,
+                ActionInvocationOutcome::Projection {
+                    projection: action_output,
                 }
             } else {
                 ActionInvocationOutcome::CommittedReceipt {

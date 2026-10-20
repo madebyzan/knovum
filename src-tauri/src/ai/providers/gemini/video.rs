@@ -48,7 +48,7 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
                 "instances": [instance],
                 "parameters": {
                     "sampleCount": 1,
-                    "durationSeconds": req.duration.clamp(5, 8),
+                    "durationSeconds": req.duration_seconds.clamp(5, 8),
                 }
             });
 

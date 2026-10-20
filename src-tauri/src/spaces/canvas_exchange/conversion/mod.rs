@@ -45,7 +45,7 @@ pub(super) fn prepare(
         .iter()
         .filter(|node| node.parent_id().is_none())
         .count();
-    let mut child_orders: HashMap<String, usize> = HashMap::new();
+    let mut next_order_by_parent: HashMap<String, usize> = HashMap::new();
     let mut nodes = Vec::new();
     for node in &document.nodes {
         super::import_control::check(resources.cancellation)?;
@@ -103,7 +103,7 @@ pub(super) fn prepare(
                 .iter()
                 .find(|group| group.frame.id == *parent_source)
                 .ok_or("JSON Canvas parent group is unavailable")?;
-            let order = child_orders.entry(parent.clone()).or_insert(0);
+            let order = next_order_by_parent.entry(parent.clone()).or_insert(0);
             let current = *order;
             *order += 1;
             (
@@ -270,17 +270,17 @@ fn memberships(document: &JsonCanvasDocumentV1) -> Result<HashMap<String, String
 
 fn relation(
     edge: &super::contracts::JsonCanvasEdgeV1,
-    identities: &HashMap<String, String>,
+    node_id_by_source_id: &HashMap<String, String>,
     space: &str,
 ) -> Result<crate::spaces::commands::relations::SpaceRelationInput, AppError> {
     Ok(crate::spaces::commands::relations::SpaceRelationInput {
         id: uuid::Uuid::new_v4().to_string(),
         space_id: space.into(),
-        source_id: identities
+        source_id: node_id_by_source_id
             .get(&edge.from_node)
             .ok_or("Unknown JSON Canvas edge source")?
             .clone(),
-        target_id: identities
+        target_id: node_id_by_source_id
             .get(&edge.to_node)
             .ok_or("Unknown JSON Canvas edge target")?
             .clone(),

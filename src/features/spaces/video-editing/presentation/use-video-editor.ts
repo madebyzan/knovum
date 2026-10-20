@@ -1,4 +1,4 @@
-import { computed, onScopeDispose, shallowRef, watch, type Ref } from "vue";
+import { computed, onScopeDispose, shallowRef, watch, type Ref, type ShallowRef } from "vue";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { SpaceEditorTab } from "../../workspace/workbench-tab";
@@ -19,7 +19,11 @@ import { useVideoSelection } from "./use-video-selection";
  * Composition root of the video editor: one session, one preview player, one timeline view, and the
  * editing commands that operate on them.
  */
-export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
+export function useVideoEditor(
+  tab: SpaceEditorTab,
+  active: Ref<boolean>,
+  editorRoot: Readonly<ShallowRef<HTMLElement | null>>,
+) {
   const session = useVideoSessionStore().sessions.get(tab.id);
   if (!session) throw new Error("Video session is unavailable");
   const data = computed(() => session.node.value.data);
@@ -27,7 +31,6 @@ export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
   const draft = shallowRef<VideoEditProject>();
   const visibleProject = computed(() => draft.value ?? project.value);
   const previewError = shallowRef<string>();
-  const editorRoot = shallowRef<HTMLElement | null>(null);
 
   const materials = useVideoMaterials(tab.spaceId, project, (next) => session.history.commit(next));
   const player = createPreviewPlayer({
@@ -135,7 +138,6 @@ export function useVideoEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
     data,
     project,
     visibleProject,
-    editorRoot,
     player,
     timeline,
     gestures,

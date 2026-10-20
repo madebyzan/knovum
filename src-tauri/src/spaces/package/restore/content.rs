@@ -60,12 +60,12 @@ async fn insert_packaged_chunk(
     tx: &mut Transaction<'_, Sqlite>,
     request: &RestorePackageRequest,
     row: &PackageChunk,
-    revisions: &std::collections::HashMap<String, chunk_store::NodeChunkRevisions>,
+    chunk_revision_by_node_id: &std::collections::HashMap<String, chunk_store::NodeChunkRevisions>,
 ) -> Result<(), String> {
     if row.origin == "node" {
         return Err("Package must not contain canonical node chunks".into());
     }
-    let contract = revisions
+    let contract = chunk_revision_by_node_id
         .get(&row.node_id)
         .ok_or_else(|| "Package Knowledge chunk node is unavailable in this Space".to_string())?;
     let expected_revision = contract.expected(&row.origin)?;

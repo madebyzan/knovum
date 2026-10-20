@@ -20,7 +20,7 @@ const { project, commit } = props.editor;
 const DECORATIONS = ["plain", "outline", "shadow", "box"] as const;
 const ALIGNMENTS = ["left", "center", "right"] as const;
 const draft = shallowRef(props.item.text);
-const duration = computed(() => (project.value ? projectDurationMs(project.value) : 0));
+const durationMs = computed(() => (project.value ? projectDurationMs(project.value) : 0));
 
 watch(
   () => props.item.text,
@@ -133,14 +133,14 @@ function patchStrength(value: number | undefined) {
       <SpaceVideoTimeField
         :label="t('spaces.media.videoEditor.clip.startsAt')"
         :value="item.startMs"
-        :max="Math.max(0, duration - 100)"
+        :max="Math.max(0, durationMs - 100)"
         @change="patch({ startMs: $event, endMs: $event + (item.endMs - item.startMs) })"
       />
       <SpaceVideoTimeField
         :label="t('spaces.media.videoEditor.clip.endsAt')"
         :value="item.endMs"
         :min="item.startMs + 100"
-        :max="duration"
+        :max="durationMs"
         @change="patch({ endMs: $event })"
       />
     </section>

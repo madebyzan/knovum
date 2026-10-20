@@ -24,10 +24,10 @@ impl Images {
         if sources.len() > 2_000 {
             return Err("Document exceeds 2000 image resources".into());
         }
-        let mut images = BTreeMap::new();
+        let mut image_by_destination = BTreeMap::new();
         let mut total = 0;
         for source in sources {
-            if images.contains_key(&source.destination) {
+            if image_by_destination.contains_key(&source.destination) {
                 return Err("Document contains duplicate image resource identities".into());
             }
             let bytes = super::input::file::read_snapshot(&source.file, MAX_IMAGE_BYTES)?;
@@ -37,9 +37,9 @@ impl Images {
             if total > MAX_TOTAL_BYTES {
                 return Err("Document image resources exceed 64 MiB".into());
             }
-            images.insert(source.destination.clone(), image);
+            image_by_destination.insert(source.destination.clone(), image);
         }
-        Ok(Self(images, Cell::new(0)))
+        Ok(Self(image_by_destination, Cell::new(0)))
     }
 
     pub fn get(&self, destination: &str) -> Result<&Image, String> {

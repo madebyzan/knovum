@@ -64,7 +64,7 @@ pub(super) async fn clone_relations(
 ) -> Result<(), String> {
     let rows = sqlx::query("SELECT id,source_id,target_id,kind,rationale,status,status_before_invalidation,confidence,actor_kind,actor_id,created_at,updated_at FROM spaces_relations WHERE space_id=$1")
         .bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
-    let styles: HashMap<String, _> = snapshot
+    let style_by_relation_id: HashMap<String, _> = snapshot
         .relation_styles
         .iter()
         .map(|style| (style.relation_id.clone(), style.color.clone()))
@@ -92,7 +92,7 @@ pub(super) async fn clone_relations(
             .bind(row.try_get::<i64,_>("created_at").map_err(db::sql_error)?)
             .bind(row.try_get::<i64,_>("updated_at").map_err(db::sql_error)?)
             .execute(&mut **tx).await.map_err(db::sql_error)?;
-        if let Some(color) = styles.get(&old_relation_id) {
+        if let Some(color) = style_by_relation_id.get(&old_relation_id) {
             snapshot.relation_styles.push(RelationStyle {
                 relation_id: new_relation_id,
                 color: color.clone(),

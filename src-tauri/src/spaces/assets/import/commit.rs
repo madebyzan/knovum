@@ -65,7 +65,7 @@ fn copy_import(
     let copied = copy_resource(&job.source, &job.target, &job.cancellation, |delta| {
         on_bytes(delta, job.total_bytes)
     })
-    .and_then(|summary| copied_asset(&job, summary));
+    .and_then(|resource| copied_asset(&job, resource));
     let release = registry::remove(job_id);
     match (copied, release) {
         (Ok(asset), Ok(())) => Ok(asset),
@@ -127,7 +127,7 @@ impl ProgressState {
     }
 }
 
-fn copied_asset(job: &PendingImport, summary: CopiedResource) -> Result<PreparedAsset, String> {
+fn copied_asset(job: &PendingImport, resource: CopiedResource) -> Result<PreparedAsset, String> {
     let preview = copied_preview(job)?;
     let snapshot = InspectedFile {
         name: job.name.clone(),
@@ -135,11 +135,11 @@ fn copied_asset(job: &PendingImport, summary: CopiedResource) -> Result<Prepared
         kind: job.classification.node_kind(),
         preview_text: preview.text,
         preview_language: preview.language,
-        size: summary.size,
-        modified_at: summary.modified_at,
+        size: resource.size,
+        modified_at: resource.modified_at,
         entries: preview.entries,
     };
-    let mut asset = snapshot_to_imported(snapshot, summary.revision)?;
+    let mut asset = snapshot_to_imported(snapshot, resource.revision)?;
     asset.processing_state =
         (asset.kind != AssetKind::Audio).then_some(PreparedAssetState::Processing);
     Ok(asset)

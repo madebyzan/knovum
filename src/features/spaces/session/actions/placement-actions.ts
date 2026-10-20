@@ -12,6 +12,10 @@ export interface AddSpaceContentOptions {
   sourceChunks?: readonly KnowledgeChunkSeed[];
 }
 
+export interface FinalizePendingContentOptions {
+  reveal?: boolean;
+}
+
 export function createPlacementActions(
   mutations: SpaceMutations,
   placement: SpacePlacement,
@@ -42,11 +46,15 @@ export function createPlacementActions(
     }
     return addedNodes;
   }
-  function finalizePendingContent(spaceId: string, contentNodes: readonly SpaceCanvasNode[], reveal = true) {
+  function finalizePendingContent(
+    spaceId: string,
+    contentNodes: readonly SpaceCanvasNode[],
+    options: FinalizePendingContentOptions = {},
+  ) {
     mutations.commitPendingContent(spaceId, contentNodes);
     if (activeSpaceId.value !== spaceId) return;
     const ids = contentNodes.map((node) => node.id);
-    if (reveal) placement.requestReveal(ids);
+    if (options.reveal !== false) placement.requestReveal(ids);
   }
   return { addContent, addContents, finalizePendingContent };
 }

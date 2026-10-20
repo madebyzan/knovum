@@ -12,9 +12,9 @@ test("Windows runtime packaging uses unsigned binaries without requiring Authent
   const directory = mkdtempSync(join(tmpdir(), "knovum-signing-test-"));
   try {
     for (const name of ["worker.exe", "vcruntime140.dll"]) writeFileSync(join(directory, name), "MZxx");
-    const result = signCompiledFiles(directory, "windows-x64");
-    assert.equal(result.identity, "unsigned");
-    assert.equal(result.compiledBinaryCount, 2);
+    const signing = signCompiledFiles(directory, "windows-x64");
+    assert.equal(signing.identity, "unsigned");
+    assert.equal(signing.compiledBinaryCount, 2);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
@@ -30,9 +30,9 @@ test("macOS signing uses ad-hoc codesign on compiled binaries", () => {
   try {
     for (const header of ["cffaedfe", "cafebabf", "bfbafeca"])
       writeFileSync(join(root, header), Buffer.from(header, "hex"));
-    const result = signCompiledFiles(root, "macos-x64");
-    assert.equal(result.identity, "-");
-    assert.equal(result.compiledBinaryCount, 3);
+    const signing = signCompiledFiles(root, "macos-x64");
+    assert.equal(signing.identity, "-");
+    assert.equal(signing.compiledBinaryCount, 3);
     const signCalls = calls.filter(([, args]) => args[0] === "--force" && args[1] === "--sign");
     assert.equal(signCalls.length, 3);
   } finally {

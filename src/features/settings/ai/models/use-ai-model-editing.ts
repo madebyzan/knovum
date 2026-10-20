@@ -5,7 +5,7 @@ import {
   removeAiConnectionModel,
   saveAiConnectionModel,
 } from "../../../../foundation/ai/connection-settings";
-import { useEditorLeave } from "../../../../foundation/lifecycle/use-editor-leave";
+import { useSettingsEditorLeave } from "../../../../foundation/lifecycle/use-settings-editor-leave";
 import type { AiConnectionSettings } from "../../../../shared/contracts/generated/AiConnectionSettings";
 import type { AiModelDefinition } from "../../../../shared/contracts/generated/AiModelDefinition";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
@@ -47,7 +47,7 @@ export function useAiModelEditing(options: ModelEditingOptions) {
     error.value = "";
   }
 
-  const requestClose = useEditorLeave({
+  const requestClose = useSettingsEditorLeave({
     pending: mutation.pending,
     dirty: () => dirty.value,
     confirmDiscard,

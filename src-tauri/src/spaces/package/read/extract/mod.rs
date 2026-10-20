@@ -86,10 +86,10 @@ fn package_targets(
 }
 
 fn create_package_directories(
-    targets: &HashMap<String, (PathBuf, bool)>,
+    target_by_entry: &HashMap<String, (PathBuf, bool)>,
     cancellation: &CancellationToken,
 ) -> Result<(), crate::foundation::app_error::AppError> {
-    for (target, directory) in targets.values() {
+    for (target, directory) in target_by_entry.values() {
         super::super::control::check(cancellation)?;
         if *directory {
             fs::create_dir(target).map_err(|error| error.to_string())?;
@@ -100,7 +100,7 @@ fn create_package_directories(
 
 fn extract_entries(
     archive: &mut ZipArchive<fs::File>,
-    targets: &HashMap<String, (PathBuf, bool)>,
+    target_by_entry: &HashMap<String, (PathBuf, bool)>,
     progress: &Channel<SpacePackageProgress>,
     total: u64,
     cancellation: &CancellationToken,
@@ -116,7 +116,7 @@ fn extract_entries(
             send_progress(progress, "reading", processed, total)?;
             continue;
         };
-        let (target, directory) = targets
+        let (target, directory) = target_by_entry
             .get(token)
             .ok_or("Package contains an unindexed asset")?;
         let output = output_path(target, *directory, relative)?;
@@ -139,7 +139,7 @@ fn extract_entries(
             send_progress(progress, "reading", processed, total)?;
         }
     }
-    for (token, (_, directory)) in targets {
+    for (token, (_, directory)) in target_by_entry {
         if !*directory && !seen_file_tokens.contains(token) {
             return Err("Package file asset is missing content".into());
         }

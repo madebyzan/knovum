@@ -5,7 +5,8 @@ import { computed, reactive, shallowRef, watch } from "vue";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { McpUserInteraction } from "../../contracts/generated/McpUserInteraction";
-import { mcpElicitationSchema, type McpElicitationValue } from "../mcp-elicitation-form";
+import type { McpElicitationValue } from "../mcp-elicitation-form";
+import { mcpElicitationSchema } from "../schema/mcp-elicitation";
 import McpElicitationField from "./McpElicitationField.vue";
 const props = defineProps<{ interaction: McpUserInteraction; busy: boolean }>();
 const emit = defineEmits<{

@@ -83,7 +83,7 @@ pub(crate) async fn execute_immediate(
                 .as_str()
                 .ok_or("read-node requires nodeId")?;
             Ok(
-                crate::spaces::queries::knowledge_projection::get_node(tx, space_id, node_id)
+                crate::spaces::queries::knowledge_projection::load_node(tx, space_id, node_id)
                     .await?,
             )
         }

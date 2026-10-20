@@ -118,7 +118,7 @@ export function useSpeechWorkspace(sourceNodeId: () => string, projectType: () =
   async function addProject(input: Parameters<typeof projectCreation.add>[0]) {
     const created = await projectCreation.add(input);
     if (!created) return;
-    projects.value = [created.summary, ...projects.value];
+    projects.value = [created.project, ...projects.value];
     selectRevision(created.snapshot);
   }
 

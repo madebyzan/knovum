@@ -30,5 +30,5 @@ impl<T> ExtensionChange<T> {
 }
 
 #[cfg(test)]
-#[path = "../tests/operations.rs"]
+#[path = "tests/operations.rs"]
 mod tests;

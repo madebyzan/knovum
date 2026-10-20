@@ -23,7 +23,7 @@ export const PREVIEW_CAPTION_HEIGHT = 48;
 export const CANVAS_NODE_HEADER_HEIGHT = 40;
 export const DEFAULT_CANVAS_TEXT_FONT_SIZE = 18;
 
-const POLICIES: Record<SpaceNodeKind, SpaceNodeSizePolicy> = {
+const SIZE_POLICY_BY_NODE_KIND: Record<SpaceNodeKind, SpaceNodeSizePolicy> = {
   note: policy([192, 192], [144, 112]),
   text: policy([220, 40], [96, 40], "width-and-proportional"),
   markdown: policy([260, 184], [224, 144]),
@@ -39,11 +39,11 @@ const POLICIES: Record<SpaceNodeKind, SpaceNodeSizePolicy> = {
 };
 
 export function spaceNodeDefaultDimensions(kind: SpaceNodeKind) {
-  return pick(POLICIES[kind], ["width", "height"]);
+  return pick(SIZE_POLICY_BY_NODE_KIND[kind], ["width", "height"]);
 }
 
 export function spaceNodeSizePolicy(data: SpaceNodePayload): SpaceNodeSizePolicy {
-  const base = POLICIES[data.kind];
+  const base = SIZE_POLICY_BY_NODE_KIND[data.kind];
   const ratio = spaceVisualDisplayRatio(data);
   if (ratio && data.kind === "image") return { ...base, ...fitImageNode(ratio) };
   if (ratio && data.kind === "video") return { ...base, ...fitVideoNode(ratio) };

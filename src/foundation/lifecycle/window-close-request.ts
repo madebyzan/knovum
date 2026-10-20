@@ -30,7 +30,7 @@ export function attachWindowCloseListener(coordination: WindowCloseCoordination)
 async function handleWindowClose(coordination: WindowCloseCoordination) {
   let requestId: number;
   try {
-    requestId = await invokeCommand<number>("plugin:desktop|begin_window_close");
+    requestId = await invokeCommand<number>("plugin:desktop|start_window_close");
   } catch (error) {
     await logError(`Window close could not begin: ${formatErrorDiagnostic(error)}`);
     coordination.reportFailure(error, retryWindowClose);

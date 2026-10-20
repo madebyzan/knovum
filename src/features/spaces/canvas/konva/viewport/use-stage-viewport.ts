@@ -49,7 +49,7 @@ export function useStageViewport(options: StageViewportOptions) {
   const camera = createCanvasCamera({ ...options.initialViewport });
   const zoom = shallowRef(camera.get().zoom);
   const animated = shallowRef(camera.get());
-  const { key, spacePressed } = useViewportSpaceKey();
+  const { pressSpaceKey, spacePressed } = useViewportSpaceKey();
   let animationGeneration = 0;
   const pan = createCameraPan({
     abortAnimation: () => animationGeneration++,
@@ -135,7 +135,7 @@ export function useStageViewport(options: StageViewportOptions) {
     endPan,
     flushViewport,
     getViewport: camera.get,
-    key,
+    pressSpaceKey,
     movePan: pan.move,
     panning: pan.panning,
     setViewport,

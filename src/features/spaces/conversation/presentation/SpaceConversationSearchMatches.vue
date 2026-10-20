@@ -11,8 +11,8 @@ const store = useSpaceStore();
 const { t } = useI18n();
 const searchResponseSchema = z
   .object({
-    type: z.literal("query_result"),
-    result: z.array(
+    type: z.literal("projection"),
+    projection: z.array(
       z
         .object({
           nodeId: z.string().min(1),
@@ -28,7 +28,7 @@ const searchResponseSchema = z
 const parsed = computed(() => searchResponseSchema.safeParse(props.value));
 const matches = computed(() => {
   const response = parsed.value;
-  return response.success ? response.data.result : [];
+  return response.success ? response.data.projection : [];
 });
 </script>
 

@@ -185,5 +185,4 @@ pub(crate) fn validate_timing(
 }
 
 #[cfg(test)]
-#[path = "tests/separation.rs"]
 mod tests;

@@ -68,7 +68,7 @@ pub(crate) fn request<R: Runtime>(app: &AppHandle<R>) {
 }
 
 #[tauri::command]
-pub(crate) fn begin_window_close() -> Result<u64, AppError> {
+pub(crate) fn start_window_close() -> Result<u64, AppError> {
     let mut pending = PENDING.lock().map_err(|_| state_unavailable())?;
     let request = pending
         .as_mut()

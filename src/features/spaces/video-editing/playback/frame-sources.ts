@@ -17,7 +17,7 @@ interface FrameSourceOptions {
  * told nothing is available yet rather than being handed a placeholder.
  */
 export function createFrameSources(options: FrameSourceOptions) {
-  const feeds = new Map<string, FrameFeed>();
+  const feedByKey = new Map<string, FrameFeed>();
   const failed = new Set<string>();
 
   function report(key: string, error: unknown) {
@@ -28,7 +28,7 @@ export function createFrameSources(options: FrameSourceOptions) {
 
   function feedOf(asset: VideoAsset) {
     const key = assetIdentity(asset);
-    const known = feeds.get(key);
+    const known = feedByKey.get(key);
     if (known) return known;
     const preview = options.videos.ready(asset);
     if (!preview) {
@@ -41,7 +41,7 @@ export function createFrameSources(options: FrameSourceOptions) {
       onDecoded: options.onChanged,
       onFailed: (error) => report(key, error),
     });
-    feeds.set(key, feed);
+    feedByKey.set(key, feed);
     return feed;
   }
 
@@ -61,15 +61,15 @@ export function createFrameSources(options: FrameSourceOptions) {
     },
     forget(asset: VideoAsset) {
       const key = assetIdentity(asset);
-      feeds.get(key)?.dispose();
-      feeds.delete(key);
+      feedByKey.get(key)?.dispose();
+      feedByKey.delete(key);
       failed.delete(key);
       options.videos.forget(asset);
       options.images.forget(asset);
     },
     dispose() {
-      for (const feed of feeds.values()) feed.dispose();
-      feeds.clear();
+      for (const feed of feedByKey.values()) feed.dispose();
+      feedByKey.clear();
       failed.clear();
     },
   };

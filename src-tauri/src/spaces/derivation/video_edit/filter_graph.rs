@@ -141,7 +141,7 @@ fn mix(project: &VideoEditProject, audio_present: &[bool]) -> String {
             length_ms: clip.length_ms(),
             timeline_start_ms: clip.timeline_start_ms,
             volume: clip.volume,
-            fades: (
+            fades_ms: (
                 clip.fade_in_ms.max(incoming),
                 clip.fade_out_ms.max(outgoing),
             ),
@@ -156,7 +156,7 @@ fn mix(project: &VideoEditProject, audio_present: &[bool]) -> String {
             length_ms: clip.length_ms(),
             timeline_start_ms: clip.timeline_start_ms,
             volume: clip.volume,
-            fades: (clip.fade_in_ms, clip.fade_out_ms),
+            fades_ms: (clip.fade_in_ms, clip.fade_out_ms),
         }));
         labels.push(label);
     }
@@ -167,17 +167,17 @@ fn mix(project: &VideoEditProject, audio_present: &[bool]) -> String {
     filters.join(";")
 }
 
-fn combine(labels: &[String], duration: String) -> String {
+fn combine(labels: &[String], duration_seconds: String) -> String {
     match labels.len() {
         0 => {
-            format!("anullsrc=r=48000:cl=stereo,atrim=duration={duration},asetpts=PTS-STARTPTS[outa]")
+            format!("anullsrc=r=48000:cl=stereo,atrim=duration={duration_seconds},asetpts=PTS-STARTPTS[outa]")
         }
         1 => format!(
-            "[{source}]apad,atrim=duration={duration}[outa]",
+            "[{source}]apad,atrim=duration={duration_seconds}[outa]",
             source = labels[0]
         ),
         count => format!(
-            "{inputs}amix=inputs={count}:duration=longest:normalize=0,apad,atrim=duration={duration}[outa]",
+            "{inputs}amix=inputs={count}:duration=longest:normalize=0,apad,atrim=duration={duration_seconds}[outa]",
             inputs = labels
                 .iter()
                 .map(|label| format!("[{label}]"))

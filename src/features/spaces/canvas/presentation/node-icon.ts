@@ -15,7 +15,7 @@ import {
 
 import type { SpaceNodeKind } from "../../model/nodes/node-payload";
 
-const NODE_ICONS = {
+const ICON_BY_NODE_KIND = {
   website: Globe2,
   markdown: FileText,
   note: StickyNote,
@@ -31,5 +31,5 @@ const NODE_ICONS = {
 } satisfies Record<SpaceNodeKind, typeof File>;
 
 export function nodeIcon(kind: string) {
-  return (NODE_ICONS as Record<string, typeof File>)[kind] ?? File;
+  return (ICON_BY_NODE_KIND as Record<string, typeof File>)[kind] ?? File;
 }

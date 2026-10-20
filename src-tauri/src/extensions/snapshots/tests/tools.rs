@@ -1,4 +1,4 @@
-use super::tools::CatalogSelection;
+use super::super::tools::CatalogSelection;
 use crate::extensions::contracts::{
     AgentConnectionSelection, AgentExtensionSelection, AgentToolBinding, McpCatalogTool,
     McpConnection, McpConnectionCatalog, McpToolPermission, McpToolPolicy,
@@ -56,7 +56,7 @@ pub(super) fn fixture() -> (
 #[test]
 fn host_review_controls_effect_classification_and_selected_identity() {
     let (connection, catalog, selection) = fixture();
-    let execute = super::tools::project(
+    let execute = super::super::tools::project(
         &connection,
         catalog,
         CatalogSelection::Standalone(&selection),
@@ -73,7 +73,7 @@ fn changed_schema_and_unlisted_resources_cannot_expand_selection() {
     let (mut connection, catalog, mut selection) = fixture();
     connection.tools[0].schema_digest = "other".into();
     assert_eq!(
-        super::tools::project(
+        super::super::tools::project(
             &connection,
             catalog.clone(),
             CatalogSelection::Standalone(&selection)
@@ -85,7 +85,7 @@ fn changed_schema_and_unlisted_resources_cannot_expand_selection() {
         .resource_uris
         .push("file:///private/unselected".into());
     assert_eq!(
-        super::tools::project(
+        super::super::tools::project(
             &connection,
             catalog,
             CatalogSelection::Standalone(&selection)
@@ -101,7 +101,7 @@ fn resource_and_prompt_schemas_bind_exact_user_selected_content() {
         tool_names: vec![],
         ..selection
     };
-    let projected = super::tools::project(
+    let projected = super::super::tools::project(
         &connection,
         catalog,
         CatalogSelection::Standalone(&selection),
@@ -153,14 +153,15 @@ fn template_only_packages_expose_bounded_resource_reads_without_inventing_uris()
     selected.tool_names.clear();
     selected.resource_uris.clear();
     selected.prompt_names.clear();
-    assert!(super::tools::project(
+    assert!(super::super::tools::project(
         &connection,
         catalog.clone(),
         CatalogSelection::Standalone(&selected)
     )
     .unwrap()
     .is_empty());
-    let projected = super::tools::project(&connection, catalog, CatalogSelection::Package).unwrap();
+    let projected =
+        super::super::tools::project(&connection, catalog, CatalogSelection::Package).unwrap();
     assert_eq!(projected.len(), 1);
     assert!(
         matches!(&projected[0].binding, AgentToolBinding::McpReadResource {

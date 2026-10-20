@@ -4,15 +4,15 @@ import { computed } from "vue";
 import type { PluginInspection } from "../../../../shared/contracts/generated/PluginInspection";
 const props = defineProps<{ before: PluginInspection; after: PluginInspection }>();
 const changes = computed(() => {
-  const old = new Map(
+  const beforeByKey = new Map(
     props.before.components.map((component) => [`${component.kind}:${component.name}`, component]),
   );
-  const next = new Map(
+  const afterByKey = new Map(
     props.after.components.map((component) => [`${component.kind}:${component.name}`, component]),
   );
   return {
-    added: [...next.keys()].filter((key) => !old.has(key)),
-    removed: [...old.keys()].filter((key) => !next.has(key)),
+    added: [...afterByKey.keys()].filter((key) => !beforeByKey.has(key)),
+    removed: [...beforeByKey.keys()].filter((key) => !afterByKey.has(key)),
     connectorsChanged: JSON.stringify(props.before.connectors) !== JSON.stringify(props.after.connectors),
   };
 });

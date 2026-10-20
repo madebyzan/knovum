@@ -70,12 +70,7 @@ fn main() {
             )
             .plugin(
                 "secrets",
-                tauri_build::InlinedPlugin::new().commands(&[
-                    "get",
-                    "is_configured",
-                    "set",
-                    "delete",
-                ]),
+                tauri_build::InlinedPlugin::new().commands(&["get", "inspect", "set", "delete"]),
             )
             .plugin(
                 "ai",
@@ -104,9 +99,9 @@ fn main() {
                         "enable_plugin",
                         "disable_plugin",
                         "uninstall_plugin",
-                        "add_plugin_marketplace",
+                        "create_plugin_marketplace",
                         "refresh_plugin_marketplace",
-                        "remove_plugin_marketplace",
+                        "delete_plugin_marketplace",
                         "search_plugins",
                         "list_skills",
                         "read_skill",
@@ -115,7 +110,7 @@ fn main() {
                         "save_skill_revision",
                         "import_skill",
                         "export_skill",
-                        "copy_skill",
+                        "duplicate_skill",
                         "enable_skill",
                         "disable_skill",
                         "delete_skill",

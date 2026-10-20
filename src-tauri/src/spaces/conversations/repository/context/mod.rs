@@ -4,7 +4,7 @@ use crate::spaces::db;
 
 const RECENT_MESSAGE_COUNT: usize = 24;
 const MAX_CONTEXT_CHARACTERS: usize = 20_000;
-const SUMMARY_CHARACTERS: usize = 4_000;
+const EARLIER_EXCERPT_CHARACTERS: usize = 4_000;
 
 pub async fn build(
     pool: &SqlitePool,
@@ -27,11 +27,11 @@ pub async fn build(
     messages.reverse();
     let split = messages.len().saturating_sub(RECENT_MESSAGE_COUNT);
     let (older, recent) = messages.split_at(split);
-    let summary = summarize(older);
+    let excerpts = excerpt_earlier(older);
     let mut transcript = String::new();
-    if !summary.is_empty() {
-        transcript.push_str("Earlier conversation summary:\n");
-        transcript.push_str(&summary);
+    if !excerpts.is_empty() {
+        transcript.push_str("Earlier conversation excerpts:\n");
+        transcript.push_str(&excerpts);
         transcript.push_str("\n\n");
     }
     transcript.push_str("Recent conversation:\n");
@@ -140,17 +140,17 @@ fn context_part(part: &crate::ai::contracts::ModelContentPart) -> Option<String>
     }
 }
 
-fn summarize(messages: &[ContextMessage]) -> String {
-    let mut summary = String::new();
+fn excerpt_earlier(messages: &[ContextMessage]) -> String {
+    let mut excerpts = String::new();
     for message in messages.iter().rev() {
         let excerpt = message.text.chars().take(320).collect::<String>();
-        append_bounded(&mut summary, &format!("{}: {}\n", message.role, excerpt));
+        append_bounded(&mut excerpts, &format!("{}: {}\n", message.role, excerpt));
     }
-    summary
+    excerpts
 }
 
 fn append_bounded(target: &mut String, value: &str) {
-    let remaining = SUMMARY_CHARACTERS.saturating_sub(target.chars().count());
+    let remaining = EARLIER_EXCERPT_CHARACTERS.saturating_sub(target.chars().count());
     target.extend(value.chars().take(remaining));
 }
 

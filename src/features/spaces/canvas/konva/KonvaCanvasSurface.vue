@@ -56,7 +56,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
     tabindex="0"
     @contextmenu="interactionEnabled && runtime.contextMenu.pointer($event)"
     @keydown="
-      interactionEnabled && !runtime.contextMenu.keyboard($event) && runtime.viewport.key($event, true)
+      interactionEnabled && !runtime.contextMenu.keyboard($event) && runtime.viewport.pressSpaceKey($event)
     "
   >
     <CanvasGridSurface

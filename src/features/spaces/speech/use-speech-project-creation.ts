@@ -30,15 +30,15 @@ export function useSpeechProjectCreation(owner: ProjectCreationOwner) {
     try {
       if (!spaceId) throw new Error("A persisted Space is required");
       const sourceNodeId = owner.sourceNodeId();
-      const summary = await createSpeechProject({ ...input, spaceId, sourceNodeId });
-      const snapshot = await getSpeechProject(summary.id);
+      const project = await createSpeechProject({ ...input, spaceId, sourceNodeId });
+      const snapshot = await getSpeechProject(project.id);
       if (
         !isCurrentOperation(operation, spaceId, epoch) ||
         snapshot.project.spaceId !== spaceId ||
         snapshot.project.sourceNodeId !== sourceNodeId
       )
         return;
-      return { summary, snapshot };
+      return { project, snapshot };
     } catch (cause) {
       if (isCurrentOperation(operation, spaceId, epoch)) error.value = getErrorMessage(cause);
     } finally {

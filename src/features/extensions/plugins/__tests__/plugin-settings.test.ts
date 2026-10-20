@@ -25,9 +25,9 @@ vi.mock("../../../../foundation/extensions/plugin-operations", () => ({
   disablePlugin: vi.fn<typeof PluginOperations.disablePlugin>(),
   uninstallPlugin: vi.fn<typeof PluginOperations.uninstallPlugin>(),
   searchPlugins: vi.fn<typeof PluginOperations.searchPlugins>().mockResolvedValue([]),
-  addPluginMarketplace: vi.fn<typeof PluginOperations.addPluginMarketplace>(),
+  createPluginMarketplace: vi.fn<typeof PluginOperations.createPluginMarketplace>(),
   refreshPluginMarketplace: vi.fn<typeof PluginOperations.refreshPluginMarketplace>(),
-  removePluginMarketplace: vi.fn<typeof PluginOperations.removePluginMarketplace>(),
+  deletePluginMarketplace: vi.fn<typeof PluginOperations.deletePluginMarketplace>(),
 }));
 
 const inspection: PluginInspection = {

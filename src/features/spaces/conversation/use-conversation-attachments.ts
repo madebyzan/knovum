@@ -21,14 +21,14 @@ import { isConversationImagePath, useConversationImagePreviews } from "./use-con
 
 function attachmentErrorLabelKey(error: unknown) {
   const code = decodeAppError(error)?.code;
-  const known: Readonly<Record<string, string>> = {
+  const labelKeyByCode: Readonly<Record<string, string>> = {
     conversation_context_limit: "spaces.conversation.attachments.limit",
     conversation_upload_size: "spaces.conversation.uploads.sizeError",
     conversation_upload_unsupported: "spaces.conversation.uploads.typeError",
     conversation_upload_invalid: "spaces.conversation.uploads.invalidError",
     conversation_upload_unauthorized: "spaces.conversation.uploads.permissionError",
   };
-  return code ? known[code] : undefined;
+  return code ? labelKeyByCode[code] : undefined;
 }
 
 export function useConversationAttachments() {

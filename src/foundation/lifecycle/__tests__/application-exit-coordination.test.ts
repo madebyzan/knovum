@@ -33,7 +33,7 @@ beforeEach(() => {
     return () => undefined;
   });
   mocks.invoke.mockImplementation(async (command) =>
-    command === "plugin:desktop|begin_window_close" ? 1 : undefined,
+    command === "plugin:desktop|start_window_close" ? 1 : undefined,
   );
 });
 
@@ -94,7 +94,7 @@ describe("quit, hide and update installation exclusion", () => {
       resolveBegin = resolve;
     });
     mocks.invoke.mockImplementation(async (command) =>
-      command === "plugin:desktop|begin_window_close" ? begin : undefined,
+      command === "plugin:desktop|start_window_close" ? begin : undefined,
     );
     const coordinator = await import("../window-close-coordinator");
     await coordinator.initializeExitCoordination();
@@ -106,7 +106,7 @@ describe("quit, hide and update installation exclusion", () => {
     expect(firstEvent.preventDefault).toHaveBeenCalledOnce();
     expect(repeatedEvent.preventDefault).toHaveBeenCalledOnce();
     expect(
-      mocks.invoke.mock.calls.filter(([command]) => command === "plugin:desktop|begin_window_close"),
+      mocks.invoke.mock.calls.filter(([command]) => command === "plugin:desktop|start_window_close"),
     ).toHaveLength(1);
 
     resolveBegin(17);

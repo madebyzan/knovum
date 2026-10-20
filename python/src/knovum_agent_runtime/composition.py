@@ -58,7 +58,7 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
     if any(item.error for item in uploaded):
         raise ValueError("agent-runtime-skills-unavailable")
     main = create_model(request.model, AgentModelPurpose.main)
-    summary = create_model(request.model, AgentModelPurpose.context_summary)
+    summarizer = create_model(request.model, AgentModelPurpose.context_summary)
     trigger: tuple[Literal["tokens"], int] = ("tokens", max(1, request.model.max_input_tokens * 3 // 4))
     keep: tuple[Literal["tokens"], int] = ("tokens", max(1, request.model.max_input_tokens // 4))
 
@@ -66,7 +66,7 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
         tools = [create_tool(tool) for tool in request.tools if not read_only or tool.read_only]
         return [
             SummarizationMiddleware(
-                model=summary, backend=backend, trim_tokens_to_summarize=None, trigger=trigger, keep=keep
+                model=summarizer, backend=backend, trim_tokens_to_summarize=None, trigger=trigger, keep=keep
             ),
             SkillsMiddleware(
                 backend=backend, sources=["/skills/"], tools=skill_tool_resolver(request.skill_tool_bindings, tools)

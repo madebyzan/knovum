@@ -3,6 +3,7 @@ import { computed, shallowRef } from "vue";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import { cancelConversationTask, pauseConversationTask } from "./conversation-ipc";
+import type { ConversationSelectionOptions } from "./conversation-selection";
 import { createConversationTaskState } from "./conversation-task-state";
 import {
   createConversationTaskSubmission,
@@ -12,7 +13,7 @@ import { useConversationRunRestoration } from "./use-conversation-run-restoratio
 
 interface ConversationTaskInput extends ConversationSubmissionInput {
   refresh: () => Promise<void>;
-  select: (conversationId: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
+  select: (conversationId: string, options?: ConversationSelectionOptions) => Promise<void>;
   moveDraft: (fromConversationId: string, toConversationId: string) => Promise<void>;
 }
 

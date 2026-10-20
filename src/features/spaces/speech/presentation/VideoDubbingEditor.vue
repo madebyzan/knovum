@@ -9,7 +9,7 @@ import type { SpeechProjectSnapshot } from "../../contracts/generated/SpeechProj
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
 import { useSpeechMediaSources } from "../use-speech-media-sources";
 import { useVideoDubbingDraft } from "../use-video-dubbing-draft";
-import { voiceRevisionOptions } from "../voice-options";
+import { deliveryInstructionVoiceIds, voiceRevisionOptions } from "../voice-options";
 import PronunciationLexiconEditor from "./PronunciationLexiconEditor.vue";
 import SpeechEditorPage from "./SpeechEditorPage.vue";
 import SpeechEditorTabs from "./SpeechEditorTabs.vue";
@@ -72,7 +72,7 @@ watch(
       draft.dirty.value
     )
       return;
-    draft.importTranscript(transcript.value, true);
+    draft.initializeFromTranscript(transcript.value);
   },
   { immediate: true },
 );
@@ -82,12 +82,7 @@ const voiceOptions = computed(() =>
     draft.lines.value.map((line) => line.voiceRevisionId),
   ),
 );
-const deliveryInstructionVoiceIds = computed(
-  () =>
-    new Set(
-      props.voices.filter((voice) => voice.supportsDeliveryInstruction).map((voice) => voice.revisionId),
-    ),
-);
+const instructionVoiceIds = computed(() => deliveryInstructionVoiceIds(props.voices));
 watchEffect(() =>
   emit(
     "draftState",
@@ -95,6 +90,9 @@ watchEffect(() =>
     draft.needsRevision.value && draft.valid.value ? draft.revisionInput() : undefined,
   ),
 );
+function previewLine(text: string, voiceRevisionId: string, instruction?: string) {
+  emit("preview", text, voiceRevisionId, draft.lexicon.serializeLexicon(), instruction);
+}
 </script>
 
 <template>
@@ -140,14 +138,11 @@ watchEffect(() =>
       <VideoDubbingLines
         :lines="draft.lines.value"
         :voice-options="voiceOptions"
-        :delivery-instruction-voice-ids="deliveryInstructionVoiceIds"
+        :delivery-instruction-voice-ids="instructionVoiceIds"
         :lexicon-valid="draft.lexicon.isValid.value"
         :show-source="Boolean(draft.config.value?.translation)"
         :disabled="editingDisabled"
-        @preview="
-          (text, voiceRevisionId, instruction) =>
-            emit('preview', text, voiceRevisionId, draft.lexicon.serializeLexicon(), instruction)
-        "
+        @preview="previewLine"
         @source="(start, end) => sourceControls?.audition(start, end)"
         @remove="draft.removeLine"
         @update="draft.updateLine"

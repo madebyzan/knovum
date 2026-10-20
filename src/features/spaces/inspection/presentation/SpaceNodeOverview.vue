@@ -21,7 +21,7 @@ const excerpt = computed(() => {
   const text = data.kind === "file" ? data.previewText?.trim() : undefined;
   return text ? truncateUtf16(text, 400) : undefined;
 });
-const duration = computed(() => {
+const durationLabel = computed(() => {
   const data = props.node.data;
   if (data.kind !== "video" || data.durationSeconds === undefined) return undefined;
   const minutes = Math.floor(data.durationSeconds / 60);
@@ -66,9 +66,9 @@ async function openPreview() {
       </button>
       <img v-else :src="preview" alt="" class="h-44 w-full object-contain" />
       <span
-        v-if="duration"
+        v-if="durationLabel"
         class="absolute right-2 bottom-2 rounded-md bg-surface-inverse/80 px-1.5 py-0.5 text-caption-sm text-fg-inverse"
-        >{{ duration }}</span
+        >{{ durationLabel }}</span
       >
     </div>
     <div v-if="visual" class="mt-4">

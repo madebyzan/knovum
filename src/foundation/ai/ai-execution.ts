@@ -5,7 +5,7 @@ import { useAiSettingsStore } from "./ai-settings-store";
 import type { AiModelSettings } from "./schema/model-settings";
 import type { ResolvedAiModelTarget, ResolvedAiTaskTarget } from "./schema/models";
 
-const DEFAULT_TARGET_KEY: Record<RoutingPurpose, keyof AiModelSettings["defaults"]> = {
+const DEFAULT_TARGET_FIELD_BY_PURPOSE: Record<RoutingPurpose, keyof AiModelSettings["defaults"]> = {
   writing: "writing",
   knowledge: "knowledge",
   "visual-understanding": "visualUnderstanding",
@@ -24,7 +24,8 @@ export function defaultExecutionTarget(
   settings: AiModelSettings,
   purpose: RoutingPurpose,
 ): TaskTarget | null {
-  const target = settings.defaults[DEFAULT_TARGET_KEY[purpose]] ?? settings.defaults.defaultTarget;
+  const target =
+    settings.defaults[DEFAULT_TARGET_FIELD_BY_PURPOSE[purpose]] ?? settings.defaults.defaultTarget;
   return target ? { ...target } : null;
 }
 

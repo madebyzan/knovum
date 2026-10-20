@@ -96,7 +96,7 @@ async function finalizePreparedImport(options: CommitManagedImportOptions) {
       position,
     );
     if (typeof source !== "string") await source.finalize?.();
-    context.finalizePendingContent(spaceId, nodes, reveal);
+    context.finalizePendingContent(spaceId, nodes, { reveal });
   } catch (error) {
     tasks.fail(taskId, getErrorMessage(error));
     const cleanup = await Promise.allSettled(

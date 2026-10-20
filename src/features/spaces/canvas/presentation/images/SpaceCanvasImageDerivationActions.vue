@@ -10,8 +10,8 @@ import type { DirectImageDerivation } from "./use-image-node-bar-state";
  * one object by hand, or let the whole picture come apart into layers.
  */
 const props = defineProps<{
-  availability: Record<DirectImageDerivation, ImageActionAvailability>;
-  reason: Record<DirectImageDerivation, string>;
+  availabilityByDerivation: Record<DirectImageDerivation, ImageActionAvailability>;
+  reasonByDerivation: Record<DirectImageDerivation, string>;
   removalAvailability: ImageActionAvailability;
   removalReason: string;
   selectionAvailability: ImageActionAvailability;
@@ -29,8 +29,8 @@ const ACTIONS = [
     key: "remove-image-background",
     icon: ScanLine,
     labelKey: "spaces.creation.image.removeBackground",
-    availability: () => props.availability["remove-image-background"],
-    reason: () => props.reason["remove-image-background"],
+    availability: () => props.availabilityByDerivation["remove-image-background"],
+    reason: () => props.reasonByDerivation["remove-image-background"],
     begin: () => emit("runDirect", "remove-image-background"),
   },
   {
@@ -53,8 +53,8 @@ const ACTIONS = [
     key: "split-layers",
     icon: Layers3,
     labelKey: "spaces.creation.image.splitLayers",
-    availability: () => props.availability["split-image-layers"],
-    reason: () => props.reason["split-image-layers"],
+    availability: () => props.availabilityByDerivation["split-image-layers"],
+    reason: () => props.reasonByDerivation["split-image-layers"],
     begin: () => emit("runDirect", "split-image-layers"),
   },
 ] as const;

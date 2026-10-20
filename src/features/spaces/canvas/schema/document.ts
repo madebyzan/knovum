@@ -1,16 +1,9 @@
 import { z } from "zod";
 
 import { contentAppearanceSchema } from "../../model/structure/schema/content-appearance";
-export {
-  CANVAS_TYPOGRAPHY_SCALE_MIN,
-  CANVAS_TYPOGRAPHY_SCALE_MAX,
-  CANVAS_TEXT_COLORS,
-  CANVAS_FILL_PRESETS,
-} from "../../model/structure/schema/content-appearance";
 
 const MAX_CANVAS_Z_INDEX = 0xffff_ffff;
 const finiteNumber = z.number().finite();
-const canvasNodeAppearanceSchema = contentAppearanceSchema;
 const canvasNodeSizingModeSchema = z.enum(["content", "frame"]);
 const canvasFrameSchema = z
   .object({
@@ -26,7 +19,7 @@ const canvasNodeLayoutSchema = z
     nodeId: z.string().min(1),
     frame: canvasFrameSchema,
     sizingMode: canvasNodeSizingModeSchema,
-    appearance: canvasNodeAppearanceSchema.optional(),
+    appearance: contentAppearanceSchema.optional(),
     fileSubpath: z.string().startsWith("#").optional(),
     zIndex: z.number().int().nonnegative().max(MAX_CANVAS_Z_INDEX),
   })
@@ -52,7 +45,7 @@ const canvasDocumentSchema = z
 export type CanvasNodeFrame = z.infer<typeof canvasFrameSchema>;
 export type CanvasNodeSizingMode = z.infer<typeof canvasNodeSizingModeSchema>;
 export type CanvasNodeLayoutV1 = z.infer<typeof canvasNodeLayoutSchema>;
-export type CanvasNodeAppearance = z.infer<typeof canvasNodeAppearanceSchema>;
+export type CanvasNodeAppearance = z.infer<typeof contentAppearanceSchema>;
 export type CanvasDocumentV1 = z.infer<typeof canvasDocumentSchema>;
 export type CanvasRelationColor = (typeof CANVAS_RELATION_COLORS)[number];
 

@@ -49,7 +49,7 @@ pub fn create_wan_request<'a>(
     model: &'a str,
     prompt: &'a str,
     ratio: &'a str,
-    duration: u8,
+    duration_seconds: u8,
     references: &'a [String],
 ) -> CreateWanRequest<'a> {
     CreateWanRequest {
@@ -67,7 +67,7 @@ pub fn create_wan_request<'a>(
         parameters: WanParameters {
             resolution: "720P",
             ratio,
-            duration,
+            duration: duration_seconds,
             prompt_extend: true,
         },
     }

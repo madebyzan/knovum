@@ -20,7 +20,7 @@ pub struct VideoGenerationRequest {
     pub target: ModelExecutionTarget,
     pub prompt: String,
     pub ratio: String,
-    pub duration: u8,
+    pub duration_seconds: u8,
     pub reference_images: Vec<String>,
 }
 
@@ -43,7 +43,7 @@ pub async fn generate(
     let req = VideoGenerationInput {
         prompt: request.prompt,
         ratio: request.ratio,
-        duration: request.duration,
+        duration_seconds: request.duration_seconds,
         reference_images: prepared_images,
     };
 
@@ -146,7 +146,9 @@ fn decode_reference_image(encoded: &str, maximum_bytes: usize) -> AppResult<Vec<
 }
 
 fn validate(request: &VideoGenerationRequest) -> AppResult<()> {
-    if request.prompt.trim().is_empty() || request.ratio.trim().is_empty() || request.duration == 0
+    if request.prompt.trim().is_empty()
+        || request.ratio.trim().is_empty()
+        || request.duration_seconds == 0
     {
         return Err(AppError::new(
             "invalid_request",

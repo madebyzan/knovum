@@ -5,11 +5,11 @@ import { useI18n } from "vue-i18n";
 import type { UsageReport } from "../../../shared/contracts/generated/UsageReport";
 import UiTooltip from "../../../shared/ui/UiTooltip.vue";
 
-const props = defineProps<{ summary: UsageReport["summary"] }>();
+const props = defineProps<{ metrics: UsageReport["metrics"] }>();
 const { n, t } = useI18n();
-const splitTotal = computed(() => props.summary.inputTokens + props.summary.outputTokens);
+const splitTotal = computed(() => props.metrics.inputTokens + props.metrics.outputTokens);
 const inputShare = computed(() =>
-  splitTotal.value ? (props.summary.inputTokens / splitTotal.value) * 100 : 0,
+  splitTotal.value ? (props.metrics.inputTokens / splitTotal.value) * 100 : 0,
 );
 </script>
 
@@ -32,13 +32,13 @@ const inputShare = computed(() =>
           </UiTooltip>
         </h2>
         <p class="mt-2 text-display font-semibold tracking-title text-fg-primary tabular-nums">
-          {{ n(summary.totalTokens, "compact") }}
+          {{ n(metrics.totalTokens, "compact") }}
         </p>
       </div>
       <div class="text-right">
         <p class="text-caption text-fg-secondary">{{ t("settings.usage.requests") }}</p>
         <p class="mt-2 text-title font-semibold text-fg-primary tabular-nums">
-          {{ n(summary.requests) }}
+          {{ n(metrics.requests) }}
         </p>
       </div>
     </div>
@@ -54,7 +54,7 @@ const inputShare = computed(() =>
           {{ t("settings.usage.tokens.input") }}
         </dt>
         <dd class="text-label font-medium text-fg-primary tabular-nums">
-          {{ n(summary.inputTokens, "compact") }}
+          {{ n(metrics.inputTokens, "compact") }}
         </dd>
       </div>
       <div class="flex items-center gap-2">
@@ -63,7 +63,7 @@ const inputShare = computed(() =>
           {{ t("settings.usage.tokens.output") }}
         </dt>
         <dd class="text-label font-medium text-fg-primary tabular-nums">
-          {{ n(summary.outputTokens, "compact") }}
+          {{ n(metrics.outputTokens, "compact") }}
         </dd>
       </div>
     </dl>

@@ -104,7 +104,7 @@ async fn read(
 }
 
 #[tauri::command]
-pub async fn add_plugin_marketplace(
+pub async fn create_plugin_marketplace(
     app: AppHandle,
     source: MarketplaceSource,
     job_id: String,
@@ -171,7 +171,7 @@ pub async fn refresh_plugin_marketplace(
 }
 
 #[tauri::command]
-pub async fn remove_plugin_marketplace(app: AppHandle, marketplace_id: String) -> AppResult<()> {
+pub async fn delete_plugin_marketplace(app: AppHandle, marketplace_id: String) -> AppResult<()> {
     if marketplace_id == super::bundled::MARKETPLACE_ID {
         return Err(AppError::invalid(
             "bundled-marketplace-is-application-managed",

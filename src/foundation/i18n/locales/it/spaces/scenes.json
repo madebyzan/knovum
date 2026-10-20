@@ -17,10 +17,7 @@
   "save": "Salva scena corrente",
   "delete": "Elimina scena",
   "empty": "Salva la posizione della vista per tornare rapidamente ad aree specifiche.",
-  "open": "Naviga alla scena",
   "update": "Aggiorna alla vista corrente",
   "duplicate": "Scena duplicata",
-  "moveUp": "Sposta su",
-  "moveDown": "Sposta giù",
   "rename": "Rinomina scena"
 }

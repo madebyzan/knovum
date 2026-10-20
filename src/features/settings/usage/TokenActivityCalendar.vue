@@ -104,7 +104,7 @@ function label(date: string, tokens: number) {
     </div>
     <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-caption text-fg-tertiary">
       <p>
-        {{ t("settings.usage.activity.description", { peak: n(report.summary.peakDailyTokens, "compact") }) }}
+        {{ t("settings.usage.activity.description", { peak: n(report.metrics.peakDailyTokens, "compact") }) }}
       </p>
       <div class="flex items-center gap-1.5" aria-hidden="true">
         <span>{{ t("settings.usage.activity.less") }}</span>

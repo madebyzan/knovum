@@ -39,7 +39,7 @@ async fn cancellation_reaps_blocked_worker_before_return_and_capacity_release() 
     let child = command("printf '%s' $$ > \"$1\"; sleep 120", &path);
     let task = tokio::spawn(async move {
         let _permit = permit;
-        super::process::run(child, vec![], &token).await
+        super::super::process::run(child, vec![], &token).await
     });
     let pid = wait_pid(&path).await;
     assert!(is_alive(pid));
@@ -67,7 +67,7 @@ async fn malformed_response_terminates_worker_and_never_falls_back_to_rendering(
     );
     let processing = tokio::time::timeout(
         std::time::Duration::from_secs(5),
-        super::process::run(command, vec![], &CancellationToken::new()),
+        super::super::process::run(command, vec![], &CancellationToken::new()),
     )
     .await
     .unwrap();
@@ -78,7 +78,7 @@ async fn malformed_response_terminates_worker_and_never_falls_back_to_rendering(
 
 #[tokio::test]
 async fn worker_crash_is_an_explicit_failure() {
-    let processing = super::process::run(
+    let processing = super::super::process::run(
         command("exit 7", Path::new("unused")),
         vec![],
         &CancellationToken::new(),

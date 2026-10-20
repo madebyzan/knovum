@@ -4,7 +4,7 @@ use std::{
 };
 use tokio_util::sync::CancellationToken;
 
-const CANCELLATION_INTERVAL: u64 = 16_384;
+const CANCELLATION_INTERVAL_SAMPLES: u64 = 16_384;
 
 pub(crate) fn write_silence<W: Write + Seek>(
     writer: &mut hound::WavWriter<W>,
@@ -12,7 +12,7 @@ pub(crate) fn write_silence<W: Write + Seek>(
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
     for index in 0..sample_count {
-        if index.is_multiple_of(CANCELLATION_INTERVAL) && cancellation.is_cancelled() {
+        if index.is_multiple_of(CANCELLATION_INTERVAL_SAMPLES) && cancellation.is_cancelled() {
             return Err("cancelled".into());
         }
         writer
@@ -33,7 +33,9 @@ pub(crate) fn copy_float_samples<W: Write + Seek>(
     }
     let mut reader = hound::WavReader::open(path).map_err(|error| error.to_string())?;
     for (index, sample) in reader.samples::<f32>().enumerate() {
-        if (index as u64).is_multiple_of(CANCELLATION_INTERVAL) && cancellation.is_cancelled() {
+        if (index as u64).is_multiple_of(CANCELLATION_INTERVAL_SAMPLES)
+            && cancellation.is_cancelled()
+        {
             return Err("cancelled".into());
         }
         writer

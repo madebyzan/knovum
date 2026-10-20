@@ -2,7 +2,11 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { CANVAS_FILL_PRESETS, CANVAS_TEXT_COLORS, type CanvasNodeAppearance } from "../schema/document";
+import {
+  CONTENT_FILL_PRESETS,
+  CONTENT_TEXT_COLOR_NAMES,
+} from "../../model/structure/schema/content-appearance";
+import type { CanvasNodeAppearance } from "../schema/document";
 import { CONTENT_FILL_COLORS, CONTENT_TEXT_COLORS } from "./canvas-content-colors";
 import SpaceCanvasColorSwatches from "./SpaceCanvasColorSwatches.vue";
 
@@ -17,12 +21,12 @@ const selected = computed(() =>
 );
 const options = computed(() =>
   props.kind === "note"
-    ? CANVAS_FILL_PRESETS.map((value) => ({
+    ? CONTENT_FILL_PRESETS.map((value) => ({
         value,
         color: CONTENT_FILL_COLORS[value],
         label: t(`spaces.canvas.noteFills.${value}`),
       }))
-    : CANVAS_TEXT_COLORS.map((value) => ({
+    : CONTENT_TEXT_COLOR_NAMES.map((value) => ({
         value,
         color: CONTENT_TEXT_COLORS[value],
         label: t(`spaces.canvas.textColors.${value}`),
@@ -31,11 +35,11 @@ const options = computed(() =>
 
 function select(value: string) {
   if (props.kind === "note") {
-    const fill = CANVAS_FILL_PRESETS.find((preset) => preset === value);
+    const fill = CONTENT_FILL_PRESETS.find((preset) => preset === value);
     if (fill) emit("update", { fill, customFill: undefined });
     return;
   }
-  const textColor = CANVAS_TEXT_COLORS.find((color) => color === value);
+  const textColor = CONTENT_TEXT_COLOR_NAMES.find((color) => color === value);
   if (textColor) emit("update", { textColor });
 }
 </script>

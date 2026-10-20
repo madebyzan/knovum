@@ -29,7 +29,7 @@ function levelAt(voice: AudioVoice, offsetMs: number) {
  * these voices were scheduled against.
  */
 export function createAudioMixer(context: () => AudioContext) {
-  const playing = new Map<string, Playing>();
+  const playingByVoiceKey = new Map<string, Playing>();
 
   function envelope(voice: AudioVoice, startAt: number, contextTimeOf: (ms: number) => number) {
     const gain = context().createGain();
@@ -50,7 +50,7 @@ export function createAudioMixer(context: () => AudioContext) {
   function start(voice: AudioVoice, fromMs: number, contextTimeOf: (ms: number) => number) {
     const endMs = voice.timelineStartMs + voice.lengthMs;
     const playFromMs = Math.max(fromMs, voice.timelineStartMs);
-    if (playing.has(voice.key) || playFromMs >= endMs || voice.volume <= 0) return;
+    if (playingByVoiceKey.has(voice.key) || playFromMs >= endMs || voice.volume <= 0) return;
     const offsetS = Math.max(0, (voice.sourceInMs + (playFromMs - voice.timelineStartMs)) / 1000);
     if (offsetS >= voice.buffer.duration) return;
     const durationS = Math.min((endMs - playFromMs) / 1000, voice.buffer.duration - offsetS);
@@ -64,21 +64,21 @@ export function createAudioMixer(context: () => AudioContext) {
     source.connect(gain);
     const release = () => {
       gain.disconnect();
-      if (playing.get(voice.key)?.source === source) playing.delete(voice.key);
+      if (playingByVoiceKey.get(voice.key)?.source === source) playingByVoiceKey.delete(voice.key);
     };
     source.addEventListener("ended", release, { once: true });
     source.start(startAt, offsetS, durationS);
-    playing.set(voice.key, { source, gain, release });
+    playingByVoiceKey.set(voice.key, { source, gain, release });
   }
 
   function stop() {
-    for (const voice of playing.values()) {
+    for (const voice of playingByVoiceKey.values()) {
       voice.source.removeEventListener("ended", voice.release);
       voice.source.stop();
       voice.source.disconnect();
       voice.gain.disconnect();
     }
-    playing.clear();
+    playingByVoiceKey.clear();
   }
 
   return {
@@ -86,7 +86,7 @@ export function createAudioMixer(context: () => AudioContext) {
     schedule(voices: AudioVoice[], position: { fromMs: number; contextTimeOf: (ms: number) => number }) {
       for (const voice of voices) start(voice, position.fromMs, position.contextTimeOf);
     },
-    scheduled: (key: string) => playing.has(key),
+    scheduled: (key: string) => playingByVoiceKey.has(key),
     stop,
   };
 }

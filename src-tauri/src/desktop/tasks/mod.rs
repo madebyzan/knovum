@@ -44,14 +44,23 @@ pub(crate) fn set_locale<R: Runtime>(
 }
 
 #[tauri::command]
-pub(crate) fn set_task_notifications<R: Runtime>(app: AppHandle<R>, enabled: bool) {
+pub(crate) fn enable_task_notifications<R: Runtime>(app: AppHandle<R>) {
+    set_task_notifications(&app, true);
+}
+
+#[tauri::command]
+pub(crate) fn disable_task_notifications<R: Runtime>(app: AppHandle<R>) {
+    set_task_notifications(&app, false);
+}
+
+fn set_task_notifications<R: Runtime>(app: &AppHandle<R>, enabled: bool) {
     app.state::<TaskHub>()
         .notifications
         .store(enabled, Ordering::SeqCst);
 }
 
 #[tauri::command]
-pub(crate) fn project_session_tasks<R: Runtime>(
+pub(crate) fn set_session_tasks<R: Runtime>(
     app: AppHandle<R>,
     tasks: Vec<DesktopTask>,
 ) -> Result<(), AppError> {

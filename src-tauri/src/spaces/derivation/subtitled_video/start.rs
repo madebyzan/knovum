@@ -88,7 +88,7 @@ pub(super) fn automatic_subtitles(
     }
     match knowledge.pointer("/transcript/subtitleCues") {
         Some(cues) => {
-            let duration = knowledge
+            let duration_ms = knowledge
                 .pointer("/transcript/durationMs")
                 .and_then(Value::as_u64)
                 .ok_or("Video transcript duration is unavailable")?;
@@ -96,7 +96,8 @@ pub(super) fn automatic_subtitles(
                 serde_json::from_value(cues.clone())
                     .map_err(|error| format!("Subtitle cues are invalid: {error}"))?;
             Ok(PreparedSubtitles::Ready(super::srt::from_cues(
-                &cues, duration,
+                &cues,
+                duration_ms,
             )?))
         }
         None => Ok(PreparedSubtitles::Recognize),

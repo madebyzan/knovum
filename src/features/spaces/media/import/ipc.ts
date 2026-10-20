@@ -12,8 +12,8 @@ export interface MediaImportRequestInput {
 }
 
 /** Names the asset the import will publish into, so the canvas can reserve its node first. */
-export function reserveMediaImportAsset(jobId: string, kind: "audio" | "video"): Promise<string> {
-  return invokeCommand<string>("plugin:spaces|reserve_media_import_asset", { jobId, kind });
+export function allocateMediaImportAsset(jobId: string, kind: "audio" | "video"): Promise<string> {
+  return invokeCommand<string>("plugin:spaces|allocate_media_import_asset", { jobId, kind });
 }
 
 export async function requestMediaImport({

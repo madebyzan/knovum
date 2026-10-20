@@ -15,24 +15,24 @@ const NODE_KIND: &str = "speech_video_translation_segment";
 mod tests;
 
 pub(super) fn validate(request: &RestorePackageRequest) -> Result<(), String> {
-    let runs: HashMap<&str, &PackageRun> = request
+    let run_by_id: HashMap<&str, &PackageRun> = request
         .runs
         .iter()
         .filter(|run| run.input_snapshot.get("workflow").and_then(Value::as_str) == Some(WORKFLOW))
         .map(|run| (run.id.as_str(), run))
         .collect();
-    let mut steps: HashMap<&str, Vec<&PackageRunStep>> = HashMap::new();
+    let mut steps_by_run_id: HashMap<&str, Vec<&PackageRunStep>> = HashMap::new();
     for step in request
         .run_steps
         .iter()
         .filter(|step| step.node_kind == NODE_KIND)
     {
-        if !runs.contains_key(step.run_id.as_str()) {
+        if !run_by_id.contains_key(step.run_id.as_str()) {
             return Err("Package video translation step belongs to another workflow".into());
         }
-        steps.entry(&step.run_id).or_default().push(step);
+        steps_by_run_id.entry(&step.run_id).or_default().push(step);
     }
-    for run in runs.values().filter(|run| run.state == "succeeded") {
+    for run in run_by_id.values().filter(|run| run.state == "succeeded") {
         let project_id = field(&run.input_snapshot, "projectId")?;
         let revision_id = field(&run.input_snapshot, "revisionId")?;
         let expected_revision = integer(&run.input_snapshot, "expectedRevision")?;
@@ -45,7 +45,7 @@ pub(super) fn validate(request: &RestorePackageRequest) -> Result<(), String> {
             return Err("Package video translation Run base revision number differs".into());
         }
         validate_run(run, &revision.project_id)?;
-        let run_steps = steps.get(run.id.as_str()).map(Vec::as_slice).unwrap_or(&[]);
+        let run_steps = steps_by_run_id.get(run.id.as_str()).map(Vec::as_slice).unwrap_or(&[]);
         validate_steps(run, run_steps)?;
         validate_attempts(request, run, run_steps)?;
     }
@@ -58,7 +58,7 @@ pub(super) fn validate(request: &RestorePackageRequest) -> Result<(), String> {
             continue;
         };
         let run_id = field(provenance, "runId")?;
-        let run = runs
+        let run = run_by_id
             .get(run_id)
             .ok_or("Package video translation provenance references an unknown Run")?;
         validate_run(run, revision.project_id.as_str())?;

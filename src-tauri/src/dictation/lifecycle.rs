@@ -68,7 +68,7 @@ pub(super) fn start<R: Runtime>(
                     phase: DictationPhase::Recording,
                     session_id: Some(id),
                     started_at: Some(epoch_millis()),
-                    target_application: Some(target_name),
+                    target_application_name: Some(target_name),
                     ..DictationSnapshot::default()
                 },
             );
@@ -114,7 +114,7 @@ pub(super) async fn stop<R: Runtime>(
         DictationSnapshot {
             phase: DictationPhase::PreparingResources,
             session_id: Some(id.clone()),
-            target_application: Some(target.display_name().to_owned()),
+            target_application_name: Some(target.display_name().to_owned()),
             ..DictationSnapshot::default()
         },
     );

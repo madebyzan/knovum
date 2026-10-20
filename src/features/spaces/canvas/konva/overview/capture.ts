@@ -78,7 +78,7 @@ async function renderCanvasThumbnail(
           ...section.bounds,
           fill:
             appearance?.customFill ??
-            (appearance?.fill ? palette.contentFill[appearance.fill] : palette.panel),
+            (appearance?.fill ? palette.contentFillByPreset[appearance.fill] : palette.panel),
           opacity: 0.26,
           cornerRadius: 12,
           listening: false,
@@ -90,7 +90,7 @@ async function renderCanvasThumbnail(
         new Konva.Line({
           points: [...relation.points],
           bezier: true,
-          stroke: palette.relation[relation.color],
+          stroke: palette.relationByColor[relation.color],
           strokeWidth: 1.5 / viewport.scale,
           opacity: 0.75,
           listening: false,

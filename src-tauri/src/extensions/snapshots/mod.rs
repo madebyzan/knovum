@@ -221,9 +221,4 @@ pub(crate) async fn require_current(
 }
 
 #[cfg(test)]
-#[path = "tests/tools.rs"]
-mod tools_tests;
-
-#[cfg(test)]
-#[path = "tests/selection.rs"]
-mod selection_tests;
+mod tests;

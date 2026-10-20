@@ -122,7 +122,7 @@ describe("video render IPC boundary", () => {
       "spaces.media.videoEditor.render.stages.renderingVideoEdit",
     );
     expect(store.applyNodeContentForSpace).toHaveBeenCalledWith("space-id", pending.id, source.data);
-    expect(store.finalizePendingContent).toHaveBeenCalledWith("space-id", [pending], false);
+    expect(store.finalizePendingContent).toHaveBeenCalledWith("space-id", [pending], { reveal: false });
     expect(mocks.tasks.succeed).toHaveBeenCalledWith("task-id");
     expect(store.openSpace).not.toHaveBeenCalled();
   });
@@ -184,7 +184,7 @@ describe("video render IPC boundary", () => {
       "space-id",
       expect.objectContaining({ assetPath: "/assets/edited-reserved.mp4" }),
     );
-    expect(store.finalizePendingContent).toHaveBeenCalledWith("space-id", [pending], false);
+    expect(store.finalizePendingContent).toHaveBeenCalledWith("space-id", [pending], { reveal: false });
     expect(store.refreshActiveSpace).toHaveBeenCalledTimes(target === "reopened" ? 1 : 0);
     expect(newerStore.refreshActiveSpace).not.toHaveBeenCalled();
     expect(store.openSpace).not.toHaveBeenCalled();

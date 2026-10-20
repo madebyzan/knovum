@@ -6,7 +6,7 @@ import type { AiConnectionSettings } from "../../../../../shared/contracts/gener
 import type { ProviderDescriptor } from "../../../../../shared/contracts/generated/ProviderDescriptor";
 import type { RoutingPurpose } from "../../../../../shared/contracts/generated/RoutingPurpose";
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
-import { PROVIDER_LOGOS } from "../provider-logos";
+import { LOGO_BY_PROVIDER } from "../provider-logos";
 import AiConnectionModels from "./AiConnectionModels.vue";
 
 defineProps<{
@@ -38,11 +38,11 @@ const { t } = useI18n();
           class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-surface-panel"
         >
           <img
-            v-if="PROVIDER_LOGOS[connection.provider]"
-            :src="PROVIDER_LOGOS[connection.provider]?.src"
+            v-if="LOGO_BY_PROVIDER[connection.provider]"
+            :src="LOGO_BY_PROVIDER[connection.provider]?.src"
             alt=""
             class="size-5 object-contain"
-            :class="PROVIDER_LOGOS[connection.provider]?.monochrome && 'dark:invert'"
+            :class="LOGO_BY_PROVIDER[connection.provider]?.monochrome && 'dark:invert'"
           />
           <Server v-else class="size-5 text-fg-secondary" />
         </span>

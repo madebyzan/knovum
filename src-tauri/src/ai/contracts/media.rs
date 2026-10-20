@@ -74,7 +74,7 @@ pub trait ImageGenerationCapability: Send + Sync {
 pub struct VideoGenerationInput {
     pub prompt: String,
     pub ratio: String,
-    pub duration: u8,
+    pub duration_seconds: u8,
     pub reference_images: Vec<String>,
 }
 

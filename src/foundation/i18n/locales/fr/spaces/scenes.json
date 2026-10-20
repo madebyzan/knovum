@@ -17,10 +17,7 @@
   "save": "Enregistrer la scène actuelle",
   "delete": "Supprimer la scène",
   "empty": "Enregistrez la position de la fenêtre pour revenir rapidement à des zones spécifiques.",
-  "open": "Naviguer vers la scène",
   "update": "Mise à jour vers la fenêtre actuelle",
   "duplicate": "Scène en double",
-  "moveUp": "Monter",
-  "moveDown": "Descendre",
   "rename": "Renommer la scène"
 }

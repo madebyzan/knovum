@@ -29,7 +29,7 @@ function commands(workspaceActive: boolean) {
       toggleRightSidebar: vi.fn<() => void>(),
     },
     labels: {
-      editing: {
+      editingLabelByCommand: {
         undo: "undo",
         redo: "redo",
         cut: "cut",
@@ -95,7 +95,7 @@ describe("shell commands", () => {
         toggleRightSidebar: vi.fn<() => void>(),
       },
       labels: {
-        editing: {
+        editingLabelByCommand: {
           undo: "undo",
           redo: "redo",
           cut: "cut",

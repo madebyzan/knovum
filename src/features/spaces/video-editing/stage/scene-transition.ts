@@ -65,7 +65,10 @@ function dissolve(progress: number): TransitionStyle {
  * Scene-graph equivalents of the FFmpeg `xfade` transitions the export uses: clipping for wipes,
  * displacement for slides and opacity for the dissolves, so the stage previews the rendered cut.
  */
-const styles: Record<VideoTransitionKind, (progress: number, output: VideoOutput) => TransitionStyle> = {
+const TRANSITION_STYLE_BY_KIND: Record<
+  VideoTransitionKind,
+  (progress: number, output: VideoOutput) => TransitionStyle
+> = {
   dissolve,
   fadeBlack: fadeThrough("#000000"),
   fadeWhite: fadeThrough("#FFFFFF"),
@@ -84,7 +87,7 @@ export function transitionStyle(
   output: VideoOutput,
 ): TransitionStyle {
   const progress = Math.min(1, Math.max(0, transition.progress));
-  return styles[transition.kind](progress, output);
+  return TRANSITION_STYLE_BY_KIND[transition.kind](progress, output);
 }
 
 export const PLAIN_LAYER = PLAIN;

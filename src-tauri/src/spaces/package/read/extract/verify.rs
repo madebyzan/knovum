@@ -4,13 +4,13 @@ use crate::spaces::package::AssetIndex;
 use tokio_util::sync::CancellationToken;
 
 pub(super) fn verify_assets(
-    targets: &HashMap<String, (PathBuf, bool)>,
+    target_by_entry: &HashMap<String, (PathBuf, bool)>,
     index: &[AssetIndex],
     cancellation: &CancellationToken,
 ) -> Result<(), crate::foundation::app_error::AppError> {
     for asset in index {
         super::super::super::control::check(cancellation)?;
-        let (path, directory) = targets
+        let (path, directory) = target_by_entry
             .get(&asset.token)
             .ok_or("Package asset target is missing")?;
         if (*directory && !path.is_dir()) || (!*directory && !path.is_file()) {

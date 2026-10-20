@@ -7,7 +7,7 @@ use std::{
 };
 
 struct State {
-    pending: BTreeMap<u64, u64>,
+    consumed_bytes_by_seq: BTreeMap<u64, u64>,
     bytes: u64,
     failed: bool,
 }
@@ -25,7 +25,7 @@ impl Credits {
             request: request.into(),
             epoch,
             state: Mutex::new(State {
-                pending: BTreeMap::new(),
+                consumed_bytes_by_seq: BTreeMap::new(),
                 bytes: 0,
                 failed: false,
             }),
@@ -50,7 +50,7 @@ impl Credits {
             if state.failed {
                 return Err("invalid_output: synthesis chunk acknowledgement differs".into());
             }
-            if state.pending.len() < 8 && state.bytes + bytes <= 16 * 1024 * 1024 {
+            if state.consumed_bytes_by_seq.len() < 8 && state.bytes + bytes <= 16 * 1024 * 1024 {
                 break;
             }
             state = self
@@ -59,10 +59,10 @@ impl Credits {
                 .map_err(|_| "worker_crashed: synthesis credit lock poisoned")?
                 .0;
         }
-        if seq == 0 || state.pending.contains_key(&seq) {
+        if seq == 0 || state.consumed_bytes_by_seq.contains_key(&seq) {
             return Err("invalid_output: synthesis chunk sequence was reused".into());
         }
-        state.pending.insert(seq, bytes);
+        state.consumed_bytes_by_seq.insert(seq, bytes);
         state.bytes += bytes;
         Ok(())
     }
@@ -73,13 +73,13 @@ impl Credits {
             .map_err(|_| "worker_crashed: synthesis credit lock poisoned")?;
         if params.request_id != self.request
             || params.attempt_epoch != self.epoch
-            || state.pending.get(&params.seq) != Some(&params.consumed_bytes)
+            || state.consumed_bytes_by_seq.get(&params.seq) != Some(&params.consumed_bytes)
         {
             state.failed = true;
             self.wake.notify_all();
             return Err("invalid_input: synthesis acknowledgement identity or size differs".into());
         }
-        state.pending.remove(&params.seq);
+        state.consumed_bytes_by_seq.remove(&params.seq);
         state.bytes -= params.consumed_bytes;
         self.wake.notify_all();
         Ok(())
@@ -94,7 +94,7 @@ impl Credits {
             if state.failed {
                 return Err("invalid_output: synthesis chunk acknowledgement differs".into());
             }
-            if state.pending.is_empty() {
+            if state.consumed_bytes_by_seq.is_empty() {
                 return Ok(());
             }
             state = self

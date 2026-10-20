@@ -153,10 +153,10 @@ fn publish(
             .push(turn);
     }
     for segment in &mut transcript.segments {
-        let duration = segment
+        let duration_ms = segment
             .end_ms
             .checked_sub(segment.start_ms)
-            .filter(|duration| *duration > 0)
+            .filter(|duration_ms| *duration_ms > 0)
             .ok_or("Transcript segment timing is invalid")?;
         let mut overlap = HashMap::<&str, u64>::new();
         for turn in &turns {
@@ -173,7 +173,7 @@ fn publish(
         let speaker = ranked
             .first()
             .filter(|winner| {
-                winner.1.saturating_mul(2) > duration
+                winner.1.saturating_mul(2) > duration_ms
                     && ranked.get(1).is_none_or(|runner_up| runner_up.1 < winner.1)
             })
             .map(|winner| winner.0);

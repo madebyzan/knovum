@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use super::protocol::{self, Request, Response};
+use super::super::protocol::{self, Request, Response};
 use crate::documents::generation::{
     document::DocumentSource,
     input::{DocumentFileSource, DocumentInput},
@@ -58,7 +58,7 @@ fn worker_render_failure_is_a_typed_response_without_output_bytes() {
     let request =
         protocol::encode_request(DocumentFormat::Docx, DocumentInput::Markdown(source)).unwrap();
     let mut output = Vec::new();
-    super::serve(&mut Cursor::new(request), &mut output).unwrap();
+    super::super::serve(&mut Cursor::new(request), &mut output).unwrap();
     let mut reader = Cursor::new(output);
     let header = protocol::read_frame(&mut reader, protocol::MAX_HEADER_BYTES).unwrap();
     let response: Response = serde_json::from_slice(&header).unwrap();
@@ -77,7 +77,7 @@ fn worker_returns_exact_binary_content_and_consumes_no_space_metadata() {
     let request =
         protocol::encode_request(DocumentFormat::Text, DocumentInput::Markdown(source)).unwrap();
     let mut output = Vec::new();
-    super::serve(&mut Cursor::new(request), &mut output).unwrap();
+    super::super::serve(&mut Cursor::new(request), &mut output).unwrap();
     let mut reader = Cursor::new(output);
     let header = protocol::read_frame(&mut reader, protocol::MAX_HEADER_BYTES).unwrap();
     let response: Response = serde_json::from_slice(&header).unwrap();

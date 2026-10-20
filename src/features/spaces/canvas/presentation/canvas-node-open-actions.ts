@@ -22,7 +22,7 @@ export interface NodeOpenAction {
  * here has nothing to open: text, credential and knowledge-object nodes carry their content on the
  * card itself, and the action bar leads with another action for them.
  */
-export const NODE_OPEN_ACTIONS: Partial<Record<SpaceNodeKind, NodeOpenAction>> = {
+export const OPEN_ACTION_BY_NODE_KIND: Partial<Record<SpaceNodeKind, NodeOpenAction>> = {
   note: { label: "common.edit", icon: Pencil },
   markdown: { label: "common.edit", icon: Pencil },
   website: { label: "spaces.canvas.nodeActions.openOriginal", icon: ExternalLink },

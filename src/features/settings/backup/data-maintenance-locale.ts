@@ -9,7 +9,7 @@
  */
 export type DataMaintenanceOperation = "backup" | "restore";
 
-export const DATA_MAINTENANCE_LOCALE_KEYS: Record<
+export const LOCALE_KEYS_BY_DATA_MAINTENANCE_OPERATION: Record<
   DataMaintenanceOperation,
   { action: string; failed: string; confirmTitle: string; confirmDescription: string }
 > = {

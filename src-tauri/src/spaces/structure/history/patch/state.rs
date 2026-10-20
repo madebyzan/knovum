@@ -18,16 +18,16 @@ use crate::spaces::{
 /// a side effect of removing content — so it is read here while it still describes the state
 /// before the edit.
 pub(crate) struct HistoryState {
-    pub(super) structure: BTreeMap<String, StructureRow>,
-    pub(super) relation_styles: BTreeMap<String, RelationColor>,
-    pub(super) relations: BTreeMap<String, RelationLifecycle>,
+    pub(super) row_by_node_id: BTreeMap<String, StructureRow>,
+    pub(super) style_by_relation_id: BTreeMap<String, RelationColor>,
+    pub(super) lifecycle_by_relation_id: BTreeMap<String, RelationLifecycle>,
 }
 
 impl HistoryState {
     /// Live nodes and active content references are the same set — every save proves it — so the
     /// snapshot already says which nodes this Space holds.
     pub(super) fn live_nodes(&self) -> BTreeSet<String> {
-        self.structure
+        self.row_by_node_id
             .values()
             .filter_map(|row| match &row.node {
                 StructureNode::Content { node_id, .. } => Some(node_id.clone()),
@@ -47,12 +47,12 @@ pub(crate) async fn capture_state(
         .iter()
         .map(|layout| (layout.structure_node_id(), layout))
         .collect::<BTreeMap<_, _>>();
-    let mut structure = BTreeMap::new();
+    let mut row_by_node_id = BTreeMap::new();
     for node in &snapshot.structure {
         let layout = layouts
             .remove(node.id())
             .ok_or_else(|| format!("Structure node {} has no layout", node.id()))?;
-        structure.insert(
+        row_by_node_id.insert(
             node.id().to_owned(),
             StructureRow {
                 node: node.clone(),
@@ -61,13 +61,13 @@ pub(crate) async fn capture_state(
         );
     }
     Ok(HistoryState {
-        structure,
-        relation_styles: snapshot
+        row_by_node_id,
+        style_by_relation_id: snapshot
             .relation_styles
             .iter()
             .map(|style| (style.relation_id.clone(), style.color.clone()))
             .collect(),
-        relations: relations(tx, space_id).await?,
+        lifecycle_by_relation_id: relations(tx, space_id).await?,
     })
 }
 

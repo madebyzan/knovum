@@ -23,7 +23,7 @@ export const TRANSLATION_TARGETS = [
 
 export type TranslationTarget = (typeof TRANSLATION_TARGETS)[number];
 
-export const TRANSLATION_TARGET_LABEL_KEYS: Record<TranslationTarget, string> = {
+export const LABEL_KEY_BY_TRANSLATION_TARGET: Record<TranslationTarget, string> = {
   "zh-CN": "ai.languages.zhCn",
   "zh-TW": "ai.languages.zhTw",
   en: "ai.languages.en",

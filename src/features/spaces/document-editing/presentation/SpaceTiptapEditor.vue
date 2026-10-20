@@ -24,6 +24,7 @@ import SpaceTiptapToolbar from "./SpaceTiptapToolbar.vue";
 const props = defineProps<{ tab: SpaceEditorTab; active: boolean }>();
 const store = useSpaceStore();
 const { t } = useI18n();
+const scrollRoot = useTemplateRef<HTMLElement>("scrollRoot");
 const {
   activeHeadingId,
   characterCount,
@@ -36,11 +37,10 @@ const {
   revealHeading,
   saveStatus,
   suspended,
-  scrollRoot,
   syncActiveHeading,
   title,
   wordCount,
-} = useSpaceTiptapEditor(props.tab, toRef(props, "active"));
+} = useSpaceTiptapEditor(props.tab, toRef(props, "active"), scrollRoot);
 const writing = useSpaceTiptapWritingTools(editor);
 const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot, toRef(props, "active"));
 const search = useTemplateRef<InstanceType<typeof SpaceTiptapSearch>>("search");

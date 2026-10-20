@@ -7,7 +7,7 @@ import type { UsageReport } from "../../../shared/contracts/generated/UsageRepor
 
 const props = defineProps<{ report: UsageReport }>();
 const { n, t } = useI18n();
-const PURPOSE_LABEL_KEYS: Record<UsagePurpose, string> = {
+const LABEL_KEY_BY_PURPOSE: Record<UsagePurpose, string> = {
   builtin_agent: "settings.usage.purpose.builtinAgent",
   editor: "settings.usage.purpose.editor",
   knowledge: "settings.usage.purpose.knowledge",
@@ -19,7 +19,7 @@ const rows = computed(() =>
   props.report.byPurpose.map((item) => ({
     purpose: item.purpose,
     totalTokens: item.totalTokens,
-    label: t(PURPOSE_LABEL_KEYS[item.purpose]),
+    label: t(LABEL_KEY_BY_PURPOSE[item.purpose]),
   })),
 );
 </script>

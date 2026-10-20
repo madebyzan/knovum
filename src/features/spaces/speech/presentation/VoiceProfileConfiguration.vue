@@ -9,7 +9,7 @@ import UiBadge from "../../../../shared/ui/UiBadge.vue";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import type { VoiceProfileHistory } from "../../contracts/generated/VoiceProfileHistory";
-import { VOICE_ENGINE_LABELS } from "../voice-options";
+import { LABEL_BY_VOICE_ENGINE } from "../voice-options";
 import { activeVoiceProfileRevision } from "../voice-profile";
 import VoiceProfileEditor from "./VoiceProfileEditor.vue";
 
@@ -92,7 +92,7 @@ function setDirty(value: boolean) {
           </div>
           <p class="mt-0.5 truncate text-caption text-fg-secondary">
             {{ t(`spaces.speech.voice.origins.${profile.sourceKind}`) }} · {{ activeRevision.language }} ·
-            {{ VOICE_ENGINE_LABELS[activeRevision.engineId] }} ·
+            {{ LABEL_BY_VOICE_ENGINE[activeRevision.engineId] }} ·
             {{
               t(
                 "spaces.speech.voice.usage",

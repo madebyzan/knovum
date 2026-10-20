@@ -1,4 +1,4 @@
-use super::accounts;
+use super::super::accounts;
 use crate::extensions::{
     contracts::{ConnectorAccount, ConnectorAuthorization},
     database,

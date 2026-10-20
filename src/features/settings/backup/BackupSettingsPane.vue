@@ -8,7 +8,7 @@ import { isApplicationLeaveCancelled } from "../../../shared/contracts/applicati
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import PreferenceField from "../components/PreferenceField.vue";
-import { DATA_MAINTENANCE_LOCALE_KEYS } from "./data-maintenance-locale";
+import { LOCALE_KEYS_BY_DATA_MAINTENANCE_OPERATION } from "./data-maintenance-locale";
 import { useBackupOperations } from "./use-backup-operations";
 
 const { t } = useI18n();
@@ -19,7 +19,9 @@ async function perform(operation: "backup" | "restore") {
     await operations[operation]();
   } catch (error) {
     if (isApplicationLeaveCancelled(error)) return;
-    toast.error(t(DATA_MAINTENANCE_LOCALE_KEYS[operation].failed), { description: getErrorMessage(error) });
+    toast.error(t(LOCALE_KEYS_BY_DATA_MAINTENANCE_OPERATION[operation].failed), {
+      description: getErrorMessage(error),
+    });
     void logError(`Data ${operation} admission failed: ${formatErrorDiagnostic(error)}`);
   }
 }

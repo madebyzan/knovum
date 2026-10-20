@@ -45,17 +45,17 @@ function tileKey(asset: VideoAsset, bucketMs: number, index: number) {
 export function createFilmstripCache(options: FilmstripOptions) {
   /** Published tiles; reading this is what repaints a lane when a batch lands. */
   const tiles = shallowRef<ReadonlyMap<string, CanvasImageSource>>(new Map());
-  const sinks = new Map<string, CanvasSink>();
+  const sinkByAssetIdentity = new Map<string, CanvasSink>();
   let queue: Work[] = [];
   let working = false;
 
   async function ensureSink(asset: VideoAsset) {
-    const known = sinks.get(assetIdentity(asset));
+    const known = sinkByAssetIdentity.get(assetIdentity(asset));
     if (known) return known;
     const preview = options.videos.ready(asset) ?? (await options.videos.load(asset).catch(() => undefined));
     if (!preview) return undefined;
     const sink = new CanvasSink(preview.track, { width: TILE_WIDTH, poolSize: 0 });
-    sinks.set(assetIdentity(asset), sink);
+    sinkByAssetIdentity.set(assetIdentity(asset), sink);
     return sink;
   }
 
@@ -124,7 +124,7 @@ export function createFilmstripCache(options: FilmstripOptions) {
     resume: start,
     dispose() {
       queue = [];
-      sinks.clear();
+      sinkByAssetIdentity.clear();
       tiles.value = new Map();
     },
   };

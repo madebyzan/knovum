@@ -31,18 +31,18 @@ const timelineEnd = (clip: Clip | AudioClip) => clip.timelineStartMs + length(cl
 
 export function validateVideoComposition(project: Composition, context: z.RefinementCtx) {
   const issue: Issue = (message) => context.addIssue({ code: "custom", message });
-  const assets = new Map(project.assets.map((asset) => [asset.nodeId, asset]));
-  validateIdentities(project, assets, issue);
+  const assetByNodeId = new Map(project.assets.map((asset) => [asset.nodeId, asset]));
+  validateIdentities(project, assetByNodeId, issue);
   const overlaps = validateTransitions(project, issue);
   for (const [index, clip] of project.videoTrack.clips.entries()) {
-    validateVisualClip(clip, assets.get(clip.assetId), issue);
+    validateVisualClip(clip, assetByNodeId.get(clip.assetId), issue);
     validatePlacement(project.videoTrack.clips, index, overlaps, issue);
   }
-  const duration = projectEndMs(project);
+  const durationMs = projectEndMs(project);
   for (const clip of project.audioTrack.clips)
-    validateAudioClip(clip, assets.get(clip.assetId), duration, issue);
+    validateAudioClip(clip, assetByNodeId.get(clip.assetId), durationMs, issue);
   validateAudioLanes(project.audioTrack.clips, issue);
-  if (project.textTrack.items.some((item) => item.endMs > duration))
+  if (project.textTrack.items.some((item) => item.endMs > durationMs))
     issue("Timed text exceeds the project timeline");
 }
 
@@ -58,12 +58,12 @@ function validateVisualClip(clip: Clip, asset: Asset | undefined, issue: Issue) 
   if (!validWindow(clip, asset)) issue("Invalid visual clip source window");
 }
 
-function validateAudioClip(clip: AudioClip, asset: Asset | undefined, duration: number, issue: Issue) {
+function validateAudioClip(clip: AudioClip, asset: Asset | undefined, durationMs: number, issue: Issue) {
   if (!asset || asset.kind !== "audio") {
     issue("An audio clip must use an audio asset");
     return;
   }
-  if (!validWindow(clip, asset) || timelineEnd(clip) > duration)
+  if (!validWindow(clip, asset) || timelineEnd(clip) > durationMs)
     issue("Invalid audio clip source or timeline interval");
 }
 
@@ -123,14 +123,14 @@ function validatePlacement(clips: Clip[], index: number, overlaps: number[], iss
     issue("Clip overlap must match the transition between the two clips");
 }
 
-function validateIdentities(project: Composition, assets: Map<string, Asset>, issue: Issue) {
+function validateIdentities(project: Composition, assetByNodeId: Map<string, Asset>, issue: Issue) {
   const ids = [
     ...project.videoTrack.clips,
     ...project.audioTrack.clips,
     ...project.transitions,
     ...project.textTrack.items,
   ].map(({ id }) => id);
-  if (assets.size !== project.assets.length || new Set(ids).size !== ids.length)
+  if (assetByNodeId.size !== project.assets.length || new Set(ids).size !== ids.length)
     issue("Video project identities must be unique");
   if (project.assets[0]?.kind !== "video" || project.assets[0].sourceRevision !== project.sourceRevision)
     issue("Video project must retain its owning source");

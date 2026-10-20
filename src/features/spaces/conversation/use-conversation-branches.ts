@@ -1,7 +1,7 @@
 import { shallowRef, type Ref } from "vue";
 
 import type { Conversation } from "../contracts/generated/Conversation";
-import { activateConversationBranch, listConversationBranches } from "./conversation-ipc";
+import { selectConversationBranch, listConversationBranches } from "./conversation-ipc";
 
 interface ConversationBranchesInput {
   selected: Ref<Conversation | undefined>;
@@ -22,7 +22,7 @@ export function useConversationBranches(input: ConversationBranchesInput) {
   async function selectBranch(branchId: string) {
     const conversation = input.selected.value;
     if (!conversation || input.loading.value || conversation.branchId === branchId) return;
-    await activateConversationBranch(conversation.id, branchId);
+    await selectConversationBranch(conversation.id, branchId);
     await input.refresh();
     await input.select(conversation.id);
   }

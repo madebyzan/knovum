@@ -60,7 +60,7 @@ async function openDocument(kind: "note" | "markdown" = "note") {
   wrapper = mount(
     {
       setup() {
-        document = useSpaceTiptapEditor(tab, active);
+        document = useSpaceTiptapEditor(tab, active, shallowRef(null));
         return () => null;
       },
     },

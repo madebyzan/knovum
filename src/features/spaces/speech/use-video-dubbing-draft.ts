@@ -32,7 +32,7 @@ export function useVideoDubbingDraft(
   const lexicon = usePronunciationLexicon(() => project().revision);
   const snapshot = () =>
     JSON.stringify([lines.value, config.value, voiceGain.value, backgroundGain.value, lexicon.entries.value]);
-  const { dirty, needsRevision, acceptRevision, acceptInitialization } = useSpeechDraftChanges(snapshot);
+  const { dirty, needsRevision, acceptRevision, initialize } = useSpeechDraftChanges(snapshot);
   watch(
     () => project().revision.id,
     () => {
@@ -48,13 +48,13 @@ export function useVideoDubbingDraft(
     { immediate: true },
   );
   watch(voices, () => {
-    const wasDirty = dirty.value;
-    const voiceId = defaultVoiceRevisionId(voices());
-    if (!voiceId) return;
-    for (const line of lines.value) {
-      if (!line.voiceRevisionId) line.voiceRevisionId = voiceId;
-    }
-    if (!wasDirty) acceptInitialization();
+    initialize(() => {
+      const voiceId = defaultVoiceRevisionId(voices());
+      if (!voiceId) return;
+      for (const line of lines.value) {
+        if (!line.voiceRevisionId) line.voiceRevisionId = voiceId;
+      }
+    });
   });
 
   function addLine() {
@@ -68,8 +68,7 @@ export function useVideoDubbingDraft(
       endSeconds: "1",
     });
   }
-  function importTranscript(transcript: SpaceMediaTranscript, initialize = false) {
-    const wasDirty = dirty.value;
+  function importTranscript(transcript: SpaceMediaTranscript) {
     lines.value = transcript.segments.map((segment) => ({
       key: crypto.randomUUID(),
       text: segment.text,
@@ -88,7 +87,9 @@ export function useVideoDubbingDraft(
         translation: null,
         sourceDialogueIntervals: transcript.segments.map(({ startMs, endMs }) => ({ startMs, endMs })),
       };
-    if (initialize && !wasDirty) acceptInitialization();
+  }
+  function initializeFromTranscript(transcript: SpaceMediaTranscript) {
+    initialize(() => importTranscript(transcript));
   }
   function importSubtitles(cues: readonly DubbingSubtitle[]) {
     lines.value = cues.map((cue) => ({
@@ -167,6 +168,7 @@ export function useVideoDubbingDraft(
     setBackground,
     setSeparatedBackground,
     importTranscript,
+    initializeFromTranscript,
     importSubtitles,
     bindSpeaker,
     applyTranslation,

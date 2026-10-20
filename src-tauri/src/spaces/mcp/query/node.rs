@@ -15,7 +15,7 @@ pub(in crate::spaces::mcp) async fn get_node(
         .await
         .map_err(|error| mcp_error(error.to_string()))?;
     json_text(
-        knowledge_projection::get_node(&mut tx, &args.space_id, &args.node_id)
+        knowledge_projection::load_node(&mut tx, &args.space_id, &args.node_id)
             .await
             .map_err(mcp_error)?,
     )
