@@ -77,7 +77,7 @@ impl Streamed {
 }
 
 /// What a surface writes beside the Run events of a batch.
-pub(crate) trait Sink: Send + 'static {
+pub(crate) trait Sink: Send + Sync + 'static {
     /// Work that belongs in the same transaction as the batch it describes.
     fn settle(
         &self,

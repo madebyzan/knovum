@@ -31,3 +31,16 @@ fn removal_unlinks_a_snapshot_without_following_its_external_target() {
     assert_eq!(fs::read(external.join("model.onnx")).unwrap(), b"preserve");
     fs::remove_dir_all(parent).unwrap();
 }
+
+#[test]
+fn installed_bytes_counts_nested_files_and_empty_directories() {
+    let root =
+        std::env::temp_dir().join(format!("knovum-installed-bytes-{}", uuid::Uuid::new_v4()));
+    fs::create_dir_all(root.join("nested/empty")).unwrap();
+    assert_eq!(super::installed_bytes(&root).unwrap(), 0);
+    fs::write(root.join("model.onnx"), b"model").unwrap();
+    fs::write(root.join("nested/config.json"), b"{}").unwrap();
+    assert_eq!(super::installed_bytes(&root).unwrap(), 7);
+    fs::remove_dir_all(&root).unwrap();
+    assert!(super::installed_bytes(&root).is_err());
+}
