@@ -71,6 +71,29 @@ review:
 - **A stored identity is not a reference.** Columns that record which execution produced a row, or
   which voice a candidate was promoted into, outlive the Run or profile they name and say so in the
   schema. Everything else that points at a live row has a foreign key.
+- **Cleanup direction decides the key.** A retained-reference table says "keep this file": it must
+  cascade with its owner, or the reclamation sweep treats the file as still in use forever. A
+  tombstone table says "delete this thing": it must survive its owner, or the instruction is erased
+  together with its subject and the vectors or files it named are never removed.
+  `spaces_speech_asset_publications` is the first kind; `spaces_retrieval_invalidations`, which
+  drives LanceDB deletion, is the second and is listed as such in the schema tests.
+- **Only indexed columns may rewrite an index.** A trigger without a `WHEN` guard reindexed every
+  sibling title when a Space was reordered. An index-maintaining trigger states which columns it
+  reacts to.
+- **Anything that only serves a replay is bounded by the replay window.** `RETAINED_EDITS` bounds
+  undo depth, and the edit receipts that make a mutation idempotent are bounded by the same window:
+  a receipt can only be dropped once a hundred later edits have made replaying it meaningless.
+
+## Storage settings
+
+`src-tauri/src/sqlite.rs` owns the pragmas every feature database shares. WAL is paired with
+`synchronous=NORMAL`, the mode WAL is designed for: commits stop waiting on an fsync, the file
+stays safe from corruption, and the exposure is losing the last transactions to a power cut, which
+local recovery archives cover. The cache and mmap windows keep index pages of a growing library in
+memory, and temp tables stay in memory so the sorts query plans ask for never touch the filesystem.
+
+`PRAGMA optimize` runs once each feature database is migrated. Without statistics the planner falls
+back to heuristics and can choose a Space-wide index where a selective one exists.
 
 ## Renderer boundary
 

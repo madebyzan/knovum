@@ -371,15 +371,17 @@ CREATE TABLE spaces_chunk_embeddings (
   FOREIGN KEY (chunk_id) REFERENCES spaces_knowledge_chunks(id) ON DELETE CASCADE
 );
 
+-- A tombstone queue, deliberately without foreign keys. Each row asks the retrieval writer to
+-- delete the vectors of a Space or a node from LanceDB, so it must outlive the very rows it names:
+-- a cascade would erase the instruction together with its subject and leave the vectors in the
+-- index forever. Rows are removed on settlement, not by referential integrity.
 CREATE TABLE spaces_retrieval_invalidations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   space_id TEXT NOT NULL CHECK (length(space_id) > 0),
   node_id TEXT CHECK (node_id IS NULL OR length(node_id) > 0),
   attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
   last_error TEXT,
-  created_at INTEGER NOT NULL,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
-  FOREIGN KEY (node_id) REFERENCES spaces_nodes(id) ON DELETE CASCADE
+  created_at INTEGER NOT NULL
 );
 
 CREATE TABLE spaces_enrichment_jobs (
@@ -783,7 +785,11 @@ BEGIN
   VALUES(NEW.id,NEW.space_id,NEW.kind,NEW.title);
 END;
 
+-- Only the indexed columns may rewrite the index. Reordering a Space updates order_index on
+-- every sibling, and an unguarded trigger reindexed each of those titles for nothing.
 CREATE TRIGGER spaces_structure_title_fts_update AFTER UPDATE ON spaces_structure_nodes
+WHEN OLD.title IS NOT NEW.title OR OLD.deleted_at IS NOT NEW.deleted_at
+  OR OLD.kind <> NEW.kind OR OLD.space_id <> NEW.space_id
 BEGIN
   DELETE FROM spaces_structure_title_fts WHERE structure_node_id=OLD.id;
   INSERT INTO spaces_structure_title_fts(structure_node_id,space_id,kind,title)
@@ -1527,8 +1533,9 @@ CREATE INDEX spaces_enrichment_jobs_node ON spaces_enrichment_jobs(node_id);
 CREATE INDEX spaces_enrichment_jobs_space ON spaces_enrichment_jobs(space_id);
 CREATE INDEX spaces_chunk_embeddings_chunk ON spaces_chunk_embeddings(chunk_id);
 CREATE INDEX spaces_retrieval_generations_space ON spaces_retrieval_generations(space_id);
-CREATE INDEX spaces_retrieval_invalidations_space ON spaces_retrieval_invalidations(space_id);
-CREATE INDEX spaces_retrieval_invalidations_node ON spaces_retrieval_invalidations(node_id);
+-- The drain reads whole-Space tombstones before node tombstones, in insertion order.
+CREATE INDEX spaces_retrieval_invalidations_drain
+  ON spaces_retrieval_invalidations(space_id, node_id, id);
 CREATE INDEX spaces_reserved_outputs_space ON spaces_reserved_outputs(space_id);
 CREATE INDEX spaces_action_invocations_space ON spaces_action_invocations(space_id);
 CREATE INDEX spaces_agent_artifact_sessions_space ON spaces_agent_artifact_sessions(space_id);

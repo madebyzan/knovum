@@ -11,6 +11,10 @@ mod replay;
 
 pub(in crate::spaces) use replay::apply;
 
+/// How many edits a Space remembers. It bounds undo depth and, with it, every record whose only
+/// purpose is to serve a replay of those edits.
+pub(super) const RETAINED_EDITS: i64 = 100;
+
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct RelationLifecycle {
@@ -133,7 +137,7 @@ async fn insert(tx: &mut Transaction<'_, Sqlite>, entry: HistoryInsert<'_>) -> R
     Ok(())
 }
 async fn prune(tx: &mut Transaction<'_, Sqlite>, space_id: &str) -> Result<(), String> {
-    sqlx::query("DELETE FROM spaces_edit_history WHERE space_id=$1 AND id NOT IN (SELECT id FROM spaces_edit_history WHERE space_id=$1 ORDER BY id DESC LIMIT 100)").bind(space_id).execute(&mut **tx).await.map_err(db::sql_error)?;
+    sqlx::query("DELETE FROM spaces_edit_history WHERE space_id=$1 AND id NOT IN (SELECT id FROM spaces_edit_history WHERE space_id=$1 ORDER BY id DESC LIMIT $2)").bind(space_id).bind(RETAINED_EDITS).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }
 

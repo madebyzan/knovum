@@ -93,6 +93,13 @@ async fn every_foreign_key_is_indexed() {
     assert_eq!(unindexed, Vec::<String>::new());
 }
 
+/// A table whose rows must outlive the rows they name. Presence in a retained-reference table
+/// means "keep this file", so it has to cascade with its owner or the file is retained forever;
+/// presence in a tombstone table means "delete this thing", so it has to survive its owner or the
+/// deletion never happens. Only the second kind may hold `space_id` without a key, and each one
+/// is listed here with that reason.
+const TOMBSTONE_TABLES: [&str; 1] = ["spaces_retrieval_invalidations"];
+
 /// Every table that holds Space-scoped rows must let the Space own them, otherwise deleting a
 /// Space leaves rows that no feature can reach and no reclamation pass can drain. Ownership may
 /// be transitive: a composite key that carries `space_id` into another Space-owned table counts.
@@ -101,7 +108,7 @@ async fn space_scoped_rows_belong_to_their_space() {
     let pool = migrated().await;
     let mut unowned = Vec::new();
     for table in table_names(&pool).await {
-        if table == "spaces" {
+        if table == "spaces" || TOMBSTONE_TABLES.contains(&table.as_str()) {
             continue;
         }
         let columns: Vec<String> =
