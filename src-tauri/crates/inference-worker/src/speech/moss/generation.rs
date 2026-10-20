@@ -1,4 +1,4 @@
-use super::{super::stream::Publisher, Loaded};
+use super::{super::stream::Publisher, Moss};
 use crate::{
     cancellation::Cancellation,
     onnx::{self, Values},
@@ -8,7 +8,7 @@ use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64;
 
 pub(super) fn generate(
-    engine: &mut Loaded,
+    engine: &mut Moss,
     codes: &[Vec<i32>],
     text: &[i32],
     seed: u64,

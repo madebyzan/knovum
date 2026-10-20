@@ -8,6 +8,17 @@ Use the displayed error details first. Preferences use a versioned schema. If th
 
 Another application may own `Cmd/Ctrl+Shift+Space`. This is an expected runtime outcome; the app remains usable through Dock/Taskbar/Tray. Do not fail the full application bootstrap for this condition.
 
+## Windows inference build fails in a nested supplier CMake project
+
+MSVC tools write object databases, tracker logs and try-compile scratch files through
+MAX_PATH-limited interfaces. The audio supplier nests its own `ExternalProject` trees several
+levels deep, so a build tree inside Cargo's hashed `OUT_DIR` pushes those files past 260
+characters, and the nested configure reports the misleading `No CMAKE_C_COMPILER could be found`.
+
+Windows supplier builds therefore run from `%LOCALAPPDATA%\knovum-build\<fingerprint>`, one tree
+per `OUT_DIR`. Installed artifacts stay in `OUT_DIR`; `cargo clean` does not remove the build
+trees, so delete that directory to reclaim space or to force a full supplier rebuild.
+
 ## Windows installer build fails around WiX/light.exe
 
 MSI packaging requires Windows tooling and may require the Windows VBSCRIPT optional feature. Run Windows packaging on a Windows host. NSIS is the primary interactive installer if MSI is not required for the current deployment.

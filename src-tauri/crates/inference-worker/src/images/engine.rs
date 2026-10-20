@@ -3,7 +3,7 @@ use crate::{artifact, cancellation::Cancellation};
 use knovum_inference_contracts::{
     image_compute::{ImageComputation, ImageComputeParams, ImageModelVariant},
     image_wire::TensorDataType,
-    runtime::{RuntimeCapability, RuntimeInitializeParams},
+    runtime::{RuntimeInitializeParams, RuntimeModel},
 };
 use std::path::Path;
 
@@ -26,47 +26,31 @@ pub(super) struct Computed {
 impl ImageEngine {
     pub(super) fn load(params: &RuntimeInitializeParams) -> Result<Self, String> {
         let threads = params.device_profile.cpu_threads;
-        if let Some(path) = &params.model_paths.image_segmentation {
-            return segmentation::Segmentation::new(Path::new(path), threads)
-                .map(ImageEngine::Segmentation);
-        }
-        let model = params
-            .model_paths
-            .image_processing
-            .as_ref()
-            .ok_or("model_missing: no image model path")?;
-        let directory = Path::new(&model.directory);
+        let (variant, directory) = match &params.model {
+            RuntimeModel::Snapshot { path } => {
+                return segmentation::Segmentation::new(Path::new(path), threads)
+                    .map(ImageEngine::Segmentation)
+            }
+            RuntimeModel::ImageVariant { path, variant } => (*variant, Path::new(path)),
+        };
         use ImageModelVariant as V;
-        match model.variant {
+        match variant {
             V::RealEsrganGeneralX4v3 | V::RealEsrganX4plus => {
-                upscaling::Upscaling::new(directory, model.variant == V::RealEsrganX4plus, threads)
+                upscaling::Upscaling::new(directory, variant == V::RealEsrganX4plus, threads)
                     .map(ImageEngine::Upscaling)
             }
             V::Migan => {
                 inpainting::Inpainting::new(directory, threads).map(ImageEngine::Inpainting)
             }
             V::EfficientSamTi | V::EfficientSamS => {
-                selection::Selection::new(directory, model.variant == V::EfficientSamS, threads)
+                selection::Selection::new(directory, variant == V::EfficientSamS, threads)
                     .map(ImageEngine::Selection)
             }
-            V::DepthAnythingV2SmallUint8 | V::DepthAnythingV2Small => depth::Depth::new(
-                directory,
-                model.variant == V::DepthAnythingV2SmallUint8,
-                threads,
-            )
-            .map(ImageEngine::Depth),
+            V::DepthAnythingV2SmallUint8 | V::DepthAnythingV2Small => {
+                depth::Depth::new(directory, variant == V::DepthAnythingV2SmallUint8, threads)
+                    .map(ImageEngine::Depth)
+            }
         }
-    }
-
-    pub(super) fn capability(model_paths: &RuntimeInitializeParams) -> Option<RuntimeCapability> {
-        if model_paths.model_paths.image_segmentation.is_some() {
-            return Some(RuntimeCapability::ImageSegmentation);
-        }
-        model_paths
-            .model_paths
-            .image_processing
-            .as_ref()
-            .map(|model| model.variant.capability())
     }
 
     pub(super) fn compute(

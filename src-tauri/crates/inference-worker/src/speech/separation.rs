@@ -1,5 +1,5 @@
 use super::{artifacts, audio, ffi};
-use crate::cancellation::Cancellation;
+use crate::{cancellation::Cancellation, initialization::VerifiedRuntime};
 use ffi::sherpa::*;
 use knovum_inference_contracts::{
     runtime::RuntimeInitializeParams,
@@ -10,10 +10,7 @@ use std::{
     ptr,
 };
 
-pub(crate) struct Separator {
-    params: RuntimeInitializeParams,
-    engine: Option<Engine>,
-}
+pub(crate) struct Separator(Engine);
 struct Engine {
     api: SherpaApi,
     handle: *const SherpaOnnxOfflineSourceSeparation,
@@ -27,83 +24,66 @@ impl Drop for Engine {
     }
 }
 
+/// Admits a source-separation profile and returns the snapshot it names. Pure in its initialization
+/// message, so a precision that differs from the frozen pair is rejected before a graph loads.
+pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<&str, String> {
+    if params.device_profile.device != "cpu"
+        || params.device_profile.execution_profile_id != params.capability_spec_id
+        || !(1..=8).contains(&params.device_profile.cpu_threads)
+        || !matches!(
+            params.capability_spec_id.as_str(),
+            "spleeter-2stems-fp16-cpu-v1" | "spleeter-2stems-fp32-cpu-v1"
+        )
+    {
+        return Err("unsupported_device: source separation profile is unavailable".into());
+    }
+    params.model.snapshot()
+}
+
 impl Separator {
-    pub(crate) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
-        if params.device_profile.device != "cpu"
-            || params.device_profile.execution_profile_id != params.capability_spec_id
-            || params.model_paths.speech_separation.is_none()
-            || !(1..=8).contains(&params.device_profile.cpu_threads)
-            || !matches!(
-                params.capability_spec_id.as_str(),
-                "spleeter-2stems-fp16-cpu-v1" | "spleeter-2stems-fp32-cpu-v1"
-            )
-        {
-            return Err("unsupported_device: source separation profile is unavailable".into());
-        }
-        Ok(Self {
-            params: params.clone(),
-            engine: None,
-        })
-    }
-    fn load(&mut self) -> Result<&Engine, String> {
-        if self.engine.is_none() {
-            let directory = PathBuf::from(
-                self.params
-                    .model_paths
-                    .speech_separation
-                    .as_ref()
-                    .ok_or("model_missing: source separation model is missing")?,
-            );
-            let half = self.params.capability_spec_id == "spleeter-2stems-fp16-cpu-v1";
-            let name = |stem| {
-                directory.join(if half {
-                    format!("{stem}.fp16.onnx")
-                } else {
-                    format!("{stem}.onnx")
-                })
-            };
-            let vocals = ffi::string(
-                name("vocals")
-                    .to_str()
-                    .ok_or("model_corrupt: model path is invalid")?,
-            )?;
-            let accompaniment = ffi::string(
-                name("accompaniment")
-                    .to_str()
-                    .ok_or("model_corrupt: model path is invalid")?,
-            )?;
-            let api = unsafe {
-                SherpaApi::from_library(ffi::load(&ffi::path(&self.params, "sherpa-onnx-c-api")?)?)
-            }
-            .map_err(|error| format!("runtime_mismatch: {error}"))?;
-            let version = unsafe { std::ffi::CStr::from_ptr(api.SherpaOnnxGetVersionStr()) }
+    pub(crate) fn new(
+        params: &RuntimeInitializeParams,
+        runtime: &VerifiedRuntime,
+    ) -> Result<Self, String> {
+        let directory = PathBuf::from(admit(params)?);
+        let half = params.capability_spec_id == "spleeter-2stems-fp16-cpu-v1";
+        let name = |stem| {
+            directory.join(if half {
+                format!("{stem}.fp16.onnx")
+            } else {
+                format!("{stem}.onnx")
+            })
+        };
+        let vocals = ffi::string(
+            name("vocals")
                 .to_str()
-                .map_err(|error| error.to_string())?;
-            if version != "1.13.8" {
-                return Err("runtime_mismatch: Sherpa version differs".into());
-            }
-            let config = SherpaOnnxOfflineSourceSeparationConfig {
-                model: SherpaOnnxOfflineSourceSeparationModelConfig {
-                    spleeter: SherpaOnnxOfflineSourceSeparationSpleeterModelConfig {
-                        vocals: vocals.as_ptr(),
-                        accompaniment: accompaniment.as_ptr(),
-                    },
-                    uvr: SherpaOnnxOfflineSourceSeparationUvrModelConfig { model: ptr::null() },
-                    num_threads: i32::from(self.params.device_profile.cpu_threads),
-                    debug: 0,
-                    provider: c"cpu".as_ptr(),
+                .ok_or("model_corrupt: model path is invalid")?,
+        )?;
+        let accompaniment = ffi::string(
+            name("accompaniment")
+                .to_str()
+                .ok_or("model_corrupt: model path is invalid")?,
+        )?;
+        let api = ffi::sherpa_api(runtime)?;
+        let config = SherpaOnnxOfflineSourceSeparationConfig {
+            model: SherpaOnnxOfflineSourceSeparationModelConfig {
+                spleeter: SherpaOnnxOfflineSourceSeparationSpleeterModelConfig {
+                    vocals: vocals.as_ptr(),
+                    accompaniment: accompaniment.as_ptr(),
                 },
-            };
-            let handle = unsafe { api.SherpaOnnxCreateOfflineSourceSeparation(&config) };
-            if handle.is_null() {
-                return Err("model_corrupt: source separation engine could not load".into());
-            }
-            self.engine = Some(Engine { api, handle });
+                uvr: SherpaOnnxOfflineSourceSeparationUvrModelConfig { model: ptr::null() },
+                num_threads: i32::from(params.device_profile.cpu_threads),
+                debug: 0,
+                provider: c"cpu".as_ptr(),
+            },
+        };
+        let handle = unsafe { api.SherpaOnnxCreateOfflineSourceSeparation(&config) };
+        if handle.is_null() {
+            return Err("model_corrupt: source separation engine could not load".into());
         }
-        self.engine
-            .as_ref()
-            .ok_or("worker_crashed: source separation engine is unavailable".into())
+        Ok(Self(Engine { api, handle }))
     }
+
     pub(crate) fn separate(
         &mut self,
         work: &Path,
@@ -119,7 +99,7 @@ impl Separator {
             left[index] = pair[0];
             right[index] = pair[1];
         }
-        let engine = self.load()?;
+        let engine = &self.0;
         cancel.check()?;
         let channels = [left.as_ptr(), right.as_ptr()];
         let output = unsafe {

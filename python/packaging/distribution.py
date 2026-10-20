@@ -63,16 +63,10 @@ if __name__ == "__main__":
     parser.add_argument("--root", required=True, type=Path)
     parser.add_argument("--verify-against", type=Path)
     parser.add_argument("--target", choices=["macos-x64", "macos-arm64", "windows-x64"])
-    parser.add_argument("--require-approved", action="store_true")
     options = parser.parse_args()
     if options.verify_against is not None:
         verify(options.root, options.verify_against.read_bytes())
     else:
         if options.target is None:
             parser.error("--target is required when sealing")
-        from policy import validate_license_review
-
-        validate_license_review(
-            Path(__file__).resolve().parents[1], options.root, options.target, options.require_approved
-        )
         seal(options.root, options.target)

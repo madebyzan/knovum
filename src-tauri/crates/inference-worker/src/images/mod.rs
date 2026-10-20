@@ -13,38 +13,34 @@ use engine::ImageEngine;
 use knovum_inference_contracts::{
     image_compute::{ImageComputationOutput, ImageComputeParams},
     image_wire::{ImageSegmentParams, ImageSegmentation},
-    runtime::RuntimeInitializeParams,
+    runtime::{RuntimeCapability, RuntimeInitializeParams, RuntimeModel},
 };
 use std::path::Path;
 
-pub(crate) struct Images {
-    params: RuntimeInitializeParams,
-    engine: Option<ImageEngine>,
+pub(crate) struct Images(ImageEngine);
+
+/// Admits the image execution profile. Pure in its initialization message, so an unadmitted thread
+/// count or a model that does not implement the frozen capability is rejected before a graph loads.
+fn admit(params: &RuntimeInitializeParams) -> Result<(), String> {
+    if params.device_profile.device != "cpu"
+        || !(1..=8).contains(&params.device_profile.cpu_threads)
+    {
+        return Err("unsupported_device: images require admitted CPU threads".into());
+    }
+    let implemented = match &params.model {
+        RuntimeModel::Snapshot { .. } => RuntimeCapability::ImageSegmentation,
+        RuntimeModel::ImageVariant { variant, .. } => variant.capability(),
+    };
+    if implemented != params.capability {
+        return Err("runtime_mismatch: image model and capability differ".into());
+    }
+    Ok(())
 }
 
 impl Images {
     pub(crate) fn new(params: &RuntimeInitializeParams) -> Result<Self, String> {
-        if params.device_profile.device != "cpu"
-            || !(1..=8).contains(&params.device_profile.cpu_threads)
-        {
-            return Err("unsupported_device: images require admitted CPU threads".into());
-        }
-        if ImageEngine::capability(params) != Some(params.capability) {
-            return Err("runtime_mismatch: image model path and capability differ".into());
-        }
-        Ok(Self {
-            params: params.clone(),
-            engine: None,
-        })
-    }
-
-    fn load(&mut self) -> Result<&mut ImageEngine, String> {
-        if self.engine.is_none() {
-            self.engine = Some(ImageEngine::load(&self.params)?);
-        }
-        self.engine
-            .as_mut()
-            .ok_or("worker_crashed: image model is unavailable".into())
+        admit(params)?;
+        ImageEngine::load(params).map(Self)
     }
 
     pub(crate) fn segment(
@@ -53,7 +49,7 @@ impl Images {
         params: ImageSegmentParams,
         cancel: &Cancellation,
     ) -> Result<ImageSegmentation, String> {
-        match self.load()? {
+        match &mut self.0 {
             ImageEngine::Segmentation(engine) => engine.execute(work, params, cancel),
             _ => Err("runtime_mismatch: worker does not own segmentation".into()),
         }
@@ -70,7 +66,7 @@ impl Images {
             return Err("invalid_input: image must be one RGB tensor".into());
         }
         let input = artifact::read_tensor(work, &params.tensor_ref, 64 * 1024 * 1024)?;
-        let computed = self.load()?.compute(work, &params, &input, cancel)?;
+        let computed = self.0.compute(work, &params, &input, cancel)?;
         cancel.check()?;
         let tensor_ref = artifact::write_tensor(
             work,

@@ -1,65 +1,90 @@
 use super::package::WorkerPackage;
 #[cfg(windows)]
 use super::windows_job::WindowsJob;
-use super::{KillRegistration, ProcessTree, Worker};
+use super::{KillRegistration, ProcessTree, Worker, WorkerSpecification};
 use crate::ai::contracts::runtime::{RuntimeInitializeParams, RuntimeSession, PROTOCOL_VERSION};
 use crate::ai::local_runtime::{
     admission,
     protocol::{io_error, Protocol},
 };
+use crate::local_resources::runtimes::inference::InferenceRuntimePaths;
 use std::{
-    path::Path,
+    path::{Path, PathBuf},
     time::{Duration, Instant},
 };
 use tokio_util::sync::CancellationToken;
 
 impl Worker {
+    /// Starts the one worker a capability asked for.
+    ///
+    /// A session identity, its private work directory under `inference_root` and its cold-start
+    /// budget are properties of starting a worker rather than decisions a capability makes, so
+    /// every capability reaches a running worker through this one path.
     pub(in crate::ai::local_runtime) async fn start(
-        runtime: WorkerPackage,
-        work_directory: &Path,
-        model_path: &Path,
-        params: RuntimeInitializeParams,
+        runtime: &InferenceRuntimePaths,
+        inference_root: &Path,
+        specification: WorkerSpecification,
         cancellation: &CancellationToken,
         exit: &CancellationToken,
     ) -> Result<Self, String> {
+        let session_id = uuid::Uuid::new_v4().to_string();
+        let work_directory = inference_root.join(&session_id);
         let startup = Self::start_inner(
-            &runtime,
-            work_directory,
-            model_path,
-            params,
+            WorkerPackage::from(runtime),
+            &work_directory,
+            session_id,
+            specification,
             cancellation,
             exit,
         )
         .await;
         if startup.is_err() {
-            let _ = tokio::fs::remove_dir_all(work_directory).await;
+            let _ = tokio::fs::remove_dir_all(&work_directory).await;
         }
         startup
     }
 
     async fn start_inner(
-        runtime: &WorkerPackage,
+        runtime: WorkerPackage,
         work_directory: &Path,
-        model_path: &Path,
-        params: RuntimeInitializeParams,
+        session_id: String,
+        specification: WorkerSpecification,
         cancellation: &CancellationToken,
         exit: &CancellationToken,
     ) -> Result<Self, String> {
-        // A cold start is bounded by the budget it carries, never by the budget of the request
-        // that happened to need this worker: verification and weight loading are shared costs.
-        let budget = Duration::from_millis(params.budget_ms);
-        tokio::select! {
+        // The host's verification and the worker's initialization read disjoint bytes, so each is
+        // bounded by its own phase rather than by one value that describes neither. A cold start is
+        // never bounded by the budget of the request that happened to need this worker:
+        // verification and weight loading are shared costs.
+        let verification = Duration::from_millis(runtime.spawn_verification_budget_ms());
+        let model_path = PathBuf::from(specification.model.path());
+        let model_bytes = tokio::select! {
             biased;
             _ = exit.cancelled() => return Err("cancelled".into()),
             _ = cancellation.cancelled() => return Err("cancelled".into()),
-            startup = tokio::time::timeout(budget, async {
+            startup = tokio::time::timeout(verification, async {
                 runtime.verify().await?;
                 crate::ai::local_runtime::prepare_inference_root(work_directory).await?;
                 tokio::fs::create_dir(work_directory)
                     .await
-                    .map_err(|error| format!("resource_exhausted: {error}"))
+                    .map_err(|error| format!("resource_exhausted: {error}"))?;
+                snapshot_bytes(&model_path).await
             }) => startup.map_err(|_| "deadline_exceeded: worker runtime verification timed out".to_owned())??,
-        }
+        };
+        let params = RuntimeInitializeParams {
+            runtime_manifest_path: runtime.manifest_path().to_string_lossy().into_owned(),
+            protocol_version: PROTOCOL_VERSION,
+            runtime_digest: runtime.digest().to_owned(),
+            session_id,
+            capability: specification.capability,
+            capability_spec_id: specification.capability_spec_id,
+            device_profile: specification.device_profile,
+            work_directory: work_directory.to_string_lossy().into_owned(),
+            model: specification.model,
+            // Derived where both the verified runtime and the snapshot it loads are known.
+            budget_ms: runtime.initialization_budget_ms(model_bytes),
+        };
+        let initialization = Duration::from_millis(params.budget_ms);
         let memory_reservation =
             admission::reserve_memory(params.capability, &params.device_profile)?;
         let mut command = runtime.command(params.device_profile.cpu_threads);
@@ -98,48 +123,26 @@ impl Worker {
         tokio::spawn(super::diagnostics::observe(diagnostics));
         let mut protocol = Protocol::new(input, output);
         // Once spawned, cancellation must settle the child before releasing its reservation.
-        let initialization: Result<RuntimeSession, String> = tokio::select! {
+        let initialized: Result<RuntimeSession, String> = tokio::select! {
             biased;
             _ = exit.cancelled() => Err("cancelled".into()),
             _ = cancellation.cancelled() => Err("cancelled".into()),
             startup = tokio::time::timeout(
-                budget,
+                initialization,
                 protocol.request(&params.session_id, "runtime.initialize", &params),
             ) => startup
                 .map_err(|_| "deadline_exceeded: worker initialization timed out".to_owned())
                 .and_then(std::convert::identity),
         };
-        let startup = match initialization {
+        let startup = match initialized {
             Ok(startup) => startup,
             Err(error) => {
-                process_tree.terminate();
-                let _ = child.kill().await;
-                let _ = child.wait().await;
-                let _ = tokio::fs::remove_dir_all(work_directory).await;
+                settle(child, process_tree).await;
                 return Err(error);
             }
         };
-        if startup.protocol_version != PROTOCOL_VERSION
-            || startup.runtime_digest != params.runtime_digest
-            || startup.session_id != params.session_id
-            || startup.capability != params.capability
-            || startup.capability_spec_id != params.capability_spec_id
-            || startup.device_profile.device != params.device_profile.device
-            || startup.device_profile.execution_profile_id
-                != params.device_profile.execution_profile_id
-            || startup.device_profile.cpu_threads != params.device_profile.cpu_threads
-            || startup.capabilities.len() != 1
-            || startup.capabilities[0] != params.capability.method()
-            || startup.limits.max_message_bytes != 1_048_576
-            || startup.limits.max_embedding_texts != 32
-            || startup.limits.max_embedding_tokens != 2048
-            || startup.limits.max_unconsumed_chunk_files != 8
-            || startup.limits.max_unconsumed_chunk_bytes != 16 * 1024 * 1024
-        {
-            process_tree.terminate();
-            let _ = child.kill().await;
-            let _ = child.wait().await;
-            let _ = tokio::fs::remove_dir_all(work_directory).await;
+        if !startup.matches(&params) {
+            settle(child, process_tree).await;
             return Err("runtime_mismatch: worker identity or capabilities differ".into());
         }
         Ok(Self {
@@ -150,7 +153,7 @@ impl Worker {
             protocol,
             session_id: params.session_id,
             runtime_digest: runtime.digest().to_owned(),
-            model_path: model_path.to_owned(),
+            model_path,
             capability: params.capability,
             capability_spec_id: params.capability_spec_id,
             device_profile: params.device_profile,
@@ -158,4 +161,22 @@ impl Worker {
             last_used: Instant::now(),
         })
     }
+}
+
+/// Settles a worker that never became usable: the process group dies before its memory
+/// reservation is released, and [`Worker::start`] removes the work directory it created.
+async fn settle(mut child: tokio::process::Child, mut process_tree: ProcessTree) {
+    process_tree.terminate();
+    let _ = child.kill().await;
+    let _ = child.wait().await;
+}
+
+/// Measures the snapshot this worker is about to load, so its initialization budget accounts for
+/// the weights as well as the libraries.
+async fn snapshot_bytes(model_path: &Path) -> Result<u64, String> {
+    let path = model_path.to_owned();
+    crate::foundation::blocking::run(move || {
+        crate::local_resources::filesystem::installed_bytes(&path)
+    })
+    .await
 }

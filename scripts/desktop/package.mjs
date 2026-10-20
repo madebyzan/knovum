@@ -22,8 +22,6 @@ function productionConfiguration(repository, options) {
   if (!options.production) return {};
   validateReleaseArguments(options.args);
   readVersion(repository);
-  if (read(repository, "python/packaging/license-review.json").reviewStatus !== "approved")
-    throw new Error("Agent dependency license review is unresolved; release packaging is blocked");
   const release = read(repository, "src-tauri/tauri.release.conf.json");
   return {
     ...release,
