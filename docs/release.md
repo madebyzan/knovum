@@ -364,7 +364,7 @@ SDK MCP catalog/invocation, OAuth credential lifecycle, durable approval/unknown
 selected Skill bytes and ACP task isolation. Real provider OAuth registration, actual service
 side effects and both target operating systems require separately recorded release evidence.
 Do not treat SDK fixtures as certification of every third-party service. Include the bundled
-standard plugin in resource/signature inventories and dependency SBOM/license review. Measure
+standard plugin in resource/signature inventories and dependency SBOM/license notices. Measure
 the release binary/package delta for gix and rmcp client/auth features on each target; no package
 size result is inferred from source or a development binary. Signing, installer acceptance and
 physical platform qualification are maintainer release tasks.

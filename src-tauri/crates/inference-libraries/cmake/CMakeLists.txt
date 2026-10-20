@@ -11,8 +11,15 @@ set(common -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PRE
 if(APPLE)
   list(APPEND common -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0 -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES} -DCMAKE_INSTALL_RPATH=@loader_path)
 endif()
+# Suppliers nest their own ExternalProject trees and MSVC resolves intermediate files through the
+# 260-character path limit, so every supplier uses the shortest source/build layout CMake allows.
+function(knovum_layout name)
+  set(${name}_layout PREFIX "${CMAKE_BINARY_DIR}/${name}" SOURCE_DIR "${CMAKE_BINARY_DIR}/${name}/s"
+    BINARY_DIR "${CMAKE_BINARY_DIR}/${name}/b" PARENT_SCOPE)
+endfunction()
 foreach(name audio sherpa whisper)
   knovum_archive(${name} "${${name}_record}")
+  knovum_layout(${name})
 endforeach()
 set(audio_flags -DENGINE_ENABLE_METAL=${APPLE} -DENGINE_ENABLE_CUDA=OFF -DENGINE_ENABLE_VULKAN=OFF
   -DGGML_METAL_MACOSX_VERSION_MIN=14.0)
@@ -23,7 +30,7 @@ endforeach()
 if(WIN32)
   include(windows.cmake)
 endif()
-ExternalProject_Add(audio BUILD_ALWAYS TRUE DEPENDS ${audio_dependencies}
+ExternalProject_Add(audio ${audio_layout} BUILD_ALWAYS TRUE DEPENDS ${audio_dependencies}
   URL "${audio_url}" URL_HASH "${audio_hash}" TLS_VERIFY ON
   DOWNLOAD_EXTRACT_TIMESTAMP FALSE
   CONFIGURE_COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_SOURCE_DIR}/audio -B <BINARY_DIR>
@@ -31,7 +38,7 @@ ExternalProject_Add(audio BUILD_ALWAYS TRUE DEPENDS ${audio_dependencies}
   BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release --target knovum_voice audiocpp --parallel 4
   INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config Release --component knovum-voice
     COMMAND ${CMAKE_COMMAND} -DSOURCE=<SOURCE_DIR> -DPREFIX=${CMAKE_INSTALL_PREFIX} -P ${CMAKE_CURRENT_SOURCE_DIR}/audio/notices.cmake)
-ExternalProject_Add(sherpa BUILD_ALWAYS TRUE DEPENDS audio
+ExternalProject_Add(sherpa ${sherpa_layout} BUILD_ALWAYS TRUE DEPENDS audio
   URL "${sherpa_url}" URL_HASH "${sherpa_hash}" TLS_VERIFY ON DOWNLOAD_EXTRACT_TIMESTAMP FALSE
   CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env
     SHERPA_ONNXRUNTIME_INCLUDE_DIR=${CMAKE_BINARY_DIR}/ort-headers SHERPA_ONNXRUNTIME_LIB_DIR=${CMAKE_BINARY_DIR}/ort-lib
@@ -51,7 +58,7 @@ endif()
 foreach(name AVX AVX2 FMA F16C BMI2)
   list(APPEND whisper_flags -DGGML_${name}=OFF)
 endforeach()
-ExternalProject_Add(whisper BUILD_ALWAYS TRUE DEPENDS sherpa
+ExternalProject_Add(whisper ${whisper_layout} BUILD_ALWAYS TRUE DEPENDS sherpa
   URL "${whisper_url}" URL_HASH "${whisper_hash}" TLS_VERIFY ON DOWNLOAD_EXTRACT_TIMESTAMP FALSE
   CMAKE_ARGS ${common} ${whisper_flags}
   BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release --parallel 4
