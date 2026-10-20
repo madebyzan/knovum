@@ -199,5 +199,4 @@ pub(crate) fn finish_maintenance_progress<R: Runtime>(
 }
 
 #[cfg(test)]
-#[path = "tests/capabilities.rs"]
-mod capability_tests;
+mod tests;

@@ -98,7 +98,7 @@ pub(in crate::spaces::structure) fn transform_structure(
         return Err("Invalid structure_node transform".into());
     }
     let radians = rotation_delta.to_radians();
-    let mut updates = HashMap::new();
+    let mut layout_by_structure_node_id = HashMap::new();
     for id in &roots {
         require_editable(&snapshot.structure, &index, id)?;
         let before = world_transform(&snapshot.structure, &snapshot.layouts, &index, id)?;
@@ -121,7 +121,7 @@ pub(in crate::spaces::structure) fn transform_structure(
                 scale: 1.0,
             },
         };
-        updates.insert(
+        layout_by_structure_node_id.insert(
             id.clone(),
             map_transform(
                 snapshot.layouts[index.layout_index_by_structure_node_id[id]].clone(),
@@ -129,7 +129,7 @@ pub(in crate::spaces::structure) fn transform_structure(
             )?,
         );
     }
-    replace_layouts(&mut snapshot.layouts, updates);
+    replace_layouts(&mut snapshot.layouts, layout_by_structure_node_id);
     if translation.x != 0.0 || translation.y != 0.0 {
         move_structure(snapshot, structure_node_ids, translation)?;
     }
@@ -168,10 +168,10 @@ fn map_transform(
 }
 pub(in crate::spaces::structure) fn replace_layouts(
     layouts: &mut [StructureLayout],
-    updates: HashMap<String, StructureLayout>,
+    layout_by_structure_node_id: HashMap<String, StructureLayout>,
 ) {
     for layout in layouts {
-        if let Some(update) = updates.get(layout.structure_node_id()) {
+        if let Some(update) = layout_by_structure_node_id.get(layout.structure_node_id()) {
             *layout = update.clone();
         }
     }

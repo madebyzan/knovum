@@ -18,7 +18,7 @@ pub(super) fn prepare(
     let project = &source.project;
     let mut args = Vec::new();
     let mut audio = Vec::new();
-    let mut inspected = HashMap::new();
+    let mut inspection_by_path = HashMap::new();
     for clip in &project.video_track.clips {
         let media = asset(project, &clip.asset_id)?;
         let path = path(source, &clip.asset_id)?;
@@ -34,11 +34,11 @@ pub(super) fn prepare(
             path.into(),
         ]);
         let has_audio = if media.kind == VideoAssetKind::Video {
-            match inspected.get(path) {
+            match inspection_by_path.get(path) {
                 Some(value) => *value,
                 None => {
                     let value = source_audio::inspect(ffmpeg, path, cancellation)?;
-                    inspected.insert(path, value);
+                    inspection_by_path.insert(path, value);
                     value
                 }
             }

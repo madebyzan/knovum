@@ -15,9 +15,9 @@ export interface CanvasPalette {
   foregroundSecondary: string;
   grid: string;
   measurement: string;
-  contentFill: Record<CanvasFillPreset, string>;
+  contentFillByPreset: Record<CanvasFillPreset, string>;
   panel: string;
-  relation: Record<CanvasRelationColor, string>;
+  relationByColor: Record<CanvasRelationColor, string>;
 }
 
 export function useCanvasPalette() {
@@ -50,7 +50,7 @@ function readPalette(): CanvasPalette {
     foregroundSecondary: value(styles, "--color-fg-secondary"),
     grid: value(styles, "--knovum-space-grid-color"),
     measurement: value(styles, "--color-content-amber"),
-    contentFill: {
+    contentFillByPreset: {
       yellow: value(styles, "--color-content-yellow-subtle"),
       green: value(styles, "--color-content-green-subtle"),
       blue: value(styles, "--color-content-blue-subtle"),
@@ -58,7 +58,7 @@ function readPalette(): CanvasPalette {
       gray: value(styles, "--color-content-gray-subtle"),
     },
     panel: value(styles, "--color-surface-panel"),
-    relation: {
+    relationByColor: {
       neutral: value(styles, "--color-fg-secondary"),
       blue: value(styles, "--color-content-blue"),
       green: value(styles, "--color-content-green"),

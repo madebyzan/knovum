@@ -57,12 +57,12 @@ function drawNodeBackground(group: Konva.Group, sceneNode: CanvasSceneNode, pale
   const { frame, appearance } = sceneNode.layout;
   const note = sceneNode.node.data.kind === "note";
   const fill =
-    appearance?.customFill ?? (appearance?.fill ? palette.contentFill[appearance.fill] : undefined);
+    appearance?.customFill ?? (appearance?.fill ? palette.contentFillByPreset[appearance.fill] : undefined);
   group.add(
     new Konva.Rect({
       width: frame.width,
       height: frame.height,
-      fill: fill ?? (note ? palette.contentFill.yellow : palette.panel),
+      fill: fill ?? (note ? palette.contentFillByPreset.yellow : palette.panel),
       cornerRadius: note ? 3 : 7,
       listening: false,
     }),

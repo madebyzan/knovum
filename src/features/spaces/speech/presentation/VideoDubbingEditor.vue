@@ -72,7 +72,7 @@ watch(
       draft.dirty.value
     )
       return;
-    draft.importTranscript(transcript.value, true);
+    draft.initializeFromTranscript(transcript.value);
   },
   { immediate: true },
 );

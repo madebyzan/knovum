@@ -22,15 +22,10 @@ export function useSceneNavigation() {
     scenes,
     activeSpace,
     viewport: editorSession.viewport,
-    title: ref(""),
-    editingId: ref<string>(),
-    editingTitle: ref(""),
     recentSceneId,
-    root: ref<HTMLElement>(),
     triggerRecentTimer,
     stopRecentTimer,
   };
-  const currentZoom = computed(() => Math.round((editorSession.viewport.value?.zoom ?? 1) * 100));
   const activeSceneId = computed(() => {
     const viewport = editorSession.viewport.value;
     if (!viewport) return undefined;
@@ -65,12 +60,7 @@ export function useSceneNavigation() {
 
   return {
     scenes,
-    title: context.title,
-    editingId: context.editingId,
-    editingTitle: context.editingTitle,
     recentSceneId: context.recentSceneId,
-    root: context.root,
-    currentZoom,
     activeSceneId,
     stepScene,
     getTargetScene,

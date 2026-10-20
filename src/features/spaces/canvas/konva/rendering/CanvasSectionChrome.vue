@@ -41,7 +41,7 @@ const badgeWidth = computed(() => Math.max(20, countText.value.length * 7 + 12))
 const sectionFill = computed(() => {
   const appearance = props.section.layout.appearance;
   if (appearance?.customFill) return appearance.customFill;
-  if (appearance?.fill) return props.palette.contentFill[appearance.fill];
+  if (appearance?.fill) return props.palette.contentFillByPreset[appearance.fill];
   return props.palette.panel;
 });
 

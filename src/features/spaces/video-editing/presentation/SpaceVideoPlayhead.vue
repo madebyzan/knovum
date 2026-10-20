@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { onScopeDispose, shallowRef, watch } from "vue";
+import { onScopeDispose, useTemplateRef, watch } from "vue";
 
 import { timeToPx } from "../timeline/scale";
 import type { VideoEditor } from "./use-video-editor";
 
 const props = defineProps<{ editor: VideoEditor }>();
 const { player, timeline } = props.editor;
-const marker = shallowRef<HTMLElement | null>(null);
+const marker = useTemplateRef<HTMLElement>("marker");
 let positionMs = player.positionMs();
 
 /**
@@ -30,7 +30,7 @@ watch([marker, timeline.pxPerSecond], place);
 
 <template>
   <span
-    :ref="(value) => (marker = value as HTMLElement | null)"
+    ref="marker"
     class="pointer-events-none absolute inset-y-0 z-30 w-px bg-surface-danger will-change-transform"
     aria-hidden="true"
   >

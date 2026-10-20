@@ -14,7 +14,7 @@ export interface FittedContentHeight {
 export function createNodeContentHeightBatch(
   nodeById: (nodeId: string) => SpaceCanvasNode | undefined,
   layoutByNodeId: (nodeId: string) => CanvasNodeLayoutV1 | undefined,
-  commit: (heights: ReadonlyMap<string, FittedContentHeight>) => void,
+  commit: (heightByNodeId: ReadonlyMap<string, FittedContentHeight>) => void,
 ) {
   const measurementByNodeId = new Map<string, CanvasContentHeightMeasurement>();
   let paused = false;

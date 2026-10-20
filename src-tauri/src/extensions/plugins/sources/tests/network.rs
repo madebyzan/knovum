@@ -7,7 +7,7 @@ async fn source_resolution_rejects_credentials_fragments_and_non_https_urls() {
         "https://example.com/plugin.zip#revision",
     ] {
         assert_eq!(
-            super::network::resolve_url(url).await.unwrap_err(),
+            super::super::network::resolve_url(url).await.unwrap_err(),
             "package-source-requires-public-https"
         );
     }
@@ -21,7 +21,7 @@ async fn source_resolution_rejects_private_destinations_before_download_or_git_f
         "https://[::1]/repository.git",
     ] {
         assert_eq!(
-            super::network::resolve_url(url).await.unwrap_err(),
+            super::super::network::resolve_url(url).await.unwrap_err(),
             "package-source-requires-public-address"
         );
     }

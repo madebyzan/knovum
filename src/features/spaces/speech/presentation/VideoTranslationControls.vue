@@ -7,7 +7,7 @@ import { useI18n } from "vue-i18n";
 import { availableModelTargets, defaultExecutionTarget } from "../../../../foundation/ai/ai-execution";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import {
-  TRANSLATION_TARGET_LABEL_KEYS,
+  LABEL_KEY_BY_TRANSLATION_TARGET,
   TRANSLATION_TARGETS,
   type TranslationTarget,
 } from "../../../../foundation/ai/translation";
@@ -46,7 +46,7 @@ const translating = computed(
 );
 watch(translating, (value) => emit("busy", value), { immediate: true });
 const languageOptions = computed(() =>
-  TRANSLATION_TARGETS.map((value) => ({ value, label: t(TRANSLATION_TARGET_LABEL_KEYS[value]) })),
+  TRANSLATION_TARGETS.map((value) => ({ value, label: t(LABEL_KEY_BY_TRANSLATION_TARGET[value]) })),
 );
 const targets = computed(() => availableModelTargets(settings.value, "translation"));
 const targetValue = computed(() => {

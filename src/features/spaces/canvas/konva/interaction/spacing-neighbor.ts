@@ -7,7 +7,7 @@ export function nearestSpacingNeighbor(
   axis: "x" | "y",
   side: "after" | "before",
 ) {
-  const candidates = index.neighbors[axis][side];
+  const candidates = index.neighborsByAxis[axis][side];
   const step = side === "before" ? -1 : 1;
   for (
     let position = neighborBoundary(candidates, moving, axis, side);

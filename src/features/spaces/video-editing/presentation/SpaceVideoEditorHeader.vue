@@ -21,7 +21,7 @@ const canSave = computed(
     !actions.saving.value &&
     !actions.rendering.value,
 );
-const duration = computed(() => (project.value ? projectDurationMs(project.value) : 0));
+const durationMs = computed(() => (project.value ? projectDurationMs(project.value) : 0));
 </script>
 
 <template>
@@ -34,7 +34,7 @@ const duration = computed(() => (project.value ? projectDurationMs(project.value
       <span v-if="history.dirty.value" class="text-caption text-fg-tertiary">{{
         t("spaces.media.videoEditor.unsaved.status")
       }}</span>
-      <span class="text-caption text-fg-tertiary tabular-nums">{{ formatVideoEditTime(duration) }}</span>
+      <span class="text-caption text-fg-tertiary tabular-nums">{{ formatVideoEditTime(durationMs) }}</span>
     </div>
     <SpaceVideoOutputSettings v-if="project" :project="project" @edit="commit" />
     <UiButton size="sm" :disabled="!canSave" @click="actions.save()">

@@ -2,7 +2,6 @@ import type { createSpaceMediaActions } from "../../media/actions";
 import {
   createSpaceScene,
   duplicateSpaceScene,
-  moveSpaceScene,
   reorderSpaceScenes,
   removeSpaceScene,
   updateSpaceScene,
@@ -126,7 +125,6 @@ export function assembleSpaceActions(input: SpaceActionsInput) {
     updateScene: (sceneId: string, patch: Parameters<typeof updateSpaceScene>[2]) =>
       updateSpaceScene(navigation, sceneId, patch),
     duplicateScene: (sceneId: string) => duplicateSpaceScene(navigation, sceneId),
-    moveScene: (sceneId: string, direction: -1 | 1) => moveSpaceScene(navigation, sceneId, direction),
     reorderScenes: (sourceId: string, targetId: string) => reorderSpaceScenes(navigation, sourceId, targetId),
     removeScene: (sceneId: string) => removeSpaceScene(navigation, sceneId),
     createRelation: (

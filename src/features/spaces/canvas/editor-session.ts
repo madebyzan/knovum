@@ -81,17 +81,20 @@ export function updateCanvasDirectManipulationProjection(active: boolean) {
   directManipulation.value = active;
 }
 
-export function updateCanvasTextSelectionProjection(nodeId: string, active: boolean) {
-  if (active) {
-    activeTextSelectionNodeId.value = nodeId;
-  } else if (activeTextSelectionNodeId.value === nodeId) {
-    activeTextSelectionNodeId.value = undefined;
-  }
+export function activateCanvasTextSelection(nodeId: string) {
+  activeTextSelectionNodeId.value = nodeId;
 }
 
-export function updateCanvasTextEditorProjection(nodeId: string, active: boolean) {
-  if (active) activeTextEditorNodeId.value = nodeId;
-  else if (activeTextEditorNodeId.value === nodeId) activeTextEditorNodeId.value = undefined;
+export function deactivateCanvasTextSelection(nodeId: string) {
+  if (activeTextSelectionNodeId.value === nodeId) activeTextSelectionNodeId.value = undefined;
+}
+
+export function activateCanvasTextEditor(nodeId: string) {
+  activeTextEditorNodeId.value = nodeId;
+}
+
+export function deactivateCanvasTextEditor(nodeId: string) {
+  if (activeTextEditorNodeId.value === nodeId) activeTextEditorNodeId.value = undefined;
 }
 
 export function runCanvasSessionTransition<T>(transition: () => Promise<T>) {

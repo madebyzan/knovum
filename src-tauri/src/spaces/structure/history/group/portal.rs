@@ -8,11 +8,11 @@ use crate::spaces::db;
 /// are rewritten — and they are found by their target, not by scanning every Portal in the library.
 pub(super) async fn update_targets(
     tx: &mut Transaction<'_, Sqlite>,
-    node_owners: &HashMap<String, &str>,
-    container_owners: &HashMap<&str, &str>,
+    owner_by_node_id: &HashMap<String, &str>,
+    owner_by_container_id: &HashMap<&str, &str>,
     moved_nodes: &[String],
 ) -> Result<(), String> {
-    let containers = container_owners.keys().copied().collect::<Vec<_>>();
+    let containers = owner_by_container_id.keys().copied().collect::<Vec<_>>();
     if moved_nodes.is_empty() && containers.is_empty() {
         return Ok(());
     }
@@ -33,11 +33,11 @@ pub(super) async fn update_targets(
         let owner = data
             .get("targetNodeId")
             .and_then(serde_json::Value::as_str)
-            .and_then(|target| node_owners.get(target))
+            .and_then(|target| owner_by_node_id.get(target))
             .or_else(|| {
                 data.get("targetStructureNodeId")
                     .and_then(serde_json::Value::as_str)
-                    .and_then(|target| container_owners.get(target))
+                    .and_then(|target| owner_by_container_id.get(target))
             });
         let Some(owner) = owner else { continue };
         data["targetSpaceId"] = serde_json::Value::String((*owner).to_owned());

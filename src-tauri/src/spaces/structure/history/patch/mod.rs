@@ -82,10 +82,13 @@ impl Side {
 
 pub(super) fn diff(before: &HistoryState, after: &HistoryState) -> HistoryPatch {
     HistoryPatch {
-        structure: changes(&before.structure, &after.structure),
-        relation_styles: changes(&before.relation_styles, &after.relation_styles),
+        structure: changes(&before.row_by_node_id, &after.row_by_node_id),
+        relation_styles: changes(&before.style_by_relation_id, &after.style_by_relation_id),
         nodes: presences(&before.live_nodes(), &after.live_nodes()),
-        relations: changes(&before.relations, &after.relations),
+        relations: changes(
+            &before.lifecycle_by_relation_id,
+            &after.lifecycle_by_relation_id,
+        ),
     }
 }
 

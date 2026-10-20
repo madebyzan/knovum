@@ -27,9 +27,9 @@ function voice(
  * export applies.
  */
 export function buildVoices(project: VideoEditProject, resolve: BufferResolver): AudioVoice[] {
-  const assets = new Map(project.assets.map((asset) => [asset.nodeId, asset]));
+  const assetByNodeId = new Map(project.assets.map((asset) => [asset.nodeId, asset]));
   const bufferOf = (assetId: string) => {
-    const asset = assets.get(assetId);
+    const asset = assetByNodeId.get(assetId);
     return asset ? resolve(asset) : undefined;
   };
   const clips = project.videoTrack.clips.flatMap((clip) => {

@@ -171,11 +171,11 @@ function representativeRelationOffsets(
     targetStructureNodeId: string;
   }[],
 ) {
-  const groups = groupBy(relations, (projected) =>
+  const relationsByPair = groupBy(relations, (projected) =>
     [projected.sourceStructureNodeId, projected.targetStructureNodeId].toSorted().join("\u0000"),
   );
   const offsetByRelationId = new Map<string, number>();
-  for (const group of Object.values(groups))
+  for (const group of Object.values(relationsByPair))
     group
       .toSorted((a, b) => a.relation.id.localeCompare(b.relation.id))
       .forEach((projected, index) => {

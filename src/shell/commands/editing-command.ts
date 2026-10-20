@@ -19,7 +19,7 @@ export const EDITING_COMMANDS: readonly EditingCommand[] = [
  * The surface command that performs the intent when the platform does not. A document keeps its own
  * edit history, so it answers before the canvas does.
  */
-const SURFACE_COMMANDS: Record<EditingCommand, readonly string[]> = {
+const SURFACE_COMMAND_IDS_BY_EDITING_COMMAND: Record<EditingCommand, readonly string[]> = {
   undo: ["document.undo", "spaces.undo"],
   redo: ["document.redo", "spaces.redo"],
   cut: ["spaces.cut"],
@@ -40,7 +40,7 @@ function platformOwns(intent: EditingCommand, target: EventTarget | null) {
 
 export function runEditingCommand(intent: EditingCommand): void | Promise<void> {
   if (platformOwns(intent, document.activeElement)) return performApplicationMenuEditing(intent);
-  for (const commandId of SURFACE_COMMANDS[intent]) {
+  for (const commandId of SURFACE_COMMAND_IDS_BY_EDITING_COMMAND[intent]) {
     const command = getAppCommand(commandId);
     if (command) {
       runAppCommand(command);

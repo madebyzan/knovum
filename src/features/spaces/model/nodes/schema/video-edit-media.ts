@@ -46,7 +46,7 @@ export const videoAudioClipSchema = z
   .object({ ...sourceWindowFields, lane: z.number().int().min(0).max(3) })
   .strict();
 
-export const videoTransitionKinds = [
+export const VIDEO_TRANSITION_KINDS = [
   "dissolve",
   "fadeBlack",
   "fadeWhite",
@@ -64,7 +64,7 @@ export const videoTransitionSchema = z
   .object({
     id: z.string().uuid(),
     fromClipId: z.string().uuid(),
-    kind: z.enum(videoTransitionKinds),
+    kind: z.enum(VIDEO_TRANSITION_KINDS),
     durationMs: z.number().int().min(100).max(5_000),
   })
   .strict();

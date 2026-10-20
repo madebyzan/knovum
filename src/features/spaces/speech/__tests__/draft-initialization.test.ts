@@ -96,7 +96,7 @@ it("opens an automatically imported book clean, but retains manual edits and imp
       () => voices.value,
     ),
   )!;
-  draft.importScript(script, true);
+  draft.initializeFromScript(script);
   expect(draft.dirty.value).toBe(false);
   expect(draft.needsRevision.value).toBe(true);
   expect(draft.valid.value).toBe(false);
@@ -121,7 +121,7 @@ it("does not erase a book metadata edit while its first source import completes"
     ),
   )!;
   draft.output.metadata.value = { ...draft.output.metadata.value, author: "Author" };
-  draft.importScript(script, true);
+  draft.initializeFromScript(script);
   expect(draft.dirty.value).toBe(true);
 });
 it("does not require a leave decision for automatic transcripts or default voices", async () => {
@@ -134,7 +134,7 @@ it("does not require a leave decision for automatic transcripts or default voice
       () => voices.value,
     ),
   )!;
-  draft.importTranscript(transcript, true);
+  draft.initializeFromTranscript(transcript);
   expect(draft.dirty.value).toBe(false);
   expect(draft.needsRevision.value).toBe(true);
   voices.value = [voice];

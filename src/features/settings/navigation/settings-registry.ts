@@ -146,7 +146,7 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
   },
 ] as const;
 
-export const SETTINGS_GROUP_TITLE_KEYS: Record<SettingsGroupId, string> = {
+export const TITLE_KEY_BY_SETTINGS_GROUP: Record<SettingsGroupId, string> = {
   general: "settings.general.groups.general",
   intelligence: "settings.general.groups.intelligence",
   data: "settings.general.groups.data",

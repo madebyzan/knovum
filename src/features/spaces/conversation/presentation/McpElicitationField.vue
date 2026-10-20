@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import {
-  elicitationOptions,
-  type McpElicitationField,
-  type McpElicitationValue,
-} from "../mcp-elicitation-form";
+import { elicitationOptions, type McpElicitationValue } from "../mcp-elicitation-form";
+import type { McpElicitationField } from "../schema/mcp-elicitation";
 const value = defineModel<McpElicitationValue | undefined>();
 const props = defineProps<{ name: string; field: McpElicitationField; required: boolean }>();
 const options = computed(() => elicitationOptions(props.field));

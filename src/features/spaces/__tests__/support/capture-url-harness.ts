@@ -4,6 +4,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import type { NodePayloadChangeInput } from "../../nodes/node-operations";
+import type { FinalizePendingContentOptions } from "../../session/actions/placement-actions";
 
 type Point = { x: number; y: number };
 type CreatePending = (
@@ -12,7 +13,11 @@ type CreatePending = (
   position?: Point,
 ) => Promise<SpaceCanvasNode[]>;
 type SavePending = (spaceId: string, change: NodePayloadChangeInput) => Promise<void>;
-type Finalize = (spaceId: string, nodes: readonly SpaceCanvasNode[], reveal?: boolean) => void;
+type Finalize = (
+  spaceId: string,
+  nodes: readonly SpaceCanvasNode[],
+  options?: FinalizePendingContentOptions,
+) => void;
 type Discard = (spaceId: string, nodeId: string) => Promise<void>;
 type AddContent = (data: SpaceNodePayload, position?: Point) => Promise<SpaceCanvasNode[]>;
 

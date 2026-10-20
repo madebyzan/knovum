@@ -91,14 +91,14 @@ export async function updateNodePayload(
 export async function updateNodePayloadMany(
   spaceId: string,
   changes: readonly { id: string; expectedContent: SpaceNodePayload; data: SpaceNodePayload }[],
-  sourceChunks?: ReadonlyMap<string, readonly KnowledgeChunkSeed[]>,
+  sourceChunksByNodeId?: ReadonlyMap<string, readonly KnowledgeChunkSeed[]>,
 ): Promise<{ nodes: Array<{ id: string; data: SpaceNodePayload }>; editSnapshot: SpaceEditSnapshot | null }> {
   if (!changes.length) return { nodes: [], editSnapshot: null };
   const committed = await invokeCommand<UpdateNodesResponse>("plugin:spaces|update_nodes", {
     request: {
       spaceId,
       changes: changes.map((change) => {
-        const chunks = sourceChunks?.get(change.id);
+        const chunks = sourceChunksByNodeId?.get(change.id);
         return {
           ...change,
           ...(chunks ? { sourceChunks: chunks } : {}),

@@ -129,9 +129,9 @@ pub(in crate::spaces::structure) fn set_order(structure_node: &mut StructureNode
 
 pub(in crate::spaces::structure) fn apply_sequences(
     structure: &mut [StructureNode],
-    sequences: &HashMap<Option<String>, Vec<String>>,
+    child_ids_by_parent: &HashMap<Option<String>, Vec<String>>,
 ) -> Result<(), String> {
-    let position_by_structure_node_id: HashMap<&str, (&Option<String>, usize)> = sequences
+    let position_by_structure_node_id: HashMap<&str, (&Option<String>, usize)> = child_ids_by_parent
         .iter()
         .flat_map(|(parent, ids)| {
             ids.iter()
@@ -155,7 +155,7 @@ pub(in crate::spaces::structure) fn remove_empty_groups(
     structure: &mut Vec<StructureNode>,
     layouts: &mut Vec<StructureLayout>,
 ) -> HashSet<String> {
-    let groups: HashMap<&str, Option<&str>> = structure
+    let parent_by_group_id: HashMap<&str, Option<&str>> = structure
         .iter()
         .filter(|node| node.kind_name() == "group")
         .map(|node| (node.id(), node.parent_id()))
@@ -166,7 +166,7 @@ pub(in crate::spaces::structure) fn remove_empty_groups(
             *child_counts.entry(parent).or_default() += 1;
         }
     }
-    let mut pending: Vec<&str> = groups
+    let mut pending: Vec<&str> = parent_by_group_id
         .keys()
         .copied()
         .filter(|id| !child_counts.contains_key(id))
@@ -174,12 +174,12 @@ pub(in crate::spaces::structure) fn remove_empty_groups(
     let mut removed = HashSet::new();
     while let Some(id) = pending.pop() {
         removed.insert(id.to_owned());
-        if let Some(parent) = groups[id] {
+        if let Some(parent) = parent_by_group_id[id] {
             let remaining = child_counts
                 .get_mut(parent)
                 .expect("Group parent has a child count");
             *remaining -= 1;
-            if *remaining == 0 && groups.contains_key(parent) {
+            if *remaining == 0 && parent_by_group_id.contains_key(parent) {
                 pending.push(parent);
             }
         }

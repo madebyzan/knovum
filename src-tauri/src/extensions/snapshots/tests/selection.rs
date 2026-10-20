@@ -1,4 +1,4 @@
-use super::selection::{require_package, resolve};
+use super::super::selection::{require_package, resolve};
 use crate::extensions::contracts::{
     AgentExtensionSelection, AgentExtensionSnapshot, ConnectorAuthorization, ConnectorDefinition,
     McpConnection, McpEndpoint, McpToolPermission, McpToolPolicy, PluginComponent,
@@ -191,7 +191,7 @@ fn packaged_services_require_exactly_one_binding_and_cannot_be_selected_directly
 
 #[test]
 fn package_expansion_preserves_authorization_and_rejects_missing_required_tools() {
-    let (mut connection, mut catalog, _) = super::tools_tests::fixture();
+    let (mut connection, mut catalog, _) = super::tools::fixture();
     let connector = ConnectorDefinition {
         id: connection.connector_id.clone(),
         revision: "one".into(),
@@ -211,10 +211,10 @@ fn package_expansion_preserves_authorization_and_rejects_missing_required_tools(
         policy: McpToolPolicy::Deny,
     });
     catalog.tools.push(optional);
-    let tools = super::tools::project(
+    let tools = super::super::tools::project(
         &connection,
         catalog.clone(),
-        super::tools::CatalogSelection::Package,
+        super::super::tools::CatalogSelection::Package,
     )
     .unwrap();
     assert_eq!(tools.len(), 3);
@@ -241,16 +241,16 @@ fn package_expansion_preserves_authorization_and_rejects_missing_required_tools(
         catalogs: Default::default(),
         tools,
     };
-    assert!(super::skill_bindings::resolve(&snapshot, &[]).is_ok());
+    assert!(super::super::skill_bindings::resolve(&snapshot, &[]).is_ok());
     connection.tools[0].policy = McpToolPolicy::Deny;
-    snapshot.tools = super::tools::project(
+    snapshot.tools = super::super::tools::project(
         &connection,
         catalog,
-        super::tools::CatalogSelection::Package,
+        super::super::tools::CatalogSelection::Package,
     )
     .unwrap();
     assert_eq!(
-        super::skill_bindings::resolve(&snapshot, &[]).unwrap_err(),
+        super::super::skill_bindings::resolve(&snapshot, &[]).unwrap_err(),
         "skill-tool-binding-unavailable: research: sources/publish"
     );
 }

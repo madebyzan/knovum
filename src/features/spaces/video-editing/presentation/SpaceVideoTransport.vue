@@ -25,7 +25,7 @@ import type { VideoEditor } from "./use-video-editor";
 const props = defineProps<{ editor: VideoEditor }>();
 const { t } = useI18n();
 const { player, project, history, actions, timeline, selection } = props.editor;
-const duration = computed(() => (project.value ? projectDurationMs(project.value) : 0));
+const durationMs = computed(() => (project.value ? projectDurationMs(project.value) : 0));
 </script>
 
 <template>
@@ -113,7 +113,9 @@ const duration = computed(() => (project.value ? projectDurationMs(project.value
       >
         <SkipForward class="size-3.5" />
       </UiIconButton>
-      <span class="w-22 text-caption text-fg-tertiary tabular-nums">{{ formatVideoEditTime(duration) }}</span>
+      <span class="w-22 text-caption text-fg-tertiary tabular-nums">{{
+        formatVideoEditTime(durationMs)
+      }}</span>
     </div>
     <div class="flex items-center justify-end gap-1">
       <UiIconButton

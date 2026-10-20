@@ -73,10 +73,10 @@ async function run(operation: () => Promise<unknown>) {
 
 async function connect() {
   if (!canConnect.value) return;
-  const values = Object.fromEntries(names.value.map((name) => [name, fields[name] ?? ""]));
+  const secretFields = Object.fromEntries(names.value.map((name) => [name, fields[name] ?? ""]));
   clear();
-  await run(() => connectConnector(props.connector.id, values));
-  for (const name of Object.keys(values)) delete values[name];
+  await run(() => connectConnector(props.connector.id, secretFields));
+  for (const name of Object.keys(secretFields)) delete secretFields[name];
 }
 
 async function disconnect() {

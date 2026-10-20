@@ -77,15 +77,15 @@ async fn every_foreign_key_is_indexed() {
                     .expect("index columns");
             indexes.push((columns, unique == 1));
         }
-        let mut constraints: std::collections::BTreeMap<i64, Vec<(i64, String)>> =
+        let mut columns_by_foreign_key: std::collections::BTreeMap<i64, Vec<(i64, String)>> =
             std::collections::BTreeMap::new();
         for key in &keys {
             let id: i64 = key.get("id");
             let seq: i64 = key.get("seq");
             let from: String = key.get("from");
-            constraints.entry(id).or_default().push((seq, from));
+            columns_by_foreign_key.entry(id).or_default().push((seq, from));
         }
-        for (_, mut columns) in constraints {
+        for (_, mut columns) in columns_by_foreign_key {
             columns.sort_by_key(|(seq, _)| *seq);
             let child: Vec<String> = columns.into_iter().map(|(_, name)| name).collect();
             let covered = indexes.iter().any(|(index, unique)| {

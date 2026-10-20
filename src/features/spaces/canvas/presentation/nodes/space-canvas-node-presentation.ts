@@ -34,7 +34,7 @@ export function spaceCanvasNodePresentation(data: SpaceNodePayload): CanvasNodeO
   const subtitle = nodeSubtitle(data);
   const mediaReady = (data.kind === "video" || data.kind === "audio") && Boolean(data.sourceRevision);
   return {
-    icon: NODE_ICONS[data.kind],
+    icon: ICON_BY_NODE_KIND[data.kind],
     title: data.title,
     ...(subtitle ? { subtitle } : {}),
     body: describeSpaceNode(data) ?? "",
@@ -45,7 +45,7 @@ export function spaceCanvasNodePresentation(data: SpaceNodePayload): CanvasNodeO
   };
 }
 
-const NODE_ICONS: Readonly<Record<SpaceNodeKind, Component>> = {
+const ICON_BY_NODE_KIND: Readonly<Record<SpaceNodeKind, Component>> = {
   note: NotebookPen,
   text: Type,
   markdown: File,
@@ -60,7 +60,7 @@ const NODE_ICONS: Readonly<Record<SpaceNodeKind, Component>> = {
   portal: Boxes,
 };
 
-const NODE_LABELS: Readonly<Record<SpaceNodeKind, string>> = {
+const LABEL_BY_NODE_KIND: Readonly<Record<SpaceNodeKind, string>> = {
   note: "Note",
   text: "Text",
   markdown: "Markdown",
@@ -77,7 +77,7 @@ const NODE_LABELS: Readonly<Record<SpaceNodeKind, string>> = {
 
 function nodeSubtitle(data: SpaceNodePayload) {
   const subtitle = mediaSubtitle(data) ?? fileSubtitle(data) ?? knowledgeSubtitle(data);
-  return subtitle === data.title ? undefined : (subtitle ?? NODE_LABELS[data.kind]);
+  return subtitle === data.title ? undefined : (subtitle ?? LABEL_BY_NODE_KIND[data.kind]);
 }
 
 function mediaSubtitle(data: SpaceNodePayload) {

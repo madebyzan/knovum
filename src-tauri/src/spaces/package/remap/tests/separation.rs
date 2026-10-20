@@ -6,14 +6,14 @@ fn separation_remaps_source_run_and_stem_assets_as_one_publication() {
     let maps = IdMaps {
         source_space: "old".into(),
         target_space: "new".into(),
-        entities: HashMap::from([
+        id_map_by_collection: HashMap::from([
             (
                 "nodes",
                 HashMap::from([("source".into(), "new-source".into())]),
             ),
             ("runs", HashMap::from([("run".into(), "new-run".into())])),
         ]),
-        assets: HashMap::from([
+        path_by_token: HashMap::from([
             ("source".into(), "/new/source.wav".into()),
             ("vocals".into(), "/new/vocals.wav".into()),
             ("background".into(), "/new/background.wav".into()),

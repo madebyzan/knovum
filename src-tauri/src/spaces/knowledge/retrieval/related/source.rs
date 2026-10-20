@@ -31,7 +31,7 @@ pub(super) fn centroid(vectors: &[Vec<f32>]) -> Result<Vec<f32>, String> {
 
 pub(super) fn source_vectors(
     batches: &[RecordBatch],
-    chunk_revisions: &HashMap<String, String>,
+    revision_by_chunk_id: &HashMap<String, String>,
 ) -> Result<Vec<Vec<f32>>, String> {
     let mut vectors = Vec::new();
     for batch in batches {
@@ -48,7 +48,7 @@ pub(super) fn source_vectors(
             .and_then(|column| column.as_any().downcast_ref::<FixedSizeListArray>())
             .ok_or_else(|| "Source embeddings are missing vectors".to_owned())?;
         for row in 0..batch.num_rows() {
-            if !chunk_revisions
+            if !revision_by_chunk_id
                 .get(ids.value(row))
                 .is_some_and(|revision| revision == revisions.value(row))
             {

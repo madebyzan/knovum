@@ -4,8 +4,8 @@ fn rebinds_canonical_citations_and_preserves_detached_snapshots() {
     let maps = IdMaps {
         source_space: "old".into(),
         target_space: "new".into(),
-        assets: HashMap::new(),
-        entities: HashMap::from([(
+        path_by_token: HashMap::new(),
+        id_map_by_collection: HashMap::from([(
             "nodes",
             HashMap::from([("old-node".into(), "new-node".into())]),
         )]),

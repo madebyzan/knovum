@@ -19,6 +19,13 @@ interface ConversationSelectionInput {
   loadBranches: (conversationId: string) => Promise<void>;
 }
 
+export interface ConversationSelectionOptions {
+  /** Defaults to true; false when the current draft has already moved to the selected Conversation. */
+  rememberDraft?: boolean;
+  /** Branch accepted by the backend before the Conversation list knows about it. */
+  branchId?: string;
+}
+
 export function createConversationSelection(input: ConversationSelectionInput) {
   async function refreshConversations() {
     const requestedSpaceId = input.spaceId.value;
@@ -48,8 +55,8 @@ export function createConversationSelection(input: ConversationSelectionInput) {
     input.hasOlder.value = page.length === 100;
   }
 
-  async function selectConversation(conversationId: string, skipRemember = false, acceptedBranchId?: string) {
-    if (!skipRemember) await input.rememberDraft();
+  async function selectConversation(conversationId: string, options: ConversationSelectionOptions = {}) {
+    if (options.rememberDraft !== false) await input.rememberDraft();
     const conversation =
       input.conversations.value.find((item) => item.id === conversationId) ??
       (input.selectedId.value === conversationId ? input.selectedSnapshot.value : undefined);
@@ -62,7 +69,7 @@ export function createConversationSelection(input: ConversationSelectionInput) {
       input.hasOlder.value = false;
       return;
     }
-    const branchId = conversation?.branchId ?? acceptedBranchId;
+    const branchId = conversation?.branchId ?? options.branchId;
     if (branchId) await loadSelection(conversationId, branchId);
   }
 

@@ -85,15 +85,15 @@ export function applyTranslation(
   lines: readonly VideoLineDraft[],
   translation: VideoTranslation,
 ): VideoLineDraft[] {
-  const bySourceSegmentId = new Map(
+  const segmentBySourceSegmentId = new Map(
     translation.segments.map((segment) => [segment.sourceSegmentId, segment]),
   );
-  if (bySourceSegmentId.size !== lines.length) {
+  if (segmentBySourceSegmentId.size !== lines.length) {
     throw new Error("Translation result does not match the current video script");
   }
   return lines.map((line) => {
     const sourceSegmentId = line.sourceSegmentId ?? line.key;
-    const translated = bySourceSegmentId.get(sourceSegmentId);
+    const translated = segmentBySourceSegmentId.get(sourceSegmentId);
     if (!translated) throw new Error("Translation result does not match the current video script");
     return {
       ...line,

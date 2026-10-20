@@ -16,7 +16,7 @@ const props = defineProps<{ editor: VideoEditor; clip: VideoAudioClip }>();
 const { t } = useI18n();
 const { project, commit } = props.editor;
 const asset = computed(() => project.value?.assets.find(({ nodeId }) => nodeId === props.clip.assetId));
-const duration = computed(() => (project.value ? projectDurationMs(project.value) : 0));
+const durationMs = computed(() => (project.value ? projectDurationMs(project.value) : 0));
 const lanes = computed(() =>
   Array.from({ length: AUDIO_LANE_LIMIT }, (_, index) => ({
     value: String(index),
@@ -35,7 +35,7 @@ function setLane(value: string) {
     <SpaceVideoTimeField
       :label="t('spaces.media.videoEditor.clip.startsAt')"
       :value="clip.timelineStartMs"
-      :max="Math.max(0, duration - clipLengthMs(clip))"
+      :max="Math.max(0, durationMs - clipLengthMs(clip))"
       @change="commit(moveAudioClip(project!, clip.id, $event))"
     />
     <section class="grid grid-cols-2 gap-2">

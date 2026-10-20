@@ -5,13 +5,13 @@ use std::collections::{HashMap, HashSet};
 pub(super) fn validate(
     request: &RestorePackageRequest,
     index: &SpeechIndex<'_>,
-    lexicons: &HashMap<&str, Vec<(String, String)>>,
+    lexicon_by_project_revision_id: &HashMap<&str, Vec<(String, String)>>,
 ) -> Result<(), String> {
     let SpeechIndex {
         revisions,
         project_revisions,
-        voice_languages,
-        voice_deliveries,
+        language_by_revision_id,
+        delivery_by_revision_id,
         ..
     } = index;
     let mut ordinals = HashSet::new();
@@ -30,7 +30,7 @@ pub(super) fn validate(
         }
         required(&row.text, usize::MAX, "Speech segment text")?;
         required(&row.normalized_text, usize::MAX, "Speech normalized text")?;
-        let pronunciations = lexicons
+        let pronunciations = lexicon_by_project_revision_id
             .get(row.project_revision_id.as_str())
             .ok_or("Package speech segment revision is unavailable")?;
         if row.normalized_text
@@ -41,10 +41,12 @@ pub(super) fn validate(
             );
         }
         required(&row.language, usize::MAX, "Speech segment language")?;
-        if voice_languages.get(row.voice_revision_id.as_str()) != Some(&row.language.as_str()) {
+        if language_by_revision_id.get(row.voice_revision_id.as_str())
+            != Some(&row.language.as_str())
+        {
             return Err("Package speech segment language differs from its voice revision".into());
         }
-        let supported = voice_deliveries
+        let supported = delivery_by_revision_id
             .get(row.voice_revision_id.as_str())
             .ok_or("Package speech voice revision is unavailable")?;
         let delivery = crate::spaces::speech::delivery_instruction::validate(

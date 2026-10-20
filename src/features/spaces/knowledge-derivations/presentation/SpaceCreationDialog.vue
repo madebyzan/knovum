@@ -12,12 +12,11 @@ import type { CreationSource } from "../catalog/creation-source";
 import {
   creationOutputs,
   creationTargetPurpose,
-  imageAspectRatioSchema,
-  videoAspectRatioSchema,
-  videoDurations,
+  VIDEO_DURATION_SECONDS,
   type CreationDraft,
   type CreationOutput,
 } from "../creation";
+import { imageAspectRatioSchema, videoAspectRatioSchema } from "../schema/aspect-ratio";
 
 /** The model is the open state and the output the user picked in the menu. */
 const output = defineModel<CreationOutput | undefined>("output", { required: true });
@@ -43,7 +42,7 @@ const outputs = computed(() =>
 );
 const imageRatios = imageAspectRatioSchema.options.map((value) => ({ value, label: value }));
 const videoRatios = videoAspectRatioSchema.options.map((value) => ({ value, label: value }));
-const durations = videoDurations.map((seconds) => ({ value: String(seconds), label: `${seconds}s` }));
+const durations = VIDEO_DURATION_SECONDS.map((seconds) => ({ value: String(seconds), label: `${seconds}s` }));
 
 watch(output, (next) => {
   if (!next) return;
@@ -61,7 +60,7 @@ watch(
 );
 
 function selectDuration(value: string) {
-  const seconds = videoDurations.find((duration) => String(duration) === value);
+  const seconds = VIDEO_DURATION_SECONDS.find((candidate) => String(candidate) === value);
   if (seconds) form.durationSeconds = seconds;
 }
 </script>

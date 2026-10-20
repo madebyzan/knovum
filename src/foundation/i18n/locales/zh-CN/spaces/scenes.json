@@ -17,10 +17,7 @@
   "save": "保存当前场景",
   "delete": "删除场景",
   "empty": "保存视口位置后可快速返回特定区域。",
-  "open": "跳转场景",
   "update": "更新为当前视口",
   "duplicate": "复制场景",
-  "moveUp": "上移",
-  "moveDown": "下移",
   "rename": "重命名场景"
 }

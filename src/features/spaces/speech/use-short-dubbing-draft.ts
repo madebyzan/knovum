@@ -31,7 +31,7 @@ export function useShortDubbingDraft(
       wavPrecision.value,
       lexicon.entries.value,
     ]);
-  const { dirty, needsRevision, acceptRevision, acceptInitialization } = useSpeechDraftChanges(snapshot);
+  const { dirty, needsRevision, acceptRevision, initialize } = useSpeechDraftChanges(snapshot);
   const selectedVoice = computed(() => voices().find((voice) => voice.revisionId === voiceRevisionId.value));
   const supportsDeliveryInstruction = computed(() =>
     voiceSupportsDeliveryInstruction(voices(), voiceRevisionId.value),
@@ -55,18 +55,19 @@ export function useShortDubbingDraft(
         projectSnapshot.segments[0]?.voiceRevisionId ?? defaultVoiceRevisionId(voices());
       deliveryInstruction.value = projectSnapshot.segments[0]?.deliveryInstruction ?? "";
       acceptRevision();
-      if (projectSnapshot.project.activeRevision === 1 && !projectSnapshot.segments.length)
-        text.value = sourceText();
-      acceptInitialization();
+      initialize(() => {
+        if (projectSnapshot.project.activeRevision === 1 && !projectSnapshot.segments.length)
+          text.value = sourceText();
+      });
     },
     { immediate: true },
   );
 
   watch(voices, () => {
-    const wasDirty = dirty.value;
-    if (!voiceRevisionId.value && !project().segments.length)
-      voiceRevisionId.value = defaultVoiceRevisionId(voices());
-    if (!wasDirty) acceptInitialization();
+    initialize(() => {
+      if (!voiceRevisionId.value && !project().segments.length)
+        voiceRevisionId.value = defaultVoiceRevisionId(voices());
+    });
   });
   watch(supportsDeliveryInstruction, (supported) => {
     if (!supported) deliveryInstruction.value = "";

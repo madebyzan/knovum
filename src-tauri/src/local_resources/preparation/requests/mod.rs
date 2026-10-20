@@ -114,7 +114,7 @@ pub(crate) fn begin(
     if registry.maintenance_reserved {
         return Err("Resource preparation is closed for maintenance".into());
     }
-    if registry.active.contains_key(job_id) {
+    if registry.active_by_job_id.contains_key(job_id) {
         return Err(format!("Resource preparation job already exists: {job_id}"));
     }
     active
@@ -123,7 +123,7 @@ pub(crate) fn begin(
         .map_err(|_| "Resource preparation snapshot lock poisoned".to_string())?
         .state = ResourcePreparationState::Preparing;
     registry.completed.retain(|item| item.job_id != job_id);
-    registry.active.insert(job_id.to_owned(), active.clone());
+    registry.active_by_job_id.insert(job_id.to_owned(), active.clone());
     desktop_tasks::announce();
     Ok(PreparationRequest {
         job_id: job_id.to_owned(),
@@ -136,7 +136,7 @@ pub(crate) fn cancel(job_id: &str) -> Result<(), String> {
     let registry = registry()
         .lock()
         .map_err(|_| "Resource preparation registry lock poisoned".to_string())?;
-    if let Some(active) = registry.active.get(job_id) {
+    if let Some(active) = registry.active_by_job_id.get(job_id) {
         active.cancellation.cancel();
     }
     Ok(())
@@ -150,7 +150,7 @@ pub(crate) fn reserve_maintenance() -> Result<PreparationAdmissionReservation, S
     if registry.maintenance_reserved {
         return Err("Resource preparation maintenance admission is already reserved".into());
     }
-    if !registry.active.is_empty() {
+    if !registry.active_by_job_id.is_empty() {
         return Err(
             "Wait for active model preparation tasks to finish before data maintenance".into(),
         );
@@ -168,7 +168,7 @@ pub(crate) fn list() -> Result<Vec<ResourcePreparationSnapshot>, String> {
         .completed
         .retain(|item| item.completed_at.is_none_or(|time| time >= cutoff));
     let active = registry
-        .active
+        .active_by_job_id
         .values()
         .map(|item| {
             item.snapshot
@@ -216,7 +216,7 @@ fn finish_request(
     }
     let terminal = snapshot.clone();
     drop(snapshot);
-    registry.active.remove(job_id);
+    registry.active_by_job_id.remove(job_id);
     registry.completed.push_front(terminal);
     registry.completed.truncate(COMPLETED_LIMIT);
     desktop_tasks::announce();
@@ -235,7 +235,7 @@ fn now() -> Result<u64, String> {
 #[derive(Default)]
 struct RegistryState {
     maintenance_reserved: bool,
-    active: HashMap<String, ActivePreparation>,
+    active_by_job_id: HashMap<String, ActivePreparation>,
     completed: VecDeque<ResourcePreparationSnapshot>,
 }
 

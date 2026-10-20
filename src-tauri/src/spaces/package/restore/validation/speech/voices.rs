@@ -8,7 +8,7 @@ pub(super) fn validate(
 ) -> Result<(), String> {
     let SpeechIndex {
         profiles,
-        revision_owners,
+        profile_id_by_revision_id,
         ..
     } = index;
     let mut voice_versions = HashSet::new();
@@ -32,7 +32,7 @@ pub(super) fn validate(
             .active_revision_id
             .as_deref()
             .ok_or("Package voice profile requires an active revision")?;
-        if revision_owners.get(active) != Some(&row.id.as_str()) {
+        if profile_id_by_revision_id.get(active) != Some(&row.id.as_str()) {
             return Err("Package voice profile active revision has a different owner".into());
         }
     }

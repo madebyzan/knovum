@@ -40,7 +40,8 @@ const emit = defineEmits<{
   previewAttachment: [key: string];
 }>();
 const composerRoot = useTemplateRef<HTMLElement>("composerRoot");
-const { textarea } = useTextareaAutosize({ input: prompt, maxHeight: 192 });
+const textarea = useTemplateRef<HTMLTextAreaElement>("textarea");
+useTextareaAutosize({ element: textarea, input: prompt, maxHeight: 192 });
 const fileHover = shallowRef(false);
 const fileDropListener = createAsyncDisposer();
 const canSend = computed(

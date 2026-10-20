@@ -127,40 +127,45 @@ pub(super) struct AudioSegment<'a> {
     pub length_ms: u64,
     pub timeline_start_ms: u64,
     pub volume: f64,
-    pub fades: (u64, u64),
+    pub fades_ms: (u64, u64),
 }
 
 pub(super) fn audio(segment: &AudioSegment<'_>) -> String {
-    let duration = seconds(segment.length_ms);
+    let duration_seconds = seconds(segment.length_ms);
     let delay = if segment.timeline_start_ms == 0 {
         "anull".to_owned()
     } else {
         format!("adelay={}:all=1", segment.timeline_start_ms)
     };
     format!(
-        "[{input}:a]atrim=duration={duration},asetpts=PTS-STARTPTS,aresample=48000,\
-aformat=sample_fmts=fltp:channel_layouts=stereo,apad,atrim=duration={duration},{effects},{delay}[{label}]",
+        "[{input}:a]atrim=duration={duration_seconds},asetpts=PTS-STARTPTS,aresample=48000,\
+aformat=sample_fmts=fltp:channel_layouts=stereo,apad,atrim=duration={duration_seconds},{effects},{delay}[{label}]",
         input = segment.input,
         effects = audio_effects(
             segment.volume,
-            segment.fades.0,
-            segment.fades.1,
+            segment.fades_ms.0,
+            segment.fades_ms.1,
             segment.length_ms
         ),
         label = segment.label
     )
 }
 
-pub(super) fn audio_effects(volume: f64, fade_in: u64, fade_out: u64, duration: u64) -> String {
+pub(super) fn audio_effects(
+    volume: f64,
+    fade_in_ms: u64,
+    fade_out_ms: u64,
+    duration_ms: u64,
+) -> String {
     let mut filters = vec![format!("volume={volume}")];
-    if fade_in > 0 {
-        filters.push(format!("afade=t=in:st=0:d={}", seconds(fade_in)));
+    if fade_in_ms > 0 {
+        filters.push(format!("afade=t=in:st=0:d={}", seconds(fade_in_ms)));
     }
-    if fade_out > 0 {
+    if fade_out_ms > 0 {
         filters.push(format!(
             "afade=t=out:st={}:d={}",
-            seconds(duration - fade_out),
-            seconds(fade_out)
+            seconds(duration_ms - fade_out_ms),
+            seconds(fade_out_ms)
         ));
     }
     filters.join(",")

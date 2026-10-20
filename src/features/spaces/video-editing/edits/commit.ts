@@ -13,12 +13,12 @@ export function commitProject(project: VideoEditProject): VideoEditProject {
   );
   const transitions = project.transitions.filter((transition) => adjacentPair(clips, transition.fromClipId));
   const normalized = { ...project, videoTrack: { clips }, transitions };
-  const duration = projectDurationMs(normalized);
+  const durationMs = projectDurationMs(normalized);
   return videoEditProjectSchema.parse(
     pruneAssets({
       ...normalized,
-      audioTrack: { clips: clampAudio(normalized.audioTrack.clips, duration) },
-      textTrack: { items: clampText(normalized.textTrack.items, duration) },
+      audioTrack: { clips: clampAudio(normalized.audioTrack.clips, durationMs) },
+      textTrack: { items: clampText(normalized.textTrack.items, durationMs) },
     }),
   );
 }

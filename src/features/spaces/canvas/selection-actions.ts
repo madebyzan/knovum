@@ -52,7 +52,7 @@ function openEditorNode(node: SpaceCanvasNode) {
   return store.openDocumentEditor(node.id);
 }
 
-const OPEN_HANDLERS: Partial<Record<SpaceNodeKind, OpenHandler>> = {
+const OPEN_HANDLER_BY_NODE_KIND: Partial<Record<SpaceNodeKind, OpenHandler>> = {
   note: openEditorNode,
   markdown: openEditorNode,
   website: (node) => {
@@ -68,7 +68,7 @@ export async function openSpaceNode(node?: SpaceCanvasNode) {
   const store = useSpaceStore();
 
   if (!node || !isSpaceNodeOpenable(node)) return;
-  const handler = OPEN_HANDLERS[node.data.kind];
+  const handler = OPEN_HANDLER_BY_NODE_KIND[node.data.kind];
   if (handler) {
     await handler(node);
     return;
@@ -85,7 +85,7 @@ export async function openSpaceNode(node?: SpaceCanvasNode) {
 export function isSpaceNodeOpenable(node?: SpaceCanvasNode) {
   if (!node) return false;
   if (node.data.kind === "video" && node.data.processingState && !node.data.sourceRevision) return false;
-  return OPEN_HANDLERS[node.data.kind] !== undefined || isSpaceManagedAssetPayload(node.data);
+  return OPEN_HANDLER_BY_NODE_KIND[node.data.kind] !== undefined || isSpaceManagedAssetPayload(node.data);
 }
 
 export function selectAndRevealSpaceNode(nodeId: string, mode: "focus" | "ensure-visible" = "focus") {

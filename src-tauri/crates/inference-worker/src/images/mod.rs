@@ -85,5 +85,4 @@ impl Images {
 }
 
 #[cfg(test)]
-#[path = "tests/pixels.rs"]
 mod tests;

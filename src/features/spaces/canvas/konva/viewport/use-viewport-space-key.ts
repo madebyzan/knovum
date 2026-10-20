@@ -7,17 +7,22 @@ import { isInteractiveTarget } from "../../../../../foundation/dom/interactive-t
 export function useViewportSpaceKey() {
   const spacePressed = shallowRef(false);
 
-  function key(event: KeyboardEvent, pressed: boolean) {
+  function pressSpaceKey(event: KeyboardEvent) {
     if (event.code !== "Space") return;
-    if (pressed && (isEditableTarget(event.target) || isInteractiveTarget(event.target))) return;
-    spacePressed.value = pressed;
-    if (pressed) event.preventDefault();
+    if (isEditableTarget(event.target) || isInteractiveTarget(event.target)) return;
+    spacePressed.value = true;
+    event.preventDefault();
   }
 
-  useEventListener(globalThis, "keyup", (event: KeyboardEvent) => key(event, false));
+  function releaseSpaceKey(event: KeyboardEvent) {
+    if (event.code !== "Space") return;
+    spacePressed.value = false;
+  }
+
+  useEventListener(globalThis, "keyup", releaseSpaceKey);
   useEventListener(globalThis, "blur", () => {
     spacePressed.value = false;
   });
 
-  return { key, spacePressed };
+  return { pressSpaceKey, spacePressed };
 }

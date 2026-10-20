@@ -85,11 +85,9 @@ describe("Space URL capture", () => {
       expectedContent: expect.objectContaining({ processingState: "importing" }),
       data: importedVideo(),
     });
-    expect(harness.finalize).toHaveBeenCalledWith(
-      "space-1",
-      [expect.objectContaining({ id: "media" })],
-      true,
-    );
+    expect(harness.finalize).toHaveBeenCalledWith("space-1", [expect.objectContaining({ id: "media" })], {
+      reveal: true,
+    });
     expect(harness.discard).not.toHaveBeenCalled();
   });
 
@@ -154,11 +152,9 @@ describe("Space URL capture", () => {
 
     await capture;
     expect(harness.savePending).toHaveBeenCalledOnce();
-    expect(harness.finalize).toHaveBeenCalledWith(
-      "space-1",
-      [expect.objectContaining({ id: "media" })],
-      false,
-    );
+    expect(harness.finalize).toHaveBeenCalledWith("space-1", [expect.objectContaining({ id: "media" })], {
+      reveal: false,
+    });
   });
 
   it("takes the arriving node and its asset away when the import fails, and reports why", async () => {

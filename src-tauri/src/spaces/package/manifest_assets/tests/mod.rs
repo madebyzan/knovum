@@ -48,7 +48,7 @@ fn collects_tokens_from_every_packaged_reference() {
             .map(str::to_owned)
             .collect::<HashSet<_>>()
     );
-    assert!(assets.source_revisions.is_empty());
+    assert!(assets.source_revision_by_token.is_empty());
 }
 
 #[test]
@@ -61,8 +61,8 @@ fn only_the_managed_asset_must_match_the_node_digest() {
         "sourceRevision": revision
     });
     let assets = parse_node(data).expect("a managed asset carries its node digest");
-    assert_eq!(assets.source_revisions["managed-token"], revision);
-    assert_eq!(assets.source_revisions.len(), 1);
+    assert_eq!(assets.source_revision_by_token["managed-token"], revision);
+    assert_eq!(assets.source_revision_by_token.len(), 1);
     assert!(assets.used_tokens.contains("preview-token"));
 }
 
@@ -78,7 +78,7 @@ fn audiobook_cover_tokens_carry_exact_digests_and_reject_external_paths() {
     });
     let assets = parse(&manifest.to_string()).unwrap();
     assert!(assets.used_tokens.contains("cover"));
-    assert_eq!(assets.source_revisions["cover"], revision);
+    assert_eq!(assets.source_revision_by_token["cover"], revision);
     manifest["speechProjectRevisions"][0]["outputConfig"]["metadata"]["cover"]["assetPath"] =
         json!("/external/cover.png");
     assert!(parse(&manifest.to_string()).is_err());
@@ -98,8 +98,8 @@ fn separation_packages_both_stems_with_independent_digest_validation() {
             "vocalsAssetPath":"knovum-package-asset:vocals", "vocalsSha256":"c".repeat(64)
         }] });
     let assets = parse(&manifest.to_string()).unwrap();
-    assert_eq!(assets.source_revisions["vocals"], digest('c'));
-    assert_eq!(assets.source_revisions["background"], digest('b'));
+    assert_eq!(assets.source_revision_by_token["vocals"], digest('c'));
+    assert_eq!(assets.source_revision_by_token["background"], digest('b'));
     manifest["speechSourceSeparations"][0]["vocalsSha256"] = json!("invalid");
     assert!(parse(&manifest.to_string()).is_err());
     manifest["speechSourceSeparations"][0]

@@ -1,6 +1,6 @@
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 
-export const VOICE_ENGINE_LABELS: Readonly<Record<string, string>> = {
+export const LABEL_BY_VOICE_ENGINE: Readonly<Record<string, string>> = {
   moss_nano: "MOSS-TTS-Nano",
   voxcpm2: "VoxCPM2",
 };

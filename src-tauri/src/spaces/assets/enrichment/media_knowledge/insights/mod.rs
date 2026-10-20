@@ -256,7 +256,7 @@ pub(crate) fn chapters(candidates: &Value, transcript: &Value) -> Result<Vec<Val
     {
         return Err("Media chapters must start with the transcript".into());
     }
-    let duration = transcript["durationMs"]
+    let duration_ms = transcript["durationMs"]
         .as_u64()
         .ok_or("Invalid transcript duration")?;
     for i in 0..chapters.len() {
@@ -268,9 +268,9 @@ pub(crate) fn chapters(candidates: &Value, transcript: &Value) -> Result<Vec<Val
                 .as_u64()
                 .ok_or("Invalid chapter timestamp")?
         } else {
-            duration
+            duration_ms
         };
-        if !starts.contains(&start) || end <= start || end > duration {
+        if !starts.contains(&start) || end <= start || end > duration_ms {
             return Err("Media chapters must use unique, ordered transcript timestamps".into());
         }
         chapters[i]["endMs"] = json!(end);

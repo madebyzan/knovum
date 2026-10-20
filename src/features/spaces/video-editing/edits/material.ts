@@ -32,9 +32,9 @@ function insertVisual(project: VideoEditProject, asset: VideoAsset, atMs: number
 }
 
 function insertAudio(project: VideoEditProject, asset: VideoAsset, atMs: number) {
-  const duration = projectDurationMs(project);
-  const start = Math.min(atMs, Math.max(0, duration - 100));
-  const length = Math.min(asset.durationMs, duration - start);
+  const durationMs = projectDurationMs(project);
+  const start = Math.min(atMs, Math.max(0, durationMs - 100));
+  const length = Math.min(asset.durationMs, durationMs - start);
   if (length < 100) return project;
   const lane = freeLane(project, start, start + length);
   if (lane === undefined) return project;

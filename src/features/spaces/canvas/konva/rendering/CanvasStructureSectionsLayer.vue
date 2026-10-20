@@ -16,7 +16,7 @@ const emit = defineEmits<{ error: [error: Error] }>();
 function fill(section: ProjectedSection) {
   const appearance = section.layout.appearance;
   if (appearance?.customFill) return appearance.customFill;
-  if (appearance?.fill) return props.palette.contentFill[appearance.fill];
+  if (appearance?.fill) return props.palette.contentFillByPreset[appearance.fill];
   return props.palette.panel;
 }
 </script>

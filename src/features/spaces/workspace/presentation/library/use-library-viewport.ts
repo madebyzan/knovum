@@ -62,7 +62,7 @@ export function useLibraryViewport(options: LibraryViewportOptions) {
       return;
     const currentId = event.target.dataset.librarySpaceId;
     const current = options.spaces.value.findIndex((space) => space.id === currentId);
-    const offsets: Record<string, number> = {
+    const offsetByKey: Record<string, number> = {
       ArrowLeft: -1,
       ArrowRight: 1,
       ArrowUp: -columns.value,
@@ -70,7 +70,7 @@ export function useLibraryViewport(options: LibraryViewportOptions) {
       Home: -current,
       End: options.spaces.value.length - 1 - current,
     };
-    const offset = offsets[event.key];
+    const offset = offsetByKey[event.key];
     if (offset === undefined) return;
     event.preventDefault();
     const target =

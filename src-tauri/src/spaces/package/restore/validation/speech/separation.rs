@@ -17,7 +17,7 @@ pub(super) fn validate(
             return Err("Package source separation requires an audio or video node".into());
         }
 
-        let expected_duration = row
+        let expected_duration_ms = row
             .background_sample_count
             .checked_mul(1_000)
             .and_then(|samples| samples.checked_add(44_099))
@@ -32,7 +32,7 @@ pub(super) fn validate(
             || row.background_sample_rate != 44_100
             || row.background_sample_count <= 0
             || row.background_sample_count > 44_100 * 600
-            || Some(row.background_duration_ms) != expected_duration
+            || Some(row.background_duration_ms) != expected_duration_ms
             || row.source_asset_path.trim().is_empty()
             || row.background_asset_path.trim().is_empty()
             || row.vocals_asset_path.trim().is_empty()

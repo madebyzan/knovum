@@ -60,7 +60,7 @@ pub(in crate::spaces) async fn fit_in_snapshot(
     snapshot: &mut structure::repository::SpaceStructureSnapshot,
     node_ids: &[String],
 ) -> Result<bool, AppError> {
-    let mut payloads = HashMap::new();
+    let mut payload_by_node_id = HashMap::new();
     for node_id in node_ids {
         let encoded: Option<String> = sqlx::query_scalar(
             "SELECT data FROM spaces_nodes WHERE space_id=$1 AND id=$2 AND deleted_at IS NULL \
@@ -72,7 +72,7 @@ pub(in crate::spaces) async fn fit_in_snapshot(
         .await
         .map_err(db::sql_error)?;
         if let Some(encoded) = encoded {
-            payloads.insert(
+            payload_by_node_id.insert(
                 node_id.clone(),
                 serde_json::from_str(&encoded).map_err(db::json_error)?,
             );
@@ -82,7 +82,7 @@ pub(in crate::spaces) async fn fit_in_snapshot(
         .structure
         .iter()
         .filter_map(|node| match node {
-            StructureNode::Content { id, node_id, .. } if payloads.contains_key(node_id) => {
+            StructureNode::Content { id, node_id, .. } if payload_by_node_id.contains_key(node_id) => {
                 Some((id.as_str(), node_id.as_str()))
             }
             _ => None,
@@ -102,7 +102,7 @@ pub(in crate::spaces) async fn fit_in_snapshot(
         let Some(node_id) = structure_ids.get(structure_node_id.as_str()) else {
             continue;
         };
-        let data = &payloads[*node_id];
+        let data = &payload_by_node_id[*node_id];
         let Some(next) = fitted_size(data, size, *sizing_mode) else {
             continue;
         };

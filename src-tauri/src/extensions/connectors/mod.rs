@@ -13,13 +13,4 @@ pub(super) mod server_creation;
 pub(crate) use credential_store::credentials;
 
 #[cfg(test)]
-#[path = "tests/oauth.rs"]
-mod oauth_tests;
-
-#[cfg(test)]
-#[path = "tests/accounts.rs"]
-mod account_tests;
-
-#[cfg(test)]
-#[path = "tests/definitions.rs"]
-mod definition_tests;
+mod tests;

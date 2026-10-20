@@ -74,8 +74,8 @@ async function toggle() {
   }
 }
 function loaded(event: Event) {
-  const duration = (event.target as HTMLMediaElement).duration;
-  if (Number.isFinite(duration)) emit("loaded", Math.round(duration * 1000));
+  const durationSeconds = (event.target as HTMLMediaElement).duration;
+  if (Number.isFinite(durationSeconds)) emit("loaded", Math.round(durationSeconds * 1000));
 }
 function seek(position: number) {
   stopAt.value = undefined;

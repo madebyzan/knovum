@@ -12,7 +12,7 @@ interface ShellCommandActions {
 }
 
 interface ShellCommandLabels {
-  editing: Record<EditingCommand, string>;
+  editingLabelByCommand: Record<EditingCommand, string>;
   settings: string;
   commandPalette: string;
   shortcuts?: string;
@@ -57,7 +57,7 @@ export function createShellCommands(
     // The Application Menu owns the chord for these, so they carry no keyboard binding of their own.
     ...EDITING_COMMANDS.map<AppCommand>((intent) => ({
       id: `editing.${intent}`,
-      title: labels.editing[intent],
+      title: labels.editingLabelByCommand[intent],
       category: "editing",
       palette: false,
       run: () => runEditingCommand(intent),

@@ -16,11 +16,11 @@ export function useMediaPlayback(
   options: UseMediaPlaybackOptions = {},
 ) {
   const loaded = shallowRef(false);
-  const { playing, currentTime, duration } = useMediaControls(mediaElement);
+  const { playing, currentTime, duration: durationSeconds } = useMediaControls(mediaElement);
 
   const currentMs = computed(() => Math.round(currentTime.value * 1000));
   const durationMs = computed(() =>
-    Number.isFinite(duration.value) ? Math.round(duration.value * 1000) : 0,
+    Number.isFinite(durationSeconds.value) ? Math.round(durationSeconds.value * 1000) : 0,
   );
 
   function emitPlayback() {

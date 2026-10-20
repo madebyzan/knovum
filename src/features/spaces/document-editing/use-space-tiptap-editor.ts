@@ -2,7 +2,7 @@ import type { EditorOptions } from "@tiptap/core";
 import { Editor, useEditor } from "@tiptap/vue-3";
 import { useDebounceFn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { computed, nextTick, onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, shallowRef, watch, type Ref, type ShallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -21,7 +21,11 @@ import { createTiptapTextStatistics } from "./tiptap-text-statistics";
 import { useDocumentSave } from "./use-document-save";
 import { useHeadingNavigation } from "./use-heading-navigation";
 
-export function useSpaceTiptapEditor(tab: SpaceEditorTab, active: Ref<boolean>) {
+export function useSpaceTiptapEditor(
+  tab: SpaceEditorTab,
+  active: Ref<boolean>,
+  scrollRoot: Readonly<ShallowRef<HTMLElement | null>>,
+) {
   const store = useSpaceStore();
   const { editorLocateRequest } = storeToRefs(store);
   const { t } = useI18n();
@@ -97,6 +101,7 @@ export function useSpaceTiptapEditor(tab: SpaceEditorTab, active: Ref<boolean>) 
     { immediate: true },
   );
   const navigation = useHeadingNavigation(
+    scrollRoot,
     () => editor.value,
     () => headings.value,
   );

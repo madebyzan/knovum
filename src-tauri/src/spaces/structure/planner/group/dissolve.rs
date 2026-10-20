@@ -30,7 +30,7 @@ pub(in crate::spaces::structure) fn dissolve(
     }
     let removed: HashSet<&str> = groups.iter().map(String::as_str).collect();
     let mut promoted = Vec::new();
-    let mut updates = HashMap::new();
+    let mut layout_by_node_id = HashMap::new();
     for group_id in &groups {
         let parent = index.node(&original_structure, group_id)?.parent_id();
         for child in index
@@ -40,7 +40,7 @@ pub(in crate::spaces::structure) fn dissolve(
             .unwrap_or_default()
         {
             promoted.push(child.clone());
-            updates.insert(
+            layout_by_node_id.insert(
                 child.clone(),
                 layout_keeping_world(
                     &original_structure,
@@ -91,7 +91,7 @@ pub(in crate::spaces::structure) fn dissolve(
         .layouts
         .retain(|layout| !removed.contains(layout.structure_node_id()));
     for layout in &mut snapshot.layouts {
-        if let Some(update) = updates.get(layout.structure_node_id()) {
+        if let Some(update) = layout_by_node_id.get(layout.structure_node_id()) {
             *layout = update.clone();
         }
     }

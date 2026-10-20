@@ -8,7 +8,7 @@ import { runAppCommand } from "./run-app-command";
 import { TEXT_EDITING_CHORDS } from "./text-editing";
 
 export function bindCommandShortcuts(commands: readonly AppCommand[]): () => void {
-  const bindings: Record<string, (event: KeyboardEvent) => void> = {};
+  const handlerByShortcut: Record<string, (event: KeyboardEvent) => void> = {};
   const appMenuOwnsShortcut = platform() === "macos";
 
   for (const command of commands) {
@@ -21,7 +21,7 @@ export function bindCommandShortcuts(commands: readonly AppCommand[]): () => voi
       // types, but never by taking the chord that edits what they are typing.
       const platformOwnsWhileTyping = TEXT_EDITING_CHORDS.includes(keybinding);
 
-      bindings[keybinding] = (event) => {
+      handlerByShortcut[keybinding] = (event) => {
         const editable = isEditableTarget(event.target);
         if (editable && (platformOwnsWhileTyping || !command.allowInEditable)) return;
         if (bareKey && isInteractiveTarget(event.target)) return;
@@ -34,7 +34,7 @@ export function bindCommandShortcuts(commands: readonly AppCommand[]): () => voi
   // tinykeys' default filter also drops every press from an editable target before the per-command
   // `isEditableTarget` guard above can allow it, which would silently void `allowInEditable`.
   // Autorepeat and IME composition are still somebody else's key press.
-  return tinykeys(globalThis.window, bindings, {
+  return tinykeys(globalThis.window, handlerByShortcut, {
     capture: true,
     ignore: (event) => event.repeat || event.isComposing,
   });

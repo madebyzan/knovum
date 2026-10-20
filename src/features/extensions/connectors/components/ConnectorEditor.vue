@@ -24,8 +24,8 @@ function save() {
     ...connector.value,
     endpoint:
       endpoint.type === "streamable_http"
-        ? { ...endpoint, headers: validatedFields.fields }
-        : { ...endpoint, environment: validatedFields.fields },
+        ? { ...endpoint, headers: validatedFields.valueByName }
+        : { ...endpoint, environment: validatedFields.valueByName },
   };
   fieldError.value = "";
   emit("save");

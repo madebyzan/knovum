@@ -15,8 +15,7 @@ mod audiobook;
 mod encoding;
 mod pauses;
 #[cfg(test)]
-#[path = "tests/production.rs"]
-mod production_tests;
+mod tests;
 
 use std::fs;
 

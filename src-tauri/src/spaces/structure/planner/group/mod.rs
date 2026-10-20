@@ -78,7 +78,7 @@ pub(in crate::spaces::structure) fn create(
         },
     });
     let temporary = Index::new(&snapshot.structure, &snapshot.layouts);
-    let updates: HashMap<String, StructureLayout> = roots
+    let layout_by_structure_node_id: HashMap<String, StructureLayout> = roots
         .iter()
         .map(|id| {
             Ok((
@@ -94,7 +94,7 @@ pub(in crate::spaces::structure) fn create(
         })
         .collect::<Result<_, String>>()?;
     for layout in &mut snapshot.layouts {
-        if let Some(update) = updates.get(layout.structure_node_id()) {
+        if let Some(update) = layout_by_structure_node_id.get(layout.structure_node_id()) {
             *layout = update.clone();
         }
     }

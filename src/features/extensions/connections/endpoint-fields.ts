@@ -14,7 +14,7 @@ export function buildEndpointFields(endpoint: McpEndpoint): EndpointField[] {
 export function validateEndpointFields(
   fields: EndpointField[],
   transport: McpEndpoint["type"],
-): { fields: Record<string, string> } | { error: string } {
+): { valueByName: Record<string, string> } | { error: string } {
   const names = new Set<string>();
   for (const field of fields) {
     if (!field.name.trim() || field.name !== field.name.trim())
@@ -23,5 +23,5 @@ export function validateEndpointFields(
     if (names.has(name)) return { error: "extensions.endpoint.configuration.duplicateName" };
     names.add(name);
   }
-  return { fields: Object.fromEntries(fields.map(({ name, value }) => [name, value])) };
+  return { valueByName: Object.fromEntries(fields.map(({ name, value }) => [name, value])) };
 }

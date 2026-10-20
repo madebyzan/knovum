@@ -3,10 +3,10 @@ import {
   computed,
   nextTick,
   onBeforeUnmount,
-  ref,
   shallowRef,
   watch,
   type ComponentPublicInstance,
+  type ShallowRef,
 } from "vue";
 
 interface ConversationScrollOptions {
@@ -18,10 +18,10 @@ interface ConversationScrollOptions {
 }
 
 export function useConversationScroll(
+  scroller: Readonly<ShallowRef<HTMLDivElement | null>>,
   props: ConversationScrollOptions,
   events: { loadOlder: () => void; remember: (key: string, top: number) => void },
 ) {
-  const scroller = ref<HTMLDivElement | null>(null);
   const atTail = shallowRef(true);
   let olderScrollHeight: number | undefined;
   let olderScrollTop = 0;
@@ -120,5 +120,5 @@ export function useConversationScroll(
     if (scroller.value) events.remember(props.scrollKey, scroller.value.scrollTop);
   });
 
-  return { scroller, atTail, rows, totalSize, measureElement, updateScrollPosition, scrollToTail, loadOlder };
+  return { atTail, rows, totalSize, measureElement, updateScrollPosition, scrollToTail, loadOlder };
 }

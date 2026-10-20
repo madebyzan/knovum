@@ -1,22 +1,20 @@
-import { z } from "zod";
-
 import { i18n } from "../../../foundation/i18n/instance";
 import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
+import type { ImageAspectRatio } from "../contracts/generated/ImageAspectRatio";
+import type { VideoAspectRatio } from "../contracts/generated/VideoAspectRatio";
 import type { CreationSource } from "./catalog/creation-source";
 import { startDerivationAction } from "./start-action";
 
-export const imageAspectRatioSchema = z.enum(["1:1", "3:2", "2:3", "16:9", "9:16"]);
-export const videoAspectRatioSchema = z.enum(["16:9", "9:16", "1:1"]);
-export const videoDurations = [5, 10, 15] as const;
+export const VIDEO_DURATION_SECONDS = [5, 10, 15] as const;
 
 export interface CreationDraft {
   output: CreationOutput;
   title: string;
   requirement: string;
   /** Both frames are kept so switching output does not lose a chosen one. */
-  imageAspectRatio: z.infer<typeof imageAspectRatioSchema>;
-  videoAspectRatio: z.infer<typeof videoAspectRatioSchema>;
-  durationSeconds: (typeof videoDurations)[number];
+  imageAspectRatio: ImageAspectRatio;
+  videoAspectRatio: VideoAspectRatio;
+  durationSeconds: (typeof VIDEO_DURATION_SECONDS)[number];
   target?: TaskTarget | undefined;
 }
 

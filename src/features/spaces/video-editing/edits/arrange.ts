@@ -73,11 +73,11 @@ export function swapClip(project: VideoEditProject, clipId: string, direction: -
   const clips = project.videoTrack.clips;
   if (index < 0 || target < 0 || target >= clips.length) return project;
   const [left, right] = direction === 1 ? [clips[index]!, clips[target]!] : [clips[target]!, clips[index]!];
-  const starts = new Map([
+  const startMsByClipId = new Map([
     [right.id, left.timelineStartMs],
     [left.id, left.timelineStartMs + clipLengthMs(right)],
   ]);
-  const swapped = clips.map((clip) => retimed(clip, starts.get(clip.id)));
+  const swapped = clips.map((clip) => retimed(clip, startMsByClipId.get(clip.id)));
   return commitProject({
     ...project,
     videoTrack: { clips: swapped },

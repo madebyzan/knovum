@@ -1,4 +1,4 @@
-use super::video::operation_url;
+use super::super::video::operation_url;
 
 #[test]
 fn operation_names_cannot_change_request_authority_or_escape_the_api_path() {

@@ -7,7 +7,7 @@ import { useI18n } from "vue-i18n";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { HEADING_LABEL_KEYS, HEADING_LEVELS } from "../heading-levels";
+import { LABEL_KEY_BY_HEADING_LEVEL, HEADING_LEVELS } from "../heading-levels";
 
 const props = defineProps<{ editor: Editor }>();
 const { t } = useI18n();
@@ -42,7 +42,7 @@ const activeHeading = computed(() =>
       @select="editor.chain().focus().toggleHeading({ level }).run()"
     >
       <span class="w-5 font-semibold">H{{ level }}</span>
-      <span class="min-w-0 flex-1 truncate">{{ t(HEADING_LABEL_KEYS[level]) }}</span>
+      <span class="min-w-0 flex-1 truncate">{{ t(LABEL_KEY_BY_HEADING_LEVEL[level]) }}</span>
       <Check v-if="editor.isActive('heading', { level })" class="ml-auto size-3 text-fg-accent" />
     </UiDropdownMenuItem>
   </UiDropdownMenu>

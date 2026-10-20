@@ -52,7 +52,7 @@ impl VideoGenerationCapability for OpenRouterVideoAdapter {
 
             let mut body = serde_json::json!({
                 "model": model, "prompt": req.prompt,
-                "aspect_ratio": req.ratio, "duration": req.duration,
+                "aspect_ratio": req.ratio, "duration": req.duration_seconds,
             });
             if let Some(img) = req.reference_images.first() {
                 body["image_url"] = serde_json::json!(img);

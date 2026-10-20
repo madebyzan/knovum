@@ -19,7 +19,7 @@ export function projectStructureGesture(
 ): SpaceEditSnapshot {
   if (command.kind === "section.resize-frame") return resizePreview(snapshot, command);
   const index = createStructureIndex(snapshot.structure);
-  const layouts = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
+  const layoutByStructureNodeId = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
   const roots = new Set(command.rootIds);
   return {
     ...snapshot,
@@ -34,9 +34,9 @@ export function projectStructureGesture(
       }
       const parentId = index.structureById.get(layout.structureNodeId)!.parentId;
       const parent = parentId
-        ? worldTransformFor(parentId, index, layouts)
+        ? worldTransformFor(parentId, index, layoutByStructureNodeId)
         : { x: 0, y: 0, rotation: 0, scale: 1 };
-      const world = worldTransformFor(layout.structureNodeId, index, layouts);
+      const world = worldTransformFor(layout.structureNodeId, index, layoutByStructureNodeId);
       const next =
         command.kind === "structure.move"
           ? { ...world, x: world.x + command.delta.x, y: world.y + command.delta.y }

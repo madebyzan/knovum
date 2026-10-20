@@ -68,7 +68,7 @@ fn build_graph(rows: Vec<sqlx::sqlite::SqliteRow>) -> Result<Graph, String> {
 
 fn find_path(graph: &Graph, source_id: &str, target_id: &str, max_depth: usize) -> Vec<Value> {
     let mut queue = VecDeque::from([(source_id.to_string(), 0usize)]);
-    let mut previous = HashMap::from([(
+    let mut predecessor_by_node_id = HashMap::from([(
         source_id.to_string(),
         PathPredecessor {
             node_id: String::new(),
@@ -84,10 +84,10 @@ fn find_path(graph: &Graph, source_id: &str, target_id: &str, max_depth: usize) 
             payload: edge,
         } in graph.get(&current).into_iter().flatten()
         {
-            if previous.contains_key(next) {
+            if predecessor_by_node_id.contains_key(next) {
                 continue;
             }
-            previous.insert(
+            predecessor_by_node_id.insert(
                 next.clone(),
                 PathPredecessor {
                     node_id: current.clone(),
@@ -95,7 +95,7 @@ fn find_path(graph: &Graph, source_id: &str, target_id: &str, max_depth: usize) 
                 },
             );
             if next == target_id {
-                return unwind(previous, source_id, target_id);
+                return unwind(predecessor_by_node_id, source_id, target_id);
             }
             queue.push_back((next.clone(), depth + 1));
         }
@@ -104,7 +104,7 @@ fn find_path(graph: &Graph, source_id: &str, target_id: &str, max_depth: usize) 
 }
 
 fn unwind(
-    previous: HashMap<String, PathPredecessor>,
+    predecessor_by_node_id: HashMap<String, PathPredecessor>,
     source_id: &str,
     target_id: &str,
 ) -> Vec<Value> {
@@ -114,7 +114,7 @@ fn unwind(
         let Some(PathPredecessor {
             node_id: prior,
             edge,
-        }) = previous.get(&current)
+        }) = predecessor_by_node_id.get(&current)
         else {
             return Vec::new();
         };

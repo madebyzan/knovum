@@ -114,5 +114,4 @@ async fn shutdown(app: &tauri::AppHandle) {
 }
 
 #[cfg(test)]
-#[path = "tests/content.rs"]
-mod content_tests;
+mod tests;

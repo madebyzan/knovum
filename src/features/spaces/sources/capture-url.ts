@@ -117,7 +117,7 @@ async function settle(
     data: payload,
   });
   node.data = payload;
-  context.finalizePendingContent(spaceId, [node], context.getActiveSpaceId() === spaceId);
+  context.finalizePendingContent(spaceId, [node], { reveal: context.getActiveSpaceId() === spaceId });
   void logInfo("[spaces.url-capture] media node settled");
   return node;
 }

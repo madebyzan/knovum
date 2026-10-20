@@ -17,10 +17,7 @@
   "save": "Save current scene",
   "delete": "Delete scene",
   "empty": "Save viewport position to return to specific areas quickly.",
-  "open": "Navigate to scene",
   "update": "Update to current viewport",
   "duplicate": "Duplicate scene",
-  "moveUp": "Move up",
-  "moveDown": "Move down",
   "rename": "Rename scene"
 }
