@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/vue-query";
-import { computed, onScopeDispose, shallowRef } from "vue";
+import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { skillQuery } from "../../../foundation/extensions/extension-query";
@@ -9,7 +9,7 @@ import {
   saveSkillRevision,
   deleteSkill,
 } from "../../../foundation/extensions/skill-operations";
-import { useSettingsLeaveContext } from "../../../foundation/lifecycle/use-settings-leave-context";
+import { useEditorLeave } from "../../../foundation/lifecycle/use-editor-leave";
 import type { ExtensionChange } from "../../../shared/contracts/generated/ExtensionChange";
 import type { SkillContent } from "../../../shared/contracts/generated/SkillContent";
 import { confirmAction } from "../../../shared/ui/confirm-action";
@@ -61,22 +61,14 @@ export function useSkillEditing() {
     });
     await pendingMutation;
   }
-  const leaveParticipant = {
-    async prepare() {
-      if (pendingMutation && !(await pendingMutation)) return false;
-      return !dirty.value || confirmDiscard();
-    },
-    finalize() {
+  const closeEditor = useEditorLeave({
+    pending: () => pendingMutation,
+    dirty: () => dirty.value,
+    confirmDiscard,
+    close() {
       editing.value = false;
     },
-  };
-  onScopeDispose(useSettingsLeaveContext().register(leaveParticipant));
-
-  async function closeEditor() {
-    if (!(await leaveParticipant.prepare())) return false;
-    leaveParticipant.finalize();
-    return true;
-  }
+  });
   async function deletePersonalSkill(skillId: string, skillName: string) {
     if (
       await confirmAction({

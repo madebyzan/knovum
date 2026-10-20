@@ -3,6 +3,7 @@ import { info as logInfo, warn as logWarn } from "@tauri-apps/plugin-log";
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { removeSpaceAssets } from "../assets/asset-operations";
+import type { PendingContentContext } from "../assets/import-contract";
 import { acquireMediaSource } from "../media/import/acquisition";
 import { reserveMediaImportAsset } from "../media/import/ipc";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -13,17 +14,9 @@ import { addSavedWebsite } from "../website/capture";
 import { normalizeSpaceUrl } from "../website/url";
 import { classifyUrlSource } from "./url-source-kind";
 
-export interface UrlCaptureContext {
+export interface UrlCaptureContext extends PendingContentContext {
   getActiveSpaceId(): string | undefined;
   nodes: SpaceCanvasNode[];
-  createPendingContentForSpace(
-    spaceId: string,
-    data: SpaceNodePayload,
-    position?: { x: number; y: number },
-  ): Promise<SpaceCanvasNode[]>;
-  savePendingNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<void>;
-  finalizePendingContent(spaceId: string, contentNodes: readonly SpaceCanvasNode[], reveal?: boolean): void;
-  discardPendingContent(spaceId: string, nodeId: string): Promise<void>;
   addContent(data: SpaceNodePayload, position?: { x: number; y: number }): Promise<SpaceCanvasNode[]>;
   saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<unknown>;
 }

@@ -5,8 +5,7 @@ import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { NodePayloadChangeInput } from "../nodes/node-operations";
 import type { SpaceAssetProcessingContext } from "./processing-scheduler";
 
-export interface SpaceImportContext extends SpaceAssetProcessingContext {
-  ensureImportTarget(spaceId: string): Promise<void>;
+export interface PendingContentContext {
   createPendingContentForSpace(
     spaceId: string,
     data: SpaceNodePayload,
@@ -15,6 +14,10 @@ export interface SpaceImportContext extends SpaceAssetProcessingContext {
   savePendingNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<void>;
   finalizePendingContent(spaceId: string, contentNodes: readonly SpaceCanvasNode[], reveal?: boolean): void;
   discardPendingContent(spaceId: string, nodeId: string): Promise<void>;
+}
+
+export interface SpaceImportContext extends SpaceAssetProcessingContext, PendingContentContext {
+  ensureImportTarget(spaceId: string): Promise<void>;
 }
 
 export interface SpaceImportSessionLabels {

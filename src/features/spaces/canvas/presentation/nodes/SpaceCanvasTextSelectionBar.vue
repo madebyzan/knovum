@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bold, Check, Italic, List, Underline } from "@lucide/vue";
+import { Check, List } from "@lucide/vue";
 import type { Editor } from "@tiptap/vue-3";
 import { BubbleMenu } from "@tiptap/vue-3/menus";
 import { computed, onBeforeUnmount, onMounted, shallowRef } from "vue";
@@ -9,6 +9,7 @@ import UiDropdownMenu from "../../../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
+import SpaceTiptapInlineMarks from "../../../document-editing/presentation/SpaceTiptapInlineMarks.vue";
 import { canvasBaseFontSize, effectiveCanvasFontSize } from "../../document/canvas-typography";
 import { CANVAS_FONT_SIZES, CANVAS_INLINE_TEXT_COLORS } from "../canvas-typography-options";
 import SpaceCanvasColorSwatches from "../SpaceCanvasColorSwatches.vue";
@@ -101,30 +102,7 @@ onBeforeUnmount(() => {
       <div
         class="flex items-center gap-0.5 rounded-md border border-stroke-default material-overlay p-0.5 shadow-popover"
       >
-        <UiIconButton
-          :label="t('spaces.richtext.bold')"
-          size="sm"
-          :active="editor.isActive('bold')"
-          @click="editor.chain().focus().toggleBold().run()"
-        >
-          <Bold class="size-3.5" :stroke-width="1.7" />
-        </UiIconButton>
-        <UiIconButton
-          :label="t('spaces.richtext.italic')"
-          size="sm"
-          :active="editor.isActive('italic')"
-          @click="editor.chain().focus().toggleItalic().run()"
-        >
-          <Italic class="size-3.5" :stroke-width="1.7" />
-        </UiIconButton>
-        <UiIconButton
-          :label="t('spaces.richtext.underline')"
-          size="sm"
-          :active="editor.isActive('underline')"
-          @click="editor.chain().focus().toggleUnderline().run()"
-        >
-          <Underline class="size-3.5" :stroke-width="1.7" />
-        </UiIconButton>
+        <SpaceTiptapInlineMarks :editor="editor" :marks="['bold', 'italic', 'underline']" />
         <UiIconButton
           :label="t('spaces.richtext.bulletList')"
           tooltip
