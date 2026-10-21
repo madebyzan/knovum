@@ -252,8 +252,10 @@ class AgentModelBinding(WireModel):
     api_version: Annotated[str | None, Field(alias="apiVersion")] = None
     api_key: Annotated[str | None, Field(alias="apiKey")] = None
     temperature: float | None = None
-    max_output_tokens: Annotated[int, Field(alias="maxOutputTokens", ge=0)]
-    max_input_tokens: Annotated[int, Field(alias="maxInputTokens", ge=0)]
+    max_output_tokens: Annotated[int | None, Field(alias="maxOutputTokens", ge=0)] = (
+        None
+    )
+    max_input_tokens: Annotated[int | None, Field(alias="maxInputTokens", ge=0)] = None
 
 
 class AgentModelAdmission(WireModel):

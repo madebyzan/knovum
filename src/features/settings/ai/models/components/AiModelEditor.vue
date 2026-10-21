@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { cloneDeep } from "es-toolkit";
+import { useId } from "reka-ui";
 import { computed, reactive, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { aiModelDefinitionSchema } from "../../../../../foundation/ai/schema/models";
 import type { AiModelDefinition } from "../../../../../shared/contracts/generated/AiModelDefinition";
-import type { BuiltinAgentModelSettings } from "../../../../../shared/contracts/generated/BuiltinAgentModelSettings";
 import type { ExecutionCapability } from "../../../../../shared/contracts/generated/ExecutionCapability";
 import UiButton from "../../../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../../../shared/ui/UiDialog.vue";
+import UiSwitch from "../../../../../shared/ui/UiSwitch.vue";
 import AiModelDefinitionEditor from "./AiModelDefinitionEditor.vue";
-import BuiltinAgentModelSettingsEditor from "./BuiltinAgentModelSettingsEditor.vue";
 
 const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{
@@ -24,10 +24,11 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ save: [model: AiModelDefinition]; dirty: [value: boolean] }>();
 const { t } = useI18n();
-const draft = reactive<AiModelDefinition & { builtinAgent: BuiltinAgentModelSettings | null }>(
+const builtinAgentSwitchId = useId();
+const draft = reactive<AiModelDefinition>(
   props.model
-    ? cloneDeep({ ...props.model, builtinAgent: props.model.builtinAgent ?? null })
-    : { id: crypto.randomUUID(), name: "", model: "", capabilities: [], builtinAgent: null },
+    ? cloneDeep(props.model)
+    : { id: crypto.randomUUID(), name: "", model: "", capabilities: [], builtinAgent: false },
 );
 const initial = JSON.stringify(draft);
 const changed = computed(() => JSON.stringify(draft) !== initial);
@@ -51,7 +52,7 @@ function save() {
     name: draft.name.trim(),
     model: draft.model.trim(),
     capabilities: [...draft.capabilities],
-    builtinAgent: draft.builtinAgent ? { ...draft.builtinAgent } : null,
+    builtinAgent: draft.builtinAgent,
   });
 }
 </script>
@@ -70,12 +71,23 @@ function save() {
         :show-errors="attempted"
         @update:model-value="Object.assign(draft, $event)"
       />
-      <BuiltinAgentModelSettingsEditor
+      <section
         v-if="builtinAgentSupported && draft.capabilities.includes('text-generation')"
-        v-model="draft.builtinAgent"
-        :disabled="busy"
-        :show-errors="attempted"
-      />
+        class="mt-5 grid gap-3 border-t border-stroke-divider pt-4"
+      >
+        <div class="flex items-center justify-between gap-3">
+          <label :for="builtinAgentSwitchId" class="text-label text-fg-primary">{{
+            t("settings.ai.models.builtinAgent.enabled")
+          }}</label>
+          <UiSwitch
+            :id="builtinAgentSwitchId"
+            v-model="draft.builtinAgent"
+            :disabled="busy"
+            :label="t('settings.ai.models.builtinAgent.enabled')"
+          />
+        </div>
+        <p class="text-caption text-fg-secondary">{{ t("settings.ai.models.builtinAgent.help") }}</p>
+      </section>
     </fieldset>
     <p v-if="error" class="mt-3 text-caption text-fg-danger" role="alert">{{ error }}</p>
     <template #footer>

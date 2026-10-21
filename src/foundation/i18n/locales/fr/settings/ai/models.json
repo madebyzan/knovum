@@ -21,9 +21,6 @@
   "identifier": "Identifiant du modèle du fournisseur",
   "builtinAgent": {
     "enabled": "À utiliser pour l'agent intégré",
-    "help": "Seuls les modèles avec appel d'outil peuvent être activés. Utilisez le contexte documenté et les limites de sortie du fournisseur.",
-    "contextWindow": "Fenêtre contextuelle (jetons)",
-    "maxOutputTokens": "Limite de sortie par requête (jetons)",
-    "invalidLimits": "La fenêtre de contexte moins la limite de sortie doit laisser au moins 32 768 jetons d’entrée."
+    "help": "Seuls les modèles prenant en charge l’appel d’outils peuvent être activés. Les limites de contexte et de sortie sont détectées automatiquement à partir du modèle."
   }
 }

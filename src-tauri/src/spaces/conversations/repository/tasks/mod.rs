@@ -21,7 +21,7 @@ pub(in crate::spaces::conversations) struct RecoverableTask {
     pub prompt: String,
     pub model_binding: ModelTargetSelection,
     pub frozen_target: ModelExecutionTarget,
-    pub model_profile: crate::ai::settings::contracts::BuiltinAgentModelSettings,
+    pub model_profile: crate::ai::models::profile::ModelProfile,
     pub catalog_digest: String,
     pub session: Session,
     pub messages: Vec<AgentInputMessage>,

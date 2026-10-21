@@ -1,7 +1,7 @@
 import { describe, expect, it, onTestFinished, vi } from "vitest";
 
+import { deferred } from "../../../../shared/__tests__/support/deferred";
 import { ApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
-import { deferred } from "../../__tests__/support/canvas-fixtures";
 import { flushSpaceSessionCommits, registerSpaceSessionParticipant } from "../session-participants";
 
 describe("canvas text commit session", () => {

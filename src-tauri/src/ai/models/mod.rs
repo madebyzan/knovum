@@ -1,3 +1,4 @@
+pub(crate) mod profile;
 mod target;
 pub(crate) mod text;
 mod vision;

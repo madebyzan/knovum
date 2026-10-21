@@ -16,6 +16,7 @@ from openai import InternalServerError
 from knovum_agent_runtime.budget import ModelBudget
 from knovum_agent_runtime.contracts.generated.control import AgentExecute
 from knovum_agent_runtime.execution import Execution
+from knovum_agent_runtime.model_binding import model_profile
 from knovum_agent_runtime.transport import HostRejected
 
 
@@ -39,6 +40,7 @@ def test_unknown_provider_failure_prevents_hidden_sdk_retries(tmp_path: Path, mo
                     max_retries=0,
                     callbacks=[ModelBudget(purpose)],
                     tags=[f"knovum:model:{purpose.value}"],
+                    profile=model_profile(binding),
                     http_async_client=client,
                 )
 

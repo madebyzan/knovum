@@ -5,7 +5,7 @@ use crate::{
 
 pub(in crate::spaces::conversations) async fn resolve(
     target: &ModelExecutionTarget,
-    profile: &crate::ai::settings::contracts::BuiltinAgentModelSettings,
+    profile: &crate::ai::models::profile::ModelProfile,
 ) -> Result<AgentModelBinding, String> {
     let protocol = crate::ai::providers::registry::builtin_agent_protocol(
         target
@@ -39,6 +39,6 @@ pub(in crate::spaces::conversations) async fn resolve(
         api_key: security.api_key,
         temperature: Some(target.temperature),
         max_output_tokens: profile.max_output_tokens,
-        max_input_tokens: profile.context_window - profile.max_output_tokens,
+        max_input_tokens: profile.max_input_tokens,
     })
 }

@@ -1,7 +1,9 @@
 use serde::Deserialize;
 use serde_json::{Map, Value};
 
-#[derive(Debug, Deserialize, ts_rs::TS)]
+// One operation of a Knowledge Change Set. The derived JSON Schema is what Agents are given to
+// author a Change Set, so it states every operation exactly as this type accepts it.
+#[derive(Debug, Deserialize, ts_rs::TS, schemars::JsonSchema)]
 #[serde(tag = "op", rename_all = "kebab-case", rename_all_fields = "camelCase")]
 #[ts(optional_fields = nullable)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
@@ -35,13 +37,17 @@ pub(crate) enum KnowledgeChange {
         target_id: String,
         source_node_id: String,
         #[ts(type = "unknown")]
+        #[schemars(
+            with = "Map<String, Value>",
+            description = "Knowledge locator object with sourceRevision, location and optional quote"
+        )]
         locator: Value,
         source_revision: String,
         quote: String,
     },
 }
 
-#[derive(Debug, Deserialize, ts_rs::TS)]
+#[derive(Debug, Deserialize, ts_rs::TS, schemars::JsonSchema)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct Position {
     pub(crate) x: f64,

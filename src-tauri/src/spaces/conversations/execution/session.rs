@@ -35,7 +35,7 @@ pub(in crate::spaces::conversations) async fn select(
     tx: &mut Transaction<'_, Sqlite>,
     task_ids: &TaskIds,
     target: &ModelExecutionTarget,
-    profile: &crate::ai::settings::contracts::BuiltinAgentModelSettings,
+    profile: &crate::ai::models::profile::ModelProfile,
     selection: &ModelTargetSelection,
     catalog_digest: &str,
     now: i64,
@@ -59,7 +59,9 @@ pub(in crate::spaces::conversations) async fn select(
                 .0
                 == *target
             && row
-                .try_get::<sqlx::types::Json<crate::ai::settings::contracts::BuiltinAgentModelSettings>, _>("model_profile")
+                .try_get::<sqlx::types::Json<crate::ai::models::profile::ModelProfile>, _>(
+                    "model_profile",
+                )
                 .map_err(db::sql_error)?
                 .0
                 == *profile

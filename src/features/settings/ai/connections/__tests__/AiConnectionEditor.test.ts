@@ -33,7 +33,7 @@ const connection: AiConnectionSettings = {
   provider: "openai",
   baseUrl: providers[0]!.defaultBaseUrl,
   models: [
-    { id: "text", name: "Text", model: "example", capabilities: ["text-generation"], builtinAgent: null },
+    { id: "text", name: "Text", model: "example", capabilities: ["text-generation"], builtinAgent: false },
   ],
 };
 function open(existing = true) {

@@ -18,7 +18,15 @@ it("selects the exact configured target with separator-containing identities and
       name: "Provider",
       provider: "openai",
       baseUrl: "https://example.test/v1",
-      models: [{ id: "model:chat", name: "Chat", model: "chat", capabilities: ["text-generation"] }],
+      models: [
+        {
+          id: "model:chat",
+          name: "Chat",
+          model: "chat",
+          capabilities: ["text-generation"],
+          builtinAgent: false,
+        },
+      ],
     },
   ];
   const select = defineComponent({

@@ -12,7 +12,15 @@ function configuredSettings() {
       name: "My model",
       provider: "openai",
       baseUrl: "https://api.openai.com/v1",
-      models: [{ id: "text", name: "Text", model: "gpt-4.1", capabilities: ["text-generation"] }],
+      models: [
+        {
+          id: "text",
+          name: "Text",
+          model: "gpt-4.1",
+          capabilities: ["text-generation"],
+          builtinAgent: false,
+        },
+      ],
     },
   ];
   value.desktopAgents = [{ kind: "codex", enabled: true }];

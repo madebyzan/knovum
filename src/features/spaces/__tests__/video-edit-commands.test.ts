@@ -4,6 +4,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { nextTick, shallowRef } from "vue";
 
 import { i18n } from "../../../foundation/i18n/instance";
+import { deferred } from "../../../shared/__tests__/support/deferred";
 import { createSpaceNode } from "../canvas/node";
 import { videoEditCommands } from "../commands/video-edit-commands";
 import { useVideoEditActions } from "../video-editing/presentation/use-video-edit-actions";
@@ -11,7 +12,6 @@ import { useVideoSelection } from "../video-editing/presentation/use-video-selec
 import { createVideoEditProject } from "../video-editing/project";
 import type { VideoSelection } from "../video-editing/selection";
 import { useVideoSessionStore } from "../video-editing/video-session-store";
-import { deferred } from "./support/canvas-fixtures";
 
 const context = vi.hoisted(() => ({
   store: { activeSpaceId: "origin", closeTab: vi.fn<() => Promise<void>>() },

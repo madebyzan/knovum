@@ -21,9 +21,6 @@
   "identifier": "Identificador do modelo do provedor",
   "builtinAgent": {
     "enabled": "Use para o Agente integrado",
-    "help": "Somente modelos com chamada de ferramenta podem ser habilitados. Use o contexto documentado e os limites de saída do provedor.",
-    "contextWindow": "Janela de contexto (tokens)",
-    "maxOutputTokens": "Limite de saída por solicitação (tokens)",
-    "invalidLimits": "A janela de contexto menos o limite de saída deve deixar pelo menos 32.768 tokens de entrada."
+    "help": "Somente modelos com chamada de ferramentas podem ser ativados. Os limites de contexto e de saída são detectados automaticamente a partir do modelo."
   }
 }

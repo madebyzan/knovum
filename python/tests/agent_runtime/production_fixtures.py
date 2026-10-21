@@ -5,6 +5,7 @@ from typing import Any
 from agent_runtime.sdk_fixtures import ScriptedModel
 
 from knovum_agent_runtime.budget import ModelBudget
+from knovum_agent_runtime.model_binding import model_profile
 from knovum_agent_runtime.transport import HostRejected, wire_value
 
 
@@ -54,11 +55,7 @@ def bind_script(monkeypatch: Any, scripts: dict[str, list[Any]]) -> dict[str, Sc
             script=scripts[purpose.value],
             callbacks=[ModelBudget(purpose)],
             tags=[f"knovum:model:{purpose.value}"],
-            profile={
-                "tool_calling": True,
-                "max_input_tokens": binding.max_input_tokens,
-                "max_output_tokens": binding.max_output_tokens,
-            },
+            profile=model_profile(binding),
         )
         models[purpose.value] = model
         return model

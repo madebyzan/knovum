@@ -91,7 +91,9 @@ fn unique<'a>(identities: impl Iterator<Item = &'a str>) -> Result<(), String> {
 }
 
 fn tool(tool: rmcp::model::Tool) -> Result<super::super::contracts::McpCatalogTool, String> {
-    let input_schema = Value::Object((*tool.input_schema).clone());
+    let mut input_schema = (*tool.input_schema).clone();
+    super::tool_schema::conform(&mut input_schema);
+    let input_schema = Value::Object(input_schema);
     if input_schema["type"] != "object" {
         return Err("mcp-tool-input-schema-must-describe-object".into());
     }

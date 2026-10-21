@@ -2,6 +2,7 @@ import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { effectScope } from "vue";
 import type * as VueI18n from "vue-i18n";
 
+import { deferred } from "../../../../shared/__tests__/support/deferred";
 import type { RunObservation } from "../../contracts/generated/RunObservation";
 import type { TranslateVideoDubbingRequest } from "../../contracts/generated/TranslateVideoDubbingRequest";
 import type { VideoTranslation } from "../../contracts/generated/VideoTranslation";
@@ -53,13 +54,6 @@ const completed: RunObservation = {
   updatedAt: 1,
   completedAt: 1,
 };
-function deferred<T>() {
-  let complete!: (value: T) => void;
-  const promise = new Promise<T>((resolve) => {
-    complete = resolve;
-  });
-  return { promise, resolve: complete };
-}
 function setup() {
   const scope = effectScope();
   const apply = vi.fn<(translation: VideoTranslation) => void>();

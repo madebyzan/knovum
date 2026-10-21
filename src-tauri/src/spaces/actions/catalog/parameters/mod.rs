@@ -47,7 +47,7 @@ pub(super) struct NoteParameters {
 #[derive(Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct KnowledgeChangesParameters {
-    operations: Vec<Value>,
+    operations: Vec<crate::spaces::knowledge::change_commit::KnowledgeChange>,
 }
 
 #[derive(Deserialize, JsonSchema)]

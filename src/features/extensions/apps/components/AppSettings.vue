@@ -1,14 +1,8 @@
 <script setup lang="ts">
 import { Compass, Plug } from "@lucide/vue";
-import { useQuery } from "@tanstack/vue-query";
 import { computed } from "vue";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import {
-  connectionQuery,
-  connectorQuery,
-  pluginQuery,
-} from "../../../../foundation/extensions/extension-query";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSettingsHeaderActions from "../../../../shared/ui/UiSettingsHeaderActions.vue";
 import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
@@ -17,15 +11,14 @@ import ExtensionAvailability from "../../components/ExtensionAvailability.vue";
 import ExtensionEmptyState from "../../components/ExtensionEmptyState.vue";
 import ExtensionIdentity from "../../components/ExtensionIdentity.vue";
 import { isAppConnector } from "../../connectors/app-connector";
+import { useExtensionInventory } from "../../connectors/use-extension-inventory";
 import type { ExtensionDestination } from "../../navigation/extension-destination";
 import { usePluginLabels } from "../../plugins/use-plugin-labels";
 import AppInspection from "./AppInspection.vue";
 
 const props = defineProps<{ search: string; connectorId?: string | undefined }>();
 const emit = defineEmits<{ navigate: [destination: ExtensionDestination] }>();
-const connectors = useQuery(connectorQuery);
-const connections = useQuery(connectionQuery);
-const plugins = useQuery(pluginQuery);
+const { connectors, connections, pluginById, error, isLoading } = useExtensionInventory();
 const apps = computed(() =>
   (connectors.data.value ?? []).filter((connector) =>
     isAppConnector(connector, pluginById.value.get(connector.pluginId!)),
@@ -42,7 +35,6 @@ const selectedApp = computed(() => apps.value.find((connector) => connector.id =
 const connectionByConnectorId = computed(
   () => new Map((connections.data.value ?? []).map((connection) => [connection.connectorId, connection])),
 );
-const pluginById = computed(() => new Map((plugins.data.value ?? []).map((plugin) => [plugin.id, plugin])));
 const { describePlugin } = usePluginLabels();
 const descriptionByConnectorId = computed(
   () =>
@@ -56,10 +48,6 @@ const descriptionByConnectorId = computed(
         return [connector.id, description];
       }),
     ),
-);
-const error = computed(() => connectors.error.value || connections.error.value || plugins.error.value);
-const isLoading = computed(
-  () => connectors.isPending.value || connections.isPending.value || plugins.isPending.value,
 );
 </script>
 

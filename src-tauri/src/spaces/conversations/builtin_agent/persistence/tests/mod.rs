@@ -60,9 +60,9 @@ async fn frozen_execution_preserves_image_input_and_space_snapshot() {
         secret_key: "credential-reference".into(),
         capabilities: vec![crate::ai::contracts::ExecutionCapability::VisionUnderstanding],
     };
-    let profile = crate::ai::settings::contracts::BuiltinAgentModelSettings {
-        context_window: 65_536,
-        max_output_tokens: 4096,
+    let profile = crate::ai::models::profile::ModelProfile {
+        max_input_tokens: Some(65_536),
+        max_output_tokens: Some(4096),
     };
     let mut tx = pool.begin().await.unwrap();
     let space =

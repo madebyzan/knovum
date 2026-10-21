@@ -18,8 +18,8 @@ function workspace(rightSidebarAvailable = true): WorkspaceDefinition {
   };
 }
 
-function commands(workspaceActive: boolean) {
-  return createShellCommands(workspace(), workspaceActive, {
+function commands(workspaceActive: boolean, rightSidebarAvailable = true) {
+  return createShellCommands(workspace(rightSidebarAvailable), workspaceActive, {
     workspaceCommands: [],
     actions: {
       openCommandPalette: vi.fn<() => void>(),
@@ -86,29 +86,7 @@ describe("shell commands", () => {
   });
 
   it("omits the right sidebar command when the current workspace view cannot show it", () => {
-    const ids = createShellCommands(workspace(false), true, {
-      workspaceCommands: [],
-      actions: {
-        openCommandPalette: vi.fn<() => void>(),
-        openSettings: vi.fn<() => void>(),
-        toggleSidebar: vi.fn<() => void>(),
-        toggleRightSidebar: vi.fn<() => void>(),
-      },
-      labels: {
-        editingLabelByCommand: {
-          undo: "undo",
-          redo: "redo",
-          cut: "cut",
-          copy: "copy",
-          paste: "paste",
-          "select-all": "select all",
-        },
-        settings: "settings",
-        commandPalette: "palette",
-        toggleSidebar: "sidebar",
-        toggleRightSidebar: "right sidebar",
-      },
-    }).map((command) => command.id);
+    const ids = commands(true, false).map((command) => command.id);
     expect(ids).not.toContain("view.toggle-right-sidebar");
   });
 });

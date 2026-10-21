@@ -1,23 +1,11 @@
 <script setup lang="ts">
 import { SwitchRoot, SwitchThumb, useId } from "reka-ui";
-import type { HTMLAttributes } from "vue";
 
+import type { BinaryControlProps } from "./binary-control";
 import { cn } from "./cn";
 
 const model = defineModel<boolean>({ required: true });
-
-const props = withDefaults(
-  defineProps<{
-    id?: string | undefined;
-    label: string;
-    disabled?: boolean | undefined;
-    class?: HTMLAttributes["class"];
-  }>(),
-  {
-    id: undefined,
-    disabled: false,
-  },
-);
+const props = defineProps<BinaryControlProps>();
 
 const switchId = useId(props.id);
 </script>

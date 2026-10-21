@@ -30,37 +30,13 @@ export const aiConnectionBaseUrlSchema = z
     }
   });
 
-/** Mirrors `ai::settings::builtin_agent::MIN_INPUT_TOKENS`: input left beside one answer. */
-export const BUILTIN_AGENT_MIN_INPUT_TOKENS = 32_768;
-
-export function builtinAgentLimitsValid(profile: {
-  contextWindow: number;
-  maxOutputTokens: number;
-}): boolean {
-  return (
-    Number.isInteger(profile.contextWindow) &&
-    Number.isInteger(profile.maxOutputTokens) &&
-    profile.contextWindow <= 2_000_000 &&
-    profile.maxOutputTokens > 0 &&
-    profile.contextWindow - profile.maxOutputTokens >= BUILTIN_AGENT_MIN_INPUT_TOKENS
-  );
-}
-
-const builtinAgentModelSettingsSchema = z
-  .object({
-    contextWindow: z.number().int(),
-    maxOutputTokens: z.number().int(),
-  })
-  .strict()
-  .refine(builtinAgentLimitsValid, { message: "Builtin Agent context and output limits are invalid" });
-
 export const aiModelDefinitionSchema = z
   .object({
     id: z.string().trim().min(1),
     name: z.string().trim().min(1),
     model: z.string().trim().min(1),
     capabilities: z.array(aiCapabilitySchema).min(1),
-    builtinAgent: builtinAgentModelSettingsSchema.nullable().exactOptional(),
+    builtinAgent: z.boolean(),
   })
   .strict();
 

@@ -11,8 +11,9 @@ pub(crate) struct AgentModelBinding {
     pub(crate) api_version: Option<String>,
     pub(crate) api_key: Option<String>,
     pub(crate) temperature: Option<f64>,
-    pub(crate) max_output_tokens: u32,
-    pub(crate) max_input_tokens: u32,
+    // Published model limits; unknown limits leave budgeting to the harness's overflow handling.
+    pub(crate) max_output_tokens: Option<u32>,
+    pub(crate) max_input_tokens: Option<u32>,
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]

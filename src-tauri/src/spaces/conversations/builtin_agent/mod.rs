@@ -52,8 +52,11 @@ pub async fn start(
     } else {
         crate::ai::contracts::ExecutionCapability::TextGeneration
     };
-    let (target, profile) =
+    let target =
         crate::ai::settings::resolve_builtin_agent(&app, request.target.clone(), capability)?;
+    let profile =
+        crate::ai::models::profile::resolve(&app, target.model_provider_kind()?, &target.model)
+            .await;
     let mut catalog = tools::project()?;
     let local_tools = catalog
         .tools

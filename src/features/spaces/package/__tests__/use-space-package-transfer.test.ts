@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { deferred } from "../../../../shared/__tests__/support/deferred";
 import type { SpacePackageTransfer } from "../transfer";
 import { useSpacePackageTransfer } from "../use-space-package-transfer";
 
@@ -42,16 +43,6 @@ vi.mock("../transfer", () => ({
   exportSpacePackage: mocks.exportTransfer,
   importSpacePackage: vi.fn<() => SpacePackageTransfer>(),
 }));
-
-function deferred<T>() {
-  let resolvePromise!: (value: T) => void;
-  let rejectPromise!: (error: unknown) => void;
-  const promise = new Promise<T>((resolve, reject) => {
-    resolvePromise = resolve;
-    rejectPromise = reject;
-  });
-  return { promise, reject: rejectPromise, resolve: resolvePromise };
-}
 
 describe("Space package task cancellation", () => {
   beforeEach(() => {

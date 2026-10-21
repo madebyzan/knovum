@@ -22,7 +22,7 @@ pub(super) struct NewBuiltinAgentTaskState<'a> {
     pub space_context: &'a crate::spaces::queries::knowledge_projection::ContentsPage,
     pub message_attachments: &'a [crate::spaces::conversations::ConversationMessageAttachment],
     pub target: &'a crate::ai::models::ModelExecutionTarget,
-    pub profile: &'a crate::ai::settings::contracts::BuiltinAgentModelSettings,
+    pub profile: &'a crate::ai::models::profile::ModelProfile,
     pub messages: &'a [crate::agent_runtime::protocol::messages::AgentInputMessage],
     pub history: &'a [crate::agent_runtime::protocol::messages::AgentInputMessage],
     pub now: i64,

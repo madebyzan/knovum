@@ -1,23 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createSpaceNode } from "../canvas/node";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
+import { canvasNode, exportHost } from "./support/export-host";
 
-const mocks = vi.hoisted(() => ({
-  invoke: vi.fn<(command: string, args: unknown) => Promise<unknown>>(),
-  save: vi.fn<(options: unknown) => Promise<string | null>>(),
-}));
-
-vi.mock("@tauri-apps/api/core", () => ({ invoke: mocks.invoke }));
-vi.mock("@tauri-apps/plugin-dialog", () => ({ save: mocks.save }));
+vi.mock("@tauri-apps/api/core", async () => (await import("./support/export-host")).tauriCore);
+vi.mock("@tauri-apps/plugin-dialog", async () => (await import("./support/export-host")).tauriDialog);
 
 import { exportSpaceSection } from "../assets/export/section";
 
 describe("Space section export", () => {
   beforeEach(() => {
-    mocks.invoke.mockReset().mockResolvedValue(undefined);
-    mocks.save.mockReset().mockResolvedValue("/exports/section.json");
+    exportHost.invoke.mockReset().mockResolvedValue(undefined);
+    exportHost.save.mockReset().mockResolvedValue("/exports/section.json");
   });
 
   it("exports a section outline with credential metadata but no secrets", async () => {
@@ -31,7 +26,7 @@ describe("Space section export", () => {
 
     await exportSpaceSection(sectionSnapshot(), [credential], "section");
 
-    const call = mocks.invoke.mock.calls[0]?.[1] as { text: string };
+    const call = exportHost.invoke.mock.calls[0]?.[1] as { text: string };
     expect(JSON.parse(call.text)).toEqual({
       version: 1,
       kind: "section",
@@ -53,10 +48,6 @@ describe("Space section export", () => {
     expect(call.text).not.toContain("credentialConfigured");
   });
 });
-
-function canvasNode(nodeId: string, data: SpaceCanvasNode["data"]): SpaceCanvasNode {
-  return createSpaceNode(data, { x: 0, y: 0 }, nodeId);
-}
 
 function sectionSnapshot(): SpaceEditSnapshot {
   return {

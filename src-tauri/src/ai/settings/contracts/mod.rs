@@ -39,15 +39,7 @@ pub(crate) struct Model {
     pub model: String,
     pub capabilities: Vec<ExecutionCapability>,
     pub name: String,
-    #[ts(optional = nullable)]
-    pub builtin_agent: Option<BuiltinAgentModelSettings>,
-}
-
-#[derive(Clone, Deserialize, serde::Serialize, PartialEq, ts_rs::TS)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct BuiltinAgentModelSettings {
-    pub context_window: u32,
-    pub max_output_tokens: u32,
+    pub builtin_agent: bool,
 }
 
 #[derive(Deserialize, ts_rs::TS)]

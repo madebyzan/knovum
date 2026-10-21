@@ -256,12 +256,18 @@
           "format": "double"
         },
         "maxOutputTokens": {
-          "type": "integer",
+          "type": [
+            "integer",
+            "null"
+          ],
           "format": "uint32",
           "minimum": 0
         },
         "maxInputTokens": {
-          "type": "integer",
+          "type": [
+            "integer",
+            "null"
+          ],
           "format": "uint32",
           "minimum": 0
         }
@@ -270,9 +276,7 @@
       "required": [
         "protocol",
         "model",
-        "baseUrl",
-        "maxOutputTokens",
-        "maxInputTokens"
+        "baseUrl"
       ]
     },
     "ChatModelProtocol": {

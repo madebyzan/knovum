@@ -21,9 +21,6 @@
   "identifier": "Identificativo del modello del provider",
   "builtinAgent": {
     "enabled": "Utilizzare per l'agente integrato",
-    "help": "È possibile abilitare solo i modelli con chiamata utensile. Utilizzare il contesto documentato e i limiti di output del fornitore.",
-    "contextWindow": "Finestra di contesto (token)",
-    "maxOutputTokens": "Limite di output per richiesta (token)",
-    "invalidLimits": "La finestra di contesto meno il limite di output deve lasciare almeno 32.768 token di input."
+    "help": "È possibile attivare solo modelli con chiamata di strumenti. I limiti di contesto e di output vengono rilevati automaticamente dal modello."
   }
 }

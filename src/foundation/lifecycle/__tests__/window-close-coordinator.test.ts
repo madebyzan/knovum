@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { deferred } from "../../../shared/__tests__/support/deferred";
+
 vi.mock("../../i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("vue-sonner", () => ({ toast: { error: vi.fn<(message: string) => void>() } }));
 
@@ -17,13 +19,6 @@ vi.mock("../../ipc/invoke-command", () => ({
   invokeCommand: vi.fn<() => Promise<void>>(async () => undefined),
 }));
 
-function deferred() {
-  let complete!: () => void;
-  const promise = new Promise<void>((resolve) => {
-    complete = resolve;
-  });
-  return { promise, resolve: complete };
-}
 beforeEach(() => {
   vi.resetModules();
 });

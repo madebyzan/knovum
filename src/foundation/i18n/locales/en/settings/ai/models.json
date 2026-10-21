@@ -21,9 +21,6 @@
   "identifier": "Provider model identifier",
   "builtinAgent": {
     "enabled": "Use for the built-in Agent",
-    "help": "Only models with tool calling can be enabled. Use the provider’s documented context and output limits.",
-    "contextWindow": "Context window (tokens)",
-    "maxOutputTokens": "Output limit per request (tokens)",
-    "invalidLimits": "Context window minus output limit must leave at least 32,768 input tokens."
+    "help": "Only models with tool calling can be enabled. Context and output limits are detected from the model automatically."
   }
 }

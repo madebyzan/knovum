@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from "pinia";
 import { expect, it, onTestFinished, vi } from "vitest";
 
 import { i18n } from "../../../foundation/i18n/instance";
+import { deferred } from "../../../shared/__tests__/support/deferred";
 import { createSpaceNode } from "../canvas/node";
 import { createContextDock } from "../canvas/use-context-dock";
 import { registerDocumentEditCommands } from "../commands/document-edit-commands";
@@ -10,7 +11,6 @@ import { useSpaceCommands } from "../commands/use-space-commands";
 import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { useSpaceStore } from "../session/space-store";
 import { registerSpaceSessionParticipant } from "../workspace/session-participants";
-import { deferred } from "./support/canvas-fixtures";
 import { openStoreSpaceTab } from "./support/session-context";
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));

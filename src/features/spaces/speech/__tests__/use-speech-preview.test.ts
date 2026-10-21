@@ -18,9 +18,8 @@ vi.mock("../ipc", () => ({
   previewVoice: mocks.previewVoice,
 }));
 
+import { deferred } from "../../../../shared/__tests__/support/deferred";
 import { useSpeechPreview } from "../use-speech-preview";
-
-const noop = () => undefined;
 
 class PreviewAudioContext {
   state: AudioContextState = "suspended";
@@ -34,14 +33,6 @@ class PreviewAudioContext {
   async close() {
     this.state = "closed";
   }
-}
-
-function deferredPreview() {
-  let rejectPreview: (cause?: unknown) => void = noop;
-  const promise = new Promise<never>((_resolve, reject) => {
-    rejectPreview = reject;
-  });
-  return { promise, reject: rejectPreview };
 }
 
 beforeEach(() => {
@@ -59,7 +50,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("speech preview playback controls", () => {
   it("stops listening without cancelling generation", async () => {
-    const pending = deferredPreview();
+    const pending = deferred<never>();
     mocks.previewVoice.mockReturnValue(pending.promise);
     const preview = useSpeechPreview();
     const task = preview.previewSelection("hello", "voice-1", {});
@@ -73,7 +64,7 @@ describe("speech preview playback controls", () => {
   });
 
   it("cancels generation with the active preview identity", async () => {
-    const pending = deferredPreview();
+    const pending = deferred<never>();
     mocks.previewVoice.mockReturnValue(pending.promise);
     const preview = useSpeechPreview();
     const task = preview.previewSelection("hello", "voice-1", {});
@@ -89,7 +80,7 @@ describe("speech preview playback controls", () => {
   });
 
   it("sends a trimmed delivery instruction with the preview request", async () => {
-    const pending = deferredPreview();
+    const pending = deferred<never>();
     mocks.previewVoice.mockReturnValue(pending.promise);
     const preview = useSpeechPreview();
     const task = preview.previewSelection("hello", "voice-1", {}, "  Calm narration  ");
@@ -107,7 +98,7 @@ describe("speech preview playback controls", () => {
   });
 
   it("shows a rejected cancellation without losing the active generation or leaking a UI rejection", async () => {
-    const pending = deferredPreview();
+    const pending = deferred<never>();
     mocks.previewVoice.mockReturnValue(pending.promise);
     mocks.cancelSpeechGeneration.mockRejectedValue(new Error("Cancellation rejected"));
     const preview = useSpeechPreview();
@@ -122,7 +113,7 @@ describe("speech preview playback controls", () => {
   });
 
   it("does not write a teardown cancellation failure into the next editor", async () => {
-    const pending = deferredPreview();
+    const pending = deferred<never>();
     mocks.previewVoice.mockReturnValue(pending.promise);
     mocks.cancelSpeechGeneration.mockRejectedValue(new Error("Old cancellation failure"));
     const preview = useSpeechPreview();
