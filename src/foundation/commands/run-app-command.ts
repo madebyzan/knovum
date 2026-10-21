@@ -4,7 +4,6 @@ import { toast } from "vue-sonner";
 import { canRunAction } from "../../shared/contracts/action-availability";
 import type { AppCommand } from "../../shared/contracts/app-command";
 import { isApplicationLeaveCancelled } from "../../shared/contracts/application-leave";
-import { isEditableTarget } from "../dom/editable-target";
 import { formatErrorDiagnostic, getErrorMessage } from "../errors/error-format";
 import { isApplicationTransitioning } from "../lifecycle/application-transition";
 
@@ -15,6 +14,10 @@ export function registerAppCommands(commands: readonly AppCommand[]): () => void
   return () => {
     if (registeredCommands === commands) registeredCommands = [];
   };
+}
+
+export function appCommands(): readonly AppCommand[] {
+  return registeredCommands;
 }
 
 export function getAppCommand(commandId: string): AppCommand | undefined {
@@ -43,14 +46,9 @@ function modalScopeAllows(commandId: string): boolean {
   const scopes = document.querySelectorAll<HTMLElement>("[data-app-command-scope][data-state='open']");
   const activeScope = scopes.item(scopes.length - 1);
   if (!activeScope) return true;
-  const focused = document.activeElement;
-  if (
-    commandId.startsWith("editing.") &&
-    focused &&
-    activeScope.contains(focused) &&
-    isEditableTarget(focused)
-  )
-    return true;
+  // An editing intent only dispatches: the platform acts on what has focus inside the modal, and a
+  // surface command it resolves to passes through this scope on its own.
+  if (commandId.startsWith("editing.")) return true;
   const allowed = activeScope.dataset.appCommandScope?.split(" ").filter(Boolean) ?? [];
   return allowed.includes(commandId);
 }

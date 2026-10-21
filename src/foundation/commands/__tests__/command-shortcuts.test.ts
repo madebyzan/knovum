@@ -90,8 +90,9 @@ describe("application command shortcuts", () => {
     unbind();
   });
 
-  it("runs canvas clipboard chords on a focused canvas host", async () => {
-    const paste = command("$mod+V");
+  it("runs a surface clipboard command on a focused canvas host", async () => {
+    mocks.platform.mockReturnValue("windows");
+    const paste = command("$mod+V", { editingIntent: "paste" });
     const unbind = bindCommandShortcuts([paste]);
     const macLike = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
     const event = press(mounted("div"), {
@@ -122,10 +123,12 @@ describe("application command shortcuts", () => {
   });
 
   it("preserves a native text-editing chord in an editable field", async () => {
-    const copy = command("Meta+C");
+    mocks.platform.mockReturnValue("windows");
+    const copy = command("$mod+C", { editingIntent: "copy" });
     const unbind = bindCommandShortcuts([copy]);
+    const macLike = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 
-    const event = press(mounted("input"), { key: "c", code: "KeyC", metaKey: true });
+    const event = press(mounted("input"), { key: "c", code: "KeyC", metaKey: macLike, ctrlKey: !macLike });
     await settle();
 
     expect(copy.run).not.toHaveBeenCalled();
