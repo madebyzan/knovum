@@ -1,5 +1,6 @@
 import { computed, type Ref } from "vue";
 
+import { derivedOutputCounts } from "../../model/relations/lineage";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { SECTION_HEADER_HEIGHT } from "../../model/structure/section-metrics";
 import { ancestorsOf, createStructureIndex } from "../../model/structure/structure-index";
@@ -56,10 +57,9 @@ export function useCanvasSceneProjections(
   const relationBoundsById = computed(
     () =>
       new Map(
-        scene.value.relations.map(({ id, midpoint }) => [
-          id,
-          { x: midpoint.x, y: midpoint.y, width: 0, height: 0 },
-        ]),
+        scene.value.relations.flatMap(({ midpoint, relations }) =>
+          relations.map(({ id }) => [id, { x: midpoint.x, y: midpoint.y, width: 0, height: 0 }] as const),
+        ),
       ),
   );
   const structureBoundsById = computed(
@@ -100,12 +100,14 @@ export function useCanvasSceneProjections(
     return ancestors.slice(scopeIndex + 1).find(({ kind }) => kind === "group")?.id;
   }
   return {
+    derivedOutputCountByNodeId: computed(() => derivedOutputCounts(props.sceneInput.relations)),
     previewIndex: computed(() => createCanvasScenePreviewIndex(scene.value)),
     groupScopeTitles,
     lockedNodeIds,
     relationBoundsById,
     scene,
     structureBoundsById,
+    structureIndex,
     structureScene,
     structureSelectionForNode,
   };

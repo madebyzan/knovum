@@ -19,7 +19,7 @@ defineProps<{
   selectedRelationIds: ReadonlySet<string>;
   zoom: number;
 }>();
-const emit = defineEmits<{ pointerDown: [id: string, event: PointerEvent] }>();
+const emit = defineEmits<{ pointerDown: [relationIds: readonly string[], event: PointerEvent] }>();
 </script>
 
 <template>
@@ -35,7 +35,7 @@ const emit = defineEmits<{ pointerDown: [id: string, event: PointerEvent] }>();
       :relation-preview-by-id="relationPreviewById"
       :selected="selectedRelationIds.has(relation.key)"
       :zoom="zoom"
-      @pointer-down="(id, event) => emit('pointerDown', id, event)"
+      @pointer-down="(relationIds, event) => emit('pointerDown', relationIds, event)"
     />
     <KonvaArrow
       v-if="connectorDraft"

@@ -1,4 +1,4 @@
-import { compact, groupBy, sortBy } from "es-toolkit";
+import { compact, sortBy } from "es-toolkit";
 
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../../model/relations/relation";
@@ -6,9 +6,9 @@ import { SECTION_HEADER_HEIGHT } from "../../../model/structure/section-metrics"
 import type { WorldBounds } from "../../../model/structure/world-bounds";
 import { canvasNodeInteraction } from "../../canvas-node-interaction";
 import type { StructureScene } from "../../document/structure-scene";
-import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../../schema/document";
-import type { CanvasScene, CanvasSceneNode, CanvasSceneRelation } from "./canvas-scene";
-import { relationGeometry } from "./relation-path";
+import type { CanvasDocumentV1 } from "../../schema/document";
+import type { CanvasScene, CanvasSceneNode } from "./canvas-scene";
+import { projectSceneRelations, type RelationEndpoint } from "./scene-relations";
 
 interface CanvasSceneProjectionInput {
   document: CanvasDocumentV1;
@@ -47,14 +47,14 @@ export function projectCanvasScene({
   const relationEndpoints = structure
     ? structureRelationEndpoints(structure)
     : contentRelationEndpoints(projected, sceneNodeById);
-  const projectedRelations =
+  const placedRelations =
     structure?.relations ??
     relations.map((relation) => ({
       relation,
       sourceStructureNodeId: relation.sourceId,
       targetStructureNodeId: relation.targetId,
     }));
-  const relationOffsets = representativeRelationOffsets(projectedRelations);
+  const sceneRelations = projectSceneRelations(placedRelations, relationEndpoints, colorByRelationId);
   return {
     nodes: paintOrderedNodes,
     nodesById: sceneNodeById,
@@ -70,63 +70,17 @@ export function projectCanvasScene({
             layout.collapsed && !temporarilyExpanded ? SECTION_HEADER_HEIGHT : bounds.bottom - bounds.top,
         },
       })) ?? [],
-    relations: projectedRelations.flatMap(({ relation, sourceStructureNodeId, targetStructureNodeId }) =>
-      projectRelation({
-        relation,
-        endpointByStructureNodeId: relationEndpoints,
-        sourceStructureNodeId,
-        targetStructureNodeId,
-        color: colorByRelationId.get(relation.id) ?? "neutral",
-        parallelOffset: relationOffsets.get(relation.id) ?? 0,
-      }),
+    relations: sceneRelations,
+    relationKeyByRelationId: new Map(
+      sceneRelations.flatMap(({ key, relations: drawn }) => drawn.map(({ id }) => [id, key] as const)),
     ),
   };
-}
-
-interface CanvasRelationProjectionOptions {
-  relation: SpaceRelation;
-  endpointByStructureNodeId: ReadonlyMap<string, RelationEndpoint>;
-  sourceStructureNodeId: string;
-  targetStructureNodeId: string;
-  color: CanvasSceneRelation["color"];
-  parallelOffset: number;
-}
-
-function projectRelation(options: CanvasRelationProjectionOptions): CanvasSceneRelation[] {
-  const { relation, sourceStructureNodeId, targetStructureNodeId } = options;
-  const source = options.endpointByStructureNodeId.get(sourceStructureNodeId);
-  const target = options.endpointByStructureNodeId.get(targetStructureNodeId);
-  if (!source || !target || sourceStructureNodeId === targetStructureNodeId) return [];
-  const geometry = relationGeometry(source.frame, target.frame, options.parallelOffset);
-  return [
-    {
-      id: relation.id,
-      key: `relation:${relation.id}`,
-      kind: "relation",
-      label: relation.kind,
-      relation,
-      color: options.color,
-      bounds: geometry.bounds,
-      midpoint: geometry.midpoint,
-      points: geometry.points,
-      sourceNodeId: source.previewId,
-      sourceFrame: source.frame,
-      targetNodeId: target.previewId,
-      targetFrame: target.frame,
-      parallelOffset: options.parallelOffset,
-    },
-  ];
-}
-
-interface RelationEndpoint {
-  frame: CanvasNodeLayoutV1["frame"];
-  previewId: string;
 }
 
 function contentRelationEndpoints(
   projected: readonly Omit<CanvasSceneNode, "paintOrder">[],
   sceneNodeById: ReadonlyMap<string, CanvasSceneNode>,
-) {
+): ReadonlyMap<string, RelationEndpoint> {
   return new Map(
     projected.flatMap(({ node }) => {
       const visible = sceneNodeById.get(node.id);
@@ -162,29 +116,4 @@ function boundsFrame(bounds: WorldBounds) {
     height: bounds.bottom - bounds.top,
     rotation: 0,
   };
-}
-
-function representativeRelationOffsets(
-  relations: readonly {
-    relation: SpaceRelation;
-    sourceStructureNodeId: string;
-    targetStructureNodeId: string;
-  }[],
-) {
-  const relationsByPair = groupBy(relations, (projected) =>
-    [projected.sourceStructureNodeId, projected.targetStructureNodeId].toSorted().join("\u0000"),
-  );
-  const offsetByRelationId = new Map<string, number>();
-  for (const group of Object.values(relationsByPair))
-    group
-      .toSorted((a, b) => a.relation.id.localeCompare(b.relation.id))
-      .forEach((projected, index) => {
-        const direction =
-          projected.sourceStructureNodeId ===
-          [projected.sourceStructureNodeId, projected.targetStructureNodeId].toSorted()[0]
-            ? 1
-            : -1;
-        offsetByRelationId.set(projected.relation.id, (index - (group.length - 1) / 2) * 20 * direction);
-      });
-  return offsetByRelationId;
 }

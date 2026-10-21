@@ -46,7 +46,7 @@ const emit = defineEmits<{
   dragMove: [nodeId: string, event: Konva.KonvaEventObject<DragEvent>];
   dragStart: [nodeId: string, event: Konva.KonvaEventObject<DragEvent>];
   pointerDown: [nodeId: string, event: Konva.KonvaEventObject<PointerEvent>];
-  relationPointerDown: [id: string, event: PointerEvent];
+  relationPointerDown: [relationIds: readonly string[], event: PointerEvent];
   resizeSnap: [guides: readonly CanvasSnapGuide[]];
   transform: [proportionalAnchor?: string];
   transformEnd: [];
@@ -93,7 +93,7 @@ watch(interactionLayer, syncInteractionCanvas, { flush: "post" });
     :relation-preview-by-id="relationPreviewById"
     :selected-relation-ids="selectedRelationIds"
     :zoom="zoom"
-    @pointer-down="(id, event) => emit('relationPointerDown', id, event)"
+    @pointer-down="(relationIds, event) => emit('relationPointerDown', relationIds, event)"
   />
   <KonvaCanvasLayer :config="{ id: 'canvas-node-layer', listening: interactive }">
     <CanvasNodeShape

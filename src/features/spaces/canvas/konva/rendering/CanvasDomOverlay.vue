@@ -19,6 +19,7 @@ const props = defineProps<{
   interactiveNodeId: string | undefined;
   visibleNodeIds: ReadonlySet<string>;
   selectedNodeIds: ReadonlySet<string>;
+  derivedOutputCountByNodeId: ReadonlyMap<string, number>;
   zoom: number;
 }>();
 const world = useTemplateRef<HTMLElement>("world");
@@ -37,6 +38,7 @@ const visibleNodes = computed(() =>
 );
 useCameraStyle(props.camera, world, ({ x, y, zoom }) => ({
   transform: `translate(${x}px, ${y}px) scale(${zoom})`,
+  "--canvas-zoom": String(zoom),
 }));
 </script>
 
@@ -55,6 +57,7 @@ useCameraStyle(props.camera, world, ({ x, y, zoom }) => ({
         :scene-node="sceneNode"
         :layout-preview-by-node-id="layoutPreviewByNodeId"
         :selected="selectedNodeIds.has(sceneNode.node.id)"
+        :derived-outputs="derivedOutputCountByNodeId.get(sceneNode.node.id) ?? 0"
       >
         <template #default="content">
           <slot v-bind="content" />

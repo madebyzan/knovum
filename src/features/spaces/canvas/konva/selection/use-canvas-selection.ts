@@ -46,12 +46,16 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     relationIds.value = new Set();
     notify();
   }
-  function selectRelation(relationId: string, event: PointerEvent) {
+  /** Selects the relations one line stands for, as a unit. */
+  function selectRelation(lineRelationIds: readonly string[], event: PointerEvent) {
     if (event.button !== 0) return;
     const additive = isAdditiveSelection(event);
     const next = new Set(additive ? relationIds.value : []);
-    if (next.has(relationId) && additive) next.delete(relationId);
-    else next.add(relationId);
+    const deselect = additive && lineRelationIds.every((id) => next.has(id));
+    for (const id of lineRelationIds) {
+      if (deselect) next.delete(id);
+      else next.add(id);
+    }
     nodeIds.value = new Set();
     structureNodeIds.value = new Set();
     relationIds.value = next;
@@ -66,11 +70,11 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     if (nodeIds.value.has(nodeId)) return;
     setNodeIds([nodeId]);
   }
-  function selectRelationForContextMenu(relationId: string) {
-    if (relationIds.value.has(relationId)) return;
+  function selectRelationForContextMenu(lineRelationIds: readonly string[]) {
+    if (lineRelationIds.every((id) => relationIds.value.has(id))) return;
     nodeIds.value = new Set();
     structureNodeIds.value = new Set();
-    relationIds.value = new Set([relationId]);
+    relationIds.value = new Set(lineRelationIds);
     notify();
   }
   function setNodeIds(selectedNodeIds: readonly string[]) {

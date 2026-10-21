@@ -91,6 +91,25 @@ describe("Konva canvas selection", () => {
     expect(selection.nodeIds.value).toEqual(new Set(["a"]));
     expect(changed).toHaveBeenLastCalledWith(expect.objectContaining({ nodeIds: ["a"] }));
   });
+
+  it("selects and deselects the relations one line stands for as a unit", () => {
+    const midpoint = { x: 50, y: 20, width: 0, height: 0 };
+    const selection = useCanvasSelection({
+      availableStructureNodeIds: shallowRef(new Set()),
+      changed: vi.fn<(selection: CanvasSelectionSnapshot) => void>(),
+      layouts: shallowRef(layouts),
+      relationBoundsById: shallowRef(new Map(["r1", "r2", "r3"].map((id) => [id, midpoint]))),
+      structureBoundsById: shallowRef(new Map()),
+      structureSelectionForNode: () => undefined,
+    });
+
+    selection.selectRelation(["r1", "r2"], pointer());
+    expect(selection.relationIds.value).toEqual(new Set(["r1", "r2"]));
+    selection.selectRelation(["r3"], pointer({ shiftKey: true }));
+    expect(selection.relationIds.value).toEqual(new Set(["r1", "r2", "r3"]));
+    selection.selectRelation(["r1", "r2"], pointer({ shiftKey: true }));
+    expect(selection.relationIds.value).toEqual(new Set(["r3"]));
+  });
 });
 
 function pointer(init: PointerEventInit = {}) {

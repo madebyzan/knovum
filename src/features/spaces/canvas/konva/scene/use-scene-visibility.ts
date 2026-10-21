@@ -22,6 +22,8 @@ interface SceneVisibilityOptions {
   camera: CanvasCamera;
   nodeIds: Readonly<Ref<ReadonlySet<string>>>;
   relationIds: Readonly<Ref<ReadonlySet<string>>>;
+  /** Lineage relations the selection explains; other lineage lines stay hidden. */
+  revealedRelationIds: Readonly<Ref<ReadonlySet<string>>>;
   scene: Readonly<Ref<CanvasScene>>;
   sections: Readonly<Ref<readonly ProjectedSection[]>>;
   sectionIds: Readonly<Ref<ReadonlySet<string>>>;
@@ -33,9 +35,18 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
   const culledSectionIds = shallowRef<ReadonlySet<string>>(new Set());
   const culledNodeIds = shallowRef<ReadonlySet<string>>(new Set());
   const culledRelationIds = shallowRef<ReadonlySet<string>>(new Set());
-  const selectedRelationIds = computed(
-    () => new Set([...options.relationIds.value].map((id) => `relation:${id}`)),
-  );
+  const selectedRelationIds = computed(() => {
+    const keyByRelationId = options.scene.value.relationKeyByRelationId;
+    return new Set([...options.relationIds.value].flatMap((id) => keyByRelationId.get(id) ?? []));
+  });
+  const hiddenLineageKeys = computed(() => {
+    const revealed = options.revealedRelationIds.value;
+    return new Set(
+      options.scene.value.relations
+        .filter(({ lineage, relations }) => lineage && !relations.some(({ id }) => revealed.has(id)))
+        .map(({ key }) => key),
+    );
+  });
   const visibleNodeIds = computed(() => {
     const ids = new Set(culledNodeIds.value);
     for (const id of options.nodeIds.value) ids.add(id);
@@ -47,7 +58,7 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
     return ids;
   });
   const visibleRelationIds = computed(() => {
-    const ids = new Set(culledRelationIds.value);
+    const ids = new Set([...culledRelationIds.value].filter((key) => !hiddenLineageKeys.value.has(key)));
     for (const id of selectedRelationIds.value) ids.add(id);
     return ids;
   });

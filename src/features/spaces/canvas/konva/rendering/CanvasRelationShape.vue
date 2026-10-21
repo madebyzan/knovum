@@ -19,15 +19,21 @@ const props = defineProps<{
   selected: boolean;
   zoom: number;
 }>();
-const emit = defineEmits<{ pointerDown: [id: string, event: PointerEvent] }>();
+const emit = defineEmits<{ pointerDown: [relationIds: readonly string[], event: PointerEvent] }>();
 const { t } = useI18n();
 const relation = computed(
   () => props.relationPreviewById.get(props.sourceRelation.id) ?? props.sourceRelation,
 );
+const relationIds = computed(() => relation.value.relations.map(({ id }) => id));
+const label = computed(() => {
+  const kind = t(`spaces.knowledge.relations.kinds.${relation.value.label}`);
+  const count = relation.value.relations.length;
+  return count > 1 ? `${kind} ×${count}` : kind;
+});
 
 function select(event: Konva.KonvaEventObject<PointerEvent>) {
   event.cancelBubble = true;
-  emit("pointerDown", relation.value.id, event.evt);
+  emit("pointerDown", relationIds.value, event.evt);
 }
 </script>
 
@@ -35,7 +41,7 @@ function select(event: Konva.KonvaEventObject<PointerEvent>) {
   <KonvaArrow
     :config="{
       points: relation.points,
-      relationId: relation.id,
+      relationIds,
       bezier: true,
       stroke: palette.relationByColor[relation.color],
       fill: palette.relationByColor[relation.color],
@@ -53,7 +59,7 @@ function select(event: Konva.KonvaEventObject<PointerEvent>) {
   <KonvaText
     :config="{
       ...connectorLabelPosition(relation),
-      text: t(`spaces.knowledge.relations.kinds.${relation.label}`),
+      text: label,
       offsetX: 80 / zoom,
       offsetY: 8 / zoom,
       width: 160 / zoom,

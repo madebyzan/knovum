@@ -1,6 +1,7 @@
 import { computed } from "vue";
 
 import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
+import { useRevealedLineage } from "./scene/use-revealed-lineage";
 import { projectSelectionTransformPolicy } from "./selection/selection-transform-policy";
 import { useCanvasSelection } from "./selection/use-canvas-selection";
 import type { useCanvasSceneProjections } from "./use-canvas-scene-projections";
@@ -28,5 +29,12 @@ export function useRuntimeSelection(
         ({ id, kind }) => kind === "section" && selection.structureNodeIds.value.has(id),
       ),
   );
-  return { selection, transformPolicy, canTransformGroups };
+  // The lineage relations the selection explains.
+  const lineage = useRevealedLineage({
+    relations: () => props.sceneInput.relations,
+    nodeIds: selection.nodeIds,
+    structureNodeIds: selection.structureNodeIds,
+    structureIndex: projections.structureIndex,
+  });
+  return { selection, transformPolicy, canTransformGroups, lineage };
 }
