@@ -10,7 +10,6 @@
     "analyze_media": "미디어 지속 시간 및 파형",
     "transcribe_media": "오디오 및 비디오 전사",
     "parse_document": "문서 추출",
-    "analyze_document": "문서 시각적 분석",
     "align_media_transcript": "선택된 성적표 정렬",
     "diarize_media_transcript": "스피커 분할"
   },
@@ -23,8 +22,6 @@
     "cancelled": "취소됨"
   },
   "matchBadge": {
-    "documentOcr": "인식된 문서 텍스트",
-    "documentInterpretation": "문서 시각적 해석",
     "imageDescription": "이미지 설명",
     "videoCover": "비디오 커버",
     "mediaTimeRange": "{start} – {end}"
@@ -42,12 +39,9 @@
   "imageUnavailable": "이미지를 사용할 수 없음",
   "document": {
     "coverage": "문서 처리",
-    "ocrEvidence": "기계가 인식한 텍스트 · 인식 오류가 발생할 수 있음",
-    "interpretationEvidence": "AI 시각적 해석 · 원본 문서 진술이 아님",
     "textCoverage": "추출된 텍스트가 있는 페이지: {count} of {total}.",
     "unclassifiedPages": "{count} 페이지에는 추출 가능한 본문 텍스트나 알려진 이미지가 없습니다. 비어 있거나 지원되지 않는 콘텐츠가 포함되어 있을 수 있습니다.",
-    "recognitionRequired": "인식이 필요한 페이지: {pages}",
-    "visualCoverage": "분석된 소스: {total}의 {count}.",
+    "scannedPages": "스캔된 페이지(이미지 전용): {pages}",
     "visualUnavailable": "{count} 참조 이미지는 문서 파서에서 디코딩할 수 없습니다.",
     "resources": {
       "title": "문서 리소스",
@@ -55,10 +49,8 @@
       "occurrences": "{count} 시간 사용",
       "embedded": "문서에서 추출된 삽입된 이미지입니다.",
       "rendered": "PDF에서 렌더링된 페이지 또는 시각적 영역입니다.",
-      "detectedText": "감지된 텍스트",
       "context": "컨텍스트",
       "altText": "대체 텍스트",
-      "description": "설명",
       "embeddedBadge": "삽입됨",
       "renderedBadge": "렌더링됨"
     },

@@ -1,23 +1,13 @@
 import { computed, type Ref } from "vue";
-import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 
-import { SECTION_EXPORT_FORMATS, nodeExportFormats, type ExportFormats } from "../../assets/export/formats";
-import { cancelResourceExport } from "../../assets/export/ipc";
+import { SECTION_EXPORT_FORMATS, nodeExportFormats } from "../../assets/export/formats";
 import { exportSpaceNode } from "../../assets/export/node";
 import { exportSpaceSection } from "../../assets/export/section";
+import type { ExportTarget } from "../../assets/export/target";
+import { useExportRun } from "../../assets/export/use-export-run";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
 import type { CanvasSelectionProductState } from "./selection/selection-product-state";
-
-/** What the bar can save, and the formats it admits. */
-export interface CanvasSelectionExport {
-  /** Identifies the listing, so formats are never reused across selections. */
-  key: string;
-  formats: () => Promise<ExportFormats>;
-  /** Writes the file; `onStart` opens the work that can still be cancelled. */
-  save: (format: string, onStart: (jobId: string) => void) => Promise<boolean>;
-}
 
 /**
  * Exporting is two steps: the bar offers the formats the selection admits, then
@@ -28,9 +18,9 @@ export function useCanvasSelectionExport(
   selectedNodes: Readonly<Ref<SpaceCanvasNode[]>>,
 ) {
   const store = useSpaceStore();
-  const { t } = useI18n();
+  const runExport = useExportRun();
 
-  const target = computed<CanvasSelectionExport | undefined>(() => {
+  const target = computed<ExportTarget | undefined>(() => {
     const sectionId = state.value.section?.id;
     if (sectionId)
       return {
@@ -49,23 +39,7 @@ export function useCanvasSelectionExport(
   });
 
   async function run(format: string) {
-    const selected = target.value;
-    if (!selected) return;
-    let notice: string | number | undefined;
-    let saved: boolean;
-    try {
-      // Encoding a recording or rendering a document takes as long as it takes,
-      // so the person who started it can stop it.
-      saved = await selected.save(format, (jobId) => {
-        notice = toast.loading(t("spaces.importExport.export.running"), {
-          duration: Infinity,
-          action: { label: t("common.cancel"), onClick: () => void cancelResourceExport(jobId) },
-        });
-      });
-    } finally {
-      if (notice !== undefined) toast.dismiss(notice);
-    }
-    if (saved) toast.success(t("spaces.importExport.export.completed"));
+    if (target.value) await runExport(target.value, format);
   }
 
   return { target, run };

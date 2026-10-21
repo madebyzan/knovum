@@ -73,6 +73,9 @@ const layerClasses = computed(() => DIALOG_LAYER_CLASSES[props.layer]);
               {{ description }}
             </DialogDescription>
           </div>
+          <div v-if="$slots.actions" class="flex shrink-0 items-center gap-1">
+            <slot name="actions" />
+          </div>
           <DialogClose v-if="closable" as-child>
             <UiIconButton :label="t('common.close')" size="sm"><X class="size-3.5" /></UiIconButton>
           </DialogClose>

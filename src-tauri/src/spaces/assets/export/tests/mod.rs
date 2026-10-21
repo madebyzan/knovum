@@ -45,6 +45,27 @@ fn an_edited_picture_is_only_offered_as_a_new_encoding() {
 }
 
 #[test]
+fn a_document_picture_is_its_extracted_png_and_every_other_encoding() {
+    let routes = targets::document_resource();
+    let extensions = routes.iter().map(|(extension, _)| extension.as_str());
+    assert_eq!(
+        extensions.collect::<Vec<_>>(),
+        ["png", "jpg", "webp", "tiff"]
+    );
+    let chosen = |name: &str| targets::chosen(routes.clone(), None, Path::new(name));
+    assert_eq!(
+        chosen("/out/figure.png").unwrap(),
+        Managed::Original,
+        "its own format is the extracted bytes, not a re-encode"
+    );
+    assert!(matches!(
+        chosen("/out/figure.JPEG").unwrap(),
+        Managed::Image(_)
+    ));
+    assert!(chosen("/out/figure.gif").is_err());
+}
+
+#[test]
 fn a_depth_field_is_measurement_data_rather_than_a_picture() {
     let payload = json!({
         "kind":"image", "fileName":"depth.png", "assetPath":"/owned/depth.png",

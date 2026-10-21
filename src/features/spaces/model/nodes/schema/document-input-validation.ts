@@ -13,13 +13,7 @@ export function validateDocumentInput(
   if ((input !== null) !== (report.pageCount !== null)) {
     context.addIssue({ code: "custom", message: "Document visual input belongs to a different format" });
   }
-  if (!input) {
-    if (!occurrence.resourceId && occurrence.state !== "unsupported") {
-      context.addIssue({ code: "custom", message: "Office visual occurrence requires a raster resource" });
-    }
-    return;
-  }
-  validatePdfInput(occurrence, input, report, context);
+  if (input) validatePdfInput(occurrence, input, report, context);
 }
 
 function validatePdfInput(
@@ -28,6 +22,10 @@ function validatePdfInput(
   report: DocumentCoverage,
   context: z.RefinementCtx,
 ) {
+  // A PDF region is rendered from the page itself, so it always has a raster.
+  if (occurrence.resourceId === null) {
+    context.addIssue({ code: "custom", message: "PDF visual input requires its rendered raster" });
+  }
   const location = occurrence.location;
   if (
     report.pageCount === null ||
@@ -43,7 +41,7 @@ function validatePdfInput(
   }
   if (input.kind === "page") {
     if (!report.pagesRequiringRecognition.includes(input.page)) {
-      context.addIssue({ code: "custom", message: "PDF page has no recognition requirement" });
+      context.addIssue({ code: "custom", message: "A whole-page picture belongs to a scanned page" });
     }
   } else {
     validateImageCoverage(input.page, report, context);

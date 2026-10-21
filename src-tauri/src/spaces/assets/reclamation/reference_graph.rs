@@ -41,13 +41,6 @@ pub(super) async fn all(
     .await
     .map_err(db::sql_error)?;
     paths.extend(thumbnails);
-    let checkpoints = sqlx::query_scalar::<_, String>(
-        "SELECT json_extract(c.resource,'$.path') FROM spaces_document_visual_checkpoints c \
-         JOIN spaces_enrichment_jobs j ON j.id=c.job_id JOIN spaces_nodes n ON n.id=j.node_id AND n.space_id=j.space_id \
-         WHERE c.resource IS NOT NULL AND j.status IN ('pending','running','failed','awaiting_configuration') \
-           AND json_extract(n.data,'$.sourceRevision')=j.source_revision",
-    ).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
-    paths.extend(checkpoints);
     let speech = sqlx::query_scalar::<_, String>(
         "SELECT asset_path FROM spaces_speech_renders \
          WHERE asset_path IS NOT NULL AND state IN ('staged','published') \
@@ -98,17 +91,6 @@ pub(crate) async fn for_nodes(
     .map_err(db::sql_error)?;
     let mut paths = BTreeSet::new();
     collect_node_rows(rows, &mut paths)?;
-    let checkpoints = sqlx::query_scalar::<_, String>(
-        "SELECT json_extract(c.resource,'$.path') FROM spaces_document_visual_checkpoints c \
-         JOIN spaces_enrichment_jobs j ON j.id=c.job_id WHERE c.resource IS NOT NULL \
-           AND j.space_id=$1 AND j.node_id IN (SELECT value FROM json_each($2))",
-    )
-    .bind(space_id)
-    .bind(sqlx::types::Json(node_ids))
-    .fetch_all(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    paths.extend(checkpoints);
     let layout_paths = sqlx::query_scalar::<_, String>(
         "SELECT json_extract(l.data,'$.appearance.background') \
          FROM spaces_structure_layouts l \
@@ -136,11 +118,6 @@ pub(crate) async fn for_space(
         .map_err(db::sql_error)?;
     let mut paths = BTreeSet::new();
     collect_node_rows(rows, &mut paths)?;
-    let checkpoints = sqlx::query_scalar::<_, String>(
-        "SELECT json_extract(c.resource,'$.path') FROM spaces_document_visual_checkpoints c \
-         JOIN spaces_enrichment_jobs j ON j.id=c.job_id WHERE j.space_id=$1 AND c.resource IS NOT NULL",
-    ).bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
-    paths.extend(checkpoints);
     let speech = sqlx::query_scalar::<_, String>(
         "SELECT o.asset_path FROM spaces_speech_renders o \
          JOIN spaces_speech_segments s ON s.id=o.segment_id \

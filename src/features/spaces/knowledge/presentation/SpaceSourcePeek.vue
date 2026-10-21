@@ -86,15 +86,7 @@ const {
             :key="chunk.id"
             class="space-y-1.5 border-b border-stroke-divider/50 pb-3 last:border-b-0 last:pb-0"
           >
-            <div class="flex items-center gap-2 text-caption-sm text-fg-tertiary">
-              <span>{{ knowledgeLocationLabel(chunk.locator) }}</span>
-              <span v-if="chunk.metadata?.role === 'document_ocr'" class="text-fg-secondary">
-                · {{ t("spaces.processing.document.ocrEvidence") }}
-              </span>
-              <span v-if="chunk.metadata?.role === 'document_interpretation'" class="text-fg-secondary">
-                · {{ t("spaces.processing.document.interpretationEvidence") }}
-              </span>
-            </div>
+            <p class="text-caption-sm text-fg-tertiary">{{ knowledgeLocationLabel(chunk.locator) }}</p>
             <SpaceTextQuote
               :text="chunk.text"
               :exact="chunk.id === sourcePeek.chunkId ? sourcePeek.locator.quote?.exact : undefined"

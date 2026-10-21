@@ -1,5 +1,6 @@
 mod capture;
 mod document;
+pub mod document_resource;
 mod files;
 mod image;
 mod jobs;
@@ -87,24 +88,43 @@ async fn write(
         }
         Export::Managed(managed) => {
             let source = managed_source(&payload)?;
-            let cancellation = cancellation.clone();
-            Ok(crate::foundation::blocking::run(move || match managed {
-                Managed::Original => files::copy(&app, &source.path, &destination),
-                Managed::Image(encoding) => {
-                    image::write(&app, &source, &payload, encoding, &destination)
-                }
-                Managed::Media(target) => media::transcode(
-                    &app,
-                    &source.path,
-                    &source.revision,
-                    target,
-                    &destination,
-                    &cancellation,
-                ),
-            })
-            .await?)
+            let edit = payload.get("imageEdit").cloned().unwrap_or(Value::Null);
+            write_managed(
+                app,
+                source,
+                managed,
+                edit,
+                destination,
+                cancellation.clone(),
+            )
+            .await
         }
     }
+}
+
+/// Writes managed bytes along the route the destination chose: as they are, as the picture they
+/// render to with `edit` applied, or as a recording encoded again.
+async fn write_managed(
+    app: AppHandle,
+    source: ManagedSource,
+    managed: Managed,
+    edit: Value,
+    destination: PathBuf,
+    cancellation: CancellationToken,
+) -> Result<(), AppError> {
+    Ok(crate::foundation::blocking::run(move || match managed {
+        Managed::Original => files::copy(&app, &source.path, &destination),
+        Managed::Image(encoding) => image::write(&app, &source, &edit, encoding, &destination),
+        Managed::Media(target) => media::transcode(
+            &app,
+            &source.path,
+            &source.revision,
+            target,
+            &destination,
+            &cancellation,
+        ),
+    })
+    .await?)
 }
 
 #[tauri::command]

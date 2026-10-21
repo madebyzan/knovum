@@ -99,29 +99,6 @@ async fn execute(
                 data,
             });
         }
-        EnrichmentJobType::AnalyzeDocument => {
-            let selected = request.vision_target.take().ok_or_else(|| {
-                AppError::not_configured("Document visual analysis requires an execution choice")
-            })?;
-            let target = crate::ai::settings::resolve_task(
-                app,
-                selected,
-                crate::ai::contracts::ExecutionCapability::VisionUnderstanding,
-            )?;
-            let data = crate::spaces::assets::enrichment::document::execute::analyze(
-                app,
-                &request,
-                data,
-                target,
-                &progress,
-                cancellation,
-            )
-            .await?;
-            return Ok(EnrichmentJobOutput {
-                node_id: request.node_id,
-                data,
-            });
-        }
         EnrichmentJobType::AnalyzeVisual => {
             let target = request.vision_target.take().ok_or_else(|| {
                 AppError::not_configured("Visual analysis requires an execution choice")

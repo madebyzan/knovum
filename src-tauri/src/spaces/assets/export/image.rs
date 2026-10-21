@@ -13,13 +13,12 @@ use crate::images::Encoding;
 pub(super) fn write(
     app: &tauri::AppHandle,
     source: &ManagedSource,
-    payload: &Value,
+    edit: &Value,
     encoding: Encoding,
     destination: &Path,
 ) -> Result<(), String> {
     verify_content_revision(&source.path, &source.revision)?;
-    let edit = payload.get("imageEdit").cloned().unwrap_or(Value::Null);
-    let bytes = crate::images::render_source_as(&source.path, &edit, encoding)?;
+    let bytes = crate::images::render_source_as(&source.path, edit, encoding)?;
     verify_content_revision(&source.path, &source.revision)?;
     files::write(app, destination, &bytes)
 }

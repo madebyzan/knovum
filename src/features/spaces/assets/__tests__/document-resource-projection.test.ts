@@ -37,9 +37,7 @@ function report(parser: DocumentCoverage["parser"]): DocumentCoverage {
           parser === "pdf-inspector"
             ? { kind: "image", page: 2, rect: { x: 10, y: 20, width: 300, height: 200 } }
             : null,
-        state: "pending",
-        error: null,
-        analysis: null,
+        unavailable: null,
       },
       {
         id: "visual-2",
@@ -54,9 +52,7 @@ function report(parser: DocumentCoverage["parser"]): DocumentCoverage {
           parser === "pdf-inspector"
             ? { kind: "image", page: 3, rect: { x: 30, y: 40, width: 300, height: 200 } }
             : null,
-        state: "pending",
-        error: null,
-        analysis: null,
+        unavailable: null,
       },
     ],
     warnings: parser === "pdf-inspector" ? ["pdf_visual_coverage_limited"] : [],

@@ -1,25 +1,38 @@
 <script setup lang="ts">
-import { countBy } from "es-toolkit";
 import { computed, shallowRef, watch } from "vue";
 
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { DocumentCoverage } from "../../../model/nodes/schema/document-coverage-fields";
+import { useSpaceStore } from "../../../session/space-store";
+import { documentResourceExportTarget } from "../../export/document-resource";
 import { projectDocumentResources } from "./document-resource-projection";
 import SpaceDocumentResourceGrid from "./SpaceDocumentResourceGrid.vue";
 import SpaceDocumentResourceViewer from "./SpaceDocumentResourceViewer.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
+const store = useSpaceStore();
 const report = computed(() =>
   props.node.data.kind === "file" ? props.node.data.documentCoverage : undefined,
 );
-const stateCounts = computed(() => countBy(report.value?.occurrences ?? [], ({ state }) => state));
-const completed = computed(() => stateCounts.value.completed ?? 0);
-const unsupported = computed(() => stateCounts.value.unsupported ?? 0);
+const unavailable = computed(
+  () => report.value?.occurrences.filter((occurrence) => occurrence.unavailable !== null).length ?? 0,
+);
 const resources = computed(() => (report.value ? projectDocumentResources(report.value) : []));
 const selectedResourceId = shallowRef<string>();
 const selectedResource = computed(() =>
   resources.value.find(({ resource }) => resource.id === selectedResourceId.value),
 );
+const exportTarget = computed(() => {
+  const spaceId = store.activeSpaceId;
+  const item = selectedResource.value;
+  if (!spaceId || !item) return undefined;
+  return documentResourceExportTarget({
+    spaceId,
+    nodeId: props.node.id,
+    resourceId: item.resource.id,
+    name: `${props.node.data.title} · ${item.locationLabel}`,
+  });
+});
 const viewerOpen = computed({
   get: () => selectedResourceId.value !== undefined,
   set: (open) => {
@@ -66,20 +79,12 @@ const MESSAGE_KEY_BY_WARNING: Record<DocumentWarning, string> = {
     </p>
     <p v-if="report.pagesRequiringRecognition.length">
       {{
-        $t("spaces.processing.document.recognitionRequired", {
+        $t("spaces.processing.document.scannedPages", {
           pages: report.pagesRequiringRecognition.join(", "),
         })
       }}
     </p>
-    <p v-if="report.occurrences.length">
-      {{
-        $t("spaces.processing.document.visualCoverage", {
-          count: completed,
-          total: report.occurrences.length,
-        })
-      }}
-    </p>
-    <p v-if="unsupported">{{ $t("spaces.processing.document.visualUnavailable", { count: unsupported }) }}</p>
+    <p v-if="unavailable">{{ $t("spaces.processing.document.visualUnavailable", { count: unavailable }) }}</p>
     <p v-for="warning in report.warnings" :key="warning">
       {{ $t(MESSAGE_KEY_BY_WARNING[warning]) }}
     </p>
@@ -103,5 +108,6 @@ const MESSAGE_KEY_BY_WARNING: Record<DocumentWarning, string> = {
     v-model:open="viewerOpen"
     :item="selectedResource"
     :source-revision="report.sourceRevision"
+    :export-target="exportTarget"
   />
 </template>

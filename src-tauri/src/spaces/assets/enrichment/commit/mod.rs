@@ -13,7 +13,6 @@ pub(in crate::spaces) struct PublicationGuard<'a> {
     pub source_revision: Option<&'a str>,
     pub job_id: Option<&'a str>,
     pub media_knowledge: Option<&'a Value>,
-    pub document_coverage: Option<&'a Value>,
     pub cancellation: Option<&'a tokio_util::sync::CancellationToken>,
 }
 
@@ -42,11 +41,7 @@ pub(in crate::spaces) async fn publish(
             })
             .transpose()?
         }
-        None if fields.contains_key("documentCoverage")
-            || fields.contains_key("processingState") =>
-        {
-            super::jobs::intent::selection(app)?
-        }
+        None if fields.contains_key("processingState") => super::jobs::intent::selection(app)?,
         None => None,
     };
     let cancellation = guard.cancellation;
@@ -88,7 +83,6 @@ pub(in crate::spaces) async fn publish_in_transaction(
         source_revision,
         job_id,
         media_knowledge,
-        document_coverage,
         cancellation,
     } = guard;
     let row = sqlx::query(
@@ -103,12 +97,6 @@ pub(in crate::spaces) async fn publish_in_transaction(
     let raw: String = row.try_get("data").map_err(db::sql_error)?;
     let mut current: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
     let expected_payload = current.clone();
-    if document_coverage.is_some_and(|expected| current.get("documentCoverage") != Some(expected)) {
-        return Err(AppError::new(
-            "document_coverage_obsolete",
-            "Document coverage changed while processing",
-        ));
-    }
     if let Some(expected) = media_knowledge {
         super::media_knowledge::validate_input(&current["mediaKnowledge"], expected)?;
     }

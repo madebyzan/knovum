@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use super::{DocumentCoverage, DocumentParser, VisualState};
+use super::{DocumentCoverage, DocumentParser};
 use crate::documents::pdf_input::PdfInput;
 
 pub(super) fn validate(report: &DocumentCoverage) -> Result<(), String> {
@@ -78,9 +78,6 @@ fn validate_recognition_inputs(report: &DocumentCoverage) -> Result<(), String> 
             {
                 return Err("PDF page and region inputs must not duplicate coverage".into());
             }
-        }
-        if occurrence.state == VisualState::Completed && occurrence.resource_id.is_none() {
-            return Err("Completed document analysis requires its durable raster".into());
         }
     }
     Ok(())

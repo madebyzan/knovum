@@ -11,12 +11,16 @@ renders PDF source pages in the evidence inspector; it shows textual evidence an
 the original file through the existing OS integration.
 
 File nodes retain one typed `documentCoverage` aggregate tied to `sourceRevision`:
-parser identity, page/recognition coverage, source-owned content-addressed PNG resources, logical
-occurrences, analysis provenance and explicit unsupported-format warnings. PDF visuals
-use public positioned `ItemType::Image` items in `PositionFrame::Display`; normal text
-pages do not generate page-level AI calls. Scanned, garbled or vector-text pages generate
-one explicit recognition input instead of duplicate image inputs. Pages without extractable
-content are reported separately, not automatically classified as scans or text-covered.
+parser identity, page coverage, source-owned content-addressed PNG resources, logical
+occurrences and explicit unsupported-format warnings. PDF visuals
+use public positioned `ItemType::Image` items in `PositionFrame::Display`. Scanned, garbled
+or vector-text pages contribute their rendered page image instead of text; a page whose
+image cannot be decoded records why it is unavailable, so a resource and an unavailability
+reason are mutually exclusive. Pages without extractable content are reported separately,
+not automatically classified as scans or text-covered. Document pictures are not described,
+recognized or embedded: extraction is the whole contract, and every extracted picture is
+viewable and exportable like any other asset (original PNG plus JPEG, WebP and TIFF
+encodings) through the shared export routes.
 Inline images and vector graphics are not guaranteed to be fully covered by this API.
 Core Graphics and Windows.Data.Pdf render the selected region directly into a bounded
 bitmap. Coordinates are PDF points, lower-left/y-up in the rotated visible page frame;
@@ -32,16 +36,11 @@ their logical positions. XLSX cell APIs preserve actual addresses, formulas and 
 values without the vendor IR's 10,000-row cap. Spreadsheet chart appearance, exact image
 cell anchors and legacy Office image positions remain explicitly unsupported.
 
-Body text publishes independently of AI. Persistent `parse_document` and
-`analyze_document` jobs use the existing enrichment queue. Missing visual configuration
-is `awaiting_configuration`, not an execution failure. Invalid selected targets fail at
-the Rust execution boundary instead of being swallowed as configuration deferral. Configuration changes resume
-waiting jobs. Successful occurrences and raster paths are checkpointed, so retry skips
-completed work. Provider failure does not trigger another engine. OCR and interpretation
-become separate passages labelled `document_ocr` and `document_interpretation`, with
-nearby source context and actual source positions. Grounded answers distinguish these
-from original document statements. Visual file paths and operational progress do not
-affect semantic revision identity; analysis content and provenance do.
+Body text publishes independently of AI: a persistent `parse_document` job per source
+revision is the only document job, and nothing runs after it. Document knowledge is the
+extracted body text, so a picture never becomes a passage and document pictures need no
+model configuration. Visual file paths and operational progress do not affect semantic
+revision identity.
 
 Publication merges only owned fields into the current node in a write transaction,
 rechecking source revision, node existence and running job identity. The central asset
@@ -51,16 +50,16 @@ are reclaimed by the existing startup orphan collector, not a collector racing i
 
 Budgets: one parser at a time across imports/jobs; input 128 MiB; 2000 PDF pages;
 4 Mi UTF-16 body units; Office ZIP expansion 256 MiB/20,000 entries;
-2000 visual resources/occurrences, 256 MiB normalized rasters, 32 MiB/24 MP per image,
-4 Mi UTF-16 analysis units; source raster long edge 2048 pixels and scale at most 2.
+2000 visual resources/occurrences, 256 MiB normalized rasters, 32 MiB/24 MP per image;
+source raster long edge 2048 pixels and scale at most 2.
 Excess fails visibly. PDF page count is checked after parsing and is not an internal
 decompression-work limit. System rendering and visual calls are serial. System rendering checks cancellation between operations; model calls and desktop Agent sessions support cooperative cancellation, with ACP acknowledgement before session teardown.
 
 ## AI task results and execution selection
 
 Knowledge tasks share product execution policy with the Builtin Agent. A configured and
-explicitly selected desktop Agent can execute transcript insights, image understanding
-and document visual understanding with zero user model connections and no Knovum-held
+explicitly selected desktop Agent can execute transcript insights and image understanding
+with zero user model connections and no Knovum-held
 API key. Its tools/Skills must actually satisfy the task; execution failure is visible
 and never silently invokes a Provider using another account.
 
@@ -75,13 +74,10 @@ inside the existing node/chunk write transaction, protecting concurrent manual e
 Image understanding prepares the current applied `imageEdit` as a canonical PNG from
 the authorized managed original, verifies its byte revision, and binds knowledge to
 the rendered revision. Video visual enrichment currently interprets only `previewPath`:
-it is preview-image understanding, not whole-video analysis. Document visual delegates
-receive the verified materialized raster for the exact occurrence plus its nearby
-context; original parser locations, resource IDs, source revisions and per-occurrence
-checkpoints stay authoritative. Body parsing and basic resource use remain local and
-do not require any AI selection. Cancellation, job liveness, source identity and document
-coverage edits guard publication; successful Agent results enter the same knowledge
-passages and indexing as model results.
+it is preview-image understanding, not whole-video analysis. Document parsing and
+picture extraction are entirely local and never resolve an AI executor. Cancellation,
+job liveness and source identity guard publication; successful Agent results enter the
+same knowledge passages and indexing as model results.
 
 `executionSource` records either actual Provider/model identity or the external Agent
 runtime kind. Agent execution does not fabricate model identity, tokens or cost.
@@ -101,11 +97,11 @@ Results are not clipped, partially accepted or retried through another model to 
 the schema. Prompt constraints improve compliance; they do not guarantee every provider response
 will be valid. Image evidence remains separate from instructions and verbatim detected text.
 
-## Document locations and job checkpoints
+## Document locations
 
 Office body, header and footer locations use the library's public logical positions; they do not infer rendered pagination. XLSX images and text shapes use public worksheet interfaces and retain EMU geometry. Geometry is not the original cell anchor. Legacy binary Office image locations remain limited by the parser's location support.
 
-Intermediate document visual results belong to the enrichment job and are stored per occurrence in `spaces_document_visual_checkpoints`, not as a duplicate canonical Knowledge store. Completed analysis is published on job completion or failure, after checking that the node document-coverage snapshot has not been edited concurrently. Recovery fills unfinished occurrences and preserves already published completed knowledge, including edits made before recovery. Cancellation retains checkpoints, but unpublished resources of cancelled jobs are not reclamation roots. Retryable jobs for the current source remain referenced by the asset graph.
+Extraction publishes once per source revision, so there is no intermediate per-occurrence store to recover, reconcile or invalidate. Unpublished resources of a cancelled parse are not reclamation roots, and retryable jobs for the current source remain referenced by the asset graph.
 
 ## Database migrations
 

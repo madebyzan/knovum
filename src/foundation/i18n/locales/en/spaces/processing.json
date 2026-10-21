@@ -10,7 +10,6 @@
     "analyze_media": "Media duration and waveform",
     "transcribe_media": "Audio and video transcription",
     "parse_document": "Document extraction",
-    "analyze_document": "Document visual analysis",
     "align_media_transcript": "Selected transcript alignment",
     "diarize_media_transcript": "Speaker diarization"
   },
@@ -23,8 +22,6 @@
     "cancelled": "Cancelled"
   },
   "matchBadge": {
-    "documentOcr": "Recognized document text",
-    "documentInterpretation": "Document visual interpretation",
     "imageDescription": "Image description",
     "videoCover": "Video cover",
     "mediaTimeRange": "{start} – {end}"
@@ -42,12 +39,9 @@
   "imageUnavailable": "Image unavailable",
   "document": {
     "coverage": "Document processing",
-    "ocrEvidence": "Machine-recognized text · Recognition errors are possible",
-    "interpretationEvidence": "AI visual interpretation · Not an original document statement",
     "textCoverage": "Pages with extracted text: {count} of {total}.",
     "unclassifiedPages": "{count} page has no extractable body text or known images. It may be blank or contain unsupported content. | {count} pages have no extractable body text or known images. They may be blank or contain unsupported content.",
-    "recognitionRequired": "Pages requiring recognition: {pages}",
-    "visualCoverage": "Sources analyzed: {count} of {total}.",
+    "scannedPages": "Scanned pages (image only): {pages}",
     "visualUnavailable": "{count} referenced image cannot be decoded by the document parser. | {count} referenced images cannot be decoded by the document parser.",
     "resources": {
       "title": "Document resources",
@@ -55,10 +49,8 @@
       "occurrences": "Used {count} time | Used {count} times",
       "embedded": "Embedded image extracted from the document.",
       "rendered": "Page or visual region rendered from the PDF.",
-      "detectedText": "Detected text",
       "context": "Context",
       "altText": "Alt text",
-      "description": "Description",
       "embeddedBadge": "Embedded",
       "renderedBadge": "Rendered"
     },

@@ -10,7 +10,6 @@
     "analyze_media": "メディアの長さと波形",
     "transcribe_media": "音声とビデオの文字起こし",
     "parse_document": "ドキュメント抽出",
-    "analyze_document": "ドキュメントの視覚的分析",
     "align_media_transcript": "選択されたトランスクリプトの配置",
     "diarize_media_transcript": "スピーカー ダイアライゼーション"
   },
@@ -23,8 +22,6 @@
     "cancelled": "キャンセル"
   },
   "matchBadge": {
-    "documentOcr": "認識されたドキュメント テキスト",
-    "documentInterpretation": "ドキュメントの視覚的解釈",
     "imageDescription": "画像の説明",
     "videoCover": "ビデオ カバー",
     "mediaTimeRange": "{start} – {end}"
@@ -42,12 +39,9 @@
   "imageUnavailable": "画像が利用できません",
   "document": {
     "coverage": "文書処理",
-    "ocrEvidence": "機械認識されたテキスト・認識エラーの可能性があります",
-    "interpretationEvidence": "AI 視覚的解釈 · オリジナルの文書ステートメントではありません",
     "textCoverage": "抽出されたテキストを含むページ: {count} または {total}。",
     "unclassifiedPages": "{count} ページには、抽出可能な本文テキストや既知の画像がありません。空白であるか、サポートされていないコンテンツが含まれている可能性があります。",
-    "recognitionRequired": "認識が必要なページ: {pages}",
-    "visualCoverage": "分析されたソース: {count} または {total}。",
+    "scannedPages": "スキャンされたページ（画像のみ）: {pages}",
     "visualUnavailable": "{count} 参照イメージはドキュメント パーサーでデコードできません。",
     "resources": {
       "title": "ドキュメント リソース",
@@ -55,10 +49,8 @@
       "occurrences": "使用時間 {count}",
       "embedded": "ドキュメントから抽出された埋め込み画像。",
       "rendered": "PDF からレンダリングされたページまたはビジュアル領域。",
-      "detectedText": "検出されたテキスト",
       "context": "コンテキスト",
       "altText": "代替テキスト",
-      "description": "説明",
       "embeddedBadge": "埋め込み",
       "renderedBadge": "レンダリング"
     },

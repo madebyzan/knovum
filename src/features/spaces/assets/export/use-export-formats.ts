@@ -1,14 +1,14 @@
 import { queryOptions, useQuery } from "@tanstack/vue-query";
 import { computed, type Ref } from "vue";
 
-import type { CanvasSelectionExport } from "../use-canvas-selection-export";
+import type { ExportTarget } from "./target";
 
 /**
- * Asks what the selection can be saved as, once the formats are being looked
- * at. Nothing is asked of the engine while the menu stays closed.
+ * Asks what a target can be saved as, once the formats are being looked at.
+ * Nothing is asked of the engine while the menu stays closed.
  */
 export function useExportFormats(
-  target: Readonly<Ref<CanvasSelectionExport | undefined>>,
+  target: Readonly<Ref<ExportTarget | undefined>>,
   open: Readonly<Ref<boolean>>,
 ) {
   return useQuery(

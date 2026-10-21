@@ -4,10 +4,10 @@ import { ToolbarButton } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
-import type { CanvasSelectionExport } from "../use-canvas-selection-export";
+import type { ExportTarget } from "../../../assets/export/target";
 import SpaceCanvasExportMenu from "./SpaceCanvasExportMenu.vue";
 
-defineProps<{ exportTarget: CanvasSelectionExport | undefined }>();
+defineProps<{ exportTarget: ExportTarget | undefined }>();
 const emit = defineEmits<{ inspect: []; save: [format: string] }>();
 const { t } = useI18n();
 </script>

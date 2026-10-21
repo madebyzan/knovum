@@ -10,7 +10,6 @@
     "analyze_media": "Mediendauer und Wellenform",
     "transcribe_media": "Audio- und Videotranskription",
     "parse_document": "Dokumentenextraktion",
-    "analyze_document": "Visuelle Dokumentanalyse",
     "align_media_transcript": "Ausgewählte Transkriptausrichtung",
     "diarize_media_transcript": "Sprechertagebuch"
   },
@@ -23,8 +22,6 @@
     "cancelled": "Abgebrochen"
   },
   "matchBadge": {
-    "documentOcr": "Erkannter Dokumenttext",
-    "documentInterpretation": "Visuelle Interpretation des Dokuments",
     "imageDescription": "Bildbeschreibung",
     "videoCover": "Videocover",
     "mediaTimeRange": "{start} – {end}"
@@ -42,12 +39,9 @@
   "imageUnavailable": "Bild nicht verfügbar",
   "document": {
     "coverage": "Dokumentenverarbeitung",
-    "ocrEvidence": "Maschinell erkannter Text · Erkennungsfehler sind möglich",
-    "interpretationEvidence": "AI visuelle Interpretation · Keine Originaldokumentaussage",
     "textCoverage": "Seiten mit extrahiertem Text: {count} oder {total}.",
     "unclassifiedPages": "Die {count}-Seite enthält keinen extrahierbaren Textkörper oder bekannte Bilder. Möglicherweise ist es leer oder enthält nicht unterstützte Inhalte. | {count}-Seiten enthalten keinen extrahierbaren Textkörper oder bekannte Bilder. Sie sind möglicherweise leer oder enthalten nicht unterstützte Inhalte.",
-    "recognitionRequired": "Seiten, die eine Erkennung erfordern: {pages}",
-    "visualCoverage": "Analysierte Quellen: {count} oder {total}.",
+    "scannedPages": "Gescannte Seiten (nur Bild): {pages}",
     "visualUnavailable": "Das auf {count} verwiesene Bild kann vom Dokumentparser nicht dekodiert werden. | {count}-referenzierte Bilder können vom Dokumentparser nicht dekodiert werden.",
     "resources": {
       "title": "Dokumentressourcen",
@@ -55,10 +49,8 @@
       "occurrences": "Verwendete {count}-Zeit | {count} mal verwendet",
       "embedded": "Aus dem Dokument extrahiertes eingebettetes Bild.",
       "rendered": "Vom PDF gerenderte Seite oder visueller Bereich.",
-      "detectedText": "Erkannter Text",
       "context": "Kontext",
       "altText": "Alternativtext",
-      "description": "Beschreibung",
       "embeddedBadge": "Eingebettet",
       "renderedBadge": "Gerendert"
     },

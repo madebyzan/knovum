@@ -10,7 +10,6 @@
     "analyze_media": "媒体时长与波形分析",
     "transcribe_media": "音视频转录",
     "parse_document": "文档内容提取",
-    "analyze_document": "文档图片分析",
     "align_media_transcript": "所选转录片段对齐",
     "diarize_media_transcript": "说话人分离"
   },
@@ -23,8 +22,6 @@
     "cancelled": "已取消"
   },
   "matchBadge": {
-    "documentOcr": "文档识别文字",
-    "documentInterpretation": "文档视觉解释",
     "imageDescription": "图像描述",
     "videoCover": "视频封面",
     "mediaTimeRange": "{start} – {end}"
@@ -42,12 +39,9 @@
   "imageUnavailable": "无法载入图片",
   "document": {
     "coverage": "文档处理",
-    "ocrEvidence": "机器识别文字 · 可能存在识别错误",
-    "interpretationEvidence": "AI 视觉解释 · 并非原文陈述",
     "textCoverage": "已提取 {count} / {total} 页文字。",
     "unclassifiedPages": "{count} 页没有可提取的正文或已知图片，可能为空白页或包含不支持的内容。",
-    "recognitionRequired": "需要识别的页面：{pages}",
-    "visualCoverage": "已完成 {count} / {total} 项图片分析。",
+    "scannedPages": "扫描页（仅图片）：{pages}",
     "visualUnavailable": "{count} 张引用图片无法由文档解析器解码。",
     "resources": {
       "title": "文档资源",
@@ -55,10 +49,8 @@
       "occurrences": "出现 {count} 次 | 出现 {count} 次",
       "embedded": "从文档中提取的嵌入图片。",
       "rendered": "从 PDF 页面视觉区域渲染的图片。",
-      "detectedText": "识别文字",
       "context": "上下文",
       "altText": "替代文本",
-      "description": "内容描述",
       "embeddedBadge": "嵌入图片",
       "renderedBadge": "页面渲染"
     },

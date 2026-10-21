@@ -51,14 +51,6 @@ fn pdf_fixture(contents: &str, image: bool, blank_page: bool) -> Vec<u8> {
 }
 
 fn convert(bytes: &[u8], format: DocumentFormat) -> Result<Vec<u8>, String> {
-    convert_recognized(bytes, format, vec![])
-}
-
-fn convert_recognized(
-    bytes: &[u8],
-    format: DocumentFormat,
-    recognized_pages: Vec<super::super::input::RecognizedPage>,
-) -> Result<Vec<u8>, String> {
     let path = std::env::temp_dir().join(format!(
         "knovum-pdf-conversion-{}.pdf",
         uuid::Uuid::new_v4()
@@ -70,7 +62,6 @@ fn convert_recognized(
             source_revision: crate::file_inspection::content_revision(&path).unwrap(),
             path: path.clone(),
         },
-        recognized_pages,
     });
     let output = input.render(format);
     std::fs::remove_file(path).unwrap();
@@ -99,45 +90,17 @@ fn textual_pdf_converts_to_editable_word_content() {
 
 #[test]
 fn scanned_pdf_fails_instead_of_publishing_a_title_only_document() {
+    // A scanned page has no text layer; plain text cannot carry its page image.
     let error = convert(
         &pdf("q 600 0 0 800 0 0 cm /Im0 Do Q", true),
         DocumentFormat::Text,
     )
     .unwrap_err();
-    assert!(error.contains("recognition"), "{error}");
+    assert!(error.contains("no convertible content"), "{error}");
 }
 
 #[test]
-fn recognized_scan_exports_literal_text_without_markdown_interpretation() {
-    let source = pdf("q 600 0 0 800 0 0 cm /Im0 Do Q", true);
-    let literal = "Visible <script> and **bold** [link](file:///private/a)";
-    let text = String::from_utf8(
-        convert_recognized(
-            &source,
-            DocumentFormat::Text,
-            vec![super::super::input::RecognizedPage {
-                page: 1,
-                text: literal.into(),
-            }],
-        )
-        .unwrap(),
-    )
-    .unwrap();
-    assert!(text.contains(literal));
-    let error = convert_recognized(
-        &source,
-        DocumentFormat::Text,
-        vec![super::super::input::RecognizedPage {
-            page: 2,
-            text: "Wrong page".into(),
-        }],
-    )
-    .unwrap_err();
-    assert!(error.contains("unavailable page"));
-}
-
-#[test]
-fn a_blank_page_beside_text_does_not_require_impossible_recognition() {
+fn a_blank_page_beside_text_still_converts() {
     let input = pdf_fixture(
         "BT /F1 12 Tf 72 720 Td (Verified content) Tj ET",
         false,

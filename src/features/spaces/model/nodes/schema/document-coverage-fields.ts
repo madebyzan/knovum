@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { executionSourceSchema } from "../../../../../foundation/ai/schema/models";
 import { knowledgeLocatorSchema } from "../../../knowledge/model/schema/chunk";
 
 const resourceSchema = z
@@ -20,16 +19,6 @@ const resourceSchema = z
   .refine((resource) => resource.width * resource.height <= 24_000_000, {
     message: "Document raster exceeds 24 megapixels",
   });
-
-const analysisSchema = z
-  .object({
-    description: z.string().max(48_000),
-    detectedText: z.string().max(48_000),
-    executionSource: executionSourceSchema,
-    generatedAt: z.number().int().nonnegative(),
-    analysisVersion: z.literal("document-visual:1"),
-  })
-  .strict();
 
 const occurrenceSchema = z
   .object({
@@ -66,9 +55,8 @@ const occurrenceSchema = z
           .strict(),
       ])
       .nullable(),
-    state: z.enum(["pending", "completed", "failed", "unsupported"]),
-    error: z.string().max(16_000).nullable(),
-    analysis: analysisSchema.nullable(),
+    /** Why the picture could not be extracted; set exactly when it has no resource. */
+    unavailable: z.string().min(1).max(16_000).nullable(),
   })
   .strict();
 
