@@ -143,12 +143,7 @@
       "stop": "Interrompi attività",
       "description": "L'operazione potrebbe essere stata completata. Controllare il servizio prima di autorizzare un nuovo tentativo."
     },
-    "attempt": "Tentativo",
-    "history": {
-      "title": "Storico strumento",
-      "empty": "Nessuna operazione con lo strumento ancora"
-    },
-    "progress": "Progresso"
+    "attempt": "Tentativo"
   },
   "interactions": {
     "title": "Il servizio esterno necessita di input",

@@ -57,13 +57,28 @@ impl crate::extensions::mcp::McpInteraction for RunMcpInteraction {
         Box::pin(async move {
             let interaction = async {
                 let mut tx = db::begin_write(&self.pool).await?;
+                // The invocation sends its operation id as the progress token; the Run addresses
+                // the tool by its provider call id, like every other tool event.
+                let tool_call_id: String = sqlx::query_scalar(
+                    "SELECT provider_call_id FROM spaces_conversation_tool_operations WHERE id=$1 AND run_id=$2",
+                )
+                .bind(progress.progress_token.0.to_string())
+                .bind(&self.run_id)
+                .fetch_one(&mut *tx)
+                .await
+                .map_err(db::sql_error)?;
                 runs::append_event(
                     &mut tx,
                     &self.run_id,
                     None,
                     None,
                     runs::RunEventKind::McpProgress,
-                    &serde_json::to_value(progress).map_err(db::json_error)?,
+                    &serde_json::json!({
+                        "toolCallId": tool_call_id,
+                        "progress": progress.progress,
+                        "total": progress.total,
+                        "message": progress.message,
+                    }),
                     crate::foundation::clock::unix_time_millis()?,
                 )
                 .await?;

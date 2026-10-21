@@ -143,12 +143,7 @@
       "stop": "Aufgabe stoppen",
       "description": "Der Vorgang ist möglicherweise abgeschlossen. Überprüfen Sie den Dienst, bevor Sie einen erneuten Versuch autorisieren."
     },
-    "attempt": "Versuch",
-    "history": {
-      "title": "Werkzeugverlauf",
-      "empty": "Noch keine Werkzeugoperationen"
-    },
-    "progress": "Fortschritt"
+    "attempt": "Versuch"
   },
   "interactions": {
     "title": "Externer Service braucht Input",

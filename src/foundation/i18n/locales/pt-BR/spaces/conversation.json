@@ -143,12 +143,7 @@
       "stop": "Parar tarefa",
       "description": "A operação pode ter sido concluída. Verifique o serviço antes de autorizar uma nova tentativa."
     },
-    "attempt": "Tentativa",
-    "history": {
-      "title": "Histórico da ferramenta",
-      "empty": "Nenhuma operação de ferramenta ainda"
-    },
-    "progress": "Progresso"
+    "attempt": "Tentativa"
   },
   "interactions": {
     "title": "O serviço externo precisa de informações",

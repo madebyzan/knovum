@@ -7,7 +7,6 @@ import type { ConversationMessage } from "../../contracts/generated/Conversation
 import type { RunEvent } from "../../contracts/generated/RunEvent";
 import { spaceActionLabel } from "../../knowledge-derivations/catalog/action-label";
 import { conversationActivityItems } from "../conversation-activity-items";
-import ConversationToolHistory from "./ConversationToolHistory.vue";
 import SpaceConversationPlan from "./SpaceConversationPlan.vue";
 import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 import SpaceConversationToolActivity from "./SpaceConversationToolActivity.vue";
@@ -92,5 +91,4 @@ const unfinished = computed(
       </div>
     </div>
   </details>
-  <ConversationToolHistory :run-id="runId" :events="events" :active="active" />
 </template>

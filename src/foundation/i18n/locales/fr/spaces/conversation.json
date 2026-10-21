@@ -143,12 +143,7 @@
       "stop": "Arrêter la tâche",
       "description": "L’opération est peut-être terminée. Vérifiez le service avant d'autoriser une nouvelle tentative."
     },
-    "attempt": "Tentative",
-    "history": {
-      "title": "Historique de l'outil",
-      "empty": "Aucune opération d'outil pour l'instant"
-    },
-    "progress": "Progrès"
+    "attempt": "Tentative"
   },
   "interactions": {
     "title": "Le service externe nécessite une contribution",
