@@ -1,75 +1,74 @@
-:deep(.ui-markdown > * + *) {
+/* The scoped root carries the component's scope id, so selectors anchor on it and reach the
+   rendered (unscoped) markup through :deep(). Content fits the column: long tokens such as ids
+   and hashes wrap instead of widening tables and paragraphs; only code blocks scroll. */
+.ui-markdown {
+  overflow-wrap: anywhere;
+}
+.ui-markdown > :deep(* + *) {
   margin-top: 0.65rem;
 }
-:deep(.ui-markdown h1) {
+.ui-markdown :deep(h1) {
   font-size: var(--text-title);
   font-weight: 650;
   line-height: var(--text-title--line-height);
 }
-:deep(.ui-markdown h2) {
+.ui-markdown :deep(h2) {
   font-size: var(--text-title-sm);
   font-weight: 650;
   line-height: var(--text-title-sm--line-height);
 }
-:deep(.ui-markdown h3) {
+.ui-markdown :deep(h3) {
   font-size: var(--text-body-lg);
   font-weight: 650;
   line-height: var(--text-body-lg--line-height);
 }
-:deep(.ui-markdown p),
-:deep(.ui-markdown li) {
+.ui-markdown :deep(p),
+.ui-markdown :deep(li) {
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
 }
-:deep(.ui-markdown ul:not([data-type="taskList"])),
-:deep(.ui-markdown ol) {
+.ui-markdown :deep(ul),
+.ui-markdown :deep(ol) {
   padding-left: 1.4rem;
 }
-:deep(.ui-markdown ul:not([data-type="taskList"])) {
+.ui-markdown :deep(ul) {
   list-style: disc;
 }
-:deep(.ui-markdown ol) {
+.ui-markdown :deep(ol) {
   list-style: decimal;
 }
-:deep(.ui-markdown blockquote) {
+.ui-markdown :deep(blockquote) {
   border-left: 2px solid var(--color-stroke-default);
   color: var(--color-fg-secondary);
   padding-left: 0.8rem;
 }
-:deep(.ui-markdown code) {
+.ui-markdown :deep(code) {
   background-color: var(--color-surface-raised);
   border-radius: var(--radius-md);
   padding: 0.08rem 0.28rem;
   font-size: var(--text-caption);
 }
-:deep(.ui-markdown pre) {
+.ui-markdown :deep(pre) {
   background-color: var(--color-surface-raised);
   overflow: auto;
   border-radius: 0.4rem;
   padding: 0.75rem;
 }
-:deep(.ui-markdown pre code) {
+.ui-markdown :deep(pre code) {
   background: transparent;
   padding: 0;
 }
-:deep(.ui-markdown a) {
+.ui-markdown :deep(a) {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-:deep(.ui-markdown .tableWrapper) {
-  overflow-x: auto;
-}
-:deep(.ui-markdown table) {
+.ui-markdown :deep(table) {
   width: 100%;
   border-collapse: collapse;
 }
-:deep(.ui-markdown th),
-:deep(.ui-markdown td) {
+.ui-markdown :deep(th),
+.ui-markdown :deep(td) {
   border: 1px solid var(--color-stroke-default);
   padding: 0.35rem 0.5rem;
   text-align: left;
-}
-:deep(.ui-markdown ul[data-type="taskList"]) {
-  list-style: none;
-  padding-left: 0;
 }
