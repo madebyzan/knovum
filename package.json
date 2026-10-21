@@ -82,7 +82,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@tauri-apps/cli": "^2.12.1",
-    "@types/node": "^26.6.4",
+    "@types/node": "^26.6.5",
     "@types/rbush": "4.0.0",
     "@vitejs/plugin-vue": "^6.0.9",
     "@vue/test-utils": "^2.5.1",
