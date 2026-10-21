@@ -89,13 +89,20 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     const outcome = await task.settled;
     if (submitted !== generation) return;
     state.taskState.value = outcome.state;
-    state.streamedText.value = "";
     state.error.value = undefined;
     await settleConversationTask({
       accepted: task.accepted,
       outcome,
       spaceId: selection.spaceId,
-      project: options.settled,
+      project: async (accepted, spaceId) => {
+        // The streamed answer stays on screen until the stored one has been loaded to replace it;
+        // clearing it first would flash whatever partial text the previous load held.
+        try {
+          await options.settled(accepted, spaceId);
+        } finally {
+          if (submitted === generation) state.streamedText.value = "";
+        }
+      },
     });
   }
 

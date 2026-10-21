@@ -3,6 +3,7 @@ import { AlertCircle } from "@lucide/vue";
 import { computed, nextTick, useTemplateRef, watch } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
 import { useConversationScroll } from "../use-conversation-scroll";
@@ -133,11 +134,8 @@ watch(
           />
         </article>
       </div>
-      <article
-        v-if="streamedText && !streamingMessageId"
-        class="pb-5 text-body leading-relaxed text-fg-primary"
-      >
-        <p class="whitespace-pre-wrap">{{ streamedText }}</p>
+      <article v-if="streamedText && !streamingMessageId" class="pb-5 text-fg-primary">
+        <UiMarkdown :content="streamedText" class="wrap-break-word" />
       </article>
       <p v-if="busy && !hasActiveTurn && !error" role="status" class="py-3 text-caption text-fg-secondary">
         <SpaceConversationShimmerText>
