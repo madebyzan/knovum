@@ -1,23 +1,13 @@
 mod visuals;
 
 use super::{DocumentFileSource, DocumentFormat};
-use office_oxide::ir::{
-    DocumentIR, Element, InlineContent, Metadata, Paragraph, Section, TextSpan,
-};
+use office_oxide::ir::{DocumentIR, Metadata, Section};
 use std::collections::BTreeSet;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct PdfSource {
     pub file: DocumentFileSource,
-    pub recognized_pages: Vec<RecognizedPage>,
-}
-
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct RecognizedPage {
-    pub page: u32,
-    pub text: String,
 }
 
 impl PdfSource {
@@ -30,22 +20,6 @@ impl PdfSource {
             .is_some_and(|extension| extension.eq_ignore_ascii_case("pdf"))
         {
             return Err("PDF input requires a PDF resource".into());
-        }
-        let mut pages = BTreeSet::new();
-        let mut text_bytes = 0;
-        for page in &self.recognized_pages {
-            if page.page == 0
-                || page.page > 2000
-                || !pages.insert(page.page)
-                || page.text.trim().is_empty()
-            {
-                return Err("PDF recognition page identity is invalid".into());
-            }
-            super::super::markdown::validate_text(&page.text)?;
-            text_bytes += page.text.len();
-        }
-        if text_bytes > 4 * 1024 * 1024 {
-            return Err("PDF recognition exceeds 4 MiB".into());
         }
         Ok(())
     }
@@ -62,15 +36,8 @@ pub(super) fn render(source: &PdfSource, format: DocumentFormat) -> Result<Vec<u
     if document.pages.is_empty() || document.pages.len() > 2000 {
         return Err("PDF conversion requires between 1 and 2000 pages".into());
     }
-    let page_count = document.pages.len();
-    if source
-        .recognized_pages
-        .iter()
-        .any(|page| page.page as usize > page_count)
-    {
-        return Err("PDF recognition refers to an unavailable page".into());
-    }
-    let required_pages = document
+    // A scanned page carries no text layer, so it is kept as its page image.
+    let scanned_pages = document
         .pages
         .iter()
         .filter_map(|page| {
@@ -83,11 +50,6 @@ pub(super) fn render(source: &PdfSource, format: DocumentFormat) -> Result<Vec<u
             }
         })
         .collect::<Result<BTreeSet<_>, String>>()?;
-    for page in &source.recognized_pages {
-        if !required_pages.contains(&page.page) {
-            return Err("PDF recognition was supplied for a page that does not require it".into());
-        }
-    }
     let mut visuals = if matches!(format, DocumentFormat::Text) {
         None
     } else {
@@ -107,22 +69,8 @@ pub(super) fn render(source: &PdfSource, format: DocumentFormat) -> Result<Vec<u
     let mut text_bytes = 0;
     for page in document.pages {
         let number = page.page + 1;
-        let requires_recognition = required_pages.contains(&number);
-        let mut elements = if requires_recognition {
-            let recognized = source
-                .recognized_pages
-                .iter()
-                .find(|value| value.page == number)
-                .ok_or_else(|| {
-                    format!("PDF page {number} requires recognition before conversion")
-                })?;
-            text_bytes += recognized.text.len();
-            // OCR is literal evidence; it must never become Markdown instructions or markup.
-            vec![Element::Paragraph(Paragraph {
-                content: vec![InlineContent::Text(TextSpan::plain(&recognized.text))],
-                ..Default::default()
-            })]
-        } else if page.needs_ocr {
+        let scanned = scanned_pages.contains(&number);
+        let mut elements = if scanned || page.needs_ocr {
             vec![]
         } else {
             text_bytes += page.markdown.len();
@@ -143,7 +91,7 @@ pub(super) fn render(source: &PdfSource, format: DocumentFormat) -> Result<Vec<u
             return Err("PDF conversion text exceeds 4 MiB".into());
         }
         if let Some(visuals) = &mut visuals {
-            elements.extend(visuals.page(number, requires_recognition)?);
+            elements.extend(visuals.page(number, scanned)?);
         }
         ir.sections.push(Section {
             elements,

@@ -1,6 +1,5 @@
 mod citations;
 mod images;
-mod recognition;
 mod source;
 
 use std::path::Path;

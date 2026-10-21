@@ -74,7 +74,7 @@ impl DocumentInput {
     }
 }
 
-pub(crate) use pdf::{PdfSource, RecognizedPage};
+pub(crate) use pdf::PdfSource;
 
 /// The authoring content of one editable resource, without its images or citations: the question
 /// admission asks is whether the engine can read the content at all.

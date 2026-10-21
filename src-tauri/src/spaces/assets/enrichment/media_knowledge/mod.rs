@@ -54,7 +54,6 @@ pub async fn generate_media_insights(
             source_revision: Some(&source),
             job_id: None,
             media_knowledge: Some(&knowledge),
-            document_coverage: None,
             cancellation: Some(&cancellation),
         },
         fields,

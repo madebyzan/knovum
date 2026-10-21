@@ -6,6 +6,7 @@ import { canvasNode, exportHost } from "./support/export-host";
 vi.mock("@tauri-apps/api/core", async () => (await import("./support/export-host")).tauriCore);
 vi.mock("@tauri-apps/plugin-dialog", async () => (await import("./support/export-host")).tauriDialog);
 
+import { documentResourceExportTarget } from "../assets/export/document-resource";
 import { nodeExportFormats } from "../assets/export/formats";
 import { exportSpaceNode } from "../assets/export/node";
 
@@ -134,6 +135,37 @@ describe("Space resource export", () => {
 
     expect(invocation("plugin:spaces|export_resource")).toMatchObject({
       destinationPath: "/exports/Cover.txt.png",
+    });
+  });
+
+  /** A picture inside a document is addressed by the document and the resource, not by a canvas node. */
+  it("saves a picture a document carries through the same destination dialog", async () => {
+    exportHost.invoke.mockImplementation((command) =>
+      Promise.resolve(
+        command === "plugin:spaces|list_document_resource_export_formats"
+          ? { formats: ["png", "jpg", "webp", "tiff"], unavailable: null }
+          : undefined,
+      ),
+    );
+    exportHost.save.mockResolvedValue("/exports/Report · p.3.webp");
+    const target = documentResourceExportTarget({
+      spaceId: "space",
+      nodeId: "document",
+      resourceId: "a".repeat(64),
+      name: "Report · p.3",
+    });
+
+    await expect(target.formats()).resolves.toEqual({
+      formats: ["png", "jpg", "webp", "tiff"],
+      unavailable: null,
+    });
+    await expect(target.save("webp", vi.fn())).resolves.toBe(true);
+
+    expect(invocation("plugin:spaces|export_document_resource")).toEqual({
+      spaceId: "space",
+      nodeId: "document",
+      resourceId: "a".repeat(64),
+      destinationPath: "/exports/Report · p.3.webp",
     });
   });
 

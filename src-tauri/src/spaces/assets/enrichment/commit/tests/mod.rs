@@ -31,7 +31,6 @@ pub(in crate::spaces::assets::enrichment) async fn publish(
             source_revision: data["sourceRevision"].as_str(),
             job_id: None,
             media_knowledge: data.get("mediaKnowledge"),
-            document_coverage: data.get("documentCoverage"),
             cancellation: Some(token),
         },
         fields,
@@ -80,26 +79,4 @@ async fn stale_sources_manual_edits_and_cancelled_jobs_cannot_publish() {
             .unwrap();
         assert_eq!(serde_json::from_str::<Value>(&raw).unwrap(), current);
     }
-}
-
-#[tokio::test]
-async fn manual_document_coverage_edit_invalidates_an_older_analysis() {
-    let original = json!({"kind":"file","title":"Document","sourceRevision":"source","documentCoverage":{"original":true}});
-    let pool = fixture(&original).await;
-    let mut changed = original.clone();
-    changed["documentCoverage"] = json!({"manual":true});
-    sqlx::query("UPDATE spaces_nodes SET data=$1 WHERE id='node'")
-        .bind(changed.to_string())
-        .execute(&pool)
-        .await
-        .unwrap();
-    let error = publish(
-        &pool,
-        &original,
-        serde_json::Map::new(),
-        &CancellationToken::new(),
-    )
-    .await
-    .unwrap_err();
-    assert!(error.code == "document_coverage_obsolete");
 }

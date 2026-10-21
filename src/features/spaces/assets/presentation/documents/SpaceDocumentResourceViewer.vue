@@ -1,22 +1,32 @@
 <script setup lang="ts">
-import { FileText } from "@lucide/vue";
+import { Download, FileText } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiBadge from "../../../../../shared/ui/UiBadge.vue";
 import UiDialog from "../../../../../shared/ui/UiDialog.vue";
 import UiExpandableText from "../../../../../shared/ui/UiExpandableText.vue";
+import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import { knowledgeLocationLabelFromLocation } from "../../../knowledge/presentation/knowledge-location-label";
+import type { ExportTarget } from "../../export/target";
+import { useExportRun } from "../../export/use-export-run";
 import { formatByteSize } from "../../format-byte-size";
 import { spaceAssetSource } from "../../node-preview-source";
+import SpaceExportMenu from "../export/SpaceExportMenu.vue";
 import type { DocumentResourceProjection } from "./document-resource-projection";
 
 const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{
   item: DocumentResourceProjection;
   sourceRevision: string;
+  exportTarget: ExportTarget | undefined;
 }>();
 const { t } = useI18n();
+const runExport = useExportRun();
+
+function save(format: string) {
+  if (props.exportTarget) void runExport(props.exportTarget, format);
+}
 const source = computed(() => spaceAssetSource(props.item.resource.path, props.sourceRevision));
 const description = computed(
   () =>
@@ -44,6 +54,20 @@ function cleanContext(context: string, altText: string | null): string {
     class="h-[min(680px,calc(100vh-5rem))] max-w-5xl"
     body-class="p-0 grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_340px] overflow-hidden"
   >
+    <template #actions>
+      <SpaceExportMenu :target="exportTarget" @save="save">
+        <template #trigger>
+          <UiIconButton
+            :label="t('spaces.canvas.nodeActions.export')"
+            size="sm"
+            tooltip
+            :disabled="!exportTarget"
+          >
+            <Download class="size-3.5" />
+          </UiIconButton>
+        </template>
+      </SpaceExportMenu>
+    </template>
     <div
       class="relative flex h-full min-h-0 items-center justify-center overflow-hidden bg-surface-canvas/50 p-6 select-none"
     >
@@ -120,33 +144,6 @@ function cleanContext(context: string, altText: string | null): string {
               preformatted
               class="text-caption leading-relaxed text-fg-secondary select-text"
             />
-          </div>
-
-          <div v-if="occurrence.analysis?.description" class="space-y-1">
-            <span class="text-caption-sm font-medium text-fg-tertiary">
-              {{ t("spaces.processing.document.resources.description") }}
-            </span>
-            <UiExpandableText
-              :text="occurrence.analysis.description"
-              :clamp-lines="4"
-              class="text-body leading-relaxed text-fg-secondary select-text"
-            />
-          </div>
-
-          <div v-if="occurrence.analysis?.detectedText" class="space-y-1">
-            <span class="text-caption-sm font-medium text-fg-tertiary">
-              {{ t("spaces.processing.document.resources.detectedText") }}
-            </span>
-            <UiExpandableText
-              :text="occurrence.analysis.detectedText"
-              :clamp-lines="4"
-              preformatted
-              class="font-mono text-caption leading-relaxed text-fg-secondary select-text"
-            />
-          </div>
-
-          <div v-if="occurrence.state === 'failed' && occurrence.error" class="text-caption text-fg-danger">
-            {{ occurrence.error }}
           </div>
         </div>
       </div>

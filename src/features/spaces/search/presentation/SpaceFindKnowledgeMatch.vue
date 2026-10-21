@@ -16,9 +16,6 @@ const { t } = useI18n();
 const badgeLabel = computed(() => matchBadgeLabel(props.match));
 
 function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
-  if (match.metadata?.role === "document_ocr") return t("spaces.processing.matchBadge.documentOcr");
-  if (match.metadata?.role === "document_interpretation")
-    return t("spaces.processing.matchBadge.documentInterpretation");
   const locator: SpaceMatchLocator = matchLocatorFor(match);
   if (locator.kind === "image-description") return t("spaces.processing.matchBadge.imageDescription");
   if (locator.kind === "video-cover") return t("spaces.processing.matchBadge.videoCover");

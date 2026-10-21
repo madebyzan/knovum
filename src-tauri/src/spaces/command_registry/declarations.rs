@@ -35,6 +35,8 @@ macro_rules! knovum_workspace_commands {
         crate::spaces::assets::export::list_export_formats,
         crate::spaces::assets::export::export_resource,
         crate::spaces::assets::export::cancel_resource_export,
+        crate::spaces::assets::export::document_resource::list_document_resource_export_formats,
+        crate::spaces::assets::export::document_resource::export_document_resource,
         crate::spaces::package::export_space_package,
         crate::spaces::package::import_space_package,
         crate::spaces::package::cancel_space_package_transfer,

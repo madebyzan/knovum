@@ -30,9 +30,6 @@ describe("desktop count messages", () => {
     expect(i18n.global.t("spaces.processing.document.textCoverage", { count: 1, total: 1 })).toBe(
       "Pages with extracted text: 1 of 1.",
     );
-    expect(i18n.global.t("spaces.processing.document.visualCoverage", { count: 1, total: 1 })).toBe(
-      "Sources analyzed: 1 of 1.",
-    );
   });
 });
 

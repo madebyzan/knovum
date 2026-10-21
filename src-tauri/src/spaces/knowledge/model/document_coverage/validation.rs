@@ -1,8 +1,8 @@
 use std::collections::BTreeSet;
 
 use super::{
-    DocumentAnalysis, DocumentCoverage, DocumentOccurrence, DocumentResource, VisualState,
-    MAX_RESOURCE_BYTES, MAX_RESOURCE_DIMENSION, MAX_RESOURCE_PIXELS, MAX_TOTAL_RESOURCE_BYTES,
+    DocumentCoverage, DocumentOccurrence, DocumentResource, MAX_RESOURCE_BYTES,
+    MAX_RESOURCE_DIMENSION, MAX_RESOURCE_PIXELS, MAX_TOTAL_RESOURCE_BYTES,
 };
 
 pub(super) fn validate(report: &DocumentCoverage) -> Result<(), String> {
@@ -21,7 +21,6 @@ pub(super) fn validate(report: &DocumentCoverage) -> Result<(), String> {
     }
     let mut occurrence_ids = BTreeSet::new();
     let mut referenced_resource_ids = BTreeSet::new();
-    let mut text_width = 0_usize;
     for occurrence in &report.occurrences {
         validate_occurrence(occurrence, report, &resource_ids)?;
         if let Some(resource_id) = occurrence.resource_id.as_deref() {
@@ -30,17 +29,9 @@ pub(super) fn validate(report: &DocumentCoverage) -> Result<(), String> {
         if !occurrence_ids.insert(occurrence.id.as_str()) {
             return Err("Document occurrence IDs must be unique".into());
         }
-        if let Some(analysis) = &occurrence.analysis {
-            validate_analysis(analysis)?;
-            text_width += analysis.description.encode_utf16().count()
-                + analysis.detected_text.encode_utf16().count();
-        }
     }
     if resource_ids != referenced_resource_ids {
         return Err("Document resources must belong to at least one occurrence".into());
-    }
-    if text_width > 4 * 1024 * 1024 {
-        return Err("Document visual text exceeds 4 Mi UTF-16 units".into());
     }
     Ok(())
 }
@@ -80,14 +71,15 @@ fn validate_occurrence(
             .as_ref()
             .is_some_and(|text| text.encode_utf16().count() > 16_000)
         || occurrence
-            .error
+            .unavailable
             .as_ref()
-            .is_some_and(|text| text.encode_utf16().count() > 16_000)
+            .is_some_and(|text| text.is_empty() || text.encode_utf16().count() > 16_000)
         || occurrence
             .resource_id
             .as_ref()
             .is_some_and(|id| !resources.contains(id.as_str()))
-        || (occurrence.state == VisualState::Completed) != occurrence.analysis.is_some()
+        // Every picture is either extracted or says why it is not, never both or neither.
+        || occurrence.resource_id.is_some() == occurrence.unavailable.is_some()
     {
         return Err("Invalid document visual occurrence".into());
     }
@@ -105,6 +97,10 @@ fn validate_input(
     use crate::documents::pdf_input::PdfInput;
     match (&occurrence.pdf_input, report.page_count) {
         (Some(input), Some(count)) => {
+            // A PDF region is rendered from the page itself, so it always has a raster.
+            if occurrence.resource_id.is_none() {
+                return Err("PDF visual input requires its rendered raster".into());
+            }
             if input.page() == 0
                 || input.page() > count as u32
                 || occurrence.location != input.location()
@@ -115,29 +111,13 @@ fn validate_input(
                 PdfInput::Image { rect, .. } => rect.validate()?,
                 PdfInput::Page { page, .. } => {
                     if !report.pages_requiring_recognition.contains(page) {
-                        return Err("PDF page has no recognition requirement".into());
+                        return Err("A whole-page picture belongs to a scanned page".into());
                     }
                 }
             }
         }
-        (None, None) => {
-            if occurrence.resource_id.is_none() && occurrence.state != VisualState::Unsupported {
-                return Err("Office visual occurrence requires a raster resource".into());
-            }
-        }
+        (None, None) => {}
         _ => return Err("Document visual input belongs to a different format".into()),
-    }
-    Ok(())
-}
-
-pub(crate) fn validate_analysis(analysis: &DocumentAnalysis) -> Result<(), String> {
-    analysis.execution_source.validate()?;
-    if analysis.analysis_version != "document-visual:1"
-        || analysis.generated_at < 0
-        || analysis.description.encode_utf16().count() > 48_000
-        || analysis.detected_text.encode_utf16().count() > 48_000
-    {
-        return Err("Invalid document visual analysis".into());
     }
     Ok(())
 }

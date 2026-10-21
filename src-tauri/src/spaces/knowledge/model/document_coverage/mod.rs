@@ -1,5 +1,4 @@
 mod coverage;
-pub(crate) mod projection;
 mod validation;
 
 use serde::{Deserialize, Serialize};
@@ -44,6 +43,8 @@ pub(crate) struct DocumentResource {
     pub byte_size: u64,
 }
 
+/// One place the document shows a picture. The picture is either extracted as a durable raster,
+/// so it can be viewed and saved on its own, or `unavailable` says why it could not be.
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct DocumentOccurrence {
@@ -53,28 +54,7 @@ pub(crate) struct DocumentOccurrence {
     pub alt_text: Option<String>,
     pub resource_id: Option<String>,
     pub pdf_input: Option<crate::documents::pdf_input::PdfInput>,
-    pub state: VisualState,
-    pub error: Option<String>,
-    pub analysis: Option<DocumentAnalysis>,
-}
-
-#[derive(Clone, Copy, PartialEq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum VisualState {
-    Pending,
-    Completed,
-    Failed,
-    Unsupported,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct DocumentAnalysis {
-    pub description: String,
-    pub detected_text: String,
-    pub execution_source: crate::ai::tasks::ExecutionSource,
-    pub generated_at: i64,
-    pub analysis_version: String,
+    pub unavailable: Option<String>,
 }
 
 impl DocumentCoverage {
@@ -101,5 +81,3 @@ impl DocumentCoverage {
         validation::validate(self)
     }
 }
-
-pub(crate) use validation::validate_analysis;

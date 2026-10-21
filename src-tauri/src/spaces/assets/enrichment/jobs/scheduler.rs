@@ -122,10 +122,7 @@ fn vision_selection(
     app: &AppHandle,
     kind: EnrichmentJobType,
 ) -> Result<Option<crate::ai::tasks::TaskTargetSelection>, crate::foundation::app_error::AppError> {
-    if !matches!(
-        kind,
-        EnrichmentJobType::AnalyzeVisual | EnrichmentJobType::AnalyzeDocument
-    ) {
+    if kind != EnrichmentJobType::AnalyzeVisual {
         return Ok(None);
     }
     crate::ai::settings::default_selection(
