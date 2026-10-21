@@ -2,6 +2,7 @@ pub(crate) mod artifacts;
 mod catalog;
 mod connection;
 pub mod conversation;
+mod direct_endpoints;
 pub mod discovery;
 mod error;
 mod help;

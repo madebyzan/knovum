@@ -1,4 +1,4 @@
-use agent_client_protocol::AcpAgent;
+use agent_client_protocol::{schema::v1::McpServer, AcpAgent};
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::contracts::ExternalAgentKind;
@@ -9,10 +9,15 @@ pub(super) const START_TIMEOUT: std::time::Duration = std::time::Duration::from_
 pub(super) const SESSION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 pub(super) const CANCEL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
 
+/// Launches the Agent that will be handed `mcp_servers`; the launch guarantees those endpoints are
+/// reachable from the Agent process.
 pub(super) async fn runtime(
     kind: ExternalAgentKind,
+    mcp_servers: &[McpServer],
     cancellation: &CancellationToken,
 ) -> AppResult<AcpAgent> {
+    let environment =
+        super::direct_endpoints::environment(mcp_servers, |name| std::env::var(name).ok())?;
     let path = tokio::select! {
         biased;
         _ = cancellation.cancelled() => {
@@ -20,7 +25,7 @@ pub(super) async fn runtime(
         }
         path = super::discovery::system_path() => path,
     }?;
-    super::registry::runtime(kind, &path)
+    super::registry::runtime(kind, &path, environment)
 }
 
 pub(super) fn finish(outcome: Result<bool, agent_client_protocol::Error>) -> AppResult<()> {

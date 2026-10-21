@@ -240,9 +240,12 @@ new authority. Removing a service retires its connections and orphan credentials
 
 Builtin model Agents and external ACP Agents share the durable conversation store and Run authority.
 The private Knovum MCP endpoint projects only the capabilities selected for that task; upstream tokens,
-process paths, and unrestricted Space context never enter Agent configuration. Each turn starts with a
-frozen context and deadline. Spaces owns persistence and atomically settles accepted updates; transport
-EOF or disconnect cannot overwrite cancellation or committed publication.
+process paths, and unrestricted Space context never enter Agent configuration. Every MCP endpoint handed
+to an Agent is reached directly: the launch adds each endpoint host to the Agent's inherited `NO_PROXY`
+list, because an inherited proxy would otherwise carry the loopback request and the Agent would open its
+session without the tools. Each turn starts with a frozen context and deadline. Spaces owns persistence
+and atomically settles accepted updates; transport EOF or disconnect cannot overwrite cancellation or
+committed publication.
 
 Extension processes and resources are leased until their runtime settles and accepted descendant
 Actions finish. Shutdown failure remains visible and retains those resources. Application exit cancels
