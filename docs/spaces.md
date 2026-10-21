@@ -206,7 +206,7 @@ A successful derivation:
 - preserves its input resource IDs and exact source revisions;
 - records the action, bounded parameters, engine/model identity, actor, timing and outcome in a structured Derivation record;
 - creates the output as an ordinary Space resource that can be edited, searched, exported and used as a later input;
-- creates `derives-from` Relations from the output to its inputs in the same transaction that reserves the output, so lineage is visible while the work runs instead of appearing when it finishes;
+- creates `derives-from` Relations from the output to its inputs in the same transaction that reserves the output, so lineage exists while the work runs instead of appearing when it finishes;
 - places the result in the derivation field beside its sources without moving the inputs;
 - distinguishes generated artifacts from accepted Knowledge claims.
 
@@ -685,6 +685,18 @@ Group and Section are Structure nodes rather than content-node variants:
 - Clipboard, duplicate, cut, delete, cross-Space move and package transfer operate on complete effective-root subtrees. No path reconstructs membership from visual overlap after the user action.
 
 Sections never nest. Groups may nest and may belong to a Section. A Structure node has at most one parent; overlapping Section geometry never creates ambiguous ownership.
+
+Relation lines follow what each relation says. Semantic relations (`supports`, `contradicts`,
+`depends-on`, …) are stated on purpose and stay drawn. Lineage — the `derives-from` relations every
+derivation writes — explains where content came from, and one source can carry many outputs, so
+it is drawn on demand: selecting content draws its whole chain, up to the content it ultimately came
+from and down to everything derived from it, while siblings stay out; a selected relation stays
+drawn. At rest a source carries the number of outputs derived from it, so hidden lineage remains
+discoverable, and the canvas overview leaves lineage out too. Relations of one kind between the same
+visible endpoints share a line labelled with their count — a collapsed Section stands in for
+everything inside it — and selecting that line selects every relation it stands for. Derived
+outputs need no Section to read as a set: one derivation's outputs are placed together beside
+their source (`spaces/derivation/placement`).
 
 ## Large-canvas retrieval
 

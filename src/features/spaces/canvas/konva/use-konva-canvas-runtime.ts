@@ -44,7 +44,7 @@ export function useKonvaCanvasRuntime(
     temporarilyExpandedSectionId,
     structurePreview,
   );
-  const { selection, transformPolicy, canTransformGroups } = useRuntimeSelection(props, projections);
+  const { selection, transformPolicy, canTransformGroups, lineage } = useRuntimeSelection(props, projections);
   const structureInteractions = useStructureCanvasInteractions({
     clearSelection: selection.clear,
     events: props.events,
@@ -83,6 +83,7 @@ export function useKonvaCanvasRuntime(
     sectionIds: selection.structureNodeIds,
     sections: computed(() => projections.structureScene.value.sections),
     relationIds: selection.relationIds,
+    revealedRelationIds: lineage,
     scene: projections.scene,
     size: viewport.surface,
   });

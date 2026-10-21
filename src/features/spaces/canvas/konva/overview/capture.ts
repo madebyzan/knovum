@@ -3,6 +3,7 @@ import Konva from "konva";
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import type { CanvasPalette } from "../rendering/use-canvas-palette";
 import type { CanvasScene } from "../scene/canvas-scene";
+import { restingRelations } from "../scene/scene-relations";
 import { loadCanvasOverviewImages } from "./assets";
 import { canvasOverviewViewport, canvasViewportThumbnail } from "./geometry";
 import { drawCanvasOverviewNode } from "./nodes";
@@ -85,7 +86,7 @@ async function renderCanvasThumbnail(
         }),
       );
     }
-    for (const relation of scene.relations) {
+    for (const relation of restingRelations(scene.relations)) {
       world.add(
         new Konva.Line({
           points: [...relation.points],

@@ -8,6 +8,7 @@ import { useSceneVisibility } from "../canvas/konva/scene/use-scene-visibility";
 import { createCanvasCamera } from "../canvas/konva/viewport/canvas-camera";
 import { createSpaceNode } from "../canvas/node";
 import { createSpaceTextPayload } from "../document-editing/tiptap-content";
+import type { SpaceRelation } from "../model/relations/relation";
 
 function section(sectionId: string, top: number, collapsed = false): ProjectedSection {
   return {
@@ -26,88 +27,135 @@ function section(sectionId: string, top: number, collapsed = false): ProjectedSe
   };
 }
 
-it("culls collapsed section bodies while retaining selected and temporarily expanded sections", () => {
+const EMPTY_SCENE: CanvasScene = {
+  nodes: [],
+  nodesById: new Map(),
+  relations: [],
+  relationKeyByRelationId: new Map(),
+  sectionBackdrops: [],
+};
+
+/** Runs the visibility of `scene` in its own effect scope, with nothing selected unless overridden. */
+function withVisibility(
+  overrides: Partial<Parameters<typeof useSceneVisibility>[0]>,
+  check: (visibility: ReturnType<typeof useSceneVisibility>) => void,
+) {
   const scope = effectScope();
-  const expanded = { ...section("expanded", 2000, true), temporarilyExpanded: true };
-  const selected = shallowRef<ReadonlySet<string>>(new Set(["selected"]));
   const visibility = scope.run(() =>
     useSceneVisibility({
       activeNodeId: shallowRef<string>(),
-      scene: shallowRef<CanvasScene>({
-        nodes: [],
-        nodesById: new Map(),
-        relations: [],
-        sectionBackdrops: [],
-      }),
+      scene: shallowRef(EMPTY_SCENE),
       nodeIds: shallowRef(new Set<string>()),
       relationIds: shallowRef(new Set<string>()),
-      sections: shallowRef([
-        section("visible", 50),
-        section("collapsed", -500, true),
-        section("selected", 1000),
-        expanded,
-      ]),
-      sectionIds: selected,
+      revealedRelationIds: shallowRef(new Set<string>()),
+      sections: shallowRef([]),
+      sectionIds: shallowRef(new Set<string>()),
       camera: createCanvasCamera({ x: 0, y: 0, zoom: 1 }),
       size: { width: 500, height: 400 },
+      ...overrides,
     }),
   )!;
   try {
-    expect(visibility.visibleSections.value.map(({ section: value }) => value.id)).toEqual([
-      "visible",
-      "selected",
-      "expanded",
-    ]);
-    selected.value = new Set();
-    expect(visibility.visibleSections.value.map(({ section: value }) => value.id)).toEqual([
-      "visible",
-      "expanded",
-    ]);
+    check(visibility);
   } finally {
     scope.stop();
   }
-});
+}
 
-it("keeps offscreen selection geometry without mounting its content and retains the active editor", () => {
-  const scope = effectScope();
-  const activeNodeId = shallowRef<string>();
-  const nodeIds = shallowRef<ReadonlySet<string>>(new Set(["offscreen"]));
-  const scene = projectCanvasScene({
-    nodes: ["onscreen", "offscreen"].map((id) =>
-      createSpaceNode(createSpaceTextPayload(id), { x: 0, y: 0 }, id),
-    ),
-    relations: [],
+/** Text nodes laid out left to right, `spacing` apart. */
+function sceneOf(nodeIds: readonly string[], relations: readonly SpaceRelation[] = [], spacing = 150) {
+  return projectCanvasScene({
+    nodes: nodeIds.map((id) => createSpaceNode(createSpaceTextPayload(id), { x: 0, y: 0 }, id)),
+    relations,
     document: {
       version: 1,
       viewport: { x: 0, y: 0, zoom: 1 },
-      nodes: ["onscreen", "offscreen"].map((nodeId, index) => ({
+      nodes: nodeIds.map((nodeId, index) => ({
         nodeId,
-        frame: { x: index * 2000, y: 0, width: 100, height: 100, rotation: 0 },
+        frame: { x: index * spacing, y: 0, width: 100, height: 100, rotation: 0 },
         sizingMode: "frame",
         zIndex: index,
       })),
     },
   });
-  const visibility = scope.run(() =>
-    useSceneVisibility({
-      activeNodeId,
-      nodeIds,
-      scene: shallowRef(scene),
-      relationIds: shallowRef(new Set<string>()),
-      sections: shallowRef([]),
-      sectionIds: shallowRef(new Set<string>()),
-      camera: createCanvasCamera({ x: 0, y: 0, zoom: 1 }),
-      size: { width: 500, height: 400 },
-    }),
-  )!;
-  try {
+}
+
+function relation(
+  id: string,
+  sourceId: string,
+  targetId: string,
+  kind: SpaceRelation["kind"],
+): SpaceRelation {
+  return {
+    id,
+    spaceId: "space",
+    sourceId,
+    targetId,
+    kind,
+    rationale: "",
+    status: "active",
+    actorKind: "system",
+    createdAt: 0,
+    updatedAt: 0,
+  };
+}
+
+it("culls collapsed section bodies while retaining selected and temporarily expanded sections", () => {
+  const expanded = { ...section("expanded", 2000, true), temporarilyExpanded: true };
+  const sectionIds = shallowRef<ReadonlySet<string>>(new Set(["selected"]));
+  const sections = shallowRef([
+    section("visible", 50),
+    section("collapsed", -500, true),
+    section("selected", 1000),
+    expanded,
+  ]);
+  withVisibility({ sections, sectionIds }, (visibility) => {
+    expect(visibility.visibleSections.value.map(({ section: value }) => value.id)).toEqual([
+      "visible",
+      "selected",
+      "expanded",
+    ]);
+    sectionIds.value = new Set();
+    expect(visibility.visibleSections.value.map(({ section: value }) => value.id)).toEqual([
+      "visible",
+      "expanded",
+    ]);
+  });
+});
+
+it("keeps offscreen selection geometry without mounting its content and retains the active editor", () => {
+  const activeNodeId = shallowRef<string>();
+  const scene = sceneOf(["onscreen", "offscreen"], [], 2000);
+  const nodeIds = shallowRef<ReadonlySet<string>>(new Set(["offscreen"]));
+  withVisibility({ activeNodeId, nodeIds, scene: shallowRef(scene) }, (visibility) => {
     expect([...visibility.visibleNodeIds.value]).toEqual(["onscreen", "offscreen"]);
     expect([...visibility.visibleContentNodeIds.value]).toEqual(["onscreen"]);
     activeNodeId.value = "offscreen";
     expect([...visibility.visibleContentNodeIds.value]).toEqual(["onscreen", "offscreen"]);
     activeNodeId.value = undefined;
     expect([...visibility.visibleContentNodeIds.value]).toEqual(["onscreen"]);
-  } finally {
-    scope.stop();
-  }
+  });
+});
+
+it("draws lineage only while the selection explains it or it is selected itself", () => {
+  const scene = sceneOf(
+    ["source", "output", "note"],
+    [
+      relation("lineage", "output", "source", "derives-from"),
+      relation("meaning", "note", "source", "supports"),
+    ],
+  );
+  const revealedRelationIds = shallowRef<ReadonlySet<string>>(new Set());
+  const relationIds = shallowRef<ReadonlySet<string>>(new Set());
+  withVisibility({ scene: shallowRef(scene), revealedRelationIds, relationIds }, (visibility) => {
+    expect([...visibility.visibleRelationIds.value]).toEqual(["relation:meaning"]);
+
+    revealedRelationIds.value = new Set(["lineage"]);
+    expect(visibility.visibleRelationIds.value).toEqual(new Set(["relation:lineage", "relation:meaning"]));
+
+    revealedRelationIds.value = new Set();
+    relationIds.value = new Set(["lineage"]);
+    expect(visibility.visibleRelationIds.value).toEqual(new Set(["relation:lineage", "relation:meaning"]));
+    expect([...visibility.selectedRelationIds.value]).toEqual(["relation:lineage"]);
+  });
 });

@@ -1,6 +1,7 @@
 import { canvasFrameBounds } from "../../canvas-snap-geometry";
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import type { CanvasScene } from "../scene/canvas-scene";
+import { restingRelations } from "../scene/scene-relations";
 
 export interface CanvasOverviewViewport {
   x: number;
@@ -40,7 +41,7 @@ export function canvasOverviewViewport(
     include({ x: bounds.x, y: bounds.y });
     include({ x: bounds.x + bounds.width, y: bounds.y + bounds.height });
   }
-  for (const { bounds } of scene.relations) {
+  for (const { bounds } of restingRelations(scene.relations)) {
     include({ x: bounds.x, y: bounds.y });
     include({ x: bounds.x + bounds.width, y: bounds.y + bounds.height });
   }
