@@ -324,12 +324,12 @@
         {
           "type": "object",
           "properties": {
+            "path": {
+              "type": "string"
+            },
             "kind": {
               "type": "string",
               "const": "snapshot"
-            },
-            "path": {
-              "type": "string"
             }
           },
           "additionalProperties": false,
@@ -341,15 +341,15 @@
         {
           "type": "object",
           "properties": {
-            "kind": {
-              "type": "string",
-              "const": "image_variant"
-            },
             "path": {
               "type": "string"
             },
             "variant": {
               "$ref": "#/$defs/ImageModelVariant"
+            },
+            "kind": {
+              "type": "string",
+              "const": "image_variant"
             }
           },
           "additionalProperties": false,
