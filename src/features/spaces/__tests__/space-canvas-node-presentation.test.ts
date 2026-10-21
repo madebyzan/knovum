@@ -34,23 +34,27 @@ describe("Konva node presentation", () => {
       targetNodeId: "b",
       targetFrame: { x: 100, y: 100, width: 100, height: 80, rotation: 0 },
       parallelOffset: 0,
-      relation: {
-        id: "edge",
-        spaceId: "space",
-        sourceId: "a",
-        targetId: "b",
-        kind: "related",
-        rationale: "",
-        status: "active",
-        actorKind: "human",
-        createdAt: 1,
-        updatedAt: 1,
-      },
+      lineage: false,
+      relations: [
+        {
+          id: "edge",
+          spaceId: "space",
+          sourceId: "a",
+          targetId: "b",
+          kind: "related",
+          rationale: "",
+          status: "active",
+          actorKind: "human",
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ],
     };
 
     expect(canvasRelationArrowheads(relation)).toEqual({ source: false, target: false });
-    expect(
-      canvasRelationArrowheads({ ...relation, relation: { ...relation.relation, kind: "supports" } }),
-    ).toEqual({ source: false, target: true });
+    expect(canvasRelationArrowheads({ ...relation, label: "supports" })).toEqual({
+      source: false,
+      target: true,
+    });
   });
 });

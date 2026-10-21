@@ -12,7 +12,7 @@ import type { useCanvasSelection } from "../selection/use-canvas-selection";
 
 type ContextTarget =
   | { kind: "node"; id: string }
-  | { kind: "relation"; id: string }
+  | { kind: "relation"; ids: readonly string[] }
   | { kind: "structure"; id: string };
 
 interface CanvasContextMenuOptions {
@@ -45,7 +45,7 @@ export function createCanvasContextMenu(options: CanvasContextMenuOptions) {
 
   function selectTarget(target: ContextTarget | undefined) {
     if (target?.kind === "node") options.selection.selectNodeForContextMenu(target.id);
-    else if (target?.kind === "relation") options.selection.selectRelationForContextMenu(target.id);
+    else if (target?.kind === "relation") options.selection.selectRelationForContextMenu(target.ids);
     else if (target?.kind === "structure") options.selection.selectStructureNodeForContextMenu(target.id);
   }
 
@@ -110,8 +110,8 @@ function konvaTarget(event: MouseEvent, stage: Konva.Stage | undefined): Context
   while (target && target !== stage) {
     const nodeId = target.getAttr("nodeId") as string | undefined;
     if (nodeId) return { kind: "node", id: nodeId };
-    const relationId = target.getAttr("relationId") as string | undefined;
-    if (relationId) return { kind: "relation", id: relationId };
+    const relationIds = target.getAttr("relationIds") as readonly string[] | undefined;
+    if (relationIds) return { kind: "relation", ids: relationIds };
     const structureId = target.getAttr("structureNodeId") as string | undefined;
     if (structureId) return { kind: "structure", id: structureId };
     target = target.getParent();

@@ -45,6 +45,7 @@ function fixture(count: number) {
     nodes: [...nodes.values()],
     nodesById: nodes,
     relations: [],
+    relationKeyByRelationId: new Map(),
     sectionBackdrops: [],
   };
   const execute = vi.fn<(command: SpaceEditCommand) => Promise<void>>(async () => {});
