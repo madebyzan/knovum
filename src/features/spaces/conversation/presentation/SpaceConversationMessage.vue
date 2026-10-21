@@ -85,7 +85,7 @@ async function copyMessage() {
           {{ part.name || part.mediaType }}
         </p>
       </template>
-      <p v-if="streamedText" class="wrap-break-word whitespace-pre-wrap">{{ streamedText }}</p>
+      <UiMarkdown v-if="streamedText" :content="streamedText" class="wrap-break-word" />
     </div>
     <SpaceConversationOutputs
       v-if="message.role === 'assistant' && message.content.outputs?.length"

@@ -1,4 +1,3 @@
-import DOMPurify from "dompurify";
 import MarkdownIt, { type MarkdownIt as MarkdownItInstance } from "markdown-it";
 
 /**
@@ -48,13 +47,4 @@ export function createMarkdownRenderer(): MarkdownItInstance {
   md.renderer.rules.citation = (tokens, index) =>
     citationHtml(tokens[index]?.meta as CitationMeta | undefined);
   return md;
-}
-
-export function renderMarkdown(
-  md: MarkdownItInstance,
-  content: string,
-  citations?: MarkdownCitations,
-): string {
-  const environment: CitationEnvironment = citations ? { citations } : {};
-  return DOMPurify.sanitize(md.render(content, environment));
 }
