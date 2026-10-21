@@ -55,9 +55,9 @@ const fn sources(provider: ProviderKind) -> Sources {
 
 impl Catalog {
     pub(super) fn parse(source: &[u8], fetched_at: i64) -> Result<Self, String> {
-        let published: BTreeMap<String, Value> =
+        let provider_entries: BTreeMap<String, Value> =
             serde_json::from_slice(source).map_err(|error| error.to_string())?;
-        let providers = published
+        let providers = provider_entries
             .into_iter()
             .filter_map(|(provider, entry)| {
                 let models = entry
