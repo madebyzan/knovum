@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, type HTMLAttributes } from "vue";
+import { useTemplateRef, type HTMLAttributes } from "vue";
 
 import { cn } from "./cn";
-import { createMarkdownRenderer, renderMarkdown, type MarkdownCitations } from "./markdown-renderer";
+import type { MarkdownCitations } from "./markdown-renderer";
+import { useMarkdownPaint } from "./use-markdown-paint";
 
 const props = defineProps<{
+  /** Markdown source; text appended to it renders incrementally, so streamed answers format live. */
   content: string;
   /** Renders `[Cn]` markers whose index is listed as citation buttons. */
   citations?: MarkdownCitations;
@@ -12,9 +14,8 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ cite: [index: number] }>();
 
-const md = createMarkdownRenderer();
-
-const rendered = computed(() => renderMarkdown(md, props.content || "", props.citations));
+const root = useTemplateRef<HTMLDivElement>("root");
+useMarkdownPaint(root, () => ({ content: props.content, citations: props.citations }));
 
 function openCitation(event: MouseEvent) {
   const target = event.target instanceof Element ? event.target.closest("[data-citation-index]") : null;
@@ -24,9 +25,9 @@ function openCitation(event: MouseEvent) {
 
 <template>
   <div
+    ref="root"
     :class="cn('ui-markdown text-body leading-relaxed select-text', props.class)"
     @click="openCitation"
-    v-html="rendered"
   />
 </template>
 
