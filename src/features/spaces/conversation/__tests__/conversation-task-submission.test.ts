@@ -1,10 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ref, shallowRef } from "vue";
+import { ref, shallowRef, type Ref } from "vue";
+
+type TaskUpdate = { type: "content_delta"; text: string };
 
 const ipc = vi.hoisted(() => ({
   getConversationTaskError: vi.fn<(runId: string) => Promise<string | null>>(),
   startConversationTask: vi.fn<
-    () => Promise<{
+    (
+      request: unknown,
+      onUpdate: (update: TaskUpdate) => void,
+    ) => Promise<{
       accepted: { taskId: string; runId: string; conversationId: string; branchId: string };
       settled: Promise<unknown>;
     }>
@@ -17,44 +22,22 @@ vi.mock("../conversation-run-observation", () => observation);
 
 import { createConversationTaskSubmission } from "../conversation-task-submission";
 
+const accepted = { taskId: "task", runId: "run", conversationId: "conversation", branchId: "branch" };
+
 describe("conversation task settlement", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("shows a channel settlement failure without treating it as a durable run state", async () => {
     ipc.startConversationTask.mockResolvedValue({
-      accepted: {
-        taskId: "task",
-        runId: "run",
-        conversationId: "conversation",
-        branchId: "branch",
-      },
+      accepted,
       settled: Promise.resolve({
         type: "finished",
         state: "settlement_failed",
         error: "final state could not be read",
       }),
     });
-    const state = submissionState();
-    const restoreDraft = vi.fn<(request: unknown) => Promise<void>>().mockResolvedValue(undefined);
-    const submission = createConversationTaskSubmission({
-      input: {
-        extensions: ref({ pluginIds: [], skillIds: [], connections: [] }),
-        spaceId: ref("space"),
-        selectedConversationId: ref("conversation"),
-        conversation: ref(),
-        prompt: ref("prompt"),
-        target: ref({ type: "agent", runtimeKind: "codex" }),
-        attachments: ref([]),
-        visibleAttachments: ref([]),
-        hasUnresolvedFileReferences: ref(false),
-        messages: shallowRef([]),
-        clearDraft: vi.fn<(request: unknown) => Promise<void>>().mockResolvedValue(undefined),
-        restoreDraft,
-      },
-      state,
-      accepted: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    const { state, restoreDraft, submission } = createSubmission({
       settled: vi.fn<() => Promise<void>>().mockRejectedValue(new Error("projection database unavailable")),
-      restoreForSpace: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
     });
 
     await submission.send();
@@ -67,32 +50,29 @@ describe("conversation task settlement", () => {
     expect(restoreDraft).not.toHaveBeenCalled();
   });
 
+  it("keeps the streamed answer on screen until the stored answer has been loaded", async () => {
+    ipc.startConversationTask.mockImplementation(async (_request, onUpdate) => {
+      onUpdate({ type: "content_delta", text: "**Done**" });
+      return { accepted, settled: Promise.resolve({ type: "finished", state: "succeeded" }) };
+    });
+    const shownWhileLoading: string[] = [];
+    const { state, submission } = createSubmission({
+      settled: vi.fn<() => Promise<void>>(async () => {
+        shownWhileLoading.push(state.streamedText.value);
+      }),
+    });
+
+    await submission.send();
+
+    expect(shownWhileLoading).toEqual(["**Done**"]);
+    expect(state.streamedText.value).toBe("");
+  });
+
   it("keeps and reports the draft when persisted deletion rejects", async () => {
-    const state = submissionState();
-    const restoreDraft = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
-    const clearDraft = vi
-      .fn<() => Promise<void>>()
-      .mockRejectedValue(new Error("draft database is read-only"));
     const prompt = ref("unsent work");
-    const submission = createConversationTaskSubmission({
-      input: {
-        extensions: ref({ pluginIds: [], skillIds: [], connections: [] }),
-        spaceId: ref("space"),
-        selectedConversationId: ref("conversation"),
-        conversation: ref(),
-        prompt,
-        target: ref({ type: "agent", runtimeKind: "codex" }),
-        attachments: ref([]),
-        visibleAttachments: ref([]),
-        hasUnresolvedFileReferences: ref(false),
-        messages: shallowRef([]),
-        clearDraft,
-        restoreDraft,
-      },
-      state,
-      accepted: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
-      settled: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
-      restoreForSpace: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    const { state, restoreDraft, submission } = createSubmission({
+      prompt,
+      clearDraft: vi.fn<() => Promise<void>>().mockRejectedValue(new Error("draft database is read-only")),
     });
 
     await submission.send();
@@ -104,6 +84,36 @@ describe("conversation task settlement", () => {
     expect(prompt.value).toBe("unsent work");
   });
 });
+
+function createSubmission(overrides: {
+  prompt?: Ref<string>;
+  clearDraft?: () => Promise<void>;
+  settled?: () => Promise<void>;
+}) {
+  const state = submissionState();
+  const restoreDraft = vi.fn<(request: unknown) => Promise<void>>().mockResolvedValue(undefined);
+  const submission = createConversationTaskSubmission({
+    input: {
+      extensions: ref({ pluginIds: [], skillIds: [], connections: [] }),
+      spaceId: ref("space"),
+      selectedConversationId: ref("conversation"),
+      conversation: ref(),
+      prompt: overrides.prompt ?? ref("prompt"),
+      target: ref({ type: "agent", runtimeKind: "codex" }),
+      attachments: ref([]),
+      visibleAttachments: ref([]),
+      hasUnresolvedFileReferences: ref(false),
+      messages: shallowRef([]),
+      clearDraft: overrides.clearDraft ?? vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+      restoreDraft,
+    },
+    state,
+    accepted: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    settled: overrides.settled ?? vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    restoreForSpace: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+  });
+  return { state, restoreDraft, submission };
+}
 
 function submissionState() {
   return {
