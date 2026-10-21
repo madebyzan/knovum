@@ -52,34 +52,6 @@ async fn cancellation_prevents_final_publication() {
 }
 
 #[tokio::test]
-async fn paid_usage_at_the_limit_can_complete_but_an_overrun_cannot_succeed() {
-    for tokens in [1_000, 1_001] {
-        let pool = fixture::database().await;
-        sqlx::query("UPDATE spaces_runs SET input_tokens=$1,total_tokens=$1 WHERE id='run'")
-            .bind(tokens)
-            .execute(&pool)
-            .await
-            .unwrap();
-        let outcome = completion::complete(&pool, &fixture::ids()).await;
-        let expected = if tokens == 1_000 {
-            assert!(matches!(
-                outcome.unwrap(),
-                ConversationTaskFinishedState::Succeeded
-            ));
-            crate::spaces::runs::RunState::Succeeded
-        } else {
-            let error = outcome.unwrap_err();
-            assert!(error.starts_with("budget-exhausted"));
-            completion::fail(&pool, "run", &error).await.unwrap();
-            crate::spaces::runs::RunState::Failed
-        };
-        let run = crate::spaces::runs::load_run(&pool, "run").await.unwrap();
-        assert_eq!(run.state, expected);
-        assert_eq!(run.total_tokens, tokens);
-    }
-}
-
-#[tokio::test]
 async fn failure_settlement_preserves_write_and_state_read_failures() {
     let pool = fixture::database().await;
     sqlx::query("CREATE TRIGGER reject_run_update BEFORE UPDATE ON spaces_runs BEGIN SELECT RAISE(ABORT,'write rejected'); END")

@@ -12,7 +12,7 @@ pub(in crate::spaces::mcp) async fn get_node(
     args: NodeArgs,
 ) -> Result<String, McpError> {
     let pool = crate::spaces::db::pool(app).await.map_err(mcp_error)?;
-    let mut tx = crate::spaces::db::begin_write(&pool)
+    let mut tx = crate::spaces::db::begin_write(pool)
         .await
         .map_err(mcp_error)?;
     let mut value = knowledge_projection::load_node(&mut tx, &args.space_id, &args.node_id)

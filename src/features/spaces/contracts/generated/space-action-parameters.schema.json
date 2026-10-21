@@ -529,6 +529,194 @@
       },
       "additionalProperties": false
     },
+    "KnowledgeChange": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tempId": {
+              "type": "string"
+            },
+            "objectTypeId": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "summary": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "status": {
+              "type": "string"
+            },
+            "properties": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "position": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Position"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "op": {
+              "type": "string",
+              "const": "create-object"
+            }
+          },
+          "required": [
+            "op",
+            "tempId",
+            "objectTypeId",
+            "title",
+            "status",
+            "properties"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "nodeId": {
+              "type": "string"
+            },
+            "title": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "summary": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "status": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "properties": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": true
+            },
+            "op": {
+              "type": "string",
+              "const": "update-object"
+            }
+          },
+          "required": [
+            "op",
+            "nodeId"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tempId": {
+              "type": "string"
+            },
+            "sourceId": {
+              "type": "string"
+            },
+            "targetId": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string"
+            },
+            "rationale": {
+              "type": "string"
+            },
+            "confidence": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "format": "double"
+            },
+            "op": {
+              "type": "string",
+              "const": "create-relation"
+            }
+          },
+          "required": [
+            "op",
+            "tempId",
+            "sourceId",
+            "targetId",
+            "kind",
+            "rationale"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "targetKind": {
+              "type": "string"
+            },
+            "targetId": {
+              "type": "string"
+            },
+            "sourceNodeId": {
+              "type": "string"
+            },
+            "locator": {
+              "description": "Knowledge locator object with sourceRevision, location and optional quote",
+              "type": "object",
+              "additionalProperties": true
+            },
+            "sourceRevision": {
+              "type": "string"
+            },
+            "quote": {
+              "type": "string"
+            },
+            "op": {
+              "type": "string",
+              "const": "add-provenance"
+            }
+          },
+          "required": [
+            "op",
+            "targetKind",
+            "targetId",
+            "sourceNodeId",
+            "locator",
+            "sourceRevision",
+            "quote"
+          ]
+        }
+      ]
+    },
+    "Position": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number",
+          "format": "double"
+        },
+        "y": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ]
+    },
     "KnowledgeChangesParameters": {
       "required": [
         "operations"
@@ -538,7 +726,9 @@
       "properties": {
         "operations": {
           "type": "array",
-          "items": true
+          "items": {
+            "$ref": "#/$defs/KnowledgeChange"
+          }
         }
       },
       "additionalProperties": false

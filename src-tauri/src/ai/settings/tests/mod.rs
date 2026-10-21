@@ -49,7 +49,7 @@ fn disabled_agent_is_unavailable_and_local_model_capabilities_remain_enforced() 
     .unwrap_err();
     assert_eq!(error.code, "agent_unavailable");
     let mut value = configured();
-    value["connections"] = json!([{"id":"byok","name":"User","provider":"openai","baseUrl":"https://api.openai.com/v1","models":[{"id":"text","name":"Text","model":"text","capabilities":["text-generation"]}]}]);
+    value["connections"] = json!([{"id":"byok","name":"User","provider":"openai","baseUrl":"https://api.openai.com/v1","models":[{"id":"text","name":"Text","model":"text","capabilities":["text-generation"],"builtinAgent":false}]}]);
     let selection = TaskTargetSelection::Model {
         connection_id: "byok".into(),
         model_id: "text".into(),

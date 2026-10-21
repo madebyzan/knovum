@@ -11,7 +11,6 @@ pub(crate) mod scheduler;
 #[cfg(test)]
 mod tests;
 
-pub(crate) use execution::RunEnrichmentJobRequest;
 pub use job::{EnqueueEnrichmentJobRequest, EnrichmentJobProjection, EnrichmentJobState};
 
 use tauri::{AppHandle, Runtime};

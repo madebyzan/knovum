@@ -6,7 +6,7 @@ fn knovum() -> McpServer {
     McpServer::Http(McpServerHttp::new("knovum", "http://127.0.0.1:43117/mcp"))
 }
 
-fn exemptions(environment: &[(&'static str, String)]) -> Vec<(&'static str, &str)> {
+fn exemptions<'a>(environment: &'a [(&'static str, String)]) -> Vec<(&'static str, &'a str)> {
     environment
         .iter()
         .map(|(name, value)| (*name, value.as_str()))

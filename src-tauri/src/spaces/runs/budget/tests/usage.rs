@@ -32,6 +32,17 @@ async fn a_child_receipt_is_recorded_on_its_cancelled_ancestors() {
 }
 
 #[tokio::test]
+async fn usage_reaching_the_limit_exactly_stays_within_budget() {
+    let pool = database().await;
+    record_usage(&pool, "child", 100, 0, 100).await.unwrap();
+    let totals: Vec<i64> = sqlx::query_scalar("SELECT total_tokens FROM spaces_runs ORDER BY id")
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+    assert_eq!(totals, vec![100, 100]);
+}
+
+#[tokio::test]
 async fn budget_exhaustion_cannot_roll_back_already_paid_child_usage() {
     let pool = database().await;
     assert!(record_usage(&pool, "child", 200, 0, 200)
