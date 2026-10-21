@@ -51,6 +51,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
   <div
     ref="host"
     data-space-thumbnail-source
+    data-editing-surface
     class="relative h-full min-h-0 w-full overflow-hidden outline-none"
     :class="cursorClass"
     tabindex="0"
