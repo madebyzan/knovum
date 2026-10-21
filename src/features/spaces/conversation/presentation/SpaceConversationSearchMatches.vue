@@ -16,6 +16,7 @@ const searchResponseSchema = z
       z
         .object({
           nodeId: z.string().min(1),
+          chunkId: z.string().min(1),
           title: z.string().nullable(),
           preview: z.string(),
           sourceRevision: z.string().min(1),
@@ -55,6 +56,7 @@ const matches = computed(() => {
           @click="
             store.openSource({
               nodeId: match.nodeId,
+              chunkId: match.chunkId,
               nodeTitle: match.title ?? match.nodeId,
               locator: match.locator,
               text: match.preview,

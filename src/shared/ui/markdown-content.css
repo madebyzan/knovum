@@ -72,3 +72,30 @@
   padding: 0.35rem 0.5rem;
   text-align: left;
 }
+.ui-markdown :deep(.ui-citation) {
+  display: inline-flex;
+  min-width: 1.15rem;
+  height: 1.05rem;
+  align-items: center;
+  justify-content: center;
+  margin-inline: 0.12rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-control);
+  padding-inline: 0.25rem;
+  color: var(--color-fg-secondary);
+  font-size: var(--text-caption-sm);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  vertical-align: 0.12em;
+}
+.ui-markdown :deep(button.ui-citation) {
+  cursor: pointer;
+  color: var(--color-fg-accent);
+}
+.ui-markdown :deep(button.ui-citation:hover) {
+  background-color: var(--color-surface-raised);
+}
+.ui-markdown :deep(button.ui-citation:focus-visible) {
+  outline: 2px solid var(--color-stroke-focus);
+  outline-offset: 1px;
+}

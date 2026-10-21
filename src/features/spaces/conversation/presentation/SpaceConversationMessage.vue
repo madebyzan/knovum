@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, Copy, GitBranch, RefreshCw } from "@lucide/vue";
+import { Check, ChevronRight, Copy, GitBranch, RefreshCw } from "@lucide/vue";
 import { useTimeoutFn } from "@vueuse/core";
 import { writeText } from "tauri-plugin-clipboard-api";
 import { computed, shallowRef } from "vue";
@@ -8,7 +8,10 @@ import { useI18n } from "vue-i18n";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
-import { groundedCitationSchema } from "../../knowledge/model/schema/grounded-citation";
+import {
+  groundedCitationSchema,
+  type GroundedCitation,
+} from "../../knowledge/model/schema/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
 import SpaceConversationOutputs from "./SpaceConversationOutputs.vue";
@@ -27,6 +30,20 @@ const messageText = computed(() =>
     .join("\n\n"),
 );
 const citations = computed(() => groundedCitationSchema.array().parse(props.message.content.citations));
+const citationMarkers = computed(
+  () => new Map(citations.value.map((citation) => [citation.index, citation.state === "current"])),
+);
+
+function openCitation(citation: GroundedCitation | undefined) {
+  if (citation?.state !== "current") return;
+  store.openSource({
+    nodeId: citation.nodeId,
+    nodeTitle: citation.nodeTitle,
+    chunkId: citation.chunkId,
+    locator: citation.locator,
+    text: citation.quote,
+  });
+}
 
 async function copyMessage() {
   try {
@@ -60,7 +77,9 @@ async function copyMessage() {
         <UiMarkdown
           v-if="part.type === 'text' && part.text.trim() && !streamedText"
           :content="part.text"
+          :citations="citationMarkers"
           class="wrap-break-word"
+          @cite="openCitation(citations.find((citation) => citation.index === $event))"
         />
         <p v-else-if="part.type === 'binary'" class="text-caption text-fg-secondary">
           {{ part.name || part.mediaType }}
@@ -72,44 +91,42 @@ async function copyMessage() {
       v-if="message.role === 'assistant' && message.content.outputs?.length"
       :outputs="message.content.outputs"
     />
-    <details
-      v-if="citations.length"
-      class="w-full rounded-md border border-stroke-divider px-2 py-1.5 text-caption"
-    >
-      <summary class="cursor-pointer text-fg-secondary select-none">
+    <details v-if="citations.length" class="group/sources w-full text-caption">
+      <summary
+        class="inline-flex cursor-pointer list-none items-center gap-1 rounded-md px-1 py-0.5 text-fg-secondary select-none hover:text-fg-primary [&::-webkit-details-marker]:hidden"
+      >
         {{ t("spaces.conversation.sources", { count: citations.length }) }}
+        <ChevronRight class="size-3.5 transition-transform group-open/sources:rotate-90" />
       </summary>
-      <ul class="mt-2 space-y-1.5">
-        <li
-          v-for="citation in citations"
-          :key="citation.index"
-          class="rounded-md bg-surface-control px-2 py-1.5"
-        >
-          <button
-            v-if="citation.state === 'current'"
-            type="button"
-            class="text-left font-medium text-fg-accent hover:underline"
-            @click="
-              store.openSource({
-                nodeId: citation.nodeId,
-                nodeTitle: citation.nodeTitle,
-                chunkId: citation.chunkId,
-                locator: citation.locator,
-                text: citation.quote,
-              })
-            "
+      <ol class="mt-1.5 divide-y divide-stroke-divider">
+        <li v-for="citation in citations" :key="citation.index">
+          <component
+            :is="citation.state === 'current' ? 'button' : 'div'"
+            :type="citation.state === 'current' ? 'button' : undefined"
+            class="flex w-full min-w-0 gap-2 rounded-md px-1 py-2 text-left"
+            :class="citation.state === 'current' ? 'hover:bg-surface-control' : ''"
+            @click="openCitation(citation)"
           >
-            {{ citation.index }}. {{ citation.nodeTitle }}
-          </button>
-          <span v-else class="font-medium text-fg-secondary"
-            >{{ citation.index }}. {{ citation.nodeTitle }}</span
-          >
-          <span v-if="citation.state === 'detached'" class="ml-1 text-fg-tertiary">
-            · {{ t("spaces.conversation.evidence.stale") }}
-          </span>
-          <p class="mt-1 line-clamp-3 whitespace-pre-wrap text-fg-secondary">{{ citation.quote }}</p>
+            <span
+              class="mt-px inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-sm bg-surface-control px-1 text-caption-sm text-fg-secondary tabular-nums"
+              >{{ citation.index }}</span
+            >
+            <span class="min-w-0 flex-1">
+              <span class="flex min-w-0 items-baseline gap-1.5">
+                <span
+                  class="truncate font-medium"
+                  :class="citation.state === 'current' ? 'text-fg-primary' : 'text-fg-secondary'"
+                  >{{ citation.nodeTitle }}</span
+                >
+                <span v-if="citation.state === 'detached'" class="shrink-0 text-fg-tertiary">{{
+                  t("spaces.conversation.evidence.stale")
+                }}</span>
+              </span>
+              <span class="mt-0.5 line-clamp-2 text-fg-secondary">{{ citation.quote }}</span>
+            </span>
+          </component>
         </li>
-      </ul>
+      </ol>
     </details>
     <span v-if="message.content.status" class="text-caption-sm text-fg-tertiary">
       {{

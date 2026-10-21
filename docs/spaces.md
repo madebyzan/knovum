@@ -267,6 +267,13 @@ bounds it and reserving every call's full output limit against a fixed total rej
 answers. The Space snapshot is part of the system prompt; the harness exposes only the tools the
 Agent uses (`ls`, `read_file`, `grep` over offloaded results, planning, research) — every tool
 schema is paid on every model call.
+Answers cite what the Agent actually read. Every indexed passage a search or node read returns —
+through Space Actions for the built-in Agent or the `knovum` MCP server for desktop Agents — carries
+the Run's `cite` id (`C1`, `C2`, …), numbered once per Run in `spaces_run_citations` from the chunk
+row itself. When an answer is stored, its `[Cn]` markers resolve to Grounded citations on the
+message: the marker renders as a link that opens the exact chunk and locator, and the sources the
+answer cited are listed beneath it. A marker the Run never issued stays plain text; a source edited
+after the answer is shown as detached, never silently re-pointed.
 Generation tools use their configured business routes, independently of the conversation model.
 Only complete checkpoint-proven main messages enter persistent history; in-flight text is a
 presentation stream. Public history remains available when an unsupported or unsuccessful graph

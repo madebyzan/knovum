@@ -72,7 +72,7 @@ async fn execute(
 ) -> Result<ActionInvocationOutcome, AppError> {
     match mode {
         SpaceActionExecutionMode::Immediate => {
-            let action_output = crate::spaces::action_execution::execute_immediate(
+            let mut action_output = crate::spaces::action_execution::execute_immediate(
                 tx,
                 &authorization.principal,
                 &request.invocation_id,
@@ -82,6 +82,17 @@ async fn execute(
                 now,
             )
             .await?;
+            let reading =
+                crate::spaces::knowledge::grounding::Reading::of_action(&request.action_id);
+            if let (Some(run_id), Some(reading)) = (request.parent_run_id.as_deref(), reading) {
+                crate::spaces::knowledge::grounding::number_passages(
+                    tx,
+                    run_id,
+                    reading,
+                    &mut action_output,
+                )
+                .await?;
+            }
             Ok(if impact == SpaceActionImpact::ReadOnly {
                 ActionInvocationOutcome::Projection {
                     projection: action_output,
