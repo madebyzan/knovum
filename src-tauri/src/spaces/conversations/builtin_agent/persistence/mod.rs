@@ -93,7 +93,6 @@ pub(super) async fn persist_task(
     let input = json!({"prompt": request.prompt, "extensions": extensions, "contextManifest": context_manifest, "spaceContext": space_context, "messages": inputs});
     let budget = json!({
         "maxTurns": request.max_turns, "maxTools": request.max_tool_calls,
-        "maxTotalTokens": request.max_total_tokens,
         "maxDurationSeconds": request.max_duration_seconds,
     });
     create_run_in_transaction(

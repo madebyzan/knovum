@@ -31,6 +31,19 @@ MODEL_PROVIDERS = {
     "groq": "groq",
 }
 
+# The workspace holds only what the harness offloads (large tool results and
+# compacted history); the agent reads it back but never authors files there,
+# because Knovum publishes through Actions. Unused tools cost every turn.
+EXCLUDED_TOOLS = frozenset({"execute", "delete", "write_file", "edit_file", "glob"})
+PLANNING_PROMPT = (
+    "## Planning\n\nFor work with several distinct steps, keep a short plan with `write_todos`: "
+    "one item in_progress at a time, marked completed as soon as it is done. Skip it for simple requests."
+)
+PLANNING_TOOL = (
+    "Replace the task plan. Each item has content and a status of pending, in_progress or completed. "
+    "Use only for multi-step work."
+)
+
 
 def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> CompiledStateGraph[Any, Any, Any, Any]:
     provider = MODEL_PROVIDERS[request.model.protocol.value]
@@ -38,20 +51,13 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
         f"{provider}:{request.model.model}",
         HarnessProfile(
             general_purpose_subagent=GeneralPurposeSubagentProfile(enabled=False),
-            excluded_tools=frozenset({"execute", "delete"}),
+            excluded_tools=EXCLUDED_TOOLS,
         ),
     )
-    readonly_store = InMemoryStore()
-    skills_backend = StoreBackend(namespace=lambda _: ("reviewed_skills", "v1"), store=readonly_store)
-    memory_backend = StoreBackend(namespace=lambda _: ("space_snapshot", "v1"), store=readonly_store)
-    memory_uploads = memory_backend.upload_files(
-        [(path, content.encode("utf-8")) for path, content in request.memory.items()]
-    )
-    if any(item.error for item in memory_uploads):
-        raise ValueError("agent-runtime-memory-snapshot-unavailable")
+    skills_backend = StoreBackend(namespace=lambda _: ("reviewed_skills", "v1"), store=InMemoryStore())
     backend = CompositeBackend(
         default=StateBackend(),
-        routes={"/skills/": skills_backend, "/memory/": memory_backend},
+        routes={"/skills/": skills_backend},
         artifacts_root="/workspace",
     )
     uploaded = backend.upload_files(skill_files(request.skills))
@@ -75,13 +81,12 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
         ]
 
     middleware = execution_middleware()
-    middleware.append(TodoListMiddleware())
+    middleware.append(TodoListMiddleware(system_prompt=PLANNING_PROMPT, tool_description=PLANNING_TOOL))
     read_rule = FilesystemPermission(
         operations=["read"],
-        paths=["/workspace", "/workspace/**", "/skills", "/skills/**", "/memory", "/memory/**"],
+        paths=["/workspace", "/workspace/**", "/skills", "/skills/**"],
         mode="allow",
     )
-    write_rule = FilesystemPermission(operations=["write"], paths=["/workspace/**"], mode="allow")
     deny_rule = FilesystemPermission(operations=["read", "write"], paths=["/**"], mode="deny")
     subagents: list[SubAgent] = [
         {
@@ -102,8 +107,7 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
         subagents=subagents,
         backend=backend,
         skills=["/skills/"],
-        memory=["/memory/space.json"] if request.memory else None,
-        permissions=[read_rule, write_rule, deny_rule],
+        permissions=[read_rule, deny_rule],
         context_schema=ExecutionContext,
         checkpointer=saver,
     )

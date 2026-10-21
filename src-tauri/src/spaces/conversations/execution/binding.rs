@@ -7,7 +7,12 @@ pub(in crate::spaces::conversations) async fn resolve(
     target: &ModelExecutionTarget,
     profile: &crate::ai::settings::contracts::BuiltinAgentModelSettings,
 ) -> Result<AgentModelBinding, String> {
-    let protocol = profile.protocol;
+    let protocol = crate::ai::providers::registry::builtin_agent_protocol(
+        target
+            .model_provider_kind()
+            .map_err(|error| error.to_string())?,
+    )
+    .ok_or("builtin-agent-provider-unsupported")?;
     let security = crate::ai::transport::SecurityContext::from_target(target)
         .await
         .map_err(|error| error.to_string())?;
@@ -34,6 +39,6 @@ pub(in crate::spaces::conversations) async fn resolve(
         api_key: security.api_key,
         temperature: Some(target.temperature),
         max_output_tokens: profile.max_output_tokens,
-        max_input_tokens: profile.context_window,
+        max_input_tokens: profile.context_window - profile.max_output_tokens,
     })
 }

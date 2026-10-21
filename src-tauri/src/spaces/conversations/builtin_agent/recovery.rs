@@ -59,7 +59,6 @@ async fn recover_task(
         target: task.model_binding,
         max_turns: task.max_turns,
         max_tool_calls: task.max_tool_calls,
-        max_total_tokens: task.max_total_tokens,
         max_duration_seconds: task.max_duration_seconds,
         attachments: Vec::new(),
         extensions: Default::default(),

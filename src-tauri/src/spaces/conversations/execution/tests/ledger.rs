@@ -12,8 +12,6 @@ fn admission(id: &str) -> AgentModelAdmission {
         request_id: id.into(),
         purpose: AgentModelPurpose::ContextSummary,
         checkpoint_id: Some("checkpoint".into()),
-        estimated_input_tokens: 100,
-        max_output_tokens: 100,
         graph_namespace: "model:1".into(),
     }
 }
@@ -29,7 +27,7 @@ fn completion(id: &str, input: Option<u64>) -> AgentModelCompletion {
 }
 
 #[tokio::test]
-async fn unknown_calls_block_retries_and_authorization_does_not_erase_reserved_cost() {
+async fn unknown_calls_block_further_calls_until_a_new_attempt_is_authorized() {
     let pool = fixture::database().await;
     ledger::admit(&pool, "task", admission("first"))
         .await
@@ -56,13 +54,6 @@ async fn unknown_calls_block_retries_and_authorization_does_not_erase_reserved_c
     ledger::admit(&pool, "task", admission("second"))
         .await
         .unwrap();
-    sqlx::query("UPDATE spaces_runs SET total_tokens=700 WHERE id='run'")
-        .execute(&pool)
-        .await
-        .unwrap();
-    assert!(ledger::admit(&pool, "task", admission("third"))
-        .await
-        .is_err());
     assert_eq!(
         sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM spaces_builtin_agent_model_calls")
             .fetch_one(&pool)
@@ -184,34 +175,19 @@ async fn replayed_tool_identity_consumes_one_admission_and_is_independent_of_epo
 }
 
 #[tokio::test]
-async fn paid_usage_overrun_prevents_new_tools_and_model_calls() {
+async fn the_turn_budget_bounds_model_calls() {
     let pool = fixture::database().await;
-    ledger::admit(&pool, "task", admission("first"))
-        .await
-        .unwrap();
-    ledger::complete(&pool, "task", completion("first", Some(1200)))
-        .await
-        .unwrap();
-    assert!(
-        ledger::admit_tool(&pool, "task", "run", "operation", "read_file")
+    for turn in 0..8 {
+        let id = format!("turn-{turn}");
+        ledger::admit(&pool, "task", admission(&id)).await.unwrap();
+        ledger::complete(&pool, "task", completion(&id, Some(100_000)))
             .await
-            .is_err()
-    );
-    assert!(ledger::admit(&pool, "task", admission("second"))
+            .unwrap();
+    }
+    assert!(ledger::admit(&pool, "task", admission("ninth"))
         .await
         .is_err());
-    assert_eq!(
-        crate::spaces::runs::load_run(&pool, "run")
-            .await
-            .unwrap()
-            .total_tokens,
-        1210
-    );
-    assert_eq!(
-        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM spaces_builtin_agent_tool_admissions")
-            .fetch_one(&pool)
-            .await
-            .unwrap(),
-        0
-    );
+    ledger::admit_tool(&pool, "task", "run", "operation", "read_file")
+        .await
+        .unwrap();
 }

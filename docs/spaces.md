@@ -257,7 +257,16 @@ It runs Deep Agents in the private Builtin Agent runtime with Todo and read-only
 as standard capabilities. SDK todos project into Run activities only when used; maintaining a task
 list does not itself publish business changes. User requests for discussion or a proposal guide Agent
 behavior; host authorization, not natural-language classification, enforces tool and Space boundaries.
-Models need an explicit qualified Builtin Agent protocol/context/output profile in AI settings.
+A model is enabled for the Builtin Agent with its context window and per-request output limit; the
+wire protocol belongs to the provider (OpenAI uses Responses, OpenAI-compatible vendors Chat
+Completions, the rest their native API) and is never a user choice. The window must leave at least
+32,768 input tokens beside one answer, because the harness, tool schemas and Space snapshot must stay
+well under half of the input for context compaction to converge. A task is bounded by model turns,
+tool calls and duration; there is no separate token budget, since turns × context window already
+bounds it and reserving every call's full output limit against a fixed total rejected legitimate
+answers. The Space snapshot is part of the system prompt; the harness exposes only the tools the
+Agent uses (`ls`, `read_file`, `grep` over offloaded results, planning, research) — every tool
+schema is paid on every model call.
 Generation tools use their configured business routes, independently of the conversation model.
 Only complete checkpoint-proven main messages enter persistent history; in-flight text is a
 presentation stream. Public history remains available when an unsupported or unsuccessful graph

@@ -38,7 +38,6 @@ def request_value() -> dict[str, Any]:
         "resume": None,
         "skills": [],
         "skillToolBindings": {},
-        "memory": {},
     }
 
 
@@ -102,7 +101,7 @@ def test_production_composition_streams_commits_and_does_not_replay_accepted_inp
                     use_responses_api=False,
                     max_retries=0,
                     stream_usage=True,
-                    callbacks=[ModelBudget(purpose, binding.max_output_tokens)],
+                    callbacks=[ModelBudget(purpose)],
                     tags=[f"knovum:model:{purpose.value}"],
                     http_async_client=client,
                 )

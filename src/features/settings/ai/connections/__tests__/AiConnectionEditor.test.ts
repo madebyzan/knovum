@@ -17,14 +17,14 @@ const providers: ProviderDescriptor[] = [
     displayName: "OpenAI",
     defaultBaseUrl: "https://api.openai.com/v1",
     capabilities: ["text-generation"],
-    builtinAgentProtocols: ["open_ai_responses"],
+    builtinAgentProtocol: "open_ai_responses",
   },
   {
     id: "anthropic",
     displayName: "Anthropic",
     defaultBaseUrl: "https://api.anthropic.com",
     capabilities: ["text-generation"],
-    builtinAgentProtocols: ["anthropic"],
+    builtinAgentProtocol: "anthropic",
   },
 ];
 const connection: AiConnectionSettings = {

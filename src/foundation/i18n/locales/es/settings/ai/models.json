@@ -22,9 +22,8 @@
   "builtinAgent": {
     "enabled": "Uso para el Agente integrado",
     "help": "Solo se pueden habilitar modelos con llamada de herramientas. Utilice el contexto documentado y los límites de salida del proveedor.",
-    "protocol": "Protocolo API modelo",
     "contextWindow": "Ventana de contexto (tokens)",
     "maxOutputTokens": "Límite de salida por solicitud (tokens)",
-    "invalidLimits": "El contexto debe tener al menos 8192 tokens; El resultado debe ser positivo y menor que el contexto."
+    "invalidLimits": "La ventana de contexto menos el límite de salida debe dejar al menos 32.768 tokens de entrada."
   }
 }

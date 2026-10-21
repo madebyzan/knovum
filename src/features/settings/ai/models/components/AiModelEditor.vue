@@ -6,7 +6,6 @@ import { useI18n } from "vue-i18n";
 import { aiModelDefinitionSchema } from "../../../../../foundation/ai/schema/models";
 import type { AiModelDefinition } from "../../../../../shared/contracts/generated/AiModelDefinition";
 import type { BuiltinAgentModelSettings } from "../../../../../shared/contracts/generated/BuiltinAgentModelSettings";
-import type { ChatModelProtocol } from "../../../../../shared/contracts/generated/ChatModelProtocol";
 import type { ExecutionCapability } from "../../../../../shared/contracts/generated/ExecutionCapability";
 import UiButton from "../../../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../../../shared/ui/UiDialog.vue";
@@ -16,7 +15,7 @@ import BuiltinAgentModelSettingsEditor from "./BuiltinAgentModelSettingsEditor.v
 const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{
   connectionName: string;
-  builtinAgentProtocols: readonly ChatModelProtocol[];
+  builtinAgentSupported: boolean;
   model?: AiModelDefinition | undefined;
   allowedCapabilities: readonly ExecutionCapability[];
   protected: boolean;
@@ -72,9 +71,8 @@ function save() {
         @update:model-value="Object.assign(draft, $event)"
       />
       <BuiltinAgentModelSettingsEditor
-        v-if="draft.capabilities.includes('text-generation')"
+        v-if="builtinAgentSupported && draft.capabilities.includes('text-generation')"
         v-model="draft.builtinAgent"
-        :protocols="builtinAgentProtocols"
         :disabled="busy"
         :show-errors="attempted"
       />

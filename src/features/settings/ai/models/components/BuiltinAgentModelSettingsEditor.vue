@@ -3,39 +3,19 @@ import { useId } from "reka-ui";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { builtinAgentLimitsValid } from "../../../../../foundation/ai/schema/models";
 import type { BuiltinAgentModelSettings } from "../../../../../shared/contracts/generated/BuiltinAgentModelSettings";
-import type { ChatModelProtocol } from "../../../../../shared/contracts/generated/ChatModelProtocol";
 import UiInput from "../../../../../shared/ui/UiInput.vue";
-import UiSelect from "../../../../../shared/ui/UiSelect.vue";
 import UiSwitch from "../../../../../shared/ui/UiSwitch.vue";
 
 const model = defineModel<BuiltinAgentModelSettings | null>({ required: true });
-const props = defineProps<{
-  protocols: readonly ChatModelProtocol[];
-  disabled: boolean;
-  showErrors: boolean;
-}>();
+defineProps<{ disabled: boolean; showErrors: boolean }>();
 const { t } = useI18n();
 const switchId = useId();
-const LABEL_BY_PROTOCOL: Record<ChatModelProtocol, string> = {
-  open_ai_chat: "OpenAI Chat Completions",
-  open_ai_responses: "OpenAI Responses",
-  anthropic: "Anthropic Messages",
-  gemini: "Gemini GenerateContent",
-  ollama: "Ollama Chat",
-  deep_seek: "DeepSeek Chat",
-  groq: "Groq Chat",
-};
-const options = computed(() => props.protocols.map((value) => ({ value, label: LABEL_BY_PROTOCOL[value] })));
 const enabled = computed({
   get: () => model.value !== null,
   set: (value: boolean) => {
-    if (!value) {
-      model.value = null;
-      return;
-    }
-    const protocol = props.protocols[0];
-    if (protocol) model.value = { protocol, contextWindow: 0, maxOutputTokens: 0 };
+    model.value = value ? { contextWindow: 0, maxOutputTokens: 0 } : null;
   },
 });
 const contextWindow = computed({
@@ -53,7 +33,7 @@ const outputLimit = computed({
 </script>
 
 <template>
-  <section v-if="protocols.length" class="mt-5 grid gap-3 border-t border-stroke-divider pt-4">
+  <section class="mt-5 grid gap-3 border-t border-stroke-divider pt-4">
     <div class="flex items-center justify-between gap-3">
       <label :for="switchId" class="text-label text-fg-primary">{{
         t("settings.ai.models.builtinAgent.enabled")
@@ -67,12 +47,6 @@ const outputLimit = computed({
     </div>
     <p class="text-caption text-fg-secondary">{{ t("settings.ai.models.builtinAgent.help") }}</p>
     <div v-if="model" class="grid gap-3">
-      <UiSelect
-        v-model="model.protocol"
-        :label="t('settings.ai.models.builtinAgent.protocol')"
-        :options="options"
-        :disabled="disabled"
-      />
       <label class="grid gap-1 text-caption text-fg-secondary">
         {{ t("settings.ai.models.builtinAgent.contextWindow") }}
         <UiInput v-model="contextWindow" type="number" :disabled="disabled" />
@@ -82,12 +56,7 @@ const outputLimit = computed({
         <UiInput v-model="outputLimit" type="number" :disabled="disabled" />
       </label>
       <p
-        v-if="
-          showErrors &&
-          (model.contextWindow < 8192 ||
-            model.maxOutputTokens <= 0 ||
-            model.maxOutputTokens >= model.contextWindow)
-        "
+        v-if="showErrors && !builtinAgentLimitsValid(model)"
         class="text-caption text-fg-danger"
         role="alert"
       >

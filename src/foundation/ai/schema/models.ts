@@ -2,11 +2,7 @@ import { z } from "zod";
 
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
 import type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
-import {
-  providerKinds,
-  executionCapabilities,
-  chatModelProtocols,
-} from "../../../shared/contracts/generated/contract-values";
+import { providerKinds, executionCapabilities } from "../../../shared/contracts/generated/contract-values";
 import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import { externalAgentKindSchema } from "./external-agents";
 
@@ -34,16 +30,29 @@ export const aiConnectionBaseUrlSchema = z
     }
   });
 
+/** Mirrors `ai::settings::builtin_agent::MIN_INPUT_TOKENS`: input left beside one answer. */
+export const BUILTIN_AGENT_MIN_INPUT_TOKENS = 32_768;
+
+export function builtinAgentLimitsValid(profile: {
+  contextWindow: number;
+  maxOutputTokens: number;
+}): boolean {
+  return (
+    Number.isInteger(profile.contextWindow) &&
+    Number.isInteger(profile.maxOutputTokens) &&
+    profile.contextWindow <= 2_000_000 &&
+    profile.maxOutputTokens > 0 &&
+    profile.contextWindow - profile.maxOutputTokens >= BUILTIN_AGENT_MIN_INPUT_TOKENS
+  );
+}
+
 const builtinAgentModelSettingsSchema = z
   .object({
-    protocol: z.enum(chatModelProtocols),
-    contextWindow: z.number().int().min(8192).max(2_000_000),
-    maxOutputTokens: z.number().int().positive(),
+    contextWindow: z.number().int(),
+    maxOutputTokens: z.number().int(),
   })
   .strict()
-  .refine((profile) => profile.maxOutputTokens < profile.contextWindow, {
-    message: "Builtin Agent output limit must be smaller than its context window",
-  });
+  .refine(builtinAgentLimitsValid, { message: "Builtin Agent context and output limits are invalid" });
 
 export const aiModelDefinitionSchema = z
   .object({

@@ -110,7 +110,7 @@ watch(
       :key="selected ?? 'new'"
       v-model:open="dialogOpen"
       :connection-name="connection.name"
-      :builtin-agent-protocols="requireProvider(providers, connection.provider).builtinAgentProtocols"
+      :builtin-agent-supported="requireProvider(providers, connection.provider).builtinAgentProtocol !== null"
       :model="editingModel"
       :allowed-capabilities="requireProvider(providers, connection.provider).capabilities"
       :protected="Boolean(editingModel && modelInUse(editingModel.id))"

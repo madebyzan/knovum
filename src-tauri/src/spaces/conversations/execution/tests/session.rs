@@ -1,7 +1,6 @@
 use super::fixture;
 use crate::{
     ai::{
-        contracts::ChatModelProtocol,
         models::{ModelExecutionTarget, ModelTargetSelection},
         settings::contracts::BuiltinAgentModelSettings,
     },
@@ -21,8 +20,7 @@ async fn successful_followup_reuses_binding_and_real_catalog_changes_create_a_ne
         capabilities: vec![],
     };
     let profile = BuiltinAgentModelSettings {
-        protocol: ChatModelProtocol::OpenAiChat,
-        context_window: 32768,
+        context_window: 65_536,
         max_output_tokens: 4096,
     };
     let selection = ModelTargetSelection::Model {

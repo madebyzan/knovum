@@ -3,4 +3,4 @@ import type { ChatModelProtocol } from "./ChatModelProtocol";
 import type { ExecutionCapability } from "./ExecutionCapability";
 import type { ProviderKind } from "./ProviderKind";
 
-export type ProviderDescriptor = { id: ProviderKind, displayName: string, defaultBaseUrl: string, capabilities: Array<ExecutionCapability>, builtinAgentProtocols: Array<ChatModelProtocol>, };
+export type ProviderDescriptor = { id: ProviderKind, displayName: string, defaultBaseUrl: string, capabilities: Array<ExecutionCapability>, builtinAgentProtocol: ChatModelProtocol | null, };

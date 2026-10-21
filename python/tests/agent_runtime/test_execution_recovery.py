@@ -37,7 +37,7 @@ def test_unknown_provider_failure_prevents_hidden_sdk_retries(tmp_path: Path, mo
                     base_url=binding.base_url,
                     use_responses_api=False,
                     max_retries=0,
-                    callbacks=[ModelBudget(purpose, binding.max_output_tokens)],
+                    callbacks=[ModelBudget(purpose)],
                     tags=[f"knovum:model:{purpose.value}"],
                     http_async_client=client,
                 )

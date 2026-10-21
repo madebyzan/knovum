@@ -184,12 +184,6 @@
               "type": "string"
             }
           }
-        },
-        "memory": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
         }
       },
       "additionalProperties": false,
@@ -201,8 +195,7 @@
         "messages",
         "inputId",
         "skills",
-        "skillToolBindings",
-        "memory"
+        "skillToolBindings"
       ]
     },
     "AgentExecutionIdentity": {
@@ -738,18 +731,8 @@
             "null"
           ]
         },
-        "estimatedInputTokens": {
-          "type": "integer",
-          "format": "uint64",
-          "minimum": 0
-        },
         "graphNamespace": {
           "type": "string"
-        },
-        "maxOutputTokens": {
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0
         }
       },
       "additionalProperties": false,
@@ -757,9 +740,7 @@
         "identity",
         "requestId",
         "purpose",
-        "estimatedInputTokens",
-        "graphNamespace",
-        "maxOutputTokens"
+        "graphNamespace"
       ]
     },
     "AgentModelPurpose": {

@@ -22,9 +22,8 @@
   "builtinAgent": {
     "enabled": "Utilizzare per l'agente integrato",
     "help": "È possibile abilitare solo i modelli con chiamata utensile. Utilizzare il contesto documentato e i limiti di output del fornitore.",
-    "protocol": "Protocollo API modello",
     "contextWindow": "Finestra di contesto (token)",
     "maxOutputTokens": "Limite di output per richiesta (token)",
-    "invalidLimits": "Il contesto deve contenere almeno 8.192 token; l'output deve essere positivo e inferiore al contesto."
+    "invalidLimits": "La finestra di contesto meno il limite di output deve lasciare almeno 32.768 token di input."
   }
 }

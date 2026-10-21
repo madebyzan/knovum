@@ -22,9 +22,8 @@
   "builtinAgent": {
     "enabled": "Use for the built-in Agent",
     "help": "Only models with tool calling can be enabled. Use the provider’s documented context and output limits.",
-    "protocol": "Model API protocol",
     "contextWindow": "Context window (tokens)",
     "maxOutputTokens": "Output limit per request (tokens)",
-    "invalidLimits": "Context must be at least 8,192 tokens; output must be positive and smaller than context."
+    "invalidLimits": "Context window minus output limit must leave at least 32,768 input tokens."
   }
 }

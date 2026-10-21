@@ -16,7 +16,7 @@ from knovum_agent_runtime.contracts.generated.models import AgentModelBinding, A
 
 
 def create_model(binding: AgentModelBinding, purpose: AgentModelPurpose) -> BaseChatModel:
-    callbacks = [ModelBudget(purpose, binding.max_output_tokens)]
+    callbacks = [ModelBudget(purpose)]
     parameters: dict[str, Any] = {
         "model": binding.model,
         "temperature": binding.temperature,

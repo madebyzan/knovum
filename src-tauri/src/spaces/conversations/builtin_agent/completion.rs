@@ -13,16 +13,6 @@ pub(super) async fn complete(
         .await?;
     let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
-    let within_budget: bool = sqlx::query_scalar(
-        "SELECT total_tokens<=json_extract(budget,'$.maxTotalTokens') FROM spaces_runs WHERE id=$1",
-    )
-    .bind(&task_ids.run_id)
-    .fetch_one(&mut *tx)
-    .await
-    .map_err(db::sql_error)?;
-    if !within_budget {
-        return Err("budget-exhausted: Builtin Agent model token budget was exceeded".into());
-    }
     let children = crate::spaces::runs::child_settlement(&mut tx, &task_ids.run_id)
         .await?
         .ok_or("builtin-agent-child-runs-unsettled")?;

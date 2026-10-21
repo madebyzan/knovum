@@ -22,9 +22,8 @@
   "builtinAgent": {
     "enabled": "用于内置 Agent",
     "help": "仅可启用支持工具调用的模型。上下文和输出上限以服务商文档为准。",
-    "protocol": "模型接口协议",
     "contextWindow": "上下文窗口（token）",
     "maxOutputTokens": "单次请求输出上限（token）",
-    "invalidLimits": "上下文至少为 8,192 token；输出上限必须大于零且小于上下文。"
+    "invalidLimits": "上下文窗口减去输出上限后，至少要留出 32,768 token 的输入空间。"
   }
 }

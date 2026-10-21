@@ -30,9 +30,7 @@ pub(crate) struct AgentModelAdmission {
     pub(crate) request_id: String,
     pub(crate) purpose: AgentModelPurpose,
     pub(crate) checkpoint_id: Option<String>,
-    pub(crate) estimated_input_tokens: u64,
     pub(crate) graph_namespace: String,
-    pub(crate) max_output_tokens: u32,
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]

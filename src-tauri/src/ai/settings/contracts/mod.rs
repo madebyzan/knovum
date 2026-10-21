@@ -46,7 +46,6 @@ pub(crate) struct Model {
 #[derive(Clone, Deserialize, serde::Serialize, PartialEq, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct BuiltinAgentModelSettings {
-    pub protocol: crate::ai::contracts::ChatModelProtocol,
     pub context_window: u32,
     pub max_output_tokens: u32,
 }

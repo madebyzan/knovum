@@ -51,8 +51,8 @@ async fn resume_requires_a_durable_pause_and_cannot_queue_over_another_active_ru
 async fn new_paid_attempt_requires_the_observed_version_and_keeps_the_uncertain_reservation() {
     let pool = fixture::database().await;
     sqlx::raw_sql("UPDATE spaces_runs SET state='waiting',wait_reason='model_outcome_unknown',state_version=2 WHERE id='run';
-        INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,estimated_input_tokens,max_output_tokens,state,created_at)
-        VALUES('lost','task','main','','checkpoint',100,100,'outcome_unknown',1);")
+        INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,state,created_at)
+        VALUES('lost','task','main','','checkpoint','outcome_unknown',1);")
         .execute(&pool).await.unwrap();
     assert!(recovery::prepare(&pool, "task", "run", false, Some(1))
         .await
@@ -70,11 +70,12 @@ async fn new_paid_attempt_requires_the_observed_version_and_keeps_the_uncertain_
             .unwrap(),
         1
     );
-    let retained: (String, i64, i64, Option<i64>) = sqlx::query_as("SELECT state,estimated_input_tokens,max_output_tokens,retry_authorized_at FROM spaces_builtin_agent_model_calls WHERE id='lost'")
-        .fetch_one(&pool).await.unwrap();
-    assert_eq!(
-        (retained.0.as_str(), retained.1, retained.2),
-        ("outcome_unknown", 100, 100)
-    );
-    assert!(retained.3.is_some());
+    let retained: (String, Option<i64>) = sqlx::query_as(
+        "SELECT state,retry_authorized_at FROM spaces_builtin_agent_model_calls WHERE id='lost'",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(retained.0, "outcome_unknown");
+    assert!(retained.1.is_some());
 }

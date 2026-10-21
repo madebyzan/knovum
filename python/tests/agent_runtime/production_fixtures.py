@@ -52,7 +52,7 @@ def bind_script(monkeypatch: Any, scripts: dict[str, list[Any]]) -> dict[str, Sc
             use_responses_api=False,
             max_retries=0,
             script=scripts[purpose.value],
-            callbacks=[ModelBudget(purpose, binding.max_output_tokens)],
+            callbacks=[ModelBudget(purpose)],
             tags=[f"knovum:model:{purpose.value}"],
             profile={
                 "tool_calling": True,

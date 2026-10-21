@@ -42,23 +42,30 @@ pub(crate) fn resolve<R: Runtime>(
     Ok((target, profile))
 }
 
+/// Input the Builtin Agent needs besides one answer: its harness prompt, tool
+/// schemas and the Space snapshot (about 12k tokens) must stay well under half
+/// of the input, or context compaction can never get below its own trigger.
+pub(crate) const MIN_INPUT_TOKENS: u32 = 32_768;
+const MAX_CONTEXT_WINDOW: u32 = 2_000_000;
+
 pub(super) fn validate(
     provider: ProviderKind,
     profile: &BuiltinAgentModelSettings,
 ) -> AppResult<()> {
-    if !(8192..=2_000_000).contains(&profile.context_window)
+    if profile.context_window > MAX_CONTEXT_WINDOW
         || profile.max_output_tokens == 0
-        || profile.max_output_tokens >= profile.context_window
+        || profile
+            .context_window
+            .saturating_sub(profile.max_output_tokens)
+            < MIN_INPUT_TOKENS
     {
         return Err(AppError::invalid(
             "Builtin Agent context and output limits are invalid",
         ));
     }
-    let allowed = crate::ai::providers::registry::descriptor(provider)
-        .is_some_and(|value| value.builtin_agent_protocols.contains(&profile.protocol));
-    if !allowed {
+    if crate::ai::providers::registry::builtin_agent_protocol(provider).is_none() {
         return Err(AppError::invalid(
-            "Builtin Agent API protocol does not match the configured provider",
+            "The configured provider cannot run the Builtin Agent",
         ));
     }
     Ok(())

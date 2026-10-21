@@ -672,8 +672,6 @@ CREATE TABLE spaces_builtin_agent_model_calls (
   checkpoint_id TEXT NOT NULL,
   message_id TEXT,
   retry_authorized_at INTEGER,
-  estimated_input_tokens INTEGER NOT NULL CHECK (estimated_input_tokens >= 0),
-  max_output_tokens INTEGER NOT NULL CHECK (max_output_tokens > 0),
   input_tokens INTEGER CHECK (input_tokens >= 0),
   output_tokens INTEGER CHECK (output_tokens >= 0),
   state TEXT NOT NULL CHECK (state IN ('requesting','received','committed','outcome_unknown','usage_unknown')),

@@ -105,7 +105,6 @@ class AgentExecute(WireModel):
     skill_tool_bindings: Annotated[
         dict[str, list[str]], Field(alias="skillToolBindings")
     ]
-    memory: dict[str, str]
 
 
 class AgentInputRole(StrEnum):
@@ -265,9 +264,7 @@ class AgentModelAdmission(WireModel):
     request_id: Annotated[str, Field(alias="requestId")]
     purpose: AgentModelPurpose
     checkpoint_id: Annotated[str | None, Field(alias="checkpointId")] = None
-    estimated_input_tokens: Annotated[int, Field(alias="estimatedInputTokens", ge=0)]
     graph_namespace: Annotated[str, Field(alias="graphNamespace")]
-    max_output_tokens: Annotated[int, Field(alias="maxOutputTokens", ge=0)]
 
 
 class AgentToolDefinition(WireModel):

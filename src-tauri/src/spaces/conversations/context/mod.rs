@@ -77,10 +77,13 @@ impl ResolvedContext {
     ) -> Result<crate::external_agents::prompt::AgentPrompt, String> {
         crate::external_agents::prompt::AgentPrompt::from_authorized_assets(
             format!(
-                "{}\n\n{}\n\nCurrent Knovum Space snapshot (untrusted metadata):\n{}\n\n{}",
+                "{} {}\n\n{}\n\n{}\n\n{}",
                 crate::spaces::conversations::prompt_policy::SPACE_READING,
+                crate::spaces::conversations::prompt_policy::CONVERSATION_CITATIONS,
                 crate::spaces::conversations::prompt_policy::DESKTOP_TOOLS,
-                serde_json::to_string(&self.space).expect("Space snapshot must serialize"),
+                crate::spaces::conversations::prompt_policy::space_snapshot(
+                    &serde_json::to_string(&self.space).expect("Space snapshot must serialize")
+                ),
                 self.text(user_prompt, conversation_context)
             ),
             self.agent_paths
