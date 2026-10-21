@@ -141,7 +141,7 @@ The canvas is a projection over durable knowledge, not the data model itself. Re
 
 Implemented action families include image background removal and the video-node **Add subtitles** derivation described in [Video subtitles](#video-subtitles). Both publish a separate resource and preserve the source.
 
-Spaces treats generation and media transformation as **Knowledge Derivation**: selected knowledge produces a new durable resource without losing its source context. The product entry is **Create from selection**, followed by an intent such as Summarize, Compare, Visualize, Remove background, Add subtitles or Turn into a document. Provider connections remain infrastructure configuration. Compatible model selection is available at the creation surface, defaults by capability, and can be captured with bounded generation parameters as a reusable **Generation Preset**. Models are execution targets, not ordinary knowledge nodes and not the canvas information architecture.
+Spaces treats generation and media transformation as **Knowledge Derivation**: selected knowledge produces a new durable resource without losing its source context. The product entry is **Create from selection**, followed by an intent from the creation catalog: Generate document, Generate image, Generate video, Remove background, Split layers or Add subtitles. Provider connections remain infrastructure configuration. Compatible model selection is available at the creation surface and defaults by capability. Models are execution targets, not ordinary knowledge nodes and not the canvas information architecture.
 
 Operations are classified by their durable effect, independently of their toolbar, engine or AI use:
 

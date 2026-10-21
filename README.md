@@ -1,161 +1,259 @@
-<p align="center">
-  <img src="public/app-icon.png" width="80" alt="Knovum" />
-</p>
+<div align="center">
+  <img src="public/app-icon.png" width="96" alt="Knovum logo" />
 
-<h1 align="center">Knovum</h1>
+  <h1>Knovum</h1>
 
-<p align="center">
-  <strong>A canvas for ideas and the sources behind them.</strong>
-</p>
+  <p>
+    <strong>The local-first AI knowledge workspace — an infinite canvas for research, learning, and creation.</strong>
+  </p>
 
-<p align="center">
-  A local-first desktop knowledge space for research, learning, and creation.<br />
-  macOS · Windows · Early development
-</p>
+  <p>
+    Notes, saved pages, recordings, documents, and AI-generated work live side by side in one <em>Space</em>.<br />
+    Ask questions with cited answers, transcribe and synthesize speech on-device, produce documents,<br />
+    audio, and video from your own sources — and trace every result back to the exact inputs that made it.
+  </p>
 
-<p align="center">
-  <a href="https://github.com/zandko/knovum/actions/workflows/quality.yml"><img src="https://github.com/zandko/knovum/actions/workflows/quality.yml/badge.svg" alt="Quality CI" /></a>
-  <a href="https://github.com/zandko/knovum/releases"><img src="https://img.shields.io/github/v/release/zandko/knovum?color=blue" alt="Latest Release" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/zandko/knovum" alt="License" /></a>
-</p>
+  <p>
+    <a href="https://github.com/madebyzan/knovum/actions/workflows/quality.yml"><img src="https://github.com/madebyzan/knovum/actions/workflows/quality.yml/badge.svg" alt="Quality CI" /></a>
+    <a href="https://github.com/madebyzan/knovum/releases"><img src="https://img.shields.io/github/v/tag/madebyzan/knovum/v0.0.1?label=release&color=blue" alt="Latest release tag" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-source--available-blueviolet" alt="License: Knovum Personal Noncommercial 1.0" /></a>
+    <img src="https://img.shields.io/badge/macOS-14%2B-999999?logo=apple&logoColor=white" alt="macOS 14 or later, Apple Silicon and Intel" />
+    <img src="https://img.shields.io/badge/Windows-10%202004%2B-0078D6?logo=windows&logoColor=white" alt="Windows 10 version 2004 or later, x64" />
+    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="Pull requests welcome" />
+  </p>
 
-<p align="center">
-  <a href="#from-a-question-to-a-research-brief">Explore the workflow</a> ·
-  <a href="#get-started">Get started</a> ·
-  <a href="docs/README.md">Documentation</a> ·
-  <a href="README.zh-CN.md">简体中文</a>
-</p>
+  <p>
+    <a href="#features">Features</a> ·
+    <a href="#on-device-ai">On-device AI</a> ·
+    <a href="#from-a-question-to-a-finished-work">Workflow</a> ·
+    <a href="#quick-start">Quick start</a> ·
+    <a href="#development">Development</a> ·
+    <a href="README.zh-CN.md">简体中文</a>
+  </p>
+</div>
 
-Research rarely stays in one format. A paper sits beside a saved article, a recording, a question,
-and a half-written draft. The useful part is how they connect.
+---
 
-Knovum brings that work into a **Space**: an infinite canvas where sources, ideas, and the things you
-create live together. Build an argument, inspect its evidence, and turn selected material into new
-work with a recorded trail back to its inputs.
+Knowledge work rarely stays in one format. A meeting recording sits beside a saved article, a
+screenshot, an open question, and a half-finished draft — and the valuable part is how they connect.
 
-![An example knowledge flow: saved sources support a working claim, inform a question, and become a research brief with recorded inputs.](docs/assets/readme/source-to-work.svg)
+**Knovum** is a desktop knowledge workspace that keeps all of it in one place: an infinite canvas of
+sources, ideas, and creations, backed by structured knowledge, on-device AI, and a recorded chain of
+provenance from every output to its inputs. Your library lives in local SQLite and vector storage.
+Cloud models are optional; each action sends only the context it needs.
 
-<p align="center"><sub>An example knowledge flow, shown schematically. Not an application screenshot.</sub></p>
+> **Early access.** Knovum is `v0.0.1` and under active development. Pre-release data formats may
+> change; export important Spaces before updating a development checkout.
 
-## From a question to a research brief
+## Why Knovum
 
-Imagine a personal research project: you have a few papers, articles, and a lecture recording.
-You want to understand the topic and write a brief you can revisit later.
+|                                       |                                                                                                                                                                                                                                                      |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Local-first and private by design** | Spaces, files, extracted text, search indexes, and backups stay on your machine. Transcription, embeddings, and semantic search run fully on-device. Credentials live in a dedicated secrets store, and cloud AI is invoked only when you choose it. |
+| **Canvas freedom, database rigor**    | An infinite spatial canvas for notes, media, and documents — plus typed knowledge objects (claims, evidence, questions, decisions) with meaningful relations and automated consistency checks.                                                       |
+| **Provenance you can audit**          | Every derived resource records which inputs and revisions it used, which action ran, and which engine or model produced it. Sources can change later; your results are never silently rewritten.                                                     |
+| **A full on-device AI studio**        | Twelve local capabilities — Whisper transcription, speaker diarization, TTS and voice cloning, background removal, upscaling, inpainting, depth estimation, and more — with Metal acceleration on Apple Silicon.                                     |
+| **Desktop-native**                    | Built on Tauri 2: native menus and dialogs, global push-to-talk dictation, command palette, keyboard-first shortcuts, platform-appropriate tray behavior, signed automatic updates, and 11 interface languages.                                      |
 
-### 1. Bring the context into view
+## From a question to a finished work
 
-Save the articles, import the papers and recording, and add your own notes. Keep their relationships
-visible on the canvas, with groups, sections, and saved views for different parts of the project.
-Website captures retain their URLs; extracted PDF passages retain page locations. The original files
-remain accessible through your desktop applications.
+<div align="center">
+  <img src="docs/assets/readme/source-to-work.svg" width="100%" alt="An example knowledge flow: notes raise a question, a recording and a saved article support a claim, and a creation step produces a document with its inputs recorded." />
+  <sub>An example knowledge flow, shown schematically. Not an application screenshot.</sub>
+</div>
 
-### 2. Make the reasoning explicit
+1. **Bring the material into view.** Clip a page or a video by URL, drop in recordings, documents,
+   images, and code, and write notes beside them. A capture keeps its URL; a recording keeps the
+   transcript it produced locally. Organize with groups, sections, tags, and Saved Views.
+2. **Make the reasoning explicit.** Add claims, evidence, concepts, experiments, and decisions as typed
+   knowledge objects; connect them with relations like _supports_ and _contradicts_. Knowledge Health
+   flags unsupported claims, active contradictions, and evidence whose sources changed.
+3. **Work from the material you selected.** Search by keyword or meaning with local embeddings. Ask a
+   question against your sources and follow the answer's citations back to their exact locations.
+   Select material and run _Create from selection_ — draft a document, generate an image or a video,
+   remove a background, split layers, or add subtitles.
+4. **Keep the trail.** Open any result's derivation to see exactly what made it: the inputs and their
+   revisions, the action that ran, and the engine or model that executed it.
 
-Give your project a question. Add **claims, evidence, concepts, experiments, and decisions** as typed
-knowledge objects, then connect them with meaningful relations such as **supports** and **contradicts**.
-Knowledge checks flag unsupported claims, accepted claims with active contradictions, and evidence
-whose sources have changed. Use them to review gaps in the argument. A generated draft and an
-accepted claim remain separate things.
+## Features
 
-### 3. Work from the material you selected
+### Spaces — the infinite canvas workspace
 
-Find passages with keyword or local semantic search. Ask a question against your sources and follow
-the answer's citations back to their locations. Select relevant material to draft a document or
-create a visualization using a configured model or desktop Agent.
+Mix Markdown, rich notes, website captures, PDFs and Office documents, images, audio, video, code, and
+plain files on one spatial canvas. Organize with groups, sections, tags, and Saved Views; navigate a
+structural outline; undo and redo across the last 100 edits. A system **Inbox** captures knowledge
+before it has a home. Canvas exchange works both ways through **JSON Canvas** (`.canvas`) import and
+export, and a whole Space travels as a `.knovumspace` package — content, managed assets, relations,
+derivations, and citations included.
 
-Your result becomes another resource in the Space: something you can edit, search, connect, and use
-as input to the next step. Local transcription can bring the recording into the same research flow.
+### Knowledge graph with claims, evidence, and checks
 
-### 4. Keep the trail, then reuse the process
+Structure an argument instead of just storing it. Six built-in knowledge object types — **Concept,
+Question, Claim, Evidence, Experiment, Decision** — plus strict custom object types, connected by ten
+relation kinds (_supports, contradicts, depends-on, supersedes, answers, derives-from,_ …). Provenance
+and temporal knowledge events are first-class. **Knowledge Health** continuously reports unsupported
+claims, contradicted-but-accepted claims, ungrounded evidence, answered open questions, and stale
+provenance.
 
-Inspect a result's derivation to see **which inputs and revisions it used, which action ran, and which
-engine or model produced it**. If a source changes, the recorded inputs still identify the version used;
-the earlier result is never silently rewritten to match new material.
+### Ask and search, with citations that track their sources
 
-When a sequence works, capture its completed derivations as a **reusable workflow**. Bind it to fresh
-sources for the next project and keep the intermediate results alongside the final output.
+Global search and per-Space find run locally; semantic search uses on-device Qwen3 embeddings with
+hybrid lexical ranking — your index never leaves the machine. **Ask** answers from your sources, and
+every citation keeps the location it came from: a time range in a recording, a page in a PDF, a
+heading and character span in a note, a line range in code. Citations follow their source — _current_
+while it matches, _detached_ when it changes. Global find reaches across all Spaces at once.
 
-**The connection stays useful after the output is finished.** You can return to the evidence behind
-an idea, inspect how a resource was created, or repeat the process with new inputs.
+### Documents, media, and video production
 
-## Beyond the research brief
+- **Rich note editing**: tables, images, find-and-replace, smart typography, and inline citations.
+- **Export** to DOCX, PDF, PPTX, HTML, Markdown, and TXT; parse DOC/DOCX/XLS/XLSX/PPT/PPTX; OCR
+  scanned PDFs; convert images (PNG/JPG/WebP/TIFF) and audio (WAV/MP3/M4A/FLAC).
+- **Video editor** with an absolute-time timeline, proxies, and burned-in subtitle derivation.
+- **Speech studio**: audiobooks with roles and a pronunciation lexicon, narration, short and video
+  dubbing with published-background mixing, vocal/accompaniment separation, and reference-voice
+  cloning and voice design.
 
-| Capability                       | What you can do                                                                                                                                                                                                              |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **A spatial workspace**          | Mix Markdown, notes, websites, documents, images, audio, video, and code. Organize with groups, sections, tags, and saved views.                                                                                             |
-| **Search across your knowledge** | Retrieve material within a Space or across Spaces, by keyword or meaning. Local semantic search uses on-device embeddings.                                                                                                   |
-| **Media and document creation**  | Transcribe locally, remove image backgrounds, create subtitled videos, and convert supported documents into formats such as DOCX, PDF, HTML, and PPTX. Generative media actions depend on the selected model's capabilities. |
-| **Portable Spaces**              | Export `.knovumspace` packages with content, managed assets, relations, and derivation history. Use JSON Canvas for canvas exchange.                                                                                         |
+### Create from selection — derivation with a recorded trail
 
-Supported formats, model requirements, and conversion limits are described in the [Spaces guide](docs/spaces.md),
-[local models guide](docs/local-models.md), and [resource export guide](docs/resource-export.md).
+Any selection of knowledge becomes a new durable resource without losing its source context. Run an
+intent — **Generate document, Generate image, Generate video, Remove background, Split layers, Add
+subtitles** — against a configured model or a desktop Agent; the **Action Run** records engine and
+model identity plus the pinned inputs and revisions it used.
+
+### Dictation — push-to-talk, system-wide
+
+A native overlay turns speech into text in whatever app is frontmost — transcribed locally with
+Whisper, inserted through guarded clipboard paste.
+
+### Agents, MCP, and Skills
+
+- **Builtin Agent**: a private, on-device agent that plans with todos, researches read-only, and
+  writes to your knowledge only through validated atomic change sets. It draws on the same action
+  catalog as the menus — answer a question, summarize a meeting transcript, draft a video script or
+  social copy, restructure the canvas.
+- **Desktop Agents**: connect external coding agents on your machine through the Agent Client
+  Protocol (ACP), with their own authentication and tools.
+- **MCP both ways**: Knovum exposes a loopback-only MCP server over your Space, and manages outbound
+  MCP connections as Agent extensions.
+- **Extensions**: Skills, plugins, connectors, and apps, managed from one surface.
+
+### Portable data, local backups
+
+Your library is plain local data: SQLite for structure, a local vector index for meaning, and a
+dedicated secrets database for credentials. Backup and restore produce ordinary local archives, and
+a Space exports as a single package you can move between machines.
+
+## On-device AI
+
+Every capability below runs locally after its model downloads on first use — with SHA-256-pinned
+weights, progress and cancellation in the Task Center, and Metal acceleration on Apple Silicon.
+
+| Capability                               | Model                                                             | Runtime      |
+| ---------------------------------------- | ----------------------------------------------------------------- | ------------ |
+| Speech transcription                     | Whisper (Tiny/Small Q8_0 default, Large-v3 optional) + Silero VAD | whisper.cpp  |
+| Speaker diarization                      | Pyannote 3.0 + ERes2Net                                           | sherpa-onnx  |
+| Vocal / accompaniment separation         | Spleeter                                                          | sherpa-onnx  |
+| Speech synthesis, voice cloning & design | MOSS-TTS-Nano, VoxCPM2                                            | audio.cpp    |
+| Forced alignment (word-level captions)   | Qwen3 Forced Aligner                                              | audio.cpp    |
+| Semantic-search embeddings               | Qwen3-Embedding-0.6B (1024-dim)                                   | Candle       |
+| Background removal                       | U²-Net                                                            | ONNX Runtime |
+| Image upscaling                          | Real-ESRGAN                                                       | ONNX Runtime |
+| Inpainting / repair                      | MI-GAN                                                            | ONNX Runtime |
+| Smart selection                          | EfficientSAM                                                      | ONNX Runtime |
+| Relative depth estimation                | Depth Anything V2                                                 | ONNX Runtime |
+| Layer splitting                          | composed from the capabilities above                              | —            |
+
+Image and video _generation_ are cloud capabilities, routed to whichever connection you configure.
 
 ## Local by default, AI by choice
 
-Your Spaces, managed files, extracted text, and search indexes are stored on your machine. Canvas
-editing and keyword search work without a generative AI connection. Semantic indexing and transcription
-run locally once you download their models.
+Canvas editing, keyword search, transcription, embeddings, and semantic indexing work
+**without any AI connection**. For generative actions, connect any of the supported providers —
 
-For generative actions, choose a model connection or a desktop Agent. Connections include OpenAI,
-Anthropic, Google Gemini, OpenAI-compatible endpoints, and Ollama. Desktop Agents use their own
-authentication and available tools; Skills, plugins, and MCP connections can extend their capabilities.
+**OpenAI · Anthropic · Google Gemini · DeepSeek · Qwen · Zhipu · Moonshot · Doubao · MiniMax ·
+StepFun · SiliconFlow · Mistral · Groq · Grok · Together · OpenRouter · Kling · Ollama · any
+OpenAI-compatible endpoint**
 
-Selected text or media may be sent to the executor you choose. What runs locally and what uses an
-external service depends on the action and connection. See [AI and local model behavior](docs/local-models.md)
-for the details.
+— or delegate to a desktop Agent with its own credentials. Selected text or media is sent only to the
+executor you choose, bounded by the action's context rules. Keys are stored in a dedicated local
+secrets database and never written to logs.
 
-## Get started
+## Architecture
 
-**Knovum is in early development.** The setup below runs the desktop app from source. Pre-release data
-formats may change; export important Spaces before updating a development checkout.
+Knovum is a single desktop product: a Rust core owns data, inference, and OS integration; a Vue 3
+renderer owns interaction; strict generated contracts connect them.
 
-| Platform | Target                                              |
-| -------- | --------------------------------------------------- |
-| macOS    | macOS 14 or later, Apple Silicon and Intel          |
-| Windows  | Windows 10 version 2004 / build 19041 or later, x64 |
+**Tauri 2 · Vue 3 · TypeScript · Rust · SQLite · LanceDB · Konva · Tailwind CSS v4**
 
-Install **Node.js 22.13+**, **Corepack**, the repository's **Rust toolchain**, and the native prerequisites
-in the [installation guide](docs/installation.md). These include uv, CMake, Protobuf, LLVM/libclang,
-and the platform tooling required by Tauri. The pnpm version is pinned in `package.json`.
+## Quick start
+
+| Platform | Target                                               |
+| -------- | ---------------------------------------------------- |
+| macOS    | macOS 14 or later — Apple Silicon and Intel          |
+| Windows  | Windows 10 version 2004 / build 19041 or later — x64 |
+
+Linux and Windows-on-ARM are out of release scope; unsupported targets fail explicitly.
+
+Knovum currently runs from source. You need **Node.js 22.13+**, **Corepack**, the Rust toolchain
+pinned in `rust-toolchain.toml`, and the native tooling the desktop build compiles against:
+**uv**, **CMake**, **Protobuf**, and **LLVM/libclang**. Then:
 
 ```bash
-git clone https://github.com/zandko/knovum.git
+git clone https://github.com/madebyzan/knovum.git
 cd knovum
 corepack enable
 pnpm install --frozen-lockfile
 pnpm desktop:dev
 ```
 
-The development command prepares the Agent environment and native components before opening the app.
-The first build downloads dependencies and takes longer than subsequent starts.
+The first build downloads and compiles native components and takes a while; subsequent starts are
+fast. Local models download when you first use a capability that needs them.
 
-Start with one question and two or three sources. Create a Space, add the material, and write a note
-about what you want to find out. Configure an AI connection when you want to ask source-grounded
-questions or create a generated result. Local models download when you request a capability that
-needs them, with progress and cancellation.
+Start small: one question, two or three sources, one note. Configure an AI connection when you want
+cited answers or generated results.
 
-## Documentation and contributing
+## Development
 
-- [Installation](docs/installation.md) — prerequisites and desktop setup.
-- [Spaces](docs/spaces.md) — capture, canvas organization, knowledge, workflows, and export.
-- [Local models](docs/local-models.md) — on-device capabilities, downloads, and hardware requirements.
-- [Troubleshooting](docs/troubleshooting.md) — setup, build, and runtime problems.
-- [Contributing](CONTRIBUTING.md) — how to report issues and propose changes.
-- [Documentation index](docs/README.md) — all product and engineering guides.
+| Command             | Purpose                                                             |
+| ------------------- | ------------------------------------------------------------------- |
+| `pnpm desktop:dev`  | Run the desktop app with the Agent environment prepared             |
+| `pnpm check`        | Full quality gate: web + Rust + Python                              |
+| `pnpm check:web`    | Typecheck, oxlint, dependency-cruiser, Vitest, knip, jscpd, oxfmt   |
+| `pnpm check:rust`   | cargo fmt, clippy (`-D warnings`), workspace tests                  |
+| `pnpm check:python` | ruff, mypy (strict), pytest for the Agent runtime                   |
+| `pnpm e2e`          | WebdriverIO end-to-end run against a debug build                    |
+| `pnpm package`      | Produce signed desktop bundles                                      |
 
-Bug reports, focused feature proposals, translations, and documentation improvements are welcome.
-For [issue reports](https://github.com/zandko/knovum/issues), include your platform, version or commit,
-and reproduction steps. Remove credentials and private material from any attached logs.
+CI runs the same gates on every push (macOS arm64, macOS Intel, Windows), and `v*` tags build signed
+DMG/NSIS packages with updater metadata.
 
-Built with **Tauri 2, Vue 3, TypeScript, and Rust**, with **SQLite** for structured knowledge and
-**LanceDB** for vector search. Run `pnpm check` for the repository's web, Rust, and Python checks;
-see [packaging](docs/packaging.md) for desktop builds.
+## Contributing
+
+Bug reports, focused feature proposals, translations, and documentation improvements are welcome —
+see [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md). For
+[issue reports](https://github.com/madebyzan/knovum/issues), include your platform, version or
+commit, and reproduction steps, and remove credentials from any attached logs. Security reports go
+through [SECURITY.md](SECURITY.md).
 
 ## License
 
 Knovum is **source-available for personal noncommercial use** under the
 [Knovum Personal Noncommercial License 1.0](LICENSE). Individuals may use, modify, and share it
-noncommercially under its terms. Organizational use, professional/client work, and commercialization
-require separate prior written authorization. Third-party components retain their own licenses.
+noncommercially under its terms. Organizational use, professional or client work, and
+commercialization require separate prior written authorization. Third-party components retain their
+own licenses.
 
-[中文许可说明](docs/licensing.md)
+## Star history
+
+<a href="https://star-history.com/#madebyzan/knovum&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=madebyzan/knovum&type=Date&theme=dark" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=madebyzan/knovum&type=Date" />
+  </picture>
+</a>
+
+---
+
+<div align="center">
+  <sub>Built with Tauri 2, Vue 3, TypeScript, and Rust.</sub>
+</div>
