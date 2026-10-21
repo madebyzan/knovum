@@ -21,10 +21,6 @@
   "identifier": "服务商模型标识",
   "builtinAgent": {
     "enabled": "用于内置 Agent",
-    "help": "仅可启用支持工具调用的模型。上下文和输出上限以服务商文档为准。",
-    "protocol": "模型接口协议",
-    "contextWindow": "上下文窗口（token）",
-    "maxOutputTokens": "单次请求输出上限（token）",
-    "invalidLimits": "上下文至少为 8,192 token；输出上限必须大于零且小于上下文。"
+    "help": "仅可启用支持工具调用的模型。上下文和输出上限会按模型自动识别。"
   }
 }

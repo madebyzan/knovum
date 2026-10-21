@@ -18,6 +18,7 @@ const model: AiModelDefinition = {
   model: "remote",
   name: "Model",
   capabilities: ["text-generation"],
+  builtinAgent: false,
 };
 beforeEach(() => {
   vi.resetAllMocks();

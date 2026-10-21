@@ -17,14 +17,14 @@ const providers: ProviderDescriptor[] = [
     displayName: "OpenAI",
     defaultBaseUrl: "https://api.openai.com/v1",
     capabilities: ["text-generation"],
-    builtinAgentProtocols: ["open_ai_responses"],
+    builtinAgentProtocol: "open_ai_responses",
   },
   {
     id: "anthropic",
     displayName: "Anthropic",
     defaultBaseUrl: "https://api.anthropic.com",
     capabilities: ["text-generation"],
-    builtinAgentProtocols: ["anthropic"],
+    builtinAgentProtocol: "anthropic",
   },
 ];
 const connection: AiConnectionSettings = {
@@ -33,7 +33,7 @@ const connection: AiConnectionSettings = {
   provider: "openai",
   baseUrl: providers[0]!.defaultBaseUrl,
   models: [
-    { id: "text", name: "Text", model: "example", capabilities: ["text-generation"], builtinAgent: null },
+    { id: "text", name: "Text", model: "example", capabilities: ["text-generation"], builtinAgent: false },
   ],
 };
 function open(existing = true) {

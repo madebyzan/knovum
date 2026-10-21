@@ -672,8 +672,6 @@ CREATE TABLE spaces_builtin_agent_model_calls (
   checkpoint_id TEXT NOT NULL,
   message_id TEXT,
   retry_authorized_at INTEGER,
-  estimated_input_tokens INTEGER NOT NULL CHECK (estimated_input_tokens >= 0),
-  max_output_tokens INTEGER NOT NULL CHECK (max_output_tokens > 0),
   input_tokens INTEGER CHECK (input_tokens >= 0),
   output_tokens INTEGER CHECK (output_tokens >= 0),
   state TEXT NOT NULL CHECK (state IN ('requesting','received','committed','outcome_unknown','usage_unknown')),
@@ -734,6 +732,24 @@ CREATE TABLE spaces_conversation_message_projections (
   PRIMARY KEY (segment_id, provider_message_id),
   FOREIGN KEY (segment_id) REFERENCES spaces_builtin_agent_execution_segments(id) ON DELETE CASCADE,
   FOREIGN KEY (message_id) REFERENCES spaces_conversation_messages(id) ON DELETE CASCADE
+);
+
+-- The indexed passages a Run read, numbered once per Run (`C1`, `C2`, …) so an
+-- answer's markers resolve to the exact chunk. Chunk and node ids are stored
+-- identities, not references: the passage is kept as it was read.
+CREATE TABLE spaces_run_citations (
+  run_id TEXT NOT NULL,
+  ordinal INTEGER NOT NULL CHECK (ordinal > 0),
+  chunk_id TEXT NOT NULL,
+  source_revision TEXT NOT NULL,
+  node_id TEXT NOT NULL,
+  node_title TEXT NOT NULL CHECK (length(node_title) BETWEEN 1 AND 512),
+  locator TEXT NOT NULL CHECK (json_valid(locator)),
+  quote TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  PRIMARY KEY (run_id, ordinal),
+  UNIQUE (run_id, chunk_id, source_revision),
+  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE
 );
 
 INSERT INTO "spaces_object_types" ("id","space_id","name","icon","description","fields","system","created_at","updated_at") VALUES ('system:claim',NULL,'Claim','lightbulb','An atomic assertion that can be supported, challenged, or superseded.','[{"key":"statement","label":"Statement","kind":"text","required":true}]',1,0,0);

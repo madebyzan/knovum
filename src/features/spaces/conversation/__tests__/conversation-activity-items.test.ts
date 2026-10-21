@@ -82,6 +82,30 @@ describe("conversation tool activity", () => {
     ]);
   });
 
+  it("attaches MCP progress to the tool it reports on and keeps it across later updates", () => {
+    const items = conversationActivityItems({
+      runId: "run",
+      labels,
+      messages: [],
+      events: [
+        event("conversation_tool_started", { toolCallId: "call", title: "transcribe" }, 1),
+        event("mcp_progress", { toolCallId: "call", progress: 2, total: 5, message: null }, 2),
+        event("mcp_progress", { toolCallId: "unknown", progress: 9 }, 3),
+        event("external_agent_tool_updated", { toolCallId: "call", status: "in_progress" }, 4),
+      ],
+    });
+    expect(items).toEqual([
+      {
+        id: "call",
+        title: "transcribe",
+        status: "in_progress",
+        context: undefined,
+        output: undefined,
+        progress: { progress: 2, total: 5, message: null },
+      },
+    ]);
+  });
+
   it("rejects obsolete event fields instead of reading a second payload vocabulary", () => {
     expect(
       conversationActivityItems({

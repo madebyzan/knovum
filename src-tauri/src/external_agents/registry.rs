@@ -26,7 +26,11 @@ pub fn descriptors() -> Vec<ExternalAgentDescriptor> {
         .collect()
 }
 
-pub(super) fn runtime(kind: ExternalAgentKind, path: &str) -> AppResult<AcpAgent> {
+pub(super) fn runtime(
+    kind: ExternalAgentKind,
+    path: &str,
+    environment: Vec<(&'static str, String)>,
+) -> AppResult<AcpAgent> {
     let agent = registered(kind);
     let executable = agent
         .descriptor
@@ -41,34 +45,16 @@ pub(super) fn runtime(kind: ExternalAgentKind, path: &str) -> AppResult<AcpAgent
             )
         })?;
     let config = match agent.launch {
-        AcpLaunch::Codex => configured_adapter(
-            AcpAgent::codex().into_config(),
-            path,
-            "CODEX_PATH",
-            &executable,
-        ),
-        AcpLaunch::Claude => configured_adapter(
-            AcpAgent::claude_agent().into_config(),
-            path,
-            "CLAUDE_CODE_EXECUTABLE",
-            &executable,
-        ),
-        AcpLaunch::Executable { arguments } => AcpAgentConfig::new(executable)
-            .args(arguments.iter().copied())
-            .env("PATH", path),
-        AcpLaunch::Server => AcpAgentConfig::new(executable).env("PATH", path),
+        AcpLaunch::Codex => AcpAgent::codex()
+            .into_config()
+            .env("CODEX_PATH", executable.to_string_lossy()),
+        AcpLaunch::Claude => AcpAgent::claude_agent()
+            .into_config()
+            .env("CLAUDE_CODE_EXECUTABLE", executable.to_string_lossy()),
+        AcpLaunch::Executable { arguments } => {
+            AcpAgentConfig::new(executable).args(arguments.iter().copied())
+        }
+        AcpLaunch::Server => AcpAgentConfig::new(executable),
     };
-    Ok(AcpAgent::new(config))
-}
-
-fn configured_adapter(
-    config: AcpAgentConfig,
-    path: &str,
-    executable_variable: &str,
-    executable: &std::path::Path,
-) -> AcpAgentConfig {
-    config.env("PATH", path).env(
-        executable_variable,
-        executable.to_string_lossy().into_owned(),
-    )
+    Ok(AcpAgent::new(config.env("PATH", path).envs(environment)))
 }

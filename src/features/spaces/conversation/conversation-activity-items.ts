@@ -10,6 +10,7 @@ export type ActivityItem = {
   context?: unknown;
   output?: unknown;
   outputName?: string;
+  progress?: ToolProgress;
 };
 
 const toolPayload = z.strictObject({
@@ -19,6 +20,13 @@ const toolPayload = z.strictObject({
   status: z.enum(["pending", "in_progress", "completed", "failed", "outcome_unknown"]).nullish(),
   context: z.unknown().optional(),
 });
+const progressPayload = z.strictObject({
+  toolCallId: z.string(),
+  progress: z.number(),
+  total: z.number().nullish(),
+  message: z.string().nullish(),
+});
+export type ToolProgress = Omit<z.infer<typeof progressPayload>, "toolCallId">;
 const textPayload = z.object({ text: z.string() });
 const toolEvents = new Set([
   "external_agent_tool_started",
@@ -39,7 +47,12 @@ function toolOutputs(messages: readonly ConversationMessage[], runId: string) {
   return outputByCallId;
 }
 
-type ActivityState = { items: ActivityItem[]; indexByCallId: Map<string, number>; commentary: string };
+type ActivityState = {
+  items: ActivityItem[];
+  indexByCallId: Map<string, number>;
+  progressByCallId: Map<string, ToolProgress>;
+  commentary: string;
+};
 type ToolLabels = { action: (actionId: string) => string; default: string };
 
 function appendCommentary(state: ActivityState, event: RunEvent) {
@@ -93,6 +106,13 @@ function appendTool(
   } else state.items[index] = item;
 }
 
+function recordProgress(state: ActivityState, event: RunEvent) {
+  const parsed = progressPayload.safeParse(event.payload);
+  if (!parsed.success) return;
+  const { toolCallId, ...progress } = parsed.data;
+  state.progressByCallId.set(toolCallId, progress);
+}
+
 interface ConversationActivityInput {
   events: readonly RunEvent[];
   messages: readonly ConversationMessage[];
@@ -102,12 +122,22 @@ interface ConversationActivityInput {
 
 export function conversationActivityItems({ events, messages, runId, labels }: ConversationActivityInput) {
   const outputByCallId = toolOutputs(messages, runId);
-  const state: ActivityState = { items: [], indexByCallId: new Map(), commentary: "" };
+  const state: ActivityState = {
+    items: [],
+    indexByCallId: new Map(),
+    progressByCallId: new Map(),
+    commentary: "",
+  };
   for (const event of events) {
     if (event.kind === "external_agent_message") {
       const parsed = textPayload.safeParse(event.payload);
       if (parsed.success) state.commentary += parsed.data.text;
-    } else appendTool(state, event, outputByCallId, labels);
+    } else if (event.kind === "mcp_progress") recordProgress(state, event);
+    else appendTool(state, event, outputByCallId, labels);
+  }
+  for (const item of state.items) {
+    const progress = state.progressByCallId.get(item.id);
+    if (progress) item.progress = progress;
   }
   return state.items;
 }

@@ -9,7 +9,7 @@ pub struct ProviderDescriptor {
     pub display_name: &'static str,
     pub default_base_url: &'static str,
     pub capabilities: &'static [ExecutionCapability],
-    pub builtin_agent_protocols: &'static [ChatModelProtocol],
+    pub builtin_agent_protocol: Option<ChatModelProtocol>,
 }
 
 const TEXT: &[ExecutionCapability] = &[ExecutionCapability::TextGeneration];
@@ -161,30 +161,35 @@ const fn define_provider(
         display_name,
         default_base_url,
         capabilities,
-        builtin_agent_protocols: match kind {
-            ProviderKind::Anthropic => &[ChatModelProtocol::Anthropic],
-            ProviderKind::Gemini => &[ChatModelProtocol::Gemini],
-            ProviderKind::Ollama => &[ChatModelProtocol::Ollama],
-            ProviderKind::DeepSeek => &[ChatModelProtocol::DeepSeek],
-            ProviderKind::Groq => &[ChatModelProtocol::Groq],
-            ProviderKind::Kling => &[],
-            ProviderKind::OpenAi
-            | ProviderKind::OpenAiCompatible
-            | ProviderKind::OpenRouter
-            | ProviderKind::DashScope
-            | ProviderKind::Zhipu
-            | ProviderKind::SiliconFlow
-            | ProviderKind::Grok
-            | ProviderKind::Mistral
-            | ProviderKind::Together
-            | ProviderKind::StepFun
-            | ProviderKind::Moonshot
-            | ProviderKind::Doubao
-            | ProviderKind::MiniMax => &[
-                ChatModelProtocol::OpenAiChat,
-                ChatModelProtocol::OpenAiResponses,
-            ],
-        },
+        builtin_agent_protocol: builtin_agent_protocol(kind),
+    }
+}
+
+/// The single wire protocol the Builtin Agent speaks to a provider. It is a
+/// property of the provider, never a user choice: OpenAI's own endpoint uses
+/// Responses (reasoning items survive across turns), every OpenAI-compatible
+/// vendor uses Chat Completions, the rest their native API.
+pub const fn builtin_agent_protocol(kind: ProviderKind) -> Option<ChatModelProtocol> {
+    match kind {
+        ProviderKind::Anthropic => Some(ChatModelProtocol::Anthropic),
+        ProviderKind::Gemini => Some(ChatModelProtocol::Gemini),
+        ProviderKind::Ollama => Some(ChatModelProtocol::Ollama),
+        ProviderKind::DeepSeek => Some(ChatModelProtocol::DeepSeek),
+        ProviderKind::Groq => Some(ChatModelProtocol::Groq),
+        ProviderKind::Kling => None,
+        ProviderKind::OpenAi => Some(ChatModelProtocol::OpenAiResponses),
+        ProviderKind::OpenAiCompatible
+        | ProviderKind::OpenRouter
+        | ProviderKind::DashScope
+        | ProviderKind::Zhipu
+        | ProviderKind::SiliconFlow
+        | ProviderKind::Grok
+        | ProviderKind::Mistral
+        | ProviderKind::Together
+        | ProviderKind::StepFun
+        | ProviderKind::Moonshot
+        | ProviderKind::Doubao
+        | ProviderKind::MiniMax => Some(ChatModelProtocol::OpenAiChat),
     }
 }
 

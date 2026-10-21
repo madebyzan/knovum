@@ -1,45 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { AppCommand } from "../../../shared/contracts/app-command";
 import { bindCommandShortcuts } from "../command-shortcuts";
+import { command, mounted, press, settle, shortcutHost } from "./support/shortcut-harness";
 
-const mocks = vi.hoisted(() => ({
-  platform: vi.fn<() => string>(() => "macos"),
-  logError: vi.fn<(message: string) => Promise<void>>(),
-}));
-
-vi.mock("@tauri-apps/plugin-os", () => ({ platform: mocks.platform }));
-vi.mock("@tauri-apps/plugin-log", () => ({ error: mocks.logError }));
+const harness = vi.hoisted(() => () => import("./support/shortcut-harness"));
+vi.mock("@tauri-apps/plugin-os", async () => (await harness()).osPlugin);
+vi.mock("@tauri-apps/plugin-log", async () => (await harness()).logPlugin);
 
 const SPACE_PRESS = { key: " ", code: "Space" };
-const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
-
-function command(shortcut: string, extra: Partial<AppCommand> = {}): AppCommand {
-  return {
-    id: `test.${shortcut.replaceAll(" ", "space")}`,
-    title: shortcut,
-    shortcut,
-    run: vi.fn<() => void>(),
-    ...extra,
-  };
-}
-
-function press(target: Element, init: KeyboardEventInit) {
-  const event = new KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init });
-  target.dispatchEvent(event);
-  return event;
-}
-
-function mounted(tag: string, role?: string) {
-  const element = document.createElement(tag);
-  if (role) element.setAttribute("role", role);
-  document.body.append(element);
-  return element;
-}
 
 describe("application command shortcuts", () => {
   beforeEach(() => {
-    mocks.platform.mockReturnValue("macos");
+    shortcutHost.platform.mockReturnValue("macos");
     document.body.replaceChildren();
   });
 
@@ -69,7 +41,7 @@ describe("application command shortcuts", () => {
   it("leaves a bare key to the focused control and keeps it for the canvas otherwise", async () => {
     const quickLook = command("Space");
     const unbind = bindCommandShortcuts([quickLook]);
-    for (const target of [mounted("button"), mounted("a"), mounted("div", "menuitem")]) {
+    for (const target of [mounted("button"), mounted("a"), mounted("div", { role: "menuitem" })]) {
       expect(press(target, SPACE_PRESS).defaultPrevented).toBe(false);
     }
     await settle();
@@ -91,7 +63,7 @@ describe("application command shortcuts", () => {
   });
 
   it("runs a surface clipboard command on a focused canvas host", async () => {
-    mocks.platform.mockReturnValue("windows");
+    shortcutHost.platform.mockReturnValue("windows");
     const paste = command("$mod+V", { editingIntent: "paste" });
     const unbind = bindCommandShortcuts([paste]);
     const macLike = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
@@ -123,7 +95,7 @@ describe("application command shortcuts", () => {
   });
 
   it("preserves a native text-editing chord in an editable field", async () => {
-    mocks.platform.mockReturnValue("windows");
+    shortcutHost.platform.mockReturnValue("windows");
     const copy = command("$mod+C", { editingIntent: "copy" });
     const unbind = bindCommandShortcuts([copy]);
     const macLike = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
@@ -160,7 +132,7 @@ describe("application command shortcuts", () => {
   });
 
   it("binds a menu-owned shortcut where there is no Application Menu", async () => {
-    mocks.platform.mockReturnValue("windows");
+    shortcutHost.platform.mockReturnValue("windows");
     const menuOwned = command("Shift+=");
     const unbind = bindCommandShortcuts([menuOwned]);
     press(mounted("div"), { key: "=", code: "Equal", shiftKey: true });

@@ -15,6 +15,7 @@ const connection: AiConnectionSettings = {
       name: "GPT",
       model: "gpt-5",
       capabilities: ["text-generation"],
+      builtinAgent: false,
     },
   ],
 };

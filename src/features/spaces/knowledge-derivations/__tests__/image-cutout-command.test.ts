@@ -1,7 +1,7 @@
 import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-import { deferred } from "../../__tests__/support/canvas-fixtures";
+import { deferred } from "../../../../shared/__tests__/support/deferred";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { createImageCutout } from "../image-cutout";

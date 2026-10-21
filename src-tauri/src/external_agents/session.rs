@@ -42,7 +42,7 @@ async fn run_session(
     on_update: AgentUpdateHandler,
     mcp_servers: Vec<McpServer>,
 ) -> AppResult<StopReason> {
-    let agent = super::connection::runtime(kind, &cancellation).await?;
+    let agent = super::connection::runtime(kind, &mcp_servers, &cancellation).await?;
     let permission_cancellation = cancellation.clone();
     let client = Client.builder().on_receive_request(
         async move |request: RequestPermissionRequest, responder, _cx| {

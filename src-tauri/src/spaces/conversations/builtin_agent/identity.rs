@@ -80,9 +80,6 @@ pub(in crate::spaces::conversations) fn validate(
     if !(1..=128).contains(&request.max_tool_calls) {
         return Err("Builtin Agent maxToolCalls must be between 1 and 128".into());
     }
-    if !(1_000..=1_000_000).contains(&request.max_total_tokens) {
-        return Err("Builtin Agent maxTotalTokens must be between 1000 and 1000000".into());
-    }
     if !(30..=7_200).contains(&request.max_duration_seconds) {
         return Err("Builtin Agent maxDurationSeconds must be between 30 and 7200".into());
     }

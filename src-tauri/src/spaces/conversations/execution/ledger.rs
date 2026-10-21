@@ -14,10 +14,6 @@ pub(super) async fn admit(
     request: AgentModelAdmission,
 ) -> Result<Value, String> {
     super::super::tool_operations::require_reconciled(pool, &request.identity.run_id).await?;
-    let reserved = i64::try_from(request.estimated_input_tokens)
-        .map_err(|_| "builtin-agent-model-input-limit")?
-        .checked_add(i64::from(request.max_output_tokens))
-        .ok_or("builtin-agent-model-input-limit")?;
     let checkpoint = request
         .checkpoint_id
         .ok_or("builtin-agent-model-input-not-durable")?;
@@ -26,15 +22,13 @@ pub(super) async fn admit(
         "SELECT 1 FROM spaces_runs r WHERE r.id=$1 AND r.state IN ('running','waiting') AND r.completed_at IS NULL
         AND r.cancel_requested_at IS NULL AND r.pause_requested_at IS NULL
         AND (SELECT COUNT(*) FROM spaces_builtin_agent_model_calls WHERE task_id=$2) < json_extract(r.budget,'$.maxTurns')
-        AND NOT EXISTS (SELECT 1 FROM spaces_builtin_agent_model_calls WHERE task_id=$2 AND state IN ('outcome_unknown','usage_unknown') AND retry_authorized_at IS NULL)
-        AND r.total_tokens+$3+COALESCE((SELECT SUM(estimated_input_tokens+max_output_tokens) FROM spaces_builtin_agent_model_calls WHERE task_id=$2 AND state IN ('requesting','outcome_unknown','usage_unknown')),0) <= json_extract(r.budget,'$.maxTotalTokens')")
-        .bind(&request.identity.run_id).bind(task_id).bind(reserved).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;
-    allowed
-        .ok_or("builtin-agent-model-admission-denied: execution or model budget is unavailable")?;
-    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,estimated_input_tokens,max_output_tokens,state,created_at)
-        VALUES($1,$2,$3,$4,$5,$6,$7,'requesting',$8)")
+        AND NOT EXISTS (SELECT 1 FROM spaces_builtin_agent_model_calls WHERE task_id=$2 AND state IN ('outcome_unknown','usage_unknown') AND retry_authorized_at IS NULL)")
+        .bind(&request.identity.run_id).bind(task_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;
+    allowed.ok_or("builtin-agent-model-admission-denied: the model turn budget is exhausted or the run is not active")?;
+    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,state,created_at)
+        VALUES($1,$2,$3,$4,$5,'requesting',$6)")
         .bind(request.request_id).bind(task_id).bind(serde_json::to_value(request.purpose).map_err(db::json_error)?.as_str().ok_or("builtin-agent-purpose-invalid")?)
-        .bind(request.graph_namespace.rsplit_once('|').map(|(scope, _)| scope).unwrap_or("")).bind(checkpoint).bind(i64::try_from(request.estimated_input_tokens).map_err(|_| "builtin-agent-model-input-limit")?).bind(i64::from(request.max_output_tokens)).bind(crate::foundation::clock::unix_time_millis()?)
+        .bind(request.graph_namespace.rsplit_once('|').map(|(scope, _)| scope).unwrap_or("")).bind(checkpoint).bind(crate::foundation::clock::unix_time_millis()?)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(Value::Null)
@@ -138,7 +132,6 @@ pub(super) async fn admit_tool(
         return Ok(Value::Null);
     }
     let allowed: Option<i64> = sqlx::query_scalar("SELECT 1 FROM spaces_runs r WHERE r.id=$1 AND completed_at IS NULL AND cancel_requested_at IS NULL AND pause_requested_at IS NULL
-        AND r.total_tokens <= json_extract(r.budget,'$.maxTotalTokens')
         AND NOT EXISTS (SELECT 1 FROM spaces_builtin_agent_model_calls WHERE task_id=$2 AND state IN ('outcome_unknown','usage_unknown') AND retry_authorized_at IS NULL)
         AND (SELECT COUNT(*) FROM spaces_builtin_agent_tool_admissions WHERE task_id=$2) < json_extract(r.budget,'$.maxTools')")
         .bind(run_id).bind(task_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;

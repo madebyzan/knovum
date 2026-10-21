@@ -21,14 +21,13 @@ pub(in crate::spaces::conversations) struct RecoverableTask {
     pub prompt: String,
     pub model_binding: ModelTargetSelection,
     pub frozen_target: ModelExecutionTarget,
-    pub model_profile: crate::ai::settings::contracts::BuiltinAgentModelSettings,
+    pub model_profile: crate::ai::models::profile::ModelProfile,
     pub catalog_digest: String,
     pub session: Session,
     pub messages: Vec<AgentInputMessage>,
     pub extensions: crate::extensions::contracts::AgentExtensionSnapshot,
     pub max_turns: u16,
     pub max_tool_calls: u16,
-    pub max_total_tokens: u32,
     pub max_duration_seconds: u32,
 }
 
@@ -115,8 +114,6 @@ fn parse_recoverable(row: sqlx::sqlite::SqliteRow) -> Result<RecoverableTask, St
         max_turns: u16::try_from(number(&budget, "maxTurns")?)
             .map_err(|_| "builtin-agent-budget-invalid")?,
         max_tool_calls: u16::try_from(number(&budget, "maxTools")?)
-            .map_err(|_| "builtin-agent-budget-invalid")?,
-        max_total_tokens: u32::try_from(number(&budget, "maxTotalTokens")?)
             .map_err(|_| "builtin-agent-budget-invalid")?,
         max_duration_seconds: u32::try_from(number(&budget, "maxDurationSeconds")?)
             .map_err(|_| "builtin-agent-budget-invalid")?,

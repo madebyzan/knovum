@@ -7,6 +7,7 @@ import { createJsonCanvasImportActions } from "../session/actions/json-canvas-im
 import { createSpaceState } from "../session/session-state";
 import { openTestSpaceTab } from "./support/session-context";
 type CanvasImport = typeof importJsonCanvas;
+import { deferred } from "../../../shared/__tests__/support/deferred";
 import type { loadSpaceSessionProjection } from "../session/space-projection";
 type Projection = typeof loadSpaceSessionProjection;
 type Receipt = Awaited<ReturnType<CanvasImport>>;
@@ -20,16 +21,6 @@ vi.mock("../canvas-exchange/json-canvas-import-operations", () => ({
   cancelJsonCanvasImport: mocks.cancel,
 }));
 vi.mock("../session/space-projection", () => ({ loadSpaceSessionProjection: mocks.projection }));
-
-function pending<T>() {
-  let fulfill!: (value: T) => void;
-  let fail!: (reason: unknown) => void;
-  const promise = new Promise<T>((resolve, reject) => {
-    fulfill = resolve;
-    fail = reject;
-  });
-  return { promise, resolve: fulfill, reject: fail };
-}
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -54,8 +45,9 @@ function startImport() {
   }).importJsonCanvas({ sourcePath: "/canvas.canvas", baseRevision: 0 });
 }
 
-it("waits for Rust cancellation and cleanup before settling the task", async () => {
-  const receipt = pending<Receipt>();
+/** Starts an import that Rust has registered, so the running task already offers cancellation. */
+async function startRegisteredImport() {
+  const receipt = deferred<Receipt>();
   mocks.import.mockImplementation(
     (_input, onProgress: (progress: { stage: string; bytesCopied: number }) => void) => {
       onProgress({ stage: "preparing", bytesCopied: 0 });
@@ -65,6 +57,11 @@ it("waits for Rust cancellation and cleanup before settling the task", async () 
   const operation = startImport();
   const tasks = useTaskStore();
   await vi.waitFor(() => expect(tasks.tasks[0]?.cancellable).toBe(true));
+  return { receipt, operation, tasks };
+}
+
+it("waits for Rust cancellation and cleanup before settling the task", async () => {
+  const { receipt, operation, tasks } = await startRegisteredImport();
   const rejection = operation.catch((error: unknown) => error);
   const cancellation = tasks.cancel(tasks.tasks[0]!.id);
   await vi.waitFor(() => expect(mocks.cancel).toHaveBeenCalled());
@@ -79,16 +76,7 @@ it("waits for Rust cancellation and cleanup before settling the task", async () 
 });
 
 it("keeps a committed import successful when cancellation loses the race", async () => {
-  const receipt = pending<Receipt>();
-  mocks.import.mockImplementation(
-    (_input, onProgress: (progress: { stage: string; bytesCopied: number }) => void) => {
-      onProgress({ stage: "preparing", bytesCopied: 0 });
-      return receipt.promise;
-    },
-  );
-  const operation = startImport();
-  const tasks = useTaskStore();
-  await vi.waitFor(() => expect(tasks.tasks[0]?.cancellable).toBe(true));
+  const { receipt, operation, tasks } = await startRegisteredImport();
   const cancellation = tasks.cancel(tasks.tasks[0]!.id);
   receipt.resolve({ importedNodes: [], revision: 1 });
   await operation;
@@ -97,17 +85,8 @@ it("keeps a committed import successful when cancellation loses the race", async
 });
 
 it("reports cleanup errors as failures even after cancellation was requested", async () => {
-  const receipt = pending<Receipt>();
-  mocks.import.mockImplementation(
-    (_input, onProgress: (progress: { stage: string; bytesCopied: number }) => void) => {
-      onProgress({ stage: "preparing", bytesCopied: 0 });
-      return receipt.promise;
-    },
-  );
-  const operation = startImport();
+  const { receipt, operation, tasks } = await startRegisteredImport();
   const rejection = operation.catch((error: unknown) => error);
-  const tasks = useTaskStore();
-  await vi.waitFor(() => expect(tasks.tasks[0]?.cancellable).toBe(true));
   const cancellation = tasks.cancel(tasks.tasks[0]!.id);
   receipt.reject(
     new Error("cleanup failed", { cause: { code: "operation_failed", message: "cleanup failed" } }),
@@ -118,7 +97,7 @@ it("reports cleanup errors as failures even after cancellation was requested", a
 });
 
 it("does not offer cancellation before Rust registers the operation", async () => {
-  const receipt = pending<Receipt>();
+  const receipt = deferred<Receipt>();
   mocks.import.mockReturnValue(receipt.promise);
   const operation = startImport();
   const tasks = useTaskStore();

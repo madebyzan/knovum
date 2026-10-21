@@ -34,17 +34,7 @@ describe("conversation task settlement", () => {
         error: "final state could not be read",
       }),
     });
-    const state = {
-      activeRun: shallowRef(),
-      activeRunId: shallowRef<string>(),
-      activeConversationId: shallowRef("conversation"),
-      activeSpaceId: shallowRef<string>(),
-      taskState: shallowRef<string>(),
-      loading: shallowRef(false),
-      error: shallowRef<string>(),
-      streamedText: shallowRef(""),
-      activityRevision: shallowRef(0),
-    };
+    const state = submissionState();
     const restoreDraft = vi.fn<(request: unknown) => Promise<void>>().mockResolvedValue(undefined);
     const submission = createConversationTaskSubmission({
       input: {
@@ -78,17 +68,7 @@ describe("conversation task settlement", () => {
   });
 
   it("keeps and reports the draft when persisted deletion rejects", async () => {
-    const state = {
-      activeRun: shallowRef(),
-      activeRunId: shallowRef<string>(),
-      activeConversationId: shallowRef("conversation"),
-      activeSpaceId: shallowRef<string>(),
-      taskState: shallowRef<string>(),
-      loading: shallowRef(false),
-      error: shallowRef<string>(),
-      streamedText: shallowRef(""),
-      activityRevision: shallowRef(0),
-    };
+    const state = submissionState();
     const restoreDraft = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     const clearDraft = vi
       .fn<() => Promise<void>>()
@@ -124,3 +104,17 @@ describe("conversation task settlement", () => {
     expect(prompt.value).toBe("unsent work");
   });
 });
+
+function submissionState() {
+  return {
+    activeRun: shallowRef(),
+    activeRunId: shallowRef<string>(),
+    activeConversationId: shallowRef("conversation"),
+    activeSpaceId: shallowRef<string>(),
+    taskState: shallowRef<string>(),
+    loading: shallowRef(false),
+    error: shallowRef<string>(),
+    streamedText: shallowRef(""),
+    activityRevision: shallowRef(0),
+  };
+}

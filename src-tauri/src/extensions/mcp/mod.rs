@@ -9,6 +9,7 @@ pub(crate) mod invocation;
 pub(crate) mod resource_selection;
 pub(crate) mod sessions;
 mod stdio;
+pub(crate) mod tool_schema;
 pub(crate) use client::McpInteraction;
 
 #[cfg(test)]

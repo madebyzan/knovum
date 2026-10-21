@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { deferred } from "../../../shared/__tests__/support/deferred";
 import type { UpdateState } from "../../../shared/contracts/generated/UpdateState";
 import { isApplicationTransitioning, runApplicationTransition } from "../../lifecycle/application-transition";
 import { useTaskStore } from "../../tasks/task-store";
@@ -22,13 +23,6 @@ const release = { version: "1.2.3", currentVersion: "1.2.2", notes: "Reviewed up
 let receive: (event: { payload: unknown }) => void;
 function emit(revision: number, state: UpdateState) {
   receive({ payload: { revision, state } });
-}
-function deferred<T>() {
-  let complete!: (value: T) => void;
-  const promise = new Promise<T>((resolve) => {
-    complete = resolve;
-  });
-  return { promise, resolve: complete };
 }
 
 beforeEach(() => {

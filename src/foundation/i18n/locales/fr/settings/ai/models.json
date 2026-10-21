@@ -21,10 +21,6 @@
   "identifier": "Identifiant du modèle du fournisseur",
   "builtinAgent": {
     "enabled": "À utiliser pour l'agent intégré",
-    "help": "Seuls les modèles avec appel d'outil peuvent être activés. Utilisez le contexte documenté et les limites de sortie du fournisseur.",
-    "protocol": "Modèle de protocole API",
-    "contextWindow": "Fenêtre contextuelle (jetons)",
-    "maxOutputTokens": "Limite de sortie par requête (jetons)",
-    "invalidLimits": "Le contexte doit être d'au moins 8 192 jetons ; le résultat doit être positif et plus petit que le contexte."
+    "help": "Seuls les modèles prenant en charge l’appel d’outils peuvent être activés. Les limites de contexte et de sortie sont détectées automatiquement à partir du modèle."
   }
 }

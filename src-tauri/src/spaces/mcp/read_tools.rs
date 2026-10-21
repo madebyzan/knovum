@@ -51,7 +51,7 @@ impl SpaceMcpServer {
     }
 
     #[tool(
-        description = "Search indexed Space content by keywords; returns nodeId, sourceRevision, excerpts and locators. Empty results do not mean the canvas is empty; use list_space_contents for inventory.",
+        description = "Search indexed Space content by keywords; returns nodeId, sourceRevision, excerpts, locators and the cite id of each passage. Empty results do not mean the canvas is empty; use list_space_contents for inventory.",
         annotations(read_only_hint = true)
     )]
     async fn search_knowledge(
@@ -59,16 +59,16 @@ impl SpaceMcpServer {
         Parameters(args): Parameters<SearchArgs>,
     ) -> Result<String, McpError> {
         self.require_read(&args.space_id).await?;
-        query::search_knowledge(&self.app, args).await
+        query::search_knowledge(&self.app, &self.parent_run_id, args).await
     }
 
     #[tool(
-        description = "Read one current canvas node by ID with data, indexed chunks and managed assetPath. These source assets remain available after output workspace cleanup. Never infer a source is missing from an empty working directory.",
+        description = "Read one current canvas node by ID with data, indexed chunks (each with its cite id) and managed assetPath. These source assets remain available after output workspace cleanup. Never infer a source is missing from an empty working directory.",
         annotations(read_only_hint = true)
     )]
     async fn get_node(&self, Parameters(args): Parameters<NodeArgs>) -> Result<String, McpError> {
         self.require_read(&args.space_id).await?;
-        query::get_node(&self.app, args).await
+        query::get_node(&self.app, &self.parent_run_id, args).await
     }
 
     #[tool(

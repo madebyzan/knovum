@@ -2,11 +2,7 @@ import { z } from "zod";
 
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
 import type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
-import {
-  providerKinds,
-  executionCapabilities,
-  chatModelProtocols,
-} from "../../../shared/contracts/generated/contract-values";
+import { providerKinds, executionCapabilities } from "../../../shared/contracts/generated/contract-values";
 import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import { externalAgentKindSchema } from "./external-agents";
 
@@ -34,24 +30,13 @@ export const aiConnectionBaseUrlSchema = z
     }
   });
 
-const builtinAgentModelSettingsSchema = z
-  .object({
-    protocol: z.enum(chatModelProtocols),
-    contextWindow: z.number().int().min(8192).max(2_000_000),
-    maxOutputTokens: z.number().int().positive(),
-  })
-  .strict()
-  .refine((profile) => profile.maxOutputTokens < profile.contextWindow, {
-    message: "Builtin Agent output limit must be smaller than its context window",
-  });
-
 export const aiModelDefinitionSchema = z
   .object({
     id: z.string().trim().min(1),
     name: z.string().trim().min(1),
     model: z.string().trim().min(1),
     capabilities: z.array(aiCapabilitySchema).min(1),
-    builtinAgent: builtinAgentModelSettingsSchema.nullable().exactOptional(),
+    builtinAgent: z.boolean(),
   })
   .strict();
 

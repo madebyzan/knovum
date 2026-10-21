@@ -21,10 +21,6 @@
   "identifier": "Anbietermodell-ID",
   "builtinAgent": {
     "enabled": "Wird für den integrierten Agenten verwendet",
-    "help": "Es können nur Modelle mit Werkzeugaufruf aktiviert werden. Verwenden Sie die dokumentierten Kontext- und Ausgabebeschränkungen des Anbieters.",
-    "protocol": "Modell-API-Protokoll",
-    "contextWindow": "Kontextfenster (Tokens)",
-    "maxOutputTokens": "Ausgabelimit pro Anfrage (Tokens)",
-    "invalidLimits": "Der Kontext muss mindestens 8.192 Token umfassen. Die Ausgabe muss positiv und kleiner als der Kontext sein."
+    "help": "Nur Modelle mit Tool-Aufrufen können aktiviert werden. Kontext- und Ausgabelimits werden automatisch anhand des Modells erkannt."
   }
 }

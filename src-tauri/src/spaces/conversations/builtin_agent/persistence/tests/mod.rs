@@ -22,7 +22,6 @@ async fn frozen_execution_preserves_image_input_and_space_snapshot() {
         },
         max_turns: 12,
         max_tool_calls: 32,
-        max_total_tokens: 100_000,
         max_duration_seconds: 900,
         attachments: vec![],
         extensions: Default::default(),
@@ -61,10 +60,9 @@ async fn frozen_execution_preserves_image_input_and_space_snapshot() {
         secret_key: "credential-reference".into(),
         capabilities: vec![crate::ai::contracts::ExecutionCapability::VisionUnderstanding],
     };
-    let profile = crate::ai::settings::contracts::BuiltinAgentModelSettings {
-        protocol: crate::ai::contracts::ChatModelProtocol::OpenAiChat,
-        context_window: 32768,
-        max_output_tokens: 4096,
+    let profile = crate::ai::models::profile::ModelProfile {
+        max_input_tokens: Some(65_536),
+        max_output_tokens: Some(4096),
     };
     let mut tx = pool.begin().await.unwrap();
     let space =

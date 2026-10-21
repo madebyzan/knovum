@@ -143,12 +143,7 @@
       "stop": "Detener tarea",
       "description": "Es posible que la operación se haya completado. Verifique el servicio antes de autorizar un reintento."
     },
-    "attempt": "Intento",
-    "history": {
-      "title": "Historial de herramientas",
-      "empty": "Aún no hay operaciones con herramientas"
-    },
-    "progress": "Progreso"
+    "attempt": "Intento"
   },
   "interactions": {
     "title": "El servicio externo necesita información",

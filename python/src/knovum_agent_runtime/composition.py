@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any
 
 from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
 from deepagents.middleware import FilesystemPermission
 from deepagents.middleware.skills import SkillsMiddleware
 from deepagents.middleware.subagents import SubAgent
-from deepagents.middleware.summarization import SummarizationMiddleware
+from deepagents.middleware.summarization import create_summarization_middleware
 from deepagents.profiles import GeneralPurposeSubagentProfile, HarnessProfile, register_harness_profile
 from langchain.agents.middleware import AgentMiddleware, TodoListMiddleware
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
@@ -31,6 +31,18 @@ MODEL_PROVIDERS = {
     "groq": "groq",
 }
 
+# Knovum publishes through Actions, so the harness may neither run commands nor delete files;
+# its workspace stays a scratchpad for notes, drafts and offloaded tool results.
+EXCLUDED_TOOLS = frozenset({"execute", "delete"})
+PLANNING_PROMPT = (
+    "## Planning\n\nFor work with several distinct steps, keep a short plan with `write_todos`: "
+    "one item in_progress at a time, marked completed as soon as it is done. Skip it for simple requests."
+)
+PLANNING_TOOL = (
+    "Replace the task plan. Each item has content and a status of pending, in_progress or completed. "
+    "Use only for multi-step work."
+)
+
 
 def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> CompiledStateGraph[Any, Any, Any, Any]:
     provider = MODEL_PROVIDERS[request.model.protocol.value]
@@ -38,20 +50,13 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
         f"{provider}:{request.model.model}",
         HarnessProfile(
             general_purpose_subagent=GeneralPurposeSubagentProfile(enabled=False),
-            excluded_tools=frozenset({"execute", "delete"}),
+            excluded_tools=EXCLUDED_TOOLS,
         ),
     )
-    readonly_store = InMemoryStore()
-    skills_backend = StoreBackend(namespace=lambda _: ("reviewed_skills", "v1"), store=readonly_store)
-    memory_backend = StoreBackend(namespace=lambda _: ("space_snapshot", "v1"), store=readonly_store)
-    memory_uploads = memory_backend.upload_files(
-        [(path, content.encode("utf-8")) for path, content in request.memory.items()]
-    )
-    if any(item.error for item in memory_uploads):
-        raise ValueError("agent-runtime-memory-snapshot-unavailable")
+    skills_backend = StoreBackend(namespace=lambda _: ("reviewed_skills", "v1"), store=InMemoryStore())
     backend = CompositeBackend(
         default=StateBackend(),
-        routes={"/skills/": skills_backend, "/memory/": memory_backend},
+        routes={"/skills/": skills_backend},
         artifacts_root="/workspace",
     )
     uploaded = backend.upload_files(skill_files(request.skills))
@@ -59,15 +64,13 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
         raise ValueError("agent-runtime-skills-unavailable")
     main = create_model(request.model, AgentModelPurpose.main)
     summarizer = create_model(request.model, AgentModelPurpose.context_summary)
-    trigger: tuple[Literal["tokens"], int] = ("tokens", max(1, request.model.max_input_tokens * 3 // 4))
-    keep: tuple[Literal["tokens"], int] = ("tokens", max(1, request.model.max_input_tokens // 4))
 
     def execution_middleware(*, read_only: bool = False) -> list[AgentMiddleware[Any, Any, Any]]:
         tools = [create_tool(tool) for tool in request.tools if not read_only or tool.read_only]
         return [
-            SummarizationMiddleware(
-                model=summarizer, backend=backend, trim_tokens_to_summarize=None, trigger=trigger, keep=keep
-            ),
+            # Deep Agents derives trigger, retention and the input budget from the model profile;
+            # only the summary model differs, so its calls are metered under their own purpose.
+            create_summarization_middleware(summarizer, backend),
             SkillsMiddleware(
                 backend=backend, sources=["/skills/"], tools=skill_tool_resolver(request.skill_tool_bindings, tools)
             ),
@@ -75,10 +78,10 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
         ]
 
     middleware = execution_middleware()
-    middleware.append(TodoListMiddleware())
+    middleware.append(TodoListMiddleware(system_prompt=PLANNING_PROMPT, tool_description=PLANNING_TOOL))
     read_rule = FilesystemPermission(
         operations=["read"],
-        paths=["/workspace", "/workspace/**", "/skills", "/skills/**", "/memory", "/memory/**"],
+        paths=["/workspace", "/workspace/**", "/skills", "/skills/**"],
         mode="allow",
     )
     write_rule = FilesystemPermission(operations=["write"], paths=["/workspace/**"], mode="allow")
@@ -102,7 +105,6 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
         subagents=subagents,
         backend=backend,
         skills=["/skills/"],
-        memory=["/memory/space.json"] if request.memory else None,
         permissions=[read_rule, write_rule, deny_rule],
         context_schema=ExecutionContext,
         checkpointer=saver,

@@ -32,7 +32,7 @@ const models = computed(() =>
   availableModelTargets(settings.settings, "knowledge").filter(({ target: selected }) =>
     settings.settings.connections
       .find(({ id }) => id === selected.connectionId)
-      ?.models.some((model) => model.id === selected.modelId && Boolean(model.builtinAgent)),
+      ?.models.some((model) => model.id === selected.modelId && model.builtinAgent),
   ),
 );
 const modelChoices = computed(() =>

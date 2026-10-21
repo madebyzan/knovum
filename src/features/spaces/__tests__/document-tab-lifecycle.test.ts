@@ -4,6 +4,7 @@ import { afterEach, beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { nextTick, shallowRef } from "vue";
 import { createI18n } from "vue-i18n";
 
+import { deferred } from "../../../shared/__tests__/support/deferred";
 import { createSpaceNode } from "../canvas/node";
 import { useDocumentSessionStore } from "../document-editing/document-session-store";
 import { createSpaceNotePayload } from "../document-editing/tiptap-content";
@@ -11,7 +12,6 @@ import { useSpaceTiptapEditor } from "../document-editing/use-space-tiptap-edito
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { NodePayloadChangeInput } from "../nodes/node-operations";
 import { prepareEditorSessionClose } from "../workspace/session-participants";
-import { deferred } from "./support/canvas-fixtures";
 
 const mocks = vi.hoisted(() => ({
   store: {

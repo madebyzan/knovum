@@ -4,7 +4,7 @@ import { ref } from "vue";
 import { z } from "zod";
 
 import { useSpaceStore } from "../../session/space-store";
-import type { ActivityItem } from "../conversation-activity-items";
+import type { ActivityItem, ToolProgress } from "../conversation-activity-items";
 import SpaceConversationSearchMatches from "./SpaceConversationSearchMatches.vue";
 import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 defineProps<{ item: ActivityItem; active: boolean }>();
@@ -26,6 +26,11 @@ function createdNodeId(value: unknown) {
 
 function formatToolContent(value: unknown) {
   return typeof value === "string" ? value : JSON.stringify(value, null, 2);
+}
+
+function formatProgress({ progress, total, message }: ToolProgress) {
+  const amount = total == null ? `${progress}` : `${progress} / ${total}`;
+  return message ? `${amount} · ${message}` : amount;
 }
 
 function hasToolContent(item: ActivityItem) {
@@ -66,6 +71,12 @@ function toggleTool(event: Event) {
         >{{ item.title }}</SpaceConversationShimmerText
       >
       <span v-else class="min-w-0 flex-1 truncate">{{ item.title }}</span>
+      <span
+        v-if="active && item.progress && (item.status === 'in_progress' || item.status === 'pending')"
+        role="status"
+        class="min-w-0 shrink truncate text-fg-tertiary tabular-nums"
+        >{{ formatProgress(item.progress) }}</span
+      >
       <ChevronRight
         v-if="hasToolContent(item)"
         class="size-3.5 shrink-0 transition-transform group-open/tool:rotate-90"

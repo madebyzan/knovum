@@ -57,14 +57,7 @@ describe("UiExpandableText", () => {
 
   it("shows expand button when overflow is simulated and toggles state on click", async () => {
     const wrapper = render({ text: "Line 1\nLine 2\nLine 3\nLine 4\nLine 5", clampLines: 2 });
-    const el = wrapper.find("p").element;
-    Object.defineProperty(el, "scrollHeight", { configurable: true, value: 200 });
-    Object.defineProperty(el, "clientHeight", { configurable: true, value: 50 });
-
-    wrapper.vm.checkOverflow();
-    await wrapper.vm.$nextTick();
-
-    const button = wrapper.find("button");
+    const button = await overflowing(wrapper);
     expect(button.exists()).toBe(true);
     expect(button.text()).toContain("展开");
     expect(button.attributes("aria-expanded")).toBe("false");
@@ -86,14 +79,7 @@ describe("UiExpandableText", () => {
       expandLabel: "查看全部",
       collapseLabel: "隐藏内容",
     });
-    const el = wrapper.find("p").element;
-    Object.defineProperty(el, "scrollHeight", { configurable: true, value: 200 });
-    Object.defineProperty(el, "clientHeight", { configurable: true, value: 50 });
-
-    wrapper.vm.checkOverflow();
-    await wrapper.vm.$nextTick();
-
-    const button = wrapper.find("button");
+    const button = await overflowing(wrapper);
     expect(button.exists()).toBe(true);
     expect(button.text()).toContain("查看全部");
 
@@ -101,3 +87,13 @@ describe("UiExpandableText", () => {
     expect(button.text()).toContain("隐藏内容");
   });
 });
+
+/** Lays the clamped text out taller than its box and returns the toggle that overflow reveals. */
+async function overflowing(wrapper: ReturnType<typeof render>) {
+  const text = wrapper.find("p").element;
+  Object.defineProperty(text, "scrollHeight", { configurable: true, value: 200 });
+  Object.defineProperty(text, "clientHeight", { configurable: true, value: 50 });
+  wrapper.vm.checkOverflow();
+  await wrapper.vm.$nextTick();
+  return wrapper.find("button");
+}

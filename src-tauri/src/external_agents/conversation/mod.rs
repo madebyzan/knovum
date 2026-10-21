@@ -42,7 +42,8 @@ async fn serve(
     cancellation: CancellationToken,
     ready: oneshot::Sender<AppResult<ConversationSession>>,
 ) -> AppResult<()> {
-    let agent = super::connection::runtime(context.kind, &cancellation).await?;
+    let agent =
+        super::connection::runtime(context.kind, &context.mcp_servers, &cancellation).await?;
     serve_connection(agent, context, requests, cancellation, ready).await
 }
 

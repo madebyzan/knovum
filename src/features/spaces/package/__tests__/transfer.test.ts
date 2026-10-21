@@ -2,6 +2,7 @@ import { Channel } from "@tauri-apps/api/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { invokeCommand } from "../../../../foundation/ipc/invoke-command";
+import { deferred } from "../../../../shared/__tests__/support/deferred";
 import type { SpacePackageProgress } from "../../contracts/generated/SpacePackageProgress";
 import { cancelSpacePackageTransfer, exportSpacePackage } from "../transfer";
 
@@ -19,16 +20,6 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({
   open: vi.fn<() => Promise<null>>(),
   save: vi.fn<() => Promise<null>>(),
 }));
-
-function deferred<T>() {
-  let resolvePromise!: (value: T) => void;
-  let rejectPromise!: (error: unknown) => void;
-  const promise = new Promise<T>((resolve, reject) => {
-    resolvePromise = resolve;
-    rejectPromise = reject;
-  });
-  return { promise, reject: rejectPromise, resolve: resolvePromise };
-}
 
 function admitted(channel: Channel<SpacePackageProgress>) {
   channel.onmessage({ stage: "admitted", processed: 0, total: 0, percent: 100 });

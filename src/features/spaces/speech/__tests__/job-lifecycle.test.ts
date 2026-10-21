@@ -20,6 +20,7 @@ vi.mock("../ipc", () => ({ cancelSpeechGeneration: mocks.cancel }));
 vi.mock("../signal-inspection-ipc", () => ({ inspectSpeechSignal: mocks.inspect }));
 vi.mock("../audiobook-script-import", () => ({ readNodeAudiobookScript: mocks.readScript }));
 
+import { deferred } from "../../../../shared/__tests__/support/deferred";
 import { useAudiobookScriptImport } from "../use-audiobook-script-import";
 import { useSpeechSignalInspection } from "../use-speech-signal-inspection";
 
@@ -127,16 +128,6 @@ function setup<T>(factory: () => T) {
   const scope = effectScope();
   scopes.push(scope);
   return scope.run(factory)!;
-}
-
-function deferred<T>() {
-  let complete!: (value: T) => void;
-  let fail!: (cause: unknown) => void;
-  const promise = new Promise<T>((resolve, reject) => {
-    complete = resolve;
-    fail = reject;
-  });
-  return { promise, reject: fail, resolve: complete };
 }
 
 function report(scannedDurationMs: number): SpeechSignalReport {

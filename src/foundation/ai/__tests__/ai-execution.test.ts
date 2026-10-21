@@ -39,6 +39,7 @@ describe("execution target options", () => {
             name: "Omni",
             model: "omni",
             capabilities: ["vision-understanding", "image-generation", "video-generation"],
+            builtinAgent: false,
           },
         ],
       });
@@ -65,7 +66,15 @@ it("keeps distinct model references separate when identifiers contain separators
       name: connectionId,
       provider: "openai",
       baseUrl: "https://api.openai.com/v1/",
-      models: [{ id: modelId, name: modelId, model: modelId, capabilities: ["text-generation"] }],
+      models: [
+        {
+          id: modelId,
+          name: modelId,
+          model: modelId,
+          capabilities: ["text-generation"],
+          builtinAgent: false,
+        },
+      ],
     })),
   });
   expect(options[0]!.value).not.toBe(options[1]!.value);

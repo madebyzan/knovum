@@ -2,6 +2,7 @@ import { Channel, type InvokeArgs } from "@tauri-apps/api/core";
 import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { deferred } from "../../../shared/__tests__/support/deferred";
 import { isSpaceNodeOpenable } from "../canvas/selection-actions";
 import type { RenderVideoEditRequest } from "../contracts/generated/RenderVideoEditRequest";
 import type { VideoEditProgress } from "../contracts/generated/VideoEditProgress";
@@ -10,7 +11,6 @@ import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import type { useSpaceStore } from "../session/space-store";
 import { createVideoEditProject } from "../video-editing/project";
 import { renderVideoEdit } from "../video-editing/render";
-import { deferred } from "./support/canvas-fixtures";
 
 const mocks = vi.hoisted(() => ({
   current: undefined as unknown,

@@ -31,8 +31,7 @@ pub(in crate::spaces::conversations) struct Gateway {
     pub(in crate::spaces::conversations) app: tauri::AppHandle,
     pub(in crate::spaces::conversations) pool: SqlitePool,
     pub(in crate::spaces::conversations) target: ModelExecutionTarget,
-    pub(in crate::spaces::conversations) profile:
-        crate::ai::settings::contracts::BuiltinAgentModelSettings,
+    pub(in crate::spaces::conversations) profile: crate::ai::models::profile::ModelProfile,
     pub(in crate::spaces::conversations) request: StartBuiltinAgentTaskRequest,
     pub(in crate::spaces::conversations) ids: TaskIds,
     pub(in crate::spaces::conversations) catalog: ToolCatalog,

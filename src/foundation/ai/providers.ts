@@ -11,7 +11,7 @@ const providerDescriptorSchema: z.ZodType<ProviderDescriptor> = z
     displayName: z.string().min(1),
     defaultBaseUrl: z.union([z.literal(""), z.url()]),
     capabilities: z.array(aiCapabilitySchema).min(1),
-    builtinAgentProtocols: z.array(z.enum(chatModelProtocols)),
+    builtinAgentProtocol: z.enum(chatModelProtocols).nullable(),
   })
   .strict();
 

@@ -5,7 +5,6 @@ from uuid import UUID
 
 from langchain_core.callbacks import AsyncCallbackHandler
 from langchain_core.messages import AIMessage, BaseMessage
-from langchain_core.messages.utils import count_tokens_approximately
 from langchain_core.outputs import ChatGeneration, LLMResult
 from langgraph.runtime import get_runtime
 
@@ -22,9 +21,8 @@ class ModelBudget(AsyncCallbackHandler):
     raise_error = True
     run_inline = True
 
-    def __init__(self, purpose: AgentModelPurpose, max_output_tokens: int) -> None:
+    def __init__(self, purpose: AgentModelPurpose) -> None:
         self.purpose = purpose
-        self.max_output_tokens = max_output_tokens
 
     async def on_chat_model_start(
         self,
@@ -47,11 +45,6 @@ class ModelBudget(AsyncCallbackHandler):
                 purpose=self.purpose,
                 checkpoint_id=await context.checkpoint_id(),
                 graph_namespace=(metadata or {}).get("langgraph_checkpoint_ns", ""),
-                estimated_input_tokens=sum(
-                    count_tokens_approximately(batch, tools=kwargs.get("invocation_params", {}).get("tools"))
-                    for batch in messages
-                ),
-                max_output_tokens=self.max_output_tokens,
             ),
         )
         context.admitted_requests[request_id] = (metadata or {}).get("langgraph_checkpoint_ns", "").rpartition("|")[0]

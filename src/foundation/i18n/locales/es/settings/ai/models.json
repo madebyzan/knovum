@@ -21,10 +21,6 @@
   "identifier": "Identificador de modelo de proveedor",
   "builtinAgent": {
     "enabled": "Uso para el Agente integrado",
-    "help": "Solo se pueden habilitar modelos con llamada de herramientas. Utilice el contexto documentado y los límites de salida del proveedor.",
-    "protocol": "Protocolo API modelo",
-    "contextWindow": "Ventana de contexto (tokens)",
-    "maxOutputTokens": "Límite de salida por solicitud (tokens)",
-    "invalidLimits": "El contexto debe tener al menos 8192 tokens; El resultado debe ser positivo y menor que el contexto."
+    "help": "Solo se pueden activar modelos con llamadas a herramientas. Los límites de contexto y de salida se detectan automáticamente según el modelo."
   }
 }

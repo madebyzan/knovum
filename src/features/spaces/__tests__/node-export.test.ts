@@ -1,22 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createSpaceNode } from "../canvas/node";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import { canvasNode, exportHost } from "./support/export-host";
 
-const mocks = vi.hoisted(() => ({
-  invoke: vi.fn<(command: string, args: unknown) => Promise<unknown>>(),
-  save: vi.fn<(options: unknown) => Promise<string | null>>(),
-}));
-
-vi.mock("@tauri-apps/api/core", () => ({ invoke: mocks.invoke }));
-vi.mock("@tauri-apps/plugin-dialog", () => ({ save: mocks.save }));
+vi.mock("@tauri-apps/api/core", async () => (await import("./support/export-host")).tauriCore);
+vi.mock("@tauri-apps/plugin-dialog", async () => (await import("./support/export-host")).tauriDialog);
 
 import { nodeExportFormats } from "../assets/export/formats";
 import { exportSpaceNode } from "../assets/export/node";
 
 /** The formats the engine reports for the resource under test. */
 function engineOffers(formats: string[], unavailable: string | null = null) {
-  mocks.invoke
+  exportHost.invoke
     .mockReset()
     .mockImplementation((command) =>
       Promise.resolve(command === "plugin:spaces|list_export_formats" ? { formats, unavailable } : undefined),
@@ -24,13 +19,13 @@ function engineOffers(formats: string[], unavailable: string | null = null) {
 }
 
 function invocation(command: string) {
-  return mocks.invoke.mock.calls.find(([name]) => name === command)?.[1];
+  return exportHost.invoke.mock.calls.find(([name]) => name === command)?.[1];
 }
 
 describe("Space resource export", () => {
   beforeEach(() => {
     engineOffers([]);
-    mocks.save.mockReset().mockResolvedValue("/exports/result.json");
+    exportHost.save.mockReset().mockResolvedValue("/exports/result.json");
   });
 
   it("serializes credential metadata from an explicit allowlist, without the engine", async () => {
@@ -102,12 +97,12 @@ describe("Space resource export", () => {
   });
 
   it("asks for a destination in the chosen format and lets the engine write it", async () => {
-    mocks.save.mockResolvedValue("/exports/Meeting notes.docx");
+    exportHost.save.mockResolvedValue("/exports/Meeting notes.docx");
     const onStart = vi.fn<(jobId: string) => void>();
 
     await exportSpaceNode("space", editableNode("note", "Meeting notes"), "docx", { onStart });
 
-    expect(mocks.save).toHaveBeenCalledWith({
+    expect(exportHost.save).toHaveBeenCalledWith({
       defaultPath: "Meeting notes.docx",
       filters: [{ name: "Word document (.docx)", extensions: ["docx"] }],
     });
@@ -121,7 +116,7 @@ describe("Space resource export", () => {
   });
 
   it("lets the Renderer write a format it holds itself", async () => {
-    mocks.save.mockResolvedValue("/exports/Plan.md");
+    exportHost.save.mockResolvedValue("/exports/Plan.md");
 
     await exportSpaceNode("space", canvasNode("markdown", markdownPayload()), "md");
 
@@ -133,7 +128,7 @@ describe("Space resource export", () => {
   });
 
   it("names the chosen format on a destination that states another one", async () => {
-    mocks.save.mockResolvedValue("/exports/Cover.txt");
+    exportHost.save.mockResolvedValue("/exports/Cover.txt");
 
     await exportSpaceNode("space", imageNode(), "png");
 
@@ -143,7 +138,7 @@ describe("Space resource export", () => {
   });
 
   it("writes nothing when the destination is not chosen", async () => {
-    mocks.save.mockResolvedValue(null);
+    exportHost.save.mockResolvedValue(null);
 
     await expect(exportSpaceNode("space", imageNode(), "png")).resolves.toBe(false);
 
@@ -151,10 +146,6 @@ describe("Space resource export", () => {
     expect(invocation("plugin:spaces|export_text")).toBeUndefined();
   });
 });
-
-function canvasNode(nodeId: string, data: SpaceCanvasNode["data"]): SpaceCanvasNode {
-  return createSpaceNode(data, { x: 0, y: 0 }, nodeId);
-}
 
 function markdownPayload(): SpaceCanvasNode["data"] {
   return { kind: "markdown", title: "Plan", text: "# Plan" };

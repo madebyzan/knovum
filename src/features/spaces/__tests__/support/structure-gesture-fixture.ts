@@ -2,6 +2,7 @@ import type Konva from "konva";
 import { onTestFinished } from "vitest";
 import { computed, effectScope, shallowRef, watch } from "vue";
 
+import { deferred } from "../../../../shared/__tests__/support/deferred";
 import { projectStructureCanvasDocument } from "../../canvas/document/structure-canvas-document";
 import { projectStructureScene } from "../../canvas/document/structure-scene-projection";
 import { projectStructureGesture } from "../../canvas/konva/interaction/structure-gesture-preview";
@@ -12,7 +13,6 @@ import type { SpaceEditCommand } from "../../contracts/generated/SpaceEditComman
 import { createSpaceNotePayload } from "../../document-editing/tiptap-content";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
-import { deferred } from "./canvas-fixtures";
 
 export function structureGestureFixture() {
   const scope = effectScope();

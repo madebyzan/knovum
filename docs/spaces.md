@@ -135,7 +135,7 @@ Do not collapse these concepts into a folder tree or a single generic Group abst
 
 ## Knowledge State
 
-The canvas is a projection over durable knowledge, not the data model itself. Resources preserve source material; `object` nodes carry strict typed Knowledge Objects; Portal nodes are navigation projections. Relations, Provenance and temporal Knowledge Events are first-class Space-local records. Agent output enters long-term state only through a validated atomic KnowledgeChangeSet. The loopback-only MCP server exposes reads and the same Rust-owned commit use case; it never exposes SQLite or partial mutations. See `knowledge.md` for the current contract.
+The canvas is a projection over durable knowledge, not the data model itself. Resources preserve source material; `object` nodes carry strict typed Knowledge Objects; Portal nodes are navigation projections. Relations, Provenance and temporal Knowledge Events are first-class Space-local records. Agent output enters long-term state only through a validated atomic KnowledgeChangeSet. The loopback-only MCP server exposes reads and the same Rust-owned commit use case; it never exposes SQLite or partial mutations. Every published tool schema is a described object down to each property: MCP clients built on the reference SDK validate `tools/list` as a whole, so one free-form (boolean) property schema makes the client drop the entire Knovum tool list and report the tools as missing. Tool arguments therefore use typed contracts, and schemas borrowed from an external MCP server are conformed before they are re-published. See `knowledge.md` for the current contract.
 
 ## Knowledge Derivation
 
@@ -257,7 +257,29 @@ It runs Deep Agents in the private Builtin Agent runtime with Todo and read-only
 as standard capabilities. SDK todos project into Run activities only when used; maintaining a task
 list does not itself publish business changes. User requests for discussion or a proposal guide Agent
 behavior; host authorization, not natural-language classification, enforces tool and Space boundaries.
-Models need an explicit qualified Builtin Agent protocol/context/output profile in AI settings.
+A model is enabled for the Builtin Agent with a single switch; the wire protocol belongs to the
+provider (OpenAI uses Responses, OpenAI-compatible vendors Chat Completions, the rest their native
+API) and is never a user choice. Context window and per-request output limit are properties of the
+model, not settings: they are resolved from the published model catalogue, cached with the
+application and refreshed in the background. An unlisted model simply has unknown limits, which is a
+legitimate state — the runtime then lets the harness compact history on overflow instead of
+pre-computing a budget, and sends no output-limit parameter at all. A task is bounded by model turns,
+tool calls and duration; there is no separate token budget, since turns × context window already
+bounds it and reserving every call's full output limit against a fixed total rejected legitimate
+answers. The Space snapshot is part of the system prompt, not Agent memory: it is authoritative
+state the host regenerates for every turn, while the SDK's memory middleware presents its sources as
+possibly stale files the Agent is invited to rewrite with `edit_file`, which would let output reach
+state outside a KnowledgeChangeSet. The harness exposes the filesystem tools
+the SDK's own middleware depends on (`ls`, `read_file`, `grep`, `glob` over offloaded results, plus
+`write_file`/`edit_file` as a scratch space under `/workspace`), planning and research — every tool
+schema is paid on every model call, so shell execution and deletion stay out.
+Answers cite what the Agent actually read. Every indexed passage a search or node read returns —
+through Space Actions for the built-in Agent or the `knovum` MCP server for desktop Agents — carries
+the Run's `cite` id (`C1`, `C2`, …), numbered once per Run in `spaces_run_citations` from the chunk
+row itself. When an answer is stored, its `[Cn]` markers resolve to Grounded citations on the
+message: the marker renders as a link that opens the exact chunk and locator, and the sources the
+answer cited are listed beneath it. A marker the Run never issued stays plain text; a source edited
+after the answer is shown as detached, never silently re-pointed.
 Generation tools use their configured business routes, independently of the conversation model.
 Only complete checkpoint-proven main messages enter persistent history; in-flight text is a
 presentation stream. Public history remains available when an unsupported or unsuccessful graph

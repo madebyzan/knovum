@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { effectScope } from "vue";
 import type * as vueI18n from "vue-i18n";
 
+import { deferred } from "../../../../shared/__tests__/support/deferred";
 import type { RunObservation } from "../../contracts/generated/RunObservation";
 import type * as runObservation from "../../runs/resource-run-observation";
 import type * as sourceSeparationIpc from "../source-separation-ipc";
@@ -41,13 +42,6 @@ function run(state: RunObservation["state"]): RunObservation {
     updatedAt: 1,
     completedAt: state === "succeeded" ? 1 : null,
   };
-}
-function deferred<T>() {
-  let finish!: (value: T) => void;
-  const promise = new Promise<T>((resolve) => {
-    finish = resolve;
-  });
-  return { promise, resolve: finish };
 }
 const scopes: ReturnType<typeof effectScope>[] = [];
 function setup() {

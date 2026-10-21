@@ -41,14 +41,24 @@ describe("speech architecture policies", () => {
         name: "OpenAI",
         provider: "openai",
         baseUrl: "https://api.openai.com/v1",
-        models: [{ id: "gpt", name: "GPT", model: "qwen", capabilities: ["text-generation"] }],
+        models: [
+          { id: "gpt", name: "GPT", model: "qwen", capabilities: ["text-generation"], builtinAgent: false },
+        ],
       },
       {
         id: "local",
         name: "Local",
         provider: "ollama",
         baseUrl: "http://127.0.0.1:11434/v1",
-        models: [{ id: "local-model", name: "Local", model: "qwen", capabilities: ["text-generation"] }],
+        models: [
+          {
+            id: "local-model",
+            name: "Local",
+            model: "qwen",
+            capabilities: ["text-generation"],
+            builtinAgent: false,
+          },
+        ],
       },
     ];
 

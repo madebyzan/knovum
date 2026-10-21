@@ -58,24 +58,34 @@ pub(super) async fn drive(
         .map_err(|error| error.to_string())?
         .join("agent-runtime/checkpoints.sqlite");
     let model = binding::resolve(&host.target, &host.profile).await?;
-    let memory_snapshot: String = sqlx::query_scalar(
+    let space_snapshot: String = sqlx::query_scalar(
         "SELECT json_extract(input_snapshot,'$.spaceContext') FROM spaces_runs WHERE id=$1",
     )
     .bind(&host.ids.run_id)
     .fetch_one(&host.pool)
     .await
     .map_err(db::sql_error)?;
-    let memory = std::collections::BTreeMap::from([("/space.json".into(), memory_snapshot)]);
     let execute = AgentExecute {
-        identity: host.session.identity(&host.ids.run_id), model,
-        system_prompt: format!("You are Knovum's built-in knowledge agent. {} Publish only through Knovum Actions and never claim success without a completed Action receipt.", crate::spaces::conversations::prompt_policy::SPACE_READING),
-        tools: host.catalog.tools.iter().map(|tool| AgentToolDefinition {
-            name: tool.name.clone(), description: tool.description.clone(), parameters: tool.input_schema.clone(),
-            read_only: host.catalog.binding_by_wire_name[&tool.name].read_only,
-        }).collect(), messages, input_id: host.session.input_id.clone(), after_checkpoint_id: host.session.projection_checkpoint_id.clone(), resume,
+        identity: host.session.identity(&host.ids.run_id),
+        model,
+        system_prompt: crate::spaces::conversations::prompt_policy::builtin_agent(&space_snapshot),
+        tools: host
+            .catalog
+            .tools
+            .iter()
+            .map(|tool| AgentToolDefinition {
+                name: tool.name.clone(),
+                description: tool.description.clone(),
+                parameters: tool.input_schema.clone(),
+                read_only: host.catalog.binding_by_wire_name[&tool.name].read_only,
+            })
+            .collect(),
+        messages,
+        input_id: host.session.input_id.clone(),
+        after_checkpoint_id: host.session.projection_checkpoint_id.clone(),
+        resume,
         skills: host.extensions.files.clone(),
         skill_tool_bindings: host.extensions.skill_tool_bindings.clone(),
-        memory,
     };
     let host = Arc::new(host);
     let mut process = tokio::select! {

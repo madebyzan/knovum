@@ -28,8 +28,8 @@ fn projection() -> AgentProjection {
 #[tokio::test]
 async fn replayed_projection_commits_one_answer_plan_and_input_acknowledgement() {
     let pool = fixture::database().await;
-    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,estimated_input_tokens,max_output_tokens,state,created_at)
-        VALUES('summary','task','context_summary','','before',10,10,'received',1)")
+    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,state,created_at)
+        VALUES('summary','task','context_summary','','before','received',1)")
         .execute(&pool).await.unwrap();
     sqlx::query("CREATE TABLE projection_updates(kind TEXT); CREATE TRIGGER input_acknowledged AFTER UPDATE OF input_accepted ON spaces_builtin_agent_tasks BEGIN INSERT INTO projection_updates VALUES('input'); END; CREATE TRIGGER model_committed AFTER UPDATE OF state ON spaces_builtin_agent_model_calls BEGIN INSERT INTO projection_updates VALUES('model'); END;")
         .execute(&pool).await.unwrap();
@@ -90,11 +90,11 @@ async fn settles_many_receipts_without_crossing_graph_namespaces() {
     let ids = (0..300)
         .map(|index| format!("receipt-{index}"))
         .collect::<Vec<_>>();
-    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,estimated_input_tokens,max_output_tokens,state,created_at) SELECT value,'task','context_summary','','before',10,10,'received',1 FROM json_each($1)")
+    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,state,created_at) SELECT value,'task','context_summary','','before','received',1 FROM json_each($1)")
         .bind(serde_json::to_string(&ids).unwrap()).execute(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,estimated_input_tokens,max_output_tokens,state,created_at) VALUES('child-receipt','task','context_summary','child','before',10,10,'received',1)")
+    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,state,created_at) VALUES('child-receipt','task','context_summary','child','before','received',1)")
         .execute(&pool).await.unwrap();
-    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,message_id,estimated_input_tokens,max_output_tokens,state,created_at) VALUES('message-receipt','task','main','','before','answer',10,10,'received',1)")
+    sqlx::query("INSERT INTO spaces_builtin_agent_model_calls(id,task_id,purpose,graph_namespace,checkpoint_id,message_id,state,created_at) VALUES('message-receipt','task','main','','before','answer','received',1)")
         .execute(&pool).await.unwrap();
     let mut value = projection();
     value.model_checkpoints[0].request_ids = ids;

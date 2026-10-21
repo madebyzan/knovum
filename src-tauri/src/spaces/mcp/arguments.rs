@@ -1,6 +1,6 @@
 use rmcp::schemars::{self, JsonSchema};
 use serde::Deserialize;
-use serde_json::Value;
+use serde_json::{Map, Value};
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(super) struct SearchArgs {
@@ -63,6 +63,8 @@ pub(super) struct PathArgs {
 pub(super) struct CommitKnowledgeArgs {
     pub(super) space_id: String,
     pub(super) idempotency_key: String,
+    // Forwarded verbatim to the Action, which owns validation; the schema states the operations.
+    #[schemars(with = "Vec<crate::spaces::knowledge::change_commit::KnowledgeChange>")]
     pub(super) operations: Value,
 }
 
@@ -98,11 +100,11 @@ pub(super) struct InvokeActionArgs {
     pub(super) action_id: String,
     pub(super) action_version: u16,
     pub(super) idempotency_key: String,
-    pub(super) parameters: Value,
+    pub(super) parameters: Map<String, Value>,
     #[serde(default)]
-    pub(super) input_snapshot: Value,
+    pub(super) input_snapshot: Map<String, Value>,
     #[serde(default)]
-    pub(super) expected_revisions: Value,
+    pub(super) expected_revisions: Map<String, Value>,
 }
 
 fn default_limit() -> i64 {

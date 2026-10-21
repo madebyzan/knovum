@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ref } from "vue";
 
-import { deferred } from "../../__tests__/support/canvas-fixtures";
+import { deferred } from "../../../../shared/__tests__/support/deferred";
 import type { ConversationAttachment } from "../../contracts/generated/ConversationAttachment";
 import { createConversationFilePicker } from "../conversation-file-reacquisition";
 

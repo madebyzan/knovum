@@ -46,7 +46,7 @@ function toggleCapability(capability: ExecutionCapability) {
   const selected = model.value.capabilities.includes(capability);
   if (selected && props.protected) return;
   capabilityTouched.value = true;
-  if (selected && capability === "text-generation") model.value.builtinAgent = null;
+  if (selected && capability === "text-generation") model.value.builtinAgent = false;
   model.value.capabilities = selected
     ? model.value.capabilities.filter((value) => value !== capability)
     : [...model.value.capabilities, capability];

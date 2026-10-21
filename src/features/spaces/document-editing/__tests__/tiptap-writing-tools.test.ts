@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick, shallowRef } from "vue";
 import type * as VueI18n from "vue-i18n";
 
+import { deferred } from "../../../../shared/__tests__/support/deferred";
 import SpaceTiptapWritingMenu from "../presentation/SpaceTiptapWritingMenu.vue";
 import { ReasoningTrace } from "../tiptap-reasoning-trace";
 import { useSpaceTiptapWritingTools } from "../use-space-tiptap-writing-tools";
@@ -24,15 +25,6 @@ vi.mock("vue-i18n", async (original) => ({
 }));
 
 const cleanups: Array<() => void> = [];
-function deferred<T>() {
-  let accept!: (value: T) => void;
-  let fail!: (cause: unknown) => void;
-  const promise = new Promise<T>((resolve, reject) => {
-    accept = resolve;
-    fail = reject;
-  });
-  return { promise, resolve: accept, reject: fail };
-}
 function session() {
   const editor = new Editor({
     extensions: [StarterKit, Markdown, ReasoningTrace],

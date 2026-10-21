@@ -36,6 +36,7 @@ describe("integration settings persisted contracts", () => {
           name: "Qwen Plus",
           model: "qwen-plus",
           capabilities: ["text-generation"],
+          builtinAgent: false,
         },
       ],
     });
@@ -83,6 +84,7 @@ describe("integration settings persisted contracts", () => {
           name: "Video",
           model: "gpt-example",
           capabilities: ["video-generation"],
+          builtinAgent: false,
         },
       ],
     });

@@ -125,6 +125,7 @@ pub async fn finish_turn(
     error: Option<&str>,
 ) -> Result<(), String> {
     let now = crate::foundation::clock::unix_time_millis()?;
+    let mut tx = db::begin_write(pool).await?;
     sqlx::query(
         "UPDATE spaces_external_agent_turns SET state=$1,error=$2,completed_at=$3
          WHERE id=$4 AND state='running'",
@@ -133,7 +134,7 @@ pub async fn finish_turn(
     .bind(error)
     .bind(now)
     .bind(turn_id)
-    .execute(pool)
+    .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
     sqlx::query(
@@ -143,7 +144,42 @@ pub async fn finish_turn(
     )
     .bind(turn_id)
     .bind(state)
-    .execute(pool)
+    .execute(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
+    cite_answer(&mut tx, turn_id).await?;
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(())
+}
+
+/// The answer is final once its turn ends; its markers resolve then.
+async fn cite_answer(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    turn_id: &str,
+) -> Result<(), String> {
+    let answer: Option<(String, String, String)> = sqlx::query_as(
+        "SELECT m.id,c.run_id,json_extract(m.content,'$.parts[0].text')
+         FROM spaces_external_agent_turns t
+         JOIN spaces_external_agent_conversations c ON c.id=t.conversation_id
+         JOIN spaces_conversation_messages m ON m.id=t.message_id WHERE t.id=$1",
+    )
+    .bind(turn_id)
+    .fetch_optional(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    let Some((message_id, run_id, text)) = answer else {
+        return Ok(());
+    };
+    let citations = crate::spaces::knowledge::grounding::cite_answer(tx, &run_id, &text).await?;
+    if citations.is_empty() {
+        return Ok(());
+    }
+    sqlx::query(
+        "UPDATE spaces_conversation_messages SET content=json_set(content,'$.citations',json($1)) WHERE id=$2",
+    )
+    .bind(sqlx::types::Json(&citations))
+    .bind(message_id)
+    .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
     Ok(())

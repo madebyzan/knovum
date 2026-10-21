@@ -143,12 +143,7 @@
       "stop": "Stop task",
       "description": "The operation may have completed. Check the service before authorizing a retry."
     },
-    "attempt": "Attempt",
-    "history": {
-      "title": "Tool history",
-      "empty": "No tool operations yet"
-    },
-    "progress": "Progress"
+    "attempt": "Attempt"
   },
   "interactions": {
     "title": "External service needs input",

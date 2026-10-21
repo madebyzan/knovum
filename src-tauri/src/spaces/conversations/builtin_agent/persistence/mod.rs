@@ -22,7 +22,7 @@ pub(super) struct NewBuiltinAgentTaskState<'a> {
     pub space_context: &'a crate::spaces::queries::knowledge_projection::ContentsPage,
     pub message_attachments: &'a [crate::spaces::conversations::ConversationMessageAttachment],
     pub target: &'a crate::ai::models::ModelExecutionTarget,
-    pub profile: &'a crate::ai::settings::contracts::BuiltinAgentModelSettings,
+    pub profile: &'a crate::ai::models::profile::ModelProfile,
     pub messages: &'a [crate::agent_runtime::protocol::messages::AgentInputMessage],
     pub history: &'a [crate::agent_runtime::protocol::messages::AgentInputMessage],
     pub now: i64,
@@ -93,7 +93,6 @@ pub(super) async fn persist_task(
     let input = json!({"prompt": request.prompt, "extensions": extensions, "contextManifest": context_manifest, "spaceContext": space_context, "messages": inputs});
     let budget = json!({
         "maxTurns": request.max_turns, "maxTools": request.max_tool_calls,
-        "maxTotalTokens": request.max_total_tokens,
         "maxDurationSeconds": request.max_duration_seconds,
     });
     create_run_in_transaction(

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { effectScope, ref } from "vue";
 
+import { deferred } from "../../../../shared/__tests__/support/deferred";
 import type { AgentExtensionSelection } from "../../../../shared/contracts/generated/AgentExtensionSelection";
-import { deferred } from "../../__tests__/support/canvas-fixtures";
 import type { ConversationAttachment } from "../../contracts/generated/ConversationAttachment";
 import type { ConversationDraft } from "../../contracts/generated/ConversationDraft";
 

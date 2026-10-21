@@ -1,5 +1,5 @@
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router, ErrorData as McpError};
-use serde_json::json;
+use serde_json::{json, Value};
 
 use super::{
     arguments::{CommitKnowledgeArgs, InvokeActionArgs, SpaceArgs},
@@ -44,9 +44,9 @@ impl SpaceMcpServer {
                 space_id: args.space_id,
                 action_id: args.action_id,
                 action_version: args.action_version,
-                parameters: args.parameters,
-                input_snapshot: args.input_snapshot,
-                expected_revisions: args.expected_revisions,
+                parameters: Value::Object(args.parameters),
+                input_snapshot: Value::Object(args.input_snapshot),
+                expected_revisions: Value::Object(args.expected_revisions),
                 parent_run_id: Some(self.parent_run_id.clone()),
             },
             "invoke_space_action",

@@ -1,10 +1,6 @@
 use super::fixture;
 use crate::{
-    ai::{
-        contracts::ChatModelProtocol,
-        models::{ModelExecutionTarget, ModelTargetSelection},
-        settings::contracts::BuiltinAgentModelSettings,
-    },
+    ai::models::{profile::ModelProfile, ModelExecutionTarget, ModelTargetSelection},
     spaces::conversations::execution::session,
 };
 
@@ -20,10 +16,9 @@ async fn successful_followup_reuses_binding_and_real_catalog_changes_create_a_ne
         secret_key: "credential-reference".into(),
         capabilities: vec![],
     };
-    let profile = BuiltinAgentModelSettings {
-        protocol: ChatModelProtocol::OpenAiChat,
-        context_window: 32768,
-        max_output_tokens: 4096,
+    let profile = ModelProfile {
+        max_input_tokens: Some(65_536),
+        max_output_tokens: Some(4096),
     };
     let selection = ModelTargetSelection::Model {
         connection_id: "connection".into(),

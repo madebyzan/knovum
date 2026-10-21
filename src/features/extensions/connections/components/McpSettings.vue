@@ -1,14 +1,8 @@
 <script setup lang="ts">
 import { Plus, Server } from "@lucide/vue";
-import { useQuery } from "@tanstack/vue-query";
 import { computed } from "vue";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import {
-  connectionQuery,
-  connectorQuery,
-  pluginQuery,
-} from "../../../../foundation/extensions/extension-query";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSettingsHeaderActions from "../../../../shared/ui/UiSettingsHeaderActions.vue";
 import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
@@ -18,6 +12,7 @@ import ExtensionEmptyState from "../../components/ExtensionEmptyState.vue";
 import ExtensionIdentity from "../../components/ExtensionIdentity.vue";
 import { isAppConnector } from "../../connectors/app-connector";
 import ConnectorServiceSettings from "../../connectors/components/ConnectorServiceSettings.vue";
+import { useExtensionInventory } from "../../connectors/use-extension-inventory";
 import type { ExtensionDestination } from "../../navigation/extension-destination";
 import McpConnectionEnablement from "./McpConnectionEnablement.vue";
 import McpConnectionInspection from "./McpConnectionInspection.vue";
@@ -34,10 +29,7 @@ const props = withDefaults(
   },
 );
 defineEmits<{ navigate: [destination: ExtensionDestination] }>();
-const connections = useQuery(connectionQuery);
-const connectors = useQuery(connectorQuery);
-const plugins = useQuery(pluginQuery);
-const pluginById = computed(() => new Map((plugins.data.value ?? []).map((plugin) => [plugin.id, plugin])));
+const { connectors, connections, pluginById, error, isLoading } = useExtensionInventory();
 const connectorById = computed(
   () =>
     new Map(
@@ -69,7 +61,6 @@ const selectedConnector = computed(() =>
   selectedConnection.value ? connectorById.value.get(selectedConnection.value.connectorId) : undefined,
 );
 const isBrowsing = computed(() => !(props.connectionId || props.connectorId || props.action));
-const error = computed(() => connections.error.value || connectors.error.value || plugins.error.value);
 function isConnectionEnabled(connectorId: string, enabled: boolean) {
   const pluginId = connectorById.value.get(connectorId)?.pluginId;
   return pluginId ? Boolean(pluginById.value.get(pluginId)?.enabled) : enabled;
@@ -100,7 +91,7 @@ function isConnectionEnabled(connectorId: string, enabled: boolean) {
       @navigate="$emit('navigate', $event)"
     />
     <div
-      v-else-if="connections.isPending.value || connectors.isPending.value || plugins.isPending.value"
+      v-else-if="isLoading"
       role="status"
       class="flex justify-center gap-2 py-12 text-body text-fg-secondary"
     >

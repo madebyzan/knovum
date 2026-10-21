@@ -143,12 +143,7 @@
       "stop": "終止任務",
       "description": "操作可能已完成。請先檢查服務狀態，再授權重試。"
     },
-    "attempt": "嘗試",
-    "history": {
-      "title": "工具史",
-      "empty": "暫無工具操作記錄"
-    },
-    "progress": "進度"
+    "attempt": "嘗試"
   },
   "interactions": {
     "title": "外部服務需要輸入",

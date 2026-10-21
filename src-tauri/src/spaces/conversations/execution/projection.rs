@@ -49,8 +49,14 @@ pub(in crate::spaces::conversations) async fn commit(
         if previous.is_some() {
             continue;
         }
+        let citations = crate::spaces::knowledge::grounding::cite_answer(
+            &mut tx,
+            &task_ids.run_id,
+            &message.text,
+        )
+        .await?;
         let id = repository::append_message_in_transaction(&mut tx, &task_ids.conversation_id, &task_ids.branch_id, repository::ConversationMessageRole::Assistant,
-            &json!({"parts":[{"type":"text","text":message.text}],"runId":task_ids.run_id,"status":state.1.is_some().then_some("stopped")}), now).await?;
+            &json!({"parts":[{"type":"text","text":message.text}],"runId":task_ids.run_id,"citations":citations,"status":state.1.is_some().then_some("stopped")}), now).await?;
         sqlx::query("INSERT INTO spaces_conversation_message_projections(segment_id,provider_message_id,message_id) VALUES($1,$2,$3)")
             .bind(&projection.thread_id).bind(message.message_id).bind(id).execute(&mut *tx).await.map_err(db::sql_error)?;
     }

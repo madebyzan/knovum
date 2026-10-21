@@ -214,15 +214,15 @@ cited answers or generated results.
 
 ## Development
 
-| Command             | Purpose                                                             |
-| ------------------- | ------------------------------------------------------------------- |
-| `pnpm desktop:dev`  | Run the desktop app with the Agent environment prepared             |
-| `pnpm check`        | Full quality gate: web + Rust + Python                              |
-| `pnpm check:web`    | Typecheck, oxlint, dependency-cruiser, Vitest, knip, jscpd, oxfmt   |
-| `pnpm check:rust`   | cargo fmt, clippy (`-D warnings`), workspace tests                  |
-| `pnpm check:python` | ruff, mypy (strict), pytest for the Agent runtime                   |
-| `pnpm e2e`          | WebdriverIO end-to-end run against a debug build                    |
-| `pnpm package`      | Produce signed desktop bundles                                      |
+| Command             | Purpose                                                           |
+| ------------------- | ----------------------------------------------------------------- |
+| `pnpm desktop:dev`  | Run the desktop app with the Agent environment prepared           |
+| `pnpm check`        | Full quality gate: web + Rust + Python                            |
+| `pnpm check:web`    | Typecheck, oxlint, dependency-cruiser, Vitest, knip, jscpd, oxfmt |
+| `pnpm check:rust`   | cargo fmt, clippy (`-D warnings`), workspace tests                |
+| `pnpm check:python` | ruff, mypy (strict), pytest for the Agent runtime                 |
+| `pnpm e2e`          | WebdriverIO end-to-end run against a debug build                  |
+| `pnpm package`      | Produce signed desktop bundles                                    |
 
 CI runs the same gates on every push (macOS arm64, macOS Intel, Windows), and `v*` tags build signed
 DMG/NSIS packages with updater metadata.
