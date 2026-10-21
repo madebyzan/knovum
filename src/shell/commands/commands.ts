@@ -1,7 +1,8 @@
+import { runEditingCommand } from "../../foundation/commands/editing-responder";
+import { EDITING_COMMANDS } from "../../foundation/commands/text-editing";
 import type { AppCommand } from "../../shared/contracts/app-command";
 import type { EditingCommand } from "../../shared/contracts/generated/EditingCommand";
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
-import { EDITING_COMMANDS, runEditingCommand } from "./editing-command";
 
 interface ShellCommandActions {
   openCommandPalette: () => void;
@@ -54,7 +55,8 @@ export function createShellCommands(
   }
 
   const baseCommands: AppCommand[] = [
-    // The Application Menu owns the chord for these, so they carry no keyboard binding of their own.
+    // The macOS Application Menu delivers these intents; elsewhere the keyboard reaches the same
+    // responder chain directly, so they carry no keyboard binding of their own.
     ...EDITING_COMMANDS.map<AppCommand>((intent) => ({
       id: `editing.${intent}`,
       title: labels.editingLabelByCommand[intent],

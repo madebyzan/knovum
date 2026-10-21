@@ -1,6 +1,7 @@
 import type { Component } from "vue";
 
 import type { ActionAvailability } from "./action-availability";
+import type { EditingCommand } from "./generated/EditingCommand";
 
 export type CommandCategory = "general" | "navigation" | "canvas" | "editing";
 export type CommandUnavailableReason =
@@ -27,6 +28,11 @@ export interface AppCommand {
   shortcutListing?: CommandShortcutListing;
   category?: CommandCategory;
   appMenuShortcut?: true;
+  /**
+   * The standard editing intent this command performs for its surface when nothing on the page is
+   * being edited. Its `shortcut` is then display only: the editing responder chain owns the chord.
+   */
+  editingIntent?: EditingCommand;
   palette?: false;
   allowInEditable?: true;
   availability?: () => ActionAvailability<CommandUnavailableReason>;

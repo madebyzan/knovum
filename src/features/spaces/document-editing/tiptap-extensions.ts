@@ -15,6 +15,7 @@ import { Markdown } from "@tiptap/markdown";
 import { StarterKit } from "@tiptap/starter-kit";
 
 import { createGroundedCitationExtension } from "./tiptap-citations";
+import { EditingResponder } from "./tiptap-editing-responder";
 import {
   insertSpaceTiptapImages,
   TIPTAP_IMAGE_MIME_TYPES,
@@ -48,6 +49,7 @@ export function createSpaceTiptapExtensions(
     void insertSpaceTiptapImages(editor, files, position).catch(onImageError);
   };
   return [
+    EditingResponder,
     StarterKit.configure({
       heading: { levels: [1, 2, 3, 4, 5, 6] },
       link: { openOnClick: false, defaultProtocol: "https" },
@@ -90,6 +92,7 @@ export function createSpaceTiptapExtensions(
 
 export function createCanvasTextExtensions(placeholder: string, kind: "note" | "text" = "text") {
   return [
+    EditingResponder,
     StarterKit.configure({
       heading: false,
       codeBlock: false,

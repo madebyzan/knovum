@@ -1,7 +1,7 @@
-import { isEditableTarget } from "../foundation/dom/editable-target";
+import { prefersNativeContextMenu } from "../foundation/dom/text-selection";
 
 function preventBrowserMenu(event: MouseEvent): void {
-  if (!isEditableTarget(event.target)) event.preventDefault();
+  if (!prefersNativeContextMenu(event.target)) event.preventDefault();
 }
 
 export function installContextMenuPolicy(): (() => void) | undefined {

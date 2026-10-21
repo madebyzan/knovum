@@ -3,6 +3,7 @@ import type { Ref } from "vue";
 
 import { getAppCommand, runAppCommand } from "../../../../../foundation/commands/run-app-command";
 import { isEditableTarget } from "../../../../../foundation/dom/editable-target";
+import { prefersNativeContextMenu } from "../../../../../foundation/dom/text-selection";
 import { canRunAction } from "../../../../../shared/contracts/action-availability";
 import type { AppCommand } from "../../../../../shared/contracts/app-command";
 import { popupSpaceContextMenu, spaceMenuItem } from "../../../workspace/space-menu";
@@ -22,7 +23,7 @@ interface CanvasContextMenuOptions {
 
 export function createCanvasContextMenu(options: CanvasContextMenuOptions) {
   function pointer(event: MouseEvent) {
-    if (isEditableTarget(event.target)) return;
+    if (prefersNativeContextMenu(event.target)) return;
     event.preventDefault();
     options.host.value?.focus({ preventScroll: true });
     const target = domTarget(event.target) ?? konvaTarget(event, options.stage.value);
