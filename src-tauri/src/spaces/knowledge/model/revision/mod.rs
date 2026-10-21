@@ -46,12 +46,6 @@ pub(crate) fn authoritative(node_payload: &Value) -> Result<Option<String>, Stri
         "image" | "video" | "audio" | "file" | "code" => {
             insert_if_present(&mut projection, object, "fileName");
             insert_if_present(&mut projection, object, "previewText");
-            if kind == "file" && object.contains_key("documentCoverage") {
-                projection.insert(
-                    "documentKnowledge".into(),
-                    super::document_coverage::projection::semantic_content(node_payload),
-                );
-            }
             if matches!(kind, "video" | "audio") {
                 for key in [
                     "origin",

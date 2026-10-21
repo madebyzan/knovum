@@ -31,3 +31,27 @@ export function cancelResourceExport(jobId: string) {
 export function exportTextFile(destinationPath: string, text: string) {
   return invokeCommand<void>("plugin:spaces|export_text", { destinationPath, text });
 }
+
+/** The formats a picture a document carries can be saved as, its own format first. */
+export function listDocumentResourceExportFormats(spaceId: string, nodeId: string, resourceId: string) {
+  return invokeCommand<EngineExportFormats>("plugin:spaces|list_document_resource_export_formats", {
+    spaceId,
+    nodeId,
+    resourceId,
+  });
+}
+
+/** Writes a picture a document carries into the destination, in the format the destination names. */
+export function exportDocumentResource(
+  spaceId: string,
+  nodeId: string,
+  resourceId: string,
+  destinationPath: string,
+) {
+  return invokeCommand<void>("plugin:spaces|export_document_resource", {
+    spaceId,
+    nodeId,
+    resourceId,
+    destinationPath,
+  });
+}

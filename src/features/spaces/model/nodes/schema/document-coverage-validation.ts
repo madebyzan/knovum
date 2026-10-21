@@ -17,7 +17,7 @@ export function validateDocumentCoverage(report: DocumentCoverage, context: z.Re
   validateBudgets(report, context);
   for (const occurrence of report.occurrences) {
     validateDocumentInput(occurrence, report, context);
-    validateCompletion(occurrence, ids, context);
+    validateRaster(occurrence, ids, context);
   }
   const referencedIds = new Set(
     report.occurrences.flatMap(({ resourceId }) => (resourceId === null ? [] : [resourceId])),
@@ -61,7 +61,7 @@ function validateRecognitionInputs(report: DocumentCoverage, context: z.Refineme
   }
 }
 
-function validateCompletion(
+function validateRaster(
   occurrence: DocumentCoverage["occurrences"][number],
   resourceIds: Set<string>,
   context: z.RefinementCtx,
@@ -69,23 +69,14 @@ function validateCompletion(
   if (occurrence.resourceId && !resourceIds.has(occurrence.resourceId)) {
     context.addIssue({ code: "custom", message: "Document occurrence references an unavailable resource" });
   }
-  if ((occurrence.state === "completed") !== (occurrence.analysis !== null)) {
-    context.addIssue({ code: "custom", message: "Document completion requires an analysis" });
-  }
-  if (occurrence.state === "completed" && !occurrence.resourceId) {
-    context.addIssue({ code: "custom", message: "Completed document analysis requires its durable raster" });
+  // Every picture is either extracted or says why it is not, never both or neither.
+  if ((occurrence.resourceId === null) === (occurrence.unavailable === null)) {
+    context.addIssue({ code: "custom", message: "Invalid document visual occurrence" });
   }
 }
 
 function validateBudgets(report: DocumentCoverage, context: z.RefinementCtx) {
   if (sumBy(report.resources, ({ byteSize }) => byteSize) > 256 * 1024 * 1024) {
     context.addIssue({ code: "custom", message: "Document raster resources exceed 256 MiB" });
-  }
-  const units = sumBy(
-    report.occurrences,
-    ({ analysis }) => (analysis?.description.length ?? 0) + (analysis?.detectedText.length ?? 0),
-  );
-  if (units > 4 * 1024 * 1024) {
-    context.addIssue({ code: "custom", message: "Document visual text exceeds 4 Mi UTF-16 units" });
   }
 }

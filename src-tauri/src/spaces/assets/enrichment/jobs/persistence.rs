@@ -58,7 +58,7 @@ pub(crate) async fn defer_for_configuration(
     let executed = sqlx::query(
         "UPDATE spaces_enrichment_jobs SET status=$1,error=$2,updated_at=$3 \
          WHERE id=$4 AND status IN ('pending','failed','awaiting_configuration') \
-         AND job_type IN ('analyze_visual','analyze_document')",
+         AND job_type='analyze_visual'",
     )
     .bind("awaiting_configuration")
     .bind(error)

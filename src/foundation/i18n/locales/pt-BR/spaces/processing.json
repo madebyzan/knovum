@@ -10,7 +10,6 @@
     "analyze_media": "Duração da mídia e forma de onda",
     "transcribe_media": "Transcrição de áudio e vídeo",
     "parse_document": "Extração de documentos",
-    "analyze_document": "Análise visual do documento",
     "align_media_transcript": "Alinhamento da transcrição selecionada",
     "diarize_media_transcript": "Diarização do alto-falante"
   },
@@ -23,8 +22,6 @@
     "cancelled": "Cancelado"
   },
   "matchBadge": {
-    "documentOcr": "Texto do documento reconhecido",
-    "documentInterpretation": "Interpretação visual do documento",
     "imageDescription": "Descrição da imagem",
     "videoCover": "Capa do vídeo",
     "mediaTimeRange": "{start} – {end}"
@@ -42,12 +39,9 @@
   "imageUnavailable": "Imagem indisponível",
   "document": {
     "coverage": "Processamento de documentos",
-    "ocrEvidence": "Texto reconhecido por máquina · Possíveis erros de reconhecimento",
-    "interpretationEvidence": "Interpretação visual AI · Não é uma declaração de documento original",
     "textCoverage": "Páginas com texto extraído: {count} de {total}.",
     "unclassifiedPages": "A página {count} não possui texto extraível ou imagens conhecidas. Pode estar em branco ou conter conteúdo não suportado. | As páginas {count} não possuem texto extraível ou imagens conhecidas. Eles podem estar em branco ou conter conteúdo não compatível.",
-    "recognitionRequired": "Páginas que requerem reconhecimento: {pages}",
-    "visualCoverage": "Fontes analisadas: {count} de {total}.",
+    "scannedPages": "Páginas digitalizadas (apenas imagem): {pages}",
     "visualUnavailable": "A imagem referenciada {count} não pode ser decodificada pelo analisador de documento. | As imagens referenciadas {count} não podem ser decodificadas pelo analisador de documentos.",
     "resources": {
       "title": "Recursos de documentos",
@@ -55,10 +49,8 @@
       "occurrences": "Hora {count} usada | Tempos {count} usados",
       "embedded": "Imagem incorporada extraída do documento.",
       "rendered": "Página ou região visual renderizada a partir do PDF.",
-      "detectedText": "Texto detectado",
       "context": "Contexto",
       "altText": "Texto alternativo",
-      "description": "Descrição",
       "embeddedBadge": "Incorporada",
       "renderedBadge": "Renderizada"
     },

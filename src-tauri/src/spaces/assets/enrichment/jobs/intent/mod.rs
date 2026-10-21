@@ -86,30 +86,11 @@ fn document_jobs(payload: &Value, source_revision: &str) -> Vec<EnrichmentJobTyp
     ) {
         return Vec::new();
     }
-    if !knowledge_is_current(payload, "documentCoverage", source_revision) {
-        return vec![EnrichmentJobType::ParseDocument];
-    }
-    let occurrences = payload["documentCoverage"]["occurrences"].as_array();
-    let missing_pdf_resources = occurrences.is_some_and(|occurrences| {
-        occurrences.iter().any(|occurrence| {
-            !occurrence["pdfInput"].is_null()
-                && occurrence["resourceId"].is_null()
-                && matches!(occurrence["state"].as_str(), Some("pending" | "failed"))
-        })
-    });
-    if missing_pdf_resources {
-        return vec![EnrichmentJobType::ParseDocument];
-    }
-    let pending = occurrences.is_some_and(|occurrences| {
-        occurrences
-            .iter()
-            .any(|occurrence| matches!(occurrence["state"].as_str(), Some("pending" | "failed")))
-    });
-    if pending {
-        vec![EnrichmentJobType::AnalyzeDocument]
-    } else {
-        Vec::new()
-    }
+    // Parsing extracts the text and every picture in one pass; nothing further runs on a document.
+    (!knowledge_is_current(payload, "documentCoverage", source_revision))
+        .then_some(EnrichmentJobType::ParseDocument)
+        .into_iter()
+        .collect()
 }
 
 fn knowledge_is_current(data: &Value, field: &str, source_revision: &str) -> bool {
@@ -152,7 +133,7 @@ async fn enqueue(
     .bind(STATUS_PENDING)
     .bind(source_revision)
     .bind(now)
-    .bind(target.filter(|_| matches!(job_type, EnrichmentJobType::AnalyzeVisual | EnrichmentJobType::AnalyzeDocument | EnrichmentJobType::ParseDocument)).map(sqlx::types::Json))
+    .bind(target.filter(|_| job_type == EnrichmentJobType::AnalyzeVisual).map(sqlx::types::Json))
     .execute(&mut **tx)
     .await
     .map_err(crate::spaces::db::sql_error)?;

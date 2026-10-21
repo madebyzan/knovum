@@ -10,7 +10,6 @@
     "analyze_media": "媒體時長與波形分析",
     "transcribe_media": "影音轉錄",
     "parse_document": "文檔內容擷取",
-    "analyze_document": "文件圖片分析",
     "align_media_transcript": "所選轉錄片段對齊",
     "diarize_media_transcript": "說話者分離"
   },
@@ -23,8 +22,6 @@
     "cancelled": "已取消"
   },
   "matchBadge": {
-    "documentOcr": "文件識別文字",
-    "documentInterpretation": "文檔視覺解釋",
     "imageDescription": "影像描述",
     "videoCover": "影片封面",
     "mediaTimeRange": "{start} – {end}"
@@ -42,12 +39,9 @@
   "imageUnavailable": "無法載入圖片",
   "document": {
     "coverage": "文件處理",
-    "ocrEvidence": "機器辨識文字 · 可能有辨識錯誤",
-    "interpretationEvidence": "AI 視覺解釋 · 並非原文陳述",
     "textCoverage": "已擷取 {count} / {total} 頁文字。",
     "unclassifiedPages": "{count} 頁沒有可擷取的正文或已知圖片，可能為空白頁或包含不支援的內容。",
-    "recognitionRequired": "需要識別的頁面：{pages}",
-    "visualCoverage": "已完成 {count} / {total} 項圖片分析。",
+    "scannedPages": "掃描頁（僅圖片）：{pages}",
     "visualUnavailable": "{count} 張引用圖片無法由文件解析器解碼。",
     "resources": {
       "title": "文檔資源",
@@ -55,10 +49,8 @@
       "occurrences": "出現 {count} 次",
       "embedded": "從文件中提取的嵌入圖片。",
       "rendered": "從 PDF 頁面視覺區域渲染的圖片。",
-      "detectedText": "辨識文字",
       "context": "上下文",
       "altText": "替代文字",
-      "description": "內容描述",
       "embeddedBadge": "嵌入圖片",
       "renderedBadge": "頁面渲染"
     },

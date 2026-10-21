@@ -143,8 +143,8 @@ The resulting lifecycle, permissions and interaction contracts are owned by
   and [office_oxide](https://github.com/yfedoseev/office_oxide) crates. Rich Tiptap Notes translate directly
   to the existing Office IR; no Markdown round-trip or second persistence model is introduced.
   The existing platform PDF adapter (Core Graphics PDF on macOS, `Windows.Data.Pdf` on Windows)
-  supplies source-page/image rasters. Revision-qualified page
-  recognition is an explicit input, not an automatic AI fallback or cached preview text.
+  supplies source-page/image rasters. A rendered page raster is a revision-qualified
+  extraction artifact, not an AI fallback or a cached preview text.
 - Original-layout Office PDF was evaluated separately from content export. A full local layout
   engine such as [LibreOffice](https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html)
   would add hundreds of megabytes and runtime installation/maintenance for a capability outside

@@ -8,8 +8,8 @@ use crate::documents::generation::{
 };
 use crate::foundation::app_error::AppError;
 
-/// Reads one resource as the document engine expects it: authorized files,
-/// revision-pinned images and, for a scanned PDF, its qualified recognition.
+/// Reads one resource as the document engine expects it: authorized files and
+/// revision-pinned images.
 pub(super) async fn load(
     app: &AppHandle,
     node_id: &str,
@@ -142,10 +142,7 @@ fn file(app: &AppHandle, payload: &Value, title: String) -> Result<DocumentInput
         .extension()
         .is_some_and(|extension| extension.eq_ignore_ascii_case("pdf"))
     {
-        return Ok(DocumentInput::Pdf(PdfSource {
-            recognized_pages: super::recognition::load(payload)?,
-            file,
-        }));
+        return Ok(DocumentInput::Pdf(PdfSource { file }));
     }
     Ok(DocumentInput::File(file))
 }

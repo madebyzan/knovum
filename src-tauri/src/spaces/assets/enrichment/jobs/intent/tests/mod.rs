@@ -75,29 +75,19 @@ fn visual_revision_ignores_titles_but_tracks_the_video_source() {
 mod persistence;
 
 #[test]
-fn pdf_resources_are_materialized_before_visual_analysis() {
-    let data = json!({
-        "kind": "file", "fileName": "report.pdf", "sourceRevision": "revision-1",
-        "documentCoverage": { "sourceRevision": "revision-1", "occurrences": [{
-            "pdfInput": { "kind": "image", "page": 1 }, "resourceId": null, "state": "pending"
-        }]}
-    });
+fn a_document_is_parsed_once_per_revision_and_nothing_runs_after_it() {
+    let mut data =
+        json!({"kind": "file", "fileName": "report.pdf", "sourceRevision": "revision-1"});
     assert_eq!(
         document_jobs(&data, "revision-1"),
         vec![EnrichmentJobType::ParseDocument]
     );
-}
-
-#[test]
-fn materialized_document_resources_can_advance_to_visual_analysis() {
-    let data = json!({
-        "kind": "file", "fileName": "report.pdf", "sourceRevision": "revision-1",
-        "documentCoverage": { "sourceRevision": "revision-1", "occurrences": [{
-            "pdfInput": { "kind": "image", "page": 1 }, "resourceId": "resource-1", "state": "pending"
-        }]}
-    });
+    data["documentCoverage"] = json!({ "sourceRevision": "revision-1", "occurrences": [{
+        "pdfInput": { "kind": "image", "page": 1 }, "resourceId": "resource-1", "unavailable": null
+    }]});
+    assert!(document_jobs(&data, "revision-1").is_empty());
     assert_eq!(
-        document_jobs(&data, "revision-1"),
-        vec![EnrichmentJobType::AnalyzeDocument]
+        document_jobs(&data, "revision-2"),
+        vec![EnrichmentJobType::ParseDocument]
     );
 }

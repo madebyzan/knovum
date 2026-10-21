@@ -10,7 +10,6 @@
     "analyze_media": "Durée du média et forme d'onde",
     "transcribe_media": "Transcription audio et vidéo",
     "parse_document": "Extraction de documents",
-    "analyze_document": "Analyse visuelle du document",
     "align_media_transcript": "Alignement de la transcription sélectionnée",
     "diarize_media_transcript": "Diarisation des haut-parleurs"
   },
@@ -23,8 +22,6 @@
     "cancelled": "Annulé"
   },
   "matchBadge": {
-    "documentOcr": "Texte du document reconnu",
-    "documentInterpretation": "Interprétation visuelle du document",
     "imageDescription": "Description de l'image",
     "videoCover": "Couverture vidéo",
     "mediaTimeRange": "{start} – {end}"
@@ -42,12 +39,9 @@
   "imageUnavailable": "Image indisponible",
   "document": {
     "coverage": "Traitement des documents",
-    "ocrEvidence": "Texte reconnu par machine · Des erreurs de reconnaissance sont possibles",
-    "interpretationEvidence": "Interprétation visuelle AI · Il ne s'agit pas d'une déclaration de document originale",
     "textCoverage": "Pages avec texte extrait : {count} ou {total}.",
     "unclassifiedPages": "La page {count} ne contient aucun corps de texte extractible ni aucune image connue. Il peut être vide ou contenir du contenu non pris en charge. | Les pages {count} n'ont pas de corps de texte extractible ni d'images connues. Ils peuvent être vides ou contenir du contenu non pris en charge.",
-    "recognitionRequired": "Pages nécessitant une reconnaissance : {pages}",
-    "visualCoverage": "Sources analysées : {count} de {total}.",
+    "scannedPages": "Pages numérisées (image uniquement) : {pages}",
     "visualUnavailable": "L’image référencée {count} ne peut pas être décodée par l’analyseur de document. | Les images référencées {count} ne peuvent pas être décodées par l'analyseur de documents.",
     "resources": {
       "title": "Ressources documentaires",
@@ -55,10 +49,8 @@
       "occurrences": "Temps {count} utilisé | Utilisé {count} fois",
       "embedded": "Image intégrée extraite du document.",
       "rendered": "Page ou région visuelle rendue à partir du PDF.",
-      "detectedText": "Texte détecté",
       "context": "Contexte",
       "altText": "Texte alternatif",
-      "description": "Description",
       "embeddedBadge": "Intégrée",
       "renderedBadge": "Rendu"
     },

@@ -10,7 +10,6 @@
     "analyze_media": "Duración del medio y forma de onda.",
     "transcribe_media": "Transcripción de audio y vídeo.",
     "parse_document": "Extracción de documentos",
-    "analyze_document": "Análisis visual del documento",
     "align_media_transcript": "Alineación de transcripción seleccionada",
     "diarize_media_transcript": "Diario del hablante"
   },
@@ -23,8 +22,6 @@
     "cancelled": "Cancelado"
   },
   "matchBadge": {
-    "documentOcr": "Texto del documento reconocido",
-    "documentInterpretation": "Interpretación visual del documento",
     "imageDescription": "Descripción de la imagen",
     "videoCover": "Portada de vídeo",
     "mediaTimeRange": "{start} – {end}"
@@ -42,12 +39,9 @@
   "imageUnavailable": "Imagen no disponible",
   "document": {
     "coverage": "Procesamiento de documentos",
-    "ocrEvidence": "Texto reconocido por máquina · Es posible que se produzcan errores de reconocimiento",
-    "interpretationEvidence": "Interpretación visual AI · Declaración de documento no original",
     "textCoverage": "Páginas con texto extraído: {count} de {total}.",
     "unclassifiedPages": "La página {count} no tiene cuerpo de texto extraíble ni imágenes conocidas. Puede estar en blanco o contener contenido no compatible. | Las páginas {count} no tienen cuerpo de texto extraíble ni imágenes conocidas. Pueden estar en blanco o contener contenido no compatible.",
-    "recognitionRequired": "Páginas que requieren reconocimiento: {pages}",
-    "visualCoverage": "Fuentes analizadas: {count} de {total}.",
+    "scannedPages": "Páginas escaneadas (solo imagen): {pages}",
     "visualUnavailable": "El analizador de documentos no puede decodificar la imagen a la que se hace referencia {count}. | El analizador de documentos no puede decodificar las imágenes a las que se hace referencia {count}.",
     "resources": {
       "title": "Recursos documentales",
@@ -55,10 +49,8 @@
       "occurrences": "Tiempo usado {count} | Usado {count} veces",
       "embedded": "Imagen incrustada extraída del documento.",
       "rendered": "Página o región visual renderizada desde PDF.",
-      "detectedText": "Texto detectado",
       "context": "Contexto",
       "altText": "Texto alternativo",
-      "description": "Descripción",
       "embeddedBadge": "Incrustada",
       "renderedBadge": "Renderizada"
     },

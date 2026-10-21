@@ -561,10 +561,11 @@ Document resources belong to selection detail. The Inspector presents deduplicat
 two-column virtualized masonry gallery. Thumbnails reserve their source aspect ratio before loading; unusually
 tall or wide resources use bounded, uncropped previews. Resizing the sidebar recalculates column geometry,
 and keyboard focus keeps the current thumbnail and adjacent tab targets mounted. Selecting a thumbnail opens
-the shared dialog viewer with every occurrence, source location,
-nearby context and optional analysis. Office resources are identified as extracted embedded images. PDF resources
-are identified as rendered page regions or recognition pages and are never described as original embedded files.
-Resource visibility depends on document parsing and system rendering, not on AI configuration.
+the shared dialog viewer with every occurrence, source location and
+nearby context, and exports the picture through the same format menu as a node. Office resources are identified
+as extracted embedded images. PDF resources are identified as rendered page regions or scanned pages and are
+never described as original embedded files. Resource visibility depends on document parsing and system
+rendering, never on AI configuration.
 
 ## Window and shell layout
 

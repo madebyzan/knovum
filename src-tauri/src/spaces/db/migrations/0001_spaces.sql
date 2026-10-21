@@ -386,7 +386,7 @@ CREATE TABLE spaces_enrichment_jobs (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
   node_id TEXT NOT NULL,
-  job_type TEXT NOT NULL CHECK (job_type IN ('analyze_visual', 'analyze_media', 'transcribe_media', 'align_media_transcript', 'diarize_media_transcript', 'parse_document', 'analyze_document')),
+  job_type TEXT NOT NULL CHECK (job_type IN ('analyze_visual', 'analyze_media', 'transcribe_media', 'align_media_transcript', 'diarize_media_transcript', 'parse_document')),
   status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled', 'awaiting_configuration')),
   source_revision TEXT NOT NULL,
   execution_target TEXT CHECK (execution_target IS NULL OR json_valid(execution_target)),
@@ -414,14 +414,6 @@ CREATE TABLE spaces_media_diarization_requests (
   maximum_speakers INTEGER CHECK (maximum_speakers BETWEEN 1 AND 32),
   CHECK (minimum_speakers IS NULL OR maximum_speakers IS NULL OR minimum_speakers <= maximum_speakers),
   FOREIGN KEY (job_id) REFERENCES spaces_enrichment_jobs(id) ON DELETE CASCADE
-);
-
-CREATE TABLE spaces_document_visual_checkpoints (
-  job_id TEXT NOT NULL REFERENCES spaces_enrichment_jobs(id) ON DELETE CASCADE,
-  occurrence_id TEXT NOT NULL,
-  occurrence TEXT NOT NULL CHECK (json_valid(occurrence)),
-  resource TEXT CHECK (resource IS NULL OR json_valid(resource)),
-  PRIMARY KEY (job_id, occurrence_id)
 );
 
 CREATE TABLE spaces_authorization_grants (

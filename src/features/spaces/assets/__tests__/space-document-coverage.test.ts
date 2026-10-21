@@ -1,9 +1,12 @@
 import { shallowMount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import { beforeEach, describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 
 import { i18n } from "../../../../foundation/i18n/instance";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { useSpaceStore } from "../../session/space-store";
+import { createSpaceCanvasTab } from "../../workspace/workbench-tab";
 import SpaceDocumentCoverage from "../presentation/documents/SpaceDocumentCoverage.vue";
 
 const resourceId = "a".repeat(64);
@@ -47,9 +50,7 @@ const node: SpaceCanvasNode = {
             page: 1,
             rect: { x: 0, y: 0, width: 200, height: 100 },
           },
-          state: "pending",
-          error: null,
-          analysis: null,
+          unavailable: null,
         },
       ],
       warnings: ["pdf_visual_coverage_limited"],
@@ -58,6 +59,14 @@ const node: SpaceCanvasNode = {
 };
 
 describe("document coverage details", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    const store = useSpaceStore();
+    const tab = createSpaceCanvasTab("space-1");
+    store.tabs = [tab];
+    store.activeTabId = tab.id;
+  });
+
   it("opens the shared resource viewer from the projected resource grid", async () => {
     const wrapper = shallowMount(SpaceDocumentCoverage, {
       props: { node },
@@ -73,6 +82,7 @@ describe("document coverage details", () => {
     expect(viewer.exists()).toBe(true);
     expect(viewer.props("item")).toEqual(resource);
     expect(viewer.props("sourceRevision")).toBe("revision-1");
+    expect(viewer.props("exportTarget")?.key).toBe(`document-resource:space-1:document-1:${resourceId}`);
 
     await wrapper.setProps({ node: { ...node, id: "document-2" } });
     expect(wrapper.findComponent({ name: "SpaceDocumentResourceViewer" }).exists()).toBe(false);

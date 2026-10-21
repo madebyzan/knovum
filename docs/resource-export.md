@@ -39,12 +39,13 @@ recording is re-encoded, and data is written as what it holds.
 | Rich Note, text            | TXT, HTML, DOCX, PDF, PPTX                             | Structured authoring content; no Markdown intermediate                            |
 | Markdown                   | MD, TXT, HTML, DOCX, PDF, PPTX                         | Semantic content and authorized managed images; MD is written by the Renderer     |
 | Website capture            | MD, TXT, HTML, DOCX, PDF, PPTX                         | The summary the engine assembles; the saved MD and the saved PDF are one document |
-| PDF                        | PDF, TXT, HTML, DOCX, PPTX                             | Editable text reflow, source-page images; qualified recognition for scanned pages |
+| PDF                        | PDF, TXT, HTML, DOCX, PPTX                             | Editable text reflow and source-page images; a scanned page carries its image     |
 | DOC/DOCX, XLS/XLSX         | own format, TXT, HTML, DOCX, PDF                       | Supported semantic Office content, reflowed rather than laid out as the original  |
 | PPT/PPTX                   | own format, TXT, HTML, DOCX, PDF; PPT adds PPTX        | Supported Office IR content and legacy upgrade                                    |
 | Code                       | own format, TXT, HTML, DOCX, PDF                       | The characters of the file, fenced and set as a listing rather than as prose      |
 | Other file                 | own format                                             | The managed bytes as they are                                                     |
 | Image                      | own format when untouched, PNG, JPG, WebP, TIFF        | The picture as it is currently edited; JPEG composites transparency onto white    |
+| Document picture           | PNG, JPG, WebP, TIFF                                   | One extracted embedded image or rendered page region, exactly as it was extracted |
 | Relative depth             | own format                                             | Measurement data, copied verbatim rather than re-encoded as a picture             |
 | Audio                      | own container, WAV, MP3, M4A, FLAC                     | The same recording, re-encoded by the qualified bundled FFmpeg encoders           |
 | Video                      | own container, MP4, MOV, MKV, and every audio encoding | H.264 and AAC in any of three containers; an audio target keeps only the sound    |
@@ -61,9 +62,8 @@ every encoder named here, so a supplier that lacks one fails the build rather th
 
 The private document worker owns synchronous parsing and serialization. Markdown is parsed with
 `pulldown-cmark`; Notes are translated directly from their validated Tiptap document into the admitted
-`office_oxide` IR. PDF text is freshly extracted from the pinned original file, with revision-qualified
-recognition supplied as a separate literal page input. Knovum keeps source/asset policy, format
-translation, presentation pagination and safe typesetting.
+`office_oxide` IR. PDF text is freshly extracted from the pinned original file. Knovum keeps
+source/asset policy, format translation, presentation pagination and safe typesetting.
 
 Original-layout fidelity is outside this product boundary. Knovum does not install, bundle or
 implicitly discover an Office layout engine; every document source is read into the authoring model
@@ -79,17 +79,20 @@ before the destination is written. The private worker protocol is strict v2; v1,
 wrong frame lengths, trailing bytes and unsuccessful exits fail.
 
 One published current source is required. Unsupported sources and processing/failed resources are
-rejected in Rust. Known scanned PDF pages remain blocked until every required page has completed
-recognition with nonempty text from the same source revision. Export never triggers an implicit AI
-request. The host validates the recognition manifest; the worker validates required page identities
-against the original PDF. OCR text is written literally, not interpreted as Markdown or executable
-content.
+rejected in Rust. A PDF whose pages are images holds no text to serialize, so a text-only target
+reports that there is nothing convertible instead of inventing text; export never triggers an
+implicit AI request.
 
-For text-bearing PDFs, original image regions are rendered with the existing native PDF adapter and
-included as figures associated with their source page. Recognized scanned pages retain a raster of
-the source page alongside editable recognized text. This is content delivery, not recovery of the
-original editable Word layout. Page geometry and precise reading-order placement are not promised.
-TXT carries semantic text and image alternative text without exporting private paths.
+PDF image regions are rendered with the existing native PDF adapter and included as figures
+associated with their source page, and a scanned page contributes the page itself. This is content
+delivery, not recovery of the original editable Word layout. Page geometry and precise reading-order
+placement are not promised. TXT carries semantic text and image alternative text without exporting
+private paths.
+
+A picture inside a document is addressed by its document node and resource identity rather than by a
+canvas node, and is otherwise the same export: the same encodings, the same destination dialog, the
+same revision check. Its extracted PNG is its own format, so saving it unchanged copies the bytes
+Knovum already holds.
 
 File display titles name the exported document and HTML metadata. They do not become new body
 headings. Markdown and Note title/body handling avoids duplicating a matching leading H1. Citations
@@ -182,8 +185,8 @@ silently becomes a reflowed PDF.
 ## Verification
 
 Focused checks cover the admitted formats of every resource kind, source identity, strict worker
-frames, images and changed-resource rejection, Note structure/marks/merged tables, literal
-recognition, PPTX content retention/pagination, failure causes and process lifecycle. Execute after the development changes are complete:
+frames, images and changed-resource rejection, Note structure/marks/merged tables, PPTX content
+retention/pagination, failure causes and process lifecycle. Execute after the development changes are complete:
 
 ```sh
 pnpm check:web

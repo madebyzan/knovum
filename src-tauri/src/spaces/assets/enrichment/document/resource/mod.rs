@@ -139,20 +139,6 @@ fn read_bounded(path: &Path) -> Result<Vec<u8>, String> {
     Ok(bytes)
 }
 
-pub(super) fn verified_path(
-    app: &tauri::AppHandle,
-    resource: &DocumentResource,
-) -> Result<std::path::PathBuf, String> {
-    let path = authorize_spaces_asset(app, Path::new(&resource.path))?;
-    let bytes = read_bounded(&path)?;
-    if bytes.len() as u64 != resource.byte_size
-        || hex::encode(Sha256::digest(&bytes)) != resource.id
-    {
-        return Err("Document resource bytes do not match the published manifest".into());
-    }
-    Ok(path)
-}
-
 pub(super) fn save_render(
     app: &tauri::AppHandle,
     source: &Path,

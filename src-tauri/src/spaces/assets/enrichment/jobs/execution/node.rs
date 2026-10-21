@@ -64,7 +64,6 @@ pub(super) async fn save(
                     | super::EnrichmentJobType::DiarizeMediaTranscript
             )
             .then_some(expected_media_knowledge),
-            document_coverage: None,
             cancellation: Some(cancellation),
         },
         fields,

@@ -5,7 +5,7 @@ use tauri::AppHandle;
 use super::resource;
 use crate::documents::extraction::{pdf::PdfDocumentContent, visual::DocumentImage};
 use crate::spaces::knowledge::model::document_coverage::{
-    DocumentCoverage, DocumentOccurrence, DocumentParser, VisualState, MAX_TOTAL_RESOURCE_BYTES,
+    DocumentCoverage, DocumentOccurrence, DocumentParser, MAX_TOTAL_RESOURCE_BYTES,
 };
 
 pub(in crate::spaces::assets::enrichment) fn pdf(
@@ -36,9 +36,7 @@ pub(in crate::spaces::assets::enrichment) fn pdf(
             alt_text: None,
             resource_id: None,
             pdf_input: Some(visual.input.clone()),
-            state: VisualState::Pending,
-            error: None,
-            analysis: None,
+            unavailable: None,
         });
     }
     super::raster::materialize_all(app, source, &mut report, cancellation, claim_managed_path)?;
@@ -78,9 +76,7 @@ pub(in crate::spaces::assets::enrichment) fn office(
             alt_text: image.alt_text,
             resource_id: None,
             pdf_input: None,
-            state: VisualState::Pending,
-            error: None,
-            analysis: None,
+            unavailable: None,
         };
         match image
             .data
@@ -98,15 +94,13 @@ pub(in crate::spaces::assets::enrichment) fn office(
                 }
             }
             Some(Err(resource::ResourceError::Unsupported(error))) => {
-                occurrence.state = VisualState::Unsupported;
-                occurrence.error = Some(error);
+                occurrence.unavailable = Some(error);
             }
             Some(Err(resource::ResourceError::Storage(error))) => {
                 return Err(error);
             }
             None => {
-                occurrence.state = VisualState::Unsupported;
-                occurrence.error =
+                occurrence.unavailable =
                     Some("Referenced image bytes are unavailable from parser".into());
             }
         }

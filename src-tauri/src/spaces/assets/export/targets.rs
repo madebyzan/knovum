@@ -61,6 +61,22 @@ pub(super) fn of(payload: &Value) -> Result<ExportFormats, String> {
 
 /// The one export the destination asks for, or why this resource cannot produce it.
 pub(super) fn requested(payload: &Value, destination: &Path) -> Result<Export, String> {
+    let (routes, unavailable) = offered(payload)?;
+    chosen(routes, unavailable, destination)
+}
+
+/// A picture a document carries is the PNG the Space extracted from it, untouched: it is offered
+/// as it is, then in every other encoding a picture can be written in.
+pub(super) fn document_resource() -> Vec<(String, Managed)> {
+    deduplicated(picture_routes("png".into()))
+}
+
+/// The route among `routes` that the destination's extension names.
+pub(super) fn chosen<T>(
+    routes: Vec<(String, T)>,
+    unavailable: Option<String>,
+    destination: &Path,
+) -> Result<T, String> {
     let extension = destination
         .extension()
         .and_then(|extension| extension.to_str())
@@ -72,11 +88,10 @@ pub(super) fn requested(payload: &Value, destination: &Path) -> Result<Export, S
     } else {
         &extension
     };
-    let (routes, unavailable) = offered(payload)?;
     routes
         .into_iter()
         .find(|(offered, _)| offered == requested)
-        .map(|(_, export)| export)
+        .map(|(_, route)| route)
         .ok_or_else(|| {
             unavailable
                 .unwrap_or_else(|| format!("This resource cannot be exported as .{extension}"))
@@ -175,23 +190,31 @@ fn editable_routes(kind: &str, payload: &Value) -> Result<ExportOffer, String> {
 /// 16-bit bytes carry its meaning. An edited picture has to be encoded again;
 /// an untouched one is also available exactly as it was imported.
 fn image_routes(payload: &Value) -> Result<Vec<(String, Export)>, String> {
-    let original = (
-        source_extension(payload)?,
-        Export::Managed(Managed::Original),
-    );
-    if payload.get("imageDepth").is_some() {
-        return Ok(vec![original]);
-    }
-    let encodings = PICTURE_ENCODINGS.map(|encoding| {
-        (
-            encoding.extension().to_owned(),
-            Export::Managed(Managed::Image(encoding)),
-        )
-    });
-    if payload.get("imageEdit").is_some() {
-        return Ok(encodings.into());
-    }
-    Ok([original].into_iter().chain(encodings).collect())
+    let original = source_extension(payload)?;
+    let routes = if payload.get("imageDepth").is_some() {
+        vec![(original, Managed::Original)]
+    } else if payload.get("imageEdit").is_some() {
+        encoding_routes().collect()
+    } else {
+        picture_routes(original)
+    };
+    Ok(routes
+        .into_iter()
+        .map(|(extension, managed)| (extension, Export::Managed(managed)))
+        .collect())
+}
+
+/// A picture exactly as stored, then every encoding it can be written in.
+fn picture_routes(original: String) -> Vec<(String, Managed)> {
+    std::iter::once((original, Managed::Original))
+        .chain(encoding_routes())
+        .collect()
+}
+
+fn encoding_routes() -> impl Iterator<Item = (String, Managed)> {
+    PICTURE_ENCODINGS
+        .into_iter()
+        .map(|encoding| (encoding.extension().to_owned(), Managed::Image(encoding)))
 }
 
 fn media_routes(
@@ -258,12 +281,12 @@ fn source_extension(payload: &Value) -> Result<String, String> {
         .ok_or_else(|| "The resource file name carries no format".into())
 }
 
-fn deduplicated(routes: Vec<(String, Export)>) -> Vec<(String, Export)> {
+fn deduplicated<T>(routes: Vec<(String, T)>) -> Vec<(String, T)> {
     let mut offered = Vec::with_capacity(routes.len());
     for route in routes {
         if !offered
             .iter()
-            .any(|(extension, _): &(String, Export)| *extension == route.0)
+            .any(|(extension, _): &(String, T)| *extension == route.0)
         {
             offered.push(route);
         }
