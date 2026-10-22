@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use windows::{
     core::{PCWSTR, PWSTR},
     Win32::{
-        Foundation::{ERROR_FILE_NOT_FOUND, ERROR_NO_MORE_ITEMS, ERROR_SUCCESS},
+        Foundation::{ERROR_FILE_NOT_FOUND, ERROR_NO_MORE_ITEMS},
         System::Registry::{
             RegCloseKey, RegEnumKeyExW, RegGetValueW, RegOpenKeyExW, HKEY, HKEY_CURRENT_USER,
             HKEY_LOCAL_MACHINE, KEY_READ, KEY_WOW64_32KEY, KEY_WOW64_64KEY, REG_SAM_FLAGS,

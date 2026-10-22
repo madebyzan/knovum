@@ -80,7 +80,7 @@ fn register() -> Result<(), String> {
     if unsafe { RegisterClassW(&class) } == 0 {
         Err(format!(
             "Windows could not register the preview window: {}",
-            Error::from_win32()
+            Error::from_thread()
         ))
     } else {
         Ok(())

@@ -40,7 +40,11 @@ impl KillHandle {
 }
 
 impl ProcessTree {
+    /// Takes ownership of everything `child` spawns: its process group on Unix, the job it is
+    /// assigned to on Windows.
     pub(crate) fn new(child: &Child, #[cfg(windows)] job: WindowsJob) -> Result<Self, String> {
+        #[cfg(windows)]
+        job.assign(child)?;
         #[cfg(unix)]
         let process_group = i32::try_from(
             child

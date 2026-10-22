@@ -70,8 +70,6 @@ impl Process {
         let mut child = command
             .spawn()
             .map_err(|_| "agent-runtime-process-start-failed")?;
-        #[cfg(windows)]
-        job.assign(&child)?;
         let tree = ProcessTree::new(
             &child,
             #[cfg(windows)]

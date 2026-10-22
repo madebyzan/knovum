@@ -13,12 +13,15 @@ pub(crate) fn attempt(work: &Path, request: &str) -> Result<PathBuf, String> {
         return Err("invalid_input: speech request UUID must be canonical".into());
     }
     let path = work.join(format!("attempt-{request}"));
-    let mut builder = fs::DirBuilder::new();
+    // The attempt directory is private to this user; Windows inherits the work directory's ACL.
+    let builder = fs::DirBuilder::new();
     #[cfg(unix)]
-    {
+    let builder = {
         use std::os::unix::fs::DirBuilderExt;
+        let mut builder = builder;
         builder.mode(0o700);
-    }
+        builder
+    };
     builder
         .create(&path)
         .map_err(|error| format!("resource_exhausted: {error}"))?;
