@@ -96,17 +96,18 @@ impl Worker {
         #[cfg(windows)]
         let job = WindowsJob::new()?;
         let mut child = command.spawn().map_err(io_error)?;
-        #[cfg(windows)]
-        if let Err(error) = job.assign(&child) {
-            let _ = child.kill().await;
-            let _ = child.wait().await;
-            return Err(error);
-        }
-        let process_tree = ProcessTree::new(
+        let process_tree = match ProcessTree::new(
             &child,
             #[cfg(windows)]
             job,
-        )?;
+        ) {
+            Ok(tree) => tree,
+            Err(error) => {
+                let _ = child.kill().await;
+                let _ = child.wait().await;
+                return Err(error);
+            }
+        };
         let kill_registration = KillRegistration::new(&params.session_id, process_tree.handle());
         let input = child
             .stdin

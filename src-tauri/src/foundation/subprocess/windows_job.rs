@@ -1,5 +1,3 @@
-use std::os::windows::io::AsRawHandle;
-
 use tokio::process::Child;
 use windows::Win32::{
     Foundation::{CloseHandle, HANDLE},
@@ -38,8 +36,11 @@ impl WindowsJob {
         Ok(Self(job))
     }
 
-    pub(crate) fn assign(&self, child: &Child) -> Result<(), String> {
-        unsafe { AssignProcessToJobObject(self.0, HANDLE(child.as_raw_handle())) }
+    pub(super) fn assign(&self, child: &Child) -> Result<(), String> {
+        let process = child
+            .raw_handle()
+            .ok_or("worker_crashed: worker exited before it could be contained")?;
+        unsafe { AssignProcessToJobObject(self.0, HANDLE(process)) }
             .map_err(|error| format!("worker_crashed: failed to contain worker process: {error}"))
     }
 

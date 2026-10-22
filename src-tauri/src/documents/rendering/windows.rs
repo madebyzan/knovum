@@ -1,4 +1,4 @@
-use std::{os::windows::ffi::OsStrExt, path::Path};
+use std::path::Path;
 use windows::{
     core::{Interface, HSTRING},
     Data::Pdf::{PdfDocument, PdfPageRenderOptions},
@@ -37,9 +37,9 @@ pub(super) fn render(
         RoInitialize(RO_INIT_MULTITHREADED)?;
     }
     let _apartment = Apartment;
-    let path = HSTRING::from_wide(&source.as_os_str().encode_wide().collect::<Vec<_>>())?;
-    let file = StorageFile::GetFileFromPathAsync(&path)?.get()?;
-    let document = PdfDocument::LoadFromFileAsync(&file)?.get()?;
+    let path = HSTRING::from(source);
+    let file = StorageFile::GetFileFromPathAsync(&path)?.join()?;
+    let document = PdfDocument::LoadFromFileAsync(&file)?.join()?;
     render_document(&document, page_number, region)
 }
 
@@ -57,10 +57,10 @@ pub(super) fn render_bytes(
     let writer = DataWriter::CreateDataWriter(&stream.GetOutputStreamAt(0)?)?;
     let _writer = CloseOnDrop(writer.cast()?);
     writer.WriteBytes(bytes)?;
-    writer.StoreAsync()?.get()?;
-    writer.FlushAsync()?.get()?;
+    writer.StoreAsync()?.join()?;
+    writer.FlushAsync()?.join()?;
     stream.Seek(0)?;
-    let document = PdfDocument::LoadFromStreamAsync(&stream)?.get()?;
+    let document = PdfDocument::LoadFromStreamAsync(&stream)?.join()?;
     render_document(&document, page_number, region)
 }
 
@@ -90,14 +90,14 @@ fn render_document(
     let stream = InMemoryRandomAccessStream::new()?;
     let _stream = CloseOnDrop(stream.cast()?);
     page.RenderWithOptionsToStreamAsync(&stream, &options)?
-        .get()?;
+        .join()?;
     let length = u32::try_from(stream.Size()?)?;
     if length > 32 * 1024 * 1024 {
         return Err("Rendered PDF page exceeds 32 MiB".into());
     }
     let reader = DataReader::CreateDataReader(&stream.GetInputStreamAt(0)?)?;
     let _reader = CloseOnDrop(reader.cast()?);
-    reader.LoadAsync(length)?.get()?;
+    reader.LoadAsync(length)?.join()?;
     let mut bytes = vec![0; length as usize];
     reader.ReadBytes(&mut bytes)?;
     Ok(super::PdfRaster {

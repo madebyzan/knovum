@@ -41,11 +41,6 @@ pub(super) async fn run(
     let job =
         crate::foundation::subprocess::windows_job::WindowsJob::new().map_err(worker_error)?;
     let mut child = command.spawn().map_err(worker_error)?;
-    #[cfg(windows)]
-    if let Err(error) = job.assign(&child) {
-        stop_child(&mut child).await?;
-        return Err(worker_error(error));
-    }
     let mut tree = match ProcessTree::new(
         &child,
         #[cfg(windows)]
