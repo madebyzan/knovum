@@ -149,8 +149,10 @@ fn main() {
     // reaching the binaries, where a second copy of tauri's resource.lib fails to link (CVT1100
     // duplicate VERSION resource). Delay-loading comctl32 is a duplicate-safe flag that defers the
     // v6-only import until a dialog is shown, which unit tests never do; binaries keep their
-    // manifest, so the shipped app still resolves comctl32 v6 on first use.
+    // manifest, so the shipped app still resolves comctl32 v6 on first use. /DELAYLOAD resolves
+    // imports through __delayLoadHelper2, which only delayimp.lib provides.
     if os == "windows" {
         println!("cargo:rustc-link-arg=/DELAYLOAD:comctl32.dll");
+        println!("cargo:rustc-link-arg=/DEFAULTLIB:delayimp.lib");
     }
 }

@@ -181,6 +181,12 @@ the official Tauri action uploads to the public **draft** release. The matrix is
 avoid simultaneous writes to the action's shared `latest.json`. Only the owned updater-enabled
 config may be passed to the production command; arbitrary config injection is rejected.
 
+Tag identity, reviewed notes and dependency advisories are decided once in the workflow's `prepare`
+job on Linux, not once per platform on billed desktop runners. The quality gates are not repeated
+either: the workflow requires the tagged commit to be an ancestor of `main`, where the Quality
+workflow already ran every gate on all three platforms for that exact commit. A platform job
+therefore only builds, signs and uploads the packages those gates already admitted.
+
 Inspect the successful three-platform run, its draft artifacts, all three `latest.json` platform
 entries, signatures, notices/source offers and target-platform installation/upgrade evidence.
 Record source commit, OS/architecture, source/destination versions and installer/resource hashes

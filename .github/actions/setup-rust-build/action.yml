@@ -1,9 +1,33 @@
 name: Setup Rust build toolchain
-description: Install the inference suppliers' compiler tools and locate libclang for bindgen.
+description: >
+  Prepare one Rust build environment: locked Node/Python/pnpm dependencies, the inference
+  suppliers' compiler tools, libclang for bindgen, and the Cargo dependency cache. Every job that
+  compiles the desktop application uses this action, so a build input is declared once.
+
+inputs:
+  cache:
+    description: Restore the Cargo dependency cache. Disable for release builds, which compile a profile no other job shares.
+    default: "true"
+  cache-save:
+    description: >
+      Publish the dependency cache. Only trunk builds may, so one authoritative cache per platform
+      serves every pull request instead of each branch evicting the others.
+    default: "false"
 
 runs:
   using: composite
   steps:
+    - uses: actions/setup-node@v6
+      with:
+        node-version: "22"
+    - uses: astral-sh/setup-uv@v10.2.0
+      with:
+        version: "0.12.23"
+    - name: Install locked dependencies
+      shell: bash
+      run: |
+        corepack enable
+        pnpm install --frozen-lockfile
     - uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3
       with:
         version: "32.1"
@@ -23,3 +47,14 @@ runs:
           throw 'The Rust build requires the runner LLVM libclang.dll'
         }
         "LIBCLANG_PATH=$directory" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+    # The desktop graph is 1300 crates including C/C++ suppliers (Protobuf, CMake, bindgen, the
+    # inference kernels), which costs 35-45 minutes per compile from cold. Only `Cargo.lock` changes
+    # that, so the dependency artifacts are cached per platform and a failed job still publishes
+    # them: a Windows link failure is retried against warm dependencies instead of rebuilding them.
+    - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      if: inputs.cache == 'true'
+      with:
+        workspaces: src-tauri
+        shared-key: ${{ runner.os }}-${{ runner.arch }}
+        cache-on-failure: "true"
+        save-if: ${{ inputs.cache-save }}

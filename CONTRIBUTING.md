@@ -57,6 +57,10 @@ pnpm check
 Dependency changes also run `pnpm security` (advisory audits are not a pull-request gate; see
 `docs/dependency-policy.md`).
 
+A failure that only exists on one platform is reproduced with the manual **Platform check**
+workflow, which compiles and tests one chosen platform against the cached dependencies. Iterate
+there instead of pushing commits through the full matrix.
+
 Desktop lifecycle and capability changes also require macOS and Windows smoke builds.
 
 ## UI review

@@ -77,3 +77,27 @@ The repository uses Oxlint/Oxfmt, dependency-cruiser, Knip, jscpd, Vitest, Vue T
 Update documentation in the same PR for changes to architecture, design tokens, permissions, persistence schema, commands, background task contracts, packaging, or release behavior.
 
 The Quality workflow covers Rust gates and desktop compilation on macOS arm64/x64 and Windows x64; advisory audits run in the Security workflow and check the single Agent/tooling project lock directly with uv. The web gate includes the few desktop helper tests; actual model measurements and target-platform release acceptance remain separate. Contract drift checks use the generator-owned output list. Directory and naming conventions remain review requirements rather than a custom scanning subsystem.
+
+## Continuous integration cost
+
+A gate is only useful if its answer arrives while the change is still being worked on, so the
+pipeline is designed around where the time actually goes. The web, Python, license and workflow
+gates answer in minutes on one Linux runner. The Rust matrix compiles 1300 crates including C/C++
+suppliers, which is 35-45 minutes per cold compile per platform and dominates everything else.
+
+- One Cargo dependency cache per platform, published only by `main` and keyed by `Cargo.lock`, is
+  restored by every pull request and by `Platform check`. A failed job still publishes it, because
+  the run after a platform failure is the one that most needs warm dependencies.
+- `.github/actions/setup-rust-build` is the only definition of a Rust build environment. A job that
+  compiles the application uses it instead of repeating toolchain, dependency or cache steps.
+- `pnpm check:rust` runs the tests before Clippy. Formatting answers in seconds, but between the two
+  expensive passes only the test pass links and starts a binary, which is the failure class that
+  platform-specific link, manifest and runtime problems belong to.
+- The release workflow decides tag, notes and advisories once on Linux and does not repeat the gates
+  that admitted the commit to `main`. Its platform matrix stays serialized because the Tauri action
+  merges one shared `latest.json`.
+- `Platform check` reproduces a single platform on demand. A platform-specific failure is iterated
+  there, not by pushing commits through the full matrix.
+
+Workflow definitions are linted by actionlint in the Quality workflow: a malformed expression or an
+unknown input is otherwise reported by a failed run that costs hours of desktop runners.
