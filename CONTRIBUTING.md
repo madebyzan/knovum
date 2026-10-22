@@ -54,6 +54,9 @@ Required before review:
 pnpm check
 ```
 
+Dependency changes also run `pnpm security` (advisory audits are not a pull-request gate; see
+`docs/dependency-policy.md`).
+
 Desktop lifecycle and capability changes also require macOS and Windows smoke builds.
 
 ## UI review

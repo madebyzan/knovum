@@ -61,12 +61,12 @@ jobs:
         run: |
           node --input-type=module -e 'import { readVersion } from "./scripts/desktop/packaging-policy.mjs"; import { accessSync } from "node:fs"; const version = readVersion(process.cwd()); if (process.env.GITHUB_REF_NAME !== `v${version}`) throw new Error("Tag and package version differ"); accessSync(`docs/release-notes/${version}.md`);'
       - uses: ./.github/actions/setup-rust-build
-      - name: Audit production web dependencies
-        run: pnpm security:web
       - name: Install cargo-deny
         run: cargo install cargo-deny --locked
-      - name: Audit Rust dependencies
-        run: cargo deny --manifest-path src-tauri/Cargo.toml check advisories licenses
+      - name: Audit dependencies against current advisories
+        run: pnpm security
+      - name: Check Rust dependency licenses
+        run: cargo deny --manifest-path src-tauri/Cargo.toml check licenses
       - name: Run quality gates
         run: pnpm check
       - name: Read reviewed release notes

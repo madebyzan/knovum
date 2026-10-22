@@ -1,0 +1,55 @@
+# Advisory databases change without the repository changing, so auditing against them on every
+# pull request turns unrelated disclosures into failed checks. They are audited here on a schedule
+# (a failed run notifies the maintainers) and again before every release in release-candidate.yml.
+# Locally: `pnpm security`.
+name: Security
+
+on:
+  schedule:
+    - cron: "0 1 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python advisories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: "0.12.23"
+      - name: Audit locked Python dependencies
+        run: npm run security:python
+
+  web:
+    name: Web advisories and signatures
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Audit production dependencies
+        run: pnpm security:web
+
+  rust:
+    name: Rust advisories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Audit Rust dependencies
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          rust-version: "1.97.1"
+          manifest-path: src-tauri/Cargo.toml
+          command: check advisories

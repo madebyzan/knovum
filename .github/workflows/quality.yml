@@ -27,8 +27,6 @@ jobs:
           version: "0.12.23"
       - name: Check Python worker
         run: npm run check:python
-      - name: Audit locked Python dependencies
-        run: npm run security:python
 
   web:
     name: Web and source quality
@@ -43,24 +41,24 @@ jobs:
         run: corepack enable
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Audit production dependencies
-        run: pnpm security:web
       - name: Run web gates
         run: pnpm check:web
 
-  rust-audit:
-    name: Rust dependency audit
+  # Licenses are a property of the locked graph, so they gate every change. Advisories are not:
+  # they change without the repository changing and are audited by security.yml instead.
+  rust-licenses:
+    name: Rust dependency licenses
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Require committed lockfile
         run: test -f src-tauri/Cargo.lock
-      - name: Audit Rust dependencies
+      - name: Check Rust dependency licenses
         uses: EmbarkStudios/cargo-deny-action@v2
         with:
           rust-version: "1.97.1"
           manifest-path: src-tauri/Cargo.toml
-          command: check advisories licenses
+          command: check licenses
 
   rust-check:
     name: Rust compile and tests (${{ matrix.os }})
@@ -92,14 +90,14 @@ jobs:
 
   rust:
     name: Rust quality
-    needs: [rust-audit, rust-check]
+    needs: [rust-licenses, rust-check]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - name: Require both Rust gates to pass
         env:
-          AUDIT_RESULT: ${{ needs.rust-audit.result }}
+          LICENSES_RESULT: ${{ needs.rust-licenses.result }}
           CHECK_RESULT: ${{ needs.rust-check.result }}
         run: |
-          test "$AUDIT_RESULT" = "success"
+          test "$LICENSES_RESULT" = "success"
           test "$CHECK_RESULT" = "success"

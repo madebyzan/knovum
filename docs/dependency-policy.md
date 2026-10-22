@@ -65,8 +65,14 @@ a higher version number alone is insufficient.
 
 ## Security gates
 
-CI installs from committed lockfiles and runs the repository's production npm audit/signature
-checks and Cargo advisory/license policy. `deny.toml` is the Rust license allowlist; changes require
+CI installs from committed lockfiles. A gate on a pull request must depend only on what the
+change contains, so the Rust license policy runs on every change while advisory audits do not: an
+advisory database changes without the repository changing, and a disclosure against an untouched
+dependency is a maintenance task, not a property of the pull request that happened to run next.
+`pnpm security` (production npm advisories and registry signatures, locked Python advisories, Cargo
+advisories) runs weekly and on demand in `security.yml`, where a failure notifies the maintainers,
+and before every release candidate is packaged, where it blocks the release. A reported advisory is
+fixed by updating the locked dependency. `deny.toml` is the Rust license allowlist; changes require
 the same accountable release/legal review as the dependency they admit. Dependabot is an update
 signal, not evidence that an update is compatible or approved.
 
