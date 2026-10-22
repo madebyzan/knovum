@@ -35,8 +35,6 @@ async fn worker() -> Worker {
     #[cfg(windows)]
     let job = super::windows_job::WindowsJob::new().unwrap();
     let mut child = command.spawn().unwrap();
-    #[cfg(windows)]
-    job.assign(&child).unwrap();
     let process_tree = ProcessTree::new(
         &child,
         #[cfg(windows)]

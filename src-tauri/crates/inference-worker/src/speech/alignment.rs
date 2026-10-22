@@ -24,7 +24,7 @@ impl Drop for Engine {
     }
 }
 impl Engine {
-    fn check(&self, status: u32) -> Result<(), String> {
+    fn check(&self, status: audiocpp_status) -> Result<(), String> {
         check(&self.api, status)
     }
     fn words(
@@ -280,7 +280,7 @@ impl Aligner {
         })
     }
 }
-fn check(api: &AudioApi, status: u32) -> Result<(), String> {
+fn check(api: &AudioApi, status: audiocpp_status) -> Result<(), String> {
     if status == 0 {
         return Ok(());
     }

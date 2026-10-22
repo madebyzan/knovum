@@ -40,8 +40,6 @@ pub(super) fn start(
     #[cfg(windows)]
     let job = crate::foundation::subprocess::windows_job::WindowsJob::new()?;
     let mut child = command.spawn().map_err(|_| "mcp-process-start-failed")?;
-    #[cfg(windows)]
-    job.assign(&child)?;
     let tree = ProcessTree::new(
         &child,
         #[cfg(windows)]

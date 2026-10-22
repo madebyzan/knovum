@@ -86,7 +86,7 @@ impl PreviewWindow {
         let mut message = MSG::default();
         loop {
             match unsafe { GetMessageW(&mut message, None, 0, 0) }.0 {
-                -1 => return Err(Error::from_win32().to_string()),
+                -1 => return Err(Error::from_thread().to_string()),
                 0 => return Ok(()),
                 _ => unsafe {
                     TranslateMessage(&message);
