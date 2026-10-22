@@ -152,11 +152,16 @@ database state for export.
 
 ## Structure, camera and draft lifecycle
 
-A workspace draft is an in-memory Space, not a persisted aggregate. The canvas host receives its
-explicit `draft` or `persisted` lifecycle from the workspace. Draft camera changes and tab flushes
-must not load or save camera state or materialize an empty Space.
+A workspace draft is an in-memory Space, not a persisted aggregate: it has no `spaces` row, so no
+Space-owned row can be written for it. The Space store answers `spacePersistence(spaceId)` once, and
+every Space-scoped writer reads that answer instead of re-deriving it. Draft camera changes and tab
+flushes must not load or save camera state or materialize an empty Space; a draft's conversation
+composer state stays in memory and is written once the Space exists. A tab flush that wrote for a
+draft would fail on the missing row and abort the whole transition, leaving the workbench unable to
+leave the empty Space.
 
-The first durable action materializes the Space before committing Structure/Layout. Promotion shares
+The first durable action materializes the Space before committing Structure/Layout, and submitting a
+conversation materializes it before the conversation is created. Promotion shares
 one readiness promise and retains the current surface. Opening a persisted Space loads its current
 Structure/Layout snapshot and separate camera. The Renderer never saves an authoritative canvas
 document: it projects an ephemeral Konva adapter document from the committed aggregate.

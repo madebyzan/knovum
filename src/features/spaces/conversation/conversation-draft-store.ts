@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 import { shallowRef } from "vue";
 
 import type { ConversationDraft } from "../contracts/generated/ConversationDraft";
+import { useSpaceStore } from "../session/space-store";
 import {
   loadConversationDraft,
   moveConversationDraft,
@@ -12,7 +13,9 @@ import {
 
 export type ConversationComposerDraft = Omit<ConversationDraft, "spaceId" | "conversationId">;
 
+/** Composer drafts per Space; an unsaved Space keeps its drafts in memory until it is created. */
 export const useConversationDraftStore = defineStore("spaces-conversation-drafts", () => {
+  const spaces = useSpaceStore();
   const draftByConversationKey = shallowRef<Record<string, ConversationComposerDraft>>({});
   const saveGenerationByConversationKey = new Map<string, number>();
   let persistenceTail = Promise.resolve<unknown>(undefined);
@@ -41,7 +44,12 @@ export const useConversationDraftStore = defineStore("spaces-conversation-drafts
     );
   }
 
+  function isStored(spaceId: string) {
+    return spaces.spacePersistence(spaceId) === "persisted";
+  }
+
   async function load(spaceId: string, conversationId: string) {
+    if (!isStored(spaceId)) return read(spaceId, conversationId);
     const persisted = await persist(() => loadConversationDraft(spaceId, conversationId));
     if (!persisted) return undefined;
     const draft: ConversationComposerDraft = {
@@ -71,7 +79,7 @@ export const useConversationDraftStore = defineStore("spaces-conversation-drafts
     const generation = advanceSaveGeneration(key);
     saveCached(spaceId, conversationId, draft);
     const snapshot = read(spaceId, conversationId);
-    if (!snapshot) return;
+    if (!snapshot || !isStored(spaceId)) return;
     const persisted = await persist(() =>
       saveConversationDraft({
         spaceId,

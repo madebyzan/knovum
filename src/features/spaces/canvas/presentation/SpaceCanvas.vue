@@ -132,7 +132,7 @@ const canvasEvents = createSpaceCanvasEvents({
       :key="spaceId"
       :rendering-enabled="renderingEnabled"
       :events="canvasEvents"
-      :persistence="store.draftSpace?.id === spaceId ? 'draft' : 'persisted'"
+      :persistence="store.spacePersistence(spaceId)"
       :ensure-persisted="store.ensureActiveSpacePersisted"
       :import-json-canvas="store.importJsonCanvas"
       :focus-node-ids="store.canvasFocusIds"

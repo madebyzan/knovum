@@ -1,50 +1,19 @@
-import type { Ref, ShallowRef } from "vue";
-
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import type { AgentExtensionSelection } from "../../../shared/contracts/generated/AgentExtensionSelection";
-import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
-import type { Conversation } from "../contracts/generated/Conversation";
-import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
-import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
 import type { ConversationTaskUpdate } from "../contracts/generated/ConversationTaskUpdate";
-import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
 import { restoreConversationDraftAfterFailure } from "./conversation-draft-recovery";
 import { startConversationTask } from "./conversation-ipc";
-import {
-  pendingConversationMessage,
-  type VisibleConversationAttachment,
-} from "./conversation-pending-message";
+import { pendingConversationMessage } from "./conversation-pending-message";
 import { observeConversationRun } from "./conversation-run-observation";
 import { conversationTaskRequest } from "./conversation-task-request";
 import { settleConversationTask } from "./conversation-task-settlement";
+import type {
+  ConversationSubmissionInput,
+  ConversationSubmissionState,
+} from "./conversation-task-submission-contract";
+
 type StartedTask = Awaited<ReturnType<typeof startConversationTask>>;
 type Selection = { spaceId: string; conversationId: string };
-interface ConversationSubmissionState {
-  activeRun: ShallowRef<RunObservation | undefined>;
-  activeRunId: ShallowRef<string | undefined>;
-  activeConversationId: ShallowRef<string>;
-  activeSpaceId: ShallowRef<string | undefined>;
-  taskState: ShallowRef<string | undefined>;
-  loading: ShallowRef<boolean>;
-  error: ShallowRef<string | undefined>;
-  streamedText: ShallowRef<string>;
-  activityRevision: ShallowRef<number>;
-}
-export interface ConversationSubmissionInput {
-  extensions: Ref<AgentExtensionSelection>;
-  spaceId: Ref<string | undefined>;
-  selectedConversationId: Ref<string>;
-  conversation: Ref<Conversation | undefined>;
-  prompt: Ref<string>;
-  target: Ref<TaskTarget | undefined>;
-  attachments: Ref<ConversationAttachment[]>;
-  visibleAttachments: Ref<readonly VisibleConversationAttachment[]>;
-  hasUnresolvedFileReferences: Ref<boolean>;
-  messages: ShallowRef<ConversationMessage[]>;
-  clearDraft: (request: SubmitConversationTaskRequest) => Promise<void>;
-  restoreDraft: (request: SubmitConversationTaskRequest) => Promise<void>;
-}
 interface ConversationTaskSubmissionOptions {
   input: ConversationSubmissionInput;
   state: ConversationSubmissionState;
@@ -166,6 +135,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     state.error.value = undefined;
     state.streamedText.value = "";
     try {
+      await input.ensureSpacePersisted();
       await input.clearDraft(request);
       input.messages.value = [...input.messages.value, pendingMessage];
       const task = await startConversationTask(request, (update) => handleUpdate(update, submitted));

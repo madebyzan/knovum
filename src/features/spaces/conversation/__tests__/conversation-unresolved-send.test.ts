@@ -24,6 +24,7 @@ describe("conversation unresolved file admission", () => {
         visibleAttachments: ref([]),
         hasUnresolvedFileReferences: ref(true),
         messages,
+        ensureSpacePersisted: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
         clearDraft,
         restoreDraft: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       },

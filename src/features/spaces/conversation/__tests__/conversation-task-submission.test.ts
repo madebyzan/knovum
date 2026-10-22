@@ -68,6 +68,26 @@ describe("conversation task settlement", () => {
     expect(state.streamedText.value).toBe("");
   });
 
+  it("creates an unsaved Space before anything is written for the conversation", async () => {
+    const order: string[] = [];
+    ipc.startConversationTask.mockImplementation(async () => {
+      order.push("start");
+      return { accepted, settled: Promise.resolve({ type: "finished", state: "succeeded" }) };
+    });
+    const { submission } = createSubmission({
+      ensureSpacePersisted: vi.fn<() => Promise<void>>(async () => {
+        order.push("persist Space");
+      }),
+      clearDraft: vi.fn<() => Promise<void>>(async () => {
+        order.push("clear draft");
+      }),
+    });
+
+    await submission.send();
+
+    expect(order).toEqual(["persist Space", "clear draft", "start"]);
+  });
+
   it("keeps and reports the draft when persisted deletion rejects", async () => {
     const prompt = ref("unsent work");
     const { state, restoreDraft, submission } = createSubmission({
@@ -87,6 +107,7 @@ describe("conversation task settlement", () => {
 
 function createSubmission(overrides: {
   prompt?: Ref<string>;
+  ensureSpacePersisted?: () => Promise<void>;
   clearDraft?: () => Promise<void>;
   settled?: () => Promise<void>;
 }) {
@@ -104,6 +125,8 @@ function createSubmission(overrides: {
       visibleAttachments: ref([]),
       hasUnresolvedFileReferences: ref(false),
       messages: shallowRef([]),
+      ensureSpacePersisted:
+        overrides.ensureSpacePersisted ?? vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       clearDraft: overrides.clearDraft ?? vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       restoreDraft,
     },
