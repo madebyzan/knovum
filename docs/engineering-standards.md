@@ -99,5 +99,7 @@ suppliers, which is 35-45 minutes per cold compile per platform and dominates ev
 - `Platform check` reproduces a single platform on demand. A platform-specific failure is iterated
   there, not by pushing commits through the full matrix.
 
-Workflow definitions are linted by actionlint in the Quality workflow: a malformed expression or an
-unknown input is otherwise reported by a failed run that costs hours of desktop runners.
+Workflow definitions are linted by actionlint in the Quality workflow: a malformed expression, an
+unknown input or a defect in an embedded `run:` script is otherwise reported by a failed run that
+costs hours of desktop runners. The gate uses the actionlint image because it carries shellcheck;
+the bare binary silently skips every shell script.

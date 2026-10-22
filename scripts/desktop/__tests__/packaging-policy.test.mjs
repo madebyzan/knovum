@@ -9,6 +9,7 @@ import {
   platformSigningConfiguration,
   publicKey,
   readVersion,
+  releaseNotesPath,
   stableVersion,
   updaterConfiguration,
   validateReleaseArguments,
@@ -105,4 +106,24 @@ test("production packaging requires an explicit platform signing policy", () => 
   assert.deepEqual(platformSigningConfiguration("windows-x64"), {});
   assert.throws(() => platformSigningConfiguration("linux-x64"), /Unsupported/);
   assert.throws(() => platformSigningConfiguration("windows-arm64"), /Unsupported/);
+});
+
+test("a release tag publishes only the reviewed notes of its own version", () => {
+  const root = mkdtempSync(join(tmpdir(), "knovum-release-"));
+  try {
+    mkdirSync(join(root, "src-tauri"));
+    mkdirSync(join(root, "docs/release-notes"), { recursive: true });
+    writeFileSync(join(root, "package.json"), JSON.stringify({ version: "1.2.3" }));
+    writeFileSync(join(root, "src-tauri/tauri.conf.json"), JSON.stringify({ version: "../package.json" }));
+
+    assert.throws(() => releaseNotesPath(root, "v1.2.3"), { code: "ENOENT" });
+    writeFileSync(join(root, "docs/release-notes/1.2.3.md"), "# 1.2.3\n");
+    assert.equal(releaseNotesPath(root, "v1.2.3"), join("docs", "release-notes", "1.2.3.md"));
+
+    assert.throws(() => releaseNotesPath(root, "v1.2.4"), /version differ/);
+    assert.throws(() => releaseNotesPath(root, "1.2.3"), /version differ/);
+    assert.throws(() => releaseNotesPath(root, ""), /Release tag is required/);
+  } finally {
+    rmSync(root, { recursive: true });
+  }
 });
