@@ -41,7 +41,6 @@ def execution_request() -> AgentExecute:
                 "resume": None,
                 "skills": [],
                 "skillToolBindings": {},
-                "memory": {},
             }
         )
     )
