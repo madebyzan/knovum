@@ -8,7 +8,18 @@ use super::super::KnowledgeEmbeddingInput;
 pub(in crate::spaces::knowledge::retrieval) struct Fixture {
     pub pool: sqlx::SqlitePool,
     pub index: Connection,
-    dir: PathBuf,
+    // Declared last: Windows refuses to remove files whose handles are still open, and fields
+    // drop in declaration order, so pool and index close before the directory is removed.
+    #[allow(dead_code)] // Never read; its drop after pool and index is the cleanup.
+    dir: OwnedDir,
+}
+
+struct OwnedDir(PathBuf);
+
+impl Drop for OwnedDir {
+    fn drop(&mut self) {
+        std::fs::remove_dir_all(&self.0).expect("remove owned test directory");
+    }
 }
 
 impl Fixture {
@@ -43,7 +54,11 @@ impl Fixture {
             .execute()
             .await
             .expect("lancedb");
-        Self { pool, index, dir }
+        Self {
+            pool,
+            index,
+            dir: OwnedDir(dir),
+        }
     }
 
     pub fn input(&self) -> Vec<KnowledgeEmbeddingInput> {
@@ -66,11 +81,5 @@ impl Fixture {
             .count_rows(None)
             .await
             .expect("vector count")
-    }
-}
-
-impl Drop for Fixture {
-    fn drop(&mut self) {
-        std::fs::remove_dir_all(&self.dir).expect("remove owned test directory");
     }
 }

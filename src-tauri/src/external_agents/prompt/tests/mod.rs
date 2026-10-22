@@ -23,12 +23,11 @@ async fn local_images_are_links_without_copying_or_encoding_the_source() {
             _ => None,
         })
         .unwrap();
+    // Compared as URLs: on Windows canonicalize() yields \\?\ verbatim paths that file URLs
+    // never round-trip back to.
     assert_eq!(
-        tauri::Url::parse(&link.uri)
-            .unwrap()
-            .to_file_path()
-            .unwrap(),
-        canonical
+        tauri::Url::parse(&link.uri).unwrap(),
+        tauri::Url::from_file_path(&canonical).unwrap()
     );
     assert_eq!(std::fs::read_dir(&directory).unwrap().count(), 1);
     std::fs::remove_dir_all(directory).unwrap();

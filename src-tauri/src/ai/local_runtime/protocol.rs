@@ -143,6 +143,12 @@ impl Protocol {
         self.input
             .write_all(&bytes)
             .await
+            .map_err(|error| format!("worker_crashed: {error}"))?;
+        // On Windows tokio completes pipe writes from a 2 MiB memory buffer without the pipe
+        // accepting a byte, so the flush is what makes a stalled worker fail the dispatch budget.
+        self.input
+            .flush()
+            .await
             .map_err(|error| format!("worker_crashed: {error}"))
     }
 

@@ -207,16 +207,13 @@ async fn persist_resource(
 
 fn resource_stem(uri: &str) -> Option<String> {
     let parsed = tauri::Url::parse(uri).ok()?;
-    let name = if parsed.scheme() == "file" {
-        parsed
-            .to_file_path()
-            .ok()?
-            .file_name()?
-            .to_str()?
-            .to_owned()
-    } else {
-        parsed.path_segments()?.next_back()?.to_owned()
-    };
+    // Segments work for every scheme: to_file_path() rejects the drive-less file URLs Windows
+    // tests and agents use. Unlike to_file_path(), segments stay percent-encoded, so decode.
+    let segment = parsed.path_segments()?.next_back()?;
+    let name = percent_encoding::percent_decode_str(segment)
+        .decode_utf8()
+        .ok()?
+        .into_owned();
     let stem = Path::new(&name).file_stem()?.to_str()?;
     if stem.is_empty()
         || stem.starts_with('.')
