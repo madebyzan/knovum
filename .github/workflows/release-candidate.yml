@@ -38,10 +38,17 @@ jobs:
         run: |
           corepack enable
           pnpm install --frozen-lockfile
-      - name: Validate tag and reviewed release notes
+      - name: Validate the tag and read its reviewed release notes
+        id: notes
         if: github.event_name == 'push'
         run: |
-          node --input-type=module -e 'import { readVersion } from "./scripts/desktop/packaging-policy.mjs"; import { accessSync } from "node:fs"; const version = readVersion(process.cwd()); if (process.env.GITHUB_REF_NAME !== `v${version}`) throw new Error("Tag and package version differ"); accessSync(`docs/release-notes/${version}.md`);'
+          notes="$(node --input-type=module --eval 'import { releaseNotesPath } from "./scripts/desktop/packaging-policy.mjs"; process.stdout.write(releaseNotesPath(process.cwd(), process.env.GITHUB_REF_NAME));')"
+          {
+            echo 'body<<KNOVUM_RELEASE_NOTES'
+            cat "$notes"
+            echo
+            echo KNOVUM_RELEASE_NOTES
+          } >> "$GITHUB_OUTPUT"
       - name: Audit web and Python dependencies against current advisories
         run: pnpm security:web && pnpm security:python
       - name: Audit Rust dependencies and licenses
@@ -50,14 +57,6 @@ jobs:
           rust-version: "1.97.1"
           manifest-path: src-tauri/Cargo.toml
           command: check advisories licenses
-      - name: Read reviewed release notes
-        id: notes
-        if: github.event_name == 'push'
-        run: |
-          echo 'body<<KNOVUM_RELEASE_NOTES' >> "$GITHUB_OUTPUT"
-          cat "docs/release-notes/${GITHUB_REF_NAME#v}.md" >> "$GITHUB_OUTPUT"
-          echo >> "$GITHUB_OUTPUT"
-          echo KNOVUM_RELEASE_NOTES >> "$GITHUB_OUTPUT"
 
   build:
     name: Package ${{ matrix.platform }}

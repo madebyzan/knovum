@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { accessSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { runtimeTargets } from "./options.mjs";
@@ -47,6 +47,18 @@ export function readVersion(root) {
   if (JSON.parse(read("src-tauri/tauri.conf.json")).version !== "../package.json")
     throw new Error("Tauri must use package.json as the application version source");
   return stableVersion(JSON.parse(read("package.json")).version);
+}
+
+/**
+ * Resolves the reviewed notes a release tag may publish, and owns that path so the release
+ * workflow neither validates nor reads it from a second definition.
+ */
+export function releaseNotesPath(root, tag) {
+  const version = readVersion(root);
+  if (requireValue(tag, "Release tag") !== `v${version}`) throw new Error("Tag and package version differ");
+  const path = join("docs", "release-notes", `${version}.md`);
+  accessSync(join(root, path));
+  return path;
 }
 
 export function updaterConfiguration(env) {
