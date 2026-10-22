@@ -59,7 +59,7 @@
     "@tiptap/vue-3": "3.31.4",
     "@vueuse/core": "^15.0.0",
     "clsx": "^2.1.1",
-    "dompurify": "^3.4.16",
+    "dompurify": "^3.4.17",
     "es-toolkit": "^1.52.0",
     "fast-fuzzy": "^1.12.0",
     "konva": "10.7.1",
