@@ -69,7 +69,8 @@ fn completed_process_command() -> Command {
 #[cfg(windows)]
 fn completed_process_command() -> Command {
     let mut command = Command::new("cmd");
-    // No space before & or 1>: cmd's echo emits adjacent spaces as part of the line.
-    command.args(["/C", "echo knovum-progress:512:1024& echo diagnostic1>&2"]);
+    // cmd echoes a space before a redirect operator and treats a digit glued to the text as
+    // literal, so emit the diagnostic with neither: `>&2` duplicates stdout onto stderr.
+    command.args(["/C", "echo knovum-progress:512:1024& echo diagnostic>&2"]);
     command
 }

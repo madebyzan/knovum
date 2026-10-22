@@ -1,7 +1,4 @@
-use std::{
-    path::PathBuf,
-    time::{Duration, Instant},
-};
+use std::{path::PathBuf, time::Duration};
 
 use lancedb::Connection;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
@@ -21,20 +18,12 @@ struct OwnedDir(PathBuf);
 
 impl Drop for OwnedDir {
     fn drop(&mut self) {
-        // Windows: sqlx's pool worker thread runs sqlite3_close (unmapping the WAL -shm) only
-        // after it observes the shutdown signal, which PoolInner::drop sends without joining, so
-        // the files stay locked briefly after our pool field drops. ERROR_SHARING_VIOLATION (32)
-        // is retried until the deadline; anything else, or exhaustion, fails the test visibly.
-        let deadline = Instant::now() + Duration::from_secs(5);
-        loop {
-            match std::fs::remove_dir_all(&self.0) {
-                Ok(()) => return,
-                Err(error) if error.raw_os_error() == Some(32) && Instant::now() < deadline => {
-                    std::thread::sleep(Duration::from_millis(50));
-                }
-                Err(error) => panic!("remove owned test directory: {error}"),
-            }
-        }
+        // Best-effort: on Windows, lancedb's dataset cache and sqlx keep the Lance and SQLite
+        // files (including the memory-mapped WAL -shm) open for the whole test process, so the
+        // directory often cannot be removed while the process lives. Teardown runs after every
+        // assertion, and a leaked temp dir on an ephemeral CI runner is harmless, so a failed
+        // removal must not turn passing tests into failures.
+        let _ = std::fs::remove_dir_all(&self.0);
     }
 }
 
