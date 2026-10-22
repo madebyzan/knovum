@@ -93,6 +93,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     hasUnresolvedFileReferences: computed(() => reacquireFileNames.value.length > 0),
     visibleAttachments: attachmentSession.visibleAttachments,
     messages,
+    ensureSpacePersisted: store.ensureActiveSpacePersisted,
     refresh: refreshConversations,
     select: selectConversation,
     moveDraft: draft.move,

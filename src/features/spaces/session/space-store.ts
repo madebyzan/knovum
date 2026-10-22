@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { watch } from "vue";
 
 import { createSpacePlacement } from "../canvas/navigation-requests";
+import type { SpacePersistenceState } from "../workspace/persistence-state";
 import { useSpaceActions } from "./actions/use-space-actions";
 import { createSpaceState, spaceSessionBindings } from "./session-state";
 
@@ -37,5 +38,8 @@ export const useSpaceStore = defineStore("spaces", () => {
     markCanvasOverviewDirty: () => {
       state.thumbnailDirty.value = true;
     },
+    /** An unsaved Space has no database row, so nothing may be written for it until it is created. */
+    spacePersistence: (spaceId: string): SpacePersistenceState =>
+      state.draftSpace.value?.id === spaceId ? "draft" : "persisted",
   };
 });

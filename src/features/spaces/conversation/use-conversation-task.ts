@@ -5,10 +5,8 @@ import type { RunObservation } from "../contracts/generated/RunObservation";
 import { cancelConversationTask, pauseConversationTask } from "./conversation-ipc";
 import type { ConversationSelectionOptions } from "./conversation-selection";
 import { createConversationTaskState } from "./conversation-task-state";
-import {
-  createConversationTaskSubmission,
-  type ConversationSubmissionInput,
-} from "./conversation-task-submission";
+import { createConversationTaskSubmission } from "./conversation-task-submission";
+import type { ConversationSubmissionInput } from "./conversation-task-submission-contract";
 import { useConversationRunRestoration } from "./use-conversation-run-restoration";
 
 interface ConversationTaskInput extends ConversationSubmissionInput {

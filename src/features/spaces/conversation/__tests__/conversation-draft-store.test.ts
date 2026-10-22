@@ -15,7 +15,12 @@ const ipc = vi.hoisted(() => ({
   saveConversationDraft: vi.fn<(request: SaveConversationDraftRequest) => Promise<ConversationDraft>>(),
 }));
 
+const spaces = vi.hoisted(() => ({
+  spacePersistence: vi.fn<(spaceId: string) => "draft" | "persisted">(),
+}));
+
 vi.mock("../conversation-ipc", () => ipc);
+vi.mock("../../session/space-store", () => ({ useSpaceStore: () => spaces }));
 
 import { useConversationDraftStore } from "../conversation-draft-store";
 
@@ -44,7 +49,26 @@ function composer(prompt: string): ComposerDraft {
 describe("conversation draft persistence", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    spaces.spacePersistence.mockReturnValue("persisted");
     setActivePinia(createPinia());
+  });
+
+  /** Leaving an empty new Space must not fail on a write for a Space the database does not have. */
+  it("keeps the drafts of an unsaved Space in memory and writes them once it exists", async () => {
+    spaces.spacePersistence.mockReturnValue("draft");
+    ipc.saveConversationDraft.mockImplementation(async (request) => request);
+    const store = useConversationDraftStore();
+
+    await store.save("space", "conversation", composer("unsent"));
+    await expect(store.load("space", "conversation")).resolves.toMatchObject({ prompt: "unsent" });
+    expect(ipc.saveConversationDraft).not.toHaveBeenCalled();
+    expect(ipc.loadConversationDraft).not.toHaveBeenCalled();
+
+    spaces.spacePersistence.mockReturnValue("persisted");
+    await store.save("space", "conversation", composer("unsent"));
+    expect(ipc.saveConversationDraft).toHaveBeenCalledWith(
+      expect.objectContaining({ spaceId: "space", conversationId: "conversation", prompt: "unsent" }),
+    );
   });
 
   it("serializes writes and prevents an older response from replacing the newer cache", async () => {
