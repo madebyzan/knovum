@@ -142,4 +142,17 @@ fn main() {
             ),
     )
     .expect("failed to build Tauri application manifest");
+
+    // tauri-build embeds the Common-Controls v6 manifest into binaries only (via
+    // rustc-link-arg-bins). The lib unit-test binary needs it too or it binds comctl32 v5.82 and
+    // dies at startup with 0xc0000139 (missing TaskDialogIndirect). The bare rustc-link-arg is the
+    // only directive that reaches that test binary; reusing tauri's identical resource.lib keeps
+    // the bin's second specification byte-identical (a no-op, not a duplicate manifest).
+    if os == "windows" {
+        let resource =
+            std::path::Path::new(&std::env::var("OUT_DIR").expect("OUT_DIR")).join("resource.lib");
+        if resource.exists() {
+            println!("cargo:rustc-link-arg={}", resource.display());
+        }
+    }
 }
