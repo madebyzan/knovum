@@ -44,6 +44,18 @@ jobs:
       - name: Run web gates
         run: pnpm check:web
 
+  # A broken workflow is otherwise reported by a failed run, which on this repository costs hours
+  # of desktop runners. Expressions, inputs, runner labels and action schemas are static.
+  workflows:
+    name: Workflow definitions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Lint workflow definitions
+        uses: docker://rhysd/actionlint:1.7.7
+        with:
+          args: -color
+
   # Licenses are a property of the locked graph, so they gate every change. Advisories are not:
   # they change without the repository changing and are audited by security.yml instead.
   rust-licenses:
@@ -69,15 +81,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-      - uses: astral-sh/setup-uv@v10.2.0
-        with:
-          version: "0.12.23"
-      - run: corepack enable && pnpm install --frozen-lockfile
-        shell: bash
       - uses: ./.github/actions/setup-rust-build
+        with:
+          cache-save: ${{ github.ref == 'refs/heads/main' }}
       - name: Run Rust gates
         run: pnpm check:rust
       - name: Compile desktop application

@@ -7,16 +7,65 @@ on:
 
 permissions:
   contents: write
-  attestations: read
 
 concurrency:
   group: release-candidate-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
+  # Tag, notes and advisories are platform-independent, so they are decided once on the cheapest
+  # runner. Running them inside the matrix paid for them three times on billed desktop runners and
+  # delayed the first build by their duration.
+  prepare:
+    name: Validate tag and audit dependencies
+    runs-on: ubuntu-latest
+    outputs:
+      notes: ${{ steps.notes.outputs.body }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Require a release commit on main
+        if: github.event_name == 'push'
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: "0.12.23"
+      - name: Install locked dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+      - name: Validate tag and reviewed release notes
+        if: github.event_name == 'push'
+        run: |
+          node --input-type=module -e 'import { readVersion } from "./scripts/desktop/packaging-policy.mjs"; import { accessSync } from "node:fs"; const version = readVersion(process.cwd()); if (process.env.GITHUB_REF_NAME !== `v${version}`) throw new Error("Tag and package version differ"); accessSync(`docs/release-notes/${version}.md`);'
+      - name: Audit web and Python dependencies against current advisories
+        run: pnpm security:web && pnpm security:python
+      - name: Audit Rust dependencies and licenses
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          rust-version: "1.97.1"
+          manifest-path: src-tauri/Cargo.toml
+          command: check advisories licenses
+      - name: Read reviewed release notes
+        id: notes
+        if: github.event_name == 'push'
+        run: |
+          echo 'body<<KNOVUM_RELEASE_NOTES' >> "$GITHUB_OUTPUT"
+          cat "docs/release-notes/${GITHUB_REF_NAME#v}.md" >> "$GITHUB_OUTPUT"
+          echo >> "$GITHUB_OUTPUT"
+          echo KNOVUM_RELEASE_NOTES >> "$GITHUB_OUTPUT"
+
   build:
+    name: Package ${{ matrix.platform }}
+    needs: prepare
     strategy:
       fail-fast: false
+      # Serialized: the Tauri action reads, merges and rewrites one shared `latest.json`, so
+      # parallel platforms would publish an updater manifest missing the platforms they raced.
       max-parallel: 1
       matrix:
         include:
@@ -37,47 +86,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
           persist-credentials: false
-      - name: Require a release commit on main
-        if: github.event_name == 'push'
-        shell: bash
-        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-      - uses: astral-sh/setup-uv@v10.2.0
-        with:
-          version: "0.12.23"
-      - name: Install locked dependencies
-        shell: bash
-        run: |
-          corepack enable
-          pnpm install --frozen-lockfile
-          rustup target add '${{ matrix.target }}'
-      - name: Validate tag and reviewed release notes
-        if: github.event_name == 'push'
-        shell: bash
-        run: |
-          node --input-type=module -e 'import { readVersion } from "./scripts/desktop/packaging-policy.mjs"; import { accessSync } from "node:fs"; const version = readVersion(process.cwd()); if (process.env.GITHUB_REF_NAME !== `v${version}`) throw new Error("Tag and package version differ"); accessSync(`docs/release-notes/${version}.md`);'
+      # The quality workflow gates this commit on main across all three platforms before a tag can
+      # point at it, so this job only produces the packages its gates already admitted.
       - uses: ./.github/actions/setup-rust-build
-      - name: Install cargo-deny
-        run: cargo install cargo-deny --locked
-      - name: Audit dependencies against current advisories
-        run: pnpm security
-      - name: Check Rust dependency licenses
-        run: cargo deny --manifest-path src-tauri/Cargo.toml check licenses
-      - name: Run quality gates
-        run: pnpm check
-      - name: Read reviewed release notes
-        id: notes
-        if: github.event_name == 'push'
+        with:
+          cache: "false"
+      - name: Add the release target
         shell: bash
-        run: |
-          echo 'body<<KNOVUM_RELEASE_NOTES' >> "$GITHUB_OUTPUT"
-          cat "docs/release-notes/${GITHUB_REF_NAME#v}.md" >> "$GITHUB_OUTPUT"
-          echo >> "$GITHUB_OUTPUT"
-          echo KNOVUM_RELEASE_NOTES >> "$GITHUB_OUTPUT"
+        run: rustup target add '${{ matrix.target }}'
       - name: Build and upload a signed draft with the official Tauri action
         if: github.event_name == 'push'
         env:
@@ -95,7 +112,7 @@ jobs:
           releaseCommitish: main
           tagName: ${{ github.ref_name }}
           releaseName: Knovum ${{ github.ref_name }}
-          releaseBody: ${{ steps.notes.outputs.body }}
+          releaseBody: ${{ needs.prepare.outputs.notes }}
           releaseDraft: true
           prerelease: false
           uploadUpdaterJson: true

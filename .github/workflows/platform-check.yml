@@ -1,0 +1,51 @@
+# Link, manifest and startup failures only exist on one platform, and the full quality matrix makes
+# every attempt at one cost three desktop runners. This workflow runs the Rust gates on a single
+# chosen platform against the cache the trunk already published, so an attempt is one short job.
+# It is a diagnostic tool, never a gate: `quality.yml` remains the only workflow that admits a
+# change, and this one never publishes a cache.
+name: Platform check
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to compile and test on
+        type: choice
+        default: windows-2025
+        options:
+          - windows-2025
+          - macos-15
+          - macos-15-intel
+      gates:
+        description: Rust gates to run
+        type: choice
+        default: tests only
+        options:
+          - tests only
+          - all gates
+          - application compile
+
+permissions:
+  contents: read
+
+concurrency:
+  group: platform-check-${{ github.ref }}-${{ inputs.platform }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: ${{ inputs.gates }} on ${{ inputs.platform }}
+    runs-on: ${{ inputs.platform }}
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-rust-build
+      - name: Run the Rust tests
+        if: inputs.gates == 'tests only'
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --workspace
+      - name: Run every Rust gate
+        if: inputs.gates == 'all gates'
+        run: pnpm check:rust
+      - name: Compile the desktop application
+        if: inputs.gates == 'application compile'
+        run: pnpm package --no-bundle --debug
