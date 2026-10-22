@@ -69,7 +69,7 @@ fn completed_process_command() -> Command {
 #[cfg(windows)]
 fn completed_process_command() -> Command {
     let mut command = Command::new("cmd");
-    // No space before &: cmd's echo would emit it as part of the progress line.
-    command.args(["/C", "echo knovum-progress:512:1024& echo diagnostic 1>&2"]);
+    // No space before & or 1>: cmd's echo emits adjacent spaces as part of the line.
+    command.args(["/C", "echo knovum-progress:512:1024& echo diagnostic1>&2"]);
     command
 }
