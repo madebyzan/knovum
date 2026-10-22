@@ -35,7 +35,7 @@ async fn login_shell_path() -> AppResult<String> {
         .ok_or_else(|| AppError::internal("The macOS login shell returned an invalid PATH"))
 }
 
-#[cfg(any(target_os = "macos", test))]
+#[cfg(target_os = "macos")]
 fn extract_delimited(text: &str, prefix: &str) -> Option<String> {
     let start = text.find(prefix)? + prefix.len();
     let rest = &text[start..];

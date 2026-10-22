@@ -49,7 +49,7 @@ pub(super) fn start<R: Runtime>(
             DictationFailure::classified("dictation_audio_cache_failed", error.to_string())
         })?;
         let wav = directory.join(format!("{id}.wav"));
-        let recorder = Recorder::start(&id, sender.clone())?;
+        let recorder = Box::new(Recorder::start(&id, sender.clone())?);
         Ok::<_, DictationFailure>((target, wav, recorder))
     })();
     match capture {

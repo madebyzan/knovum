@@ -64,7 +64,7 @@ fn save_on_sta(
         .save_with_format(partial, image::ImageFormat::Png)
         .map_err(|error| format!("Windows thumbnail could not be encoded as PNG: {error}"))
         .and_then(|()| ensure_not_cancelled(cancellation))
-        .and_then(|()| fs::rename(&partial, target).map_err(|error| error.to_string()));
+        .and_then(|()| fs::rename(partial, target).map_err(|error| error.to_string()));
     if published.is_err() {
         let _ = fs::remove_file(partial);
     }
@@ -106,14 +106,16 @@ impl OwnedBitmap {
         let width = bitmap.bmWidth as u32;
         let height = bitmap.bmHeight.unsigned_abs();
         let mut pixels = vec![0_u8; width as usize * height as usize * 4];
-        let mut info = BITMAPINFO::default();
-        info.bmiHeader = BITMAPINFOHEADER {
-            biSize: size_of::<BITMAPINFOHEADER>() as u32,
-            biWidth: width as i32,
-            biHeight: -(height as i32),
-            biPlanes: 1,
-            biBitCount: 32,
-            biCompression: BI_RGB.0,
+        let mut info = BITMAPINFO {
+            bmiHeader: BITMAPINFOHEADER {
+                biSize: size_of::<BITMAPINFOHEADER>() as u32,
+                biWidth: width as i32,
+                biHeight: -(height as i32),
+                biPlanes: 1,
+                biBitCount: 32,
+                biCompression: BI_RGB.0,
+                ..Default::default()
+            },
             ..Default::default()
         };
         let dc = unsafe { GetDC(None) };

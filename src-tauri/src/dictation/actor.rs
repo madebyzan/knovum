@@ -14,7 +14,7 @@ pub(super) enum ActiveSession {
     Recording {
         id: String,
         target: InsertionTarget,
-        recorder: Recorder,
+        recorder: Box<Recorder>,
         wav: std::path::PathBuf,
     },
     Transcribing {

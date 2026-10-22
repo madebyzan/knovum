@@ -88,10 +88,10 @@ impl PreviewWindow {
             match unsafe { GetMessageW(&mut message, None, 0, 0) }.0 {
                 -1 => return Err(Error::from_thread().to_string()),
                 0 => return Ok(()),
-                _ => unsafe {
-                    TranslateMessage(&message);
-                    DispatchMessageW(&message);
-                },
+                _ => {
+                    let _ = unsafe { TranslateMessage(&message) };
+                    unsafe { DispatchMessageW(&message) };
+                }
             }
         }
     }
