@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Archive, AudioLines, ChevronDown, MoreHorizontal, RotateCcw, Trash2 } from "@lucide/vue";
+import { Archive, ChevronDown, MoreHorizontal, Pause, Play, RotateCcw, Trash2 } from "@lucide/vue";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import { computed, shallowRef, watch, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
@@ -12,11 +12,14 @@ import type { VoiceProfileHistory } from "../../contracts/generated/VoiceProfile
 import { LABEL_BY_VOICE_ENGINE } from "../voice-options";
 import { activeVoiceProfileRevision } from "../voice-profile";
 import VoiceProfileEditor from "./VoiceProfileEditor.vue";
+import VoiceWaveform from "./VoiceWaveform.vue";
 
 const props = defineProps<{
   profile: DeepReadonly<VoiceProfileHistory>;
   expanded: boolean;
   disabled: boolean;
+  /** Audition state owned by the library, because only one voice may be heard at a time. */
+  audition: { playing: boolean; busy: boolean; peak: () => number };
 }>();
 const emit = defineEmits<{
   dirty: [value: boolean];
@@ -26,6 +29,7 @@ const emit = defineEmits<{
   archive: [];
   unarchive: [];
   remove: [];
+  audition: [];
 }>();
 const { t } = useI18n();
 const isEditorDirty = shallowRef(false);
@@ -84,7 +88,17 @@ function setDirty(value: boolean) {
   <CollapsibleRoot :open="expanded" as-child @update:open="toggle">
     <article>
       <div class="flex min-h-(--knovum-setting-min-height) items-center gap-3 px-4 py-3">
-        <AudioLines class="size-4 shrink-0 text-fg-secondary" :stroke-width="1.55" />
+        <UiIconButton
+          :label="audition.playing ? t('spaces.speech.preview.stop') : t('spaces.speech.preview.action')"
+          size="sm"
+          :active="audition.playing"
+          :disabled="disabled || audition.busy"
+          data-testid="voice-audition"
+          @click="emit('audition')"
+        >
+          <component :is="audition.playing ? Pause : Play" class="size-3.5" />
+        </UiIconButton>
+        <VoiceWaveform :peak="audition.peak" :active="audition.playing" />
         <div class="min-w-0 flex-1">
           <div class="flex min-w-0 items-center gap-2">
             <strong class="truncate text-body-lg font-medium text-fg-primary">{{ profile.name }}</strong>

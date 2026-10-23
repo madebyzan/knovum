@@ -26,6 +26,15 @@ class PreviewAudioContext {
   currentTime = 0;
   readonly destination = {} as AudioDestinationNode;
 
+  createAnalyser() {
+    return {
+      fftSize: 2048,
+      connect: () => {},
+      disconnect: () => {},
+      getByteTimeDomainData: (target: Uint8Array) => target.fill(128),
+    } as unknown as AnalyserNode;
+  }
+
   async resume() {
     this.state = "running";
   }

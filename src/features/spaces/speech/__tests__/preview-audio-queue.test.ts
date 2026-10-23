@@ -51,6 +51,7 @@ class FakeAudioContext {
   currentTime = 0;
   readonly destination = {} as AudioDestinationNode;
   readonly sources: FakeAudioSource[] = [];
+  readonly analysers: FakeAnalyser[] = [];
   readonly buffers: FakeAudioBuffer[] = [];
   private readonly resumeGate: Promise<void> | undefined;
 
@@ -78,6 +79,25 @@ class FakeAudioContext {
     const source = new FakeAudioSource();
     this.sources.push(source);
     return source as unknown as AudioBufferSourceNode;
+  }
+
+  createAnalyser() {
+    const analyser = new FakeAnalyser();
+    this.analysers.push(analyser);
+    return analyser as unknown as AnalyserNode;
+  }
+}
+
+/** Reports the amplitude the test asks for, so a waveform assertion measures real audio handling. */
+class FakeAnalyser {
+  fftSize = 2048;
+  amplitude = 0;
+
+  connect() {}
+  disconnect() {}
+
+  getByteTimeDomainData(target: Uint8Array) {
+    target.fill(128 + Math.round(this.amplitude * 127));
   }
 }
 
@@ -155,4 +175,22 @@ describe("speech preview audio queue", () => {
     expect(FakeAudioContext.instances[1]?.sources).toHaveLength(1);
     expect(FakeAudioContext.instances[0]?.state).toBe("closed");
   });
+});
+
+it("reports the amplitude of the audio being heard and silence once it stops", async () => {
+  const queue = new PreviewAudioQueue(() => {});
+  await queue.start("job");
+  const context = FakeAudioContext.instances[0]!;
+  const analyser = context.analysers[0]!;
+
+  // Nothing is scheduled yet: a waveform must draw a flat line rather than invent movement.
+  analyser.amplitude = 1;
+  expect(queue.peak()).toBe(0);
+
+  queue.enqueue(chunk("job", 1));
+  analyser.amplitude = 0.5;
+  expect(queue.peak()).toBeCloseTo(0.5, 1);
+
+  queue.stop();
+  expect(queue.peak()).toBe(0);
 });

@@ -4,5 +4,6 @@
   "text": {
     "placeholder": "Entrez jusqu'à 500 caractères pour entendre cette voix",
     "label": "Exemple de texte"
-  }
+  },
+  "sample": "Voici comment cette voix sonne en lisant une phrase ordinaire."
 }

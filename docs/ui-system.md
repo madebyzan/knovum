@@ -130,6 +130,13 @@ Adding a voice is a settings title action, so the library carries no section hea
 page title. Creation leads with the voice source as a segmented control shared with the speech
 editors: the source decides the entire form, so it is a visible choice rather than a value inside a
 dropdown, and switching it follows the unsaved-draft decision.
+Every row opens with its own audition control, because a voice cannot be recognised from a name:
+pressing it speaks a sample line in that voice and the row draws the waveform of the audio actually
+being heard, taken from the playing audio rather than animated beside it. A preset stores an engine,
+a language and a speed — never a recording — so the sample is synthesised on demand, and the library
+holds one audition session: starting a row stops the row that was speaking, and pressing the
+speaking row stops it. While a voice speaks, the other rows' controls are unavailable rather than
+silently queued.
 Voice creation uses labelled fields: the preset choice expands within its grid column, language keeps a
 compact column, and preview/save actions share one form footer, with preview controls leading and the
 committing action trailing. An unnamed preset voice shows the chosen preset's name as its placeholder,

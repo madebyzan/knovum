@@ -17,6 +17,8 @@ function decodePcm16(bytes: number[], sampleCount: number) {
 
 export class PreviewAudioQueue {
   private context: AudioContext | undefined;
+  private analyser: AnalyserNode | undefined;
+  private levels: Uint8Array<ArrayBuffer> | undefined;
   private requestId: string | undefined;
   private expectedSeq = 1;
   private sampleRate: number | undefined;
@@ -35,12 +37,33 @@ export class PreviewAudioQueue {
     this.context = context;
     this.requestId = requestId;
     this.scheduledUntilSeconds = context.currentTime;
+    // Every scheduled chunk passes through the analyser, so what a waveform draws is the audio
+    // being heard at that instant rather than an animation keeping it company.
+    const analyser = context.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.connect(context.destination);
+    this.analyser = analyser;
+    this.levels = new Uint8Array(new ArrayBuffer(analyser.fftSize));
     await context.resume();
     if (epoch !== this.epoch || this.context !== context) {
       if (context.state !== "closed") await context.close();
       return false;
     }
     return true;
+  }
+
+  /**
+   * The loudest sample currently audible, from 0 to 1. Silence while nothing plays, so a caller
+   * polling it draws a flat line instead of inventing one.
+   */
+  peak(): number {
+    const analyser = this.analyser;
+    const levels = this.levels;
+    if (!analyser || !levels || this.sources.size === 0) return 0;
+    analyser.getByteTimeDomainData(levels);
+    let peak = 0;
+    for (const level of levels) peak = Math.max(peak, Math.abs(level - 128) / 128);
+    return peak;
   }
 
   enqueue(chunk: SpeechPreviewAudioChunk) {
@@ -59,7 +82,7 @@ export class PreviewAudioQueue {
     buffer.copyToChannel(samples, 0);
     const source = context.createBufferSource();
     source.buffer = buffer;
-    source.connect(context.destination);
+    source.connect(this.analyser ?? context.destination);
     const byteLength = chunk.pcm16.length;
     const startAt = Math.max(context.currentTime + START_DELAY_SECONDS, this.scheduledUntilSeconds);
     this.scheduledUntilSeconds = startAt + durationSeconds;
@@ -95,6 +118,9 @@ export class PreviewAudioQueue {
     }
     this.sources.clear();
     this.completionListenerBySource.clear();
+    this.analyser?.disconnect();
+    this.analyser = undefined;
+    this.levels = undefined;
     const context = this.context;
     this.context = undefined;
     this.requestId = undefined;

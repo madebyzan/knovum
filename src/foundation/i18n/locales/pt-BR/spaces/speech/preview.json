@@ -4,5 +4,6 @@
   "text": {
     "placeholder": "Digite até 500 caracteres para ouvir esta voz",
     "label": "Texto de exemplo"
-  }
+  },
+  "sample": "É assim que esta voz soa lendo uma frase comum."
 }
