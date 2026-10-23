@@ -100,17 +100,14 @@ pub(crate) fn snapshot() -> Result<MemorySnapshot, String> {
 
 #[cfg(target_os = "windows")]
 pub(crate) fn physical_memory() -> Result<u64, String> {
-    use windows::Win32::System::SystemInformation::GetPhysicallyInstalledSystemMemory;
-    let mut installed_kib = 0_u64;
-    unsafe { GetPhysicallyInstalledSystemMemory(&mut installed_kib) }.map_err(|error| {
-        format!("resource_exhausted: Physical memory could not be determined: {error}")
-    })?;
-    if installed_kib == 0 {
+    // Deliberately not GetPhysicallyInstalledSystemMemory: that reports the SMBIOS installed size,
+    // which counts memory the firmware reserved and no process can ever be given. Admission asks
+    // what this machine can actually allocate, so usable physical memory is the only source.
+    let total_bytes = snapshot()?.total_bytes;
+    if total_bytes == 0 {
         return Err("resource_exhausted: Physical memory is unavailable".into());
     }
-    installed_kib
-        .checked_mul(1024)
-        .ok_or("resource_exhausted: Physical memory exceeds platform range".into())
+    Ok(total_bytes)
 }
 
 #[cfg(target_os = "windows")]
