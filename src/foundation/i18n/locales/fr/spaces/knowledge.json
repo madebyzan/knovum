@@ -12,6 +12,21 @@
       "stale-provenance": "La version source a changé ; revérification requise."
     }
   },
+  "index": {
+    "title": "Index de recherche",
+    "task": "Indexation de l’espace",
+    "empty": "Cet espace ne contient pas encore de texte à indexer.",
+    "current": "L’index couvre tout l’espace",
+    "incomplete": "{count} passage n’est pas encore indexé | {count} passages ne sont pas encore indexés",
+    "unbuilt": "La recherche sémantique ne peut pas encore répondre depuis cet espace",
+    "indexing": "Indexation…",
+    "coverage": "{indexed} passages sur {total} consultables",
+    "indexedAt": "créé le {time}",
+    "build": "Créer l’index",
+    "fill": "Compléter l’index",
+    "done": "{count} passage indexé. | {count} passages indexés.",
+    "upToDate": "L’index était déjà à jour."
+  },
   "history": {
     "title": "Historique des versions de connaissances",
     "empty": "Aucune modification pour l'instant.",

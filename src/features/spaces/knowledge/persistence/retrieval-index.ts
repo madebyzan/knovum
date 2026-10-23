@@ -2,17 +2,21 @@ import { Channel } from "@tauri-apps/api/core";
 
 import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import type { KnowledgeIndexingProgress } from "../../contracts/generated/KnowledgeIndexingProgress";
+import type { KnowledgeIndexState } from "../../contracts/generated/KnowledgeIndexState";
 
 export interface KnowledgeIndexingInput {
   spaceId: string;
-  jobId: string;
   nodeIds?: readonly string[] | undefined;
   onProgress: (progress: KnowledgeIndexingProgress) => void;
 }
 
+/** What semantic search can reach in this Space today, and what a pass would still have to do. */
+export function readKnowledgeIndexState(spaceId: string): Promise<KnowledgeIndexState> {
+  return invokeCommand("plugin:spaces|knowledge_index_state", { spaceId });
+}
+
 export function indexKnowledgeRetrieval({
   spaceId,
-  jobId,
   nodeIds,
   onProgress,
 }: KnowledgeIndexingInput): Promise<{ indexed: number }> {
@@ -22,12 +26,12 @@ export function indexKnowledgeRetrieval({
   channel.onmessage = onProgress;
   return invokeCommand("plugin:spaces|index_knowledge", {
     spaceId,
-    jobId,
     nodeIds: nodeIds === undefined ? null : [...nodeIds],
     onProgress: channel,
   });
 }
 
-export function cancelKnowledgeIndexing(jobId: string): Promise<void> {
-  return invokeCommand("plugin:spaces|cancel_knowledge_indexing", { jobId });
+/** A Space has one indexing pass, so cancelling it names the Space. */
+export function cancelKnowledgeIndexing(spaceId: string): Promise<void> {
+  return invokeCommand("plugin:spaces|cancel_knowledge_indexing", { spaceId });
 }

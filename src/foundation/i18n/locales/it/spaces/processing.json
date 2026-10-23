@@ -26,10 +26,6 @@
     "videoCover": "Copertina video",
     "mediaTimeRange": "{start} – {end}"
   },
-  "index": {
-    "repair": "Ripara l'indice di ricerca",
-    "repairDone": "Indice aggiornato; generata {count} voce vettoriale. | Indice aggiornato; generate {count} voci vettoriali."
-  },
   "failed": "Elaborazione non riuscita",
   "nodeUnavailable": "Il nodo dell'attività non è più disponibile",
   "imageProgress": "Elaborazione immagine",

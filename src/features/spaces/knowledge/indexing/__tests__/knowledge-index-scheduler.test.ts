@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createAppError } from "../../../../../foundation/errors/app-error";
 import type { LocalResourcesStatus } from "../../../../../shared/contracts/generated/LocalResourcesStatus";
 
 const mocks = vi.hoisted(() => ({
@@ -9,7 +10,6 @@ const mocks = vi.hoisted(() => ({
     vi.fn<
       (input: {
         spaceId: string;
-        jobId: string;
         nodeIds?: readonly string[] | undefined;
         onProgress: (progress: { indexed: number; total: number }) => void;
       }) => Promise<{ indexed: number; staleNodeIds: string[] }>
@@ -47,6 +47,26 @@ describe("spaces knowledge index scheduler", () => {
     releaseKnowledgeIndex("test-space");
     releaseKnowledgeIndex("structured-ai-error");
     vi.useRealTimers();
+  });
+
+  it("waits for a pass that already holds the Space instead of counting a failure", async () => {
+    mocks.indexKnowledgeRetrieval.mockRejectedValueOnce(
+      createAppError("knowledge_indexing_busy", "This space is already being indexed"),
+    );
+
+    scheduleKnowledgeIndex("test-space", ["node-1"]);
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    // The running pass is already doing this work: it is not an error, and it must not spend one
+    // of the attempts reserved for an embedding runtime that is really unusable.
+    expect(mocks.logError).not.toHaveBeenCalled();
+    expect(knowledgeIndexStatus("test-space")).toBe("indexing");
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenLastCalledWith(
+      expect.objectContaining({ spaceId: "test-space", nodeIds: ["node-1"] }),
+    );
+    expect(knowledgeIndexStatus("test-space")).toBe("ready");
   });
 
   it("leaves startup indexing unprepared when embedding resources are unavailable", async () => {

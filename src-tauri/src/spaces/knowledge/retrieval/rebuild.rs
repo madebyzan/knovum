@@ -8,7 +8,7 @@ use crate::{
 };
 use tokio_util::sync::CancellationToken;
 
-use super::{generation, generation_build, lancedb_store};
+use super::{generation, generation_build, indexing_control, lancedb_store};
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -42,17 +42,32 @@ pub(crate) async fn index_space<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
     node_ids: Option<Vec<String>>,
-    job_id: String,
     progress: ProgressSink<'_>,
 ) -> Result<IndexOutput, String> {
     if space_id.trim().is_empty() {
         return Err("Knowledge retrieval indexing requires a space id".to_owned());
     }
-    let (cancellation, _lease) = super::indexing_control::acquire(job_id)?;
-    let resources =
-        preparation::acquire_verified_models(&app, catalog::TEXT_EMBEDDING_MODELS, &cancellation)
-            .await?;
-    index_with_generation(app, space_id, node_ids, resources, &cancellation, progress).await
+    let pass = indexing_control::begin(
+        &space_id,
+        indexing_control::Admission::Requested,
+        CancellationToken::new(),
+    )
+    .await?;
+    let resources = preparation::acquire_verified_models(
+        &app,
+        catalog::TEXT_EMBEDDING_MODELS,
+        pass.cancellation(),
+    )
+    .await?;
+    index_with_generation(
+        app,
+        space_id,
+        node_ids,
+        resources,
+        pass.cancellation(),
+        progress,
+    )
+    .await
 }
 
 pub(crate) async fn prepare_space_index<R: Runtime>(
@@ -74,12 +89,20 @@ pub(crate) async fn prepare_space_index<R: Runtime>(
         &mut |_| {},
     )
     .await?;
+    // A Run that cannot answer without the index waits for whatever pass is already indexing this
+    // Space, then fills what its own scope still needs. It stays cancellable through the Run.
+    let pass = indexing_control::begin(
+        space_id,
+        indexing_control::Admission::Required,
+        cancellation.clone(),
+    )
+    .await?;
     index_with_generation(
         app.clone(),
         space_id.to_owned(),
         node_ids,
         resources,
-        cancellation,
+        pass.cancellation(),
         &mut |_| {},
     )
     .await
@@ -131,7 +154,7 @@ async fn index_with_generation<R: Runtime>(
 /// `spaces_chunk_embeddings` only records that a chunk was indexed; the vector itself lives in
 /// LanceDB. A lost table therefore leaves markers that claim a complete index no incremental pass
 /// would ever fill — the same condition `search` reports as a required rebuild.
-async fn index_is_materialised<R: Runtime>(app: &AppHandle<R>) -> Result<bool, String> {
+pub(super) async fn index_is_materialised<R: Runtime>(app: &AppHandle<R>) -> Result<bool, String> {
     let index = lancedb_store::connect_retrieval_db(app).await?;
     Ok(lancedb_store::open_knowledge_table_if_exists(&index)
         .await?

@@ -26,10 +26,6 @@
     "videoCover": "Videocover",
     "mediaTimeRange": "{start} – {end}"
   },
-  "index": {
-    "repair": "Abrufindex reparieren",
-    "repairDone": "Index aktualisiert; {count} Vektoreintrag erzeugt. | Index aktualisiert; {count} Vektoreinträge erzeugt."
-  },
   "failed": "Verarbeitung fehlgeschlagen",
   "nodeUnavailable": "Der Knoten der Aufgabe ist nicht mehr verfügbar",
   "imageProgress": "Bild wird verarbeitet",

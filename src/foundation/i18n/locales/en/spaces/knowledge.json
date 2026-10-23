@@ -12,6 +12,21 @@
       "stale-provenance": "Source version has changed; re-verification required."
     }
   },
+  "index": {
+    "title": "Retrieval index",
+    "task": "Indexing the space",
+    "empty": "This space holds no text to index yet.",
+    "current": "The index covers the whole space",
+    "incomplete": "{count} passage is not in the index yet | {count} passages are not in the index yet",
+    "unbuilt": "Semantic search cannot answer from this space yet",
+    "indexing": "Indexing …",
+    "coverage": "{indexed} of {total} passages searchable",
+    "indexedAt": "built {time}",
+    "build": "Build index",
+    "fill": "Catch the index up",
+    "done": "Indexed {count} passage. | Indexed {count} passages.",
+    "upToDate": "The index was already current."
+  },
   "history": {
     "title": "Knowledge version history",
     "empty": "No changes yet.",

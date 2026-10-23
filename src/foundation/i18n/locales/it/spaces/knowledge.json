@@ -12,6 +12,21 @@
       "stale-provenance": "La versione sorgente è cambiata; richiesta una nuova verifica."
     }
   },
+  "index": {
+    "title": "Indice di ricerca",
+    "task": "Indicizzazione dello spazio",
+    "empty": "Questo spazio non contiene ancora testo da indicizzare.",
+    "current": "L’indice copre tutto lo spazio",
+    "incomplete": "{count} passaggio non è ancora nell’indice | {count} passaggi non sono ancora nell’indice",
+    "unbuilt": "La ricerca semantica non può ancora rispondere da questo spazio",
+    "indexing": "Indicizzazione…",
+    "coverage": "{indexed} di {total} passaggi ricercabili",
+    "indexedAt": "creato il {time}",
+    "build": "Crea indice",
+    "fill": "Completa l’indice",
+    "done": "Indicizzato {count} passaggio. | Indicizzati {count} passaggi.",
+    "upToDate": "L’indice era già aggiornato."
+  },
   "history": {
     "title": "Cronologia delle versioni della conoscenza",
     "empty": "Ancora nessuna modifica.",

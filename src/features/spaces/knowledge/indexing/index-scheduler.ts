@@ -3,6 +3,7 @@ import { error as logError } from "@tauri-apps/plugin-log";
 import { formatErrorDiagnostic } from "../../../../foundation/errors/error-format";
 import { getLocalResourcesStatus, textEmbeddingReady } from "../../../../foundation/runtime/local-resources";
 import { indexKnowledgeRetrieval } from "../persistence/retrieval-index";
+import { isKnowledgeIndexingBusy } from "./indexing-outcome";
 
 export type KnowledgeIndexStatus = "idle" | "scheduled" | "indexing" | "ready" | "unprepared" | "unavailable";
 type StatusListener = (status: KnowledgeIndexStatus) => void;
@@ -119,12 +120,16 @@ async function runPending(spaceId: string, state: SpaceIndexState) {
   state.running = true;
   let outcome: KnowledgeIndexStatus = "unavailable";
   let failed = false;
+  let deferred = false;
   try {
     outcome = await indexIfReady(spaceId, state, claimed.nodeIds);
   } catch (error) {
-    failed = true;
+    // A pass somebody started holds this Space. It is doing the same work, so this attempt waits
+    // for its turn instead of counting a failure it did not have.
+    deferred = isKnowledgeIndexingBusy(error);
+    failed = !deferred;
     returnPendingScope(state, claimed);
-    void logError(`Knowledge semantic indexing failed: ${formatErrorDiagnostic(error)}`);
+    if (!deferred) void logError(`Knowledge semantic indexing failed: ${formatErrorDiagnostic(error)}`);
   } finally {
     state.running = false;
   }
@@ -132,6 +137,10 @@ async function runPending(spaceId: string, state: SpaceIndexState) {
   // The space can be released while its run is in flight; a released state must not reschedule or
   // write a status, or it would resurrect the entry and clobber a later session for the same space.
   if (stateBySpaceId.get(spaceId) !== state) return;
+  if (deferred) {
+    schedulePending(spaceId, state, DEBOUNCE_MS, "indexing");
+    return;
+  }
   settleAttempt(spaceId, state, {
     outcome,
     failed,
@@ -187,7 +196,6 @@ async function indexIfReady(
   // status, which the Space already shows, instead of filling the Task Center with its own debounce.
   await indexKnowledgeRetrieval({
     spaceId,
-    jobId: crypto.randomUUID(),
     nodeIds,
     onProgress: () => {},
   });

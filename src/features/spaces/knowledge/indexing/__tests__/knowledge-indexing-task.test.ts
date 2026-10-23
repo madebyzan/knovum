@@ -6,7 +6,7 @@ import type { KnowledgeIndexingInput } from "../../persistence/retrieval-index";
 
 const mocks = vi.hoisted(() => ({
   indexKnowledgeRetrieval: vi.fn<(input: KnowledgeIndexingInput) => Promise<{ indexed: number }>>(),
-  cancelKnowledgeIndexing: vi.fn<(jobId: string) => Promise<void>>(),
+  cancelKnowledgeIndexing: vi.fn<(spaceId: string) => Promise<void>>(),
 }));
 
 vi.mock("../../persistence/retrieval-index", () => ({
@@ -16,7 +16,8 @@ vi.mock("../../persistence/retrieval-index", () => ({
 
 import { createAppError } from "../../../../../foundation/errors/app-error";
 import { useTaskStore } from "../../../../../foundation/tasks/task-store";
-import { isKnowledgeIndexingCancelled, startKnowledgeIndexing } from "../start-indexing";
+import { isKnowledgeIndexingCancelled } from "../indexing-outcome";
+import { knowledgeIndexingTaskId, startKnowledgeIndexing } from "../start-indexing";
 
 /** Holds the pass open so the test can stream progress into the live task. */
 function streamingPass() {
@@ -45,9 +46,10 @@ describe("knowledge indexing task", () => {
 
   it("shows one cancellable task carrying the share of the work the pass found", async () => {
     const pass = streamingPass();
-    const handle = startKnowledgeIndexing("space-1", "Rebuilding the index");
+    const handle = startKnowledgeIndexing("space-progress", "Rebuilding the index");
     const tasks = useTaskStore();
-    const task = () => tasks.tasks.find((candidate) => candidate.title === "Rebuilding the index");
+    const task = () =>
+      tasks.tasks.find((candidate) => candidate.id === knowledgeIndexingTaskId("space-progress"));
 
     expect(task()?.cancellable).toBe(true);
     pass.report({ indexed: 25, total: 100 });
@@ -63,14 +65,32 @@ describe("knowledge indexing task", () => {
     expect(task()?.status).toBe("succeeded");
   });
 
-  it("cancels the job it started", async () => {
+  it("joins the pass a Space already has instead of opening a second one", async () => {
     const pass = streamingPass();
-    const handle = startKnowledgeIndexing("space-1", "Rebuilding the index");
+    const first = startKnowledgeIndexing("space-join", "Rebuilding the index");
+    const second = startKnowledgeIndexing("space-join", "Enabling semantic search");
+
+    // A Space has one pass, so it has one task, one cancel button and one answer.
+    expect(second).toBe(first);
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledOnce();
+    expect(useTaskStore().tasks).toHaveLength(1);
+
+    pass.finish(3);
+    await expect(second.completion).resolves.toEqual({ indexed: 3 });
+
+    // The settled pass releases the Space: the next request is a new pass with a new task.
+    streamingPass();
+    startKnowledgeIndexing("space-join", "Rebuilding the index");
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledTimes(2);
+  });
+
+  it("cancels the Space's pass, because that is what a pass belongs to", async () => {
+    const pass = streamingPass();
+    const handle = startKnowledgeIndexing("space-cancel", "Rebuilding the index");
 
     await handle.cancel();
 
-    const started = mocks.indexKnowledgeRetrieval.mock.calls[0]?.[0] as KnowledgeIndexingInput;
-    expect(mocks.cancelKnowledgeIndexing).toHaveBeenCalledExactlyOnceWith(started.jobId);
+    expect(mocks.cancelKnowledgeIndexing).toHaveBeenCalledExactlyOnceWith("space-cancel");
     pass.finish(0);
     await handle.completion;
   });
@@ -80,7 +100,7 @@ describe("knowledge indexing task", () => {
       createAppError("cancelled", "Knowledge indexing was cancelled"),
     );
 
-    const handle = startKnowledgeIndexing("space-1", "Rebuilding the index");
+    const handle = startKnowledgeIndexing("space-stopped", "Rebuilding the index");
     await expect(handle.completion).rejects.toSatisfy(isKnowledgeIndexingCancelled);
 
     expect(useTaskStore().tasks[0]?.status).toBe("cancelled");
@@ -89,7 +109,7 @@ describe("knowledge indexing task", () => {
   it("settles a real failure as failed", async () => {
     mocks.indexKnowledgeRetrieval.mockRejectedValue(new Error("Embedding worker is unavailable"));
 
-    const handle = startKnowledgeIndexing("space-1", "Rebuilding the index");
+    const handle = startKnowledgeIndexing("space-failed", "Rebuilding the index");
     await expect(handle.completion).rejects.toThrow("Embedding worker is unavailable");
 
     expect(useTaskStore().tasks[0]?.status).toBe("failed");

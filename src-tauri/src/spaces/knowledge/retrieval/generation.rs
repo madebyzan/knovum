@@ -8,6 +8,8 @@ pub(super) const REBUILD_REQUIRED: &str = "knowledge-semantic-index-rebuild-requ
 pub(super) struct IndexGeneration {
     pub id: String,
     pub embedding_spec_id: String,
+    /// When this generation took over answering searches; `None` while it is still being built.
+    pub activated_at: Option<i64>,
 }
 
 pub(super) async fn active(
@@ -25,11 +27,31 @@ pub(super) async fn find_active(
     space_id: &str,
     embedding_spec_id: &str,
 ) -> Result<Option<IndexGeneration>, String> {
+    find_with_status(pool, space_id, embedding_spec_id, "active").await
+}
+
+/// The generation a rebuild is filling, if one was started for this embedding spec and never
+/// finished. It answers no searches yet, but it is the work the next pass continues.
+pub(super) async fn find_building(
+    pool: &SqlitePool,
+    space_id: &str,
+    embedding_spec_id: &str,
+) -> Result<Option<IndexGeneration>, String> {
+    find_with_status(pool, space_id, embedding_spec_id, "building").await
+}
+
+async fn find_with_status(
+    pool: &SqlitePool,
+    space_id: &str,
+    embedding_spec_id: &str,
+    status: &str,
+) -> Result<Option<IndexGeneration>, String> {
     let row = sqlx::query(
-        "SELECT id,embedding_spec_id FROM spaces_retrieval_generations \
-         WHERE space_id=$1 AND status='active'",
+        "SELECT id,embedding_spec_id,activated_at FROM spaces_retrieval_generations \
+         WHERE space_id=$1 AND status=$2",
     )
     .bind(space_id)
+    .bind(status)
     .fetch_optional(pool)
     .await
     .map_err(db::sql_error)?;
@@ -48,7 +70,7 @@ pub(super) async fn begin_rebuild(
 ) -> Result<IndexGeneration, String> {
     let mut tx = db::begin_write(pool).await?;
     let existing = sqlx::query(
-        "SELECT id,embedding_spec_id FROM spaces_retrieval_generations \
+        "SELECT id,embedding_spec_id,activated_at FROM spaces_retrieval_generations \
          WHERE space_id=$1 AND status='building'",
     )
     .bind(space_id)
@@ -76,6 +98,7 @@ pub(super) async fn begin_rebuild(
     let generation = IndexGeneration {
         id: uuid::Uuid::new_v4().to_string(),
         embedding_spec_id: embedding_spec_id.to_owned(),
+        activated_at: None,
     };
     let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query(
@@ -169,5 +192,6 @@ fn decode(row: sqlx::sqlite::SqliteRow) -> Result<IndexGeneration, String> {
     Ok(IndexGeneration {
         id: row.try_get("id").map_err(db::sql_error)?,
         embedding_spec_id: row.try_get("embedding_spec_id").map_err(db::sql_error)?,
+        activated_at: row.try_get("activated_at").map_err(db::sql_error)?,
     })
 }
