@@ -49,14 +49,14 @@ pub(crate) fn snapshot() -> Result<MemorySnapshot, String> {
     }
     unsafe extern "C" {
         fn mach_host_self() -> u32;
-        fn host_page_size(host: u32, page_size: *mut u32) -> i32;
+        fn host_page_size(host: u32, page_size: *mut usize) -> i32;
         fn host_statistics64(host: u32, flavor: i32, info: *mut i32, count: *mut u32) -> i32;
     }
-    static HOST_PAGE: OnceLock<Result<(u32, u32), String>> = OnceLock::new();
+    static HOST_PAGE: OnceLock<Result<(u32, usize), String>> = OnceLock::new();
     let &(host, page_size) = HOST_PAGE
         .get_or_init(|| {
             let host = unsafe { mach_host_self() };
-            let mut page_size = 0_u32;
+            let mut page_size = 0_usize;
             let status = unsafe { host_page_size(host, &mut page_size) };
             if host == 0 || status != 0 || page_size == 0 {
                 return Err("resource_exhausted: macOS memory page size is unavailable".into());
@@ -83,11 +83,14 @@ pub(crate) fn snapshot() -> Result<MemorySnapshot, String> {
             "resource_exhausted: macOS available memory could not be determined ({status})"
         ));
     }
+    let page_size = u64::try_from(page_size).map_err(|error| {
+        format!("resource_exhausted: macOS memory page size exceeds range: {error}")
+    })?;
     let available_pages = u64::from(statistics.free_count)
         .checked_add(u64::from(statistics.inactive_count))
         .ok_or("resource_exhausted: macOS available page count overflowed")?;
     let available_bytes = available_pages
-        .checked_mul(u64::from(page_size))
+        .checked_mul(page_size)
         .ok_or("resource_exhausted: macOS available memory overflowed")?;
     Ok(MemorySnapshot {
         total_bytes: physical_memory()?,
@@ -135,3 +138,7 @@ pub(crate) fn physical_memory() -> Result<u64, String> {
 pub(crate) fn snapshot() -> Result<MemorySnapshot, String> {
     Err("unsupported_device: Local inference is not qualified for this platform".into())
 }
+
+#[cfg(all(test, any(target_os = "macos", target_os = "windows")))]
+#[path = "tests/system_memory.rs"]
+mod tests;
