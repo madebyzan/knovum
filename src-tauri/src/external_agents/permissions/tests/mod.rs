@@ -53,21 +53,43 @@ fn cancellation_never_authorizes_a_new_operation() {
 fn full_access_mode_must_be_advertised_and_never_silently_substituted() {
     let response = serde_json::from_value(serde_json::json!({
         "sessionId": "session", "modes": {"currentModeId": "read-only", "availableModes": [
-            {"id":"read-only", "name":"Read only"}, {"id":"full-access", "name":"Full"}
+            {"id":"read-only", "name":"Read only"}, {"id":"agent-full-access", "name":"Full"}
         ]}
     }))
     .unwrap();
-    let change = super::trusted_mode_request(Some("full-access"), &response)
+    let change = super::trusted_mode_request(Some("agent-full-access"), &response)
         .unwrap()
         .unwrap();
-    assert_eq!(change.mode_id.to_string(), "full-access");
+    assert_eq!(change.mode_id.to_string(), "agent-full-access");
     assert!(super::trusted_mode_request(Some("bypassPermissions"), &response).is_err());
     assert!(super::trusted_mode_request(None, &response)
         .unwrap()
         .is_none());
     let mut current = response;
-    current.modes.as_mut().unwrap().current_mode_id = "full-access".into();
-    assert!(super::trusted_mode_request(Some("full-access"), &current)
-        .unwrap()
-        .is_none());
+    current.modes.as_mut().unwrap().current_mode_id = "agent-full-access".into();
+    assert!(
+        super::trusted_mode_request(Some("agent-full-access"), &current)
+            .unwrap()
+            .is_none()
+    );
+}
+
+/// The launched adapters own these ids: `@agentclientprotocol/codex-acp` advertises
+/// `read-only`, `workspace-write`, `agent`, `agent-full-access`, and
+/// `@agentclientprotocol/claude-agent-acp` advertises Claude Code's permission modes. A session
+/// dies with "full-access session mode is unavailable" the moment this vocabulary drifts.
+#[test]
+fn trusted_session_modes_match_the_launched_adapter_vocabulary() {
+    use crate::ai::contracts::ExternalAgentKind;
+    use crate::external_agents::registry::trusted_session_mode;
+
+    assert_eq!(
+        trusted_session_mode(ExternalAgentKind::Codex),
+        Some("agent-full-access")
+    );
+    assert_eq!(
+        trusted_session_mode(ExternalAgentKind::ClaudeCode),
+        Some("bypassPermissions")
+    );
+    assert_eq!(trusted_session_mode(ExternalAgentKind::GeminiCli), None);
 }

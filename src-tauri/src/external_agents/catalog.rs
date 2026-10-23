@@ -13,7 +13,7 @@ pub(super) enum AcpLaunch {
 impl AcpLaunch {
     pub const fn trusted_session_mode(self) -> Option<&'static str> {
         match self {
-            Self::Codex => Some("full-access"),
+            Self::Codex => Some("agent-full-access"),
             Self::Claude => Some("bypassPermissions"),
             Self::Executable { .. } | Self::Server => None,
         }
