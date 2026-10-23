@@ -1,7 +1,7 @@
-import { error as logError } from "@tauri-apps/plugin-log";
+import { error as logError, info as logInfo } from "@tauri-apps/plugin-log";
 import { toast } from "vue-sonner";
 
-import { canRunAction } from "../../shared/contracts/action-availability";
+import { canRunAction, type ActionAvailability } from "../../shared/contracts/action-availability";
 import type { AppCommand } from "../../shared/contracts/app-command";
 import { isApplicationLeaveCancelled } from "../../shared/contracts/application-leave";
 import { formatErrorDiagnostic, getErrorMessage } from "../errors/error-format";
@@ -32,7 +32,14 @@ export function runAppCommandById(commandId: string): void {
 export function runAppCommand(command: AppCommand): void {
   if (isApplicationTransitioning()) return;
   if (!modalScopeAllows(command.id)) return;
-  if (command.availability && !canRunAction(command.availability())) return;
+  const availability = command.availability?.();
+  if (availability && !canRunAction(availability)) {
+    // A refusal the user asked for must leave evidence. Availability can be owned by state the user
+    // cannot see — a held editing session, a suspended canvas — and a silent return makes that
+    // indistinguishable from a broken command.
+    void logInfo(`Command ${command.id} not dispatched: ${describeAvailability(availability)}`);
+    return;
+  }
   void Promise.resolve()
     .then(() => (isApplicationTransitioning() || !modalScopeAllows(command.id) ? undefined : command.run()))
     .catch((error) => {
@@ -40,6 +47,10 @@ export function runAppCommand(command: AppCommand): void {
       void logError(`Command ${command.id} failed: ${formatErrorDiagnostic(error)}`);
       toast.error(getErrorMessage(error));
     });
+}
+
+function describeAvailability(availability: ActionAvailability): string {
+  return availability.state === "blocked" ? `blocked (${availability.reason})` : availability.state;
 }
 
 function modalScopeAllows(commandId: string): boolean {
