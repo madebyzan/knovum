@@ -27,8 +27,8 @@
     "mediaTimeRange": "{start} – {end}"
   },
   "index": {
-    "rebuild": "検索インデックスの再構築",
-    "rebuildDone": "インデックスが再構築されました。 {count} ベクトル エントリが生成されました。"
+    "repair": "検索インデックスを修復",
+    "repairDone": "インデックスを更新しました。{count} 件のベクトルを生成しました。"
   },
   "failed": "処理に失敗しました",
   "nodeUnavailable": "タスクのノードは使用できなくなりました",

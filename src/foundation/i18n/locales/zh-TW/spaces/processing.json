@@ -27,8 +27,8 @@
     "mediaTimeRange": "{start} – {end}"
   },
   "index": {
-    "rebuild": "重建向量檢索索引",
-    "rebuildDone": "索引完成，已建立 {count} 條向量資料。"
+    "repair": "修復檢索索引",
+    "repairDone": "索引已更新，新建 {count} 條向量資料。"
   },
   "failed": "解析處理失敗",
   "nodeUnavailable": "任務所屬節點已不可用",

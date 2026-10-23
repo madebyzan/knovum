@@ -62,9 +62,12 @@ pub(super) async fn begin_rebuild(
             return Ok(generation);
         }
     }
+    // Only an abandoned build for another spec is retired here. The generation that is currently
+    // answering searches is replaced by `activate`, so a rebuild — which re-embeds every chunk in
+    // the Space — never costs the Space its working index for the duration of the build.
     sqlx::query(
-        "UPDATE spaces_retrieval_generations SET status='retired',activated_at=NULL \
-         WHERE space_id=$1 AND status IN ('active','building')",
+        "UPDATE spaces_retrieval_generations SET status='retired' \
+         WHERE space_id=$1 AND status='building'",
     )
     .bind(space_id)
     .execute(&mut *tx)
@@ -116,6 +119,15 @@ pub(super) async fn activate(
         ));
     }
     let now = crate::foundation::clock::unix_time_millis()?;
+    // The swap is the only moment a Space has no working index, and it is one statement wide.
+    sqlx::query(
+        "UPDATE spaces_retrieval_generations SET status='retired',activated_at=NULL \
+         WHERE space_id=$1 AND status='active'",
+    )
+    .bind(space_id)
+    .execute(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
     let changed = sqlx::query(
         "UPDATE spaces_retrieval_generations SET status='active',activated_at=$1 \
          WHERE id=$2 AND space_id=$3 AND embedding_spec_id=$4 AND status='building'",

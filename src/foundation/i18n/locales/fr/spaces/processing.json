@@ -27,8 +27,8 @@
     "mediaTimeRange": "{start} – {end}"
   },
   "index": {
-    "rebuild": "Reconstruire l'index de récupération",
-    "rebuildDone": "Index reconstruit ; entrée de vecteur {count} générée. | Index reconstruit ; entrées vectorielles {count} générées."
+    "repair": "Réparer l'index de recherche",
+    "repairDone": "Index mis à jour ; {count} entrée vectorielle générée. | Index mis à jour ; {count} entrées vectorielles générées."
   },
   "failed": "Échec du traitement",
   "nodeUnavailable": "Le nœud de la tâche n'est plus disponible",

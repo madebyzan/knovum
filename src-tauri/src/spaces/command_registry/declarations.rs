@@ -136,7 +136,6 @@ macro_rules! knovum_knowledge_commands {
             crate::spaces::commands::scenes::update_scene_orders,
             crate::spaces::commands::scenes::delete_scene,
             crate::spaces::commands::retrieval::index_knowledge,
-            crate::spaces::commands::retrieval::rebuild_knowledge_retrieval_index,
             crate::spaces::queries::catalog::list_spaces,
             crate::spaces::queries::catalog::list_credential_node_ids,
             crate::spaces::queries::nodes::get_node,
