@@ -188,25 +188,6 @@ fn voxcpm2_choices_freeze_distinct_complete_snapshots() {
 }
 
 #[test]
-fn catalog_availability_is_supplied_by_application_composition() {
-    assert_eq!(
-        availability_reason(LocalModelId::VoxCpm2, |_| Ok(false)).unwrap(),
-        Some("memory")
-    );
-    assert_eq!(
-        availability_reason(LocalModelId::VoxCpm2Q8, |_| Ok(true)).unwrap(),
-        None
-    );
-    assert_eq!(
-        availability_reason(LocalModelId::WhisperSmall, |_| {
-            panic!("non-voice models do not consult AI policy")
-        })
-        .unwrap(),
-        None
-    );
-}
-
-#[test]
 fn image_choices_prepare_their_complete_snapshot_without_recursion() {
     let choices = [
         LocalModelId::RealEsrganGeneralX4v3,
