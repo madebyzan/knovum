@@ -20,14 +20,6 @@ pub(super) async fn start(
     validate_request(&request)?;
     let (cancellation, _lease) = super::super::cancellation::acquire(&request.request_id)?;
     let incoming_digest = request_digest(&request)?;
-    if matches!(
-        request.model,
-        super::VoiceModel::VoxCpm2 | super::VoiceModel::VoxCpm2Q8
-    ) {
-        crate::ai::local_runtime::device_profiles::voice::require_memory(
-            request.model.specification(),
-        )?;
-    }
     let pool = db::pool(app).await?;
     if let Some((scope_kind, home_space_id, kind, input)) =
         sqlx::query_as::<_, (String, Option<String>, String, String)>(
