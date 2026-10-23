@@ -68,17 +68,14 @@ jobs:
       max-parallel: 1
       matrix:
         include:
-          # TEMPORARY: v0.0.1's darwin assets are already in the draft release and the action seeds
-          # latest.json from the existing asset, so only the platform whose build failed is rebuilt.
-          # Restore both entries below once the Windows package has landed.
-          # - os: macos-15
-          #   target: aarch64-apple-darwin
-          #   platform: darwin-aarch64
-          #   bundles: app,dmg
-          # - os: macos-15-intel
-          #   target: x86_64-apple-darwin
-          #   platform: darwin-x86_64
-          #   bundles: app,dmg
+          - os: macos-15
+            target: aarch64-apple-darwin
+            platform: darwin-aarch64
+            bundles: app,dmg
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            platform: darwin-x86_64
+            bundles: app,dmg
           - os: windows-2025
             target: x86_64-pc-windows-msvc
             platform: windows-x86_64
