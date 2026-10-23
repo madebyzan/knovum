@@ -243,3 +243,31 @@ fn image_choices_prepare_their_complete_snapshot_without_recursion() {
                 .total_bytes()
     );
 }
+
+#[test]
+fn a_hardware_figure_describes_the_machine_and_never_withholds_a_model() {
+    use crate::local_resources::model_metadata::{metadata, LocalModelMemory};
+    const GIB: u64 = 1024 * 1024 * 1024;
+
+    // A model that stays within the ordinary budget never produces an advisory, however small the
+    // machine is.
+    assert_eq!(LocalModelMemory::Any.advisory_bytes(Some(GIB)), None);
+    // A qualified model reports its figure only to a machine that has less, and says nothing about
+    // a machine we could not measure.
+    let qualified = LocalModelMemory::QualifiedOnGib(32);
+    assert_eq!(qualified.advisory_bytes(Some(16 * GIB)), Some(32 * GIB));
+    assert_eq!(qualified.advisory_bytes(Some(32 * GIB)), None);
+    assert_eq!(qualified.advisory_bytes(Some(64 * GIB)), None);
+    assert_eq!(qualified.advisory_bytes(None), None);
+
+    // Every model states what it needs, so a larger one added later cannot arrive without an
+    // answer; VoxCPM2 is the only family currently making a machine-level claim.
+    for &model in MODELS {
+        let declared = matches!(metadata(model).memory, LocalModelMemory::QualifiedOnGib(_));
+        assert_eq!(
+            declared,
+            matches!(model, LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Q8),
+            "{model:?} changed its machine-level claim"
+        );
+    }
+}

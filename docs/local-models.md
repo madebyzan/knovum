@@ -216,7 +216,21 @@ Windows Vulkan remains subject to real hardware qualification. No request retrie
 
 - Preset speech and the smaller local models retain the ordinary supported-target acceptance matrix.
 - VoxCPM2 is optional and was qualified on machines with at least 32 GiB of memory. The frozen CPU profile reserves a 16 GiB peak; Metal currently reserves 24 GiB pending target qualification. These conservative bounds are qualification gates, not measured claims for every platform.
-- A hardware figure is advice, never permission. A smaller machine still sees the model, downloads it and selects it; the catalogue states what it was qualified against. Whether a run may start is decided once, by admission (`ai/local_runtime/admission.rs`), against the profile's declared peak plus application headroom and the memory actually free at that moment — because that is the number that decides between a synthesis and a thrashing desktop. Download is disk, not memory, and is never refused for it.
+- Memory is decided in exactly two places, and a model is never special-cased outside them.
+  **What the machine should have** is declared per model in `local_resources::model_metadata` as
+  `LocalModelMemory`: `Any` for a model that stays within the ordinary application budget, or
+  `QualifiedOnGib` for the size a model was actually qualified against. There is no default, so a
+  larger model added later cannot reach the catalogue without answering. The catalogue turns that
+  declaration into an advisory shown only to a smaller machine; an unmeasurable machine gets no
+  advisory, because we do not tell someone their computer is too small when we failed to measure it.
+  **What a run needs** is declared per execution profile in the memory manifest of
+  `ai::local_runtime::device_profiles`, whose fallthrough rejects any profile without one, and it is
+  enforced once by `admission::reserve_memory` against the peak plus application headroom and the
+  memory free at that moment.
+- A hardware figure is advice, never permission. Downloading, selecting and keeping a model are
+  never refused for memory: a download spends disk, and a machine can be upgraded. Only starting a
+  run is refused, by admission, with the actual numbers — because that is the difference between a
+  clear message and a thrashing desktop.
 - "Physical memory" always means the memory the operating system can allocate, never the installed size printed on the module. Windows reports those as two different numbers — firmware-reserved RAM is counted as installed but can never hold a model — so `local_resources::system_memory` reads `GlobalMemoryStatusEx` for both the total and the available figure, and `GetPhysicallyInstalledSystemMemory` is deliberately unused.
 - Both alignment profiles currently reserve 6 GiB of host memory and qualify GPU capacity before
   worker startup. This is a conservative admission bound; target qualification must raise it if a

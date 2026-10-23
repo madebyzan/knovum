@@ -14,12 +14,8 @@ struct Backend {
     device: String,
 }
 
-/// What this model was qualified against, so the catalogue can say so before a download. It is
-/// advice about the machine, not permission: whether a synthesis may start is decided by admission
-/// against the memory actually free at that moment (`local_runtime::admission`).
-pub(crate) fn recommended_memory_bytes(model_spec_id: &str) -> Result<u64, String> {
-    Ok(recommended_gib(model_spec_id)? * super::GIB)
-}
+/// Resolves the execution profile this machine can actually run. Memory stays out of it: the
+/// profile peak is declared in the memory manifest and enforced once, by admission.
 pub(crate) async fn profile(
     runtime: &InferenceRuntimePaths,
     model_spec_id: &str,
@@ -69,15 +65,6 @@ fn select_profile(
         return Ok(make("cpu"));
     }
     Ok(selected)
-}
-
-fn recommended_gib(model_spec_id: &str) -> Result<u64, String> {
-    // Q8 keeps the qualified full-model ceiling until target-platform measurements justify
-    // a lower reservation. File size alone is not a process peak-memory contract.
-    match model_spec_id {
-        FULL_MODEL_SPEC_ID | Q8_MODEL_SPEC_ID => Ok(32),
-        _ => Err("runtime_mismatch: VoxCPM2 model specification is unsupported".into()),
-    }
 }
 
 fn gpu_reserve_gib(model_spec_id: &str) -> Result<u64, String> {

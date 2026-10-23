@@ -112,10 +112,10 @@ impl LocalModelId {
         }
     }
     pub(crate) fn capability(self) -> LocalModelCapability {
-        model_metadata::metadata(self).1
+        model_metadata::metadata(self).capability
     }
     pub(crate) fn name(self) -> &'static str {
-        model_metadata::metadata(self).0
+        model_metadata::metadata(self).name
     }
 
     fn group(self) -> LocalModelGroup {
@@ -208,28 +208,15 @@ impl LocalModelId {
     }
 }
 
-pub(crate) fn list<R: Runtime, F>(
-    app: &AppHandle<R>,
-    voice_memory_advisory: F,
-) -> Result<Vec<LocalModelAvailability>, String>
-where
-    F: Fn(LocalModelId) -> Result<Option<u64>, String>,
-{
-    MODELS
-        .iter()
-        .map(|&id| inspect(app, id, &voice_memory_advisory))
-        .collect()
+pub(crate) fn list<R: Runtime>(app: &AppHandle<R>) -> Result<Vec<LocalModelAvailability>, String> {
+    MODELS.iter().map(|&id| inspect(app, id)).collect()
 }
 
-pub(crate) fn inspect<R: Runtime, F>(
+pub(crate) fn inspect<R: Runtime>(
     app: &AppHandle<R>,
     model_id: LocalModelId,
-    voice_memory_advisory: &F,
-) -> Result<LocalModelAvailability, String>
-where
-    F: Fn(LocalModelId) -> Result<Option<u64>, String>,
-{
-    let (name, capability, operations, reference_transcript) = model_metadata::metadata(model_id);
+) -> Result<LocalModelAvailability, String> {
+    let metadata = model_metadata::metadata(model_id);
     let snapshot = model_id
         .snapshot()
         .ok_or("Local model is unavailable on this platform")?;
@@ -238,14 +225,15 @@ where
         .iter()
         .map(|kind| models::status(app, catalog::descriptor(*kind)))
         .collect::<Result<Vec<_>, _>>()?;
-    let memory_advisory_bytes = voice_memory_advisory(model_id)?;
+    // A machine we could not measure produces no advisory, never a claim that it is too small.
+    let usable_memory = super::system_memory::physical_memory().ok();
     let transcription = super::model_selection::transcription(app)?;
     Ok(LocalModelAvailability {
         id: model_id,
-        name,
-        capability,
-        operations,
-        reference_transcript,
+        name: metadata.name,
+        capability: metadata.capability,
+        operations: metadata.operations,
+        reference_transcript: metadata.reference_transcript,
         group: model_id.group(),
         selected: super::model_selection::is_selected(app, model_id)?,
         selectable: super::model_selection::is_selectable(model_id),
@@ -255,7 +243,7 @@ where
         installed_bytes: parts.iter().filter_map(|part| part.size).sum(),
         installed: parts.iter().any(|part| part.installed),
         verified: parts.iter().all(|part| part.verified),
-        memory_advisory_bytes,
+        memory_advisory_bytes: metadata.memory.advisory_bytes(usable_memory),
     })
 }
 
