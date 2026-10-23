@@ -19,7 +19,7 @@ onScopeDispose(reset);
 </script>
 
 <template>
-  <section class="space-y-2">
+  <section class="space-y-3">
     <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
       <span>{{ t("spaces.speech.preview.text.label") }}</span>
       <UiTextarea
@@ -31,20 +31,22 @@ onScopeDispose(reset);
         :aria-label="t('spaces.speech.preview.text.placeholder')"
       />
     </label>
-    <div class="flex items-center gap-2">
-      <UiButton
-        size="sm"
-        :disabled="disabled || Boolean(jobId) || !text.trim()"
-        @click="previewSource(text.trim(), source, {})"
-        >{{ t("spaces.speech.preview.action") }}</UiButton
-      >
-      <UiButton v-if="jobId" size="sm" @click="cancel">{{ t("common.cancel") }}</UiButton>
-      <UiButton v-if="listening" size="sm" @click="stopListening">{{
-        t("spaces.speech.preview.stop")
-      }}</UiButton>
-      <slot name="actions" />
-    </div>
     <SpeechMediaPlayer v-if="preview" kind="audio" :source="preview.source" />
     <p v-if="error" class="text-caption text-fg-danger">{{ error }}</p>
+    <div class="flex items-center justify-between gap-2 border-t border-stroke-divider pt-3">
+      <div class="flex items-center gap-2">
+        <UiButton
+          size="sm"
+          :disabled="disabled || Boolean(jobId) || !text.trim()"
+          @click="previewSource(text.trim(), source, {})"
+          >{{ t("spaces.speech.preview.action") }}</UiButton
+        >
+        <UiButton v-if="jobId" size="sm" @click="cancel">{{ t("common.cancel") }}</UiButton>
+        <UiButton v-if="listening" size="sm" @click="stopListening">{{
+          t("spaces.speech.preview.stop")
+        }}</UiButton>
+      </div>
+      <slot name="actions" />
+    </div>
   </section>
 </template>

@@ -4,9 +4,6 @@
     "placeholder": "Selecione uma voz"
   },
   "title": "Gerenciamento de voz",
-  "collection": {
-    "title": "Biblioteca de voz"
-  },
   "empty": "Ainda não há vozes.",
   "manage": "Gerenciar vozes e áudio de referência",
   "description": "Gerencie vozes, áudio de referência e revisões de amostras compartilhadas no aplicativo. Cada espaço de trabalho pode usar vozes salvas aqui.",

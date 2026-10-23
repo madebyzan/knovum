@@ -4,9 +4,6 @@
     "placeholder": "Wählen Sie eine Stimme aus"
   },
   "title": "Sprachverwaltung",
-  "collection": {
-    "title": "Sprachbibliothek"
-  },
   "empty": "Noch keine Stimmen.",
   "manage": "Verwalten Sie Stimmen und referenzieren Sie Audio",
   "description": "Verwalten Sie Stimmen, Referenzaudio und Beispielrevisionen, die in der gesamten Anwendung geteilt werden. Jeder Arbeitsbereich kann hier gespeicherte Stimmen verwenden.",
