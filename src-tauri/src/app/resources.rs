@@ -24,10 +24,7 @@ pub fn plugin() -> TauriPlugin<Wry> {
 
 #[tauri::command]
 async fn get_model_catalog(app: tauri::AppHandle) -> Result<Vec<LocalModelAvailability>, AppError> {
-    Ok(
-        crate::foundation::blocking::run(move || model_catalog::list(&app, voice_memory_advisory))
-            .await?,
-    )
+    Ok(crate::foundation::blocking::run(move || model_catalog::list(&app)).await?)
 }
 
 #[tauri::command]
@@ -51,20 +48,4 @@ async fn prepare_resources(
         on_progress,
     )
     .await
-}
-
-/// How much memory the model was qualified against, reported only when this machine has less.
-/// Downloading and selecting a model are never refused for it: disk space is what a download
-/// spends, and whether a run may start is admission's decision against free memory at that moment.
-fn voice_memory_advisory(model: LocalModelId) -> Result<Option<u64>, String> {
-    if !matches!(model, LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Q8) {
-        return Ok(None);
-    }
-    let recommended = crate::ai::local_runtime::device_profiles::voice::recommended_memory_bytes(
-        model.voxcpm2_spec()?,
-    )?;
-    Ok(
-        (crate::local_resources::system_memory::physical_memory()? < recommended)
-            .then_some(recommended),
-    )
 }
