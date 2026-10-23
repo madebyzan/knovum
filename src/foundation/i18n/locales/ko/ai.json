@@ -35,8 +35,6 @@
     "ar": "아랍어"
   },
   "localModels": {
-    "unavailable": {
-      "memory": "메모리가 부족합니다. 최소 32GiB가 필요합니다. 대신 MOSS-TTS-Nano를 사용하세요."
-    }
+    "memoryAdvisory": "{memory} 메모리를 갖춘 컴퓨터에서 검증되었습니다. 이 컴퓨터에서는 메모리가 부족하면 합성이 거부될 수 있습니다. 더 가벼운 대안은 MOSS-TTS-Nano입니다."
   }
 }

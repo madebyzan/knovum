@@ -66,8 +66,9 @@ pub struct LocalModelAvailability {
     pub installed_bytes: u64,
     pub installed: bool,
     pub verified: bool,
-    pub download_available: bool,
-    pub unavailable_reason: Option<&'static str>,
+    // Set when this machine has less usable memory than the model was qualified against. It is a
+    // caption, never a veto: the download is always allowed and a run is decided by admission.
+    pub memory_advisory_bytes: Option<u64>,
 }
 
 #[derive(Clone, Copy, Serialize, ts_rs::TS)]
@@ -209,24 +210,24 @@ impl LocalModelId {
 
 pub(crate) fn list<R: Runtime, F>(
     app: &AppHandle<R>,
-    voice_eligible: F,
+    voice_memory_advisory: F,
 ) -> Result<Vec<LocalModelAvailability>, String>
 where
-    F: Fn(LocalModelId) -> Result<bool, String>,
+    F: Fn(LocalModelId) -> Result<Option<u64>, String>,
 {
     MODELS
         .iter()
-        .map(|&id| inspect(app, id, &voice_eligible))
+        .map(|&id| inspect(app, id, &voice_memory_advisory))
         .collect()
 }
 
 pub(crate) fn inspect<R: Runtime, F>(
     app: &AppHandle<R>,
     model_id: LocalModelId,
-    voice_eligible: &F,
+    voice_memory_advisory: &F,
 ) -> Result<LocalModelAvailability, String>
 where
-    F: Fn(LocalModelId) -> Result<bool, String>,
+    F: Fn(LocalModelId) -> Result<Option<u64>, String>,
 {
     let (name, capability, operations, reference_transcript) = model_metadata::metadata(model_id);
     let snapshot = model_id
@@ -237,7 +238,7 @@ where
         .iter()
         .map(|kind| models::status(app, catalog::descriptor(*kind)))
         .collect::<Result<Vec<_>, _>>()?;
-    let unavailable_reason = availability_reason(model_id, voice_eligible)?;
+    let memory_advisory_bytes = voice_memory_advisory(model_id)?;
     let transcription = super::model_selection::transcription(app)?;
     Ok(LocalModelAvailability {
         id: model_id,
@@ -254,24 +255,8 @@ where
         installed_bytes: parts.iter().filter_map(|part| part.size).sum(),
         installed: parts.iter().any(|part| part.installed),
         verified: parts.iter().all(|part| part.verified),
-        download_available: unavailable_reason.is_none(),
-        unavailable_reason,
+        memory_advisory_bytes,
     })
-}
-
-fn availability_reason<F>(
-    model_id: LocalModelId,
-    voice_eligible: F,
-) -> Result<Option<&'static str>, String>
-where
-    F: Fn(LocalModelId) -> Result<bool, String>,
-{
-    if matches!(model_id, LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Q8)
-        && !voice_eligible(model_id)?
-    {
-        return Ok(Some("memory"));
-    }
-    Ok(None)
 }
 
 #[cfg(test)]

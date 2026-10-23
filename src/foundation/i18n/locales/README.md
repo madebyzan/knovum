@@ -34,7 +34,7 @@ catalog is a separate capability and may include languages unavailable in the in
 - `settings.appearance.options.language` owns the display-language choices, including Brazilian
   Portuguese. `ai.languages` owns AI translation targets, including general Portuguese and Arabic.
   Keep these catalogs separate even where language names currently match.
-  `ai.localModels.unavailable` owns shared model-availability outcomes displayed by both model
+  `ai.localModels.memoryAdvisory` owns the shared hardware advisory displayed by both model
   settings and speech model selection; the settings namespace owns model management controls.
 - `updates` owns updater actions, progress, failures and restart wording across settings, application
   notifications and the Task Center. `errors.windowClose` owns failed close/save outcomes.

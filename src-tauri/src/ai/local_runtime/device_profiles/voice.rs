@@ -14,26 +14,17 @@ struct Backend {
     device: String,
 }
 
-pub(crate) fn eligible(model_spec_id: &str) -> Result<bool, String> {
-    Ok(crate::local_resources::system_memory::physical_memory()?
-        >= minimum_gib(model_spec_id)? * super::GIB)
-}
-pub(crate) fn require_memory(model_spec_id: &str) -> Result<(), String> {
-    let minimum_gib = minimum_gib(model_spec_id)?;
-    if eligible(model_spec_id)? {
-        Ok(())
-    } else {
-        Err(format!(
-            "resource_exhausted: This VoxCPM2 model requires at least {minimum_gib} GiB physical memory"
-        ))
-    }
+/// What this model was qualified against, so the catalogue can say so before a download. It is
+/// advice about the machine, not permission: whether a synthesis may start is decided by admission
+/// against the memory actually free at that moment (`local_runtime::admission`).
+pub(crate) fn recommended_memory_bytes(model_spec_id: &str) -> Result<u64, String> {
+    Ok(recommended_gib(model_spec_id)? * super::GIB)
 }
 pub(crate) async fn profile(
     runtime: &InferenceRuntimePaths,
     model_spec_id: &str,
     cancellation: &CancellationToken,
 ) -> Result<RuntimeDeviceProfile, String> {
-    require_memory(model_spec_id)?;
     let backend: Backend = super::backend_probe::report(
         runtime,
         super::backend_probe::Probe::CompiledLibrary(gpu_reserve_gib(model_spec_id)? * super::GIB),
@@ -80,7 +71,7 @@ fn select_profile(
     Ok(selected)
 }
 
-fn minimum_gib(model_spec_id: &str) -> Result<u64, String> {
+fn recommended_gib(model_spec_id: &str) -> Result<u64, String> {
     // Q8 keeps the qualified full-model ceiling until target-platform measurements justify
     // a lower reservation. File size alone is not a process peak-memory contract.
     match model_spec_id {

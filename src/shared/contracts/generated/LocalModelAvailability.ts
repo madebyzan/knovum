@@ -5,4 +5,4 @@ import type { LocalModelId } from "./LocalModelId";
 import type { LocalModelOperation } from "./LocalModelOperation";
 import type { LocalModelReferenceTranscript } from "./LocalModelReferenceTranscript";
 
-export type LocalModelAvailability = { id: LocalModelId, name: string, capability: LocalModelCapability, operations: Array<LocalModelOperation>, referenceTranscript: LocalModelReferenceTranscript, group: LocalModelGroup, essential: boolean, selected: boolean, selectable: boolean, fixed: boolean, totalBytes: number, installedBytes: number, installed: boolean, verified: boolean, downloadAvailable: boolean, unavailableReason: string | null, };
+export type LocalModelAvailability = { id: LocalModelId, name: string, capability: LocalModelCapability, operations: Array<LocalModelOperation>, referenceTranscript: LocalModelReferenceTranscript, group: LocalModelGroup, essential: boolean, selected: boolean, selectable: boolean, fixed: boolean, totalBytes: number, installedBytes: number, installed: boolean, verified: boolean, memoryAdvisoryBytes: number | null, };

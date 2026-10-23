@@ -31,7 +31,6 @@ const options = computed(() =>
     value: entry.id,
     label: entry.name,
     description: formatBytes(entry.totalBytes),
-    disabled: !entry.downloadAvailable,
   })),
 );
 let initializedSource: typeof props.sourceKind | undefined;
@@ -42,8 +41,9 @@ watch(
     const choices = models.value;
     if (initializedSource === kind && choices.some((entry) => entry.id === model.value)) return;
     const preferred = choices.find((entry) => entry.selected);
+    // Default to a model this machine is comfortable with; a heavier one stays one click away.
     const smallest = choices
-      .filter((entry) => entry.downloadAvailable)
+      .filter((entry) => !entry.memoryAdvisoryBytes)
       .reduce<(typeof choices)[number] | undefined>(
         (best, entry) => (!best || entry.totalBytes < best.totalBytes ? entry : best),
         undefined,
@@ -56,7 +56,7 @@ watch(
 );
 const selected = computed(() => models.value.find((entry) => entry.id === model.value));
 watchEffect(() => {
-  available.value = Boolean(selected.value?.downloadAvailable) && !catalog.error.value;
+  available.value = Boolean(selected.value) && !catalog.error.value;
   referenceTranscript.value = selected.value?.referenceTranscript ?? "unused";
 });
 </script>
@@ -91,8 +91,8 @@ watchEffect(() => {
         <p v-if="!selected.verified">{{ t("spaces.speech.models.firstUse") }}</p>
       </CollapsibleContent>
     </CollapsibleRoot>
-    <p v-if="selected?.unavailableReason" class="text-caption text-fg-secondary">
-      {{ t(`ai.localModels.unavailable.${selected.unavailableReason}`) }}
+    <p v-if="selected?.memoryAdvisoryBytes" class="text-caption text-fg-secondary">
+      {{ t("ai.localModels.memoryAdvisory", { memory: formatBytes(selected.memoryAdvisoryBytes) }) }}
     </p>
   </div>
 </template>

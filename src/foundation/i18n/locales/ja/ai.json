@@ -35,8 +35,6 @@
     "ar": "アラビア語"
   },
   "localModels": {
-    "unavailable": {
-      "memory": "メモリが足りません。少なくとも 32 GiB が必要です。代わりに MOSS-TTS-Nano を使用してください。"
-    }
+    "memoryAdvisory": "{memory} のメモリを備えたマシン向けに検証されています。このコンピューターではメモリが不足すると合成が拒否されることがあります。より軽い代替は MOSS-TTS-Nano です。"
   }
 }

@@ -81,7 +81,6 @@ export const DYNAMIC_LOCALE_KEYS = [
   "settings.ai.localModels.notInstalled",
   "settings.ai.localModels.selected",
   "settings.ai.localModels.selectedVoiceModel",
-  "ai.localModels.unavailable.memory",
   "spaces.media.player.transcribe",
   "spaces.media.player.transcribed",
   "spaces.media.player.transcribing",

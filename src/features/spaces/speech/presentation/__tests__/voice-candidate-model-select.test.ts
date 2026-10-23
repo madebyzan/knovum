@@ -30,8 +30,7 @@ function entry(modelId: "mossNano" | "voxCpm2" | "voxCpm2Q8", selected: boolean)
     verified: true,
     totalBytes: modelId === "voxCpm2" ? 500 : modelId === "voxCpm2Q8" ? 300 : 100,
     installedBytes: 100,
-    downloadAvailable: true,
-    unavailableReason: null,
+    memoryAdvisoryBytes: null,
   };
 }
 beforeEach(() => {

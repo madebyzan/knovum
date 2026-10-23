@@ -87,9 +87,7 @@ watch(
       </div>
       <div class="flex shrink-0 items-center gap-2">
         <UiButton
-          v-if="
-            model.selectable && model.verified && model.downloadAvailable && !model.selected && !preparation
-          "
+          v-if="model.selectable && model.verified && !model.selected && !preparation"
           data-testid="model-select"
           size="sm"
           :disabled="busy"
@@ -113,7 +111,7 @@ watch(
           v-else-if="!model.verified"
           data-testid="model-download"
           size="sm"
-          :disabled="busy || !model.downloadAvailable"
+          :disabled="busy"
           @click="download"
           >{{ t(`settings.ai.localModels.${model.installed ? "redownload" : "download"}`) }}</UiButton
         >
@@ -129,8 +127,8 @@ watch(
         >
       </div>
     </div>
-    <p v-if="model.unavailableReason" class="text-caption text-fg-secondary">
-      {{ t(`ai.localModels.unavailable.${model.unavailableReason}`) }}
+    <p v-if="model.memoryAdvisoryBytes" class="text-caption text-fg-secondary">
+      {{ t("ai.localModels.memoryAdvisory", { memory: formatBytes(model.memoryAdvisoryBytes) }) }}
     </p>
     <div
       v-if="preparation"
