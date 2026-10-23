@@ -37,6 +37,12 @@ pub(crate) fn fail<R: Runtime>(app: &AppHandle<R>, reason: &str) {
         return;
     }
     log::error!("desktop startup failed: {reason}");
+    // The hidden main window is a startup contract: it stays hidden until the renderer reports a
+    // usable state. Declaring the startup failed ends that contract. Without this, a renderer that
+    // never reports leaves a running process with no window at all — the failure has no surface.
+    if let Err(error) = super::window::focus_main(app) {
+        log::error!("failed to reveal the main window after a startup failure: {error}");
+    }
     let handle = app.clone();
     app.dialog()
         .message(format!("Knovum could not start.\n\n{reason}"))
