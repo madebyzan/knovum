@@ -1,5 +1,8 @@
 use super::{physical_memory, snapshot};
 
+// Both entry points answer one question: how much memory can this machine actually give a worker.
+// Windows also exposes the installed SMBIOS size, which is larger than that on any machine with
+// firmware-reserved RAM; reading it here would make admission promise memory the OS never has.
 #[test]
 fn reads_positive_system_memory_snapshot() {
     let total = physical_memory().unwrap();
