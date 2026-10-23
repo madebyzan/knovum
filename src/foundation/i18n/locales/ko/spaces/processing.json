@@ -27,8 +27,8 @@
     "mediaTimeRange": "{start} – {end}"
   },
   "index": {
-    "rebuild": "검색 인덱스 다시 작성",
-    "rebuildDone": "인덱스가 재구축되었습니다. {count} 벡터 항목을 생성했습니다."
+    "repair": "검색 인덱스 복구",
+    "repairDone": "인덱스를 업데이트했습니다. 벡터 {count}개를 생성했습니다."
   },
   "failed": "처리 실패",
   "nodeUnavailable": "작업 노드를 더 이상 사용할 수 없습니다.",

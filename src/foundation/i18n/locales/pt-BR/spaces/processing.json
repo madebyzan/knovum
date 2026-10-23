@@ -27,8 +27,8 @@
     "mediaTimeRange": "{start} – {end}"
   },
   "index": {
-    "rebuild": "Reconstruir índice de recuperação",
-    "rebuildDone": "Índice reconstruído; entrada de vetor {count} gerada. | Índice reconstruído; entradas de vetor {count} geradas."
+    "repair": "Reparar o índice de recuperação",
+    "repairDone": "Índice atualizado; {count} entrada vetorial gerada. | Índice atualizado; {count} entradas vetoriais geradas."
   },
   "failed": "Falha no processamento",
   "nodeUnavailable": "O nó da tarefa não está mais disponível",

@@ -27,8 +27,8 @@
     "mediaTimeRange": "{start} – {end}"
   },
   "index": {
-    "rebuild": "Rebuild retrieval index",
-    "rebuildDone": "Index rebuilt; generated {count} vector entry. | Index rebuilt; generated {count} vector entries."
+    "repair": "Repair retrieval index",
+    "repairDone": "Index updated; generated {count} vector entry. | Index updated; generated {count} vector entries."
   },
   "failed": "Processing failed",
   "nodeUnavailable": "The task's node is no longer available",

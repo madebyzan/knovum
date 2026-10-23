@@ -12,7 +12,7 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import { useSpaceStore } from "../../session/space-store";
-import { rebuildKnowledgeRetrievalIndex } from "../indexing/rebuild-index";
+import { repairKnowledgeRetrievalIndex } from "../indexing/repair-index";
 import type { SpaceKnowledgeHealthIssue } from "../model/health";
 import { useSpaceKnowledgeHealthQuery } from "../queries/use-space-knowledge-health-query";
 
@@ -21,24 +21,24 @@ const store = useSpaceStore();
 const { activeSpaceId } = storeToRefs(store);
 const { t } = useI18n();
 const expanded = ref(false);
-const rebuilding = ref(false);
+const repairing = ref(false);
 const { data, isFetching: loading, error: queryError, refetch } = useSpaceKnowledgeHealthQuery(activeSpaceId);
 const issues = computed(() => data.value ?? []);
 const criticalCount = computed(() => issues.value.filter((issue) => issue.severity === "critical").length);
 
 whenever(queryError, (cause) => toast.error(getErrorMessage(cause)));
-async function rebuildIndex() {
+async function repairIndex() {
   const spaceId = activeSpaceId.value;
-  if (!spaceId || rebuilding.value) return;
-  rebuilding.value = true;
+  if (!spaceId || repairing.value) return;
+  repairing.value = true;
   try {
-    const rebuild = await rebuildKnowledgeRetrievalIndex(spaceId);
-    toast.success(t("spaces.processing.index.rebuildDone", { count: rebuild.indexed }));
+    const { indexed } = await repairKnowledgeRetrievalIndex(spaceId);
+    toast.success(t("spaces.processing.index.repairDone", { count: indexed }));
     void refetch();
   } catch (error) {
     toast.error(getErrorMessage(error));
   } finally {
-    rebuilding.value = false;
+    repairing.value = false;
   }
 }
 function reveal(issue: SpaceKnowledgeHealthIssue) {
@@ -121,10 +121,10 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
             class="w-full justify-start"
             size="sm"
             variant="ghost"
-            :disabled="rebuilding"
-            @click="rebuildIndex"
+            :disabled="repairing"
+            @click="repairIndex"
           >
-            <Wand2 class="size-3" />{{ t("spaces.processing.index.rebuild") }}
+            <Wand2 class="size-3" />{{ t("spaces.processing.index.repair") }}
           </UiButton>
         </div>
       </CollapsibleContent>

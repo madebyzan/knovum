@@ -27,8 +27,8 @@
     "mediaTimeRange": "{start} – {end}"
   },
   "index": {
-    "rebuild": "Ricostruisci indice di recupero",
-    "rebuildDone": "Indice ricostruito; voce vettoriale {count} generata. | Indice ricostruito; voci vettoriali {count} generate."
+    "repair": "Ripara l'indice di ricerca",
+    "repairDone": "Indice aggiornato; generata {count} voce vettoriale. | Indice aggiornato; generate {count} voci vettoriali."
   },
   "failed": "Elaborazione non riuscita",
   "nodeUnavailable": "Il nodo dell'attività non è più disponibile",

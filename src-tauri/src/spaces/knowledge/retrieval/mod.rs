@@ -18,7 +18,7 @@ pub(crate) mod search_control;
 mod search_projection;
 mod validation;
 
-pub(crate) use rebuild::{index_space, rebuild_space_index};
+pub(crate) use rebuild::index_space;
 
 #[cfg(test)]
 mod tests;

@@ -28,6 +28,59 @@ fn reciprocal_rank_fusion_keeps_both_score_payloads() {
 }
 
 #[tokio::test]
+async fn a_rebuild_keeps_the_live_index_until_the_new_generation_is_complete() {
+    let fixture = Fixture::new().await;
+    sqlx::query(
+        "UPDATE spaces_retrieval_generations SET status='active',activated_at=1 WHERE id='generation'",
+    )
+    .execute(&fixture.pool)
+    .await
+    .unwrap();
+
+    let rebuilt = generation::begin_rebuild(&fixture.pool, "space", "spec")
+        .await
+        .unwrap();
+    assert_ne!(rebuilt.id, "generation");
+    // Re-encoding every chunk of a Space takes as long as it takes. Searches keep answering from
+    // the generation that is still complete for the whole build.
+    assert_eq!(
+        generation::active(&fixture.pool, "space", "spec")
+            .await
+            .unwrap()
+            .id,
+        "generation"
+    );
+
+    sqlx::query(
+        "INSERT INTO spaces_chunk_embeddings(\
+           generation_id,chunk_id,source_revision,embedding_spec_id,dimensions,updated_at\
+         ) VALUES($1,'c1','r1','spec',2,1)",
+    )
+    .bind(&rebuilt.id)
+    .execute(&fixture.pool)
+    .await
+    .unwrap();
+    generation::activate(&fixture.pool, "space", &rebuilt)
+        .await
+        .unwrap();
+
+    assert_eq!(
+        generation::active(&fixture.pool, "space", "spec")
+            .await
+            .unwrap()
+            .id,
+        rebuilt.id
+    );
+    let replaced: String =
+        sqlx::query_scalar("SELECT status FROM spaces_retrieval_generations WHERE id='generation'")
+            .fetch_one(&fixture.pool)
+            .await
+            .unwrap();
+    assert_eq!(replaced, "retired");
+    fixture.pool.close().await;
+}
+
+#[tokio::test]
 async fn distinguishes_unprepared_generations_from_database_failures() {
     let fixture = Fixture::new().await;
     assert!(generation::find_active(&fixture.pool, "space", "spec")
