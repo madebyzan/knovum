@@ -10,12 +10,15 @@ import {
 } from "vue";
 
 interface ConversationScrollOptions {
-  messages: readonly { id: string }[];
+  rows: readonly { id: string }[];
   streamedText: string;
   loadingOlder: boolean;
   scrollKey: string;
   savedScrollTop?: number | undefined;
 }
+
+/** A guess used only until a turn has been measured; every row reports its real height. */
+const ESTIMATED_TURN_HEIGHT = 140;
 
 export function useConversationScroll(
   scroller: Readonly<ShallowRef<HTMLDivElement | null>>,
@@ -28,11 +31,11 @@ export function useConversationScroll(
   let restorePending = true;
   const virtualizer = useVirtualizer(
     computed(() => ({
-      count: props.messages.length,
+      count: props.rows.length,
       getScrollElement: () => scroller.value,
-      getItemKey: (index) => props.messages[index]!.id,
-      estimateSize: () => 92,
-      overscan: 6,
+      getItemKey: (index) => props.rows[index]!.id,
+      estimateSize: () => ESTIMATED_TURN_HEIGHT,
+      overscan: 4,
     })),
   );
   const rows = computed(() => virtualizer.value.getVirtualItems());
@@ -76,7 +79,7 @@ export function useConversationScroll(
   }
 
   watch(
-    () => [props.messages.length, props.streamedText],
+    () => [props.rows.length, props.streamedText],
     async () => {
       if (olderScrollHeight !== undefined) {
         const previousHeight = olderScrollHeight;
@@ -86,7 +89,7 @@ export function useConversationScroll(
         if (element) element.scrollTop = olderScrollTop + element.scrollHeight - previousHeight;
         return;
       }
-      if (restorePending && props.messages.length) {
+      if (restorePending && props.rows.length) {
         await nextTick();
         restoreScrollPosition();
         return;
@@ -112,7 +115,7 @@ export function useConversationScroll(
       if (previousKey !== undefined && scroller.value) events.remember(previousKey, scroller.value.scrollTop);
       restorePending = true;
       await nextTick();
-      if (props.messages.length) restoreScrollPosition();
+      if (props.rows.length) restoreScrollPosition();
     },
     { immediate: true },
   );

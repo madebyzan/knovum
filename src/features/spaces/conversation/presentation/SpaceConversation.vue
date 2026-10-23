@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CornerUpLeft } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, nextTick, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
@@ -47,6 +48,18 @@ const {
 } = storeToRefs(conversationSession);
 const composer = useTemplateRef<InstanceType<typeof SpaceConversationComposer>>("composer");
 const { t } = useI18n();
+// Three different things were one "busy" flag: a conversation that cannot take a question yet, an
+// answer being produced, and a run that exists and can therefore be stopped. The composer needs
+// all three kept apart — otherwise loading an extension list offers a stop button that stops
+// nothing.
+const composerDisabled = computed(
+  () =>
+    restoringDraft.value ||
+    Boolean(restorationError.value) ||
+    extensionsLoading.value ||
+    Boolean(extensionsError.value),
+);
+const running = computed(() => loading.value || Boolean(activeRunId.value));
 const composerError = computed(() => {
   if (restorationError.value) return restorationError.value;
   if (draftError.value) return draftError.value;
@@ -76,9 +89,10 @@ async function previewAttachment(key: string) {
     <button
       v-if="activeRunId && activeConversationId && activeConversationId !== selectedConversationId"
       type="button"
-      class="shrink-0 border-b border-stroke-divider bg-surface-control px-3 py-2 text-left text-caption text-fg-primary hover:bg-surface-control-hover"
+      class="flex shrink-0 items-center gap-1.5 border-b border-stroke-divider bg-surface-control px-3 py-2 text-left text-caption text-fg-primary hover:bg-surface-control-hover"
       @click="conversationSession.selectConversation(activeConversationId)"
     >
+      <CornerUpLeft class="size-3.5 shrink-0 text-fg-tertiary" />
       {{ $t("spaces.conversation.conversations.returnToRunning") }}
     </button>
     <div class="min-h-0 min-w-0 flex-1">
@@ -92,7 +106,6 @@ async function previewAttachment(key: string) {
         :busy="loading"
         :has-draft="Boolean(prompt.trim())"
         :preparing="loading && !activeRunId"
-        :error="visibleError || activityError"
         :streamed-text="visibleStreamedText"
         :has-older="hasOlder"
         :loading-older="loadingOlder"
@@ -110,10 +123,9 @@ async function previewAttachment(key: string) {
       :revision="conversationSession.activityRevision"
     />
     <SpaceConversationRunStatus
-      :can-pause="canPause"
-      @pause="conversationSession.pause"
       :state="visibleTaskState"
       :wait-reason="visibleWaitReason"
+      :error="visibleError || activityError"
       @resume="conversationSession.resume"
       @retry-model="conversationSession.retryModel"
     />
@@ -126,14 +138,10 @@ async function previewAttachment(key: string) {
       :attachment-error="composerError"
       :picking-files="pickingFiles"
       :unresolved-file-names="reacquireFileNames"
-      :busy="
-        restoringDraft ||
-        Boolean(restorationError) ||
-        loading ||
-        Boolean(activeRunId) ||
-        extensionsLoading ||
-        Boolean(extensionsError)
-      "
+      :running="running"
+      :cancellable="Boolean(activeRunId)"
+      :disabled="composerDisabled"
+      :can-pause="canPause"
       @add-selection="conversationSession.addSelectedAttachments"
       @add-attachment="(id) => conversationSession.addNodeAttachments([id])"
       @choose-files="conversationSession.chooseFiles"
@@ -143,18 +151,13 @@ async function previewAttachment(key: string) {
       @preview-attachment="previewAttachment"
       @send="conversationSession.send"
       @cancel="conversationSession.cancel"
+      @pause="conversationSession.pause"
     >
       <template #extensions>
         <AgentExtensionPicker
           v-model="extensionSelection"
           :availability="extensionAvailability"
-          :disabled="
-            restoringDraft ||
-            Boolean(restorationError) ||
-            loading ||
-            Boolean(activeRunId) ||
-            extensionsLoading
-          "
+          :disabled="composerDisabled || running"
           :error="extensionsError"
         />
       </template>

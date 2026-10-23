@@ -807,6 +807,34 @@ for reading, and title-sm for compact headings. Do not add size slots to make a 
 Consumers that own Enter/Escape actions use explicit `.prevent` modifiers; an ordinary input keeps
 native form submission and dialog behavior.
 
+### Agent conversation
+
+The conversation list renders **turns**, not messages. One turn is one exchange: what a person
+asked, the plan and tools the run used, the text it wrote, the nodes it added and the sources it
+cited. Grouping it there is also what keeps an answer in flight inside the list — the turn carries
+the text that is still arriving, so nothing is drawn beside the list and then moved into it when
+the stored message lands, which is what made the view jump as an answer settled.
+
+A turn therefore owns its own status. The one indicator that an answer is being worked on lives in
+the turn that is waiting for it, where it is replaced in place by the activity list and then by the
+answer; it is never a notice floating at the end of the transcript, and it is never shown twice.
+`preparing` (no run yet, models may still be loading) and `generating` stay distinguishable because
+they feel different to wait through.
+
+The composer carries exactly one action for the answer in flight. Sending becomes stopping while a
+run is producing, with pausing beside it for the runs that can be resumed; there is no second stop
+control in a bar of its own. The three conditions that used to be one `busy` flag are kept apart:
+a conversation that cannot take a question yet disables sending, a run being produced replaces it
+with stopping, and a request that has not been accepted yet shows that control disabled rather than
+offering to stop something that cannot be stopped.
+
+Everything the exchange has to say that is not transcript — why it is waiting, that it is paused,
+what failed — sits in one strip against the composer. A failure in the scroller can be scrolled
+away from; somebody who scrolled up to read must not be the last to know the answer stopped.
+
+Jumping back to the newest turn floats over the transcript instead of taking a row under it, so
+appearing and disappearing never moves the composer.
+
 ### Agent extensions
 
 Extensions use four searchable, counted categories: Plugins, Apps, MCP, and Skills.

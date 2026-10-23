@@ -70,7 +70,9 @@ async function copyMessage() {
     <div
       class="min-w-0 space-y-2 text-body leading-relaxed text-fg-primary"
       :class="
-        message.role === 'user' ? 'w-fit max-w-[85%] rounded-panel bg-surface-control px-3 py-2.5' : 'w-full'
+        message.role === 'user'
+          ? 'w-fit max-w-[80%] rounded-panel bg-surface-control px-3.5 py-2.5'
+          : 'w-full'
       "
     >
       <template v-for="(part, index) in message.content.parts" :key="index">

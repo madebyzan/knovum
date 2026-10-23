@@ -1,48 +1,20 @@
 <script setup lang="ts">
 import { Check, ChevronRight, Circle } from "@lucide/vue";
-import { computed, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { computed } from "vue";
 
-import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
-import type { RunEvent } from "../../contracts/generated/RunEvent";
-import { spaceActionLabel } from "../../knowledge-derivations/catalog/action-label";
-import { conversationActivityItems } from "../conversation-activity-items";
-import SpaceConversationPlan from "./SpaceConversationPlan.vue";
+import type { ActivityItem } from "../conversation-activity-items";
 import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 import SpaceConversationToolActivity from "./SpaceConversationToolActivity.vue";
 
-const props = defineProps<{
-  events: readonly RunEvent[];
-  messages: readonly ConversationMessage[];
-  runId: string;
-  active: boolean;
-}>();
-const emit = defineEmits<{ inspect: [runId: string] }>();
-watch(
-  () => props.runId,
-  (runId) => emit("inspect", runId),
-  { immediate: true },
-);
-const { t } = useI18n();
-const items = computed(() =>
-  conversationActivityItems({
-    events: props.events,
-    messages: props.messages,
-    runId: props.runId,
-    labels: {
-      action: (actionId) => spaceActionLabel(actionId),
-      default: t("spaces.conversation.activity.tool"),
-    },
-  }),
-);
-const toolCount = computed(() => items.value.filter((item) => item.status !== "commentary").length);
+const props = defineProps<{ items: readonly ActivityItem[]; active: boolean }>();
+const toolCount = computed(() => props.items.filter((item) => item.status !== "commentary").length);
 const runningTool = computed(() =>
-  items.value.some((item) => item.status === "pending" || item.status === "in_progress"),
+  props.items.some((item) => item.status === "pending" || item.status === "in_progress"),
 );
 const unfinished = computed(
   () =>
     !props.active &&
-    items.value.some(
+    props.items.some(
       (item) =>
         item.status === "outcome_unknown" ||
         item.status === "failed" ||
@@ -53,19 +25,9 @@ const unfinished = computed(
 </script>
 
 <template>
-  <SpaceConversationPlan :events="events" />
-  <p v-if="active && !items.length" role="status" class="mt-4 py-1.5 text-caption text-fg-secondary">
-    <SpaceConversationShimmerText>{{
-      $t("spaces.conversation.activity.generating")
-    }}</SpaceConversationShimmerText>
-  </p>
-  <details
-    v-else-if="items.length"
-    :open="active"
-    class="group/activity mt-4 w-full text-caption text-fg-secondary"
-  >
+  <details :open="active" class="group/activity w-full text-caption text-fg-secondary">
     <summary
-      class="flex cursor-pointer list-none items-center gap-2 py-1.5 select-none hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
+      class="flex cursor-pointer list-none items-center gap-1.5 rounded-md py-1 select-none hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
     >
       <Circle v-if="!active && unfinished" class="size-3.5 shrink-0" />
       <Check v-else-if="!active" class="size-3.5 shrink-0" />
