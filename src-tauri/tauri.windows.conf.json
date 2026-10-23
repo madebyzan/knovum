@@ -3,6 +3,9 @@
   "bundle": {
     "windows": {
       "allowDowngrades": false,
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      },
       "nsis": {
         "installMode": "currentUser",
         "languages": ["English", "SimpChinese"],
@@ -26,11 +29,7 @@
         "minHeight": 640,
         "center": true,
         "decorations": true,
-        "transparent": true,
         "scrollBarStyle": "fluentOverlay",
-        "windowEffects": {
-          "effects": ["mica"]
-        },
         "visible": false
       }
     ]
