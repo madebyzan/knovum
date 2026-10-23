@@ -6,7 +6,11 @@ import { basename, dirname, extname, join, relative, resolve, sep } from "node:p
 import { validatePackagedResources } from "./artifacts.mjs";
 
 const windowsTarget = "windows-x64";
-const sevenZipVersion = "26.03";
+// A floor rather than an exact pin: the CI runner image owns this binary and GitHub bumps it
+// without notice, so equality turns an image update into a release failure that only surfaces
+// after the whole release compile. Extraction content is still asserted below, so a 7-Zip whose
+// output differs fails there instead of passing silently.
+const minimumSevenZipVersion = "26.03";
 const defaultSevenZip = String.raw`C:\Program Files\7-Zip\7z.exe`;
 const maxExtractedEntries = 200_000;
 
@@ -73,9 +77,28 @@ function verifySevenZip(executable) {
     maxBuffer: 64 * 1024,
     windowsHide: true,
   });
-  if (!new RegExp(`\\b7-Zip ${sevenZipVersion.replace(".", "\\.")}\\b`, "u").test(output)) {
-    throw new Error(`Windows package verification requires 7-Zip ${sevenZipVersion}`);
+  const detected = sevenZipBannerVersion(output);
+  if (!detected || !isAtLeastVersion(detected, minimumSevenZipVersion)) {
+    throw new Error(
+      `Windows package verification requires 7-Zip ${minimumSevenZipVersion} or newer, found ${
+        detected ?? "no version banner"
+      }`,
+    );
   }
+}
+
+function sevenZipBannerVersion(output) {
+  return /\b7-Zip\b\s*(?:\(\w+\)\s*)?(\d+(?:\.\d+)*)/u.exec(output)?.[1];
+}
+
+function isAtLeastVersion(version, floor) {
+  const actual = version.split(".").map(Number);
+  const required = floor.split(".").map(Number);
+  for (let index = 0; index < Math.max(actual.length, required.length); index += 1) {
+    const difference = (actual[index] ?? 0) - (required[index] ?? 0);
+    if (difference !== 0) return difference > 0;
+  }
+  return true;
 }
 
 function extractArchive(executable, archive, destination) {
