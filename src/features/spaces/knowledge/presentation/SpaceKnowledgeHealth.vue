@@ -12,7 +12,7 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import { useSpaceStore } from "../../session/space-store";
-import { repairKnowledgeRetrievalIndex } from "../indexing/repair-index";
+import { isKnowledgeIndexingCancelled, startKnowledgeIndexing } from "../indexing/start-indexing";
 import type { SpaceKnowledgeHealthIssue } from "../model/health";
 import { useSpaceKnowledgeHealthQuery } from "../queries/use-space-knowledge-health-query";
 
@@ -32,11 +32,12 @@ async function repairIndex() {
   if (!spaceId || repairing.value) return;
   repairing.value = true;
   try {
-    const { indexed } = await repairKnowledgeRetrievalIndex(spaceId);
+    // The Task Center owns the progress and the cancel button; this panel only reports the outcome.
+    const { indexed } = await startKnowledgeIndexing(spaceId, t("spaces.processing.index.repair")).completion;
     toast.success(t("spaces.processing.index.repairDone", { count: indexed }));
     void refetch();
   } catch (error) {
-    toast.error(getErrorMessage(error));
+    if (!isKnowledgeIndexingCancelled(error)) toast.error(getErrorMessage(error));
   } finally {
     repairing.value = false;
   }

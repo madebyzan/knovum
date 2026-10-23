@@ -7,15 +7,13 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { textEmbeddingReady } from "../../../foundation/runtime/local-resources";
 import { startResourcePreparation } from "../../../foundation/runtime/resource-preparation";
 import { useLocalResourcesQuery } from "../../../foundation/runtime/use-local-resources-query";
-import { useTaskStore } from "../../../foundation/tasks/task-store";
-import { indexKnowledgeRetrieval } from "../knowledge/persistence/retrieval-index";
+import { isKnowledgeIndexingCancelled, startKnowledgeIndexing } from "../knowledge/indexing/start-indexing";
 import { useSpaceStore } from "../session/space-store";
 
 export function useSemanticSearch(open: Ref<boolean>) {
   const store = useSpaceStore();
   const { t } = useI18n();
   const resources = useLocalResourcesQuery();
-  const tasks = useTaskStore();
   const enabled = shallowRef(false);
   const preparing = shallowRef(false);
   const indexing = shallowRef(false);
@@ -39,19 +37,14 @@ export function useSemanticSearch(open: Ref<boolean>) {
         .completion;
       if (!open.value || store.activeSpaceId !== spaceId) return;
       indexing.value = true;
-      const id = tasks.start(t("spaces.search.semantic.indexing"));
       try {
-        await indexKnowledgeRetrieval(spaceId);
-        tasks.succeed(id);
+        await startKnowledgeIndexing(spaceId, t("spaces.search.semantic.indexing")).completion;
         if (open.value && store.activeSpaceId === spaceId) enabled.value = true;
-      } catch (error) {
-        tasks.fail(id, getErrorMessage(error));
-        throw error;
       } finally {
         indexing.value = false;
       }
     } catch (error) {
-      reportSemanticSearchError(error);
+      if (!isKnowledgeIndexingCancelled(error)) reportSemanticSearchError(error);
     } finally {
       preparing.value = false;
     }

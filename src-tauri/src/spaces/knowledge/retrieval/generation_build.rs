@@ -37,14 +37,29 @@ pub(super) async fn run<R: Runtime>(
     generation: IndexGeneration,
     activate: bool,
     cancellation: &CancellationToken,
+    progress: super::rebuild::ProgressSink<'_>,
 ) -> Result<usize, String> {
     let pool = db::pool(&app).await?;
     let mut indexed = 0usize;
     let started = std::time::Instant::now();
-    log::info!("knowledge_index space={} event=started", space_id);
+    // Counted once: this pass encodes the work it found, and reports what it finds later as more
+    // encoded rather than as a shifting denominator.
+    let total = count_unindexed_chunks(pool, space_id, &generation, node_ids.as_ref()).await?;
+    let mut report = |indexed: usize| {
+        progress(super::rebuild::KnowledgeIndexingProgress {
+            indexed: indexed as u32,
+            total: total as u32,
+        });
+    };
+    report(0);
+    log::info!(
+        "knowledge_index space={} event=started pending={}",
+        space_id,
+        total
+    );
     loop {
         if cancellation.is_cancelled() {
-            return Err("knowledge-indexing-cancelled".into());
+            return Err(super::rebuild::CANCELLED.into());
         }
         let chunks = load_unindexed_chunks(
             pool,
@@ -103,7 +118,7 @@ pub(super) async fn run<R: Runtime>(
             })
             .collect::<Vec<_>>();
         if cancellation.is_cancelled() {
-            return Err("knowledge-indexing-cancelled".into());
+            return Err(super::rebuild::CANCELLED.into());
         }
         let expected = inputs.len();
         let written = upsert_embeddings(app.clone(), inputs).await?;
@@ -111,7 +126,30 @@ pub(super) async fn run<R: Runtime>(
             return Err("Knowledge indexing did not persist its complete batch".to_owned());
         }
         indexed += written;
+        report(indexed);
     }
+}
+
+async fn count_unindexed_chunks(
+    pool: &SqlitePool,
+    space_id: &str,
+    generation: &IndexGeneration,
+    node_ids: Option<&Vec<String>>,
+) -> Result<i64, String> {
+    sqlx::query_scalar(
+        "SELECT COUNT(*) FROM spaces_current_knowledge_chunks c \
+         LEFT JOIN spaces_chunk_embeddings e ON e.chunk_id=c.id AND e.generation_id=$2 \
+           AND e.embedding_spec_id=$3 AND e.source_revision=c.source_revision \
+         WHERE c.space_id=$1 AND e.chunk_id IS NULL AND trim(c.text)<>'' \
+           AND ($4 IS NULL OR c.node_id IN (SELECT value FROM json_each($4)))",
+    )
+    .bind(space_id)
+    .bind(&generation.id)
+    .bind(&generation.embedding_spec_id)
+    .bind(node_ids.map(sqlx::types::Json))
+    .fetch_one(pool)
+    .await
+    .map_err(db::sql_error)
 }
 
 fn batch_revision(chunks: &[KnowledgeChunkSource]) -> String {

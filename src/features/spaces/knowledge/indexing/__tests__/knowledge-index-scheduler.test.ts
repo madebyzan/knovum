@@ -7,7 +7,12 @@ const mocks = vi.hoisted(() => ({
   textEmbeddingReady: vi.fn<(status?: LocalResourcesStatus) => boolean>(),
   indexKnowledgeRetrieval:
     vi.fn<
-      (spaceId: string, nodeIds?: readonly string[]) => Promise<{ indexed: number; staleNodeIds: string[] }>
+      (input: {
+        spaceId: string;
+        jobId: string;
+        nodeIds?: readonly string[] | undefined;
+        onProgress: (progress: { indexed: number; total: number }) => void;
+      }) => Promise<{ indexed: number; staleNodeIds: string[] }>
     >(),
   logError: vi.fn<(message: string) => Promise<void>>(),
 }));
@@ -65,7 +70,9 @@ describe("spaces knowledge index scheduler", () => {
     await vi.runAllTimersAsync();
 
     expect(mocks.getLocalResourcesStatus).toHaveBeenCalledTimes(2);
-    expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledExactlyOnceWith("test-space", undefined);
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ spaceId: "test-space", nodeIds: undefined }),
+    );
     expect(knowledgeIndexStatus("test-space")).toBe("ready");
   });
 
@@ -116,7 +123,9 @@ describe("spaces knowledge index scheduler", () => {
     scheduleKnowledgeIndex("test-space", ["node-1"]);
     await vi.advanceTimersByTimeAsync(5_000);
 
-    expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledExactlyOnceWith("test-space", ["node-1"]);
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ spaceId: "test-space", nodeIds: ["node-1"] }),
+    );
     expect(knowledgeIndexStatus("test-space")).toBe("unavailable");
 
     // The retry waits; indexing shares one worker and must not spin on a failing dependency.
@@ -124,7 +133,9 @@ describe("spaces knowledge index scheduler", () => {
     expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledOnce();
 
     await vi.advanceTimersByTimeAsync(1);
-    expect(mocks.indexKnowledgeRetrieval).toHaveBeenLastCalledWith("test-space", ["node-1"]);
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenLastCalledWith(
+      expect.objectContaining({ spaceId: "test-space", nodeIds: ["node-1"] }),
+    );
     expect(knowledgeIndexStatus("test-space")).toBe("ready");
   });
 
@@ -145,7 +156,9 @@ describe("spaces knowledge index scheduler", () => {
     await vi.advanceTimersByTimeAsync(1);
     expect(mocks.indexKnowledgeRetrieval).toHaveBeenCalledTimes(3);
     // The whole-Space scope survived both failures, so the successful attempt still covers it.
-    expect(mocks.indexKnowledgeRetrieval).toHaveBeenLastCalledWith("test-space", undefined);
+    expect(mocks.indexKnowledgeRetrieval).toHaveBeenLastCalledWith(
+      expect.objectContaining({ spaceId: "test-space", nodeIds: undefined }),
+    );
     expect(knowledgeIndexStatus("test-space")).toBe("ready");
   });
 });

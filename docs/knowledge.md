@@ -162,6 +162,27 @@ Embedding computation runs outside the SQLite write transaction. Publication acq
 
 SQLite and LanceDB do not share a distributed transaction. A failed vector upsert does not publish new markers; chunks without committed markers remain eligible for indexing. Interrupted builds resume their matching building generation. Durable invalidations are acknowledged only after vector deletion succeeds. The shipped LanceDB table is `knowledge_chunks_v1`. The vector index is derived state, so a new vector layout is a new table built by re-encoding from the Space's own chunks; an older table is dropped once its generation is retired, never read or converted. Search rejects stale revisions; foreign keys remain enabled, and source data is never reset to repair an index.
 
+## Indexing as a task
+
+Indexing a Space can run for minutes, so it follows the rule every other long Rust operation
+follows: it is a job in the Task Center, with an identity, streamed progress and a cancel button
+that outlive the panel that started it. `startKnowledgeIndexing` is the only way the application
+asks for indexing on a person's behalf; a surface that wants a Space indexed calls it instead of
+inventing its own task, spinner or error toast.
+
+Upkeep is not a task. The debounced pass the scheduler runs after an edit reports through that
+Space's index status, which the Space already shows, rather than filling the Task Center with
+housekeeping.
+
+Progress is reported as measured: `total` is the work counted when the pass started, and a Space
+still being written to feeds the same pass more chunks, so `indexed` can pass it. The presenter
+bounds the ratio it draws; the numbers are not rounded into a comfortable lie.
+
+Cancellation is observed between batches only — never inside a vector write, and never between a
+completed build and `generation::activate`. A cancelled pass therefore keeps the markers it
+committed and leaves the previous generation answering searches, so the next pass resumes from
+exactly where it stopped. The command reports that as an outcome (`cancelled`), not a failure.
+
 ## Module boundary
 
 Knowledge State does not introduce a separate compatibility layer or speculative ANN subsystem. Domain truth stays in revision, passage, citation, asset and package boundaries rather than renderer fallback logic. MCP writes enter long-term Knowledge only through the same validated atomic KnowledgeChangeSet use case as product actions.
