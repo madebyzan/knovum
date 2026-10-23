@@ -80,7 +80,12 @@ it.each([
   ["zh-CN", 2, "被引用 2 次"],
 ] as const)("renders the complete voice reference count in %s at %i", (locale, count, expected) => {
   const wrapper = mount(VoiceProfileConfiguration, {
-    props: { profile: { ...profile, referencedBindingCount: count }, expanded: false, disabled: false },
+    props: {
+      profile: { ...profile, referencedBindingCount: count },
+      expanded: false,
+      disabled: false,
+      audition: { playing: false, busy: false, peak: () => 0 },
+    },
     global: {
       plugins: [createI18n({ legacy: false, locale, fallbackLocale: false, messages: localeMessages })],
       stubs: { VoiceProfileEditor: true },

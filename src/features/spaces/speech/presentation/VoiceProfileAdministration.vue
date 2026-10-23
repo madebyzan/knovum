@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { AudioLines } from "@lucide/vue";
+import { watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSettingsEmptyState from "../../../../shared/ui/UiSettingsEmptyState.vue";
 import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
+import { useVoiceAudition } from "../use-voice-audition";
 import { useVoiceProfileOperations } from "../use-voice-profile-operations";
+import { activeVoiceProfileRevision } from "../voice-profile";
 import VoiceProfileConfiguration from "./VoiceProfileConfiguration.vue";
 
 const props = defineProps<{ expandedId?: string | undefined; creating?: boolean | undefined }>();
@@ -14,6 +18,10 @@ const emit = defineEmits<{ dirty: [value: boolean]; toggle: [profileId: string] 
 const { t } = useI18n();
 const { reload, profiles, loading, busyProfileId, errors, rename, revise, archive, unarchive, remove } =
   useVoiceProfileOperations();
+const audition = useVoiceAudition(() => t("spaces.speech.preview.sample"));
+watch(audition.error, (message) => {
+  if (message) toast.error(message);
+});
 </script>
 
 <template>
@@ -45,8 +53,10 @@ const { reload, profiles, loading, busyProfileId, errors, rename, revise, archiv
         :profile
         :expanded="expandedId === profile.id"
         :disabled="Boolean(busyProfileId)"
+        :audition="audition.stateFor(profile.id)"
         @dirty="emit('dirty', $event)"
         @toggle="emit('toggle', profile.id)"
+        @audition="audition.audition(profile.id, activeVoiceProfileRevision(profile).id)"
         @rename="rename(profile, $event)"
         @revise="(language, speed) => revise(profile, language, speed)"
         @archive="archive(profile)"

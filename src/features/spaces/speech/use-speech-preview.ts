@@ -165,6 +165,8 @@ export function useSpeechPreview() {
     jobId: readonly(jobId),
     listening: readonly(listening),
     error: readonly(error),
+    /** The loudest sample audible right now, so a waveform draws the voice instead of a loop. */
+    peak: () => audioQueue.peak(),
     previewSource,
     previewSelection: (
       text: string,
