@@ -4,9 +4,6 @@
     "placeholder": "Sélectionner une voix"
   },
   "title": "Gestion vocale",
-  "collection": {
-    "title": "Bibliothèque vocale"
-  },
   "empty": "Pas encore de voix.",
   "manage": "Gérer les voix et l'audio de référence",
   "description": "Gérez les voix, l'audio de référence et les exemples de révisions partagés dans l'application. Chaque espace de travail peut utiliser les voix enregistrées ici.",

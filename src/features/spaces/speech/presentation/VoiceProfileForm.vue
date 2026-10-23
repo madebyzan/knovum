@@ -33,6 +33,7 @@ const presetOptions = computed(() =>
 const name = shallowRef("");
 const speakerId = shallowRef("0");
 const language = shallowRef("zh-CN");
+const selectedPreset = computed(() => presets.value?.find((voice) => voice.speakerId === speakerId.value));
 const identityDirty = shallowRef(false);
 watch([language, presets], ([value]) => {
   const preferred = presets.value?.find((voice) => voice.primaryLanguage === value);
@@ -44,7 +45,7 @@ const LANGUAGE_OPTIONS = [
 ] as const;
 
 function submit() {
-  const preset = presets.value?.find((voice) => voice.speakerId === speakerId.value);
+  const preset = selectedPreset.value;
   if (!preset) return;
   emit("create", {
     name: name.value.trim() || preset.name,
@@ -73,7 +74,7 @@ function markAuditionDirty(value: boolean) {
       <UiInput
         v-model="name"
         size="sm"
-        :placeholder="t('spaces.speech.voice.name')"
+        :placeholder="selectedPreset?.name"
         :aria-label="t('spaces.speech.voice.name')"
         :disabled="disabled"
         @update:model-value="markIdentityDirty"
@@ -110,14 +111,9 @@ function markAuditionDirty(value: boolean) {
       @dirty="markAuditionDirty"
     >
       <template #actions>
-        <UiButton
-          class="ml-auto"
-          size="sm"
-          variant="primary"
-          type="submit"
-          :disabled="disabled || !presets"
-          >{{ t("spaces.speech.voice.add") }}</UiButton
-        >
+        <UiButton size="sm" variant="primary" type="submit" :disabled="disabled || !presets">{{
+          t("spaces.speech.voice.add")
+        }}</UiButton>
       </template>
     </VoiceAudition>
   </form>

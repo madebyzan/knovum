@@ -4,9 +4,6 @@
     "placeholder": "Select a voice"
   },
   "title": "Voice management",
-  "collection": {
-    "title": "Voice library"
-  },
   "empty": "No voices yet.",
   "manage": "Manage voices and reference audio",
   "description": "Manage voices, reference audio, and sample revisions shared across the application. Every Space can use voices saved here.",
