@@ -144,6 +144,7 @@ macro_rules! knovum_knowledge_commands {
             crate::spaces::queries::knowledge::search_knowledge_global,
             crate::spaces::queries::retrieval::search_knowledge_hybrid,
             crate::spaces::commands::retrieval::cancel_knowledge_search,
+            crate::spaces::commands::retrieval::cancel_knowledge_indexing,
             crate::spaces::queries::retrieval::list_related_content,
             crate::spaces::knowledge::object_types::list_object_types,
             crate::spaces::knowledge::object_types::create_object_type,

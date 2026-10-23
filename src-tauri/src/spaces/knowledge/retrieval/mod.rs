@@ -6,6 +6,7 @@ mod generation_build;
 mod global_search;
 pub(crate) mod hybrid;
 pub(crate) mod index_writer;
+pub(crate) mod indexing_control;
 pub(crate) mod invalidation_outbox;
 pub(crate) mod lancedb_store;
 pub(crate) mod predicates;

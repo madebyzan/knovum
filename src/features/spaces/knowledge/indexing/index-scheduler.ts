@@ -183,7 +183,14 @@ async function indexIfReady(
   const resources = await getLocalResourcesStatus();
   if (stateBySpaceId.get(spaceId) !== state || !textEmbeddingReady(resources)) return "unprepared";
   setStatus(spaceId, "indexing");
-  await indexKnowledgeRetrieval(spaceId, nodeIds);
+  // Upkeep after an edit is not a task somebody started: it reports through this Space's index
+  // status, which the Space already shows, instead of filling the Task Center with its own debounce.
+  await indexKnowledgeRetrieval({
+    spaceId,
+    jobId: crypto.randomUUID(),
+    nodeIds,
+    onProgress: () => {},
+  });
   return "ready";
 }
 
