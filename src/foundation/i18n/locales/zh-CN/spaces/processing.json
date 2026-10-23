@@ -26,10 +26,6 @@
     "videoCover": "视频封面",
     "mediaTimeRange": "{start} – {end}"
   },
-  "index": {
-    "repair": "修复检索索引",
-    "repairDone": "索引已更新，新建 {count} 条向量数据。"
-  },
   "failed": "解析处理失败",
   "nodeUnavailable": "任务所属节点已不可用",
   "imageProgress": "正在处理图片",

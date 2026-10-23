@@ -26,10 +26,6 @@
     "videoCover": "Video cover",
     "mediaTimeRange": "{start} – {end}"
   },
-  "index": {
-    "repair": "Repair retrieval index",
-    "repairDone": "Index updated; generated {count} vector entry. | Index updated; generated {count} vector entries."
-  },
   "failed": "Processing failed",
   "nodeUnavailable": "The task's node is no longer available",
   "imageProgress": "Processing image",

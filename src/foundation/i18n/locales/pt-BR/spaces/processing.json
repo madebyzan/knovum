@@ -26,10 +26,6 @@
     "videoCover": "Capa do vídeo",
     "mediaTimeRange": "{start} – {end}"
   },
-  "index": {
-    "repair": "Reparar o índice de recuperação",
-    "repairDone": "Índice atualizado; {count} entrada vetorial gerada. | Índice atualizado; {count} entradas vetoriais geradas."
-  },
   "failed": "Falha no processamento",
   "nodeUnavailable": "O nó da tarefa não está mais disponível",
   "imageProgress": "Processando imagem",

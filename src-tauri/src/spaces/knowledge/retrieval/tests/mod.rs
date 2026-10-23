@@ -1,5 +1,6 @@
 use super::hybrid::reciprocal_rank_fusion;
-use super::{generation, index_writer::tests::fixture::Fixture};
+use super::{generation, index_state, index_writer::tests::fixture::Fixture, indexing_control};
+use tokio_util::sync::CancellationToken;
 
 fn matched(id: &str, score: f64) -> serde_json::Value {
     serde_json::json!({ "chunkId": id, "score": score })
@@ -121,4 +122,123 @@ async fn distinguishes_unprepared_generations_from_database_failures() {
     assert!(generation::find_active(&fixture.pool, "space", "spec")
         .await
         .is_err());
+}
+
+#[tokio::test]
+async fn a_space_has_one_indexing_pass_at_a_time() {
+    let space = format!("space-{}", uuid::Uuid::new_v4());
+    let pass = indexing_control::begin(
+        &space,
+        indexing_control::Admission::Requested,
+        CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert!(indexing_control::is_running(&space).unwrap());
+
+    // A second request would read the same unindexed chunks, spend the one embedding worker on
+    // them twice, and race the first pass to publish a generation. The running pass is already
+    // doing that work, so the request is declined rather than duplicated.
+    assert_eq!(
+        indexing_control::begin(
+            &space,
+            indexing_control::Admission::Requested,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap_err(),
+        indexing_control::BUSY
+    );
+
+    // Cancelling names the Space, because that is what a pass belongs to.
+    assert!(indexing_control::cancel(&space).unwrap());
+    assert!(pass.cancellation().is_cancelled());
+
+    drop(pass);
+    assert!(!indexing_control::is_running(&space).unwrap());
+    assert!(!indexing_control::cancel(&space).unwrap());
+}
+
+#[tokio::test]
+async fn work_that_needs_the_index_waits_for_the_running_pass() {
+    let space = format!("space-{}", uuid::Uuid::new_v4());
+    let requested = indexing_control::begin(
+        &space,
+        indexing_control::Admission::Requested,
+        CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    let cancellation = CancellationToken::new();
+    let waiting = tokio::spawn({
+        let space = space.clone();
+        let cancellation = cancellation.clone();
+        async move {
+            indexing_control::begin(&space, indexing_control::Admission::Required, cancellation)
+                .await
+                .map(|pass| pass.cancellation().clone())
+        }
+    });
+
+    assert!(!waiting.is_finished());
+    drop(requested);
+
+    // A Run cannot answer until the Space is searchable, so it takes its turn instead of failing,
+    // and stays cancellable through the Run that needs it rather than through the Space.
+    let taken = waiting.await.unwrap().unwrap();
+    assert!(!taken.is_cancelled());
+    assert!(!indexing_control::cancel(&space).unwrap());
+}
+
+#[tokio::test]
+async fn index_state_reads_what_a_search_can_reach_today() {
+    let fixture = Fixture::new().await;
+
+    // A Space whose only generation is still being built answers nothing, and the whole Space is
+    // the work left to do.
+    let building = index_state::measure(&fixture.pool, "space", true, false)
+        .await
+        .unwrap();
+    assert_eq!(
+        (building.total, building.indexed, building.pending),
+        (1, 0, 1)
+    );
+    assert!(!building.searchable && building.rebuilding);
+    assert_eq!(building.indexed_at, None);
+
+    sqlx::query(
+        "INSERT INTO spaces_chunk_embeddings(\
+           generation_id,chunk_id,source_revision,embedding_spec_id,dimensions,updated_at\
+         ) VALUES('generation','c1','r1','spec',2,1)",
+    )
+    .execute(&fixture.pool)
+    .await
+    .unwrap();
+    generation::activate(
+        &fixture.pool,
+        "space",
+        &generation::find_building(&fixture.pool, "space", "spec")
+            .await
+            .unwrap()
+            .unwrap(),
+    )
+    .await
+    .unwrap();
+
+    let live = index_state::measure(&fixture.pool, "space", true, false)
+        .await
+        .unwrap();
+    assert_eq!((live.total, live.indexed, live.pending), (1, 1, 0));
+    assert!(live.searchable && !live.rebuilding);
+    assert!(live.indexed_at.is_some());
+
+    // The vector table is the index; markers alone are a complete-looking index that cannot
+    // answer, and the only honest reading of it is a Space the next pass re-encodes whole.
+    let lost = index_state::measure(&fixture.pool, "space", false, true)
+        .await
+        .unwrap();
+    assert_eq!((lost.total, lost.indexed, lost.pending), (1, 0, 1));
+    assert!(!lost.searchable && lost.rebuilding && lost.indexing);
+
+    fixture.pool.close().await;
 }

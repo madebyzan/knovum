@@ -12,6 +12,21 @@
       "stale-provenance": "引用來源版本已變更，需重新核查關聯。"
     }
   },
+  "index": {
+    "title": "檢索索引",
+    "task": "正在建立檢索索引",
+    "empty": "這個空間還沒有可索引的內容。",
+    "current": "索引已涵蓋全部內容",
+    "incomplete": "還有 {count} 段內容未編入索引",
+    "unbuilt": "語意搜尋暫時無法在這個空間中作答",
+    "indexing": "正在索引…",
+    "coverage": "{total} 段中 {indexed} 段可被搜尋",
+    "indexedAt": "建立於 {time}",
+    "build": "建立索引",
+    "fill": "補齊索引",
+    "done": "已索引 {count} 段內容。",
+    "upToDate": "索引已是最新。"
+  },
   "history": {
     "title": "知識版本歷史",
     "empty": "暫無變更記錄。",

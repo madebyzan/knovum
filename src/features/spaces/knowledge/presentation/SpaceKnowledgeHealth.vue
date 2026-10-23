@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AlertTriangle, CheckCircle2, ChevronDown, RefreshCw, ShieldAlert, Wand2 } from "@lucide/vue";
+import { AlertTriangle, CheckCircle2, ChevronDown, RefreshCw, ShieldAlert } from "@lucide/vue";
 import { whenever } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
@@ -12,7 +12,6 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import { useSpaceStore } from "../../session/space-store";
-import { isKnowledgeIndexingCancelled, startKnowledgeIndexing } from "../indexing/start-indexing";
 import type { SpaceKnowledgeHealthIssue } from "../model/health";
 import { useSpaceKnowledgeHealthQuery } from "../queries/use-space-knowledge-health-query";
 
@@ -21,27 +20,11 @@ const store = useSpaceStore();
 const { activeSpaceId } = storeToRefs(store);
 const { t } = useI18n();
 const expanded = ref(false);
-const repairing = ref(false);
 const { data, isFetching: loading, error: queryError, refetch } = useSpaceKnowledgeHealthQuery(activeSpaceId);
 const issues = computed(() => data.value ?? []);
 const criticalCount = computed(() => issues.value.filter((issue) => issue.severity === "critical").length);
 
 whenever(queryError, (cause) => toast.error(getErrorMessage(cause)));
-async function repairIndex() {
-  const spaceId = activeSpaceId.value;
-  if (!spaceId || repairing.value) return;
-  repairing.value = true;
-  try {
-    // The Task Center owns the progress and the cancel button; this panel only reports the outcome.
-    const { indexed } = await startKnowledgeIndexing(spaceId, t("spaces.processing.index.repair")).completion;
-    toast.success(t("spaces.processing.index.repairDone", { count: indexed }));
-    void refetch();
-  } catch (error) {
-    if (!isKnowledgeIndexingCancelled(error)) toast.error(getErrorMessage(error));
-  } finally {
-    repairing.value = false;
-  }
-}
 function reveal(issue: SpaceKnowledgeHealthIssue) {
   selectAndRevealSpaceNode(issue.nodeId);
 }
@@ -117,17 +100,6 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
         <p v-if="criticalCount" class="mt-2 text-caption-sm text-fg-danger">
           {{ t("spaces.knowledge.health.critical", { count: criticalCount }) }}
         </p>
-        <div v-if="activeSpaceId" class="mt-3 border-t border-stroke-divider pt-2">
-          <UiButton
-            class="w-full justify-start"
-            size="sm"
-            variant="ghost"
-            :disabled="repairing"
-            @click="repairIndex"
-          >
-            <Wand2 class="size-3" />{{ t("spaces.processing.index.repair") }}
-          </UiButton>
-        </div>
       </CollapsibleContent>
     </section>
   </CollapsibleRoot>

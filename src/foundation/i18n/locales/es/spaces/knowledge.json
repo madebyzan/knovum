@@ -12,6 +12,21 @@
       "stale-provenance": "La versión fuente ha cambiado; se requiere una nueva verificación."
     }
   },
+  "index": {
+    "title": "Índice de recuperación",
+    "task": "Indexando el espacio",
+    "empty": "Este espacio todavía no tiene texto que indexar.",
+    "current": "El índice cubre todo el espacio",
+    "incomplete": "{count} fragmento aún no está en el índice | {count} fragmentos aún no están en el índice",
+    "unbuilt": "La búsqueda semántica todavía no puede responder desde este espacio",
+    "indexing": "Indexando…",
+    "coverage": "{indexed} de {total} fragmentos consultables",
+    "indexedAt": "creado el {time}",
+    "build": "Crear índice",
+    "fill": "Completar el índice",
+    "done": "Se indexó {count} fragmento. | Se indexaron {count} fragmentos.",
+    "upToDate": "El índice ya estaba actualizado."
+  },
   "history": {
     "title": "Historial de versiones de conocimientos",
     "empty": "Aún no hay cambios",

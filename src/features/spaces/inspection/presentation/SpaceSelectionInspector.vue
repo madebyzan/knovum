@@ -8,6 +8,7 @@ import SpaceDerivedInspection from "../../knowledge-derivations/presentation/Spa
 import SpaceKnowledgeHealth from "../../knowledge/presentation/SpaceKnowledgeHealth.vue";
 import SpaceNodeKnowledgeSections from "../../knowledge/presentation/SpaceNodeKnowledgeSections.vue";
 import SpaceRelatedContent from "../../knowledge/presentation/SpaceRelatedContent.vue";
+import SpaceRetrievalIndex from "../../knowledge/presentation/SpaceRetrievalIndex.vue";
 import SpaceTags from "../../knowledge/presentation/SpaceTags.vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
@@ -92,7 +93,8 @@ function saveTitle(node: SpaceCanvasNode, value: string) {
       <SpaceTags mode="selection" />
     </SpaceInspectorSection>
   </div>
-  <div v-else class="h-full overflow-y-auto px-3 py-3">
+  <div v-else class="h-full space-y-4 overflow-y-auto px-3 py-3">
+    <SpaceRetrievalIndex />
     <SpaceKnowledgeHealth />
   </div>
 </template>

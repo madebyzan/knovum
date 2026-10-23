@@ -7,7 +7,8 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { textEmbeddingReady } from "../../../foundation/runtime/local-resources";
 import { startResourcePreparation } from "../../../foundation/runtime/resource-preparation";
 import { useLocalResourcesQuery } from "../../../foundation/runtime/use-local-resources-query";
-import { isKnowledgeIndexingCancelled, startKnowledgeIndexing } from "../knowledge/indexing/start-indexing";
+import { isKnowledgeIndexingCancelled } from "../knowledge/indexing/indexing-outcome";
+import { startKnowledgeIndexing } from "../knowledge/indexing/start-indexing";
 import { useSpaceStore } from "../session/space-store";
 
 export function useSemanticSearch(open: Ref<boolean>) {

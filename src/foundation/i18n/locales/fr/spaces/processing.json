@@ -26,10 +26,6 @@
     "videoCover": "Couverture vidéo",
     "mediaTimeRange": "{start} – {end}"
   },
-  "index": {
-    "repair": "Réparer l'index de recherche",
-    "repairDone": "Index mis à jour ; {count} entrée vectorielle générée. | Index mis à jour ; {count} entrées vectorielles générées."
-  },
   "failed": "Échec du traitement",
   "nodeUnavailable": "Le nœud de la tâche n'est plus disponible",
   "imageProgress": "Image de traitement",

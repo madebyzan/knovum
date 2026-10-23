@@ -26,10 +26,6 @@
     "videoCover": "ビデオ カバー",
     "mediaTimeRange": "{start} – {end}"
   },
-  "index": {
-    "repair": "検索インデックスを修復",
-    "repairDone": "インデックスを更新しました。{count} 件のベクトルを生成しました。"
-  },
   "failed": "処理に失敗しました",
   "nodeUnavailable": "タスクのノードは使用できなくなりました",
   "imageProgress": "画像の処理",

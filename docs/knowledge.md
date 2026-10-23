@@ -170,9 +170,20 @@ that outlive the panel that started it. `startKnowledgeIndexing` is the only way
 asks for indexing on a person's behalf; a surface that wants a Space indexed calls it instead of
 inventing its own task, spinner or error toast.
 
+A pass is identified by the Space, not by the press that asked for it. Two passes over one Space
+are never useful: they read the same unindexed chunks, spend the one local embedding worker twice
+on them, and — when neither can reuse a generation — each start a rebuild of which only one can
+ever be activated. So a Space has a turn (`retrieval::indexing_control`), and every pass takes it.
+A request somebody made is declined with `knowledge_indexing_busy` when the turn is held, because
+the running pass is already doing that work; work that cannot continue without the index — a Run
+grounding an answer — waits for the turn instead, under its own cancellation. In the renderer the
+same rule holds one task and one promise per Space: a second surface asking for a Space already
+being indexed joins the pass that is running.
+
 Upkeep is not a task. The debounced pass the scheduler runs after an edit reports through that
 Space's index status, which the Space already shows, rather than filling the Task Center with
-housekeeping.
+housekeeping. Finding the turn held is not a failure for it either: it reschedules without
+spending one of the attempts reserved for an embedding runtime that is really unusable.
 
 Progress is reported as measured: `total` is the work counted when the pass started, and a Space
 still being written to feeds the same pass more chunks, so `indexed` can pass it. The presenter
@@ -182,6 +193,22 @@ Cancellation is observed between batches only — never inside a vector write, a
 completed build and `generation::activate`. A cancelled pass therefore keeps the markers it
 committed and leaves the previous generation answering searches, so the next pass resumes from
 exactly where it stopped. The command reports that as an outcome (`cancelled`), not a failure.
+
+### Reading the index before changing it
+
+`knowledge_index_state` answers what a search issued right now can reach: how many of the Space's
+chunks the generation that answers searches holds, how many are new or edited since they were
+encoded, whether the Space is searchable at all, and whether a pass holds it. It makes the same
+decision `rebuild::index_with_generation` makes — reuse the live generation, or start a new one —
+so what the panel shows is what the next pass will do. A `searchable` Space whose markers survive
+a lost vector table is reported as unbuilt, because markers alone cannot answer anything.
+
+The panel that shows it offers one action, named by that reading: build the index when a Space
+cannot answer, catch it up when it is behind, and **nothing** when the index already covers the
+Space. A Space that is searchable and current has nothing to repair, and a button that re-encodes
+it anyway would be a second entry point that can only disagree with the first. Retrieval is also
+not Knowledge health: claims without support, contradicted claims and stale provenance are facts
+about the content and no amount of indexing changes them, so the two are separate panels.
 
 ## Module boundary
 

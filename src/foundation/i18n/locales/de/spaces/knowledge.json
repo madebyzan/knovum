@@ -12,6 +12,21 @@
       "stale-provenance": "Quellversion hat sich geändert; erneute Überprüfung erforderlich."
     }
   },
+  "index": {
+    "title": "Abrufindex",
+    "task": "Abrufindex wird erstellt",
+    "empty": "Dieser Space enthält noch keinen indizierbaren Text.",
+    "current": "Der Index deckt den gesamten Space ab",
+    "incomplete": "{count} Abschnitt ist noch nicht im Index | {count} Abschnitte sind noch nicht im Index",
+    "unbuilt": "Die semantische Suche kann diesen Space noch nicht beantworten",
+    "indexing": "Wird indiziert …",
+    "coverage": "{indexed} von {total} Abschnitten durchsuchbar",
+    "indexedAt": "zuletzt erstellt am {time}",
+    "build": "Index erstellen",
+    "fill": "Index vervollständigen",
+    "done": "{count} Abschnitt indiziert. | {count} Abschnitte indiziert.",
+    "upToDate": "Der Index war bereits aktuell."
+  },
   "history": {
     "title": "Knowledge-Versionsverlauf",
     "empty": "Noch keine Änderungen.",

@@ -12,6 +12,21 @@
       "stale-provenance": "소스 버전이 변경되었습니다. 재확인이 필요합니다."
     }
   },
+  "index": {
+    "title": "검색 색인",
+    "task": "스페이스 색인 중",
+    "empty": "이 스페이스에는 아직 색인할 텍스트가 없습니다.",
+    "current": "색인이 스페이스 전체를 포함합니다",
+    "incomplete": "{count}개 구절이 아직 색인되지 않았습니다",
+    "unbuilt": "의미 검색이 아직 이 스페이스에서 답변할 수 없습니다",
+    "indexing": "색인 중…",
+    "coverage": "{total}개 중 {indexed}개 구절 검색 가능",
+    "indexedAt": "{time}에 생성됨",
+    "build": "색인 만들기",
+    "fill": "색인 보완",
+    "done": "{count}개 구절을 색인했습니다.",
+    "upToDate": "색인이 이미 최신 상태였습니다."
+  },
   "history": {
     "title": "지식 버전 기록",
     "empty": "아직 변경 사항이 없습니다.",

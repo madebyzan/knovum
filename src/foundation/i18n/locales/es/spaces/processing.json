@@ -26,10 +26,6 @@
     "videoCover": "Portada de vídeo",
     "mediaTimeRange": "{start} – {end}"
   },
-  "index": {
-    "repair": "Reparar el índice de recuperación",
-    "repairDone": "Índice actualizado; se generó {count} entrada vectorial. | Índice actualizado; se generaron {count} entradas vectoriales."
-  },
   "failed": "Error de procesamiento",
   "nodeUnavailable": "El nodo de la tarea ya no está disponible",
   "imageProgress": "Procesando imagen",
