@@ -90,9 +90,14 @@ suppliers, which is 35-45 minutes per cold compile per platform and dominates ev
   the run after a platform failure is the one that most needs warm dependencies.
 - `.github/actions/setup-rust-build` is the only definition of a Rust build environment. A job that
   compiles the application uses it instead of repeating toolchain, dependency or cache steps.
-- `pnpm check:rust` runs the tests before Clippy. Formatting answers in seconds, but between the two
-  expensive passes only the test pass links and starts a binary, which is the failure class that
-  platform-specific link, manifest and runtime problems belong to.
+- `pnpm check:rust` runs Clippy before the tests. Cargo fingerprints `.rmeta` and `.rlib`
+  separately, so a check pass and a build pass never substitute for one another; only their
+  ordering is ours to choose. Testing first placed the check pass between the build passes, and
+  every build after it rebuilt what the first had already produced — measured on run 396: the
+  application recompiled 242 crates in 13m47s on `windows-2025`, and the contract exporter cost
+  13.7m more on `macos-15`. Linting first leaves one check pass followed by consecutive build
+  passes that share their output. The cost of learning about a link or startup failure 30 minutes
+  later is paid by `Platform check`, whose `tests only` scope reaches that failure class directly.
 - The release workflow decides tag, notes and advisories once on Linux and does not repeat the gates
   that admitted the commit to `main`. Its platform matrix stays serialized because the Tauri action
   merges one shared `latest.json`.
