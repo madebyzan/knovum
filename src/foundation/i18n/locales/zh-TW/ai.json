@@ -35,8 +35,6 @@
     "ar": "阿拉伯文"
   },
   "localModels": {
-    "unavailable": {
-      "memory": "記憶體不足，需要至少 32 GiB。可改用 MOSS-TTS-Nano。"
-    }
+    "memoryAdvisory": "此模型在 {memory} 記憶體的機器上完成驗證。本機記憶體吃緊時合成可能被拒絕；更輕量的選擇是 MOSS-TTS-Nano。"
   }
 }

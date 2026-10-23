@@ -30,8 +30,7 @@ const catalog: LocalModelAvailability[] = (
   fixed: id === "qwen3Embedding",
   totalBytes: 100,
   installedBytes: installed ? 100 : 0,
-  downloadAvailable: true,
-  unavailableReason: null,
+  memoryAdvisoryBytes: null,
 }));
 const modelsQuery = {
   data: shallowRef<LocalModelAvailability[] | undefined>(catalog),

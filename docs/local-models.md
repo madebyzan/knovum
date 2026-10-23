@@ -215,7 +215,9 @@ Windows Vulkan remains subject to real hardware qualification. No request retrie
 ## Hardware guidance
 
 - Preset speech and the smaller local models retain the ordinary supported-target acceptance matrix.
-- VoxCPM2 is optional and currently requires at least 32 GiB physical memory. The frozen CPU profile reserves a 16 GiB peak; Metal currently reserves 24 GiB pending target qualification. Admission accounts for the application memory budget and currently available memory. These conservative bounds are qualification gates, not measured claims for every platform.
+- VoxCPM2 is optional and was qualified on machines with at least 32 GiB of memory. The frozen CPU profile reserves a 16 GiB peak; Metal currently reserves 24 GiB pending target qualification. These conservative bounds are qualification gates, not measured claims for every platform.
+- A hardware figure is advice, never permission. A smaller machine still sees the model, downloads it and selects it; the catalogue states what it was qualified against. Whether a run may start is decided once, by admission (`ai/local_runtime/admission.rs`), against the profile's declared peak plus application headroom and the memory actually free at that moment — because that is the number that decides between a synthesis and a thrashing desktop. Download is disk, not memory, and is never refused for it.
+- "Physical memory" always means the memory the operating system can allocate, never the installed size printed on the module. Windows reports those as two different numbers — firmware-reserved RAM is counted as installed but can never hold a model — so `local_resources::system_memory` reads `GlobalMemoryStatusEx` for both the total and the available figure, and `GetPhysicallyInstalledSystemMemory` is deliberately unused.
 - Both alignment profiles currently reserve 6 GiB of host memory and qualify GPU capacity before
   worker startup. This is a conservative admission bound; target qualification must raise it if a
   supported input exceeds it. A smaller download is not a claim of measured peak memory or speed.

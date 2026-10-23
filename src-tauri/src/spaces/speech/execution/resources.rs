@@ -45,7 +45,6 @@ pub(in crate::spaces::speech) async fn prepare_synthesis(
             ))
         }
         "voxcpm2" => {
-            device_profiles::voice::require_memory(model_spec_id)?;
             let model = preparation::prepare_voxcpm2_for_job(
                 app,
                 model_spec_id,

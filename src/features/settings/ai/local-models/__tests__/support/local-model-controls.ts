@@ -46,8 +46,7 @@ const model: LocalModelAvailability = {
   installedBytes: 0,
   installed: false,
   verified: false,
-  downloadAvailable: true,
-  unavailableReason: null,
+  memoryAdvisoryBytes: null,
 };
 
 beforeEach(() => {

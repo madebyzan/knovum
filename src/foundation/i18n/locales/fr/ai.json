@@ -35,8 +35,6 @@
     "ar": "Arabe"
   },
   "localModels": {
-    "unavailable": {
-      "memory": "Pas assez de mémoire ; au moins 32 Gio sont requis. Utilisez plutôt MOSS-TTS-Nano."
-    }
+    "memoryAdvisory": "Qualifié pour les machines disposant de {memory} de mémoire. Sur cet ordinateur, une synthèse peut être refusée lorsque la mémoire manque ; MOSS-TTS-Nano est l'alternative plus légère."
   }
 }

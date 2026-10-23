@@ -28,8 +28,7 @@ const selected: LocalModelAvailability = {
   installedBytes: 0,
   installed: false,
   verified: false,
-  downloadAvailable: true,
-  unavailableReason: null,
+  memoryAdvisoryBytes: null,
 };
 beforeEach(() => {
   models.useLocalModelsQuery.mockReturnValue({

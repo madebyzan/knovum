@@ -176,7 +176,7 @@ pub async fn select_local_model(app: AppHandle, model: LocalModelId) -> Result<(
     .read_owned()
     .await;
     crate::foundation::blocking::run(move || {
-        let status = model_catalog::inspect(&app, model, &|_| Ok(true))?;
+        let status = model_catalog::inspect(&app, model, &|_| Ok(None))?;
         if !status.verified {
             return Err("Download and verify the model before selecting it".into());
         }

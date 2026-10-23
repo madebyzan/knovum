@@ -35,8 +35,6 @@
     "ar": "Arabisch"
   },
   "localModels": {
-    "unavailable": {
-      "memory": "Nicht genügend Speicher; Es sind mindestens 32 GiB erforderlich. Verwenden Sie stattdessen MOSS-TTS-Nano."
-    }
+    "memoryAdvisory": "Für Geräte mit {memory} Arbeitsspeicher qualifiziert. Auf diesem Computer kann eine Synthese abgelehnt werden, wenn der Speicher knapp wird; MOSS-TTS-Nano ist die leichtere Alternative."
   }
 }
