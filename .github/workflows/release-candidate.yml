@@ -68,14 +68,17 @@ jobs:
       max-parallel: 1
       matrix:
         include:
-          - os: macos-15
-            target: aarch64-apple-darwin
-            platform: darwin-aarch64
-            bundles: app,dmg
-          - os: macos-15-intel
-            target: x86_64-apple-darwin
-            platform: darwin-x86_64
-            bundles: app,dmg
+          # TEMPORARY: v0.0.1's darwin assets are already in the draft release and the action seeds
+          # latest.json from the existing asset, so only the platform whose build failed is rebuilt.
+          # Restore both entries below once the Windows package has landed.
+          # - os: macos-15
+          #   target: aarch64-apple-darwin
+          #   platform: darwin-aarch64
+          #   bundles: app,dmg
+          # - os: macos-15-intel
+          #   target: x86_64-apple-darwin
+          #   platform: darwin-x86_64
+          #   bundles: app,dmg
           - os: windows-2025
             target: x86_64-pc-windows-msvc
             platform: windows-x86_64
@@ -105,6 +108,11 @@ jobs:
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
         with:
           tauriScript: node scripts/desktop/tauri.mjs
+          # `--config` is load-bearing: createUpdaterArtifacts lives only in that file, and the action
+          # reads it to decide whether updater artifacts and latest.json exist. The action JSON.parses
+          # the value before testing whether it is a path, so it always logs "Couldn't parse --config
+          # flag as inline JSON" here; it then reads the file and throws if that fails, so the line
+          # cannot mask a real config error.
           args: --release --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} --config src-tauri/tauri.release.conf.json
           owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
