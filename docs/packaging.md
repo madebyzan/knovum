@@ -119,7 +119,8 @@ The Tauri host package contains only the product binary. Contract generation bel
 separate `tools/contract-exporter` Cargo workspace package and is not distributed with the app.
 
 `inference-contracts` owns neutral Rust worker DTOs; Python generation consumes Agent contracts
-only. Obsolete pre-release protocols fail visibly without compatibility readers or alternate engines.
+only. The app and its bundled worker ship together, so a mismatched internal protocol fails visibly
+without compatibility readers or alternate engines.
 
 ### Cargo and CMake ownership
 

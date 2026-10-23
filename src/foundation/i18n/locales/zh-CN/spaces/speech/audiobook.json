@@ -1,6 +1,6 @@
 {
   "chapterTitle": "章节标题",
-  "configurationInvalid": "这个预发布有声书版本缺少有效的角色绑定。请导入或重新编排脚本，再保存新版本。",
+  "configurationInvalid": "这个有声书版本缺少有效的角色绑定。请导入或重新编排脚本，再保存新版本。",
   "lexicon": {
     "title": "发音词典",
     "hint": "将姓名或专有词替换为合成时使用的准确读法。",

@@ -1,7 +1,8 @@
 # Knowledge State
 
-This document is the current Spaces Knowledge contract. Knovum is still pre-release, so obsolete
-development data may be reset and no compatibility readers or dual-write paths are maintained.
+This document is the current Spaces Knowledge contract. Persisted shapes are shipped and frozen:
+changes reach existing libraries through forward migrations ([data-ownership.md](data-ownership.md)
+§Migration policy), not through compatibility readers, dual-write paths or resets.
 
 ## Document extraction
 
@@ -105,13 +106,13 @@ Extraction publishes once per source revision, so there is no intermediate per-o
 
 ## Database migrations
 
-`spaces.db` is created from the single pre-release SQLx v1 baseline at
-`src-tauri/src/spaces/db/migrations/0001_spaces.sql`. SQLx records its version and checksum in
-`_sqlx_migrations`; there is no parallel `user_version`, schema-contract table, repair table, or
-compatibility reader. Schema changes are folded into the baseline while the product remains in
-pre-release development, and obsolete development databases are deleted explicitly. The baseline
-contains the complete document job, visual checkpoint and derivation source snapshot contracts.
-There are no duplicate resource tables: the bounded document manifest belongs to the existing node aggregate.
+`spaces.db` is created by replaying the SQLx migration history in
+`src-tauri/src/spaces/db/migrations/`, whose shipped `0001_spaces.sql` baseline is frozen. SQLx
+records every applied version and checksum in `_sqlx_migrations`; there is no parallel
+`user_version`, schema-contract table, repair table, or compatibility reader. Schema changes ship as
+the next numbered migration — see [data-ownership.md](data-ownership.md) §Migration policy. The
+schema carries the complete document job, visual checkpoint and derivation source snapshot
+contracts. There are no duplicate resource tables: the bounded document manifest belongs to the existing node aggregate.
 
 ## Authoritative Knowledge revision
 
@@ -159,7 +160,7 @@ The renderer passage splitter uses linear UTF-8 width accounting and the same pr
 
 Embedding computation runs outside the SQLite write transaction. Publication acquires the existing `BEGIN IMMEDIATE` boundary, checks the generation is still writable, revalidates chunk/source revisions, drains pending retrieval invalidations, upserts LanceDB vectors by generation and chunk ID, and commits generation-scoped SQLite markers in that order. Chunk replacement/deletion and outbox draining use the same write boundary. Indexing settles on the smallest build that can make a Space searchable: an active generation whose LanceDB table is still materialised is reused, so only chunks with a missing or stale marker are encoded. A new generation — every chunk in the Space, re-encoded — is started only when nothing can be reused: no active generation, a different embedding spec, or a lost LanceDB table, which markers alone cannot detect because the vector lives only in LanceDB. The generation being replaced keeps answering searches for the whole build and is retired inside the activation transaction, so a rebuild never costs a Space its working index. A new generation becomes active in one SQLite transaction only after every current nonblank chunk has a matching marker. Search rechecks active generation after LanceDB returns, so a concurrent rebuild cannot publish results from a retired generation.
 
-SQLite and LanceDB do not share a distributed transaction. A failed vector upsert does not publish new markers; chunks without committed markers remain eligible for indexing. Interrupted builds resume their matching building generation. Durable invalidations are acknowledged only after vector deletion succeeds. The first-release LanceDB table is `knowledge_chunks_v1`; obsolete development tables are not read or converted. Search rejects stale revisions; foreign keys remain enabled, and source data is never reset to repair an index.
+SQLite and LanceDB do not share a distributed transaction. A failed vector upsert does not publish new markers; chunks without committed markers remain eligible for indexing. Interrupted builds resume their matching building generation. Durable invalidations are acknowledged only after vector deletion succeeds. The shipped LanceDB table is `knowledge_chunks_v1`. The vector index is derived state, so a new vector layout is a new table built by re-encoding from the Space's own chunks; an older table is dropped once its generation is retired, never read or converted. Search rejects stale revisions; foreign keys remain enabled, and source data is never reset to repair an index.
 
 ## Module boundary
 

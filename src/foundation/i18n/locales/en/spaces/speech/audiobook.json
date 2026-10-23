@@ -1,6 +1,6 @@
 {
   "chapterTitle": "Chapter title",
-  "configurationInvalid": "This pre-release audiobook revision has no valid role bindings. Import or rebuild the script, then save a new revision.",
+  "configurationInvalid": "This audiobook revision has no valid role bindings. Import or rebuild the script, then save a new revision.",
   "lexicon": {
     "title": "Pronunciation dictionary",
     "hint": "Replace names or terms with the exact reading used during synthesis.",

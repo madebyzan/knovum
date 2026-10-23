@@ -5,15 +5,20 @@ creation and bundled project build outputs. This document owns signed distributi
 channel and release acceptance. Workflow files implement the process; their existence does not prove
 that signing credentials, environment protection or target-platform upgrade acceptance have been configured.
 
-## Agent conversation pre-release contract cutover
+## Shipped data contracts
 
-The first-release contracts use the single Spaces v1 SQLx baseline, Space packages v1,
-private Agent RPC v1, graph identity v1 and Builtin Agent profile v1. Ship matching Rust
-and generated neutral contracts/worker source together. Old requests and packages fail strict
-validation; old graph segments are not resumed through field conversion. An obsolete database
-checksum produces a visible bootstrap error and preserves the original database. Backing up and
-explicitly resetting pre-release data is a separate operation, never an automatic upgrade step.
-The new release does not restore old Ask/Plan/Execute records by defaulting them to Execute.
+0.0.1 shipped the Spaces SQLx baseline, Space packages v1, private Agent RPC v1, graph identity v1
+and Builtin Agent profile v1. Those persisted contracts are frozen: every later change reaches an
+installed library as a forward migration of the owning store
+([data-ownership.md](data-ownership.md) §Migration policy), and a release is not shippable until
+that upgrade is demonstrated on a library written by the previous release.
+
+Ship matching Rust and generated neutral contracts/worker source together. Graph segments are
+versioned execution state, so a changed graph identity retires its own segments instead of
+converting fields; that must not touch product records or published resources. A database the
+migrator cannot explain produces a visible bootstrap error and preserves the original database.
+Resetting a library is a user-initiated operation, never an upgrade step and never a release note
+instruction.
 
 ## Release prerequisites
 
@@ -67,9 +72,10 @@ Agent compiled dependencies still require their independent corresponding-source
 
 Before promotion, also review new capability permissions, CSP origins, protocol/file handlers and
 platform metadata. No WebView may receive SQL permissions or a generic SQL/runtime mutation command.
-Exercise the full embedded Spaces SQLx migration history and packaged application upgrade path.
-Fresh-database tests alone are not upgrade acceptance. Final product icons and publisher metadata
-must be approved before the first public distribution.
+Exercise the full embedded Spaces SQLx migration history and the packaged upgrade path from the
+previously released installer, against a library that release actually created. Fresh-database tests
+alone are not upgrade acceptance. Product icons and publisher metadata stay approved for every
+public distribution.
 
 FFmpeg, the sealed Rust inference package and the retained Agent runtime must be prepared for each target. Pinned yt-dlp/Deno downloads must
 remain available and match their embedded hashes. Clean-profile tests must install that pair and
@@ -253,8 +259,8 @@ change that withdraws the affected latest release or selects the previous known-
 stops offers to old clients; it does not downgrade machines already upgraded.
 
 Prefer a higher-version forward fix. Never automatically run an older binary against a newly migrated
-database. After the first public persisted schema is frozen, maintain reviewed migration, backup and
-recovery policy and test restored data against the intended binary. Keep rescue installers and the
+database. The public persisted schema is frozen, so each release maintains its reviewed migration,
+backup and recovery policy and tests restored data against the intended binary. Keep rescue installers and the
 previous release available. Do not claim automatic application/database rollback without evidence.
 
 ## Agent and inference distribution acceptance

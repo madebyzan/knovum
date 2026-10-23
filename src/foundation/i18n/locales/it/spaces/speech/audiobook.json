@@ -1,6 +1,6 @@
 {
   "chapterTitle": "Titolo del capitolo",
-  "configurationInvalid": "Questa revisione dell'audiolibro pre-release non ha vincoli di ruolo validi. Importa o ricostruisci lo script, quindi salva una nuova revisione.",
+  "configurationInvalid": "Questa revisione dell'audiolibro non ha vincoli di ruolo validi. Importa o ricostruisci lo script, quindi salva una nuova revisione.",
   "lexicon": {
     "title": "Dizionario della pronuncia",
     "hint": "Sostituisci nomi o termini con la lettura esatta utilizzata durante la sintesi.",

@@ -20,9 +20,9 @@ Before adding a non-trivial capability or custom subsystem, follow `docs/oss-fir
 ## Vue, data, and security
 
 - Use Vue 3 Composition API with `<script setup lang="ts">`. Keep visual state local, cross-view session state in Pinia, and remote/async cache in TanStack Vue Query.
-- Persist non-secret preferences in the strict current v1 Tauri Store envelope. The last workspace route is a disposable localStorage session value. Feature structured data uses feature-owned SQLite v1 baselines, one per database before first public release; do not create a global `DatabaseService`. Product credentials and tokens use the dedicated `secrets.db` database through foundation secret commands; never put them in Pinia persistence, localStorage, feature data tables, logs, or query cache. This database is not application-encrypted; a copy exposes its credentials.
+- Persist non-secret preferences in the strict current v1 Tauri Store envelope. The last workspace route is a disposable localStorage session value. Feature structured data uses feature-owned SQLite databases with their own migration history; do not create a global `DatabaseService`. Product credentials and tokens use the dedicated `secrets.db` database through foundation secret commands; never put them in Pinia persistence, localStorage, feature data tables, logs, or query cache. This database is not application-encrypted; a copy exposes its credentials.
 - Validate user input and disk, network, IPC, and external-file boundaries. Static data owned and typed by this repository does not need defensive runtime checks.
-- Required infrastructure fails visibly. Handle expected cancel, permission denial, unavailable-shortcut, and malformed-input outcomes. Reject or explicitly reset obsolete pre-release data; do not silently reinterpret it or add compatibility readers, migrations, or generic fallback layers.
+- Required infrastructure fails visibly. Handle expected cancel, permission denial, unavailable-shortcut, and malformed-input outcomes. Shipped schemas are frozen: change persisted data with the next numbered migration that carries existing rows forward, never by editing a shipped migration, resetting a library, or adding compatibility readers and generic fallback layers (`docs/data-ownership.md` §Migration policy).
 
 ## UI and desktop behavior
 

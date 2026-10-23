@@ -11,7 +11,12 @@ pub async fn pool<R: Runtime>(app: &AppHandle<R>) -> Result<&'static SqlitePool,
             migrate(&pool)
                 .await
                 .map_err(|error| match error {
-                    sqlx::migrate::MigrateError::VersionMismatch(_) | sqlx::migrate::MigrateError::VersionMissing(_) => "spaces-database-obsolete: This pre-release database uses an obsolete schema. Back up spaces.db before explicitly resetting it; no automatic reset or data conversion was performed.".to_owned(),
+                    sqlx::migrate::MigrateError::VersionMissing(version) => format!(
+                        "spaces-database-newer: spaces.db records migration {version}, which this build does not carry. The library was written by a newer release of Knovum; install that release again. Nothing was changed."
+                    ),
+                    sqlx::migrate::MigrateError::VersionMismatch(version) => format!(
+                        "spaces-database-migration-edited: migration {version} no longer matches the one applied to spaces.db. A shipped migration must never be edited. Nothing was changed."
+                    ),
                     _ => format!("Failed to initialize Spaces database: {error}"),
                 })?;
             crate::sqlite::optimize(&pool).await;

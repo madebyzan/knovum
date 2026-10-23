@@ -126,8 +126,14 @@ capability overrides. Local models use one settings surface per capability, with
 download size, installed size and trailing actions; avoid nested panel frames and shaded table headings.
 The global voice library uses these settings surfaces and compact rows, with one inline creation
 or profile inspector open at a time. Voices have no Space selector or copy-to-Space action.
+Adding a voice is a settings title action, so the library carries no section header repeating the
+page title. Creation leads with the voice source as a segmented control shared with the speech
+editors: the source decides the entire form, so it is a visible choice rather than a value inside a
+dropdown, and switching it follows the unsaved-draft decision.
 Voice creation uses labelled fields: the preset choice expands within its grid column, language keeps a
-compact column, and preview/save actions share the form footer. Conversation extension selection lives
+compact column, and preview/save actions share one form footer, with preview controls leading and the
+committing action trailing. An unnamed preset voice shows the chosen preset's name as its placeholder,
+which is the name it will be saved under. Conversation extension selection lives
 in the composer toolbar; its anchored popover uses shared checkboxes, bounded scrolling and a separate
 management footer. Empty extension categories are omitted.
 Use rounded-sm for grids, rounded-md for controls, rounded-lg for canvas objects and rounded-xl for
@@ -877,6 +883,6 @@ Clip settings include precise in/out fields, timeline position, volume, framing,
 fades; audio settings distinguish source time from timeline time and expose the lane. Transition
 settings expose the kind and a duration bounded by the media the cut can spare. Output resolution,
 frame rate and background colour live in a labelled settings popover. Unavailable materials and
-preparation errors remain visible, and a project stored in an obsolete shape states that plainly and
+preparation errors remain visible, and a project whose stored payload cannot be read states that plainly and
 offers a fresh edit of the unchanged source. All edits share the project's undo/redo
 history; saving and native rendering stay in the workbench header.

@@ -32,7 +32,7 @@ saved video projects retain their existing durable storage owners.
 
 Document sessions own their drafts; retained Tiptap instances own document history and selection.
 Video sessions own project drafts, history, the selected item, playback position and the rejection
-state of a project stored in an obsolete shape.
+state of a project whose stored payload fails validation.
 Only the active editor registers commands. Hidden video views stop their render loop, silence
 scheduled audio and suspend thumbnail work; preview preparation is cancelled while hidden. Document timers pause while inactive, and navigation
 flushes pending document writes before changing the active Space. Save failures retain the draft and
@@ -108,7 +108,7 @@ projection and controls selection/reveal. Import failure cleanup belongs to the 
 
 JSON Canvas export writes through one Rust command authorized by the user-selected `.canvas` destination. The command validates the document and its exact managed-resource set, prepares a uniquely owned sibling resource directory, rewrites relative references, flushes a complete staging document and replaces the selected file through a same-directory rename. Failed preparation cleans up only that publication's files. Existing exported resource directories are not modified or deleted: they may still be used by external documents. No frontend filesystem scope is broadened. Space package archives likewise replace their destination directly from complete staging files, without moving the old destination aside first.
 
-Space packages export active knowledge, not soft-deleted content retained for undo. Derivations are included only for active outputs. Each input preserves its historical `sourceIdentity`, revision and immutable `sourceSnapshot` (title, kind, original URL and platform); its nullable `nodeId` is a current-space link, not the historical identity. Permanent source deletion sets that link to null rather than cascading away the input history. Export detaches links to deleted or out-of-space sources; restore preserves these snapshots without restoring deleted nodes. Workflow output links include only active nodes. Knowledge events are selected against the actual exported node, relation, provenance and custom-type identities. This is the strict pre-release baseline contract; obsolete development databases/packages are not read through compatibility adapters.
+Space packages export active knowledge, not soft-deleted content retained for undo. Derivations are included only for active outputs. Each input preserves its historical `sourceIdentity`, revision and immutable `sourceSnapshot` (title, kind, original URL and platform); its nullable `nodeId` is a current-space link, not the historical identity. Permanent source deletion sets that link to null rather than cascading away the input history. Export detaches links to deleted or out-of-space sources; restore preserves these snapshots without restoring deleted nodes. Workflow output links include only active nodes. Knowledge events are selected against the actual exported node, relation, provenance and custom-type identities. Space packages are v1 and shipped: a later package revision raises the package version and the importer keeps reading each shipped version, so an archive somebody exported from Knovum stays importable.
 
 The sidebar keeps Space navigation fixed above a directly visible Outline and the Settings entry fixed below it. Inbox comes first as the capture destination for knowledge saved before choosing an organizational Space, followed by All Spaces, Recently Opened and Favorites. These four entries use consistent row spacing without an extra divider or gap after Inbox. Only the Outline list scrolls. A subdued Outline heading identifies the content region without repeating the current Space title already shown in its tab. Whitespace separates navigation from the Outline; there are no decorative divider rules or whole-Outline disclosure state. The `spaces.focus-outline` command (`$mod+Shift+O`) reveals the sidebar and focuses its content region on every invocation. Section disclosures remain because they represent actual document structure.
 
@@ -517,7 +517,7 @@ Spaces follows **content-first canvas, professional-editor handoff**. A resource
 | ODT/RTF/ODP/KEY/ODS and other specialist formats                                              | private copied asset                 | system page thumbnail when the OS has a registered handler; otherwise resource identity                         | associated professional app             | original bytes |
 | Other regular files                                                                           | private copied asset                 | resource identity                                                                                               | associated desktop app                  | original bytes |
 
-A single imported resource file is limited to 8 GiB. Directory imports are not supported. Archive files are preserved as opaque binary file assets without container expansion or semantic indexing. The node contract rejects obsolete development `folder` and `archive` data rather than interpreting either as a file. Space package ZIP transfer remains a separate workspace operation, not a canvas-resource import.
+A single imported resource file is limited to 8 GiB. Directory imports are not supported. Archive files are preserved as opaque binary file assets without container expansion or semantic indexing. The node contract has no `folder` or `archive` kind. Space package ZIP transfer remains a separate workspace operation, not a canvas-resource import.
 Known credential-bearing dotfiles such as `.env` and `.npmrc` remain opaque file resources instead of being copied into SQLite/FTS text previews, and are equally excluded from Quick Look thumbnails: a canvas thumbnail must not become a second, less protected copy of a secret. Users can still open the private copy in their associated editor.
 On macOS and Windows, images, audio, video and renderable documents request the system's own thumbnail, cached beside the other private previews. macOS uses Quick Look and Windows uses the registered Shell thumbnail provider. Preview generation is a strict native capability: failure is reported instead of activating an alternate renderer. Source/code formats retain their product-owned text presentation.
 
@@ -539,9 +539,9 @@ and AI object removal directly in the canvas selection bar. The active control p
 selected image when the canvas has room on either side. Otherwise, the panel uses the larger free
 area above or below and scrolls within that area. The selection surface owns this placement rule
 for other long node controls as well. The persisted `imageEdit` v1 contract keeps the
-source asset immutable; the canvas renderer projects crop, transform and filter edits. Earlier
-pre-release image edit recipes are rejected explicitly; the old transparency eraser is not a
-same-node edit. Object removal publishes a new image with `derives-from` lineage.
+source asset immutable; the canvas renderer projects crop, transform and filter edits. The old
+transparency eraser is not a same-node edit, and a later `imageEdit` revision carries stored recipes
+forward instead of refusing an image somebody already edited. Object removal publishes a new image with `derives-from` lineage.
 Changing canvas selection does not discard an image edit draft. The draft remains owned by its
 `(spaceId, nodeId)` session until the user returns to it, applies it or discards it. Leaving the Space,
 route or application with a dirty image draft offers Apply, Discard and Cancel through the shared
@@ -571,9 +571,9 @@ their own `timelineStartMs`, so a project may expose intentional gaps; a gap sho
 background in preview and in export. The first asset
 retains the owning video identity. Local videos, still images and audio are selected from the owning
 Space; the native multiple-file dialog uses the existing managed import pipeline. Asset references
-contain no file-path authority. Obsolete pre-release project shapes are rejected explicitly: the
-workbench states that the stored project cannot be opened and
-offers a new edit from the unchanged source instead of migrating or silently resetting it.
+contain no file-path authority. A later `videoEditProject` revision carries stored projects forward;
+a payload that fails validation is damaged, and the workbench states that the stored project cannot
+be opened and offers a new edit from the unchanged source rather than silently resetting it.
 
 The visual track supports insert, reorder, duplicate, split, dragging a clip to a new timeline
 position, closing a gap, source in/out trimming, per-clip volume and fades, and a free transform of
@@ -810,11 +810,12 @@ editable field keys. Switching or closing confirms unsaved changes; saving locks
 retains failed drafts. Type deletion is confirmed, and the database refuses deletion of types
 still referenced by knowledge objects. This editor does not introduce a second type model.
 
-Spaces owns `spaces.db` and its single pre-release SQLx v1 baseline at
-`src-tauri/src/spaces/db/migrations/0001_spaces.sql`. The embedded migrator installs that complete schema
-before repositories receive the pool. During pre-release development, schema changes belong in
-this baseline, with an explicit data transition for existing local databases; the application must
-not silently delete a user's Space data. New derivations capture immutable source metadata when created.
+Spaces owns `spaces.db` and its SQLx migration history in
+`src-tauri/src/spaces/db/migrations/`, whose shipped `0001_spaces.sql` baseline is frozen. The
+embedded migrator brings a database up to the current schema before repositories receive the pool.
+A schema change ships as the next numbered migration that carries existing rows forward
+([data-ownership.md](data-ownership.md) §Migration policy); the application must never delete or
+reset a person's Space data. New derivations capture immutable source metadata when created.
 Rebuildable projections remain derived from their owning nodes and relations.
 
 Rust Run changes stream to the Task Center through a Tauri Channel. Active Runs are reattached on
@@ -830,16 +831,24 @@ WebView access to private assets is limited to that app-data subtree through Tau
 Dependency selection reasons belong to [oss-first.md](oss-first.md), while Knowledge revision,
 citation, package and retrieval rules belong to [knowledge.md](knowledge.md).
 
-## Pre-release database reset boundary
+## Database upgrade boundary
 
-Spaces has one current `0001_spaces.sql` baseline. SQLx rejects obsolete migration versions or checksums before applying schema changes. The startup error identifies `spaces-database-obsolete`; the application does not delete, rewrite or migrate that database. Back up `spaces.db` (and its WAL/SHM files while closed) before explicitly resetting development data. Space packages and media knowledge both start at version 1, but remain independent contracts from each other and the database baseline.
+Spaces upgrades a library in place. SQLx applies pending migrations before schema access and refuses
+a database it cannot explain: a checksum that no longer matches an applied migration, or a recorded
+version this binary does not carry (a library written by a newer release). The startup errors
+`spaces-database-migration-edited` and `spaces-database-newer` name those two cases separately; the
+application does not delete, rewrite or downgrade that
+database, and it never asks the person using it to reset their library. Space packages and media
+knowledge both start at version 1, but remain independent contracts from each other and the database
+schema.
 
 Conversation tool operations persist invocation `context`, its `context_digest`, and response `output`.
 Run attempts persist `output`, matching step outputs and package `runAttempts[].output`. These are the
-current v1 fields; edit receipts persist their `committed_projection`. Obsolete development databases and packages follow the strict reset/rejection
-boundary above. External model and MCP protocol payloads retain their own field names.
+current v1 fields; edit receipts persist their `committed_projection`. Changing any of them reaches
+existing libraries and packages as a forward migration, not as a rejection. External model and MCP
+protocol payloads retain their own field names.
 
-Content layout JSON uses `sizingMode` (`content` or `frame`). The baseline requires this field, so beta databases containing the earlier field name follow the same explicit reset boundary.
+Content layout JSON uses `sizingMode` (`content` or `frame`), which every shipped database carries.
 
 ## Session state ownership
 
@@ -892,7 +901,7 @@ claiming full pixel equality across browser interpolation and Rust rendering.
 
 Images and video covers share the `analyze_visual` task and `visualKnowledge` result contract. Image revisions include image edits; video-cover revisions include the media source, immutable preview path and preview origin. Node writes compare this visual revision directly, so changing or resetting image edits and replacing a cover reschedule visual work. Titles do not change either revision. Evidence retains its image or video-cover locator so retrieval can open the correct source.
 
-The current pre-release Spaces database baseline admits only the current job types. Obsolete baseline checksums and the former `analyze_image` / `analyze_video_cover` job names are rejected explicitly; there are no compatibility aliases, automatic data deletion or conversion readers.
+The shipped Spaces schema admits only the current job types; the former `analyze_image` / `analyze_video_cover` job names are gone. There are no compatibility aliases or conversion readers, and nothing in a person's library is deleted to make that true: queued jobs are carried forward or retired by a migration.
 
 ### Video subtitles
 
@@ -927,9 +936,9 @@ Refreshing the Space a Run publishes into is a reload, not a navigation: the can
 mounted, edits stay admitted while the Run reports, and the view changes only where the reloaded
 projection differs from the one the session already holds.
 
-The current pre-release v1 database/package baseline records the source node and both stem paths
-and digests, without review states. Obsolete baselines are rejected by the existing strict schema
-policy; no compatibility reader, migration or silent reset is introduced. Snapshot, restore,
+The shipped v1 database/package contract records the source node and both stem paths
+and digests, without review states. A later revision reaches existing libraries as a forward
+migration; no compatibility reader beside the old shape and no silent reset is introduced. Snapshot, restore,
 remapping and deletion reference graphs preserve the source identity and both outputs. Interrupted
 attempts retain publication journals until both assets, nodes and relations can be committed or
 cleaned up.
@@ -959,9 +968,9 @@ one worker and ignore obsolete masks while retaining the current encoding; model
 closing the session cancel its work. Only Extract or Repair publishes a derived resource.
 Relative depth is saved as a 16-bit PNG with `imageDepth.encoding = relative-inverse-depth-u16-v1`
 and its frozen model specification. Near regions are brighter; the values are relative, not distances.
-Selection extraction and depth generation are included in both the strict SQLite derivation baseline
+Selection extraction and depth generation are included in both the strict SQLite derivation schema
 and package restore validation. Cargo watches the migration directory so embedded SQL follows that
-baseline. Existing obsolete development baselines are rejected rather than migrated through aliases.
+history.
 The original PNG is the delivery asset: image and managed-asset exports copy it without photo rendering
 or 8-bit conversion. Depth nodes expose no photo-edit tools and reject `imageEdit`; their values are
 analysis data rather than photo colors. Depth-based blur remains unavailable until compositing quality

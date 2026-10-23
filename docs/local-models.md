@@ -144,7 +144,7 @@ instruction, document input, last-token selection and L2 normalization. The iden
 `qwen3-embedding-0.6b:candle-0.11-f32-lasttoken-v2`; persisted indexes with an older identity
 are rejected and rebuilt explicitly. Inputs are limited to 32 texts and 2,048 tokens; output is
 1,024 finite normalized dimensions.
-Installed weights live under the current `local-resources/models/` application-data namespace; pre-release legacy paths are not read.
+Installed weights live under the `local-resources/models/` application-data namespace.
 
 ## Runtime ownership
 
@@ -234,8 +234,9 @@ once and persists the selected model in the durable request/configuration or der
 Preparation, admission, worker identity, render caches, retries, provenance and package restore use
 that frozen identity. Changing defaults affects new work only. Existing voices, projects, queued
 requests and accepted outputs retain their model. Removing an idle optional snapshot preserves its
-preference; its next use prepares the same snapshot. Obsolete baselines missing required identities
-fail explicitly, without conversion or automatic deletion. Qwen vectors are fixed by the stored index.
+preference; its next use prepares the same snapshot. A stored row missing a required model identity
+fails explicitly rather than guessing one, and the migration that introduced the identity is what
+fills it in. Qwen vectors are fixed by the stored index.
 
 `inference-contracts::execution_profile` is the only definition of a bundled-runtime execution profile
 identity. The host builds the profile it admits memory for from that module, and the worker rebuilds

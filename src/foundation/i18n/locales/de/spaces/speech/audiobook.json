@@ -1,6 +1,6 @@
 {
   "chapterTitle": "Kapiteltitel",
-  "configurationInvalid": "Diese Vorabversion des Hörbuchs weist keine gültigen Rollenbindungen auf. Importieren Sie das Skript oder erstellen Sie es neu und speichern Sie dann eine neue Revision.",
+  "configurationInvalid": "Diese Hörbuchfassung weist keine gültigen Rollenbindungen auf. Importieren Sie das Skript oder erstellen Sie es neu und speichern Sie dann eine neue Revision.",
   "lexicon": {
     "title": "Aussprachewörterbuch",
     "hint": "Ersetzen Sie Namen oder Begriffe durch die genaue Lesart, die während der Synthese verwendet wurde.",
