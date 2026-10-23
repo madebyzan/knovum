@@ -14,3 +14,11 @@ export async function renameSpace(context: SpaceSessionContext, spaceId: string,
   space.updatedAt = Date.now();
   void refreshEnrichmentJobs();
 }
+
+export async function syncInboxTitle(context: Pick<SpaceSessionContext, "spaces">, title: string) {
+  const inbox = context.spaces.value.find((candidate) => candidate.kind === "inbox");
+  if (!inbox || inbox.title === title) return;
+  inbox.title = title;
+  await updateSpaceTitle(inbox.id, title);
+  void refreshEnrichmentJobs();
+}

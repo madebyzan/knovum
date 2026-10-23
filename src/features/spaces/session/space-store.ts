@@ -1,8 +1,10 @@
 import { defineStore } from "pinia";
 import { watch } from "vue";
 
+import { i18n } from "../../../foundation/i18n/instance";
 import { createSpacePlacement } from "../canvas/navigation-requests";
 import type { SpacePersistenceState } from "../workspace/persistence-state";
+import { syncInboxTitle } from "../workspace/space-title-actions";
 import { useSpaceActions } from "./actions/use-space-actions";
 import { createSpaceState, spaceSessionBindings } from "./session-state";
 
@@ -30,6 +32,10 @@ export const useSpaceStore = defineStore("spaces", () => {
   );
   watch([state.nodes, state.relations], () => {
     state.thumbnailDirty.value = true;
+  });
+  watch(i18n.global.locale, () => {
+    if (!state.ready.value) return;
+    void syncInboxTitle(state, i18n.global.t("spaces.space.inbox"));
   });
   return {
     ...spaceSessionBindings(state),

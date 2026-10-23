@@ -3,6 +3,7 @@ import { computed, watch, type Ref } from "vue";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import { i18n } from "../../../foundation/i18n/instance";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { cancelEnrichmentJob, retryEnrichmentJob } from "./enrichment-jobs";
 import { enrichmentJobsQuery, refreshEnrichmentJobs } from "./enrichment-jobs-query";
@@ -19,8 +20,8 @@ export function useEnrichmentTaskProjection({ ready, openNode }: EnrichmentTaskP
   const jobs = computed(() => query.data.value ?? []);
 
   watch(
-    query.data,
-    (records) => {
+    [query.data, i18n.global.locale],
+    ([records]) => {
       if (!records) return;
       tasks.reconcileObserved(
         ENRICHMENT_TASK_PRODUCER,

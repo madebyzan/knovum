@@ -48,15 +48,16 @@ pub async fn update_space_title<R: Runtime>(
 ) -> Result<(), AppError> {
     let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
-    let executed =
-        sqlx::query("UPDATE spaces SET title = ?, updated_at = ? WHERE id = ? AND kind = 'space'")
-            .bind(title)
-            .bind(now)
-            .bind(space_id)
-            .execute(pool)
-            .await
-            .map_err(db::sql_error)?;
-    Ok((db::require_one(executed, "Space no longer exists or cannot be renamed"))?)
+    let executed = sqlx::query(
+        "UPDATE spaces SET title = ?, updated_at = CASE WHEN kind = 'space' THEN ? ELSE updated_at END WHERE id = ?",
+    )
+    .bind(title)
+    .bind(now)
+    .bind(space_id)
+    .execute(pool)
+    .await
+    .map_err(db::sql_error)?;
+    Ok((db::require_one(executed, "Space no longer exists"))?)
 }
 
 #[tauri::command]

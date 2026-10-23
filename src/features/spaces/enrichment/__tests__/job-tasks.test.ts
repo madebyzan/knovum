@@ -1,9 +1,15 @@
 import { createPinia, setActivePinia } from "pinia";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { i18n } from "../../../../foundation/i18n/instance";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import type { EnrichmentJobProjection } from "../../contracts/generated/EnrichmentJobProjection";
 import { enrichmentTask } from "../job-tasks";
+
+const originalLocale = i18n.global.locale.value;
+afterEach(() => {
+  i18n.global.locale.value = originalLocale;
+});
 
 const record = {
   job: {
@@ -49,6 +55,30 @@ describe("enrichment task projection", () => {
       job: { ...record.job, status: "failed", error: "Model missing" },
     });
     expect(task).toMatchObject({ status: "failed", statusMessage: "Model missing" });
+  });
+
+  it("localizes enrichment task titles and node types across locales", () => {
+    const failedPdf = {
+      ...record,
+      nodeKind: "file",
+      job: {
+        ...record.job,
+        jobType: "parse_document" as const,
+        status: "failed" as const,
+        error: "PDF exceeds the 2000-visual processing budget",
+      },
+    };
+    i18n.global.locale.value = "zh-CN";
+    expect(enrichmentTask(failedPdf)).toMatchObject({
+      title: "文档内容提取",
+      subject: { typeLabel: "文件" },
+    });
+
+    i18n.global.locale.value = "en";
+    expect(enrichmentTask(failedPdf)).toMatchObject({
+      title: "Document extraction",
+      subject: { typeLabel: "File" },
+    });
   });
 
   it("gets actions and durability from registered observation handlers", () => {

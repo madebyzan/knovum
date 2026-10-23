@@ -10,6 +10,7 @@ import {
   startSpaceSessionLoad,
 } from "./space-session-actions";
 import type { SpaceSessionContext } from "./space-session-context";
+import { syncInboxTitle } from "./space-title-actions";
 import { transitionActiveSpaceSession } from "./space-transition";
 import {
   createSpaceCanvasTab,
@@ -33,7 +34,7 @@ export async function initializeSpaces(context: SpaceSessionContext, inboxTitle:
   const inbox =
     context.spaces.value.find((space) => space.kind === "inbox") ??
     (await createAndTrackSpace(context, inboxTitle, "inbox"));
-  if (inbox.title !== inboxTitle) inbox.title = inboxTitle;
+  await syncInboxTitle(context, inboxTitle);
   await openSpace(context, inbox.id);
   context.ready.value = true;
 }
