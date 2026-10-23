@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { defineComponent, h, shallowRef } from "vue";
 
 import { i18n } from "../../../foundation/i18n/instance";
+import { getCanvasEditorSession } from "../canvas/editor-session";
 import { useCanvasTextEditor } from "../canvas/presentation/nodes/use-canvas-text-editor";
 import { createSpaceTextPayload } from "../document-editing/tiptap-content";
 import type { SpaceCanvasTextPayload } from "../model/nodes/capabilities";
@@ -63,17 +64,38 @@ it("uses the current locale for an empty title when saving after a language chan
   }
 });
 
+it("ends the editing session when leaving on a failed save instead of stranding the canvas", async () => {
+  const { interactive, session, wrapper } = createTextEditorHarness(() =>
+    Promise.reject(new Error("Space session is transitioning")),
+  );
+  try {
+    await session.beginEditing();
+    session.editor.value!.commands.setContent("<p>Leaving with an unsaved draft</p>");
+    expect(getCanvasEditorSession().activeTextEditorNodeId.value).toBe("text-node");
+
+    interactive.value = false;
+    await vi.waitUntil(() => !session.editing.value);
+
+    expect(session.editor.value).toBeUndefined();
+    expect(getCanvasEditorSession().activeTextEditorNodeId.value).toBeUndefined();
+    expect(notices.error).toHaveBeenCalledOnce();
+  } finally {
+    wrapper.unmount();
+  }
+});
+
 function createTextEditorHarness(
   persist: (nodeId: string, payload: SpaceCanvasTextPayload) => Promise<void>,
 ) {
   let session!: ReturnType<typeof useCanvasTextEditor>;
+  const interactive = shallowRef(true);
   const wrapper = mount(
     defineComponent({
       setup() {
         session = useCanvasTextEditor({
           id: "text-node",
           data: shallowRef(createSpaceTextPayload("Draft", "Draft")),
-          interactive: shallowRef(true),
+          interactive,
           persist,
         });
         return () => h("div");
@@ -81,5 +103,5 @@ function createTextEditorHarness(
     }),
     { global: { plugins: [i18n] } },
   );
-  return { session, wrapper };
+  return { interactive, session, wrapper };
 }

@@ -31,7 +31,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   let detachCommit: (() => void) | undefined;
   let savePromise: Promise<void> | undefined;
 
-  watch(options.interactive, (interactive) => (interactive ? void beginEditing() : void saveQuietly()));
+  watch(options.interactive, (interactive) => (interactive ? void beginEditing() : void leaveEditing()));
   onBeforeUnmount(() => {
     deactivateCanvasTextEditor(options.id);
     deactivateCanvasTextSelection(options.id);
@@ -63,7 +63,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
         dirty.value = true;
       },
       onBlur: () => {
-        void saveQuietly();
+        void leaveEditing();
       },
     });
     detachCommit = registerSpaceSessionParticipant({ commit: save });
@@ -83,13 +83,31 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
     savePromise = persist(instance);
     try {
       await savePromise;
+      finishEditing();
+    } catch (error) {
+      // The caller is still inside the editor, so a rejected save hands the draft back for a
+      // corrected attempt instead of discarding what was typed.
+      if (editor.value === instance) instance.setEditable(true);
+      throw error;
     } finally {
       savePromise = undefined;
     }
   }
 
-  async function saveQuietly() {
-    await save().catch(() => undefined);
+  /**
+   * Leaving the editor is not a save decision. The session owns canvas-wide state — the node
+   * operation gate and a contenteditable laid over the scene — so it ends with the attempt whatever
+   * the attempt reported. A session that outlives the user's presence leaves the canvas looking
+   * normal while selection, structure edits and the canvas context menu are all refused in silence.
+   */
+  async function leaveEditing() {
+    try {
+      await save();
+    } catch {
+      // persist() reported it; the session still ends here.
+    } finally {
+      finishEditing();
+    }
   }
 
   async function persist(instance: Editor) {
@@ -105,10 +123,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
         tiptapContent,
       };
       await options.persist(options.id, data);
-      dirty.value = false;
-      finishEditing();
     } catch (error) {
-      if (editor.value === instance) instance.setEditable(true);
       toast.error(getErrorMessage(error));
       throw error;
     }
@@ -117,6 +132,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   function finishEditing() {
     const instance = editor.value;
     editing.value = false;
+    dirty.value = false;
     deactivateCanvasTextEditor(options.id);
     editor.value = undefined;
     deactivateCanvasTextSelection(options.id);
@@ -125,10 +141,6 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
     instance?.destroy();
   }
 
-  function cancelEditing() {
-    dirty.value = false;
-    finishEditing();
-  }
-
-  return { beginEditing, cancelEditing, editing, editor, save };
+  /** Escape discards the draft; the session ends the same way every other exit ends. */
+  return { beginEditing, cancelEditing: finishEditing, editing, editor, save };
 }
