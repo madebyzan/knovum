@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { AlertCircle } from "@lucide/vue";
+import { ArrowDown } from "@lucide/vue";
 import { computed, nextTick, useTemplateRef, watch } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
+import { conversationTurns } from "../conversation-turns";
 import { useConversationScroll } from "../use-conversation-scroll";
-import SpaceConversationActivity from "./SpaceConversationActivity.vue";
 import SpaceConversationEmptyGuide from "./SpaceConversationEmptyGuide.vue";
-import SpaceConversationMessage from "./SpaceConversationMessage.vue";
-import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
+import SpaceConversationTurn from "./SpaceConversationTurn.vue";
 
 const props = defineProps<{
   messages: readonly ConversationMessage[];
@@ -19,7 +17,6 @@ const props = defineProps<{
   busy: boolean;
   hasDraft: boolean;
   preparing: boolean;
-  error?: string | undefined;
   streamedText: string;
   hasOlder: boolean;
   loadingOlder: boolean;
@@ -34,23 +31,21 @@ const emit = defineEmits<{
   suggest: [prompt: string, selection?: string];
   inspectActivity: [runId: string];
 }>();
-const visibleMessages = computed(() =>
-  props.messages.filter(
-    (message) =>
-      message.role !== "tool" &&
-      (message.role !== "assistant" ||
-        message.content.parts.some((part) => part.type !== "text" || part.text.trim()) ||
-        Boolean(message.content.outputs?.length) ||
-        Boolean(props.streamedText && message.id === props.messages.at(-1)?.id)),
-  ),
+const turns = computed(() =>
+  conversationTurns({
+    messages: props.messages,
+    activeRunId: props.activeRunId,
+    streamedText: props.streamedText,
+    preparing: props.preparing,
+  }),
 );
 const scroller = useTemplateRef<HTMLDivElement>("scroller");
 const { atTail, rows, totalSize, measureElement, updateScrollPosition, scrollToTail, loadOlder } =
   useConversationScroll(
     scroller,
     {
-      get messages() {
-        return visibleMessages.value;
+      get rows() {
+        return turns.value;
       },
       get streamedText() {
         return props.streamedText;
@@ -70,16 +65,6 @@ const { atTail, rows, totalSize, measureElement, updateScrollPosition, scrollToT
       remember: (key, top) => emit("scrollPosition", key, top),
     },
   );
-const streamingMessageId = computed(() => {
-  const last = visibleMessages.value.at(-1);
-  return last?.role === "assistant" ? last.id : undefined;
-});
-const hasActiveTurn = computed(() =>
-  Boolean(
-    props.activeRunId &&
-    props.messages.some((message) => message.role === "user" && message.content.runId === props.activeRunId),
-  ),
-);
 watch(
   () => props.eventsByRunId,
   async () => {
@@ -91,7 +76,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col">
+  <div class="relative flex h-full min-h-0 flex-col">
     <div v-if="hasOlder" class="shrink-0 p-2 text-center">
       <UiButton size="sm" variant="ghost" :disabled="loadingOlder" @click="loadOlder">
         {{ $t("spaces.conversation.messages.loadOlder") }}
@@ -99,72 +84,52 @@ watch(
     </div>
     <div
       ref="scroller"
-      class="min-h-0 flex-1 overflow-y-auto px-4 pt-5 pb-4"
+      class="min-h-0 flex-1 overflow-y-auto px-4 pt-5 pb-6"
       @scroll.passive="updateScrollPosition"
     >
       <div
-        v-if="visibleMessages.length === 0 && !hasDraft && !busy && !error"
+        v-if="turns.length === 0 && !hasDraft && !busy"
         class="flex min-h-full items-center justify-center px-2 pb-12"
       >
         <SpaceConversationEmptyGuide @select="(value, selection) => emit('suggest', value, selection)" />
       </div>
       <div class="relative w-full" :style="{ height: `${totalSize}px` }">
-        <article
+        <div
           v-for="row in rows"
-          :key="visibleMessages[row.index]!.id"
+          :key="turns[row.index]!.id"
           :ref="measureElement"
           :data-index="row.index"
-          class="absolute top-0 left-0 w-full pb-5"
+          class="absolute top-0 left-0 w-full pb-8"
           :style="{ transform: `translateY(${row.start}px)` }"
         >
-          <SpaceConversationMessage
-            :message="visibleMessages[row.index]!"
-            :streamed-text="visibleMessages[row.index]!.id === streamingMessageId ? streamedText : ''"
-            :busy="busy"
-            @branch="emit('branch', visibleMessages[row.index]!)"
-            @regenerate="emit('regenerate', visibleMessages[row.index]!)"
-          />
-          <SpaceConversationActivity
-            v-if="visibleMessages[row.index]!.role === 'user' && visibleMessages[row.index]!.content.runId"
-            :run-id="visibleMessages[row.index]!.content.runId!"
-            :events="eventsByRunId[visibleMessages[row.index]!.content.runId!] ?? []"
+          <SpaceConversationTurn
+            :turn="turns[row.index]!"
+            :events="turns[row.index]!.runId ? (eventsByRunId[turns[row.index]!.runId!] ?? []) : []"
             :messages="messages"
-            :active="busy && activeRunId === visibleMessages[row.index]!.content.runId"
-            @inspect="emit('inspectActivity', $event)"
+            :busy="busy"
+            @branch="emit('branch', $event)"
+            @regenerate="emit('regenerate', $event)"
+            @inspect-activity="emit('inspectActivity', $event)"
           />
-        </article>
-      </div>
-      <article v-if="streamedText && !streamingMessageId" class="pb-5 text-fg-primary">
-        <UiMarkdown :content="streamedText" class="wrap-break-word" />
-      </article>
-      <p v-if="busy && !hasActiveTurn && !error" role="status" class="py-3 text-caption text-fg-secondary">
-        <SpaceConversationShimmerText>
-          {{
-            $t(
-              preparing
-                ? "spaces.conversation.conversations.preparing"
-                : "spaces.conversation.activity.generating",
-            )
-          }}
-        </SpaceConversationShimmerText>
-      </p>
-      <div
-        v-if="error"
-        role="alert"
-        class="mb-4 flex items-start gap-2 rounded-panel border border-stroke-danger/30 bg-surface-danger-subtle p-3 text-caption text-fg-danger"
-      >
-        <AlertCircle class="mt-0.5 size-3.5 shrink-0" />
-        <span class="min-w-0 wrap-break-word">{{ error }}</span>
+        </div>
       </div>
     </div>
-    <UiButton
-      v-if="!atTail && (visibleMessages.length || streamedText)"
-      size="sm"
-      variant="secondary"
-      class="mx-auto mb-2"
-      @click="scrollToTail"
+    <Transition
+      enter-active-class="transition-opacity duration-150"
+      leave-active-class="transition-opacity duration-100"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
     >
-      {{ $t("spaces.conversation.messages.new") }}
-    </UiButton>
+      <UiButton
+        v-if="!atTail && turns.length > 0"
+        size="sm"
+        variant="secondary"
+        class="shadow-overlay absolute inset-x-0 bottom-3 mx-auto w-fit gap-1 rounded-full"
+        @click="scrollToTail"
+      >
+        <ArrowDown class="size-3.5" />
+        {{ $t("spaces.conversation.messages.new") }}
+      </UiButton>
+    </Transition>
   </div>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUp, CircleStop, FileUp } from "@lucide/vue";
+import { ArrowUp, FileUp, Pause, Square } from "@lucide/vue";
 import { useTextareaAutosize } from "@vueuse/core";
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef } from "vue";
 import { toast } from "vue-sonner";
@@ -21,7 +21,13 @@ const prompt = defineModel<string>({ required: true });
 const target = defineModel<TaskTarget | undefined>("target");
 const targetAvailable = ref(false);
 const props = defineProps<{
-  busy: boolean;
+  /** An answer is being produced: the send button becomes the way to stop it. */
+  running: boolean;
+  /** The run exists and can be stopped; a request that has not been accepted yet cannot. */
+  cancellable: boolean;
+  /** This conversation cannot accept a question yet — its draft, extensions or Space are not ready. */
+  disabled: boolean;
+  canPause: boolean;
   attachments: readonly ConversationAttachmentPresentation[];
   attachmentCandidates: readonly ConversationAttachmentCandidatePresentation[];
   attachmentError?: string | undefined;
@@ -31,6 +37,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   send: [];
   cancel: [];
+  pause: [];
   addSelection: [];
   addAttachment: [nodeId: string];
   chooseFiles: [];
@@ -47,7 +54,8 @@ const fileDropListener = createAsyncDisposer();
 const canSend = computed(
   () =>
     Boolean(prompt.value.trim() && target.value && targetAvailable.value) &&
-    !props.busy &&
+    !props.running &&
+    !props.disabled &&
     !props.pickingFiles &&
     !props.unresolvedFileNames.length,
 );
@@ -109,8 +117,8 @@ onBeforeUnmount(fileDropListener.dispose);
       <textarea
         ref="textarea"
         v-model="prompt"
-        rows="2"
-        class="composer-input block max-h-48 min-h-16 w-full resize-none overflow-y-auto border-0 bg-transparent px-3 py-3 text-body text-fg-primary outline-none placeholder:text-fg-tertiary"
+        rows="1"
+        class="composer-input block max-h-48 min-h-11 w-full resize-none overflow-y-auto border-0 bg-transparent px-3 pt-3 pb-1 text-body text-fg-primary outline-none placeholder:text-fg-tertiary"
         :aria-label="$t('spaces.conversation.input.placeholder')"
         :placeholder="$t('spaces.conversation.input.placeholder')"
         @keydown.enter.exact="submit"
@@ -131,8 +139,26 @@ onBeforeUnmount(fileDropListener.dispose);
           class="min-w-0 flex-1"
         />
         <slot name="extensions" />
-        <UiIconButton v-if="busy" :label="$t('spaces.conversation.stop')" size="sm" @click="emit('cancel')">
-          <CircleStop class="size-3.5" />
+        <!-- One place to act on the answer in flight: pause it if it can be resumed, or stop it. -->
+        <UiIconButton
+          v-if="running && canPause"
+          :label="$t('common.pause')"
+          tooltip
+          size="sm"
+          @click="emit('pause')"
+        >
+          <Pause class="size-3.5" />
+        </UiIconButton>
+        <UiIconButton
+          v-if="running"
+          :label="$t('spaces.conversation.stop')"
+          tooltip
+          size="sm"
+          class="bg-surface-accent text-fg-on-accent hover:bg-surface-accent-hover hover:text-fg-on-accent disabled:bg-surface-control disabled:text-fg-secondary"
+          :disabled="!cancellable"
+          @click="emit('cancel')"
+        >
+          <Square class="size-3 fill-current" />
         </UiIconButton>
         <UiIconButton
           v-else
