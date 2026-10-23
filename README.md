@@ -42,8 +42,8 @@ sources, ideas, and creations, backed by structured knowledge, on-device AI, and
 provenance from every output to its inputs. Your library lives in local SQLite and vector storage.
 Cloud models are optional; each action sends only the context it needs.
 
-> **Early access.** Knovum is `v0.0.1` and under active development. Pre-release data formats may
-> change; export important Spaces before updating a development checkout.
+> **Early access.** Knovum is `v0.0.1` and under active development. Your library upgrades in place:
+> an update migrates `spaces.db` forward and never asks you to reset it.
 
 ## Why Knovum
 

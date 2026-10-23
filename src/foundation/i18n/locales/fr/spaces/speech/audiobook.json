@@ -1,6 +1,6 @@
 {
   "chapterTitle": "Titre du chapitre",
-  "configurationInvalid": "Cette révision préliminaire du livre audio n'a aucune liaison de rôle valide. Importez ou reconstruisez le script, puis enregistrez une nouvelle révision.",
+  "configurationInvalid": "Cette révision du livre audio n'a aucune liaison de rôle valide. Importez ou reconstruisez le script, puis enregistrez une nouvelle révision.",
   "lexicon": {
     "title": "Dictionnaire de prononciation",
     "hint": "Remplacez les noms ou les termes par la lecture exacte utilisée lors de la synthèse.",

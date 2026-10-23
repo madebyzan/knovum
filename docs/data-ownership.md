@@ -6,8 +6,8 @@ SQLite is a storage primitive, not a shared application service.
 
 Spaces owns its persisted domain data, schema, Rust repository and tests. Do not create a global `DatabaseService` or expose arbitrary SQL across IPC.
 
-The application database is `spaces.db`. SQLx owns its current v1 baseline in
-`src-tauri/src/spaces/db/migrations/` and records the installed version and checksum in `_sqlx_migrations`.
+The application database is `spaces.db`. SQLx owns its migration history in
+`src-tauri/src/spaces/db/migrations/` and records every applied version and checksum in `_sqlx_migrations`.
 
 The database resolves from Tauri's AppConfig directory through the connection policy in `src-tauri/src/sqlite.rs`. Spaces repositories own their SQL and domain rules.
 
@@ -16,36 +16,56 @@ The database resolves from Tauri's AppConfig directory through the connection po
 Knovum-owned data formats, packages, private protocols, runtime manifests/descriptors and the Agent
 profile/graph identity start at version 1 with their current fields. Dependency and external API
 versions remain upstream-owned. Record revisions and Run state versions still advance normally.
-Renumbering does not convert development data or runtime publications; unsupported formats fail
-strict validation. Store, package and protocol envelopes remain separate contracts with their own
-explicit versions. Spaces conversations contain no product mode. The current Space package is v1 and
-the private Agent RPC is v1.
+Store, package and protocol envelopes remain separate contracts with their own explicit versions.
+Spaces conversations contain no product mode. The current Space package is v1 and the private Agent
+RPC is v1.
 
 The embedded SQLx migrator runs before the Spaces pool is exposed and installs each pending
 migration transactionally.
 
-**Until the first public release**, Spaces owns one SQLx v1 baseline: a schema change edits
-`0001_spaces.sql`, which changes its checksum, so the developer deletes their own obsolete
-development database. Obsolete development databases fail visibly and are never reset
-automatically.
+**0.0.1 is published, so the shipped schema is frozen.** `0001_spaces.sql` is not an editable file
+any more: it is the schema already recorded in other people's `_sqlx_migrations`, and editing it
+changes a checksum they have on disk. Every schema change ships as the next numbered migration
+(`0002_…`, `0003_…`) in the owning feature's migration directory — `spaces/db/migrations/`,
+`extensions/migrations/`, `ai/usage/migrations/` and `secrets/migrations/` each keep their own
+history.
 
-**From the first public release**, the baseline is frozen and every schema change ships as the next
-numbered migration in `src-tauri/src/spaces/db/migrations/`. An installed application must never ask
-the person using it to delete their library, so the two failure modes mean different things and are
-tested separately in `spaces/db/tests`:
+An installed application must never ask the person using it to delete their library. "Back up and
+reset it" is not a migration path, and neither is a release note explaining why their Spaces are
+gone. A change that cannot be expressed as a forward migration is not ready to ship.
 
-- a checksum that no longer matches an applied migration (`VersionMismatch`) means somebody edited a
-  migration that had already shipped. That is a developer mistake, caught before release;
-- a recorded version the binary does not carry (`VersionMissing`) means the database was written by a
-  newer release. The older binary refuses to touch it and says so, instead of downgrading data.
+The freeze covers comments and whitespace: the header line of `0001_spaces.sql` still describes the
+schema as pre-release, and it stays wrong, because SQLx checksums the whole file and a tidier
+comment would lock every 0.0.1 library out of the app.
+
+The two migrator failures therefore mean different things and are tested separately in
+`spaces/db/tests`:
+
+- a checksum that no longer matches an applied migration (`VersionMismatch`) means a shipped
+  migration was edited. That is a developer mistake and must be caught before release, never by a
+  user whose library suddenly refuses to open;
+- a recorded version the binary does not carry (`VersionMissing`) means the database was written by
+  a newer release. The older binary refuses to touch it and says so, instead of downgrading data.
 
 Neither case resets or rewrites user data. Running the migrator against an up-to-date database is a
 no-op, which is what makes an additive migration safe to install.
 
 A forward migration adds; it does not reinterpret. New tables, columns with defaults, indexes and
-triggers are additive. SQLite cannot alter a `CHECK` or add a foreign key in place, so a constraint
-change is a documented table rebuild inside one migration, never a compatibility reader beside the
-old shape.
+triggers are additive, and a new column that existing rows must answer for is backfilled inside the
+same migration from data already present — not left as a sentinel every reader has to interpret.
+SQLite cannot alter a `CHECK` or add a foreign key in place, so a constraint change is a documented
+table rebuild inside one migration (create, copy, drop, rename, recreate indexes and triggers),
+never a compatibility reader beside the old shape.
+
+Dropping a column or a table deletes someone's content, so it is a product decision with its own
+review, not a cleanup step inside a schema change. Renaming is the same decision in two parts.
+
+Fresh-database tests do not prove an upgrade. A migration is accepted with a test that starts from
+the previously shipped schema, carries representative rows through the new migration and asserts
+both the resulting schema and the surviving data; `docs/release.md` keeps the packaged upgrade pass
+that runs the full history against a real installed library. Immutability itself is a CI gate: the
+Quality workflow fails a pull request that modifies, deletes or renames a migration already present
+on its base branch.
 
 Install the matching SQLx CLI with
 `cargo install sqlx-cli --no-default-features --features sqlite --version 0.8.6 --locked`.
@@ -224,11 +244,10 @@ retries. It has no global batch-completion barrier: another node's long transcri
 new audio analysis from being submitted. Rust retains the analysis/transcription/vision compute lanes.
 The media engine and its cache do not depend on Space node types, model configuration or Vue state.
 
-This is a pre-release contract change, not a compatibility upgrade. The existing job-table definition
-and its checksum change; incompatible development databases are rejected before pool exposure. Old
-media-knowledge payloads are not read, converted, or silently deleted. Use separate development data
-when validating this branch; do not edit `_sqlx_migrations` to bypass validation. Original working
-data must be backed up before any explicit development-data reset.
+The media-knowledge job contract is v1 and shipped. Changing it is a forward migration over the
+existing job rows, not a new checksum for the same baseline: jobs people already have are carried
+over or retired by that migration. Old media-knowledge payloads are never silently reinterpreted,
+and `_sqlx_migrations` is not edited to bypass validation.
 
 ## Cross-resource cleanup
 
@@ -271,8 +290,9 @@ callbacks belong to the current draft lifetime, including reopening the same con
 attachment input is bounded before persistence and before decoding disk data. Draft commands remain domain-shaped; the WebView never receives SQL access.
 Run kinds, authorization principals and knowledge actors distinguish `builtin_agent` from
 `external_agent`; usage purpose uses `builtin_agent`. Model settings name the built-in profile
-`builtinAgent`; message roles retain the standard `assistant` value. These current prerelease
-baselines and strict settings schemas reject obsolete names without aliases or compatibility readers.
+`builtinAgent`; message roles retain the standard `assistant` value. These shipped baselines and
+strict settings schemas carry no aliases or compatibility readers; a renamed value is a forward
+migration over the stored rows, decided like any other schema change.
 `spaces_builtin_agent_execution_segments` freezes the target/profile, execution revision, graph
 version, directory digest and projection cursor. Tasks own stable input IDs, their acceptance and
 control epochs. `spaces_builtin_agent_model_calls` records each admitted main/research/summary request,
@@ -292,7 +312,8 @@ Rust/Python client memory and stdio execution context. Private workspace state b
 reviewed Skills and the Space index snapshot are read-only inputs. Persistent memory is ordinary
 user-visible Space notes managed by explicit Actions. Completed superseded graph segments have a
 30-day retention policy; unmatched orphan threads use the same grace period. Product records and
-published resources retain their existing lifetime. Obsolete prerelease baselines fail explicitly.
+published resources retain their existing lifetime. An incompatible graph identity retires its own
+execution segments, which is disposable execution state and never user content.
 
 ## Local recovery archives
 

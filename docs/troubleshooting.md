@@ -46,13 +46,20 @@ Do not grant a broad default capability. Define the exact paths/origins/commands
 
 Browser-only runtime is not supported. Use `pnpm desktop:dev` so Tauri IPC, window APIs, system locale, capabilities, local credential database and lifecycle behavior are present.
 
-## A development database uses an obsolete baseline
+## The database refuses to open
 
-SQLx installs the current Spaces v1 baseline before the repository pool becomes available. A
-changed checksum means the local development database was created from an obsolete baseline.
+SQLx applies pending migrations before the repository pool becomes available, and refuses a database
+it cannot explain.
 
-Before the first public release, stop Knovum and remove the development `spaces.db` from Tauri's
-AppConfig directory. Do not add a repair migration, compatibility reader, or parallel schema path.
+A changed checksum means a migration that had already shipped was edited. Restore that file: the
+shipped history is frozen, and the fix is a new numbered migration
+([data-ownership.md](data-ownership.md) §Migration policy). A recorded version this binary does not
+carry means the database was written by a newer release — install that release again; do not try to
+make an older binary accept it.
 
-For SQLite changes, `pnpm check:rust` exercises the embedded SQLx baseline against fresh
-in-memory databases.
+Neither case is resolved by deleting a library. Never tell a user to remove `spaces.db`, and never
+add a repair migration, compatibility reader, or parallel schema path.
+
+For SQLite changes, `pnpm check:rust` exercises the embedded SQLx history against fresh in-memory
+databases, and a new migration also carries a test that upgrades the previously shipped schema with
+representative rows in it.

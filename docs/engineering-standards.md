@@ -44,6 +44,7 @@ to prove the feature's contract. The sections below own the implementation and r
 - macOS and Windows behavior are designed separately where platform conventions differ.
 - Long-running Rust work streams through Tauri Channels into the Task Center.
 - Credentials use the dedicated local SQLite database through Rust secret commands.
+- Shipped migrations are immutable. A persisted-schema change is the next numbered migration that carries existing rows forward, with a test that upgrades the previously shipped schema — see [data-ownership.md](data-ownership.md) §Migration policy.
 - Capabilities are least privilege and window-scoped.
 
 ## Names and boundaries

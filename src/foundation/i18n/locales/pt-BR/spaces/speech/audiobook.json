@@ -1,6 +1,6 @@
 {
   "chapterTitle": "Título do capítulo",
-  "configurationInvalid": "Esta revisão de audiolivro de pré-lançamento não possui vínculos de função válidos. Importe ou reconstrua o script e salve uma nova revisão.",
+  "configurationInvalid": "Esta revisão do audiolivro não tem vínculos de papel válidos. Importe ou reconstrua o script e salve uma nova revisão.",
   "lexicon": {
     "title": "Dicionário de pronúncia",
     "hint": "Substitua nomes ou termos pela leitura exata usada durante a síntese.",

@@ -94,8 +94,9 @@ retained backup-maintenance result. Space recovery awaits extension account read
 its retained extension snapshot IDs for lease reconciliation before dispatch. Desktop task producer
 observation is wired by application composition; the desktop hub only merges neutral task snapshots.
 
-Pre-release storage uses strict current baselines. Obsolete formats are rejected or explicitly reset;
-the application does not silently reinterpret them through compatibility readers. Recovery may resume
+Storage uses strict current schemas. A format change ships as a forward migration of the owning
+store; the application does not silently reinterpret stored data through compatibility readers, and
+it does not reset it. Recovery may resume
 only durable work whose identity, source revision, authority, resources, and execution epoch still
 match.
 
@@ -279,8 +280,9 @@ variable names and string/list/map/null values; `iri-string` performs RFC 6570 e
 validation and before dispatch. Personal MCP selection instead freezes user-supplied template values
 as concrete URIs. Neither path permits arbitrary resource URIs. Snapshots retain package revisions as well as
 component, account and catalog revisions, so disabling, updating or uninstalling a package revokes
-its tasks even when it contains no Skills. Obsolete pre-release conversation selections/snapshots
-without package identity are rejected by the strict contracts; there is no compatibility reader.
+its tasks even when it contains no Skills. Every stored conversation selection/snapshot carries
+package identity; a contract change migrates those rows forward instead of adding a compatibility
+reader.
 
 `create_mcp_server` validates a custom service and creates its definition and first disabled
 connection in one SQLite transaction. Additional standalone connections reuse a configured service.

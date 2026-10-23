@@ -386,10 +386,10 @@ its error; a composition owner derives combined errors when several operations f
 Do not mirror one state across stores without an explicit synchronization design. Presentation emits
 intents; the owning capability validates, commits, and projects results.
 
-Before the first public release, Store envelopes, SQLite schemas, packages, and internal protocols
-accept only their current v1 form. Incompatible development data is reset explicitly. Do not add
-compatibility readers or migration chains before persisted compatibility becomes a supported product
-contract.
+Persisted compatibility is a shipped product contract. Store envelopes, SQLite schemas, packages and
+internal protocols are versioned, and a change reaches installed data through a forward migration of
+that store — not through a compatibility reader beside the old shape, and never by resetting what
+somebody already has ([data-ownership.md](data-ownership.md) §Migration policy).
 
 Optional preference fields define absence in the owning schema. Only absence receives that declared
 default; malformed values, unknown fields, missing required records, and unsupported versions remain
