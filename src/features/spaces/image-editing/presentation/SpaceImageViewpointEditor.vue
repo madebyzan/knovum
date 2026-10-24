@@ -141,7 +141,7 @@ function changeZoom(delta: number) {
       <UiButton
         variant="primary"
         size="md"
-        class="min-w-0 flex-1 bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
+        class="min-w-0 flex-1"
         :disabled="busy || !changed || !canRunAction(availability)"
         @click="apply"
         >{{ t("spaces.media.imageEditor.applyNow") }}</UiButton

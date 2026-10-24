@@ -98,9 +98,10 @@ const durationMs = computed(() => (project.value ? projectDurationMs(project.val
         <SkipBack class="size-3.5" />
       </UiIconButton>
       <UiIconButton
-        class="size-8 rounded-full bg-surface-inverse text-fg-inverse hover:bg-surface-inverse-hover hover:text-fg-inverse"
+        class="size-8"
         :label="player.playing.value ? t('common.pause') : t('spaces.media.player.play')"
         size="sm"
+        tone="primary"
         @click="player.toggle"
       >
         <Pause v-if="player.playing.value" class="size-3.5" fill="currentColor" />

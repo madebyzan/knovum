@@ -93,8 +93,13 @@ meaning; UI accent/danger/warning roles remain separate decisions sourced from t
 States mean the named state: `hover` is pointer hover, `pressed` is transient active press, `selected` is
 persistent selection and `inactive` is the explicit inactive component role. Open menus and recent-item
 feedback do not consume pressed paint. Neutral control paint increases from rest to hover to pressed in
-both appearances. Ghost controls start transparent and use the same hover/pressed roles. Primary actions
-use accent-hover/accent-pressed. Solid destructive actions retain their documented opacity treatment.
+both appearances. Ghost controls start transparent and use the same hover/pressed roles. A committing
+action is the solid neutral (`surface-inverse`/`fg-inverse`, hover `surface-inverse-hover`): one
+`UiButton variant="primary"`, or `UiIconButton tone="primary"` where the action is an icon alone — the
+circular send/stop/play disc. Accent is reserved for links, selection, focus and progress; a confirm
+button painted in the brand hue competes with the content and stops marking anything. Call sites must
+not re-paint a primary control, and a surface has at most one. Solid destructive actions retain their
+documented opacity treatment.
 Do not create a complete state matrix where no consumer needs it.
 
 Status foreground, boundary and background decisions remain independent. Repeated weak warning surfaces
@@ -115,8 +120,8 @@ widths for fixed geometry and `duration-100`, `duration-150`, `duration-220` for
 Density-sensitive controls and platform-control exclusion retain product variables; shared interaction and toolbar heights use Tailwind spacing extensions. Tags use the same interaction height as other single-line navigation. Settings entries share `--knovum-setting-min-height` (52px compact / 56px comfortable), retain py-3, and grow when content needs more room.
 Settings and extension lists share `UiSettingsSection` for their raised surface, border and panel radius.
 Extension rows use the same body-lg labels and caption descriptions as preference rows. Category tabs
-use neutral control surfaces; page actions use secondary buttons, with accent reserved for committing
-an operation. Empty search results retain concise, left-aligned guidance.
+use neutral control surfaces; page actions use secondary buttons, with the primary neutral reserved for
+committing an operation. Empty search results retain concise, left-aligned guidance.
 Empty settings collections use `UiSettingsEmptyState` inside `UiSettingsSection`, with a centered
 icon above the message and generous vertical padding, following the Archived Spaces treatment.
 Avoid repeating the page title as a section title.

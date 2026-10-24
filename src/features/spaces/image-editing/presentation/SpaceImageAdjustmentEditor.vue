@@ -130,13 +130,9 @@ function syncActive() {
         @click="emit('cancel')"
         >{{ t("common.cancel") }}</UiButton
       >
-      <UiButton
-        variant="primary"
-        size="sm"
-        class="min-w-0 flex-1 bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
-        @click="emit('apply')"
-        >{{ t("common.apply") }}</UiButton
-      >
+      <UiButton variant="primary" size="sm" class="min-w-0 flex-1" @click="emit('apply')">{{
+        t("common.apply")
+      }}</UiButton>
     </footer>
   </section>
 </template>

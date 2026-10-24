@@ -92,9 +92,6 @@ watch(
           :variant="reference.jobId ? 'ghost' : 'primary'"
           size="sm"
           class="mx-1"
-          :class="
-            !reference.jobId && 'bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90'
-          "
           :disabled="reference.jobId ? reference.isCancelling : !reference.canPrepare"
           :aria-label="referenceActionLabel"
           :title="compact ? referenceActionLabel : undefined"

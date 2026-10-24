@@ -154,22 +154,22 @@ onBeforeUnmount(fileDropListener.dispose);
           :label="$t('spaces.conversation.stop')"
           tooltip
           size="sm"
-          class="bg-surface-accent text-fg-on-accent hover:bg-surface-accent-hover hover:text-fg-on-accent disabled:bg-surface-control disabled:text-fg-secondary"
+          tone="primary"
           :disabled="!cancellable"
           @click="emit('cancel')"
         >
-          <Square class="size-3 fill-current" />
+          <Square class="size-2.5 fill-current" />
         </UiIconButton>
         <UiIconButton
           v-else
           :label="$t('spaces.conversation.input.send')"
           :shortcut="$t('spaces.conversation.input.shortcutHint')"
           size="sm"
-          class="bg-surface-accent text-fg-on-accent hover:bg-surface-accent-hover hover:text-fg-on-accent disabled:bg-surface-control disabled:text-fg-secondary"
+          tone="primary"
           :disabled="!canSend"
           @click="submit()"
         >
-          <ArrowUp class="size-3.5" />
+          <ArrowUp class="size-4" :stroke-width="2.25" />
         </UiIconButton>
       </div>
     </div>
