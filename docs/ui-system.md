@@ -826,6 +826,12 @@ answer; it is never a notice floating at the end of the transcript, and it is ne
 `preparing` (no run yet, models may still be loading) and `generating` stay distinguishable because
 they feel different to wait through.
 
+The waiting line is the opening of a turn and does not come back. That holds because the live text
+is everything the run has written, not the block it is writing: a block boundary separates what came
+before from what comes next, it does not erase it. The stored message is written in batches and read
+when the run settles, so a boundary that cleared the screen left the turn empty — the words
+disappeared and the waiting line returned — until the next block arrived.
+
 The composer carries exactly one action for the answer in flight. Sending becomes stopping while a
 run is producing, with pausing beside it for the runs that can be resumed; there is no second stop
 control in a bar of its own. The three conditions that used to be one `busy` flag are kept apart:

@@ -95,8 +95,14 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
 
   function handleUpdate(update: ConversationTaskUpdate, submitted: number) {
     if (submitted !== generation) return;
+    // A boundary closes a block of the answer, it does not undo it. The stored message that will
+    // hold that block is written in batches and only loaded when the run settles, so clearing the
+    // text here took the words off the screen — and the turn, having nothing left to show, fell
+    // back to waiting until the next block arrived. The live answer is everything the run has
+    // written, blocks separated the way the author separated them.
     if (update.type === "content_delta") state.streamedText.value += update.text;
-    else if (update.type === "content_boundary") state.streamedText.value = "";
+    else if (update.type === "content_boundary" && state.streamedText.value)
+      state.streamedText.value = `${state.streamedText.value.trimEnd()}\n\n`;
   }
 
   function clearPending(messageId: string) {
