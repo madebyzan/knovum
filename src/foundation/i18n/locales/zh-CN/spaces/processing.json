@@ -56,7 +56,10 @@
       "spreadsheetChartRenderingUnsupported": "已提取可用图表文字，未分析图表外观。",
       "legacyOfficeVisualOccurrenceCoverageLimited": "此旧版 Office 格式无法提供完整的图片位置。",
       "legacySpreadsheetFormulasUnavailable": "旧版表格提取缓存值，不提供公式表达式。",
-      "pdfVisualCoverageLimited": "PDF 图片区域来自解析器公开的位置数据；行内图片、矢量图形等内容不保证完整覆盖，完整内容保留在原文件中。"
+      "pdfVisualCoverageLimited": "PDF 图片区域来自解析器公开的位置数据；行内图片、矢量图形等内容不保证完整覆盖，完整内容保留在原文件中。",
+      "pdfVisualOccurrenceCoverageLimited": "该文档的图片数量超过单条覆盖记录可列出的范围，这里描述的是靠前页面的图片。文本提取与检索不受影响，原始文件保留全部内容。",
+      "pdfPageCoverageLimited": "该文档的页数超过单条覆盖记录可描述的范围，逐页覆盖信息在中途停止。文本提取与检索不受影响，原始文件保留全部内容。",
+      "pdfTextCoverageLimited": "文本提取达到单个节点可容纳的上限，其后的页面未被读取。原始文件保留全部内容。"
     }
   },
   "visual": {

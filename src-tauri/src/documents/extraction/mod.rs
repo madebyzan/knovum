@@ -1,6 +1,6 @@
 pub(crate) mod office;
 pub(crate) mod pdf;
-mod pdf_visuals;
+pub(crate) mod pdf_visuals;
 pub(crate) mod text;
 pub(crate) mod visual;
 

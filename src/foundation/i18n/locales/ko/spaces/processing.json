@@ -56,7 +56,10 @@
       "spreadsheetChartRenderingUnsupported": "사용 가능한 차트 텍스트가 추출됩니다. 차트 모양은 분석되지 않습니다.",
       "legacyOfficeVisualOccurrenceCoverageLimited": "이 레거시 Office 형식은 전체 이미지 위치를 노출하지 않습니다.",
       "legacySpreadsheetFormulasUnavailable": "기존 스프레드시트는 수식 표현식이 아닌 캐시된 값을 노출합니다.",
-      "pdfVisualCoverageLimited": "PDF 이미지 영역은 파서의 공개 위치 데이터를 사용합니다. 인라인 이미지와 벡터 그래픽은 완전히 포함되지 않을 수 있습니다. 원본 파일에는 모든 내용이 유지됩니다."
+      "pdfVisualCoverageLimited": "PDF 이미지 영역은 파서의 공개 위치 데이터를 사용합니다. 인라인 이미지와 벡터 그래픽은 완전히 포함되지 않을 수 있습니다. 원본 파일에는 모든 내용이 유지됩니다.",
+      "pdfVisualOccurrenceCoverageLimited": "이 문서에는 커버리지 기록 하나에 담을 수 있는 것보다 많은 이미지가 있어 앞쪽 페이지의 이미지만 기재했습니다. 텍스트 추출과 검색은 그대로이며 원본 파일은 모든 내용을 유지합니다.",
+      "pdfPageCoverageLimited": "이 문서에는 커버리지 기록 하나로 설명할 수 있는 것보다 많은 페이지가 있어 페이지 단위 기록이 도중에 끝납니다. 텍스트 추출과 검색은 그대로이며 원본 파일은 모든 내용을 유지합니다.",
+      "pdfTextCoverageLimited": "텍스트 추출이 노드 하나의 한도에 도달해 이후 페이지는 읽지 않았습니다. 원본 파일은 모든 내용을 유지합니다."
     }
   },
   "visual": {

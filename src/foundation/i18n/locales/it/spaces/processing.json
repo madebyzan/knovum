@@ -56,7 +56,10 @@
       "spreadsheetChartRenderingUnsupported": "Viene estratto il testo del grafico disponibile; l'aspetto del grafico non viene analizzato.",
       "legacyOfficeVisualOccurrenceCoverageLimited": "Questo formato Office legacy non espone le posizioni complete delle immagini.",
       "legacySpreadsheetFormulasUnavailable": "I fogli di calcolo legacy espongono valori memorizzati nella cache, non espressioni di formule.",
-      "pdfVisualCoverageLimited": "Le regioni dell'immagine PDF utilizzano i dati di posizione pubblici del parser. Non è garantito che le immagini in linea e la grafica vettoriale siano completamente coperte; il file originale conserva tutto il contenuto."
+      "pdfVisualCoverageLimited": "Le regioni dell'immagine PDF utilizzano i dati di posizione pubblici del parser. Non è garantito che le immagini in linea e la grafica vettoriale siano completamente coperte; il file originale conserva tutto il contenuto.",
+      "pdfVisualOccurrenceCoverageLimited": "Questo documento contiene più immagini di quante un report di copertura possa elencarne; qui sono descritte quelle delle prime pagine. L'estrazione del testo e la ricerca restano invariate e il file originale conserva tutti i contenuti.",
+      "pdfPageCoverageLimited": "Questo documento contiene più pagine di quante un report di copertura possa descriverne, quindi la copertura per pagina si interrompe prima. L'estrazione del testo e la ricerca restano invariate e il file originale conserva tutti i contenuti.",
+      "pdfTextCoverageLimited": "L'estrazione del testo ha raggiunto il limite di un singolo nodo, quindi le pagine successive non sono state lette. Il file originale conserva tutti i contenuti."
     }
   },
   "visual": {
