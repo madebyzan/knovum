@@ -12,6 +12,11 @@ listed in [platform-matrix.md](platform-matrix.md); visual composition belongs t
   initialization; entry/import/mount failures report to its native Retry/Quit error dialog. A retry
   reloads the existing main WebView and starts a new startup generation. Explicit data maintenance
   holds the deadline while native progress reports the operation. No timer forces an exit.
+- Window reveal and other window mutations run from the async runtime, never inline in a
+  synchronous command callback. On Windows a synchronous command executes on the WebView2 IPC
+  callback, and showing the hidden window from there re-enters the message loop and deadlocks the
+  main thread: the window stops responding and the startup deadline cannot even show its error
+  dialog.
 - A single-instance Rust lifecycle owns reopen, focus, close-to-background, explicit quit, window-state
   persistence, and rotating logs.
 - macOS uses the native Application Menu and menu-bar status item. Windows keeps the native caption and
