@@ -24,6 +24,10 @@ export interface ConversationTurn {
    * Being worked on with nothing written yet, and which of the two waits it is: `preparing` while
    * the question has no run yet — the models it needs may still be loading — and `generating` once
    * a run is producing the answer.
+   *
+   * It is the opening state of a turn and does not come back, because the live text keeps every
+   * block the run has written: once there are words there is something to show until the stored
+   * answer replaces them.
    */
   pending: "preparing" | "generating" | undefined;
 }

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, shallowRef, type Ref } from "vue";
 
-type TaskUpdate = { type: "content_delta"; text: string };
+type TaskUpdate = { type: "content_delta"; text: string } | { type: "content_boundary" };
 
 const ipc = vi.hoisted(() => ({
   getConversationTaskError: vi.fn<(runId: string) => Promise<string | null>>(),
@@ -66,6 +66,28 @@ describe("conversation task settlement", () => {
 
     expect(shownWhileLoading).toEqual(["**Done**"]);
     expect(state.streamedText.value).toBe("");
+  });
+
+  it("keeps every block the run has written when one of them ends", async () => {
+    // The stored message that will hold the first block is written in batches and loaded only when
+    // the run settles. Dropping the block at its boundary emptied the answer on screen, and the
+    // turn fell back to its waiting line until the next block arrived.
+    const shownWhileLoading: string[] = [];
+    ipc.startConversationTask.mockImplementation(async (_request, onUpdate) => {
+      onUpdate({ type: "content_delta", text: "Looking at the Space." });
+      onUpdate({ type: "content_boundary" });
+      onUpdate({ type: "content_delta", text: "Three notes disagree." });
+      return { accepted, settled: Promise.resolve({ type: "finished", state: "succeeded" }) };
+    });
+    const { state, submission } = createSubmission({
+      settled: vi.fn<() => Promise<void>>(async () => {
+        shownWhileLoading.push(state.streamedText.value);
+      }),
+    });
+
+    await submission.send();
+
+    expect(shownWhileLoading).toEqual(["Looking at the Space.\n\nThree notes disagree."]);
   });
 
   it("creates an unsaved Space before anything is written for the conversation", async () => {
