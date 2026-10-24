@@ -10,12 +10,12 @@ import type { RunObservation } from "../contracts/generated/RunObservation";
 import { runStateLabelKey } from "../runs/run-state-label";
 import { useSpaceStore } from "../session/space-store";
 import { resourcePublicationQueryKey } from "./resource-publication-query";
+import { createRunAudience, type RunListener } from "./run-audience";
 import { requestRunControl } from "./run-control";
 import { loadLatestRunFailure } from "./run-failure";
 import { observeRun } from "./run-observation";
 
-type Listener = (run: RunObservation) => void;
-const listenersByRunId = new Map<string, Set<Listener>>();
+const audience = createRunAudience();
 let openVoiceLibrary: (() => Promise<void>) | undefined;
 
 export function registerVoiceLibraryRunNavigation(handler: () => Promise<void>) {
@@ -58,17 +58,9 @@ async function reportRunFailure(
   }
 }
 
-export function observeResourceRun(run: RunObservation, title: string, onUpdate?: Listener) {
-  const existing = listenersByRunId.get(run.id);
-  if (existing) {
-    if (onUpdate) existing.add(onUpdate);
-    return () => {
-      if (onUpdate) existing.delete(onUpdate);
-    };
-  }
-  const listeners = new Set<Listener>();
-  if (onUpdate) listeners.add(onUpdate);
-  listenersByRunId.set(run.id, listeners);
+export function observeResourceRun(run: RunObservation, title: string, onUpdate?: RunListener) {
+  const { listeners, release } = audience.join(run.id, onUpdate);
+  if (!listeners) return release;
   const tasks = useTaskStore();
   tasks.restoreRunning({ id: run.id, title, startedAt: run.createdAt }, () => cancelResourceRun(run.id));
   tasks.setOpen(run.id, () => openResourceRun(run));
@@ -92,16 +84,14 @@ export function observeResourceRun(run: RunObservation, title: string, onUpdate?
     },
     error: (cause) => tasks.fail(run.id, getErrorMessage(cause)),
     finished: () => {
-      listenersByRunId.delete(run.id);
+      audience.leave(run.id);
       refreshCanvas.cancel();
       if (run.scope.kind === "space")
         void queryClient.invalidateQueries({ queryKey: resourcePublicationQueryKey(run.scope.spaceId) });
       refreshRunSpace(run);
     },
   });
-  return () => {
-    if (onUpdate) listeners.delete(onUpdate);
-  };
+  return release;
 }
 
 export async function restoreResourceRuns() {

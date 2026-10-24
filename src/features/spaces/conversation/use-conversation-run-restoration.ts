@@ -120,7 +120,6 @@ export function useConversationRunRestoration(state: ConversationRunRestorationS
       run: active.run,
       title: active.title,
       onUpdate: onRun,
-      location: { spaceId, conversationId: active.conversationId },
     });
     onRun(active.run);
   }

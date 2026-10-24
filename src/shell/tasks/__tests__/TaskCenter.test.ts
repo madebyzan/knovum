@@ -73,6 +73,27 @@ describe("TaskCenter", () => {
     expect(wrapper.getComponent(TaskCenterActivity).props("tasks")).toEqual([baseTask]);
   });
 
+  it("leaves work with its own surface out of the list while it still counts as in flight", () => {
+    // A conversation Run is watched in the conversation it answers. It is in the store so an
+    // update restart waits for it — being in the store is not a reason to show a row for it.
+    const store = useTaskStore();
+    store.tasks.push({
+      id: "run",
+      title: "Compare the notes",
+      status: "running",
+      startedAt: 1,
+      listed: false,
+    });
+    const wrapper = shallowMount(TaskCenter, {
+      global: { stubs: { UiPopover: { template: "<div><slot name='trigger' /><slot /></div>" } } },
+    });
+
+    expect(wrapper.getComponent(TaskCenterActivity).props("tasks")).toEqual([]);
+    expect(wrapper.get('button[aria-label="tasks.summary"]').text()).toContain("0");
+    expect(wrapper.text()).toContain("tasks.empty");
+    expect(store.running).toHaveLength(1);
+  });
+
   it("shows task ownership and keeps durable failures actionable", () => {
     const wrapper = mountActivity([{ ...baseTask, durable: true, retryable: true }]);
 

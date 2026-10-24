@@ -84,7 +84,6 @@
   },
   "tasks": {
     "waitingForResult": "En attendant la fin de l’opération…",
-    "failed": "La tâche de conversation a échoué. Revenez à la conversation pour plus de détails.",
     "paused": "Cette tâche est suspendue. Vous pouvez le continuer lorsque vous êtes prêt.",
     "resume": "Reprendre la tâche",
     "modelOutcomeUnknown": "La demande de modèle s'est terminée sans résultat récupérable. L'exécution attend votre décision.",

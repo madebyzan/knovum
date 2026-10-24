@@ -749,7 +749,13 @@ resources are prepared, and indexing is presented as a separate actual stage bef
 are enabled. Switching Spaces during preparation does not replay the old query in the new Space.
 
 Task Center projects Rust-owned preparation snapshots with the same job identity across WebView
-reloads. It presents measured bytes for downloads and indeterminate verification/installation;
+reloads. It lists work that has nowhere else to be watched — preparation, indexing, derivations,
+exports. Work with its own surface stays off the list: a conversation Run is watched in the
+conversation it is answering, which already shows that it is running, stops it and reports how it
+ended, so a row would be a second and worse copy of that surface. The store still holds it, because
+being in flight is what holds back an update restart; what it does not earn is a row, a badge count
+or a duplicate failure message. It presents measured bytes for downloads and indeterminate
+verification/installation;
 it does not invent a verification percentage or own installation lifetime. Cancel releases one
 request, and retry starts resource preparation without automatically repeating a business mutation.
 Settings uses that same preparation path for optional pre-download and model removal; it is a

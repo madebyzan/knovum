@@ -30,12 +30,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
   const { input, state } = options;
   let generation = 0;
 
-  function observe(
-    task: StartedTask,
-    request: SubmitConversationTaskRequest,
-    selection: Selection,
-    submitted: number,
-  ) {
+  function observe(task: StartedTask, request: SubmitConversationTaskRequest, submitted: number) {
     observeConversationRun({
       run: { id: task.accepted.runId, createdAt: Date.now() },
       title: input.conversation.value?.title || request.prompt.slice(0, 80),
@@ -45,7 +40,6 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
         state.taskState.value = run.state;
         state.activityRevision.value += 1;
       },
-      location: { spaceId: selection.spaceId, conversationId: task.accepted.conversationId },
     });
   }
 
@@ -148,7 +142,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
       accepted = true;
       if (submitted !== generation) return;
       state.activeRunId.value = task.accepted.runId;
-      observe(task, request, selection, submitted);
+      observe(task, request, submitted);
       await settle(task, selection, submitted);
     } catch (reason) {
       if (submitted === generation) {

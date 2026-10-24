@@ -13,11 +13,7 @@ import UiButton from "../../shared/ui/UiButton.vue";
 import SpaceCanvas from "./canvas/presentation/SpaceCanvas.vue";
 import { selectAndRevealSpaceNode } from "./canvas/selection-actions";
 import { useContextDock } from "./canvas/use-context-dock";
-import {
-  registerConversationRunNavigation,
-  restoreConversationRuns,
-} from "./conversation/conversation-run-observation";
-import { useConversationSessionStore } from "./conversation/conversation-session-store";
+import { restoreConversationRuns } from "./conversation/conversation-run-observation";
 import { enrichmentProjectionKey } from "./enrichment/enrichment-projection-key";
 import { useEnrichmentTaskProjection } from "./enrichment/use-enrichment-task-projection";
 import SpaceImageEditLeaveDialog from "./image-editing/presentation/SpaceImageEditLeaveDialog.vue";
@@ -27,7 +23,6 @@ import SpaceLibrary from "./workspace/presentation/library/SpaceLibrary.vue";
 import SpaceEditorSurfaces from "./workspace/presentation/SpaceEditorSurfaces.vue";
 
 const store = useSpaceStore();
-const conversationSession = useConversationSessionStore();
 const workspaceVisible = inject(overlayScopeVisibleKey)!;
 const canvasVisible = computed(() => workspaceVisible.value && store.workbench.canvas);
 const { ready, surface } = storeToRefs(store);
@@ -48,16 +43,6 @@ const enrichmentJobs = useEnrichmentTaskProjection({
   },
 });
 provide(enrichmentProjectionKey, enrichmentJobs);
-const unregisterConversationNavigation = registerConversationRunNavigation(
-  async (spaceId, conversationId) => {
-    await store.openSpace(spaceId);
-    await nextTick();
-    dock.openAsk();
-    await conversationSession.refreshConversations();
-    await conversationSession.selectConversation(conversationId);
-  },
-);
-onBeforeUnmount(unregisterConversationNavigation);
 
 async function initialize() {
   if (initializing.value) return;

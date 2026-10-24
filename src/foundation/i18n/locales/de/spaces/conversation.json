@@ -84,7 +84,6 @@
   },
   "tasks": {
     "waitingForResult": "Warten auf den Abschluss des Vorgangs …",
-    "failed": "Die Konversationsaufgabe ist fehlgeschlagen. Für weitere Einzelheiten kehren Sie zum Gespräch zurück.",
     "paused": "Diese Aufgabe ist pausiert. Sie können damit fortfahren, wenn Sie bereit sind.",
     "resume": "Aufgabe fortsetzen",
     "modelOutcomeUnknown": "Die Modellanfrage endete ohne ein wiederherstellbares Ergebnis. Die Ausführung wartet auf Ihre Entscheidung.",

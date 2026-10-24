@@ -279,7 +279,10 @@ the Run's `cite` id (`C1`, `C2`, …), numbered once per Run in `spaces_run_cita
 row itself. When an answer is stored, its `[Cn]` markers resolve to Grounded citations on the
 message: the marker renders as a link that opens the exact chunk and locator, and the sources the
 answer cited are listed beneath it. A marker the Run never issued stays plain text; a source edited
-after the answer is shown as detached, never silently re-pointed.
+after the answer is shown as detached, never silently re-pointed. An Agent learns this shape in one
+place, the conversation citation policy, and `grounding::evidence::tests` checks the markers that
+policy teaches against the markers the reader resolves: a policy that teaches a different shape
+costs every citation in every answer, silently.
 Generation tools use their configured business routes, independently of the conversation model.
 Only complete checkpoint-proven main messages enter persistent history; in-flight text is a
 presentation stream. Public history remains available when an unsupported or unsuccessful graph
