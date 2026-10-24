@@ -52,10 +52,13 @@ async fn a_rebuild_keeps_the_live_index_until_the_new_generation_is_complete() {
         "generation"
     );
 
+    // A generation is publishable once it has encoded everything the Space currently offers —
+    // here the image's description and the node title the structure contributes.
     sqlx::query(
         "INSERT INTO spaces_chunk_embeddings(\
            generation_id,chunk_id,source_revision,embedding_spec_id,dimensions,updated_at\
-         ) VALUES($1,'c1','r1','spec',2,1)",
+         ) SELECT $1,id,source_revision,'spec',2,1 \
+           FROM spaces_current_knowledge_chunks WHERE space_id='space'",
     )
     .bind(&rebuilt.id)
     .execute(&fixture.pool)
@@ -194,14 +197,14 @@ async fn work_that_needs_the_index_waits_for_the_running_pass() {
 async fn index_state_reads_what_a_search_can_reach_today() {
     let fixture = Fixture::new().await;
 
-    // A Space whose only generation is still being built answers nothing, and the whole Space is
-    // the work left to do.
+    // A Space whose only generation is still being built answers nothing, and the whole Space —
+    // the image's description and the node title the structure contributes — is the work left.
     let building = index_state::measure(&fixture.pool, "space", true, false)
         .await
         .unwrap();
     assert_eq!(
         (building.total, building.indexed, building.pending),
-        (1, 0, 1)
+        (2, 0, 2)
     );
     assert!(!building.searchable && building.rebuilding);
     assert_eq!(building.indexed_at, None);
@@ -209,7 +212,8 @@ async fn index_state_reads_what_a_search_can_reach_today() {
     sqlx::query(
         "INSERT INTO spaces_chunk_embeddings(\
            generation_id,chunk_id,source_revision,embedding_spec_id,dimensions,updated_at\
-         ) VALUES('generation','c1','r1','spec',2,1)",
+         ) SELECT 'generation',id,source_revision,'spec',2,1 \
+           FROM spaces_current_knowledge_chunks WHERE space_id='space'",
     )
     .execute(&fixture.pool)
     .await
@@ -228,7 +232,7 @@ async fn index_state_reads_what_a_search_can_reach_today() {
     let live = index_state::measure(&fixture.pool, "space", true, false)
         .await
         .unwrap();
-    assert_eq!((live.total, live.indexed, live.pending), (1, 1, 0));
+    assert_eq!((live.total, live.indexed, live.pending), (2, 2, 0));
     assert!(live.searchable && !live.rebuilding);
     assert!(live.indexed_at.is_some());
 
@@ -237,7 +241,7 @@ async fn index_state_reads_what_a_search_can_reach_today() {
     let lost = index_state::measure(&fixture.pool, "space", false, true)
         .await
         .unwrap();
-    assert_eq!((lost.total, lost.indexed, lost.pending), (1, 0, 1));
+    assert_eq!((lost.total, lost.indexed, lost.pending), (2, 0, 2));
     assert!(!lost.searchable && lost.rebuilding && lost.indexing);
 
     fixture.pool.close().await;
