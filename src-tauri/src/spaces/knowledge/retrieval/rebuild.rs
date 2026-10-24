@@ -142,11 +142,13 @@ async fn index_with_generation<R: Runtime>(
     };
     let indexed = generation_build::run(
         app,
-        &space_id,
-        node_ids,
+        generation_build::GenerationBuild {
+            space_id: &space_id,
+            node_ids,
+            generation,
+            activate,
+        },
         resources,
-        generation,
-        activate,
         cancellation,
         progress,
     )

@@ -29,16 +29,31 @@ struct KnowledgeChunkSource {
 const BATCH_ENCODE_BUDGET_MS: u64 = 120_000;
 const REBUILD_BATCH_SIZE: usize = 8;
 
+/// What a pass encodes: the generation it writes into, the scope it covers, and whether finishing
+/// it makes that generation the one answering searches. Reusing a live generation fills gaps in
+/// place and publishes nothing; a new generation covers the whole Space and takes over when it is
+/// complete. These four travel together because they are one decision, taken in
+/// [`super::rebuild::index_with_generation`].
+pub(super) struct GenerationBuild<'a> {
+    pub space_id: &'a str,
+    pub node_ids: Option<Vec<String>>,
+    pub generation: IndexGeneration,
+    pub activate: bool,
+}
+
 pub(super) async fn run<R: Runtime>(
     app: AppHandle<R>,
-    space_id: &str,
-    node_ids: Option<Vec<String>>,
+    build: GenerationBuild<'_>,
     resources: preparation::PreparedModels,
-    generation: IndexGeneration,
-    activate: bool,
     cancellation: &CancellationToken,
     progress: super::rebuild::ProgressSink<'_>,
 ) -> Result<usize, String> {
+    let GenerationBuild {
+        space_id,
+        node_ids,
+        generation,
+        activate,
+    } = build;
     let pool = db::pool(&app).await?;
     let mut indexed = 0usize;
     let started = std::time::Instant::now();
