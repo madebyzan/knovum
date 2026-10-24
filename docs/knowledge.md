@@ -23,6 +23,15 @@ recognized or embedded: extraction is the whole contract, and every extracted pi
 viewable and exportable like any other asset (original PNG plus JPEG, WebP and TIFF
 encodings) through the shared export routes.
 Inline images and vector graphics are not guaranteed to be fully covered by this API.
+
+A document is read as far as it goes. Processing budgets bound the work and the record, never the
+document: a PDF with more pictures, pages or text than one coverage record carries is still parsed,
+extracted, chunked and searched, and the record describes it completely up to one page and says so
+(`pdf_visual_occurrence_coverage_limited`, `pdf_page_coverage_limited`, `pdf_text_coverage_limited`).
+That boundary is one page for all of its lists, because a page claiming recognition and the input
+that recognises it are the same fact stated twice; truncating them apart produces a record that does
+not validate. Refusing the document instead — which is what the old 2000-page and 2000-visual
+budgets did, after paying for the full parse — left the Space with nothing of it at all.
 Core Graphics and Windows.Data.Pdf render the selected region directly into a bounded
 bitmap. Coordinates are PDF points, lower-left/y-up in the rotated visible page frame;
 Windows converts to top-left DIPs at 96/72.
