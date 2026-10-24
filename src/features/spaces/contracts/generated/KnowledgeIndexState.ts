@@ -8,4 +8,33 @@
  * `rebuild::index_with_generation` makes — reuse the generation that is answering searches, or
  * start a new one — read out as numbers, so what a person sees is what the next pass will do.
  */
-export type KnowledgeIndexState = { total: number, indexed: number, pending: number, searchable: boolean, rebuilding: boolean, indexing: boolean, indexedAt: number | null, };
+export type KnowledgeIndexState = { 
+/**
+ * Chunks of this Space that carry text worth indexing.
+ */
+total: number, 
+/**
+ * Chunks the generation the next pass will build on has already encoded.
+ */
+indexed: number, 
+/**
+ * Chunks that are new, edited since they were encoded, or still waiting for a rebuild.
+ */
+pending: number, 
+/**
+ * Whether semantic search can answer from this Space at all. False while the very first index
+ * is being built, after the embedding model changed, and when the vector table was lost.
+ */
+searchable: boolean, 
+/**
+ * Whether the next pass re-encodes the whole Space rather than filling the gaps.
+ */
+rebuilding: boolean, 
+/**
+ * Whether a pass holds this Space right now — started here, or by work that needed the index.
+ */
+indexing: boolean, 
+/**
+ * When the generation that answers searches took over.
+ */
+indexedAt: number | null, };
