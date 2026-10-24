@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../foundation/errors/error-format";
+import type { TaskStatus } from "../../foundation/tasks/task-model";
 import { useTaskStore } from "../../foundation/tasks/task-store";
 import type { TaskReference } from "../../shared/contracts/task-reference";
 import UiButton from "../../shared/ui/UiButton.vue";
@@ -26,12 +27,20 @@ const props = withDefaults(
   },
 );
 const store = useTaskStore();
-const { completed, failed, tasks, running } = storeToRefs(store);
+const { tasks } = storeToRefs(store);
 const { t } = useI18n();
 const open = shallowRef(false);
 const filter = shallowRef<TaskFilter>("all");
-const queued = computed(() => tasks.value.filter((task) => task.status === "queued"));
-const attention = computed(() => tasks.value.filter((task) => task.status === "attention"));
+// Work that has its own surface is tracked by the store but belongs there, not here: it is watched
+// where it happens. Every count on this panel is a count of what the panel shows.
+const listed = computed(() => tasks.value.filter((task) => task.listed !== false));
+const byStatus = (status: TaskStatus) =>
+  computed(() => listed.value.filter((task) => task.status === status));
+const running = byStatus("running");
+const queued = byStatus("queued");
+const attention = byStatus("attention");
+const failed = byStatus("failed");
+const completed = byStatus("succeeded");
 const activeCount = computed(() => running.value.length + queued.value.length);
 const activeProgress = computed(() => {
   const taskWithProgress = running.value.find((task) => task.progress !== undefined);
@@ -39,8 +48,8 @@ const activeProgress = computed(() => {
 });
 const visibleTasks = computed(() => {
   const scope = props.currentScope;
-  if (filter.value === "all" || !scope) return tasks.value;
-  return tasks.value.filter((task) => task.scope?.kind === scope.kind && task.scope?.id === scope.id);
+  if (filter.value === "all" || !scope) return listed.value;
+  return listed.value.filter((task) => task.scope?.kind === scope.kind && task.scope?.id === scope.id);
 });
 
 async function openTask(taskId: string) {
@@ -71,7 +80,7 @@ watch(
     <template #trigger>
       <button
         type="button"
-        :aria-label="t('tasks.summary', { count: tasks.length })"
+        :aria-label="t('tasks.summary', { count: listed.length })"
         class="inline-flex h-(--knovum-control-height-md) min-w-(--knovum-control-height-md) items-center justify-center gap-1 rounded-md px-1.5 text-caption text-fg-secondary transition-colors duration-100 ease-standard outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus motion-reduce:transition-none"
       >
         <TaskActivityIndicator v-if="activeCount" :variant="variant" :progress="activeProgress" />
@@ -79,7 +88,7 @@ watch(
         <CircleAlert v-else-if="attention.length" class="size-3 text-fg-secondary" />
         <CircleCheck v-else-if="completed.length" class="size-3 text-fg-success" />
         <ListTodo v-else class="size-3" />
-        <span class="tabular-nums">{{ tasks.length }}</span>
+        <span class="tabular-nums">{{ listed.length }}</span>
         <CircleX v-if="activeCount && failed.length" class="size-3 text-fg-danger" />
       </button>
     </template>

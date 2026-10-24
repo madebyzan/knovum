@@ -84,7 +84,6 @@
   },
   "tasks": {
     "waitingForResult": "In attesa che l’operazione finisca…",
-    "failed": "L'attività di conversazione non è riuscita. Ritorna alla conversazione per i dettagli.",
     "paused": "Questa attività è sospesa. Puoi continuarlo quando sei pronto.",
     "resume": "Riprendi attività",
     "modelOutcomeUnknown": "La richiesta del modello si è conclusa senza un risultato recuperabile. L'esecuzione attende la tua decisione.",

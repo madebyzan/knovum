@@ -13,27 +13,18 @@ const TASK_STATUS_BY_RUN_STATE: Record<RunState, TaskStatus> = {
   cancelled: "cancelled",
 };
 
-export function conversationRunStatusKey(run: Pick<RunObservation, "state" | "waitReason">) {
-  switch (run.waitReason) {
-    case "model_outcome_unknown":
-      return "spaces.conversation.tasks.modelOutcomeUnknown";
-    case "model_response_uncommitted":
-      return "spaces.conversation.tasks.modelResponseUncommitted";
-    case "model_usage_unknown":
-      return "spaces.conversation.tasks.modelUsageUnknown";
-    default:
-      return run.state === "paused"
-        ? "spaces.conversation.tasks.paused"
-        : "spaces.conversation.tasks.waitingForResult";
-  }
-}
-
-export function conversationRunTask(run: RunObservation, title: string, statusMessage: string): AppTask {
+/**
+ * A conversation Run as work in flight. It is deliberately unlisted: the conversation it answers
+ * already shows that it is running, lets it be stopped and reports how it ended, so a Task Center
+ * row would be a second copy of all of it. What the Task Center is still needed for is the fact of
+ * the work — an update restart must not land in the middle of an answer.
+ */
+export function conversationRunTask(run: RunObservation, title: string): AppTask {
   return {
     id: run.id,
     title,
     status: run.waitReason === "executor" ? "running" : TASK_STATUS_BY_RUN_STATE[run.state],
     startedAt: run.createdAt,
-    ...(run.state === "waiting" || run.state === "paused" ? { statusMessage } : {}),
+    listed: false,
   };
 }
