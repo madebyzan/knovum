@@ -56,6 +56,33 @@ jobs:
         with:
           args: -color
 
+  # A shipped migration is a checksum recorded in databases people already have. Editing one makes
+  # their library refuse to open, so the history is append-only: a schema change is the next
+  # numbered file (docs/data-ownership.md §Migration policy).
+  migrations:
+    name: Shipped migrations are immutable
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Reject changes to migrations that already exist on the base branch
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Compare against the fork point, not the base tip: a branch that simply has not caught up
+          # with a new migration on main is behind, not guilty.
+          fork_point=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
+          changed=$(git diff --name-only --diff-filter=MDR "$fork_point" "$HEAD_SHA" -- 'src-tauri/src/**/migrations/*.sql')
+          if [ -n "$changed" ]; then
+            echo "These already-shipped migrations were modified, deleted or renamed:"
+            echo "$changed"
+            echo "Add the next numbered migration instead; a released schema is frozen."
+            exit 1
+          fi
+
   # Licenses are a property of the locked graph, so they gate every change. Advisories are not:
   # they change without the repository changing and are audited by security.yml instead.
   rust-licenses:
