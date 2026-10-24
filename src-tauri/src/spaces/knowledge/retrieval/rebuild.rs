@@ -32,7 +32,10 @@ pub struct KnowledgeIndexingProgress {
 /// A sink for [`KnowledgeIndexingProgress`]. Indexing started by a person is watched in the Task
 /// Center; indexing that a derivation needs on the way to its own output reports nothing, because
 /// that Run already owns the progress the person is watching.
-pub(crate) type ProgressSink<'a> = &'a mut dyn FnMut(KnowledgeIndexingProgress);
+///
+/// A pass is awaited inside a Tauri command and inside a Run step, so the sink crosses `.await`
+/// points on a multi-threaded runtime: it is `Send` like everything else the pass holds.
+pub(crate) type ProgressSink<'a> = &'a mut (dyn FnMut(KnowledgeIndexingProgress) + Send);
 
 /// A pulled token ends the pass with this, so the command layer can report an outcome instead of
 /// a failure.

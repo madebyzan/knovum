@@ -68,6 +68,10 @@ pub(super) async fn measure(
         Some(generation) => count_encoded_chunks(pool, space_id, generation).await?,
         None => 0,
     };
+    let indexed_at = match &active {
+        Some(generation) => generation::activated_at(pool, &generation.id).await?,
+        None => None,
+    };
     Ok(KnowledgeIndexState {
         total: total as u32,
         indexed: indexed.min(total) as u32,
@@ -75,7 +79,7 @@ pub(super) async fn measure(
         searchable: active.is_some(),
         rebuilding: active.is_none() && total > 0,
         indexing,
-        indexed_at: active.and_then(|generation| generation.activated_at),
+        indexed_at,
     })
 }
 
