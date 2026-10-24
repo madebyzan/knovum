@@ -37,6 +37,7 @@ describe("conversation tool activity", () => {
     const items = conversationActivityItems({
       runId: "run",
       labels,
+      live: false,
       messages,
       events: [
         event(
@@ -63,6 +64,7 @@ describe("conversation tool activity", () => {
     const items = conversationActivityItems({
       runId: "run",
       labels,
+      live: false,
       messages: [],
       events: [
         event(
@@ -86,6 +88,7 @@ describe("conversation tool activity", () => {
     const items = conversationActivityItems({
       runId: "run",
       labels,
+      live: false,
       messages: [],
       events: [
         event("conversation_tool_started", { toolCallId: "call", title: "transcribe" }, 1),
@@ -106,11 +109,26 @@ describe("conversation tool activity", () => {
     ]);
   });
 
+  it("leaves the words of a live run to the stream that is already showing them", () => {
+    // The same sentence reaches the screen twice: once from the channel as it is spoken, once from
+    // the ledger a refresh later. While the run is producing, the trace carries its tools only.
+    const events = [
+      event("external_agent_message", { text: "Searching the Space." }, 1),
+      event("conversation_tool_started", { toolCallId: "call", title: "search_knowledge" }, 2),
+    ];
+    const live = conversationActivityItems({ runId: "run", labels, messages: [], events, live: true });
+    const recorded = conversationActivityItems({ runId: "run", labels, messages: [], events, live: false });
+
+    expect(live.map((item) => item.title)).toEqual(["search_knowledge"]);
+    expect(recorded.map((item) => item.title)).toEqual(["Searching the Space.", "search_knowledge"]);
+  });
+
   it("rejects obsolete event fields instead of reading a second payload vocabulary", () => {
     expect(
       conversationActivityItems({
         runId: "run",
         labels,
+        live: false,
         messages: [],
         events: [
           event(
