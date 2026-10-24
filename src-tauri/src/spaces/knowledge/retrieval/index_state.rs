@@ -43,16 +43,25 @@ pub(crate) async fn read<R: Runtime>(
     let pool = db::pool(app).await?;
     let materialised = rebuild::index_is_materialised(app).await?;
     let indexing = indexing_control::is_running(space_id)?;
-    measure(pool, space_id, materialised, indexing).await
+    measure(
+        pool,
+        space_id,
+        embedding::EMBEDDING_SPEC_ID,
+        materialised,
+        indexing,
+    )
+    .await
 }
 
+/// The reading itself, given the facts it cannot observe: which embedding spec is in force, whether
+/// the vector table is there, and whether a pass holds the Space.
 pub(super) async fn measure(
     pool: &SqlitePool,
     space_id: &str,
+    spec: &str,
     materialised: bool,
     indexing: bool,
 ) -> Result<KnowledgeIndexState, String> {
-    let spec = embedding::EMBEDDING_SPEC_ID;
     // Markers without a vector table describe an index that cannot answer anything, which is the
     // one case the next pass re-encodes a Space that looks complete.
     let active = match generation::find_active(pool, space_id, spec).await? {

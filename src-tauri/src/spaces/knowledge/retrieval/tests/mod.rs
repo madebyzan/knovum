@@ -199,7 +199,7 @@ async fn index_state_reads_what_a_search_can_reach_today() {
 
     // A Space whose only generation is still being built answers nothing, and the whole Space —
     // the image's description and the node title the structure contributes — is the work left.
-    let building = index_state::measure(&fixture.pool, "space", true, false)
+    let building = index_state::measure(&fixture.pool, "space", "spec", true, false)
         .await
         .unwrap();
     assert_eq!(
@@ -229,7 +229,7 @@ async fn index_state_reads_what_a_search_can_reach_today() {
     .await
     .unwrap();
 
-    let live = index_state::measure(&fixture.pool, "space", true, false)
+    let live = index_state::measure(&fixture.pool, "space", "spec", true, false)
         .await
         .unwrap();
     assert_eq!((live.total, live.indexed, live.pending), (2, 2, 0));
@@ -238,7 +238,7 @@ async fn index_state_reads_what_a_search_can_reach_today() {
 
     // The vector table is the index; markers alone are a complete-looking index that cannot
     // answer, and the only honest reading of it is a Space the next pass re-encodes whole.
-    let lost = index_state::measure(&fixture.pool, "space", false, true)
+    let lost = index_state::measure(&fixture.pool, "space", "spec", false, true)
         .await
         .unwrap();
     assert_eq!((lost.total, lost.indexed, lost.pending), (2, 0, 2));
