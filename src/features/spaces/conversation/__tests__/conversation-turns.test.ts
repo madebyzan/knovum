@@ -84,7 +84,28 @@ describe("conversation turns", () => {
       streamedText: "Because",
       preparing: false,
     });
-    expect(streaming[0]).toMatchObject({ active: true, pending: undefined, streamedText: "Because" });
+    expect(streaming[0]).toMatchObject({
+      runId: "run-1",
+      active: true,
+      pending: undefined,
+      streamedText: "Because",
+    });
+
+    // When a run is paused or waiting on user approval, it owns the turn and any partial text,
+    // but must not claim to be actively generating.
+    const paused = conversationTurns({
+      messages: sent,
+      activeRunId: "run-1",
+      streamedText: "",
+      preparing: false,
+      producing: false,
+    });
+    expect(paused[0]).toMatchObject({
+      runId: "run-1",
+      active: false,
+      pending: undefined,
+      streamedText: "",
+    });
   });
 
   it("leaves a settled exchange alone while another conversation runs", () => {

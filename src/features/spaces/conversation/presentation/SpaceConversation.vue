@@ -60,6 +60,14 @@ const composerDisabled = computed(
     Boolean(extensionsError.value),
 );
 const running = computed(() => loading.value || Boolean(activeRunId.value));
+const producing = computed(
+  () =>
+    running.value &&
+    (!visibleTaskState.value ||
+      visibleTaskState.value === "queued" ||
+      visibleTaskState.value === "running" ||
+      (visibleTaskState.value === "waiting" && visibleWaitReason.value === "executor")),
+);
 const composerError = computed(() => {
   if (restorationError.value) return restorationError.value;
   if (draftError.value) return draftError.value;
@@ -104,6 +112,7 @@ async function previewAttachment(key: string) {
         :events-by-run-id="eventsByRunId"
         :active-run-id="activeRunId"
         :busy="loading"
+        :producing="producing"
         :has-draft="Boolean(prompt.trim())"
         :preparing="loading && !activeRunId"
         :streamed-text="visibleStreamedText"
