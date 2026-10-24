@@ -84,7 +84,6 @@
   },
   "tasks": {
     "waitingForResult": "正在等待操作完成…",
-    "failed": "對話任務失敗，請回到對話查看詳情。",
     "paused": "任務已暫停，確認後可繼續。",
     "resume": "繼續任務",
     "modelOutcomeUnknown": "模型請求沒有可恢復的結果，執行正在等待你的決定。",

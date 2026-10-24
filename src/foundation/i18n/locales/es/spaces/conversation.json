@@ -84,7 +84,6 @@
   },
   "tasks": {
     "waitingForResult": "Esperando a que termine la operación...",
-    "failed": "La tarea de conversación falló. Regrese a la conversación para más detalles.",
     "paused": "Esta tarea está en pausa. Puedes continuar cuando estés listo.",
     "resume": "Reanudar tarea",
     "modelOutcomeUnknown": "La solicitud del modelo finalizó sin resultado recuperable. La ejecución está esperando su decisión.",

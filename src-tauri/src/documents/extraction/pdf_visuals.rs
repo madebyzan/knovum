@@ -8,6 +8,14 @@ pub(crate) struct PdfVisual {
     pub context: String,
 }
 
+impl PdfVisual {
+    /// The page this picture is on. Visuals are planned page by page, so a list of them is in
+    /// page order and a boundary page splits it where a reader of the document would split it.
+    pub(crate) fn page(&self) -> u32 {
+        self.input.page()
+    }
+}
+
 pub(super) fn plan(
     page: u32,
     reason: Option<&str>,

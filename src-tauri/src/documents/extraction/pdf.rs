@@ -7,7 +7,6 @@ use super::DocumentSegment;
 
 const MAX_SOURCE_BYTES: u64 = 128 * 1024 * 1024;
 const MAX_DOCUMENT_UTF16: usize = 4 * 1024 * 1024;
-const MAX_PAGES: usize = 2_000;
 
 pub(crate) struct PdfDocumentContent {
     pub(crate) preview_text: Option<String>,
@@ -18,6 +17,9 @@ pub(crate) struct PdfDocumentContent {
     pub(crate) pages_with_extracted_text: Vec<u32>,
     pub(crate) pages_without_extractable_content: Vec<u32>,
     pub(crate) visuals: Vec<super::pdf_visuals::PdfVisual>,
+    /// Whether pages were left unread because the document's text passed the budget above. The
+    /// pages that were read are in `pages_with_extracted_text`; the rest are in neither list.
+    pub(crate) text_truncated: bool,
 }
 
 pub(crate) fn extract(
@@ -40,9 +42,6 @@ pub(crate) fn extract(
     if extracted_document.pages.is_empty() {
         return Err("PDF has no pages".into());
     }
-    if extracted_document.pages.len() > MAX_PAGES {
-        return Err("PDF exceeds the 2000-page processing budget".into());
-    }
     let mut text = String::new();
     let positions = pdf_inspector::extract_text_with_positions_mem_in_frame(
         &bytes,
@@ -62,6 +61,7 @@ pub(crate) fn extract(
     let mut empty_pages = Vec::new();
     let mut visuals = Vec::new();
     let mut text_width = 0;
+    let mut text_truncated = false;
     for page in extracted_document.pages {
         ensure_active(cancellation)?;
         let items = positioned_pages
@@ -80,16 +80,17 @@ pub(crate) fn extract(
             empty_pages.push(page.page + 1);
         }
         visuals.extend(planned);
-        if visuals.len() > 2000 {
-            return Err("PDF exceeds the 2000-visual processing budget".into());
-        }
         if page.needs_ocr {
             continue;
         }
-        text_width += page.markdown.encode_utf16().count() + 2;
-        if text_width > MAX_DOCUMENT_UTF16 {
-            return Err("PDF text exceeds the 4 Mi UTF-16 processing budget".into());
+        // The text budget bounds what one node holds, so reading stops here and the pages that
+        // were read say so. Discovery continues: a picture on page 3000 is still found.
+        let width = page.markdown.encode_utf16().count() + 2;
+        if text_width + width > MAX_DOCUMENT_UTF16 {
+            text_truncated = true;
+            continue;
         }
+        text_width += width;
         if !text.is_empty() {
             text.push_str("\n\n");
         }
@@ -113,6 +114,7 @@ pub(crate) fn extract(
         pages_with_extracted_text: text_pages,
         pages_without_extractable_content: empty_pages,
         visuals,
+        text_truncated,
     })
 }
 

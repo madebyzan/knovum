@@ -56,7 +56,10 @@
       "spreadsheetChartRenderingUnsupported": "利用可能なグラフのテキストが抽出されます。チャートの外観は分析されません。",
       "legacyOfficeVisualOccurrenceCoverageLimited": "この従来の Office 形式では、完全な画像位置が公開されません。",
       "legacySpreadsheetFormulasUnavailable": "従来のスプレッドシートは、数式ではなく、キャッシュされた値を公開します。",
-      "pdfVisualCoverageLimited": "PDF 画像領域は、パーサーの公開位置データを使用します。インライン画像とベクターグラフィックスは完全にカバーされているという保証はありません。元のファイルにはすべてのコンテンツが保持されます。"
+      "pdfVisualCoverageLimited": "PDF 画像領域は、パーサーの公開位置データを使用します。インライン画像とベクターグラフィックスは完全にカバーされているという保証はありません。元のファイルにはすべてのコンテンツが保持されます。",
+      "pdfVisualOccurrenceCoverageLimited": "このドキュメントには 1 件のカバレッジ記録に収まらない数の画像があるため、前方のページの画像のみを記載しています。テキスト抽出と検索は通常どおりで、元のファイルはすべての内容を保持します。",
+      "pdfPageCoverageLimited": "このドキュメントには 1 件のカバレッジ記録に収まらない数のページがあるため、ページ単位の記載は途中で終わります。テキスト抽出と検索は通常どおりで、元のファイルはすべての内容を保持します。",
+      "pdfTextCoverageLimited": "テキスト抽出が 1 ノードの上限に達したため、以降のページは読み込まれていません。元のファイルはすべての内容を保持します。"
     }
   },
   "visual": {

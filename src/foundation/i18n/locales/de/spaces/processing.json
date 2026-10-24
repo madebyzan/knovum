@@ -56,7 +56,10 @@
       "spreadsheetChartRenderingUnsupported": "Verfügbarer Diagrammtext wird extrahiert; Das Erscheinungsbild des Diagramms wird nicht analysiert.",
       "legacyOfficeVisualOccurrenceCoverageLimited": "Dieses ältere Office-Format stellt keine vollständigen Bildpositionen zur Verfügung.",
       "legacySpreadsheetFormulasUnavailable": "Ältere Tabellenkalkulationen stellen zwischengespeicherte Werte und keine Formelausdrücke bereit.",
-      "pdfVisualCoverageLimited": "PDF-Bildregionen verwenden die öffentlichen Positionsdaten des Parsers. Es kann nicht garantiert werden, dass Inline-Bilder und Vektorgrafiken vollständig abgedeckt sind. Die Originaldatei behält den gesamten Inhalt."
+      "pdfVisualCoverageLimited": "PDF-Bildregionen verwenden die öffentlichen Positionsdaten des Parsers. Es kann nicht garantiert werden, dass Inline-Bilder und Vektorgrafiken vollständig abgedeckt sind. Die Originaldatei behält den gesamten Inhalt.",
+      "pdfVisualOccurrenceCoverageLimited": "Dieses Dokument enthält mehr Bilder, als ein Abdeckungsbericht auflisten kann; beschrieben sind die Bilder der früheren Seiten. Textextraktion und Suche bleiben unverändert, und die Originaldatei behält den gesamten Inhalt.",
+      "pdfPageCoverageLimited": "Dieses Dokument enthält mehr Seiten, als ein Abdeckungsbericht beschreiben kann; die seitenweise Abdeckung endet vorzeitig. Textextraktion und Suche bleiben unverändert, und die Originaldatei behält den gesamten Inhalt.",
+      "pdfTextCoverageLimited": "Die Textextraktion hat die Grenze eines einzelnen Knotens erreicht; spätere Seiten wurden nicht gelesen. Die Originaldatei behält den gesamten Inhalt."
     }
   },
   "visual": {

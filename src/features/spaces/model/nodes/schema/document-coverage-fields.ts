@@ -35,14 +35,14 @@ const occurrenceSchema = z
         z
           .object({
             kind: z.literal("page"),
-            page: z.number().int().positive().max(2000),
+            page: z.number().int().positive().max(100_000),
             reason: z.enum(["scanned", "suspected_garbled_text", "vector_text"]),
           })
           .strict(),
         z
           .object({
             kind: z.literal("image"),
-            page: z.number().int().positive().max(2000),
+            page: z.number().int().positive().max(100_000),
             rect: z
               .object({
                 x: z.number().finite(),
@@ -65,10 +65,11 @@ export const documentCoverageFieldsSchema = z
     schemaVersion: z.literal(1),
     parser: z.enum(["pdf-inspector", "office-oxide"]),
     sourceRevision: z.string().min(1).max(128),
-    pageCount: z.number().int().positive().max(2000).nullable(),
-    pagesRequiringRecognition: z.array(z.number().int().positive().max(2000)).max(2000),
-    pagesWithExtractedText: z.array(z.number().int().positive().max(2000)).max(2000),
-    pagesWithoutExtractableContent: z.array(z.number().int().positive().max(2000)).max(2000),
+    // A page number is as large as the document is long; the arrays are what one record carries.
+    pageCount: z.number().int().positive().max(100_000).nullable(),
+    pagesRequiringRecognition: z.array(z.number().int().positive().max(100_000)).max(2000),
+    pagesWithExtractedText: z.array(z.number().int().positive().max(100_000)).max(2000),
+    pagesWithoutExtractableContent: z.array(z.number().int().positive().max(100_000)).max(2000),
     resources: z.array(resourceSchema).max(2000),
     occurrences: z.array(occurrenceSchema).max(2000),
     warnings: z
@@ -80,6 +81,9 @@ export const documentCoverageFieldsSchema = z
           "legacy_office_visual_occurrence_coverage_limited",
           "legacy_spreadsheet_formulas_unavailable",
           "pdf_visual_coverage_limited",
+          "pdf_visual_occurrence_coverage_limited",
+          "pdf_page_coverage_limited",
+          "pdf_text_coverage_limited",
         ]),
       )
       .max(16),

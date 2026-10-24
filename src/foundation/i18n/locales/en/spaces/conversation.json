@@ -84,7 +84,6 @@
   },
   "tasks": {
     "waitingForResult": "Waiting for the operation to finish…",
-    "failed": "The conversation task failed. Return to the conversation for details.",
     "paused": "This task is paused. You can continue it when ready.",
     "resume": "Resume task",
     "modelOutcomeUnknown": "The model request ended without a recoverable result. Execution is waiting for your decision.",
