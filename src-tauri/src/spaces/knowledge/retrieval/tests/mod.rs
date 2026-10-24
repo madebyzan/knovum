@@ -146,8 +146,8 @@ async fn a_space_has_one_indexing_pass_at_a_time() {
             CancellationToken::new(),
         )
         .await
-        .unwrap_err(),
-        indexing_control::BUSY
+        .err(),
+        Some(indexing_control::BUSY.to_owned())
     );
 
     // Cancelling names the Space, because that is what a pass belongs to.
