@@ -8,7 +8,7 @@ import type { KnowledgeIndexState } from "../../contracts/generated/KnowledgeInd
  * gap offers nothing to press — a Space that is already searchable has nothing to repair, and a
  * button that re-encodes it anyway is a second entry point that can only disagree with this one.
  */
-export type KnowledgeIndexCondition =
+type KnowledgeIndexCondition =
   /** The Space carries no text worth indexing. */
   | "empty"
   /** A pass holds this Space right now. */
