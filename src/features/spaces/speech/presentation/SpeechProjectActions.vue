@@ -53,7 +53,6 @@ const generationLabelKey = computed(() => {
         data-testid="speech-generate"
         size="sm"
         variant="primary"
-        class="bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
         :disabled="!canGenerate || isSaving || isSubmitting || isGenerating"
         @click="emit('generate')"
       >

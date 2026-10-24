@@ -27,11 +27,14 @@ const props = withDefaults(
   },
 );
 
+// A committing action is the solid neutral — black on light, white on dark, the way a desktop
+// product marks "this is the one thing to press". Accent stays with links, selection and focus:
+// paint it on every confirm button and it stops meaning anything.
 const variantClass = computed(
   () =>
     ({
       primary:
-        "bg-surface-accent text-fg-on-accent hover:bg-surface-accent-hover active:bg-surface-accent-pressed",
+        "bg-surface-inverse text-fg-inverse hover:bg-surface-inverse-hover active:bg-surface-inverse-hover",
       secondary:
         "bg-surface-control text-fg-primary hover:bg-surface-control-hover active:bg-surface-control-pressed",
       ghost:

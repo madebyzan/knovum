@@ -108,7 +108,7 @@ const brushSize = computed({
       <UiButton
         variant="primary"
         size="sm"
-        class="min-w-0 flex-1 bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
+        class="min-w-0 flex-1"
         :disabled="!canGenerate || submitting"
         @click="emit('generate')"
         >{{ t("spaces.media.imageEditor.removeObject.generate") }}</UiButton

@@ -109,7 +109,7 @@ onMounted(async () => {
       <UiButton
         size="sm"
         variant="primary"
-        class="flex-1 bg-surface-inverse text-fg-inverse hover:bg-surface-inverse"
+        class="flex-1"
         :disabled="!selection.canSubmit"
         @click="submit('extract')"
         >{{ t("spaces.media.imageEditor.selection.extract") }}</UiButton

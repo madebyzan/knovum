@@ -96,7 +96,6 @@ watch(
       <UiButton
         :variant="generating ? 'secondary' : 'primary'"
         size="sm"
-        :class="!generating && 'bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90'"
         :disabled="generating ? form.isCancelling : form.busy || !form.ready || form.candidates.length >= 16"
         :data-testid="generating ? 'clone-cancel-audition' : 'clone-generate-audition'"
         @click="generating ? form.cancel() : form.generate()"
