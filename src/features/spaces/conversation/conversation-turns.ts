@@ -38,6 +38,8 @@ export interface ConversationTurnsInput {
   streamedText: string;
   /** A question was sent and no run has been accepted for it yet. */
   preparing: boolean;
+  /** Whether the active run is currently producing rather than paused or waiting on user action. */
+  producing?: boolean | undefined;
 }
 
 /** Whether an answer has anything to put on screen at all. */
@@ -51,20 +53,31 @@ function answerShows(message: ConversationMessage): boolean {
   );
 }
 
+function isInFlightTurn(
+  turn: ConversationTurn | undefined,
+  activeRunId: string | undefined,
+  preparing: boolean,
+): turn is ConversationTurn {
+  if (!turn || (!activeRunId && !preparing)) return false;
+  return turn.runId === undefined || turn.runId === activeRunId;
+}
+
 export function conversationTurns({
   messages,
   activeRunId,
   streamedText,
   preparing,
+  producing = true,
 }: ConversationTurnsInput): ConversationTurn[] {
   const turns = groupTurns(messages);
   const last = turns.at(-1);
   // Only the newest turn can be in flight: a question sent before its run exists has no run id to
   // match, and once it has one the ledger keeps it.
-  const working = Boolean(activeRunId) || preparing;
-  if (!last || !working || (last.runId !== undefined && last.runId !== activeRunId)) return turns;
-  last.active = true;
+  if (!isInFlightTurn(last, activeRunId, preparing)) return turns;
+  last.runId ??= activeRunId;
   last.streamedText = streamedText;
+  if (!producing) return turns;
+  last.active = true;
   if (!streamedText && last.answers.length === 0) last.pending = activeRunId ? "generating" : "preparing";
   return turns;
 }

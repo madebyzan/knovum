@@ -41,6 +41,9 @@ const items = computed(() =>
       })
     : [],
 );
+const runningTool = computed(() =>
+  items.value.some((item) => item.status === "pending" || item.status === "in_progress"),
+);
 
 watch(
   () => props.turn.runId,
@@ -55,10 +58,14 @@ watch(
   <article class="flex min-w-0 flex-col gap-3">
     <SpaceConversationMessage v-if="turn.prompt" :message="turn.prompt" :busy="busy" />
     <div v-if="turn.runId || turn.pending || turn.answers.length" class="flex min-w-0 flex-col gap-3">
-      <SpaceConversationPlan v-if="turn.runId" :events="events" />
+      <SpaceConversationPlan v-if="turn.runId" :events="events" :active="turn.active" />
       <SpaceConversationActivity v-if="items.length" :items="items" :active="turn.active" />
-      <p v-else-if="turn.pending" role="status" class="text-caption text-fg-secondary">
-        <SpaceConversationShimmerText>
+      <p
+        v-if="turn.pending && !runningTool"
+        role="status"
+        class="flex items-center py-1 text-caption text-fg-secondary"
+      >
+        <SpaceConversationShimmerText indicator>
           {{
             $t(
               turn.pending === "preparing"

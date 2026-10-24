@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronRight, Circle, Wrench } from "@lucide/vue";
+import { Check, ChevronRight, Circle, Wrench } from "@lucide/vue";
 import { ref } from "vue";
 import { z } from "zod";
 
@@ -49,7 +49,7 @@ function toggleTool(event: Event) {
   >
     <component
       :is="hasToolContent(item) ? 'summary' : 'div'"
-      class="flex list-none items-center gap-2 rounded-md py-1"
+      class="flex list-none items-center gap-2 rounded-md py-1 [&::-webkit-details-marker]:hidden"
       :class="
         hasToolContent(item)
           ? 'cursor-pointer select-none hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus'
@@ -64,7 +64,8 @@ function toggleTool(event: Event) {
         "
         class="size-3.5 shrink-0 text-fg-danger"
       />
-      <Wrench v-else class="size-3.5 shrink-0" />
+      <Check v-else-if="item.status === 'completed'" class="size-3.5 shrink-0 text-fg-tertiary" />
+      <Wrench v-else class="size-3.5 shrink-0 text-fg-secondary" />
       <SpaceConversationShimmerText
         v-if="active && (item.status === 'in_progress' || item.status === 'pending')"
         class="min-w-0 truncate"
@@ -79,7 +80,7 @@ function toggleTool(event: Event) {
       >
       <ChevronRight
         v-if="hasToolContent(item)"
-        class="size-3.5 shrink-0 transition-transform group-open/tool:rotate-90"
+        class="size-3.5 shrink-0 text-fg-tertiary transition-transform duration-150 group-open/tool:rotate-90"
       />
     </component>
     <div v-if="expanded && hasToolContent(item)" class="min-w-0 pb-1 pl-5 text-fg-tertiary">

@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { Check, Circle, LoaderCircle } from "@lucide/vue";
+import { Check, Circle } from "@lucide/vue";
 import { computed } from "vue";
 import { z } from "zod";
 
 import type { AgentPlanItem } from "../../contracts/generated/AgentPlanItem";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
+import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 
-const props = defineProps<{ events: readonly RunEvent[] }>();
+const props = defineProps<{ events: readonly RunEvent[]; active?: boolean }>();
 const planPayload = z.strictObject({
   items: z.array(
     z.strictObject({ content: z.string(), state: z.enum(["pending", "in_progress", "completed"]) }),
@@ -22,14 +23,18 @@ const plan = computed<AgentPlanItem[]>(() => {
 <template>
   <section
     v-if="plan.length"
-    class="mt-3 space-y-1 border-l border-stroke-divider pl-3 text-caption text-fg-secondary"
+    class="space-y-1 border-l border-stroke-divider pl-3 text-caption text-fg-secondary"
     :aria-label="$t('spaces.conversation.activity.plan')"
   >
     <div v-for="(item, index) in plan" :key="index" class="flex items-start gap-2 py-1">
-      <Check v-if="item.state === 'completed'" class="mt-0.5 size-3 shrink-0" />
-      <LoaderCircle v-else-if="item.state === 'in_progress'" class="mt-0.5 size-3 shrink-0" />
-      <Circle v-else class="mt-0.5 size-3 shrink-0" />
-      <span>{{ item.content }}</span>
+      <SpaceConversationShimmerText v-if="active && item.state === 'in_progress'" indicator>
+        {{ item.content }}
+      </SpaceConversationShimmerText>
+      <template v-else>
+        <Check v-if="item.state === 'completed'" class="mt-0.5 size-3.5 shrink-0 text-fg-tertiary" />
+        <Circle v-else class="mt-0.5 size-3.5 shrink-0 text-fg-tertiary" />
+        <span :class="item.state === 'completed' ? 'text-fg-tertiary' : ''">{{ item.content }}</span>
+      </template>
     </div>
   </section>
 </template>

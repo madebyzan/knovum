@@ -835,10 +835,11 @@ disappeared and the waiting line returned — until the next block arrived.
 Those words reach the view twice: from the channel as they are spoken, and from the run ledger a
 refresh later, where they are recorded between the tools they explain. One owner at a time. While a
 run is producing, the live stream shows its words and the activity trace carries its tools alone;
-once it settles the stream is cleared, the answer is the stored message, and the trace — collapsed —
-holds the commentary back in its place in the record. Shimmer marks text that is there and is still
-being worked on, the trace summary while tools run; it is never a line that appears and disappears
-in time with the writing.
+once tools finish, the trace settles and collapses so focus moves to the answer, and once the run
+settles the stream is cleared and the trace holds the commentary back in its place in the record.
+Active turn status lines (preparing, generating, active tool execution, and in-progress plan steps)
+pair the 3-stroke breathing mark with neutral foreground shimmer in a stable `size-3.5` leading
+slot so settling into a checkmark never shifts the label horizontally.
 
 The composer carries exactly one action for the answer in flight. Sending becomes stopping while a
 run is producing, with pausing beside it for the runs that can be resumed; there is no second stop

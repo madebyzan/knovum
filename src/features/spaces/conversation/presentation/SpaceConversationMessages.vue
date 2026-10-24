@@ -17,6 +17,7 @@ const props = defineProps<{
   busy: boolean;
   hasDraft: boolean;
   preparing: boolean;
+  producing?: boolean | undefined;
   streamedText: string;
   hasOlder: boolean;
   loadingOlder: boolean;
@@ -37,6 +38,7 @@ const turns = computed(() =>
     activeRunId: props.activeRunId,
     streamedText: props.streamedText,
     preparing: props.preparing,
+    producing: props.producing,
   }),
 );
 const scroller = useTemplateRef<HTMLDivElement>("scroller");
