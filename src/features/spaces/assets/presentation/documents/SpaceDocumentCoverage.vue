@@ -57,6 +57,10 @@ const MESSAGE_KEY_BY_WARNING: Record<DocumentWarning, string> = {
   legacy_spreadsheet_formulas_unavailable:
     "spaces.processing.document.warnings.legacySpreadsheetFormulasUnavailable",
   pdf_visual_coverage_limited: "spaces.processing.document.warnings.pdfVisualCoverageLimited",
+  pdf_visual_occurrence_coverage_limited:
+    "spaces.processing.document.warnings.pdfVisualOccurrenceCoverageLimited",
+  pdf_page_coverage_limited: "spaces.processing.document.warnings.pdfPageCoverageLimited",
+  pdf_text_coverage_limited: "spaces.processing.document.warnings.pdfTextCoverageLimited",
 };
 </script>
 

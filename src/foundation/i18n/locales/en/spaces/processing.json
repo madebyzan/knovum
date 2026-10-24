@@ -56,7 +56,10 @@
       "spreadsheetChartRenderingUnsupported": "Available chart text is extracted; chart appearance is not analyzed.",
       "legacyOfficeVisualOccurrenceCoverageLimited": "This legacy Office format does not expose complete image positions.",
       "legacySpreadsheetFormulasUnavailable": "Legacy spreadsheets expose cached values, not formula expressions.",
-      "pdfVisualCoverageLimited": "PDF image regions use the parser's public position data. Inline images and vector graphics are not guaranteed to be fully covered; the original file retains all content."
+      "pdfVisualCoverageLimited": "PDF image regions use the parser's public position data. Inline images and vector graphics are not guaranteed to be fully covered; the original file retains all content.",
+      "pdfVisualOccurrenceCoverageLimited": "This document holds more pictures than one coverage record lists, so the pictures described here are those of its earlier pages. Text extraction and search cover the document as usual, and the original file retains all content.",
+      "pdfPageCoverageLimited": "This document holds more pages than one coverage record describes, so page-level coverage stops partway. Text extraction and search cover the document as usual, and the original file retains all content.",
+      "pdfTextCoverageLimited": "Text extraction reached the limit of what one node holds, so later pages were not read. The original file retains all content."
     }
   },
   "visual": {

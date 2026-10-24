@@ -1,6 +1,8 @@
 use std::collections::BTreeSet;
 
-use super::{DocumentCoverage, DocumentParser};
+use super::{
+    DocumentCoverage, DocumentParser, MAX_COVERED_PAGES, MAX_COVERED_VISUALS, MAX_PAGE_COUNT,
+};
 use crate::documents::pdf_input::PdfInput;
 
 pub(super) fn validate(report: &DocumentCoverage) -> Result<(), String> {
@@ -9,9 +11,9 @@ pub(super) fn validate(report: &DocumentCoverage) -> Result<(), String> {
         || report.source_revision.len() > 128
         || report
             .page_count
-            .is_some_and(|count| count == 0 || count > 2000)
-        || report.resources.len() > 2000
-        || report.occurrences.len() > 2000
+            .is_some_and(|count| count == 0 || count > MAX_PAGE_COUNT)
+        || report.resources.len() > MAX_COVERED_VISUALS
+        || report.occurrences.len() > MAX_COVERED_VISUALS
     {
         return Err("Document coverage exceeds its contract".into());
     }
@@ -29,6 +31,9 @@ pub(super) fn validate(report: &DocumentCoverage) -> Result<(), String> {
                     | "legacy_office_visual_occurrence_coverage_limited"
                     | "legacy_spreadsheet_formulas_unavailable"
                     | "pdf_visual_coverage_limited"
+                    | "pdf_visual_occurrence_coverage_limited"
+                    | "pdf_page_coverage_limited"
+                    | "pdf_text_coverage_limited"
             )
         })
     {
@@ -52,6 +57,9 @@ fn validate_pages(report: &DocumentCoverage) -> Result<(), String> {
                 );
             }
         }
+    }
+    if claimed.len() > MAX_COVERED_PAGES {
+        return Err("PDF coverage describes more pages than one record carries".into());
     }
     validate_recognition_inputs(report)
 }

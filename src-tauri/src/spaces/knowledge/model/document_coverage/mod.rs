@@ -8,6 +8,13 @@ pub(crate) const MAX_RESOURCE_BYTES: u64 = 32 * 1024 * 1024;
 pub(crate) const MAX_TOTAL_RESOURCE_BYTES: u64 = 256 * 1024 * 1024;
 pub(crate) const MAX_RESOURCE_PIXELS: u64 = 24_000_000;
 pub(crate) const MAX_RESOURCE_DIMENSION: u32 = 16_384;
+/// What one coverage record carries. A document larger than this is read and indexed all the same;
+/// the record keeps the first of its pictures and pages and warns that it is partial, because a
+/// provenance record that grows with the document would be paid for on every read of the node.
+pub(crate) const MAX_COVERED_VISUALS: usize = 2_000;
+pub(crate) const MAX_COVERED_PAGES: usize = 2_000;
+/// A page count beyond this is not a long document, it is a broken one.
+pub(crate) const MAX_PAGE_COUNT: usize = 100_000;
 
 #[derive(Clone, Copy, PartialEq, Deserialize, Serialize)]
 pub(crate) enum DocumentParser {
