@@ -29,7 +29,9 @@ fn a_document_longer_than_one_record_is_described_up_to_one_page() {
         pages_requiring_recognition: (1..=pages).collect(),
         pages_with_extracted_text: Vec::new(),
         pages_without_extractable_content: Vec::new(),
-        visuals: (1..=pages).flat_map(|page| [recognition(page), recognition(page)]).collect(),
+        visuals: (1..=pages)
+            .flat_map(|page| [recognition(page), recognition(page)])
+            .collect(),
         text_truncated: true,
     };
 
@@ -38,7 +40,10 @@ fn a_document_longer_than_one_record_is_described_up_to_one_page() {
     let boundary = MAX_COVERED_VISUALS as u32 / 2 + 1;
     assert_eq!(covered.visuals.len(), (boundary as usize - 1) * 2);
     assert_eq!(covered.recognition, (1..boundary).collect::<Vec<_>>());
-    assert!(covered.visuals.iter().all(|visual| visual.page() < boundary));
+    assert!(covered
+        .visuals
+        .iter()
+        .all(|visual| visual.page() < boundary));
     assert_eq!(
         covered.warnings,
         [
