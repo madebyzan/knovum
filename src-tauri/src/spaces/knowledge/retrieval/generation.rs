@@ -4,12 +4,13 @@ use crate::spaces::db;
 
 pub(super) const REBUILD_REQUIRED: &str = "knowledge-semantic-index-rebuild-required";
 
+/// Which embedding generation a vector belongs to. This is an identity — searching and writing
+/// name a generation, they do not read its row — so its lifecycle (when it was built, when it took
+/// over) is read where it is reported, not carried along.
 #[derive(Debug, Clone)]
 pub(super) struct IndexGeneration {
     pub id: String,
     pub embedding_spec_id: String,
-    /// When this generation took over answering searches; `None` while it is still being built.
-    pub activated_at: Option<i64>,
 }
 
 pub(super) async fn active(
@@ -40,6 +41,19 @@ pub(super) async fn find_building(
     find_with_status(pool, space_id, embedding_spec_id, "building").await
 }
 
+/// When the given generation took over answering searches; `None` while it is still being built.
+pub(super) async fn activated_at(
+    pool: &SqlitePool,
+    generation_id: &str,
+) -> Result<Option<i64>, String> {
+    sqlx::query_scalar("SELECT activated_at FROM spaces_retrieval_generations WHERE id=$1")
+        .bind(generation_id)
+        .fetch_optional(pool)
+        .await
+        .map(Option::flatten)
+        .map_err(db::sql_error)
+}
+
 async fn find_with_status(
     pool: &SqlitePool,
     space_id: &str,
@@ -47,7 +61,7 @@ async fn find_with_status(
     status: &str,
 ) -> Result<Option<IndexGeneration>, String> {
     let row = sqlx::query(
-        "SELECT id,embedding_spec_id,activated_at FROM spaces_retrieval_generations \
+        "SELECT id,embedding_spec_id FROM spaces_retrieval_generations \
          WHERE space_id=$1 AND status=$2",
     )
     .bind(space_id)
@@ -70,7 +84,7 @@ pub(super) async fn begin_rebuild(
 ) -> Result<IndexGeneration, String> {
     let mut tx = db::begin_write(pool).await?;
     let existing = sqlx::query(
-        "SELECT id,embedding_spec_id,activated_at FROM spaces_retrieval_generations \
+        "SELECT id,embedding_spec_id FROM spaces_retrieval_generations \
          WHERE space_id=$1 AND status='building'",
     )
     .bind(space_id)
@@ -98,7 +112,6 @@ pub(super) async fn begin_rebuild(
     let generation = IndexGeneration {
         id: uuid::Uuid::new_v4().to_string(),
         embedding_spec_id: embedding_spec_id.to_owned(),
-        activated_at: None,
     };
     let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query(
@@ -192,6 +205,5 @@ fn decode(row: sqlx::sqlite::SqliteRow) -> Result<IndexGeneration, String> {
     Ok(IndexGeneration {
         id: row.try_get("id").map_err(db::sql_error)?,
         embedding_spec_id: row.try_get("embedding_spec_id").map_err(db::sql_error)?,
-        activated_at: row.try_get("activated_at").map_err(db::sql_error)?,
     })
 }
