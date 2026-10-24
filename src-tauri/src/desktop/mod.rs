@@ -68,8 +68,12 @@ pub fn set_workspace_menu_state<R: Runtime>(
     Ok(())
 }
 
+// A synchronous command runs inline on the webview IPC callback, and revealing the hidden window
+// from there re-enters the Windows WebView2 message loop and leaves the main thread unresponsive.
+// The async runtime runs this command on a worker thread, so Tauri posts the window operations to
+// the event loop instead.
 #[tauri::command]
-pub fn open_main_window<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError> {
+pub async fn open_main_window<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError> {
     let reveal = || -> Result<(), String> {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         tray::ensure_installed(&app, crate::preferences::LocalePreference::English)
