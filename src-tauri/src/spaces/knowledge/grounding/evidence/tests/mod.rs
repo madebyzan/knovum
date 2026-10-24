@@ -107,3 +107,34 @@ fn markers_are_bracketed_c_numbers() {
         vec![3, 12, 7]
     );
 }
+
+#[test]
+fn an_agent_is_taught_the_markers_this_reader_resolves() {
+    // The citation policy is the only place an Agent learns how to cite. It once taught plain
+    // numbers — `[2]` — while this reader has always resolved `[C2]`, so every answer written to
+    // the letter of the policy arrived with no citations at all. Both ends of that contract are
+    // in this repository; they are checked against each other rather than against a screenshot.
+    let policy = crate::spaces::conversations::prompt_policy::CONVERSATION_CITATIONS;
+    let taught = bracketed(policy);
+    assert!(
+        !taught.is_empty(),
+        "the policy must show an Agent what a marker looks like"
+    );
+    for marker in taught {
+        assert!(
+            !markers(&marker).is_empty(),
+            "the policy teaches {marker}, which this reader does not resolve"
+        );
+    }
+}
+
+/// Every `[…]` the policy spells out as an example marker.
+fn bracketed(policy: &str) -> Vec<String> {
+    policy
+        .match_indices('[')
+        .filter_map(|(start, _)| {
+            let end = policy[start..].find(']')?;
+            Some(policy[start..=start + end].to_owned())
+        })
+        .collect()
+}
