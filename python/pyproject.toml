@@ -12,7 +12,7 @@ requires-python = "==3.11.17"
 dependencies = [
   "deepagents==0.7.22",
   "langgraph==1.2.14",
-  "langgraph-checkpoint-sqlite==3.1.1",
+  "langgraph-checkpoint-sqlite==3.1.2",
   "langchain-openai==1.6.7",
   "langchain-anthropic==1.7.5",
   "langchain-google-genai==4.4.0",
