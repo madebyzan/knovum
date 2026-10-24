@@ -52,13 +52,15 @@ type ActivityState = {
   indexByCallId: Map<string, number>;
   progressByCallId: Map<string, ToolProgress>;
   commentary: string;
+  live: boolean;
 };
 type ToolLabels = { action: (actionId: string) => string; default: string };
 
 function appendCommentary(state: ActivityState, event: RunEvent) {
-  if (!state.commentary.trim()) return;
-  state.items.push({ id: `text:${event.sequence}`, title: state.commentary.trim(), status: "commentary" });
+  const text = state.commentary.trim();
   state.commentary = "";
+  if (!text || state.live) return;
+  state.items.push({ id: `text:${event.sequence}`, title: text, status: "commentary" });
 }
 
 function toolTitle(
@@ -118,15 +120,29 @@ interface ConversationActivityInput {
   messages: readonly ConversationMessage[];
   runId: string;
   labels: ToolLabels;
+  /**
+   * Whether the run is still producing. While it is, the words it has spoken are on screen from
+   * the live stream, which has them first and in full; the ledger is recording the same words and
+   * would show them a second time, a refresh behind. A finished run is read from the ledger alone,
+   * where the commentary is back in place between the tools it explains.
+   */
+  live: boolean;
 }
 
-export function conversationActivityItems({ events, messages, runId, labels }: ConversationActivityInput) {
+export function conversationActivityItems({
+  events,
+  messages,
+  runId,
+  labels,
+  live,
+}: ConversationActivityInput) {
   const outputByCallId = toolOutputs(messages, runId);
   const state: ActivityState = {
     items: [],
     indexByCallId: new Map(),
     progressByCallId: new Map(),
     commentary: "",
+    live,
   };
   for (const event of events) {
     if (event.kind === "external_agent_message") {

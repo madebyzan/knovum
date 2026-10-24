@@ -37,6 +37,7 @@ const items = computed(() =>
           action: (actionId) => spaceActionLabel(actionId),
           default: t("spaces.conversation.activity.tool"),
         },
+        live: props.turn.active,
       })
     : [],
 );
@@ -76,7 +77,11 @@ watch(
         @branch="emit('branch', answer)"
         @regenerate="emit('regenerate', answer)"
       />
-      <!-- The first words of an answer arrive before the message that will hold them exists. -->
+      <!--
+        What the run has written so far. Until it settles this is the only copy: the ledger is
+        recording the same words for the trace, a refresh behind, and showing both put the same
+        sentence on screen twice.
+      -->
       <UiMarkdown
         v-if="turn.streamedText && !turn.answers.length"
         :content="turn.streamedText"
