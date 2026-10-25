@@ -1,4 +1,4 @@
-use serde_json::{json, Value};
+use serde_json::json;
 use sqlx::SqlitePool;
 
 use super::resolve;
@@ -10,28 +10,11 @@ use crate::spaces::{
     structure::repository,
 };
 
-fn turned() -> Value {
-    json!({
-        "version": 1,
-        "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0},
-        "rotation": 90.0,
-        "flipHorizontal": false,
-        "flipVertical": false,
-        "adjustments": {
-            "exposure": 0.0, "contrast": 0.0, "highlights": 0.0,
-            "shadows": 0.0, "whites": 0.0, "blacks": 0.0,
-            "saturation": 0.0, "warmth": 0.0, "sharpness": 0.0,
-            "vignette": 0.0, "vibrance": 0.0, "tint": 0.0,
-            "clarity": 0.0, "grain": 0.0, "softLight": 0.0, "glow": 0.0
-        },
-    })
-}
-
 /// A completed `action` that read `source` as it was edited then, and published `output`.
 async fn derived(action: &str) -> SqlitePool {
     let pool = crate::spaces::derivation::tests::running_action_pool("job").await;
     let mut source = json!({"kind":"image","title":"Source","fileName":"source.png",
-        "assetPath":"/owned/source.png","sourceRevision":"asset:1","imageEdit":turned()});
+        "assetPath":"/owned/source.png","sourceRevision":"asset:1","imageEdit":crate::images::quarter_turn_edit()});
     revision::apply(&mut source).unwrap();
     let mut output = json!({"kind":"image","title":"Output","fileName":"output.png",
         "assetPath":"/owned/output.png","sourceRevision":"asset:2"});

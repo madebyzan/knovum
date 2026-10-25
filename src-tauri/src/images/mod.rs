@@ -8,6 +8,8 @@ pub(crate) use background_removal::remove_background;
 pub(crate) use edited::render_source_as;
 pub(crate) use edited::render_source_png;
 pub(crate) use edited::render_source_png_within;
+#[cfg(test)]
+pub(crate) use edited::tests::quarter_turn as quarter_turn_edit;
 pub(crate) use edited::validate_edit;
 pub(crate) use edited::Encoding;
 

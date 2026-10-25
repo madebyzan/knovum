@@ -133,35 +133,10 @@ async fn resetting_image_edits_replaces_the_visual_job_through_the_node_update_p
     use crate::spaces::{assets::enrichment::jobs, nodes::contracts::NodeContentChange};
     let pool = sqlx::SqlitePool::connect("sqlite::memory:").await.unwrap();
     crate::spaces::db::migrate(&pool).await.unwrap();
-    let adjustments: serde_json::Map<String, serde_json::Value> = [
-        "exposure",
-        "contrast",
-        "highlights",
-        "shadows",
-        "whites",
-        "blacks",
-        "saturation",
-        "warmth",
-        "sharpness",
-        "vignette",
-        "vibrance",
-        "tint",
-        "clarity",
-        "grain",
-        "softLight",
-        "glow",
-    ]
-    .into_iter()
-    .map(|key| (key.to_owned(), json!(0.0)))
-    .collect();
     let mut before = json!({
         "kind":"image", "title":"Picture", "sourceRevision":"asset-1",
         "assetPath":"/assets/picture.png", "fileName":"picture.png",
-        "imageEdit":{
-            "version":1, "crop":{"x":0.0,"y":0.0,"width":1.0,"height":1.0},
-            "rotation":90.0,"flipHorizontal":false,"flipVertical":false,
-            "adjustments":adjustments
-        }
+        "imageEdit":crate::images::quarter_turn_edit()
     });
     crate::spaces::knowledge::model::revision::apply(&mut before).unwrap();
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
