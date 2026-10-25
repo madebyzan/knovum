@@ -1,0 +1,95 @@
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import { flushPromises, mount } from "@vue/test-utils";
+import { ToolbarRoot } from "reka-ui";
+import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
+import { defineComponent, h } from "vue";
+
+import type { prepareDerivationComparison } from "../../knowledge-derivations/comparison/comparison-commands";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import type { SpaceImagePayload } from "../../model/nodes/node-payload";
+import SpaceCanvasImageComparisonAction from "../presentation/images/SpaceCanvasImageComparisonAction.vue";
+
+const mocks = vi.hoisted(() => ({
+  comparable: vi.fn<(nodeId: string) => Promise<boolean>>(),
+  prepare: vi.fn<typeof prepareDerivationComparison>(),
+}));
+vi.mock("../../knowledge-derivations/comparison/comparison-commands", () => ({
+  isDerivationComparable: mocks.comparable,
+  prepareDerivationComparison: mocks.prepare,
+}));
+vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+
+function image(id: string, sourceRevision: string): SpaceCanvasNode<SpaceImagePayload> {
+  return {
+    id,
+    type: "image",
+    initialPosition: { x: 0, y: 0 },
+    data: { kind: "image", title: id, fileName: `${id}.png`, assetPath: `/${id}.png`, sourceRevision },
+  };
+}
+const output = image("output", "asset:output");
+const source = image("source", "asset:source");
+vi.mock("../../session/space-store", () => ({
+  useSpaceStore: () => ({
+    nodes: [source, output],
+    relations: [{ id: "lineage", kind: "derives-from", sourceId: "output", targetId: "source" }],
+  }),
+}));
+
+const Dialog = defineComponent({
+  name: "SpaceDerivationComparisonDialog",
+  props: ["open", "output", "input", "error"],
+  setup: () => () => h("div"),
+});
+
+function render() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrapper = mount(
+    defineComponent({
+      setup: () => () =>
+        h(ToolbarRoot, () => h(SpaceCanvasImageComparisonAction, { node: output, compact: false })),
+    }),
+    {
+      global: {
+        plugins: [[VueQueryPlugin, { queryClient }]],
+        stubs: {
+          SpaceDerivationComparisonDialog: Dialog,
+          UiTooltip: { props: ["text", "disabled", "side"], template: "<slot />" },
+        },
+      },
+    },
+  );
+  onTestFinished(() => {
+    wrapper.unmount();
+    queryClient.clear();
+  });
+  return wrapper;
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.prepare.mockResolvedValue({ path: "/cache/input.png", revision: "rendered1:input" });
+});
+
+it("offers nothing on an image whose derivation does not lay over its source", async () => {
+  mocks.comparable.mockResolvedValue(false);
+  const wrapper = render();
+  await flushPromises();
+  expect(mocks.comparable).toHaveBeenCalledWith("output");
+  expect(wrapper.find("button").exists()).toBe(false);
+});
+
+it("prepares the input only once the comparison is opened", async () => {
+  mocks.comparable.mockResolvedValue(true);
+  const wrapper = render();
+  await flushPromises();
+  expect(mocks.prepare).not.toHaveBeenCalled();
+
+  await wrapper.get("button").trigger("click");
+  await flushPromises();
+
+  expect(mocks.prepare).toHaveBeenCalledWith("output");
+  const dialog = wrapper.getComponent(Dialog);
+  expect(dialog.props("open")).toBe(true);
+  expect(dialog.props("input")).toEqual({ path: "/cache/input.png", revision: "rendered1:input" });
+});

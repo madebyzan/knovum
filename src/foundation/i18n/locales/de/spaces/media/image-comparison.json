@@ -1,0 +1,10 @@
+{
+  "title": "Mit Original vergleichen",
+  "hint": "Ziehen Sie den Trenner, um zu vergleichen. Scrollen zum Zoomen, Ziehen zum Verschieben, Doppelklick für Originalgröße.",
+  "before": "Original",
+  "after": "Ergebnis",
+  "divider": "Vergleichstrenner",
+  "fit": "Einpassen",
+  "actualSize": "Originalgröße",
+  "preparing": "Original wird vorbereitet…"
+}

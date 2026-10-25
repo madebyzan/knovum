@@ -1,0 +1,10 @@
+{
+  "title": "Comparer avec l'original",
+  "hint": "Faites glisser le séparateur pour comparer. Faites défiler pour zoomer, faites glisser pour vous déplacer, double-cliquez pour la taille réelle.",
+  "before": "Original",
+  "after": "Résultat",
+  "divider": "Séparateur de comparaison",
+  "fit": "Ajuster",
+  "actualSize": "Taille réelle",
+  "preparing": "Préparation de l'original…"
+}

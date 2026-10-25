@@ -20,6 +20,7 @@ import SpaceCanvasNodeAccessActions from "../selection/SpaceCanvasNodeAccessActi
 import type { useCanvasSelectionActions } from "../selection/use-canvas-selection-actions";
 import { useNodeActionBarDensity } from "../selection/use-node-action-bar-density";
 import SpaceCanvasImageAngleTrigger from "./SpaceCanvasImageAngleTrigger.vue";
+import SpaceCanvasImageComparisonAction from "./SpaceCanvasImageComparisonAction.vue";
 import SpaceCanvasImageDerivationActions from "./SpaceCanvasImageDerivationActions.vue";
 import SpaceCanvasImageEditActions from "./SpaceCanvasImageEditActions.vue";
 import SpaceCanvasImageMenu from "./SpaceCanvasImageMenu.vue";
@@ -134,6 +135,7 @@ watch(
         :compact="compact"
         @begin="beginAngle() && emit('update:angleOpen', true)"
       />
+      <SpaceCanvasImageComparisonAction :node="node" :compact="compact" />
       <SpaceCanvasImageMenu
         :node="node"
         :actions="actions"
