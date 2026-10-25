@@ -43,3 +43,19 @@ fn standard_agent_tools_preserve_host_effect_classification() {
         }
     }
 }
+
+#[test]
+fn a_generation_tool_runs_on_its_prompt_alone() {
+    let catalog = super::project().unwrap();
+    let tool = catalog
+        .tools
+        .iter()
+        .find(|tool| matches!(&catalog.binding_by_wire_name[&tool.name].source, crate::extensions::contracts::AgentToolBinding::SpaceAction { action_id, .. } if action_id == "draft-document"))
+        .unwrap();
+    assert_eq!(
+        tool.input_schema["properties"]["inputNodeIds"]["minItems"],
+        0
+    );
+    let validator = jsonschema::validator_for(&tool.input_schema).unwrap();
+    assert!(validator.is_valid(&json!({"title":"Plan","purpose":"A launch plan"})));
+}

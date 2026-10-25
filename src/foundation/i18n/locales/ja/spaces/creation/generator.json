@@ -1,27 +1,25 @@
 {
-  "title": "選択項目から作成",
-  "description": "必要なものを書いてください。選択したリソースが素材になります。",
-  "outputLabel": "作成",
-  "output": {
-    "document": "ドキュメント",
-    "image": "画像",
-    "video": "動画"
+  "kinds": {
+    "image": "画像ジェネレーター",
+    "video": "動画ジェネレーター",
+    "document": "ドキュメントジェネレーター"
   },
-  "requirement": "必要なこと",
   "placeholder": {
     "document": "ドキュメントの目的、構成、要点を記述します。",
     "image": "欲しい画像を記述します。画像を選択している場合は変更方法を記述します。",
     "video": "シーン、動き、カメラ、視覚スタイルを記述します。"
   },
-  "defaultTitle": {
-    "document": "新しいドキュメント",
-    "image": "新しい画像",
-    "video": "新しい動画"
+  "references": {
+    "add": "参照を追加",
+    "addSelected": "選択項目を追加（{count}）",
+    "hint": "キャンバス上の画像やドキュメントを選択すると参照として使えます",
+    "remove": "{title} を削除"
   },
   "aspectRatio": "アスペクト比",
   "duration": "長さ",
-  "create": "作成",
-  "sources": "選択したリソース {count} 件",
+  "generate": "生成",
+  "generating": "生成中…",
+  "close": "ジェネレーターを閉じる",
   "task": {
     "document": "ドキュメントを生成中",
     "image": "画像を生成中",

@@ -1,0 +1,28 @@
+{
+  "kinds": {
+    "image": "Générateur d'images",
+    "video": "Générateur de vidéos",
+    "document": "Générateur de documents"
+  },
+  "placeholder": {
+    "document": "Décrivez l’objectif, la structure et les points clés du document.",
+    "image": "Décrivez l’image voulue. Si des images sont sélectionnées, dites comment les modifier.",
+    "video": "Décrivez la scène, le mouvement, la caméra et le style visuel."
+  },
+  "references": {
+    "add": "Ajouter des références",
+    "addSelected": "Ajouter la sélection ({count})",
+    "hint": "Sélectionnez des images ou des documents sur le canevas pour les utiliser comme références",
+    "remove": "Retirer {title}"
+  },
+  "aspectRatio": "Format d’image",
+  "duration": "Durée",
+  "generate": "Générer",
+  "generating": "Génération…",
+  "close": "Fermer le générateur",
+  "task": {
+    "document": "Génération du document",
+    "image": "Génération de l’image",
+    "video": "Génération de la vidéo"
+  }
+}

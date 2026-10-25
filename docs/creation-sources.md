@@ -90,9 +90,30 @@ content revision check, not on a database lock.
 
 ## What the user sees
 
-One creation dialog: what you need, in words; the output switch (document / image / video); the few
-options that output actually has; the executor. The selected resources are listed as the material.
-There is no style picker and no per-output dialog — the requirement text says what the style is.
+Generation happens **in place, on the canvas** — the way Lovart, Figma and tldraw put a frame where
+the result will stand instead of asking in a dialog. A generator is a frame sized to the output it
+will produce (the aspect ratio of an image or video, a page for a document) with one composer
+attached beneath it: the references, what you need in words, the few options that output actually
+has (aspect ratio, duration) and the executor. There is no style picker and no per-output dialog —
+the requirement text says what the style is.
+
+- **Entry points.** The canvas add menu's _Generate_ group opens an image, video or document
+  generator at the centre of the view; _Create from selection_ opens one beside the selection with
+  the selected resources already attached as references. Selecting more resources and choosing
+  _Add selected_ attaches them later; a reference chip removes one.
+- **References are optional.** A generation reads its references when it has them and its prompt
+  alone when it has none. Whether an Action needs a selected resource is a property of the Action
+  (`SpaceActionDefinition.minInputs`): generations need none, transformations (remove background,
+  split layers, add subtitles) need the resource they transform. The same number decides the canvas
+  request, the derivation engine and the Agent tool schema, so the three cannot disagree.
+- **A generator is a draft, not a node.** It lives in the session (`generator-store`), it is not
+  written to the Space and it has no history. Generating sends the frame with the request
+  (`outputFrame`); the output node is reserved in exactly that frame, and the generator steps aside
+  once the reserved node stands in it. A Run that ends without publishing gives the frame back
+  with its prompt and references, so asking again is one click.
+- **Prompt-only output carries no lineage.** With no references there is nothing to derive from: no
+  `derives-from` Relations, a document drafted without retrieval or citations, an image or video
+  generated from the direction alone.
 
 When a source still needs preparation, the Run says so as a stage on the output node that was
 already reserved when the user clicked. A disabled menu entry is reserved for the cases that cannot
@@ -122,7 +143,9 @@ and the Task Center carries the same work as a Run.
 
 A reservation names where its output intends to publish; the file itself is named by whoever writes
 it, which is also what settles the node, so a path reserved for a file that is never written is
-simply forgotten. A reserved node holds only its name, that path, the size it will be laid out at,
+simply forgotten. Placement is either _derived_ — beside its sources, at the size the output will have — or _framed_
+— exactly in the frame a generator asked for. A reserved node holds only its name, that path, the
+size it will be laid out at,
 and labels — never knowledge, which is either established by its own published file or kept of its
 source by the rules below.
 

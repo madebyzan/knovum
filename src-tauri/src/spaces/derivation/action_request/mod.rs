@@ -17,7 +17,7 @@ pub(super) async fn prepare(
 ) -> Result<Value, AppError> {
     let definition = actions::require(action_id)?;
     let resolved =
-        inputs::resolve(app, space_id, action_id, definition.input_roles, snapshot).await?;
+        inputs::resolve(app, space_id, action_id, definition.min_inputs, snapshot).await?;
     let mut request = Map::new();
     request.insert("inputs".into(), Value::Array(resolved.items.clone()));
     if definition.routing_purpose.is_some() {
@@ -37,12 +37,19 @@ pub(super) async fn prepare(
             serde_json::to_value(target).map_err(crate::spaces::db::json_error)?,
         );
     }
+    let frame = snapshot
+        .get("outputFrame")
+        .cloned()
+        .map(serde_json::from_value)
+        .transpose()
+        .map_err(crate::spaces::db::json_error)?;
     output::reserve(
         app,
         space_id,
         action_id,
         parameters,
         &resolved,
+        frame,
         &mut request,
         authority,
     )

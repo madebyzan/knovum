@@ -32,7 +32,7 @@ pub(super) async fn resolve(
     app: &AppHandle,
     space_id: &str,
     action_id: &str,
-    roles: &[crate::spaces::actions::SpaceActionInputRole],
+    min_inputs: usize,
     snapshot: &Value,
 ) -> Result<ResolvedInputs, String> {
     let ordered = snapshot.get("orderedInputs").and_then(Value::as_array);
@@ -69,7 +69,7 @@ pub(super) async fn resolve(
     } else {
         source_node_ids(snapshot)?
     };
-    if ids.is_empty() && !roles.is_empty() {
+    if ids.len() < min_inputs {
         return Err("action-input-missing: select at least one source resource".into());
     }
     let pool = db::pool(app).await?;

@@ -82,7 +82,7 @@ async fn execute(
 ) -> Result<VisualizationContent, AppError> {
     stage(stages, "preparingSources")?;
     let sources = sources::prepare(app, request, target, cancellation).await?;
-    if sources.is_empty() {
+    if sources.is_empty() && !request.inputs.is_empty() {
         return Err("Selected resources contain nothing a model can read".into());
     }
     stage(stages, "generatingImage")?;

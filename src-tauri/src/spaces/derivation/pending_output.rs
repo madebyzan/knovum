@@ -14,7 +14,7 @@ use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 
 use super::action_execution::ExecutionAuthority;
-use super::placement::{self, DerivedCell, DerivedOutputs};
+use super::placement::{self, DerivedCell};
 use super::relations;
 use crate::foundation::app_error::AppError;
 use crate::spaces::{
@@ -30,17 +30,17 @@ pub(crate) const OUTPUT_DELETED: &str = "Its output node was deleted";
 
 /// Canvas footprint of content that cannot report a size until it is published.
 pub(crate) const PLACEHOLDER: Size = placement::PLACEHOLDER;
+pub(crate) use super::placement::OutputPlacement;
 
 pub(crate) struct PendingOutput {
     pub(crate) node_id: String,
     pub(crate) kind: &'static str,
     pub(crate) data: Value,
-    /// Canvas footprint until the published content reports its own.
-    pub(crate) footprint: Size,
+    pub(crate) placement: OutputPlacement,
 }
 
-/// Reserves pending output nodes in their sources' derivation field, together with the lineage that
-/// explains them. An output that is already reserved is placed into the set rather than inserted a
+/// Reserves pending output nodes where they belong — in their sources' derivation field, or in the
+/// frame a person drew for them — together with the lineage that explains them. An output that is already reserved is placed into the set rather than inserted a
 /// second time, which is how a Run that reserved its first output up front settles the whole set;
 /// its lineage was recorded when it was first reserved.
 pub(super) async fn reserve(
@@ -82,21 +82,17 @@ pub(crate) async fn reserve_in_transaction(
     let before = structure::history::capture(tx, space_id, &snapshot).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
     let reserved = reserved_outputs(tx, space_id, &outputs).await?;
-    let cells = placement::plan(
+    let cells = placement::place(
         tx,
         space_id,
         &snapshot.structure,
         &snapshot.layouts,
-        DerivedOutputs {
-            sources,
-            reserved: &reserved,
-            sizes: outputs
-                .iter()
-                .map(|output| {
-                    placement::fitted(&output.data, &output.footprint, SizingMode::Content)
-                })
-                .collect(),
-        },
+        sources,
+        &reserved,
+        &outputs
+            .iter()
+            .map(|output| (&output.placement, &output.data))
+            .collect::<Vec<_>>(),
     )
     .await?;
     let mut inserts = Vec::with_capacity(outputs.len());

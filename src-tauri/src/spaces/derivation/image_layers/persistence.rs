@@ -40,7 +40,7 @@ pub(super) async fn reserve(
                     "assetPath": layer.path.to_string_lossy(), "processingState": "processing",
                     "intrinsicWidth": layer.width, "intrinsicHeight": layer.height
                 }),
-                footprint: pending_output::PLACEHOLDER,
+                placement: pending_output::OutputPlacement::Derived(pending_output::PLACEHOLDER),
             }
         })
         .collect::<Vec<_>>();

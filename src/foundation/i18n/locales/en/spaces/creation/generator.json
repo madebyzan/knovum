@@ -1,0 +1,28 @@
+{
+  "kinds": {
+    "image": "Image generator",
+    "video": "Video generator",
+    "document": "Document generator"
+  },
+  "placeholder": {
+    "document": "Describe the document’s goal, structure, and key points.",
+    "image": "Describe the image you want. With images selected, say how to change them.",
+    "video": "Describe the scene, motion, camera, and visual style."
+  },
+  "references": {
+    "add": "Add references",
+    "addSelected": "Add selected ({count})",
+    "hint": "Select images or documents on the canvas to use them as references",
+    "remove": "Remove {title}"
+  },
+  "aspectRatio": "Aspect ratio",
+  "duration": "Duration",
+  "generate": "Generate",
+  "generating": "Generating…",
+  "close": "Close generator",
+  "task": {
+    "document": "Generating document",
+    "image": "Generating image",
+    "video": "Generating video"
+  }
+}

@@ -8,4 +8,9 @@ import type { SpaceActionInputConsistency } from "./SpaceActionInputConsistency"
 import type { SpaceActionInputRole } from "./SpaceActionInputRole";
 import type { SpaceActionOutputContract } from "./SpaceActionOutputContract";
 
-export type SpaceActionDefinition = { id: string, version: number, impact: SpaceActionImpact, executionMode: SpaceActionExecutionMode, inputConsistency: SpaceActionInputConsistency, executionCapability: ExecutionCapability | null, routingPurpose: RoutingPurpose | null, inputRoles: Array<SpaceActionInputRole>, collectionInput: SpaceActionCollectionInput | null, parametersSchema: Record<string, unknown>, outputContract: SpaceActionOutputContract, };
+export type SpaceActionDefinition = { id: string, version: number, impact: SpaceActionImpact, executionMode: SpaceActionExecutionMode, inputConsistency: SpaceActionInputConsistency, executionCapability: ExecutionCapability | null, routingPurpose: RoutingPurpose | null, inputRoles: Array<SpaceActionInputRole>, 
+/**
+ * How many input resources a Run needs. A generation reads selected resources as references
+ * when there are any and works from its prompt alone when there are none.
+ */
+minInputs: number, collectionInput: SpaceActionCollectionInput | null, parametersSchema: Record<string, unknown>, outputContract: SpaceActionOutputContract, };

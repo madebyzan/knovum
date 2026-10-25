@@ -4,6 +4,7 @@ use tauri::AppHandle;
 use super::inputs::ResolvedInputs;
 use crate::foundation::app_error::AppError;
 use crate::spaces::actions::SpaceActionInputRole;
+use crate::spaces::derivation::placement::{OutputFrame, OutputPlacement};
 
 mod image;
 mod media;
@@ -14,6 +15,7 @@ pub(super) async fn reserve(
     action_id: &str,
     parameters: &Value,
     inputs: &ResolvedInputs,
+    frame: Option<OutputFrame>,
     request: &mut Map<String, Value>,
     authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<(), AppError> {
@@ -51,7 +53,10 @@ pub(super) async fn reserve(
             node_id,
             kind: output.kind,
             data: output.data,
-            footprint: super::super::pending_output::PLACEHOLDER,
+            placement: frame.map_or(
+                OutputPlacement::Derived(super::super::pending_output::PLACEHOLDER),
+                OutputPlacement::Framed,
+            ),
         }],
         &inputs
             .nodes

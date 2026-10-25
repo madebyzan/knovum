@@ -1,0 +1,28 @@
+{
+  "kinds": {
+    "image": "Bildgenerator",
+    "video": "Videogenerator",
+    "document": "Dokumentgenerator"
+  },
+  "placeholder": {
+    "document": "Beschreibe Ziel, Struktur und Kernpunkte des Dokuments.",
+    "image": "Beschreibe das gewünschte Bild. Bei ausgewählten Bildern: wie sie geändert werden sollen.",
+    "video": "Beschreibe Szene, Bewegung, Kamera und visuellen Stil."
+  },
+  "references": {
+    "add": "Referenzen hinzufügen",
+    "addSelected": "Auswahl hinzufügen ({count})",
+    "hint": "Wählen Sie Bilder oder Dokumente auf der Leinwand aus, um sie als Referenz zu verwenden",
+    "remove": "{title} entfernen"
+  },
+  "aspectRatio": "Seitenverhältnis",
+  "duration": "Dauer",
+  "generate": "Generieren",
+  "generating": "Wird generiert…",
+  "close": "Generator schließen",
+  "task": {
+    "document": "Dokument wird erstellt",
+    "image": "Bild wird erstellt",
+    "video": "Video wird erstellt"
+  }
+}

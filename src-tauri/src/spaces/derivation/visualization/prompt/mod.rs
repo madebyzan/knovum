@@ -1,8 +1,13 @@
 use serde_json::Value;
 
 /// The prompt never claims a source the model cannot see. Attached pixels are
-/// announced so the instruction can refer to them; text is quoted in full.
+/// announced so the instruction can refer to them; text is quoted in full. With no
+/// material at all the requirement is the whole prompt: there is nothing to stay
+/// faithful to, and an explanatory framing would only steer the picture.
 pub fn build(intent: &str, grounding: &[Value], attached_images: usize) -> Result<String, String> {
+    if grounding.is_empty() && attached_images == 0 {
+        return Ok(intent.trim().to_owned());
+    }
     let mut prompt = String::from(
         "Create one clear explanatory image. Do not invent unsupported facts or labels.",
     );

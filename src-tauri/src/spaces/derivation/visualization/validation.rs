@@ -5,7 +5,7 @@ pub fn validate_request(request: &GenerateVisualizationRequest) -> Result<(), St
     if request.intent.trim().is_empty() {
         return Err("Visualization request is invalid".into());
     }
-    source_inputs::require_single_primary(&request.inputs)
+    source_inputs::require_led(&request.inputs)
 }
 
 pub fn canonical_png(bytes: &[u8]) -> Result<(Vec<u8>, u32, u32), String> {

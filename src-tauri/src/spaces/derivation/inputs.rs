@@ -18,9 +18,6 @@ pub async fn insert(
     derivation_id: &str,
     values: &[DerivationInput<'_>],
 ) -> Result<(), String> {
-    if values.is_empty() {
-        return Err("Knowledge derivation requires at least one input".into());
-    }
     for (position, value) in values.iter().enumerate() {
         validate(value)?;
         let row: Option<(String, String)> = sqlx::query_as(

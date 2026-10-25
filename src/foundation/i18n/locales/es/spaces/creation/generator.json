@@ -1,27 +1,25 @@
 {
-  "title": "Crear a partir de la selección",
-  "description": "Describe lo que necesitas. Los recursos seleccionados son el material.",
-  "outputLabel": "Crear",
-  "output": {
-    "document": "Documento",
-    "image": "Imagen",
-    "video": "Vídeo"
+  "kinds": {
+    "image": "Generador de imágenes",
+    "video": "Generador de vídeos",
+    "document": "Generador de documentos"
   },
-  "requirement": "¿Qué necesitas?",
   "placeholder": {
     "document": "Describe el objetivo, la estructura y los puntos clave del documento.",
     "image": "Describe la imagen que quieres. Si hay imágenes seleccionadas, indica cómo cambiarlas.",
     "video": "Describe la escena, el movimiento, la cámara y el estilo visual."
   },
-  "defaultTitle": {
-    "document": "Documento nuevo",
-    "image": "Imagen nueva",
-    "video": "Vídeo nuevo"
+  "references": {
+    "add": "Añadir referencias",
+    "addSelected": "Añadir selección ({count})",
+    "hint": "Selecciona imágenes o documentos en el lienzo para usarlos como referencia",
+    "remove": "Quitar {title}"
   },
   "aspectRatio": "Relación de aspecto",
   "duration": "Duración",
-  "create": "Crear",
-  "sources": "{count} recurso seleccionado | {count} recursos seleccionados",
+  "generate": "Generar",
+  "generating": "Generando…",
+  "close": "Cerrar generador",
   "task": {
     "document": "Generando documento",
     "image": "Generando imagen",

@@ -1,27 +1,25 @@
 {
-  "title": "用选中项创建",
-  "description": "说明你要什么，选中的资源就是素材。",
-  "outputLabel": "创建",
-  "output": {
-    "document": "文档",
-    "image": "图片",
-    "video": "视频"
+  "kinds": {
+    "image": "图像生成器",
+    "video": "视频生成器",
+    "document": "文档生成器"
   },
-  "requirement": "你的需求",
   "placeholder": {
     "document": "描述文档的目标、结构与要点。",
     "image": "描述想要的画面；若已选中图片，说明要如何改。",
     "video": "描述画面、主体动作、镜头与视觉风格。"
   },
-  "defaultTitle": {
-    "document": "新文档",
-    "image": "新图片",
-    "video": "新视频"
+  "references": {
+    "add": "添加参考",
+    "addSelected": "添加选中项（{count}）",
+    "hint": "在画布上选中图片或文档，即可作为参考",
+    "remove": "移除 {title}"
   },
   "aspectRatio": "画面比例",
   "duration": "时长",
-  "create": "创建",
-  "sources": "{count} 个选中资源",
+  "generate": "生成",
+  "generating": "正在生成…",
+  "close": "关闭生成器",
   "task": {
     "document": "正在生成文档",
     "image": "正在生成图片",

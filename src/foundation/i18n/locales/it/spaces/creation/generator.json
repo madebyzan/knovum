@@ -1,0 +1,28 @@
+{
+  "kinds": {
+    "image": "Generatore di immagini",
+    "video": "Generatore di video",
+    "document": "Generatore di documenti"
+  },
+  "placeholder": {
+    "document": "Descrivi obiettivo, struttura e punti chiave del documento.",
+    "image": "Descrivi l’immagine desiderata. Con immagini selezionate, indica come modificarle.",
+    "video": "Descrivi scena, movimento, inquadratura e stile visivo."
+  },
+  "references": {
+    "add": "Aggiungi riferimenti",
+    "addSelected": "Aggiungi selezione ({count})",
+    "hint": "Seleziona immagini o documenti sulla tela per usarli come riferimento",
+    "remove": "Rimuovi {title}"
+  },
+  "aspectRatio": "Proporzioni",
+  "duration": "Durata",
+  "generate": "Genera",
+  "generating": "Generazione…",
+  "close": "Chiudi generatore",
+  "task": {
+    "document": "Generazione documento",
+    "image": "Generazione immagine",
+    "video": "Generazione video"
+  }
+}
