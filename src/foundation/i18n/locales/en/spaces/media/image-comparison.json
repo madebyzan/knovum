@@ -1,10 +1,12 @@
 {
   "title": "Compare with original",
-  "hint": "Drag the divider to compare. Scroll to zoom, drag to pan, double-click for actual size.",
+  "hint": "Drag the divider to compare. Scroll or press + and − to zoom, drag to pan, 0 to fit, 1 for actual size.",
   "before": "Original",
   "after": "Result",
   "divider": "Comparison divider",
   "fit": "Fit",
   "actualSize": "Actual size",
-  "preparing": "Preparing the original…"
+  "preparing": "Preparing the original…",
+  "zoomIn": "Zoom in",
+  "zoomOut": "Zoom out"
 }

@@ -1,10 +1,12 @@
 {
   "title": "Confronta con l'originale",
-  "hint": "Trascina il divisore per confrontare. Scorri per lo zoom, trascina per spostarti, fai doppio clic per le dimensioni reali.",
+  "hint": "Trascina il divisore per confrontare. Scorri o premi + e − per lo zoom, trascina per spostarti, 0 per adattare, 1 per le dimensioni reali.",
   "before": "Originale",
   "after": "Risultato",
   "divider": "Divisore di confronto",
   "fit": "Adatta",
   "actualSize": "Dimensioni reali",
-  "preparing": "Preparazione dell'originale…"
+  "preparing": "Preparazione dell'originale…",
+  "zoomIn": "Ingrandisci",
+  "zoomOut": "Riduci"
 }

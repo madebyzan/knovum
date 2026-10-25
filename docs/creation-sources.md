@@ -212,11 +212,19 @@ input revision, which already names the asset and the edit together. Only a repl
 the input unrecoverable, and then the comparison is not offered: there is nothing honest to show.
 
 The comparison opens from the derived node's bar — in its access group beside details and export,
-because comparing reads the node and makes nothing — into a full-window viewer: a dark backdrop,
-the picture fitted but never enlarged past its own resolution, a divider that stays put on screen
-while the picture pans beneath it, and nothing else but the before/after labels, zoom and close.
-The canvas rasterises a picture to the size of its node, which is right for a canvas and wrong for
-judging an upscale, so the comparison is never drawn in place.
+because comparing reads the node and makes nothing. The entry belongs to the output, not to the
+lineage line: the line points at the source as it is today, while the comparison shows the input as
+it was read, and the line is drawn only while the selection explains it.
+
+The viewer is the whole window, opaque and dark in either theme. It opens at actual size from the
+centre: fitted, an upscale and its input look alike, and the comparison would seem to show nothing.
+A picture larger than the window pans to its edges and no further; a smaller one stays centred and
+is never enlarged past its own resolution by fitting. The divider stays put on screen while the
+picture moves beneath it, is kept on the picture, and is drawn to read on light and dark pictures
+alike. Zoom steps through powers of two (`+`/`−`), `0` fits and `1` returns to actual size. Geometry
+is one pure model (`ComparisonFrame`); the stage mounts with each opening, so nothing is reset by
+hand. The canvas rasterises a picture to the size of its node, which is right for a canvas and
+wrong for judging an upscale, so the comparison is never drawn in place.
 
 ## Reuse
 
