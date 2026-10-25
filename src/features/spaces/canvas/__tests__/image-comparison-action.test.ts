@@ -32,7 +32,7 @@ const output = image("output", "asset:output");
 
 const Viewer = defineComponent({
   name: "SpaceImageComparisonViewer",
-  props: ["before", "after"],
+  props: ["open", "before", "after", "error"],
   setup: () => () => h("div"),
 });
 
@@ -40,18 +40,13 @@ function render() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const wrapper = mount(
     defineComponent({
-      setup: () => () =>
-        h(ToolbarRoot, () => h(SpaceCanvasImageComparisonAction, { node: output, compact: false })),
+      setup: () => () => h(ToolbarRoot, () => h(SpaceCanvasImageComparisonAction, { node: output })),
     }),
     {
       global: {
         plugins: [[VueQueryPlugin, { queryClient }]],
         stubs: {
           SpaceImageComparisonViewer: Viewer,
-          UiDialog: {
-            props: ["open", "title", "description", "size", "bodyClass"],
-            template: "<div v-if='open'><slot /></div>",
-          },
           UiTooltip: { props: ["text", "disabled", "side"], template: "<slot />" },
         },
       },
@@ -88,6 +83,8 @@ it("prepares the input only once the comparison is opened", async () => {
 
   expect(mocks.prepare).toHaveBeenCalledWith("output");
   expect(wrapper.getComponent(Viewer).props()).toEqual({
+    open: true,
+    error: null,
     before: "asset://localhost/cache/input.png?v=rendered1:input",
     after: "asset://localhost/output.png?v=asset:output",
   });

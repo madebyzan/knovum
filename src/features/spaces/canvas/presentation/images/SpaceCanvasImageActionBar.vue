@@ -135,7 +135,6 @@ watch(
         :compact="compact"
         @begin="beginAngle() && emit('update:angleOpen', true)"
       />
-      <SpaceCanvasImageComparisonAction :node="node" :compact="compact" />
       <SpaceCanvasImageMenu
         :node="node"
         :actions="actions"
@@ -159,7 +158,9 @@ watch(
         :export-target="actions.exportTarget.value"
         @inspect="actions.inspect"
         @save="actions.exportFormat"
-      />
+      >
+        <SpaceCanvasImageComparisonAction :node="node" />
+      </SpaceCanvasNodeAccessActions>
     </ToolbarRoot>
   </div>
 </template>
