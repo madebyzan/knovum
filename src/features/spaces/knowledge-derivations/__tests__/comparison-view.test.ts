@@ -2,12 +2,18 @@ import { describe, expect, it } from "vitest";
 
 import { actualSizeView, fittedView, zoomedView } from "../comparison/comparison-view";
 
-const STAGE = { width: 1000, height: 500 };
+const STAGE = { width: 1096, height: 596 };
 const PICTURE = { width: 4000, height: 1000 };
 
 describe("comparison view", () => {
-  it("fits the whole picture centred in the stage", () => {
-    expect(fittedView(STAGE, PICTURE)).toEqual({ scale: 0.25, x: 0, y: 125 });
+  it("fits the whole picture inside the stage's margin, centred", () => {
+    expect(fittedView(STAGE, PICTURE)).toEqual({ scale: 0.25, x: 48, y: 173 });
+  });
+
+  it("never enlarges a small picture past its own resolution", () => {
+    expect(fittedView(STAGE, { width: 100, height: 50 })).toEqual(
+      actualSizeView(STAGE, { width: 100, height: 50 }),
+    );
   });
 
   it("keeps the picture pixel under the pointer in place while zooming", () => {
@@ -23,13 +29,5 @@ describe("comparison view", () => {
     const fitted = fittedView(STAGE, PICTURE);
     expect(zoomedView(fitted, { x: 0, y: 0 }, 0.1, fitted).scale).toBe(0.25);
     expect(zoomedView(fitted, { x: 0, y: 0 }, 1000, fitted).scale).toBe(8);
-  });
-
-  it("lets a picture smaller than the stage be seen at its own resolution", () => {
-    const small = { width: 100, height: 50 };
-    const fitted = fittedView(STAGE, small);
-    expect(fitted.scale).toBe(10);
-    expect(zoomedView(fitted, { x: 0, y: 0 }, 0.01, fitted).scale).toBe(1);
-    expect(actualSizeView(STAGE, small)).toEqual({ scale: 1, x: 450, y: 225 });
   });
 });

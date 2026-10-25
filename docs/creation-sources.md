@@ -211,10 +211,12 @@ itself; an edited one is rendered by the same renderer the derivation used and c
 input revision, which already names the asset and the edit together. Only a replaced asset makes
 the input unrecoverable, and then the comparison is not offered: there is nothing honest to show.
 
-The comparison opens from the derived node's bar (the node owns what was made, as it owns playback
-and export) into a viewer that draws both files at their own resolution. The canvas rasterises a
-picture to the size of its node, which is right for a canvas and wrong for judging an upscale, so
-the comparison is never drawn in place.
+The comparison opens from the derived node's bar — in its access group beside details and export,
+because comparing reads the node and makes nothing — into a full-window viewer: a dark backdrop,
+the picture fitted but never enlarged past its own resolution, a divider that stays put on screen
+while the picture pans beneath it, and nothing else but the before/after labels, zoom and close.
+The canvas rasterises a picture to the size of its node, which is right for a canvas and wrong for
+judging an upscale, so the comparison is never drawn in place.
 
 ## Reuse
 
