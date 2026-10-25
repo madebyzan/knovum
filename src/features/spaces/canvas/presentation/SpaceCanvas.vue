@@ -2,6 +2,8 @@
 import { computed, provide, useTemplateRef, watch } from "vue";
 
 import { overlayScopeVisibleKey } from "../../../../shared/contracts/overlay-scope-visibility";
+import { useCanvasGeneratorStore } from "../../knowledge-derivations/generators/generator-store";
+import SpaceCanvasGenerators from "../../knowledge-derivations/generators/presentation/SpaceCanvasGenerators.vue";
 import { createCanvasSelectionActions } from "../../session/actions/canvas-selection-actions";
 import { useSpaceStore } from "../../session/space-store";
 import { useCanvasToolStore } from "../canvas-tool-store";
@@ -34,6 +36,7 @@ provide(
 );
 const store = useSpaceStore();
 const tools = useCanvasToolStore();
+const generators = useCanvasGeneratorStore();
 const createTextNode = useCanvasTextCreation();
 const editorSession = getCanvasEditorSession();
 const operations = useNodeOperationGate();
@@ -121,6 +124,7 @@ const canvasEvents = createSpaceCanvasEvents({
     :inert="!renderingEnabled"
     ref="canvasRoot"
     class="relative h-full min-h-0 overflow-hidden bg-surface-canvas select-none"
+    @pointerdown.capture="generators.release($event.target)"
   >
     <div
       v-if="lifecycle.error.value && !editorSession.activeEditor.value"
@@ -155,6 +159,9 @@ const canvasEvents = createSpaceCanvasEvents({
           :persist="persistNodeContent"
           :fit-content-height="contentLayout.fit"
         />
+      </template>
+      <template #world>
+        <SpaceCanvasGenerators />
       </template>
     </CanvasSurfaceHost>
     <SpaceCanvasProductLayer

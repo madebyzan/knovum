@@ -818,6 +818,18 @@ for reading, and title-sm for compact headings. Do not add size slots to make a 
 Consumers that own Enter/Escape actions use explicit `.prevent` modifiers; an ordinary input keeps
 native form submission and dialog behavior.
 
+### Canvas generators
+
+Image, video and document generation is an in-canvas surface, never a dialog. A generator is a
+world-space frame (`CanvasWorldOverlay`, the canvas host's `world` slot) sized to the output, with
+its label and border counter-scaled through `--canvas-zoom`, and one composer attached beneath it:
+reference chips, _Add selected_, an auto-growing prompt, the output's own options (aspect ratio or
+duration), a compact executor field and one primary _Generate_ action. Dragging the frame moves the
+generator; pressing anywhere outside it on the canvas releases focus but keeps the draft. The
+selection toolbar is hidden while a generator is active so two composers never compete. The canvas
+add menu groups the entries as _Generate_ → Image, Video, Document, then _Create with Agent…_
+last, because the Agent is the open-ended path and the generators are the direct ones.
+
 ### Agent conversation
 
 The conversation list renders **turns**, not messages. One turn is one exchange: what a person

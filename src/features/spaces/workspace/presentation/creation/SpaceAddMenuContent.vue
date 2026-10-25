@@ -2,6 +2,7 @@
 import {
   Boxes,
   Bot,
+  Film,
   ChevronRight,
   CircleHelp,
   FileText,
@@ -9,6 +10,7 @@ import {
   FlaskConical,
   GitBranch,
   Globe2,
+  Image,
   KeyRound,
   Lightbulb,
   LayoutPanelTop,
@@ -24,6 +26,7 @@ import { useI18n } from "vue-i18n";
 import { SUBMENU_CONTENT_CLASSES } from "../../../../../shared/ui/ui-classes";
 import UiDropdownMenuItem from "../../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
+import type { GeneratorKind } from "../../../knowledge-derivations/generators/generator-kinds";
 import type { SystemKnowledgeObjectKind } from "../../../knowledge/model/object-types";
 
 const emit = defineEmits<{
@@ -36,6 +39,7 @@ const emit = defineEmits<{
   importFile: [];
   recordAudio: [];
   credential: [kind: "api-key" | "account-password"];
+  generate: [kind: GeneratorKind];
   agent: [];
   section: [];
 }>();
@@ -48,6 +52,11 @@ const KNOWLEDGE_OPTIONS = [
   { kind: "experiment", icon: FlaskConical },
   { kind: "decision", icon: GitBranch },
 ] as const;
+const GENERATOR_OPTIONS = [
+  { kind: "image", icon: Image },
+  { kind: "video", icon: Film },
+  { kind: "document", icon: FileText },
+] as const satisfies readonly { kind: GeneratorKind; icon: unknown }[];
 </script>
 
 <template>
@@ -99,6 +108,13 @@ const KNOWLEDGE_OPTIONS = [
     <Mic class="size-3.5" />{{ t("spaces.recording.note") }}…
   </UiDropdownMenuItem>
   <UiSeparator class="my-1" />
+  <UiDropdownMenuItem
+    v-for="option in GENERATOR_OPTIONS"
+    :key="option.kind"
+    @select="emit('generate', option.kind)"
+  >
+    <component :is="option.icon" class="size-3.5" />{{ t(`spaces.creation.generator.kinds.${option.kind}`) }}
+  </UiDropdownMenuItem>
   <UiDropdownMenuItem @select="emit('agent')">
     <Bot class="size-3.5" />{{ t("spaces.creation.agent.create") }}…
   </UiDropdownMenuItem>

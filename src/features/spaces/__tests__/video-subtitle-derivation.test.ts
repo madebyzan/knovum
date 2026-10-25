@@ -53,5 +53,6 @@ it("starts one local video Action, with no Workflow, transcript resource or mode
   expect(context.observe).toHaveBeenCalledWith(
     { id: "run", scope: { kind: "space", spaceId: "space" } },
     "spaces.creation.video.subtitles.task",
+    undefined,
   );
 });

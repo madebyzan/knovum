@@ -4,7 +4,7 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import SpaceCreationDialog from "../../knowledge-derivations/presentation/SpaceCreationDialog.vue";
+import { useCanvasGeneratorStore } from "../../knowledge-derivations/generators/generator-store";
 import { useSelectionDerivations } from "../../knowledge-derivations/selection/use-selection-derivations";
 import SpaceCanvasSceneControls from "../../scenes/presentation/SpaceCanvasSceneControls.vue";
 import SpaceFind from "../../search/presentation/SpaceFind.vue";
@@ -45,6 +45,7 @@ const {
 const scenesCollapsed = shallowRef(false);
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
 const derivations = useSelectionDerivations(selectedNodes);
+const generators = useCanvasGeneratorStore();
 const emit = defineEmits<{ dismissError: [] }>();
 const CANVAS_CHROME_INSETS = { top: 8, right: 16, bottom: 8, left: 16 } as const;
 const { chromeRects } = useCanvasChromeRects();
@@ -106,7 +107,12 @@ const selectionBarGap = computed(() =>
       </div>
     </div>
     <SpaceCanvasSelectionAnchor
-      v-if="tools.tool === 'select' && showSelectionActions && !editorSession.directManipulation.value"
+      v-if="
+        tools.tool === 'select' &&
+        showSelectionActions &&
+        !generators.active &&
+        !editorSession.directManipulation.value
+      "
       :bounds="editorSession.selection.value.bounds"
       :members="editorSession.selection.value.members"
       :canvas-to-viewport-point="canvasToViewportPoint"
@@ -146,11 +152,6 @@ const selectionBarGap = computed(() =>
         ...(fileHoverPosition ? { fileHoverPosition } : {}),
       }"
       @dismiss-error="emit('dismissError')"
-    />
-    <SpaceCreationDialog
-      v-model:output="derivations.composing.value"
-      :sources="derivations.sources.value"
-      @submit="derivations.submit"
     />
     <SpaceFind v-model:open="store.findOpen" />
     <SpaceGlobalFind v-model:open="store.globalFindOpen" />

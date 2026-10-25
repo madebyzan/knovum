@@ -12,11 +12,12 @@ import CanvasSectionCandidateFeedback from "./rendering/CanvasSectionCandidateFe
 import CanvasStructureEditingLayers from "./rendering/CanvasStructureEditingLayers.vue";
 import CanvasStructureHud from "./rendering/CanvasStructureHud.vue";
 import CanvasStructureSectionsLayer from "./rendering/CanvasStructureSectionsLayer.vue";
+import CanvasWorldOverlay from "./rendering/CanvasWorldOverlay.vue";
 import { useKonvaCanvasRuntime } from "./use-konva-canvas-runtime";
 
 const props = defineProps<CanvasSurfaceProps>();
 const emit = defineEmits<{ documentChange: [document: CanvasDocumentV1] }>();
-defineSlots<{ "node-content"(props: CanvasNodeContentSlotProps): unknown }>();
+defineSlots<{ "node-content"(props: CanvasNodeContentSlotProps): unknown; world(): unknown }>();
 const runtime = useKonvaCanvasRuntime(props, (document) => emit("documentChange", document));
 const selectGesturesEnabled = computed(
   () =>
@@ -162,6 +163,9 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
           <slot name="node-content" v-bind="content" />
         </template>
       </CanvasDomOverlay>
+      <CanvasWorldOverlay :camera="runtime.viewport.camera" :rendering-enabled="renderingEnabled">
+        <slot name="world" />
+      </CanvasWorldOverlay>
     </Teleport>
     <CanvasStructureHud
       :camera="runtime.viewport.camera"

@@ -6,7 +6,7 @@ import { canvasPreviewZoomKey } from "../../preview/viewport-zoom";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasScene } from "../scene/canvas-scene";
 import type { CanvasCamera } from "../viewport/canvas-camera";
-import { useCameraStyle } from "../viewport/use-camera-style";
+import { useCameraStyle, worldTransform } from "../viewport/use-camera-style";
 import CanvasDomNodeOverlay from "./CanvasDomNodeOverlay.vue";
 import { sceneNodesInPaintOrder } from "./use-canvas-scene-layer-projection";
 
@@ -36,10 +36,7 @@ const visibleNodes = computed(() =>
       : new Set(props.interactiveNodeId ? [props.interactiveNodeId] : []),
   ),
 );
-useCameraStyle(props.camera, world, ({ x, y, zoom }) => ({
-  transform: `translate(${x}px, ${y}px) scale(${zoom})`,
-  "--canvas-zoom": String(zoom),
-}));
+useCameraStyle(props.camera, world, worldTransform);
 </script>
 
 <template>

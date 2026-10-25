@@ -12,8 +12,11 @@ import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../../shared/ui/UiInput.vue";
 import AgentCreationDialog from "../../../agent-creation/presentation/AgentCreationDialog.vue";
 import { useCanvasToolStore } from "../../../canvas/canvas-tool-store";
+import { getCanvasEditorSession } from "../../../canvas/editor-session";
 import { useNodeOperationGate } from "../../../canvas/use-node-operation-gate";
 import SpacePortalDialog from "../../../inspection/presentation/SpacePortalDialog.vue";
+import type { GeneratorKind } from "../../../knowledge-derivations/generators/generator-kinds";
+import { useCanvasGeneratorStore } from "../../../knowledge-derivations/generators/generator-store";
 import SpaceCustomKnowledgeObjectDialog from "../../../knowledge/presentation/SpaceCustomKnowledgeObjectDialog.vue";
 import SpaceKnowledgeTypeEditor from "../../../knowledge/presentation/SpaceKnowledgeTypeEditor.vue";
 import { useSpaceStore } from "../../../session/space-store";
@@ -24,6 +27,8 @@ const { t } = useI18n();
 const tools = useCanvasToolStore();
 const store = useSpaceStore();
 const nodeOperations = useNodeOperationGate();
+const generators = useCanvasGeneratorStore();
+const editorSession = getCanvasEditorSession();
 const {
   websiteOpen,
   customObjectOpen,
@@ -39,6 +44,17 @@ const {
   importFromPicker,
   addWebsite,
 } = useAddMenu();
+
+/** A generator opens where the person is looking. */
+function openGenerator(kind: GeneratorKind) {
+  const editor = editorSession.activeEditor.value;
+  if (editor && nodeOperations.allows("create")) generators.open(kind, { center: editor.visibleCenter() });
+}
+
+/** A generator that just opened has taken focus for its prompt; the menu must not take it back. */
+function keepGeneratorFocus(event: Event) {
+  if (generators.active) event.preventDefault();
+}
 
 async function beginAudioRecording() {
   if (!nodeOperations.allows("create")) return;
@@ -56,6 +72,7 @@ async function beginAudioRecording() {
     align="start"
     :side-offset="6"
     @update:open="($event) => $event && nodeOperations.allows('create') && tools.selectTool('select')"
+    @close-auto-focus="keepGeneratorFocus"
   >
     <template #trigger>
       <ToolbarButton as-child>
@@ -80,6 +97,7 @@ async function beginAudioRecording() {
       @import-file="importFromPicker()"
       @record-audio="beginAudioRecording"
       @credential="addCredential"
+      @generate="openGenerator"
       @agent="agentCreationOpen = true"
     />
   </UiDropdownMenu>
