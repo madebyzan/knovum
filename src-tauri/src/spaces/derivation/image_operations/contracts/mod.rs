@@ -232,14 +232,6 @@ impl ImageOperation {
         }
     }
 
-    pub fn action_kind(&self) -> &'static str {
-        self.action().kind()
-    }
-
-    pub(crate) fn derived_output(&self) -> crate::spaces::derivation::inheritance::DerivedOutput {
-        self.action().output()
-    }
-
     pub fn engine(&self, provider: &str, configured_model: &str) -> String {
         let model = match (provider, self) {
             ("qwen", Self::Upscale { .. } | Self::RemoveObject { .. }) => "wanx2.1-imageedit",

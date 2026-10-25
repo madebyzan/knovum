@@ -127,7 +127,7 @@ pub fn validate_parameters(
         }
         parameters.operation.validate()?;
         parameters.execution.validate(&parameters.operation)?;
-        if parameters.operation.action_kind() != definition.id {
+        if parameters.operation.action().kind() != definition.id {
             return Err("Image operation does not match its Action identity".into());
         }
     }

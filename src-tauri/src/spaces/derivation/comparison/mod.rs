@@ -15,9 +15,7 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Manager};
 
-use super::{
-    image_operations::contracts::ImageAction, input_revision::RevisionBasis, source_snapshot,
-};
+use super::{image_operations::contracts::ImageAction, source_snapshot};
 use crate::foundation::app_error::AppError;
 use crate::spaces::db;
 
@@ -84,27 +82,23 @@ pub async fn prepare_derivation_comparison(
 }
 
 async fn resolve(pool: &sqlx::SqlitePool, node_id: &str) -> Result<Option<Comparable>, String> {
-    let row: Option<(String, String, String, String, String, String)> = sqlx::query_as(
-        "SELECT d.action_kind,i.source_revision,i.revision_basis,i.input_revision,i.input_snapshot,n.data \
+    let row: Option<(String, String, String, String, String)> = sqlx::query_as(
+        "SELECT d.action_kind,i.source_revision,i.input_revision,i.input_snapshot,n.data \
          FROM spaces_knowledge_derivations d \
          JOIN spaces_knowledge_derivation_inputs i ON i.derivation_id=d.id AND i.position=0 AND i.role='primary' \
          JOIN spaces_nodes n ON n.id=i.node_id AND n.space_id=d.space_id AND n.kind='image' AND n.deleted_at IS NULL \
-         WHERE d.output_node_id=$1 AND d.status='completed' \
-         ORDER BY d.completed_at DESC LIMIT 1",
+         WHERE d.output_node_id=$1 AND d.status='completed'",
     )
     .bind(node_id)
     .fetch_optional(pool)
     .await
     .map_err(db::sql_error)?;
-    let Some((action, source_revision, basis, input_revision, snapshot, data)) = row else {
+    let Some((action, source_revision, input_revision, snapshot, data)) = row else {
         return Ok(None);
     };
     if !ImageAction::recorded(&action).is_some_and(|action| action.output().compares_with_source())
     {
         return Ok(None);
-    }
-    if RevisionBasis::parse(&basis)? != RevisionBasis::Rendered {
-        return Err("An image derivation reads its source as rendered".into());
     }
     let data: Value = serde_json::from_str(&data).map_err(db::json_error)?;
     if data.get("sourceRevision").and_then(Value::as_str) != Some(source_revision.as_str()) {
