@@ -195,6 +195,27 @@ somewhere it should not, and it cannot publish. Generated speech, audiobooks and
 go through the same two rules: narration is a new work and keeps nothing, a dubbed video keeps the
 picture it did not change, separated vocals keep the words they still contain.
 
+## Comparison
+
+Whether a derived picture can be laid over its source is a property of the transform too, declared
+beside what it keeps (`DerivedOutput::compares_with_source`): an upscale, a removed background or
+object and an extracted object are the source's picture, frame for frame, with something done to
+it. A depth map is a measurement of the picture, a new view is another picture of the subject, and
+sound or video differs in what the eye cannot lay over — none of them compare. The action a
+derivation records is read back to its output through `ImageAction`, the one place that names both.
+
+What a comparison shows is the input the derivation read, not the source as it looks today. The
+input is the asset rendered with the edit it had then, and the derivation recorded both; editing
+the source afterwards does not change what an output was made from. An unedited read is the asset
+itself; an edited one is rendered by the same renderer the derivation used and cached under its
+input revision, which already names the asset and the edit together. Only a replaced asset makes
+the input unrecoverable, and then the comparison is not offered: there is nothing honest to show.
+
+The comparison opens from the derived node's bar (the node owns what was made, as it owns playback
+and export) into a viewer that draws both files at their own resolution. The canvas rasterises a
+picture to the size of its node, which is right for a canvas and wrong for judging an upscale, so
+the comparison is never drawn in place.
+
 ## Reuse
 
 A derived node records its Action, pinned parameters, sources and execution identity. That is

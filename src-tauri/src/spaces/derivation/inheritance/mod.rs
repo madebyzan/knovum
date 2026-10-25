@@ -81,6 +81,21 @@ impl DerivedOutput {
         }
     }
 
+    /// Whether the output is its source's picture, frame for frame, with something done to it —
+    /// detail added, or part of it kept or taken away. Laid over its source it shows exactly what
+    /// the transform did, which is how a person judges the result. A measurement of the picture
+    /// (depth), another picture of the subject (a new view) and anything heard or watched have
+    /// nothing to lay over: they differ everywhere, or not in what the eye can compare.
+    pub(crate) const fn compares_with_source(self) -> bool {
+        matches!(
+            self,
+            Self::UpscaledImage
+                | Self::BackgroundRemovedImage
+                | Self::ObjectRemovedImage
+                | Self::ExtractedObject
+        )
+    }
+
     /// Carries what this output keeps of `source` into `output`. Runs once the output's own file
     /// has settled onto it, since its revision and cover are what kept knowledge is pinned to.
     pub(crate) fn inherit(self, output: &mut Value, source: &Value) -> Result<(), String> {

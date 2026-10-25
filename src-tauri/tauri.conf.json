@@ -46,6 +46,7 @@
           "$APPDATA/spaces/assets/**/*",
           "$APPDATA/spaces/previews/**/*",
           "$APPCACHE/video-edit-proxies/*.mp4",
+          "$APPCACHE/derivation-inputs/*.png",
           "$APPCACHE/speech-previews/*.wav"
         ]
       }

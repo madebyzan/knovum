@@ -1,6 +1,7 @@
 pub(crate) mod action_execution;
 pub(crate) mod action_request;
 pub(crate) mod commands;
+pub(crate) mod comparison;
 mod contracts;
 mod failure;
 mod grounded_answer;
