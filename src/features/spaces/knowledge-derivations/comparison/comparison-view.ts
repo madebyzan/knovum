@@ -42,11 +42,6 @@ export function zoomedView(
   return { scale, x: point.x - (point.x - view.x) * applied, y: point.y - (point.y - view.y) * applied };
 }
 
-/** The share of the stage, from the left, that shows the input. */
-export function splitAt(stageLeft: number, stageWidth: number, clientX: number) {
-  return stageWidth > 0 ? clamp((clientX - stageLeft) / stageWidth, 0, 1) : 0.5;
-}
-
 function centred(stage: ComparisonSize, picture: ComparisonSize, scale: number): ComparisonView {
   return {
     scale,

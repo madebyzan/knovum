@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { actualSizeView, fittedView, splitAt, zoomedView } from "../comparison/comparison-view";
+import { actualSizeView, fittedView, zoomedView } from "../comparison/comparison-view";
 
 const STAGE = { width: 1000, height: 500 };
 const PICTURE = { width: 4000, height: 1000 };
@@ -31,11 +31,5 @@ describe("comparison view", () => {
     expect(fitted.scale).toBe(10);
     expect(zoomedView(fitted, { x: 0, y: 0 }, 0.01, fitted).scale).toBe(1);
     expect(actualSizeView(STAGE, small)).toEqual({ scale: 1, x: 450, y: 225 });
-  });
-
-  it("places the divider where the pointer is, inside the stage", () => {
-    expect(splitAt(100, 1000, 350)).toBe(0.25);
-    expect(splitAt(100, 1000, 0)).toBe(0);
-    expect(splitAt(100, 1000, 5000)).toBe(1);
   });
 });

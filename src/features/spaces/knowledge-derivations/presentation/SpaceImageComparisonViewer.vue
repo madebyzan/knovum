@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ChevronsLeftRight } from "@lucide/vue";
 import { useElementSize } from "@vueuse/core";
+import { clamp } from "es-toolkit";
 import { computed, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -8,7 +9,6 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import {
   actualSizeView,
   fittedView,
-  splitAt,
   zoomedView,
   type ComparisonSize,
   type ComparisonView,
@@ -68,7 +68,7 @@ function begin(event: PointerEvent) {
 function move(event: PointerEvent) {
   if (dragging.value === "split") {
     const box = stage.value!.getBoundingClientRect();
-    split.value = splitAt(box.left, box.width, event.clientX);
+    split.value = clamp((event.clientX - box.left) / box.width, 0, 1);
   } else if (dragging.value === "pan" && view.value) {
     view.value = {
       ...view.value,
@@ -101,7 +101,7 @@ function nudge(event: KeyboardEvent) {
   const step = event.key === "ArrowLeft" ? -0.05 : event.key === "ArrowRight" ? 0.05 : 0;
   if (!step) return;
   event.preventDefault();
-  split.value = Math.min(1, Math.max(0, split.value + step));
+  split.value = clamp(split.value + step, 0, 1);
 }
 </script>
 

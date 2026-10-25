@@ -17,6 +17,7 @@ vi.mock("../../knowledge-derivations/comparison/comparison-commands", () => ({
   isDerivationComparable: mocks.comparable,
   prepareDerivationComparison: mocks.prepare,
 }));
+vi.mock("@tauri-apps/api/core", () => ({ convertFileSrc: (path: string) => `asset://localhost${path}` }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 
 function image(id: string, sourceRevision: string): SpaceCanvasNode<SpaceImagePayload> {
@@ -28,17 +29,10 @@ function image(id: string, sourceRevision: string): SpaceCanvasNode<SpaceImagePa
   };
 }
 const output = image("output", "asset:output");
-const source = image("source", "asset:source");
-vi.mock("../../session/space-store", () => ({
-  useSpaceStore: () => ({
-    nodes: [source, output],
-    relations: [{ id: "lineage", kind: "derives-from", sourceId: "output", targetId: "source" }],
-  }),
-}));
 
-const Dialog = defineComponent({
-  name: "SpaceDerivationComparisonDialog",
-  props: ["open", "output", "input", "error"],
+const Viewer = defineComponent({
+  name: "SpaceImageComparisonViewer",
+  props: ["before", "after"],
   setup: () => () => h("div"),
 });
 
@@ -53,7 +47,11 @@ function render() {
       global: {
         plugins: [[VueQueryPlugin, { queryClient }]],
         stubs: {
-          SpaceDerivationComparisonDialog: Dialog,
+          SpaceImageComparisonViewer: Viewer,
+          UiDialog: {
+            props: ["open", "title", "description", "size", "bodyClass"],
+            template: "<div v-if='open'><slot /></div>",
+          },
           UiTooltip: { props: ["text", "disabled", "side"], template: "<slot />" },
         },
       },
@@ -89,7 +87,8 @@ it("prepares the input only once the comparison is opened", async () => {
   await flushPromises();
 
   expect(mocks.prepare).toHaveBeenCalledWith("output");
-  const dialog = wrapper.getComponent(Dialog);
-  expect(dialog.props("open")).toBe(true);
-  expect(dialog.props("input")).toEqual({ path: "/cache/input.png", revision: "rendered1:input" });
+  expect(wrapper.getComponent(Viewer).props()).toEqual({
+    before: "asset://localhost/cache/input.png?v=rendered1:input",
+    after: "asset://localhost/output.png?v=asset:output",
+  });
 });
