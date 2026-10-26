@@ -1,4 +1,12 @@
-use super::ImageOperation;
+use super::{ImageAction, ImageOperation};
+
+#[test]
+fn a_recorded_derivation_reads_back_to_the_action_that_made_it() {
+    for action in ImageAction::ALL {
+        assert_eq!(ImageAction::recorded(action.kind()), Some(action));
+    }
+    assert_eq!(ImageAction::recorded("generate-image"), None);
+}
 
 #[test]
 fn prompt_removal_rejects_missing_and_oversized_descriptions() {

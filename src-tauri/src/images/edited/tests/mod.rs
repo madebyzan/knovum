@@ -1,5 +1,23 @@
 use super::{validate_source_dimensions, Encoding};
 
+/// A valid edit that changes the picture: a quarter turn, everything else left alone.
+pub(crate) fn quarter_turn() -> serde_json::Value {
+    serde_json::json!({
+        "version": 1,
+        "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0},
+        "rotation": 90.0,
+        "flipHorizontal": false,
+        "flipVertical": false,
+        "adjustments": {
+            "exposure": 0.0, "contrast": 0.0, "highlights": 0.0,
+            "shadows": 0.0, "whites": 0.0, "blacks": 0.0,
+            "saturation": 0.0, "warmth": 0.0, "sharpness": 0.0,
+            "vignette": 0.0, "vibrance": 0.0, "tint": 0.0,
+            "clarity": 0.0, "grain": 0.0, "softLight": 0.0, "glow": 0.0
+        },
+    })
+}
+
 #[test]
 fn source_limits_reject_empty_and_oversized_images() {
     assert!(validate_source_dimensions((1, 1)).is_ok());

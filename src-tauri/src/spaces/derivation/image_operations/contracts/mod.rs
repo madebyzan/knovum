@@ -166,31 +166,69 @@ impl ImageOperation {
     }
 }
 
-impl ImageOperation {
-    pub fn action_kind(&self) -> &'static str {
+/// What an image operation does, whichever way it was asked for: removing an object by brush, by
+/// selection or by description is one action. The kind a derivation records and the output it
+/// publishes are both read from here, so a recorded derivation can be read back to its output.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum ImageAction {
+    Upscale,
+    RemoveBackground,
+    ExtractSelection,
+    GenerateDepth,
+    GenerateAngle,
+    RemoveObject,
+}
+
+impl ImageAction {
+    pub(crate) const ALL: [Self; 6] = [
+        Self::Upscale,
+        Self::RemoveBackground,
+        Self::ExtractSelection,
+        Self::GenerateDepth,
+        Self::GenerateAngle,
+        Self::RemoveObject,
+    ];
+
+    pub(crate) const fn kind(self) -> &'static str {
         match self {
-            Self::Upscale { .. } => "upscale-image",
+            Self::Upscale => "upscale-image",
             Self::RemoveBackground => "remove-image-background",
-            Self::ExtractSelection { .. } => "extract-image-selection",
+            Self::ExtractSelection => "extract-image-selection",
             Self::GenerateDepth => "generate-image-depth",
-            Self::MultiAngle { .. } => "generate-image-angle",
-            Self::RemoveObject { .. }
-            | Self::RemoveObjectPrompt { .. }
-            | Self::RemoveSelectedObject { .. } => "remove-image-object",
+            Self::GenerateAngle => "generate-image-angle",
+            Self::RemoveObject => "remove-image-object",
         }
     }
 
-    pub(crate) fn derived_output(&self) -> crate::spaces::derivation::inheritance::DerivedOutput {
+    pub(crate) const fn output(self) -> crate::spaces::derivation::inheritance::DerivedOutput {
         use crate::spaces::derivation::inheritance::DerivedOutput;
         match self {
-            Self::Upscale { .. } => DerivedOutput::UpscaledImage,
+            Self::Upscale => DerivedOutput::UpscaledImage,
             Self::RemoveBackground => DerivedOutput::BackgroundRemovedImage,
-            Self::ExtractSelection { .. } => DerivedOutput::ExtractedObject,
+            Self::ExtractSelection => DerivedOutput::ExtractedObject,
             Self::GenerateDepth => DerivedOutput::DepthMap,
-            Self::MultiAngle { .. } => DerivedOutput::NewView,
+            Self::GenerateAngle => DerivedOutput::NewView,
+            Self::RemoveObject => DerivedOutput::ObjectRemovedImage,
+        }
+    }
+
+    /// The action a derivation recorded as `kind`; `None` when it was not an image operation.
+    pub(crate) fn recorded(kind: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|action| action.kind() == kind)
+    }
+}
+
+impl ImageOperation {
+    pub(crate) const fn action(&self) -> ImageAction {
+        match self {
+            Self::Upscale { .. } => ImageAction::Upscale,
+            Self::RemoveBackground => ImageAction::RemoveBackground,
+            Self::ExtractSelection { .. } => ImageAction::ExtractSelection,
+            Self::GenerateDepth => ImageAction::GenerateDepth,
+            Self::MultiAngle { .. } => ImageAction::GenerateAngle,
             Self::RemoveObject { .. }
             | Self::RemoveObjectPrompt { .. }
-            | Self::RemoveSelectedObject { .. } => DerivedOutput::ObjectRemovedImage,
+            | Self::RemoveSelectedObject { .. } => ImageAction::RemoveObject,
         }
     }
 

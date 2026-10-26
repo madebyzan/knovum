@@ -20,6 +20,7 @@ import SpaceCanvasNodeAccessActions from "../selection/SpaceCanvasNodeAccessActi
 import type { useCanvasSelectionActions } from "../selection/use-canvas-selection-actions";
 import { useNodeActionBarDensity } from "../selection/use-node-action-bar-density";
 import SpaceCanvasImageAngleTrigger from "./SpaceCanvasImageAngleTrigger.vue";
+import SpaceCanvasImageComparisonAction from "./SpaceCanvasImageComparisonAction.vue";
 import SpaceCanvasImageDerivationActions from "./SpaceCanvasImageDerivationActions.vue";
 import SpaceCanvasImageEditActions from "./SpaceCanvasImageEditActions.vue";
 import SpaceCanvasImageMenu from "./SpaceCanvasImageMenu.vue";
@@ -157,7 +158,9 @@ watch(
         :export-target="actions.exportTarget.value"
         @inspect="actions.inspect"
         @save="actions.exportFormat"
-      />
+      >
+        <SpaceCanvasImageComparisonAction :node="node" />
+      </SpaceCanvasNodeAccessActions>
     </ToolbarRoot>
   </div>
 </template>

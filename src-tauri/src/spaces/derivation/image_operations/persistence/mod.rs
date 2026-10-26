@@ -56,7 +56,7 @@ pub async fn start(
     let now = crate::foundation::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,$4,1,$5,'running',$6,$6)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
-        .bind(request.operation.action_kind())
+        .bind(request.operation.action().kind())
         .bind(engine)
         .bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
     inputs::insert(
@@ -201,7 +201,8 @@ async fn persist(
     }
     request
         .operation
-        .derived_output()
+        .action()
+        .output()
         .inherit(payload, source)?;
     revision::apply(payload)?;
     crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "image", payload)

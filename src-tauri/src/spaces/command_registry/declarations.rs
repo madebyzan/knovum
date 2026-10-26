@@ -217,6 +217,8 @@ macro_rules! knovum_execution_commands {
         crate::spaces::derivation::queries::get_visualization_metadata,
         crate::spaces::derivation::queries::get_generated_video_metadata,
         crate::spaces::derivation::queries::get_derivation_failure,
+        crate::spaces::derivation::comparison::is_derivation_comparable,
+        crate::spaces::derivation::comparison::prepare_derivation_comparison,
 
         )
     };

@@ -169,4 +169,4 @@ fn validate_source_dimensions((width, height): (u32, u32)) -> Result<(), String>
 }
 
 #[cfg(test)]
-mod tests;
+pub(super) mod tests;

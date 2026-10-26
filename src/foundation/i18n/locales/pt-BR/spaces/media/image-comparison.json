@@ -1,0 +1,12 @@
+{
+  "title": "Comparar com o original",
+  "hint": "Arraste o divisor para comparar. Role ou pressione + e − para ampliar, arraste para mover, 0 para ajustar e 1 para o tamanho real.",
+  "before": "Original",
+  "after": "Resultado",
+  "divider": "Divisor de comparação",
+  "fit": "Ajustar",
+  "actualSize": "Tamanho real",
+  "preparing": "Preparando o original…",
+  "zoomIn": "Ampliar",
+  "zoomOut": "Reduzir"
+}

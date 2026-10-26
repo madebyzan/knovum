@@ -7,6 +7,7 @@ import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import type { ExportTarget } from "../../../assets/export/target";
 import SpaceCanvasExportMenu from "./SpaceCanvasExportMenu.vue";
 
+/** How a node is read rather than changed. A kind may lead the group with its own way of reading. */
 defineProps<{ exportTarget: ExportTarget | undefined }>();
 const emit = defineEmits<{ inspect: []; save: [format: string] }>();
 const { t } = useI18n();
@@ -14,6 +15,7 @@ const { t } = useI18n();
 
 <template>
   <div class="flex h-full shrink-0 items-center gap-0.5 border-l border-stroke-divider px-1">
+    <slot />
     <ToolbarButton as-child>
       <UiIconButton :label="t('spaces.inspector.title')" tooltip @click="emit('inspect')">
         <Info class="size-4.5" :stroke-width="1.6" />
