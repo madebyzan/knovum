@@ -184,7 +184,8 @@ jobs through pending-operation publication and native restart; any scheduling fa
 
 Restore accepts the current format only at its original canonical application data location. Space
 packages own transfer between installations. Hashes, bounded archive paths, database baselines and
-integrity are validated before publication. A restore journal reconciles interrupted publication
+integrity are validated before publication; a database an earlier release backed up is first brought
+forward by this release's migrations in its staging copy. A restore journal reconciles interrupted publication
 before normal startup; an unresolved journal blocks storage initialization. One journal records the
 prepared or committed publication phase. Committed restore data remains active if obsolete staging
 cleanup fails; the retained journal retries cleanup and the receipt exposes the cleanup warning.

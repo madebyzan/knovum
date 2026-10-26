@@ -95,7 +95,7 @@ pub fn validate_manifest(paths: &AppPaths, manifest: &Manifest) -> Result<(), St
     if manifest.source_config_root != config_root || manifest.source_data_root != data_root {
         return Err("This backup can only be restored to its original Knovum data location; use Space packages to move data between installations".into());
     }
-    if manifest.baselines != database::baselines() {
+    if !database::restorable(&manifest.baselines) {
         return Err("Backup database baseline does not match this release".into());
     }
     if manifest.roots.len() != ROOTS.len()

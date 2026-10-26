@@ -1,6 +1,4 @@
-//! Where desktop Agents work for a Space: one directory per session under the app's data dir,
-//! and the startup sweep that settles sessions a crash interrupted and drops workspaces of Spaces
-//! that no longer exist.
+//! Where desktop Agents work for a Space: one directory per External Agent conversation under the
+//! app's data dir, and the startup sweep that drops every workspace no conversation owns.
 pub(crate) mod recovery;
-mod session;
 pub(crate) mod workspace;
