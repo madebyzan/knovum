@@ -7,7 +7,7 @@ import { CANVAS_TEXT_SURFACE_ATTRIBUTE } from "../presentation/nodes/canvas-text
 import SpaceCanvasTextSelectionBar from "../presentation/nodes/SpaceCanvasTextSelectionBar.vue";
 
 describe("canvas text selection bar", () => {
-  it("marks the bar as part of the editing surface of its node", () => {
+  it("makes the floating menu root, which WebKit focuses on a press, the editing surface of its node", () => {
     const editor = {
       getAttributes: () => ({}),
       isActive: () => false,
@@ -26,7 +26,7 @@ describe("canvas text selection bar", () => {
       global: { plugins: [i18n], stubs: { BubbleMenu: { template: "<div><slot /></div>" } } },
     });
 
-    expect(wrapper.find(`[${CANVAS_TEXT_SURFACE_ATTRIBUTE}="text-node"]`).exists()).toBe(true);
+    expect(wrapper.element.firstElementChild?.getAttribute(CANVAS_TEXT_SURFACE_ATTRIBUTE)).toBe("text-node");
     wrapper.unmount();
   });
   it.each(["note", "text"] as const)("exposes text color only for text nodes (%s)", (kind) => {
