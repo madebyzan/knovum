@@ -7,7 +7,19 @@ targets = ["aarch64-apple-darwin", "x86_64-pc-windows-msvc", "x86_64-apple-darwi
 
 [advisories]
 unmaintained = "none"
-ignore = ["RUSTSEC-2026-0367", "RUSTSEC-2026-0368", "RUSTSEC-2026-0369"]
+# zstd reaches this build only transitively, through the exact-pinned lancedb =0.37.1, whose
+# arrow-ipc 58 and lance-encoding 10 still require zstd ^0.13. The patched zstd 0.14.3 and
+# zstd-safe 8.2.0 are therefore unreachable without upgrading the vector store, so each entry
+# below records why the affected API is not reached meanwhile. Upgrading lancedb and arrow
+# retires all three; adding another ignored advisory here does not.
+ignore = [
+  "RUSTSEC-2026-0367",
+  "RUSTSEC-2026-0368",
+  "RUSTSEC-2026-0369",
+  { id = "RUSTSEC-2026-0391", reason = "affects stream::raw::{Encoder,Decoder}::with_context, which neither arrow-ipc nor lance-encoding calls" },
+  { id = "RUSTSEC-2026-0398", reason = "affects seekable::Seekable::decompress, and the seekable feature is not enabled; enabled are arrays, legacy, std, zdict_builder" },
+  { id = "RUSTSEC-2026-0403", reason = "affects stream::write::Decoder; dependents use only zstd::bulk and stream::copy_decode, which the advisory lists as unaffected" },
+]
 
 [licenses]
 confidence-threshold = 0.8
