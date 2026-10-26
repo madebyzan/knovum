@@ -5,7 +5,7 @@
   "inbox": "Posta in arrivo",
   "empty": {
     "title": "Area di lavoro vuota",
-    "description": "Fare doppio clic sulla tela vuota per scrivere · Incollare il contenuto degli appunti · Rilasciare i file da importare"
+    "description": "Incolla il contenuto degli appunti · Trascina i file per importarli"
   },
   "rename": "Rinomina spazio",
   "tabs": {

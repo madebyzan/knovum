@@ -5,7 +5,7 @@
   "inbox": "Posteingang",
   "empty": {
     "title": "Leerer Arbeitsbereich",
-    "description": "Doppelklicken Sie zum Schreiben auf eine leere Leinwand. · Fügen Sie den Inhalt der Zwischenablage ein. · Legen Sie Dateien zum Importieren ab"
+    "description": "Inhalt aus der Zwischenablage einfügen · Dateien zum Importieren hierher ziehen"
   },
   "rename": "Leerzeichen umbenennen",
   "tabs": {

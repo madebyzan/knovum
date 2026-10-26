@@ -5,7 +5,7 @@
   "inbox": "Bandeja de entrada",
   "empty": {
     "title": "Espacio vacío",
-    "description": "Haga doble clic en el lienzo vacío para escribir · Pegue el contenido del portapapeles · Suelte archivos para importar"
+    "description": "Pegue el contenido del portapapeles · Suelte archivos para importar"
   },
   "rename": "Cambiar nombre del espacio",
   "tabs": {
