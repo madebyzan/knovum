@@ -2,7 +2,7 @@ use crate::foundation::app_error::AppError;
 use tauri::{AppHandle, Runtime};
 
 use super::{
-    contracts::{InsertNode, InsertNodesRequest},
+    contracts::{CommittedNodeContent, CreatedNodes, InsertNode, InsertNodesRequest},
     derived::{generated_chunks, media_chunks},
     space_timestamp::touch_updated_at,
 };
@@ -16,21 +16,21 @@ use crate::spaces::{
 pub async fn insert_many<R: Runtime>(
     app: &AppHandle<R>,
     request: InsertNodesRequest,
-) -> Result<i64, AppError> {
+) -> Result<CreatedNodes, AppError> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    let revision =
+    let created =
         insert_many_in_transaction(&mut tx, request, jobs::intent::selection(app)?.as_ref())
             .await?;
     tx.commit().await.map_err(db::sql_error)?;
-    Ok(revision)
+    Ok(created)
 }
 
 pub(in crate::spaces) async fn insert_many_in_transaction(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     mut request: InsertNodesRequest,
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
-) -> Result<i64, AppError> {
+) -> Result<CreatedNodes, AppError> {
     if request.nodes.is_empty() {
         return Err("Node creation requires at least one node".into());
     }
@@ -39,10 +39,10 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
     }
     let now = crate::foundation::clock::unix_time_millis()?;
     let digest = structure::receipts::digest(&request)?;
-    if let Some(edit_revision) =
+    if let Some(created) =
         structure::receipts::find_typed(tx, &request.mutation_id, &digest).await?
     {
-        return Ok(edit_revision);
+        return Ok(created);
     }
     let (mut snapshot, revision) =
         structure::repository::load_in_transaction(tx, &request.space_id).await?;
@@ -75,6 +75,17 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
     structure::portal_integrity::validate_structure_targets(tx, &[&request.space_id]).await?;
     let after = structure::history::capture(tx, &request.space_id, &snapshot).await?;
     structure::history::record(tx, &request.space_id, &before, &after).await?;
+    let created = CreatedNodes {
+        edit_revision,
+        nodes: request
+            .nodes
+            .into_iter()
+            .map(|node| CommittedNodeContent {
+                id: node.id,
+                data: node.data,
+            })
+            .collect(),
+    };
     structure::receipts::insert_typed(
         tx,
         &request.mutation_id,
@@ -82,11 +93,11 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
         &digest,
         edit_revision,
         &selection,
-        &edit_revision,
+        &created,
     )
     .await?;
     touch_updated_at(tx, &request.space_id, now).await?;
-    Ok(edit_revision)
+    Ok(created)
 }
 
 pub(in crate::spaces) async fn insert_rows_in_transaction(

@@ -1,13 +1,13 @@
 use crate::foundation::app_error::AppError;
 use tauri::{AppHandle, Runtime};
 
-use super::contracts::{InsertNodesRequest, UpdateNodesRequest};
+use super::contracts::{CreatedNodes, InsertNodesRequest, UpdateNodesRequest};
 
 #[tauri::command]
 pub async fn create_nodes<R: Runtime>(
     app: AppHandle<R>,
     request: InsertNodesRequest,
-) -> Result<i64, AppError> {
+) -> Result<CreatedNodes, AppError> {
     super::insert_many(&app, request).await
 }
 

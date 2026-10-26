@@ -5,7 +5,7 @@
   "inbox": "Caixa de entrada",
   "empty": {
     "title": "Espaço de trabalho vazio",
-    "description": "Clique duas vezes na tela vazia para escrever · Colar o conteúdo da área de transferência · Soltar arquivos para importar"
+    "description": "Cole o conteúdo da área de transferência · Solte arquivos para importar"
   },
   "rename": "Renomear espaço",
   "tabs": {

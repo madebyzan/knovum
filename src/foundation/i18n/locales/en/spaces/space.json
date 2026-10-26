@@ -5,7 +5,7 @@
   "inbox": "Inbox",
   "empty": {
     "title": "Empty Space",
-    "description": "Double-click empty canvas to write · Paste clipboard content · Drop files to import"
+    "description": "Paste clipboard content · Drop files to import"
   },
   "rename": "Rename Space",
   "tabs": {

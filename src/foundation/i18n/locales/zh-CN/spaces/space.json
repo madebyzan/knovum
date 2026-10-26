@@ -5,7 +5,7 @@
   "inbox": "收集箱",
   "empty": {
     "title": "空间暂无内容",
-    "description": "双击空白处创建笔记 · 粘贴剪贴板内容 · 拖入文件导入"
+    "description": "粘贴剪贴板内容 · 拖入文件导入"
   },
   "rename": "重命名空间",
   "tabs": {

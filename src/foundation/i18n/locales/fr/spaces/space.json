@@ -5,7 +5,7 @@
   "inbox": "Boîte de réception",
   "empty": {
     "title": "Espace vide",
-    "description": "Double-cliquez sur le canevas vide pour écrire · Coller le contenu du presse-papiers · Déposer les fichiers à importer"
+    "description": "Collez le contenu du presse-papiers · Déposez des fichiers pour les importer"
   },
   "rename": "Renommer l'espace",
   "tabs": {

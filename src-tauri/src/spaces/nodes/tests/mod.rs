@@ -2,7 +2,11 @@ pub(in crate::spaces) use super::insert::insert_many_in_transaction;
 
 use serde_json::json;
 
-use crate::spaces::{db, nodes::contracts::InsertNodesRequest, structure};
+use crate::spaces::{
+    db,
+    nodes::contracts::{CreatedNodes, InsertNodesRequest},
+    structure,
+};
 
 /// One node as the canvas asks for it, which is what every fixture that needs something on the
 /// canvas is really building.
@@ -79,11 +83,11 @@ async fn parallel_imports_append_without_a_caller_revision() {
         let pool = pool.clone();
         async move {
             let mut tx = db::begin_write(&pool).await.unwrap();
-            let revision = insert_many_in_transaction(&mut tx, request, None)
+            let created = insert_many_in_transaction(&mut tx, request, None)
                 .await
                 .expect("import appends to the Space it is committed against");
             tx.commit().await.unwrap();
-            revision
+            created.edit_revision
         }
     };
     let (first, second, third) = tokio::join!(
@@ -108,6 +112,41 @@ async fn parallel_imports_append_without_a_caller_revision() {
     .await
     .unwrap();
     assert_eq!((revision, structure_nodes), (3, 3));
+}
+
+async fn create_note(pool: &sqlx::SqlitePool) -> CreatedNodes {
+    let mut tx = db::begin_write(pool).await.unwrap();
+    let request = insert_request("space", "create-note", "note", "note", source_note("Idea"));
+    let created = insert_many_in_transaction(&mut tx, request, None)
+        .await
+        .expect("a note is created");
+    tx.commit().await.unwrap();
+    created
+}
+
+/// The canvas shows a created node from the creation's answer instead of reloading the whole
+/// Space, so the answer is the node exactly as stored, and a replay of the same mutation is
+/// answered the same way rather than creating it twice.
+#[tokio::test]
+async fn a_creation_answers_with_the_nodes_it_stored() {
+    let pool = initialized_space().await;
+
+    let created = create_note(&pool).await;
+    let replayed = create_note(&pool).await;
+
+    let stored: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id='note'")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    let stored: serde_json::Value = serde_json::from_str(&stored).unwrap();
+    assert_eq!(created.edit_revision, 1);
+    assert_eq!(created.nodes.len(), 1);
+    assert_eq!(
+        (created.nodes[0].id.as_str(), &created.nodes[0].data),
+        ("note", &stored)
+    );
+    assert_eq!(replayed.edit_revision, created.edit_revision);
+    assert_eq!(replayed.nodes[0].data, stored);
 }
 
 #[tokio::test]

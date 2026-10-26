@@ -49,13 +49,24 @@ pub struct UpdateNodesRequest {
     pub changes: Vec<NodeContentChange>,
 }
 
-#[derive(Debug, Serialize, ts_rs::TS)]
+#[derive(Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CommittedNodeContent {
     pub id: String,
     #[ts(type = "unknown")]
     pub data: Value,
+}
+
+/// What a creation committed, which is also how a replay of the same mutation is answered: each
+/// node as the Space stored it — validated and revisioned — and the edit revision it reached. The
+/// caller already holds everything else, so nothing about the rest of the Space is reloaded.
+#[derive(Debug, Deserialize, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub struct CreatedNodes {
+    pub edit_revision: i64,
+    pub nodes: Vec<CommittedNodeContent>,
 }
 
 #[derive(Serialize, ts_rs::TS)]

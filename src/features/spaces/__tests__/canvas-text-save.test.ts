@@ -1,9 +1,12 @@
 import { mount } from "@vue/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
-import { defineComponent, h, shallowRef } from "vue";
+import { defineComponent, h, shallowRef, type VNode } from "vue";
 
 import { i18n } from "../../../foundation/i18n/instance";
+import UiDropdownMenu from "../../../shared/ui/UiDropdownMenu.vue";
+import UiDropdownMenuItem from "../../../shared/ui/UiDropdownMenuItem.vue";
 import { getCanvasEditorSession } from "../canvas/editor-session";
+import { CANVAS_TEXT_SURFACE_ATTRIBUTE } from "../canvas/presentation/nodes/canvas-text-surface";
 import { useCanvasTextEditor } from "../canvas/presentation/nodes/use-canvas-text-editor";
 import { createSpaceTextPayload } from "../document-editing/tiptap-content";
 import type { SpaceCanvasTextPayload } from "../model/nodes/capabilities";
@@ -84,8 +87,43 @@ it("ends the editing session when leaving on a failed save instead of stranding 
   }
 });
 
+it("keeps editing while the selection bar's menu is used and ends once the user presses elsewhere", async () => {
+  const persisted: unknown[] = [];
+  const { session, wrapper } = createTextEditorHarness(
+    async (_id, data) => void persisted.push(data),
+    () =>
+      h("div", { [CANVAS_TEXT_SURFACE_ATTRIBUTE]: "text-node" }, [
+        h(
+          UiDropdownMenu,
+          { open: true, modal: false },
+          {
+            trigger: () => h("button", { type: "button" }, "Size"),
+            default: () => h(UiDropdownMenuItem, () => "18 pt"),
+          },
+        ),
+      ]),
+  );
+  try {
+    await session.beginEditing();
+    session.editor.value!.commands.setContent("<p>Styled</p>");
+    const item = await vi.waitUntil(() => document.querySelector("[role='menuitem']"));
+
+    item.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    item.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+    expect(session.editing.value).toBe(true);
+    expect(persisted).toEqual([]);
+
+    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    await vi.waitUntil(() => !session.editing.value);
+    expect(persisted).toEqual([expect.objectContaining({ plainText: "Styled" })]);
+  } finally {
+    wrapper.unmount();
+  }
+});
+
 function createTextEditorHarness(
   persist: (nodeId: string, payload: SpaceCanvasTextPayload) => Promise<void>,
+  surface: () => VNode = () => h("div"),
 ) {
   let session!: ReturnType<typeof useCanvasTextEditor>;
   const interactive = shallowRef(true);
@@ -98,10 +136,10 @@ function createTextEditorHarness(
           interactive,
           persist,
         });
-        return () => h("div");
+        return surface;
       },
     }),
-    { global: { plugins: [i18n] } },
+    { attachTo: document.body, global: { plugins: [i18n] } },
   );
   return { interactive, session, wrapper };
 }

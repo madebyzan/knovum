@@ -8,6 +8,7 @@ import type { SpaceTextPayload } from "../../../model/nodes/node-payload";
 import type { CanvasContentHeightMeasurement } from "../../contracts/canvas-editor-port";
 import type { CanvasNodePresentationContext } from "../../preview/policy";
 import type { CanvasNodeSizingMode } from "../../schema/document";
+import { CANVAS_TEXT_SURFACE_ATTRIBUTE } from "./canvas-text-surface";
 import SpaceCanvasRichText from "./SpaceCanvasRichText.vue";
 import SpaceCanvasTextPlane from "./SpaceCanvasTextPlane.vue";
 import SpaceCanvasTextSelectionBar from "./SpaceCanvasTextSelectionBar.vue";
@@ -74,12 +75,14 @@ function reportContentHeight(height: number) {
   <div
     class="relative flex size-full min-h-0 flex-col items-center overflow-hidden leading-tight"
     :class="[verticalClass, editing ? 'pointer-events-auto' : 'select-none']"
+    v-bind="{ [CANVAS_TEXT_SURFACE_ATTRIBUTE]: id }"
     :tabindex="interactive ? 0 : undefined"
     @dblclick.stop="beginEditing"
     @keydown.enter="beginEditing"
   >
     <SpaceCanvasTextSelectionBar
       v-if="editor"
+      :node-id="id"
       :editor="editor"
       kind="text"
       :default-font-size="fontSize"

@@ -201,9 +201,13 @@ loaded inside their own write transaction, which SQLite serializes against every
 parallel import or an agent-written node must not make the next local creation fail. No error permits
 forced overwrite, automatic reload-and-retry, or a compatibility path.
 
-A loaded projection is applied to the session only when it is not older than the snapshot the
-session already holds: parallel creations read their committed projection after their own commit, so
-a slower read must not reinstate a Space that another creation has already moved past.
+A creation answers with what it committed (`CreatedNodes`: each node as stored, validated and
+revisioned, and the edit revision reached), and that answer is also its receipt. The session takes the
+created payloads from it and reads back only the Structure/Layout snapshot — never the whole Space,
+whose every payload a new note would otherwise wait on — and skips even that read when it already
+holds a snapshot at or past the creation's revision. A loaded snapshot is applied only when it is not
+older than the one the session holds: parallel creations read after their own commit, so a slower
+read must not reinstate a Space that another creation has already moved past.
 
 ## Media assets and derived analysis
 
