@@ -6,11 +6,7 @@ import UiKbd from "../../../../shared/ui/UiKbd.vue";
 
 const { t } = useI18n();
 const WAVEFORM = [35, 70, 45, 88, 60, 35, 78, 50, 72, 40];
-const PATHS = [
-  "M52 0 C52 20 168 16 168 36",
-  "M168 0 L168 36",
-  "M284 0 C284 20 168 16 168 36",
-] as const;
+const PATHS = ["M52 0 C52 20 168 16 168 36", "M168 0 L168 36", "M284 0 C284 20 168 16 168 36"] as const;
 const SOURCE_ANCHORS = [52, 168, 284] as const;
 const SHORTCUT_HINTS = [
   { key: "N", label: "spaces.editor.note.new" },
@@ -121,11 +117,7 @@ const ICON_CLASS = "size-3.5 shrink-0 text-fg-tertiary";
       </p>
 
       <div class="mt-3.5 flex items-center justify-center gap-4 text-caption text-fg-tertiary">
-        <span
-          v-for="item in SHORTCUT_HINTS"
-          :key="item.key"
-          class="inline-flex items-center gap-1.5"
-        >
+        <span v-for="item in SHORTCUT_HINTS" :key="item.key" class="inline-flex items-center gap-1.5">
           <UiKbd :shortcut="item.key" variant="badge" />
           <span>{{ t(item.label) }}</span>
         </span>

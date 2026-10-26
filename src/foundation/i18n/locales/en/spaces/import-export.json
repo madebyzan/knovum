@@ -1,6 +1,5 @@
 {
   "import": {
-    "action": "Import",
     "failed": "Import failed. Check file format and try again."
   },
   "website": {

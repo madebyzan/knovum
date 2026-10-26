@@ -1,6 +1,5 @@
 {
   "import": {
-    "action": "Importieren",
     "failed": "Der Import ist fehlgeschlagen. Überprüfen Sie das Dateiformat und versuchen Sie es erneut."
   },
   "website": {

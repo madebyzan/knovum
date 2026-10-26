@@ -1,6 +1,5 @@
 {
   "import": {
-    "action": "Importa",
     "failed": "Importazione non riuscita. Controlla il formato del file e riprova."
   },
   "website": {

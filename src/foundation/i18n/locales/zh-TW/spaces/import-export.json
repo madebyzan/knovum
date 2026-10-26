@@ -1,6 +1,5 @@
 {
   "import": {
-    "action": "導入",
     "failed": "匯入失敗，請檢查文件格式。"
   },
   "website": {
