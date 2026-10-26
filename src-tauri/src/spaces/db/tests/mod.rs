@@ -1,5 +1,7 @@
 use sqlx::{sqlite::SqlitePoolOptions, Row, SqlitePool};
 
+mod upgrades;
+
 async fn migrated() -> SqlitePool {
     let pool = SqlitePoolOptions::new()
         .max_connections(1)

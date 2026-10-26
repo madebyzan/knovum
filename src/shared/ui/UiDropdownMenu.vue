@@ -23,6 +23,7 @@ interface UiDropdownMenuItemOption {
 }
 
 const open = defineModel<boolean>("open", { default: false });
+const emit = defineEmits<{ closeAutoFocus: [event: Event] }>();
 const scopeVisible = inject(overlayScopeVisibleKey, undefined);
 const scopeActive = computed(() => scopeVisible?.value !== false);
 watch(
@@ -67,6 +68,7 @@ const props = withDefaults(
         :align-offset="alignOffset"
         :collision-padding="8"
         avoid-collisions
+        @close-auto-focus="emit('closeAutoFocus', $event)"
         :class="
           cn(
             POPUP_ANIMATE_CLASSES,

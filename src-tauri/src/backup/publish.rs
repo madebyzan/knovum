@@ -32,14 +32,12 @@ pub async fn publish(
             .find(|target| target.live.ends_with(name))
             .ok_or("Restore plan is missing a database target")?;
         if target.present {
-            database::validate(
-                name,
-                target
-                    .staged
-                    .as_ref()
-                    .ok_or("Restore database has no staged path")?,
-            )
-            .await?;
+            let staged = target
+                .staged
+                .as_ref()
+                .ok_or("Restore database has no staged path")?;
+            database::upgrade(name, staged).await?;
+            database::validate(name, staged).await?;
         }
     }
     let store = targets

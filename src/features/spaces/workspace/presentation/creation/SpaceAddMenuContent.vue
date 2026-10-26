@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   Boxes,
-  Bot,
   ChevronRight,
   CircleHelp,
   FileText,
@@ -24,6 +23,12 @@ import { useI18n } from "vue-i18n";
 import { SUBMENU_CONTENT_CLASSES } from "../../../../../shared/ui/ui-classes";
 import UiDropdownMenuItem from "../../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
+import { nodeIcon } from "../../../canvas/presentation/node-icon";
+import {
+  GENERATOR_KIND_IDS,
+  GENERATOR_KINDS,
+  type GeneratorKind,
+} from "../../../knowledge-derivations/generators/generator-kinds";
 import type { SystemKnowledgeObjectKind } from "../../../knowledge/model/object-types";
 
 const emit = defineEmits<{
@@ -36,7 +41,7 @@ const emit = defineEmits<{
   importFile: [];
   recordAudio: [];
   credential: [kind: "api-key" | "account-password"];
-  agent: [];
+  generate: [kind: GeneratorKind];
   section: [];
 }>();
 const { t } = useI18n();
@@ -99,8 +104,10 @@ const KNOWLEDGE_OPTIONS = [
     <Mic class="size-3.5" />{{ t("spaces.recording.note") }}…
   </UiDropdownMenuItem>
   <UiSeparator class="my-1" />
-  <UiDropdownMenuItem @select="emit('agent')">
-    <Bot class="size-3.5" />{{ t("spaces.creation.agent.create") }}…
+  <UiDropdownMenuItem v-for="kind in GENERATOR_KIND_IDS" :key="kind" @select="emit('generate', kind)">
+    <component :is="nodeIcon(GENERATOR_KINDS[kind].output)" class="size-3.5" />{{
+      t(`spaces.creation.generator.kinds.${kind}`)
+    }}
   </UiDropdownMenuItem>
   <UiSeparator class="my-1" />
   <UiDropdownMenuItem @select="emit('portal')">

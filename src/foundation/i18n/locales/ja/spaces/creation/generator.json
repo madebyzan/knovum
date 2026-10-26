@@ -1,0 +1,36 @@
+{
+  "kinds": {
+    "image": "画像ジェネレーター",
+    "video": "動画ジェネレーター",
+    "document": "ドキュメントジェネレーター"
+  },
+  "placeholder": {
+    "document": "ドキュメントの目的、構成、要点を記述",
+    "image": "作りたい画像を記述。参考を追加できます",
+    "video": "シーン、動き、カメラ、スタイルを記述"
+  },
+  "references": {
+    "add": "参考を追加",
+    "fromCanvas": "キャンバスから選択",
+    "upload": "ファイルをアップロード…",
+    "picking": "キャンバス上のコンテンツをクリックして参考に追加",
+    "refused": "「{title}」には読み取れる内容がないため、参考にできません",
+    "done": "完了",
+    "preparing": "{title} · 準備中",
+    "unreadable": "{title} · 読み取れません",
+    "remove": "{title} を削除",
+    "blocked": {
+      "preparing": "参考はまだ準備中です",
+      "unreadable": "読み取れない参考を先に削除してください"
+    }
+  },
+  "aspectRatio": "アスペクト比",
+  "duration": "長さ",
+  "generate": "生成",
+  "generating": "生成中…",
+  "task": {
+    "document": "ドキュメントを生成中",
+    "image": "画像を生成中",
+    "video": "動画を生成中"
+  }
+}

@@ -101,6 +101,10 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
       return canvasPointFromScreen({ x: point.x - bounds.left, y: point.y - bounds.top }, options.viewport());
     },
     canvasToViewportPoint: (point) => screenPointFromCanvas(point, options.viewport()),
+    visibleCenter: () => {
+      const { width, height } = options.host().getBoundingClientRect();
+      return canvasPointFromScreen({ x: width / 2, y: height / 2 }, options.viewport());
+    },
   };
 
   async function deleteSelection() {

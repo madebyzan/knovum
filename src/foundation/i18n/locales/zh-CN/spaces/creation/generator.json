@@ -1,0 +1,36 @@
+{
+  "kinds": {
+    "image": "图像生成器",
+    "video": "视频生成器",
+    "document": "文档生成器"
+  },
+  "placeholder": {
+    "document": "描述文档的目标、结构与要点",
+    "image": "描述你想要的画面，可添加参考",
+    "video": "描述画面、主体动作、镜头与风格"
+  },
+  "references": {
+    "add": "添加参考",
+    "fromCanvas": "从画布选择",
+    "upload": "上传文件…",
+    "picking": "点击画布上的内容，添加为参考",
+    "refused": "「{title}」没有可读取的内容，不能作为参考",
+    "done": "完成",
+    "preparing": "{title} · 正在准备",
+    "unreadable": "{title} · 无法读取",
+    "remove": "移除 {title}",
+    "blocked": {
+      "preparing": "参考内容仍在准备",
+      "unreadable": "请先移除无法读取的参考"
+    }
+  },
+  "aspectRatio": "画面比例",
+  "duration": "时长",
+  "generate": "生成",
+  "generating": "正在生成…",
+  "task": {
+    "document": "正在生成文档",
+    "image": "正在生成图片",
+    "video": "正在生成视频"
+  }
+}

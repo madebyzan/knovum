@@ -67,7 +67,7 @@ fn validate_request(request: &GenerateVideoRequest) -> Result<(), String> {
     {
         return Err("Video generation inputs are invalid".into());
     }
-    source_inputs::require_single_primary(&request.inputs)
+    source_inputs::require_led(&request.inputs)
 }
 
 async fn load_context(

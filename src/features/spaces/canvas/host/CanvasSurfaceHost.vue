@@ -33,7 +33,7 @@ const props = defineProps<{
   spaceId: string;
 }>();
 const emit = defineEmits<{ exchangeReady: [exchange: CanvasExchangePort] }>();
-defineSlots<{ "node-content"(props: CanvasNodeContentSlotProps): unknown }>();
+defineSlots<{ "node-content"(props: CanvasNodeContentSlotProps): unknown; world(): unknown }>();
 const session = useCanvasDocumentSession({
   snapshot: () => props.sceneInput.editSnapshot,
   persistence: () => props.persistence,
@@ -111,6 +111,9 @@ onBeforeUnmount(() => {
   >
     <template #node-content="content">
       <slot name="node-content" v-bind="content" />
+    </template>
+    <template #world>
+      <slot name="world" />
     </template>
   </KonvaCanvasSurface>
 </template>

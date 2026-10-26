@@ -41,10 +41,10 @@ async fn fixture(
                 "kind":output_kind,"title":"Narration","fileName":"Narration.wav",
                 "assetPath":"/managed/reserved.wav","processingState":"processing"
             }),
-            footprint: Size {
+            placement: pending_output::OutputPlacement::Derived(Size {
                 width: 288.0,
                 height: 80.0,
-            },
+            }),
         }],
         &["source".to_owned()],
         "Speech narrated from source text",

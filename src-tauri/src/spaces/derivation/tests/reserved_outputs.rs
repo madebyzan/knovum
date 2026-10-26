@@ -23,7 +23,7 @@ fn reservation() -> PendingOutput {
             "kind":"image","title":"Upscaled","fileName":"upscaled.png",
             "assetPath":"/managed/upscaled.png","processingState":"processing"
         }),
-        footprint: pending_output::PLACEHOLDER,
+        placement: pending_output::OutputPlacement::Derived(pending_output::PLACEHOLDER),
     }
 }
 
@@ -169,4 +169,49 @@ async fn a_published_output_stops_waiting_and_survives_its_run_ending() {
     .await
     .unwrap();
     assert_eq!(state, None, "a settled output is not failed afterwards");
+}
+
+#[tokio::test]
+async fn a_framed_output_is_reserved_in_its_frame_and_claims_no_source_it_lacks() {
+    let pool = running_action_pool("run").await;
+    let mut tx = db::begin_write(&pool).await.unwrap();
+    structure::repository::initialize_empty_in_transaction(&mut tx, "space")
+        .await
+        .unwrap();
+    pending_output::reserve_in_transaction(
+        &mut tx,
+        "space",
+        vec![PendingOutput {
+            placement: pending_output::OutputPlacement::Framed(
+                serde_json::from_value(json!({"x":120.0,"y":-40.0,"width":320.0,"height":180.0}))
+                    .unwrap(),
+            ),
+            ..reservation()
+        }],
+        &[],
+        "Image generated from its prompt",
+        "run",
+        None,
+    )
+    .await
+    .unwrap();
+    tx.commit().await.unwrap();
+    let placed: (f64, f64, f64, f64) = sqlx::query_as(
+        "SELECT json_extract(layout.data,'$.transform.x'),json_extract(layout.data,'$.transform.y'),\
+         json_extract(layout.data,'$.size.width'),json_extract(layout.data,'$.size.height') \
+         FROM spaces_structure_layouts layout JOIN spaces_structure_nodes node \
+         ON node.id=layout.structure_node_id WHERE node.node_id=$1",
+    )
+    .bind(RESERVED)
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(placed, (120.0, -40.0, 320.0, 180.0));
+    let lineage: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM spaces_relations WHERE source_id=$1")
+            .bind(RESERVED)
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert_eq!(lineage, 0);
 }

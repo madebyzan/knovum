@@ -105,14 +105,14 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         question,
         Output::Answer,
     ),
-    action(
+    optionally_grounded(action(
         "draft-document",
         Some(ExecutionCapability::TextGeneration),
         Some(RoutingPurpose::Knowledge),
         &[Input::Knowledge],
         purpose,
         Output::Document,
-    ),
+    )),
     action(
         "draft-script",
         Some(ExecutionCapability::TextGeneration),
@@ -137,14 +137,14 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         social_copy,
         Output::Document,
     ),
-    action(
+    optionally_grounded(action(
         "generate-visualization",
         Some(ExecutionCapability::ImageGeneration),
         Some(RoutingPurpose::ImageGeneration),
         &[Input::Knowledge],
         visualization,
         Output::Image,
-    ),
+    )),
     action(
         "generate-image",
         Some(ExecutionCapability::ImageGeneration),
@@ -153,7 +153,7 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         image,
         Output::Image,
     ),
-    collection_action(
+    optionally_grounded(collection_action(
         action(
             "generate-video",
             Some(ExecutionCapability::VideoGeneration),
@@ -167,7 +167,7 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
             role: "source",
             max_items: 10,
         },
-    ),
+    )),
     action(
         "add-video-subtitles",
         None,
@@ -177,6 +177,13 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         Output::Video,
     ),
 ];
+
+/// A generation: selected resources ground it when there are any, and its prompt is enough when
+/// there are none.
+const fn optionally_grounded(mut definition: SpaceActionDefinition) -> SpaceActionDefinition {
+    definition.min_inputs = 0;
+    definition
+}
 
 const fn collection_action(
     mut definition: SpaceActionDefinition,

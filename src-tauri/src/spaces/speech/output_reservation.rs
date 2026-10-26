@@ -85,11 +85,11 @@ pub(super) async fn reserve(
                 ),
                 "processingState": "processing",
             }),
-            footprint: if output.kind == "audio" {
+            placement: pending_output::OutputPlacement::Derived(if output.kind == "audio" {
                 AUDIO_FOOTPRINT
             } else {
                 pending_output::PLACEHOLDER
-            },
+            }),
             node_id: output.node_id,
             kind: output.kind,
         })

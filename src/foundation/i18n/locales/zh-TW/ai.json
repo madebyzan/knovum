@@ -5,9 +5,6 @@
     "desktopAgent": "桌面 Agent · 產出取決於目前工具與 Skills",
     "none": "沒有相容的執行目標"
   },
-  "desktopAgent": {
-    "notDetected": "未檢測到"
-  },
   "unavailable": {
     "title": "沒有相容的 AI 執行目標",
     "description": "請為目前操作配置相容模型，或啟用已安裝的桌面 Agent。"

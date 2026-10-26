@@ -1,6 +1,6 @@
 use serde_json::json;
 
-use super::{node_ids, records, require_single_primary, SourceInput};
+use super::{node_ids, records, require_led, require_single_primary, SourceInput};
 use crate::spaces::derivation::inputs::RevisionBasis;
 
 fn input(node_id: &str, role: &str, basis: RevisionBasis) -> SourceInput {
@@ -59,4 +59,15 @@ fn node_ids_keep_the_selection_order() {
         ]),
         vec!["first".to_owned(), "second".to_owned()]
     );
+}
+
+#[test]
+fn a_generation_may_have_no_source_but_any_it_has_are_led() {
+    assert!(require_led(&[]).is_ok());
+    assert!(require_led(&[input("a", "source", RevisionBasis::Knowledge)]).is_err());
+    assert!(require_led(&[
+        input("a", "primary", RevisionBasis::Knowledge),
+        input("b", "source", RevisionBasis::Asset),
+    ])
+    .is_ok());
 }

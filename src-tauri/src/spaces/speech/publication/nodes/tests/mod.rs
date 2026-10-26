@@ -22,10 +22,10 @@ fn reserved(stem: &str) -> PendingOutput {
             "kind":"audio","title":stem,"fileName":format!("{stem}.wav"),
             "assetPath":format!("/managed/reserved-{stem}.wav"),"processingState":"processing"
         }),
-        footprint: Size {
+        placement: pending_output::OutputPlacement::Derived(Size {
             width: 288.0,
             height: 80.0,
-        },
+        }),
     }
 }
 

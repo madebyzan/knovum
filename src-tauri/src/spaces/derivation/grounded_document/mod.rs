@@ -2,6 +2,8 @@ mod completion;
 pub(crate) mod metadata;
 mod persistence;
 mod prompt;
+#[cfg(test)]
+mod tests;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -92,30 +94,16 @@ async fn execute(
     stages: &Channel<String>,
     cancellation: tokio_util::sync::CancellationToken,
 ) -> Result<GeneratedDocument, AppError> {
-    stage(stages, "retrieving")?;
-    crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
-        app,
-        &request.space_id,
-        Some(source_inputs::node_ids(&request.inputs)),
-        &request.id,
-        &cancellation,
-    )
-    .await?;
-    let retrieval = hybrid::search(
-        app,
-        HybridSearchRequest {
-            semantic: true,
-            space_id: Some(request.space_id.clone()),
-            query: request.purpose.clone(),
-            node_ids: Some(source_inputs::node_ids(&request.inputs)),
-        },
-        &cancellation,
-    )
-    .await?;
-    let sources = grounding::prompt::select_sources(retrieval.matches)?;
-    if sources.is_empty() {
-        return Err("Selected resources contain no current indexed knowledge".into());
-    }
+    let sources = if request.inputs.is_empty() {
+        Vec::new()
+    } else {
+        stage(stages, "retrieving")?;
+        let sources = retrieve(app, request, &cancellation).await?;
+        if sources.is_empty() {
+            return Err("Selected resources contain no current indexed knowledge".into());
+        }
+        sources
+    };
     stage(stages, "generating")?;
     let completion = task_completion::complete(
         app,
@@ -131,6 +119,34 @@ async fn execute(
         usage: completion.usage,
         citations,
     })
+}
+
+/// The passages of the selected resources that serve the document's purpose.
+async fn retrieve(
+    app: &AppHandle,
+    request: &GenerateGroundedDocumentRequest,
+    cancellation: &tokio_util::sync::CancellationToken,
+) -> Result<Vec<Value>, AppError> {
+    crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
+        app,
+        &request.space_id,
+        Some(source_inputs::node_ids(&request.inputs)),
+        &request.id,
+        cancellation,
+    )
+    .await?;
+    let retrieval = hybrid::search(
+        app,
+        HybridSearchRequest {
+            semantic: true,
+            space_id: Some(request.space_id.clone()),
+            query: request.purpose.clone(),
+            node_ids: Some(source_inputs::node_ids(&request.inputs)),
+        },
+        cancellation,
+    )
+    .await?;
+    Ok(grounding::prompt::select_sources(retrieval.matches)?)
 }
 
 struct GeneratedDocument {

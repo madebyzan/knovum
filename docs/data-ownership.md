@@ -59,9 +59,13 @@ never a compatibility reader beside the old shape.
 
 Dropping a column or a table deletes someone's content, so it is a product decision with its own
 review, not a cleanup step inside a schema change. Renaming is the same decision in two parts.
+`0002_retire_agent_artifact_sessions.sql` is the one such decision so far: the table held only the
+run state of the removed Create with Agent dialog, so its open Runs settle as failed and stay in the
+ledger while the table goes.
 
-Fresh-database tests do not prove an upgrade. A migration is accepted with a test that starts from
-the previously shipped schema, carries representative rows through the new migration and asserts
+Fresh-database tests do not prove an upgrade. A migration is accepted with a test in
+`spaces/db/tests/upgrades.rs` (or the owning feature's equivalent) that starts from the previously
+shipped schema, carries representative rows through the new migration and asserts
 both the resulting schema and the surviving data; `docs/release.md` keeps the packaged upgrade pass
 that runs the full history against a real installed library. Immutability itself is a CI gate: the
 Quality workflow fails a pull request that modifies, deletes or renames a migration already present
@@ -323,7 +327,11 @@ become a database owner: SQLx baselines and Space quiescence checks remain autho
 conversation drafts are included; active or replayable execution is not admitted.
 
 Backups are local recovery archives for the original canonical storage roots. A versioned manifest
-records those roots, exact baseline fingerprints, declared files and their hashes. Restore publishes
+records those roots, exact baseline fingerprints, declared files and their hashes. A fingerprint must
+name this release's migration history or a leading part of it: restore runs the remaining
+migrations on the staged copy, then validates it exactly as it validates a database this release
+wrote, so a backup survives every later schema change while a newer release's backup is refused.
+Restore publishes
 validated roots only during exclusive startup maintenance and reconciles its publication journal
 before any feature storage opens. The credential database and its sidecars are excluded from archives
 and cleared on successful restore so restored identifiers cannot inherit current credentials.

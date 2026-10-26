@@ -23,7 +23,7 @@ async fn pool_with_run() -> sqlx::SqlitePool {
 
 fn chunks(count: usize) -> Vec<Streamed> {
     (0..count)
-        .map(|index| Streamed::of(AgentSessionUpdate::Message(format!("chunk-{index} "))).unwrap())
+        .map(|index| Streamed::of(AgentSessionUpdate::Message(format!("chunk-{index} "))))
         .collect()
 }
 
@@ -88,11 +88,6 @@ async fn a_flush_reports_the_failure_the_recorder_met() {
 }
 
 #[test]
-fn a_thought_leaves_no_record() {
-    assert!(Streamed::of(AgentSessionUpdate::Thought("private".into())).is_none());
-}
-
-#[test]
 fn the_queue_rejects_a_burst_above_its_capacity() {
     let (updates, _recorded) = tokio::sync::mpsc::channel::<Command>(1);
     let stream = Stream { updates };
@@ -102,9 +97,6 @@ fn the_queue_rejects_a_burst_above_its_capacity() {
     assert!(stream
         .record(AgentSessionUpdate::Message("second".into()))
         .is_err());
-    assert!(stream
-        .record(AgentSessionUpdate::Thought("ignored".into()))
-        .is_ok());
 }
 
 #[test]

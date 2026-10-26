@@ -7,12 +7,8 @@ fn linked_file(path: &Path) -> ToolCallContent {
     ToolCallContent::from(ContentBlock::ResourceLink(ResourceLink::new("Output", uri)))
 }
 
-fn collected_names(workspace: &Path) -> Vec<String> {
-    crate::external_agents::artifacts::collect(workspace)
-        .unwrap()
-        .into_iter()
-        .map(|artifact| artifact.name)
-        .collect()
+fn collected_paths(workspace: &Path) -> Vec<String> {
+    crate::external_agents::artifacts::collect(workspace).unwrap()
 }
 
 #[test]
@@ -77,9 +73,7 @@ async fn repeated_media_chunks_are_distinct_occurrences_within_one_message() {
     }
     let artifacts = crate::external_agents::artifacts::collect(&workspace).unwrap();
     assert_eq!(artifacts.len(), 2);
-    assert!(artifacts
-        .iter()
-        .all(|artifact| artifact.name.contains("cover")));
+    assert!(artifacts.iter().all(|artifact| artifact.contains("cover")));
     tokio::fs::remove_dir_all(workspace).await.unwrap();
 }
 
@@ -180,7 +174,7 @@ async fn local_file_tool_outputs_are_replaced_without_deleting_workspace_sources
     persist_tool_content(&workspace, "tool-local", &[linked_file(&second)])
         .await
         .unwrap();
-    let names = collected_names(&workspace);
+    let names = collected_paths(&workspace);
     assert!(!names.contains(&first.file_name().unwrap().to_string_lossy().into_owned()));
     assert!(names.contains(&"second.md".into()));
     assert!(names.contains(&"notes.md".into()));
@@ -188,7 +182,7 @@ async fn local_file_tool_outputs_are_replaced_without_deleting_workspace_sources
     persist_tool_content(&workspace, "tool-local", &[])
         .await
         .unwrap();
-    assert_eq!(collected_names(&workspace), vec!["notes.md"]);
+    assert_eq!(collected_paths(&workspace), vec!["notes.md"]);
     assert!(first.is_file());
     assert!(second.is_file());
     tokio::fs::remove_dir_all(workspace).await.unwrap();
@@ -211,11 +205,11 @@ async fn shared_local_file_remains_active_until_every_tool_retires_it() {
     persist_tool_content(&workspace, "tool-a", &[])
         .await
         .unwrap();
-    assert_eq!(collected_names(&workspace), vec!["shared.md"]);
+    assert_eq!(collected_paths(&workspace), vec!["shared.md"]);
     persist_tool_content(&workspace, "tool-b", &[])
         .await
         .unwrap();
-    assert!(collected_names(&workspace).is_empty());
+    assert!(collected_paths(&workspace).is_empty());
     assert!(shared.is_file());
     tokio::fs::remove_dir_all(workspace).await.unwrap();
 }
@@ -243,7 +237,7 @@ async fn direct_message_reference_keeps_a_retired_tool_file_active() {
     .await
     .unwrap();
     persist_tool_content(&workspace, "tool", &[]).await.unwrap();
-    assert_eq!(collected_names(&workspace), vec!["shared.md"]);
+    assert_eq!(collected_paths(&workspace), vec!["shared.md"]);
     tokio::fs::remove_dir_all(workspace).await.unwrap();
 }
 
@@ -264,6 +258,21 @@ async fn collector_reloads_retired_projection_from_disk() {
     persist_tool_content(&workspace, "tool", &[]).await.unwrap();
 
     assert!(workspace.join(".agent-output-projection.json").is_file());
-    assert_eq!(collected_names(&workspace), vec!["untracked.md"]);
+    assert_eq!(collected_paths(&workspace), vec!["untracked.md"]);
     tokio::fs::remove_dir_all(workspace).await.unwrap();
+}
+
+#[tokio::test]
+async fn an_agents_reasoning_is_neither_shown_nor_recorded() {
+    use agent_client_protocol::schema::v1::{ContentChunk, TextContent};
+
+    let update = receive(
+        SessionUpdate::AgentThoughtChunk(ContentChunk::new(ContentBlock::Text(TextContent::new(
+            "private",
+        )))),
+        &std::env::temp_dir(),
+    )
+    .await
+    .unwrap();
+    assert!(update.is_none());
 }

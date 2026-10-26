@@ -1,0 +1,36 @@
+{
+  "kinds": {
+    "image": "Gerador de imagens",
+    "video": "Gerador de vídeos",
+    "document": "Gerador de documentos"
+  },
+  "placeholder": {
+    "document": "Descreva o objetivo, a estrutura e os pontos principais do documento",
+    "image": "Descreva a imagem que você quer; adicione referências",
+    "video": "Descreva a cena, a ação, a câmera e o estilo"
+  },
+  "references": {
+    "add": "Adicionar referências",
+    "fromCanvas": "Escolher no canvas",
+    "upload": "Enviar arquivo…",
+    "picking": "Clique em um conteúdo do canvas para adicioná-lo como referência",
+    "refused": "“{title}” não tem nada legível e não pode ser uma referência",
+    "done": "Concluir",
+    "preparing": "{title} · preparando",
+    "unreadable": "{title} · ilegível",
+    "remove": "Remover {title}",
+    "blocked": {
+      "preparing": "As referências ainda estão sendo preparadas",
+      "unreadable": "Remova primeiro as referências ilegíveis"
+    }
+  },
+  "aspectRatio": "Proporção",
+  "duration": "Duração",
+  "generate": "Gerar",
+  "generating": "Gerando…",
+  "task": {
+    "document": "Gerando documento",
+    "image": "Gerando imagem",
+    "video": "Gerando vídeo"
+  }
+}

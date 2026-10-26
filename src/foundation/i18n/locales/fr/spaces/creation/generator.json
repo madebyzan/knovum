@@ -1,0 +1,36 @@
+{
+  "kinds": {
+    "image": "Générateur d'images",
+    "video": "Générateur de vidéos",
+    "document": "Générateur de documents"
+  },
+  "placeholder": {
+    "document": "Décrivez l’objectif, la structure et les points clés du document",
+    "image": "Décrivez l’image voulue ; ajoutez des références",
+    "video": "Décrivez la scène, l’action, la caméra et le style"
+  },
+  "references": {
+    "add": "Ajouter des références",
+    "fromCanvas": "Choisir sur le canevas",
+    "upload": "Importer un fichier…",
+    "picking": "Cliquez sur un contenu du canevas pour l’ajouter comme référence",
+    "refused": "« {title} » ne contient rien de lisible et ne peut pas servir de référence",
+    "done": "Terminé",
+    "preparing": "{title} · préparation",
+    "unreadable": "{title} · illisible",
+    "remove": "Retirer {title}",
+    "blocked": {
+      "preparing": "Les références sont encore en préparation",
+      "unreadable": "Retirez d’abord les références illisibles"
+    }
+  },
+  "aspectRatio": "Format d’image",
+  "duration": "Durée",
+  "generate": "Générer",
+  "generating": "Génération…",
+  "task": {
+    "document": "Génération du document",
+    "image": "Génération de l’image",
+    "video": "Génération de la vidéo"
+  }
+}

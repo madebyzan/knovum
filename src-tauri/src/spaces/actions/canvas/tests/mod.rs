@@ -55,6 +55,7 @@ pub(super) fn pinned_request(
             })
             .collect(),
         target,
+        output_frame: None,
     }
 }
 pub(super) async fn start(
@@ -179,4 +180,58 @@ fn local_actions_reject_ai_targets_and_immediate_mutations() {
         ..request
     };
     assert!(invocation(&request, super::super::require(&request.action_id).unwrap()).is_err());
+}
+
+#[tokio::test]
+async fn a_generation_starts_from_its_prompt_alone_and_keeps_the_frame_it_was_drawn_in() {
+    let pool = database().await;
+    let frame = json!({"x": 120.0, "y": -40.0, "width": 320.0, "height": 180.0});
+    let request = StartSpaceActionRequest {
+        output_frame: Some(serde_json::from_value(frame.clone()).unwrap()),
+        ..request(
+            "generate-visualization",
+            &[],
+            json!({"title":"Harbour","intent":"A harbour at dawn","aspectRatio":"16:9"}),
+            Some(TaskTarget::Agent {
+                runtime_kind: crate::ai::contracts::ExternalAgentKind::Codex,
+            }),
+        )
+    };
+    let run = start(&pool, &request).await.unwrap();
+    let input: String = sqlx::query_scalar("SELECT input_snapshot FROM spaces_runs WHERE id=$1")
+        .bind(run.id)
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    let input: Value = serde_json::from_str(&input).unwrap();
+    assert_eq!(input["inputs"]["orderedInputs"], json!([]));
+    assert_eq!(input["inputs"]["outputFrame"], frame);
+}
+
+#[test]
+fn an_action_that_reads_a_resource_refuses_to_start_without_one() {
+    let request = request("add-video-subtitles", &[], json!({}), None);
+    let error = invocation(&request, super::super::require(&request.action_id).unwrap())
+        .err()
+        .unwrap();
+    assert!(error.message.contains("action-input-missing"));
+}
+
+#[test]
+fn an_output_frame_must_be_a_real_rectangle() {
+    let request = StartSpaceActionRequest {
+        output_frame: Some(
+            serde_json::from_value(json!({"x":0.0,"y":0.0,"width":0.0,"height":10.0})).unwrap(),
+        ),
+        ..request(
+            "generate-visualization",
+            &[],
+            json!({"title":"T","intent":"I","aspectRatio":"1:1"}),
+            None,
+        )
+    };
+    let error = invocation(&request, super::super::require(&request.action_id).unwrap())
+        .err()
+        .unwrap();
+    assert!(error.message.contains("canvas-placement-invalid"));
 }

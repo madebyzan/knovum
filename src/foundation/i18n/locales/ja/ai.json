@@ -5,9 +5,6 @@
     "desktopAgent": "Desktop Agent · 出力は現在のツールと Skills に依存します",
     "none": "互換性のある実行ターゲットがありません"
   },
-  "desktopAgent": {
-    "notDetected": "検出されません"
-  },
   "unavailable": {
     "title": "互換性のある AI ターゲットがありません",
     "description": "このアクションに対して互換性のあるモデルを設定するか、インストールされているデスクトップ エージェントを有効にします。"

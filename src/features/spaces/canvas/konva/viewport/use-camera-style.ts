@@ -4,6 +4,14 @@ import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import type { CanvasCamera } from "./canvas-camera";
 
 /**
+ * The declarations that put a world-space layer under the camera, and publish its zoom so content can
+ * stay screen-sized inside it.
+ */
+export function worldTransform({ x, y, zoom }: CanvasViewport): Record<string, string> {
+  return { transform: `translate(${x}px, ${y}px) scale(${zoom})`, "--canvas-zoom": String(zoom) };
+}
+
+/**
  * Keeps one element aligned with the live camera.
  *
  * Elements that are anchored to world coordinates but sized in screen pixels cannot wait for the settled

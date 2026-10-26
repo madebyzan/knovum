@@ -93,3 +93,15 @@ fn every_durable_action_reaches_a_handler() {
         );
     }
 }
+
+#[test]
+fn only_generations_run_without_a_selected_resource() {
+    for definition in definitions() {
+        let generation = matches!(
+            definition.id,
+            "draft-document" | "generate-visualization" | "generate-video"
+        );
+        let expected = usize::from(!generation && !definition.input_roles.is_empty());
+        assert_eq!(definition.min_inputs, expected, "{}", definition.id);
+    }
+}

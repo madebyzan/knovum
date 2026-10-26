@@ -25,6 +25,9 @@ pub struct SpaceActionDefinition {
     pub execution_capability: Option<ExecutionCapability>,
     pub routing_purpose: Option<RoutingPurpose>,
     pub input_roles: &'static [SpaceActionInputRole],
+    /// How many input resources a Run needs. A generation reads selected resources as references
+    /// when there are any and works from its prompt alone when there are none.
+    pub min_inputs: usize,
     pub collection_input: Option<SpaceActionCollectionInput>,
     #[serde(serialize_with = "serialize_parameter_schema")]
     #[ts(type = "Record<string, unknown>")]

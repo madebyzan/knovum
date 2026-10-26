@@ -73,22 +73,3 @@ pub struct ExternalAgentInstallation {
     /// ACP host/server entry only. Never a desktop application's GUI executable.
     pub executable_path: Option<String>,
 }
-
-#[derive(Debug, Clone, Copy, Serialize, ts_rs::TS)]
-#[serde(rename_all = "snake_case")]
-pub enum AgentArtifactKind {
-    Image,
-    Video,
-    Audio,
-    Document,
-    File,
-}
-
-#[derive(Debug, Clone, Serialize, ts_rs::TS)]
-#[serde(rename_all = "camelCase")]
-pub struct AgentArtifact {
-    pub name: String,
-    pub relative_path: String,
-    pub kind: AgentArtifactKind,
-    pub size: u64,
-}

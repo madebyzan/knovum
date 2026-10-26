@@ -1,9 +1,7 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 
-import { getErrorMessage } from "../../../../../foundation/errors/error-format";
-import { importSpaceFromPicker } from "../../../assets/import-flow";
+import { usePickerImport } from "../../../assets/use-picker-import";
 import { useNodeOperationGate } from "../../../canvas/use-node-operation-gate";
 import { createSystemKnowledgeObjectPayload } from "../../../knowledge/model/object-factory";
 import { useSpaceStore } from "../../../session/space-store";
@@ -14,11 +12,11 @@ export function useAddMenu() {
   const store = useSpaceStore();
   const operations = useNodeOperationGate();
   const { t } = useI18n();
+  const importPicked = usePickerImport();
   const websiteOpen = ref(false);
   const customObjectOpen = ref(false);
   const typeEditorOpen = ref(false);
   const portalOpen = ref(false);
-  const agentCreationOpen = ref(false);
   const website = ref("");
   const normalizedWebsite = computed(() => normalizeSpaceUrl(website.value));
   const addMarkdown = () => {
@@ -57,15 +55,7 @@ export function useAddMenu() {
     });
   }
   async function importFromPicker() {
-    if (!store.activeSpaceId || !operations.allows("create")) return;
-    try {
-      await importSpaceFromPicker({
-        title: t("spaces.importExport.progress.resource"),
-        preparing: t("spaces.importExport.progress.preparing"),
-      });
-    } catch (error) {
-      toast.error(t("spaces.importExport.import.failed"), { description: getErrorMessage(error) });
-    }
+    if (store.activeSpaceId && operations.allows("create")) await importPicked();
   }
   async function addWebsite() {
     const url = normalizedWebsite.value;
@@ -88,7 +78,6 @@ export function useAddMenu() {
     customObjectOpen,
     typeEditorOpen,
     portalOpen,
-    agentCreationOpen,
     website,
     normalizedWebsite,
     addMarkdown,

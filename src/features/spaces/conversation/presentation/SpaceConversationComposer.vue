@@ -4,6 +4,7 @@ import { useTextareaAutosize } from "@vueuse/core";
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef } from "vue";
 import { toast } from "vue-sonner";
 
+import { isComposing } from "../../../../foundation/dom/composition";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/events";
 import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
@@ -70,7 +71,7 @@ defineExpose({
 });
 
 function submit(event?: KeyboardEvent) {
-  if (event?.isComposing || event?.keyCode === 229) return;
+  if (event && isComposing(event)) return;
   event?.preventDefault();
   if (canSend.value) emit("send");
 }

@@ -150,10 +150,12 @@ fn schema(definition: &SpaceActionDefinition) -> Value {
             "inputNodeIds".into(),
             json!({
                 "type": "array", "items": {"type": "string", "minLength": 1},
-                "minItems": 1, "maxItems": 64,
+                "minItems": definition.min_inputs, "maxItems": 64,
                 "description": "Exact source resource IDs in primary-first order."
             }),
         );
+    }
+    if definition.min_inputs > 0 {
         object
             .entry("required")
             .or_insert_with(|| json!([]))

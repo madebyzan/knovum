@@ -1,5 +1,9 @@
 use sha2::{Digest, Sha256};
-use sqlx::{migrate::Migrator, sqlite::SqliteConnectOptions, Connection, Row, SqliteConnection};
+use sqlx::{
+    migrate::{Migration, Migrator},
+    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
+    Connection, Row, SqliteConnection,
+};
 use std::{collections::BTreeMap, path::Path};
 
 static SPACES: Migrator = sqlx::migrate!("src/spaces/db/migrations");
@@ -24,15 +28,50 @@ pub(super) fn migrator(name: &str) -> &'static Migrator {
 pub fn baselines() -> BTreeMap<String, String> {
     DATABASES
         .iter()
-        .map(|(name, _)| {
-            let mut digest = Sha256::new();
-            for migration in migrator(name).migrations.iter() {
-                digest.update(migration.version.to_le_bytes());
-                digest.update(migration.checksum.as_ref());
-            }
-            ((*name).into(), hex::encode(digest.finalize()))
-        })
+        .map(|(name, _)| ((*name).into(), fingerprint(&migrator(name).migrations)))
         .collect()
+}
+
+pub(super) fn fingerprint(migrations: &[Migration]) -> String {
+    let mut digest = Sha256::new();
+    for migration in migrations {
+        digest.update(migration.version.to_le_bytes());
+        digest.update(migration.checksum.as_ref());
+    }
+    hex::encode(digest.finalize())
+}
+
+/// A backup this release can restore was written by it or by an earlier one: every database names
+/// a leading part of the migrations this build carries, which `upgrade` then brings forward. A
+/// newer release's database, or one whose shipped history differs, matches no part of it.
+pub fn restorable(baselines: &BTreeMap<String, String>) -> bool {
+    baselines.len() == DATABASES.len()
+        && DATABASES.iter().all(|(name, _)| {
+            let migrations = &migrator(name).migrations;
+            baselines.get(*name).is_some_and(|recorded| {
+                (1..=migrations.len())
+                    .any(|applied| fingerprint(&migrations[..applied]) == *recorded)
+            })
+        })
+}
+
+/// Brings a staged database written by an earlier release to this release's schema, so it is
+/// validated and published exactly like one this release wrote. It works on the staged copy: a
+/// migration that fails leaves the live library untouched.
+/// Like every migration in the app it runs over a pool: restore runs on the async runtime, and
+/// `Migrator::run` over a bare connection is not `Send` for every lifetime it borrows.
+pub async fn upgrade(name: &str, path: &Path) -> Result<(), String> {
+    let pool = SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect_with(options(path)?)
+        .await
+        .map_err(|error| error.to_string())?;
+    let upgraded = migrator(name)
+        .run(&pool)
+        .await
+        .map_err(|error| format!("{name} could not be brought to this release: {error}"));
+    pool.close().await;
+    upgraded
 }
 
 pub async fn snapshot(name: &str, source: &Path, destination: &Path) -> Result<(), String> {
@@ -69,6 +108,13 @@ pub async fn validate(name: &str, path: &Path) -> Result<(), String> {
 }
 
 async fn connect(path: &Path) -> Result<SqliteConnection, String> {
+    SqliteConnection::connect_with(&options(path)?)
+        .await
+        .map_err(|error| error.to_string())
+}
+
+/// Only a regular file is opened as a database, never what a symlink points at.
+fn options(path: &Path) -> Result<SqliteConnectOptions, String> {
     let metadata = std::fs::symlink_metadata(path)
         .map_err(|error| format!("Database could not be inspected: {error}"))?;
     if !metadata.is_file() || metadata.file_type().is_symlink() {
@@ -77,9 +123,7 @@ async fn connect(path: &Path) -> Result<SqliteConnection, String> {
             path.display()
         ));
     }
-    SqliteConnection::connect_with(&SqliteConnectOptions::new().filename(path))
-        .await
-        .map_err(|error| error.to_string())
+    Ok(SqliteConnectOptions::new().filename(path))
 }
 
 async fn validate_connection(name: &str, connection: &mut SqliteConnection) -> Result<(), String> {

@@ -76,8 +76,6 @@ Space persistence is entirely Rust-owned. Reads and writes cross typed Rust comm
 - `plugin:spaces|generate_media_insights` — generate and publish insights against the captured current media knowledge;
 - `plugin:spaces|await_space_runtime` — await the Rust-owned startup recovery gate without rerunning recovery.
 
-Agent artifact commands never accept an app-owned absolute source path from the Renderer. `plugin:spaces|stage_generated_artifact_import` resolves a validated Space/session/relative artifact identity in Rust and enters the same prepared Space import pipeline used by user-selected sources; `plugin:spaces|remove_agent_artifact` removes that source only after import succeeds. Preview, discard, recovery listing and creation use the same identity boundary.
-
 ## Governed execution commands
 
 - `plugin:spaces|list_space_actions` projects the single versioned Action catalog. `plugin:spaces|start_space_action` accepts canvas resource creation with source IDs/revisions and an optional explicit target; Rust owns authorization, target resolution and the Action Run. Builtin Agent and MCP reuse the same invocation/execution boundary.

@@ -177,6 +177,71 @@ async fn a_database_snapshot_carries_a_search_index_that_answers_for_its_rows() 
     assert!(database::validate("spaces.db", &snapshot).await.is_err());
 }
 
+/// A release restores what an earlier one backed up. That backup names a leading part of this
+/// build's migrations, and restore brings the staged copy forward before validating it exactly as
+/// it validates a database this release wrote.
+#[tokio::test]
+async fn a_backup_from_an_earlier_release_is_brought_forward_on_restore() {
+    let fixture = Fixture::new();
+    let staged = fixture.paths.maintenance.join("spaces.db");
+    let mut connection = SqliteConnection::connect_with(
+        &SqliteConnectOptions::new()
+            .filename(&staged)
+            .create_if_missing(true),
+    )
+    .await
+    .expect("staged database");
+    database::migrator("spaces.db")
+        .run_to(1, &mut connection)
+        .await
+        .expect("the 0.0.1 schema");
+    sqlx::query(
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','Kept',1,1)",
+    )
+    .execute(&mut connection)
+    .await
+    .expect("space");
+    connection.close().await.expect("close staged database");
+    let mut baselines = database::baselines();
+    baselines.insert(
+        "spaces.db".into(),
+        database::fingerprint(&database::migrator("spaces.db").migrations[..1]),
+    );
+    assert!(database::restorable(&baselines));
+    assert!(database::validate("spaces.db", &staged).await.is_err());
+
+    database::upgrade("spaces.db", &staged)
+        .await
+        .expect("brought forward");
+
+    database::validate("spaces.db", &staged)
+        .await
+        .expect("validates as this release's own");
+    let mut restored =
+        SqliteConnection::connect_with(&SqliteConnectOptions::new().filename(&staged))
+            .await
+            .expect("restored database");
+    let title: String = sqlx::query_scalar("SELECT title FROM spaces WHERE id='s'")
+        .fetch_one(&mut restored)
+        .await
+        .expect("space survives the upgrade");
+    assert_eq!(title, "Kept");
+    restored.close().await.expect("close restored database");
+}
+
+/// A newer release's database, or a backup missing one, is not something this release can bring
+/// forward, so it is refused before anything is extracted.
+#[test]
+fn only_this_or_an_earlier_release_is_restorable() {
+    assert!(database::restorable(&database::baselines()));
+    let mut newer = database::baselines();
+    newer.insert("spaces.db".into(), "0".repeat(64));
+    assert!(!database::restorable(&newer));
+    let mut incomplete = database::baselines();
+    incomplete.remove("ai-usage.db");
+    assert!(!database::restorable(&incomplete));
+}
+
 #[test]
 fn active_space_package_job_blocks_backup_admission() {
     let lease = crate::spaces::package::control::tests::begin_test_job(

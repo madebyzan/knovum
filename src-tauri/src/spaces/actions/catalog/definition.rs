@@ -133,6 +133,7 @@ const fn definition(
         execution_capability: binding.capability,
         routing_purpose: binding.purpose,
         input_roles,
+        min_inputs: if input_roles.is_empty() { 0 } else { 1 },
         collection_input: None,
         parameters_schema,
         output_contract,

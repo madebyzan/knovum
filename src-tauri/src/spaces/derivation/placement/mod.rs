@@ -3,7 +3,10 @@
 //! Every derivation - an Action's outputs, separated speech, an Agent's files - publishes through
 //! here, so one rule covers all of them: a set published together is laid out as a grid and placed
 //! as one block, and that block joins the field its sources' earlier derivations already form.
+//! An output a person framed on the canvas before asking for it is the exception: it lands in its
+//! frame, because that is where they were looking when they asked.
 
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 
@@ -20,6 +23,101 @@ pub(crate) const PLACEHOLDER: Size = Size {
     width: 320.0,
     height: 220.0,
 };
+
+/// Where a person framed an output before asking for it, in canvas coordinates.
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub(crate) struct OutputFrame {
+    pub(crate) x: f64,
+    pub(crate) y: f64,
+    pub(crate) width: f64,
+    pub(crate) height: f64,
+}
+
+impl OutputFrame {
+    pub(crate) fn validate(&self) -> Result<(), String> {
+        let positioned = self.x.is_finite() && self.y.is_finite();
+        let sized = [self.width, self.height]
+            .iter()
+            .all(|extent| extent.is_finite() && *extent > 0.0);
+        if positioned && sized {
+            Ok(())
+        } else {
+            Err(
+                "canvas-placement-invalid: output frame must be a finite, non-empty rectangle"
+                    .into(),
+            )
+        }
+    }
+
+    fn cell(&self) -> DerivedCell {
+        DerivedCell {
+            x: self.x,
+            y: self.y,
+            size: Size {
+                width: self.width,
+                height: self.height,
+            },
+        }
+    }
+}
+
+/// Where one reserved output goes.
+pub(crate) enum OutputPlacement {
+    /// Into its sources' derivation field, at this footprint until its content reports its own.
+    Derived(Size),
+    /// Exactly into the frame a person drew for it.
+    Framed(OutputFrame),
+}
+
+/// Plans a cell for each output in order: a framed output takes its frame, and the rest are laid
+/// out together as one block in their sources' field.
+pub(crate) async fn place(
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: &str,
+    structure: &[StructureNode],
+    layouts: &[StructureLayout],
+    sources: &[String],
+    reserved: &[String],
+    outputs: &[(&OutputPlacement, &Value)],
+) -> Result<Vec<DerivedCell>, AppError> {
+    let sizes: Vec<Size> = outputs
+        .iter()
+        .filter_map(|(placement, data)| match placement {
+            OutputPlacement::Derived(footprint) => {
+                Some(fitted(data, footprint, SizingMode::Content))
+            }
+            OutputPlacement::Framed(_) => None,
+        })
+        .collect();
+    let mut derived = if sizes.is_empty() {
+        Vec::new()
+    } else {
+        plan(
+            tx,
+            space_id,
+            structure,
+            layouts,
+            DerivedOutputs {
+                sources,
+                reserved,
+                sizes,
+            },
+        )
+        .await?
+    }
+    .into_iter();
+    outputs
+        .iter()
+        .map(|(placement, _)| match placement {
+            OutputPlacement::Framed(frame) => Ok(frame.cell()),
+            OutputPlacement::Derived(_) => derived
+                .next()
+                .ok_or_else(|| AppError::from("A derived output has no planned place")),
+        })
+        .collect()
+}
 
 /// A set of outputs published together.
 pub(crate) struct DerivedOutputs<'a> {

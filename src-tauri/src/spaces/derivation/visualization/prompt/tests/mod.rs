@@ -33,3 +33,11 @@ fn a_text_only_request_quotes_its_sources() {
 fn a_source_without_text_is_rejected() {
     assert!(build("Intent", &[json!({"nodeTitle": "Spec"})], 0).is_err());
 }
+
+#[test]
+fn a_request_with_no_material_is_its_requirement_alone() {
+    assert_eq!(
+        build("  A harbour at dawn, watercolour  ", &[], 0).unwrap(),
+        "A harbour at dawn, watercolour"
+    );
+}

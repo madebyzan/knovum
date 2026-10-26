@@ -4,18 +4,19 @@ use tauri::AppHandle;
 use super::inputs::ResolvedInputs;
 use crate::foundation::app_error::AppError;
 use crate::spaces::actions::SpaceActionInputRole;
+use crate::spaces::derivation::pending_output::{
+    self, NodeState, OutputPlacement, PendingOutput, PLACEHOLDER,
+};
+use crate::spaces::derivation::placement::OutputFrame;
 
 mod image;
 mod media;
 
-pub(super) async fn reserve(
-    app: &AppHandle,
-    space_id: &str,
+/// A single-source transform reads one pinned source, so its request is that pin and nothing else.
+pub(super) fn pin_single_source(
     action_id: &str,
-    parameters: &Value,
     inputs: &ResolvedInputs,
     request: &mut Map<String, Value>,
-    authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<(), AppError> {
     let definition = crate::spaces::actions::require(action_id)?;
     if definition.input_roles == [SpaceActionInputRole::Image] {
@@ -24,34 +25,44 @@ pub(super) async fn reserve(
     if action_id == "add-video-subtitles" {
         media::subtitled_video_request(inputs, request)?;
     }
+    Ok(())
+}
+
+/// Reserves the canvas node an Action publishes into and returns its id; an Action that publishes
+/// no node reserves nothing.
+pub(super) async fn reserve(
+    app: &AppHandle,
+    space_id: &str,
+    action_id: &str,
+    parameters: &Value,
+    inputs: &ResolvedInputs,
+    frame: Option<OutputFrame>,
+    authority: &super::super::action_execution::ExecutionAuthority,
+) -> Result<Option<String>, AppError> {
     let Some(output) = build_pending_output_content(app, action_id, parameters, inputs)? else {
-        return Ok(());
+        return Ok(None);
     };
     let node_id = format!("{}-output", authority.run_id);
-    request.insert("outputNodeId".into(), node_id.clone().into());
     // A retry of this Run finds its output already reserved, and reserving is what rejects an
     // output a person has deleted meanwhile, so both answers come from one place.
-    match super::super::pending_output::node_state(
-        crate::spaces::db::pool(app).await?,
-        space_id,
-        &node_id,
-    )
-    .await?
+    match pending_output::node_state(crate::spaces::db::pool(app).await?, space_id, &node_id)
+        .await?
     {
-        super::super::pending_output::NodeState::Live => return Ok(()),
-        super::super::pending_output::NodeState::Deleted => {
-            return Err(super::super::pending_output::OUTPUT_DELETED.into())
-        }
-        super::super::pending_output::NodeState::Absent => {}
+        NodeState::Live => return Ok(Some(node_id)),
+        NodeState::Deleted => return Err(pending_output::OUTPUT_DELETED.into()),
+        NodeState::Absent => {}
     }
-    super::super::pending_output::reserve(
+    pending_output::reserve(
         app,
         space_id,
-        vec![super::super::pending_output::PendingOutput {
-            node_id,
+        vec![PendingOutput {
+            node_id: node_id.clone(),
             kind: output.kind,
             data: output.data,
-            footprint: super::super::pending_output::PLACEHOLDER,
+            placement: frame.map_or(
+                OutputPlacement::Derived(PLACEHOLDER),
+                OutputPlacement::Framed,
+            ),
         }],
         &inputs
             .nodes
@@ -61,7 +72,8 @@ pub(super) async fn reserve(
         output.lineage,
         authority,
     )
-    .await
+    .await?;
+    Ok(Some(node_id))
 }
 
 /// The content an Action reserves for its output, and why that output derives from its inputs.

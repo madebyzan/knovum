@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
 use agent_client_protocol::schema::v1::{ContentBlock, ResourceLink, TextContent};
-use tauri::{AppHandle, Runtime};
 
 use crate::foundation::app_error::{AppError, AppResult};
 
@@ -24,15 +23,6 @@ impl AgentPrompt {
         authorize: impl Fn(&std::path::Path) -> AppResult<()>,
     ) -> AppResult<Self> {
         AgentAttachments::from_authorized_assets(attachments, authorize)
-            .map(|attachments| Self { text, attachments })
-    }
-
-    pub fn from_renderer<R: Runtime>(
-        app: &AppHandle<R>,
-        text: String,
-        attachments: Vec<PathBuf>,
-    ) -> AppResult<Self> {
-        AgentAttachments::from_renderer(app, attachments)
             .map(|attachments| Self { text, attachments })
     }
 

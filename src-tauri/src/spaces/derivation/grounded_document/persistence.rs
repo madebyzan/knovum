@@ -53,5 +53,5 @@ fn validate_request(request: &GenerateGroundedDocumentRequest) -> Result<(), Str
     {
         return Err("Grounded document request is invalid".into());
     }
-    source_inputs::require_single_primary(&request.inputs)
+    source_inputs::require_led(&request.inputs)
 }

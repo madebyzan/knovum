@@ -1,8 +1,5 @@
 use std::{fs, path::PathBuf};
 
-use tauri::{AppHandle, Runtime};
-use tauri_plugin_fs::FsExt;
-
 use crate::foundation::app_error::{AppError, AppResult};
 
 pub(super) struct AgentAttachments(Vec<PathBuf>);
@@ -13,23 +10,6 @@ impl AgentAttachments {
         authorize: impl Fn(&std::path::Path) -> AppResult<()>,
     ) -> AppResult<Self> {
         validate(attachments, authorize).map(Self)
-    }
-
-    pub(super) fn from_renderer<R: Runtime>(
-        app: &AppHandle<R>,
-        attachments: Vec<PathBuf>,
-    ) -> AppResult<Self> {
-        let scope = app.fs_scope();
-        validate(attachments, |path| {
-            if scope.is_allowed(path) {
-                Ok(())
-            } else {
-                Err(AppError::invalid(
-                    "Agent attachment was not selected or dropped into Knovum",
-                ))
-            }
-        })
-        .map(Self)
     }
 
     pub(super) fn into_paths(self) -> Vec<PathBuf> {

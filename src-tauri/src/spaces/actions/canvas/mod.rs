@@ -24,6 +24,8 @@ pub(crate) struct StartSpaceActionRequest {
     pub parameters: Value,
     pub sources: Vec<SpaceActionSource>,
     pub target: Option<TaskTarget>,
+    /// Where the person framed the output on the canvas; without one it joins its sources' field.
+    pub output_frame: Option<crate::spaces::derivation::placement::OutputFrame>,
 }
 
 #[derive(Deserialize, ts_rs::TS)]
@@ -64,12 +66,20 @@ fn invocation(
     if definition.routing_purpose.is_none() && request.target.is_some() {
         return Err("action-target-invalid: local Action does not accept an AI target".into());
     }
+    if request.sources.len() < definition.min_inputs {
+        return Err("action-input-missing: select at least one source resource".into());
+    }
     let mut targets = serde_json::Map::new();
     if let Some(target) = &request.target {
         targets.insert(
             request.action_id.clone(),
             serde_json::to_value(target.clone().with_temperature(0.2)).map_err(db::json_error)?,
         );
+    }
+    let mut input_snapshot = json!({"targets": targets});
+    if let Some(frame) = &request.output_frame {
+        frame.validate()?;
+        input_snapshot["outputFrame"] = serde_json::to_value(frame).map_err(db::json_error)?;
     }
     Ok(ActionInvocationRequest {
         invocation_id: request.request_id.clone(),
@@ -79,7 +89,7 @@ fn invocation(
         action_id: request.action_id.clone(),
         action_version: definition.version,
         parameters: request.parameters.clone(),
-        input_snapshot: json!({"targets": targets}),
+        input_snapshot,
         expected_revisions: Value::Null,
         parent_run_id: None,
     })

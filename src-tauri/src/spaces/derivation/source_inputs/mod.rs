@@ -28,14 +28,28 @@ impl SourceInput {
 
 /// The first resource leads, the rest support it.
 pub fn require_single_primary(inputs: &[SourceInput]) -> Result<(), String> {
-    if inputs.is_empty()
-        || !inputs[0].is_primary()
-        || inputs.iter().filter(|input| input.is_primary()).count() != 1
-    {
-        return Err("Creation sources must start with exactly one primary resource".into());
+    if inputs.is_empty() {
+        return Err(UNLED.into());
     }
-    Ok(())
+    require_led(inputs)
 }
+
+/// A generation reads whatever resources it was given, which may be none; any it has are led by
+/// the first.
+pub fn require_led(inputs: &[SourceInput]) -> Result<(), String> {
+    match inputs.first() {
+        None => Ok(()),
+        Some(first)
+            if first.is_primary()
+                && inputs.iter().filter(|input| input.is_primary()).count() == 1 =>
+        {
+            Ok(())
+        }
+        Some(_) => Err(UNLED.into()),
+    }
+}
+
+const UNLED: &str = "Creation sources must start with exactly one primary resource";
 
 /// Reject the Run when a source changed after it was accepted, so a queued Run
 /// can never send content the user has already replaced.

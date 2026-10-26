@@ -1,0 +1,36 @@
+{
+  "kinds": {
+    "image": "Generatore di immagini",
+    "video": "Generatore di video",
+    "document": "Generatore di documenti"
+  },
+  "placeholder": {
+    "document": "Descrivi obiettivo, struttura e punti chiave del documento",
+    "image": "Descrivi l’immagine che vuoi; aggiungi riferimenti",
+    "video": "Descrivi scena, azione, inquadratura e stile"
+  },
+  "references": {
+    "add": "Aggiungi riferimenti",
+    "fromCanvas": "Scegli dalla tela",
+    "upload": "Carica file…",
+    "picking": "Fai clic su un contenuto della tela per aggiungerlo come riferimento",
+    "refused": "«{title}» non contiene nulla di leggibile e non può essere un riferimento",
+    "done": "Fine",
+    "preparing": "{title} · in preparazione",
+    "unreadable": "{title} · non leggibile",
+    "remove": "Rimuovi {title}",
+    "blocked": {
+      "preparing": "I riferimenti sono ancora in preparazione",
+      "unreadable": "Rimuovi prima i riferimenti non leggibili"
+    }
+  },
+  "aspectRatio": "Proporzioni",
+  "duration": "Durata",
+  "generate": "Genera",
+  "generating": "Generazione…",
+  "task": {
+    "document": "Generazione documento",
+    "image": "Generazione immagine",
+    "video": "Generazione video"
+  }
+}

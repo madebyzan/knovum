@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { FilePlus2, Inbox, StickyNote } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import { importSpaceFromPicker } from "../../assets/import-flow";
+import { usePickerImport } from "../../assets/use-picker-import";
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { createSpaceNotePayload } from "../../document-editing/tiptap-content";
 import { useSpaceStore } from "../../session/space-store";
@@ -13,6 +11,7 @@ import { useSpaceStore } from "../../session/space-store";
 const store = useSpaceStore();
 const operations = useNodeOperationGate();
 const { t } = useI18n();
+const importFromPicker = usePickerImport();
 
 function addNote() {
   if (!operations.allows("create")) return;
@@ -20,15 +19,7 @@ function addNote() {
 }
 
 async function importFile() {
-  if (!operations.allows("create")) return;
-  try {
-    await importSpaceFromPicker({
-      title: t("spaces.importExport.progress.resource"),
-      preparing: t("spaces.importExport.progress.preparing"),
-    });
-  } catch (error) {
-    toast.error(t("spaces.importExport.import.failed"), { description: getErrorMessage(error) });
-  }
+  if (operations.allows("create")) await importFromPicker();
 }
 </script>
 

@@ -3,9 +3,11 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
+import type { OutputFrame } from "../contracts/generated/OutputFrame";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { StartSpaceActionRequest } from "../contracts/generated/StartSpaceActionRequest";
 import { observeResourceRun } from "../runs/resource-run-observation";
+import type { RunListener } from "../runs/run-audience";
 import { useSpaceStore } from "../session/space-store";
 import type { CreationSource } from "./catalog/creation-source";
 
@@ -15,6 +17,9 @@ interface StartActionOptions {
   parameters: Record<string, unknown>;
   title: string;
   target?: TaskTarget | undefined;
+  /** Where the person framed the output; without one it joins its sources' field. */
+  outputFrame?: OutputFrame | undefined;
+  onUpdate?: RunListener | undefined;
 }
 
 export async function startDerivationAction({
@@ -23,6 +28,8 @@ export async function startDerivationAction({
   parameters,
   title,
   target,
+  outputFrame,
+  onUpdate,
 }: StartActionOptions) {
   const store = useSpaceStore();
 
@@ -39,10 +46,11 @@ export async function startDerivationAction({
       revisionBasis,
     })),
     target: target ? { ...target } : null,
+    outputFrame: outputFrame ?? null,
   };
   try {
     const run = await invokeCommand<RunObservation>("plugin:spaces|start_space_action", { request });
-    observeResourceRun(run, title);
+    observeResourceRun(run, title, onUpdate);
     return run;
   } catch (error) {
     toast.error(getErrorMessage(error));

@@ -1,0 +1,36 @@
+{
+  "kinds": {
+    "image": "Bildgenerator",
+    "video": "Videogenerator",
+    "document": "Dokumentgenerator"
+  },
+  "placeholder": {
+    "document": "Beschreibe Ziel, Aufbau und Kernpunkte des Dokuments",
+    "image": "Beschreibe das gewünschte Bild; füge Referenzen hinzu",
+    "video": "Beschreibe Szene, Handlung, Kamera und Stil"
+  },
+  "references": {
+    "add": "Referenzen hinzufügen",
+    "fromCanvas": "Auf der Leinwand wählen",
+    "upload": "Datei hochladen…",
+    "picking": "Klicke auf Inhalte der Leinwand, um sie als Referenz hinzuzufügen",
+    "refused": "„{title}“ enthält nichts Lesbares und kann keine Referenz sein",
+    "done": "Fertig",
+    "preparing": "{title} · wird vorbereitet",
+    "unreadable": "{title} · nicht lesbar",
+    "remove": "{title} entfernen",
+    "blocked": {
+      "preparing": "Referenzen werden noch vorbereitet",
+      "unreadable": "Entferne zuerst nicht lesbare Referenzen"
+    }
+  },
+  "aspectRatio": "Seitenverhältnis",
+  "duration": "Dauer",
+  "generate": "Generieren",
+  "generating": "Wird generiert…",
+  "task": {
+    "document": "Dokument wird erstellt",
+    "image": "Bild wird erstellt",
+    "video": "Video wird erstellt"
+  }
+}

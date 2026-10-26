@@ -16,11 +16,8 @@ pub(super) async fn pin(
     sources: &[SpaceActionSource],
 ) -> Result<Value, String> {
     let mut seen = HashSet::new();
-    if sources.is_empty()
-        || sources.len() > 32
-        || sources.iter().any(|source| !seen.insert(&source.node_id))
-    {
-        return Err("action-input-invalid: select 1 to 32 distinct resources".into());
+    if sources.len() > 32 || sources.iter().any(|source| !seen.insert(&source.node_id)) {
+        return Err("action-input-invalid: select at most 32 distinct resources".into());
     }
     let mut inputs = Vec::with_capacity(sources.len());
     for (position, source) in sources.iter().enumerate() {
