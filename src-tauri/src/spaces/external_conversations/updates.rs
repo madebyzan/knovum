@@ -118,7 +118,7 @@ fn show(
         AgentSessionUpdate::ToolCall { .. } => {
             let _ = channel.send(ConversationTaskUpdate::ContentBoundary);
         }
-        AgentSessionUpdate::Thought(_) | AgentSessionUpdate::ToolUpdate { .. } => {}
+        AgentSessionUpdate::ToolUpdate { .. } => {}
     }
 }
 

@@ -267,3 +267,18 @@ async fn collector_reloads_retired_projection_from_disk() {
     assert_eq!(collected_names(&workspace), vec!["untracked.md"]);
     tokio::fs::remove_dir_all(workspace).await.unwrap();
 }
+
+#[tokio::test]
+async fn an_agents_reasoning_is_neither_shown_nor_recorded() {
+    use agent_client_protocol::schema::v1::{ContentChunk, TextContent};
+
+    let update = receive(
+        SessionUpdate::AgentThoughtChunk(ContentChunk::new(ContentBlock::Text(TextContent::new(
+            "private",
+        )))),
+        &std::env::temp_dir(),
+    )
+    .await
+    .unwrap();
+    assert!(update.is_none());
+}

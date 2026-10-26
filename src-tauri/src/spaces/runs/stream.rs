@@ -29,11 +29,9 @@ pub(crate) struct Streamed {
 }
 
 impl Streamed {
-    /// The durable record of a session update, or nothing for an update that only ever
-    /// reaches the screen.
-    fn of(update: AgentSessionUpdate) -> Option<Self> {
+    /// The durable record of a session update.
+    fn of(update: AgentSessionUpdate) -> Self {
         let (kind, payload) = match update {
-            AgentSessionUpdate::Thought(_) => return None,
             AgentSessionUpdate::Message(text) => (
                 RunEventKind::ExternalAgentMessage,
                 serde_json::json!({"text": text}),
@@ -57,7 +55,7 @@ impl Streamed {
                 serde_json::json!({"toolCallId": id, "title": title, "status": status, "context": context}),
             ),
         };
-        Some(Self { kind, payload })
+        Self { kind, payload }
     }
 
     fn text_bytes(&self) -> usize {
@@ -110,9 +108,7 @@ pub(crate) struct Stream {
 impl Stream {
     /// Hands an update to the recorder. Returns once it is queued, not once it is durable.
     pub(crate) fn record(&self, update: AgentSessionUpdate) -> Result<(), AppError> {
-        let Some(streamed) = Streamed::of(update) else {
-            return Ok(());
-        };
+        let streamed = Streamed::of(update);
         if streamed.text_bytes() > MAX_UPDATE_TEXT_BYTES {
             return Err(AppError::invalid(
                 "External Agent update exceeds the size limit",
