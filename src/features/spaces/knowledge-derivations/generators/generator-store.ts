@@ -8,6 +8,7 @@ import { useSpaceStore } from "../../session/space-store";
 import { MAX_CREATION_SOURCES, type CreationSource } from "../catalog/creation-source";
 import { startDerivationAction } from "../start-action";
 import {
+  canGenerate,
   generatorFrame,
   generatorOrigin,
   pristine,
@@ -73,11 +74,15 @@ export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", (
     activeId.value = id;
   }
 
+  function putAway() {
+    activeId.value = undefined;
+    picking.value = false;
+  }
+
   /** The person has left the generator: its composer goes away, and an empty one goes with it. */
   function deactivate() {
     const current = activeId.value && find(activeId.value);
-    picking.value = false;
-    activeId.value = undefined;
+    putAway();
     if (current && pristine(current)) discard(current.id);
   }
 
@@ -110,13 +115,13 @@ export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", (
     patch(id, { x, y });
   }
 
-  /** Adds what is not referenced yet, in order, up to what one Run can pin; returns what was added. */
+  /** Adds what is not referenced yet, in order, up to what one Run can pin. */
   function addReferences(id: string, nodeIds: readonly string[]) {
     const generator = find(id);
-    if (!generator) return [];
-    const references = [...new Set([...generator.references, ...nodeIds])].slice(0, MAX_CREATION_SOURCES);
-    patch(id, { references });
-    return references.slice(generator.references.length);
+    if (generator)
+      patch(id, {
+        references: [...new Set([...generator.references, ...nodeIds])].slice(0, MAX_CREATION_SOURCES),
+      });
   }
 
   function removeReference(id: string, nodeId: string) {
@@ -127,22 +132,16 @@ export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", (
 
   function discard(id: string) {
     all.value = all.value.filter((generator) => generator.id !== id);
-    if (activeId.value === id) {
-      activeId.value = undefined;
-      picking.value = false;
-    }
+    if (activeId.value === id) putAway();
   }
 
   /** `sources` are the generator's references, pinned by the caller at the moment it was asked. */
   async function generate(id: string, sources: readonly CreationSource[]) {
     const generator = find(id);
-    if (!generator || generator.submission || !generator.target || !generator.prompt.trim()) return;
+    if (!generator || !canGenerate(generator)) return;
     const kind = GENERATOR_KINDS[generator.kind];
     patch(id, { submission: "starting" });
-    if (activeId.value === id) {
-      activeId.value = undefined;
-      picking.value = false;
-    }
+    if (activeId.value === id) putAway();
     const run = await startDerivationAction({
       actionId: kind.actionId,
       sources,

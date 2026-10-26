@@ -4,7 +4,10 @@ use tauri::AppHandle;
 use super::inputs::ResolvedInputs;
 use crate::foundation::app_error::AppError;
 use crate::spaces::actions::SpaceActionInputRole;
-use crate::spaces::derivation::placement::{OutputFrame, OutputPlacement};
+use crate::spaces::derivation::pending_output::{
+    self, NodeState, OutputPlacement, PendingOutput, PLACEHOLDER,
+};
+use crate::spaces::derivation::placement::OutputFrame;
 
 mod image;
 mod media;
@@ -33,28 +36,22 @@ pub(super) async fn reserve(
     request.insert("outputNodeId".into(), node_id.clone().into());
     // A retry of this Run finds its output already reserved, and reserving is what rejects an
     // output a person has deleted meanwhile, so both answers come from one place.
-    match super::super::pending_output::node_state(
-        crate::spaces::db::pool(app).await?,
-        space_id,
-        &node_id,
-    )
-    .await?
+    match pending_output::node_state(crate::spaces::db::pool(app).await?, space_id, &node_id)
+        .await?
     {
-        super::super::pending_output::NodeState::Live => return Ok(()),
-        super::super::pending_output::NodeState::Deleted => {
-            return Err(super::super::pending_output::OUTPUT_DELETED.into())
-        }
-        super::super::pending_output::NodeState::Absent => {}
+        NodeState::Live => return Ok(()),
+        NodeState::Deleted => return Err(pending_output::OUTPUT_DELETED.into()),
+        NodeState::Absent => {}
     }
-    super::super::pending_output::reserve(
+    pending_output::reserve(
         app,
         space_id,
-        vec![super::super::pending_output::PendingOutput {
+        vec![PendingOutput {
             node_id,
             kind: output.kind,
             data: output.data,
             placement: frame.map_or(
-                OutputPlacement::Derived(super::super::pending_output::PLACEHOLDER),
+                OutputPlacement::Derived(PLACEHOLDER),
                 OutputPlacement::Framed,
             ),
         }],

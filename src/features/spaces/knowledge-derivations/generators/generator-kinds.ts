@@ -1,9 +1,10 @@
 import type { RoutingPurpose } from "../../../../shared/contracts/generated/RoutingPurpose";
 import type { ImageAspectRatio } from "../../contracts/generated/ImageAspectRatio";
 import type { VideoAspectRatio } from "../../contracts/generated/VideoAspectRatio";
+import type { SpaceNodeKind } from "../../model/nodes/node-payload";
 
-export const VIDEO_DURATIONS = [5, 10, 15] as const;
-export type VideoDuration = (typeof VIDEO_DURATIONS)[number];
+const VIDEO_DURATIONS = [5, 10, 15] as const;
+type VideoDuration = (typeof VIDEO_DURATIONS)[number];
 
 /** What a person has asked a generator for. */
 export interface GeneratorRequest {
@@ -15,6 +16,8 @@ export interface GeneratorRequest {
 interface GeneratorKindDefinition {
   /** The Action a generation starts. */
   actionId: string;
+  /** The kind of node it makes, which is also how it is pictured. */
+  output: SpaceNodeKind;
   /** Which executors can run it. */
   purpose: RoutingPurpose;
   /** The shapes its output can take, the first by default. One shape needs no choice. */
@@ -40,6 +43,7 @@ const VIDEO_ASPECT_RATIOS = ["16:9", "9:16", "1:1"] as const satisfies readonly 
 export const GENERATOR_KINDS = {
   image: {
     actionId: "generate-visualization",
+    output: "image",
     purpose: "image-generation",
     aspectRatios: IMAGE_ASPECT_RATIOS,
     durations: [],
@@ -47,6 +51,7 @@ export const GENERATOR_KINDS = {
   },
   video: {
     actionId: "generate-video",
+    output: "video",
     purpose: "video-generation",
     aspectRatios: VIDEO_ASPECT_RATIOS,
     durations: VIDEO_DURATIONS,
@@ -59,6 +64,7 @@ export const GENERATOR_KINDS = {
   },
   document: {
     actionId: "draft-document",
+    output: "markdown",
     purpose: "knowledge",
     // A page: documents are read, not framed, so there is nothing to choose.
     aspectRatios: ["3:4"],

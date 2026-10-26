@@ -5,13 +5,14 @@ import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 
 import AiExecutionTargetField from "../../../../../foundation/ai/AiExecutionTargetField.vue";
+import { isComposing } from "../../../../../foundation/dom/composition";
 import UiButton from "../../../../../shared/ui/UiButton.vue";
 import UiDropdownMenu from "../../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import UiSelect from "../../../../../shared/ui/UiSelect.vue";
 import { usePickerImport } from "../../../assets/use-picker-import";
 import { useNodeOperationGate } from "../../../canvas/use-node-operation-gate";
-import { generatorFrame, type CanvasGenerator } from "../canvas-generator";
+import { canGenerate, generatorFrame, uploadPosition, type CanvasGenerator } from "../canvas-generator";
 import { GENERATOR_KINDS } from "../generator-kinds";
 import { useCanvasGeneratorStore } from "../generator-store";
 import SpaceCanvasGeneratorReferences from "./SpaceCanvasGeneratorReferences.vue";
@@ -29,8 +30,6 @@ const importFromPicker = usePickerImport();
 const { textarea } = useTextareaAutosize();
 const { references, sources, preparing, unreadable } = useReferenceReadings(() => props.generator);
 
-/** Room between a generator and a file uploaded for it, which lands to its left. */
-const UPLOAD_GAP = 48;
 const kind = computed(() => GENERATOR_KINDS[props.generator.kind]);
 const frame = computed(() => generatorFrame(props.generator));
 const prompt = computed({
@@ -77,16 +76,13 @@ const blocked = computed(() => {
   return undefined;
 });
 const ready = computed(
-  () =>
-    Boolean(props.generator.prompt.trim() && props.generator.target && sources.value) &&
-    operations.allows("derive"),
+  () => canGenerate(props.generator) && sources.value !== undefined && operations.allows("derive"),
 );
 
 async function upload() {
   if (!operations.allows("create")) return;
   const { id } = props.generator;
-  const { x, y, width } = frame.value;
-  const nodes = await importFromPicker({ position: { x: x - UPLOAD_GAP - width, y }, reveal: false });
+  const nodes = await importFromPicker({ position: uploadPosition(props.generator), reveal: false });
   store.addReferences(
     id,
     nodes.map((node) => node.id),
@@ -94,14 +90,9 @@ async function upload() {
 }
 
 function submit(event?: KeyboardEvent) {
-  if (event?.isComposing || event?.keyCode === 229) return;
+  if (event && isComposing(event)) return;
   event?.preventDefault();
   if (ready.value && sources.value) void store.generate(props.generator.id, sources.value);
-}
-
-function leave() {
-  textarea.value?.blur();
-  store.deactivate();
 }
 
 onMounted(() => {
@@ -112,9 +103,8 @@ onMounted(() => {
 <template>
   <div
     data-canvas-generator
-    class="generator-composer pointer-events-auto absolute outline-none"
+    class="generator-composer pointer-events-auto absolute"
     :style="{ left: `${frame.x + frame.width / 2}px`, top: `${frame.y + frame.height}px` }"
-    tabindex="-1"
   >
     <div
       class="w-[30rem] overflow-hidden rounded-panel border bg-surface-raised shadow-popover transition-colors"
@@ -153,9 +143,7 @@ onMounted(() => {
         :placeholder="t(`spaces.creation.generator.placeholder.${generator.kind}`)"
         @focus="store.stopPicking()"
         @keydown.enter.exact="submit"
-        @keydown.meta.enter="submit"
-        @keydown.ctrl.enter="submit"
-        @keydown.escape="leave"
+        @keydown.escape="store.deactivate()"
       />
       <div class="flex min-w-0 items-center gap-1 px-2 pb-2">
         <UiDropdownMenu :items="referenceMenu" side="top" align="start" :side-offset="6">

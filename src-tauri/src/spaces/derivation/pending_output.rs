@@ -14,6 +14,7 @@ use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 
 use super::action_execution::ExecutionAuthority;
+pub(crate) use super::placement::OutputPlacement;
 use super::placement::{self, DerivedCell};
 use super::relations;
 use crate::foundation::app_error::AppError;
@@ -30,7 +31,6 @@ pub(crate) const OUTPUT_DELETED: &str = "Its output node was deleted";
 
 /// Canvas footprint of content that cannot report a size until it is published.
 pub(crate) const PLACEHOLDER: Size = placement::PLACEHOLDER;
-pub(crate) use super::placement::OutputPlacement;
 
 pub(crate) struct PendingOutput {
     pub(crate) node_id: String,
@@ -40,9 +40,10 @@ pub(crate) struct PendingOutput {
 }
 
 /// Reserves pending output nodes where they belong — in their sources' derivation field, or in the
-/// frame a person drew for them — together with the lineage that explains them. An output that is already reserved is placed into the set rather than inserted a
-/// second time, which is how a Run that reserved its first output up front settles the whole set;
-/// its lineage was recorded when it was first reserved.
+/// frame a person drew for them — together with the lineage that explains them. An output that is
+/// already reserved is placed into the set rather than inserted a second time, which is how a Run
+/// that reserved its first output up front settles the whole set; its lineage was recorded when it
+/// was first reserved.
 pub(super) async fn reserve(
     app: &AppHandle,
     space_id: &str,

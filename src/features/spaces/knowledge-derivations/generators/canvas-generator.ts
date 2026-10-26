@@ -27,8 +27,8 @@ export type GeneratorChanges = Partial<
   Pick<CanvasGenerator, "prompt" | "aspectRatio" | "durationSeconds" | "target">
 >;
 
-/** Room between a selection and the generator opened beside it, in canvas units. */
-const BESIDE_GAP = 48;
+/** Room between a generator and what stands beside it, in canvas units. */
+const GAP = 48;
 
 /** Where a frame of this size stands: centred on a point, or to the right of a selection. */
 export function generatorOrigin(
@@ -37,11 +37,22 @@ export function generatorOrigin(
 ) {
   return "center" in placement
     ? { x: placement.center.x - width / 2, y: placement.center.y - height / 2 }
-    : { x: placement.beside.x + placement.beside.width + BESIDE_GAP, y: placement.beside.y };
+    : { x: placement.beside.x + placement.beside.width + GAP, y: placement.beside.y };
+}
+
+/** Where a file uploaded for a generator lands: to its left, so the frame stays where it was. */
+export function uploadPosition(generator: CanvasGenerator): CanvasPoint {
+  const { x, y, width } = generatorFrame(generator);
+  return { x: x - GAP - width, y };
 }
 
 export function generatorFrame({ x, y, aspectRatio }: CanvasGenerator): OutputFrame {
   return { x, y, ...generatorFrameSize(aspectRatio) };
+}
+
+/** Asked for something, by someone, and not already at work on it. */
+export function canGenerate({ prompt, target, submission }: CanvasGenerator) {
+  return Boolean(prompt.trim() && target) && submission === undefined;
 }
 
 /** Nothing asked yet: leaving it loses nothing, so it does not stay behind as an empty frame. */

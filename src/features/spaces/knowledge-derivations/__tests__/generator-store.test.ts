@@ -13,7 +13,7 @@ vi.mock("../../session/space-store", () => ({ useSpaceStore: () => space.state }
 vi.mock("../start-action", () => ({ startDerivationAction: start }));
 vi.mock("../../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 
-import { generatorFrame } from "../generators/canvas-generator";
+import { canGenerate, generatorFrame, uploadPosition } from "../generators/canvas-generator";
 import { useCanvasGeneratorStore } from "../generators/generator-store";
 
 const TARGET = { type: "agent", runtimeKind: "codex" } as const;
@@ -60,7 +60,8 @@ it("opens where the person is looking, or beside what they selected with it as r
 it("asks for the output in its own frame, named by the prompt, from the references as pinned", async () => {
   start.mockResolvedValue(run());
   const { store, id } = ready();
-  expect(store.addReferences(id, ["photo", "photo"])).toEqual(["photo"]);
+  store.addReferences(id, ["photo", "photo"]);
+  expect(store.generators[0]!.references).toEqual(["photo"]);
   await store.generate(id, [SOURCE]);
   expect(start).toHaveBeenCalledWith(
     expect.objectContaining({
@@ -156,4 +157,15 @@ it("does not mistake a Space that is still loading for deleted references", asyn
   space.state.nodes = [{ id: "photo" }];
   await nextTick();
   expect(store.generators[0]!.references).toEqual(["photo"]);
+});
+
+it("generates once it is asked for something by someone, and uploads land to its left", () => {
+  const { store, id } = ready();
+  const generator = store.generators[0]!;
+  expect(canGenerate(generator)).toBe(true);
+  expect(canGenerate({ ...generator, prompt: "  " })).toBe(false);
+  expect(canGenerate({ ...generator, target: undefined })).toBe(false);
+  expect(canGenerate({ ...generator, submission: "starting" })).toBe(false);
+  expect(uploadPosition(generator)).toEqual({ x: -180 - 48 - 360, y: -180 });
+  expect(store.generators[0]!.id).toBe(id);
 });

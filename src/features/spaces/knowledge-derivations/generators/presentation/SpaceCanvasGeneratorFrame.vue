@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { FileText, Image, LoaderCircle, Play } from "@lucide/vue";
+import { LoaderCircle } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getCanvasEditorSession } from "../../../canvas/editor-session";
+import { nodeIcon } from "../../../canvas/presentation/node-icon";
 import { generatorFrame, type CanvasGenerator } from "../canvas-generator";
+import { GENERATOR_KINDS } from "../generator-kinds";
 import { useCanvasGeneratorStore } from "../generator-store";
 
 /**
@@ -16,9 +18,9 @@ const props = defineProps<{ generator: CanvasGenerator; active: boolean }>();
 const { t } = useI18n();
 const store = useCanvasGeneratorStore();
 const editorSession = getCanvasEditorSession();
-const ICONS = { image: Image, video: Play, document: FileText } as const;
 
 const frame = computed(() => generatorFrame(props.generator));
+const icon = computed(() => nodeIcon(GENERATOR_KINDS[props.generator.kind].output));
 const working = computed(() => props.generator.submission !== undefined);
 const detail = computed(() => {
   const { kind, aspectRatio, durationSeconds } = props.generator;
@@ -92,7 +94,7 @@ function remove(event: KeyboardEvent) {
       class="generator-label flex items-center gap-1.5 text-caption"
       :class="active ? 'text-fg-accent' : 'text-fg-secondary'"
     >
-      <component :is="ICONS[generator.kind]" class="size-3.5 shrink-0" :stroke-width="1.8" />
+      <component :is="icon" class="size-3.5 shrink-0" :stroke-width="1.8" />
       <span class="min-w-0 truncate font-medium">{{
         t(`spaces.creation.generator.kinds.${generator.kind}`)
       }}</span>
@@ -107,11 +109,7 @@ function remove(event: KeyboardEvent) {
       :class="working && 'animate-pulse'"
       :data-active="active || undefined"
     >
-      <component
-        :is="ICONS[generator.kind]"
-        class="generator-mark size-8 text-fg-tertiary opacity-60"
-        :stroke-width="1.25"
-      />
+      <component :is="icon" class="generator-mark size-8 text-fg-tertiary opacity-60" :stroke-width="1.25" />
     </div>
   </div>
 </template>
