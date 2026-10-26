@@ -14,8 +14,8 @@ pub use knovum_inference_contracts::runtime;
 pub use knovum_inference_contracts::speech_wire;
 
 pub use external_agent::{
-    AgentArtifact, AgentArtifactKind, ExternalAgentConnectionKind, ExternalAgentDescriptor,
-    ExternalAgentHelp, ExternalAgentInstallation, ExternalAgentKind,
+    ExternalAgentConnectionKind, ExternalAgentDescriptor, ExternalAgentHelp,
+    ExternalAgentInstallation, ExternalAgentKind,
 };
 
 pub use chat::{ChatRequest, ChatResponse, StreamFrame, StreamFrameStream, TokenUsage};

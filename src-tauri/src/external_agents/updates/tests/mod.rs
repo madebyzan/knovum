@@ -8,11 +8,7 @@ fn linked_file(path: &Path) -> ToolCallContent {
 }
 
 fn collected_names(workspace: &Path) -> Vec<String> {
-    crate::external_agents::artifacts::collect(workspace)
-        .unwrap()
-        .into_iter()
-        .map(|artifact| artifact.name)
-        .collect()
+    crate::external_agents::artifacts::collect(workspace).unwrap()
 }
 
 #[test]

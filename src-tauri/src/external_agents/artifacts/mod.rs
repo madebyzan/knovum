@@ -5,10 +5,8 @@ use std::{
 
 use walkdir::WalkDir;
 
-use crate::ai::contracts::AgentArtifact;
 use crate::foundation::app_error::{AppError, AppResult};
 
-mod classification;
 mod output_projection;
 
 pub(crate) use output_projection::{obsolete_tool_artifacts, record_message, record_tool};
@@ -20,7 +18,8 @@ pub fn prepare(path: &Path) -> AppResult<()> {
     fs::create_dir_all(path).map_err(|error| AppError::internal(error.to_string()))
 }
 
-pub fn collect(root: &Path) -> AppResult<Vec<AgentArtifact>> {
+/// Relative paths of the files an Agent left in its session workspace, in path order.
+pub fn collect(root: &Path) -> AppResult<Vec<String>> {
     let retired_local_paths = output_projection::retired_local_paths(root)?;
     let mut artifacts = Vec::new();
     for entry in WalkDir::new(root).follow_links(false) {
@@ -40,18 +39,9 @@ pub fn collect(root: &Path) -> AppResult<Vec<AgentArtifact>> {
         if retired_local_paths.contains(&relative_path) {
             continue;
         }
-        let metadata = entry
-            .metadata()
-            .map_err(|error| AppError::internal(error.to_string()))?;
-        let kind = classification::classify(path)?;
-        artifacts.push(AgentArtifact {
-            name: entry.file_name().to_string_lossy().into_owned(),
-            relative_path,
-            kind,
-            size: metadata.len(),
-        });
+        artifacts.push(relative_path);
     }
-    artifacts.sort_by(|left, right| left.relative_path.cmp(&right.relative_path));
+    artifacts.sort();
     Ok(artifacts)
 }
 
@@ -63,18 +53,18 @@ pub fn discard(path: &Path) -> AppResult<()> {
 }
 
 pub fn resolve(root: &Path, relative_path: &str) -> AppResult<PathBuf> {
-    let manifest = collect(root)?;
-    let artifact = manifest
+    if !collect(root)?
         .iter()
-        .find(|artifact| artifact.relative_path == relative_path)
-        .ok_or_else(|| {
-            AppError::invalid("Agent artifact is not present in the session manifest")
-        })?;
-    resolve_collected(root, artifact)
+        .any(|collected| collected == relative_path)
+    {
+        return Err(AppError::invalid(
+            "Agent artifact is not present in the session manifest",
+        ));
+    }
+    resolve_collected(root, relative_path)
 }
 
-pub fn resolve_collected(root: &Path, artifact: &AgentArtifact) -> AppResult<PathBuf> {
-    let relative_path = &artifact.relative_path;
+pub fn resolve_collected(root: &Path, relative_path: &str) -> AppResult<PathBuf> {
     let relative = Path::new(relative_path);
     if relative.is_absolute()
         || relative.components().any(|component| {
