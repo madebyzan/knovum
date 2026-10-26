@@ -14,22 +14,23 @@ const invoke = vi.hoisted(() =>
 vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: invoke }));
 
 const CREATE_NODES = "plugin:spaces|create_nodes";
-const SESSION_PROJECTION = "plugin:spaces|load_space_session_projection";
+const EDIT_SNAPSHOT = "plugin:spaces|load_space_edit_snapshot";
 /** `InsertNodesRequest` denies unknown fields; content creation carries no caller revision. */
 const CREATE_NODES_FIELDS = "mutationId,nodes,spaceId,targetParentId";
 
-interface CommittedNode {
+interface RequestedNode {
   id: string;
-  initialX: number;
-  initialY: number;
   data: SpaceNodePayload;
 }
 
-/** Appends inside its own write transaction, like the Rust command does. */
+/**
+ * Appends inside its own write transaction and answers with the nodes as stored, revisioned by
+ * Rust, like the command does. Anything else a creation asked for — the whole Space above all —
+ * is refused, so the session can only show a node from that answer and the Space's geometry.
+ */
 function committedSpace(readDelayMs: (read: number) => number = () => 0) {
   let revision = 0;
   let reads = 0;
-  const committed: CommittedNode[] = [];
   invoke.mockImplementation(async (command, payload) => {
     if (command === CREATE_NODES) {
       const request = (payload as { request: Record<string, unknown> }).request;
@@ -37,20 +38,18 @@ function committedSpace(readDelayMs: (read: number) => number = () => 0) {
       if (fields !== CREATE_NODES_FIELDS)
         throw new Error(`create_nodes received ${fields}`, { cause: "unknown-field" });
       await delay(1);
-      committed.push(...(request.nodes as CommittedNode[]));
       revision += 1;
-      return revision;
+      const nodes = (request.nodes as RequestedNode[]).map(({ id, data }) => ({
+        id,
+        data: { ...data, knowledgeRevision: `stored-${id}` },
+      }));
+      return { editRevision: revision, nodes };
     }
-    if (command === SESSION_PROJECTION) {
-      const projection = {
-        nodes: committed.map(({ id, initialX, initialY, data }) => ({ id, initialX, initialY, data })),
-        scenes: [],
-        relations: [],
-        editSnapshot: { editRevision: revision, structure: [], layouts: [], relationStyles: [] },
-      };
+    if (command === EDIT_SNAPSHOT) {
+      const snapshot = { editRevision: revision, structure: [], layouts: [], relationStyles: [] };
       reads += 1;
       await delay(readDelayMs(reads));
-      return projection;
+      return snapshot;
     }
     throw new Error(`Unexpected command ${command}`, { cause: command });
   });
@@ -114,7 +113,20 @@ it("commits every file of one multi-file drop", async () => {
   expect(space.editSnapshot.value.editRevision).toBe(6);
 });
 
-it("keeps the newest Space when parallel projection reads settle out of order", async () => {
+it("shows a created node as the Space stored it", async () => {
+  committedSpace();
+  const space = session();
+
+  const [created] = await space.mutations.createPendingContentForSpace("space", droppedImage(0));
+
+  expect(space.nodes.value.map(({ id, data }) => [id, data.knowledgeRevision])).toEqual([
+    [created?.id, `stored-${created?.id}`],
+  ]);
+  expect(created?.data.knowledgeRevision).toBe(`stored-${created?.id}`);
+  expect(space.editSnapshot.value.editRevision).toBe(1);
+});
+
+it("keeps the newest Space when parallel snapshot reads settle out of order", async () => {
   committedSpace((read) => (8 - read) * 15);
   const space = session();
 

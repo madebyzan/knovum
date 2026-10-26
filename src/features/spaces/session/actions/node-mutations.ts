@@ -1,4 +1,4 @@
-import { createSpaceNode } from "../../canvas/node";
+import { applySpaceNodeContent, createSpaceNode } from "../../canvas/node";
 import { refreshEnrichmentJobs } from "../../enrichment/enrichment-jobs-query";
 import { createSpaceHistoryMutations } from "../../history/mutation-actions";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
@@ -12,8 +12,8 @@ import type { KnowledgeChunkSeed } from "../../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../../model/nodes/node-validation";
-import { createNodes } from "../../nodes/node-operations";
-import { loadSpaceSessionProjection } from "../space-projection";
+import { createNodes, type CreatedSpaceNodes } from "../../nodes/node-operations";
+import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { createNodeContentMutations } from "./node-content-mutations";
 
 export function createSpaceMutations(context: SpaceMutationContext) {
@@ -87,14 +87,14 @@ function createContentMutations(context: SpaceMutationContext) {
     if (isActive) nodes.value = [...nodes.value, ...contentNodes];
     let persisted = false;
     try {
-      await createNodes({
+      const created = await createNodes({
         spaceId,
         nodes: contentNodes,
         edit: { mutationId: crypto.randomUUID(), targetParentId },
         sourceChunksByNodeId,
       });
       persisted = true;
-      await synchronizeCreatedContent(spaceId, contentNodes);
+      await synchronizeCreatedContent(spaceId, contentNodes, created);
     } catch (error) {
       if (!persisted && isActive && context.activeSpaceId.value === spaceId) {
         const pendingIds = new Set(contentNodes.map(({ id }) => id));
@@ -104,19 +104,34 @@ function createContentMutations(context: SpaceMutationContext) {
     }
   }
 
-  async function synchronizeCreatedContent(spaceId: string, contentNodes: SpaceCanvasNode[]) {
-    const projection = await loadSpaceSessionProjection(spaceId);
+  /**
+   * A creation answers with its nodes as stored, so only the Space's geometry is read back. Every
+   * other node is already in the session; reloading all of them made a new note wait on every
+   * payload the Space holds before it could appear.
+   */
+  async function synchronizeCreatedContent(
+    spaceId: string,
+    contentNodes: SpaceCanvasNode[],
+    created: CreatedSpaceNodes,
+  ) {
     for (const pending of contentNodes) {
-      const committed = projection.nodes.find(({ id }) => id === pending.id);
-      if (!committed) throw new Error("Created node projection is unavailable");
-      pending.data = committed.data;
+      const committed = created.payloadById.get(pending.id);
+      if (!committed) throw new Error("Created node is missing from its committed creation");
+      pending.data = committed;
     }
     if (context.activeSpaceId.value !== spaceId) return;
-    // Parallel creations read their projection after their own commit, so a slower read can
-    // return an older Space than the session already holds. Only newer projections win.
-    if (projection.editSnapshot.editRevision < context.editSnapshot.value.editRevision) return;
-    context.nodes.value = projection.nodes;
-    context.editSnapshot.value = projection.editSnapshot;
+    context.nodes.value = context.nodes.value.map((node) => {
+      const committed = created.payloadById.get(node.id);
+      return committed ? applySpaceNodeContent(node, committed) : node;
+    });
+    // A snapshot at or past this revision already contains the creation. Parallel creations read
+    // their snapshot after their own commit, so a slower read can also return an older Space than
+    // the session holds; only newer snapshots win.
+    if (context.editSnapshot.value.editRevision >= created.editRevision) return;
+    const editSnapshot = await spaceEditOperations.load(spaceId);
+    if (context.activeSpaceId.value !== spaceId) return;
+    if (editSnapshot.editRevision < context.editSnapshot.value.editRevision) return;
+    context.editSnapshot.value = editSnapshot;
   }
 
   function commitPendingContent(spaceId: string, contentNodes: readonly SpaceCanvasNode[]) {

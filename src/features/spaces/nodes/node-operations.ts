@@ -1,6 +1,7 @@
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { createSpaceNode } from "../canvas/node";
 import { spaceNodeDefaultDimensions, spaceNodeSupportsContentSizing } from "../canvas/node-size";
+import type { CreatedNodes } from "../contracts/generated/CreatedNodes";
 import type { DiscardPendingContentRequest } from "../contracts/generated/DiscardPendingContentRequest";
 import type { DiscardPendingContentResponse } from "../contracts/generated/DiscardPendingContentResponse";
 import type { SpaceNodeProjection } from "../contracts/generated/SpaceNodeProjection";
@@ -30,13 +31,19 @@ interface CreateNodesInput {
   sourceChunksByNodeId?: ReadonlyMap<string, readonly KnowledgeChunkSeed[]> | undefined;
 }
 
+/** The created nodes as the Space stored them, and the edit revision their creation reached. */
+export interface CreatedSpaceNodes {
+  editRevision: number;
+  payloadById: ReadonlyMap<string, SpaceNodePayload>;
+}
+
 export async function createNodes({
   spaceId,
   nodes,
   edit,
   sourceChunksByNodeId = new Map(),
-}: CreateNodesInput): Promise<number> {
-  return invokeConfirmedMutation<number>(
+}: CreateNodesInput): Promise<CreatedSpaceNodes> {
+  const created = await invokeConfirmedMutation<CreatedNodes>(
     "plugin:spaces|create_nodes",
     {
       request: {
@@ -55,6 +62,10 @@ export async function createNodes({
     },
     edit.mutationId,
   );
+  return {
+    editRevision: created.editRevision,
+    payloadById: new Map(created.nodes.map(({ id, data }) => [id, validateSpaceNodePayload(data)])),
+  };
 }
 
 function spaceNodeLayoutInput(node: SpaceCanvasNode) {
