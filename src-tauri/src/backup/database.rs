@@ -1,7 +1,7 @@
 use sha2::{Digest, Sha256};
 use sqlx::{
     migrate::{Migration, Migrator},
-    sqlite::SqliteConnectOptions,
+    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
     Connection, Row, SqliteConnection,
 };
 use std::{collections::BTreeMap, path::Path};
@@ -58,13 +58,20 @@ pub fn restorable(baselines: &BTreeMap<String, String>) -> bool {
 /// Brings a staged database written by an earlier release to this release's schema, so it is
 /// validated and published exactly like one this release wrote. It works on the staged copy: a
 /// migration that fails leaves the live library untouched.
+/// Like every migration in the app it runs over a pool: restore runs on the async runtime, and
+/// `Migrator::run` over a bare connection is not `Send` for every lifetime it borrows.
 pub async fn upgrade(name: &str, path: &Path) -> Result<(), String> {
-    let mut connection = connect(path).await?;
-    migrator(name)
-        .run(&mut connection)
+    let pool = SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect_with(options(path)?)
         .await
-        .map_err(|error| format!("{name} could not be brought to this release: {error}"))?;
-    connection.close().await.map_err(|error| error.to_string())
+        .map_err(|error| error.to_string())?;
+    let upgraded = migrator(name)
+        .run(&pool)
+        .await
+        .map_err(|error| format!("{name} could not be brought to this release: {error}"));
+    pool.close().await;
+    upgraded
 }
 
 pub async fn snapshot(name: &str, source: &Path, destination: &Path) -> Result<(), String> {
@@ -101,6 +108,13 @@ pub async fn validate(name: &str, path: &Path) -> Result<(), String> {
 }
 
 async fn connect(path: &Path) -> Result<SqliteConnection, String> {
+    SqliteConnection::connect_with(&options(path)?)
+        .await
+        .map_err(|error| error.to_string())
+}
+
+/// Only a regular file is opened as a database, never what a symlink points at.
+fn options(path: &Path) -> Result<SqliteConnectOptions, String> {
     let metadata = std::fs::symlink_metadata(path)
         .map_err(|error| format!("Database could not be inspected: {error}"))?;
     if !metadata.is_file() || metadata.file_type().is_symlink() {
@@ -109,9 +123,7 @@ async fn connect(path: &Path) -> Result<SqliteConnection, String> {
             path.display()
         ));
     }
-    SqliteConnection::connect_with(&SqliteConnectOptions::new().filename(path))
-        .await
-        .map_err(|error| error.to_string())
+    Ok(SqliteConnectOptions::new().filename(path))
 }
 
 async fn validate_connection(name: &str, connection: &mut SqliteConnection) -> Result<(), String> {
