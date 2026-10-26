@@ -178,9 +178,6 @@ onBeforeUnmount(finishRename);
             @height="itemVirtualizer.resizeItem(virtualItem.index, $event)"
           />
         </TreeVirtualizer>
-        <p v-if="flattenItems.length === 0" class="px-1 text-caption text-fg-tertiary">
-          {{ t("spaces.sidebar.outline.empty") }}
-        </p>
       </section>
     </template>
   </TreeRoot>

@@ -1,7 +1,6 @@
 {
   "outline": {
-    "title": "大纲",
-    "empty": "添加到画布的内容会显示在这里。"
+    "title": "大纲"
   },
   "editorOutline": {
     "title": "文档大纲"

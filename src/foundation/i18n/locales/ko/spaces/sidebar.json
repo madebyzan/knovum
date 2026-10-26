@@ -1,7 +1,6 @@
 {
   "outline": {
-    "title": "개요",
-    "empty": "캔버스에 추가된 항목이 여기에 표시됩니다."
+    "title": "개요"
   },
   "editorOutline": {
     "title": "문서 개요"

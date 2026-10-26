@@ -29,7 +29,7 @@ function canUseTool(tool: keyof typeof ICONS) {
     :aria-label="t('spaces.canvas.tools.title')"
   >
     <template v-for="(toolCommand, index) in CANVAS_TOOL_COMMANDS" :key="toolCommand.tool">
-      <ToolbarSeparator v-if="index === 2" class="bg-border-divider mx-1 h-4 w-px" />
+      <ToolbarSeparator v-if="index === 2" class="mx-1.5 h-4 w-px shrink-0 rounded-full bg-stroke-default" />
       <ToolbarButton as-child>
         <UiIconButton
           :label="t(toolCommand.title)"
@@ -45,7 +45,7 @@ function canUseTool(tool: keyof typeof ICONS) {
         </UiIconButton>
       </ToolbarButton>
     </template>
-    <ToolbarSeparator class="bg-border-divider mx-1 h-4 w-px" />
+    <ToolbarSeparator class="mx-1.5 h-4 w-px shrink-0 rounded-full bg-stroke-default" />
     <SpaceAddMenu />
   </ToolbarRoot>
 </template>

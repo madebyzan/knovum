@@ -1,7 +1,6 @@
 {
   "outline": {
-    "title": "Esquema",
-    "empty": "Los elementos agregados al lienzo aparecen aquí."
+    "title": "Esquema"
   },
   "editorOutline": {
     "title": "Esquema del documento"
