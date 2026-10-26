@@ -4,12 +4,6 @@ macro_rules! knovum_workspace_commands {
         $consumer!(
         crate::spaces::assets::import::mcp_resource::stage_mcp_resource_import,
         crate::spaces::assets::import::mcp_resource::discard_mcp_resource_import,
-        crate::spaces::agent_artifacts::discard_artifact_workspace,
-        crate::spaces::agent_artifacts::recovery::list_recoverable_artifact_workspaces,
-        crate::spaces::agent_artifacts::preview_generated_artifact,
-        crate::spaces::agent_artifacts::create_agent_artifacts,
-        crate::spaces::agent_artifacts::import::stage_generated_artifact_import,
-        crate::spaces::agent_artifacts::remove_agent_artifact,
         crate::spaces::assets::audio::commands::start_audio_recording,
         crate::spaces::assets::audio::commands::append_audio_chunk,
         crate::spaces::assets::audio::commands::finalize_audio_recording,

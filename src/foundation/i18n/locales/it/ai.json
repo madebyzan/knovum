@@ -5,9 +5,6 @@
     "desktopAgent": "Desktop Agent · l'output dipende dagli strumenti attuali e da Skills",
     "none": "Nessuna destinazione di esecuzione compatibile"
   },
-  "desktopAgent": {
-    "notDetected": "Non rilevato"
-  },
   "unavailable": {
     "title": "Nessun target AI compatibile",
     "description": "Configura un modello compatibile o abilita un agente desktop installato per questa azione."

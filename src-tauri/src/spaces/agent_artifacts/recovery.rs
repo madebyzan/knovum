@@ -3,67 +3,6 @@ use std::collections::HashSet;
 use sqlx::Row;
 use tauri::AppHandle;
 
-use crate::foundation::app_error::{AppError, AppResult};
-
-use super::contracts;
-
-#[tauri::command]
-pub async fn list_recoverable_artifact_workspaces(
-    app: AppHandle,
-    space_id: String,
-) -> AppResult<Vec<contracts::RecoverableAgentCreation>> {
-    let root = crate::spaces::agent_artifacts::workspace::space_directory(&app, &space_id)?;
-    if !root.is_dir() {
-        return Ok(Vec::new());
-    }
-    let mut entries = tokio::fs::read_dir(root)
-        .await
-        .map_err(|error| AppError::internal(error.to_string()))?;
-    let mut recoverable = Vec::new();
-    while let Some(entry) = entries
-        .next_entry()
-        .await
-        .map_err(|error| AppError::internal(error.to_string()))?
-    {
-        let session_id = entry
-            .file_name()
-            .into_string()
-            .map_err(|_| AppError::invalid("Agent workspace has an invalid session identifier"))?;
-        uuid::Uuid::parse_str(&session_id)
-            .map_err(|_| AppError::invalid("Agent workspace has an invalid session identifier"))?;
-        let completed_at = super::session::completed_at(&app, &space_id, &session_id)
-            .await
-            .map_err(AppError::internal)?;
-        let Some(completed_at) = completed_at else {
-            continue;
-        };
-        let workspace = crate::spaces::agent_artifacts::workspace::session_directory(
-            &app,
-            &space_id,
-            &session_id,
-        )?;
-        if !workspace.is_dir() {
-            continue;
-        }
-        let artifacts = crate::external_agents::artifacts::collect(&workspace)?;
-        if artifacts.is_empty() {
-            continue;
-        }
-        recoverable.push((
-            completed_at,
-            contracts::RecoverableAgentCreation {
-                session_id,
-                artifacts,
-            },
-        ));
-    }
-    recoverable.sort_by_key(|entry| std::cmp::Reverse(entry.0));
-    Ok(recoverable
-        .into_iter()
-        .map(|(_, session)| session)
-        .collect())
-}
-
 pub async fn discard_orphaned_workspaces(app: &AppHandle) -> Result<(), String> {
     for (session_id, space_id) in super::session::fail_interrupted(app).await? {
         let workspace = crate::spaces::agent_artifacts::workspace::session_directory(

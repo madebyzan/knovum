@@ -10,7 +10,6 @@ import UiDialog from "../../../../../shared/ui/UiDialog.vue";
 import UiDropdownMenu from "../../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../../shared/ui/UiInput.vue";
-import AgentCreationDialog from "../../../agent-creation/presentation/AgentCreationDialog.vue";
 import { useCanvasToolStore } from "../../../canvas/canvas-tool-store";
 import { getCanvasEditorSession } from "../../../canvas/editor-session";
 import { useNodeOperationGate } from "../../../canvas/use-node-operation-gate";
@@ -34,7 +33,6 @@ const {
   customObjectOpen,
   typeEditorOpen,
   portalOpen,
-  agentCreationOpen,
   website,
   normalizedWebsite,
   addMarkdown,
@@ -98,7 +96,6 @@ async function beginAudioRecording() {
       @record-audio="beginAudioRecording"
       @credential="addCredential"
       @generate="openGenerator"
-      @agent="agentCreationOpen = true"
     />
   </UiDropdownMenu>
 
@@ -121,5 +118,4 @@ async function beginAudioRecording() {
   <SpaceCustomKnowledgeObjectDialog v-model:open="customObjectOpen" />
   <SpaceKnowledgeTypeEditor v-model:open="typeEditorOpen" />
   <SpacePortalDialog v-model:open="portalOpen" />
-  <AgentCreationDialog v-model:open="agentCreationOpen" />
 </template>

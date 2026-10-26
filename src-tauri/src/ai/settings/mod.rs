@@ -92,13 +92,6 @@ pub(crate) fn resolve_task_settings(
     }
 }
 
-pub fn ensure_agent_enabled<R: Runtime>(
-    app: &AppHandle<R>,
-    kind: crate::ai::contracts::ExternalAgentKind,
-) -> AppResult<()> {
-    ensure_enabled(&load(app)?, kind)
-}
-
 fn ensure_enabled(
     settings: &AiSettings,
     kind: crate::ai::contracts::ExternalAgentKind,

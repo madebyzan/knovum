@@ -114,7 +114,6 @@ fn contracts_keep_their_capability_owner() {
     for path in [
         crate::spaces::structure::edit_contract::ExecuteSpaceEditRequest::output_path(),
         crate::spaces::actions::SpaceActionDefinition::output_path(),
-        crate::spaces::agent_artifacts::contracts::AgentCreationRequest::output_path(),
         crate::spaces::derivation::video_edit::RenderVideoEditRequest::output_path(),
         crate::spaces::derivation::video_edit::PrepareVideoEditProxyRequest::output_path(),
         crate::spaces::derivation::video_edit::VideoEditProgress::output_path(),

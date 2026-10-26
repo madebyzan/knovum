@@ -32,14 +32,6 @@ export function prepareSpaceAssetImport(
   return invokeCommand("plugin:spaces|stage_asset_import", { sourcePath, sourceAccess });
 }
 
-export function prepareAgentArtifactImport(
-  spaceId: string,
-  sessionId: string,
-  relativePath: string,
-): Promise<PreparedSpaceImport> {
-  return invokeCommand("plugin:spaces|stage_generated_artifact_import", { spaceId, sessionId, relativePath });
-}
-
 export function copyStagedSpaceAsset(
   jobId: string,
   onProgress: (progress: SpaceAssetImportProgress) => void,

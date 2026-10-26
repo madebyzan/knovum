@@ -88,9 +88,12 @@ pub(crate) trait Sink: Send + Sync + 'static {
     }
 }
 
-/// A stream whose updates need nothing beyond the Run events themselves.
+/// A stream whose updates need nothing beyond the Run events themselves: what tests drive a
+/// stream with when the transcript a production sink settles is not under test.
+#[cfg(test)]
 pub(crate) struct RunEventsOnly;
 
+#[cfg(test)]
 impl Sink for RunEventsOnly {}
 
 enum Command {

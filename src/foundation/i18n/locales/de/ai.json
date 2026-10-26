@@ -5,9 +5,6 @@
     "desktopAgent": "Die Ausgabe von Desktop Agent hängt von seinen aktuellen Tools und Skills ab",
     "none": "Kein kompatibles Ausführungsziel"
   },
-  "desktopAgent": {
-    "notDetected": "Nicht erkannt"
-  },
   "unavailable": {
     "title": "Kein kompatibles AI-Ziel",
     "description": "Konfigurieren Sie ein kompatibles Modell oder aktivieren Sie einen installierten Desktop-Agenten für diese Aktion."

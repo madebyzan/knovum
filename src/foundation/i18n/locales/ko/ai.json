@@ -5,9 +5,6 @@
     "desktopAgent": "Desktop Agent · 출력은 현재 도구 및 Skills에 따라 다릅니다.",
     "none": "호환되는 실행 대상이 없습니다."
   },
-  "desktopAgent": {
-    "notDetected": "감지되지 않음"
-  },
   "unavailable": {
     "title": "호환되는 AI 대상이 없습니다.",
     "description": "이 작업을 위해 호환되는 모델을 구성하거나 설치된 데스크톱 에이전트를 활성화하십시오."

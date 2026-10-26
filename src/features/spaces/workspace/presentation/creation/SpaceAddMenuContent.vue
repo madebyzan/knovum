@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   Boxes,
-  Bot,
   Film,
   ChevronRight,
   CircleHelp,
@@ -40,7 +39,6 @@ const emit = defineEmits<{
   recordAudio: [];
   credential: [kind: "api-key" | "account-password"];
   generate: [kind: GeneratorKind];
-  agent: [];
   section: [];
 }>();
 const { t } = useI18n();
@@ -114,9 +112,6 @@ const GENERATOR_OPTIONS = [
     @select="emit('generate', option.kind)"
   >
     <component :is="option.icon" class="size-3.5" />{{ t(`spaces.creation.generator.kinds.${option.kind}`) }}
-  </UiDropdownMenuItem>
-  <UiDropdownMenuItem @select="emit('agent')">
-    <Bot class="size-3.5" />{{ t("spaces.creation.agent.create") }}…
   </UiDropdownMenuItem>
   <UiSeparator class="my-1" />
   <UiDropdownMenuItem @select="emit('portal')">

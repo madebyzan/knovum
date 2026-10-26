@@ -5,9 +5,6 @@
     "desktopAgent": "Desktop Agent · la sortie dépend de ses outils actuels et de Skills",
     "none": "Aucune cible d'exécution compatible"
   },
-  "desktopAgent": {
-    "notDetected": "Non détecté"
-  },
   "unavailable": {
     "title": "Aucune cible AI compatible",
     "description": "Configurez un modèle compatible ou activez un agent de bureau installé pour cette action."

@@ -5,9 +5,6 @@
     "desktopAgent": "A saída do Desktop Agent · depende de suas ferramentas atuais e Skills",
     "none": "Nenhum alvo de execução compatível"
   },
-  "desktopAgent": {
-    "notDetected": "Não detectado"
-  },
   "unavailable": {
     "title": "Nenhum alvo AI compatível",
     "description": "Configure um modelo compatível ou habilite um agente de desktop instalado para esta ação."

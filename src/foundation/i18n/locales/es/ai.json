@@ -5,9 +5,6 @@
     "desktopAgent": "Desktop Agent · la salida depende de sus herramientas actuales y Skills",
     "none": "Ningún objetivo de ejecución compatible"
   },
-  "desktopAgent": {
-    "notDetected": "No detectado"
-  },
   "unavailable": {
     "title": "Ningún objetivo AI compatible",
     "description": "Configure un modelo compatible o habilite un Agente de escritorio instalado para esta acción."
