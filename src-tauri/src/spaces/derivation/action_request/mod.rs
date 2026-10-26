@@ -43,16 +43,13 @@ pub(super) async fn prepare(
         .map(serde_json::from_value)
         .transpose()
         .map_err(crate::spaces::db::json_error)?;
-    output::reserve(
-        app,
-        space_id,
-        action_id,
-        parameters,
-        &resolved,
-        frame,
-        &mut request,
-        authority,
+    output::pin_single_source(action_id, &resolved, &mut request)?;
+    if let Some(node_id) = output::reserve(
+        app, space_id, action_id, parameters, &resolved, frame, authority,
     )
-    .await?;
+    .await?
+    {
+        request.insert("outputNodeId".into(), node_id.into());
+    }
     Ok(Value::Object(request))
 }
