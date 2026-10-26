@@ -54,10 +54,17 @@ async fn derived(action: &str) -> SqlitePool {
     pool
 }
 
-async fn change_source(pool: &SqlitePool, change: &str) {
-    sqlx::query(&format!(
-        "UPDATE spaces_nodes SET data={change} WHERE id='source'"
-    ))
+async fn remove_source_image_edit(pool: &SqlitePool) {
+    sqlx::query("UPDATE spaces_nodes SET data=json_remove(data,'$.imageEdit') WHERE id='source'")
+        .execute(pool)
+        .await
+        .unwrap();
+}
+
+async fn replace_source_asset(pool: &SqlitePool) {
+    sqlx::query(
+        "UPDATE spaces_nodes SET data=json_set(data,'$.sourceRevision','asset:3') WHERE id='source'",
+    )
     .execute(pool)
     .await
     .unwrap();
@@ -66,7 +73,7 @@ async fn change_source(pool: &SqlitePool, change: &str) {
 #[tokio::test]
 async fn an_output_compares_with_the_input_it_read_even_after_its_source_is_edited_again() {
     let pool = derived("upscale-image").await;
-    change_source(&pool, "json_remove(data,'$.imageEdit')").await;
+    remove_source_image_edit(&pool).await;
 
     let comparable = resolve(&pool, "output").await.unwrap().unwrap();
 
@@ -78,7 +85,7 @@ async fn an_output_compares_with_the_input_it_read_even_after_its_source_is_edit
 #[tokio::test]
 async fn a_replaced_source_asset_leaves_nothing_honest_to_compare() {
     let pool = derived("remove-image-background").await;
-    change_source(&pool, "json_set(data,'$.sourceRevision','asset:3')").await;
+    replace_source_asset(&pool).await;
 
     assert!(resolve(&pool, "output").await.unwrap().is_none());
 }
