@@ -1,4 +1,4 @@
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 import { defineComponent, h, shallowRef, type VNode } from "vue";
 
@@ -7,6 +7,7 @@ import UiDropdownMenu from "../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../shared/ui/UiDropdownMenuItem.vue";
 import { getCanvasEditorSession } from "../canvas/editor-session";
 import { CANVAS_TEXT_SURFACE_ATTRIBUTE } from "../canvas/presentation/nodes/canvas-text-surface";
+import SpaceCanvasTextSelectionBar from "../canvas/presentation/nodes/SpaceCanvasTextSelectionBar.vue";
 import { useCanvasTextEditor } from "../canvas/presentation/nodes/use-canvas-text-editor";
 import { createSpaceTextPayload } from "../document-editing/tiptap-content";
 import type { SpaceCanvasTextPayload } from "../model/nodes/capabilities";
@@ -121,9 +122,45 @@ it("keeps editing while the selection bar's menu is used and ends once the user 
   }
 });
 
+it("keeps editing when WebKit moves focus to the selection bar a pressed control lives in", async () => {
+  const { session, wrapper } = createTextEditorHarness(
+    async () => undefined,
+    ({ editor }) =>
+      editor.value
+        ? h(SpaceCanvasTextSelectionBar, {
+            nodeId: "text-node",
+            editor: editor.value,
+            kind: "text",
+            defaultFontSize: 18,
+            defaultAlignment: "left",
+            typographyScale: 1,
+          })
+        : h("div"),
+  );
+  try {
+    await session.beginEditing();
+    const instance = session.editor.value!;
+    instance.chain().setContent("<p>Styled</p>").setTextSelection({ from: 1, to: 7 }).run();
+    const bold = await vi.waitUntil(() =>
+      document.querySelector<HTMLElement>(`button[aria-label="${i18n.global.t("spaces.richtext.bold")}"]`),
+    );
+
+    // WebKit never focuses a pressed button: focus moves to its nearest focusable ancestor.
+    bold.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    bold.parentElement!.closest<HTMLElement>("[tabindex]")!.focus();
+    bold.click();
+    await flushPromises();
+
+    expect(session.editing.value).toBe(true);
+    expect(instance.getHTML()).toBe("<p><strong>Styled</strong></p>");
+  } finally {
+    wrapper.unmount();
+  }
+});
+
 function createTextEditorHarness(
   persist: (nodeId: string, payload: SpaceCanvasTextPayload) => Promise<void>,
-  surface: () => VNode = () => h("div"),
+  surface: (session: ReturnType<typeof useCanvasTextEditor>) => VNode = () => h("div"),
 ) {
   let session!: ReturnType<typeof useCanvasTextEditor>;
   const interactive = shallowRef(true);
@@ -136,7 +173,7 @@ function createTextEditorHarness(
           interactive,
           persist,
         });
-        return surface;
+        return () => surface(session);
       },
     }),
     { attachTo: document.body, global: { plugins: [i18n] } },

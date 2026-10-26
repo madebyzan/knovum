@@ -95,14 +95,18 @@ onBeforeUnmount(() => {
 
 <template>
   <span class="contents">
+    <!--
+      The surface is the menu's own root: Tiptap makes it focusable, and WebKit — which never focuses
+      a pressed button — moves focus there whenever a control in the bar is pressed.
+    -->
     <BubbleMenu
+      v-bind="{ [CANVAS_TEXT_SURFACE_ATTRIBUTE]: nodeId }"
       :editor="editor"
       :append-to="appendToCanvasOverlay"
       :should-show="shouldShow"
       :update-delay="40"
     >
       <div
-        v-bind="{ [CANVAS_TEXT_SURFACE_ATTRIBUTE]: nodeId }"
         class="flex items-center gap-0.5 rounded-md border border-stroke-default material-overlay p-0.5 shadow-popover"
       >
         <SpaceTiptapInlineMarks :editor="editor" :marks="['bold', 'italic', 'underline']" />
