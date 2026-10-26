@@ -9,12 +9,8 @@ import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
 import { tiptapContentSchema } from "../../../model/nodes/schema/content";
 import { truncateUtf16 } from "../../../model/text";
 import { registerSpaceSessionParticipant } from "../../../workspace/session-participants";
-import {
-  activateCanvasTextEditor,
-  activateCanvasTextSelection,
-  deactivateCanvasTextEditor,
-  deactivateCanvasTextSelection,
-} from "../../editor-session";
+import { activateCanvasTextEditor, deactivateCanvasTextEditor } from "../../editor-session";
+import { isWithinCanvasTextSurface } from "./canvas-text-surface";
 
 interface CanvasTextEditorOptions {
   id: string;
@@ -29,15 +25,16 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   const editing = shallowRef(false);
   const editor = shallowRef<Editor>();
   let detachCommit: (() => void) | undefined;
+  let detachPresence: (() => void) | undefined;
   let savePromise: Promise<void> | undefined;
 
   watch(options.interactive, (interactive) => (interactive ? void beginEditing() : void leaveEditing()));
   onBeforeUnmount(() => {
     deactivateCanvasTextEditor(options.id);
-    deactivateCanvasTextSelection(options.id);
     editor.value?.destroy();
     editor.value = undefined;
     detachCommit?.();
+    detachPresence?.();
   });
 
   async function beginEditing() {
@@ -54,19 +51,12 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
       editorProps: {
         attributes: { class: "canvas-text-prose w-full outline-none", spellcheck: "true" },
       },
-      onSelectionUpdate: ({ editor: instance }) => {
-        const { from, to } = instance.state.selection;
-        if (from === to) deactivateCanvasTextSelection(options.id);
-        else activateCanvasTextSelection(options.id);
-      },
       onUpdate: () => {
         dirty.value = true;
       },
-      onBlur: () => {
-        void leaveEditing();
-      },
     });
     detachCommit = registerSpaceSessionParticipant({ commit: save });
+    detachPresence = watchPresence();
     await nextTick();
     editor.value?.commands.focus("end");
   }
@@ -110,6 +100,24 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
     }
   }
 
+  /**
+   * The session lasts while the user is on its surface. Editor blur cannot tell: the selection bar
+   * and the menus it opens take focus while they are used, and switching to another app blurs the
+   * editor without the user leaving it. A press or a focus that lands off the surface does.
+   */
+  function leaveWhenOutside(event: Event) {
+    if (!isWithinCanvasTextSurface(options.id, event.target)) void leaveEditing();
+  }
+
+  function watchPresence() {
+    document.addEventListener("pointerdown", leaveWhenOutside, true);
+    document.addEventListener("focusin", leaveWhenOutside);
+    return () => {
+      document.removeEventListener("pointerdown", leaveWhenOutside, true);
+      document.removeEventListener("focusin", leaveWhenOutside);
+    };
+  }
+
   async function persist(instance: Editor) {
     try {
       const plainText = instance.state.doc.textBetween(0, instance.state.doc.content.size, "\n", "\n");
@@ -135,9 +143,10 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
     dirty.value = false;
     deactivateCanvasTextEditor(options.id);
     editor.value = undefined;
-    deactivateCanvasTextSelection(options.id);
     detachCommit?.();
     detachCommit = undefined;
+    detachPresence?.();
+    detachPresence = undefined;
     instance?.destroy();
   }
 

@@ -13,9 +13,11 @@ import SpaceTiptapInlineMarks from "../../../document-editing/presentation/Space
 import { canvasBaseFontSize, effectiveCanvasFontSize } from "../../document/canvas-typography";
 import { CANVAS_FONT_SIZES, CANVAS_INLINE_TEXT_COLORS } from "../canvas-typography-options";
 import SpaceCanvasColorSwatches from "../SpaceCanvasColorSwatches.vue";
+import { CANVAS_TEXT_SURFACE_ATTRIBUTE } from "./canvas-text-surface";
 import SpaceCanvasTextAlignmentMenu from "./SpaceCanvasTextAlignmentMenu.vue";
 
 const props = defineProps<{
+  nodeId: string;
   editor: Editor;
   kind: "note" | "text";
   defaultFontSize: number;
@@ -92,7 +94,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <span class="contents" data-canvas-text-menu-host>
+  <span class="contents">
     <BubbleMenu
       :editor="editor"
       :append-to="appendToCanvasOverlay"
@@ -100,6 +102,7 @@ onBeforeUnmount(() => {
       :update-delay="40"
     >
       <div
+        v-bind="{ [CANVAS_TEXT_SURFACE_ATTRIBUTE]: nodeId }"
         class="flex items-center gap-0.5 rounded-md border border-stroke-default material-overlay p-0.5 shadow-popover"
       >
         <SpaceTiptapInlineMarks :editor="editor" :marks="['bold', 'italic', 'underline']" />

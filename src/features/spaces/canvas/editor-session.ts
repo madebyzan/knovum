@@ -21,7 +21,6 @@ const EMPTY_SELECTION: CanvasSelectionSnapshot = {
 const selection = shallowRef<CanvasSelectionSnapshot>(EMPTY_SELECTION);
 const directManipulation = shallowRef(false);
 const transitioning = shallowRef(false);
-const activeTextSelectionNodeId = shallowRef<string>();
 const activeTextEditorNodeId = shallowRef<string>();
 let transitionTail = Promise.resolve();
 let pendingTransitions = 0;
@@ -30,7 +29,6 @@ let suspendedParticipants = snapshotSpaceSessionParticipants();
 
 const editorSession = {
   activeEditor,
-  activeTextSelectionNodeId: readonly(activeTextSelectionNodeId),
   activeTextEditorNodeId: readonly(activeTextEditorNodeId),
   directManipulation: readonly(directManipulation),
   transitioning: readonly(transitioning),
@@ -64,7 +62,6 @@ export function registerCanvasEditor(editor: CanvasEditorPort) {
     viewport.value = undefined;
     selection.value = EMPTY_SELECTION;
     directManipulation.value = false;
-    activeTextSelectionNodeId.value = undefined;
     activeTextEditorNodeId.value = undefined;
   };
 }
@@ -79,14 +76,6 @@ export function updateCanvasViewportProjection(value: CanvasViewport) {
 
 export function updateCanvasDirectManipulationProjection(active: boolean) {
   directManipulation.value = active;
-}
-
-export function activateCanvasTextSelection(nodeId: string) {
-  activeTextSelectionNodeId.value = nodeId;
-}
-
-export function deactivateCanvasTextSelection(nodeId: string) {
-  if (activeTextSelectionNodeId.value === nodeId) activeTextSelectionNodeId.value = undefined;
 }
 
 export function activateCanvasTextEditor(nodeId: string) {

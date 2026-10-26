@@ -52,7 +52,7 @@ describe("Konva rich node interactions", () => {
         },
       ],
     });
-    await wrapper.get(".ProseMirror").trigger("blur");
+    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
     await flushPromises();
     expect(persist).toHaveBeenCalledWith(
       "note",
