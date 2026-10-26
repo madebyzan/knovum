@@ -5,21 +5,29 @@
     "document": "Dokumentgenerator"
   },
   "placeholder": {
-    "document": "Beschreibe Ziel, Struktur und Kernpunkte des Dokuments.",
-    "image": "Beschreibe das gewünschte Bild. Bei ausgewählten Bildern: wie sie geändert werden sollen.",
-    "video": "Beschreibe Szene, Bewegung, Kamera und visuellen Stil."
+    "document": "Beschreibe Ziel, Aufbau und Kernpunkte des Dokuments",
+    "image": "Beschreibe das gewünschte Bild; füge Referenzen hinzu",
+    "video": "Beschreibe Szene, Handlung, Kamera und Stil"
   },
   "references": {
     "add": "Referenzen hinzufügen",
-    "addSelected": "Auswahl hinzufügen ({count})",
-    "hint": "Wählen Sie Bilder oder Dokumente auf der Leinwand aus, um sie als Referenz zu verwenden",
-    "remove": "{title} entfernen"
+    "fromCanvas": "Auf der Leinwand wählen",
+    "upload": "Datei hochladen…",
+    "picking": "Klicke auf Inhalte der Leinwand, um sie als Referenz hinzuzufügen",
+    "refused": "„{title}“ enthält nichts Lesbares und kann keine Referenz sein",
+    "done": "Fertig",
+    "preparing": "{title} · wird vorbereitet",
+    "unreadable": "{title} · nicht lesbar",
+    "remove": "{title} entfernen",
+    "blocked": {
+      "preparing": "Referenzen werden noch vorbereitet",
+      "unreadable": "Entferne zuerst nicht lesbare Referenzen"
+    }
   },
   "aspectRatio": "Seitenverhältnis",
   "duration": "Dauer",
   "generate": "Generieren",
   "generating": "Wird generiert…",
-  "close": "Generator schließen",
   "task": {
     "document": "Dokument wird erstellt",
     "image": "Bild wird erstellt",

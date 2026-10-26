@@ -5,21 +5,29 @@
     "document": "Document generator"
   },
   "placeholder": {
-    "document": "Describe the document’s goal, structure, and key points.",
-    "image": "Describe the image you want. With images selected, say how to change them.",
-    "video": "Describe the scene, motion, camera, and visual style."
+    "document": "Describe the document's goal, structure and key points",
+    "image": "Describe the image you want; add references to work from",
+    "video": "Describe the scene, the action, the camera and the style"
   },
   "references": {
     "add": "Add references",
-    "addSelected": "Add selected ({count})",
-    "hint": "Select images or documents on the canvas to use them as references",
-    "remove": "Remove {title}"
+    "fromCanvas": "Pick from canvas",
+    "upload": "Upload file…",
+    "picking": "Click content on the canvas to add it as a reference",
+    "refused": "“{title}” has nothing that can be read, so it can’t be a reference",
+    "done": "Done",
+    "preparing": "{title} · preparing",
+    "unreadable": "{title} · can’t be read",
+    "remove": "Remove {title}",
+    "blocked": {
+      "preparing": "References are still being prepared",
+      "unreadable": "Remove references that can’t be read first"
+    }
   },
   "aspectRatio": "Aspect ratio",
   "duration": "Duration",
   "generate": "Generate",
   "generating": "Generating…",
-  "close": "Close generator",
   "task": {
     "document": "Generating document",
     "image": "Generating image",

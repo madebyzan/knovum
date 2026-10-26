@@ -5,21 +5,29 @@
     "document": "Generatore di documenti"
   },
   "placeholder": {
-    "document": "Descrivi obiettivo, struttura e punti chiave del documento.",
-    "image": "Descrivi l’immagine desiderata. Con immagini selezionate, indica come modificarle.",
-    "video": "Descrivi scena, movimento, inquadratura e stile visivo."
+    "document": "Descrivi obiettivo, struttura e punti chiave del documento",
+    "image": "Descrivi l’immagine che vuoi; aggiungi riferimenti",
+    "video": "Descrivi scena, azione, inquadratura e stile"
   },
   "references": {
     "add": "Aggiungi riferimenti",
-    "addSelected": "Aggiungi selezione ({count})",
-    "hint": "Seleziona immagini o documenti sulla tela per usarli come riferimento",
-    "remove": "Rimuovi {title}"
+    "fromCanvas": "Scegli dalla tela",
+    "upload": "Carica file…",
+    "picking": "Fai clic su un contenuto della tela per aggiungerlo come riferimento",
+    "refused": "«{title}» non contiene nulla di leggibile e non può essere un riferimento",
+    "done": "Fine",
+    "preparing": "{title} · in preparazione",
+    "unreadable": "{title} · non leggibile",
+    "remove": "Rimuovi {title}",
+    "blocked": {
+      "preparing": "I riferimenti sono ancora in preparazione",
+      "unreadable": "Rimuovi prima i riferimenti non leggibili"
+    }
   },
   "aspectRatio": "Proporzioni",
   "duration": "Durata",
   "generate": "Genera",
   "generating": "Generazione…",
-  "close": "Chiudi generatore",
   "task": {
     "document": "Generazione documento",
     "image": "Generazione immagine",

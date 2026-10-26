@@ -5,21 +5,29 @@
     "document": "Générateur de documents"
   },
   "placeholder": {
-    "document": "Décrivez l’objectif, la structure et les points clés du document.",
-    "image": "Décrivez l’image voulue. Si des images sont sélectionnées, dites comment les modifier.",
-    "video": "Décrivez la scène, le mouvement, la caméra et le style visuel."
+    "document": "Décrivez l’objectif, la structure et les points clés du document",
+    "image": "Décrivez l’image voulue ; ajoutez des références",
+    "video": "Décrivez la scène, l’action, la caméra et le style"
   },
   "references": {
     "add": "Ajouter des références",
-    "addSelected": "Ajouter la sélection ({count})",
-    "hint": "Sélectionnez des images ou des documents sur le canevas pour les utiliser comme références",
-    "remove": "Retirer {title}"
+    "fromCanvas": "Choisir sur le canevas",
+    "upload": "Importer un fichier…",
+    "picking": "Cliquez sur un contenu du canevas pour l’ajouter comme référence",
+    "refused": "« {title} » ne contient rien de lisible et ne peut pas servir de référence",
+    "done": "Terminé",
+    "preparing": "{title} · préparation",
+    "unreadable": "{title} · illisible",
+    "remove": "Retirer {title}",
+    "blocked": {
+      "preparing": "Les références sont encore en préparation",
+      "unreadable": "Retirez d’abord les références illisibles"
+    }
   },
   "aspectRatio": "Format d’image",
   "duration": "Durée",
   "generate": "Générer",
   "generating": "Génération…",
-  "close": "Fermer le générateur",
   "task": {
     "document": "Génération du document",
     "image": "Génération de l’image",

@@ -99,8 +99,14 @@ the requirement text says what the style is.
 
 - **Entry points.** The canvas add menu's _Generate_ group opens an image, video or document
   generator at the centre of the view; _Create from selection_ opens one beside the selection with
-  the selected resources already attached as references. Selecting more resources and choosing
-  _Add selected_ attaches them later; a reference chip removes one.
+  the selected resources already attached as references. More are added from the composer: picked
+  on the canvas, or uploaded — an upload is imported beside the frame and is a reference while it is
+  still arriving.
+- **References are held by node and pinned when asked.** A generator keeps node ids; the revision
+  a Run receives is pinned at the moment the person presses Generate, which is the revision they
+  are looking at. A reference still being imported or analysed waits (Generate stays disabled and
+  the reference shows why); one with nothing a model can read is refused when picked and marked if it becomes so.
+  A deleted node leaves the references it was in.
 - **References are optional.** A generation reads its references when it has them and its prompt
   alone when it has none. Whether an Action needs a selected resource is a property of the Action
   (`SpaceActionDefinition.minInputs`): generations need none, transformations (remove background,

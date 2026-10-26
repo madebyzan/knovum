@@ -13,7 +13,8 @@ vi.mock("../../session/space-store", () => ({ useSpaceStore: () => space.state }
 vi.mock("../start-action", () => ({ startDerivationAction: start }));
 vi.mock("../../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 
-import { generatorFrame, useCanvasGeneratorStore } from "../generators/generator-store";
+import { generatorFrame } from "../generators/canvas-generator";
+import { useCanvasGeneratorStore } from "../generators/generator-store";
 
 const TARGET = { type: "agent", runtimeKind: "codex" } as const;
 const SOURCE = {
@@ -36,27 +37,31 @@ function ready(kind: "image" | "video" | "document" = "image") {
 }
 
 beforeEach(() => {
-  space.state = reactive({ activeSpaceId: "space", nodes: [] });
+  space.state = reactive({ activeSpaceId: "space", nodes: [{ id: "photo" }, { id: "notes" }] });
   setActivePinia(createPinia());
   start.mockReset();
 });
 
 it("opens where the person is looking, or beside what they selected with it as reference", () => {
   const store = useCanvasGeneratorStore();
-  store.open("image", { center: { x: 100, y: 100 } });
-  expect(generatorFrame(store.generators[0]!)).toEqual({ x: -80, y: -80, width: 360, height: 360 });
-  store.open("video", { beside: { x: 0, y: 0, width: 200, height: 100 } }, [SOURCE]);
+  store.open("image", { center: { x: 0, y: 0 } });
+  const [image] = store.generators;
+  expect(generatorFrame(image!)).toEqual({ x: -180, y: -180, width: 360, height: 360 });
+  store.update(image!.id, { prompt: "kept" });
+  store.open("video", { beside: { x: 0, y: 0, width: 200, height: 100 } }, ["photo", "photo"]);
   const video = store.generators[1]!;
   expect(generatorFrame(video)).toEqual({ x: 248, y: 0, width: 360, height: 202.5 });
-  expect(video.references).toEqual([SOURCE]);
+  expect(video.references).toEqual(["photo"]);
   expect(store.active?.id).toBe(video.id);
+  expect(store.takePromptFocus(video.id)).toBe(true);
+  expect(store.takePromptFocus(video.id)).toBe(false);
 });
 
-it("asks for the output in its own frame, named by the prompt, from whatever it references", async () => {
+it("asks for the output in its own frame, named by the prompt, from the references as pinned", async () => {
   start.mockResolvedValue(run());
   const { store, id } = ready();
-  store.addReferences(id, [SOURCE, SOURCE]);
-  await store.generate(id);
+  expect(store.addReferences(id, ["photo", "photo"])).toEqual(["photo"]);
+  await store.generate(id, [SOURCE]);
   expect(start).toHaveBeenCalledWith(
     expect.objectContaining({
       actionId: "generate-visualization",
@@ -74,11 +79,11 @@ it("asks for the output in its own frame, named by the prompt, from whatever it 
   expect(store.generators[0]!.submission).toEqual({ runId: "run" });
 });
 
-it("gives way to the output once it stands in the frame", async () => {
+it("steps aside once the output it asked for stands in its frame", async () => {
   start.mockResolvedValue(run());
-  const { store, id } = ready("document");
-  await store.generate(id);
-  space.state.nodes = [{ id: "run-output" }];
+  const { store, id } = ready();
+  await store.generate(id, []);
+  space.state.nodes = [...space.state.nodes, { id: "run-output" }];
   await nextTick();
   expect(store.generators).toEqual([]);
 });
@@ -89,29 +94,66 @@ it("gives the frame back with its prompt when the Run ends without publishing", 
     return run();
   });
   const { store, id } = ready();
-  await store.generate(id);
+  await store.generate(id, []);
   await Promise.resolve();
   expect(store.generators[0]).toMatchObject({
     id,
-    submission: undefined,
     prompt: "A harbour at dawn\nwatercolour",
+    submission: undefined,
   });
 });
 
-it("does not ask without a prompt and an executor", async () => {
+it("asks for nothing without a prompt and an executor", async () => {
   const store = useCanvasGeneratorStore();
   store.open("image", { center: { x: 0, y: 0 } });
-  await store.generate(store.generators[0]!.id);
+  await store.generate(store.generators[0]!.id, []);
   expect(start).not.toHaveBeenCalled();
 });
 
-it("puts the composer away on a press anywhere but a generator", () => {
-  const { store } = ready();
+it("leaves on a press anywhere but a generator, and an empty one leaves nothing behind", () => {
+  const { store, id } = ready();
   const frame = document.createElement("div");
   frame.dataset.canvasGenerator = "";
-  const inside = frame.appendChild(document.createElement("span"));
-  store.release(inside);
-  expect(store.active).toBeDefined();
+  store.release(frame.appendChild(document.createElement("span")));
+  expect(store.active?.id).toBe(id);
   store.release(document.body);
   expect(store.active).toBeUndefined();
+  expect(store.generators.map((generator) => generator.id)).toEqual([id]);
+
+  store.open("video", { center: { x: 0, y: 0 } });
+  store.release(document.body);
+  expect(store.generators.map((generator) => generator.id)).toEqual([id]);
+});
+
+it("keeps its composer while picking references from the canvas", () => {
+  const { store, id } = ready();
+  store.startPicking();
+  store.release(document.body);
+  expect(store.active?.id).toBe(id);
+  expect(store.picking).toBe(true);
+  store.deactivate();
+  expect(store.picking).toBe(false);
+});
+
+it("lets a deleted node go from its references, and is removed when discarded", async () => {
+  const { store, id } = ready();
+  store.addReferences(id, ["photo", "notes"]);
+  space.state.nodes = [{ id: "notes" }];
+  await nextTick();
+  expect(store.generators[0]!.references).toEqual(["notes"]);
+  store.discard(id);
+  expect(store.generators).toEqual([]);
+  expect(store.active).toBeUndefined();
+});
+
+it("does not mistake a Space that is still loading for deleted references", async () => {
+  const { store, id } = ready();
+  store.addReferences(id, ["photo"]);
+  space.state.activeSpaceId = "other";
+  space.state.nodes = [];
+  await nextTick();
+  space.state.activeSpaceId = "space";
+  space.state.nodes = [{ id: "photo" }];
+  await nextTick();
+  expect(store.generators[0]!.references).toEqual(["photo"]);
 });

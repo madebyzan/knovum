@@ -2,9 +2,11 @@
 import { useCanvasGeneratorStore } from "../generator-store";
 import SpaceCanvasGeneratorComposer from "./SpaceCanvasGeneratorComposer.vue";
 import SpaceCanvasGeneratorFrame from "./SpaceCanvasGeneratorFrame.vue";
+import { useReferencePicking } from "./use-reference-picking";
 
 /** The generators of the open Space, drawn in canvas space; the active one takes requests below its frame. */
 const store = useCanvasGeneratorStore();
+const { refused } = useReferencePicking();
 </script>
 
 <template>
@@ -14,5 +16,10 @@ const store = useCanvasGeneratorStore();
     :generator="generator"
     :active="store.active?.id === generator.id"
   />
-  <SpaceCanvasGeneratorComposer v-if="store.active" :key="store.active.id" :generator="store.active" />
+  <SpaceCanvasGeneratorComposer
+    v-if="store.active && !store.active.submission"
+    :key="store.active.id"
+    :generator="store.active"
+    :refused="refused"
+  />
 </template>

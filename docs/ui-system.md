@@ -821,14 +821,31 @@ native form submission and dialog behavior.
 ### Canvas generators
 
 Image, video and document generation is an in-canvas surface, never a dialog. A generator is a
-world-space frame (`CanvasWorldOverlay`, the canvas host's `world` slot) sized to the output, with
-its label and border counter-scaled through `--canvas-zoom`, and one composer attached beneath it:
-reference chips, _Add selected_, an auto-growing prompt, the output's own options (aspect ratio or
-duration), a compact executor field and one primary _Generate_ action. Dragging the frame moves the
-generator; pressing anywhere outside it on the canvas releases focus but keeps the draft. The
-selection toolbar is hidden while a generator is active so two composers never compete. The canvas
-add menu groups the entries as _Generate_ → Image, Video, Document, then _Create with Agent…_
-last, because the Agent is the open-ended path and the generators are the direct ones.
+world-space frame sized to the output, with its label and border counter-scaled through
+`--canvas-zoom`, and one composer attached beneath it: references, an auto-growing prompt, then a
+footer with `+` (add references), the output's own options (aspect ratio or duration), a compact
+executor field and one primary _Generate_ action.
+
+- **It behaves like a canvas object.** Pressing the frame selects it (and puts the canvas selection
+  down), dragging moves it, Delete/Backspace removes it, Esc leaves it. There is no close button:
+  leaving a generator that has neither a prompt nor references removes it, the way an empty text
+  box disappears; one with a draft stays as a frame until it is deleted or generates. A generator
+  just opened focuses its prompt; pressing an existing frame does not, so Delete acts on the frame.
+- **References come from the canvas.** `+` offers _Pick from canvas_ and _Upload file…_. Picking
+  keeps the composer open with an accent strip above it; the canvas's own selection (click,
+  Shift-click, marquee) is the gesture, each pick is added, content a model can never read is
+  refused by name, and Esc or _Done_ finishes. An uploaded file is imported beside the frame,
+  without moving the camera, and is a reference from that moment. A reference shows a thumbnail
+  for a picture and a named chip for anything else; one still being prepared shows a spinner, one
+  that cannot be read a warning, and either keeps _Generate_ disabled.
+- **Input belongs to the overlay.** `CanvasWorldOverlay` is a sibling of the stage, not inside
+  Konva's content element: presses on a generator never start a stage gesture, yet still reach the
+  document, so selects and menus inside the composer dismiss on an outside press like everywhere
+  else (never `stopPropagation` on `pointerdown` for that). Keys and context menus stop at the
+  overlay; only the wheel is forwarded to the stage so the canvas pans and zooms over a frame.
+- The selection toolbar is hidden while a generator is active so two composers never compete. The
+  canvas add menu's _Generate_ group holds Image, Video and Document; the open-ended Agent path is
+  the Space conversation, not a menu entry.
 
 ### Agent conversation
 

@@ -5,21 +5,29 @@
     "document": "文件生成器"
   },
   "placeholder": {
-    "document": "描述文件的目標、結構與重點。",
-    "image": "描述想要的畫面；若已選取圖片，說明要如何修改。",
-    "video": "描述畫面、主體動作、鏡頭與視覺風格。"
+    "document": "描述文件的目標、結構與重點",
+    "image": "描述你想要的畫面，可加入參考",
+    "video": "描述畫面、主體動作、鏡頭與風格"
   },
   "references": {
-    "add": "新增參考",
-    "addSelected": "新增選取項目（{count}）",
-    "hint": "在畫布上選取圖片或文件，即可作為參考",
-    "remove": "移除 {title}"
+    "add": "加入參考",
+    "fromCanvas": "從畫布選擇",
+    "upload": "上傳檔案…",
+    "picking": "點擊畫布上的內容，加入為參考",
+    "refused": "「{title}」沒有可讀取的內容，無法作為參考",
+    "done": "完成",
+    "preparing": "{title} · 正在準備",
+    "unreadable": "{title} · 無法讀取",
+    "remove": "移除 {title}",
+    "blocked": {
+      "preparing": "參考內容仍在準備",
+      "unreadable": "請先移除無法讀取的參考"
+    }
   },
   "aspectRatio": "畫面比例",
   "duration": "時長",
   "generate": "生成",
   "generating": "正在生成…",
-  "close": "關閉生成器",
   "task": {
     "document": "正在產生文件",
     "image": "正在產生圖片",

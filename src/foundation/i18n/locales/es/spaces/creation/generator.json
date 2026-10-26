@@ -5,21 +5,29 @@
     "document": "Generador de documentos"
   },
   "placeholder": {
-    "document": "Describe el objetivo, la estructura y los puntos clave del documento.",
-    "image": "Describe la imagen que quieres. Si hay imágenes seleccionadas, indica cómo cambiarlas.",
-    "video": "Describe la escena, el movimiento, la cámara y el estilo visual."
+    "document": "Describe el objetivo, la estructura y los puntos clave del documento",
+    "image": "Describe la imagen que quieres; añade referencias",
+    "video": "Describe la escena, la acción, la cámara y el estilo"
   },
   "references": {
     "add": "Añadir referencias",
-    "addSelected": "Añadir selección ({count})",
-    "hint": "Selecciona imágenes o documentos en el lienzo para usarlos como referencia",
-    "remove": "Quitar {title}"
+    "fromCanvas": "Elegir en el lienzo",
+    "upload": "Subir archivo…",
+    "picking": "Haz clic en contenido del lienzo para añadirlo como referencia",
+    "refused": "«{title}» no tiene nada legible y no puede ser una referencia",
+    "done": "Listo",
+    "preparing": "{title} · preparando",
+    "unreadable": "{title} · no se puede leer",
+    "remove": "Quitar {title}",
+    "blocked": {
+      "preparing": "Las referencias aún se están preparando",
+      "unreadable": "Quita primero las referencias que no se pueden leer"
+    }
   },
   "aspectRatio": "Relación de aspecto",
   "duration": "Duración",
   "generate": "Generar",
   "generating": "Generando…",
-  "close": "Cerrar generador",
   "task": {
     "document": "Generando documento",
     "image": "Generando imagen",

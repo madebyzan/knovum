@@ -163,10 +163,14 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
           <slot name="node-content" v-bind="content" />
         </template>
       </CanvasDomOverlay>
-      <CanvasWorldOverlay :camera="runtime.viewport.camera" :rendering-enabled="renderingEnabled">
-        <slot name="world" />
-      </CanvasWorldOverlay>
     </Teleport>
+    <CanvasWorldOverlay
+      :camera="runtime.viewport.camera"
+      :rendering-enabled="renderingEnabled"
+      :stage-content="runtime.stage.value?.getContent()"
+    >
+      <slot name="world" />
+    </CanvasWorldOverlay>
     <CanvasStructureHud
       :camera="runtime.viewport.camera"
       :group-scope-titles="runtime.structure.groupScopeTitles.value"

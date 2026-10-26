@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { FileText, Image, Play, X } from "@lucide/vue";
+import { FileText, Image, LoaderCircle, Play } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getCanvasEditorSession } from "../../../canvas/editor-session";
-import { generatorFrame, useCanvasGeneratorStore, type CanvasGenerator } from "../generator-store";
+import { generatorFrame, type CanvasGenerator } from "../canvas-generator";
+import { useCanvasGeneratorStore } from "../generator-store";
 
 /**
- * Where an output will land, drawn at the size it will take. It moves with the canvas like the nodes
- * around it; its label and borders stay screen-sized so it reads the same at any zoom.
+ * Where an output will land, drawn at the size it will take. It behaves like the canvas objects
+ * around it: pressing selects it, dragging moves it, Delete removes it and Esc leaves it. Its
+ * label and border stay screen-sized so it reads the same at any zoom.
  */
 const props = defineProps<{ generator: CanvasGenerator; active: boolean }>();
 const { t } = useI18n();
@@ -26,15 +28,20 @@ const detail = computed(() => {
 let drag: { pointerId: number; x: number; y: number; zoom: number } | undefined;
 
 function press(event: PointerEvent) {
+  if (event.button !== 0) return;
+  const element = event.currentTarget as HTMLElement;
+  // Selecting the generator puts the canvas selection down, as selecting a node replaces it.
+  editorSession.selectNodes([]);
   store.activate(props.generator.id);
-  if (event.button !== 0 || working.value) return;
+  element.focus({ preventScroll: true });
+  if (working.value) return;
   drag = {
     pointerId: event.pointerId,
     x: event.clientX,
     y: event.clientY,
     zoom: editorSession.viewport.value?.zoom ?? 1,
   };
-  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  element.setPointerCapture(event.pointerId);
 }
 
 function follow(event: PointerEvent) {
@@ -51,12 +58,18 @@ function follow(event: PointerEvent) {
 function release(event: PointerEvent) {
   if (drag?.pointerId === event.pointerId) drag = undefined;
 }
+
+function remove(event: KeyboardEvent) {
+  if (working.value) return;
+  event.preventDefault();
+  store.discard(props.generator.id);
+}
 </script>
 
 <template>
   <div
     data-canvas-generator
-    class="pointer-events-auto absolute touch-none"
+    class="pointer-events-auto absolute touch-none outline-none"
     :class="working ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'"
     :style="{
       left: `${frame.x}px`,
@@ -64,42 +77,41 @@ function release(event: PointerEvent) {
       width: `${frame.width}px`,
       height: `${frame.height}px`,
     }"
-    @pointerdown.stop="press"
+    role="group"
+    tabindex="-1"
+    :aria-label="t(`spaces.creation.generator.kinds.${generator.kind}`)"
+    @pointerdown="press"
     @pointermove="follow"
     @pointerup="release"
     @pointercancel="release"
+    @keydown.delete="remove"
+    @keydown.escape="store.deactivate()"
+    @contextmenu.prevent
   >
-    <div class="generator-label flex items-center gap-1.5 text-caption text-fg-secondary">
-      <component :is="ICONS[generator.kind]" class="size-3.5 shrink-0" :stroke-width="1.7" />
+    <div
+      class="generator-label flex items-center gap-1.5 text-caption"
+      :class="active ? 'text-fg-accent' : 'text-fg-secondary'"
+    >
+      <component :is="ICONS[generator.kind]" class="size-3.5 shrink-0" :stroke-width="1.8" />
       <span class="min-w-0 truncate font-medium">{{
         t(`spaces.creation.generator.kinds.${generator.kind}`)
       }}</span>
-      <span v-if="detail" class="ml-auto shrink-0 text-fg-tertiary tabular-nums">{{ detail }}</span>
-      <button
-        v-if="!working"
-        type="button"
-        class="grid size-5 shrink-0 place-items-center rounded-sm text-fg-tertiary hover:bg-surface-control-hover hover:text-fg-primary"
-        :class="detail ? '' : 'ml-auto'"
-        :aria-label="t('spaces.creation.generator.close')"
-        @pointerdown.stop
-        @click="store.close(generator.id)"
-      >
-        <X class="size-3.5" :stroke-width="1.8" />
-      </button>
+      <span v-if="working" class="ml-auto flex shrink-0 items-center gap-1 text-fg-tertiary">
+        <LoaderCircle class="size-3 animate-spin" :stroke-width="2" />
+        {{ t("spaces.creation.generator.generating") }}
+      </span>
+      <span v-else-if="detail" class="ml-auto shrink-0 text-fg-tertiary tabular-nums">{{ detail }}</span>
     </div>
     <div
       class="generator-frame grid size-full place-items-center bg-surface-muted"
+      :class="working && 'animate-pulse'"
       :data-active="active || undefined"
     >
-      <div class="generator-mark flex flex-col items-center gap-2 text-fg-tertiary">
-        <component
-          :is="ICONS[generator.kind]"
-          class="size-7"
-          :class="working && 'animate-pulse'"
-          :stroke-width="1.4"
-        />
-        <span v-if="working" class="text-caption">{{ t("spaces.creation.generator.generating") }}</span>
-      </div>
+      <component
+        :is="ICONS[generator.kind]"
+        class="generator-mark size-8 text-fg-tertiary opacity-60"
+        :stroke-width="1.25"
+      />
     </div>
   </div>
 </template>
@@ -107,19 +119,23 @@ function release(event: PointerEvent) {
 <style scoped>
 /* `--canvas-zoom` is published by the camera on the world layer: what is divided by it stays screen-sized. */
 .generator-frame {
-  border: calc(1px / var(--canvas-zoom)) solid var(--color-stroke-strong);
-  border-radius: calc(10px / var(--canvas-zoom));
+  border: calc(1px / var(--canvas-zoom)) solid var(--color-stroke-default);
+  border-radius: calc(12px / var(--canvas-zoom));
+  transition: border-color 120ms ease;
+}
+.generator-frame:hover {
+  border-color: var(--color-stroke-strong);
 }
 .generator-frame[data-active] {
   border-color: var(--color-stroke-accent);
-  border-width: calc(2px / var(--canvas-zoom));
+  box-shadow: 0 0 0 calc(1px / var(--canvas-zoom)) var(--color-stroke-accent);
 }
 .generator-label {
   position: absolute;
   bottom: 100%;
   left: 0;
   width: calc(100% * var(--canvas-zoom));
-  padding-bottom: 6px;
+  padding: 0 2px 6px;
   transform-origin: bottom left;
   transform: scale(calc(1 / var(--canvas-zoom)));
 }

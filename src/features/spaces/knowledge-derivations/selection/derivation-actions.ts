@@ -23,7 +23,12 @@ export function createDerivationActions({ canRun, single, sources, bounds }: Der
 
   /** Creating from a selection is a generator beside it, with the selection as its references. */
   function generate(kind: GeneratorKind) {
-    if (bounds.value) generators.open(kind, { beside: bounds.value }, sources.value);
+    if (bounds.value)
+      generators.open(
+        kind,
+        { beside: bounds.value },
+        sources.value.map(({ nodeId }) => nodeId),
+      );
   }
 
   const handlerByIntent: Record<CreationIntentId, () => void> = {

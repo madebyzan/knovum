@@ -4,7 +4,17 @@ import { spaceImportContext } from "./import-context";
 import type { SpaceImportSessionLabels } from "./import-contract";
 import { importSpaceSource } from "./import-session";
 
-export async function importSpaceFromPicker(labels: SpaceImportSessionLabels) {
+export interface SpaceImportPlacement {
+  /** Where the imported resource stands; the next free spot on the canvas when omitted. */
+  position?: { x: number; y: number };
+  /** Whether the camera brings it into view; off when it lands beside what the person is working on. */
+  reveal?: boolean;
+}
+
+export async function importSpaceFromPicker(
+  labels: SpaceImportSessionLabels,
+  placement: SpaceImportPlacement = {},
+) {
   const store = useSpaceStore();
   const context = spaceImportContext();
   const source = await chooseSpaceSourcePath();
@@ -15,7 +25,8 @@ export async function importSpaceFromPicker(labels: SpaceImportSessionLabels) {
     context,
     spaceId,
     source,
-    position: store.nextInsertionPoint(),
+    position: placement.position ?? store.nextInsertionPoint(),
     labels,
+    ...(placement.reveal === undefined ? {} : { reveal: placement.reveal }),
   });
 }

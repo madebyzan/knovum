@@ -2,58 +2,36 @@ import { defineStore } from "pinia";
 import { computed, shallowRef, watch } from "vue";
 
 import { i18n } from "../../../../foundation/i18n/instance";
-import type { TaskTarget } from "../../../../shared/contracts/generated/TaskTarget";
-import type { CanvasPoint, CanvasRect } from "../../canvas/contracts/canvas-editor-port";
-import type { OutputFrame } from "../../contracts/generated/OutputFrame";
 import type { RunState } from "../../contracts/generated/RunState";
 import { runOutputNodeId } from "../../runs/run-output";
 import { useSpaceStore } from "../../session/space-store";
 import { MAX_CREATION_SOURCES, type CreationSource } from "../catalog/creation-source";
 import { startDerivationAction } from "../start-action";
 import {
-  GENERATOR_KINDS,
-  generatorFrameSize,
-  generatorTitle,
-  type GeneratorKind,
-  type GeneratorRequest,
-} from "./generator-kinds";
+  generatorFrame,
+  generatorOrigin,
+  pristine,
+  type CanvasGenerator,
+  type GeneratorChanges,
+  type GeneratorPlacement,
+} from "./canvas-generator";
+import { GENERATOR_KINDS, generatorFrameSize, generatorTitle, type GeneratorKind } from "./generator-kinds";
 
-/**
- * A frame on the canvas where something is about to be made: what to make, from what, by whom.
- * It is a draft of the session, not a node — nothing is stored until the person asks for it, and
- * then the output is reserved in this frame and takes its place.
- */
-export interface CanvasGenerator extends GeneratorRequest {
-  id: string;
-  spaceId: string;
-  kind: GeneratorKind;
-  x: number;
-  y: number;
-  references: readonly CreationSource[];
-  target: TaskTarget | undefined;
-  /** The Run it asked for, until that Run's output takes its place; "starting" until accepted. */
-  submission: "starting" | { runId: string } | undefined;
-}
-
-export type GeneratorPlacement = { center: CanvasPoint } | { beside: CanvasRect };
-
-type GeneratorChanges = Partial<
-  Pick<CanvasGenerator, "prompt" | "aspectRatio" | "durationSeconds" | "target">
->;
-
-/** Room between a selection and the generator opened beside it, in canvas units. */
-const BESIDE_GAP = 48;
 /** A Run that ends in one of these states never publishes into the frame. */
 const UNPUBLISHED: ReadonlySet<RunState> = new Set(["failed", "completed_with_errors", "cancelled"]);
-
-export function generatorFrame({ x, y, aspectRatio }: CanvasGenerator): OutputFrame {
-  return { x, y, ...generatorFrameSize(aspectRatio) };
-}
 
 export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", () => {
   const space = useSpaceStore();
   const all = shallowRef<readonly CanvasGenerator[]>([]);
   const activeId = shallowRef<string>();
+  /** The active generator is taking its references from what the person clicks on the canvas. */
+  const picking = shallowRef(false);
+  /**
+   * The generator whose prompt takes focus when its composer appears: one just opened is there to
+   * be written to, while pressing an existing frame selects it as an object, the way pressing a
+   * node does — so Delete removes it rather than editing its prompt.
+   */
+  const promptFocus = shallowRef<string>();
   const generators = computed(() => all.value.filter(({ spaceId }) => spaceId === space.activeSpaceId));
   const active = computed(() => generators.value.find(({ id }) => id === activeId.value));
 
@@ -67,19 +45,12 @@ export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", (
     );
   }
 
-  function open(
-    kind: GeneratorKind,
-    placement: GeneratorPlacement,
-    references: readonly CreationSource[] = [],
-  ) {
+  function open(kind: GeneratorKind, placement: GeneratorPlacement, references: readonly string[] = []) {
     const spaceId = space.activeSpaceId;
     if (!spaceId) return;
+    deactivate();
     const [aspectRatio = "1:1"] = GENERATOR_KINDS[kind].aspectRatios;
-    const { width, height } = generatorFrameSize(aspectRatio);
-    const origin =
-      "center" in placement
-        ? { x: placement.center.x - width / 2, y: placement.center.y - height / 2 }
-        : { x: placement.beside.x + placement.beside.width + BESIDE_GAP, y: placement.beside.y };
+    const origin = generatorOrigin(placement, generatorFrameSize(aspectRatio));
     const generator: CanvasGenerator = {
       id: crypto.randomUUID(),
       spaceId,
@@ -88,26 +59,47 @@ export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", (
       prompt: "",
       aspectRatio,
       durationSeconds: 5,
-      references: references.slice(0, MAX_CREATION_SOURCES),
+      references: [...new Set(references)].slice(0, MAX_CREATION_SOURCES),
       target: undefined,
       submission: undefined,
     };
     all.value = [...all.value, generator];
     activeId.value = generator.id;
+    promptFocus.value = generator.id;
   }
 
   function activate(id: string) {
+    if (activeId.value !== id) deactivate();
     activeId.value = id;
   }
 
-  /** Puts the composer away; the frame and its draft stay. */
+  /** The person has left the generator: its composer goes away, and an empty one goes with it. */
   function deactivate() {
+    const current = activeId.value && find(activeId.value);
+    picking.value = false;
     activeId.value = undefined;
+    if (current && pristine(current)) discard(current.id);
   }
 
-  /** A press anywhere on the canvas but a generator puts the composer away. */
+  /** A press anywhere on the canvas but a generator leaves it — unless it is a press picking a reference. */
   function release(target: EventTarget | null) {
+    if (picking.value) return;
     if (!(target instanceof Element && target.closest("[data-canvas-generator]"))) deactivate();
+  }
+
+  /** True once, for the composer that should focus its prompt. */
+  function takePromptFocus(id: string) {
+    const requested = promptFocus.value === id;
+    promptFocus.value = undefined;
+    return requested;
+  }
+
+  function startPicking() {
+    if (active.value) picking.value = true;
+  }
+
+  function stopPicking() {
+    picking.value = false;
   }
 
   function update(id: string, changes: GeneratorChanges) {
@@ -118,35 +110,42 @@ export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", (
     patch(id, { x, y });
   }
 
-  function addReferences(id: string, sources: readonly CreationSource[]) {
+  /** Adds what is not referenced yet, in order, up to what one Run can pin; returns what was added. */
+  function addReferences(id: string, nodeIds: readonly string[]) {
     const generator = find(id);
-    if (!generator) return;
-    const references = new Map(
-      [...generator.references, ...sources].map((source) => [source.nodeId, source]),
-    );
-    patch(id, { references: [...references.values()].slice(0, MAX_CREATION_SOURCES) });
+    if (!generator) return [];
+    const references = [...new Set([...generator.references, ...nodeIds])].slice(0, MAX_CREATION_SOURCES);
+    patch(id, { references });
+    return references.slice(generator.references.length);
   }
 
   function removeReference(id: string, nodeId: string) {
     const generator = find(id);
     if (generator)
-      patch(id, { references: generator.references.filter((source) => source.nodeId !== nodeId) });
+      patch(id, { references: generator.references.filter((reference) => reference !== nodeId) });
   }
 
-  function close(id: string) {
+  function discard(id: string) {
     all.value = all.value.filter((generator) => generator.id !== id);
-    if (activeId.value === id) deactivate();
+    if (activeId.value === id) {
+      activeId.value = undefined;
+      picking.value = false;
+    }
   }
 
-  async function generate(id: string) {
+  /** `sources` are the generator's references, pinned by the caller at the moment it was asked. */
+  async function generate(id: string, sources: readonly CreationSource[]) {
     const generator = find(id);
     if (!generator || generator.submission || !generator.target || !generator.prompt.trim()) return;
     const kind = GENERATOR_KINDS[generator.kind];
     patch(id, { submission: "starting" });
-    deactivate();
+    if (activeId.value === id) {
+      activeId.value = undefined;
+      picking.value = false;
+    }
     const run = await startDerivationAction({
       actionId: kind.actionId,
-      sources: generator.references,
+      sources,
       parameters: kind.parameters(generatorTitle(generator.prompt), generator),
       title: i18n.global.t(`spaces.creation.generator.task.${generator.kind}`),
       target: generator.target,
@@ -163,15 +162,21 @@ export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", (
     if (find(id)) patch(id, { submission: undefined });
   }
 
-  // A generator is done once the output it asked for stands in its frame.
   watch(
-    () => space.nodes,
-    (nodes) => {
+    () => [space.activeSpaceId, space.nodes] as const,
+    ([spaceId, nodes], [previousSpaceId, previous]) => {
       const ids = new Set(nodes.map(({ id }) => id));
-      const published = all.value.filter(
-        ({ submission }) => typeof submission === "object" && ids.has(runOutputNodeId(submission.runId)),
-      );
-      for (const { id } of published) close(id);
+      // Only a node that was here and is gone was deleted; a Space that is still loading lost nothing.
+      const deleted =
+        spaceId === previousSpaceId
+          ? new Set(previous.filter(({ id }) => !ids.has(id)).map(({ id }) => id))
+          : new Set();
+      for (const { id, submission, references } of all.value) {
+        // Done once the output it asked for stands in its frame.
+        if (typeof submission === "object" && ids.has(runOutputNodeId(submission.runId))) discard(id);
+        else if (references.some((reference) => deleted.has(reference)))
+          patch(id, { references: references.filter((reference) => !deleted.has(reference)) });
+      }
     },
   );
   watch(() => space.activeSpaceId, deactivate);
@@ -179,15 +184,19 @@ export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", (
   return {
     generators,
     active,
+    picking,
     open,
+    takePromptFocus,
     activate,
     deactivate,
     release,
+    startPicking,
+    stopPicking,
     update,
     move,
     addReferences,
     removeReference,
-    close,
+    discard,
     generate,
   };
 });
