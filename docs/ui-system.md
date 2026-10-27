@@ -881,6 +881,11 @@ may still be loading) or `generating` — exists only while the turn has nothing
 turn that waits, never as a notice at the end of the transcript; the first block takes its place.
 Only the answer that ends a turn offers copy, branch and regenerate.
 
+An attachment has one face wherever the conversation shows it — waiting in the composer, sent with
+a prompt, or added by a reply (`SpaceConversationAttachmentFace.vue`). An image is its picture; a
+document is a file row with its name and its type (`PPTX`, or the canvas/local-file label when the
+name carries none), never a picture-sized grey tile that cuts the name down to a few letters.
+
 Active turn status lines (preparing, generating, active tool execution, and in-progress plan steps)
 pair the 3-stroke breathing mark with neutral foreground shimmer in a stable `size-3.5` leading
 slot so settling into a checkmark never shifts the label horizontally.
