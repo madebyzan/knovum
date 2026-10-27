@@ -18,7 +18,6 @@
   "officialDocumentation": "Offizielle Anleitung",
   "acpSetup": "ACP-Setup",
   "detectionBoundary": "Überprüft nur die Befehlsverfügbarkeit; Anmeldung und ACP-Konnektivität werden nicht überprüft.",
-  "documentationOpenFailed": "Der offizielle Link des Agenten konnte nicht geöffnet werden",
   "connections": {
     "executableCli": {
       "title": "Direkt ACP",

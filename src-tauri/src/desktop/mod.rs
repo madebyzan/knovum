@@ -7,6 +7,7 @@ mod locale;
 pub(crate) use editing::EditingCommand;
 #[cfg(target_os = "macos")]
 mod menu;
+mod navigation;
 mod startup;
 pub(crate) mod system_font;
 pub(crate) mod system_preview;
@@ -113,6 +114,7 @@ pub fn plugin() -> TauriPlugin<Wry> {
             window_close::acknowledge_window_close,
             window_close::complete_window_close
         ])
+        .on_navigation(navigation::allows)
         .build()
 }
 

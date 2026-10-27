@@ -18,7 +18,6 @@
   "officialDocumentation": "Orientación oficial",
   "acpSetup": "Configuración de ACP",
   "detectionBoundary": "Comprueba únicamente la disponibilidad del comando; El inicio de sesión y la conectividad ACP no están verificados.",
-  "documentationOpenFailed": "No se pudo abrir el enlace oficial del Agente",
   "connections": {
     "executableCli": {
       "title": "Directo ACP",

@@ -71,3 +71,26 @@ describe("UiMarkdown streaming", () => {
     expect(wrapper.get("button.ui-citation").text()).toBe("1");
   });
 });
+
+describe("UiMarkdown links", () => {
+  it("links only external destinations and keeps any other link's label as text", () => {
+    const wrapper = mount(UiMarkdown, {
+      props: {
+        content:
+          "Saved [PPT摘要.md](</Users/zand/agent-workspaces/PPT摘要.md>), see [docs](https://example.com) or [mail](mailto:a@example.com).",
+      },
+    });
+    expect(wrapper.findAll("a").map((link) => link.attributes("href"))).toEqual([
+      "https://example.com",
+      "mailto:a@example.com",
+    ]);
+    expect(wrapper.text()).toContain("Saved PPT摘要.md, see docs or mail.");
+  });
+
+  it("never turns a file name into a link to a host", () => {
+    const wrapper = mount(UiMarkdown, {
+      props: { content: "Edit README.md and main.rs, or open https://example.com/x." },
+    });
+    expect(wrapper.findAll("a").map((link) => link.attributes("href"))).toEqual(["https://example.com/x"]);
+  });
+});

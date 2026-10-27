@@ -65,6 +65,16 @@ custom commands are feature-scoped. Space databases remain behind Rust commands,
 SQL capability. Provider and model traffic stays behind validated Rust boundaries; credentials are
 referenced by stable identifiers and never cross into the WebView.
 
+The window shows the app and nothing else. `desktop::navigation` refuses every navigation that is not
+the app's one page (routing lives in the fragment), its asset protocol, or an `about:`/`blob:`/`data:`
+document — for every frame, whatever a page does. The origin alone is not enough: a path link resolves
+against it, and following one replaced the app with a page that could not load. In the renderer,
+`app/link-policy.ts` gives every link one meaning: an external one (`shared/contracts/external-link.ts`:
+web or mail) opens in the system's handler, any other goes nowhere; a component that gives a link its
+own meaning prevents the click's default first, and a link in editable text belongs to its editor.
+Rendered Markdown links only external destinations and keeps any other link's label as text, and links
+bare text only when it spells out its scheme, so file names never become hosts.
+
 External desktop Agent installation, updates, and sign-in remain user- or vendor-owned. Detection
 returns a validated descriptor for a platform CLI, Node adapter, or standalone ACP server; it does not
 infer login readiness or introduce a product-owned installer. Missing commands expose the official

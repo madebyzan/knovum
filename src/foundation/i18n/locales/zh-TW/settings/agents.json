@@ -18,7 +18,6 @@
   "officialDocumentation": "官方說明",
   "acpSetup": "ACP 接入",
   "detectionBoundary": "僅檢查命令是否可用，不驗證登入狀態或 ACP 連線。",
-  "documentationOpenFailed": "無法打開 Agent 官方鏈接",
   "connections": {
     "executableCli": {
       "title": "直接 ACP 接入",

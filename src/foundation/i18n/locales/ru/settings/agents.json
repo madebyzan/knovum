@@ -18,7 +18,6 @@
   "officialDocumentation": "Официальное руководство",
   "acpSetup": "Настройка ACP",
   "detectionBoundary": "Проверяет только доступность команд; вход в систему и подключение ACP не проверены.",
-  "documentationOpenFailed": "Не удалось открыть официальную ссылку Агента.",
   "connections": {
     "executableCli": {
       "title": "Прямой ACP",

@@ -48,5 +48,6 @@
     "hint": "Prova un'altra parola chiave o cancella la ricerca."
   },
   "enable": "Abilita {name}",
-  "disable": "Disabilita {name}"
+  "disable": "Disabilita {name}",
+  "linkOpenFailed": "Impossibile aprire il link"
 }
