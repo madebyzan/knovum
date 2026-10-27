@@ -185,6 +185,23 @@ async fn cite_answer(
     Ok(())
 }
 
+/// The last message of a conversation branch: the point a new turn continues from.
+pub async fn branch_head(
+    pool: &SqlitePool,
+    conversation_id: &str,
+    branch_id: &str,
+) -> Result<Option<String>, String> {
+    sqlx::query_scalar(
+        "SELECT id FROM spaces_conversation_messages WHERE conversation_id=$1 AND branch_id=$2
+         ORDER BY created_at DESC, rowid DESC LIMIT 1",
+    )
+    .bind(conversation_id)
+    .bind(branch_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(db::sql_error)
+}
+
 pub async fn has_turn_output(pool: &SqlitePool, turn_id: &str) -> Result<bool, String> {
     let has_output: i64 = sqlx::query_scalar(
         "SELECT EXISTS(

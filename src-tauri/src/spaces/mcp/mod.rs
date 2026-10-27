@@ -3,6 +3,7 @@ use tauri::AppHandle;
 mod access;
 mod action_tools;
 pub(crate) mod agent_server;
+pub(crate) mod agent_turn;
 mod arguments;
 mod extensions;
 mod node_asset;
@@ -20,10 +21,7 @@ use support::mcp_error;
 struct SpaceMcpServer {
     app: AppHandle,
     space_scope: Option<String>,
-    grant_id: String,
-    parent_run_id: String,
-    conversation_extensions:
-        Option<std::sync::Arc<crate::extensions::contracts::AgentExtensionSnapshot>>,
+    turns: agent_turn::AgentTurns,
 }
 
 impl SpaceMcpServer {
@@ -64,13 +62,12 @@ impl rmcp::ServerHandler for SpaceMcpServer {
         _request: Option<rmcp::model::PaginatedRequestParams>,
         _context: rmcp::service::RequestContext<rmcp::RoleServer>,
     ) -> Result<rmcp::model::ListResourcesResult, rmcp::ErrorData> {
+        let catalog = self.turns.catalog();
         Ok(rmcp::model::ListResourcesResult::with_all_items(
-            extensions::catalog_projection::selected_resources(
-                self.conversation_extensions.as_deref(),
-            )
-            .into_iter()
-            .map(|binding| binding.declaration)
-            .collect(),
+            extensions::catalog_projection::selected_resources(&catalog)
+                .into_iter()
+                .map(|binding| binding.declaration)
+                .collect(),
         ))
     }
     async fn list_resource_templates(
@@ -96,13 +93,12 @@ impl rmcp::ServerHandler for SpaceMcpServer {
         _request: Option<rmcp::model::PaginatedRequestParams>,
         _context: rmcp::service::RequestContext<rmcp::RoleServer>,
     ) -> Result<rmcp::model::ListPromptsResult, rmcp::ErrorData> {
+        let catalog = self.turns.catalog();
         Ok(rmcp::model::ListPromptsResult::with_all_items(
-            extensions::catalog_projection::selected_prompts(
-                self.conversation_extensions.as_deref(),
-            )
-            .into_iter()
-            .map(|binding| binding.declaration)
-            .collect(),
+            extensions::catalog_projection::selected_prompts(&catalog)
+                .into_iter()
+                .map(|binding| binding.declaration)
+                .collect(),
         ))
     }
     async fn get_prompt(

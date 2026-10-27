@@ -59,7 +59,7 @@ impl SpaceMcpServer {
         Parameters(args): Parameters<SearchArgs>,
     ) -> Result<String, McpError> {
         self.require_read(&args.space_id).await?;
-        query::search_knowledge(&self.app, &self.parent_run_id, args).await
+        query::search_knowledge(&self.app, &self.turns.current()?.run_id, args).await
     }
 
     #[tool(
@@ -68,7 +68,7 @@ impl SpaceMcpServer {
     )]
     async fn get_node(&self, Parameters(args): Parameters<NodeArgs>) -> Result<String, McpError> {
         self.require_read(&args.space_id).await?;
-        query::get_node(&self.app, &self.parent_run_id, args).await
+        query::get_node(&self.app, &self.turns.current()?.run_id, args).await
     }
 
     #[tool(

@@ -20,12 +20,10 @@ async fn fixture() -> sqlx::SqlitePool {
     pool
 }
 
-fn session() -> crate::external_agents::conversation::ConversationSession {
-    let (_settled, completion) = tokio::sync::oneshot::channel();
-    crate::external_agents::conversation::ConversationSession {
+fn session() -> super::super::pool::AgentSession {
+    super::super::pool::AgentSession {
         runtime_session_id: "runtime".into(),
         capabilities: serde_json::json!({}),
-        completion,
     }
 }
 

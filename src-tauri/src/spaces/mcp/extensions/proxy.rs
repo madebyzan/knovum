@@ -34,10 +34,8 @@ pub(super) async fn invoke_value(
     arguments: serde_json::Value,
     context: RequestContext<RoleServer>,
 ) -> Result<serde_json::Value, ErrorData> {
-    let snapshot = server
-        .conversation_extensions
-        .as_ref()
-        .ok_or_else(|| mcp_error("Agent extensions not selected"))?;
+    let turn = server.turns.current()?;
+    let snapshot = &turn.extensions;
     let tool = snapshot
         .tools
         .iter()
@@ -45,7 +43,7 @@ pub(super) async fn invoke_value(
         .ok_or_else(|| mcp_error("MCP tool not selected"))?;
     let pool = db::pool(&server.app).await.map_err(mcp_error)?;
     let (session_id, turn_id): (String,String) = sqlx::query_as("SELECT c.id,t.id FROM spaces_external_agent_conversations c JOIN spaces_external_agent_turns t ON t.conversation_id=c.id WHERE c.run_id=$1 AND t.state='running' ORDER BY t.created_at DESC LIMIT 1")
-        .bind(&server.parent_run_id).fetch_optional(pool).await.map_err(|error| mcp_error(error.to_string()))?.ok_or_else(|| mcp_error("external Agent turn is not active"))?;
+        .bind(&turn.run_id).fetch_optional(pool).await.map_err(|error| mcp_error(error.to_string()))?.ok_or_else(|| mcp_error("external Agent turn is not active"))?;
     let call_id =
         serde_json::to_string(&context.id).map_err(|error| mcp_error(error.to_string()))?;
     let intent = format!("acp:{session_id}:{turn_id}:{call_id}");
@@ -55,7 +53,7 @@ pub(super) async fn invoke_value(
             pool,
             snapshot,
             ToolInvocation {
-                run_id: &server.parent_run_id,
+                run_id: &turn.run_id,
                 intent_id: &intent,
                 call_id: &call_id,
                 task_id: None,
@@ -74,14 +72,14 @@ pub(super) async fn invoke_value(
                 operation_id,
                 reason,
             } => {
-                let waiting = sqlx::query("UPDATE spaces_runs SET state='waiting',wait_reason=$1,state_version=state_version+1 WHERE id=$2 AND completed_at IS NULL AND cancel_requested_at IS NULL AND pause_requested_at IS NULL").bind(reason).bind(&server.parent_run_id).execute(pool).await.map_err(|error| mcp_error(error.to_string()))?;
+                let waiting = sqlx::query("UPDATE spaces_runs SET state='waiting',wait_reason=$1,state_version=state_version+1 WHERE id=$2 AND completed_at IS NULL AND cancel_requested_at IS NULL AND pause_requested_at IS NULL").bind(reason).bind(&turn.run_id).execute(pool).await.map_err(|error| mcp_error(error.to_string()))?;
                 db::require_one(waiting, "conversation-tool-run-inactive").map_err(mcp_error)?;
                 runs::announce_change();
                 tokio::select! {
-                    tool_output = tool_operations::intervention::wait(pool, &server.parent_run_id, &operation_id) => tool_output.map_err(mcp_error)?,
+                    tool_output = tool_operations::intervention::wait(pool, &turn.run_id, &operation_id) => tool_output.map_err(mcp_error)?,
                     _ = context.ct.cancelled() => return Err(mcp_error("external Agent request cancelled")),
                 }
-                let resumed = sqlx::query("UPDATE spaces_runs SET state='running',wait_reason=NULL,state_version=state_version+1 WHERE id=$1 AND state IN ('waiting','running') AND completed_at IS NULL AND cancel_requested_at IS NULL AND pause_requested_at IS NULL").bind(&server.parent_run_id).execute(pool).await.map_err(|error| mcp_error(error.to_string()))?;
+                let resumed = sqlx::query("UPDATE spaces_runs SET state='running',wait_reason=NULL,state_version=state_version+1 WHERE id=$1 AND state IN ('waiting','running') AND completed_at IS NULL AND cancel_requested_at IS NULL AND pause_requested_at IS NULL").bind(&turn.run_id).execute(pool).await.map_err(|error| mcp_error(error.to_string()))?;
                 db::require_one(resumed, "conversation-tool-run-inactive").map_err(mcp_error)?;
             }
         }

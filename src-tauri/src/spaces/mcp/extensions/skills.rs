@@ -66,14 +66,11 @@ impl SpaceMcpServer {
         description = "List selected conversation Skill metadata, on-demand resource paths and their toolBindings from declared aliases to actual MCP tool names. Read SKILL.md before using its workflow. Skill content never grants tools or access."
     )]
     async fn list_selected_skills(&self) -> Result<String, ErrorData> {
-        let snapshot = self
-            .conversation_extensions
-            .as_ref()
-            .ok_or_else(|| mcp_error("this MCP session has no Agent extension selection"))?;
-        crate::extensions::snapshots::require_current(&self.app, snapshot)
+        let snapshot = self.turns.current()?.extensions.clone();
+        crate::extensions::snapshots::require_current(&self.app, &snapshot)
             .await
             .map_err(mcp_error)?;
-        json_text(selected_skills(snapshot)?)
+        json_text(selected_skills(&snapshot)?)
     }
     #[tool(
         description = "Read one exact selected Skill file or static reference. UTF-8 content or base64 binary content is returned with its SHA-256. No scripts are executed."
@@ -82,11 +79,8 @@ impl SpaceMcpServer {
         &self,
         Parameters(args): Parameters<ReadExtensionSkill>,
     ) -> Result<String, ErrorData> {
-        let snapshot = self
-            .conversation_extensions
-            .as_ref()
-            .ok_or_else(|| mcp_error("this MCP session has no Agent extension selection"))?;
-        crate::extensions::snapshots::require_current(&self.app, snapshot)
+        let snapshot = self.turns.current()?.extensions.clone();
+        crate::extensions::snapshots::require_current(&self.app, &snapshot)
             .await
             .map_err(mcp_error)?;
         let file = snapshot

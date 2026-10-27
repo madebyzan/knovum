@@ -5,27 +5,25 @@ use tokio::sync::oneshot;
 use tokio_util::sync::CancellationToken;
 
 use super::{requests, serve, ConversationSession, ServeContext};
+use crate::ai::contracts::ExternalAgentKind;
 use crate::foundation::app_error::{AppError, AppResult};
-use crate::{ai::contracts::ExternalAgentKind, external_agents::session::AgentUpdateHandler};
 
 pub async fn start(
-    conversation_id: String,
+    runtime_id: String,
     kind: ExternalAgentKind,
     workspace: PathBuf,
-    on_update: AgentUpdateHandler,
     mcp_servers: Vec<McpServer>,
     keepalive: Arc<dyn Send + Sync>,
 ) -> AppResult<ConversationSession> {
     let cancellation = CancellationToken::new();
-    let receiver = requests::register(&conversation_id, cancellation.clone())?;
+    let receiver = requests::register(&runtime_id, cancellation.clone())?;
     let (ready_tx, ready_rx) = oneshot::channel();
     let (settled, completion) = oneshot::channel();
-    let runtime_id = conversation_id.clone();
+    let registered = runtime_id.clone();
     tauri::async_runtime::spawn(async move {
         let context = ServeContext {
             kind,
             workspace,
-            on_update,
             mcp_servers,
             keepalive,
             completion,
@@ -38,23 +36,23 @@ pub async fn start(
                 log::error!("External Agent conversation ended: {error}");
             }
         }
-        requests::remove(&runtime_id);
+        requests::remove(&registered);
         let _ = settled.send(outcome);
     });
     match tokio::time::timeout(super::super::connection::START_TIMEOUT, ready_rx).await {
         Ok(Ok(Ok(session))) => Ok(session),
         Ok(Ok(Err(error))) => {
-            requests::remove(&conversation_id);
+            requests::remove(&runtime_id);
             Err(error)
         }
         Ok(Err(_)) => {
-            requests::remove(&conversation_id);
+            requests::remove(&runtime_id);
             Err(AppError::internal(
                 "ACP conversation ended before session creation",
             ))
         }
         Err(_) => {
-            requests::close(&conversation_id)
+            requests::close(&runtime_id)
                 .await
                 .map_err(AppError::internal)?;
             Err(AppError::internal(

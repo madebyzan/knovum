@@ -30,7 +30,7 @@ pub(super) async fn publish(
          JOIN spaces_runs r ON r.id=c.run_id WHERE c.id=$1 AND c.run_id=$2",
     ).bind(conversation_id).bind(run_id).fetch_one(pool).await.map_err(db::sql_error)?;
     if publication == "committed" {
-        discard_committed_workspace(workspace);
+        drain_committed_workspace(workspace);
         return Ok(());
     }
     if cancelled.is_some() {
@@ -65,13 +65,15 @@ pub(super) async fn publish(
             }
         };
     }
-    discard_committed_workspace(workspace);
+    drain_committed_workspace(workspace);
     Ok(())
 }
 
-fn discard_committed_workspace(workspace: &Path) {
-    if let Err(error) = crate::external_agents::artifacts::discard(workspace) {
-        log::warn!("Could not remove committed Agent workspace: {error}");
+/// What was published is now the Space's; the workspace is emptied for the conversation's next
+/// turn, which publishes only what it writes itself.
+fn drain_committed_workspace(workspace: &Path) {
+    if let Err(error) = crate::external_agents::artifacts::clear(workspace) {
+        log::warn!("Could not empty the committed Agent workspace: {error}");
     }
 }
 

@@ -6,20 +6,19 @@ use std::{
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
 
+use crate::external_agents::session::AgentUpdateHandler;
 use crate::foundation::app_error::{AppError, AppResult};
 
+/// One prompt and what belongs to that turn alone: where its updates go and what stops it.
 pub(super) struct TurnRequest {
     pub(super) prompt: super::super::prompt::AgentPrompt,
+    pub(super) on_update: AgentUpdateHandler,
+    pub(super) cancellation: CancellationToken,
     pub(super) reply: oneshot::Sender<AppResult<()>>,
 }
 
-pub(super) enum ConversationRequest {
-    Turn(TurnRequest),
-    Finish,
-}
-
 struct ConversationHandle {
-    requests: mpsc::Sender<ConversationRequest>,
+    requests: mpsc::Sender<TurnRequest>,
     cancellation: CancellationToken,
     inactive: CancellationToken,
 }
@@ -27,15 +26,15 @@ struct ConversationHandle {
 static ACTIVE: OnceLock<Mutex<HashMap<String, ConversationHandle>>> = OnceLock::new();
 
 pub(super) fn register(
-    conversation_id: &str,
+    runtime_id: &str,
     cancellation: CancellationToken,
-) -> AppResult<mpsc::Receiver<ConversationRequest>> {
+) -> AppResult<mpsc::Receiver<TurnRequest>> {
     let (requests, receiver) = mpsc::channel(1);
     active()
         .lock()
         .map_err(|_| AppError::internal("ACP conversation registry unavailable"))?
         .insert(
-            conversation_id.to_owned(),
+            runtime_id.to_owned(),
             ConversationHandle {
                 requests,
                 cancellation,
@@ -45,14 +44,23 @@ pub(super) fn register(
     Ok(receiver)
 }
 
+/// Sends one turn to a running runtime and waits for it to end. Cancelling `cancellation` stops
+/// the turn; the runtime stays up for the next one.
 pub async fn send(
-    conversation_id: &str,
+    runtime_id: &str,
     prompt: super::super::prompt::AgentPrompt,
+    on_update: AgentUpdateHandler,
+    cancellation: CancellationToken,
 ) -> AppResult<()> {
-    let requests = sender(conversation_id)?;
+    let (requests, _) = handle(runtime_id)?;
     let (reply, outcome) = oneshot::channel();
     requests
-        .send(ConversationRequest::Turn(TurnRequest { prompt, reply }))
+        .send(TurnRequest {
+            prompt,
+            on_update,
+            cancellation,
+            reply,
+        })
         .await
         .map_err(|_| AppError::internal("ACP conversation channel closed"))?;
     outcome
@@ -60,23 +68,14 @@ pub async fn send(
         .map_err(|_| AppError::internal("ACP conversation turn ended without a result"))?
 }
 
-pub async fn close(conversation_id: &str) -> Result<(), String> {
+pub async fn close(runtime_id: &str) -> Result<(), String> {
     let (cancellation, inactive) = active()
         .lock()
         .map_err(|_| "ACP conversation registry unavailable")?
-        .get(conversation_id)
+        .get(runtime_id)
         .map(|handle| (handle.cancellation.clone(), handle.inactive.clone()))
         .ok_or("ACP conversation is disconnected")?;
     cancellation.cancel();
-    wait_until_inactive(inactive).await
-}
-
-pub async fn finish(conversation_id: &str) -> Result<(), String> {
-    let (requests, inactive) = handle(conversation_id).map_err(|error| error.to_string())?;
-    requests
-        .send(ConversationRequest::Finish)
-        .await
-        .map_err(|_| "ACP conversation channel closed".to_owned())?;
     wait_until_inactive(inactive).await
 }
 
@@ -90,32 +89,26 @@ async fn wait_until_inactive(inactive: CancellationToken) -> Result<(), String> 
     Ok(())
 }
 
-pub fn is_active(conversation_id: &str) -> bool {
+pub fn is_active(runtime_id: &str) -> bool {
     active()
         .lock()
-        .is_ok_and(|items| items.contains_key(conversation_id))
+        .is_ok_and(|items| items.contains_key(runtime_id))
 }
 
-pub(super) fn remove(conversation_id: &str) {
+pub(super) fn remove(runtime_id: &str) {
     if let Ok(mut conversations) = active().lock() {
-        if let Some(handle) = conversations.remove(conversation_id) {
+        if let Some(handle) = conversations.remove(runtime_id) {
             handle.inactive.cancel();
         }
     }
 }
 
-fn sender(conversation_id: &str) -> AppResult<mpsc::Sender<ConversationRequest>> {
-    handle(conversation_id).map(|(requests, _)| requests)
-}
-
-fn handle(
-    conversation_id: &str,
-) -> AppResult<(mpsc::Sender<ConversationRequest>, CancellationToken)> {
+fn handle(runtime_id: &str) -> AppResult<(mpsc::Sender<TurnRequest>, CancellationToken)> {
     let conversations = active()
         .lock()
         .map_err(|_| AppError::internal("ACP conversation registry unavailable"))?;
     conversations
-        .get(conversation_id)
+        .get(runtime_id)
         .map(|handle| (handle.requests.clone(), handle.inactive.clone()))
         .ok_or_else(|| AppError::invalid("ACP conversation is disconnected"))
 }

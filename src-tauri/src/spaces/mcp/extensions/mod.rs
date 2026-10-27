@@ -11,27 +11,23 @@ use rmcp::{
 
 impl SpaceMcpServer {
     pub(super) fn extension_tools(&self) -> Vec<Tool> {
-        self.conversation_extensions
-            .as_ref()
-            .map(|snapshot| {
-                snapshot
-                    .tools
-                    .iter()
-                    .map(|tool| {
-                        Tool::new(
-                            tool.name.clone(),
-                            tool.description.clone(),
-                            std::sync::Arc::new(
-                                tool.input_schema
-                                    .as_object()
-                                    .expect("validated tool input schema")
-                                    .clone(),
-                            ),
-                        )
-                    })
-                    .collect()
+        self.turns
+            .catalog()
+            .tools
+            .iter()
+            .map(|tool| {
+                Tool::new(
+                    tool.name.clone(),
+                    tool.description.clone(),
+                    std::sync::Arc::new(
+                        tool.input_schema
+                            .as_object()
+                            .expect("validated tool input schema")
+                            .clone(),
+                    ),
+                )
             })
-            .unwrap_or_default()
+            .collect()
     }
     pub(super) async fn dispatch_tool(
         &self,
@@ -39,9 +35,11 @@ impl SpaceMcpServer {
         context: RequestContext<RoleServer>,
     ) -> Result<CallToolResponse, ErrorData> {
         if self
-            .conversation_extensions
-            .as_ref()
-            .is_some_and(|snapshot| snapshot.tools.iter().any(|tool| tool.name == request.name))
+            .turns
+            .catalog()
+            .tools
+            .iter()
+            .any(|tool| tool.name == request.name)
         {
             return proxy::invoke(self, request, context).await;
         }

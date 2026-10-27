@@ -237,7 +237,7 @@ The Rust boundary is divided by business responsibility:
 - `queries/` owns read-only projections. `commands/` owns Space mutations without a more specific
   capability owner.
 - `package/` owns package validation, snapshots, restore, and failed-import cleanup.
-- `agent_artifacts/` owns the per-conversation directories desktop Agents work in and the startup sweep that drops every workspace no External Agent conversation of a live Space owns.
+- `agent_artifacts/` owns the per-conversation directories desktop Agents work in — one per Space conversation, the working directory of its Agent runtime — and the startup sweep that drops every workspace no conversation of a live Space owns.
 - `run_execution.rs` composes finite Action, captured Workflow and speech step routing and capability-owned terminal maintenance. `run_control.rs` composes durable Run control with capability interruption. The scheduler receives three concrete hooks at startup; it never selects capabilities itself.
 - `recovery.rs` owns ordered reconciliation of interrupted Space Runs during bootstrap.
 

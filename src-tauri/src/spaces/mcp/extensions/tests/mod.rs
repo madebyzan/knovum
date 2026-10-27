@@ -70,7 +70,7 @@ fn snapshot() -> AgentExtensionSnapshot {
 #[test]
 fn resource_catalog_uses_selected_bindings_and_preserves_sdk_metadata() {
     let snapshot = snapshot();
-    let resources = super::catalog_projection::selected_resources(Some(&snapshot));
+    let resources = super::catalog_projection::selected_resources(&snapshot);
     assert_eq!(resources.len(), 2);
     assert_eq!(resources[0].uri, "fixture://selected");
     assert_eq!(resources[0].declaration.name, "Selected resource");
@@ -80,13 +80,12 @@ fn resource_catalog_uses_selected_bindings_and_preserves_sdk_metadata() {
         .starts_with("knovum-mcp-resource://connection/"));
     assert_eq!(resources[1].uri, "fixture://expanded/item");
     assert_eq!(resources[1].declaration.name, "fixture://expanded/item");
-    assert!(super::catalog_projection::selected_resources(None).is_empty());
 }
 
 #[test]
 fn prompt_catalog_uses_selected_bindings_without_reading_wire_schema() {
     let snapshot = snapshot();
-    let prompts = super::catalog_projection::selected_prompts(Some(&snapshot));
+    let prompts = super::catalog_projection::selected_prompts(&snapshot);
     assert_eq!(prompts.len(), 1);
     assert_eq!(prompts[0].name, "selected");
     assert_eq!(
@@ -94,5 +93,4 @@ fn prompt_catalog_uses_selected_bindings_without_reading_wire_schema() {
         Some("Selected prompt")
     );
     assert!(prompts[0].declaration.name.starts_with("prompt_"));
-    assert!(super::catalog_projection::selected_prompts(None).is_empty());
 }

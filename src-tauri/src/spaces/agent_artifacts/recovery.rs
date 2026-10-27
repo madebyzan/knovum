@@ -8,9 +8,8 @@ use tauri::AppHandle;
 use crate::spaces::db;
 
 /// Drops every Agent workspace nothing can reach any more: the workspaces of deleted Spaces and,
-/// inside a live Space, every session directory that is not one of its External Agent
-/// conversations. It runs before the Space runtime is ready, so no conversation is preparing a
-/// workspace while the sweep reads them.
+/// inside a live Space, every directory that is not one of its conversations. It runs before
+/// the Space runtime is ready, so no Agent runtime is working in a workspace the sweep reads.
 pub async fn discard_orphaned_workspaces(app: &AppHandle) -> Result<(), String> {
     let root = super::workspace::root(app).map_err(|error| error.to_string())?;
     if !root.try_exists().map_err(|error| error.to_string())? {
@@ -37,7 +36,7 @@ async fn owners(pool: &sqlx::SqlitePool) -> Result<Owners, String> {
         })
         .collect::<Result<Owners, _>>()?;
     let conversations: Vec<(String, String)> =
-        sqlx::query_as("SELECT space_id,id FROM spaces_external_agent_conversations")
+        sqlx::query_as("SELECT space_id,id FROM spaces_conversations")
             .fetch_all(pool)
             .await
             .map_err(db::sql_error)?;

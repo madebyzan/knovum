@@ -186,14 +186,27 @@ A **Creation Intent** is a localized capability entry with selection availabilit
 Image transformations are ordinary Actions: `upscale-image`, `generate-image-angle`, `remove-image-object`, `remove-image-background`, `extract-image-selection` and `generate-image-depth` use the same authenticated Invocation, durable Run and committed Receipt as generation. Transient masks and selection previews do not produce Action receipts.
 
 The Builtin Agent has one visible conversation and message store for API models and desktop Agents.
-The input chooses an enabled target for each turn. A desktop Agent turn creates a separate ACP
-execution session and Run, receives the selected Space resources through validated asset paths,
-and writes its streamed reply into the shared conversation. A later turn receives the visible
-history as context; it does not claim to resume hidden executor session memory. Tool activity is
-recorded as Run events, while Space changes still require Knovum MCP receipts. The former
+The input chooses an enabled target for each turn. Every desktop Agent turn records its own Run,
+receives the selected Space resources through validated asset paths, and writes its streamed reply
+into the shared conversation. The turns of one conversation share one **runtime** — one Agent
+process, one ACP session, one Knovum MCP server and one workspace
+(`spaces/external_conversations/runtime/pool.rs`) — so a follow-up is a single `session/prompt`
+carrying only the new request: no launch, no initialisation, no replayed history. A runtime is
+continued only while it holds exactly the conversation the turn continues: same Agent, same
+branch, same extension selection, and the branch's last message is the one its own previous turn
+left. An edited or regenerated message, another branch, a built-in Agent reply in between, a
+changed extension selection or a lost process all close it, and a new runtime is given the stored
+history instead. Cancelling a turn sends `session/cancel` and waits for the Agent to stop; the
+runtime stays. Idle runtimes close after 15 minutes and all of them when the app exits. Tool
+activity is recorded as Run events, while Space changes still require Knovum MCP receipts; the
+MCP server answers only during a turn, under that turn's grant and Run. The former
 grounded-answer threads and messages are moved into the Builtin Agent store by a one-time local
 database migration; their verified source snapshots remain attached to the corresponding reply.
-Closing an Agent session exposes workspace artifacts through the existing reviewed import path.
+A turn publishes what it left in the conversation's workspace through the existing reviewed import
+path, and publication empties the workspace for the next turn; a new runtime starts from an empty
+one. In a tool call's content only what the tool embedded (image, audio, resource) is an output: a
+`resource_link` there names a file that lives elsewhere — the source the Agent read, the image it
+looked at — and is shown, never fetched, copied or published.
 
 Saving a resource in another format is an export rather than a derivation: the same content in a second file is not new knowledge, so it belongs to the destination the person picked instead of to the canvas. Admitted formats per resource kind and fidelity limits belong to [resource-export.md](resource-export.md).
 
