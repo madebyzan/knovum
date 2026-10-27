@@ -616,7 +616,9 @@ The workbench has exactly one tab strip, in the toolbar. One tab is one opened t
 a document or a video editor. There is no second strip inside the work surface and no fixed canvas
 pseudo-tab, so a Space can be open with only a document tab. A new tab opens directly right of the
 active tab and existing order never rearranges itself. Titles identify the Space or resource, with
-type icons and a quiet unsaved marker. The Inbox canvas tab is permanent: it cannot be closed and
+type icons and a quiet unsaved marker. The marker means work that waits on an explicit save — a video
+edit; a document saves itself and reports that save in its own header, so its tab carries no marker.
+The Inbox canvas tab is permanent: it cannot be closed and
 every close action keeps it, so the workbench is never empty. Opening a resource that already has a
 tab focuses that tab instead of duplicating it. Reka owns tab keyboard/ARIA behavior; overflow
 scrolls horizontally and the active tab remains visible. Closing a tab activates its right

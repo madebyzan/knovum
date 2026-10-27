@@ -3,16 +3,16 @@ import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 
 import { i18n } from "../../../foundation/i18n/instance";
-import { workspaceRightSidebarKey } from "../../../shared/contracts/workspace-right-sidebar";
 import { applySpaceNodeContent, createSpaceNode } from "../canvas/node";
 import { useDocumentSessionStore } from "../document-editing/document-session-store";
 import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { loadSpaceSessionProjection } from "../session/space-projection";
-import { useSpaceStore } from "../session/space-store";
-import SpaceWorkbenchTabs from "../workspace/presentation/SpaceWorkbenchTabs.vue";
+import { createVideoEditProject } from "../video-editing/project";
+import { useVideoSessionStore } from "../video-editing/video-session-store";
 import { useWorkbenchTabCommands } from "../workspace/use-workbench-tab-commands";
 import { createTestSpace } from "./support/session-context";
+import { mountWorkbenchStrip, openWorkbenchWithDocuments } from "./support/workbench-strip-harness";
 
 const repository = vi.hoisted(() => ({
   listSpaces: vi.fn<() => Promise<unknown[]>>(),
@@ -54,28 +54,8 @@ beforeEach(() => {
   });
 });
 
-async function setup() {
-  const store = useSpaceStore();
-  await store.initialize("Inbox");
-  await store.openDocumentEditor("a");
-  await store.openDocumentEditor("b");
-  return store;
-}
-
-function mountStrip() {
-  const wrapper = mount(SpaceWorkbenchTabs, {
-    attachTo: document.body,
-    global: {
-      plugins: [i18n],
-      provide: { [workspaceRightSidebarKey as symbol]: { open: () => {}, close: () => {} } },
-    },
-  });
-  onTestFinished(() => wrapper.unmount());
-  return wrapper;
-}
-
 it("cycles the single tab list and closes the active tab with its shortcut", async () => {
-  const store = await setup();
+  const store = await openWorkbenchWithDocuments();
   let commands!: ReturnType<typeof useWorkbenchTabCommands>;
   const wrapper = mount(
     {
@@ -99,8 +79,8 @@ it("cycles the single tab list and closes the active tab with its shortcut", asy
 });
 
 it("keeps the Inbox tab unclosable and restores focus to the successor tab", async () => {
-  const store = await setup();
-  const wrapper = mountStrip();
+  const store = await openWorkbenchWithDocuments();
+  const wrapper = mountWorkbenchStrip();
   await flushPromises();
 
   expect(wrapper.findAll('[role="tab"]')).toHaveLength(3);
@@ -118,8 +98,8 @@ it("keeps the Inbox tab unclosable and restores focus to the successor tab", asy
  * Opening a tab loads a surface, so arrow keys only move focus and Enter opens the focused tab.
  */
 it("opens the neighbouring tab through tab-strip keyboard navigation", async () => {
-  const store = await setup();
-  const wrapper = mountStrip();
+  const store = await openWorkbenchWithDocuments();
+  const wrapper = mountWorkbenchStrip();
   await flushPromises();
   const active = wrapper.get('[role="tab"][data-state="active"]');
   (active.element as HTMLElement).focus();
@@ -134,8 +114,8 @@ it("opens the neighbouring tab through tab-strip keyboard navigation", async () 
 
 /** The tab menu is a secondary-button gesture: it never doubles as opening the tab. */
 it("opens the tab menu without opening the tab", async () => {
-  const store = await setup();
-  const wrapper = mountStrip();
+  const store = await openWorkbenchWithDocuments();
+  const wrapper = mountWorkbenchStrip();
   await flushPromises();
   const inactive = wrapper.get(`[data-tab-id="${store.editorTabs[0]!.id}"]`);
 
@@ -148,7 +128,7 @@ it("opens the tab menu without opening the tab", async () => {
 });
 
 it("rechecks externally changed content after an in-flight save settles", async () => {
-  const store = await setup();
+  const store = await openWorkbenchWithDocuments();
   const tab = store.editorTabs[0]!;
   const session = useDocumentSessionStore().sessions.get(tab.id)!;
   session.saving.value = true;
@@ -165,24 +145,42 @@ it("rechecks externally changed content after an in-flight save settles", async 
 });
 
 /**
- * Autosave flips the unsaved marker while the user reads the strip, so the marker never takes room
- * from the label: a reflowing label re-truncates and visibly shakes.
+ * A document saves itself and reports that in its own header, so its tab never carries a marker.
+ * A video edit waits on an explicit save; its marker shares the close button's slot so the label
+ * keeps its width — a reflowing label re-truncates and visibly shakes.
  */
-it("marks unsaved content without reflowing the tab label", async () => {
-  const store = await setup();
-  const dirty = store.editorTabs[1]!;
-  useDocumentSessionStore().sessions.get(dirty.id)!.state.revision.value += 1;
-  const wrapper = mountStrip();
+it("marks only an unsaved video edit, without reflowing the tab label", async () => {
+  const projection = await repository.projection("space");
+  const video = createSpaceNode(
+    { kind: "video", title: "v", fileName: "v.mp4", assetPath: "/v.mp4" },
+    { x: 0, y: 0 },
+    "v",
+  );
+  repository.projection.mockResolvedValueOnce({ ...projection, nodes: [...projection.nodes, video] });
+  const store = await openWorkbenchWithDocuments();
+  await store.openVideoEditor("v");
+  const [, noteTab, videoTab] = store.editorTabs;
+  useDocumentSessionStore().sessions.get(noteTab!.id)!.state.revision.value += 1;
+  useVideoSessionStore().sessions.get(videoTab!.id)!.project.value = createVideoEditProject({
+    nodeId: "v",
+    sourceRevision: "r",
+    durationMs: 1000,
+    sourceWidth: 16,
+    sourceHeight: 9,
+    frameRate: 30,
+  });
+  const wrapper = mountWorkbenchStrip();
   await flushPromises();
 
-  const label = wrapper.get(`[data-tab-id="${dirty.id}"] [role="tab"]`);
-  expect(label.text()).toBe(`b${i18n.global.t("common.unsaved")}`);
-  expect(label.get("span.truncate").text()).toBe("b");
-  expect(markerSlot(wrapper, dirty.id).textContent).toBe("•");
-  expect(markerSlot(wrapper, dirty.id).className).toBe(markerSlot(wrapper, store.tabs[0]!.id).className);
+  expect(markerSlot(wrapper, noteTab!.id).textContent).toBe("");
+  const label = wrapper.get(`[data-tab-id="${videoTab!.id}"] [role="tab"]`);
+  expect(label.text()).toBe(`v${i18n.global.t("common.unsaved")}`);
+  expect(label.get("span.truncate").text()).toBe("v");
+  expect(markerSlot(wrapper, videoTab!.id).textContent).toBe("•");
+  expect(markerSlot(wrapper, videoTab!.id).className).toBe(markerSlot(wrapper, store.tabs[0]!.id).className);
 });
 
-function markerSlot(wrapper: ReturnType<typeof mountStrip>, tabId: string) {
+function markerSlot(wrapper: ReturnType<typeof mountWorkbenchStrip>, tabId: string) {
   return wrapper.get(`[data-tab-id="${tabId}"]`).element.lastElementChild!;
 }
 
@@ -192,8 +190,8 @@ it("localizes the Inbox tab title dynamically according to the active locale", a
     i18n.global.locale.value = previousLocale;
   });
   i18n.global.locale.value = "zh-CN";
-  const store = await setup();
-  const wrapper = mountStrip();
+  const store = await openWorkbenchWithDocuments();
+  const wrapper = mountWorkbenchStrip();
   await flushPromises();
 
   const inboxLabel = wrapper.get(`[data-tab-id="${store.tabs[0]!.id}"] [role="tab"] span.truncate`);

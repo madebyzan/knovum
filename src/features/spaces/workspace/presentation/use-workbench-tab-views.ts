@@ -37,13 +37,14 @@ export function useWorkbenchTabViews() {
     return space.kind === "inbox" ? t("spaces.space.inbox") : space.title;
   }
 
+  /**
+   * The strip marks only work that waits on the person: a video edit is kept or discarded by an
+   * explicit save. A document saves itself, and its header already reports where that save is, so
+   * marking its tab would repeat a transient state on a second surface.
+   */
   function dirty(tab: SpaceWorkbenchTab) {
-    if (!isSpaceEditorTab(tab)) return false;
-    return Boolean(
-      tab.kind === "document"
-        ? documents.sessions.get(tab.id)?.dirty.value
-        : videos.sessions.get(tab.id)?.history.dirty.value,
-    );
+    if (!isSpaceEditorTab(tab) || tab.kind !== "video") return false;
+    return Boolean(videos.sessions.get(tab.id)?.history.dirty.value);
   }
 
   return computed<readonly WorkbenchTabView[]>(() =>
