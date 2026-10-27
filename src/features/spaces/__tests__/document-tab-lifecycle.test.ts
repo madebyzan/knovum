@@ -1,17 +1,12 @@
-import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
-import { afterEach, beforeEach, expect, it, onTestFinished, vi } from "vitest";
+import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { nextTick, shallowRef } from "vue";
-import { createI18n } from "vue-i18n";
 
 import { deferred } from "../../../shared/__tests__/support/deferred";
-import { createSpaceNode } from "../canvas/node";
-import { useDocumentSessionStore } from "../document-editing/document-session-store";
-import { createSpaceNotePayload } from "../document-editing/tiptap-content";
-import { useSpaceTiptapEditor } from "../document-editing/use-space-tiptap-editor";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { NodePayloadChangeInput } from "../nodes/node-operations";
-import { prepareEditorSessionClose } from "../workspace/session-participants";
+import { flushSpaceSessionCommits, prepareEditorSessionClose } from "../workspace/session-participants";
+import { openDocument } from "./support/document-editor-harness";
 
 const mocks = vi.hoisted(() => ({
   store: {
@@ -37,51 +32,12 @@ vi.mock("../document-editing/tiptap-extensions", async () => {
   return { createSpaceTiptapExtensions: () => [StarterKit, Markdown] };
 });
 
-let wrapper: ReturnType<typeof mount> | undefined;
 beforeEach(() => {
   setActivePinia(createPinia());
   vi.clearAllMocks();
   mocks.store.editorLocateRequest = shallowRef();
   mocks.store.saveNodeContentForSpace.mockImplementation(async (_spaceId, change) => change.data);
 });
-afterEach(() => wrapper?.unmount());
-
-async function openDocument(kind: "note" | "markdown" = "note") {
-  const tab = { id: "document-tab", kind: "document", nodeId: "node", spaceId: "origin" } as const;
-  const node = createSpaceNode(
-    kind === "note" ? createSpaceNotePayload("Original") : { kind: "markdown", title: "Original", text: "" },
-    { x: 0, y: 0 },
-    tab.nodeId,
-  );
-  const sessions = useDocumentSessionStore();
-  sessions.open(tab, node);
-  const active = shallowRef(true);
-  let document!: ReturnType<typeof useSpaceTiptapEditor>;
-  wrapper = mount(
-    {
-      setup() {
-        document = useSpaceTiptapEditor(tab, active, shallowRef(null));
-        return () => null;
-      },
-    },
-    {
-      global: {
-        plugins: [
-          createI18n({
-            legacy: false,
-            locale: "en",
-            missingWarn: false,
-            fallbackWarn: false,
-            messages: { en: { spaces: { editor: { placeholder: "Start writing…" } } } },
-          }),
-        ],
-      },
-    },
-  );
-  await flushPromises();
-  await vi.waitFor(() => expect(document.editor.value?.isInitialized).toBe(true));
-  return { tab, node, active, document, session: sessions.sessions.get(tab.id)! };
-}
 
 it("retains the editor, title, cursor and undo history while its tab is inactive", async () => {
   const { active, document } = await openDocument();
@@ -101,6 +57,20 @@ it("retains the editor, title, cursor and undo history while its tab is inactive
   expect(editor.isEditable).toBe(true);
   expect(editor.commands.undo()).toBe(true);
   expect(editor.getText()).toBe("");
+});
+
+it("does not count an editability change as an edit, so leaving a tab writes nothing", async () => {
+  const { active, session } = await openDocument("markdown");
+  active.value = false;
+  await nextTick();
+  active.value = true;
+  await nextTick();
+  active.value = false;
+  await nextTick();
+
+  expect(session.dirty.value).toBe(false);
+  await flushSpaceSessionCommits(undefined, { purpose: "switch", spaceIds: [session.tab.spaceId] });
+  expect(mocks.store.saveNodeContentForSpace).not.toHaveBeenCalled();
 });
 
 it("saves to its captured Space and keeps edits made during that write dirty", async () => {

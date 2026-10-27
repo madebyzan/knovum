@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../../foundation/errors/error-format";
+import { isDocumentEdit } from "../../../document-editing/tiptap-edits";
 import { createCanvasTextExtensions } from "../../../document-editing/tiptap-extensions";
 import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
 import { tiptapContentSchema } from "../../../model/nodes/schema/content";
@@ -51,8 +52,8 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
       editorProps: {
         attributes: { class: "canvas-text-prose w-full outline-none", spellcheck: "true" },
       },
-      onUpdate: () => {
-        dirty.value = true;
+      onUpdate: (update) => {
+        if (isDocumentEdit(update)) dirty.value = true;
       },
     });
     detachCommit = registerSpaceSessionParticipant({ commit: save });
