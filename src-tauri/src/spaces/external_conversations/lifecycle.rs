@@ -75,6 +75,25 @@ pub async fn cancel_by_run(app: &AppHandle, run_id: &str) -> Result<bool, String
     let Some((binding_id, space_id, conversation_id)) = row else {
         return Ok(false);
     };
+    settle_cancelled(pool, &binding_id, run_id).await?;
+    // The turn may be finishing at this moment; its publication takes the ownership released
+    // above, and refuses itself because the Run was asked to cancel before this ran. Waiting
+    // here while holding the ownership would leave both waiting for each other.
+    super::runtime::pool::stop(&binding_id).await;
+    super::updates::release(&binding_id);
+    let _ownership = super::publication_ownership::acquire(run_id).await?;
+    super::staging::cleanup(app, pool, run_id).await?;
+    crate::external_agents::artifacts::clear(&workspace(app, &space_id, &conversation_id)?)
+        .map_err(|error| error.to_string())?;
+    crate::spaces::conversations::extensions::release_run(app, pool, run_id).await?;
+    Ok(true)
+}
+
+async fn settle_cancelled(
+    pool: &sqlx::SqlitePool,
+    binding_id: &str,
+    run_id: &str,
+) -> Result<(), String> {
     let _ownership = super::publication_ownership::acquire(run_id).await?;
     crate::spaces::runs::drain_children(pool, run_id).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
@@ -84,7 +103,7 @@ pub async fn cancel_by_run(app: &AppHandle, run_id: &str) -> Result<bool, String
          error='Cancelled by user',updated_at=$1 WHERE id=$2",
     )
     .bind(now)
-    .bind(&binding_id)
+    .bind(binding_id)
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
@@ -99,13 +118,7 @@ pub async fn cancel_by_run(app: &AppHandle, run_id: &str) -> Result<bool, String
     .map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     crate::spaces::runs::announce_change();
-    super::runtime::pool::stop(&binding_id).await;
-    super::updates::release(&binding_id);
-    super::staging::cleanup(app, pool, run_id).await?;
-    crate::external_agents::artifacts::clear(&workspace(app, &space_id, &conversation_id)?)
-        .map_err(|error| error.to_string())?;
-    crate::spaces::conversations::extensions::release_run(app, pool, run_id).await?;
-    Ok(true)
+    Ok(())
 }
 
 /// Deletes one turn's records. Its conversation's workspace is not the turn's to delete.

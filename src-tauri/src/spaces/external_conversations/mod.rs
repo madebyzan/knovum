@@ -47,7 +47,7 @@ pub(crate) async fn purge_for_conversation(
     {
         return Err("conversation-busy".into());
     }
-    runtime::pool::close(conversation_id).await;
+    runtime::pool::close(conversation_id);
     for (id, _, _) in &rows {
         lifecycle::delete(app, id).await?;
     }

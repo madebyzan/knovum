@@ -155,7 +155,7 @@ impl Drop for Lease {
                 state.turn.is_none() && state.releases == releases
             };
             if idle {
-                retire(&runtime.conversation_id, &runtime.id).await;
+                retire(&runtime.conversation_id, &runtime.id);
             }
         });
     }
@@ -188,7 +188,7 @@ pub(super) async fn acquire(
         if runtime.holds(&wanted) {
             return Ok(lease(runtime, binding_id, true));
         }
-        retire(&runtime.conversation_id, &runtime.id).await;
+        retire(&runtime.conversation_id, &runtime.id);
     }
     let runtime = Arc::new(start(app, &wanted).await?);
     runtimes().insert(wanted.conversation_id.to_owned(), runtime.clone());
@@ -300,29 +300,34 @@ pub(in crate::spaces::external_conversations) fn is_running(binding_id: &str) ->
 }
 
 /// Closes the conversation's runtime, if it has one.
-pub(in crate::spaces::external_conversations) async fn close(conversation_id: &str) {
+pub(in crate::spaces::external_conversations) fn close(conversation_id: &str) {
     let current = runtimes()
         .get(conversation_id)
         .map(|runtime| runtime.id.clone());
     if let Some(id) = current {
-        retire(conversation_id, &id).await;
+        retire(conversation_id, &id);
     }
 }
 
-/// Closes every runtime. A process that exits runs no destructors, so the Agents — each its own
-/// process group — are stopped while the app can still wait for them.
+/// Closes every runtime and waits for them. A process that exits runs no destructors, so the
+/// Agents — each its own process group — are stopped while the app can still wait for them.
 pub(in crate::spaces::external_conversations) async fn shutdown() {
-    let closing: Vec<Arc<Runtime>> = runtimes().drain().map(|(_, runtime)| runtime).collect();
-    futures::future::join_all(
-        closing
-            .iter()
-            .map(|runtime| retire(&runtime.conversation_id, &runtime.id)),
-    )
-    .await;
+    let closing: Vec<String> = runtimes()
+        .drain()
+        .map(|(_, runtime)| runtime.id.clone())
+        .collect();
+    futures::future::join_all(closing.iter().map(|id| stop_process(id))).await;
 }
 
-async fn retire(conversation_id: &str, runtime_id: &str) {
+/// Takes a runtime out of service at once and stops its process in the background: nothing
+/// waits for an Agent that is being replaced or has gone idle.
+fn retire(conversation_id: &str, runtime_id: &str) {
     forget(conversation_id, runtime_id);
+    let runtime_id = runtime_id.to_owned();
+    tauri::async_runtime::spawn(async move { stop_process(&runtime_id).await });
+}
+
+async fn stop_process(runtime_id: &str) {
     if crate::external_agents::conversation::is_active(runtime_id) {
         if let Err(error) = crate::external_agents::conversation::close(runtime_id).await {
             log::warn!("Desktop Agent runtime {runtime_id} did not close cleanly: {error}");
