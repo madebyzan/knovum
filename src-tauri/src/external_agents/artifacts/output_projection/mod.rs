@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::foundation::app_error::{AppError, AppResult};
 
 const MANIFEST_NAME: &str = ".agent-output-projection.json";
-const MANIFEST_VERSION: u32 = 1;
+const MANIFEST_VERSION: u32 = 2;
 
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -19,11 +19,12 @@ struct OutputProjectionManifest {
     producers: BTreeMap<String, ProducerProjection>,
 }
 
+/// The workspace files one producer — a tool call or a message occurrence — currently stands
+/// behind. A tool that reports new content retires the files it reported before.
 #[derive(Default, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct ProducerProjection {
     active_paths: BTreeSet<String>,
-    tracked_local_paths: BTreeSet<String>,
 }
 
 impl Default for OutputProjectionManifest {
@@ -35,47 +36,20 @@ impl Default for OutputProjectionManifest {
     }
 }
 
-pub(crate) fn record_tool(
-    root: &Path,
-    tool_id: &str,
-    active_paths: &[PathBuf],
-    local_paths: &[PathBuf],
-) -> AppResult<()> {
-    record(root, format!("tool:{tool_id}"), active_paths, local_paths)
+pub(crate) fn record_tool(root: &Path, tool_id: &str, active_paths: &[PathBuf]) -> AppResult<()> {
+    record(root, format!("tool:{tool_id}"), active_paths)
 }
 
 pub(crate) fn record_message(
     root: &Path,
     occurrence_id: &str,
     active_path: &Path,
-    local: bool,
 ) -> AppResult<()> {
-    let active_paths = [active_path.to_path_buf()];
-    let local_paths = local
-        .then(|| active_path.to_path_buf())
-        .into_iter()
-        .collect::<Vec<_>>();
     record(
         root,
         format!("message:{occurrence_id}"),
-        &active_paths,
-        &local_paths,
+        &[active_path.to_path_buf()],
     )
-}
-
-pub(super) fn retired_local_paths(root: &Path) -> AppResult<BTreeSet<String>> {
-    let manifest = read(root)?;
-    let active = manifest
-        .producers
-        .values()
-        .flat_map(|producer| producer.active_paths.iter().cloned())
-        .collect::<BTreeSet<_>>();
-    Ok(manifest
-        .producers
-        .values()
-        .flat_map(|producer| producer.tracked_local_paths.iter().cloned())
-        .filter(|path| !active.contains(path))
-        .collect())
 }
 
 pub(crate) fn obsolete_tool_artifacts(
@@ -90,7 +64,6 @@ pub(crate) fn obsolete_tool_artifacts(
     };
     let mut protected = relative_paths(root, active_paths)?;
     for (id, producer) in &manifest.producers {
-        protected.extend(producer.tracked_local_paths.iter().cloned());
         if id != &producer_id {
             protected.extend(producer.active_paths.iter().cloned());
         }
@@ -109,18 +82,14 @@ pub(crate) fn obsolete_tool_artifacts(
         .collect()
 }
 
-fn record(
-    root: &Path,
-    producer_id: String,
-    active_paths: &[PathBuf],
-    local_paths: &[PathBuf],
-) -> AppResult<()> {
+fn record(root: &Path, producer_id: String, active_paths: &[PathBuf]) -> AppResult<()> {
     let mut manifest = read(root)?;
     let active_paths = relative_paths(root, active_paths)?;
-    let local_paths = relative_paths(root, local_paths)?;
-    let producer = manifest.producers.entry(producer_id).or_default();
-    producer.active_paths = active_paths;
-    producer.tracked_local_paths.extend(local_paths);
+    manifest
+        .producers
+        .entry(producer_id)
+        .or_default()
+        .active_paths = active_paths;
     write(root, &manifest)
 }
 
@@ -175,11 +144,7 @@ fn read(root: &Path) -> AppResult<OutputProjectionManifest> {
         AppError::invalid(format!("Agent output projection is invalid: {error}"))
     })?;
     for producer in manifest.producers.values() {
-        for relative in producer
-            .active_paths
-            .iter()
-            .chain(&producer.tracked_local_paths)
-        {
+        for relative in &producer.active_paths {
             validate_relative(relative)?;
         }
     }

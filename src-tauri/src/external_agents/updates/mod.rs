@@ -73,14 +73,9 @@ pub async fn receive(
                         .as_ref()
                         .map(|message_id| message_id.0.as_ref()),
                 );
-                if let Some(output) = persist_content(workspace, content, Some(&identity)).await? {
-                    crate::external_agents::artifacts::record_message(
-                        workspace,
-                        &identity,
-                        &output.path,
-                        output.local_reference,
-                    )
-                    .map_err(projection_error)?;
+                if let Some(path) = persist_content(workspace, content, Some(&identity)).await? {
+                    crate::external_agents::artifacts::record_message(workspace, &identity, &path)
+                        .map_err(projection_error)?;
                 }
                 Ok(None)
             }

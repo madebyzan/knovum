@@ -20,7 +20,6 @@ pub fn prepare(path: &Path) -> AppResult<()> {
 
 /// Relative paths of the files an Agent left in its session workspace, in path order.
 pub fn collect(root: &Path) -> AppResult<Vec<String>> {
-    let retired_local_paths = output_projection::retired_local_paths(root)?;
     let mut artifacts = Vec::new();
     for entry in WalkDir::new(root).follow_links(false) {
         let entry = entry.map_err(|error| AppError::internal(error.to_string()))?;
@@ -30,16 +29,14 @@ pub fn collect(root: &Path) -> AppResult<Vec<String>> {
         if hidden(entry.path(), root) {
             continue;
         }
-        let path = entry.path();
-        let relative_path = path
-            .strip_prefix(root)
-            .map_err(|error| AppError::internal(error.to_string()))?
-            .to_string_lossy()
-            .into_owned();
-        if retired_local_paths.contains(&relative_path) {
-            continue;
-        }
-        artifacts.push(relative_path);
+        artifacts.push(
+            entry
+                .path()
+                .strip_prefix(root)
+                .map_err(|error| AppError::internal(error.to_string()))?
+                .to_string_lossy()
+                .into_owned(),
+        );
     }
     artifacts.sort();
     Ok(artifacts)
@@ -48,6 +45,21 @@ pub fn collect(root: &Path) -> AppResult<Vec<String>> {
 pub fn discard(path: &Path) -> AppResult<()> {
     if path.exists() {
         fs::remove_dir_all(path).map_err(|error| AppError::internal(error.to_string()))?;
+    }
+    Ok(())
+}
+
+/// Empties a workspace an Agent session keeps working in. The directory itself stays: it is the
+/// session's working directory.
+pub fn clear(path: &Path) -> AppResult<()> {
+    let internal = |error: std::io::Error| AppError::internal(error.to_string());
+    for entry in fs::read_dir(path).map_err(internal)? {
+        let entry = entry.map_err(internal)?;
+        if entry.file_type().map_err(internal)?.is_dir() {
+            fs::remove_dir_all(entry.path()).map_err(internal)?;
+        } else {
+            fs::remove_file(entry.path()).map_err(internal)?;
+        }
     }
     Ok(())
 }
