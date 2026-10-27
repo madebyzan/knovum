@@ -1,16 +1,8 @@
 <script setup lang="ts">
-import { spaceNodePreviewSource } from "../../assets/node-preview-source";
 import type { ConversationMessageOutput } from "../../contracts/generated/ConversationMessageOutput";
-import { useSpaceStore } from "../../session/space-store";
 import SpaceConversationSentAttachment from "./SpaceConversationSentAttachment.vue";
 
 defineProps<{ outputs: readonly ConversationMessageOutput[] }>();
-const space = useSpaceStore();
-
-function thumbnail(nodeId: string) {
-  const node = space.nodes.find(({ id }) => id === nodeId);
-  return node ? spaceNodePreviewSource(node.data) || null : null;
-}
 </script>
 
 <template>
@@ -22,13 +14,7 @@ function thumbnail(nodeId: string) {
       <SpaceConversationSentAttachment
         v-for="output in outputs"
         :key="output.nodeId"
-        :attachment="{
-          source: 'node',
-          nodeId: output.nodeId,
-          title: output.title,
-          kind: output.kind,
-          thumbnail: thumbnail(output.nodeId),
-        }"
+        :attachment="{ source: 'node', nodeId: output.nodeId, title: output.title, kind: output.kind }"
       />
     </div>
   </div>

@@ -16,16 +16,19 @@ export function pendingConversationMessage(
 ): ConversationMessage {
   const attachments = (request.attachments ?? []).map((attachment, index) => {
     const visible = visibleAttachments[index];
-    const thumbnail = visible?.previewSource || null;
     const kind = visible?.isImage ? "image" : "file";
     return attachment.kind === "file"
-      ? { source: "file" as const, title: visible?.title ?? basename(attachment.path), kind, thumbnail }
+      ? {
+          source: "file" as const,
+          title: visible?.title ?? basename(attachment.path),
+          kind,
+          thumbnail: visible?.previewSource || null,
+        }
       : {
           source: "node" as const,
           nodeId: attachment.nodeId,
           title: visible?.title ?? attachment.nodeId,
           kind,
-          thumbnail,
         };
   });
   return {

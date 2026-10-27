@@ -55,12 +55,14 @@ pub struct ConversationMessageOutput {
     deny_unknown_fields
 )]
 pub enum ConversationMessageAttachment {
+    /// A canvas node: a reference, drawn from the node as it is wherever the conversation shows it.
     Node {
         title: String,
         node_id: String,
         kind: String,
-        thumbnail: Option<String>,
     },
+    /// A file handed in from outside the Space. Nothing else keeps it, so the message keeps its
+    /// picture.
     File {
         title: String,
         kind: String,

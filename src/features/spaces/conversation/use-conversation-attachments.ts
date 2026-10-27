@@ -4,7 +4,6 @@ import { useI18n } from "vue-i18n";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { spaceCanvasOverviewSource } from "../assets/node-preview-source";
 import { getCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
 import type { ConversationAttachment } from "../contracts/generated/ConversationAttachment";
@@ -15,6 +14,7 @@ import type {
   ConversationAttachmentCandidatePresentation,
   ConversationAttachmentPresentation,
 } from "./conversation-attachment-presentation";
+import { conversationNodePicture } from "./conversation-node-picture";
 import { chooseConversationUploads, inspectConversationUploads } from "./conversation-uploads";
 import { previewConversationAttachment } from "./preview-conversation-attachment";
 import { isConversationImagePath, useConversationImagePreviews } from "./use-conversation-image-previews";
@@ -71,7 +71,7 @@ export function useConversationAttachments() {
         kind: attachment.kind,
         title: node?.data.title ?? attachment.nodeId,
         isImage: node?.data.kind === "image",
-        previewSource: node ? spaceCanvasOverviewSource(node.data) : "",
+        previewSource: conversationNodePicture(node),
       };
     }),
   );
@@ -84,7 +84,7 @@ export function useConversationAttachments() {
       .map((node) => ({
         nodeId: node.id,
         title: node.data.title,
-        previewSource: spaceCanvasOverviewSource(node.data),
+        previewSource: conversationNodePicture(node),
         selected: selectedSourceNodeIds.value.has(node.id),
         attached: attachedIds.has(node.id),
       }));

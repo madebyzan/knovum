@@ -885,6 +885,10 @@ An attachment has one face wherever the conversation shows it — waiting in the
 a prompt, or added by a reply (`SpaceConversationAttachmentFace.vue`). An image is its picture; a
 document is a file row with its name and its type (`PPTX`, or the canvas/local-file label when the
 name carries none), never a picture-sized grey tile that cuts the name down to a few letters.
+A canvas node's picture comes from the node itself in all three places
+(`conversation-node-picture.ts`): its current overview, so a deck shows its cover once sent exactly
+as it did in the composer, and follows the node. A message keeps no picture of a node; it keeps one
+only of an uploaded file, which nothing else holds.
 
 Active turn status lines (preparing, generating, active tool execution, and in-progress plan steps)
 pair the 3-stroke breathing mark with neutral foreground shimmer in a stable `size-3.5` leading

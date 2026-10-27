@@ -25,9 +25,9 @@ use crate::{foundation::app_error::AppError, spaces::db};
 )]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum ConversationLink {
-    // A canvas node that holds no file of its own, for the renderer to open as the canvas does.
+    /// A canvas node that holds no file of its own, for the renderer to open as the canvas does.
     Node { node_id: String },
-    // The file, opened in its system application.
+    /// The file, opened in its system application.
     Opened,
 }
 

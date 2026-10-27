@@ -5,12 +5,11 @@ fn history_carries_authoritative_output_and_attachment_node_ids() {
     let content = json!({
         "parts":[{"type":"text","text":"Created picture"}],
         "outputs":[{"nodeId":"published-picture","title":"Girl","kind":"image"}],
-        "attachments":[{"source":"node","nodeId":"source-picture","title":"Source","kind":"image","thumbnail":null}],
+        "attachments":[{"source":"node","nodeId":"source-picture","title":"Source","kind":"image"}],
     });
     let references = super::resource_references(serde_json::from_value(content).unwrap());
     assert!(references.contains("published-picture"));
     assert!(references.contains("source-picture"));
-    assert!(!references.contains("thumbnail"));
     assert!(
         super::resource_references(serde_json::from_value(json!({"parts":[]})).unwrap()).is_empty()
     );

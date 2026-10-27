@@ -55,20 +55,6 @@ pub(super) async fn resolve(
     } else {
         None
     };
-    let thumbnail = if kind == "image" {
-        Some(
-            super::image::thumbnail(
-                asset
-                    .as_ref()
-                    .ok_or("image-source-unavailable")?
-                    .path
-                    .clone(),
-            )
-            .await?,
-        )
-    } else {
-        None
-    };
     let image = if target == ContextTarget::Model && kind == "image" {
         Some(
             super::image::read_image_attachment(
@@ -104,7 +90,6 @@ pub(super) async fn resolve(
             title: title.to_owned(),
             node_id: node_id.to_owned(),
             kind,
-            thumbnail,
         },
         excerpt: Some(format!(
             "[node={node_id} revision={source_revision} title={title}]\n{excerpt}"
