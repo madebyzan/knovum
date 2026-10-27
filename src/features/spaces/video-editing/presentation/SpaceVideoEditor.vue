@@ -2,17 +2,18 @@
 import { toRef, useTemplateRef } from "vue";
 
 import SpaceEditorProblem from "../../document-editing/presentation/SpaceEditorProblem.vue";
+import { useSpaceStore } from "../../session/space-store";
 import type { SpaceEditorTab } from "../../workspace/workbench-tab";
 import SpaceVideoEditorFallback from "./SpaceVideoEditorFallback.vue";
 import SpaceVideoEditorHeader from "./SpaceVideoEditorHeader.vue";
-import SpaceVideoUnsavedDialog from "./SpaceVideoUnsavedDialog.vue";
 import SpaceVideoWorkbench from "./SpaceVideoWorkbench.vue";
 import { useVideoEditor } from "./use-video-editor";
 
 const props = defineProps<{ tab: SpaceEditorTab; active: boolean }>();
+const store = useSpaceStore();
 const editorRoot = useTemplateRef<HTMLElement>("editorRoot");
 const editor = useVideoEditor(props.tab, toRef(props, "active"), editorRoot);
-const { session, actions, project } = editor;
+const { session, project } = editor;
 </script>
 
 <template>
@@ -25,17 +26,9 @@ const { session, actions, project } = editor;
     <SpaceEditorProblem
       v-if="session.error.value"
       :error="session.error.value"
-      @discard="actions.requestClose"
+      @discard="store.discardUnavailableEditorTab(tab.id)"
     />
     <SpaceVideoWorkbench v-else-if="project" :editor="editor" />
     <SpaceVideoEditorFallback v-else :editor="editor" />
   </section>
-  <SpaceVideoUnsavedDialog
-    v-model:open="actions.closeDialogOpen.value"
-    :saving="actions.saving.value"
-    :can-save="!session.error.value"
-    @cancel="actions.cancelLeave"
-    @discard="actions.confirmDiscard"
-    @save="actions.confirmSave"
-  />
 </template>

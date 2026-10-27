@@ -8,8 +8,6 @@ import { useDocumentSessionStore } from "../document-editing/document-session-st
 import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { loadSpaceSessionProjection } from "../session/space-projection";
-import { createVideoEditProject } from "../video-editing/project";
-import { useVideoSessionStore } from "../video-editing/video-session-store";
 import { useWorkbenchTabCommands } from "../workspace/use-workbench-tab-commands";
 import { createTestSpace } from "./support/session-context";
 import { mountWorkbenchStrip, openWorkbenchWithDocuments } from "./support/workbench-strip-harness";
@@ -143,46 +141,6 @@ it("rechecks externally changed content after an in-flight save settles", async 
   expect(session.error.value).toBe("conflict");
   expect(session.state.title.value).toBe("a");
 });
-
-/**
- * A document saves itself and reports that in its own header, so its tab never carries a marker.
- * A video edit waits on an explicit save; its marker shares the close button's slot so the label
- * keeps its width — a reflowing label re-truncates and visibly shakes.
- */
-it("marks only an unsaved video edit, without reflowing the tab label", async () => {
-  const projection = await repository.projection("space");
-  const video = createSpaceNode(
-    { kind: "video", title: "v", fileName: "v.mp4", assetPath: "/v.mp4" },
-    { x: 0, y: 0 },
-    "v",
-  );
-  repository.projection.mockResolvedValueOnce({ ...projection, nodes: [...projection.nodes, video] });
-  const store = await openWorkbenchWithDocuments();
-  await store.openVideoEditor("v");
-  const [, noteTab, videoTab] = store.editorTabs;
-  useDocumentSessionStore().sessions.get(noteTab!.id)!.state.revision.value += 1;
-  useVideoSessionStore().sessions.get(videoTab!.id)!.project.value = createVideoEditProject({
-    nodeId: "v",
-    sourceRevision: "r",
-    durationMs: 1000,
-    sourceWidth: 16,
-    sourceHeight: 9,
-    frameRate: 30,
-  });
-  const wrapper = mountWorkbenchStrip();
-  await flushPromises();
-
-  expect(markerSlot(wrapper, noteTab!.id).textContent).toBe("");
-  const label = wrapper.get(`[data-tab-id="${videoTab!.id}"] [role="tab"]`);
-  expect(label.text()).toBe(`v${i18n.global.t("common.unsaved")}`);
-  expect(label.get("span.truncate").text()).toBe("v");
-  expect(markerSlot(wrapper, videoTab!.id).textContent).toBe("•");
-  expect(markerSlot(wrapper, videoTab!.id).className).toBe(markerSlot(wrapper, store.tabs[0]!.id).className);
-});
-
-function markerSlot(wrapper: ReturnType<typeof mountWorkbenchStrip>, tabId: string) {
-  return wrapper.get(`[data-tab-id="${tabId}"]`).element.lastElementChild!;
-}
 
 it("localizes the Inbox tab title dynamically according to the active locale", async () => {
   const previousLocale = i18n.global.locale.value;

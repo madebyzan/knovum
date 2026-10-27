@@ -149,14 +149,6 @@
   "timing": {
     "invalid": "Geben Sie einen Wert zwischen {min} und {max} Sekunden ein."
   },
-  "unsaved": {
-    "title": "Änderungen an diesem Video speichern?",
-    "status": "Nicht gespeicherte Änderungen",
-    "description": "Ihre Änderungen gehen verloren, wenn Sie schließen, ohne zu speichern."
-  },
-  "project": {
-    "saved": "Videobearbeitungsprojekt gespeichert"
-  },
   "render": {
     "action": "Video rendern",
     "task": "Video rendern",

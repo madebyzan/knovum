@@ -149,14 +149,6 @@
   "timing": {
     "invalid": "Enter a value between {min} and {max} seconds."
   },
-  "unsaved": {
-    "title": "Save changes to this video?",
-    "status": "Unsaved changes",
-    "description": "Your edits will be lost if you close without saving."
-  },
-  "project": {
-    "saved": "Video edit project saved"
-  },
   "render": {
     "action": "Render video",
     "task": "Video render",

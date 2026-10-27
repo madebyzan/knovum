@@ -27,15 +27,16 @@ deleting a Space prepares all its editor owners; cancelling a later decision nev
 drafts or executes a prepared discard. Actual application exit prepares every retained editor
 through the existing window close coordinator. Successful durable writes need not be rolled back
 after a later cancellation. The Inbox canvas tab is permanent, so the workbench always retains one
-tab. Tabs and unsaved memory drafts do not survive application restart. Document auto-save and
-saved video projects retain their existing durable storage owners.
+tab. Tabs and unsaved memory drafts do not survive application restart. Documents and video
+projects are stored by the same editor autosave, each in its own durable owner.
 
 Document sessions own their drafts; retained Tiptap instances own document history and selection.
 Video sessions own project drafts, history, the selected item, playback position and the rejection
 state of a project whose stored payload fails validation.
 Only the active editor registers commands. Hidden video views stop their render loop, silence
-scheduled audio and suspend thumbnail work; preview preparation is cancelled while hidden. Document timers pause while inactive, and navigation
-flushes pending document writes before changing the active Space. Save failures retain the draft and
+scheduled audio and suspend thumbnail work; preview preparation is cancelled while hidden. Autosave
+timers pause while an editor is inactive, and navigation flushes pending editor writes before
+changing the active Space. Save failures retain the draft and
 block the requested transition. Saves and task callbacks bind to explicit Space/node identities.
 Markdown writes its text and rich document together; Rust validates that document and the saved video
 project at the node boundary. Project saving and rendering share the video owner's structural rules.
@@ -56,7 +57,7 @@ commit, including coordinated history in another Space. The entire transaction r
 its revision and history position. Resources already missing before the transaction are error-state
 sessions, not a reason to block unrelated work. Tab opening waits for admitted mutations before it
 creates an editor owner, so its protection cannot appear halfway through a structural transaction.
-Closing a tab releases protection only after the existing close/save decision succeeds. Space close
+Closing a tab releases protection only after its editor has stored its work. Space close
 and archive explicitly end their owned sessions through the same scoped close protocol.
 Clean editors reload changed resources with a fresh history. Dirty conflicts or missing owners keep
 the draft, expose an error and require an explicit discard before closing; they never overwrite new
@@ -638,9 +639,10 @@ export-backed styles. Text size remains
 export. Each overlay stores its full style and preserves its text whitespace across saving and rendering. Application commands own local shortcuts without
 feature-level global keyboard listeners.
 
-Saving records one project snapshot through normal Space history. A local edit history provides
-undo and redo before Save. Close, Space navigation, route changes, update installation and quit
-require an explicit Save, Discard or Cancel decision for unsaved work. Failed writes retain the draft.
+The project is stored by the editor autosave: one snapshot a moment after the last edit, and what
+remains whenever the tab or its Space is left, so there is no Save action and no save decision. A
+local edit history provides undo and redo. Render stores pending edits first, then renders the stored
+project into a new video beside the source. Failed writes retain the draft and block the transition.
 Draft structure is validated on saving; live source admission occurs at rendering so deleted material
 can still be inspected and removed from a draft, and package restore does not depend on insertion
 order. Missing or replaced material is unavailable in preview and prevents rendering until corrected.
