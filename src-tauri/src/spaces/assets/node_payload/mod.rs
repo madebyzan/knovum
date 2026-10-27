@@ -2,13 +2,30 @@ use serde_json::{json, Value};
 
 use super::{kind::AssetKind, PreparedAsset};
 
+/// Fields a node carries over from its prepared asset, and only when the asset has them: a node
+/// field is either a value or absent, never `null`, which the node schema rejects.
+const MARKDOWN_FIELDS: &[&str] = &["sourceRevision"];
+const ASSET_FIELDS: &[&str] = &[
+    "sourceRevision",
+    "previewPath",
+    "previewText",
+    "size",
+    "modifiedAt",
+    "processingState",
+    "intrinsicWidth",
+    "intrinsicHeight",
+    "extractedText",
+    "entries",
+];
+
 pub(crate) fn from_import(asset: PreparedAsset) -> Result<Value, String> {
+    let encoded = serde_json::to_value(&asset).map_err(|error| error.to_string())?;
     if asset.kind == AssetKind::Markdown {
         let text = asset.text.ok_or("Imported Markdown has no text")?;
         let (title, text) = markdown_document(&asset.name, &text);
-        return Ok(
-            json!({"kind":"markdown", "title":title, "text":text, "sourceRevision":asset.source_revision}),
-        );
+        let mut data = json!({"kind":"markdown", "title":title, "text":text});
+        carry(&mut data, &encoded, MARKDOWN_FIELDS);
+        return Ok(data);
     }
     let path = asset
         .path
@@ -17,23 +34,7 @@ pub(crate) fn from_import(asset: PreparedAsset) -> Result<Value, String> {
     let document_coverage = asset.document_coverage.clone();
     let mut data =
         json!({"kind":asset.kind, "title":asset.name, "fileName":asset.name, "assetPath":path});
-    let encoded = serde_json::to_value(&asset).map_err(|error| error.to_string())?;
-    for field in [
-        "sourceRevision",
-        "previewPath",
-        "previewText",
-        "size",
-        "modifiedAt",
-        "processingState",
-        "intrinsicWidth",
-        "intrinsicHeight",
-        "extractedText",
-        "entries",
-    ] {
-        if let Some(value) = encoded.get(field) {
-            data[field] = value.clone();
-        }
-    }
+    carry(&mut data, &encoded, ASSET_FIELDS);
     if let Some(coverage) = document_coverage {
         data["documentCoverage"] = coverage;
     }
@@ -43,6 +44,14 @@ pub(crate) fn from_import(asset: PreparedAsset) -> Result<Value, String> {
             .ok_or("Imported code has no language")?);
     }
     Ok(data)
+}
+
+fn carry(data: &mut Value, encoded: &Value, fields: &[&str]) {
+    for field in fields {
+        if let Some(value) = encoded.get(*field) {
+            data[*field] = value.clone();
+        }
+    }
 }
 
 fn markdown_document(name: &str, raw: &str) -> (String, String) {
