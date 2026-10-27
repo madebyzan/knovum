@@ -128,9 +128,10 @@ impl rmcp::ServerHandler for SpaceMcpServer {
             env!("CARGO_PKG_VERSION"),
         ))
         .with_instructions(format!(
-            "Current Space: {scope}. {} {}",
-            super::conversations::prompt_policy::SPACE_READING,
-            super::conversations::prompt_policy::DESKTOP_TOOLS
+            "Current Space: {scope}. {}",
+            super::conversations::prompt_policy::desktop_agent(
+                !self.turns.catalog().skills.is_empty()
+            )
         ))
     }
 }

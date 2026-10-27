@@ -74,13 +74,13 @@ impl ResolvedContext {
         app: &tauri::AppHandle,
         user_prompt: &str,
         conversation_context: Option<&str>,
+        skills_selected: bool,
     ) -> Result<crate::external_agents::prompt::AgentPrompt, String> {
         crate::external_agents::prompt::AgentPrompt::from_authorized_assets(
             format!(
-                "{} {}\n\n{}\n\n{}\n\n{}",
-                crate::spaces::conversations::prompt_policy::SPACE_READING,
+                "{}\n\n{}\n\n{}\n\n{}",
+                crate::spaces::conversations::prompt_policy::desktop_agent(skills_selected),
                 crate::spaces::conversations::prompt_policy::CONVERSATION_CITATIONS,
-                crate::spaces::conversations::prompt_policy::DESKTOP_TOOLS,
                 crate::spaces::conversations::prompt_policy::space_snapshot(
                     &serde_json::to_string(&self.space).expect("Space snapshot must serialize")
                 ),

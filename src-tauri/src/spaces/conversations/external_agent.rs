@@ -84,7 +84,12 @@ pub async fn start(
             (Some((id, branch)), false) => repository::build_context(pool, id, branch).await?,
             _ => None,
         };
-        let prepared = context.agent_prompt(&app, &prompt, history.as_deref())?;
+        let prepared = context.agent_prompt(
+            &app,
+            &prompt,
+            history.as_deref(),
+            !extensions.skills.is_empty(),
+        )?;
         let turn_id = external_conversations::begin_turn_for_conversation(
             app.clone(),
             &turn.binding.id,

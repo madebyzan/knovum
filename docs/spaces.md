@@ -199,7 +199,12 @@ changed extension selection or a lost process all close it, and a new runtime is
 history instead. Cancelling a turn sends `session/cancel` and waits for the Agent to stop; the
 runtime stays. Idle runtimes close after 15 minutes and all of them when the app exits. Tool
 activity is recorded as Run events, while Space changes still require Knovum MCP receipts; the
-MCP server answers only during a turn, under that turn's grant and Run. The former
+MCP server answers only during a turn, under that turn's grant and Run. A desktop Agent reaches the Space
+through that server but reads source files itself: attachments arrive as local paths and
+`get_node_asset` resolves a node's current file, and when indexed text is missing or thin — slides or
+scans kept as pictures — it opens the file with its own tools rather than reporting metadata. The
+one composition of these instructions (`prompt_policy::desktop_agent`) feeds both the prompt and the
+MCP server's instructions, and asks for Skill discovery only when Skills are selected. The former
 grounded-answer threads and messages are moved into the Builtin Agent store by a one-time local
 database migration; their verified source snapshots remain attached to the corresponding reply.
 A turn publishes what it left in the conversation's workspace through the existing reviewed import
