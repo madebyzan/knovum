@@ -206,6 +206,11 @@ async fn current_sources(
     Ok(sources)
 }
 
+/// What a deliverable's `derives-from` Relation says: the canvas nodes the user handed the Agent
+/// for the turn were its inputs, exactly as a selection is an Action's. It states the process,
+/// not that the content was taken from them.
+const LINEAGE: &str = "Made by a desktop Agent in a turn given this as input";
+
 async fn insert_outputs(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
@@ -253,6 +258,12 @@ async fn insert_outputs(
             enrichment_target,
         )
         .await?;
+        for source in sources {
+            crate::spaces::derivation::relations::derives_from(
+                tx, space_id, &node.id, source, LINEAGE, now,
+            )
+            .await?;
+        }
     }
     structure::repository::save_in_transaction(tx, space_id, revision, &snapshot).await?;
     let after = structure::history::capture(tx, space_id, &snapshot).await?;

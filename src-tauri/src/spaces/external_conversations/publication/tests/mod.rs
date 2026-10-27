@@ -160,7 +160,7 @@ async fn existing_agent_created_node_is_attached_without_duplicate_import() {
 }
 
 #[tokio::test]
-async fn context_attachment_does_not_assert_derivation() {
+async fn a_deliverable_derives_from_the_nodes_its_turn_was_given() {
     let pool = fixture().await;
     let mut tx = db::begin_write(&pool).await.unwrap();
     nodes::tests::insert_many_in_transaction(
@@ -191,12 +191,18 @@ async fn context_attachment_does_not_assert_derivation() {
     )
     .await
     .unwrap();
-    let count: i64 =
-        sqlx::query_scalar("SELECT COUNT(*) FROM spaces_relations WHERE space_id='space'")
-            .fetch_one(&pool)
-            .await
-            .unwrap();
-    assert_eq!(count, 0);
+    // "总结下这个ppt" with the deck attached: the summary is the deck's derived output, so the
+    // canvas draws the line and counts it on the deck, as it does for any Action's output.
+    let relations: Vec<(String, String, String)> = sqlx::query_as(
+        "SELECT source_id,target_id,kind FROM spaces_relations WHERE space_id='space'",
+    )
+    .fetch_all(&pool)
+    .await
+    .unwrap();
+    assert_eq!(
+        relations,
+        [("derived".into(), "source".into(), "derives-from".into())]
+    );
 }
 
 #[tokio::test]

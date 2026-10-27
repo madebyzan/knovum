@@ -209,7 +209,10 @@ grounded-answer threads and messages are moved into the Builtin Agent store by a
 database migration; their verified source snapshots remain attached to the corresponding reply.
 A turn publishes what it left in the conversation's workspace through the existing reviewed import
 path, and publication empties the workspace for the next turn; a new runtime starts from an empty
-one. In a tool call's content only what the tool embedded (image, audio, resource) is an output: a
+one. Each published deliverable `derives-from` every canvas node attached to the turn, written with
+the node in the publication transaction: the turn's attachments are its inputs exactly as a
+selection is an Action's, so the source shows its derived outputs and the lineage line like any
+other derivation. Attached local files are not canvas nodes and have no line. In a tool call's content only what the tool embedded (image, audio, resource) is an output: a
 `resource_link` there names a file that lives elsewhere — the source the Agent read, the image it
 looked at — and is shown, never fetched, copied or published.
 
