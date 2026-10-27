@@ -35,7 +35,7 @@ const {
   loadingOlder,
   hasOlder,
   visibleError,
-  visibleStreamedText,
+  visibleLive,
   visibleAttachments,
   attachmentCandidates,
   attachmentError,
@@ -115,7 +115,7 @@ async function previewAttachment(key: string) {
         :producing="producing"
         :has-draft="Boolean(prompt.trim())"
         :preparing="loading && !activeRunId"
-        :streamed-text="visibleStreamedText"
+        :live="visibleLive"
         :has-older="hasOlder"
         :loading-older="loadingOlder"
         @load-older="conversationSession.loadOlder"

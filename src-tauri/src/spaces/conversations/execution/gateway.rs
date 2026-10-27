@@ -71,6 +71,7 @@ impl Host for Gateway {
                 "agentRuntime.invokeTool" => {
                     let request: AgentToolInvocation = decode(params)?;
                     self.require_identity(&request.identity).await?;
+                    self.announce_tool(&request.tool_call_id);
                     crate::spaces::conversations::builtin_agent::tool_execution::invoke(
                         self, request,
                     )
@@ -82,10 +83,16 @@ impl Host for Gateway {
                         .await?;
                     projection::commit(&self.pool, &self.ids, request).await
                 }
-                "agentRuntime.contentDelta" => self.delta(decode(params)?).await,
                 _ => Err("builtin-agent-host-method-not-found".into()),
             }
         })
+    }
+
+    fn notify(&self, method: &str, params: Value) -> Result<(), String> {
+        match method {
+            "agentRuntime.contentDelta" => self.delta(decode(params)?),
+            _ => Err("builtin-agent-host-method-not-found".into()),
+        }
     }
 }
 
@@ -147,8 +154,23 @@ impl Gateway {
         .await
     }
 
-    async fn delta(&self, request: AgentContentDelta) -> Result<Value, String> {
-        self.require_identity(&request.identity).await?;
+    /// Marks where in the streamed answer a tool was called. Deltas and invocations arrive over
+    /// the one runtime connection in the order the Agent produced them, so the mark lands
+    /// between the words that led to the call and the words that follow it.
+    fn announce_tool(&self, tool_call_id: &str) {
+        if let Some(channel) = &self.updates {
+            let _ = channel.send(ConversationTaskUpdate::ToolStarted {
+                tool_call_id: tool_call_id.to_owned(),
+            });
+        }
+    }
+
+    /// Shows a chunk of the answer as it arrives. Only the process identity is checked: the
+    /// chunk is not durable — the projection that stores the answer checks the control epoch
+    /// against the database before it writes — and a database read here would cost the
+    /// stream its order.
+    fn delta(&self, request: AgentContentDelta) -> Result<(), String> {
+        self.require_process_identity(&request.identity)?;
         let mut last = self
             .last_message
             .lock()
@@ -163,7 +185,7 @@ impl Gateway {
             });
         }
         *last = Some(request.message_id);
-        Ok(Value::Null)
+        Ok(())
     }
 }
 

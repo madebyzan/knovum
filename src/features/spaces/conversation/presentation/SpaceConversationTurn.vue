@@ -6,7 +6,9 @@ import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
 import { spaceActionLabel } from "../../knowledge-derivations/catalog/action-label";
-import { conversationActivityItems } from "../conversation-activity-items";
+import { conversationToolItems } from "../conversation-activity-items";
+import { conversationTimeline } from "../conversation-timeline";
+import { recordedTranscript, type TranscriptStep } from "../conversation-transcript";
 import type { ConversationTurn } from "../conversation-turns";
 import SpaceConversationActivity from "./SpaceConversationActivity.vue";
 import SpaceConversationMessage from "./SpaceConversationMessage.vue";
@@ -25,11 +27,9 @@ const emit = defineEmits<{
   inspectActivity: [runId: string];
 }>();
 const { t } = useI18n();
-// The activity is read once here and handed to the list that shows it, so the turn can tell
-// whether anything has happened yet without asking the same question twice.
-const items = computed(() =>
+const tools = computed(() =>
   props.turn.runId
-    ? conversationActivityItems({
+    ? conversationToolItems({
         events: props.events,
         messages: props.messages,
         runId: props.turn.runId,
@@ -37,13 +37,28 @@ const items = computed(() =>
           action: (actionId) => spaceActionLabel(actionId),
           default: t("spaces.conversation.activity.tool"),
         },
-        live: props.turn.active,
       })
-    : [],
+    : new Map(),
 );
-const runningTool = computed(() =>
-  items.value.some((item) => item.status === "pending" || item.status === "in_progress"),
-);
+const transcript = computed((): readonly TranscriptStep[] => {
+  const { live, runId, answers } = props.turn;
+  if (live) return live;
+  if (!runId) return answers.map((message) => ({ kind: "answer", message }));
+  return recordedTranscript(
+    { runId, events: props.events, messages: props.messages, answers },
+    tools.value.keys(),
+  );
+});
+const blocks = computed(() => conversationTimeline(transcript.value, tools.value));
+// Nothing to show yet while the run works. Once there is, the work shows where it happens — a
+// tool group says it is running, words arrive as words — so this line never comes back between
+// two tools or two messages.
+const waiting = computed(() => {
+  if (!props.turn.active || blocks.value.length) return undefined;
+  return props.turn.runId
+    ? "spaces.conversation.activity.generating"
+    : "spaces.conversation.conversations.preparing";
+});
 
 watch(
   () => props.turn.runId,
@@ -57,43 +72,32 @@ watch(
 <template>
   <article class="flex min-w-0 flex-col gap-3">
     <SpaceConversationMessage v-if="turn.prompt" :message="turn.prompt" :busy="busy" />
-    <div v-if="turn.runId || turn.pending || turn.answers.length" class="flex min-w-0 flex-col gap-3">
+    <div v-if="turn.runId || waiting || blocks.length" class="flex min-w-0 flex-col gap-3">
       <SpaceConversationPlan v-if="turn.runId" :events="events" :active="turn.active" />
-      <SpaceConversationActivity v-if="items.length" :items="items" :active="turn.active" />
-      <p
-        v-if="turn.pending && !runningTool"
-        role="status"
-        class="flex items-center py-1 text-caption text-fg-secondary"
-      >
-        <SpaceConversationShimmerText indicator>
-          {{
-            $t(
-              turn.pending === "preparing"
-                ? "spaces.conversation.conversations.preparing"
-                : "spaces.conversation.activity.generating",
-            )
-          }}
-        </SpaceConversationShimmerText>
+      <p v-if="waiting" role="status" class="flex items-center py-1 text-caption text-fg-secondary">
+        <SpaceConversationShimmerText indicator>{{ $t(waiting) }}</SpaceConversationShimmerText>
       </p>
-      <SpaceConversationMessage
-        v-for="(answer, index) in turn.answers"
-        :key="answer.id"
-        :message="answer"
-        :streamed-text="index === turn.answers.length - 1 ? turn.streamedText : ''"
-        :busy="busy"
-        @branch="emit('branch', answer)"
-        @regenerate="emit('regenerate', answer)"
-      />
-      <!--
-        What the run has written so far. Until it settles this is the only copy: the ledger is
-        recording the same words for the trace, a refresh behind, and showing both put the same
-        sentence on screen twice.
-      -->
-      <UiMarkdown
-        v-if="turn.streamedText && !turn.answers.length"
-        :content="turn.streamedText"
-        class="text-body leading-relaxed wrap-break-word text-fg-primary"
-      />
+      <template v-for="(block, index) in blocks" :key="block.key">
+        <SpaceConversationActivity
+          v-if="block.kind === 'tools'"
+          :items="block.items"
+          :active="turn.active"
+          :current="turn.active && index === blocks.length - 1"
+        />
+        <SpaceConversationMessage
+          v-else-if="block.kind === 'answer'"
+          :message="block.message"
+          :actions="block.final"
+          :busy="busy"
+          @branch="emit('branch', block.message)"
+          @regenerate="emit('regenerate', block.message)"
+        />
+        <UiMarkdown
+          v-else
+          :content="block.text"
+          class="text-body leading-relaxed wrap-break-word text-fg-primary"
+        />
+      </template>
     </div>
   </article>
 </template>

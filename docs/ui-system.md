@@ -855,23 +855,28 @@ cited. Grouping it there is also what keeps an answer in flight inside the list 
 the text that is still arriving, so nothing is drawn beside the list and then moved into it when
 the stored message lands, which is what made the view jump as an answer settled.
 
-A turn therefore owns its own status. The one indicator that an answer is being worked on lives in
-the turn that is waiting for it, where it is replaced in place by the activity list and then by the
-answer; it is never a notice floating at the end of the transcript, and it is never shown twice.
-`preparing` (no run yet, models may still be loading) and `generating` stay distinguishable because
-they feel different to wait through.
+A turn is drawn from its **transcript**: what the run said and did, in the order it happened — the
+words it wrote, the tools it called between them, and the stored answers
+(`conversation-transcript.ts` → `conversation-timeline.ts`). Consecutive calls fold into one group,
+so the words that announce a search sit above it and the words that report on it sit below. The
+transcript comes from the live stream while the run speaks (`content_delta`, `content_boundary` for
+a new message, `tool_started` marking where a call fell) and from what the run recorded once it
+settles: a desktop Agent's ledger, where its updates are kept in arrival order up to its last call
+and its stored answer takes over; the built-in Agent's stored messages, where each tool result
+follows the answer that called it. Both are recorded in the order the Agent produced, so a settled
+run reads back with the shape it had live, and the stream is dropped only once both the stored
+answers and the ledger have loaded. Content only ever arrives at the end; nothing on screen moves
+when a tool starts, ends, or the run settles. What a call is — title, status, context, result — is
+read from the ledger by call id in every case; the stream only says where it happened.
 
-The waiting line is the opening of a turn and does not come back. That holds because the live text
-is everything the run has written, not the block it is writing: a block boundary separates what came
-before from what comes next, it does not erase it. The stored message is written in batches and read
-when the run settles, so a boundary that cleared the screen left the turn empty — the words
-disappeared and the waiting line returned — until the next block arrived.
+A tool group is closed until the person opens it, and only they close it again. It never opens for
+a call and folds when the call ends: that moved everything below it twice per tool. While the run
+works at a group it says so in its own summary line, so no second line appears between two calls
+only to vanish when the next one begins. The one waiting line — `preparing` (no run yet, models
+may still be loading) or `generating` — exists only while the turn has nothing else to show, in the
+turn that waits, never as a notice at the end of the transcript; the first block takes its place.
+Only the answer that ends a turn offers copy, branch and regenerate.
 
-Those words reach the view twice: from the channel as they are spoken, and from the run ledger a
-refresh later, where they are recorded between the tools they explain. One owner at a time. While a
-run is producing, the live stream shows its words and the activity trace carries its tools alone;
-once tools finish, the trace settles and collapses so focus moves to the answer, and once the run
-settles the stream is cleared and the trace holds the commentary back in its place in the record.
 Active turn status lines (preparing, generating, active tool execution, and in-progress plan steps)
 pair the 3-stroke breathing mark with neutral foreground shimmer in a stable `size-3.5` leading
 slot so settling into a checkmark never shifts the label horizontally.

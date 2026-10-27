@@ -115,8 +115,10 @@ fn show(
                 text: text.clone(),
             });
         }
-        AgentSessionUpdate::ToolCall { .. } => {
-            let _ = channel.send(ConversationTaskUpdate::ContentBoundary);
+        AgentSessionUpdate::ToolCall { id, .. } => {
+            let _ = channel.send(ConversationTaskUpdate::ToolStarted {
+                tool_call_id: id.clone(),
+            });
         }
         AgentSessionUpdate::ToolUpdate { .. } => {}
     }

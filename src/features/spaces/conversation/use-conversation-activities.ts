@@ -31,7 +31,7 @@ export function useConversationActivities(
     error.value = undefined;
   }
 
-  function refresh(runId: string) {
+  function refresh(runId: string): Promise<void> {
     const current = selection;
     const previous = pendingLoadByRunId.get(runId) ?? Promise.resolve();
     const next = previous
@@ -43,6 +43,7 @@ export function useConversationActivities(
     void next.finally(() => {
       if (pendingLoadByRunId.get(runId) === next) pendingLoadByRunId.delete(runId);
     });
+    return next;
   }
 
   watch(selectedConversationId, () => {
@@ -55,11 +56,15 @@ export function useConversationActivities(
   });
 
   function inspect(runId: string) {
-    if (eventsByRunId.value[runId] === undefined) {
-      eventsByRunId.value = { ...eventsByRunId.value, [runId]: [] };
-      refresh(runId);
-    }
+    if (eventsByRunId.value[runId] === undefined) void follow(runId);
   }
 
-  return { eventsByRunId, activityError: error, inspectActivity: inspect };
+  /** Brings a run's ledger up to date, starting to follow the run if nothing has read it yet. */
+  function follow(runId: string) {
+    if (eventsByRunId.value[runId] === undefined)
+      eventsByRunId.value = { ...eventsByRunId.value, [runId]: [] };
+    return refresh(runId);
+  }
+
+  return { eventsByRunId, activityError: error, inspectActivity: inspect, loadActivity: follow };
 }

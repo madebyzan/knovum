@@ -16,7 +16,12 @@ import { useSpaceStore } from "../../session/space-store";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
 import SpaceConversationOutputs from "./SpaceConversationOutputs.vue";
 
-const props = defineProps<{ message: ConversationMessage; streamedText?: string; busy: boolean }>();
+const props = defineProps<{
+  message: ConversationMessage;
+  /** Offers copy, branch and regenerate: the answer that ends a turn does, the words before it do not. */
+  actions?: boolean;
+  busy: boolean;
+}>();
 const emit = defineEmits<{ branch: []; regenerate: [] }>();
 const { t } = useI18n();
 const store = useSpaceStore();
@@ -77,7 +82,7 @@ async function copyMessage() {
     >
       <template v-for="(part, index) in message.content.parts" :key="index">
         <UiMarkdown
-          v-if="part.type === 'text' && part.text.trim() && !streamedText"
+          v-if="part.type === 'text' && part.text.trim()"
           :content="part.text"
           :citations="citationMarkers"
           class="wrap-break-word"
@@ -87,7 +92,6 @@ async function copyMessage() {
           {{ part.name || part.mediaType }}
         </p>
       </template>
-      <UiMarkdown v-if="streamedText" :content="streamedText" class="wrap-break-word" />
     </div>
     <SpaceConversationOutputs
       v-if="message.role === 'assistant' && message.content.outputs?.length"
@@ -143,7 +147,7 @@ async function copyMessage() {
       {{ t("spaces.conversation.messages.copyFailed") }}
     </p>
     <div
-      v-if="message.role === 'assistant' && messageText"
+      v-if="actions && message.role === 'assistant' && messageText"
       class="message-actions flex items-center gap-0.5 opacity-0 transition-opacity duration-100 group-focus-within:opacity-100 group-hover:opacity-100"
     >
       <UiIconButton

@@ -1,4 +1,5 @@
 import type { ConversationMessage } from "../contracts/generated/ConversationMessage";
+import type { LiveTranscript } from "./conversation-transcript";
 
 /**
  * One exchange: what a person asked, and everything that answered it.
@@ -6,8 +7,8 @@ import type { ConversationMessage } from "../contracts/generated/ConversationMes
  * The list renders turns rather than messages because every part of an answer — the tools the run
  * used, the text it wrote, the nodes it added, the sources it cited — belongs to the question that
  * caused it. Grouping it here is also what keeps the answer in flight inside the list: a turn
- * carries the text that is still arriving, so nothing has to be rendered beside the list and then
- * moved into it when the message lands.
+ * carries the transcript that is still arriving, so nothing has to be rendered beside the list and
+ * then moved into it when the message lands.
  */
 export interface ConversationTurn {
   id: string;
@@ -16,26 +17,20 @@ export interface ConversationTurn {
   /** The run that answered, once the ledger has one; absent for a question just sent. */
   runId: string | undefined;
   answers: readonly ConversationMessage[];
-  /** The answer as it arrives, replacing the stored text of the last answer until it lands. */
-  streamedText: string;
-  /** The run answering this turn is live. */
-  active: boolean;
   /**
-   * Being worked on with nothing written yet, and which of the two waits it is: `preparing` while
-   * the question has no run yet — the models it needs may still be loading — and `generating` once
-   * a run is producing the answer.
-   *
-   * It is the opening state of a turn and does not come back, because the live text keeps every
-   * block the run has written: once there are words there is something to show until the stored
-   * answer replaces them.
+   * What the run has said and done so far, from the stream that is carrying it. Present only for
+   * the turn this window is streaming; any other turn — and this one once it settles — is read
+   * from what the run recorded.
    */
-  pending: "preparing" | "generating" | undefined;
+  live: LiveTranscript | undefined;
+  /** The run answering this turn is producing, rather than paused or waiting on someone. */
+  active: boolean;
 }
 
 export interface ConversationTurnsInput {
   messages: readonly ConversationMessage[];
   activeRunId: string | undefined;
-  streamedText: string;
+  live: LiveTranscript | undefined;
   /** A question was sent and no run has been accepted for it yet. */
   preparing: boolean;
   /** Whether the active run is currently producing rather than paused or waiting on user action. */
@@ -65,7 +60,7 @@ function isInFlightTurn(
 export function conversationTurns({
   messages,
   activeRunId,
-  streamedText,
+  live,
   preparing,
   producing = true,
 }: ConversationTurnsInput): ConversationTurn[] {
@@ -75,10 +70,8 @@ export function conversationTurns({
   // match, and once it has one the ledger keeps it.
   if (!isInFlightTurn(last, activeRunId, preparing)) return turns;
   last.runId ??= activeRunId;
-  last.streamedText = streamedText;
-  if (!producing) return turns;
-  last.active = true;
-  if (!streamedText && last.answers.length === 0) last.pending = activeRunId ? "generating" : "preparing";
+  last.live = live;
+  last.active = producing;
   return turns;
 }
 
@@ -104,8 +97,7 @@ function openTurn(message: ConversationMessage): ConversationTurn {
     prompt: message.role === "user" ? message : undefined,
     runId: message.content.runId ?? undefined,
     answers: message.role === "assistant" && answerShows(message) ? [message] : [],
-    streamedText: "",
+    live: undefined,
     active: false,
-    pending: undefined,
   };
 }

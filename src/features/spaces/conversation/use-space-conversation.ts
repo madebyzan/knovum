@@ -7,7 +7,6 @@ import { useSpaceStore } from "../session/space-store";
 import { createConversationActions } from "./conversation-actions";
 import { createConversationFilePicker } from "./conversation-file-reacquisition";
 import { createConversationSelection } from "./conversation-selection";
-import { useConversationActivities } from "./use-conversation-activities";
 import { useConversationAttachments } from "./use-conversation-attachments";
 import { useConversationBranches } from "./use-conversation-branches";
 import { useConversationDraftPersistence } from "./use-conversation-draft-persistence";
@@ -139,7 +138,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     conversations,
     messages,
     branches: branchSession.branches,
-    ...useConversationActivities(selectedConversationId, task.activeRunId, task.activityRevision),
+    ...task.activities,
     selectedConversationId,
     selectedConversation,
     prompt,
@@ -158,7 +157,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     loadingOlder: pages.loadingOlder,
     hasOlder: pages.hasOlder,
     visibleError: task.visibleError,
-    visibleStreamedText: task.visibleStreamedText,
+    visibleLive: task.visibleLive,
     ...attachmentSession,
     chooseFiles,
     discardFileReference: draft.discardFileReference,

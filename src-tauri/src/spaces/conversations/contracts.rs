@@ -113,7 +113,14 @@ pub enum ConversationTaskUpdate {
         task_id: String,
         text: String,
     },
+    // The text so far ends a block: the Agent began another message.
     ContentBoundary,
+    // The Agent called a tool at this point of its answer. What the call is and how it went is
+    // read from the Run ledger under this id; the stream only says where it happened, so the
+    // answer in flight reads in the order the ledger keeps.
+    ToolStarted {
+        tool_call_id: String,
+    },
     Finished {
         state: ConversationTaskFinishedState,
         error: Option<String>,

@@ -1,22 +1,17 @@
 import { describe, expect, it } from "vitest";
 
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
-import type { RunEvent } from "../../contracts/generated/RunEvent";
-import { conversationActivityItems } from "../conversation-activity-items";
-
-function event(kind: RunEvent["kind"], payload: RunEvent["payload"], sequence: number): RunEvent {
-  return {
-    sequence,
-    runId: "run",
-    stepInstanceId: null,
-    attemptId: null,
-    kind,
-    payload,
-    createdAt: sequence,
-  };
-}
+import { conversationToolItems } from "../conversation-activity-items";
+import { runEvent } from "./support/conversation-transcripts";
 
 const labels = { action: (actionId: string) => actionId, default: "Tool" };
+
+function items(
+  events: Parameters<typeof conversationToolItems>[0]["events"],
+  messages: ConversationMessage[] = [],
+) {
+  return [...conversationToolItems({ runId: "run", labels, messages, events }).values()];
+}
 
 describe("conversation tool activity", () => {
   it("retains input context when completion only updates status and attaches the tool output", () => {
@@ -34,21 +29,19 @@ describe("conversation tool activity", () => {
         },
       },
     ];
-    const items = conversationActivityItems({
-      runId: "run",
-      labels,
-      live: false,
-      messages,
-      events: [
-        event(
-          "conversation_tool_started",
-          { toolCallId: "call", actionId: "search", context: { query: "audio" } },
-          1,
-        ),
-        event("conversation_tool_finished", { toolCallId: "call" }, 2),
-      ],
-    });
-    expect(items).toEqual([
+    expect(
+      items(
+        [
+          runEvent(
+            "conversation_tool_started",
+            { toolCallId: "call", actionId: "search", context: { query: "audio" } },
+            1,
+          ),
+          runEvent("conversation_tool_finished", { toolCallId: "call" }, 2),
+        ],
+        messages,
+      ),
+    ).toEqual([
       {
         id: "call",
         title: "search",
@@ -61,83 +54,59 @@ describe("conversation tool activity", () => {
   });
 
   it("projects external tool updates using the owned context field", () => {
-    const items = conversationActivityItems({
-      runId: "run",
-      labels,
-      live: false,
-      messages: [],
-      events: [
-        event(
+    expect(
+      items([
+        runEvent(
           "external_agent_tool_started",
           { toolCallId: "call", title: "Read file", status: "pending", context: "/audio.wav" },
           1,
         ),
-        event(
+        runEvent(
           "external_agent_tool_updated",
           { toolCallId: "call", status: "completed", context: "Read 128 bytes" },
           2,
         ),
-      ],
-    });
-    expect(items).toEqual([
-      { id: "call", title: "Read file", status: "completed", context: "Read 128 bytes", output: undefined },
-    ]);
+      ]),
+    ).toEqual([{ id: "call", title: "Read file", status: "completed", context: "Read 128 bytes" }]);
   });
 
   it("attaches MCP progress to the tool it reports on and keeps it across later updates", () => {
-    const items = conversationActivityItems({
-      runId: "run",
-      labels,
-      live: false,
-      messages: [],
-      events: [
-        event("conversation_tool_started", { toolCallId: "call", title: "transcribe" }, 1),
-        event("mcp_progress", { toolCallId: "call", progress: 2, total: 5, message: null }, 2),
-        event("mcp_progress", { toolCallId: "unknown", progress: 9 }, 3),
-        event("external_agent_tool_updated", { toolCallId: "call", status: "in_progress" }, 4),
-      ],
-    });
-    expect(items).toEqual([
+    expect(
+      items([
+        runEvent("conversation_tool_started", { toolCallId: "call", title: "transcribe" }, 1),
+        runEvent("mcp_progress", { toolCallId: "call", progress: 2, total: 5, message: null }, 2),
+        runEvent("mcp_progress", { toolCallId: "unknown", progress: 9 }, 3),
+        runEvent("external_agent_tool_updated", { toolCallId: "call", status: "in_progress" }, 4),
+      ]),
+    ).toEqual([
       {
         id: "call",
         title: "transcribe",
         status: "in_progress",
         context: undefined,
-        output: undefined,
         progress: { progress: 2, total: 5, message: null },
       },
     ]);
   });
 
-  it("leaves the words of a live run to the stream that is already showing them", () => {
-    // The same sentence reaches the screen twice: once from the channel as it is spoken, once from
-    // the ledger a refresh later. While the run is producing, the trace carries its tools only.
-    const events = [
-      event("external_agent_message", { text: "Searching the Space." }, 1),
-      event("conversation_tool_started", { toolCallId: "call", title: "search_knowledge" }, 2),
-    ];
-    const live = conversationActivityItems({ runId: "run", labels, messages: [], events, live: true });
-    const recorded = conversationActivityItems({ runId: "run", labels, messages: [], events, live: false });
-
-    expect(live.map((item) => item.title)).toEqual(["search_knowledge"]);
-    expect(recorded.map((item) => item.title)).toEqual(["Searching the Space.", "search_knowledge"]);
+  it("describes calls only: what the run said is the transcript's", () => {
+    expect(
+      items([
+        runEvent("external_agent_message", { text: "Searching the Space." }, 1),
+        runEvent("conversation_tool_started", { toolCallId: "call", title: "search_knowledge" }, 2),
+      ]).map((item) => item.title),
+    ).toEqual(["search_knowledge"]);
   });
 
   it("rejects obsolete event fields instead of reading a second payload vocabulary", () => {
     expect(
-      conversationActivityItems({
-        runId: "run",
-        labels,
-        live: false,
-        messages: [],
-        events: [
-          event(
-            "conversation_tool_started",
-            { toolCallId: "call", actionId: "search", detail: { query: "audio" } },
-            1,
-          ),
-        ],
-      }),
+      items([
+        runEvent(
+          "conversation_tool_started",
+          { toolCallId: "call", actionId: "search", detail: { query: "audio" } },
+          1,
+        ),
+      ]),
     ).toEqual([]);
   });
 });
