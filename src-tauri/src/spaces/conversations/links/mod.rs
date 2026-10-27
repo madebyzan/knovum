@@ -1,9 +1,10 @@
 //! A link in a conversation names a file the way its writer saw it. Following it opens that file in
 //! its system application — never in the window — and only a file Knovum can vouch for:
 //!
-//! - a deliverable the Agent wrote in its working directory: publication emptied the directory, so
-//!   the path is followed to the canvas node the file became. A node that holds a file opens it; a
-//!   Knovum document, which has no file of its own, opens the way the canvas opens it;
+//! - a deliverable a desktop Agent wrote in its working directory: publication emptied the
+//!   directory, so the path is followed to the canvas node the file became. A node that holds a
+//!   file opens it; a Knovum document, which has no file of its own, opens the way the canvas
+//!   opens it;
 //! - a file the Space manages, such as an attachment's source;
 //! - a file the user handed Knovum.
 //!
@@ -46,7 +47,7 @@ pub(crate) async fn follow(
 ) -> Result<ConversationLink, AppError> {
     let pool = db::pool(app).await?;
     let message = linking_message(pool, message_id).await?;
-    let workspace = crate::spaces::agent_artifacts::workspace::session_directory(
+    let workspace = crate::spaces::agent_artifacts::workspace::desktop_agent_directory(
         app,
         &message.space_id,
         &message.conversation_id,

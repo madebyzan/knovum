@@ -27,15 +27,15 @@ pub(crate) async fn cancel_by_run(app: &tauri::AppHandle, run_id: &str) -> Resul
     lifecycle::cancel_by_run(app, run_id).await
 }
 
-/// Deletes every desktop Agent turn of a Space conversation, its runtime and its workspace.
+/// Deletes every desktop Agent turn of a Space conversation and its runtime. The workspace belongs
+/// to the conversation, which removes it.
 pub(crate) async fn purge_for_conversation(
     app: &tauri::AppHandle,
     conversation_id: &str,
 ) -> Result<(), String> {
     let pool = crate::spaces::db::pool(app).await?;
-    let rows: Vec<(String, String, String)> = sqlx::query_as(
-        "SELECT id,state,space_id FROM spaces_external_agent_conversations
-         WHERE conversation_id=$1",
+    let rows: Vec<(String, String)> = sqlx::query_as(
+        "SELECT id,state FROM spaces_external_agent_conversations WHERE conversation_id=$1",
     )
     .bind(conversation_id)
     .fetch_all(pool)
@@ -43,23 +43,13 @@ pub(crate) async fn purge_for_conversation(
     .map_err(crate::spaces::db::sql_error)?;
     if rows
         .iter()
-        .any(|(_, state, _)| state == "connected" || state == "connecting")
+        .any(|(_, state)| state == "connected" || state == "connecting")
     {
         return Err("conversation-busy".into());
     }
     runtime::pool::close(conversation_id);
-    for (id, _, _) in &rows {
+    for (id, _) in &rows {
         lifecycle::delete(app, id).await?;
-    }
-    if let Some((_, _, space_id)) = rows.first() {
-        let workspace = crate::spaces::agent_artifacts::workspace::session_directory(
-            app,
-            space_id,
-            conversation_id,
-        )
-        .map_err(|error| error.to_string())?;
-        crate::external_agents::artifacts::discard(&workspace)
-            .map_err(|error| error.to_string())?;
     }
     Ok(())
 }

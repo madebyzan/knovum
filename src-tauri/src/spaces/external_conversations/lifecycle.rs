@@ -37,8 +37,12 @@ fn workspace(
     space_id: &str,
     conversation_id: &str,
 ) -> Result<std::path::PathBuf, String> {
-    crate::spaces::agent_artifacts::workspace::session_directory(app, space_id, conversation_id)
-        .map_err(|error| error.to_string())
+    crate::spaces::agent_artifacts::workspace::desktop_agent_directory(
+        app,
+        space_id,
+        conversation_id,
+    )
+    .map_err(|error| error.to_string())
 }
 
 async fn record_publication_failure(

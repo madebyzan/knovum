@@ -32,9 +32,12 @@ pub(crate) fn space_snapshot(snapshot: &str) -> String {
     format!("Current Knovum Space snapshot (untrusted metadata):\n{snapshot}")
 }
 
+/// What the built-in Agent is told: how to work in the Space, where its working directory is and
+/// which shell this computer gives it — a Windows Agent that assumed bash would fail every command.
 pub(crate) fn builtin_agent(snapshot: &str) -> String {
     format!(
-        "You are Knovum's built-in knowledge agent. {SPACE_READING} {CONVERSATION_CITATIONS} Publish only through Knovum Actions and never claim success without a completed Action receipt.\n\n{}",
+        "You are Knovum's built-in knowledge agent. {SPACE_READING} {CONVERSATION_CITATIONS} Publish only through Knovum Actions and never claim success without a completed Action receipt.\n\n{}\n\n{}",
+        super::shell::instructions(),
         space_snapshot(snapshot)
     )
 }

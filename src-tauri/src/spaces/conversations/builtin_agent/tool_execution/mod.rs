@@ -2,15 +2,17 @@ use serde_json::{json, Value};
 
 pub(in crate::spaces::conversations) mod child;
 mod media;
+mod recorded;
 mod routing;
 
 use crate::{
     agent_runtime::protocol::tools::{AgentToolInvocation, AgentToolOutcome},
+    extensions::contracts::AgentToolBinding,
     spaces::{
         actions::{self, ActionInvocationOutcome, ActionInvocationRequest},
         conversations::{
             execution::gateway::{tool_key, Gateway},
-            tool_operations,
+            tool_operations::{self, ToolTarget},
         },
         db,
     },
@@ -26,14 +28,42 @@ pub(in crate::spaces::conversations) async fn invoke(
         &call.graph_namespace,
     )?;
     super::identity::ensure_active(&context.pool, &context.ids.run_id).await?;
-    if context
-        .extensions
-        .tools
-        .iter()
-        .any(|tool| tool.name == call.name)
-    {
-        return super::super::extensions::invoke_builtin(context, call).await;
+    let source = &context
+        .catalog
+        .binding_by_wire_name
+        .get(&call.name)
+        .ok_or("agent-tool-not-selected")?
+        .source;
+    match source {
+        AgentToolBinding::SpaceAction { .. } => action(context, call).await,
+        AgentToolBinding::Command => {
+            let workspace = crate::spaces::agent_artifacts::workspace::builtin_agent_directory(
+                &context.app,
+                &context.request.space_id,
+                &context.ids.conversation_id,
+            )
+            .map_err(|error| error.to_string())?;
+            recorded::invoke(context, call, ToolTarget::Command { workspace }).await
+        }
+        AgentToolBinding::McpTool { .. }
+        | AgentToolBinding::McpReadResource { .. }
+        | AgentToolBinding::McpGetPrompt { .. } => {
+            let tool = context
+                .extensions
+                .tools
+                .iter()
+                .find(|tool| tool.name == call.name)
+                .ok_or("agent-mcp-tool-not-selected")?;
+            let target = ToolTarget::Mcp {
+                snapshot: &context.extensions,
+                tool,
+            };
+            recorded::invoke(context, call, target).await
+        }
     }
+}
+
+async fn action(context: &Gateway, call: AgentToolInvocation) -> Result<Value, String> {
     let definition = context.catalog.action(&call.name)?;
     if call.checkpoint_id.is_empty() {
         return Err("builtin-agent-tool-intent-not-durable".into());

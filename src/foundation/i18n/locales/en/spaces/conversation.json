@@ -142,7 +142,12 @@
       "stop": "Stop task",
       "description": "The operation may have completed. Check the service before authorizing a retry."
     },
-    "attempt": "Attempt"
+    "attempt": "Attempt",
+    "command": {
+      "approval": "Allow this command?",
+      "unconfined": "It runs on your computer with your permissions, outside any sandbox. Check what it does before allowing it.",
+      "outcomeUnknown": "The command may have run. Check its effects before allowing it to run again."
+    }
   },
   "interactions": {
     "title": "External service needs input",

@@ -16,3 +16,10 @@ fn skill_discovery_is_asked_for_only_when_skills_are_selected() {
     assert!(!desktop_agent(false).contains("list_selected_skills"));
     assert!(desktop_agent(true).contains("list_selected_skills"));
 }
+
+#[test]
+fn the_builtin_agent_is_told_its_working_directory_and_this_computers_shell() {
+    let policy = builtin_agent("{}");
+    assert!(policy.contains(&super::super::shell::instructions()));
+    assert!(policy.ends_with(&space_snapshot("{}")));
+}

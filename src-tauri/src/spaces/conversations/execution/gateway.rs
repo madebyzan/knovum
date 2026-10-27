@@ -229,7 +229,7 @@ pub(in crate::spaces::conversations) fn require_tool(
     }
     let allowed = match name {
         "ls" | "read_file" | "glob" | "grep" | "compact_conversation" => true,
-        "write_file" | "edit_file" | "write_todos" | "task" => !research,
+        "write_file" | "edit_file" | "delete" | "write_todos" | "task" => !research,
         _ => false,
     };
     if allowed {

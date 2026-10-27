@@ -142,7 +142,12 @@
       "stop": "终止任务",
       "description": "操作可能已完成。请先检查服务状态，再授权重试。"
     },
-    "attempt": "尝试"
+    "attempt": "尝试",
+    "command": {
+      "approval": "允许运行这条命令？",
+      "unconfined": "它会以你的权限直接在这台电脑上运行，不在沙箱中。请确认它做什么后再允许。",
+      "outcomeUnknown": "命令可能已经运行过。请先检查它的影响，再允许重新运行。"
+    }
   },
   "interactions": {
     "title": "外部服务需要输入",

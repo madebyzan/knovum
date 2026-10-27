@@ -13,7 +13,7 @@ def test_graph_identity_matches_manifest_lock_and_installed_sdks() -> None:
     lock = tomllib.loads((root / "uv.lock").read_text())
     dependencies = manifest["project"]["dependencies"]
     packages = {package["name"]: package["version"] for package in lock["package"]}
-    expected = "knovum-agent-v1"
+    expected = "knovum-agent-v2"
     for name in ("deepagents", "langgraph"):
         pin = next(value.removeprefix(f"{name}==") for value in dependencies if value.startswith(f"{name}=="))
         assert packages[name] == pin

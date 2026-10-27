@@ -9,6 +9,7 @@ pub(crate) mod links;
 pub(crate) mod outputs;
 pub(crate) mod queries;
 mod repository;
+mod shell;
 pub(crate) mod tool_operations;
 mod tools;
 pub(crate) mod upload;

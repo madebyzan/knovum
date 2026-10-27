@@ -213,7 +213,7 @@ fn lease(runtime: Arc<Runtime>, binding_id: &str, continues: bool) -> Lease {
 /// A new runtime starts from an empty workspace: what the Agent wrote for an earlier runtime was
 /// published by its turns, and a new session does not know those files.
 async fn start(app: &AppHandle, wanted: &Wanted<'_>) -> Result<Runtime, String> {
-    let workspace = crate::spaces::agent_artifacts::workspace::session_directory(
+    let workspace = crate::spaces::agent_artifacts::workspace::desktop_agent_directory(
         app,
         wanted.space_id,
         wanted.conversation_id,

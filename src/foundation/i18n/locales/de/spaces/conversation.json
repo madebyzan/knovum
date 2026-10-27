@@ -142,7 +142,12 @@
       "stop": "Aufgabe stoppen",
       "description": "Der Vorgang ist möglicherweise abgeschlossen. Überprüfen Sie den Dienst, bevor Sie einen erneuten Versuch autorisieren."
     },
-    "attempt": "Versuch"
+    "attempt": "Versuch",
+    "command": {
+      "approval": "Diesen Befehl zulassen?",
+      "unconfined": "Er läuft auf deinem Computer mit deinen Berechtigungen, außerhalb jeder Sandbox. Prüfe, was er tut, bevor du ihn zulässt.",
+      "outcomeUnknown": "Der Befehl wurde möglicherweise ausgeführt. Prüfe seine Auswirkungen, bevor du eine erneute Ausführung zulässt."
+    }
   },
   "interactions": {
     "title": "Externer Service braucht Input",

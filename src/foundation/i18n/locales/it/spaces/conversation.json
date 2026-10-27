@@ -142,7 +142,12 @@
       "stop": "Interrompi attività",
       "description": "L'operazione potrebbe essere stata completata. Controllare il servizio prima di autorizzare un nuovo tentativo."
     },
-    "attempt": "Tentativo"
+    "attempt": "Tentativo",
+    "command": {
+      "approval": "Consentire questo comando?",
+      "unconfined": "Viene eseguito sul tuo computer con i tuoi permessi, fuori da qualsiasi sandbox. Verifica cosa fa prima di consentirlo.",
+      "outcomeUnknown": "Il comando potrebbe essere già stato eseguito. Verificane gli effetti prima di consentirne una nuova esecuzione."
+    }
   },
   "interactions": {
     "title": "Il servizio esterno necessita di input",

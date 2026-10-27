@@ -290,10 +290,29 @@ bounds it and reserving every call's full output limit against a fixed total rej
 answers. The Space snapshot is part of the system prompt, not Agent memory: it is authoritative
 state the host regenerates for every turn, while the SDK's memory middleware presents its sources as
 possibly stale files the Agent is invited to rewrite with `edit_file`, which would let output reach
-state outside a KnowledgeChangeSet. The harness exposes the filesystem tools
-the SDK's own middleware depends on (`ls`, `read_file`, `grep`, `glob` over offloaded results, plus
-`write_file`/`edit_file` as a scratch space under `/workspace`), planning and research — every tool
-schema is paid on every model call, so shell execution and deletion stay out.
+state outside a KnowledgeChangeSet.
+
+The built-in Agent works in a directory of its conversation
+(`agent_artifacts::workspace::builtin_agent_directory`): its file tools (`ls`, `read_file`, `grep`,
+`glob`, `write_file`, `edit_file`, `delete`) address it as `/` through deepagents'
+`FilesystemBackend` in virtual mode, so no path leaves it, and it keeps its files across the
+conversation's turns. It is the Agent's own: the user cannot open its files, so the Agent is told
+never to link them and publishes results through Actions. Branching or regenerating a turn does not
+roll the directory back — checkpoints hold the conversation, not the files.
+
+Commands run through `run_command`, a host tool: Knovum, not the Agent process, runs them
+(`conversations/shell`), so each command is a conversation tool operation like an MCP call —
+recorded before it runs, settled with a receipt that a replay returns instead of running the command
+again, `outcome_unknown` when the app stopped mid-command, and killed with every process it started
+when its Run stops. deepagents' own `execute` is never offered: it would run unrecorded and
+unapproved inside the Agent process. A command sees an allowlisted environment (deepagents'
+`inherit_env=False`, never provider keys) plus the login shell's `PATH`, gets no input, and every
+process it starts ends with it. On macOS it runs under Seatbelt — it reads anything, writes only
+the working directory and temporary directories, and reaches no network — so it runs as the Agent
+asks. Elsewhere it runs with the user's permissions, so its operation is created unapproved and the
+conversation asks the user, showing the command line, before it runs. The system prompt names the
+computer's system and shell — PowerShell on Windows, never bash — and whether commands are
+confined. The research subagent gets neither `delete` nor `run_command`.
 Answers cite what the Agent actually read. Every indexed passage a search or node read returns —
 through Space Actions for the built-in Agent or the `knovum` MCP server for desktop Agents — carries
 the Run's `cite` id (`C1`, `C2`, …), numbered once per Run in `spaces_run_citations` from the chunk

@@ -1,3 +1,12 @@
+//! Where Agents work on a Space conversation's behalf. A conversation owns one directory, and each
+//! kind of Agent works in its own directory inside it, because the two keep files differently: a
+//! desktop Agent's directory is an outbox that publication drains every turn, while the built-in
+//! Agent keeps its files across the conversation's turns. Sharing one directory would let each
+//! empty or publish the other's work.
+//!
+//! The conversation directory is the unit of ownership: it goes when the conversation is deleted,
+//! and the startup sweep drops any a conversation no longer claims.
+
 use std::path::PathBuf;
 
 use tauri::{AppHandle, Manager, Runtime};
@@ -20,12 +29,30 @@ pub(crate) fn space_directory<R: Runtime>(
     Ok(root(app)?.join(space.to_string()))
 }
 
-pub(crate) fn session_directory<R: Runtime>(
+pub(crate) fn conversation_directory<R: Runtime>(
     app: &AppHandle<R>,
     space_id: &str,
-    session_id: &str,
+    conversation_id: &str,
 ) -> AppResult<PathBuf> {
-    let session = uuid::Uuid::parse_str(session_id)
-        .map_err(|_| AppError::invalid("Agent session requires a valid session identifier"))?;
-    Ok(space_directory(app, space_id)?.join(session.to_string()))
+    let conversation = uuid::Uuid::parse_str(conversation_id)
+        .map_err(|_| AppError::invalid("Agent session requires a valid conversation identifier"))?;
+    Ok(space_directory(app, space_id)?.join(conversation.to_string()))
+}
+
+/// The working directory of a desktop Agent's runtime.
+pub(crate) fn desktop_agent_directory<R: Runtime>(
+    app: &AppHandle<R>,
+    space_id: &str,
+    conversation_id: &str,
+) -> AppResult<PathBuf> {
+    Ok(conversation_directory(app, space_id, conversation_id)?.join("desktop-agent"))
+}
+
+/// The built-in Agent's working directory: the root of its file tools and where its commands run.
+pub(crate) fn builtin_agent_directory<R: Runtime>(
+    app: &AppHandle<R>,
+    space_id: &str,
+    conversation_id: &str,
+) -> AppResult<PathBuf> {
+    Ok(conversation_directory(app, space_id, conversation_id)?.join("builtin-agent"))
 }

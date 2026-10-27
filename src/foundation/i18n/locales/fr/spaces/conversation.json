@@ -142,7 +142,12 @@
       "stop": "Arrêter la tâche",
       "description": "L’opération est peut-être terminée. Vérifiez le service avant d'autoriser une nouvelle tentative."
     },
-    "attempt": "Tentative"
+    "attempt": "Tentative",
+    "command": {
+      "approval": "Autoriser cette commande ?",
+      "unconfined": "Elle s'exécute sur votre ordinateur avec vos autorisations, hors de tout bac à sable. Vérifiez ce qu'elle fait avant de l'autoriser.",
+      "outcomeUnknown": "La commande s'est peut-être déjà exécutée. Vérifiez ses effets avant d'autoriser une nouvelle exécution."
+    }
   },
   "interactions": {
     "title": "Le service externe nécessite une contribution",

@@ -44,7 +44,7 @@ def test_business_child_interrupt_replays_one_durable_intent_after_reopening(tmp
             "research": [],
         }
         bind_script(monkeypatch, scripts)
-        value = request_value()
+        value = request_value(tmp_path)
         value["tools"] = [
             {
                 "name": "knovum_generate_image_v1",

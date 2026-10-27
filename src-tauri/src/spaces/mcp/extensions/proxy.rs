@@ -1,6 +1,6 @@
 use super::super::{support::mcp_error, SpaceMcpServer};
 use crate::spaces::{
-    conversations::tool_operations::{self, ToolInvocation, ToolInvocationOutcome},
+    conversations::tool_operations::{self, ToolInvocation, ToolInvocationOutcome, ToolTarget},
     db, runs,
 };
 use rmcp::{
@@ -51,7 +51,6 @@ pub(super) async fn invoke_value(
         let outcome = tool_operations::invoke(
             &server.app,
             pool,
-            snapshot,
             ToolInvocation {
                 run_id: &turn.run_id,
                 intent_id: &intent,
@@ -60,7 +59,7 @@ pub(super) async fn invoke_value(
                 graph_namespace: None,
                 checkpoint_id: None,
                 message_id: None,
-                tool,
+                tool: ToolTarget::Mcp { snapshot, tool },
                 arguments: arguments.clone(),
             },
         )

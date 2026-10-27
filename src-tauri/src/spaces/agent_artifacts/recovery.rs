@@ -19,7 +19,7 @@ pub async fn discard_orphaned_workspaces(app: &AppHandle) -> Result<(), String> 
 }
 
 /// Live Space ids, each with the conversations allowed to keep a workspace inside it. Both are in
-/// the canonical form `workspace::session_directory` names directories by.
+/// the canonical form `workspace::conversation_directory` names directories by.
 type Owners = HashMap<String, HashSet<String>>;
 
 async fn owners(pool: &sqlx::SqlitePool) -> Result<Owners, String> {
@@ -72,8 +72,8 @@ fn sweep(root: &Path, owners: &Owners) -> Result<(), String> {
     Ok(())
 }
 
-/// A session directory belongs to its Space while the conversation it was made for exists; files
-/// beside the sessions are not workspaces and are left alone.
+/// A conversation directory belongs to its Space while the conversation exists; files
+/// beside the conversations are not workspaces and are left alone.
 fn sweep_sessions(space: &Path, sessions: &HashSet<String>) -> Result<(), String> {
     for entry in std::fs::read_dir(space).map_err(|error| error.to_string())? {
         let entry = entry.map_err(|error| error.to_string())?;

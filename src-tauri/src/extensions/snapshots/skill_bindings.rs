@@ -74,6 +74,6 @@ fn mcp_identity(binding: &AgentToolBinding) -> Option<(&str, &str)> {
         AgentToolBinding::McpGetPrompt { connection_id, .. } => {
             Some((connection_id, "prompts/get"))
         }
-        AgentToolBinding::SpaceAction { .. } => None,
+        AgentToolBinding::SpaceAction { .. } | AgentToolBinding::Command => None,
     }
 }

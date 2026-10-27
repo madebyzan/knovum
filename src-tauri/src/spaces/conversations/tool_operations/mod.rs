@@ -3,11 +3,13 @@ mod decisions;
 pub(crate) mod interactions;
 pub(crate) mod intervention;
 pub(crate) mod local_actions;
-mod mcp;
 pub(super) mod media;
+mod operation;
 mod receipts;
-pub(crate) use mcp::{invoke, ToolInvocation, ToolInvocationOutcome};
+mod target;
+pub(crate) use operation::{invoke, ToolInvocation, ToolInvocationOutcome};
 use serde_json::Value;
+pub(crate) use target::ToolTarget;
 
 pub(in crate::spaces) struct LocalActionOperationOutcome {
     pub id: String,

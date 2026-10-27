@@ -44,6 +44,18 @@ pub fn project() -> Result<ToolCatalog, String> {
             },
         );
     }
+    let command = super::shell::definition();
+    if !names.insert(command.name.clone()) {
+        return Err("tool-schema-invalid: deterministic tool name collision".into());
+    }
+    binding_by_wire_name.insert(
+        command.name.clone(),
+        CatalogToolBinding {
+            source: crate::extensions::contracts::AgentToolBinding::Command,
+            read_only: false,
+        },
+    );
+    tools.push(command);
     let encoded = serde_json::to_vec(&tools).map_err(|error| error.to_string())?;
     Ok(ToolCatalog {
         tools,

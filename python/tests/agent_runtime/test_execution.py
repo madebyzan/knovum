@@ -17,7 +17,7 @@ from knovum_agent_runtime.execution import Execution
 from knovum_agent_runtime.transport import wire_value
 
 
-def request_value() -> dict[str, Any]:
+def request_value(workspace: Path) -> dict[str, Any]:
     return {
         "identity": {"runId": "run-1", "threadId": "thread-1", "executionRevision": "revision-1", "controlEpoch": 0},
         "model": {
@@ -38,12 +38,13 @@ def request_value() -> dict[str, Any]:
         "resume": None,
         "skills": [],
         "skillToolBindings": {},
+        "workspace": str(workspace),
     }
 
 
 @pytest.mark.parametrize("field", ["plan", "research"])
 def test_runtime_rejects_obsolete_composition_switches(field: str) -> None:
-    value = request_value()
+    value = request_value(Path("workspace"))
     value[field] = True
     with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
         AgentExecute.model_validate_json(json.dumps(value))
@@ -109,7 +110,7 @@ def test_production_composition_streams_commits_and_does_not_replay_accepted_inp
             monkeypatch.setattr("knovum_agent_runtime.composition.create_model", model)
             host = Host()
             async with AsyncSqliteSaver.from_conn_string(str(tmp_path / "checkpoints.db")) as saver:
-                execute = AgentExecute.model_validate_json(json.dumps(request_value()))
+                execute = AgentExecute.model_validate_json(json.dumps(request_value(tmp_path)))
                 observation = await Execution(execute, saver, host).run()
                 assert observation.state.value == "completed"
                 assert [value["text"] for _, value in host.notifications] == ["answer"]
@@ -119,7 +120,7 @@ def test_production_composition_streams_commits_and_does_not_replay_accepted_inp
                 assert [message["text"] for message in projected] == ["answer"]
                 assert len(requests) == 1
                 assert "write_todos" in {tool["function"]["name"] for tool in requests[0]["tools"]}
-                replay = request_value()
+                replay = request_value(tmp_path)
                 replay["afterCheckpointId"] = observation.checkpoint_id
                 await Execution(AgentExecute.model_validate_json(json.dumps(replay)), saver, host).run()
                 assert len(requests) == 1
