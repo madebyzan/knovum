@@ -17,7 +17,6 @@ const { session, actions, project } = editor;
 
 <template>
   <section
-    v-if="active"
     ref="editorRoot"
     class="absolute inset-0 z-60 flex min-h-0 flex-col bg-surface-canvas"
     data-video-editor
