@@ -16,15 +16,15 @@ import {
   loadConversationBranchMessages,
   renameConversation,
 } from "./conversation-ipc";
+import type { ConversationSelectionOptions } from "./conversation-selection";
 
 interface ConversationActionState {
   selected: ComputedRef<Conversation | undefined>;
-  selectedId: ShallowRef<string>;
   messages: ShallowRef<ConversationMessage[]>;
   loading: ShallowRef<boolean>;
   prompt: ShallowRef<string>;
   refresh: () => Promise<void>;
-  select: (conversationId: string) => Promise<void>;
+  select: (conversationId: string, options?: ConversationSelectionOptions) => Promise<void>;
   send: () => Promise<void>;
 }
 
@@ -41,7 +41,7 @@ export function createConversationActions(state: ConversationActionState) {
     const conversation = state.selected.value;
     if (!conversation) return;
     await archiveConversation(conversation.id);
-    clearSelection();
+    await state.select("");
     await state.refresh();
   }
 
@@ -49,7 +49,7 @@ export function createConversationActions(state: ConversationActionState) {
     const conversation = state.selected.value;
     if (!conversation) return;
     await unarchiveConversation(conversation.id);
-    clearSelection();
+    await state.select("");
     await state.refresh();
   }
 
@@ -66,7 +66,8 @@ export function createConversationActions(state: ConversationActionState) {
     });
     if (!confirmed) return;
     await deleteConversation(conversation.id);
-    clearSelection();
+    // The draft went with the Conversation; there is nothing left to remember it into.
+    await state.select("", { rememberDraft: false });
     await state.refresh();
   }
 
@@ -129,11 +130,6 @@ export function createConversationActions(state: ConversationActionState) {
     } catch (cause) {
       toast.error(getErrorMessage(cause));
     }
-  }
-
-  function clearSelection() {
-    state.selectedId.value = "";
-    state.messages.value = [];
   }
 
   async function adoptBranch(conversationId: string, branchId: string) {

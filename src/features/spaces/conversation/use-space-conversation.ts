@@ -125,7 +125,6 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   );
   const conversationActions = createConversationActions({
     selected: selectedConversation,
-    selectedId: selectedConversationId,
     messages,
     loading: task.loading,
     prompt,

@@ -1,5 +1,5 @@
 import { watchDebounced } from "@vueuse/core";
-import { onScopeDispose, shallowRef, type Ref } from "vue";
+import { onScopeDispose, shallowRef, watch, type Ref } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { AgentExtensionSelection } from "../../../shared/contracts/generated/AgentExtensionSelection";
@@ -26,15 +26,19 @@ export function useConversationDraftPersistence(input: ConversationDraftPersiste
     extensions: input.extensions,
     reacquireFileNames,
   });
+  // A save reports on the draft it saved: one that settles after the composer has moved to
+  // another Conversation says nothing about the draft now on screen.
   async function persist() {
+    const owner = session.ownerEpoch();
     try {
       await session.remember();
-      error.value = undefined;
+      if (session.ownerEpoch() === owner) error.value = undefined;
     } catch (cause) {
-      error.value = getErrorMessage(cause);
+      if (session.ownerEpoch() === owner) error.value = getErrorMessage(cause);
       throw cause;
     }
   }
+  watch([input.spaceId, input.conversationId], () => (error.value = undefined), { flush: "sync" });
   const unregister = registerSpaceSessionParticipant({ phase: "persistence", commit: persist });
   onScopeDispose(() => {
     session.invalidate();

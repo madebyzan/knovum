@@ -99,4 +99,36 @@ describe("conversation draft persistence", () => {
     expect(state.attachments.value).toEqual([]);
     expect(state.persistence.reacquireFileNames.value).toEqual(["lost.pdf"]);
   });
+
+  it("never shows a failed save of a draft the composer has already left", async () => {
+    drafts.load.mockResolvedValue(undefined);
+    const state = setup();
+    await state.persistence.session.restore("conversation");
+    const rejected = deferred<void>();
+    drafts.save.mockReturnValueOnce(rejected.promise);
+    state.prompt.value = "typed into a Conversation being deleted";
+    await vi.advanceTimersByTimeAsync(300);
+
+    state.conversationId.value = "";
+    await state.persistence.session.restore("");
+    rejected.reject(new Error("conversation-draft-unavailable"));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(state.persistence.error.value).toBeUndefined();
+    state.scope.stop();
+  });
+
+  it("clears a draft error once the composer shows another Conversation", async () => {
+    drafts.load.mockResolvedValue(undefined);
+    const state = setup();
+    await state.persistence.session.restore("conversation");
+    drafts.save.mockRejectedValueOnce(new Error("conversation-draft-invalid"));
+    state.prompt.value = "too large";
+    await vi.advanceTimersByTimeAsync(300);
+    expect(state.persistence.error.value).toBe("conversation-draft-invalid");
+
+    state.conversationId.value = "";
+    expect(state.persistence.error.value).toBeUndefined();
+    state.scope.stop();
+  });
 });
