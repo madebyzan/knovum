@@ -16,7 +16,7 @@ export function useVideoProjectSave(session: VideoSession, active: Readonly<Ref<
     dirty: session.history.dirty,
     saving: session.saving,
     error: session.error,
-    edits: session.project,
+    edits: [session.project],
     write: async () => {
       const node = session.node.value;
       const snapshot = session.project.value;

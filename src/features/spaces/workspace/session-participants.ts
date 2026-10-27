@@ -4,11 +4,11 @@ export interface SpaceSessionParticipant {
   phase?: "content" | "layout" | "persistence";
   resume?(): void;
   suspend?(): void;
-  editorOwner?: { spaceId: string; tabId: string; commitOnSwitch: boolean };
+  /** The editor tab whose work this participant stores. */
+  editorOwner?: { spaceId: string; tabId: string };
 }
 
 export interface SessionCommitScope {
-  purpose: "switch" | "close";
   spaceIds?: readonly string[];
   tabIds?: readonly string[];
 }
@@ -34,10 +34,9 @@ export async function flushSpaceSessionContent(scope?: SessionCommitScope) {
   finalizeParticipants(selected);
 }
 
-export async function prepareEditorSessionClose(scope: Omit<SessionCommitScope, "purpose">) {
+export async function prepareEditorSessionClose(scope: SessionCommitScope) {
   const selected = snapshotSpaceSessionParticipants().filter(
-    (participant) =>
-      participant.editorOwner && includesParticipant(participant, { ...scope, purpose: "close" }),
+    (participant) => participant.editorOwner && includesParticipant(participant, scope),
   );
   await prepareParticipants(selected);
   return () => finalizeParticipants(selected);
@@ -61,8 +60,7 @@ function includesParticipant(participant: SpaceSessionParticipant, scope: Sessio
   const owner = participant.editorOwner;
   if (!owner) return !scope.tabIds;
   if (scope.spaceIds && !scope.spaceIds.includes(owner.spaceId)) return false;
-  if (scope.tabIds && !scope.tabIds.includes(owner.tabId)) return false;
-  return scope.purpose === "close" || owner.commitOnSwitch;
+  return !scope.tabIds || scope.tabIds.includes(owner.tabId);
 }
 
 async function prepareParticipants(selected: readonly SpaceSessionParticipant[]) {

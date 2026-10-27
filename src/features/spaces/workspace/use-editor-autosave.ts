@@ -18,7 +18,7 @@ interface EditorAutosaveOptions {
   saving: Ref<boolean>;
   error: Readonly<Ref<"missing" | "conflict" | undefined>>;
   /** Edits that schedule the next write. */
-  edits: WatchSource | readonly WatchSource[];
+  edits: WatchSource[];
   /** Stores the session's current work once; rejects when it could not be stored. */
   write(): Promise<void>;
   suspend?(): void;
@@ -59,7 +59,7 @@ export function useEditorAutosave(options: EditorAutosaveOptions) {
   const autosave = useDebounceFn(() => {
     void persist().catch((error: unknown) => toast.error(getErrorMessage(error)));
   }, 1000);
-  watch(options.edits as WatchSource[], () => {
+  watch(options.edits, () => {
     if (options.active.value) autosave();
   });
   watch(options.active, (visible) => {
@@ -68,7 +68,7 @@ export function useEditorAutosave(options: EditorAutosaveOptions) {
   });
 
   const detach = registerSpaceSessionParticipant({
-    editorOwner: { spaceId: options.tab.spaceId, tabId: options.tab.id, commitOnSwitch: true },
+    editorOwner: { spaceId: options.tab.spaceId, tabId: options.tab.id },
     commit: async () => {
       do {
         // oxlint-disable-next-line eslint/no-await-in-loop -- Drain edits admitted during the preceding write before leaving.

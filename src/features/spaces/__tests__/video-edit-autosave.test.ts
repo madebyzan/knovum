@@ -78,7 +78,7 @@ it("stores what remains when its Space is left, without asking", async () => {
   const { session, edited } = openVideoEdit();
   session.history.commit(edited);
 
-  await flushSpaceSessionCommits(undefined, { purpose: "switch", spaceIds: ["origin"] });
+  await flushSpaceSessionCommits(undefined, { spaceIds: ["origin"] });
 
   expect(store.saveNodeContentForSpace).toHaveBeenCalledOnce();
   expect(session.node.value.data.videoEditProject).toEqual(edited);

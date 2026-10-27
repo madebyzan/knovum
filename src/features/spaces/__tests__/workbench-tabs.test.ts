@@ -7,7 +7,6 @@ import {
   prepareEditorSessionClose,
   registerSpaceSessionParticipant,
 } from "../workspace/session-participants";
-import { transitionActiveSpaceSession } from "../workspace/space-transition";
 import {
   closeOtherWorkbenchTabs,
   closeWorkbenchTab,
@@ -28,10 +27,10 @@ function sessionWithNotes(...nodeIds: string[]) {
   return context;
 }
 
-function registerEditor(tabId: string, commitOnSwitch: boolean, commit: () => Promise<void>) {
+function registerEditor(tabId: string, commit: () => Promise<void>) {
   onTestFinished(
     registerSpaceSessionParticipant({
-      editorOwner: { spaceId: "inbox", tabId, commitOnSwitch },
+      editorOwner: { spaceId: "inbox", tabId },
       commit,
     }),
   );
@@ -80,8 +79,8 @@ it("closes the active tab to its right neighbour without preparing another edito
   selectWorkbenchTab(context, a.id);
   const saveA = vi.fn<() => Promise<void>>().mockResolvedValue();
   const saveB = vi.fn<() => Promise<void>>().mockResolvedValue();
-  registerEditor(a.id, true, saveA);
-  registerEditor(b.id, false, saveB);
+  registerEditor(a.id, saveA);
+  registerEditor(b.id, saveB);
 
   await closeWorkbenchTab(context, a.id);
 
@@ -90,37 +89,18 @@ it("closes the active tab to its right neighbour without preparing another edito
   expect(context.activeTabId.value).toBe(b.id);
 });
 
-it("commits documents on navigation without requesting a video close decision", async () => {
-  const context = createTestSessionContext();
-  const document = activateTestEditor(context, "document", "document");
-  const video = activateTestEditor(context, "video", "video");
-  const save = vi.fn<() => Promise<void>>().mockResolvedValue();
-  const close = vi.fn<() => Promise<void>>().mockRejectedValue(new ApplicationLeaveCancelled());
-  registerEditor(document.id, true, save);
-  registerEditor(video.id, false, close);
-
-  await activateWorkbenchTab(context, document.id);
-
-  expect(save).toHaveBeenCalledOnce();
-  expect(close).not.toHaveBeenCalled();
-  await expect(transitionActiveSpaceSession(context, async () => {}, "close")).rejects.toBeInstanceOf(
-    ApplicationLeaveCancelled,
-  );
-  expect(context.editorTabs.value).toHaveLength(2);
-});
-
 it("does not finalize an earlier discard when a later editor cancels batch close", async () => {
   const discard = vi.fn<() => void>();
   onTestFinished(
     registerSpaceSessionParticipant({
-      editorOwner: { spaceId: "space", tabId: "first", commitOnSwitch: false },
+      editorOwner: { spaceId: "space", tabId: "first" },
       commit: async () => {},
       finalize: discard,
     }),
   );
   onTestFinished(
     registerSpaceSessionParticipant({
-      editorOwner: { spaceId: "space", tabId: "second", commitOnSwitch: false },
+      editorOwner: { spaceId: "space", tabId: "second" },
       commit: async () => {
         throw new ApplicationLeaveCancelled();
       },
@@ -136,7 +116,7 @@ it("retains the active tab and its list when its save fails", async () => {
   const context = createTestSessionContext();
   const tab = activateTestEditor(context, "document", "a");
   const failure = new Error("disk full");
-  registerEditor(tab.id, true, async () => {
+  registerEditor(tab.id, async () => {
     throw failure;
   });
 

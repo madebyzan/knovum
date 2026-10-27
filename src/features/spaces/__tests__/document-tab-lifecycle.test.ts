@@ -69,7 +69,7 @@ it("does not count an editability change as an edit, so leaving a tab writes not
   await nextTick();
 
   expect(session.dirty.value).toBe(false);
-  await flushSpaceSessionCommits(undefined, { purpose: "switch", spaceIds: [session.tab.spaceId] });
+  await flushSpaceSessionCommits(undefined, { spaceIds: [session.tab.spaceId] });
   expect(mocks.store.saveNodeContentForSpace).not.toHaveBeenCalled();
 });
 

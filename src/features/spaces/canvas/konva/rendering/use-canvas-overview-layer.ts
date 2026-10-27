@@ -1,3 +1,4 @@
+import { warn as logWarn } from "@tauri-apps/plugin-log";
 import Konva from "konva";
 import { onScopeDispose, watch, type Ref } from "vue";
 
@@ -61,8 +62,10 @@ export function useCanvasOverviewLayer(options: CanvasOverviewLayerOptions) {
         entry.group.getLayer()?.batchDraw();
         return undefined;
       })
-      // A preview that cannot be decoded leaves the node drawn without it.
-      .catch(() => undefined);
+      // A preview that cannot be decoded leaves the node drawn without it, as a node that has none.
+      .catch(
+        (error: unknown) => void logWarn(`Canvas overview could not load a preview image: ${String(error)}`),
+      );
   }
 
   function drawingOf(sceneNode: CanvasSceneNode, previews: ReadonlyMap<string, CanvasNodeLayoutV1>) {
