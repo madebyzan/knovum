@@ -11,8 +11,18 @@ pub async fn system_path() -> AppResult<String> {
     std::env::var("PATH").map_err(|_| AppError::internal("PATH is not available to Knovum"))
 }
 
+/// The PATH a Terminal would have. A Finder-launched app inherits launchd's bare PATH, so the
+/// login shell is asked — once per app session, as editors resolve the shell environment: the
+/// login shell sources the user's profile, which costs every Agent launch the profile's start-up
+/// time when asked again each time. A failed read is not kept, so the next launch asks again.
 #[cfg(target_os = "macos")]
 async fn login_shell_path() -> AppResult<String> {
+    static PATH: tokio::sync::OnceCell<String> = tokio::sync::OnceCell::const_new();
+    PATH.get_or_try_init(read_login_shell_path).await.cloned()
+}
+
+#[cfg(target_os = "macos")]
+async fn read_login_shell_path() -> AppResult<String> {
     const SHELL_PATH_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(3);
     let shell = std::env::var("SHELL")
         .map_err(|_| AppError::internal("The macOS login shell is not available to Knovum"))?;

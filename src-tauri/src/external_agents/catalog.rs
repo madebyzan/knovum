@@ -10,6 +10,14 @@ pub(super) enum AcpLaunch {
     Server,
 }
 
+/// The npm adapters the Node-adapter Agents run through, pinned to exact versions. `npx`
+/// resolves a tag such as `@latest` against the registry on every launch — a network round
+/// trip before every answer — while an exact version already in its cache starts offline. The
+/// pin is also what `trusted_session_mode` was checked against: an adapter that renames its
+/// session modes reaches users only with the release that updates both.
+pub(super) const CODEX_ADAPTER: &str = "@agentclientprotocol/codex-acp@2.3.0";
+pub(super) const CLAUDE_ADAPTER: &str = "@agentclientprotocol/claude-agent-acp@0.97.0";
+
 impl AcpLaunch {
     pub const fn trusted_session_mode(self) -> Option<&'static str> {
         match self {
