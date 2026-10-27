@@ -54,3 +54,20 @@ fn an_imported_markdown_node_keeps_the_revision_it_has() {
     let data = from_import(markdown(Some("sha256:abc"))).unwrap();
     assert_eq!(data["sourceRevision"], "sha256:abc");
 }
+
+#[test]
+fn an_imported_resource_node_omits_what_the_file_does_not_have() {
+    let mut asset = markdown(None);
+    asset.kind = AssetKind::File;
+    asset.name = "deck.pptx".into();
+    asset.path = Some("/assets/import-1/deck.pptx".into());
+    asset.text = None;
+    asset.size = Some(42);
+    assert_eq!(
+        from_import(asset).unwrap(),
+        serde_json::json!({
+            "kind":"file", "title":"deck.pptx", "fileName":"deck.pptx",
+            "assetPath":"/assets/import-1/deck.pptx", "size":42,
+        })
+    );
+}
