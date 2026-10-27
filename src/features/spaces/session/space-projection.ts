@@ -12,12 +12,15 @@ import { sceneSchema } from "../scenes/schema/scene";
 
 const sessionSceneSchema = sceneSchema.extend({ thumbnailPath: z.string().nullable() });
 
-export async function loadSpaceSessionProjection(spaceId: string): Promise<{
+/** What a Space session shows: its nodes, scenes and relations at one edit revision. */
+export interface SpaceSessionContent {
   nodes: SpaceCanvasNode[];
   scenes: SpaceScene[];
   relations: SpaceRelation[];
   editSnapshot: SpaceEditSnapshot;
-}> {
+}
+
+export async function loadSpaceSessionProjection(spaceId: string): Promise<SpaceSessionContent> {
   const record = await invokeCommand<SpaceSessionProjection>("plugin:spaces|load_space_session_projection", {
     spaceId,
   });

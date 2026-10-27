@@ -30,7 +30,7 @@ export function createSpaceSessionContext(
     surface: state.surface,
     editors,
     history: state.history,
-    runtime: { openGeneration: 0, historyBySpace: new Map() },
+    runtime: { openGeneration: 0, retained: new Map() },
     navigationHistory: state.navigationHistory,
     navigationIndex: state.navigationIndex,
   };

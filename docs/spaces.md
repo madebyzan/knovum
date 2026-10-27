@@ -16,7 +16,13 @@ editor or a video editor; editor tabs identify a concrete Space-owned node and e
 reopening that target activates its existing tab instead of creating a second one. The active
 surface is a readonly projection of the active tab and the navigation destination, never a second
 writable editor selector. A Space session stays loaded while at least one tab references it, and is
-released once the last one closes. The library is an application navigation destination and
+released once the last one closes. While another Space is active, an open Space retains the content
+it last showed and its undo history (`workspace/retained-space-sessions.ts`), so returning to it
+shows that content without a projection read. Work may have published into it meanwhile, so the
+return then revalidates it in the background through the same reload as a publication: a read that
+a local edit overlapped is read again once the session is idle, and only changed content is
+replaced. Each Space's camera is likewise held by the canvas view-state store, which writes it in
+order, so a returning canvas mounts at its camera without waiting on storage. The library is an application navigation destination and
 preserves the active tab while hidden.
 
 Tabs preserve drafts and editor history when switching tabs, Spaces, the library or Settings.

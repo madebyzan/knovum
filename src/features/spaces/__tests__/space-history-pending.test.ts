@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import { ref } from "vue";
 
 import { createSpaceHistoryState } from "../history/history-state";
 import {
@@ -8,8 +7,10 @@ import {
   waitForSpaceMutations,
 } from "../history/mutation-barrier";
 import { recordSpaceHistory, redoSpaceHistory, undoSpaceHistory } from "../history/stack";
-import { switchSpaceHistory } from "../workspace/session-history";
-import type { SpaceSessionContext } from "../workspace/space-session-context";
+import { emptySpaceContent, switchSpaceSession } from "../workspace/retained-space-sessions";
+import { findSpaceCanvasTab } from "../workspace/workbench-tab";
+import { selectWorkbenchTab } from "../workspace/workbench-tab-state";
+import { createTestSessionContext, openTestSpaceTab } from "./support/session-context";
 
 describe("space history pending mutations", () => {
   it("does not start undo while a canvas mutation is pending", async () => {
@@ -60,28 +61,27 @@ describe("space history pending mutations", () => {
   });
 
   it("restores each open Space's undo stack after tab switches", async () => {
-    const { history } = createSpaceHistoryState();
+    const context = createTestSessionContext({ activeSpaceId: "space-a" });
+    const { history } = context;
     const undoA = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     const undoB = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
-    const activeSpaceId = ref("space-a");
-    const context = {
-      activeSpaceId,
-      history,
-      runtime: { openGeneration: 0, historyBySpace: new Map() },
-    } as unknown as SpaceSessionContext;
+    const enter = (spaceId: string) => {
+      switchSpaceSession(context, spaceId, emptySpaceContent());
+      const tab = findSpaceCanvasTab(context.tabs.value, spaceId);
+      if (tab) selectWorkbenchTab(context, tab.id);
+      else openTestSpaceTab(context, spaceId);
+    };
 
     recordSpaceHistory(history, { undo: undoA, redo: async () => {} });
-    switchSpaceHistory(context, "space-b");
-    activeSpaceId.value = "space-b";
+    enter("space-b");
     recordSpaceHistory(history, { undo: undoB, redo: async () => {} });
-    switchSpaceHistory(context, "space-a");
-    activeSpaceId.value = "space-a";
+    enter("space-a");
 
     await undoSpaceHistory(history);
     expect(undoA).toHaveBeenCalledOnce();
     expect(undoB).not.toHaveBeenCalled();
 
-    switchSpaceHistory(context, "space-b");
+    enter("space-b");
     expect(history.undoStack).toHaveLength(1);
     await undoSpaceHistory(history);
     expect(undoB).toHaveBeenCalledOnce();
