@@ -161,6 +161,7 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::spaces::conversations::ConversationTaskUpdate::export_all,
         crate::spaces::conversations::ConversationTaskFinishedState::export_all,
         crate::spaces::conversations::ConversationMessage::export_all,
+        crate::spaces::conversations::links::ConversationLink::export_all,
         crate::spaces::structure::edit_contract::ExecuteSpaceEditRequest::export_all,
         crate::spaces::structure::edit_contract::SpaceEditReceipt::export_all,
         crate::spaces::structure::editor_protection::SpaceEditorResource::export_all,

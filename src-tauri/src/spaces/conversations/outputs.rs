@@ -41,6 +41,7 @@ pub(crate) async fn collect(
                     .as_str()
                     .ok_or("Conversation output has no node title")?
                     .to_owned(),
+                workspace_path: None,
             })
         })
         .collect()

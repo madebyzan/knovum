@@ -1,6 +1,6 @@
 import MarkdownIt, { type MarkdownIt as MarkdownItInstance, type StateCore, type Token } from "markdown-it";
 
-import { isExternalLink } from "../contracts/external-link";
+import { linkDestination } from "../contracts/link-destination";
 
 /**
  * Citation markers an answer may carry, keyed by index: `true` when the cited
@@ -25,28 +25,31 @@ function citationHtml(meta: CitationMeta | undefined): string {
     : `<span class="ui-citation" data-citation-detached="">${meta.index}</span>`;
 }
 
-/**
- * A link is rendered only where following it leads somewhere. Any other destination — a path in an
- * Agent's working directory, a relative URL — keeps its label as text.
- */
-function unlinkInternalDestinations(state: StateCore): void {
-  for (const block of state.tokens) {
-    if (block.children) block.children = withoutInternalLinks(block.children);
-  }
+export interface MarkdownRendererOptions {
+  /** Keeps links to local files, for a surface that can follow them. */
+  localLinks?: boolean;
 }
 
-function withoutInternalLinks(tokens: Token[]): Token[] {
-  let internal = false;
+/**
+ * A link is rendered only where following it leads somewhere; any other keeps its label as text.
+ * Markdown links do not nest, so one flag tracks the link being read.
+ */
+function withoutDeadLinks(tokens: Token[], localLinks: boolean): Token[] {
+  let dead = false;
   return tokens.filter((token) => {
-    if (token.type === "link_open") internal = !isExternalLink(String(token.attrGet("href") ?? ""));
-    else if (token.type !== "link_close") return true;
-    const kept = !internal;
-    if (token.type === "link_close") internal = false;
+    if (token.type === "link_open") {
+      const destination = linkDestination(String(token.attrGet("href") ?? ""));
+      dead = !(destination === "external" || (destination === "local" && localLinks));
+    } else if (token.type !== "link_close") return true;
+    const kept = !dead;
+    if (token.type === "link_close") dead = false;
     return kept;
   });
 }
 
-export function createMarkdownRenderer(): MarkdownItInstance {
+export function createMarkdownRenderer({
+  localLinks = false,
+}: MarkdownRendererOptions = {}): MarkdownItInstance {
   const md = new MarkdownIt({
     html: false,
     linkify: true,
@@ -56,7 +59,11 @@ export function createMarkdownRenderer(): MarkdownItInstance {
   // Only text that spells out its scheme is a link: a fuzzy domain match turns file names into
   // hosts — `README.md` is in Moldova, `main.rs` in Serbia.
   md.linkify.set({ fuzzyLink: false });
-  md.core.ruler.push("unlink_internal_destinations", unlinkInternalDestinations);
+  md.core.ruler.push("unlink_dead_destinations", (state: StateCore) => {
+    for (const block of state.tokens) {
+      if (block.children) block.children = withoutDeadLinks(block.children, localLinks);
+    }
+  });
   md.inline.ruler.before("link", "citation", (state, silent) => {
     const citations = (state.env as CitationEnvironment | undefined)?.citations;
     if (!citations || state.src.charCodeAt(state.pos) !== 0x5b) return false;

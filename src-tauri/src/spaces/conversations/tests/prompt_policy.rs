@@ -16,9 +16,3 @@ fn skill_discovery_is_asked_for_only_when_skills_are_selected() {
     assert!(!desktop_agent(false).contains("list_selected_skills"));
     assert!(desktop_agent(true).contains("list_selected_skills"));
 }
-
-#[test]
-fn a_deliverable_is_named_never_linked_by_a_working_directory_path() {
-    // A path link outlives nothing: publication empties the directory it points into.
-    assert!(desktop_agent(false).contains("never link or print its path"));
-}

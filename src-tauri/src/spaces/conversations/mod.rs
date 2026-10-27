@@ -5,6 +5,7 @@ mod contracts;
 mod execution;
 pub(in crate::spaces) mod extensions;
 mod external_agent;
+pub(crate) mod links;
 pub(crate) mod outputs;
 pub(crate) mod queries;
 mod repository;

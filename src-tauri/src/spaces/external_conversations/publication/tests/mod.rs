@@ -28,7 +28,14 @@ async fn fixture() -> sqlx::SqlitePool {
     pool
 }
 
-fn output(id: &str, kind: &str) -> InsertNode {
+fn output(id: &str, kind: &str) -> super::super::staging::StagedOutput {
+    super::super::staging::StagedOutput {
+        node: insert_node(id, kind),
+        workspace_path: format!("{id}.md"),
+    }
+}
+
+fn insert_node(id: &str, kind: &str) -> InsertNode {
     InsertNode {
         id: id.into(),
         kind: kind.into(),
@@ -71,6 +78,8 @@ async fn publishes_nodes_message_and_run_in_one_commit() {
     assert_eq!(publication.3, 1);
     let message: Value = serde_json::from_str(&publication.1).unwrap();
     assert_eq!(message["outputs"][0]["nodeId"], "report");
+    // The answer links the file where the Agent wrote it; the link follows it to the node.
+    assert_eq!(message["outputs"][0]["workspacePath"], "report.md");
 }
 
 #[tokio::test]
@@ -102,7 +111,7 @@ async fn invalid_output_rolls_back_all_publication_state() {
 async fn existing_agent_created_node_is_attached_without_duplicate_import() {
     let pool = fixture().await;
     let mut tx = db::begin_write(&pool).await.unwrap();
-    let mut node = output("mcp-note", "markdown");
+    let mut node = insert_node("mcp-note", "markdown");
     crate::spaces::knowledge::validation::normalize_node(
         &mut tx,
         "space",
@@ -160,7 +169,7 @@ async fn context_attachment_does_not_assert_derivation() {
             space_id: "space".into(),
             mutation_id: "source-create".into(),
             target_parent_id: None,
-            nodes: vec![output("source", "markdown")],
+            nodes: vec![insert_node("source", "markdown")],
         },
         None,
     )

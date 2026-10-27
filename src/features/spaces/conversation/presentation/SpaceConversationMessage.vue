@@ -4,7 +4,9 @@ import { useTimeoutFn } from "@vueuse/core";
 import { writeText } from "tauri-plugin-clipboard-api";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
@@ -13,6 +15,7 @@ import {
   type GroundedCitation,
 } from "../../knowledge/model/schema/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
+import { followConversationLink } from "../conversation-links";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
 import SpaceConversationOutputs from "./SpaceConversationOutputs.vue";
 
@@ -50,6 +53,14 @@ function openCitation(citation: GroundedCitation | undefined) {
   });
 }
 
+async function followLink(href: string) {
+  try {
+    await followConversationLink(props.message.id, href);
+  } catch (error) {
+    toast.error(getErrorMessage(error));
+  }
+}
+
 async function copyMessage() {
   try {
     await writeText(messageText.value);
@@ -85,8 +96,10 @@ async function copyMessage() {
           v-if="part.type === 'text' && part.text.trim()"
           :content="part.text"
           :citations="citationMarkers"
+          local-links
           class="wrap-break-word"
           @cite="openCitation(citations.find((citation) => citation.index === $event))"
+          @link="followLink"
         />
         <p v-else-if="part.type === 'binary'" class="text-caption text-fg-secondary">
           {{ part.name || part.mediaType }}

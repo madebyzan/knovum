@@ -102,8 +102,26 @@ fn parse(row: sqlx::sqlite::SqliteRow) -> Result<ContextMessage, String> {
     })
 }
 
+/// A canvas node a past message names. History hands the Agent current nodes, never the paths
+/// files once had.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ResourceReference {
+    node_id: String,
+    title: String,
+    kind: String,
+}
+
 fn resource_references(message: super::ConversationMessageContent) -> String {
-    let outputs = message.outputs;
+    let outputs = message
+        .outputs
+        .into_iter()
+        .map(|output| ResourceReference {
+            node_id: output.node_id,
+            title: output.title,
+            kind: output.kind,
+        })
+        .collect::<Vec<_>>();
     let attachments = message
         .attachments
         .into_iter()
@@ -113,7 +131,7 @@ fn resource_references(message: super::ConversationMessageContent) -> String {
                 title,
                 kind,
                 ..
-            } => Some(super::ConversationMessageOutput {
+            } => Some(ResourceReference {
                 node_id,
                 title,
                 kind,

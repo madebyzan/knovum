@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useTemplateRef, type HTMLAttributes } from "vue";
 
+import { linkDestination } from "../contracts/link-destination";
 import { cn } from "./cn";
 import type { MarkdownCitations } from "./markdown-renderer";
 import { useMarkdownPaint } from "./use-markdown-paint";
@@ -10,16 +11,28 @@ const props = defineProps<{
   content: string;
   /** Renders `[Cn]` markers whose index is listed as citation buttons. */
   citations?: MarkdownCitations;
+  /** Keeps links to local files and reports a press on one through `link`; read once, at mount. */
+  localLinks?: boolean;
   class?: HTMLAttributes["class"];
 }>();
-const emit = defineEmits<{ cite: [index: number] }>();
+const emit = defineEmits<{ cite: [index: number]; link: [href: string] }>();
 
 const root = useTemplateRef<HTMLDivElement>("root");
-useMarkdownPaint(root, () => ({ content: props.content, citations: props.citations }));
+useMarkdownPaint(root, () => ({ content: props.content, citations: props.citations }), {
+  localLinks: props.localLinks,
+});
 
-function openCitation(event: MouseEvent) {
-  const target = event.target instanceof Element ? event.target.closest("[data-citation-index]") : null;
-  if (target) emit("cite", Number(target.getAttribute("data-citation-index")));
+function press(event: MouseEvent) {
+  const target = event.target instanceof Element ? event.target : null;
+  const citation = target?.closest("[data-citation-index]");
+  if (citation) {
+    emit("cite", Number(citation.getAttribute("data-citation-index")));
+    return;
+  }
+  const href = target?.closest("a[href]")?.getAttribute("href");
+  if (!props.localLinks || !href || linkDestination(href) !== "local") return;
+  event.preventDefault();
+  emit("link", href);
 }
 </script>
 
@@ -27,7 +40,7 @@ function openCitation(event: MouseEvent) {
   <div
     ref="root"
     :class="cn('ui-markdown text-body leading-relaxed select-text', props.class)"
-    @click="openCitation"
+    @click="press"
   />
 </template>
 

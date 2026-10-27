@@ -93,7 +93,7 @@ async fn commit(
     conversation_id: &str,
     run_id: &str,
     space_id: &str,
-    outputs: &[InsertNode],
+    outputs: &[super::staging::StagedOutput],
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), AppError> {
     let mut tx = db::begin_write(pool).await?;
@@ -127,12 +127,13 @@ async fn commit(
         .await?;
         for output in outputs {
             references.push(ConversationMessageOutput {
-                node_id: output.id.clone(),
-                title: output.data["title"]
+                node_id: output.node.id.clone(),
+                title: output.node.data["title"]
                     .as_str()
                     .ok_or("Agent output has no node title")?
                     .to_owned(),
-                kind: output.kind.clone(),
+                kind: output.node.kind.clone(),
+                workspace_path: Some(output.workspace_path.clone()),
             });
         }
     }
@@ -209,7 +210,7 @@ async fn insert_outputs(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     principal_id: &str,
-    outputs: &[InsertNode],
+    outputs: &[super::staging::StagedOutput],
     sources: &[String],
     now: i64,
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
@@ -224,12 +225,15 @@ async fn insert_outputs(
         DerivedOutputs {
             sources,
             reserved: &[],
-            sizes: outputs.iter().map(requested_size).collect(),
+            sizes: outputs
+                .iter()
+                .map(|output| requested_size(&output.node))
+                .collect(),
         },
     )
     .await?;
     for (output, cell) in outputs.iter().zip(&cells) {
-        let mut node = output.clone();
+        let mut node = output.node.clone();
         node.initial_x = cell.x;
         node.initial_y = cell.y;
         crate::spaces::knowledge::validation::normalize_node(

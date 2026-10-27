@@ -39,6 +39,11 @@ pub struct ConversationMessageOutput {
     pub node_id: String,
     pub title: String,
     pub kind: String,
+    /// Where the Agent wrote the deliverable, relative to its working directory: the destination
+    /// its answer links to. Publication empties that directory, so a link follows this to the node
+    /// the file became. Absent for what an Agent made through Space Actions, which has no file.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workspace_path: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, TS)]

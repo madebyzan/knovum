@@ -69,11 +69,21 @@ The window shows the app and nothing else. `desktop::navigation` refuses every n
 the app's one page (routing lives in the fragment), its asset protocol, or an `about:`/`blob:`/`data:`
 document — for every frame, whatever a page does. The origin alone is not enough: a path link resolves
 against it, and following one replaced the app with a page that could not load. In the renderer,
-`app/link-policy.ts` gives every link one meaning: an external one (`shared/contracts/external-link.ts`:
-web or mail) opens in the system's handler, any other goes nowhere; a component that gives a link its
-own meaning prevents the click's default first, and a link in editable text belongs to its editor.
-Rendered Markdown links only external destinations and keeps any other link's label as text, and links
-bare text only when it spells out its scheme, so file names never become hosts.
+`shared/contracts/link-destination.ts` names where a link leads: `external` (web or mail), `local`
+(a file path), or nowhere (an anchor, another scheme). `app/link-policy.ts` opens an external link in
+the system's handler and leaves every other one going nowhere; a surface that can follow a local link
+handles the click and prevents its default first, and a link in editable text belongs to its editor.
+Rendered Markdown links external destinations, keeps local ones only for a surface that follows them
+(`UiMarkdown` `local-links`), keeps any other link's label as text, and links bare text only when it
+spells out its scheme, so file names never become hosts.
+
+A conversation follows a local link in a persisted message through `follow_conversation_link`
+(`spaces/conversations/links`): a file opens in its system application, and only one Knovum can vouch
+for — a deliverable the Agent wrote in its working directory (publication empties it, so the path is
+followed through the published output's `workspacePath` to the node the file became, on the turn that
+wrote it), a file the Space manages, or a file the user handed Knovum. A deliverable that became a
+Knovum document has no file of its own and opens the way the canvas opens it. Any other path is
+refused as `conversation_link_unavailable`: an Agent's word grants no file access.
 
 External desktop Agent installation, updates, and sign-in remain user- or vendor-owned. Detection
 returns a validated descriptor for a platform CLI, Node adapter, or standalone ACP server; it does not

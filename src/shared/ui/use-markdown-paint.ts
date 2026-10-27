@@ -1,6 +1,10 @@
 import { watchEffect, type ShallowRef } from "vue";
 
-import { createMarkdownRenderer, type MarkdownCitations } from "./markdown-renderer";
+import {
+  createMarkdownRenderer,
+  type MarkdownCitations,
+  type MarkdownRendererOptions,
+} from "./markdown-renderer";
 import { createMarkdownStream, type MarkdownFrame } from "./markdown-stream";
 
 interface MarkdownSource {
@@ -18,8 +22,9 @@ interface MarkdownSource {
 export function useMarkdownPaint(
   root: Readonly<ShallowRef<HTMLElement | null>>,
   source: () => MarkdownSource,
+  options: MarkdownRendererOptions = {},
 ) {
-  const md = createMarkdownRenderer();
+  const md = createMarkdownRenderer(options);
   let citations: MarkdownCitations | undefined;
   let render = createMarkdownStream(md);
   let painted = 0;
