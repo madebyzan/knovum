@@ -11,7 +11,7 @@ import type { SpaceSessionContext } from "./space-session-context";
 import { referencedSpaceIds } from "./workbench-tab";
 import { discardSpaceWorkbenchTabs } from "./workbench-tab-state";
 
-export interface SpaceSessionSwitch {
+interface SpaceSessionSwitch {
   /** Applies the next Space session synchronously, so no render observes a mixed projection. */
   apply(): void;
   /** Whether the session shows content it retained, which work may have changed since. */

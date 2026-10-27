@@ -38,7 +38,7 @@ export interface SpaceSessionContext extends SpaceWorkbenchTabState {
  * history. Returning to it shows that content at once; it is then revalidated in the background,
  * because work may have published into the Space meanwhile. Released with the Space's last tab.
  */
-export interface RetainedSpaceSession {
+interface RetainedSpaceSession {
   content: SpaceSessionContent;
   undoStack: readonly ReversibleSpaceChange[];
   redoStack: readonly ReversibleSpaceChange[];
