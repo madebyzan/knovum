@@ -103,7 +103,7 @@
     "copy": "Nachricht kopieren",
     "copied": "Kopiert",
     "copyFailed": "Die Nachricht konnte nicht kopiert werden. Versuchen Sie es erneut.",
-    "new": "Zum Neuesten springen ↓",
+    "new": "Zum Neuesten springen",
     "loadOlder": "Frühere Nachrichten laden"
   },
   "regenerate": "Regenerieren",

@@ -103,7 +103,7 @@
     "copy": "复制消息",
     "copied": "已复制",
     "copyFailed": "复制失败，请重试。",
-    "new": "回到最新 ↓",
+    "new": "回到最新",
     "loadOlder": "加载更早消息"
   },
   "regenerate": "重新生成",

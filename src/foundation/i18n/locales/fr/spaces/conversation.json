@@ -103,7 +103,7 @@
     "copy": "Copier le message",
     "copied": "Copié",
     "copyFailed": "Impossible de copier le message. Essayer à nouveau.",
-    "new": "Aller au dernier ↓",
+    "new": "Aller au dernier",
     "loadOlder": "Charger les messages antérieurs"
   },
   "regenerate": "Régénérer",
