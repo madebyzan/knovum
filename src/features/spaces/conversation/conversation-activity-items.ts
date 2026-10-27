@@ -28,7 +28,7 @@ const progressPayload = z.strictObject({
 });
 export type ToolProgress = Omit<z.infer<typeof progressPayload>, "toolCallId">;
 type ToolPayload = z.infer<typeof toolPayload>;
-export type ToolStatus = NonNullable<ToolPayload["status"]>;
+type ToolStatus = NonNullable<ToolPayload["status"]>;
 type ToolLabels = { action: (actionId: string) => string; default: string };
 
 const toolEvents = new Set<RunEvent["kind"]>([
