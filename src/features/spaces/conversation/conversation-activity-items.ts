@@ -6,7 +6,7 @@ import type { RunEvent } from "../contracts/generated/RunEvent";
 export type ActivityItem = {
   id: string;
   title: string;
-  status: string;
+  status: ToolStatus;
   context?: unknown;
   output?: unknown;
   outputName?: string;
@@ -28,6 +28,7 @@ const progressPayload = z.strictObject({
 });
 export type ToolProgress = Omit<z.infer<typeof progressPayload>, "toolCallId">;
 type ToolPayload = z.infer<typeof toolPayload>;
+export type ToolStatus = NonNullable<ToolPayload["status"]>;
 type ToolLabels = { action: (actionId: string) => string; default: string };
 
 const toolEvents = new Set<RunEvent["kind"]>([
@@ -36,6 +37,19 @@ const toolEvents = new Set<RunEvent["kind"]>([
   "conversation_tool_started",
   "conversation_tool_finished",
 ]);
+
+/** The call is still under way. */
+export function isRunning({ status }: ActivityItem) {
+  return status === "pending" || status === "in_progress";
+}
+
+/**
+ * The call did not end well: it failed, its outcome is unknown, or the run stopped while it was
+ * still under way. While the run is producing, a call under way is simply running.
+ */
+export function isUnfinished(item: ActivityItem, active: boolean) {
+  return item.status === "failed" || item.status === "outcome_unknown" || (!active && isRunning(item));
+}
 
 /** The call a ledger event reports on, when it is a tool event in the vocabulary this reads. */
 function toolPayloadOf(event: RunEvent): ToolPayload | undefined {
@@ -60,7 +74,7 @@ function toolOutputs(messages: readonly ConversationMessage[], runId: string) {
   return outputByCallId;
 }
 
-function toolStatus(event: RunEvent, payload: ToolPayload, previous: ActivityItem | undefined) {
+function toolStatus(event: RunEvent, payload: ToolPayload, previous: ActivityItem | undefined): ToolStatus {
   return (
     payload.status ??
     (event.kind === "conversation_tool_finished" ? "completed" : (previous?.status ?? "in_progress"))

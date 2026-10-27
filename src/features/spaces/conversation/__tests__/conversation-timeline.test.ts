@@ -3,7 +3,12 @@ import { describe, expect, it } from "vitest";
 import { conversationToolItems } from "../conversation-activity-items";
 import { conversationTimeline } from "../conversation-timeline";
 import { recordLiveUpdate, recordedTranscript, type LiveTranscript } from "../conversation-transcript";
-import { recordedAgentRun, recordedBuiltinRun } from "./support/conversation-transcripts";
+import {
+  recordedAgentRun,
+  recordedBuiltinRun,
+  runEvent,
+  toolResult,
+} from "./support/conversation-transcripts";
 
 const labels = { action: (actionId: string) => actionId, default: "Tool" };
 
@@ -48,7 +53,7 @@ describe("conversation timeline", () => {
 
     expect(shape(blocks)).toEqual([
       { text: "I'll look it up.", key: "text:0" },
-      { tools: ["search", "node"], key: "tools:search" },
+      { tools: ["search", "node"], key: "tools:0" },
       { text: "Found three notes." },
     ]);
     expect(blocks.at(-1)).toMatchObject({ kind: "answer", final: true });
@@ -116,9 +121,36 @@ describe("conversation timeline", () => {
     ]);
     expect(shape(after)).toEqual([
       { text: "Looking.", key: "text:0" },
-      { tools: ["search"], key: "tools:search" },
+      { tools: ["search"], key: "tools:0" },
       { text: "Done.", key: "text:1" },
     ]);
+  });
+
+  it("keeps a group of calls made together the same group when they settle in another order", () => {
+    // Calls made together are reported as each one starts and stored as each one returns; the
+    // group must not be renamed by that, or the person's open group would close when the run ends.
+    const { messages, answers } = recordedBuiltinRun();
+    const [first, , answer] = messages;
+    const events = [
+      runEvent("conversation_tool_started", { toolCallId: "search", title: "search" }, 1),
+      runEvent("conversation_tool_started", { toolCallId: "node", title: "node" }, 2),
+      runEvent("conversation_tool_finished", { toolCallId: "node", status: "completed" }, 3),
+      runEvent("conversation_tool_finished", { toolCallId: "search", status: "completed" }, 4),
+    ];
+    const stored = [
+      first!,
+      toolResult("node-result", "node"),
+      toolResult("search-result", "search"),
+      answer!,
+    ];
+    const tools = conversationToolItems({ events, messages: stored, runId: "run", labels });
+    const live = stream(delta("Checking the notes."), tool("search"), tool("node"));
+    const settled = recordedTranscript({ runId: "run", events, messages: stored, answers }, tools.keys());
+    const groups = (steps: Parameters<typeof conversationTimeline>[0]) =>
+      shape(conversationTimeline(steps, tools)).filter((block) => "tools" in block);
+
+    expect(groups(live)).toEqual([{ tools: ["search", "node"], key: "tools:0" }]);
+    expect(groups(settled)).toEqual(groups(live));
   });
 
   it("places a built-in call with no result yet after everything recorded", () => {

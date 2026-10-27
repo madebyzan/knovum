@@ -2,7 +2,7 @@
 import { Check, ChevronRight, Circle } from "@lucide/vue";
 import { computed } from "vue";
 
-import type { ActivityItem } from "../conversation-activity-items";
+import { isUnfinished, type ActivityItem } from "../conversation-activity-items";
 import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 import SpaceConversationToolActivity from "./SpaceConversationToolActivity.vue";
 
@@ -16,14 +16,7 @@ const props = defineProps<{
 // The group is closed until the person opens it, and then only they close it. It never opens
 // or closes by itself: a list that unfolds for each call and folds when the call ends moves
 // everything below it twice per tool.
-const unfinished = computed(() =>
-  props.items.some(
-    (item) =>
-      item.status === "outcome_unknown" ||
-      item.status === "failed" ||
-      (!props.active && (item.status === "pending" || item.status === "in_progress")),
-  ),
-);
+const unfinished = computed(() => props.items.some((item) => isUnfinished(item, props.active)));
 </script>
 
 <template>

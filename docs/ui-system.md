@@ -867,7 +867,11 @@ follows the answer that called it. Both are recorded in the order the Agent prod
 run reads back with the shape it had live, and the stream is dropped only once both the stored
 answers and the ledger have loaded. Content only ever arrives at the end; nothing on screen moves
 when a tool starts, ends, or the run settles. What a call is — title, status, context, result — is
-read from the ledger by call id in every case; the stream only says where it happened.
+read from the ledger by call id in every case; the stream only says where it happened. Blocks are
+keyed by their place in the transcript (the n-th words, the n-th group), never by a call: calls made
+together reach the stream as they start and are stored as they return, and a group named by its
+first call would be renamed — and close — when the run settles. A group lists its calls in ledger
+order, live and settled alike.
 
 A tool group is closed until the person opens it, and only they close it again. It never opens for
 a call and folds when the call ends: that moved everything below it twice per tool. While the run

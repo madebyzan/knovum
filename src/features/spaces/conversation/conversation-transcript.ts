@@ -30,6 +30,13 @@ function appendText(transcript: LiveTranscript, text: string): LiveTranscript {
     : [...transcript, { kind: "text", text }];
 }
 
+/** A call is placed where it was first reported; later reports about it change nothing here. */
+function appendTool(transcript: LiveTranscript, id: string): LiveTranscript {
+  return transcript.some((step) => step.kind === "tool" && step.id === id)
+    ? transcript
+    : [...transcript, { kind: "tool", id }];
+}
+
 /** The live transcript after one update from the stream. */
 export function recordLiveUpdate(transcript: LiveTranscript, update: ConversationTaskUpdate): LiveTranscript {
   switch (update.type) {
@@ -43,9 +50,7 @@ export function recordLiveUpdate(transcript: LiveTranscript, update: Conversatio
         : transcript;
     }
     case "tool_started":
-      return transcript.some((step) => step.kind === "tool" && step.id === update.tool_call_id)
-        ? transcript
-        : [...transcript, { kind: "tool", id: update.tool_call_id }];
+      return appendTool(transcript, update.tool_call_id);
     case "finished":
       return transcript;
   }
@@ -69,8 +74,7 @@ function agentTranscript(events: readonly RunEvent[], answers: readonly Conversa
     const text = event.kind === "external_agent_message" ? textPayload.safeParse(event.payload) : undefined;
     const toolCallId = toolCallIdOf(event);
     if (text?.success) steps = appendText(steps, text.data.text);
-    else if (toolCallId !== undefined)
-      steps = recordLiveUpdate(steps, { type: "tool_started", tool_call_id: toolCallId });
+    else if (toolCallId !== undefined) steps = appendTool(steps, toolCallId);
   }
   const lastTool = steps.findLastIndex((step) => step.kind === "tool");
   return [

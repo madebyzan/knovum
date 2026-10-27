@@ -154,9 +154,10 @@ impl Gateway {
         .await
     }
 
-    /// Marks where in the streamed answer a tool was called. Deltas and invocations arrive over
-    /// the one runtime connection in the order the Agent produced them, so the mark lands
-    /// between the words that led to the call and the words that follow it.
+    /// Marks where in the streamed answer a tool was called. The words that led to the call were
+    /// streamed before the Agent asked for it, and the words that follow belong to its next step,
+    /// which begins only once the call has returned — after this mark, which precedes the call.
+    /// Calls made together may be marked in any order; the screen orders a group by the ledger.
     fn announce_tool(&self, tool_call_id: &str) {
         if let Some(channel) = &self.updates {
             let _ = channel.send(ConversationTaskUpdate::ToolStarted {

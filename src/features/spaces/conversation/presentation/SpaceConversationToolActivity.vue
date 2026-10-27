@@ -4,7 +4,12 @@ import { ref } from "vue";
 import { z } from "zod";
 
 import { useSpaceStore } from "../../session/space-store";
-import type { ActivityItem, ToolProgress } from "../conversation-activity-items";
+import {
+  isRunning,
+  isUnfinished,
+  type ActivityItem,
+  type ToolProgress,
+} from "../conversation-activity-items";
 import SpaceConversationSearchMatches from "./SpaceConversationSearchMatches.vue";
 import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 defineProps<{ item: ActivityItem; active: boolean }>();
@@ -56,24 +61,15 @@ function toggleTool(event: Event) {
           : ''
       "
     >
-      <Circle
-        v-if="
-          item.status === 'failed' ||
-          item.status === 'outcome_unknown' ||
-          (!active && (item.status === 'in_progress' || item.status === 'pending'))
-        "
-        class="size-3.5 shrink-0 text-fg-danger"
-      />
+      <Circle v-if="isUnfinished(item, active)" class="size-3.5 shrink-0 text-fg-danger" />
       <Check v-else-if="item.status === 'completed'" class="size-3.5 shrink-0 text-fg-tertiary" />
       <Wrench v-else class="size-3.5 shrink-0 text-fg-secondary" />
-      <SpaceConversationShimmerText
-        v-if="active && (item.status === 'in_progress' || item.status === 'pending')"
-        class="min-w-0 truncate"
-        >{{ item.title }}</SpaceConversationShimmerText
-      >
+      <SpaceConversationShimmerText v-if="active && isRunning(item)" class="min-w-0 truncate">{{
+        item.title
+      }}</SpaceConversationShimmerText>
       <span v-else class="min-w-0 flex-1 truncate">{{ item.title }}</span>
       <span
-        v-if="active && item.progress && (item.status === 'in_progress' || item.status === 'pending')"
+        v-if="active && item.progress && isRunning(item)"
         role="status"
         class="min-w-0 shrink truncate text-fg-tertiary tabular-nums"
         >{{ formatProgress(item.progress) }}</span
