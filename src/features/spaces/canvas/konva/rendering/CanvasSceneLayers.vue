@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type Konva from "konva";
-import { watch, shallowRef, useTemplateRef } from "vue";
+import { computed, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import type { VueKonvaRef } from "vue-konva/core";
 
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
@@ -16,8 +16,9 @@ import CanvasInteractionFeedback from "./CanvasInteractionFeedback.vue";
 import CanvasNodeShape from "./CanvasNodeShape.vue";
 import CanvasRelationsLayer from "./CanvasRelationsLayer.vue";
 import CanvasSelectionTransformer from "./CanvasSelectionTransformer.vue";
+import { useCanvasOverviewLayer } from "./use-canvas-overview-layer";
 import type { CanvasPalette } from "./use-canvas-palette";
-import { useCanvasSceneLayerProjection } from "./use-canvas-scene-layer-projection";
+import { sceneNodesInPaintOrder, useCanvasSceneLayerProjection } from "./use-canvas-scene-layer-projection";
 
 function relayPointerDown(nodeId: string, event: Konva.KonvaEventObject<PointerEvent>) {
   emit("pointerDown", nodeId, event);
@@ -37,6 +38,8 @@ const props = defineProps<{
   zoom: number;
   stage?: Konva.Stage;
   visibleNodeIds: ReadonlySet<string>;
+  /** The visible nodes that mount their content; every other visible node is drawn as its overview. */
+  detailNodeIds: ReadonlySet<string>;
   visibleRelationIds: ReadonlySet<string>;
 }>();
 const emit = defineEmits<{
@@ -54,6 +57,19 @@ const emit = defineEmits<{
 }>();
 const transformingSelection = shallowRef(false);
 const interactionLayer = useTemplateRef<VueKonvaRef<Konva.Layer>>("interactionLayer");
+const overviewLayer = useTemplateRef<VueKonvaRef<Konva.Layer>>("overviewLayer");
+useCanvasOverviewLayer({
+  layer: computed(() => overviewLayer.value?.getNode()),
+  nodes: computed(() =>
+    sceneNodesInPaintOrder(
+      props.scene,
+      new Set([...props.visibleNodeIds].filter((id) => !props.detailNodeIds.has(id))),
+    ),
+  ),
+  layoutPreviewByNodeId: () => props.layoutPreviewByNodeId,
+  palette: toRef(props, "palette"),
+  zoom: toRef(props, "zoom"),
+});
 const {
   connectorNode,
   connectorTargetNode,
@@ -95,6 +111,7 @@ watch(interactionLayer, syncInteractionCanvas, { flush: "post" });
     :zoom="zoom"
     @pointer-down="(relationIds, event) => emit('relationPointerDown', relationIds, event)"
   />
+  <KonvaCanvasLayer ref="overviewLayer" :config="{ id: 'canvas-overview-layer', listening: false }" />
   <KonvaCanvasLayer :config="{ id: 'canvas-node-layer', listening: interactive }">
     <CanvasNodeShape
       :interactive="interactive"

@@ -3,6 +3,7 @@ import { effectScope, shallowRef } from "vue";
 
 import type { ProjectedSection } from "../canvas/document/structure-scene";
 import type { CanvasScene } from "../canvas/konva/scene/canvas-scene";
+import { NODE_DETAIL_MIN_ZOOM } from "../canvas/konva/scene/detail-level";
 import { projectCanvasScene } from "../canvas/konva/scene/scene-projection";
 import { useSceneVisibility } from "../canvas/konva/scene/use-scene-visibility";
 import { createCanvasCamera } from "../canvas/konva/viewport/canvas-camera";
@@ -158,4 +159,22 @@ it("draws lineage only while the selection explains it or it is selected itself"
     expect(visibility.visibleRelationIds.value).toEqual(new Set(["relation:lineage", "relation:meaning"]));
     expect([...visibility.selectedRelationIds.value]).toEqual(["relation:lineage"]);
   });
+});
+
+it("mounts content only where it is legible, keeping the node being edited", () => {
+  const activeNodeId = shallowRef<string>();
+  const scene = shallowRef(sceneOf(["first", "second"]));
+  const camera = createCanvasCamera({ x: 0, y: 0, zoom: NODE_DETAIL_MIN_ZOOM / 2 });
+  withVisibility({ activeNodeId, camera, scene }, (visibility) => {
+    expect([...visibility.visibleNodeIds.value]).toEqual(["first", "second"]);
+    expect([...visibility.visibleContentNodeIds.value]).toEqual([]);
+    activeNodeId.value = "second";
+    expect([...visibility.visibleContentNodeIds.value]).toEqual(["second"]);
+  });
+  withVisibility(
+    { scene, camera: createCanvasCamera({ x: 0, y: 0, zoom: NODE_DETAIL_MIN_ZOOM }) },
+    (visibility) => {
+      expect([...visibility.visibleContentNodeIds.value]).toEqual(["first", "second"]);
+    },
+  );
 });

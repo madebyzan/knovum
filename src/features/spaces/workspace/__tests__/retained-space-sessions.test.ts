@@ -89,3 +89,14 @@ it("releases a retained session with its Space's last tab", async () => {
 
   expect(repository.load).toHaveBeenCalledExactlyOnceWith("research");
 });
+
+it("keeps the object of every node a revalidation found unchanged", async () => {
+  const context = await withResearchRetained();
+  const [kept] = context.runtime.retained.get("research")!.content.nodes;
+  repository.load.mockResolvedValueOnce(content("research-note", "published-meanwhile"));
+  await openSpace(context, "research");
+  await flushPromises();
+
+  expect(context.nodes.value[0]).toBe(kept);
+  expect(shownNodeIds(context)).toEqual(["research-note", "published-meanwhile"]);
+});

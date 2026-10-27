@@ -747,6 +747,17 @@ settled camera clears at once; a pan into a dense region therefore mounts a few 
 batch inside one frame. The adapter document adopts the camera when it stops moving, which keeps camera
 motion out of document identity, projection and view-state persistence.
 
+Content mounts only where it is legible (`scene/detail-level.ts`): below `NODE_DETAIL_MIN_ZOOM` body text
+renders under about six pixels, so visible nodes keep their geometry and are drawn by the overview layer
+(`rendering/use-canvas-overview-layer.ts`) instead of mounting cards — the same reduced drawing
+(`overview/nodes.ts`) that renders Space covers, from one cache of downscaled preview bitmaps
+(`overview/assets.ts`). Opening, switching to or zooming out of a Space therefore mounts a number of cards
+bounded by the screen, not by the Space; the node being edited always keeps its content. The overview layer
+redraws a node only when its content, size, appearance, palette, label legibility or image changes, and
+otherwise only follows its frame. A canvas covered by another surface keeps its layout and its mounted
+cards and only stops painting (`visibility: hidden`), so returning to it rebuilds nothing and content that
+measures itself keeps measuring its real size.
+
 Settlement is the expensive edge of camera motion - it hands drawing back to the vendor, redraws every layer
 including the hit graph, and lets the document adopt the camera - so a gesture holds the camera open from its
 first event until it ends, and a pointer that rests mid-gesture never pays for it. A pan gesture additionally

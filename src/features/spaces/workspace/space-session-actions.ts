@@ -114,15 +114,28 @@ export async function refreshSpace(context: SpaceSessionContext) {
     projection = await loadSpaceSessionProjection(spaceId);
     if (generation !== context.runtime.openGeneration || context.activeSpaceId.value !== spaceId) return;
   } while (admitted !== spaceMutationAdmissions(context.history));
-  applyChanged(context.nodes, projection.nodes);
-  applyChanged(context.scenes, projection.scenes);
-  applyChanged(context.relations, projection.relations);
-  applyChanged(context.editSnapshot, projection.editSnapshot);
+  reconcileById(context.nodes, projection.nodes);
+  reconcileById(context.scenes, projection.scenes);
+  reconcileById(context.relations, projection.relations);
+  if (!isEqual(context.editSnapshot.value, projection.editSnapshot)) {
+    context.editSnapshot.value = projection.editSnapshot;
+  }
 }
 
-/** Keeps what the reload found identical, so unchanged content keeps its rendered identity. */
-function applyChanged<T>(target: Ref<T>, next: T) {
-  if (!isEqual(target.value, next)) target.value = next;
+/**
+ * Applies a reloaded list while keeping the object of every entry the reload found unchanged, so
+ * only what changed re-renders and caches keyed by content identity stay warm.
+ */
+function reconcileById<T extends { id: string }>(target: Ref<T[]>, next: readonly T[]) {
+  const currentById = new Map(target.value.map((entry) => [entry.id, entry]));
+  const reconciled = next.map((entry) => {
+    const current = currentById.get(entry.id);
+    return current && isEqual(current, entry) ? current : entry;
+  });
+  const unchanged =
+    reconciled.length === target.value.length &&
+    reconciled.every((entry, index) => entry === target.value[index]);
+  if (!unchanged) target.value = reconciled;
 }
 
 /** Releases the retained session of every Space the remaining tabs no longer reference. */

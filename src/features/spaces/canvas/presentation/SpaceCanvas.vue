@@ -120,12 +120,16 @@ const canvasEvents = createSpaceCanvasEvents({
 
 <template>
   <section
-    v-show="renderingEnabled"
     :inert="!renderingEnabled"
     ref="canvasRoot"
     class="relative h-full min-h-0 overflow-hidden bg-surface-canvas select-none"
+    :class="!renderingEnabled && 'invisible'"
     @pointerdown.capture="generators.release($event.target)"
   >
+    <!--
+      A covered canvas keeps its layout and its mounted content and only stops painting: returning to it
+      rebuilds nothing, and content that measures itself keeps measuring its real size.
+    -->
     <div
       v-if="lifecycle.error.value && !editorSession.activeEditor.value"
       class="pointer-events-none absolute inset-0 z-20 grid place-items-center p-6 text-fg-secondary"

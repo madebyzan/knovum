@@ -81,6 +81,8 @@ it("treats a Section-only canvas as populated and suspends hidden canvas input",
   await wrapper.setProps({ renderingEnabled: false });
   expect(host.props("interactionEnabled")).toBe(false);
   expect(wrapper.attributes("inert")).toBeDefined();
-  expect((wrapper.element as HTMLElement).style.display).toBe("none");
+  // A covered canvas stays laid out and mounted; it only stops painting.
+  expect((wrapper.element as HTMLElement).style.display).toBe("");
+  expect(wrapper.classes()).toContain("invisible");
   useCanvasToolStore().resetTool();
 });
