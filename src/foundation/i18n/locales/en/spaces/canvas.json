@@ -29,7 +29,8 @@
     "backward": "Send backward",
     "toBack": "Send to back",
     "autoHorizontal": "Auto layout (horizontal)",
-    "autoVertical": "Auto layout (vertical)"
+    "autoVertical": "Auto layout (vertical)",
+    "tidy": "Tidy up"
   },
   "layerOrder": "Layer ordering",
   "selection": {
@@ -56,12 +57,36 @@
     "fitToContents": "Fit section to contents",
     "untitled": "Untitled section",
     "collapse": "Collapse section",
-    "expand": "Expand section"
+    "expand": "Expand section",
+    "fill": {
+      "label": "Fill",
+      "none": "No fill"
+    },
+    "layout": {
+      "label": "Layout",
+      "auto": "Auto",
+      "manual": "Manual",
+      "autoHint": "Children wrap to fill the width; the height follows them"
+    },
+    "size": {
+      "label": "Size",
+      "custom": "Custom",
+      "width": "Width",
+      "height": "Height",
+      "lockRatio": "Lock aspect ratio",
+      "unlockRatio": "Unlock aspect ratio",
+      "autoHeight": "Auto layout sets the height from the content",
+      "presets": {
+        "a4": "A4",
+        "web": "Web"
+      }
+    }
   },
   "lock": "Lock",
   "locked": "Locked",
   "unlock": "Unlock",
   "align": {
+    "title": "Align",
     "left": "Left",
     "center": "Horizontal center",
     "right": "Right",

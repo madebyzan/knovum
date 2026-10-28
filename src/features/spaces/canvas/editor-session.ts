@@ -15,7 +15,6 @@ const EMPTY_SELECTION: CanvasSelectionSnapshot = {
   nodeIds: [],
   structureNodeIds: [],
   nodePlacements: [],
-  members: [],
   relationIds: [],
 };
 const selection = shallowRef<CanvasSelectionSnapshot>(EMPTY_SELECTION);

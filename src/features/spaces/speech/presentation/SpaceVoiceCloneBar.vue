@@ -90,7 +90,6 @@ watch(
       <ToolbarButton v-if="!form.reference" as-child>
         <UiButton
           :variant="reference.jobId ? 'ghost' : 'primary'"
-          size="sm"
           class="mx-1"
           :disabled="reference.jobId ? reference.isCancelling : !reference.canPrepare"
           :aria-label="referenceActionLabel"

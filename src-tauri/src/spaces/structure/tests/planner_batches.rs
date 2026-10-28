@@ -25,7 +25,7 @@ fn auto_layout_preserves_world_spacing_under_a_rotated_scaled_parent() {
     snapshot.layouts.reverse();
     let before_structure = serde_json::to_value(&snapshot.structure).unwrap();
     let command = serde_json::from_value(json!({
-        "kind":"structure.auto-layout","rootIds":["c2","c"],"direction":"right","gap":24
+        "kind":"structure.auto-layout","rootIds":["c2","c"],"flow":"row","gap":24
     }))
     .unwrap();
     plan(&command, &mut snapshot).unwrap();

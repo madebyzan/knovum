@@ -1,6 +1,6 @@
 import { createStructureIndex } from "../../model/structure/structure-index";
 import type { CanvasEditorPort } from "../contracts/canvas-editor-port";
-import { serializeCanvasAppearance } from "../schema/document";
+import { canvasAppearanceUpdate } from "../schema/document";
 import type { CanvasNodeAppearance } from "../schema/document";
 import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";
 import { createCanvasEditorSelection } from "./canvas-editor-selection";
@@ -47,12 +47,7 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
     nudgeSelection: (offset) => void options.nudgeSelection(offset).catch(options.onError),
     moveSelectionLayer: (direction) => report(executeForSelection({ kind: "structure.reorder", direction })),
     alignSelection: (edge) => executeForSelection({ kind: "structure.align", edge }),
-    autoLayoutSelection: (direction) =>
-      executeForSelection({
-        kind: "structure.auto-layout",
-        direction: direction === "RIGHT" ? "right" : "down",
-        gap: 32,
-      }),
+    autoLayoutSelection: (flow) => executeForSelection({ kind: "structure.auto-layout", flow, gap: 32 }),
     distributeSelection: (axis) => executeForSelection({ kind: "structure.distribute", axis }),
     selectAll: () => options.setSelection(options.selectableNodeIds()),
     zoomIn: () => zoomCanvasViewport(animatedNavigation, 1.2),
@@ -135,12 +130,11 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
       : undefined;
     if (!structureNodeId || layout?.kind !== "content")
       throw new Error(`Content layout is unavailable: ${nodeId}`);
-    const appearance = serializeCanvasAppearance({ ...layout.appearance, ...patch });
     report(
       options.onExecuteSpaceEdit({
         kind: "content.update-layout",
         structureNodeId,
-        appearance: Object.keys(appearance).length ? { kind: "set", value: appearance } : { kind: "clear" },
+        appearance: canvasAppearanceUpdate({ ...layout.appearance, ...patch }),
       }),
     );
   }
@@ -150,4 +144,8 @@ type AlignOrDistributeCommand =
   | { kind: "structure.align"; edge: Parameters<CanvasEditorPort["alignSelection"]>[0] }
   | { kind: "structure.distribute"; axis: Parameters<CanvasEditorPort["distributeSelection"]>[0] }
   | { kind: "structure.reorder"; direction: Parameters<CanvasEditorPort["moveSelectionLayer"]>[0] }
-  | { kind: "structure.auto-layout"; direction: "right" | "down"; gap: number };
+  | {
+      kind: "structure.auto-layout";
+      flow: Parameters<CanvasEditorPort["autoLayoutSelection"]>[0];
+      gap: number;
+    };

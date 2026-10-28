@@ -29,7 +29,8 @@
     "backward": "Rückwärts senden",
     "toBack": "Nach hinten senden",
     "autoHorizontal": "Auto-Layout (horizontal)",
-    "autoVertical": "Auto-Layout (vertikal)"
+    "autoVertical": "Auto-Layout (vertikal)",
+    "tidy": "Aufräumen"
   },
   "layerOrder": "Ebenenreihenfolge",
   "selection": {
@@ -59,12 +60,36 @@
     "fitToContents": "Abschnitt an Inhalt anpassen",
     "untitled": "Unbenannter Abschnitt",
     "collapse": "Abschnitt einklappen",
-    "expand": "Abschnitt erweitern"
+    "expand": "Abschnitt erweitern",
+    "fill": {
+      "label": "Füllung",
+      "none": "Keine Füllung"
+    },
+    "layout": {
+      "label": "Layout",
+      "auto": "Automatisch",
+      "manual": "Manuell",
+      "autoHint": "Inhalte umbrechen auf die Breite; die Höhe folgt ihnen"
+    },
+    "size": {
+      "label": "Größe",
+      "custom": "Benutzerdefiniert",
+      "width": "Breite",
+      "height": "Höhe",
+      "lockRatio": "Seitenverhältnis sperren",
+      "unlockRatio": "Seitenverhältnis entsperren",
+      "autoHeight": "Beim automatischen Layout ergibt sich die Höhe aus dem Inhalt",
+      "presets": {
+        "a4": "A4",
+        "web": "Web"
+      }
+    }
   },
   "lock": "Sperren",
   "locked": "Gesperrt",
   "unlock": "Entsperren",
   "align": {
+    "title": "Ausrichten",
     "left": "Links",
     "center": "Horizontale Mitte",
     "right": "Rechts",

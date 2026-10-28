@@ -19,6 +19,8 @@ const props = defineProps<{
   selected: string;
   labeled?: boolean;
   compact?: boolean;
+  /** The unlabeled trigger matches the bar it sits in. */
+  size?: "sm" | "md";
   columns?: 6;
 }>();
 const emit = defineEmits<{ select: [value: string] }>();
@@ -42,9 +44,10 @@ const selectedColor = computed(() => props.options.find(({ value }) => value ===
         />
         <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(Boolean(compact))]">{{ label }}</span>
       </UiButton>
-      <UiIconButton v-else :label="label" size="sm">
+      <UiIconButton v-else :label="label" :size="size ?? 'sm'">
         <span
-          class="size-4 rounded-full ring-1 ring-stroke-default"
+          class="rounded-full ring-1 ring-stroke-default"
+          :class="size === 'md' ? 'size-4.5' : 'size-4'"
           :style="{ backgroundColor: selectedColor }"
         />
       </UiIconButton>

@@ -8,7 +8,7 @@ use crate::spaces::{
 async fn sibling_reordering_preserves_the_active_order_constraint() {
     let pool = database().await;
     let mut tx = db::begin_write(&pool).await.unwrap();
-    let snapshot: repository::SpaceStructureSnapshot = serde_json::from_value(serde_json::json!({
+    let mut snapshot: repository::SpaceStructureSnapshot = serde_json::from_value(serde_json::json!({
         "structure":[
             {"kind":"section","id":"first","parentId":null,"order":0,"locked":false,"title":"First"},
             {"kind":"section","id":"second","parentId":null,"order":1,"locked":false,"title":"Second"}
@@ -18,7 +18,7 @@ async fn sibling_reordering_preserves_the_active_order_constraint() {
             {"kind":"section","structureNodeId":"second","position":{"x":0,"y":0},"size":{"width":300,"height":200},"collapsed":false}
         ], "relation_styles":[]
     })).unwrap();
-    repository::save_in_transaction(&mut tx, "space", 0, &snapshot)
+    repository::save_in_transaction(&mut tx, "space", 0, &mut snapshot)
         .await
         .unwrap();
     let mut reordered = snapshot;
@@ -27,7 +27,7 @@ async fn sibling_reordering_preserves_the_active_order_constraint() {
             *order = 1 - *order;
         }
     }
-    repository::save_in_transaction(&mut tx, "space", 1, &reordered)
+    repository::save_in_transaction(&mut tx, "space", 1, &mut reordered)
         .await
         .unwrap();
     let (loaded, _) = repository::load_in_transaction(&mut tx, "space")
@@ -49,10 +49,10 @@ async fn unchanged_snapshot_does_not_rewrite_structure_or_layouts() {
     sqlx::query("CREATE TABLE snapshot_writes(kind TEXT); CREATE TRIGGER structure_written AFTER UPDATE ON spaces_structure_nodes BEGIN INSERT INTO snapshot_writes VALUES('structure'); END; CREATE TRIGGER layout_written AFTER UPDATE ON spaces_structure_layouts BEGIN INSERT INTO snapshot_writes VALUES('layout'); END;")
         .execute(&pool).await.unwrap();
     let mut tx = db::begin_write(&pool).await.unwrap();
-    let (snapshot, revision) = repository::load_in_transaction(&mut tx, "space")
+    let (mut snapshot, revision) = repository::load_in_transaction(&mut tx, "space")
         .await
         .unwrap();
-    repository::save_in_transaction(&mut tx, "space", revision, &snapshot)
+    repository::save_in_transaction(&mut tx, "space", revision, &mut snapshot)
         .await
         .unwrap();
     let writes: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM snapshot_writes")
@@ -66,7 +66,7 @@ async fn unchanged_snapshot_does_not_rewrite_structure_or_layouts() {
     {
         *title = "Renamed".into();
     }
-    repository::save_in_transaction(&mut tx, "space", revision + 1, &renamed)
+    repository::save_in_transaction(&mut tx, "space", revision + 1, &mut renamed)
         .await
         .unwrap();
     let writes: Vec<String> = sqlx::query_scalar("SELECT kind FROM snapshot_writes")
@@ -79,7 +79,7 @@ async fn unchanged_snapshot_does_not_rewrite_structure_or_layouts() {
     {
         position.x = 50.0;
     }
-    repository::save_in_transaction(&mut tx, "space", revision + 2, &renamed)
+    repository::save_in_transaction(&mut tx, "space", revision + 2, &mut renamed)
         .await
         .unwrap();
     let writes: Vec<String> = sqlx::query_scalar("SELECT kind FROM snapshot_writes")

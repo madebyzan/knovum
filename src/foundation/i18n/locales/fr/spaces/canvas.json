@@ -29,7 +29,8 @@
     "backward": "Envoyer en arrière",
     "toBack": "Envoyer vers l'arrière",
     "autoHorizontal": "Mise en page automatique (horizontale)",
-    "autoVertical": "Mise en page automatique (verticale)"
+    "autoVertical": "Mise en page automatique (verticale)",
+    "tidy": "Ranger"
   },
   "layerOrder": "Ordre des couches",
   "selection": {
@@ -59,12 +60,36 @@
     "fitToContents": "Ajuster la section au contenu",
     "untitled": "Section sans titre",
     "collapse": "Section Réduire",
-    "expand": "Développer la section"
+    "expand": "Développer la section",
+    "fill": {
+      "label": "Remplissage",
+      "none": "Aucun remplissage"
+    },
+    "layout": {
+      "label": "Disposition",
+      "auto": "Automatique",
+      "manual": "Manuelle",
+      "autoHint": "Les éléments passent à la ligne selon la largeur ; la hauteur suit"
+    },
+    "size": {
+      "label": "Taille",
+      "custom": "Personnalisée",
+      "width": "Largeur",
+      "height": "Hauteur",
+      "lockRatio": "Verrouiller les proportions",
+      "unlockRatio": "Déverrouiller les proportions",
+      "autoHeight": "En disposition automatique, la hauteur dépend du contenu",
+      "presets": {
+        "a4": "A4",
+        "web": "Web"
+      }
+    }
   },
   "lock": "Verrouillage",
   "locked": "Verrouillé",
   "unlock": "Déverrouiller",
   "align": {
+    "title": "Aligner",
     "left": "Gauche",
     "center": "Centre horizontal",
     "right": "Droite",

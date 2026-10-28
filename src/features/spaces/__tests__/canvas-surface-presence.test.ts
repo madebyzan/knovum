@@ -37,7 +37,6 @@ it("treats a Section-only canvas as populated and suspends hidden canvas input",
         structureNodeIds: [],
         relationIds: [],
         nodePlacements: [],
-        members: [],
       }),
     } as unknown as CanvasEditorPort),
   );

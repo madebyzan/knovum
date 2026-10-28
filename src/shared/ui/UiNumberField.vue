@@ -16,13 +16,17 @@ const props = withDefaults(
     disabled?: boolean | undefined;
     placeholder?: string | undefined;
     locale?: string | undefined;
+    formatOptions?: Intl.NumberFormatOptions | undefined;
     size?: "sm" | "md" | undefined;
+    /** No chrome of its own: the surrounding control draws surface, border, focus and disabled state. */
+    bare?: boolean | undefined;
     class?: HTMLAttributes["class"];
   }>(),
   {
     disabled: false,
     placeholder: "",
     size: "md",
+    bare: false,
   },
 );
 
@@ -43,6 +47,7 @@ const rootProps = computed(() => ({
   ...(props.min !== undefined ? { min: props.min } : {}),
   ...(props.max !== undefined ? { max: props.max } : {}),
   ...(props.step !== undefined ? { step: props.step } : {}),
+  ...(props.formatOptions ? { formatOptions: props.formatOptions } : {}),
 }));
 </script>
 
@@ -53,7 +58,7 @@ const rootProps = computed(() => ({
       :class="
         cn(
           'w-full [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden',
-          INPUT_BASE_CLASSES,
+          bare ? 'bg-transparent text-fg-primary outline-none' : INPUT_BASE_CLASSES,
           size === 'sm'
             ? 'h-(--knovum-control-height-sm) px-2 text-caption'
             : 'h-(--knovum-control-height-md) px-2.5 text-label',

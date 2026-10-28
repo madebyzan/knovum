@@ -36,25 +36,12 @@ pub(in crate::spaces::structure) fn moved_layout(
     dy: f64,
 ) -> Result<StructureLayout, String> {
     let structure_node = index.node(&snapshot.structure, target_structure_node_id)?;
-    let layout =
+    let mut layout =
         snapshot.layouts[index.layout_index_by_structure_node_id[target_structure_node_id]].clone();
-    if let StructureLayout::Section {
-        structure_node_id,
-        mut position,
-        size,
-        collapsed,
-        appearance,
-    } = layout
-    {
+    if let StructureLayout::Section { position, .. } = &mut layout {
         position.x += dx;
         position.y += dy;
-        return Ok(StructureLayout::Section {
-            structure_node_id,
-            position,
-            size,
-            collapsed,
-            appearance,
-        });
+        return Ok(layout);
     }
     let parent = match structure_node.parent_id() {
         Some(parent) => world_transform(&snapshot.structure, &snapshot.layouts, index, parent)?,

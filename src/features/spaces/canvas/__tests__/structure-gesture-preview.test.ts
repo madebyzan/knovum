@@ -53,8 +53,30 @@ describe("structure gesture preview", () => {
 
   it("clamps north-west resizing without moving the opposite corner", () => {
     expect(
-      resizedSectionFrame({ x: 10, y: 20, width: 400, height: 300 }, "north-west", { x: 300, y: 250 }),
+      resizedSectionFrame({ x: 10, y: 20, width: 400, height: 300 }, "north-west", { x: 300, y: 250 }, false),
     ).toEqual({ x: 170, y: 160, width: 240, height: 160 });
+  });
+
+  it("scales a locked frame uniformly along the axis pulled further", () => {
+    const frame = { x: 0, y: 0, width: 400, height: 200 };
+    expect(resizedSectionFrame(frame, "south-east", { x: 400, y: 20 }, true)).toEqual({
+      x: 0,
+      y: 0,
+      width: 800,
+      height: 400,
+    });
+    expect(resizedSectionFrame(frame, "north-west", { x: -40, y: -200 }, true)).toEqual({
+      x: -400,
+      y: -200,
+      width: 800,
+      height: 400,
+    });
+  });
+
+  it("keeps a locked frame's ratio at the Section minimum, even dragged past its opposite corner", () => {
+    expect(
+      resizedSectionFrame({ x: 0, y: 0, width: 400, height: 200 }, "south-east", { x: -900, y: -900 }, true),
+    ).toEqual({ x: 0, y: 0, width: 320, height: 160 });
   });
 });
 

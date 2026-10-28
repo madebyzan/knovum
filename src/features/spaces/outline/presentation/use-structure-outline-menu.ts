@@ -88,6 +88,11 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
     if (kind === "section" && layout?.kind === "section") {
       return [
         spaceMenuItem(
+          t("spaces.canvas.sections.fitToContents"),
+          () => execute({ kind: "section.fit", structureNodeId: structureNodeId }),
+          { enabled: !locked },
+        ),
+        spaceMenuItem(
           t(layout.collapsed ? "spaces.canvas.sections.expand" : "spaces.canvas.sections.collapse"),
           () =>
             execute({
@@ -95,11 +100,6 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
               structureNodeId: structureNodeId,
               collapsed: !layout.collapsed,
             }),
-        ),
-        spaceMenuItem(
-          t("spaces.canvas.sections.fitToContents"),
-          () => execute({ kind: "section.fit", structureNodeId: structureNodeId }),
-          { enabled: !locked },
         ),
         spaceMenuItem(
           t("spaces.canvas.sections.removeOnly"),

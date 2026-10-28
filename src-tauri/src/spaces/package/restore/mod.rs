@@ -27,12 +27,12 @@ pub async fn restore<R: Runtime>(
     insert_nodes(&mut tx, &request).await?;
     knowledge::insert_relations(&mut tx, &request).await?;
     super::control::check(cancellation)?;
-    let structure = crate::spaces::structure::repository::SpaceStructureSnapshot {
+    let mut structure = crate::spaces::structure::repository::SpaceStructureSnapshot {
         structure: std::mem::take(&mut request.structure_nodes),
         layouts: std::mem::take(&mut request.layouts),
         relation_styles: std::mem::take(&mut request.relation_styles),
     };
-    insert_structure(&mut tx, &request, &structure).await?;
+    insert_structure(&mut tx, &request, &mut structure).await?;
     insert_scenes(&mut tx, &request).await?;
     validate_nodes(&mut tx, &request).await?;
     super::control::check(cancellation)?;
@@ -74,7 +74,7 @@ pub async fn restore<R: Runtime>(
 async fn insert_structure(
     tx: &mut Transaction<'_, Sqlite>,
     request: &RestorePackageRequest,
-    snapshot: &crate::spaces::structure::repository::SpaceStructureSnapshot,
+    snapshot: &mut crate::spaces::structure::repository::SpaceStructureSnapshot,
 ) -> Result<(), AppError> {
     sqlx::query("INSERT INTO spaces_edit_state(space_id,revision,updated_at) VALUES($1,0,$2)")
         .bind(&request.space.id)

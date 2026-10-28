@@ -114,7 +114,6 @@ const selectionBarGap = computed(() =>
         !editorSession.directManipulation.value
       "
       :bounds="editorSession.selection.value.bounds"
-      :members="editorSession.selection.value.members"
       :canvas-to-viewport-point="canvasToViewportPoint"
       :safe-area="CANVAS_CHROME_INSETS"
       :reserved="chromeRects"

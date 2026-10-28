@@ -35,12 +35,19 @@ describe("canvasSelectionProductState", () => {
       snapshot: snapshot(true),
     });
 
-    expect(state.section).toEqual({ id: "section", collapsed: true });
+    expect(state.section).toEqual({
+      id: "section",
+      collapsed: true,
+      autoLayout: false,
+      aspectLocked: false,
+      appearance: {},
+      frame: { x: 0, y: 0, width: 400, height: 300 },
+    });
     expect(state.content.map(({ id }) => id)).toEqual(["a", "b"]);
     expect(state.allLocked).toBe(true);
     expect(state.canCreateGroup).toBe(false);
     expect(state.canFitSection).toBe(false);
-    expect(state.canDissolveSection).toBe(false);
+    expect(state.canEditSection).toBe(false);
   });
   it("fits only an editable Section with contained content", () => {
     const populated = snapshot();
@@ -51,7 +58,7 @@ describe("canvasSelectionProductState", () => {
       layouts: populated.layouts.slice(0, 1),
     };
     expect(select(empty).canFitSection).toBe(false);
-    expect(select(empty).canDissolveSection).toBe(true);
+    expect(select(empty).canEditSection).toBe(true);
   });
 });
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Focus, Group, LocateFixed, Pencil, Scan } from "@lucide/vue";
+import { Focus, Group, LocateFixed, Pencil, Shrink } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -59,6 +59,13 @@ async function reveal() {
         >
       </div>
       <div v-if="actions.state.value.section" class="mt-3 flex flex-wrap items-center gap-1.5">
+        <UiButton
+          size="sm"
+          variant="ghost"
+          :disabled="!actions.state.value.canFitSection"
+          @click="actions.fitSection"
+          ><Shrink class="size-3" />{{ t("spaces.canvas.sections.fitToContents") }}</UiButton
+        >
         <UiButton size="sm" variant="ghost" @click="actions.toggleSectionCollapsed">{{
           t(
             actions.state.value.section.collapsed
@@ -66,13 +73,6 @@ async function reveal() {
               : "spaces.canvas.sections.collapse",
           )
         }}</UiButton>
-        <UiButton
-          size="sm"
-          variant="ghost"
-          :disabled="!actions.state.value.canFitSection"
-          @click="actions.fitSection"
-          ><Scan class="size-3" />{{ t("spaces.canvas.sections.fitToContents") }}</UiButton
-        >
       </div>
     </template>
     <h2 v-else class="text-title font-semibold text-fg-primary">

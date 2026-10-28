@@ -1,8 +1,14 @@
+import { pickBy } from "es-toolkit";
 import type { Ref } from "vue";
 
 import { i18n } from "../../../../../foundation/i18n/instance";
+import type { ContentFillPreset } from "../../../model/structure/schema/content-appearance";
 import { useSpaceStore } from "../../../session/space-store";
-import type { CanvasSelectionProductState } from "./selection-product-state";
+import { canvasAppearanceUpdate } from "../../schema/document";
+import type { SectionSize } from "./section-frame-size";
+import type { CanvasSelectionProductState, SelectedSection } from "./selection-product-state";
+
+type SectionLayoutSwitches = Partial<Pick<SelectedSection, "autoLayout" | "aspectLocked">>;
 
 interface CanvasStructureSelectionActionsInput {
   state: Readonly<Ref<CanvasSelectionProductState>>;
@@ -56,11 +62,64 @@ export function createCanvasStructureSelectionActions({ state, run }: CanvasStru
     );
   }
 
-  function dissolveSection() {
-    const section = state.value.section;
-    if (section && state.value.canDissolveSection)
-      run(() => store.executeSpaceEdit({ kind: "section.dissolve", structureNodeId: section.id }));
+  /** The selected Section, when the selection lets it be edited. */
+  function editableSection() {
+    return state.value.canEditSection ? state.value.section : undefined;
   }
 
-  return { createGroup, createSection, dissolveGroup, dissolveSection, fitSection, toggleSectionCollapsed };
+  function dissolveSection() {
+    const section = editableSection();
+    if (section) run(() => store.executeSpaceEdit({ kind: "section.dissolve", structureNodeId: section.id }));
+  }
+
+  /** The Section's own layout switches; only the ones that change are sent. */
+  function updateSectionLayout(update: SectionLayoutSwitches) {
+    const section = editableSection();
+    if (!section) return;
+    const changed = pickBy(update, (value, key) => section[key] !== value);
+    if (Object.keys(changed).length)
+      run(() =>
+        store.executeSpaceEdit({ kind: "section.update-layout", structureNodeId: section.id, ...changed }),
+      );
+  }
+
+  /** A preset fill, or none to show the canvas panel behind the Section. */
+  function setSectionFill(fill: ContentFillPreset | undefined) {
+    const section = editableSection();
+    if (!section || section.appearance.fill === fill) return;
+    const appearance = { ...section.appearance, customFill: undefined, fill };
+    run(() =>
+      store.executeSpaceEdit({
+        kind: "section.update-layout",
+        structureNodeId: section.id,
+        appearance: canvasAppearanceUpdate(appearance),
+      }),
+    );
+  }
+
+  function resizeSection(size: SectionSize) {
+    const section = editableSection();
+    if (!section) return;
+    const { frame } = section;
+    if (frame.width === size.width && frame.height === size.height) return;
+    run(() =>
+      store.executeSpaceEdit({
+        kind: "section.resize-frame",
+        structureNodeId: section.id,
+        frame: { x: frame.x, y: frame.y, ...size },
+      }),
+    );
+  }
+
+  return {
+    createGroup,
+    createSection,
+    dissolveGroup,
+    dissolveSection,
+    fitSection,
+    resizeSection,
+    updateSectionLayout,
+    setSectionFill,
+    toggleSectionCollapsed,
+  };
 }

@@ -8,7 +8,6 @@ describe("container selection chrome", () => {
   it.each([0.25, 1, 2])("keeps the action bar clear of a Group rotation handle at zoom %s", (zoom) => {
     const placement = placeSelectionSurface({
       selection: { left: 300, top: 300, right: 500, bottom: 500 },
-      members: [],
       viewport: { width: 1000, height: 800 },
       insets: { top: 8, right: 8, bottom: 8, left: 8 },
       reserved: [],

@@ -1,3 +1,4 @@
+import type { AutoLayoutFlow } from "../../contracts/generated/AutoLayoutFlow";
 import type {
   CanvasDocumentV1,
   CanvasNodeAppearance,
@@ -25,13 +26,11 @@ export interface CanvasSelectionSnapshot {
   relationIds: readonly string[];
   singleNodeAppearance?: CanvasNodeAppearance;
   bounds?: CanvasRect;
-  members: readonly CanvasRect[];
 }
 
 export type CanvasLayerMove = "front" | "forward" | "backward" | "back";
 export type CanvasAlignMode = "left" | "center" | "right" | "top" | "middle" | "bottom";
 export type CanvasDistributeMode = "horizontal" | "vertical";
-export type CanvasAutoLayoutDirection = "RIGHT" | "DOWN";
 
 export interface CanvasRect extends CanvasPoint {
   width: number;
@@ -58,7 +57,7 @@ export interface CanvasEditorPort {
   nudgeSelection(offset: CanvasPoint): void;
   moveSelectionLayer(mode: CanvasLayerMove): void;
   alignSelection(mode: CanvasAlignMode): Promise<void>;
-  autoLayoutSelection(direction: CanvasAutoLayoutDirection): Promise<void>;
+  autoLayoutSelection(flow: AutoLayoutFlow): Promise<void>;
   distributeSelection(mode: CanvasDistributeMode): Promise<void>;
   selectAll(): void;
   zoomIn(): void;

@@ -201,18 +201,25 @@ async fn fit_restored_content(
         .iter()
         .filter_map(|node| match node {
             super::StructureNode::Content { id, node_id, .. } if node_ids.contains(node_id) => {
-                Some(id.as_str())
+                Some(id.clone())
             }
             _ => None,
         })
         .collect::<std::collections::HashSet<_>>();
     // The refit happens after the Space was proved coherent, so the sizes it produced are proved
-    // before they are written rather than after.
+    // before they are written rather than after. A refitted card inside an auto-layout Section
+    // re-packs its siblings, and those moves are written with it.
+    let refitted = snapshot.layouts.clone();
+    super::planner::settle_auto_layout_sections(snapshot)?;
     super::validate_space_snapshot(&snapshot.structure, &snapshot.layouts)?;
     let layouts = snapshot
         .layouts
         .iter()
-        .filter(|layout| restored.contains(layout.structure_node_id()))
+        .zip(&refitted)
+        .filter(|(layout, refitted)| {
+            restored.contains(layout.structure_node_id()) || layout != refitted
+        })
+        .map(|(layout, _)| layout)
         .collect::<Vec<_>>();
     repository::rows::write_layouts(tx, space_id, &layouts).await?;
     Ok(())

@@ -29,7 +29,8 @@
     "backward": "뒤로 보내기",
     "toBack": "맨 뒤로 보내기",
     "autoHorizontal": "자동 레이아웃(수평)",
-    "autoVertical": "자동 레이아웃(수직)"
+    "autoVertical": "자동 레이아웃(수직)",
+    "tidy": "자동 정리"
   },
   "layerOrder": "레이어 순서",
   "selection": {
@@ -59,12 +60,36 @@
     "fitToContents": "섹션을 내용에 맞추기",
     "untitled": "제목 없는 섹션",
     "collapse": "섹션 접기",
-    "expand": "섹션 확장"
+    "expand": "섹션 확장",
+    "fill": {
+      "label": "채우기",
+      "none": "채우기 없음"
+    },
+    "layout": {
+      "label": "레이아웃",
+      "auto": "자동",
+      "manual": "수동",
+      "autoHint": "하위 항목이 너비에 맞춰 줄바꿈되고 높이는 내용을 따릅니다"
+    },
+    "size": {
+      "label": "크기",
+      "custom": "사용자 지정",
+      "width": "너비",
+      "height": "높이",
+      "lockRatio": "가로세로 비율 고정",
+      "unlockRatio": "가로세로 비율 고정 해제",
+      "autoHeight": "자동 레이아웃에서는 높이가 내용에 따라 정해집니다",
+      "presets": {
+        "a4": "A4",
+        "web": "웹"
+      }
+    }
   },
   "lock": "잠금",
   "locked": "잠김",
   "unlock": "잠금 해제",
   "align": {
+    "title": "정렬",
     "left": "왼쪽",
     "center": "수평 중심",
     "right": "오른쪽",

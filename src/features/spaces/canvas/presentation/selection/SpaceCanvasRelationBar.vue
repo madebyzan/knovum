@@ -115,9 +115,8 @@ function setColor(value: string) {
         <UiIconButton
           :label="t('spaces.knowledge.relations.title')"
           :title="t('spaces.knowledge.relations.title')"
-          size="sm"
         >
-          <GitBranch class="size-3.5" :stroke-width="1.55" />
+          <GitBranch class="size-4.5" :stroke-width="1.6" />
         </UiIconButton>
       </template>
       <UiDropdownMenuItem
@@ -135,9 +134,8 @@ function setColor(value: string) {
         <UiIconButton
           :label="t('spaces.knowledge.relations.rationale.label')"
           :title="t('spaces.knowledge.relations.rationale.label')"
-          size="sm"
         >
-          <MessageSquareText class="size-3.5" :stroke-width="1.55" />
+          <MessageSquareText class="size-4.5" :stroke-width="1.6" />
         </UiIconButton>
       </template>
       <label class="text-caption-sm font-medium text-fg-tertiary">
@@ -159,6 +157,7 @@ function setColor(value: string) {
       :label="t('spaces.knowledge.relations.color')"
       :options="colorOptions"
       :selected="selectedColor"
+      size="md"
       @select="setColor"
     />
   </div>

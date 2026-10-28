@@ -265,7 +265,7 @@ async fn insert_outputs(
             .await?;
         }
     }
-    structure::repository::save_in_transaction(tx, space_id, revision, &snapshot).await?;
+    structure::repository::save_in_transaction(tx, space_id, revision, &mut snapshot).await?;
     let after = structure::history::capture(tx, space_id, &snapshot).await?;
     structure::history::record(tx, space_id, &before, &after).await?;
     Ok(())

@@ -10,7 +10,6 @@ import { placeSelectionSurface } from "./selection-surface-placement";
 
 const props = defineProps<{
   bounds?: CanvasRect | undefined;
-  members?: readonly CanvasRect[] | undefined;
   canvasToViewportPoint(point: CanvasPoint): CanvasPoint;
   safeArea: { top: number; right: number; bottom: number; left: number };
   reserved: readonly SurfaceRect[];
@@ -49,12 +48,7 @@ const geometry = computed(() => {
     x: props.bounds.x + props.bounds.width,
     y: props.bounds.y + props.bounds.height,
   });
-  const members = props.members?.map((member) => {
-    const first = props.canvasToViewportPoint(member);
-    const last = props.canvasToViewportPoint({ x: member.x + member.width, y: member.y + member.height });
-    return { left: first.x, top: first.y, right: last.x, bottom: last.y };
-  });
-  return { start, end, members };
+  return { start, end };
 });
 
 const placement = computed(() => {
@@ -62,7 +56,6 @@ const placement = computed(() => {
   const { start, end } = geometry.value;
   return placeSelectionSurface({
     selection: { left: start.x, top: start.y, right: end.x, bottom: end.y },
-    members: geometry.value.members ?? [],
     reserved: props.reserved,
     viewport: { width: hostSize.width.value, height: hostSize.height.value },
     insets: props.safeArea,

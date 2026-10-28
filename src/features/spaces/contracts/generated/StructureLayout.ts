@@ -5,4 +5,13 @@ import type { Point } from "./Point";
 import type { Size } from "./Size";
 import type { SizingMode } from "./SizingMode";
 
-export type StructureLayout = { "kind": "content", structureNodeId: string, transform: LocalTransform, size: Size, sizingMode: SizingMode, appearance?: JsonValue | null, fileSubpath?: string | null, } | { "kind": "group", structureNodeId: string, transform: LocalTransform, } | { "kind": "section", structureNodeId: string, position: Point, size: Size, collapsed: boolean, appearance?: JsonValue | null, };
+export type StructureLayout = { "kind": "content", structureNodeId: string, transform: LocalTransform, size: Size, sizingMode: SizingMode, appearance?: JsonValue | null, fileSubpath?: string | null, } | { "kind": "group", structureNodeId: string, transform: LocalTransform, } | { "kind": "section", structureNodeId: string, position: Point, size: Size, collapsed: boolean, appearance?: JsonValue | null, 
+/**
+ * The Section arranges its children itself. A Section stored without the field is freely
+ * arranged, as every Section was before auto layout existed.
+ */
+autoLayout?: boolean, 
+/**
+ * Resizing keeps the frame's width-to-height ratio. Absent means free, as before.
+ */
+aspectLocked?: boolean, };

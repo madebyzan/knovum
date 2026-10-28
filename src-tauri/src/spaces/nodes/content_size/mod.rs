@@ -45,7 +45,7 @@ pub(in crate::spaces) async fn sync_node_ids_in_transaction(
         return Ok(None);
     }
     let edit_revision =
-        structure::repository::save_in_transaction(tx, space_id, revision, &snapshot).await?;
+        structure::repository::save_in_transaction(tx, space_id, revision, &mut snapshot).await?;
     Ok(Some(SpaceEditSnapshotResponse {
         edit_revision,
         structure: snapshot.structure,

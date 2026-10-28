@@ -134,7 +134,7 @@ async fn existing_agent_created_node_is_attached_without_duplicate_import() {
     )
     .await
     .unwrap();
-    structure::repository::save_in_transaction(&mut tx, "space", revision, &snapshot)
+    structure::repository::save_in_transaction(&mut tx, "space", revision, &mut snapshot)
         .await
         .unwrap();
     tx.commit().await.unwrap();

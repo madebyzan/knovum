@@ -5,7 +5,6 @@ import { placeSelectionSurface } from "../selection-surface-placement";
 
 const input: PlacementInput = {
   selection: { left: 220, top: 360, right: 380, bottom: 560 },
-  members: [],
   viewport: { width: 900, height: 700 },
   insets: { top: 8, right: 16, bottom: 8, left: 16 },
   reserved: [{ left: 350, top: 8, right: 650, bottom: 90 }],
@@ -44,6 +43,19 @@ describe("canvas inspector placement", () => {
         selection: { left: 220, top: 12, right: 380, bottom: 688 },
       }),
     ).toEqual({ left: 170, top: 20, maxHeight: 42, side: "inside" });
+  });
+
+  it("keeps the action bar outside a multi-selection rather than over one of its members", () => {
+    expect(
+      placeSelectionSurface({
+        ...input,
+        kind: "actions",
+        gap: 34,
+        reserved: [],
+        surface: { width: 260, height: 42 },
+        selection: { left: 100, top: 200, right: 800, bottom: 640 },
+      }),
+    ).toEqual({ left: 320, top: 124, maxHeight: 42, side: "above" });
   });
 
   it("keeps a tall editor beside the selection and scrolls below fixed chrome", () => {

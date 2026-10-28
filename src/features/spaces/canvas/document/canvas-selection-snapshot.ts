@@ -32,7 +32,6 @@ export function createCanvasSelectionSnapshot({
     structureNodeIds: [...structureNodeIds],
     nodePlacements: selectedLayouts.map(({ nodeId, frame }) => ({ id: nodeId, x: frame.x, y: frame.y })),
     relationIds: [...relationIds],
-    members: [...selectedLayouts.map(({ frame }) => frame), ...structureMembers],
     ...(!structureNodeIds.size && selectedLayouts.length === 1 && selectedLayouts[0]?.appearance
       ? { singleNodeAppearance: selectedLayouts[0].appearance }
       : {}),

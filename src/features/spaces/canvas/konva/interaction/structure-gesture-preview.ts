@@ -1,7 +1,7 @@
 import type { SpaceEditCommand } from "../../../contracts/generated/SpaceEditCommand";
 import type { SpaceEditSnapshot } from "../../../model/structure/schema/edit-snapshot";
 import type { StructureLayout, LocalTransform } from "../../../model/structure/schema/structure";
-import { SECTION_MINIMUM_SIZE } from "../../../model/structure/section-metrics";
+import { atLeastSectionMinimum, sectionMinimumScale } from "../../../model/structure/section-metrics";
 import { createStructureIndex } from "../../../model/structure/structure-index";
 import { relativeTransform, worldTransformFor } from "../../../model/structure/world-transform";
 import type { CanvasPoint, CanvasRect } from "../../contracts/canvas-editor-port";
@@ -96,15 +96,31 @@ function resizePreview(
   };
 }
 
+/**
+ * The frame a corner drag asks for; the opposite corner stays put. With the aspect locked the frame
+ * scales uniformly, following whichever axis the pointer has pulled further.
+ */
 export function resizedSectionFrame(
   frame: CanvasRect,
   corner: SectionResizeCorner,
   delta: CanvasPoint,
+  aspectLocked: boolean,
 ): CanvasRect {
   const west = corner.endsWith("west");
   const north = corner.startsWith("north");
-  const width = Math.max(SECTION_MINIMUM_SIZE.width, frame.width + (west ? -delta.x : delta.x));
-  const height = Math.max(SECTION_MINIMUM_SIZE.height, frame.height + (north ? -delta.y : delta.y));
+  const dragged = {
+    width: frame.width + (west ? -delta.x : delta.x),
+    height: frame.height + (north ? -delta.y : delta.y),
+  };
+  // A pointer pulled past the opposite corner gives a negative scale; the minimum floors it.
+  const scale = Math.max(
+    sectionMinimumScale(frame),
+    dragged.width / frame.width,
+    dragged.height / frame.height,
+  );
+  const { width, height } = aspectLocked
+    ? { width: frame.width * scale, height: frame.height * scale }
+    : atLeastSectionMinimum(dragged, false);
   return {
     x: west ? frame.x + frame.width - width : frame.x,
     y: north ? frame.y + frame.height - height : frame.y,

@@ -48,7 +48,6 @@ it("cancels transient gestures without deselecting or exiting the current Group 
         nodeIds: selected.value,
         structureNodeIds: [],
         relationIds: [],
-        members: [],
         nodePlacements: [],
       }),
     } as unknown as CanvasEditorPort),

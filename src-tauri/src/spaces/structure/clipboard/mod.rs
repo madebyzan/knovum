@@ -124,7 +124,7 @@ pub(crate) async fn import<R: Runtime>(
     snapshot.structure.extend(imported.structure);
     snapshot.layouts.extend(imported.layouts);
     let next =
-        super::repository::save_in_transaction(&mut tx, &request.space_id, revision, &snapshot)
+        super::repository::save_in_transaction(&mut tx, &request.space_id, revision, &mut snapshot)
             .await?;
     super::portal_integrity::validate_structure_targets(&mut tx, &[&request.space_id]).await?;
     let after = history::capture(&mut tx, &request.space_id, &snapshot).await?;

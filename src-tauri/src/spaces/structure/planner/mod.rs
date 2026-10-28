@@ -7,11 +7,13 @@ mod group;
 mod hierarchy;
 mod metadata;
 mod movement;
+mod packing;
 mod section;
 pub(super) mod spatial;
 pub(super) mod tree_policy;
 
 use self::delete::Deletion;
+pub(super) use self::section::settle as settle_auto_layout_sections;
 use crate::spaces::structure::edit_contract::SpaceEditCommand;
 use crate::spaces::structure::repository::SpaceStructureSnapshot;
 
@@ -56,6 +58,18 @@ pub(in crate::spaces::structure) fn plan(
         SpaceEditCommand::SectionDissolve { structure_node_id } => {
             self::section::dissolve(snapshot, std::slice::from_ref(structure_node_id))
         }
+        SpaceEditCommand::SectionUpdateLayout {
+            structure_node_id,
+            auto_layout,
+            aspect_locked,
+            appearance,
+        } => self::metadata::update_section(
+            snapshot,
+            structure_node_id,
+            *auto_layout,
+            *aspect_locked,
+            appearance,
+        ),
         SpaceEditCommand::GroupCreate {
             group_id,
             root_ids,
@@ -112,9 +126,9 @@ pub(in crate::spaces::structure) fn plan(
         } => self::arrangement::reorder(snapshot, root_ids, direction),
         SpaceEditCommand::StructureAutoLayout {
             root_ids,
-            direction,
+            flow,
             gap,
-        } => self::arrangement::auto_layout(snapshot, root_ids, direction, *gap),
+        } => self::arrangement::auto_layout(snapshot, root_ids, *flow, *gap),
         SpaceEditCommand::StructureClone { .. } => {
             Err("structure.clone requires a database transaction".into())
         }

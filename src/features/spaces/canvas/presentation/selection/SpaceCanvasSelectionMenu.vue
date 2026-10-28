@@ -3,10 +3,12 @@ import {
   Copy,
   Focus,
   Group,
+  SquareDashed,
   LockKeyhole,
   MessageSquareText,
   MoreHorizontal,
   Trash2,
+  Ungroup,
   UnlockKeyhole,
 } from "@lucide/vue";
 import { platform } from "@tauri-apps/plugin-os";
@@ -59,8 +61,8 @@ const excludedActions = computed(() => [
   <UiDropdownMenu side="top" align="center" :side-offset="6" class="min-w-48">
     <template #trigger>
       <ToolbarButton as-child>
-        <UiIconButton :label="t('common.more')" :size="nodeBar ? 'md' : 'sm'">
-          <MoreHorizontal class="size-3.5" />
+        <UiIconButton :label="t('common.more')">
+          <MoreHorizontal class="size-4.5" :stroke-width="1.6" />
         </UiIconButton>
       </ToolbarButton>
     </template>
@@ -81,7 +83,7 @@ const excludedActions = computed(() => [
         <Group class="size-3.5" />{{ t("spaces.canvas.groups.create") }}
       </UiDropdownMenuItem>
       <UiDropdownMenuItem v-if="actions.state.value.canCreateSection" @select="actions.createSection">
-        <Group class="size-3.5" />{{ t("spaces.canvas.sections.create") }}
+        <SquareDashed class="size-3.5" />{{ t("spaces.canvas.sections.create") }}
       </UiDropdownMenuItem>
       <UiSeparator class="my-1" />
     </template>
@@ -91,10 +93,13 @@ const excludedActions = computed(() => [
         <UiKbd shortcut="$mod+D" class="ml-auto" />
       </UiDropdownMenuItem>
       <UiDropdownMenuItem v-if="actions.state.value.canDissolveGroup" @select="actions.dissolveGroup">
-        <Group class="size-3.5" />{{ t("spaces.canvas.groups.ungroup") }}
+        <Ungroup class="size-3.5" />{{ t("spaces.canvas.groups.ungroup") }}
         <UiKbd shortcut="$mod+Shift+G" class="ml-auto" />
       </UiDropdownMenuItem>
       <template v-if="actions.state.value.section">
+        <UiDropdownMenuItem :disabled="!actions.state.value.canFitSection" @select="actions.fitSection">{{
+          t("spaces.canvas.sections.fitToContents")
+        }}</UiDropdownMenuItem>
         <UiDropdownMenuItem @select="actions.toggleSectionCollapsed">
           {{
             t(
@@ -104,11 +109,8 @@ const excludedActions = computed(() => [
             )
           }}
         </UiDropdownMenuItem>
-        <UiDropdownMenuItem :disabled="!actions.state.value.canFitSection" @select="actions.fitSection">{{
-          t("spaces.canvas.sections.fitToContents")
-        }}</UiDropdownMenuItem>
         <UiDropdownMenuItem
-          :disabled="!actions.state.value.canDissolveSection"
+          :disabled="!actions.state.value.canEditSection"
           @select="actions.dissolveSection"
           >{{ t("spaces.canvas.sections.removeOnly") }}</UiDropdownMenuItem
         >
@@ -125,7 +127,7 @@ const excludedActions = computed(() => [
         @invoke="emit('invokeDerivation', $event)"
       />
       <SpaceCanvasArrangeMenu
-        :count="actions.state.value.structureNodeIds.length"
+        :availability="actions.state.value.arrangement"
         :row-class="MENU_ITEM_CLASS"
         :submenu-class="submenu"
         @align="actions.align"

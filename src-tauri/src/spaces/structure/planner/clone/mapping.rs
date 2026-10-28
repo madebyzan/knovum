@@ -77,6 +77,8 @@ pub(super) fn clone_layout(
         size,
         collapsed,
         appearance,
+        auto_layout,
+        aspect_locked,
         ..
     } = layout
     {
@@ -88,6 +90,8 @@ pub(super) fn clone_layout(
             size,
             collapsed,
             appearance,
+            auto_layout,
+            aspect_locked,
         });
     }
     let transform = if is_root {

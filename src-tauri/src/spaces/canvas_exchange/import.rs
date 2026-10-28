@@ -116,7 +116,7 @@ pub(crate) async fn import_nodes<R: Runtime>(
         .await?;
     }
     crate::spaces::nodes::touch_updated_at(&mut tx, &request.space_id, now).await?;
-    let snapshot = crate::spaces::structure::repository::SpaceStructureSnapshot {
+    let mut snapshot = crate::spaces::structure::repository::SpaceStructureSnapshot {
         structure: request.structure_nodes,
         layouts: request.layouts,
         relation_styles: request.relation_styles,
@@ -125,7 +125,7 @@ pub(crate) async fn import_nodes<R: Runtime>(
         &mut tx,
         &request.space_id,
         current_revision,
-        &snapshot,
+        &mut snapshot,
     )
     .await?;
     crate::spaces::structure::portal_integrity::validate_structure_targets(

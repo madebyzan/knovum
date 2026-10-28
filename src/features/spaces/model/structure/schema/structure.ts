@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { SECTION_MINIMUM_SIZE } from "../section-metrics";
-import { contentAppearanceSchema } from "./content-appearance";
+import { CONTENT_FILL_PRESETS, contentAppearanceSchema } from "./content-appearance";
 
 export const MAX_STRUCTURE_NODES = 100_000;
 export const MAX_STRUCTURE_DEPTH = 64;
@@ -49,7 +49,7 @@ const sectionSize = z
 const layoutBase = { structureNodeId };
 const sectionAppearance = z
   .object({
-    fill: z.enum(["yellow", "green", "blue", "pink", "gray"]).optional(),
+    fill: z.enum(CONTENT_FILL_PRESETS).optional(),
     customFill: z
       .string()
       .regex(/^#[\da-f]{6}$/iu)
@@ -82,6 +82,8 @@ export const structureLayoutSchema = z.discriminatedUnion("kind", [
       size: sectionSize,
       collapsed: z.boolean(),
       appearance: sectionAppearance.optional(),
+      autoLayout: z.boolean().optional(),
+      aspectLocked: z.boolean().optional(),
     })
     .strict(),
 ]);
