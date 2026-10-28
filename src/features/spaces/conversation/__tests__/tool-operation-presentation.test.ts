@@ -24,7 +24,7 @@ describe("toolOperationPresentation", () => {
     expect(toolOperationPresentation(operation({}))).toEqual({
       titleKey: "spaces.conversation.toolOperations.command.approval",
       descriptionKey: "spaces.conversation.toolOperations.command.unconfined",
-      detail: "python3 analyze.py data.csv",
+      subject: "python3 analyze.py data.csv",
     });
   });
 
@@ -34,7 +34,7 @@ describe("toolOperationPresentation", () => {
     );
     expect(presentation.titleKey).toBe("spaces.conversation.toolOperations.outcomeUnknown.title");
     expect(presentation.descriptionKey).toBe("spaces.conversation.toolOperations.command.outcomeUnknown");
-    expect(presentation.detail).toBe("python3 analyze.py data.csv");
+    expect(presentation.subject).toBe("python3 analyze.py data.csv");
   });
 
   it("shows any other operation as its recorded call", () => {
@@ -49,6 +49,6 @@ describe("toolOperationPresentation", () => {
     );
     expect(presentation.titleKey).toBe("spaces.conversation.toolOperations.approval.title");
     expect(presentation.descriptionKey).toBeUndefined();
-    expect(JSON.parse(presentation.detail)).toEqual({ source, context: { title: "Bug" }, output: null });
+    expect(JSON.parse(presentation.subject)).toEqual({ source, context: { title: "Bug" }, output: null });
   });
 });

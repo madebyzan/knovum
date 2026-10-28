@@ -45,7 +45,7 @@ not grant production code access to presentation or adapter internals.
 
 The Cargo workspace contains the Tauri host, `inference-contracts`, `inference-worker` and the
 project-owned compiled library crates. `tools/contract-exporter` is the developer-only entry for
-wire generation. Export definitions stay in `src/contract_codegen` beside the native contracts,
+wire generation. Export definitions stay in `src/contract_codegen` beside the Rust contracts,
 where they can access feature-private Rust types. The host package owns only the `knovum` product binary so Cargo discovery cannot
 add developer executables to the application bundle. The neutral
 contracts crate depends on serialization/schema tooling only. Cargo also owns `inference-libraries`

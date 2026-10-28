@@ -7,14 +7,14 @@ import type { CanvasNodePresentationContext } from "../../preview/policy";
 import { projectPreviewItems, remainingPreviewItemCount } from "./canvas-preview-budget";
 
 const props = defineProps<{
-  entries: SpaceArchiveMember[];
+  members: SpaceArchiveMember[];
   presentationContext: CanvasNodePresentationContext;
 }>();
 
 const interactive = computed(() => props.presentationContext.mode === "interactive");
-const displayEntries = computed(() => projectPreviewItems(props.entries, props.presentationContext));
+const displayedMembers = computed(() => projectPreviewItems(props.members, props.presentationContext));
 const remaining = computed(() =>
-  remainingPreviewItemCount(props.entries.length, displayEntries.value.length),
+  remainingPreviewItemCount(props.members.length, displayedMembers.value.length),
 );
 </script>
 
@@ -26,14 +26,14 @@ const remaining = computed(() =>
     @wheel.stop
   >
     <div
-      v-for="entry in displayEntries"
-      :key="entry.path"
+      v-for="member in displayedMembers"
+      :key="member.path"
       class="flex h-7 items-center gap-2 border-b border-stroke-divider px-1 text-caption last:border-b-0"
     >
-      <Folder v-if="entry.kind === 'folder'" class="size-3 shrink-0 text-fg-tertiary" />
+      <Folder v-if="member.kind === 'folder'" class="size-3 shrink-0 text-fg-tertiary" />
       <File v-else class="size-3 shrink-0 text-fg-tertiary" />
-      <span class="min-w-0 flex-1 truncate font-mono text-fg-secondary" :title="entry.path">
-        {{ entry.path }}
+      <span class="min-w-0 flex-1 truncate font-mono text-fg-secondary" :title="member.path">
+        {{ member.path }}
       </span>
     </div>
     <div v-if="remaining > 0" class="px-1 pt-1 text-caption-sm text-fg-tertiary">

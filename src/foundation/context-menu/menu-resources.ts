@@ -9,13 +9,13 @@ import {
   type MenuOptions,
 } from "@tauri-apps/api/menu";
 
-type MenuEntries = NonNullable<MenuOptions["items"]>;
+type MenuItemDefinitions = NonNullable<MenuOptions["items"]>;
 
 /** Own each item resource so its Tauri action channel survives menu construction. */
-export async function createMenuResources(entries: MenuEntries) {
+export async function createMenuResources(definitions: MenuItemDefinitions) {
   const resources: Resource[] = [];
   try {
-    const items = await createItems(entries, resources);
+    const items = await createItems(definitions, resources);
     const menu = await Menu.new({ items });
     resources.push(menu);
     return { menu, close: () => Promise.all(resources.map((resource) => resource.close())) };
@@ -25,24 +25,29 @@ export async function createMenuResources(entries: MenuEntries) {
   }
 }
 
-async function createItems(entries: MenuEntries, resources: Resource[]): Promise<MenuEntries> {
+async function createItems(
+  definitions: MenuItemDefinitions,
+  resources: Resource[],
+): Promise<MenuItemDefinitions> {
   // Settle every creation before cleanup can run, including failed sibling branches.
-  const creations = await Promise.allSettled(entries.map((entry) => createItem(entry, resources)));
+  const creations = await Promise.allSettled(
+    definitions.map((definition) => createItem(definition, resources)),
+  );
   return creations.map((creation) => {
     if (creation.status === "rejected") throw creation.reason;
     return creation.value;
   });
 }
 
-async function createItem(entry: MenuEntries[number], resources: Resource[]) {
-  if ("rid" in entry) return entry;
+async function createItem(definition: MenuItemDefinitions[number], resources: Resource[]) {
+  if ("rid" in definition) return definition;
   let item: MenuItem | Submenu | CheckMenuItem | IconMenuItem | PredefinedMenuItem;
-  if ("items" in entry) {
-    item = await Submenu.new({ ...entry, items: await createItems(entry.items ?? [], resources) });
-  } else if ("item" in entry) item = await PredefinedMenuItem.new(entry);
-  else if ("checked" in entry) item = await CheckMenuItem.new(entry);
-  else if ("icon" in entry) item = await IconMenuItem.new(entry);
-  else item = await MenuItem.new(entry);
+  if ("items" in definition) {
+    item = await Submenu.new({ ...definition, items: await createItems(definition.items ?? [], resources) });
+  } else if ("item" in definition) item = await PredefinedMenuItem.new(definition);
+  else if ("checked" in definition) item = await CheckMenuItem.new(definition);
+  else if ("icon" in definition) item = await IconMenuItem.new(definition);
+  else item = await MenuItem.new(definition);
   resources.push(item);
   return item;
 }

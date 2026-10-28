@@ -105,7 +105,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         :zoom="runtime.viewport.zoom.value"
         v-bind="runtime.stage.value ? { stage: runtime.stage.value } : {}"
         :visible-node-ids="runtime.visibility.visibleNodeIds.value"
-        :detail-node-ids="runtime.visibility.visibleContentNodeIds.value"
+        :content-node-ids="runtime.visibility.visibleContentNodeIds.value"
         :visible-relation-ids="runtime.visibility.visibleRelationIds.value"
         @activate="runtime.activateNode"
         @connector-start="runtime.connectors.begin"

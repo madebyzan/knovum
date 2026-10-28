@@ -4,7 +4,7 @@ export interface ToolOperationPresentation {
   titleKey: string;
   descriptionKey?: string;
   /** What the user decides on: the command line itself, or the recorded call. */
-  detail: string;
+  subject: string;
 }
 
 /**
@@ -16,17 +16,17 @@ export function toolOperationPresentation(operation: ConversationToolOperation):
   const command = commandLine(operation);
   const approval = operation.state === "prepared";
   if (command === undefined) {
-    const detail = JSON.stringify(
+    const subject = JSON.stringify(
       { source: operation.source, context: operation.context, output: operation.output },
       null,
       2,
     );
     return approval
-      ? { titleKey: "spaces.conversation.toolOperations.approval.title", detail }
+      ? { titleKey: "spaces.conversation.toolOperations.approval.title", subject }
       : {
           titleKey: "spaces.conversation.toolOperations.outcomeUnknown.title",
           descriptionKey: "spaces.conversation.toolOperations.outcomeUnknown.description",
-          detail,
+          subject,
         };
   }
   return {
@@ -36,7 +36,7 @@ export function toolOperationPresentation(operation: ConversationToolOperation):
     descriptionKey: approval
       ? "spaces.conversation.toolOperations.command.unconfined"
       : "spaces.conversation.toolOperations.command.outcomeUnknown",
-    detail: command,
+    subject: command,
   };
 }
 

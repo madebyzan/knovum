@@ -24,7 +24,7 @@ interface OverviewDrawing {
   source: string | undefined;
 }
 
-interface OverviewEntry extends OverviewDrawing {
+interface DrawnOverview extends OverviewDrawing {
   group: Konva.Group;
   image: ImageBitmap | undefined;
 }
@@ -37,17 +37,17 @@ interface OverviewEntry extends OverviewDrawing {
  * follows its frame, so zooming and panning cost a pass over the drawn nodes, not a rebuild of them.
  */
 export function useCanvasOverviewLayer(options: CanvasOverviewLayerOptions) {
-  const entries = new Map<string, OverviewEntry>();
+  const drawnByNodeId = new Map<string, DrawnOverview>();
   let order: readonly string[] = [];
 
-  function draw(entry: OverviewEntry) {
-    entry.group.destroyChildren();
-    entry.group.add(
+  function draw(drawn: DrawnOverview) {
+    drawn.group.destroyChildren();
+    drawn.group.add(
       createCanvasOverviewNode({
-        sceneNode: entry.sceneNode,
-        palette: entry.palette,
-        labelled: entry.labelled,
-        ...(entry.image ? { image: entry.image } : {}),
+        sceneNode: drawn.sceneNode,
+        palette: drawn.palette,
+        labelled: drawn.labelled,
+        ...(drawn.image ? { image: drawn.image } : {}),
       }),
     );
   }
@@ -55,11 +55,11 @@ export function useCanvasOverviewLayer(options: CanvasOverviewLayerOptions) {
   function requestImage(nodeId: string, source: string) {
     void loadCanvasOverviewImage(source)
       .then((image) => {
-        const entry = entries.get(nodeId);
-        if (entry?.source !== source || entry.image === image) return undefined;
-        entry.image = image;
-        draw(entry);
-        entry.group.getLayer()?.batchDraw();
+        const drawn = drawnByNodeId.get(nodeId);
+        if (drawn?.source !== source || drawn.image === image) return undefined;
+        drawn.image = image;
+        draw(drawn);
+        drawn.group.getLayer()?.batchDraw();
         return undefined;
       })
       // A preview that cannot be decoded leaves the node drawn without it, as a node that has none.
@@ -79,17 +79,17 @@ export function useCanvasOverviewLayer(options: CanvasOverviewLayerOptions) {
     } satisfies OverviewDrawing;
   }
 
-  /** Brings a node's entry up to `drawing`, drawing it only when what it shows changed. */
+  /** Brings a node's drawn overview up to `drawing`, drawing it only when what it shows changed. */
   function refresh(nodeId: string, drawing: OverviewDrawing) {
-    const entry = entries.get(nodeId);
-    if (entry && sameDrawing(entry, drawing)) {
-      entry.sceneNode = drawing.sceneNode;
-      return entry;
+    const drawn = drawnByNodeId.get(nodeId);
+    if (drawn && sameDrawing(drawn, drawing)) {
+      drawn.sceneNode = drawing.sceneNode;
+      return drawn;
     }
-    const next: OverviewEntry = entry
-      ? Object.assign(entry, drawing, { image: entry.source === drawing.source ? entry.image : undefined })
+    const next: DrawnOverview = drawn
+      ? Object.assign(drawn, drawing, { image: drawn.source === drawing.source ? drawn.image : undefined })
       : { ...drawing, group: new Konva.Group({ listening: false }), image: undefined };
-    entries.set(nodeId, next);
+    drawnByNodeId.set(nodeId, next);
     draw(next);
     if (next.source && !next.image) requestImage(nodeId, next.source);
     return next;
@@ -98,7 +98,7 @@ export function useCanvasOverviewLayer(options: CanvasOverviewLayerOptions) {
   function reorder(layer: Konva.Layer, nextOrder: readonly string[]) {
     if (nextOrder.length === order.length && nextOrder.every((id, index) => id === order[index])) return;
     layer.removeChildren();
-    for (const id of nextOrder) layer.add(entries.get(id)!.group);
+    for (const id of nextOrder) layer.add(drawnByNodeId.get(id)!.group);
     order = nextOrder;
   }
 
@@ -115,10 +115,10 @@ export function useCanvasOverviewLayer(options: CanvasOverviewLayerOptions) {
       });
       drawnIds.add(sceneNode.node.id);
     }
-    for (const [nodeId, entry] of entries) {
+    for (const [nodeId, drawn] of drawnByNodeId) {
       if (drawnIds.has(nodeId)) continue;
-      entry.group.destroy();
-      entries.delete(nodeId);
+      drawn.group.destroy();
+      drawnByNodeId.delete(nodeId);
     }
     reorder(
       layer,
@@ -135,19 +135,19 @@ export function useCanvasOverviewLayer(options: CanvasOverviewLayerOptions) {
     { flush: "post", immediate: true },
   );
   onScopeDispose(() => {
-    for (const entry of entries.values()) entry.group.destroy();
-    entries.clear();
+    for (const drawn of drawnByNodeId.values()) drawn.group.destroy();
+    drawnByNodeId.clear();
   });
 }
 
-function sameDrawing(entry: OverviewDrawing, next: OverviewDrawing) {
-  const before = entry.sceneNode.layout;
+function sameDrawing(current: OverviewDrawing, next: OverviewDrawing) {
+  const before = current.sceneNode.layout;
   const after = next.sceneNode.layout;
   return (
-    entry.sceneNode.node === next.sceneNode.node &&
-    entry.palette === next.palette &&
-    entry.labelled === next.labelled &&
-    entry.source === next.source &&
+    current.sceneNode.node === next.sceneNode.node &&
+    current.palette === next.palette &&
+    current.labelled === next.labelled &&
+    current.source === next.source &&
     before.frame.width === after.frame.width &&
     before.frame.height === after.frame.height &&
     before.appearance === after.appearance

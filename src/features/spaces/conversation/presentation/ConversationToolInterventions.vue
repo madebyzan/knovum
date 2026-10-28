@@ -89,7 +89,7 @@ function answer(interactionId: string, response: Parameters<typeof answerMcpUser
         {{ operation.attempt }}
       </p>
       <pre class="max-h-32 overflow-auto rounded-sm bg-surface-control p-2 text-caption">{{
-        presentation.detail
+        presentation.subject
       }}</pre>
       <div v-if="operation.state === 'prepared'" class="flex gap-2">
         <UiButton size="sm" :disabled="mutation.isPending.value" @click="decide(operation.id, 'approve')">{{

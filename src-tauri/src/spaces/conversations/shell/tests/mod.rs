@@ -34,8 +34,10 @@ impl Drop for Scratch {
     }
 }
 
-fn text(result: &Value) -> &str {
-    result["content"][0]["text"].as_str().expect("text result")
+fn text(response: &Value) -> &str {
+    response["content"][0]["text"]
+        .as_str()
+        .expect("text content")
 }
 
 async fn run(scratch: &Scratch, command: &str, timeout: u64) -> Value {
@@ -90,15 +92,15 @@ fn output_keeps_errors_apart_and_says_how_the_command_ended() {
         output: Captured::of("done\n", "warning\n"),
         exit: Exit::Code(2),
     };
-    let result = output::result(&finished, Duration::from_secs(5));
-    assert_eq!(text(&result), "done\n\n[stderr] warning\n\nExit code: 2");
-    assert_eq!(result["isError"], false, "a failing command still ran");
+    let response = output::tool_response(&finished, Duration::from_secs(5));
+    assert_eq!(text(&response), "done\n\n[stderr] warning\n\nExit code: 2");
+    assert_eq!(response["isError"], false, "a failing command still ran");
     let silent = Finished {
         output: Captured::of("", ""),
         exit: Exit::Code(0),
     };
     assert_eq!(
-        text(&output::result(&silent, Duration::from_secs(5))),
+        text(&output::tool_response(&silent, Duration::from_secs(5))),
         "<no output>"
     );
 }
@@ -109,8 +111,8 @@ fn output_past_the_limit_is_cut_on_a_character_and_says_so() {
         output: Captured::of(&"é".repeat(MAX_OUTPUT_BYTES), ""),
         exit: Exit::Code(0),
     };
-    let result = output::result(&finished, Duration::from_secs(5));
-    let (kept, notice) = text(&result)
+    let response = output::tool_response(&finished, Duration::from_secs(5));
+    let (kept, notice) = text(&response)
         .split_once("\n\n... Output truncated")
         .expect("truncation notice");
     assert!(kept.len() <= MAX_OUTPUT_BYTES);

@@ -39,7 +39,7 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
     const layout = store.editSnapshot.layouts.find(
       (candidate) => candidate.structureNodeId === structureNodeId,
     );
-    const containerActions = containerMenuEntries(
+    const containerActions = containerMenuActions(
       structureNodeId,
       structureNode.kind,
       layout,
@@ -79,7 +79,7 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
     await popupSpaceContextMenu([primary, containerActions, move, lock]);
   }
 
-  function containerMenuEntries(
+  function containerMenuActions(
     structureNodeId: string,
     kind: "content" | "group" | "section",
     layout: SpaceEditSnapshot["layouts"][number] | undefined,

@@ -58,7 +58,8 @@ async fn drain(mut stream: impl AsyncRead + Unpin) -> (Vec<u8>, bool) {
     (kept, truncated)
 }
 
-pub(super) fn result(finished: &Finished, timeout: Duration) -> Value {
+/// The tool response the Agent reads: everything the command printed, then why it stopped.
+pub(super) fn tool_response(finished: &Finished, timeout: Duration) -> Value {
     let mut text = text(&finished.output);
     let timed_out = matches!(finished.exit, Exit::TimedOut);
     match finished.exit {

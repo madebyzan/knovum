@@ -36,7 +36,7 @@ const canCheck = computed(() => state.value && ["idle", "current", "failed"].inc
 </script>
 
 <template>
-  <div data-testid="update-panel">
+  <div data-testid="software-update">
     <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3.5">
       <div class="min-w-40 flex-1">
         <div class="text-body-lg font-medium text-fg-primary">
