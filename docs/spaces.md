@@ -681,10 +681,13 @@ zooming keeps the time under the pointer fixed, fitting shows the whole project 
 ruler steps coarsen as the scale shrinks, and the view follows the playhead by writing the scroll
 position and the playhead directly, so a moving playhead never re-renders the lanes. A clip lane
 draws on a canvas that covers only its visible part, because a long source at a close zoom is wider
-than any canvas a WebView allocates. Filmstrip tiles show the key frame at or before their position,
-as desktop editors' thumbnails do, so each costs one decoded picture however long the source's
-groups of pictures are; only what the viewport shows is requested, clips of one source share its
-queue, the least recently drawn tiles are evicted, and extraction yields to playback. Waveforms are
+than any canvas a WebView allocates. The filmstrip draws one thumbnail per slot, as desktop editors
+do: a slot is as wide as the source's own frame at the lane's height, is anchored to the source's
+start so trimming never slides its pictures, and shows the frame it starts at. Thumbnails are decoded
+at the lane's device-pixel height. A slot first shows the key frame before it, which costs one decoded
+picture, so a strip of any source fills at once, and the exact frame then replaces it. Only visible
+slots are requested, clips of one source share its queue, the least recently drawn thumbnails are
+evicted, and extraction yields to playback. Waveforms are
 peaks at a fixed 100 per second that Rust decodes once per revision at a low rate and streams as it
 goes, so a lane fills in from the left within moments and is read from cache the next time. Timed text is
 selectable from the stage and the timeline and is positioned freely by dragging it on the frame, with

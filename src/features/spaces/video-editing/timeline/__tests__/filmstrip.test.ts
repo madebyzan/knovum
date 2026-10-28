@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { VideoLibrary } from "../../media/preview-video";
 import type { VideoAsset } from "../../project";
-import { createFilmstripCache } from "../filmstrip";
+import { createFilmstripCache, filmstripStepMs } from "../filmstrip";
 
-const decoded = vi.hoisted(() => [] as number[][]);
+const sink = vi.hoisted(() => ({ decoded: [] as number[][], options: [] as unknown[] }));
 vi.mock("mediabunny", () => ({
   /** Key frames every two seconds, as a long-GOP camera file has them. */
   EncodedPacketSink: class {
@@ -13,8 +13,11 @@ vi.mock("mediabunny", () => ({
     }
   },
   CanvasSink: class {
+    constructor(_track: unknown, options: unknown) {
+      sink.options.push(options);
+    }
     async *canvasesAtTimestamps(timestamps: number[]) {
-      decoded.push([...timestamps]);
+      sink.decoded.push([...timestamps]);
       for (const timestamp of timestamps) yield { canvas: { timestamp } };
     }
   },
@@ -30,29 +33,37 @@ const asset: VideoAsset = {
 };
 
 function cache() {
+  sink.decoded.length = 0;
+  sink.options.length = 0;
   const videos = { load: () => Promise.resolve({ track: {} }) } as unknown as VideoLibrary;
   return createFilmstripCache({ videos, suspended: () => false });
 }
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-describe("filmstrip tiles", () => {
-  it("decodes one key frame per tile group instead of every requested position", async () => {
-    decoded.length = 0;
-    const filmstrips = cache();
-    filmstrips.request(asset, 1_000, [0, 1, 2, 3, 4, 5]);
-    await settle();
-    expect(decoded).toEqual([[0, 2, 4]]);
-    expect(filmstrips.tile(asset, 1_000, 1)).toEqual({ timestamp: 0 });
-    expect(filmstrips.tile(asset, 1_000, 5)).toEqual({ timestamp: 4 });
+describe("filmstrip thumbnails", () => {
+  it("never lets two neighbouring slots show the same step", () => {
+    expect(filmstripStepMs(55_000)).toBe(30_000);
+    expect(filmstripStepMs(1_200)).toBe(1_000);
+    expect(filmstripStepMs(10)).toBe(40);
   });
 
-  it("fills two clips of the same source from one queue entry", async () => {
-    decoded.length = 0;
+  it("decodes at the lane's device-pixel height", async () => {
     const filmstrips = cache();
-    filmstrips.request(asset, 2_000, [10]);
-    filmstrips.request(asset, 2_000, [20]);
+    filmstrips.request(asset, 1_000, [0]);
     await settle();
-    expect(decoded.flat().toSorted((left, right) => left - right)).toEqual([20, 40]);
+    expect(sink.options).toEqual([{ height: 144, poolSize: 0 }]);
+  });
+
+  it("fills slots from key frames at once, then replaces them with their exact frames", async () => {
+    const filmstrips = cache();
+    filmstrips.request(asset, 1_000, [0, 1, 2, 3]);
+    await settle();
+    expect(sink.decoded).toEqual([
+      [0, 2],
+      [0, 1, 2, 3],
+    ]);
+    expect(filmstrips.tile(asset, 1_000, 1)).toEqual({ timestamp: 1 });
+    expect(filmstrips.tile(asset, 1_000, 3)).toEqual({ timestamp: 3 });
   });
 });

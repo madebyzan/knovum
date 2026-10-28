@@ -66,6 +66,8 @@ export function useClipLane(
       const context = element.getContext("2d");
       if (!context) return undefined;
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      // Thumbnails are drawn slightly below their decoded size; the default filter aliases that.
+      context.imageSmoothingQuality = "high";
       context.clearRect(0, 0, value.widthPx, cssHeight);
       return { context, width: value.widthPx, height: cssHeight, source: value.source };
     },
