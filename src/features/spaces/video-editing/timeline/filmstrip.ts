@@ -4,18 +4,26 @@ import { shallowRef } from "vue";
 import { assetIdentity, createAssetCache } from "../media/asset-cache";
 import type { VideoLibrary } from "../media/preview-video";
 import type { VideoAsset } from "../project";
+import { TIMELINE_ROWS } from "./track-geometry";
 
-const TILE_WIDTH = 128;
-/** Decoded tiles kept, least recently drawn first out: about 30 MB of thumbnails. */
-const TILE_CAPACITY = 900;
-/** Tiles one request may queue; the viewport asks again as soon as these land. */
-const QUEUE_LIMIT = 48;
-const BUCKETS_MS = [250, 500, 1_000, 2_000, 5_000, 10_000, 30_000, 60_000];
+/**
+ * Device pixels a thumbnail is decoded at, top to bottom: the video lane at twice its CSS height,
+ * so a frame is drawn at or below its decoded size on every display Knovum supports.
+ */
+const THUMBNAIL_HEIGHT = TIMELINE_ROWS.video * 2;
+/** Decoded thumbnails kept, least recently drawn first out: about 60 MB of 16:9 frames. */
+const TILE_CAPACITY = 1_200;
+/** Thumbnails one request may queue; the viewport asks again as soon as these land. */
+const QUEUE_LIMIT = 64;
+/**
+ * Times a thumbnail can stand for. A slot shows the frame at the start of its step, so thumbnails
+ * are shared between nearby zoom levels instead of being decoded again for every scale.
+ */
+const STEPS_MS = [40, 100, 250, 500, 1_000, 2_000, 5_000, 10_000, 15_000, 30_000, 60_000, 120_000, 300_000];
 
-/** Tile length that keeps filmstrip frames about one tile wide at the current scale. */
-export function filmstripBucketMs(pxPerSecond: number) {
-  const target = (TILE_WIDTH * 1000) / Math.max(1, pxPerSecond);
-  return BUCKETS_MS.find((bucket) => bucket >= target) ?? BUCKETS_MS.at(-1)!;
+/** The largest step no longer than one slot, so neighbouring slots never show the same frame. */
+export function filmstripStepMs(slotMs: number) {
+  return STEPS_MS.findLast((step) => step <= slotMs) ?? STEPS_MS[0]!;
 }
 
 interface FilmstripOptions {
@@ -24,10 +32,12 @@ interface FilmstripOptions {
   suspended: () => boolean;
 }
 
+/** `exact` work replaces the key frame shown first with the frame the slot actually starts at. */
 interface Work {
   asset: VideoAsset;
-  bucketMs: number;
+  stepMs: number;
   indices: number[];
+  exact: boolean;
 }
 
 interface Strip {
@@ -35,9 +45,14 @@ interface Strip {
   packets: EncodedPacketSink;
 }
 
-const bucketKey = (asset: VideoAsset, bucketMs: number) => `${assetIdentity(asset)}\u0000${bucketMs}`;
-const tileKey = (asset: VideoAsset, bucketMs: number, index: number) =>
-  `${bucketKey(asset, bucketMs)}\u0000${index}`;
+interface Tile {
+  image: CanvasImageSource;
+  exact: boolean;
+}
+
+const stepKey = (asset: VideoAsset, stepMs: number) => `${assetIdentity(asset)}\u0000${stepMs}`;
+const tileKey = (asset: VideoAsset, stepMs: number, index: number) =>
+  `${stepKey(asset, stepMs)}\u0000${index}`;
 
 /** The key frame at or before a position: decoding it needs no other picture of the source. */
 async function keyFrameAt(packets: EncodedPacketSink, timestampS: number) {
@@ -47,66 +62,83 @@ async function keyFrameAt(packets: EncodedPacketSink, timestampS: number) {
   return packet?.timestamp ?? timestampS;
 }
 
-/** The tiles of a request, grouped by the key frame each one shows, in decode order. */
-async function groupByKeyFrame(packets: EncodedPacketSink, work: Work) {
-  const keyed = await Promise.all(
-    work.indices.map(async (index) => ({
-      index,
-      at: await keyFrameAt(packets, (index * work.bucketMs) / 1000),
-    })),
+/** The pictures a piece of work decodes, in decode order, and the thumbnails each one fills. */
+async function decodePlan(packets: EncodedPacketSink, work: Work) {
+  const timed = await Promise.all(
+    work.indices.map(async (index) => {
+      const startS = (index * work.stepMs) / 1000;
+      return { index, at: work.exact ? startS : await keyFrameAt(packets, startS) };
+    }),
   );
-  const indicesByKeyFrame = new Map<number, number[]>();
-  for (const { index, at } of keyed) indicesByKeyFrame.set(at, [...(indicesByKeyFrame.get(at) ?? []), index]);
-  const keyFrames = [...indicesByKeyFrame.keys()].toSorted((left, right) => left - right);
-  return keyFrames.map((at) => ({ at, indices: indicesByKeyFrame.get(at)! }));
+  const indicesByTime = new Map<number, number[]>();
+  for (const { index, at } of timed) indicesByTime.set(at, [...(indicesByTime.get(at) ?? []), index]);
+  return [...indicesByTime.keys()]
+    .toSorted((left, right) => left - right)
+    .map((at) => ({ at, indices: indicesByTime.get(at)! }));
 }
 
 /**
- * Filmstrip tiles. A tile shows the key frame nearest before it, as desktop editors' thumbnails do:
- * each costs one decoded picture however far apart key frames are, so a long source fills its
- * strip in moments instead of decoding through every group of pictures. Only tiles the viewport
- * asks for are decoded, and playback always wins the decoder because a batch stops as soon as the
- * preview starts.
+ * Filmstrip thumbnails, one per slot of the lane, each showing the frame its slot starts at, as
+ * desktop editors draw them. A slot first shows the key frame before it, which needs one decoded
+ * picture, so a strip of any source fills at once; the exact frame then replaces it. Thumbnails are
+ * decoded at the lane's device-pixel height, only the slots on screen are requested, clips of one
+ * source share its queue, the least recently drawn are evicted, and playback always wins the
+ * decoder because a batch stops as soon as the preview starts.
  */
 export function createFilmstripCache(options: FilmstripOptions) {
-  /** Bumped when tiles land; reading it is what repaints a lane. */
+  /** Bumped when thumbnails land; reading it is what repaints a lane. */
   const revision = shallowRef(0);
-  const tiles = new Map<string, CanvasImageSource>();
-  /** The scale each asset was last asked at; work queued for another scale is stale. */
-  const bucketByAsset = new Map<string, number>();
+  const tiles = new Map<string, Tile>();
+  /** The step each asset was last asked at; work queued for another zoom level is stale. */
+  const stepByAsset = new Map<string, number>();
   const strips = createAssetCache<Strip>(async (asset) => {
     const { track } = await options.videos.load(asset);
     return {
-      frames: new CanvasSink(track, { width: TILE_WIDTH, poolSize: 0 }),
+      frames: new CanvasSink(track, { height: THUMBNAIL_HEIGHT, poolSize: 0 }),
       packets: new EncodedPacketSink(track),
     };
   });
   let queue: Work[] = [];
   let working = false;
 
-  function keep(key: string, tile: CanvasImageSource) {
+  function keep(key: string, tile: Tile) {
+    if (tiles.get(key)?.exact && !tile.exact) return;
     tiles.delete(key);
     tiles.set(key, tile);
     while (tiles.size > TILE_CAPACITY) tiles.delete(tiles.keys().next().value!);
   }
 
+  function enqueue(work: Work) {
+    const key = stepKey(work.asset, work.stepMs);
+    const queued = queue.find(
+      (entry) => entry.exact === work.exact && stepKey(entry.asset, entry.stepMs) === key,
+    );
+    const indices = [...new Set([...work.indices, ...(queued?.indices ?? [])])].slice(0, QUEUE_LIMIT);
+    queue = [...queue.filter((entry) => entry !== queued), { ...work, indices }];
+  }
+
   async function run(work: Work) {
-    if (bucketByAsset.get(assetIdentity(work.asset)) !== work.bucketMs) return;
+    if (stepByAsset.get(assetIdentity(work.asset)) !== work.stepMs) return;
     const strip = await strips.load(work.asset).catch(() => undefined);
     if (!strip) return;
-    const groups = await groupByKeyFrame(strip.packets, work);
+    const plan = await decodePlan(strip.packets, work);
     let decoded = 0;
-    for await (const frame of strip.frames.canvasesAtTimestamps(groups.map(({ at }) => at))) {
-      const { indices } = groups[decoded]!;
+    for await (const frame of strip.frames.canvasesAtTimestamps(plan.map(({ at }) => at))) {
+      const { indices } = plan[decoded]!;
       decoded += 1;
-      if (frame) for (const index of indices) keep(tileKey(work.asset, work.bucketMs, index), frame.canvas);
+      if (frame) {
+        for (const index of indices) {
+          keep(tileKey(work.asset, work.stepMs, index), { image: frame.canvas, exact: work.exact });
+        }
+      }
       revision.value += 1;
       if (options.suspended()) {
-        const remaining = groups.slice(decoded).flatMap((group) => group.indices);
+        const remaining = plan.slice(decoded).flatMap((step) => step.indices);
         if (remaining.length > 0) queue.unshift({ ...work, indices: remaining });
-        break;
+        return;
       }
     }
+    if (!work.exact) enqueue({ ...work, exact: true });
   }
 
   async function drain() {
@@ -126,26 +158,21 @@ export function createFilmstripCache(options: FilmstripOptions) {
   }
 
   return {
-    tile(asset: VideoAsset, bucketMs: number, index: number) {
+    tile(asset: VideoAsset, stepMs: number, index: number) {
       void revision.value;
-      const key = tileKey(asset, bucketMs, index);
+      const key = tileKey(asset, stepMs, index);
       const tile = tiles.get(key);
       if (tile) keep(key, tile);
-      return tile;
+      return tile?.image;
     },
-    /**
-     * Asks for tiles of one clip's visible window. Clips of the same source share its queue entry,
-     * so two clips on screen both fill in, nearest the latest request first.
-     */
-    request(asset: VideoAsset, bucketMs: number, indices: number[]) {
+    /** Asks for the thumbnails of one clip's visible slots, nearest the latest request first. */
+    request(asset: VideoAsset, stepMs: number, indices: number[]) {
       if (asset.kind !== "video") return;
-      bucketByAsset.set(assetIdentity(asset), bucketMs);
-      const missing = indices.filter((index) => !tiles.has(tileKey(asset, bucketMs, index)));
-      if (missing.length === 0) return;
-      const key = bucketKey(asset, bucketMs);
-      const queued = queue.find((work) => bucketKey(work.asset, work.bucketMs) === key);
-      const merged = [...new Set([...missing, ...(queued?.indices ?? [])])].slice(0, QUEUE_LIMIT);
-      queue = [...queue.filter((work) => work !== queued), { asset, bucketMs, indices: merged }];
+      stepByAsset.set(assetIdentity(asset), stepMs);
+      const missing = indices.filter((index) => !tiles.has(tileKey(asset, stepMs, index)));
+      const inexact = indices.filter((index) => tiles.get(tileKey(asset, stepMs, index))?.exact === false);
+      if (missing.length > 0) enqueue({ asset, stepMs, indices: missing, exact: false });
+      if (inexact.length > 0) enqueue({ asset, stepMs, indices: inexact, exact: true });
       start();
     },
     /** Playback stopped: pick the queue back up. */

@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import { versionedMediaSource } from "../../media/media-element-source";
 import type { VideoClip } from "../project";
-import { filmstripBucketMs } from "../timeline/filmstrip";
+import { filmstripStepMs } from "../timeline/filmstrip";
 import { useClipLane } from "./use-clip-lane";
 import type { VideoEditor } from "./use-video-editor";
 
@@ -25,49 +25,35 @@ const still = computed(() =>
 );
 const converting = computed(() => (asset.value ? player.videos.converting(asset.value) : false));
 
-/** Draws the tiles covering the visible slice; only those are requested, never the whole source. */
+/**
+ * Draws one thumbnail per slot of the visible slice. A slot is as wide as the source's own frame at
+ * the lane's height and shows the frame its slot starts at; slots are anchored to the source's
+ * start, so trimming or moving a clip never slides its pictures.
+ */
 watchEffect(() => {
   const media = asset.value;
   if (!media || media.kind !== "video" || !node.value) return;
   const surface = lane.surface();
   if (!surface) return;
-  const bucketMs = filmstripBucketMs(timeline.pxPerSecond.value);
+  const slotWidth = Math.max(1, (surface.height * media.width) / Math.max(1, media.height));
+  const pxPerMs = timeline.pxPerSecond.value / 1000;
+  const slotMs = slotWidth / pxPerMs;
+  const stepMs = filmstripStepMs(slotMs);
   const { fromMs, toMs } = surface.source;
-  const first = Math.floor(fromMs / bucketMs);
-  const indices = Array.from(
-    { length: Math.floor(Math.max(fromMs, toMs - 1) / bucketMs) - first + 1 },
-    (_, offset) => first + offset,
-  );
-  filmstrips.request(media, bucketMs, indices);
-  const pxPerMs = surface.width / Math.max(1, toMs - fromMs);
-  surface.context.imageSmoothingQuality = "high";
-  for (const index of indices) {
-    const tile = filmstrips.tile(media, bucketMs, index);
-    if (!tile) continue;
-    drawTile(surface.context, tile, {
-      x: (index * bucketMs - fromMs) * pxPerMs,
-      width: Math.max(1, bucketMs * pxPerMs),
-      height: surface.height,
-    });
+  const slots = slotStarts(fromMs, toMs, slotMs);
+  const indexOf = (startMs: number) => Math.floor(startMs / stepMs);
+  filmstrips.request(media, stepMs, slots.map(indexOf));
+  for (const startMs of slots) {
+    const tile = filmstrips.tile(media, stepMs, indexOf(startMs));
+    if (tile) surface.context.drawImage(tile, (startMs - fromMs) * pxPerMs, 0, slotWidth, surface.height);
   }
 });
 
-function drawTile(
-  context: CanvasRenderingContext2D,
-  tile: CanvasImageSource,
-  target: { x: number; width: number; height: number },
-) {
-  const tw = Number((tile as { width?: number }).width) || target.width;
-  const th = Number((tile as { height?: number }).height) || target.height;
-  const frameWidth = Math.max(1, Math.round(target.height * (tw / th)));
-  context.save();
-  context.beginPath();
-  context.rect(target.x, 0, target.width, target.height);
-  context.clip();
-  for (let x = target.x; x < target.x + target.width; x += frameWidth) {
-    context.drawImage(tile, 0, 0, tw, th, x, 0, frameWidth, target.height);
-  }
-  context.restore();
+/** Source times of the slots that intersect `[fromMs, toMs)`, every slot `slotMs` from zero. */
+function slotStarts(fromMs: number, toMs: number, slotMs: number) {
+  const first = Math.floor(fromMs / slotMs);
+  const last = Math.ceil(toMs / slotMs);
+  return Array.from({ length: Math.max(0, last - first) }, (_, offset) => (first + offset) * slotMs);
 }
 </script>
 
@@ -77,12 +63,12 @@ function drawTile(
     :src="still"
     alt=""
     draggable="false"
-    class="pointer-events-none absolute inset-0 size-full object-cover opacity-80"
+    class="pointer-events-none absolute inset-0 size-full object-cover"
   />
   <template v-else>
     <canvas
       ref="canvas"
-      class="pointer-events-none absolute inset-y-0 opacity-85"
+      class="pointer-events-none absolute inset-y-0"
       :style="lane.style.value"
       aria-hidden="true"
     />
