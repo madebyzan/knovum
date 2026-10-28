@@ -89,6 +89,7 @@ describe("editor writing task ownership", () => {
     ai.transform.mockReturnValue(completion.promise);
     const { writing } = session();
     const running = writing.run("improve");
+    await vi.waitFor(() => expect(ai.transform).toHaveBeenCalledOnce());
     await writing.cancel();
     completion.reject(new Error("cancelled"));
     await running;
