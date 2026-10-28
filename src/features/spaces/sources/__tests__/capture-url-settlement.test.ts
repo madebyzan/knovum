@@ -22,14 +22,12 @@ const mocks = vi.hoisted(() => ({
   addSavedWebsite: vi.fn<() => Promise<void>>(),
   logInfo: vi.fn<(message: string) => void>(),
   logWarn: vi.fn<(message: string) => void>(),
-  removeSpaceAssets: vi.fn<(paths: readonly string[]) => Promise<void>>(),
 }));
 
 vi.mock("@tauri-apps/plugin-log", () => ({ info: mocks.logInfo, warn: mocks.logWarn }));
 vi.mock("../../../../foundation/i18n/instance", () => ({
   i18n: { global: { t: (key: string) => key } },
 }));
-vi.mock("../../assets/asset-operations", () => ({ removeSpaceAssets: mocks.removeSpaceAssets }));
 vi.mock("../../media/import/acquisition", () => ({ acquireMediaSource: mocks.acquireMediaSource }));
 vi.mock("../../media/import/ipc", () => ({ allocateMediaImportAsset: mocks.allocateMediaImportAsset }));
 vi.mock("../../website/capture", () => ({ addSavedWebsite: mocks.addSavedWebsite }));
@@ -42,18 +40,17 @@ beforeEach(() => {
   mocks.allocateMediaImportAsset.mockResolvedValue(RESERVED_ASSET);
 });
 
-it("reports both the settlement failure and the asset cleanup that could not follow it", async () => {
+it("reports both the settlement failure and the discard that could not follow it", async () => {
   mocks.acquireMediaSource.mockResolvedValue({ outcome: "imported", payload: importedVideo() });
-  mocks.removeSpaceAssets.mockRejectedValueOnce(new Error("asset locked"));
   const harness = captureHarness();
   harness.savePending.mockRejectedValue(new Error("revision rejected"));
+  harness.discard.mockRejectedValueOnce(new Error("node locked"));
 
   await expect(captureSpaceUrl(harness.context, URL, POSITION)).rejects.toThrow("revision rejected");
 
   expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining("revision rejected"));
-  expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining("asset locked"));
+  expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining("node locked"));
   expect(harness.discard).toHaveBeenCalledWith("space-1", "media");
-  expect(mocks.removeSpaceAssets).toHaveBeenCalledWith([RESERVED_ASSET]);
 });
 
 it("refuses an import that published somewhere other than the reserved asset", async () => {

@@ -87,7 +87,15 @@ pub fn duplicate_asset(app: &tauri::AppHandle, source: PathBuf) -> Result<String
     })
 }
 
+/// Removes an asset and what was generated from it. An asset that is not there is already removed:
+/// a path is reserved before its bytes arrive (a media import names its asset when the link is
+/// dropped), so a failed or cancelled arrival leaves a reference to a file that was never written.
 pub fn remove_asset(app: &tauri::AppHandle, source: PathBuf) -> Result<(), String> {
+    match fs::symlink_metadata(&source) {
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(error.to_string()),
+        Ok(_) => {}
+    }
     let canonical = authorize_spaces_asset(app, &source)?;
     let parent = canonical.parent().map(PathBuf::from);
     previews::remove_generated(app, &canonical)?;
