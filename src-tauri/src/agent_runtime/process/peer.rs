@@ -15,6 +15,10 @@ type Response = Result<Value, String>;
 
 pub(crate) trait Host: Send + Sync {
     fn dispatch(&self, method: String, params: Value) -> BoxFuture<'_, Response>;
+    /// Handles a notification before the next frame is read. Notifications are the Agent's
+    /// stream, and a stream means something only in the order it was written: handled as
+    /// spawned tasks, two chunks of one answer could reach the screen swapped.
+    fn notify(&self, method: &str, params: Value) -> Result<(), String>;
 }
 
 #[derive(Clone)]
@@ -89,20 +93,20 @@ impl Peer {
                         let method = method.as_str().ok_or("agent-runtime-invalid-method")?.to_owned();
                         let params = value.get("params").cloned().unwrap_or(Value::Null);
                         let id = value.get("id").map(|id| id.as_str().map(str::to_owned).ok_or("agent-runtime-invalid-request-id")).transpose()?;
-                        if handlers.len() >= 64 { return Err("agent-runtime-request-limit".into()); }
-                        let host = host.clone();
-                        let peer = self.clone();
-                        handlers.spawn(async move {
-                            let outcome = host.dispatch(method, params).await;
-                            if let Some(id) = id {
-                                let response = match outcome {
+                        if let Some(id) = id {
+                            if handlers.len() >= 64 { return Err("agent-runtime-request-limit".into()); }
+                            let host = host.clone();
+                            let peer = self.clone();
+                            handlers.spawn(async move {
+                                let response = match host.dispatch(method, params).await {
                                     Ok(value) => json!({"jsonrpc":"2.0","id":id,"result":value}),
                                     Err(error) => json!({"jsonrpc":"2.0","id":id,"error":{"code":-32000,"message":error}}),
                                 };
-                                peer.send(response).await?;
-                            } else { outcome?; }
-                            Ok::<_, String>(())
-                        });
+                                peer.send(response).await
+                            });
+                        } else {
+                            host.notify(&method, params)?;
+                        }
                     } else { self.accept(value)?; }
                 }
                 outcome = handlers.join_next(), if !handlers.is_empty() => {

@@ -71,3 +71,44 @@ describe("UiMarkdown streaming", () => {
     expect(wrapper.get("button.ui-citation").text()).toBe("1");
   });
 });
+
+describe("UiMarkdown links", () => {
+  it("links only external destinations and keeps any other link's label as text", () => {
+    const wrapper = mount(UiMarkdown, {
+      props: {
+        content:
+          "Saved [PPT摘要.md](</Users/zand/agent-workspaces/PPT摘要.md>), see [docs](https://example.com) or [mail](mailto:a@example.com).",
+      },
+    });
+    expect(wrapper.findAll("a").map((link) => link.attributes("href"))).toEqual([
+      "https://example.com",
+      "mailto:a@example.com",
+    ]);
+    expect(wrapper.text()).toContain("Saved PPT摘要.md, see docs or mail.");
+  });
+
+  it("keeps a local link for a surface that follows it, and reports the press instead of navigating", async () => {
+    const wrapper = mount(UiMarkdown, {
+      props: {
+        content: "Saved [PPT摘要.md](</Users/zand/PPT摘要.md>) and [docs](https://example.com).",
+        localLinks: true,
+      },
+      attachTo: document.body,
+    });
+    const [local, external] = wrapper.findAll("a");
+    expect(local?.attributes("href")).toBe("/Users/zand/PPT%E6%91%98%E8%A6%81.md");
+    const press = new MouseEvent("click", { bubbles: true, cancelable: true });
+    local?.element.dispatchEvent(press);
+    expect(press.defaultPrevented).toBe(true);
+    await external?.trigger("click");
+    expect(wrapper.emitted("link")).toEqual([["/Users/zand/PPT%E6%91%98%E8%A6%81.md"]]);
+    wrapper.unmount();
+  });
+
+  it("never turns a file name into a link to a host", () => {
+    const wrapper = mount(UiMarkdown, {
+      props: { content: "Edit README.md and main.rs, or open https://example.com/x." },
+    });
+    expect(wrapper.findAll("a").map((link) => link.attributes("href"))).toEqual(["https://example.com/x"]);
+  });
+});

@@ -6,6 +6,10 @@ use agent_client_protocol::{
 use sha2::{Digest, Sha256};
 use std::path::{Path, PathBuf};
 
+/// A tool call's content is what the Agent shows of the call. Only what the tool embedded is
+/// something it made: a link points at a file that lives elsewhere — the source it read, an
+/// image it looked at, a page it fetched — and is neither copied nor fetched. Files the Agent
+/// writes reach the workspace, and the workspace is what gets published.
 pub(super) async fn persist_tool_content(
     workspace: &Path,
     tool_id: &str,
@@ -13,17 +17,19 @@ pub(super) async fn persist_tool_content(
 ) -> Result<(), Error> {
     let prefix = tool_artifact_prefix(tool_id);
     let mut active_paths = Vec::new();
-    let mut local_paths = Vec::new();
     for (index, item) in content.iter().enumerate() {
-        if let ToolCallContent::Content(block) = item {
+        let ToolCallContent::Content(block) = item else {
+            continue;
+        };
+        if matches!(
+            block.content,
+            ContentBlock::Image(_) | ContentBlock::Audio(_) | ContentBlock::Resource(_)
+        ) {
             let identity = format!("{prefix}{index}");
-            if let Some(output) =
+            if let Some(path) =
                 persist_content(workspace, block.content.clone(), Some(&identity)).await?
             {
-                if output.local_reference {
-                    local_paths.push(output.path.clone());
-                }
-                active_paths.push(output.path);
+                active_paths.push(path);
             }
         }
     }
@@ -38,21 +44,16 @@ pub(super) async fn persist_tool_content(
             .await
             .map_err(|error| Error::internal_error().data(error.to_string()))?;
     }
-    crate::external_agents::artifacts::record_tool(workspace, tool_id, &active_paths, &local_paths)
+    crate::external_agents::artifacts::record_tool(workspace, tool_id, &active_paths)
         .map_err(projection_error)?;
     Ok(())
-}
-
-pub(super) struct PersistedOutput {
-    pub(super) path: PathBuf,
-    pub(super) local_reference: bool,
 }
 
 pub(super) async fn persist_content(
     workspace: &Path,
     content: ContentBlock,
     identity: Option<&str>,
-) -> Result<Option<PersistedOutput>, Error> {
+) -> Result<Option<PathBuf>, Error> {
     match content {
         ContentBlock::Text(_) => Ok(None),
         ContentBlock::Image(image) => {
@@ -63,42 +64,18 @@ pub(super) async fn persist_content(
                 .unwrap_or_else(|| "image".into());
             persist_media(workspace, image.data, &image.mime_type, &stem, identity)
                 .await
-                .map(|path| {
-                    Some(PersistedOutput {
-                        path,
-                        local_reference: false,
-                    })
-                })
+                .map(Some)
         }
         ContentBlock::Audio(audio) => {
             persist_media(workspace, audio.data, &audio.mime_type, "audio", identity)
                 .await
-                .map(|path| {
-                    Some(PersistedOutput {
-                        path,
-                        local_reference: false,
-                    })
-                })
+                .map(Some)
         }
         ContentBlock::Resource(resource) => persist_resource(workspace, resource, identity)
             .await
-            .map(|path| {
-                Some(PersistedOutput {
-                    path,
-                    local_reference: false,
-                })
-            }),
+            .map(Some),
         ContentBlock::ResourceLink(link) => {
-            let local_reference =
-                tauri::Url::parse(&link.uri).is_ok_and(|url| url.scheme() == "file");
-            crate::external_agents::resource_links::materialize(workspace, link, identity)
-                .await
-                .map(|path| {
-                    path.map(|path| PersistedOutput {
-                        path,
-                        local_reference,
-                    })
-                })
+            crate::external_agents::resource_links::materialize(workspace, link, identity).await
         }
         _ => Err(Error::invalid_request().data("Unsupported ACP output content")),
     }
@@ -108,7 +85,7 @@ pub(super) fn projection_error(error: crate::foundation::app_error::AppError) ->
     Error::invalid_request().data(error.to_string())
 }
 
-pub(super) fn tool_artifact_prefix(tool_id: &str) -> String {
+fn tool_artifact_prefix(tool_id: &str) -> String {
     let identity = Sha256::digest(tool_id.as_bytes());
     format!("tool-{identity}-", identity = hex::encode(identity))
 }

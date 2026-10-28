@@ -237,11 +237,11 @@ The Rust boundary is divided by business responsibility:
 - `queries/` owns read-only projections. `commands/` owns Space mutations without a more specific
   capability owner.
 - `package/` owns package validation, snapshots, restore, and failed-import cleanup.
-- `agent_artifacts/` owns the per-conversation directories desktop Agents work in and the startup sweep that drops every workspace no External Agent conversation of a live Space owns.
+- `agent_artifacts/` owns the per-conversation directories Agents work in — one per Space conversation, deleted with it, holding a directory per kind of Agent: a desktop Agent runtime's working directory, which publication drains every turn, and the built-in Agent's, which keeps its files across turns — and the startup sweep that drops every workspace no conversation of a live Space owns.
 - `run_execution.rs` composes finite Action, captured Workflow and speech step routing and capability-owned terminal maintenance. `run_control.rs` composes durable Run control with capability interruption. The scheduler receives three concrete hooks at startup; it never selects capabilities itself.
 - `recovery.rs` owns ordered reconciliation of interrupted Space Runs during bootstrap.
 
-Space agent workspace roots and session paths are defined in `spaces/agent_artifacts/workspace`.
+Space agent workspace roots and conversation paths are defined in `spaces/agent_artifacts/workspace`.
 `external_agents/artifacts` owns safe artifact collection, output projection and resolution shared by
 agent execution consumers. External Agent task workspace initialization belongs to that executor's
 lifecycle, rather than AI settings or usage initialization.

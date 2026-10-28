@@ -39,6 +39,11 @@ pub struct ConversationMessageOutput {
     pub node_id: String,
     pub title: String,
     pub kind: String,
+    /// Where the Agent wrote the deliverable, relative to its working directory: the destination
+    /// its answer links to. Publication empties that directory, so a link follows this to the node
+    /// the file became. Absent for what an Agent made through Space Actions, which has no file.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workspace_path: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, TS)]
@@ -50,12 +55,14 @@ pub struct ConversationMessageOutput {
     deny_unknown_fields
 )]
 pub enum ConversationMessageAttachment {
+    /// A canvas node: a reference, drawn from the node as it is wherever the conversation shows it.
     Node {
         title: String,
         node_id: String,
         kind: String,
-        thumbnail: Option<String>,
     },
+    /// A file handed in from outside the Space. Nothing else keeps it, so the message keeps its
+    /// picture.
     File {
         title: String,
         kind: String,

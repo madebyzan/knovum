@@ -49,12 +49,6 @@ pub async fn start(
         context::ContextTarget::ExternalAgent,
     )
     .await?;
-    let history = if let Some((id, branch)) = &conversation {
-        repository::build_context(pool, id, branch).await?
-    } else {
-        None
-    };
-    let prepared = context.agent_prompt(&app, &prompt, history.as_deref())?;
     let extensions = crate::extensions::snapshots::prepare(
         &app,
         &request.extensions,
@@ -63,7 +57,7 @@ pub async fn start(
     )
     .await?;
     let snapshot_id = extensions.id.clone();
-    let session = match external_conversations::start_for_conversation(
+    let mut turn = match external_conversations::start_for_conversation(
         app.clone(),
         external_conversations::StartExternalConversationRequest {
             space_id: request.space_id,
@@ -72,80 +66,91 @@ pub async fn start(
             max_duration_seconds: 900,
             input_snapshot: serde_json::json!({"prompt": prompt, "extensions": extensions, "attachments": context.manifest, "spaceContext": context.space}),
         },
-        conversation,
+        conversation.clone(),
         updates.clone(),
-    )
-    .await {
-        Ok(session) => session,
-        Err(error) => { crate::extensions::reclamation::release(&app, &snapshot_id).await?; return Err(error); }
-    };
-    let turn_id = match external_conversations::begin_turn_for_conversation(
-        app.clone(),
-        &session.id,
-        &prompt,
-        &context.message_attachments,
     )
     .await
     {
-        Ok(id) => id,
+        Ok(turn) => turn,
         Err(error) => {
-            if let Err(settlement) = external_conversations::fail_for_conversation(
-                &app,
-                &session.id,
-                &session.run_id,
-                &error,
-            )
-            .await
+            crate::extensions::reclamation::release(&app, &snapshot_id).await?;
+            return Err(error);
+        }
+    };
+    // An Agent that already holds the conversation is sent the new request alone; a new
+    // runtime is given the stored history to continue from.
+    let begun = async {
+        let history = match (&conversation, turn.continues()) {
+            (Some((id, branch)), false) => repository::build_context(pool, id, branch).await?,
+            _ => None,
+        };
+        let prepared = context.agent_prompt(
+            &app,
+            &prompt,
+            history.as_deref(),
+            !extensions.skills.is_empty(),
+        )?;
+        let turn_id = external_conversations::begin_turn_for_conversation(
+            app.clone(),
+            &turn.binding.id,
+            &prompt,
+            &context.message_attachments,
+        )
+        .await?;
+        Ok::<_, String>((turn_id, prepared))
+    }
+    .await;
+    let (turn_id, prepared) = match begun {
+        Ok(begun) => begun,
+        Err(error) => {
+            if let Err(settlement) =
+                external_conversations::fail_for_conversation(&app, &turn, &error).await
             {
                 log::error!("Agent task settlement failed: {settlement}");
             }
+            drop(turn);
             crate::extensions::reclamation::release(&app, &snapshot_id).await?;
             return Err(error);
         }
     };
     let accepted = ConversationTaskAccepted {
-        task_id: session.id.clone(),
-        run_id: session.run_id.clone(),
-        conversation_id: session.conversation_id.clone(),
-        branch_id: session.branch_id.clone(),
+        task_id: turn.binding.id.clone(),
+        run_id: turn.binding.run_id.clone(),
+        conversation_id: turn.binding.conversation_id.clone(),
+        branch_id: turn.binding.branch_id.clone(),
     };
+    let run_id = turn.binding.run_id.clone();
     tauri::async_runtime::spawn(async move {
         let outcome = external_conversations::send_for_conversation(
             app.clone(),
-            &session.id,
+            &mut turn,
             &turn_id,
             prepared,
         )
         .await;
         let outcome = match outcome {
-            Ok(()) => {
-                external_conversations::close_for_conversation(app.clone(), &session.id).await
-            }
+            Ok(()) => external_conversations::close_for_conversation(app.clone(), &turn).await,
             Err(error) => Err(error),
         };
         let settlement_error = if let Err(error) = outcome {
-            external_conversations::fail_for_conversation(
-                &app,
-                &session.id,
-                &session.run_id,
-                &error,
-            )
-            .await
-            .err()
-            .map(|settlement| {
-                log::error!(
-                    "External Agent task settlement failed for run {}: {settlement}; original failure: {error}",
-                    session.run_id
-                );
-                format!(
-                    "External Agent failed: {error}; its failure could not be recorded: {settlement}"
-                )
-            })
+            external_conversations::fail_for_conversation(&app, &turn, &error)
+                .await
+                .err()
+                .map(|settlement| {
+                    log::error!(
+                        "External Agent task settlement failed for run {run_id}: {settlement}; original failure: {error}"
+                    );
+                    format!(
+                        "External Agent failed: {error}; its failure could not be recorded: {settlement}"
+                    )
+                })
         } else {
             None
         };
+        // The conversation's runtime is free for its next turn before this one reports.
+        drop(turn);
         let (state, terminal_error) = match db::pool(&app).await {
-            Ok(pool) => match crate::spaces::runs::load_run(pool, &session.run_id).await {
+            Ok(pool) => match crate::spaces::runs::load_run(pool, &run_id).await {
                 Ok(run) => match run.state {
                     RunState::Succeeded => (
                         super::contracts::ConversationTaskFinishedState::Succeeded,
@@ -169,7 +174,7 @@ pub async fn start(
                     | RunState::Paused) => {
                         let state_error = format!(
                             "External Agent producer finished while run {} remained in non-terminal state {state:?}",
-                            session.run_id
+                            run_id
                         );
                         log::error!("{state_error}");
                         (
@@ -184,7 +189,7 @@ pub async fn start(
                 Err(error) => {
                     log::error!(
                         "External Agent final state unavailable for run {}: {error}",
-                        session.run_id
+                        run_id
                     );
                     (
                         super::contracts::ConversationTaskFinishedState::SettlementFailed,
@@ -202,7 +207,7 @@ pub async fn start(
             Err(error) => {
                 log::error!(
                     "External Agent database unavailable while settling run {}: {error}",
-                    session.run_id
+                    run_id
                 );
                 (
                     super::contracts::ConversationTaskFinishedState::SettlementFailed,

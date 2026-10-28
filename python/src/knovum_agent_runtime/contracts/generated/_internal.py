@@ -105,6 +105,7 @@ class AgentExecute(WireModel):
     skill_tool_bindings: Annotated[
         dict[str, list[str]], Field(alias="skillToolBindings")
     ]
+    workspace: str
 
 
 class AgentInputRole(StrEnum):

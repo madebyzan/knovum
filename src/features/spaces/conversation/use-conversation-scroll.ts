@@ -9,9 +9,12 @@ import {
   type ShallowRef,
 } from "vue";
 
+import type { LiveTranscript } from "./conversation-transcript";
+
 interface ConversationScrollOptions {
   rows: readonly { id: string }[];
-  streamedText: string;
+  /** The transcript being streamed; every update to it is new content at the tail. */
+  live: LiveTranscript | undefined;
   loadingOlder: boolean;
   scrollKey: string;
   savedScrollTop?: number | undefined;
@@ -79,7 +82,7 @@ export function useConversationScroll(
   }
 
   watch(
-    () => [props.rows.length, props.streamedText],
+    () => [props.rows.length, props.live],
     async () => {
       if (olderScrollHeight !== undefined) {
         const previousHeight = olderScrollHeight;

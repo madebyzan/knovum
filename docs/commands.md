@@ -79,7 +79,7 @@ Space persistence is entirely Rust-owned. Reads and writes cross typed Rust comm
 ## Governed execution commands
 
 - `plugin:spaces|list_space_actions` projects the single versioned Action catalog. `plugin:spaces|start_space_action` accepts canvas resource creation with source IDs/revisions and an optional explicit target; Rust owns authorization, target resolution and the Action Run. Builtin Agent and MCP reuse the same invocation/execution boundary.
-- External conversation commands start one explicit ACP runtime session, send additional turns with explicitly selected attachments only while that exact session remains connected, list durable history and close the session without silent reconnection.
+- A desktop Agent turn is submitted like any conversation task; Rust continues the conversation's ACP runtime when it still holds that conversation and starts a new one from the stored history otherwise ([spaces.md](spaces.md)). Cancelling the turn's Run stops the Agent's turn, not its runtime; deleting the conversation closes the runtime and removes its workspace.
 - Run commands list Runs, steps and ordered events; request pause/resume/cancel; resolve a resource review; reconcile unknown external outcomes; retry failed Run steps into a new Run; and produce a content-redacted diagnostic bundle.
 - Conversation drafts use `load_conversation_draft`, `save_conversation_draft`,
   `remove_conversation_draft` and `move_conversation_draft`; the Spaces baseline owns unsent text

@@ -193,14 +193,35 @@ A **Creation Intent** is a localized capability entry with selection availabilit
 Image transformations are ordinary Actions: `upscale-image`, `generate-image-angle`, `remove-image-object`, `remove-image-background`, `extract-image-selection` and `generate-image-depth` use the same authenticated Invocation, durable Run and committed Receipt as generation. Transient masks and selection previews do not produce Action receipts.
 
 The Builtin Agent has one visible conversation and message store for API models and desktop Agents.
-The input chooses an enabled target for each turn. A desktop Agent turn creates a separate ACP
-execution session and Run, receives the selected Space resources through validated asset paths,
-and writes its streamed reply into the shared conversation. A later turn receives the visible
-history as context; it does not claim to resume hidden executor session memory. Tool activity is
-recorded as Run events, while Space changes still require Knovum MCP receipts. The former
+The input chooses an enabled target for each turn. Every desktop Agent turn records its own Run,
+receives the selected Space resources through validated asset paths, and writes its streamed reply
+into the shared conversation. The turns of one conversation share one **runtime** — one Agent
+process, one ACP session, one Knovum MCP server and one workspace
+(`spaces/external_conversations/runtime/pool.rs`) — so a follow-up is a single `session/prompt`
+carrying only the new request: no launch, no initialisation, no replayed history. A runtime is
+continued only while it holds exactly the conversation the turn continues: same Agent, same
+branch, same extension selection, and the branch's last message is the one its own previous turn
+left. An edited or regenerated message, another branch, a built-in Agent reply in between, a
+changed extension selection or a lost process all close it, and a new runtime is given the stored
+history instead. Cancelling a turn sends `session/cancel` and waits for the Agent to stop; the
+runtime stays. Idle runtimes close after 15 minutes and all of them when the app exits. Tool
+activity is recorded as Run events, while Space changes still require Knovum MCP receipts; the
+MCP server answers only during a turn, under that turn's grant and Run. A desktop Agent reaches the Space
+through that server but reads source files itself: attachments arrive as local paths and
+`get_node_asset` resolves a node's current file, and when indexed text is missing or thin — slides or
+scans kept as pictures — it opens the file with its own tools rather than reporting metadata. The
+one composition of these instructions (`prompt_policy::desktop_agent`) feeds both the prompt and the
+MCP server's instructions, and asks for Skill discovery only when Skills are selected. The former
 grounded-answer threads and messages are moved into the Builtin Agent store by a one-time local
 database migration; their verified source snapshots remain attached to the corresponding reply.
-Closing an Agent session exposes workspace artifacts through the existing reviewed import path.
+A turn publishes what it left in the conversation's workspace through the existing reviewed import
+path, and publication empties the workspace for the next turn; a new runtime starts from an empty
+one. Each published deliverable `derives-from` every canvas node attached to the turn, written with
+the node in the publication transaction: the turn's attachments are its inputs exactly as a
+selection is an Action's, so the source shows its derived outputs and the lineage line like any
+other derivation. Attached local files are not canvas nodes and have no line. In a tool call's content only what the tool embedded (image, audio, resource) is an output: a
+`resource_link` there names a file that lives elsewhere — the source the Agent read, the image it
+looked at — and is shown, never fetched, copied or published.
 
 Saving a resource in another format is an export rather than a derivation: the same content in a second file is not new knowledge, so it belongs to the destination the person picked instead of to the canvas. Admitted formats per resource kind and fidelity limits belong to [resource-export.md](resource-export.md).
 
@@ -276,10 +297,29 @@ bounds it and reserving every call's full output limit against a fixed total rej
 answers. The Space snapshot is part of the system prompt, not Agent memory: it is authoritative
 state the host regenerates for every turn, while the SDK's memory middleware presents its sources as
 possibly stale files the Agent is invited to rewrite with `edit_file`, which would let output reach
-state outside a KnowledgeChangeSet. The harness exposes the filesystem tools
-the SDK's own middleware depends on (`ls`, `read_file`, `grep`, `glob` over offloaded results, plus
-`write_file`/`edit_file` as a scratch space under `/workspace`), planning and research — every tool
-schema is paid on every model call, so shell execution and deletion stay out.
+state outside a KnowledgeChangeSet.
+
+The built-in Agent works in a directory of its conversation
+(`agent_artifacts::workspace::builtin_agent_directory`): its file tools (`ls`, `read_file`, `grep`,
+`glob`, `write_file`, `edit_file`, `delete`) address it as `/` through deepagents'
+`FilesystemBackend` in virtual mode, so no path leaves it, and it keeps its files across the
+conversation's turns. It is the Agent's own: the user cannot open its files, so the Agent is told
+never to link them and publishes results through Actions. Branching or regenerating a turn does not
+roll the directory back — checkpoints hold the conversation, not the files.
+
+Commands run through `run_command`, a host tool: Knovum, not the Agent process, runs them
+(`conversations/shell`), so each command is a conversation tool operation like an MCP call —
+recorded before it runs, settled with a receipt that a replay returns instead of running the command
+again, `outcome_unknown` when the app stopped mid-command, and killed with every process it started
+when its Run stops. deepagents' own `execute` is never offered: it would run unrecorded and
+unapproved inside the Agent process. A command sees an allowlisted environment (deepagents'
+`inherit_env=False`, never provider keys) plus the login shell's `PATH`, gets no input, and every
+process it starts ends with it. On macOS it runs under Seatbelt — it reads anything, writes only
+the working directory and temporary directories, and reaches no network — so it runs as the Agent
+asks. Elsewhere it runs with the user's permissions, so its operation is created unapproved and the
+conversation asks the user, showing the command line, before it runs. The system prompt names the
+computer's system and shell — PowerShell on Windows, never bash — and whether commands are
+confined. The research subagent gets neither `delete` nor `run_command`.
 Answers cite what the Agent actually read. Every indexed passage a search or node read returns —
 through Space Actions for the built-in Agent or the `knovum` MCP server for desktop Agents — carries
 the Run's `cite` id (`C1`, `C2`, …), numbered once per Run in `spaces_run_citations` from the chunk

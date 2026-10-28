@@ -30,7 +30,7 @@ pub(super) async fn publish(
          JOIN spaces_runs r ON r.id=c.run_id WHERE c.id=$1 AND c.run_id=$2",
     ).bind(conversation_id).bind(run_id).fetch_one(pool).await.map_err(db::sql_error)?;
     if publication == "committed" {
-        discard_committed_workspace(workspace);
+        drain_committed_workspace(workspace);
         return Ok(());
     }
     if cancelled.is_some() {
@@ -65,13 +65,15 @@ pub(super) async fn publish(
             }
         };
     }
-    discard_committed_workspace(workspace);
+    drain_committed_workspace(workspace);
     Ok(())
 }
 
-fn discard_committed_workspace(workspace: &Path) {
-    if let Err(error) = crate::external_agents::artifacts::discard(workspace) {
-        log::warn!("Could not remove committed Agent workspace: {error}");
+/// What was published is now the Space's; the workspace is emptied for the conversation's next
+/// turn, which publishes only what it writes itself.
+fn drain_committed_workspace(workspace: &Path) {
+    if let Err(error) = crate::external_agents::artifacts::clear(workspace) {
+        log::warn!("Could not empty the committed Agent workspace: {error}");
     }
 }
 
@@ -91,7 +93,7 @@ async fn commit(
     conversation_id: &str,
     run_id: &str,
     space_id: &str,
-    outputs: &[InsertNode],
+    outputs: &[super::staging::StagedOutput],
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), AppError> {
     let mut tx = db::begin_write(pool).await?;
@@ -125,12 +127,13 @@ async fn commit(
         .await?;
         for output in outputs {
             references.push(ConversationMessageOutput {
-                node_id: output.id.clone(),
-                title: output.data["title"]
+                node_id: output.node.id.clone(),
+                title: output.node.data["title"]
                     .as_str()
                     .ok_or("Agent output has no node title")?
                     .to_owned(),
-                kind: output.kind.clone(),
+                kind: output.node.kind.clone(),
+                workspace_path: Some(output.workspace_path.clone()),
             });
         }
     }
@@ -203,11 +206,16 @@ async fn current_sources(
     Ok(sources)
 }
 
+/// What a deliverable's `derives-from` Relation says: the canvas nodes the user handed the Agent
+/// for the turn were its inputs, exactly as a selection is an Action's. It states the process,
+/// not that the content was taken from them.
+const LINEAGE: &str = "Made by a desktop Agent in a turn given this as input";
+
 async fn insert_outputs(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     principal_id: &str,
-    outputs: &[InsertNode],
+    outputs: &[super::staging::StagedOutput],
     sources: &[String],
     now: i64,
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
@@ -222,12 +230,15 @@ async fn insert_outputs(
         DerivedOutputs {
             sources,
             reserved: &[],
-            sizes: outputs.iter().map(requested_size).collect(),
+            sizes: outputs
+                .iter()
+                .map(|output| requested_size(&output.node))
+                .collect(),
         },
     )
     .await?;
     for (output, cell) in outputs.iter().zip(&cells) {
-        let mut node = output.clone();
+        let mut node = output.node.clone();
         node.initial_x = cell.x;
         node.initial_y = cell.y;
         crate::spaces::knowledge::validation::normalize_node(
@@ -247,6 +258,12 @@ async fn insert_outputs(
             enrichment_target,
         )
         .await?;
+        for source in sources {
+            crate::spaces::derivation::relations::derives_from(
+                tx, space_id, &node.id, source, LINEAGE, now,
+            )
+            .await?;
+        }
     }
     structure::repository::save_in_transaction(tx, space_id, revision, &snapshot).await?;
     let after = structure::history::capture(tx, space_id, &snapshot).await?;

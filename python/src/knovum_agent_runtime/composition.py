@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from deepagents import create_deep_agent
-from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
+from deepagents.backends import CompositeBackend, FilesystemBackend, StoreBackend
 from deepagents.middleware import FilesystemPermission
 from deepagents.middleware.skills import SkillsMiddleware
 from deepagents.middleware.subagents import SubAgent
@@ -31,9 +31,6 @@ MODEL_PROVIDERS = {
     "groq": "groq",
 }
 
-# Knovum publishes through Actions, so the harness may neither run commands nor delete files;
-# its workspace stays a scratchpad for notes, drafts and offloaded tool results.
-EXCLUDED_TOOLS = frozenset({"execute", "delete"})
 PLANNING_PROMPT = (
     "## Planning\n\nFor work with several distinct steps, keep a short plan with `write_todos`: "
     "one item in_progress at a time, marked completed as soon as it is done. Skip it for simple requests."
@@ -48,16 +45,16 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
     provider = MODEL_PROVIDERS[request.model.protocol.value]
     register_harness_profile(
         f"{provider}:{request.model.model}",
-        HarnessProfile(
-            general_purpose_subagent=GeneralPurposeSubagentProfile(enabled=False),
-            excluded_tools=EXCLUDED_TOOLS,
-        ),
+        HarnessProfile(general_purpose_subagent=GeneralPurposeSubagentProfile(enabled=False)),
     )
     skills_backend = StoreBackend(namespace=lambda _: ("reviewed_skills", "v1"), store=InMemoryStore())
+    # The conversation's working directory is the file tools' `/`; `virtual_mode` keeps every path
+    # inside it. Knovum, not this backend, runs commands (`run_command`), so deepagents never
+    # offers its own unrecorded `execute`. Offloaded tool results and history stay out of sight.
     backend = CompositeBackend(
-        default=StateBackend(),
+        default=FilesystemBackend(root_dir=request.workspace, virtual_mode=True),
         routes={"/skills/": skills_backend},
-        artifacts_root="/workspace",
+        artifacts_root="/.agent",
     )
     uploaded = backend.upload_files(skill_files(request.skills))
     if any(item.error for item in uploaded):
@@ -79,13 +76,8 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
 
     middleware = execution_middleware()
     middleware.append(TodoListMiddleware(system_prompt=PLANNING_PROMPT, tool_description=PLANNING_TOOL))
-    read_rule = FilesystemPermission(
-        operations=["read"],
-        paths=["/workspace", "/workspace/**", "/skills", "/skills/**"],
-        mode="allow",
-    )
-    write_rule = FilesystemPermission(operations=["write"], paths=["/workspace/**"], mode="allow")
-    deny_rule = FilesystemPermission(operations=["read", "write"], paths=["/**"], mode="deny")
+    reviewed_skills = FilesystemPermission(operations=["write"], paths=["/skills", "/skills/**"], mode="deny")
+    read_only = FilesystemPermission(operations=["write"], paths=["/**"], mode="deny")
     subagents: list[SubAgent] = [
         {
             "name": "research",
@@ -93,7 +85,7 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
             "system_prompt": "Use the read-only Knovum tools and return a concise report with evidence.",
             "model": create_model(request.model, AgentModelPurpose.research),
             "tools": [create_tool(tool) for tool in request.tools if tool.read_only],
-            "permissions": [read_rule, deny_rule],
+            "permissions": [read_only],
             "middleware": execution_middleware(read_only=True),
         }
     ]
@@ -105,7 +97,7 @@ def create_agent_graph(request: AgentExecute, saver: AsyncSqliteSaver) -> Compil
         subagents=subagents,
         backend=backend,
         skills=["/skills/"],
-        permissions=[read_rule, write_rule, deny_rule],
+        permissions=[reviewed_skills],
         context_schema=ExecutionContext,
         checkpointer=saver,
     )

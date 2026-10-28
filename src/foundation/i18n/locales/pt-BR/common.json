@@ -48,5 +48,6 @@
     "hint": "Tente outra palavra-chave ou limpe a pesquisa."
   },
   "enable": "Habilitar {name}",
-  "disable": "Desativar {name}"
+  "disable": "Desativar {name}",
+  "linkOpenFailed": "Não foi possível abrir o link"
 }

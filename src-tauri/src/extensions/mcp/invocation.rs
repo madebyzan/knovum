@@ -34,7 +34,9 @@ pub(crate) async fn prepare(
         AgentToolBinding::McpTool { connection_id, .. }
         | AgentToolBinding::McpReadResource { connection_id, .. }
         | AgentToolBinding::McpGetPrompt { connection_id, .. } => connection_id,
-        AgentToolBinding::SpaceAction { .. } => return Err("mcp-invocation-source-mismatch".into()),
+        AgentToolBinding::SpaceAction { .. } | AgentToolBinding::Command => {
+            return Err("mcp-invocation-source-mismatch".into())
+        }
     };
     if !arguments.is_object() {
         return Err("mcp-tool-arguments-must-be-object".into());
@@ -146,7 +148,9 @@ impl PreparedInvocation {
                     let response = self.session.service.get_prompt(params).await?;
                     Ok(serde_json::to_value(response).expect("SDK response serializes"))
                 }
-                AgentToolBinding::SpaceAction { .. } => unreachable!("prepared MCP binding"),
+                AgentToolBinding::SpaceAction { .. } | AgentToolBinding::Command => {
+                    unreachable!("prepared MCP binding")
+                }
             }
         })
         .await;

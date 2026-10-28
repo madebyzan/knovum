@@ -1,5 +1,4 @@
 pub(super) mod create;
-pub(super) mod termination;
 
 use super::StartExternalConversationRequest;
 use crate::spaces::db;
@@ -8,7 +7,7 @@ pub(super) async fn mark_connected(
     pool: &sqlx::SqlitePool,
     binding_id: &str,
     run_id: &str,
-    session: &crate::external_agents::conversation::ConversationSession,
+    session: &super::pool::AgentSession,
 ) -> Result<(), String> {
     let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;

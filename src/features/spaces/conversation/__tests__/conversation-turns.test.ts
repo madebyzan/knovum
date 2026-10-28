@@ -34,7 +34,7 @@ describe("conversation turns", () => {
         message("ask-2", "user", "Second question", "run-2"),
       ],
       activeRunId: undefined,
-      streamedText: "",
+      live: undefined,
       preparing: false,
     });
 
@@ -56,7 +56,7 @@ describe("conversation turns", () => {
     const turns = conversationTurns({
       messages: [message("ask-1", "user", "Draw it", "run-1"), outputs, withOutput],
       activeRunId: undefined,
-      streamedText: "",
+      live: undefined,
       preparing: false,
     });
 
@@ -71,41 +71,32 @@ describe("conversation turns", () => {
     const preparing = conversationTurns({
       messages: sent,
       activeRunId: undefined,
-      streamedText: "",
+      live: [],
       preparing: true,
     });
-    expect(preparing[0]).toMatchObject({ active: true, pending: "preparing", streamedText: "" });
+    expect(preparing[0]).toMatchObject({ active: true, live: [] });
 
     // The first words arrive before the message that will hold them exists, and they belong to the
     // same turn — not to a block rendered beside the list and moved into it later.
+    const words = [{ kind: "text", text: "Because" }] as const;
     const streaming = conversationTurns({
       messages: sent,
       activeRunId: "run-1",
-      streamedText: "Because",
+      live: words,
       preparing: false,
     });
-    expect(streaming[0]).toMatchObject({
-      runId: "run-1",
-      active: true,
-      pending: undefined,
-      streamedText: "Because",
-    });
+    expect(streaming[0]).toMatchObject({ runId: "run-1", active: true, live: words });
 
-    // When a run is paused or waiting on user approval, it owns the turn and any partial text,
-    // but must not claim to be actively generating.
+    // When a run is paused or waiting on user approval, it owns the turn and what it has said so
+    // far, but must not claim to be actively generating.
     const paused = conversationTurns({
       messages: sent,
       activeRunId: "run-1",
-      streamedText: "",
+      live: words,
       preparing: false,
       producing: false,
     });
-    expect(paused[0]).toMatchObject({
-      runId: "run-1",
-      active: false,
-      pending: undefined,
-      streamedText: "",
-    });
+    expect(paused[0]).toMatchObject({ runId: "run-1", active: false, live: words });
   });
 
   it("leaves a settled exchange alone while another conversation runs", () => {
@@ -115,10 +106,10 @@ describe("conversation turns", () => {
         message("say-1", "assistant", "Answer", "run-1"),
       ],
       activeRunId: "run-elsewhere",
-      streamedText: "",
+      live: undefined,
       preparing: false,
     });
 
-    expect(turns[0]).toMatchObject({ active: false, pending: undefined, streamedText: "" });
+    expect(turns[0]).toMatchObject({ active: false, live: undefined });
   });
 });

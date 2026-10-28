@@ -13,11 +13,8 @@ pub(in crate::spaces::mcp) struct PromptBinding<'a> {
 }
 
 pub(in crate::spaces::mcp) fn selected_resources(
-    snapshot: Option<&AgentExtensionSnapshot>,
+    snapshot: &AgentExtensionSnapshot,
 ) -> Vec<ResourceBinding<'_>> {
-    let Some(snapshot) = snapshot else {
-        return Vec::new();
-    };
     let mut resources = Vec::new();
     for tool in &snapshot.tools {
         let AgentToolBinding::McpReadResource {
@@ -47,11 +44,8 @@ pub(in crate::spaces::mcp) fn selected_resources(
     resources
 }
 pub(in crate::spaces::mcp) fn selected_prompts(
-    snapshot: Option<&AgentExtensionSnapshot>,
+    snapshot: &AgentExtensionSnapshot,
 ) -> Vec<PromptBinding<'_>> {
-    let Some(snapshot) = snapshot else {
-        return Vec::new();
-    };
     let mut prompts = Vec::new();
     for tool in &snapshot.tools {
         let AgentToolBinding::McpGetPrompt {

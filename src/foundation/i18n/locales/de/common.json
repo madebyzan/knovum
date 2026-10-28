@@ -48,5 +48,6 @@
     "hint": "Versuchen Sie es mit einem anderen Schlüsselwort oder löschen Sie die Suche."
   },
   "enable": "Aktivieren Sie {name}",
-  "disable": "Deaktivieren Sie {name}"
+  "disable": "Deaktivieren Sie {name}",
+  "linkOpenFailed": "Der Link konnte nicht geöffnet werden"
 }

@@ -103,7 +103,7 @@
     "copy": "Copiar mensaje",
     "copied": "Copiado",
     "copyFailed": "No se pudo copiar el mensaje. Intentar otra vez.",
-    "new": "Saltar a lo último ↓",
+    "new": "Saltar a lo último",
     "loadOlder": "Cargar mensajes anteriores"
   },
   "regenerate": "Regenerar",
@@ -142,7 +142,12 @@
       "stop": "Detener tarea",
       "description": "Es posible que la operación se haya completado. Verifique el servicio antes de autorizar un reintento."
     },
-    "attempt": "Intento"
+    "attempt": "Intento",
+    "command": {
+      "approval": "¿Permitir este comando?",
+      "unconfined": "Se ejecuta en tu equipo con tus permisos, fuera de cualquier entorno aislado. Comprueba qué hace antes de permitirlo.",
+      "outcomeUnknown": "Es posible que el comando ya se haya ejecutado. Comprueba sus efectos antes de permitir que se ejecute de nuevo."
+    }
   },
   "interactions": {
     "title": "El servicio externo necesita información",

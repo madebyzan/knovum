@@ -26,7 +26,7 @@ def test_summary_receipts_commit_and_old_main_answers_remain_unique(tmp_path: Pa
                 "research": [],
             },
         )
-        value = request_value()
+        value = request_value(tmp_path)
         value["model"]["maxInputTokens"] = 8192
         value["messages"] = [
             {"id": "history:old-input", "role": "user", "content": [{"type": "text", "text": "older " * 20000}]},
@@ -78,7 +78,7 @@ def test_research_receipts_reconcile_in_their_durable_scope_and_cannot_delegate(
                 "research": [answer("read-only findings", message_id="research-answer")],
             },
         )
-        value = request_value()
+        value = request_value(tmp_path)
         value["tools"] = [
             {
                 "name": "publish",
@@ -101,6 +101,7 @@ def test_research_receipts_reconcile_in_their_durable_scope_and_cannot_delegate(
             assert "task" not in models["research"].advertised_tools[0]
             assert "write_file" not in models["research"].advertised_tools[0]
             assert "execute" not in models["research"].advertised_tools[0]
+            assert "delete" not in models["research"].advertised_tools[0]
             assert "write_todos" not in models["research"].advertised_tools[0]
             assert "publish" not in models["research"].advertised_tools[0]
             assert "read_selected" in models["research"].advertised_tools[0]
@@ -135,7 +136,7 @@ def test_rejected_recovery_releases_the_execution_slot(tmp_path: Path, monkeypat
         host = LedgerHost()
         host.states["lost-request"] = "unknown"
         async with AsyncSqliteSaver.from_conn_string(str(tmp_path / "checkpoint.sqlite")) as saver:
-            execution = Execution(AgentExecute.model_validate_json(json.dumps(request_value())), saver, host)
+            execution = Execution(AgentExecute.model_validate_json(json.dumps(request_value(tmp_path))), saver, host)
             with pytest.raises(HostRejected, match="model-outcome-unknown"):
                 await execution.run()
             assert execution.task is None
@@ -168,7 +169,7 @@ def test_agent_publishes_sdk_todos_through_the_product_projection(tmp_path: Path
                 "research": [],
             },
         )
-        value = request_value()
+        value = request_value(tmp_path)
         host = LedgerHost()
         async with AsyncSqliteSaver.from_conn_string(str(tmp_path / "checkpoint.sqlite")) as saver:
             observation = await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()

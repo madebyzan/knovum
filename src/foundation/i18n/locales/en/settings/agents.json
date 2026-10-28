@@ -18,7 +18,6 @@
   "officialDocumentation": "Official guidance",
   "acpSetup": "ACP setup",
   "detectionBoundary": "Checks command availability only; sign-in and ACP connectivity are not verified.",
-  "documentationOpenFailed": "Could not open the Agent's official link",
   "connections": {
     "executableCli": {
       "title": "Direct ACP",

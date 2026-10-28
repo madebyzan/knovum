@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, shallowRef, type Ref } from "vue";
 
-type TaskUpdate = { type: "content_delta"; text: string } | { type: "content_boundary" };
+type TaskUpdate =
+  | { type: "content_delta"; task_id: string; text: string }
+  | { type: "content_boundary" }
+  | { type: "tool_started"; tool_call_id: string };
 
 const ipc = vi.hoisted(() => ({
   getConversationTaskError: vi.fn<(runId: string) => Promise<string | null>>(),
@@ -21,6 +24,7 @@ vi.mock("../conversation-ipc", () => ipc);
 vi.mock("../conversation-run-observation", () => observation);
 
 import { createConversationTaskSubmission } from "../conversation-task-submission";
+import type { LiveTranscript } from "../conversation-transcript";
 
 const accepted = { taskId: "task", runId: "run", conversationId: "conversation", branchId: "branch" };
 
@@ -50,44 +54,59 @@ describe("conversation task settlement", () => {
     expect(restoreDraft).not.toHaveBeenCalled();
   });
 
-  it("keeps the streamed answer on screen until the stored answer has been loaded", async () => {
+  it("keeps the live transcript on screen until the stored answer and the ledger have been loaded", async () => {
     ipc.startConversationTask.mockImplementation(async (_request, onUpdate) => {
-      onUpdate({ type: "content_delta", text: "**Done**" });
+      onUpdate({ type: "content_delta", task_id: "task", text: "**Done**" });
       return { accepted, settled: Promise.resolve({ type: "finished", state: "succeeded" }) };
     });
-    const shownWhileLoading: string[] = [];
+    const shownWhileLoading: unknown[] = [];
     const { state, submission } = createSubmission({
       settled: vi.fn<() => Promise<void>>(async () => {
-        shownWhileLoading.push(state.streamedText.value);
+        shownWhileLoading.push(state.live.value);
+      }),
+      loadActivity: vi.fn<() => Promise<void>>(async () => {
+        shownWhileLoading.push(state.live.value);
       }),
     });
 
     await submission.send();
 
-    expect(shownWhileLoading).toEqual(["**Done**"]);
-    expect(state.streamedText.value).toBe("");
+    expect(shownWhileLoading).toEqual([
+      [{ kind: "text", text: "**Done**" }],
+      [{ kind: "text", text: "**Done**" }],
+    ]);
+    expect(state.live.value).toBeUndefined();
   });
 
-  it("keeps every block the run has written when one of them ends", async () => {
-    // The stored message that will hold the first block is written in batches and loaded only when
-    // the run settles. Dropping the block at its boundary emptied the answer on screen, and the
-    // turn fell back to its waiting line until the next block arrived.
-    const shownWhileLoading: string[] = [];
+  it("records where the run called a tool between the words it wrote", async () => {
+    // The tools a run calls belong between the words that led to them and the words that follow;
+    // a turn that lists every call first moved its text down each time another call began.
+    let shown: unknown;
     ipc.startConversationTask.mockImplementation(async (_request, onUpdate) => {
-      onUpdate({ type: "content_delta", text: "Looking at the Space." });
+      onUpdate({ type: "content_delta", task_id: "task", text: "Looking at the Space." });
+      onUpdate({ type: "tool_started", tool_call_id: "search" });
+      onUpdate({ type: "tool_started", tool_call_id: "search" });
       onUpdate({ type: "content_boundary" });
-      onUpdate({ type: "content_delta", text: "Three notes disagree." });
+      onUpdate({ type: "content_delta", task_id: "task", text: "Three notes " });
+      onUpdate({ type: "content_delta", task_id: "task", text: "disagree." });
+      onUpdate({ type: "content_boundary" });
+      onUpdate({ type: "content_delta", task_id: "task", text: "Next message." });
       return { accepted, settled: Promise.resolve({ type: "finished", state: "succeeded" }) };
     });
     const { state, submission } = createSubmission({
       settled: vi.fn<() => Promise<void>>(async () => {
-        shownWhileLoading.push(state.streamedText.value);
+        shown = state.live.value;
       }),
     });
 
     await submission.send();
 
-    expect(shownWhileLoading).toEqual(["Looking at the Space.\n\nThree notes disagree."]);
+    expect(shown).toEqual([
+      { kind: "text", text: "Looking at the Space." },
+      { kind: "tool", id: "search" },
+      { kind: "text", text: "Three notes disagree." },
+      { kind: "text", text: "Next message." },
+    ]);
   });
 
   it("creates an unsaved Space before anything is written for the conversation", async () => {
@@ -132,6 +151,7 @@ function createSubmission(overrides: {
   ensureSpacePersisted?: () => Promise<void>;
   clearDraft?: () => Promise<void>;
   settled?: () => Promise<void>;
+  loadActivity?: () => Promise<void>;
 }) {
   const state = submissionState();
   const restoreDraft = vi.fn<(request: unknown) => Promise<void>>().mockResolvedValue(undefined);
@@ -155,6 +175,7 @@ function createSubmission(overrides: {
     state,
     accepted: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
     settled: overrides.settled ?? vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    loadActivity: overrides.loadActivity ?? vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
     restoreForSpace: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
   });
   return { state, restoreDraft, submission };
@@ -169,7 +190,7 @@ function submissionState() {
     taskState: shallowRef<string>(),
     loading: shallowRef(false),
     error: shallowRef<string>(),
-    streamedText: shallowRef(""),
+    live: shallowRef<LiveTranscript>(),
     activityRevision: shallowRef(0),
   };
 }

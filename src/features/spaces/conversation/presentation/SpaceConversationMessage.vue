@@ -4,7 +4,9 @@ import { useTimeoutFn } from "@vueuse/core";
 import { writeText } from "tauri-plugin-clipboard-api";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
@@ -13,10 +15,16 @@ import {
   type GroundedCitation,
 } from "../../knowledge/model/schema/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
+import { followConversationLink } from "../conversation-links";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
 import SpaceConversationOutputs from "./SpaceConversationOutputs.vue";
 
-const props = defineProps<{ message: ConversationMessage; streamedText?: string; busy: boolean }>();
+const props = defineProps<{
+  message: ConversationMessage;
+  /** Offers copy, branch and regenerate: the answer that ends a turn does, the words before it do not. */
+  actions?: boolean;
+  busy: boolean;
+}>();
 const emit = defineEmits<{ branch: []; regenerate: [] }>();
 const { t } = useI18n();
 const store = useSpaceStore();
@@ -43,6 +51,14 @@ function openCitation(citation: GroundedCitation | undefined) {
     locator: citation.locator,
     text: citation.quote,
   });
+}
+
+async function followLink(href: string) {
+  try {
+    await followConversationLink(props.message.id, href);
+  } catch (error) {
+    toast.error(getErrorMessage(error));
+  }
 }
 
 async function copyMessage() {
@@ -77,17 +93,18 @@ async function copyMessage() {
     >
       <template v-for="(part, index) in message.content.parts" :key="index">
         <UiMarkdown
-          v-if="part.type === 'text' && part.text.trim() && !streamedText"
+          v-if="part.type === 'text' && part.text.trim()"
           :content="part.text"
           :citations="citationMarkers"
+          local-links
           class="wrap-break-word"
           @cite="openCitation(citations.find((citation) => citation.index === $event))"
+          @link="followLink"
         />
         <p v-else-if="part.type === 'binary'" class="text-caption text-fg-secondary">
           {{ part.name || part.mediaType }}
         </p>
       </template>
-      <UiMarkdown v-if="streamedText" :content="streamedText" class="wrap-break-word" />
     </div>
     <SpaceConversationOutputs
       v-if="message.role === 'assistant' && message.content.outputs?.length"
@@ -143,7 +160,7 @@ async function copyMessage() {
       {{ t("spaces.conversation.messages.copyFailed") }}
     </p>
     <div
-      v-if="message.role === 'assistant' && messageText"
+      v-if="actions && message.role === 'assistant' && messageText"
       class="message-actions flex items-center gap-0.5 opacity-0 transition-opacity duration-100 group-focus-within:opacity-100 group-hover:opacity-100"
     >
       <UiIconButton

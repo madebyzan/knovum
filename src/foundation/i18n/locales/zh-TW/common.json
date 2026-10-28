@@ -48,5 +48,6 @@
     "hint": "嘗試其他關鍵字，或清空搜尋。"
   },
   "enable": "啟用 {name}",
-  "disable": "停用 {name}"
+  "disable": "停用 {name}",
+  "linkOpenFailed": "無法開啟連結"
 }

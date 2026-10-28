@@ -95,3 +95,63 @@ async fn upgrading_0_0_1_settles_and_retires_agent_artifact_sessions() {
         ]
     );
 }
+
+/// 0.0.3 kept a picture of an attached image node in the message. A node attachment is a
+/// reference drawn from the node itself now, so upgrading takes the picture out of every node
+/// attachment, in place and in order, and leaves an uploaded file's — the only copy it has.
+#[tokio::test]
+async fn upgrading_0_0_3_draws_node_attachments_from_their_nodes() {
+    let pool = shipped(2).await;
+    for statement in [
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
+        "INSERT INTO spaces_conversations(id,space_id,title,created_at,updated_at) \
+         VALUES('c','s','C',1,1)",
+    ] {
+        sqlx::query(statement)
+            .execute(&pool)
+            .await
+            .expect("fixture");
+    }
+    let sent = serde_json::json!({"parts": [], "citations": [], "attachments": [
+        {"source": "node", "nodeId": "deck", "title": "Deck", "kind": "file", "thumbnail": null},
+        {"source": "file", "title": "dog.png", "kind": "image", "thumbnail": "data:image/png;base64,AA"},
+        {"source": "node", "nodeId": "dog", "title": "Dog", "kind": "image", "thumbnail": "data:image/png;base64,BB"},
+    ]});
+    let plain = serde_json::json!({"parts": [{"type": "text", "text": "hi"}], "citations": []});
+    for (id, content) in [("sent", &sent), ("plain", &plain)] {
+        sqlx::query(
+            "INSERT INTO spaces_conversation_messages(id,conversation_id,branch_id,role,content, \
+             created_at) VALUES($1,'c','c','user',$2,1)",
+        )
+        .bind(id)
+        .bind(content.to_string())
+        .execute(&pool)
+        .await
+        .expect("message");
+    }
+
+    super::super::migrate(&pool).await.expect("upgrade");
+
+    assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
+    let content = |id: &'static str| {
+        let pool = pool.clone();
+        async move {
+            let text: String =
+                sqlx::query_scalar("SELECT content FROM spaces_conversation_messages WHERE id=$1")
+                    .bind(id)
+                    .fetch_one(&pool)
+                    .await
+                    .expect("content");
+            serde_json::from_str::<serde_json::Value>(&text).expect("json")
+        }
+    };
+    assert_eq!(
+        content("sent").await["attachments"],
+        serde_json::json!([
+            {"source": "node", "nodeId": "deck", "title": "Deck", "kind": "file"},
+            {"source": "file", "title": "dog.png", "kind": "image", "thumbnail": "data:image/png;base64,AA"},
+            {"source": "node", "nodeId": "dog", "title": "Dog", "kind": "image"},
+        ])
+    );
+    assert_eq!(content("plain").await, plain);
+}

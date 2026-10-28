@@ -67,7 +67,7 @@ def test_bundled_skills_are_discovered_and_read_by_the_production_graph(
                 "research": [],
             },
         )
-        request = request_value()
+        request = request_value(tmp_path)
         request["skills"] = [file.model_dump(mode="json", by_alias=True) for file in files]
         request["skillToolBindings"] = {"github": [], "notion": [], "linear": []}
         host = LedgerHost()

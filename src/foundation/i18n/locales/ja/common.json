@@ -48,5 +48,6 @@
     "hint": "別のキーワードを試すか、検索をクリアしてください。"
   },
   "enable": "{name}を有効にする",
-  "disable": "{name}を無効にする"
+  "disable": "{name}を無効にする",
+  "linkOpenFailed": "リンクを開けませんでした"
 }

@@ -35,12 +35,19 @@ impl PathRole {
     }
 }
 
+/// One file of the Agent's working directory, ready to become a canvas node.
+pub(super) struct StagedOutput {
+    pub(super) node: InsertNode,
+    /// The file's path relative to the working directory.
+    pub(super) workspace_path: String,
+}
+
 pub(super) async fn stage(
     app: &tauri::AppHandle,
     pool: &sqlx::SqlitePool,
     run_id: &str,
     workspace: &Path,
-) -> Result<Vec<InsertNode>, String> {
+) -> Result<Vec<StagedOutput>, String> {
     let workspace = workspace.to_path_buf();
     let artifacts = crate::foundation::blocking::run({
         let workspace = workspace.clone();
@@ -49,6 +56,7 @@ pub(super) async fn stage(
     .await?;
     let mut outputs = Vec::with_capacity(artifacts.len());
     for artifact in artifacts {
+        let workspace_path = artifact.clone();
         let prepared = crate::foundation::blocking::run({
             let app = app.clone();
             let workspace = workspace.clone();
@@ -63,11 +71,14 @@ pub(super) async fn stage(
             Ok(prepared) => stage_prepared(app, pool, run_id, prepared).await,
             Err(error) => Err(error),
         };
-        let output = match output {
-            Ok(output) => output,
+        let node = match output {
+            Ok(node) => node,
             Err(error) => return fail_stage(app, pool, run_id, error).await,
         };
-        outputs.push(output);
+        outputs.push(StagedOutput {
+            node,
+            workspace_path,
+        });
     }
     Ok(outputs)
 }

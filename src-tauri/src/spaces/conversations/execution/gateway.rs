@@ -71,6 +71,7 @@ impl Host for Gateway {
                 "agentRuntime.invokeTool" => {
                     let request: AgentToolInvocation = decode(params)?;
                     self.require_identity(&request.identity).await?;
+                    self.announce_tool(&request.tool_call_id);
                     crate::spaces::conversations::builtin_agent::tool_execution::invoke(
                         self, request,
                     )
@@ -82,10 +83,16 @@ impl Host for Gateway {
                         .await?;
                     projection::commit(&self.pool, &self.ids, request).await
                 }
-                "agentRuntime.contentDelta" => self.delta(decode(params)?).await,
                 _ => Err("builtin-agent-host-method-not-found".into()),
             }
         })
+    }
+
+    fn notify(&self, method: &str, params: Value) -> Result<(), String> {
+        match method {
+            "agentRuntime.contentDelta" => self.delta(decode(params)?),
+            _ => Err("builtin-agent-host-method-not-found".into()),
+        }
     }
 }
 
@@ -147,8 +154,24 @@ impl Gateway {
         .await
     }
 
-    async fn delta(&self, request: AgentContentDelta) -> Result<Value, String> {
-        self.require_identity(&request.identity).await?;
+    /// Marks where in the streamed answer a tool was called. The words that led to the call were
+    /// streamed before the Agent asked for it, and the words that follow belong to its next step,
+    /// which begins only once the call has returned — after this mark, which precedes the call.
+    /// Calls made together may be marked in any order; the screen orders a group by the ledger.
+    fn announce_tool(&self, tool_call_id: &str) {
+        if let Some(channel) = &self.updates {
+            let _ = channel.send(ConversationTaskUpdate::ToolStarted {
+                tool_call_id: tool_call_id.to_owned(),
+            });
+        }
+    }
+
+    /// Shows a chunk of the answer as it arrives. Only the process identity is checked: the
+    /// chunk is not durable — the projection that stores the answer checks the control epoch
+    /// against the database before it writes — and a database read here would cost the
+    /// stream its order.
+    fn delta(&self, request: AgentContentDelta) -> Result<(), String> {
+        self.require_process_identity(&request.identity)?;
         let mut last = self
             .last_message
             .lock()
@@ -163,7 +186,7 @@ impl Gateway {
             });
         }
         *last = Some(request.message_id);
-        Ok(Value::Null)
+        Ok(())
     }
 }
 
@@ -206,7 +229,7 @@ pub(in crate::spaces::conversations) fn require_tool(
     }
     let allowed = match name {
         "ls" | "read_file" | "glob" | "grep" | "compact_conversation" => true,
-        "write_file" | "edit_file" | "write_todos" | "task" => !research,
+        "write_file" | "edit_file" | "delete" | "write_todos" | "task" => !research,
         _ => false,
     };
     if allowed {

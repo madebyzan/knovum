@@ -5,6 +5,7 @@ import { computed, nextTick, useTemplateRef, watch } from "vue";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
+import type { LiveTranscript } from "../conversation-transcript";
 import { conversationTurns } from "../conversation-turns";
 import { useConversationScroll } from "../use-conversation-scroll";
 import SpaceConversationEmptyGuide from "./SpaceConversationEmptyGuide.vue";
@@ -18,7 +19,7 @@ const props = defineProps<{
   hasDraft: boolean;
   preparing: boolean;
   producing?: boolean | undefined;
-  streamedText: string;
+  live: LiveTranscript | undefined;
   hasOlder: boolean;
   loadingOlder: boolean;
   scrollKey: string;
@@ -36,7 +37,7 @@ const turns = computed(() =>
   conversationTurns({
     messages: props.messages,
     activeRunId: props.activeRunId,
-    streamedText: props.streamedText,
+    live: props.live,
     preparing: props.preparing,
     producing: props.producing,
   }),
@@ -49,8 +50,8 @@ const { atTail, rows, totalSize, measureElement, updateScrollPosition, scrollToT
       get rows() {
         return turns.value;
       },
-      get streamedText() {
-        return props.streamedText;
+      get live() {
+        return props.live;
       },
       get loadingOlder() {
         return props.loadingOlder;

@@ -1,48 +1,108 @@
-use serde_json::{json, Value};
+use serde::Serialize;
+use serde_json::Value;
 
-use super::{kind::AssetKind, PreparedAsset};
+use super::{
+    kind::{AssetKind, PreparedAssetState},
+    PreparedAsset,
+};
+use crate::file_inspection::ArchiveMember;
+
+/// The node a Markdown import becomes: a Knovum document, not a file.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MarkdownNode<'a> {
+    kind: AssetKind,
+    title: String,
+    text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    source_revision: Option<&'a str>,
+}
+
+/// The node any other import becomes: the managed file and what was learned about it. A field is
+/// a value or absent, never `null`, which the node schema rejects.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ResourceNode<'a> {
+    kind: AssetKind,
+    title: &'a str,
+    file_name: &'a str,
+    asset_path: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    source_revision: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    preview_path: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    preview_text: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    preview_language: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    size: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    modified_at: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    processing_state: Option<PreparedAssetState>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    intrinsic_width: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    intrinsic_height: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    extracted_text: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    entries: Option<&'a [ArchiveMember]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    document_coverage: Option<&'a Value>,
+}
 
 pub(crate) fn from_import(asset: PreparedAsset) -> Result<Value, String> {
-    if asset.kind == AssetKind::Markdown {
-        let text = asset.text.ok_or("Imported Markdown has no text")?;
-        let (title, text) = markdown_document(&asset.name, &text);
-        return Ok(
-            json!({"kind":"markdown", "title":title, "text":text, "sourceRevision":asset.source_revision}),
-        );
-    }
-    let path = asset
-        .path
-        .as_ref()
-        .ok_or("Imported resource has no managed path")?;
-    let document_coverage = asset.document_coverage.clone();
-    let mut data =
-        json!({"kind":asset.kind, "title":asset.name, "fileName":asset.name, "assetPath":path});
-    let encoded = serde_json::to_value(&asset).map_err(|error| error.to_string())?;
-    for field in [
-        "sourceRevision",
-        "previewPath",
-        "previewText",
-        "size",
-        "modifiedAt",
-        "processingState",
-        "intrinsicWidth",
-        "intrinsicHeight",
-        "extractedText",
-        "entries",
-    ] {
-        if let Some(value) = encoded.get(field) {
-            data[field] = value.clone();
-        }
-    }
-    if let Some(coverage) = document_coverage {
-        data["documentCoverage"] = coverage;
-    }
-    if asset.kind == AssetKind::Code {
-        data["previewLanguage"] = json!(asset
-            .preview_language
-            .ok_or("Imported code has no language")?);
-    }
-    Ok(data)
+    let data = if asset.kind == AssetKind::Markdown {
+        let text = asset
+            .text
+            .as_deref()
+            .ok_or("Imported Markdown has no text")?;
+        let (title, text) = markdown_document(&asset.name, text);
+        serde_json::to_value(MarkdownNode {
+            kind: asset.kind,
+            title,
+            text,
+            source_revision: asset.source_revision.as_deref(),
+        })
+    } else {
+        serde_json::to_value(resource_node(&asset)?)
+    };
+    data.map_err(|error| error.to_string())
+}
+
+fn resource_node(asset: &PreparedAsset) -> Result<ResourceNode<'_>, String> {
+    let preview_language = match asset.kind {
+        AssetKind::Code => Some(
+            asset
+                .preview_language
+                .as_deref()
+                .ok_or("Imported code has no language")?,
+        ),
+        _ => None,
+    };
+    Ok(ResourceNode {
+        kind: asset.kind,
+        title: &asset.name,
+        file_name: &asset.name,
+        asset_path: asset
+            .path
+            .as_deref()
+            .ok_or("Imported resource has no managed path")?,
+        source_revision: asset.source_revision.as_deref(),
+        preview_path: asset.preview_path.as_deref(),
+        preview_text: asset.preview_text.as_deref(),
+        preview_language,
+        size: asset.size,
+        modified_at: asset.modified_at,
+        processing_state: asset.processing_state,
+        intrinsic_width: asset.intrinsic_width,
+        intrinsic_height: asset.intrinsic_height,
+        extracted_text: asset.extracted_text.as_deref(),
+        entries: asset.entries.as_deref(),
+        document_coverage: asset.document_coverage.as_ref(),
+    })
 }
 
 fn markdown_document(name: &str, raw: &str) -> (String, String) {

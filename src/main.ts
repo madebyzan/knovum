@@ -5,6 +5,7 @@ import { createPinia } from "pinia";
 import { createApp } from "vue";
 
 import { installContextMenuPolicy } from "./app/context-menu-policy";
+import { installLinkPolicy } from "./app/link-policy";
 import { formatErrorDiagnostic } from "./foundation/errors/error-format";
 import { invokeCommand } from "./foundation/ipc/invoke-command";
 
@@ -13,6 +14,7 @@ import "./styles/app.css";
 
 async function start(): Promise<void> {
   installContextMenuPolicy();
+  installLinkPolicy();
   document.documentElement.dataset.platform = platform();
   if (globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches) {
     document.documentElement.dataset.theme = "dark";

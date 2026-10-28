@@ -9,19 +9,8 @@ async fn respond(
     method: &str,
     outcome: serde_json::Value,
 ) -> serde_json::Value {
-    let TransportFrame::Single(RawJsonRpcMessage::Request(request)) = peer.rx.next().await.unwrap()
-    else {
-        panic!("expected an ACP request");
-    };
-    let request = serde_json::to_value(request).unwrap();
-    assert_eq!(request["method"], method);
-    let response = serde_json::from_value(json!({
-        "jsonrpc": "2.0", "id": request["id"], "result": outcome,
-    }))
-    .unwrap();
-    peer.tx
-        .unbounded_send(TransportFrame::Single(response))
-        .unwrap();
+    let request = request(peer, method).await;
+    answer(peer, &request, outcome);
     request
 }
 
@@ -77,7 +66,7 @@ async fn authorized_http_mcp_binding_is_supplied_to_the_acp_session() {
             }])
         );
         session.await.unwrap().unwrap();
-        requests.send(ConversationRequest::Finish).await.unwrap();
+        drop(requests);
         task.await.unwrap().unwrap();
     })
     .await
@@ -157,7 +146,7 @@ async fn idle_transport_disconnect_ends_the_session_and_notifies_its_owner() {
 }
 
 #[tokio::test]
-async fn explicit_finish_and_cancellation_keep_their_distinct_outcomes() {
+async fn a_released_runtime_and_a_closed_one_keep_their_distinct_outcomes() {
     for cancel in [false, true] {
         tokio::time::timeout(Duration::from_secs(3), async {
             let (transport, mut peer) = Channel::duplex();
@@ -177,7 +166,7 @@ async fn explicit_finish_and_cancellation_keep_their_distinct_outcomes() {
             if cancel {
                 cancellation.cancel();
             } else {
-                requests.send(ConversationRequest::Finish).await.unwrap();
+                drop(requests);
             }
             let outcome = task.await.unwrap();
             if cancel {
@@ -189,6 +178,122 @@ async fn explicit_finish_and_cancellation_keep_their_distinct_outcomes() {
         .await
         .unwrap();
     }
+}
+
+fn turn(
+    requests: &mpsc::Sender<TurnRequest>,
+    cancellation: CancellationToken,
+) -> oneshot::Receiver<AppResult<()>> {
+    let (reply, outcome) = oneshot::channel();
+    let prompt = crate::external_agents::prompt::AgentPrompt::from_authorized_assets(
+        "Hi".into(),
+        vec![],
+        |_| Ok(()),
+    )
+    .unwrap();
+    requests
+        .try_send(TurnRequest {
+            prompt,
+            on_update: Arc::new(|_| Ok(())),
+            cancellation,
+            reply,
+        })
+        .unwrap_or_else(|_| panic!("the runtime must accept a turn"));
+    outcome
+}
+
+async fn request(peer: &mut Channel, method: &str) -> serde_json::Value {
+    let TransportFrame::Single(RawJsonRpcMessage::Request(request)) = peer.rx.next().await.unwrap()
+    else {
+        panic!("expected an ACP request");
+    };
+    let request = serde_json::to_value(request).unwrap();
+    assert_eq!(request["method"], method);
+    request
+}
+
+fn answer(peer: &mut Channel, request: &serde_json::Value, outcome: serde_json::Value) {
+    let response = serde_json::from_value(json!({
+        "jsonrpc": "2.0", "id": request["id"], "result": outcome,
+    }))
+    .unwrap();
+    peer.tx
+        .unbounded_send(TransportFrame::Single(response))
+        .unwrap();
+}
+
+#[tokio::test]
+async fn one_session_serves_every_turn_of_a_conversation() {
+    // The Agent is started and its session created once; a follow-up is one more prompt.
+    tokio::time::timeout(Duration::from_secs(3), async {
+        let (transport, mut peer) = Channel::duplex();
+        let (requests, receiver) = mpsc::channel(1);
+        let (ready, session) = oneshot::channel();
+        let (_settled, completion) = oneshot::channel();
+        let task = tokio::spawn(serve_connection(
+            transport,
+            context(completion),
+            receiver,
+            CancellationToken::new(),
+            ready,
+        ));
+        initialized_peer(&mut peer).await;
+        let _session = session.await.unwrap().unwrap();
+        for _ in 0..2 {
+            let outcome = turn(&requests, CancellationToken::new());
+            let prompt = request(&mut peer, "session/prompt").await;
+            assert_eq!(prompt["params"]["sessionId"], "session");
+            answer(&mut peer, &prompt, json!({"stopReason":"end_turn"}));
+            outcome.await.unwrap().unwrap();
+        }
+        drop(requests);
+        task.await.unwrap().unwrap();
+    })
+    .await
+    .unwrap();
+}
+
+#[tokio::test]
+async fn a_cancelled_turn_stops_the_agent_and_leaves_the_session_for_the_next() {
+    tokio::time::timeout(Duration::from_secs(3), async {
+        let (transport, mut peer) = Channel::duplex();
+        let (requests, receiver) = mpsc::channel(1);
+        let (ready, session) = oneshot::channel();
+        let (_settled, completion) = oneshot::channel();
+        let task = tokio::spawn(serve_connection(
+            transport,
+            context(completion),
+            receiver,
+            CancellationToken::new(),
+            ready,
+        ));
+        initialized_peer(&mut peer).await;
+        let _session = session.await.unwrap().unwrap();
+        let stop = CancellationToken::new();
+        let outcome = turn(&requests, stop.clone());
+        let prompt = request(&mut peer, "session/prompt").await;
+        stop.cancel();
+        let TransportFrame::Single(RawJsonRpcMessage::Notification(cancel)) =
+            peer.rx.next().await.unwrap()
+        else {
+            panic!("a cancelled turn must ask the Agent to stop");
+        };
+        assert_eq!(
+            serde_json::to_value(cancel).unwrap()["method"],
+            "session/cancel"
+        );
+        answer(&mut peer, &prompt, json!({"stopReason":"cancelled"}));
+        assert_eq!(outcome.await.unwrap().unwrap_err().code, "cancelled");
+
+        let outcome = turn(&requests, CancellationToken::new());
+        let prompt = request(&mut peer, "session/prompt").await;
+        answer(&mut peer, &prompt, json!({"stopReason":"end_turn"}));
+        outcome.await.unwrap().unwrap();
+        drop(requests);
+        task.await.unwrap().unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[tokio::test]
@@ -238,7 +343,6 @@ fn context(completion: oneshot::Receiver<AppResult<()>>) -> ServeContext {
     ServeContext {
         kind: ExternalAgentKind::GeminiCli,
         workspace: std::env::current_dir().unwrap(),
-        on_update: Arc::new(|_| Ok(())),
         mcp_servers: vec![],
         keepalive: Arc::new(()),
         completion,

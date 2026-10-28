@@ -48,5 +48,6 @@
     "hint": "Essayez un autre mot-clé ou effacez la recherche."
   },
   "enable": "Activer {name}",
-  "disable": "Désactiver {name}"
+  "disable": "Désactiver {name}",
+  "linkOpenFailed": "Impossible d’ouvrir le lien"
 }

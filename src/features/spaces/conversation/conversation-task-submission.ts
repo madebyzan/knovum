@@ -11,6 +11,7 @@ import type {
   ConversationSubmissionInput,
   ConversationSubmissionState,
 } from "./conversation-task-submission-contract";
+import { recordLiveUpdate } from "./conversation-transcript";
 
 type StartedTask = Awaited<ReturnType<typeof startConversationTask>>;
 type Selection = { spaceId: string; conversationId: string };
@@ -19,6 +20,8 @@ interface ConversationTaskSubmissionOptions {
   state: ConversationSubmissionState;
   accepted: (task: StartedTask["accepted"], selection: Selection) => Promise<void>;
   settled: (task: StartedTask["accepted"], spaceId: string) => Promise<void>;
+  /** Loads what the ledger recorded for a run, so the turn can read it once the stream ends. */
+  loadActivity: (runId: string) => Promise<void>;
   restoreForSpace: (spaceId: string) => Promise<void>;
 }
 
@@ -58,12 +61,13 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
       outcome,
       spaceId: selection.spaceId,
       project: async (accepted, spaceId) => {
-        // The streamed answer stays on screen until the stored one has been loaded to replace it;
-        // clearing it first would flash whatever partial text the previous load held.
+        // The live transcript stays on screen until what the run recorded — its stored answers
+        // and its ledger — has been loaded to take its place; dropping it earlier would show the
+        // turn as whatever an older load held.
         try {
-          await options.settled(accepted, spaceId);
+          await Promise.all([options.settled(accepted, spaceId), options.loadActivity(accepted.runId)]);
         } finally {
-          if (submitted === generation) state.streamedText.value = "";
+          if (submitted === generation) state.live.value = undefined;
         }
       },
     });
@@ -72,6 +76,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
   async function finish(submitted: number) {
     if (submitted !== generation) return;
     state.loading.value = false;
+    state.live.value = undefined;
     if (
       (state.taskState.value === "paused" || state.taskState.value === "waiting") &&
       state.activeSpaceId.value
@@ -88,15 +93,8 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
   }
 
   function handleUpdate(update: ConversationTaskUpdate, submitted: number) {
-    if (submitted !== generation) return;
-    // A boundary closes a block of the answer, it does not undo it. The stored message that will
-    // hold that block is written in batches and only loaded when the run settles, so clearing the
-    // text here took the words off the screen — and the turn, having nothing left to show, fell
-    // back to waiting until the next block arrived. The live answer is everything the run has
-    // written, blocks separated the way the author separated them.
-    if (update.type === "content_delta") state.streamedText.value += update.text;
-    else if (update.type === "content_boundary" && state.streamedText.value)
-      state.streamedText.value = `${state.streamedText.value.trimEnd()}\n\n`;
+    if (submitted !== generation || !state.live.value) return;
+    state.live.value = recordLiveUpdate(state.live.value, update);
   }
 
   function clearPending(messageId: string) {
@@ -133,7 +131,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     state.loading.value = true;
     state.taskState.value = undefined;
     state.error.value = undefined;
-    state.streamedText.value = "";
+    state.live.value = [];
     try {
       await input.ensureSpacePersisted();
       await input.clearDraft(request);

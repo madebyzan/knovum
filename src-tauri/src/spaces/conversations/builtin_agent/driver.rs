@@ -65,6 +65,13 @@ pub(super) async fn drive(
     .fetch_one(&host.pool)
     .await
     .map_err(db::sql_error)?;
+    let workspace = crate::spaces::agent_artifacts::workspace::builtin_agent_directory(
+        &host.app,
+        &host.request.space_id,
+        &host.ids.conversation_id,
+    )
+    .map_err(|error| error.to_string())?;
+    std::fs::create_dir_all(&workspace).map_err(|error| error.to_string())?;
     let execute = AgentExecute {
         identity: host.session.identity(&host.ids.run_id),
         model,
@@ -86,6 +93,10 @@ pub(super) async fn drive(
         resume,
         skills: host.extensions.files.clone(),
         skill_tool_bindings: host.extensions.skill_tool_bindings.clone(),
+        workspace: workspace
+            .to_str()
+            .ok_or("builtin-agent-workspace-not-unicode")?
+            .to_owned(),
     };
     let host = Arc::new(host);
     let mut process = tokio::select! {

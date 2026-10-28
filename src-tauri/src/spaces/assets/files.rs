@@ -71,11 +71,15 @@ fn file_metadata(source: &std::path::Path) -> Result<(Option<u64>, Option<u64>),
 }
 
 pub fn open_asset(app: &tauri::AppHandle, source: PathBuf) -> Result<(), String> {
+    open_in_system(app, &authorize_spaces_asset(app, &source)?)
+}
+
+/// Opens an authorized file in the application the system associates with it.
+pub(crate) fn open_in_system(app: &tauri::AppHandle, file: &std::path::Path) -> Result<(), String> {
     use tauri_plugin_opener::OpenerExt;
 
-    let canonical = authorize_spaces_asset(app, &source)?;
     app.opener()
-        .open_path(canonical.to_string_lossy().into_owned(), None::<String>)
+        .open_path(file.to_string_lossy().into_owned(), None::<String>)
         .map_err(|error| error.to_string())
 }
 

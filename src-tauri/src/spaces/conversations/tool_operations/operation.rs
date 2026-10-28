@@ -1,11 +1,12 @@
 use crate::{
-    extensions::contracts::{AgentExtensionSnapshot, AgentExtensionTool, McpToolPolicy},
+    extensions::{contracts::McpToolPolicy, mcp::invocation::InvocationObservation},
     spaces::{db, runs},
 };
 use serde_json::Value;
 use sqlx::{Row, SqlitePool};
-use std::time::Duration;
 use tauri::AppHandle;
+
+use super::target::ToolTarget;
 
 pub(crate) struct ToolInvocation<'a> {
     pub run_id: &'a str,
@@ -15,7 +16,7 @@ pub(crate) struct ToolInvocation<'a> {
     pub graph_namespace: Option<&'a str>,
     pub checkpoint_id: Option<&'a str>,
     pub message_id: Option<&'a str>,
-    pub tool: &'a AgentExtensionTool,
+    pub tool: ToolTarget<'a>,
     pub arguments: Value,
 }
 
@@ -30,12 +31,17 @@ pub(crate) enum ToolInvocationOutcome {
 pub(crate) async fn invoke(
     app: &AppHandle,
     pool: &SqlitePool,
-    snapshot: &AgentExtensionSnapshot,
     call: ToolInvocation<'_>,
 ) -> Result<ToolInvocationOutcome, String> {
     let _intent = super::concurrency::acquire(app, call.intent_id).await;
-    crate::extensions::snapshots::require_current(app, snapshot).await?;
-    if call.tool.policy == McpToolPolicy::Deny {
+    call.tool.require_current(app).await?;
+    let (name, binding, read_only, policy) = (
+        call.tool.name(),
+        call.tool.binding(),
+        call.tool.read_only(),
+        call.tool.policy(),
+    );
+    if policy == McpToolPolicy::Deny {
         return Err("mcp-tool-denied".into());
     }
     let run = runs::load_run(pool, call.run_id).await?;
@@ -54,15 +60,15 @@ pub(crate) async fn invoke(
             AND (SELECT count(*) FROM spaces_conversation_tool_operations WHERE run_id=r.id) < json_extract(budget,'$.maxTools')")
             .bind(call.run_id).bind(now).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;
         allowed.ok_or("conversation-tool-budget-exhausted")?;
-        if !call.tool.read_only {
+        if !read_only {
             super::require_reconciled_on(&mut tx, call.run_id).await?;
         }
         sqlx::query("INSERT INTO spaces_conversation_tool_operations(id,run_id,task_id,graph_namespace,checkpoint_id,message_id,provider_call_id,wire_name,source,invocation_id,context,context_digest,read_only,approval,created_at)
             VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)")
-            .bind(&id).bind(call.run_id).bind(call.task_id).bind(call.graph_namespace).bind(call.checkpoint_id).bind(call.message_id).bind(call.call_id).bind(&call.tool.name)
-            .bind(sqlx::types::Json(&call.tool.binding)).bind(call.intent_id).bind(sqlx::types::Json(&call.arguments)).bind(&digest)
-            .bind(call.tool.read_only).bind((call.tool.policy == McpToolPolicy::Allow).then_some("allow")).bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
-        runs::append_event(&mut tx,call.run_id,None,None,runs::RunEventKind::ConversationToolStarted,&serde_json::json!({"toolCallId":call.call_id,"title":call.tool.name,"context":{"source":call.tool.binding,"arguments":call.arguments}}),now).await?;
+            .bind(&id).bind(call.run_id).bind(call.task_id).bind(call.graph_namespace).bind(call.checkpoint_id).bind(call.message_id).bind(call.call_id).bind(name)
+            .bind(sqlx::types::Json(&binding)).bind(call.intent_id).bind(sqlx::types::Json(&call.arguments)).bind(&digest)
+            .bind(read_only).bind((policy == McpToolPolicy::Allow).then_some("allow")).bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
+        runs::append_event(&mut tx,call.run_id,None,None,runs::RunEventKind::ConversationToolStarted,&serde_json::json!({"toolCallId":call.call_id,"title":name,"context":{"source":binding,"arguments":call.arguments}}),now).await?;
     }
     tx.commit().await.map_err(db::sql_error)?;
     let id = existing.unwrap_or(id);
@@ -78,12 +84,12 @@ pub(crate) async fn invoke(
         || row
             .try_get::<String, _>("wire_name")
             .map_err(db::sql_error)?
-            != call.tool.name
+            != name
         || row
             .try_get::<sqlx::types::Json<serde_json::Value>, _>("source")
             .map_err(db::sql_error)?
             .0
-            != serde_json::to_value(&call.tool.binding).map_err(db::json_error)?
+            != serde_json::to_value(&binding).map_err(db::json_error)?
     {
         return Err("conversation-tool-intent-source-changed".into());
     }
@@ -111,18 +117,10 @@ pub(crate) async fn invoke(
             reason: "tool_approval",
         });
     }
-    let interaction = std::sync::Arc::new(super::interactions::RunMcpInteraction {
-        pool: pool.clone(),
-        run_id: call.run_id.into(),
-    });
-    let prepared = match crate::extensions::mcp::invocation::prepare(
-        app,
-        snapshot,
-        call.tool,
-        call.arguments,
-        Some(interaction),
-    )
-    .await
+    let prepared = match call
+        .tool
+        .prepare(app, pool, call.run_id, call.arguments)
+        .await
     {
         Ok(prepared) => prepared,
         Err(error) => {
@@ -133,7 +131,7 @@ pub(crate) async fn invoke(
     };
     let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
-    if !call.tool.read_only {
+    if !read_only {
         super::require_reconciled_on(&mut tx, call.run_id).await?;
     }
     let remaining: i64 = sqlx::query_scalar("SELECT created_at+json_extract(budget,'$.maxDurationSeconds')*1000-$2 FROM spaces_runs WHERE id=$1")
@@ -147,10 +145,10 @@ pub(crate) async fn invoke(
     db::require_one(dispatched, "conversation-tool-dispatch-inactive")?;
     tx.commit().await.map_err(db::sql_error)?;
     let execution = prepared
-        .execute(&id, Duration::from_millis(remaining.min(120_000) as u64))
+        .execute(&id, std::time::Duration::from_millis(remaining as u64))
         .await;
     let (state, value) = match execution {
-        crate::extensions::mcp::invocation::InvocationObservation::Received(value) => (
+        InvocationObservation::Received(value) => (
             if value["isError"] == true {
                 "failed"
             } else {
@@ -158,7 +156,7 @@ pub(crate) async fn invoke(
             },
             value,
         ),
-        crate::extensions::mcp::invocation::InvocationObservation::OutcomeUnknown(error) => {
+        InvocationObservation::OutcomeUnknown(error) => {
             ("outcome_unknown", super::receipts::failure(error))
         }
     };

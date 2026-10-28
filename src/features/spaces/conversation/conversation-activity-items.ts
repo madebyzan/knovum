@@ -6,7 +6,7 @@ import type { RunEvent } from "../contracts/generated/RunEvent";
 export type ActivityItem = {
   id: string;
   title: string;
-  status: string;
+  status: ToolStatus;
   context?: unknown;
   output?: unknown;
   outputName?: string;
@@ -27,13 +27,40 @@ const progressPayload = z.strictObject({
   message: z.string().nullish(),
 });
 export type ToolProgress = Omit<z.infer<typeof progressPayload>, "toolCallId">;
-const textPayload = z.object({ text: z.string() });
-const toolEvents = new Set([
+type ToolPayload = z.infer<typeof toolPayload>;
+type ToolStatus = NonNullable<ToolPayload["status"]>;
+type ToolLabels = { action: (actionId: string) => string; default: string };
+
+const toolEvents = new Set<RunEvent["kind"]>([
   "external_agent_tool_started",
   "external_agent_tool_updated",
   "conversation_tool_started",
   "conversation_tool_finished",
 ]);
+
+/** The call is still under way. */
+export function isRunning({ status }: ActivityItem) {
+  return status === "pending" || status === "in_progress";
+}
+
+/**
+ * The call did not end well: it failed, its outcome is unknown, or the run stopped while it was
+ * still under way. While the run is producing, a call under way is simply running.
+ */
+export function isUnfinished(item: ActivityItem, active: boolean) {
+  return item.status === "failed" || item.status === "outcome_unknown" || (!active && isRunning(item));
+}
+
+/** The call a ledger event reports on, when it is a tool event in the vocabulary this reads. */
+function toolPayloadOf(event: RunEvent): ToolPayload | undefined {
+  if (!toolEvents.has(event.kind)) return undefined;
+  const parsed = toolPayload.safeParse(event.payload);
+  return parsed.success ? parsed.data : undefined;
+}
+
+export function toolCallIdOf(event: RunEvent): string | undefined {
+  return toolPayloadOf(event)?.toolCallId;
+}
 
 function toolOutputs(messages: readonly ConversationMessage[], runId: string) {
   const outputByCallId = new Map<string, { name: string; value: unknown }>();
@@ -47,113 +74,70 @@ function toolOutputs(messages: readonly ConversationMessage[], runId: string) {
   return outputByCallId;
 }
 
-type ActivityState = {
-  items: ActivityItem[];
-  indexByCallId: Map<string, number>;
-  progressByCallId: Map<string, ToolProgress>;
-  commentary: string;
-  live: boolean;
-};
-type ToolLabels = { action: (actionId: string) => string; default: string };
-
-function appendCommentary(state: ActivityState, event: RunEvent) {
-  const text = state.commentary.trim();
-  state.commentary = "";
-  if (!text || state.live) return;
-  state.items.push({ id: `text:${event.sequence}`, title: text, status: "commentary" });
-}
-
-function toolTitle(
-  payload: z.infer<typeof toolPayload>,
-  previous: ActivityItem | undefined,
-  labels: ToolLabels,
-) {
+function toolStatus(event: RunEvent, payload: ToolPayload, previous: ActivityItem | undefined): ToolStatus {
   return (
-    payload.title ?? previous?.title ?? (payload.actionId ? labels.action(payload.actionId) : labels.default)
-  );
-}
-
-function toolStatus(event: RunEvent, status: z.infer<typeof toolPayload>["status"], previous?: ActivityItem) {
-  return (
-    status ??
+    payload.status ??
     (event.kind === "conversation_tool_finished" ? "completed" : (previous?.status ?? "in_progress"))
   );
 }
 
-function appendTool(
-  state: ActivityState,
+function nextItem(
   event: RunEvent,
-  outputByCallId: Map<string, { name: string; value: unknown }>,
+  payload: ToolPayload,
+  previous: ActivityItem | undefined,
   labels: ToolLabels,
-) {
-  if (!toolEvents.has(event.kind)) return;
-  const parsed = toolPayload.safeParse(event.payload);
-  if (!parsed.success) return;
-  appendCommentary(state, event);
-  const { toolCallId, context } = parsed.data;
-  const index = state.indexByCallId.get(toolCallId);
-  const previous = index === undefined ? undefined : state.items[index];
-  const output = outputByCallId.get(toolCallId);
-  const item: ActivityItem = {
-    id: toolCallId,
-    title: toolTitle(parsed.data, previous, labels),
-    status: toolStatus(event, parsed.data.status, previous),
-    context: context == null ? previous?.context : context,
-    output: output?.value,
-    ...(output && { outputName: output.name }),
+): ActivityItem {
+  return {
+    id: payload.toolCallId,
+    title:
+      payload.title ??
+      previous?.title ??
+      (payload.actionId ? labels.action(payload.actionId) : labels.default),
+    status: toolStatus(event, payload, previous),
+    context: payload.context == null ? previous?.context : payload.context,
   };
-  if (index === undefined) {
-    state.indexByCallId.set(toolCallId, state.items.length);
-    state.items.push(item);
-  } else state.items[index] = item;
 }
 
-function recordProgress(state: ActivityState, event: RunEvent) {
-  const parsed = progressPayload.safeParse(event.payload);
-  if (!parsed.success) return;
-  const { toolCallId, ...progress } = parsed.data;
-  state.progressByCallId.set(toolCallId, progress);
-}
-
-interface ConversationActivityInput {
+interface ConversationToolInput {
   events: readonly RunEvent[];
   messages: readonly ConversationMessage[];
   runId: string;
   labels: ToolLabels;
-  /**
-   * Whether the run is still producing. While it is, the words it has spoken are on screen from
-   * the live stream, which has them first and in full; the ledger is recording the same words and
-   * would show them a second time, a refresh behind. A finished run is read from the ledger alone,
-   * where the commentary is back in place between the tools it explains.
-   */
-  live: boolean;
 }
 
-export function conversationActivityItems({
+/**
+ * Every tool a run called, by call id, in the order the ledger first saw each: what the call
+ * was, how it went, what it returned. Where a call sits among the words of the answer is the
+ * transcript's business; this only says what each call is.
+ */
+export function conversationToolItems({
   events,
   messages,
   runId,
   labels,
-  live,
-}: ConversationActivityInput) {
-  const outputByCallId = toolOutputs(messages, runId);
-  const state: ActivityState = {
-    items: [],
-    indexByCallId: new Map(),
-    progressByCallId: new Map(),
-    commentary: "",
-    live,
-  };
+}: ConversationToolInput): ReadonlyMap<string, ActivityItem> {
+  const items = new Map<string, ActivityItem>();
+  const progressByCallId = new Map<string, ToolProgress>();
   for (const event of events) {
-    if (event.kind === "external_agent_message") {
-      const parsed = textPayload.safeParse(event.payload);
-      if (parsed.success) state.commentary += parsed.data.text;
-    } else if (event.kind === "mcp_progress") recordProgress(state, event);
-    else appendTool(state, event, outputByCallId, labels);
+    if (event.kind === "mcp_progress") {
+      const parsed = progressPayload.safeParse(event.payload);
+      if (parsed.success) {
+        const { toolCallId, ...progress } = parsed.data;
+        progressByCallId.set(toolCallId, progress);
+      }
+      continue;
+    }
+    const payload = toolPayloadOf(event);
+    if (payload)
+      items.set(payload.toolCallId, nextItem(event, payload, items.get(payload.toolCallId), labels));
   }
-  for (const item of state.items) {
-    const progress = state.progressByCallId.get(item.id);
-    if (progress) item.progress = progress;
+  for (const [callId, output] of toolOutputs(messages, runId)) {
+    const item = items.get(callId);
+    if (item) items.set(callId, { ...item, output: output.value, outputName: output.name });
   }
-  return state.items;
+  for (const [callId, progress] of progressByCallId) {
+    const item = items.get(callId);
+    if (item) items.set(callId, { ...item, progress });
+  }
+  return items;
 }

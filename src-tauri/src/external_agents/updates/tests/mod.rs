@@ -1,11 +1,5 @@
-use super::content_projection::tool_artifact_prefix;
 use super::*;
 use agent_client_protocol::schema::v1::{ResourceLink, TextResourceContents, ToolCallContent};
-
-fn linked_file(path: &Path) -> ToolCallContent {
-    let uri = tauri::Url::from_file_path(path).unwrap().to_string();
-    ToolCallContent::from(ContentBlock::ResourceLink(ResourceLink::new("Output", uri)))
-}
 
 fn collected_paths(workspace: &Path) -> Vec<String> {
     crate::external_agents::artifacts::collect(workspace).unwrap()
@@ -157,108 +151,34 @@ async fn tool_outputs_replace_the_same_slot_and_distinct_slots_remain_distinct()
 }
 
 #[tokio::test]
-async fn local_file_tool_outputs_are_replaced_without_deleting_workspace_sources() {
-    let workspace =
-        std::env::temp_dir().join(format!("agent-local-projection-{}", uuid::Uuid::new_v4()));
+async fn a_tool_link_is_shown_never_fetched_or_published() {
+    // codex-acp reports the image it looked at as `resource_link { uri: <bare path> }`; a link in
+    // a tool call names a file that lives elsewhere, so it can neither fail the turn nor become
+    // an output.
+    let workspace = std::env::temp_dir().join(format!("agent-tool-links-{}", uuid::Uuid::new_v4()));
     tokio::fs::create_dir(&workspace).await.unwrap();
-    let first = workspace.join(format!("{}external.md", tool_artifact_prefix("tool-local")));
-    let second = workspace.join("second.md");
-    let generic = workspace.join("notes.md");
-    tokio::fs::write(&first, "first").await.unwrap();
-    tokio::fs::write(&second, "second").await.unwrap();
-    tokio::fs::write(&generic, "notes").await.unwrap();
+    let written = workspace.join("summary.md");
+    tokio::fs::write(&written, "summary").await.unwrap();
+    let links = [
+        "/Users/someone/Desktop/deck.pptx".to_owned(),
+        "slides/page-1.png".to_owned(),
+        "https://example.com/page".to_owned(),
+        tauri::Url::from_file_path(&written).unwrap().to_string(),
+    ]
+    .map(|uri| ToolCallContent::from(ContentBlock::ResourceLink(ResourceLink::new("Link", uri))));
 
-    persist_tool_content(&workspace, "tool-local", &[linked_file(&first)])
-        .await
-        .unwrap();
-    persist_tool_content(&workspace, "tool-local", &[linked_file(&second)])
-        .await
-        .unwrap();
-    let names = collected_paths(&workspace);
-    assert!(!names.contains(&first.file_name().unwrap().to_string_lossy().into_owned()));
-    assert!(names.contains(&"second.md".into()));
-    assert!(names.contains(&"notes.md".into()));
-
-    persist_tool_content(&workspace, "tool-local", &[])
-        .await
-        .unwrap();
-    assert_eq!(collected_paths(&workspace), vec!["notes.md"]);
-    assert!(first.is_file());
-    assert!(second.is_file());
-    tokio::fs::remove_dir_all(workspace).await.unwrap();
-}
-
-#[tokio::test]
-async fn shared_local_file_remains_active_until_every_tool_retires_it() {
-    let workspace =
-        std::env::temp_dir().join(format!("agent-shared-projection-{}", uuid::Uuid::new_v4()));
-    tokio::fs::create_dir(&workspace).await.unwrap();
-    let shared = workspace.join("shared.md");
-    tokio::fs::write(&shared, "shared").await.unwrap();
-
-    persist_tool_content(&workspace, "tool-a", &[linked_file(&shared)])
-        .await
-        .unwrap();
-    persist_tool_content(&workspace, "tool-b", &[linked_file(&shared)])
-        .await
-        .unwrap();
-    persist_tool_content(&workspace, "tool-a", &[])
-        .await
-        .unwrap();
-    assert_eq!(collected_paths(&workspace), vec!["shared.md"]);
-    persist_tool_content(&workspace, "tool-b", &[])
-        .await
-        .unwrap();
-    assert!(collected_paths(&workspace).is_empty());
-    assert!(shared.is_file());
-    tokio::fs::remove_dir_all(workspace).await.unwrap();
-}
-
-#[tokio::test]
-async fn direct_message_reference_keeps_a_retired_tool_file_active() {
-    use agent_client_protocol::schema::v1::ContentChunk;
-
-    let workspace =
-        std::env::temp_dir().join(format!("agent-message-projection-{}", uuid::Uuid::new_v4()));
-    tokio::fs::create_dir(&workspace).await.unwrap();
-    let shared = workspace.join("shared.md");
-    tokio::fs::write(&shared, "shared").await.unwrap();
-    persist_tool_content(&workspace, "tool", &[linked_file(&shared)])
-        .await
-        .unwrap();
-    let uri = tauri::Url::from_file_path(&shared).unwrap().to_string();
-    receive(
-        SessionUpdate::AgentMessageChunk(
-            ContentChunk::new(ContentBlock::ResourceLink(ResourceLink::new("Shared", uri)))
-                .message_id("message-shared"),
+    let update = receive(
+        SessionUpdate::ToolCall(
+            agent_client_protocol::schema::v1::ToolCall::new("view", "View Image")
+                .content(links.to_vec()),
         ),
         &workspace,
     )
     .await
     .unwrap();
-    persist_tool_content(&workspace, "tool", &[]).await.unwrap();
-    assert_eq!(collected_paths(&workspace), vec!["shared.md"]);
-    tokio::fs::remove_dir_all(workspace).await.unwrap();
-}
 
-#[tokio::test]
-async fn collector_reloads_retired_projection_from_disk() {
-    let workspace = std::env::temp_dir().join(format!(
-        "agent-reloaded-projection-{}",
-        uuid::Uuid::new_v4()
-    ));
-    tokio::fs::create_dir(&workspace).await.unwrap();
-    let retired = workspace.join("retired.md");
-    let untracked = workspace.join("untracked.md");
-    tokio::fs::write(&retired, "retired").await.unwrap();
-    tokio::fs::write(&untracked, "untracked").await.unwrap();
-    persist_tool_content(&workspace, "tool", &[linked_file(&retired)])
-        .await
-        .unwrap();
-    persist_tool_content(&workspace, "tool", &[]).await.unwrap();
-
-    assert!(workspace.join(".agent-output-projection.json").is_file());
-    assert_eq!(collected_paths(&workspace), vec!["untracked.md"]);
+    assert!(matches!(update, Some(AgentSessionUpdate::ToolCall { .. })));
+    assert_eq!(collected_paths(&workspace), vec!["summary.md"]);
     tokio::fs::remove_dir_all(workspace).await.unwrap();
 }
 

@@ -4,7 +4,7 @@ use crate::ai::contracts::{ExternalAgentDescriptor, ExternalAgentKind};
 use crate::foundation::app_error::{AppError, AppResult};
 
 use super::{
-    catalog::{AcpLaunch, RegisteredAgent, AGENTS},
+    catalog::{AcpLaunch, RegisteredAgent, AGENTS, CLAUDE_ADAPTER, CODEX_ADAPTER},
     discovery,
 };
 
@@ -45,16 +45,20 @@ pub(super) fn runtime(
             )
         })?;
     let config = match agent.launch {
-        AcpLaunch::Codex => AcpAgent::codex()
-            .into_config()
-            .env("CODEX_PATH", executable.to_string_lossy()),
-        AcpLaunch::Claude => AcpAgent::claude_agent()
-            .into_config()
-            .env("CLAUDE_CODE_EXECUTABLE", executable.to_string_lossy()),
+        AcpLaunch::Codex => {
+            node_adapter(CODEX_ADAPTER).env("CODEX_PATH", executable.to_string_lossy())
+        }
+        AcpLaunch::Claude => {
+            node_adapter(CLAUDE_ADAPTER).env("CLAUDE_CODE_EXECUTABLE", executable.to_string_lossy())
+        }
         AcpLaunch::Executable { arguments } => {
             AcpAgentConfig::new(executable).args(arguments.iter().copied())
         }
         AcpLaunch::Server => AcpAgentConfig::new(executable),
     };
     Ok(AcpAgent::new(config.env("PATH", path).envs(environment)))
+}
+
+fn node_adapter(package: &str) -> AcpAgentConfig {
+    AcpAgentConfig::new("npx").args(["-y", package])
 }

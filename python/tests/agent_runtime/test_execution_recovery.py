@@ -45,7 +45,7 @@ def test_unknown_provider_failure_prevents_hidden_sdk_retries(tmp_path: Path, mo
                 )
 
             monkeypatch.setattr("knovum_agent_runtime.composition.create_model", model)
-            value = request_value()
+            value = request_value(tmp_path)
             if summary:
                 value["model"]["maxInputTokens"] = 8192
                 value["messages"].insert(
@@ -89,7 +89,7 @@ def test_lost_projection_ack_recovers_accepted_input_without_another_model_call(
             },
         )
         host = LostAckHost()
-        value = request_value()
+        value = request_value(tmp_path)
         async with AsyncSqliteSaver.from_conn_string(str(tmp_path / "checkpoint.sqlite")) as saver:
             with pytest.raises(HostRejected, match="projection-ack-lost"):
                 await Execution(AgentExecute.model_validate_json(json.dumps(value)), saver, host).run()

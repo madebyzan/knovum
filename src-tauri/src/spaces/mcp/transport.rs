@@ -22,12 +22,8 @@ pub(super) fn router(
     app: AppHandle,
     token: String,
     space_scope: Option<String>,
-    grant_id: String,
-    parent_run_id: String,
+    turns: super::agent_turn::AgentTurns,
     cancellation: CancellationToken,
-    conversation_extensions: Option<
-        std::sync::Arc<crate::extensions::contracts::AgentExtensionSnapshot>,
-    >,
 ) -> Router {
     let mcp_transport: StreamableHttpService<SpaceMcpServer, LocalSessionManager> =
         StreamableHttpService::new(
@@ -35,9 +31,7 @@ pub(super) fn router(
                 Ok(SpaceMcpServer {
                     app: app.clone(),
                     space_scope: space_scope.clone(),
-                    grant_id: grant_id.clone(),
-                    parent_run_id: parent_run_id.clone(),
-                    conversation_extensions: conversation_extensions.clone(),
+                    turns: turns.clone(),
                 })
             },
             Default::default(),

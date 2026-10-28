@@ -184,6 +184,9 @@
               "type": "string"
             }
           }
+        },
+        "workspace": {
+          "type": "string"
         }
       },
       "additionalProperties": false,
@@ -195,7 +198,8 @@
         "messages",
         "inputId",
         "skills",
-        "skillToolBindings"
+        "skillToolBindings",
+        "workspace"
       ]
     },
     "AgentExecutionIdentity": {

@@ -18,7 +18,6 @@
   "officialDocumentation": "公式ガイダンス",
   "acpSetup": "ACP セットアップ",
   "detectionBoundary": "コマンドの可用性のみをチェックします。サインインと ACP 接続は検証されません。",
-  "documentationOpenFailed": "エージェントの公式リンクを開けませんでした",
   "connections": {
     "executableCli": {
       "title": "直接ACP",

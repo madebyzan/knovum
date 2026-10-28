@@ -49,7 +49,27 @@ pub async fn delete_conversation(
         return Err("conversation-busy".into());
     }
     crate::spaces::external_conversations::purge_for_conversation(&app, &conversation_id).await?;
-    Ok((repository::delete(pool, &conversation_id).await)?)
+    let space_id: Option<String> =
+        sqlx::query_scalar("SELECT space_id FROM spaces_conversations WHERE id=$1")
+            .bind(&conversation_id)
+            .fetch_optional(pool)
+            .await
+            .map_err(crate::spaces::db::sql_error)?;
+    // The conversation owns every Agent's workspace inside its directory.
+    let workspace = space_id
+        .map(|space_id| {
+            crate::spaces::agent_artifacts::workspace::conversation_directory(
+                &app,
+                &space_id,
+                &conversation_id,
+            )
+        })
+        .transpose()?;
+    repository::delete(pool, &conversation_id).await?;
+    if let Some(workspace) = workspace {
+        crate::external_agents::artifacts::discard(&workspace)?;
+    }
+    Ok(())
 }
 
 #[tauri::command]

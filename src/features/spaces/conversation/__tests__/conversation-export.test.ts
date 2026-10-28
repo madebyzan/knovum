@@ -24,7 +24,6 @@ function actions() {
   };
   return createConversationActions({
     selected: computed(() => conversation),
-    selectedId: shallowRef(conversation.id),
     messages: shallowRef<ConversationMessage[]>([]),
     loading: shallowRef(false),
     prompt: shallowRef(""),

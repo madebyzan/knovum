@@ -79,6 +79,8 @@ pub enum AgentToolBinding {
         connection_id: String,
         prompt_names: Vec<String>,
     },
+    /// A command line the built-in Agent runs in its conversation workspace.
+    Command,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]

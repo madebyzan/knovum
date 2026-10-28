@@ -48,5 +48,6 @@
     "hint": "Try another keyword or clear the search."
   },
   "enable": "Enable {name}",
-  "disable": "Disable {name}"
+  "disable": "Disable {name}",
+  "linkOpenFailed": "Could not open the link"
 }

@@ -8,6 +8,7 @@ import type { ConversationMessage } from "../contracts/generated/ConversationMes
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
 import type { VisibleConversationAttachment } from "./conversation-pending-message";
+import type { LiveTranscript } from "./conversation-transcript";
 
 export interface ConversationSubmissionState {
   activeRun: ShallowRef<RunObservation | undefined>;
@@ -17,7 +18,7 @@ export interface ConversationSubmissionState {
   taskState: ShallowRef<string | undefined>;
   loading: ShallowRef<boolean>;
   error: ShallowRef<string | undefined>;
-  streamedText: ShallowRef<string>;
+  live: ShallowRef<LiveTranscript | undefined>;
   activityRevision: ShallowRef<number>;
 }
 export interface ConversationSubmissionInput {

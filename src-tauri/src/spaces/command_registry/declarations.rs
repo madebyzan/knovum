@@ -172,6 +172,7 @@ macro_rules! knovum_execution_commands {
         crate::spaces::conversations::commands::drafts::save_conversation_draft,
         crate::spaces::conversations::commands::drafts::remove_conversation_draft,
         crate::spaces::conversations::commands::drafts::move_conversation_draft,
+        crate::spaces::conversations::commands::links::follow_conversation_link,
         crate::spaces::conversations::queries::conversations::list_conversations,
         crate::spaces::conversations::queries::conversations::list_conversation_messages,
         crate::spaces::conversations::queries::conversations::list_conversation_branches,

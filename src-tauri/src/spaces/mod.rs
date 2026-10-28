@@ -39,6 +39,11 @@ pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             recovery::start(app.clone());
             Ok(())
         })
+        .on_event(|_app, event| {
+            if matches!(event, tauri::RunEvent::Exit) {
+                tauri::async_runtime::block_on(external_conversations::shutdown());
+            }
+        })
         .invoke_handler(command_registry::handler())
         .build()
 }

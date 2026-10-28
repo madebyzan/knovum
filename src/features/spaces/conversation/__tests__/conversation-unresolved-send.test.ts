@@ -7,6 +7,7 @@ const ipc = vi.hoisted(() => ({ startConversationTask: vi.fn<typeof startConvers
 vi.mock("../conversation-ipc", () => ipc);
 
 import { createConversationTaskSubmission } from "../conversation-task-submission";
+import type { LiveTranscript } from "../conversation-transcript";
 
 describe("conversation unresolved file admission", () => {
   it("does not clear or submit the draft through the programmatic send path", async () => {
@@ -36,11 +37,12 @@ describe("conversation unresolved file admission", () => {
         taskState: shallowRef<string>(),
         loading: shallowRef(false),
         error: shallowRef<string>(),
-        streamedText: shallowRef(""),
+        live: shallowRef<LiveTranscript>(),
         activityRevision: shallowRef(0),
       },
       accepted: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       settled: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+      loadActivity: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       restoreForSpace: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
     });
 

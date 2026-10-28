@@ -28,7 +28,7 @@ def test_obsolete_runtime_is_rejected_before_opening_checkpoint(tmp_path: Path, 
                 protocol_version={"protocol": 0, "previous_protocol": 3}.get(obsolete, PROTOCOL_VERSION),
                 graph_version={
                     "graph": "obsolete",
-                    "previous_graph": GRAPH_VERSION.replace("knovum-agent-v1/", "knovum-agent-v3/"),
+                    "previous_graph": GRAPH_VERSION.replace("knovum-agent-v2/", "knovum-agent-v1/"),
                 }.get(obsolete, GRAPH_VERSION),
                 checkpoint_path=str(checkpoint),
             )

@@ -103,7 +103,7 @@
     "copy": "複製訊息",
     "copied": "已複製",
     "copyFailed": "複製失敗，請重試。",
-    "new": "回到最新 ↓",
+    "new": "回到最新",
     "loadOlder": "載入更早訊息"
   },
   "regenerate": "重新生成",
@@ -142,7 +142,12 @@
       "stop": "終止任務",
       "description": "操作可能已完成。請先檢查服務狀態，再授權重試。"
     },
-    "attempt": "嘗試"
+    "attempt": "嘗試",
+    "command": {
+      "approval": "允許執行這條命令？",
+      "unconfined": "它會以你的權限直接在這台電腦上執行，不在沙箱中。請確認它做什麼後再允許。",
+      "outcomeUnknown": "命令可能已經執行過。請先檢查它的影響，再允許重新執行。"
+    }
   },
   "interactions": {
     "title": "外部服務需要輸入",

@@ -7,6 +7,8 @@ import type { ConversationSelectionOptions } from "./conversation-selection";
 import { createConversationTaskState } from "./conversation-task-state";
 import { createConversationTaskSubmission } from "./conversation-task-submission";
 import type { ConversationSubmissionInput } from "./conversation-task-submission-contract";
+import type { LiveTranscript } from "./conversation-transcript";
+import { useConversationActivities } from "./use-conversation-activities";
 import { useConversationRunRestoration } from "./use-conversation-run-restoration";
 
 interface ConversationTaskInput extends ConversationSubmissionInput {
@@ -23,14 +25,14 @@ export function useConversationTask(input: ConversationTaskInput) {
   const taskState = shallowRef<string>();
   const loading = shallowRef(false);
   const error = shallowRef<string>();
-  const streamedText = shallowRef("");
+  const live = shallowRef<LiveTranscript>();
   const activityRevision = shallowRef(0);
   const visible = computed(
     () =>
       input.spaceId.value === activeSpaceId.value &&
       input.selectedConversationId.value === activeConversationId.value,
   );
-  const visibleStreamedText = computed(() => (visible.value ? streamedText.value : ""));
+  const visibleLive = computed(() => (visible.value ? live.value : undefined));
   const visibleTaskState = computed(() => (visible.value ? taskState.value : undefined));
   const visibleWaitReason = computed(() => (visible.value ? activeRun.value?.waitReason : undefined));
   const canPause = computed(
@@ -81,6 +83,11 @@ export function useConversationTask(input: ConversationTaskInput) {
     onDetach: () => submission.invalidate(),
   });
 
+  const { loadActivity, ...activities } = useConversationActivities(
+    input.selectedConversationId,
+    activeRunId,
+    activityRevision,
+  );
   const submission = createConversationTaskSubmission({
     input,
     state: {
@@ -91,11 +98,12 @@ export function useConversationTask(input: ConversationTaskInput) {
       taskState,
       loading,
       error,
-      streamedText,
+      live,
       activityRevision,
     },
     accepted: conversation.accepted,
     settled: conversation.settled,
+    loadActivity,
     restoreForSpace,
   });
 
@@ -108,8 +116,9 @@ export function useConversationTask(input: ConversationTaskInput) {
     canPause,
     loading,
     visibleError,
-    visibleStreamedText,
+    visibleLive,
     activityRevision,
+    activities,
     send: submission.send,
     cancel,
     pause,

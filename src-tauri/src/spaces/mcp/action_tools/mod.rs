@@ -35,19 +35,21 @@ impl SpaceMcpServer {
     ) -> Result<String, McpError> {
         self.require_space(&args.space_id)?;
         require_platform_action(&args.action_id).map_err(mcp_error)?;
+        let turn = self.turns.current()?;
         let outcome = invocation::invoke(
             self,
+            &turn.run_id,
             actions::ActionInvocationRequest {
                 invocation_id: uuid::Uuid::new_v4().to_string(),
                 idempotency_key: args.idempotency_key,
-                grant_id: self.grant_id.clone(),
+                grant_id: turn.grant_id.clone(),
                 space_id: args.space_id,
                 action_id: args.action_id,
                 action_version: args.action_version,
                 parameters: Value::Object(args.parameters),
                 input_snapshot: Value::Object(args.input_snapshot),
                 expected_revisions: Value::Object(args.expected_revisions),
-                parent_run_id: Some(self.parent_run_id.clone()),
+                parent_run_id: Some(turn.run_id.clone()),
             },
             "invoke_space_action",
         )
@@ -62,19 +64,21 @@ impl SpaceMcpServer {
         Parameters(args): Parameters<CommitKnowledgeArgs>,
     ) -> Result<String, McpError> {
         self.require_space(&args.space_id)?;
+        let turn = self.turns.current()?;
         let outcome = invocation::invoke(
             self,
+            &turn.run_id,
             actions::ActionInvocationRequest {
                 invocation_id: uuid::Uuid::new_v4().to_string(),
                 idempotency_key: args.idempotency_key,
-                grant_id: self.grant_id.clone(),
+                grant_id: turn.grant_id.clone(),
                 space_id: args.space_id,
                 action_id: "commit-knowledge-changes".into(),
                 action_version: 1,
                 parameters: json!({"operations": args.operations}),
                 input_snapshot: json!({}),
                 expected_revisions: json!({}),
-                parent_run_id: Some(self.parent_run_id.clone()),
+                parent_run_id: Some(turn.run_id.clone()),
             },
             "commit_knowledge_changes",
         )
