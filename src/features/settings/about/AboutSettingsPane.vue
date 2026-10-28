@@ -10,7 +10,7 @@ import { useUpdateStore } from "../../../foundation/updates/update-store";
 import { isApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
 import PreferenceField from "../components/PreferenceField.vue";
-import ApplicationUpdatePanel from "./ApplicationUpdatePanel.vue";
+import SoftwareUpdate from "./SoftwareUpdate.vue";
 
 const { t } = useI18n();
 const updates = useUpdateStore();
@@ -54,7 +54,7 @@ async function perform(action: () => Promise<unknown>) {
       <PreferenceField :label="t('settings.general.about.author')" description="Zan" />
     </UiSettingsSection>
     <UiSettingsSection :title="t('updates.title')" :description="t('updates.description')">
-      <ApplicationUpdatePanel @perform="perform" />
+      <SoftwareUpdate @perform="perform" />
     </UiSettingsSection>
   </div>
 </template>

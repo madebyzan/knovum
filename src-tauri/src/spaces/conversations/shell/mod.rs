@@ -95,11 +95,11 @@ pub(crate) fn prepare(workspace: PathBuf, arguments: Value) -> Result<PreparedCo
 
 impl PreparedCommand {
     /// Runs the command for at most its own timeout and `remaining`, the time its Run has left,
-    /// and returns the tool result the Agent reads, or why the command could not run.
+    /// and returns the tool response the Agent reads, or why the command could not run.
     pub(crate) async fn execute(self, remaining: Duration) -> Result<Value, String> {
         let timeout = self.timeout.min(remaining);
         let finished = platform::run(&self.workspace, &self.command, timeout).await?;
-        Ok(output::result(&finished, timeout))
+        Ok(output::tool_response(&finished, timeout))
     }
 }
 

@@ -22,7 +22,7 @@ const editorSession = getCanvasEditorSession();
 const frame = computed(() => generatorFrame(props.generator));
 const icon = computed(() => nodeIcon(GENERATOR_KINDS[props.generator.kind].output));
 const working = computed(() => props.generator.submission !== undefined);
-const detail = computed(() => {
+const outputFormat = computed(() => {
   const { kind, aspectRatio, durationSeconds } = props.generator;
   if (kind === "document") return undefined;
   return kind === "video" ? `${aspectRatio} · ${durationSeconds}s` : aspectRatio;
@@ -102,7 +102,9 @@ function remove(event: KeyboardEvent) {
         <LoaderCircle class="size-3 animate-spin" :stroke-width="2" />
         {{ t("spaces.creation.generator.generating") }}
       </span>
-      <span v-else-if="detail" class="ml-auto shrink-0 text-fg-tertiary tabular-nums">{{ detail }}</span>
+      <span v-else-if="outputFormat" class="ml-auto shrink-0 text-fg-tertiary tabular-nums">{{
+        outputFormat
+      }}</span>
     </div>
     <div
       class="generator-frame grid size-full place-items-center bg-surface-muted"

@@ -9,7 +9,7 @@ import type { CanvasNodePresentationContext } from "../../preview/policy";
 import { nodePayloadWork } from "./canvas-node-work";
 import { spaceNodePreviewText } from "./space-canvas-node-content";
 import { spaceCanvasNodePresentation } from "./space-canvas-node-presentation";
-import SpaceCanvasArchiveEntries from "./SpaceCanvasArchiveEntries.vue";
+import SpaceCanvasArchiveMembers from "./SpaceCanvasArchiveMembers.vue";
 import SpaceCanvasCode from "./SpaceCanvasCode.vue";
 import SpaceCanvasImage from "./SpaceCanvasImage.vue";
 import SpaceCanvasMarkdown from "./SpaceCanvasMarkdown.vue";
@@ -25,7 +25,9 @@ const props = defineProps<{
 }>();
 const { t } = useI18n();
 const presentation = computed(() => spaceCanvasNodePresentation(props.data));
-const entries = computed(() => (props.data.kind === "file" && props.data.entries ? props.data.entries : []));
+const archiveMembers = computed(() =>
+  props.data.kind === "file" && props.data.entries ? props.data.entries : [],
+);
 const documentPreview = computed(() => {
   if (props.data.kind !== "file") return undefined;
   return usesDocumentPreview(classifyFilePresentation(props.data.fileName ?? props.data.title))
@@ -61,9 +63,9 @@ const work = computed(() => nodePayloadWork(props.data));
     :interactive="interactive"
     :frame-rotation="frameRotation"
   />
-  <SpaceCanvasArchiveEntries
-    v-else-if="entries.length > 0"
-    :entries="entries"
+  <SpaceCanvasArchiveMembers
+    v-else-if="archiveMembers.length > 0"
+    :members="archiveMembers"
     :presentation-context="presentationContext"
   />
   <SpaceDocumentPreview

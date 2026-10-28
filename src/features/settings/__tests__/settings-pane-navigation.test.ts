@@ -9,7 +9,7 @@ import { DEFAULT_AI_MODEL_SETTINGS } from "../../../foundation/ai/schema/model-s
 import { i18n } from "../../../foundation/i18n/instance";
 import { archiveSettingsKey, type ArchiveSettingsContract } from "../../../shared/contracts/archive-settings";
 import UiSettingsHeaderActions from "../../../shared/ui/UiSettingsHeaderActions.vue";
-import SettingsSidebar from "../components/SettingsSidebar.vue";
+import SettingsSidebar from "../navigation/SettingsSidebar.vue";
 import SettingsView from "../SettingsView.vue";
 
 vi.mock("../../../foundation/ai/ai-settings-store", () => ({ useAiSettingsStore: () => aiStore }));

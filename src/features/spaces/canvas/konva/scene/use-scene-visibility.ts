@@ -5,7 +5,7 @@ import { SECTION_HEADER_HEIGHT } from "../../../model/structure/section-metrics"
 import type { ProjectedSection } from "../../document/structure-scene";
 import type { CanvasCamera } from "../viewport/canvas-camera";
 import type { CanvasScene } from "./canvas-scene";
-import { showsNodeDetail } from "./detail-level";
+import { showsNodeContent } from "./content-legibility";
 import { useContentAdmission } from "./use-content-admission";
 import { createSceneVisibilityIndex, sceneOverscan, visibleSceneIds } from "./viewport-culling";
 
@@ -36,7 +36,7 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
   const culledSectionIds = shallowRef<ReadonlySet<string>>(new Set());
   const culledNodeIds = shallowRef<ReadonlySet<string>>(new Set());
   /** The visible nodes legible at the current zoom; only these mount their content. */
-  const detailedNodeIds = shallowRef<ReadonlySet<string>>(new Set());
+  const legibleNodeIds = shallowRef<ReadonlySet<string>>(new Set());
   const culledRelationIds = shallowRef<ReadonlySet<string>>(new Set());
   const selectedRelationIds = computed(() => {
     const keyByRelationId = options.scene.value.relationKeyByRelationId;
@@ -91,14 +91,14 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
     sampled = camera;
     const visible = visibleSceneIds(visibilityIndex.value, camera, options.size, sceneOverscan(travel));
     culledNodeIds.value = visible.nodes;
-    const detailed = showsNodeDetail(camera.zoom) ? visible.nodes : new Set<string>();
-    if (detailed.size || detailedNodeIds.value.size) detailedNodeIds.value = detailed;
+    const legible = showsNodeContent(camera.zoom) ? visible.nodes : new Set<string>();
+    if (legible.size || legibleNodeIds.value.size) legibleNodeIds.value = legible;
     culledSectionIds.value = visible.sections;
     culledRelationIds.value = visible.relations;
   }
 
   updateVisibility();
-  const admittedContentIds = useContentAdmission(options.camera, detailedNodeIds);
+  const admittedContentIds = useContentAdmission(options.camera, legibleNodeIds);
   const scheduleVisibilityUpdate = useThrottleFn(updateVisibility, SAMPLE_INTERVAL_MS, true, true);
   watch(
     [options.scene, options.sections, () => options.size.width, () => options.size.height],

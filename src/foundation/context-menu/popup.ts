@@ -90,21 +90,21 @@ function isMenuGroup(item: ContextMenuItem | ContextMenuGroup): item is ContextM
 }
 
 export function flattenMenuGroups(
-  entries: readonly (ContextMenuItem | ContextMenuGroup)[],
+  itemsAndGroups: readonly (ContextMenuItem | ContextMenuGroup)[],
   scope = "ContextMenu",
 ): ContextMenuItem[] {
-  const menuEntries: ContextMenuItem[] = [];
+  const flattened: ContextMenuItem[] = [];
   const separator: PredefinedMenuItemOptions = { item: "Separator" };
-  for (const entry of entries) {
-    if (isMenuGroup(entry)) {
-      if (!entry.length) continue;
-      if (menuEntries.length > 0) menuEntries.push(separator);
-      for (const groupItem of entry) menuEntries.push(prepareMenuItem(groupItem, scope));
+  for (const itemOrGroup of itemsAndGroups) {
+    if (isMenuGroup(itemOrGroup)) {
+      if (!itemOrGroup.length) continue;
+      if (flattened.length > 0) flattened.push(separator);
+      for (const groupItem of itemOrGroup) flattened.push(prepareMenuItem(groupItem, scope));
     } else {
-      menuEntries.push(prepareMenuItem(entry, scope));
+      flattened.push(prepareMenuItem(itemOrGroup, scope));
     }
   }
-  return menuEntries;
+  return flattened;
 }
 
 function toMenuPosition(pos?: PopupMenuPosition): PhysicalPosition | LogicalPosition | Position | undefined {

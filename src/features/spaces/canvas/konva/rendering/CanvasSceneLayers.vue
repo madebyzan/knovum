@@ -39,7 +39,7 @@ const props = defineProps<{
   stage?: Konva.Stage;
   visibleNodeIds: ReadonlySet<string>;
   /** The visible nodes that mount their content; every other visible node is drawn as its overview. */
-  detailNodeIds: ReadonlySet<string>;
+  contentNodeIds: ReadonlySet<string>;
   visibleRelationIds: ReadonlySet<string>;
 }>();
 const emit = defineEmits<{
@@ -63,7 +63,7 @@ useCanvasOverviewLayer({
   nodes: computed(() =>
     sceneNodesInPaintOrder(
       props.scene,
-      new Set([...props.visibleNodeIds].filter((id) => !props.detailNodeIds.has(id))),
+      new Set([...props.visibleNodeIds].filter((id) => !props.contentNodeIds.has(id))),
     ),
   ),
   layoutPreviewByNodeId: () => props.layoutPreviewByNodeId,

@@ -6,8 +6,8 @@
  * Gating content on legibility bounds that work by the screen instead of by the Space: at this zoom the
  * screen holds a bounded number of cards however many the Space contains.
  */
-export const NODE_DETAIL_MIN_ZOOM = 0.4;
+export const NODE_CONTENT_MIN_ZOOM = 0.4;
 
-export function showsNodeDetail(zoom: number) {
-  return zoom >= NODE_DETAIL_MIN_ZOOM;
+export function showsNodeContent(zoom: number) {
+  return zoom >= NODE_CONTENT_MIN_ZOOM;
 }

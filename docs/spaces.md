@@ -791,7 +791,7 @@ settled camera clears at once; a pan into a dense region therefore mounts a few 
 batch inside one frame. The adapter document adopts the camera when it stops moving, which keeps camera
 motion out of document identity, projection and view-state persistence.
 
-Content mounts only where it is legible (`scene/detail-level.ts`): below `NODE_DETAIL_MIN_ZOOM` body text
+Content mounts only where it is legible (`scene/content-legibility.ts`): below `NODE_CONTENT_MIN_ZOOM` body text
 renders under about six pixels, so visible nodes keep their geometry and are drawn by the overview layer
 (`rendering/use-canvas-overview-layer.ts`) instead of mounting cards — the same reduced drawing
 (`overview/nodes.ts`) that renders Space covers, from one cache of downscaled preview bitmaps
