@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import { Check, ChevronDown, Link, Link2Off } from "@lucide/vue";
+import { Check, Link, Link2Off } from "@lucide/vue";
 import { ToolbarButton, ToolbarToggleGroup, ToolbarToggleItem } from "reka-ui";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiDropdownMenu from "../../../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../../../shared/ui/UiDropdownMenuItem.vue";
+import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
 import {
   CONTENT_FILL_PRESETS,
   type ContentFillPreset,
 } from "../../../model/structure/schema/content-appearance";
 import { SECTION_MINIMUM_SIZE } from "../../../model/structure/section-metrics";
-import { CANVAS_ACTION_BUTTON_CLASSES } from "../canvas-action-classes";
 import { CONTENT_FILL_COLORS } from "../canvas-content-colors";
 import SpaceCanvasColorSwatches from "../SpaceCanvasColorSwatches.vue";
+import SpaceCanvasMenuTrigger from "../SpaceCanvasMenuTrigger.vue";
 import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "./node-action-label";
 import {
   SECTION_SIZE_PRESETS,
@@ -105,18 +106,13 @@ function edit(dimension: keyof SectionSize, value: number) {
   <UiSeparator orientation="vertical" class="mx-1 h-4" />
   <UiDropdownMenu side="top" align="start" :side-offset="6" class="min-w-52">
     <template #trigger>
-      <ToolbarButton as-child>
-        <button
-          type="button"
-          :class="[CANVAS_ACTION_BUTTON_CLASSES, 'gap-1 px-2 text-fg-primary']"
-          :disabled="disabled"
-          :aria-label="t('spaces.canvas.sections.size.label')"
-          :title="t('spaces.canvas.sections.size.label')"
-        >
-          {{ preset ?? t("spaces.canvas.sections.size.custom") }}
-          <ChevronDown class="size-3 text-fg-tertiary" />
-        </button>
-      </ToolbarButton>
+      <SpaceCanvasMenuTrigger
+        :label="t('spaces.canvas.sections.size.label')"
+        :disabled="disabled"
+        class="text-fg-primary"
+      >
+        {{ preset ?? t("spaces.canvas.sections.size.custom") }}
+      </SpaceCanvasMenuTrigger>
     </template>
     <UiDropdownMenuItem
       v-for="option in SECTION_SIZE_PRESETS"
@@ -140,18 +136,16 @@ function edit(dimension: keyof SectionSize, value: number) {
       @commit="edit('width', $event)"
     />
     <ToolbarButton as-child>
-      <button
-        type="button"
-        class="grid size-6 shrink-0 place-items-center rounded-md text-fg-tertiary transition-colors duration-100 outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:opacity-40 aria-pressed:text-fg-accent"
-        :aria-pressed="lockRatio"
-        :aria-label="ratioLabel"
-        :title="ratioLabel"
+      <UiIconButton
+        size="sm"
+        tooltip
+        :label="ratioLabel"
+        :active="lockRatio"
         :disabled="disabled || section.autoLayout"
         @click="lockRatio = !lockRatio"
       >
-        <Link v-if="lockRatio" class="size-3.5" :stroke-width="1.8" />
-        <Link2Off v-else class="size-3.5" :stroke-width="1.8" />
-      </button>
+        <component :is="lockRatio ? Link : Link2Off" class="size-3.5" :stroke-width="1.8" />
+      </UiIconButton>
     </ToolbarButton>
     <SpaceCanvasFrameDimension
       axis="H"
@@ -159,7 +153,7 @@ function edit(dimension: keyof SectionSize, value: number) {
       :value="size.height"
       :min="SECTION_MINIMUM_SIZE.height"
       :disabled="disabled || section.autoLayout"
-      v-bind="section.autoLayout ? { hint: t('spaces.canvas.sections.size.autoHeight') } : {}"
+      :hint="section.autoLayout ? t('spaces.canvas.sections.size.autoHeight') : undefined"
       @commit="edit('height', $event)"
     />
   </div>

@@ -59,15 +59,19 @@ export function createCanvasStructureSelectionActions({ state, run }: CanvasStru
     );
   }
 
+  /** The selected Section, when the selection lets it be edited. */
+  function editableSection() {
+    return state.value.canEditSection ? state.value.section : undefined;
+  }
+
   function dissolveSection() {
-    const section = state.value.section;
-    if (section && state.value.canEditSection)
-      run(() => store.executeSpaceEdit({ kind: "section.dissolve", structureNodeId: section.id }));
+    const section = editableSection();
+    if (section) run(() => store.executeSpaceEdit({ kind: "section.dissolve", structureNodeId: section.id }));
   }
 
   function setSectionAutoLayout(autoLayout: boolean) {
-    const section = state.value.section;
-    if (section && state.value.canEditSection && section.autoLayout !== autoLayout)
+    const section = editableSection();
+    if (section && section.autoLayout !== autoLayout)
       run(() =>
         store.executeSpaceEdit({ kind: "section.update-layout", structureNodeId: section.id, autoLayout }),
       );
@@ -75,8 +79,8 @@ export function createCanvasStructureSelectionActions({ state, run }: CanvasStru
 
   /** A preset fill, or none to show the canvas panel behind the Section. */
   function setSectionFill(fill: ContentFillPreset | undefined) {
-    const section = state.value.section;
-    if (!section || !state.value.canEditSection || section.appearance.fill === fill) return;
+    const section = editableSection();
+    if (!section || section.appearance.fill === fill) return;
     const appearance = { ...section.appearance, customFill: undefined, fill };
     run(() =>
       store.executeSpaceEdit({
@@ -88,8 +92,8 @@ export function createCanvasStructureSelectionActions({ state, run }: CanvasStru
   }
 
   function resizeSection(size: SectionSize) {
-    const section = state.value.section;
-    if (!section || !state.value.canEditSection) return;
+    const section = editableSection();
+    if (!section) return;
     const { frame } = section;
     if (frame.width === size.width && frame.height === size.height) return;
     run(() =>
