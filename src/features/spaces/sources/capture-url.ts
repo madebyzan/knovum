@@ -2,7 +2,6 @@ import { info as logInfo, warn as logWarn } from "@tauri-apps/plugin-log";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
-import { removeSpaceAssets } from "../assets/asset-operations";
 import type { PendingContentContext } from "../assets/import-contract";
 import { acquireMediaSource } from "../media/import/acquisition";
 import { allocateMediaImportAsset } from "../media/import/ipc";
@@ -122,16 +121,17 @@ async function settle(
   return node;
 }
 
+/**
+ * Takes the arriving media away. Its reserved asset goes with the node: discarding a node reclaims
+ * the assets only it referenced, so removing the asset here as well would race that reclamation
+ * while the node still holds it.
+ */
 async function discard(context: UrlCaptureContext, spaceId: string, node: SpaceCanvasNode) {
-  const assetPath = "assetPath" in node.data ? node.data.assetPath : undefined;
-  const removals = await Promise.allSettled([
-    context.discardPendingContent(spaceId, node.id),
-    ...(assetPath ? [removeSpaceAssets([assetPath])] : []),
-  ]);
-  for (const removal of removals) {
-    if (removal.status === "rejected")
-      void logWarn(
-        `Arriving media could not be removed after a failed import: ${formatErrorDiagnostic(removal.reason)}`,
-      );
+  try {
+    await context.discardPendingContent(spaceId, node.id);
+  } catch (error) {
+    void logWarn(
+      `Arriving media could not be removed after a failed import: ${formatErrorDiagnostic(error)}`,
+    );
   }
 }

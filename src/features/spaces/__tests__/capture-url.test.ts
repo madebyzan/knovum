@@ -28,7 +28,6 @@ const mocks = vi.hoisted(() => {
     allocateMediaImportAsset: vi.fn<(jobId: string, kind: "audio" | "video") => Promise<string>>(),
     logWarn: vi.fn<(message: string) => void>(),
     logInfo: vi.fn<(message: string) => void>(),
-    removeSpaceAssets: vi.fn<(paths: readonly string[]) => Promise<void>>(),
   };
 });
 
@@ -36,7 +35,6 @@ vi.mock("@tauri-apps/plugin-log", () => ({ info: mocks.logInfo, warn: mocks.logW
 vi.mock("../../../foundation/i18n/instance", () => ({
   i18n: { global: { t: (key: string) => key } },
 }));
-vi.mock("../assets/asset-operations", () => ({ removeSpaceAssets: mocks.removeSpaceAssets }));
 vi.mock("../media/import/acquisition", () => ({
   acquireMediaSource: mocks.acquireMediaSource,
 }));
@@ -57,7 +55,6 @@ describe("Space URL capture", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.addSavedWebsite.mockResolvedValue(undefined);
-    mocks.removeSpaceAssets.mockResolvedValue(undefined);
     mocks.allocateMediaImportAsset.mockResolvedValue(RESERVED_ASSET);
   });
 
@@ -115,7 +112,6 @@ describe("Space URL capture", () => {
     await expect(captureSpaceUrl(harness.context, URL, POSITION)).rejects.toThrow("unsupported");
 
     expect(harness.discard).toHaveBeenCalledWith("space-1", "media");
-    expect(mocks.removeSpaceAssets).toHaveBeenCalledWith([RESERVED_ASSET]);
     expect(harness.savePending).not.toHaveBeenCalled();
   });
 
@@ -165,7 +161,6 @@ describe("Space URL capture", () => {
     await expect(captureSpaceUrl(harness.context, URL, POSITION)).rejects.toBe(failure);
 
     expect(harness.discard).toHaveBeenCalledWith("space-1", "media");
-    expect(mocks.removeSpaceAssets).toHaveBeenCalledWith([RESERVED_ASSET]);
     expect(harness.savePending).not.toHaveBeenCalled();
   });
 
