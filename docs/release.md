@@ -227,7 +227,10 @@ user edits while preparing/installing, and task state is checked again after sav
 from inside its installer, so saving happens before invoking it. During the system replacement transition, ordinary
 quit is blocked; Tauri's distinguished restart exit is allowed. Network, signature and installation
 failures become recoverable, visible update states, not a claim of success. Release notes are rendered
-as plain text.
+as Markdown with raw HTML disabled, so a link is only a link and opens through the application's
+external-link policy; their leading title is left out because the panel already names the version.
+A download shows received and total size with its percentage; an unknown size and the signature
+check show an indeterminate bar.
 
 ## Required acceptance matrix
 
