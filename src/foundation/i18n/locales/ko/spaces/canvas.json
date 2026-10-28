@@ -37,7 +37,8 @@
     "label": "선택",
     "selectAll": "모두 선택",
     "delete": "선택 항목 삭제",
-    "toggleLock": "선택 항목 잠금 또는 잠금 해제"
+    "toggleLock": "선택 항목 잠금 또는 잠금 해제",
+    "count": "{count}개 선택됨"
   },
   "kinds": {
     "group": "그룹",
@@ -74,6 +75,8 @@
     "size": {
       "label": "크기",
       "custom": "사용자 지정",
+      "width": "너비",
+      "height": "높이",
       "lockRatio": "가로세로 비율 고정",
       "unlockRatio": "가로세로 비율 고정 해제",
       "autoHeight": "자동 레이아웃에서는 높이가 내용에 따라 정해집니다"

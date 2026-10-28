@@ -1,35 +1,12 @@
-import { minBy } from "es-toolkit";
-
 import { placeActionSurface } from "./selection-action-placement";
 import { placeInspectorSurface } from "./selection-inspector-placement";
-import {
-  intersection,
-  type PlacementInput,
-  type SurfacePlacement,
-  type SurfaceRect,
-} from "./selection-surface-geometry";
+import { intersection, type PlacementInput, type SurfacePlacement } from "./selection-surface-geometry";
 
-function actionAnchor(input: PlacementInput, safe: SurfaceRect, visible: SurfaceRect): SurfaceRect {
-  if (input.members.length < 2) return input.selection;
-  const center = { x: (visible.left + visible.right) / 2, y: (visible.top + visible.bottom) / 2 };
-  const members = input.members.flatMap((member) => {
-    const clipped = intersection(member, safe);
-    return clipped ? [clipped] : [];
-  });
-  const centeredMember = members.find(
-    (member) =>
-      center.x >= member.left &&
-      center.x <= member.right &&
-      center.y >= member.top &&
-      center.y <= member.bottom,
-  );
-  if (centeredMember) return centeredMember;
-  const distance = (rect: SurfaceRect) =>
-    Math.hypot((rect.left + rect.right) / 2 - center.x, (rect.top + rect.bottom) / 2 - center.y);
-  return minBy(members, distance) ?? input.selection;
-}
-
-/** Selection chrome depends on selected geometry and fixed canvas controls, never other canvas nodes. */
+/**
+ * Selection chrome depends on selected geometry and fixed canvas controls, never other canvas nodes.
+ * It belongs to the selection as a whole: a bar over one member of a multi-selection would read as
+ * that member's bar and cover the content being arranged.
+ */
 export function placeSelectionSurface(input: PlacementInput): SurfacePlacement | undefined {
   const { width, height } = input.surface;
   if (
@@ -47,11 +24,7 @@ export function placeSelectionSurface(input: PlacementInput): SurfacePlacement |
   const visible = intersection(input.selection, safe);
   if (!visible) return undefined;
   if (input.kind === "inspector") return placeInspectorSurface(input, safe, visible);
-  const selection = actionAnchor(input, safe, visible);
   if (input.kind === "compact-editor")
-    return (
-      placeActionSurface({ ...input, selection }, safe, visible) ??
-      placeInspectorSurface(input, safe, visible)
-    );
-  return placeActionSurface({ ...input, selection }, safe, intersection(selection, safe) ?? visible);
+    return placeActionSurface(input, safe, visible) ?? placeInspectorSurface(input, safe, visible);
+  return placeActionSurface(input, safe, visible);
 }

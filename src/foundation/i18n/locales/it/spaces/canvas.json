@@ -37,7 +37,8 @@
     "label": "Selezione",
     "selectAll": "Seleziona tutto",
     "delete": "Elimina selezionato",
-    "toggleLock": "Blocca o sblocca la selezione"
+    "toggleLock": "Blocca o sblocca la selezione",
+    "count": "{count} selezionati"
   },
   "kinds": {
     "group": "Gruppo",
@@ -74,6 +75,8 @@
     "size": {
       "label": "Dimensioni",
       "custom": "Personalizzate",
+      "width": "Larghezza",
+      "height": "Altezza",
       "lockRatio": "Blocca proporzioni",
       "unlockRatio": "Sblocca proporzioni",
       "autoHeight": "Con il layout automatico l'altezza dipende dal contenuto"

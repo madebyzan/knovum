@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AlignHorizontalSpaceAround, ChevronRight, Workflow } from "@lucide/vue";
+import { AlignHorizontalSpaceAround, ChevronRight, Columns3, Rows3 } from "@lucide/vue";
 import { DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
@@ -36,10 +36,10 @@ const { t } = useI18n();
         <template v-if="availability.autoLayout">
           <UiSeparator class="my-1" />
           <UiDropdownMenuItem @select="emit('autoLayout', 'row')">
-            <Workflow class="size-3.5" />{{ t("spaces.canvas.arrange.autoHorizontal") }}
+            <Columns3 class="size-3.5" />{{ t("spaces.canvas.arrange.autoHorizontal") }}
           </UiDropdownMenuItem>
           <UiDropdownMenuItem @select="emit('autoLayout', 'column')">
-            <Workflow class="size-3.5 rotate-90" />{{ t("spaces.canvas.arrange.autoVertical") }}
+            <Rows3 class="size-3.5" />{{ t("spaces.canvas.arrange.autoVertical") }}
           </UiDropdownMenuItem>
         </template>
       </DropdownMenuSubContent>

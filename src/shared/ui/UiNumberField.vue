@@ -16,6 +16,7 @@ const props = withDefaults(
     disabled?: boolean | undefined;
     placeholder?: string | undefined;
     locale?: string | undefined;
+    formatOptions?: Intl.NumberFormatOptions | undefined;
     size?: "sm" | "md" | undefined;
     class?: HTMLAttributes["class"];
   }>(),
@@ -43,6 +44,7 @@ const rootProps = computed(() => ({
   ...(props.min !== undefined ? { min: props.min } : {}),
   ...(props.max !== undefined ? { max: props.max } : {}),
   ...(props.step !== undefined ? { step: props.step } : {}),
+  ...(props.formatOptions ? { formatOptions: props.formatOptions } : {}),
 }));
 </script>
 

@@ -26,7 +26,6 @@ export interface CanvasSelectionSnapshot {
   relationIds: readonly string[];
   singleNodeAppearance?: CanvasNodeAppearance;
   bounds?: CanvasRect;
-  members: readonly CanvasRect[];
 }
 
 export type CanvasLayerMove = "front" | "forward" | "backward" | "back";

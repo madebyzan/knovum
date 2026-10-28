@@ -37,7 +37,8 @@
     "label": "目前選取",
     "selectAll": "全選",
     "delete": "刪除選取項目",
-    "toggleLock": "鎖定或解鎖選取項目"
+    "toggleLock": "鎖定或解鎖選取項目",
+    "count": "已選取 {count} 項"
   },
   "kinds": {
     "group": "組合",
@@ -74,6 +75,8 @@
     "size": {
       "label": "尺寸",
       "custom": "自訂",
+      "width": "寬度",
+      "height": "高度",
       "lockRatio": "鎖定長寬比",
       "unlockRatio": "解除鎖定長寬比",
       "autoHeight": "自動版面時高度由內容決定"

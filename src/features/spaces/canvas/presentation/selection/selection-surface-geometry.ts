@@ -9,7 +9,6 @@ export type SurfaceSide = "above" | "below" | "left" | "right" | "inside";
 
 export interface PlacementInput {
   selection: SurfaceRect;
-  members: readonly SurfaceRect[];
   viewport: { width: number; height: number };
   insets: { top: number; right: number; bottom: number; left: number };
   reserved: readonly SurfaceRect[];

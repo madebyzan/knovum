@@ -2,7 +2,13 @@
 import { ChevronRight, FolderInput } from "@lucide/vue";
 import { sortBy } from "es-toolkit";
 import { storeToRefs } from "pinia";
-import { DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "reka-ui";
+import {
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  ToolbarButton,
+} from "reka-ui";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -64,14 +70,15 @@ const menuItems = computed(() =>
     :items="menuItems.length ? menuItems : undefined"
   >
     <template #trigger>
-      <UiIconButton
-        :disabled="disabled"
-        :label="t('spaces.space.moveTo')"
-        :title="disabled ? t('spaces.editor.tabs.protected') : t('spaces.space.moveTo')"
-        size="sm"
-      >
-        <FolderInput class="size-3.5" :stroke-width="1.55" />
-      </UiIconButton>
+      <ToolbarButton as-child>
+        <UiIconButton
+          :disabled="disabled"
+          :label="t('spaces.space.moveTo')"
+          :title="disabled ? t('spaces.editor.tabs.protected') : t('spaces.space.moveTo')"
+        >
+          <FolderInput class="size-4.5" :stroke-width="1.6" />
+        </UiIconButton>
+      </ToolbarButton>
     </template>
     <p v-if="!targets.length" class="px-2 py-2 text-caption text-fg-tertiary">
       {{ t("spaces.space.moveNoTargets") }}

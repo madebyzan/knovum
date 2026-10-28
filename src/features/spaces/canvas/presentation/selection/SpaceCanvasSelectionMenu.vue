@@ -3,10 +3,12 @@ import {
   Copy,
   Focus,
   Group,
+  SquareDashed,
   LockKeyhole,
   MessageSquareText,
   MoreHorizontal,
   Trash2,
+  Ungroup,
   UnlockKeyhole,
 } from "@lucide/vue";
 import { platform } from "@tauri-apps/plugin-os";
@@ -81,7 +83,7 @@ const excludedActions = computed(() => [
         <Group class="size-3.5" />{{ t("spaces.canvas.groups.create") }}
       </UiDropdownMenuItem>
       <UiDropdownMenuItem v-if="actions.state.value.canCreateSection" @select="actions.createSection">
-        <Group class="size-3.5" />{{ t("spaces.canvas.sections.create") }}
+        <SquareDashed class="size-3.5" />{{ t("spaces.canvas.sections.create") }}
       </UiDropdownMenuItem>
       <UiSeparator class="my-1" />
     </template>
@@ -91,7 +93,7 @@ const excludedActions = computed(() => [
         <UiKbd shortcut="$mod+D" class="ml-auto" />
       </UiDropdownMenuItem>
       <UiDropdownMenuItem v-if="actions.state.value.canDissolveGroup" @select="actions.dissolveGroup">
-        <Group class="size-3.5" />{{ t("spaces.canvas.groups.ungroup") }}
+        <Ungroup class="size-3.5" />{{ t("spaces.canvas.groups.ungroup") }}
         <UiKbd shortcut="$mod+Shift+G" class="ml-auto" />
       </UiDropdownMenuItem>
       <template v-if="actions.state.value.section">

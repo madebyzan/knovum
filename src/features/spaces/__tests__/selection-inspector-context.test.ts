@@ -42,7 +42,6 @@ it("inspects relation and mixed selections instead of showing Space health", asy
     structureNodeIds: [],
     relationIds: ["relation"],
     nodePlacements: [],
-    members: [],
   });
   await wrapper.vm.$nextTick();
   expect(wrapper.findComponent(SpaceKnowledgeHealth).exists()).toBe(false);

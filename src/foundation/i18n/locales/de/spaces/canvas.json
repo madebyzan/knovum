@@ -37,7 +37,8 @@
     "label": "Auswahl",
     "selectAll": "Alle auswählen",
     "delete": "Ausgewählte löschen",
-    "toggleLock": "Auswahl sperren oder entsperren"
+    "toggleLock": "Auswahl sperren oder entsperren",
+    "count": "{count} ausgewählt"
   },
   "kinds": {
     "group": "Gruppe",
@@ -74,6 +75,8 @@
     "size": {
       "label": "Größe",
       "custom": "Benutzerdefiniert",
+      "width": "Breite",
+      "height": "Höhe",
       "lockRatio": "Seitenverhältnis sperren",
       "unlockRatio": "Seitenverhältnis entsperren",
       "autoHeight": "Beim automatischen Layout ergibt sich die Höhe aus dem Inhalt"

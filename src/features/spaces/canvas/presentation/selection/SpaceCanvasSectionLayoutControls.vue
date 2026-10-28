@@ -1,22 +1,21 @@
 <script setup lang="ts">
-import { ChevronDown, Link, Link2Off } from "@lucide/vue";
+import { Check, ChevronDown, Link, Link2Off } from "@lucide/vue";
 import { ToolbarButton, ToolbarToggleGroup, ToolbarToggleItem } from "reka-ui";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiButton from "../../../../../shared/ui/UiButton.vue";
 import UiDropdownMenu from "../../../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../../../shared/ui/UiDropdownMenuItem.vue";
-import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
-import UiNumberField from "../../../../../shared/ui/UiNumberField.vue";
-import UiPopover from "../../../../../shared/ui/UiPopover.vue";
+import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
 import {
   CONTENT_FILL_PRESETS,
   type ContentFillPreset,
 } from "../../../model/structure/schema/content-appearance";
 import { SECTION_MINIMUM_SIZE } from "../../../model/structure/section-metrics";
+import { CANVAS_ACTION_BUTTON_CLASSES } from "../canvas-action-classes";
 import { CONTENT_FILL_COLORS } from "../canvas-content-colors";
 import SpaceCanvasColorSwatches from "../SpaceCanvasColorSwatches.vue";
+import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "./node-action-label";
 import {
   SECTION_SIZE_PRESETS,
   editedSectionSize,
@@ -24,7 +23,9 @@ import {
   type SectionSize,
 } from "./section-frame-size";
 import type { SelectedSection } from "./selection-product-state";
+import SpaceCanvasFrameDimension from "./SpaceCanvasFrameDimension.vue";
 
+/** A Section's frame, edited the way a design tool edits one: fill, layout mode, then size. */
 const props = defineProps<{ section: SelectedSection; disabled: boolean; compact: boolean }>();
 const emit = defineEmits<{
   autoLayout: [autoLayout: boolean];
@@ -34,7 +35,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const NO_FILL = "none";
 const TOGGLE_ITEM_CLASSES =
-  "h-[calc(var(--knovum-control-height-md)-4px)] rounded-[5px] px-2 text-caption text-fg-secondary outline-none transition-colors duration-100 hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:opacity-40 data-[state=on]:bg-surface-raised data-[state=on]:text-fg-primary data-[state=on]:shadow-control";
+  "inline-flex h-full items-center rounded-[5px] px-2.5 text-caption font-medium text-fg-secondary outline-none transition-colors duration-100 ease-standard hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:opacity-40 data-[state=on]:bg-surface-raised data-[state=on]:text-fg-primary data-[state=on]:shadow-control motion-reduce:transition-none";
 const lockRatio = shallowRef(false);
 const size = computed(() => ({ width: props.section.frame.width, height: props.section.frame.height }));
 const preset = computed(() => sectionSizePreset(size.value));
@@ -47,6 +48,9 @@ const fillOptions = computed(() => [
     label: t(`spaces.canvas.noteFills.${value}`),
   })),
 ]);
+const ratioLabel = computed(() =>
+  t(lockRatio.value ? "spaces.canvas.sections.size.unlockRatio" : "spaces.canvas.sections.size.lockRatio"),
+);
 
 function selectLayout(mode: unknown) {
   // A single toggle group reports `undefined` when the active item is pressed again; the mode stays.
@@ -58,9 +62,8 @@ function selectFill(value: string) {
     CONTENT_FILL_PRESETS.find((fill) => fill === value),
   );
 }
-function edit(dimension: keyof SectionSize, value: number | undefined) {
-  if (value !== undefined)
-    emit("resize", editedSectionSize(size.value, { [dimension]: value }, lockRatio.value));
+function edit(dimension: keyof SectionSize, value: number) {
+  emit("resize", editedSectionSize(size.value, { [dimension]: value }, lockRatio.value));
 }
 </script>
 
@@ -69,14 +72,23 @@ function edit(dimension: keyof SectionSize, value: number | undefined) {
     :label="t('spaces.canvas.sections.fill.label')"
     :options="fillOptions"
     :selected="section.appearance.fill ?? NO_FILL"
+    size="md"
     @select="selectFill"
   />
+  <UiSeparator orientation="vertical" class="mx-1 h-4" />
+  <span
+    class="mr-1 text-caption text-fg-tertiary"
+    :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(compact)]"
+    aria-hidden="true"
+  >
+    {{ t("spaces.canvas.sections.layout.label") }}
+  </span>
   <ToolbarToggleGroup
     type="single"
     :model-value="layoutMode"
     :disabled="disabled"
     :aria-label="t('spaces.canvas.sections.layout.label')"
-    class="flex h-(--knovum-control-height-md) items-center gap-px rounded-md bg-surface-control p-0.5"
+    class="flex h-(--knovum-control-height-md) shrink-0 items-center gap-px rounded-md bg-surface-control p-0.5"
     @update:model-value="selectLayout"
   >
     <ToolbarToggleItem
@@ -90,75 +102,65 @@ function edit(dimension: keyof SectionSize, value: number | undefined) {
       {{ t("spaces.canvas.sections.layout.manual") }}
     </ToolbarToggleItem>
   </ToolbarToggleGroup>
-  <UiPopover side="top" align="center" :side-offset="6" class="w-60 p-2">
+  <UiSeparator orientation="vertical" class="mx-1 h-4" />
+  <UiDropdownMenu side="top" align="start" :side-offset="6" class="min-w-52">
     <template #trigger>
       <ToolbarButton as-child>
-        <UiButton
-          variant="ghost"
-          size="sm"
-          class="tabular-nums shadow-none"
+        <button
+          type="button"
+          :class="[CANVAS_ACTION_BUTTON_CLASSES, 'gap-1 px-2 text-fg-primary']"
           :disabled="disabled"
           :aria-label="t('spaces.canvas.sections.size.label')"
+          :title="t('spaces.canvas.sections.size.label')"
         >
-          <template v-if="compact">{{ preset ?? t("spaces.canvas.sections.size.custom") }}</template>
-          <template v-else>{{ Math.round(size.width) }} × {{ Math.round(size.height) }}</template>
-          <ChevronDown class="size-3 text-fg-tertiary" />
-        </UiButton>
-      </ToolbarButton>
-    </template>
-    <UiDropdownMenu side="bottom" align="start" class="min-w-44">
-      <template #trigger>
-        <UiButton variant="secondary" size="sm" class="w-full justify-between">
           {{ preset ?? t("spaces.canvas.sections.size.custom") }}
           <ChevronDown class="size-3 text-fg-tertiary" />
-        </UiButton>
-      </template>
-      <UiDropdownMenuItem
-        v-for="option in SECTION_SIZE_PRESETS"
-        :key="option.id"
-        @select="emit('resize', { width: option.width, height: option.height })"
+        </button>
+      </ToolbarButton>
+    </template>
+    <UiDropdownMenuItem
+      v-for="option in SECTION_SIZE_PRESETS"
+      :key="option.id"
+      @select="emit('resize', { width: option.width, height: option.height })"
+    >
+      <Check class="size-3.5" :class="preset === option.id ? 'opacity-100' : 'opacity-0'" />
+      <span class="flex-1">{{ option.id }}</span>
+      <span class="ml-4 text-caption text-fg-tertiary tabular-nums"
+        >{{ option.width }} × {{ option.height }}</span
       >
-        <span class="flex-1">{{ option.id }}</span>
-        <span class="text-caption text-fg-tertiary tabular-nums"
-          >{{ option.width }} × {{ option.height }}</span
-        >
-      </UiDropdownMenuItem>
-    </UiDropdownMenu>
-    <div class="mt-2 flex items-center gap-1.5">
-      <label class="flex min-w-0 flex-1 items-center gap-1 text-caption text-fg-tertiary">
-        W
-        <UiNumberField
-          size="sm"
-          :min="SECTION_MINIMUM_SIZE.width"
-          :model-value="Math.round(size.width)"
-          @update:model-value="edit('width', $event)"
-        />
-      </label>
-      <UiIconButton
-        :label="
-          t(lockRatio ? 'spaces.canvas.sections.size.unlockRatio' : 'spaces.canvas.sections.size.lockRatio')
-        "
-        :active="lockRatio"
-        tooltip
-        size="sm"
+    </UiDropdownMenuItem>
+  </UiDropdownMenu>
+  <div class="ml-0.5 flex shrink-0 items-center gap-0.5">
+    <SpaceCanvasFrameDimension
+      axis="W"
+      :label="t('spaces.canvas.sections.size.width')"
+      :value="size.width"
+      :min="SECTION_MINIMUM_SIZE.width"
+      :disabled="disabled"
+      @commit="edit('width', $event)"
+    />
+    <ToolbarButton as-child>
+      <button
+        type="button"
+        class="grid size-6 shrink-0 place-items-center rounded-md text-fg-tertiary transition-colors duration-100 outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:opacity-40 aria-pressed:text-fg-accent"
+        :aria-pressed="lockRatio"
+        :aria-label="ratioLabel"
+        :title="ratioLabel"
+        :disabled="disabled || section.autoLayout"
         @click="lockRatio = !lockRatio"
       >
-        <Link v-if="lockRatio" class="size-3.5" />
-        <Link2Off v-else class="size-3.5" />
-      </UiIconButton>
-      <label class="flex min-w-0 flex-1 items-center gap-1 text-caption text-fg-tertiary">
-        H
-        <UiNumberField
-          size="sm"
-          :min="SECTION_MINIMUM_SIZE.height"
-          :disabled="section.autoLayout"
-          :model-value="Math.round(size.height)"
-          @update:model-value="edit('height', $event)"
-        />
-      </label>
-    </div>
-    <p v-if="section.autoLayout" class="mt-1.5 text-caption text-fg-tertiary">
-      {{ t("spaces.canvas.sections.size.autoHeight") }}
-    </p>
-  </UiPopover>
+        <Link v-if="lockRatio" class="size-3.5" :stroke-width="1.8" />
+        <Link2Off v-else class="size-3.5" :stroke-width="1.8" />
+      </button>
+    </ToolbarButton>
+    <SpaceCanvasFrameDimension
+      axis="H"
+      :label="t('spaces.canvas.sections.size.height')"
+      :value="size.height"
+      :min="SECTION_MINIMUM_SIZE.height"
+      :disabled="disabled || section.autoLayout"
+      v-bind="section.autoLayout ? { hint: t('spaces.canvas.sections.size.autoHeight') } : {}"
+      @commit="edit('height', $event)"
+    />
+  </div>
 </template>

@@ -37,7 +37,8 @@
     "label": "Sélection",
     "selectAll": "Sélectionner tout",
     "delete": "Supprimer la sélection",
-    "toggleLock": "Verrouiller ou déverrouiller la sélection"
+    "toggleLock": "Verrouiller ou déverrouiller la sélection",
+    "count": "{count} sélectionnés"
   },
   "kinds": {
     "group": "Groupe",
@@ -74,6 +75,8 @@
     "size": {
       "label": "Taille",
       "custom": "Personnalisée",
+      "width": "Largeur",
+      "height": "Hauteur",
       "lockRatio": "Verrouiller les proportions",
       "unlockRatio": "Déverrouiller les proportions",
       "autoHeight": "En disposition automatique, la hauteur dépend du contenu"
