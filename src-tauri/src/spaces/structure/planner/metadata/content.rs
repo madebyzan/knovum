@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use super::apply_update;
 use crate::spaces::structure::edit_contract::{ContentHeightUpdate, FieldUpdate};
 use crate::spaces::structure::planner::tree_policy::{require_editable, Index};
 use crate::spaces::structure::repository::SpaceStructureSnapshot;
@@ -146,12 +147,4 @@ pub(in crate::spaces::structure) fn relation_style(
         });
     }
     Ok(Vec::new())
-}
-
-fn apply_update<T: Clone>(target: &mut Option<T>, update: &FieldUpdate<T>) {
-    match update {
-        FieldUpdate::Keep => {}
-        FieldUpdate::Set { value } => *target = Some(value.clone()),
-        FieldUpdate::Clear => *target = None,
-    }
 }

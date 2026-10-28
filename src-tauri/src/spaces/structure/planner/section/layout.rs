@@ -31,6 +31,7 @@ pub(super) fn append_section(
         },
         collapsed: false,
         appearance: None,
+        auto_layout: false,
     });
 }
 pub(super) fn require_new(index: &Index, structure_node_id: &str) -> Result<(), String> {
@@ -65,14 +66,21 @@ pub(super) fn shift_local(layout: &mut StructureLayout, dx: f64, dy: f64) -> Res
         StructureLayout::Section { .. } => Err("Section cannot be a Section child".into()),
     }
 }
+/// A Section's frame clears its content by the title band above and one margin on every other
+/// side; an auto-layout Section also spaces its children by that margin.
+pub(super) const SECTION_MARGIN: f64 = 32.0;
+pub(super) const SECTION_TITLE_CLEARANCE: f64 = 56.0;
+pub(super) const SECTION_MINIMUM_WIDTH: f64 = 240.0;
+pub(super) const SECTION_MINIMUM_HEIGHT: f64 = 160.0;
+
 pub(super) fn frame_for_bounds(b: Bounds) -> SpaceRect {
-    let required_width = b.right - b.left + 64.0;
-    let required_height = b.bottom - b.top + 88.0;
-    let width = required_width.max(240.0);
-    let height = required_height.max(160.0);
+    let required_width = b.right - b.left + 2.0 * SECTION_MARGIN;
+    let required_height = b.bottom - b.top + SECTION_TITLE_CLEARANCE + SECTION_MARGIN;
+    let width = required_width.max(SECTION_MINIMUM_WIDTH);
+    let height = required_height.max(SECTION_MINIMUM_HEIGHT);
     SpaceRect {
-        x: b.left - 32.0 - (width - required_width) / 2.0,
-        y: b.top - 56.0 - (height - required_height) / 2.0,
+        x: b.left - SECTION_MARGIN - (width - required_width) / 2.0,
+        y: b.top - SECTION_TITLE_CLEARANCE - (height - required_height) / 2.0,
         width,
         height,
     }

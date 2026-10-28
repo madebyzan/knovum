@@ -5,6 +5,7 @@ mod node_reference_remap;
 mod planner_batches;
 mod portal_integrity;
 mod reclamation;
+mod section_flow;
 mod snapshot_writes;
 mod transactions;
 

@@ -108,7 +108,7 @@ pub(crate) async fn execute_in_transaction(
         &mut *tx,
         &request.space_id,
         request.expected_edit_revision,
-        &snapshot,
+        &mut snapshot,
     )
     .await?;
     super::portal_integrity::validate_structure_targets(&mut *tx, &[&request.space_id]).await?;

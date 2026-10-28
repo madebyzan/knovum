@@ -33,6 +33,38 @@ export function groupAvailability(
   return { enabled: true, roots };
 }
 
+export interface StructureArrangementAvailability {
+  align: boolean;
+  distribute: boolean;
+  autoLayout: boolean;
+}
+
+/**
+ * Align, distribute and auto-layout place roots where the person asks, which the children of an
+ * auto-layout Section are not: the Section places them. Auto-layout also needs one shared parent.
+ */
+export function arrangementAvailability(
+  snapshot: SpaceEditSnapshot,
+  selectedIds: readonly StructureNodeId[],
+): StructureArrangementAvailability {
+  const index = createStructureIndex(snapshot.structure);
+  const roots = effectiveOperationRoots(selectedIds, index);
+  const autoLayoutSections = new Set(
+    snapshot.layouts.flatMap((layout) =>
+      layout.kind === "section" && layout.autoLayout ? [layout.structureNodeId] : [],
+    ),
+  );
+  const free = roots.every(
+    ({ id, parentId }) =>
+      !isStructureNodeEffectivelyLocked(id, index) && !(parentId && autoLayoutSections.has(parentId)),
+  );
+  return {
+    align: free && roots.length >= 2,
+    distribute: free && roots.length >= 3,
+    autoLayout: free && roots.length >= 2 && roots.every(({ parentId }) => parentId === roots[0]!.parentId),
+  };
+}
+
 export function dissolveGroupAvailability(
   snapshot: SpaceEditSnapshot,
   selectedIds: readonly StructureNodeId[],

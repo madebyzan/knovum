@@ -84,10 +84,18 @@ function validateCanvasReferences(document: CanvasDocumentV1, context: z.Refinem
   }
 }
 
-export function serializeCanvasAppearance(appearance: CanvasNodeAppearance): Record<string, string | number> {
+export function serializeCanvasAppearance(
+  appearance: Readonly<Record<string, string | number | undefined>>,
+): Record<string, string | number> {
   const serialized: Record<string, string | number> = {};
   for (const [key, value] of Object.entries(appearance)) {
     if (value !== undefined) serialized[key] = value;
   }
   return serialized;
+}
+
+/** A content or Section appearance as a layout update: an appearance with no fields is cleared. */
+export function canvasAppearanceUpdate(appearance: Readonly<Record<string, string | number | undefined>>) {
+  const value = serializeCanvasAppearance(appearance);
+  return Object.keys(value).length ? ({ kind: "set", value } as const) : ({ kind: "clear" } as const);
 }

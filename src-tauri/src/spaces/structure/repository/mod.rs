@@ -68,13 +68,21 @@ pub(crate) async fn load_in_transaction(
     ))
 }
 
+/// Persists the snapshot as the Space's next revision. Auto-layout Sections are settled here
+/// because this is the one write every structure writer shares, and they settle in the caller's
+/// snapshot so whatever it records afterwards (history, receipts) is what was written.
 pub(crate) async fn save_in_transaction(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     base_revision: i64,
-    snapshot: &SpaceStructureSnapshot,
+    snapshot: &mut SpaceStructureSnapshot,
 ) -> Result<i64, AppError> {
     validate_space_snapshot(&snapshot.structure, &snapshot.layouts)?;
+    // Settling walks the tree, so it only ever sees a coherent snapshot; what it moved is
+    // checked again before anything is written.
+    if super::planner::settle_auto_layout_sections(snapshot)? {
+        validate_space_snapshot(&snapshot.structure, &snapshot.layouts)?;
+    }
     let active_nodes = read::active_node_ids(tx, space_id).await?;
     validate_content_coverage(&snapshot.structure, &active_nodes)?;
     read::validate_relation_styles(tx, space_id, &snapshot.relation_styles).await?;

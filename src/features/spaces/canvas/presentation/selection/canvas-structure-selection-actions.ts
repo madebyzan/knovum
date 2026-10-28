@@ -1,7 +1,10 @@
 import type { Ref } from "vue";
 
 import { i18n } from "../../../../../foundation/i18n/instance";
+import type { ContentFillPreset } from "../../../model/structure/schema/content-appearance";
 import { useSpaceStore } from "../../../session/space-store";
+import { canvasAppearanceUpdate } from "../../schema/document";
+import type { SectionSize } from "./section-frame-size";
 import type { CanvasSelectionProductState } from "./selection-product-state";
 
 interface CanvasStructureSelectionActionsInput {
@@ -58,9 +61,55 @@ export function createCanvasStructureSelectionActions({ state, run }: CanvasStru
 
   function dissolveSection() {
     const section = state.value.section;
-    if (section && state.value.canDissolveSection)
+    if (section && state.value.canEditSection)
       run(() => store.executeSpaceEdit({ kind: "section.dissolve", structureNodeId: section.id }));
   }
 
-  return { createGroup, createSection, dissolveGroup, dissolveSection, fitSection, toggleSectionCollapsed };
+  function setSectionAutoLayout(autoLayout: boolean) {
+    const section = state.value.section;
+    if (section && state.value.canEditSection && section.autoLayout !== autoLayout)
+      run(() =>
+        store.executeSpaceEdit({ kind: "section.update-layout", structureNodeId: section.id, autoLayout }),
+      );
+  }
+
+  /** A preset fill, or none to show the canvas panel behind the Section. */
+  function setSectionFill(fill: ContentFillPreset | undefined) {
+    const section = state.value.section;
+    if (!section || !state.value.canEditSection || section.appearance.fill === fill) return;
+    const appearance = { ...section.appearance, customFill: undefined, fill };
+    run(() =>
+      store.executeSpaceEdit({
+        kind: "section.update-layout",
+        structureNodeId: section.id,
+        appearance: canvasAppearanceUpdate(appearance),
+      }),
+    );
+  }
+
+  function resizeSection(size: SectionSize) {
+    const section = state.value.section;
+    if (!section || !state.value.canEditSection) return;
+    const { frame } = section;
+    if (frame.width === size.width && frame.height === size.height) return;
+    run(() =>
+      store.executeSpaceEdit({
+        kind: "section.resize-frame",
+        structureNodeId: section.id,
+        frame: { x: frame.x, y: frame.y, ...size },
+      }),
+    );
+  }
+
+  return {
+    createGroup,
+    createSection,
+    dissolveGroup,
+    dissolveSection,
+    fitSection,
+    resizeSection,
+    setSectionAutoLayout,
+    setSectionFill,
+    toggleSectionCollapsed,
+  };
 }

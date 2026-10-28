@@ -29,7 +29,8 @@
     "backward": "下移一层",
     "toBack": "置于底层",
     "autoHorizontal": "自动布局（横向）",
-    "autoVertical": "自动布局（纵向）"
+    "autoVertical": "自动布局（纵向）",
+    "tidy": "自动整理"
   },
   "layerOrder": "层级排序",
   "selection": {
@@ -56,12 +57,30 @@
     "fitToContents": "适应分区内容",
     "untitled": "未命名分区",
     "collapse": "折叠分区",
-    "expand": "展开分区"
+    "expand": "展开分区",
+    "fill": {
+      "label": "填充",
+      "none": "无填充"
+    },
+    "layout": {
+      "label": "布局",
+      "auto": "自动",
+      "manual": "手动",
+      "autoHint": "子元素按宽度自动换行排列，高度随内容变化"
+    },
+    "size": {
+      "label": "尺寸",
+      "custom": "自定义",
+      "lockRatio": "锁定宽高比",
+      "unlockRatio": "解锁宽高比",
+      "autoHeight": "自动布局时高度由内容决定"
+    }
   },
   "lock": "锁定",
   "locked": "已锁定",
   "unlock": "解锁",
   "align": {
+    "title": "对齐",
     "left": "左对齐",
     "center": "水平居中",
     "right": "右对齐",

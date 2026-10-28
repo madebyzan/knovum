@@ -82,6 +82,7 @@ pub(super) fn remap_layout(
             size,
             collapsed,
             appearance,
+            auto_layout,
             ..
         } => StructureLayout::Section {
             structure_node_id,
@@ -89,6 +90,7 @@ pub(super) fn remap_layout(
             size,
             collapsed,
             appearance,
+            auto_layout,
         },
     }
 }

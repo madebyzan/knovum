@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { Group, Info, Link2, Sparkles } from "@lucide/vue";
+import { AlignStartVertical, Group, Info, LayoutGrid, Link2, Sparkles } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiBadge from "../../../../../shared/ui/UiBadge.vue";
+import UiButton from "../../../../../shared/ui/UiButton.vue";
+import UiDropdownMenu from "../../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
 import type {
@@ -14,6 +16,7 @@ import type {
 import type { NodeSpeechOperation } from "../../../speech/presentation/node-speech-operations";
 import { CANVAS_ACTION_BAR_CLASSES } from "../canvas-action-classes";
 import SpaceCanvasImageActionBar from "../images/SpaceCanvasImageActionBar.vue";
+import SpaceCanvasAlignmentItems from "./SpaceCanvasAlignmentItems.vue";
 import SpaceCanvasNodeActionBar from "./SpaceCanvasNodeActionBar.vue";
 import SpaceCanvasSectionActionBar from "./SpaceCanvasSectionActionBar.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
@@ -79,6 +82,29 @@ const singleSection = computed(
     <UiBadge v-if="actions.state.value.structureNodeIds.length > 1" size="sm" class="mx-1">
       {{ actions.state.value.structureNodeIds.length }}
     </UiBadge>
+    <template v-if="actions.state.value.arrangement.align">
+      <ToolbarButton v-if="actions.state.value.arrangement.autoLayout" as-child>
+        <UiButton variant="ghost" size="sm" class="shadow-none" @click="actions.autoLayout('grid')">
+          <LayoutGrid class="size-3.5" :stroke-width="1.55" />
+          {{ t("spaces.canvas.arrange.tidy") }}
+        </UiButton>
+      </ToolbarButton>
+      <UiDropdownMenu side="top" align="center" :side-offset="6" class="min-w-40">
+        <template #trigger>
+          <ToolbarButton as-child>
+            <UiIconButton :label="t('spaces.canvas.align.title')" tooltip size="sm">
+              <AlignStartVertical class="size-3.5" :stroke-width="1.55" />
+            </UiIconButton>
+          </ToolbarButton>
+        </template>
+        <SpaceCanvasAlignmentItems
+          :availability="actions.state.value.arrangement"
+          @align="actions.align"
+          @distribute="actions.distribute"
+        />
+      </UiDropdownMenu>
+      <UiSeparator orientation="vertical" class="mx-0.5 h-4" />
+    </template>
     <ToolbarButton as-child>
       <UiIconButton :label="t('spaces.inspector.title')" tooltip size="sm" @click="actions.inspect">
         <Info class="size-3.5" :stroke-width="1.55" />

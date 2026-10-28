@@ -1,8 +1,9 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
-use crate::spaces::structure::edit_contract::{AutoLayoutDirection, ReorderDirection};
+use crate::spaces::structure::edit_contract::{AutoLayoutFlow, ReorderDirection};
 use crate::spaces::structure::planner::bounds::{merge, root_bounds};
-use crate::spaces::structure::planner::movement::{moved_layout, replace_layouts};
+use crate::spaces::structure::planner::packing::{place, reading_order, squarest_table, table};
+use crate::spaces::structure::planner::section::require_freely_arranged;
 use crate::spaces::structure::planner::tree_policy::{
     apply_sequences, effective_roots, require_editable, Index,
 };
@@ -80,7 +81,7 @@ pub(in crate::spaces::structure) fn reorder(
 pub(in crate::spaces::structure) fn auto_layout(
     snapshot: &mut SpaceStructureSnapshot,
     structure_node_ids: &[String],
-    direction: &AutoLayoutDirection,
+    flow: AutoLayoutFlow,
     gap: f64,
 ) -> Result<Vec<String>, String> {
     if !gap.is_finite() || gap < 0.0 {
@@ -98,47 +99,39 @@ pub(in crate::spaces::structure) fn auto_layout(
     {
         return Err("Auto-layout requires roots with the same parent".into());
     }
-    let mut measures = roots
-        .iter()
-        .map(|id| {
-            Ok((
-                id.clone(),
-                root_bounds(&snapshot.structure, &snapshot.layouts, &index, id)?,
-            ))
-        })
-        .collect::<Result<Vec<_>, String>>()?;
-    measures
-        .sort_by_key(|(id, _)| snapshot.structure[index.position_by_structure_node_id[id]].order());
-    let start = measures
-        .iter()
-        .fold(None, |area, (_, bounds)| Some(merge(area, *bounds)))
-        .ok_or("Auto-layout requires geometry")?;
-    let mut cursor = if matches!(direction, AutoLayoutDirection::Right) {
-        start.left
-    } else {
-        start.top
-    };
-    let mut deltas = Vec::new();
-    for (id, bounds) in &measures {
+    require_freely_arranged(snapshot, &index, &roots)?;
+    for id in &roots {
         require_editable(&snapshot.structure, &index, id)?;
-        let (dx, dy) = match direction {
-            AutoLayoutDirection::Right => {
-                let value = (cursor - bounds.left, start.top - bounds.top);
-                cursor += bounds.right - bounds.left + gap;
-                value
-            }
-            AutoLayoutDirection::Down => {
-                let value = (start.left - bounds.left, cursor - bounds.top);
-                cursor += bounds.bottom - bounds.top + gap;
-                value
-            }
-        };
-        deltas.push((id.clone(), dx, dy));
     }
-    let mut updates = HashMap::with_capacity(deltas.len());
-    for (id, dx, dy) in deltas {
-        updates.insert(id.clone(), moved_layout(snapshot, &index, &id, dx, dy)?);
-    }
-    replace_layouts(&mut snapshot.layouts, updates);
+    let bounds = roots
+        .iter()
+        .map(|id| root_bounds(&snapshot.structure, &snapshot.layouts, &index, id))
+        .collect::<Result<Vec<_>, String>>()?;
+    let order = reading_order(&bounds);
+    let sizes = order
+        .iter()
+        .map(|root| {
+            let bounds = &bounds[*root];
+            (bounds.right - bounds.left, bounds.bottom - bounds.top)
+        })
+        .collect::<Vec<_>>();
+    let packed = match flow {
+        AutoLayoutFlow::Row => table(&sizes, sizes.len(), gap),
+        AutoLayoutFlow::Column => table(&sizes, 1, gap),
+        AutoLayoutFlow::Grid => squarest_table(&sizes, gap),
+    };
+    let start = bounds
+        .iter()
+        .fold(None, |area, bounds| Some(merge(area, *bounds)))
+        .ok_or("Auto-layout requires geometry")?;
+    place(
+        snapshot,
+        &index,
+        &roots,
+        &bounds,
+        &order,
+        &packed,
+        (start.left, start.top),
+    )?;
     Ok(roots)
 }

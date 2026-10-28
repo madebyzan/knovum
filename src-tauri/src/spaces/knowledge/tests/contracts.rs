@@ -99,7 +99,10 @@ async fn change_failure_rolls_back_objects_created_earlier_in_transaction() {
     .await
     .expect("insert existing node");
     crate::spaces::structure::repository::save_in_transaction(
-        &mut setup, "space", revision, &snapshot,
+        &mut setup,
+        "space",
+        revision,
+        &mut snapshot,
     )
     .await
     .expect("save existing structure");

@@ -107,7 +107,7 @@ pub(crate) async fn discard_pending_content<R: Runtime>(
         &mut tx,
         &request.space_id,
         revision,
-        &snapshot,
+        &mut snapshot,
     )
     .await?;
     crate::spaces::nodes::touch_updated_at(&mut tx, &request.space_id, now).await?;

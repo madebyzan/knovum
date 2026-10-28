@@ -1,7 +1,9 @@
 use std::collections::HashSet;
 
+use serde_json::Value;
+
 use crate::spaces::structure::contracts::{Point, Size, StructureLayout, StructureNode};
-use crate::spaces::structure::edit_contract::SpaceRect;
+use crate::spaces::structure::edit_contract::{FieldUpdate, SpaceRect};
 
 mod content;
 use crate::spaces::structure::planner::tree_policy::{effective_roots, require_editable, Index};
@@ -59,6 +61,7 @@ pub(in crate::spaces::structure) fn create_empty(
         },
         collapsed: false,
         appearance: None,
+        auto_layout: false,
     });
     Ok(vec![structure_node_id.to_owned()])
 }
@@ -84,6 +87,49 @@ pub(in crate::spaces::structure) fn collapse(
         _ => return Err(format!("Section layout not found: {structure_node_id}")),
     };
     Ok(vec![structure_node_id.to_owned()])
+}
+
+/// Section layout properties, the Section counterpart of `content.update-layout`. Turning auto
+/// layout on is complete here: the write that commits it settles the Section's children.
+pub(in crate::spaces::structure) fn update_section(
+    snapshot: &mut SpaceStructureSnapshot,
+    structure_node_id: &str,
+    auto_layout: Option<bool>,
+    appearance: &FieldUpdate<Value>,
+) -> Result<Vec<String>, String> {
+    let index = Index::new(&snapshot.structure, &snapshot.layouts);
+    if index
+        .node(&snapshot.structure, structure_node_id)?
+        .kind_name()
+        != "section"
+    {
+        return Err(format!("Section not found: {structure_node_id}"));
+    }
+    require_editable(&snapshot.structure, &index, structure_node_id)?;
+    let Some(StructureLayout::Section {
+        auto_layout: current_auto_layout,
+        appearance: current_appearance,
+        ..
+    }) = index
+        .layout_index_by_structure_node_id
+        .get(structure_node_id)
+        .and_then(|position| snapshot.layouts.get_mut(*position))
+    else {
+        return Err(format!("Section layout missing: {structure_node_id}"));
+    };
+    if let Some(auto_layout) = auto_layout {
+        *current_auto_layout = auto_layout;
+    }
+    apply_update(current_appearance, appearance);
+    Ok(vec![structure_node_id.to_owned()])
+}
+
+fn apply_update<T: Clone>(target: &mut Option<T>, update: &FieldUpdate<T>) {
+    match update {
+        FieldUpdate::Keep => {}
+        FieldUpdate::Set { value } => *target = Some(value.clone()),
+        FieldUpdate::Clear => *target = None,
+    }
 }
 
 pub(in crate::spaces::structure) fn set_lock(

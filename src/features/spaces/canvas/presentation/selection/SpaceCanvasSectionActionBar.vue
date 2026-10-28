@@ -4,10 +4,12 @@ import { ToolbarRoot } from "reka-ui";
 import { computed, toRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
 import type { CreationIntentDecisions } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
 import { CANVAS_ACTION_BAR_CLASSES } from "../canvas-action-classes";
 import SpaceCanvasActionTrigger from "../SpaceCanvasActionTrigger.vue";
 import SpaceCanvasNodeAccessActions from "./SpaceCanvasNodeAccessActions.vue";
+import SpaceCanvasSectionLayoutControls from "./SpaceCanvasSectionLayoutControls.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 import { useNodeActionBarDensity } from "./use-node-action-bar-density";
@@ -19,9 +21,10 @@ const props = defineProps<{
 }>();
 const { t, locale } = useI18n();
 const bar = useTemplateRef<HTMLElement>("bar");
+const section = computed(() => props.actions.state.value.section);
 const identity = computed(
   () =>
-    `${locale.value}:${props.actions.state.value.section?.id}:${props.actions.state.value.section?.collapsed}:${props.actions.state.value.content.length}`,
+    `${locale.value}:${section.value?.id}:${section.value?.collapsed}:${section.value?.autoLayout}:${props.actions.state.value.content.length}`,
 );
 const { compact, minimal, ready } = useNodeActionBarDensity(bar, toRef(props, "availableWidth"), identity);
 </script>
@@ -33,6 +36,17 @@ const { compact, minimal, ready } = useNodeActionBarDensity(bar, toRef(props, "a
       :loop="false"
       :aria-label="t('spaces.canvas.selection.label')"
     >
+      <template v-if="section && !section.collapsed">
+        <SpaceCanvasSectionLayoutControls
+          :section="section"
+          :disabled="!actions.state.value.canEditSection"
+          :compact="compact"
+          @auto-layout="actions.setSectionAutoLayout"
+          @fill="actions.setSectionFill"
+          @resize="actions.resizeSection"
+        />
+        <UiSeparator orientation="vertical" class="mx-0.5 h-4" />
+      </template>
       <template v-if="!minimal">
         <SpaceCanvasActionTrigger
           :label="

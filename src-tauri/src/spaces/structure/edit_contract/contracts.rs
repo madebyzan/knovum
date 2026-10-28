@@ -98,12 +98,15 @@ pub(crate) enum ReorderDirection {
     Back,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
+/// How `structure.auto-layout` packs its roots: one row, one column, or the table closest to a
+/// square (Tidy up).
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "lowercase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub(crate) enum AutoLayoutDirection {
-    Right,
-    Down,
+pub(crate) enum AutoLayoutFlow {
+    Row,
+    Column,
+    Grid,
 }
 
 #[derive(Clone, Deserialize, Serialize, ts_rs::TS)]

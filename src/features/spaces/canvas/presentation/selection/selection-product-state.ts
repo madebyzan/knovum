@@ -1,7 +1,7 @@
 import { isSpaceSemanticNode } from "../../../knowledge/model/semantic-node";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceEditSnapshot } from "../../../model/structure/schema/edit-snapshot";
-import type { StructureNode } from "../../../model/structure/schema/structure";
+import type { StructureLayout, StructureNode } from "../../../model/structure/schema/structure";
 import {
   ancestorsOf,
   createStructureIndex,
@@ -11,12 +11,18 @@ import {
   contentNodeIdsWithin,
   isStructureNodeEffectivelyLocked,
 } from "../../../model/structure/structure-queries";
-import { dissolveGroupAvailability, groupAvailability } from "../../../structure/action-availability";
+import {
+  arrangementAvailability,
+  dissolveGroupAvailability,
+  groupAvailability,
+  type StructureArrangementAvailability,
+} from "../../../structure/action-availability";
 import { isSpaceNodeOpenable } from "../../selection-actions";
 import { currentSelectionRoots } from "../../selection/selection-roots";
 
 export interface CanvasSelectionProductState {
   allLocked: boolean;
+  arrangement: StructureArrangementAvailability;
   askScope: "selection";
   canConnect: boolean;
   canAsk: boolean;
@@ -24,13 +30,23 @@ export interface CanvasSelectionProductState {
   canCreateSection: boolean;
   canDissolveGroup: boolean;
   canFitSection: boolean;
-  canDissolveSection: boolean;
+  canEditSection: boolean;
   canToggleLock: boolean;
   canOpen: boolean;
   hasSectionMembership: boolean;
   content: SpaceCanvasNode[];
   structureNodeIds: string[];
-  section: { id: string; collapsed: boolean } | null;
+  section: SelectedSection | null;
+}
+
+type SectionLayout = Extract<StructureLayout, { kind: "section" }>;
+
+export interface SelectedSection {
+  id: string;
+  collapsed: boolean;
+  autoLayout: boolean;
+  appearance: NonNullable<SectionLayout["appearance"]>;
+  frame: { x: number; y: number; width: number; height: number };
 }
 
 interface CanvasSelectionProductInput {
@@ -95,9 +111,15 @@ export function canvasSelectionProductState({
 function selectedSectionState(
   section: StructureNode | undefined,
   layout: SpaceEditSnapshot["layouts"][number] | undefined,
-) {
+): SelectedSection | null {
   return section?.kind === "section" && layout?.kind === "section"
-    ? { id: section.id, collapsed: layout.collapsed }
+    ? {
+        id: section.id,
+        collapsed: layout.collapsed,
+        autoLayout: layout.autoLayout ?? false,
+        appearance: layout.appearance ?? {},
+        frame: { ...layout.position, ...layout.size },
+      }
     : null;
 }
 
@@ -118,6 +140,7 @@ function selectionCapabilities(context: SelectionCapabilityContext) {
   const singleExplicitContent =
     context.explicitlySelectedContent.length === 1 ? context.explicitlySelectedContent[0] : undefined;
   return {
+    arrangement: arrangementAvailability(context.snapshot, context.structureNodeIds),
     canConnect:
       context.roots.length === 2 &&
       context.roots.every(({ kind }) => kind === "content") &&
@@ -143,5 +166,5 @@ function canCreateSection(context: SelectionCapabilityContext) {
 
 function sectionCapabilities(section: StructureNode | undefined, locked: boolean, contentCount: number) {
   const editable = Boolean(section) && !locked;
-  return { canFitSection: editable && contentCount > 0, canDissolveSection: editable };
+  return { canFitSection: editable && contentCount > 0, canEditSection: editable };
 }

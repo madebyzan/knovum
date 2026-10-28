@@ -156,6 +156,11 @@ pub(crate) enum StructureLayout {
         collapsed: bool,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         appearance: Option<Value>,
+        /// The Section arranges its children itself. A Section stored without the field is freely
+        /// arranged, as every Section was before auto layout existed.
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        #[ts(optional, as = "Option<_>")]
+        auto_layout: bool,
     },
 }
 

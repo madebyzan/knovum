@@ -14,6 +14,7 @@ const PROJECTION_BY_COMMAND_KIND: Record<SpaceEditCommand["kind"], SpaceEditProj
   "section.fit": "structure",
   "section.set-collapsed": "structure",
   "section.dissolve": "structure",
+  "section.update-layout": "structure",
   "group.create": "structure",
   "group.dissolve": "structure",
   "structure.move": "structure",

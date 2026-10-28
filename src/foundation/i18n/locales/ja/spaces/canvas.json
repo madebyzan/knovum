@@ -29,7 +29,8 @@
     "backward": "逆方向に送信",
     "toBack": "戻る",
     "autoHorizontal": "自動レイアウト (水平)",
-    "autoVertical": "自動レイアウト (垂直)"
+    "autoVertical": "自動レイアウト (垂直)",
+    "tidy": "自動整列"
   },
   "layerOrder": "レイヤー順序",
   "selection": {
@@ -59,12 +60,30 @@
     "fitToContents": "セクションをコンテンツに合わせる",
     "untitled": "無題セクション",
     "collapse": "セクションを折りたたむ",
-    "expand": "セクションを展開"
+    "expand": "セクションを展開",
+    "fill": {
+      "label": "塗り",
+      "none": "塗りなし"
+    },
+    "layout": {
+      "label": "レイアウト",
+      "auto": "自動",
+      "manual": "手動",
+      "autoHint": "子要素は幅に合わせて折り返し、高さは内容に追従します"
+    },
+    "size": {
+      "label": "サイズ",
+      "custom": "カスタム",
+      "lockRatio": "縦横比を固定",
+      "unlockRatio": "縦横比の固定を解除",
+      "autoHeight": "自動レイアウトでは高さは内容で決まります"
+    }
   },
   "lock": "ロック",
   "locked": "ロック",
   "unlock": "ロック解除",
   "align": {
+    "title": "整列",
     "left": "左",
     "center": "水平中心",
     "right": "右",

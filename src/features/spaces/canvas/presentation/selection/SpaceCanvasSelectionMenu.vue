@@ -108,7 +108,7 @@ const excludedActions = computed(() => [
           t("spaces.canvas.sections.fitToContents")
         }}</UiDropdownMenuItem>
         <UiDropdownMenuItem
-          :disabled="!actions.state.value.canDissolveSection"
+          :disabled="!actions.state.value.canEditSection"
           @select="actions.dissolveSection"
           >{{ t("spaces.canvas.sections.removeOnly") }}</UiDropdownMenuItem
         >
@@ -125,7 +125,7 @@ const excludedActions = computed(() => [
         @invoke="emit('invokeDerivation', $event)"
       />
       <SpaceCanvasArrangeMenu
-        :count="actions.state.value.structureNodeIds.length"
+        :availability="actions.state.value.arrangement"
         :row-class="MENU_ITEM_CLASS"
         :submenu-class="submenu"
         @align="actions.align"

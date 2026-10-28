@@ -135,7 +135,7 @@ pub(crate) async fn reserve_in_transaction(
             }
         }
     }
-    structure::repository::save_in_transaction(tx, space_id, base, &snapshot).await?;
+    structure::repository::save_in_transaction(tx, space_id, base, &mut snapshot).await?;
     let after = structure::history::capture(tx, space_id, &snapshot).await?;
     structure::history::record(tx, space_id, &before, &after).await?;
     Ok(())

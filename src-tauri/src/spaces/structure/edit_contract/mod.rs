@@ -4,7 +4,7 @@ use serde_json::Value;
 
 mod contracts;
 pub(crate) use contracts::{
-    AlignmentEdge, AutoLayoutDirection, DistributionAxis, ExecuteSpaceEditRequest, FieldUpdate,
+    AlignmentEdge, AutoLayoutFlow, DistributionAxis, ExecuteSpaceEditRequest, FieldUpdate,
     ReorderDirection, SpaceEditHistoryReceipt, SpaceEditHistoryRequest, SpaceEditReceipt,
     SpaceEditSnapshotResponse, SpacePoint, SpaceRect,
 };
@@ -47,6 +47,15 @@ pub(crate) enum SpaceEditCommand {
     },
     #[serde(rename = "section.dissolve", rename_all = "camelCase")]
     SectionDissolve { structure_node_id: String },
+    #[serde(rename = "section.update-layout", rename_all = "camelCase")]
+    SectionUpdateLayout {
+        structure_node_id: String,
+        #[ts(optional = nullable)]
+        auto_layout: Option<bool>,
+        #[serde(default)]
+        #[ts(optional, as = "Option<_>")]
+        appearance: FieldUpdate<Value>,
+    },
     #[serde(rename = "group.create", rename_all = "camelCase")]
     GroupCreate {
         group_id: String,
@@ -101,7 +110,7 @@ pub(crate) enum SpaceEditCommand {
     #[serde(rename = "structure.auto-layout", rename_all = "camelCase")]
     StructureAutoLayout {
         root_ids: Vec<String>,
-        direction: AutoLayoutDirection,
+        flow: AutoLayoutFlow,
         gap: f64,
     },
     #[serde(rename = "structure.clone", rename_all = "camelCase")]

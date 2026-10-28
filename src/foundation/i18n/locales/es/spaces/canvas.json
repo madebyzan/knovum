@@ -29,7 +29,8 @@
     "backward": "Enviar hacia atrás",
     "toBack": "Enviar al fondo",
     "autoHorizontal": "Diseño automático (horizontal)",
-    "autoVertical": "Diseño automático (vertical)"
+    "autoVertical": "Diseño automático (vertical)",
+    "tidy": "Ordenar"
   },
   "layerOrder": "Ordenamiento de capas",
   "selection": {
@@ -59,12 +60,30 @@
     "fitToContents": "Ajustar sección al contenido",
     "untitled": "Sección sin título",
     "collapse": "Contraer sección",
-    "expand": "Ampliar sección"
+    "expand": "Ampliar sección",
+    "fill": {
+      "label": "Relleno",
+      "none": "Sin relleno"
+    },
+    "layout": {
+      "label": "Diseño",
+      "auto": "Automático",
+      "manual": "Manual",
+      "autoHint": "Los elementos se ajustan al ancho; la altura los sigue"
+    },
+    "size": {
+      "label": "Tamaño",
+      "custom": "Personalizado",
+      "lockRatio": "Bloquear proporción",
+      "unlockRatio": "Desbloquear proporción",
+      "autoHeight": "Con diseño automático, la altura depende del contenido"
+    }
   },
   "lock": "Bloquear",
   "locked": "Bloqueado",
   "unlock": "Desbloquear",
   "align": {
+    "title": "Alinear",
     "left": "Izquierda",
     "center": "Centro horizontal",
     "right": "Derecha",

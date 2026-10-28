@@ -8,8 +8,8 @@ pub(super) struct TransferCompletion<'a> {
     pub request: &'a TransferSelectionRequest,
     pub digest: &'a str,
     pub structure_plan: structure::transfer::TransferPlan,
-    pub source_snapshot: &'a structure::repository::SpaceStructureSnapshot,
-    pub target_snapshot: &'a structure::repository::SpaceStructureSnapshot,
+    pub source_snapshot: &'a mut structure::repository::SpaceStructureSnapshot,
+    pub target_snapshot: &'a mut structure::repository::SpaceStructureSnapshot,
     pub source_before: &'a structure::history::HistoryState,
     pub target_before: &'a structure::history::HistoryState,
     pub source_revision: i64,
@@ -21,7 +21,7 @@ pub(super) struct TransferCompletion<'a> {
 
 pub(super) async fn complete(
     tx: &mut Transaction<'_, Sqlite>,
-    context: TransferCompletion<'_>,
+    mut context: TransferCompletion<'_>,
 ) -> Result<TransferSelectionResponse, AppError> {
     let request = context.request;
     append_events(

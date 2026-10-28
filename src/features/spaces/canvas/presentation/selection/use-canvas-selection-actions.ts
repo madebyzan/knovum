@@ -1,10 +1,10 @@
 import { computed } from "vue";
 
+import type { AutoLayoutFlow } from "../../../contracts/generated/AutoLayoutFlow";
 import { isSpaceSemanticNode } from "../../../knowledge/model/semantic-node";
 import { useSpaceStore } from "../../../session/space-store";
 import type {
   CanvasAlignMode,
-  CanvasAutoLayoutDirection,
   CanvasDistributeMode,
   CanvasLayerMove,
 } from "../../contracts/canvas-editor-port";
@@ -111,9 +111,9 @@ export function useCanvasSelectionActions() {
     if (editor) runSelectionMutation(() => editor.distributeSelection(mode));
   }
 
-  function autoLayout(direction: CanvasAutoLayoutDirection) {
+  function autoLayout(flow: AutoLayoutFlow) {
     const editor = editorSession.activeEditor.value;
-    if (editor) runSelectionMutation(() => editor.autoLayoutSelection(direction));
+    if (editor) runSelectionMutation(() => editor.autoLayoutSelection(flow));
   }
 
   function moveLayer(mode: CanvasLayerMove) {
@@ -163,11 +163,14 @@ export function useCanvasSelectionActions() {
     parentTargets: reparentActions.targets,
     reparent: reparentActions.reparent,
     remove,
+    resizeSection: structureActions.resizeSection,
     selectedNodes,
     selectedAppearance,
     selectedImageNode,
     selectedVideoNode,
     setAppearance,
+    setSectionAutoLayout: structureActions.setSectionAutoLayout,
+    setSectionFill: structureActions.setSectionFill,
     state,
     toggleLock,
     toggleSectionCollapsed: structureActions.toggleSectionCollapsed,

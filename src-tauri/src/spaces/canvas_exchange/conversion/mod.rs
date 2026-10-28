@@ -91,6 +91,7 @@ pub(super) fn prepare(
                 },
                 collapsed: false,
                 appearance: Some(appearance),
+                auto_layout: false,
             });
             root_order += 1;
             continue;

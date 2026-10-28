@@ -4,6 +4,7 @@ export const CONTENT_TYPOGRAPHY_SCALE_MIN = 0.25;
 export const CONTENT_TYPOGRAPHY_SCALE_MAX = 4;
 export const CONTENT_TEXT_COLOR_NAMES = ["ink", "muted", "red", "blue", "green", "purple"] as const;
 export const CONTENT_FILL_PRESETS = ["yellow", "green", "blue", "pink", "gray"] as const;
+export type ContentFillPreset = (typeof CONTENT_FILL_PRESETS)[number];
 
 /** The same content appearance is validated in stored structure and canvas projections. */
 export const contentAppearanceSchema = z

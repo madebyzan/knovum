@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::spaces::structure::edit_contract::{AlignmentEdge, DistributionAxis};
 use crate::spaces::structure::planner::bounds::{merge, root_bounds, Bounds};
 use crate::spaces::structure::planner::movement::{moved_layout, replace_layouts};
+use crate::spaces::structure::planner::section::require_freely_arranged;
 use crate::spaces::structure::planner::tree_policy::{effective_roots, require_editable, Index};
 use crate::spaces::structure::repository::SpaceStructureSnapshot;
 
@@ -18,6 +19,7 @@ pub(in crate::spaces::structure) fn arrange(
     if roots.len() < minimum {
         return Err("Insufficient operation roots for arrangement".into());
     }
+    require_freely_arranged(snapshot, &index, &roots)?;
     let mut measures = roots
         .iter()
         .map(|id| {
