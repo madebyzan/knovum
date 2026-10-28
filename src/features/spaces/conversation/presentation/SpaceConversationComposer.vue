@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { ArrowUp, FileUp, Pause, Square } from "@lucide/vue";
 import { useTextareaAutosize } from "@vueuse/core";
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef } from "vue";
-import { toast } from "vue-sonner";
+import { computed, ref, useTemplateRef } from "vue";
 
 import { isComposing } from "../../../../foundation/dom/composition";
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/events";
-import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
 import type { TaskTarget } from "../../../../shared/contracts/generated/TaskTarget";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import type {
@@ -17,6 +13,7 @@ import type {
 import SpaceConversationAttachmentPicker from "./SpaceConversationAttachmentPicker.vue";
 import SpaceConversationAttachmentTray from "./SpaceConversationAttachmentTray.vue";
 import SpaceConversationTargetField from "./SpaceConversationTargetField.vue";
+import { useConversationFileDrop } from "./use-conversation-file-drop";
 
 const prompt = defineModel<string>({ required: true });
 const target = defineModel<TaskTarget | undefined>("target");
@@ -50,8 +47,10 @@ const emit = defineEmits<{
 const composerRoot = useTemplateRef<HTMLElement>("composerRoot");
 const textarea = useTemplateRef<HTMLTextAreaElement>("textarea");
 useTextareaAutosize({ element: textarea, input: prompt, maxHeight: 192 });
-const fileHover = shallowRef(false);
-const fileDropListener = createAsyncDisposer();
+const { hovering: fileHover } = useConversationFileDrop(composerRoot, {
+  blocked: () => props.pickingFiles,
+  drop: (paths) => emit("dropFiles", paths),
+});
 const canSend = computed(
   () =>
     Boolean(prompt.value.trim() && target.value && targetAvailable.value) &&
@@ -75,24 +74,6 @@ function submit(event?: KeyboardEvent) {
   event?.preventDefault();
   if (canSend.value) emit("send");
 }
-
-onMounted(() => {
-  void fileDropListener
-    .attach(
-      listenForFileDrops({
-        hover(active, position) {
-          fileHover.value = active && !props.pickingFiles && isFileDropInside(composerRoot.value, position);
-        },
-        drop({ paths, position }) {
-          fileHover.value = false;
-          if (paths.length && !props.pickingFiles && isFileDropInside(composerRoot.value, position))
-            emit("dropFiles", paths);
-        },
-      }),
-    )
-    .catch((error) => toast.error(getErrorMessage(error)));
-});
-onBeforeUnmount(fileDropListener.dispose);
 </script>
 
 <template>

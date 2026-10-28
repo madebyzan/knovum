@@ -1,7 +1,7 @@
-import { prefersNativeContextMenu } from "../foundation/dom/text-selection";
+import { prefersSystemContextMenu } from "../foundation/dom/text-selection";
 
 function preventBrowserMenu(event: MouseEvent): void {
-  if (!prefersNativeContextMenu(event.target)) event.preventDefault();
+  if (!prefersSystemContextMenu(event.target)) event.preventDefault();
 }
 
 export function installContextMenuPolicy(): (() => void) | undefined {

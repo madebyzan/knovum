@@ -7,7 +7,7 @@ import type { VideoEditMediaSource } from "../../contracts/generated/VideoEditMe
 import type { VideoEditWaveformChunk } from "../../contracts/generated/VideoEditWaveformChunk";
 import type { VideoAsset } from "../project";
 
-/** The ready revision of an asset, as every native read of its media names it. */
+/** The ready revision of an asset, as every Rust read of its media names it. */
 export function mediaSourceOf(spaceId: string, asset: VideoAsset): VideoEditMediaSource {
   return { spaceId, sourceNodeId: asset.nodeId, sourceRevision: asset.sourceRevision };
 }

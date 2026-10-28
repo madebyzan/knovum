@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { hasActionableTextSelection, prefersNativeContextMenu } from "../text-selection";
+import { hasActionableTextSelection, prefersSystemContextMenu } from "../text-selection";
 
 function select(node: Node) {
   const range = document.createRange();
@@ -37,9 +37,9 @@ describe("text selection ownership", () => {
   });
 
   it("keeps the native context menu for selected text, so it can be copied", () => {
-    expect(prefersNativeContextMenu(byId("bubble"))).toBe(false);
+    expect(prefersSystemContextMenu(byId("bubble"))).toBe(false);
     select(byId("bubble"));
-    expect(prefersNativeContextMenu(byId("bubble"))).toBe(true);
-    expect(prefersNativeContextMenu(byId("other"))).toBe(false);
+    expect(prefersSystemContextMenu(byId("bubble"))).toBe(true);
+    expect(prefersSystemContextMenu(byId("other"))).toBe(false);
   });
 });
