@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Check, Link, Link2Off } from "@lucide/vue";
 import { ToolbarButton, ToolbarToggleGroup, ToolbarToggleItem } from "reka-ui";
-import { computed, shallowRef } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiDropdownMenu from "../../../../../shared/ui/UiDropdownMenu.vue";
@@ -31,7 +31,7 @@ import SpaceCanvasFrameDimension from "./SpaceCanvasFrameDimension.vue";
 /** A Section's frame, edited the way a design tool edits one: fill, layout mode, then size. */
 const props = defineProps<{ section: SelectedSection; disabled: boolean; compact: boolean }>();
 const emit = defineEmits<{
-  autoLayout: [autoLayout: boolean];
+  layout: [update: Partial<Pick<SelectedSection, "autoLayout" | "aspectLocked">>];
   fill: [fill: ContentFillPreset | undefined];
   resize: [size: SectionSize];
 }>();
@@ -39,7 +39,6 @@ const { t } = useI18n();
 const NO_FILL = "none";
 const TOGGLE_ITEM_CLASSES =
   "inline-flex h-full items-center rounded-sm px-2.5 text-caption font-medium text-fg-secondary outline-none transition-colors duration-100 ease-standard hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:opacity-40 data-[state=on]:bg-surface-raised data-[state=on]:text-fg-primary data-[state=on]:shadow-control motion-reduce:transition-none";
-const lockRatio = shallowRef(false);
 const size = computed(() => ({ width: props.section.frame.width, height: props.section.frame.height }));
 const currentPreset = computed(() => sectionSizePreset(size.value));
 const layoutMode = computed(() => (props.section.autoLayout ? "auto" : "manual"));
@@ -52,7 +51,11 @@ const fillOptions = computed(() => [
   })),
 ]);
 const ratioLabel = computed(() =>
-  t(lockRatio.value ? "spaces.canvas.sections.size.unlockRatio" : "spaces.canvas.sections.size.lockRatio"),
+  t(
+    props.section.aspectLocked
+      ? "spaces.canvas.sections.size.unlockRatio"
+      : "spaces.canvas.sections.size.lockRatio",
+  ),
 );
 
 function presetName(preset: SectionSizePreset) {
@@ -60,7 +63,7 @@ function presetName(preset: SectionSizePreset) {
 }
 function selectLayout(mode: unknown) {
   // A single toggle group reports `undefined` when the active item is pressed again; the mode stays.
-  if (mode === "auto" || mode === "manual") emit("autoLayout", mode === "auto");
+  if (mode === "auto" || mode === "manual") emit("layout", { autoLayout: mode === "auto" });
 }
 function selectFill(value: string) {
   emit(
@@ -69,7 +72,7 @@ function selectFill(value: string) {
   );
 }
 function edit(dimension: keyof SectionSize, value: number) {
-  emit("resize", editedSectionSize(size.value, { [dimension]: value }, lockRatio.value));
+  emit("resize", editedSectionSize(size.value, { [dimension]: value }, props.section.aspectLocked));
 }
 </script>
 
@@ -147,11 +150,11 @@ function edit(dimension: keyof SectionSize, value: number) {
         size="sm"
         tooltip
         :label="ratioLabel"
-        :active="lockRatio"
+        :active="section.aspectLocked"
         :disabled="disabled || section.autoLayout"
-        @click="lockRatio = !lockRatio"
+        @click="emit('layout', { aspectLocked: !section.aspectLocked })"
       >
-        <component :is="lockRatio ? Link : Link2Off" class="size-3.5" :stroke-width="1.8" />
+        <component :is="section.aspectLocked ? Link : Link2Off" class="size-3.5" :stroke-width="1.8" />
       </UiIconButton>
     </ToolbarButton>
     <SpaceCanvasFrameDimension

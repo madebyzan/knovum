@@ -1,4 +1,4 @@
-import { SECTION_MINIMUM_SIZE } from "../../../model/structure/section-metrics";
+import { atLeastSectionMinimum } from "../../../model/structure/section-metrics";
 
 export interface SectionSize {
   width: number;
@@ -35,23 +35,11 @@ export function editedSectionSize(
   lockRatio: boolean,
 ): SectionSize {
   const requested = { ...size, ...edit };
-  if (!lockRatio) return clamp(requested);
   const ratio = size.width / size.height;
   const proportional =
     edit.width === undefined
       ? { width: requested.height * ratio, height: requested.height }
       : { width: requested.width, height: requested.width / ratio };
-  const scale = Math.max(
-    1,
-    SECTION_MINIMUM_SIZE.width / proportional.width,
-    SECTION_MINIMUM_SIZE.height / proportional.height,
-  );
-  return { width: Math.round(proportional.width * scale), height: Math.round(proportional.height * scale) };
-}
-
-function clamp({ width, height }: SectionSize): SectionSize {
-  return {
-    width: Math.max(SECTION_MINIMUM_SIZE.width, Math.round(width)),
-    height: Math.max(SECTION_MINIMUM_SIZE.height, Math.round(height)),
-  };
+  const { width, height } = atLeastSectionMinimum(lockRatio ? proportional : requested, lockRatio);
+  return { width: Math.round(width), height: Math.round(height) };
 }

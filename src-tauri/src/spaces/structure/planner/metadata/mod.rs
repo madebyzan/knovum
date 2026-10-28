@@ -62,6 +62,7 @@ pub(in crate::spaces::structure) fn create_empty(
         collapsed: false,
         appearance: None,
         auto_layout: false,
+        aspect_locked: false,
     });
     Ok(vec![structure_node_id.to_owned()])
 }
@@ -95,6 +96,7 @@ pub(in crate::spaces::structure) fn update_section(
     snapshot: &mut SpaceStructureSnapshot,
     structure_node_id: &str,
     auto_layout: Option<bool>,
+    aspect_locked: Option<bool>,
     appearance: &FieldUpdate<Value>,
 ) -> Result<Vec<String>, String> {
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
@@ -108,6 +110,7 @@ pub(in crate::spaces::structure) fn update_section(
     require_editable(&snapshot.structure, &index, structure_node_id)?;
     let Some(StructureLayout::Section {
         auto_layout: current_auto_layout,
+        aspect_locked: current_aspect_locked,
         appearance: current_appearance,
         ..
     }) = index
@@ -119,6 +122,9 @@ pub(in crate::spaces::structure) fn update_section(
     };
     if let Some(auto_layout) = auto_layout {
         *current_auto_layout = auto_layout;
+    }
+    if let Some(aspect_locked) = aspect_locked {
+        *current_aspect_locked = aspect_locked;
     }
     apply_update(current_appearance, appearance);
     Ok(vec![structure_node_id.to_owned()])

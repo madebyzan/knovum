@@ -143,6 +143,30 @@ fn turning_auto_layout_on_and_off_is_a_section_layout_update() {
 }
 
 #[test]
+fn the_aspect_lock_is_a_stored_section_property_that_survives_unrelated_updates() {
+    let mut snapshot = frame(430.0, false);
+    let stored =
+        |snapshot: &SpaceStructureSnapshot| serde_json::to_value(&snapshot.layouts[0]).unwrap();
+    assert!(stored(&snapshot).get("aspectLocked").is_none());
+    execute(
+        &mut snapshot,
+        json!({"kind":"section.update-layout","structureNodeId":"s","aspectLocked":true}),
+    );
+    assert_eq!(stored(&snapshot)["aspectLocked"], json!(true));
+    execute(
+        &mut snapshot,
+        json!({"kind":"section.update-layout","structureNodeId":"s",
+               "appearance":{"kind":"set","value":{"fill":"blue"}}}),
+    );
+    assert_eq!(stored(&snapshot)["aspectLocked"], json!(true));
+    execute(
+        &mut snapshot,
+        json!({"kind":"section.update-layout","structureNodeId":"s","aspectLocked":false}),
+    );
+    assert!(stored(&snapshot).get("aspectLocked").is_none());
+}
+
+#[test]
 fn tidy_up_packs_the_selection_into_the_squarest_table_from_its_top_left() {
     let mut snapshot = frame(430.0, false);
     execute(
@@ -183,6 +207,7 @@ fn stored_sections_without_the_field_are_freely_arranged() {
         layout,
         StructureLayout::Section {
             auto_layout: false,
+            aspect_locked: false,
             ..
         }
     ));

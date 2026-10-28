@@ -1,3 +1,4 @@
+import { pickBy } from "es-toolkit";
 import type { Ref } from "vue";
 
 import { i18n } from "../../../../../foundation/i18n/instance";
@@ -5,7 +6,9 @@ import type { ContentFillPreset } from "../../../model/structure/schema/content-
 import { useSpaceStore } from "../../../session/space-store";
 import { canvasAppearanceUpdate } from "../../schema/document";
 import type { SectionSize } from "./section-frame-size";
-import type { CanvasSelectionProductState } from "./selection-product-state";
+import type { CanvasSelectionProductState, SelectedSection } from "./selection-product-state";
+
+type SectionLayoutSwitches = Partial<Pick<SelectedSection, "autoLayout" | "aspectLocked">>;
 
 interface CanvasStructureSelectionActionsInput {
   state: Readonly<Ref<CanvasSelectionProductState>>;
@@ -69,11 +72,14 @@ export function createCanvasStructureSelectionActions({ state, run }: CanvasStru
     if (section) run(() => store.executeSpaceEdit({ kind: "section.dissolve", structureNodeId: section.id }));
   }
 
-  function setSectionAutoLayout(autoLayout: boolean) {
+  /** The Section's own layout switches; only the ones that change are sent. */
+  function updateSectionLayout(update: SectionLayoutSwitches) {
     const section = editableSection();
-    if (section && section.autoLayout !== autoLayout)
+    if (!section) return;
+    const changed = pickBy(update, (value, key) => section[key] !== value);
+    if (Object.keys(changed).length)
       run(() =>
-        store.executeSpaceEdit({ kind: "section.update-layout", structureNodeId: section.id, autoLayout }),
+        store.executeSpaceEdit({ kind: "section.update-layout", structureNodeId: section.id, ...changed }),
       );
   }
 
@@ -112,7 +118,7 @@ export function createCanvasStructureSelectionActions({ state, run }: CanvasStru
     dissolveSection,
     fitSection,
     resizeSection,
-    setSectionAutoLayout,
+    updateSectionLayout,
     setSectionFill,
     toggleSectionCollapsed,
   };

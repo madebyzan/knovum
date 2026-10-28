@@ -32,6 +32,7 @@ pub(super) fn append_section(
         collapsed: false,
         appearance: None,
         auto_layout: false,
+        aspect_locked: false,
     });
 }
 pub(super) fn require_new(index: &Index, structure_node_id: &str) -> Result<(), String> {

@@ -80,10 +80,14 @@ export function useStructureGestureSession(options: StructureGestureOptions) {
     origin: CanvasPoint,
   ) {
     active = capture(structureNodeId, target, "transform");
+    const layout = active?.snapshot.layouts.find(
+      (candidate) => candidate.structureNodeId === structureNodeId,
+    );
     if (active)
       resizeGesture = createSectionFrameGesture({
         id: structureNodeId,
         corner,
+        aspectLocked: layout?.kind === "section" && Boolean(layout.aspectLocked),
         target,
         origin,
         frame: options.bounds().get(structureNodeId)!,

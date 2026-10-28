@@ -36,6 +36,7 @@ fn unanchored_content_is_placed_beside_sections() {
         collapsed: false,
         appearance: None,
         auto_layout: false,
+        aspect_locked: false,
     }];
     assert_eq!(
         place_new_content(&structure, &layouts, 280.0, 350.0).unwrap(),

@@ -10,4 +10,8 @@ export type StructureLayout = { "kind": "content", structureNodeId: string, tran
  * The Section arranges its children itself. A Section stored without the field is freely
  * arranged, as every Section was before auto layout existed.
  */
-autoLayout?: boolean, };
+autoLayout?: boolean, 
+/**
+ * Resizing keeps the frame's width-to-height ratio. Absent means free, as before.
+ */
+aspectLocked?: boolean, };

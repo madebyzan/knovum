@@ -161,6 +161,10 @@ pub(crate) enum StructureLayout {
         #[serde(default, skip_serializing_if = "std::ops::Not::not")]
         #[ts(optional, as = "Option<_>")]
         auto_layout: bool,
+        /// Resizing keeps the frame's width-to-height ratio. Absent means free, as before.
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        #[ts(optional, as = "Option<_>")]
+        aspect_locked: bool,
     },
 }
 

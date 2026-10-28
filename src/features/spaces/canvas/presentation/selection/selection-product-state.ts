@@ -45,6 +45,7 @@ export interface SelectedSection {
   id: string;
   collapsed: boolean;
   autoLayout: boolean;
+  aspectLocked: boolean;
   appearance: NonNullable<SectionLayout["appearance"]>;
   frame: { x: number; y: number; width: number; height: number };
 }
@@ -117,6 +118,7 @@ function selectedSectionState(
         id: section.id,
         collapsed: layout.collapsed,
         autoLayout: layout.autoLayout ?? false,
+        aspectLocked: layout.aspectLocked ?? false,
         appearance: layout.appearance ?? {},
         frame: { ...layout.position, ...layout.size },
       }

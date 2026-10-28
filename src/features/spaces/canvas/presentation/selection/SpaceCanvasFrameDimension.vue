@@ -2,7 +2,7 @@
 import UiNumberField from "../../../../../shared/ui/UiNumberField.vue";
 
 /** One frame dimension, edited in place in an action bar: a quiet field led by its axis letter. */
-defineProps<{
+const props = defineProps<{
   axis: "W" | "H";
   label: string;
   value: number;
@@ -12,6 +12,11 @@ defineProps<{
 }>();
 const emit = defineEmits<{ commit: [value: number] }>();
 const INTEGER = { maximumFractionDigits: 0, useGrouping: false } as const;
+
+// The field reports its shown value again on blur after Enter; only a different size is an edit.
+function commit(value: number | undefined) {
+  if (value !== undefined && value !== Math.round(props.value)) emit("commit", value);
+}
 </script>
 
 <template>
@@ -29,7 +34,7 @@ const INTEGER = { maximumFractionDigits: 0, useGrouping: false } as const;
       :format-options="INTEGER"
       :model-value="Math.round(value)"
       class="h-full w-14 px-1.5 tabular-nums"
-      @update:model-value="$event !== undefined && emit('commit', $event)"
+      @update:model-value="commit"
     />
   </label>
 </template>

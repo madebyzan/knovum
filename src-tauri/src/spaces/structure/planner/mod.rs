@@ -61,8 +61,15 @@ pub(in crate::spaces::structure) fn plan(
         SpaceEditCommand::SectionUpdateLayout {
             structure_node_id,
             auto_layout,
+            aspect_locked,
             appearance,
-        } => self::metadata::update_section(snapshot, structure_node_id, *auto_layout, appearance),
+        } => self::metadata::update_section(
+            snapshot,
+            structure_node_id,
+            *auto_layout,
+            *aspect_locked,
+            appearance,
+        ),
         SpaceEditCommand::GroupCreate {
             group_id,
             root_ids,

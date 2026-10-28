@@ -38,7 +38,7 @@ const identity = computed(
         :section="section"
         :disabled="!state.canEditSection"
         :compact="compact"
-        @auto-layout="actions.setSectionAutoLayout"
+        @layout="actions.updateSectionLayout"
         @fill="actions.setSectionFill"
         @resize="actions.resizeSection"
       />

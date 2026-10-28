@@ -9,11 +9,19 @@ interface SectionFrameGestureInput {
   id: string;
   frame: CanvasRect;
   corner: SectionResizeCorner;
+  aspectLocked: boolean;
   target: Konva.Node;
   origin: CanvasPoint;
 }
 
-export function createSectionFrameGesture({ id, frame, corner, target, origin }: SectionFrameGestureInput) {
+export function createSectionFrameGesture({
+  id,
+  frame,
+  corner,
+  aspectLocked,
+  target,
+  origin,
+}: SectionFrameGestureInput) {
   let active = true;
   function position(size: { width: number; height: number }) {
     target.position({
@@ -23,7 +31,8 @@ export function createSectionFrameGesture({ id, frame, corner, target, origin }:
   }
   function command() {
     const point = target.getStage()!.getRelativePointerPosition()!;
-    const next = resizedSectionFrame(frame, corner, { x: point.x - origin.x, y: point.y - origin.y });
+    const delta = { x: point.x - origin.x, y: point.y - origin.y };
+    const next = resizedSectionFrame(frame, corner, delta, aspectLocked);
     void nextTick(() => {
       if (active) position(next);
     });

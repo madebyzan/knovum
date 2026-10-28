@@ -52,6 +52,8 @@ pub(crate) enum SpaceEditCommand {
         structure_node_id: String,
         #[ts(optional = nullable)]
         auto_layout: Option<bool>,
+        #[ts(optional = nullable)]
+        aspect_locked: Option<bool>,
         #[serde(default)]
         #[ts(optional, as = "Option<_>")]
         appearance: FieldUpdate<Value>,

@@ -83,6 +83,7 @@ export const structureLayoutSchema = z.discriminatedUnion("kind", [
       collapsed: z.boolean(),
       appearance: sectionAppearance.optional(),
       autoLayout: z.boolean().optional(),
+      aspectLocked: z.boolean().optional(),
     })
     .strict(),
 ]);

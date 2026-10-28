@@ -169,7 +169,7 @@ export function useCanvasSelectionActions() {
     selectedImageNode,
     selectedVideoNode,
     setAppearance,
-    setSectionAutoLayout: structureActions.setSectionAutoLayout,
+    updateSectionLayout: structureActions.updateSectionLayout,
     setSectionFill: structureActions.setSectionFill,
     state,
     toggleLock,

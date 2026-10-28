@@ -39,6 +39,7 @@ describe("canvasSelectionProductState", () => {
       id: "section",
       collapsed: true,
       autoLayout: false,
+      aspectLocked: false,
       appearance: {},
       frame: { x: 0, y: 0, width: 400, height: 300 },
     });
