@@ -798,6 +798,40 @@ to retain active preparation. Settings owns scrolling, with no embedded
 sidebar or fixed-height scroll frame. Task Center remains the cross-view owner of preparation progress
 and cancellation.
 
+## AI readiness
+
+Every AI feature — on a provider, a desktop Agent or a local model — states what it needs as
+`AiRequirement`s (`foundation/ai/ai-readiness.ts`): a `routed` purpose (optionally on the executor the
+feature itself chose), a `modelChoice` among configured models, or a `localCapability`/`localModel`.
+One resolver turns them into one `AiReadiness` against the settings, the local model catalog and
+desktop Agent detection; nothing else decides whether a feature can run or words why not.
+
+| State         | Meaning                                                               | Blocks |
+| ------------- | --------------------------------------------------------------------- | ------ |
+| `ready`       | Runs now.                                                             | No     |
+| `download`    | Runs after preparing the listed local models (names and size given).  | No     |
+| `checking`    | A source is still loading.                                            | Yes    |
+| `install`     | The chosen desktop Agent's command line is not on this computer.      | Yes    |
+| `configure`   | No enabled executor serves the purpose.                               | Yes    |
+| `unavailable` | A source could not be read, or this build cannot run it (`platform`). | Yes    |
+
+With several requirements the one that stops the feature decides; downloads merge into one list and
+one remaining size. A local download does not block: the feature prepares the model when it starts
+and the Task Center shows progress, so the person only needs to know the cost first.
+
+Readiness is shown twice from one wording source (`describeAiReadiness`): `AiReadinessNotice` beside
+the control, before anything runs, and `admitAiRequirements` at the moment the feature starts, which
+re-reads current state (a download or installation may have finished meanwhile), shows a toast and
+returns whether it may run. Every blocking state carries an action that opens the Settings pane that
+fixes it — providers, routing, local models or desktop Agents — through `openAiSettings`, a port the
+application root installs, so `foundation` never imports the router. Agent detection is read only
+for a route that resolves to a desktop Agent; provider-backed features never pay for it.
+
+A conversation is admitted before its draft is cleared, so a disabled or missing desktop Agent is
+explained while the message is still in the composer instead of failing the launch. A start that
+fails anyway reports the runtime's own error — a missing executable, a refused sign-in — never a
+generic "ended before session creation".
+
 ## Product semantic selection rules
 
 Tokens represent an existing shared policy, not every distinct value or potential future customization.

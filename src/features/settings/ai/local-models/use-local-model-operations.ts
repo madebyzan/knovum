@@ -1,11 +1,13 @@
 import { computed, shallowRef, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { decodeAppError } from "../../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { removeLocalModel, selectLocalModel } from "../../../../foundation/runtime/local-resources";
 import { invalidateLocalResources } from "../../../../foundation/runtime/local-resources-query";
-import { startResourcePreparation } from "../../../../foundation/runtime/resource-preparation";
+import {
+  isResourcePreparationCancelled,
+  startResourcePreparation,
+} from "../../../../foundation/runtime/resource-preparation";
 import type { LocalModelAvailability } from "../../../../shared/contracts/generated/LocalModelAvailability";
 import type { ResourcePreparationProgress } from "../../../../shared/contracts/generated/ResourcePreparationProgress";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
@@ -48,8 +50,7 @@ export function useLocalModelOperations(model: Readonly<Ref<LocalModelAvailabili
       preparation.value = handle;
       await handle.completion;
     } catch (cause) {
-      if (decodeAppError(cause)?.code !== "local_resource_preparation_cancelled")
-        error.value = getErrorMessage(cause);
+      if (!isResourcePreparationCancelled(cause)) error.value = getErrorMessage(cause);
     } finally {
       preparation.value = undefined;
       cancelling.value = false;

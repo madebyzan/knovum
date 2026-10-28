@@ -14,6 +14,11 @@ import { buildResourcePreparationTask, updateTaskProgress } from "./resource-pro
 
 const CANCELLED_CODE = "local_resource_preparation_cancelled";
 
+/** Whether a preparation ended because the person cancelled it, which is not a failure to report. */
+export function isResourcePreparationCancelled(error: unknown): boolean {
+  return decodeAppError(error)?.code === CANCELLED_CODE;
+}
+
 export interface ResourcePreparationHandle {
   completion: Promise<void>;
   cancel: () => Promise<void>;
@@ -79,7 +84,7 @@ async function runPreparation(options: PreparationRun) {
     });
     tasks.succeed(jobId);
   } catch (error) {
-    if (decodeAppError(error)?.code === CANCELLED_CODE) {
+    if (isResourcePreparationCancelled(error)) {
       tasks.cancelled(jobId);
       throw createAppError(CANCELLED_CODE, "Resource preparation cancelled");
     }

@@ -1,6 +1,5 @@
 {
   "label": "Modelo de voz",
-  "firstUse": "O modelo selecionado e os recursos necessários são baixados automaticamente na primeira utilização. Rastreie ou cancele a tarefa na Central de Tarefas.",
   "descriptions": {
     "mossNano": "Vozes predefinidas compactas em chinês e inglês e clonagem de referência. Somente CPU; velocidade normal.",
     "voxCpm2": "Precisão total · Clonagem e design de voz. Requer pelo menos 32 GiB de memória.",

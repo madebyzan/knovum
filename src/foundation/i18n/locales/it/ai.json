@@ -33,5 +33,16 @@
   },
   "localModels": {
     "memoryAdvisory": "Qualificato per computer con {memory} di memoria. Su questo computer una sintesi può essere rifiutata quando la memoria scarseggia; MOSS-TTS-Nano è l'alternativa più leggera."
+  },
+  "readiness": {
+    "download": "La prima esecuzione scarica {model} ({size}). Segui l’avanzamento in Attività.",
+    "downloading": "Download di {model} in corso ({size}). Segui l’avanzamento in Attività.",
+    "configure": "Non è ancora configurato alcun modello per {purpose}.",
+    "installAgent": "{agent} non è installato su questo computer o la sua riga di comando non è nel PATH. Installalo e riprova.",
+    "manageModels": "Gestisci modelli locali",
+    "manageAgents": "Gestisci agenti desktop",
+    "modelsUnavailable": "Impossibile verificare i modelli locali. Riprova tra poco.",
+    "agentsUnavailable": "Impossibile verificare gli agenti desktop installati. Riprova tra poco.",
+    "platformUnavailable": "Il modello locale necessario non è disponibile su questo computer."
   }
 }

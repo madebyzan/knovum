@@ -2,12 +2,11 @@ import { computed, shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { textEmbeddingReady } from "../../../foundation/runtime/local-resources";
-import { startResourcePreparation } from "../../../foundation/runtime/resource-preparation";
 import { useLocalResourcesQuery } from "../../../foundation/runtime/use-local-resources-query";
 import { isKnowledgeIndexingCancelled } from "../knowledge/indexing/indexing-outcome";
+import { prepareTextEmbedding } from "../knowledge/indexing/prepare-text-embedding";
 import { startKnowledgeIndexing } from "../knowledge/indexing/start-indexing";
 import { useSpaceStore } from "../session/space-store";
 
@@ -34,8 +33,7 @@ export function useSemanticSearch(open: Ref<boolean>) {
     if (!spaceId || preparing.value) return;
     preparing.value = true;
     try {
-      await startResourcePreparation({ kind: "textEmbedding" }, t("spaces.search.semantic.preparing"))
-        .completion;
+      if (!(await prepareTextEmbedding(t("spaces.search.semantic.preparing")))) return;
       if (!open.value || store.activeSpaceId !== spaceId) return;
       indexing.value = true;
       try {
@@ -45,17 +43,11 @@ export function useSemanticSearch(open: Ref<boolean>) {
         indexing.value = false;
       }
     } catch (error) {
-      if (!isKnowledgeIndexingCancelled(error)) reportSemanticSearchError(error);
+      if (!isKnowledgeIndexingCancelled(error)) toast.error(getErrorMessage(error));
     } finally {
       preparing.value = false;
     }
   }
 
   return { enabled, preparing, indexing, enable };
-}
-
-function reportSemanticSearchError(error: unknown) {
-  if (decodeAppError(error)?.code !== "local_resource_preparation_cancelled") {
-    toast.error(getErrorMessage(error));
-  }
 }

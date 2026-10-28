@@ -1,6 +1,5 @@
 {
   "label": "Voice model",
-  "firstUse": "The selected model and required resources download automatically on first use. Track or cancel the task in Task Center.",
   "descriptions": {
     "mossNano": "Compact Chinese and English preset voices and reference cloning. CPU only; normal speed.",
     "voxCpm2": "Full precision · Voice cloning and design. Requires at least 32 GiB memory.",

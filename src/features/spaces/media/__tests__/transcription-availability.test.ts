@@ -21,6 +21,9 @@ vi.mock("../../enrichment/use-node-enrichment-status", () => ({
 vi.mock("../../enrichment/enrichment-jobs-query", () => ({ refreshEnrichmentJobs: mocks.refresh }));
 vi.mock("../../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.error } }));
+vi.mock("../../../../foundation/ai/ai-readiness-admission", () => ({
+  admitAiRequirements: () => Promise.resolve(true),
+}));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 const allowed = shallowRef(true);
 const status = shallowRef<NodeEnrichmentStatus>({ pending: 0, running: 0, failed: 0, waiting: 0 });

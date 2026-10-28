@@ -18,6 +18,9 @@ const mocks = vi.hoisted(() => ({
   separation: vi.fn<typeof useSourceSeparation>(),
 }));
 vi.mock("../../../session/space-store", () => ({ useSpaceStore: () => mocks.store }));
+vi.mock("../../../../../foundation/ai/ai-readiness-admission", () => ({
+  admitAiRequirements: () => Promise.resolve(true),
+}));
 vi.mock("../../use-source-separation", () => ({
   useSourceSeparation: mocks.separation,
 }));

@@ -1,6 +1,7 @@
 import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { beforeEach, expect, it, vi } from "vitest";
 import { reactive, ref } from "vue";
+import type * as VueI18n from "vue-i18n";
 
 import type { TranslateVideoDubbingRequest } from "../../../contracts/generated/TranslateVideoDubbingRequest";
 import VideoTranslationControls from "../VideoTranslationControls.vue";
@@ -24,7 +25,13 @@ vi.mock("../../use-video-translation-run", () => ({
   }),
 }));
 vi.mock("../../../../../foundation/ai/ai-settings-store", () => ({ useAiSettingsStore: () => store }));
-vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("../../../../../foundation/ai/use-ai-readiness", () => ({
+  useAiReadiness: () => ref({ state: "ready" }),
+}));
+vi.mock("vue-i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof VueI18n>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 
 beforeEach(() => vi.clearAllMocks());
 

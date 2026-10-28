@@ -33,5 +33,16 @@
   },
   "localModels": {
     "memoryAdvisory": "该模型在 {memory} 内存的机器上完成验证。本机内存紧张时合成可能被拒绝；更轻量的选择是 MOSS-TTS-Nano。"
+  },
+  "readiness": {
+    "download": "首次运行时会先下载 {model}（{size}），进度可在「任务」中查看。",
+    "downloading": "正在先下载 {model}（{size}），进度可在「任务」中查看。",
+    "configure": "尚未为「{purpose}」配置模型。",
+    "installAgent": "这台电脑上未安装 {agent}，或其命令行不在 PATH 中。安装后再试。",
+    "manageModels": "管理本地模型",
+    "manageAgents": "管理桌面 Agent",
+    "modelsUnavailable": "暂时无法检查本地模型，请稍后重试。",
+    "agentsUnavailable": "暂时无法检查已安装的桌面 Agent，请稍后重试。",
+    "platformUnavailable": "此功能所需的本地模型在这台电脑上不可用。"
   }
 }

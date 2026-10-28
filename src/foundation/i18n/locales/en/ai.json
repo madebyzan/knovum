@@ -33,5 +33,16 @@
   },
   "localModels": {
     "memoryAdvisory": "Qualified for machines with {memory} of memory. On this computer a synthesis may be refused when memory runs short; MOSS-TTS-Nano is the lighter alternative."
+  },
+  "readiness": {
+    "download": "The first run downloads {model} ({size}). Follow it in Tasks.",
+    "downloading": "Downloading {model} first ({size}). Follow it in Tasks.",
+    "configure": "No model is set up for {purpose} yet.",
+    "installAgent": "{agent} isn't installed on this computer, or its command line isn't on PATH. Install it, then try again.",
+    "manageModels": "Manage local models",
+    "manageAgents": "Manage desktop Agents",
+    "modelsUnavailable": "Local models couldn't be checked. Try again in a moment.",
+    "agentsUnavailable": "Couldn't check which desktop Agents are installed. Try again in a moment.",
+    "platformUnavailable": "The local model this needs isn't available on this computer."
   }
 }

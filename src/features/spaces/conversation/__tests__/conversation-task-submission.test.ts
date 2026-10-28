@@ -19,9 +19,13 @@ const ipc = vi.hoisted(() => ({
   >(),
 }));
 const observation = vi.hoisted(() => ({ observeConversationRun: vi.fn<() => void>() }));
+const admission = vi.hoisted(() => ({
+  admitAiRequirements: vi.fn<(requirements: unknown) => Promise<boolean>>(),
+}));
 
 vi.mock("../conversation-ipc", () => ipc);
 vi.mock("../conversation-run-observation", () => observation);
+vi.mock("../../../../foundation/ai/ai-readiness-admission", () => admission);
 
 import { createConversationTaskSubmission } from "../conversation-task-submission";
 import type { LiveTranscript } from "../conversation-transcript";
@@ -29,7 +33,10 @@ import type { LiveTranscript } from "../conversation-transcript";
 const accepted = { taskId: "task", runId: "run", conversationId: "conversation", branchId: "branch" };
 
 describe("conversation task settlement", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    admission.admitAiRequirements.mockResolvedValue(true);
+  });
 
   it("shows a channel settlement failure without treating it as a durable run state", async () => {
     ipc.startConversationTask.mockResolvedValue({

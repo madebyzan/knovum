@@ -8,6 +8,7 @@ import { submissionScenarios } from "./submission";
 const host = vi.hoisted(() => () => import("../support/voice-candidate-host"));
 vi.mock("../../voice-candidate-ipc", async () => (await host()).voiceHost);
 vi.mock("../../ipc", async () => (await host()).voiceHost);
+vi.mock("../../../../../foundation/ai/ai-readiness-admission", async () => (await host()).voiceHost);
 vi.mock("../../../runs/resource-run-observation", async () => (await host()).voiceHost);
 vi.mock("vue-i18n", async (original) => (await host()).keyedI18n(original));
 

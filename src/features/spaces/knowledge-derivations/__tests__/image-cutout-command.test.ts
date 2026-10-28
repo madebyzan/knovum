@@ -8,8 +8,10 @@ import { createImageCutout } from "../image-cutout";
 const calls = vi.hoisted(() => ({
   space: { activeSpaceId: "origin" },
   start: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
+  admit: vi.fn<(...args: unknown[]) => Promise<boolean>>(),
 }));
 vi.mock("../../session/space-store", () => ({ useSpaceStore: () => calls.space }));
+vi.mock("../../../../foundation/ai/ai-readiness-admission", () => ({ admitAiRequirements: calls.admit }));
 vi.mock("../start-action", () => ({ startDerivationAction: calls.start }));
 vi.mock("../../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 const source: SpaceCanvasNode<SpaceImagePayload> = {
@@ -29,6 +31,7 @@ const execution = { type: "local", model: "u2netp", specId: "u2netp-spec" } as c
 beforeEach(() => {
   calls.space.activeSpaceId = "origin";
   calls.start.mockReset().mockResolvedValue({ runId: "run" });
+  calls.admit.mockReset().mockResolvedValue(true);
   mockIPC((command) => {
     if (command !== "plugin:spaces|get_image_operation_capabilities")
       throw new Error(`Unexpected command: ${command}`);
@@ -52,6 +55,12 @@ it("submits one durable cutout invocation pinned to the selected model and sourc
       parameters: expect.objectContaining({ operation: { kind: "remove-background" }, execution }),
     }),
   );
+});
+it("admits the selected local model before submitting, and submits nothing it refused", async () => {
+  calls.admit.mockResolvedValue(false);
+  expect(await createImageCutout(source)).toBeUndefined();
+  expect(calls.admit).toHaveBeenCalledWith([{ kind: "localModel", model: "u2netp" }]);
+  expect(calls.start).not.toHaveBeenCalled();
 });
 it("does not select another model when the chosen model is unavailable", async () => {
   mockIPC(() => ({

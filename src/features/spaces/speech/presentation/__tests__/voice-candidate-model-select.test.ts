@@ -1,6 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { shallowRef, type ShallowRef } from "vue";
+import type * as VueI18n from "vue-i18n";
 
 import type { LocalModelAvailability } from "../../../../../shared/contracts/generated/LocalModelAvailability";
 import VoiceCandidateModelSelect from "../VoiceCandidateModelSelect.vue";
@@ -11,7 +12,13 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../../../../../foundation/runtime/use-local-models-query", () => ({
   useLocalModelsQuery: () => ({ data: mocks.models, error: shallowRef(null), isPending: shallowRef(false) }),
 }));
-vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("../../../../../foundation/ai/use-ai-readiness", () => ({
+  useAiReadiness: () => shallowRef({ state: "ready" }),
+}));
+vi.mock("vue-i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof VueI18n>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 
 function entry(modelId: "mossNano" | "voxCpm2" | "voxCpm2Q8", selected: boolean): LocalModelAvailability {
   const vox = modelId !== "mossNano";

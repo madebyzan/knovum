@@ -1,6 +1,7 @@
 import { routingCapabilities } from "../../shared/contracts/generated/contract-values";
 import type { RoutingPurpose } from "../../shared/contracts/generated/RoutingPurpose";
 import type { TaskTarget } from "../../shared/contracts/generated/TaskTarget";
+import { createAppError } from "../errors/app-error";
 import { useAiSettingsStore } from "./ai-settings-store";
 import type { AiModelSettings } from "./schema/model-settings";
 import type { ResolvedAiModelTarget, ResolvedAiTaskTarget } from "./schema/models";
@@ -20,28 +21,47 @@ export interface ExecutionTargetOption {
   target: TaskTarget;
 }
 
+/** The routing default that assigns an executor to `purpose`; Settings names its route by it. */
+export function routingDefaultsKey(purpose: RoutingPurpose): keyof AiModelSettings["defaults"] {
+  return DEFAULT_TARGET_FIELD_BY_PURPOSE[purpose];
+}
+
 export function defaultExecutionTarget(
   settings: AiModelSettings,
   purpose: RoutingPurpose,
 ): TaskTarget | null {
-  const target =
-    settings.defaults[DEFAULT_TARGET_FIELD_BY_PURPOSE[purpose]] ?? settings.defaults.defaultTarget;
+  const target = settings.defaults[routingDefaultsKey(purpose)] ?? settings.defaults.defaultTarget;
   return target ? { ...target } : null;
 }
+
+const AI_TARGET_UNCONFIGURED = "ai_target_unconfigured";
 
 function resolveModelTarget(
   settings: AiModelSettings,
   purpose: RoutingPurpose,
   target: Extract<TaskTarget, { type: "model" }>,
-): ResolvedAiModelTarget {
+): ResolvedAiModelTarget | undefined {
   const connection = settings.connections.find(({ id }) => id === target.connectionId);
-  if (!connection) throw new Error(`AI connection is unavailable: ${target.connectionId}`);
-  const model = connection.models.find(({ id }) => id === target.modelId);
-  if (!model) throw new Error(`AI model is unavailable: ${target.modelId}`);
-  const capability = routingCapabilities[purpose];
-  if (!model.capabilities.includes(capability))
-    throw new Error(`AI model ${model.name} does not support ${capability}`);
+  const model = connection?.models.find(({ id }) => id === target.modelId);
+  if (!connection || !model?.capabilities.includes(routingCapabilities[purpose])) return undefined;
   return { type: "model", connection, model };
+}
+
+/**
+ * The executor `purpose` runs on: `target` when given, otherwise the routed default. Undefined when
+ * that executor is missing, cannot serve `purpose` or is a desktop Agent that is not enabled.
+ */
+export function resolveExecutionTarget(
+  settings: AiModelSettings,
+  purpose: RoutingPurpose,
+  target?: TaskTarget,
+): ResolvedAiTaskTarget | undefined {
+  const selected = target ?? defaultExecutionTarget(settings, purpose);
+  if (!selected) return undefined;
+  if (selected.type === "model") return resolveModelTarget(settings, purpose, selected);
+  return settings.desktopAgents.some(({ kind, enabled }) => kind === selected.runtimeKind && enabled)
+    ? selected
+    : undefined;
 }
 
 export async function loadAiExecutionTarget(
@@ -51,13 +71,10 @@ export async function loadAiExecutionTarget(
   const store = useAiSettingsStore();
   await store.ensureLoaded();
   if (store.loadError) throw store.loadError;
-  const settings = store.settings;
-  const selected = target ?? defaultExecutionTarget(settings, purpose);
-  if (!selected) throw new Error(`AI execution method is not selected for ${purpose}`);
-  if (selected.type === "model") return resolveModelTarget(settings, purpose, selected);
-  if (!settings.desktopAgents.some(({ kind, enabled }) => kind === selected.runtimeKind && enabled))
-    throw new Error("Desktop Agent is not enabled");
-  return selected;
+  const resolved = resolveExecutionTarget(store.settings, purpose, target);
+  if (!resolved)
+    throw createAppError(AI_TARGET_UNCONFIGURED, `No usable AI executor is configured for ${purpose}`);
+  return resolved;
 }
 
 export function aiExecutionTargetPayload(target: ResolvedAiTaskTarget, temperature = 0.2) {

@@ -1,16 +1,19 @@
 import { vi } from "vitest";
 import type * as VueI18n from "vue-i18n";
 
+import type * as admission from "../../../../../foundation/ai/ai-readiness-admission";
 import type { RunObservation } from "../../../contracts/generated/RunObservation";
 import type * as observation from "../../../runs/resource-run-observation";
 import type * as speechIpc from "../../ipc";
 import type * as candidateIpc from "../../voice-candidate-ipc";
 
 /**
- * The host a voice candidate talks to: candidate IPC, speech cancellation and run observation.
+ * The host a voice candidate talks to: candidate IPC, speech cancellation, run observation and the
+ * AI readiness admission that lets it start.
  * Suites route their `vi.mock` factories for those modules here.
  */
 export const voiceHost = {
+  admitAiRequirements: vi.fn<typeof admission.admitAiRequirements>(() => Promise.resolve(true)),
   draftVoiceCandidate: vi.fn<typeof candidateIpc.draftVoiceCandidate>(),
   getActiveVoiceCandidateRun: vi.fn<typeof candidateIpc.getActiveVoiceCandidateRun>(),
   listVoiceCandidates: vi.fn<typeof candidateIpc.listVoiceCandidates>(),

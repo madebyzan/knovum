@@ -25,6 +25,10 @@ from the repository-owned manifest. Both are installed under the versioned
 share the same installation, and the Task Center shows preparation progress. Settings reports their
 status, but users do not need to understand or manually install them before using the feature.
 
+A feature that runs on a model not downloaded yet says so before it runs — which model, how much is
+left to download, and where to follow it — and prepares it when started; see
+[AI readiness](ui-system.md#ai-readiness).
+
 ## Local model preparation
 
 Knovum does not download model weights during application installation or first launch. A capability

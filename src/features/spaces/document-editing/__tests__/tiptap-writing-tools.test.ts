@@ -15,7 +15,9 @@ const ai = vi.hoisted(() => ({
   transform: vi.fn<(...args: unknown[]) => Promise<string>>(),
   cancel: vi.fn<(jobId: string) => Promise<void>>(),
   error: vi.fn<(...args: unknown[]) => void>(),
+  admit: vi.fn<(...args: unknown[]) => Promise<boolean>>(),
 }));
+vi.mock("../../../../foundation/ai/ai-readiness-admission", () => ({ admitAiRequirements: ai.admit }));
 vi.mock("../../../../foundation/ai/editor-transform", () => ({ transformEditorTextStream: ai.transform }));
 vi.mock("../../../../foundation/ai/ai-runtime", () => ({ cancelAiJob: ai.cancel }));
 vi.mock("vue-sonner", () => ({ toast: { error: ai.error, info: vi.fn<() => void>() } }));
@@ -44,6 +46,7 @@ beforeEach(() => {
   ai.transform.mockReset();
   ai.cancel.mockReset().mockResolvedValue(undefined);
   ai.error.mockClear();
+  ai.admit.mockReset().mockResolvedValue(true);
 });
 afterEach(() => {
   for (const cleanup of cleanups.splice(0)) cleanup();
@@ -55,6 +58,16 @@ describe("editor writing task ownership", () => {
     const { editor, writing } = session();
     await writing.run("improve");
     expect(editor.getText()).toBe("improved\n\n world");
+    expect(writing.runningAction.value).toBeUndefined();
+    expect(ai.admit).toHaveBeenCalledWith([{ kind: "routed", purpose: "writing" }]);
+  });
+
+  it("does not run a writing task whose model is not configured, and frees the editor", async () => {
+    ai.admit.mockResolvedValue(false);
+    const { editor, writing } = session();
+    await writing.run("improve");
+    expect(ai.transform).not.toHaveBeenCalled();
+    expect(editor.getText()).toBe("hello world");
     expect(writing.runningAction.value).toBeUndefined();
   });
 
@@ -89,8 +102,10 @@ describe("editor writing task ownership", () => {
     ai.transform.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
     const { editor, writing } = session();
     const previous = writing.run("improve");
+    await vi.waitFor(() => expect(ai.transform).toHaveBeenCalledOnce());
     await writing.cancel();
     const current = writing.run("extend");
+    await vi.waitFor(() => expect(ai.transform).toHaveBeenCalledTimes(2));
     first.resolve("obsolete");
     await previous;
     expect(editor.getText()).toBe("hello world");

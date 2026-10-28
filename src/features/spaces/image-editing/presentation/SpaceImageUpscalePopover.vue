@@ -4,6 +4,7 @@ import { ToolbarButton } from "reka-ui";
 import { toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import AiReadinessNotice from "../../../../foundation/ai/AiReadinessNotice.vue";
 import { canRunAction } from "../../../../shared/contracts/action-availability";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
@@ -30,6 +31,7 @@ const {
   targetOptions,
   executionOption,
   selectExecution,
+  readiness,
   help,
   targetDimensions,
   optionAvailability,
@@ -74,6 +76,7 @@ const UPSCALE_SIZES = [2048, 4096, 8192] as const;
         :execution="executionOption?.execution"
         @select="selectExecution"
       />
+      <AiReadinessNotice :readiness="readiness" class="mt-1.5 px-1" />
     </div>
     <UiTooltip
       v-for="size in UPSCALE_SIZES"

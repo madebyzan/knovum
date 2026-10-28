@@ -33,5 +33,16 @@
   },
   "localModels": {
     "memoryAdvisory": "Für Geräte mit {memory} Arbeitsspeicher qualifiziert. Auf diesem Computer kann eine Synthese abgelehnt werden, wenn der Speicher knapp wird; MOSS-TTS-Nano ist die leichtere Alternative."
+  },
+  "readiness": {
+    "download": "Die erste Ausführung lädt {model} herunter ({size}). Den Fortschritt zeigt „Aufgaben“.",
+    "downloading": "Zuerst wird {model} heruntergeladen ({size}). Den Fortschritt zeigt „Aufgaben“.",
+    "configure": "Für {purpose} ist noch kein Modell eingerichtet.",
+    "installAgent": "{agent} ist auf diesem Computer nicht installiert oder seine Befehlszeile liegt nicht im PATH. Installiere es und versuche es dann erneut.",
+    "manageModels": "Lokale Modelle verwalten",
+    "manageAgents": "Desktop-Agenten verwalten",
+    "modelsUnavailable": "Lokale Modelle konnten nicht geprüft werden. Versuche es gleich noch einmal.",
+    "agentsUnavailable": "Installierte Desktop-Agenten konnten nicht geprüft werden. Versuche es gleich noch einmal.",
+    "platformUnavailable": "Das benötigte lokale Modell ist auf diesem Computer nicht verfügbar."
   }
 }

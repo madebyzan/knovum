@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { effectScope, shallowRef, type EffectScope } from "vue";
 
 const mocks = vi.hoisted(() => ({
-  startResourcePreparation: vi.fn<() => { completion: Promise<void> }>(),
+  prepareTextEmbedding: vi.fn<(title: string) => Promise<boolean>>(),
   scheduleSpaceKnowledgeIndex: vi.fn<(spaceId: string) => void>(),
   toastError: vi.fn<(message: string) => void>(),
 }));
@@ -13,8 +13,8 @@ vi.mock("@tanstack/vue-query", () => ({
 }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
-vi.mock("../../../../../foundation/runtime/resource-preparation", () => ({
-  startResourcePreparation: mocks.startResourcePreparation,
+vi.mock("../../indexing/prepare-text-embedding", () => ({
+  prepareTextEmbedding: mocks.prepareTextEmbedding,
 }));
 vi.mock("../../indexing/index-scheduler", () => ({
   scheduleSpaceKnowledgeIndex: mocks.scheduleSpaceKnowledgeIndex,
@@ -29,27 +29,22 @@ describe("related content resource preparation", () => {
   beforeEach(() => {
     scope = effectScope();
     vi.clearAllMocks();
-    mocks.startResourcePreparation.mockReturnValue({ completion: Promise.resolve() });
+    mocks.prepareTextEmbedding.mockResolvedValue(true);
   });
   afterEach(() => scope.stop());
 
   it("prepares embedding resources before scheduling a full Space index", async () => {
-    let finish!: () => void;
-    mocks.startResourcePreparation.mockReturnValue({
-      completion: new Promise<void>((resolve) => (finish = resolve)),
-    });
+    let finish!: (prepared: boolean) => void;
+    mocks.prepareTextEmbedding.mockReturnValue(new Promise((resolve) => (finish = resolve)));
     const related = scope.run(() => useRelatedContent("space-1", "node-1"))!;
 
     const pending = related.prepare();
     expect(related.preparing.value).toBe(true);
-    expect(mocks.startResourcePreparation).toHaveBeenCalledWith(
-      { kind: "textEmbedding" },
-      "spaces.search.semantic.preparing",
-    );
+    expect(mocks.prepareTextEmbedding).toHaveBeenCalledWith("spaces.search.semantic.preparing");
     expect(mocks.scheduleSpaceKnowledgeIndex).not.toHaveBeenCalled();
     await related.prepare();
-    expect(mocks.startResourcePreparation).toHaveBeenCalledOnce();
-    finish();
+    expect(mocks.prepareTextEmbedding).toHaveBeenCalledOnce();
+    finish(true);
     await pending;
 
     expect(mocks.scheduleSpaceKnowledgeIndex).toHaveBeenCalledExactlyOnceWith("space-1");
@@ -67,10 +62,8 @@ describe("related content resource preparation", () => {
     expect(related.preparing.value).toBe(false);
   });
 
-  it("keeps cancellation quiet without scheduling an index", async () => {
-    mocks.startResourcePreparation.mockReturnValue({
-      completion: Promise.reject({ code: "local_resource_preparation_cancelled", message: "Cancelled" }),
-    });
+  it("stays quiet without scheduling an index when nothing was prepared", async () => {
+    mocks.prepareTextEmbedding.mockResolvedValue(false);
     const related = scope.run(() => useRelatedContent("space-1", "node-1"))!;
     await related.prepare();
 
@@ -80,9 +73,7 @@ describe("related content resource preparation", () => {
   });
 
   it("shows preparation failures and permits a later retry", async () => {
-    mocks.startResourcePreparation.mockReturnValueOnce({
-      completion: Promise.reject(new Error("Download failed")),
-    });
+    mocks.prepareTextEmbedding.mockRejectedValueOnce(new Error("Download failed"));
     const related = scope.run(() => useRelatedContent("space-1", "node-1"))!;
     await related.prepare();
 

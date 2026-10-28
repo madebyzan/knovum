@@ -2,8 +2,11 @@
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { canStartWith, type AiRequirement } from "../../../../foundation/ai/ai-readiness";
+import { admitAiRequirements } from "../../../../foundation/ai/ai-readiness-admission";
+import AiReadinessNotice from "../../../../foundation/ai/AiReadinessNotice.vue";
+import { useAiReadiness } from "../../../../foundation/ai/use-ai-readiness";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { useLocalModelsQuery } from "../../../../foundation/runtime/use-local-models-query";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import { refreshEnrichmentJobs } from "../../enrichment/enrichment-jobs-query";
@@ -19,7 +22,8 @@ const props = defineProps<{
 }>();
 const { t } = useI18n();
 const store = useSpaceStore();
-const models = useLocalModelsQuery();
+const REQUIREMENTS: readonly AiRequirement[] = [{ kind: "localCapability", capability: "speechDiarization" }];
+const readiness = useAiReadiness(REQUIREMENTS);
 const numSpeakers = shallowRef("");
 const submitting = shallowRef(false);
 const error = shallowRef<string>();
@@ -30,7 +34,9 @@ const countValid = computed(
       Number(numSpeakers.value) >= 1 &&
       Number(numSpeakers.value) <= 32),
 );
-const canStart = computed(() => countValid.value && props.durationMs <= 7_200_000);
+const canStart = computed(
+  () => countValid.value && props.durationMs <= 7_200_000 && canStartWith(readiness.value),
+);
 
 async function start() {
   const spaceId = store.activeSpaceId;
@@ -38,6 +44,7 @@ async function start() {
   submitting.value = true;
   error.value = undefined;
   try {
+    if (!(await admitAiRequirements(REQUIREMENTS))) return;
     await requestMediaDiarization({
       spaceId,
       nodeId: props.nodeId,
@@ -76,8 +83,7 @@ async function start() {
     <UiButton size="sm" :disabled="disabled || submitting || !canStart" @click="start">{{
       t("spaces.transcript.speakers.generate")
     }}</UiButton>
-    <p v-if="error || models.error.value" class="text-caption text-fg-danger" role="alert">
-      {{ error ?? getErrorMessage(models.error.value) }}
-    </p>
+    <AiReadinessNotice :readiness="readiness" />
+    <p v-if="error" class="text-caption text-fg-danger" role="alert">{{ error }}</p>
   </section>
 </template>

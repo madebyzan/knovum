@@ -2,6 +2,7 @@ import { mount } from "@vue/test-utils";
 import { beforeEach, onTestFinished, vi } from "vitest";
 
 import type { startResourcePreparation } from "../../../../../../foundation/runtime/resource-preparation";
+import type * as ResourcePreparation from "../../../../../../foundation/runtime/resource-preparation";
 import type { LocalModelAvailability } from "../../../../../../shared/contracts/generated/LocalModelAvailability";
 import type { LocalModelId } from "../../../../../../shared/contracts/generated/LocalModelId";
 import type { confirmAction } from "../../../../../../shared/ui/confirm-action";
@@ -15,7 +16,8 @@ const mocks = vi.hoisted(() => ({
   invalidate: vi.fn<() => Promise<void>>(),
   confirm: vi.fn<typeof confirmAction>(),
 }));
-vi.mock("../../../../../../foundation/runtime/resource-preparation", () => ({
+vi.mock("../../../../../../foundation/runtime/resource-preparation", async (importOriginal) => ({
+  ...(await importOriginal<typeof ResourcePreparation>()),
   startResourcePreparation: mocks.prepare,
 }));
 vi.mock("../../../../../../foundation/runtime/local-resources", () => ({

@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import { useLocalModelsQuery } from "../../../../foundation/runtime/use-local-models-query";
+import { canStartWith } from "../../../../foundation/ai/ai-readiness";
+import AiReadinessNotice from "../../../../foundation/ai/AiReadinessNotice.vue";
+import { useAiReadiness } from "../../../../foundation/ai/use-ai-readiness";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 
 const props = defineProps<{ disabled: boolean; canAlign: boolean; selectedCount: number }>();
 const emit = defineEmits<{ align: [] }>();
 const { t } = useI18n();
-const models = useLocalModelsQuery();
+const readiness = useAiReadiness([{ kind: "localCapability", capability: "speechAlignment" }]);
 </script>
 
 <template>
@@ -17,15 +18,13 @@ const models = useLocalModelsQuery();
       <UiButton
         size="sm"
         data-testid="transcript-align"
-        :disabled="props.disabled || !canAlign || models.isPending.value || Boolean(models.error.value)"
+        :disabled="props.disabled || !canAlign || !canStartWith(readiness)"
         @click="emit('align')"
       >
         {{ t("spaces.transcript.text.alignSelected") }} · {{ selectedCount }}
       </UiButton>
       <span class="text-caption-sm text-fg-tertiary">{{ t("spaces.transcript.text.alignmentLimit") }}</span>
     </div>
-    <p v-if="models.error.value" role="alert" class="text-caption-sm text-fg-danger">
-      {{ getErrorMessage(models.error.value) }}
-    </p>
+    <AiReadinessNotice :readiness="readiness" />
   </div>
 </template>

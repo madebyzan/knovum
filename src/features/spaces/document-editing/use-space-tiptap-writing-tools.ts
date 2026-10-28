@@ -3,6 +3,7 @@ import { computed, onScopeDispose, readonly, shallowRef, watch, type Ref } from 
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { admitAiRequirements } from "../../../foundation/ai/ai-readiness-admission";
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { transformEditorTextStream } from "../../../foundation/ai/editor-transform";
 import {
@@ -13,6 +14,7 @@ import {
 } from "../../../foundation/ai/translation";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { EditorTransformAction } from "../../../shared/contracts/generated/EditorTransformAction";
+import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 import { clearReasoningTrace } from "./tiptap-reasoning-trace";
 import { actionSource, applyGeneratedText, markReasoning } from "./tiptap-writing-text";
 
@@ -71,15 +73,12 @@ export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefin
   watch(editor, cancelInBackground, { flush: "sync" });
   onScopeDispose(cancelInBackground);
 
-  async function executeTransformAction(
-    actionLabel: RunningAction,
-    actionContext: EditorTransformAction,
-    transform: (text: string, jobId: string, signal: AbortSignal) => Promise<string>,
-  ) {
+  /** Claims the editor for one writing task on what `action` reads, or explains why there is nothing. */
+  function claimJob(actionLabel: RunningAction, action: EditorTransformAction) {
     const instance = editor.value;
-    if (activeJob || !instance || instance.isDestroyed) return;
-    const source = actionSource(instance, actionContext);
-    if (!source) return notifyMissingSource(actionContext);
+    if (activeJob || !instance || instance.isDestroyed) return undefined;
+    const source = actionSource(instance, action);
+    if (!source) return notifyMissingSource(action);
     const job: EditorWritingJob = {
       id: crypto.randomUUID(),
       editor: instance,
@@ -87,13 +86,26 @@ export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefin
     };
     runningAction.value = actionLabel;
     activeJob = job;
-    markReasoning(instance, source);
+    return { job, source };
+  }
+
+  async function executeTransformAction(
+    actionLabel: RunningAction,
+    actionContext: EditorTransformAction,
+    purpose: Extract<RoutingPurpose, "writing" | "translation">,
+    transform: (text: string, jobId: string, signal: AbortSignal) => Promise<string>,
+  ) {
+    const claimed = claimJob(actionLabel, actionContext);
+    if (!claimed) return;
+    const { job, source } = claimed;
+    const instance = job.editor;
     const isCurrent = () => activeJob === job && !instance.isDestroyed;
     try {
+      // The task is claimed before admission, so the editor stays busy while it is decided.
+      if (!(await admitAiRequirements([{ kind: "routed", purpose }])) || !isCurrent()) return;
+      markReasoning(instance, source);
       const generated = await transform(source.text, job.id, job.cancellation.signal);
-      if (!isCurrent()) return;
-      if (!applyGeneratedText(instance, actionContext, source, generated))
-        toast.error(t("spaces.richtext.ai.applyFailed"));
+      if (isCurrent()) applyResult(instance, actionContext, source, generated);
     } catch (error) {
       if (isCurrent()) toast.error(t("spaces.richtext.ai.failed"), { description: getErrorMessage(error) });
     } finally {
@@ -101,14 +113,18 @@ export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefin
     }
   }
 
+  function applyResult(...result: Parameters<typeof applyGeneratedText>) {
+    if (!applyGeneratedText(...result)) toast.error(t("spaces.richtext.ai.applyFailed"));
+  }
+
   async function run(action: EditorTransformAction) {
-    await executeTransformAction(action, action, (text, jobId, signal) =>
+    await executeTransformAction(action, action, "writing", (text, jobId, signal) =>
       transformEditorTextStream({ action, text, jobId, signal, onEvent: () => {} }),
     );
   }
 
   async function runTranslation(target: TranslationTarget) {
-    await executeTransformAction(`translate:${target}`, "improve", (text, jobId, signal) =>
+    await executeTransformAction(`translate:${target}`, "improve", "translation", (text, jobId, signal) =>
       translateTextStream({ text, target }, jobId, () => {}, signal),
     );
   }
