@@ -1,9 +1,10 @@
 import { shallowRef } from "vue";
 
 import type { VideoMaterialNode } from "../material";
-import { createAudioLibrary } from "../media/preview-audio";
+import { createAudioChunks } from "../media/audio-chunks";
 import { createImageLibrary } from "../media/preview-images";
 import { createVideoLibrary } from "../media/preview-video";
+import { createSourceMediaLibrary } from "../media/source-media";
 import type { VideoAsset, VideoEditProject } from "../project";
 import { createStageScene, type StageScene } from "../stage/konva-scene";
 import { lastFrameMs, projectDurationMs } from "../timing";
@@ -32,17 +33,18 @@ type FrameListener = (timeMs: number, playing: boolean) => void;
  */
 export function createPreviewPlayer(options: PlayerOptions) {
   const controller = new AbortController();
-  const videos = createVideoLibrary(options.spaceId, controller.signal);
+  const media = createSourceMediaLibrary(options.materials);
+  const videos = createVideoLibrary({ spaceId: options.spaceId, signal: controller.signal, sources: media });
   const images = createImageLibrary(options.materials);
-  const audio = createAudioLibrary({ context: audioContext, videos, materials: options.materials });
-  const sources = createFrameSources({ videos, images, onChanged: invalidate, onFailed: options.onFailed });
-  const clock = createPlaybackClock({ context: audioContext, durationMs });
-  const sound = createSoundTrack({
-    project: options.project,
-    library: audio,
-    clock,
+  const chunks = createAudioChunks({
+    spaceId: options.spaceId,
+    context: audioContext,
+    audible: media.audible,
     onFailed: options.onFailed,
   });
+  const sources = createFrameSources({ videos, images, onChanged: invalidate, onFailed: options.onFailed });
+  const clock = createPlaybackClock({ context: audioContext, durationMs });
+  const sound = createSoundTrack({ project: options.project, chunks, clock });
   const displayMs = shallowRef(0);
   const listeners = new Set<FrameListener>();
   let scene: StageScene | undefined;
@@ -91,7 +93,7 @@ export function createPreviewPlayer(options: PlayerOptions) {
   async function play() {
     if (clock.playing.value || !options.project()) return;
     await clock.play();
-    sound.prepare();
+    sound.pump();
     invalidate();
     publish(true);
   }
@@ -110,6 +112,7 @@ export function createPreviewPlayer(options: PlayerOptions) {
       seek(lastFrameMs(project));
     }
     const playing = clock.playing.value;
+    if (playing) sound.pump();
     if (!playing && !dirty) return;
     dirty = false;
     render(project, playing);
@@ -125,8 +128,8 @@ export function createPreviewPlayer(options: PlayerOptions) {
   return {
     playing: clock.playing,
     displayMs,
+    media,
     videos,
-    audio,
     positionMs: () => clock.positionMs(),
     subscribe(listener: FrameListener) {
       listeners.add(listener);
@@ -157,11 +160,19 @@ export function createPreviewPlayer(options: PlayerOptions) {
     },
     forget(asset: VideoAsset) {
       sources.forget(asset);
-      audio.forget(asset);
+      chunks.forget(asset);
+      media.forget(asset);
+      invalidate();
+    },
+    /** Media that failed is read again, and the preview redrawn from it. */
+    retry() {
+      sources.retry();
+      chunks.retry();
+      sound.reposition();
       invalidate();
     },
     start() {
-      sound.prepare();
+      sound.pump();
       handle ??= requestAnimationFrame(tick);
     },
     stop,
@@ -171,8 +182,9 @@ export function createPreviewPlayer(options: PlayerOptions) {
       controller.abort();
       sources.dispose();
       images.dispose();
-      audio.dispose();
+      chunks.dispose();
       videos.dispose();
+      media.dispose();
       scene?.dispose();
       scene = undefined;
     },

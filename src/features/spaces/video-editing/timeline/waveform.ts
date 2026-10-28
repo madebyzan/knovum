@@ -1,65 +1,87 @@
 import { shallowRef } from "vue";
 
+import type { VideoEditWaveformChunk } from "../../contracts/generated/VideoEditWaveformChunk";
 import { assetIdentity } from "../media/asset-cache";
-import { computePeaks } from "../media/audio-peaks";
-import type { AudioLibrary } from "../media/preview-audio";
+import { mediaSourceOf, streamSourceWaveform } from "../media/source-ipc";
 import type { VideoAsset } from "../project";
 
-const PEAKS = 1_200;
+/** Peaks of one source at a fixed rate; the part not decoded yet reads as silence. */
+interface Waveform {
+  rate: number;
+  peaks: Uint8Array;
+}
 
 interface WaveformOptions {
-  /** The preview's decoded audio; a waveform never decodes a second copy of a source. */
-  library: AudioLibrary;
+  spaceId: string;
+  audible: (asset: VideoAsset) => Promise<boolean>;
+}
+
+function written(waveform: Waveform | undefined, asset: VideoAsset, chunk: VideoEditWaveformChunk): Waveform {
+  const needed = chunk.offset + chunk.peaks.length;
+  const expected = Math.ceil((asset.durationMs * chunk.rate) / 1000);
+  const peaks =
+    waveform && waveform.peaks.length >= needed ? waveform.peaks : new Uint8Array(Math.max(needed, expected));
+  if (waveform && peaks !== waveform.peaks) peaks.set(waveform.peaks);
+  peaks.set(chunk.peaks, chunk.offset);
+  return { rate: chunk.rate, peaks };
 }
 
 /**
- * Peak envelopes for audio lanes, reduced from the buffers the preview already decoded for
- * playback. A waveform is a navigation aid, so it never triggers its own decode pass.
+ * Waveforms for audio lanes. Rust decodes a source's sound once at a low rate and streams its
+ * peaks as it goes, so a lane fills in from the left within moments of the source being added and
+ * is kept per revision for the next time. A waveform is a navigation aid: one that cannot be read
+ * leaves the lane plain rather than interrupting the edit.
  */
 export function createWaveformCache(options: WaveformOptions) {
-  /** Published envelopes; reading this is what makes a lane repaint when peaks land. */
-  const peaks = shallowRef<ReadonlyMap<string, Float32Array>>(new Map());
-  const pending = new Set<string>();
+  /** Bumped when peaks land; reading it is what repaints a lane. */
+  const revision = shallowRef(0);
+  const waveforms = new Map<string, Waveform>();
+  const requested = new Set<string>();
+  let disposed = false;
 
-  function publish(identity: string, envelope: Float32Array) {
-    pending.delete(identity);
-    peaks.value = new Map(peaks.value).set(identity, envelope);
+  async function load(asset: VideoAsset) {
+    if (!(await options.audible(asset))) return;
+    const identity = assetIdentity(asset);
+    await streamSourceWaveform(mediaSourceOf(options.spaceId, asset), (chunk) => {
+      if (disposed) return;
+      waveforms.set(identity, written(waveforms.get(identity), asset, chunk));
+      revision.value += 1;
+    });
   }
 
   return {
-    get: (asset: VideoAsset) => peaks.value.get(assetIdentity(asset)),
+    get(asset: VideoAsset) {
+      void revision.value;
+      return waveforms.get(assetIdentity(asset));
+    },
     request(asset: VideoAsset) {
       const identity = assetIdentity(asset);
-      if (asset.kind === "image" || peaks.value.has(identity) || pending.has(identity)) return;
-      pending.add(identity);
-      void options.library.load(asset).then(
-        (buffer) => publish(identity, buffer ? computePeaks(buffer, PEAKS) : new Float32Array()),
-        () => publish(identity, new Float32Array()),
-      );
+      if (asset.kind === "image" || requested.has(identity)) return;
+      requested.add(identity);
+      void load(asset).catch(() => undefined);
     },
     dispose() {
-      peaks.value = new Map();
-      pending.clear();
+      disposed = true;
+      waveforms.clear();
+      requested.clear();
     },
   };
 }
 
-/** Resamples an envelope to the bars one clip can show for its own source window. */
+/** The loudest peak of each of `bars` equal slices of a source window, from 0 to 1. */
 export function waveformBars(
-  envelope: Float32Array | number[] | undefined,
-  window: { fromRatio: number; toRatio: number },
+  waveform: Waveform | undefined,
+  window: { fromMs: number; toMs: number },
   bars: number,
 ) {
-  if (!envelope || envelope.length === 0 || bars <= 0) return [];
-  const from = Math.floor(window.fromRatio * envelope.length);
-  const to = Math.max(from + 1, Math.ceil(window.toRatio * envelope.length));
-  const span = (to - from) / bars;
-  return Array.from({ length: bars }, (_, index) => {
-    const start = Math.floor(from + index * span);
-    const end = Math.max(start + 1, Math.floor(from + (index + 1) * span));
+  if (!waveform || bars <= 0 || window.toMs <= window.fromMs) return [];
+  const from = (window.fromMs * waveform.rate) / 1000;
+  const span = ((window.toMs - window.fromMs) * waveform.rate) / 1000 / bars;
+  return Array.from({ length: bars }, (_, bar) => {
+    const start = Math.floor(from + bar * span);
+    const end = Math.min(waveform.peaks.length, Math.max(start + 1, Math.floor(from + (bar + 1) * span)));
     let peak = 0;
-    for (let at = start; at < Math.min(end, envelope.length); at += 1)
-      peak = Math.max(peak, envelope[at] ?? 0);
-    return peak;
+    for (let at = start; at < end; at += 1) peak = Math.max(peak, waveform.peaks[at]!);
+    return peak / 255;
   });
 }

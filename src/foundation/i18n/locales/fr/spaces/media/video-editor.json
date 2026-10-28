@@ -10,7 +10,8 @@
     "stage": "Image vidéo",
     "zoomIn": "Agrandir",
     "zoomOut": "Réduire",
-    "fit": "Ajuster l’image"
+    "fit": "Ajuster l’image",
+    "converting": "Le codec de cette vidéo ne peut pas être prévisualisé directement — préparation d’une copie d’aperçu…"
   },
   "obsolete": {
     "title": "Ce projet de montage utilise un ancien format",

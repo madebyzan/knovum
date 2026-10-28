@@ -10,7 +10,8 @@
     "stage": "Fotograma",
     "zoomIn": "Acercar",
     "zoomOut": "Alejar",
-    "fit": "Ajustar al marco"
+    "fit": "Ajustar al marco",
+    "converting": "El códec de este vídeo no se puede previsualizar directamente; preparando una copia de vista previa…"
   },
   "obsolete": {
     "title": "Este proyecto de edición usa un formato anterior",

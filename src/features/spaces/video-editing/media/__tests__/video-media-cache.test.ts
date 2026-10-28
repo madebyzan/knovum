@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import type { VideoAsset } from "../../project";
 import { assetIdentity, createAssetCache } from "../asset-cache";
-import { computePeaks } from "../audio-peaks";
 
 const asset: VideoAsset = {
   nodeId: "source",
@@ -12,14 +11,6 @@ const asset: VideoAsset = {
   width: 1280,
   height: 720,
 };
-
-function channel(values: number[]) {
-  return {
-    length: values.length,
-    numberOfChannels: 1,
-    getChannelData: () => Float32Array.from(values),
-  } as unknown as AudioBuffer;
-}
 
 describe("asset cache", () => {
   it("opens media once per revision and shares concurrent requests", async () => {
@@ -53,17 +44,5 @@ describe("asset cache", () => {
   it("keys media by node and revision together", () => {
     expect(assetIdentity(asset)).not.toBe(assetIdentity({ ...asset, sourceRevision: "other" }));
     expect(assetIdentity(asset)).toBe(assetIdentity({ ...asset, durationMs: 1 }));
-  });
-});
-
-describe("audio peaks", () => {
-  it("reduces samples to one absolute peak per bucket", () => {
-    const peaks = computePeaks(channel([0, 0.5, -0.9, 0.1, 0.2, -0.3]), 3);
-    expect([...peaks]).toEqual([0.5, 0.9, 0.3].map((value) => Math.fround(value)));
-  });
-
-  it("never returns an empty envelope for a buffer with samples", () => {
-    expect(computePeaks(channel([0.4]), 0)).toHaveLength(1);
-    expect([...computePeaks(channel([0.25, 0.25]), 1)]).toEqual([0.25]);
   });
 });

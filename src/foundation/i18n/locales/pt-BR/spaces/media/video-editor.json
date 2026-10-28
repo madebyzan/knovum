@@ -10,7 +10,8 @@
     "stage": "Quadro do vídeo",
     "zoomIn": "Ampliar",
     "zoomOut": "Reduzir",
-    "fit": "Ajustar ao quadro"
+    "fit": "Ajustar ao quadro",
+    "converting": "O codec deste vídeo não pode ser pré-visualizado diretamente — preparando uma cópia de prévia…"
   },
   "obsolete": {
     "title": "Este projeto de edição está em um formato antigo",

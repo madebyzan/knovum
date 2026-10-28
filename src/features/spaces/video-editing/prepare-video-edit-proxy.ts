@@ -4,13 +4,12 @@ import { z } from "zod";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { PrepareVideoEditProxyRequest } from "../contracts/generated/PrepareVideoEditProxyRequest";
+import type { VideoEditMediaSource } from "../contracts/generated/VideoEditMediaSource";
 
 const proxyPathSchema = z.string().min(1);
 
-export async function prepareVideoEditProxy(
-  source: Omit<PrepareVideoEditProxyRequest, "id">,
-  signal: AbortSignal,
-) {
+/** A decodable stand-in for a source the WebView cannot decode; the path of its file. */
+export async function prepareVideoEditProxy(source: VideoEditMediaSource, signal: AbortSignal) {
   signal.throwIfAborted();
   const id = crypto.randomUUID();
   const cancel = () => {
@@ -21,7 +20,7 @@ export async function prepareVideoEditProxy(
   signal.addEventListener("abort", cancel, { once: true });
   try {
     const path = await invokeCommand<string>("plugin:spaces|prepare_video_edit_proxy", {
-      request: { ...source, id } satisfies PrepareVideoEditProxyRequest,
+      request: { id, source } satisfies PrepareVideoEditProxyRequest,
     });
     signal.throwIfAborted();
     return proxyPathSchema.parse(path);

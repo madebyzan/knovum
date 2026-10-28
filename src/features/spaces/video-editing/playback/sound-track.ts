@@ -1,15 +1,17 @@
-import type { AudioLibrary } from "../media/preview-audio";
+import type { AudioChunks } from "../media/audio-chunks";
 import type { VideoEditProject } from "../project";
 import { audioContext } from "./audio-context";
-import { createAudioMixer, type AudioVoice } from "./audio-mixer";
+import { createAudioMixer, type AudioVoice, type ScheduleWindow } from "./audio-mixer";
 import { buildVoices } from "./audio-voices";
 import type { PlaybackClock } from "./playback-clock";
 
+/** How far ahead of the playhead sound is decoded and scheduled. */
+const LOOKAHEAD_MS = 2_500;
+
 interface SoundTrackOptions {
   project: () => VideoEditProject | undefined;
-  library: AudioLibrary;
+  chunks: AudioChunks;
   clock: PlaybackClock;
-  onFailed: (error: unknown) => void;
 }
 
 /** What makes a voice sound different; a transform or selection edit does not change it. */
@@ -30,54 +32,49 @@ function signatureOf(voices: AudioVoice[]) {
 }
 
 /**
- * The project's sound. Voices are decoded once per asset and scheduled against the clock they will
- * be heard on, so playback costs no per-frame audio work. An edit only re-schedules when it changes
- * what is audible, and a clip that finishes decoding late joins the timeline already in sync.
+ * The project's sound. While playing, every frame keeps the next few seconds of every audible clip
+ * decoded and scheduled against the clock they will be heard on; while paused, the same stretch
+ * is decoded ahead so pressing play is heard at once. An edit only re-schedules when it changes
+ * what is audible.
  */
 export function createSoundTrack(options: SoundTrackOptions) {
-  const mixer = createAudioMixer(audioContext);
+  const mixer = createAudioMixer(audioContext, options.chunks);
   let scheduled = "";
 
   function voices() {
     const project = options.project();
-    return project ? buildVoices(project, (asset) => options.library.ready(asset)) : [];
+    return project ? buildVoices(project) : [];
   }
 
-  function schedule() {
-    if (!options.clock.playing.value) return;
-    const pending = voices();
-    scheduled = signatureOf(pending);
-    mixer.schedule(pending, {
-      fromMs: options.clock.positionMs(),
+  function window(): ScheduleWindow {
+    const fromMs = options.clock.positionMs();
+    return {
+      fromMs,
+      untilMs: fromMs + LOOKAHEAD_MS,
       contextTimeOf: (timelineMs) => options.clock.contextTimeOf(timelineMs),
-    });
+    };
   }
 
-  function decode() {
-    const project = options.project();
-    for (const asset of project?.assets ?? []) {
-      if (asset.kind === "image" || options.library.loaded(asset)) continue;
-      void options.library.load(asset).then(schedule, options.onFailed);
-    }
+  function pump() {
+    const pending = voices();
+    if (!options.clock.playing.value) return mixer.cue(pending, window());
+    scheduled = signatureOf(pending);
+    mixer.schedule(pending, window());
   }
 
   return {
-    /** Decodes what the project needs and starts the voices that are already available. */
-    prepare() {
-      decode();
-      schedule();
-    },
+    pump,
     /** The position moved: every voice restarts from the new one. */
     reposition() {
       mixer.stop();
-      schedule();
+      options.chunks.retarget();
+      pump();
     },
     /** The project changed: only a different set of sounds is worth restarting for. */
     revise() {
-      decode();
-      if (signatureOf(voices()) === scheduled) return;
+      if (signatureOf(voices()) === scheduled) return pump();
       mixer.stop();
-      schedule();
+      pump();
     },
     stop() {
       mixer.stop();

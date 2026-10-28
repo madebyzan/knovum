@@ -67,6 +67,14 @@ export function createFrameSources(options: FrameSourceOptions) {
       options.videos.forget(asset);
       options.images.forget(asset);
     },
+    /** Media that failed to open or decode is opened afresh on its next frame. */
+    retry() {
+      for (const key of failed) {
+        feedByKey.get(key)?.dispose();
+        feedByKey.delete(key);
+      }
+      failed.clear();
+    },
     dispose() {
       for (const feed of feedByKey.values()) feed.dispose();
       feedByKey.clear();

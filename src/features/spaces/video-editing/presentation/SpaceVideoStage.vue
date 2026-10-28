@@ -10,7 +10,7 @@ import { useVideoStage } from "./use-video-stage";
 
 const props = defineProps<{ editor: VideoEditor }>();
 const { t } = useI18n();
-const { previewError, selection } = props.editor;
+const { previewError, converting, selection, retryPreview } = props.editor;
 const viewport = useTemplateRef<HTMLElement>("viewport");
 const container = useTemplateRef<HTMLDivElement>("container");
 const stage = useVideoStage(props.editor, { viewport, container });
@@ -38,10 +38,17 @@ const stage = useVideoStage(props.editor, { viewport, container });
       class="flex shrink-0 items-center justify-between gap-2 border-t border-stroke-divider px-3 py-1.5 text-caption text-fg-danger"
     >
       <span class="truncate">{{ previewError }}</span>
-      <UiButton size="sm" @click="previewError = undefined">
+      <UiButton size="sm" @click="retryPreview()">
         {{ t("spaces.media.videoEditor.preview.retry") }}
       </UiButton>
     </div>
+    <p
+      v-else-if="converting"
+      role="status"
+      class="shrink-0 truncate border-t border-stroke-divider px-3 py-1.5 text-caption text-fg-secondary"
+    >
+      {{ t("spaces.media.videoEditor.preview.converting") }}
+    </p>
     <footer
       class="flex h-9 shrink-0 items-center justify-end gap-1 border-t border-stroke-divider bg-surface-panel px-3 text-caption text-fg-tertiary"
     >

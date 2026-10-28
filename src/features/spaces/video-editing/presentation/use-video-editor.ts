@@ -46,7 +46,7 @@ export function useVideoEditor(
     videos: player.videos,
     suspended: () => player.playing.value,
   });
-  const waveforms = createWaveformCache({ library: player.audio });
+  const waveforms = createWaveformCache({ spaceId: tab.spaceId, audible: player.media.audible });
   const selection = useVideoSelection({
     project,
     selection: session.selection,
@@ -121,6 +121,9 @@ export function useVideoEditor(
     waveforms.dispose();
   });
 
+  /** Sources still waiting for a proxy because the WebView cannot decode their codec. */
+  const converting = computed(() => visibleProject.value?.assets.some(player.videos.converting) ?? false);
+
   const renderable = computed(
     () =>
       !session.error.value &&
@@ -148,6 +151,11 @@ export function useVideoEditor(
     bootstrap,
     history: session.history,
     previewError,
+    converting,
+    retryPreview() {
+      previewError.value = undefined;
+      player.retry();
+    },
     renderable,
     commit: (next: VideoEditProject, mergeKey?: string) => session.history.commit(next, mergeKey),
   };

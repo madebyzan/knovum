@@ -645,19 +645,24 @@ and up to four lanes; a lane change that would overlap existing audio is refused
 
 A project is measured from its own source file: Mediabunny parses the container, so admitting media
 needs neither a transcode nor playback, and the output starts at the resolution and the frame cadence
-the source itself states instead of resampling it to a house default. Rust prepares revision-keyed,
-short-GOP H.264 preview files for playback and thumbnails, capped to a 1920-pixel long edge so the
-stage shows the picture the render will produce; the recipe is part of the cache identity, so an
-improved recipe replaces what it supersedes. Export always reads the original. Video frames never
-cross IPC. Preparation is cancellable and failures remain visible.
+the source itself states instead of resampling it to a house default. The preview decodes the source
+itself whenever the WebView can, so a video of any length is on the stage, in the filmstrip and
+audible as soon as its container index has been read, as in any desktop editor; frames are decoded
+into at most a 1920-pixel long edge. Only a codec the WebView cannot decode is normalized by Rust
+into a revision-keyed, silent, short-GOP H.264 proxy, and the stage and its clip say that a preview
+copy is being prepared while that runs. The recipe is part of the cache identity, so an improved
+recipe replaces what it supersedes. Export always reads the original. Video frames never cross
+IPC. Preparation is cancellable, failures remain visible and retrying reads the failed media again.
 
 Playback authority is split on one boundary: Rust owns normalization and rendering, and the WebView
-owns interactive presentation of what Rust prepared. No media element takes part. Mediabunny demuxes
-the preview file and decodes its video through WebCodecs; a clip's audio track is copied out of that
-file without re-encoding and decoded by Web Audio, which every supported target implements. Sound is
-scheduled once per voice on the audio timeline with its own gain envelope, and that same audio
-timeline is the clock, so the position can never drift from what is audible and playback costs no
-per-frame audio work. Each animation frame presents the newest decoded frame for the clock's
+owns interactive presentation. No media element takes part. Mediabunny demuxes the source through
+ranged reads and decodes its video through WebCodecs. Source audio is decoded by Rust's FFmpeg, which
+reads every admitted container and codec, in five-second pieces around the playhead: playback starts
+as soon as the first piece is read, memory holds the pieces near the playhead rather than a whole
+decoded source, and a jump drops the pieces queued for the old position. Each voice has one gain
+envelope on the audio timeline and its pieces start back to back at the exact audio time they belong
+to; a piece that arrives late joins at the position it would have reached. That audio timeline is
+the clock, so the position can never drift from what is audible. Each animation frame presents the newest decoded frame for the clock's
 position: decoding is pulled one frame at a time, a backwards scrub or a long jump restarts the
 decoder at the new position instead of decoding through, and a frame that has not arrived repeats the
 last picture rather than stalling the transport or flashing the background. While the editor is
@@ -674,10 +679,14 @@ above the resizable timeline. The inspector is absent until a clip, transition, 
 item is selected; closing it returns focus to the ruler. The timeline is scaled in pixels per second:
 zooming keeps the time under the pointer fixed, fitting shows the whole project with trailing room,
 ruler steps coarsen as the scale shrinks, and the view follows the playhead by writing the scroll
-position and the playhead directly, so a moving playhead never re-renders the lanes. Filmstrip
-thumbnails and audio waveforms are decoded in bounded background work keyed by asset revision: only
-what the viewport shows is requested, outstanding work is replaced rather than queued as the view
-moves, extraction yields to playback, and both are released with the materials that produced them. Timed text is
+position and the playhead directly, so a moving playhead never re-renders the lanes. A clip lane
+draws on a canvas that covers only its visible part, because a long source at a close zoom is wider
+than any canvas a WebView allocates. Filmstrip tiles show the key frame at or before their position,
+as desktop editors' thumbnails do, so each costs one decoded picture however long the source's
+groups of pictures are; only what the viewport shows is requested, clips of one source share its
+queue, the least recently drawn tiles are evicted, and extraction yields to playback. Waveforms are
+peaks at a fixed 100 per second that Rust decodes once per revision at a low rate and streams as it
+goes, so a lane fills in from the left within moments and is read from cache the next time. Timed text is
 selectable from the stage and the timeline and is positioned freely by dragging it on the frame, with
 searchable subtitles, installed font family and face weight, size, colour, alignment and four
 export-backed styles. Text size remains
