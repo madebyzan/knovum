@@ -29,3 +29,20 @@ pub async fn prepare_video_edit_proxy(
 pub async fn cancel_video_edit_proxy(job_id: String) -> Result<(), AppError> {
     Ok((video_edit::cancel_proxy(&job_id))?)
 }
+
+#[tauri::command]
+pub async fn read_video_edit_audio(
+    app: AppHandle,
+    request: video_edit::ReadVideoEditAudioRequest,
+) -> Result<tauri::ipc::Response, AppError> {
+    Ok((video_edit::read_audio(app, request).await)?)
+}
+
+#[tauri::command]
+pub async fn stream_video_edit_waveform(
+    app: AppHandle,
+    request: video_edit::StreamVideoEditWaveformRequest,
+    on_peaks: tauri::ipc::Channel<video_edit::VideoEditWaveformChunk>,
+) -> Result<(), AppError> {
+    Ok((video_edit::stream_waveform(app, request, on_peaks).await)?)
+}

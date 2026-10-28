@@ -205,6 +205,8 @@ macro_rules! knovum_execution_commands {
         crate::spaces::derivation::commands::cancel_video_edit_render,
         crate::spaces::derivation::commands::prepare_video_edit_proxy,
         crate::spaces::derivation::commands::cancel_video_edit_proxy,
+        crate::spaces::derivation::commands::read_video_edit_audio,
+        crate::spaces::derivation::commands::stream_video_edit_waveform,
         crate::spaces::derivation::queries::list_video_fonts,
         crate::spaces::derivation::output_paths::allocate_visualization_output_path,
         crate::spaces::derivation::output_paths::allocate_video_edit_output_path,

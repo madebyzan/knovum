@@ -10,7 +10,8 @@
     "stage": "Video frame",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
-    "fit": "Fit the frame"
+    "fit": "Fit the frame",
+    "converting": "This video's codec can't be previewed directly — preparing a preview copy…"
   },
   "obsolete": {
     "title": "This edit project is from an older format",

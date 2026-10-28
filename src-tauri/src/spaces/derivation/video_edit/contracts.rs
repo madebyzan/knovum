@@ -128,14 +128,50 @@ pub struct VideoEditProgress {
     pub(super) progress: u8,
 }
 
+// One ready revision of a material the editor reads media from.
+#[derive(Deserialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct VideoEditMediaSource {
+    pub space_id: String,
+    pub source_node_id: String,
+    pub source_revision: String,
+}
+
 #[derive(Deserialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct PrepareVideoEditProxyRequest {
     pub id: String,
-    pub space_id: String,
-    pub source_node_id: String,
-    pub source_revision: String,
+    pub source: VideoEditMediaSource,
+}
+
+// A stretch of source audio, decoded to interleaved stereo `f32le` at `sample_rate`.
+#[derive(Deserialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ReadVideoEditAudioRequest {
+    pub source: VideoEditMediaSource,
+    pub from_ms: u32,
+    pub length_ms: u32,
+    pub sample_rate: u32,
+}
+
+#[derive(Deserialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct StreamVideoEditWaveformRequest {
+    pub source: VideoEditMediaSource,
+}
+
+// Peaks `[offset, offset + peaks.len())` of a source, `rate` per second, scaled to `0..=255`.
+#[derive(Clone, Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase")]
+pub struct VideoEditWaveformChunk {
+    pub(super) offset: u32,
+    pub(super) rate: u32,
+    pub(super) peaks: Vec<u8>,
 }
 
 #[derive(Clone, PartialEq, Deserialize, Serialize, ts_rs::TS)]

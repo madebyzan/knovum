@@ -10,7 +10,8 @@
     "stage": "Fotogramma",
     "zoomIn": "Ingrandisci",
     "zoomOut": "Riduci",
-    "fit": "Adatta il fotogramma"
+    "fit": "Adatta il fotogramma",
+    "converting": "Il codec di questo video non può essere visualizzato direttamente: preparazione di una copia di anteprima…"
   },
   "obsolete": {
     "title": "Questo progetto di montaggio ha un formato precedente",

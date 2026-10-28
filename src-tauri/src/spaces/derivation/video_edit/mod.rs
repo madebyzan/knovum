@@ -1,8 +1,10 @@
 mod ass;
+mod audio;
 mod clip_filter;
 mod contracts;
 mod filter_graph;
 pub(crate) mod fonts;
+mod media_source;
 mod persistence;
 mod proxy;
 mod proxy_registry;
@@ -14,6 +16,7 @@ mod sources;
 mod start;
 mod timing;
 mod validation;
+mod waveform_peaks;
 
 #[cfg(test)]
 mod tests;
@@ -23,9 +26,11 @@ use tauri::{ipc::Channel, AppHandle};
 use super::{failure, CompletedDerivationOutput};
 use crate::{foundation::app_error::AppError, foundation::blocking};
 
+pub use audio::{read as read_audio, stream_waveform};
 pub use contracts::{
-    PrepareVideoEditProxyRequest, RenderVideoEditRequest, VideoEditProgress, VideoEditProject,
-    PROJECT_VERSION,
+    PrepareVideoEditProxyRequest, ReadVideoEditAudioRequest, RenderVideoEditRequest,
+    StreamVideoEditWaveformRequest, VideoEditMediaSource, VideoEditProgress, VideoEditProject,
+    VideoEditWaveformChunk, PROJECT_VERSION,
 };
 pub(in crate::spaces) use validation::validate_project;
 

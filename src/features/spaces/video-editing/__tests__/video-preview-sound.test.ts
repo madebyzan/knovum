@@ -15,7 +15,6 @@ const music: VideoAsset = {
   width: 0,
   height: 0,
 };
-const buffer = { duration: 4, length: 192_000, numberOfChannels: 2 } as AudioBuffer;
 
 function project() {
   return createVideoEditProject({
@@ -83,78 +82,113 @@ describe("project voices", () => {
   it("widens a clip's fades by the transition overlap it shares, like the export", () => {
     const initial = insertMaterial(project(), { ...music, kind: "video", width: 720, height: 1280 }, 4_000);
     const mixed = applyTransition(initial, initial.videoTrack.clips[0]!.id, "dissolve", 1_000);
-    const [first, second] = buildVoices(mixed, () => buffer);
+    const [first, second] = buildVoices(mixed);
     expect(first).toMatchObject({ fadeOutMs: 1_000, timelineStartMs: 0 });
     expect(second).toMatchObject({ fadeInMs: 1_000 });
   });
 
-  it("leaves out assets whose audio has not been decoded", () => {
-    const withMusic = insertMaterial(project(), music, 0);
-    const voices = buildVoices(withMusic, (asset) => (asset.kind === "audio" ? buffer : undefined));
-    expect(voices.map(({ key }) => key)).toEqual([withMusic.audioTrack.clips[0]!.id]);
+  it("gives a still image no voice", () => {
+    const withStill = insertMaterial(project(), { ...music, kind: "image", width: 720, height: 1280 }, 4_000);
+    expect(buildVoices(withStill).map(({ asset }) => asset.kind)).toEqual(["video"]);
   });
 });
 
+function fakeAudio(currentTime: number) {
+  const started: { when: number; offset: number; duration: number }[] = [];
+  const context = {
+    currentTime,
+    destination: {},
+    createGain: () => ({
+      gain: { setValueAtTime: vi.fn<() => void>(), linearRampToValueAtTime: vi.fn<() => void>() },
+      connect: vi.fn<() => void>(),
+      disconnect: vi.fn<() => void>(),
+    }),
+    createBufferSource: () => ({
+      buffer: undefined,
+      addEventListener: vi.fn<() => void>(),
+      connect: vi.fn<() => void>(),
+      disconnect: vi.fn<() => void>(),
+      stop: vi.fn<() => void>(),
+      start: (when: number, offset: number, duration: number) => started.push({ when, offset, duration }),
+    }),
+  };
+  return { context: () => context as unknown as AudioContext, started };
+}
+
+function pieces(ready: (index: number) => boolean) {
+  const piece = { duration: 1 } as AudioBuffer;
+  return {
+    chunkMs: 1_000,
+    chunk: (_asset: VideoAsset, index: number) => (ready(index) ? piece : undefined),
+    request: vi.fn<(asset: VideoAsset, index: number) => void>(),
+  };
+}
+
+/** Audio time of a timeline position when 1.5 s is heard at 10 s. */
+const contextTimeOf = (ms: number) => 10 + (ms - 1_500) / 1000;
+
+const voice = {
+  key: "clip",
+  asset: music,
+  sourceInMs: 500,
+  lengthMs: 2_000,
+  timelineStartMs: 1_000,
+  volume: 1,
+  fadeInMs: 0,
+  fadeOutMs: 0,
+};
+
 describe("audio mixer", () => {
-  it("starts every voice once, at the audio time and source offset it belongs to", () => {
-    const sources: { when: number; offset: number; duration: number }[] = [];
-    const context = {
-      currentTime: 10,
-      destination: {},
-      createGain: () => ({
-        gain: {
-          setValueAtTime: vi.fn<() => void>(),
-          linearRampToValueAtTime: vi.fn<() => void>(),
-        },
-        connect: vi.fn<() => void>(),
-        disconnect: vi.fn<() => void>(),
-      }),
-      createBufferSource: () => ({
-        buffer: undefined,
-        addEventListener: vi.fn<() => void>(),
-        removeEventListener: vi.fn<() => void>(),
-        connect: vi.fn<() => void>(),
-        disconnect: vi.fn<() => void>(),
-        stop: vi.fn<() => void>(),
-        start: (when: number, offset: number, duration: number) => sources.push({ when, offset, duration }),
-      }),
-    };
-    const mixer = createAudioMixer(() => context as unknown as AudioContext);
-    const voice = {
-      key: "clip",
-      buffer,
-      sourceInMs: 500,
-      lengthMs: 2_000,
-      timelineStartMs: 1_000,
-      volume: 1,
-      fadeInMs: 0,
-      fadeOutMs: 0,
-    };
-    const position = { fromMs: 1_500, contextTimeOf: (ms: number) => 10 + (ms - 1_500) / 1000 };
-    mixer.schedule([voice], position);
-    mixer.schedule([voice], position);
-    expect(sources).toEqual([{ when: 10, offset: 1, duration: 1.5 }]);
+  it("plays consecutive pieces at the audio time and source offset each belongs to", () => {
+    const audio = fakeAudio(10);
+    const mixer = createAudioMixer(
+      audio.context,
+      pieces(() => true),
+    );
+    const window = { fromMs: 1_500, untilMs: 4_000, contextTimeOf };
+    mixer.schedule([voice], window);
+    mixer.schedule([voice], window);
+    expect(audio.started).toEqual([
+      { when: 10, offset: 0, duration: 1 },
+      { when: 11, offset: 0, duration: 0.5 },
+    ]);
     expect(mixer.scheduled("clip")).toBe(true);
     mixer.stop();
     expect(mixer.scheduled("clip")).toBe(false);
   });
 
-  it("ignores a silent voice and one the position has already passed", () => {
-    const context = {
-      currentTime: 0,
-      destination: {},
-      createGain: vi.fn<() => GainNode>(),
-      createBufferSource: vi.fn<() => AudioBufferSourceNode>(),
-    };
-    const mixer = createAudioMixer(() => context as unknown as AudioContext);
-    const base = { buffer, sourceInMs: 0, lengthMs: 1_000, timelineStartMs: 0, fadeInMs: 0, fadeOutMs: 0 };
+  it("asks for a piece that is not decoded yet and joins it in sync once it is", () => {
+    const audio = fakeAudio(10);
+    let decoded = false;
+    const source = pieces(() => decoded);
+    const mixer = createAudioMixer(audio.context, source);
+    mixer.schedule([voice], { fromMs: 1_500, untilMs: 2_000, contextTimeOf });
+    expect(source.request).toHaveBeenCalledWith(music, 1);
+    expect(audio.started).toEqual([]);
+    decoded = true;
+    (audio.context() as { currentTime: number }).currentTime = 10.25;
+    mixer.schedule([voice], { fromMs: 1_750, untilMs: 2_250, contextTimeOf });
+    expect(audio.started[0]).toMatchObject({ when: 10.25 });
+    expect(audio.started[0]!.offset).toBeCloseTo(0.25, 6);
+    expect(audio.started[0]!.duration).toBeCloseTo(0.75, 6);
+  });
+
+  it("ignores a silent voice and one the window has already passed", () => {
+    const audio = fakeAudio(0);
+    const source = pieces(() => true);
+    const mixer = createAudioMixer(audio.context, source);
     mixer.schedule(
       [
-        { ...base, key: "silent", volume: 0 },
-        { ...base, key: "past", volume: 1 },
+        { ...voice, key: "silent", volume: 0 },
+        { ...voice, key: "past" },
       ],
-      { fromMs: 5_000, contextTimeOf: (ms: number) => ms / 1000 },
+      {
+        fromMs: 5_000,
+        untilMs: 7_000,
+        contextTimeOf: (ms: number) => ms / 1000,
+      },
     );
-    expect(context.createBufferSource).not.toHaveBeenCalled();
+    expect(audio.started).toEqual([]);
+    expect(source.request).not.toHaveBeenCalled();
   });
 });

@@ -10,7 +10,8 @@
     "stage": "Videobild",
     "zoomIn": "Vergrößern",
     "zoomOut": "Verkleinern",
-    "fit": "Bild einpassen"
+    "fit": "Bild einpassen",
+    "converting": "Der Codec dieses Videos lässt sich nicht direkt anzeigen – eine Vorschaukopie wird vorbereitet …"
   },
   "obsolete": {
     "title": "Dieses Schnittprojekt hat ein älteres Format",

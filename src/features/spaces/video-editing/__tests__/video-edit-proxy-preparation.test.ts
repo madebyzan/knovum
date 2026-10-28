@@ -17,7 +17,7 @@ describe("canonical editing proxy preparation", () => {
       "/cache/proxy.mp4",
     );
     expect(invokeCommand).toHaveBeenCalledWith("plugin:spaces|prepare_video_edit_proxy", {
-      request: { ...source, id: expect.any(String) },
+      request: { id: expect.any(String), source },
     });
   });
   it("cancels the native job and rejects a result delivered after disposal", async () => {

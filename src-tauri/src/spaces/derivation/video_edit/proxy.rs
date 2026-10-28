@@ -1,70 +1,51 @@
 use std::{
     fs,
-    path::PathBuf,
+    path::Path,
     process::{Command, Stdio},
     sync::{Mutex, OnceLock},
 };
 
-use sha2::{Digest, Sha256};
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
-use super::PrepareVideoEditProxyRequest;
-use crate::{foundation::blocking, foundation::subprocess, local_resources::tools, spaces::db};
+use super::{media_source, PrepareVideoEditProxyRequest};
+use crate::{foundation::blocking, foundation::subprocess, local_resources::tools};
 
 const CANCELLED: &str = "VIDEO_EDIT_PREPARATION_CANCELLED";
 /// Identity of the proxy recipe below; changing the recipe invalidates previously cached proxies.
-const RECIPE: &str = "h264-1920-fast-g12-v2";
+/// The proxy carries no sound: source audio is always read from the source itself.
+const RECIPE: &str = "h264-1920-fast-g12-silent-v3";
 
 fn generation_lock() -> &'static Mutex<()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
     LOCK.get_or_init(|| Mutex::new(()))
 }
 
+/// A decodable stand-in for a source the WebView cannot decode itself. Sources it can decode are
+/// previewed directly and never come here.
 pub async fn prepare(
     app: AppHandle,
     request: PrepareVideoEditProxyRequest,
 ) -> Result<String, String> {
     Uuid::parse_str(&request.id).map_err(|_| "Video preparation ID is invalid")?;
     let (cancellation, _lease) = super::proxy_registry::acquire(request.id)?;
-    let pool = db::pool(&app).await?;
-    let encoded: String = sqlx::query_scalar(
-        "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='video' AND deleted_at IS NULL",
-    )
-    .bind(&request.source_node_id)
-    .bind(&request.space_id)
-    .fetch_optional(pool)
-    .await
-    .map_err(db::sql_error)?
-    .ok_or("Video source is unavailable")?;
-    let data: serde_json::Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
-    if data
-        .get("sourceRevision")
-        .and_then(serde_json::Value::as_str)
-        != Some(request.source_revision.as_str())
-        || data.get("processingState").is_some()
-    {
-        return Err("Video source changed before preparation".into());
-    }
-    let source = data
-        .get("assetPath")
-        .and_then(serde_json::Value::as_str)
-        .filter(|value| !value.is_empty())
-        .ok_or("Video asset is unavailable")?
-        .to_owned();
-    let source = crate::spaces::assets::authorize_spaces_asset(&app, &PathBuf::from(source))?;
-    if !source.is_file() {
-        return Err("Video editing source must be a managed file".into());
-    }
-    let source = source.to_string_lossy().into_owned();
-    blocking::run(move || generate(&app, &source, &request.source_revision, &cancellation)).await
+    let source = media_source::resolve(&app, &request.source, &["video"]).await?;
+    let output = media_source::cache_path(
+        &app,
+        "video-edit-proxies",
+        &source,
+        &request.source.source_revision,
+        RECIPE,
+    )?
+    .with_extension("mp4");
+    blocking::run(move || generate(&app, &source, &output, &cancellation)).await
 }
 
 fn generate(
     app: &AppHandle,
     source: &str,
-    revision: &str,
+    output: &Path,
     cancellation: &CancellationToken,
 ) -> Result<String, String> {
     let _guard = generation_lock()
@@ -73,25 +54,17 @@ fn generate(
     if cancellation.is_cancelled() {
         return Err(CANCELLED.into());
     }
-    let cache = app
-        .path()
-        .app_cache_dir()
-        .map_err(|error| error.to_string())?
-        .join("video-edit-proxies");
-    fs::create_dir_all(&cache).map_err(|error| error.to_string())?;
-    let key = Sha256::digest(format!("{source}\0{revision}\0{RECIPE}"));
-    let output = cache.join(format!("{key}.mp4", key = hex::encode(key)));
     if output.metadata().is_ok_and(|metadata| metadata.len() > 0) {
         return Ok(output.to_string_lossy().into_owned());
     }
     let ffmpeg =
         tools::resolve_ffmpeg(app)?.ok_or("FFmpeg is required to prepare video editing")?;
-    let temporary = cache.join(format!("{}.tmp.mp4", Uuid::new_v4()));
+    let temporary = output.with_extension(format!("{}.tmp.mp4", Uuid::new_v4()));
     if let Err(error) = encode_proxy(&ffmpeg, source, &temporary, cancellation) {
         let _ = fs::remove_file(&temporary);
         return Err(error);
     }
-    if let Err(error) = fs::rename(&temporary, &output) {
+    if let Err(error) = fs::rename(&temporary, output) {
         let _ = fs::remove_file(&temporary);
         return Err(error.to_string());
     }
@@ -99,9 +72,9 @@ fn generate(
 }
 
 fn encode_proxy(
-    ffmpeg: &PathBuf,
+    ffmpeg: &Path,
     source: &str,
-    output: &PathBuf,
+    output: &Path,
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
     let child = Command::new(ffmpeg)
@@ -115,8 +88,7 @@ fn encode_proxy(
             source,
             "-map",
             "0:v:0",
-            "-map",
-            "0:a:0?",
+            "-an",
             "-vf",
             "scale=w='min(1920,iw)':h='min(1920,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2",
             "-c:v",
@@ -131,10 +103,6 @@ fn encode_proxy(
             "12",
             "-pix_fmt",
             "yuv420p",
-            "-c:a",
-            "aac",
-            "-b:a",
-            "128k",
             "-movflags",
             "+faststart",
         ])
