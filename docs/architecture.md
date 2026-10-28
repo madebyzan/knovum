@@ -186,11 +186,12 @@ ordered tab list and the single active tab; the active Space, the open editor ta
 Inbox tab and the readonly `workspace/space-surface.ts` projection all derive from them, so no
 parallel per-Space selection exists. `workspace/workbench-navigation-actions.ts` owns open,
 activate, reopen and history intents, `workspace/workbench-close-actions.ts` owns close and discard
-intents, and `workspace/space-session-actions.ts` loads one Space session so a caller can apply it
-together with its tab activation inside one transition. Opening a tab loads a work surface and
-commits the outgoing one, so the strip activates manually: focus — from the secondary button that
-opens the tab menu or from roving arrow keys — only moves, and the primary button, Enter or Space
-opens the focused tab.
+intents, `workspace/space-session-actions.ts` loads one Space session so a caller can apply it
+together with its tab activation inside one transition, and `workspace/workbench-restore-actions.ts`
+reopens the saved strip at launch, loading every Space it references before applying them in one
+transition. Opening a tab loads a work surface and commits the outgoing one, so the strip activates
+manually: focus — from the secondary button that opens the tab menu or from roving arrow keys — only
+moves, and the primary button, Enter or Space opens the focused tab.
 `workspace/editor-sessions.ts` composes the concrete document and video owners; it is not a generic
 editor registry. Document drafts belong to `document-editing/document-session-store.ts`; video project/history
 state belongs to `video-editing/video-session-store.ts`. Retained presentation keeps document vendor
@@ -405,9 +406,12 @@ must declare its absence semantics in both decoders; removing or changing a fiel
 contract change and must not be hidden behind defaults. Persisted optionality does not make fields
 optional in the normalized application state or canonical saved value.
 
-The non-sensitive last-workspace route may use one disposable `localStorage` value so optional
-session restoration cannot make Store a bootstrap dependency. Secrets never enter Store,
-`localStorage`, Pinia persistence, feature databases, logs, or query cache.
+Disposable navigation state uses `localStorage`, so optional session restoration cannot make Store a
+bootstrap dependency: `app/workspace-session.ts` keeps the last workspace route and
+`workspace/workbench-session.ts` keeps the tab strip, which names Spaces and nodes but never holds
+content. Each value is schema-checked and discarded when invalid; the strip is consumed by the one
+restore that reads it. Secrets never enter Store, `localStorage`, Pinia persistence, feature
+databases, logs, or query cache.
 
 ## IPC and schema ownership
 

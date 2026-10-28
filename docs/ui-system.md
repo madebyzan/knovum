@@ -626,6 +626,12 @@ neighbour, otherwise its left one, and keeps focus on the tab that became active
 recently closed tab restores it at its original position. The Spaces Browser stays a navigation
 destination rather than a tab, and replaces the strip with its own toolbar while it is open.
 
+A relaunch reopens the strip the window last showed, in its order and with its active tab, so work
+resumes where it stopped. Only what a tab shows returns, never its state: a tab returns while its
+Space is unarchived and its content still opens in that editor, and a tab of an unsaved draft Space
+is not kept. When the active tab does not return, the Inbox becomes active. The closed-tab stack
+and activation history belong to one run and start empty.
+
 The tab strip is the only place that closes an opened thing. Editor surfaces carry no back or close
 affordance and no Escape-to-close shortcut: their headers hold editing state and editing actions
 only, and leaving an editor means activating another tab.

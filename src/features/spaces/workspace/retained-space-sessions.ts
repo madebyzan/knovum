@@ -12,6 +12,15 @@ export function emptySpaceContent(): SpaceSessionContent {
   };
 }
 
+/** Retains a Space that tabs reference but that was never active, so it has no history yet. */
+export function retainSpaceSession(
+  context: SpaceSessionContext,
+  spaceId: string,
+  content: SpaceSessionContent,
+) {
+  context.runtime.retained.set(spaceId, { content, undoStack: [], redoStack: [] });
+}
+
 /** Retains the active Space's session, then makes `content` and the next Space's history current. */
 export function switchSpaceSession(
   context: SpaceSessionContext,
