@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown, ChevronRight, Focus, Scan } from "@lucide/vue";
+import { ChevronsDownUp, ChevronsUpDown, Focus, Shrink } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -46,17 +46,17 @@ const identity = computed(
     </template>
     <template v-if="!minimal">
       <SpaceCanvasActionTrigger
-        :label="t(section?.collapsed ? 'spaces.canvas.sections.expand' : 'spaces.canvas.sections.collapse')"
-        :icon="section?.collapsed ? ChevronRight : ChevronDown"
-        :compact="compact"
-        @invoke="actions.toggleSectionCollapsed"
-      />
-      <SpaceCanvasActionTrigger
         :label="t('spaces.canvas.sections.fitToContents')"
-        :icon="Scan"
+        :icon="Shrink"
         :compact="compact"
         :disabled="!state.canFitSection"
         @invoke="actions.fitSection"
+      />
+      <SpaceCanvasActionTrigger
+        :label="t(section?.collapsed ? 'spaces.canvas.sections.expand' : 'spaces.canvas.sections.collapse')"
+        :icon="section?.collapsed ? ChevronsUpDown : ChevronsDownUp"
+        :compact="compact"
+        @invoke="actions.toggleSectionCollapsed"
       />
       <SpaceCanvasActionTrigger
         v-if="state.content.length"

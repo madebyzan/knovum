@@ -22,8 +22,10 @@ import {
   editedSectionSize,
   sectionSizePreset,
   type SectionSize,
+  type SectionSizePreset,
 } from "./section-frame-size";
 import type { SelectedSection } from "./selection-product-state";
+import SpaceCanvasAspectGlyph from "./SpaceCanvasAspectGlyph.vue";
 import SpaceCanvasFrameDimension from "./SpaceCanvasFrameDimension.vue";
 
 /** A Section's frame, edited the way a design tool edits one: fill, layout mode, then size. */
@@ -39,7 +41,7 @@ const TOGGLE_ITEM_CLASSES =
   "inline-flex h-full items-center rounded-[5px] px-2.5 text-caption font-medium text-fg-secondary outline-none transition-colors duration-100 ease-standard hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:opacity-40 data-[state=on]:bg-surface-raised data-[state=on]:text-fg-primary data-[state=on]:shadow-control motion-reduce:transition-none";
 const lockRatio = shallowRef(false);
 const size = computed(() => ({ width: props.section.frame.width, height: props.section.frame.height }));
-const preset = computed(() => sectionSizePreset(size.value));
+const currentPreset = computed(() => sectionSizePreset(size.value));
 const layoutMode = computed(() => (props.section.autoLayout ? "auto" : "manual"));
 const fillOptions = computed(() => [
   { value: NO_FILL, color: "var(--color-surface-panel)", label: t("spaces.canvas.sections.fill.none") },
@@ -53,6 +55,9 @@ const ratioLabel = computed(() =>
   t(lockRatio.value ? "spaces.canvas.sections.size.unlockRatio" : "spaces.canvas.sections.size.lockRatio"),
 );
 
+function presetName(preset: SectionSizePreset) {
+  return "named" in preset ? t(`spaces.canvas.sections.size.presets.${preset.id}`) : preset.id;
+}
 function selectLayout(mode: unknown) {
   // A single toggle group reports `undefined` when the active item is pressed again; the mode stays.
   if (mode === "auto" || mode === "manual") emit("autoLayout", mode === "auto");
@@ -104,14 +109,15 @@ function edit(dimension: keyof SectionSize, value: number) {
     </ToolbarToggleItem>
   </ToolbarToggleGroup>
   <UiSeparator orientation="vertical" class="mx-1 h-4" />
-  <UiDropdownMenu side="top" align="start" :side-offset="6" class="min-w-52">
+  <UiDropdownMenu side="top" align="start" :side-offset="6" class="min-w-56">
     <template #trigger>
       <SpaceCanvasMenuTrigger
         :label="t('spaces.canvas.sections.size.label')"
         :disabled="disabled"
-        class="text-fg-primary"
+        class="gap-1.5 text-fg-primary"
       >
-        {{ preset ?? t("spaces.canvas.sections.size.custom") }}
+        <SpaceCanvasAspectGlyph v-bind="size" class="text-fg-secondary" />
+        {{ currentPreset ? presetName(currentPreset) : t("spaces.canvas.sections.size.custom") }}
       </SpaceCanvasMenuTrigger>
     </template>
     <UiDropdownMenuItem
@@ -119,11 +125,12 @@ function edit(dimension: keyof SectionSize, value: number) {
       :key="option.id"
       @select="emit('resize', { width: option.width, height: option.height })"
     >
-      <Check class="size-3.5" :class="preset === option.id ? 'opacity-100' : 'opacity-0'" />
-      <span class="flex-1">{{ option.id }}</span>
+      <SpaceCanvasAspectGlyph :width="option.width" :height="option.height" />
+      <span class="flex-1">{{ presetName(option) }}</span>
       <span class="ml-4 text-caption text-fg-tertiary tabular-nums"
         >{{ option.width }} × {{ option.height }}</span
       >
+      <Check class="size-3.5" :class="currentPreset?.id === option.id ? 'opacity-100' : 'opacity-0'" />
     </UiDropdownMenuItem>
   </UiDropdownMenu>
   <div class="ml-0.5 flex shrink-0 items-center gap-0.5">

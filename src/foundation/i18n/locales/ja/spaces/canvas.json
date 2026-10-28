@@ -37,8 +37,7 @@
     "label": "選択",
     "selectAll": "すべて選択",
     "delete": "選択したものを削除",
-    "toggleLock": "選択をロックまたはロック解除する",
-    "count": "{count} 件を選択中"
+    "toggleLock": "選択をロックまたはロック解除する"
   },
   "kinds": {
     "group": "グループ",
@@ -79,7 +78,11 @@
       "height": "高さ",
       "lockRatio": "縦横比を固定",
       "unlockRatio": "縦横比の固定を解除",
-      "autoHeight": "自動レイアウトでは高さは内容で決まります"
+      "autoHeight": "自動レイアウトでは高さは内容で決まります",
+      "presets": {
+        "a4": "A4",
+        "web": "Web"
+      }
     }
   },
   "lock": "ロック",

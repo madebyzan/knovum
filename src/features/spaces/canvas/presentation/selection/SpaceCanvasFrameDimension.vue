@@ -16,7 +16,7 @@ const INTEGER = { maximumFractionDigits: 0, useGrouping: false } as const;
 
 <template>
   <label
-    class="flex h-(--knovum-control-height-md) shrink-0 items-center rounded-md bg-surface-control pl-2 text-caption text-fg-tertiary transition-colors duration-100 ease-standard focus-within:bg-surface-raised focus-within:ring-2 focus-within:ring-stroke-focus hover:bg-surface-control-hover has-disabled:bg-surface-control has-disabled:opacity-40 motion-reduce:transition-none"
+    class="flex h-(--knovum-control-height-md) shrink-0 items-center rounded-md bg-surface-control pl-2 text-caption text-fg-tertiary transition-colors duration-100 ease-standard focus-within:bg-surface-raised focus-within:ring-1 focus-within:ring-stroke-strong focus-within:ring-inset hover:bg-surface-control-hover has-disabled:bg-surface-control has-disabled:opacity-40 motion-reduce:transition-none"
     :title="hint"
   >
     <span aria-hidden="true">{{ axis }}</span>

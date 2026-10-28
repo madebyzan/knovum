@@ -97,6 +97,9 @@ const excludedActions = computed(() => [
         <UiKbd shortcut="$mod+Shift+G" class="ml-auto" />
       </UiDropdownMenuItem>
       <template v-if="actions.state.value.section">
+        <UiDropdownMenuItem :disabled="!actions.state.value.canFitSection" @select="actions.fitSection">{{
+          t("spaces.canvas.sections.fitToContents")
+        }}</UiDropdownMenuItem>
         <UiDropdownMenuItem @select="actions.toggleSectionCollapsed">
           {{
             t(
@@ -106,9 +109,6 @@ const excludedActions = computed(() => [
             )
           }}
         </UiDropdownMenuItem>
-        <UiDropdownMenuItem :disabled="!actions.state.value.canFitSection" @select="actions.fitSection">{{
-          t("spaces.canvas.sections.fitToContents")
-        }}</UiDropdownMenuItem>
         <UiDropdownMenuItem
           :disabled="!actions.state.value.canEditSection"
           @select="actions.dissolveSection"

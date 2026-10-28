@@ -37,8 +37,7 @@
     "label": "Selection",
     "selectAll": "Select all",
     "delete": "Delete selected",
-    "toggleLock": "Lock or unlock selection",
-    "count": "{count} selected"
+    "toggleLock": "Lock or unlock selection"
   },
   "kinds": {
     "group": "Group",
@@ -76,7 +75,11 @@
       "height": "Height",
       "lockRatio": "Lock aspect ratio",
       "unlockRatio": "Unlock aspect ratio",
-      "autoHeight": "Auto layout sets the height from the content"
+      "autoHeight": "Auto layout sets the height from the content",
+      "presets": {
+        "a4": "A4",
+        "web": "Web"
+      }
     }
   },
   "lock": "Lock",

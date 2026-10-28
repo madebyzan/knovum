@@ -37,8 +37,7 @@
     "label": "Sélection",
     "selectAll": "Sélectionner tout",
     "delete": "Supprimer la sélection",
-    "toggleLock": "Verrouiller ou déverrouiller la sélection",
-    "count": "{count} sélectionnés"
+    "toggleLock": "Verrouiller ou déverrouiller la sélection"
   },
   "kinds": {
     "group": "Groupe",
@@ -79,7 +78,11 @@
       "height": "Hauteur",
       "lockRatio": "Verrouiller les proportions",
       "unlockRatio": "Déverrouiller les proportions",
-      "autoHeight": "En disposition automatique, la hauteur dépend du contenu"
+      "autoHeight": "En disposition automatique, la hauteur dépend du contenu",
+      "presets": {
+        "a4": "A4",
+        "web": "Web"
+      }
     }
   },
   "lock": "Verrouillage",

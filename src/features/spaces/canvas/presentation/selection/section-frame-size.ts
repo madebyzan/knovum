@@ -5,20 +5,24 @@ export interface SectionSize {
   height: number;
 }
 
-/** Common output canvases, in pixels: a Section sized to one of them exports at that size. */
+/**
+ * Common output canvases, in pixels: a Section sized to one of them exports at that size. Ratio
+ * presets are named by their ratio; `named` ones (paper, screen) carry a localized name.
+ */
 export const SECTION_SIZE_PRESETS = [
   { id: "1:1", width: 1080, height: 1080 },
-  { id: "4:5", width: 1080, height: 1350 },
+  { id: "2:3", width: 1080, height: 1620 },
   { id: "9:16", width: 1080, height: 1920 },
+  { id: "3:2", width: 1620, height: 1080 },
   { id: "16:9", width: 1920, height: 1080 },
-  { id: "4:3", width: 1600, height: 1200 },
-  { id: "A4", width: 2480, height: 3508 },
-] as const satisfies readonly (SectionSize & { id: string })[];
+  { id: "a4", width: 2480, height: 3508, named: true },
+  { id: "web", width: 1366, height: 768, named: true },
+] as const satisfies readonly (SectionSize & { id: string; named?: true })[];
 
-type SectionSizePresetId = (typeof SECTION_SIZE_PRESETS)[number]["id"];
+export type SectionSizePreset = (typeof SECTION_SIZE_PRESETS)[number];
 
-export function sectionSizePreset({ width, height }: SectionSize): SectionSizePresetId | undefined {
-  return SECTION_SIZE_PRESETS.find((preset) => preset.width === width && preset.height === height)?.id;
+export function sectionSizePreset({ width, height }: SectionSize): SectionSizePreset | undefined {
+  return SECTION_SIZE_PRESETS.find((preset) => preset.width === width && preset.height === height);
 }
 
 /**

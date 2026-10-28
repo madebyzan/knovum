@@ -37,8 +37,7 @@
     "label": "Selección",
     "selectAll": "Seleccionar todo",
     "delete": "Eliminar seleccionados",
-    "toggleLock": "Bloquear o desbloquear selección",
-    "count": "{count} seleccionados"
+    "toggleLock": "Bloquear o desbloquear selección"
   },
   "kinds": {
     "group": "Grupo",
@@ -79,7 +78,11 @@
       "height": "Alto",
       "lockRatio": "Bloquear proporción",
       "unlockRatio": "Desbloquear proporción",
-      "autoHeight": "Con diseño automático, la altura depende del contenido"
+      "autoHeight": "Con diseño automático, la altura depende del contenido",
+      "presets": {
+        "a4": "A4",
+        "web": "Web"
+      }
     }
   },
   "lock": "Bloquear",

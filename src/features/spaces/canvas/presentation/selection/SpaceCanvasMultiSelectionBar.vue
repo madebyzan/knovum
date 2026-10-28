@@ -1,19 +1,16 @@
 <script setup lang="ts">
-import { AlignStartVertical, Group, LayoutGrid, Link2, Sparkles, SquareDashed } from "@lucide/vue";
+import { Group, LayoutGrid, Link2, Sparkles, SquareDashed } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiBadge from "../../../../../shared/ui/UiBadge.vue";
-import UiDropdownMenu from "../../../../../shared/ui/UiDropdownMenu.vue";
 import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
 import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
 import SpaceCanvasActionTrigger from "../SpaceCanvasActionTrigger.vue";
-import SpaceCanvasMenuTrigger from "../SpaceCanvasMenuTrigger.vue";
 import SpaceCanvasActionToolbar from "./SpaceCanvasActionToolbar.vue";
-import SpaceCanvasAlignmentItems from "./SpaceCanvasAlignmentItems.vue";
+import SpaceCanvasAlignmentPalette from "./SpaceCanvasAlignmentPalette.vue";
 import SpaceCanvasNodeAccessActions from "./SpaceCanvasNodeAccessActions.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceSelectionMoveMenu from "./SpaceSelectionMoveMenu.vue";
@@ -31,11 +28,9 @@ const props = defineProps<{
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
 const state = computed(() => props.actions.state.value);
-const count = computed(() => state.value.structureNodeIds.length);
-const countLabel = computed(() => t("spaces.canvas.selection.count", { count: count.value }));
 const identity = computed(() =>
   [
-    count.value,
+    state.value.structureNodeIds.length,
     state.value.arrangement.align,
     state.value.arrangement.autoLayout,
     state.value.canCreateGroup,
@@ -53,10 +48,6 @@ const identity = computed(() =>
     :available-width="availableWidth"
     :identity="identity"
   >
-    <UiBadge v-if="count > 1" class="mx-1.5 min-w-5 rounded-full px-1.5" :title="countLabel">
-      <span aria-hidden="true">{{ count }}</span>
-      <span class="sr-only">{{ countLabel }}</span>
-    </UiBadge>
     <SpaceCanvasActionTrigger
       v-if="state.arrangement.autoLayout"
       :label="t('spaces.canvas.arrange.tidy')"
@@ -64,24 +55,12 @@ const identity = computed(() =>
       :compact="compact"
       @invoke="actions.autoLayout('grid')"
     />
-    <UiDropdownMenu
+    <SpaceCanvasAlignmentPalette
       v-if="state.arrangement.align"
-      side="top"
-      align="center"
-      :side-offset="6"
-      class="min-w-44"
-    >
-      <template #trigger>
-        <SpaceCanvasMenuTrigger :label="t('spaces.canvas.align.title')">
-          <AlignStartVertical class="size-4.5" :stroke-width="1.6" />
-        </SpaceCanvasMenuTrigger>
-      </template>
-      <SpaceCanvasAlignmentItems
-        :availability="state.arrangement"
-        @align="actions.align"
-        @distribute="actions.distribute"
-      />
-    </UiDropdownMenu>
+      :availability="state.arrangement"
+      @align="actions.align"
+      @distribute="actions.distribute"
+    />
     <UiSeparator
       v-if="state.arrangement.align && (state.canCreateGroup || state.canCreateSection)"
       orientation="vertical"
@@ -116,7 +95,7 @@ const identity = computed(() =>
       @invoke="actions.ask"
     />
     <SpaceSelectionMoveMenu
-      v-if="count"
+      v-if="state.structureNodeIds.length"
       :disabled="!actions.editorProtection.canTransfer.value"
       @move="actions.moveToSpace"
     />

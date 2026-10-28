@@ -6,7 +6,8 @@ import { arrangementAvailability } from "../structure/action-availability";
 
 describe("Section frame size", () => {
   it("names a preset only for its exact size", () => {
-    expect(sectionSizePreset({ width: 1920, height: 1080 })).toBe("16:9");
+    expect(sectionSizePreset({ width: 1920, height: 1080 })?.id).toBe("16:9");
+    expect(sectionSizePreset({ width: 2480, height: 3508 })).toMatchObject({ id: "a4", named: true });
     expect(sectionSizePreset({ width: 1920, height: 1081 })).toBeUndefined();
   });
 

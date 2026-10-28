@@ -19,6 +19,7 @@ export const DYNAMIC_LOCALE_KEY_PREFIXES = [
   "spaces.canvas.align.",
   "spaces.canvas.distribute.",
   "spaces.canvas.noteFills.",
+  "spaces.canvas.sections.size.presets.",
   "spaces.canvas.selectionTextColors.",
   "spaces.canvas.textAlignments.",
   "spaces.canvas.textColors.",

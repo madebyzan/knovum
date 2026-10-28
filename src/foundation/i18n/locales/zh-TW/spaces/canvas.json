@@ -37,8 +37,7 @@
     "label": "目前選取",
     "selectAll": "全選",
     "delete": "刪除選取項目",
-    "toggleLock": "鎖定或解鎖選取項目",
-    "count": "已選取 {count} 項"
+    "toggleLock": "鎖定或解鎖選取項目"
   },
   "kinds": {
     "group": "組合",
@@ -79,7 +78,11 @@
       "height": "高度",
       "lockRatio": "鎖定長寬比",
       "unlockRatio": "解除鎖定長寬比",
-      "autoHeight": "自動版面時高度由內容決定"
+      "autoHeight": "自動版面時高度由內容決定",
+      "presets": {
+        "a4": "A4",
+        "web": "網頁"
+      }
     }
   },
   "lock": "鎖定",
