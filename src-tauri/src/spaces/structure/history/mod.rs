@@ -201,7 +201,7 @@ async fn fit_restored_content(
         .iter()
         .filter_map(|node| match node {
             super::StructureNode::Content { id, node_id, .. } if node_ids.contains(node_id) => {
-                Some(id.as_str())
+                Some(id.clone())
             }
             _ => None,
         })

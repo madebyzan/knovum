@@ -21,7 +21,7 @@ pub(super) struct TransferCompletion<'a> {
 
 pub(super) async fn complete(
     tx: &mut Transaction<'_, Sqlite>,
-    mut context: TransferCompletion<'_>,
+    context: TransferCompletion<'_>,
 ) -> Result<TransferSelectionResponse, AppError> {
     let request = context.request;
     append_events(
