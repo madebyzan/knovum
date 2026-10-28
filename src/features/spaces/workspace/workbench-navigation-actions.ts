@@ -15,6 +15,7 @@ import {
 import type { SpaceSessionContext } from "./space-session-context";
 import { syncInboxTitle } from "./space-title-actions";
 import { transitionActiveSpaceSession } from "./space-transition";
+import { restoreWorkbench } from "./workbench-restore-actions";
 import {
   createSpaceCanvasTab,
   createSpaceEditorTab,
@@ -38,7 +39,7 @@ export async function initializeSpaces(context: SpaceSessionContext, inboxTitle:
     context.spaces.value.find((space) => space.kind === "inbox") ??
     (await createAndTrackSpace(context, inboxTitle, "inbox"));
   await syncInboxTitle(context, inboxTitle);
-  await openSpace(context, inbox.id);
+  await restoreWorkbench(context, inbox);
   context.ready.value = true;
 }
 

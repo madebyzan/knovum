@@ -8,6 +8,7 @@ import { createEditorSurfaceActions } from "../../workspace/editor-surface-actio
 import { createRightSidebarActions } from "../../workspace/right-sidebar-actions";
 import { useEditorSessionProjection } from "../../workspace/use-editor-session-projection";
 import { closeWorkbenchTab } from "../../workspace/workbench-close-actions";
+import { useWorkbenchSessionPersistence } from "../../workspace/workbench-session";
 import type { SpaceState } from "../session-state";
 import { createSpaceSessionContext } from "../space-session-composition";
 import { assembleSpaceActions } from "./assemble-space-actions";
@@ -85,6 +86,7 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
   });
   const editors = createEditorSurfaceActions(spaceContext);
   useEditorSessionProjection(state, (tabId) => closeWorkbenchTab(spaceContext, tabId));
+  useWorkbenchSessionPersistence(state);
   const context = createRightSidebarActions(
     state,
     placement,

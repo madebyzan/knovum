@@ -60,19 +60,23 @@ async function loadSpaceSession(
     if (generation !== context.runtime.openGeneration) return undefined;
     await markSpaceOpenedAndTrack(context, spaceId);
     if (generation !== context.runtime.openGeneration) return undefined;
-    return {
-      apply: () => {
-        switchSpaceSession(context, spaceId, content);
-        scheduleSpaceKnowledgeIndex(spaceId);
-      },
-      retained: Boolean(retained),
-    };
+    return { apply: () => activateSpaceSession(context, spaceId, content), retained: Boolean(retained) };
   } finally {
     if (generation === context.runtime.openGeneration) {
       context.runtime.pendingSpaceId = undefined;
       context.loading.value = false;
     }
   }
+}
+
+/** Makes `content` the active session of a persisted Space and keeps its knowledge index current. */
+export function activateSpaceSession(
+  context: SpaceSessionContext,
+  spaceId: string,
+  content: SpaceSessionContent,
+) {
+  switchSpaceSession(context, spaceId, content);
+  scheduleSpaceKnowledgeIndex(spaceId);
 }
 
 export function cancelPendingSpaceOpen(context: SpaceSessionContext) {
