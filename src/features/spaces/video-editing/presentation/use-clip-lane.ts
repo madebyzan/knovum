@@ -49,9 +49,14 @@ export function useClipLane(
   });
 
   return {
+    /**
+     * Places the canvas over the visible slice, full lane height. The height is explicit: a canvas
+     * left at the base style's `height: auto` takes its height from its own aspect ratio, which the
+     * resize observer above would then feed back into the canvas.
+     */
     style: computed(() =>
       slice.value
-        ? { left: `${slice.value.leftPx}px`, width: `${slice.value.widthPx}px` }
+        ? { left: `${slice.value.leftPx}px`, width: `${slice.value.widthPx}px`, height: "100%" }
         : { display: "none" },
     ),
     /** Sizes the canvas for the visible slice and clears it; nothing when nothing is visible. */
