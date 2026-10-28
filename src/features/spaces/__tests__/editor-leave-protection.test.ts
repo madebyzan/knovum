@@ -1,45 +1,14 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it, onTestFinished, vi } from "vitest";
-import { defineComponent, nextTick, shallowRef } from "vue";
+import { defineComponent, nextTick } from "vue";
 
 import { ApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import { useSpeechProjectLeave } from "../speech/use-speech-project-leave";
-import { useVideoEditLeave } from "../video-editing/presentation/use-video-edit-leave";
 import { flushSpaceSessionContent } from "../workspace/session-participants";
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 
 describe("editor leave protection", () => {
-  it("rejects the Space leave when a dirty video editor cancels", async () => {
-    const discard = vi.fn<() => void>();
-    const close = vi.fn<() => Promise<void>>().mockResolvedValue();
-    let leave: ReturnType<typeof useVideoEditLeave> | undefined;
-    const Harness = defineComponent({
-      setup() {
-        leave = useVideoEditLeave({
-          tab: { id: "video-tab", kind: "video", spaceId: "space", nodeId: "video" },
-          dirty: shallowRef(true),
-          saving: shallowRef(false),
-          save: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),
-          discard,
-          close,
-        });
-        return () => null;
-      },
-    });
-    const wrapper = mount(Harness);
-    onTestFinished(() => wrapper.unmount());
-
-    const leaving = flushSpaceSessionContent();
-    await nextTick();
-    expect(leave?.closeDialogOpen.value).toBe(true);
-    leave?.cancel();
-
-    await expect(leaving).rejects.toBeInstanceOf(ApplicationLeaveCancelled);
-    expect(discard).not.toHaveBeenCalled();
-    expect(close).not.toHaveBeenCalled();
-  });
-
   it("does not switch speech projects when the draft leave prompt is cancelled", async () => {
     const openProject = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     let speech: ReturnType<typeof useSpeechProjectLeave> | undefined;

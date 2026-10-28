@@ -615,8 +615,10 @@ The default canvas layout shows the Spaces Sidebar and canvas. The right sidebar
 The workbench has exactly one tab strip, in the toolbar. One tab is one opened thing: a Space canvas,
 a document or a video editor. There is no second strip inside the work surface and no fixed canvas
 pseudo-tab, so a Space can be open with only a document tab. A new tab opens directly right of the
-active tab and existing order never rearranges itself. Titles identify the Space or resource, with
-type icons and a quiet unsaved marker. The Inbox canvas tab is permanent: it cannot be closed and
+active tab and existing order never rearranges itself. Titles identify the Space or resource with a
+type icon; a tab carries no save state, because every editor stores its work by itself and reports
+that in its own header (`SpaceEditorSaveStatus`). Open editors stay mounted while another tab is
+active, so returning to one does not rebuild it. The Inbox canvas tab is permanent: it cannot be closed and
 every close action keeps it, so the workbench is never empty. Opening a resource that already has a
 tab focuses that tab instead of duplicating it. Reka owns tab keyboard/ARIA behavior; overflow
 scrolls horizontally and the active tab remains visible. Closing a tab activates its right
@@ -628,9 +630,14 @@ The tab strip is the only place that closes an opened thing. Editor surfaces car
 affordance and no Escape-to-close shortcut: their headers hold editing state and editing actions
 only, and leaving an editor means activating another tab.
 
-Each tab reserves one trailing slot that holds either the unsaved marker or, while the tab is
-hovered or its close button is focused, the close button. Autosave therefore never changes how much
-room the label has, so a saving document cannot make its tab title reflow.
+Each tab reserves one trailing slot for its close button, shown while the tab is hovered or the
+button is focused, so hovering never changes how much room the label has.
+
+Every tab editor follows one save model (`workspace/use-editor-autosave.ts`): its work is stored a
+moment after the last edit, and leaving the tab or its Space stores what remains before the
+transition continues. The person never decides whether to keep an edit — undo takes an edit back —
+so an editor's explicit actions only make something (export, render), never persist the work itself.
+In-canvas edit sessions (image editing, speech projects) are not tab editors: they apply or cancel.
 
 Open editor resources show a compact editing indicator, separate from the user-authored lock icon.
 A protected selection disables deletion and cross-Space transfer, explains that its editor tabs must

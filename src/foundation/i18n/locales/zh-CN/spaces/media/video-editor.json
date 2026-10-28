@@ -149,14 +149,6 @@
   "timing": {
     "invalid": "请输入 {min}–{max} 秒之间的数值。"
   },
-  "unsaved": {
-    "title": "保存视频修改？",
-    "status": "有未保存的修改",
-    "description": "关闭前未保存的修改将丢失。"
-  },
-  "project": {
-    "saved": "视频编辑工程已保存"
-  },
   "render": {
     "action": "渲染视频",
     "task": "视频渲染",

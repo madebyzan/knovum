@@ -149,14 +149,6 @@
   "timing": {
     "invalid": "請輸入 {min}–{max} 秒之間的數值。"
   },
-  "unsaved": {
-    "title": "儲存影片修改？",
-    "status": "有未儲存的修改",
-    "description": "關閉前未儲存的修改將會遺失。"
-  },
-  "project": {
-    "saved": "影片編輯工程已儲存"
-  },
   "render": {
     "action": "渲染影片",
     "task": "影片渲染",

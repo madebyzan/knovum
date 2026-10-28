@@ -149,14 +149,6 @@
   "timing": {
     "invalid": "Saisissez une valeur entre {min} et {max} secondes."
   },
-  "unsaved": {
-    "title": "Enregistrer les modifications apportées à cette vidéo ?",
-    "status": "Modifications non enregistrées",
-    "description": "Vos modifications seront perdues si vous fermez sans enregistrer."
-  },
-  "project": {
-    "saved": "Projet de montage vidéo enregistré"
-  },
   "render": {
     "action": "Rendu vidéo",
     "task": "Rendu vidéo",

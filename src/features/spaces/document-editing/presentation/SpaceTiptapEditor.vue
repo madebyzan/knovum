@@ -10,6 +10,7 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { exportSpaceMarkdown } from "../../assets/export/text";
 import { registerDocumentEditCommands } from "../../commands/document-edit-commands";
 import { useSpaceStore } from "../../session/space-store";
+import SpaceEditorSaveStatus from "../../workspace/presentation/SpaceEditorSaveStatus.vue";
 import type { SpaceEditorTab } from "../../workspace/workbench-tab";
 import { useSpaceTiptapEditor } from "../use-space-tiptap-editor";
 import { useSpaceTiptapImageDrop } from "../use-space-tiptap-image-drop";
@@ -94,15 +95,7 @@ async function exportMarkdown() {
       />
       <span class="text-caption font-medium text-fg-secondary">{{ editorLabel }}</span>
       <div class="flex-1" />
-      <span class="text-caption-sm font-medium text-fg-tertiary">
-        {{
-          saveStatus === "saving"
-            ? t("common.saving")
-            : saveStatus === "unsaved"
-              ? t("common.unsaved")
-              : t("common.saved")
-        }}
-      </span>
+      <SpaceEditorSaveStatus :status="saveStatus" />
       <SpaceTiptapSearch ref="search" v-if="editor && active" :editor="editor" />
       <UiIconButton :label="t('spaces.importExport.markdown.export')" size="sm" @click="exportMarkdown">
         <Download class="size-3.5" />

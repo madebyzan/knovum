@@ -126,7 +126,6 @@ export function useVideoEditor(
       !session.error.value &&
       !!project.value &&
       !previewError.value &&
-      !actions.saving.value &&
       !actions.rendering.value &&
       [...project.value.videoTrack.clips, ...project.value.audioTrack.clips].every(({ assetId }) =>
         materials.available.value.has(assetId),

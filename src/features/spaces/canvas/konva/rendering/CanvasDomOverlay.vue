@@ -28,14 +28,7 @@ provide(
   computed(() => props.zoom),
 );
 const previewPolicy = computed(() => canvasPreviewPolicy(props.zoom * 100, props.scene.nodes.length));
-const visibleNodes = computed(() =>
-  sceneNodesInPaintOrder(
-    props.scene,
-    props.renderingEnabled
-      ? props.visibleNodeIds
-      : new Set(props.interactiveNodeId ? [props.interactiveNodeId] : []),
-  ),
-);
+const visibleNodes = computed(() => sceneNodesInPaintOrder(props.scene, props.visibleNodeIds));
 useCameraStyle(props.camera, world, worldTransform);
 </script>
 

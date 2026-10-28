@@ -6,7 +6,7 @@ import type { CanvasScene } from "../scene/canvas-scene";
 import { restingRelations } from "../scene/scene-relations";
 import { loadCanvasOverviewImages } from "./assets";
 import { canvasOverviewViewport, canvasViewportThumbnail } from "./geometry";
-import { drawCanvasOverviewNode } from "./nodes";
+import { canvasOverviewLabelled, createCanvasOverviewNode } from "./nodes";
 
 const WIDTH = 480;
 const HEIGHT = 270;
@@ -100,13 +100,15 @@ async function renderCanvasThumbnail(
     }
     for (const sceneNode of scene.nodes) {
       const image = images.get(sceneNode.node.id);
-      drawCanvasOverviewNode({
-        parent: world,
-        sceneNode,
-        palette,
-        scale: viewport.scale,
-        ...(image ? { image } : {}),
-      });
+      const { frame } = sceneNode.layout;
+      world.add(
+        createCanvasOverviewNode({
+          sceneNode,
+          palette,
+          labelled: canvasOverviewLabelled(sceneNode, viewport.scale),
+          ...(image ? { image } : {}),
+        }).setAttrs({ x: frame.x, y: frame.y, rotation: frame.rotation }),
+      );
     }
     layer.draw();
     return stage.toBlob({ mimeType: "image/jpeg", quality: 0.86, pixelRatio: 1 });

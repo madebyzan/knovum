@@ -16,7 +16,13 @@ editor or a video editor; editor tabs identify a concrete Space-owned node and e
 reopening that target activates its existing tab instead of creating a second one. The active
 surface is a readonly projection of the active tab and the navigation destination, never a second
 writable editor selector. A Space session stays loaded while at least one tab references it, and is
-released once the last one closes. The library is an application navigation destination and
+released once the last one closes. While another Space is active, an open Space retains the content
+it last showed and its undo history (`workspace/retained-space-sessions.ts`), so returning to it
+shows that content without a projection read. Work may have published into it meanwhile, so the
+return then revalidates it in the background through the same reload as a publication: a read that
+a local edit overlapped is read again once the session is idle, and only changed content is
+replaced. Each Space's camera is likewise held by the canvas view-state store, which writes it in
+order, so a returning canvas mounts at its camera without waiting on storage. The library is an application navigation destination and
 preserves the active tab while hidden.
 
 Tabs preserve drafts and editor history when switching tabs, Spaces, the library or Settings.
@@ -27,15 +33,16 @@ deleting a Space prepares all its editor owners; cancelling a later decision nev
 drafts or executes a prepared discard. Actual application exit prepares every retained editor
 through the existing window close coordinator. Successful durable writes need not be rolled back
 after a later cancellation. The Inbox canvas tab is permanent, so the workbench always retains one
-tab. Tabs and unsaved memory drafts do not survive application restart. Document auto-save and
-saved video projects retain their existing durable storage owners.
+tab. Tabs and unsaved memory drafts do not survive application restart. Documents and video
+projects are stored by the same editor autosave, each in its own durable owner.
 
 Document sessions own their drafts; retained Tiptap instances own document history and selection.
 Video sessions own project drafts, history, the selected item, playback position and the rejection
 state of a project whose stored payload fails validation.
 Only the active editor registers commands. Hidden video views stop their render loop, silence
-scheduled audio and suspend thumbnail work; preview preparation is cancelled while hidden. Document timers pause while inactive, and navigation
-flushes pending document writes before changing the active Space. Save failures retain the draft and
+scheduled audio and suspend thumbnail work; preview preparation is cancelled while hidden. Autosave
+timers pause while an editor is inactive, and navigation flushes pending editor writes before
+changing the active Space. Save failures retain the draft and
 block the requested transition. Saves and task callbacks bind to explicit Space/node identities.
 Markdown writes its text and rich document together; Rust validates that document and the saved video
 project at the node boundary. Project saving and rendering share the video owner's structural rules.
@@ -56,7 +63,7 @@ commit, including coordinated history in another Space. The entire transaction r
 its revision and history position. Resources already missing before the transaction are error-state
 sessions, not a reason to block unrelated work. Tab opening waits for admitted mutations before it
 creates an editor owner, so its protection cannot appear halfway through a structural transaction.
-Closing a tab releases protection only after the existing close/save decision succeeds. Space close
+Closing a tab releases protection only after its editor has stored its work. Space close
 and archive explicitly end their owned sessions through the same scoped close protocol.
 Clean editors reload changed resources with a fresh history. Dirty conflicts or missing owners keep
 the draft, expose an error and require an explicit discard before closing; they never overwrite new
@@ -638,9 +645,10 @@ export-backed styles. Text size remains
 export. Each overlay stores its full style and preserves its text whitespace across saving and rendering. Application commands own local shortcuts without
 feature-level global keyboard listeners.
 
-Saving records one project snapshot through normal Space history. A local edit history provides
-undo and redo before Save. Close, Space navigation, route changes, update installation and quit
-require an explicit Save, Discard or Cancel decision for unsaved work. Failed writes retain the draft.
+The project is stored by the editor autosave: one snapshot a moment after the last edit, and what
+remains whenever the tab or its Space is left, so there is no Save action and no save decision. A
+local edit history provides undo and redo. Render stores pending edits first, then renders the stored
+project into a new video beside the source. Failed writes retain the draft and block the transition.
 Draft structure is validated on saving; live source admission occurs at rendering so deleted material
 can still be inspected and removed from a draft, and package restore does not depend on insertion
 order. Missing or replaced material is unavailable in preview and prevents rendering until corrected.
@@ -738,6 +746,17 @@ Scene geometry follows that result immediately while node content mounts under a
 settled camera clears at once; a pan into a dense region therefore mounts a few cards per frame instead of a
 batch inside one frame. The adapter document adopts the camera when it stops moving, which keeps camera
 motion out of document identity, projection and view-state persistence.
+
+Content mounts only where it is legible (`scene/detail-level.ts`): below `NODE_DETAIL_MIN_ZOOM` body text
+renders under about six pixels, so visible nodes keep their geometry and are drawn by the overview layer
+(`rendering/use-canvas-overview-layer.ts`) instead of mounting cards — the same reduced drawing
+(`overview/nodes.ts`) that renders Space covers, from one cache of downscaled preview bitmaps
+(`overview/assets.ts`). Opening, switching to or zooming out of a Space therefore mounts a number of cards
+bounded by the screen, not by the Space; the node being edited always keeps its content. The overview layer
+redraws a node only when its content, size, appearance, palette, label legibility or image changes, and
+otherwise only follows its frame. A canvas covered by another surface keeps its layout and its mounted
+cards and only stops painting (`visibility: hidden`), so returning to it rebuilds nothing and content that
+measures itself keeps measuring its real size.
 
 Settlement is the expensive edge of camera motion - it hands drawing back to the vendor, redraws every layer
 including the hit graph, and lets the document adopt the camera - so a gesture holds the camera open from its

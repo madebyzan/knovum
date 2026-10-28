@@ -22,7 +22,6 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
   let pendingView:
     | { spaceId: string; viewport: CanvasDocumentV1["viewport"]; persisted: boolean }
     | undefined;
-  let viewSaveTail = Promise.resolve();
   let generation = 0;
   const scheduleViewSave = useDebounceFn(() => void flushView().catch(options.reportError), 250);
   const detachSessionCommit = registerSpaceSessionParticipant({
@@ -31,7 +30,8 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
   });
 
   async function start() {
-    await flushView();
+    // The view store records a pending camera at once, so starting never waits for its write.
+    void flushView().catch(options.reportError);
     const currentGeneration = ++generation;
     const storedView =
       options.persistence() === "persisted" ? await canvasViewStateOperations.load(options.spaceId()) : null;
@@ -67,10 +67,8 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
     scheduleViewSave.cancel();
     const pending = pendingView;
     pendingView = undefined;
-    if (!pending) return viewSaveTail;
-    if (!pending.persisted) return viewSaveTail;
-    viewSaveTail = viewSaveTail.then(() => canvasViewStateOperations.save(pending.spaceId, pending.viewport));
-    return viewSaveTail;
+    if (pending?.persisted) await canvasViewStateOperations.save(pending.spaceId, pending.viewport);
+    else await canvasViewStateOperations.settled();
   }
 
   function dispose() {

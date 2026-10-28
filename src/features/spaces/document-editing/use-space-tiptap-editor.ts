@@ -14,6 +14,7 @@ import type { SpaceEditorPayload } from "../model/nodes/capabilities";
 import { useSpaceStore } from "../session/space-store";
 import type { SpaceEditorTab } from "../workspace/workbench-tab";
 import { useDocumentSessionStore } from "./document-session-store";
+import { isDocumentEdit } from "./tiptap-edits";
 import { createSpaceTiptapExtensions } from "./tiptap-extensions";
 import { revealKnowledgeInEditor } from "./tiptap-locator";
 import { spaceTiptapHeadings } from "./tiptap-outline";
@@ -69,7 +70,8 @@ export function useSpaceTiptapEditor(
       if (active.value) instance.commands.focus("start");
       void derive();
     },
-    onUpdate: () => {
+    onUpdate: (update) => {
+      if (!isDocumentEdit(update)) return;
       session.state.revision.value += 1;
       void derive();
     },

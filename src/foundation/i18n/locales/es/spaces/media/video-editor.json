@@ -149,14 +149,6 @@
   "timing": {
     "invalid": "Introduce un valor entre {min} y {max} segundos."
   },
-  "unsaved": {
-    "title": "¿Guardar cambios en este vídeo?",
-    "status": "Cambios no guardados",
-    "description": "Sus ediciones se perderán si cierra sin guardar."
-  },
-  "project": {
-    "saved": "Proyecto de edición de vídeo guardado"
-  },
   "render": {
     "action": "Renderizar vídeo",
     "task": "Renderizado de vídeo",

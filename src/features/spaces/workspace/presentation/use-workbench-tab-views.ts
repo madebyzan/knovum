@@ -13,10 +13,12 @@ export interface WorkbenchTabView {
   readonly title: string;
   readonly active: boolean;
   readonly canClose: boolean;
-  readonly dirty: boolean;
 }
 
-/** Projects the workbench tab list into the titles, markers and affordances the strip renders. */
+/**
+ * Projects the workbench tab list into the titles and affordances the strip renders. A tab carries no
+ * save state: every editor stores its work by itself and reports that in its own header.
+ */
 export function useWorkbenchTabViews() {
   const store = useSpaceStore();
   const documents = useDocumentSessionStore();
@@ -37,15 +39,6 @@ export function useWorkbenchTabViews() {
     return space.kind === "inbox" ? t("spaces.space.inbox") : space.title;
   }
 
-  function dirty(tab: SpaceWorkbenchTab) {
-    if (!isSpaceEditorTab(tab)) return false;
-    return Boolean(
-      tab.kind === "document"
-        ? documents.sessions.get(tab.id)?.dirty.value
-        : videos.sessions.get(tab.id)?.history.dirty.value,
-    );
-  }
-
   return computed<readonly WorkbenchTabView[]>(() =>
     store.tabs.map((tab) => ({
       id: tab.id,
@@ -54,7 +47,6 @@ export function useWorkbenchTabViews() {
       title: isSpaceEditorTab(tab) ? editorTitle(tab) : spaceTitle(tab.spaceId),
       active: store.activeTabId === tab.id,
       canClose: tab.id !== store.permanentTabId,
-      dirty: dirty(tab),
     })),
   );
 }

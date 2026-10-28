@@ -19,8 +19,8 @@ export function transitionActiveSpaceSession<T>(
           await waitForSpaceMutations(context.history);
         },
         purpose === "close"
-          ? { purpose }
-          : { purpose, spaceIds: context.activeSpaceId.value ? [context.activeSpaceId.value] : [] },
+          ? {}
+          : { spaceIds: context.activeSpaceId.value ? [context.activeSpaceId.value] : [] },
       );
       await nextTick();
       context.captureOverview();

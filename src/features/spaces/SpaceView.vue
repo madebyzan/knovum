@@ -78,7 +78,7 @@ onMounted(() => void initialize());
     </div>
     <div v-else-if="store.ready" class="flex min-h-0 flex-1 flex-col">
       <div class="relative min-h-0 flex-1">
-        <section v-show="surface.kind === 'canvas'" class="absolute inset-0 outline-none">
+        <section class="absolute inset-0 outline-none">
           <SpaceCanvas :rendering-enabled="canvasVisible" />
         </section>
         <SpaceAudioRecordingDock

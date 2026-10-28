@@ -1,11 +1,14 @@
 import { nextTick } from "vue";
+import { toast } from "vue-sonner";
 
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { ensureDraftSpace } from "./draft-space-actions";
 import { recordWorkbenchNavigation } from "./navigation-history";
 import { createAndTrackSpace } from "./space-creation";
 import { listSpaces } from "./space-operations";
 import {
   cancelPendingSpaceOpen,
+  refreshSpace,
   requireAvailableSpace,
   startSpaceSessionLoad,
 } from "./space-session-actions";
@@ -108,14 +111,14 @@ export async function enterWorkbenchTab(
   }
   const needsSession = tab.spaceId !== context.activeSpaceId.value;
   if (needsSession && context.runtime.pendingSpaceId === tab.spaceId) return false;
-  const load = needsSession
-    ? startSpaceSessionLoad(context, tab.spaceId, { markOpened: true, resetHistory: true })
-    : undefined;
-  return transitionActiveSpaceSession(context, async () => {
+  const load = needsSession ? startSpaceSessionLoad(context, tab.spaceId) : undefined;
+  let retained = false;
+  const entered = await transitionActiveSpaceSession(context, async () => {
     if (load) {
-      const applySession = await load.complete();
-      if (!applySession) return false;
-      applySession();
+      const session = await load.complete();
+      if (!session) return false;
+      session.apply();
+      retained = session.retained;
     }
     if (insertion) {
       if (isSpaceEditorTab(tab)) openEditorSession(context, tab);
@@ -125,6 +128,9 @@ export async function enterWorkbenchTab(
     await nextTick();
     return true;
   });
+  // A retained session is shown at once; what work published into it meanwhile arrives after.
+  if (retained) void refreshSpace(context).catch((error: unknown) => toast.error(getErrorMessage(error)));
+  return entered;
 }
 
 function openEditorSession(context: SpaceSessionContext, tab: SpaceEditorTab) {

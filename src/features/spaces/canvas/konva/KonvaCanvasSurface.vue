@@ -75,7 +75,6 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
     <KonvaStage
       ref="stage"
       :config="{
-        visible: renderingEnabled,
         listening: renderingEnabled,
         width: runtime.viewport.surface.width,
         height: runtime.viewport.surface.height,
@@ -106,6 +105,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         :zoom="runtime.viewport.zoom.value"
         v-bind="runtime.stage.value ? { stage: runtime.stage.value } : {}"
         :visible-node-ids="runtime.visibility.visibleNodeIds.value"
+        :detail-node-ids="runtime.visibility.visibleContentNodeIds.value"
         :visible-relation-ids="runtime.visibility.visibleRelationIds.value"
         @activate="runtime.activateNode"
         @connector-start="runtime.connectors.begin"

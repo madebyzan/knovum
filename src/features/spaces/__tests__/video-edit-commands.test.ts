@@ -14,13 +14,13 @@ import type { VideoSelection } from "../video-editing/selection";
 import { useVideoSessionStore } from "../video-editing/video-session-store";
 
 const context = vi.hoisted(() => ({
-  store: { activeSpaceId: "origin", closeTab: vi.fn<() => Promise<void>>() },
-  save: vi.fn<() => Promise<boolean>>(),
+  store: { activeSpaceId: "origin" },
+  persist: vi.fn<() => Promise<void>>(),
   render: vi.fn<(...args: unknown[]) => Promise<void>>(),
 }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => context.store }));
 vi.mock("../video-editing/use-video-project-save", () => ({
-  useVideoProjectSave: () => context.save,
+  useVideoProjectSave: () => ({ persist: context.persist, status: { value: "saved" } }),
 }));
 vi.mock("../video-editing/render", () => ({ renderVideoEdit: context.render }));
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
@@ -100,15 +100,15 @@ function runCommand(id: string) {
 it.each(["space", "project"])(
   "keeps the admitted source snapshot when %s changes during save",
   async (change) => {
-    const saving = deferred<boolean>();
-    context.save.mockReturnValueOnce(saving.promise);
+    const saving = deferred<void>();
+    context.persist.mockReturnValueOnce(saving.promise);
     const { source, session, originalProject, actions } = setup();
     session.history.commit({ ...originalProject, output: { ...originalProject.output, frameRate: 25 } });
     const rendering = actions.render();
-    await vi.waitFor(() => expect(context.save).toHaveBeenCalledOnce());
+    await vi.waitFor(() => expect(context.persist).toHaveBeenCalledOnce());
     if (change === "space") context.store.activeSpaceId = "other";
     else session.project.value = { ...originalProject, sourceRevision: "new-revision" };
-    saving.resolve(true);
+    saving.resolve();
     await rendering;
     expect(context.render.mock.calls).toEqual([
       ["origin", source, { ...originalProject, output: { ...originalProject.output, frameRate: 25 } }],

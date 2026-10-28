@@ -4,10 +4,12 @@ interface SpaceMutationState {
 
 const idleWaitersByHistory = new WeakMap<SpaceMutationState, Set<() => void>>();
 const closedAdmissions = new WeakSet<SpaceMutationState>();
+const admissionsByHistory = new WeakMap<SpaceMutationState, number>();
 
 export function beginSpaceMutation(history: SpaceMutationState) {
   if (closedAdmissions.has(history)) throw new Error("Space session is transitioning");
   history.pendingMutations += 1;
+  admissionsByHistory.set(history, spaceMutationAdmissions(history) + 1);
   let active = true;
   return () => {
     if (!active) return;
@@ -32,6 +34,14 @@ export async function waitForSpaceMutations(history: SpaceMutationState) {
     waiters.add(resolve);
     idleWaitersByHistory.set(history, waiters);
   });
+}
+
+/**
+ * Counts every mutation the session has admitted. A read that sees the same count before and after
+ * it ran overlapped no local write, so it cannot be older than what the session shows.
+ */
+export function spaceMutationAdmissions(history: SpaceMutationState) {
+  return admissionsByHistory.get(history) ?? 0;
 }
 
 export function closeSpaceMutationAdmission(history: SpaceMutationState) {

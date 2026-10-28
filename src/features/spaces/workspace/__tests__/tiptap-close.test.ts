@@ -13,7 +13,7 @@ it.each(["saved", "failed"])("returns to canvas only after its session is %s", a
   else persist.mockRejectedValue(failure);
   onTestFinished(
     registerSpaceSessionParticipant({
-      editorOwner: { spaceId: tab.spaceId, tabId: tab.id, commitOnSwitch: true },
+      editorOwner: { spaceId: tab.spaceId, tabId: tab.id },
       commit: persist,
     }),
   );

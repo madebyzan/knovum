@@ -149,14 +149,6 @@
   "timing": {
     "invalid": "Inserisci un valore tra {min} e {max} secondi."
   },
-  "unsaved": {
-    "title": "Vuoi salvare le modifiche a questo video?",
-    "status": "Modifiche non salvate",
-    "description": "Le modifiche andranno perse se chiudi senza salvare."
-  },
-  "project": {
-    "saved": "Progetto di editing video salvato"
-  },
   "render": {
     "action": "Renderizza il video",
     "task": "Rendering video",

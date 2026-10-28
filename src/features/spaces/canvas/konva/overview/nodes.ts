@@ -4,40 +4,42 @@ import type { CanvasPalette } from "../rendering/use-canvas-palette";
 import type { CanvasSceneNode } from "../scene/canvas-scene";
 
 interface CanvasOverviewNodeOptions {
-  parent: Konva.Group;
   sceneNode: CanvasSceneNode;
   palette: CanvasPalette;
-  scale: number;
-  image?: HTMLImageElement;
+  /** Whether the node is large enough on screen for its label to be drawn. */
+  labelled: boolean;
+  image?: ImageBitmap;
 }
 
-export function drawCanvasOverviewNode(options: CanvasOverviewNodeOptions) {
-  const { parent, sceneNode, palette, scale, image } = options;
+/** Whether a node drawn at `scale` is large enough on screen to carry its label. */
+export function canvasOverviewLabelled({ layout, node }: CanvasSceneNode, scale: number) {
+  const { width, height } = layout.frame;
+  return node.data.kind === "text" ? width * scale >= 28 : width * scale >= 38 && height * scale >= 24;
+}
+
+/**
+ * The reduced drawing of a node — its surface, preview image and label — in the node's local
+ * coordinates. Space covers and the canvas at overview zoom draw nodes with it alike.
+ */
+export function createCanvasOverviewNode(options: CanvasOverviewNodeOptions) {
+  const { sceneNode, palette, labelled, image } = options;
   const { frame } = sceneNode.layout;
   const { data } = sceneNode.node;
-  const group = new Konva.Group({
-    x: frame.x,
-    y: frame.y,
-    rotation: frame.rotation,
-    listening: false,
-  });
-  parent.add(group);
-
+  const group = new Konva.Group({ listening: false });
   if (data.kind === "text") {
-    drawTextNode(group, sceneNode, palette, scale);
-    return;
+    if (labelled) drawTextNode(group, sceneNode, palette);
+    return group;
   }
   drawNodeBackground(group, sceneNode, palette);
   if (image) drawPreviewImage(group, sceneNode, image);
-  if (data.kind === "image") return;
-  if (frame.width * scale < 38 || frame.height * scale < 24) return;
+  if (data.kind === "image" || !labelled) return group;
   if (data.kind === "audio") drawAudioWave(group, frame.width, frame.height, palette);
   drawNodeLabel(group, sceneNode, palette, Boolean(image));
+  return group;
 }
 
-function drawTextNode(group: Konva.Group, sceneNode: CanvasSceneNode, palette: CanvasPalette, scale: number) {
+function drawTextNode(group: Konva.Group, sceneNode: CanvasSceneNode, palette: CanvasPalette) {
   const { frame, appearance } = sceneNode.layout;
-  if (frame.width * scale < 28) return;
   const { data } = sceneNode.node;
   if (data.kind !== "text") return;
   group.add(
@@ -69,7 +71,7 @@ function drawNodeBackground(group: Konva.Group, sceneNode: CanvasSceneNode, pale
   );
 }
 
-function drawPreviewImage(group: Konva.Group, sceneNode: CanvasSceneNode, image: HTMLImageElement) {
+function drawPreviewImage(group: Konva.Group, sceneNode: CanvasSceneNode, image: ImageBitmap) {
   const { frame } = sceneNode.layout;
   const imageHeight = sceneNode.node.data.kind === "image" ? frame.height : frame.height * 0.72;
   group.add(
@@ -121,9 +123,9 @@ function noteFontStyle(note: boolean, appearance: CanvasSceneNode["layout"]["app
   return note && appearance?.fontWeight === "bold" ? "bold" : "normal";
 }
 
-function coverCrop(image: HTMLImageElement, width: number, height: number) {
-  const sourceWidth = image.naturalWidth;
-  const sourceHeight = image.naturalHeight;
+function coverCrop(image: ImageBitmap, width: number, height: number) {
+  const sourceWidth = image.width;
+  const sourceHeight = image.height;
   const targetAspect = width / height;
   const sourceAspect = sourceWidth / sourceHeight;
   if (sourceAspect > targetAspect) {

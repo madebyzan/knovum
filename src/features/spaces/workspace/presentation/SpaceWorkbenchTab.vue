@@ -26,19 +26,9 @@ const ICONS = { space: LayoutDashboard, document: FileText, video: Film };
     >
       <component :is="ICONS[props.view.kind]" class="size-3.5 shrink-0" :stroke-width="1.6" />
       <span class="truncate">{{ props.view.title }}</span>
-      <span v-if="props.view.dirty" class="sr-only">{{ t("common.unsaved") }}</span>
     </TabsTrigger>
-    <!--
-      The unsaved marker and the close button share one reserved slot, so the label keeps its
-      width and never re-truncates while a document saves.
-    -->
+    <!-- The close button keeps a reserved slot, so the label never re-truncates on hover. -->
     <div class="relative mr-1.5 size-4 shrink-0">
-      <span
-        v-if="props.view.dirty"
-        class="grid size-4 place-items-center leading-none group-hover:invisible"
-        aria-hidden="true"
-        >•</span
-      >
       <button
         v-if="props.view.canClose"
         type="button"

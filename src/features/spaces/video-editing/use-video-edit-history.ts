@@ -67,9 +67,5 @@ export function useVideoEditHistory(project: Ref<VideoEditProject | undefined>) 
     commit,
     undo,
     redo,
-    discard: () => {
-      project.value = savedSnapshot.value;
-      reset(savedSnapshot.value);
-    },
   };
 }

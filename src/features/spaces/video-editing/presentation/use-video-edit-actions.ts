@@ -5,7 +5,6 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { systemSansFamily } from "../../../../foundation/typography/system-font";
 import { registerVideoEditCommands } from "../../commands/video-edit-commands";
-import { useSpaceStore } from "../../session/space-store";
 import { duplicateClip, splitClip } from "../edits/arrange";
 import { addTextOverlay } from "../edits/text";
 import { defaultTextStyle, type VideoEditProject } from "../project";
@@ -13,7 +12,6 @@ import { renderVideoEdit } from "../render";
 import { canSplitAt, lastFrameMs, stepFrame } from "../timing";
 import { useVideoProjectSave } from "../use-video-project-save";
 import type { VideoSession } from "../video-session-store";
-import { useVideoEditLeave } from "./use-video-edit-leave";
 import type { VideoSelectionController } from "./use-video-selection";
 
 interface ActionOptions {
@@ -32,19 +30,9 @@ interface ActionOptions {
 /** Editing commands shared by the toolbar, the context menus and the command palette. */
 export function useVideoEditActions(options: ActionOptions) {
   const { session, project, selection } = options;
-  const store = useSpaceStore();
   const { t } = useI18n();
-  const save = useVideoProjectSave(session);
+  const autosave = useVideoProjectSave(session, options.active);
   const canSplit = computed(() => !!project.value && canSplitAt(project.value, options.playheadMs()));
-
-  const leave = useVideoEditLeave({
-    tab: session.tab,
-    dirty: session.history.dirty,
-    saving: session.saving,
-    save,
-    close: () => store.closeTab(session.tab.id),
-    discard: session.history.discard,
-  });
 
   function split() {
     const current = project.value;
@@ -103,8 +91,8 @@ export function useVideoEditActions(options: ActionOptions) {
     if (session.rendering.value || !current) return;
     session.rendering.value = true;
     try {
-      if (session.history.dirty.value && !(await save())) return;
-      if (session.error.value) return;
+      // The render reads the stored project, so the edits it should include are stored first.
+      await autosave.persist();
       await renderVideoEdit(session.tab.spaceId, session.node.value, current);
     } catch (error) {
       toast.error(`${t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
@@ -133,9 +121,7 @@ export function useVideoEditActions(options: ActionOptions) {
           togglePlayback: options.toggle,
           step,
           jump,
-          save: async () => {
-            await save();
-          },
+          save: autosave.persist,
         }),
       );
     },
@@ -150,15 +136,9 @@ export function useVideoEditActions(options: ActionOptions) {
     remove,
     render,
     rendering: session.rendering,
-    save,
-    saving: session.saving,
+    saveStatus: autosave.status,
     split,
     step,
     jump,
-    closeDialogOpen: leave.closeDialogOpen,
-    cancelLeave: leave.cancel,
-    confirmDiscard: leave.discard,
-    confirmSave: leave.save,
-    requestClose: leave.requestClose,
   };
 }
