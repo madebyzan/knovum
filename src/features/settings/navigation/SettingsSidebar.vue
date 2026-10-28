@@ -7,8 +7,8 @@ import { useI18n } from "vue-i18n";
 
 import UiScrollArea from "../../../shared/ui/UiScrollArea.vue";
 import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
-import type { SettingsPaneId } from "../navigation/settings-pane";
-import { TITLE_KEY_BY_SETTINGS_GROUP, SETTINGS_REGISTRY } from "../navigation/settings-registry";
+import type { SettingsPaneId } from "./settings-pane";
+import { TITLE_KEY_BY_SETTINGS_GROUP, SETTINGS_REGISTRY } from "./settings-registry";
 
 const props = defineProps<{ activePane: SettingsPaneId; activeSetting?: string | undefined }>();
 const emit = defineEmits<{ back: []; select: [pane: SettingsPaneId, location?: string] }>();
