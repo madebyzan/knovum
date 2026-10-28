@@ -42,7 +42,7 @@ async function perform(action: () => Promise<unknown>) {
 
 <template>
   <div class="space-y-6" data-testid="about-settings-pane">
-    <UiSettingsSection :title="t('settings.general.about.title')">
+    <UiSettingsSection>
       <PreferenceField
         :label="t('common.productName')"
         :description="
