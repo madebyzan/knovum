@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 target
+# Vitest reporter output
+.vitest
 *.local
 .env
 .env.*
