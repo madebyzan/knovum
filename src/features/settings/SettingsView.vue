@@ -11,10 +11,10 @@ import LocalModelsSettings from "./ai/local-models/components/LocalModelsSetting
 import AppearanceSettingsPane from "./appearance/AppearanceSettingsPane.vue";
 import ArchivedSpacesSettingsPane from "./archives/ArchivedSpacesSettingsPane.vue";
 import BackupSettingsPane from "./backup/BackupSettingsPane.vue";
-import SettingsSidebar from "./navigation/SettingsSidebar.vue";
 import DesktopAgentsSettingsPane from "./desktop-agents/DesktopAgentsSettingsPane.vue";
 import { resolveSettingsPaneId, type SettingsPaneId } from "./navigation/settings-pane";
 import { getSettingsDefinition } from "./navigation/settings-registry";
+import SettingsSidebar from "./navigation/SettingsSidebar.vue";
 import { useSettingsLeaveCoordinator } from "./navigation/use-settings-leave-coordinator";
 import NotificationsSettingsPane from "./notifications/NotificationsSettingsPane.vue";
 import UsageSettingsPane from "./usage/UsageSettingsPane.vue";
