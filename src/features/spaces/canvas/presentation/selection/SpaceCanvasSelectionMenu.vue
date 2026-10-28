@@ -61,8 +61,8 @@ const excludedActions = computed(() => [
   <UiDropdownMenu side="top" align="center" :side-offset="6" class="min-w-48">
     <template #trigger>
       <ToolbarButton as-child>
-        <UiIconButton :label="t('common.more')" :size="nodeBar ? 'md' : 'sm'">
-          <MoreHorizontal class="size-3.5" />
+        <UiIconButton :label="t('common.more')">
+          <MoreHorizontal class="size-4.5" :stroke-width="1.6" />
         </UiIconButton>
       </ToolbarButton>
     </template>

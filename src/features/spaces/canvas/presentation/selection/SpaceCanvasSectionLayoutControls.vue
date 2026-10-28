@@ -38,7 +38,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const NO_FILL = "none";
 const TOGGLE_ITEM_CLASSES =
-  "inline-flex h-full items-center rounded-[5px] px-2.5 text-caption font-medium text-fg-secondary outline-none transition-colors duration-100 ease-standard hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:opacity-40 data-[state=on]:bg-surface-raised data-[state=on]:text-fg-primary data-[state=on]:shadow-control motion-reduce:transition-none";
+  "inline-flex h-full items-center rounded-sm px-2.5 text-caption font-medium text-fg-secondary outline-none transition-colors duration-100 ease-standard hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:opacity-40 data-[state=on]:bg-surface-raised data-[state=on]:text-fg-primary data-[state=on]:shadow-control motion-reduce:transition-none";
 const lockRatio = shallowRef(false);
 const size = computed(() => ({ width: props.section.frame.width, height: props.section.frame.height }));
 const currentPreset = computed(() => sectionSizePreset(size.value));

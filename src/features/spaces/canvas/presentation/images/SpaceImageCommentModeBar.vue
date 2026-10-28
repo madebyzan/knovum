@@ -30,17 +30,16 @@ const MODES = [
         :label="$t(item.label)"
         :active="session.mode === item.id"
         tooltip
-        size="sm"
         class="data-[active=true]:bg-surface-selected data-[active=true]:text-fg-accent"
         @click.stop="session.setMode(item.id)"
       >
-        <component :is="item.icon" class="size-3.5" :stroke-width="1.55" />
+        <component :is="item.icon" class="size-4.5" :stroke-width="1.6" />
       </UiIconButton>
     </ToolbarButton>
     <ToolbarSeparator class="bg-border-divider mx-0.5 h-4 w-px" />
     <ToolbarButton as-child>
-      <UiIconButton :label="$t('common.cancel')" size="sm" @click.stop="session.cancel()">
-        <X class="size-3.5" :stroke-width="1.55" />
+      <UiIconButton :label="$t('common.cancel')" @click.stop="session.cancel()">
+        <X class="size-4.5" :stroke-width="1.6" />
       </UiIconButton>
     </ToolbarButton>
   </ToolbarRoot>

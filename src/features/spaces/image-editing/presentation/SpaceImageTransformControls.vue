@@ -4,8 +4,10 @@ import { ToolbarButton, ToolbarRoot } from "reka-ui";
 import type { DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { cn } from "../../../../shared/ui/cn";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { CANVAS_ACTION_BAR_CLASSES } from "../../canvas/presentation/canvas-action-classes";
 import type { ImageEdit } from "../image-edit";
 import { nextQuarterTurn } from "../image-edit";
 
@@ -25,7 +27,7 @@ function setRotation(event: Event) {
 
 <template>
   <ToolbarRoot
-    class="flex h-(--knovum-control-height-lg) w-max items-center gap-1 rounded-panel border border-stroke-strong bg-surface-overlay p-px text-fg-primary shadow-control"
+    :class="cn(CANVAS_ACTION_BAR_CLASSES, 'gap-1 text-fg-primary')"
     :aria-label="t('spaces.media.transform.title')"
   >
     <span class="px-2 text-label font-medium">{{ t("spaces.media.transform.title") }}</span>
@@ -46,7 +48,7 @@ function setRotation(event: Event) {
     <div class="flex h-full items-center border-l border-stroke-divider px-1">
       <ToolbarButton as-child>
         <UiIconButton :label="t('spaces.media.transform.rotateClockwise')" :disabled="busy" @click="rotate">
-          <RotateCw class="size-3.5" />
+          <RotateCw class="size-4.5" :stroke-width="1.6" />
         </UiIconButton>
       </ToolbarButton>
       <ToolbarButton as-child>
@@ -57,7 +59,7 @@ function setRotation(event: Event) {
           :disabled="busy"
           @click="emit('update', { flipHorizontal: !edit.flipHorizontal })"
         >
-          <FlipHorizontal2 class="size-3.5" />
+          <FlipHorizontal2 class="size-4.5" :stroke-width="1.6" />
         </UiIconButton>
       </ToolbarButton>
       <ToolbarButton as-child>
@@ -68,17 +70,15 @@ function setRotation(event: Event) {
           :disabled="busy"
           @click="emit('update', { flipVertical: !edit.flipVertical })"
         >
-          <FlipVertical2 class="size-3.5" />
+          <FlipVertical2 class="size-4.5" :stroke-width="1.6" />
         </UiIconButton>
       </ToolbarButton>
     </div>
     <div class="flex h-full items-center gap-1 border-l border-stroke-divider px-1">
-      <UiButton variant="ghost" size="sm" class="shadow-none" :disabled="busy" @click="emit('cancel')">{{
+      <UiButton variant="ghost" class="shadow-none" :disabled="busy" @click="emit('cancel')">{{
         t("common.cancel")
       }}</UiButton>
-      <UiButton variant="primary" size="sm" :disabled="busy" @click="emit('apply')">{{
-        t("common.apply")
-      }}</UiButton>
+      <UiButton variant="primary" :disabled="busy" @click="emit('apply')">{{ t("common.apply") }}</UiButton>
     </div>
   </ToolbarRoot>
 </template>
