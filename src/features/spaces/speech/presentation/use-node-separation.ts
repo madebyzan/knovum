@@ -1,5 +1,6 @@
 import { computed, watch, type Ref } from "vue";
 
+import { admitAiRequirements } from "../../../../foundation/ai/ai-readiness-admission";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
 import { useSourceSeparation } from "../use-source-separation";
@@ -33,8 +34,10 @@ export function useNodeSeparation(node: Readonly<Ref<SpaceCanvasNode | undefined
     { immediate: true },
   );
   async function startSeparation() {
-    if (!unavailableReason.value && store.activeSpaceId && node.value && source.value)
-      await separation.start(store.activeSpaceId, node.value.id, source.value);
+    if (unavailableReason.value || !store.activeSpaceId || !node.value || !source.value) return;
+    const [spaceId, nodeId, media] = [store.activeSpaceId, node.value.id, source.value];
+    if (await admitAiRequirements([{ kind: "localCapability", capability: "speechSeparation" }]))
+      await separation.start(spaceId, nodeId, media);
   }
   return { separation, unavailableReason, startSeparation };
 }

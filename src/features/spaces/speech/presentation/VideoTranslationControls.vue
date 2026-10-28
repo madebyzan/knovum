@@ -6,11 +6,13 @@ import { useI18n } from "vue-i18n";
 
 import { availableModelTargets, defaultExecutionTarget } from "../../../../foundation/ai/ai-execution";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
+import AiReadinessNotice from "../../../../foundation/ai/AiReadinessNotice.vue";
 import {
   LABEL_KEY_BY_TRANSLATION_TARGET,
   TRANSLATION_TARGETS,
   type TranslationTarget,
 } from "../../../../foundation/ai/translation";
+import { useAiReadiness } from "../../../../foundation/ai/use-ai-readiness";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { VideoTranslation } from "../../contracts/generated/VideoTranslation";
@@ -49,6 +51,7 @@ const languageOptions = computed(() =>
   TRANSLATION_TARGETS.map((value) => ({ value, label: t(LABEL_KEY_BY_TRANSLATION_TARGET[value]) })),
 );
 const targets = computed(() => availableModelTargets(settings.value, "translation"));
+const readiness = useAiReadiness([{ kind: "modelChoice", purpose: "translation" }]);
 const targetValue = computed(() => {
   const selected = target.value;
   return selected
@@ -157,6 +160,7 @@ function isTranslationTarget(value: string | undefined): value is TranslationTar
         <Square class="size-3.5" />{{ t("spaces.speech.translation.cancel") }}
       </UiButton>
     </div>
+    <AiReadinessNotice :readiness="readiness" />
     <p v-if="error" class="text-caption text-fg-danger" role="alert">
       {{ t("spaces.speech.translation.failed") }}: {{ error }}
     </p>

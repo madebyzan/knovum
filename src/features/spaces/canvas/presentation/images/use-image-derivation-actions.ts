@@ -1,7 +1,8 @@
 import { computed, shallowRef, type Ref } from "vue";
-import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
+import { openAiSettings } from "../../../../../foundation/ai/ai-settings-navigation";
+import { useAiReadiness } from "../../../../../foundation/ai/use-ai-readiness";
 import { getErrorMessage } from "../../../../../foundation/errors/error-format";
 import { canRunAction } from "../../../../../shared/contracts/action-availability";
 import type { ImageExecutionTarget } from "../../../contracts/generated/ImageExecutionTarget";
@@ -24,7 +25,6 @@ interface ImageDerivationActionsInput {
 }
 
 export function useImageDerivationActions({ node, mode, open, close }: ImageDerivationActionsInput) {
-  const router = useRouter();
   const imageDimensions = useImageSourceDimensionsStore();
   const nodeOperations = useNodeOperationGate();
   const capabilities = useImageOperationCapabilities(open);
@@ -38,6 +38,10 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
     return selected
       ? targetOptions.value.find((option) => JSON.stringify(option.execution) === JSON.stringify(selected))
       : targetOptions.value.find((option) => option.selected);
+  });
+  const readiness = useAiReadiness(() => {
+    const execution = mode === "upscale" ? executionOption.value?.execution : undefined;
+    return execution?.type === "local" ? [{ kind: "localModel", model: execution.model }] : [];
   });
   const dimensions = computed(() => {
     const loaded = imageDimensions.forNode(node.value.id, node.value.data.sourceRevision);
@@ -76,9 +80,9 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
       : availability.value;
   }
 
-  function openAiSettings() {
+  function openProviderSettings() {
     close();
-    void router.push({ name: "settings", query: { pane: "aiProviders" } });
+    void openAiSettings("aiProviders");
   }
 
   async function run(operation: ImageOperation) {
@@ -103,10 +107,11 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
     executionOption,
     selectExecution: (execution: ImageExecutionTarget) => (selectedExecution.value = execution),
     availability,
+    readiness,
     help,
     targetDimensions,
     optionAvailability,
-    openAiSettings,
+    openAiSettings: openProviderSettings,
     run,
   };
 }

@@ -1,3 +1,4 @@
+import { admitAiRequirements } from "../../../foundation/ai/ai-readiness-admission";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { ConversationTaskUpdate } from "../contracts/generated/ConversationTaskUpdate";
 import type { SubmitConversationTaskRequest } from "../contracts/generated/SubmitConversationTaskRequest";
@@ -102,6 +103,17 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
       input.messages.value = input.messages.value.filter((message) => message.id !== messageId);
   }
 
+  /**
+   * A conversation starts on its executor; one that is off or not installed is explained here,
+   * while the draft is still in the composer, rather than by a failed launch.
+   */
+  async function admit(submitted: number) {
+    const admitted = await admitAiRequirements([
+      { kind: "routed", purpose: "knowledge", target: input.target.value },
+    ]);
+    return admitted && submitted === generation;
+  }
+
   async function send() {
     if (!canSubmitConversation(input, state)) return;
     const request = conversationTaskRequest({
@@ -133,6 +145,7 @@ export function createConversationTaskSubmission(options: ConversationTaskSubmis
     state.error.value = undefined;
     state.live.value = [];
     try {
+      if (!(await admit(submitted))) return;
       await input.ensureSpacePersisted();
       await input.clearDraft(request);
       input.messages.value = [...input.messages.value, pendingMessage];

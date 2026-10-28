@@ -1,19 +1,19 @@
 import { mount } from "@vue/test-utils";
 import { beforeEach, expect, it, vi } from "vitest";
-import { shallowRef, type ShallowRef } from "vue";
+import { shallowRef } from "vue";
+import type * as VueI18n from "vue-i18n";
 
+import type { AiReadiness } from "../../../../../foundation/ai/ai-readiness";
 import type { LocalModelAvailability } from "../../../../../shared/contracts/generated/LocalModelAvailability";
 import SpaceTranscriptAlignmentControl from "../SpaceTranscriptAlignmentControl.vue";
 
-type ModelState = {
-  data: ShallowRef<LocalModelAvailability[] | undefined>;
-  isPending: ShallowRef<boolean>;
-  error: ShallowRef<Error | null>;
-};
-const models = vi.hoisted(() => ({ useLocalModelsQuery: vi.fn<() => ModelState>() }));
-vi.mock("../../../../../foundation/runtime/use-local-models-query", () => models);
-vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
-const selected: LocalModelAvailability = {
+const readiness = vi.hoisted(() => ({ current: undefined as unknown as { value: AiReadiness } }));
+vi.mock("../../../../../foundation/ai/use-ai-readiness", () => ({ useAiReadiness: () => readiness.current }));
+vi.mock("vue-i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof VueI18n>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
+const aligner: LocalModelAvailability = {
   id: "qwen3AlignerQ8",
   name: "Qwen3 Q8",
   capability: "speechAlignment",
@@ -31,30 +31,35 @@ const selected: LocalModelAvailability = {
   memoryAdvisoryBytes: null,
 };
 beforeEach(() => {
-  models.useLocalModelsQuery.mockReturnValue({
-    data: shallowRef([selected]),
-    isPending: shallowRef(false),
-    error: shallowRef(null),
-  });
+  readiness.current = shallowRef<AiReadiness>({ state: "ready" });
 });
 
-it("emits align event when the alignment button is clicked", async () => {
-  const wrapper = mount(SpaceTranscriptAlignmentControl, {
+function render() {
+  return mount(SpaceTranscriptAlignmentControl, {
     props: { disabled: false, canAlign: true, selectedCount: 2 },
   });
+}
+
+it("emits align event when the alignment button is clicked", async () => {
+  const wrapper = render();
   await wrapper.get('[data-testid="transcript-align"]').trigger("click");
   expect(wrapper.emitted("align")).toHaveLength(1);
 });
 
+it("explains the aligner download before it runs, without holding the request back", () => {
+  readiness.current = shallowRef<AiReadiness>({
+    state: "download",
+    models: [aligner],
+    bytes: aligner.totalBytes,
+  });
+  const wrapper = render();
+  expect(wrapper.get('[data-testid="ai-readiness-notice"]').text()).toContain("Qwen3 Q8");
+  expect(wrapper.get('[data-testid="transcript-align"]').attributes("disabled")).toBeUndefined();
+});
+
 it("shows a model-query failure and prevents a request with unknown resource state", () => {
-  models.useLocalModelsQuery.mockReturnValue({
-    data: shallowRef(undefined),
-    isPending: shallowRef(false),
-    error: shallowRef(new Error("Model catalog unavailable")),
-  });
-  const wrapper = mount(SpaceTranscriptAlignmentControl, {
-    props: { disabled: false, canAlign: true, selectedCount: 1 },
-  });
-  expect(wrapper.get('[role="alert"]').text()).toBe("Model catalog unavailable");
+  readiness.current = shallowRef<AiReadiness>({ state: "unavailable", source: "models" });
+  const wrapper = render();
+  expect(wrapper.get('[role="alert"]').text()).toContain("Local models couldn't be checked.");
   expect(wrapper.get('[data-testid="transcript-align"]').attributes("disabled")).toBeDefined();
 });

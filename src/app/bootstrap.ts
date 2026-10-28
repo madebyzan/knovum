@@ -3,6 +3,7 @@ import type { Pinia } from "pinia";
 import { nextTick } from "vue";
 import type { Router } from "vue-router";
 
+import { installAiSettingsNavigation } from "../foundation/ai/ai-settings-navigation";
 import { useBootstrapStore } from "../foundation/bootstrap/bootstrap-store";
 import { formatErrorDiagnostic } from "../foundation/errors/error-format";
 import { invokeCommand } from "../foundation/ipc/invoke-command";
@@ -17,6 +18,9 @@ import { installWorkspaceSessionPersistence, restoreWorkspaceSession } from "./w
 
 export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
   const state = useBootstrapStore(pinia);
+  installAiSettingsNavigation(async (pane) => {
+    await router.push({ name: "settings", query: { pane } });
+  });
 
   try {
     await invokeCommand("plugin:backup|await_maintenance");

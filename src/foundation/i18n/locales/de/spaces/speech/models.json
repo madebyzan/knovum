@@ -1,6 +1,5 @@
 {
   "label": "Sprachmodell",
-  "firstUse": "Das ausgewählte Modell und die erforderlichen Ressourcen werden bei der ersten Verwendung automatisch heruntergeladen. Verfolgen oder stornieren Sie die Aufgabe im Task Center.",
   "descriptions": {
     "mossNano": "Kompakte chinesische und englische voreingestellte Stimmen und Referenzklonen. Nur CPU; normale Geschwindigkeit.",
     "voxCpm2": "Volle Präzision · Klonen und Entwerfen von Stimmen. Erfordert mindestens 32 GiB Speicher.",

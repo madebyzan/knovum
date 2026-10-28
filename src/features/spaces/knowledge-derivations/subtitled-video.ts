@@ -1,3 +1,5 @@
+import type { AiRequirement } from "../../../foundation/ai/ai-readiness";
+import { admitAiRequirements } from "../../../foundation/ai/ai-readiness-admission";
 import { i18n } from "../../../foundation/i18n/instance";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { startDerivationAction } from "./start-action";
@@ -10,15 +12,24 @@ export function canAddVideoSubtitles(node?: SpaceCanvasNode): boolean {
   );
 }
 
-export function addVideoSubtitles(source: SpaceCanvasNode) {
+/** Subtitles reuse a transcript the video already has; without one the action transcribes it first. */
+function subtitleRequirements(source: SpaceCanvasNode): readonly AiRequirement[] {
+  return source.data.kind === "video" && source.data.mediaKnowledge
+    ? []
+    : [{ kind: "localCapability", capability: "transcription" }];
+}
+
+export async function addVideoSubtitles(source: SpaceCanvasNode) {
   if (!canAddVideoSubtitles(source) || !source.data.knowledgeRevision) return;
+  const sourceRevision = source.data.knowledgeRevision;
+  if (!(await admitAiRequirements(subtitleRequirements(source)))) return;
   return startDerivationAction({
     actionId: "add-video-subtitles",
     sources: [
       {
         nodeId: source.id,
         title: source.data.title,
-        sourceRevision: source.data.knowledgeRevision,
+        sourceRevision,
         revisionBasis: "knowledge",
       },
     ],

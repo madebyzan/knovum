@@ -1,3 +1,5 @@
+import type { AiRequirement } from "../../../foundation/ai/ai-readiness";
+import { admitAiRequirements } from "../../../foundation/ai/ai-readiness-admission";
 import { i18n } from "../../../foundation/i18n/instance";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { ImageExecutionTarget } from "../contracts/generated/ImageExecutionTarget";
@@ -55,14 +57,28 @@ const IMAGE_OPERATION_CONFIG = {
   },
 } as const;
 
-async function defaultImageTarget(operation: ImageOperation): Promise<ImageExecutionTarget> {
+async function defaultImageTarget(operation: ImageOperation): Promise<ImageExecutionTarget | undefined> {
   const capabilities = await getImageOperationCapabilities();
   const capability = IMAGE_OPERATION_CONFIG[operation.kind].capability;
   if (capability) {
     return selectedImageTarget(capabilities.targets.filter((target) => target.capability === capability));
   }
-  if (!capabilities.remote) throw new Error("Image execution target is not configured");
-  return capabilities.remote;
+  return capabilities.remote ?? undefined;
+}
+
+/** A local target runs on the model it names; a remote one, or none yet, on the routed image model. */
+function imageExecutionRequirement(target: ImageExecutionTarget | undefined): AiRequirement {
+  return target?.type === "local"
+    ? { kind: "localModel", model: target.model }
+    : { kind: "routed", purpose: "image-generation" };
+}
+
+/** The target the operation runs on, once its readiness lets it start. */
+async function admittedImageTarget(operation: ImageOperation, execution: ImageExecutionTarget | undefined) {
+  const target = execution ?? (await defaultImageTarget(operation));
+  if (!(await admitAiRequirements([imageExecutionRequirement(target)]))) return undefined;
+  if (!target) throw new Error("Image execution target is not configured");
+  return target;
 }
 
 export function selectedImageTarget(targets: readonly ImageOperationTargetOption[]): ImageExecutionTarget {
@@ -82,7 +98,8 @@ export async function deriveImage(
   if (!spaceId) return;
   if (source.data.kind !== "image" || !source.data.knowledgeRevision)
     throw new Error("Image source revision is unavailable");
-  const target = options.execution ?? (await defaultImageTarget(operation));
+  const target = await admittedImageTarget(operation, options.execution);
+  if (!target) return;
   if (store.activeSpaceId !== spaceId) throw new Error("Image derivation target Space changed");
   const title =
     `${source.data.title} · ${i18n.global.t(IMAGE_OPERATION_CONFIG[operation.kind].resultKey)}`.slice(0, 512);

@@ -19,6 +19,9 @@ pub async fn start(
     let receiver = requests::register(&runtime_id, cancellation.clone())?;
     let (ready_tx, ready_rx) = oneshot::channel();
     let (settled, completion) = oneshot::channel();
+    // A runtime that fails before it has a session drops `ready` unanswered; its own error is
+    // then the only account of why — the Agent was not found, refused to start or to sign in.
+    let (failed_tx, failed_rx) = oneshot::channel();
     let registered = runtime_id.clone();
     tauri::async_runtime::spawn(async move {
         let context = ServeContext {
@@ -35,21 +38,25 @@ pub async fn start(
             } else {
                 log::error!("External Agent conversation ended: {error}");
             }
+            let _ = failed_tx.send(error.clone());
         }
         requests::remove(&registered);
         let _ = settled.send(outcome);
     });
-    match tokio::time::timeout(super::super::connection::START_TIMEOUT, ready_rx).await {
-        Ok(Ok(Ok(session))) => Ok(session),
-        Ok(Ok(Err(error))) => {
+    let created = tokio::time::timeout(super::super::connection::START_TIMEOUT, async {
+        match ready_rx.await {
+            Ok(created) => created,
+            Err(_) => Err(failed_rx.await.unwrap_or_else(|_| {
+                AppError::internal("ACP conversation ended before session creation")
+            })),
+        }
+    })
+    .await;
+    match created {
+        Ok(Ok(session)) => Ok(session),
+        Ok(Err(error)) => {
             requests::remove(&runtime_id);
             Err(error)
-        }
-        Ok(Err(_)) => {
-            requests::remove(&runtime_id);
-            Err(AppError::internal(
-                "ACP conversation ended before session creation",
-            ))
         }
         Err(_) => {
             requests::close(&runtime_id)

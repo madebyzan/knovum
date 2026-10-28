@@ -106,7 +106,7 @@ export function useVoiceCandidates() {
     localError.value = undefined;
     void submission
       .start(input)
-      .then((run) => !disposed && observe(run))
+      .then((run) => run && !disposed && observe(run))
       .catch((cause: unknown) => {
         if (!disposed && decodeAppError(cause)?.code !== "cancelled")
           localError.value = getErrorMessage(cause);

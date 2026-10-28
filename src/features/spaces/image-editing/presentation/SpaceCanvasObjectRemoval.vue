@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, shallowRef, nextTick, onMounted, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
+import { openAiSettings } from "../../../../foundation/ai/ai-settings-navigation";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { imageActionAvailability } from "../../canvas/presentation/images/image-action-availability";
 import { imageActionHelp } from "../../canvas/presentation/images/image-action-help";
@@ -22,7 +22,6 @@ import SpaceImageObjectRemovalControls from "./SpaceImageObjectRemovalControls.v
 
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload> }>();
 const { t } = useI18n();
-const router = useRouter();
 const panel = useTemplateRef<HTMLElement>("panel");
 const removal = useImageRemovalSessionStore();
 const dimensions = useImageSourceDimensionsStore();
@@ -76,9 +75,9 @@ const help = computed(
   () => imageActionHelp(availability.value) ?? (hint.value ? { label: hint.value } : undefined),
 );
 
-function openAiSettings() {
+function openProviderSettings() {
   removal.cancel();
-  void router.push({ name: "settings", query: { pane: "aiProviders" } });
+  void openAiSettings("aiProviders");
 }
 
 function generate() {
@@ -120,7 +119,7 @@ onMounted(async () => {
       @undo="removal.undoStroke"
       @cancel="removal.cancel"
       @generate="generate"
-      @open-settings="openAiSettings"
+      @open-settings="openProviderSettings"
     />
   </div>
 </template>

@@ -2,7 +2,6 @@
 import { storeToRefs } from "pinia";
 import { computed, onMounted, watch, type HTMLAttributes } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
 
 import type { RoutingPurpose } from "../../shared/contracts/generated/RoutingPurpose";
 import type { TaskTarget } from "../../shared/contracts/generated/TaskTarget";
@@ -10,6 +9,7 @@ import UiButton from "../../shared/ui/UiButton.vue";
 import UiSelect from "../../shared/ui/UiSelect.vue";
 import { getErrorMessage } from "../errors/error-format";
 import { availableExecutionTargets, defaultExecutionTarget } from "./ai-execution";
+import { openAiSettings } from "./ai-settings-navigation";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { useExecutionCatalogQuery } from "./use-execution-catalog-query";
 
@@ -21,7 +21,6 @@ const props = defineProps<{
 }>();
 const target = defineModel<TaskTarget | undefined>();
 const { t } = useI18n();
-const router = useRouter();
 const store = useAiSettingsStore();
 const catalog = useExecutionCatalogQuery({ detectInstallations: false });
 const { settings, ready, loadError } = storeToRefs(store);
@@ -115,11 +114,7 @@ onMounted(load);
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
-        <UiButton
-          size="sm"
-          variant="secondary"
-          @click="router.push({ name: 'settings', query: { pane: 'aiProviders' } })"
-        >
+        <UiButton size="sm" variant="secondary" @click="openAiSettings('aiProviders')">
           {{ t("ai.configuration.open") }}
         </UiButton>
       </div>

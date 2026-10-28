@@ -1,22 +1,25 @@
-import { useQuery } from "@tanstack/vue-query";
+import { queryOptions, useQuery } from "@tanstack/vue-query";
 import { computed } from "vue";
 
 import { detectExternalAgentInstallations, loadExternalAgentDescriptors } from "./external-agents";
 
-const AGENT_DESCRIPTORS_QUERY_KEY = ["integrations", "agent-descriptors"] as const;
-const AGENT_INSTALLATIONS_QUERY_KEY = ["integrations", "agent-installations"] as const;
+export const agentDescriptorsQueryOptions = queryOptions({
+  queryKey: ["integrations", "agent-descriptors"] as const,
+  queryFn: loadExternalAgentDescriptors,
+  staleTime: 30_000,
+});
+
+export const agentInstallationsQueryOptions = queryOptions({
+  queryKey: ["integrations", "agent-installations"] as const,
+  queryFn: detectExternalAgentInstallations,
+  staleTime: 30_000,
+});
 
 export function useExecutionCatalogQuery(options: { detectInstallations?: boolean } = {}) {
-  const descriptors = useQuery({
-    queryKey: AGENT_DESCRIPTORS_QUERY_KEY,
-    queryFn: loadExternalAgentDescriptors,
-    staleTime: 30_000,
-  });
+  const descriptors = useQuery(agentDescriptorsQueryOptions);
   const installations = useQuery({
-    queryKey: AGENT_INSTALLATIONS_QUERY_KEY,
-    queryFn: detectExternalAgentInstallations,
+    ...agentInstallationsQueryOptions,
     enabled: options.detectInstallations === true,
-    staleTime: 30_000,
   });
 
   return {

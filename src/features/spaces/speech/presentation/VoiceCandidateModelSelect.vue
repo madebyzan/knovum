@@ -4,6 +4,8 @@ import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui
 import { computed, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
+import AiReadinessNotice from "../../../../foundation/ai/AiReadinessNotice.vue";
+import { useAiReadiness } from "../../../../foundation/ai/use-ai-readiness";
 import { formatBytes } from "../../../../foundation/format/bytes";
 import { useLocalModelsQuery } from "../../../../foundation/runtime/use-local-models-query";
 import type { LocalModelOperation } from "../../../../shared/contracts/generated/LocalModelOperation";
@@ -55,6 +57,7 @@ watch(
   { immediate: true },
 );
 const selected = computed(() => models.value.find((entry) => entry.id === model.value));
+const readiness = useAiReadiness(() => [{ kind: "localModel", model: model.value }]);
 watchEffect(() => {
   available.value = Boolean(selected.value) && !catalog.error.value;
   referenceTranscript.value = selected.value?.referenceTranscript ?? "unused";
@@ -88,9 +91,9 @@ watchEffect(() => {
       <CollapsibleContent class="space-y-1 pb-1 leading-relaxed">
         <p>{{ formatBytes(selected.totalBytes) }}</p>
         <p>{{ t(`spaces.speech.models.descriptions.${model}`) }}</p>
-        <p v-if="!selected.verified">{{ t("spaces.speech.models.firstUse") }}</p>
       </CollapsibleContent>
     </CollapsibleRoot>
+    <AiReadinessNotice :readiness="readiness" />
     <p v-if="selected?.memoryAdvisoryBytes" class="text-caption text-fg-secondary">
       {{ t("ai.localModels.memoryAdvisory", { memory: formatBytes(selected.memoryAdvisoryBytes) }) }}
     </p>

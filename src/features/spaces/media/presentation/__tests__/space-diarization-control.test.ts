@@ -1,43 +1,31 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
+import { shallowRef } from "vue";
+import type * as VueI18n from "vue-i18n";
 
+import type { AiReadiness } from "../../../../../foundation/ai/ai-readiness";
 import SpaceDiarizationControl from "../SpaceDiarizationControl.vue";
 
 const mocks = vi.hoisted(() => ({
-  data: {
-    value: [
-      {
-        capability: "speechDiarization",
-        selected: true,
-        verified: false,
-        name: "INT8",
-        totalBytes: 41_146_685,
-      },
-    ],
-  },
-  error: { value: null },
+  readiness: undefined as unknown as { value: AiReadiness },
+  admit: vi.fn<() => Promise<boolean>>(),
   request: vi.fn<() => Promise<void>>(),
   refresh: vi.fn<() => Promise<void>>(),
 }));
-vi.mock("../../../../../foundation/runtime/use-local-models-query", () => ({
-  useLocalModelsQuery: () => mocks,
-}));
+vi.mock("../../../../../foundation/ai/use-ai-readiness", () => ({ useAiReadiness: () => mocks.readiness }));
+vi.mock("../../../../../foundation/ai/ai-readiness-admission", () => ({ admitAiRequirements: mocks.admit }));
 vi.mock("../../transcription", () => ({ requestMediaDiarization: mocks.request }));
 vi.mock("../../../enrichment/enrichment-jobs-query", () => ({ refreshEnrichmentJobs: mocks.refresh }));
 vi.mock("../../../session/space-store", () => ({ useSpaceStore: () => ({ activeSpaceId: "space" }) }));
-vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("vue-i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof VueI18n>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.data.value = [
-    {
-      capability: "speechDiarization",
-      selected: true,
-      verified: false,
-      name: "INT8",
-      totalBytes: 41_146_685,
-    },
-  ];
+  mocks.readiness = shallowRef<AiReadiness>({ state: "ready" });
+  mocks.admit.mockResolvedValue(true);
 });
 function render() {
   const wrapper = mount(SpaceDiarizationControl, {
@@ -60,6 +48,22 @@ it("starts speaker recognition on the selected node without an account or a manu
     numSpeakers: null,
   });
   expect(mocks.refresh).toHaveBeenCalledOnce();
+});
+
+it("does not request speaker recognition that its local model admission refused", async () => {
+  mocks.admit.mockResolvedValue(false);
+  const wrapper = render();
+  await wrapper.get("button").trigger("click");
+  await flushPromises();
+  expect(mocks.admit).toHaveBeenCalledWith([{ kind: "localCapability", capability: "speechDiarization" }]);
+  expect(mocks.request).not.toHaveBeenCalled();
+});
+
+it("cannot start while the local model state is unknown", () => {
+  mocks.readiness = shallowRef<AiReadiness>({ state: "unavailable", source: "models" });
+  const wrapper = render();
+  expect(wrapper.get("button").attributes("disabled")).toBeDefined();
+  expect(wrapper.find('[data-testid="ai-readiness-notice"]').exists()).toBe(true);
 });
 
 it("passes an optional known speaker count and rejects invalid counts", async () => {

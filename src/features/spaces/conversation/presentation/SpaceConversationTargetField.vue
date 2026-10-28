@@ -9,9 +9,9 @@ import {
 } from "reka-ui";
 import { computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
 
 import { availableModelTargets, defaultExecutionTarget } from "../../../../foundation/ai/ai-execution";
+import { openAiSettings } from "../../../../foundation/ai/ai-settings-navigation";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/use-execution-catalog-query";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
@@ -24,7 +24,6 @@ import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
 const target = defineModel<TaskTarget | undefined>();
 const available = defineModel<boolean>("available", { default: false });
 const { t } = useI18n();
-const router = useRouter();
 const settings = useAiSettingsStore();
 const catalog = useExecutionCatalogQuery({ detectInstallations: false });
 
@@ -165,10 +164,7 @@ onMounted(() => void settings.ensureLoaded());
         </DropdownMenuGroup>
       </DropdownMenuRadioGroup>
       <UiSeparator class="my-1.5" />
-      <UiDropdownMenuItem
-        class="gap-2.5 px-2.5 text-fg-secondary"
-        @select="router.push({ name: 'settings', query: { pane: 'aiRouting' } })"
-      >
+      <UiDropdownMenuItem class="gap-2.5 px-2.5 text-fg-secondary" @select="openAiSettings('aiRouting')">
         <Settings2 class="size-4" />{{ t("spaces.conversation.agents.manage") }}
       </UiDropdownMenuItem>
     </UiDropdownMenu>

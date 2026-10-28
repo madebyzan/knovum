@@ -33,5 +33,16 @@
   },
   "localModels": {
     "memoryAdvisory": "此模型在 {memory} 記憶體的機器上完成驗證。本機記憶體吃緊時合成可能被拒絕；更輕量的選擇是 MOSS-TTS-Nano。"
+  },
+  "readiness": {
+    "download": "首次執行時會先下載 {model}（{size}），進度可在「任務」中查看。",
+    "downloading": "正在先下載 {model}（{size}），進度可在「任務」中查看。",
+    "configure": "尚未為「{purpose}」設定模型。",
+    "installAgent": "這台電腦上未安裝 {agent}，或其命令列不在 PATH 中。安裝後再試。",
+    "manageModels": "管理本地模型",
+    "manageAgents": "管理桌面 Agent",
+    "modelsUnavailable": "暫時無法檢查本地模型，請稍後再試。",
+    "agentsUnavailable": "暫時無法檢查已安裝的桌面 Agent，請稍後再試。",
+    "platformUnavailable": "此功能所需的本地模型在這台電腦上無法使用。"
   }
 }

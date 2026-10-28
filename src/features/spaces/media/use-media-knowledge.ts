@@ -3,6 +3,7 @@ import { computed, ref, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { admitAiRequirements } from "../../../foundation/ai/ai-readiness-admission";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { getCanvasEditorSession } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/use-node-operation-gate";
@@ -83,6 +84,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     if (!canTranscribe.value) return;
     submitting.value = true;
     try {
+      if (!(await admitAiRequirements([{ kind: "localCapability", capability: "transcription" }]))) return;
       await store.analyzeMedia(node.value.id);
       await refreshEnrichmentJobs();
     } catch (error) {
@@ -105,6 +107,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
       return;
     alignmentSubmitting.value = true;
     try {
+      if (!(await admitAiRequirements([{ kind: "localCapability", capability: "speechAlignment" }]))) return;
       await requestMediaAlignment(spaceId, node.value.id, current.transcript.revision, segmentIds);
       await refreshEnrichmentJobs();
     } catch (error) {

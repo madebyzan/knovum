@@ -90,6 +90,9 @@ returns a validated descriptor for a platform CLI, Node adapter, or standalone A
 infer login readiness or introduce a product-owned installer. Missing commands expose the official
 vendor guidance. On macOS, discovery reads a non-interactive login-shell `PATH`, does not source
 interactive shell configuration, and does not guess vendor installation paths.
+A conversation checks that its Agent is enabled and its command line detected before it starts
+([AI readiness](ui-system.md#ai-readiness)); a runtime that still fails before its ACP session exists
+returns its own error to the caller instead of a generic one.
 
 ## Files, clipboard, and dialogs
 

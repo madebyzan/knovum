@@ -1,6 +1,7 @@
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { admitAiRequirements } from "../../../foundation/ai/ai-readiness-admission";
 import type { DraftVoiceCandidateRequest } from "../contracts/generated/DraftVoiceCandidateRequest";
 import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
 import { cancelSpeechGeneration } from "./ipc";
@@ -15,6 +16,7 @@ export function useVoiceCandidateSubmission() {
     const job = { id: crypto.randomUUID(), cancelRequested: false };
     pending.value = job;
     try {
+      if (!(await admitAiRequirements([{ kind: "localModel", model: input.model }]))) return undefined;
       const run = await draftVoiceCandidate({ ...input, requestId: job.id });
       observeResourceRun(run, t("spaces.speech.voice.candidate.generate"));
       if (job.cancelRequested) await cancelResourceRun(run.id);
