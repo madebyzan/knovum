@@ -9,13 +9,13 @@ import { isComposing } from "../../../../../foundation/dom/composition";
 import UiButton from "../../../../../shared/ui/UiButton.vue";
 import UiDropdownMenu from "../../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
-import UiSelect from "../../../../../shared/ui/UiSelect.vue";
 import { usePickerImport } from "../../../assets/use-picker-import";
 import { useNodeOperationGate } from "../../../canvas/use-node-operation-gate";
 import { canGenerate, generatorFrame, uploadPosition, type CanvasGenerator } from "../canvas-generator";
 import { GENERATOR_KINDS } from "../generator-kinds";
 import { useCanvasGeneratorStore } from "../generator-store";
 import SpaceCanvasGeneratorReferences from "./SpaceCanvasGeneratorReferences.vue";
+import SpaceCanvasGeneratorShape from "./SpaceCanvasGeneratorShape.vue";
 import { useReferenceReadings } from "./use-reference-readings";
 
 /**
@@ -40,21 +40,6 @@ const target = computed({
   get: () => props.generator.target,
   set: (value) => store.update(props.generator.id, { target: value }),
 });
-const aspectRatio = computed({
-  get: () => props.generator.aspectRatio,
-  set: (value: string) => store.update(props.generator.id, { aspectRatio: value }),
-});
-const duration = computed({
-  get: () => String(props.generator.durationSeconds),
-  set: (value: string) => {
-    const seconds = kind.value.durations.find((candidate) => String(candidate) === value);
-    if (seconds) store.update(props.generator.id, { durationSeconds: seconds });
-  },
-});
-const aspectRatios = computed(() => kind.value.aspectRatios.map((value) => ({ value, label: value })));
-const durations = computed(() =>
-  kind.value.durations.map((value) => ({ value: String(value), label: `${value}s` })),
-);
 const referenceMenu = computed(() => [
   {
     id: "canvas",
@@ -153,24 +138,7 @@ onMounted(() => {
             </UiIconButton>
           </template>
         </UiDropdownMenu>
-        <UiSelect
-          v-if="aspectRatios.length > 1"
-          v-model="aspectRatio"
-          :label="t('spaces.creation.generator.aspectRatio')"
-          :options="aspectRatios"
-          size="sm"
-          width="compact"
-          class="border-transparent bg-transparent shadow-none hover:bg-surface-control-hover"
-        />
-        <UiSelect
-          v-if="durations.length"
-          v-model="duration"
-          :label="t('spaces.creation.generator.duration')"
-          :options="durations"
-          size="sm"
-          width="compact"
-          class="border-transparent bg-transparent shadow-none hover:bg-surface-control-hover"
-        />
+        <SpaceCanvasGeneratorShape :generator="generator" />
         <AiExecutionTargetField
           v-model="target"
           :purpose="kind.purpose"

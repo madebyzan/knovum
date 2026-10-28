@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import { Stage as KonvaStage } from "vue-konva/core";
 
 import type { CanvasNodeContentSlotProps, CanvasSurfaceProps } from "../contracts/canvas-surface";
@@ -13,38 +12,15 @@ import CanvasStructureEditingLayers from "./rendering/CanvasStructureEditingLaye
 import CanvasStructureHud from "./rendering/CanvasStructureHud.vue";
 import CanvasStructureSectionsLayer from "./rendering/CanvasStructureSectionsLayer.vue";
 import CanvasWorldOverlay from "./rendering/CanvasWorldOverlay.vue";
+import { useCanvasInteractionModes } from "./use-canvas-interaction-modes";
 import { useKonvaCanvasRuntime } from "./use-konva-canvas-runtime";
 
 const props = defineProps<CanvasSurfaceProps>();
 const emit = defineEmits<{ documentChange: [document: CanvasDocumentV1] }>();
 defineSlots<{ "node-content"(props: CanvasNodeContentSlotProps): unknown; world(): unknown }>();
 const runtime = useKonvaCanvasRuntime(props, (document) => emit("documentChange", document));
-const selectGesturesEnabled = computed(
-  () =>
-    props.interactionEnabled &&
-    props.canCommitCanvasGestures &&
-    props.tool === "select" &&
-    !runtime.viewport.panning.value,
-);
-const isInteractive = computed(
-  () =>
-    selectGesturesEnabled.value &&
-    !runtime.gestures.busy.value &&
-    !runtime.capturesCanvasInteraction.value &&
-    !runtime.viewport.spacePressed.value,
-);
-const selectionChromeVisible = computed(
-  () =>
-    selectGesturesEnabled.value &&
-    !runtime.viewport.spacePressed.value &&
-    runtime.directManipulation.value !== "drag",
-);
-const cursorClass = computed(() => {
-  if (runtime.connectors.draft.value) return "cursor-crosshair";
-  if (runtime.viewport.panning.value) return "cursor-grabbing";
-  if (runtime.viewport.spacePressed.value || props.tool === "pan") return "cursor-grab";
-  return ["note", "text", "section"].includes(props.tool) ? "cursor-crosshair" : "";
-});
+const { interactive, selectionChromeVisible, contentInteractionEnabled, cursorClass } =
+  useCanvasInteractionModes(props, runtime);
 defineExpose({ flushViewport: runtime.viewport.flushViewport });
 </script>
 
@@ -91,7 +67,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         @error="events.onError"
       />
       <CanvasSceneLayers
-        :interactive="isInteractive"
+        :interactive="interactive"
         :selection-chrome-visible="selectionChromeVisible"
         :connector-draft="runtime.connectors.draft.value"
         :feedback="runtime.feedback.value"
@@ -126,7 +102,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       />
       <CanvasStructureEditingLayers
         :runtime="runtime"
-        :interactive="isInteractive"
+        :interactive="interactive"
         :selection-chrome-visible="selectionChromeVisible"
         :group-scope-path="groupScopePath"
       />
@@ -145,12 +121,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       <CanvasDomOverlay
         :camera="runtime.viewport.camera"
         :rendering-enabled="renderingEnabled"
-        :interaction-enabled="
-          interactionEnabled &&
-          tool === 'select' &&
-          !runtime.viewport.spacePressed.value &&
-          !runtime.viewport.panning.value
-        "
+        :interaction-enabled="contentInteractionEnabled"
         :interactive-node-id="interactionEnabled ? runtime.interactiveNodeId.value : undefined"
         :layout-preview-by-node-id="runtime.scenePreview.layoutByNodeId"
         :scene="runtime.scene.value"

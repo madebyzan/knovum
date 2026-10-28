@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, ChevronRight, Copy, GitBranch, RefreshCw } from "@lucide/vue";
+import { Check, Copy, GitBranch, RefreshCw } from "@lucide/vue";
 import { useTimeoutFn } from "@vueuse/core";
 import { writeText } from "tauri-plugin-clipboard-api";
 import { computed, shallowRef } from "vue";
@@ -16,6 +16,7 @@ import {
 } from "../../knowledge/model/schema/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
 import { followConversationLink } from "../conversation-links";
+import SpaceConversationCitations from "./SpaceConversationCitations.vue";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
 import SpaceConversationOutputs from "./SpaceConversationOutputs.vue";
 
@@ -110,43 +111,7 @@ async function copyMessage() {
       v-if="message.role === 'assistant' && message.content.outputs?.length"
       :outputs="message.content.outputs"
     />
-    <details v-if="citations.length" class="group/sources w-full text-caption">
-      <summary
-        class="inline-flex cursor-pointer list-none items-center gap-1 rounded-md px-1 py-0.5 text-fg-secondary select-none hover:text-fg-primary [&::-webkit-details-marker]:hidden"
-      >
-        {{ t("spaces.conversation.sources", { count: citations.length }) }}
-        <ChevronRight class="size-3.5 transition-transform group-open/sources:rotate-90" />
-      </summary>
-      <ol class="mt-1.5 divide-y divide-stroke-divider">
-        <li v-for="citation in citations" :key="citation.index">
-          <component
-            :is="citation.state === 'current' ? 'button' : 'div'"
-            :type="citation.state === 'current' ? 'button' : undefined"
-            class="flex w-full min-w-0 gap-2 rounded-md px-1 py-2 text-left"
-            :class="citation.state === 'current' ? 'hover:bg-surface-control' : ''"
-            @click="openCitation(citation)"
-          >
-            <span
-              class="mt-px inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-sm bg-surface-control px-1 text-caption-sm text-fg-secondary tabular-nums"
-              >{{ citation.index }}</span
-            >
-            <span class="min-w-0 flex-1">
-              <span class="flex min-w-0 items-baseline gap-1.5">
-                <span
-                  class="truncate font-medium"
-                  :class="citation.state === 'current' ? 'text-fg-primary' : 'text-fg-secondary'"
-                  >{{ citation.nodeTitle }}</span
-                >
-                <span v-if="citation.state === 'detached'" class="shrink-0 text-fg-tertiary">{{
-                  t("spaces.conversation.evidence.stale")
-                }}</span>
-              </span>
-              <span class="mt-0.5 line-clamp-2 text-fg-secondary">{{ citation.quote }}</span>
-            </span>
-          </component>
-        </li>
-      </ol>
-    </details>
+    <SpaceConversationCitations v-if="citations.length" :citations="citations" @open="openCitation" />
     <span v-if="message.content.status" class="text-caption-sm text-fg-tertiary">
       {{
         t(

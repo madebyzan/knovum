@@ -25,7 +25,7 @@ export function hasActionableTextSelection(focused: Element | null): boolean {
 }
 
 /** Whether a context menu opened on `target` belongs to the platform: it edits or copies that text. */
-export function prefersNativeContextMenu(target: EventTarget | null): boolean {
+export function prefersSystemContextMenu(target: EventTarget | null): boolean {
   if (isEditableTarget(target)) return true;
   const selection = liveTextSelection();
   return !!selection && target instanceof Node && selection.getRangeAt(0).intersectsNode(target);

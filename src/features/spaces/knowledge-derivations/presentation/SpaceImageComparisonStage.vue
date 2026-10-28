@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { ChevronsLeftRight, ZoomIn, ZoomOut } from "@lucide/vue";
+import { ChevronsLeftRight } from "@lucide/vue";
 import { onKeyStroke, useElementSize } from "@vueuse/core";
 import { clamp } from "es-toolkit";
 import { computed, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import {
   ComparisonFrame,
   sameView,
   type ComparisonSize,
   type ComparisonView,
 } from "../comparison/comparison-view";
+import SpaceImageComparisonZoom from "./SpaceImageComparisonZoom.vue";
 
 /**
  * Wipes between a derived picture and the input it was made from. Both are drawn into the output's
@@ -64,8 +64,6 @@ const presets = computed(() => {
     zoomIn: frame.value.canZoomIn(view.value),
   };
 });
-const CONTROL =
-  "grid h-8 place-items-center rounded-lg font-medium transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40 aria-pressed:bg-white/15 aria-pressed:text-white";
 
 function show(preset: "fitted" | "actualSize") {
   if (frame.value) view.value = frame.value[preset];
@@ -180,54 +178,6 @@ onKeyStroke("1", () => show("actualSize"));
     >
       {{ t("spaces.media.imageComparison.after") }}
     </span>
-    <div
-      class="absolute bottom-4 left-1/2 flex h-10 -translate-x-1/2 items-center gap-0.5 rounded-xl bg-neutral-900/85 px-1 text-caption text-white/80 shadow-[0_8px_24px_rgb(0_0_0/0.4)] ring-1 ring-white/10 backdrop-blur-md"
-    >
-      <UiTooltip :text="t('spaces.media.imageComparison.zoomOut')" side="top">
-        <button
-          type="button"
-          :class="[CONTROL, 'w-8']"
-          :aria-label="t('spaces.media.imageComparison.zoomOut')"
-          :disabled="!presets.zoomOut"
-          @click="step(-1)"
-        >
-          <ZoomOut class="size-4" :stroke-width="1.8" />
-        </button>
-      </UiTooltip>
-      <span class="min-w-12 text-center font-medium text-white tabular-nums"
-        >{{ Math.round((view?.scale ?? 1) * 100) }}%</span
-      >
-      <UiTooltip :text="t('spaces.media.imageComparison.zoomIn')" side="top">
-        <button
-          type="button"
-          :class="[CONTROL, 'w-8']"
-          :aria-label="t('spaces.media.imageComparison.zoomIn')"
-          :disabled="!presets.zoomIn"
-          @click="step(1)"
-        >
-          <ZoomIn class="size-4" :stroke-width="1.8" />
-        </button>
-      </UiTooltip>
-      <span class="mx-1 h-4 w-px bg-white/15" />
-      <button
-        type="button"
-        :class="[CONTROL, 'px-2.5']"
-        :aria-pressed="presets.fitted"
-        @click="show('fitted')"
-      >
-        {{ t("spaces.media.imageComparison.fit") }}
-      </button>
-      <UiTooltip :text="t('spaces.media.imageComparison.actualSize')" side="top">
-        <button
-          type="button"
-          :class="[CONTROL, 'px-2.5 tabular-nums']"
-          :aria-label="t('spaces.media.imageComparison.actualSize')"
-          :aria-pressed="presets.actualSize"
-          @click="show('actualSize')"
-        >
-          100%
-        </button>
-      </UiTooltip>
-    </div>
+    <SpaceImageComparisonZoom :scale="view?.scale ?? 1" :presets="presets" @step="step" @show="show" />
   </template>
 </template>
