@@ -128,6 +128,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         :visible-node-ids="runtime.visibility.visibleContentNodeIds.value"
         :selected-node-ids="runtime.selection.nodeIds.value"
         :derived-output-count-by-node-id="runtime.structure.derivedOutputCountByNodeId.value"
+        :source-update-count-by-node-id="sceneInput.sourceUpdateCounts"
         :zoom="runtime.viewport.zoom.value"
       >
         <template #default="content">

@@ -106,6 +106,12 @@
     }
   },
   "provenance": "Fuente",
+  "sourceUpdates": {
+    "title": "Fuentes modificadas",
+    "hint": "Han cambiado desde que se guardó. Abre una fuente para comparar o márcala como revisada para dejar esto como está.",
+    "open": "Abrir fuente",
+    "reviewed": "Marcar como revisada"
+  },
   "portal": {
     "create": {
       "action": "Nuevo nodo del Portal",

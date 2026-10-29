@@ -7,10 +7,16 @@ import { createSpaceNode } from "../../../node";
 import { canvasPreviewPolicy } from "../../../preview/policy";
 import CanvasDomNodeOverlay from "../CanvasDomNodeOverlay.vue";
 
-function overlay(props: { selected: boolean; interactive: boolean; derivedOutputs: number }) {
+function overlay(props: {
+  selected: boolean;
+  interactive: boolean;
+  derivedOutputs: number;
+  sourceUpdates?: number;
+}) {
   const node = createSpaceNode(createSpaceTextPayload("source"), { x: 0, y: 0 }, "source");
   return mount(CanvasDomNodeOverlay, {
     props: {
+      sourceUpdates: 0,
       ...props,
       previewPolicy: canvasPreviewPolicy(100, 1),
       layoutPreviewByNodeId: new Map(),
@@ -41,5 +47,24 @@ describe("derived outputs badge", () => {
 
   it("stays off content nothing was derived from", () => {
     expect(overlay({ selected: false, interactive: false, derivedOutputs: 0 }).text()).toBe("");
+  });
+});
+
+const badge = (wrapper: ReturnType<typeof overlay>) => wrapper.find('[data-badge="source-updates"]');
+
+describe("source updates badge", () => {
+  it("counts changed sources, and stays while the node is selected so the inspector can be found", () => {
+    expect(
+      badge(overlay({ selected: false, interactive: false, derivedOutputs: 0, sourceUpdates: 2 })).text(),
+    ).toBe("2");
+    const selected = overlay({ selected: true, interactive: false, derivedOutputs: 3, sourceUpdates: 1 });
+    expect(badge(selected).text()).toBe("1");
+    expect(selected.find('[data-badge="derived-outputs"]').exists()).toBe(false);
+  });
+
+  it("leaves the node being edited alone", () => {
+    expect(overlay({ selected: false, interactive: true, derivedOutputs: 0, sourceUpdates: 2 }).text()).toBe(
+      "",
+    );
   });
 });

@@ -106,6 +106,12 @@
     }
   },
   "provenance": "Source",
+  "sourceUpdates": {
+    "title": "Sources modifiées",
+    "hint": "Modifiées depuis l’enregistrement. Ouvrez une source pour comparer, ou marquez-la comme vérifiée pour garder ceci tel quel.",
+    "open": "Ouvrir la source",
+    "reviewed": "Marquer comme vérifiée"
+  },
   "portal": {
     "create": {
       "action": "Nouveau nœud du portail",

@@ -4,6 +4,7 @@ import { computed, provide, useTemplateRef, watch } from "vue";
 import { overlayScopeVisibleKey } from "../../../../shared/contracts/overlay-scope-visibility";
 import { useCanvasGeneratorStore } from "../../knowledge-derivations/generators/generator-store";
 import SpaceCanvasGenerators from "../../knowledge-derivations/generators/presentation/SpaceCanvasGenerators.vue";
+import { useSourceUpdateCounts } from "../../knowledge/use-source-updates";
 import { createCanvasSelectionActions } from "../../session/actions/canvas-selection-actions";
 import { useSpaceStore } from "../../session/space-store";
 import { useCanvasToolStore } from "../canvas-tool-store";
@@ -51,10 +52,12 @@ const { visibleRelations } = useVisibleCanvasContent({
   relationKinds: () => store.relationKindFilter,
   relationStatuses: () => store.relationStatusFilter,
 });
+const sourceUpdateCounts = useSourceUpdateCounts();
 const sceneInput = computed<CanvasSceneInput>(() => ({
   editSnapshot: store.editSnapshot,
   nodes: store.nodes,
   relations: visibleRelations.value,
+  sourceUpdateCounts: sourceUpdateCounts.value,
 }));
 const hasCanvasObjects = computed(() => store.editSnapshot.structure.length > 0);
 const initialEmpty = computed(

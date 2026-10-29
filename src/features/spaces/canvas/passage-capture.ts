@@ -1,4 +1,6 @@
 import { appendPlainText } from "../document-editing/tiptap-content";
+import type { ProvenanceSource } from "../knowledge/model/provenance";
+import { attachProvenance } from "../knowledge/provenance-actions";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
@@ -41,43 +43,58 @@ export function withPassage(data: SpaceNodePayload, text: string): SpaceNodePayl
   return { ...data, text: before ? `${before}\n\n${text}` : text };
 }
 
-/** Puts `payload` on the canvas beside its sources and links it to them, as one undoable step. */
+/**
+ * Puts `payload` on the canvas beside its sources and links it to them, as one undoable step. What
+ * it was taken from is kept with it, so a later change to a source shows on the item.
+ */
 export async function addPassageNode(
   payload: SpaceNodePayload,
-  sourceNodeIds: readonly string[],
+  sources: readonly ProvenanceSource[],
   position?: CanvasPoint,
 ) {
   const store = useSpaceStore();
   const spaceId = activeSpace(store);
-  const sources = liveSources(store, sourceNodeIds);
+  const taken = liveSources(store, sources);
+  const sourceIds = taken.map(({ nodeId }) => nodeId);
   const layouts = currentCanvasEditor()?.getDocument().nodes ?? [];
   let added: SpaceCanvasNode | undefined;
   await store.recordHistoryMutation(async () => {
-    [added] = await store.addContent(payload, position ?? besideNodes(layouts, sources));
-    if (added) await linkSources(store, spaceId, added.id, sources);
+    [added] = await store.addContent(payload, position ?? besideNodes(layouts, sourceIds));
+    if (added) await linkSources(store, spaceId, added.id, sourceIds);
   });
+  if (added) await keepProvenance(spaceId, added.id, taken);
   return added;
 }
 
 /** Adds `text` to the end of an existing note and links the note to its sources, as one step. */
-export async function appendPassage(nodeId: string, text: string, sourceNodeIds: readonly string[]) {
+export async function appendPassage(nodeId: string, text: string, sources: readonly ProvenanceSource[]) {
   const store = useSpaceStore();
   const spaceId = activeSpace(store);
   const node = store.nodes.find((candidate) => candidate.id === nodeId);
   const after = node && withPassage(node.data, text);
   if (!node || !after) throw new Error(`Canvas item ${nodeId} cannot take a passage`);
-  const sources = liveSources(store, sourceNodeIds).filter((id) => id !== nodeId);
+  const taken = liveSources(store, sources).filter((source) => source.nodeId !== nodeId);
   await store.recordHistoryMutation(async () => {
     await store.updateNodeContents([{ id: nodeId, before: node.data, after }]);
-    await linkSources(store, spaceId, nodeId, sources);
+    await linkSources(
+      store,
+      spaceId,
+      nodeId,
+      taken.map((source) => source.nodeId),
+    );
   });
+  await keepProvenance(spaceId, nodeId, taken);
   return node;
 }
 
 // A cited item may have been deleted since the answer was written; a link to it would be refused.
-function liveSources(store: SpaceStore, nodeIds: readonly string[]) {
+// One passage per source is kept: provenance holds a single current record for each source.
+function liveSources(store: SpaceStore, sources: readonly ProvenanceSource[]) {
   const live = new Set(store.nodes.filter((node) => !node.hidden).map((node) => node.id));
-  return [...new Set(nodeIds)].filter((id) => live.has(id));
+  const first = new Map<string, ProvenanceSource>();
+  for (const source of sources)
+    if (live.has(source.nodeId) && !first.has(source.nodeId)) first.set(source.nodeId, source);
+  return [...first.values()];
 }
 
 function activeSpace(store: SpaceStore) {
@@ -89,5 +106,13 @@ function activeSpace(store: SpaceStore) {
 async function linkSources(store: SpaceStore, spaceId: string, nodeId: string, sources: readonly string[]) {
   await Promise.all(
     sources.map((source) => store.createRelation(nodeId, source, "derives-from", { spaceId })),
+  );
+}
+
+// Provenance is knowledge about the item, not an edit of the canvas: undo leaves it, and a restored
+// item still knows its sources.
+async function keepProvenance(spaceId: string, targetId: string, sources: readonly ProvenanceSource[]) {
+  await Promise.all(
+    sources.map((source) => attachProvenance({ spaceId, targetKind: "node", targetId }, source)),
   );
 }

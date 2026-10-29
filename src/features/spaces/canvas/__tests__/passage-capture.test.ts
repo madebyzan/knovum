@@ -1,13 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createSpaceNotePayload } from "../../document-editing/tiptap-content";
+import type { ProvenanceSource } from "../../knowledge/model/provenance";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import type { CanvasPoint } from "../contracts/canvas-editor-port";
 import { addPassageNode, appendPassage, besideNodes, withPassage } from "../passage-capture";
 import type { CanvasNodeLayoutV1 } from "../schema/document";
 
-const mocks = vi.hoisted(() => ({ current: undefined as unknown, layouts: [] as unknown[] }));
+const mocks = vi.hoisted(() => ({
+  current: undefined as unknown,
+  layouts: [] as unknown[],
+  steps: [] as string[],
+}));
+const attachProvenance = vi.hoisted(() =>
+  vi.fn<(target: { targetId: string }, source: ProvenanceSource) => Promise<void>>(async (target, source) => {
+    mocks.steps.push(`kept ${source.nodeId} on ${target.targetId}`);
+  }),
+);
+vi.mock("../../knowledge/provenance-actions", () => ({ attachProvenance }));
 vi.mock("../../session/space-store", () => ({ useSpaceStore: () => mocks.current }));
 vi.mock("../editor-session", () => ({
   currentCanvasEditor: () => ({ getDocument: () => ({ nodes: mocks.layouts }) }),
@@ -22,7 +33,7 @@ function canvasNode(id: string, data: SpaceNodePayload, hidden = false) {
 }
 
 function store(nodes: SpaceCanvasNode[]) {
-  const steps: string[] = [];
+  const steps = mocks.steps;
   const current = {
     activeSpaceId: "space",
     nodes,
@@ -50,8 +61,14 @@ function store(nodes: SpaceCanvasNode[]) {
 
 const note = (text: string) => createSpaceNotePayload("Note", text);
 
+function cited(nodeId: string, quote = `from ${nodeId}`): ProvenanceSource {
+  return { nodeId, quote, locator: { sourceRevision: `${nodeId}-r1`, location: { kind: "node" } } };
+}
+
 beforeEach(() => {
   mocks.layouts = [];
+  mocks.steps = [];
+  attachProvenance.mockClear();
 });
 
 describe("where a passage goes", () => {
@@ -99,15 +116,19 @@ describe("adding a passage to an item", () => {
 });
 
 describe("keeping a passage on the canvas", () => {
-  it("places it beside its live sources and links them, as one undoable step", async () => {
+  it("places it beside its live sources, links them as one undoable step and keeps what it cites", async () => {
     mocks.layouts = [layout("source", 0, 0)];
     const { current, steps } = store([canvasNode("source", note("s")), canvasNode("gone", note("g"), true)]);
-    await addPassageNode(note("Kept"), ["source", "gone", "source"]);
+    await addPassageNode(note("Kept"), [cited("source"), cited("gone"), cited("source", "again")]);
     expect(current.addContent).toHaveBeenCalledWith(note("Kept"), { x: 248, y: 0 });
     expect(current.createRelation).toHaveBeenCalledExactlyOnceWith("added", "source", "derives-from", {
       spaceId: "space",
     });
-    expect(steps).toEqual(["begin", "add", "added->source", "end"]);
+    expect(steps).toEqual(["begin", "add", "added->source", "end", "kept source on added"]);
+    expect(attachProvenance).toHaveBeenCalledExactlyOnceWith(
+      { spaceId: "space", targetKind: "node", targetId: "added" },
+      cited("source"),
+    );
   });
 
   it("uses the drop point, and the default spot when nothing is cited", async () => {
@@ -116,16 +137,17 @@ describe("keeping a passage on the canvas", () => {
     await addPassageNode(note("Plain"), []);
     expect(current.addContent.mock.calls.map((call) => call[1])).toEqual([{ x: 5, y: 6 }, undefined]);
     expect(current.createRelation).not.toHaveBeenCalled();
+    expect(attachProvenance).not.toHaveBeenCalled();
   });
 
   it("appends to a note and links it to the sources other than itself", async () => {
     const target = canvasNode("target", note("Before"));
     const { current, steps } = store([target, canvasNode("source", note("s"))]);
-    await appendPassage("target", "After", ["target", "source"]);
+    await appendPassage("target", "After", [cited("target"), cited("source")]);
     expect(current.updateNodeContents).toHaveBeenCalledWith([
       { id: "target", before: target.data, after: withPassage(target.data, "After") },
     ]);
-    expect(steps).toEqual(["begin", "update", "target->source", "end"]);
+    expect(steps).toEqual(["begin", "update", "target->source", "end", "kept source on target"]);
     await expect(appendPassage("missing", "x", [])).rejects.toThrow("cannot take a passage");
   });
 });

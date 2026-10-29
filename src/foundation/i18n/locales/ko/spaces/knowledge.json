@@ -106,6 +106,12 @@
     }
   },
   "provenance": "소스",
+  "sourceUpdates": {
+    "title": "출처가 변경됨",
+    "hint": "저장한 뒤 출처가 바뀌었습니다. 출처를 열어 비교하고, 그대로 두려면 검토 완료로 표시하세요.",
+    "open": "출처 열기",
+    "reviewed": "검토 완료로 표시"
+  },
   "portal": {
     "create": {
       "action": "새 포털 노드",

@@ -237,6 +237,15 @@ confirmation offers **Show**, which focuses and selects the item. The drag is a 
 _Dragging inside the window_ in `ui-system.md`): a press on the selected words picks them up, and
 the canvas editor's `canvasPointAt` decides where they would land.
 
+What is kept also records, per cited source, the cited passage and the revision it was indexed at
+(Provenance, outside canvas undo: a restored item still knows its sources). When a source later
+changes — its file's bytes or its content, whichever the citation carried — the item shows a
+**source updated** badge with the number of changed sources, and its inspector lists them. Each can
+be opened to compare, or marked reviewed, which records the source again at its current revision and
+keeps the words. Nothing is rewritten for the person: whether the item needs changing is theirs to
+decide. The badge counts the knowledge health `stale-provenance` issues whose source still differs
+(`knowledge/use-source-updates.ts`); the check re-runs shortly after any source's revision moves.
+
 Saving a resource in another format is an export rather than a derivation: the same content in a second file is not new knowledge, so it belongs to the destination the person picked instead of to the canvas. Admitted formats per resource kind and fidelity limits belong to [resource-export.md](resource-export.md).
 
 AI execution selection follows the task's explicit target, then its capability override, then the user's default execution method. An enabled desktop Agent uses its own authentication and tools; a selected user model uses its registered connection and credential reference. Local deterministic Actions do not require either. Missing or failed execution paths remain visible and do not switch to another account.

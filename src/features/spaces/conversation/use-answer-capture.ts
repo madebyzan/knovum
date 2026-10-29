@@ -9,6 +9,7 @@ import { acceptsPassage, addPassageNode, appendPassage } from "../canvas/passage
 import { noteFromPlainText } from "../canvas/text-import";
 import { useCanvasSelectionProjection } from "../canvas/use-canvas-selection-projection";
 import { useNodeOperationGate } from "../canvas/use-node-operation-gate";
+import type { ProvenanceSource } from "../knowledge/model/provenance";
 import type { GroundedCitation } from "../knowledge/model/schema/grounded-citation";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { truncateUtf16 } from "../model/text";
@@ -19,7 +20,7 @@ const TITLE_UNITS = 40;
 
 /**
  * Puts what an answer says on the canvas, where the person can arrange, edit and connect it. What
- * lands there is linked to the canvas items the answer cited for it.
+ * lands there is linked to the canvas items the answer cited for it, and keeps the cited passages.
  */
 export function useAnswerCapture(citations: MaybeRefOrGetter<readonly GroundedCitation[]>) {
   const store = useSpaceStore();
@@ -34,9 +35,11 @@ export function useAnswerCapture(citations: MaybeRefOrGetter<readonly GroundedCi
     return { id: node.id, title: truncateUtf16(node.data.title, TITLE_UNITS) };
   });
 
-  function sources(indexes?: readonly number[]) {
+  function sources(indexes?: readonly number[]): ProvenanceSource[] {
     return toValue(citations).flatMap((citation) =>
-      citation.state === "current" && (!indexes || indexes.includes(citation.index)) ? [citation.nodeId] : [],
+      citation.state === "current" && (!indexes || indexes.includes(citation.index))
+        ? [{ nodeId: citation.nodeId, locator: citation.locator, quote: citation.quote }]
+        : [],
     );
   }
 

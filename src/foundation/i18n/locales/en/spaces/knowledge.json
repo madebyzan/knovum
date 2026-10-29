@@ -106,6 +106,12 @@
     }
   },
   "provenance": "Source",
+  "sourceUpdates": {
+    "title": "Sources changed",
+    "hint": "Changed since this was kept. Open a source to compare, or mark it reviewed to keep this as it is.",
+    "open": "Open source",
+    "reviewed": "Mark reviewed"
+  },
   "portal": {
     "create": {
       "action": "New Portal node",
