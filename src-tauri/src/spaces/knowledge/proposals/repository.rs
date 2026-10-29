@@ -89,20 +89,26 @@ pub(super) async fn insert(
     })
 }
 
-const COLUMNS: &str = "id,space_id,origin,rationale,changes,basis,state,created_at";
+// One literal per query: sqlx accepts only static SQL.
+macro_rules! proposal_query {
+    ($predicate:literal) => {
+        concat!(
+            "SELECT id,space_id,origin,rationale,changes,basis,state,created_at FROM spaces_knowledge_proposals ",
+            $predicate
+        )
+    };
+}
 
 pub(super) async fn load(
     connection: &mut SqliteConnection,
     id: &str,
 ) -> Result<ProposalRow, String> {
-    let row = sqlx::query(&format!(
-        "SELECT {COLUMNS} FROM spaces_knowledge_proposals WHERE id=$1"
-    ))
-    .bind(id)
-    .fetch_optional(connection)
-    .await
-    .map_err(db::sql_error)?
-    .ok_or("knowledge-proposal-missing: the proposal no longer exists")?;
+    let row = sqlx::query(proposal_query!("WHERE id=$1"))
+        .bind(id)
+        .fetch_optional(connection)
+        .await
+        .map_err(db::sql_error)?
+        .ok_or("knowledge-proposal-missing: the proposal no longer exists")?;
     decode(&row)
 }
 
@@ -116,9 +122,8 @@ pub(super) async fn list_pending(
         .map(serde_json::to_value)
         .transpose()
         .map_err(db::json_error)?;
-    sqlx::query(&format!(
-        "SELECT {COLUMNS} FROM spaces_knowledge_proposals
-         WHERE space_id=$1 AND state='pending' AND ($2 IS NULL OR json(origin)=json($2))
+    sqlx::query(proposal_query!(
+        "WHERE space_id=$1 AND state='pending' AND ($2 IS NULL OR json(origin)=json($2))
          ORDER BY created_at DESC, rowid DESC"
     ))
     .bind(space_id)

@@ -9,6 +9,19 @@ use super::contracts::{
 use super::judgment::ReadPassage;
 use crate::spaces::db;
 
+// One literal per query (sqlx accepts only static SQL). The answer text is the message's first part,
+// the text its citation markers were resolved against.
+macro_rules! answer_query {
+    ($predicate:literal) => {
+        concat!(
+            "SELECT m.id,m.conversation_id,c.space_id,json_extract(m.content,'$.runId') AS run_id,
+             COALESCE(json_extract(m.content,'$.parts[0].text'),'') AS text
+             FROM spaces_conversation_messages m JOIN spaces_conversations c ON c.id=m.conversation_id ",
+            $predicate
+        )
+    };
+}
+
 /// An assistant message as verification reads it.
 pub(super) struct StoredAnswer {
     pub message_id: String,
@@ -23,8 +36,8 @@ pub(super) async fn cited_answers(
     connection: &mut SqliteConnection,
     run_id: &str,
 ) -> Result<Vec<StoredAnswer>, String> {
-    let rows = sqlx::query(&format!(
-        "{ANSWER} WHERE json_extract(m.content,'$.runId')=$1 AND m.role='assistant'
+    let rows = sqlx::query(answer_query!(
+        "WHERE json_extract(m.content,'$.runId')=$1 AND m.role='assistant'
          AND json_array_length(m.content,'$.citations') > 0
          AND NOT EXISTS(SELECT 1 FROM spaces_answer_verifications v WHERE v.message_id=m.id)
          ORDER BY m.created_at, m.rowid"
@@ -40,7 +53,7 @@ pub(super) async fn load_answer(
     connection: &mut SqliteConnection,
     message_id: &str,
 ) -> Result<StoredAnswer, String> {
-    let row = sqlx::query(&format!("{ANSWER} WHERE m.id=$1 AND m.role='assistant'"))
+    let row = sqlx::query(answer_query!("WHERE m.id=$1 AND m.role='assistant'"))
         .bind(message_id)
         .fetch_optional(connection)
         .await
@@ -48,12 +61,6 @@ pub(super) async fn load_answer(
         .ok_or("answer-verification-missing: the answer no longer exists")?;
     answer(&row)
 }
-
-/// The answer text is its first part, the text its citation markers were resolved against.
-const ANSWER: &str =
-    "SELECT m.id,m.conversation_id,c.space_id,json_extract(m.content,'$.runId') AS run_id,
-    COALESCE(json_extract(m.content,'$.parts[0].text'),'') AS text
-    FROM spaces_conversation_messages m JOIN spaces_conversations c ON c.id=m.conversation_id";
 
 /// The passages the answer's Run read, in citation order, exactly as the Run read them.
 pub(super) async fn read_passages(
