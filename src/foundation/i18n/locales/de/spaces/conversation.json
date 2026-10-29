@@ -160,5 +160,12 @@
     "import": "In den Arbeitsbereich importieren",
     "select": "Wählen Sie eine Ressource",
     "readOnly": "Dieser Arbeitsbereich ist schreibgeschützt"
+  },
+  "capture": {
+    "selection": "Aktionen für die Auswahl",
+    "saveSelection": "Als Notiz auf dem Canvas speichern",
+    "followUp": "Hierzu nachfragen",
+    "saveAnswer": "Antwort zum Canvas hinzufügen",
+    "saved": "Zum Canvas hinzugefügt"
   }
 }

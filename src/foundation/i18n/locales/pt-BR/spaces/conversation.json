@@ -160,5 +160,12 @@
     "import": "Importar para o Espaço",
     "select": "Escolha um recurso",
     "readOnly": "Este espaço de trabalho é somente leitura"
+  },
+  "capture": {
+    "selection": "Ações da seleção",
+    "saveSelection": "Salvar como nota na tela",
+    "followUp": "Perguntar sobre isto",
+    "saveAnswer": "Adicionar resposta à tela",
+    "saved": "Adicionado à tela"
   }
 }

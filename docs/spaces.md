@@ -223,6 +223,13 @@ other derivation. Attached local files are not canvas nodes and have no line. In
 `resource_link` there names a file that lives elsewhere — the source the Agent read, the image it
 looked at — and is shown, never fetched, copied or published.
 
+An answer can be kept on the canvas. Its action row adds the whole answer as a Markdown item that
+keeps its headings, lists, tables and code; selecting a passage in it opens a bar to save the passage
+as a Sticky Note, copy it, or ask about it, which quotes the passage (`> `) at the top of the input
+and leaves the caret below. Citation markers are dropped in all three: `[C3]` resolves to a source
+only inside its answer. Both saves go through the ordinary item creation path and its permission
+gate (`conversation/use-answer-capture.ts`), so they are undoable like any other new item.
+
 Saving a resource in another format is an export rather than a derivation: the same content in a second file is not new knowledge, so it belongs to the destination the person picked instead of to the canvas. Admitted formats per resource kind and fidelity limits belong to [resource-export.md](resource-export.md).
 
 AI execution selection follows the task's explicit target, then its capability override, then the user's default execution method. An enabled desktop Agent uses its own authentication and tools; a selected user model uses its registered connection and credential reference. Local deterministic Actions do not require either. Missing or failed execution paths remain visible and do not switch to another account.

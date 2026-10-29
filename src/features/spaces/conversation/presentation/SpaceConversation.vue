@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import { quotedFollowUp } from "../answer-capture";
 import { useConversationSessionStore } from "../conversation-session-store";
 import AgentExtensionPicker from "./AgentExtensionPicker.vue";
 import ConversationToolInterventions from "./ConversationToolInterventions.vue";
@@ -123,6 +124,7 @@ async function previewAttachment(key: string) {
         @regenerate="conversationSession.regenerate"
         @scroll-position="conversationSession.rememberScroll"
         @suggest="applySuggestion"
+        @quote="applySuggestion(quotedFollowUp($event, prompt))"
         @inspect-activity="conversationSession.inspectActivity"
       />
     </div>

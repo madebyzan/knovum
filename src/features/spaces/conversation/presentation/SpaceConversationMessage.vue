@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { Check, Copy, GitBranch, RefreshCw } from "@lucide/vue";
-import { useTimeoutFn } from "@vueuse/core";
 import { writeText } from "tauri-plugin-clipboard-api";
-import { computed, shallowRef } from "vue";
+import { computed, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
 import {
@@ -16,9 +13,13 @@ import {
 } from "../../knowledge/model/schema/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
 import { followConversationLink } from "../conversation-links";
+import { useAnswerCapture } from "../use-answer-capture";
 import SpaceConversationCitations from "./SpaceConversationCitations.vue";
+import SpaceConversationMessageActions from "./SpaceConversationMessageActions.vue";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
 import SpaceConversationOutputs from "./SpaceConversationOutputs.vue";
+import SpaceConversationSelectionBar from "./SpaceConversationSelectionBar.vue";
+import { useAnswerSelection } from "./use-answer-selection";
 
 const props = defineProps<{
   message: ConversationMessage;
@@ -26,12 +27,12 @@ const props = defineProps<{
   actions?: boolean;
   busy: boolean;
 }>();
-const emit = defineEmits<{ branch: []; regenerate: [] }>();
+const emit = defineEmits<{ branch: []; regenerate: []; quote: [text: string] }>();
 const { t } = useI18n();
 const store = useSpaceStore();
-const copyFailed = shallowRef(false);
-const copied = shallowRef(false);
-const { start: resetCopied } = useTimeoutFn(() => (copied.value = false), 1600, { immediate: false });
+const body = useTemplateRef<HTMLElement>("body");
+const capture = useAnswerCapture();
+const selected = useAnswerSelection(body);
 const messageText = computed(() =>
   props.message.content.parts
     .filter((part) => part.type === "text")
@@ -62,16 +63,13 @@ async function followLink(href: string) {
   }
 }
 
-async function copyMessage() {
-  try {
-    await writeText(messageText.value);
-    copyFailed.value = false;
-    copied.value = true;
-    resetCopied();
-  } catch {
-    copyFailed.value = true;
-    copied.value = false;
-  }
+// Each action ends the selection: the passage has been dealt with, and its bar would linger.
+async function onSelection(action: "save" | "followUp" | "copy") {
+  const text = selected.text.value;
+  selected.clear();
+  if (action === "save") await capture.saveSelection(text);
+  else if (action === "followUp") emit("quote", text);
+  else await writeText(text).catch((error: unknown) => toast.error(getErrorMessage(error)));
 }
 </script>
 
@@ -85,7 +83,8 @@ async function copyMessage() {
       :attachments="message.content.attachments"
     />
     <div
-      class="min-w-0 space-y-2 text-body leading-relaxed text-fg-primary"
+      ref="body"
+      class="relative min-w-0 space-y-2 text-body leading-relaxed text-fg-primary"
       :class="
         message.role === 'user'
           ? 'w-fit max-w-[80%] rounded-panel bg-surface-control px-3.5 py-2.5'
@@ -106,6 +105,15 @@ async function copyMessage() {
           {{ part.name || part.mediaType }}
         </p>
       </template>
+      <SpaceConversationSelectionBar
+        v-if="message.role === 'assistant' && selected.anchor.value"
+        class="absolute z-20 -translate-x-1/2 -translate-y-[calc(100%+6px)]"
+        :style="{ left: `${selected.anchor.value.left}px`, top: `${selected.anchor.value.top}px` }"
+        :can-save="capture.canSave.value"
+        @save="onSelection('save')"
+        @follow-up="onSelection('followUp')"
+        @copy="onSelection('copy')"
+      />
     </div>
     <SpaceConversationOutputs
       v-if="message.role === 'assistant' && message.content.outputs?.length"
@@ -121,47 +129,14 @@ async function copyMessage() {
         )
       }}
     </span>
-    <p v-if="copyFailed" role="alert" class="text-caption text-fg-danger">
-      {{ t("spaces.conversation.messages.copyFailed") }}
-    </p>
-    <div
+    <SpaceConversationMessageActions
       v-if="actions && message.role === 'assistant' && messageText"
-      class="message-actions flex items-center gap-0.5 opacity-0 transition-opacity duration-100 group-focus-within:opacity-100 group-hover:opacity-100"
-    >
-      <UiIconButton
-        :label="t(copied ? 'spaces.conversation.messages.copied' : 'spaces.conversation.messages.copy')"
-        size="sm"
-        @click="copyMessage"
-      >
-        <Check v-if="copied" class="size-3.5 text-fg-accent" />
-        <Copy v-else class="size-3.5" />
-      </UiIconButton>
-      <UiIconButton
-        :label="t('spaces.conversation.conversations.branch')"
-        tooltip
-        size="sm"
-        :disabled="busy"
-        @click="emit('branch')"
-      >
-        <GitBranch class="size-3.5" />
-      </UiIconButton>
-      <UiIconButton
-        :label="t('spaces.conversation.regenerate')"
-        tooltip
-        size="sm"
-        :disabled="busy"
-        @click="emit('regenerate')"
-      >
-        <RefreshCw class="size-3.5" />
-      </UiIconButton>
-    </div>
+      :text="messageText"
+      :busy="busy"
+      :can-save="capture.canSave.value"
+      @save="capture.saveAnswer(messageText)"
+      @branch="emit('branch')"
+      @regenerate="emit('regenerate')"
+    />
   </div>
 </template>
-
-<style scoped>
-@media (hover: none) {
-  .message-actions {
-    opacity: 1;
-  }
-}
-</style>

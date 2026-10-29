@@ -160,5 +160,12 @@
     "import": "Import into Space",
     "select": "Choose a resource",
     "readOnly": "This Space is read-only"
+  },
+  "capture": {
+    "selection": "Selection actions",
+    "saveSelection": "Save as note on canvas",
+    "followUp": "Ask about this",
+    "saveAnswer": "Add answer to canvas",
+    "saved": "Added to canvas"
   }
 }

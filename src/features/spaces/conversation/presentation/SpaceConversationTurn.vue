@@ -24,6 +24,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   branch: [message: ConversationMessage];
   regenerate: [message: ConversationMessage];
+  quote: [text: string];
   inspectActivity: [runId: string];
 }>();
 const { t } = useI18n();
@@ -91,6 +92,7 @@ watch(
           :busy="busy"
           @branch="emit('branch', block.message)"
           @regenerate="emit('regenerate', block.message)"
+          @quote="emit('quote', $event)"
         />
         <UiMarkdown
           v-else
