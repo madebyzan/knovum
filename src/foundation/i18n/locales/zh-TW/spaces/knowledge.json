@@ -106,6 +106,12 @@
     }
   },
   "provenance": "來源",
+  "sourceUpdates": {
+    "title": "來源已更新",
+    "hint": "儲存之後來源有了變動。開啟來源對照一下；確認無需修改就標記為已核對。",
+    "open": "開啟來源",
+    "reviewed": "標記為已核對"
+  },
   "portal": {
     "create": {
       "action": "新建空間入口",

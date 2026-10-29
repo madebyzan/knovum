@@ -4,7 +4,7 @@ import { computed } from "vue";
 import type { CanvasPreviewPolicy } from "../../preview/policy";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasSceneNode } from "../scene/canvas-scene";
-import CanvasDerivedOutputsBadge from "./CanvasDerivedOutputsBadge.vue";
+import CanvasNodeBadges from "./CanvasNodeBadges.vue";
 
 const props = defineProps<{
   previewPolicy: CanvasPreviewPolicy;
@@ -14,6 +14,8 @@ const props = defineProps<{
   selected: boolean;
   /** Outputs derived from this node; selecting it draws their lineage instead. */
   derivedOutputs: number;
+  /** Sources changed since this node was kept. */
+  sourceUpdates: number;
 }>();
 const effectiveLayout = computed(
   () => props.layoutPreviewByNodeId.get(props.sceneNode.node.id) ?? props.sceneNode.layout,
@@ -43,10 +45,11 @@ const style = computed(() => ({
       :interactive="interactive"
       :selected="selected"
     />
-    <CanvasDerivedOutputsBadge
-      v-if="derivedOutputs && !selected && !interactive"
-      :count="derivedOutputs"
+    <CanvasNodeBadges
+      v-if="!interactive"
       :node-width="effectiveFrame.width"
+      :source-updates="sourceUpdates"
+      :derived-outputs="selected ? 0 : derivedOutputs"
     />
   </div>
 </template>

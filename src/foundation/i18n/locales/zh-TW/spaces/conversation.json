@@ -160,5 +160,15 @@
     "import": "導入空間",
     "select": "選擇資源",
     "readOnly": "目前空間為唯讀"
+  },
+  "capture": {
+    "selection": "選取內容操作",
+    "saveSelection": "存為畫布便利貼",
+    "followUp": "就這段追問",
+    "saveAnswer": "將回答加入畫布",
+    "saved": "已加入畫布",
+    "show": "定位",
+    "appendTo": "附加到「{title}」",
+    "appended": "已附加到「{title}」"
   }
 }

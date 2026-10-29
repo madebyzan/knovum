@@ -106,6 +106,12 @@
     }
   },
   "provenance": "来源",
+  "sourceUpdates": {
+    "title": "来源已更新",
+    "hint": "保存之后来源有了改动。打开来源对照一下；确认无需修改就标记为已核对。",
+    "open": "打开来源",
+    "reviewed": "标记为已核对"
+  },
   "portal": {
     "create": {
       "action": "新建空间入口",

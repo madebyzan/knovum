@@ -106,6 +106,12 @@
     }
   },
   "provenance": "Quelle",
+  "sourceUpdates": {
+    "title": "Quellen geändert",
+    "hint": "Seit dem Speichern geändert. Öffne eine Quelle zum Vergleichen oder markiere sie als geprüft, um dies so zu behalten.",
+    "open": "Quelle öffnen",
+    "reviewed": "Als geprüft markieren"
+  },
   "portal": {
     "create": {
       "action": "Neuer Portalknoten",

@@ -1,6 +1,7 @@
 import { useEventListener, useResizeObserver } from "@vueuse/core";
 import { computed, onScopeDispose, shallowRef } from "vue";
 
+import { isTopmostAt, type ViewportPoint } from "../../../../shared/ui/use-pointer-drag";
 import type { VideoEditProject } from "../project";
 import { projectDurationMs } from "../timing";
 import {
@@ -107,10 +108,16 @@ export function useTimelineView(options: TimelineViewOptions) {
     return Math.max(0, pxToTime(event.clientX - element.getBoundingClientRect().left, pxPerSecond.value));
   }
 
+  /** The time under a viewport point while the timeline is what the pointer is over there. */
+  function timeAtPoint(point: ViewportPoint) {
+    return isTopmostAt(viewport.value, point) ? timeAt({ clientX: point.x }) : undefined;
+  }
+
   return {
     viewport,
     surface,
     timeAt,
+    timeAtPoint,
     viewportWidth,
     scrollLeft,
     pxPerSecond,

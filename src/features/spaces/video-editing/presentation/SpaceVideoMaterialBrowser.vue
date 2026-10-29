@@ -4,9 +4,11 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiDragGhost from "../../../../shared/ui/UiDragGhost.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
+import { usePointerDrag } from "../../../../shared/ui/use-pointer-drag";
 import { versionedMediaSource } from "../../media/media-element-source";
 import type { VideoMaterialNode } from "../material";
 import { formatVideoTimelineTime } from "../timecode";
@@ -14,7 +16,7 @@ import type { VideoEditor } from "./use-video-editor";
 
 const props = defineProps<{ editor: VideoEditor }>();
 const { t } = useI18n();
-const { materials, player } = props.editor;
+const { materials, player, timeline } = props.editor;
 const query = shallowRef("");
 const ICONS = { video: Film, image: ImageIcon, audio: Music2 } as const;
 
@@ -35,10 +37,11 @@ function durationOf(node: VideoMaterialNode) {
   return typeof seconds === "number" ? formatVideoTimelineTime(seconds * 1000) : undefined;
 }
 
-function drag(event: DragEvent, node: VideoMaterialNode) {
-  event.dataTransfer?.setData("application/x-knovum-video-material", node.id);
-  if (event.dataTransfer) event.dataTransfer.effectAllowed = "copy";
-}
+// A material dragged onto the timeline starts where it is dropped; a click adds it at the playhead.
+const materialDrag = usePointerDrag({
+  targetAt: timeline.timeAtPoint,
+  drop: (node: VideoMaterialNode, atMs: number) => materials.add(node, atMs),
+});
 
 function add(node: VideoMaterialNode) {
   void materials.add(node, player.positionMs());
@@ -65,10 +68,9 @@ function add(node: VideoMaterialNode) {
             <button
               type="button"
               class="flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-lg border border-stroke-default bg-surface-raised text-left transition-colors hover:border-stroke-accent hover:shadow-xs focus-visible:outline-2 focus-visible:outline-stroke-focus"
-              draggable="true"
               :aria-label="t('spaces.media.videoEditor.materials.add', { title: node.data.title })"
               :disabled="materials.busy.value"
-              @dragstart="drag($event, node)"
+              @mousedown="materialDrag.start($event, node)"
               @click="add(node)"
             >
               <span
@@ -124,5 +126,17 @@ function add(node: VideoMaterialNode) {
         <Upload class="size-3.5" />{{ t("spaces.media.videoEditor.materials.import") }}
       </UiButton>
     </div>
+    <UiDragGhost
+      v-if="materialDrag.drag.value"
+      :x="materialDrag.drag.value.x"
+      :y="materialDrag.drag.value.y"
+      :droppable="materialDrag.drag.value.target !== undefined"
+    >
+      <component
+        :is="ICONS[materialDrag.drag.value.item.data.kind as keyof typeof ICONS]"
+        class="size-3.5 shrink-0"
+      />
+      <span class="truncate">{{ materialDrag.drag.value.item.data.title }}</span>
+    </UiDragGhost>
   </div>
 </template>

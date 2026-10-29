@@ -7,6 +7,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceKnowledgeHistory from "./SpaceKnowledgeHistory.vue";
 import SpaceRelations from "./SpaceRelations.vue";
+import SpaceSourceUpdates from "./SpaceSourceUpdates.vue";
 import SpaceTags from "./SpaceTags.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
@@ -19,6 +20,8 @@ const hasRelations = computed(() =>
 </script>
 
 <template>
+  <SpaceSourceUpdates :key="node.id" :node-id="node.id" />
+
   <SpaceInspectorSection
     :title="$t('spaces.knowledge.relations.title')"
     :icon="Layers"

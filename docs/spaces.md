@@ -223,6 +223,29 @@ other derivation. Attached local files are not canvas nodes and have no line. In
 `resource_link` there names a file that lives elsewhere — the source the Agent read, the image it
 looked at — and is shown, never fetched, copied or published.
 
+An answer can be kept on the canvas. Its action row adds the whole answer as a Markdown item that
+keeps its headings, lists, tables and code. Selecting a passage opens a bar to save it as a Sticky
+Note, copy it, ask about it — which quotes it (`> `) at the top of the input and leaves the caret
+below — or, while one note or Markdown item is selected on the canvas, add it to the end of that
+item. A selected passage can also be dragged onto the canvas, where it lands as a note at the drop
+point; dropped anywhere else, or with Escape, nothing is kept. Citation markers are dropped from the text, since `[C3]` resolves to a source only inside its
+answer; instead, what is kept gets a `derives-from` link to every still-present item cited in the
+blocks the passage touches (a whole answer: all of its citations), and a new item stands to the right
+of those sources, stepping down below earlier ones there. Creating or appending and its links are
+one undo step (`canvas/passage-capture.ts`, behind the ordinary create/edit permission gate), and the
+confirmation offers **Show**, which focuses and selects the item. The drag is a pointer gesture (see
+_Dragging inside the window_ in `ui-system.md`): a press on the selected words picks them up, and
+the canvas editor's `canvasPointAt` decides where they would land.
+
+What is kept also records, per cited source, the cited passage and the revision it was indexed at
+(Provenance, outside canvas undo: a restored item still knows its sources). When a source later
+changes — its file's bytes or its content, whichever the citation carried — the item shows a
+**source updated** badge with the number of changed sources, and its inspector lists them. Each can
+be opened to compare, or marked reviewed, which records the source again at its current revision and
+keeps the words. Nothing is rewritten for the person: whether the item needs changing is theirs to
+decide. The badge counts the knowledge health `stale-provenance` issues whose source still differs
+(`knowledge/use-source-updates.ts`); the check re-runs shortly after any source's revision moves.
+
 Saving a resource in another format is an export rather than a derivation: the same content in a second file is not new knowledge, so it belongs to the destination the person picked instead of to the canvas. Admitted formats per resource kind and fidelity limits belong to [resource-export.md](resource-export.md).
 
 AI execution selection follows the task's explicit target, then its capability override, then the user's default execution method. An enabled desktop Agent uses its own authentication and tools; a selected user model uses its registered connection and credential reference. Local deterministic Actions do not require either. Missing or failed execution paths remain visible and do not switch to another account.

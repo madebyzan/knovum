@@ -85,6 +85,8 @@ export interface CanvasEditorPort {
   selectNodes(nodeIds: readonly string[]): void;
   selectStructureNodes(structureNodeIds: readonly string[]): void;
   screenToCanvasPoint(point: CanvasPoint): CanvasPoint;
+  /** The canvas point under a viewport point, or nothing when something else is on top there. */
+  canvasPointAt(point: CanvasPoint): CanvasPoint | undefined;
   canvasToViewportPoint(point: CanvasPoint): CanvasPoint;
   /** The canvas point at the centre of what the person can currently see. */
   visibleCenter(): CanvasPoint;

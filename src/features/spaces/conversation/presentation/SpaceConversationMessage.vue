@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { Check, Copy, GitBranch, RefreshCw } from "@lucide/vue";
-import { useTimeoutFn } from "@vueuse/core";
-import { writeText } from "tauri-plugin-clipboard-api";
-import { computed, shallowRef } from "vue";
+import { StickyNote } from "@lucide/vue";
+import { computed, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import UiDragGhost from "../../../../shared/ui/UiDragGhost.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
 import {
@@ -16,9 +14,13 @@ import {
 } from "../../knowledge/model/schema/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
 import { followConversationLink } from "../conversation-links";
+import { useAnswerCapture } from "../use-answer-capture";
 import SpaceConversationCitations from "./SpaceConversationCitations.vue";
+import SpaceConversationMessageActions from "./SpaceConversationMessageActions.vue";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
 import SpaceConversationOutputs from "./SpaceConversationOutputs.vue";
+import SpaceConversationSelectionBar from "./SpaceConversationSelectionBar.vue";
+import { useAnswerPassage } from "./use-answer-passage";
 
 const props = defineProps<{
   message: ConversationMessage;
@@ -26,12 +28,10 @@ const props = defineProps<{
   actions?: boolean;
   busy: boolean;
 }>();
-const emit = defineEmits<{ branch: []; regenerate: [] }>();
+const emit = defineEmits<{ branch: []; regenerate: []; quote: [text: string] }>();
 const { t } = useI18n();
 const store = useSpaceStore();
-const copyFailed = shallowRef(false);
-const copied = shallowRef(false);
-const { start: resetCopied } = useTimeoutFn(() => (copied.value = false), 1600, { immediate: false });
+const body = useTemplateRef<HTMLElement>("body");
 const messageText = computed(() =>
   props.message.content.parts
     .filter((part) => part.type === "text")
@@ -39,6 +39,8 @@ const messageText = computed(() =>
     .join("\n\n"),
 );
 const citations = computed(() => groundedCitationSchema.array().parse(props.message.content.citations));
+const capture = useAnswerCapture(citations);
+const passage = useAnswerPassage(body, capture, (text) => emit("quote", text));
 const citationMarkers = computed(
   () => new Map(citations.value.map((citation) => [citation.index, citation.state === "current"])),
 );
@@ -61,18 +63,6 @@ async function followLink(href: string) {
     toast.error(getErrorMessage(error));
   }
 }
-
-async function copyMessage() {
-  try {
-    await writeText(messageText.value);
-    copyFailed.value = false;
-    copied.value = true;
-    resetCopied();
-  } catch {
-    copyFailed.value = true;
-    copied.value = false;
-  }
-}
 </script>
 
 <template>
@@ -85,13 +75,28 @@ async function copyMessage() {
       :attachments="message.content.attachments"
     />
     <div
-      class="min-w-0 space-y-2 text-body leading-relaxed text-fg-primary"
+      ref="body"
+      @mousedown="message.role === 'assistant' && passage.press($event)"
+      class="relative min-w-0 space-y-2 text-body leading-relaxed text-fg-primary"
       :class="
         message.role === 'user'
           ? 'w-fit max-w-[80%] rounded-panel bg-surface-control px-3.5 py-2.5'
           : 'w-full'
       "
     >
+      <!-- First, not last: `space-y` spaces every child but the last, so a bar appended at the end
+           would give the final paragraph a margin and push what follows down while text is selected. -->
+      <SpaceConversationSelectionBar
+        v-if="message.role === 'assistant' && passage.anchor.value && !passage.drag.value"
+        class="absolute z-20 -translate-x-1/2 -translate-y-[calc(100%+6px)]"
+        :style="{ left: `${passage.anchor.value.left}px`, top: `${passage.anchor.value.top}px` }"
+        :can-save="capture.canSave.value"
+        :append-title="capture.appendTarget.value?.title"
+        @save="passage.act('save')"
+        @append="passage.act('append')"
+        @follow-up="passage.act('followUp')"
+        @copy="passage.act('copy')"
+      />
       <template v-for="(part, index) in message.content.parts" :key="index">
         <UiMarkdown
           v-if="part.type === 'text' && part.text.trim()"
@@ -121,47 +126,23 @@ async function copyMessage() {
         )
       }}
     </span>
-    <p v-if="copyFailed" role="alert" class="text-caption text-fg-danger">
-      {{ t("spaces.conversation.messages.copyFailed") }}
-    </p>
-    <div
+    <SpaceConversationMessageActions
       v-if="actions && message.role === 'assistant' && messageText"
-      class="message-actions flex items-center gap-0.5 opacity-0 transition-opacity duration-100 group-focus-within:opacity-100 group-hover:opacity-100"
+      :text="messageText"
+      :busy="busy"
+      :can-save="capture.canSave.value"
+      @save="capture.saveAnswer(messageText)"
+      @branch="emit('branch')"
+      @regenerate="emit('regenerate')"
+    />
+    <UiDragGhost
+      v-if="passage.drag.value"
+      :x="passage.drag.value.x"
+      :y="passage.drag.value.y"
+      :droppable="passage.drag.value.target !== undefined"
     >
-      <UiIconButton
-        :label="t(copied ? 'spaces.conversation.messages.copied' : 'spaces.conversation.messages.copy')"
-        size="sm"
-        @click="copyMessage"
-      >
-        <Check v-if="copied" class="size-3.5 text-fg-accent" />
-        <Copy v-else class="size-3.5" />
-      </UiIconButton>
-      <UiIconButton
-        :label="t('spaces.conversation.conversations.branch')"
-        tooltip
-        size="sm"
-        :disabled="busy"
-        @click="emit('branch')"
-      >
-        <GitBranch class="size-3.5" />
-      </UiIconButton>
-      <UiIconButton
-        :label="t('spaces.conversation.regenerate')"
-        tooltip
-        size="sm"
-        :disabled="busy"
-        @click="emit('regenerate')"
-      >
-        <RefreshCw class="size-3.5" />
-      </UiIconButton>
-    </div>
+      <StickyNote class="size-3.5 shrink-0" />
+      <span class="truncate">{{ passage.drag.value.item.text }}</span>
+    </UiDragGhost>
   </div>
 </template>
-
-<style scoped>
-@media (hover: none) {
-  .message-actions {
-    opacity: 1;
-  }
-}
-</style>

@@ -749,6 +749,24 @@ Speech media previews compose the existing playback controller, `SpaceMediaTimel
 
 AI image tools separate interaction from execution. Brush repair uses the selected local model; text-described removal and multi-angle generation retain their explicitly configured remote target. Opening the eraser, painting a mask, changing brush size or entering a removal description requires a ready image and exclusive node-operation ownership; it does not require model credentials or a successful capability query. Generation confirmation checks the explicitly selected input mode, its actual execution capability and input constraints, and explains why submission is unavailable. Mask and description removal share one draft session and submission surface; switching modes is a user choice and never an automatic fallback. Existing node-operation admission continues to prevent dragging or concurrent edits while either mode is active.
 
+### Dragging inside the window
+
+The desktop shell takes every HTML drag over the webview so it can report dropped file paths
+(Tauri's `dragDropEnabled`, which file import needs). Its handler claims the drag before WebKit or
+WebView2 sees it, so the page never receives `dragover` or `drop` — even for a drag that starts and
+ends inside the window — and nothing reports the failure. HTML drag and drop (`draggable`,
+`dataTransfer`, `@drop`) is therefore not used.
+
+Anything dragged between two surfaces is a pointer gesture built on `usePointerDrag` and
+`UiDragGhost` (`shared/ui`). The source calls `start(event, item)` from its own `mousedown`
+(presses that pick nothing up never do, and keep their browser default). The destination supplies
+`targetAt(point)`: where the item would land under a viewport point, or nothing — checked with
+`isTopmostAt`, so a panel or dialog over the destination refuses the drop. A press that does not
+move past 4 px is a tap and keeps its click; a drag swallows the click its release would cause, and
+Escape, losing window focus or releasing elsewhere drops nothing. The ghost is opaque only over a
+target. Files and text dropped from other apps reach the page only as Tauri's file drop
+(`foundation/file-drop`), which carries paths and no text; text from another app arrives by paste.
+
 ## Native materials
 
 The current macOS visual profile uses Tauri's transparent WebView + `sidebar` window effect. This requires `app.macOSPrivateApi: true`; Tauri documents that this prevents Mac App Store acceptance. Knovum currently optimizes for direct/team distribution. If Mac App Store distribution becomes a requirement, record a new ADR and remove the private-material profile rather than silently weakening it.
@@ -1027,7 +1045,8 @@ migration and focus restoration remain responsibilities of the existing bar and 
 The video editor is a compact same-window desktop workbench. Reka splitters own the library/stage/
 selection-inspector columns and the stage/timeline division. Selection opens its owning inspector;
 closing it restores ruler focus. The library is a tabbed rail of materials, text and transitions that
-reuses managed Space imports and existing media players. The stage is a Konva scene: the composed
+reuses managed Space imports and existing media players; a material is added at the playhead by
+clicking it, or where it is dropped by dragging it onto the timeline. The stage is a Konva scene: the composed
 frame, its layers and its overlays are real scene nodes, so a selected clip is moved, corner-scaled
 and rotated with transformer handles that keep their size at any stage zoom, a selected overlay is
 dragged to any position, clicking a layer selects it, and the frame can be zoomed or fitted without

@@ -60,12 +60,14 @@ const canSend = computed(
     !props.unresolvedFileNames.length,
 );
 defineExpose({
+  /** Focuses the prompt with `selection` selected, or the caret after the text already there. */
   focus(selection?: string) {
     const input = textarea.value;
     input?.focus();
-    if (!input || !selection) return;
-    const start = prompt.value.indexOf(selection);
-    if (start >= 0) input.setSelectionRange(start, start + selection.length);
+    if (!input) return;
+    const start = selection ? prompt.value.indexOf(selection) : -1;
+    if (start >= 0) input.setSelectionRange(start, start + (selection?.length ?? 0));
+    else input.setSelectionRange(prompt.value.length, prompt.value.length);
   },
 });
 

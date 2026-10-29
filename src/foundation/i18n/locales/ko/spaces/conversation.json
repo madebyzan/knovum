@@ -160,5 +160,15 @@
     "import": "Space로 가져오기",
     "select": "리소스 선택",
     "readOnly": "이 작업공간은 읽기 전용입니다."
+  },
+  "capture": {
+    "selection": "선택 항목 작업",
+    "saveSelection": "캔버스에 메모로 저장",
+    "followUp": "이 부분에 대해 질문",
+    "saveAnswer": "답변을 캔버스에 추가",
+    "saved": "캔버스에 추가됨",
+    "show": "보기",
+    "appendTo": "“{title}” 끝에 추가",
+    "appended": "“{title}”에 추가됨"
   }
 }

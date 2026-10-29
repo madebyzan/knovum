@@ -10,6 +10,8 @@ export interface CanvasSceneInput {
   editSnapshot: SpaceEditSnapshot;
   nodes: readonly SpaceCanvasNode[];
   relations: readonly SpaceRelation[];
+  /** How many sources of each item changed since it was kept, from the knowledge it carries. */
+  sourceUpdateCounts: ReadonlyMap<string, number>;
 }
 
 export interface CanvasSurfaceProps {

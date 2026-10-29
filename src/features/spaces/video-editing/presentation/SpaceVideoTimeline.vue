@@ -16,24 +16,10 @@ import type { VideoEditor } from "./use-video-editor";
 const props = defineProps<{ editor: VideoEditor }>();
 const { t } = useI18n();
 const { editor } = props;
-const { timeline, gestures, visibleProject, materials, selection } = editor;
+const { timeline, gestures, visibleProject, selection } = editor;
 const project = computed(() => visibleProject.value!);
 const rows = computed(() => rowOffsets(project.value));
 const px = (timeMs: number) => timeToPx(timeMs, timeline.pxPerSecond.value);
-
-function dropMaterial(event: DragEvent) {
-  const id = event.dataTransfer?.getData("application/x-knovum-video-material");
-  if (!id) return;
-  event.preventDefault();
-  const node = materials.nodes.value.find((candidate) => candidate.id === id);
-  const surface = timeline.surface.value;
-  if (!node || !surface) return;
-  const atMs = Math.max(
-    0,
-    ((event.clientX - surface.getBoundingClientRect().left) * 1000) / timeline.pxPerSecond.value,
-  );
-  void materials.add(node, atMs);
-}
 </script>
 
 <template>
@@ -52,8 +38,6 @@ function dropMaterial(event: DragEvent) {
           height: `${rows.audio + rows.lanes * TIMELINE_ROWS.audio}px`,
         }"
         :aria-label="t('spaces.media.player.timeline')"
-        @dragover.prevent
-        @drop="dropMaterial"
       >
         <SpaceVideoTimelineRuler :editor="editor" />
         <div

@@ -106,6 +106,12 @@
     }
   },
   "provenance": "Sorgente",
+  "sourceUpdates": {
+    "title": "Fonti modificate",
+    "hint": "Cambiate dopo il salvataggio. Apri una fonte per confrontare o segnala come verificata per lasciare questo così com’è.",
+    "open": "Apri fonte",
+    "reviewed": "Segna come verificata"
+  },
   "portal": {
     "create": {
       "action": "Nuovo nodo Portale",

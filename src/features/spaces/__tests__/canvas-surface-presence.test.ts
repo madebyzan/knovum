@@ -16,6 +16,7 @@ import { useSpaceStore } from "../session/space-store";
 import { openStoreSpaceTab } from "./support/session-context";
 
 vi.mock("../enrichment/use-enrichment-job-observation", () => ({ useEnrichmentJobObservation: () => {} }));
+vi.mock("../knowledge/use-source-updates", () => ({ useSourceUpdateCounts: () => ({ value: new Map() }) }));
 vi.mock("../canvas/presentation/use-space-canvas-imports", () => ({
   useSpaceCanvasImports: () => ({
     fileHover: { value: false },

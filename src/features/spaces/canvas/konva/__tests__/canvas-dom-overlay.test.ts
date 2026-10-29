@@ -37,6 +37,7 @@ it("keeps the cards of a covered canvas mounted, so returning to it rebuilds not
       visibleNodeIds: new Set(["note"]),
       selectedNodeIds: new Set<string>(),
       derivedOutputCountByNodeId: new Map(),
+      sourceUpdateCountByNodeId: new Map(),
       zoom: 1,
     },
     slots: { default: ({ node }: { node: { id: string } }) => h("p", { "data-card": node.id }) },

@@ -20,6 +20,7 @@ const props = defineProps<{
   visibleNodeIds: ReadonlySet<string>;
   selectedNodeIds: ReadonlySet<string>;
   derivedOutputCountByNodeId: ReadonlyMap<string, number>;
+  sourceUpdateCountByNodeId: ReadonlyMap<string, number>;
   zoom: number;
 }>();
 const world = useTemplateRef<HTMLElement>("world");
@@ -48,6 +49,7 @@ useCameraStyle(props.camera, world, worldTransform);
         :layout-preview-by-node-id="layoutPreviewByNodeId"
         :selected="selectedNodeIds.has(sceneNode.node.id)"
         :derived-outputs="derivedOutputCountByNodeId.get(sceneNode.node.id) ?? 0"
+        :source-updates="sourceUpdateCountByNodeId.get(sceneNode.node.id) ?? 0"
       >
         <template #default="content">
           <slot v-bind="content" />

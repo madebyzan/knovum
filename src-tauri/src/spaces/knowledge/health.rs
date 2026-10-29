@@ -55,12 +55,15 @@ pub async fn list_knowledge_health_issues<R: Runtime>(
         "info",
     )?;
 
+    // A cited passage carries the revision it was indexed at: a file's bytes or an item's content.
+    // The record is current while the source still has that revision on either axis.
     let stale = sqlx::query(
         "SELECT p.id,p.target_id,p.source_node_id,p.source_revision,s.data \
          FROM spaces_provenance p JOIN spaces_nodes s ON s.id=p.source_node_id AND s.deleted_at IS NULL \
          WHERE p.space_id=$1 AND p.target_kind='node' AND p.status='active' \
            AND COALESCE(json_extract(s.data,'$.sourceRevision'),json_extract(s.data,'$.knowledgeRevision'),'')<>'' \
-           AND p.source_revision<>COALESCE(json_extract(s.data,'$.sourceRevision'),json_extract(s.data,'$.knowledgeRevision'),'')",
+           AND p.source_revision<>COALESCE(json_extract(s.data,'$.sourceRevision'),'') \
+           AND p.source_revision<>COALESCE(json_extract(s.data,'$.knowledgeRevision'),'')",
     ).bind(&space_id).fetch_all(pool).await.map_err(db::sql_error)?;
     for row in stale {
         let data = decode_node_content(&row)?;

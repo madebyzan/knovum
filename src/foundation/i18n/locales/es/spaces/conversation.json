@@ -160,5 +160,15 @@
     "import": "Importar al espacio",
     "select": "Elija un recurso",
     "readOnly": "Este espacio de trabajo es de solo lectura"
+  },
+  "capture": {
+    "selection": "Acciones de la selección",
+    "saveSelection": "Guardar como nota en el lienzo",
+    "followUp": "Preguntar sobre esto",
+    "saveAnswer": "Añadir la respuesta al lienzo",
+    "saved": "Añadido al lienzo",
+    "show": "Mostrar",
+    "appendTo": "Añadir al final de «{title}»",
+    "appended": "Añadido a «{title}»"
   }
 }

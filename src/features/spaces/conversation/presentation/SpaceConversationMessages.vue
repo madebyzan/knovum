@@ -29,6 +29,7 @@ const emit = defineEmits<{
   loadOlder: [];
   branch: [message: ConversationMessage];
   regenerate: [message: ConversationMessage];
+  quote: [text: string];
   scrollPosition: [key: string, top: number];
   suggest: [prompt: string, selection?: string];
   inspectActivity: [runId: string];
@@ -112,6 +113,7 @@ watch(
             :busy="busy"
             @branch="emit('branch', $event)"
             @regenerate="emit('regenerate', $event)"
+            @quote="emit('quote', $event)"
             @inspect-activity="emit('inspectActivity', $event)"
           />
         </div>
