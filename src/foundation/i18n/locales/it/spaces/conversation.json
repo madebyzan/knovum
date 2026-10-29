@@ -166,6 +166,9 @@
     "saveSelection": "Salva come nota nella tela",
     "followUp": "Chiedi su questo",
     "saveAnswer": "Aggiungi la risposta alla tela",
-    "saved": "Aggiunto alla tela"
+    "saved": "Aggiunto alla tela",
+    "show": "Mostra",
+    "appendTo": "Aggiungi alla fine di “{title}”",
+    "appended": "Aggiunto a “{title}”"
   }
 }

@@ -31,7 +31,6 @@ const emit = defineEmits<{ branch: []; regenerate: []; quote: [text: string] }>(
 const { t } = useI18n();
 const store = useSpaceStore();
 const body = useTemplateRef<HTMLElement>("body");
-const capture = useAnswerCapture();
 const selected = useAnswerSelection(body);
 const messageText = computed(() =>
   props.message.content.parts
@@ -40,6 +39,7 @@ const messageText = computed(() =>
     .join("\n\n"),
 );
 const citations = computed(() => groundedCitationSchema.array().parse(props.message.content.citations));
+const capture = useAnswerCapture(citations);
 const citationMarkers = computed(
   () => new Map(citations.value.map((citation) => [citation.index, citation.state === "current"])),
 );
@@ -64,12 +64,19 @@ async function followLink(href: string) {
 }
 
 // Each action ends the selection: the passage has been dealt with, and its bar would linger.
-async function onSelection(action: "save" | "followUp" | "copy") {
-  const text = selected.text.value;
+async function onSelection(action: "save" | "append" | "followUp" | "copy") {
+  const passage = selected.passage.value;
   selected.clear();
-  if (action === "save") await capture.saveSelection(text);
-  else if (action === "followUp") emit("quote", text);
-  else await writeText(text).catch((error: unknown) => toast.error(getErrorMessage(error)));
+  if (!passage) return;
+  if (action === "save") await capture.saveSelection(passage);
+  else if (action === "append") await capture.appendSelection(passage);
+  else if (action === "followUp") emit("quote", passage.text);
+  else await writeText(passage.text).catch((error: unknown) => toast.error(getErrorMessage(error)));
+}
+
+function dragSelection(event: DragEvent) {
+  if (props.message.role === "assistant" && selected.passage.value)
+    capture.dragSelection(event, selected.passage.value);
 }
 </script>
 
@@ -84,6 +91,7 @@ async function onSelection(action: "save" | "followUp" | "copy") {
     />
     <div
       ref="body"
+      @dragstart="dragSelection"
       class="relative min-w-0 space-y-2 text-body leading-relaxed text-fg-primary"
       :class="
         message.role === 'user'
@@ -110,7 +118,9 @@ async function onSelection(action: "save" | "followUp" | "copy") {
         class="absolute z-20 -translate-x-1/2 -translate-y-[calc(100%+6px)]"
         :style="{ left: `${selected.anchor.value.left}px`, top: `${selected.anchor.value.top}px` }"
         :can-save="capture.canSave.value"
+        :append-title="capture.appendTarget.value?.title"
         @save="onSelection('save')"
+        @append="onSelection('append')"
         @follow-up="onSelection('followUp')"
         @copy="onSelection('copy')"
       />

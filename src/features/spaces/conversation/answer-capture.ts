@@ -1,6 +1,12 @@
 import type { SpaceMarkdownPayload } from "../model/nodes/node-payload";
 import { truncateUtf16 } from "../model/text";
 
+/** A passage selected in an answer: its words, and the citations of the blocks it touches. */
+export interface AnswerPassage {
+  text: string;
+  citations: readonly number[];
+}
+
 const TITLE_UNITS = 80;
 // `[C3]` resolves to a source only inside its answer; on the canvas it would point at nothing.
 const CITATION_MARKERS = /[ \t]*\[C[1-9]\d*\]/gu;

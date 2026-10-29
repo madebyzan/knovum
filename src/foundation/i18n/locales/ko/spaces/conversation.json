@@ -166,6 +166,9 @@
     "saveSelection": "캔버스에 메모로 저장",
     "followUp": "이 부분에 대해 질문",
     "saveAnswer": "답변을 캔버스에 추가",
-    "saved": "캔버스에 추가됨"
+    "saved": "캔버스에 추가됨",
+    "show": "보기",
+    "appendTo": "“{title}” 끝에 추가",
+    "appended": "“{title}”에 추가됨"
   }
 }

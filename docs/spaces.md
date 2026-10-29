@@ -224,11 +224,18 @@ other derivation. Attached local files are not canvas nodes and have no line. In
 looked at — and is shown, never fetched, copied or published.
 
 An answer can be kept on the canvas. Its action row adds the whole answer as a Markdown item that
-keeps its headings, lists, tables and code; selecting a passage in it opens a bar to save the passage
-as a Sticky Note, copy it, or ask about it, which quotes the passage (`> `) at the top of the input
-and leaves the caret below. Citation markers are dropped in all three: `[C3]` resolves to a source
-only inside its answer. Both saves go through the ordinary item creation path and its permission
-gate (`conversation/use-answer-capture.ts`), so they are undoable like any other new item.
+keeps its headings, lists, tables and code. Selecting a passage opens a bar to save it as a Sticky
+Note, copy it, ask about it — which quotes it (`> `) at the top of the input and leaves the caret
+below — or, while one note or Markdown item is selected on the canvas, add it to the end of that
+item. A selected passage can also be dragged onto the canvas, where it lands as a note at the drop
+point. Citation markers are dropped from the text, since `[C3]` resolves to a source only inside its
+answer; instead, what is kept gets a `derives-from` link to every still-present item cited in the
+blocks the passage touches (a whole answer: all of its citations), and a new item stands to the right
+of those sources, stepping down below earlier ones there. Creating or appending and its links are
+one undo step (`canvas/passage-capture.ts`, behind the ordinary create/edit permission gate), and the
+confirmation offers **Show**, which focuses and selects the item. A dragged passage carries its
+sources in a Knovum-only data type (`canvas/contracts/passage-transfer.ts`) beside the plain text, so
+other drop targets still receive just the words.
 
 Saving a resource in another format is an export rather than a derivation: the same content in a second file is not new knowledge, so it belongs to the destination the person picked instead of to the canvas. Admitted formats per resource kind and fidelity limits belong to [resource-export.md](resource-export.md).
 

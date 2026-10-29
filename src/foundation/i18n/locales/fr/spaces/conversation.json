@@ -166,6 +166,9 @@
     "saveSelection": "Enregistrer comme note sur le canevas",
     "followUp": "Poser une question à ce sujet",
     "saveAnswer": "Ajouter la réponse au canevas",
-    "saved": "Ajouté au canevas"
+    "saved": "Ajouté au canevas",
+    "show": "Afficher",
+    "appendTo": "Ajouter à la fin de « {title} »",
+    "appended": "Ajouté à « {title} »"
   }
 }

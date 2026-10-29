@@ -166,6 +166,9 @@
     "saveSelection": "Als Notiz auf dem Canvas speichern",
     "followUp": "Hierzu nachfragen",
     "saveAnswer": "Antwort zum Canvas hinzufügen",
-    "saved": "Zum Canvas hinzugefügt"
+    "saved": "Zum Canvas hinzugefügt",
+    "show": "Anzeigen",
+    "appendTo": "An „{title}“ anhängen",
+    "appended": "An „{title}“ angehängt"
   }
 }

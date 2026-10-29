@@ -166,6 +166,9 @@
     "saveSelection": "Guardar como nota en el lienzo",
     "followUp": "Preguntar sobre esto",
     "saveAnswer": "Añadir la respuesta al lienzo",
-    "saved": "Añadido al lienzo"
+    "saved": "Añadido al lienzo",
+    "show": "Mostrar",
+    "appendTo": "Añadir al final de «{title}»",
+    "appended": "Añadido a «{title}»"
   }
 }

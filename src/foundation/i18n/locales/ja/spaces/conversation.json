@@ -166,6 +166,9 @@
     "saveSelection": "キャンバスにメモとして保存",
     "followUp": "この部分について質問",
     "saveAnswer": "回答をキャンバスに追加",
-    "saved": "キャンバスに追加しました"
+    "saved": "キャンバスに追加しました",
+    "show": "表示",
+    "appendTo": "「{title}」の末尾に追加",
+    "appended": "「{title}」に追加しました"
   }
 }

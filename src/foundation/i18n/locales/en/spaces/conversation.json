@@ -166,6 +166,9 @@
     "saveSelection": "Save as note on canvas",
     "followUp": "Ask about this",
     "saveAnswer": "Add answer to canvas",
-    "saved": "Added to canvas"
+    "saved": "Added to canvas",
+    "show": "Show",
+    "appendTo": "Add to the end of “{title}”",
+    "appended": "Added to “{title}”"
   }
 }

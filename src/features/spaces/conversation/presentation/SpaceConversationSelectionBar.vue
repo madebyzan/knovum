@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { Copy, MessageSquareQuote, StickyNote } from "@lucide/vue";
+import { Copy, ListPlus, MessageSquareQuote, StickyNote } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 
 /** Actions on a passage selected in an answer. It never takes focus, so the selection survives the click. */
-defineProps<{ canSave: boolean }>();
-const emit = defineEmits<{ save: []; followUp: []; copy: [] }>();
+/** `appendTitle` names the canvas note the passage can go on the end of, when one is selected. */
+defineProps<{ canSave: boolean; appendTitle?: string | undefined }>();
+const emit = defineEmits<{ save: []; append: []; followUp: []; copy: [] }>();
 const { t } = useI18n();
 </script>
 
@@ -25,6 +26,15 @@ const { t } = useI18n();
       @click="emit('save')"
     >
       <StickyNote class="size-3.5" />
+    </UiIconButton>
+    <UiIconButton
+      v-if="appendTitle"
+      :label="t('spaces.conversation.capture.appendTo', { title: appendTitle })"
+      tooltip
+      size="sm"
+      @click="emit('append')"
+    >
+      <ListPlus class="size-3.5" />
     </UiIconButton>
     <UiIconButton
       :label="t('spaces.conversation.capture.followUp')"

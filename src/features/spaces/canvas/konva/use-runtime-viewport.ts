@@ -21,6 +21,7 @@ export function useRuntimeViewport(
     host,
     viewport: viewport.getViewport,
     insertText: props.events.onInsertText,
+    insertPassage: props.events.onInsertPassage,
     insertUrl: props.events.onInsertUrl,
     reportError: props.events.onError,
   });
