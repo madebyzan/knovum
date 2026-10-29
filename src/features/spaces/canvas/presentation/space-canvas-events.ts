@@ -62,8 +62,6 @@ export function createSpaceCanvasEvents(options: SpaceCanvasEventOptions): Canva
       if (!operations.allowsGestureCommit()) return;
       await store.createRelation(sourceNodeId, targetNodeId, "related");
     },
-    onInsertText: options.imports.insertText,
-    onInsertUrl: options.imports.insertUrl,
     onImportFiles: options.imports.importFiles,
     onNodeActivate: options.activateNode,
     onPasteNodes: options.imports.pasteNodes,

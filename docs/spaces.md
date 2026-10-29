@@ -233,11 +233,9 @@ answer; instead, what is kept gets a `derives-from` link to every still-present 
 blocks the passage touches (a whole answer: all of its citations), and a new item stands to the right
 of those sources, stepping down below earlier ones there. Creating or appending and its links are
 one undo step (`canvas/passage-capture.ts`, behind the ordinary create/edit permission gate), and the
-confirmation offers **Show**, which focuses and selects the item. The drag is the page's own mouse
-gesture (`conversation/presentation/use-passage-drag.ts`), not HTML drag and drop: Tauri's native
-drop handler takes every drag over the webview to report dropped file paths, so the page never
-receives `drop`. HTML drag and drop inside the window does not work for that reason; anything
-dragged between surfaces has to be built the same way.
+confirmation offers **Show**, which focuses and selects the item. The drag is a pointer gesture (see
+_Dragging inside the window_ in `ui-system.md`): a press on the selected words picks them up, and
+the canvas editor's `canvasPointAt` decides where they would land.
 
 Saving a resource in another format is an export rather than a derivation: the same content in a second file is not new knowledge, so it belongs to the destination the person picked instead of to the canvas. Admitted formats per resource kind and fidelity limits belong to [resource-export.md](resource-export.md).
 

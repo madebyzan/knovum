@@ -1,3 +1,4 @@
+import { isTopmostAt } from "../../../../shared/ui/use-pointer-drag";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import type { CanvasEditorPort, CanvasPoint } from "../contracts/canvas-editor-port";
 import { canvasAppearanceUpdate } from "../schema/document";
@@ -96,10 +97,7 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
     selectNodes: options.setSelection,
     selectStructureNodes: options.setStructureSelection,
     screenToCanvasPoint,
-    canvasPointAt: (point) => {
-      const hit = document.elementFromPoint(point.x, point.y);
-      return hit && options.host().contains(hit) ? screenToCanvasPoint(point) : undefined;
-    },
+    canvasPointAt: (point) => (isTopmostAt(options.host(), point) ? screenToCanvasPoint(point) : undefined),
     canvasToViewportPoint: (point) => screenPointFromCanvas(point, options.viewport()),
     visibleCenter: () => {
       const { width, height } = options.host().getBoundingClientRect();

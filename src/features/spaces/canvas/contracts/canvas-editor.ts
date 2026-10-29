@@ -29,8 +29,6 @@ export interface CanvasHostEvents {
   onExecuteSpaceEdit(command: SpaceEditCommand): Promise<unknown>;
   onEnterGroup(structureNodeId: string): void;
   onExitGroup(): boolean;
-  onInsertText(text: string, point: CanvasPoint): Promise<void>;
-  onInsertUrl(url: string, point: CanvasPoint): Promise<void>;
   onImportFiles(files: readonly CanvasFileImportRequest[]): Promise<readonly CanvasFileImportReceipt[]>;
   onNodeActivate(nodeId: string): Promise<void>;
   onPasteNodes(point: CanvasPoint): Promise<boolean>;

@@ -160,8 +160,6 @@ export function useSpaceCanvasImports(dropTarget: Readonly<Ref<HTMLElement | nul
     error,
     fileHover,
     fileHoverPosition,
-    insertText,
-    insertUrl,
     importFiles,
     pasteNodes: pasteClipboard,
   };
