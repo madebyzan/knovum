@@ -99,6 +99,19 @@ function dragSelection(event: DragEvent) {
           : 'w-full'
       "
     >
+      <!-- First, not last: `space-y` spaces every child but the last, so a bar appended at the end
+           would give the final paragraph a margin and push what follows down while text is selected. -->
+      <SpaceConversationSelectionBar
+        v-if="message.role === 'assistant' && selected.anchor.value"
+        class="absolute z-20 -translate-x-1/2 -translate-y-[calc(100%+6px)]"
+        :style="{ left: `${selected.anchor.value.left}px`, top: `${selected.anchor.value.top}px` }"
+        :can-save="capture.canSave.value"
+        :append-title="capture.appendTarget.value?.title"
+        @save="onSelection('save')"
+        @append="onSelection('append')"
+        @follow-up="onSelection('followUp')"
+        @copy="onSelection('copy')"
+      />
       <template v-for="(part, index) in message.content.parts" :key="index">
         <UiMarkdown
           v-if="part.type === 'text' && part.text.trim()"
@@ -113,17 +126,6 @@ function dragSelection(event: DragEvent) {
           {{ part.name || part.mediaType }}
         </p>
       </template>
-      <SpaceConversationSelectionBar
-        v-if="message.role === 'assistant' && selected.anchor.value"
-        class="absolute z-20 -translate-x-1/2 -translate-y-[calc(100%+6px)]"
-        :style="{ left: `${selected.anchor.value.left}px`, top: `${selected.anchor.value.top}px` }"
-        :can-save="capture.canSave.value"
-        :append-title="capture.appendTarget.value?.title"
-        @save="onSelection('save')"
-        @append="onSelection('append')"
-        @follow-up="onSelection('followUp')"
-        @copy="onSelection('copy')"
-      />
     </div>
     <SpaceConversationOutputs
       v-if="message.role === 'assistant' && message.content.outputs?.length"

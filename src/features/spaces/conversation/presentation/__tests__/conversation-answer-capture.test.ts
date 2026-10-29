@@ -91,6 +91,15 @@ describe("capturing an answer", () => {
     expect(wrapper.find('[role="toolbar"]').exists()).toBe(true);
   });
 
+  it("keeps the answer's last block last while the bar is open, so nothing below it moves", async () => {
+    const wrapper = mountAnswer();
+    const body = wrapper.get(".ui-markdown").element.parentElement!;
+    const last = body.lastElementChild;
+    await select(wrapper, "Costs", "Costs");
+    expect(body.querySelector('[role="toolbar"]')).not.toBeNull();
+    expect(body.lastElementChild).toBe(last);
+  });
+
   it("saves the selected words without citation badges", async () => {
     const wrapper = mountAnswer();
     await select(wrapper, "Revenue", "Costs");
