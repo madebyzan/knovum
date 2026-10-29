@@ -18,8 +18,10 @@ import SpaceConversationCitations from "./SpaceConversationCitations.vue";
 import SpaceConversationMessageActions from "./SpaceConversationMessageActions.vue";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
 import SpaceConversationOutputs from "./SpaceConversationOutputs.vue";
+import SpaceConversationPassageGhost from "./SpaceConversationPassageGhost.vue";
 import SpaceConversationSelectionBar from "./SpaceConversationSelectionBar.vue";
 import { useAnswerSelection } from "./use-answer-selection";
+import { usePassageDrag } from "./use-passage-drag";
 
 const props = defineProps<{
   message: ConversationMessage;
@@ -74,10 +76,16 @@ async function onSelection(action: "save" | "append" | "followUp" | "copy") {
   else await writeText(passage.text).catch((error: unknown) => toast.error(getErrorMessage(error)));
 }
 
-function dragSelection(event: DragEvent) {
-  if (props.message.role === "assistant" && selected.passage.value)
-    capture.dragSelection(event, selected.passage.value);
-}
+const passageDrag = usePassageDrag({
+  pressed: (point) =>
+    props.message.role === "assistant" && selected.covers(point) ? selected.passage.value : undefined,
+  canvasPointAt: capture.canvasPointAt,
+  click: selected.clear,
+  drop: async (passage, point) => {
+    selected.clear();
+    await capture.saveSelection(passage, point);
+  },
+});
 </script>
 
 <template>
@@ -91,7 +99,7 @@ function dragSelection(event: DragEvent) {
     />
     <div
       ref="body"
-      @dragstart="dragSelection"
+      @mousedown="passageDrag.start"
       class="relative min-w-0 space-y-2 text-body leading-relaxed text-fg-primary"
       :class="
         message.role === 'user'
@@ -102,7 +110,7 @@ function dragSelection(event: DragEvent) {
       <!-- First, not last: `space-y` spaces every child but the last, so a bar appended at the end
            would give the final paragraph a margin and push what follows down while text is selected. -->
       <SpaceConversationSelectionBar
-        v-if="message.role === 'assistant' && selected.anchor.value"
+        v-if="message.role === 'assistant' && selected.anchor.value && !passageDrag.drag.value"
         class="absolute z-20 -translate-x-1/2 -translate-y-[calc(100%+6px)]"
         :style="{ left: `${selected.anchor.value.left}px`, top: `${selected.anchor.value.top}px` }"
         :can-save="capture.canSave.value"
@@ -150,5 +158,6 @@ function dragSelection(event: DragEvent) {
       @branch="emit('branch')"
       @regenerate="emit('regenerate')"
     />
+    <SpaceConversationPassageGhost v-if="passageDrag.drag.value" :drag="passageDrag.drag.value" />
   </div>
 </template>

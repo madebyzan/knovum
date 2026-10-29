@@ -4,7 +4,6 @@ import { createSpaceNotePayload } from "../../document-editing/tiptap-content";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import type { CanvasPoint } from "../contracts/canvas-editor-port";
-import { readPassageTransfer, writePassageTransfer } from "../contracts/passage-transfer";
 import { addPassageNode, appendPassage, besideNodes, withPassage } from "../passage-capture";
 import type { CanvasNodeLayoutV1 } from "../schema/document";
 
@@ -128,21 +127,5 @@ describe("keeping a passage on the canvas", () => {
     ]);
     expect(steps).toEqual(["begin", "update", "target->source", "end"]);
     await expect(appendPassage("missing", "x", [])).rejects.toThrow("cannot take a passage");
-  });
-});
-
-describe("dragging a passage", () => {
-  it("carries the passage and still offers plain text to other targets", () => {
-    const data = new Map<string, string>();
-    const transfer = {
-      setData: (type: string, value: string) => data.set(type, value),
-      getData: (type: string) => data.get(type) ?? "",
-      effectAllowed: "all",
-    } as unknown as DataTransfer;
-    expect(readPassageTransfer(transfer)).toBeUndefined();
-    writePassageTransfer(transfer, { text: "Words", sourceNodeIds: ["source"] });
-    expect(data.get("text/plain")).toBe("Words");
-    expect(transfer.effectAllowed).toBe("copy");
-    expect(readPassageTransfer(transfer)).toEqual({ text: "Words", sourceNodeIds: ["source"] });
   });
 });

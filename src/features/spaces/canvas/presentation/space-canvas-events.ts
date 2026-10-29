@@ -63,7 +63,6 @@ export function createSpaceCanvasEvents(options: SpaceCanvasEventOptions): Canva
       await store.createRelation(sourceNodeId, targetNodeId, "related");
     },
     onInsertText: options.imports.insertText,
-    onInsertPassage: options.imports.insertPassage,
     onInsertUrl: options.imports.insertUrl,
     onImportFiles: options.imports.importFiles,
     onNodeActivate: options.activateNode,

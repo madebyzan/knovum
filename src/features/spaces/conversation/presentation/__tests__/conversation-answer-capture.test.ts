@@ -11,9 +11,9 @@ import { rangePassage } from "../use-answer-selection";
 type Passage = { text: string; citations: readonly number[] };
 const capture = vi.hoisted(() => ({
   saveAnswer: vi.fn<(markdown: string) => Promise<void>>(),
-  saveSelection: vi.fn<(passage: Passage) => Promise<void>>(),
+  saveSelection: vi.fn<(passage: Passage, point?: { x: number; y: number }) => Promise<void>>(),
   appendSelection: vi.fn<(passage: Passage) => Promise<void>>(),
-  dragSelection: vi.fn<(event: DragEvent, passage: Passage) => void>(),
+  canvasPointAt: vi.fn<(point: { x: number; y: number }) => { x: number; y: number } | undefined>(),
 }));
 const appendTarget = shallowRef<{ id: string; title: string }>();
 vi.mock("../../use-answer-capture", () => ({
@@ -124,14 +124,31 @@ describe("capturing an answer", () => {
     expect(capture.appendSelection).toHaveBeenCalledWith({ text: "Costs were flat.", citations: [] });
   });
 
-  it("hands a dragged selection to the canvas", async () => {
+  it("drops a passage dragged from its selected words where it lands on the canvas", async () => {
     const wrapper = mountAnswer();
     await select(wrapper, "Costs", "Costs");
-    await wrapper.get(".ui-markdown").trigger("dragstart");
-    expect(capture.dragSelection).toHaveBeenCalledWith(expect.any(Event), {
-      text: "Costs were flat.",
-      citations: [],
+    const range = globalThis.getSelection()!.getRangeAt(0);
+    range.getClientRects = () => [{ left: 0, right: 100, top: 0, bottom: 20 }] as unknown as DOMRectList;
+    capture.canvasPointAt.mockReturnValue({ x: 40, y: 50 });
+    const press = new MouseEvent("mousedown", {
+      button: 0,
+      clientX: 10,
+      clientY: 10,
+      bubbles: true,
+      cancelable: true,
     });
+    wrapper.get(".ui-markdown").element.dispatchEvent(press);
+    expect(press.defaultPrevented).toBe(true);
+    globalThis.dispatchEvent(new MouseEvent("mousemove", { clientX: 300, clientY: 200 }));
+    await nextTick();
+    expect(document.body.textContent).toContain("Costs were flat.");
+    globalThis.dispatchEvent(new MouseEvent("mouseup", { clientX: 300, clientY: 200 }));
+    await flushPromises();
+    expect(capture.canvasPointAt).toHaveBeenLastCalledWith({ x: 300, y: 200 });
+    expect(capture.saveSelection).toHaveBeenCalledWith(
+      { text: "Costs were flat.", citations: [] },
+      { x: 40, y: 50 },
+    );
   });
 
   it("quotes the selection for a follow-up question", async () => {

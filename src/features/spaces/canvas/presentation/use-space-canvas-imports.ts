@@ -15,10 +15,8 @@ import { captureSpaceUrl } from "../../sources/capture-url";
 import { classifySpaceUrl } from "../../sources/classify-url";
 import { urlCaptureContext } from "../../sources/url-capture-context";
 import type { CanvasFileImportRequest, CanvasFileImportReceipt } from "../contracts/canvas-editor";
-import type { CanvasPassage } from "../contracts/passage-transfer";
 import { importDroppedFiles } from "../drop";
 import { getCanvasEditorSession } from "../editor-session";
-import { addPassageNode } from "../passage-capture";
 import { pasteSpaceClipboardAt } from "../selection-actions";
 import { noteFromPlainText } from "../text-import";
 import { useNodeOperationGate } from "../use-node-operation-gate";
@@ -46,16 +44,6 @@ export function useSpaceCanvasImports(dropTarget: Readonly<Ref<HTMLElement | nul
     const source = classifySpaceUrl(text.trim());
     if (source) return insertUrl(source.url, point);
     await store.addContent(noteFromPlainText(text, t("spaces.editor.note.new")), point);
-  }
-
-  // A passage dragged from an answer lands where it is dropped, still linked to what it cites.
-  async function insertPassage(passage: CanvasPassage, point: { x: number; y: number }) {
-    if (!operations.allows("create")) return;
-    await addPassageNode(
-      noteFromPlainText(passage.text, t("spaces.editor.note.new")),
-      passage.sourceNodeIds,
-      point,
-    );
   }
 
   async function insertUrl(url: string, point: { x: number; y: number }) {
@@ -173,7 +161,6 @@ export function useSpaceCanvasImports(dropTarget: Readonly<Ref<HTMLElement | nul
     fileHover,
     fileHoverPosition,
     insertText,
-    insertPassage,
     insertUrl,
     importFiles,
     pasteNodes: pasteClipboard,

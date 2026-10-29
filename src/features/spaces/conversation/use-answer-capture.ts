@@ -3,8 +3,8 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { writePassageTransfer } from "../canvas/contracts/passage-transfer";
-import { getCanvasEditorSession } from "../canvas/editor-session";
+import type { CanvasPoint } from "../canvas/contracts/canvas-editor-port";
+import { currentCanvasEditor, getCanvasEditorSession } from "../canvas/editor-session";
 import { acceptsPassage, addPassageNode, appendPassage } from "../canvas/passage-capture";
 import { noteFromPlainText } from "../canvas/text-import";
 import { useCanvasSelectionProjection } from "../canvas/use-canvas-selection-projection";
@@ -71,11 +71,12 @@ export function useAnswerCapture(citations: MaybeRefOrGetter<readonly GroundedCi
         () => t("spaces.conversation.capture.saved"),
       );
     },
-    async saveSelection(passage: AnswerPassage) {
+    /** Saves the passage as a note at `point`, or beside the items it cites. */
+    async saveSelection(passage: AnswerPassage, point?: CanvasPoint) {
       if (!canSave.value) return;
       const payload = noteFromPlainText(passage.text, t("spaces.editor.note.new"));
       await report(
-        () => addPassageNode(payload, sources(passage.citations)),
+        () => addPassageNode(payload, sources(passage.citations), point),
         () => t("spaces.conversation.capture.saved"),
       );
     },
@@ -87,13 +88,8 @@ export function useAnswerCapture(citations: MaybeRefOrGetter<readonly GroundedCi
         (title) => t("spaces.conversation.capture.appended", { title }),
       );
     },
-    /** Lets the passage be dropped on the canvas as a note, linked like a saved one. */
-    dragSelection(event: DragEvent, passage: AnswerPassage) {
-      if (!event.dataTransfer) return;
-      writePassageTransfer(event.dataTransfer, {
-        text: passage.text,
-        sourceNodeIds: sources(passage.citations),
-      });
-    },
+    /** The canvas point under a viewport point, where a dragged passage would land. */
+    canvasPointAt: (point: CanvasPoint) =>
+      canSave.value ? currentCanvasEditor()?.canvasPointAt(point) : undefined,
   };
 }

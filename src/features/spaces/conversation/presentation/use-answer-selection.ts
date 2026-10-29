@@ -37,7 +37,14 @@ export function useAnswerSelection(container: Readonly<ShallowRef<HTMLElement | 
     };
   });
 
-  return { passage, anchor, clear: () => selection.value?.removeAllRanges() };
+  /** Whether a viewport point is on the selected words, where a press starts dragging them. */
+  function covers(point: { x: number; y: number }) {
+    return [...(range.value?.getClientRects() ?? [])].some(
+      (box) => point.x >= box.left && point.x <= box.right && point.y >= box.top && point.y <= box.bottom,
+    );
+  }
+
+  return { passage, anchor, covers, clear: () => selection.value?.removeAllRanges() };
 }
 
 // Elements that start a new line in the answer's rendered Markdown.

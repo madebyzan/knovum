@@ -2,14 +2,12 @@ import { useEventListener } from "@vueuse/core";
 import type { Ref } from "vue";
 
 import type { CanvasPoint, CanvasViewport } from "../../contracts/canvas-editor-port";
-import { readPassageTransfer, type CanvasPassage } from "../../contracts/passage-transfer";
 import { canvasPointFromScreen } from "../viewport/viewport-math";
 
 interface ExternalContentDropOptions {
   host: Readonly<Ref<HTMLElement | null>>;
   viewport(): CanvasViewport;
   insertText(text: string, point: CanvasPoint): Promise<void>;
-  insertPassage(passage: CanvasPassage, point: CanvasPoint): Promise<void>;
   insertUrl(url: string, point: CanvasPoint): Promise<void>;
   reportError(error: unknown): void;
 }
@@ -34,11 +32,6 @@ export function useExternalContentDrop(options: ExternalContentDropOptions) {
       { x: event.clientX - bounds.left, y: event.clientY - bounds.top },
       options.viewport(),
     );
-    const passage = readPassageTransfer(transfer);
-    if (passage) {
-      void options.insertPassage(passage, point).catch(options.reportError);
-      return;
-    }
     const url = transfer
       .getData("text/uri-list")
       .split("\n")
