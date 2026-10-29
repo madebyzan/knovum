@@ -15,7 +15,7 @@
 
   <p>
     <a href="https://github.com/madebyzan/knovum/actions/workflows/quality.yml"><img src="https://github.com/madebyzan/knovum/actions/workflows/quality.yml/badge.svg" alt="Quality CI" /></a>
-    <a href="https://github.com/madebyzan/knovum/releases"><img src="https://img.shields.io/github/v/tag/madebyzan/knovum/v0.0.1?label=release&color=blue" alt="Latest release tag" /></a>
+    <a href="https://github.com/madebyzan/knovum/releases"><img src="https://img.shields.io/github/v/tag/madebyzan/knovum/v0.1.0?label=release&color=blue" alt="Latest release tag" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-source--available-blueviolet" alt="License: Knovum Personal Noncommercial 1.0" /></a>
     <img src="https://img.shields.io/badge/macOS-14%2B-999999?logo=apple&logoColor=white" alt="macOS 14 or later, Apple Silicon and Intel" />
     <img src="https://img.shields.io/badge/Windows-10%202004%2B-0078D6?logo=windows&logoColor=white" alt="Windows 10 version 2004 or later, x64" />
@@ -41,9 +41,6 @@ screenshot, an open question, and a half-finished draft — and the valuable par
 sources, ideas, and creations, backed by structured knowledge, on-device AI, and a recorded chain of
 provenance from every output to its inputs. Your library lives in local SQLite and vector storage.
 Cloud models are optional; each action sends only the context it needs.
-
-> **Early access.** Knovum is `v0.0.1` and under active development. Your library upgrades in place:
-> an update migrates `spaces.db` forward and never asks you to reset it.
 
 ## Why Knovum
 

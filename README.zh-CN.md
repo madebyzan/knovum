@@ -15,7 +15,7 @@
 
   <p>
     <a href="https://github.com/madebyzan/knovum/actions/workflows/quality.yml"><img src="https://github.com/madebyzan/knovum/actions/workflows/quality.yml/badge.svg" alt="质量 CI" /></a>
-    <a href="https://github.com/madebyzan/knovum/releases"><img src="https://img.shields.io/github/v/tag/madebyzan/knovum/v0.0.1?label=release&color=blue" alt="最新发布标签" /></a>
+    <a href="https://github.com/madebyzan/knovum/releases"><img src="https://img.shields.io/github/v/tag/madebyzan/knovum/v0.1.0?label=release&color=blue" alt="最新发布标签" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-source--available-blueviolet" alt="许可：Knovum 个人非商业 1.0" /></a>
     <img src="https://img.shields.io/badge/macOS-14%2B-999999?logo=apple&logoColor=white" alt="macOS 14 及以上，Apple Silicon 与 Intel" />
     <img src="https://img.shields.io/badge/Windows-10%202004%2B-0078D6?logo=windows&logoColor=white" alt="Windows 10 2004 及以上，x64" />
@@ -40,9 +40,6 @@
 **Knovum** 是一个桌面知识工作台，把这一切收进同一个地方：由来源、想法与作品组成的无限画布，
 底下是结构化知识、端侧 AI，以及从每个产出回溯到其输入的完整溯源链。你的资料库保存在本机的
 SQLite 与向量存储中；云端模型按操作可选接入，每次只发送该操作所需的上下文。
-
-> **早期访问阶段。** Knovum 目前是 `v0.0.1`，处于活跃开发中。你的资料库会原地升级：
-> 更新会把 `spaces.db` 向前迁移，不会要求你清库重来。
 
 ## 为什么选择 Knovum
 
