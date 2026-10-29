@@ -74,6 +74,15 @@ async function copy() {
 </template>
 
 <style scoped>
+/*
+ * The row sits below text with fractional line heights. WebKit composites it only while the fade
+ * runs and snaps that layer to whole pixels, so the buttons jumped on every hover in and out.
+ * Keeping the layer for good stops the switch.
+ */
+.message-actions {
+  will-change: opacity;
+}
+
 @media (hover: none) {
   .message-actions {
     opacity: 1;
