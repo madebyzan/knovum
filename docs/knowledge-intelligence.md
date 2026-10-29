@@ -1,8 +1,9 @@
 # Knowledge intelligence
 
-- Status: **Proposed design.** Nothing in this document is implemented yet. When a part ships, its
-  contract moves into the owning document (`knowledge.md`, `spaces.md`, `DESIGN.md`) and is removed
-  from here.
+- Status: **Phase 1 shipped; phases 2–4 proposed.** Evidence spans, Knowledge Proposals, verified
+  answers and capture are implemented; their contracts live in [knowledge.md](knowledge.md)
+  §Verified answers and §Knowledge Proposals, which win where this document differs. The sections
+  below remain the design for the later phases.
 - Scope: verified answers, conversation-to-knowledge capture, claim mapping (consensus and conflict),
   research questions, comparison matrices, source impact, Space briefings, evidence-gap follow-ups
   and Space decisions as standing context.

@@ -1,5 +1,6 @@
 mod citations;
 mod evidence;
+pub(crate) mod evidence_span;
 pub(crate) mod prompt;
 pub(crate) mod references;
 

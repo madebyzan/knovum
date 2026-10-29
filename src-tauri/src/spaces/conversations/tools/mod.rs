@@ -23,7 +23,7 @@ pub fn project() -> Result<ToolCatalog, String> {
     let mut binding_by_wire_name = HashMap::new();
     let mut names = BTreeSet::new();
     let mut tools = Vec::new();
-    for definition in actions::definitions() {
+    for definition in actions::agent_definitions() {
         let wire_name = wire_name(definition);
         if !names.insert(wire_name.clone()) {
             return Err("tool-schema-invalid: deterministic tool name collision".into());

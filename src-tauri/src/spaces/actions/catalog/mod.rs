@@ -11,8 +11,9 @@ use definition::{
     action, durable_query_action, immediate_action, immediate_mutation_action, query_action,
 };
 use parameters::{
-    contents, empty, image, image_transform, knowledge_changes, meeting_summary, node, note,
-    purpose, question, script, search, social_copy, space_edit, video, visualization,
+    answer_verification, contents, empty, image, image_transform, knowledge_changes,
+    meeting_summary, node, note, purpose, question, script, search, social_copy, space_edit, video,
+    visualization,
 };
 
 pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
@@ -105,6 +106,14 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         question,
         Output::Answer,
     ),
+    application_action(durable_query_action(
+        "verify-answer",
+        ExecutionCapability::TextGeneration,
+        RoutingPurpose::Knowledge,
+        &[],
+        answer_verification,
+        Output::AnswerVerification,
+    )),
     optionally_grounded(action(
         "draft-document",
         Some(ExecutionCapability::TextGeneration),
@@ -182,6 +191,12 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
 /// there are none.
 const fn optionally_grounded(mut definition: SpaceActionDefinition) -> SpaceActionDefinition {
     definition.min_inputs = 0;
+    definition
+}
+
+/// Started by Knovum itself; no Agent is offered it as a tool.
+const fn application_action(mut definition: SpaceActionDefinition) -> SpaceActionDefinition {
+    definition.audience = super::SpaceActionAudience::Application;
     definition
 }
 

@@ -1,8 +1,9 @@
 use crate::ai::contracts::{ExecutionCapability, RoutingPurpose};
 
 use super::super::{
-    ParameterSchemaFactory, SpaceActionDefinition, SpaceActionExecutionMode, SpaceActionImpact,
-    SpaceActionInputConsistency, SpaceActionInputRole, SpaceActionOutputContract,
+    ParameterSchemaFactory, SpaceActionAudience, SpaceActionDefinition, SpaceActionExecutionMode,
+    SpaceActionImpact, SpaceActionInputConsistency, SpaceActionInputRole,
+    SpaceActionOutputContract,
 };
 
 struct ActionBinding {
@@ -135,6 +136,7 @@ const fn definition(
         input_roles,
         min_inputs: if input_roles.is_empty() { 0 } else { 1 },
         collection_input: None,
+        audience: SpaceActionAudience::Agents,
         parameters_schema,
         output_contract,
     }

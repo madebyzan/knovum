@@ -80,18 +80,25 @@ fn parameter_contracts_are_json_schema_2020_12() {
 }
 
 #[test]
-fn every_durable_action_reaches_a_handler() {
+fn every_durable_action_reaches_exactly_one_engine() {
     use super::SpaceActionExecutionMode;
     for definition in definitions() {
-        if !matches!(definition.execution_mode, SpaceActionExecutionMode::Durable) {
-            continue;
-        }
-        assert!(
-            crate::spaces::derivation::action_execution::has_handler(definition.id),
-            "durable Action {} has no registered handler",
+        assert_eq!(
+            crate::spaces::action_execution::durable_engine(definition.id).is_some(),
+            matches!(definition.execution_mode, SpaceActionExecutionMode::Durable),
+            "Action {} has an inconsistent execution mode and engine",
             definition.id
         );
     }
+}
+
+#[test]
+fn application_actions_are_never_offered_to_agents() {
+    let offered: Vec<&str> = super::agent_definitions()
+        .map(|definition| definition.id)
+        .collect();
+    assert!(!offered.contains(&"verify-answer"));
+    assert!(offered.contains(&"answer-question"));
 }
 
 #[test]

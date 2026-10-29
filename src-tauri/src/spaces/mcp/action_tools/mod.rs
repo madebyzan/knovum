@@ -21,8 +21,7 @@ impl SpaceMcpServer {
         // Desktop reasoning stays in the external runtime. These tools prepare/read/commit
         // knowledge and run deterministic processing; they never route inference back to it.
         json_text(
-            actions::definitions()
-                .iter()
+            actions::agent_definitions()
                 .filter(|action| is_external_agent_action(action))
                 .collect::<Vec<_>>(),
         )
@@ -99,12 +98,11 @@ fn require_platform_action(
 }
 
 fn is_external_agent_action(action: &actions::SpaceActionDefinition) -> bool {
-    action.routing_purpose.is_none()
+    action.audience == actions::SpaceActionAudience::Agents && action.routing_purpose.is_none()
 }
 
 pub(super) fn external_agent_action_ids() -> Vec<String> {
-    actions::definitions()
-        .iter()
+    actions::agent_definitions()
         .filter(|action| is_external_agent_action(action))
         .map(|action| action.id.to_owned())
         .collect()

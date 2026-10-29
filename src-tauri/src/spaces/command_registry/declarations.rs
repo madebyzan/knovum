@@ -151,6 +151,13 @@ macro_rules! knovum_knowledge_commands {
             crate::spaces::knowledge::provenance::list_knowledge_events,
             crate::spaces::knowledge::changes::commit_knowledge_changes,
             crate::spaces::knowledge::health::list_knowledge_health_issues,
+            crate::spaces::knowledge::proposals::commands::list_knowledge_proposals,
+            crate::spaces::knowledge::proposals::commands::accept_knowledge_proposal,
+            crate::spaces::knowledge::proposals::commands::dismiss_knowledge_proposal,
+            crate::spaces::knowledge::verification::commands::load_answer_verification,
+            crate::spaces::knowledge::verification::commands::verify_answer,
+            crate::spaces::knowledge::verification::commands::correct_statement_support,
+            crate::spaces::knowledge::verification::commands::record_answer_claims,
             crate::spaces::actions::list_space_actions,
         )
     };

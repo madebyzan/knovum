@@ -82,6 +82,14 @@ pub(super) struct NodeParameters {
     node_id: String,
 }
 
+// The stored assistant message whose sentences are checked against the passages its Run read.
+#[derive(Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(super) struct AnswerVerificationParameters {
+    #[schemars(length(min = 1))]
+    message_id: String,
+}
+
 #[derive(Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct QuestionParameters {
@@ -159,6 +167,7 @@ schema!(space_edit, SpaceEditParameters);
 schema!(contents, ContentsParameters);
 schema!(search, SearchParameters);
 schema!(node, NodeParameters);
+schema!(answer_verification, AnswerVerificationParameters);
 schema!(question, QuestionParameters);
 schema!(script, ScriptParameters);
 schema!(meeting_summary, MeetingSummaryParameters);

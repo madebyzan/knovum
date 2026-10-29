@@ -21,12 +21,7 @@ pub(super) async fn prepare(
     let mut request = Map::new();
     request.insert("inputs".into(), Value::Array(resolved.items.clone()));
     if definition.routing_purpose.is_some() {
-        let target = snapshot
-            .get("targets")
-            .and_then(|targets| targets.get(action_id))
-            .ok_or("action-target-missing: select an execution target for this Action")?;
-        let target: crate::ai::tasks::TaskTargetSelection =
-            serde_json::from_value(target.clone()).map_err(crate::spaces::db::json_error)?;
+        let target = actions::frozen_target(action_id, snapshot)?;
         let capability = definition
             .execution_capability
             .ok_or("action-target-invalid: Action has no execution capability")?;

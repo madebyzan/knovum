@@ -172,5 +172,51 @@
   },
   "visual": {
     "empty": "Noch keine Bildanalyse"
+  },
+  "verification": {
+    "choose": "„{statement}“ als Aussage festhalten",
+    "corrected": "Von dir korrigiert",
+    "markSupported": "Die Quellen sagen das",
+    "markUnsupported": "Die Quellen sagen das nicht",
+    "notCheckable": "Keine Aussage über die Quellen",
+    "summary": "{supported} von {checked} Aussagen stehen in den Quellen",
+    "truncated": "Nur der Anfang dieser langen Antwort wurde geprüft.",
+    "record": "Als Aussagen festhalten ({count})",
+    "retry": "Erneut prüfen",
+    "support": {
+      "supported": "Belegt",
+      "partial": "Teilweise belegt",
+      "unsupported": "Nicht belegt",
+      "uncited": "Ohne Zitat",
+      "notCheckable": "Nicht geprüft"
+    },
+    "skip": {
+      "noSources": "Keine indizierte Passage, an der diese Antwort geprüft werden kann",
+      "noStatements": "Keine Tatsachenaussage zu prüfen",
+      "noTarget": "Wähle in den Einstellungen ein Modell für Wissensaufgaben, um Antworten zu prüfen"
+    },
+    "state": {
+      "pending": "Wartet auf den Abgleich mit den Quellen",
+      "running": "Wird mit den Quellen abgeglichen …",
+      "failed": "Prüfung fehlgeschlagen"
+    }
+  },
+  "proposals": {
+    "title": "Vorgeschlagene Aussagen",
+    "dismiss": "Verwerfen",
+    "acceptAll": "Zum Wissen hinzufügen",
+    "acceptChosen": "Auswahl hinzufügen",
+    "empty": "Wähle mindestens eine Änderung",
+    "freshness": {
+      "basisChanged": "Eine zitierte Quelle hat sich geändert",
+      "targetGone": "Ein referenzierter Knoten wurde gelöscht"
+    },
+    "change": {
+      "claim": "Aussage: {title}",
+      "draftClaim": "Entwurf: {title}",
+      "update": "{title} aktualisieren",
+      "relation": "{source} → {target}",
+      "evidence": "Beleg aus {source}: „{quote}“"
+    }
   }
 }

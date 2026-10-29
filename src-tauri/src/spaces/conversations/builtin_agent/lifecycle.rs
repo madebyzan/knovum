@@ -34,6 +34,13 @@ pub(super) fn launch(
             Ok(state) => (state, None),
             Err(error) => completion::settle_failure(&pool, &ids.run_id, &error).await,
         };
+        if matches!(
+            state,
+            ConversationTaskFinishedState::Succeeded
+                | ConversationTaskFinishedState::CompletedWithErrors
+        ) {
+            crate::spaces::knowledge::verification::request_for_run(&app, &ids.run_id).await;
+        }
         let resumable = matches!(
             state,
             ConversationTaskFinishedState::Paused | ConversationTaskFinishedState::Waiting

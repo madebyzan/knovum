@@ -8,6 +8,9 @@ export const SPACE_KNOWLEDGE_QUERY_KEYS = {
     [...SPACE_KNOWLEDGE_QUERY_KEYS.space(spaceId), "history", nodeId] as const,
   provenance: (spaceId: string, targetKind: "node" | "relation", targetId: string) =>
     [...SPACE_KNOWLEDGE_QUERY_KEYS.space(spaceId), "provenance", targetKind, targetId] as const,
+  proposals: (spaceId: string) => [...SPACE_KNOWLEDGE_QUERY_KEYS.space(spaceId), "proposals"] as const,
+  answerVerification: (messageId: string) =>
+    [...SPACE_KNOWLEDGE_QUERY_KEYS.root, "answer-verification", messageId] as const,
   related: (spaceId: string, nodeId: string) =>
     [...SPACE_KNOWLEDGE_QUERY_KEYS.space(spaceId), "related", nodeId] as const,
 };

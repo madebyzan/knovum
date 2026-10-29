@@ -134,7 +134,10 @@ pub async fn send_prepared(
                 repository::finish_turn(pool, turn_id, "failed", Some(error)).await?;
                 return Err(error.into());
             }
-            repository::finish_turn(pool, turn_id, "completed", None).await
+            repository::finish_turn(pool, turn_id, "completed", None).await?;
+            crate::spaces::knowledge::verification::request_for_run(&app, &turn.binding.run_id)
+                .await;
+            Ok(())
         }
         Err(error) => {
             let message = error.to_string();

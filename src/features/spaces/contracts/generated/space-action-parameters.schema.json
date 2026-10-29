@@ -45,6 +45,9 @@
     "answer-question": {
       "$ref": "#/$defs/QuestionParameters"
     },
+    "verify-answer": {
+      "$ref": "#/$defs/AnswerVerificationParameters"
+    },
     "draft-document": {
       "$ref": "#/$defs/PurposeParameters"
     },
@@ -815,6 +818,20 @@
       "type": "object",
       "properties": {
         "question": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "AnswerVerificationParameters": {
+      "required": [
+        "messageId"
+      ],
+      "title": "AnswerVerificationParameters",
+      "type": "object",
+      "properties": {
+        "messageId": {
           "type": "string",
           "minLength": 1
         }

@@ -172,5 +172,51 @@
   },
   "visual": {
     "empty": "Aún no hay análisis de imagen"
+  },
+  "verification": {
+    "choose": "Registrar «{statement}» como afirmación",
+    "corrected": "Corregido por ti",
+    "markSupported": "Las fuentes lo afirman",
+    "markUnsupported": "Las fuentes no lo afirman",
+    "notCheckable": "No es una afirmación sobre las fuentes",
+    "summary": "{supported} de {checked} enunciados aparecen en las fuentes",
+    "truncated": "Solo se comprobó el comienzo de esta respuesta larga.",
+    "record": "Registrar como afirmaciones ({count})",
+    "retry": "Verificar de nuevo",
+    "support": {
+      "supported": "Respaldado",
+      "partial": "Parcialmente respaldado",
+      "unsupported": "Sin respaldo",
+      "uncited": "Sin cita",
+      "notCheckable": "No comprobado"
+    },
+    "skip": {
+      "noSources": "No hay pasajes indexados con los que comprobar esta respuesta",
+      "noStatements": "No hay enunciados factuales que comprobar",
+      "noTarget": "Elige un modelo para tareas de conocimiento en Ajustes para verificar respuestas"
+    },
+    "state": {
+      "pending": "Esperando la comprobación con las fuentes",
+      "running": "Comprobando con las fuentes…",
+      "failed": "La verificación falló"
+    }
+  },
+  "proposals": {
+    "title": "Afirmaciones propuestas",
+    "dismiss": "Descartar",
+    "acceptAll": "Añadir al conocimiento",
+    "acceptChosen": "Añadir selección",
+    "empty": "Elige al menos un cambio",
+    "freshness": {
+      "basisChanged": "Una fuente citada ha cambiado",
+      "targetGone": "Se eliminó un nodo al que hace referencia"
+    },
+    "change": {
+      "claim": "Afirmación: {title}",
+      "draftClaim": "Borrador: {title}",
+      "update": "Actualizar {title}",
+      "relation": "{source} → {target}",
+      "evidence": "Evidencia de {source}: «{quote}»"
+    }
   }
 }

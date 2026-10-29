@@ -2,7 +2,7 @@ use serde::Deserialize;
 use serde_json::Value;
 use tauri::{AppHandle, Runtime};
 
-use super::change_commit::{self, KnowledgeChange};
+use super::change_commit::KnowledgeChange;
 use crate::{foundation::app_error::AppError, spaces::db};
 
 #[derive(Debug, Deserialize, ts_rs::TS)]
@@ -22,23 +22,13 @@ pub async fn commit_knowledge_changes<R: Runtime>(
     if changes.space_id.trim().is_empty() || changes.actor.trim().is_empty() {
         return Err("Knowledge Change Set identity is invalid".into());
     }
-    change_commit::validate_structure(&changes.operations)?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
-    let exists = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM spaces WHERE id=$1")
-        .bind(&changes.space_id)
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(db::sql_error)?;
-    if exists != 1 {
-        return Err("Knowledge Change Set target Space does not exist".into());
-    }
-    change_commit::validate_references(&mut tx, &changes.space_id, &changes.operations).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
-    let committed_changes = change_commit::apply(
+    let committed_changes = super::action::commit(
         &mut tx,
-        &changes.space_id,
         super::events::EventActor::new("human", Some(&changes.actor)),
+        &changes.space_id,
         changes.operations,
         now,
     )

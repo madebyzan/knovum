@@ -219,6 +219,58 @@ it anyway would be a second entry point that can only disagree with the first. R
 not Knowledge health: claims without support, contradicted claims and stale provenance are facts
 about the content and no amount of indexing changes them, so the two are separate panels.
 
+## Verified answers
+
+A final conversation answer that cites passages is checked against the passages its Run read, for
+the Builtin Agent, desktop Agents and API models alike. The check runs host-side as a Run of the
+Application Action `verify-answer` (Task Center visible, cancellable, budgeted) whose target is
+frozen from the Knowledge route; with no target configured the answer records `skipped: no-target`
+instead of failing.
+
+- **Statements.** `verification/segmentation.rs` splits the answer Markdown into prose sentences
+  (paragraphs, list items, table cells, quotes; never headings, code, HTML or table headers), keeps
+  each sentence's byte range in the Markdown and attaches a `[Cn]` marker to the sentence it
+  follows. At most 6 000 words and 160 statements are read; a longer answer reports `truncated`.
+- **Judgment.** One structured task (`ai/tasks/structured.rs`: the JSON Schema of the reply type is
+  the instruction; one corrective retry, then `invalid_response`) classifies each statement as
+  factual, inference or framing and quotes the passages that state it. Cited passages are read
+  first, up to 60 000 characters of source text.
+- **Proof, not trust.** Support survives only as an `EvidenceSpan`
+  (`grounding/evidence_span.rs`): the quote must be found in the passage the Run read, verbatim or
+  after folding case, whitespace and typographic punctuation, and the stored span always covers the
+  original source bytes at the passage's pinned revision. A quote from a passage the statement does
+  not cite is a possible source, not support; a factual sentence without a citation is `uncited`.
+- **Corrections.** A person's verdict on a statement is stored beside the model's and wins
+  wherever the verification is shown or used. Verifying again keeps corrections.
+
+State lives in `spaces_answer_verifications` (one row per assistant message, cascading with the
+message). It is local working state, not part of a Space package. IPC:
+`load_answer_verification`, `verify_answer`, `correct_statement_support`, `record_answer_claims`;
+`space-answer-verification-update` announces changes.
+
+## Knowledge Proposals
+
+Analysis never writes the Knowledge graph. It proposes a Change Set, and a person accepts it.
+
+- **Made valid.** `proposals::propose` runs the same validation as a commit
+  (`action::validate`), so review never offers a Change Set that cannot be accepted.
+- **Made once.** A proposal's identity is a semantic fingerprint of what it would record,
+  independent of temp ids, order, case and spacing. A Space keeps one proposal per fingerprint, so
+  a dismissed or accepted suggestion does not return.
+- **Accepted as a closed subset.** Each change lists the changes it needs; the review only offers
+  closed selections and the backend closes any selection again before committing through
+  `action::commit`, the single commit path every Knowledge change uses. The actor is the person.
+- **Fresh or refused.** Freshness is computed on read, never stored: a proposal whose quoted
+  chunk is no longer current at its revision (`basis-changed`) or whose existing nodes are gone
+  (`target-gone`) cannot be accepted.
+
+Recording claims from a verified answer (`verification/capture.rs`) proposes one `system:claim` per
+chosen factual statement: accepted with `supports` relations and exact-quote Provenance when the
+sources support it, a draft without evidence otherwise, so Knowledge Health reports it honestly.
+State lives in `spaces_knowledge_proposals` and `spaces_knowledge_proposal_targets` (both cascade
+with their Space and nodes). IPC: `list_knowledge_proposals`, `accept_knowledge_proposal`,
+`dismiss_knowledge_proposal`; `space-knowledge-proposals-update` announces changes.
+
 ## Module boundary
 
 Knowledge State does not introduce a separate compatibility layer or speculative ANN subsystem. Domain truth stays in revision, passage, citation, asset and package boundaries rather than renderer fallback logic. MCP writes enter long-term Knowledge only through the same validated atomic KnowledgeChangeSet use case as product actions.

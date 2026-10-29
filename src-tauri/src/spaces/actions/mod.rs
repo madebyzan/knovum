@@ -29,10 +29,29 @@ pub struct SpaceActionDefinition {
     /// when there are any and works from its prompt alone when there are none.
     pub min_inputs: usize,
     pub collection_input: Option<SpaceActionCollectionInput>,
+    pub audience: SpaceActionAudience,
     #[serde(serialize_with = "serialize_parameter_schema")]
     #[ts(type = "Record<string, unknown>")]
     pub parameters_schema: ParameterSchemaFactory,
     pub output_contract: SpaceActionOutputContract,
+}
+
+/// Who invokes an Action. Agent Actions are offered to Agents as tools; Application Actions are
+/// started by Knovum itself on the person's behalf, such as checking a finished answer against its
+/// sources, and no Agent is offered them.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, ts_rs::TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub enum SpaceActionAudience {
+    Agents,
+    Application,
+}
+
+/// The Actions an Agent may be offered as tools.
+pub fn agent_definitions() -> impl Iterator<Item = &'static SpaceActionDefinition> {
+    definitions()
+        .iter()
+        .filter(|definition| definition.audience == SpaceActionAudience::Agents)
 }
 
 #[derive(Clone, Copy, Serialize, ts_rs::TS)]
@@ -86,6 +105,7 @@ pub enum SpaceActionInputRole {
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum SpaceActionOutputContract {
     Answer,
+    AnswerVerification,
     Document,
     Image,
     KnowledgeChangeReceipt,
@@ -163,7 +183,9 @@ pub(crate) async fn invoke_with_app(
     invoke(crate::spaces::db::pool(app).await?, request).await
 }
 
-fn resolve_target(
+/// Freezes the execution target of a routed Action into its invocation: the one the request
+/// names, otherwise the Settings default for its purpose, checked against its capability.
+pub(crate) fn resolve_target(
     app: &tauri::AppHandle,
     request: &mut ActionInvocationRequest,
 ) -> Result<(), AppError> {
@@ -197,6 +219,18 @@ fn resolve_target(
         );
     }
     Ok(())
+}
+
+/// The execution target an accepted Run of `action_id` was frozen with.
+pub(crate) fn frozen_target(
+    action_id: &str,
+    snapshot: &Value,
+) -> Result<crate::ai::tasks::TaskTargetSelection, String> {
+    let target = snapshot
+        .get("targets")
+        .and_then(|targets| targets.get(action_id))
+        .ok_or("action-target-missing: select an execution target for this Action")?;
+    serde_json::from_value(target.clone()).map_err(crate::spaces::db::json_error)
 }
 
 pub(crate) fn is_image_transform(action_id: &str) -> bool {

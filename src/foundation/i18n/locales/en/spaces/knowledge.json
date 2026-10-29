@@ -172,5 +172,51 @@
   },
   "visual": {
     "empty": "No image analysis yet"
+  },
+  "verification": {
+    "choose": "Record “{statement}” as a claim",
+    "corrected": "Corrected by you",
+    "markSupported": "The sources state this",
+    "markUnsupported": "The sources do not state this",
+    "notCheckable": "Not a claim about the sources",
+    "summary": "{supported} of {checked} statements stated by the sources",
+    "truncated": "Only the beginning of this long answer was checked.",
+    "record": "Record as claims ({count})",
+    "retry": "Verify again",
+    "support": {
+      "supported": "Supported",
+      "partial": "Partly supported",
+      "unsupported": "Not supported",
+      "uncited": "No citation",
+      "notCheckable": "Not checked"
+    },
+    "skip": {
+      "noSources": "No indexed passage to check this answer against",
+      "noStatements": "No factual statement to check",
+      "noTarget": "Choose a model for knowledge work in Settings to verify answers"
+    },
+    "state": {
+      "pending": "Waiting to check against the sources",
+      "running": "Checking against the sources…",
+      "failed": "Verification failed"
+    }
+  },
+  "proposals": {
+    "title": "Proposed claims",
+    "dismiss": "Dismiss",
+    "acceptAll": "Add to knowledge",
+    "acceptChosen": "Add chosen",
+    "empty": "Choose at least one change",
+    "freshness": {
+      "basisChanged": "A quoted source has changed since",
+      "targetGone": "A node it refers to was deleted"
+    },
+    "change": {
+      "claim": "Claim: {title}",
+      "draftClaim": "Draft claim: {title}",
+      "update": "Update {title}",
+      "relation": "{source} → {target}",
+      "evidence": "Evidence from {source}: “{quote}”"
+    }
   }
 }

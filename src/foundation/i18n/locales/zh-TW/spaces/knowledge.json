@@ -172,5 +172,51 @@
   },
   "visual": {
     "empty": "暫無影像分析內容"
+  },
+  "verification": {
+    "choose": "將「{statement}」記錄為論斷",
+    "corrected": "已由你更正",
+    "markSupported": "來源陳述了這一點",
+    "markUnsupported": "來源沒有陳述這一點",
+    "notCheckable": "不是關於來源的論斷",
+    "summary": "{checked} 條陳述中有 {supported} 條獲得來源支持",
+    "truncated": "這則回答較長，僅檢查了開頭部分。",
+    "record": "記錄為論斷（{count}）",
+    "retry": "重新核驗",
+    "support": {
+      "supported": "有依據",
+      "partial": "部分有依據",
+      "unsupported": "無依據",
+      "uncited": "未引用",
+      "notCheckable": "未檢查"
+    },
+    "skip": {
+      "noSources": "沒有可用於核驗此回答的已索引段落",
+      "noStatements": "沒有需要核驗的事實陳述",
+      "noTarget": "請在設定中為知識任務選擇模型以核驗回答"
+    },
+    "state": {
+      "pending": "等待對照來源核驗",
+      "running": "正在對照來源核驗…",
+      "failed": "核驗失敗"
+    }
+  },
+  "proposals": {
+    "title": "建議的論斷",
+    "dismiss": "忽略",
+    "acceptAll": "加入知識",
+    "acceptChosen": "加入所選",
+    "empty": "請至少選擇一項變更",
+    "freshness": {
+      "basisChanged": "引用的來源已變更",
+      "targetGone": "其引用的節點已被刪除"
+    },
+    "change": {
+      "claim": "論斷：{title}",
+      "draftClaim": "草稿論斷：{title}",
+      "update": "更新 {title}",
+      "relation": "{source} → {target}",
+      "evidence": "來自 {source} 的證據：「{quote}」"
+    }
   }
 }

@@ -14,6 +14,7 @@ import {
   groundedCitationSchema,
   type GroundedCitation,
 } from "../../knowledge/model/schema/grounded-citation";
+import SpaceAnswerVerification from "../../knowledge/presentation/SpaceAnswerVerification.vue";
 import { useSpaceStore } from "../../session/space-store";
 import { followConversationLink } from "../conversation-links";
 import SpaceConversationCitations from "./SpaceConversationCitations.vue";
@@ -112,6 +113,13 @@ async function copyMessage() {
       :outputs="message.content.outputs"
     />
     <SpaceConversationCitations v-if="citations.length" :citations="citations" @open="openCitation" />
+    <SpaceAnswerVerification
+      v-if="message.role === 'assistant' && citations.length && store.activeSpaceId"
+      :space-id="store.activeSpaceId"
+      :conversation-id="message.conversationId"
+      :message-id="message.id"
+      @open="openCitation(citations.find((citation) => citation.index === $event.citation))"
+    />
     <span v-if="message.content.status" class="text-caption-sm text-fg-tertiary">
       {{
         t(

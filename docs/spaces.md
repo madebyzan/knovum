@@ -190,6 +190,11 @@ The Rust Run scheduler is the only execution authority. Every capability uses th
 
 A **Creation Intent** is a localized capability entry with selection availability. Every Action is named once, in `spaces.creation.actions`, so creation menus and Agent activity cannot drift apart. Each Run has its own execution grant; retry reuses only successful predecessor results whose recorded resources remain valid.
 
+Every Action has an audience. Agent Actions are offered to Agents as tools; Application Actions
+(`verify-answer`) are started by Knovum itself on the person's behalf and are never offered to an
+Agent, through the Builtin Agent tool list or MCP alike. Both run through the same Invocation, Run
+and Receipt; `action_execution::durable_engine` maps every durable Action to exactly one engine.
+
 Image transformations are ordinary Actions: `upscale-image`, `generate-image-angle`, `remove-image-object`, `remove-image-background`, `extract-image-selection` and `generate-image-depth` use the same authenticated Invocation, durable Run and committed Receipt as generation. Transient masks and selection previews do not produce Action receipts.
 
 The Builtin Agent has one visible conversation and message store for API models and desktop Agents.

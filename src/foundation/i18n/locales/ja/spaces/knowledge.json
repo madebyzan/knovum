@@ -172,5 +172,51 @@
   },
   "visual": {
     "empty": "画像解析はまだ行われていません"
+  },
+  "verification": {
+    "choose": "「{statement}」を主張として記録",
+    "corrected": "あなたが修正済み",
+    "markSupported": "ソースに記載されている",
+    "markUnsupported": "ソースに記載されていない",
+    "notCheckable": "ソースについての主張ではありません",
+    "summary": "{checked} 件中 {supported} 件がソースに記載されています",
+    "truncated": "長い回答のため、冒頭部分のみ確認しました。",
+    "record": "主張として記録（{count}）",
+    "retry": "再検証",
+    "support": {
+      "supported": "裏付けあり",
+      "partial": "一部裏付けあり",
+      "unsupported": "裏付けなし",
+      "uncited": "引用なし",
+      "notCheckable": "未確認"
+    },
+    "skip": {
+      "noSources": "この回答を確認できるインデックス済みの段落がありません",
+      "noStatements": "確認する事実の記述がありません",
+      "noTarget": "回答を検証するには、設定でナレッジ用のモデルを選択してください"
+    },
+    "state": {
+      "pending": "ソースとの照合を待機中",
+      "running": "ソースと照合中…",
+      "failed": "検証に失敗しました"
+    }
+  },
+  "proposals": {
+    "title": "提案された主張",
+    "dismiss": "却下",
+    "acceptAll": "ナレッジに追加",
+    "acceptChosen": "選択項目を追加",
+    "empty": "変更を 1 つ以上選択してください",
+    "freshness": {
+      "basisChanged": "引用元のソースが変更されました",
+      "targetGone": "参照先のノードが削除されました"
+    },
+    "change": {
+      "claim": "主張：{title}",
+      "draftClaim": "下書きの主張：{title}",
+      "update": "{title} を更新",
+      "relation": "{source} → {target}",
+      "evidence": "{source} からの根拠：「{quote}」"
+    }
   }
 }

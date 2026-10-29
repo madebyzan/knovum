@@ -91,6 +91,25 @@ pub(crate) async fn execute_immediate(
     }
 }
 
+/// What executes a durable Action's Run. Every durable Action has exactly one engine: a
+/// derivation produces a resource from its inputs; answer verification checks a stored answer
+/// against the passages its Run read.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum DurableEngine {
+    Derivation,
+    AnswerVerification,
+}
+
+pub(crate) fn durable_engine(action_id: &str) -> Option<DurableEngine> {
+    match action_id {
+        "verify-answer" => Some(DurableEngine::AnswerVerification),
+        _ if crate::spaces::derivation::action_execution::has_handler(action_id) => {
+            Some(DurableEngine::Derivation)
+        }
+        _ => None,
+    }
+}
+
 pub(crate) async fn execute_durable(
     app: &AppHandle,
     action_id: &str,
@@ -99,17 +118,28 @@ pub(crate) async fn execute_durable(
     inputs: &Value,
 ) -> Result<Value, AppError> {
     let space_id = claim.scope.require_space_id()?;
-    crate::spaces::derivation::execute_action(
-        app,
-        action_id,
-        space_id,
-        parameters,
-        inputs,
-        crate::spaces::derivation::ExecutionAuthority {
-            run_id: claim.run_id.clone(),
-            execution_epoch: claim.execution_epoch,
-        },
-        &claim.cancellation,
-    )
-    .await
+    match durable_engine(action_id) {
+        Some(DurableEngine::AnswerVerification) => {
+            crate::spaces::knowledge::verification::execute(app, claim, parameters, inputs).await
+        }
+        Some(DurableEngine::Derivation) => {
+            crate::spaces::derivation::execute_action(
+                app,
+                action_id,
+                space_id,
+                parameters,
+                inputs,
+                crate::spaces::derivation::ExecutionAuthority {
+                    run_id: claim.run_id.clone(),
+                    execution_epoch: claim.execution_epoch,
+                },
+                &claim.cancellation,
+            )
+            .await
+        }
+        None => Err(AppError::new(
+            "action_executor_unavailable",
+            format!("Durable Action {action_id} has no registered engine"),
+        )),
+    }
 }

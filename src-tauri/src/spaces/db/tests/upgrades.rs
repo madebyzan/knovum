@@ -155,3 +155,27 @@ async fn upgrading_0_0_3_draws_node_attachments_from_their_nodes() {
     );
     assert_eq!(content("plain").await, plain);
 }
+
+/// 0.1.0 had no Knowledge Proposals and no answer verification. Upgrading adds both empty, and
+/// every answer the library already holds can be verified at once.
+#[tokio::test]
+async fn upgrading_0_1_0_adds_proposals_and_answer_verification() {
+    let pool = shipped(3).await;
+    for statement in [
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
+        "INSERT INTO spaces_conversations(id,space_id,title,created_at,updated_at) VALUES('c','s','C',1,1)",
+        "INSERT INTO spaces_conversation_messages(id,conversation_id,branch_id,role,content,created_at) \
+         VALUES('answer','c','main','assistant','{\"parts\":[],\"citations\":[]}',1)",
+    ] {
+        sqlx::query(statement).execute(&pool).await.expect("shipped row");
+    }
+    super::super::migrate(&pool).await.expect("upgrade");
+    assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
+    sqlx::query(
+        "INSERT INTO spaces_answer_verifications(message_id,space_id,answer_run_id,state,created_at) \
+         VALUES('answer','s','run','pending',2)",
+    )
+    .execute(&pool)
+    .await
+    .expect("verification of a shipped answer");
+}

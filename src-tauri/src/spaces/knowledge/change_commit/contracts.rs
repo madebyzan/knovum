@@ -1,9 +1,10 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 // One operation of a Knowledge Change Set. The derived JSON Schema is what Agents are given to
-// author a Change Set, so it states every operation exactly as this type accepts it.
-#[derive(Debug, Deserialize, ts_rs::TS, schemars::JsonSchema)]
+// author a Change Set, so it states every operation exactly as this type accepts it. It serializes
+// to the same shape, which is how a pending Knowledge Proposal stores and presents it.
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS, schemars::JsonSchema)]
 #[serde(tag = "op", rename_all = "kebab-case", rename_all_fields = "camelCase")]
 #[ts(optional_fields = nullable)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
@@ -47,7 +48,7 @@ pub(crate) enum KnowledgeChange {
     },
 }
 
-#[derive(Debug, Deserialize, ts_rs::TS, schemars::JsonSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS, schemars::JsonSchema)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct Position {
     pub(crate) x: f64,

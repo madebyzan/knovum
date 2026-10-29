@@ -35,7 +35,7 @@ fn handler(action_id: &str) -> Option<Handler> {
     }
 }
 
-#[cfg(test)]
+/// Whether a derivation engine produces this Action's result.
 pub(crate) fn has_handler(action_id: &str) -> bool {
     handler(action_id).is_some()
 }

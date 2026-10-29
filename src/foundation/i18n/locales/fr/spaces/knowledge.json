@@ -172,5 +172,51 @@
   },
   "visual": {
     "empty": "Aucune analyse d'image pour l'instant"
+  },
+  "verification": {
+    "choose": "Enregistrer « {statement} » comme affirmation",
+    "corrected": "Corrigé par vous",
+    "markSupported": "Les sources l’affirment",
+    "markUnsupported": "Les sources ne l’affirment pas",
+    "notCheckable": "Pas une affirmation sur les sources",
+    "summary": "{supported} sur {checked} énoncés figurent dans les sources",
+    "truncated": "Seul le début de cette longue réponse a été vérifié.",
+    "record": "Enregistrer comme affirmations ({count})",
+    "retry": "Vérifier à nouveau",
+    "support": {
+      "supported": "Étayé",
+      "partial": "Partiellement étayé",
+      "unsupported": "Non étayé",
+      "uncited": "Sans citation",
+      "notCheckable": "Non vérifié"
+    },
+    "skip": {
+      "noSources": "Aucun passage indexé pour vérifier cette réponse",
+      "noStatements": "Aucun énoncé factuel à vérifier",
+      "noTarget": "Choisissez un modèle pour les tâches de connaissance dans les Réglages pour vérifier les réponses"
+    },
+    "state": {
+      "pending": "En attente de vérification auprès des sources",
+      "running": "Vérification auprès des sources…",
+      "failed": "Échec de la vérification"
+    }
+  },
+  "proposals": {
+    "title": "Affirmations proposées",
+    "dismiss": "Ignorer",
+    "acceptAll": "Ajouter aux connaissances",
+    "acceptChosen": "Ajouter la sélection",
+    "empty": "Choisissez au moins une modification",
+    "freshness": {
+      "basisChanged": "Une source citée a changé depuis",
+      "targetGone": "Un nœud référencé a été supprimé"
+    },
+    "change": {
+      "claim": "Affirmation : {title}",
+      "draftClaim": "Brouillon : {title}",
+      "update": "Mettre à jour {title}",
+      "relation": "{source} → {target}",
+      "evidence": "Preuve tirée de {source} : « {quote} »"
+    }
   }
 }
