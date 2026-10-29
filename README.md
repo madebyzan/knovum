@@ -15,6 +15,7 @@
 
   <p>
     <a href="https://github.com/madebyzan/knovum/actions/workflows/quality.yml"><img src="https://github.com/madebyzan/knovum/actions/workflows/quality.yml/badge.svg" alt="Quality CI" /></a>
+    <a href="https://github.com/madebyzan/knovum/stargazers"><img src="https://img.shields.io/github/stars/madebyzan/knovum?style=social" alt="GitHub stars" /></a>
     <a href="https://github.com/madebyzan/knovum/releases"><img src="https://img.shields.io/github/v/tag/madebyzan/knovum/v0.1.0?label=release&color=blue" alt="Latest release tag" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-source--available-blueviolet" alt="License: Knovum Personal Noncommercial 1.0" /></a>
     <img src="https://img.shields.io/badge/macOS-14%2B-999999?logo=apple&logoColor=white" alt="macOS 14 or later, Apple Silicon and Intel" />
