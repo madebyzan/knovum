@@ -117,7 +117,7 @@ oauth2 = "=5.0.0"
 sse-stream = "=0.2.6"
 yaml-rust2 = "=0.13.0"
 iri-string = "=0.7.14"
-unicode-normalization = "=0.1.25"
+unicode-normalization = "=0.1.26"
 unicode-segmentation = "=1.13.3"
 unicode-width = "=0.2.2"
 gix = { version = "=0.88.0", default-features = false, features = [
