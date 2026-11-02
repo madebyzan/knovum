@@ -10,6 +10,7 @@
     "analyze_media": "미디어 지속 시간 및 파형",
     "transcribe_media": "오디오 및 비디오 전사",
     "parse_document": "문서 추출",
+    "recognize_text": "문자 인식",
     "align_media_transcript": "선택된 성적표 정렬",
     "diarize_media_transcript": "스피커 분할"
   },

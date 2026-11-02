@@ -10,6 +10,7 @@
     "analyze_media": "Mediendauer und Wellenform",
     "transcribe_media": "Audio- und Videotranskription",
     "parse_document": "Dokumentenextraktion",
+    "recognize_text": "Texterkennung",
     "align_media_transcript": "Ausgewählte Transkriptausrichtung",
     "diarize_media_transcript": "Sprechertagebuch"
   },

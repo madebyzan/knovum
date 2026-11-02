@@ -373,6 +373,7 @@
         "efficientSamS",
         "depthAnythingV2SmallUint8",
         "depthAnythingV2Small",
+        "ppOcrV6Small",
         "spleeter2Stems",
         "spleeter2StemsFull",
         "sherpaDiarization",

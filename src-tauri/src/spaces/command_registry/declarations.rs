@@ -52,6 +52,7 @@ macro_rules! knovum_workspace_commands {
         crate::spaces::canvas_exchange::export_json_canvas_file,
         crate::spaces::canvas_exchange::import_json_canvas_file,
         crate::spaces::canvas_exchange::cancel_json_canvas_import,
+        crate::spaces::canvas_exchange::sample::sample_space_source,
         crate::spaces::nodes::commands::create_nodes,
         crate::spaces::nodes::commands::update_nodes,
         crate::spaces::speech::commands::list_voice_revisions,

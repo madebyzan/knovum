@@ -6,6 +6,7 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import SpacePdfReaderButton from "../../assets/pdf-reader/SpacePdfReaderButton.vue";
 import { useSpaceStore } from "../../session/space-store";
 import { knowledgeLocationLabel } from "./knowledge-location-label";
 import SpaceTextQuote from "./SpaceTextQuote.vue";
@@ -28,6 +29,7 @@ const {
   preciseExternal,
   editableSource,
   hasAsset,
+  pdfReader,
   revealSource,
   extractSource,
   openSourceExternally,
@@ -107,6 +109,7 @@ const {
     </div>
 
     <footer class="shrink-0 space-y-2 border-t border-(--knovum-window-border-color) bg-surface-panel p-3">
+      <SpacePdfReaderButton v-if="pdfReader" v-bind="pdfReader" size="md" class="w-full justify-center" />
       <UiButton
         variant="primary"
         size="md"

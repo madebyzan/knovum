@@ -32,15 +32,19 @@ import {
   takeClosedWorkbenchTab,
 } from "./workbench-tab-state";
 
+/**
+ * Resolves to whether this was the first launch of this library. The Inbox is created exactly once
+ * and can never be removed, so its absence is that fact, with no separate record to fall out of step.
+ */
 export async function initializeSpaces(context: SpaceSessionContext, inboxTitle: string) {
-  if (context.ready.value) return;
+  if (context.ready.value) return false;
   context.spaces.value = await listSpaces();
-  const inbox =
-    context.spaces.value.find((space) => space.kind === "inbox") ??
-    (await createAndTrackSpace(context, inboxTitle, "inbox"));
+  const existing = context.spaces.value.find((space) => space.kind === "inbox");
+  const inbox = existing ?? (await createAndTrackSpace(context, inboxTitle, "inbox"));
   await syncInboxTitle(context, inboxTitle);
   await restoreWorkbench(context, inbox);
   context.ready.value = true;
+  return !existing;
 }
 
 export async function createSpace(context: SpaceSessionContext, title: string) {

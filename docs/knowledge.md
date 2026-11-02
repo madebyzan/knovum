@@ -7,9 +7,11 @@ changes reach existing libraries through forward migrations ([data-ownership.md]
 ## Document extraction
 
 PDF text is extracted with exact-pinned `pdf-inspector 1.20.0`, without its optional
-PDFium or OCR features. Passages retain actual one-based page locators. Knovum no longer
-renders PDF source pages in the evidence inspector; it shows textual evidence and opens
-the original file through the existing OS integration.
+PDFium or OCR features. Passages retain actual one-based page locators. The Inspector and a
+cited passage open the original PDF in the in-app reader (pdf.js, lazy-loaded from the
+bundled `pdfjs/` directory), at the cited page with the passage highlighted; when the
+stored passage no longer matches the page text verbatim, the reader searches for its
+first 48 characters instead.
 
 File nodes retain one typed `documentCoverage` aggregate tied to `sourceRevision`:
 parser identity, page coverage, source-owned content-addressed PNG resources, logical
@@ -18,8 +20,8 @@ use public positioned `ItemType::Image` items in `PositionFrame::Display`. Scann
 or vector-text pages contribute their rendered page image instead of text; a page whose
 image cannot be decoded records why it is unavailable, so a resource and an unavailability
 reason are mutually exclusive. Pages without extractable content are reported separately,
-not automatically classified as scans or text-covered. Document pictures are not described,
-recognized or embedded: extraction is the whole contract, and every extracted picture is
+not automatically classified as scans or text-covered. Document pictures are not described
+or embedded; their text is read by local recognition (below). Every extracted picture is
 viewable and exportable like any other asset (original PNG plus JPEG, WebP and TIFF
 encodings) through the shared export routes.
 Inline images and vector graphics are not guaranteed to be fully covered by this API.
@@ -47,9 +49,26 @@ values without the vendor IR's 10,000-row cap. Spreadsheet chart appearance, exa
 cell anchors and legacy Office image positions remain explicitly unsupported.
 
 Body text publishes independently of AI: a persistent `parse_document` job per source
-revision is the only document job, and nothing runs after it. Document knowledge is the
-extracted body text, so a picture never becomes a passage and document pictures need no
-model configuration. Visual file paths and operational progress do not affect semantic
+revision publishes the extracted body text. Document pictures need no model configuration.
+
+## Local text recognition
+
+Text that exists only as pixels — scanned and rendered PDF pages, pictures inside documents,
+screenshots and photos on the canvas — is read on this computer by a durable `recognize_text`
+job (PP-OCRv6 small through `oar-ocr`, ONNX Runtime in the inference worker, CPU, background
+priority). It never uses a cloud model and runs whether or not vision analysis is configured.
+[`recognition_source`](../src-tauri/src/spaces/assets/enrichment/jobs/recognition_source.rs) is
+the one decision of which pictures a node owes: an image node's own raster, or a document's
+coverage resources de-duplicated by content address. The same function decides both whether a
+job is queued and what it reads, so the two cannot disagree.
+
+Recognized text is appended to the node's `source` chunks with the picture's own locator — a
+PDF page keeps `page` kind and its one-based page, other pictures cite as `image_description`
+— so existing passages keep their identity, and answers cite recognized text exactly like
+extracted text. The node records a bounded `textRecognition` summary (source revision, model
+spec, time, at most 16,000 characters of text) for the Inspector; it is presentation, not part of the knowledge
+revision. A job runs once per source revision; existing nodes without a current record are
+queued at startup. Visual file paths and operational progress do not affect semantic
 revision identity.
 
 Publication merges only owned fields into the current node in a write transaction,

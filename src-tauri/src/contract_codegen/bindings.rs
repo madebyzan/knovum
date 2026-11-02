@@ -204,6 +204,7 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::ai::contracts::embedding_wire::EmbeddingEncoding::export_all,
         crate::ai::contracts::image_compute::ImageComputeParams::export_all,
         crate::ai::contracts::image_compute::ImageComputationOutput::export_all,
+        crate::ai::contracts::image_compute::ImageTextRecognition::export_all,
         crate::ai::contracts::image_wire::ImageSegmentParams::export_all,
         crate::ai::contracts::image_wire::ImageSegmentation::export_all,
         crate::ai::contracts::image_wire::TensorFileReference::export_all,

@@ -39,6 +39,45 @@ pub async fn replace(
     .await
 }
 
+/// Adds passages beside those an origin already holds, whose identities citations depend on.
+pub(in crate::spaces) async fn append(
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: &str,
+    node_id: &str,
+    origin: &str,
+    chunks: &[KnowledgeChunkInput],
+    now: i64,
+) -> Result<(), String> {
+    validate_origin(origin)?;
+    if chunks.is_empty() {
+        return Ok(());
+    }
+    let expected_revision = expected_revision(tx, space_id, node_id, origin).await?;
+    validate_chunks(origin, chunks, &expected_revision)?;
+    for chunk in chunks {
+        insert(tx, space_id, node_id, origin, chunk, now).await?;
+    }
+    Ok(())
+}
+
+fn validate_chunks(
+    origin: &str,
+    chunks: &[KnowledgeChunkInput],
+    expected_revision: &str,
+) -> Result<(), String> {
+    for chunk in chunks {
+        validate_values(
+            origin,
+            &chunk.kind,
+            &chunk.text,
+            &chunk.locator,
+            chunk.metadata.as_ref(),
+            expected_revision,
+        )?;
+    }
+    Ok(())
+}
+
 pub(crate) async fn clear(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
@@ -130,16 +169,7 @@ async fn replace_internal(
         now,
     } = input;
     validate_origin(origin)?;
-    for chunk in chunks {
-        validate_values(
-            origin,
-            &chunk.kind,
-            &chunk.text,
-            &chunk.locator,
-            chunk.metadata.as_ref(),
-            expected_revision,
-        )?;
-    }
+    validate_chunks(origin, chunks, expected_revision)?;
     delete_chunks(tx, space_id, node_id, origin).await?;
     for chunk in chunks {
         insert(tx, space_id, node_id, origin, chunk, now).await?;

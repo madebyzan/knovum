@@ -10,6 +10,7 @@
     "analyze_media": "メディアの長さと波形",
     "transcribe_media": "音声とビデオの文字起こし",
     "parse_document": "ドキュメント抽出",
+    "recognize_text": "文字認識",
     "align_media_transcript": "選択されたトランスクリプトの配置",
     "diarize_media_transcript": "スピーカー ダイアライゼーション"
   },

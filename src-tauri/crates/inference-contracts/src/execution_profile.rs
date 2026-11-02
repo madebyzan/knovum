@@ -39,6 +39,7 @@ pub fn image(capability: RuntimeCapability, threads: u8) -> Option<String> {
         RuntimeCapability::ImageInpainting => "image-inpainting-cpu",
         RuntimeCapability::ImageSelection => "image-selection-cpu",
         RuntimeCapability::ImageDepth => "image-depth-cpu",
+        RuntimeCapability::ImageTextRecognition => "image-text-recognition-cpu",
         _ => return None,
     };
     Some(threaded(prefix, threads))

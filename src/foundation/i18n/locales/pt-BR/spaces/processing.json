@@ -10,6 +10,7 @@
     "analyze_media": "Duração da mídia e forma de onda",
     "transcribe_media": "Transcrição de áudio e vídeo",
     "parse_document": "Extração de documentos",
+    "recognize_text": "Reconhecimento de texto",
     "align_media_transcript": "Alinhamento da transcrição selecionada",
     "diarize_media_transcript": "Diarização do alto-falante"
   },

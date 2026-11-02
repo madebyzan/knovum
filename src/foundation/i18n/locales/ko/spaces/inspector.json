@@ -15,6 +15,17 @@
     "modified": "수정 날짜"
   },
   "extractedDocumentText": "추출된 텍스트",
+  "pdfReader": {
+    "open": "PDF 열기",
+    "openAtPage": "{page}페이지 열기",
+    "position": "{page} / {total}페이지",
+    "previousPage": "이전 페이지",
+    "nextPage": "다음 페이지",
+    "zoomOut": "축소",
+    "zoomIn": "확대",
+    "fitWidth": "너비에 맞추기"
+  },
+  "recognizedText": "인식된 텍스트",
   "visualDetectedText": "OCR 인식 텍스트",
   "excerpts": {
     "title": "발췌 · {title}",

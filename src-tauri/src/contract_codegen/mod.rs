@@ -23,6 +23,7 @@ struct InferenceWireSchemas {
     image_compute_output: crate::ai::contracts::image_compute::ImageComputationOutput,
     image_segment_params: crate::ai::contracts::image_wire::ImageSegmentParams,
     image_segment_result: crate::ai::contracts::image_wire::ImageSegmentation,
+    image_text_recognition_result: crate::ai::contracts::image_compute::ImageTextRecognition,
     speech_transcribe_params: crate::ai::contracts::speech_wire::SpeechTranscribeParams,
     speech_transcribe_result: crate::ai::contracts::speech_wire::SpeechTranscription,
     speech_transcript_artifact: crate::ai::contracts::speech_wire::SpeechTranscriptArtifact,
@@ -95,6 +96,7 @@ pub fn export(project_root: &Path) -> Result<(), String> {
             "export const relationKinds = {} as const;\n",
             "export const relationStatuses = {} as const;\n",
             "export const visualKnowledgeLimits = {} as const;\n",
+            "export const textRecognitionLimits = {} as const;\n",
         ),
         crate::spaces::knowledge::indexing::MAX_KNOWLEDGE_PASSAGE_BYTES,
         relation_kinds
@@ -108,6 +110,9 @@ pub fn export(project_root: &Path) -> Result<(), String> {
             "detectedText": crate::spaces::knowledge::validation::nodes::visual::MAX_DETECTED_TEXT,
             "tags": crate::spaces::knowledge::validation::nodes::visual::MAX_TAGS,
             "tag": crate::spaces::knowledge::validation::nodes::visual::MAX_TAG,
+        }),
+        serde_json::json!({
+            "text": crate::spaces::knowledge::validation::nodes::text_recognition::MAX_TEXT,
         }),
     );
     std::fs::write(spaces_output.join("contract-values.ts"), source).map_err(io_error)?;

@@ -58,6 +58,7 @@ pub(super) fn validate_payload_shape(kind: &str, payload: &Value) -> Result<(), 
                 return Err("Relative depth fields do not support photo edits".into());
             }
             image_comments::validate(object.get("comments"))?;
+            super::text_recognition::validate(object.get("textRecognition"))?;
             super::visual::validate(object.get("visualKnowledge"))
         }
         "video" => {
@@ -78,7 +79,10 @@ pub(super) fn validate_payload_shape(kind: &str, payload: &Value) -> Result<(), 
                 object.get("sourceRevision").and_then(Value::as_str),
             )
         }
-        "file" => resource::validate_file(object),
+        "file" => {
+            resource::validate_file(object)?;
+            super::text_recognition::validate(object.get("textRecognition"))
+        }
         "code" => resource::validate_code(object),
         "credential" => resource::validate_credential(object),
         "object" | "portal" => Ok(()),

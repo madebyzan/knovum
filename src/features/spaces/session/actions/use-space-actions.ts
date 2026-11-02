@@ -1,3 +1,6 @@
+import { toast } from "vue-sonner";
+
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { SpacePlacement } from "../../canvas/navigation-requests";
 import { useEnrichmentJobObservation } from "../../enrichment/use-enrichment-job-observation";
 import { createSpaceMediaActions } from "../../media/actions";
@@ -16,6 +19,7 @@ import { createJsonCanvasImportActions } from "./json-canvas-import-actions";
 import { createSpaceMutations } from "./node-mutations";
 import { createPlacementActions } from "./placement-actions";
 import type { RelationContext } from "./relation-actions";
+import { seedSampleSpace } from "./sample-space";
 import { createStructureActions } from "./structure-actions";
 import { createStructureTransferActions } from "./structure-transfer-actions";
 import { createSpaceViewActions } from "./view-actions";
@@ -113,6 +117,12 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
   });
   return {
     ...actions,
+    initialize: async (inboxTitle: string) => {
+      if (await actions.initialize(inboxTitle))
+        await seedSampleSpace(spaceContext, state, canvasImport.importJsonCanvas).catch((error: unknown) => {
+          toast.error(getErrorMessage(error));
+        });
+    },
     ...editors,
     ...audioRecording,
     ensureActiveSpacePersisted,

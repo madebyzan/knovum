@@ -1,0 +1,99 @@
+{
+  "nodes": [
+    {
+      "id": "start",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 440,
+      "height": 620,
+      "text": "Inizia da qui\nQuesto Space è un piccolo esempio: un bar dovrebbe aprire un secondo locale? Tutti i contenuti sono inventati e puoi eliminarlo in qualsiasi momento.\n\n1. Seleziona il rapporto di mercato e scegli “Apri PDF”. Si apre direttamente in Knovum.\n\n2. La pagina 3 del rapporto e la foto della lavagna sono solo pixel. Knovum li legge su questo computer: selezionane uno e cerca “Testo riconosciuto”. La prima volta viene scaricato un piccolo modello.\n\n3. Collega un modello nelle Impostazioni e chiedi: “Quanto dura il periodo senza canone e quando il locale raggiunge il pareggio?” Ogni risposta cita la fonte, e una citazione porta alla pagina.",
+      "color": "3"
+    },
+    {
+      "id": "sources",
+      "type": "group",
+      "x": 500,
+      "y": 0,
+      "width": 880,
+      "height": 520,
+      "label": "Fonti"
+    },
+    {
+      "id": "brief",
+      "type": "file",
+      "x": 524,
+      "y": 56,
+      "width": 340,
+      "height": 440,
+      "file": "assets/harbor-street-market-brief.pdf"
+    },
+    {
+      "id": "whiteboard",
+      "type": "file",
+      "x": 888,
+      "y": 56,
+      "width": 468,
+      "height": 318,
+      "file": "assets/mill-lane-whiteboard.png"
+    },
+    {
+      "id": "thinking",
+      "type": "group",
+      "x": 500,
+      "y": 580,
+      "width": 880,
+      "height": 340,
+      "label": "Le tue riflessioni"
+    },
+    {
+      "id": "question",
+      "type": "text",
+      "x": 524,
+      "y": 636,
+      "width": 404,
+      "height": 260,
+      "text": "La domanda\nHarbor Street Coffee dovrebbe aprire al 41 di Mill Lane?\n\nAncora aperti: il calo estivo e la conferma scritta dei mesi senza canone da parte del proprietario.",
+      "color": "5"
+    },
+    {
+      "id": "draft",
+      "type": "text",
+      "x": 952,
+      "y": 636,
+      "width": 404,
+      "height": 260,
+      "text": "Bozza di risposta\nAprire, se il periodo senza canone viene confermato. L’allestimento si ripaga al 14° mese con i 190 ordini al giorno previsti.\n\nSostituisci questo testo con la tua opinione.",
+      "color": "4"
+    }
+  ],
+  "edges": [
+    {
+      "id": "brief-question",
+      "fromNode": "brief",
+      "fromSide": "bottom",
+      "toNode": "question",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "Sostiene"
+    },
+    {
+      "id": "whiteboard-question",
+      "fromNode": "whiteboard",
+      "fromSide": "bottom",
+      "toNode": "question",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "Sostiene"
+    },
+    {
+      "id": "question-draft",
+      "fromNode": "question",
+      "fromSide": "right",
+      "toNode": "draft",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "Porta a"
+    }
+  ]
+}

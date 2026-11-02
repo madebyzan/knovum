@@ -5,7 +5,7 @@ use tauri::AppHandle;
 use crate::foundation::app_error::AppError;
 use crate::spaces::{
     db,
-    knowledge::{indexing::KnowledgeChunkInput, model::revision},
+    knowledge::{chunk_store, indexing::KnowledgeChunkInput, model::revision},
     nodes::{self, contracts::NodeContentChange},
 };
 
@@ -61,6 +61,26 @@ pub(in crate::spaces) async fn publish(
             "Publication was cancelled",
         ));
     }
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(current)
+}
+
+/// Recognized text joins the node's source text rather than replacing it: passages already cited
+/// keep their identity, and the record and its chunks commit together, so a node with a record has
+/// its text and a node without one is simply read again.
+pub(in crate::spaces) async fn publish_text_recognition(
+    app: &AppHandle,
+    (space_id, node_id): (&str, &str),
+    guard: PublicationGuard<'_>,
+    record: Value,
+    chunks: Vec<KnowledgeChunkInput>,
+) -> Result<Value, AppError> {
+    let fields = serde_json::Map::from_iter([("textRecognition".to_owned(), record)]);
+    let mut tx = db::begin_write(db::pool(app).await?).await?;
+    let current =
+        publish_in_transaction(&mut tx, (space_id, node_id), guard, fields, None, None).await?;
+    let now = crate::foundation::clock::unix_time_millis()?;
+    chunk_store::append(&mut tx, space_id, node_id, "source", &chunks, now).await?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(current)
 }

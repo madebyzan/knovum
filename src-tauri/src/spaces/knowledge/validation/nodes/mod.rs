@@ -5,6 +5,7 @@ mod object;
 mod payload;
 mod projection;
 mod scalars;
+pub(crate) mod text_recognition;
 mod validation;
 pub(crate) mod visual;
 

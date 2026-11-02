@@ -69,6 +69,11 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         (RuntimeCapability::ImageDepth, _, "cpu") if image_profile(device_profile, capability) => {
             (1, 2, "Depth Anything Small CPU")
         }
+        (RuntimeCapability::ImageTextRecognition, _, "cpu")
+            if image_profile(device_profile, capability) =>
+        {
+            (1, 2, "PP-OCRv6 small CPU")
+        }
         (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
             if id == execution_profile::whisper("tiny", device, "q8_0") =>
         {

@@ -25,7 +25,8 @@
     "imageUpscaling": "画像アップスケーリング",
     "imageInpainting": "選択した領域を修復",
     "imageSelection": "スマート選択",
-    "imageDepth": "相対深度"
+    "imageDepth": "相対深度",
+    "textRecognition": "文字認識"
   },
   "redownload": "再度ダウンロード",
   "groups": {
@@ -80,7 +81,8 @@
     "imageUpscaling": "画像アップスケーリング",
     "imageInpainting": "選択した領域を修復",
     "imageSelection": "スマート選択",
-    "imageDepth": "相対深度"
+    "imageDepth": "相対深度",
+    "textRecognition": "文字認識"
   },
   "filters": {
     "all": "すべてのモデル",

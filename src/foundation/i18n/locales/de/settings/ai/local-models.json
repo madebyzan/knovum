@@ -25,7 +25,8 @@
     "imageUpscaling": "Bild-Upscaling",
     "imageInpainting": "Ausgewählte Bereiche reparieren",
     "imageSelection": "Intelligente Auswahl",
-    "imageDepth": "Relative Tiefe"
+    "imageDepth": "Relative Tiefe",
+    "textRecognition": "Texterkennung"
   },
   "redownload": "Erneut herunterladen",
   "groups": {
@@ -80,7 +81,8 @@
     "imageUpscaling": "Bild-Upscaling",
     "imageInpainting": "Ausgewählte Bereiche reparieren",
     "imageSelection": "Intelligente Auswahl",
-    "imageDepth": "Relative Tiefe"
+    "imageDepth": "Relative Tiefe",
+    "textRecognition": "Texterkennung"
   },
   "filters": {
     "all": "Alle Modelle",

@@ -24,8 +24,8 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src ipc: http://ipc.localhost asset: http://asset.localhost blob:; img-src 'self' asset: http://asset.localhost data: blob:; media-src 'self' asset: http://asset.localhost blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; frame-src 'self' asset: http://asset.localhost https://asset.localhost; worker-src 'self' blob:; base-uri 'none'; form-action 'none';",
-      "devCsp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src ipc: http://ipc.localhost asset: http://asset.localhost blob: http://localhost:* ws://localhost:*; img-src 'self' asset: http://asset.localhost data: blob:; media-src 'self' asset: http://asset.localhost blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; frame-src 'self' asset: http://asset.localhost https://asset.localhost; worker-src 'self' blob:; base-uri 'none'; form-action 'none';",
+      "csp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' ipc: http://ipc.localhost asset: http://asset.localhost blob:; img-src 'self' asset: http://asset.localhost data: blob:; media-src 'self' asset: http://asset.localhost blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; frame-src 'self' asset: http://asset.localhost https://asset.localhost; worker-src 'self' blob:; base-uri 'none'; form-action 'none';",
+      "devCsp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' ipc: http://ipc.localhost asset: http://asset.localhost blob: http://localhost:* ws://localhost:*; img-src 'self' asset: http://asset.localhost data: blob:; media-src 'self' asset: http://asset.localhost blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; frame-src 'self' asset: http://asset.localhost https://asset.localhost; worker-src 'self' blob:; base-uri 'none'; form-action 'none';",
       "headers": {
         "X-Content-Type-Options": "nosniff"
       },
@@ -69,6 +69,6 @@
     "category": "Productivity",
     "shortDescription": "Local-first spatial knowledge workspace with on-device AI creation.",
     "longDescription": "Knovum is a local-first desktop knowledge space for capturing sources, organizing ideas, creating derived resources with AI, and preserving their provenance.",
-    "resources": ["resources/agent-plugins/**/*"]
+    "resources": ["resources/agent-plugins/**/*", "resources/sample-space/**/*"]
   }
 }

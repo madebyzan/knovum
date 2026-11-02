@@ -15,6 +15,17 @@
     "modified": "修改时间"
   },
   "extractedDocumentText": "提取的纯文本",
+  "pdfReader": {
+    "open": "打开 PDF",
+    "openAtPage": "打开到第 {page} 页",
+    "position": "第 {page} 页，共 {total} 页",
+    "previousPage": "上一页",
+    "nextPage": "下一页",
+    "zoomOut": "缩小",
+    "zoomIn": "放大",
+    "fitWidth": "适应宽度"
+  },
+  "recognizedText": "识别出的文字",
   "visualDetectedText": "OCR 识别文本",
   "excerpts": {
     "title": "摘录 · {title}",

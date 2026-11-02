@@ -1,5 +1,6 @@
 mod media;
 mod node;
+mod recognition;
 mod visual;
 
 use std::sync::{Arc, OnceLock};
@@ -99,6 +100,13 @@ async fn execute(
                 data,
             });
         }
+        EnrichmentJobType::RecognizeText => {
+            let data = recognition::run(app, &request, &data, &progress, cancellation).await?;
+            return Ok(EnrichmentJobOutput {
+                node_id: request.node_id,
+                data,
+            });
+        }
         EnrichmentJobType::AnalyzeVisual => {
             let target = request.vision_target.take().ok_or_else(|| {
                 AppError::not_configured("Visual analysis requires an execution choice")
@@ -135,6 +143,7 @@ async fn lane(job_type: EnrichmentJobType) -> Result<OwnedSemaphorePermit, AppEr
     static MEDIA: OnceLock<Arc<Semaphore>> = OnceLock::new();
     static VISUAL: OnceLock<Arc<Semaphore>> = OnceLock::new();
     static DOCUMENT: OnceLock<Arc<Semaphore>> = OnceLock::new();
+    static RECOGNITION: OnceLock<Arc<Semaphore>> = OnceLock::new();
     let semaphore = match job_type {
         EnrichmentJobType::AnalyzeMedia => ANALYSIS.get_or_init(|| Arc::new(Semaphore::new(1))),
         EnrichmentJobType::TranscribeMedia
@@ -143,6 +152,7 @@ async fn lane(job_type: EnrichmentJobType) -> Result<OwnedSemaphorePermit, AppEr
             MEDIA.get_or_init(|| Arc::new(Semaphore::new(1)))
         }
         EnrichmentJobType::ParseDocument => DOCUMENT.get_or_init(|| Arc::new(Semaphore::new(1))),
+        EnrichmentJobType::RecognizeText => RECOGNITION.get_or_init(|| Arc::new(Semaphore::new(1))),
         _ => VISUAL.get_or_init(|| Arc::new(Semaphore::new(1))),
     };
     semaphore

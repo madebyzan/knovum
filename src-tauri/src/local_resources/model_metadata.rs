@@ -16,6 +16,7 @@ pub enum LocalModelCapability {
     ImageInpainting,
     ImageSelection,
     ImageDepth,
+    TextRecognition,
 }
 
 use super::model_catalog::LocalModelId;
@@ -222,6 +223,13 @@ pub(super) fn metadata(model: LocalModelId) -> LocalModelMetadata {
         LocalModelId::DepthAnythingV2Small => (
             "Depth Anything V2 · Small / FP32",
             Capability::ImageDepth,
+            NONE,
+            Unused,
+            Any,
+        ),
+        LocalModelId::PpOcrV6Small => (
+            "PP-OCRv6 · Small",
+            Capability::TextRecognition,
             NONE,
             Unused,
             Any,

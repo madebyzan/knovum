@@ -43,6 +43,7 @@ pub enum LocalModelId {
     EfficientSamS,
     DepthAnythingV2SmallUint8,
     DepthAnythingV2Small,
+    PpOcrV6Small,
     Spleeter2Stems,
     Spleeter2StemsFull,
     SherpaDiarization,
@@ -81,6 +82,7 @@ pub enum LocalModelGroup {
 
 pub const MODELS: &[LocalModelId] = &[
     LocalModelId::Qwen3Embedding,
+    LocalModelId::PpOcrV6Small,
     LocalModelId::WhisperSmall,
     LocalModelId::WhisperTiny,
     LocalModelId::WhisperLargeV3,
@@ -120,7 +122,7 @@ impl LocalModelId {
 
     fn group(self) -> LocalModelGroup {
         match self {
-            Self::Qwen3Embedding => LocalModelGroup::Knowledge,
+            Self::Qwen3Embedding | Self::PpOcrV6Small => LocalModelGroup::Knowledge,
             Self::U2netp
             | Self::U2net
             | Self::RealEsrganGeneralX4v3
@@ -177,6 +179,7 @@ impl LocalModelId {
             Self::DepthAnythingV2Small => {
                 Some(S::Image(catalog::ImageModelVariant::DepthAnythingV2Small))
             }
+            Self::PpOcrV6Small => Some(S::Image(catalog::ImageModelVariant::PpOcrV6Small)),
         }
     }
 
@@ -193,6 +196,7 @@ impl LocalModelId {
             | Self::EfficientSamS
             | Self::DepthAnythingV2SmallUint8
             | Self::DepthAnythingV2Small
+            | Self::PpOcrV6Small
             | Self::U2net
             | Self::VoxCpm2Q8
             | Self::Qwen3AlignerQ8
@@ -238,7 +242,10 @@ pub(crate) fn inspect<R: Runtime>(
         selected: super::model_selection::is_selected(app, model_id)?,
         selectable: super::model_selection::is_selectable(model_id),
         essential: model_id.is_essential(transcription),
-        fixed: model_id == LocalModelId::Qwen3Embedding,
+        fixed: matches!(
+            model_id,
+            LocalModelId::Qwen3Embedding | LocalModelId::PpOcrV6Small
+        ),
         total_bytes: snapshot.total_bytes(),
         installed_bytes: parts.iter().filter_map(|part| part.size).sum(),
         installed: parts.iter().any(|part| part.installed),

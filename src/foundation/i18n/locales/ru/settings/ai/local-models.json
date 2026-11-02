@@ -25,7 +25,8 @@
     "imageUpscaling": "Масштабирование изображения",
     "imageInpainting": "Восстановить выбранные области",
     "imageSelection": "Умный выбор",
-    "imageDepth": "Относительная глубина"
+    "imageDepth": "Относительная глубина",
+    "textRecognition": "Распознавание текста"
   },
   "redownload": "Загрузить еще раз",
   "groups": {
@@ -80,7 +81,8 @@
     "imageUpscaling": "Масштабирование изображения",
     "imageInpainting": "Восстановить выбранные области",
     "imageSelection": "Умный выбор",
-    "imageDepth": "Относительная глубина"
+    "imageDepth": "Относительная глубина",
+    "textRecognition": "Распознавание текста"
   },
   "filters": {
     "all": "Все модели",

@@ -1,17 +1,25 @@
 <script setup lang="ts">
 import { ArrowRightLeft, MessageSquareQuote, ScanText } from "@lucide/vue";
+import { computed } from "vue";
 
+import { pdfDocumentPath } from "../../assets/file-presentation";
+import SpacePdfReaderButton from "../../assets/pdf-reader/SpacePdfReaderButton.vue";
 import SpaceDocumentCoverage from "../../assets/presentation/documents/SpaceDocumentCoverage.vue";
 import SpaceKnowledgeObjectInspection from "../../knowledge/presentation/SpaceKnowledgeObjectInspection.vue";
 import SpaceMediaKnowledge from "../../media/presentation/SpaceMediaKnowledge.vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 import SpacePortalEditor from "./SpacePortalEditor.vue";
+import SpaceTextRecognition from "./SpaceTextRecognition.vue";
 
-defineProps<{ node: SpaceCanvasNode }>();
+const props = defineProps<{ node: SpaceCanvasNode }>();
+const pdfPath = computed(() => pdfDocumentPath(props.node.data));
 </script>
 
 <template>
+  <div v-if="pdfPath" class="px-3 py-2">
+    <SpacePdfReaderButton :title="node.data.title" :path="pdfPath" size="sm" class="w-full justify-center" />
+  </div>
   <SpaceInspectorSection
     v-if="node.data.kind === 'file' && node.data.documentCoverage"
     :title="$t('spaces.processing.document.coverage')"
@@ -20,6 +28,11 @@ defineProps<{ node: SpaceCanvasNode }>();
   >
     <SpaceDocumentCoverage :node="node" />
   </SpaceInspectorSection>
+  <SpaceTextRecognition
+    v-if="node.data.kind === 'image' || node.data.kind === 'file'"
+    :key="node.id"
+    :node="node"
+  />
   <SpaceInspectorSection
     v-if="node.data.kind === 'object'"
     :title="$t('spaces.nodeTypes.object')"

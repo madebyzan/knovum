@@ -72,10 +72,47 @@ fn visual_revision_ignores_titles_but_tracks_the_video_source() {
     assert_ne!(visual_revision(&data).unwrap(), first);
 }
 
+#[test]
+fn recognition_follows_a_parsed_document_once_per_revision() {
+    let mut data = json!({
+        "kind": "file", "fileName": "scan.pdf", "sourceRevision": "revision-1",
+        "documentCoverage": {
+            "sourceRevision": "revision-1",
+            "resources": [{ "id": "page", "path": "/assets/page.png" }],
+            "occurrences": [{ "location": { "kind": "pdf", "page": 1 }, "resourceId": "page" }]
+        }
+    });
+    assert_eq!(
+        required_jobs(&data, None, "revision-1"),
+        vec![EnrichmentJobType::RecognizeText]
+    );
+    data["textRecognition"] = json!({ "sourceRevision": "revision-1" });
+    assert!(required_jobs(&data, None, "revision-1").is_empty());
+    data["textRecognition"]["sourceRevision"] = json!("revision-0");
+    assert_eq!(
+        required_jobs(&data, None, "revision-1"),
+        vec![EnrichmentJobType::RecognizeText]
+    );
+}
+
+#[test]
+fn recognition_runs_beside_visual_analysis_on_an_image() {
+    let data =
+        json!({ "kind": "image", "sourceRevision": "asset-1", "assetPath": "/assets/shot.png" });
+    let revision = visual_revision(&data).unwrap();
+    assert_eq!(
+        required_jobs(&data, revision.as_deref(), "asset-1"),
+        vec![
+            EnrichmentJobType::RecognizeText,
+            EnrichmentJobType::AnalyzeVisual
+        ]
+    );
+}
+
 mod persistence;
 
 #[test]
-fn a_document_is_parsed_once_per_revision_and_nothing_runs_after_it() {
+fn a_document_is_parsed_once_per_revision() {
     let mut data =
         json!({"kind": "file", "fileName": "report.pdf", "sourceRevision": "revision-1"});
     assert_eq!(

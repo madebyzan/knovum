@@ -1,0 +1,99 @@
+{
+  "nodes": [
+    {
+      "id": "start",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 440,
+      "height": 620,
+      "text": "Comece aqui\nEste Space é um pequeno exemplo: uma cafeteria deve abrir uma segunda loja? Todo o conteúdo é fictício, e você pode excluí-lo quando quiser.\n\n1. Selecione o relatório de mercado e escolha “Abrir PDF”. Ele abre dentro do Knovum.\n\n2. A página 3 do relatório e a foto do quadro branco são apenas pixels. O Knovum os lê neste computador: selecione um e procure “Texto reconhecido”. Na primeira vez, um modelo pequeno é baixado.\n\n3. Conecte um modelo nas Configurações e pergunte: “Quanto dura a carência de aluguel e quando a loja atinge o ponto de equilíbrio?” Cada resposta cita a fonte, e uma citação leva à página.",
+      "color": "3"
+    },
+    {
+      "id": "sources",
+      "type": "group",
+      "x": 500,
+      "y": 0,
+      "width": 880,
+      "height": 520,
+      "label": "Fontes"
+    },
+    {
+      "id": "brief",
+      "type": "file",
+      "x": 524,
+      "y": 56,
+      "width": 340,
+      "height": 440,
+      "file": "assets/harbor-street-market-brief.pdf"
+    },
+    {
+      "id": "whiteboard",
+      "type": "file",
+      "x": 888,
+      "y": 56,
+      "width": 468,
+      "height": 318,
+      "file": "assets/mill-lane-whiteboard.png"
+    },
+    {
+      "id": "thinking",
+      "type": "group",
+      "x": 500,
+      "y": 580,
+      "width": 880,
+      "height": 340,
+      "label": "Sua análise"
+    },
+    {
+      "id": "question",
+      "type": "text",
+      "x": 524,
+      "y": 636,
+      "width": 404,
+      "height": 260,
+      "text": "A pergunta\nA Harbor Street Coffee deve abrir na Mill Lane, 41?\n\nEm aberto: a queda do verão e se o proprietário confirma por escrito os meses de carência.",
+      "color": "5"
+    },
+    {
+      "id": "draft",
+      "type": "text",
+      "x": 952,
+      "y": 636,
+      "width": 404,
+      "height": 260,
+      "text": "Rascunho da resposta\nAbrir, se a carência for confirmada. A reforma se paga no mês 14 com os 190 pedidos diários previstos.\n\nSubstitua isto pela sua própria opinião.",
+      "color": "4"
+    }
+  ],
+  "edges": [
+    {
+      "id": "brief-question",
+      "fromNode": "brief",
+      "fromSide": "bottom",
+      "toNode": "question",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "Embasa"
+    },
+    {
+      "id": "whiteboard-question",
+      "fromNode": "whiteboard",
+      "fromSide": "bottom",
+      "toNode": "question",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "Embasa"
+    },
+    {
+      "id": "question-draft",
+      "fromNode": "question",
+      "fromSide": "right",
+      "toNode": "draft",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "Leva a"
+    }
+  ]
+}

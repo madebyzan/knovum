@@ -1,5 +1,7 @@
 import { extname } from "pathe";
 
+import type { SpaceNodePayload } from "../model/nodes/node-payload";
+
 export type SpaceFilePresentation =
   | "pdf"
   | "document"
@@ -29,4 +31,11 @@ export function usesDocumentPreview(presentation: SpaceFilePresentation) {
     presentation === "spreadsheet" ||
     presentation === "presentation"
   );
+}
+
+/** The bytes the in-app reader opens, for a node that holds a PDF. */
+export function pdfDocumentPath(data: SpaceNodePayload): string | undefined {
+  return data.kind === "file" && classifyFilePresentation(data.fileName) === "pdf"
+    ? data.assetPath
+    : undefined;
 }

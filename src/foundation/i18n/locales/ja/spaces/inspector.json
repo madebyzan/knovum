@@ -15,6 +15,17 @@
     "modified": "変更日"
   },
   "extractedDocumentText": "抽出されたテキスト",
+  "pdfReader": {
+    "open": "PDF を開く",
+    "openAtPage": "{page} ページを開く",
+    "position": "{page} / {total} ページ",
+    "previousPage": "前のページ",
+    "nextPage": "次のページ",
+    "zoomOut": "縮小",
+    "zoomIn": "拡大",
+    "fitWidth": "幅に合わせる"
+  },
+  "recognizedText": "認識されたテキスト",
   "visualDetectedText": "OCR 認識テキスト",
   "excerpts": {
     "title": "抜粋・{title}",

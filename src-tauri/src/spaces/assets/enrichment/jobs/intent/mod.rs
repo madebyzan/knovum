@@ -1,7 +1,8 @@
 use serde_json::Value;
-use sqlx::{Sqlite, Transaction};
+use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
 use super::job::{EnrichmentJobType, STATUS_CANCELLED, STATUS_PENDING};
+use super::recognition_source;
 use super::revision::{source_revision, visual_revision};
 
 pub(crate) async fn synchronize_for_node(
@@ -55,6 +56,9 @@ fn required_jobs(
         Some("file") => document_jobs(payload, source_revision),
         _ => Vec::new(),
     };
+    if recognition_is_due(payload, source_revision) {
+        jobs.push(EnrichmentJobType::RecognizeText);
+    }
     if visual_revision.is_some_and(|revision| !visual_knowledge_is_current(payload, revision)) {
         jobs.push(EnrichmentJobType::AnalyzeVisual);
     }
@@ -86,11 +90,50 @@ fn document_jobs(payload: &Value, source_revision: &str) -> Vec<EnrichmentJobTyp
     ) {
         return Vec::new();
     }
-    // Parsing extracts the text and every picture in one pass; nothing further runs on a document.
+    // Parsing extracts the text and every picture in one pass. Reading those pictures follows from
+    // the coverage record it publishes, and cannot withhold the text it already extracted.
     (!knowledge_is_current(payload, "documentCoverage", source_revision))
         .then_some(EnrichmentJobType::ParseDocument)
         .into_iter()
         .collect()
+}
+
+fn recognition_is_due(payload: &Value, source_revision: &str) -> bool {
+    !knowledge_is_current(payload, "textRecognition", source_revision)
+        && !recognition_source::sources(payload).is_empty()
+}
+
+/// Queues recognition for nodes that predate it or whose intent was lost. A node with a job for its
+/// revision, whatever became of that job, has been answered and is left alone.
+pub(crate) async fn enqueue_missing_recognition(pool: &SqlitePool, now: i64) -> Result<(), String> {
+    let rows = sqlx::query(
+        "SELECT n.space_id,n.id,n.data FROM spaces_nodes n \
+         WHERE n.kind IN ('image','file') AND n.deleted_at IS NULL \
+           AND json_extract(n.data,'$.textRecognition') IS NULL \
+           AND NOT EXISTS (SELECT 1 FROM spaces_enrichment_jobs j WHERE j.node_id=n.id \
+             AND j.job_type='recognize_text' \
+             AND j.source_revision=json_extract(n.data,'$.sourceRevision'))",
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(crate::spaces::db::sql_error)?;
+    let mut tx = crate::spaces::db::begin_write(pool).await?;
+    for row in rows {
+        let raw: String = row.try_get("data").map_err(crate::spaces::db::sql_error)?;
+        let payload: Value = serde_json::from_str(&raw).map_err(crate::spaces::db::json_error)?;
+        let Some(revision) = source_revision(&payload) else {
+            continue;
+        };
+        if recognition_is_due(&payload, revision) {
+            let space_id: String = row
+                .try_get("space_id")
+                .map_err(crate::spaces::db::sql_error)?;
+            let node_id: String = row.try_get("id").map_err(crate::spaces::db::sql_error)?;
+            let job = EnrichmentJobType::RecognizeText;
+            enqueue(&mut tx, &space_id, &node_id, revision, job, now, None).await?;
+        }
+    }
+    tx.commit().await.map_err(crate::spaces::db::sql_error)
 }
 
 fn knowledge_is_current(data: &Value, field: &str, source_revision: &str) -> bool {

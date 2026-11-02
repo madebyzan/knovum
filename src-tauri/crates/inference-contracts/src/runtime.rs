@@ -18,6 +18,7 @@ pub enum RuntimeCapability {
     ImageInpainting,
     ImageSelection,
     ImageDepth,
+    ImageTextRecognition,
 }
 
 impl RuntimeCapability {
@@ -34,6 +35,7 @@ impl RuntimeCapability {
             Self::ImageInpainting => "image.inpaint",
             Self::ImageSelection => "image.select",
             Self::ImageDepth => "image.depth",
+            Self::ImageTextRecognition => "image.recognizeText",
         }
     }
 }

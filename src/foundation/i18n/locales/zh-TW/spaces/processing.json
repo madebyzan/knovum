@@ -10,6 +10,7 @@
     "analyze_media": "媒體時長與波形分析",
     "transcribe_media": "影音轉錄",
     "parse_document": "文檔內容擷取",
+    "recognize_text": "文字辨識",
     "align_media_transcript": "所選轉錄片段對齊",
     "diarize_media_transcript": "說話者分離"
   },
