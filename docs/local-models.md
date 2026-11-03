@@ -54,6 +54,7 @@ verified embedding snapshot explicitly; Related Content then schedules a full Sp
 | Image repair                   | MI-GAN, selected-region ONNX Runtime                                           |
 | Image selection                | EfficientSAM Ti / S, cached ONNX Runtime                                       |
 | Relative depth                 | Depth Anything V2 Small UINT8 / F32, ONNX Runtime                              |
+| Text recognition (OCR)         | Fixed PP-OCRv6 small detection + recognition (~31 MB), `oar-ocr` ONNX Runtime  |
 
 All non-Agent models execute in the Rust worker. Rust uses reqwest for the exact Hugging Face and
 ModelScope repository protocols; direct suppliers and archive members retain their frozen hashes.

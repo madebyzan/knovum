@@ -8,6 +8,7 @@ mod content;
 mod conversion;
 mod file_import;
 mod import_control;
+pub(crate) mod sample;
 
 use crate::foundation::app_error::AppError;
 

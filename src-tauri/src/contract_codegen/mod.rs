@@ -23,6 +23,7 @@ struct InferenceWireSchemas {
     image_compute_output: crate::ai::contracts::image_compute::ImageComputationOutput,
     image_segment_params: crate::ai::contracts::image_wire::ImageSegmentParams,
     image_segment_result: crate::ai::contracts::image_wire::ImageSegmentation,
+    image_text_recognition_result: crate::ai::contracts::image_compute::ImageTextRecognition,
     speech_transcribe_params: crate::ai::contracts::speech_wire::SpeechTranscribeParams,
     speech_transcribe_result: crate::ai::contracts::speech_wire::SpeechTranscription,
     speech_transcript_artifact: crate::ai::contracts::speech_wire::SpeechTranscriptArtifact,

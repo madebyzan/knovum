@@ -32,6 +32,7 @@ function productionConfiguration(repository, options) {
 function resourceConfiguration(configuration, options) {
   const paths = {
     "resources/agent-plugins/": "resources/agent-plugins/",
+    "resources/sample-space/": "resources/sample-space/",
     "resources/inference-runtime/": "resources/inference-runtime/",
     [`resources/bundled-runtime/${options.target}/`]: `resources/bundled-runtime/${options.target}/`,
     "resources/bundled-runtime/media-import-manifest.json":
@@ -58,6 +59,7 @@ function adjacentResources(repository, dependencies, options) {
   mkdirSync(join(destination, "bundled-runtime"), { recursive: true });
   for (const path of [
     "agent-plugins",
+    "sample-space",
     "inference-runtime",
     "agent-runtime/knovum-agent",
     `bundled-runtime/${options.target}`,

@@ -1,6 +1,7 @@
-import { shallowMount } from "@vue/test-utils";
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import { flushPromises, shallowMount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
 import { i18n } from "../../../../foundation/i18n/instance";
@@ -8,6 +9,9 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
 import { createSpaceCanvasTab } from "../../workspace/workbench-tab";
 import SpaceDocumentCoverage from "../presentation/documents/SpaceDocumentCoverage.vue";
+
+const invoke = vi.hoisted(() => vi.fn<(command: string, args?: unknown) => Promise<unknown>>());
+vi.mock("../../../../foundation/ipc/invoke-command", () => ({ invokeCommand: invoke }));
 
 const resourceId = "a".repeat(64);
 const node: SpaceCanvasNode = {
@@ -20,6 +24,7 @@ const node: SpaceCanvasNode = {
     assetPath: "/assets/report.pdf",
     fileName: "report.pdf",
     sourceRevision: "revision-1",
+    textRecognition: { sourceRevision: "revision-1", modelSpecId: "ocr", generatedAt: 1 },
     documentCoverage: {
       schemaVersion: 1,
       parser: "pdf-inspector",
@@ -68,9 +73,18 @@ describe("document coverage details", () => {
   });
 
   it("opens the shared resource viewer from the projected resource grid", async () => {
+    invoke.mockResolvedValue([
+      { resourceId: "b".repeat(64), text: "Another picture" },
+      { resourceId, text: "Quarterly revenue" },
+    ]);
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const wrapper = shallowMount(SpaceDocumentCoverage, {
       props: { node },
-      global: { plugins: [i18n] },
+      global: { plugins: [i18n, [VueQueryPlugin, { queryClient }]] },
+    });
+    await flushPromises();
+    expect(invoke).toHaveBeenCalledWith("plugin:spaces|list_recognized_text", {
+      request: { spaceId: "space-1", nodeId: "document-1" },
     });
     const grid = wrapper.findComponent({ name: "SpaceDocumentResourceGrid" });
     const resource = grid.props("resources")[0];
@@ -83,6 +97,8 @@ describe("document coverage details", () => {
     expect(viewer.props("item")).toEqual(resource);
     expect(viewer.props("sourceRevision")).toBe("revision-1");
     expect(viewer.props("exportTarget")?.key).toBe(`document-resource:space-1:document-1:${resourceId}`);
+    // Each picture shows what was read from it, not from the document's other pictures.
+    expect(viewer.props("recognizedText")).toBe("Quarterly revenue");
 
     await wrapper.setProps({ node: { ...node, id: "document-2" } });
     expect(wrapper.findComponent({ name: "SpaceDocumentResourceViewer" }).exists()).toBe(false);

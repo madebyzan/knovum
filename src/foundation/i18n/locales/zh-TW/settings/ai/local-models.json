@@ -25,7 +25,8 @@
     "imageUpscaling": "圖片放大",
     "imageInpainting": "選區修補",
     "imageSelection": "智慧選區",
-    "imageDepth": "相對深度"
+    "imageDepth": "相對深度",
+    "textRecognition": "文字辨識"
   },
   "redownload": "重新下載",
   "groups": {
@@ -80,7 +81,8 @@
     "imageUpscaling": "圖片放大",
     "imageInpainting": "選區修補",
     "imageSelection": "智慧選區",
-    "imageDepth": "相對深度"
+    "imageDepth": "相對深度",
+    "textRecognition": "文字辨識"
   },
   "filters": {
     "all": "全部模型",

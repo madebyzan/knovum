@@ -211,12 +211,17 @@ async fn an_upscaled_picture_keeps_its_labels_and_what_it_shows() {
             .unwrap()
             .as_str()
     );
-    let queued: i64 =
-        sqlx::query_scalar("SELECT COUNT(*) FROM spaces_enrichment_jobs WHERE node_id='output'")
-            .fetch_one(&pool)
+    // Recognized text is not kept: it is read anew into the output's own passages.
+    let queued: Vec<String> =
+        sqlx::query_scalar("SELECT job_type FROM spaces_enrichment_jobs WHERE node_id='output'")
+            .fetch_all(&pool)
             .await
             .unwrap();
-    assert_eq!(queued, 0, "a kept reading is not taken again");
+    assert_eq!(
+        queued,
+        ["recognize_text"],
+        "a kept reading is not taken again"
+    );
 }
 
 #[tokio::test]

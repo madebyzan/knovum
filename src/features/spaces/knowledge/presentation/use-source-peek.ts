@@ -9,6 +9,7 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import { openSpaceAsset, openSpaceAssetAtLocation } from "../../assets/asset-operations";
+import { pdfDocumentPath } from "../../assets/file-presentation";
 import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { createSourceEvidence } from "../../document-editing/knowledge-capture";
 import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
@@ -35,6 +36,19 @@ export function useSourcePeek() {
     () => platform() === "windows" && ["word", "slides", "sheet"].includes(location.value?.kind ?? ""),
   );
   const editableSource = computed(() => ["note", "markdown"].includes(node.value?.data.kind ?? ""));
+  const pdfReader = computed(() => {
+    const data = node.value?.data;
+    const target = sourcePeek.value;
+    const path = data && pdfDocumentPath(data);
+    if (!target || !path) return undefined;
+    const cited = target.locator.location;
+    return {
+      title: target.nodeTitle,
+      path,
+      page: cited.kind === "pdf" ? cited.page : undefined,
+      passage: target.locator.quote?.exact ?? target.text,
+    };
+  });
   const hasAsset = computed(() => Boolean(node.value && isSpaceManagedAssetPayload(node.value.data)));
   const contextRequest = computed<DocumentContextRequest | undefined>(() => {
     const target = sourcePeek.value;
@@ -111,6 +125,7 @@ export function useSourcePeek() {
     preciseExternal,
     editableSource,
     hasAsset,
+    pdfReader,
     revealSource,
     extractSource,
     openSourceExternally,

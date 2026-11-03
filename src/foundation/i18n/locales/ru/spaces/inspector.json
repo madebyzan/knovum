@@ -15,7 +15,17 @@
     "modified": "Дата изменения"
   },
   "extractedDocumentText": "Извлеченный текст",
-  "visualDetectedText": "Текст, распознанный OCR",
+  "pdfReader": {
+    "open": "Открыть PDF",
+    "openAtPage": "Открыть на странице {page}",
+    "position": "Страница {page} из {total}",
+    "previousPage": "Предыдущая страница",
+    "nextPage": "Следующая страница",
+    "zoomOut": "Уменьшить",
+    "zoomIn": "Увеличить",
+    "fitWidth": "По ширине"
+  },
+  "recognizedText": "Текст, распознанный OCR",
   "excerpts": {
     "title": "Отрывок · {title}",
     "line": "— {title} · {location}",

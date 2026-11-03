@@ -21,6 +21,7 @@ pub enum EnrichmentJobType {
     AlignMediaTranscript,
     DiarizeMediaTranscript,
     ParseDocument,
+    RecognizeText,
 }
 
 impl EnrichmentJobType {
@@ -32,6 +33,7 @@ impl EnrichmentJobType {
             Self::AlignMediaTranscript => "align_media_transcript",
             Self::DiarizeMediaTranscript => "diarize_media_transcript",
             Self::ParseDocument => "parse_document",
+            Self::RecognizeText => "recognize_text",
         }
     }
 }

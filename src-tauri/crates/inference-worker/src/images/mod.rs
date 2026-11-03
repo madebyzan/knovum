@@ -6,12 +6,16 @@ mod prompts;
 mod segmentation;
 mod selection;
 mod session;
+mod text_recognition;
 mod upscaling;
 
 use crate::{artifact, cancellation::Cancellation};
 use engine::ImageEngine;
 use knovum_inference_contracts::{
-    image_compute::{ImageComputationOutput, ImageComputeParams},
+    image_compute::{
+        ImageComputationOutput, ImageComputeParams, ImageTextRecognition,
+        ImageTextRecognitionParams,
+    },
     image_wire::{ImageSegmentParams, ImageSegmentation},
     runtime::{RuntimeCapability, RuntimeInitializeParams, RuntimeModel},
 };
@@ -53,6 +57,26 @@ impl Images {
             ImageEngine::Segmentation(engine) => engine.execute(work, params, cancel),
             _ => Err("runtime_mismatch: worker does not own segmentation".into()),
         }
+    }
+
+    pub(crate) fn recognize_text(
+        &mut self,
+        work: &Path,
+        params: ImageTextRecognitionParams,
+        cancel: &Cancellation,
+    ) -> Result<ImageTextRecognition, String> {
+        let ImageEngine::TextRecognition(engine) = &mut self.0 else {
+            return Err("runtime_mismatch: worker does not own text recognition".into());
+        };
+        let input = artifact::read_tensor(work, &params.tensor_ref, 64 * 1024 * 1024)?;
+        let lines = engine.execute(params.tensor_ref.shape, &input, cancel)?;
+        cancel.check()?;
+        Ok(ImageTextRecognition {
+            request_id: params.request_id,
+            attempt_epoch: params.attempt_epoch,
+            model_spec_id: params.model_spec_id,
+            lines,
+        })
     }
 
     pub(crate) fn compute(

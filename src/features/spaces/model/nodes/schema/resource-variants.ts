@@ -7,6 +7,7 @@ import { spaceVisualKnowledgeSchema } from "../../../media/schema/visual-knowled
 import { documentCoverageSchema } from "./document-coverage";
 import { imageEditSchema } from "./image-edit";
 import { baseSpaceNodeFields } from "./node-fields";
+import { textRecognitionSchema } from "./text-recognition";
 import { videoEditProjectSchema } from "./video-edit";
 
 const assetFields = {
@@ -72,6 +73,7 @@ const imageCommentSchema = z
 const visualFields = {
   ...intrinsicSizeFields,
   visualKnowledge: spaceVisualKnowledgeSchema.optional(),
+  textRecognition: textRecognitionSchema.optional(),
 };
 const mediaFields = {
   origin: spaceMediaOriginSchema.optional(),
@@ -143,6 +145,7 @@ export const spaceResourceNodeSchemas = [
       ...intrinsicSizeFields,
       kind: z.literal("file"),
       documentCoverage: documentCoverageSchema.optional(),
+      textRecognition: textRecognitionSchema.optional(),
       extractedText: z
         .string()
         .max(10 * 1024 * 1024)

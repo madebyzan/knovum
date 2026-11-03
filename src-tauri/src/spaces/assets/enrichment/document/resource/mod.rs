@@ -142,10 +142,11 @@ fn read_bounded(path: &Path) -> Result<Vec<u8>, String> {
 pub(super) fn save_render(
     app: &tauri::AppHandle,
     source: &Path,
+    renderer: &crate::documents::rendering::PdfRenderer,
     input: &crate::documents::pdf_input::PdfInput,
     claim_managed_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<DocumentResource, String> {
-    let raster = crate::documents::rendering::render(source, input)?;
+    let raster = renderer.render(input)?;
     // The system preview adapter already owns bounded PNG generation; do not decode and encode it again.
     if raster.bytes.len() as u64 > MAX_RESOURCE_BYTES {
         return Err("Rendered PDF input exceeds 32 MiB".into());

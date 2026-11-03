@@ -5,7 +5,7 @@ use tauri::AppHandle;
 use crate::foundation::app_error::AppError;
 use crate::spaces::{
     db,
-    knowledge::{indexing::KnowledgeChunkInput, model::revision},
+    knowledge::{chunk_store, indexing::KnowledgeChunkInput, model::revision},
     nodes::{self, contracts::NodeContentChange},
 };
 
@@ -65,6 +65,33 @@ pub(in crate::spaces) async fn publish(
     Ok(current)
 }
 
+/// Recognized text joins the node's source text rather than replacing it, and a new reading replaces
+/// only the passages recognition wrote. The record and its passages commit together, so a node with a
+/// record has its text and a node without one is simply read again.
+pub(in crate::spaces) async fn publish_text_recognition(
+    app: &AppHandle,
+    (space_id, node_id): (&str, &str),
+    guard: PublicationGuard<'_>,
+    record: Value,
+    chunks: Vec<KnowledgeChunkInput>,
+) -> Result<Value, AppError> {
+    let fields = serde_json::Map::from_iter([("textRecognition".to_owned(), record)]);
+    let mut tx = db::begin_write(db::pool(app).await?).await?;
+    let current =
+        publish_in_transaction(&mut tx, (space_id, node_id), guard, fields, None, None).await?;
+    let now = crate::foundation::clock::unix_time_millis()?;
+    chunk_store::replace_role(
+        &mut tx,
+        (space_id, node_id),
+        ("source", super::recognized_text::RECOGNIZED_TEXT_ROLE),
+        &chunks,
+        now,
+    )
+    .await?;
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(current)
+}
+
 pub(in crate::spaces) async fn publish_in_transaction(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     (space_id, node_id): (&str, &str),
@@ -102,6 +129,8 @@ pub(in crate::spaces) async fn publish_in_transaction(
     }
     let current_revision = if job_id.is_some() && fields.contains_key("visualKnowledge") {
         super::jobs::revision::visual_revision(&current)?
+    } else if fields.contains_key("textRecognition") {
+        super::jobs::revision::recognition_revision(&current)?
     } else {
         current
             .get("sourceRevision")
@@ -131,6 +160,11 @@ pub(in crate::spaces) async fn publish_in_transaction(
         } else {
             object.insert(key, value);
         }
+    }
+    // Replacing the source passages discards those recognition added to them, so its record goes
+    // with them and the node is read again.
+    if chunks.is_some() {
+        object.remove("textRecognition");
     }
     revision::apply(&mut current)?;
     let now = crate::foundation::clock::unix_time_millis()?;

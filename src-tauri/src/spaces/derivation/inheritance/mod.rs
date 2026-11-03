@@ -16,6 +16,8 @@
 //! source file came from, and a derived file came from a Space. Annotations (`comments`,
 //! `imageEdit`, `videoEditProject`) belong to the node they were made on, and an edit is already
 //! rendered into whatever was derived from it.
+//! Recognized text (`textRecognition`) lives in the node's own passages rather than in its data,
+//! so an output reads its picture anew; the work is local and cheap.
 //!
 //! Outputs made from knowledge rather than from one asset — generated images, videos and documents,
 //! visualizations, the layers a picture is split into — are new works and keep nothing.

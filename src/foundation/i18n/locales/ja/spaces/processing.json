@@ -10,6 +10,7 @@
     "analyze_media": "メディアの長さと波形",
     "transcribe_media": "音声とビデオの文字起こし",
     "parse_document": "ドキュメント抽出",
+    "recognize_text": "文字認識",
     "align_media_transcript": "選択されたトランスクリプトの配置",
     "diarize_media_transcript": "スピーカー ダイアライゼーション"
   },
@@ -34,11 +35,6 @@
   "loadingImage": "画像の読み込み",
   "imageUnavailable": "画像が利用できません",
   "document": {
-    "coverage": "文書処理",
-    "textCoverage": "抽出されたテキストを含むページ: {count} または {total}。",
-    "unclassifiedPages": "{count} ページには、抽出可能な本文テキストや既知の画像がありません。空白であるか、サポートされていないコンテンツが含まれている可能性があります。",
-    "scannedPages": "スキャンされたページ（画像のみ）: {pages}",
-    "visualUnavailable": "{count} 参照イメージはドキュメント パーサーでデコードできません。",
     "resources": {
       "title": "ドキュメント リソース",
       "open": "ドキュメントリソース {index} を開く",
@@ -49,17 +45,6 @@
       "altText": "代替テキスト",
       "embeddedBadge": "埋め込み",
       "renderedBadge": "レンダリング"
-    },
-    "warnings": {
-      "officeVectorDrawingsUnsupported": "Office のベクター図面は視覚的に分析されません。それらは元のファイルに残ります。",
-      "spreadsheetImageCellAnchorsUnavailable": "スプレッドシート画像はセルごとではなくワークシートごとに配置されます。",
-      "spreadsheetChartRenderingUnsupported": "利用可能なグラフのテキストが抽出されます。チャートの外観は分析されません。",
-      "legacyOfficeVisualOccurrenceCoverageLimited": "この従来の Office 形式では、完全な画像位置が公開されません。",
-      "legacySpreadsheetFormulasUnavailable": "従来のスプレッドシートは、数式ではなく、キャッシュされた値を公開します。",
-      "pdfVisualCoverageLimited": "PDF 画像領域は、パーサーの公開位置データを使用します。インライン画像とベクターグラフィックスは完全にカバーされているという保証はありません。元のファイルにはすべてのコンテンツが保持されます。",
-      "pdfVisualOccurrenceCoverageLimited": "このドキュメントには 1 件のカバレッジ記録に収まらない数の画像があるため、前方のページの画像のみを記載しています。テキスト抽出と検索は通常どおりで、元のファイルはすべての内容を保持します。",
-      "pdfPageCoverageLimited": "このドキュメントには 1 件のカバレッジ記録に収まらない数のページがあるため、ページ単位の記載は途中で終わります。テキスト抽出と検索は通常どおりで、元のファイルはすべての内容を保持します。",
-      "pdfTextCoverageLimited": "テキスト抽出が 1 ノードの上限に達したため、以降のページは読み込まれていません。元のファイルはすべての内容を保持します。"
     }
   },
   "visual": {

@@ -4,8 +4,9 @@ use std::path::Path;
 use tauri::AppHandle;
 
 use super::resource;
-use crate::documents::extraction::{
-    pdf::PdfDocumentContent, pdf_visuals::PdfVisual, visual::DocumentImage,
+use crate::documents::{
+    extraction::{pdf::PdfDocumentContent, pdf_visuals::PdfVisual, visual::DocumentImage},
+    pdf_input::PdfInput,
 };
 use crate::spaces::knowledge::model::document_coverage::{
     DocumentCoverage, DocumentOccurrence, DocumentParser, MAX_COVERED_PAGES, MAX_COVERED_VISUALS,
@@ -21,51 +22,81 @@ struct Covered<'a> {
     warnings: Vec<String>,
 }
 
-/// The record describes a document completely up to one page and not at all beyond it.
+fn keep_up_to(list: &[u32], limit: Option<u32>) -> Vec<u32> {
+    list.iter()
+        .copied()
+        .filter(|page| limit.is_none_or(|boundary| *page < boundary))
+        .collect()
+}
+
+/// Whole-page recognition inputs and page classifications take priority over sub-page image crops.
 ///
-/// A page claiming recognition and the input that recognises it are the same fact stated twice, so
-/// a record that kept one and dropped the other would not validate — and a reader could not tell
-/// which half to believe. One boundary, derived from whichever budget runs out first, keeps the
-/// record true about the part of the document it describes.
+/// A page claiming recognition and the `PdfInput::Page` that recognises it are the same fact stated
+/// twice, so they share `recognition_limit`. Sub-page `PdfInput::Image` crops consume whatever
+/// visual budget remains up to a whole-page `image_limit` without truncating page coverage or OCR
+/// of later scanned pages.
 fn covered(document: &PdfDocumentContent) -> Covered<'_> {
-    let pages = [
-        &document.pages_requiring_recognition,
-        &document.pages_with_extracted_text,
-        &document.pages_without_extractable_content,
-    ];
-    let claimed = pages
-        .iter()
-        .flat_map(|list| list.iter().copied())
-        .collect::<BTreeSet<_>>();
-    let limit = [
+    let recognition_limit = [
         document
             .visuals
-            .get(MAX_COVERED_VISUALS)
+            .iter()
+            .filter(|visual| matches!(visual.input, PdfInput::Page { .. }))
+            .nth(MAX_COVERED_VISUALS)
             .map(PdfVisual::page),
-        claimed.iter().nth(MAX_COVERED_PAGES).copied(),
+        document
+            .pages_requiring_recognition
+            .get(MAX_COVERED_PAGES)
+            .copied(),
     ]
     .into_iter()
     .flatten()
     .min();
-    let keep = |list: &[u32]| {
-        list.iter()
-            .copied()
-            .filter(|page| limit.is_none_or(|boundary| *page < boundary))
-            .collect::<Vec<_>>()
-    };
-    let [recognition, extracted, empty] = pages.map(|list| keep(list));
+    let recognition = keep_up_to(&document.pages_requiring_recognition, recognition_limit);
+
+    let remaining_pages = MAX_COVERED_PAGES.saturating_sub(recognition.len());
+    let non_recognition = document
+        .pages_with_extracted_text
+        .iter()
+        .chain(&document.pages_without_extractable_content)
+        .copied()
+        .collect::<BTreeSet<_>>();
+    let page_limit = non_recognition.iter().nth(remaining_pages).copied();
+    let extracted = keep_up_to(&document.pages_with_extracted_text, page_limit);
+    let empty = keep_up_to(&document.pages_without_extractable_content, page_limit);
+
+    let recognition_visuals = document
+        .visuals
+        .iter()
+        .filter(|visual| {
+            matches!(visual.input, PdfInput::Page { .. })
+                && recognition_limit.is_none_or(|boundary| visual.page() < boundary)
+        })
+        .count();
+    let remaining_visuals = MAX_COVERED_VISUALS.saturating_sub(recognition_visuals);
+    let image_limit = document
+        .visuals
+        .iter()
+        .filter(|visual| matches!(visual.input, PdfInput::Image { .. }))
+        .nth(remaining_visuals)
+        .map(PdfVisual::page);
+
     let visuals = document
         .visuals
         .iter()
-        .filter(|visual| limit.is_none_or(|boundary| visual.page() < boundary))
+        .filter(|visual| match visual.input {
+            PdfInput::Page { .. } => {
+                recognition_limit.is_none_or(|boundary| visual.page() < boundary)
+            }
+            PdfInput::Image { .. } => image_limit.is_none_or(|boundary| visual.page() < boundary),
+        })
         .collect::<Vec<_>>();
-    // Two different facts, two different warnings: the parser's position data never guarantees
-    // every inline or vector picture is found, and this record stops where its budget does.
+
     let mut warnings = vec!["pdf_visual_coverage_limited".to_owned()];
     if visuals.len() < document.visuals.len() {
         warnings.push("pdf_visual_occurrence_coverage_limited".to_owned());
     }
-    if recognition.len() + extracted.len() + empty.len() < claimed.len() {
+    let claimed_pages = document.pages_requiring_recognition.len() + non_recognition.len();
+    if recognition.len() + extracted.len() + empty.len() < claimed_pages {
         warnings.push("pdf_page_coverage_limited".to_owned());
     }
     if document.text_truncated {

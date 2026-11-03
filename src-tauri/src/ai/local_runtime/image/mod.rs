@@ -2,8 +2,9 @@ use tensor::{encode_f32, read_mask, stage_tensor, valid_sha256, validate_input};
 pub(crate) mod compute;
 mod session;
 mod tensor;
+pub(crate) mod text_recognition;
 
-use super::lease::RequestIdentity;
+use super::{admission::Priority, lease::RequestIdentity};
 use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
@@ -51,6 +52,7 @@ pub(crate) async fn segment_image<R: Runtime>(
     let model_path = resources.path(model)?;
     let mut lease = session::acquire(
         app,
+        Priority::Interactive,
         RuntimeCapability::ImageSegmentation,
         model_spec_id,
         RuntimeModel::Snapshot {

@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import { ChevronDown, RefreshCw } from "@lucide/vue";
+import { ChevronDown } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiBadge from "../../../../shared/ui/UiBadge.vue";
-import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiExpandableText from "../../../../shared/ui/UiExpandableText.vue";
-import { retryEnrichmentJob } from "../../enrichment/enrichment-jobs";
+import SpaceEnrichmentJobStatus from "../../enrichment/presentation/SpaceEnrichmentJobStatus.vue";
+import SpaceRecognizedText from "../../enrichment/presentation/SpaceRecognizedText.vue";
 import { useNodeEnrichmentStatus } from "../../enrichment/use-node-enrichment-status";
+import { useRecognizedText } from "../../enrichment/use-recognized-text";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
 
@@ -24,7 +23,15 @@ const { jobs, loading, refresh } = useNodeEnrichmentStatus(
   computed(() => props.node.id),
 );
 const visualJob = computed(() => jobs.value.find((job) => job.jobType === "analyze_visual"));
-const retrying = shallowRef(false);
+const recognitionJob = computed(() => jobs.value.find((job) => job.jobType === "recognize_text"));
+const recognizedText = useRecognizedText(
+  activeSpaceId,
+  computed(() => props.node.id),
+  computed(() => {
+    const data = props.node.data;
+    return data.kind === "image" || data.kind === "video" ? data.textRecognition?.sourceRevision : undefined;
+  }),
+);
 const tagsExpanded = shallowRef(false);
 const knowledge = computed(() => {
   const data = props.node.data;
@@ -35,19 +42,6 @@ const visibleTags = computed(() => {
   const tags = knowledge.value?.tags ?? [];
   return tagsExpanded.value ? tags : tags.slice(0, TAG_LIMIT);
 });
-
-async function retry() {
-  if (!visualJob.value || retrying.value) return;
-  retrying.value = true;
-  try {
-    await retryEnrichmentJob(visualJob.value.id);
-    await refresh();
-  } catch (error) {
-    toast.error(getErrorMessage(error));
-  } finally {
-    retrying.value = false;
-  }
-}
 </script>
 
 <template>
@@ -58,18 +52,14 @@ async function retry() {
         :clamp-lines="4"
         class="text-body leading-relaxed text-fg-secondary"
       />
-      <div v-if="knowledge.detectedText" class="mt-3">
-        <h4 class="text-caption font-medium text-fg-tertiary">
-          {{ t("spaces.inspector.visualDetectedText") }}
-        </h4>
-        <UiExpandableText
-          :text="knowledge.detectedText"
-          :clamp-lines="4"
-          preformatted
-          class="mt-1 text-caption leading-relaxed text-fg-secondary"
-        />
-      </div>
-      <div v-if="knowledge.tags.length" class="mt-3 flex flex-wrap gap-1">
+    </template>
+    <SpaceEnrichmentJobStatus :job="visualJob" @retried="refresh" />
+    <SpaceRecognizedText class="mt-3" :text="recognizedText(null)" :job="recognitionJob" @retried="refresh" />
+    <div v-if="knowledge?.tags.length" class="mt-3 space-y-1">
+      <h4 class="text-caption font-medium text-fg-tertiary">
+        {{ t("spaces.tags.title") }}
+      </h4>
+      <div class="flex flex-wrap gap-1">
         <UiBadge v-for="tag in visibleTags" :key="tag" size="sm">
           {{ tag }}
         </UiBadge>
@@ -89,31 +79,8 @@ async function retry() {
           />
         </button>
       </div>
-    </template>
-    <p
-      v-if="visualJob?.status === 'pending' || visualJob?.status === 'running'"
-      class="mt-2 text-caption leading-relaxed text-fg-tertiary"
-      role="status"
-    >
-      {{ t(`spaces.processing.enrichmentJobType.${visualJob.jobType}`) }} ·
-      {{ t(`spaces.processing.jobStatus.${visualJob.status}`) }}
-    </p>
-    <p
-      v-else-if="visualJob?.status === 'awaiting_configuration'"
-      class="text-caption leading-relaxed text-fg-tertiary"
-    >
-      {{ t("spaces.processing.visual.waitingConfiguration") }}
-    </p>
-    <div
-      v-else-if="visualJob?.status === 'failed'"
-      class="flex items-center justify-between gap-2 text-caption text-fg-danger"
-    >
-      <span class="min-w-0 wrap-break-word">{{ visualJob.error ?? t("spaces.processing.failed") }}</span>
-      <UiButton size="sm" variant="ghost" :disabled="retrying" @click="retry">
-        <RefreshCw class="size-3" :class="retrying && 'animate-spin'" />{{ t("common.retry") }}
-      </UiButton>
     </div>
-    <p v-else-if="!knowledge && !loading" class="text-caption leading-relaxed text-fg-tertiary">
+    <p v-if="!visualJob && !knowledge && !loading" class="text-caption leading-relaxed text-fg-tertiary">
       {{ t("spaces.knowledge.visual.empty") }}
     </p>
   </div>

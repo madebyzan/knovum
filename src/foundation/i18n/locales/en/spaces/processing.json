@@ -10,6 +10,7 @@
     "analyze_media": "Media duration and waveform",
     "transcribe_media": "Audio and video transcription",
     "parse_document": "Document extraction",
+    "recognize_text": "Text recognition",
     "align_media_transcript": "Selected transcript alignment",
     "diarize_media_transcript": "Speaker diarization"
   },
@@ -34,11 +35,6 @@
   "loadingImage": "Loading image",
   "imageUnavailable": "Image unavailable",
   "document": {
-    "coverage": "Document processing",
-    "textCoverage": "Pages with extracted text: {count} of {total}.",
-    "unclassifiedPages": "{count} page has no extractable body text or known images. It may be blank or contain unsupported content. | {count} pages have no extractable body text or known images. They may be blank or contain unsupported content.",
-    "scannedPages": "Scanned pages (image only): {pages}",
-    "visualUnavailable": "{count} referenced image cannot be decoded by the document parser. | {count} referenced images cannot be decoded by the document parser.",
     "resources": {
       "title": "Document resources",
       "open": "Open document resource {index}",
@@ -49,17 +45,6 @@
       "altText": "Alt text",
       "embeddedBadge": "Embedded",
       "renderedBadge": "Rendered"
-    },
-    "warnings": {
-      "officeVectorDrawingsUnsupported": "Office vector drawings are not visually analyzed; they remain in the original file.",
-      "spreadsheetImageCellAnchorsUnavailable": "Spreadsheet images are located by worksheet, not by cell.",
-      "spreadsheetChartRenderingUnsupported": "Available chart text is extracted; chart appearance is not analyzed.",
-      "legacyOfficeVisualOccurrenceCoverageLimited": "This legacy Office format does not expose complete image positions.",
-      "legacySpreadsheetFormulasUnavailable": "Legacy spreadsheets expose cached values, not formula expressions.",
-      "pdfVisualCoverageLimited": "PDF image regions use the parser's public position data. Inline images and vector graphics are not guaranteed to be fully covered; the original file retains all content.",
-      "pdfVisualOccurrenceCoverageLimited": "This document holds more pictures than one coverage record lists, so the pictures described here are those of its earlier pages. Text extraction and search cover the document as usual, and the original file retains all content.",
-      "pdfPageCoverageLimited": "This document holds more pages than one coverage record describes, so page-level coverage stops partway. Text extraction and search cover the document as usual, and the original file retains all content.",
-      "pdfTextCoverageLimited": "Text extraction reached the limit of what one node holds, so later pages were not read. The original file retains all content."
     }
   },
   "visual": {

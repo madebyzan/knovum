@@ -15,7 +15,17 @@
     "modified": "修改時間"
   },
   "extractedDocumentText": "擷取的純文字",
-  "visualDetectedText": "OCR 辨識文字",
+  "pdfReader": {
+    "open": "開啟 PDF",
+    "openAtPage": "開啟至第 {page} 頁",
+    "position": "第 {page} 頁，共 {total} 頁",
+    "previousPage": "上一頁",
+    "nextPage": "下一頁",
+    "zoomOut": "縮小",
+    "zoomIn": "放大",
+    "fitWidth": "符合寬度"
+  },
+  "recognizedText": "OCR 辨識文字",
   "excerpts": {
     "title": "摘錄 · {title}",
     "line": "— {title} · {location}",

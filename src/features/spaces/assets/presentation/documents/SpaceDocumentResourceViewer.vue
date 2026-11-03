@@ -7,6 +7,7 @@ import UiBadge from "../../../../../shared/ui/UiBadge.vue";
 import UiDialog from "../../../../../shared/ui/UiDialog.vue";
 import UiExpandableText from "../../../../../shared/ui/UiExpandableText.vue";
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
+import SpaceRecognizedText from "../../../enrichment/presentation/SpaceRecognizedText.vue";
 import { knowledgeLocationLabelFromLocation } from "../../../knowledge/presentation/knowledge-location-label";
 import type { ExportTarget } from "../../export/target";
 import { useExportRun } from "../../export/use-export-run";
@@ -20,6 +21,7 @@ const props = defineProps<{
   item: DocumentResourceProjection;
   sourceRevision: string;
   exportTarget: ExportTarget | undefined;
+  recognizedText: string | undefined;
 }>();
 const { t } = useI18n();
 const runExport = useExportRun();
@@ -108,6 +110,7 @@ function cleanContext(context: string, altText: string | null): string {
         </UiBadge>
       </div>
 
+      <SpaceRecognizedText :text="recognizedText" class="border-b border-stroke-divider py-3" />
       <div class="space-y-4 pt-3">
         <div
           v-for="(occurrence, index) in item.occurrences"

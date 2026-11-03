@@ -8,11 +8,12 @@ use tokio_util::sync::CancellationToken;
 
 /// Holds the inference slot on the worker that owns one image model.
 ///
-/// Image work is always interactive and always runs on the CPU profile this host detected, which
-/// is the only thing the image capabilities decide for themselves; everything else about reaching
-/// a worker belongs to [`WorkerLease`].
+/// Image work always runs on the CPU profile this host detected; its priority and that profile are
+/// the only things the image capabilities decide for themselves. Everything else about reaching a
+/// worker belongs to [`WorkerLease`].
 pub(super) async fn acquire<R: Runtime>(
     app: &AppHandle<R>,
+    priority: Priority,
     capability: RuntimeCapability,
     capability_spec_id: &str,
     model: RuntimeModel,
@@ -21,7 +22,7 @@ pub(super) async fn acquire<R: Runtime>(
     let cpu_threads = super::super::compute_budget::ComputeBudget::detect()?.model_threads;
     WorkerLease::acquire(
         app,
-        Priority::Interactive,
+        priority,
         WorkerSpecification {
             capability,
             capability_spec_id: capability_spec_id.into(),

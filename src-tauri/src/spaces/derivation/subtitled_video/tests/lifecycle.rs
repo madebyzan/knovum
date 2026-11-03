@@ -131,13 +131,13 @@ async fn automatic_subtitles_publish_only_a_derived_video_and_leave_source_uncha
     );
     // Provenance says where the source file came from; this file came from the Space.
     assert!(completion.data.get("origin").is_none());
-    // Nothing carried over is read again.
-    let queued: i64 =
-        sqlx::query_scalar("SELECT COUNT(*) FROM spaces_enrichment_jobs WHERE node_id='output'")
-            .fetch_one(&pool)
+    // Nothing carried over is read again; the text on the new cover is read, as it never is carried.
+    let queued: Vec<String> =
+        sqlx::query_scalar("SELECT job_type FROM spaces_enrichment_jobs WHERE node_id='output'")
+            .fetch_all(&pool)
             .await
             .unwrap();
-    assert_eq!(queued, 0);
+    assert_eq!(queued, ["recognize_text"]);
     // Lineage was written when the output was reserved, so publication only settles content.
     let counts: (i64, i64, i64) = sqlx::query_as("SELECT (SELECT COUNT(*) FROM spaces_nodes),(SELECT COUNT(*) FROM spaces_nodes WHERE kind='subtitle'),(SELECT COUNT(*) FROM spaces_relations)").fetch_one(&pool).await.unwrap();
     assert_eq!(counts, (2, 0, 0));

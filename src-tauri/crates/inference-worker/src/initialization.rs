@@ -96,7 +96,8 @@ impl Engine {
             | RuntimeCapability::ImageUpscaling
             | RuntimeCapability::ImageInpainting
             | RuntimeCapability::ImageSelection
-            | RuntimeCapability::ImageDepth => Ok(Self::Images(Images::new(params)?)),
+            | RuntimeCapability::ImageDepth
+            | RuntimeCapability::ImageTextRecognition => Ok(Self::Images(Images::new(params)?)),
         }
     }
 }

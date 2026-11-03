@@ -1,0 +1,99 @@
+{
+  "nodes": [
+    {
+      "id": "start",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 440,
+      "height": 620,
+      "text": "从这里开始\n这个 Space 是一个小例子：一家咖啡店该不该开第二家分店？里面的内容都是虚构的，随时可以删除。\n\n1. 选中市场简报，点击“打开 PDF”，它会直接在 Knovum 里打开。\n\n2. 简报第 3 页和白板照片都只是图片。Knovum 会在这台电脑上读出其中的文字：选中后查看“识别出的文字”。首次运行会下载一个小模型。\n\n3. 在设置里连接模型，然后提问：“免租期有多长？这家店什么时候能回本？”每个回答都会注明出处，点击引用即可跳到对应页面。",
+      "color": "3"
+    },
+    {
+      "id": "sources",
+      "type": "group",
+      "x": 500,
+      "y": 0,
+      "width": 880,
+      "height": 520,
+      "label": "资料"
+    },
+    {
+      "id": "brief",
+      "type": "file",
+      "x": 524,
+      "y": 56,
+      "width": 340,
+      "height": 440,
+      "file": "assets/harbor-street-market-brief.pdf"
+    },
+    {
+      "id": "whiteboard",
+      "type": "file",
+      "x": 888,
+      "y": 56,
+      "width": 468,
+      "height": 318,
+      "file": "assets/mill-lane-whiteboard.png"
+    },
+    {
+      "id": "thinking",
+      "type": "group",
+      "x": 500,
+      "y": 580,
+      "width": 880,
+      "height": 340,
+      "label": "你的思考"
+    },
+    {
+      "id": "question",
+      "type": "text",
+      "x": 524,
+      "y": 636,
+      "width": 404,
+      "height": 260,
+      "text": "问题\nHarbor Street Coffee 该不该在 Mill Lane 41 号开店？\n\n待确认：暑期客流下滑如何应对，房东是否书面确认免租月份。",
+      "color": "5"
+    },
+    {
+      "id": "draft",
+      "type": "text",
+      "x": 952,
+      "y": 636,
+      "width": 404,
+      "height": 260,
+      "text": "回答草稿\n如果免租期得到确认，就开。按预计每天 190 单，装修投入在第 14 个月收回。\n\n把这里换成你自己的判断。",
+      "color": "4"
+    }
+  ],
+  "edges": [
+    {
+      "id": "brief-question",
+      "fromNode": "brief",
+      "fromSide": "bottom",
+      "toNode": "question",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "支撑"
+    },
+    {
+      "id": "whiteboard-question",
+      "fromNode": "whiteboard",
+      "fromSide": "bottom",
+      "toNode": "question",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "支撑"
+    },
+    {
+      "id": "question-draft",
+      "fromNode": "question",
+      "fromSide": "right",
+      "toNode": "draft",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "推出"
+    }
+  ]
+}

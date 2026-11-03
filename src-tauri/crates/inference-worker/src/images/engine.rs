@@ -1,4 +1,4 @@
-use super::{depth, discovery, inpainting, segmentation, selection, upscaling};
+use super::{depth, discovery, inpainting, segmentation, selection, text_recognition, upscaling};
 use crate::{artifact, cancellation::Cancellation};
 use knovum_inference_contracts::{
     image_compute::{ImageComputation, ImageComputeParams, ImageModelVariant},
@@ -15,6 +15,7 @@ pub(super) enum ImageEngine {
     Inpainting(inpainting::Inpainting),
     Selection(selection::Selection),
     Depth(depth::Depth),
+    TextRecognition(text_recognition::TextRecognition),
 }
 
 pub(super) struct Computed {
@@ -50,6 +51,8 @@ impl ImageEngine {
                 depth::Depth::new(directory, variant == V::DepthAnythingV2SmallUint8, threads)
                     .map(ImageEngine::Depth)
             }
+            V::PpOcrV6Small => text_recognition::TextRecognition::new(directory, threads)
+                .map(ImageEngine::TextRecognition),
         }
     }
 

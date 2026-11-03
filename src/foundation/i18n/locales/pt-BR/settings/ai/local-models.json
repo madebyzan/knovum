@@ -25,7 +25,8 @@
     "imageUpscaling": "Aprimoramento de imagem",
     "imageInpainting": "Reparar áreas selecionadas",
     "imageSelection": "Seleção inteligente",
-    "imageDepth": "Profundidade relativa"
+    "imageDepth": "Profundidade relativa",
+    "textRecognition": "Reconhecimento de texto"
   },
   "redownload": "Baixar novamente",
   "groups": {
@@ -80,7 +81,8 @@
     "imageUpscaling": "Aprimoramento de imagem",
     "imageInpainting": "Reparar áreas selecionadas",
     "imageSelection": "Seleção inteligente",
-    "imageDepth": "Profundidade relativa"
+    "imageDepth": "Profundidade relativa",
+    "textRecognition": "Reconhecimento de texto"
   },
   "filters": {
     "all": "Todos os modelos",

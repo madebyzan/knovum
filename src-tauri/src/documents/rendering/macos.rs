@@ -1,31 +1,45 @@
-use objc2_core_foundation::{CFData, CGPoint, CGRect, CGSize, CFURL};
+use objc2_core_foundation::{CFData, CFRetained, CGPoint, CGRect, CGSize, CFURL};
 use objc2_core_graphics::{
     CGBitmapContextCreate, CGColorSpace, CGContext, CGDataProvider, CGImageAlphaInfo,
     CGImageByteOrderInfo, CGPDFBox, CGPDFDocument, CGPDFPage,
 };
 use std::{io::Cursor, path::Path};
 
-pub(super) fn render(
-    source: &Path,
-    page: u32,
-    region: Option<crate::documents::pdf_input::PdfRegion>,
-) -> Result<super::PdfRaster, String> {
-    let url = CFURL::from_file_path(source).ok_or("PDF path cannot be represented as a URL")?;
-    let document = CGPDFDocument::with_url(Some(&url)).ok_or("Core Graphics could not open PDF")?;
-    render_document(&document, page, region)
+pub(super) struct Renderer {
+    document: CFRetained<CGPDFDocument>,
 }
 
-pub(super) fn render_bytes(
-    bytes: &[u8],
-    page: u32,
-    region: Option<crate::documents::pdf_input::PdfRegion>,
-) -> Result<super::PdfRaster, String> {
-    let data = CFData::from_bytes(bytes);
-    let provider = CGDataProvider::with_cf_data(Some(&data))
-        .ok_or("Core Graphics could not create a PDF data provider")?;
-    let document = CGPDFDocument::with_provider(Some(&provider))
-        .ok_or("Core Graphics could not open PDF snapshot")?;
-    render_document(&document, page, region)
+impl Renderer {
+    pub(super) fn open(source: &Path) -> Result<Self, String> {
+        let url = CFURL::from_file_path(source).ok_or("PDF path cannot be represented as a URL")?;
+        let document =
+            CGPDFDocument::with_url(Some(&url)).ok_or("Core Graphics could not open PDF")?;
+        Self::new(document)
+    }
+
+    pub(super) fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
+        let data = CFData::from_bytes(bytes);
+        let provider = CGDataProvider::with_cf_data(Some(&data))
+            .ok_or("Core Graphics could not create a PDF data provider")?;
+        let document = CGPDFDocument::with_provider(Some(&provider))
+            .ok_or("Core Graphics could not open PDF snapshot")?;
+        Self::new(document)
+    }
+
+    fn new(document: CFRetained<CGPDFDocument>) -> Result<Self, String> {
+        if !CGPDFDocument::is_unlocked(Some(&document)) {
+            return Err("PDF requires a password".into());
+        }
+        Ok(Self { document })
+    }
+
+    pub(super) fn render(
+        &self,
+        page: u32,
+        region: Option<crate::documents::pdf_input::PdfRegion>,
+    ) -> Result<super::PdfRaster, String> {
+        render_document(&self.document, page, region)
+    }
 }
 
 fn render_document(
@@ -33,9 +47,6 @@ fn render_document(
     page: u32,
     region: Option<crate::documents::pdf_input::PdfRegion>,
 ) -> Result<super::PdfRaster, String> {
-    if !CGPDFDocument::is_unlocked(Some(document)) {
-        return Err("PDF requires a password".into());
-    }
     let page =
         CGPDFDocument::page(Some(document), page as usize).ok_or("PDF page does not exist")?;
     let (bounds, box_kind) = visible_bounds(&page);
@@ -52,7 +63,8 @@ fn render_document(
     let color =
         CGColorSpace::new_device_rgb().ok_or("Core Graphics RGB color space unavailable")?;
     let mut pixels = vec![255_u8; width as usize * height as usize * 4];
-    // The owned pixel buffer outlives the context and has the exact checked RGBA stride.
+    // The owned pixel buffer outlives the context and has the exact checked RGBA stride. Core
+    // Graphics draws y-up but stores bitmap rows top-down, so the buffer is already upright.
     let context = unsafe {
         CGBitmapContextCreate(
             pixels.as_mut_ptr().cast(),
@@ -65,17 +77,19 @@ fn render_document(
         )
     }
     .ok_or("Core Graphics bitmap allocation failed")?;
-    let viewport = CGRect::new(CGPoint::new(0.0, 0.0), CGSize::new(w * sx, h * sy));
-    CGContext::translate_ctm(Some(&context), -crop.x * sx, -crop.y * sy);
+    // The drawing transform never scales up, so it only maps the box onto a page-sized rectangle,
+    // applying the page's rotation and box origin; the raster scale is applied explicitly.
+    let page_rect = CGRect::new(CGPoint::new(0.0, 0.0), CGSize::new(w, h));
+    CGContext::scale_ctm(Some(&context), sx, sy);
+    CGContext::translate_ctm(Some(&context), -crop.x, -crop.y);
     CGContext::concat_ctm(
         Some(&context),
-        CGPDFPage::drawing_transform(Some(&page), box_kind, viewport, 0, false),
+        CGPDFPage::drawing_transform(Some(&page), box_kind, page_rect, 0, false),
     );
     CGContext::draw_pdf_page(Some(&context), Some(&page));
     drop(context);
-    let mut bitmap = image::RgbaImage::from_raw(width, height, pixels)
+    let bitmap = image::RgbaImage::from_raw(width, height, pixels)
         .ok_or("PDF bitmap dimensions are invalid")?;
-    image::imageops::flip_vertical_in_place(&mut bitmap);
     let mut output = Cursor::new(Vec::new());
     bitmap
         .write_to(&mut output, image::ImageFormat::Png)

@@ -21,6 +21,7 @@ pub enum ImageModelVariant {
     EfficientSamS,
     DepthAnythingV2SmallUint8,
     DepthAnythingV2Small,
+    PpOcrV6Small,
 }
 
 impl ImageModelVariant {
@@ -33,6 +34,7 @@ impl ImageModelVariant {
             Self::EfficientSamS => "efficient-sam-s",
             Self::DepthAnythingV2SmallUint8 => "depth-anything-v2-small-uint8",
             Self::DepthAnythingV2Small => "depth-anything-v2-small-fp32",
+            Self::PpOcrV6Small => "pp-ocrv6-small",
         }
     }
     pub fn capability(self) -> RuntimeCapability {
@@ -45,11 +47,12 @@ impl ImageModelVariant {
             Self::DepthAnythingV2SmallUint8 | Self::DepthAnythingV2Small => {
                 RuntimeCapability::ImageDepth
             }
+            Self::PpOcrV6Small => RuntimeCapability::ImageTextRecognition,
         }
     }
 }
 
-use super::image_wire::TensorFileReference;
+use super::image_wire::{ImageSegmentParams, TensorFileReference};
 use super::runtime::RuntimeCapability;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -146,4 +149,29 @@ pub struct ImageComputationOutput {
     pub attempt_epoch: u64,
     pub model_spec_id: String,
     pub tensor_ref: TensorFileReference,
+}
+
+/// Text recognition asks exactly what segmentation asks: one source tensor under one identity.
+pub type ImageTextRecognitionParams = ImageSegmentParams;
+
+/// One line of text, located in source pixels. Polygons are reduced to their axis-aligned bounds:
+/// callers read and cite lines, and nothing downstream can use a finer shape.
+#[derive(Clone, Debug, Deserialize, JsonSchema, PartialEq, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct RecognizedTextLine {
+    pub text: String,
+    pub confidence: f32,
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
+}
+
+#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ImageTextRecognition {
+    pub request_id: String,
+    pub attempt_epoch: u64,
+    pub model_spec_id: String,
+    pub lines: Vec<RecognizedTextLine>,
 }

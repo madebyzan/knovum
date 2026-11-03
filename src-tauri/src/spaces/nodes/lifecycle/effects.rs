@@ -166,6 +166,12 @@ pub(super) async fn restore_nodes(
         let raw: String = row.try_get("data").map_err(db::sql_error)?;
         let data: serde_json::Value = serde_json::from_str(&raw).map_err(db::json_error)?;
         crate::spaces::knowledge::validation::validate_node(tx, space_id, &kind, &data).await?;
+        // Trashing cancelled the node's enrichment; restoring it owes whatever its data still asks
+        // for. Vision's execution choice is resolved when the job is dispatched.
+        crate::spaces::assets::enrichment::jobs::intent::synchronize_for_node(
+            tx, space_id, id, &data, now, None,
+        )
+        .await?;
         crate::spaces::knowledge::events::append(
             tx,
             crate::spaces::knowledge::events::KnowledgeEvent::new(

@@ -1,7 +1,16 @@
-use office_oxide::ir::{Element, List};
-use serde_json::Value;
+use std::collections::{BTreeMap, BTreeSet};
 
-use crate::documents::extraction::visual::DocumentImage;
+use office_oxide::ir::{Element, Image, List};
+use serde_json::Value;
+use sha2::{Digest, Sha256};
+
+use crate::documents::extraction::visual::{
+    has_meaningful_raster_dimensions, is_meaningful_emu_size, is_meaningful_pixel_size,
+    is_repeated_watermark_or_template, DocumentImage,
+};
+use crate::spaces::knowledge::model::document_coverage::{
+    MAX_COVERED_VISUALS, MAX_RESOURCE_BYTES, MAX_TOTAL_RESOURCE_BYTES,
+};
 
 #[derive(Default)]
 pub(super) struct DocumentImages {
@@ -21,7 +30,7 @@ impl DocumentImages {
     }
 
     pub(super) fn into_entries(self) -> Vec<DocumentImage> {
-        self.entries
+        filter_repeated_visuals(self.entries)
     }
 
     pub(super) fn add(
@@ -35,7 +44,12 @@ impl DocumentImages {
         if alt_text.is_some_and(|value| value.encode_utf16().count() > 16_000) {
             return Err("Office image alternate text exceeds the processing budget".into());
         }
-        self.reserve(bytes)?;
+        if bytes.is_some_and(|data| !has_meaningful_raster_dimensions(data)) {
+            return Ok(());
+        }
+        if !self.reserve(bytes) {
+            return Ok(());
+        }
         self.entries.push(DocumentImage {
             id: image_id,
             location,
@@ -46,17 +60,91 @@ impl DocumentImages {
         Ok(())
     }
 
-    fn reserve(&mut self, bytes: Option<&[u8]>) -> Result<(), String> {
+    fn reserve(&mut self, bytes: Option<&[u8]>) -> bool {
         let size = bytes.map_or(0, <[u8]>::len);
-        if size > 32 * 1024 * 1024 || self.byte_size + size > 256 * 1024 * 1024 {
-            return Err("Office embedded image bytes exceed the processing budget".into());
-        }
-        if self.entries.len() >= 2000 {
-            return Err("Office image count exceeds 2000".into());
+        if size > MAX_RESOURCE_BYTES as usize
+            || self.byte_size + size > MAX_TOTAL_RESOURCE_BYTES as usize
+            || self.entries.len() >= MAX_COVERED_VISUALS
+        {
+            return false;
         }
         self.byte_size += size;
-        Ok(())
+        true
     }
+}
+
+fn is_qualifying_ir_image(image: &Image) -> bool {
+    if image.decorative {
+        return false;
+    }
+    if let (Some(width), Some(height)) = (image.display_width_emu, image.display_height_emu) {
+        if width > 0 && height > 0 && !is_meaningful_emu_size(width, height) {
+            return false;
+        }
+    }
+    if let (Some(width), Some(height)) = (image.pixel_width, image.pixel_height) {
+        if width > 0 && height > 0 && !is_meaningful_pixel_size(width, height) {
+            return false;
+        }
+    }
+    true
+}
+
+fn filter_repeated_visuals(entries: Vec<DocumentImage>) -> Vec<DocumentImage> {
+    let digests = entries
+        .iter()
+        .map(|entry| {
+            entry.data.as_deref().map(|bytes| {
+                let digest: [u8; 32] = Sha256::digest(bytes).into();
+                digest
+            })
+        })
+        .collect::<Vec<_>>();
+    let mut containers_by_digest = BTreeMap::<[u8; 32], BTreeSet<String>>::new();
+    let mut counts_in_container = BTreeMap::<([u8; 32], String), usize>::new();
+    for (entry, digest) in entries.iter().zip(&digests) {
+        let Some(digest) = *digest else {
+            continue;
+        };
+        let container = container_key(&entry.location);
+        if container != "legacy" {
+            containers_by_digest
+                .entry(digest)
+                .or_default()
+                .insert(container.clone());
+        }
+        *counts_in_container.entry((digest, container)).or_default() += 1;
+    }
+    let mut max_per_digest = BTreeMap::<[u8; 32], usize>::new();
+    for ((digest, _), count) in counts_in_container {
+        let max = max_per_digest.entry(digest).or_default();
+        *max = (*max).max(count);
+    }
+    entries
+        .into_iter()
+        .zip(digests)
+        .filter_map(|(entry, digest)| {
+            let repeated = digest.is_some_and(|key| {
+                let containers = containers_by_digest.get(&key).map_or(0, BTreeSet::len);
+                let max_in_one = max_per_digest.get(&key).copied().unwrap_or(0);
+                is_repeated_watermark_or_template(containers, max_in_one)
+            });
+            (!repeated).then_some(entry)
+        })
+        .collect()
+}
+
+fn container_key(location: &Value) -> String {
+    if let Some(section) = location.get("section").and_then(Value::as_u64) {
+        return format!("section:{section}");
+    }
+    if let Some(slide) = location.get("slide").and_then(Value::as_u64) {
+        return format!("slide:{slide}");
+    }
+    if let Some(sheet) = location.get("sheet").and_then(Value::as_str) {
+        return format!("sheet:{sheet}");
+    }
+    "legacy".into()
 }
 
 pub(super) fn collect_legacy(
@@ -99,13 +187,15 @@ pub(super) fn collect(
         let id = format!("{prefix}/{index}");
         match element {
             Element::Image(image) => {
-                output.add(
-                    id,
-                    location.clone(),
-                    context,
-                    image.alt_text.as_deref(),
-                    image.data.as_deref(),
-                )?;
+                if is_qualifying_ir_image(image) {
+                    output.add(
+                        id,
+                        location.clone(),
+                        context,
+                        image.alt_text.as_deref(),
+                        image.data.as_deref(),
+                    )?;
+                }
             }
             Element::TextBox(box_) => {
                 let mut owner = location.clone();
@@ -178,3 +268,6 @@ fn collect_list(
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

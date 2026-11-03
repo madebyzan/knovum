@@ -4,6 +4,7 @@ pub(crate) use desktop_tasks::snapshot as desktop_tasks;
 pub(crate) mod intent;
 pub(crate) mod job;
 mod persistence;
+pub(super) mod recognition_source;
 pub(crate) mod requests;
 pub(crate) mod revision;
 pub(crate) mod scheduler;
@@ -43,7 +44,8 @@ pub async fn list_actionable_enrichment_jobs<R: Runtime>(
 pub(crate) async fn reconcile_interrupted(app: &tauri::AppHandle) -> Result<(), String> {
     let now = crate::foundation::clock::unix_time_millis()?;
     let pool = db::pool(app).await?;
-    persistence::reconcile_interrupted(pool, now).await
+    persistence::reconcile_interrupted(pool, now).await?;
+    intent::enqueue_missing_recognition(pool, now).await
 }
 
 async fn set_status<R: Runtime>(

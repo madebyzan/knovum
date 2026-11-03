@@ -28,40 +28,56 @@ impl Drop for CloseOnDrop {
     }
 }
 
-pub(super) fn render(
-    source: &Path,
-    page_number: u32,
-    region: Option<crate::documents::pdf_input::PdfRegion>,
-) -> Result<super::PdfRaster, Box<dyn std::error::Error>> {
-    unsafe {
-        RoInitialize(RO_INIT_MULTITHREADED)?;
-    }
-    let _apartment = Apartment;
-    let path = HSTRING::from(source);
-    let file = StorageFile::GetFileFromPathAsync(&path)?.join()?;
-    let document = PdfDocument::LoadFromFileAsync(&file)?.join()?;
-    render_document(&document, page_number, region)
+pub(super) struct Renderer {
+    document: PdfDocument,
+    _stream: Option<CloseOnDrop>,
+    _apartment: Apartment,
 }
 
-pub(super) fn render_bytes(
-    bytes: &[u8],
-    page_number: u32,
-    region: Option<crate::documents::pdf_input::PdfRegion>,
-) -> Result<super::PdfRaster, Box<dyn std::error::Error>> {
-    unsafe {
-        RoInitialize(RO_INIT_MULTITHREADED)?;
+impl Renderer {
+    pub(super) fn open(source: &Path) -> Result<Self, Box<dyn std::error::Error>> {
+        unsafe {
+            RoInitialize(RO_INIT_MULTITHREADED)?;
+        }
+        let apartment = Apartment;
+        let path = HSTRING::from(source);
+        let file = StorageFile::GetFileFromPathAsync(&path)?.join()?;
+        let document = PdfDocument::LoadFromFileAsync(&file)?.join()?;
+        Ok(Self {
+            document,
+            _stream: None,
+            _apartment: apartment,
+        })
     }
-    let _apartment = Apartment;
-    let stream = InMemoryRandomAccessStream::new()?;
-    let _stream = CloseOnDrop(stream.cast()?);
-    let writer = DataWriter::CreateDataWriter(&stream.GetOutputStreamAt(0)?)?;
-    let _writer = CloseOnDrop(writer.cast()?);
-    writer.WriteBytes(bytes)?;
-    writer.StoreAsync()?.join()?;
-    writer.FlushAsync()?.join()?;
-    stream.Seek(0)?;
-    let document = PdfDocument::LoadFromStreamAsync(&stream)?.join()?;
-    render_document(&document, page_number, region)
+
+    pub(super) fn from_bytes(bytes: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {
+        unsafe {
+            RoInitialize(RO_INIT_MULTITHREADED)?;
+        }
+        let apartment = Apartment;
+        let stream = InMemoryRandomAccessStream::new()?;
+        let held_stream = CloseOnDrop(stream.cast()?);
+        let writer = DataWriter::CreateDataWriter(&stream.GetOutputStreamAt(0)?)?;
+        let _writer = CloseOnDrop(writer.cast()?);
+        writer.WriteBytes(bytes)?;
+        writer.StoreAsync()?.join()?;
+        writer.FlushAsync()?.join()?;
+        stream.Seek(0)?;
+        let document = PdfDocument::LoadFromStreamAsync(&stream)?.join()?;
+        Ok(Self {
+            document,
+            _stream: Some(held_stream),
+            _apartment: apartment,
+        })
+    }
+
+    pub(super) fn render(
+        &self,
+        page_number: u32,
+        region: Option<crate::documents::pdf_input::PdfRegion>,
+    ) -> Result<super::PdfRaster, Box<dyn std::error::Error>> {
+        render_document(&self.document, page_number, region)
+    }
 }
 
 fn render_document(

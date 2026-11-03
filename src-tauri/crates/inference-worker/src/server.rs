@@ -258,6 +258,9 @@ fn execute(
             decode::<ImageComputeParams>(&request.params)?,
             cancel,
         )?),
+        (Engine::Images(images), "image.recognizeText") => serde_json::to_value(
+            images.recognize_text(&session.work, decode(&request.params)?, cancel)?,
+        ),
         (Engine::Embedding(embedding), "embedding.encode") => serde_json::to_value(
             embedding.encode(decode::<EmbeddingEncodeParams>(&request.params)?, cancel)?,
         ),

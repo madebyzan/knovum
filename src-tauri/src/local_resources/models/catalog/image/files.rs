@@ -5,6 +5,8 @@ const SAM_ROOT: &str =
     "https://huggingface.co/yunyangx/EfficientSAM/resolve/1cf49585c39567bfc49e991ab8eb31f491ad4877";
 const DEPTH_ROOT: &str = "https://huggingface.co/onnx-community/depth-anything-v2-small/resolve/4472b7362082ad9968fee890ca0f1e5aca36b93d";
 const MIGAN_ROOT: &str = "https://huggingface.co/andraniksargsyan/migan/resolve/406830d0fa60666da0071c342ad2fbc8f30c5c64";
+const PADDLE_OCR_ROOT: &str =
+    "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/b03f46425e8ff4442b268ce449e3eef758146cd4";
 
 pub(super) const fn metadata(part: ImageModelPart) -> (&'static str, &'static str, u64) {
     match part.file {
@@ -73,7 +75,27 @@ pub(super) const fn metadata(part: ImageModelPart) -> (&'static str, &'static st
             "2fdd0db4eb5d7725fe0f1522e03a63f0b3c7dc93c805669f3322f665fb3b4c86",
             1_578,
         ),
+        F::TextDetector => (
+            "pp_ocrv6_small_det.onnx",
+            "d73e0058b7a8086bbd57f3d10b8bcd4ff95363f67e06e2762b5e814fe9c9410e",
+            9_880_512,
+        ),
+        F::TextRecognizer => (
+            "pp_ocrv6_small_rec.onnx",
+            "5435fd747c9e0efe15a96d0b378d5bd157e9492ed8fd80edf08f30d02fa24634",
+            21_159_378,
+        ),
+        F::TextDictionary => (
+            "ppocrv6_dict.txt",
+            "b5f2bfe2bdd9448429e3e82b51c789775d9b42f2403d082b00662eb77e401c5d",
+            74_947,
+        ),
         F::License => match part.variant {
+            V::PpOcrV6Small => (
+                "LICENSE",
+                "3840c5c0c61c294264d2dd77b8777be6ddd90121ef4e0e64abcd22edea581d6e",
+                11_376,
+            ),
             V::RealEsrganGeneralX4v3 | V::RealEsrganX4plus => (
                 "LICENSE",
                 "4a699ec4863d96a91fc265948a0c90033f7e8735d515524dcf3444736406e0c2",
@@ -104,7 +126,11 @@ pub(super) fn url(part: ImageModelPart) -> String {
         F::DepthUint8Weights | F::DepthFp32Weights => format!("{DEPTH_ROOT}/onnx/{}", metadata(part).0),
         F::DepthProcessor => format!("{DEPTH_ROOT}/preprocessor_config.json"),
         F::DepthModelCard => format!("{DEPTH_ROOT}/README.md"),
+        F::TextDetector => "https://huggingface.co/PaddlePaddle/PP-OCRv6_small_det_onnx/resolve/28fe5895c24fd108c19eb3e8479f4ab385fbfc62/inference.onnx".into(),
+        F::TextRecognizer => "https://huggingface.co/PaddlePaddle/PP-OCRv6_small_rec_onnx/resolve/b8f84f0b80c529de40b4fbb3544b84fa7233a513/inference.onnx".into(),
+        F::TextDictionary => format!("{PADDLE_OCR_ROOT}/ppocr/utils/dict/ppocrv6_dict.txt"),
         F::License => match part.variant {
+            V::PpOcrV6Small => format!("{PADDLE_OCR_ROOT}/LICENSE"),
             V::RealEsrganGeneralX4v3 | V::RealEsrganX4plus => "https://raw.githubusercontent.com/xinntao/Real-ESRGAN/a4abfb2979a7bbff3f69f58f58ae324608821e27/LICENSE".into(),
             V::Migan => format!("{MIGAN_ROOT}/LICENSE"),
             V::EfficientSamTi | V::EfficientSamS => "https://raw.githubusercontent.com/yformer/EfficientSAM/d525f622e6f640acf5a0fc37c7ca1f243da5bde0/LICENSE".into(),

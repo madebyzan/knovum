@@ -13,8 +13,9 @@ defineProps<{ node: SpaceCanvasNode }>();
 
 <template>
   <SpaceInspectorSection
-    v-if="node.data.kind === 'file' && node.data.documentCoverage"
-    :title="$t('spaces.processing.document.coverage')"
+    v-if="node.data.kind === 'file' && node.data.documentCoverage?.resources.length"
+    :title="$t('spaces.processing.document.resources.title')"
+    :count="node.data.documentCoverage.resources.length"
     :icon="ScanText"
     :default-expanded="false"
   >

@@ -50,10 +50,8 @@ pub(crate) fn extract(
     )
     .map_err(|error| format!("PDF visual discovery failed: {error}"))?;
     ensure_active(cancellation)?;
-    let mut positioned_pages = std::collections::BTreeMap::<u32, Vec<_>>::new();
-    for item in positions {
-        positioned_pages.entry(item.page).or_default().push(item);
-    }
+    let mut positioned_pages = super::pdf_visuals::group_by_page(positions);
+    let mut figure_regions = super::pdf_visuals::extract_figure_regions(&positioned_pages)?;
     let mut segments = Vec::new();
     let page_count = extracted_document.pages.len();
     let mut visual_pages = Vec::new();
@@ -64,10 +62,11 @@ pub(crate) fn extract(
     let mut text_truncated = false;
     for page in extracted_document.pages {
         ensure_active(cancellation)?;
-        let items = positioned_pages
-            .remove(&(page.page + 1))
-            .unwrap_or_default();
-        let planned = super::pdf_visuals::plan(page.page + 1, page.ocr_reason.as_deref(), &items)?;
+        let page_number = page.page + 1;
+        let items = positioned_pages.remove(&page_number).unwrap_or_default();
+        let regions = figure_regions.remove(&page_number).unwrap_or_default();
+        let planned =
+            super::pdf_visuals::plan(page_number, page.ocr_reason.as_deref(), &items, regions)?;
         if planned.iter().any(|visual| {
             matches!(
                 visual.input,

@@ -131,14 +131,6 @@ async fn visual_limits_use_utf16_and_include_text_separators() {
     }
 }
 
-#[test]
-fn web_downloaded_thumbnail_uses_space_asset_authority() {
-    assert!(web_media_preview(
-        &serde_json::json!({"origin": {"kind": "web"}})
-    ));
-    assert!(!web_media_preview(&serde_json::json!({"kind": "video"})));
-}
-
 #[tokio::test]
 async fn inference_failure_keeps_its_code_and_message() {
     for code in [

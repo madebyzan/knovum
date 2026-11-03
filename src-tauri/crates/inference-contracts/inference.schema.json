@@ -51,6 +51,9 @@
     "image_segment_result": {
       "$ref": "#/$defs/ImageSegmentation"
     },
+    "image_text_recognition_result": {
+      "$ref": "#/$defs/ImageTextRecognition"
+    },
     "speech_transcribe_params": {
       "$ref": "#/$defs/SpeechTranscribeParams"
     },
@@ -114,6 +117,7 @@
     "image_compute_output",
     "image_segment_params",
     "image_segment_result",
+    "image_text_recognition_result",
     "speech_transcribe_params",
     "speech_transcribe_result",
     "speech_transcript_artifact",
@@ -292,7 +296,8 @@
         "image_upscaling",
         "image_inpainting",
         "image_selection",
-        "image_depth"
+        "image_depth",
+        "image_text_recognition"
       ]
     },
     "RuntimeDeviceProfile": {
@@ -370,7 +375,8 @@
         "efficientSamTi",
         "efficientSamS",
         "depthAnythingV2SmallUint8",
-        "depthAnythingV2Small"
+        "depthAnythingV2Small",
+        "ppOcrV6Small"
       ]
     },
     "RuntimeSession": {
@@ -1041,6 +1047,73 @@
         "attemptEpoch",
         "modelSpecId",
         "maskRef"
+      ]
+    },
+    "ImageTextRecognition": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RecognizedTextLine"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "attemptEpoch",
+        "modelSpecId",
+        "lines"
+      ]
+    },
+    "RecognizedTextLine": {
+      "description": "One line of text, located in source pixels. Polygons are reduced to their axis-aligned bounds:\ncallers read and cite lines, and nothing downstream can use a finer shape.",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "format": "float"
+        },
+        "x": {
+          "type": "number",
+          "format": "float"
+        },
+        "y": {
+          "type": "number",
+          "format": "float"
+        },
+        "width": {
+          "type": "number",
+          "format": "float"
+        },
+        "height": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "confidence",
+        "x",
+        "y",
+        "width",
+        "height"
       ]
     },
     "SpeechTranscribeParams": {

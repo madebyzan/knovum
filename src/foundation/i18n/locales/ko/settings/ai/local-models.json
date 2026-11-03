@@ -25,7 +25,8 @@
     "imageUpscaling": "이미지 업스케일링",
     "imageInpainting": "선택한 영역 복구",
     "imageSelection": "스마트 선택",
-    "imageDepth": "상대 깊이"
+    "imageDepth": "상대 깊이",
+    "textRecognition": "문자 인식"
   },
   "redownload": "다시 다운로드",
   "groups": {
@@ -80,7 +81,8 @@
     "imageUpscaling": "이미지 업스케일링",
     "imageInpainting": "선택한 영역 복구",
     "imageSelection": "스마트 선택",
-    "imageDepth": "상대 깊이"
+    "imageDepth": "상대 깊이",
+    "textRecognition": "문자 인식"
   },
   "filters": {
     "all": "모든 모델",

@@ -155,3 +155,113 @@ async fn upgrading_0_0_3_draws_node_attachments_from_their_nodes() {
     );
     assert_eq!(content("plain").await, plain);
 }
+
+/// 0.1.0 has no text recognition and stored every PDF picture as its macOS renderer drew it, upside
+/// down and small. Upgrading admits the new job, keeps every job with the requests that hang off it,
+/// and queues each live PDF to be parsed again, once; Office documents, whose pictures were never
+/// rendered, keep theirs.
+#[tokio::test]
+async fn upgrading_0_1_0_admits_text_recognition_and_rerenders_pdf_pictures() {
+    let pool = shipped(3).await;
+    sqlx::query(
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .expect("space");
+    let file = |parser: &str| {
+        serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1",
+            "documentCoverage":{"parser":parser,"resources":[]}})
+    };
+    for (id, deleted_at, data) in [
+        ("pdf", None, file("pdf-inspector")),
+        ("queued", None, file("pdf-inspector")),
+        ("trashed", Some(5_i64), file("pdf-inspector")),
+        ("deck", None, file("office-oxide")),
+        (
+            "talk",
+            None,
+            serde_json::json!({"kind":"audio","title":"Talk","sourceRevision":"a1"}),
+        ),
+    ] {
+        sqlx::query(
+            "INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at,deleted_at) \
+             VALUES($1,'s',$2,0,0,$3,1,1,$4)",
+        )
+        .bind(id)
+        .bind(data["kind"].as_str().expect("kind"))
+        .bind(data.to_string())
+        .bind(deleted_at)
+        .execute(&pool)
+        .await
+        .expect("node");
+    }
+    for statement in [
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
+         VALUES('waiting','s','queued','parse_document','pending','r1',0,1,1)",
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
+         VALUES('align','s','talk','align_media_transcript','pending','a1',0,1,1)",
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
+         VALUES('diarize','s','talk','diarize_media_transcript','pending','a1',0,1,1)",
+        "INSERT INTO spaces_media_alignment_requests(job_id,model_spec_id,expected_transcript_revision,segment_ids) \
+         VALUES('align','aligner',2,'[\"s1\"]')",
+        "INSERT INTO spaces_media_diarization_requests(job_id,model_spec_id,expected_transcript_revision) \
+         VALUES('diarize','diarizer',2)",
+    ] {
+        sqlx::query(statement).execute(&pool).await.expect("job");
+    }
+
+    super::super::migrate(&pool).await.expect("upgrade");
+
+    assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
+    let requests: (i64, i64) = sqlx::query_as(
+        "SELECT (SELECT COUNT(*) FROM spaces_media_alignment_requests WHERE job_id='align' \
+           AND segment_ids='[\"s1\"]'), \
+         (SELECT COUNT(*) FROM spaces_media_diarization_requests WHERE job_id='diarize')",
+    )
+    .fetch_one(&pool)
+    .await
+    .expect("requests");
+    assert_eq!(
+        requests,
+        (1, 1),
+        "the rebuilt job table keeps what hangs off it"
+    );
+    sqlx::query(
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
+         VALUES('read','s','pdf','recognize_text','pending','r1',0,2,2)",
+    )
+    .execute(&pool)
+    .await
+    .expect("text recognition is a job type");
+    let covered: Vec<(String, bool)> = sqlx::query_as(
+        "SELECT id, json_extract(data,'$.documentCoverage') IS NOT NULL FROM spaces_nodes \
+         WHERE kind='file' ORDER BY id",
+    )
+    .fetch_all(&pool)
+    .await
+    .expect("nodes");
+    assert_eq!(
+        covered,
+        [
+            ("deck".to_owned(), true),
+            ("pdf".to_owned(), false),
+            ("queued".to_owned(), false),
+            ("trashed".to_owned(), false),
+        ]
+    );
+    let parses: Vec<(String, String, String)> = sqlx::query_as(
+        "SELECT node_id,status,source_revision FROM spaces_enrichment_jobs \
+         WHERE job_type='parse_document' ORDER BY node_id",
+    )
+    .fetch_all(&pool)
+    .await
+    .expect("jobs");
+    assert_eq!(
+        parses,
+        [
+            ("pdf".to_owned(), "pending".to_owned(), "r1".to_owned()),
+            ("queued".to_owned(), "pending".to_owned(), "r1".to_owned()),
+        ]
+    );
+}

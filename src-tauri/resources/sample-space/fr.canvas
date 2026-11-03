@@ -1,0 +1,99 @@
+{
+  "nodes": [
+    {
+      "id": "start",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 440,
+      "height": 620,
+      "text": "Commencez ici\nCe Space est un petit exemple : un café doit-il ouvrir une seconde boutique ? Tout son contenu est fictif et vous pouvez le supprimer à tout moment.\n\n1. Sélectionnez la note de marché et choisissez « Ouvrir le PDF ». Elle s’ouvre dans Knovum.\n\n2. La page 3 de la note et la photo du tableau blanc ne sont que des pixels. Knovum les lit sur cet ordinateur : sélectionnez-en une et cherchez « Texte reconnu ». Le premier passage télécharge un petit modèle.\n\n3. Connectez un modèle dans les réglages et demandez : « Quelle est la durée de la franchise de loyer, et quand la boutique atteint-elle le seuil de rentabilité ? » Chaque réponse cite sa source, et une citation mène à la page.",
+      "color": "3"
+    },
+    {
+      "id": "sources",
+      "type": "group",
+      "x": 500,
+      "y": 0,
+      "width": 880,
+      "height": 520,
+      "label": "Sources"
+    },
+    {
+      "id": "brief",
+      "type": "file",
+      "x": 524,
+      "y": 56,
+      "width": 340,
+      "height": 440,
+      "file": "assets/harbor-street-market-brief.pdf"
+    },
+    {
+      "id": "whiteboard",
+      "type": "file",
+      "x": 888,
+      "y": 56,
+      "width": 468,
+      "height": 318,
+      "file": "assets/mill-lane-whiteboard.png"
+    },
+    {
+      "id": "thinking",
+      "type": "group",
+      "x": 500,
+      "y": 580,
+      "width": 880,
+      "height": 340,
+      "label": "Votre réflexion"
+    },
+    {
+      "id": "question",
+      "type": "text",
+      "x": 524,
+      "y": 636,
+      "width": 404,
+      "height": 260,
+      "text": "La question\nHarbor Street Coffee doit-il ouvrir au 41 Mill Lane ?\n\nÀ trancher : le creux de l’été, et la confirmation écrite des mois de franchise par le propriétaire.",
+      "color": "5"
+    },
+    {
+      "id": "draft",
+      "type": "text",
+      "x": 952,
+      "y": 636,
+      "width": 404,
+      "height": 260,
+      "text": "Projet de réponse\nOuvrir, si la franchise de loyer est confirmée. Les travaux sont amortis au 14e mois avec les 190 commandes par jour prévues.\n\nRemplacez ceci par votre propre avis.",
+      "color": "4"
+    }
+  ],
+  "edges": [
+    {
+      "id": "brief-question",
+      "fromNode": "brief",
+      "fromSide": "bottom",
+      "toNode": "question",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "Éclaire"
+    },
+    {
+      "id": "whiteboard-question",
+      "fromNode": "whiteboard",
+      "fromSide": "bottom",
+      "toNode": "question",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "Éclaire"
+    },
+    {
+      "id": "question-draft",
+      "fromNode": "question",
+      "fromSide": "right",
+      "toNode": "draft",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "Mène à"
+    }
+  ]
+}

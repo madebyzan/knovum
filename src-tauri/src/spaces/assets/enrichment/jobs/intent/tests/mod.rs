@@ -1,6 +1,14 @@
 use super::*;
 use serde_json::json;
 
+fn owed(data: &Value) -> Vec<EnrichmentJobType> {
+    required_jobs(data)
+        .unwrap()
+        .into_iter()
+        .map(|(job_type, _)| job_type)
+        .collect()
+}
+
 #[test]
 fn image_analysis_uses_rendered_revision_and_reuses_current_knowledge() {
     let mut data = json!({"kind":"image","sourceRevision":"asset-1","imageEdit":null});
@@ -9,32 +17,29 @@ fn image_analysis_uses_rendered_revision_and_reuses_current_knowledge() {
             .unwrap()
             .unwrap();
     assert_ne!(revision, "asset-1");
-    assert_eq!(
-        required_jobs(&data, Some(&revision), "asset-1"),
-        vec![EnrichmentJobType::AnalyzeVisual]
-    );
+    data["textRecognition"] = json!({"sourceRevision":revision});
+    assert_eq!(owed(&data), vec![EnrichmentJobType::AnalyzeVisual]);
     data["visualKnowledge"] = json!({"sourceRevision":revision,"description":"A diagram"});
-    assert!(required_jobs(&data, Some(&revision), "asset-1").is_empty());
+    assert!(owed(&data).is_empty());
 }
 
 #[test]
 fn video_without_cover_only_schedules_media_analysis() {
     let data = json!({"kind":"video","sourceRevision":"asset-1"});
-    assert_eq!(
-        required_jobs(&data, visual_revision(&data).unwrap().as_deref(), "asset-1"),
-        vec![EnrichmentJobType::AnalyzeMedia]
-    );
+    assert_eq!(owed(&data), vec![EnrichmentJobType::AnalyzeMedia]);
 }
 
 #[test]
-fn video_cover_analysis_does_not_replace_media_analysis() {
+fn a_video_cover_is_read_and_analyzed_beside_media_analysis() {
     let data =
         json!({"kind":"video","sourceRevision":"asset-1","previewPath":"/previews/cover.png"});
+    let cover = visual_revision(&data).unwrap().unwrap();
     assert_eq!(
-        required_jobs(&data, visual_revision(&data).unwrap().as_deref(), "asset-1"),
+        required_jobs(&data).unwrap(),
         vec![
-            EnrichmentJobType::AnalyzeMedia,
-            EnrichmentJobType::AnalyzeVisual
+            (EnrichmentJobType::AnalyzeMedia, "asset-1".to_owned()),
+            (EnrichmentJobType::RecognizeText, cover.clone()),
+            (EnrichmentJobType::AnalyzeVisual, cover),
         ]
     );
 }
@@ -48,13 +53,17 @@ fn replacing_a_cover_invalidates_visual_knowledge_but_not_the_transcript() {
     });
     let first = visual_revision(&data).unwrap().unwrap();
     data["visualKnowledge"] = json!({"sourceRevision":first,"description":"First frame"});
-    assert!(required_jobs(&data, Some(&first), "asset-1").is_empty());
+    data["textRecognition"] = json!({"sourceRevision":first});
+    assert!(owed(&data).is_empty());
     data["previewPath"] = json!("/previews/second.png");
     let second = visual_revision(&data).unwrap().unwrap();
     assert_ne!(first, second);
     assert_eq!(
-        required_jobs(&data, Some(&second), "asset-1"),
-        vec![EnrichmentJobType::AnalyzeVisual]
+        owed(&data),
+        vec![
+            EnrichmentJobType::RecognizeText,
+            EnrichmentJobType::AnalyzeVisual
+        ]
     );
 }
 
@@ -72,10 +81,57 @@ fn visual_revision_ignores_titles_but_tracks_the_video_source() {
     assert_ne!(visual_revision(&data).unwrap(), first);
 }
 
+#[test]
+fn recognition_follows_a_parsed_document_once_per_revision() {
+    let mut data = json!({
+        "kind": "file", "fileName": "scan.pdf", "sourceRevision": "revision-1",
+        "documentCoverage": {
+            "sourceRevision": "revision-1",
+            "resources": [{ "id": "page", "path": "/assets/page.png" }],
+            "occurrences": [{ "location": { "kind": "pdf", "page": 1 }, "resourceId": "page" }]
+        }
+    });
+    assert_eq!(
+        required_jobs(&data).unwrap(),
+        vec![(EnrichmentJobType::RecognizeText, "revision-1".to_owned())]
+    );
+    data["textRecognition"] = json!({ "sourceRevision": "revision-1" });
+    assert!(owed(&data).is_empty());
+    data["textRecognition"]["sourceRevision"] = json!("revision-0");
+    assert_eq!(owed(&data), vec![EnrichmentJobType::RecognizeText]);
+}
+
+#[test]
+fn an_image_is_read_again_when_an_edit_changes_what_it_shows() {
+    let mut data =
+        json!({ "kind": "image", "sourceRevision": "asset-1", "assetPath": "/assets/shot.png" });
+    let shown = visual_revision(&data).unwrap().unwrap();
+    assert_eq!(
+        required_jobs(&data).unwrap(),
+        vec![
+            (EnrichmentJobType::RecognizeText, shown.clone()),
+            (EnrichmentJobType::AnalyzeVisual, shown.clone()),
+        ]
+    );
+    data["textRecognition"] = json!({ "sourceRevision": shown });
+    data["visualKnowledge"] = json!({ "sourceRevision": shown, "description": "A receipt" });
+    assert!(owed(&data).is_empty());
+    data["imageEdit"] = crate::images::quarter_turn_edit();
+    let edited = visual_revision(&data).unwrap().unwrap();
+    assert_ne!(edited, shown, "the rendered picture changed");
+    assert_eq!(
+        owed(&data),
+        vec![
+            EnrichmentJobType::RecognizeText,
+            EnrichmentJobType::AnalyzeVisual
+        ]
+    );
+}
+
 mod persistence;
 
 #[test]
-fn a_document_is_parsed_once_per_revision_and_nothing_runs_after_it() {
+fn a_document_is_parsed_once_per_revision() {
     let mut data =
         json!({"kind": "file", "fileName": "report.pdf", "sourceRevision": "revision-1"});
     assert_eq!(

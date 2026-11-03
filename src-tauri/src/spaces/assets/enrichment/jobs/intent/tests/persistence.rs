@@ -17,6 +17,14 @@ async fn fixture(data: &Value) -> SqlitePool {
     pool
 }
 
+/// A picture whose text has already been read, so vision's is the only work it owes.
+fn read(mut data: Value) -> Value {
+    let shown = revision::visual_revision(&data).unwrap().unwrap();
+    data["textRecognition"] =
+        json!({"sourceRevision": shown, "modelSpecId": "ocr", "generatedAt": 1});
+    data
+}
+
 async fn synchronize(pool: &SqlitePool, data: &Value) {
     let mut tx = pool.begin().await.unwrap();
     sqlx::query("UPDATE spaces_nodes SET data=$1 WHERE id='node'")
@@ -115,7 +123,7 @@ async fn current_schema_rejects_both_obsolete_visual_job_names() {
 #[tokio::test]
 async fn execution_choice_is_frozen_at_creation_and_survives_retry_and_restart() {
     use crate::ai::{contracts::ExternalAgentKind, tasks::TaskTargetSelection};
-    let data = json!({"kind":"image","title":"Image","sourceRevision":"asset-1"});
+    let data = read(json!({"kind":"image","title":"Image","sourceRevision":"asset-1"}));
     let pool = fixture(&data).await;
     let first = TaskTargetSelection::Agent {
         runtime_kind: ExternalAgentKind::Codex,
@@ -164,14 +172,15 @@ async fn execution_choice_is_frozen_at_creation_and_survives_retry_and_restart()
 
 #[tokio::test]
 async fn actionable_projection_identifies_each_live_job_owner_across_spaces() {
-    let data = json!({"kind":"image","title":"First image","sourceRevision":"asset-1"});
+    let data = read(json!({"kind":"image","title":"First image","sourceRevision":"asset-1"}));
+    let other = read(json!({"kind":"image","title":"Second image","sourceRevision":"asset-2"}));
     let pool = fixture(&data).await;
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('other','space','Other Space',1,1)")
         .execute(&pool)
         .await
         .unwrap();
     sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('other-node','other','image',0,0,$1,1,1)")
-        .bind(json!({"kind":"image","title":"Second image","sourceRevision":"asset-2"}).to_string())
+        .bind(other.to_string())
         .execute(&pool)
         .await
         .unwrap();
@@ -180,16 +189,9 @@ async fn actionable_projection_identifies_each_live_job_owner_across_spaces() {
     synchronize_for_node(&mut tx, "space", "node", &data, 2, None)
         .await
         .unwrap();
-    synchronize_for_node(
-        &mut tx,
-        "other",
-        "other-node",
-        &json!({"kind":"image","title":"Second image","sourceRevision":"asset-2"}),
-        3,
-        None,
-    )
-    .await
-    .unwrap();
+    synchronize_for_node(&mut tx, "other", "other-node", &other, 3, None)
+        .await
+        .unwrap();
     tx.commit().await.unwrap();
 
     let projections = persistence::list_actionable_projection(&pool, None)

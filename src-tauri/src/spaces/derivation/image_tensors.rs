@@ -35,7 +35,7 @@ pub(super) fn decode(bytes: &[u8]) -> Result<RgbaImage, String> {
 }
 
 /// Planar `1 × 3 × height × width` RGB bytes, which is how every image model takes its source.
-pub(super) fn rgb_tensor(image: &RgbaImage) -> ImageTensor {
+pub(crate) fn rgb_tensor(image: &RgbaImage) -> ImageTensor {
     let mut bytes = Vec::with_capacity(image.width() as usize * image.height() as usize * 3);
     for channel in 0..3 {
         bytes.extend(image.pixels().map(|pixel| pixel[channel]));

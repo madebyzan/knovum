@@ -7,49 +7,84 @@ changes reach existing libraries through forward migrations ([data-ownership.md]
 ## Document extraction
 
 PDF text is extracted with exact-pinned `pdf-inspector 1.20.0`, without its optional
-PDFium or OCR features. Passages retain actual one-based page locators. Knovum no longer
-renders PDF source pages in the evidence inspector; it shows textual evidence and opens
-the original file through the existing OS integration.
+PDFium or OCR features. Passages retain actual one-based page locators. A
+cited passage opens the original PDF in the in-app reader (pdf.js, lazy-loaded from the
+bundled `pdfjs/` directory), at the cited page with the passage highlighted; when the
+stored passage no longer matches the page text verbatim, the reader searches for its
+first 48 characters instead.
 
 File nodes retain one typed `documentCoverage` aggregate tied to `sourceRevision`:
 parser identity, page coverage, source-owned content-addressed PNG resources, logical
 occurrences and explicit unsupported-format warnings. PDF visuals
-use public positioned `ItemType::Image` items in `PositionFrame::Display`. Scanned, garbled
+use public positioned `ItemType::Image` items in `PositionFrame::Display`, filtering out tiny
+inline fragments, tiled or stationary cross-page watermarks/furniture, and overlays that slice
+horizontally through selectable body text lines. Scanned, garbled
 or vector-text pages contribute their rendered page image instead of text; a page whose
 image cannot be decoded records why it is unavailable, so a resource and an unavailability
 reason are mutually exclusive. Pages without extractable content are reported separately,
-not automatically classified as scans or text-covered. Document pictures are not described,
-recognized or embedded: extraction is the whole contract, and every extracted picture is
+not automatically classified as scans or text-covered. Document pictures are not described
+or embedded; their text is read by local recognition (below). Every extracted picture is
 viewable and exportable like any other asset (original PNG plus JPEG, WebP and TIFF
 encodings) through the shared export routes.
 Inline images and vector graphics are not guaranteed to be fully covered by this API.
 
 A document is read as far as it goes. Processing budgets bound the work and the record, never the
 document: a PDF with more pictures, pages or text than one coverage record carries is still parsed,
-extracted, chunked and searched, and the record describes it completely up to one page and says so
+extracted, chunked and searched, and the record describes it up to its budgets and says so
 (`pdf_visual_occurrence_coverage_limited`, `pdf_page_coverage_limited`, `pdf_text_coverage_limited`).
-That boundary is one page for all of its lists, because a page claiming recognition and the input
-that recognises it are the same fact stated twice; truncating them apart produces a record that does
-not validate. Refusing the document instead — which is what the old 2000-page and 2000-visual
-budgets did, after paying for the full parse — left the Space with nothing of it at all.
+Whole-page recognition inputs (`PdfInput::Page`) and `pagesRequiringRecognition` share one page
+boundary so a page claiming recognition and the input that recognises it never diverge; sub-page
+image crops (`PdfInput::Image`) consume whatever visual budget remains up to a whole-page boundary
+without truncating page coverage or OCR of later scanned pages. Refusing the document instead —
+which is what the old 2000-page and 2000-visual budgets did, after paying for the full parse — left
+the Space with nothing of it at all.
 Core Graphics and Windows.Data.Pdf render the selected region directly into a bounded
 bitmap. Coordinates are PDF points, lower-left/y-up in the rotated visible page frame;
-Windows converts to top-left DIPs at 96/72.
+Windows converts to top-left DIPs at 96/72. Core Graphics stores bitmap rows top-down while
+drawing y-up, so its buffer is already upright and is never flipped; its drawing transform never
+scales up, so it only places the box on a page-sized rectangle and the raster scale is applied to
+the context. Migration `0004_recognize_text_and_rerender_pdfs` parses every PDF once more,
+because macOS builds up to 0.1.0 stored their pictures inverted and small.
 Extracted raster paths contain both the managed source asset identity and raster digest.
 Repeated images inside one document share a raster; different source assets own separate
 files, so rollback of an unpublished import cannot remove another document's in-flight raster.
 Raster geometry belongs to the explicit `pdfInput` contract; visual citations navigate to
 the actual page and identify their occurrence, without redefining generic locator rectangles.
 There is no alternate rendering engine or WebView
-source-page command. Office parsing preserves supported embedded raster images and
-their logical positions. XLSX cell APIs preserve actual addresses, formulas and cached
+source-page command. Office parsing preserves supported embedded body figures and
+their logical positions while sharing the same figure-hygiene rules as PDF: Word page
+headers/footers, OOXML `decorative` pictures, tiny inline icons/dividers and template logos
+or watermarks repeated across sections/slides/sheets are excluded. XLSX cell APIs preserve actual addresses, formulas and cached
 values without the vendor IR's 10,000-row cap. Spreadsheet chart appearance, exact image
 cell anchors and legacy Office image positions remain explicitly unsupported.
 
 Body text publishes independently of AI: a persistent `parse_document` job per source
-revision is the only document job, and nothing runs after it. Document knowledge is the
-extracted body text, so a picture never becomes a passage and document pictures need no
-model configuration. Visual file paths and operational progress do not affect semantic
+revision publishes the extracted body text. Document pictures need no model configuration.
+
+## Local text recognition
+
+Text that exists only as pixels — scanned and rendered PDF pages, pictures inside documents,
+screenshots and photos on the canvas — is read on this computer by a durable `recognize_text`
+job (PP-OCRv6 small through `oar-ocr`, ONNX Runtime in the inference worker, CPU, background
+priority). It never uses a cloud model and runs whether or not vision analysis is configured.
+[`recognition_source`](../src-tauri/src/spaces/assets/enrichment/jobs/recognition_source.rs) is
+the one decision of which pictures a node owes: the picture an image shows (its rendered edits) or
+a video's cover, or a document's coverage resources de-duplicated by content address. The same
+function decides both whether a job is queued and what it reads, so the two cannot disagree. A
+shown picture is read at its visual revision, so an edit or a new cover is read again; a document
+is read at its source revision, and a re-parse replaces its `source` passages and with them the
+recognition, so it is read again too. Restoring a deleted node re-derives what it owes.
+
+Recognized text lives only in the node's `source` passages, under role `recognized_text`, each with
+the picture's own locator — a PDF page keeps `page` kind with its number, a document picture keeps
+its occurrence's location and `resourceId` — so answers cite recognized text exactly like extracted
+text. A new reading replaces the previous recognized passages and leaves extracted ones untouched.
+The node's `textRecognition` record holds no text, only what was read (source revision, model spec,
+time); it is presentation, not part of the knowledge revision. `list_recognized_text` groups the
+current passages per picture, and the UI shows each beside its picture: an image or video under
+"OCR recognized text" in the Inspector, a document picture in its resource viewer. Vision's
+`detectedText` stays a search signal and is not shown beside it. Existing nodes without a current
+record are queued at startup. Visual file paths and operational progress do not affect semantic
 revision identity.
 
 Publication merges only owned fields into the current node in a write transaction,

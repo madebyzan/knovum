@@ -15,7 +15,17 @@
     "modified": "Data di modifica"
   },
   "extractedDocumentText": "Testo estratto",
-  "visualDetectedText": "Testo riconosciuto dall'OCR",
+  "pdfReader": {
+    "open": "Apri PDF",
+    "openAtPage": "Apri a pagina {page}",
+    "position": "Pagina {page} di {total}",
+    "previousPage": "Pagina precedente",
+    "nextPage": "Pagina successiva",
+    "zoomOut": "Riduci",
+    "zoomIn": "Ingrandisci",
+    "fitWidth": "Adatta alla larghezza"
+  },
+  "recognizedText": "Testo riconosciuto dall'OCR",
   "excerpts": {
     "title": "Estratto · {title}",
     "line": "— {title} · {location}",

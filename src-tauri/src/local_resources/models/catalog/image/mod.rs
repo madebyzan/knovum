@@ -28,6 +28,9 @@ pub enum ImageModelFile {
     DepthFp32Weights,
     DepthProcessor,
     DepthModelCard,
+    TextDetector,
+    TextRecognizer,
+    TextDictionary,
     License,
 }
 
@@ -142,6 +145,24 @@ impl ImageModelCatalog for ImageModelVariant {
                 }),
                 ModelKind::ImagePart(ImageModelPart {
                     variant: Self::DepthAnythingV2Small,
+                    file: ImageModelFile::License,
+                }),
+            ],
+            Self::PpOcrV6Small => &[
+                ModelKind::ImagePart(ImageModelPart {
+                    variant: Self::PpOcrV6Small,
+                    file: ImageModelFile::TextDetector,
+                }),
+                ModelKind::ImagePart(ImageModelPart {
+                    variant: Self::PpOcrV6Small,
+                    file: ImageModelFile::TextRecognizer,
+                }),
+                ModelKind::ImagePart(ImageModelPart {
+                    variant: Self::PpOcrV6Small,
+                    file: ImageModelFile::TextDictionary,
+                }),
+                ModelKind::ImagePart(ImageModelPart {
+                    variant: Self::PpOcrV6Small,
                     file: ImageModelFile::License,
                 }),
             ],

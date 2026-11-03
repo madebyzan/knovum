@@ -1,4 +1,4 @@
-use super::super::lease::RequestIdentity;
+use super::super::{admission::Priority, lease::RequestIdentity};
 use super::{session, tensor};
 use crate::local_resources::models::catalog::ImageModelCatalog;
 use crate::{
@@ -68,6 +68,7 @@ pub(crate) async fn execute<R: Runtime>(
     let spec_id = request.model.spec_id();
     let mut lease = session::acquire(
         app,
+        Priority::Interactive,
         capability,
         &spec_id,
         RuntimeModel::ImageVariant {
@@ -147,7 +148,7 @@ pub(crate) async fn execute<R: Runtime>(
     validated
 }
 
-async fn stage(
+pub(super) async fn stage(
     directory: &std::path::Path,
     name: &str,
     tensor: ImageTensor,

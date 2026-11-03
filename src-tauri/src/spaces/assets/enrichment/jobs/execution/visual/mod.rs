@@ -8,13 +8,10 @@ use crate::{
         completion::{self, TaskInput},
         TaskExecutionTarget,
     },
-    spaces::{
-        assets::authorize_spaces_asset, knowledge::validation::nodes::visual,
-        previews::authorize_generated_preview,
-    },
+    spaces::knowledge::validation::nodes::visual,
 };
 
-use super::{node::required_string, RunEnrichmentJobRequest};
+use super::{picture, RunEnrichmentJobRequest};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -31,22 +28,7 @@ pub(super) async fn analyze(
     target: TaskExecutionTarget,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<(), AppError> {
-    let source = match payload.get("kind").and_then(Value::as_str) {
-        Some("image") => crate::spaces::assets::image::rendered_preview(app, payload).await?,
-        Some("video") => {
-            let path = std::path::Path::new(required_string(payload, "previewPath")?);
-            if web_media_preview(payload) {
-                authorize_spaces_asset(app, path)?
-            } else {
-                authorize_generated_preview(app, path)?
-            }
-        }
-        _ => {
-            return Err(AppError::invalid(
-                "Visual analysis requires an image or video node",
-            ))
-        }
-    };
+    let source = picture::shown(app, payload).await?;
     let completion = interpret(
         &completion::ProductExecutor(app),
         target,
@@ -110,13 +92,6 @@ async fn interpret(
         )
     })?;
     Ok(knowledge)
-}
-
-fn web_media_preview(data: &Value) -> bool {
-    data.get("origin")
-        .and_then(|origin| origin.get("kind"))
-        .and_then(Value::as_str)
-        == Some("web")
 }
 
 #[cfg(test)]

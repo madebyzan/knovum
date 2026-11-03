@@ -42,7 +42,7 @@ document, an image, a video or a voice track, and keep a recorded trail from eve
 inputs that made it.
 
 Your library lives on your machine in SQLite and a local vector index. Transcription, speaker
-recognition, embeddings, semantic search and image tools run on-device. Cloud models are optional,
+recognition, text recognition (OCR), embeddings, semantic search and image tools run on-device. Cloud models are optional,
 bring-your-own-key, and only receive the context an action needs.
 
 ## Why Knovum
@@ -53,7 +53,8 @@ bring-your-own-key, and only receive the context an action needs.
   recordings are indexed, searchable by meaning, and connected by typed relations such as _supports_
   and _contradicts_.
 - **Answers you can check.** Every citation keeps its location — a time range in a recording, a page
-  in a PDF, a heading in a note — and stays tied to the revision it quoted.
+  in a PDF, a heading in a note — and stays tied to the revision it quoted. A PDF citation opens the
+  original in the built-in reader, at that page with the passage highlighted.
 - **Results that remember where they came from.** Generated documents and media record their inputs,
   revisions, action and model. When a source changes later, Knovum tells you; it never rewrites your
   work behind your back.
@@ -161,6 +162,7 @@ cancellation appear in the Task Center.
 | Inpainting / repair                      | MI-GAN                                                 | ONNX Runtime |
 | Smart selection                          | EfficientSAM                                           | ONNX Runtime |
 | Relative depth                           | Depth Anything V2                                      | ONNX Runtime |
+| Text recognition (scans, screenshots)    | PP-OCRv6 small                                         | ONNX Runtime |
 
 Embeddings and transcription use Metal on Apple Silicon. No Ollama or other model server is needed
 for any of the above.
@@ -200,8 +202,8 @@ AI connection in Settings when you want cited answers or generated results.
 <details>
 <summary><strong>Does Knovum work offline?</strong></summary>
 
-Yes. Editing, organizing, keyword and semantic search, transcription, speaker recognition, speech
-synthesis and the image tools run on your machine once their models are downloaded. Only actions you
+Yes. Editing, organizing, keyword and semantic search, transcription, speaker recognition, text
+recognition, speech synthesis and the image tools run on your machine once their models are downloaded. Only actions you
 route to a cloud model need a connection.
 
 </details>
