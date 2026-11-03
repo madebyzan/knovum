@@ -79,7 +79,9 @@ current passages per picture, and the UI shows each beside its picture: an image
 "OCR recognized text" in the Inspector, a document picture in its resource viewer. Vision's
 `detectedText` stays a search signal and is not shown beside it. Existing nodes without a current
 record are queued at startup. Visual file paths and operational progress do not affect semantic
-revision identity.
+revision identity. Migration `0006_reread_text_per_picture` withdraws the first reader's
+records, which held the text and could not say which picture it came from, together with the jobs
+that answered them, so every node is read again; the new reading replaces the old passages.
 
 Publication merges only owned fields into the current node in a write transaction,
 rechecking source revision, node existence and running job identity. The central asset

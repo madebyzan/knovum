@@ -243,3 +243,78 @@ async fn upgrading_rerenders_every_pdf_picture_once() {
         ]
     );
 }
+
+/// The first text recognition kept each node's text in its record and read pictures nobody can
+/// tell apart afterwards. Upgrading withdraws every record and the jobs that answered them, so each
+/// node is read again per picture, and leaves the passages for the new reading to replace.
+#[tokio::test]
+async fn upgrading_reads_every_picture_again() {
+    let pool = shipped(5).await;
+    let record = serde_json::json!({"sourceRevision":"r1","modelSpecId":"ocr","generatedAt":1,"text":"Revenue"});
+    sqlx::query(
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .expect("space");
+    for (id, kind, data) in [
+        (
+            "brief",
+            "file",
+            serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1","textRecognition":record}),
+        ),
+        (
+            "photo",
+            "image",
+            serde_json::json!({"kind":"image","title":"Photo","sourceRevision":"r1","textRecognition":record}),
+        ),
+        (
+            "note",
+            "note",
+            serde_json::json!({"kind":"note","title":"Note"}),
+        ),
+    ] {
+        sqlx::query(
+            "INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) \
+             VALUES($1,'s',$2,0,0,$3,1,1)",
+        )
+        .bind(id)
+        .bind(kind)
+        .bind(data.to_string())
+        .execute(&pool)
+        .await
+        .expect("node");
+    }
+    for statement in [
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
+         VALUES('read','s','brief','recognize_text','succeeded','r1',1,1,1)",
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
+         VALUES('described','s','photo','analyze_visual','succeeded','v1',1,1,1)",
+    ] {
+        sqlx::query(statement).execute(&pool).await.expect("job");
+    }
+
+    super::super::migrate(&pool).await.expect("upgrade");
+
+    assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
+    let nodes: Vec<(String, bool, String)> = sqlx::query_as(
+        "SELECT id, json_extract(data,'$.textRecognition') IS NULL, json_extract(data,'$.title') \
+         FROM spaces_nodes ORDER BY id",
+    )
+    .fetch_all(&pool)
+    .await
+    .expect("nodes");
+    assert_eq!(
+        nodes,
+        [
+            ("brief".to_owned(), true, "Brief".to_owned()),
+            ("note".to_owned(), true, "Note".to_owned()),
+            ("photo".to_owned(), true, "Photo".to_owned()),
+        ]
+    );
+    let jobs: Vec<String> = sqlx::query_scalar("SELECT id FROM spaces_enrichment_jobs ORDER BY id")
+        .fetch_all(&pool)
+        .await
+        .expect("jobs");
+    assert_eq!(jobs, ["described"]);
+}
