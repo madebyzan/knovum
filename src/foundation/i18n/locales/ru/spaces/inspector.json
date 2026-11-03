@@ -25,8 +25,7 @@
     "zoomIn": "Увеличить",
     "fitWidth": "По ширине"
   },
-  "recognizedText": "Распознанный текст",
-  "visualDetectedText": "Текст, распознанный OCR",
+  "recognizedText": "Текст, распознанный OCR",
   "excerpts": {
     "title": "Отрывок · {title}",
     "line": "— {title} · {location}",

@@ -6,10 +6,12 @@ import { useI18n } from "vue-i18n";
 
 import UiBadge from "../../../../shared/ui/UiBadge.vue";
 import UiExpandableText from "../../../../shared/ui/UiExpandableText.vue";
+import SpaceEnrichmentJobStatus from "../../enrichment/presentation/SpaceEnrichmentJobStatus.vue";
+import SpaceRecognizedText from "../../enrichment/presentation/SpaceRecognizedText.vue";
 import { useNodeEnrichmentStatus } from "../../enrichment/use-node-enrichment-status";
+import { useRecognizedText } from "../../enrichment/use-recognized-text";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
-import SpaceEnrichmentJobStatus from "./SpaceEnrichmentJobStatus.vue";
 
 const TAG_LIMIT = 8;
 
@@ -21,6 +23,15 @@ const { jobs, loading, refresh } = useNodeEnrichmentStatus(
   computed(() => props.node.id),
 );
 const visualJob = computed(() => jobs.value.find((job) => job.jobType === "analyze_visual"));
+const recognitionJob = computed(() => jobs.value.find((job) => job.jobType === "recognize_text"));
+const recognizedText = useRecognizedText(
+  activeSpaceId,
+  computed(() => props.node.id),
+  computed(() => {
+    const data = props.node.data;
+    return data.kind === "image" || data.kind === "video" ? data.textRecognition?.sourceRevision : undefined;
+  }),
+);
 const tagsExpanded = shallowRef(false);
 const knowledge = computed(() => {
   const data = props.node.data;
@@ -41,17 +52,6 @@ const visibleTags = computed(() => {
         :clamp-lines="4"
         class="text-body leading-relaxed text-fg-secondary"
       />
-      <div v-if="knowledge.detectedText" class="mt-3">
-        <h4 class="text-caption font-medium text-fg-tertiary">
-          {{ t("spaces.inspector.visualDetectedText") }}
-        </h4>
-        <UiExpandableText
-          :text="knowledge.detectedText"
-          :clamp-lines="4"
-          preformatted
-          class="mt-1 text-caption leading-relaxed text-fg-secondary"
-        />
-      </div>
       <div v-if="knowledge.tags.length" class="mt-3 flex flex-wrap gap-1">
         <UiBadge v-for="tag in visibleTags" :key="tag" size="sm">
           {{ tag }}
@@ -74,6 +74,7 @@ const visibleTags = computed(() => {
       </div>
     </template>
     <SpaceEnrichmentJobStatus :job="visualJob" @retried="refresh" />
+    <SpaceRecognizedText class="mt-3" :text="recognizedText(null)" :job="recognitionJob" @retried="refresh" />
     <p v-if="!visualJob && !knowledge && !loading" class="text-caption leading-relaxed text-fg-tertiary">
       {{ t("spaces.knowledge.visual.empty") }}
     </p>

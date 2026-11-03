@@ -42,6 +42,7 @@ const VIDEO_ASSET_FIELDS: &[&str] = &[
     "intrinsicWidth",
     "intrinsicHeight",
     "visualKnowledge",
+    "textRecognition",
     "origin",
     "creator",
     "durationSeconds",

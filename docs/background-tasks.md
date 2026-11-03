@@ -16,8 +16,8 @@ Interactive requests take priority over queued background indexing and synthesis
 prevents background work from waiting indefinitely.
 
 Images and video covers use one durable `analyze_visual` job and one Vision execution pipeline.
-Image nodes and parsed documents with pictures also queue one local `recognize_text` job per source
-revision; it shares no state with visual analysis and runs on its own lane
+Images, video covers and parsed documents with pictures also queue one local `recognize_text` job
+per revision of what they show; it shares no state with visual analysis and runs on its own lane
 ([Local text recognition](knowledge.md#local-text-recognition)).
 Node kind determines input preparation: images use the edited rendering and asset authorization;
 video covers use the saved preview and its origin-specific authorization. Their visual input revision

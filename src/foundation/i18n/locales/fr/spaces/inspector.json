@@ -25,8 +25,7 @@
     "zoomIn": "Zoom avant",
     "fitWidth": "Ajuster à la largeur"
   },
-  "recognizedText": "Texte reconnu",
-  "visualDetectedText": "Texte reconnu par OCR",
+  "recognizedText": "Texte reconnu par OCR",
   "excerpts": {
     "title": "Extrait · {title}",
     "line": "— {title} · {location}",

@@ -1,26 +1,6 @@
 use super::*;
 
 #[test]
-fn the_node_record_stops_at_its_budget_on_a_character_boundary() {
-    let mut record = String::new();
-    append_bounded(&mut record, &"页".repeat(MAX_TEXT - 1));
-    append_bounded(
-        &mut record,
-        "ignored because the separator alone exhausts it",
-    );
-    assert!(record.encode_utf16().count() <= MAX_TEXT);
-    assert!(record.starts_with('页'));
-}
-
-#[test]
-fn pages_are_separated_while_the_budget_lasts() {
-    let mut record = String::new();
-    append_bounded(&mut record, "one");
-    append_bounded(&mut record, "two");
-    assert_eq!(record, "one\n\ntwo");
-}
-
-#[test]
 fn transparent_pixels_read_as_paper() {
     let mut image = RgbaImage::new(1, 1);
     image.put_pixel(0, 0, image::Rgba([0, 0, 0, 0]));
@@ -28,4 +8,31 @@ fn transparent_pixels_read_as_paper() {
         on_paper(DynamicImage::ImageRgba8(image)).get_pixel(0, 0).0,
         [255; 4]
     );
+}
+
+#[test]
+fn a_document_picture_names_its_resource_and_a_shown_picture_its_node() {
+    let resource = RecognitionSource {
+        picture: Picture::Resource {
+            id: "scan".into(),
+            path: "/assets/scan.png".into(),
+        },
+        kind: "page",
+        location: json!({ "kind": "pdf", "page": 3 }),
+    };
+    let shown = RecognitionSource {
+        picture: Picture::Shown,
+        kind: "image_description",
+        location: json!({ "kind": "node" }),
+    };
+    let [page] = passages(&resource, "Clause 4. Rent", "r1").try_into().unwrap();
+    assert_eq!(
+        page.metadata,
+        Some(json!({ "role": "recognized_text", "resourceId": "scan" }))
+    );
+    assert_eq!(page.locator["location"], json!({ "kind": "pdf", "page": 3 }));
+    assert_eq!(page.locator["sourceRevision"], "r1");
+    let [photo] = passages(&shown, "Mill Lane", "r1").try_into().unwrap();
+    assert_eq!(photo.metadata, Some(json!({ "role": "recognized_text" })));
+    assert!(passages(&shown, "  ", "r1").is_empty(), "nothing read, nothing kept");
 }

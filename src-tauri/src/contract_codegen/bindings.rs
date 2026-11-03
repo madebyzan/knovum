@@ -69,6 +69,7 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::spaces::assets::enrichment::jobs::EnrichmentJobProjection::export_all,
         crate::spaces::assets::enrichment::jobs::job::EnrichmentJobType::export_all,
         crate::spaces::assets::enrichment::jobs::scheduler::EnrichmentJobUpdate::export_all,
+        crate::spaces::assets::enrichment::recognized_text::RecognizedTextReading::export_all,
         crate::media::transcript::MediaTranscript::export_all,
         crate::spaces::assets::transcription::MediaTranscriptionProgress::export_all,
         crate::spaces::knowledge::retrieval::rebuild::KnowledgeIndexingProgress::export_all,

@@ -36,7 +36,11 @@ not validate. Refusing the document instead — which is what the old 2000-page 
 budgets did, after paying for the full parse — left the Space with nothing of it at all.
 Core Graphics and Windows.Data.Pdf render the selected region directly into a bounded
 bitmap. Coordinates are PDF points, lower-left/y-up in the rotated visible page frame;
-Windows converts to top-left DIPs at 96/72.
+Windows converts to top-left DIPs at 96/72. Core Graphics stores bitmap rows top-down while
+drawing y-up, so its buffer is already upright and is never flipped; its drawing transform never
+scales up, so it only places the box on a page-sized rectangle and the raster scale is applied to
+the context. Migration `0005_rerender_pdf_pictures` parses every PDF once more, because earlier
+macOS builds stored their pictures inverted and small.
 Extracted raster paths contain both the managed source asset identity and raster digest.
 Repeated images inside one document share a raster; different source assets own separate
 files, so rollback of an unpublished import cannot remove another document's in-flight raster.
@@ -58,17 +62,23 @@ screenshots and photos on the canvas — is read on this computer by a durable `
 job (PP-OCRv6 small through `oar-ocr`, ONNX Runtime in the inference worker, CPU, background
 priority). It never uses a cloud model and runs whether or not vision analysis is configured.
 [`recognition_source`](../src-tauri/src/spaces/assets/enrichment/jobs/recognition_source.rs) is
-the one decision of which pictures a node owes: an image node's own raster, or a document's
-coverage resources de-duplicated by content address. The same function decides both whether a
-job is queued and what it reads, so the two cannot disagree.
+the one decision of which pictures a node owes: the picture an image shows (its rendered edits) or
+a video's cover, or a document's coverage resources de-duplicated by content address. The same
+function decides both whether a job is queued and what it reads, so the two cannot disagree. A
+shown picture is read at its visual revision, so an edit or a new cover is read again; a document
+is read at its source revision, and a re-parse replaces its `source` passages and with them the
+recognition, so it is read again too. Restoring a deleted node re-derives what it owes.
 
-Recognized text is appended to the node's `source` chunks with the picture's own locator — a
-PDF page keeps `page` kind and its one-based page, other pictures cite as `image_description`
-— so existing passages keep their identity, and answers cite recognized text exactly like
-extracted text. The node records a bounded `textRecognition` summary (source revision, model
-spec, time, at most 16,000 characters of text) for the Inspector; it is presentation, not part of the knowledge
-revision. A job runs once per source revision; existing nodes without a current record are
-queued at startup. Visual file paths and operational progress do not affect semantic
+Recognized text lives only in the node's `source` passages, under role `recognized_text`, each with
+the picture's own locator — a PDF page keeps `page` kind with its number, a document picture keeps
+its occurrence's location and `resourceId` — so answers cite recognized text exactly like extracted
+text. A new reading replaces the previous recognized passages and leaves extracted ones untouched.
+The node's `textRecognition` record holds no text, only what was read (source revision, model spec,
+time); it is presentation, not part of the knowledge revision. `list_recognized_text` groups the
+current passages per picture, and the UI shows each beside its picture: an image or video under
+"OCR recognized text" in the Inspector, a document picture in its resource viewer. Vision's
+`detectedText` stays a search signal and is not shown beside it. Existing nodes without a current
+record are queued at startup. Visual file paths and operational progress do not affect semantic
 revision identity.
 
 Publication merges only owned fields into the current node in a write transaction,

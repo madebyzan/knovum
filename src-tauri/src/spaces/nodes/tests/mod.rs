@@ -168,7 +168,8 @@ async fn user_edits_receive_a_rust_owned_revision() {
 }
 
 #[tokio::test]
-async fn resetting_image_edits_replaces_the_visual_job_through_the_node_update_pipeline() {
+async fn resetting_image_edits_replaces_every_reading_of_the_picture_through_the_node_update_pipeline(
+) {
     use crate::spaces::{assets::enrichment::jobs, nodes::contracts::NodeContentChange};
     let pool = sqlx::SqlitePool::connect("sqlite::memory:").await.unwrap();
     crate::spaces::db::migrate(&pool).await.unwrap();
@@ -186,6 +187,7 @@ async fn resetting_image_edits_replaces_the_visual_job_through_the_node_update_p
     jobs::intent::synchronize_for_node(&mut tx, "space", "node", &before, 1, None)
         .await
         .unwrap();
+    let edited = jobs::revision::visual_revision(&before).unwrap().unwrap();
     let mut after = before.clone();
     after.as_object_mut().unwrap().remove("imageEdit");
     crate::spaces::knowledge::validation::normalize_node(&mut tx, "space", "image", &mut after)
@@ -207,16 +209,18 @@ async fn resetting_image_edits_replaces_the_visual_job_through_the_node_update_p
     .await
     .unwrap();
     tx.commit().await.unwrap();
-    let cancelled: i64 =
-        sqlx::query_scalar("SELECT COUNT(*) FROM spaces_enrichment_jobs WHERE status='cancelled'")
-            .fetch_one(&pool)
-            .await
-            .unwrap();
-    assert_eq!(cancelled, 1);
-    let pending: Vec<String> = sqlx::query_scalar("SELECT source_revision FROM spaces_enrichment_jobs WHERE job_type='analyze_visual' AND status='pending'")
-        .fetch_all(&pool).await.unwrap();
-    assert_eq!(
-        pending,
-        vec![jobs::revision::visual_revision(&after).unwrap().unwrap()]
-    );
+    let jobs_in = |status: &'static str| {
+        let pool = pool.clone();
+        async move {
+            sqlx::query_as::<_, (String, String)>("SELECT job_type,source_revision FROM spaces_enrichment_jobs WHERE status=$1 ORDER BY job_type")
+                .bind(status).fetch_all(&pool).await.unwrap()
+        }
+    };
+    let reset = jobs::revision::visual_revision(&after).unwrap().unwrap();
+    let readings = |revision: &str| {
+        ["analyze_visual", "recognize_text"]
+            .map(|job_type| (job_type.to_owned(), revision.to_owned()))
+    };
+    assert_eq!(jobs_in("cancelled").await, readings(&edited));
+    assert_eq!(jobs_in("pending").await, readings(&reset));
 }

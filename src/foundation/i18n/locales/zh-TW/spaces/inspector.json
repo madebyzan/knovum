@@ -25,8 +25,7 @@
     "zoomIn": "放大",
     "fitWidth": "符合寬度"
   },
-  "recognizedText": "辨識出的文字",
-  "visualDetectedText": "OCR 辨識文字",
+  "recognizedText": "OCR 辨識文字",
   "excerpts": {
     "title": "摘錄 · {title}",
     "line": "— {title} · {location}",

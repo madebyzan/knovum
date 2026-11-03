@@ -7,7 +7,7 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { EnrichmentJobState } from "../../contracts/generated/EnrichmentJobState";
-import { retryEnrichmentJob } from "../../enrichment/enrichment-jobs";
+import { retryEnrichmentJob } from "../enrichment-jobs";
 
 const props = defineProps<{ job: EnrichmentJobState | undefined }>();
 const emit = defineEmits<{ retried: [] }>();

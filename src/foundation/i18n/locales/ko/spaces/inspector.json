@@ -25,8 +25,7 @@
     "zoomIn": "확대",
     "fitWidth": "너비에 맞추기"
   },
-  "recognizedText": "인식된 텍스트",
-  "visualDetectedText": "OCR 인식 텍스트",
+  "recognizedText": "OCR 인식 텍스트",
   "excerpts": {
     "title": "발췌 · {title}",
     "line": "— {title} · {location}",

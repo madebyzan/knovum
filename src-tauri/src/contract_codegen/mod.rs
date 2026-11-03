@@ -96,7 +96,6 @@ pub fn export(project_root: &Path) -> Result<(), String> {
             "export const relationKinds = {} as const;\n",
             "export const relationStatuses = {} as const;\n",
             "export const visualKnowledgeLimits = {} as const;\n",
-            "export const textRecognitionLimits = {} as const;\n",
         ),
         crate::spaces::knowledge::indexing::MAX_KNOWLEDGE_PASSAGE_BYTES,
         relation_kinds
@@ -110,9 +109,6 @@ pub fn export(project_root: &Path) -> Result<(), String> {
             "detectedText": crate::spaces::knowledge::validation::nodes::visual::MAX_DETECTED_TEXT,
             "tags": crate::spaces::knowledge::validation::nodes::visual::MAX_TAGS,
             "tag": crate::spaces::knowledge::validation::nodes::visual::MAX_TAG,
-        }),
-        serde_json::json!({
-            "text": crate::spaces::knowledge::validation::nodes::text_recognition::MAX_TEXT,
         }),
     );
     std::fs::write(spaces_output.join("contract-values.ts"), source).map_err(io_error)?;

@@ -52,7 +52,8 @@ fn render_document(
     let color =
         CGColorSpace::new_device_rgb().ok_or("Core Graphics RGB color space unavailable")?;
     let mut pixels = vec![255_u8; width as usize * height as usize * 4];
-    // The owned pixel buffer outlives the context and has the exact checked RGBA stride.
+    // The owned pixel buffer outlives the context and has the exact checked RGBA stride. Core
+    // Graphics draws y-up but stores bitmap rows top-down, so the buffer is already upright.
     let context = unsafe {
         CGBitmapContextCreate(
             pixels.as_mut_ptr().cast(),
@@ -65,17 +66,19 @@ fn render_document(
         )
     }
     .ok_or("Core Graphics bitmap allocation failed")?;
-    let viewport = CGRect::new(CGPoint::new(0.0, 0.0), CGSize::new(w * sx, h * sy));
-    CGContext::translate_ctm(Some(&context), -crop.x * sx, -crop.y * sy);
+    // The drawing transform never scales up, so it only maps the box onto a page-sized rectangle,
+    // applying the page's rotation and box origin; the raster scale is applied explicitly.
+    let page_rect = CGRect::new(CGPoint::new(0.0, 0.0), CGSize::new(w, h));
+    CGContext::scale_ctm(Some(&context), sx, sy);
+    CGContext::translate_ctm(Some(&context), -crop.x, -crop.y);
     CGContext::concat_ctm(
         Some(&context),
-        CGPDFPage::drawing_transform(Some(&page), box_kind, viewport, 0, false),
+        CGPDFPage::drawing_transform(Some(&page), box_kind, page_rect, 0, false),
     );
     CGContext::draw_pdf_page(Some(&context), Some(&page));
     drop(context);
-    let mut bitmap = image::RgbaImage::from_raw(width, height, pixels)
+    let bitmap = image::RgbaImage::from_raw(width, height, pixels)
         .ok_or("PDF bitmap dimensions are invalid")?;
-    image::imageops::flip_vertical_in_place(&mut bitmap);
     let mut output = Cursor::new(Vec::new());
     bitmap
         .write_to(&mut output, image::ImageFormat::Png)

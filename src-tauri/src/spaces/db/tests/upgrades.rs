@@ -155,3 +155,91 @@ async fn upgrading_0_0_3_draws_node_attachments_from_their_nodes() {
     );
     assert_eq!(content("plain").await, plain);
 }
+
+/// Every PDF picture was rendered by a renderer that drew them upside down on macOS. Upgrading
+/// withdraws each PDF coverage record and queues the document to be parsed again, once; Office
+/// documents, whose pictures were never rendered, keep theirs.
+#[tokio::test]
+async fn upgrading_rerenders_every_pdf_picture_once() {
+    let pool = shipped(4).await;
+    sqlx::query(
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .expect("space");
+    let coverage = |parser: &str| serde_json::json!({ "parser": parser, "resources": [] });
+    for (id, deleted_at, data) in [
+        (
+            "pdf",
+            None,
+            serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1","documentCoverage":coverage("pdf-inspector")}),
+        ),
+        (
+            "queued",
+            None,
+            serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1","documentCoverage":coverage("pdf-inspector")}),
+        ),
+        (
+            "trashed",
+            Some(5_i64),
+            serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1","documentCoverage":coverage("pdf-inspector")}),
+        ),
+        (
+            "deck",
+            None,
+            serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1","documentCoverage":coverage("office-oxide")}),
+        ),
+    ] {
+        sqlx::query(
+            "INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at,deleted_at) \
+             VALUES($1,'s','file',0,0,$2,1,1,$3)",
+        )
+        .bind(id)
+        .bind(data.to_string())
+        .bind(deleted_at)
+        .execute(&pool)
+        .await
+        .expect("node");
+    }
+    sqlx::query(
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
+         VALUES('waiting','s','queued','parse_document','pending','r1',0,1,1)",
+    )
+    .execute(&pool)
+    .await
+    .expect("job");
+
+    super::super::migrate(&pool).await.expect("upgrade");
+
+    assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
+    let covered: Vec<(String, bool)> = sqlx::query_as(
+        "SELECT id, json_extract(data,'$.documentCoverage') IS NOT NULL FROM spaces_nodes ORDER BY id",
+    )
+    .fetch_all(&pool)
+    .await
+    .expect("nodes");
+    assert_eq!(
+        covered,
+        [
+            ("deck".to_owned(), true),
+            ("pdf".to_owned(), false),
+            ("queued".to_owned(), false),
+            ("trashed".to_owned(), false),
+        ]
+    );
+    let queued: Vec<(String, String, String)> = sqlx::query_as(
+        "SELECT node_id,status,source_revision FROM spaces_enrichment_jobs \
+         WHERE job_type='parse_document' ORDER BY node_id",
+    )
+    .fetch_all(&pool)
+    .await
+    .expect("jobs");
+    assert_eq!(
+        queued,
+        [
+            ("pdf".to_owned(), "pending".to_owned(), "r1".to_owned()),
+            ("queued".to_owned(), "pending".to_owned(), "r1".to_owned()),
+        ]
+    );
+}

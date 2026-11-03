@@ -73,6 +73,7 @@ const imageCommentSchema = z
 const visualFields = {
   ...intrinsicSizeFields,
   visualKnowledge: spaceVisualKnowledgeSchema.optional(),
+  textRecognition: textRecognitionSchema.optional(),
 };
 const mediaFields = {
   origin: spaceMediaOriginSchema.optional(),
@@ -102,7 +103,6 @@ export const spaceResourceNodeSchemas = [
       ...assetFields,
       ...visualFields,
       kind: z.literal("image"),
-      textRecognition: textRecognitionSchema.optional(),
       imageEdit: imageEditSchema.optional(),
       imageDepth: z
         .object({

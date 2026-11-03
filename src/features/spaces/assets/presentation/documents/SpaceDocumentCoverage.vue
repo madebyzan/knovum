@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue";
 
+import { useRecognizedText } from "../../../enrichment/use-recognized-text";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { DocumentCoverage } from "../../../model/nodes/schema/document-coverage-fields";
 import { useSpaceStore } from "../../../session/space-store";
@@ -13,6 +14,13 @@ const props = defineProps<{ node: SpaceCanvasNode }>();
 const store = useSpaceStore();
 const report = computed(() =>
   props.node.data.kind === "file" ? props.node.data.documentCoverage : undefined,
+);
+const recognizedText = useRecognizedText(
+  computed(() => store.activeSpaceId),
+  computed(() => props.node.id),
+  computed(() =>
+    props.node.data.kind === "file" ? props.node.data.textRecognition?.sourceRevision : undefined,
+  ),
 );
 const unavailable = computed(
   () => report.value?.occurrences.filter((occurrence) => occurrence.unavailable !== null).length ?? 0,
@@ -113,5 +121,6 @@ const MESSAGE_KEY_BY_WARNING: Record<DocumentWarning, string> = {
     :item="selectedResource"
     :source-revision="report.sourceRevision"
     :export-target="exportTarget"
+    :recognized-text="recognizedText(selectedResource.resource.id)"
   />
 </template>

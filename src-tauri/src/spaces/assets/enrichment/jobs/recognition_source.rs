@@ -5,41 +5,39 @@ use serde_json::{json, Value};
 /// One picture a node asks to have read, and where its text is cited from.
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub(super) struct RecognitionSource {
-    pub path: String,
+    pub picture: Picture,
     pub kind: &'static str,
     pub location: Value,
+}
+
+#[cfg_attr(test, derive(Debug, PartialEq))]
+pub(super) enum Picture {
+    /// The picture the node shows, resolved the way vision resolves it: an image with its edits
+    /// rendered, a video by its cover.
+    Shown,
+    /// A picture parsing extracted from a document. Its text belongs to it, not to the document.
+    Resource { id: String, path: String },
 }
 
 /// The pictures of a node that hold text no parser could reach. The decision is made once, here, so
 /// the job that is queued and the job that runs cannot disagree about what a node owes.
 pub(super) fn sources(payload: &Value) -> Vec<RecognitionSource> {
     match payload.get("kind").and_then(Value::as_str) {
-        Some("image") => image_source(payload).into_iter().collect(),
+        // A depth field is a picture of distance: it shares its node kind with photographs and
+        // nothing else, so reading it could only produce noise.
+        Some("image") if payload.get("imageDepth").is_none() => vec![shown("image_description")],
+        Some("video") => vec![shown("video_cover")],
         Some("file") => document_sources(payload),
         _ => Vec::new(),
     }
 }
 
-fn image_source(payload: &Value) -> Option<RecognitionSource> {
-    // A depth field is a picture of distance: it shares its node kind with photographs and nothing
-    // else, so reading it could only produce noise.
-    if payload.get("imageDepth").is_some() {
-        return None;
-    }
-    let path = payload.get("assetPath")?.as_str()?;
-    let extension = std::path::Path::new(path)
-        .extension()?
-        .to_str()?
-        .to_ascii_lowercase();
-    matches!(
-        extension.as_str(),
-        "png" | "jpg" | "jpeg" | "bmp" | "tif" | "tiff" | "webp"
-    )
-    .then(|| RecognitionSource {
-        path: path.to_owned(),
-        kind: "image_description",
+fn shown(kind: &'static str) -> RecognitionSource {
+    RecognitionSource {
+        picture: Picture::Shown,
+        kind,
         location: json!({ "kind": "node" }),
-    })
+    }
 }
 
 /// Renders are content addressed, so a picture repeated through a document is read once and cited
@@ -66,7 +64,10 @@ fn document_sources(payload: &Value) -> Vec<RecognitionSource> {
             let location = occurrence.get("location")?.clone();
             let pdf = location.get("kind").and_then(Value::as_str) == Some("pdf");
             Some(RecognitionSource {
-                path: resource.get("path")?.as_str()?.to_owned(),
+                picture: Picture::Resource {
+                    id: id.to_owned(),
+                    path: resource.get("path")?.as_str()?.to_owned(),
+                },
                 kind: if pdf { "page" } else { "image_description" },
                 location,
             })

@@ -38,6 +38,7 @@ macro_rules! knovum_workspace_commands {
         crate::spaces::assets::enrichment::jobs::requests::alignment::request_media_alignment,
         crate::spaces::assets::enrichment::jobs::requests::diarization::request_media_diarization,
         crate::spaces::assets::enrichment::jobs::requests::retry_enrichment_job,
+        crate::spaces::assets::enrichment::recognized_text::list_recognized_text,
         crate::spaces::assets::enrichment::media_knowledge::generate_media_insights,
         crate::spaces::assets::enrichment::jobs::cancel_enrichment_job,
         crate::spaces::assets::enrichment::jobs::list_actionable_enrichment_jobs,

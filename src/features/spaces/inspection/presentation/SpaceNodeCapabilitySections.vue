@@ -10,7 +10,6 @@ import SpaceMediaKnowledge from "../../media/presentation/SpaceMediaKnowledge.vu
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 import SpacePortalEditor from "./SpacePortalEditor.vue";
-import SpaceTextRecognition from "./SpaceTextRecognition.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const pdfPath = computed(() => pdfDocumentPath(props.node.data));
@@ -28,11 +27,6 @@ const pdfPath = computed(() => pdfDocumentPath(props.node.data));
   >
     <SpaceDocumentCoverage :node="node" />
   </SpaceInspectorSection>
-  <SpaceTextRecognition
-    v-if="node.data.kind === 'image' || node.data.kind === 'file'"
-    :key="node.id"
-    :node="node"
-  />
   <SpaceInspectorSection
     v-if="node.data.kind === 'object'"
     :title="$t('spaces.nodeTypes.object')"

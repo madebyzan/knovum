@@ -7,7 +7,7 @@ use serde_json::{json, Value};
 use tauri::{ipc::Channel, AppHandle};
 use tokio_util::sync::CancellationToken;
 
-use super::RunEnrichmentJobRequest;
+use super::{node::required_string, picture, RunEnrichmentJobRequest};
 use crate::{
     ai::local_runtime::image::{compute::ImageTensor, text_recognition},
     foundation::{app_error::AppError, blocking},
@@ -15,14 +15,15 @@ use crate::{
     spaces::{
         assets::{
             authorize_spaces_asset,
-            enrichment::{commit, ensure_active, jobs::recognition_source},
+            enrichment::{
+                commit, ensure_active,
+                jobs::recognition_source::{self, Picture, RecognitionSource},
+                recognized_text::RECOGNIZED_TEXT_ROLE,
+            },
             transcription::{send_progress, MediaTranscriptionProgress},
         },
         derivation::image_tensors,
-        knowledge::{
-            indexing::{self, KnowledgeChunkInput},
-            validation::nodes::text_recognition::MAX_TEXT,
-        },
+        knowledge::indexing::{self, KnowledgeChunkInput},
     },
 };
 
@@ -51,42 +52,30 @@ pub(super) async fn run(
     )
     .await
     .map_err(|error| format!("local-resource-unavailable: {error}"))?;
+    // Passages belong to the node's source text, whatever revision of the picture they were read
+    // from; the record names that revision.
+    let passage_revision = required_string(payload, "sourceRevision")?;
     let sources = recognition_source::sources(payload);
     let mut chunks = Vec::new();
-    let mut recognized = String::new();
     for (index, source) in sources.iter().enumerate() {
         ensure_active(cancellation)?;
-        let path = authorize_spaces_asset(app, Path::new(&source.path))?;
+        let path = match &source.picture {
+            Picture::Shown => picture::shown(app, payload).await?,
+            Picture::Resource { path, .. } => authorize_spaces_asset(app, Path::new(path))?,
+        };
         let tensor = blocking::run(move || read_source(&path)).await?;
         let lines =
             text_recognition::recognize(app, job_id, revision, tensor, &prepared, cancellation)
                 .await?;
-        let text = reading::text(&lines);
-        if !text.is_empty() {
-            chunks.extend(
-                indexing::chunks(
-                    source.kind,
-                    &text,
-                    revision,
-                    source.location.clone(),
-                    json!({ "role": "recognized_text" }),
-                )
-                .into_iter()
-                .map(KnowledgeChunkInput::from),
-            );
-            append_bounded(&mut recognized, &text);
-        }
+        chunks.extend(passages(source, &reading::text(&lines), passage_revision));
         let done = (index + 1) * 100 / sources.len();
         send_progress(progress, "recognizingText", done as u8);
     }
-    let mut record = json!({
+    let record = json!({
         "sourceRevision": revision,
         "modelSpecId": text_recognition::spec_id(),
         "generatedAt": crate::foundation::clock::unix_time_millis()?,
     });
-    if !recognized.is_empty() {
-        record["text"] = Value::from(recognized);
-    }
     commit::publish_text_recognition(
         app,
         (&request.space_id, &request.node_id),
@@ -102,24 +91,17 @@ pub(super) async fn run(
     .await
 }
 
-/// The node keeps what its inspector can show; the whole text lives in the knowledge chunks, because
-/// a record that grows with the document would be paid for on every read of the node.
-fn append_bounded(target: &mut String, text: &str) {
-    let used = target.encode_utf16().count();
-    let separator = if target.is_empty() { "" } else { "\n\n" };
-    let mut budget = MAX_TEXT.saturating_sub(used + separator.len());
-    if budget == 0 {
-        return;
+/// A document picture's passages name the resource they were read from, so its text can be shown
+/// beside it rather than mixed into the document's.
+fn passages(source: &RecognitionSource, text: &str, revision: &str) -> Vec<KnowledgeChunkInput> {
+    let mut metadata = json!({ "role": RECOGNIZED_TEXT_ROLE });
+    if let Picture::Resource { id, .. } = &source.picture {
+        metadata["resourceId"] = Value::from(id.as_str());
     }
-    target.push_str(separator);
-    for character in text.chars() {
-        let width = character.len_utf16();
-        if width > budget {
-            return;
-        }
-        budget -= width;
-        target.push(character);
-    }
+    indexing::chunks(source.kind, text, revision, source.location.clone(), metadata)
+        .into_iter()
+        .map(KnowledgeChunkInput::from)
+        .collect()
 }
 
 fn read_source(path: &Path) -> Result<ImageTensor, String> {

@@ -20,18 +20,25 @@ fn document(coverage_revision: &str) -> Value {
     })
 }
 
+fn resource(id: &str) -> Picture {
+    Picture::Resource {
+        id: id.into(),
+        path: format!("/assets/{id}.png"),
+    }
+}
+
 #[test]
 fn reads_a_repeated_picture_once_from_its_first_appearance() {
     assert_eq!(
         sources(&document("r1")),
         [
             RecognitionSource {
-                path: "/assets/a.png".into(),
+                picture: resource("a"),
                 kind: "page",
                 location: json!({ "kind": "pdf", "page": 1 }),
             },
             RecognitionSource {
-                path: "/assets/b.png".into(),
+                picture: resource("b"),
                 kind: "image_description",
                 location: json!({ "kind": "slides", "slide": 3 }),
             },
@@ -45,11 +52,17 @@ fn a_stale_coverage_record_owes_nothing() {
 }
 
 #[test]
-fn images_are_read_unless_they_are_vectors_or_depth_fields() {
-    let image = |path: &str| json!({ "kind": "image", "assetPath": path });
-    assert_eq!(sources(&image("/assets/shot.PNG")).len(), 1);
-    assert!(sources(&image("/assets/logo.svg")).is_empty());
-    let mut depth = image("/assets/depth.png");
-    depth["imageDepth"] = json!({});
-    assert!(sources(&depth).is_empty());
+fn a_picture_node_is_read_as_it_is_shown_unless_it_is_a_depth_field() {
+    let shown = |kind| RecognitionSource {
+        picture: Picture::Shown,
+        kind,
+        location: json!({ "kind": "node" }),
+    };
+    assert_eq!(
+        sources(&json!({ "kind": "image" })),
+        [shown("image_description")]
+    );
+    assert_eq!(sources(&json!({ "kind": "video" })), [shown("video_cover")]);
+    assert!(sources(&json!({ "kind": "image", "imageDepth": {} })).is_empty());
+    assert!(sources(&json!({ "kind": "audio" })).is_empty());
 }

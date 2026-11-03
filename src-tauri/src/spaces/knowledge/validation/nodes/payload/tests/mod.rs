@@ -64,6 +64,19 @@ fn saved_video_projects_require_a_current_source_and_valid_project() {
 }
 
 #[test]
+fn a_video_cover_carries_its_recognition_record_like_an_image() {
+    let mut data = video();
+    data["textRecognition"] =
+        serde_json::json!({"sourceRevision":"cover","modelSpecId":"ocr","generatedAt":1});
+    validate_payload_shape("video", &data).unwrap();
+    data["textRecognition"]["text"] = "read".into();
+    assert!(
+        validate_payload_shape("video", &data).is_err(),
+        "the text lives in passages"
+    );
+}
+
+#[test]
 fn markdown_rich_text_uses_the_document_boundary_validation() {
     let mut data = json!({"kind": "markdown", "title": "Document", "text": "Draft", "tiptapContent": {"type": "paragraph"}});
     assert!(validate_payload_shape("markdown", &data).is_err());

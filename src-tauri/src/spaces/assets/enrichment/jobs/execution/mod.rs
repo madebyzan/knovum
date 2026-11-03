@@ -1,5 +1,6 @@
 mod media;
 mod node;
+mod picture;
 mod recognition;
 mod visual;
 

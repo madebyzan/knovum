@@ -25,8 +25,7 @@
     "zoomIn": "拡大",
     "fitWidth": "幅に合わせる"
   },
-  "recognizedText": "認識されたテキスト",
-  "visualDetectedText": "OCR 認識テキスト",
+  "recognizedText": "OCR 認識テキスト",
   "excerpts": {
     "title": "抜粋・{title}",
     "line": "— {title} · {location}",

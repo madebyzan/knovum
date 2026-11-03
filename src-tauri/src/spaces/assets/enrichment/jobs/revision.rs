@@ -20,10 +20,21 @@ pub(super) fn expected_revision(
     data: &Value,
     job_type: EnrichmentJobType,
 ) -> Result<Option<String>, String> {
-    if job_type == EnrichmentJobType::AnalyzeVisual {
-        return visual_revision(data);
+    match job_type {
+        EnrichmentJobType::AnalyzeVisual => visual_revision(data),
+        EnrichmentJobType::RecognizeText => recognition_revision(data),
+        _ => Ok(source_revision(data).map(str::to_owned)),
     }
-    Ok(source_revision(data).map(str::to_owned))
+}
+
+/// Revision of what recognition reads. A picture is read as it is shown, exactly as vision sees it,
+/// so an edit that changes the picture asks for it to be read again; a document's pictures are
+/// what parsing extracted from its source.
+pub(crate) fn recognition_revision(node_payload: &Value) -> Result<Option<String>, String> {
+    match node_payload.get("kind").and_then(Value::as_str) {
+        Some("file") => Ok(source_revision(node_payload).map(str::to_owned)),
+        _ => visual_revision(node_payload),
+    }
 }
 
 /// Revision of the image actually sent to vision. Generated previews have immutable paths.

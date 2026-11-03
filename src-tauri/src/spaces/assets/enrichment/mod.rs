@@ -204,6 +204,7 @@ pub(crate) mod media_knowledge;
 mod node_payload;
 pub(super) mod persistence;
 mod pipeline;
+pub(crate) mod recognized_text;
 pub(super) mod refresh;
 pub(super) mod registry;
 mod text_chunks;

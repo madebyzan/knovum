@@ -25,8 +25,7 @@
     "zoomIn": "Vergrößern",
     "fitWidth": "An Breite anpassen"
   },
-  "recognizedText": "Erkannter Text",
-  "visualDetectedText": "OCR-erkannter Text",
+  "recognizedText": "OCR-erkannter Text",
   "excerpts": {
     "title": "Auszug · {title}",
     "line": "— {title} · {location}",

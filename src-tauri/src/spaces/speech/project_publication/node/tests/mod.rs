@@ -157,12 +157,13 @@ async fn a_dubbed_video_gets_its_own_cover_and_keeps_only_what_the_new_voice_lea
         "a new voice is measured anew"
     );
     let queued: Vec<String> = sqlx::query_scalar(
-        "SELECT job_type FROM spaces_enrichment_jobs WHERE node_id='run-output'",
+        "SELECT job_type FROM spaces_enrichment_jobs WHERE node_id='run-output' ORDER BY job_type",
     )
     .fetch_all(&pool)
     .await
     .unwrap();
-    assert_eq!(queued, ["analyze_media"]);
+    // The new cover's text is read, as recognized text is never carried.
+    assert_eq!(queued, ["analyze_media", "recognize_text"]);
 }
 
 #[tokio::test]

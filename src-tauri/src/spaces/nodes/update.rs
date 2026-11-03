@@ -175,6 +175,7 @@ async fn apply_node_change(
             "mediaKnowledge",
             "visualKnowledge",
             "documentCoverage",
+            "textRecognition",
         ]
         .iter()
         .any(|field| field_changed(&before, &change.data, field));

@@ -58,14 +58,13 @@ pub(super) fn validate_payload_shape(kind: &str, payload: &Value) -> Result<(), 
                 return Err("Relative depth fields do not support photo edits".into());
             }
             image_comments::validate(object.get("comments"))?;
-            super::text_recognition::validate(object.get("textRecognition"))?;
-            super::visual::validate(object.get("visualKnowledge"))
+            validate_picture_readings(object)
         }
         "video" => {
             resource::validate_visual_asset(object)?;
             resource::validate_media_metadata(object)?;
             validate_video_project(object)?;
-            super::visual::validate(object.get("visualKnowledge"))?;
+            validate_picture_readings(object)?;
             super::media::validate(
                 object.get("mediaKnowledge"),
                 object.get("sourceRevision").and_then(Value::as_str),
@@ -88,6 +87,12 @@ pub(super) fn validate_payload_shape(kind: &str, payload: &Value) -> Result<(), 
         "object" | "portal" => Ok(()),
         _ => Err("Unsupported Space node kind".into()),
     }
+}
+
+/// What vision and local recognition read from the picture an image or video shows.
+fn validate_picture_readings(object: &serde_json::Map<String, Value>) -> Result<(), String> {
+    super::text_recognition::validate(object.get("textRecognition"))?;
+    super::visual::validate(object.get("visualKnowledge"))
 }
 
 fn validate_video_project(object: &serde_json::Map<String, Value>) -> Result<(), String> {
