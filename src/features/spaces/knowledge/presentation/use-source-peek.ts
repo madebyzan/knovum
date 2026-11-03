@@ -37,9 +37,9 @@ export function useSourcePeek() {
   );
   const editableSource = computed(() => ["note", "markdown"].includes(node.value?.data.kind ?? ""));
   const pdfReader = computed(() => {
-    const data = node.value?.data;
+    const payload = node.value?.data;
     const target = sourcePeek.value;
-    const path = data && pdfDocumentPath(data);
+    const path = payload && pdfDocumentPath(payload);
     if (!target || !path) return undefined;
     const cited = target.locator.location;
     return {

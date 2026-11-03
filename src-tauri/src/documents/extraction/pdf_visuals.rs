@@ -15,44 +15,48 @@ struct SizeKey(u32, u32);
 struct RectKey(i32, i32, u32, u32);
 
 struct Repetition {
-    rect_pages: BTreeMap<RectKey, usize>,
-    size_pages: BTreeMap<SizeKey, usize>,
-    size_max_per_page: BTreeMap<SizeKey, usize>,
+    pages_by_rect: BTreeMap<RectKey, usize>,
+    pages_by_size: BTreeMap<SizeKey, usize>,
+    max_per_page_by_size: BTreeMap<SizeKey, usize>,
 }
 
 impl Repetition {
     fn from_pages(pages: &BTreeMap<u32, Vec<PdfRegion>>) -> Self {
-        let mut rect_pages = BTreeMap::<RectKey, usize>::new();
-        let mut size_pages = BTreeMap::<SizeKey, usize>::new();
-        let mut size_max_per_page = BTreeMap::<SizeKey, usize>::new();
+        let mut pages_by_rect = BTreeMap::<RectKey, usize>::new();
+        let mut pages_by_size = BTreeMap::<SizeKey, usize>::new();
+        let mut max_per_page_by_size = BTreeMap::<SizeKey, usize>::new();
         for regions in pages.values() {
             let mut page_rects = BTreeSet::new();
-            let mut page_sizes = BTreeMap::<SizeKey, usize>::new();
+            let mut count_by_size = BTreeMap::<SizeKey, usize>::new();
             for rect in regions {
                 page_rects.insert(rect_key(rect));
-                *page_sizes.entry(size_key(rect)).or_default() += 1;
+                *count_by_size.entry(size_key(rect)).or_default() += 1;
             }
             for key in page_rects {
-                *rect_pages.entry(key).or_default() += 1;
+                *pages_by_rect.entry(key).or_default() += 1;
             }
-            for (key, count) in page_sizes {
-                *size_pages.entry(key).or_default() += 1;
-                let max = size_max_per_page.entry(key).or_default();
+            for (key, count) in count_by_size {
+                *pages_by_size.entry(key).or_default() += 1;
+                let max = max_per_page_by_size.entry(key).or_default();
                 *max = (*max).max(count);
             }
         }
         Self {
-            rect_pages,
-            size_pages,
-            size_max_per_page,
+            pages_by_rect,
+            pages_by_size,
+            max_per_page_by_size,
         }
     }
 
     fn is_watermark(&self, rect: &PdfRegion) -> bool {
-        let pages_with_rect = self.rect_pages.get(&rect_key(rect)).copied().unwrap_or(0);
+        let pages_with_rect = self
+            .pages_by_rect
+            .get(&rect_key(rect))
+            .copied()
+            .unwrap_or(0);
         let size = size_key(rect);
-        let max_on_page = self.size_max_per_page.get(&size).copied().unwrap_or(0);
-        let pages_with_size = self.size_pages.get(&size).copied().unwrap_or(0);
+        let max_on_page = self.max_per_page_by_size.get(&size).copied().unwrap_or(0);
+        let pages_with_size = self.pages_by_size.get(&size).copied().unwrap_or(0);
         is_repeated_watermark_or_template(pages_with_rect, 1)
             || is_repeated_watermark_or_template(pages_with_size, max_on_page) && max_on_page >= 3
     }
@@ -72,25 +76,25 @@ impl PdfVisual {
 }
 
 pub(crate) fn group_by_page(positions: Vec<TextItem>) -> BTreeMap<u32, Vec<TextItem>> {
-    let mut pages = BTreeMap::<u32, Vec<TextItem>>::new();
+    let mut items_by_page = BTreeMap::<u32, Vec<TextItem>>::new();
     for item in positions {
-        pages.entry(item.page).or_default().push(item);
+        items_by_page.entry(item.page).or_default().push(item);
     }
-    pages
+    items_by_page
 }
 
 pub(crate) fn extract_figure_regions(
     positioned_pages: &BTreeMap<u32, Vec<TextItem>>,
 ) -> Result<BTreeMap<u32, Vec<PdfRegion>>, String> {
-    let mut candidates = BTreeMap::new();
+    let mut regions_by_page = BTreeMap::new();
     for (&page, items) in positioned_pages {
         let regions = candidate_regions(items)?;
         if !regions.is_empty() {
-            candidates.insert(page, regions);
+            regions_by_page.insert(page, regions);
         }
     }
-    let repetition = Repetition::from_pages(&candidates);
-    Ok(candidates
+    let repetition = Repetition::from_pages(&regions_by_page);
+    Ok(regions_by_page
         .into_iter()
         .filter_map(|(page, regions)| {
             let kept = regions
@@ -216,4 +220,5 @@ fn distance(item: &TextItem, rect: &PdfRegion) -> f64 {
 }
 
 #[cfg(test)]
+#[path = "tests/pdf_visuals.rs"]
 mod tests;

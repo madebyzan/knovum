@@ -34,8 +34,8 @@ export function usesDocumentPreview(presentation: SpaceFilePresentation) {
 }
 
 /** The bytes the in-app reader opens, for a node that holds a PDF. */
-export function pdfDocumentPath(data: SpaceNodePayload): string | undefined {
-  return data.kind === "file" && classifyFilePresentation(data.fileName) === "pdf"
-    ? data.assetPath
+export function pdfDocumentPath(payload: SpaceNodePayload): string | undefined {
+  return payload.kind === "file" && classifyFilePresentation(payload.fileName) === "pdf"
+    ? payload.assetPath
     : undefined;
 }

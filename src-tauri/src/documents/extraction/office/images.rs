@@ -101,7 +101,7 @@ fn filter_repeated_visuals(entries: Vec<DocumentImage>) -> Vec<DocumentImage> {
         })
         .collect::<Vec<_>>();
     let mut containers_by_digest = BTreeMap::<[u8; 32], BTreeSet<String>>::new();
-    let mut counts_in_container = BTreeMap::<([u8; 32], String), usize>::new();
+    let mut count_by_digest_container = BTreeMap::<([u8; 32], String), usize>::new();
     for (entry, digest) in entries.iter().zip(&digests) {
         let Some(digest) = *digest else {
             continue;
@@ -113,11 +113,13 @@ fn filter_repeated_visuals(entries: Vec<DocumentImage>) -> Vec<DocumentImage> {
                 .or_default()
                 .insert(container.clone());
         }
-        *counts_in_container.entry((digest, container)).or_default() += 1;
+        *count_by_digest_container
+            .entry((digest, container))
+            .or_default() += 1;
     }
-    let mut max_per_digest = BTreeMap::<[u8; 32], usize>::new();
-    for ((digest, _), count) in counts_in_container {
-        let max = max_per_digest.entry(digest).or_default();
+    let mut max_by_digest = BTreeMap::<[u8; 32], usize>::new();
+    for ((digest, _), count) in count_by_digest_container {
+        let max = max_by_digest.entry(digest).or_default();
         *max = (*max).max(count);
     }
     entries
@@ -126,7 +128,7 @@ fn filter_repeated_visuals(entries: Vec<DocumentImage>) -> Vec<DocumentImage> {
         .filter_map(|(entry, digest)| {
             let repeated = digest.is_some_and(|key| {
                 let containers = containers_by_digest.get(&key).map_or(0, BTreeSet::len);
-                let max_in_one = max_per_digest.get(&key).copied().unwrap_or(0);
+                let max_in_one = max_by_digest.get(&key).copied().unwrap_or(0);
                 is_repeated_watermark_or_template(containers, max_in_one)
             });
             (!repeated).then_some(entry)
@@ -270,4 +272,5 @@ fn collect_list(
 }
 
 #[cfg(test)]
+#[path = "tests/images.rs"]
 mod tests;
