@@ -20,7 +20,8 @@ async fn fixture(data: &Value) -> SqlitePool {
 /// A picture whose text has already been read, so vision's is the only work it owes.
 fn read(mut data: Value) -> Value {
     let shown = revision::visual_revision(&data).unwrap().unwrap();
-    data["textRecognition"] = json!({"sourceRevision": shown, "modelSpecId": "ocr", "generatedAt": 1});
+    data["textRecognition"] =
+        json!({"sourceRevision": shown, "modelSpecId": "ocr", "generatedAt": 1});
     data
 }
 
@@ -188,16 +189,9 @@ async fn actionable_projection_identifies_each_live_job_owner_across_spaces() {
     synchronize_for_node(&mut tx, "space", "node", &data, 2, None)
         .await
         .unwrap();
-    synchronize_for_node(
-        &mut tx,
-        "other",
-        "other-node",
-        &other,
-        3,
-        None,
-    )
-    .await
-    .unwrap();
+    synchronize_for_node(&mut tx, "other", "other-node", &other, 3, None)
+        .await
+        .unwrap();
     tx.commit().await.unwrap();
 
     let projections = persistence::list_actionable_projection(&pool, None)

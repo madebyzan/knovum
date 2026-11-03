@@ -13,6 +13,14 @@ pub(super) fn materialize_all(
     cancellation: &CancellationToken,
     claim_managed_path: &mut dyn FnMut(&std::path::Path) -> Result<(), String>,
 ) -> Result<(), String> {
+    if report
+        .occurrences
+        .iter()
+        .all(|occurrence| occurrence.resource_id.is_some())
+    {
+        return Ok(());
+    }
+    let renderer = crate::documents::rendering::PdfRenderer::open(source)?;
     for index in 0..report.occurrences.len() {
         crate::spaces::assets::enrichment::ensure_active(cancellation)?;
         if report.occurrences[index].resource_id.is_some() {
@@ -22,7 +30,7 @@ pub(super) fn materialize_all(
             .pdf_input
             .as_ref()
             .ok_or("Document occurrence has no PDF rendering input")?;
-        let resource = resource::save_render(app, source, input, claim_managed_path)?;
+        let resource = resource::save_render(app, source, &renderer, input, claim_managed_path)?;
         attach_resource(report, index, resource)?;
     }
     Ok(())

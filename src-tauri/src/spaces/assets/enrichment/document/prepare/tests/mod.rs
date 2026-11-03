@@ -1,15 +1,54 @@
 use super::covered;
 use crate::documents::{
     extraction::{pdf::PdfDocumentContent, pdf_visuals::PdfVisual},
-    pdf_input::{PdfInput, PdfRecognitionReason},
+    pdf_input::{PdfInput, PdfRecognitionReason, PdfRegion},
 };
 use crate::spaces::knowledge::model::document_coverage::{MAX_COVERED_PAGES, MAX_COVERED_VISUALS};
 
 #[test]
+fn regional_images_beyond_visual_budget_do_not_truncate_later_scanned_or_text_pages() {
+    let mut document = document(
+        163,
+        vec![1, 120, 160],
+        (1..=110)
+            .flat_map(|page| (0..20).map(move |index| image(page, index)))
+            .collect(),
+        false,
+    );
+    document.pages_with_extracted_text = (2..=163)
+        .filter(|page| *page != 120 && *page != 160)
+        .collect();
+    document.visuals.insert(0, recognition(1));
+    document.visuals.push(recognition(120));
+    document.visuals.push(recognition(160));
+
+    let covered = covered(&document);
+
+    assert_eq!(covered.recognition, vec![1, 120, 160]);
+    assert_eq!(covered.extracted.len(), 160);
+    assert!(covered.visuals.len() <= MAX_COVERED_VISUALS);
+    assert_eq!(
+        covered
+            .visuals
+            .iter()
+            .filter_map(|visual| match visual.input {
+                PdfInput::Page { page, .. } => Some(page),
+                PdfInput::Image { .. } => None,
+            })
+            .collect::<Vec<_>>(),
+        vec![1, 120, 160]
+    );
+    assert_eq!(
+        covered.warnings,
+        [
+            "pdf_visual_coverage_limited",
+            "pdf_visual_occurrence_coverage_limited",
+        ]
+    );
+}
+
+#[test]
 fn a_document_longer_than_one_record_is_described_up_to_one_page() {
-    // Two pictures a page, so the visual budget runs out first and the page lists have to stop
-    // with it: a page claiming recognition and the input that recognises it are the same fact
-    // stated twice, and a record that kept one without the other does not validate.
     let pages = MAX_COVERED_PAGES as u32 + 500;
     let document = document(
         pages,
@@ -50,7 +89,6 @@ fn a_document_that_fits_is_described_whole_and_claims_no_limit() {
     assert_eq!(covered.visuals.len(), 1);
     assert_eq!(covered.recognition, vec![2]);
     assert_eq!(covered.extracted, vec![1, 3]);
-    // The parser caveat stands on its own: it is about what position data can find, not a budget.
     assert_eq!(covered.warnings, ["pdf_visual_coverage_limited"]);
 }
 
@@ -78,6 +116,21 @@ fn recognition(page: u32) -> PdfVisual {
         input: PdfInput::Page {
             page,
             reason: PdfRecognitionReason::Scanned,
+        },
+        context: String::new(),
+    }
+}
+
+fn image(page: u32, index: u32) -> PdfVisual {
+    PdfVisual {
+        input: PdfInput::Image {
+            page,
+            rect: PdfRegion {
+                x: index as f64 * 10.0,
+                y: 0.0,
+                width: 8.0,
+                height: 8.0,
+            },
         },
         context: String::new(),
     }

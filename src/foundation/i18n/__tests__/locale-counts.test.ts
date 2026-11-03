@@ -27,8 +27,8 @@ describe("desktop count messages", () => {
     expect(i18n.global.t("settings.archivedSpaces.deleteAll.description", { count: 2 })).toBe(
       "Permanently delete 2 archived Spaces and their contents? This cannot be undone.",
     );
-    expect(i18n.global.t("spaces.processing.document.textCoverage", { count: 1, total: 1 })).toBe(
-      "Pages with extracted text: 1 of 1.",
+    expect(i18n.global.t("spaces.processing.document.resources.occurrences", { count: 1 }, 1)).toBe(
+      "Used 1 time",
     );
   });
 });

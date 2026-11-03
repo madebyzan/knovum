@@ -52,7 +52,14 @@ const visibleTags = computed(() => {
         :clamp-lines="4"
         class="text-body leading-relaxed text-fg-secondary"
       />
-      <div v-if="knowledge.tags.length" class="mt-3 flex flex-wrap gap-1">
+    </template>
+    <SpaceEnrichmentJobStatus :job="visualJob" @retried="refresh" />
+    <SpaceRecognizedText class="mt-3" :text="recognizedText(null)" :job="recognitionJob" @retried="refresh" />
+    <div v-if="knowledge?.tags.length" class="mt-3 space-y-1">
+      <h4 class="text-caption font-medium text-fg-tertiary">
+        {{ t("spaces.tags.title") }}
+      </h4>
+      <div class="flex flex-wrap gap-1">
         <UiBadge v-for="tag in visibleTags" :key="tag" size="sm">
           {{ tag }}
         </UiBadge>
@@ -72,9 +79,7 @@ const visibleTags = computed(() => {
           />
         </button>
       </div>
-    </template>
-    <SpaceEnrichmentJobStatus :job="visualJob" @retried="refresh" />
-    <SpaceRecognizedText class="mt-3" :text="recognizedText(null)" :job="recognitionJob" @retried="refresh" />
+    </div>
     <p v-if="!visualJob && !knowledge && !loading" class="text-caption leading-relaxed text-fg-tertiary">
       {{ t("spaces.knowledge.visual.empty") }}
     </p>

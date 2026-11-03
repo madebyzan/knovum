@@ -3,9 +3,12 @@ import { ChevronDown } from "@lucide/vue";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import { shallowRef, type Component } from "vue";
 
-const props = withDefaults(defineProps<{ title: string; icon?: Component; defaultExpanded?: boolean }>(), {
-  defaultExpanded: true,
-});
+const props = withDefaults(
+  defineProps<{ title: string; icon?: Component; count?: number; defaultExpanded?: boolean }>(),
+  {
+    defaultExpanded: true,
+  },
+);
 const expanded = shallowRef(props.defaultExpanded);
 </script>
 
@@ -17,6 +20,9 @@ const expanded = shallowRef(props.defaultExpanded);
       >
         <component :is="icon" v-if="icon" class="size-3.5 shrink-0 text-fg-tertiary" :stroke-width="1.6" />
         <span class="min-w-0 flex-1 text-label font-medium text-fg-primary">{{ title }}</span>
+        <span v-if="count !== undefined" class="text-caption-sm text-fg-tertiary tabular-nums">
+          {{ count }}
+        </span>
         <ChevronDown
           class="size-3 shrink-0 text-fg-tertiary transition-transform duration-150 ease-standard"
           :class="expanded ? 'rotate-180' : ''"

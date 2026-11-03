@@ -39,7 +39,10 @@ async fn each_picture_reads_back_as_its_own_text_in_reading_order() {
         .await
         .unwrap();
     let long_scan = format!("{}\n{}", "Clause 4. ".repeat(400), "Clause 7.");
-    let mut recognized = read(&long_scan, json!({ "role": RECOGNIZED_TEXT_ROLE, "resourceId": "scan" }));
+    let mut recognized = read(
+        &long_scan,
+        json!({ "role": RECOGNIZED_TEXT_ROLE, "resourceId": "scan" }),
+    );
     assert!(recognized.len() > 1, "a long reading spans passages");
     recognized.extend(read(
         "Mill Lane",

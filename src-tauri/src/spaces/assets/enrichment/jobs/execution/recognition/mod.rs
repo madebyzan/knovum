@@ -98,10 +98,16 @@ fn passages(source: &RecognitionSource, text: &str, revision: &str) -> Vec<Knowl
     if let Picture::Resource { id, .. } = &source.picture {
         metadata["resourceId"] = Value::from(id.as_str());
     }
-    indexing::chunks(source.kind, text, revision, source.location.clone(), metadata)
-        .into_iter()
-        .map(KnowledgeChunkInput::from)
-        .collect()
+    indexing::chunks(
+        source.kind,
+        text,
+        revision,
+        source.location.clone(),
+        metadata,
+    )
+    .into_iter()
+    .map(KnowledgeChunkInput::from)
+    .collect()
 }
 
 fn read_source(path: &Path) -> Result<ImageTensor, String> {

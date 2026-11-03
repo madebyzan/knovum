@@ -20,7 +20,7 @@ export default defineConfig({
         ...["cmaps", "standard_fonts", "wasm", "iccs"].map((directory) => ({
           src: `node_modules/pdfjs-dist/${directory}/*`,
           dest: `pdfjs/${directory}`,
-          rename: { stripBase: true },
+          rename: { stripBase: true as const },
         })),
       ],
     }),

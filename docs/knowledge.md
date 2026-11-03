@@ -7,8 +7,8 @@ changes reach existing libraries through forward migrations ([data-ownership.md]
 ## Document extraction
 
 PDF text is extracted with exact-pinned `pdf-inspector 1.20.0`, without its optional
-PDFium or OCR features. Passages retain actual one-based page locators. The Inspector and a
-cited passage open the original PDF in the in-app reader (pdf.js, lazy-loaded from the
+PDFium or OCR features. Passages retain actual one-based page locators. A
+cited passage opens the original PDF in the in-app reader (pdf.js, lazy-loaded from the
 bundled `pdfjs/` directory), at the cited page with the passage highlighted; when the
 stored passage no longer matches the page text verbatim, the reader searches for its
 first 48 characters instead.
@@ -16,7 +16,9 @@ first 48 characters instead.
 File nodes retain one typed `documentCoverage` aggregate tied to `sourceRevision`:
 parser identity, page coverage, source-owned content-addressed PNG resources, logical
 occurrences and explicit unsupported-format warnings. PDF visuals
-use public positioned `ItemType::Image` items in `PositionFrame::Display`. Scanned, garbled
+use public positioned `ItemType::Image` items in `PositionFrame::Display`, filtering out tiny
+inline fragments, tiled or stationary cross-page watermarks/furniture, and overlays that slice
+horizontally through selectable body text lines. Scanned, garbled
 or vector-text pages contribute their rendered page image instead of text; a page whose
 image cannot be decoded records why it is unavailable, so a resource and an unavailability
 reason are mutually exclusive. Pages without extractable content are reported separately,
@@ -28,12 +30,14 @@ Inline images and vector graphics are not guaranteed to be fully covered by this
 
 A document is read as far as it goes. Processing budgets bound the work and the record, never the
 document: a PDF with more pictures, pages or text than one coverage record carries is still parsed,
-extracted, chunked and searched, and the record describes it completely up to one page and says so
+extracted, chunked and searched, and the record describes it up to its budgets and says so
 (`pdf_visual_occurrence_coverage_limited`, `pdf_page_coverage_limited`, `pdf_text_coverage_limited`).
-That boundary is one page for all of its lists, because a page claiming recognition and the input
-that recognises it are the same fact stated twice; truncating them apart produces a record that does
-not validate. Refusing the document instead — which is what the old 2000-page and 2000-visual
-budgets did, after paying for the full parse — left the Space with nothing of it at all.
+Whole-page recognition inputs (`PdfInput::Page`) and `pagesRequiringRecognition` share one page
+boundary so a page claiming recognition and the input that recognises it never diverge; sub-page
+image crops (`PdfInput::Image`) consume whatever visual budget remains up to a whole-page boundary
+without truncating page coverage or OCR of later scanned pages. Refusing the document instead —
+which is what the old 2000-page and 2000-visual budgets did, after paying for the full parse — left
+the Space with nothing of it at all.
 Core Graphics and Windows.Data.Pdf render the selected region directly into a bounded
 bitmap. Coordinates are PDF points, lower-left/y-up in the rotated visible page frame;
 Windows converts to top-left DIPs at 96/72. Core Graphics stores bitmap rows top-down while
@@ -47,8 +51,10 @@ files, so rollback of an unpublished import cannot remove another document's in-
 Raster geometry belongs to the explicit `pdfInput` contract; visual citations navigate to
 the actual page and identify their occurrence, without redefining generic locator rectangles.
 There is no alternate rendering engine or WebView
-source-page command. Office parsing preserves supported embedded raster images and
-their logical positions. XLSX cell APIs preserve actual addresses, formulas and cached
+source-page command. Office parsing preserves supported embedded body figures and
+their logical positions while sharing the same figure-hygiene rules as PDF: Word page
+headers/footers, OOXML `decorative` pictures, tiny inline icons/dividers and template logos
+or watermarks repeated across sections/slides/sheets are excluded. XLSX cell APIs preserve actual addresses, formulas and cached
 values without the vendor IR's 10,000-row cap. Spreadsheet chart appearance, exact image
 cell anchors and legacy Office image positions remain explicitly unsupported.
 

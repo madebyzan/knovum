@@ -1,4 +1,5 @@
 use super::{ensure_active, images::DocumentImages, location::sheet_drawing};
+use crate::documents::extraction::visual::is_meaningful_emu_size;
 use office_oxide::xlsx::XlsxDocument;
 use tokio_util::sync::CancellationToken;
 
@@ -11,6 +12,12 @@ pub(super) fn collect(
     for (sheet_index, sheet) in document.worksheets.iter().enumerate() {
         for (index, image) in sheet.images.iter().enumerate() {
             ensure_active(cancellation)?;
+            if image.cx_emu > 0
+                && image.cy_emu > 0
+                && !is_meaningful_emu_size(image.cx_emu as u64, image.cy_emu as u64)
+            {
+                continue;
+            }
             let location = sheet_drawing(
                 &sheet.name,
                 index,

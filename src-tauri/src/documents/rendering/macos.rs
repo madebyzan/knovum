@@ -1,31 +1,45 @@
-use objc2_core_foundation::{CFData, CGPoint, CGRect, CGSize, CFURL};
+use objc2_core_foundation::{CFData, CFRetained, CGPoint, CGRect, CGSize, CFURL};
 use objc2_core_graphics::{
     CGBitmapContextCreate, CGColorSpace, CGContext, CGDataProvider, CGImageAlphaInfo,
     CGImageByteOrderInfo, CGPDFBox, CGPDFDocument, CGPDFPage,
 };
 use std::{io::Cursor, path::Path};
 
-pub(super) fn render(
-    source: &Path,
-    page: u32,
-    region: Option<crate::documents::pdf_input::PdfRegion>,
-) -> Result<super::PdfRaster, String> {
-    let url = CFURL::from_file_path(source).ok_or("PDF path cannot be represented as a URL")?;
-    let document = CGPDFDocument::with_url(Some(&url)).ok_or("Core Graphics could not open PDF")?;
-    render_document(&document, page, region)
+pub(super) struct Renderer {
+    document: CFRetained<CGPDFDocument>,
 }
 
-pub(super) fn render_bytes(
-    bytes: &[u8],
-    page: u32,
-    region: Option<crate::documents::pdf_input::PdfRegion>,
-) -> Result<super::PdfRaster, String> {
-    let data = CFData::from_bytes(bytes);
-    let provider = CGDataProvider::with_cf_data(Some(&data))
-        .ok_or("Core Graphics could not create a PDF data provider")?;
-    let document = CGPDFDocument::with_provider(Some(&provider))
-        .ok_or("Core Graphics could not open PDF snapshot")?;
-    render_document(&document, page, region)
+impl Renderer {
+    pub(super) fn open(source: &Path) -> Result<Self, String> {
+        let url = CFURL::from_file_path(source).ok_or("PDF path cannot be represented as a URL")?;
+        let document =
+            CGPDFDocument::with_url(Some(&url)).ok_or("Core Graphics could not open PDF")?;
+        Self::new(document)
+    }
+
+    pub(super) fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
+        let data = CFData::from_bytes(bytes);
+        let provider = CGDataProvider::with_cf_data(Some(&data))
+            .ok_or("Core Graphics could not create a PDF data provider")?;
+        let document = CGPDFDocument::with_provider(Some(&provider))
+            .ok_or("Core Graphics could not open PDF snapshot")?;
+        Self::new(document)
+    }
+
+    fn new(document: CFRetained<CGPDFDocument>) -> Result<Self, String> {
+        if !CGPDFDocument::is_unlocked(Some(&document)) {
+            return Err("PDF requires a password".into());
+        }
+        Ok(Self { document })
+    }
+
+    pub(super) fn render(
+        &self,
+        page: u32,
+        region: Option<crate::documents::pdf_input::PdfRegion>,
+    ) -> Result<super::PdfRaster, String> {
+        render_document(&self.document, page, region)
+    }
 }
 
 fn render_document(
@@ -33,9 +47,6 @@ fn render_document(
     page: u32,
     region: Option<crate::documents::pdf_input::PdfRegion>,
 ) -> Result<super::PdfRaster, String> {
-    if !CGPDFDocument::is_unlocked(Some(document)) {
-        return Err("PDF requires a password".into());
-    }
     let page =
         CGPDFDocument::page(Some(document), page as usize).ok_or("PDF page does not exist")?;
     let (bounds, box_kind) = visible_bounds(&page);

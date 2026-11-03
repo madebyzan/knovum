@@ -1,11 +1,14 @@
 use office_oxide::ir::{Element, Image, ImageFormat};
-use pdf_inspector::types::ItemType;
 use std::collections::BTreeMap;
 
-use crate::documents::pdf_input::{PdfInput, PdfRecognitionReason, PdfRegion};
+use crate::documents::{
+    extraction::pdf_visuals::{extract_figure_regions, group_by_page},
+    pdf_input::{PdfInput, PdfRecognitionReason, PdfRegion},
+    rendering::PdfRenderer,
+};
 
 pub(super) struct Visuals {
-    bytes: Vec<u8>,
+    renderer: PdfRenderer,
     regions_by_page: BTreeMap<u32, Vec<PdfRegion>>,
     byte_size: usize,
     count: usize,
@@ -19,28 +22,13 @@ impl Visuals {
             pdf_inspector::PositionFrame::Display,
         )
         .map_err(|error| format!("PDF image discovery failed: {error}"))?;
-        let mut regions_by_page = BTreeMap::<u32, Vec<PdfRegion>>::new();
-        for item in positions {
-            if !matches!(item.item_type, ItemType::Image) {
-                continue;
-            }
-            let region = PdfRegion {
-                x: f64::from(item.x.min(item.x + item.width)),
-                y: f64::from(item.y.min(item.y + item.height)),
-                width: f64::from(item.width.abs()),
-                height: f64::from(item.height.abs()),
-            };
-            region.validate()?;
-            let page = regions_by_page.entry(item.page).or_default();
-            if !page.contains(&region) {
-                page.push(region);
-            }
-        }
+        let positioned_pages = group_by_page(positions);
+        let regions_by_page = extract_figure_regions(&positioned_pages)?;
         if regions_by_page.values().map(Vec::len).sum::<usize>() > 2000 {
             return Err("PDF exceeds 2000 image occurrences".into());
         }
         Ok(Self {
-            bytes: bytes.to_vec(),
+            renderer: PdfRenderer::from_bytes(bytes)?,
             regions_by_page,
             byte_size: 0,
             count: 0,
@@ -48,8 +36,7 @@ impl Visuals {
     }
 
     pub fn page(&mut self, page: u32, scanned: bool) -> Result<Vec<Element>, String> {
-        let mut regions = self.regions_by_page.remove(&page).unwrap_or_default();
-        regions.sort_by(|a, b| b.y.total_cmp(&a.y).then(a.x.total_cmp(&b.x)));
+        let regions = self.regions_by_page.remove(&page).unwrap_or_default();
         let inputs = if scanned {
             vec![PdfInput::Page {
                 page,
@@ -67,7 +54,7 @@ impl Visuals {
             if self.count > 2000 {
                 return Err("PDF exceeds 2000 image occurrences".into());
             }
-            let raster = crate::documents::rendering::render_bytes(&self.bytes, &input)?;
+            let raster = self.renderer.render(&input)?;
             self.byte_size += raster.bytes.len();
             if self.byte_size > 64 * 1024 * 1024 {
                 return Err("PDF images exceed 64 MiB".into());

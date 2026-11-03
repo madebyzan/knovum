@@ -3,6 +3,8 @@ mod macos;
 #[cfg(target_os = "windows")]
 mod windows;
 
+use std::path::Path;
+
 use crate::documents::pdf_input::{PdfInput, PdfRegion};
 
 pub(crate) struct PdfRaster {
@@ -11,45 +13,79 @@ pub(crate) struct PdfRaster {
     pub height: u32,
 }
 
-/// Background visual input, independent of canvas previews and presentation caches.
-pub(crate) fn render(source: &std::path::Path, input: &PdfInput) -> Result<PdfRaster, String> {
-    let page = input.page();
-    if page == 0 {
-        return Err("PDF page numbers start at one".into());
-    }
+/// An opened PDF document that rasterizes pages and regions without re-opening or re-parsing the
+/// source on every occurrence.
+pub(crate) struct PdfRenderer {
     #[cfg(target_os = "macos")]
-    {
-        macos::render(source, page, input.region())
-    }
+    inner: macos::Renderer,
     #[cfg(target_os = "windows")]
-    {
-        windows::render(source, page, input.region())
-            .map_err(|error| format!("Windows PDF rendering failed: {error}"))
-    }
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-    {
-        let _ = source;
-        Err("Native PDF processing is not supported on this platform".into())
-    }
+    inner: windows::Renderer,
 }
 
-/// Conversion rasterizes the same immutable byte snapshot used by its text parser.
-pub(crate) fn render_bytes(bytes: &[u8], input: &PdfInput) -> Result<PdfRaster, String> {
-    if input.page() == 0 || bytes.len() > 128 * 1024 * 1024 {
-        return Err("PDF snapshot page or byte budget is invalid".into());
+impl PdfRenderer {
+    pub(crate) fn open(source: &Path) -> Result<Self, String> {
+        #[cfg(target_os = "macos")]
+        {
+            Ok(Self {
+                inner: macos::Renderer::open(source)?,
+            })
+        }
+        #[cfg(target_os = "windows")]
+        {
+            Ok(Self {
+                inner: windows::Renderer::open(source)
+                    .map_err(|error| format!("Windows PDF rendering failed: {error}"))?,
+            })
+        }
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        {
+            let _ = source;
+            Err("Native PDF processing is not supported on this platform".into())
+        }
     }
-    #[cfg(target_os = "macos")]
-    {
-        macos::render_bytes(bytes, input.page(), input.region())
+
+    pub(crate) fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
+        if bytes.len() > 128 * 1024 * 1024 {
+            return Err("PDF snapshot byte budget is invalid".into());
+        }
+        #[cfg(target_os = "macos")]
+        {
+            Ok(Self {
+                inner: macos::Renderer::from_bytes(bytes)?,
+            })
+        }
+        #[cfg(target_os = "windows")]
+        {
+            Ok(Self {
+                inner: windows::Renderer::from_bytes(bytes)
+                    .map_err(|error| format!("Windows PDF rendering failed: {error}"))?,
+            })
+        }
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        {
+            Err("Native PDF processing is not supported on this platform".into())
+        }
     }
-    #[cfg(target_os = "windows")]
-    {
-        windows::render_bytes(bytes, input.page(), input.region())
-            .map_err(|error| format!("Windows PDF rendering failed: {error}"))
-    }
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-    {
-        Err("Native PDF processing is not supported on this platform".into())
+
+    pub(crate) fn render(&self, input: &PdfInput) -> Result<PdfRaster, String> {
+        let page = input.page();
+        if page == 0 {
+            return Err("PDF page numbers start at one".into());
+        }
+        #[cfg(target_os = "macos")]
+        {
+            self.inner.render(page, input.region())
+        }
+        #[cfg(target_os = "windows")]
+        {
+            self.inner
+                .render(page, input.region())
+                .map_err(|error| format!("Windows PDF rendering failed: {error}"))
+        }
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        {
+            Err("Native PDF processing is not supported on this platform".into())
+        }
     }
 }
 

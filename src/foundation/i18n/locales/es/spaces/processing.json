@@ -35,11 +35,6 @@
   "loadingImage": "Cargando imagen",
   "imageUnavailable": "Imagen no disponible",
   "document": {
-    "coverage": "Procesamiento de documentos",
-    "textCoverage": "Páginas con texto extraído: {count} de {total}.",
-    "unclassifiedPages": "La página {count} no tiene cuerpo de texto extraíble ni imágenes conocidas. Puede estar en blanco o contener contenido no compatible. | Las páginas {count} no tienen cuerpo de texto extraíble ni imágenes conocidas. Pueden estar en blanco o contener contenido no compatible.",
-    "scannedPages": "Páginas escaneadas (solo imagen): {pages}",
-    "visualUnavailable": "El analizador de documentos no puede decodificar la imagen a la que se hace referencia {count}. | El analizador de documentos no puede decodificar las imágenes a las que se hace referencia {count}.",
     "resources": {
       "title": "Recursos documentales",
       "open": "Abrir recurso de documento {index}",
@@ -50,17 +45,6 @@
       "altText": "Texto alternativo",
       "embeddedBadge": "Incrustada",
       "renderedBadge": "Renderizada"
-    },
-    "warnings": {
-      "officeVectorDrawingsUnsupported": "Los dibujos vectoriales de Office no se analizan visualmente; permanecen en el archivo original.",
-      "spreadsheetImageCellAnchorsUnavailable": "Las imágenes de hojas de cálculo se ubican por hoja de trabajo, no por celda.",
-      "spreadsheetChartRenderingUnsupported": "Se extrae el texto del gráfico disponible; La apariencia del gráfico no se analiza.",
-      "legacyOfficeVisualOccurrenceCoverageLimited": "Este formato heredado de Office no expone las posiciones completas de las imágenes.",
-      "legacySpreadsheetFormulasUnavailable": "Las hojas de cálculo heredadas exponen valores almacenados en caché, no expresiones de fórmulas.",
-      "pdfVisualCoverageLimited": "Las regiones de imagen PDF utilizan los datos de posición pública del analizador. No se garantiza que las imágenes en línea y los gráficos vectoriales estén completamente cubiertos; el archivo original conserva todo el contenido.",
-      "pdfVisualOccurrenceCoverageLimited": "Este documento contiene más imágenes de las que un registro de cobertura puede enumerar; aquí se describen las de las primeras páginas. La extracción de texto y la búsqueda no cambian, y el archivo original conserva todo el contenido.",
-      "pdfPageCoverageLimited": "Este documento contiene más páginas de las que un registro de cobertura puede describir, por lo que la cobertura por página se detiene antes. La extracción de texto y la búsqueda no cambian, y el archivo original conserva todo el contenido.",
-      "pdfTextCoverageLimited": "La extracción de texto alcanzó el límite de lo que admite un nodo, así que no se leyeron las páginas posteriores. El archivo original conserva todo el contenido."
     }
   },
   "visual": {

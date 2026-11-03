@@ -60,9 +60,16 @@ async fn passages(pool: &SqlitePool) -> Vec<(String, Value)> {
 async fn replacing_a_role_keeps_the_passages_other_writers_put_in_the_origin() {
     let pool = document().await;
     let mut tx = pool.begin().await.unwrap();
-    super::replace(&mut tx, "space", "node", "source", &[passage("Body", "text")], 1)
-        .await
-        .unwrap();
+    super::replace(
+        &mut tx,
+        "space",
+        "node",
+        "source",
+        &[passage("Body", "text")],
+        1,
+    )
+    .await
+    .unwrap();
     for reading in ["First reading", "Second reading"] {
         let recognized = [passage(reading, "recognized_text")];
         super::replace_role(
@@ -76,17 +83,28 @@ async fn replacing_a_role_keeps_the_passages_other_writers_put_in_the_origin() {
         .unwrap();
     }
     let foreign = [passage("Body", "text")];
-    let mislabelled =
-        super::replace_role(&mut tx, ("space", "node"), ("source", "recognized_text"), &foreign, 3)
-            .await;
+    let mislabelled = super::replace_role(
+        &mut tx,
+        ("space", "node"),
+        ("source", "recognized_text"),
+        &foreign,
+        3,
+    )
+    .await;
     tx.commit().await.unwrap();
 
-    assert!(mislabelled.is_err(), "a writer cannot replace another's passages");
+    assert!(
+        mislabelled.is_err(),
+        "a writer cannot replace another's passages"
+    );
     assert_eq!(
         passages(&pool).await,
         [
             ("Body".to_owned(), json!({ "role": "text" })),
-            ("Second reading".to_owned(), json!({ "role": "recognized_text" })),
+            (
+                "Second reading".to_owned(),
+                json!({ "role": "recognized_text" })
+            ),
         ]
     );
 }

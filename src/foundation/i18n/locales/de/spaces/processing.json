@@ -35,11 +35,6 @@
   "loadingImage": "Bild wird geladen",
   "imageUnavailable": "Bild nicht verfügbar",
   "document": {
-    "coverage": "Dokumentenverarbeitung",
-    "textCoverage": "Seiten mit extrahiertem Text: {count} oder {total}.",
-    "unclassifiedPages": "Die {count}-Seite enthält keinen extrahierbaren Textkörper oder bekannte Bilder. Möglicherweise ist es leer oder enthält nicht unterstützte Inhalte. | {count}-Seiten enthalten keinen extrahierbaren Textkörper oder bekannte Bilder. Sie sind möglicherweise leer oder enthalten nicht unterstützte Inhalte.",
-    "scannedPages": "Gescannte Seiten (nur Bild): {pages}",
-    "visualUnavailable": "Das auf {count} verwiesene Bild kann vom Dokumentparser nicht dekodiert werden. | {count}-referenzierte Bilder können vom Dokumentparser nicht dekodiert werden.",
     "resources": {
       "title": "Dokumentressourcen",
       "open": "Öffnen Sie die Dokumentressource {index}",
@@ -50,17 +45,6 @@
       "altText": "Alternativtext",
       "embeddedBadge": "Eingebettet",
       "renderedBadge": "Gerendert"
-    },
-    "warnings": {
-      "officeVectorDrawingsUnsupported": "Office-Vektorzeichnungen werden nicht visuell analysiert; sie verbleiben in der Originaldatei.",
-      "spreadsheetImageCellAnchorsUnavailable": "Tabellenkalkulationsbilder werden nach Arbeitsblatt und nicht nach Zelle angeordnet.",
-      "spreadsheetChartRenderingUnsupported": "Verfügbarer Diagrammtext wird extrahiert; Das Erscheinungsbild des Diagramms wird nicht analysiert.",
-      "legacyOfficeVisualOccurrenceCoverageLimited": "Dieses ältere Office-Format stellt keine vollständigen Bildpositionen zur Verfügung.",
-      "legacySpreadsheetFormulasUnavailable": "Ältere Tabellenkalkulationen stellen zwischengespeicherte Werte und keine Formelausdrücke bereit.",
-      "pdfVisualCoverageLimited": "PDF-Bildregionen verwenden die öffentlichen Positionsdaten des Parsers. Es kann nicht garantiert werden, dass Inline-Bilder und Vektorgrafiken vollständig abgedeckt sind. Die Originaldatei behält den gesamten Inhalt.",
-      "pdfVisualOccurrenceCoverageLimited": "Dieses Dokument enthält mehr Bilder, als ein Abdeckungsbericht auflisten kann; beschrieben sind die Bilder der früheren Seiten. Textextraktion und Suche bleiben unverändert, und die Originaldatei behält den gesamten Inhalt.",
-      "pdfPageCoverageLimited": "Dieses Dokument enthält mehr Seiten, als ein Abdeckungsbericht beschreiben kann; die seitenweise Abdeckung endet vorzeitig. Textextraktion und Suche bleiben unverändert, und die Originaldatei behält den gesamten Inhalt.",
-      "pdfTextCoverageLimited": "Die Textextraktion hat die Grenze eines einzelnen Knotens erreicht; spätere Seiten wurden nicht gelesen. Die Originaldatei behält den gesamten Inhalt."
     }
   },
   "visual": {

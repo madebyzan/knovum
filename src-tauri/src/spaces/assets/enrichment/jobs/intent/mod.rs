@@ -43,9 +43,11 @@ async fn cancel_obsolete(
     .await
     .map_err(crate::spaces::db::sql_error)?;
     for row in live {
-        let job_type: String = row.try_get("job_type").map_err(crate::spaces::db::sql_error)?;
-        let job_type: EnrichmentJobType =
-            serde_json::from_value(Value::String(job_type)).map_err(crate::spaces::db::json_error)?;
+        let job_type: String = row
+            .try_get("job_type")
+            .map_err(crate::spaces::db::sql_error)?;
+        let job_type: EnrichmentJobType = serde_json::from_value(Value::String(job_type))
+            .map_err(crate::spaces::db::json_error)?;
         let revision: String = row
             .try_get("source_revision")
             .map_err(crate::spaces::db::sql_error)?;
@@ -123,10 +125,12 @@ fn document_jobs(payload: &Value, source_revision: &str) -> Vec<EnrichmentJobTyp
 
 /// The revision recognition owes the node, if it owes one.
 fn recognition_due(payload: &Value) -> Result<Option<String>, String> {
-    Ok(expected_revision(payload, EnrichmentJobType::RecognizeText)?.filter(|revision| {
-        !knowledge_is_current(payload, "textRecognition", revision)
-            && !recognition_source::sources(payload).is_empty()
-    }))
+    Ok(
+        expected_revision(payload, EnrichmentJobType::RecognizeText)?.filter(|revision| {
+            !knowledge_is_current(payload, "textRecognition", revision)
+                && !recognition_source::sources(payload).is_empty()
+        }),
+    )
 }
 
 /// Queues recognition for nodes that predate it or whose intent was lost. A node with a job for its
