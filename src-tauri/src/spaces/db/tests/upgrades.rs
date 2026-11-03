@@ -156,65 +156,87 @@ async fn upgrading_0_0_3_draws_node_attachments_from_their_nodes() {
     assert_eq!(content("plain").await, plain);
 }
 
-/// Every PDF picture was rendered by a renderer that drew them upside down on macOS. Upgrading
-/// withdraws each PDF coverage record and queues the document to be parsed again, once; Office
-/// documents, whose pictures were never rendered, keep theirs.
+/// 0.1.0 has no text recognition and stored every PDF picture as its macOS renderer drew it, upside
+/// down and small. Upgrading admits the new job, keeps every job with the requests that hang off it,
+/// and queues each live PDF to be parsed again, once; Office documents, whose pictures were never
+/// rendered, keep theirs.
 #[tokio::test]
-async fn upgrading_rerenders_every_pdf_picture_once() {
-    let pool = shipped(4).await;
+async fn upgrading_0_1_0_admits_text_recognition_and_rerenders_pdf_pictures() {
+    let pool = shipped(3).await;
     sqlx::query(
         "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
     )
     .execute(&pool)
     .await
     .expect("space");
-    let coverage = |parser: &str| serde_json::json!({ "parser": parser, "resources": [] });
+    let file = |parser: &str| {
+        serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1",
+            "documentCoverage":{"parser":parser,"resources":[]}})
+    };
     for (id, deleted_at, data) in [
+        ("pdf", None, file("pdf-inspector")),
+        ("queued", None, file("pdf-inspector")),
+        ("trashed", Some(5_i64), file("pdf-inspector")),
+        ("deck", None, file("office-oxide")),
         (
-            "pdf",
+            "talk",
             None,
-            serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1","documentCoverage":coverage("pdf-inspector")}),
-        ),
-        (
-            "queued",
-            None,
-            serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1","documentCoverage":coverage("pdf-inspector")}),
-        ),
-        (
-            "trashed",
-            Some(5_i64),
-            serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1","documentCoverage":coverage("pdf-inspector")}),
-        ),
-        (
-            "deck",
-            None,
-            serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1","documentCoverage":coverage("office-oxide")}),
+            serde_json::json!({"kind":"audio","title":"Talk","sourceRevision":"a1"}),
         ),
     ] {
         sqlx::query(
             "INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at,deleted_at) \
-             VALUES($1,'s','file',0,0,$2,1,1,$3)",
+             VALUES($1,'s',$2,0,0,$3,1,1,$4)",
         )
         .bind(id)
+        .bind(data["kind"].as_str().expect("kind"))
         .bind(data.to_string())
         .bind(deleted_at)
         .execute(&pool)
         .await
         .expect("node");
     }
-    sqlx::query(
+    for statement in [
         "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
          VALUES('waiting','s','queued','parse_document','pending','r1',0,1,1)",
-    )
-    .execute(&pool)
-    .await
-    .expect("job");
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
+         VALUES('align','s','talk','align_media_transcript','pending','a1',0,1,1)",
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
+         VALUES('diarize','s','talk','diarize_media_transcript','pending','a1',0,1,1)",
+        "INSERT INTO spaces_media_alignment_requests(job_id,model_spec_id,expected_transcript_revision,segment_ids) \
+         VALUES('align','aligner',2,'[\"s1\"]')",
+        "INSERT INTO spaces_media_diarization_requests(job_id,model_spec_id,expected_transcript_revision) \
+         VALUES('diarize','diarizer',2)",
+    ] {
+        sqlx::query(statement).execute(&pool).await.expect("job");
+    }
 
     super::super::migrate(&pool).await.expect("upgrade");
 
     assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
+    let requests: (i64, i64) = sqlx::query_as(
+        "SELECT (SELECT COUNT(*) FROM spaces_media_alignment_requests WHERE job_id='align' \
+           AND segment_ids='[\"s1\"]'), \
+         (SELECT COUNT(*) FROM spaces_media_diarization_requests WHERE job_id='diarize')",
+    )
+    .fetch_one(&pool)
+    .await
+    .expect("requests");
+    assert_eq!(
+        requests,
+        (1, 1),
+        "the rebuilt job table keeps what hangs off it"
+    );
+    sqlx::query(
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
+         VALUES('read','s','pdf','recognize_text','pending','r1',0,2,2)",
+    )
+    .execute(&pool)
+    .await
+    .expect("text recognition is a job type");
     let covered: Vec<(String, bool)> = sqlx::query_as(
-        "SELECT id, json_extract(data,'$.documentCoverage') IS NOT NULL FROM spaces_nodes ORDER BY id",
+        "SELECT id, json_extract(data,'$.documentCoverage') IS NOT NULL FROM spaces_nodes \
+         WHERE kind='file' ORDER BY id",
     )
     .fetch_all(&pool)
     .await
@@ -228,7 +250,7 @@ async fn upgrading_rerenders_every_pdf_picture_once() {
             ("trashed".to_owned(), false),
         ]
     );
-    let queued: Vec<(String, String, String)> = sqlx::query_as(
+    let parses: Vec<(String, String, String)> = sqlx::query_as(
         "SELECT node_id,status,source_revision FROM spaces_enrichment_jobs \
          WHERE job_type='parse_document' ORDER BY node_id",
     )
@@ -236,330 +258,10 @@ async fn upgrading_rerenders_every_pdf_picture_once() {
     .await
     .expect("jobs");
     assert_eq!(
-        queued,
+        parses,
         [
             ("pdf".to_owned(), "pending".to_owned(), "r1".to_owned()),
             ("queued".to_owned(), "pending".to_owned(), "r1".to_owned()),
         ]
-    );
-}
-
-/// The first text recognition kept each node's text in its record and read pictures nobody can
-/// tell apart afterwards. Upgrading withdraws every record and the jobs that answered them, so each
-/// node is read again per picture, and leaves the passages for the new reading to replace.
-#[tokio::test]
-async fn upgrading_reads_every_picture_again() {
-    let pool = shipped(5).await;
-    let record = serde_json::json!({"sourceRevision":"r1","modelSpecId":"ocr","generatedAt":1,"text":"Revenue"});
-    sqlx::query(
-        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
-    )
-    .execute(&pool)
-    .await
-    .expect("space");
-    for (id, kind, data) in [
-        (
-            "brief",
-            "file",
-            serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1","textRecognition":record}),
-        ),
-        (
-            "photo",
-            "image",
-            serde_json::json!({"kind":"image","title":"Photo","sourceRevision":"r1","textRecognition":record}),
-        ),
-        (
-            "note",
-            "note",
-            serde_json::json!({"kind":"note","title":"Note"}),
-        ),
-    ] {
-        sqlx::query(
-            "INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) \
-             VALUES($1,'s',$2,0,0,$3,1,1)",
-        )
-        .bind(id)
-        .bind(kind)
-        .bind(data.to_string())
-        .execute(&pool)
-        .await
-        .expect("node");
-    }
-    for statement in [
-        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
-         VALUES('read','s','brief','recognize_text','succeeded','r1',1,1,1)",
-        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
-         VALUES('described','s','photo','analyze_visual','succeeded','v1',1,1,1)",
-    ] {
-        sqlx::query(statement).execute(&pool).await.expect("job");
-    }
-
-    super::super::migrate(&pool).await.expect("upgrade");
-
-    assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
-    let nodes: Vec<(String, bool, String)> = sqlx::query_as(
-        "SELECT id, json_extract(data,'$.textRecognition') IS NULL, json_extract(data,'$.title') \
-         FROM spaces_nodes ORDER BY id",
-    )
-    .fetch_all(&pool)
-    .await
-    .expect("nodes");
-    assert_eq!(
-        nodes,
-        [
-            ("brief".to_owned(), true, "Brief".to_owned()),
-            ("note".to_owned(), true, "Note".to_owned()),
-            ("photo".to_owned(), true, "Photo".to_owned()),
-        ]
-    );
-    let jobs: Vec<String> = sqlx::query_scalar("SELECT id FROM spaces_enrichment_jobs ORDER BY id")
-        .fetch_all(&pool)
-        .await
-        .expect("jobs");
-    assert_eq!(jobs, ["described"]);
-}
-
-async fn insert_node(
-    pool: &SqlitePool,
-    id: &str,
-    data: serde_json::Value,
-    deleted_at: Option<i64>,
-) {
-    sqlx::query(
-        "INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at,deleted_at) \
-         VALUES($1,'s',$2,0,0,$3,1,1,$4)",
-    )
-    .bind(id)
-    .bind(data["kind"].as_str().expect("kind"))
-    .bind(data.to_string())
-    .bind(deleted_at)
-    .execute(pool)
-    .await
-    .expect("node");
-}
-
-async fn insert_job(pool: &SqlitePool, job: (&str, &str, &str, &str, &str, Option<&str>, i64)) {
-    let (id, node, kind, status, revision, error, updated_at) = job;
-    sqlx::query(
-        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision, \
-         attempts,error,created_at,updated_at) VALUES($1,'s',$2,$3,$4,$5,1,$6,1,$7)",
-    )
-    .bind(id)
-    .bind(node)
-    .bind(kind)
-    .bind(status)
-    .bind(revision)
-    .bind(error)
-    .bind(updated_at)
-    .execute(pool)
-    .await
-    .expect("job");
-}
-
-async fn space(version: i64) -> SqlitePool {
-    let pool = shipped(version).await;
-    sqlx::query(
-        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
-    )
-    .execute(&pool)
-    .await
-    .expect("space");
-    pool
-}
-
-const REFUSED: &str = "textRecognition field 'text' is not supported";
-
-/// A build that carried 0005 without 0006 refused every result written to a node holding the first
-/// reader's record, so the re-parses 0005 queued failed. Upgrading revives the latest refused job of
-/// each live node once and leaves every other outcome as it was.
-#[tokio::test]
-async fn upgrading_retries_the_work_the_retired_record_refused() {
-    let pool = space(6).await;
-    let file = serde_json::json!({"kind":"file","title":"Brief","sourceRevision":"r1"});
-    for (id, deleted_at) in [
-        ("brief", None),
-        ("busy", None),
-        ("photo", None),
-        ("trashed", Some(5)),
-    ] {
-        insert_node(&pool, id, file.clone(), deleted_at).await;
-    }
-    for job in [
-        (
-            "first",
-            "brief",
-            "parse_document",
-            "failed",
-            "r1",
-            Some(REFUSED),
-            2,
-        ),
-        (
-            "again",
-            "brief",
-            "parse_document",
-            "failed",
-            "r1",
-            Some(REFUSED),
-            3,
-        ),
-        (
-            "other",
-            "photo",
-            "parse_document",
-            "failed",
-            "r1",
-            Some("PDF requires a password"),
-            2,
-        ),
-        (
-            "bin",
-            "trashed",
-            "parse_document",
-            "failed",
-            "r1",
-            Some(REFUSED),
-            2,
-        ),
-        (
-            "stale",
-            "busy",
-            "parse_document",
-            "failed",
-            "r1",
-            Some(REFUSED),
-            2,
-        ),
-        ("live", "busy", "parse_document", "pending", "r1", None, 4),
-    ] {
-        insert_job(&pool, job).await;
-    }
-
-    super::super::migrate(&pool).await.expect("upgrade");
-
-    assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
-    let jobs: Vec<(String, String, Option<String>)> =
-        sqlx::query_as("SELECT id,status,error FROM spaces_enrichment_jobs ORDER BY id")
-            .fetch_all(&pool)
-            .await
-            .expect("jobs");
-    let refused = Some(REFUSED.to_owned());
-    assert_eq!(
-        jobs,
-        [
-            ("again".to_owned(), "pending".to_owned(), None),
-            ("bin".to_owned(), "failed".to_owned(), refused.clone()),
-            ("first".to_owned(), "failed".to_owned(), refused.clone()),
-            ("live".to_owned(), "pending".to_owned(), None),
-            (
-                "other".to_owned(),
-                "failed".to_owned(),
-                Some("PDF requires a password".to_owned())
-            ),
-            ("stale".to_owned(), "failed".to_owned(), refused),
-        ]
-    );
-}
-
-/// A node as the app saved it, carrying the knowledge revision every write derives.
-fn written(mut data: serde_json::Value) -> serde_json::Value {
-    crate::spaces::knowledge::model::revision::apply(&mut data).expect("revision");
-    data
-}
-
-/// A library exactly as the first text recognition left it opens with every node valid for the
-/// current release, its PDFs queued to be parsed again and its pictures owed a new reading.
-#[tokio::test]
-async fn a_library_the_first_text_recognition_wrote_opens_and_is_read_again() {
-    let pool = space(4).await;
-    let record = serde_json::json!({"sourceRevision":"r1","modelSpecId":"ocr","generatedAt":1,"text":"Revenue"});
-    let coverage = serde_json::json!({
-        "schemaVersion":1,"parser":"pdf-inspector","sourceRevision":"r1","pageCount":1,
-        "pagesRequiringRecognition":[],"pagesWithExtractedText":[1],"pagesWithoutExtractableContent":[],
-        "resources":[],"occurrences":[],"warnings":[]
-    });
-    insert_node(
-        &pool,
-        "brief",
-        written(serde_json::json!({"kind":"file","title":"Brief","assetPath":"/a/brief.pdf","fileName":"brief.pdf",
-            "sourceRevision":"r1","documentCoverage":coverage,"textRecognition":record})),
-        None,
-    )
-    .await;
-    insert_node(
-        &pool,
-        "photo",
-        written(serde_json::json!({"kind":"image","title":"Photo","assetPath":"/a/photo.png","fileName":"photo.png",
-            "sourceRevision":"r1","textRecognition":record})),
-        None,
-    )
-    .await;
-    for job in [
-        (
-            "parsed",
-            "brief",
-            "parse_document",
-            "succeeded",
-            "r1",
-            None,
-            1,
-        ),
-        (
-            "read-brief",
-            "brief",
-            "recognize_text",
-            "succeeded",
-            "r1",
-            None,
-            1,
-        ),
-        (
-            "read-photo",
-            "photo",
-            "recognize_text",
-            "succeeded",
-            "r1",
-            None,
-            1,
-        ),
-    ] {
-        insert_job(&pool, job).await;
-    }
-
-    super::super::migrate(&pool).await.expect("upgrade");
-
-    let nodes: Vec<(String, String, String)> =
-        sqlx::query_as("SELECT id,kind,data FROM spaces_nodes ORDER BY id")
-            .fetch_all(&pool)
-            .await
-            .expect("nodes");
-    let mut tx = super::super::begin_write(&pool).await.expect("tx");
-    for (id, kind, data) in &nodes {
-        let data: serde_json::Value = serde_json::from_str(data).expect("json");
-        crate::spaces::knowledge::validation::validate_node(&mut tx, "s", kind, &data)
-            .await
-            .unwrap_or_else(|error| panic!("{id} is invalid after upgrading: {error}"));
-    }
-    drop(tx);
-    let jobs: Vec<(String, String)> = sqlx::query_as(
-        "SELECT node_id,job_type FROM spaces_enrichment_jobs WHERE status='pending' ORDER BY node_id",
-    )
-    .fetch_all(&pool)
-    .await
-    .expect("jobs");
-    assert_eq!(jobs, [("brief".to_owned(), "parse_document".to_owned())]);
-    crate::spaces::assets::enrichment::jobs::intent::enqueue_missing_recognition(&pool, 2)
-        .await
-        .expect("sweep");
-    let owed: Vec<String> = sqlx::query_scalar(
-        "SELECT node_id FROM spaces_enrichment_jobs WHERE job_type='recognize_text' AND status='pending'",
-    )
-    .fetch_all(&pool)
-    .await
-    .expect("owed");
-    assert_eq!(
-        owed,
-        ["photo"],
-        "the document is read once it is parsed again"
     );
 }

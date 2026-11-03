@@ -39,8 +39,8 @@ bitmap. Coordinates are PDF points, lower-left/y-up in the rotated visible page 
 Windows converts to top-left DIPs at 96/72. Core Graphics stores bitmap rows top-down while
 drawing y-up, so its buffer is already upright and is never flipped; its drawing transform never
 scales up, so it only places the box on a page-sized rectangle and the raster scale is applied to
-the context. Migration `0005_rerender_pdf_pictures` parses every PDF once more, because earlier
-macOS builds stored their pictures inverted and small.
+the context. Migration `0004_recognize_text_and_rerender_pdfs` parses every PDF once more,
+because macOS builds up to 0.1.0 stored their pictures inverted and small.
 Extracted raster paths contain both the managed source asset identity and raster digest.
 Repeated images inside one document share a raster; different source assets own separate
 files, so rollback of an unpublished import cannot remove another document's in-flight raster.
@@ -79,12 +79,7 @@ current passages per picture, and the UI shows each beside its picture: an image
 "OCR recognized text" in the Inspector, a document picture in its resource viewer. Vision's
 `detectedText` stays a search signal and is not shown beside it. Existing nodes without a current
 record are queued at startup. Visual file paths and operational progress do not affect semantic
-revision identity. Migration `0006_reread_text_per_picture` withdraws the first reader's
-records, which held the text and could not say which picture it came from, together with the jobs
-that answered them, so every node is read again; the new reading replaces the old passages. Migration
-`0007_retry_work_refused_by_retired_record` revives, once per node, type and revision, the work a
-build carrying 0005 without 0006 refused because the node still held such a record, such as the
-re-parses 0005 queued; every other failure keeps its outcome.
+revision identity.
 
 Publication merges only owned fields into the current node in a write transaction,
 rechecking source revision, node existence and running job identity. The central asset
