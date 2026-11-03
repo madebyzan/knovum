@@ -76,7 +76,7 @@ fn row_text(document: &XlsxDocument, row: &Row) -> String {
         .map(|cell| {
             let address = cell.reference.to_string();
             let value = document.format_cell_value(cell);
-            match &cell.formula {
+            match cell.formula() {
                 Some(formula) => format!("{address}: formula={formula}; cached={value}"),
                 None => format!("{address}: {value}"),
             }

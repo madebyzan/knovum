@@ -19,6 +19,17 @@ ignore = [
   { id = "RUSTSEC-2026-0391", reason = "affects stream::raw::{Encoder,Decoder}::with_context, which neither arrow-ipc nor lance-encoding calls" },
   { id = "RUSTSEC-2026-0398", reason = "affects seekable::Seekable::decompress, and the seekable feature is not enabled; enabled are arrays, legacy, std, zdict_builder" },
   { id = "RUSTSEC-2026-0403", reason = "affects stream::write::Decoder; dependents use only zstd::bulk and stream::copy_decode, which the advisory lists as unaffected" },
+  # zip 8.6.0 stays in the graph only through exact-pinned dependents whose latest releases
+  # still require zip ^8.6: docx-rs =0.4.22 in the app crate, oar-ocr =0.10.2 and
+  # candle-core =0.11.0 in the sealed inference worker. The advisory lives in the symlink
+  # branch of ZipArchive::extract_internal, which only the extract()/extract_to() family
+  # reaches; all three dependents read zip entries into memory (Cursor/BufReader with
+  # by_index/by_name) and never extract to disk, and oar-ocr and candle-core read only
+  # SHA-256-pinned model archives. Every untrusted-archive extraction the application owns
+  # (Space packages, books, plugin sources, file inspection, updater) runs on zip 9.3.0.
+  # Upgrading docx-rs, oar-ocr and candle-core to zip 9 releases retires this entry; adding
+  # another ignored advisory here does not.
+  { id = "RUSTSEC-2026-0429", reason = "affects the symlink branch of ZipArchive::extract_internal reached only through extract()/extract_to(); docx-rs, oar-ocr and candle-core read entries into memory and never call them" },
 ]
 
 [licenses]

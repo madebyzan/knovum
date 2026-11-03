@@ -111,7 +111,8 @@ fn extract_entries(
         super::super::control::check(cancellation)?;
         let mut entry = archive.by_index(index).map_err(|error| error.to_string())?;
         let entry_size = entry.size();
-        let Some((token, relative)) = asset_entry(entry.name())? else {
+        let entry_name = entry.name().map_err(|error| error.to_string())?;
+        let Some((token, relative)) = asset_entry(&entry_name)? else {
             processed += entry_size;
             send_progress(progress, "reading", processed, total)?;
             continue;

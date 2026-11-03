@@ -22,7 +22,6 @@ pub(super) fn document(title: Option<String>, elements: Vec<Element>) -> Documen
             elements,
             ..Default::default()
         }],
-        defined_names: Vec::new(),
     }
 }
 

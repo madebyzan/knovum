@@ -46,7 +46,11 @@ pub(super) fn extract(bytes: Vec<u8>, cancellation: &CancellationToken) -> AppRe
             return Err(AppError::cancelled("Plugin source reading was cancelled"));
         }
         let mut entry = archive.by_index(index).map_err(|error| error.to_string())?;
-        let path = entry.name().trim_end_matches('/').to_owned();
+        let path = entry
+            .name()
+            .map_err(|error| error.to_string())?
+            .trim_end_matches('/')
+            .to_owned();
         content::validate_path(&path)?;
         if !names.insert(content::filesystem_identity(&path)) {
             return Err(format!("package-case-collision: {path}").into());

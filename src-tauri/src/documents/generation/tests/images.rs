@@ -59,9 +59,10 @@ fn markdown_images_are_embedded_in_every_rich_output() {
         };
         let image = archive
             .file_names()
+            .map(|name| name.unwrap())
             .find(|name| name.starts_with(prefix) && name.len() > prefix.len())
             .unwrap()
-            .to_owned();
+            .into_owned();
         let mut bytes = Vec::new();
         archive
             .by_name(&image)

@@ -91,8 +91,9 @@ fn presentation_keeps_rich_runs_real_tables_and_hyperlinks() {
     let mut archive = zip::ZipArchive::new(Cursor::new(bytes)).unwrap();
     let names = archive
         .file_names()
+        .map(|name| name.unwrap())
         .filter(|name| name.starts_with("ppt/slides/"))
-        .map(str::to_owned)
+        .map(|name| name.into_owned())
         .collect::<Vec<_>>();
     let mut xml = String::new();
     for name in names {

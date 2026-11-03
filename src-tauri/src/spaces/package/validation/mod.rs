@@ -104,8 +104,9 @@ pub fn validate_archive(
         if file.compression() != CompressionMethod::Stored {
             return Err("Space package entries must use Stored compression".into());
         }
-        validate_entry_name(file.name())?;
-        if !names.insert(file.name().to_owned()) {
+        let name = file.name().map_err(|error| error.to_string())?;
+        validate_entry_name(&name)?;
+        if !names.insert(name.into_owned()) {
             return Err("Space package contains duplicate entries".into());
         }
         validate_unix_mode(file.unix_mode())?;

@@ -95,6 +95,7 @@ fn office_word_conversion_keeps_real_tables_and_embedded_image_bytes() {
     let mut archive = zip::ZipArchive::new(Cursor::new(output)).unwrap();
     assert!(archive
         .file_names()
+        .map(|name| name.unwrap())
         .any(|name| name.starts_with("word/media/")));
     let mut body = String::new();
     std::io::Read::read_to_string(

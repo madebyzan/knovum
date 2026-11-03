@@ -19,7 +19,6 @@ pub(crate) fn translate(document: &Document, images: &Images) -> Result<Document
             elements: blocks(&document.blocks, images)?,
             ..Default::default()
         }],
-        ..Default::default()
     })
 }
 

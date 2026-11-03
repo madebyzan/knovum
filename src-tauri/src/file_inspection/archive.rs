@@ -31,7 +31,8 @@ fn zip_entries(path: &Path) -> Result<Vec<ArchiveMember>, String> {
         let entry = archive
             .by_index_raw(index)
             .map_err(|error| error.to_string())?;
-        let decoded = decode_entry_name(entry.name_raw(), entry.name());
+        let fallback = entry.name().map_err(|error| error.to_string())?;
+        let decoded = decode_entry_name(entry.name_raw(), &fallback);
         let name = decoded.trim_start_matches('/').replace('\\', "/");
         if name.is_empty() || name.split('/').any(|part| part == "..") {
             continue;

@@ -49,7 +49,6 @@ pub(super) fn paginate(ir: &DocumentIR) -> Result<DocumentIR, String> {
     Ok(DocumentIR {
         metadata,
         sections: paginator.slides,
-        ..Default::default()
     })
 }
 

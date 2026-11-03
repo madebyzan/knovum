@@ -141,7 +141,10 @@ fn extract_inner(
     let mut total = 0u64;
     for index in 0..archive.len() {
         let mut entry = archive.by_index(index).map_err(|error| error.to_string())?;
-        let name = entry.name().to_owned();
+        let name = entry
+            .name()
+            .map_err(|error| error.to_string())?
+            .into_owned();
         if name == MANIFEST_PATH {
             manifests += 1;
             if entry.is_dir() {
