@@ -57,6 +57,9 @@ async fn owners(pool: &sqlx::SqlitePool) -> Result<Owners, String> {
 fn sweep(root: &Path, owners: &Owners) -> Result<(), String> {
     for entry in std::fs::read_dir(root).map_err(|error| error.to_string())? {
         let entry = entry.map_err(|error| error.to_string())?;
+        if !is_directory(&entry)? {
+            continue;
+        }
         let space = entry
             .file_name()
             .into_string()
@@ -65,8 +68,7 @@ fn sweep(root: &Path, owners: &Owners) -> Result<(), String> {
             .ok_or("Agent workspace has an invalid Space identifier")?;
         match owners.get(&space.to_string()) {
             None => discard(&entry.path())?,
-            Some(sessions) if is_directory(&entry)? => sweep_sessions(&entry.path(), sessions)?,
-            Some(_) => {}
+            Some(sessions) => sweep_sessions(&entry.path(), sessions)?,
         }
     }
     Ok(())

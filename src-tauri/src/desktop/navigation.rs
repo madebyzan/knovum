@@ -39,7 +39,7 @@ fn serves_app(url: &Url, dev_url: Option<&Url>) -> bool {
 }
 
 fn is_app_page(url: &Url) -> bool {
-    matches!(url.path(), "/" | "/index.html")
+    matches!(url.path(), "" | "/" | "/index.html")
 }
 
 #[cfg(test)]

@@ -7,6 +7,7 @@ fn url(value: &str) -> Url {
 #[test]
 fn the_app_and_what_it_serves_stay_in_the_window() {
     for allowed in [
+        "tauri://localhost",
         "tauri://localhost/",
         "tauri://localhost/index.html#/spaces/b9e3a6dc",
         "http://tauri.localhost/index.html",

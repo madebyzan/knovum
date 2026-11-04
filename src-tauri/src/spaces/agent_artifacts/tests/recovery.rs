@@ -18,6 +18,8 @@ fn a_workspace_survives_only_while_its_space_and_conversation_exist() {
         fs::create_dir_all(workspace).expect("workspace");
         fs::write(workspace.join("output.md"), "draft").expect("Agent output");
     }
+    let beside_spaces = root.join(".DS_Store");
+    fs::write(&beside_spaces, "").expect("file beside the Spaces");
     let beside = root.join(&live).join(".DS_Store");
     fs::write(&beside, "").expect("file beside the sessions");
     let owners = HashMap::from([(live.clone(), HashSet::from([conversation.clone()]))]);
@@ -31,6 +33,10 @@ fn a_workspace_survives_only_while_its_space_and_conversation_exist() {
     assert!(
         !unowned.exists(),
         "a session no conversation owns is dropped"
+    );
+    assert!(
+        beside_spaces.exists(),
+        "a file beside the Spaces is not a workspace"
     );
     assert!(
         beside.exists(),
