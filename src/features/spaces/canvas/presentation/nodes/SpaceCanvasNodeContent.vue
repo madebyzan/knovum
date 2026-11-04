@@ -157,12 +157,12 @@ const textPresentation = computed(() =>
         :style="{ height: `${PREVIEW_CAPTION_HEIGHT}px` }"
       >
         <span class="min-w-0 flex-1">
-          <strong class="line-clamp-2 text-body leading-snug font-semibold wrap-break-word">{{
+          <strong class="line-clamp-2 text-label leading-snug font-medium wrap-break-word">{{
             presentation.title
           }}</strong>
           <span
             v-if="showsSecondaryChrome && presentation.subtitle"
-            class="mt-0.5 block truncate text-caption text-fg-tertiary"
+            class="mt-0.5 block truncate text-caption-sm text-fg-tertiary"
             >{{ presentation.subtitle }}</span
           >
         </span>

@@ -39,6 +39,22 @@ describe("canvas preview projection", () => {
     expect(document.content).toHaveLength(12);
   });
 
+  it("does not spend the root-block budget on blank separator paragraphs", () => {
+    const document: TiptapJsonNode = {
+      type: "doc",
+      content: [
+        { type: "paragraph", content: [{ type: "text", text: "First" }] },
+        { type: "paragraph" },
+        { type: "paragraph", content: [{ type: "text", text: "Second" }] },
+        { type: "paragraph" },
+        { type: "paragraph", content: [{ type: "text", text: "Third" }] },
+      ],
+    };
+
+    expect(projectTiptapPreview(document, contexts.compact).content).toHaveLength(3);
+    expect(projectTiptapPreview(document, contexts.standard).content).toHaveLength(5);
+  });
+
   it("projects Markdown as complete root blocks rather than clipping rendered DOM lines", () => {
     const source = [
       "# Heading",

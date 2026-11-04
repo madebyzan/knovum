@@ -16,7 +16,7 @@ const html = computed(() => canvasTextHtml(props.content, props.kind));
 <template>
   <div
     class="w-full overflow-hidden wrap-break-word"
-    :class="kind === 'note' && 'canvas-text-prose max-h-full leading-relaxed'"
+    :class="kind === 'note' && 'canvas-text-prose max-h-full leading-normal'"
   >
     <span v-if="empty">{{ placeholder }}</span>
     <div v-else class="contents" v-html="html" />

@@ -12,8 +12,22 @@ export function projectTiptapPreview(
   };
   return {
     ...document,
-    content: projectChildren(document.content.slice(0, context.viewport.previewItemLimit), budget),
+    content: projectChildren(sliceBlocks(document.content, context.viewport.previewItemLimit), budget),
   };
+}
+
+function sliceBlocks(nodes: readonly TiptapJsonNode[], limit: number): readonly TiptapJsonNode[] {
+  let count = 0;
+  let end = 0;
+  for (const [index, node] of nodes.entries()) {
+    const empty = node.type === "paragraph" && (!node.content || node.content.length === 0);
+    if (!empty) {
+      count++;
+      end = index + 1;
+      if (count >= limit) break;
+    }
+  }
+  return end > 0 ? nodes.slice(0, end) : nodes.slice(0, limit);
 }
 
 function projectChildren(

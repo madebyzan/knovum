@@ -21,7 +21,7 @@ export interface SpaceNodeSizePolicy {
 
 export const PREVIEW_CAPTION_HEIGHT = 48;
 export const CANVAS_NODE_HEADER_HEIGHT = 40;
-export const DEFAULT_CANVAS_TEXT_FONT_SIZE = 18;
+export const DEFAULT_CANVAS_TEXT_FONT_SIZE = 10;
 
 const SIZE_POLICY_BY_NODE_KIND: Record<SpaceNodeKind, SpaceNodeSizePolicy> = {
   note: policy([192, 192], [144, 112]),

@@ -38,7 +38,7 @@ const { beginEditing, cancelEditing, editing, editor, save } = useCanvasTextEdit
 
 <template>
   <div
-    class="relative flex size-full min-h-0 flex-col overflow-hidden p-4 leading-relaxed"
+    class="relative flex size-full min-h-0 flex-col overflow-hidden p-3 leading-normal"
     :class="[verticalClass, editing ? 'pointer-events-auto' : 'select-none']"
     v-bind="{ [CANVAS_TEXT_SURFACE_ATTRIBUTE]: id }"
     :tabindex="interactive ? 0 : undefined"

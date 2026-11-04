@@ -1,5 +1,6 @@
 import Konva from "konva";
 
+import { DEFAULT_CANVAS_TEXT_FONT_SIZE } from "../../node-size";
 import type { CanvasPalette } from "../rendering/use-canvas-palette";
 import type { CanvasSceneNode } from "../scene/canvas-scene";
 
@@ -47,7 +48,7 @@ function drawTextNode(group: Konva.Group, sceneNode: CanvasSceneNode, palette: C
       text: (data.plainText.trim() || data.title).slice(0, 300),
       width: frame.width,
       height: frame.height,
-      fontSize: (appearance?.fontSize ?? 18) * (appearance?.typographyScale ?? 1),
+      fontSize: (appearance?.fontSize ?? DEFAULT_CANVAS_TEXT_FONT_SIZE) * (appearance?.typographyScale ?? 1),
       fontStyle: appearance?.fontWeight === "bold" ? "bold" : "normal",
       fill: palette.foreground,
       listening: false,
@@ -116,7 +117,7 @@ function noteText(data: Extract<CanvasSceneNode["node"]["data"], { kind: "note" 
 }
 
 function noteFontSize(appearance: CanvasSceneNode["layout"]["appearance"]) {
-  return (appearance?.fontSize ?? 18) * (appearance?.typographyScale ?? 1);
+  return (appearance?.fontSize ?? DEFAULT_CANVAS_TEXT_FONT_SIZE) * (appearance?.typographyScale ?? 1);
 }
 
 function noteFontStyle(note: boolean, appearance: CanvasSceneNode["layout"]["appearance"]) {

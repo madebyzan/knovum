@@ -1,4 +1,4 @@
-export const CANVAS_FONT_SIZES = [10, 12, 14, 18, 24, 36, 48, 64, 72, 96, 144] as const;
+export const CANVAS_FONT_SIZES = [9, 10, 11, 12, 14, 18, 24, 36, 48, 64, 72, 96, 144] as const;
 
 export const CANVAS_INLINE_TEXT_COLORS = [
   ["default", "var(--color-fg-primary)", "default"],
