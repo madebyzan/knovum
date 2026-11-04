@@ -51,8 +51,3 @@ allow = [
   "Unicode-DFS-2016",
   "Zlib",
 ]
-
-# Only unpublished workspace packages are exempt from declaring an OSS license.
-# All third-party dependency licenses remain subject to the allowlist above.
-[licenses.private]
-ignore = true

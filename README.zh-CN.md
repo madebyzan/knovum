@@ -14,7 +14,7 @@
     <a href="https://github.com/madebyzan/knovum/stargazers"><img src="https://img.shields.io/github/stars/madebyzan/knovum?style=flat&color=f5b301" alt="GitHub Star 数" /></a>
     <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple&logoColor=white" alt="macOS 14 及以上，Apple 芯片与 Intel" />
     <img src="https://img.shields.io/badge/Windows-10%202004%2B-0078D6?logo=windows&logoColor=white" alt="Windows 10 2004 及以上，x64" />
-    <a href="LICENSE"><img src="https://img.shields.io/badge/license-source--available-7c3aed" alt="许可：Knovum 个人非商业许可 1.0" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a" alt="许可：MIT" /></a>
   </p>
 
   <p>
@@ -210,8 +210,7 @@ Knovum 把三种思路放进同一个桌面应用：基于自己资料、带出�
 <details>
 <summary><strong>Knovum 开源吗？免费吗？</strong></summary>
 
-Knovum 是**源码可见**的软件，在 [Knovum 个人非商业许可 1.0](LICENSE)（[中文说明](docs/licensing.md)）下，
-个人非商业使用免费。你可以阅读、构建和修改代码。机构使用、接单或客户项目以及商业用途，需要另行取得书面授权。
+是的。Knovum 是基于 [MIT 许可证](LICENSE) 发布的免费开源软件，你可以在许可证条款下自由使用、阅读、构建、修改和分发。
 
 </details>
 
@@ -272,9 +271,7 @@ Knovum 版本和复现步骤，并删除日志中的凭据。安全问题请按 
 
 ## 许可
 
-Knovum 依据 [Knovum 个人非商业许可 1.0](LICENSE)（[中文说明](docs/licensing.md)）**源码可见，供个人非商业使用**。
-个人可以在许可条款下非商业地使用、修改和分享。机构使用、职业或客户工作以及商业化，需要事先取得书面授权。
-第三方组件保留其各自的许可。
+Knovum 基于 [MIT 许可证](LICENSE) 发布。第三方组件保留其各自的许可。
 
 ## Star 历史
 

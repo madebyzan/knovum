@@ -14,7 +14,7 @@
     <a href="https://github.com/madebyzan/knovum/stargazers"><img src="https://img.shields.io/github/stars/madebyzan/knovum?style=flat&color=f5b301" alt="GitHub stars" /></a>
     <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple&logoColor=white" alt="macOS 14 or later, Apple Silicon and Intel" />
     <img src="https://img.shields.io/badge/Windows-10%202004%2B-0078D6?logo=windows&logoColor=white" alt="Windows 10 version 2004 or later, x64" />
-    <a href="LICENSE"><img src="https://img.shields.io/badge/license-source--available-7c3aed" alt="License: Knovum Personal Noncommercial 1.0" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a" alt="License: MIT" /></a>
   </p>
 
   <p>
@@ -238,9 +238,8 @@ Builtin Agent. The on-device capabilities listed above do not need Ollama at all
 <details>
 <summary><strong>Is Knovum open source? Is it free?</strong></summary>
 
-Knovum is **source-available** and free for personal, noncommercial use under the
-[Knovum Personal Noncommercial License 1.0](LICENSE). You can read, build and modify the code.
-Organizational use, client work and commercial use need a separate written license.
+Yes. Knovum is free and open-source software under the [MIT License](LICENSE). You can use, read,
+build, modify and distribute it under the terms of the license.
 
 </details>
 
@@ -305,11 +304,7 @@ If Knovum is useful to you, a ⭐ helps other people find it.
 
 ## License
 
-Knovum is **source-available for personal noncommercial use** under the
-[Knovum Personal Noncommercial License 1.0](LICENSE) ([中文说明](docs/licensing.md)). Individuals may
-use, modify and share it noncommercially under its terms. Organizational use, professional or client
-work, and commercialization require prior written authorization. Third-party components keep their own
-licenses.
+Knovum is released under the [MIT License](LICENSE). Third-party components keep their own licenses.
 
 ## Star history
 

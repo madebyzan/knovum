@@ -2,7 +2,7 @@
 name = "knovum-media-libraries"
 version = "0.1.0"
 publish = false
-license-file.workspace = true
+license.workspace = true
 edition = "2021"
 rust-version = "1.94"
 links = "knovum_media_libraries"

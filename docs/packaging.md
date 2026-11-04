@@ -13,9 +13,9 @@ consistent with this attribution.
 ## License delivery
 
 Distributions must include the applicable Knovum [LICENSE](../LICENSE) and third-party notices
-required by the components actually shipped. Cargo packages reference the root license;
-`python/LICENSE` is the standalone Python package's copy and must remain identical to it.
-Verify these files in the actual distribution.
+required by the components actually shipped. Cargo packages declare the `MIT` license from the
+workspace; `python/LICENSE` is the standalone Python package's copy and must remain identical to
+the root [LICENSE](../LICENSE). Verify these files in the actual distribution.
 
 ## Local commands
 

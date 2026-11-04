@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "knovum-agent"
 version = "0.1.0"
 description = "Knovum Agent process"
-license = "LicenseRef-Knovum-Personal-Noncommercial-1.0"
+license = "MIT"
 license-files = ["LICENSE"]
 requires-python = "==3.11.17"
 dependencies = [

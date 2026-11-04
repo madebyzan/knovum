@@ -10,7 +10,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-license-file = "../LICENSE"
+license = "MIT"
 
 [package]
 name = "knovum"
@@ -19,7 +19,7 @@ default-run = "knovum"
 version = "0.2.0"
 description = "Local-first desktop knowledge space"
 authors = ["Zan"]
-license-file.workspace = true
+license.workspace = true
 edition = "2021"
 rust-version = "1.94"
 
