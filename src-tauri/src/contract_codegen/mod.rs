@@ -96,6 +96,7 @@ pub fn export(project_root: &Path) -> Result<(), String> {
             "export const relationKinds = {} as const;\n",
             "export const relationStatuses = {} as const;\n",
             "export const visualKnowledgeLimits = {} as const;\n",
+            "export const contentFootprints = {} as const;\n",
         ),
         crate::spaces::knowledge::indexing::MAX_KNOWLEDGE_PASSAGE_BYTES,
         relation_kinds
@@ -110,6 +111,12 @@ pub fn export(project_root: &Path) -> Result<(), String> {
             "tags": crate::spaces::knowledge::validation::nodes::visual::MAX_TAGS,
             "tag": crate::spaces::knowledge::validation::nodes::visual::MAX_TAG,
         }),
+        serde_json::to_value(
+            crate::spaces::nodes::CONTENT_FOOTPRINTS
+                .into_iter()
+                .collect::<std::collections::BTreeMap<_, _>>(),
+        )
+        .map_err(|error| error.to_string())?,
     );
     std::fs::write(spaces_output.join("contract-values.ts"), source).map_err(io_error)?;
     export_schemas(&spaces_output)

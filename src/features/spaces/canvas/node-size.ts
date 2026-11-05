@@ -1,5 +1,6 @@
 import { pick } from "es-toolkit";
 
+import { contentFootprints } from "../contracts/generated/contract-values";
 import { rotatedImageSize } from "../image-editing/image-edit";
 import type { SpaceNodePayload, SpaceNodeKind } from "../model/nodes/node-payload";
 
@@ -19,7 +20,7 @@ export interface SpaceNodeSizePolicy {
   };
 }
 
-export const PREVIEW_CAPTION_HEIGHT = 48;
+export const PREVIEW_CAPTION_HEIGHT = contentFootprints.file.caption;
 export const CANVAS_NODE_HEADER_HEIGHT = 40;
 export const DEFAULT_CANVAS_TEXT_FONT_SIZE = 10;
 
@@ -44,11 +45,8 @@ export function spaceNodeDefaultDimensions(kind: SpaceNodeKind) {
 
 export function spaceNodeSizePolicy(data: SpaceNodePayload): SpaceNodeSizePolicy {
   const base = SIZE_POLICY_BY_NODE_KIND[data.kind];
-  const ratio = spaceVisualDisplayRatio(data);
-  if (ratio && data.kind === "image") return { ...base, ...fitImageNode(ratio) };
-  if (ratio && data.kind === "video") return { ...base, ...fitVideoNode(ratio) };
-  const page = spacePageDisplayRatio(data);
-  return page ? { ...base, ...fitDocumentNode(page) } : base;
+  const extent = displayExtent(data);
+  return extent ? { ...base, ...previewSizePolicy(extent) } : base;
 }
 
 export function spaceNodeDimensions(data: SpaceNodePayload) {
@@ -82,29 +80,39 @@ export function spaceNodeResizePolicy(data: SpaceNodePayload) {
   ]);
 }
 
-function spaceVisualDisplayRatio(data: SpaceNodePayload) {
-  if (data.kind !== "image" && data.kind !== "video") return undefined;
-  if (!data.intrinsicWidth || !data.intrinsicHeight) return undefined;
-  if (data.kind === "video") return data.intrinsicWidth / data.intrinsicHeight;
-  return editedImageDisplayRatio(data, data.intrinsicWidth, data.intrinsicHeight);
+type PicturedKind = keyof typeof contentFootprints;
+
+interface DisplayExtent {
+  kind: PicturedKind;
+  width: number;
+  height: number;
 }
 
-function editedImageDisplayRatio(
+type PicturedPayload = Extract<SpaceNodePayload, { kind: PicturedKind }>;
+
+/** The size pictured content shows itself at: an image's cropped, rotated pixels, a video's frame,
+ * a rendered document's page. */
+function displayExtent(data: SpaceNodePayload): DisplayExtent | undefined {
+  if (!isPictured(data) || !data.intrinsicWidth || !data.intrinsicHeight) return undefined;
+  const intrinsic = { width: data.intrinsicWidth, height: data.intrinsicHeight };
+  const shown = data.kind === "image" ? editedImageSize(data, intrinsic) : intrinsic;
+  return { kind: data.kind, ...shown };
+}
+
+function isPictured(data: SpaceNodePayload): data is PicturedPayload {
+  return Object.hasOwn(contentFootprints, data.kind);
+}
+
+function editedImageSize(
   data: Extract<SpaceNodePayload, { kind: "image" }>,
-  intrinsicWidth: number,
-  intrinsicHeight: number,
+  { width, height }: { width: number; height: number },
 ) {
   const crop = data.imageEdit?.crop;
-  const width = intrinsicWidth * (crop?.width ?? 1);
-  const height = intrinsicHeight * (crop?.height ?? 1);
-  const rotated = rotatedImageSize(width, height, data.imageEdit?.rotation ?? 0);
-  return rotated.width / rotated.height;
-}
-
-function spacePageDisplayRatio(data: SpaceNodePayload) {
-  if (data.kind !== "file") return undefined;
-  if (!data.intrinsicWidth || !data.intrinsicHeight) return undefined;
-  return data.intrinsicWidth / data.intrinsicHeight;
+  return rotatedImageSize(
+    width * (crop?.width ?? 1),
+    height * (crop?.height ?? 1),
+    data.imageEdit?.rotation ?? 0,
+  );
 }
 
 function policy(
@@ -117,46 +125,24 @@ function policy(
   return { width, height, minWidth, minHeight, maxWidth, maxHeight, resizeMode };
 }
 
-function fitImageNode(ratio: number) {
-  const preview = fitIntrinsicRatio(ratio, 280, 128, 480);
-  return previewSizePolicy(preview, 0);
+/** The footprint Rust gives content nobody has sized (`nodes::content_size::default_size`). */
+function defaultFootprint({ kind, width: pixelWidth, height: pixelHeight }: DisplayExtent) {
+  const footprint = contentFootprints[kind];
+  const ratio = pixelWidth / pixelHeight;
+  const long = footprint.preferredLongEdge;
+  const width = ratio >= 1 ? long : long * ratio;
+  const height = ratio >= 1 ? long / ratio : long;
+  const grown = Math.max(footprint.minimumShortEdge / Math.min(width, height), 1);
+  const scale = Math.min(
+    grown,
+    footprint.maximumLongEdge / Math.max(width, height),
+    footprint.pixelBound ? pixelWidth / width : Number.POSITIVE_INFINITY,
+  );
+  return { width: width * scale, height: height * scale, caption: footprint.caption };
 }
 
-function fitVideoNode(ratio: number) {
-  return previewSizePolicy(fitIntrinsicRatio(ratio, 304, 156, 560), 0);
-}
-
-function fitDocumentNode(ratio: number) {
-  return previewSizePolicy(fitIntrinsicRatio(ratio, 272, 150, 480));
-}
-
-function fitIntrinsicRatio(
-  ratio: number,
-  preferredLongEdge: number,
-  minimumShortEdge: number,
-  maxLongEdge: number,
-) {
-  let width = ratio >= 1 ? preferredLongEdge : preferredLongEdge * ratio;
-  let height = ratio >= 1 ? preferredLongEdge / ratio : preferredLongEdge;
-  const shortEdge = Math.min(width, height);
-  if (shortEdge < minimumShortEdge) {
-    const scale = minimumShortEdge / shortEdge;
-    width *= scale;
-    height *= scale;
-  }
-  const longEdge = Math.max(width, height);
-  if (longEdge > maxLongEdge) {
-    const scale = maxLongEdge / longEdge;
-    width *= scale;
-    height *= scale;
-  }
-  return { width, height };
-}
-
-function previewSizePolicy(
-  preview: { width: number; height: number },
-  captionHeight = PREVIEW_CAPTION_HEIGHT,
-) {
+function previewSizePolicy(extent: DisplayExtent) {
+  const { caption: captionHeight, ...preview } = defaultFootprint(extent);
   const width = Math.round(preview.width);
   const height = Math.round(preview.height + captionHeight);
   return {

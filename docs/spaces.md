@@ -303,8 +303,20 @@ short or off-centre row is read as it is. Each cell becomes a WeChat sticker alb
 an 8px clear margin, resampled with premultiplied alpha, well under the album's 500 KB limit. A sheet
 is at least two stickers and at most an 8×8 grid.
 
+A picture nobody has sized takes its kind's default footprint (`nodes::content_size::FOOTPRINTS`,
+exported to the renderer as `contentFootprints`): a 280px long edge for images, widened until an
+elongated picture's short edge is legible, and never larger than the picture's own pixels — a
+240×240 sticker is 240×240, because enlarging only blurs it. A rendered page is geometry, not
+pixels, so it is not bound that way.
+
 Outputs published together are laid out as equal cells in reading order, as close to square as the
-count allows, each output centred in its cell at the size its content reports. That set is then
+count allows, each output centred in its cell at the size its content reports. A set is read at one
+glance, so up to four outputs keep the footprint each would have alone and a larger set keeps the
+area of four: its pictures and gutters shrink by √(4 / count), a picture to no less than a 96px long
+edge (a smaller picture keeps its own size); documents and players keep the size their text and
+controls need. A footprint the set chose is kept by the node (`sizingMode: frame`), as is the frame
+a person drew before asking for an output, so content that settles later adapts its aspect within
+that area instead of growing back to a lone default. That set is then
 placed as one block into its sources' derivation field: the area beside the sources where
 everything they produce accumulates, filled in reading order with as many columns as keep the field
 close to square. One rule covers every derivation — an Action's outputs, separated speech, an

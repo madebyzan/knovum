@@ -49,6 +49,13 @@ describe("spaces node size policy", () => {
     expect(spaceNodeDimensions(visual("image", 1080, 3840))).toEqual({ width: 128, height: 455 });
   });
 
+  it("never shows a picture larger than its own pixels, while a page is not bound by them", () => {
+    expect(spaceNodeDimensions(visual("image", 240, 240))).toEqual({ width: 240, height: 240 });
+    expect(spaceNodeDimensions(visual("image", 600, 40))).toEqual({ width: 480, height: 32 });
+    expect(spaceNodeDimensions(visual("video", 160, 90))).toEqual({ width: 160, height: 90 });
+    expect(spaceNodeDimensions(rendered(105, 148)).width).toBeGreaterThan(105);
+  });
+
   it("uses the full node for image and video content", () => {
     expect(spaceNodeDimensions(visual("video", 1920, 1080))).toEqual({ width: 304, height: 171 });
     expect(spaceNodeDimensions(visual("video", 1080, 1920))).toEqual({ width: 171, height: 304 });
