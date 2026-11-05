@@ -356,9 +356,10 @@ uses its pinned processor with at most 1,048,576 normalized pixels. Output tenso
 256 MiB, canonical PNG assets at 64 MiB. Qualification must measure the actual selected model,
 compiled runtime inventory, latency, cancellation and peak memory on every supported target.
 
-BiRefNet Lite, LaMa, MobileSAM and larger noncommercial depth variants are not installed by this
+BiRefNet Lite, MobileSAM and larger noncommercial depth variants are not installed by this
 change: a complete qualified and redistributable graph chain has not been established. A missing
-second repair/background candidate is an unmet qualification item, not a renamed existing model.
+second background candidate is an unmet qualification item, not a renamed existing model. Mask
+repair has two: MI-GAN for the whole picture and Big LaMa for one fitted window.
 Snapshot presence and adapter tests alone do not establish release qualification.
 
 ### Historical Python reference evidence — 2026-10-10

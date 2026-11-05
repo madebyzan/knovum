@@ -55,7 +55,7 @@
     "realEsrganGeneralX4v3": "Upscaling generale compatto dell'immagine. Inferenza nativa ×4; l'output può essere dimensionato a 2K, 4K o 8K.",
     "realEsrganX4plus": "Modello di upscaling dell'immagine generale completo; tempi di elaborazione della CPU più lunghi.",
     "migan": "Riparazione con spazzola o selezione intelligente. I pixel non selezionati vengono conservati; nessuna ricerca di oggetti guidata da testo.",
-    "lama": "Big LaMa: completa meglio aree ampie e texture ripetute come muri, cielo ed erba. Download più grande e più lento di MI-GAN; i pixel non selezionati restano invariati.",
+    "lama": "Ripara aree estese e completa in modo più naturale texture ripetitive come pareti, cielo ed erba.",
     "efficientSamTi": "Selezione compatta di punti e riquadri con punti di esclusione. Produce una maschera binaria e non opacizzazione a livello dei capelli.",
     "efficientSamS": "Modello di selezione di punti e riquadri più grande con gli stessi controlli di modifica.",
     "depthAnythingV2Small": "Profondità inversa relativa a piena precisione. Gli oggetti vicini appaiono più luminosi; questa non è una misurazione della distanza.",

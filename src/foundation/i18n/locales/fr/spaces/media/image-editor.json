@@ -105,7 +105,7 @@
     "glow": "Briller"
   },
   "selection": {
-    "title": "Sélectionner un objet",
+    "title": "Détourer ou supprimer un objet",
     "tools": "Outils de sélection",
     "include": "Point de premier plan",
     "exclude": "Point d'exclusion",

@@ -2,10 +2,12 @@
 //! row is read into its own columns, so a last row holding fewer stickers is read as it is.
 //!
 //! Along one axis the foreground profile has blank lines wherever nothing is drawn: the gutters
-//! between stickers, but also the gap between a character and the caption under it. The two are
-//! told apart by what a grid is — evenly pitched cells separated by gutters of one width — so a
-//! sheet is read as the most cells that fit an even pitch through clean, consistent gutters, and a
-//! caption therefore stays with the character it belongs to.
+//! between stickers, but also the gap between a character and the caption under it, or between a
+//! character and the prop beside it. The two are told apart by what a grid is — evenly pitched
+//! cells that each hold a whole sticker — so a sheet is read as the most cells that fit an even
+//! pitch through blank lines and are comparable in extent, and a caption therefore stays with the
+//! character it belongs to. Gutter widths are not compared: they follow how wide each neighbour is
+//! drawn, not the grid.
 
 /// Most rows a sheet is read as, and most stickers a row is read as.
 pub(super) const MAX_SPLITS: u32 = 8;
@@ -14,10 +16,10 @@ pub(super) const MAX_SPLITS: u32 = 8;
 const BLANK_SHARE: f32 = 0.002;
 /// A cut may sit this share of the cell pitch away from where an even grid puts it.
 const CUT_SLACK: f32 = 0.25;
-/// The narrowest gutter of a reading must be at least this share of its widest. A sheet lays its
-/// gutters out evenly, and the gap under a character is narrower than the gap between two
-/// stickers; a reading that mixes the two is not the sheet's grid.
-const MIN_GUTTER_RATIO: f32 = 0.4;
+/// The smallest cell's drawn extent must be at least this share of the largest's. A cut through
+/// the gap under a character, or beside its prop, leaves a sliver holding only the caption or the
+/// prop; the stickers of one sheet are drawn at comparable sizes.
+const MIN_EXTENT_RATIO: f32 = 0.4;
 /// Cells narrower than this many pixels are not stickers.
 const MIN_PITCH: f32 = 8.0;
 
@@ -87,13 +89,6 @@ fn even(blank: &[bool], (start, end): Span, count: u32) -> Option<Vec<Span>> {
         }
         gutters.push(gutter);
     }
-    let widths = gutters.iter().map(|(low, high)| high - low);
-    let (narrowest, widest) = widths.fold((u32::MAX, 0), |(low, high), width| {
-        (low.min(width), high.max(width))
-    });
-    if (narrowest as f32) < widest as f32 * MIN_GUTTER_RATIO {
-        return None;
-    }
     let mut spans = Vec::with_capacity(count as usize);
     let mut from = start;
     for (low, high) in gutters {
@@ -101,7 +96,16 @@ fn even(blank: &[bool], (start, end): Span, count: u32) -> Option<Vec<Span>> {
         from = high;
     }
     spans.push((from, end));
-    Some(spans)
+    comparable(&spans).then_some(spans)
+}
+
+/// Every span starts and ends on a drawn line, so its length is the extent drawn in that cell.
+fn comparable(spans: &[Span]) -> bool {
+    let extents = spans.iter().map(|(low, high)| high - low);
+    let (smallest, largest) = extents.fold((u32::MAX, 0), |(low, high), extent| {
+        (low.min(extent), high.max(extent))
+    });
+    smallest as f32 >= largest as f32 * MIN_EXTENT_RATIO
 }
 
 /// The whole blank run holding the blank line nearest to `nominal`, searched within `slack`.

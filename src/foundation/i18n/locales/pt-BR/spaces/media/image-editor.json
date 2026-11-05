@@ -105,7 +105,7 @@
     "glow": "Brilho"
   },
   "selection": {
-    "title": "Selecionar objeto",
+    "title": "Recortar ou remover objeto",
     "tools": "Ferramentas de seleção",
     "include": "Ponto de primeiro plano",
     "exclude": "Ponto de exclusão",

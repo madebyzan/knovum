@@ -61,11 +61,28 @@ fn a_row_holding_fewer_stickers_is_read_as_it_is() {
 #[test]
 fn a_caption_gap_is_not_read_as_a_row_of_its_own() {
     // An even pitch through the caption gaps lands in the characters of the next row, and a
-    // pitch that mixes caption gaps with gutters is uneven; only the true rows survive.
+    // pitch that cuts through some of them leaves a caption-only sliver; only the true rows
+    // survive.
     let (mask, dimensions) = sheet(&[2, 2, 2], 2);
     let found = cells(&mask, dimensions);
     assert_eq!(found.len(), 6);
     assert!(found.iter().all(|[_, top, _, bottom]| bottom - top == 53));
+}
+
+#[test]
+fn stickers_drawn_at_different_widths_are_still_one_cell_each() {
+    // The gutters are 30, 20 and 8 pixels wide: they follow how wide each neighbour is drawn,
+    // while the cells stay evenly pitched.
+    let (width, height) = (400, PITCH);
+    let mut mask = vec![false; (width * height) as usize];
+    for (left, right) in [(10, 70), (100, 175), (195, 292), (300, 380)] {
+        paint(&mut mask, width, (left, 25, right - left, 50));
+    }
+    let found = cells(&mask, (width, height));
+    assert_eq!(
+        found.iter().map(|[left, ..]| *left).collect::<Vec<_>>(),
+        [10, 100, 195, 300]
+    );
 }
 
 #[test]

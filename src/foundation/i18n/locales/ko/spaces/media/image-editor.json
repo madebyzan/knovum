@@ -105,7 +105,7 @@
     "glow": "불타는 듯한 빛깔"
   },
   "selection": {
-    "title": "객체 선택",
+    "title": "개체 오려내기 또는 제거",
     "tools": "선택 도구",
     "include": "전경 지점",
     "exclude": "점 제외",
