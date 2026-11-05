@@ -130,9 +130,9 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         (
             RuntimeCapability::SpeechDiarization,
             "sherpa-diarization-cpu-v1"
-                | "sherpa-diarization-campplus-cpu-v1"
-                | "sherpa-diarization-eres2net-large-cpu-v1"
-                | "sherpa-diarization-fp32-cpu-v1",
+            | "sherpa-diarization-campplus-cpu-v1"
+            | "sherpa-diarization-eres2net-large-cpu-v1"
+            | "sherpa-diarization-fp32-cpu-v1",
             "cpu",
         ) => (1, 2, "Sherpa-ONNX speaker diarization CPU"),
         (
