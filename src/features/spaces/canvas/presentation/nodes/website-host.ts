@@ -1,4 +1,4 @@
-export function normalizeHostCandidate(value: string): string {
+function normalizeHostCandidate(value: string): string {
   return value
     .trim()
     .toLowerCase()
