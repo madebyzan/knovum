@@ -3,6 +3,7 @@
   "descriptions": {
     "mossNano": "Voix prédéfinies compactes en chinois et en anglais et clonage de référence. Processeur uniquement ; vitesse normale.",
     "voxCpm2": "Précision totale · Clonage et conception de la voix. Nécessite au moins 32 Gio de mémoire.",
+    "voxCpm2Bf16": "Précision BF16 · Clonage et conception de la voix. Nécessite au moins 32 Gio de mémoire.",
     "voxCpm2Q8": "Quantifié · Téléchargement et utilisation du disque réduits. Nécessite toujours au moins 32 Gio de mémoire."
   },
   "specs": "Détails du modèle"

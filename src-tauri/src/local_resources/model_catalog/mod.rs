@@ -14,9 +14,14 @@ use super::{
 };
 
 pub(crate) const VOXCPM2_FULL_SPEC_ID: &str = "voxcpm2-2b-gguf-orig-v1";
+pub(crate) const VOXCPM2_BF16_SPEC_ID: &str = "voxcpm2-2b-gguf-bf16-v1";
 pub(crate) const VOXCPM2_Q8_SPEC_ID: &str = "voxcpm2-2b-gguf-q8_0-v1";
 pub const IMAGE_SEGMENTATION_SPEC_ID: &str =
     "u2netp-onnx:309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8-v1";
+pub const IMAGE_SEGMENTATION_SILUETA_SPEC_ID: &str =
+    "silueta-onnx:75da6c8d2f8096ec743d071951be73b4a8bc7b3e51d9a6625d63644f90ffeedb-v1";
+pub const IMAGE_SEGMENTATION_HUMAN_SPEC_ID: &str =
+    "u2net-human-seg-onnx:01eb6a29a5c4d8edb30b56adad9bb3a2a0535338e480724a213e0acfd2d1c73c-v1";
 pub const IMAGE_SEGMENTATION_QUALITY_SPEC_ID: &str =
     "u2net-onnx:8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491-v1";
 
@@ -28,13 +33,21 @@ pub enum LocalModelId {
     Qwen3Embedding,
     WhisperSmall,
     WhisperTiny,
+    WhisperBase,
+    WhisperMedium,
+    WhisperMediumFull,
+    WhisperLargeV3TurboQ8,
+    WhisperLargeV3Turbo,
     WhisperLargeV3,
     MossNano,
     VoxCpm2,
+    VoxCpm2Bf16,
     VoxCpm2Q8,
     Qwen3Aligner,
     Qwen3AlignerQ8,
     U2netp,
+    Silueta,
+    U2netHumanSeg,
     U2net,
     RealEsrganGeneralX4v3,
     RealEsrganX4plus,
@@ -48,7 +61,9 @@ pub enum LocalModelId {
     Spleeter2Stems,
     Spleeter2StemsFull,
     SherpaDiarization,
+    SherpaDiarizationCampplus,
     SherpaDiarizationFull,
+    SherpaDiarizationEres2netLarge,
 }
 
 #[derive(Clone, Serialize, ts_rs::TS)]
@@ -86,17 +101,27 @@ pub const MODELS: &[LocalModelId] = &[
     LocalModelId::PpOcrV6Small,
     LocalModelId::WhisperSmall,
     LocalModelId::WhisperTiny,
+    LocalModelId::WhisperBase,
+    LocalModelId::WhisperMedium,
+    LocalModelId::WhisperMediumFull,
+    LocalModelId::WhisperLargeV3TurboQ8,
+    LocalModelId::WhisperLargeV3Turbo,
     LocalModelId::WhisperLargeV3,
     LocalModelId::MossNano,
     LocalModelId::VoxCpm2Q8,
+    LocalModelId::VoxCpm2Bf16,
     LocalModelId::VoxCpm2,
     LocalModelId::Qwen3Aligner,
     LocalModelId::Qwen3AlignerQ8,
     LocalModelId::SherpaDiarization,
+    LocalModelId::SherpaDiarizationCampplus,
     LocalModelId::SherpaDiarizationFull,
+    LocalModelId::SherpaDiarizationEres2netLarge,
     LocalModelId::Spleeter2Stems,
     LocalModelId::Spleeter2StemsFull,
     LocalModelId::U2netp,
+    LocalModelId::Silueta,
+    LocalModelId::U2netHumanSeg,
     LocalModelId::U2net,
     LocalModelId::RealEsrganGeneralX4v3,
     LocalModelId::RealEsrganX4plus,
@@ -126,6 +151,8 @@ impl LocalModelId {
         match self {
             Self::Qwen3Embedding | Self::PpOcrV6Small => LocalModelGroup::Knowledge,
             Self::U2netp
+            | Self::Silueta
+            | Self::U2netHumanSeg
             | Self::U2net
             | Self::RealEsrganGeneralX4v3
             | Self::RealEsrganX4plus
@@ -137,38 +164,60 @@ impl LocalModelId {
             | Self::DepthAnythingV2Small => LocalModelGroup::Images,
             Self::WhisperSmall
             | Self::WhisperTiny
+            | Self::WhisperBase
+            | Self::WhisperMedium
+            | Self::WhisperMediumFull
+            | Self::WhisperLargeV3TurboQ8
+            | Self::WhisperLargeV3Turbo
             | Self::WhisperLargeV3
             | Self::MossNano
             | Self::VoxCpm2
+            | Self::VoxCpm2Bf16
             | Self::VoxCpm2Q8
             | Self::Qwen3Aligner
             | Self::Qwen3AlignerQ8
             | Self::Spleeter2Stems
             | Self::Spleeter2StemsFull
             | Self::SherpaDiarization
-            | Self::SherpaDiarizationFull => LocalModelGroup::Audio,
+            | Self::SherpaDiarizationCampplus
+            | Self::SherpaDiarizationFull
+            | Self::SherpaDiarizationEres2netLarge => LocalModelGroup::Audio,
         }
     }
     pub(crate) fn snapshot(self) -> Option<SnapshotKind> {
         use SnapshotKind as S;
         match self {
             Self::Qwen3Embedding => Some(S::TextEmbedding),
-            Self::WhisperSmall | Self::WhisperTiny | Self::WhisperLargeV3 => {
-                Some(transcription_snapshot(self))
-            }
+            Self::WhisperSmall
+            | Self::WhisperTiny
+            | Self::WhisperBase
+            | Self::WhisperMedium
+            | Self::WhisperMediumFull
+            | Self::WhisperLargeV3TurboQ8
+            | Self::WhisperLargeV3Turbo
+            | Self::WhisperLargeV3 => Some(transcription_snapshot(self)),
             Self::MossNano => Some(S::MossNano),
             Self::VoxCpm2 => Some(S::VoxCpm2),
+            Self::VoxCpm2Bf16 => Some(S::VoxCpm2Bf16),
             Self::VoxCpm2Q8 => Some(S::VoxCpm2Q8),
             Self::Qwen3Aligner => {
                 (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty()).then_some(S::SpeechAlignment)
             }
             Self::Qwen3AlignerQ8 => Some(S::SpeechAlignmentQ8),
             Self::U2netp => Some(S::ImageSegmentation),
+            Self::Silueta => Some(S::ImageSegmentationSilueta),
+            Self::U2netHumanSeg => Some(S::ImageSegmentationHuman),
             Self::U2net => Some(S::ImageSegmentationQuality),
             Self::Spleeter2Stems => Some(S::SpeechSeparation),
             Self::Spleeter2StemsFull => Some(S::SpeechSeparationFull),
             Self::SherpaDiarization => Some(S::Diarization(catalog::DiarizationVariant::Int8)),
+            Self::SherpaDiarizationCampplus => {
+                Some(S::Diarization(catalog::DiarizationVariant::Campplus))
+            }
             Self::SherpaDiarizationFull => Some(S::Diarization(catalog::DiarizationVariant::Full)),
+            Self::SherpaDiarizationEres2netLarge => {
+                Some(S::Diarization(catalog::DiarizationVariant::Eres2netLarge))
+            }
             Self::RealEsrganGeneralX4v3 => {
                 Some(S::Image(catalog::ImageModelVariant::RealEsrganGeneralX4v3))
             }
@@ -192,6 +241,11 @@ impl LocalModelId {
             Self::Qwen3Embedding => ResourcePreparationTarget::TextEmbedding,
             Self::WhisperSmall => ResourcePreparationTarget::Transcription,
             Self::WhisperTiny
+            | Self::WhisperBase
+            | Self::WhisperMedium
+            | Self::WhisperMediumFull
+            | Self::WhisperLargeV3TurboQ8
+            | Self::WhisperLargeV3Turbo
             | Self::WhisperLargeV3
             | Self::RealEsrganGeneralX4v3
             | Self::RealEsrganX4plus
@@ -202,11 +256,18 @@ impl LocalModelId {
             | Self::DepthAnythingV2SmallUint8
             | Self::DepthAnythingV2Small
             | Self::PpOcrV6Small
+            | Self::Silueta
+            | Self::U2netHumanSeg
             | Self::U2net
+            | Self::VoxCpm2Bf16
             | Self::VoxCpm2Q8
             | Self::Qwen3AlignerQ8
             | Self::Spleeter2StemsFull
-            | Self::SherpaDiarizationFull => ResourcePreparationTarget::Model { model: self },
+            | Self::SherpaDiarizationCampplus
+            | Self::SherpaDiarizationFull
+            | Self::SherpaDiarizationEres2netLarge => {
+                ResourcePreparationTarget::Model { model: self }
+            }
             Self::MossNano => ResourcePreparationTarget::SpeechSynthesis,
             Self::VoxCpm2 => ResourcePreparationTarget::VoiceDesign,
             Self::Qwen3Aligner => ResourcePreparationTarget::SpeechAlignment,
@@ -265,7 +326,12 @@ mod tests;
 fn transcription_snapshot(model: LocalModelId) -> SnapshotKind {
     let variant = match model {
         LocalModelId::WhisperTiny => catalog::WhisperVariant::Tiny,
+        LocalModelId::WhisperBase => catalog::WhisperVariant::Base,
         LocalModelId::WhisperSmall => catalog::WhisperVariant::Small,
+        LocalModelId::WhisperMedium => catalog::WhisperVariant::Medium,
+        LocalModelId::WhisperMediumFull => catalog::WhisperVariant::MediumFull,
+        LocalModelId::WhisperLargeV3TurboQ8 => catalog::WhisperVariant::LargeV3TurboQ8,
+        LocalModelId::WhisperLargeV3Turbo => catalog::WhisperVariant::LargeV3Turbo,
         LocalModelId::WhisperLargeV3 => catalog::WhisperVariant::LargeV3,
         _ => unreachable!("The catalog owns supported transcription models"),
     };

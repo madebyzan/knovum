@@ -54,12 +54,18 @@ impl Group {
 
 fn group(model: LocalModelId) -> Option<Group> {
     match model {
-        LocalModelId::WhisperSmall | LocalModelId::WhisperTiny | LocalModelId::WhisperLargeV3 => {
-            Some(Group::Transcription)
-        }
-        LocalModelId::MossNano | LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Q8 => {
-            Some(Group::SpeechSynthesis)
-        }
+        LocalModelId::WhisperSmall
+        | LocalModelId::WhisperTiny
+        | LocalModelId::WhisperBase
+        | LocalModelId::WhisperMedium
+        | LocalModelId::WhisperMediumFull
+        | LocalModelId::WhisperLargeV3TurboQ8
+        | LocalModelId::WhisperLargeV3Turbo
+        | LocalModelId::WhisperLargeV3 => Some(Group::Transcription),
+        LocalModelId::MossNano
+        | LocalModelId::VoxCpm2
+        | LocalModelId::VoxCpm2Bf16
+        | LocalModelId::VoxCpm2Q8 => Some(Group::SpeechSynthesis),
         LocalModelId::RealEsrganGeneralX4v3 | LocalModelId::RealEsrganX4plus => {
             Some(Group::ImageUpscaling)
         }
@@ -68,13 +74,17 @@ fn group(model: LocalModelId) -> Option<Group> {
         LocalModelId::DepthAnythingV2SmallUint8 | LocalModelId::DepthAnythingV2Small => {
             Some(Group::ImageDepth)
         }
-        LocalModelId::U2netp | LocalModelId::U2net => Some(Group::ImageSegmentation),
+        LocalModelId::U2netp
+        | LocalModelId::Silueta
+        | LocalModelId::U2netHumanSeg
+        | LocalModelId::U2net => Some(Group::ImageSegmentation),
         LocalModelId::Spleeter2Stems | LocalModelId::Spleeter2StemsFull => {
             Some(Group::SpeechSeparation)
         }
-        LocalModelId::SherpaDiarization | LocalModelId::SherpaDiarizationFull => {
-            Some(Group::SpeechDiarization)
-        }
+        LocalModelId::SherpaDiarization
+        | LocalModelId::SherpaDiarizationCampplus
+        | LocalModelId::SherpaDiarizationFull
+        | LocalModelId::SherpaDiarizationEres2netLarge => Some(Group::SpeechDiarization),
         LocalModelId::Qwen3Aligner | LocalModelId::Qwen3AlignerQ8 => Some(Group::SpeechAlignment),
         _ => None,
     }

@@ -163,6 +163,7 @@ fn validate_voxcpm2_profile(
     }
     let quantization = match model_spec_id {
         crate::local_resources::model_catalog::VOXCPM2_FULL_SPEC_ID => "orig",
+        crate::local_resources::model_catalog::VOXCPM2_BF16_SPEC_ID => "bf16",
         crate::local_resources::model_catalog::VOXCPM2_Q8_SPEC_ID => "q8_0",
         _ => return Err("runtime_mismatch: VoxCPM2 model specification is unsupported".into()),
     };

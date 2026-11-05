@@ -40,21 +40,21 @@ or unverified models leave the index unprepared without starting a download or r
 failure. Enabling semantic search or choosing Related Content's preparation action prepares the
 verified embedding snapshot explicitly; Related Content then schedules a full Space index.
 
-| Capability                     | Supported models                                                               |
-| ------------------------------ | ------------------------------------------------------------------------------ |
-| Text embedding                 | Fixed Qwen3-Embedding-0.6B, Candle F32 last-token pooling                      |
-| Transcription                  | Whisper Tiny / Small (default) Q8_0 / Large-v3 F16; whisper.cpp on all targets |
-| Speech synthesis and cloning   | MOSS-TTS-Nano (small default); VoxCPM2 Q8_0 / original-precision GGUF          |
-| Voice design                   | VoxCPM2 Q8_0 / original-precision GGUF                                         |
-| Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / F16 GGUF; audio.cpp                      |
-| Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32 + ERes2Net embeddings                |
-| Vocal/accompaniment separation | Spleeter FP16 (default) / FP32, Sherpa CPU engine                              |
-| Image background removal       | U²-Net Compact (default) / full, ONNX Runtime                                  |
-| Image upscaling                | Real-ESRGAN General X4v3 / X4plus, tiled ONNX Runtime                          |
-| Image repair                   | MI-GAN, selected-region ONNX Runtime                                           |
-| Image selection                | EfficientSAM Ti / S, cached ONNX Runtime                                       |
-| Relative depth                 | Depth Anything V2 Small UINT8 / F32, ONNX Runtime                              |
-| Text recognition (OCR)         | Fixed PP-OCRv6 small detection + recognition (~31 MB), `oar-ocr` ONNX Runtime  |
+| Capability                     | Supported models                                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| Text embedding                 | Fixed Qwen3-Embedding-0.6B, Candle F32 last-token pooling                                              |
+| Transcription                  | Whisper Tiny / Base / Small (default) / Medium / Large-v3 Turbo / Large-v3; whisper.cpp on all targets |
+| Speech synthesis and cloning   | MOSS-TTS-Nano (small default); VoxCPM2 Q8_0 / BF16 / original-precision GGUF                           |
+| Voice design                   | VoxCPM2 Q8_0 / BF16 / original-precision GGUF                                                          |
+| Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / F16 GGUF; audio.cpp                                              |
+| Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32; ERes2Net, CAM++ & ERes2Net Large                            |
+| Vocal/accompaniment separation | Spleeter FP16 (default) / FP32, Sherpa CPU engine                                                      |
+| Image background removal       | U²-Net Compact (default) / full / Human Portrait, Silueta, ONNX Runtime                                |
+| Image upscaling                | Real-ESRGAN General X4v3 / X4plus, tiled ONNX Runtime                                                  |
+| Image repair                   | MI-GAN, selected-region ONNX Runtime                                                                   |
+| Image selection                | EfficientSAM Ti / S, cached ONNX Runtime                                                               |
+| Relative depth                 | Depth Anything V2 Small UINT8 / F32, ONNX Runtime                                                      |
+| Text recognition (OCR)         | Fixed PP-OCRv6 small detection + recognition (~31 MB), `oar-ocr` ONNX Runtime                          |
 
 All non-Agent models execute in the Rust worker. Rust uses reqwest for the exact Hugging Face and
 ModelScope repository protocols; direct suppliers and archive members retain their frozen hashes.
@@ -62,7 +62,8 @@ Downloads validate 206 Content-Range before appending, restart on 200, stream bo
 preserve partial bytes on cancellation. The installer verifies complete snapshots before atomic
 publication. No Python Hub SDK, Torch, MLX or inference environment remains.
 
-Whisper tiny/small use the official Q8_0 exports and Large-v3 uses the official F16 export.
+Whisper tiny/base/small/medium/large-v3-turbo offer official Q8_0 exports; medium, large-v3-turbo
+and large-v3 also offer official F16 exports.
 All use the separately pinned whisper.cpp Silero 6.2.0 VAD binary, preserving the source timeline.
 Silero's public VAD API selects and filters speech regions on the original waveform. Whisper's
 state-based decode receives the original offset and duration, so both segment and word timestamps
@@ -80,8 +81,9 @@ Cantonese retain these units; other languages merge non-space subwords using the
 The upstream decoder pads its final window with 30 seconds of zeros. Native timestamps are
 validated against that bounded context, then clipped to the source audio. Published word spans
 must have positive duration within their segment; untimed punctuation remains in segment text.
-Both dictation and media transcription use the bundled inference profile's compute budget. Tiny/Small and
-Metal execution allow four times the input duration with a two-minute minimum. Large-v3 CPU
+Both dictation and media transcription use the bundled inference profile's compute budget. Tiny/Base/Small and
+Metal execution allow four times the input duration with a two-minute minimum. Medium and Large-v3 Turbo
+allow twenty to forty times the input duration, while Large-v3 CPU
 allows 120 times the input duration with a thirty-minute minimum; every profile is capped at six
 hours. These are cancellable task deadlines, not quality or performance acceptance thresholds.
 Such a budget bounds the execution it names and nothing else. It starts when the worker is holding
@@ -115,9 +117,10 @@ Italian, Portuguese, Russian and Spanish. Japanese and Korean require optional
 upstream tokenizers absent from this reviewed runtime and return
 `unsupported_language`. Prepared PCM16 WAV samples are validated in Rust and passed to the audio.cpp supplier as finite float samples.
 
-Speaker diarization offers the official Sherpa-ONNX Pyannote 3.0 INT8 (default) and FP32 segmentation
-exports, both with 3D-Speaker ERes2Net base embeddings. Weights and MIT/Apache-2.0 notices total
-41,146,685 bytes for INT8 and 45,599,092 bytes for FP32. The Rust-owned catalog fixes each
+Speaker diarization offers official Sherpa-ONNX Pyannote 3.0 segmentation exports paired with 3D-Speaker
+embeddings: Pyannote INT8 + ERes2Net base (default), Pyannote FP32 + ERes2Net base, Pyannote INT8 + CAM++
+(fast lightweight profile), and Pyannote FP32 + ERes2Net Large (high-precision embedding). Weights and
+MIT/Apache-2.0 notices are pinned in the catalog. The Rust-owned catalog fixes each
 upstream revision, path, size and SHA-256;
 verified staging is atomically published. Downloads require no token, account, manual model import
 or terms form. No external configuration enters the worker. The node action and Settings model
@@ -264,7 +267,7 @@ identity. The host builds the profile it admits memory for from that module, and
 its expectation from the same functions, so a revision bump cannot leave one side producing an
 identity the other rejects. No capability repeats the identity as a literal.
 
-U²-Net Compact/full snapshots are 4,574,861 / 175,997,641 bytes and share the same ONNX mask and
+U²-Net Compact, full, Human Portrait and Silueta snapshots share the same ONNX mask and
 Rust compositing contract. Spleeter FP16/FP32 snapshots are 39,362,041 / 78,636,679 bytes and share
 the exact source timeline and automatic two-node derivation contract. Both separation models execute on CPU;
 no qualified GPU path is implemented for this engine. A precision choice changes the model rather
@@ -285,7 +288,7 @@ asset-review contracts belong to [spaces.md](spaces.md). Download presentation b
 ## Voice identity and delivery instructions
 
 Text reading, audiobook paragraphs and video dubbing share the same immutable voice revisions.
-VoxCPM2 offers the original 4,960,735,429-byte snapshot and a 2,955,019,717-byte Q8_0 snapshot;
+VoxCPM2 offers the original 4,960,735,429-byte snapshot, a 4,960,735,429-byte BF16 snapshot, and a 2,955,019,717-byte Q8_0 snapshot;
 cloning and design use the explicitly selected model, frozen before a task is created.
 A smaller download does not establish a lower process/GPU peak; the Q8 profile retains the
 qualified resource budget until hardware measurement supports a narrower one.

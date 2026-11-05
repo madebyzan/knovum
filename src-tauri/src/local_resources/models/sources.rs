@@ -58,6 +58,7 @@ pub(crate) fn for_snapshot(snapshot: SnapshotKind) -> Option<HubSource> {
         SnapshotKind::Image(_)
         | SnapshotKind::MossNano
         | SnapshotKind::VoxCpm2
+        | SnapshotKind::VoxCpm2Bf16
         | SnapshotKind::VoxCpm2Q8
         | SnapshotKind::SpeechAlignment
         | SnapshotKind::SpeechAlignmentQ8
@@ -67,13 +68,14 @@ pub(crate) fn for_snapshot(snapshot: SnapshotKind) -> Option<HubSource> {
             repository: "Qwen/Qwen3-Embedding-0.6B",
             revision: "dd3e37eb506b3addbd930037796e25d349ae9010",
         },
-        SnapshotKind::ImageSegmentation | SnapshotKind::ImageSegmentationQuality => {
-            HubSource::HuggingFace {
-                repository: "tomjackson2023/rembg",
-                revision: "cd3a3d6767a7859efea31ef0f2f373582cf06d82",
-                endpoint: "https://huggingface.co",
-            }
-        }
+        SnapshotKind::ImageSegmentation
+        | SnapshotKind::ImageSegmentationSilueta
+        | SnapshotKind::ImageSegmentationHuman
+        | SnapshotKind::ImageSegmentationQuality => HubSource::HuggingFace {
+            repository: "tomjackson2023/rembg",
+            revision: "cd3a3d6767a7859efea31ef0f2f373582cf06d82",
+            endpoint: "https://huggingface.co",
+        },
         SnapshotKind::SpeechSeparationFull => HubSource::HuggingFace {
             repository: "csukuangfj/sherpa-onnx-spleeter-2stems",
             revision: "7001ba316a615cacddb3f9ef3ec416661a277e26",

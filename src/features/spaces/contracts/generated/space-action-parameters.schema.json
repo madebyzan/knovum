@@ -361,13 +361,21 @@
         "qwen3Embedding",
         "whisperSmall",
         "whisperTiny",
+        "whisperBase",
+        "whisperMedium",
+        "whisperMediumFull",
+        "whisperLargeV3TurboQ8",
+        "whisperLargeV3Turbo",
         "whisperLargeV3",
         "mossNano",
         "voxCpm2",
+        "voxCpm2Bf16",
         "voxCpm2Q8",
         "qwen3Aligner",
         "qwen3AlignerQ8",
         "u2netp",
+        "silueta",
+        "u2netHumanSeg",
         "u2net",
         "realEsrganGeneralX4v3",
         "realEsrganX4plus",
@@ -381,7 +389,9 @@
         "spleeter2Stems",
         "spleeter2StemsFull",
         "sherpaDiarization",
-        "sherpaDiarizationFull"
+        "sherpaDiarizationCampplus",
+        "sherpaDiarizationFull",
+        "sherpaDiarizationEres2netLarge"
       ]
     },
     "ImageExecutionTarget": {

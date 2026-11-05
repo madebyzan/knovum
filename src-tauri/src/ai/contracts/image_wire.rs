@@ -4,7 +4,8 @@ pub use knovum_inference_contracts::image_wire::{
 };
 
 pub(crate) use crate::local_resources::model_catalog::{
-    IMAGE_SEGMENTATION_QUALITY_SPEC_ID, IMAGE_SEGMENTATION_SPEC_ID,
+    IMAGE_SEGMENTATION_HUMAN_SPEC_ID, IMAGE_SEGMENTATION_QUALITY_SPEC_ID,
+    IMAGE_SEGMENTATION_SILUETA_SPEC_ID, IMAGE_SEGMENTATION_SPEC_ID,
 };
 
 #[derive(Clone, Debug)]

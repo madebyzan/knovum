@@ -17,7 +17,12 @@ pub(crate) fn transcription_budget_ms(
     let (factor, minimum) = if profile.device == "cpu" {
         match model {
             LocalModelId::WhisperLargeV3 => (120, 30 * 60 * 1_000),
+            LocalModelId::WhisperLargeV3Turbo => (48, 10 * 60 * 1_000),
+            LocalModelId::WhisperLargeV3TurboQ8 => (32, 6 * 60 * 1_000),
+            LocalModelId::WhisperMediumFull => (64, 15 * 60 * 1_000),
+            LocalModelId::WhisperMedium => (48, 10 * 60 * 1_000),
             LocalModelId::WhisperSmall => (16, 3 * 60 * 1_000),
+            LocalModelId::WhisperBase => (10, 2 * 60 * 1_000),
             LocalModelId::WhisperTiny => (8, 2 * 60 * 1_000),
             _ => (4, 120_000),
         }
@@ -34,7 +39,12 @@ pub(crate) fn transcription_profile(model: LocalModelId) -> Result<Transcription
     let device = if metal { "mps" } else { "cpu" };
     let (variant, compute_type) = match model {
         LocalModelId::WhisperTiny => ("tiny", "q8_0"),
+        LocalModelId::WhisperBase => ("base", "q8_0"),
         LocalModelId::WhisperSmall => ("small", "q8_0"),
+        LocalModelId::WhisperMedium => ("medium", "q8_0"),
+        LocalModelId::WhisperMediumFull => ("medium", "f16"),
+        LocalModelId::WhisperLargeV3TurboQ8 => ("large-v3-turbo", "q8_0"),
+        LocalModelId::WhisperLargeV3Turbo => ("large-v3-turbo", "f16"),
         LocalModelId::WhisperLargeV3 => ("large-v3", "f16"),
         _ => return Err("Selected model cannot transcribe audio".into()),
     };

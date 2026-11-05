@@ -10,14 +10,24 @@ use crate::{
 fn every_inference_transcription_model_has_a_memory_identity() {
     for model in [
         LocalModelId::WhisperTiny,
+        LocalModelId::WhisperBase,
         LocalModelId::WhisperSmall,
+        LocalModelId::WhisperMedium,
+        LocalModelId::WhisperMediumFull,
+        LocalModelId::WhisperLargeV3TurboQ8,
+        LocalModelId::WhisperLargeV3Turbo,
         LocalModelId::WhisperLargeV3,
     ] {
         let profile = transcription_profile(model).unwrap();
         assert!(matches!(profile.engine, AsrEngine::WhisperCpp));
         assert_eq!(
             profile.compute_type,
-            if model == LocalModelId::WhisperLargeV3 {
+            if matches!(
+                model,
+                LocalModelId::WhisperMediumFull
+                    | LocalModelId::WhisperLargeV3Turbo
+                    | LocalModelId::WhisperLargeV3
+            ) {
                 "f16"
             } else {
                 "q8_0"
@@ -44,7 +54,16 @@ fn expensive_cpu_asr_is_admitted_without_unbounded_or_non_asr_deadlines() {
                 > transcription_budget_ms(LocalModelId::WhisperSmall, 4_000).unwrap()
         );
     }
-    for model in [LocalModelId::WhisperTiny, LocalModelId::WhisperLargeV3] {
+    for model in [
+        LocalModelId::WhisperTiny,
+        LocalModelId::WhisperBase,
+        LocalModelId::WhisperSmall,
+        LocalModelId::WhisperMedium,
+        LocalModelId::WhisperMediumFull,
+        LocalModelId::WhisperLargeV3TurboQ8,
+        LocalModelId::WhisperLargeV3Turbo,
+        LocalModelId::WhisperLargeV3,
+    ] {
         assert_eq!(
             transcription_budget_ms(model, u64::MAX).unwrap(),
             6 * 60 * 60 * 1_000

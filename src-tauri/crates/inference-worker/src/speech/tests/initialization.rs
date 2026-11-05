@@ -44,21 +44,18 @@ fn transcription_rejects_an_execution_identity_that_does_not_match_its_model() {
 
 #[test]
 fn vox_rejects_unadmitted_profiles_before_loading_a_inference_library() {
-    for quantization in ["orig", "q8_0"] {
+    for (quantization, file) in [
+        ("orig", "voxcpm2-orig.gguf"),
+        ("bf16", "voxcpm2-bf16.gguf"),
+        ("q8_0", "voxcpm2-q8_0.gguf"),
+    ] {
         let spec = format!("voxcpm2-2b-gguf-{quantization}-v1");
         let profile = format!("voxcpm2-cpu-gguf-{quantization}-v1");
         let mut input = params(&spec, &profile);
         input.capability = RuntimeCapability::SpeechSynthesis;
         assert_eq!(
             super::super::voxcpm::admit(&input).unwrap(),
-            (
-                if quantization == "orig" {
-                    "voxcpm2-orig.gguf"
-                } else {
-                    "voxcpm2-q8_0.gguf"
-                },
-                "/not-loaded"
-            )
+            (file, "/not-loaded")
         );
         input.device_profile.execution_profile_id = "obsolete-vox".into();
         assert!(super::super::voxcpm::admit(&input).is_err());
@@ -98,6 +95,8 @@ fn sherpa_rejects_a_profile_that_differs_from_its_frozen_precision() {
     }
     for spec in [
         "sherpa-diarization-cpu-v1",
+        "sherpa-diarization-campplus-cpu-v1",
+        "sherpa-diarization-eres2net-large-cpu-v1",
         "sherpa-diarization-fp32-cpu-v1",
     ] {
         let mut input = params(spec, spec);

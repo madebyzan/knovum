@@ -96,7 +96,7 @@ pub async fn require_voice(
          WHERE r.id=? AND ( \
            (v.source_kind IN ('preset','reference') AND r.engine_id='moss_nano' AND r.model_spec_id=?) OR \
            (v.source_kind IN ('reference','designed') AND r.engine_id='voxcpm2' \
-             AND r.model_spec_id IN (?,?) \
+             AND r.model_spec_id IN (?,?,?) \
              AND r.reference_asset_id IS NOT NULL AND r.reference_source_revision IS NOT NULL \
              AND (v.source_kind='reference' OR \
                (r.reference_text IS NOT NULL AND length(trim(r.reference_text)) > 0))))",
@@ -104,6 +104,7 @@ pub async fn require_voice(
     .bind(voice_revision_id)
     .bind(super::execution::MOSS_NANO_MODEL_SPEC_ID)
     .bind(super::voice_candidates::MODEL_SPEC_ID)
+    .bind(super::voice_candidates::BF16_MODEL_SPEC_ID)
     .bind(super::voice_candidates::Q8_MODEL_SPEC_ID)
     .fetch_optional(&mut **tx)
     .await

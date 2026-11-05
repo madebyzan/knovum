@@ -2,17 +2,19 @@ use super::*;
 
 #[test]
 fn required_transcription_follows_the_selected_model() {
-    for selected in [
+    let variants = [
         LocalModelId::WhisperSmall,
         LocalModelId::WhisperTiny,
+        LocalModelId::WhisperBase,
+        LocalModelId::WhisperMedium,
+        LocalModelId::WhisperMediumFull,
+        LocalModelId::WhisperLargeV3TurboQ8,
+        LocalModelId::WhisperLargeV3Turbo,
         LocalModelId::WhisperLargeV3,
-    ] {
+    ];
+    for selected in variants {
         assert!(LocalModelId::Qwen3Embedding.is_essential(selected));
-        for model in [
-            LocalModelId::WhisperSmall,
-            LocalModelId::WhisperTiny,
-            LocalModelId::WhisperLargeV3,
-        ] {
+        for model in variants {
             assert_eq!(model.is_essential(selected), model == selected);
         }
     }
@@ -47,7 +49,16 @@ fn transcription_alternatives_own_complete_distinct_snapshots() {
     assert_ne!(tiny, large);
     assert!(tiny.total_bytes() < 100_000_000);
     assert!(large.total_bytes() > 3_000_000_000);
-    for model in [LocalModelId::WhisperTiny, LocalModelId::WhisperLargeV3] {
+    for model in [
+        LocalModelId::WhisperTiny,
+        LocalModelId::WhisperBase,
+        LocalModelId::WhisperSmall,
+        LocalModelId::WhisperMedium,
+        LocalModelId::WhisperMediumFull,
+        LocalModelId::WhisperLargeV3TurboQ8,
+        LocalModelId::WhisperLargeV3Turbo,
+        LocalModelId::WhisperLargeV3,
+    ] {
         let parts = model.transcription_models();
         assert!(parts.len() >= 2);
         assert!(parts == model.preparation().models().unwrap());
@@ -69,7 +80,12 @@ fn full_image_model_has_its_own_snapshot_and_frozen_execution_identity() {
         compact.image_segmentation_spec().unwrap(),
         full.image_segmentation_spec().unwrap()
     );
-    for model in [compact, full] {
+    for model in [
+        compact,
+        LocalModelId::Silueta,
+        LocalModelId::U2netHumanSeg,
+        full,
+    ] {
         assert!(super::super::model_selection::is_selectable(model));
         let file = catalog::descriptor(model.snapshot().unwrap().models()[0]);
         assert!(model
@@ -116,7 +132,12 @@ fn diarization_choices_own_complete_snapshots_without_a_special_installer() {
     assert_ne!(compact.snapshot(), full.snapshot());
     assert_eq!(compact.snapshot().unwrap().total_bytes(), 41_146_685);
     assert_eq!(full.snapshot().unwrap().total_bytes(), 45_599_092);
-    for model in [compact, full] {
+    for model in [
+        compact,
+        LocalModelId::SherpaDiarizationCampplus,
+        full,
+        LocalModelId::SherpaDiarizationEres2netLarge,
+    ] {
         let variant = model.diarization_variant().unwrap();
         assert_eq!(
             LocalModelId::from_diarization_spec(variant.spec_id()).unwrap(),
@@ -165,11 +186,13 @@ fn alignment_choices_freeze_model_identity_independently_of_execution_device() {
 #[test]
 fn voxcpm2_choices_freeze_distinct_complete_snapshots() {
     let full = LocalModelId::VoxCpm2;
+    let bf16 = LocalModelId::VoxCpm2Bf16;
     let q8 = LocalModelId::VoxCpm2Q8;
     assert_ne!(full.snapshot(), q8.snapshot());
+    assert_ne!(bf16.snapshot(), q8.snapshot());
     assert_eq!(q8.snapshot().unwrap().total_bytes(), 2_955_019_717);
     assert!(q8.snapshot().unwrap().total_bytes() < full.snapshot().unwrap().total_bytes());
-    for model in [full, q8] {
+    for model in [full, bf16, q8] {
         assert_eq!(
             LocalModelId::from_voxcpm2_spec(model.voxcpm2_spec().unwrap()).unwrap(),
             model
@@ -248,7 +271,10 @@ fn a_hardware_figure_describes_the_machine_and_never_withholds_a_model() {
         let declared = matches!(metadata(model).memory, LocalModelMemory::QualifiedOnGib(_));
         assert_eq!(
             declared,
-            matches!(model, LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Q8),
+            matches!(
+                model,
+                LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Bf16 | LocalModelId::VoxCpm2Q8
+            ),
             "{model:?} changed its machine-level claim"
         );
     }

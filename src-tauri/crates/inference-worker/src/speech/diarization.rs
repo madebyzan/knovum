@@ -29,7 +29,10 @@ pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<&str, String> {
         || !(1..=8).contains(&params.device_profile.cpu_threads)
         || !matches!(
             params.capability_spec_id.as_str(),
-            "sherpa-diarization-cpu-v1" | "sherpa-diarization-fp32-cpu-v1"
+            "sherpa-diarization-cpu-v1"
+                | "sherpa-diarization-campplus-cpu-v1"
+                | "sherpa-diarization-eres2net-large-cpu-v1"
+                | "sherpa-diarization-fp32-cpu-v1"
         )
     {
         return Err("unsupported_device: diarization profile is unavailable".into());

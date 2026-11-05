@@ -6,7 +6,8 @@ use serde::Deserialize;
 use tokio_util::sync::CancellationToken;
 
 use crate::local_resources::model_catalog::{
-    VOXCPM2_FULL_SPEC_ID as FULL_MODEL_SPEC_ID, VOXCPM2_Q8_SPEC_ID as Q8_MODEL_SPEC_ID,
+    VOXCPM2_BF16_SPEC_ID as BF16_MODEL_SPEC_ID, VOXCPM2_FULL_SPEC_ID as FULL_MODEL_SPEC_ID,
+    VOXCPM2_Q8_SPEC_ID as Q8_MODEL_SPEC_ID,
 };
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -47,6 +48,7 @@ fn select_profile(
 ) -> Result<RuntimeDeviceProfile, String> {
     let quantization = match model_spec_id {
         FULL_MODEL_SPEC_ID => "orig",
+        BF16_MODEL_SPEC_ID => "bf16",
         Q8_MODEL_SPEC_ID => "q8_0",
         _ => return Err("runtime_mismatch: VoxCPM2 model specification is unsupported".into()),
     };
@@ -69,7 +71,7 @@ fn select_profile(
 
 fn gpu_reserve_gib(model_spec_id: &str) -> Result<u64, String> {
     match model_spec_id {
-        FULL_MODEL_SPEC_ID | Q8_MODEL_SPEC_ID => Ok(8),
+        FULL_MODEL_SPEC_ID | BF16_MODEL_SPEC_ID | Q8_MODEL_SPEC_ID => Ok(8),
         _ => Err("runtime_mismatch: VoxCPM2 model specification is unsupported".into()),
     }
 }

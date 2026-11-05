@@ -13,8 +13,16 @@ use crate::runtime::RuntimeCapability;
 const REVISION: &str = "bundled-v2";
 
 /// Whisper transcription variants as model and precision pairs, in ascending capability order.
-pub const WHISPER_VARIANTS: [(&str, &str); 3] =
-    [("tiny", "q8_0"), ("small", "q8_0"), ("large-v3", "f16")];
+pub const WHISPER_VARIANTS: [(&str, &str); 8] = [
+    ("tiny", "q8_0"),
+    ("base", "q8_0"),
+    ("small", "q8_0"),
+    ("medium", "q8_0"),
+    ("medium", "f16"),
+    ("large-v3-turbo", "q8_0"),
+    ("large-v3-turbo", "f16"),
+    ("large-v3", "f16"),
+];
 
 /// Identity of a profile whose only variable is its admitted CPU thread count.
 pub fn threaded(prefix: &str, threads: u8) -> String {

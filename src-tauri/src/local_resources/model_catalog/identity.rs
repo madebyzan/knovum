@@ -1,6 +1,8 @@
 use super::{
-    catalog, transcription_snapshot, LocalModelId, IMAGE_SEGMENTATION_QUALITY_SPEC_ID,
-    IMAGE_SEGMENTATION_SPEC_ID, MODELS, VOXCPM2_FULL_SPEC_ID, VOXCPM2_Q8_SPEC_ID,
+    catalog, transcription_snapshot, LocalModelId, IMAGE_SEGMENTATION_HUMAN_SPEC_ID,
+    IMAGE_SEGMENTATION_QUALITY_SPEC_ID, IMAGE_SEGMENTATION_SILUETA_SPEC_ID,
+    IMAGE_SEGMENTATION_SPEC_ID, MODELS, VOXCPM2_BF16_SPEC_ID, VOXCPM2_FULL_SPEC_ID,
+    VOXCPM2_Q8_SPEC_ID,
 };
 
 impl LocalModelId {
@@ -14,12 +16,13 @@ impl LocalModelId {
     pub(crate) fn voxcpm2_spec(self) -> Result<&'static str, String> {
         match self {
             Self::VoxCpm2 => Ok(VOXCPM2_FULL_SPEC_ID),
+            Self::VoxCpm2Bf16 => Ok(VOXCPM2_BF16_SPEC_ID),
             Self::VoxCpm2Q8 => Ok(VOXCPM2_Q8_SPEC_ID),
             _ => Err("Model does not support VoxCPM2 synthesis".into()),
         }
     }
     pub(crate) fn from_voxcpm2_spec(spec: &str) -> Result<Self, String> {
-        [Self::VoxCpm2, Self::VoxCpm2Q8]
+        [Self::VoxCpm2, Self::VoxCpm2Bf16, Self::VoxCpm2Q8]
             .into_iter()
             .find(|model| model.voxcpm2_spec().is_ok_and(|value| value == spec))
             .ok_or("runtime_mismatch: VoxCPM2 model specification is unsupported".into())
@@ -27,6 +30,7 @@ impl LocalModelId {
     pub(crate) fn voxcpm2_models(self) -> Result<&'static [catalog::ModelKind], String> {
         match self {
             Self::VoxCpm2 => Ok(catalog::VOXCPM2_MODELS),
+            Self::VoxCpm2Bf16 => Ok(catalog::VOXCPM2_BF16_MODELS),
             Self::VoxCpm2Q8 => Ok(catalog::VOXCPM2_Q8_MODELS),
             _ => Err("Model does not support VoxCPM2 synthesis".into()),
         }
@@ -47,7 +51,9 @@ impl LocalModelId {
     pub(crate) fn diarization_variant(self) -> Result<catalog::DiarizationVariant, String> {
         match self {
             Self::SherpaDiarization => Ok(catalog::DiarizationVariant::Int8),
+            Self::SherpaDiarizationCampplus => Ok(catalog::DiarizationVariant::Campplus),
             Self::SherpaDiarizationFull => Ok(catalog::DiarizationVariant::Full),
+            Self::SherpaDiarizationEres2netLarge => Ok(catalog::DiarizationVariant::Eres2netLarge),
             _ => Err("Model does not support speaker diarization".into()),
         }
     }
@@ -67,6 +73,8 @@ impl LocalModelId {
     pub(crate) fn image_segmentation_spec(self) -> Result<&'static str, String> {
         match self {
             Self::U2netp => Ok(IMAGE_SEGMENTATION_SPEC_ID),
+            Self::Silueta => Ok(IMAGE_SEGMENTATION_SILUETA_SPEC_ID),
+            Self::U2netHumanSeg => Ok(IMAGE_SEGMENTATION_HUMAN_SPEC_ID),
             Self::U2net => Ok(IMAGE_SEGMENTATION_QUALITY_SPEC_ID),
             _ => Err("Model does not support image segmentation".into()),
         }
@@ -91,7 +99,14 @@ impl LocalModelId {
     pub(crate) fn is_transcription(self) -> bool {
         matches!(
             self,
-            Self::WhisperSmall | Self::WhisperTiny | Self::WhisperLargeV3
+            Self::WhisperSmall
+                | Self::WhisperTiny
+                | Self::WhisperBase
+                | Self::WhisperMedium
+                | Self::WhisperMediumFull
+                | Self::WhisperLargeV3TurboQ8
+                | Self::WhisperLargeV3Turbo
+                | Self::WhisperLargeV3
         )
     }
     pub(crate) fn transcription_models(self) -> &'static [catalog::ModelKind] {
