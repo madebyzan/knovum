@@ -32,7 +32,9 @@ impl Synthesizer {
     ) -> Result<Self, String> {
         match params.capability_spec_id.as_str() {
             "moss-tts-nano-100m-onnx-bundled-v2" => Ok(Self::Moss(Box::new(Moss::new(params)?))),
-            "voxcpm2-2b-gguf-orig-v1" | "voxcpm2-2b-gguf-q8_0-v1" => {
+            "voxcpm2-2b-gguf-orig-v1"
+            | "voxcpm2-2b-gguf-bf16-v1"
+            | "voxcpm2-2b-gguf-q8_0-v1" => {
                 Ok(Self::Vox(Box::new(VoxCpm::new(params, runtime)?)))
             }
             _ => Err("runtime_mismatch: synthesis model is unsupported".into()),

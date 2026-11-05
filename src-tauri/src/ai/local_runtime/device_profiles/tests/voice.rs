@@ -26,6 +26,17 @@ fn insufficient_gpu_budget_selects_cpu_before_execution() {
 }
 
 #[test]
+fn bf16_profile_has_its_own_frozen_identity() {
+    let memory = super::super::MemorySnapshot {
+        total_bytes: 48 * super::super::GIB,
+        available_bytes: 30 * super::super::GIB,
+    };
+    let profile = select_profile("mps", BF16_MODEL_SPEC_ID, memory, 4).unwrap();
+    assert_eq!(profile.device, "mps");
+    assert_eq!(profile.execution_profile_id, "voxcpm2-mps-gguf-bf16-v1");
+}
+
+#[test]
 fn q8_profile_has_its_own_frozen_identity_with_the_qualified_conservative_budget() {
     let memory = super::super::MemorySnapshot {
         total_bytes: 48 * super::super::GIB,

@@ -13,9 +13,10 @@ use crate::{
     ai::contracts::{
         image_wire::{
             ImageSegmentParams, ImageSegmentation, ImageSegmentationExecutionIdentity,
-            TensorDataType, TensorFileReference, IMAGE_SEGMENTATION_INPUT_BYTES,
-            IMAGE_SEGMENTATION_MASK_BYTES, IMAGE_SEGMENTATION_QUALITY_SPEC_ID,
-            IMAGE_SEGMENTATION_RESOLUTION, IMAGE_SEGMENTATION_SPEC_ID,
+            TensorDataType, TensorFileReference, IMAGE_SEGMENTATION_HUMAN_SPEC_ID,
+            IMAGE_SEGMENTATION_INPUT_BYTES, IMAGE_SEGMENTATION_MASK_BYTES,
+            IMAGE_SEGMENTATION_QUALITY_SPEC_ID, IMAGE_SEGMENTATION_RESOLUTION,
+            IMAGE_SEGMENTATION_SILUETA_SPEC_ID, IMAGE_SEGMENTATION_SPEC_ID,
         },
         runtime::{RuntimeCapability, RuntimeModel},
     },
@@ -46,6 +47,8 @@ pub(crate) async fn segment_image<R: Runtime>(
     let model_spec_id = identity.model_spec_id;
     let model = match model_spec_id {
         IMAGE_SEGMENTATION_SPEC_ID => ModelKind::ImageSegmentation,
+        IMAGE_SEGMENTATION_SILUETA_SPEC_ID => ModelKind::ImageSegmentationSilueta,
+        IMAGE_SEGMENTATION_HUMAN_SPEC_ID => ModelKind::ImageSegmentationHuman,
         IMAGE_SEGMENTATION_QUALITY_SPEC_ID => ModelKind::ImageSegmentationQuality,
         _ => return Err("unsupported_model: image segmentation identity is unavailable".into()),
     };

@@ -27,7 +27,12 @@ fn whisper_variants_cover_the_published_precisions() {
         WHISPER_VARIANTS.map(|(model, precision)| whisper(model, "mps", precision)),
         [
             "whisper-tiny-mps-q8_0-bundled-v2",
+            "whisper-base-mps-q8_0-bundled-v2",
             "whisper-small-mps-q8_0-bundled-v2",
+            "whisper-medium-mps-q8_0-bundled-v2",
+            "whisper-medium-mps-f16-bundled-v2",
+            "whisper-large-v3-turbo-mps-q8_0-bundled-v2",
+            "whisper-large-v3-turbo-mps-f16-bundled-v2",
             "whisper-large-v3-mps-f16-bundled-v2"
         ]
     );

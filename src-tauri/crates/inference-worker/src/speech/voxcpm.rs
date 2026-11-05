@@ -29,6 +29,7 @@ impl Drop for Engine {
 pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<(&'static str, &str), String> {
     let (quantization, weights) = match params.capability_spec_id.as_str() {
         "voxcpm2-2b-gguf-orig-v1" => ("orig", "voxcpm2-orig.gguf"),
+        "voxcpm2-2b-gguf-bf16-v1" => ("bf16", "voxcpm2-bf16.gguf"),
         "voxcpm2-2b-gguf-q8_0-v1" => ("q8_0", "voxcpm2-q8_0.gguf"),
         _ => return Err("runtime_mismatch: VoxCPM2 model specification differs".into()),
     };

@@ -20,6 +20,8 @@ pub(crate) use recovery::reconcile_terminal_snapshots;
 pub(crate) use repository::{load_record, select_candidate};
 
 pub(crate) const MODEL_SPEC_ID: &str = crate::local_resources::model_catalog::VOXCPM2_FULL_SPEC_ID;
+pub(crate) const BF16_MODEL_SPEC_ID: &str =
+    crate::local_resources::model_catalog::VOXCPM2_BF16_SPEC_ID;
 pub(crate) const Q8_MODEL_SPEC_ID: &str = crate::local_resources::model_catalog::VOXCPM2_Q8_SPEC_ID;
 pub(crate) const WORKFLOW: &str = "speech_voice_candidate_v1";
 

@@ -3,6 +3,7 @@
   "descriptions": {
     "mossNano": "Vozes predefinidas compactas em chinês e inglês e clonagem de referência. Somente CPU; velocidade normal.",
     "voxCpm2": "Precisão total · Clonagem e design de voz. Requer pelo menos 32 GiB de memória.",
+    "voxCpm2Bf16": "Precisão BF16 · Clonagem e design de voz. Requer pelo menos 32 GiB de memória.",
     "voxCpm2Q8": "Quantizado · Menor download e uso de disco. Ainda requer pelo menos 32 GiB de memória."
   },
   "specs": "Detalhes do modelo"

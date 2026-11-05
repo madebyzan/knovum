@@ -43,6 +43,8 @@ fn all_sources_pin_full_revisions_and_bundle_files_have_one_owner() {
     for snapshot in [
         SnapshotKind::TextEmbedding,
         SnapshotKind::ImageSegmentation,
+        SnapshotKind::ImageSegmentationSilueta,
+        SnapshotKind::ImageSegmentationHuman,
         SnapshotKind::ImageSegmentationQuality,
         SnapshotKind::SpeechSeparation,
         SnapshotKind::SpeechSeparationFull,
@@ -95,6 +97,7 @@ fn moss_joint_snapshot_is_pinned_and_downloads_without_hub_runtime() {
 fn compiled_voice_snapshot_pins_weights_and_notices_without_a_hub_runtime() {
     for (snapshot, weight) in [
         (SnapshotKind::VoxCpm2, "voxcpm2-orig.gguf"),
+        (SnapshotKind::VoxCpm2Bf16, "voxcpm2-bf16.gguf"),
         (SnapshotKind::VoxCpm2Q8, "voxcpm2-q8_0.gguf"),
     ] {
         assert!(sources::for_snapshot(snapshot).is_none());

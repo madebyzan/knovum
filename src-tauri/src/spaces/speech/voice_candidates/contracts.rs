@@ -8,6 +8,7 @@ use super::super::contracts::SpeechAudioOutput;
 pub enum VoiceModel {
     MossNano,
     VoxCpm2,
+    VoxCpm2Bf16,
     VoxCpm2Q8,
 }
 
@@ -15,14 +16,14 @@ impl VoiceModel {
     pub(crate) fn engine(self) -> &'static str {
         match self {
             Self::MossNano => "moss_nano",
-            Self::VoxCpm2 => "voxcpm2",
-            Self::VoxCpm2Q8 => "voxcpm2",
+            Self::VoxCpm2 | Self::VoxCpm2Bf16 | Self::VoxCpm2Q8 => "voxcpm2",
         }
     }
     pub(crate) fn specification(self) -> &'static str {
         match self {
             Self::MossNano => super::super::execution::MOSS_NANO_MODEL_SPEC_ID,
             Self::VoxCpm2 => super::MODEL_SPEC_ID,
+            Self::VoxCpm2Bf16 => super::BF16_MODEL_SPEC_ID,
             Self::VoxCpm2Q8 => super::Q8_MODEL_SPEC_ID,
         }
     }
@@ -30,15 +31,19 @@ impl VoiceModel {
         use crate::ai::contracts::speech_wire::SpeechSynthesisEngine as E;
         match self {
             Self::MossNano => E::MossNano,
-            Self::VoxCpm2 => E::VoxCpm2,
-            Self::VoxCpm2Q8 => E::VoxCpm2,
+            Self::VoxCpm2 | Self::VoxCpm2Bf16 | Self::VoxCpm2Q8 => E::VoxCpm2,
         }
     }
     pub(crate) fn from_specification(value: &str) -> Result<Self, String> {
-        [Self::MossNano, Self::VoxCpm2, Self::VoxCpm2Q8]
-            .into_iter()
-            .find(|model| model.specification() == value)
-            .ok_or_else(|| "Voice model specification is unsupported".into())
+        [
+            Self::MossNano,
+            Self::VoxCpm2,
+            Self::VoxCpm2Bf16,
+            Self::VoxCpm2Q8,
+        ]
+        .into_iter()
+        .find(|model| model.specification() == value)
+        .ok_or_else(|| "Voice model specification is unsupported".into())
     }
 }
 

@@ -112,8 +112,13 @@ impl PreparedModels {
             .expect("snapshots.len() == 1 was just checked above")
         {
             S::Whisper(V::Tiny) => Ok(M::WhisperTiny),
-            S::Whisper(V::LargeV3) => Ok(M::WhisperLargeV3),
+            S::Whisper(V::Base) => Ok(M::WhisperBase),
             S::Whisper(V::Small) => Ok(M::WhisperSmall),
+            S::Whisper(V::Medium) => Ok(M::WhisperMedium),
+            S::Whisper(V::MediumFull) => Ok(M::WhisperMediumFull),
+            S::Whisper(V::LargeV3TurboQ8) => Ok(M::WhisperLargeV3TurboQ8),
+            S::Whisper(V::LargeV3Turbo) => Ok(M::WhisperLargeV3Turbo),
+            S::Whisper(V::LargeV3) => Ok(M::WhisperLargeV3),
             _ => unreachable!("Only ASR snapshots remain after filtering"),
         }
     }

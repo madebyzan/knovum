@@ -3,6 +3,7 @@
   "descriptions": {
     "mossNano": "Kompakte chinesische und englische voreingestellte Stimmen und Referenzklonen. Nur CPU; normale Geschwindigkeit.",
     "voxCpm2": "Volle Präzision · Klonen und Entwerfen von Stimmen. Erfordert mindestens 32 GiB Speicher.",
+    "voxCpm2Bf16": "BF16-Präzision · Klonen und Entwerfen von Stimmen. Erfordert mindestens 32 GiB Speicher.",
     "voxCpm2Q8": "Quantisiert · Geringerer Download- und Festplattenverbrauch. Erfordert immer noch mindestens 32 GiB Speicher."
   },
   "specs": "Modelldetails"

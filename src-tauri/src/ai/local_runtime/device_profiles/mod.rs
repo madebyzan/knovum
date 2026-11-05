@@ -80,9 +80,34 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
             (1, 2, "Whisper.cpp tiny Q8")
         }
         (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
+            if id == execution_profile::whisper("base", device, "q8_0") =>
+        {
+            (1, 2, "Whisper.cpp base Q8")
+        }
+        (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
             if id == execution_profile::whisper("small", device, "q8_0") =>
         {
             (2, 3, "Whisper.cpp small Q8")
+        }
+        (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
+            if id == execution_profile::whisper("medium", device, "q8_0") =>
+        {
+            (3, 4, "Whisper.cpp medium Q8")
+        }
+        (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
+            if id == execution_profile::whisper("medium", device, "f16") =>
+        {
+            (4, 5, "Whisper.cpp medium F16")
+        }
+        (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
+            if id == execution_profile::whisper("large-v3-turbo", device, "q8_0") =>
+        {
+            (3, 4, "Whisper.cpp large-v3-turbo Q8")
+        }
+        (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
+            if id == execution_profile::whisper("large-v3-turbo", device, "f16") =>
+        {
+            (4, 5, "Whisper.cpp large-v3-turbo F16")
         }
         (RuntimeCapability::SpeechTranscription, _, "cpu" | "mps")
             if id == execution_profile::whisper("large-v3", device, "f16") =>
@@ -103,7 +128,10 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         }
         (
             RuntimeCapability::SpeechDiarization,
-            "sherpa-diarization-cpu-v1" | "sherpa-diarization-fp32-cpu-v1",
+            "sherpa-diarization-cpu-v1"
+                | "sherpa-diarization-campplus-cpu-v1"
+                | "sherpa-diarization-eres2net-large-cpu-v1"
+                | "sherpa-diarization-fp32-cpu-v1",
             "cpu",
         ) => (1, 2, "Sherpa-ONNX speaker diarization CPU"),
         (
@@ -117,6 +145,13 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         (RuntimeCapability::SpeechSynthesis, "voxcpm2-cpu-gguf-orig-v1", "cpu")
         | (RuntimeCapability::SpeechSynthesis, "voxcpm2-vulkan-gguf-orig-v1", "vulkan") => {
             (14, 16, "VoxCPM2 audio.cpp GGUF")
+        }
+        (RuntimeCapability::SpeechSynthesis, "voxcpm2-mps-gguf-bf16-v1", "mps") => {
+            (20, 24, "VoxCPM2 audio.cpp BF16 Metal GGUF")
+        }
+        (RuntimeCapability::SpeechSynthesis, "voxcpm2-cpu-gguf-bf16-v1", "cpu")
+        | (RuntimeCapability::SpeechSynthesis, "voxcpm2-vulkan-gguf-bf16-v1", "vulkan") => {
+            (14, 16, "VoxCPM2 audio.cpp BF16 GGUF")
         }
         (RuntimeCapability::SpeechSynthesis, "voxcpm2-mps-gguf-q8_0-v1", "mps") => {
             (20, 24, "VoxCPM2 audio.cpp Q8 Metal GGUF")

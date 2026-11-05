@@ -16,8 +16,8 @@ pub(crate) use alignment::{
     QWEN3_FORCED_ALIGNER_WEIGHTS,
 };
 pub(crate) use voxcpm2::{
-    VOXCPM2_LICENSE, VOXCPM2_Q8_LICENSE, VOXCPM2_Q8_README, VOXCPM2_Q8_WEIGHTS, VOXCPM2_README,
-    VOXCPM2_WEIGHTS,
+    VOXCPM2_BF16_LICENSE, VOXCPM2_BF16_README, VOXCPM2_BF16_WEIGHTS, VOXCPM2_LICENSE,
+    VOXCPM2_Q8_LICENSE, VOXCPM2_Q8_README, VOXCPM2_Q8_WEIGHTS, VOXCPM2_README, VOXCPM2_WEIGHTS,
 };
 mod voxcpm2;
 pub(crate) use embedding::{
@@ -35,7 +35,12 @@ pub use whisper_variants::WhisperPart;
 #[serde(rename_all = "camelCase")]
 pub enum WhisperVariant {
     Tiny,
+    Base,
     Small,
+    Medium,
+    MediumFull,
+    LargeV3TurboQ8,
+    LargeV3Turbo,
     LargeV3,
 }
 use serde::{Deserialize, Serialize};
@@ -50,6 +55,8 @@ pub enum ModelKind {
     MossNanoPart(MossNanoPart),
     WhisperPart(WhisperPart),
     ImageSegmentation,
+    ImageSegmentationSilueta,
+    ImageSegmentationHuman,
     ImageSegmentationQuality,
     TextEmbeddingConfig,
     TextEmbeddingModules,
@@ -61,6 +68,9 @@ pub enum ModelKind {
     VoxCpm2Weights,
     VoxCpm2License,
     VoxCpm2Readme,
+    VoxCpm2Bf16Weights,
+    VoxCpm2Bf16License,
+    VoxCpm2Bf16Readme,
     VoxCpm2Q8Weights,
     VoxCpm2Q8License,
     VoxCpm2Q8Readme,
@@ -78,6 +88,10 @@ pub enum ModelKind {
 
 pub(crate) const TRANSCRIPTION_MODELS: &[ModelKind] = WhisperVariant::Small.models();
 pub(crate) const IMAGE_SEGMENTATION_MODELS: &[ModelKind] = &[ModelKind::ImageSegmentation];
+pub(crate) const IMAGE_SEGMENTATION_SILUETA_MODELS: &[ModelKind] =
+    &[ModelKind::ImageSegmentationSilueta];
+pub(crate) const IMAGE_SEGMENTATION_HUMAN_MODELS: &[ModelKind] =
+    &[ModelKind::ImageSegmentationHuman];
 pub(crate) const IMAGE_SEGMENTATION_QUALITY_MODELS: &[ModelKind] =
     &[ModelKind::ImageSegmentationQuality];
 pub(crate) const TEXT_EMBEDDING_MODELS: &[ModelKind] = &[
@@ -93,6 +107,11 @@ pub(crate) const VOXCPM2_MODELS: &[ModelKind] = &[
     ModelKind::VoxCpm2Weights,
     ModelKind::VoxCpm2License,
     ModelKind::VoxCpm2Readme,
+];
+pub(crate) const VOXCPM2_BF16_MODELS: &[ModelKind] = &[
+    ModelKind::VoxCpm2Bf16Weights,
+    ModelKind::VoxCpm2Bf16License,
+    ModelKind::VoxCpm2Bf16Readme,
 ];
 pub(crate) const VOXCPM2_Q8_MODELS: &[ModelKind] = &[
     ModelKind::VoxCpm2Q8Weights,
@@ -123,6 +142,22 @@ pub(crate) const IMAGE_SEGMENTATION: ModelDescriptor = ModelDescriptor {
     download_size: 4_574_861,
 };
 
+pub(crate) const IMAGE_SEGMENTATION_SILUETA: ModelDescriptor = ModelDescriptor {
+    snapshot: SnapshotKind::ImageSegmentationSilueta,
+    file: "silueta.onnx",
+
+    sha256: "75da6c8d2f8096ec743d071951be73b4a8bc7b3e51d9a6625d63644f90ffeedb",
+    download_size: 44_173_029,
+};
+
+pub(crate) const IMAGE_SEGMENTATION_HUMAN: ModelDescriptor = ModelDescriptor {
+    snapshot: SnapshotKind::ImageSegmentationHuman,
+    file: "u2net_human_seg.onnx",
+
+    sha256: "01eb6a29a5c4d8edb30b56adad9bb3a2a0535338e480724a213e0acfd2d1c73c",
+    download_size: 175_997_641,
+};
+
 pub(crate) const IMAGE_SEGMENTATION_QUALITY: ModelDescriptor = ModelDescriptor {
     snapshot: SnapshotKind::ImageSegmentationQuality,
     file: "u2net.onnx",
@@ -138,6 +173,8 @@ pub(crate) const fn descriptor(kind: ModelKind) -> ModelDescriptor {
         ModelKind::MossNanoPart(part) => part.descriptor(),
         ModelKind::WhisperPart(part) => part.descriptor(),
         ModelKind::ImageSegmentation => IMAGE_SEGMENTATION,
+        ModelKind::ImageSegmentationSilueta => IMAGE_SEGMENTATION_SILUETA,
+        ModelKind::ImageSegmentationHuman => IMAGE_SEGMENTATION_HUMAN,
         ModelKind::ImageSegmentationQuality => IMAGE_SEGMENTATION_QUALITY,
         ModelKind::TextEmbeddingConfig => TEXT_EMBEDDING_CONFIG,
         ModelKind::TextEmbeddingModules => TEXT_EMBEDDING_MODULES,
@@ -151,6 +188,9 @@ pub(crate) const fn descriptor(kind: ModelKind) -> ModelDescriptor {
         ModelKind::VoxCpm2Weights => VOXCPM2_WEIGHTS,
         ModelKind::VoxCpm2License => VOXCPM2_LICENSE,
         ModelKind::VoxCpm2Readme => VOXCPM2_README,
+        ModelKind::VoxCpm2Bf16Weights => VOXCPM2_BF16_WEIGHTS,
+        ModelKind::VoxCpm2Bf16License => VOXCPM2_BF16_LICENSE,
+        ModelKind::VoxCpm2Bf16Readme => VOXCPM2_BF16_README,
         ModelKind::VoxCpm2Q8Weights => VOXCPM2_Q8_WEIGHTS,
         ModelKind::VoxCpm2Q8License => VOXCPM2_Q8_LICENSE,
         ModelKind::VoxCpm2Q8Readme => VOXCPM2_Q8_README,
@@ -182,6 +222,9 @@ pub(super) fn direct_url(kind: ModelKind) -> String {
         ModelKind::VoxCpm2Weights
         | ModelKind::VoxCpm2License
         | ModelKind::VoxCpm2Readme
+        | ModelKind::VoxCpm2Bf16Weights
+        | ModelKind::VoxCpm2Bf16License
+        | ModelKind::VoxCpm2Bf16Readme
         | ModelKind::VoxCpm2Q8Weights
         | ModelKind::VoxCpm2Q8License
         | ModelKind::VoxCpm2Q8Readme => voxcpm2::direct_url(kind).to_owned(),
