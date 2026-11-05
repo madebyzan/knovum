@@ -292,10 +292,14 @@ that carries no content of its own is never published: an empty cut-out, or a ba
 flat fill. **Sticker-sheet slicing** reads a grid laid out side by side — no stack, no model. The
 backdrop the sheet edge reaches through backdrop-coloured pixels is lifted (an enclosed white belly
 or eye highlight stays the sticker's) and the blended rim is un-blended so a sticker shows no fringe
-on any chat background. Rows are read across the sheet, then each row into its own columns, as the
-most evenly pitched cells whose cuts land in blank gutters of consistent width — so the narrow gap
-between a character and its caption is never mistaken for a gutter, and a short last row is read
-as it is. Each cell becomes a WeChat sticker album main image: 240×240 transparent PNG, aspect kept,
+on any chat background. Rows are read across the sheet, then each row into its own columns, by
+projection profile: along one axis the sheet is the most cells of a lattice of evenly pitched edges
+`x₀ + k·pitch`, each crossed by a cut in a blank run, a sticker reaching at most 5% of the pitch past
+its cell's edge. The pitch is solved from the blank runs, never guessed from where content starts,
+and gutter widths are not compared — they follow how wide each neighbour is drawn. A lattice through
+the gap between a character and its caption or prop leaves cells holding part of a sticker, so a
+reading is kept only when its cells' drawn extents are comparable (smallest ≥ 0.4 × largest). A
+short or off-centre row is read as it is. Each cell becomes a WeChat sticker album main image: 240×240 transparent PNG, aspect kept,
 an 8px clear margin, resampled with premultiplied alpha, well under the album's 500 KB limit. A sheet
 is at least two stickers and at most an 8×8 grid.
 

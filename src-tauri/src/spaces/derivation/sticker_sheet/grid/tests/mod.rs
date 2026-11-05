@@ -86,6 +86,55 @@ fn stickers_drawn_at_different_widths_are_still_one_cell_each() {
 }
 
 #[test]
+fn a_short_row_set_off_centre_is_read_as_it_is() {
+    let (mut mask, (width, height)) = sheet(&[3], 3);
+    let mut second = vec![false; (width * PITCH) as usize];
+    for left in [75, 175] {
+        paint(&mut second, width, (left, 15, 50, 40));
+    }
+    mask.extend(second);
+    let found = cells(&mask, (width, height + PITCH));
+    assert_eq!(
+        found.iter().map(|[left, ..]| *left).collect::<Vec<_>>(),
+        [25, 125, 225, 75, 175]
+    );
+}
+
+#[test]
+fn a_sticker_reaching_past_its_cell_edge_stays_one_cell() {
+    // No exact lattice fits: an even pitch of 100 puts the first edge at 100, inside the first
+    // sticker. Within the overhang a sheet laid out by eye allows, it is four cells.
+    let (width, height) = (400, PITCH);
+    let mut mask = vec![false; (width * height) as usize];
+    for (left, right) in [(0, 104), (106, 196), (204, 296), (298, 400)] {
+        paint(&mut mask, width, (left, 25, right - left, 50));
+    }
+    let found = cells(&mask, (width, height));
+    assert_eq!(
+        found.iter().map(|[left, ..]| *left).collect::<Vec<_>>(),
+        [0, 106, 204, 298]
+    );
+}
+
+#[test]
+fn a_prop_beside_a_character_stays_with_it() {
+    // A lattice of twice the cells cuts every prop off its character; a prop alone is not
+    // comparable in size to a sticker.
+    let (width, height) = (3 * PITCH, PITCH);
+    let mut mask = vec![false; (width * height) as usize];
+    for column in 0..3 {
+        let left = column * PITCH;
+        paint(&mut mask, width, (left + 10, 20, 50, 60));
+        paint(&mut mask, width, (left + 66, 40, 14, 20));
+    }
+    let found = cells(&mask, (width, height));
+    assert_eq!(
+        found,
+        [[10, 20, 79, 79], [110, 20, 179, 79], [210, 20, 279, 79]]
+    );
+}
+
+#[test]
 fn one_sticker_is_one_cell_and_a_blank_sheet_has_none() {
     let (mask, dimensions) = sheet(&[1], 1);
     assert_eq!(cells(&mask, dimensions), [[25, 15, 74, 68]]);
