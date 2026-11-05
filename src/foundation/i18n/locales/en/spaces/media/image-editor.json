@@ -105,7 +105,7 @@
     "glow": "Glow"
   },
   "selection": {
-    "title": "Cut out or remove object",
+    "title": "Cut out object",
     "tools": "Selection tools",
     "include": "Foreground point",
     "exclude": "Exclude point",
