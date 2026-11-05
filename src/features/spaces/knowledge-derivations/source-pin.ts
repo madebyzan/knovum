@@ -13,7 +13,7 @@ export interface SourcePin {
   sourceEditKey: string | undefined;
 }
 
-export function sourcePin(spaceId: string, node: SpaceCanvasNode | undefined): SourcePin {
+export function pinSource(spaceId: string, node: SpaceCanvasNode | undefined): SourcePin {
   return {
     spaceId,
     sourceRevision: node?.data.sourceRevision,
@@ -29,14 +29,19 @@ function samePin(left: SourcePin, right: SourcePin) {
   );
 }
 
+interface SourcePinRelease {
+  /** The pin the session holds, absent when no session is open. */
+  pinned: () => SourcePin | undefined;
+  /** The source as it stands now. */
+  live: () => SourcePin;
+  release: () => void;
+  /** State that, once it changes, may let a release refused before succeed. */
+  retryWhen?: WatchSource[];
+}
+
 /** Calls `release` whenever the live source no longer matches the pin a session holds. */
-export function releaseWhenSourceChanges(
-  pinned: () => SourcePin | undefined,
-  live: () => SourcePin,
-  release: () => void,
-  also: WatchSource[] = [],
-) {
-  watch([live, ...also], ([current]) => {
+export function releaseWhenSourceChanges({ pinned, live, release, retryWhen = [] }: SourcePinRelease) {
+  watch([live, ...retryWhen], ([current]) => {
     const pin = pinned();
     if (pin && !samePin(pin, current as SourcePin)) release();
   });

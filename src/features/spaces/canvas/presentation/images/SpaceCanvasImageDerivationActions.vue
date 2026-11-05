@@ -62,9 +62,9 @@ const ACTIONS = [
     key: "slice-stickers",
     icon: Sticker,
     labelKey: "spaces.creation.image.sliceStickers",
-    availability: () => props.availabilityByDerivation["split-sticker-sheet"],
-    reason: () => props.reasonByDerivation["split-sticker-sheet"],
-    begin: () => emit("runDirect", "split-sticker-sheet"),
+    availability: () => props.availabilityByDerivation["slice-sticker-sheet"],
+    reason: () => props.reasonByDerivation["slice-sticker-sheet"],
+    begin: () => emit("runDirect", "slice-sticker-sheet"),
   },
 ] as const;
 </script>

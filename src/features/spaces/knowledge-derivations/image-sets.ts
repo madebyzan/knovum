@@ -9,7 +9,7 @@ import { startDerivationAction } from "./start-action";
  */
 const IMAGE_SET_TITLES = {
   "split-image-layers": "spaces.creation.image.splitLayers",
-  "split-sticker-sheet": "spaces.creation.image.sliceStickers",
+  "slice-sticker-sheet": "spaces.creation.image.sliceStickers",
 } as const;
 
 export type ImageSetActionId = keyof typeof IMAGE_SET_TITLES;

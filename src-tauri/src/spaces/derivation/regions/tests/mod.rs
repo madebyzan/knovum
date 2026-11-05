@@ -1,4 +1,4 @@
-use super::{dilate, erode, merge_contained, reachable_from_edge, regions};
+use super::{connected, dilate, erode, merge_contained, reachable_from_edge};
 
 /// Filled rectangles `(left, top, width, height)` on an empty mask.
 fn mask(width: u32, height: u32, blocks: &[(u32, u32, u32, u32)]) -> Vec<bool> {
@@ -20,7 +20,7 @@ fn count(mask: &[bool]) -> usize {
 #[test]
 fn regions_are_found_largest_first() {
     let mask = mask(40, 40, &[(20, 20, 6, 6), (0, 0, 10, 10), (38, 0, 1, 1)]);
-    let found = regions(&mask, (40, 40));
+    let found = connected(&mask, (40, 40));
     assert_eq!(
         found
             .iter()
@@ -35,7 +35,7 @@ fn regions_are_found_largest_first() {
 fn diagonally_touching_pixels_belong_to_one_region() {
     let mut mask = mask(20, 20, &[(2, 2, 4, 4)]);
     mask[(6 * 20 + 6) as usize] = true;
-    let found = regions(&mask, (20, 20));
+    let found = connected(&mask, (20, 20));
     assert_eq!(found.len(), 1);
     assert_eq!(found[0].bounds, [2, 2, 6, 6]);
 }
@@ -46,7 +46,7 @@ fn a_detached_part_inside_a_subject_merges_into_that_subject() {
     let frame = [(5, 5, 40, 4), (5, 41, 40, 4), (5, 5, 4, 40), (41, 5, 4, 40)];
     let mut blocks = frame.to_vec();
     blocks.push((20, 20, 12, 12));
-    let found = regions(&mask(60, 60, &blocks), (60, 60));
+    let found = connected(&mask(60, 60, &blocks), (60, 60));
     assert_eq!(found.len(), 2, "the frame and the block it encloses");
     let total = found
         .iter()
@@ -60,7 +60,7 @@ fn a_detached_part_inside_a_subject_merges_into_that_subject() {
 
 #[test]
 fn regions_that_only_sit_near_each_other_stay_separate() {
-    let found = regions(&mask(60, 60, &[(5, 5, 40, 6), (5, 39, 40, 6)]), (60, 60));
+    let found = connected(&mask(60, 60, &[(5, 5, 40, 6), (5, 39, 40, 6)]), (60, 60));
     assert_eq!(merge_contained(found).len(), 2);
 }
 

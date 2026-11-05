@@ -32,7 +32,7 @@ fn handler(action_id: &str) -> Option<Handler> {
         "generate-video" => Some(Handler::Video),
         "add-video-subtitles" => Some(Handler::Subtitles),
         "split-image-layers" => Some(Handler::ImageLayers),
-        "split-sticker-sheet" => Some(Handler::StickerSheet),
+        "slice-sticker-sheet" => Some(Handler::StickerSheet),
         _ => None,
     }
 }

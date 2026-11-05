@@ -21,7 +21,7 @@ const LABELED_ACTIONS = new Set([
   "remove-image-background",
   "remove-image-object",
   "split-image-layers",
-  "split-sticker-sheet",
+  "slice-sticker-sheet",
   "summarize-meeting",
   "upscale-image",
 ]);

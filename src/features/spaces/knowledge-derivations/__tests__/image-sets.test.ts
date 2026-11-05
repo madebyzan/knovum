@@ -27,7 +27,7 @@ function source(data: Partial<SpaceImagePayload> = {}): SpaceCanvasNode<SpaceIma
 
 it.each([
   ["split-image-layers", "spaces.creation.image.splitLayers"],
-  ["split-sticker-sheet", "spaces.creation.image.sliceStickers"],
+  ["slice-sticker-sheet", "spaces.creation.image.sliceStickers"],
 ] as const)(
   "submits one durable %s pinned to the source revision with no count",
   async (actionId, titleKey) => {
@@ -54,7 +54,7 @@ it("does not read an image whose asset is still being prepared", async () => {
   ] satisfies Partial<SpaceImagePayload>[];
   for (const data of unpublished) expect(canDeriveImageSet(source(data))).toBe(false);
   const outcomes = await Promise.all(
-    unpublished.map((data) => deriveImageSet("split-sticker-sheet", source(data))),
+    unpublished.map((data) => deriveImageSet("slice-sticker-sheet", source(data))),
   );
   expect(outcomes).toEqual(unpublished.map(() => undefined));
   expect(calls.start).not.toHaveBeenCalled();

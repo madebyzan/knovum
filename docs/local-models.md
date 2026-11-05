@@ -327,7 +327,7 @@ returns to the backdrop, an unassigned pinhole under 1% of its layer is filled, 
 takes saliency's soft coverage only inside an edge band (inside, it stays solid), and completion
 paints each subject grown by a rim so no ghost outline of a lifted subject is continued into the
 backdrop. Layer splitting is a reading of depth only: a sheet of stickers laid side by side is not a
-stack, and is sliced by `split-sticker-sheet`, which needs no model.
+stack, and is sliced by `slice-sticker-sheet`, which needs no model.
 
 A split can only contain objects that were prompted, and the worker encodes the source once and
 reuses that embedding, so one extra prompt costs one decoder pass over a 192px probe rather than

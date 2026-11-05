@@ -34,7 +34,7 @@ export function createDerivationActions({ canRun, single, sources, bounds }: Der
   const handlerByIntent: Record<CreationIntentId, () => void> = {
     "remove-image-background": () => void (single.value && createImageCutout(single.value)),
     "split-image-layers": () => void (single.value && deriveImageSet("split-image-layers", single.value)),
-    "split-sticker-sheet": () => void (single.value && deriveImageSet("split-sticker-sheet", single.value)),
+    "slice-sticker-sheet": () => void (single.value && deriveImageSet("slice-sticker-sheet", single.value)),
     "add-video-subtitles": () => void (single.value && addVideoSubtitles(single.value)),
     "draft-document": () => generate("document"),
     "generate-visualization": () => generate("image"),

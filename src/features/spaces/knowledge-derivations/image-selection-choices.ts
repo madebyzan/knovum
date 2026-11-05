@@ -7,7 +7,7 @@ import type { ImageSelectionDerivationInput } from "./image-selection-derivation
  * The models a selection session chooses between: the selection models that draw the mask and the
  * repair models that paint the selected area away, each starting on the one chosen in Settings.
  */
-export async function selectionChoices() {
+export async function loadSelectionChoices() {
   const { targets } = await getImageOperationCapabilities();
   const selection = targets.filter((target) => target.capability === "imageSelection");
   const repair = targets.filter((target) => target.capability === "imageInpainting");
@@ -26,7 +26,7 @@ interface SelectionChoice {
 }
 
 /** What a draft derives for `effect`, or nothing while a model it needs is not chosen. */
-export function selectionDerivation(
+export function buildSelectionDerivation(
   { selection, execution, repair }: SelectionChoice,
   effect: ImageSelectionDerivationInput["effect"],
 ): ImageSelectionDerivationInput | undefined {

@@ -1,4 +1,5 @@
-use super::{validate, ImageSetRequest, EXAMPLE as SET};
+use super::super::tests::EXAMPLE as SET;
+use super::{validate, ImageSetRequest};
 
 fn request(extra: serde_json::Value) -> serde_json::Value {
     let mut request = serde_json::json!({

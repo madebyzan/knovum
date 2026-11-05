@@ -11,6 +11,9 @@ mod contracts;
 mod persistence;
 mod source;
 
+#[cfg(test)]
+mod tests;
+
 use std::future::Future;
 
 use tauri::AppHandle;

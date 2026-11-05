@@ -29,7 +29,7 @@ use super::{
 use crate::foundation::app_error::AppError;
 
 pub(crate) static SET: ImageSet = ImageSet {
-    action_kind: "split-sticker-sheet",
+    action_kind: "slice-sticker-sheet",
     engine: "local:sticker-sheet",
     lineage: "Sticker cut from source sticker sheet",
     member: "sticker",
@@ -58,18 +58,18 @@ pub(crate) async fn slice_for_action(
 /// The sheet's stickers as album main-image PNGs, in reading order.
 fn slice(png: &[u8], cancellation: &CancellationToken) -> Result<Vec<Vec<u8>>, String> {
     let sheet = backdrop::lift(&image_tensors::decode(png)?)?;
-    stickers(&sheet)
+    frame_stickers(&sheet)
         .iter()
         .map(|sticker| {
             if cancellation.is_cancelled() {
                 return Err("Sticker sheet slicing was cancelled".to_owned());
             }
-            sticker::png(sticker)
+            sticker::encode(sticker)
         })
         .collect()
 }
 
-fn stickers(sheet: &RgbaImage) -> Vec<RgbaImage> {
+fn frame_stickers(sheet: &RgbaImage) -> Vec<RgbaImage> {
     let drawn = sheet.pixels().map(|pixel| pixel[3] > 0).collect::<Vec<_>>();
     grid::cells(&drawn, sheet.dimensions())
         .into_iter()

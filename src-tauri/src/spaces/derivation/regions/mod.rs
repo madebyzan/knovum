@@ -13,7 +13,7 @@ pub(crate) struct Region {
 
 /// Every 8-connected region of `mask`, largest first. Labelled with an explicit stack, so a region
 /// the size of the canvas cannot overflow the call stack.
-pub(crate) fn regions(mask: &[bool], (width, height): (u32, u32)) -> Vec<Region> {
+pub(crate) fn connected(mask: &[bool], (width, height): (u32, u32)) -> Vec<Region> {
     let mut visited = vec![false; mask.len()];
     let mut found = Vec::new();
     for start in 0..mask.len() {

@@ -73,7 +73,7 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         Output::Image,
     ),
     action(
-        "split-sticker-sheet",
+        "slice-sticker-sheet",
         None,
         None,
         &[Input::Image],

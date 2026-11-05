@@ -61,7 +61,7 @@ fn subject_seeds(saliency: &[u8], (width, height): (u32, u32)) -> Vec<(u32, u32)
         .map(|value| *value >= MIN_SUBJECT)
         .collect::<Vec<_>>();
     let minimum = mask.len() as f32 * MIN_SUBJECT_SHARE;
-    let subjects = regions::regions(&mask, (width, height))
+    let subjects = regions::connected(&mask, (width, height))
         .into_iter()
         .filter(|region| region.pixels.len() as f32 >= minimum)
         .collect();

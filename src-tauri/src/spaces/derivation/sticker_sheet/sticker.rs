@@ -72,7 +72,7 @@ fn resize_premultiplied(image: &RgbaImage, (width, height): (u32, u32)) -> RgbaI
     })
 }
 
-pub(super) fn png(sticker: &RgbaImage) -> Result<Vec<u8>, String> {
+pub(super) fn encode(sticker: &RgbaImage) -> Result<Vec<u8>, String> {
     let mut bytes = Vec::new();
     sticker
         .write_to(&mut Cursor::new(&mut bytes), image::ImageFormat::Png)

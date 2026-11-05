@@ -10,9 +10,9 @@ import type { ImageSelection } from "../contracts/generated/ImageSelection";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
-import { selectionChoices, selectionDerivation } from "./image-selection-choices";
+import { buildSelectionDerivation, loadSelectionChoices } from "./image-selection-choices";
 import { deriveImageSelection } from "./image-selection-derivation";
-import { releaseWhenSourceChanges, sourcePin, type SourcePin } from "./source-pin";
+import { pinSource, releaseWhenSourceChanges, type SourcePin } from "./source-pin";
 import { useImageSelectionPreview } from "./use-image-selection-preview";
 
 export type ImageSelectionTool = "include" | "exclude" | "box" | "brush";
@@ -56,7 +56,7 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
   );
   const canSubmit = computed(() => Boolean(maskSource.value && !busy.value && !submitting.value));
   const canRepair = computed(
-    () => canSubmit.value && !!active.value && !!selectionDerivation(active.value, "repair"),
+    () => canSubmit.value && !!active.value && !!buildSelectionDerivation(active.value, "repair"),
   );
   const canUndo = computed(() => Boolean(history.length && !submitting.value));
 
@@ -71,7 +71,7 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
     active.value = {
       sessionId: Symbol(),
       nodeId: node.id,
-      pin: sourcePin(space.activeSpaceId, node),
+      pin: pinSource(space.activeSpaceId, node),
       selection: { points: [], boxRect: null, strokes: [] },
       execution: undefined,
       repair: undefined,
@@ -81,7 +81,7 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
     tool.value = "include";
     clear();
     try {
-      const choices = await selectionChoices();
+      const choices = await loadSelectionChoices();
       if (active.value?.sessionId !== draft.sessionId) return;
       targets.value = choices.selection;
       repairTargets.value = choices.repair;
@@ -134,7 +134,7 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
   }
   async function submit(effect: "extract" | "repair") {
     const current = active.value;
-    const input = current && canSubmit.value ? selectionDerivation(current, effect) : undefined;
+    const input = current && canSubmit.value ? buildSelectionDerivation(current, effect) : undefined;
     const node = space.nodes.find(({ id }) => id === current?.nodeId);
     if (!input || !node) return;
     submitting.value = true;
@@ -149,16 +149,16 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
     }
   }
   // A draft that outlived its source while submitting is released once the submission settles.
-  releaseWhenSourceChanges(
-    () => active.value?.pin,
-    () =>
-      sourcePin(
+  releaseWhenSourceChanges({
+    pinned: () => active.value?.pin,
+    live: () =>
+      pinSource(
         space.activeSpaceId ?? "",
         space.nodes.find(({ id }) => id === active.value?.nodeId),
       ),
-    cancel,
-    [submitting],
-  );
+    release: cancel,
+    retryWhen: [submitting],
+  });
 
   return {
     active: readonly(active),

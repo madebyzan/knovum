@@ -119,7 +119,7 @@ fn build_pending_output_content(
             data: generated_image_content(app, &title)?,
             lineage: super::super::image_layers::SET.lineage,
         },
-        "split-sticker-sheet" => PendingOutputContent {
+        "slice-sticker-sheet" => PendingOutputContent {
             kind: "image",
             data: generated_image_content(app, &title)?,
             lineage: super::super::sticker_sheet::SET.lineage,

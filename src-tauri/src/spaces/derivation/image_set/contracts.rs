@@ -80,18 +80,6 @@ fn identity(value: &str, label: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// A set no feature publishes, so the shared machinery is tested against the contract rather than
-/// against one feature's wording.
-#[cfg(test)]
-pub(super) const EXAMPLE: ImageSet = ImageSet {
-    action_kind: "split-example",
-    engine: "local:example",
-    lineage: "Example member separated from source image",
-    member: "part",
-    members: 2..=24,
-    unsupported: "This image did not separate into parts",
-};
-
 #[cfg(test)]
 #[path = "tests/contracts.rs"]
 mod tests;

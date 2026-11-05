@@ -1,4 +1,4 @@
-use super::{backdrop, sticker, stickers, SET};
+use super::{backdrop, frame_stickers, sticker, SET};
 use image::{Rgba, RgbaImage};
 
 const PITCH: u32 = 120;
@@ -36,7 +36,7 @@ fn sheet() -> RgbaImage {
 
 #[test]
 fn a_sheet_slices_into_one_framed_sticker_per_cell() {
-    let found = stickers(&backdrop::lift(&sheet()).expect("sheet"));
+    let found = frame_stickers(&backdrop::lift(&sheet()).expect("sheet"));
     assert_eq!(found.len(), 6);
     for framed in &found {
         assert_eq!(framed.dimensions(), (sticker::EDGE, sticker::EDGE));
@@ -62,7 +62,7 @@ fn a_single_sticker_is_not_a_sheet() {
             single.put_pixel(x, y, Rgba([40, 30, 30, 255]));
         }
     }
-    let found = stickers(&backdrop::lift(&single).expect("sheet"));
+    let found = frame_stickers(&backdrop::lift(&single).expect("sheet"));
     assert_eq!(found.len(), 1);
     assert_eq!(
         SET.validate_count(found.len()).unwrap_err(),

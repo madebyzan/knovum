@@ -24,7 +24,7 @@
     "split-image-layers": {
       "$ref": "#/$defs/EmptyParameters"
     },
-    "split-sticker-sheet": {
+    "slice-sticker-sheet": {
       "$ref": "#/$defs/EmptyParameters"
     },
     "create-note": {

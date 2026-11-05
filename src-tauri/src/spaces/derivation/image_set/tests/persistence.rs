@@ -1,4 +1,4 @@
-use super::super::contracts::EXAMPLE as SET;
+use super::super::tests::EXAMPLE as SET;
 use super::{member_title, MAX_TITLE};
 
 #[test]

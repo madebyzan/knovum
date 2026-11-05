@@ -38,7 +38,7 @@ const emit = defineEmits<{
 const FAMILY_DERIVATIONS: readonly CreationIntentId[] = [
   "remove-image-background",
   "split-image-layers",
-  "split-sticker-sheet",
+  "slice-sticker-sheet",
 ];
 </script>
 <template>

@@ -88,7 +88,7 @@ fn drop_fragments(labels: &mut [u8], width: u32, frame: [u32; 4], label: u8) {
         .iter()
         .map(|at| *at == label)
         .collect::<Vec<_>>();
-    let parts = regions::regions(&mask, window.dimensions);
+    let parts = regions::connected(&mask, window.dimensions);
     let Some(largest) = parts.first().map(|part| part.pixels.len()) else {
         return;
     };
@@ -118,7 +118,7 @@ fn fill_pinholes(labels: &mut [u8], width: u32, frame: [u32; 4], label: u8) {
         .map(|(out, reached)| *out && !reached)
         .collect::<Vec<_>>();
     let maximum = area as f32 * MAX_PINHOLE_SHARE;
-    for hole in regions::regions(&enclosed, window.dimensions) {
+    for hole in regions::connected(&enclosed, window.dimensions) {
         let unassigned = hole
             .pixels
             .iter()

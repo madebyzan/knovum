@@ -1,4 +1,4 @@
-use super::{frame, png, EDGE, MARGIN};
+use super::{encode, frame, EDGE, MARGIN};
 use image::{Rgba, RgbaImage};
 
 /// A lifted sheet holding one red sticker twice as wide as it is tall, with transparent pixels
@@ -69,6 +69,6 @@ fn the_transparent_ground_does_not_darken_the_edge() {
 
 #[test]
 fn a_sticker_encodes_as_png() {
-    let bytes = png(&frame(&sheet(), [50, 50, 249, 149])).expect("png");
+    let bytes = encode(&frame(&sheet(), [50, 50, 249, 149])).expect("png");
     assert_eq!(&bytes[1..4], b"PNG");
 }

@@ -111,7 +111,7 @@ Internal provider completion APIs keep their model terminology. Spaces generatio
 transformations use `derive_image`, and deterministic
 video edits use `render_video_edit`; subtitle burn-in uses the `add-video-subtitles` Action and
 image-layer splitting uses the `split-image-layers` Action and sticker-sheet slicing the
-`split-sticker-sheet` Action. Cancellation names the ongoing
+`slice-sticker-sheet` Action. Cancellation names the ongoing
 operation (`cancel_run`). Both publish several resources from one invocation: like every
 other Action it reserves one output node before the handler runs, and the handler reserves the rest
 once discovery reports how many layers the image carries. The layer count is therefore a property

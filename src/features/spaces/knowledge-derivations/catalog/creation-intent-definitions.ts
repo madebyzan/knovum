@@ -42,7 +42,7 @@ export const CREATION_INTENT_DEFINITIONS = [
     decide: ({ canDeriveImageSet }) => (canDeriveImageSet ? AVAILABLE : HIDDEN),
   },
   {
-    id: "split-sticker-sheet",
+    id: "slice-sticker-sheet",
     icon: "sticker",
     decide: ({ canDeriveImageSet }) => (canDeriveImageSet ? AVAILABLE : HIDDEN),
   },
