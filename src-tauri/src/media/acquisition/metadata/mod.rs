@@ -19,13 +19,12 @@ pub(crate) struct YtDlpMetadata {
 }
 
 impl YtDlpMetadata {
-    pub(crate) fn is_playable(&self, kind: MediaKind, extension: &str) -> Result<bool, String> {
-        let audio = self
-            .acodec
-            .as_deref()
-            .ok_or("yt-dlp omitted the selected audio codec")?;
+    pub(crate) fn is_playable(&self, kind: MediaKind, extension: &str) -> bool {
+        let Some(audio) = self.acodec.as_deref() else {
+            return false;
+        };
         let aac = audio == "none" || audio == "aac" || audio.starts_with("mp4a");
-        Ok(match kind {
+        match kind {
             MediaKind::Video => {
                 extension == "mp4"
                     && self
@@ -35,7 +34,7 @@ impl YtDlpMetadata {
                     && aac
             }
             MediaKind::Audio => matches!(extension, "m4a" | "mp4") && audio != "none" && aac,
-        })
+        }
     }
 
     pub(crate) fn creator(&self) -> Option<String> {

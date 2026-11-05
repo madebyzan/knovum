@@ -139,10 +139,15 @@ fn parse_bytes(value: Option<&str>) -> Option<u64> {
 pub(crate) fn unsupported_output(stderr: &str) -> bool {
     stderr.lines().any(|line| {
         line.contains("Unsupported URL:")
-            || line.contains("No video could be found in this webpage")
+            || line.contains("No video could be found")
+            || line.contains("There's no video")
     })
 }
 
 fn failed(message: impl Into<String>) -> AcquisitionError {
     AcquisitionError::Failed(message.into())
 }
+
+#[cfg(test)]
+#[path = "tests/yt_dlp.rs"]
+mod tests;

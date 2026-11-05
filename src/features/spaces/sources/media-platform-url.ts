@@ -2,6 +2,7 @@ interface MediaPlatformRule {
   domains: readonly string[];
   /** What the platform serves at these addresses, which is what the canvas reserves for them. */
   serves: "audio" | "video";
+  allowsWebsiteFallback?: boolean;
   isContentUrl(url: URL): boolean;
 }
 
@@ -47,7 +48,7 @@ const MEDIA_PLATFORM_RULES: readonly MediaPlatformRule[] = [
   {
     domains: ["instagram.com"],
     serves: "video",
-    isContentUrl: ({ pathname }) => /^\/(p|reel|tv)\/[^/]+/.test(pathname),
+    isContentUrl: ({ pathname }) => /^\/(reel|tv)\/[^/]+/.test(pathname),
   },
   {
     domains: ["vimeo.com"],
@@ -60,11 +61,6 @@ const MEDIA_PLATFORM_RULES: readonly MediaPlatformRule[] = [
     isContentUrl: ({ pathname }) => /^\/video\/\d+(?:\/|$)/.test(pathname),
   },
   {
-    domains: ["x.com", "twitter.com"],
-    serves: "video",
-    isContentUrl: ({ pathname }) => /^\/(?:[^/]+|i)\/status\/\d+/.test(pathname),
-  },
-  {
     domains: ["facebook.com"],
     serves: "video",
     isContentUrl: ({ pathname, searchParams }) =>
@@ -72,13 +68,28 @@ const MEDIA_PLATFORM_RULES: readonly MediaPlatformRule[] = [
       /^\/(reel\/[^/]+|[^/]+\/videos\/[^/]+)/.test(pathname),
   },
   { domains: ["fb.watch"], serves: "video", isContentUrl: ({ pathname }) => /^\/[^/]+/.test(pathname) },
+  {
+    domains: ["x.com", "twitter.com"],
+    serves: "video",
+    allowsWebsiteFallback: true,
+    isContentUrl: ({ pathname }) => /^\/[^/]+\/status\/\d+/.test(pathname),
+  },
 ];
 
 /** What a media platform address resolves to, before anything is downloaded from it. */
 export function mediaPlatformContentKind(url: URL): "audio" | "video" | undefined {
+  return findMatchingPlatformRule(url)?.serves;
+}
+
+/** Whether an unsupported media import on this platform should be saved as a website. */
+export function mediaPlatformAllowsWebsiteFallback(url: URL): boolean {
+  return findMatchingPlatformRule(url)?.allowsWebsiteFallback ?? false;
+}
+
+function findMatchingPlatformRule(url: URL): MediaPlatformRule | undefined {
   return MEDIA_PLATFORM_RULES.find(
     ({ domains, isContentUrl }) =>
       domains.some((domain) => url.hostname === domain || url.hostname.endsWith(`.${domain}`)) &&
       isContentUrl(url),
-  )?.serves;
+  );
 }

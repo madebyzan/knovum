@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { mediaPlatformContentKind } from "../media-platform-url";
+import { mediaPlatformAllowsWebsiteFallback, mediaPlatformContentKind } from "../media-platform-url";
 
 describe("automatic media platform routing", () => {
   it.each([
@@ -14,8 +14,9 @@ describe("automatic media platform routing", () => {
     "https://www.tiktok.com/@creator/video/123456",
     "https://www.instagram.com/reel/abc123/",
     "https://vimeo.com/123456789",
-    "https://x.com/creator/status/123456789",
     "https://www.facebook.com/watch?v=123456789",
+    "https://x.com/creator/status/123456789",
+    "https://twitter.com/creator/status/123456789",
   ])("routes a recognized content URL to video acquisition: %s", (url) => {
     expect(mediaPlatformContentKind(new URL(url))).toBe("video");
   });
@@ -31,10 +32,16 @@ describe("automatic media platform routing", () => {
     "https://www.bilibili.com/",
     "https://www.douyin.com/user/creator",
     "https://www.instagram.com/creator/",
+    "https://www.instagram.com/p/abc123/",
     "https://x.com/creator",
     "https://youtube.com.evil.example/watch?v=abc123",
     "https://notbilibili.com/video/BV123",
   ])("keeps ordinary websites and platform profiles as websites: %s", (url) => {
     expect(mediaPlatformContentKind(new URL(url))).toBe(undefined);
+  });
+
+  it("identifies platforms that fall back to website when no media is served", () => {
+    expect(mediaPlatformAllowsWebsiteFallback(new URL("https://x.com/creator/status/123456"))).toBe(true);
+    expect(mediaPlatformAllowsWebsiteFallback(new URL("https://www.youtube.com/watch?v=abc123"))).toBe(false);
   });
 });

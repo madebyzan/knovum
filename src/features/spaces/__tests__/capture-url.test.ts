@@ -115,6 +115,21 @@ describe("Space URL capture", () => {
     expect(harness.savePending).not.toHaveBeenCalled();
   });
 
+  it("falls back to website capture when a multi-modal post has no media", async () => {
+    const tweetUrl = "https://x.com/jaywcjlove/status/2117838024340124026";
+    mocks.acquireMediaSource.mockResolvedValue({ outcome: "unsupported" });
+    const harness = captureHarness();
+
+    await captureSpaceUrl(harness.context, tweetUrl, POSITION);
+
+    expect(harness.discard).toHaveBeenCalledWith("space-1", "media");
+    expect(mocks.addSavedWebsite).toHaveBeenCalledWith(
+      expect.objectContaining({ activeSpaceId: "space-1" }),
+      tweetUrl,
+      POSITION,
+    );
+  });
+
   it("creates an ordinary website immediately without invoking media acquisition", async () => {
     const harness = captureHarness();
     const websiteUrl = "https://www.chinagoods.com/";

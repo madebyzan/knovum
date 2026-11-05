@@ -47,7 +47,11 @@ function headAssets(document: Document, finalUrl: string) {
     finalUrl,
   );
   const previewImageUrl = resolveHttpUrl(
-    meta(document, "property", "og:image") ?? meta(document, "name", "twitter:image"),
+    meta(document, "property", "og:image") ??
+      meta(document, "property", "og:image:url") ??
+      meta(document, "property", "og:image:secure_url") ??
+      meta(document, "name", "twitter:image") ??
+      meta(document, "name", "twitter:image:src"),
     finalUrl,
   );
   const faviconUrl = findFaviconUrl(document, finalUrl) ?? new URL("/favicon.ico", finalUrl).href;
@@ -66,7 +70,10 @@ function meta(document: Document, attribute: "name" | "property", value: string)
 
 function findFaviconUrl(document: Document, base: string) {
   for (const link of document.querySelectorAll<HTMLLinkElement>("link[rel]")) {
-    if (!link.rel.toLowerCase().split(/\s+/u).includes("icon")) continue;
+    const tokens = link.rel.toLowerCase().split(/\s+/u);
+    if (!tokens.some((token) => token === "icon" || token === "apple-touch-icon" || token === "shortcut")) {
+      continue;
+    }
     const url = resolveHttpUrl(link.getAttribute("href") ?? undefined, base);
     if (url) return url;
   }

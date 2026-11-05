@@ -35,7 +35,7 @@ pub(crate) fn prepare(request: Preparation<'_>) -> Result<PathBuf, String> {
         progress,
         cancellation,
     } = request;
-    if metadata.is_playable(kind, extension)? {
+    if metadata.is_playable(kind, extension) {
         return Ok(source.to_path_buf());
     }
     let target = workspace.join(match kind {

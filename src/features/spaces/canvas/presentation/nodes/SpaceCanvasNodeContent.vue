@@ -119,6 +119,7 @@ const textPresentation = computed(() =>
       v-else-if="node.data.kind === 'website'"
       :id="node.id"
       :data="node.data"
+      :frame="layout.frame"
       :presentation-context="presentationContext"
     />
     <template v-else>

@@ -11,6 +11,7 @@ import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { NodePayloadChangeInput } from "../nodes/node-operations";
 import { addSavedWebsite } from "../website/capture";
 import { normalizeSpaceUrl } from "../website/url";
+import { mediaPlatformAllowsWebsiteFallback } from "./media-platform-url";
 import { classifyUrlSource } from "./url-source-kind";
 
 export interface UrlCaptureContext extends PendingContentContext {
@@ -69,13 +70,23 @@ async function importMediaSource(context: UrlCaptureContext, input: MediaSourceI
       kind: input.kind,
       title: node.data.title,
     });
-    if (acquisition.outcome !== "imported") throw new Error(`Media source is unsupported: ${input.url}`);
+    if (acquisition.outcome !== "imported") {
+      if (mediaPlatformAllowsWebsiteFallback(new URL(input.url))) {
+        await discard(context, input.spaceId, node);
+        return await addSavedWebsite({ ...context, activeSpaceId: input.spaceId }, input.url, input.target);
+      }
+      throw new Error(`Media source is unsupported: ${input.url}`);
+    }
     return await settle(context, input.spaceId, node, acquisition.payload);
   } catch (error) {
     // Whatever was reserved for this media never arrived, so it is taken away with its asset. The
     // failure itself belongs to whoever asked for the capture.
     await discard(context, input.spaceId, node);
     if (decodeAppError(error)?.code === "media_acquisition_cancelled") return undefined;
+    if (mediaPlatformAllowsWebsiteFallback(new URL(input.url))) {
+      void logInfo(`[spaces.url-capture] Media import fell back to website for ${input.url}`);
+      return await addSavedWebsite({ ...context, activeSpaceId: input.spaceId }, input.url, input.target);
+    }
     void logWarn(`Media import failed for ${input.url}: ${formatErrorDiagnostic(error)}`);
     throw error;
   }
