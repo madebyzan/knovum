@@ -1,5 +1,6 @@
 mod completion;
 pub(crate) mod contracts;
+mod dependencies;
 mod operations;
 mod validation;
 
@@ -8,7 +9,7 @@ use std::collections::HashSet;
 use tauri::{AppHandle, Runtime};
 
 use crate::foundation::app_error::AppError;
-use crate::spaces::{db, knowledge, structure};
+use crate::spaces::{db, derivation, knowledge, structure};
 use contracts::TransferSelectionRequest;
 use contracts::TransferSelectionResponse;
 use structure::editor_protection::{EditorResourceProtection, SpaceEditorResource};
@@ -66,7 +67,9 @@ pub async fn transfer_selection<R: Runtime>(
         .map(String::as_str)
         .collect();
 
-    validation::validate_dependencies(&mut tx, &request.source_space_id, selected).await?;
+    validation::validate_nodes(&mut tx, &request.source_space_id, &selected_set).await?;
+    let carried = dependencies::carried(&mut tx, &request.source_space_id, &selected_set).await?;
+    dependencies::sever(&mut tx, &carried, &mut source_snapshot).await?;
     knowledge::grounding::references::detach_nodes(&mut tx, &request.source_space_id, selected)
         .await?;
     operations::update_portals(
@@ -77,10 +80,6 @@ pub async fn transfer_selection<R: Runtime>(
         now,
     )
     .await?;
-    let moved_relation_ids =
-        operations::moved_relation_ids(&mut tx, &request.source_space_id, &selected_set).await?;
-    let moved_provenance_ids =
-        operations::moved_provenance_ids(&mut tx, &request.source_space_id, &selected_set).await?;
 
     structure::repository::rows::erase(
         &mut tx,
@@ -111,34 +110,12 @@ pub async fn transfer_selection<R: Runtime>(
         .map_err(db::sql_error)?;
     }
 
-    sqlx::query("UPDATE spaces_knowledge_derivation_inputs SET node_id=NULL WHERE node_id IN (SELECT value FROM json_each($1)) AND derivation_id IN (SELECT id FROM spaces_knowledge_derivations WHERE space_id=$2)")
-        .bind(sqlx::types::Json(selected)).bind(&request.source_space_id)
-        .execute(&mut *tx).await.map_err(db::sql_error)?;
-    for relation_id in &moved_relation_ids {
-        sqlx::query("DELETE FROM spaces_relation_styles WHERE space_id=$1 AND relation_id=$2")
-            .bind(&request.source_space_id)
-            .bind(relation_id)
-            .execute(&mut *tx)
-            .await
-            .map_err(db::sql_error)?;
-    }
-    sqlx::query(
-        "UPDATE spaces_relations SET space_id=$1,updated_at=$2 WHERE space_id=$3 \
-         AND source_id IN (SELECT value FROM json_each($4)) \
-         AND target_id IN (SELECT value FROM json_each($4))",
-    )
-    .bind(&request.target_space_id)
-    .bind(now)
-    .bind(&request.source_space_id)
-    .bind(sqlx::types::Json(selected))
-    .execute(&mut *tx)
-    .await
-    .map_err(db::sql_error)?;
-    operations::move_provenance(&mut tx, &request, &selected_set, now).await?;
+    derivation::ownership::follow_moved_nodes(&mut tx, selected, now).await?;
+    operations::move_dependencies(&mut tx, &request, &carried, now).await?;
     structure::transfer::move_relation_styles(
         &mut source_snapshot,
         &mut target_snapshot,
-        &moved_relation_ids,
+        &carried.relations.moved,
     );
     sqlx::query(
         "DELETE FROM spaces_chunk_embeddings WHERE chunk_id IN ( \
@@ -164,8 +141,8 @@ pub async fn transfer_selection<R: Runtime>(
             target_before: &target_before,
             source_revision,
             target_revision,
-            moved_relation_ids: &moved_relation_ids,
-            moved_provenance_ids: &moved_provenance_ids,
+            moved_relation_ids: &carried.relations.moved,
+            moved_provenance_ids: &carried.provenance.moved,
             now,
         },
     )

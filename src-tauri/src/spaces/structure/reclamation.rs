@@ -212,26 +212,13 @@ async fn erase_nodes(
     .map_err(db::sql_error)?;
     sqlx::query(
         "DELETE FROM spaces_knowledge_events \
-         WHERE (entity_kind='node' AND entity_id IN (SELECT value FROM json_each($1))) \
-            OR (entity_kind='relation' AND entity_id IN (SELECT value FROM json_each($2))) \
-            OR (entity_kind='provenance' AND entity_id IN (SELECT value FROM json_each($3)))",
+         WHERE entity_kind='node' AND entity_id IN (SELECT value FROM json_each($1))",
     )
     .bind(Json(node_ids))
-    .bind(Json(&relations))
-    .bind(Json(&provenance))
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    sqlx::query("DELETE FROM spaces_provenance WHERE id IN (SELECT value FROM json_each($1))")
-        .bind(Json(&provenance))
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    sqlx::query("DELETE FROM spaces_relations WHERE id IN (SELECT value FROM json_each($1))")
-        .bind(Json(&relations))
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
+    erase_dependencies(tx, &relations, &provenance).await?;
     sqlx::query(
         "DELETE FROM spaces_nodes \
          WHERE space_id=$1 AND deleted_at IS NOT NULL AND id IN (SELECT value FROM json_each($2))",
@@ -241,5 +228,35 @@ async fn erase_nodes(
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
+    Ok(())
+}
+
+/// Erases relations and provenance with the knowledge events that record them; a relation's style
+/// goes with it. Provenance recorded on an erased relation must be among `provenance`.
+pub(crate) async fn erase_dependencies(
+    tx: &mut Transaction<'_, Sqlite>,
+    relations: &[String],
+    provenance: &[String],
+) -> Result<(), String> {
+    sqlx::query(
+        "DELETE FROM spaces_knowledge_events \
+         WHERE (entity_kind='relation' AND entity_id IN (SELECT value FROM json_each($1))) \
+            OR (entity_kind='provenance' AND entity_id IN (SELECT value FROM json_each($2)))",
+    )
+    .bind(Json(relations))
+    .bind(Json(provenance))
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    sqlx::query("DELETE FROM spaces_provenance WHERE id IN (SELECT value FROM json_each($1))")
+        .bind(Json(provenance))
+        .execute(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
+    sqlx::query("DELETE FROM spaces_relations WHERE id IN (SELECT value FROM json_each($1))")
+        .bind(Json(relations))
+        .execute(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
     Ok(())
 }

@@ -1,51 +1,11 @@
 use std::collections::HashSet;
 
 use serde_json::Value;
-use sqlx::Row;
+use sqlx::{types::Json, Row};
 
 use super::contracts::TransferSelectionRequest;
+use super::dependencies::Dependencies;
 use crate::spaces::db;
-
-pub(super) async fn moved_relation_ids(
-    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    space_id: &str,
-    selected: &HashSet<&str>,
-) -> Result<Vec<String>, String> {
-    let rows = sqlx::query("SELECT id,source_id,target_id FROM spaces_relations WHERE space_id=$1")
-        .bind(space_id)
-        .fetch_all(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    let mut ids = Vec::new();
-    for row in rows {
-        let source: String = row.try_get("source_id").map_err(db::sql_error)?;
-        let target: String = row.try_get("target_id").map_err(db::sql_error)?;
-        if selected.contains(source.as_str()) && selected.contains(target.as_str()) {
-            ids.push(row.try_get("id").map_err(db::sql_error)?);
-        }
-    }
-    Ok(ids)
-}
-
-pub(super) async fn moved_provenance_ids(
-    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    space_id: &str,
-    selected: &HashSet<&str>,
-) -> Result<Vec<String>, String> {
-    let rows = sqlx::query("SELECT id,source_node_id FROM spaces_provenance WHERE space_id=$1")
-        .bind(space_id)
-        .fetch_all(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    let mut ids = Vec::new();
-    for row in rows {
-        let source: String = row.try_get("source_node_id").map_err(db::sql_error)?;
-        if selected.contains(source.as_str()) {
-            ids.push(row.try_get("id").map_err(db::sql_error)?);
-        }
-    }
-    Ok(ids)
-}
 
 pub(super) async fn update_portals(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
@@ -99,27 +59,41 @@ pub(super) async fn update_portals(
     Ok(())
 }
 
-pub(super) async fn move_provenance(
+/// Moves the dependencies whose ends all moved. Call once their nodes are in the target Space:
+/// triggers hold every relation and provenance row to its endpoints' Space.
+pub(super) async fn move_dependencies(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &TransferSelectionRequest,
-    selected: &HashSet<&str>,
+    dependencies: &Dependencies,
     now: i64,
 ) -> Result<(), String> {
-    let rows = sqlx::query("SELECT id,source_node_id FROM spaces_provenance WHERE space_id=$1")
-        .bind(&request.source_space_id)
-        .fetch_all(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    for row in rows {
-        let source: String = row.try_get("source_node_id").map_err(db::sql_error)?;
-        if !selected.contains(source.as_str()) {
-            continue;
-        }
-        let id: String = row.try_get("id").map_err(db::sql_error)?;
-        sqlx::query("UPDATE spaces_provenance SET space_id=$1,updated_at=$2 WHERE id=$3")
+    // A relation's style is keyed by its Space; the target snapshot writes it back.
+    sqlx::query(
+        "DELETE FROM spaces_relation_styles \
+         WHERE space_id=$1 AND relation_id IN (SELECT value FROM json_each($2))",
+    )
+    .bind(&request.source_space_id)
+    .bind(Json(&dependencies.relations.moved))
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    for (statement, ids) in [
+        (
+            "UPDATE spaces_relations SET space_id=$1,updated_at=$2 \
+             WHERE space_id=$3 AND id IN (SELECT value FROM json_each($4))",
+            &dependencies.relations.moved,
+        ),
+        (
+            "UPDATE spaces_provenance SET space_id=$1,updated_at=$2 \
+             WHERE space_id=$3 AND id IN (SELECT value FROM json_each($4))",
+            &dependencies.provenance.moved,
+        ),
+    ] {
+        sqlx::query(statement)
             .bind(&request.target_space_id)
             .bind(now)
-            .bind(id)
+            .bind(&request.source_space_id)
+            .bind(Json(ids))
             .execute(&mut **tx)
             .await
             .map_err(db::sql_error)?;
