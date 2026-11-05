@@ -110,7 +110,7 @@ the requirement text says what the style is.
 - **References are optional.** A generation reads its references when it has them and its prompt
   alone when it has none. Whether an Action needs a selected resource is a property of the Action
   (`SpaceActionDefinition.minInputs`): generations need none, transformations (remove background,
-  split layers, add subtitles) need the resource they transform. The same number decides the canvas
+  split layers, slice stickers, add subtitles) need the resource they transform. The same number decides the canvas
   request, the derivation engine and the Agent tool schema, so the three cannot disagree.
 - **A generator is a draft, not a node.** It lives in the session (`generator-store`), it is not
   written to the Space and it has no history. Generating sends the frame with the request

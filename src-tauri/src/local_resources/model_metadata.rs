@@ -199,6 +199,7 @@ pub(super) fn metadata(model: LocalModelId) -> LocalModelMetadata {
             Any,
         ),
         LocalModelId::Migan => ("MI-GAN", Capability::ImageInpainting, NONE, Unused, Any),
+        LocalModelId::Lama => ("Big LaMa", Capability::ImageInpainting, NONE, Unused, Any),
         LocalModelId::EfficientSamTi => (
             "EfficientSAM · Ti",
             Capability::ImageSelection,

@@ -18,6 +18,18 @@ vi.mock("../image-operation", () => ({
         execution: { type: "local", model: "efficientSamTi", specId: "spec" },
         availability: { state: "ready" },
       },
+      {
+        capability: "imageInpainting",
+        selected: true,
+        execution: { type: "local", model: "migan", specId: "migan-spec" },
+        availability: { state: "ready" },
+      },
+      {
+        capability: "imageInpainting",
+        selected: false,
+        execution: { type: "local", model: "lama", specId: "lama-spec" },
+        availability: { state: "ready" },
+      },
     ],
   }),
 }));
@@ -142,4 +154,26 @@ it("discards the draft and its undo history when the source revision changes", a
   await store.begin(node);
   store.undo();
   expect(store.active?.selection.points).toEqual([]);
+});
+
+it("repairs with the repair model the panel chose, drawing the mask with the selection model", async () => {
+  const store = useImageSelectionSessionStore();
+  const node = imageSourceNode();
+  context.space!.nodes = [node];
+  await store.begin(node);
+  expect(store.repairTargets.map((target) => target.execution)).toMatchObject([
+    { model: "migan" },
+    { model: "lama" },
+  ]);
+  expect(store.active?.repair, "the selected repair model leads").toMatchObject({ model: "migan" });
+  store.setRepair({ type: "local", model: "lama", specId: "lama-spec" });
+  store.addPoint(0.3, 0.4);
+  vi.mocked(deriveImageSelection).mockResolvedValueOnce(undefined);
+  await store.submit("repair");
+  expect(deriveImageSelection).toHaveBeenLastCalledWith(node, {
+    effect: "repair",
+    selection: expect.objectContaining({ points: [expect.objectContaining({ x: 0.3 })] }),
+    selectionModel: { type: "local", model: "efficientSamTi", specId: "spec" },
+    repairModel: { type: "local", model: "lama", specId: "lama-spec" },
+  });
 });

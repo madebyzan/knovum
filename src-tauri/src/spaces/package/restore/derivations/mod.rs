@@ -80,6 +80,7 @@ fn validate(row: &PackageDerivation) -> Result<(), String> {
         "remove-image-background"
             | "remove-image-object"
             | "split-image-layers"
+            | "split-sticker-sheet"
             | "upscale-image"
             | "generate-image-angle"
             | "extract-image-selection"

@@ -5,13 +5,15 @@ use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
-/// Decoder limits for reading back a layer. The bytes are produced in process, so these bound the
+use super::ImageSet;
+
+/// Decoder limits for reading back a member. The bytes are produced in process, so these bound the
 /// memory one decode may claim rather than police an untrusted input.
 const MAX_IMAGE_DIMENSION: u32 = 16_384;
 const MAX_IMAGE_PIXELS: u64 = 25_000_000;
 const MAX_DECODE_BYTES: u64 = 160 * 1024 * 1024;
 
-pub struct PreparedLayer {
+pub struct PreparedMember {
     pub path: PathBuf,
     pub digest: String,
     pub size: usize,
@@ -19,17 +21,18 @@ pub struct PreparedLayer {
     pub height: u32,
 }
 
+/// Writes every member PNG into the asset directory, removing what it wrote if any member fails.
 pub fn prepare(
     app: &AppHandle,
-    layers: Vec<Vec<u8>>,
+    set: &ImageSet,
+    members: Vec<Vec<u8>>,
     cancellation: &CancellationToken,
-) -> Result<Vec<PreparedLayer>, String> {
+) -> Result<Vec<PreparedMember>, String> {
     let directory = crate::spaces::assets::asset_directory(app)?;
-    let mut prepared = Vec::with_capacity(layers.len());
-    for bytes in layers {
-        let prepared_layer = prepare_one(&directory, bytes, cancellation);
-        match prepared_layer {
-            Ok(layer) => prepared.push(layer),
+    let mut prepared = Vec::with_capacity(members.len());
+    for bytes in members {
+        match prepare_one(&directory, set.member, bytes, cancellation) {
+            Ok(member) => prepared.push(member),
             Err(error) => {
                 remove(&prepared);
                 return Err(error);
@@ -39,25 +42,26 @@ pub fn prepare(
     Ok(prepared)
 }
 
-/// Writes one layer and reads back the dimensions its node publishes.
+/// Writes one member and reads back the dimensions its node publishes.
 fn prepare_one(
     directory: &std::path::Path,
+    member: &str,
     bytes: Vec<u8>,
     cancellation: &CancellationToken,
-) -> Result<PreparedLayer, String> {
+) -> Result<PreparedMember, String> {
     if cancellation.is_cancelled() {
-        return Err("Image layer split was cancelled".into());
+        return Err("Image set derivation was cancelled".into());
     }
     let decoded = decode_png(&bytes)?;
     if cancellation.is_cancelled() {
-        return Err("Image layer split was cancelled".into());
+        return Err("Image set derivation was cancelled".into());
     }
-    let path = directory.join(format!("layer-{}.png", Uuid::new_v4()));
+    let path = directory.join(format!("{member}-{}.png", Uuid::new_v4()));
     if let Err(error) = fs::write(&path, &bytes) {
         let _ = fs::remove_file(&path);
         return Err(error.to_string());
     }
-    Ok(PreparedLayer {
+    Ok(PreparedMember {
         path,
         digest: format!("sha256:{}", hex::encode(Sha256::digest(&bytes))),
         size: bytes.len(),
@@ -75,15 +79,15 @@ fn decode_png(bytes: &[u8]) -> Result<image::DynamicImage, String> {
     reader.limits(limits);
     let decoded = reader
         .decode()
-        .map_err(|error| format!("Generated layer is not a valid PNG: {error}"))?;
+        .map_err(|error| format!("Generated image is not a valid PNG: {error}"))?;
     if u64::from(decoded.width()) * u64::from(decoded.height()) > MAX_IMAGE_PIXELS {
-        return Err("Generated layer dimensions exceed the image layer limit".into());
+        return Err("Generated image dimensions exceed the image set limit".into());
     }
     Ok(decoded)
 }
 
-pub fn remove(layers: &[PreparedLayer]) {
-    for layer in layers {
-        let _ = fs::remove_file(&layer.path);
+pub fn remove(members: &[PreparedMember]) {
+    for member in members {
+        let _ = fs::remove_file(&member.path);
     }
 }

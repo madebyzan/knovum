@@ -20,6 +20,7 @@ pub enum ImageModelFile {
     X4plusGraph,
     X4plusWeights,
     MiganWeights,
+    LamaWeights,
     TiEncoder,
     TiDecoder,
     SEncoder,
@@ -81,6 +82,16 @@ impl ImageModelCatalog for ImageModelVariant {
                 }),
                 ModelKind::ImagePart(ImageModelPart {
                     variant: Self::Migan,
+                    file: ImageModelFile::License,
+                }),
+            ],
+            Self::Lama => &[
+                ModelKind::ImagePart(ImageModelPart {
+                    variant: Self::Lama,
+                    file: ImageModelFile::LamaWeights,
+                }),
+                ModelKind::ImagePart(ImageModelPart {
+                    variant: Self::Lama,
                     file: ImageModelFile::License,
                 }),
             ],

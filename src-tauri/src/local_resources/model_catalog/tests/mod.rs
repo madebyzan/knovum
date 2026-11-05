@@ -193,6 +193,7 @@ fn image_choices_prepare_their_complete_snapshot_without_recursion() {
         LocalModelId::RealEsrganGeneralX4v3,
         LocalModelId::RealEsrganX4plus,
         LocalModelId::Migan,
+        LocalModelId::Lama,
         LocalModelId::EfficientSamTi,
         LocalModelId::EfficientSamS,
         LocalModelId::DepthAnythingV2SmallUint8,

@@ -1,6 +1,6 @@
 import { sumBy } from "es-toolkit";
 import { defineStore } from "pinia";
-import { computed, readonly, shallowReactive, shallowRef, watch } from "vue";
+import { computed, readonly, shallowReactive, shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/instance";
@@ -10,19 +10,21 @@ import type { ImageSelection } from "../contracts/generated/ImageSelection";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
-import { getImageOperationCapabilities, selectedImageTarget } from "./image-operation";
+import { selectionChoices, selectionDerivation } from "./image-selection-choices";
 import { deriveImageSelection } from "./image-selection-derivation";
+import { releaseWhenSourceChanges, sourcePin, type SourcePin } from "./source-pin";
 import { useImageSelectionPreview } from "./use-image-selection-preview";
 
 export type ImageSelectionTool = "include" | "exclude" | "box" | "brush";
 interface SelectionDraft {
   sessionId: symbol;
   nodeId: string;
-  spaceId: string;
-  sourceRevision: string;
-  sourceEditKey: string;
+  pin: SourcePin;
   selection: ImageSelection;
+  /** The selection model that draws the mask. */
   execution: ImageExecutionTarget | undefined;
+  /** The repair model that paints the selected area away. */
+  repair: ImageExecutionTarget | undefined;
 }
 
 export const useImageSelectionSessionStore = defineStore("spaces-image-selection-session", () => {
@@ -32,11 +34,12 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
   const tool = shallowRef<ImageSelectionTool>("include");
   const brushDiameter = shallowRef(0.045);
   const targets = shallowRef<ImageOperationTargetOption[]>([]);
+  const repairTargets = shallowRef<ImageOperationTargetOption[]>([]);
   const { maskSource, busy, error, queue, clear } = useImageSelectionPreview(() => {
     const draft = active.value;
     const node = space.nodes.find(({ id }) => id === draft?.nodeId);
     return draft?.execution && node
-      ? { node, spaceId: draft.spaceId, execution: draft.execution, selection: draft.selection }
+      ? { node, spaceId: draft.pin.spaceId, execution: draft.execution, selection: draft.selection }
       : undefined;
   });
   const submitting = shallowRef(false);
@@ -52,6 +55,9 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
       remainingPoints.value >= 2,
   );
   const canSubmit = computed(() => Boolean(maskSource.value && !busy.value && !submitting.value));
+  const canRepair = computed(
+    () => canSubmit.value && !!active.value && !!selectionDerivation(active.value, "repair"),
+  );
   const canUndo = computed(() => Boolean(history.length && !submitting.value));
 
   function update(selection: ImageSelection) {
@@ -65,21 +71,21 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
     active.value = {
       sessionId: Symbol(),
       nodeId: node.id,
-      spaceId: space.activeSpaceId,
-      sourceRevision: node.data.sourceRevision,
-      sourceEditKey: JSON.stringify(node.data.imageEdit ?? null),
+      pin: sourcePin(space.activeSpaceId, node),
       selection: { points: [], boxRect: null, strokes: [] },
       execution: undefined,
+      repair: undefined,
     };
     const draft = active.value;
     history.length = 0;
     tool.value = "include";
     clear();
     try {
-      const capabilities = await getImageOperationCapabilities();
+      const choices = await selectionChoices();
       if (active.value?.sessionId !== draft.sessionId) return;
-      targets.value = capabilities.targets.filter((target) => target.capability === "imageSelection");
-      active.value = { ...active.value, execution: selectedImageTarget(targets.value) };
+      targets.value = choices.selection;
+      repairTargets.value = choices.repair;
+      active.value = { ...active.value, execution: choices.selectionModel, repair: choices.repairModel };
       queue();
     } catch (cause) {
       if (active.value?.sessionId === draft.sessionId) error.value = getErrorMessage(cause);
@@ -90,6 +96,10 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
     clear();
     active.value = { ...active.value, execution };
     queue();
+  }
+  function setRepair(repair: ImageExecutionTarget) {
+    if (!active.value || submitting.value) return;
+    active.value = { ...active.value, repair };
   }
   function addPoint(x: number, y: number) {
     const selection = active.value?.selection;
@@ -124,16 +134,12 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
   }
   async function submit(effect: "extract" | "repair") {
     const current = active.value;
-    if (!current?.execution || current.execution.type !== "local" || !canSubmit.value) return;
-    const node = space.nodes.find(({ id }) => id === current.nodeId);
-    if (!node) return;
+    const input = current && canSubmit.value ? selectionDerivation(current, effect) : undefined;
+    const node = space.nodes.find(({ id }) => id === current?.nodeId);
+    if (!input || !node) return;
     submitting.value = true;
     try {
-      const run = await deriveImageSelection(node, {
-        selection: current.selection,
-        execution: current.execution,
-        effect,
-      });
+      const run = await deriveImageSelection(node, input);
       if (run) {
         submitting.value = false;
         cancel();
@@ -142,28 +148,24 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
       submitting.value = false;
     }
   }
-  const sourceIdentity = computed(() => {
-    const node = space.nodes.find(({ id }) => id === active.value?.nodeId);
-    return [
-      space.activeSpaceId,
-      node?.data.sourceRevision,
-      node?.data.kind === "image" ? JSON.stringify(node.data.imageEdit ?? null) : undefined,
-    ];
-  });
-  watch([sourceIdentity, submitting], ([[spaceId, revision, edit]]) => {
-    const draft = active.value;
-    if (
-      draft &&
-      (spaceId !== draft.spaceId || revision !== draft.sourceRevision || edit !== draft.sourceEditKey)
-    )
-      cancel();
-  });
+  // A draft that outlived its source while submitting is released once the submission settles.
+  releaseWhenSourceChanges(
+    () => active.value?.pin,
+    () =>
+      sourcePin(
+        space.activeSpaceId ?? "",
+        space.nodes.find(({ id }) => id === active.value?.nodeId),
+      ),
+    cancel,
+    [submitting],
+  );
 
   return {
     active: readonly(active),
     tool,
     brushDiameter,
     targets: readonly(targets),
+    repairTargets: readonly(repairTargets),
     maskSource: readonly(maskSource),
     busy: readonly(busy),
     submitting: readonly(submitting),
@@ -171,9 +173,11 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
     canDraw,
     remainingPoints,
     canSubmit,
+    canRepair,
     canUndo,
     begin,
     setExecution,
+    setRepair,
     addPoint,
     setBox,
     addStroke,

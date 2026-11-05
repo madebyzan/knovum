@@ -16,6 +16,7 @@ enum Handler {
     Subtitles,
     ImageTransform,
     ImageLayers,
+    StickerSheet,
 }
 
 fn handler(action_id: &str) -> Option<Handler> {
@@ -31,6 +32,7 @@ fn handler(action_id: &str) -> Option<Handler> {
         "generate-video" => Some(Handler::Video),
         "add-video-subtitles" => Some(Handler::Subtitles),
         "split-image-layers" => Some(Handler::ImageLayers),
+        "split-sticker-sheet" => Some(Handler::StickerSheet),
         _ => None,
     }
 }
@@ -109,6 +111,10 @@ pub(crate) async fn execute(
         )?),
         Some(Handler::ImageLayers) => Ok(serialize(
             super::image_layers::split_for_action(app, decode(request)?, &authority, cancellation)
+                .await?,
+        )?),
+        Some(Handler::StickerSheet) => Ok(serialize(
+            super::sticker_sheet::slice_for_action(app, decode(request)?, &authority, cancellation)
                 .await?,
         )?),
         None => Err(AppError::new(

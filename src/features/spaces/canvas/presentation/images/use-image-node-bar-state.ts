@@ -22,7 +22,7 @@ import { useImageSourceDimensionsStore } from "./image-source-dimensions-store";
 type ImagePopover = "upscale";
 
 /** Image derivations the node bar offers as a single click. */
-const DIRECT_DERIVATIONS = ["remove-image-background", "split-image-layers"] as const;
+const DIRECT_DERIVATIONS = ["remove-image-background", "split-image-layers", "split-sticker-sheet"] as const;
 export type DirectImageDerivation = (typeof DIRECT_DERIVATIONS)[number];
 
 export function useImageNodeBarState(

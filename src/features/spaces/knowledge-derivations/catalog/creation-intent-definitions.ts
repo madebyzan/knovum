@@ -39,7 +39,12 @@ export const CREATION_INTENT_DEFINITIONS = [
   {
     id: "split-image-layers",
     icon: "layers",
-    decide: ({ canSplitImageLayers }) => (canSplitImageLayers ? AVAILABLE : HIDDEN),
+    decide: ({ canDeriveImageSet }) => (canDeriveImageSet ? AVAILABLE : HIDDEN),
+  },
+  {
+    id: "split-sticker-sheet",
+    icon: "sticker",
+    decide: ({ canDeriveImageSet }) => (canDeriveImageSet ? AVAILABLE : HIDDEN),
   },
   {
     id: "add-video-subtitles",

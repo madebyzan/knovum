@@ -2,7 +2,7 @@ use serde_json::{json, Value};
 use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 
-use super::{assets::PreparedLayer, contracts, source};
+use super::{assets::PreparedMember, contracts::ImageSetRequest, source, ImageSet};
 use crate::foundation::app_error::AppError;
 use crate::spaces::{
     db,
@@ -13,32 +13,33 @@ use crate::spaces::{
     knowledge::model::revision,
 };
 
-/// Node titles are validated in UTF-16 code units, which is the budget a layer title shares with
+/// Node titles are validated in UTF-16 code units, which is the budget a member title shares with
 /// its trimmed source title.
 const MAX_TITLE: usize = 512;
 
-/// Reserves one pending node per discovered layer. The layers are already on disk, so each node is
-/// reserved with the asset it will publish and the pixel size it will report, which lets the set be
-/// laid out at the size it keeps. The node the Run reserved up front becomes the first layer.
+/// Reserves one pending node per discovered member. The members are already on disk, so each node
+/// is reserved with the asset it will publish and the pixel size it will report, which lets the set
+/// be laid out at the size it keeps. The node the Run reserved up front becomes the first member.
 pub(super) async fn reserve(
     app: &AppHandle,
-    request: &contracts::SplitImageLayersRequest,
+    set: &ImageSet,
+    request: &ImageSetRequest,
     source: &source::SourceImage,
-    layers: &[PreparedLayer],
+    members: &[PreparedMember],
     authority: &ExecutionAuthority,
 ) -> Result<(), AppError> {
-    let outputs = layers
+    let outputs = members
         .iter()
         .enumerate()
-        .map(|(index, layer)| {
-            let title = layer_title(&source.title, index);
+        .map(|(index, member)| {
+            let title = member_title(set, &source.title, index);
             pending_output::PendingOutput {
-                node_id: contracts::layer_node_id(request, index),
+                node_id: set.node_id(request, index),
                 kind: "image",
                 data: json!({
                     "kind": "image", "title": title, "fileName": format!("{title}.png"),
-                    "assetPath": layer.path.to_string_lossy(), "processingState": "processing",
-                    "intrinsicWidth": layer.width, "intrinsicHeight": layer.height
+                    "assetPath": member.path.to_string_lossy(), "processingState": "processing",
+                    "intrinsicWidth": member.width, "intrinsicHeight": member.height
                 }),
                 placement: pending_output::OutputPlacement::Derived(pending_output::PLACEHOLDER),
             }
@@ -52,16 +53,17 @@ pub(super) async fn reserve(
         &request.space_id,
         outputs,
         std::slice::from_ref(&request.source_node_id),
-        super::LINEAGE,
+        set.lineage,
         authority,
     )
     .await
 }
 
-/// Opens one derivation per reserved output so each layer carries its own lineage.
+/// Opens one derivation per reserved output so each member carries its own lineage.
 pub(super) async fn start(
     app: &AppHandle,
-    request: &contracts::SplitImageLayersRequest,
+    set: &ImageSet,
+    request: &ImageSetRequest,
     count: usize,
     authority: &ExecutionAuthority,
 ) -> Result<(), AppError> {
@@ -70,10 +72,11 @@ pub(super) async fn start(
     authority.require_active(&mut *tx).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
     for index in 0..count {
-        let derivation_id = contracts::derivation_id(&request.id, index);
-        sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'split-image-layers',1,'local:image-layers','running',$4,$4)")
+        let derivation_id = set.derivation_id(&request.id, index);
+        sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,$4,1,$5,'running',$6,$6)")
             .bind(&derivation_id).bind(&request.space_id)
-            .bind(contracts::layer_node_id(request, index))
+            .bind(set.node_id(request, index))
+            .bind(set.action_kind).bind(set.engine)
             .bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
         inputs::insert(
             &mut tx,
@@ -95,8 +98,9 @@ pub(super) async fn start(
 
 pub(super) async fn complete(
     app: &AppHandle,
-    request: &contracts::SplitImageLayersRequest,
-    layers: &[PreparedLayer],
+    set: &ImageSet,
+    request: &ImageSetRequest,
+    members: &[PreparedMember],
     authority: &ExecutionAuthority,
 ) -> Result<Vec<CompletedDerivationOutput>, AppError> {
     let pool = db::pool(app).await?;
@@ -105,13 +109,13 @@ pub(super) async fn complete(
     source::load(&mut *tx, request).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
     let enrichment_target = crate::spaces::assets::enrichment::jobs::intent::selection(app)?;
-    let mut completed = Vec::with_capacity(layers.len());
-    for (index, layer) in layers.iter().enumerate() {
-        let output_id = contracts::layer_node_id(request, index);
-        let mut data =
-            load_pending_output(&mut tx, &contracts::derivation_id(&request.id, index)).await?;
+    let mut completed = Vec::with_capacity(members.len());
+    for (index, member) in members.iter().enumerate() {
+        let output_id = set.node_id(request, index);
+        let derivation_id = set.derivation_id(&request.id, index);
+        let mut data = load_pending_output(&mut tx, &derivation_id).await?;
         pending_output::validate_unpublished_asset(&data)?;
-        apply_layer_content(&mut data, layer, now)?;
+        apply_member_content(&mut data, member, now)?;
         crate::spaces::knowledge::validation::validate_node(
             &mut tx,
             &request.space_id,
@@ -128,7 +132,7 @@ pub(super) async fn complete(
         )
         .await?;
         sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2 AND status='running'")
-            .bind(now).bind(contracts::derivation_id(&request.id, index)).execute(&mut *tx).await.map_err(db::sql_error)?;
+            .bind(now).bind(&derivation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
         completed.push(CompletedDerivationOutput {
             node_id: output_id,
             data,
@@ -150,24 +154,26 @@ pub(super) async fn complete(
 /// Settles reserved outputs whose derivations never opened.
 pub(super) async fn fail_reserved(
     app: &AppHandle,
-    request: &contracts::SplitImageLayersRequest,
+    set: &ImageSet,
+    request: &ImageSetRequest,
     count: usize,
 ) -> Result<(), String> {
     for index in 0..count {
-        failure::fail_pending(app, &contracts::layer_node_id(request, index)).await?;
+        failure::fail_pending(app, &set.node_id(request, index)).await?;
     }
     Ok(())
 }
 
 pub(super) async fn fail(
     app: &AppHandle,
-    request: &contracts::SplitImageLayersRequest,
+    set: &ImageSet,
+    request: &ImageSetRequest,
     count: usize,
     error: &str,
 ) -> Result<(), String> {
     let pool = db::pool(app).await?;
     let ids = (0..count)
-        .map(|index| contracts::derivation_id(&request.id, index))
+        .map(|index| set.derivation_id(&request.id, index))
         .collect::<Vec<_>>();
     failure::fail_messages(pool, &ids, error).await
 }
@@ -180,38 +186,38 @@ async fn load_pending_output(
         "SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running' AND n.kind='image' AND n.deleted_at IS NULL",
     )
     .bind(derivation_id).fetch_optional(&mut **tx).await.map_err(db::sql_error)?
-    .ok_or("Image layer output is no longer pending")?;
+    .ok_or("Image set output is no longer pending")?;
     serde_json::from_str(&encoded)
         .map_err(db::json_error)
         .map_err(AppError::from)
 }
 
-fn apply_layer_content(
+fn apply_member_content(
     payload: &mut Value,
-    layer: &PreparedLayer,
+    member: &PreparedMember,
     now: i64,
 ) -> Result<(), AppError> {
     let object = payload
         .as_object_mut()
-        .ok_or("Image layer output data is invalid")?;
+        .ok_or("Image set output data is invalid")?;
     object.insert(
         "assetPath".into(),
-        layer.path.to_string_lossy().into_owned().into(),
+        member.path.to_string_lossy().into_owned().into(),
     );
-    object.insert("sourceRevision".into(), layer.digest.clone().into());
-    object.insert("size".into(), (layer.size as u64).into());
+    object.insert("sourceRevision".into(), member.digest.clone().into());
+    object.insert("size".into(), (member.size as u64).into());
     object.insert("modifiedAt".into(), now.into());
-    object.insert("intrinsicWidth".into(), layer.width.into());
-    object.insert("intrinsicHeight".into(), layer.height.into());
+    object.insert("intrinsicWidth".into(), member.width.into());
+    object.insert("intrinsicHeight".into(), member.height.into());
     object.remove("processingState");
     revision::apply(payload)?;
     Ok(())
 }
 
-/// Backdrop first, then each subject in the order the stack composites. Node titles are bounded,
-/// so a long source title is trimmed instead of rejected on publication.
-fn layer_title(source: &str, index: usize) -> String {
-    let suffix = format!("-layer-{}", index + 1);
+/// Members are titled in the order the set publishes them. Node titles are bounded, so a long
+/// source title is trimmed instead of rejected on publication.
+fn member_title(set: &ImageSet, source: &str, index: usize) -> String {
+    let suffix = format!("-{}-{}", set.member, index + 1);
     let budget = MAX_TITLE.saturating_sub(suffix.encode_utf16().count());
     let mut title = String::new();
     let mut used = 0;

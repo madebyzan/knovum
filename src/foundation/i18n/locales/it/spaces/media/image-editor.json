@@ -115,6 +115,8 @@
     "help": "Fare clic sull'oggetto; aggiungere punti di esclusione o una casella. Pennello per includere i dettagli. Fino a sei punti di richiesta.",
     "repair": "Rimuovi e riempi",
     "extract": "Scontorna oggetto",
+    "selectionModel": "Modello di selezione",
+    "repairModel": "Modello di riparazione",
     "undo": "Annulla selezione",
     "modelUnavailable": "Seleziona un modello di selezione oggetti disponibile nelle Impostazioni.",
     "promptLimit": "Fino a sei prompt. Annulla una richiesta per continuare."

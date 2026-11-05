@@ -273,19 +273,31 @@ Transformation lineage and epistemic Provenance are different contracts. A Deriv
 
 Long derivations create a pending output node immediately. The pending node reserves the eventual result position and mirrors the feature-owned Rust job's meaningful stage and progress through Task Center. Success replaces it in place; failure remains inspectable and retryable but does not create a false completed resource or semantic lineage.
 
-Layer splitting is the one derivation whose output count is discovered rather than requested. It
-still reserves one pending node before the handler runs, like every other derivation, so the click
-lands on the canvas immediately instead of only in Task Center. Discovery then reports how many layers the image carries: the first layer publishes
-into the node the Run reserved, the rest are reserved in the same transaction, and the whole set is
-laid out as one grid beside the source. It is one Action invocation and therefore one Run, one Task
-Center task and one cancellation; a split that fails or is cancelled settles its reserved nodes —
-the node reserved up front included, whether or not the derivations ever opened — and deletes the
-layer files it had written. Each layer is cropped to the pixels it carries, so a subject arrives as a
-node at its own size rather than inside a canvas-sized transparent frame, and a layer that carries no
-content of its own is never published: an empty cut-out, or the flat fill a sticker sheet was drawn
-over. A backdrop becomes a layer only when it is content in its own right — the inpainted
-background of a photograph, or the source with the subject holes left open when no pass could
-complete it.
+Layer splitting and sticker-sheet slicing are the derivations whose output count is discovered
+rather than requested; both publish through one shared image-set contract (`derivation/image_set`),
+and each supplies only what it is and how a rendered source becomes member images. Each still
+reserves one pending node before the handler runs, like every other derivation, so the click lands
+on the canvas immediately instead of only in Task Center. The source then reports how many members
+it carries: the first publishes into the node the Run reserved, the rest are reserved in the same
+transaction, and the whole set is laid out as one grid beside the source. It is one Action
+invocation and therefore one Run, one Task Center task and one cancellation; a set that fails or is
+cancelled settles its reserved nodes — the node reserved up front included, whether or not the
+derivations ever opened — and deletes the files it had written.
+
+The two are different readings of a picture and never stand in for each other. **Layer splitting**
+reads depth: the subjects that stand in a picture, ordered far to near, over the backdrop they
+covered with that area completed. Each layer is cropped to the pixels it carries, so a subject
+arrives as a node at its own size rather than inside a canvas-sized transparent frame, and a layer
+that carries no content of its own is never published: an empty cut-out, or a backdrop that is a
+flat fill. **Sticker-sheet slicing** reads a grid laid out side by side — no stack, no model. The
+backdrop the sheet edge reaches through backdrop-coloured pixels is lifted (an enclosed white belly
+or eye highlight stays the sticker's) and the blended rim is un-blended so a sticker shows no fringe
+on any chat background. Rows are read across the sheet, then each row into its own columns, as the
+most evenly pitched cells whose cuts land in blank gutters of consistent width — so the narrow gap
+between a character and its caption is never mistaken for a gutter, and a short last row is read
+as it is. Each cell becomes a WeChat sticker album main image: 240×240 transparent PNG, aspect kept,
+an 8px clear margin, resampled with premultiplied alpha, well under the album's 500 KB limit. A sheet
+is at least two stickers and at most an 8×8 grid.
 
 Outputs published together are laid out as equal cells in reading order, as close to square as the
 count allows, each output centred in its cell at the size its content reports. That set is then

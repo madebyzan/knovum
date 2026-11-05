@@ -9,6 +9,8 @@ const props = defineProps<{
   options: readonly ImageOperationTargetOption[];
   execution: ImageExecutionTarget | undefined;
   disabled?: boolean;
+  /** What the chosen model does, when the panel offers more than one choice. */
+  label?: string;
 }>();
 const emit = defineEmits<{ select: [execution: ImageExecutionTarget] }>();
 const { t } = useI18n();
@@ -34,7 +36,7 @@ function select(selectedValue: string) {
     :model-value="value"
     :options="choices"
     :disabled="disabled"
-    :label="t('spaces.media.imageEditor.operation.execution')"
+    :label="label ?? t('spaces.media.imageEditor.operation.execution')"
     @update:model-value="select"
   />
 </template>

@@ -72,6 +72,14 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         empty,
         Output::Image,
     ),
+    action(
+        "split-sticker-sheet",
+        None,
+        None,
+        &[Input::Image],
+        empty,
+        Output::Image,
+    ),
     immediate_action("create-note", &[], note, Output::ResourceReceipt),
     immediate_action(
         "commit-knowledge-changes",

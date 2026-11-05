@@ -4,6 +4,7 @@
   "generateVideo": "ビデオの生成",
   "removeImageBackground": "背景を削除",
   "splitImageLayers": "レイヤーに分割",
+  "splitStickerSheet": "スタンプを切り出す",
   "addVideoSubtitles": "字幕の追加",
   "upscaleImage": "高解像度化済み",
   "generateImageAngle": "新しいビュー",

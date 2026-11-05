@@ -1,8 +1,7 @@
 //! Pure layer ordering. Discovery ranks subjects by mask confidence, which says nothing about
 //! which subject sits behind which, so the stack order comes from the depth field.
 
-use super::passes::Field;
-use crate::spaces::derivation::image_layers::local::Decomposition;
+use super::{passes::Field, Decomposition};
 
 /// Reorders discovery ranks into a far-to-near stack. Depth-Anything reports larger values for
 /// nearer surfaces, so a subject with a smaller mean depth belongs further back. The depth field
@@ -53,27 +52,6 @@ pub(super) fn stack(
         width,
         height,
     })
-}
-
-/// Picks the layer that holds the salient subject. Saliency has softer edges than a discovery
-/// mask, so that layer uses it as its alpha.
-pub(super) fn salient_layer(
-    decomposition: &Decomposition,
-    saliency: Vec<u8>,
-) -> Option<(u8, Vec<u8>)> {
-    if saliency.len() != decomposition.labels.len() {
-        return None;
-    }
-    let owner = (1..=decomposition.count).max_by_key(|label| {
-        decomposition
-            .labels
-            .iter()
-            .zip(&saliency)
-            .filter(|(at, _)| *at == label)
-            .map(|(_, coverage)| u64::from(*coverage))
-            .sum::<u64>()
-    })?;
-    Some((owner, saliency))
 }
 
 #[cfg(test)]

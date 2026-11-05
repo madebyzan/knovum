@@ -5,6 +5,10 @@ const SAM_ROOT: &str =
     "https://huggingface.co/yunyangx/EfficientSAM/resolve/1cf49585c39567bfc49e991ab8eb31f491ad4877";
 const DEPTH_ROOT: &str = "https://huggingface.co/onnx-community/depth-anything-v2-small/resolve/4472b7362082ad9968fee890ca0f1e5aca36b93d";
 const MIGAN_ROOT: &str = "https://huggingface.co/andraniksargsyan/migan/resolve/406830d0fa60666da0071c342ad2fbc8f30c5c64";
+/// Carve's ONNX export of the authors' Big LaMa; its README states the export is the original
+/// model's, so the license is the authors'.
+const LAMA_ROOT: &str =
+    "https://huggingface.co/Carve/LaMa-ONNX/resolve/c3c0c9e468934d62e79c329e35d82dd09ff8c444";
 const PADDLE_OCR_ROOT: &str =
     "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/b03f46425e8ff4442b268ce449e3eef758146cd4";
 
@@ -34,6 +38,11 @@ pub(super) const fn metadata(part: ImageModelPart) -> (&'static str, &'static st
             "migan_pipeline_v2.onnx",
             "6f1f3530a1a2324b19752018ce756088b07973cda8d7d890034ace5c8a48c40b",
             28_079_181,
+        ),
+        F::LamaWeights => (
+            "lama_fp32.onnx",
+            "1faef5301d78db7dda502fe59966957ec4b79dd64e16f03ed96913c7a4eb68d6",
+            208_044_816,
         ),
         F::TiEncoder => (
             "efficientsam_ti_encoder.onnx",
@@ -106,6 +115,11 @@ pub(super) const fn metadata(part: ImageModelPart) -> (&'static str, &'static st
                 "13348eaaebc0b07b0faf3a92db04e0858737713a917d064b599c87cac05b571f",
                 1_082,
             ),
+            V::Lama => (
+                "LICENSE",
+                "4ceeeac5a802e86c413c22b16cce8e9a22027b0250c97e6f8ac97c14cf0542c0",
+                11_348,
+            ),
             V::EfficientSamTi
             | V::EfficientSamS
             | V::DepthAnythingV2SmallUint8
@@ -123,6 +137,7 @@ pub(super) fn url(part: ImageModelPart) -> String {
         F::GeneralGraph | F::GeneralWeights | F::X4plusGraph | F::X4plusWeights => unreachable!("These files belong to the frozen release archive"),
         F::TiEncoder | F::TiDecoder | F::SEncoder | F::SDecoder => format!("{SAM_ROOT}/{}", metadata(part).0),
         F::MiganWeights => format!("{MIGAN_ROOT}/{}", metadata(part).0),
+        F::LamaWeights => format!("{LAMA_ROOT}/{}", metadata(part).0),
         F::DepthUint8Weights | F::DepthFp32Weights => format!("{DEPTH_ROOT}/onnx/{}", metadata(part).0),
         F::DepthProcessor => format!("{DEPTH_ROOT}/preprocessor_config.json"),
         F::DepthModelCard => format!("{DEPTH_ROOT}/README.md"),
@@ -133,6 +148,7 @@ pub(super) fn url(part: ImageModelPart) -> String {
             V::PpOcrV6Small => format!("{PADDLE_OCR_ROOT}/LICENSE"),
             V::RealEsrganGeneralX4v3 | V::RealEsrganX4plus => "https://raw.githubusercontent.com/xinntao/Real-ESRGAN/a4abfb2979a7bbff3f69f58f58ae324608821e27/LICENSE".into(),
             V::Migan => format!("{MIGAN_ROOT}/LICENSE"),
+            V::Lama => "https://raw.githubusercontent.com/advimman/lama/786f5936b27fb3dacd2b1ad799e4de968ea697e7/LICENSE".into(),
             V::EfficientSamTi | V::EfficientSamS => "https://raw.githubusercontent.com/yformer/EfficientSAM/d525f622e6f640acf5a0fc37c7ca1f243da5bde0/LICENSE".into(),
             V::DepthAnythingV2SmallUint8 | V::DepthAnythingV2Small => "https://raw.githubusercontent.com/DepthAnything/Depth-Anything-V2/a561b849ebae10a6f5ef49e26c83cbbcd36c71bf/LICENSE".into(),
         },

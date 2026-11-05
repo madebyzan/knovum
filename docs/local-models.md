@@ -313,17 +313,21 @@ Selections are strict current v1 preferences, not an arbitrary model-import mech
 | --------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
 | Upscaling       | Real-ESRGAN General x4v3 / x4plus    | Release v0.62.2 graph plus external weights; CPU float32, fixed 128px tiles, native 4×                            |
 | Mask repair     | MI-GAN pipeline v2                   | Author ONNX uint8 RGB and mask; adapter flips selected-mask polarity and protects every unselected source byte    |
+| Mask repair     | Big LaMa (Carve ONNX export)         | fp32, image 0–1 + hole mask, one 512² window fitted around the hole; outside pixels kept                          |
 | Smart selection | EfficientSAM Ti / S                  | Frozen author encoder + decoder, RGB 0–1, foreground/exclusion points and rectangle; one worker-owned encoding    |
 | Relative depth  | Depth Anything V2 Small FP32 / UINT8 | Frozen ONNX conversion and processor; ImageNet-normalized RGB, dimensions divisible by 14, relative inverse depth |
 
-Layer splitting reuses these capabilities rather than adding a model: `imageSegmentation` proposes
-where the subjects are and supplies the soft alpha for the salient layer, `imageSelection` turns
-those proposals into masks through the `DiscoverLayers` computation, `imageDepth` orders the stack
-from far to near, and `imageInpainting` completes the backdrop the subjects covered. Sources drawn
-over a uniform backdrop, such as sticker sheets, are read from pixel connectivity and need no model
-at all; the path is chosen by measured input structure, and each path is complete on its own. A
-uniform backdrop is not published as a layer of its own: it is a flat fill, and a layer is only
-worth a node when it carries content the source does not already show for free.
+Layer splitting reuses these capabilities rather than adding a model, and every pass runs the
+model selected for its capability — the choice made in Settings is the model that splits:
+`imageSegmentation` proposes where the subjects are, `imageSelection` turns the proposals into
+disjoint subject masks, `imageDepth` orders the stack from far to near, and `imageInpainting`
+completes the backdrop the subjects covered. Before any pixel is cut the masks are refined: a
+fragment smaller than 5% of its layer's largest part is a stray the decoder painted elsewhere and
+returns to the backdrop, an unassigned pinhole under 1% of its layer is filled, the salient layer
+takes saliency's soft coverage only inside an edge band (inside, it stays solid), and completion
+paints each subject grown by a rim so no ghost outline of a lifted subject is continued into the
+backdrop. Layer splitting is a reading of depth only: a sheet of stickers laid side by side is not a
+stack, and is sliced by `split-sticker-sheet`, which needs no model.
 
 A split can only contain objects that were prompted, and the worker encodes the source once and
 reuses that embedding, so one extra prompt costs one decoder pass over a 192px probe rather than
