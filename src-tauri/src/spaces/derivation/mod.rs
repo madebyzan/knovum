@@ -14,6 +14,7 @@ pub(crate) mod input_revision;
 pub(crate) mod inputs;
 pub(crate) mod metadata_sources;
 pub(crate) mod output_paths;
+pub(crate) mod ownership;
 pub(crate) mod pending_output;
 pub(super) mod placement;
 pub(crate) mod queries;

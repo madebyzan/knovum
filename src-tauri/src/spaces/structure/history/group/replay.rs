@@ -6,7 +6,7 @@ use sqlx::{Sqlite, Transaction};
 use super::portal;
 use super::{Side, TargetState};
 use crate::spaces::{
-    db,
+    db, derivation,
     structure::{portal_integrity, repository, StructureNode},
 };
 
@@ -117,8 +117,9 @@ async fn move_nodes(
     Ok(())
 }
 
-/// Relations, Provenance and Knowledge chunks are owned by the Space of the content they describe,
-/// so they follow the nodes that moved — and only those rows: the rest of the library is untouched.
+/// Relations, Provenance, derivations and Knowledge chunks are owned by the Space of the content
+/// they describe, so they follow the nodes that moved — and only those rows: the rest of the
+/// library is untouched.
 async fn follow_nodes(
     tx: &mut Transaction<'_, Sqlite>,
     node_ids: &[String],
@@ -164,6 +165,7 @@ async fn follow_nodes(
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
+    derivation::ownership::follow_moved_nodes(tx, node_ids, now).await?;
     Ok(())
 }
 

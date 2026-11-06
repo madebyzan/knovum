@@ -10,7 +10,7 @@ pub(super) async fn validate(
     space_id: &str,
     selected: &HashSet<&str>,
 ) -> Result<(), String> {
-    validate_derivations(tx, space_id, selected).await?;
+    reject_unsettled_outputs(tx, space_id, selected).await?;
     let rows = sqlx::query(
         "SELECT n.id,n.data,n.object_type_id,t.fields FROM spaces_nodes n \
          LEFT JOIN spaces_object_types t ON t.id=n.object_type_id \
@@ -26,7 +26,9 @@ pub(super) async fn validate(
     Ok(())
 }
 
-async fn validate_derivations(
+/// A derivation still running settles its output into the Space it was reserved in, so that
+/// output stays until it settles. A settled derivation follows its output.
+async fn reject_unsettled_outputs(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
     selected: &HashSet<&str>,
@@ -34,7 +36,8 @@ async fn validate_derivations(
     let rows = sqlx::query(
         "SELECT n.data FROM spaces_knowledge_derivations d \
          JOIN spaces_nodes n ON n.id = d.output_node_id \
-         WHERE d.space_id = $1 AND d.output_node_id IN (SELECT value FROM json_each($2))",
+         WHERE d.space_id = $1 AND d.status = 'running' \
+         AND d.output_node_id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
     .bind(sqlx::types::Json(selected))
@@ -50,7 +53,7 @@ async fn validate_derivations(
             .and_then(Value::as_str)
             .unwrap_or("Untitled");
         return Err(format!(
-            "Node “{title}” is a derived asset linked to this Space and cannot be moved between Spaces"
+            "Node “{title}” is still being produced and can move between Spaces once it settles"
         ));
     }
     Ok(())

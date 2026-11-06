@@ -1,4 +1,3 @@
-mod boundary;
 mod node_selection;
 
 use std::collections::HashSet;
@@ -21,13 +20,10 @@ pub(super) async fn ensure_target_space(
         .ok_or_else(|| "Target Space does not exist or is archived".into())
 }
 
-pub(super) async fn validate_dependencies(
+pub(super) async fn validate_nodes(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
-    selected: &[String],
+    selected: &HashSet<&str>,
 ) -> Result<(), String> {
-    let selected_set: HashSet<&str> = selected.iter().map(String::as_str).collect();
-    node_selection::validate(tx, space_id, &selected_set).await?;
-    boundary::validate_relations(tx, space_id, &selected_set).await?;
-    boundary::validate_provenance(tx, space_id, &selected_set).await
+    node_selection::validate(tx, space_id, selected).await
 }

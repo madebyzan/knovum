@@ -93,6 +93,15 @@ Spaces application
 
 A **Space** is an infinite spatial surface and the durable boundary for Relations, Provenance, atomic Knowledge changes and local Knowledge history. The system **Inbox** is a stable Space kind used for low-friction capture and is also a valid Move target. Global Search and All-Spaces Ask may read across Spaces, but they do not create cross-Space Relations or Provenance.
 
+A cross-Space move carries what describes the moved content. Relations and Provenance whose ends all
+move go with them; one that would join a moved node to a live node left behind refuses the move. One
+whose other end is in the source Space's Trash — kept only so undo there can restore it — is erased,
+as reclamation erases it once that end is unrestorable, and undoing the deletion restores the node
+without it. A derivation belongs to its output's Space: a settled derived node moves with its
+derivation record, and an input left in another Space keeps only its recorded snapshot. An output
+whose Run is still producing it stays until it settles. Undo and redo of a move apply the same
+ownership.
+
 On the first launch of a library — the moment the permanent Inbox is created, so no separate flag can
 fall out of step — Knovum also opens a sample Space in the interface language. It is an ordinary
 JSON Canvas document bundled under `src-tauri/resources/sample-space/` and brought in by the ordinary
