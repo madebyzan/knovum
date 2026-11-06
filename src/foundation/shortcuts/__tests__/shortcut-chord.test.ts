@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  fromGlobalAccelerator,
   isModifierOnlyKey,
   normalizeChord,
   parseKeyboardEventToChord,
@@ -25,12 +26,14 @@ describe("shortcut-chord", () => {
     expect(normalizeChord("k+Mod")).toBe("$mod+K");
     expect(normalizeChord("Shift+Mod+P")).toBe("$mod+Shift+P");
     expect(normalizeChord("Alt+Shift+Mod+X")).toBe("$mod+Alt+Shift+X");
+    expect(normalizeChord("CommandOrControl+Shift+Space")).toBe("$mod+Shift+Space");
   });
 
-  it("translates chords to global accelerators", () => {
+  it("translates chords to and from global accelerators", () => {
     expect(toGlobalAccelerator("$mod+Shift+Space")).toBe("CommandOrControl+Shift+Space");
     expect(toGlobalAccelerator("Mod+Shift+Space")).toBe("CommandOrControl+Shift+Space");
     expect(toGlobalAccelerator("$mod+Alt+K")).toBe("CommandOrControl+Alt+K");
+    expect(fromGlobalAccelerator("CommandOrControl+Shift+Space")).toBe("$mod+Shift+Space");
   });
 
   it("parses keyboard events into normalized chords", () => {

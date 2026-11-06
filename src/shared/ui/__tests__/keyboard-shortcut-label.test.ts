@@ -14,7 +14,9 @@ describe("keyboard shortcut label", () => {
     expect(formatKey("control")).toBe("⌃");
     expect(formatKey("escape")).toBe("Esc");
     expect(formatKey("enter")).toBe("↵");
+    expect(formatKey("CommandOrControl")).toBe("⌘");
     expect(formatShortcutLabel("$mod+k")).toBe("⌘K");
+    expect(formatShortcutLabel("CommandOrControl+Shift+Space")).toBe("⌘⇧Space");
   });
 
   it("parses multi-step shortcuts with connectors", () => {

@@ -59,6 +59,24 @@ describe("useShortcutsStore", () => {
     expect(store.isCustomized("shell.commandPalette")).toBe(true);
   });
 
+  it("synchronizes custom dictation shortcut to backend on load", async () => {
+    mockStore.stored = {
+      schemaVersion: 1,
+      value: {
+        custom: {
+          dictation: "Control+Shift+Space",
+        },
+      },
+    };
+    const store = useShortcutsStore();
+    await store.load();
+
+    expect(store.customShortcuts["dictation"]).toBe("Control+Shift+Space");
+    expect(mockInvoke).toHaveBeenCalledWith("plugin:dictation|set_dictation_shortcut", {
+      shortcut: "Control+Shift+Space",
+    });
+  });
+
   it("sets and persists a custom shortcut", async () => {
     const store = useShortcutsStore();
     await store.load();

@@ -40,7 +40,8 @@ onScopeDispose(
   }),
 );
 const dictationSupported =
-  (platform() === "macos" && arch() === "aarch64") || (platform() === "windows" && arch() === "x86_64");
+  (platform() === "macos" && (arch() === "aarch64" || arch() === "x86_64")) ||
+  (platform() === "windows" && arch() === "x86_64");
 provide(archiveSettingsKey, useSpaceArchiveSettings());
 let hasInitializedReadyServices = false;
 watch(

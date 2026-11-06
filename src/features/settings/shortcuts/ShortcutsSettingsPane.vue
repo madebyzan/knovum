@@ -51,7 +51,7 @@ const {
         id="dictation"
         :title="t('settings.shortcuts.dictationLabel')"
         :description="t('settings.shortcuts.dictationDescription')"
-        :shortcut="shortcutsStore.dictationStatus?.shortcut ?? 'CommandOrControl+Shift+Space'"
+        :shortcut="shortcutsStore.getEffectiveShortcut('dictation', '$mod+Shift+Space')"
         :customized="shortcutsStore.isCustomized('dictation')"
         :edit-label="t('settings.shortcuts.edit')"
         :reset-label="t('settings.shortcuts.reset')"
@@ -60,7 +60,7 @@ const {
           openRecorder(
             'dictation',
             t('settings.shortcuts.dictationLabel'),
-            shortcutsStore.dictationStatus?.shortcut,
+            shortcutsStore.getEffectiveShortcut('dictation', '$mod+Shift+Space'),
             true,
           )
         "

@@ -24,7 +24,7 @@ describe("shortcut catalog", () => {
     const dictation = shortcuts.find((item) => item.id === "dictation");
     expect(dictation).toBeDefined();
     expect(dictation?.isGlobal).toBe(true);
-    expect(dictation?.defaultShortcut).toBe("CommandOrControl+Shift+Space");
+    expect(dictation?.defaultShortcut).toBe("$mod+Shift+Space");
   });
 
   it("includes all essential canvas tools and navigation", () => {

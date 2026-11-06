@@ -40,13 +40,10 @@ const GENERAL_SHORTCUTS: readonly ShortcutItemDefinition[] = [
   def("shell.command-palette", "shell.commands.title", "$mod+K", "general"),
   def("navigate.settings", "common.settings", "$mod+,", "general"),
   def("shell.shortcuts", "shell.shortcuts.title", "$mod+/", "general"),
-  withExtra(
-    def("dictation", "settings.shortcuts.dictationLabel", "CommandOrControl+Shift+Space", "general"),
-    {
-      isGlobal: true,
-      descriptionKey: "settings.shortcuts.dictationDescription",
-    },
-  ),
+  withExtra(def("dictation", "settings.shortcuts.dictationLabel", "$mod+Shift+Space", "general"), {
+    isGlobal: true,
+    descriptionKey: "settings.shortcuts.dictationDescription",
+  }),
 ];
 
 const NAVIGATION_SHORTCUTS: readonly ShortcutItemDefinition[] = [

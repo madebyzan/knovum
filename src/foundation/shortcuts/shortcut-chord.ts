@@ -64,6 +64,10 @@ export function toGlobalAccelerator(chord: string): string {
     .join("+");
 }
 
+export function fromGlobalAccelerator(accelerator: string): string {
+  return accelerator.replace(/\bCommandOrControl\b/gi, "$mod").replace(/\bCmdOrCtrl\b/gi, "$mod");
+}
+
 export function normalizeChord(chord: string): string {
   const parts = chord
     .split("+")
@@ -71,7 +75,9 @@ export function normalizeChord(chord: string): string {
     .filter(Boolean);
   if (!parts.length) return "";
 
-  const hasMod = parts.some((p) => p === "$mod" || p.toLowerCase() === "mod");
+  const hasMod = parts.some(
+    (p) => p === "$mod" || p.toLowerCase() === "mod" || p.toLowerCase() === "commandorcontrol",
+  );
   const hasCtrl = parts.some((p) => p.toLowerCase() === "control" || p.toLowerCase() === "ctrl");
   const hasAlt = parts.some((p) => p.toLowerCase() === "alt" || p.toLowerCase() === "option");
   const hasShift = parts.some((p) => p.toLowerCase() === "shift");
@@ -79,7 +85,18 @@ export function normalizeChord(chord: string): string {
 
   const nonModifiers = parts.filter(
     (p) =>
-      !["$mod", "mod", "control", "ctrl", "alt", "option", "shift", "meta", "cmd"].includes(p.toLowerCase()),
+      ![
+        "$mod",
+        "mod",
+        "commandorcontrol",
+        "control",
+        "ctrl",
+        "alt",
+        "option",
+        "shift",
+        "meta",
+        "cmd",
+      ].includes(p.toLowerCase()),
   );
 
   const ordered: string[] = [];

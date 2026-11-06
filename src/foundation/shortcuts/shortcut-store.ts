@@ -43,11 +43,19 @@ export const useShortcutsStore = defineStore("shortcuts", () => {
         void logError(`Failed to load shortcut preferences: ${formatErrorDiagnostic(error)}`);
       }
       try {
-        dictationStatus.value = await invokeCommand<DictationShortcutStatus>(
-          "plugin:dictation|get_dictation_shortcut",
-        );
+        if (customShortcuts["dictation"]) {
+          const accelerator = toGlobalAccelerator(customShortcuts["dictation"]);
+          dictationStatus.value = await invokeCommand<DictationShortcutStatus>(
+            "plugin:dictation|set_dictation_shortcut",
+            { shortcut: accelerator },
+          );
+        } else {
+          dictationStatus.value = await invokeCommand<DictationShortcutStatus>(
+            "plugin:dictation|get_dictation_shortcut",
+          );
+        }
       } catch (error) {
-        void logError(`Failed to get dictation shortcut: ${formatErrorDiagnostic(error)}`);
+        void logError(`Failed to sync dictation shortcut: ${formatErrorDiagnostic(error)}`);
       }
       loaded = true;
     });
