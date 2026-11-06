@@ -8,10 +8,21 @@ import { handleEditingChord } from "./editing-responder";
 import { runAppCommand } from "./run-app-command";
 import { EDITING_CHORDS, editingChordsReachWebView } from "./text-editing";
 
-/**
- * An editing command answers an intent, never a key: which command a chord reaches depends on what
- * the user is editing, so a command that bound the chord itself would take it from the text.
- */
+function resolveKeybindings(command: AppCommand, effective?: string): readonly string[] {
+  if (effective && effective === command.shortcut && command.keybindings) {
+    return command.keybindings;
+  }
+  return effective ? [effective] : [];
+}
+
+function assertCommandChordsUnclaimed(command: AppCommand, bindings: readonly string[]): void {
+  for (const keybinding of bindings) {
+    if (keybinding in EDITING_CHORDS) {
+      throw new Error(`Command ${command.id} binds the editing chord ${keybinding}; declare editingIntent.`);
+    }
+  }
+}
+
 function assertEditingChordsUnclaimed(
   commands: readonly AppCommand[],
   resolveShortcut?: (commandId: string, defaultShortcut?: string) => string | undefined,
@@ -19,18 +30,14 @@ function assertEditingChordsUnclaimed(
   const claimedIntents = new Set<string>();
   for (const command of commands) {
     if (command.editingIntent) {
-      if (claimedIntents.has(command.editingIntent))
+      if (claimedIntents.has(command.editingIntent)) {
         throw new Error(`Command ${command.id} is a second responder for "${command.editingIntent}".`);
+      }
       claimedIntents.add(command.editingIntent);
       continue;
     }
     const effective = resolveShortcut?.(command.id, command.shortcut) ?? command.shortcut;
-    for (const keybinding of command.keybindings ?? (effective ? [effective] : [])) {
-      if (keybinding in EDITING_CHORDS)
-        throw new Error(
-          `Command ${command.id} binds the editing chord ${keybinding}; declare editingIntent.`,
-        );
-    }
+    assertCommandChordsUnclaimed(command, resolveKeybindings(command, effective));
   }
 }
 
@@ -39,7 +46,7 @@ function registerCommandHandlers(
   effective: string,
   handlers: Record<string, (event: KeyboardEvent) => void>,
 ) {
-  for (const keybinding of command.keybindings ?? [effective]) {
+  for (const keybinding of resolveKeybindings(command, effective)) {
     const bareKey = !keybinding.includes("+");
     handlers[keybinding] = (event) => {
       if (event.repeat) return;
@@ -49,6 +56,18 @@ function registerCommandHandlers(
       runAppCommand(command);
     };
   }
+}
+
+function shouldSkipCommandBinding(
+  command: AppCommand,
+  effective: string | undefined,
+  isCustomized: boolean,
+  appMenuOwnsShortcut: boolean,
+): boolean {
+  if (!effective) return true;
+  if (command.editingIntent && !isCustomized) return true;
+  if (appMenuOwnsShortcut && command.appMenuShortcut && !isCustomized) return true;
+  return false;
 }
 
 export function bindCommandShortcuts(
@@ -66,15 +85,13 @@ export function bindCommandShortcuts(
   }
   for (const command of commands) {
     const effective = resolveShortcut?.(command.id, command.shortcut) ?? command.shortcut;
-    if (!effective || command.editingIntent || (appMenuOwnsShortcut && command.appMenuShortcut)) {
+    const isCustomized = Boolean(resolveShortcut && effective !== command.shortcut);
+    if (shouldSkipCommandBinding(command, effective, isCustomized, appMenuOwnsShortcut)) {
       continue;
     }
-    registerCommandHandlers(command, effective, handlerByShortcut);
+    registerCommandHandlers(command, effective!, handlerByShortcut);
   }
 
-  // tinykeys' default filter also drops every press from an editable target before the per-command
-  // `isEditableTarget` guard above can allow it, which would silently void `allowInEditable`.
-  // IME composition is still somebody else's key press.
   return tinykeys(globalThis.window, handlerByShortcut, {
     capture: true,
     ignore: (event) => event.isComposing,

@@ -8,26 +8,16 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useShortcutsStore } from "../../foundation/shortcuts/shortcut-store";
-import type { AppCommand, CommandCategory } from "../../shared/contracts/app-command";
+import type { AppCommand } from "../../shared/contracts/app-command";
 import UiIconButton from "../../shared/ui/UiIconButton.vue";
 import UiKbd from "../../shared/ui/UiKbd.vue";
 import UiSearchInput from "../../shared/ui/UiSearchInput.vue";
-
-interface ShortcutListing {
-  id: string;
-  title: string;
-  shortcut: string;
-  category: CommandCategory;
-}
-
-const CATEGORY_ORDER: readonly CommandCategory[] = ["general", "navigation", "canvas", "editing"];
-
-const LOCALE_KEY_BY_CATEGORY: Readonly<Record<CommandCategory, string>> = {
-  general: "shell.shortcuts.categories.general",
-  navigation: "shell.shortcuts.categories.navigation",
-  canvas: "shell.shortcuts.categories.canvas",
-  editing: "shell.shortcuts.categories.editing",
-};
+import {
+  CATEGORY_ORDER,
+  collectShortcuts,
+  LOCALE_KEY_BY_CATEGORY,
+  type ShortcutListing,
+} from "./shortcut-modal-items";
 
 const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{ commands: readonly AppCommand[] }>();
@@ -49,31 +39,7 @@ function handleOpenCustomize() {
 }
 
 const allShortcuts = computed<ShortcutListing[]>(() => {
-  const list: ShortcutListing[] = [];
-  const listedGroups = new Set<string>();
-  for (const cmd of props.commands) {
-    if (!cmd.shortcut) continue;
-    const effectiveShortcut = shortcutsStore.getEffectiveShortcut(cmd.id, cmd.shortcut) ?? cmd.shortcut;
-    if (cmd.shortcutListing) {
-      if (!listedGroups.has(cmd.shortcutListing.groupId)) {
-        listedGroups.add(cmd.shortcutListing.groupId);
-        list.push({
-          id: cmd.shortcutListing.groupId,
-          title: cmd.shortcutListing.title,
-          shortcut: effectiveShortcut,
-          category: cmd.category ?? "general",
-        });
-      }
-      continue;
-    }
-    list.push({
-      id: cmd.id,
-      title: cmd.title,
-      shortcut: effectiveShortcut,
-      category: cmd.category ?? "general",
-    });
-  }
-  return list;
+  return collectShortcuts(props.commands, t, shortcutsStore.getEffectiveShortcut);
 });
 
 const filteredShortcuts = computed(() => {

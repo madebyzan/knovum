@@ -3,10 +3,10 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { appCommands } from "../../../foundation/commands/run-app-command";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import { getProductShortcuts } from "../../../foundation/shortcuts/shortcut-catalog";
 import { useShortcutsStore } from "../../../foundation/shortcuts/shortcut-store";
-import type { CommandCategory } from "../../../shared/contracts/app-command";
+import type { AppCommand, CommandCategory } from "../../../shared/contracts/app-command";
 
 const CATEGORIES: readonly CommandCategory[] = ["general", "navigation", "canvas", "editing"];
 
@@ -16,6 +16,14 @@ const CATEGORY_LABEL_KEYS: Readonly<Record<CommandCategory, string>> = {
   canvas: "shell.shortcuts.categories.canvas",
   editing: "shell.shortcuts.categories.editing",
 };
+
+export interface EditorShortcutItem {
+  id: string;
+  title: string;
+  shortcut: string;
+  category: CommandCategory;
+  isGlobal?: boolean;
+}
 
 export function useShortcutsEditor() {
   const { t } = useI18n();
@@ -30,16 +38,31 @@ export function useShortcutsEditor() {
     isGlobal?: boolean | undefined;
   } | null>(null);
 
-  const allCommands = computed(() => appCommands());
+  const allCatalogCommands = computed<AppCommand[]>(() => {
+    return getProductShortcuts().map((item) => ({
+      id: item.id,
+      title: t(item.titleKey),
+      shortcut: item.defaultShortcut,
+      category: item.category,
+      run: () => {},
+    }));
+  });
 
-  const bindableCommands = computed(() => {
-    return allCommands.value.filter((cmd) => cmd.shortcut && !cmd.editingIntent);
+  const inAppCommands = computed<EditorShortcutItem[]>(() => {
+    return getProductShortcuts()
+      .filter((item) => !item.isGlobal)
+      .map((item) => ({
+        id: item.id,
+        title: t(item.titleKey),
+        shortcut: item.defaultShortcut,
+        category: item.category,
+      }));
   });
 
   const filteredCommands = computed(() => {
     const needle = query.value.trim();
-    if (!needle) return bindableCommands.value;
-    return search(needle, [...bindableCommands.value], {
+    if (!needle) return inAppCommands.value;
+    return search(needle, [...inAppCommands.value], {
       keySelector: (cmd) => `${cmd.title} ${shortcutsStore.getEffectiveShortcut(cmd.id, cmd.shortcut)}`,
       threshold: 0.6,
     });
@@ -49,7 +72,7 @@ export function useShortcutsEditor() {
     return CATEGORIES.map((cat) => ({
       category: cat,
       title: t(CATEGORY_LABEL_KEYS[cat]),
-      commands: filteredCommands.value.filter((cmd) => (cmd.category ?? "general") === cat),
+      commands: filteredCommands.value.filter((cmd) => cmd.category === cat),
     })).filter((group) => group.commands.length > 0);
   });
 
@@ -105,7 +128,7 @@ export function useShortcutsEditor() {
     recorderOpen,
     recordingTarget,
     shortcutsStore,
-    allCommands,
+    allCommands: allCatalogCommands,
     groupedCommands,
     openRecorder,
     handleSaveChord,

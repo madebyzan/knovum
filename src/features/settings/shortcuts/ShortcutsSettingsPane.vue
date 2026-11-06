@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AlertTriangle, RotateCcw } from "@lucide/vue";
+import { AlertTriangle, Info, RotateCcw } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../shared/ui/UiButton.vue";
@@ -66,6 +66,15 @@ const {
         "
         @reset="handleReset('dictation', true)"
       />
+
+      <div
+        class="mt-3 flex items-start gap-2.5 rounded-lg border border-stroke-default bg-surface-muted/50 p-3 text-caption text-fg-secondary"
+      >
+        <Info class="size-4 shrink-0 translate-y-0.5 text-fg-accent" />
+        <div class="leading-relaxed">
+          {{ t("settings.shortcuts.dictationTip") }}
+        </div>
+      </div>
     </UiSettingsSection>
 
     <!-- In-App Shortcuts Section -->
