@@ -28,7 +28,12 @@ async fn read_login_shell_path() -> AppResult<String> {
         .map_err(|_| AppError::internal("The macOS login shell is not available to Knovum"))?;
     let mut command = tokio::process::Command::new(shell);
     command
-        .args(["-l", "-c", "echo \"__KNOVUM_PATH__:$PATH:__KNOVUM_PATH__\""])
+        .args([
+            "-l",
+            "-i",
+            "-c",
+            "echo \"__KNOVUM_PATH__:$PATH:__KNOVUM_PATH__\"",
+        ])
         .kill_on_drop(true);
     let output = tokio::time::timeout(SHELL_PATH_TIMEOUT, command.output())
         .await
@@ -108,4 +113,34 @@ pub async fn detect_external_agent_installations() -> AppResult<Vec<ExternalAgen
     })
     .await
     .map_err(|error| AppError::internal(error.to_string()))?
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn extracts_delimited_path() {
+        let text = "banner\n__KNOVUM_PATH__:/opt/homebrew/bin:/usr/bin:__KNOVUM_PATH__\ntrailing";
+        assert_eq!(
+            extract_delimited(text, "__KNOVUM_PATH__:").as_deref(),
+            Some("/opt/homebrew/bin:/usr/bin")
+        );
+    }
+
+    #[test]
+    fn find_executable_resolves_existing_binary() {
+        let path = std::env::var("PATH").unwrap_or_default();
+        #[cfg(unix)]
+        let binary = "sh";
+        #[cfg(windows)]
+        let binary = "cmd";
+        assert!(find_executable(binary, &path).is_some());
+    }
+
+    #[test]
+    fn find_executable_returns_none_for_nonexistent() {
+        assert!(find_executable("knovum_nonexistent_binary_xyz_123", "").is_none());
+    }
 }

@@ -46,11 +46,10 @@ pub(super) fn runtime(
         })?;
     let config = match agent.launch {
         AcpLaunch::Codex => {
-            node_adapter(CODEX_ADAPTER).env("CODEX_PATH", executable.to_string_lossy())
+            node_adapter(CODEX_ADAPTER, path)?.env("CODEX_PATH", executable.to_string_lossy())
         }
-        AcpLaunch::Claude => {
-            node_adapter(CLAUDE_ADAPTER).env("CLAUDE_CODE_EXECUTABLE", executable.to_string_lossy())
-        }
+        AcpLaunch::Claude => node_adapter(CLAUDE_ADAPTER, path)?
+            .env("CLAUDE_CODE_EXECUTABLE", executable.to_string_lossy()),
         AcpLaunch::Executable { arguments } => {
             AcpAgentConfig::new(executable).args(arguments.iter().copied())
         }
@@ -59,6 +58,26 @@ pub(super) fn runtime(
     Ok(AcpAgent::new(config.env("PATH", path).envs(environment)))
 }
 
-fn node_adapter(package: &str) -> AcpAgentConfig {
-    AcpAgentConfig::new("npx").args(["-y", package])
+fn node_adapter(package: &str, path: &str) -> AppResult<AcpAgentConfig> {
+    let npx = discovery::find_executable("npx", path).ok_or_else(|| {
+        AppError::new(
+            "agent_unavailable",
+            "Node.js package runner (npx) was not found in PATH. Install Node.js to use this Agent.",
+        )
+    })?;
+    Ok(AcpAgentConfig::new(npx).args(["-y", package]))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn node_adapter_fails_when_npx_is_missing() {
+        let err = node_adapter("any-package", "").expect_err("should fail when npx not found");
+        assert_eq!(err.code, "agent_unavailable");
+        assert!(err
+            .message
+            .contains("Node.js package runner (npx) was not found in PATH"));
+    }
 }
