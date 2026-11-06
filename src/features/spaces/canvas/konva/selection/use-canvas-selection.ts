@@ -1,21 +1,21 @@
 import { shallowRef, watch, type Ref } from "vue";
 
+import type { StructureIndex } from "../../../model/structure/structure-index";
 import type { CanvasRect, CanvasSelectionSnapshot } from "../../contracts/canvas-editor-port";
 import { createCanvasSelectionSnapshot } from "../../document/canvas-selection-snapshot";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
+import { normalizeCanvasSelection } from "./normalize-selection";
 import { useCanvasMarqueeSelection } from "./use-canvas-marquee-selection";
-
 interface CanvasSelectionOptions {
+  structureIndex: Readonly<Ref<StructureIndex>>;
   availableStructureNodeIds: Readonly<Ref<ReadonlySet<string>>>;
   layouts: Readonly<Ref<readonly CanvasNodeLayoutV1[]>>;
-  relationBoundsById: Readonly<
-    Ref<ReadonlyMap<string, { x: number; y: number; width: number; height: number }>>
-  >;
+  relationBoundsById: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>;
   structureBoundsById: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>;
+  sectionBounds: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>;
   changed(selection: CanvasSelectionSnapshot): void;
   structureSelectionForNode(nodeId: string): string | undefined;
 }
-
 export function useCanvasSelection(options: CanvasSelectionOptions) {
   const nodeIds = shallowRef(new Set<string>());
   const structureNodeIds = shallowRef(new Set<string>());
@@ -24,11 +24,11 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     clear,
     layouts: options.layouts,
     nodeIds,
+    sectionBounds: options.sectionBounds,
     notify,
     structureNodeIds,
     structureSelectionForNode: options.structureSelectionForNode,
   });
-
   function selectNode(nodeId: string, event: PointerEvent) {
     if (event.button !== 0) return;
     const structureNodeId = options.structureSelectionForNode(nodeId);
@@ -96,6 +96,13 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     notify();
   }
   function notify() {
+    const normalized = normalizeCanvasSelection(
+      nodeIds.value,
+      structureNodeIds.value,
+      options.structureIndex.value,
+    );
+    nodeIds.value = normalized.nodeIds;
+    structureNodeIds.value = normalized.structureNodeIds;
     const snapshot = createCanvasSelectionSnapshot({
       layouts: options.layouts.value,
       nodeIds: nodeIds.value,
@@ -106,7 +113,6 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     });
     options.changed(snapshot);
   }
-
   function selectStructureNode(structureNodeId: string, event: PointerEvent) {
     if (event.button !== 0) return;
     const additive = isAdditiveSelection(event);
@@ -119,12 +125,10 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     relationIds.value = new Set();
     notify();
   }
-
   function selectStructureNodeForContextMenu(structureNodeId: string) {
     if (structureNodeIds.value.has(structureNodeId)) return;
     setStructureNodeIds([structureNodeId]);
   }
-
   watch(options.layouts, (currentLayouts) => {
     if (!nodeIds.value.size) return;
     const visibleIds = new Set(currentLayouts.map(({ nodeId }) => nodeId));
@@ -149,7 +153,6 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
   watch(options.structureBoundsById, () => {
     if (structureNodeIds.value.size) notify();
   });
-
   return {
     beginMarquee: marquee.begin,
     cancelMarquee: marquee.cancel,
@@ -171,7 +174,6 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     structureSelectionForNode: options.structureSelectionForNode,
   };
 }
-
 function isAdditiveSelection(event: PointerEvent) {
   return event.metaKey || event.ctrlKey || event.shiftKey;
 }

@@ -1,6 +1,7 @@
 import type Konva from "konva";
 import { computed, shallowRef, type Ref } from "vue";
 
+import type { CanvasRect } from "../../contracts/canvas-editor-port";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import { selectionRectIntersects } from "./selection-geometry";
 
@@ -8,6 +9,7 @@ interface CanvasMarqueeSelectionOptions {
   clear(): void;
   layouts: Readonly<Ref<readonly CanvasNodeLayoutV1[]>>;
   nodeIds: Ref<Set<string>>;
+  sectionBounds: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>;
   notify(): void;
   structureNodeIds: Ref<Set<string>>;
   structureSelectionForNode(nodeId: string): string | undefined;
@@ -47,6 +49,11 @@ export function useCanvasMarqueeSelection(options: CanvasMarqueeSelectionOptions
     if (!bounds) return;
     const nextNodes = new Set(options.nodeIds.value);
     const nextStructureNodeIds = new Set(options.structureNodeIds.value);
+    // A fully enclosed section is selected as a container. Intersecting only its contents still
+    // selects those contents, so framing inside a section does not unexpectedly move the section.
+    for (const [id, frame] of options.sectionBounds.value) {
+      if (contains(bounds, frame)) nextStructureNodeIds.add(id);
+    }
     for (const { nodeId, frame } of options.layouts.value) {
       if (!selectionRectIntersects(frame, bounds)) continue;
       const structureNodeId = options.structureSelectionForNode(nodeId);
@@ -63,4 +70,13 @@ export function useCanvasMarqueeSelection(options: CanvasMarqueeSelectionOptions
   }
 
   return { begin, cancel, end, marqueeRect, move };
+}
+
+function contains(outer: CanvasRect, inner: CanvasRect) {
+  return (
+    inner.x >= outer.x &&
+    inner.y >= outer.y &&
+    inner.x + inner.width <= outer.x + outer.width &&
+    inner.y + inner.height <= outer.y + outer.height
+  );
 }

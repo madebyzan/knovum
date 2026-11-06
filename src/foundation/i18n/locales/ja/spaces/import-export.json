@@ -22,6 +22,7 @@
     "export": "マークダウンのエクスポート"
   },
   "export": {
+    "defaultFormats": "各リソースの既定形式",
     "completed": "エクスポート完了",
     "running": "エクスポート中…",
     "noFormats": "このリソースには保存できるファイルがありません。",

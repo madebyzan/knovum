@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { nextTick, shallowRef } from "vue";
 
+import { createStructureIndex } from "../../../../model/structure/structure-index";
 import type { CanvasSelectionSnapshot } from "../../../contracts/canvas-editor-port";
 import type { CanvasNodeLayoutV1 } from "../../../schema/document";
 import { useCanvasSelection } from "../use-canvas-selection";
@@ -20,10 +21,21 @@ const layouts: CanvasNodeLayoutV1[] = [
   },
 ];
 
+const structureIndex = shallowRef(
+  createStructureIndex([
+    { id: "section", kind: "section", parentId: null, title: "Section", order: 2, locked: false },
+    { id: "group", kind: "group", parentId: null, title: "Group", order: 3, locked: false },
+    { id: "content-a", kind: "content", nodeId: "a", parentId: null, order: 0, locked: false },
+    { id: "content-b", kind: "content", nodeId: "b", parentId: null, order: 1, locked: false },
+  ]),
+);
+
 describe("Konva canvas selection", () => {
   it("preserves mixed selection roots and bounds all of them when a selected container is pressed", () => {
     const changed = vi.fn<(selection: CanvasSelectionSnapshot) => void>();
     const selection = useCanvasSelection({
+      structureIndex,
+      sectionBounds: shallowRef(new Map()),
       availableStructureNodeIds: shallowRef(new Set(["section", "group"])),
       changed,
       layouts: shallowRef(layouts),
@@ -50,6 +62,8 @@ describe("Konva canvas selection", () => {
   it("preserves a multi-selection when an already-selected node begins a drag", () => {
     const changed = vi.fn<(selection: CanvasSelectionSnapshot) => void>();
     const selection = useCanvasSelection({
+      structureIndex,
+      sectionBounds: shallowRef(new Map()),
       availableStructureNodeIds: shallowRef(new Set()),
       changed,
       layouts: shallowRef(layouts),
@@ -69,6 +83,8 @@ describe("Konva canvas selection", () => {
     const changed = vi.fn<(selection: CanvasSelectionSnapshot) => void>();
     const currentLayouts = shallowRef(layouts);
     const selection = useCanvasSelection({
+      structureIndex,
+      sectionBounds: shallowRef(new Map()),
       availableStructureNodeIds: shallowRef(new Set()),
       changed,
       layouts: currentLayouts,
@@ -88,6 +104,8 @@ describe("Konva canvas selection", () => {
   it("selects and deselects the relations one line stands for as a unit", () => {
     const midpoint = { x: 50, y: 20, width: 0, height: 0 };
     const selection = useCanvasSelection({
+      structureIndex,
+      sectionBounds: shallowRef(new Map()),
       availableStructureNodeIds: shallowRef(new Set()),
       changed: vi.fn<(selection: CanvasSelectionSnapshot) => void>(),
       layouts: shallowRef(layouts),

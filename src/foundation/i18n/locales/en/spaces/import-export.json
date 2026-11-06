@@ -22,6 +22,7 @@
     "export": "Export Markdown"
   },
   "export": {
+    "defaultFormats": "Default format for each resource",
     "completed": "Export complete",
     "running": "Exporting…",
     "noFormats": "This resource has no file to save.",

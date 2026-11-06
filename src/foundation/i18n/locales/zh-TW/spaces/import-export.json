@@ -22,6 +22,7 @@
     "export": "匯出 Markdown"
   },
   "export": {
+    "defaultFormats": "各自預設格式",
     "completed": "匯出完成",
     "running": "正在匯出…",
     "noFormats": "此資源沒有可儲存的檔案。",

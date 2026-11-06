@@ -22,6 +22,7 @@
     "export": "Exporter la démarque"
   },
   "export": {
+    "defaultFormats": "Format par défaut de chaque ressource",
     "completed": "Exportation terminée",
     "running": "Exportation…",
     "noFormats": "Cette ressource n'a aucun fichier à enregistrer.",

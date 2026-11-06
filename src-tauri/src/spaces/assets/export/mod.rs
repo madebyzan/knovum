@@ -1,3 +1,4 @@
+pub mod batch;
 mod capture;
 mod document;
 pub mod document_resource;
