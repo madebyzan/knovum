@@ -112,22 +112,23 @@ impl Recorder {
                 "The captured audio buffer is unavailable",
             )
         })?);
-        if samples.is_empty() {
+        let mono_16k = super::resample::to_16k_mono(&samples, self.channels, self.sample_rate);
+        if mono_16k.is_empty() {
             return Err(DictationFailure::classified(
                 "audio_capture_empty",
                 "Microphone captured no samples",
             ));
         }
         let spec = hound::WavSpec {
-            channels: self.channels,
-            sample_rate: self.sample_rate,
+            channels: super::resample::TARGET_CHANNELS,
+            sample_rate: super::resample::TARGET_SAMPLE_RATE,
             bits_per_sample: 16,
             sample_format: hound::SampleFormat::Int,
         };
         let mut writer = hound::WavWriter::create(target, spec).map_err(|error| {
             DictationFailure::classified("audio_capture_failed", error.to_string())
         })?;
-        for sample in &samples {
+        for sample in &mono_16k {
             writer.write_sample(*sample).map_err(|error| {
                 DictationFailure::classified("audio_capture_failed", error.to_string())
             })?;
@@ -136,8 +137,8 @@ impl Recorder {
             DictationFailure::classified("audio_capture_failed", error.to_string())
         })?;
         Ok(RecordedAudio {
-            sample_rate: self.sample_rate,
-            channels: self.channels,
+            sample_rate: super::resample::TARGET_SAMPLE_RATE,
+            channels: super::resample::TARGET_CHANNELS,
         })
     }
 }

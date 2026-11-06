@@ -17,6 +17,8 @@ mod progress;
 #[cfg(knovum_supported_desktop)]
 mod recorder;
 #[cfg(knovum_supported_desktop)]
+mod resample;
+#[cfg(knovum_supported_desktop)]
 pub(crate) mod shortcut;
 #[cfg(knovum_supported_desktop)]
 mod transcription;
