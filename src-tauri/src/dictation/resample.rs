@@ -43,11 +43,11 @@ pub(crate) fn to_16k_mono(samples: &[i16], channels: u16, in_rate: u32) -> Vec<i
             let end_idx = (end.ceil() as usize).min(mono.len());
             let mut sum = 0.0f64;
             let mut total_weight = 0.0f64;
-            for j in start_idx..end_idx {
+            for (j, &sample) in mono.iter().enumerate().take(end_idx).skip(start_idx) {
                 let left = (j as f64).max(start);
                 let right = ((j + 1) as f64).min(end);
                 let weight = (right - left).max(0.0);
-                sum += f64::from(mono[j]) * weight;
+                sum += f64::from(sample) * weight;
                 total_weight += weight;
             }
             let val = if total_weight > 0.0 {
