@@ -187,8 +187,7 @@ objc2-quick-look-thumbnailing = { version = "0.3.2", default-features = false, f
 ] }
 quicklook = "0.2.2"
 
-# Windows Shell owns document thumbnails. Full preview remains behind the same system-preview
-# boundary, but needs its own HWND/STA host before it can be enabled.
+# Windows Shell owns document thumbnails. Opening content to look at uses the associated app.
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-version = "=0.1.7"
 windows = { version = "0.62.2", features = [
@@ -204,13 +203,11 @@ windows = { version = "0.62.2", features = [
   "Win32_Storage_FileSystem",
   "Win32_System_Com",
   "Win32_System_JobObjects",
-  "Win32_System_LibraryLoader",
   "Win32_System_Registry",
   "Win32_System_Threading",
   "Win32_System_SystemInformation",
   "Win32_UI_Input_KeyboardAndMouse",
   "Win32_UI_Shell",
-  "Win32_UI_Shell_PropertiesSystem",
   "Win32_UI_WindowsAndMessaging",
 ] }
 

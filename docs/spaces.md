@@ -932,7 +932,7 @@ stacks and restores the destination tab's stacks only after the Space leave boun
 closing a tab retires its stacks. History never crosses Space identity and is not persisted across an
 application restart.
 
-On macOS one selected managed resource can open in the system Quick Look panel — the same non-modal preview Finder shows for a file. Content without private file bytes has nothing to hand to the platform and therefore does not expose the command. Space remains the focused canvas pan modifier; preview never delays or intercepts it.
+One selected managed resource opens the way the platform shows content: on macOS in the system Quick Look panel — the same non-modal preview Finder shows for a file — and on Windows and Linux in the application associated with the file, as double-clicking it in the file manager would (Photos for a picture on Windows). Windows Preview Handlers are not a content viewer: they serve the Explorer and Outlook reading panes, none ship for pictures, and the registered ones run out of process, so Knovum does not host them. Content without private file bytes has nothing to hand to the platform and therefore does not expose the command. Space remains the focused canvas pan modifier; preview never delays or intercepts it.
 
 ## Desktop editing semantics
 

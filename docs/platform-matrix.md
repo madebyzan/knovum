@@ -26,7 +26,7 @@ Artifact construction and promotion belong to [packaging.md](packaging.md) and
 | Dictation capture    | CoreAudio                                                   | WASAPI                                                           | One Rust press/release session and private ASR worker                    |
 | Dictation insertion  | Accessibility-gated paste to the same frontmost app         | UIPI-aware paste to the same foreground window                   | Target revalidation, private clipboard marker, text preserved on failure |
 | Document rendering   | Core Graphics                                               | Windows.Data.Pdf                                                 | Background analysis only; no custom reader                               |
-| System preview       | Quick Look adapter                                          | Windows preview adapter                                          | One authorized managed asset; explicit unavailability                    |
+| System preview       | Quick Look adapter                                          | Associated application (Photos for pictures)                     | One authorized managed asset; Linux opens the associated application     |
 | Locale and text      | BCP-47; system/SF and PingFang via Core Text                | BCP-47; Segoe UI Variable and Microsoft YaHei UI via DirectWrite | System fonts; no packaged UI font                                        |
 | Release trust        | Signed and notarized application/update                     | Code-signed installer/update                                     | Credentials remain outside source and build logs                         |
 

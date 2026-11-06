@@ -60,7 +60,7 @@ pub(crate) async fn follow(
         },
         Err(_) => held_file(app, &path).ok_or_else(unavailable)?,
     };
-    crate::spaces::assets::files::open_in_system(app, &file)?;
+    crate::desktop::associated_app::open(app, &file)?;
     Ok(ConversationLink::Opened)
 }
 
