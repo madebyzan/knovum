@@ -1,8 +1,10 @@
 use std::{collections::HashSet, time::Duration};
 
-use serde::Serialize;
+use serde::{de::IntoDeserializer, Deserialize, Serialize};
 use tauri::{ipc::Channel, AppHandle, Emitter};
 use tokio::task::JoinSet;
+
+use crate::{ai::tasks::TaskTargetSelection, foundation::app_error::AppError};
 
 use super::{
     execution::RunEnrichmentJobRequest,
@@ -64,6 +66,7 @@ async fn dispatch(
     active: &mut HashSet<NodeIdentity>,
     workers: &mut EnrichmentWorkers,
 ) -> Result<(), String> {
+    let mut readiness = VisionReadiness::default();
     for job in persistence::list_actionable(pool, None).await? {
         if !matches!(
             job.status,
@@ -75,13 +78,9 @@ async fn dispatch(
         if active.contains(&node) || active.len() >= 32 {
             continue;
         }
-        let selection = match &job.execution_target {
-            Some(target) => Ok(Some(target.clone())),
-            None => vision_selection(app, job.job_type),
-        };
-        let target = match selection {
-            Ok(target) => target,
-            Err(error) if error.code == "not_configured" => {
+        let selection = match execution_choice(app, &job, &mut readiness).await {
+            Ok(selection) => selection,
+            Err(error) if error.is_not_configured() => {
                 persistence::defer_for_configuration(
                     pool,
                     &job.id,
@@ -104,7 +103,7 @@ async fn dispatch(
                 continue;
             }
         };
-        let target = match target {
+        let target = match selection {
             Some(target) => Some(persistence::freeze_target(pool, &job.id, &target).await?),
             None => None,
         };
@@ -118,18 +117,51 @@ async fn dispatch(
     Ok(())
 }
 
-fn vision_selection(
+/// The executor a job runs on, once it can actually run there. Only visual analysis is routed; a
+/// target frozen by an earlier attempt is proven again, because its connection may have changed.
+async fn execution_choice(
     app: &AppHandle,
-    kind: EnrichmentJobType,
-) -> Result<Option<crate::ai::tasks::TaskTargetSelection>, crate::foundation::app_error::AppError> {
-    if kind != EnrichmentJobType::AnalyzeVisual {
+    job: &super::job::EnrichmentJobState,
+    readiness: &mut VisionReadiness,
+) -> Result<Option<TaskTargetSelection>, AppError> {
+    if job.job_type != EnrichmentJobType::AnalyzeVisual {
         return Ok(None);
     }
-    crate::ai::settings::default_selection(
-        app,
-        crate::ai::contracts::RoutingPurpose::VisualUnderstanding,
-    )
-    .map(Some)
+    let selection = match &job.execution_target {
+        Some(target) => target.clone(),
+        None => crate::ai::settings::default_selection(
+            app,
+            crate::ai::contracts::RoutingPurpose::VisualUnderstanding,
+        )?,
+    };
+    readiness.prove(app, &selection).await?;
+    Ok(Some(selection))
+}
+
+/// Readiness proven once per dispatch pass: every job waiting on one executor shares one answer,
+/// so a backlog of pictures does not read the same credential once per picture every second.
+#[derive(Default)]
+struct VisionReadiness(Vec<(TaskTargetSelection, Result<(), AppError>)>);
+
+impl VisionReadiness {
+    async fn prove(
+        &mut self,
+        app: &AppHandle,
+        selection: &TaskTargetSelection,
+    ) -> Result<(), AppError> {
+        if let Some((_, known)) = self.0.iter().find(|(proven, _)| proven == selection) {
+            return known.clone();
+        }
+        let known = crate::ai::settings::ready_task(
+            app,
+            selection.clone(),
+            crate::ai::contracts::ExecutionCapability::VisionUnderstanding,
+        )
+        .await
+        .map(|_| ());
+        self.0.push((selection.clone(), known.clone()));
+        known
+    }
 }
 
 async fn execute(
@@ -169,16 +201,11 @@ async fn execute(
     let execution = super::execution::execute_job(app.clone(), request, progress).await;
     let mut completed = update;
     match execution {
-        Ok(output) => {
-            completed.status = EnrichmentJobStatus::Succeeded;
-            completed.data = Some(output.data);
-        }
-        Err(error) => {
-            completed.status = EnrichmentJobStatus::Failed;
-            completed.error = Some(error.to_string());
-        }
+        Ok(output) => completed.data = Some(output.data),
+        Err(error) => completed.error = Some(error.to_string()),
     }
-    // Persistence wins over a late return after cancellation.
+    // The row is the outcome: it holds a cancellation that raced the return, and whether a failure
+    // was configuration the job now waits on rather than a failed run.
     let status: Option<String> =
         sqlx::query_scalar("SELECT status FROM spaces_enrichment_jobs WHERE id=$1")
             .bind(&completed.job_id)
@@ -188,9 +215,8 @@ async fn execute(
     let Some(status) = status else {
         return Ok(());
     };
-    if status == "cancelled" {
-        completed.status = EnrichmentJobStatus::Cancelled;
-    }
+    completed.status = EnrichmentJobStatus::deserialize(status.into_deserializer())
+        .map_err(crate::spaces::db::json_error)?;
     publish_update(app, &completed);
     Ok(())
 }

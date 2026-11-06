@@ -230,7 +230,7 @@ pub(in crate::spaces) fn selection<R: tauri::Runtime>(
         crate::ai::contracts::RoutingPurpose::VisualUnderstanding,
     ) {
         Ok(target) => Ok(Some(target)),
-        Err(error) if error.code == "not_configured" => Ok(None),
+        Err(error) if error.is_not_configured() => Ok(None),
         Err(error) => Err(error.to_string()),
     }
 }

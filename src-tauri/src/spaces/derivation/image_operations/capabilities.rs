@@ -97,9 +97,7 @@ pub async fn capabilities(app: &AppHandle) -> ImageOperationCapabilities {
         TaskExecutionTarget::Model(model) => {
             let available = match crate::ai::transport::SecurityContext::from_target(model).await {
                 Ok(_) => Capability::Ready,
-                Err(error) if error.code == "not_configured" => {
-                    blocked(Reason::ConfigurationIncomplete)
-                }
+                Err(error) if error.is_not_configured() => blocked(Reason::ConfigurationIncomplete),
                 Err(_) => blocked(Reason::CredentialUnavailable),
             };
             let supported = if routing::supports_remote_operations(model) {

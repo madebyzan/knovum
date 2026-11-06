@@ -168,4 +168,22 @@ describe("task store", () => {
     await cancelling;
     expect(store.tasks[0]).toMatchObject({ status: "running", cancelling: false, cancellable: false });
   });
+
+  it("offers resolving a waiting observed task only while its producer offers it", async () => {
+    const store = useTaskStore();
+    const resolve = vi.fn<() => void>();
+    const waiting = { id: "job", title: "Analyze", status: "attention" as const, startedAt: 1 };
+
+    store.reconcileObserved("producer", [{ task: waiting, resolve }]);
+    await store.resolve("job");
+
+    expect(store.tasks[0]?.resolvable).toBe(true);
+    expect(resolve).toHaveBeenCalledOnce();
+
+    store.reconcileObserved("producer", [{ task: { ...waiting, status: "running" } }]);
+    await store.resolve("job");
+
+    expect(store.tasks[0]?.resolvable).toBe(false);
+    expect(resolve).toHaveBeenCalledOnce();
+  });
 });

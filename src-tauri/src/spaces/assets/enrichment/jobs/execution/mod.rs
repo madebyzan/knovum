@@ -70,7 +70,7 @@ pub async fn execute_job(
             Ok(output)
         }
         Err(error) => {
-            super::mark_failed(&app, &job_id, error.to_string()).await?;
+            super::mark_unfinished(&app, &job_id, &error).await?;
             Err(error)
         }
     }

@@ -35,3 +35,10 @@ fn app_error_converts_into_string() {
     let message: String = error.into();
     assert_eq!(message, "invalid payload");
 }
+
+#[test]
+fn missing_configuration_is_told_by_its_code_not_its_message() {
+    assert!(AppError::not_configured("No route").is_not_configured());
+    assert!(!AppError::from("not_configured: written into a message").is_not_configured());
+    assert!(!AppError::new("authentication_failed", "Rejected key").is_not_configured());
+}

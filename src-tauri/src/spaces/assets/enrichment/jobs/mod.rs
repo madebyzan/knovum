@@ -87,6 +87,20 @@ async fn mark_succeeded<R: Runtime>(app: &AppHandle<R>, job_id: &str) -> Result<
     set_status(app, job_id, FROM_RUNNING, STATUS_SUCCEEDED, None).await
 }
 
+/// A run that stops for configuration still to be completed waits for it; anything else failed.
+async fn mark_unfinished<R: Runtime>(
+    app: &AppHandle<R>,
+    job_id: &str,
+    error: &AppError,
+) -> Result<bool, String> {
+    if !error.is_not_configured() {
+        return mark_failed(app, job_id, error.to_string()).await;
+    }
+    let now = crate::foundation::clock::unix_time_millis()?;
+    let pool = db::pool(app).await?;
+    persistence::defer_for_configuration(pool, job_id, error.to_string(), now).await
+}
+
 async fn mark_failed<R: Runtime>(
     app: &AppHandle<R>,
     job_id: &str,

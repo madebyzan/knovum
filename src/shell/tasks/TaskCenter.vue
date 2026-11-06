@@ -52,9 +52,10 @@ const visibleTasks = computed(() => {
   return listed.value.filter((task) => task.scope?.kind === scope.kind && task.scope?.id === scope.id);
 });
 
-async function openTask(taskId: string) {
+/** Opening a subject or resolving a wait both lead somewhere else, so the panel steps aside. */
+async function leaveFor(go: () => Promise<void> | void) {
   try {
-    await store.open(taskId);
+    await go();
     open.value = false;
   } catch (cause) {
     toast.error(getErrorMessage(cause));
@@ -131,7 +132,8 @@ watch(
       @cancel="store.cancel"
       @dismiss="store.dismiss"
       @retry="store.retry"
-      @open="openTask"
+      @open="(taskId) => leaveFor(() => store.open(taskId))"
+      @resolve="(taskId) => leaveFor(() => store.resolve(taskId))"
     />
     <p v-if="!visibleTasks.length" class="px-3 py-6 text-center text-caption text-fg-tertiary">
       {{ filter === "current" ? t("tasks.emptyCurrentSpace") : t("tasks.empty") }}

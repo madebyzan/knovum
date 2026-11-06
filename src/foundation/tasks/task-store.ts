@@ -178,6 +178,7 @@ export const useTaskStore = defineStore("tasks", () => {
     setCancellation,
     setOpen,
     open: (taskId: string) => handlers.open(taskId),
+    resolve: (taskId: string) => handlers.resolve(taskId),
     succeed,
     fail,
     cancelled,

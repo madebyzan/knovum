@@ -7,6 +7,7 @@ import {
   CircleX,
   Clock3,
   RotateCcw,
+  Settings2,
   X,
 } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
@@ -22,6 +23,7 @@ const emit = defineEmits<{
   dismiss: [taskId: string];
   retry: [taskId: string];
   open: [taskId: string];
+  resolve: [taskId: string];
 }>();
 const { t } = useI18n();
 const STATUS_LABEL_KEYS = {
@@ -114,6 +116,15 @@ function statusLabel(status: TaskStatus) {
         </p>
       </div>
       <div class="flex items-center justify-end gap-0.5">
+        <UiIconButton
+          v-if="task.status === 'attention' && task.resolvable"
+          :label="t('tasks.resolve')"
+          tooltip
+          size="sm"
+          @click="emit('resolve', task.id)"
+        >
+          <Settings2 class="size-3" />
+        </UiIconButton>
         <UiIconButton
           v-if="task.status === 'attention' && task.openable"
           :label="t('tasks.openSubject')"

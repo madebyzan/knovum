@@ -18,6 +18,7 @@
   },
   "clearCompleted": "清除已完成",
   "openSubject": "開啟相關對象",
+  "resolve": "完成設定",
   "dismiss": "移除記錄",
   "cancel": "取消任務",
   "cancelling": "正在取消…",
