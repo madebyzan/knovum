@@ -1,7 +1,7 @@
 import type { Ref } from "vue";
 
 import { getErrorMessage } from "../errors/error-format";
-import type { CancelTask, OpenTask, TaskExecutionHandlers } from "./task-execution-handlers";
+import type { CancelTask, OpenTask, ResolveTask, TaskExecutionHandlers } from "./task-execution-handlers";
 import type { AppTask } from "./task-model";
 import type { RetryTask } from "./task-retry";
 
@@ -10,6 +10,7 @@ export interface ObservedTask {
   cancel?: CancelTask;
   retry?: RetryTask;
   open?: OpenTask;
+  resolve?: ResolveTask;
 }
 
 interface TaskObservationOptions {
@@ -40,7 +41,7 @@ export function createTaskObservation({
 
   function sync(
     producer: string,
-    { task: next, cancel, retry: retryTask, open }: ObservedTask,
+    { task: next, cancel, retry: retryTask, open, resolve }: ObservedTask,
     current?: AppTask,
   ) {
     if (current) {
@@ -54,6 +55,7 @@ export function createTaskObservation({
         cancellable: Boolean(cancel),
         retryable: canRetry(next.id, retryTask),
         openable: Boolean(open),
+        resolvable: Boolean(resolve),
         cancelling: current.status === next.status ? current.cancelling : false,
         progress,
         statusMessage: next.status === "running" ? stage : next.statusMessage,
@@ -66,11 +68,13 @@ export function createTaskObservation({
         cancellable: Boolean(cancel),
         retryable: canRetry(next.id, retryTask),
         openable: Boolean(open),
+        resolvable: Boolean(resolve),
       });
     }
     externallySettledTaskIds.add(next.id);
     handlers.setCancellation(next.id, cancel);
     handlers.setOpen(next.id, open);
+    handlers.setResolve(next.id, resolve);
     if (retryTask) retryByTaskId.set(next.id, retryTask);
     else retryByTaskId.delete(next.id);
   }

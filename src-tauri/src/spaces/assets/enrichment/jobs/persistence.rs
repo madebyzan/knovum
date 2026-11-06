@@ -49,6 +49,8 @@ pub(crate) async fn claim_job(
     Ok(executed.rows_affected() == 1)
 }
 
+/// Parks a job until its configuration is complete. A job already waiting for the same reason is
+/// left untouched: the scheduler asks again every pass, and an unchanged answer is no change.
 pub(crate) async fn defer_for_configuration(
     pool: &sqlx::SqlitePool,
     job_id: &str,
@@ -57,8 +59,8 @@ pub(crate) async fn defer_for_configuration(
 ) -> Result<bool, String> {
     let executed = sqlx::query(
         "UPDATE spaces_enrichment_jobs SET status=$1,error=$2,updated_at=$3 \
-         WHERE id=$4 AND status IN ('pending','failed','awaiting_configuration') \
-         AND job_type='analyze_visual'",
+         WHERE id=$4 AND status IN ('pending','running','failed','awaiting_configuration') \
+         AND NOT (status=$1 AND error IS $2)",
     )
     .bind("awaiting_configuration")
     .bind(error)
@@ -67,8 +69,11 @@ pub(crate) async fn defer_for_configuration(
     .execute(pool)
     .await
     .map_err(db::sql_error)?;
-    crate::spaces::runs::announce_change();
-    Ok(executed.rows_affected() == 1)
+    let changed = executed.rows_affected() == 1;
+    if changed {
+        crate::spaces::runs::announce_change();
+    }
+    Ok(changed)
 }
 
 /// Writes one guarded status transition. Attempt counting is not a status-write concern:

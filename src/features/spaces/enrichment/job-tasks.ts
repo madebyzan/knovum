@@ -1,5 +1,6 @@
 import { camelCase } from "es-toolkit";
 
+import type { AiRequirement } from "../../../foundation/ai/ai-readiness";
 import { i18n } from "../../../foundation/i18n/instance";
 import type { AppTask, TaskStatus } from "../../../foundation/tasks/task-model";
 import type { EnrichmentJobProjection } from "../contracts/generated/EnrichmentJobProjection";
@@ -14,6 +15,15 @@ const TASK_STATUS_BY_JOB_STATUS: Record<EnrichmentJobState["status"], TaskStatus
   succeeded: "succeeded",
   failed: "failed",
   cancelled: "cancelled",
+};
+
+/**
+ * What a job runs on that the person configures. The engine parks a job whose requirement is
+ * incomplete; this names where completing it happens. Local models are absent on purpose: a job
+ * prepares the model it needs itself.
+ */
+export const ENRICHMENT_REQUIREMENTS: Partial<Record<EnrichmentJobState["jobType"], AiRequirement>> = {
+  analyze_visual: { kind: "routed", purpose: "visual-understanding" },
 };
 
 export function enrichmentJobTitle(jobType: EnrichmentJobState["jobType"]) {

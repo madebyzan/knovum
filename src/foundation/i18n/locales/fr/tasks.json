@@ -18,6 +18,7 @@
   },
   "clearCompleted": "Effacer terminé",
   "openSubject": "Ouvrir l'élément associé",
+  "resolve": "Terminer la configuration",
   "dismiss": "Rejeter",
   "cancel": "Annuler la tâche",
   "cancelling": "Annulation…",

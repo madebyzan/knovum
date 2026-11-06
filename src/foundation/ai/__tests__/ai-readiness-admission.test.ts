@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ExternalAgentInstallation } from "../../../shared/contracts/generated/ExternalAgentInstallation";
 import type { LocalModelAvailability } from "../../../shared/contracts/generated/LocalModelAvailability";
 import { queryClient } from "../../query/query-client";
-import { admitAiRequirements } from "../ai-readiness-admission";
+import { admitAiRequirements, openAiRequirementSettings } from "../ai-readiness-admission";
 import { installAiSettingsNavigation } from "../ai-settings-navigation";
 import { DEFAULT_AI_MODEL_SETTINGS } from "../schema/model-settings";
 
@@ -140,5 +140,18 @@ describe("admitAiRequirements", () => {
     await expect(admitAiRequirements([{ kind: "routed", purpose: "writing" }])).resolves.toBe(false);
 
     expect(mocks.warning).toHaveBeenCalledOnce();
+  });
+
+  it("opens the pane that completes what waiting work needs", async () => {
+    const navigate = vi.fn<(pane: string) => Promise<void>>().mockResolvedValue();
+    installAiSettingsNavigation(navigate);
+    mocks.catalog.mockResolvedValue([whisper]);
+
+    await openAiRequirementSettings({ kind: "routed", purpose: "visual-understanding" });
+    await openAiRequirementSettings(transcription[0]);
+
+    expect(navigate.mock.calls).toEqual([["aiProviders"], ["localModels"]]);
+    expect(mocks.warning).not.toHaveBeenCalled();
+    expect(mocks.info).not.toHaveBeenCalled();
   });
 });

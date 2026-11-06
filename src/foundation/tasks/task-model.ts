@@ -13,6 +13,8 @@ export interface AppTask {
   cancelling?: boolean;
   retryable?: boolean;
   openable?: boolean;
+  /** A waiting task offers to take the person to what it is waiting for. */
+  resolvable?: boolean;
   producer?: string;
   durable?: boolean;
   scope?: TaskReference;

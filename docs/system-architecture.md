@@ -134,6 +134,22 @@ after the producer accepts it; rejection leaves the producer responsible for set
 Queries reconcile their own producer snapshot and retain the last successful projection on read
 failure. Resource observation outages use non-terminal `attention`, retaining progress and cancellation; an observation retry reconnects without restarting the producer. The next authoritative snapshot restores or settles the task.
 
+Missing setup is a precondition, not a failure. A local model that is not downloaded never blocks:
+the work prepares it (download, verify) and then runs. Work that runs on something the person
+configures — a routed executor, its provider endpoint or credential — waits as `attention` while
+that configuration is incomplete, whether the gap is found before the run is claimed or by the run
+itself (an `AppError` whose code is `not_configured`, never a parsed message). Waiting work stays
+cancellable and offers **Complete setup**, which opens the Settings pane the AI readiness model
+names for the requirement; the producer declares that requirement, the Task Center only shows the
+action. Once the configuration is complete the producer resumes the work on its own, after proving
+the executor again — a target frozen by an earlier attempt can have lost its connection meanwhile.
+Re-asking an unchanged question writes nothing: a job already waiting for the same reason is not
+rewritten or announced, and one executor is proven once per dispatch pass however many jobs wait on
+it. `failed` remains for runs that actually went wrong (network, provider rejection, invalid output,
+download or verification failure), and only a failed run offers Retry: waiting work has nothing to
+retry until its setup is complete. Work never silently switches to another model or provider to
+avoid waiting.
+
 Accepted conversation tasks send one `Finished` Channel update when their producer exits. The
 update carries the task outcome and an explicit error when settlement fails. `settlement_failed`
 means that durable Run settlement could not be recorded or confirmed; it is a Channel outcome,

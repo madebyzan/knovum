@@ -8,16 +8,36 @@ import {
   type AiReadinessSources,
   type AiRequirement,
 } from "./ai-readiness";
-import { announceAiReadiness } from "./ai-readiness-prompt";
+import { announceAiReadiness, describeAiReadiness } from "./ai-readiness-prompt";
+import { openAiSettings } from "./ai-settings-navigation";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { agentDescriptorsQueryOptions, agentInstallationsQueryOptions } from "./use-execution-catalog-query";
 
 /**
  * Decides, at the moment a feature starts, whether it may run, and tells the person why not or what
- * running costs first. Reads current state rather than a cached projection, because a download, an
- * installation or a Settings change may have happened since the control was drawn.
+ * running costs first.
  */
 export async function admitAiRequirements(requirements: readonly AiRequirement[]): Promise<boolean> {
+  const readiness = await readAiReadiness(requirements);
+  announceAiReadiness(readiness);
+  return canStartWith(readiness);
+}
+
+/**
+ * Opens the Settings pane that completes a requirement work is waiting on. A requirement whose
+ * route is assigned yet still reported unconfigured waits on its provider connection — the endpoint
+ * or credential — which only the providers pane completes.
+ */
+export async function openAiRequirementSettings(requirement: AiRequirement) {
+  const readiness = await readAiReadiness([requirement]);
+  await openAiSettings(describeAiReadiness(readiness, "before")?.action?.pane ?? "aiProviders");
+}
+
+/**
+ * Reads current state rather than a cached projection, because a download, an installation or a
+ * Settings change may have happened since the control was drawn.
+ */
+async function readAiReadiness(requirements: readonly AiRequirement[]) {
   const reads = aiSourcesOf(requirements, undefined);
   const [settings, models] = await Promise.all([
     reads.has("settings") ? loadSettings() : unread<AiReadinessSources["settings"]>(),
@@ -27,7 +47,7 @@ export async function admitAiRequirements(requirements: readonly AiRequirement[]
   const agents = aiSourcesOf(requirements, settings.value).has("agents")
     ? await loadAgents()
     : await unread<AiReadinessSources["agents"]>();
-  const readiness = resolveAiReadiness(requirements, {
+  return resolveAiReadiness(requirements, {
     settings: settings.value,
     settingsFailed: settings.failed,
     models: models.value,
@@ -35,8 +55,6 @@ export async function admitAiRequirements(requirements: readonly AiRequirement[]
     agents: agents.value,
     agentsFailed: agents.failed,
   });
-  announceAiReadiness(readiness);
-  return canStartWith(readiness);
 }
 
 interface SourceRead<T> {

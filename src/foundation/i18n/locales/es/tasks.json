@@ -18,6 +18,7 @@
   },
   "clearCompleted": "Borrar completado",
   "openSubject": "Abrir elemento relacionado",
+  "resolve": "Completar configuración",
   "dismiss": "Descartar",
   "cancel": "Cancelar tarea",
   "cancelling": "Cancelando…",

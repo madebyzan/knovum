@@ -2,12 +2,16 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed, watch, type Ref } from "vue";
 import { toast } from "vue-sonner";
 
+import { openAiRequirementSettings } from "../../../foundation/ai/ai-readiness-admission";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/instance";
+import type { ObservedTask } from "../../../foundation/tasks/task-observation";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
+import type { EnrichmentJobProjection } from "../contracts/generated/EnrichmentJobProjection";
+import type { EnrichmentJobState } from "../contracts/generated/EnrichmentJobState";
 import { cancelEnrichmentJob, retryEnrichmentJob } from "./enrichment-jobs";
 import { enrichmentJobsQuery, refreshEnrichmentJobs } from "./enrichment-jobs-query";
-import { ENRICHMENT_TASK_PRODUCER, enrichmentTask } from "./job-tasks";
+import { ENRICHMENT_REQUIREMENTS, ENRICHMENT_TASK_PRODUCER, enrichmentTask } from "./job-tasks";
 
 interface EnrichmentTaskProjectionOptions {
   ready: Ref<boolean>;
@@ -25,22 +29,7 @@ export function useEnrichmentTaskProjection({ ready, openNode }: EnrichmentTaskP
       if (!records) return;
       tasks.reconcileObserved(
         ENRICHMENT_TASK_PRODUCER,
-        records.map((record) => ({
-          task: enrichmentTask(record),
-          ...(["pending", "running"].includes(record.job.status) && {
-            cancel: async () => {
-              await cancelEnrichmentJob(record.job.id);
-              await refreshEnrichmentJobs();
-            },
-          }),
-          ...(record.job.status === "failed" && {
-            retry: async () => {
-              await retryEnrichmentJob(record.job.id);
-              await refreshEnrichmentJobs();
-            },
-          }),
-          open: () => openNode(record.job.spaceId, record.job.nodeId),
-        })),
+        records.map((record) => observedEnrichment(record, openNode)),
       );
     },
     { immediate: true },
@@ -50,4 +39,37 @@ export function useEnrichmentTaskProjection({ ready, openNode }: EnrichmentTaskP
   });
 
   return jobs;
+}
+
+/** A job that has not settled can still be stopped, including one waiting for configuration. */
+const UNSETTLED: ReadonlySet<EnrichmentJobState["status"]> = new Set([
+  "pending",
+  "running",
+  "awaiting_configuration",
+]);
+
+function observedEnrichment(
+  record: EnrichmentJobProjection,
+  openNode: EnrichmentTaskProjectionOptions["openNode"],
+): ObservedTask {
+  const { job } = record;
+  const requirement = ENRICHMENT_REQUIREMENTS[job.jobType];
+  return {
+    task: enrichmentTask(record),
+    ...(UNSETTLED.has(job.status) && {
+      cancel: async () => {
+        await cancelEnrichmentJob(job.id);
+        await refreshEnrichmentJobs();
+      },
+    }),
+    ...(job.status === "failed" && {
+      retry: async () => {
+        await retryEnrichmentJob(job.id);
+        await refreshEnrichmentJobs();
+      },
+    }),
+    ...(job.status === "awaiting_configuration" &&
+      requirement && { resolve: () => openAiRequirementSettings(requirement) }),
+    open: () => openNode(job.spaceId, job.nodeId),
+  };
 }

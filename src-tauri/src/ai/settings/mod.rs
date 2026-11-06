@@ -68,6 +68,21 @@ pub fn resolve_task<R: Runtime>(
     resolve_task_settings(load(app)?, selection, capability)
 }
 
+/// Resolves a task target and proves it can be called as configured now: a model also needs its
+/// provider's endpoint and credential. Background work asks before it starts, so configuration
+/// that is still missing leaves the work waiting rather than failing part-way through.
+pub async fn ready_task<R: Runtime>(
+    app: &AppHandle<R>,
+    selection: TaskTargetSelection,
+    capability: ExecutionCapability,
+) -> AppResult<TaskExecutionTarget> {
+    let target = resolve_task(app, selection, capability)?;
+    if let TaskExecutionTarget::Model(model) = &target {
+        crate::ai::transport::SecurityContext::from_target(model).await?;
+    }
+    Ok(target)
+}
+
 pub(crate) fn resolve_task_settings(
     settings: AiSettings,
     selection: TaskTargetSelection,

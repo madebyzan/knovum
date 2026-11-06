@@ -17,6 +17,12 @@ impl AppError {
         }
     }
 
+    /// Whether the work can run once the person completes its configuration, rather than having
+    /// failed while running.
+    pub fn is_not_configured(&self) -> bool {
+        self.code == "not_configured"
+    }
+
     pub fn invalid(message: impl Into<String>) -> Self {
         Self::new("invalid_request", message)
     }
