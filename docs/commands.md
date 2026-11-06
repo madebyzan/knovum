@@ -110,8 +110,9 @@ Editor text transformations use `plugin:ai|transform_editor_text_stream`; transl
 Internal provider completion APIs keep their model terminology. Spaces generation enters `start_space_action` with a concrete versioned Action ID;
 transformations use `derive_image`, and deterministic
 video edits use `render_video_edit`; subtitle burn-in uses the `add-video-subtitles` Action and
-image-layer splitting uses the `split-image-layers` Action. Cancellation names the ongoing
-operation (`cancel_run`). Splitting publishes several resources from one invocation: like every
+image-layer splitting uses the `split-image-layers` Action and sticker-sheet slicing the
+`slice-sticker-sheet` Action. Cancellation names the ongoing
+operation (`cancel_run`). Both publish several resources from one invocation: like every
 other Action it reserves one output node before the handler runs, and the handler reserves the rest
 once discovery reports how many layers the image carries. The layer count is therefore a property
 of the image rather than an input, and it never appears in the request. One split is one Run, so it

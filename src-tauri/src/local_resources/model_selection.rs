@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_store::StoreExt;
 
-use super::model_catalog::{self, LocalModelId};
+use super::model_catalog::{self, LocalModelCapability, LocalModelId};
 use crate::foundation::app_error::AppError;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -69,7 +69,7 @@ fn group(model: LocalModelId) -> Option<Group> {
         LocalModelId::RealEsrganGeneralX4v3 | LocalModelId::RealEsrganX4plus => {
             Some(Group::ImageUpscaling)
         }
-        LocalModelId::Migan => Some(Group::ImageInpainting),
+        LocalModelId::Migan | LocalModelId::Lama => Some(Group::ImageInpainting),
         LocalModelId::EfficientSamTi | LocalModelId::EfficientSamS => Some(Group::ImageSelection),
         LocalModelId::DepthAnythingV2SmallUint8 | LocalModelId::DepthAnythingV2Small => {
             Some(Group::ImageDepth)
@@ -144,8 +144,28 @@ pub(crate) fn transcription<R: Runtime>(app: &AppHandle<R>) -> Result<LocalModel
     selected(app, Group::Transcription)
 }
 
-pub(crate) fn image_segmentation<R: Runtime>(app: &AppHandle<R>) -> Result<LocalModelId, String> {
-    selected(app, Group::ImageSegmentation)
+/// The model a person chose for one image capability. Every image derivation reads its models from
+/// here, so a choice made in Settings is the model that runs wherever that capability is used.
+pub(crate) fn image<R: Runtime>(
+    app: &AppHandle<R>,
+    capability: LocalModelCapability,
+) -> Result<LocalModelId, String> {
+    selected(
+        app,
+        image_group(capability).ok_or("This capability has no image model choice")?,
+    )
+}
+
+fn image_group(capability: LocalModelCapability) -> Option<Group> {
+    use LocalModelCapability as C;
+    match capability {
+        C::ImageSegmentation => Some(Group::ImageSegmentation),
+        C::ImageUpscaling => Some(Group::ImageUpscaling),
+        C::ImageInpainting => Some(Group::ImageInpainting),
+        C::ImageSelection => Some(Group::ImageSelection),
+        C::ImageDepth => Some(Group::ImageDepth),
+        _ => None,
+    }
 }
 
 pub(crate) fn speech_separation<R: Runtime>(app: &AppHandle<R>) -> Result<LocalModelId, String> {

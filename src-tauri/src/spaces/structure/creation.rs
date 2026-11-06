@@ -3,7 +3,7 @@ use crate::spaces::nodes::{contracts::InsertNode, fitted_content_size};
 use super::planner::spatial::{local_from_world, world_transform};
 use super::planner::tree_policy::{require_editable, Index};
 use super::repository::SpaceStructureSnapshot;
-use super::{LocalTransform, Size, StructureLayout, StructureNode};
+use super::{LocalTransform, Size, SizingMode, StructureLayout, StructureNode};
 
 pub(crate) fn append_content(
     snapshot: &mut SpaceStructureSnapshot,
@@ -71,15 +71,21 @@ fn identity() -> LocalTransform {
     }
 }
 
-/// Places a root content node that already exists at a position and size. A derivation reserves
-/// its first output before it knows how many outputs there will be, so the set it belongs to can
-/// only be laid out once the rest are known.
+/// Where a root content node goes, at what size, and how it keeps that size.
+pub(crate) struct ContentPlace {
+    pub x: f64,
+    pub y: f64,
+    pub size: Size,
+    pub sizing_mode: SizingMode,
+}
+
+/// Places a root content node that already exists. A derivation reserves its first output before
+/// it knows how many outputs there will be, so the set it belongs to can only be laid out once the
+/// rest are known — and the footprint the set gives it replaces the one it was reserved with.
 pub(crate) fn place_existing_content(
     snapshot: &mut SpaceStructureSnapshot,
     node_id: &str,
-    x: f64,
-    y: f64,
-    size: Size,
+    place: ContentPlace,
 ) -> Result<(), String> {
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
     let structure_node_id = snapshot
@@ -103,18 +109,20 @@ pub(crate) fn place_existing_content(
         .ok_or("canvas-placement-invalid: reserved output has no layout")?;
     let StructureLayout::Content {
         transform,
-        size: current,
+        size,
+        sizing_mode,
         ..
     } = layout
     else {
         return Err("canvas-placement-invalid: reserved output is not content".into());
     };
     *transform = LocalTransform {
-        x,
-        y,
+        x: place.x,
+        y: place.y,
         rotation: 0.0,
         scale: 1.0,
     };
-    *current = size;
+    *size = place.size;
+    *sizing_mode = place.sizing_mode;
     Ok(())
 }

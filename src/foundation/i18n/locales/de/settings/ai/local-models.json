@@ -65,6 +65,7 @@
     "realEsrganGeneralX4v3": "Kompakte allgemeine Bildskalierung. Native ×4-Inferenz; Die Ausgabe kann auf 2K, 4K oder 8K eingestellt werden.",
     "realEsrganX4plus": "Vollständiges allgemeines Bild-Upscaling-Modell; längere CPU-Verarbeitungszeiten.",
     "migan": "Reparatur mit Pinsel oder Smart-Selection. Nicht ausgewählte Pixel bleiben erhalten; keine textgeführte Objektsuche.",
+    "lama": "Repariert große Flächen und ergänzt sich wiederholende Texturen wie Wände, Himmel und Gras natürlicher.",
     "efficientSamTi": "Kompakte Punkt- und Boxauswahl mit Ausschlusspunkten. Erzeugt eine binäre Maske, keine Mattierung auf Haarebene.",
     "efficientSamS": "Größeres Punkt- und Boxauswahlmodell mit denselben Bearbeitungssteuerelementen.",
     "depthAnythingV2Small": "Relative inverse Tiefe mit voller Genauigkeit. Nahe Objekte erscheinen heller; Dies ist keine Entfernungsmessung.",

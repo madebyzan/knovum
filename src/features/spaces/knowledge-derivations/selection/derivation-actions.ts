@@ -7,7 +7,7 @@ import type { CreationSource } from "../catalog/creation-source";
 import type { GeneratorKind } from "../generators/generator-kinds";
 import { useCanvasGeneratorStore } from "../generators/generator-store";
 import { createImageCutout } from "../image-cutout";
-import { splitImageLayers } from "../image-layers";
+import { deriveImageSet } from "../image-sets";
 import { addVideoSubtitles } from "../subtitled-video";
 
 interface DerivationActionsOptions {
@@ -33,7 +33,8 @@ export function createDerivationActions({ canRun, single, sources, bounds }: Der
 
   const handlerByIntent: Record<CreationIntentId, () => void> = {
     "remove-image-background": () => void (single.value && createImageCutout(single.value)),
-    "split-image-layers": () => void (single.value && splitImageLayers(single.value)),
+    "split-image-layers": () => void (single.value && deriveImageSet("split-image-layers", single.value)),
+    "slice-sticker-sheet": () => void (single.value && deriveImageSet("slice-sticker-sheet", single.value)),
     "add-video-subtitles": () => void (single.value && addVideoSubtitles(single.value)),
     "draft-document": () => generate("document"),
     "generate-visualization": () => generate("image"),

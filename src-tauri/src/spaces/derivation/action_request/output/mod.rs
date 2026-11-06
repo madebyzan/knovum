@@ -117,7 +117,12 @@ fn build_pending_output_content(
         "split-image-layers" => PendingOutputContent {
             kind: "image",
             data: generated_image_content(app, &title)?,
-            lineage: super::super::image_layers::LINEAGE,
+            lineage: super::super::image_layers::SET.lineage,
+        },
+        "slice-sticker-sheet" => PendingOutputContent {
+            kind: "image",
+            data: generated_image_content(app, &title)?,
+            lineage: super::super::sticker_sheet::SET.lineage,
         },
         "generate-video" => PendingOutputContent {
             kind: "video",

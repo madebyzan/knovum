@@ -105,7 +105,7 @@
     "glow": "Brillo"
   },
   "selection": {
-    "title": "Seleccionar objeto",
+    "title": "Recortar objeto",
     "tools": "Herramientas de selección",
     "include": "Punto de primer plano",
     "exclude": "Punto de exclusión",
@@ -115,6 +115,8 @@
     "help": "Haga clic en el tema; agregue puntos de exclusión o un cuadro. Pincel para incluir detalles. Indicaciones de hasta seis puntos.",
     "repair": "Quitar y rellenar",
     "extract": "Recortar objeto",
+    "selectionModel": "Modelo de selección",
+    "repairModel": "Modelo de reparación",
     "undo": "Deshacer selección",
     "modelUnavailable": "Selecciona un modelo de selección de objetos disponible en Ajustes.",
     "promptLimit": "Hasta seis indicaciones. Deshacer un mensaje para continuar."

@@ -86,7 +86,7 @@ fn model_statuses(app: &AppHandle) -> Result<ModelStatuses, String> {
             .collect::<Result<Vec<_>, _>>()?,
         image_segmentation: model_status(
             app,
-            model_selection::image_segmentation(app)?
+            model_selection::image(app, model_catalog::LocalModelCapability::ImageSegmentation)?
                 .snapshot()
                 .expect("Image model owns a snapshot")
                 .models()[0],

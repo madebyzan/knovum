@@ -52,6 +52,7 @@ pub enum LocalModelId {
     RealEsrganGeneralX4v3,
     RealEsrganX4plus,
     Migan,
+    Lama,
     EfficientSamTi,
     EfficientSamS,
     DepthAnythingV2SmallUint8,
@@ -125,6 +126,7 @@ pub const MODELS: &[LocalModelId] = &[
     LocalModelId::RealEsrganGeneralX4v3,
     LocalModelId::RealEsrganX4plus,
     LocalModelId::Migan,
+    LocalModelId::Lama,
     LocalModelId::EfficientSamTi,
     LocalModelId::EfficientSamS,
     LocalModelId::DepthAnythingV2SmallUint8,
@@ -155,6 +157,7 @@ impl LocalModelId {
             | Self::RealEsrganGeneralX4v3
             | Self::RealEsrganX4plus
             | Self::Migan
+            | Self::Lama
             | Self::EfficientSamTi
             | Self::EfficientSamS
             | Self::DepthAnythingV2SmallUint8
@@ -220,6 +223,7 @@ impl LocalModelId {
             }
             Self::RealEsrganX4plus => Some(S::Image(catalog::ImageModelVariant::RealEsrganX4plus)),
             Self::Migan => Some(S::Image(catalog::ImageModelVariant::Migan)),
+            Self::Lama => Some(S::Image(catalog::ImageModelVariant::Lama)),
             Self::EfficientSamTi => Some(S::Image(catalog::ImageModelVariant::EfficientSamTi)),
             Self::EfficientSamS => Some(S::Image(catalog::ImageModelVariant::EfficientSamS)),
             Self::DepthAnythingV2SmallUint8 => Some(S::Image(
@@ -246,6 +250,7 @@ impl LocalModelId {
             | Self::RealEsrganGeneralX4v3
             | Self::RealEsrganX4plus
             | Self::Migan
+            | Self::Lama
             | Self::EfficientSamTi
             | Self::EfficientSamS
             | Self::DepthAnythingV2SmallUint8

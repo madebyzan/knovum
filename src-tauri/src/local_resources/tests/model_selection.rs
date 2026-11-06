@@ -8,6 +8,7 @@ fn model_preferences_are_strict_and_belong_to_their_capability() {
         (Group::ImageSegmentation, LocalModelId::U2net),
         (Group::ImageUpscaling, LocalModelId::RealEsrganX4plus),
         (Group::ImageInpainting, LocalModelId::Migan),
+        (Group::ImageInpainting, LocalModelId::Lama),
         (Group::ImageSelection, LocalModelId::EfficientSamS),
         (Group::ImageDepth, LocalModelId::DepthAnythingV2SmallUint8),
         (Group::SpeechAlignment, LocalModelId::Qwen3AlignerQ8),
@@ -50,4 +51,19 @@ fn alignment_defaults_to_the_smaller_compiled_model_and_keeps_full_precision_sel
         LocalModelId::Qwen3AlignerQ8
     );
     assert!(group(LocalModelId::Qwen3Aligner) == Some(Group::SpeechAlignment));
+}
+
+#[test]
+fn an_image_capability_resolves_through_the_choice_its_models_belong_to() {
+    for model in crate::local_resources::model_catalog::MODELS
+        .iter()
+        .copied()
+    {
+        if let Some(choice) = image_group(model.capability()) {
+            assert!(
+                group(model) == Some(choice),
+                "{model:?} is chosen where its capability is resolved"
+            );
+        }
+    }
 }

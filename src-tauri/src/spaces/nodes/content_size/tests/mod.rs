@@ -39,3 +39,24 @@ fn framed_media_keeps_its_area_when_the_ratio_changes() {
     assert!((fitted.width * fitted.height - 60_000.0).abs() < 0.01);
     assert!((fitted.width / fitted.height - 0.5625).abs() < 0.0001);
 }
+
+#[test]
+fn a_picture_is_never_shown_larger_than_its_own_pixels() {
+    let current = Size {
+        width: 256.0,
+        height: 156.0,
+    };
+    let sticker = json!({"kind":"image","intrinsicWidth":240,"intrinsicHeight":240});
+    let fitted = fitted_size(&sticker, &current, SizingMode::Content).unwrap();
+    assert_eq!((fitted.width, fitted.height), (240.0, 240.0));
+    let banner = json!({"kind":"image","intrinsicWidth":600,"intrinsicHeight":40});
+    let fitted = fitted_size(&banner, &current, SizingMode::Content).unwrap();
+    assert_eq!(
+        (fitted.width, fitted.height),
+        (480.0, 32.0),
+        "a long edge grown for legibility still stops at the picture's pixels"
+    );
+    let page = json!({"kind":"file","intrinsicWidth":105,"intrinsicHeight":148});
+    let fitted = fitted_size(&page, &current, SizingMode::Content).unwrap();
+    assert!(fitted.width > 105.0, "a page is geometry, not pixels");
+}

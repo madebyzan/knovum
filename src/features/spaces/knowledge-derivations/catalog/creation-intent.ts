@@ -1,6 +1,13 @@
 import type { ActionAvailability } from "../../../../shared/contracts/action-availability";
 
-export type CreationIntentIcon = "captions" | "file-pen" | "image" | "layers" | "scan" | "sparkles";
+export type CreationIntentIcon =
+  | "captions"
+  | "file-pen"
+  | "image"
+  | "layers"
+  | "scan"
+  | "sparkles"
+  | "sticker";
 export type DerivationUnavailableReason =
   | "no-usable-source"
   | "too-many-sources"
@@ -15,7 +22,8 @@ export interface CreationSelectionContext {
   readonly sourceCount: number;
   readonly imageCount: number;
   readonly canRemoveBackground: boolean;
-  readonly canSplitImageLayers: boolean;
+  /** One published image is selected, so it can be read into a set of images. */
+  readonly canDeriveImageSet: boolean;
   readonly canAddVideoSubtitles: boolean;
 }
 

@@ -105,7 +105,7 @@
     "glow": "Brilho"
   },
   "selection": {
-    "title": "Selecionar objeto",
+    "title": "Recortar objeto",
     "tools": "Ferramentas de seleção",
     "include": "Ponto de primeiro plano",
     "exclude": "Ponto de exclusão",
@@ -115,6 +115,8 @@
     "help": "Clique no assunto; adicione pontos de exclusão ou uma caixa. Pincele para incluir detalhes. Avisos de até seis pontos.",
     "repair": "Remover e preencher",
     "extract": "Recortar objeto",
+    "selectionModel": "Modelo de seleção",
+    "repairModel": "Modelo de reparo",
     "undo": "Desfazer seleção",
     "modelUnavailable": "Selecione um modelo de seleção de objetos disponível nas Configurações.",
     "promptLimit": "Até seis avisos. Desfaça uma solicitação para continuar."

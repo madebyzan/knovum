@@ -14,8 +14,65 @@ use crate::{
     },
 };
 
-const DOCUMENT_CAPTION_HEIGHT: f64 = 48.0;
 const SIZE_EPSILON: f64 = 0.01;
+
+/// How the canvas sizes content that shows a picture of itself, when nobody has sized it: the long
+/// edge takes its preferred length, a very elongated picture is widened until its short edge is
+/// legible, and never past the longest edge a default may take.
+#[derive(Clone, Copy, Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct Footprint {
+    pub preferred_long_edge: f64,
+    pub minimum_short_edge: f64,
+    pub maximum_long_edge: f64,
+    /// Chrome below the picture, outside its aspect.
+    pub caption: f64,
+    /// A picture made of pixels is never shown larger than its own pixels: enlarging only blurs
+    /// it. A rendered page has no such limit — its size is page geometry, not pixels.
+    pub pixel_bound: bool,
+}
+
+/// The footprint of each kind of pictured content, keyed by node kind. The renderer sizes a node it
+/// is about to create by the same table, exported with the contracts.
+pub(crate) const FOOTPRINTS: [(&str, Footprint); 3] = [
+    (
+        "image",
+        Footprint {
+            preferred_long_edge: 280.0,
+            minimum_short_edge: 128.0,
+            maximum_long_edge: 480.0,
+            caption: 0.0,
+            pixel_bound: true,
+        },
+    ),
+    (
+        "video",
+        Footprint {
+            preferred_long_edge: 304.0,
+            minimum_short_edge: 156.0,
+            maximum_long_edge: 560.0,
+            caption: 0.0,
+            pixel_bound: true,
+        },
+    ),
+    (
+        "file",
+        Footprint {
+            preferred_long_edge: 272.0,
+            minimum_short_edge: 150.0,
+            maximum_long_edge: 480.0,
+            caption: 48.0,
+            pixel_bound: false,
+        },
+    ),
+];
+
+fn footprint(kind: &str) -> Option<&'static Footprint> {
+    FOOTPRINTS
+        .iter()
+        .find(|(name, _)| *name == kind)
+        .map(|(_, footprint)| footprint)
+}
 
 pub(in crate::spaces) async fn sync_changed_in_transaction(
     tx: &mut Transaction<'_, Sqlite>,
@@ -25,8 +82,8 @@ pub(in crate::spaces) async fn sync_changed_in_transaction(
     let node_ids = changes
         .iter()
         .filter_map(|change| {
-            let after = display_ratio(&change.data)?;
-            (display_ratio(&change.expected_content) != Some(after)).then(|| change.id.clone())
+            let after = display_extent(&change.data)?;
+            (display_extent(&change.expected_content) != Some(after)).then(|| change.id.clone())
         })
         .collect::<Vec<_>>();
     if node_ids.is_empty() {
@@ -123,9 +180,10 @@ pub(in crate::spaces) fn fitted_size(
     sizing_mode: SizingMode,
 ) -> Option<Size> {
     let kind = payload.get("kind")?.as_str()?;
-    let ratio = display_ratio(payload)?;
+    let extent = display_extent(payload)?;
+    let ratio = extent.width / extent.height;
     match sizing_mode {
-        SizingMode::Content => default_size(kind, ratio),
+        SizingMode::Content => Some(default_size(footprint(kind)?, &extent)),
         SizingMode::Frame if kind == "file" => None,
         SizingMode::Frame => {
             let area = current.width * current.height;
@@ -138,70 +196,78 @@ pub(in crate::spaces) fn fitted_size(
     }
 }
 
-fn default_size(kind: &str, ratio: f64) -> Option<Size> {
-    let (preferred_long_edge, minimum_short_edge, max_long_edge, footer) = match kind {
-        "image" => (280.0, 128.0, 480.0, 0.0),
-        "video" => (304.0, 156.0, 560.0, 0.0),
-        "file" => (272.0, 150.0, 480.0, DOCUMENT_CAPTION_HEIGHT),
-        _ => return None,
-    };
-    let (mut width, mut height) = if ratio >= 1.0 {
-        (preferred_long_edge, preferred_long_edge / ratio)
-    } else {
-        (preferred_long_edge * ratio, preferred_long_edge)
-    };
-    let short_edge = width.min(height);
-    if short_edge < minimum_short_edge {
-        let scale = minimum_short_edge / short_edge;
-        width *= scale;
-        height *= scale;
-    }
-    let long_edge = width.max(height);
-    if long_edge > max_long_edge {
-        let scale = max_long_edge / long_edge;
-        width *= scale;
-        height *= scale;
-    }
-    Some(Size {
-        width: width.round(),
-        height: (height + footer).round(),
-    })
+/// Whether this content shows a picture of itself, so its footprint follows the picture's aspect.
+pub(in crate::spaces) fn is_pictured(payload: &Value) -> bool {
+    display_extent(payload).is_some()
 }
 
-fn display_ratio(payload: &Value) -> Option<f64> {
+fn default_size(footprint: &Footprint, extent: &Size) -> Size {
+    let ratio = extent.width / extent.height;
+    let long = footprint.preferred_long_edge;
+    let (mut width, mut height) = if ratio >= 1.0 {
+        (long, long / ratio)
+    } else {
+        (long * ratio, long)
+    };
+    let short_edge = width.min(height);
+    let long_edge = width.max(height);
+    let mut scale = (footprint.minimum_short_edge / short_edge)
+        .max(1.0)
+        .min(footprint.maximum_long_edge / long_edge);
+    if footprint.pixel_bound {
+        scale = scale.min(extent.width / width);
+    }
+    width *= scale;
+    height *= scale;
+    Size {
+        width: width.round(),
+        height: (height + footprint.caption).round(),
+    }
+}
+
+/// The size the content shows itself at in its own units: an image's cropped, rotated pixels, a
+/// video's frame, a rendered document's page.
+fn display_extent(payload: &Value) -> Option<Size> {
     let kind = payload.get("kind")?.as_str()?;
-    if !matches!(kind, "image" | "video" | "file") {
+    if footprint(kind).is_none() {
         return None;
     }
     let intrinsic_width = positive_number(payload.get("intrinsicWidth")?)?;
     let intrinsic_height = positive_number(payload.get("intrinsicHeight")?)?;
-    let ratio = if kind == "image" {
-        let edit = payload.get("imageEdit").filter(|value| value.is_object());
-        let crop = edit.and_then(|value| value.get("crop"));
-        let width = intrinsic_width
-            * crop
-                .and_then(|value| value.get("width"))
-                .and_then(positive_number)
-                .unwrap_or(1.0);
-        let height = intrinsic_height
-            * crop
-                .and_then(|value| value.get("height"))
-                .and_then(positive_number)
-                .unwrap_or(1.0);
-        let radians = edit
-            .and_then(|value| value.get("rotation"))
-            .and_then(Value::as_f64)
-            .unwrap_or(0.0)
-            .to_radians();
-        let cosine = radians.cos().abs();
-        let sine = radians.sin().abs();
-        let rotated_width = width * cosine + height * sine;
-        let rotated_height = width * sine + height * cosine;
-        rotated_width / rotated_height
+    let extent = if kind == "image" {
+        edited_extent(payload, intrinsic_width, intrinsic_height)
     } else {
-        intrinsic_width / intrinsic_height
+        Size {
+            width: intrinsic_width,
+            height: intrinsic_height,
+        }
     };
-    (ratio.is_finite() && ratio > 0.0).then_some(ratio)
+    let valid = [extent.width, extent.height]
+        .iter()
+        .all(|edge| edge.is_finite() && *edge > 0.0);
+    valid.then_some(extent)
+}
+
+fn edited_extent(payload: &Value, intrinsic_width: f64, intrinsic_height: f64) -> Size {
+    let edit = payload.get("imageEdit").filter(|value| value.is_object());
+    let crop = edit.and_then(|value| value.get("crop"));
+    let share = |axis: &str| {
+        crop.and_then(|value| value.get(axis))
+            .and_then(positive_number)
+            .unwrap_or(1.0)
+    };
+    let width = intrinsic_width * share("width");
+    let height = intrinsic_height * share("height");
+    let radians = edit
+        .and_then(|value| value.get("rotation"))
+        .and_then(Value::as_f64)
+        .unwrap_or(0.0)
+        .to_radians();
+    let (cosine, sine) = (radians.cos().abs(), radians.sin().abs());
+    Size {
+        width: width * cosine + height * sine,
+        height: width * sine + height * cosine,
+    }
 }
 
 fn positive_number(value: &Value) -> Option<f64> {

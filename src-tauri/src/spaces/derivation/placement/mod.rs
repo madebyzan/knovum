@@ -3,6 +3,13 @@
 //! Every derivation - an Action's outputs, separated speech, an Agent's files - publishes through
 //! here, so one rule covers all of them: a set published together is laid out as a grid and placed
 //! as one block, and that block joins the field its sources' earlier derivations already form.
+//!
+//! A set is read at one glance, so it claims the canvas a few outputs would rather than one full
+//! footprint per member: up to `FULL_SIZE_MEMBERS` outputs keep the footprint each would have alone,
+//! and a larger set keeps the area those would cover — its pictures and the gutters between them
+//! shrink with the square root of its size, a picture down to `MEMBER_FLOOR` on its long edge.
+//! A footprint the set chose is the node's own from then on (`SizingMode::Frame`), so content that
+//! settles later keeps its place in the set rather than growing back to a lone output's size.
 //! An output a person framed on the canvas before asking for it is the exception: it lands in its
 //! frame, because that is where they were looking when they asked.
 
@@ -17,6 +24,11 @@ use crate::spaces::{
         self, DerivedBlock, Size, SizingMode, StructureLayout, StructureNode, CONTENT_GAP,
     },
 };
+
+/// How many outputs of one set keep the footprint each would have alone.
+const FULL_SIZE_MEMBERS: f64 = 4.0;
+/// The shortest long edge a picture in a set shrinks to; a smaller picture keeps its own size.
+const MEMBER_FLOOR: f64 = 96.0;
 
 /// Canvas footprint of content that cannot report a size yet.
 pub(crate) const PLACEHOLDER: Size = Size {
@@ -59,6 +71,7 @@ impl OutputFrame {
                 width: self.width,
                 height: self.height,
             },
+            sizing_mode: SizingMode::Frame,
         }
     }
 }
@@ -82,16 +95,16 @@ pub(crate) async fn place(
     reserved: &[String],
     outputs: &[(&OutputPlacement, &Value)],
 ) -> Result<Vec<DerivedCell>, AppError> {
-    let sizes: Vec<Size> = outputs
+    let members: Vec<SetMember> = outputs
         .iter()
         .filter_map(|(placement, data)| match placement {
             OutputPlacement::Derived(footprint) => {
-                Some(fitted(data, footprint, SizingMode::Content))
+                Some(SetMember::new(data, footprint, SizingMode::Content))
             }
             OutputPlacement::Framed(_) => None,
         })
         .collect();
-    let mut derived = if sizes.is_empty() {
+    let mut derived = if members.is_empty() {
         Vec::new()
     } else {
         plan(
@@ -102,7 +115,7 @@ pub(crate) async fn place(
             DerivedOutputs {
                 sources,
                 reserved,
-                sizes,
+                members,
             },
         )
         .await?
@@ -125,8 +138,45 @@ pub(crate) struct DerivedOutputs<'a> {
     pub(crate) sources: &'a [String],
     /// Outputs already reserved on the canvas, which must not block their own set.
     pub(crate) reserved: &'a [String],
-    /// Footprint of each output, in publication order.
-    pub(crate) sizes: Vec<Size>,
+    /// Each output, in publication order.
+    pub(crate) members: Vec<SetMember>,
+}
+
+/// One output of a set: the footprint it would have alone, and how that footprint is kept.
+#[derive(Clone)]
+pub(crate) struct SetMember {
+    size: Size,
+    sizing_mode: SizingMode,
+    pictured: bool,
+}
+
+impl SetMember {
+    /// The output whose content is `data`, asked to be `requested` and kept by `sizing_mode`.
+    pub(crate) fn new(data: &Value, requested: &Size, sizing_mode: SizingMode) -> Self {
+        Self {
+            size: fitted(data, requested, sizing_mode),
+            sizing_mode,
+            pictured: nodes::is_pictured(data),
+        }
+    }
+
+    /// The footprint this member takes in a set scaled by `scale`. Only a picture shrinks: a
+    /// document or a player keeps the size its text and controls need.
+    fn in_set(self, scale: f64) -> Self {
+        let long_edge = self.size.width.max(self.size.height);
+        let scale = (scale * long_edge).max(MEMBER_FLOOR.min(long_edge)) / long_edge;
+        if !self.pictured || scale >= 1.0 {
+            return self;
+        }
+        Self {
+            size: Size {
+                width: (self.size.width * scale).round(),
+                height: (self.size.height * scale).round(),
+            },
+            sizing_mode: SizingMode::Frame,
+            pictured: true,
+        }
+    }
 }
 
 /// Where one output sits, and the footprint it is published with.
@@ -134,6 +184,8 @@ pub(crate) struct DerivedCell {
     pub(crate) x: f64,
     pub(crate) y: f64,
     pub(crate) size: Size,
+    /// How the node keeps that footprint once published.
+    pub(crate) sizing_mode: SizingMode,
 }
 
 /// Plans a place for each output in the set.
@@ -144,7 +196,7 @@ pub(crate) async fn plan(
     layouts: &[StructureLayout],
     outputs: DerivedOutputs<'_>,
 ) -> Result<Vec<DerivedCell>, AppError> {
-    let grid = Grid::new(outputs.sizes)?;
+    let grid = Grid::new(outputs.members)?;
     let siblings = field_size(tx, space_id, outputs.sources, outputs.reserved).await?;
     let (x, y) = structure::place_derived_content(
         structure,
@@ -163,13 +215,14 @@ pub(crate) async fn plan(
         .map(|cell| DerivedCell {
             x: x + cell.x,
             y: y + cell.y,
-            size: cell.size,
+            size: cell.member.size,
+            sizing_mode: cell.member.sizing_mode,
         })
         .collect())
 }
 
 /// The size the canvas gives this content, so the plan and the published node agree on one size.
-pub(crate) fn fitted(data: &Value, requested: &Size, sizing_mode: SizingMode) -> Size {
+fn fitted(data: &Value, requested: &Size, sizing_mode: SizingMode) -> Size {
     nodes::fitted_content_size(data, requested, sizing_mode).unwrap_or_else(|| requested.clone())
 }
 
@@ -207,7 +260,7 @@ async fn field_size(
 struct Cell {
     x: f64,
     y: f64,
-    size: Size,
+    member: SetMember,
 }
 
 /// A set of outputs laid out as equal cells in reading order. Equal cells keep the set aligned
@@ -220,39 +273,50 @@ struct Grid {
 }
 
 impl Grid {
-    fn new(sizes: Vec<Size>) -> Result<Self, AppError> {
-        let count = u32::try_from(sizes.len()).map_err(|_| "Too many derivation outputs")?;
+    fn new(members: Vec<SetMember>) -> Result<Self, AppError> {
+        let count = u32::try_from(members.len()).map_err(|_| "Too many derivation outputs")?;
         if count == 0 {
             return Err("A derivation publishes at least one output".into());
         }
+        let scale = (FULL_SIZE_MEMBERS / f64::from(count)).sqrt().min(1.0);
+        let gap = (CONTENT_GAP * scale).round();
+        let members: Vec<SetMember> = members
+            .into_iter()
+            .map(|member| member.in_set(scale))
+            .collect();
         let cell = Size {
-            width: sizes.iter().map(|size| size.width).fold(0.0, f64::max),
-            height: sizes.iter().map(|size| size.height).fold(0.0, f64::max),
+            width: members
+                .iter()
+                .map(|member| member.size.width)
+                .fold(0.0, f64::max),
+            height: members
+                .iter()
+                .map(|member| member.size.height)
+                .fold(0.0, f64::max),
         };
         let columns = (1..=count)
             .find(|columns| columns * columns >= count)
             .unwrap_or(count);
-        let mut cells = Vec::with_capacity(sizes.len());
-        for (index, size) in sizes.into_iter().enumerate() {
-            let index = u32::try_from(index).map_err(|_| "Too many derivation outputs")?;
+        let mut cells = Vec::with_capacity(members.len());
+        for (index, member) in (0..).zip(members) {
             cells.push(Cell {
-                x: f64::from(index % columns) * (cell.width + CONTENT_GAP)
-                    + (cell.width - size.width) / 2.0,
-                y: f64::from(index / columns) * (cell.height + CONTENT_GAP)
-                    + (cell.height - size.height) / 2.0,
-                size,
+                x: f64::from(index % columns) * (cell.width + gap)
+                    + (cell.width - member.size.width) / 2.0,
+                y: f64::from(index / columns) * (cell.height + gap)
+                    + (cell.height - member.size.height) / 2.0,
+                member,
             });
         }
         Ok(Self {
-            width: span(columns, cell.width),
-            height: span(count.div_ceil(columns), cell.height),
+            width: span(columns, cell.width, gap),
+            height: span(count.div_ceil(columns), cell.height, gap),
             cells,
         })
     }
 }
 
-fn span(count: u32, cell: f64) -> f64 {
-    f64::from(count) * cell + f64::from(count - 1) * CONTENT_GAP
+fn span(count: u32, cell: f64, gap: f64) -> f64 {
+    f64::from(count) * cell + f64::from(count - 1) * gap
 }
 
 #[cfg(test)]

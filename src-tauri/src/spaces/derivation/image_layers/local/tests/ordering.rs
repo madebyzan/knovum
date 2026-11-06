@@ -1,5 +1,5 @@
 use super::super::passes::Field;
-use super::{salient_layer, stack};
+use super::stack;
 
 fn field(values: Vec<f32>, width: u32, height: u32) -> Field {
     Field {
@@ -36,24 +36,4 @@ fn a_depth_field_at_its_own_resolution_is_sampled_rather_than_upsampled() {
 fn a_mismatched_depth_field_is_rejected() {
     assert!(stack(vec![0, 1], (2, 1), &field(Vec::new(), 0, 0)).is_err());
     assert!(stack(vec![0, 1, 1], (2, 1), &field(vec![0.1, 0.2], 2, 1)).is_err());
-}
-
-#[test]
-fn the_layer_holding_the_salient_subject_owns_the_soft_alpha() {
-    let decomposition = stack(
-        vec![1, 1, 2, 2],
-        (4, 1),
-        &field(vec![0.1, 0.1, 0.9, 0.9], 4, 1),
-    )
-    .expect("stack");
-    let (owner, alpha) = salient_layer(&decomposition, vec![250, 250, 2, 2]).expect("owner");
-    assert_eq!(
-        owner, decomposition.labels[0],
-        "the saliency peak sits on the first subject"
-    );
-    assert_eq!(alpha.len(), 4);
-    assert!(
-        salient_layer(&decomposition, vec![1, 2]).is_none(),
-        "shape must match"
-    );
 }

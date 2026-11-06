@@ -22,7 +22,7 @@ use crate::spaces::{
     db,
     knowledge::{indexing::KnowledgeChunkInput, model::revision},
     nodes::{self, contracts::InsertNode},
-    structure::{self, Size, SizingMode},
+    structure::{self, Size},
 };
 
 /// What a Run is told when the node it owes content to has been removed by a person. Publishing
@@ -110,7 +110,7 @@ pub(crate) async fn reserve_in_transaction(
             initial_y: cell.y,
             width: cell.size.width,
             height: cell.size.height,
-            sizing_mode: SizingMode::Content,
+            sizing_mode: cell.sizing_mode,
             appearance: None,
             file_subpath: None,
             data: output.data,
@@ -160,9 +160,12 @@ async fn replace_reserved(
     structure::creation::place_existing_content(
         snapshot,
         &output.node_id,
-        cell.x,
-        cell.y,
-        cell.size.clone(),
+        structure::creation::ContentPlace {
+            x: cell.x,
+            y: cell.y,
+            size: cell.size.clone(),
+            sizing_mode: cell.sizing_mode,
+        },
     )?;
     Ok(())
 }

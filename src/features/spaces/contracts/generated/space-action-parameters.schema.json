@@ -24,6 +24,9 @@
     "split-image-layers": {
       "$ref": "#/$defs/EmptyParameters"
     },
+    "slice-sticker-sheet": {
+      "$ref": "#/$defs/EmptyParameters"
+    },
     "create-note": {
       "$ref": "#/$defs/NoteParameters"
     },
@@ -377,6 +380,7 @@
         "realEsrganGeneralX4v3",
         "realEsrganX4plus",
         "migan",
+        "lama",
         "efficientSamTi",
         "efficientSamS",
         "depthAnythingV2SmallUint8",

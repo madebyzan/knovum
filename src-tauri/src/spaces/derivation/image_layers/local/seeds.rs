@@ -12,12 +12,17 @@
 //!   area filters reject the prompts that land on flat sky or wall, so exploring costs decoder
 //!   passes rather than quality.
 
-use super::components;
-use crate::ai::contracts::image_compute::{ImageSelectionPoint, MAX_DISCOVERY_SEEDS};
+use crate::{
+    ai::contracts::image_compute::{ImageSelectionPoint, MAX_DISCOVERY_SEEDS},
+    spaces::derivation::regions,
+};
 
 /// Saliency a pixel must reach to belong to a subject component. A cell whose peak stays below it
 /// is what exploration is for.
 const MIN_SUBJECT: u8 = 38;
+/// Smallest share of the canvas a salient component must cover to be prompted as a subject; below
+/// it a component is a glint the saliency field upsampled, and exploration covers it anyway.
+const MIN_SUBJECT_SHARE: f32 = 0.001;
 /// Cells per axis explored where saliency found no subject.
 const EXPLORE_GRID: u32 = 8;
 
@@ -55,7 +60,12 @@ fn subject_seeds(saliency: &[u8], (width, height): (u32, u32)) -> Vec<(u32, u32)
         .iter()
         .map(|value| *value >= MIN_SUBJECT)
         .collect::<Vec<_>>();
-    components::merge(components::find(&mask, width, height))
+    let minimum = mask.len() as f32 * MIN_SUBJECT_SHARE;
+    let subjects = regions::connected(&mask, (width, height))
+        .into_iter()
+        .filter(|region| region.pixels.len() as f32 >= minimum)
+        .collect();
+    regions::merge_contained(subjects)
         .iter()
         .filter_map(|component| peak(saliency, &component.pixels))
         .map(|index| (index % width, index / width))

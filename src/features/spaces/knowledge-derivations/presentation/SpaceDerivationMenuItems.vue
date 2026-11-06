@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { Captions, ChevronRight, FilePenLine, Image, Layers3, ScanLine, Sparkles } from "@lucide/vue";
+import {
+  Captions,
+  ChevronRight,
+  FilePenLine,
+  Image,
+  Layers3,
+  ScanLine,
+  Sparkles,
+  Sticker,
+} from "@lucide/vue";
 import { DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "reka-ui";
 import { computed, type Component } from "vue";
 import { useI18n } from "vue-i18n";
@@ -30,6 +39,7 @@ const ICONS = {
   layers: Layers3,
   scan: ScanLine,
   sparkles: Sparkles,
+  sticker: Sticker,
 } satisfies Record<CreationIntentIcon, Component>;
 const derivationActions = computed(() =>
   CREATION_INTENT_DEFINITIONS.filter(({ id }) => {

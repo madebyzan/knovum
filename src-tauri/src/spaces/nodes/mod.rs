@@ -10,7 +10,9 @@ mod update;
 
 pub(in crate::spaces) use content_size::fit_in_snapshot as fit_content_sizes_in_snapshot;
 pub(in crate::spaces) use content_size::fitted_size as fitted_content_size;
+pub(in crate::spaces) use content_size::is_pictured;
 pub(in crate::spaces) use content_size::sync_node_ids_in_transaction as sync_content_sizes_in_transaction;
+pub(crate) use content_size::FOOTPRINTS as CONTENT_FOOTPRINTS;
 pub use insert::insert_many;
 pub(in crate::spaces) use insert::insert_rows_in_transaction;
 pub(in crate::spaces) use insert::insert_rows_with_actor;

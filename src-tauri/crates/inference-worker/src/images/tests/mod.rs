@@ -1,6 +1,6 @@
 use crate::images::{
     depth::normalize,
-    inpainting::{composite, known_mask},
+    inpainting::{composite, context_window, known_mask},
     upscaling::quantize,
 };
 
@@ -30,4 +30,35 @@ fn depth_rejects_invalid_fields_and_normalizes_relative_extremes() {
     assert_eq!(normalize(&[2.0, 4.0, 6.0]).unwrap(), [0.0, 0.5, 1.0]);
     assert!(normalize(&[1.0, 1.0]).is_err());
     assert!(normalize(&[1.0, f32::INFINITY]).is_err());
+}
+
+#[test]
+fn a_small_hole_is_painted_at_source_resolution_inside_the_model_square() {
+    // A 20 px hole in a large photograph: the window is the model's own square around it, so
+    // nothing is resampled.
+    assert_eq!(
+        context_window([1000, 700, 1019, 719], (4000, 3000)),
+        [754, 454, 1266, 966]
+    );
+}
+
+#[test]
+fn a_window_keeps_context_around_a_large_hole_and_stays_inside_the_source() {
+    let [left, top, right, bottom] = context_window([100, 0, 899, 599], (1000, 800));
+    assert_eq!(
+        (left, right),
+        (0, 1000),
+        "wider than the source: the whole width"
+    );
+    assert_eq!(
+        (top, bottom),
+        (0, 800),
+        "a hole at the top keeps its context below"
+    );
+    let [left, top, right, bottom] = context_window([0, 0, 9, 9], (300, 200));
+    assert_eq!(
+        [left, top, right, bottom],
+        [0, 0, 300, 200],
+        "a small source is read whole"
+    );
 }

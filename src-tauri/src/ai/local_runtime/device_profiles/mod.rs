@@ -59,7 +59,8 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         (RuntimeCapability::ImageInpainting, _, "cpu")
             if image_profile(device_profile, capability) =>
         {
-            (1, 2, "MI-GAN selected region CPU")
+            // MI-GAN and Big LaMa (fp32, 512² window; measured 1.0 GiB process peak).
+            (1, 2, "Image inpainting CPU")
         }
         (RuntimeCapability::ImageSelection, _, "cpu")
             if image_profile(device_profile, capability) =>

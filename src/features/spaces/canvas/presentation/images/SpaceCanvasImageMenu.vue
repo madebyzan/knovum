@@ -35,7 +35,11 @@ const emit = defineEmits<{
   runDirect: [actionId: DirectImageDerivation];
 }>();
 /** The decomposition family has its own controls here, so the creation submenu does not repeat it. */
-const FAMILY_DERIVATIONS: readonly CreationIntentId[] = ["remove-image-background", "split-image-layers"];
+const FAMILY_DERIVATIONS: readonly CreationIntentId[] = [
+  "remove-image-background",
+  "split-image-layers",
+  "slice-sticker-sheet",
+];
 </script>
 <template>
   <SpaceCanvasSelectionMenu

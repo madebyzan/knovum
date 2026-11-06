@@ -23,7 +23,7 @@ pub(super) fn encode(
         return Err("Layer decomposition does not match its source".into());
     }
     let mut encoded = Vec::with_capacity(usize::from(decomposition.count) + 1);
-    if let Some(backdrop) = layers.backdrop.as_ref().and_then(content) {
+    if let Some(backdrop) = content(&layers.backdrop) {
         encoded.push(png(&backdrop, cancellation)?);
     }
     for label in 1..=decomposition.count {
@@ -97,12 +97,13 @@ fn png(layer: &RgbaImage, cancellation: &CancellationToken) -> Result<Vec<u8>, S
     Ok(bytes)
 }
 
-/// The source with every subject removed. This is the backdrop layer when no pass could complete
-/// one: it keeps the holes the subjects left, which is an honest record of what was lifted.
-pub(super) fn without_subjects(source: &RgbaImage, labels: &[u8]) -> RgbaImage {
+/// The source with `holes` cleared. This is the backdrop when the subjects cover too much of the
+/// source for completion to have anything to continue: it keeps the holes they left, which is an
+/// honest record of what was lifted.
+pub(super) fn without_subjects(source: &RgbaImage, holes: &[bool]) -> RgbaImage {
     let mut backdrop = source.clone();
-    for (pixel, label) in backdrop.pixels_mut().zip(labels) {
-        if *label != 0 {
+    for (pixel, hole) in backdrop.pixels_mut().zip(holes) {
+        if *hole {
             *pixel = Rgba([0, 0, 0, 0]);
         }
     }

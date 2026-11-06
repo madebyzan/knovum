@@ -62,7 +62,15 @@ onMounted(async () => {
       :options="selection.targets"
       :execution="selection.active?.execution"
       :disabled="selection.submitting"
+      :label="t('spaces.media.imageEditor.selection.selectionModel')"
       @select="selection.setExecution"
+    />
+    <SpaceImageExecutionSelect
+      :options="selection.repairTargets"
+      :execution="selection.active?.repair"
+      :disabled="selection.submitting"
+      :label="t('spaces.media.imageEditor.selection.repairModel')"
+      @select="selection.setRepair"
     />
     <div
       class="grid grid-cols-4 gap-0.5 rounded-panel bg-surface-control p-0.5"
@@ -103,7 +111,7 @@ onMounted(async () => {
       }}
     </p>
     <footer class="flex gap-2 border-t border-stroke-divider pt-2">
-      <UiButton size="sm" class="flex-1" :disabled="!selection.canSubmit" @click="submit('repair')">{{
+      <UiButton size="sm" class="flex-1" :disabled="!selection.canRepair" @click="submit('repair')">{{
         t("spaces.media.imageEditor.selection.repair")
       }}</UiButton>
       <UiButton

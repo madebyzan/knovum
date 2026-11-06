@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Eraser, Layers3, MousePointer2, ScanLine } from "@lucide/vue";
+import { Eraser, Layers3, MousePointer2, ScanLine, Sticker } from "@lucide/vue";
 
 import type { ImageActionAvailability } from "./image-action-availability";
 import SpaceCanvasImageActionTrigger from "./SpaceCanvasImageActionTrigger.vue";
@@ -7,7 +7,8 @@ import type { DirectImageDerivation } from "./use-image-node-bar-state";
 
 /**
  * The decomposition family in reading order: lift the background away, erase a brushed area, pick
- * one object by hand, or let the whole picture come apart into layers.
+ * one object by hand, let the whole picture come apart into its depth layers, or cut a sheet of
+ * stickers into one sticker each.
  */
 const props = defineProps<{
   availabilityByDerivation: Record<DirectImageDerivation, ImageActionAvailability>;
@@ -56,6 +57,14 @@ const ACTIONS = [
     availability: () => props.availabilityByDerivation["split-image-layers"],
     reason: () => props.reasonByDerivation["split-image-layers"],
     begin: () => emit("runDirect", "split-image-layers"),
+  },
+  {
+    key: "slice-stickers",
+    icon: Sticker,
+    labelKey: "spaces.creation.image.sliceStickers",
+    availability: () => props.availabilityByDerivation["slice-sticker-sheet"],
+    reason: () => props.reasonByDerivation["slice-sticker-sheet"],
+    begin: () => emit("runDirect", "slice-sticker-sheet"),
   },
 ] as const;
 </script>

@@ -1,100 +1,43 @@
-//! Splits one image into layer nodes. The layer count is a property of the image rather than an
-//! input, so the Run reserves a single pending node up front like every other derivation — the
-//! click lands on the canvas immediately — and discovery then reports how many layers the source
-//! carries. The first layer publishes into that node and the rest are reserved beside it, so the
-//! whole set is laid out together.
+//! Separates one picture into the layers it is composed of: the subjects that stand in it, ordered
+//! far to near, over the backdrop they stood in front of with the space they covered completed.
+//! The image decides how many layers it carries, so the set is published through [`image_set`].
+//!
+//! [`image_set`]: super::image_set
 
-mod assets;
-mod contracts;
 mod local;
-mod persistence;
-mod source;
 
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
-use super::{action_execution::ExecutionAuthority, failure, CompletedDerivationOutput};
+use super::{
+    action_execution::ExecutionAuthority,
+    image_set::{self, ImageSet, ImageSetRequest},
+    CompletedDerivationOutput,
+};
 use crate::foundation::app_error::AppError;
-pub use contracts::SplitImageLayersRequest;
 
-/// Why one layer derives from the picture it was separated from. Both the Run's first output and
-/// the layers reserved beside it carry the same lineage, so one place states it.
-pub(in crate::spaces::derivation) const LINEAGE: &str = "Image layer separated from source image";
+/// Layers a split may publish: the subjects discovery can rank, and the backdrop beneath them.
+const MAX_LAYERS: usize = crate::ai::contracts::image_compute::MAX_DISCOVERED_LAYERS as usize + 1;
+
+pub(crate) static SET: ImageSet = ImageSet {
+    action_kind: "split-image-layers",
+    engine: "local:image-layers",
+    lineage: "Image layer separated from source image",
+    member: "layer",
+    // A stack needs something to stand over something else.
+    members: 2..=MAX_LAYERS,
+    unsupported: "This image did not separate into layers",
+};
 
 pub(crate) async fn split_for_action(
     app: &AppHandle,
-    request: SplitImageLayersRequest,
+    request: ImageSetRequest,
     authority: &ExecutionAuthority,
     cancellation: &CancellationToken,
 ) -> Result<Vec<CompletedDerivationOutput>, AppError> {
-    match split(app, &request, authority, cancellation).await {
-        Ok(outputs) => Ok(outputs),
-        Err(error) => {
-            // Until the derivations open, the node the Run reserved is the only record of the
-            // split on the canvas, so it carries the failure. Settling only acts on a node that
-            // is still pending, so a split that already settled its own outputs passes through.
-            let settlement = failure::fail_pending(app, &request.output_node_id).await;
-            Err(failure::with_settlement(error, settlement))
-        }
-    }
-}
-
-async fn split(
-    app: &AppHandle,
-    request: &SplitImageLayersRequest,
-    authority: &ExecutionAuthority,
-    cancellation: &CancellationToken,
-) -> Result<Vec<CompletedDerivationOutput>, AppError> {
-    contracts::validate(request)?;
-    let source = source::load(crate::spaces::db::pool(app).await?, request).await?;
-    let png = source::render_png(app, &source, request).await?;
-    // The backdrop can be one of the published layers, so discovery stays one below the ceiling.
-    let subjects = u8::try_from(contracts::MAX_LAYER_COUNT - 1)
-        .map_err(|_| AppError::from("Image layer ceiling is misconfigured"))?;
-    let layers = local::split(app, png, &request.id, subjects, cancellation).await?;
-    contracts::validate_count(layers.len())?;
-    let prepared = {
-        let app = app.clone();
-        let cancellation = cancellation.clone();
-        crate::foundation::blocking::run(move || assets::prepare(&app, layers, &cancellation))
-            .await?
-    };
-    match publish(app, request, &source, &prepared, authority).await {
-        Ok(outputs) => Ok(outputs),
-        Err(error) => {
-            assets::remove(&prepared);
-            Err(error)
-        }
-    }
-}
-
-async fn publish(
-    app: &AppHandle,
-    request: &SplitImageLayersRequest,
-    source: &source::SourceImage,
-    layers: &[assets::PreparedLayer],
-    authority: &ExecutionAuthority,
-) -> Result<Vec<CompletedDerivationOutput>, AppError> {
-    persistence::reserve(app, request, source, layers, authority).await?;
-    if let Err(error) = persistence::start(app, request, layers.len(), authority).await {
-        persistence::fail_reserved(app, request, layers.len()).await?;
-        return Err(error);
-    }
-    match persistence::complete(app, request, layers, authority).await {
-        Ok(completed) => Ok(completed),
-        Err(error) => {
-            persistence::fail(app, request, layers.len(), &error.message)
-                .await
-                .map_err(|settlement| {
-                    AppError::new(
-                        "derivation_settlement_failed",
-                        format!(
-                            "{}; Failed to persist image layer failure: {settlement}",
-                            error.message
-                        ),
-                    )
-                })?;
-            Err(error)
-        }
-    }
+    let owner = request.id.clone();
+    image_set::derive(app, &SET, request, authority, cancellation, |png| {
+        local::split(app, png, &owner, cancellation)
+    })
+    .await
 }

@@ -10,7 +10,7 @@ export function selectedImageIntents() {
     sourceCount: 1,
     imageCount: 1,
     canRemoveBackground: false,
-    canSplitImageLayers: false,
+    canDeriveImageSet: false,
     canAddVideoSubtitles: false,
   });
 }

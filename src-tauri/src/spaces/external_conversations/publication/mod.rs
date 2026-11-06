@@ -9,7 +9,7 @@ use crate::{
     spaces::{
         conversations::ConversationMessageOutput,
         db,
-        derivation::placement::{self, DerivedOutputs},
+        derivation::placement::{self, DerivedOutputs, SetMember},
         knowledge,
         nodes::{self, contracts::InsertNode},
         structure,
@@ -230,9 +230,9 @@ async fn insert_outputs(
         DerivedOutputs {
             sources,
             reserved: &[],
-            sizes: outputs
+            members: outputs
                 .iter()
-                .map(|output| requested_size(&output.node))
+                .map(|output| set_member(&output.node))
                 .collect(),
         },
     )
@@ -241,6 +241,9 @@ async fn insert_outputs(
         let mut node = output.node.clone();
         node.initial_x = cell.x;
         node.initial_y = cell.y;
+        node.width = cell.size.width;
+        node.height = cell.size.height;
+        node.sizing_mode = cell.sizing_mode;
         crate::spaces::knowledge::validation::normalize_node(
             tx,
             space_id,
@@ -271,14 +274,14 @@ async fn insert_outputs(
     Ok(())
 }
 
-/// The footprint the canvas gives one staged output, which is what its content reports or the size
-/// its kind was staged with.
-fn requested_size(node: &InsertNode) -> structure::Size {
+/// One staged output as a member of the set its turn publishes: the footprint its content reports,
+/// or the size its kind was staged with.
+fn set_member(node: &InsertNode) -> SetMember {
     let requested = structure::Size {
         width: node.width,
         height: node.height,
     };
-    placement::fitted(&node.data, &requested, node.sizing_mode)
+    SetMember::new(&node.data, &requested, node.sizing_mode)
 }
 
 async fn attach_outputs(
