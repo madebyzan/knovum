@@ -1,11 +1,33 @@
 use super::snapshots::SnapshotKind;
 
+/// The default upstream Hugging Face Hub endpoint.
+pub(crate) const DEFAULT_HUGGINGFACE_HUB_ENDPOINT: &str = "https://huggingface.co";
+
+/// The default upstream ModelScope Hub endpoint.
+pub(crate) const DEFAULT_MODELSCOPE_HUB_ENDPOINT: &str = "https://modelscope.cn/api/v1/models/";
+
+/// Resolves the active Hugging Face Hub endpoint, respecting the standard `HF_ENDPOINT`
+/// environment variable override when configured.
+pub(crate) fn huggingface_hub_endpoint() -> String {
+    std::env::var("HF_ENDPOINT")
+        .ok()
+        .map(|value| value.trim_end_matches('/').to_string())
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| DEFAULT_HUGGINGFACE_HUB_ENDPOINT.to_string())
+}
+
+/// Constructs a Hugging Face Hub resolve URL for an immutable file revision:
+/// `{hub_endpoint}/{repository}/resolve/{revision}/{file}`.
+pub(crate) fn huggingface_resolve_url(repository: &str, revision: &str, file: &str) -> String {
+    let endpoint = huggingface_hub_endpoint();
+    format!("{endpoint}/{repository}/resolve/{revision}/{file}")
+}
+
 #[derive(Clone, Debug)]
 pub(crate) enum HubSource {
     HuggingFace {
         repository: &'static str,
         revision: &'static str,
-        endpoint: &'static str,
     },
     ModelScope {
         repository: &'static str,
@@ -16,16 +38,13 @@ pub(crate) enum HubSource {
 impl HubSource {
     pub(super) fn url(&self, file: &str) -> reqwest::Url {
         let (mut url, repository) = match self {
-            Self::HuggingFace {
-                endpoint,
-                repository,
-                ..
-            } => (
-                reqwest::Url::parse(endpoint).expect("Catalog owns a valid hub endpoint"),
+            Self::HuggingFace { repository, .. } => (
+                reqwest::Url::parse(&huggingface_hub_endpoint())
+                    .expect("Catalog owns a valid Hugging Face hub endpoint"),
                 repository,
             ),
             Self::ModelScope { repository, .. } => (
-                reqwest::Url::parse("https://modelscope.cn/api/v1/models/")
+                reqwest::Url::parse(DEFAULT_MODELSCOPE_HUB_ENDPOINT)
                     .expect("Static ModelScope endpoint"),
                 repository,
             ),
@@ -74,17 +93,14 @@ pub(crate) fn for_snapshot(snapshot: SnapshotKind) -> Option<HubSource> {
         | SnapshotKind::ImageSegmentationQuality => HubSource::HuggingFace {
             repository: "tomjackson2023/rembg",
             revision: "cd3a3d6767a7859efea31ef0f2f373582cf06d82",
-            endpoint: "https://huggingface.co",
         },
         SnapshotKind::SpeechSeparationFull => HubSource::HuggingFace {
             repository: "csukuangfj/sherpa-onnx-spleeter-2stems",
             revision: "7001ba316a615cacddb3f9ef3ec416661a277e26",
-            endpoint: "https://huggingface.co",
         },
         SnapshotKind::SpeechSeparation => HubSource::HuggingFace {
             repository: "csukuangfj/sherpa-onnx-spleeter-2stems-fp16",
             revision: "93ba771920ade509f8cbd6825b1a90856c797e08",
-            endpoint: "https://huggingface.co",
         },
     })
 }

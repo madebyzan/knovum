@@ -121,3 +121,16 @@ fn forced_alignment_uses_the_inference_f16_package() {
     assert_eq!(snapshot.name(), "qwen3-forced-aligner-0.6b-f16-bundled");
     assert_eq!(snapshot.total_bytes(), 1_840_118_458);
 }
+
+#[test]
+fn huggingface_resolve_url_builds_standard_resolve_path_with_default_endpoint() {
+    let url = sources::huggingface_resolve_url(
+        "PaddlePaddle/PP-OCRv6_small_det_onnx",
+        "28fe5895c24fd108c19eb3e8479f4ab385fbfc62",
+        "inference.onnx",
+    );
+    assert_eq!(
+        url,
+        "https://huggingface.co/PaddlePaddle/PP-OCRv6_small_det_onnx/resolve/28fe5895c24fd108c19eb3e8479f4ab385fbfc62/inference.onnx"
+    );
+}

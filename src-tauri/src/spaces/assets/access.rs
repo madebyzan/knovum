@@ -20,10 +20,8 @@ pub(crate) fn authorize_spaces_asset<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     source: &Path,
 ) -> Result<PathBuf, String> {
-    let assets = asset_directory(app)?
-        .canonicalize()
-        .map_err(|error| error.to_string())?;
-    let canonical = source.canonicalize().map_err(|error| error.to_string())?;
+    let assets = dunce::canonicalize(asset_directory(app)?).map_err(|error| error.to_string())?;
+    let canonical = dunce::canonicalize(source).map_err(|error| error.to_string())?;
     if canonical == assets || !canonical.starts_with(&assets) {
         return Err("Only Space-owned assets can be accessed".into());
     }
@@ -34,14 +32,14 @@ pub(crate) fn authorize_edited_image_preview<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     source: &Path,
 ) -> Result<PathBuf, String> {
-    let previews = app
-        .path()
-        .app_cache_dir()
-        .map_err(|error| error.to_string())?
-        .join("edited-image-previews")
-        .canonicalize()
-        .map_err(|error| error.to_string())?;
-    let canonical = source.canonicalize().map_err(|error| error.to_string())?;
+    let previews = dunce::canonicalize(
+        app.path()
+            .app_cache_dir()
+            .map_err(|error| error.to_string())?
+            .join("edited-image-previews"),
+    )
+    .map_err(|error| error.to_string())?;
+    let canonical = dunce::canonicalize(source).map_err(|error| error.to_string())?;
     if !canonical.starts_with(&previews)
         || !canonical.is_file()
         || canonical
@@ -59,9 +57,7 @@ pub(crate) fn authorize_canvas_thumbnail<R: tauri::Runtime>(
     path: &str,
 ) -> Result<(), String> {
     let source = authorize_spaces_asset(app, Path::new(path))?;
-    let assets = asset_directory(app)?
-        .canonicalize()
-        .map_err(|error| error.to_string())?;
+    let assets = dunce::canonicalize(asset_directory(app)?).map_err(|error| error.to_string())?;
     let name = source
         .file_name()
         .and_then(|part| part.to_str())
@@ -105,9 +101,7 @@ pub(crate) fn authorize_media_source(
     source: &Path,
 ) -> Result<PathBuf, String> {
     let canonical = source.canonicalize().map_err(|error| error.to_string())?;
-    let assets = asset_directory(app)?
-        .canonicalize()
-        .map_err(|error| error.to_string())?;
+    let assets = dunce::canonicalize(asset_directory(app)?).map_err(|error| error.to_string())?;
     let owned_by_a_space = canonical != assets && canonical.starts_with(&assets);
     // The user-granted scope holds the path the dialog or drop reported, which is not always the
     // canonical one, so each provenance is checked against the path it actually knows.

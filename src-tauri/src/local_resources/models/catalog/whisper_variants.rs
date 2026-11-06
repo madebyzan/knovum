@@ -169,7 +169,7 @@ impl WhisperPart {
                 "ggml-silero-v6.2.0.bin",
             ),
         };
-        format!("https://huggingface.co/{repository}/resolve/{revision}/{file}")
+        crate::local_resources::models::sources::huggingface_resolve_url(repository, revision, file)
     }
 }
 impl WhisperVariant {

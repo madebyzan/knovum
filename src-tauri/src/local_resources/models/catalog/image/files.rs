@@ -1,14 +1,34 @@
 use super::{ImageModelFile as F, ImageModelPart, ImageModelVariant as V};
-use crate::local_resources::models::model_archive::ModelArchive;
+use crate::local_resources::models::{
+    model_archive::ModelArchive, sources::huggingface_resolve_url,
+};
 
-const SAM_ROOT: &str =
-    "https://huggingface.co/yunyangx/EfficientSAM/resolve/1cf49585c39567bfc49e991ab8eb31f491ad4877";
-const DEPTH_ROOT: &str = "https://huggingface.co/onnx-community/depth-anything-v2-small/resolve/4472b7362082ad9968fee890ca0f1e5aca36b93d";
-const MIGAN_ROOT: &str = "https://huggingface.co/andraniksargsyan/migan/resolve/406830d0fa60666da0071c342ad2fbc8f30c5c64";
+const SAM_REPO: (&str, &str) = (
+    "yunyangx/EfficientSAM",
+    "1cf49585c39567bfc49e991ab8eb31f491ad4877",
+);
+const DEPTH_REPO: (&str, &str) = (
+    "onnx-community/depth-anything-v2-small",
+    "4472b7362082ad9968fee890ca0f1e5aca36b93d",
+);
+const MIGAN_REPO: (&str, &str) = (
+    "andraniksargsyan/migan",
+    "406830d0fa60666da0071c342ad2fbc8f30c5c64",
+);
 /// Carve's ONNX export of the authors' Big LaMa; its README states the export is the original
 /// model's, so the license is the authors'.
-const LAMA_ROOT: &str =
-    "https://huggingface.co/Carve/LaMa-ONNX/resolve/c3c0c9e468934d62e79c329e35d82dd09ff8c444";
+const LAMA_REPO: (&str, &str) = (
+    "Carve/LaMa-ONNX",
+    "c3c0c9e468934d62e79c329e35d82dd09ff8c444",
+);
+const PADDLE_OCR_DET_REPO: (&str, &str) = (
+    "PaddlePaddle/PP-OCRv6_small_det_onnx",
+    "28fe5895c24fd108c19eb3e8479f4ab385fbfc62",
+);
+const PADDLE_OCR_REC_REPO: (&str, &str) = (
+    "PaddlePaddle/PP-OCRv6_small_rec_onnx",
+    "b8f84f0b80c529de40b4fbb3544b84fa7233a513",
+);
 const PADDLE_OCR_ROOT: &str =
     "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/b03f46425e8ff4442b268ce449e3eef758146cd4";
 
@@ -134,23 +154,41 @@ pub(super) const fn metadata(part: ImageModelPart) -> (&'static str, &'static st
 
 pub(super) fn url(part: ImageModelPart) -> String {
     match part.file {
-        F::GeneralGraph | F::GeneralWeights | F::X4plusGraph | F::X4plusWeights => unreachable!("These files belong to the frozen release archive"),
-        F::TiEncoder | F::TiDecoder | F::SEncoder | F::SDecoder => format!("{SAM_ROOT}/{}", metadata(part).0),
-        F::MiganWeights => format!("{MIGAN_ROOT}/{}", metadata(part).0),
-        F::LamaWeights => format!("{LAMA_ROOT}/{}", metadata(part).0),
-        F::DepthUint8Weights | F::DepthFp32Weights => format!("{DEPTH_ROOT}/onnx/{}", metadata(part).0),
-        F::DepthProcessor => format!("{DEPTH_ROOT}/preprocessor_config.json"),
-        F::DepthModelCard => format!("{DEPTH_ROOT}/README.md"),
-        F::TextDetector => "https://huggingface.co/PaddlePaddle/PP-OCRv6_small_det_onnx/resolve/28fe5895c24fd108c19eb3e8479f4ab385fbfc62/inference.onnx".into(),
-        F::TextRecognizer => "https://huggingface.co/PaddlePaddle/PP-OCRv6_small_rec_onnx/resolve/b8f84f0b80c529de40b4fbb3544b84fa7233a513/inference.onnx".into(),
+        F::GeneralGraph | F::GeneralWeights | F::X4plusGraph | F::X4plusWeights => {
+            unreachable!("These files belong to the frozen release archive")
+        }
+        F::TiEncoder | F::TiDecoder | F::SEncoder | F::SDecoder => {
+            huggingface_resolve_url(SAM_REPO.0, SAM_REPO.1, metadata(part).0)
+        }
+        F::MiganWeights => huggingface_resolve_url(MIGAN_REPO.0, MIGAN_REPO.1, metadata(part).0),
+        F::LamaWeights => huggingface_resolve_url(LAMA_REPO.0, LAMA_REPO.1, metadata(part).0),
+        F::DepthUint8Weights | F::DepthFp32Weights => {
+            huggingface_resolve_url(DEPTH_REPO.0, DEPTH_REPO.1, &format!("onnx/{}", metadata(part).0))
+        }
+        F::DepthProcessor => huggingface_resolve_url(DEPTH_REPO.0, DEPTH_REPO.1, "preprocessor_config.json"),
+        F::DepthModelCard => huggingface_resolve_url(DEPTH_REPO.0, DEPTH_REPO.1, "README.md"),
+        F::TextDetector => {
+            huggingface_resolve_url(PADDLE_OCR_DET_REPO.0, PADDLE_OCR_DET_REPO.1, "inference.onnx")
+        }
+        F::TextRecognizer => {
+            huggingface_resolve_url(PADDLE_OCR_REC_REPO.0, PADDLE_OCR_REC_REPO.1, "inference.onnx")
+        }
         F::TextDictionary => format!("{PADDLE_OCR_ROOT}/ppocr/utils/dict/ppocrv6_dict.txt"),
         F::License => match part.variant {
             V::PpOcrV6Small => format!("{PADDLE_OCR_ROOT}/LICENSE"),
-            V::RealEsrganGeneralX4v3 | V::RealEsrganX4plus => "https://raw.githubusercontent.com/xinntao/Real-ESRGAN/a4abfb2979a7bbff3f69f58f58ae324608821e27/LICENSE".into(),
-            V::Migan => format!("{MIGAN_ROOT}/LICENSE"),
-            V::Lama => "https://raw.githubusercontent.com/advimman/lama/786f5936b27fb3dacd2b1ad799e4de968ea697e7/LICENSE".into(),
-            V::EfficientSamTi | V::EfficientSamS => "https://raw.githubusercontent.com/yformer/EfficientSAM/d525f622e6f640acf5a0fc37c7ca1f243da5bde0/LICENSE".into(),
-            V::DepthAnythingV2SmallUint8 | V::DepthAnythingV2Small => "https://raw.githubusercontent.com/DepthAnything/Depth-Anything-V2/a561b849ebae10a6f5ef49e26c83cbbcd36c71bf/LICENSE".into(),
+            V::RealEsrganGeneralX4v3 | V::RealEsrganX4plus => {
+                "https://raw.githubusercontent.com/xinntao/Real-ESRGAN/a4abfb2979a7bbff3f69f58f58ae324608821e27/LICENSE".into()
+            }
+            V::Migan => huggingface_resolve_url(MIGAN_REPO.0, MIGAN_REPO.1, "LICENSE"),
+            V::Lama => {
+                "https://raw.githubusercontent.com/advimman/lama/786f5936b27fb3dacd2b1ad799e4de968ea697e7/LICENSE".into()
+            }
+            V::EfficientSamTi | V::EfficientSamS => {
+                "https://raw.githubusercontent.com/yformer/EfficientSAM/d525f622e6f640acf5a0fc37c7ca1f243da5bde0/LICENSE".into()
+            }
+            V::DepthAnythingV2SmallUint8 | V::DepthAnythingV2Small => {
+                "https://raw.githubusercontent.com/DepthAnything/Depth-Anything-V2/a561b849ebae10a6f5ef49e26c83cbbcd36c71bf/LICENSE".into()
+            }
         },
     }
 }

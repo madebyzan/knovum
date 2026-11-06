@@ -217,7 +217,7 @@ pub(super) fn direct_url(kind: ModelKind) -> String {
         | ModelKind::Qwen3ForcedAlignerReadme
         | ModelKind::Qwen3AlignerQ8Weights
         | ModelKind::Qwen3AlignerQ8License
-        | ModelKind::Qwen3AlignerQ8Readme => alignment::direct_url(kind).into(),
+        | ModelKind::Qwen3AlignerQ8Readme => alignment::direct_url(kind),
         ModelKind::DiarizationPart(part) => part.url(),
         ModelKind::VoxCpm2Weights
         | ModelKind::VoxCpm2License
@@ -227,7 +227,7 @@ pub(super) fn direct_url(kind: ModelKind) -> String {
         | ModelKind::VoxCpm2Bf16Readme
         | ModelKind::VoxCpm2Q8Weights
         | ModelKind::VoxCpm2Q8License
-        | ModelKind::VoxCpm2Q8Readme => voxcpm2::direct_url(kind).to_owned(),
+        | ModelKind::VoxCpm2Q8Readme => voxcpm2::direct_url(kind),
         _ => unreachable!("The resource source registry owns direct download models"),
     }
 }

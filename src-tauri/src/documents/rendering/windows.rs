@@ -40,7 +40,8 @@ impl Renderer {
             RoInitialize(RO_INIT_MULTITHREADED)?;
         }
         let apartment = Apartment;
-        let path = HSTRING::from(source);
+        let path = dunce::simplified(source);
+        let path = HSTRING::from(path.as_os_str());
         let file = StorageFile::GetFileFromPathAsync(&path)?.join()?;
         let document = PdfDocument::LoadFromFileAsync(&file)?.join()?;
         Ok(Self {

@@ -208,6 +208,26 @@ Knovum 把三种思路放进同一个桌面应用：基于自己资料、带出�
 </details>
 
 <details>
+<summary><strong>本地模型下载失败或连接超时怎么办？</strong></summary>
+
+文字识别（OCR）、Whisper 语音转写、图像智能处理等端侧模型在首次使用时会自动下载模型权重。若在访问 Hugging Face 时遇到网络连接失败或超时，可以通过配置环境变量 `HF_ENDPOINT` 切换至镜像源（如 `https://hf-mirror.com`）：
+
+- **Windows**：
+  配置永久用户环境变量（设置后重启 Knovum 即可生效）：
+  - **图形界面**：按 `Win + R` 输入 `sysdm.cpl` 打开「系统属性」→「高级」→「环境变量」，在「用户变量」中点击「新建」，变量名为 `HF_ENDPOINT`，变量值为 `https://hf-mirror.com`。
+  - **命令行**：在终端执行 `setx HF_ENDPOINT "https://hf-mirror.com"`（永久写入用户环境变量，避免使用仅当前终端会话有效的 `set` 命令）。
+- **macOS / Linux**：
+  在终端配置文件（如 `~/.zshrc` 或 `~/.bashrc`）中添加并重新加载：
+  ```bash
+  echo 'export HF_ENDPOINT="https://hf-mirror.com"' >> ~/.zshrc
+  source ~/.zshrc
+  ```
+
+Knovum 在模型下载完成后会对文件进行严格的 SHA-256 哈希校验，保证模型文件的完整与安全。
+
+</details>
+
+<details>
 <summary><strong>Knovum 开源吗？免费吗？</strong></summary>
 
 是的。Knovum 是基于 [MIT 许可证](LICENSE) 发布的免费开源软件，你可以在许可证条款下自由使用、阅读、构建、修改和分发。

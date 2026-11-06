@@ -236,6 +236,31 @@ Builtin Agent. The on-device capabilities listed above do not need Ollama at all
 </details>
 
 <details>
+<summary><strong>What should I do if local model downloads fail or time out?</strong></summary>
+
+On-device capabilities (such as OCR text recognition, Whisper transcription, and image processing)
+automatically download pinned model weights on first use. If your network has restricted access to
+`huggingface.co`, you can configure the standard `HF_ENDPOINT` environment variable to use a mirror
+(e.g., `https://hf-mirror.com`):
+
+- **Windows**:
+  Set a persistent user environment variable (restart Knovum afterwards):
+  - **GUI**: Press `Win + R`, enter `sysdm.cpl` → **Advanced** → **Environment Variables**, and under
+    **User variables** add `HF_ENDPOINT` with value `https://hf-mirror.com`.
+  - **Command Prompt**: Run `setx HF_ENDPOINT "https://hf-mirror.com"` (persistent user variable; avoid
+    session-only `set`).
+- **macOS / Linux**:
+  Add the variable to your shell configuration (e.g., `~/.zshrc` or `~/.bashrc`):
+  ```bash
+  echo 'export HF_ENDPOINT="https://hf-mirror.com"' >> ~/.zshrc
+  source ~/.zshrc
+  ```
+
+All downloaded model files are strictly verified against hardcoded SHA-256 digests.
+
+</details>
+
+<details>
 <summary><strong>Is Knovum open source? Is it free?</strong></summary>
 
 Yes. Knovum is free and open-source software under the [MIT License](LICENSE). You can use, read,

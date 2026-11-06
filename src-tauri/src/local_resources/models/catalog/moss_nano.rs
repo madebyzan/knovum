@@ -187,8 +187,10 @@ impl MossNanoPart {
             Self::TtsReadme | Self::CodecReadme => "README.md",
             _ => file,
         };
-        format!(
-            "https://huggingface.co/OpenMOSS-Team/{repository}/resolve/{revision}/{source_file}"
+        crate::local_resources::models::sources::huggingface_resolve_url(
+            &format!("OpenMOSS-Team/{repository}"),
+            revision,
+            source_file,
         )
     }
 }
