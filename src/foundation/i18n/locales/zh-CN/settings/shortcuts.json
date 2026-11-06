@@ -6,7 +6,6 @@
   "inAppDescription": "在 Knovum 窗口内生效的快捷键。",
   "dictationLabel": "语音听写",
   "dictationDescription": "全局按住说话 (Push-to-Talk)：长按录音，松开自动转录并键入。",
-  "dictationTip": "使用场景：在系统任意第三方软件（如浏览器、Notion、Word）中长按此快捷键说话，松开后自动将口述内容转录为文字键入光标处。",
   "conflictWarning": "此全局快捷键未能注册，可能已被其他系统程序或输入法占用。",
   "recordTitle": "录制快捷键",
   "pressKeys": "请按下组合键",

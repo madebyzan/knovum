@@ -6,7 +6,6 @@
   "inAppDescription": "Raccourcis actifs lors de l'utilisation de Knovum.",
   "dictationLabel": "Dictée vocale",
   "dictationDescription": "Push-to-talk global : maintenez pour parler, relâchez pour insérer le texte.",
-  "dictationTip": "Scénario : Maintenez ce raccourci dans n'importe quelle application pour parler ; relâchez pour transcrire et saisir le texte à l'emplacement du curseur.",
   "conflictWarning": "Ce raccourci global n'a pas pu être enregistré car il est utilisé par une autre application ou le système.",
   "recordTitle": "Enregistrer un raccourci",
   "pressKeys": "Appuyez sur la combinaison de touches souhaitée",

@@ -6,7 +6,6 @@
   "inAppDescription": "Tastenkürzel, die aktiv sind, während Knovum verwendet wird.",
   "dictationLabel": "Sprachdiktat",
   "dictationDescription": "Globales Push-to-Talk: Gedrückt halten zum Sprechen, Loslassen zum Eingeben.",
-  "dictationTip": "Szenario: Halten Sie diese Tastenkombination in einer beliebigen Anwendung gedrückt, um zu sprechen; beim Loslassen wird der Text an der Cursorposition eingefügt.",
   "conflictWarning": "Dieses globale Tastenkürzel konnte nicht registriert werden, da es von einer anderen Anwendung oder dem System verwendet wird.",
   "recordTitle": "Tastenkürzel aufnehmen",
   "pressKeys": "Gewünschte Tastenkombination drücken",
