@@ -12,7 +12,10 @@ import { EDITING_CHORDS, editingChordsReachWebView } from "./text-editing";
  * An editing command answers an intent, never a key: which command a chord reaches depends on what
  * the user is editing, so a command that bound the chord itself would take it from the text.
  */
-function assertEditingChordsUnclaimed(commands: readonly AppCommand[]) {
+function assertEditingChordsUnclaimed(
+  commands: readonly AppCommand[],
+  resolveShortcut?: (commandId: string, defaultShortcut?: string) => string | undefined,
+) {
   const claimedIntents = new Set<string>();
   for (const command of commands) {
     if (command.editingIntent) {
@@ -21,7 +24,8 @@ function assertEditingChordsUnclaimed(commands: readonly AppCommand[]) {
       claimedIntents.add(command.editingIntent);
       continue;
     }
-    for (const keybinding of command.keybindings ?? (command.shortcut ? [command.shortcut] : [])) {
+    const effective = resolveShortcut?.(command.id, command.shortcut) ?? command.shortcut;
+    for (const keybinding of command.keybindings ?? (effective ? [effective] : [])) {
       if (keybinding in EDITING_CHORDS)
         throw new Error(
           `Command ${command.id} binds the editing chord ${keybinding}; declare editingIntent.`,
@@ -30,8 +34,28 @@ function assertEditingChordsUnclaimed(commands: readonly AppCommand[]) {
   }
 }
 
-export function bindCommandShortcuts(commands: readonly AppCommand[]): () => void {
-  assertEditingChordsUnclaimed(commands);
+function registerCommandHandlers(
+  command: AppCommand,
+  effective: string,
+  handlers: Record<string, (event: KeyboardEvent) => void>,
+) {
+  for (const keybinding of command.keybindings ?? [effective]) {
+    const bareKey = !keybinding.includes("+");
+    handlers[keybinding] = (event) => {
+      if (event.repeat) return;
+      if (isEditableTarget(event.target) && !command.allowInEditable) return;
+      if (bareKey && isInteractiveTarget(event.target)) return;
+      event.preventDefault();
+      runAppCommand(command);
+    };
+  }
+}
+
+export function bindCommandShortcuts(
+  commands: readonly AppCommand[],
+  resolveShortcut?: (commandId: string, defaultShortcut?: string) => string | undefined,
+): () => void {
+  assertEditingChordsUnclaimed(commands, resolveShortcut);
   const handlerByShortcut: Record<string, (event: KeyboardEvent) => void> = {};
   const appMenuOwnsShortcut = platform() === "macos";
 
@@ -41,21 +65,11 @@ export function bindCommandShortcuts(commands: readonly AppCommand[]): () => voi
     }
   }
   for (const command of commands) {
-    if (!command.shortcut || command.editingIntent || (appMenuOwnsShortcut && command.appMenuShortcut))
+    const effective = resolveShortcut?.(command.id, command.shortcut) ?? command.shortcut;
+    if (!effective || command.editingIntent || (appMenuOwnsShortcut && command.appMenuShortcut)) {
       continue;
-    for (const keybinding of command.keybindings ?? [command.shortcut]) {
-      // A modifier chord belongs to the application, but a bare key is the class the platform hands
-      // to the focused control, so Space on a button and the arrows on a slider stay theirs.
-      const bareKey = !keybinding.includes("+");
-
-      handlerByShortcut[keybinding] = (event) => {
-        if (event.repeat) return;
-        if (isEditableTarget(event.target) && !command.allowInEditable) return;
-        if (bareKey && isInteractiveTarget(event.target)) return;
-        event.preventDefault();
-        runAppCommand(command);
-      };
     }
+    registerCommandHandlers(command, effective, handlerByShortcut);
   }
 
   // tinykeys' default filter also drops every press from an editable target before the per-command

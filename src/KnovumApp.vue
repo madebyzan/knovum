@@ -68,7 +68,7 @@ watch(
       <AppShell
         :workspace="workspace"
         :workspace-active="workspaceActive"
-        @open-settings="router.push('/settings')"
+        @open-settings="(pane) => router.push(pane ? { path: '/settings', query: { pane } } : '/settings')"
       />
       <ApplicationUpdates />
       <DictationOverlay v-if="dictationSupported" />

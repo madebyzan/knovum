@@ -8,9 +8,29 @@ pub(crate) fn plugin() -> TauriPlugin<Wry> {
             get_state,
             cancel,
             dismiss_transcription,
-            copy_transcription
+            copy_transcription,
+            get_dictation_shortcut,
+            set_dictation_shortcut,
+            reset_dictation_shortcut
         ])
         .build()
+}
+
+#[tauri::command]
+fn get_dictation_shortcut() -> AppResult<super::contracts::DictationShortcutStatus> {
+    Err(unsupported())
+}
+
+#[tauri::command]
+fn set_dictation_shortcut(
+    _shortcut: String,
+) -> AppResult<super::contracts::DictationShortcutStatus> {
+    Err(unsupported())
+}
+
+#[tauri::command]
+fn reset_dictation_shortcut() -> AppResult<super::contracts::DictationShortcutStatus> {
+    Err(unsupported())
 }
 
 #[tauri::command]

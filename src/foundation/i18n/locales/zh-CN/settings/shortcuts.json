@@ -1,0 +1,20 @@
+{
+  "title": "快捷键",
+  "description": "自定义全局与应用内快捷键。",
+  "globalTitle": "全局快捷键",
+  "globalDescription": "即使 Knovum 在后台也全局生效的系统快捷键。",
+  "inAppDescription": "在 Knovum 窗口内生效的快捷键。",
+  "dictationLabel": "语音听写",
+  "dictationDescription": "在系统任意位置唤起或停止 AI 语音听写。",
+  "conflictWarning": "此全局快捷键未能注册，可能已被其他系统程序或输入法占用。",
+  "recordTitle": "录制快捷键",
+  "pressKeys": "请按下组合键",
+  "inAppConflict": "该快捷键已被“{command}”占用。",
+  "customized": "已修改",
+  "edit": "修改",
+  "reset": "恢复默认",
+  "resetAll": "恢复所有默认",
+  "saved": "快捷键已更新",
+  "resetSuccess": "已恢复默认快捷键",
+  "resetAllSuccess": "所有快捷键已恢复默认"
+}

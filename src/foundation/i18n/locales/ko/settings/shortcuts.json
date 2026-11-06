@@ -1,0 +1,20 @@
+{
+  "title": "키보드 단축키",
+  "description": "전역 및 앱 내 키보드 단축키를 사용자 지정합니다.",
+  "globalTitle": "전역 단축키",
+  "globalDescription": "Knovum이 백그라운드에 있을 때도 시스템 전체에서 작동하는 단축키입니다.",
+  "inAppDescription": "Knovum 사용 중에 작동하는 단축키입니다.",
+  "dictationLabel": "음성 받아쓰기",
+  "dictationDescription": "시스템 어디서나 AI 음성 받아쓰기를 시작하거나 중지합니다.",
+  "conflictWarning": "이 전역 단축키는 다른 애플리케이션 또는 시스템에서 사용 중이어서 등록할 수 없습니다.",
+  "recordTitle": "단축키 녹음",
+  "pressKeys": "원하는 키 조합을 누르세요",
+  "inAppConflict": "이 단축키는 이미 '{command}'에서 사용 중입니다.",
+  "customized": "사용자 지정",
+  "edit": "변경",
+  "reset": "기본값으로 재설정",
+  "resetAll": "모두 기본값으로 재설정",
+  "saved": "단축키가 업데이트되었습니다",
+  "resetSuccess": "단축키가 기본값으로 재설정되었습니다",
+  "resetAllSuccess": "모든 단축키가 기본값으로 재설정되었습니다"
+}

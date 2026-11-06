@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { X } from "@lucide/vue";
+import { Settings, X } from "@lucide/vue";
 import { whenever } from "@vueuse/core";
 import { groupBy } from "es-toolkit";
 import { search } from "fast-fuzzy";
@@ -7,6 +7,7 @@ import { DialogClose, DialogContent, DialogOverlay, DialogPortal, DialogRoot, Di
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { useShortcutsStore } from "../../foundation/shortcuts/shortcut-store";
 import type { AppCommand, CommandCategory } from "../../shared/contracts/app-command";
 import UiIconButton from "../../shared/ui/UiIconButton.vue";
 import UiKbd from "../../shared/ui/UiKbd.vue";
@@ -30,7 +31,9 @@ const LOCALE_KEY_BY_CATEGORY: Readonly<Record<CommandCategory, string>> = {
 
 const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{ commands: readonly AppCommand[] }>();
+const emit = defineEmits<{ openSettings: [pane?: string] }>();
 const { t } = useI18n();
+const shortcutsStore = useShortcutsStore();
 
 const query = shallowRef("");
 whenever(
@@ -40,18 +43,24 @@ whenever(
   },
 );
 
+function handleOpenCustomize() {
+  open.value = false;
+  emit("openSettings", "shortcuts");
+}
+
 const allShortcuts = computed<ShortcutListing[]>(() => {
   const list: ShortcutListing[] = [];
   const listedGroups = new Set<string>();
   for (const cmd of props.commands) {
     if (!cmd.shortcut) continue;
+    const effectiveShortcut = shortcutsStore.getEffectiveShortcut(cmd.id, cmd.shortcut) ?? cmd.shortcut;
     if (cmd.shortcutListing) {
       if (!listedGroups.has(cmd.shortcutListing.groupId)) {
         listedGroups.add(cmd.shortcutListing.groupId);
         list.push({
           id: cmd.shortcutListing.groupId,
           title: cmd.shortcutListing.title,
-          shortcut: cmd.shortcutListing.shortcut,
+          shortcut: effectiveShortcut,
           category: cmd.category ?? "general",
         });
       }
@@ -60,7 +69,7 @@ const allShortcuts = computed<ShortcutListing[]>(() => {
     list.push({
       id: cmd.id,
       title: cmd.title,
-      shortcut: cmd.shortcut,
+      shortcut: effectiveShortcut,
       category: cmd.category ?? "general",
     });
   }
@@ -99,11 +108,16 @@ const groupedSections = computed(() => {
             <DialogTitle class="text-title-sm font-semibold tracking-tight text-fg-primary">
               {{ t("shell.shortcuts.title") }}
             </DialogTitle>
-            <DialogClose as-child>
-              <UiIconButton :label="t('common.close')" size="sm">
-                <X class="size-3.5" :stroke-width="1.6" />
+            <div class="flex items-center gap-1">
+              <UiIconButton :label="t('settings.shortcuts.title')" size="sm" @click="handleOpenCustomize">
+                <Settings class="size-3.5" :stroke-width="1.6" />
               </UiIconButton>
-            </DialogClose>
+              <DialogClose as-child>
+                <UiIconButton :label="t('common.close')" size="sm">
+                  <X class="size-3.5" :stroke-width="1.6" />
+                </UiIconButton>
+              </DialogClose>
+            </div>
           </div>
 
           <UiSearchInput

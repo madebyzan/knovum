@@ -1,0 +1,20 @@
+{
+  "title": "快捷鍵",
+  "description": "自訂全域與應用程式內快捷鍵。",
+  "globalTitle": "全域快捷鍵",
+  "globalDescription": "即使 Knovum 在背景也全域生效的系統快捷鍵。",
+  "inAppDescription": "在 Knovum 視窗內生效的快捷鍵。",
+  "dictationLabel": "語音聽寫",
+  "dictationDescription": "在系統任意位置啟動或停止 AI 語音聽寫。",
+  "conflictWarning": "此全域快捷鍵未能註冊，可能已被其他系統程式或輸入法佔用。",
+  "recordTitle": "錄製快捷鍵",
+  "pressKeys": "請按下按鍵組合",
+  "inAppConflict": "該快捷鍵已被「{command}」佔用。",
+  "customized": "已修改",
+  "edit": "修改",
+  "reset": "重設為預設值",
+  "resetAll": "重設所有預設值",
+  "saved": "快捷鍵已更新",
+  "resetSuccess": "已重設為預設快捷鍵",
+  "resetAllSuccess": "所有快捷鍵已重設為預設值"
+}

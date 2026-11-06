@@ -1,0 +1,20 @@
+{
+  "title": "キーボードショートカット",
+  "description": "グローバルおよびアプリ内のキーボードショートカットをカスタマイズします。",
+  "globalTitle": "グローバルショートカット",
+  "globalDescription": "Knovum がバックグラウンドにある場合でもシステム全体で機能するショートカットです。",
+  "inAppDescription": "Knovum の使用中に有効なショートカットです。",
+  "dictationLabel": "音声入力",
+  "dictationDescription": "システム上のどこからでも AI 音声入力を切り替えます。",
+  "conflictWarning": "このグローバルショートカットは、他のアプリケーションまたはシステムで使用されているため登録できませんでした。",
+  "recordTitle": "ショートカットの記録",
+  "pressKeys": "キーの組み合わせを押してください",
+  "inAppConflict": "このショートカットは既に「{command}」で使用されています。",
+  "customized": "カスタム",
+  "edit": "変更",
+  "reset": "リセット",
+  "resetAll": "すべてデフォルトに戻す",
+  "saved": "ショートカットを更新しました",
+  "resetSuccess": "ショートカットをデフォルトに戻しました",
+  "resetAllSuccess": "すべてのショートカットをデフォルトに戻しました"
+}

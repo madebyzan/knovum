@@ -1,0 +1,20 @@
+{
+  "title": "Atajos de teclado",
+  "description": "Personaliza atajos de teclado globales y de la aplicación.",
+  "globalTitle": "Atajos globales",
+  "globalDescription": "Atajos que funcionan en todo el sistema incluso cuando Knovum está en segundo plano.",
+  "inAppDescription": "Atajos activos mientras se usa Knovum.",
+  "dictationLabel": "Dictado por voz",
+  "dictationDescription": "Activa o detén el dictado por voz de IA en cualquier parte del sistema.",
+  "conflictWarning": "No se pudo registrar este atajo global porque está en uso por otra aplicación o el sistema.",
+  "recordTitle": "Grabar atajo",
+  "pressKeys": "Presiona la combinación de teclas deseada",
+  "inAppConflict": "Este atajo ya está en uso por «{command}».",
+  "customized": "Personalizado",
+  "edit": "Cambiar",
+  "reset": "Restablecer",
+  "resetAll": "Restablecer todos los valores predeterminados",
+  "saved": "Atajo actualizado",
+  "resetSuccess": "Atajo restablecido a los valores predeterminados",
+  "resetAllSuccess": "Todos los atajos se han restablecido a los valores predeterminados"
+}

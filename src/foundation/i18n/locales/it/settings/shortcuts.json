@@ -1,0 +1,20 @@
+{
+  "title": "Scorciatoie da tastiera",
+  "description": "Personalizza le scorciatoie da tastiera globali e nell'applicazione.",
+  "globalTitle": "Scorciatoie globali",
+  "globalDescription": "Scorciatoie che funzionano a livello di sistema anche quando Knovum è in background.",
+  "inAppDescription": "Scorciatoie attive durante l'uso di Knovum.",
+  "dictationLabel": "Dettatura vocale",
+  "dictationDescription": "Attiva o disattiva la dettatura vocale IA ovunque nel sistema.",
+  "conflictWarning": "Impossibile registrare questa scorciatoia globale perché è già in uso da un'altra applicazione o dal sistema.",
+  "recordTitle": "Registra scorciatoia",
+  "pressKeys": "Premi la combinazione di tasti desiderata",
+  "inAppConflict": "Questa scorciatoia è già utilizzata da «{command}».",
+  "customized": "Personalizzato",
+  "edit": "Modifica",
+  "reset": "Reimposta",
+  "resetAll": "Reimposta tutte ai valori predefiniti",
+  "saved": "Scorciatoia aggiornata",
+  "resetSuccess": "Scorciatoia reimpostata ai valori predefiniti",
+  "resetAllSuccess": "Tutte le scorciatoie reimpostate ai valori predefiniti"
+}

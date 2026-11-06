@@ -8,6 +8,9 @@
     "dictation:allow-get-state",
     "dictation:allow-cancel",
     "dictation:allow-dismiss-transcription",
-    "dictation:allow-copy-transcription"
+    "dictation:allow-copy-transcription",
+    "dictation:allow-get-dictation-shortcut",
+    "dictation:allow-set-dictation-shortcut",
+    "dictation:allow-reset-dictation-shortcut"
   ]
 }

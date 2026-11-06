@@ -13,7 +13,7 @@ import WorkspaceToolbar from "./layout/WorkspaceToolbar.vue";
 import { useShellController } from "./use-shell-controller";
 
 const props = defineProps<{ workspace: WorkspaceDefinition; workspaceActive: boolean }>();
-const emit = defineEmits<{ openSettings: [] }>();
+const emit = defineEmits<{ openSettings: [pane?: string] }>();
 const route = useRoute();
 const workspaceActive = toRef(props, "workspaceActive");
 const {
@@ -93,5 +93,9 @@ const edges = useWorkspaceEdges({
     />
   </div>
   <CommandPalette v-model:open="commandOpen" :commands="commands" />
-  <KeyboardShortcutsModal v-model:open="shortcutsOpen" :commands="commands" />
+  <KeyboardShortcutsModal
+    v-model:open="shortcutsOpen"
+    :commands="commands"
+    @open-settings="(pane) => emit('openSettings', pane)"
+  />
 </template>
