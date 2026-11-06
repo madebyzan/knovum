@@ -22,6 +22,7 @@
     "export": "Exportar Markdown"
   },
   "export": {
+    "defaultFormats": "Formato predeterminado de cada recurso",
     "completed": "Exportación completa",
     "running": "Exportando…",
     "noFormats": "Este recurso no tiene ningún archivo que guardar.",

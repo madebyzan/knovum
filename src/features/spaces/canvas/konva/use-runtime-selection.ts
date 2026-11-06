@@ -1,5 +1,6 @@
 import { computed } from "vue";
 
+import { createStructureIndex } from "../../model/structure/structure-index";
 import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
 import { useRevealedLineage } from "./scene/use-revealed-lineage";
 import { projectSelectionTransformPolicy } from "./selection/selection-transform-policy";
@@ -11,12 +12,27 @@ export function useRuntimeSelection(
   projections: ReturnType<typeof useCanvasSceneProjections>,
 ) {
   const selection = useCanvasSelection({
+    structureIndex: computed(() => createStructureIndex(props.sceneInput.editSnapshot.structure)),
     availableStructureNodeIds: computed(
       () => new Set(props.sceneInput.editSnapshot.structure.map(({ id }) => id)),
     ),
     layouts: computed(() => projections.scene.value.nodes.map(({ layout }) => layout)),
     relationBoundsById: projections.relationBoundsById,
     structureBoundsById: projections.structureBoundsById,
+    sectionBounds: computed(
+      () =>
+        new Map(
+          projections.structureScene.value.sections.map(({ section, bounds }) => [
+            section.id,
+            {
+              x: bounds.left,
+              y: bounds.top,
+              width: bounds.right - bounds.left,
+              height: bounds.bottom - bounds.top,
+            },
+          ]),
+        ),
+    ),
     changed: props.events.onSelectionChange,
     structureSelectionForNode: projections.structureSelectionForNode,
   });

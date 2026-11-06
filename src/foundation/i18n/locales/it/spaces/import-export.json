@@ -22,6 +22,7 @@
     "export": "Riduzione dell'esportazione"
   },
   "export": {
+    "defaultFormats": "Formato predefinito per ogni risorsa",
     "completed": "Esportazione completata",
     "running": "Esportazione…",
     "noFormats": "Questa risorsa non ha alcun file da salvare.",

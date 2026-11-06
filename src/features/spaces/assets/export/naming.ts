@@ -22,7 +22,10 @@ function safeFileNameCharacter(character: string) {
  * a translated name; anything else is named by the extension it carries.
  */
 export function exportFormatLabel(extension: string) {
-  const key = `spaces.importExport.export.formats.${extension}`;
+  const key =
+    extension === "default"
+      ? "spaces.importExport.export.defaultFormats"
+      : `spaces.importExport.export.formats.${extension}`;
   return i18n.global.te(key) ? i18n.global.t(key) : extension.toUpperCase();
 }
 

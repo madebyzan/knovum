@@ -157,6 +157,20 @@ The organizational concepts are deliberately orthogonal:
 
 Do not collapse these concepts into a folder tree or a single generic Group abstraction.
 
+Sections share the canvas selection model: Shift/Ctrl/Meta adds or removes a Section; a marquee
+selects a Section only when its full frame is enclosed, including empty Sections. A marquee inside
+its frame still selects content. Effective roots remove redundant descendant selections, so sibling
+Sections move together with their contents and use the existing alignment, distribution and layout
+commands. Collapsing a Section is a control action, not a canvas press or drag.
+
+Selection export uses the same per-resource format owners and encoders as single-resource export.
+Homogeneous content offers the intersection of admitted formats; mixed content offers each resource's
+own first format. The destination is one user-selected directory. Names are sanitized and collisions
+receive numbered suffixes without replacing existing files. One cancellable operation owns the batch;
+failed or cancelled work removes files created by that operation. Selecting containers exports their
+content once, including collapsed content. A single Section also retains its JSON outline export.
+Nothing is silently omitted when a member has no admitted format.
+
 ## Knowledge State
 
 The canvas is a projection over durable knowledge, not the data model itself. Resources preserve source material; `object` nodes carry strict typed Knowledge Objects; Portal nodes are navigation projections. Relations, Provenance and temporal Knowledge Events are first-class Space-local records. Agent output enters long-term state only through a validated atomic KnowledgeChangeSet. The loopback-only MCP server exposes reads and the same Rust-owned commit use case; it never exposes SQLite or partial mutations. Every published tool schema is a described object down to each property: MCP clients built on the reference SDK validate `tools/list` as a whole, so one free-form (boolean) property schema makes the client drop the entire Knovum tool list and report the tools as missing. Tool arguments therefore use typed contracts, and schemas borrowed from an external MCP server are conformed before they are re-published. See `knowledge.md` for the current contract.

@@ -22,6 +22,7 @@
     "export": "Remarcação de exportação"
   },
   "export": {
+    "defaultFormats": "Formato padrão de cada recurso",
     "completed": "Exportação concluída",
     "running": "Exportando…",
     "noFormats": "Este recurso não tem nenhum arquivo para salvar.",

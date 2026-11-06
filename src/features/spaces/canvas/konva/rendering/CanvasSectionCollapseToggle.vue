@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type Konva from "konva";
 import { shallowRef } from "vue";
 import { Group as KonvaGroup, Line as KonvaLine, Rect as KonvaRect } from "vue-konva/core";
 
@@ -14,6 +15,9 @@ const hovered = shallowRef(false);
     :config="{
       x,
       y: 9,
+      onPointerdown: (event: Konva.KonvaEventObject<PointerEvent>) => {
+        event.cancelBubble = true;
+      },
       onClick: () => emit('toggle'),
       onPointerenter: () => (hovered = true),
       onPointerleave: () => (hovered = false),

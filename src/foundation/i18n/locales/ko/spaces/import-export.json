@@ -22,6 +22,7 @@
     "export": "Markdown 내보내기"
   },
   "export": {
+    "defaultFormats": "각 리소스의 기본 형식",
     "completed": "내보내기 완료",
     "running": "내보내는 중…",
     "noFormats": "이 리소스에는 저장할 파일이 없습니다.",
