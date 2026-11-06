@@ -115,8 +115,6 @@
     "help": "點選主體，新增排除點或框選，再用筆刷補充。最多六個點提示。",
     "repair": "移除並填補",
     "extract": "裁出物件",
-    "selectionModel": "選取模型",
-    "repairModel": "修補模型",
     "undo": "撤銷選區",
     "modelUnavailable": "請在設定中選擇可用的物件選擇模型。",
     "promptLimit": "最多六個提示，請撤銷一個提示後繼續。"

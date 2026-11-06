@@ -11,7 +11,6 @@ import {
   useImageSelectionSessionStore,
   type ImageSelectionTool,
 } from "../../knowledge-derivations/image-selection-session-store";
-import SpaceImageExecutionSelect from "./SpaceImageExecutionSelect.vue";
 import SpaceImageRangeSlider from "./SpaceImageRangeSlider.vue";
 
 const { t } = useI18n();
@@ -58,20 +57,6 @@ onMounted(async () => {
         /></UiButton>
       </div>
     </header>
-    <SpaceImageExecutionSelect
-      :options="selection.targets"
-      :execution="selection.active?.execution"
-      :disabled="selection.submitting"
-      :label="t('spaces.media.imageEditor.selection.selectionModel')"
-      @select="selection.setExecution"
-    />
-    <SpaceImageExecutionSelect
-      :options="selection.repairTargets"
-      :execution="selection.active?.repair"
-      :disabled="selection.submitting"
-      :label="t('spaces.media.imageEditor.selection.repairModel')"
-      @select="selection.setRepair"
-    />
     <div
       class="grid grid-cols-4 gap-0.5 rounded-panel bg-surface-control p-0.5"
       role="group"

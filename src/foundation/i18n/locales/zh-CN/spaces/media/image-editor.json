@@ -115,8 +115,6 @@
     "help": "点选主体，添加排除点或框选，再用笔刷补充。最多六个点提示。",
     "repair": "移除并填补",
     "extract": "抠出对象",
-    "selectionModel": "选区模型",
-    "repairModel": "修补模型",
     "undo": "撤销选区",
     "modelUnavailable": "请在设置中选择可用的对象选择模型。",
     "promptLimit": "最多六个提示，请撤销一个提示后继续。"
