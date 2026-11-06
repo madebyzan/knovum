@@ -229,9 +229,7 @@ fn default_size(footprint: &Footprint, extent: &Size) -> Size {
 /// video's frame, a rendered document's page.
 fn display_extent(payload: &Value) -> Option<Size> {
     let kind = payload.get("kind")?.as_str()?;
-    if footprint(kind).is_none() {
-        return None;
-    }
+    footprint(kind)?;
     let intrinsic_width = positive_number(payload.get("intrinsicWidth")?)?;
     let intrinsic_height = positive_number(payload.get("intrinsicHeight")?)?;
     let extent = if kind == "image" {

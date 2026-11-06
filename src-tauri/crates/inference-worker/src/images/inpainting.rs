@@ -215,7 +215,7 @@ pub(super) fn context_window(
     let context = ((longer as f32 * CONTEXT_SHARE) as u32).max(MIN_CONTEXT);
     let span = |low: u32, high: u32, limit: u32| {
         let length = (high - low + 1 + 2 * context).max(LAMA_EDGE).min(limit);
-        let centre = (low + high + 1) / 2;
+        let centre = (low + high).div_ceil(2);
         let start = centre.saturating_sub(length / 2).min(limit - length);
         (start, start + length)
     };
