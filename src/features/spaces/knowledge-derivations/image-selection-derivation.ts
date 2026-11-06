@@ -1,9 +1,7 @@
-import type { ImageExecutionTarget } from "../contracts/generated/ImageExecutionTarget";
 import type { ImageSelection } from "../contracts/generated/ImageSelection";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { deriveImage } from "./image-operation";
-
-type LocalImageTarget = Extract<ImageExecutionTarget, { type: "local" }>;
+import type { LocalImageTarget } from "./image-selection-models";
 
 /**
  * Cutting a selection out runs on the selection model alone; repairing it away also paints the
@@ -17,6 +15,21 @@ export type ImageSelectionDerivationInput =
       selectionModel: LocalImageTarget;
       repairModel: LocalImageTarget;
     };
+
+/** Build only the requested effect; extracting has no repair-model dependency. */
+export function selectionDerivationInput(
+  draft: {
+    selection: ImageSelection;
+    execution: LocalImageTarget | undefined;
+    repair: LocalImageTarget | undefined;
+  },
+  effect: ImageSelectionDerivationInput["effect"],
+): ImageSelectionDerivationInput | undefined {
+  if (!draft.execution) return undefined;
+  const input = { selection: draft.selection, selectionModel: draft.execution };
+  if (effect === "extract") return { ...input, effect };
+  return draft.repair ? { ...input, effect, repairModel: draft.repair } : undefined;
+}
 
 export async function deriveImageSelection(source: SpaceCanvasNode, input: ImageSelectionDerivationInput) {
   const { selection, selectionModel } = input;

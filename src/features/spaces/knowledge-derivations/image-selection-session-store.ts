@@ -4,14 +4,12 @@ import { computed, readonly, shallowReactive, shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/instance";
-import type { ImageExecutionTarget } from "../contracts/generated/ImageExecutionTarget";
-import type { ImageOperationTargetOption } from "../contracts/generated/ImageOperationTargetOption";
 import type { ImageSelection } from "../contracts/generated/ImageSelection";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
-import { buildSelectionDerivation, loadSelectionChoices } from "./image-selection-choices";
-import { deriveImageSelection } from "./image-selection-derivation";
+import { deriveImageSelection, selectionDerivationInput } from "./image-selection-derivation";
+import { loadSelectionModels, type LocalImageTarget } from "./image-selection-models";
 import { pinSource, releaseWhenSourceChanges, type SourcePin } from "./source-pin";
 import { useImageSelectionPreview } from "./use-image-selection-preview";
 
@@ -22,9 +20,9 @@ interface SelectionDraft {
   pin: SourcePin;
   selection: ImageSelection;
   /** The selection model that draws the mask. */
-  execution: ImageExecutionTarget | undefined;
+  execution: LocalImageTarget | undefined;
   /** The repair model that paints the selected area away. */
-  repair: ImageExecutionTarget | undefined;
+  repair: LocalImageTarget | undefined;
 }
 
 export const useImageSelectionSessionStore = defineStore("spaces-image-selection-session", () => {
@@ -33,8 +31,6 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
   const history = shallowReactive<ImageSelection[]>([]);
   const tool = shallowRef<ImageSelectionTool>("include");
   const brushDiameter = shallowRef(0.045);
-  const targets = shallowRef<ImageOperationTargetOption[]>([]);
-  const repairTargets = shallowRef<ImageOperationTargetOption[]>([]);
   const { maskSource, busy, error, queue, clear } = useImageSelectionPreview(() => {
     const draft = active.value;
     const node = space.nodes.find(({ id }) => id === draft?.nodeId);
@@ -55,9 +51,7 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
       remainingPoints.value >= 2,
   );
   const canSubmit = computed(() => Boolean(maskSource.value && !busy.value && !submitting.value));
-  const canRepair = computed(
-    () => canSubmit.value && !!active.value && !!buildSelectionDerivation(active.value, "repair"),
-  );
+  const canRepair = computed(() => canSubmit.value && !!active.value && !!active.value.repair);
   const canUndo = computed(() => Boolean(history.length && !submitting.value));
 
   function update(selection: ImageSelection) {
@@ -81,25 +75,13 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
     tool.value = "include";
     clear();
     try {
-      const choices = await loadSelectionChoices();
+      const models = await loadSelectionModels();
       if (active.value?.sessionId !== draft.sessionId) return;
-      targets.value = choices.selection;
-      repairTargets.value = choices.repair;
-      active.value = { ...active.value, execution: choices.selectionModel, repair: choices.repairModel };
+      active.value = { ...active.value, execution: models.selection, repair: models.repair };
       queue();
     } catch (cause) {
       if (active.value?.sessionId === draft.sessionId) error.value = getErrorMessage(cause);
     }
-  }
-  function setExecution(execution: ImageExecutionTarget) {
-    if (!active.value || submitting.value) return;
-    clear();
-    active.value = { ...active.value, execution };
-    queue();
-  }
-  function setRepair(repair: ImageExecutionTarget) {
-    if (!active.value || submitting.value) return;
-    active.value = { ...active.value, repair };
   }
   function addPoint(x: number, y: number) {
     const selection = active.value?.selection;
@@ -134,7 +116,7 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
   }
   async function submit(effect: "extract" | "repair") {
     const current = active.value;
-    const input = current && canSubmit.value ? buildSelectionDerivation(current, effect) : undefined;
+    const input = current && canSubmit.value ? selectionDerivationInput(current, effect) : undefined;
     const node = space.nodes.find(({ id }) => id === current?.nodeId);
     if (!input || !node) return;
     submitting.value = true;
@@ -164,8 +146,6 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
     active: readonly(active),
     tool,
     brushDiameter,
-    targets: readonly(targets),
-    repairTargets: readonly(repairTargets),
     maskSource: readonly(maskSource),
     busy: readonly(busy),
     submitting: readonly(submitting),
@@ -176,8 +156,6 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
     canRepair,
     canUndo,
     begin,
-    setExecution,
-    setRepair,
     addPoint,
     setBox,
     addStroke,

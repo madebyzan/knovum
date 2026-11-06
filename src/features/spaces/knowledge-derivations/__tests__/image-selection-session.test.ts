@@ -4,6 +4,7 @@ import { nextTick, reactive } from "vue";
 
 import { imageSourceNode } from "../../__tests__/support/image-operation-fixtures";
 import type { ImageOperationTargetOption } from "../../contracts/generated/ImageOperationTargetOption";
+import type * as SelectionDerivationModule from "../image-selection-derivation";
 
 const context = vi.hoisted(() => ({ space: null as null | Record<string, unknown> }));
 vi.mock("../../session/space-store", () => ({ useSpaceStore: () => context.space! }));
@@ -33,7 +34,8 @@ vi.mock("../image-operation", () => ({
     ],
   }),
 }));
-vi.mock("../image-selection-derivation", () => ({
+vi.mock("../image-selection-derivation", async (importOriginal) => ({
+  ...(await importOriginal<typeof SelectionDerivationModule>()),
   deriveImageSelection: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
 }));
 vi.mock("../use-image-selection-preview", async () => {
@@ -51,6 +53,7 @@ vi.mock("../use-image-selection-preview", async () => {
 import { getImageOperationCapabilities } from "../image-operation";
 import { deriveImageSelection } from "../image-selection-derivation";
 import { useImageSelectionSessionStore } from "../image-selection-session-store";
+import { imageSelectionModelScenarios } from "./image-selection-model-scenarios";
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -105,7 +108,7 @@ it("discards a stale draft after an in-flight derivation fails", async () => {
   expect(store.active).toBeUndefined();
 });
 
-it("keeps prompts entered while execution choices load", async () => {
+it("keeps prompts entered while Settings models load", async () => {
   const store = useImageSelectionSessionStore();
   const capabilities = await getImageOperationCapabilities();
   let finishLoading!: () => void;
@@ -123,7 +126,7 @@ it("keeps prompts entered while execution choices load", async () => {
   expect(store.active?.selection.points).toHaveLength(1);
 });
 
-it("ignores choices returned for a closed session when the same node reopens", async () => {
+it("ignores models returned for a closed session when the same node reopens", async () => {
   const store = useImageSelectionSessionStore();
   const capabilities = structuredClone(await getImageOperationCapabilities());
   capabilities.targets[0]!.execution = { type: "local", model: "efficientSamS", specId: "old-session" };
@@ -156,17 +159,12 @@ it("discards the draft and its undo history when the source revision changes", a
   expect(store.active?.selection.points).toEqual([]);
 });
 
-it("repairs with the repair model the panel chose, drawing the mask with the selection model", async () => {
+it("repairs with the Settings-selected repair model, drawing the mask with the selection model", async () => {
   const store = useImageSelectionSessionStore();
   const node = imageSourceNode();
   context.space!.nodes = [node];
   await store.begin(node);
-  expect(store.repairTargets.map((target) => target.execution)).toMatchObject([
-    { model: "migan" },
-    { model: "lama" },
-  ]);
-  expect(store.active?.repair, "the selected repair model leads").toMatchObject({ model: "migan" });
-  store.setRepair({ type: "local", model: "lama", specId: "lama-spec" });
+  expect(store.active?.repair).toMatchObject({ model: "migan" });
   store.addPoint(0.3, 0.4);
   vi.mocked(deriveImageSelection).mockResolvedValueOnce(undefined);
   await store.submit("repair");
@@ -174,6 +172,8 @@ it("repairs with the repair model the panel chose, drawing the mask with the sel
     effect: "repair",
     selection: expect.objectContaining({ points: [expect.objectContaining({ x: 0.3 })] }),
     selectionModel: { type: "local", model: "efficientSamTi", specId: "spec" },
-    repairModel: { type: "local", model: "lama", specId: "lama-spec" },
+    repairModel: { type: "local", model: "migan", specId: "migan-spec" },
   });
 });
+
+imageSelectionModelScenarios();
