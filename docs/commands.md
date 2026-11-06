@@ -96,8 +96,9 @@ Saved Website networking is Rust-owned: the crate-level web capture module perfo
 
 ## System preview command
 
-- `plugin:spaces|preview_asset` — authorizes one managed Space asset and opens the platform system preview. The engine is internal Rust code and never accepts an untrusted Renderer path directly.
-- Canvas surfaces omit the action when the platform has no system preview panel; media retains its own spacebar playback behavior.
+- `plugin:spaces|preview_asset` — authorizes one managed Space asset and shows it the way the platform shows content: Quick Look on macOS, the associated application on Windows and Linux. The engine is internal Rust code and never accepts an untrusted Renderer path directly.
+- `plugin:spaces|preview_image` — renders the image's saved edit through Rust and shows that rendering the same way, so the unedited source never reaches the platform.
+- The action is available on every platform; media retains its own spacebar playback behavior.
 
 ## Command registration review
 

@@ -1,4 +1,5 @@
 use crate::foundation::app_error::AppError;
+pub(crate) mod associated_app;
 mod exit;
 pub(crate) mod file_drop;
 pub(crate) use exit::AppExitRequest;
