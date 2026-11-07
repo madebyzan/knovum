@@ -14,7 +14,11 @@ if (!["dev", "build"].includes(command) || args.includes("--help") || args.inclu
 } else {
   const options = buildOptions(args, command);
   const configuration = command === "build" ? packagingConfiguration(repository, options) : undefined;
-  execFileSync("uv", ["sync", "--project", "python", "--locked"], { cwd: repository, stdio: "inherit" });
+  execFileSync("uv", ["sync", "--project", "python", "--locked"], {
+    cwd: repository,
+    stdio: "inherit",
+    env: { ...process.env, UV_PYTHON_PREFERENCE: "only-managed" },
+  });
   const dependencies = buildDesktopDependencies(repository, options);
   if (command === "build") await packageDesktop(repository, options, dependencies, configuration);
   else await run(["dev", ...lockedRunnerArguments(options.args)], "pnpm desktop:dev");

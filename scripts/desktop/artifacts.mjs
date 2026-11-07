@@ -9,7 +9,7 @@ function uv(repository, args, env = process.env) {
   execFileSync("uv", ["run", "--project", "python", "--group", "packaging", "--locked", ...args], {
     cwd: repository,
     stdio: "inherit",
-    env,
+    env: { ...env, UV_PYTHON_PREFERENCE: "only-managed" },
   });
 }
 export function prepareArtifacts(repository, options, cargo) {
