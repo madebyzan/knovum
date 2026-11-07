@@ -60,7 +60,7 @@ function isMac(): boolean {
 
 export function formatKey(key: string): string {
   const normalized = key.trim().toLowerCase();
-  if (normalized === "mod" || normalized === "$mod") {
+  if (normalized === "mod" || normalized === "$mod" || normalized === "commandorcontrol") {
     return isMac() ? "⌘" : "Ctrl";
   }
 
@@ -85,7 +85,11 @@ export function parseShortcut(shortcut: string): KbdKeyGroup[] {
     const expr = segments[i]?.trim();
     if (!expr) continue;
     const connector = i > 0 ? segments[i - 1] : undefined;
-    const keys = expr.replaceAll("$mod", "mod").split("+").map(formatKey);
+    const keys = expr
+      .replaceAll("$mod", "mod")
+      .replaceAll(/commandorcontrol/gi, "mod")
+      .split("+")
+      .map(formatKey);
     groups.push({ connector, keys });
   }
 

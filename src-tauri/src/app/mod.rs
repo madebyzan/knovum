@@ -56,8 +56,8 @@ fn base_builder() -> Builder<Wry> {
 #[cfg(knovum_supported_desktop)]
 fn dictation_builder(builder: Builder<Wry>) -> Builder<Wry> {
     builder
-        .plugin(crate::dictation::plugin())
         .plugin(crate::dictation::global_shortcut_plugin())
+        .plugin(crate::dictation::plugin())
 }
 
 #[cfg(not(knovum_supported_desktop))]

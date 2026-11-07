@@ -1,0 +1,20 @@
+{
+  "title": "Raccourcis clavier",
+  "description": "Personnalisez les raccourcis clavier globaux et dans l'application.",
+  "globalTitle": "Raccourcis globaux",
+  "globalDescription": "Raccourcis qui fonctionnent dans tout le système, même lorsque Knovum est en arrière-plan.",
+  "inAppDescription": "Raccourcis actifs lors de l'utilisation de Knovum.",
+  "dictationLabel": "Dictée vocale",
+  "dictationDescription": "Push-to-talk global : maintenez pour parler, relâchez pour insérer le texte.",
+  "conflictWarning": "Ce raccourci global n'a pas pu être enregistré car il est utilisé par une autre application ou le système.",
+  "recordTitle": "Enregistrer un raccourci",
+  "pressKeys": "Appuyez sur la combinaison de touches souhaitée",
+  "inAppConflict": "Ce raccourci est déjà utilisé par « {command} ».",
+  "customized": "Personnalisé",
+  "edit": "Modifier",
+  "reset": "Réinitialiser",
+  "resetAll": "Tout réinitialiser par défaut",
+  "saved": "Raccourci mis à jour",
+  "resetSuccess": "Raccourci réinitialisé par défaut",
+  "resetAllSuccess": "Tous les raccourcis ont été réinitialisés par défaut"
+}

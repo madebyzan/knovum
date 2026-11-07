@@ -10,6 +10,7 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::dictation::contracts::DictationPhase::export_all,
         crate::dictation::contracts::InsertionOutcome::export_all,
         crate::dictation::contracts::DictationSnapshot::export_all,
+        crate::dictation::contracts::DictationShortcutStatus::export_all,
         crate::extensions::contracts::PluginOperationStage::export_all,
         crate::extensions::contracts::ExtensionChange::<()>::export_all,
         crate::extensions::contracts::PluginConnectorConfiguration::export_all,

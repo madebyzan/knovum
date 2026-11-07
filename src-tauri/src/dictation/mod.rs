@@ -17,28 +17,29 @@ mod progress;
 #[cfg(knovum_supported_desktop)]
 mod recorder;
 #[cfg(knovum_supported_desktop)]
+mod resample;
+#[cfg(knovum_supported_desktop)]
+pub(crate) mod shortcut;
+#[cfg(knovum_supported_desktop)]
 mod transcription;
 
 #[cfg(knovum_supported_desktop)]
 mod runtime {
     use std::sync::Arc;
 
-    use tauri::{plugin::TauriPlugin, Manager, State, Wry};
+    use tauri::{plugin::TauriPlugin, AppHandle, Manager, Runtime, State, Wry};
     use tauri_plugin_global_shortcut::ShortcutState;
 
     use super::{
-        contracts::DictationSnapshot,
+        contracts::{DictationShortcutStatus, DictationSnapshot},
         engine::{DictationAction, DictationEngine},
         insertion,
+        shortcut::{DictationShortcutManager, DEFAULT_DICTATION_SHORTCUT},
     };
     use crate::foundation::app_error::{AppError, AppResult};
 
-    const SHORTCUT: &str = "CommandOrControl+Shift+Space";
-
     pub(crate) fn global_shortcut_plugin() -> TauriPlugin<Wry> {
         tauri_plugin_global_shortcut::Builder::new()
-            .with_shortcut(SHORTCUT)
-            .expect("dictation shortcut is a static valid accelerator")
             .with_handler(|app, _, event| {
                 let action = match event.state {
                     ShortcutState::Pressed => DictationAction::Press,
@@ -55,6 +56,9 @@ mod runtime {
         tauri::plugin::Builder::new("dictation")
             .setup(|app, _api| {
                 app.manage(Arc::new(DictationEngine::start(app.clone())));
+                let manager = Arc::new(DictationShortcutManager::new());
+                manager.register_shortcut(app, DEFAULT_DICTATION_SHORTCUT);
+                app.manage(manager);
                 Ok(())
             })
             .on_event(|app, event| {
@@ -68,7 +72,10 @@ mod runtime {
                 get_state,
                 cancel,
                 dismiss_transcription,
-                copy_transcription
+                copy_transcription,
+                get_dictation_shortcut,
+                set_dictation_shortcut,
+                reset_dictation_shortcut
             ])
             .build()
     }
@@ -98,6 +105,33 @@ mod runtime {
         crate::foundation::blocking::run(move || insertion::copy_text(text))
             .await
             .map_err(AppError::from)
+    }
+
+    #[tauri::command]
+    fn get_dictation_shortcut(
+        manager: State<'_, Arc<DictationShortcutManager>>,
+    ) -> AppResult<DictationShortcutStatus> {
+        Ok(manager.current_status())
+    }
+
+    #[tauri::command]
+    fn set_dictation_shortcut<R: Runtime>(
+        app: AppHandle<R>,
+        manager: State<'_, Arc<DictationShortcutManager>>,
+        shortcut: String,
+    ) -> AppResult<DictationShortcutStatus> {
+        if shortcut.trim().is_empty() {
+            return Err(AppError::invalid("Shortcut cannot be empty"));
+        }
+        Ok(manager.register_shortcut(&app, &shortcut))
+    }
+
+    #[tauri::command]
+    fn reset_dictation_shortcut<R: Runtime>(
+        app: AppHandle<R>,
+        manager: State<'_, Arc<DictationShortcutManager>>,
+    ) -> AppResult<DictationShortcutStatus> {
+        Ok(manager.register_shortcut(&app, DEFAULT_DICTATION_SHORTCUT))
     }
 }
 

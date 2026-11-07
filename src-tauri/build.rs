@@ -54,6 +54,9 @@ fn main() {
                     "cancel",
                     "dismiss_transcription",
                     "copy_transcription",
+                    "get_dictation_shortcut",
+                    "set_dictation_shortcut",
+                    "reset_dictation_shortcut",
                 ]),
             )
             .plugin(

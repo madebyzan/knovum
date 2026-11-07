@@ -24,6 +24,7 @@ const MESSAGE_KEY_BY_ERROR_CODE: Record<string, string> = {
   dictation_empty_result: "dictation.errors.dictationEmptyResult",
   dictation_insertion_failed: "dictation.errors.dictationInsertionFailed",
   dictation_failed: "dictation.errors.dictationFailed",
+  transcription_failed: "dictation.errors.dictationFailed",
 };
 const busy = computed(() =>
   ["recording", "preparing_resources", "transcribing"].includes(session.state.value.phase),

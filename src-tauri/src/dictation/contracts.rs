@@ -96,3 +96,11 @@ impl DictationSnapshot {
         }
     }
 }
+
+#[derive(Clone, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct DictationShortcutStatus {
+    pub(crate) shortcut: String,
+    pub(crate) registered: bool,
+    pub(crate) error: Option<String>,
+}

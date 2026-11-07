@@ -1,0 +1,20 @@
+{
+  "title": "Tastaturkürzel",
+  "description": "Globale und anwendungsinterne Tastaturkürzel anpassen.",
+  "globalTitle": "Globale Tastenkürzel",
+  "globalDescription": "Tastenkürzel, die systemweit funktionieren, auch wenn Knovum im Hintergrund läuft.",
+  "inAppDescription": "Tastenkürzel, die aktiv sind, während Knovum verwendet wird.",
+  "dictationLabel": "Sprachdiktat",
+  "dictationDescription": "Globales Push-to-Talk: Gedrückt halten zum Sprechen, Loslassen zum Eingeben.",
+  "conflictWarning": "Dieses globale Tastenkürzel konnte nicht registriert werden, da es von einer anderen Anwendung oder dem System verwendet wird.",
+  "recordTitle": "Tastenkürzel aufnehmen",
+  "pressKeys": "Gewünschte Tastenkombination drücken",
+  "inAppConflict": "Dieses Tastenkürzel wird bereits von „{command}“ verwendet.",
+  "customized": "Benutzerdefiniert",
+  "edit": "Ändern",
+  "reset": "Zurücksetzen",
+  "resetAll": "Alle auf Standard zurücksetzen",
+  "saved": "Tastenkürzel aktualisiert",
+  "resetSuccess": "Tastenkürzel auf Standard zurückgesetzt",
+  "resetAllSuccess": "Alle Tastenkürzel auf Standard zurückgesetzt"
+}

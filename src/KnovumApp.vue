@@ -40,7 +40,8 @@ onScopeDispose(
   }),
 );
 const dictationSupported =
-  (platform() === "macos" && arch() === "aarch64") || (platform() === "windows" && arch() === "x86_64");
+  (platform() === "macos" && (arch() === "aarch64" || arch() === "x86_64")) ||
+  (platform() === "windows" && arch() === "x86_64");
 provide(archiveSettingsKey, useSpaceArchiveSettings());
 let hasInitializedReadyServices = false;
 watch(
@@ -68,7 +69,7 @@ watch(
       <AppShell
         :workspace="workspace"
         :workspace-active="workspaceActive"
-        @open-settings="router.push('/settings')"
+        @open-settings="(pane) => router.push(pane ? { path: '/settings', query: { pane } } : '/settings')"
       />
       <ApplicationUpdates />
       <DictationOverlay v-if="dictationSupported" />

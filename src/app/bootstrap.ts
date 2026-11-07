@@ -10,6 +10,7 @@ import { invokeCommand } from "../foundation/ipc/invoke-command";
 import { initializeExitCoordination } from "../foundation/lifecycle/window-close-coordinator";
 import { usePreferencesStore } from "../foundation/preferences/preferences-store";
 import { restoreResourcePreparationTasks } from "../foundation/runtime/resource-preparation";
+import { useShortcutsStore } from "../foundation/shortcuts/shortcut-store";
 import { installSessionTaskProjection } from "../foundation/tasks/session-task-projection";
 import { installWindowActivityState } from "../foundation/window/window-activity";
 import { installRuntimeDiagnostics } from "./runtime-diagnostics";
@@ -32,7 +33,11 @@ export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
     void restoreResourcePreparationTasks(pinia).catch((reason) =>
       logError(`Failed to restore resource preparation tasks: ${formatErrorDiagnostic(reason)}`),
     );
-    await Promise.all([usePreferencesStore(pinia).load(), installWindowActivityState()]);
+    await Promise.all([
+      usePreferencesStore(pinia).load(),
+      useShortcutsStore(pinia).load(),
+      installWindowActivityState(),
+    ]);
     await invokeCommand("plugin:spaces|await_space_runtime");
     await restoreWorkspaceSession(router);
     await router.isReady();

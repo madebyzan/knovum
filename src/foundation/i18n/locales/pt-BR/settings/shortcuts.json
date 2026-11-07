@@ -1,0 +1,20 @@
+{
+  "title": "Atalhos de teclado",
+  "description": "Personalize atalhos de teclado globais e no aplicativo.",
+  "globalTitle": "Atalhos globais",
+  "globalDescription": "Atalhos que funcionam em todo o sistema mesmo quando o Knovum está em segundo plano.",
+  "inAppDescription": "Atalhos ativos durante o uso do Knovum.",
+  "dictationLabel": "Ditado por voz",
+  "dictationDescription": "Push-to-talk global: mantenha pressionado para falar, solte para digitar.",
+  "conflictWarning": "Este atalho global não pôde ser registrado porque já está em uso por outro aplicativo ou pelo sistema.",
+  "recordTitle": "Gravar atalho",
+  "pressKeys": "Pressione a combinação de teclas desejada",
+  "inAppConflict": "Este atalho já está em uso por \"{command}\".",
+  "customized": "Personalizado",
+  "edit": "Alterar",
+  "reset": "Redefinir",
+  "resetAll": "Redefinir tudo para o padrão",
+  "saved": "Atalho atualizado",
+  "resetSuccess": "Atalho redefinido para o padrão",
+  "resetAllSuccess": "Todos os atalhos foram redefinidos para os padrões"
+}

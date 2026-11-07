@@ -8,30 +8,73 @@ import { handleEditingChord } from "./editing-responder";
 import { runAppCommand } from "./run-app-command";
 import { EDITING_CHORDS, editingChordsReachWebView } from "./text-editing";
 
-/**
- * An editing command answers an intent, never a key: which command a chord reaches depends on what
- * the user is editing, so a command that bound the chord itself would take it from the text.
- */
-function assertEditingChordsUnclaimed(commands: readonly AppCommand[]) {
-  const claimedIntents = new Set<string>();
-  for (const command of commands) {
-    if (command.editingIntent) {
-      if (claimedIntents.has(command.editingIntent))
-        throw new Error(`Command ${command.id} is a second responder for "${command.editingIntent}".`);
-      claimedIntents.add(command.editingIntent);
-      continue;
-    }
-    for (const keybinding of command.keybindings ?? (command.shortcut ? [command.shortcut] : [])) {
-      if (keybinding in EDITING_CHORDS)
-        throw new Error(
-          `Command ${command.id} binds the editing chord ${keybinding}; declare editingIntent.`,
-        );
+function resolveKeybindings(command: AppCommand, effective?: string): readonly string[] {
+  if (effective && effective === command.shortcut && command.keybindings) {
+    return command.keybindings;
+  }
+  return effective ? [effective] : [];
+}
+
+function assertCommandChordsUnclaimed(command: AppCommand, bindings: readonly string[]): void {
+  for (const keybinding of bindings) {
+    if (keybinding in EDITING_CHORDS) {
+      throw new Error(`Command ${command.id} binds the editing chord ${keybinding}; declare editingIntent.`);
     }
   }
 }
 
-export function bindCommandShortcuts(commands: readonly AppCommand[]): () => void {
-  assertEditingChordsUnclaimed(commands);
+function assertEditingChordsUnclaimed(
+  commands: readonly AppCommand[],
+  resolveShortcut?: (commandId: string, defaultShortcut?: string) => string | undefined,
+) {
+  const claimedIntents = new Set<string>();
+  for (const command of commands) {
+    if (command.editingIntent) {
+      if (claimedIntents.has(command.editingIntent)) {
+        throw new Error(`Command ${command.id} is a second responder for "${command.editingIntent}".`);
+      }
+      claimedIntents.add(command.editingIntent);
+      continue;
+    }
+    const effective = resolveShortcut?.(command.id, command.shortcut) ?? command.shortcut;
+    assertCommandChordsUnclaimed(command, resolveKeybindings(command, effective));
+  }
+}
+
+function registerCommandHandlers(
+  command: AppCommand,
+  effective: string,
+  handlers: Record<string, (event: KeyboardEvent) => void>,
+) {
+  for (const keybinding of resolveKeybindings(command, effective)) {
+    const bareKey = !keybinding.includes("+");
+    handlers[keybinding] = (event) => {
+      if (event.repeat) return;
+      if (isEditableTarget(event.target) && !command.allowInEditable) return;
+      if (bareKey && isInteractiveTarget(event.target)) return;
+      event.preventDefault();
+      runAppCommand(command);
+    };
+  }
+}
+
+function shouldSkipCommandBinding(
+  command: AppCommand,
+  effective: string | undefined,
+  isCustomized: boolean,
+  appMenuOwnsShortcut: boolean,
+): boolean {
+  if (!effective) return true;
+  if (command.editingIntent && !isCustomized) return true;
+  if (appMenuOwnsShortcut && command.appMenuShortcut && !isCustomized) return true;
+  return false;
+}
+
+export function bindCommandShortcuts(
+  commands: readonly AppCommand[],
+  resolveShortcut?: (commandId: string, defaultShortcut?: string) => string | undefined,
+): () => void {
+  assertEditingChordsUnclaimed(commands, resolveShortcut);
   const handlerByShortcut: Record<string, (event: KeyboardEvent) => void> = {};
   const appMenuOwnsShortcut = platform() === "macos";
 
@@ -41,26 +84,14 @@ export function bindCommandShortcuts(commands: readonly AppCommand[]): () => voi
     }
   }
   for (const command of commands) {
-    if (!command.shortcut || command.editingIntent || (appMenuOwnsShortcut && command.appMenuShortcut))
+    const effective = resolveShortcut?.(command.id, command.shortcut) ?? command.shortcut;
+    const isCustomized = Boolean(resolveShortcut && effective !== command.shortcut);
+    if (shouldSkipCommandBinding(command, effective, isCustomized, appMenuOwnsShortcut)) {
       continue;
-    for (const keybinding of command.keybindings ?? [command.shortcut]) {
-      // A modifier chord belongs to the application, but a bare key is the class the platform hands
-      // to the focused control, so Space on a button and the arrows on a slider stay theirs.
-      const bareKey = !keybinding.includes("+");
-
-      handlerByShortcut[keybinding] = (event) => {
-        if (event.repeat) return;
-        if (isEditableTarget(event.target) && !command.allowInEditable) return;
-        if (bareKey && isInteractiveTarget(event.target)) return;
-        event.preventDefault();
-        runAppCommand(command);
-      };
     }
+    registerCommandHandlers(command, effective!, handlerByShortcut);
   }
 
-  // tinykeys' default filter also drops every press from an editable target before the per-command
-  // `isEditableTarget` guard above can allow it, which would silently void `allowInEditable`.
-  // IME composition is still somebody else's key press.
   return tinykeys(globalThis.window, handlerByShortcut, {
     capture: true,
     ignore: (event) => event.isComposing,

@@ -8,11 +8,20 @@ import { bindCommandShortcuts } from "../foundation/commands/command-shortcuts";
 import { registerAppCommands, runAppCommandById } from "../foundation/commands/run-app-command";
 import { formatErrorDiagnostic } from "../foundation/errors/error-format";
 import { createAsyncDisposer } from "../foundation/lifecycle/async-disposer";
+import { useShortcutsStore } from "../foundation/shortcuts/shortcut-store";
 import type { WorkspaceDefinition } from "../shared/contracts/workspace-definition";
 import { workspaceRightSidebarKey } from "../shared/contracts/workspace-right-sidebar";
 import { workspaceSidebarKey } from "../shared/contracts/workspace-sidebar";
 import { createShellCommands } from "./commands/commands";
 import { useWorkbenchLayoutPreferences } from "./layout/use-workbench-layout-preferences";
+
+function resolveShortcutsStore() {
+  try {
+    return useShortcutsStore();
+  } catch {
+    return undefined;
+  }
+}
 
 export function useShellController(
   workspace: WorkspaceDefinition,
@@ -131,9 +140,10 @@ export function useShellController(
     }),
   );
   const menuCommandListener = createAsyncDisposer();
+  const shortcutsStore = resolveShortcutsStore();
   watchEffect((cleanup) => {
     cleanup(registerAppCommands(commands.value));
-    cleanup(bindCommandShortcuts(commands.value));
+    cleanup(bindCommandShortcuts(commands.value, shortcutsStore?.getEffectiveShortcut));
   });
   onMounted(() => {
     void menuCommandListener

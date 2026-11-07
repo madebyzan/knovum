@@ -1,0 +1,20 @@
+{
+  "title": "Keyboard Shortcuts",
+  "description": "Customize global and in-app keyboard shortcuts.",
+  "globalTitle": "Global Shortcuts",
+  "globalDescription": "Shortcuts that work system-wide even when Knovum is in the background.",
+  "inAppDescription": "Shortcuts active while using Knovum.",
+  "dictationLabel": "Speech Dictation",
+  "dictationDescription": "Global push-to-talk: hold to record speech, release to transcribe and type.",
+  "conflictWarning": "This global shortcut could not be registered because it is in use by another application or the system.",
+  "recordTitle": "Record Shortcut",
+  "pressKeys": "Press desired key combination",
+  "inAppConflict": "This shortcut is already used by \"{command}\".",
+  "customized": "Custom",
+  "edit": "Change",
+  "reset": "Reset",
+  "resetAll": "Reset All to Defaults",
+  "saved": "Shortcut updated",
+  "resetSuccess": "Shortcut reset to default",
+  "resetAllSuccess": "All shortcuts reset to defaults"
+}
