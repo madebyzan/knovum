@@ -79,7 +79,7 @@ encoding_rs = "0.8.42"
 genai = "=0.6.5"
 docx-rs = { version = "=0.4.22", default-features = false, features = ["image"] }
 pulldown-cmark = "=0.13.6"
-typst-as-lib = { version = "=0.16.0", default-features = false, features = ["typst-kit-fonts"] }
+typst-as-lib = { version = "=0.17.0", default-features = false, features = ["typst-kit-fonts"] }
 typst-layout = "=0.15.1"
 typst-pdf = "=0.15.1"
 fontdb = "=0.24.0"
