@@ -44,7 +44,8 @@ fn save_on_sta(
 ) -> Result<(), String> {
     ensure_not_cancelled(cancellation)?;
     let _apartment = ComApartment::enter()?;
-    let path = HSTRING::from(source.as_os_str());
+    let path = dunce::simplified(source);
+    let path = HSTRING::from(path.as_os_str());
     let factory: IShellItemImageFactory = unsafe { SHCreateItemFromParsingName(&path, None) }
         .map_err(|error| format!("Windows Shell could not open this document: {error}"))?;
     let bitmap = unsafe {

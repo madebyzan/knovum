@@ -11,10 +11,9 @@ pub(crate) fn authorize_generated_preview(
     app: &tauri::AppHandle,
     source: &Path,
 ) -> Result<std::path::PathBuf, String> {
-    let previews = paths::preview_directory(app)?
-        .canonicalize()
-        .map_err(|error| error.to_string())?;
-    let canonical = source.canonicalize().map_err(|error| error.to_string())?;
+    let previews =
+        dunce::canonicalize(paths::preview_directory(app)?).map_err(|error| error.to_string())?;
+    let canonical = dunce::canonicalize(source).map_err(|error| error.to_string())?;
     if canonical == previews || !canonical.starts_with(&previews) {
         return Err("Only Space-generated previews can be accessed".into());
     }

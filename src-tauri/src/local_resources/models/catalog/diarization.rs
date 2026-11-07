@@ -2,8 +2,14 @@ use serde::{Deserialize, Serialize};
 
 use super::{ModelDescriptor, ModelKind, SnapshotKind};
 
-const SEGMENTATION_ROOT: &str = "https://huggingface.co/csukuangfj/sherpa-onnx-pyannote-segmentation-3-0/resolve/9403a6902bb58e3d5ae8c7e77c3422de279db2e0";
-const EMBEDDING_ROOT: &str = "https://huggingface.co/csukuangfj/speaker-embedding-models/resolve/0743f301363dec56491a490f6d6cbc9d67f9a3bf";
+const SEGMENTATION_REPO: (&str, &str) = (
+    "csukuangfj/sherpa-onnx-pyannote-segmentation-3-0",
+    "9403a6902bb58e3d5ae8c7e77c3422de279db2e0",
+);
+const EMBEDDING_REPO: (&str, &str) = (
+    "csukuangfj/speaker-embedding-models",
+    "0743f301363dec56491a490f6d6cbc9d67f9a3bf",
+);
 
 #[derive(
     Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord, Hash, ts_rs::TS,
@@ -141,17 +147,17 @@ impl DiarizationPart {
     }
 
     pub(crate) fn url(self) -> String {
+        use crate::local_resources::models::sources::huggingface_resolve_url;
         match self.file {
-            DiarizationFile::Segmentation => format!(
-                "{SEGMENTATION_ROOT}/{}",
-                match self.variant {
+            DiarizationFile::Segmentation => {
+                let file = match self.variant {
                     DiarizationVariant::Int8 | DiarizationVariant::Campplus => "model.int8.onnx",
                     DiarizationVariant::Full | DiarizationVariant::Eres2netLarge => "model.onnx",
-                }
-            ),
-            DiarizationFile::Embedding => format!(
-                "{EMBEDDING_ROOT}/{}",
-                match self.variant {
+                };
+                huggingface_resolve_url(SEGMENTATION_REPO.0, SEGMENTATION_REPO.1, file)
+            }
+            DiarizationFile::Embedding => {
+                let file = match self.variant {
                     DiarizationVariant::Campplus => {
                         "3dspeaker_speech_campplus_sv_zh_en_16k-common_advanced.onnx"
                     }
@@ -161,9 +167,12 @@ impl DiarizationPart {
                     DiarizationVariant::Int8 | DiarizationVariant::Full => {
                         "3dspeaker_speech_eres2net_base_sv_zh-cn_3dspeaker_16k.onnx"
                     }
-                }
-            ),
-            DiarizationFile::SegmentationLicense => format!("{SEGMENTATION_ROOT}/LICENSE"),
+                };
+                huggingface_resolve_url(EMBEDDING_REPO.0, EMBEDDING_REPO.1, file)
+            }
+            DiarizationFile::SegmentationLicense => {
+                huggingface_resolve_url(SEGMENTATION_REPO.0, SEGMENTATION_REPO.1, "LICENSE")
+            }
             DiarizationFile::EmbeddingLicense => {
                 "https://raw.githubusercontent.com/modelscope/3D-Speaker/065629c313eaf1a01c65c640c46d77e61e9607b4/LICENSE".into()
             }

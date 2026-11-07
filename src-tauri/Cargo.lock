@@ -6891,6 +6891,7 @@ dependencies = [
  "core-graphics",
  "cpal",
  "docx-rs",
+ "dunce",
  "encoding_rs 0.8.42",
  "flate2",
  "fnv",

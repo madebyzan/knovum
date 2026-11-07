@@ -36,6 +36,7 @@ default = []
 e2e = ["dep:tauri-plugin-wdio", "dep:tauri-plugin-wdio-webdriver"]
 
 [dependencies]
+dunce = "1.0.5"
 knovum-media-libraries = { path = "crates/media-libraries" }
 knovum-inference-libraries = { path = "crates/inference-libraries" }
 knovum-inference-contracts = { path = "crates/inference-contracts" }
