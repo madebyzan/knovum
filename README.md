@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/madebyzan/knovum/releases/latest">
-    <img src="docs/assets/readme/banner.jpg" width="100%" alt="Knovum — the local-first AI knowledge workspace" />
+    <img src="docs/assets/readme/banner.png" width="100%" alt="Knovum — the local-first AI knowledge workspace" />
   </a>
 
   <p>
@@ -27,10 +27,7 @@
   </p>
 </div>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/screenshot-en-dark.webp" />
-  <img src="docs/assets/readme/screenshot-en-light.webp" width="100%" alt="Knovum desktop app: a Space with sources, claims, evidence and a design brief connected on an infinite canvas, and a cited answer in the conversation panel." />
-</picture>
+<img src="docs/assets/readme/screenshot.png" width="100%" alt="Knovum desktop app: a Space with sources, claims, evidence and a design brief connected on an infinite canvas, and a cited answer in the conversation panel." />
 
 ---
 
@@ -66,7 +63,7 @@ bring-your-own-key, and only receive the context an action needs.
 ## How it works
 
 <div align="center">
-  <img src="docs/assets/readme/source-to-work.svg" width="100%" alt="An example knowledge flow: notes raise a question, a recording and a saved article support a claim, and a creation step produces a document with its inputs recorded." />
+  <img src="docs/assets/readme/source-to-work.png" width="100%" alt="How it works: Sources. Reasoning. Work you can trace. Turn scattered sources into connected reasoning and a ready-to-use project brief." />
   <sub>An example knowledge flow, shown schematically.</sub>
 </div>
 

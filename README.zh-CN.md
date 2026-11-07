@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/madebyzan/knovum/releases/latest">
-    <img src="docs/assets/readme/banner.jpg" width="100%" alt="Knovum —— 本地优先的 AI 知识工作台" />
+    <img src="docs/assets/readme/banner.png" width="100%" alt="Knovum —— 本地优先的 AI 知识工作台" />
   </a>
 
   <p>
@@ -27,10 +27,7 @@
   </p>
 </div>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/screenshot-zh-dark.webp" />
-  <img src="docs/assets/readme/screenshot-zh-light.webp" width="100%" alt="Knovum 桌面应用：无限画布上的资料、主张、证据与设计简报相互连接，右侧对话面板给出带引用的回答。" />
-</picture>
+<img src="docs/assets/readme/screenshot.png" width="100%" alt="Knovum 桌面应用：无限画布上的资料、主张、证据与设计简报相互连接，右侧对话面板给出带引用的回答。" />
 
 ---
 
@@ -59,8 +56,8 @@
 ## 工作方式
 
 <div align="center">
-  <img src="docs/assets/readme/source-to-work.zh-CN.svg" width="100%" alt="一个知识流转示例：笔记提出问题，录音与收藏的文章支持一个主张，创作步骤生成文档并记录它的输入。" />
-  <sub>知识流转示意图。</sub>
+  <img src="docs/assets/readme/source-to-work.png" width="100%" alt="工作方式：从素材到思考，再到可追溯的项目简报。" />
+  <sub>知识流转示意图：从素材到思考，再到可追溯的项目简报。</sub>
 </div>
 
 1. **收集。** 粘贴链接即可摘录网页，或保存 YouTube、Bilibili、抖音、Vimeo 等平台的视频；拖入录音、
