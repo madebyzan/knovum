@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",
-    "@lucide/vue": "^1.52.0",
+    "@lucide/vue": "^1.67.0",
     "@mozilla/readability": "0.6.0",
     "@tanstack/vue-query": "^5.104.1",
     "@tanstack/vue-virtual": "^3.13.39",
