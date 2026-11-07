@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/madebyzan/knovum/releases/latest">
-    <img src="docs/assets/readme/banner.jpg" width="100%" alt="Knovum —— 本地优先的 AI 知识工作台" />
+    <img src="docs/assets/readme/banner.png" width="100%" alt="Knovum —— 本地优先的 AI 知识工作台" />
   </a>
 
   <p>
@@ -27,10 +27,7 @@
   </p>
 </div>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/screenshot-zh-dark.webp" />
-  <img src="docs/assets/readme/screenshot-zh-light.webp" width="100%" alt="Knovum 桌面应用：无限画布上的资料、主张、证据与设计简报相互连接，右侧对话面板给出带引用的回答。" />
-</picture>
+<img src="docs/assets/readme/screenshot.png" width="100%" alt="Knovum 桌面应用：无限画布上的资料、主张、证据与设计简报相互连接，右侧对话面板给出带引用的回答。" />
 
 ---
 

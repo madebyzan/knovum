@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/madebyzan/knovum/releases/latest">
-    <img src="docs/assets/readme/banner.jpg" width="100%" alt="Knovum — the local-first AI knowledge workspace" />
+    <img src="docs/assets/readme/banner.png" width="100%" alt="Knovum — the local-first AI knowledge workspace" />
   </a>
 
   <p>
@@ -27,10 +27,7 @@
   </p>
 </div>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/screenshot-en-dark.webp" />
-  <img src="docs/assets/readme/screenshot-en-light.webp" width="100%" alt="Knovum desktop app: a Space with sources, claims, evidence and a design brief connected on an infinite canvas, and a cited answer in the conversation panel." />
-</picture>
+<img src="docs/assets/readme/screenshot.png" width="100%" alt="Knovum desktop app: a Space with sources, claims, evidence and a design brief connected on an infinite canvas, and a cited answer in the conversation panel." />
 
 ---
 
