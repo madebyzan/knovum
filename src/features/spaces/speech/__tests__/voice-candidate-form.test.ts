@@ -77,6 +77,15 @@ it("submits confirmed reference text according to the selected model contract", 
   );
 });
 
+it("treats the adopted machine model as the pristine baseline", () => {
+  const form = setup();
+  form.model.value = "voxCpm2Q8";
+  form.initialModel.value = "voxCpm2Q8";
+  expect(form.dirty.value).toBe(false);
+  form.model.value = "voxCpm2";
+  expect(form.dirty.value).toBe(true);
+});
+
 it("submits reference audio with optional design prompt when supported", () => {
   const form = setup();
   form.model.value = "voxCpm2";

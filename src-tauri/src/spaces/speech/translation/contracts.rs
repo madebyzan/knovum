@@ -23,6 +23,8 @@ pub struct VideoTranslationSegmentInput {
     pub source_segment_id: String,
     pub source_segment_revision: u32,
     pub text: String,
+    #[serde(default)]
+    pub target_duration_ms: Option<u64>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]

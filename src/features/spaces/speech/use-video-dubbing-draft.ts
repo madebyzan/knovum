@@ -25,6 +25,7 @@ import {
   type VideoLineDraft,
 } from "./video-dubbing-draft";
 import { videoRevisionInput } from "./video-revision-input";
+import { linesFromTranscript } from "./video-transcript-splitter";
 import { defaultVoiceRevisionId, voiceSupportsDeliveryInstruction } from "./voice-options";
 export function useVideoDubbingDraft(
   project: () => DeepReadonly<SpeechProjectSnapshot>,
@@ -76,19 +77,9 @@ export function useVideoDubbingDraft(
     });
   }
   function importTranscript(transcript: SpaceMediaTranscript) {
-    lines.value = transcript.segments.map((segment) => ({
-      key: crypto.randomUUID(),
-      text: segment.text,
-      speakerKey: segment.speakerId ?? "",
-      voiceRevisionId: defaultVoiceId(),
-      deliveryInstruction: "",
-      startSeconds: String(segment.startMs / 1000),
-      endSeconds: String(segment.endMs / 1000),
-      sourceSegmentId: segment.id,
-      sourceSegmentRevision: segment.revision,
-      sourceText: segment.text,
-    }));
-    if (config.value) config.value = applyDialogueIntervals(config.value, transcript.segments);
+    const imported = linesFromTranscript(transcript, defaultVoiceId());
+    lines.value = imported.lines;
+    if (config.value) config.value = applyDialogueIntervals(config.value, imported.intervals);
   }
   function initializeFromTranscript(transcript: SpaceMediaTranscript) {
     initialize(() => importTranscript(transcript));

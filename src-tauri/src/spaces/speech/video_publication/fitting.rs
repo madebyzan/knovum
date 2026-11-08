@@ -9,13 +9,12 @@ use tokio_util::sync::CancellationToken;
 use super::{mixing::TimedRender, SAMPLE_RATE};
 use crate::spaces::speech::publication::hash_file;
 
-/// Minimum tempo (slowing down speech) to match a slower speaker in the video.
-/// Slowing down to 0.70x (1.43x duration) sounds natural and measured without distortion.
-pub const MIN_TEMPO: f64 = 0.70;
-
-/// Maximum tempo (speeding up speech) to fit a fast speaker or compact dialogue window.
-/// Speeding up to 1.50x (0.67x duration) preserves speech clarity and intonation.
-pub const MAX_TEMPO: f64 = 1.50;
+/// How much faster a line may be played to fit before the next speaker or the end of the picture.
+///
+/// Compressing speech by up to 25% (1.25x) maintains natural clarity, pitch, and intelligibility.
+/// Speech is NEVER slowed down below 1.0x: shorter dialogue plays at pristine natural rate,
+/// leaving natural pauses and breathing room rather than introducing phase distortion or metallic rasping.
+pub const MAX_COMPRESSION: f64 = 1.25;
 
 /// The fade every placed line ends with: long enough to avoid a click, short enough to be
 /// inaudible as a fade.
@@ -27,7 +26,7 @@ pub(super) struct Placement {
     pub(super) index: usize,
     pub(super) start_sample: u64,
     pub(super) sample_count: u64,
-    tempo: f64,
+    pub(super) tempo: f64,
 }
 
 impl Placement {
@@ -36,10 +35,11 @@ impl Placement {
     }
 }
 
-/// Decides how every line is heard to maintain synchronization with the video picture.
-/// Dialogue is spoken in script order: each line anchors to the timestamp the subtitles gave it,
-/// adapting its pacing bidirectionally within natural speech limits so that speech matches visual
-/// delivery without accumulating drift across scenes.
+/// Decides how every line is heard to maintain strict video synchronization with zero drift.
+/// Dialogue is spoken in script order: each line anchors to its absolute subtitle onset timestamp.
+/// If speech finishes within its window or within the following silence gap, it plays at 1.0x pristine
+/// rate without any audio stretching. If a line would collide with the next speaker, it compresses cleanly
+/// within acoustic limits so that subsequent speakers always start on time.
 pub(super) fn plan(timed: &[TimedRender], video_samples: u64) -> Result<Vec<Placement>, String> {
     let mut placements = Vec::with_capacity(timed.len());
     let mut cursor = 0;
@@ -79,26 +79,23 @@ struct Room {
 fn placement(index: usize, item: &TimedRender, room: Room) -> Result<Placement, String> {
     let natural = natural_samples(item)?;
     let delay_samples = room.start.saturating_sub(item.start_sample);
-    let available_window = item.window_samples.saturating_sub(delay_samples);
+    let window = item.window_samples.saturating_sub(delay_samples);
     let max_room = room
         .next
         .saturating_sub(room.start)
         .min(room.picture)
         .max(1);
-    let target = available_window.min(max_room).max(1);
+    let preferred = window.max(1);
 
-    let raw_tempo = natural as f64 / target as f64;
-    let (tempo, sample_count) = if (raw_tempo - 1.0).abs() < 0.02 {
+    let (tempo, sample_count) = if natural <= preferred || natural <= max_room {
+        // Speech fits within its window or within the silence gap before the next speaker.
+        // Keep 1.0x pristine neural audio: zero atempo filtering, zero metallic artifacts.
         (1.0, natural.min(max_room))
-    } else if raw_tempo > 1.0 {
-        // Speech is longer than the dialogue window: speed up to match visual delivery.
-        let t = raw_tempo.min(MAX_TEMPO);
-        let count = scaled(natural, t).min(max_room);
-        (t, count)
     } else {
-        // Speech is shorter than the dialogue window: slow down to match visual delivery.
-        let t = raw_tempo.max(MIN_TEMPO);
-        let count = scaled(natural, t).min(target).max(1);
+        // Speech exceeds the room before the next line: accelerate cleanly up to MAX_COMPRESSION.
+        let raw_tempo = natural as f64 / max_room as f64;
+        let t = raw_tempo.min(MAX_COMPRESSION);
+        let count = scaled(natural, t).min(max_room);
         (t, count)
     };
 
@@ -162,8 +159,10 @@ pub(super) fn render(
                 &filter,
                 "-c:a",
                 "pcm_f32le",
-                "-f",
-                "wav",
+                "-ar",
+                &SAMPLE_RATE.to_string(),
+                "-ac",
+                "1",
             ])
             .arg(&path),
         cancellation,

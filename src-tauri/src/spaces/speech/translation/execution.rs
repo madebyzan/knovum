@@ -48,9 +48,10 @@ pub(crate) async fn execute(
     let output = tasks::completion::complete(
         app,
         TaskExecutionTarget::Model(target),
-        capabilities::translation::input(
+        capabilities::translation::dubbing_input(
             config.segment.text.clone(),
             config.target_language.clone(),
+            config.segment.target_duration_ms,
         )?,
         claim.cancellation.clone(),
     )

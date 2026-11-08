@@ -12,12 +12,21 @@ interface UseMediaPlaybackOptions {
 }
 
 function selectPrimaryAudioTrack(element: HTMLMediaElement) {
-  const media = element as unknown as { audioTracks?: ArrayLike<{ enabled: boolean }> };
-  if (media.audioTracks && media.audioTracks.length > 1) {
-    for (let index = 0; index < media.audioTracks.length; index++) {
-      media.audioTracks[index]!.enabled = index === 0;
+  const media = element as unknown as {
+    audioTracks?: ArrayLike<{ enabled: boolean }> & {
+      addEventListener?: (type: string, listener: () => void) => void;
+    };
+  };
+  const enforce = () => {
+    if (media.audioTracks && media.audioTracks.length > 1) {
+      for (let index = 0; index < media.audioTracks.length; index++) {
+        media.audioTracks[index]!.enabled = index === 0;
+      }
     }
-  }
+  };
+  enforce();
+  media.audioTracks?.addEventListener?.("addtrack", enforce);
+  media.audioTracks?.addEventListener?.("change", enforce);
 }
 
 export function useMediaPlayback(

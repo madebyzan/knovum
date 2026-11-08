@@ -16,6 +16,7 @@ import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { VoiceModel } from "../../contracts/generated/VoiceModel";
 
 const model = defineModel<VoiceModel>({ required: true });
+const initialModel = defineModel<VoiceModel>("initialModel", { required: true });
 const available = defineModel<boolean>("available", { required: true });
 const referenceTranscript = defineModel<LocalModelReferenceTranscript>("referenceTranscript", {
   required: true,
@@ -54,7 +55,12 @@ watch(
         undefined,
       );
     const next = preferred ?? smallest ?? choices[0];
-    if (next) model.value = next.id as VoiceModel;
+    if (next) {
+      // Adopting a machine default initializes the form rather than editing it, so the dirty
+      // baseline moves with the value; only a later user selection counts as a change.
+      model.value = next.id as VoiceModel;
+      initialModel.value = next.id as VoiceModel;
+    }
     initializedSource = kind;
   },
   { immediate: true },

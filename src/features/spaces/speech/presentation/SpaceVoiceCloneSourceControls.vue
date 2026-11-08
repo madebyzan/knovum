@@ -63,6 +63,7 @@ function auditionSelection() {
     <VoiceCandidateOptions
       v-model:mode="form.mode"
       v-model:model="form.model"
+      v-model:initial-model="form.initialModel"
       v-model:available="form.modelAvailable"
       v-model:reference-transcript="form.referenceTranscript"
       v-model:reference-duration="form.referenceDuration"

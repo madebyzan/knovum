@@ -29,7 +29,7 @@ export function speechProjectInput(
         translation: null,
         preserveOriginalOutsideDialogue: false,
         sourceDialogueIntervals: [],
-        retainOriginalTrack: true,
+        retainOriginalTrack: false,
       },
     };
   }

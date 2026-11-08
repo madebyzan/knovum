@@ -27,6 +27,11 @@ const { t } = useI18n();
 const supportsDeliveryInstruction = computed(() =>
   props.deliveryInstructionVoiceIds.has(line.value.voiceRevisionId),
 );
+const durationSeconds = computed(() => {
+  const start = Number(line.value.startSeconds);
+  const end = Number(line.value.endSeconds);
+  return Number.isFinite(start) && Number.isFinite(end) && end > start ? end - start : 0;
+});
 
 function update<K extends keyof VideoLineDraft>(field: K, value: VideoLineDraft[K]) {
   line.value = { ...line.value, [field]: value };
@@ -69,6 +74,13 @@ function selectVoice(voiceRevisionId: string) {
           @update:model-value="update('endSeconds', $event)"
         />
       </label>
+    </div>
+    <div
+      v-if="durationSeconds > 0"
+      class="flex items-center justify-between text-caption-sm text-fg-tertiary"
+    >
+      <span>{{ durationSeconds.toFixed(1) }}s</span>
+      <span>{{ line.text.trim().length }}</span>
     </div>
     <UiTextarea
       :model-value="line.text"

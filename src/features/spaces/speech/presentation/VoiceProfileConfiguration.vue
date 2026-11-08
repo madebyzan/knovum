@@ -115,9 +115,10 @@ function setDirty(value: boolean) {
           <div class="flex min-w-0 items-center gap-2">
             <strong class="truncate text-body-lg font-medium text-fg-primary">{{ profile.name }}</strong>
             <UiBadge v-if="profile.archivedAt" size="sm">{{ t("spaces.speech.voice.archived") }}</UiBadge>
-            <UiBadge v-else-if="isDefault" size="sm" variant="neutral">{{
-              t("spaces.speech.library.defaultBadge")
-            }}</UiBadge>
+            <UiBadge v-else-if="isDefault" size="sm" variant="neutral">
+              <Star class="size-3 fill-current text-fg-warning" />
+              {{ t("spaces.speech.library.defaultBadge") }}
+            </UiBadge>
           </div>
           <p class="mt-0.5 truncate text-caption text-fg-secondary">
             {{ t(`spaces.speech.voice.origins.${profile.sourceKind}`) }} · {{ activeRevision.language }} ·
@@ -131,6 +132,15 @@ function setDirty(value: boolean) {
             }}
           </p>
         </div>
+        <UiIconButton
+          v-if="!profile.archivedAt && !isDefault"
+          :label="t('spaces.speech.library.setDefault')"
+          size="sm"
+          :disabled="disabled"
+          @click="emit('setDefault')"
+        >
+          <Star class="size-3.5 text-fg-tertiary" />
+        </UiIconButton>
         <UiDropdownMenu :items="menuItems">
           <template #trigger>
             <UiIconButton :label="t('common.more')" size="sm" :disabled="disabled || isEditorDirty">

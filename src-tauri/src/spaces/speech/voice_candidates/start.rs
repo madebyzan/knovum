@@ -14,10 +14,10 @@ use crate::spaces::{
 
 pub(super) async fn start(
     app: &tauri::AppHandle,
-    request: DraftVoiceCandidateRequest,
+    mut request: DraftVoiceCandidateRequest,
 ) -> Result<RunObservation, String> {
     super::require_uuid(&request.request_id, "Voice candidate request identity")?;
-    validate_request(&request)?;
+    validate_and_normalize_request(&mut request)?;
     let (cancellation, _lease) = super::super::cancellation::acquire(&request.request_id)?;
     let incoming_digest = request_digest(&request)?;
     let pool = db::pool(app).await?;
@@ -184,13 +184,33 @@ fn request_digest(request: &DraftVoiceCandidateRequest) -> Result<String, String
     Ok(hex::encode(Sha256::digest(bytes)))
 }
 
-fn validate_design_prompt(prompt: &str) -> bool {
-    !prompt.trim().is_empty()
-        && prompt.chars().count() <= 500
-        && !prompt.contains(['(', ')', '\n', '\r'])
+pub(super) fn normalize_design_prompt(prompt: &str) -> Result<String, String> {
+    let sanitized: String = prompt
+        .chars()
+        .map(|ch| match ch {
+            '(' => '[',
+            ')' => ']',
+            '\n' | '\r' | '\t' => ' ',
+            other => other,
+        })
+        .collect();
+    let normalized = sanitized.split_whitespace().collect::<Vec<_>>().join(" ");
+    if normalized.is_empty() {
+        return Err("Voice design description is invalid".into());
+    }
+    if normalized.chars().count() > 500 {
+        return Err("Voice design description must not exceed 500 characters".into());
+    }
+    Ok(normalized)
 }
 
-fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> {
+#[cfg(test)]
+pub(super) fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> {
+    let mut cloned = request.clone();
+    validate_and_normalize_request(&mut cloned)
+}
+
+fn validate_and_normalize_request(request: &mut DraftVoiceCandidateRequest) -> Result<(), String> {
     if !matches!(request.language.as_str(), "zh-CN" | "en")
         || request.text.trim().is_empty()
         || request.text.chars().count() > 500
@@ -211,14 +231,12 @@ fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> 
             "MOSS-TTS-Nano supports audio-reference cloning without transcript conditioning or design prompts".into(),
         );
     }
-    match &request.source {
+    match &mut request.source {
         VoiceCandidateSource::Designed { description } => {
             if !request.model.supports_design() {
                 return Err("Selected voice model does not support voice design".into());
             }
-            if !validate_design_prompt(description) {
-                return Err("Voice design description is invalid".into());
-            }
+            *description = normalize_design_prompt(description)?;
             Ok(())
         }
         VoiceCandidateSource::Reference {
@@ -235,26 +253,26 @@ fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> 
                 .as_deref()
                 .map(str::trim)
                 .filter(|text| !text.is_empty());
-            if let Some(prompt) = design_prompt
-                .as_deref()
-                .map(str::trim)
-                .filter(|prompt| !prompt.is_empty())
-            {
-                if !request.model.supports_design() {
-                    return Err("Selected voice model does not support design prompts".into());
-                }
-                if !validate_design_prompt(prompt) {
-                    return Err("Voice design description is invalid".into());
+            if let Some(prompt) = design_prompt.as_deref() {
+                let trimmed = prompt.trim();
+                if trimmed.is_empty() {
+                    *design_prompt = None;
+                } else {
+                    if !request.model.supports_design() {
+                        return Err("Selected voice model does not support design prompts".into());
+                    }
+                    *design_prompt = Some(normalize_design_prompt(trimmed)?);
                 }
             }
             if source_revision.len() != 71
                 || !source_revision.starts_with("sha256:")
-                || end_ms <= start_ms
-                || !(duration_bounds.min_ms..=duration_bounds.max_ms).contains(&(end_ms - start_ms))
+                || *end_ms <= *start_ms
+                || !(duration_bounds.min_ms..=duration_bounds.max_ms)
+                    .contains(&(*end_ms - *start_ms))
                 || *end_ms > 43_200_000
                 || source_path.trim().is_empty()
                 || text.is_some_and(|text| text.chars().count() > 3_000)
-                || (text.is_some() && !reference_text_confirmed)
+                || (text.is_some() && !*reference_text_confirmed)
             {
                 return Err(
                     "Reference transcript must be explicitly confirmed before synthesis".into(),

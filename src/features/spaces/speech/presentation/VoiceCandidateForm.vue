@@ -21,6 +21,7 @@ const { t } = useI18n();
 const {
   mode,
   model,
+  initialModel,
   modelAvailable,
   supportsDesign,
   referenceTranscript,
@@ -64,6 +65,7 @@ async function saveCandidate(candidateId: string, name: string) {
     <VoiceCandidateOptions
       v-model:mode="mode"
       v-model:model="model"
+      v-model:initial-model="initialModel"
       v-model:available="modelAvailable"
       v-model:supports-design="supportsDesign"
       v-model:reference-transcript="referenceTranscript"
@@ -96,6 +98,7 @@ async function saveCandidate(candidateId: string, name: string) {
         v-if="supportsDesign"
         v-model="description"
         :rows="2"
+        :maxlength="500"
         :disabled="busy || preparingReference"
         :placeholder="t('spaces.speech.reference.promptPlaceholder')"
         :aria-label="t('spaces.speech.reference.prompt')"
@@ -125,6 +128,7 @@ async function saveCandidate(candidateId: string, name: string) {
       v-else
       v-model="description"
       :rows="2"
+      :maxlength="500"
       :disabled="busy"
       :placeholder="t('spaces.speech.voice.design.placeholder')"
       :aria-label="t('spaces.speech.voice.design.placeholder')"

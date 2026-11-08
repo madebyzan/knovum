@@ -105,6 +105,7 @@ impl VoxCpm {
         cancel.check()?;
         let mut observer = Observer {
             publisher,
+            buffer: Vec::new(),
             error: None,
         };
         let samples = reference.as_deref().unwrap_or(&[]);
@@ -133,6 +134,10 @@ impl VoxCpm {
         cancel.check()?;
         if status != 0 {
             return Err(failure(&engine.api, "synthesis_failed"));
+        }
+        if !observer.buffer.is_empty() {
+            let remainder = std::mem::take(&mut observer.buffer);
+            observer.publisher.publish(&remainder, 48_000)?;
         }
         Ok(())
     }
@@ -203,8 +208,10 @@ fn inputs(params: &SpeechSynthesizeParams, cancel: &Cancellation) -> Result<Cond
         }
     }
 }
+const MIN_VOXCPM_CHUNK_SAMPLES: usize = 12_000;
 struct Observer<'a> {
     publisher: &'a mut Publisher,
+    buffer: Vec<f32>,
     error: Option<String>,
 }
 unsafe extern "C" fn publish(
@@ -218,10 +225,13 @@ unsafe extern "C" fn publish(
         if pointer.is_null() || count == 0 || count > 16 * 1024 || rate != 48_000 {
             return Err("invalid_output: VoxCPM2 chunk format differs".into());
         }
-        observer.publisher.publish(
-            unsafe { std::slice::from_raw_parts(pointer, count) },
-            rate as u32,
-        )
+        let incoming = unsafe { std::slice::from_raw_parts(pointer, count) };
+        observer.buffer.extend_from_slice(incoming);
+        if observer.buffer.len() >= MIN_VOXCPM_CHUNK_SAMPLES {
+            let to_publish = std::mem::take(&mut observer.buffer);
+            observer.publisher.publish(&to_publish, rate as u32)?;
+        }
+        Ok(())
     }));
     match synthesis {
         Ok(Ok(())) => 0,

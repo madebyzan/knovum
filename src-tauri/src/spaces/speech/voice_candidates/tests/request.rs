@@ -78,7 +78,12 @@ fn reference_cloning_supports_optional_design_prompt_on_capable_models() {
     assert!(validate_request(&value).is_ok());
 
     if let VoiceCandidateSource::Reference { design_prompt, .. } = &mut value.source {
-        *design_prompt = Some("包含(括号)的提示词".into());
+        *design_prompt = Some("包含(括号)和\n换行的提示词".into());
+    }
+    assert!(validate_request(&value).is_ok());
+
+    if let VoiceCandidateSource::Reference { design_prompt, .. } = &mut value.source {
+        *design_prompt = Some("a".repeat(501));
     }
     assert!(validate_request(&value).is_err());
 

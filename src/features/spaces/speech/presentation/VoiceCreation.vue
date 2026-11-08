@@ -39,7 +39,12 @@ function select(value: string) {
 </script>
 
 <template>
-  <TabsRoot :model-value="kind" class="space-y-4" @update:model-value="select">
+  <!-- Switching away can discard a draft form, so every switch passes an asynchronous
+       confirmation. Automatic activation would also request a switch whenever focus lands on an
+       unselected trigger, including the focus a closing confirmation restores, re-arming the
+       very dialog the user just answered; manual activation keeps requests to explicit
+       pointer and Enter/Space activations. -->
+  <TabsRoot :model-value="kind" activation-mode="manual" class="space-y-4" @update:model-value="select">
     <header class="flex items-center gap-3">
       <h3 class="min-w-0 flex-1 text-label font-medium text-fg-primary">
         {{ t("spaces.speech.library.add") }}

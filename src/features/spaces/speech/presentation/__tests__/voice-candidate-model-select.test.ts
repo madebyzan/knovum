@@ -50,6 +50,7 @@ function render(sourceKind: "reference" | "designed" = "reference") {
       sourceKind,
       disabled: false,
       modelValue: "mossNano",
+      initialModel: "mossNano",
       available: false,
       referenceTranscript: "unused",
     },
@@ -62,6 +63,8 @@ function render(sourceKind: "reference" | "designed" = "reference") {
 it("starts a new clone with the speech model selected in settings", () => {
   const wrapper = render();
   expect(wrapper.emitted("update:modelValue")).toEqual([["voxCpm2"]]);
+  // Adopting a machine default initializes the form, so the dirty baseline moves with it.
+  expect(wrapper.emitted("update:initialModel")).toEqual([["voxCpm2"]]);
 });
 
 it("waits for the catalog without replacing a choice when it refetches", async () => {
@@ -99,6 +102,7 @@ it("selects a compatible model after a disabled form becomes editable", async ()
       sourceKind: "designed",
       disabled: true,
       modelValue: "mossNano",
+      initialModel: "mossNano",
       available: false,
       referenceTranscript: "unused",
     },

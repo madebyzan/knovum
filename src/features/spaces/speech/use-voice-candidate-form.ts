@@ -16,6 +16,9 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
   const initialMode = requestedSourceKind?.() ?? "reference";
   const mode = shallowRef<VoiceCandidateSourceKind>(initialMode);
   const model = shallowRef<VoiceModel>(DEFAULT_MODEL);
+  // The model select adopts this machine's preferred synthesis model once the catalogue lands;
+  // that adoption initializes the form instead of editing it, so the dirty baseline moves with it.
+  const initialModel = shallowRef<VoiceModel>(DEFAULT_MODEL);
   const modelAvailable = shallowRef(false);
   const supportsDesign = shallowRef(false);
   const referenceTranscript = shallowRef<LocalModelReferenceTranscript>("unused");
@@ -79,7 +82,7 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
   const dirty = computed(
     () =>
       mode.value !== initialMode ||
-      model.value !== DEFAULT_MODEL ||
+      model.value !== initialModel.value ||
       language.value !== "zh-CN" ||
       Boolean(description.value.trim() || reference.value || transcript.value.trim()) ||
       text.value !== initialText,
@@ -121,6 +124,7 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
   return {
     mode,
     model,
+    initialModel,
     modelAvailable,
     supportsDesign,
     referenceTranscript,
