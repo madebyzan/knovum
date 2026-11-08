@@ -4,6 +4,8 @@
   "transcript": "Referenztranskript (optional)",
   "transcriptConfirmed": "Das Transkript stimmt mit der Aufnahme überein",
   "requirements": "Wählen Sie 5–{maxSeconds} Sekunden klare Ansprache einer Person.",
+  "prompt": "Stilbeschreibung / Prompt (optional)",
+  "promptPlaceholder": "Geben Sie die gewünschte Sprechweise, Stimmung oder den Tonfall ein (z. B. ruhig, warm, autoritär)",
   "tooShort": "Dieses Audio ist kürzer als fünf Sekunden. Wählen Sie eine längere Referenzaufnahme.",
   "start": "Auswahlstart(e)",
   "end": "Auswahlende(n)",

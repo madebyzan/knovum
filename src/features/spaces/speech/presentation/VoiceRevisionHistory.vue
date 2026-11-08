@@ -26,11 +26,13 @@ const options = computed(() =>
 </script>
 
 <template>
-  <section class="space-y-2">
-    <h3 class="text-caption font-medium text-fg-secondary">
-      {{ t("spaces.speech.voice.history") }} ({{ profile.revisions.length }})
-    </h3>
-    <UiSelect v-model="selected" size="sm" :label="t('spaces.speech.voice.history')" :options :disabled />
+  <section class="space-y-3">
+    <div v-if="profile.revisions.length > 1" class="space-y-1">
+      <h3 class="text-caption font-medium text-fg-secondary">
+        {{ t("spaces.speech.voice.history") }} ({{ profile.revisions.length }})
+      </h3>
+      <UiSelect v-model="selected" size="sm" :label="t('spaces.speech.voice.history')" :options :disabled />
+    </div>
     <VoiceAudition
       :source="{ kind: 'revision', revisionId: selected }"
       :disabled

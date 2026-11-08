@@ -4,6 +4,8 @@
   "transcript": "參考音訊文字（可選）",
   "transcriptConfirmed": "文字與錄音內容一致",
   "requirements": "選擇 5–{maxSeconds} 秒清晰的單人語音。",
+  "prompt": "風格描述 / 提示詞（選填）",
+  "promptPlaceholder": "輸入期望的語氣、情感或聲音風格（例如：沉穩大氣、富有磁性）",
   "tooShort": "這段音訊不足 5 秒，請選擇更長的參考錄音。",
   "start": "選區開始（秒）",
   "end": "選區結束（秒）",

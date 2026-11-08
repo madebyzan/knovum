@@ -4,6 +4,8 @@
   "transcript": "참조 기록(선택 사항)",
   "transcriptConfirmed": "녹취록이 녹음 내용과 일치합니다.",
   "requirements": "한 사람의 명확한 연설을 5~{maxSeconds}초 선택하세요.",
+  "prompt": "스타일 설명 / 프롬프트(선택 사항)",
+  "promptPlaceholder": "원하는 말투, 감정 또는 음성 스타일을 입력하세요(예: 차분하고 따뜻한 어조)",
   "tooShort": "이 오디오는 5초보다 짧습니다. 더 긴 참조 녹음을 선택하세요.",
   "start": "선택 시작(들)",
   "end": "선택 종료(들)",

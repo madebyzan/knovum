@@ -15,6 +15,7 @@ const referenceTranscript = defineModel<LocalModelReferenceTranscript>("referenc
   required: true,
 });
 const referenceDuration = defineModel<LocalModelReferenceDuration | undefined>("referenceDuration");
+const supportsDesign = defineModel<boolean>("supportsDesign", { default: false });
 defineProps<{
   fixedSource: boolean;
   disabled: boolean;
@@ -42,6 +43,7 @@ const { t } = useI18n();
         v-model:available="available"
         v-model:reference-transcript="referenceTranscript"
         v-model:reference-duration="referenceDuration"
+        v-model:supports-design="supportsDesign"
         :source-kind="mode"
         :disabled="disabled"
       />

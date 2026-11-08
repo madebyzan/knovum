@@ -4,6 +4,8 @@
   "transcript": "参考音频文本（可选）",
   "transcriptConfirmed": "文本与录音内容一致",
   "requirements": "选择 5–{maxSeconds} 秒清晰的单人语音。",
+  "prompt": "风格描述 / 提示词（可选）",
+  "promptPlaceholder": "输入期望的语气、情感或声音风格（例如：沉稳大气、富有磁性）",
   "tooShort": "这段音频不足 5 秒，请选择更长的参考录音。",
   "start": "选区开始（秒）",
   "end": "选区结束（秒）",

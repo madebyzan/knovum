@@ -69,9 +69,11 @@ export class PreviewAudioQueue {
     const context = this.context;
     if (!this.accepts(context, chunk)) return;
     this.validateMetadata(chunk);
+    this.expectedSeq += 1;
+    this.sampleRate = chunk.sampleRate;
     const duration = chunk.sampleCount / chunk.sampleRate;
     const underrun =
-      this.sources.size === 0 && this.expectedSeq > 1 && context.currentTime > this.scheduledUntilSeconds;
+      this.sources.size === 0 && chunk.seq > 1 && context.currentTime > this.scheduledUntilSeconds;
     if (underrun || this.pending.length > 0) {
       this.pending.push(chunk);
       this.pendingSeconds += duration;
@@ -108,8 +110,6 @@ export class PreviewAudioQueue {
     const startAt = Math.max(context.currentTime + START_DELAY_SECONDS, this.scheduledUntilSeconds);
     this.scheduledUntilSeconds = startAt + durationSeconds;
     this.queuedBytes += byteLength;
-    this.expectedSeq += 1;
-    this.sampleRate = chunk.sampleRate;
     this.sources.add(source);
     this.setPlaying(true);
     const completed = () => {

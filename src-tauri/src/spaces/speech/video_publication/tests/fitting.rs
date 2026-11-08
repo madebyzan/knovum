@@ -1,5 +1,5 @@
 use super::super::{mixing::timed_renders, SAMPLE_RATE};
-use super::{plan, MAX_COMPRESSION};
+use super::{plan, MAX_TEMPO, MIN_TEMPO};
 use crate::spaces::speech::contracts::SpeechSegmentRenderOutput;
 
 /// Two minutes of video, which every window in these tests fits inside.
@@ -42,30 +42,40 @@ fn planned(lines: &[(f64, i64, i64)], video_samples: u64) -> Vec<(usize, u64, u6
 }
 
 #[test]
-fn speech_shorter_than_its_window_keeps_its_own_pace() {
+fn speech_shorter_than_its_window_slows_down_to_match_scene_pacing() {
     assert_eq!(
-        planned(&[(1.0, 1_000, 3_000)], VIDEO_SAMPLES),
-        [(0, 48_000, 48_000)],
-        "a line that fits is never slowed down to fill the window it was given"
+        planned(&[(1.6, 1_000, 3_000)], VIDEO_SAMPLES),
+        [(0, 48_000, 96_000)],
+        "a line shorter than its window decelerates to span the speaking window"
     );
 }
 
 #[test]
-fn speech_slightly_longer_than_its_window_is_compressed_into_it() {
+fn speech_within_tolerance_slows_down_up_to_minimum_tempo() {
+    let min_rate = (1.0 * f64::from(SAMPLE_RATE) / MIN_TEMPO).round() as u64;
     assert_eq!(
-        planned(&[(1.1, 1_000, 2_000)], VIDEO_SAMPLES),
-        [(0, 48_000, 48_000)],
-        "a line within the compression the ear tolerates stays in sync with the picture"
+        planned(&[(1.0, 1_000, 4_000)], VIDEO_SAMPLES),
+        [(0, 48_000, min_rate)],
+        "very short speech decelerates to natural speech bounds without artificial distortion"
+    );
+}
+
+#[test]
+fn speech_slightly_longer_than_its_window_speeds_up_into_it() {
+    assert_eq!(
+        planned(&[(2.5, 1_000, 3_000)], VIDEO_SAMPLES),
+        [(0, 48_000, 96_000)],
+        "a line within the compression bounds speeds up to match visual delivery"
     );
 }
 
 #[test]
 fn speech_far_longer_than_its_window_speaks_into_the_silence_that_follows() {
-    let compressed = (4.0 * f64::from(SAMPLE_RATE) / MAX_COMPRESSION).ceil() as u64;
+    let compressed = (4.0 * f64::from(SAMPLE_RATE) / MAX_TEMPO).round() as u64;
     assert_eq!(
         planned(&[(4.0, 1_000, 2_000)], VIDEO_SAMPLES),
         [(0, 48_000, compressed)],
-        "the line keeps speaking past its window rather than being cut or rejected"
+        "the line keeps speaking into following silence rather than cutting off"
     );
     assert!(compressed > 48_000);
 }
@@ -75,59 +85,26 @@ fn a_line_is_never_heard_past_the_end_of_the_video() {
     assert_eq!(
         planned(&[(4.0, 2_000, 3_000)], 3 * u64::from(SAMPLE_RATE)),
         [(0, 96_000, 48_000)],
-        "the last line keeps its tolerable pace and stops with the picture"
+        "the last line stops with the picture"
     );
 }
 
 #[test]
-fn a_line_that_overruns_delays_the_next_one_instead_of_talking_over_it() {
-    let overrun = (4.0 * f64::from(SAMPLE_RATE) / MAX_COMPRESSION).ceil() as u64;
-    let delayed = (1.0 * f64::from(SAMPLE_RATE) / MAX_COMPRESSION).ceil() as u64;
+fn consecutive_lines_stay_anchored_to_their_video_time_without_collision() {
     assert_eq!(
         planned(&[(4.0, 0, 1_000), (1.0, 1_000, 2_000)], VIDEO_SAMPLES),
-        [(0, 0, overrun), (1, overrun, delayed)],
-        "the next line waits for the floor instead of two voices speaking at once"
+        [(0, 0, 48_000), (1, 48_000, 48_000)],
+        "lines without silence between them fit their exact slots without talking over each other"
     );
 }
 
 #[test]
-fn a_late_line_compresses_as_far_as_it_may_to_catch_up() {
-    let overrun = (4.0 * f64::from(SAMPLE_RATE) / MAX_COMPRESSION).ceil() as u64;
-    let caught_up = (2.0 * f64::from(SAMPLE_RATE) / MAX_COMPRESSION).ceil() as u64;
-    let last = (1.0 * f64::from(SAMPLE_RATE) / MAX_COMPRESSION).ceil() as u64;
-    assert_eq!(
-        planned(
-            &[(4.0, 0, 1_000), (2.0, 1_000, 3_000), (1.0, 3_000, 4_000)],
-            VIDEO_SAMPLES
-        ),
-        [
-            (0, 0, overrun),
-            (1, overrun, caught_up),
-            (2, overrun + caught_up, last)
-        ],
-        "a line pushed past its window speeds up so the lateness stops growing"
-    );
-}
-
-#[test]
-fn lateness_is_paid_back_by_the_silence_between_lines() {
-    let overrun = (4.0 * f64::from(SAMPLE_RATE) / MAX_COMPRESSION).ceil() as u64;
+fn lateness_does_not_accumulate_across_the_video_timeline() {
+    let compressed = (4.0 * f64::from(SAMPLE_RATE) / MAX_TEMPO).round() as u64;
     assert_eq!(
         planned(&[(4.0, 0, 1_000), (1.0, 10_000, 11_000)], VIDEO_SAMPLES),
-        [(0, 0, overrun), (1, 480_000, 48_000)],
-        "the next line keeps its own subtitle time once the gap has absorbed the overrun"
-    );
-}
-
-#[test]
-fn a_line_pushed_past_the_picture_is_not_heard() {
-    assert_eq!(
-        planned(
-            &[(4.0, 0, 1_000), (1.0, 1_000, 2_000)],
-            3 * u64::from(SAMPLE_RATE)
-        ),
-        [(0, 0, 3 * u64::from(SAMPLE_RATE))],
-        "a line with no picture left to speak over is dropped rather than overlapping"
+        [(0, 0, compressed), (1, 480_000, 48_000)],
+        "the next line keeps its exact timestamp and does not suffer cumulative drift"
     );
 }
 

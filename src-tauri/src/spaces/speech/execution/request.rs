@@ -109,7 +109,12 @@ fn frozen_voice_revision(
         reference_audio,
         reference_text,
         // Saved designs reuse the selected immutable recording, rather than designing a new voice.
-        design_prompt: None,
+        // Reference voices with design prompts maintain their style guidance.
+        design_prompt: if voice.source_kind == "reference" {
+            voice.design_description.clone()
+        } else {
+            None
+        },
     })
 }
 

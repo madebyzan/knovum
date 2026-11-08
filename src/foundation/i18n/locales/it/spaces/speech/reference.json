@@ -4,6 +4,8 @@
   "transcript": "Trascrizione di riferimento (opzionale)",
   "transcriptConfirmed": "La trascrizione corrisponde alla registrazione",
   "requirements": "Scegli 5-{maxSeconds} secondi di discorso chiaro da parte di una persona.",
+  "prompt": "Descrizione stile / Prompt (opzionale)",
+  "promptPlaceholder": "Descrivi il tono, l'emozione o lo stile vocale desiderato (es. calmo, caldo, autorevole)",
   "tooShort": "Questo audio dura meno di cinque secondi. Scegli una registrazione di riferimento più lunga.",
   "start": "Inizio/i di selezione",
   "end": "Fine selezione/i",

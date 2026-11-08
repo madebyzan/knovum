@@ -22,6 +22,7 @@ const {
   mode,
   model,
   modelAvailable,
+  supportsDesign,
   referenceTranscript,
   referenceDuration,
   language,
@@ -64,6 +65,7 @@ async function saveCandidate(candidateId: string, name: string) {
       v-model:mode="mode"
       v-model:model="model"
       v-model:available="modelAvailable"
+      v-model:supports-design="supportsDesign"
       v-model:reference-transcript="referenceTranscript"
       v-model:reference-duration="referenceDuration"
       v-model:language="language"
@@ -90,6 +92,14 @@ async function saveCandidate(candidateId: string, name: string) {
           })
         }}
       </p>
+      <UiTextarea
+        v-if="supportsDesign"
+        v-model="description"
+        :rows="2"
+        :disabled="busy || preparingReference"
+        :placeholder="t('spaces.speech.reference.promptPlaceholder')"
+        :aria-label="t('spaces.speech.reference.prompt')"
+      />
       <UiTextarea
         v-if="referenceTranscript === 'optionalConfirmed'"
         v-model="transcript"

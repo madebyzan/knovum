@@ -14,6 +14,7 @@ fn request() -> DraftVoiceCandidateRequest {
             end_ms: 10_000,
             reference_text: None,
             reference_text_confirmed: false,
+            design_prompt: None,
         },
     }
 }
@@ -59,4 +60,31 @@ fn reference_duration_bounds_follow_the_selected_synthesis_model() {
         *end_ms = 15_000;
     }
     assert!(validate_request(&value).is_ok());
+}
+
+#[test]
+fn reference_cloning_supports_optional_design_prompt_on_capable_models() {
+    let mut value = request();
+    value.model = super::super::VoiceModel::VoxCpm2;
+    if let VoiceCandidateSource::Reference {
+        design_prompt,
+        end_ms,
+        ..
+    } = &mut value.source
+    {
+        *end_ms = 10_000;
+        *design_prompt = Some("沉稳大气的男声".into());
+    }
+    assert!(validate_request(&value).is_ok());
+
+    if let VoiceCandidateSource::Reference { design_prompt, .. } = &mut value.source {
+        *design_prompt = Some("包含(括号)的提示词".into());
+    }
+    assert!(validate_request(&value).is_err());
+
+    if let VoiceCandidateSource::Reference { design_prompt, .. } = &mut value.source {
+        *design_prompt = Some("沉稳男声".into());
+    }
+    value.model = super::super::VoiceModel::MossNano;
+    assert!(validate_request(&value).is_err());
 }

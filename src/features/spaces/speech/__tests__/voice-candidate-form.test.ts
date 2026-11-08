@@ -76,3 +76,30 @@ it("submits confirmed reference text according to the selected model contract", 
     }),
   );
 });
+
+it("submits reference audio with optional design prompt when supported", () => {
+  const form = setup();
+  form.model.value = "voxCpm2";
+  form.supportsDesign.value = true;
+  form.description.value = "  沉稳富有磁性的男声  ";
+  form.referenceDuration.value = { minMs: 5_000, maxMs: 15_000 };
+  form.reference.value = {
+    sourcePath: "/reference.wav",
+    sourceRevision: "sha256:reference",
+    startMs: 0,
+    endMs: 8_000,
+    transcript: "",
+  };
+  form.modelAvailable.value = true;
+  expect(form.ready.value).toBe(true);
+  form.generate();
+  expect(draft).toHaveBeenCalledWith(
+    expect.objectContaining({
+      model: "voxCpm2",
+      source: expect.objectContaining({
+        kind: "reference",
+        designPrompt: "沉稳富有磁性的男声",
+      }),
+    }),
+  );
+});

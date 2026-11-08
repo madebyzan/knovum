@@ -21,6 +21,7 @@ const referenceTranscript = defineModel<LocalModelReferenceTranscript>("referenc
   required: true,
 });
 const referenceDuration = defineModel<LocalModelReferenceDuration | undefined>("referenceDuration");
+const supportsDesign = defineModel<boolean>("supportsDesign", { default: false });
 const props = defineProps<{ sourceKind: "reference" | "designed"; disabled: boolean }>();
 const { t } = useI18n();
 const catalog = useLocalModelsQuery();
@@ -62,6 +63,7 @@ const selected = computed(() => models.value.find((entry) => entry.id === model.
 const readiness = useAiReadiness(() => [{ kind: "localModel", model: model.value }]);
 watchEffect(() => {
   available.value = Boolean(selected.value) && !catalog.error.value;
+  supportsDesign.value = Boolean(selected.value?.operations.includes("voiceDesign"));
   referenceTranscript.value = selected.value?.referenceTranscript ?? "unused";
   referenceDuration.value = selected.value?.referenceDuration ?? undefined;
 });

@@ -184,6 +184,12 @@ fn request_digest(request: &DraftVoiceCandidateRequest) -> Result<String, String
     Ok(hex::encode(Sha256::digest(bytes)))
 }
 
+fn validate_design_prompt(prompt: &str) -> bool {
+    !prompt.trim().is_empty()
+        && prompt.chars().count() <= 500
+        && !prompt.contains(['(', ')', '\n', '\r'])
+}
+
 fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> {
     if !matches!(request.language.as_str(), "zh-CN" | "en")
         || request.text.trim().is_empty()
@@ -196,21 +202,24 @@ fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> 
             &request.source,
             VoiceCandidateSource::Reference {
                 reference_text: None,
+                design_prompt: None,
                 ..
             }
         )
     {
         return Err(
-            "MOSS-TTS-Nano supports audio-reference cloning without transcript conditioning".into(),
+            "MOSS-TTS-Nano supports audio-reference cloning without transcript conditioning or design prompts".into(),
         );
     }
     match &request.source {
-        VoiceCandidateSource::Designed { description }
-            if description.trim().is_empty()
-                || description.chars().count() > 500
-                || description.contains(['(', ')', '\n', '\r']) =>
-        {
-            Err("Voice design description is invalid".into())
+        VoiceCandidateSource::Designed { description } => {
+            if !request.model.supports_design() {
+                return Err("Selected voice model does not support voice design".into());
+            }
+            if !validate_design_prompt(description) {
+                return Err("Voice design description is invalid".into());
+            }
+            Ok(())
         }
         VoiceCandidateSource::Reference {
             source_path,
@@ -219,12 +228,25 @@ fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> 
             end_ms,
             reference_text,
             reference_text_confirmed,
+            design_prompt,
         } => {
             let duration_bounds = request.model.reference_duration();
             let text = reference_text
                 .as_deref()
                 .map(str::trim)
                 .filter(|text| !text.is_empty());
+            if let Some(prompt) = design_prompt
+                .as_deref()
+                .map(str::trim)
+                .filter(|prompt| !prompt.is_empty())
+            {
+                if !request.model.supports_design() {
+                    return Err("Selected voice model does not support design prompts".into());
+                }
+                if !validate_design_prompt(prompt) {
+                    return Err("Voice design description is invalid".into());
+                }
+            }
             if source_revision.len() != 71
                 || !source_revision.starts_with("sha256:")
                 || end_ms <= start_ms
@@ -240,7 +262,6 @@ fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> 
             }
             Ok(())
         }
-        _ => Ok(()),
     }
 }
 

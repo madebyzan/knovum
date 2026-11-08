@@ -50,6 +50,9 @@ impl VoiceModel {
             .reference_duration
             .expect("Synthesis models declare reference audio duration bounds")
     }
+    pub(crate) fn supports_design(self) -> bool {
+        matches!(self, Self::VoxCpm2 | Self::VoxCpm2Bf16 | Self::VoxCpm2Q8)
+    }
     pub(crate) fn from_specification(value: &str) -> Result<Self, String> {
         [
             Self::MossNano,
@@ -79,6 +82,8 @@ pub enum VoiceCandidateSource {
         end_ms: u64,
         reference_text: Option<String>,
         reference_text_confirmed: bool,
+        #[serde(default)]
+        design_prompt: Option<String>,
     },
     Designed {
         description: String,

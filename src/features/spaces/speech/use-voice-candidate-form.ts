@@ -17,6 +17,7 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
   const mode = shallowRef<VoiceCandidateSourceKind>(initialMode);
   const model = shallowRef<VoiceModel>(DEFAULT_MODEL);
   const modelAvailable = shallowRef(false);
+  const supportsDesign = shallowRef(false);
   const referenceTranscript = shallowRef<LocalModelReferenceTranscript>("unused");
   const referenceDuration = shallowRef<LocalModelReferenceDuration>();
   const language = shallowRef("zh-CN");
@@ -91,6 +92,7 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
     const prepared = reference.value;
     if (!prepared) return undefined;
     const usesTranscript = referenceTranscript.value === "optionalConfirmed";
+    const prompt = supportsDesign.value ? description.value.trim() : "";
     return {
       kind: "reference",
       sourcePath: prepared.sourcePath,
@@ -99,6 +101,7 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
       endMs: prepared.endMs,
       referenceText: usesTranscript ? transcript.value.trim() || null : null,
       referenceTextConfirmed: usesTranscript && transcriptConfirmed.value,
+      designPrompt: prompt || null,
     };
   }
 
@@ -119,6 +122,7 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
     mode,
     model,
     modelAvailable,
+    supportsDesign,
     referenceTranscript,
     referenceDuration,
     language,

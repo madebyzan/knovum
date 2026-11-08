@@ -239,7 +239,11 @@ async fn prepare_source(
             Some(description.trim().into()),
             "designed",
         )),
-        VoiceCandidateSource::Reference { reference_text, .. } => {
+        VoiceCandidateSource::Reference {
+            reference_text,
+            design_prompt,
+            ..
+        } => {
             let snapshot = configuration
                 .reference_source
                 .as_ref()
@@ -273,7 +277,12 @@ async fn prepare_source(
                 let _ = fs::remove_file(reference_part);
                 return Err(error.into());
             }
-            Ok((Some(audio), text.map(str::to_owned), None, "reference"))
+            let prompt = design_prompt
+                .as_deref()
+                .map(str::trim)
+                .filter(|prompt| !prompt.is_empty())
+                .map(str::to_owned);
+            Ok((Some(audio), text.map(str::to_owned), prompt, "reference"))
         }
     }
 }

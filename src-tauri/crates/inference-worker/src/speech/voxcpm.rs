@@ -181,27 +181,24 @@ fn inputs(params: &SpeechSynthesizeParams, cancel: &Cancellation) -> Result<Cond
                 );
             }
             if let Some(text) = &voice.reference_text {
-                if text.trim().is_empty() || voice.design_prompt.is_some() || params.style.is_some()
-                {
+                if text.trim().is_empty() {
                     return Err(
-                        "invalid_input: transcript cloning controls are inconsistent".into(),
+                        "invalid_input: transcript cloning reference text is empty".into(),
                     );
                 }
-                Ok((params.text.clone(), Some(audio.samples), Some(text.clone())))
-            } else {
-                let controls = [voice.design_prompt.as_deref(), params.style.as_deref()]
-                    .into_iter()
-                    .flatten()
-                    .map(str::trim)
-                    .filter(|text| !text.is_empty())
-                    .collect::<Vec<_>>();
-                let text = if controls.is_empty() {
-                    params.text.clone()
-                } else {
-                    format!("({}){}", controls.join(", "), params.text)
-                };
-                Ok((text, Some(audio.samples), None))
             }
+            let controls = [voice.design_prompt.as_deref(), params.style.as_deref()]
+                .into_iter()
+                .flatten()
+                .map(str::trim)
+                .filter(|text| !text.is_empty())
+                .collect::<Vec<_>>();
+            let text = if controls.is_empty() {
+                params.text.clone()
+            } else {
+                format!("({}){}", controls.join(", "), params.text)
+            };
+            Ok((text, Some(audio.samples), None))
         }
         VoiceSourceKind::Preset => {
             Err("invalid_input: VoxCPM2 requires voice design or reference cloning".into())
