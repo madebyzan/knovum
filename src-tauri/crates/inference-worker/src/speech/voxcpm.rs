@@ -182,9 +182,7 @@ fn inputs(params: &SpeechSynthesizeParams, cancel: &Cancellation) -> Result<Cond
             }
             if let Some(text) = &voice.reference_text {
                 if text.trim().is_empty() {
-                    return Err(
-                        "invalid_input: transcript cloning reference text is empty".into(),
-                    );
+                    return Err("invalid_input: transcript cloning reference text is empty".into());
                 }
             }
             let controls = [voice.design_prompt.as_deref(), params.style.as_deref()]
