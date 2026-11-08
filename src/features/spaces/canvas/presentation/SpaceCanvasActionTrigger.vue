@@ -3,6 +3,7 @@ import { ToolbarButton } from "reka-ui";
 import type { Component } from "vue";
 
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
+import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { NODE_ACTION_LABEL_CLASS, nodeActionLabelState } from "./selection/node-action-label";
@@ -29,9 +30,8 @@ const emit = defineEmits<{ invoke: [] }>();
     :title="unavailableReason"
     @select="emit('invoke')"
   >
-    <component :is="icon" class="size-3.5" :class="{ 'animate-spin motion-reduce:animate-none': busy }" />{{
-      label
-    }}
+    <UiSpinner v-if="busy" :label="label" size="sm" class="size-3.5 text-current" />
+    <component :is="icon" v-else class="size-3.5" />{{ label }}
   </UiDropdownMenuItem>
   <UiTooltip v-else :text="unavailableReason || label" :disabled="!compact && !unavailableReason" side="top">
     <ToolbarButton as-child>
@@ -44,12 +44,8 @@ const emit = defineEmits<{ invoke: [] }>();
         :disabled="disabled"
         @click="emit('invoke')"
       >
-        <component
-          :is="icon"
-          class="size-4.5"
-          :class="{ 'animate-spin motion-reduce:animate-none': busy }"
-          :stroke-width="1.6"
-        />
+        <UiSpinner v-if="busy" :label="label" class="size-4.5 text-current" />
+        <component :is="icon" v-else class="size-4.5" :stroke-width="1.6" />
         <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(Boolean(compact))]">{{ label }}</span>
       </button>
     </ToolbarButton>

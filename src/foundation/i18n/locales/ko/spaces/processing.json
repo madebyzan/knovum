@@ -48,6 +48,7 @@
     }
   },
   "visual": {
-    "waitingConfiguration": "이 이미지 또는 비디오를 분석하려면 시각적 이해 모델을 구성하십시오."
+    "waitingConfiguration": "이 이미지 또는 비디오를 분석하려면 시각적 이해 모델을 구성하십시오.",
+    "reanalyze": "시각 콘텐츠 다시 분석"
   }
 }

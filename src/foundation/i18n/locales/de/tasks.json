@@ -29,5 +29,6 @@
     "preparingInference": "Vorbereiten lokaler AI-Komponenten…",
     "downloadSize": "Für die erste Verwendung sind {size} lokale Ressourcen-Downloads erforderlich",
     "installing": "Lokale Ressourcen werden installiert…"
-  }
+  },
+  "retryAll": "Alle erneut versuchen"
 }

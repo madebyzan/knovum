@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, Pencil, X } from "@lucide/vue";
+import { Check, Pencil, RotateCcw, X } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -8,8 +8,14 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import { useNodeDraft } from "../../inspection/presentation/use-node-draft";
 
-const props = defineProps<{ nodeId: string; summary: string; disabled?: boolean }>();
-const emit = defineEmits<{ save: [summary: string] }>();
+const props = defineProps<{
+  nodeId: string;
+  summary: string;
+  disabled?: boolean;
+  canRegenerate?: boolean;
+  regenerateDisabledReason?: string | undefined;
+}>();
+const emit = defineEmits<{ save: [summary: string]; regenerate: [] }>();
 const { t } = useI18n();
 const editing = ref(false);
 const draft = ref(props.summary);
@@ -55,14 +61,22 @@ function saveMediaSummary() {
           ><Check class="size-3"
         /></UiIconButton>
       </template>
-      <UiIconButton
-        v-else
-        :label="t('common.edit')"
-        size="sm"
-        :disabled="disabled || !nodeDraft.available.value"
-        @click="beginSummaryEdit"
-        ><Pencil class="size-3"
-      /></UiIconButton>
+      <template v-else>
+        <UiIconButton
+          :label="regenerateDisabledReason || t('spaces.media.analysis.insights.regenerate')"
+          size="sm"
+          :disabled="!canRegenerate || !nodeDraft.available.value"
+          @click="emit('regenerate')"
+          ><RotateCcw class="size-3"
+        /></UiIconButton>
+        <UiIconButton
+          :label="t('common.edit')"
+          size="sm"
+          :disabled="disabled || !nodeDraft.available.value"
+          @click="beginSummaryEdit"
+          ><Pencil class="size-3"
+        /></UiIconButton>
+      </template>
     </div>
     <UiTextarea v-if="editing" v-model="draft" class="mt-1.5" :rows="5" />
     <UiExpandableText

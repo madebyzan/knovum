@@ -1,4 +1,4 @@
-import type { Ref } from "vue";
+import { ref, type Ref } from "vue";
 
 import { getErrorMessage } from "../errors/error-format";
 import type { AppTask } from "./task-model";
@@ -28,6 +28,30 @@ export function createTaskRetryController({
 }: TaskRetryOptions) {
   const retryDescriptorByTaskId = new Map<string, RetryDescriptor>();
   const observationRetryByTaskId = new Map<string, RetryTask>();
+  const retryingAll = ref(false);
+
+  async function retryAll(retryOne: (taskId: string) => Promise<void>, taskIds?: readonly string[]) {
+    if (retryingAll.value) return;
+    const allowed = taskIds ? new Set(taskIds) : undefined;
+    const targets = tasks.value
+      .filter(
+        (task) =>
+          (!allowed || allowed.has(task.id)) &&
+          (task.status === "failed" || task.status === "attention") &&
+          Boolean(task.retryable),
+      )
+      .map((task) => task.id);
+    if (!targets.length) return;
+    retryingAll.value = true;
+    try {
+      for (const taskId of targets) {
+        // oxlint-disable-next-line eslint/no-await-in-loop -- Retries execute sequentially to preserve order.
+        await retryOne(taskId);
+      }
+    } finally {
+      retryingAll.value = false;
+    }
+  }
 
   function restoreFailed(
     task: Omit<AppTask, "status">,
@@ -123,5 +147,7 @@ export function createTaskRetryController({
     markObservationUnavailable,
     resumeObservation,
     retry,
+    retryingAll,
+    retryAll,
   };
 }

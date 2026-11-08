@@ -8,11 +8,12 @@ import SpaceNodeTranscriptionAction from "../SpaceNodeTranscriptionAction.vue";
 
 const mocks = vi.hoisted(() => ({ analyze: vi.fn<() => Promise<void>>() }));
 vi.mock("../../use-media-knowledge", () => ({
-  useMediaKnowledge: () => ({ canTranscribe, transcribed, analyzing, analyze: mocks.analyze }),
+  useMediaKnowledge: () => ({ canTranscribe, transcribed, transcribing, analyzing, analyze: mocks.analyze }),
 }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 const canTranscribe = shallowRef(true);
 const transcribed = shallowRef(false);
+const transcribing = shallowRef(false);
 const analyzing = shallowRef(false);
 const node: SpaceCanvasNode = {
   id: "audio",
@@ -33,6 +34,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   canTranscribe.value = true;
   transcribed.value = false;
+  transcribing.value = false;
   analyzing.value = false;
 });
 it("starts transcription directly from the media node toolbar", async () => {
@@ -40,16 +42,20 @@ it("starts transcription directly from the media node toolbar", async () => {
   await wrapper.get('[data-testid="node-transcription-action"]').trigger("click");
   expect(mocks.analyze).toHaveBeenCalledOnce();
 });
-it("shows a completed transcript without offering destructive retranscription", async () => {
+it("offers retranscription when a completed transcript already exists", async () => {
   transcribed.value = true;
-  canTranscribe.value = false;
+  canTranscribe.value = true;
   const wrapper = render();
   await flushPromises();
   const action = wrapper.get('[data-testid="node-transcription-action"]');
-  expect(action.attributes("disabled")).toBeDefined();
-  expect(action.attributes("aria-label")).toBe("spaces.media.player.transcribed");
+  expect(action.attributes("disabled")).toBeUndefined();
+  expect(action.attributes("aria-label")).toBe("spaces.media.player.retranscribe");
+  await action.trigger("click");
+  expect(mocks.analyze).toHaveBeenCalledOnce();
 });
 it("keeps the queued or running Rust task visible and prevents duplicate dispatch", async () => {
+  transcribed.value = true;
+  transcribing.value = true;
   analyzing.value = true;
   canTranscribe.value = false;
   const wrapper = render();

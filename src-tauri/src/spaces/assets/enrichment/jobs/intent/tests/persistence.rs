@@ -168,6 +168,32 @@ async fn execution_choice_is_frozen_at_creation_and_survives_retry_and_restart()
         persistence::freeze_target(&pool, id, &next).await.unwrap(),
         first
     );
+    assert!(
+        persistence::defer_for_configuration(&pool, id, "missing key".into(), 6)
+            .await
+            .unwrap()
+    );
+    assert_eq!(
+        persistence::freeze_target(&pool, id, &next).await.unwrap(),
+        next
+    );
+}
+
+#[tokio::test]
+async fn cancelled_job_is_not_reenqueued_by_unrelated_node_synchronization() {
+    let data = read(json!({"kind":"image","title":"Image","sourceRevision":"asset-1"}));
+    let pool = fixture(&data).await;
+    synchronize(&pool, &data).await;
+    let jobs = persistence::list_actionable(&pool, None).await.unwrap();
+    assert_eq!(jobs.len(), 1);
+    persistence::set_status(&pool, &jobs[0].id, "'pending'", "cancelled", None, 3)
+        .await
+        .unwrap();
+    synchronize(&pool, &data).await;
+    assert!(persistence::list_actionable(&pool, None)
+        .await
+        .unwrap()
+        .is_empty());
 }
 
 #[tokio::test]

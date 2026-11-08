@@ -55,13 +55,7 @@ pub(super) async fn transcribe(
     {
         return Err("Transcription requires current media analysis".into());
     }
-    if super::super::requests::has_current_transcript(payload, &request.source_revision) {
-        return Err(
-            "Current media transcript already exists; automatic retranscription would discard transcript edits"
-                .into(),
-        );
-    }
-    let transcript = transcription::start_transcription(
+    let mut transcript = transcription::start_transcription(
         app.clone(),
         job_id.to_owned(),
         source.clone(),
@@ -69,6 +63,12 @@ pub(super) async fn transcribe(
         progress,
     )
     .await?;
+    if let Some(previous_revision) = payload["mediaKnowledge"]["transcript"]["revision"]
+        .as_u64()
+        .and_then(|value| u32::try_from(value).ok())
+    {
+        transcript.revision = previous_revision.saturating_add(1);
+    }
     let revision = request.source_revision.clone();
     crate::foundation::blocking::run(move || {
         crate::file_inspection::verify_content_revision(Path::new(&source), &revision)

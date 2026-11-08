@@ -36,6 +36,7 @@ macro_rules! knovum_workspace_commands {
         crate::spaces::package::import_space_package,
         crate::spaces::package::cancel_space_package_transfer,
         crate::spaces::assets::enrichment::jobs::requests::request_media_transcription,
+        crate::spaces::assets::enrichment::jobs::requests::request_visual_analysis,
         crate::spaces::assets::enrichment::jobs::requests::alignment::request_media_alignment,
         crate::spaces::assets::enrichment::jobs::requests::diarization::request_media_diarization,
         crate::spaces::assets::enrichment::jobs::requests::retry_enrichment_job,

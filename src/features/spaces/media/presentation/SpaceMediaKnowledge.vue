@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { AlertTriangle, ChevronRight } from "@lucide/vue";
+import { AlertTriangle, ChevronRight, RotateCcw } from "@lucide/vue";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import SpaceNodeEnrichmentStatus from "../../enrichment/presentation/SpaceNodeEnrichmentStatus.vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useMediaKnowledge } from "../use-media-knowledge";
@@ -28,8 +29,10 @@ const {
   stale,
   canEdit,
   canDerive,
+  canTranscribe,
   canGenerateInsights,
   insightsDisabledReason,
+  analyze,
   seek,
   generateInsights,
   saveSummary,
@@ -72,7 +75,10 @@ const {
         :node-id="nodeId"
         :summary="insights.summary"
         :disabled="stale || !canEdit"
+        :can-regenerate="canGenerateInsights"
+        :regenerate-disabled-reason="insightsDisabledReason"
         @save="saveSummary"
+        @regenerate="generateInsights"
       />
       <div v-if="insights" class="mt-4">
         <h4 class="text-caption-sm font-semibold tracking-wide text-fg-tertiary uppercase">
@@ -97,20 +103,30 @@ const {
       </div>
       <CollapsibleRoot v-model:open="transcriptOpen" as-child>
         <div class="mt-4">
-          <CollapsibleTrigger
-            class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-caption font-semibold text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
-          >
-            <ChevronRight
-              class="size-3 transition-transform duration-150 ease-standard"
-              :class="transcriptOpen && 'rotate-90'"
-            />
-            {{ t("spaces.transcript.text.title") }}
-            <span class="ml-auto text-caption-sm font-normal text-fg-tertiary">
-              {{ knowledge.transcript.language }}
-              ·
-              {{ knowledge.transcript.segments.length }}
-            </span>
-          </CollapsibleTrigger>
+          <div class="flex items-center gap-1">
+            <CollapsibleTrigger
+              class="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-2 text-caption font-semibold text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
+            >
+              <ChevronRight
+                class="size-3 transition-transform duration-150 ease-standard"
+                :class="transcriptOpen && 'rotate-90'"
+              />
+              {{ t("spaces.transcript.text.title") }}
+              <span class="ml-auto text-caption-sm font-normal text-fg-tertiary">
+                {{ knowledge.transcript.language }}
+                ·
+                {{ knowledge.transcript.segments.length }}
+              </span>
+            </CollapsibleTrigger>
+            <UiIconButton
+              :label="t('spaces.media.player.retranscribe')"
+              size="sm"
+              :disabled="!canTranscribe || alignmentSubmitting"
+              @click="analyze"
+            >
+              <RotateCcw class="size-3" />
+            </UiIconButton>
+          </div>
           <CollapsibleContent class="mt-2">
             <SpaceDiarizationControl
               :node-id="nodeId"

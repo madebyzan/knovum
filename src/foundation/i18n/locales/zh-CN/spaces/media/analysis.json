@@ -14,6 +14,7 @@
   "inProgress": "正在后台分析音视频…",
   "insights": {
     "unavailable": "转录数据不可用，请先分析媒体文件。",
-    "generate": "生成结构化章节与摘要"
+    "generate": "生成结构化章节与摘要",
+    "regenerate": "重新生成结构化章节与摘要"
   }
 }

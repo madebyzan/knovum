@@ -14,6 +14,7 @@
   "inProgress": "Analizando medios en segundo plano...",
   "insights": {
     "unavailable": "Los datos de la transcripción no están disponibles; Por favor analice los medios primero.",
-    "generate": "Generar capítulos y resumen"
+    "generate": "Generar capítulos y resumen",
+    "regenerate": "Regenerar capítulos y resumen"
   }
 }

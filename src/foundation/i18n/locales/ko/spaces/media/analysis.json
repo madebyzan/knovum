@@ -14,6 +14,7 @@
   "inProgress": "백그라운드에서 미디어 분석 중…",
   "insights": {
     "unavailable": "성적 증명서 데이터를 사용할 수 없습니다. 먼저 언론을 분석해 보세요.",
-    "generate": "장 및 요약 생성"
+    "generate": "장 및 요약 생성",
+    "regenerate": "챕터 및 요약 다시 생성"
   }
 }

@@ -150,7 +150,9 @@ function statusLabel(status: TaskStatus) {
           <RotateCcw class="size-3" />
         </UiIconButton>
         <UiIconButton
-          v-if="!isActive(task.status) && (!task.durable || isTerminal(task.status))"
+          v-if="
+            !isActive(task.status) && (!task.durable || isTerminal(task.status) || Boolean(task.dismissible))
+          "
           :label="t('tasks.dismiss')"
           size="sm"
           @click="emit('dismiss', task.id)"

@@ -38,32 +38,28 @@ export function createSpaceMediaActions(context: SpaceMediaActionsContext) {
     const spaceId = requireSpace();
     return requestMediaTranscription(spaceId, nodeId);
   }
-  async function generateMediaInsights(nodeId: string, labels: SpaceMediaAnalysisLabels) {
+  async function generateMediaInsights(nodeId: string, labels: SpaceMediaAnalysisLabels, taskId?: string) {
     if (context.analysisIds.value.includes(nodeId)) return;
     const spaceId = requireSpace();
-    const node = context.nodes.value.find((candidate) => candidate.id === nodeId);
-    if (!node || !isSpaceMediaPayload(node.data) || !node.data.knowledgeRevision)
-      throw new Error("Current media knowledge is unavailable");
-    const jobId = crypto.randomUUID();
+    const expectedRevision = requireKnowledgeRevision(context.nodes.value, nodeId);
+    const jobId = taskId ?? crypto.randomUUID();
     const tasks = useTaskStore();
-    tasks.start(labels.title, labels.organizing, () => cancelAiJob(jobId), jobId);
+    beginInsightsTask(tasks, jobId, labels, Boolean(taskId));
     context.analysisIds.value = [...context.analysisIds.value, nodeId];
     try {
       const mediaPayload = await generateInsights(
-        { spaceId, nodeId, jobId, expectedRevision: node.data.knowledgeRevision },
-        ({ stage, progress, resources }) => {
-          const statusMessage = resources
-            ? `${labels.preparing} · ${formatBytes(resources.downloaded)}${resources.total === null ? "" : ` / ${formatBytes(resources.total)}`}`
-            : stage;
-          tasks.progress(jobId, progress, statusMessage);
-        },
+        { spaceId, nodeId, jobId, expectedRevision },
+        ({ stage, progress, resources }) =>
+          tasks.progress(jobId, progress, formatInsightsStage(labels, stage, resources)),
       );
       context.applyNodeContentForSpace(spaceId, nodeId, mediaPayload);
-      tasks.succeed(jobId);
+      if (!taskId) tasks.succeed(jobId);
     } catch (error) {
-      if (decodeAppError(error)?.code === "media_insights_cancelled") tasks.cancelled(jobId);
-      else {
-        tasks.fail(jobId, getErrorMessage(error));
+      if (decodeAppError(error)?.code === "media_insights_cancelled") {
+        tasks.cancelled(jobId);
+      } else {
+        if (!taskId) tasks.fail(jobId, getErrorMessage(error));
+        tasks.setRetry(jobId, () => generateMediaInsights(nodeId, labels, jobId));
         throw error;
       }
     } finally {
@@ -103,4 +99,31 @@ export function createSpaceMediaActions(context: SpaceMediaActionsContext) {
     updateMediaPlayback,
     clearMediaPlayback,
   };
+}
+
+function requireKnowledgeRevision(nodes: readonly SpaceCanvasNode[], nodeId: string) {
+  const node = nodes.find((candidate) => candidate.id === nodeId);
+  if (!node || !isSpaceMediaPayload(node.data) || !node.data.knowledgeRevision)
+    throw new Error("Current media knowledge is unavailable");
+  return node.data.knowledgeRevision;
+}
+
+function beginInsightsTask(
+  tasks: ReturnType<typeof useTaskStore>,
+  jobId: string,
+  labels: SpaceMediaAnalysisLabels,
+  isRetry: boolean,
+) {
+  if (isRetry) tasks.setCancellation(jobId, () => cancelAiJob(jobId));
+  else tasks.start(labels.title, labels.organizing, () => cancelAiJob(jobId), jobId);
+}
+
+function formatInsightsStage(
+  labels: SpaceMediaAnalysisLabels,
+  stage: string,
+  resources?: { downloaded: number; total: number | null } | null,
+) {
+  if (!resources) return stage;
+  const total = resources.total === null ? "" : ` / ${formatBytes(resources.total)}`;
+  return `${labels.preparing} · ${formatBytes(resources.downloaded)}${total}`;
 }

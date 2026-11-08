@@ -8,7 +8,10 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { getCanvasEditorSession } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/use-node-operation-gate";
 import { refreshEnrichmentJobs } from "../enrichment/enrichment-jobs-query";
-import { useNodeEnrichmentStatus } from "../enrichment/use-node-enrichment-status";
+import {
+  MEDIA_ENRICHMENT_JOB_TYPES,
+  useNodeEnrichmentStatus,
+} from "../enrichment/use-node-enrichment-status";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload } from "../model/nodes/capabilities";
 import { useSpaceStore } from "../session/space-store";
@@ -34,7 +37,9 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   const { status } = useNodeEnrichmentStatus(
     computed(() => store.activeSpaceId),
     computed(() => node.value.id),
+    MEDIA_ENRICHMENT_JOB_TYPES,
   );
+  const transcribing = computed(() => submitting.value || Boolean(status.value.transcribing));
   const analyzing = computed(
     () =>
       submitting.value ||
@@ -55,14 +60,11 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   );
   const canEdit = computed(() => nodeOperations.allows("edit"));
   const canDerive = computed(() => nodeOperations.allows("derive"));
-  const canGenerateInsights = computed(() => {
-    if (!canDerive.value) return false;
-    if (analyzing.value) return false;
-    if (stale.value) return false;
-    if (!knowledge.value) return false;
-    if (!knowledge.value.transcript.segments.length) return false;
-    return true;
-  });
+  const canGenerateInsights = computed(() =>
+    Boolean(
+      canDerive.value && !analyzing.value && !stale.value && knowledge.value?.transcript.segments.length,
+    ),
+  );
   const insightsDisabledReason = computed(() => {
     if (analyzing.value) return t("spaces.media.analysis.inProgress");
     if (stale.value) return t("spaces.media.analysis.knowledge.stale");
@@ -70,15 +72,13 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     return undefined;
   });
   const transcribed = computed(() => Boolean(knowledge.value && !stale.value));
-  const canTranscribe = computed(
-    () =>
+  const canTranscribe = computed(() =>
+    Boolean(
       canDerive.value &&
       !analyzing.value &&
-      !transcribed.value &&
-      Boolean(
-        mediaContent.value?.sourceRevision &&
-        mediaContent.value.mediaAnalysis?.sourceRevision === mediaContent.value.sourceRevision,
-      ),
+      mediaContent.value?.sourceRevision &&
+      mediaContent.value.mediaAnalysis?.sourceRevision === mediaContent.value.sourceRevision,
+    ),
   );
   async function analyze() {
     if (!canTranscribe.value) return;
@@ -96,15 +96,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   async function alignSegments(segmentIds: string[]) {
     const current = knowledge.value;
     const spaceId = store.activeSpaceId;
-    if (
-      !spaceId ||
-      !current ||
-      !canDerive.value ||
-      stale.value ||
-      analyzing.value ||
-      alignmentSubmitting.value
-    )
-      return;
+    if (!spaceId || !current || !canGenerateInsights.value || alignmentSubmitting.value) return;
     alignmentSubmitting.value = true;
     try {
       if (!(await admitAiRequirements([{ kind: "localCapability", capability: "speechAlignment" }]))) return;
@@ -169,6 +161,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     canDerive,
     canTranscribe,
     transcribed,
+    transcribing,
     canGenerateInsights,
     insightsDisabledReason,
     analyze,
