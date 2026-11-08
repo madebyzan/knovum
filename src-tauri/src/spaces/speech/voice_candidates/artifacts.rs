@@ -26,7 +26,8 @@ pub(super) async fn verify_source_snapshot(
             },
             Some(snapshot),
         ) => {
-            if !(5_000..=30_000).contains(&snapshot.duration_ms)
+            let bounds = configuration.request.model.reference_duration();
+            if !(bounds.min_ms..=bounds.max_ms).contains(&snapshot.duration_ms)
                 || end_ms.checked_sub(*start_ms) != Some(snapshot.duration_ms)
             {
                 return Err("Voice candidate reference duration differs from its selection".into());
@@ -43,7 +44,11 @@ pub(super) async fn verify_source_snapshot(
             let expected = snapshot.source_revision.clone();
             let duration_ms = snapshot.duration_ms;
             crate::foundation::blocking::run(move || -> Result<(), String> {
-                let audio = super::super::voice_assets::reference_metadata(&path)?;
+                let audio = super::super::voice_assets::reference_metadata_with_bounds(
+                    &path,
+                    bounds.min_ms,
+                    bounds.max_ms,
+                )?;
                 let samples = u64::from(
                     hound::WavReader::open(&path)
                         .map_err(|error| error.to_string())?

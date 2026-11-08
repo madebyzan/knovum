@@ -45,3 +45,18 @@ fn lightweight_cloning_does_not_silently_ignore_transcript_conditioning() {
     }
     assert!(validate_request(&value).is_err());
 }
+
+#[test]
+fn reference_duration_bounds_follow_the_selected_synthesis_model() {
+    let mut value = request();
+    if let VoiceCandidateSource::Reference { end_ms, .. } = &mut value.source {
+        *end_ms = 20_000;
+    }
+    assert!(validate_request(&value).is_ok());
+    value.model = super::super::VoiceModel::VoxCpm2;
+    assert!(validate_request(&value).is_err());
+    if let VoiceCandidateSource::Reference { end_ms, .. } = &mut value.source {
+        *end_ms = 15_000;
+    }
+    assert!(validate_request(&value).is_ok());
+}

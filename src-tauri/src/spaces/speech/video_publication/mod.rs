@@ -1,6 +1,7 @@
 use std::fs;
 
 mod asset_transaction;
+pub(in crate::spaces::speech) mod auto_background;
 mod dialogue_envelope;
 mod dialogue_track;
 pub(in crate::spaces::speech) mod final_mix;
@@ -67,18 +68,18 @@ pub(super) async fn publish_video<R: Runtime>(
     fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
     let video =
         policy::verified_source(app, &config.video.asset_path, &config.video.source_revision)?;
-    let background = config
-        .background
-        .as_ref()
+    let explicit_background = if config.uses_auto_video_background() {
+        None
+    } else {
+        config.background.as_ref()
+    };
+    let background = explicit_background
         .map(|source| policy::verified_source(app, &source.asset_path, &source.source_revision))
         .transpose()?;
     let postcheck_video = video.clone();
     let postcheck_background = background.clone();
     let video_revision = config.video.source_revision.clone();
-    let background_revision = config
-        .background
-        .as_ref()
-        .map(|source| source.source_revision.clone());
+    let background_revision = explicit_background.map(|source| source.source_revision.clone());
     let ffmpeg = tools::resolve_ffmpeg(app)?.ok_or("The bundled FFmpeg tool is unavailable")?;
     let inspect_ffmpeg = ffmpeg.clone();
     let inspect_video = video.clone();
@@ -94,7 +95,7 @@ pub(super) async fn publish_video<R: Runtime>(
         )
     })
     .await?;
-    if let (Some(source), Some(path)) = (config.background.as_ref(), background.as_ref()) {
+    if let (Some(source), Some(path)) = (explicit_background, background.as_ref()) {
         let inspect_ffmpeg = ffmpeg.clone();
         let inspect_path = path.clone();
         let expected_ms = source.duration_ms;
@@ -133,9 +134,31 @@ pub(super) async fn publish_video<R: Runtime>(
         fs::remove_dir_all(&work).map_err(|error| error.to_string())?;
     }
     fs::create_dir_all(&work).map_err(|error| error.to_string())?;
+    let build_background = if config.uses_auto_video_background() {
+        let attempt_epoch = u64::try_from(claim.execution_epoch)
+            .map_err(|_| "Video assembly execution epoch is invalid")?;
+        match auto_background::resolve(auto_background::AutoBackgroundContext {
+            app,
+            pool,
+            project_id,
+            job_id: &claim.attempt_id,
+            attempt_epoch,
+            ffmpeg: &ffmpeg,
+            video_path: &video,
+            video_source: &config.video,
+            work: &work,
+            cancellation,
+        })
+        .await
+        {
+            Ok(resolved) => resolved,
+            Err(error) => return Err(asset_transaction::cleanup_failure(error, &[], &[&work])),
+        }
+    } else {
+        background
+    };
     let build_ffmpeg = ffmpeg.clone();
     let build_work = work.clone();
-    let build_background = background;
     let build_config = config.clone();
     let build_cancellation = cancellation.clone();
     let mixed = crate::foundation::blocking::run(move || {

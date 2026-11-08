@@ -27,12 +27,7 @@ const props = defineProps<{
   disabled: boolean;
 }>();
 const emit = defineEmits<{
-  preview: [
-    text: string,
-    voiceRevisionId: string,
-    pronunciationLexicon: Record<string, string>,
-    deliveryInstruction?: string,
-  ];
+  preview: [text: string, voiceId: string, lexicon: Record<string, string>, deliveryInstruction?: string];
   draftState: [
     value: boolean,
     input?: Omit<SaveSpeechProjectRevisionRequest, "projectId" | "expectedRevision">,
@@ -146,6 +141,7 @@ function previewLine(text: string, voiceRevisionId: string, instruction?: string
         @source="(start, end) => sourceControls?.audition(start, end)"
         @remove="draft.removeLine"
         @update="draft.updateLine"
+        @apply-all="draft.applyVoiceToAll"
       />
       <div class="flex gap-2">
         <UiButton size="sm" variant="ghost" :disabled="editingDisabled" @click="draft.addLine()"

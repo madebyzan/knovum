@@ -11,6 +11,7 @@ import type { VideoDubbingOutputConfig } from "../../contracts/generated/VideoDu
 import { resourcePublicationQueryKey } from "../../runs/resource-publication-query";
 import { listSourceSeparations } from "../source-separation-ipc";
 import { useSpeechMediaSources } from "../use-speech-media-sources";
+import { usesAutoVideoBackground } from "../video-background-selection";
 
 const props = defineProps<{ spaceId: string; config: VideoDubbingOutputConfig; disabled: boolean }>();
 const emit = defineEmits<{
@@ -30,6 +31,7 @@ const separations = useQuery({
 const value = computed(() => {
   if (props.config.backgroundSeparation)
     return `separation:${props.config.backgroundSeparation.separationId}`;
+  if (usesAutoVideoBackground(props.config)) return "auto";
   const current = props.config.background;
   if (!current) return "mute";
   return (
@@ -41,6 +43,7 @@ const value = computed(() => {
 });
 const options = computed(() => {
   const choices = [
+    { value: "auto", label: t("spaces.speech.videoDubbing.keepOriginalBackground") },
     { value: "mute", label: t("spaces.speech.videoDubbing.muteOriginal") },
     ...backgrounds.value.map(({ id, name }) => ({ value: id, label: name })),
     ...(separations.data.value ?? []).map((publication, index) => ({
@@ -66,6 +69,7 @@ function select(selected: string) {
     (publication) => `separation:${publication.separationId}` === selected,
   );
   if (separation) emit("separated", separation);
+  else if (selected === "auto") emit("background", { ...props.config.video });
   else
     emit(
       "background",

@@ -3,7 +3,7 @@
   "choose": "選擇參考音訊",
   "transcript": "參考音訊文字（可選）",
   "transcriptConfirmed": "文字與錄音內容一致",
-  "requirements": "選擇 5–30 秒清晰的單人語音。",
+  "requirements": "選擇 5–{maxSeconds} 秒清晰的單人語音。",
   "tooShort": "這段音訊不足 5 秒，請選擇更長的參考錄音。",
   "start": "選區開始（秒）",
   "end": "選區結束（秒）",

@@ -31,6 +31,7 @@ function entry(modelId: "mossNano" | "voxCpm2" | "voxCpm2Q8", selected: boolean)
     capability: "speechSynthesis",
     operations: vox ? ["voiceCloning", "voiceDesign"] : ["voiceCloning"],
     referenceTranscript: vox ? "optionalConfirmed" : "unused",
+    referenceDuration: { minMs: 5_000, maxMs: vox ? 15_000 : 30_000 },
     essential: false,
     fixed: false,
     installed: true,

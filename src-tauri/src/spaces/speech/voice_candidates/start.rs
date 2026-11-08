@@ -220,6 +220,7 @@ fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> 
             reference_text,
             reference_text_confirmed,
         } => {
+            let duration_bounds = request.model.reference_duration();
             let text = reference_text
                 .as_deref()
                 .map(str::trim)
@@ -227,7 +228,7 @@ fn validate_request(request: &DraftVoiceCandidateRequest) -> Result<(), String> 
             if source_revision.len() != 71
                 || !source_revision.starts_with("sha256:")
                 || end_ms <= start_ms
-                || !(5_000..=30_000).contains(&(end_ms - start_ms))
+                || !(duration_bounds.min_ms..=duration_bounds.max_ms).contains(&(end_ms - start_ms))
                 || *end_ms > 43_200_000
                 || source_path.trim().is_empty()
                 || text.is_some_and(|text| text.chars().count() > 3_000)

@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
 
 pub use super::model_metadata::{
-    LocalModelCapability, LocalModelOperation, LocalModelReferenceTranscript,
+    LocalModelCapability, LocalModelOperation, LocalModelReferenceDuration,
+    LocalModelReferenceTranscript,
 };
 use super::{
     model_metadata,
@@ -74,6 +75,7 @@ pub struct LocalModelAvailability {
     pub capability: LocalModelCapability,
     pub operations: &'static [LocalModelOperation],
     pub reference_transcript: LocalModelReferenceTranscript,
+    pub reference_duration: Option<LocalModelReferenceDuration>,
     pub group: LocalModelGroup,
     pub essential: bool,
     pub selected: bool,
@@ -304,6 +306,7 @@ pub(crate) fn inspect<R: Runtime>(
         capability: metadata.capability,
         operations: metadata.operations,
         reference_transcript: metadata.reference_transcript,
+        reference_duration: metadata.reference_duration,
         group: model_id.group(),
         selected: super::model_selection::is_selected(app, model_id)?,
         selectable: super::model_selection::is_selectable(model_id),

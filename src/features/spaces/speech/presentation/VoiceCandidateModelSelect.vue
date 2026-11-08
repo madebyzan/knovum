@@ -9,6 +9,7 @@ import { useAiReadiness } from "../../../../foundation/ai/use-ai-readiness";
 import { formatBytes } from "../../../../foundation/format/bytes";
 import { useLocalModelsQuery } from "../../../../foundation/runtime/use-local-models-query";
 import type { LocalModelOperation } from "../../../../shared/contracts/generated/LocalModelOperation";
+import type { LocalModelReferenceDuration } from "../../../../shared/contracts/generated/LocalModelReferenceDuration";
 import type { LocalModelReferenceTranscript } from "../../../../shared/contracts/generated/LocalModelReferenceTranscript";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
@@ -19,6 +20,7 @@ const available = defineModel<boolean>("available", { required: true });
 const referenceTranscript = defineModel<LocalModelReferenceTranscript>("referenceTranscript", {
   required: true,
 });
+const referenceDuration = defineModel<LocalModelReferenceDuration | undefined>("referenceDuration");
 const props = defineProps<{ sourceKind: "reference" | "designed"; disabled: boolean }>();
 const { t } = useI18n();
 const catalog = useLocalModelsQuery();
@@ -61,6 +63,7 @@ const readiness = useAiReadiness(() => [{ kind: "localModel", model: model.value
 watchEffect(() => {
   available.value = Boolean(selected.value) && !catalog.error.value;
   referenceTranscript.value = selected.value?.referenceTranscript ?? "unused";
+  referenceDuration.value = selected.value?.referenceDuration ?? undefined;
 });
 </script>
 

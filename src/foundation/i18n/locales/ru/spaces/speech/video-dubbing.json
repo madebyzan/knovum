@@ -1,8 +1,12 @@
 {
   "backgroundAudio": "Фоновый звук",
+  "keepOriginalBackground": "Сохранить исходный фон (автоотделение голоса)",
   "muteOriginal": "Отключить исходный звук",
   "voiceGain": "Усиление голоса (дБ)",
   "backgroundGain": "Усиление фона (дБ)",
+  "backgroundPresetNatural": "Естественный (0 dB)",
+  "backgroundPresetSoft": "Мягкий (-6 dB)",
+  "backgroundPresetSubtle": "Тихий (-12 dB)",
   "importTranscript": "Использовать исходную расшифровку",
   "startSeconds": "Старт (секунды)",
   "endSeconds": "Конец (секунды)",
@@ -20,5 +24,7 @@
   "multipleAudioTracks": "Видео с несколькими звуковыми дорожками",
   "audioTracksHint": "Выберите до восьми опубликованных версий одного и того же исходного видео в порядке воспроизведения.",
   "currentBackground": "Текущий фоновый трек",
+  "batchVoiceLabel": "Единый голос",
+  "applyToAllLines": "Применить ко всем строкам",
   "mixingSettings": "Аудиомикс"
 }

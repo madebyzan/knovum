@@ -8,10 +8,15 @@ import type { VideoDubbingOutputConfig } from "../contracts/generated/VideoDubbi
 import type { VideoTranslation } from "../contracts/generated/VideoTranslation";
 import type { VoiceLibraryRevision } from "../contracts/generated/VoiceLibraryRevision";
 import type { SpaceMediaTranscript } from "../media/schema/transcript";
+import { useDefaultVoiceProfile } from "./default-voice";
 import type { DubbingSubtitle } from "./dubbing-subtitles";
 import { usePronunciationLexicon } from "./use-pronunciation-lexicon";
 import { useSpeechDraftChanges } from "./use-speech-draft-changes";
-import { selectBackground, selectSeparatedBackground } from "./video-background-selection";
+import {
+  applyDialogueIntervals,
+  selectBackground,
+  selectSeparatedBackground,
+} from "./video-background-selection";
 import {
   applyTranslation as applyTranslatedLines,
   bindVideoSpeaker,
@@ -25,10 +30,12 @@ export function useVideoDubbingDraft(
   project: () => DeepReadonly<SpeechProjectSnapshot>,
   voices: () => readonly VoiceLibraryRevision[],
 ) {
+  const { defaultVoiceProfileId } = useDefaultVoiceProfile();
+  const defaultVoiceId = () => defaultVoiceRevisionId(voices(), defaultVoiceProfileId.value);
   const lines = ref<VideoLineDraft[]>([]);
   const config = shallowRef<VideoDubbingOutputConfig>();
   const voiceGain = shallowRef("0");
-  const backgroundGain = shallowRef("-12");
+  const backgroundGain = shallowRef("0");
   const lexicon = usePronunciationLexicon(() => project().revision);
   const snapshot = () =>
     JSON.stringify([lines.value, config.value, voiceGain.value, backgroundGain.value, lexicon.entries.value]);
@@ -49,7 +56,7 @@ export function useVideoDubbingDraft(
   );
   watch(voices, () => {
     initialize(() => {
-      const voiceId = defaultVoiceRevisionId(voices());
+      const voiceId = defaultVoiceId();
       if (!voiceId) return;
       for (const line of lines.value) {
         if (!line.voiceRevisionId) line.voiceRevisionId = voiceId;
@@ -62,7 +69,7 @@ export function useVideoDubbingDraft(
       key: crypto.randomUUID(),
       text: "",
       speakerKey: "",
-      voiceRevisionId: defaultVoiceRevisionId(voices()),
+      voiceRevisionId: defaultVoiceId(),
       deliveryInstruction: "",
       startSeconds: "0",
       endSeconds: "1",
@@ -73,7 +80,7 @@ export function useVideoDubbingDraft(
       key: crypto.randomUUID(),
       text: segment.text,
       speakerKey: segment.speakerId ?? "",
-      voiceRevisionId: defaultVoiceRevisionId(voices()),
+      voiceRevisionId: defaultVoiceId(),
       deliveryInstruction: "",
       startSeconds: String(segment.startMs / 1000),
       endSeconds: String(segment.endMs / 1000),
@@ -81,12 +88,7 @@ export function useVideoDubbingDraft(
       sourceSegmentRevision: segment.revision,
       sourceText: segment.text,
     }));
-    if (config.value)
-      config.value = {
-        ...config.value,
-        translation: null,
-        sourceDialogueIntervals: transcript.segments.map(({ startMs, endMs }) => ({ startMs, endMs })),
-      };
+    if (config.value) config.value = applyDialogueIntervals(config.value, transcript.segments);
   }
   function initializeFromTranscript(transcript: SpaceMediaTranscript) {
     initialize(() => importTranscript(transcript));
@@ -96,17 +98,12 @@ export function useVideoDubbingDraft(
       key: crypto.randomUUID(),
       text: cue.text,
       speakerKey: cue.speakerKey,
-      voiceRevisionId: defaultVoiceRevisionId(voices()),
+      voiceRevisionId: defaultVoiceId(),
       deliveryInstruction: "",
       startSeconds: String(cue.startMs / 1000),
       endSeconds: String(cue.endMs / 1000),
     }));
-    if (config.value)
-      config.value = {
-        ...config.value,
-        translation: null,
-        sourceDialogueIntervals: cues.map(({ startMs, endMs }) => ({ startMs, endMs })),
-      };
+    if (config.value) config.value = applyDialogueIntervals(config.value, cues);
   }
   function bindSpeaker(speakerKey: string, voiceRevisionId: string) {
     lines.value = bindVideoSpeaker(
@@ -116,8 +113,14 @@ export function useVideoDubbingDraft(
       voiceSupportsDeliveryInstruction(voices(), voiceRevisionId),
     );
   }
+  function applyVoiceToAll(voiceRevisionId: string) {
+    for (const line of lines.value) line.voiceRevisionId = voiceRevisionId;
+  }
   function removeLine(index: number) {
     lines.value.splice(index, 1);
+  }
+  function updateLine(index: number, line: VideoLineDraft) {
+    lines.value[index] = line;
   }
   function setBackground(background: SpeechMediaSource | null) {
     if (!config.value) throw new Error("Video dubbing output configuration is unavailable");
@@ -126,9 +129,6 @@ export function useVideoDubbingDraft(
   function setSeparatedBackground(publication: SpeechSourceSeparationPublication) {
     if (!config.value) throw new Error("Video dubbing output configuration is unavailable");
     config.value = selectSeparatedBackground(config.value, publication);
-  }
-  function updateLine(index: number, line: VideoLineDraft) {
-    lines.value[index] = line;
   }
   const valid = computed(
     () =>
@@ -171,6 +171,7 @@ export function useVideoDubbingDraft(
     initializeFromTranscript,
     importSubtitles,
     bindSpeaker,
+    applyVoiceToAll,
     applyTranslation,
     revisionInput,
   };

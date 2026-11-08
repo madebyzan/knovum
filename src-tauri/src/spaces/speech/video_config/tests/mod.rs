@@ -50,3 +50,29 @@ fn dubbing_keeps_both_separation_models_and_rejects_foreign_provenance() {
         .source_revision = format!("sha256:{}", "c".repeat(64));
     assert!(validate(&config).is_err());
 }
+
+#[test]
+fn auto_video_background_allows_preserving_original_outside_dialogue_without_manual_separation() {
+    let source = SpeechMediaSource {
+        asset_path: "/managed/video.mp4".into(),
+        source_revision: format!("sha256:{}", "a".repeat(64)),
+        duration_ms: 5_000,
+    };
+    let config = VideoDubbingOutputConfig {
+        format: "mp4".into(),
+        video: source.clone(),
+        background: Some(source),
+        background_separation: None,
+        voice_gain_db: 0.0,
+        background_gain_db: 0.0,
+        translation: None,
+        preserve_original_outside_dialogue: true,
+        source_dialogue_intervals: vec![SourceDialogueInterval {
+            start_ms: 500,
+            end_ms: 2_000,
+        }],
+        retain_original_track: true,
+    };
+    assert!(config.uses_auto_video_background());
+    assert!(validate(&config).is_ok());
+}

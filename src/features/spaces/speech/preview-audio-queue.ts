@@ -3,16 +3,19 @@ import type { SpeechPreviewAudioChunk } from "../contracts/generated/SpeechPrevi
 const MAX_QUEUED_BYTES = 16 * 1024 * 1024;
 const MAX_AUDIO_AHEAD_SECONDS = 120;
 const START_DELAY_SECONDS = 0.03;
+const JITTER_BUFFER_SECONDS = 0.8;
 
 function isPcmByte(value: number) {
   return Number.isInteger(value) && value >= 0 && value <= 255;
 }
+const isValidPcm = (pcm: number[], count: number) => pcm.length > 0 && pcm.length === count * 2;
+const isValidRate = (rate: number, exp?: number) =>
+  Number.isSafeInteger(rate) && rate > 0 && (exp === undefined || rate === exp);
 
 function decodePcm16(bytes: number[], sampleCount: number) {
   if (!bytes.every(isPcmByte)) throw new Error("Preview audio chunk contains invalid PCM bytes");
-  const data = Uint8Array.from(bytes);
-  const view = new DataView(data.buffer);
-  return Float32Array.from({ length: sampleCount }, (_, index) => view.getInt16(index * 2, true) / 32_768);
+  const view = new DataView(Uint8Array.from(bytes).buffer);
+  return Float32Array.from({ length: sampleCount }, (_, i) => view.getInt16(i * 2, true) / 32_768);
 }
 
 export class PreviewAudioQueue {
@@ -26,6 +29,8 @@ export class PreviewAudioQueue {
   private queuedBytes = 0;
   private readonly sources = new Set<AudioBufferSourceNode>();
   private readonly completionListenerBySource = new Map<AudioBufferSourceNode, EventListener>();
+  private pending: SpeechPreviewAudioChunk[] = [];
+  private pendingSeconds = 0;
   private epoch = 0;
 
   constructor(private readonly setPlaying: (playing: boolean) => void) {}
@@ -37,25 +42,19 @@ export class PreviewAudioQueue {
     this.context = context;
     this.requestId = requestId;
     this.scheduledUntilSeconds = context.currentTime;
-    // Every scheduled chunk passes through the analyser, so what a waveform draws is the audio
-    // being heard at that instant rather than an animation keeping it company.
+    // Waveform draws audio being heard at this instant through the analyser.
     const analyser = context.createAnalyser();
     analyser.fftSize = 2048;
     analyser.connect(context.destination);
     this.analyser = analyser;
     this.levels = new Uint8Array(new ArrayBuffer(analyser.fftSize));
     await context.resume();
-    if (epoch !== this.epoch || this.context !== context) {
-      if (context.state !== "closed") await context.close();
-      return false;
-    }
-    return true;
+    const stale = epoch !== this.epoch || this.context !== context;
+    if (stale && context.state !== "closed") await context.close();
+    return !stale;
   }
 
-  /**
-   * The loudest sample currently audible, from 0 to 1. Silence while nothing plays, so a caller
-   * polling it draws a flat line instead of inventing one.
-   */
+  /** The loudest sample currently audible, from 0 to 1. Silence while nothing plays. */
   peak(): number {
     const analyser = this.analyser;
     const levels = this.levels;
@@ -70,13 +69,35 @@ export class PreviewAudioQueue {
     const context = this.context;
     if (!this.accepts(context, chunk)) return;
     this.validateMetadata(chunk);
+    const duration = chunk.sampleCount / chunk.sampleRate;
+    const underrun =
+      this.sources.size === 0 && this.expectedSeq > 1 && context.currentTime > this.scheduledUntilSeconds;
+    if (underrun || this.pending.length > 0) {
+      this.pending.push(chunk);
+      this.pendingSeconds += duration;
+      if (this.pendingSeconds >= JITTER_BUFFER_SECONDS) this.flush();
+      return;
+    }
+    this.scheduleChunk(context, chunk);
+  }
+
+  flush() {
+    const context = this.context;
+    if (!context || context.state === "closed" || !this.pending.length) return;
+    const queued = this.pending;
+    this.pending = [];
+    this.pendingSeconds = 0;
+    for (const chunk of queued) this.scheduleChunk(context, chunk);
+  }
+
+  private scheduleChunk(context: AudioContext, chunk: SpeechPreviewAudioChunk) {
     const durationSeconds = chunk.sampleCount / chunk.sampleRate;
     const aheadSeconds = Math.max(0, this.scheduledUntilSeconds - context.currentTime);
-    const capacityExceeded = [
-      this.queuedBytes + chunk.pcm16.length > MAX_QUEUED_BYTES,
-      aheadSeconds + durationSeconds > MAX_AUDIO_AHEAD_SECONDS,
-    ].some(Boolean);
-    if (capacityExceeded) throw new Error("Preview audio queue exceeded its playback window");
+    if (
+      this.queuedBytes + chunk.pcm16.length > MAX_QUEUED_BYTES ||
+      aheadSeconds + durationSeconds > MAX_AUDIO_AHEAD_SECONDS
+    )
+      throw new Error("Preview audio queue exceeded its playback window");
     const samples = decodePcm16(chunk.pcm16, chunk.sampleCount);
     const buffer = context.createBuffer(1, samples.length, chunk.sampleRate);
     buffer.copyToChannel(samples, 0);
@@ -106,6 +127,8 @@ export class PreviewAudioQueue {
   stop(requestId?: string) {
     if (requestId !== undefined && requestId !== this.requestId) return;
     this.epoch += 1;
+    this.pending = [];
+    this.pendingSeconds = 0;
     for (const source of this.sources) {
       const completed = this.completionListenerBySource.get(source);
       if (completed) source.removeEventListener("ended", completed);
@@ -142,17 +165,12 @@ export class PreviewAudioQueue {
   }
 
   private validateMetadata(chunk: SpeechPreviewAudioChunk) {
-    const invalid = [
-      chunk.seq !== this.expectedSeq,
-      !Number.isSafeInteger(chunk.sampleRate),
-      chunk.sampleRate <= 0,
-      !Number.isSafeInteger(chunk.sampleCount),
-      chunk.sampleCount <= 0,
-      this.sampleRate !== undefined && chunk.sampleRate !== this.sampleRate,
-      chunk.pcm16.length === 0,
-      chunk.pcm16.length % 2 !== 0,
-      chunk.sampleCount !== chunk.pcm16.length / 2,
-    ].some(Boolean);
-    if (invalid) throw new Error("Preview audio chunk contract is invalid");
+    const valid =
+      chunk.seq === this.expectedSeq &&
+      Number.isSafeInteger(chunk.sampleCount) &&
+      chunk.sampleCount > 0 &&
+      isValidRate(chunk.sampleRate, this.sampleRate) &&
+      isValidPcm(chunk.pcm16, chunk.sampleCount);
+    if (!valid) throw new Error("Preview audio chunk contract is invalid");
   }
 }

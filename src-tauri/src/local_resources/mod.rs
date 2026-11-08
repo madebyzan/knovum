@@ -10,7 +10,7 @@ mod download;
 mod filesystem;
 pub(crate) mod model_catalog;
 pub(crate) mod model_commands;
-mod model_metadata;
+pub(crate) mod model_metadata;
 pub(crate) mod model_selection;
 pub(crate) mod models;
 pub(crate) mod preparation;

@@ -12,5 +12,7 @@
     "description": "As configurações de voz não salvas serão perdidas."
   },
   "presets": "Vozes predefinidas",
+  "setDefault": "Definir como voz padrão",
+  "defaultBadge": "Padrão",
   "add": "Adicionar voz"
 }

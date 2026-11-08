@@ -19,6 +19,7 @@ const aligner: LocalModelAvailability = {
   capability: "speechAlignment",
   operations: [],
   referenceTranscript: "unused",
+  referenceDuration: null,
   group: "audio",
   essential: false,
   selected: true,

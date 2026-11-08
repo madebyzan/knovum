@@ -147,6 +147,7 @@ fn build_artifact(request: MixRequest<'_>, kind: MixOutput) -> Result<PathBuf, S
             &path,
             video_samples,
             &config.source_dialogue_intervals,
+            &placements,
             cancellation,
         )?;
         Some(path)

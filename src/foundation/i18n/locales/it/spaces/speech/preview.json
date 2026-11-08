@@ -5,5 +5,7 @@
     "placeholder": "Inserisci fino a 500 caratteri per ascoltare questa voce",
     "label": "Testo di esempio"
   },
-  "sample": "Ecco come suona questa voce mentre legge una frase qualsiasi."
+  "sample": "Ecco come suona questa voce mentre legge una frase qualsiasi.",
+  "preparing": "Preparazione modello...",
+  "synthesizing": "Sintetizzazione anteprima..."
 }

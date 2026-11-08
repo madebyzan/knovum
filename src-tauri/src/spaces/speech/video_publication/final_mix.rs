@@ -52,7 +52,7 @@ pub(super) fn mix_final(
         let index = usize::from(dialogue.is_some());
         let separated = format!("[{index}:a:0]aresample={SAMPLE_RATE},aformat=channel_layouts=stereo,volume={background_gain_db}dB,apad,atrim=end_sample={sample_count}");
         if original.is_some() {
-            format!("{separated}[bed];[{}:a:0]aresample={SAMPLE_RATE},aformat=channel_layouts=stereo,apad,atrim=end_sample={sample_count}[original];[{}:a:0]pan=stereo|c0=c0|c1=c0,asplit=2[inside][invert];[invert]aeval=exprs='1-val(0)|1-val(1)'[outside];[bed][inside]amultiply[separated];[original][outside]amultiply[ambient];[separated][ambient]amix=inputs=2:normalize=0[background];", index + 1, index + 2)
+            format!("{separated}[bed];[{}:a:0]aresample={SAMPLE_RATE},aformat=channel_layouts=stereo,volume={background_gain_db}dB,apad,atrim=end_sample={sample_count}[original];[{}:a:0]pan=stereo|c0=c0|c1=c0,asplit=2[inside][invert];[invert]aeval=exprs='1-val(0)|1-val(1)'[outside];[bed][inside]amultiply[separated];[original][outside]amultiply[ambient];[separated][ambient]amix=inputs=2:normalize=0[background];", index + 1, index + 2)
         } else {
             format!("{separated}[background];")
         }

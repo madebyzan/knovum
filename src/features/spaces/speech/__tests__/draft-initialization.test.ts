@@ -137,6 +137,9 @@ it("does not require a leave decision for automatic transcripts or default voice
   draft.initializeFromTranscript(transcript);
   expect(draft.dirty.value).toBe(false);
   expect(draft.needsRevision.value).toBe(true);
+  expect(draft.config.value?.background).toEqual(draft.config.value?.video);
+  expect(draft.config.value?.backgroundGainDb).toBe(0);
+  expect(draft.config.value?.preserveOriginalOutsideDialogue).toBe(true);
   voices.value = [voice];
   await nextTick();
   expect(draft.dirty.value).toBe(false);

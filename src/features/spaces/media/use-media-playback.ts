@@ -11,6 +11,15 @@ interface UseMediaPlaybackOptions {
   onUnload?: (() => void) | undefined;
 }
 
+function selectPrimaryAudioTrack(element: HTMLMediaElement) {
+  const media = element as unknown as { audioTracks?: ArrayLike<{ enabled: boolean }> };
+  if (media.audioTracks && media.audioTracks.length > 1) {
+    for (let index = 0; index < media.audioTracks.length; index++) {
+      media.audioTracks[index]!.enabled = index === 0;
+    }
+  }
+}
+
 export function useMediaPlayback(
   mediaElement: Ref<HTMLMediaElement | null | undefined>,
   options: UseMediaPlaybackOptions = {},
@@ -47,6 +56,7 @@ export function useMediaPlayback(
     if (element.readyState < HTMLMediaElement.HAVE_METADATA) {
       await waitForMediaMetadata(element, "Media metadata could not be loaded");
     }
+    selectPrimaryAudioTrack(element);
     return element;
   }
 

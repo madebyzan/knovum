@@ -3,7 +3,7 @@
   "choose": "Escolha o áudio de referência",
   "transcript": "Transcrição de referência (opcional)",
   "transcriptConfirmed": "A transcrição corresponde à gravação",
-  "requirements": "Escolha de 5 a 30 segundos de fala clara de uma pessoa.",
+  "requirements": "Escolha de 5 a {maxSeconds} segundos de fala clara de uma pessoa.",
   "tooShort": "Este áudio tem menos de cinco segundos. Escolha uma gravação de referência mais longa.",
   "start": "Início(s) de seleção",
   "end": "Extremidade(s) da seleção",

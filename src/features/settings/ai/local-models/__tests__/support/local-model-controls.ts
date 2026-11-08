@@ -39,6 +39,7 @@ const model: LocalModelAvailability = {
   capability: "speechDiarization",
   operations: [],
   referenceTranscript: "unused",
+  referenceDuration: null,
   group: "audio",
   essential: false,
   selected: false,

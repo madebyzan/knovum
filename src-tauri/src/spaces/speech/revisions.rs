@@ -199,7 +199,9 @@ pub async fn save_speech_project_revision(
                 uuid::Uuid::new_v4().to_string()
             };
             let normalized = text::apply_lexicon(&text_segment, &pronunciations);
-            if normalized.chars().count() > 10_000 {
+            if normalized.chars().count()
+                > crate::ai::contracts::speech_wire::MAX_SYNTHESIS_TEXT_CHARACTERS
+            {
                 return Err(
                     "Pronunciation substitutions exceed the synthesis segment limit".into(),
                 );

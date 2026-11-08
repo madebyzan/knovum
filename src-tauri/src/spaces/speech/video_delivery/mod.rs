@@ -6,7 +6,7 @@ pub(crate) mod tracks;
 
 use super::{
     cancellation, publication,
-    video_publication::{final_mix::MixOutput, mixing, policy},
+    video_publication::{auto_background, final_mix::MixOutput, mixing, policy},
 };
 use crate::{
     file_inspection::verify_content_revision, foundation::app_error::AppError,
@@ -67,6 +67,36 @@ pub async fn export_video_dubbing_asset(
         &request.revision_id,
         &request.job_id,
     )?;
+    let auto_background_path = if subtitle.is_none()
+        && matches!(request.asset, VideoDeliveryAsset::BackgroundWav)
+        && config.uses_auto_video_background()
+    {
+        let ffmpeg = tools::resolve_ffmpeg(&app)?.ok_or("Bundled FFmpeg is unavailable")?;
+        let video = policy::verified_source(
+            &app,
+            &config.video.asset_path,
+            &config.video.source_revision,
+        )?;
+        match auto_background::resolve(auto_background::AutoBackgroundContext {
+            app: &app,
+            pool,
+            project_id: &request.project_id,
+            job_id: &request.job_id,
+            attempt_epoch: 0,
+            ffmpeg: &ffmpeg,
+            video_path: &video,
+            video_source: &config.video,
+            work: &work,
+            cancellation: &cancellation,
+        })
+        .await
+        {
+            Ok(resolved) => resolved,
+            Err(error) => return Err(files::finish(Err(error), &work).unwrap_err().into()),
+        }
+    } else {
+        None
+    };
     Ok(
         crate::foundation::blocking::run(move || -> Result<_, String> {
             let delivery = (|| {
@@ -82,17 +112,24 @@ pub async fn export_video_dubbing_asset(
                         &config.video.asset_path,
                         &config.video.source_revision,
                     )?;
-                    let background = config
-                        .background
-                        .as_ref()
-                        .map(|source| {
-                            policy::verified_source(
-                                &app,
-                                &source.asset_path,
-                                &source.source_revision,
-                            )
-                        })
-                        .transpose()?;
+                    let explicit_background = if config.uses_auto_video_background() {
+                        None
+                    } else {
+                        config.background.as_ref()
+                    };
+                    let background = if config.uses_auto_video_background() {
+                        auto_background_path
+                    } else {
+                        explicit_background
+                            .map(|source| {
+                                policy::verified_source(
+                                    &app,
+                                    &source.asset_path,
+                                    &source.source_revision,
+                                )
+                            })
+                            .transpose()?
+                    };
                     let duration_us = policy::verified_duration_us(
                         &ffmpeg,
                         &video,
@@ -124,7 +161,7 @@ pub async fn export_video_dubbing_asset(
                         kind,
                     )?;
                     verify_content_revision(&video, &config.video.source_revision)?;
-                    if let (Some(path), Some(source)) = (background, &config.background) {
+                    if let (Some(path), Some(source)) = (background, explicit_background) {
                         verify_content_revision(&path, &source.source_revision)?;
                     }
                     for render in renders {

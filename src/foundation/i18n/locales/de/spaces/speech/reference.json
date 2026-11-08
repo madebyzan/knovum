@@ -3,7 +3,7 @@
   "choose": "Referenzaudio auswählen",
   "transcript": "Referenztranskript (optional)",
   "transcriptConfirmed": "Das Transkript stimmt mit der Aufnahme überein",
-  "requirements": "Wählen Sie 5–30 Sekunden klare Ansprache einer Person.",
+  "requirements": "Wählen Sie 5–{maxSeconds} Sekunden klare Ansprache einer Person.",
   "tooShort": "Dieses Audio ist kürzer als fünf Sekunden. Wählen Sie eine längere Referenzaufnahme.",
   "start": "Auswahlstart(e)",
   "end": "Auswahlende(n)",

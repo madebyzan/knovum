@@ -1,8 +1,12 @@
 {
   "backgroundAudio": "Background audio",
+  "keepOriginalBackground": "Keep original background (auto-separate vocals)",
   "muteOriginal": "Mute original audio",
   "voiceGain": "Voice gain (dB)",
   "backgroundGain": "Background gain (dB)",
+  "backgroundPresetNatural": "Natural (0 dB)",
+  "backgroundPresetSoft": "Soft (-6 dB)",
+  "backgroundPresetSubtle": "Subtle (-12 dB)",
   "importTranscript": "Use source transcript",
   "startSeconds": "Start (seconds)",
   "endSeconds": "End (seconds)",
@@ -20,5 +24,7 @@
   "multipleAudioTracks": "Video with multiple audio tracks",
   "audioTracksHint": "Select up to eight published revisions of the same source video, in playback track order.",
   "currentBackground": "Current background track",
+  "batchVoiceLabel": "Unified voice",
+  "applyToAllLines": "Apply to all lines",
   "mixingSettings": "Audio mix"
 }

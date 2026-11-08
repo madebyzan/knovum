@@ -59,6 +59,7 @@ KNOVUM_VOICE_API void *knovum_voice_open(const char *path, int device, int threa
             default: throw std::runtime_error("Unsupported frozen VoxCPM2 backend");
         }
         options.backend = {backend, 0, threads};
+        options.options["voxcpm2.audiovae_encoder_sample_capacity"] = "240640";
         handle->session = handle->model->create_task_session(
             {runtime::VoiceTaskKind::Tts, runtime::RunMode::Streaming}, options);
         return handle.release();

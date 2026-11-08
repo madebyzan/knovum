@@ -12,5 +12,7 @@
     "description": "保存されていない音声設定は失われます。"
   },
   "presets": "プリセット ボイス",
+  "setDefault": "デフォルト音声に設定",
+  "defaultBadge": "デフォルト",
   "add": "音声の追加"
 }

@@ -35,6 +35,13 @@ pub enum LocalModelReferenceTranscript {
     OptionalConfirmed,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct LocalModelReferenceDuration {
+    pub min_ms: u64,
+    pub max_ms: u64,
+}
+
 /// What a model asks of the machine, stated beside the model instead of being recognised by a
 /// caller. `Any` means the model stays within the ordinary application budget on every supported
 /// target. `QualifiedOnGib` records the memory the model was actually qualified against, so the
@@ -66,15 +73,16 @@ impl LocalModelMemory {
     }
 }
 
-pub(super) struct LocalModelMetadata {
+pub(crate) struct LocalModelMetadata {
     pub name: &'static str,
     pub capability: LocalModelCapability,
     pub operations: &'static [LocalModelOperation],
     pub reference_transcript: LocalModelReferenceTranscript,
+    pub reference_duration: Option<LocalModelReferenceDuration>,
     pub memory: LocalModelMemory,
 }
 
-pub(super) fn metadata(model: LocalModelId) -> LocalModelMetadata {
+pub(crate) fn metadata(model: LocalModelId) -> LocalModelMetadata {
     use LocalModelCapability as Capability;
     use LocalModelMemory::{Any, QualifiedOnGib};
     use LocalModelOperation::{VoiceCloning, VoiceDesign};
@@ -300,11 +308,25 @@ pub(super) fn metadata(model: LocalModelId) -> LocalModelMetadata {
             Any,
         ),
     };
+    let reference_duration = match model {
+        LocalModelId::MossNano => Some(LocalModelReferenceDuration {
+            min_ms: crate::ai::contracts::speech_wire::VOICE_REFERENCE_MIN_DURATION_MS,
+            max_ms: crate::ai::contracts::speech_wire::MOSS_NANO_MAX_REFERENCE_DURATION_MS,
+        }),
+        LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Bf16 | LocalModelId::VoxCpm2Q8 => {
+            Some(LocalModelReferenceDuration {
+                min_ms: crate::ai::contracts::speech_wire::VOICE_REFERENCE_MIN_DURATION_MS,
+                max_ms: crate::ai::contracts::speech_wire::VOXCPM2_MAX_REFERENCE_DURATION_MS,
+            })
+        }
+        _ => None,
+    };
     LocalModelMetadata {
         name,
         capability,
         operations,
         reference_transcript,
+        reference_duration,
         memory,
     }
 }

@@ -3,12 +3,13 @@ use std::path::Path;
 use tokio_util::sync::CancellationToken;
 
 use super::super::video_config::SourceDialogueInterval;
-use super::SAMPLE_RATE;
+use super::{fitting::Placement, SAMPLE_RATE};
 
 pub(super) fn write(
     path: &Path,
     sample_count: u64,
     intervals: &[SourceDialogueInterval],
+    placements: &[Placement],
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
     let mut windows = intervals
@@ -19,6 +20,15 @@ pub(super) fn write(
                 window.end_ms * u64::from(SAMPLE_RATE) / 1000,
             )
         })
+        .chain(placements.iter().map(|placement| {
+            (
+                placement.start_sample,
+                placement
+                    .start_sample
+                    .saturating_add(placement.sample_count)
+                    .min(sample_count),
+            )
+        }))
         .collect::<Vec<_>>();
     windows.sort_unstable();
     let mut merged: Vec<(u64, u64)> = Vec::new();

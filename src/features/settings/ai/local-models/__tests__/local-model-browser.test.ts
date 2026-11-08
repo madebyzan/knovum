@@ -24,6 +24,7 @@ const catalog: LocalModelAvailability[] = (
   verified: Boolean(installed),
   operations: [],
   referenceTranscript: "unused",
+  referenceDuration: null,
   essential: id === "qwen3Embedding",
   selected: id === "whisperSmall" || id === "mossNano",
   selectable: false,

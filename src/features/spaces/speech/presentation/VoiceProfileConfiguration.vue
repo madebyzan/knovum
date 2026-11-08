@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Archive, ChevronDown, MoreHorizontal, Pause, Play, RotateCcw, Trash2 } from "@lucide/vue";
+import { Archive, ChevronDown, MoreHorizontal, Pause, Play, RotateCcw, Star, Trash2 } from "@lucide/vue";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import { computed, shallowRef, watch, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
@@ -18,6 +18,7 @@ const props = defineProps<{
   profile: DeepReadonly<VoiceProfileHistory>;
   expanded: boolean;
   disabled: boolean;
+  isDefault?: boolean;
   /** Audition state owned by the library, because only one voice may be heard at a time. */
   audition: { playing: boolean; busy: boolean; peak: () => number };
 }>();
@@ -30,6 +31,7 @@ const emit = defineEmits<{
   unarchive: [];
   remove: [];
   audition: [];
+  setDefault: [];
 }>();
 const { t } = useI18n();
 const isEditorDirty = shallowRef(false);
@@ -41,6 +43,16 @@ watch(
   },
 );
 const menuItems = computed(() => [
+  ...(!props.profile.archivedAt && !props.isDefault
+    ? [
+        {
+          label: t("spaces.speech.library.setDefault"),
+          icon: Star,
+          disabled: props.disabled,
+          onSelect: () => emit("setDefault"),
+        },
+      ]
+    : []),
   {
     label: props.profile.archivedAt ? t("common.restore") : t("common.archive"),
     icon: props.profile.archivedAt ? RotateCcw : Archive,
@@ -103,6 +115,9 @@ function setDirty(value: boolean) {
           <div class="flex min-w-0 items-center gap-2">
             <strong class="truncate text-body-lg font-medium text-fg-primary">{{ profile.name }}</strong>
             <UiBadge v-if="profile.archivedAt" size="sm">{{ t("spaces.speech.voice.archived") }}</UiBadge>
+            <UiBadge v-else-if="isDefault" size="sm" variant="neutral">{{
+              t("spaces.speech.library.defaultBadge")
+            }}</UiBadge>
           </div>
           <p class="mt-0.5 truncate text-caption text-fg-secondary">
             {{ t(`spaces.speech.voice.origins.${profile.sourceKind}`) }} · {{ activeRevision.language }} ·

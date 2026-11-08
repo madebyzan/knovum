@@ -12,5 +12,7 @@
     "description": "Unsaved voice settings will be lost."
   },
   "presets": "Preset voices",
+  "setDefault": "Set as default voice",
+  "defaultBadge": "Default",
   "add": "Add voice"
 }

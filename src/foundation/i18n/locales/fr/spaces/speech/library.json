@@ -12,5 +12,7 @@
     "description": "Les paramètres vocaux non enregistrés seront perdus."
   },
   "presets": "Voix prédéfinies",
+  "setDefault": "Définir comme voix par défaut",
+  "defaultBadge": "Par défaut",
   "add": "Ajouter une voix"
 }

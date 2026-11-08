@@ -3,7 +3,11 @@ use crate::{cancellation::Cancellation, initialization::VerifiedRuntime};
 use ffi::voice::*;
 use knovum_inference_contracts::{
     runtime::RuntimeInitializeParams,
-    speech_wire::{SpeechSynthesizeParams, VoiceSourceKind},
+    speech_wire::{
+        voice_reference_sample_bounds, SpeechSynthesizeParams, VoiceSourceKind,
+        DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS, VOICE_REFERENCE_SAMPLE_RATE,
+        VOXCPM2_MAX_REFERENCE_DURATION_MS,
+    },
 };
 use std::{
     ffi::{c_void, CStr},
@@ -159,10 +163,21 @@ fn inputs(params: &SpeechSynthesizeParams, cancel: &Cancellation) -> Result<Cond
                 .reference_audio
                 .as_ref()
                 .ok_or("invalid_input: immutable reference audio is missing")?;
-            let audio = audio::read(reference, 16_000, 1, 30 * 16_000, cancel)?;
-            if audio.frames() < 5 * 16_000 {
+            let (min_samples, max_samples) = voice_reference_sample_bounds(
+                DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS,
+                VOXCPM2_MAX_REFERENCE_DURATION_MS,
+            );
+            let audio = audio::read(
+                reference,
+                VOICE_REFERENCE_SAMPLE_RATE,
+                1,
+                max_samples as usize,
+                cancel,
+            )?;
+            if audio.frames() < min_samples as usize {
                 return Err(
-                    "invalid_input: voice reference must last five to thirty seconds".into(),
+                    "invalid_input: VoxCPM2 voice reference must last one to fifteen seconds"
+                        .into(),
                 );
             }
             if let Some(text) = &voice.reference_text {

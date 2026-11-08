@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
+import type { LocalModelReferenceDuration } from "../../../../shared/contracts/generated/LocalModelReferenceDuration";
 import type { LocalModelReferenceTranscript } from "../../../../shared/contracts/generated/LocalModelReferenceTranscript";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { VoiceModel } from "../../contracts/generated/VoiceModel";
@@ -13,6 +14,7 @@ const available = defineModel<boolean>("available", { required: true });
 const referenceTranscript = defineModel<LocalModelReferenceTranscript>("referenceTranscript", {
   required: true,
 });
+const referenceDuration = defineModel<LocalModelReferenceDuration | undefined>("referenceDuration");
 defineProps<{
   fixedSource: boolean;
   disabled: boolean;
@@ -39,6 +41,7 @@ const { t } = useI18n();
         v-model="model"
         v-model:available="available"
         v-model:reference-transcript="referenceTranscript"
+        v-model:reference-duration="referenceDuration"
         :source-kind="mode"
         :disabled="disabled"
       />

@@ -11,7 +11,14 @@ use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    ai::contracts::speech_wire::AudioFileReference, local_resources::tools, spaces::assets,
+    ai::contracts::speech_wire::{
+        voice_reference_sample_bounds, AudioFileReference,
+        DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS, MOSS_NANO_MAX_REFERENCE_DURATION_MS,
+        VOICE_REFERENCE_MIN_DURATION_MS, VOICE_REFERENCE_SAMPLE_RATE,
+        VOXCPM2_MAX_REFERENCE_DURATION_MS,
+    },
+    local_resources::tools,
+    spaces::assets,
 };
 
 mod conversion;
@@ -34,6 +41,10 @@ pub(super) fn prepare_reference(
         expected_byte_length,
         cancellation,
         None,
+        (
+            DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS,
+            VOXCPM2_MAX_REFERENCE_DURATION_MS,
+        ),
     )
     .map(|(_, audio)| audio)
 }
@@ -46,8 +57,36 @@ pub(super) fn prepare_reference_clip(
     cancellation: &CancellationToken,
     interval: (u64, u64),
 ) -> Result<(String, AudioFileReference), String> {
-    if interval.1 <= interval.0 || !(5000..=30000).contains(&(interval.1 - interval.0)) {
-        return Err("Reference selection must contain 5–30 seconds".into());
+    prepare_reference_clip_with_bounds(
+        app,
+        source,
+        output,
+        expected_byte_length,
+        cancellation,
+        interval,
+        (
+            VOICE_REFERENCE_MIN_DURATION_MS,
+            MOSS_NANO_MAX_REFERENCE_DURATION_MS,
+        ),
+    )
+}
+
+pub(super) fn prepare_reference_clip_with_bounds(
+    app: &AppHandle,
+    source: &Path,
+    output: &Path,
+    expected_byte_length: u64,
+    cancellation: &CancellationToken,
+    interval: (u64, u64),
+    duration_bounds_ms: (u64, u64),
+) -> Result<(String, AudioFileReference), String> {
+    let (min_ms, max_ms) = duration_bounds_ms;
+    if interval.1 <= interval.0 || !(min_ms..=max_ms).contains(&(interval.1 - interval.0)) {
+        return Err(format!(
+            "Reference selection must contain {}–{} seconds",
+            min_ms / 1_000,
+            max_ms / 1_000
+        ));
     }
     let source = assets::authorize_media_source(app, source)?;
     decode_reference(
@@ -57,6 +96,7 @@ pub(super) fn prepare_reference_clip(
         expected_byte_length,
         cancellation,
         Some(interval),
+        duration_bounds_ms,
     )
 }
 
@@ -67,8 +107,9 @@ fn decode_reference(
     expected_byte_length: u64,
     cancellation: &CancellationToken,
     selection: Option<(u64, u64)>,
+    duration_bounds_ms: (u64, u64),
 ) -> Result<(String, AudioFileReference), String> {
-    let interval = selection.unwrap_or((0, 31000));
+    let interval = selection.unwrap_or((0, duration_bounds_ms.1));
     let source = require_source(source, expected_byte_length)?;
     authorize_managed_output(app, output)?;
     let digest = hash_exact(&source, expected_byte_length, Some(cancellation))?;
@@ -85,7 +126,8 @@ fn decode_reference(
         if hash_exact(&source, expected_byte_length, Some(cancellation))? != digest {
             return Err("Reference source changed while decoding".into());
         }
-        let metadata = reference_metadata(output)?;
+        let metadata =
+            reference_metadata_with_bounds(output, duration_bounds_ms.0, duration_bounds_ms.1)?;
         if let Some(interval) = selection {
             conversion::verify_duration(output, interval)?;
         }
@@ -172,18 +214,35 @@ fn hash_exact(
     Ok(hex::encode(digest.finalize()))
 }
 
+#[cfg(test)]
 pub(super) fn reference_metadata(path: &Path) -> Result<AudioFileReference, String> {
+    reference_metadata_with_bounds(
+        path,
+        VOICE_REFERENCE_MIN_DURATION_MS,
+        MOSS_NANO_MAX_REFERENCE_DURATION_MS,
+    )
+}
+
+pub(super) fn reference_metadata_with_bounds(
+    path: &Path,
+    min_duration_ms: u64,
+    max_duration_ms: u64,
+) -> Result<AudioFileReference, String> {
     let reader = hound::WavReader::open(path).map_err(|error| error.to_string())?;
     let spec = reader.spec();
+    let (min_samples, max_samples) =
+        voice_reference_sample_bounds(min_duration_ms, max_duration_ms);
     if spec.channels != 1
-        || spec.sample_rate != 16_000
+        || spec.sample_rate != VOICE_REFERENCE_SAMPLE_RATE
         || spec.bits_per_sample != 16
         || spec.sample_format != hound::SampleFormat::Int
-        || !(80_000..=480_000).contains(&reader.duration())
+        || !(min_samples..=max_samples).contains(&reader.duration())
     {
-        return Err(
-            "Voice reference must contain 5–30 seconds of mono PCM16 audio at 16 kHz".into(),
-        );
+        return Err(format!(
+            "Voice reference must contain {}–{} seconds of mono PCM16 audio at 16 kHz",
+            min_duration_ms / 1_000,
+            max_duration_ms / 1_000
+        ));
     }
     let byte_length = fs::metadata(path).map_err(|error| error.to_string())?.len();
     Ok(AudioFileReference {
@@ -191,7 +250,7 @@ pub(super) fn reference_metadata(path: &Path) -> Result<AudioFileReference, Stri
         media_type: "audio/wav".into(),
         byte_length,
         sha256: hash_exact(path, byte_length, None)?,
-        sample_rate: 16_000,
+        sample_rate: VOICE_REFERENCE_SAMPLE_RATE,
         channels: 1,
         sample_format: "pcm_s16le".into(),
     })

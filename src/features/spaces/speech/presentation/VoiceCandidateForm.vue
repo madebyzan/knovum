@@ -23,6 +23,7 @@ const {
   model,
   modelAvailable,
   referenceTranscript,
+  referenceDuration,
   language,
   description,
   reference,
@@ -64,6 +65,7 @@ async function saveCandidate(candidateId: string, name: string) {
       v-model:model="model"
       v-model:available="modelAvailable"
       v-model:reference-transcript="referenceTranscript"
+      v-model:reference-duration="referenceDuration"
       v-model:language="language"
       :fixed-source="Boolean(sourceNode || sourceKind)"
       :disabled="busy || preparingReference"
@@ -76,12 +78,17 @@ async function saveCandidate(candidateId: string, name: string) {
         v-model="reference"
         :language="language"
         :source-node="props.sourceNode"
+        :max-duration-ms="referenceDuration?.maxMs"
         :disabled="busy"
         @busy="preparingReference = $event"
         @dirty="referenceEditorDirty = $event"
       />
       <p class="text-caption-sm leading-relaxed text-fg-tertiary">
-        {{ t("spaces.speech.reference.requirements") }}
+        {{
+          t("spaces.speech.reference.requirements", {
+            maxSeconds: (referenceDuration?.maxMs ?? 30_000) / 1000,
+          })
+        }}
       </p>
       <UiTextarea
         v-if="referenceTranscript === 'optionalConfirmed'"

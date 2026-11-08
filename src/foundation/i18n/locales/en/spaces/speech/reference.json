@@ -3,7 +3,7 @@
   "choose": "Choose reference audio",
   "transcript": "Reference transcript (optional)",
   "transcriptConfirmed": "The transcript matches the recording",
-  "requirements": "Choose 5–30 seconds of clear speech from one person.",
+  "requirements": "Choose 5–{maxSeconds} seconds of clear speech from one person.",
   "tooShort": "This audio is shorter than five seconds. Choose a longer reference recording.",
   "start": "Selection start (s)",
   "end": "Selection end (s)",

@@ -7,6 +7,8 @@ import UiScrollArea from "../../../../../shared/ui/UiScrollArea.vue";
 import { SPEECH_EDITOR_VIEWPORT_KEY } from "../speech-editor-viewport";
 import VideoDubbingLines from "../VideoDubbingLines.vue";
 
+vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+
 const virtualize = vi.hoisted(() => vi.fn<(options: unknown) => void>());
 vi.mock("@tanstack/vue-virtual", () => ({
   defaultRangeExtractor: () => [0],

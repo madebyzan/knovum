@@ -1,7 +1,7 @@
 pub(crate) mod commands;
 mod contracts;
 mod execution;
-mod media;
+pub(in crate::spaces::speech) mod media;
 pub(super) mod publication;
 mod repository;
 

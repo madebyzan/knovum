@@ -3,7 +3,7 @@
   "choose": "Elegir audio de referencia",
   "transcript": "Transcripción de referencia (opcional)",
   "transcriptConfirmed": "La transcripción coincide con la grabación.",
-  "requirements": "Elija entre 5 y 30 segundos de discurso claro de una persona.",
+  "requirements": "Elija entre 5 y {maxSeconds} segundos de discurso claro de una persona.",
   "tooShort": "Este audio dura menos de cinco segundos. Elija una grabación de referencia más larga.",
   "start": "Inicio(s) de selección",
   "end": "Final(es) de selección",

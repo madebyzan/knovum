@@ -22,8 +22,16 @@ export function voiceRevisionOptions(
     }));
 }
 
-export function defaultVoiceRevisionId(voices: readonly VoiceLibraryRevision[]) {
-  return activeVoiceRevisions(voices)[0]?.revisionId ?? "";
+export function defaultVoiceRevisionId(
+  voices: readonly VoiceLibraryRevision[],
+  defaultProfileId?: string | null,
+) {
+  const active = activeVoiceRevisions(voices);
+  if (defaultProfileId) {
+    const matched = active.find((voice) => voice.profileId === defaultProfileId);
+    if (matched) return matched.revisionId;
+  }
+  return active[0]?.revisionId ?? "";
 }
 
 export function voiceSupportsDeliveryInstruction(

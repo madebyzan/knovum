@@ -1,6 +1,7 @@
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { LocalModelReferenceDuration } from "../../../shared/contracts/generated/LocalModelReferenceDuration";
 import type { LocalModelReferenceTranscript } from "../../../shared/contracts/generated/LocalModelReferenceTranscript";
 import type { PreparedVoiceReference } from "../contracts/generated/PreparedVoiceReference";
 import type { VoiceCandidateSource } from "../contracts/generated/VoiceCandidateSource";
@@ -17,6 +18,7 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
   const model = shallowRef<VoiceModel>(DEFAULT_MODEL);
   const modelAvailable = shallowRef(false);
   const referenceTranscript = shallowRef<LocalModelReferenceTranscript>("unused");
+  const referenceDuration = shallowRef<LocalModelReferenceDuration>();
   const language = shallowRef("zh-CN");
   const description = shallowRef("");
   const reference = shallowRef<PreparedVoiceReference>();
@@ -58,10 +60,17 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
     { value: "zh-CN", label: "中文" },
     { value: "en", label: "English" },
   ];
+  const referenceDurationValid = computed(() => {
+    const prepared = reference.value;
+    if (!prepared) return false;
+    const duration = prepared.endMs - prepared.startMs;
+    const bounds = referenceDuration.value ?? { minMs: 5_000, maxMs: 30_000 };
+    return duration >= bounds.minMs && duration <= bounds.maxMs;
+  });
   const sourceReady = computed(() =>
     mode.value === "designed"
       ? Boolean(description.value.trim())
-      : Boolean(reference.value) &&
+      : referenceDurationValid.value &&
         !preparingReference.value &&
         (referenceTranscript.value === "unused" || !transcript.value.trim() || transcriptConfirmed.value),
   );
@@ -111,6 +120,7 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
     model,
     modelAvailable,
     referenceTranscript,
+    referenceDuration,
     language,
     description,
     reference,
