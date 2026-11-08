@@ -45,7 +45,7 @@ pub(super) async fn execute(
         .map_err(|_| "Speech revision identity is invalid")?;
     uuid::Uuid::parse_str(&config.segment_id).map_err(|_| "Speech segment identity is invalid")?;
     let row = sqlx::query(
-        "SELECT p.space_id,s.id,s.normalized_text,s.delivery_instruction,s.voice_revision_id,s.language \
+        "SELECT p.space_id,s.id,s.normalized_text,s.delivery_instruction,s.voice_revision_id,s.language,s.target_start_ms,s.target_end_ms \
          FROM spaces_speech_projects p \
          JOIN spaces_speech_segments s ON s.project_revision_id=p.active_revision_id \
          WHERE p.id=? AND p.active_revision_id=? AND s.id=? AND s.ordinal=?",
@@ -79,6 +79,15 @@ pub(super) async fn execute(
         return Err("Speech segment language differs from its voice revision".into());
     }
     let voice_config = parse_config(&voice.synthesis_config)?;
+    let fit = match (
+        row.try_get::<Option<i64>, _>("target_start_ms")
+            .map_err(db::sql_error)?,
+        row.try_get::<Option<i64>, _>("target_end_ms")
+            .map_err(db::sql_error)?,
+    ) {
+        (Some(start), Some(end)) if start >= 0 && end > start => Some((start, end)),
+        _ => None,
+    };
     let device_profile = super::super::execution::synthesis_device_profile(
         app,
         &voice.engine_id,
@@ -92,6 +101,7 @@ pub(super) async fn execute(
         &voice_config,
         &runtime_digest,
         &device_profile.execution_profile_id,
+        fit,
     )?;
     if let Some(cached) =
         generation_attempt::cached_render(pool, &config.project_id, &segment.id, &digest).await?
@@ -146,6 +156,7 @@ pub(super) async fn execute(
         claim,
         &voice,
         &segment,
+        fit,
         SynthesisAttempt {
             request_id: &claim.run_id,
             owner_kind: "speech_project_segment",

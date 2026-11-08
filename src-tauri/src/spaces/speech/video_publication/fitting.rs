@@ -11,10 +11,13 @@ use crate::spaces::speech::publication::hash_file;
 
 /// How much faster a line may be played to fit before the next speaker or the end of the picture.
 ///
-/// Compressing speech by up to 25% (1.25x) maintains natural clarity, pitch, and intelligibility.
+/// Time-compressed speech stays clearly intelligible at natural pitch up to about 1.4x, and within
+/// that band speaking the complete line faster always beats truncating it mid-word. Truncation to
+/// the available room remains the last resort for lines that still overrun after duration-aware
+/// synthesis and translation shortening.
 /// Speech is NEVER slowed down below 1.0x: shorter dialogue plays at pristine natural rate,
 /// leaving natural pauses and breathing room rather than introducing phase distortion or metallic rasping.
-pub const MAX_COMPRESSION: f64 = 1.25;
+pub const MAX_COMPRESSION: f64 = 1.4;
 
 /// The fade every placed line ends with: long enough to avoid a click, short enough to be
 /// inaudible as a fade.

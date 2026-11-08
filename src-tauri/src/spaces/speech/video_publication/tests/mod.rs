@@ -45,6 +45,26 @@ fn wave(path: &Path, seconds: u32, amplitudes: &[f32]) {
     }
     writer.finalize().unwrap();
 }
+fn sine(path: &Path, seconds: u32, frequency: f32, amplitude: f32, channels: u16) {
+    let mut writer = hound::WavWriter::create(
+        path,
+        hound::WavSpec {
+            channels,
+            sample_rate: SAMPLE_RATE,
+            bits_per_sample: 32,
+            sample_format: hound::SampleFormat::Float,
+        },
+    )
+    .unwrap();
+    for frame in 0..seconds * SAMPLE_RATE {
+        let value = amplitude
+            * (2.0 * std::f32::consts::PI * frequency * frame as f32 / SAMPLE_RATE as f32).sin();
+        for _ in 0..channels {
+            writer.write_sample(value).unwrap();
+        }
+    }
+    writer.finalize().unwrap();
+}
 fn ffmpeg() -> PathBuf {
     std::env::var_os("KNOVUM_FFMPEG_PATH")
         .expect("Set KNOVUM_FFMPEG_PATH for audio integration tests")
@@ -56,6 +76,23 @@ fn source(path: &Path) -> SpeechMediaSource {
         source_revision: format!("sha256:{}", hash_file(path).unwrap()),
         duration_ms: 2000,
     }
+}
+/// The linear level a stem bus carries: the static normalization its element reference demands.
+fn reference_linear(
+    tool: &Path,
+    path: &Path,
+    reference: &crate::spaces::speech::loudness::LoudnessTarget,
+    cancel: &CancellationToken,
+) -> f32 {
+    let measured = crate::spaces::speech::loudness::measure(
+        tool,
+        crate::spaces::speech::loudness::LoudnessInput::File(path),
+        SAMPLE_RATE,
+        reference,
+        cancel,
+    )
+    .unwrap();
+    10f32.powf(crate::spaces::speech::loudness::static_gain_db(&measured, reference) as f32 / 20.0)
 }
 
 #[test]
@@ -107,13 +144,28 @@ fn stems_preserve_stereo_original_outside_source_dialogue_and_timed_voice() {
         .samples::<f32>()
         .collect::<Result<Vec<_>, _>>()
         .unwrap();
-    for (frame, expected) in [
-        (12000, [0.2, 0.4]),
-        (48000, [0.03, 0.07]),
-        (84000, [0.2, 0.4]),
+    // The stem carries every bus at its element reference: the preserved original and the
+    // separated bed are both normalized to the background reference, so the swap between them
+    // is loudness-neutral.
+    let original_level = reference_linear(
+        &tool,
+        &original,
+        &super::mastering::BACKGROUND_REFERENCE,
+        &cancel,
+    );
+    let bed_level = reference_linear(
+        &tool,
+        &background,
+        &super::mastering::BACKGROUND_REFERENCE,
+        &cancel,
+    );
+    for (frame, values, level) in [
+        (12000, [0.2, 0.4], original_level),
+        (48000, [0.03, 0.07], bed_level),
+        (84000, [0.2, 0.4], original_level),
     ] {
-        assert!((samples[frame * 2] - expected[0]).abs() < 0.00001);
-        assert!((samples[frame * 2 + 1] - expected[1]).abs() < 0.00001);
+        assert!((samples[frame * 2] - values[0] * level).abs() < 0.00001);
+        assert!((samples[frame * 2 + 1] - values[1] * level).abs() < 0.00001);
     }
     let render = SpeechSegmentRenderOutput {
         segment_id: "segment".into(),
@@ -146,8 +198,14 @@ fn stems_preserve_stereo_original_outside_source_dialogue_and_timed_voice() {
         .samples::<f32>()
         .collect::<Result<Vec<_>, _>>()
         .unwrap();
+    let dialogue_level = reference_linear(
+        &tool,
+        &voice_work.join("dialogue.wav"),
+        &super::mastering::DIALOGUE_REFERENCE,
+        &cancel,
+    );
     assert_eq!(samples[12000], 0.0);
-    assert!((samples[48000] - 0.1).abs() < 0.00001);
+    assert!((samples[48000] - 0.1 * dialogue_level).abs() < 0.00001);
     assert_eq!(samples[84000], 0.0);
 }
 
@@ -200,5 +258,69 @@ fn mux_retains_original_track_without_shortening_video() {
         crate::media::ffmpeg::duration_us(&tool, &output, "0:a:1", &CancellationToken::new())
             .unwrap()
             >= 1_900_000
+    );
+}
+
+#[test]
+#[ignore = "Requires the explicit FFmpeg test binary"]
+fn combined_mix_is_mastered_to_the_program_reference() {
+    let work = Workspace::new();
+    let tool = ffmpeg();
+    let picture = work.child("picture.wav");
+    let bed = work.child("bed.wav");
+    let voice = work.child("voice.wav");
+    sine(&picture, 2, 440.0, 0.2, 2);
+    sine(&bed, 2, 440.0, 0.3, 2);
+    sine(&voice, 1, 1_000.0, 0.5, 1);
+    let config = VideoDubbingOutputConfig {
+        format: "mp4".into(),
+        video: source(&picture),
+        background: Some(source(&bed)),
+        background_separation: None,
+        voice_gain_db: 0.0,
+        background_gain_db: 0.0,
+        translation: None,
+        preserve_original_outside_dialogue: false,
+        source_dialogue_intervals: vec![],
+        retain_original_track: false,
+    };
+    let render = SpeechSegmentRenderOutput {
+        segment_id: "segment".into(),
+        path: voice.to_string_lossy().into_owned(),
+        sha256: hash_file(&voice).unwrap(),
+        sample_rate: SAMPLE_RATE,
+        sample_count: 48_000,
+        cached: false,
+    };
+    let timed = mixing::timed_renders(&[render], &[(Some(500), Some(1_500))], 96_000).unwrap();
+    let mix_work = work.child("mix");
+    fs::create_dir(&mix_work).unwrap();
+    let mixed = mixing::build_mix(
+        &tool,
+        &mix_work,
+        &timed,
+        96_000,
+        Some(&bed),
+        &config,
+        &CancellationToken::new(),
+    )
+    .unwrap();
+    let measured = crate::spaces::speech::loudness::measure(
+        &tool,
+        crate::spaces::speech::loudness::LoudnessInput::File(&mixed),
+        SAMPLE_RATE,
+        &super::mastering::PROGRAM_MASTER,
+        &CancellationToken::new(),
+    )
+    .unwrap();
+    assert!(
+        (measured.input_i - super::mastering::PROGRAM_MASTER.loudness_lufs).abs() < 1.5,
+        "program loudness {} LUFS should sit at the delivery reference",
+        measured.input_i
+    );
+    assert!(
+        measured.input_tp <= super::mastering::PROGRAM_MASTER.true_peak_db + 0.5,
+        "true peak {} dBTP exceeds the delivery ceiling",
+        measured.input_tp
     );
 }

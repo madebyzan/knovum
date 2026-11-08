@@ -287,7 +287,8 @@ fn synthesis_seed_affects_cache_and_is_required_in_current_config() {
             &voice,
             &first,
             "runtime",
-            "moss-nano-cpu-f32-threads1-v1"
+            "moss-nano-cpu-f32-threads1-v1",
+            None
         )
         .unwrap(),
         super::execution::input_digest(
@@ -295,16 +296,32 @@ fn synthesis_seed_affects_cache_and_is_required_in_current_config() {
             &voice,
             &second,
             "runtime",
-            "moss-nano-cpu-f32-threads1-v1"
+            "moss-nano-cpu-f32-threads1-v1",
+            None
         )
         .unwrap()
     );
     let plain =
-        super::execution::input_digest(&segment, &voice, &first, "runtime", "profile").unwrap();
+        super::execution::input_digest(&segment, &voice, &first, "runtime", "profile", None)
+            .unwrap();
+    assert_ne!(
+        plain,
+        super::execution::input_digest(
+            &segment,
+            &voice,
+            &first,
+            "runtime",
+            "profile",
+            Some((500, 2500))
+        )
+        .unwrap(),
+        "a duration-fit window is part of the cached render identity"
+    );
     segment.delivery_instruction = Some("calm".into());
     assert_ne!(
         plain,
-        super::execution::input_digest(&segment, &voice, &first, "runtime", "profile").unwrap()
+        super::execution::input_digest(&segment, &voice, &first, "runtime", "profile", None)
+            .unwrap()
     );
     assert!(super::contracts::parse_synthesis_config(
         &serde_json::json!({"speed":1,"sampleRate":48000})

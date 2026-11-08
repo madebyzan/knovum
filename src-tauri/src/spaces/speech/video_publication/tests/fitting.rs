@@ -105,14 +105,28 @@ fn speech_colliding_with_next_line_compresses_cleanly_up_to_max_compression() {
 }
 
 #[test]
+fn speech_slightly_over_its_room_is_rescued_by_compression_instead_of_truncation() {
+    // 2.7s speech with 2.0s of room before the next speaker: 1.35x compression speaks the whole
+    // line (96,000 samples) with nothing cut, where a 1.25x cap would truncate ~0.16s off the end.
+    assert_eq!(
+        planned(&[(2.7, 1_000, 3_000), (1.0, 3_000, 4_000)], VIDEO_SAMPLES),
+        [(0, 48_000, 96_000), (1, 144_000, 48_000)],
+        "the complete line is spoken faster instead of being cut"
+    );
+    let tempos = planned_tempos(&[(2.7, 1_000, 3_000), (1.0, 3_000, 4_000)], VIDEO_SAMPLES);
+    assert!((tempos[0] - 1.35).abs() < 0.001);
+    assert_eq!(tempos[1], 1.0);
+}
+
+#[test]
 fn speech_far_longer_than_gap_caps_compression_and_protects_next_speaker() {
     // 4.0s speech starting at 1.0s, next line starts at 2.0s (room is 1.0s).
-    // Maximum compression is 1.25x (speech becomes 3.2s, capped to 1.0s room = 48,000 samples).
+    // Maximum compression is 1.4x (speech becomes ~2.86s, capped to 1.0s room = 48,000 samples).
     // Next line STILL starts exactly at 2.0s (96,000 samples) with zero delay!
     assert_eq!(
         planned(&[(4.0, 1_000, 2_000), (1.0, 2_000, 3_000)], VIDEO_SAMPLES),
         [(0, 48_000, 48_000), (1, 96_000, 48_000)],
-        "caps compression at 1.25x and ensures the next speaker starts on time"
+        "caps compression at MAX_COMPRESSION and ensures the next speaker starts on time"
     );
     let tempos = planned_tempos(&[(4.0, 1_000, 2_000), (1.0, 2_000, 3_000)], VIDEO_SAMPLES);
     assert_eq!(tempos[0], MAX_COMPRESSION);

@@ -1,4 +1,4 @@
-pub(super) use voice::{input_digest, load_voice};
+pub(super) use voice::{input_digest, load_voice, DURATION_FIT_TAKES};
 mod voice;
 pub(super) use request::{synthesis_params, SynthesisAttempt};
 mod request;
@@ -68,6 +68,7 @@ pub async fn preview_voice(
     if text.is_empty() || text.chars().count() > 500 {
         return Err("Voice preview text must contain between 1 and 500 characters".into());
     }
+    let voice_config = parse_config(&voice.synthesis_config)?;
     let lexicon = super::text::parse_lexicon(&request.pronunciation_lexicon)?;
     let normalized = super::text::apply_lexicon(text, &lexicon);
     if normalized.chars().count() > 500 {
@@ -101,6 +102,7 @@ pub async fn preview_voice(
         &voice,
         &normalized,
         delivery,
+        voice_config.seed,
         SynthesisAttempt {
             request_id: &request.job_id,
             owner_kind: "speech_preview",
@@ -147,7 +149,7 @@ pub async fn preview_voice(
     if cancellation.is_cancelled() {
         return Err(AppError::cancelled("Speech preview cancelled"));
     }
-    if audio.sample_rate != parse_config(&voice.synthesis_config)?.sample_rate {
+    if audio.sample_rate != voice_config.sample_rate {
         return Err(
             "invalid_output: synthesized sample rate differs from the voice revision".into(),
         );

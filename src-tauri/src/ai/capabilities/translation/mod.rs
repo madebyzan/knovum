@@ -1,4 +1,5 @@
 mod protocol;
+pub(crate) mod speech_rate;
 #[cfg(test)]
 mod tests;
 
@@ -42,4 +43,34 @@ pub(crate) fn dubbing_input(
 
 pub(crate) fn validate_target(target_language: &str) -> AppResult<()> {
     protocol::language_name(target_language).map(|_| ())
+}
+
+/// Builds the shortening round for an adaptation whose estimated spoken duration clearly exceeds
+/// its physical window. `previous_duration_ms` must exceed `duration_ms`; callers gate on
+/// [`speech_rate::requires_reduction`].
+pub(crate) fn dubbing_reduction_input(
+    text: String,
+    target_language: String,
+    duration_ms: u64,
+    previous_translation: &str,
+    previous_duration_ms: u64,
+) -> AppResult<TaskInput> {
+    let language = protocol::language_name(&target_language)?;
+    let window_seconds = duration_ms as f64 / 1000.0;
+    let spoken_seconds = previous_duration_ms as f64 / 1000.0;
+    let reduction_percent = ((spoken_seconds - window_seconds) / spoken_seconds * 100.0).round();
+    Ok(TaskInput {
+        purpose: crate::ai::usage::UsagePurpose::Translation,
+        system_prompt: format!(
+            "You are an expert dubbing localization adapter. Your previous {language} adaptation is estimated to be spoken in {spoken_seconds:.2}s, \
+             but its physical speech duration window is only {window_seconds:.2}s. \
+             Rewrite the adaptation roughly {reduction_percent:.0}% shorter in spoken duration so it can be delivered at a natural conversational \
+             cadence within the window. Keep character intent, emotional weight, and subtext as far as the shorter form allows. \
+             Return only the shortened adaptation."
+        ),
+        instruction: format!("Previous adaptation:\n{previous_translation}"),
+        text,
+        max_tokens: None,
+        image: None,
+    })
 }

@@ -2,10 +2,11 @@ use std::fs;
 
 mod asset_transaction;
 pub(in crate::spaces::speech) mod auto_background;
-mod dialogue_envelope;
 mod dialogue_track;
+mod envelope;
 pub(in crate::spaces::speech) mod final_mix;
 mod fitting;
+mod mastering;
 pub(in crate::spaces::speech) mod mixing;
 pub(in crate::spaces::speech) mod policy;
 mod recovery;

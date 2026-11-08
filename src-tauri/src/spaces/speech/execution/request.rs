@@ -16,6 +16,7 @@ use std::path::Path;
 /// on CPU backends without premature timeouts.
 const SYNTHESIS_BUDGET_MS: u64 = 600_000;
 
+#[derive(Clone, Copy)]
 pub(in crate::spaces::speech) struct SynthesisAttempt<'a> {
     pub request_id: &'a str,
     pub owner_kind: &'a str,
@@ -25,11 +26,14 @@ pub(in crate::spaces::speech) struct SynthesisAttempt<'a> {
     pub attempt_epoch: u64,
 }
 
+/// `seed` is explicit because duration-fitted lines derive per-take seeds procedurally from the
+/// voice revision's frozen seed; every other caller passes the frozen seed itself.
 pub(in crate::spaces::speech) fn synthesis_params(
     app: &tauri::AppHandle,
     voice: &VoiceExecution,
     text: &str,
     delivery_instruction: Option<&str>,
+    seed: u32,
     attempt: SynthesisAttempt<'_>,
 ) -> Result<SpeechSynthesizeParams, String> {
     let config = parse_config(&voice.synthesis_config)?;
@@ -66,7 +70,7 @@ pub(in crate::spaces::speech) fn synthesis_params(
         text: text.to_owned(),
         voice_revision,
         style: style.map(str::to_owned),
-        seed: u64::from(config.seed),
+        seed: u64::from(seed),
         profile: SynthesisProfile {
             engine,
             language: voice.language.clone(),

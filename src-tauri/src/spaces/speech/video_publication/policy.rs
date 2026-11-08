@@ -19,7 +19,7 @@ pub(in crate::spaces::speech) fn verified_source<R: Runtime>(
 
 /// Identifies how a mix is built, so a published dub is only reused while the rules that produced
 /// it still hold. It changes whenever dialogue placement or the final mix graph changes.
-const MIX_RULES: &str = "dubbing-mix-v2-sequential-dialogue";
+const MIX_RULES: &str = "dubbing-mix-v3-loudness-mastered";
 
 pub(super) fn assembly_digest(
     renders: &[SpeechSegmentRenderOutput],
