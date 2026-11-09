@@ -133,6 +133,7 @@ watch(
         <button
           type="button"
           class="h-6 max-w-44 truncate rounded-sm px-2 text-caption text-fg-secondary outline-none hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:pointer-events-none disabled:opacity-40 aria-pressed:bg-surface-overlay aria-pressed:text-fg-primary aria-pressed:shadow-control"
+          :title="currentScope?.label ?? t('tasks.currentSpace')"
           :aria-pressed="filter === 'current'"
           :disabled="!currentScope"
           @click="filter = 'current'"

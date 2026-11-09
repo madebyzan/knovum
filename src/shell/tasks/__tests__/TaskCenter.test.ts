@@ -101,6 +101,7 @@ describe("TaskCenter", () => {
     expect(wrapper.text()).toContain("Research");
     expect(wrapper.text()).toContain("Image");
     expect(wrapper.text()).toContain("Market map");
+    expect(wrapper.get("p.truncate").attributes("title")).toBe("Research · Image · Market map");
     expect(wrapper.text()).toContain("tasks.status.failed");
     expect(wrapper.find('[aria-label="common.retry"]').exists()).toBe(true);
     expect(wrapper.find('[aria-label="tasks.dismiss"]').exists()).toBe(true);
