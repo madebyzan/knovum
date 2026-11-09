@@ -5,8 +5,14 @@
   "sampleTitle": "Bienvenue dans Knovum",
   "inbox": "Boîte de réception",
   "empty": {
-    "title": "Commencer à construire cet espace",
-    "description": "Déposez des fichiers, prenez des notes ou enregistrez des pages pour relier vos idées et créer"
+    "title": "Laissez grandir la connaissance ici",
+    "description": "Rassemblez vos inspirations, organisez vos sources et notez vos réflexions.",
+    "newNote": "Nouvelle note",
+    "importFiles": "Importer des fichiers",
+    "startRecording": "Démarrer l’enregistrement",
+    "keyboardHint": "Ou appuyez sur le canevas :",
+    "titlePrefix": "Laissez grandir la ",
+    "titleHighlight": "connaissance"
   },
   "rename": "Renommer l'espace",
   "tabs": {

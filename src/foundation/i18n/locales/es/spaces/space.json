@@ -5,8 +5,14 @@
   "sampleTitle": "Te damos la bienvenida a Knovum",
   "inbox": "Bandeja de entrada",
   "empty": {
-    "title": "Empieza a construir este espacio",
-    "description": "Arrastra archivos, crea notas o guarda páginas para conectar ideas y crear a partir de ellas"
+    "title": "Donde el conocimiento florece",
+    "description": "Reúne inspiración, organiza fuentes y anota ideas para construir tu espacio de conocimiento.",
+    "newNote": "Nueva nota",
+    "importFiles": "Importar archivos",
+    "startRecording": "Iniciar grabación",
+    "keyboardHint": "O pulse en el lienzo:",
+    "titlePrefix": "Donde el conocimiento ",
+    "titleHighlight": "florece"
   },
   "rename": "Cambiar nombre del espacio",
   "tabs": {
