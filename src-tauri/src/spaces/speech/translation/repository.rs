@@ -300,6 +300,7 @@ pub(super) async fn load_translation(
             || config.model != input.model
             || config.base_url != input.base_url
             || config.execution_target != input.execution_target
+            || config.terms != input.terms
             || &config.segment != expected_segment
             || config.segment.source_segment_id != output.source_segment_id
             || config.segment.source_segment_revision != output.source_segment_revision

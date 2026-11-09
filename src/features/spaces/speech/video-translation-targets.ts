@@ -1,3 +1,4 @@
+import { defaultExecutionTarget } from "../../../foundation/ai/ai-execution";
 import type { AiModelSettings } from "../../../foundation/ai/schema/model-settings";
 import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import type { VideoTranslationProvenance } from "../contracts/generated/VideoTranslationProvenance";
@@ -19,4 +20,24 @@ export function persistedTranslationTarget(
     if (!matchedModel) continue;
     return { type: "model", connectionId: connection.id, modelId: matchedModel.id };
   }
+}
+
+export function resolveInitialTarget(
+  settings: AiModelSettings,
+  targets: Array<{ target: TranslationModelTarget }>,
+  provenance?: VideoTranslationProvenance | null,
+): TranslationModelTarget | undefined {
+  const configured =
+    persistedTranslationTarget(settings, provenance) ?? defaultExecutionTarget(settings, "translation");
+  return configured?.type === "model" &&
+    targets.some(({ target }) => sameTranslationTarget(target, configured))
+    ? configured
+    : undefined;
+}
+
+export function parseTranslationTerms(input: string): string[] {
+  return input
+    .split(/[,，;；\n]+/)
+    .map((term) => term.trim())
+    .filter(Boolean);
 }

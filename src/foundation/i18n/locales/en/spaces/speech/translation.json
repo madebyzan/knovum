@@ -5,5 +5,7 @@
   "translate": "Translate script",
   "cancel": "Cancel translation",
   "failed": "Video script translation failed",
-  "source": "Source"
+  "source": "Source",
+  "terms": "Preserved terms",
+  "termsPlaceholder": "Terms or brand names to keep unchanged, comma-separated (optional)"
 }

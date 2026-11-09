@@ -4,7 +4,7 @@ import { storeToRefs } from "pinia";
 import { computed, onMounted, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { availableModelTargets, defaultExecutionTarget } from "../../../../foundation/ai/ai-execution";
+import { availableModelTargets } from "../../../../foundation/ai/ai-execution";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import AiReadinessNotice from "../../../../foundation/ai/AiReadinessNotice.vue";
 import {
@@ -14,12 +14,14 @@ import {
 } from "../../../../foundation/ai/translation";
 import { useAiReadiness } from "../../../../foundation/ai/use-ai-readiness";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { VideoTranslation } from "../../contracts/generated/VideoTranslation";
 import type { VideoTranslationProvenance } from "../../contracts/generated/VideoTranslationProvenance";
 import { useVideoTranslationRun } from "../use-video-translation-run";
 import {
-  persistedTranslationTarget,
+  parseTranslationTerms,
+  resolveInitialTarget,
   sameTranslationTarget,
   type TranslationModelTarget,
 } from "../video-translation-targets";
@@ -29,7 +31,6 @@ const props = defineProps<{
   expectedRevision: number;
   lineCount: number;
   provenance?: VideoTranslationProvenance | null | undefined;
-  /** Commits the script the user is looking at, because a Run translates a saved revision. */
   save: () => Promise<boolean>;
   disabled: boolean;
 }>();
@@ -40,6 +41,13 @@ const { settings, ready } = storeToRefs(store);
 const target = shallowRef<TranslationModelTarget>();
 const targetLanguage = shallowRef<TranslationTarget>("en");
 const saving = shallowRef(false);
+const termsKey = computed(() => `knovum:speech:terms:${props.projectId}`);
+const preservedTerms = shallowRef(localStorage.getItem(termsKey.value) ?? "");
+watch(preservedTerms, (val) => localStorage.setItem(termsKey.value, val));
+watch(
+  () => props.projectId,
+  () => (preservedTerms.value = localStorage.getItem(termsKey.value) ?? ""),
+);
 const { activeRunId, submitting, cancelling, error, restore, start, cancel } = useVideoTranslationRun(
   (translation) => emit("translated", translation),
 );
@@ -52,30 +60,21 @@ const languageOptions = computed(() =>
 );
 const targets = computed(() => availableModelTargets(settings.value, "translation"));
 const readiness = useAiReadiness([{ kind: "modelChoice", purpose: "translation" }]);
-const targetValue = computed(() => {
-  const selected = target.value;
-  return selected
-    ? (targets.value.find(({ target: item }) => sameTranslationTarget(item, selected))?.value ?? "")
-    : "";
-});
+const targetValue = computed(() =>
+  target.value
+    ? (targets.value.find(({ target: item }) => sameTranslationTarget(item, target.value!))?.value ?? "")
+    : "",
+);
 
 watch(
   [ready, targets],
   () => {
-    const selected = target.value;
     if (
       !ready.value ||
-      (selected && targets.value.some(({ target: item }) => sameTranslationTarget(item, selected)))
+      (target.value && targets.value.some(({ target: item }) => sameTranslationTarget(item, target.value!)))
     )
       return;
-    const configured =
-      persistedTranslationTarget(settings.value, props.provenance) ??
-      defaultExecutionTarget(settings.value, "translation");
-    target.value =
-      configured?.type === "model" &&
-      targets.value.some(({ target: item }) => sameTranslationTarget(item, configured))
-        ? configured
-        : undefined;
+    target.value = resolveInitialTarget(settings.value, targets.value, props.provenance);
   },
   { immediate: true },
 );
@@ -85,22 +84,18 @@ watch(
   ([projectId, revision]) => void restore(projectId, revision),
   { immediate: true },
 );
-
 watch(
   [() => props.expectedRevision, () => props.provenance],
   () => {
-    const language = props.provenance?.targetLanguage;
-    targetLanguage.value = isTranslationTarget(language) ? language : "en";
+    const lang = props.provenance?.targetLanguage;
+    if (TRANSLATION_TARGETS.includes(lang as TranslationTarget))
+      targetLanguage.value = lang as TranslationTarget;
   },
   { immediate: true },
 );
 
 onMounted(() => store.ensureLoaded());
 
-/**
- * A Run translates the lines of a saved revision, so the script on screen is committed first.
- * That is also why the translated lines come back for review instead of being saved for the user.
- */
 async function translate() {
   if (!target.value || translating.value || props.lineCount === 0) return;
   saving.value = true;
@@ -114,15 +109,13 @@ async function translate() {
     expectedRevision: props.expectedRevision,
     targetLanguage: targetLanguage.value,
     executionTarget: { ...target.value, temperature: 0 },
+    terms: parseTranslationTerms(preservedTerms.value),
   });
 }
 
 function selectLanguage(value: string) {
-  if (isTranslationTarget(value)) targetLanguage.value = value;
-}
-
-function isTranslationTarget(value: string | undefined): value is TranslationTarget {
-  return TRANSLATION_TARGETS.includes(value as TranslationTarget);
+  if (TRANSLATION_TARGETS.includes(value as TranslationTarget))
+    targetLanguage.value = value as TranslationTarget;
 }
 </script>
 
@@ -160,6 +153,15 @@ function isTranslationTarget(value: string | undefined): value is TranslationTar
         <Square class="size-3.5" />{{ t("spaces.speech.translation.cancel") }}
       </UiButton>
     </div>
+    <label class="block space-y-1 text-caption text-fg-secondary">
+      <span>{{ t("spaces.speech.translation.terms") }}</span>
+      <UiInput
+        size="sm"
+        v-model="preservedTerms"
+        :placeholder="t('spaces.speech.translation.termsPlaceholder')"
+        :disabled="disabled || translating"
+      />
+    </label>
     <AiReadinessNotice :readiness="readiness" />
     <p v-if="error" class="text-caption text-fg-danger" role="alert">
       {{ t("spaces.speech.translation.failed") }}: {{ error }}

@@ -1,3 +1,4 @@
+mod batch_coordinator;
 pub(crate) mod commands;
 mod contracts;
 mod execution;

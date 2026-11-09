@@ -1,9 +1,11 @@
 {
-  "description": "Traduce las líneas al idioma de destino. La traducción sustituye cada línea y el original queda debajo.",
+  "description": "Traduce las líneas al idioma de destino. La traducción reemplaza cada línea y el original permanece debajo.",
   "language": "Idioma de traducción",
   "model": "Modelo de traducción",
-  "translate": "Traducir script",
+  "translate": "Traducir guion",
   "cancel": "Cancelar traducción",
-  "failed": "Error en la traducción del guión del vídeo",
-  "source": "Fuente"
+  "failed": "Error al traducir el guion del vídeo",
+  "source": "Origen",
+  "terms": "Términos conservados",
+  "termsPlaceholder": "Términos o nombres de marca para mantener sin cambios, separados por comas (opcional)"
 }

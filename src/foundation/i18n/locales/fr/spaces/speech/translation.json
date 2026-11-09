@@ -1,9 +1,11 @@
 {
-  "description": "Traduit les répliques dans la langue cible. La traduction remplace chaque réplique et l'original reste en dessous.",
+  "description": "Traduit les lignes dans la langue cible. La traduction remplace chaque ligne et l'original reste en dessous.",
   "language": "Langue de traduction",
   "model": "Modèle de traduction",
   "translate": "Traduire le script",
   "cancel": "Annuler la traduction",
   "failed": "Échec de la traduction du script vidéo",
-  "source": "Source"
+  "source": "Source",
+  "terms": "Termes conservés",
+  "termsPlaceholder": "Termes ou noms de marque à conserver tels quels, séparés par des virgules (facultatif)"
 }

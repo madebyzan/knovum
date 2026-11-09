@@ -1,5 +1,8 @@
 use super::protocol::language_name;
 use super::speech_rate::{estimate_duration_ms, requires_reduction, syllables_per_second};
+use super::{
+    dubbing_batch_input, dubbing_input, dubbing_reduction_input, parse_batch_output, BatchLineInput,
+};
 
 #[test]
 fn supports_explicit_translation_targets() {
@@ -16,7 +19,7 @@ fn supports_explicit_translation_targets() {
 #[test]
 fn dubbing_input_embeds_timing_constraints_universally() {
     for lang in ["ja", "de", "es", "fr", "zh-CN", "en"] {
-        let input = super::dubbing_input("Hello world".into(), lang.into(), Some(2400)).unwrap();
+        let input = dubbing_input("Hello world".into(), lang.into(), Some(2400), &[]).unwrap();
         assert!(input.system_prompt.contains("2.40s (2400ms)"));
         assert!(input
             .system_prompt
@@ -24,6 +27,16 @@ fn dubbing_input_embeds_timing_constraints_universally() {
         assert!(!input.system_prompt.contains("Chinese characters"));
         assert!(!input.system_prompt.contains("English words"));
     }
+}
+
+#[test]
+fn dubbing_input_embeds_term_preservation() {
+    let terms = vec!["Knovum".into(), "DeepSeek".into()];
+    let input = dubbing_input("Hello world".into(), "zh-CN".into(), Some(2400), &terms).unwrap();
+    assert!(input.system_prompt.contains(
+        "Do NOT translate, transliterate, or alter the following proper nouns and terms"
+    ));
+    assert!(input.system_prompt.contains("Knovum, DeepSeek"));
 }
 
 #[test]
@@ -64,13 +77,50 @@ fn reduction_only_triggers_on_clear_overruns() {
 
 #[test]
 fn dubbing_reduction_input_carries_window_and_previous_adaptation() {
-    let input =
-        super::dubbing_reduction_input("源文本".into(), "zh-CN".into(), 1000, "之前的译文", 2400)
-            .unwrap();
+    let terms = vec!["BrandX".into()];
+    let input = dubbing_reduction_input(
+        "源文本".into(),
+        "zh-CN".into(),
+        1000,
+        "之前的译文",
+        2400,
+        &terms,
+    )
+    .unwrap();
     assert!(input.system_prompt.contains("2.40s"));
     assert!(input.system_prompt.contains("1.00s"));
     assert!(input.system_prompt.contains("58%"));
+    assert!(input.system_prompt.contains("BrandX"));
     assert_eq!(input.instruction, "Previous adaptation:\n之前的译文");
     assert_eq!(input.text, "源文本");
-    assert!(super::dubbing_reduction_input("t".into(), "auto".into(), 1000, "p", 2400).is_err());
+    assert!(dubbing_reduction_input("t".into(), "auto".into(), 1000, "p", 2400, &[]).is_err());
+}
+
+#[test]
+fn batch_translation_input_and_parser_work_with_fences_and_pure_json() {
+    let lines = vec![
+        BatchLineInput {
+            id: 0,
+            text: "Hello world".into(),
+            duration_ms: Some(2000),
+        },
+        BatchLineInput {
+            id: 1,
+            text: "Welcome to Knovum".into(),
+            duration_ms: Some(3000),
+        },
+    ];
+    let terms = vec!["Knovum".into()];
+    let input = dubbing_batch_input(&lines, "zh-CN".into(), &terms).unwrap();
+    assert!(input.system_prompt.contains("Knovum"));
+    assert!(input.text.contains("Hello world"));
+
+    let markdown_json = "```json\n[\n  {\"id\": 0, \"translation\": \"你好世界\"},\n  {\"id\": 1, \"translation\": \"欢迎来到 Knovum\"}\n]\n```";
+    let parsed = parse_batch_output(markdown_json).unwrap();
+    assert_eq!(parsed.get(&0).unwrap(), "你好世界");
+    assert_eq!(parsed.get(&1).unwrap(), "欢迎来到 Knovum");
+
+    let pure_json = "[{\"id\":0,\"translation\":\"First\"}]";
+    let parsed_pure = parse_batch_output(pure_json).unwrap();
+    assert_eq!(parsed_pure.get(&0).unwrap(), "First");
 }

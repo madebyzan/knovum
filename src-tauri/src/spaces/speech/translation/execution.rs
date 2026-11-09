@@ -17,6 +17,7 @@ use crate::{
 };
 
 use super::{
+    batch_coordinator,
     contracts::{TranslationStepConfiguration, VideoTranslationSegmentOutput},
     repository,
 };
@@ -49,19 +50,26 @@ pub(crate) async fn execute(
     {
         return Err("stale_revision: video translation model configuration changed".into());
     }
-    let translated_text = complete_once(
-        app,
-        pool,
-        claim,
-        &target,
-        &config,
-        capabilities::translation::dubbing_input(
-            config.segment.text.clone(),
-            config.target_language.clone(),
-            config.segment.target_duration_ms,
-        )?,
-    )
-    .await?;
+    let batched = batch_coordinator::get_batched_line(app, pool, claim, &target, &config).await?;
+    let translated_text = match batched {
+        Some(text) => text,
+        None => {
+            complete_once(
+                app,
+                pool,
+                claim,
+                &target,
+                &config,
+                capabilities::translation::dubbing_input(
+                    config.segment.text.clone(),
+                    config.target_language.clone(),
+                    config.segment.target_duration_ms,
+                    &config.terms,
+                )?,
+            )
+            .await?
+        }
+    };
     let translated_text =
         reduce_to_fit(app, pool, claim, &target, &config, translated_text).await?;
     let translation = VideoTranslationSegmentOutput {
@@ -111,6 +119,7 @@ async fn reduce_to_fit(
             window_ms,
             &translated_text,
             estimate,
+            &config.terms,
         )?,
     )
     .await?;
