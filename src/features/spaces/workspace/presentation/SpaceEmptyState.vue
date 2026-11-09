@@ -73,15 +73,15 @@ async function handleRecord() {
           }}<span class="relative inline-block text-fg-primary">
             {{ t("spaces.space.empty.titleHighlight") }}
             <svg
-              class="pointer-events-none absolute -bottom-1 -left-[12%] -z-1 h-3.5 w-[142%] overflow-visible"
+              class="pointer-events-none absolute -bottom-1 -left-[12%] -z-1 h-3.5 w-[142%] overflow-visible text-fg-accent"
               viewBox="0 0 254 26"
               fill="none"
               aria-hidden="true"
             >
               <path
                 d="M 2 22 C 25 18, 70 5, 120 2 C 160 1, 210 2, 252 9 C 254 10, 254 11, 251 12 C 210 13, 160 13, 120 13 C 70 15, 25 24, 2 25 C 0 25, 0 23, 2 22 Z"
-                fill="#70b4fc"
-                fill-opacity="0.8"
+                fill="currentColor"
+                fill-opacity="0.75"
               />
             </svg>
           </span>
