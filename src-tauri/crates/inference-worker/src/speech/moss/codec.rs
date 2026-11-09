@@ -5,7 +5,10 @@ use crate::{
     onnx::{self, Values},
 };
 use audioadapter_buffers::owned::InterleavedOwned;
-use knovum_inference_contracts::speech_wire::AudioFileReference;
+use knovum_inference_contracts::speech_wire::{
+    voice_reference_sample_bounds, AudioFileReference, MOSS_NANO_MAX_REFERENCE_DURATION_MS,
+    VOICE_REFERENCE_MIN_DURATION_MS, VOICE_REFERENCE_SAMPLE_RATE,
+};
 use ort::session::Session;
 use rubato::{Fft, FixedSync, Resampler};
 
@@ -79,8 +82,18 @@ impl Codec {
         reference: &AudioFileReference,
         cancel: &Cancellation,
     ) -> Result<Vec<Vec<i32>>, String> {
-        let input = audio::read(reference, 16_000, 1, 30 * 16_000, cancel)?;
-        if input.frames() < 5 * 16_000 {
+        let (min_samples, max_samples) = voice_reference_sample_bounds(
+            VOICE_REFERENCE_MIN_DURATION_MS,
+            MOSS_NANO_MAX_REFERENCE_DURATION_MS,
+        );
+        let input = audio::read(
+            reference,
+            VOICE_REFERENCE_SAMPLE_RATE,
+            1,
+            max_samples as usize,
+            cancel,
+        )?;
+        if input.frames() < min_samples as usize {
             return Err("invalid_input: reference audio must last five to thirty seconds".into());
         }
         let frames = input.frames();

@@ -119,6 +119,7 @@ async fn validate_outputs(
             || config.model != input.model
             || config.base_url != input.base_url
             || config.execution_target != input.execution_target
+            || config.terms != input.terms
             || &config.segment != expected
             || output.step_id != step_id
             || output.source_segment_id != expected.source_segment_id

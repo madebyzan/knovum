@@ -17,7 +17,7 @@ async fn accepts_user_edited_text_on_first_translation_save() {
     for statement in [
         "CREATE TABLE spaces_runs(id TEXT PRIMARY KEY,state TEXT,scope_kind TEXT,home_space_id TEXT,input_snapshot TEXT)",
         "CREATE TABLE spaces_speech_project_revisions(id TEXT PRIMARY KEY,project_id TEXT,revision INTEGER,output_config TEXT)",
-        "CREATE TABLE spaces_speech_segments(id TEXT,project_revision_id TEXT,ordinal INTEGER,text TEXT,source_segment_id TEXT,source_segment_revision INTEGER,source_text TEXT)",
+        "CREATE TABLE spaces_speech_segments(id TEXT,project_revision_id TEXT,ordinal INTEGER,text TEXT,source_segment_id TEXT,source_segment_revision INTEGER,source_text TEXT,target_start_ms INTEGER,target_end_ms INTEGER)",
         "CREATE TABLE spaces_run_steps(id TEXT,run_id TEXT,node_kind TEXT,state TEXT,configuration TEXT,output TEXT)",
     ] {
         sqlx::query(statement).execute(&pool).await.unwrap();
@@ -53,7 +53,7 @@ async fn accepts_user_edited_text_on_first_translation_save() {
         .await
         .unwrap();
     sqlx::query(
-        "INSERT INTO spaces_speech_segments VALUES('source','base',0,'Original',NULL,NULL,NULL)",
+        "INSERT INTO spaces_speech_segments VALUES('source','base',0,'Original',NULL,NULL,NULL,NULL,NULL)",
     )
     .execute(&pool)
     .await

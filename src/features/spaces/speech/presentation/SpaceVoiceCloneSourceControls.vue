@@ -42,15 +42,38 @@ function auditionSelection() {
 </script>
 
 <template>
-  <ToolbarButton as-child
-    ><UiIconButton
-      :label="playing ? t('common.pause') : t('spaces.speech.reference.play')"
-      size="md"
-      tooltip
-      :disabled="!reference.selectionValid || form.busy"
-      @click="auditionSelection"
-      ><Pause v-if="playing" class="size-4.5" /><Play v-else class="size-4.5" /></UiIconButton
-  ></ToolbarButton>
+  <UiPopover
+    :open="openPopover === 'options'"
+    class="w-80 p-3"
+    align="start"
+    force-mount
+    @update:open="setPopover('options', $event)"
+  >
+    <template #trigger
+      ><ToolbarButton as-child
+        ><button
+          type="button"
+          :class="CANVAS_ACTION_BUTTON_CLASSES"
+          :aria-label="t('spaces.speech.voice.options')"
+          :title="t('spaces.speech.voice.options')"
+          :disabled="form.busy || form.preparingReference"
+        >
+          <SlidersHorizontal class="size-4.5" :stroke-width="1.6" /></button></ToolbarButton
+    ></template>
+    <VoiceCandidateOptions
+      v-model:mode="form.mode"
+      v-model:model="form.model"
+      v-model:initial-model="form.initialModel"
+      v-model:available="form.modelAvailable"
+      v-model:reference-transcript="form.referenceTranscript"
+      v-model:reference-duration="form.referenceDuration"
+      v-model:language="form.language"
+      fixed-source
+      :disabled="form.busy || form.preparingReference"
+      :modes="form.modes"
+      :languages="form.languages"
+    />
+  </UiPopover>
   <UiPopover
     :open="openPopover === 'range'"
     align="start"
@@ -80,40 +103,20 @@ function auditionSelection() {
       v-model:start="reference.start"
       v-model:end="reference.end"
       :duration-ms="reference.durationMs"
+      :max-seconds="reference.maxSeconds"
       :disabled="form.busy || form.preparingReference"
       :valid="reference.selectionValid"
     />
   </UiPopover>
-  <UiPopover
-    :open="openPopover === 'options'"
-    class="w-80 p-3"
-    align="start"
-    force-mount
-    @update:open="setPopover('options', $event)"
-  >
-    <template #trigger
-      ><ToolbarButton as-child
-        ><button
-          type="button"
-          :class="CANVAS_ACTION_BUTTON_CLASSES"
-          :aria-label="t('spaces.speech.voice.options')"
-          :title="t('spaces.speech.voice.options')"
-          :disabled="form.busy || form.preparingReference"
-        >
-          <SlidersHorizontal class="size-4.5" :stroke-width="1.6" /></button></ToolbarButton
-    ></template>
-    <VoiceCandidateOptions
-      v-model:mode="form.mode"
-      v-model:model="form.model"
-      v-model:available="form.modelAvailable"
-      v-model:reference-transcript="form.referenceTranscript"
-      v-model:language="form.language"
-      fixed-source
-      :disabled="form.busy || form.preparingReference"
-      :modes="form.modes"
-      :languages="form.languages"
-    />
-  </UiPopover>
+  <ToolbarButton as-child
+    ><UiIconButton
+      :label="playing ? t('common.pause') : t('spaces.speech.reference.play')"
+      size="md"
+      tooltip
+      :disabled="!reference.selectionValid || form.busy"
+      @click="auditionSelection"
+      ><Pause v-if="playing" class="size-4.5" /><Play v-else class="size-4.5" /></UiIconButton
+  ></ToolbarButton>
   <SpeechMediaPlayer
     v-if="reference.path"
     :key="reference.sourceVersion"

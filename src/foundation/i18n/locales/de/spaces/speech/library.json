@@ -12,5 +12,7 @@
     "description": "Nicht gespeicherte Spracheinstellungen gehen verloren."
   },
   "presets": "Voreingestellte Stimmen",
+  "setDefault": "Als Standardstimme festlegen",
+  "defaultBadge": "Standard",
   "add": "Stimme hinzufügen"
 }

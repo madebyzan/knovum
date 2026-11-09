@@ -5,5 +5,7 @@
     "placeholder": "Ingresa hasta 500 caracteres para escuchar esta voz.",
     "label": "Texto de muestra"
   },
-  "sample": "Así suena esta voz leyendo una frase corriente."
+  "sample": "Así suena esta voz leyendo una frase corriente.",
+  "preparing": "Preparando modelo...",
+  "synthesizing": "Sintetizando vista previa..."
 }

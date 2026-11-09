@@ -14,6 +14,7 @@
   "inProgress": "Analisi dei media in background...",
   "insights": {
     "unavailable": "I dati della trascrizione non sono disponibili; per favore analizza prima i media.",
-    "generate": "Genera capitoli e riepilogo"
+    "generate": "Genera capitoli e riepilogo",
+    "regenerate": "Rigenera capitoli e riepilogo"
   }
 }

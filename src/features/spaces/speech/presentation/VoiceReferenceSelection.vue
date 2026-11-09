@@ -7,7 +7,12 @@ import VoiceReferenceRange from "./VoiceReferenceRange.vue";
 
 const start = defineModel<string>("start", { required: true });
 const end = defineModel<string>("end", { required: true });
-defineProps<{ durationMs: number | undefined; disabled: boolean; valid: boolean }>();
+defineProps<{
+  durationMs: number | undefined;
+  disabled: boolean;
+  valid: boolean;
+  maxSeconds?: number | undefined;
+}>();
 const { t } = useI18n();
 const durationSeconds = computed(() => Math.max(0, Number(end.value) - Number(start.value)));
 function setRange(from: number, to: number) {
@@ -53,11 +58,9 @@ function setRange(from: number, to: number) {
       role="status"
     >
       {{
-        t(
-          durationMs !== undefined && durationMs < 5000
-            ? "spaces.speech.reference.tooShort"
-            : "spaces.speech.reference.requirements",
-        )
+        durationMs !== undefined && durationMs < 5000
+          ? t("spaces.speech.reference.tooShort")
+          : t("spaces.speech.reference.requirements", { maxSeconds: maxSeconds ?? 30 })
       }}
       <span v-if="valid" class="mt-1 block text-fg-tertiary">{{
         t("spaces.speech.reference.selection", { seconds: durationSeconds.toFixed(1) })

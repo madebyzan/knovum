@@ -12,8 +12,10 @@ use tauri::AppHandle;
 pub async fn retry_enrichment_job(app: AppHandle, job_id: String) -> Result<(), AppError> {
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
-    let row = sqlx::query("SELECT j.job_type,j.source_revision,n.data FROM spaces_enrichment_jobs j JOIN spaces_nodes n ON n.space_id=j.space_id AND n.id=j.node_id AND n.deleted_at IS NULL WHERE j.id=$1 AND j.status IN ('failed','cancelled')")
+    let row = sqlx::query("SELECT j.space_id,j.node_id,j.job_type,j.source_revision,n.data FROM spaces_enrichment_jobs j JOIN spaces_nodes n ON n.space_id=j.space_id AND n.id=j.node_id AND n.deleted_at IS NULL WHERE j.id=$1 AND j.status IN ('failed','cancelled')")
         .bind(&job_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?.ok_or("Only current failed or cancelled enrichment can be retried")?;
+    let space_id: String = row.try_get("space_id").map_err(db::sql_error)?;
+    let node_id: String = row.try_get("node_id").map_err(db::sql_error)?;
     let kind = EnrichmentJobType::deserialize(
         row.try_get::<String, _>("job_type")
             .map_err(db::sql_error)?
@@ -27,11 +29,8 @@ pub async fn retry_enrichment_job(app: AppHandle, job_id: String) -> Result<(), 
     if super::revision::expected_revision(&data, kind)?.as_deref() != Some(revision.as_str()) {
         return Err("Enrichment source revision is obsolete".into());
     }
-    if kind == EnrichmentJobType::TranscribeMedia && has_current_transcript(&data, &revision) {
-        return Err(
-            "Current media transcript already exists; retrying transcription would discard transcript edits"
-                .into(),
-        );
+    if kind == EnrichmentJobType::TranscribeMedia {
+        ensure_no_active_transcript_consumers(&mut tx, &space_id, &node_id).await?;
     }
     if kind == EnrichmentJobType::AlignMediaTranscript {
         let expected: i64 = sqlx::query_scalar(
@@ -47,6 +46,14 @@ pub async fn retry_enrichment_job(app: AppHandle, job_id: String) -> Result<(), 
                 "Transcript revision is obsolete; request alignment for the edited segments".into(),
             );
         }
+        let model = crate::local_resources::model_selection::speech_alignment(&app)?;
+        let model_spec_id = model.alignment_spec()?;
+        sqlx::query("UPDATE spaces_media_alignment_requests SET model_spec_id=$1 WHERE job_id=$2")
+            .bind(model_spec_id)
+            .bind(&job_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(db::sql_error)?;
     }
     if kind == EnrichmentJobType::DiarizeMediaTranscript {
         let expected: i64 = sqlx::query_scalar(
@@ -57,14 +64,30 @@ pub async fn retry_enrichment_job(app: AppHandle, job_id: String) -> Result<(), 
         {
             return Err("Transcript revision is obsolete; request diarization again".into());
         }
+        let model = crate::local_resources::model_selection::speech_diarization(&app)?;
+        let model_spec_id = model.diarization_variant()?.spec_id();
+        sqlx::query(
+            "UPDATE spaces_media_diarization_requests SET model_spec_id=$1 WHERE job_id=$2",
+        )
+        .bind(model_spec_id)
+        .bind(&job_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(db::sql_error)?;
     }
-    let executed = sqlx::query("UPDATE spaces_enrichment_jobs SET status='pending',error=NULL,updated_at=$1 WHERE id=$2 AND status IN ('failed','cancelled')")
-        .bind(crate::foundation::clock::unix_time_millis()?).bind(job_id).execute(&mut *tx).await.map_err(db::sql_error)?;
+    let target = if kind == EnrichmentJobType::AnalyzeVisual {
+        super::intent::selection(&app)?
+    } else {
+        None
+    };
+    let executed = sqlx::query("UPDATE spaces_enrichment_jobs SET status='pending',error=NULL,execution_target=$1,updated_at=$2 WHERE id=$3 AND status IN ('failed','cancelled')")
+        .bind(target.map(sqlx::types::Json)).bind(crate::foundation::clock::unix_time_millis()?).bind(job_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     db::require_one(
         executed,
         "Only failed or cancelled enrichment can be retried",
     )?;
     tx.commit().await.map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
     Ok(())
 }
 
@@ -93,33 +116,111 @@ pub async fn request_media_transcription(
     if data["mediaAnalysis"]["sourceRevision"].as_str() != Some(&revision) {
         return Err("Transcription requires current media analysis".into());
     }
-    if has_current_transcript(&data, &revision) {
-        return Err(
-            "Current media transcript already exists; automatic retranscription would discard transcript edits"
-                .into(),
-        );
-    }
-    let now = crate::foundation::clock::unix_time_millis()?;
-    let id = uuid::Uuid::new_v4().to_string();
-    let row = sqlx::query("INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) VALUES($1,$2,$3,'transcribe_media','pending',$4,0,$5,$5) ON CONFLICT(space_id,node_id,job_type,source_revision) WHERE status IN ('pending','running','awaiting_configuration') DO UPDATE SET updated_at=excluded.updated_at RETURNING id")
-        .bind(id).bind(space_id).bind(node_id).bind(revision).bind(now).fetch_one(&mut *tx).await.map_err(db::sql_error)?;
-    let id: String = row.try_get("id").map_err(db::sql_error)?;
+    ensure_no_active_transcript_consumers(&mut tx, &space_id, &node_id).await?;
+    let id = enqueue_manual_job(
+        &mut tx,
+        &space_id,
+        &node_id,
+        EnrichmentJobType::TranscribeMedia,
+        &revision,
+        None,
+    )
+    .await?;
     tx.commit().await.map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
     Ok(id)
 }
 
-pub(super) fn has_current_transcript(payload: &serde_json::Value, source_revision: &str) -> bool {
-    let knowledge = &payload["mediaKnowledge"];
-    knowledge["schemaVersion"].as_u64() == Some(1)
-        && knowledge["sourceRevision"].as_str() == Some(source_revision)
-        && serde_json::from_value::<crate::media::transcript::MediaTranscript>(
-            knowledge["transcript"].clone(),
-        )
-        .is_ok_and(|transcript| {
-            !transcript.id.is_empty()
-                && transcript.revision > 0
-                && transcript.source_revision == source_revision
-        })
+#[tauri::command]
+pub async fn request_visual_analysis(
+    app: AppHandle,
+    space_id: String,
+    node_id: String,
+) -> Result<String, AppError> {
+    let target = super::intent::selection(&app)?;
+    let pool = db::pool(&app).await?;
+    let mut tx = db::begin_write(pool).await?;
+    let raw: String = sqlx::query_scalar(
+        "SELECT data FROM spaces_nodes WHERE space_id=$1 AND id=$2 AND deleted_at IS NULL",
+    )
+    .bind(&space_id)
+    .bind(&node_id)
+    .fetch_one(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
+    let data: serde_json::Value = serde_json::from_str(&raw).map_err(db::json_error)?;
+    let revision = super::revision::expected_revision(&data, EnrichmentJobType::AnalyzeVisual)?
+        .ok_or("Visual source is not ready for analysis")?;
+    let id = enqueue_manual_job(
+        &mut tx,
+        &space_id,
+        &node_id,
+        EnrichmentJobType::AnalyzeVisual,
+        &revision,
+        target,
+    )
+    .await?;
+    tx.commit().await.map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
+    Ok(id)
+}
+
+async fn enqueue_manual_job(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    space_id: &str,
+    node_id: &str,
+    job_type: EnrichmentJobType,
+    revision: &str,
+    target: Option<crate::ai::tasks::TaskTargetSelection>,
+) -> Result<String, AppError> {
+    let now = crate::foundation::clock::unix_time_millis()?;
+    let id = uuid::Uuid::new_v4().to_string();
+    let row = sqlx::query(
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,execution_target,attempts,created_at,updated_at) \
+         VALUES($1,$2,$3,$4,'pending',$5,$6,0,$7,$7) \
+         ON CONFLICT(space_id,node_id,job_type,source_revision) WHERE status IN ('pending','running','awaiting_configuration') \
+         DO UPDATE SET \
+           status=CASE WHEN spaces_enrichment_jobs.status='awaiting_configuration' THEN 'pending' ELSE spaces_enrichment_jobs.status END, \
+           error=CASE WHEN spaces_enrichment_jobs.status='awaiting_configuration' THEN NULL ELSE spaces_enrichment_jobs.error END, \
+           execution_target=excluded.execution_target, \
+           updated_at=excluded.updated_at \
+         RETURNING id",
+    )
+    .bind(id)
+    .bind(space_id)
+    .bind(node_id)
+    .bind(job_type.as_str())
+    .bind(revision)
+    .bind(target.map(sqlx::types::Json))
+    .bind(now)
+    .fetch_one(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    Ok(row.try_get("id").map_err(db::sql_error)?)
+}
+
+async fn ensure_no_active_transcript_consumers(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    space_id: &str,
+    node_id: &str,
+) -> Result<(), AppError> {
+    let active: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM spaces_enrichment_jobs \
+         WHERE space_id=$1 AND node_id=$2 \
+           AND job_type IN ('align_media_transcript','diarize_media_transcript') \
+           AND status IN ('pending','running','awaiting_configuration'))",
+    )
+    .bind(space_id)
+    .bind(node_id)
+    .fetch_one(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    if active {
+        return Err(AppError::invalid(
+            "Cannot retranscribe while transcript alignment or diarization is active",
+        ));
+    }
+    Ok(())
 }
 
 #[cfg(test)]

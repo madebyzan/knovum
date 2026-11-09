@@ -9,16 +9,20 @@ import { useAiReadiness } from "../../../../foundation/ai/use-ai-readiness";
 import { formatBytes } from "../../../../foundation/format/bytes";
 import { useLocalModelsQuery } from "../../../../foundation/runtime/use-local-models-query";
 import type { LocalModelOperation } from "../../../../shared/contracts/generated/LocalModelOperation";
+import type { LocalModelReferenceDuration } from "../../../../shared/contracts/generated/LocalModelReferenceDuration";
 import type { LocalModelReferenceTranscript } from "../../../../shared/contracts/generated/LocalModelReferenceTranscript";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { VoiceModel } from "../../contracts/generated/VoiceModel";
 
 const model = defineModel<VoiceModel>({ required: true });
+const initialModel = defineModel<VoiceModel>("initialModel", { required: true });
 const available = defineModel<boolean>("available", { required: true });
 const referenceTranscript = defineModel<LocalModelReferenceTranscript>("referenceTranscript", {
   required: true,
 });
+const referenceDuration = defineModel<LocalModelReferenceDuration | undefined>("referenceDuration");
+const supportsDesign = defineModel<boolean>("supportsDesign", { default: false });
 const props = defineProps<{ sourceKind: "reference" | "designed"; disabled: boolean }>();
 const { t } = useI18n();
 const catalog = useLocalModelsQuery();
@@ -51,7 +55,12 @@ watch(
         undefined,
       );
     const next = preferred ?? smallest ?? choices[0];
-    if (next) model.value = next.id as VoiceModel;
+    if (next) {
+      // Adopting a machine default initializes the form rather than editing it, so the dirty
+      // baseline moves with the value; only a later user selection counts as a change.
+      model.value = next.id as VoiceModel;
+      initialModel.value = next.id as VoiceModel;
+    }
     initializedSource = kind;
   },
   { immediate: true },
@@ -60,7 +69,9 @@ const selected = computed(() => models.value.find((entry) => entry.id === model.
 const readiness = useAiReadiness(() => [{ kind: "localModel", model: model.value }]);
 watchEffect(() => {
   available.value = Boolean(selected.value) && !catalog.error.value;
+  supportsDesign.value = Boolean(selected.value?.operations.includes("voiceDesign"));
   referenceTranscript.value = selected.value?.referenceTranscript ?? "unused";
+  referenceDuration.value = selected.value?.referenceDuration ?? undefined;
 });
 </script>
 

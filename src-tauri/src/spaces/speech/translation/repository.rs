@@ -81,7 +81,7 @@ pub(super) async fn source_segments(
     translated: bool,
 ) -> Result<Vec<VideoTranslationSegmentInput>, String> {
     let rows = sqlx::query(
-        "SELECT id,text,source_segment_id,source_segment_revision,source_text \
+        "SELECT id,text,source_segment_id,source_segment_revision,source_text,target_start_ms,target_end_ms \
          FROM spaces_speech_segments WHERE project_revision_id=? ORDER BY ordinal",
     )
     .bind(revision_id)
@@ -102,6 +102,12 @@ pub(super) async fn source_segments(
             .try_get("source_segment_revision")
             .map_err(db::sql_error)?;
         let source_text: Option<String> = row.try_get("source_text").map_err(db::sql_error)?;
+        let start_ms: Option<i64> = row.try_get("target_start_ms").ok().flatten();
+        let end_ms: Option<i64> = row.try_get("target_end_ms").ok().flatten();
+        let target_duration_ms = match (start_ms, end_ms) {
+            (Some(start), Some(end)) if end > start => u64::try_from(end - start).ok(),
+            _ => None,
+        };
         // Re-translating keeps the source language text; translating a line whose text was edited
         // after an earlier translation makes that edit the new source.
         let changed = !translated
@@ -136,6 +142,7 @@ pub(super) async fn source_segments(
             source_segment_id,
             source_segment_revision: revision,
             text: source.to_owned(),
+            target_duration_ms,
         });
     }
     Ok(segments)
@@ -293,6 +300,7 @@ pub(super) async fn load_translation(
             || config.model != input.model
             || config.base_url != input.base_url
             || config.execution_target != input.execution_target
+            || config.terms != input.terms
             || &config.segment != expected_segment
             || config.segment.source_segment_id != output.source_segment_id
             || config.segment.source_segment_revision != output.source_segment_revision

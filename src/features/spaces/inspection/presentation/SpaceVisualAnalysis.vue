@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { ChevronDown } from "@lucide/vue";
+import { ChevronDown, RotateCcw } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiBadge from "../../../../shared/ui/UiBadge.vue";
 import UiExpandableText from "../../../../shared/ui/UiExpandableText.vue";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { requestVisualAnalysis } from "../../enrichment/enrichment-jobs";
 import SpaceEnrichmentJobStatus from "../../enrichment/presentation/SpaceEnrichmentJobStatus.vue";
 import SpaceRecognizedText from "../../enrichment/presentation/SpaceRecognizedText.vue";
 import { useNodeEnrichmentStatus } from "../../enrichment/use-node-enrichment-status";
@@ -22,6 +26,7 @@ const { jobs, loading, refresh } = useNodeEnrichmentStatus(
   activeSpaceId,
   computed(() => props.node.id),
 );
+const submitting = shallowRef(false);
 const visualJob = computed(() => jobs.value.find((job) => job.jobType === "analyze_visual"));
 const recognitionJob = computed(() => jobs.value.find((job) => job.jobType === "recognize_text"));
 const recognizedText = useRecognizedText(
@@ -37,22 +42,50 @@ const knowledge = computed(() => {
   const data = props.node.data;
   return data.kind === "image" || data.kind === "video" ? data.visualKnowledge : undefined;
 });
+const canRequestVisual = computed(() => {
+  const data = props.node.data;
+  if (data.kind === "image") return Boolean(data.sourceRevision);
+  if (data.kind === "video") return Boolean(data.sourceRevision && data.previewPath);
+  return false;
+});
 
 const visibleTags = computed(() => {
   const tags = knowledge.value?.tags ?? [];
   return tagsExpanded.value ? tags : tags.slice(0, TAG_LIMIT);
 });
+
+async function reanalyze() {
+  if (!activeSpaceId.value || submitting.value || !canRequestVisual.value) return;
+  submitting.value = true;
+  try {
+    await requestVisualAnalysis(activeSpaceId.value, props.node.id);
+    await refresh();
+  } catch (error) {
+    toast.error(getErrorMessage(error));
+  } finally {
+    submitting.value = false;
+  }
+}
 </script>
 
 <template>
   <div>
-    <template v-if="knowledge">
+    <div v-if="knowledge" class="flex items-start gap-2">
       <UiExpandableText
         :text="knowledge.description"
         :clamp-lines="4"
-        class="text-body leading-relaxed text-fg-secondary"
+        class="min-w-0 flex-1 text-body leading-relaxed text-fg-secondary"
       />
-    </template>
+      <UiIconButton
+        v-if="!visualJob && canRequestVisual"
+        :label="t('spaces.processing.visual.reanalyze')"
+        size="sm"
+        :disabled="submitting"
+        @click="reanalyze"
+      >
+        <RotateCcw class="size-3" />
+      </UiIconButton>
+    </div>
     <SpaceEnrichmentJobStatus :job="visualJob" @retried="refresh" />
     <SpaceRecognizedText class="mt-3" :text="recognizedText(null)" :job="recognitionJob" @retried="refresh" />
     <div v-if="knowledge?.tags.length" class="mt-3 space-y-1">
@@ -80,8 +113,20 @@ const visibleTags = computed(() => {
         </button>
       </div>
     </div>
-    <p v-if="!visualJob && !knowledge && !loading" class="text-caption leading-relaxed text-fg-tertiary">
-      {{ t("spaces.knowledge.visual.empty") }}
-    </p>
+    <div
+      v-if="!visualJob && !knowledge && !loading"
+      class="flex items-center justify-between gap-2 text-caption leading-relaxed text-fg-tertiary"
+    >
+      <p>{{ t("spaces.knowledge.visual.empty") }}</p>
+      <UiIconButton
+        v-if="canRequestVisual"
+        :label="t('spaces.processing.visual.reanalyze')"
+        size="sm"
+        :disabled="submitting"
+        @click="reanalyze"
+      >
+        <RotateCcw class="size-3" />
+      </UiIconButton>
+    </div>
   </div>
 </template>

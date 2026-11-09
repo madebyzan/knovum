@@ -7,6 +7,7 @@ import { toast } from "vue-sonner";
 import { openAiRequirementSettings } from "../../../../foundation/ai/ai-readiness-admission";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import type { EnrichmentJobState } from "../../contracts/generated/EnrichmentJobState";
 import { retryEnrichmentJob } from "../enrichment-jobs";
 import { ENRICHMENT_REQUIREMENTS } from "../job-tasks";
@@ -64,7 +65,9 @@ async function retry() {
   >
     <span class="min-w-0 wrap-break-word">{{ job.error ?? t("spaces.processing.failed") }}</span>
     <UiButton size="sm" variant="ghost" :disabled="retrying" @click="retry">
-      <RefreshCw class="size-3" :class="retrying && 'animate-spin'" />{{ t("common.retry") }}
+      <UiSpinner v-if="retrying" size="sm" />
+      <RefreshCw v-else class="size-3" />
+      {{ t("common.retry") }}
     </UiButton>
   </div>
 </template>

@@ -13,6 +13,7 @@ export interface VoiceReferenceEditorProps {
   readonly language: string;
   readonly disabled: boolean;
   readonly sourceNode?: SpaceCanvasNode | undefined;
+  readonly maxDurationMs?: number | undefined;
 }
 
 export function useVoiceReferenceEditor(
@@ -32,11 +33,12 @@ export function useVoiceReferenceEditor(
   const jobId = shallowRef<string>();
   const isCancelling = shallowRef(false);
   const error = shallowRef<string>();
+  const maxSeconds = computed(() => (props.maxDurationMs ?? 30_000) / 1000);
   const selectionValid = computed(
     () =>
       Number.isFinite(Number(start.value)) &&
       Number(end.value) - Number(start.value) >= 5 &&
-      Number(end.value) - Number(start.value) <= 30 &&
+      Number(end.value) - Number(start.value) <= maxSeconds.value &&
       Number(start.value) >= 0 &&
       durationMs.value !== undefined &&
       Math.round(Number(end.value) * 1000) <= durationMs.value,
@@ -132,15 +134,24 @@ export function useVoiceReferenceEditor(
       if (jobId.value === job) jobId.value = undefined;
     }
   }
+  watch(maxSeconds, (limit) => {
+    if (durationMs.value === undefined) return;
+    const currentStart = Number(start.value);
+    const currentEnd = Number(end.value);
+    if (Number.isFinite(currentStart) && Number.isFinite(currentEnd) && currentEnd - currentStart > limit) {
+      end.value = String(Math.min(durationMs.value / 1000, currentStart + limit));
+    }
+  });
   function selectionLoaded(sourceDurationMs: number) {
     durationMs.value = sourceDurationMs;
-    end.value = String(Math.min(sourceDurationMs / 1000, 30));
+    end.value = String(Math.min(sourceDurationMs / 1000, 15, maxSeconds.value));
   }
   return {
     path,
     start,
     end,
     durationMs,
+    maxSeconds,
     sourceVersion,
     jobId,
     isCancelling,

@@ -67,6 +67,10 @@ function observedEnrichment(
         await retryEnrichmentJob(job.id);
         await refreshEnrichmentJobs();
       },
+      dismiss: async () => {
+        await cancelEnrichmentJob(job.id);
+        await refreshEnrichmentJobs();
+      },
     }),
     ...(job.status === "awaiting_configuration" &&
       requirement && { resolve: () => openAiRequirementSettings(requirement) }),

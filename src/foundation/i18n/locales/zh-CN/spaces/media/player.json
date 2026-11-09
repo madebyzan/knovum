@@ -6,6 +6,6 @@
   "closePlayback": "退出播放",
   "timeline": "媒体时间轴",
   "transcribe": "转录",
-  "transcribed": "已转录",
-  "transcribing": "正在处理转录"
+  "transcribing": "正在处理转录",
+  "retranscribe": "重新转录"
 }

@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import type { SpeechMediaSource } from "../../contracts/generated/SpeechMediaSource";
 import type { SpeechSourceSeparationPublication } from "../../contracts/generated/SpeechSourceSeparationPublication";
 import type { VideoDubbingOutputConfig } from "../../contracts/generated/VideoDubbingOutputConfig";
+import { usesOriginalVideoBackground } from "../video-background-selection";
 import VideoBackgroundSelect from "./VideoBackgroundSelect.vue";
 
 const config = defineModel<VideoDubbingOutputConfig>({ required: true });
@@ -17,6 +20,11 @@ const emit = defineEmits<{
   separated: [publication: SpeechSourceSeparationPublication];
 }>();
 const { t } = useI18n();
+const backgroundPresets = computed(() => [
+  { gain: "0", label: t("spaces.speech.videoDubbing.backgroundPresetNatural") },
+  { gain: "-6", label: t("spaces.speech.videoDubbing.backgroundPresetSoft") },
+  { gain: "-12", label: t("spaces.speech.videoDubbing.backgroundPresetSubtle") },
+]);
 function updateMixSetting(field: "retainOriginalTrack" | "preserveOriginalOutsideDialogue", value: boolean) {
   config.value = { ...config.value, [field]: value };
 }
@@ -39,10 +47,22 @@ function updateMixSetting(field: "retainOriginalTrack" | "preserveOriginalOutsid
         >{{ t("spaces.speech.videoDubbing.voiceGain") }}
         <UiInput v-model="voiceGain" size="sm" inputmode="decimal" :disabled />
       </label>
-      <label v-if="config.background" class="space-y-1 text-caption text-fg-secondary"
+      <label v-if="config.background" class="block min-w-0 space-y-1 text-caption text-fg-secondary"
         >{{ t("spaces.speech.videoDubbing.backgroundGain") }}
         <UiInput v-model="backgroundGain" size="sm" inputmode="decimal" :disabled />
       </label>
+    </div>
+    <div v-if="config.background" class="flex flex-wrap items-center gap-1.5">
+      <UiButton
+        v-for="preset in backgroundPresets"
+        :key="preset.gain"
+        size="sm"
+        :variant="Number(backgroundGain) === Number(preset.gain) ? 'secondary' : 'ghost'"
+        :disabled
+        @click="backgroundGain = preset.gain"
+      >
+        {{ preset.label }}
+      </UiButton>
     </div>
     <label class="flex items-center gap-2 text-caption text-fg-secondary">
       <UiCheckbox
@@ -57,7 +77,7 @@ function updateMixSetting(field: "retainOriginalTrack" | "preserveOriginalOutsid
       <UiCheckbox
         :model-value="config.preserveOriginalOutsideDialogue"
         :label="t('spaces.speech.videoDubbing.preserveOriginalOutsideDialogue')"
-        :disabled="disabled || !config.backgroundSeparation || !config.sourceDialogueIntervals.length"
+        :disabled="disabled || !usesOriginalVideoBackground(config) || !config.sourceDialogueIntervals.length"
         @update:model-value="updateMixSetting('preserveOriginalOutsideDialogue', $event)"
       />
       {{ t("spaces.speech.videoDubbing.preserveOriginalOutsideDialogue") }}

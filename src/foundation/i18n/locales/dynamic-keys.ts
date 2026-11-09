@@ -82,7 +82,7 @@ export const DYNAMIC_LOCALE_KEYS = [
   "settings.ai.localModels.selected",
   "settings.ai.localModels.selectedVoiceModel",
   "spaces.media.player.transcribe",
-  "spaces.media.player.transcribed",
+  "spaces.media.player.retranscribe",
   "spaces.media.player.transcribing",
   "spaces.speech.project.types.audiobook",
   "spaces.speech.project.types.videoDubbing",

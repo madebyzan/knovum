@@ -140,6 +140,27 @@ describe("speech preview audio queue", () => {
     expect(playing.at(-1)).toBe(false);
   });
 
+  it("buffers successive chunks on underrun and plays them smoothly on flush", async () => {
+    const queue = new PreviewAudioQueue(() => undefined);
+    expect(await queue.start("request-1")).toBe(true);
+
+    const context = FakeAudioContext.instances[0]!;
+    queue.enqueue(chunk("request-1", 1));
+    expect(context.sources).toHaveLength(1);
+
+    context.sources[0]!.finish();
+    context.currentTime = 5.0;
+
+    queue.enqueue(chunk("request-1", 2));
+    expect(context.sources).toHaveLength(1);
+
+    queue.enqueue(chunk("request-1", 3));
+    expect(context.sources).toHaveLength(1);
+
+    queue.flush();
+    expect(context.sources).toHaveLength(3);
+  });
+
   it("ignores late chunks and scopes stop to the owning request", async () => {
     const queue = new PreviewAudioQueue(() => undefined);
     expect(await queue.start("request-1")).toBe(true);

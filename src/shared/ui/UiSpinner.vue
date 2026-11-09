@@ -41,7 +41,7 @@ const CLASSES_BY_TONE: Record<"muted" | "accent" | "faint", string> = {
     fill="none"
     role="status"
     :aria-label="accessibleLabel"
-    style="transform-origin: center; will-change: transform"
+    style="transform-box: border-box; transform-origin: center"
   >
     <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.25" class="opacity-20" />
     <circle

@@ -18,7 +18,7 @@ use tauri::{AppHandle, Runtime};
 
 use crate::foundation::app_error::AppError;
 use crate::spaces::db;
-use job::{FROM_LIVE, FROM_RUNNING, STATUS_CANCELLED, STATUS_FAILED, STATUS_SUCCEEDED};
+use job::{FROM_CANCELLABLE, FROM_RUNNING, STATUS_CANCELLED, STATUS_FAILED, STATUS_SUCCEEDED};
 
 #[tauri::command]
 pub async fn cancel_enrichment_job<R: Runtime>(
@@ -26,8 +26,8 @@ pub async fn cancel_enrichment_job<R: Runtime>(
     job_id: String,
 ) -> Result<(), AppError> {
     // The row is cancelled before the token is signalled so the execution being stopped cannot race
-    // its own failure write in first. Cancelling an already finished job is a normal no-op.
-    set_status(&app, &job_id, FROM_LIVE, STATUS_CANCELLED, None).await?;
+    // its own failure write in first. Failed jobs can also be cancelled to dismiss them from Tasks.
+    set_status(&app, &job_id, FROM_CANCELLABLE, STATUS_CANCELLED, None).await?;
     crate::ai::executions::cancel(&job_id)?;
     crate::spaces::assets::transcription::cancel_transcription(&job_id)?;
     Ok(())

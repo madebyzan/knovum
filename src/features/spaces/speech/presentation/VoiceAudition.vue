@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onScopeDispose, shallowRef, watch } from "vue";
+import { computed, onScopeDispose, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { VoicePreviewSource } from "../../contracts/generated/VoicePreviewSource";
 import { useSpeechPreview } from "../use-speech-preview";
@@ -12,10 +13,17 @@ const props = defineProps<{ source: VoicePreviewSource; disabled: boolean }>();
 const emit = defineEmits<{ dirty: [value: boolean] }>();
 const { t } = useI18n();
 const text = shallowRef("");
-const { preview, jobId, listening, error, previewSource, cancel, stopListening, reset } = useSpeechPreview();
+const { preview, progress, jobId, listening, error, previewSource, cancel, stopListening, reset } =
+  useSpeechPreview();
 watch(() => props.source, reset, { deep: true });
 watch(text, (value) => emit("dirty", Boolean(value.trim())));
 onScopeDispose(reset);
+
+const progressLabel = computed(() => {
+  if (progress.value?.stage === "preparing") return t("spaces.speech.preview.preparing");
+  if (progress.value?.stage === "synthesizing") return t("spaces.speech.preview.synthesizing");
+  return t("common.loading");
+});
 </script>
 
 <template>
@@ -31,6 +39,10 @@ onScopeDispose(reset);
         :aria-label="t('spaces.speech.preview.text.placeholder')"
       />
     </label>
+    <div v-if="jobId" class="flex items-center gap-2 text-caption text-fg-secondary">
+      <UiSpinner size="sm" />
+      <span>{{ progressLabel }}</span>
+    </div>
     <SpeechMediaPlayer v-if="preview" kind="audio" :source="preview.source" />
     <p v-if="error" class="text-caption text-fg-danger">{{ error }}</p>
     <div class="flex items-center justify-between gap-2 border-t border-stroke-divider pt-3">

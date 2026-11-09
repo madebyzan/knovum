@@ -29,5 +29,6 @@
     "preparingInference": "准备本地 AI 组件中…",
     "downloadSize": "首次使用需下载 {size} 本地资源",
     "installing": "正在安装本地资源…"
-  }
+  },
+  "retryAll": "一键重试"
 }

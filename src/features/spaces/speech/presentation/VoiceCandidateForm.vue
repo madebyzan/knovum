@@ -21,8 +21,11 @@ const { t } = useI18n();
 const {
   mode,
   model,
+  initialModel,
   modelAvailable,
+  supportsDesign,
   referenceTranscript,
+  referenceDuration,
   language,
   description,
   reference,
@@ -62,8 +65,11 @@ async function saveCandidate(candidateId: string, name: string) {
     <VoiceCandidateOptions
       v-model:mode="mode"
       v-model:model="model"
+      v-model:initial-model="initialModel"
       v-model:available="modelAvailable"
+      v-model:supports-design="supportsDesign"
       v-model:reference-transcript="referenceTranscript"
+      v-model:reference-duration="referenceDuration"
       v-model:language="language"
       :fixed-source="Boolean(sourceNode || sourceKind)"
       :disabled="busy || preparingReference"
@@ -76,13 +82,27 @@ async function saveCandidate(candidateId: string, name: string) {
         v-model="reference"
         :language="language"
         :source-node="props.sourceNode"
+        :max-duration-ms="referenceDuration?.maxMs"
         :disabled="busy"
         @busy="preparingReference = $event"
         @dirty="referenceEditorDirty = $event"
       />
       <p class="text-caption-sm leading-relaxed text-fg-tertiary">
-        {{ t("spaces.speech.reference.requirements") }}
+        {{
+          t("spaces.speech.reference.requirements", {
+            maxSeconds: (referenceDuration?.maxMs ?? 30_000) / 1000,
+          })
+        }}
       </p>
+      <UiTextarea
+        v-if="supportsDesign"
+        v-model="description"
+        :rows="2"
+        :maxlength="500"
+        :disabled="busy || preparingReference"
+        :placeholder="t('spaces.speech.reference.promptPlaceholder')"
+        :aria-label="t('spaces.speech.reference.prompt')"
+      />
       <UiTextarea
         v-if="referenceTranscript === 'optionalConfirmed'"
         v-model="transcript"
@@ -108,6 +128,7 @@ async function saveCandidate(candidateId: string, name: string) {
       v-else
       v-model="description"
       :rows="2"
+      :maxlength="500"
       :disabled="busy"
       :placeholder="t('spaces.speech.voice.design.placeholder')"
       :aria-label="t('spaces.speech.voice.design.placeholder')"

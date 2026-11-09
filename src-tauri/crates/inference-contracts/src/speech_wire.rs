@@ -1,6 +1,25 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+pub const VOICE_REFERENCE_SAMPLE_RATE: u32 = 16_000;
+pub const VOICE_REFERENCE_MIN_DURATION_MS: u64 = 5_000;
+pub const DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS: u64 = 1_000;
+pub const VOXCPM2_MAX_REFERENCE_DURATION_MS: u64 = 15_000;
+pub const MOSS_NANO_MAX_REFERENCE_DURATION_MS: u64 = 30_000;
+pub const VOICE_REFERENCE_FRAME_TOLERANCE_SAMPLES: u32 = 16;
+pub const MAX_SYNTHESIS_TEXT_CHARACTERS: usize = 2_000;
+
+pub const fn voice_reference_sample_bounds(
+    min_duration_ms: u64,
+    max_duration_ms: u64,
+) -> (u32, u32) {
+    let rate = VOICE_REFERENCE_SAMPLE_RATE as u64;
+    let tolerance = VOICE_REFERENCE_FRAME_TOLERANCE_SAMPLES as u64;
+    let min_samples = (min_duration_ms * rate / 1_000).saturating_sub(tolerance) as u32;
+    let max_samples = (max_duration_ms * rate / 1_000 + tolerance) as u32;
+    (min_samples, max_samples)
+}
+
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct InferenceRequestIdentity {

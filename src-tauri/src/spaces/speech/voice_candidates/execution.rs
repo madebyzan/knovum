@@ -21,7 +21,7 @@ use crate::{
 
 /// Synthesising one audition line is bounded work once the voice model is loaded; the load itself
 /// is bounded by the worker's startup budget.
-const SYNTHESIS_BUDGET_MS: u64 = 300_000;
+const SYNTHESIS_BUDGET_MS: u64 = 600_000;
 
 pub(crate) async fn execute(
     app: &tauri::AppHandle,
@@ -239,7 +239,11 @@ async fn prepare_source(
             Some(description.trim().into()),
             "designed",
         )),
-        VoiceCandidateSource::Reference { reference_text, .. } => {
+        VoiceCandidateSource::Reference {
+            reference_text,
+            design_prompt,
+            ..
+        } => {
             let snapshot = configuration
                 .reference_source
                 .as_ref()
@@ -250,7 +254,12 @@ async fn prepare_source(
                 snapshot.byte_length,
                 &snapshot.source_revision,
             )?;
-            let audio = super::super::voice_assets::reference_metadata(reference_part)?;
+            let bounds = request.model.reference_duration();
+            let audio = super::super::voice_assets::reference_metadata_with_bounds(
+                reference_part,
+                bounds.min_ms,
+                bounds.max_ms,
+            )?;
             let text = reference_text
                 .as_deref()
                 .map(str::trim)
@@ -268,7 +277,12 @@ async fn prepare_source(
                 let _ = fs::remove_file(reference_part);
                 return Err(error.into());
             }
-            Ok((Some(audio), text.map(str::to_owned), None, "reference"))
+            let prompt = design_prompt
+                .as_deref()
+                .map(str::trim)
+                .filter(|prompt| !prompt.is_empty())
+                .map(str::to_owned);
+            Ok((Some(audio), text.map(str::to_owned), prompt, "reference"))
         }
     }
 }

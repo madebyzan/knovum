@@ -7,6 +7,9 @@ export function cancelEnrichmentJob(jobId: string) {
 export function retryEnrichmentJob(jobId: string) {
   return invokeCommand<void>("plugin:spaces|retry_enrichment_job", { jobId });
 }
+export function requestVisualAnalysis(spaceId: string, nodeId: string) {
+  return invokeCommand<string>("plugin:spaces|request_visual_analysis", { spaceId, nodeId });
+}
 export function listActionableEnrichmentJobs() {
   return invokeCommand<EnrichmentJobProjection[]>("plugin:spaces|list_actionable_enrichment_jobs");
 }

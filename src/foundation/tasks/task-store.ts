@@ -31,10 +31,14 @@ export const useTaskStore = defineStore("tasks", () => {
   const observation = createTaskObservation({ tasks, handlers, externallySettledTaskIds, remove });
   const cancel = createTaskCancellation({ tasks, handlers, externallySettledTaskIds, finish });
 
-  function remove(taskId: string) {
+  function clearTimer(taskId: string) {
     const timer = completionTimerByTaskId.get(taskId);
     if (timer) clearTimeout(timer);
     completionTimerByTaskId.delete(taskId);
+  }
+
+  function remove(taskId: string) {
+    clearTimer(taskId);
     handlers.delete(taskId);
     externallySettledTaskIds.delete(taskId);
     retryController.delete(taskId);
@@ -43,15 +47,12 @@ export const useTaskStore = defineStore("tasks", () => {
   }
 
   function dismiss(taskId: string) {
-    const task = tasks.value.find((candidate) => candidate.id === taskId);
-    if (
-      task?.durable &&
-      (task.status === "queued" ||
-        task.status === "running" ||
-        task.status === "attention" ||
-        task.status === "failed")
-    )
+    if (observation.handlesDismiss(taskId)) {
+      void observation.dismiss(taskId);
       return;
+    }
+    const task = tasks.value.find((candidate) => candidate.id === taskId);
+    if (task?.durable && task.status !== "succeeded" && task.status !== "cancelled") return;
     remove(taskId);
   }
 
@@ -65,12 +66,7 @@ export const useTaskStore = defineStore("tasks", () => {
     cancelTask?: CancelTask,
     taskId: string = crypto.randomUUID(),
   ) {
-    const task: AppTask = {
-      id: taskId,
-      title: taskTitle,
-      status: "running",
-      startedAt: Date.now(),
-    };
+    const task: AppTask = { id: taskId, title: taskTitle, status: "running", startedAt: Date.now() };
     if (statusMessage !== undefined) task.statusMessage = statusMessage;
     if (cancelTask) {
       task.cancellable = true;
@@ -122,8 +118,7 @@ export const useTaskStore = defineStore("tasks", () => {
     if (!task) return;
     task.progress = 100;
     retryController.delete(taskId);
-    const existing = completionTimerByTaskId.get(taskId);
-    if (existing) clearTimeout(existing);
+    clearTimer(taskId);
     completionTimerByTaskId.set(
       taskId,
       globalThis.setTimeout(() => dismiss(taskId), SUCCESS_DISMISS_DELAY_MS),
@@ -131,10 +126,7 @@ export const useTaskStore = defineStore("tasks", () => {
   }
 
   function fail(taskId: string, value: string) {
-    if (!finish(taskId, "failed", value)) return;
-    const timer = completionTimerByTaskId.get(taskId);
-    if (timer) clearTimeout(timer);
-    completionTimerByTaskId.delete(taskId);
+    if (finish(taskId, "failed", value)) clearTimer(taskId);
   }
 
   function cancelled(taskId: string) {
@@ -165,6 +157,7 @@ export const useTaskStore = defineStore("tasks", () => {
     running,
     failed,
     completed,
+    retryingAll: retryController.retryingAll,
     start,
     restoreRunning,
     restoreFailed: retryController.restoreFailed,
@@ -186,6 +179,7 @@ export const useTaskStore = defineStore("tasks", () => {
     markObservationUnavailable: retryController.markObservationUnavailable,
     resumeObservation: retryController.resumeObservation,
     retry,
+    retryAll: (taskIds?: readonly string[]) => retryController.retryAll(retry, taskIds),
     dismiss,
     clearCompleted: () => completed.value.forEach(({ id }) => dismiss(id)),
   };

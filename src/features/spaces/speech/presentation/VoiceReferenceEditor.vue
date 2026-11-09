@@ -20,6 +20,7 @@ const {
   start,
   end,
   durationMs,
+  maxSeconds,
   sourceVersion,
   jobId,
   isCancelling,
@@ -68,6 +69,7 @@ async function prepareReference() {
         v-model:start="start"
         v-model:end="end"
         :duration-ms="durationMs"
+        :max-seconds="maxSeconds"
         :disabled="editingDisabled"
         :valid="selectionValid"
       />

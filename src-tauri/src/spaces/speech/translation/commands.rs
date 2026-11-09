@@ -52,6 +52,7 @@ pub async fn translate_video_dubbing(
         model: target.model().into(),
         base_url: target.base_url.clone(),
         execution_target: request.execution_target.clone(),
+        terms: request.terms.clone(),
         segments,
     };
     if let Some(existing) =
@@ -125,6 +126,7 @@ fn input_revision(
         "provider": provider,
         "model": model,
         "baseUrl": base_url,
+        "terms": &request.terms,
         "segments": segments,
     }))
     .map_err(db::json_error)?;
@@ -161,7 +163,7 @@ async fn create_run(
         .map_err(|_| "Video translation has too many segments")?
         .checked_mul(3)
         .ok_or("Video translation attempt budget overflow")?;
-    let budget = json!({"maxParallelism":1,"maxAttempts":3,"maxStepAttempts":step_attempts});
+    let budget = json!({"maxParallelism":4,"maxAttempts":3,"maxStepAttempts":step_attempts});
     create_run_in_transaction(
         tx,
         &NewRun {
@@ -188,6 +190,7 @@ async fn create_run(
             model: input.model.clone(),
             base_url: input.base_url.clone(),
             execution_target: input.execution_target.clone(),
+            terms: input.terms.clone(),
             ordinal,
             segment: segment.clone(),
         };

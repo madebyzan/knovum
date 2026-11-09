@@ -27,7 +27,7 @@ const props = withDefaults(
   },
 );
 const store = useTaskStore();
-const { tasks } = storeToRefs(store);
+const { tasks, retryingAll } = storeToRefs(store);
 const { t } = useI18n();
 const open = shallowRef(false);
 const filter = shallowRef<TaskFilter>("all");
@@ -51,6 +51,11 @@ const visibleTasks = computed(() => {
   if (filter.value === "all" || !scope) return listed.value;
   return listed.value.filter((task) => task.scope?.kind === scope.kind && task.scope?.id === scope.id);
 });
+const retryableVisibleTasks = computed(() =>
+  visibleTasks.value.filter(
+    (task) => (task.status === "failed" || task.status === "attention") && Boolean(task.retryable),
+  ),
+);
 
 /** Opening a subject or resolving a wait both lead somewhere else, so the panel steps aside. */
 async function leaveFor(go: () => Promise<void> | void) {
@@ -99,6 +104,15 @@ watch(
         <div class="min-w-0 flex-1 text-title-sm font-semibold tracking-title">
           {{ t("tasks.title") }}
         </div>
+        <UiButton
+          v-if="retryableVisibleTasks.length"
+          size="sm"
+          variant="ghost"
+          :disabled="retryingAll"
+          @click="store.retryAll(retryableVisibleTasks.map(({ id }) => id))"
+        >
+          {{ t("tasks.retryAll") }}
+        </UiButton>
         <UiButton v-if="completed.length" size="sm" variant="ghost" @click="store.clearCompleted()">
           {{ t("tasks.clearCompleted") }}
         </UiButton>
@@ -119,6 +133,7 @@ watch(
         <button
           type="button"
           class="h-6 max-w-44 truncate rounded-sm px-2 text-caption text-fg-secondary outline-none hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:pointer-events-none disabled:opacity-40 aria-pressed:bg-surface-overlay aria-pressed:text-fg-primary aria-pressed:shadow-control"
+          :title="currentScope?.label ?? t('tasks.currentSpace')"
           :aria-pressed="filter === 'current'"
           :disabled="!currentScope"
           @click="filter = 'current'"

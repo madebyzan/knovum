@@ -5,13 +5,17 @@ import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useSpaceStore } from "../../session/space-store";
-import { useNodeEnrichmentStatus } from "../use-node-enrichment-status";
+import { MEDIA_ENRICHMENT_JOB_TYPES, useNodeEnrichmentStatus } from "../use-node-enrichment-status";
 
 const props = defineProps<{ nodeId: string }>();
 const { t } = useI18n();
 const { activeSpaceId } = storeToRefs(useSpaceStore());
 const nodeId = toRef(props, "nodeId");
-const { status, retrying, retryFailed } = useNodeEnrichmentStatus(activeSpaceId, nodeId);
+const { status, retrying, retryFailed } = useNodeEnrichmentStatus(
+  activeSpaceId,
+  nodeId,
+  MEDIA_ENRICHMENT_JOB_TYPES,
+);
 const visible = computed(
   () => status.value.pending || status.value.running || status.value.failed || status.value.waiting,
 );

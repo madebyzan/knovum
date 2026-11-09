@@ -33,6 +33,7 @@ const request: TranslateVideoDubbingRequest = {
   expectedRevision: 1,
   targetLanguage: "en",
   executionTarget: { type: "model", connectionId: "connection", modelId: "model", temperature: 0 },
+  terms: [],
 };
 const completed: RunObservation = {
   id: "run",

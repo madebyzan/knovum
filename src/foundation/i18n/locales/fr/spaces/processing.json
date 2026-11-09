@@ -48,6 +48,7 @@
     }
   },
   "visual": {
-    "waitingConfiguration": "Configurez un modèle de compréhension visuelle pour analyser cette image ou vidéo."
+    "waitingConfiguration": "Configurez un modèle de compréhension visuelle pour analyser cette image ou vidéo.",
+    "reanalyze": "Réanalyser le contenu visuel"
   }
 }

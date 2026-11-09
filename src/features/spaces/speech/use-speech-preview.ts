@@ -126,6 +126,7 @@ export function useSpeechPreview() {
         (value) => updateProgress(value, nextJobId),
         (chunk) => handleChunk(chunk, nextJobId),
       );
+      audioQueue.flush();
       commitPreviewOutput(output, nextJobId, previousPath);
     } catch (cause) {
       audioQueue.stop(nextJobId);
@@ -144,19 +145,13 @@ export function useSpeechPreview() {
   async function cancel() {
     audioQueue.stop();
     const active = jobId.value;
-    const expectedEpoch = errorEpoch;
-    if (active)
-      await cancelSpeechGeneration(active).catch((cause) => {
-        if (jobId.value === active && expectedEpoch === errorEpoch && !error.value) {
-          error.value = getErrorMessage(cause);
-        } else {
-          void logError(`Speech preview cancellation failed: ${formatErrorDiagnostic(cause)}`);
-        }
-      });
-  }
-
-  function stopListening() {
-    audioQueue.stop();
+    const epoch = errorEpoch;
+    if (!active) return;
+    await cancelSpeechGeneration(active).catch((cause) => {
+      if (jobId.value === active && epoch === errorEpoch && !error.value)
+        error.value = getErrorMessage(cause);
+      else void logError(`Speech preview cancellation failed: ${formatErrorDiagnostic(cause)}`);
+    });
   }
 
   return {
@@ -165,18 +160,13 @@ export function useSpeechPreview() {
     jobId: readonly(jobId),
     listening: readonly(listening),
     error: readonly(error),
-    /** The loudest sample audible right now, so a waveform draws the voice instead of a loop. */
     peak: () => audioQueue.peak(),
     previewSource,
-    previewSelection: (
-      text: string,
-      revisionId: string,
-      lexicon: Record<string, string>,
-      deliveryInstruction = "",
-    ) => previewSource(text, { kind: "revision", revisionId }, lexicon, deliveryInstruction),
+    previewSelection: (text: string, revisionId: string, lexicon: Record<string, string>, delivery = "") =>
+      previewSource(text, { kind: "revision", revisionId }, lexicon, delivery),
     clearPreview,
     reset,
     cancel,
-    stopListening,
+    stopListening: () => audioQueue.stop(),
   };
 }

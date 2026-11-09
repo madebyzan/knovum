@@ -73,7 +73,7 @@ const position = computed(() => {
   const placed = placement.value;
   if (!placed) return undefined;
   return {
-    transform: `translate3d(${placed.left}px, ${placed.top}px, 0)`,
+    transform: `translate3d(${Math.round(placed.left)}px, ${Math.round(placed.top)}px, 0)`,
     maxHeight: `${placed.maxHeight}px`,
   };
 });

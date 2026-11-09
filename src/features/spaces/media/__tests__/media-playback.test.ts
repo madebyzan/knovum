@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { i18n } from "../../../../foundation/i18n/instance";
 import type { SpaceAudioPayload, SpaceVideoPayload } from "../../model/nodes/node-payload";
+import { waitForMediaMetadata } from "../media-element-source";
 import SpaceAudioPlayer from "../presentation/SpaceAudioPlayer.vue";
 import SpaceVideoPlayer from "../presentation/SpaceVideoPlayer.vue";
 
@@ -71,4 +72,26 @@ it("keeps waveform timeline pointer-events-none when audio is unloaded or inacti
   expect(slider.exists()).toBe(true);
   expect(slider.classes()).toContain("pointer-events-none");
   expect(slider.attributes("disabled")).toBeDefined();
+});
+
+it("unloads audio playback when the player becomes inactive", async () => {
+  vi.mocked(waitForMediaMetadata).mockResolvedValueOnce(undefined);
+  const podcastAudio: SpaceAudioPayload = {
+    kind: "audio",
+    title: "Podcast",
+    assetPath: "/podcast.mp3",
+    fileName: "podcast.mp3",
+  };
+  const wrapper = mount(SpaceAudioPlayer, {
+    props: { data: podcastAudio, interactive: true },
+    global: { plugins: [i18n] },
+  });
+  wrappers.push(wrapper);
+
+  await wrapper.vm.togglePlayback();
+  expect(wrapper.find("audio").exists()).toBe(true);
+
+  await wrapper.setProps({ interactive: false });
+  expect(wrapper.emitted("unload")).toHaveLength(1);
+  expect(wrapper.find("audio").exists()).toBe(false);
 });

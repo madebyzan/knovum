@@ -14,6 +14,7 @@
   "inProgress": "Medien im Hintergrund analysieren…",
   "insights": {
     "unavailable": "Transkriptdaten sind nicht verfügbar; Bitte analysieren Sie zuerst die Medien.",
-    "generate": "Generieren Sie Kapitel und Zusammenfassungen"
+    "generate": "Generieren Sie Kapitel und Zusammenfassungen",
+    "regenerate": "Kapitel und Zusammenfassung neu erstellen"
   }
 }

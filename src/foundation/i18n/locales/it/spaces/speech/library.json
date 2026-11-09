@@ -12,5 +12,7 @@
     "description": "Le impostazioni vocali non salvate andranno perse."
   },
   "presets": "Voci preimpostate",
+  "setDefault": "Imposta come voce predefinita",
+  "defaultBadge": "Predefinita",
   "add": "Aggiungi voce"
 }

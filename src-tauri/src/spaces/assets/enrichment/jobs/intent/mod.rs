@@ -200,7 +200,7 @@ async fn enqueue(
         "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,execution_target,attempts,error,created_at,updated_at) \
          SELECT $1,$2,$3,$4,$5,$6,$8,0,NULL,$7,$7 \
          WHERE NOT EXISTS (SELECT 1 FROM spaces_enrichment_jobs \
-           WHERE space_id=$2 AND node_id=$3 AND job_type=$4 AND source_revision=$6 AND status='failed') \
+           WHERE space_id=$2 AND node_id=$3 AND job_type=$4 AND source_revision=$6 AND status IN ('failed','cancelled')) \
          ON CONFLICT(space_id,node_id,job_type,source_revision) WHERE status IN ('pending','running','awaiting_configuration') \
          DO UPDATE SET updated_at=excluded.updated_at",
     )

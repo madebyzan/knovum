@@ -141,7 +141,10 @@ fn validate_voice_source(
                     .reference_text
                     .as_deref()
                     .is_none_or(|value| !value.trim().is_empty())
-                && row.design_description.is_none() =>
+                && row
+                    .design_description
+                    .as_deref()
+                    .is_none_or(|value| !value.trim().is_empty()) =>
         {
             let revision = row
                 .reference_source_revision

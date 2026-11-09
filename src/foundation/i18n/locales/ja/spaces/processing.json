@@ -48,6 +48,7 @@
     }
   },
   "visual": {
-    "waitingConfiguration": "この画像またはビデオを分析するための視覚的理解モデルを構成します。"
+    "waitingConfiguration": "この画像またはビデオを分析するための視覚的理解モデルを構成します。",
+    "reanalyze": "視覚コンテンツを再分析"
   }
 }

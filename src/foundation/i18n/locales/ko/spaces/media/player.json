@@ -6,6 +6,6 @@
   "closePlayback": "재생 닫기",
   "timeline": "미디어 타임라인",
   "transcribe": "음성 전사",
-  "transcribed": "기록됨",
-  "transcribing": "녹취 처리 중"
+  "transcribing": "녹취 처리 중",
+  "retranscribe": "다시 전사"
 }

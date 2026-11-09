@@ -2,6 +2,8 @@ use super::parse_config;
 use crate::ai::contracts::speech_wire::{
     AudioFileReference, InferenceRequestIdentity, SpeechSynthesisEngine, SpeechSynthesizeParams,
     SynthesisProfile, VoiceRevisionReference, VoiceSourceKind,
+    DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS, MOSS_NANO_MAX_REFERENCE_DURATION_MS,
+    VOICE_REFERENCE_MIN_DURATION_MS, VOXCPM2_MAX_REFERENCE_DURATION_MS,
 };
 use crate::spaces::{
     assets,
@@ -10,9 +12,11 @@ use crate::spaces::{
 use std::path::Path;
 
 /// Synthesising one segment is bounded work once the voice model is loaded; the load itself is
-/// bounded by the worker's startup budget.
-const SYNTHESIS_BUDGET_MS: u64 = 300_000;
+/// bounded by the worker's startup budget. Generous 10-minute budget accommodates complex models
+/// on CPU backends without premature timeouts.
+const SYNTHESIS_BUDGET_MS: u64 = 600_000;
 
+#[derive(Clone, Copy)]
 pub(in crate::spaces::speech) struct SynthesisAttempt<'a> {
     pub request_id: &'a str,
     pub owner_kind: &'a str,
@@ -22,11 +26,14 @@ pub(in crate::spaces::speech) struct SynthesisAttempt<'a> {
     pub attempt_epoch: u64,
 }
 
+/// `seed` is explicit because duration-fitted lines derive per-take seeds procedurally from the
+/// voice revision's frozen seed; every other caller passes the frozen seed itself.
 pub(in crate::spaces::speech) fn synthesis_params(
     app: &tauri::AppHandle,
     voice: &VoiceExecution,
     text: &str,
     delivery_instruction: Option<&str>,
+    seed: u32,
     attempt: SynthesisAttempt<'_>,
 ) -> Result<SpeechSynthesizeParams, String> {
     let config = parse_config(&voice.synthesis_config)?;
@@ -63,7 +70,7 @@ pub(in crate::spaces::speech) fn synthesis_params(
         text: text.to_owned(),
         voice_revision,
         style: style.map(str::to_owned),
-        seed: u64::from(config.seed),
+        seed: u64::from(seed),
         profile: SynthesisProfile {
             engine,
             language: voice.language.clone(),
@@ -106,7 +113,12 @@ fn frozen_voice_revision(
         reference_audio,
         reference_text,
         // Saved designs reuse the selected immutable recording, rather than designing a new voice.
-        design_prompt: None,
+        // Reference voices with design prompts maintain their style guidance.
+        design_prompt: if voice.source_kind == "reference" {
+            voice.design_description.clone()
+        } else {
+            None
+        },
     })
 }
 
@@ -132,7 +144,23 @@ fn reference_audio(
     if sha256 != expected {
         return Err("Reference voice audio differs from its immutable revision".into());
     }
-    let reference = crate::spaces::speech::voice_assets::reference_metadata(&path)?;
+    let (min_ms, max_ms) = match (voice.engine_id.as_str(), voice.source_kind.as_str()) {
+        ("moss_nano", _) => (
+            VOICE_REFERENCE_MIN_DURATION_MS,
+            MOSS_NANO_MAX_REFERENCE_DURATION_MS,
+        ),
+        ("voxcpm2", "designed") => (
+            DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS,
+            VOXCPM2_MAX_REFERENCE_DURATION_MS,
+        ),
+        ("voxcpm2", _) => (
+            VOICE_REFERENCE_MIN_DURATION_MS,
+            VOXCPM2_MAX_REFERENCE_DURATION_MS,
+        ),
+        _ => return Err("Voice revision engine is unsupported".into()),
+    };
+    let reference =
+        crate::spaces::speech::voice_assets::reference_metadata_with_bounds(&path, min_ms, max_ms)?;
     if reference.sha256 != sha256 {
         return Err("Reference voice audio changed while it was inspected".into());
     }

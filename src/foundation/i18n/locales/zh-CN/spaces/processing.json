@@ -48,6 +48,7 @@
     }
   },
   "visual": {
-    "waitingConfiguration": "配置视觉理解模型后，可查看图片或视频的内容分析。"
+    "waitingConfiguration": "配置视觉理解模型后，可查看图片或视频的内容分析。",
+    "reanalyze": "重新分析视觉内容"
   }
 }

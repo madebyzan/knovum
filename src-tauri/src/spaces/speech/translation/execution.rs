@@ -1,9 +1,13 @@
 use crate::{
     ai::{
-        capabilities,
+        capabilities::{
+            self,
+            translation::speech_rate::{estimate_duration_ms, requires_reduction},
+        },
         contracts::ExecutionCapability,
+        models::ModelExecutionTarget,
         settings,
-        tasks::{self, TaskExecutionTarget},
+        tasks::{self, completion::TaskInput, TaskExecutionTarget},
     },
     foundation::app_error::AppError,
     spaces::{
@@ -13,6 +17,7 @@ use crate::{
 };
 
 use super::{
+    batch_coordinator,
     contracts::{TranslationStepConfiguration, VideoTranslationSegmentOutput},
     repository,
 };
@@ -45,13 +50,100 @@ pub(crate) async fn execute(
     {
         return Err("stale_revision: video translation model configuration changed".into());
     }
-    let output = tasks::completion::complete(
+    let batched = batch_coordinator::get_batched_line(app, pool, claim, &target, &config).await?;
+    let translated_text = match batched {
+        Some(text) => text,
+        None => {
+            complete_once(
+                app,
+                pool,
+                claim,
+                &target,
+                &config,
+                capabilities::translation::dubbing_input(
+                    config.segment.text.clone(),
+                    config.target_language.clone(),
+                    config.segment.target_duration_ms,
+                    &config.terms,
+                )?,
+            )
+            .await?
+        }
+    };
+    let translated_text =
+        reduce_to_fit(app, pool, claim, &target, &config, translated_text).await?;
+    let translation = VideoTranslationSegmentOutput {
+        step_id: claim.step_instance_id.clone(),
+        source_segment_id: config.segment.source_segment_id,
+        source_segment_revision: config.segment.source_segment_revision,
+        source_text: config.segment.text.trim().to_owned(),
+        translated_text,
+    };
+    Ok(StepOutcome::Completed {
+        output: serde_json::to_value(translation).map_err(db::json_error)?,
+        selected_branch: None,
+    })
+}
+
+/// When the adaptation is estimated to clearly overrun its physical window, spends one bounded
+/// shortening round. The reduction is accepted only when it estimates shorter; a failure
+/// propagates so the Run's own attempt policy retries the whole step rather than silently keeping
+/// an overrun. Lines whose duration fits, or whose language has no rate model, keep the first
+/// adaptation untouched.
+async fn reduce_to_fit(
+    app: &tauri::AppHandle,
+    pool: &sqlx::SqlitePool,
+    claim: &AttemptClaim,
+    target: &ModelExecutionTarget,
+    config: &TranslationStepConfiguration,
+    translated_text: String,
+) -> Result<String, AppError> {
+    let Some(window_ms) = config.segment.target_duration_ms.filter(|ms| *ms > 0) else {
+        return Ok(translated_text);
+    };
+    let Some(estimate) = estimate_duration_ms(&translated_text, &config.target_language) else {
+        return Ok(translated_text);
+    };
+    if !requires_reduction(estimate, window_ms) {
+        return Ok(translated_text);
+    }
+    let shortened = complete_once(
         app,
-        TaskExecutionTarget::Model(target),
-        capabilities::translation::input(
+        pool,
+        claim,
+        target,
+        config,
+        capabilities::translation::dubbing_reduction_input(
             config.segment.text.clone(),
             config.target_language.clone(),
+            window_ms,
+            &translated_text,
+            estimate,
+            &config.terms,
         )?,
+    )
+    .await?;
+    let shortened_estimate =
+        estimate_duration_ms(&shortened, &config.target_language).unwrap_or(u64::MAX);
+    Ok(if shortened_estimate < estimate {
+        shortened
+    } else {
+        translated_text
+    })
+}
+
+async fn complete_once(
+    app: &tauri::AppHandle,
+    pool: &sqlx::SqlitePool,
+    claim: &AttemptClaim,
+    target: &ModelExecutionTarget,
+    config: &TranslationStepConfiguration,
+    input: TaskInput,
+) -> Result<String, AppError> {
+    let output = tasks::completion::complete(
+        app,
+        TaskExecutionTarget::Model(target.clone()),
+        input,
         claim.cancellation.clone(),
     )
     .await?;
@@ -74,15 +166,5 @@ pub(crate) async fn execute(
     if translated_text.is_empty() || translated_text.chars().count() > 10_000 {
         return Err("Translated speech segment must contain between 1 and 10000 characters".into());
     }
-    let translation = VideoTranslationSegmentOutput {
-        step_id: claim.step_instance_id.clone(),
-        source_segment_id: config.segment.source_segment_id,
-        source_segment_revision: config.segment.source_segment_revision,
-        source_text: config.segment.text.trim().to_owned(),
-        translated_text: translated_text.to_owned(),
-    };
-    Ok(StepOutcome::Completed {
-        output: serde_json::to_value(translation).map_err(db::json_error)?,
-        selected_branch: None,
-    })
+    Ok(translated_text.to_owned())
 }

@@ -22,14 +22,14 @@ export function speechProjectInput(
       outputConfig: {
         format: "mp4",
         video,
-        background: null,
+        background: { ...video },
         backgroundSeparation: null,
         voiceGainDb: 0,
-        backgroundGainDb: -12,
+        backgroundGainDb: 0,
         translation: null,
         preserveOriginalOutsideDialogue: false,
         sourceDialogueIntervals: [],
-        retainOriginalTrack: true,
+        retainOriginalTrack: false,
       },
     };
   }

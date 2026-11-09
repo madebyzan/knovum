@@ -81,8 +81,8 @@
   }
 
   svg.animate-spin {
+    transform-box: border-box;
     transform-origin: center;
-    will-change: transform;
   }
 
   :focus {

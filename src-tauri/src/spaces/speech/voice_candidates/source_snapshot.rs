@@ -108,17 +108,19 @@ async fn publish_snapshot(
     let prepared = part.clone();
     let published = target.clone();
     let reviewed_revision = source_revision.clone();
+    let duration_bounds = request.model.reference_duration();
     let handle = app.clone();
     let cancel = cancellation.clone();
     let preparation: Result<ReferenceSourceSnapshot, String> = async {
         let audio = crate::foundation::blocking::run(move || -> Result<_, String> {
-            let (revision, audio) = super::super::voice_assets::prepare_reference_clip(
+            let (revision, audio) = super::super::voice_assets::prepare_reference_clip_with_bounds(
                 &handle,
                 &original,
                 &prepared,
                 byte_length,
                 &cancel,
                 interval,
+                (duration_bounds.min_ms, duration_bounds.max_ms),
             )?;
             if revision != reviewed_revision {
                 return Err(

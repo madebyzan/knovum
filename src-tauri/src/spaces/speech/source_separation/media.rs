@@ -10,10 +10,10 @@ use sha2::{Digest, Sha256};
 use tauri::Manager;
 use tokio_util::sync::CancellationToken;
 
-pub(super) const SAMPLE_RATE: u32 = 44_100;
+pub(in crate::spaces::speech) const SAMPLE_RATE: u32 = 44_100;
 pub(super) const MAX_SAMPLE_COUNT: u64 = SAMPLE_RATE as u64 * 10 * 60;
 
-pub(super) fn extract_audio(
+pub(in crate::spaces::speech) fn extract_audio(
     ffmpeg: &Path,
     source: &Path,
     target: &Path,
@@ -99,7 +99,7 @@ pub(super) fn workspace(app: &tauri::AppHandle, attempt_id: &str) -> Result<Path
     Ok(path)
 }
 
-pub(super) fn pcm_wav_metadata(path: &Path) -> Result<(u64, u64), String> {
+pub(in crate::spaces::speech) fn pcm_wav_metadata(path: &Path) -> Result<(u64, u64), String> {
     let metadata = crate::media::wav::metadata(path)?;
     let expected = super::super::audio_format::WavPrecision::Pcm16.spec(SAMPLE_RATE, 2);
     if metadata.spec != expected {
@@ -116,11 +116,11 @@ pub(super) fn pcm_wav_metadata(path: &Path) -> Result<(u64, u64), String> {
 
 /// Separation scales with the audio it splits, so its budget does too. Loading the model is
 /// bounded by the worker's own startup budget.
-pub(super) fn budget_ms(duration_ms: u64) -> u64 {
+pub(in crate::spaces::speech) fn budget_ms(duration_ms: u64) -> u64 {
     duration_ms.saturating_mul(3).max(10 * 60 * 1_000)
 }
 
-pub(super) fn hash_file(
+pub(in crate::spaces::speech) fn hash_file(
     path: &Path,
     cancellation: &CancellationToken,
     deadline: Instant,

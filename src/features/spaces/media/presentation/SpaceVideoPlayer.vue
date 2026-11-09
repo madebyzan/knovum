@@ -49,7 +49,7 @@ function handleStageClick() {
   requestPlayback();
 }
 
-defineExpose({ seekTo, togglePlayback });
+defineExpose({ seekTo, togglePlayback, unload });
 </script>
 
 <template>

@@ -265,3 +265,74 @@ async fn upgrading_0_1_0_admits_text_recognition_and_rerenders_pdf_pictures() {
         ]
     );
 }
+
+/// 0.3.2 reserved design_description on voice candidates for designed sources, while prompt-guided
+/// cloning publishes its style guidance there on reference candidates too; the audition run of such
+/// a clone failed the frozen CHECK at publication. Upgrading rebuilds the table around the relaxed
+/// rule, keeps every stored candidate, and admits the prompt-guided shape.
+#[tokio::test]
+async fn upgrading_0_3_2_admits_prompt_guided_reference_voice_candidates() {
+    let pool = shipped(4).await;
+    for run in ["clone", "guided"] {
+        sqlx::query(
+            "INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind, \
+             state,policy_snapshot,input_snapshot,budget,created_at,updated_at,completed_at) \
+             VALUES($1,'application',NULL,'user',$1,'workflow','succeeded','{}', \
+             '{\"workflow\":\"speech_voice_candidate_v1\"}','{}',1,1,1)",
+        )
+        .bind(run)
+        .execute(&pool)
+        .await
+        .expect("run");
+    }
+    sqlx::query(
+        "INSERT INTO spaces_voice_candidates( \
+         id,run_id,source_kind,language,sample_text,reference_text,input_source_revision,input_byte_length, \
+         reference_asset_path,reference_sha256,reference_byte_length,preview_asset_path,preview_sha256, \
+         preview_sample_rate,preview_sample_count,model_spec_id,seed,synthesis_config,authorization, \
+         status,created_at) \
+         VALUES('clone','clone','reference','en','Sample',NULL,$1,32044,'/clone.wav',$2,32044, \
+         '/clone-preview.wav',$3,48000,48000,'voxcpm2-2b-gguf-q8_0-v1',0,$4,$5,'ready',1)",
+    )
+    .bind(format!("sha256:{}", "a".repeat(64)))
+    .bind("b".repeat(64))
+    .bind("c".repeat(64))
+    .bind(r#"{"speed":1.0,"sampleRate":48000,"seed":0}"#)
+    .bind(r#"{"referenceTranscriptConfirmed":false}"#)
+    .execute(&pool)
+    .await
+    .expect("stored candidate");
+
+    super::super::migrate(&pool).await.expect("upgrade");
+
+    assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
+    let carried: (i64, Option<String>) = sqlx::query_as(
+        "SELECT COUNT(*), MAX(design_description) FROM spaces_voice_candidates WHERE id='clone'",
+    )
+    .fetch_one(&pool)
+    .await
+    .expect("carried candidate");
+    assert_eq!(
+        carried,
+        (1, None),
+        "the rebuilt table keeps stored candidates"
+    );
+    sqlx::query(
+        "INSERT INTO spaces_voice_candidates( \
+         id,run_id,source_kind,language,sample_text,design_description,reference_text, \
+         input_source_revision,input_byte_length,reference_asset_path,reference_sha256,reference_byte_length, \
+         preview_asset_path,preview_sha256,preview_sample_rate,preview_sample_count,model_spec_id,seed, \
+         synthesis_config,authorization,status,created_at) \
+         VALUES('guided','guided','reference','en','Sample','沉稳磁性的男声',NULL,$1,32044, \
+         '/guided.wav',$2,32044,'/guided-preview.wav',$3,48000,48000,'voxcpm2-2b-gguf-q8_0-v1',0,$4,$5, \
+         'ready',1)",
+    )
+    .bind(format!("sha256:{}", "d".repeat(64)))
+    .bind("e".repeat(64))
+    .bind("f".repeat(64))
+    .bind(r#"{"speed":1.0,"sampleRate":48000,"seed":0}"#)
+    .bind(r#"{"declared":true,"referenceTranscriptConfirmed":false}"#)
+    .execute(&pool)
+    .await
+    .expect("prompt guidance is a reference candidate field");
+}

@@ -95,15 +95,48 @@ describe("TaskCenter", () => {
   });
 
   it("shows task ownership and keeps durable failures actionable", () => {
-    const wrapper = mountActivity([{ ...baseTask, durable: true, retryable: true }]);
+    const wrapper = mountActivity([{ ...baseTask, durable: true, retryable: true, dismissible: true }]);
 
     expect(wrapper.text()).toContain("Visual analysis");
     expect(wrapper.text()).toContain("Research");
     expect(wrapper.text()).toContain("Image");
     expect(wrapper.text()).toContain("Market map");
+    expect(wrapper.get("p.truncate").attributes("title")).toBe("Research · Image · Market map");
     expect(wrapper.text()).toContain("tasks.status.failed");
     expect(wrapper.find('[aria-label="common.retry"]').exists()).toBe(true);
-    expect(wrapper.find('[aria-label="tasks.dismiss"]').exists()).toBe(false);
+    expect(wrapper.find('[aria-label="tasks.dismiss"]').exists()).toBe(true);
+  });
+
+  it("retries all retryable tasks in the active scope filter", async () => {
+    const store = useTaskStore();
+    const firstRetry = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    const secondRetry = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    store.restoreFailed({ ...baseTask, id: "job-1", statusMessage: "quota exceeded" }, firstRetry);
+    store.restoreFailed(
+      {
+        ...baseTask,
+        id: "job-2",
+        statusMessage: "quota exceeded",
+        scope: { kind: "space", id: "space-2", label: "Archive" },
+      },
+      secondRetry,
+    );
+    const wrapper = mount(TaskCenter, {
+      props: { currentScope: baseTask.scope },
+      global: {
+        stubs: {
+          UiPopover: { template: "<div><slot name='trigger' /><slot /></div>" },
+        },
+      },
+    });
+
+    const currentSpaceButton = wrapper.findAll("button").find((button) => button.text() === "Research");
+    await currentSpaceButton?.trigger("click");
+    const retryAllButton = wrapper.findAll("button").find((button) => button.text() === "tasks.retryAll");
+    await retryAllButton?.trigger("click");
+
+    expect(firstRetry).toHaveBeenCalledOnce();
+    expect(secondRetry).not.toHaveBeenCalled();
   });
 
   it("preserves valid controls for durable queued and terminal tasks", () => {

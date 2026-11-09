@@ -9,7 +9,7 @@ pub(crate) const STATUS_CANCELLED: &str = "cancelled";
 /// Prior statuses each transition may replace. A cancelled job cannot be rewritten by the
 /// execution that returns afterwards.
 pub(crate) const FROM_RUNNING: &str = "'running'";
-pub(crate) const FROM_LIVE: &str = "'pending','running','awaiting_configuration'";
+pub(crate) const FROM_CANCELLABLE: &str = "'pending','running','awaiting_configuration','failed'";
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]

@@ -8,6 +8,7 @@ pub(crate) mod contracts;
 pub(in crate::spaces) mod delivery_instruction;
 pub(crate) mod execution;
 mod generation_attempt;
+pub(in crate::spaces::speech) mod loudness;
 mod media_source;
 mod output_reservation;
 pub(crate) mod preset_voices;

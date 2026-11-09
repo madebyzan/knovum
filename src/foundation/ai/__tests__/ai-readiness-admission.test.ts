@@ -33,6 +33,7 @@ const whisper: LocalModelAvailability = {
   capability: "transcription",
   operations: [],
   referenceTranscript: "unused",
+  referenceDuration: null,
   group: "audio",
   essential: true,
   selected: true,

@@ -5,5 +5,7 @@
     "placeholder": "Enter up to 500 characters to audition this voice",
     "label": "Sample text"
   },
-  "sample": "This is how this voice sounds reading an ordinary sentence."
+  "sample": "This is how this voice sounds reading an ordinary sentence.",
+  "preparing": "Preparing model...",
+  "synthesizing": "Synthesizing preview..."
 }

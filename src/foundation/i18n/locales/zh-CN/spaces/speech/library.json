@@ -12,5 +12,7 @@
     "description": "尚未保存的音色设置将会丢失。"
   },
   "presets": "预设音色",
+  "setDefault": "设为默认音色",
+  "defaultBadge": "默认",
   "add": "添加音色"
 }

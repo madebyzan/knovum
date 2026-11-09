@@ -1,9 +1,11 @@
 {
-  "description": "Traduce le battute nella lingua di destinazione. La traduzione sostituisce ogni battuta e l'originale resta sotto.",
+  "description": "Traduce le righe nella lingua di destinazione. La traduzione sostituisce ogni riga e l'originale rimane sotto.",
   "language": "Lingua di traduzione",
   "model": "Modello di traduzione",
   "translate": "Traduci script",
   "cancel": "Annulla traduzione",
-  "failed": "La traduzione dello script video non è riuscita",
-  "source": "Sorgente"
+  "failed": "Traduzione dello script video non riuscita",
+  "source": "Origine",
+  "terms": "Termini preservati",
+  "termsPlaceholder": "Termini o nomi di marchi da mantenere invariati, separati da virgole (facoltativo)"
 }

@@ -6,6 +6,6 @@
   "closePlayback": "再生を閉じる",
   "timeline": "メディア タイムライン",
   "transcribe": "文字起こし",
-  "transcribed": "Trancribed",
-  "transcribing": "転写処理中"
+  "transcribing": "転写処理中",
+  "retranscribe": "再文字起こし"
 }

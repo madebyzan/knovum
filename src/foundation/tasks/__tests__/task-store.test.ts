@@ -65,16 +65,36 @@ describe("task store", () => {
     expect(store.tasks.map(({ id }) => id)).toEqual([other]);
   });
 
-  it("keeps durable failures actionable and allows terminal dismissal", () => {
+  it("keeps durable failures actionable and delegates observed dismissal when offered", () => {
     const store = useTaskStore();
+    const dismiss = vi.fn<() => void>();
     const task = { id: "job-1", title: "Visual analysis", status: "failed" as const, startedAt: 1 };
     store.reconcileObserved("spaces-enrichment", [{ task }]);
     store.dismiss(task.id);
     expect(store.tasks).toHaveLength(1);
 
+    store.reconcileObserved("spaces-enrichment", [{ task, dismiss }]);
+    expect(store.tasks[0]?.dismissible).toBe(true);
+    store.dismiss(task.id);
+    expect(dismiss).toHaveBeenCalledOnce();
+
     store.reconcileObserved("spaces-enrichment", [{ task: { ...task, status: "running" } }]);
     store.reconcileObserved("spaces-enrichment", []);
     expect(store.tasks).toHaveLength(0);
+  });
+
+  it("retries all retryable failed tasks in batch", async () => {
+    const store = useTaskStore();
+    const first = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    const second = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    store.restoreFailed({ id: "job-1", title: "Visual 1", statusMessage: "err", startedAt: 1 }, first);
+    store.restoreFailed({ id: "job-2", title: "Visual 2", statusMessage: "err", startedAt: 2 }, second);
+
+    await store.retryAll();
+
+    expect(first).toHaveBeenCalledOnce();
+    expect(second).toHaveBeenCalledOnce();
+    expect(store.tasks.map((task) => task.status)).toEqual(["succeeded", "succeeded"]);
   });
 
   it("retries failed tasks with the same task identity", async () => {

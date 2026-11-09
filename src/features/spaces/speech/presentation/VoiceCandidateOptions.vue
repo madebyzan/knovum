@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
+import type { LocalModelReferenceDuration } from "../../../../shared/contracts/generated/LocalModelReferenceDuration";
 import type { LocalModelReferenceTranscript } from "../../../../shared/contracts/generated/LocalModelReferenceTranscript";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { VoiceModel } from "../../contracts/generated/VoiceModel";
@@ -8,11 +9,14 @@ import VoiceCandidateModelSelect from "./VoiceCandidateModelSelect.vue";
 
 const mode = defineModel<"reference" | "designed">("mode", { required: true });
 const model = defineModel<VoiceModel>("model", { required: true });
+const initialModel = defineModel<VoiceModel>("initialModel", { required: true });
 const language = defineModel<string>("language", { required: true });
 const available = defineModel<boolean>("available", { required: true });
 const referenceTranscript = defineModel<LocalModelReferenceTranscript>("referenceTranscript", {
   required: true,
 });
+const referenceDuration = defineModel<LocalModelReferenceDuration | undefined>("referenceDuration");
+const supportsDesign = defineModel<boolean>("supportsDesign", { default: false });
 defineProps<{
   fixedSource: boolean;
   disabled: boolean;
@@ -37,8 +41,11 @@ const { t } = useI18n();
     <div class="space-y-3">
       <VoiceCandidateModelSelect
         v-model="model"
+        v-model:initial-model="initialModel"
         v-model:available="available"
         v-model:reference-transcript="referenceTranscript"
+        v-model:reference-duration="referenceDuration"
+        v-model:supports-design="supportsDesign"
         :source-kind="mode"
         :disabled="disabled"
       />

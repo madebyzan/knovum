@@ -13,6 +13,8 @@ pub struct TranslateVideoDubbingRequest {
     pub expected_revision: i64,
     pub target_language: String,
     pub execution_target: ModelTargetSelection,
+    #[serde(default)]
+    pub terms: Vec<String>,
 }
 
 /// A line as the Run was created to translate it. The script is derived in Rust, so this never
@@ -23,6 +25,8 @@ pub struct VideoTranslationSegmentInput {
     pub source_segment_id: String,
     pub source_segment_revision: u32,
     pub text: String,
+    #[serde(default)]
+    pub target_duration_ms: Option<u64>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
@@ -57,10 +61,12 @@ pub(super) struct TranslationRunInput {
     pub model: String,
     pub base_url: String,
     pub execution_target: ModelTargetSelection,
+    #[serde(default)]
+    pub terms: Vec<String>,
     pub segments: Vec<VideoTranslationSegmentInput>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct TranslationStepConfiguration {
     pub project_id: String,
@@ -72,6 +78,8 @@ pub(super) struct TranslationStepConfiguration {
     pub model: String,
     pub base_url: String,
     pub execution_target: ModelTargetSelection,
+    #[serde(default)]
+    pub terms: Vec<String>,
     pub ordinal: usize,
     pub segment: VideoTranslationSegmentInput,
 }

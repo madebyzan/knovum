@@ -3,7 +3,11 @@ use crate::{cancellation::Cancellation, initialization::VerifiedRuntime};
 use ffi::voice::*;
 use knovum_inference_contracts::{
     runtime::RuntimeInitializeParams,
-    speech_wire::{SpeechSynthesizeParams, VoiceSourceKind},
+    speech_wire::{
+        voice_reference_sample_bounds, SpeechSynthesizeParams, VoiceSourceKind,
+        DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS, VOICE_REFERENCE_SAMPLE_RATE,
+        VOXCPM2_MAX_REFERENCE_DURATION_MS,
+    },
 };
 use std::{
     ffi::{c_void, CStr},
@@ -101,6 +105,7 @@ impl VoxCpm {
         cancel.check()?;
         let mut observer = Observer {
             publisher,
+            buffer: Vec::new(),
             error: None,
         };
         let samples = reference.as_deref().unwrap_or(&[]);
@@ -129,6 +134,10 @@ impl VoxCpm {
         cancel.check()?;
         if status != 0 {
             return Err(failure(&engine.api, "synthesis_failed"));
+        }
+        if !observer.buffer.is_empty() {
+            let remainder = std::mem::take(&mut observer.buffer);
+            observer.publisher.publish(&remainder, 48_000)?;
         }
         Ok(())
     }
@@ -159,42 +168,50 @@ fn inputs(params: &SpeechSynthesizeParams, cancel: &Cancellation) -> Result<Cond
                 .reference_audio
                 .as_ref()
                 .ok_or("invalid_input: immutable reference audio is missing")?;
-            let audio = audio::read(reference, 16_000, 1, 30 * 16_000, cancel)?;
-            if audio.frames() < 5 * 16_000 {
+            let (min_samples, max_samples) = voice_reference_sample_bounds(
+                DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS,
+                VOXCPM2_MAX_REFERENCE_DURATION_MS,
+            );
+            let audio = audio::read(
+                reference,
+                VOICE_REFERENCE_SAMPLE_RATE,
+                1,
+                max_samples as usize,
+                cancel,
+            )?;
+            if audio.frames() < min_samples as usize {
                 return Err(
-                    "invalid_input: voice reference must last five to thirty seconds".into(),
+                    "invalid_input: VoxCPM2 voice reference must last one to fifteen seconds"
+                        .into(),
                 );
             }
             if let Some(text) = &voice.reference_text {
-                if text.trim().is_empty() || voice.design_prompt.is_some() || params.style.is_some()
-                {
-                    return Err(
-                        "invalid_input: transcript cloning controls are inconsistent".into(),
-                    );
+                if text.trim().is_empty() {
+                    return Err("invalid_input: transcript cloning reference text is empty".into());
                 }
-                Ok((params.text.clone(), Some(audio.samples), Some(text.clone())))
-            } else {
-                let controls = [voice.design_prompt.as_deref(), params.style.as_deref()]
-                    .into_iter()
-                    .flatten()
-                    .map(str::trim)
-                    .filter(|text| !text.is_empty())
-                    .collect::<Vec<_>>();
-                let text = if controls.is_empty() {
-                    params.text.clone()
-                } else {
-                    format!("({}){}", controls.join(", "), params.text)
-                };
-                Ok((text, Some(audio.samples), None))
             }
+            let controls = [voice.design_prompt.as_deref(), params.style.as_deref()]
+                .into_iter()
+                .flatten()
+                .map(str::trim)
+                .filter(|text| !text.is_empty())
+                .collect::<Vec<_>>();
+            let text = if controls.is_empty() {
+                params.text.clone()
+            } else {
+                format!("({}){}", controls.join(", "), params.text)
+            };
+            Ok((text, Some(audio.samples), None))
         }
         VoiceSourceKind::Preset => {
             Err("invalid_input: VoxCPM2 requires voice design or reference cloning".into())
         }
     }
 }
+const MIN_VOXCPM_CHUNK_SAMPLES: usize = 12_000;
 struct Observer<'a> {
     publisher: &'a mut Publisher,
+    buffer: Vec<f32>,
     error: Option<String>,
 }
 unsafe extern "C" fn publish(
@@ -208,10 +225,13 @@ unsafe extern "C" fn publish(
         if pointer.is_null() || count == 0 || count > 16 * 1024 || rate != 48_000 {
             return Err("invalid_output: VoxCPM2 chunk format differs".into());
         }
-        observer.publisher.publish(
-            unsafe { std::slice::from_raw_parts(pointer, count) },
-            rate as u32,
-        )
+        let incoming = unsafe { std::slice::from_raw_parts(pointer, count) };
+        observer.buffer.extend_from_slice(incoming);
+        if observer.buffer.len() >= MIN_VOXCPM_CHUNK_SAMPLES {
+            let to_publish = std::mem::take(&mut observer.buffer);
+            observer.publisher.publish(&to_publish, rate as u32)?;
+        }
+        Ok(())
     }));
     match synthesis {
         Ok(Ok(())) => 0,

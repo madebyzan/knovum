@@ -18,6 +18,9 @@ export function useCanvasVoiceClone(node: Readonly<Ref<SpaceCanvasNode>>) {
         get disabled() {
           return form.busy;
         },
+        get maxDurationMs() {
+          return form.referenceDuration?.maxMs;
+        },
       },
       toRef(form, "reference"),
     ),

@@ -51,6 +51,7 @@ pub(crate) async fn claim_job(
 
 /// Parks a job until its configuration is complete. A job already waiting for the same reason is
 /// left untouched: the scheduler asks again every pass, and an unchanged answer is no change.
+/// Clearing `execution_target` allows the scheduler to pick up newly configured routing targets.
 pub(crate) async fn defer_for_configuration(
     pool: &sqlx::SqlitePool,
     job_id: &str,
@@ -58,9 +59,9 @@ pub(crate) async fn defer_for_configuration(
     now: i64,
 ) -> Result<bool, String> {
     let executed = sqlx::query(
-        "UPDATE spaces_enrichment_jobs SET status=$1,error=$2,updated_at=$3 \
+        "UPDATE spaces_enrichment_jobs SET status=$1,error=$2,execution_target=NULL,updated_at=$3 \
          WHERE id=$4 AND status IN ('pending','running','failed','awaiting_configuration') \
-         AND NOT (status=$1 AND error IS $2)",
+         AND NOT (status=$1 AND error IS $2 AND execution_target IS NULL)",
     )
     .bind("awaiting_configuration")
     .bind(error)

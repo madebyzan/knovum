@@ -84,12 +84,15 @@ beforeEach(() => {
   mocks.list.mockResolvedValue([published]);
 });
 
-it("selects a published accompaniment without launching separation inside dubbing", async () => {
-  const wrapper = render();
+it("selects a published accompaniment or automatic video background without launching separation inside dubbing", async () => {
+  const wrapper = render({ background: video });
   await flushPromises();
   expect(mocks.list).toHaveBeenCalledWith("space", video);
+  expect(wrapper.get("select").element.value).toBe("auto");
   await wrapper.get("select").setValue("separation:published");
   expect(wrapper.emitted("separated")).toEqual([[published]]);
+  await wrapper.get("select").setValue("mute");
+  expect(wrapper.emitted("background")).toEqual([[null]]);
 });
 
 it("retains a saved background while catalog retrieval fails and offers retry", async () => {

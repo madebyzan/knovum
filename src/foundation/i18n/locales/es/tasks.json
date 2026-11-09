@@ -29,5 +29,6 @@
     "preparingInference": "Preparando componentes locales AI...",
     "downloadSize": "El primer uso necesita {size} de descargas de recursos locales",
     "installing": "Instalando recursos locales…"
-  }
+  },
+  "retryAll": "Reintentar todo"
 }

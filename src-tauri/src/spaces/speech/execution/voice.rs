@@ -53,14 +53,21 @@ pub(in crate::spaces::speech) async fn load_voice(
     Ok(voice)
 }
 
+/// How many synthesis takes a duration-fitted line may spend searching for a rendering that fits
+/// its video window. Take 0 uses the voice revision's frozen seed; later takes derive seeds
+/// procedurally (`base_seed.wrapping_add(take)`), so the whole search stays reproducible from the
+/// cached identity.
+pub(in crate::spaces::speech) const DURATION_FIT_TAKES: u32 = 3;
+
 pub(in crate::spaces::speech) fn input_digest(
     segment: &SpeechSegmentExecution,
     voice: &VoiceExecution,
     config: &VoiceSynthesisConfig,
     runtime_digest: &str,
     execution_profile_id: &str,
+    fit: Option<(i64, i64)>,
 ) -> Result<String, String> {
-    let value = serde_json::json!({
+    let mut value = serde_json::json!({
         "text": segment.normalized_text,
         "deliveryInstruction": segment.delivery_instruction,
         "voiceRevisionId": voice.revision_id,
@@ -76,6 +83,13 @@ pub(in crate::spaces::speech) fn input_digest(
         "preprocessingVersion": "speech-text-v1",
         "renderVersion": "speech-render-v2-trimmed",
     });
+    if let Some((start_ms, end_ms)) = fit {
+        value["durationFit"] = serde_json::json!({
+            "targetStartMs": start_ms,
+            "targetEndMs": end_ms,
+            "takes": DURATION_FIT_TAKES,
+        });
+    }
     Ok(hex::encode(Sha256::digest(
         serde_json::to_vec(&value).map_err(db::json_error)?,
     )))

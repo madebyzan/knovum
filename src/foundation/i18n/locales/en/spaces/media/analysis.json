@@ -14,6 +14,7 @@
   "inProgress": "Analyzing media in background…",
   "insights": {
     "unavailable": "Transcript data is unavailable; please analyze the media first.",
-    "generate": "Generate chapters & summary"
+    "generate": "Generate chapters & summary",
+    "regenerate": "Regenerate chapters & summary"
   }
 }

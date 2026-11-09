@@ -1,20 +1,53 @@
-use serde_json::json;
+use sqlx::sqlite::SqlitePoolOptions;
 
-use super::has_current_transcript;
-use crate::media::transcript::{tests::knowledge_fixture, TranscriptSegment};
+use super::ensure_no_active_transcript_consumers;
 
-#[test]
-fn current_v1_transcript_blocks_implicit_retranscription() {
-    let mut data = json!({"kind":"audio","sourceRevision":"source"});
-    data["mediaKnowledge"] = knowledge_fixture(
-        "source",
-        vec![TranscriptSegment {
-            start_ms: 0,
-            end_ms: 1_000,
-            text: "edited transcript".into(),
-        }],
+#[tokio::test]
+async fn active_alignment_or_diarization_blocks_retranscription_until_finished() {
+    let pool = SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect("sqlite::memory:")
+        .await
+        .unwrap();
+    crate::spaces::db::migrate(&pool).await.unwrap();
+    sqlx::query(
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .unwrap();
+    sqlx::query(
+        "INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('node','space','video',0,0,'{\"kind\":\"video\",\"title\":\"Clip\"}',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .unwrap();
+
+    let mut tx = pool.begin().await.unwrap();
+    assert!(
+        ensure_no_active_transcript_consumers(&mut tx, "space", "node")
+            .await
+            .is_ok()
     );
-
-    assert!(has_current_transcript(&data, "source"));
-    assert!(!has_current_transcript(&data, "replacement"));
+    sqlx::query(
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
+         VALUES('align-1','space','node','align_media_transcript','running','rev-1',1,1,1)",
+    )
+    .execute(&mut *tx)
+    .await
+    .unwrap();
+    assert!(
+        ensure_no_active_transcript_consumers(&mut tx, "space", "node")
+            .await
+            .is_err()
+    );
+    sqlx::query("UPDATE spaces_enrichment_jobs SET status='succeeded' WHERE id='align-1'")
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+    assert!(
+        ensure_no_active_transcript_consumers(&mut tx, "space", "node")
+            .await
+            .is_ok()
+    );
 }

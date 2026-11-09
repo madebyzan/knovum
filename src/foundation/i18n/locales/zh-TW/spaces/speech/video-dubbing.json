@@ -1,8 +1,12 @@
 {
   "backgroundAudio": "背景音訊",
+  "keepOriginalBackground": "保留原影片背景音（自動分離人聲）",
   "muteOriginal": "靜音原聲",
   "voiceGain": "配音音量（dB）",
   "backgroundGain": "背景音量（dB）",
+  "backgroundPresetNatural": "自然平衡 (0 dB)",
+  "backgroundPresetSoft": "柔和背景 (-6 dB)",
+  "backgroundPresetSubtle": "弱化背景 (-12 dB)",
   "importTranscript": "使用來源視訊轉錄",
   "startSeconds": "開始時間（秒）",
   "endSeconds": "結束時間（秒）",
@@ -20,5 +24,7 @@
   "multipleAudioTracks": "包含多條音軌的視頻",
   "audioTracksHint": "選擇同一原影片的最多八個已產生版本，選取順序即音軌順序。",
   "currentBackground": "目前背景音軌",
+  "batchVoiceLabel": "統一音色",
+  "applyToAllLines": "套用到全部片段",
   "mixingSettings": "混音與原聲"
 }

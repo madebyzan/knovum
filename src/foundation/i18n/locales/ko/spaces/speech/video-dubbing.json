@@ -1,8 +1,12 @@
 {
   "backgroundAudio": "백그라운드 오디오",
+  "keepOriginalBackground": "원본 배경음 유지(보컬 자동 분리)",
   "muteOriginal": "원래 오디오 음소거",
   "voiceGain": "음성 이득(dB)",
   "backgroundGain": "백그라운드 게인(dB)",
+  "backgroundPresetNatural": "자연스러움 (0 dB)",
+  "backgroundPresetSoft": "부드러움 (-6 dB)",
+  "backgroundPresetSubtle": "잔잔함 (-12 dB)",
   "importTranscript": "소스 기록 사용",
   "startSeconds": "시작(초)",
   "endSeconds": "종료(초)",
@@ -20,5 +24,7 @@
   "multipleAudioTracks": "여러 오디오 트랙이 포함된 비디오",
   "audioTracksHint": "동일한 소스 비디오의 게시된 버전을 재생 트랙 순서대로 최대 8개까지 선택하세요.",
   "currentBackground": "현재 배경 트랙",
+  "batchVoiceLabel": "통일된 음성",
+  "applyToAllLines": "모든 줄에 적용",
   "mixingSettings": "오디오 믹스"
 }

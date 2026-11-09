@@ -15,6 +15,7 @@ function model(
     name: modelId,
     operations: [],
     referenceTranscript: "unused",
+    referenceDuration: null,
     essential: false,
     selected: false,
     selectable: false,

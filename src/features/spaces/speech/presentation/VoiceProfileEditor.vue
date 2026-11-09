@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Save } from "@lucide/vue";
 import { computed, shallowRef, watch, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -8,6 +7,7 @@ import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiNumberField from "../../../../shared/ui/UiNumberField.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { VoiceProfileHistory } from "../../contracts/generated/VoiceProfileHistory";
+import { LABEL_BY_VOICE_ENGINE } from "../voice-options";
 import { activeVoiceProfileRevision } from "../voice-profile";
 import VoiceRevisionHistory from "./VoiceRevisionHistory.vue";
 
@@ -26,13 +26,8 @@ const LANGUAGE_OPTIONS = [
   { value: "en", label: "English" },
 ];
 const activeRevision = computed(() => activeVoiceProfileRevision(props.profile));
-const nameChanged = computed(() => name.value.trim() !== props.profile.name);
-const fieldsDirty = computed(
-  () =>
-    nameChanged.value ||
-    language.value !== activeRevision.value.language ||
-    speed.value !== activeRevision.value.speed,
-);
+const nameChanged = computed(() => name.value.trim() !== props.profile.name && name.value.trim().length > 0);
+const canRevise = computed(() => !props.profile.archivedAt && props.profile.sourceKind !== "preset");
 const auditionDirty = shallowRef(false);
 
 watch(
@@ -48,71 +43,98 @@ watch(
   },
   { immediate: true },
 );
-watch(fieldsDirty, reportDirty);
+watch([nameChanged, auditionDirty], () => {
+  emit("dirty", nameChanged.value || auditionDirty.value);
+});
 
-function reportDirty() {
-  emit("dirty", fieldsDirty.value || auditionDirty.value);
+function commitRename() {
+  const trimmed = name.value.trim();
+  if (trimmed && trimmed !== props.profile.name) {
+    emit("rename", trimmed);
+  } else {
+    name.value = props.profile.name;
+  }
+}
+
+function cancelRename() {
+  name.value = props.profile.name;
+}
+
+function submitRevision() {
+  if (
+    speed.value !== undefined &&
+    (language.value !== activeRevision.value.language || speed.value !== activeRevision.value.speed)
+  ) {
+    emit("revise", language.value, speed.value);
+  }
 }
 
 function setAuditionDirty(value: boolean) {
   auditionDirty.value = value;
-  reportDirty();
 }
 </script>
 
 <template>
-  <div class="grid gap-5 md:grid-cols-2">
-    <div class="space-y-4">
-      <section class="space-y-1.5">
-        <label class="block text-caption font-medium text-fg-secondary">
-          {{ t("spaces.speech.voice.name") }}
-          <UiInput v-model="name" class="mt-1" size="sm" :disabled />
+  <div class="space-y-4">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="w-full sm:max-w-xs">
+        <label class="block space-y-1 text-caption font-medium text-fg-secondary">
+          <span>{{ t("spaces.speech.voice.name") }}</span>
+          <UiInput
+            v-model="name"
+            size="sm"
+            :disabled
+            @blur="commitRename"
+            @keydown.enter.prevent="commitRename"
+            @keydown.esc="cancelRename"
+          />
         </label>
-        <div class="flex justify-end">
-          <UiButton
-            size="sm"
-            variant="primary"
-            :disabled="disabled || !name.trim() || !nameChanged"
-            @click="emit('rename', name.trim())"
-          >
-            <Save class="size-3.5" />{{ t("common.save") }}
-          </UiButton>
-        </div>
-      </section>
-      <section v-if="!profile.archivedAt && profile.sourceKind !== 'preset'" class="space-y-1.5">
-        <h3 class="text-caption font-medium text-fg-secondary">
-          {{ t("spaces.speech.voice.revise") }}
-        </h3>
-        <div class="grid grid-cols-[minmax(0,1fr)_5rem_auto] items-end gap-2">
-          <label class="space-y-1 text-caption text-fg-secondary">
-            <span>{{ t("spaces.speech.project.language") }}</span>
-            <UiSelect
-              v-model="language"
-              size="sm"
-              :label="t('spaces.speech.project.language')"
-              :options="LANGUAGE_OPTIONS"
-              :disabled
-            />
-          </label>
-          <label class="space-y-1 text-caption text-fg-secondary">
-            <span>{{ t("spaces.speech.voice.speed") }}</span>
-            <UiNumberField v-model="speed" size="sm" :min="0.5" :max="2" :step="0.05" :disabled />
-          </label>
-          <UiButton
-            size="sm"
-            variant="primary"
-            :disabled="
-              disabled ||
-              speed === undefined ||
-              (language === activeRevision.language && speed === activeRevision.speed)
-            "
-            @click="speed !== undefined && emit('revise', language, speed)"
-          >
-            {{ t("spaces.speech.voice.revise") }}
-          </UiButton>
-        </div>
-      </section>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="rounded bg-surface-muted px-2.5 py-1 text-caption font-medium text-fg-secondary">
+          v{{ activeRevision.revision }} · {{ activeRevision.language }} ·
+          {{ LABEL_BY_VOICE_ENGINE[activeRevision.engineId] }}
+        </span>
+      </div>
     </div>
+
     <VoiceRevisionHistory :profile :disabled @dirty="setAuditionDirty" />
+
+    <div
+      v-if="canRevise"
+      class="space-y-2 rounded-lg border border-stroke-divider/70 bg-surface-muted/40 p-3"
+    >
+      <h4 class="text-caption font-medium text-fg-secondary">
+        {{ t("spaces.speech.voice.revise") }}
+      </h4>
+      <div class="flex flex-wrap items-end gap-2">
+        <label class="min-w-[7rem] space-y-1 text-caption text-fg-secondary">
+          <span>{{ t("spaces.speech.project.language") }}</span>
+          <UiSelect
+            v-model="language"
+            size="sm"
+            :label="t('spaces.speech.project.language')"
+            :options="LANGUAGE_OPTIONS"
+            :disabled
+          />
+        </label>
+        <label class="w-20 space-y-1 text-caption text-fg-secondary">
+          <span>{{ t("spaces.speech.voice.speed") }}</span>
+          <UiNumberField v-model="speed" size="sm" :min="0.5" :max="2" :step="0.05" :disabled />
+        </label>
+        <UiButton
+          size="sm"
+          variant="secondary"
+          :disabled="
+            disabled ||
+            speed === undefined ||
+            (language === activeRevision.language && speed === activeRevision.speed)
+          "
+          @click="submitRevision"
+        >
+          {{ t("spaces.speech.voice.revise") }}
+        </UiButton>
+      </div>
+    </div>
   </div>
 </template>

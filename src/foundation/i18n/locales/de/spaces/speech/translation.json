@@ -1,9 +1,11 @@
 {
-  "description": "Übersetzt die Zeilen in die Zielsprache. Die Übersetzung ersetzt jede Zeile, das Original bleibt darunter sichtbar.",
-  "language": "Übersetzungssprache",
+  "description": "Übersetzt die Zeilen in die Zielsprache. Die Übersetzung ersetzt jede Zeile und das Original bleibt darunter.",
+  "language": "Zielsprache",
   "model": "Übersetzungsmodell",
   "translate": "Skript übersetzen",
   "cancel": "Übersetzung abbrechen",
-  "failed": "Die Übersetzung des Videoskripts ist fehlgeschlagen",
-  "source": "Quelle"
+  "failed": "Übersetzung des Videoskripts fehlgeschlagen",
+  "source": "Quelle",
+  "terms": "Beibehaltene Begriffe",
+  "termsPlaceholder": "Unverändert zu übernehmende Begriffe oder Markennamen, kommagetrennt (optional)"
 }

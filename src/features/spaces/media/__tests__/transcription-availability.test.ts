@@ -16,7 +16,13 @@ vi.mock("../../canvas/use-node-operation-gate", () => ({
   useNodeOperationGate: () => ({ allows: () => allowed.value }),
 }));
 vi.mock("../../enrichment/use-node-enrichment-status", () => ({
-  useNodeEnrichmentStatus: () => ({ status }),
+  MEDIA_ENRICHMENT_JOB_TYPES: [
+    "analyze_media",
+    "transcribe_media",
+    "align_media_transcript",
+    "diarize_media_transcript",
+  ],
+  useNodeEnrichmentStatus: () => ({ status, jobs }),
 }));
 vi.mock("../../enrichment/enrichment-jobs-query", () => ({ refreshEnrichmentJobs: mocks.refresh }));
 vi.mock("../../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
@@ -27,6 +33,7 @@ vi.mock("../../../../foundation/ai/ai-readiness-admission", () => ({
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 const allowed = shallowRef(true);
 const status = shallowRef<NodeEnrichmentStatus>({ pending: 0, running: 0, failed: 0, waiting: 0 });
+const jobs = shallowRef([]);
 const testStore = defineStore("transcription-availability", () => ({
   activeSpaceId: ref("space"),
   mediaAnalysisIds: ref<string[]>([]),
@@ -100,7 +107,7 @@ it.each(["pending", "running", "waiting"] as const)(
     }
   },
 );
-it("preserves a current transcript instead of attempting to overwrite its edits", async () => {
+it("allows retranscription even when a current transcript already exists", async () => {
   const node = mediaNode();
   if (node.data.kind !== "audio") throw new Error("Audio fixture required");
   node.data.mediaKnowledge = {
@@ -152,9 +159,10 @@ it("preserves a current transcript instead of attempting to overwrite its edits"
   try {
     const operation = scope.run(() => useMediaKnowledge(ref(node)))!;
     expect(operation.transcribed.value).toBe(true);
+    expect(operation.canTranscribe.value).toBe(true);
     await operation.analyze();
-    expect(mocks.analyze).not.toHaveBeenCalled();
-    expect(node.data.mediaKnowledge.transcript.text).toBe("Edited transcript");
+    expect(mocks.analyze).toHaveBeenCalledWith("audio");
+    expect(mocks.refresh).toHaveBeenCalledOnce();
   } finally {
     scope.stop();
   }

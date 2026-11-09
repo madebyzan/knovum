@@ -57,6 +57,12 @@ pub struct VideoTranslationProvenance {
     pub model: String,
 }
 
+impl VideoDubbingOutputConfig {
+    pub(crate) fn uses_auto_video_background(&self) -> bool {
+        self.background_separation.is_none() && self.background.as_ref() == Some(&self.video)
+    }
+}
+
 pub(crate) fn parse(value: &serde_json::Value) -> Result<VideoDubbingOutputConfig, String> {
     let config = VideoDubbingOutputConfig::deserialize(value).map_err(db::json_error)?;
     validate(&config)?;
@@ -84,10 +90,10 @@ pub(crate) fn validate(config: &VideoDubbingOutputConfig) -> Result<(), String> 
             window.end_ms <= window.start_ms || window.end_ms > config.video.duration_ms
         })
         || (config.preserve_original_outside_dialogue
-            && (config.background_separation.is_none()
+            && ((config.background_separation.is_none() && !config.uses_auto_video_background())
                 || config.source_dialogue_intervals.is_empty()))
     {
-        return Err("Preserving original ambience requires source dialogue intervals and a published separation".into());
+        return Err("Preserving original ambience requires source dialogue intervals and a separated or source-video background".into());
     }
     separation::validate(config)?;
     if let Some(translation) = &config.translation {
@@ -133,7 +139,7 @@ pub(crate) async fn require_sources(
     if let Some(background) = &config.background {
         if let Some(separation) = &config.background_separation {
             separation::require_published(tx, space_id, separation, background).await?;
-        } else {
+        } else if !config.uses_auto_video_background() {
             require_source(tx, space_id, project_id, "audio", background).await?;
         }
     }

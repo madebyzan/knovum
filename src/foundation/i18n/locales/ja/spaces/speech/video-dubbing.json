@@ -1,8 +1,12 @@
 {
   "backgroundAudio": "バックグラウンド オーディオ",
+  "keepOriginalBackground": "元の背景音を維持（ボーカルを自動分離）",
   "muteOriginal": "オリジナル オーディオをミュート",
   "voiceGain": "音声ゲイン (dB)",
   "backgroundGain": "バックグラウンド ゲイン (dB)",
+  "backgroundPresetNatural": "標準 (0 dB)",
+  "backgroundPresetSoft": "ソフト (-6 dB)",
+  "backgroundPresetSubtle": "控えめ (-12 dB)",
   "importTranscript": "ソース トランスクリプトを使用",
   "startSeconds": "開始 (秒)",
   "endSeconds": "終了 (秒)",
@@ -20,5 +24,7 @@
   "multipleAudioTracks": "複数のオーディオトラックを含むビデオ",
   "audioTracksHint": "同じソース ビデオの公開済みリビジョンを再生トラック順に最大 8 つ選択します。",
   "currentBackground": "現在のバックグラウンド トラック",
+  "batchVoiceLabel": "音声を統一",
+  "applyToAllLines": "すべての行に適用",
   "mixingSettings": "オーディオ ミックス"
 }

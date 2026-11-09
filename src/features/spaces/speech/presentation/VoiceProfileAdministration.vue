@@ -8,6 +8,7 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSettingsEmptyState from "../../../../shared/ui/UiSettingsEmptyState.vue";
 import UiSettingsSection from "../../../../shared/ui/UiSettingsSection.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
+import { useDefaultVoiceProfile } from "../default-voice";
 import { useVoiceAudition } from "../use-voice-audition";
 import { useVoiceProfileOperations } from "../use-voice-profile-operations";
 import { activeVoiceProfileRevision } from "../voice-profile";
@@ -16,6 +17,7 @@ import VoiceProfileConfiguration from "./VoiceProfileConfiguration.vue";
 const props = defineProps<{ expandedId?: string | undefined; creating?: boolean | undefined }>();
 const emit = defineEmits<{ dirty: [value: boolean]; toggle: [profileId: string] }>();
 const { t } = useI18n();
+const { defaultVoiceProfileId, setDefaultVoiceProfile } = useDefaultVoiceProfile();
 const { reload, profiles, loading, busyProfileId, errors, rename, revise, archive, unarchive, remove } =
   useVoiceProfileOperations();
 const audition = useVoiceAudition(() => t("spaces.speech.preview.sample"));
@@ -53,10 +55,12 @@ watch(audition.error, (message) => {
         :profile
         :expanded="expandedId === profile.id"
         :disabled="Boolean(busyProfileId)"
+        :is-default="profile.id === defaultVoiceProfileId"
         :audition="audition.stateFor(profile.id)"
         @dirty="emit('dirty', $event)"
         @toggle="emit('toggle', profile.id)"
         @audition="audition.audition(profile.id, activeVoiceProfileRevision(profile).id)"
+        @set-default="setDefaultVoiceProfile(profile.id)"
         @rename="rename(profile, $event)"
         @revise="(language, speed) => revise(profile, language, speed)"
         @archive="archive(profile)"

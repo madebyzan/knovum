@@ -59,6 +59,7 @@ KNOVUM_VOICE_API void *knovum_voice_open(const char *path, int device, int threa
             default: throw std::runtime_error("Unsupported frozen VoxCPM2 backend");
         }
         options.backend = {backend, 0, threads};
+        options.options["voxcpm2.audiovae_encoder_sample_capacity"] = "240640";
         handle->session = handle->model->create_task_session(
             {runtime::VoiceTaskKind::Tts, runtime::RunMode::Streaming}, options);
         return handle.release();
@@ -66,7 +67,7 @@ KNOVUM_VOICE_API void *knovum_voice_open(const char *path, int device, int threa
 }
 KNOVUM_VOICE_API void knovum_voice_close(void *opaque) { delete static_cast<VoiceHandle *>(opaque); }
 KNOVUM_VOICE_API int knovum_voice_generate(void *opaque, const char *text, const float *reference, size_t reference_count,
-                          const char *prompt_text, unsigned int seed, int max_tokens, Callback callback, void *context) {
+                          const char * /*prompt_text*/, unsigned int seed, int max_tokens, Callback callback, void *context) {
     try {
         failure.clear();
         auto &session = dynamic_cast<runtime::IStreamingVoiceTaskSession &>(*static_cast<VoiceHandle *>(opaque)->session);
@@ -78,10 +79,6 @@ KNOVUM_VOICE_API int knovum_voice_generate(void *opaque, const char *text, const
             runtime::AudioBuffer audio{16000, 1, std::vector<float>(reference, reference + reference_count)};
             request.voice = runtime::VoiceCondition{};
             request.voice->speaker = runtime::VoiceReference{audio, std::nullopt};
-            if (prompt_text && *prompt_text) {
-                request.audio_input = audio;
-                request.options["prompt_text"] = prompt_text;
-            }
         }
         session.prepare(runtime::build_preparation_request(request));
         session.set_stream_event_sink([&](const runtime::StreamEvent &event) {

@@ -29,5 +29,6 @@
     "preparingInference": "ローカルの AI コンポーネントを準備しています…",
     "downloadSize": "初回使用には {size} のローカル リソースのダウンロードが必要です",
     "installing": "ローカル リソースをインストールしています…"
-  }
+  },
+  "retryAll": "すべて再試行"
 }
