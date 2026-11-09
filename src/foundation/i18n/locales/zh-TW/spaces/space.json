@@ -10,7 +10,9 @@
     "newNote": "新增筆記",
     "importFiles": "匯入資料",
     "startRecording": "開始錄音",
-    "keyboardHint": "也可以直接在畫布上按"
+    "keyboardHint": "也可以直接在畫布上按",
+    "titlePrefix": "讓知識，在這裡",
+    "titleHighlight": "生長"
   },
   "rename": "重新命名空間",
   "tabs": {

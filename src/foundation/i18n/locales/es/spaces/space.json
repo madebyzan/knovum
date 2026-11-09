@@ -10,7 +10,9 @@
     "newNote": "Nueva nota",
     "importFiles": "Importar archivos",
     "startRecording": "Iniciar grabación",
-    "keyboardHint": "O pulse en el lienzo:"
+    "keyboardHint": "O pulse en el lienzo:",
+    "titlePrefix": "Donde el conocimiento ",
+    "titleHighlight": "florece"
   },
   "rename": "Cambiar nombre del espacio",
   "tabs": {

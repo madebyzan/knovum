@@ -10,7 +10,9 @@
     "newNote": "Nuova nota",
     "importFiles": "Importa file",
     "startRecording": "Avvia registrazione",
-    "keyboardHint": "Oppure premi sulla lavagna:"
+    "keyboardHint": "Oppure premi sulla lavagna:",
+    "titlePrefix": "Lascia crescere la ",
+    "titleHighlight": "conoscenza"
   },
   "rename": "Rinomina spazio",
   "tabs": {

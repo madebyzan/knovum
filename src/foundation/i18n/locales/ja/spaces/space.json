@@ -10,7 +10,9 @@
     "newNote": "ノート作成",
     "importFiles": "ファイルを取り込む",
     "startRecording": "録音を開始",
-    "keyboardHint": "キャンバス上で直接キーを押すこともできます:"
+    "keyboardHint": "キャンバス上で直接キーを押すこともできます:",
+    "titlePrefix": "知識を、ここで",
+    "titleHighlight": "育てる"
   },
   "rename": "スペースの名前を変更",
   "tabs": {

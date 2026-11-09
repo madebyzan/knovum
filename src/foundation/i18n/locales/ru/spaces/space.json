@@ -10,7 +10,9 @@
     "newNote": "Новая заметка",
     "importFiles": "Импортировать файлы",
     "startRecording": "Начать запись",
-    "keyboardHint": "Или нажмите на холсте:"
+    "keyboardHint": "Или нажмите на холсте:",
+    "titlePrefix": "Пусть знания ",
+    "titleHighlight": "растут здесь"
   },
   "rename": "Переименовать пространство",
   "tabs": {

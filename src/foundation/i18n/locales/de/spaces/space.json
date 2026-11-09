@@ -10,7 +10,9 @@
     "newNote": "Neue Notiz",
     "importFiles": "Dateien importieren",
     "startRecording": "Aufnahme starten",
-    "keyboardHint": "Oder direkt auf der Leinwand drücken:"
+    "keyboardHint": "Oder direkt auf der Leinwand drücken:",
+    "titlePrefix": "Wissen ",
+    "titleHighlight": "wachsen lassen"
   },
   "rename": "Leerzeichen umbenennen",
   "tabs": {

@@ -10,7 +10,9 @@
     "newNote": "新建笔记",
     "importFiles": "导入资料",
     "startRecording": "开始录音",
-    "keyboardHint": "也可以直接在画布上按"
+    "keyboardHint": "也可以直接在画布上按",
+    "titlePrefix": "让知识，在这里",
+    "titleHighlight": "生长"
   },
   "rename": "重命名空间",
   "tabs": {

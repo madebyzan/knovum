@@ -10,7 +10,9 @@
     "newNote": "Nouvelle note",
     "importFiles": "Importer des fichiers",
     "startRecording": "Démarrer l’enregistrement",
-    "keyboardHint": "Ou appuyez sur le canevas :"
+    "keyboardHint": "Ou appuyez sur le canevas :",
+    "titlePrefix": "Laissez grandir la ",
+    "titleHighlight": "connaissance"
   },
   "rename": "Renommer l'espace",
   "tabs": {

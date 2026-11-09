@@ -10,7 +10,9 @@
     "newNote": "새 노트",
     "importFiles": "자료 가져오기",
     "startRecording": "녹음 시작",
-    "keyboardHint": "캔버스에서 바로 키를 누를 수도 있습니다:"
+    "keyboardHint": "캔버스에서 바로 키를 누를 수도 있습니다:",
+    "titlePrefix": "지식이 ",
+    "titleHighlight": "자라나는 곳"
   },
   "rename": "작업공간 이름 바꾸기",
   "tabs": {

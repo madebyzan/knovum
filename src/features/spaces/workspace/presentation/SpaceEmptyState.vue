@@ -4,7 +4,6 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiKbd from "../../../../shared/ui/UiKbd.vue";
 import { usePickerImport } from "../../assets/use-picker-import";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
@@ -53,63 +52,81 @@ async function handleRecord() {
 <template>
   <div class="pointer-events-none absolute inset-0 grid place-items-center p-6 select-none">
     <div
-      class="flex -translate-y-3 flex-col items-center gap-7 md:flex-row md:items-center md:gap-10 lg:gap-14"
+      class="flex -translate-y-3 flex-col items-center gap-4 md:flex-row md:items-center md:gap-5 lg:gap-7"
     >
       <div class="relative flex shrink-0 items-center justify-center">
         <img
           :src="elfImage"
           alt="Knowledge Mascot"
-          class="w-64 object-contain select-none md:w-76 lg:w-84"
+          class="w-60 object-contain select-none md:w-72 lg:w-80"
           draggable="false"
         />
       </div>
 
       <div class="flex max-w-md flex-col items-center text-center md:items-start md:text-left">
-        <div class="relative inline-block">
-          <h2 class="text-title-md font-medium tracking-(--tracking-title) text-fg-primary">
-            {{ t("spaces.space.empty.title") }}
-          </h2>
-          <svg
-            class="absolute right-0 -bottom-2 h-2 w-28 overflow-visible text-content-blue"
-            viewBox="0 0 110 8"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M2 5.5 C30 2, 75 7, 108 3"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-          </svg>
-        </div>
+        <h2
+          class="text-2xl font-bold tracking-tight text-fg-primary md:text-[28px]"
+          :aria-label="t('spaces.space.empty.title')"
+        >
+          {{ t("spaces.space.empty.titlePrefix")
+          }}<span class="relative inline-block text-fg-primary">
+            {{ t("spaces.space.empty.titleHighlight") }}
+            <svg
+              class="absolute -bottom-1.5 left-0 h-2 w-full overflow-visible text-[#1668DC]"
+              viewBox="0 0 56 6"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M2 4 C18 1.5, 38 4.5, 54 2.2"
+                stroke="currentColor"
+                stroke-width="2.6"
+                stroke-linecap="round"
+              />
+            </svg>
+          </span>
+        </h2>
 
         <p class="mt-2.5 text-caption leading-relaxed text-fg-tertiary">
           {{ t("spaces.space.empty.description") }}
         </p>
 
         <div
-          class="pointer-events-auto mt-5 flex flex-wrap items-center justify-center gap-2 md:justify-start"
+          class="pointer-events-auto mt-6 flex flex-wrap items-center justify-center gap-2.5 md:justify-start"
         >
-          <UiButton variant="primary" size="md" @click="createNote">
-            <FileText class="size-3.5" :stroke-width="1.6" />
+          <button
+            type="button"
+            class="inline-flex h-9.5 cursor-pointer items-center gap-2 rounded-lg bg-[#1668DC] px-4 text-sm font-medium text-white shadow-[0_2px_8px_rgba(22,104,220,0.28)] transition-all duration-150 hover:bg-[#155fc9] hover:shadow-[0_4px_12px_rgba(22,104,220,0.36)] active:scale-[0.98] active:bg-[#0e4da8]"
+            @click="createNote"
+          >
+            <FileText class="size-4 shrink-0 text-white/90" :stroke-width="1.8" />
             <span>{{ t("spaces.space.empty.newNote") }}</span>
-            <UiKbd shortcut="N" class="ml-1 opacity-70" />
-          </UiButton>
+            <span class="ml-0.5 rounded-sm bg-white/20 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+              N
+            </span>
+          </button>
 
-          <UiButton variant="secondary" size="md" @click="handleImport">
-            <Upload class="size-3.5" :stroke-width="1.6" />
+          <button
+            type="button"
+            class="inline-flex h-9.5 cursor-pointer items-center gap-2 rounded-lg border border-[#d7dce5] bg-white px-3.5 text-sm font-medium text-fg-primary shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-all duration-150 hover:border-[#b0b9c9] hover:bg-gray-50/80 hover:shadow-[0_2px_6px_rgba(0,0,0,0.08)] active:scale-[0.98] dark:border-stroke-default dark:bg-surface-raised dark:hover:border-stroke-strong"
+            @click="handleImport"
+          >
+            <Upload class="size-4 shrink-0 text-fg-secondary" :stroke-width="1.8" />
             <span>{{ t("spaces.space.empty.importFiles") }}</span>
-          </UiButton>
+          </button>
 
-          <UiButton variant="secondary" size="md" @click="handleRecord">
-            <Mic class="size-3.5" :stroke-width="1.6" />
+          <button
+            type="button"
+            class="inline-flex h-9.5 cursor-pointer items-center gap-2 rounded-lg border border-[#d7dce5] bg-white px-3.5 text-sm font-medium text-fg-primary shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-all duration-150 hover:border-[#b0b9c9] hover:bg-gray-50/80 hover:shadow-[0_2px_6px_rgba(0,0,0,0.08)] active:scale-[0.98] dark:border-stroke-default dark:bg-surface-raised dark:hover:border-stroke-strong"
+            @click="handleRecord"
+          >
+            <Mic class="size-4 shrink-0 text-fg-secondary" :stroke-width="1.8" />
             <span>{{ t("spaces.space.empty.startRecording") }}</span>
-          </UiButton>
+          </button>
         </div>
 
         <div
-          class="pointer-events-auto mt-4.5 flex flex-wrap items-center justify-center gap-3 text-caption text-fg-tertiary md:justify-start"
+          class="pointer-events-auto mt-6 flex flex-wrap items-center justify-center gap-3.5 text-caption text-fg-tertiary md:justify-start"
         >
           <span class="inline-flex items-center gap-1.5 text-caption">
             <Keyboard class="size-3.5 shrink-0 opacity-70" :stroke-width="1.5" />

@@ -10,7 +10,9 @@
     "newNote": "New Note",
     "importFiles": "Import Files",
     "startRecording": "Start Recording",
-    "keyboardHint": "Or press on canvas:"
+    "keyboardHint": "Or press on canvas:",
+    "titlePrefix": "Let knowledge grow ",
+    "titleHighlight": "here"
   },
   "rename": "Rename Space",
   "tabs": {

@@ -10,7 +10,9 @@
     "newNote": "Nova nota",
     "importFiles": "Importar arquivos",
     "startRecording": "Iniciar gravação",
-    "keyboardHint": "Ou pressione na tela:"
+    "keyboardHint": "Ou pressione na tela:",
+    "titlePrefix": "Deixe o conhecimento ",
+    "titleHighlight": "crescer"
   },
   "rename": "Renomear espaço",
   "tabs": {
