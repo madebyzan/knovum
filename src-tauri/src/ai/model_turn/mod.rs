@@ -64,17 +64,18 @@ fn adapter(provider: ProviderKind) -> AppResult<&'static dyn ModelTurnCapability
     Ok(adapter)
 }
 
-fn adapter_kind(provider: ProviderKind) -> AppResult<AdapterKind> {
+/// The genai adapter that speaks the provider's chat wire protocol; `None` when the
+/// provider has no chat protocol. Text turns and visual analysis share this mapping so
+/// one provider never speaks two different protocols.
+pub(crate) fn genai_adapter(provider: ProviderKind) -> Option<AdapterKind> {
     match provider {
-        ProviderKind::Anthropic => Ok(AdapterKind::Anthropic),
-        ProviderKind::Gemini => Ok(AdapterKind::Gemini),
-        ProviderKind::DashScope => Ok(AdapterKind::Aliyun),
-        ProviderKind::DeepSeek => Ok(AdapterKind::DeepSeek),
-        ProviderKind::Groq => Ok(AdapterKind::Groq),
-        ProviderKind::Ollama => Ok(AdapterKind::Ollama),
-        ProviderKind::Kling => Err(crate::foundation::app_error::AppError::unsupported(
-            "Kling does not provide the ModelTurn text protocol",
-        )),
+        ProviderKind::Anthropic => Some(AdapterKind::Anthropic),
+        ProviderKind::Gemini => Some(AdapterKind::Gemini),
+        ProviderKind::DashScope => Some(AdapterKind::Aliyun),
+        ProviderKind::DeepSeek => Some(AdapterKind::DeepSeek),
+        ProviderKind::Groq => Some(AdapterKind::Groq),
+        ProviderKind::Ollama => Some(AdapterKind::Ollama),
+        ProviderKind::Kling => None,
         ProviderKind::OpenAi
         | ProviderKind::OpenAiCompatible
         | ProviderKind::OpenRouter
@@ -86,8 +87,26 @@ fn adapter_kind(provider: ProviderKind) -> AppResult<AdapterKind> {
         | ProviderKind::StepFun
         | ProviderKind::Moonshot
         | ProviderKind::Doubao
-        | ProviderKind::MiniMax => Ok(AdapterKind::OpenAI),
+        | ProviderKind::MiniMax
+        | ProviderKind::Perplexity
+        | ProviderKind::Cohere
+        | ProviderKind::Baidu
+        | ProviderKind::Hunyuan
+        | ProviderKind::Baichuan
+        | ProviderKind::SenseNova
+        | ProviderKind::Spark
+        | ProviderKind::Cerebras
+        | ProviderKind::Fireworks
+        | ProviderKind::LmStudio => Some(AdapterKind::OpenAI),
     }
+}
+
+fn adapter_kind(provider: ProviderKind) -> AppResult<AdapterKind> {
+    genai_adapter(provider).ok_or_else(|| {
+        crate::foundation::app_error::AppError::unsupported(format!(
+            "{provider} does not provide the ModelTurn text protocol"
+        ))
+    })
 }
 
 pub(crate) use wire::GenAiModelTurnAdapter;

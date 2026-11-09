@@ -14,20 +14,18 @@ use crate::foundation::app_error::{AppError, AppResult};
 pub struct TogetherVideoAdapter;
 
 #[derive(Deserialize)]
-struct TogetherVideoSubmitResponse {
+struct TogetherVideoJob {
     id: Option<String>,
-    error: Option<TogetherError>,
-}
-#[derive(Deserialize)]
-struct TogetherVideoQueryResponse {
     status: Option<String>,
-    outputs: Option<Vec<TogetherOutput>>,
+    outputs: Option<TogetherOutputs>,
     error: Option<TogetherError>,
 }
+
 #[derive(Deserialize)]
-struct TogetherOutput {
-    url: Option<String>,
+struct TogetherOutputs {
+    video_url: Option<String>,
 }
+
 #[derive(Deserialize)]
 struct TogetherError {
     message: Option<String>,
@@ -41,14 +39,9 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
-            let endpoint = together_endpoint(&ctx.endpoint);
+            let endpoint = together_video_endpoint(&ctx.endpoint);
             let client = http_client();
-
-            let model = if ctx.model.is_empty() {
-                "THUDM/CogVideoX-5b"
-            } else {
-                ctx.model.as_str()
-            };
+            let model = ctx.model.as_str();
 
             let (width, height) = match req.ratio.as_str() {
                 "9:16" => (720, 1280),
@@ -63,8 +56,10 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
                 "height": height,
             });
 
-            if let Some(first_img) = req.reference_images.first() {
-                body["image_url"] = serde_json::json!(first_img);
+            if let Some(first_frame) = req.reference_images.first() {
+                body["media"] = serde_json::json!({
+                    "frame_images": [{ "input_image": first_frame }],
+                });
             }
 
             let submission_response = client
@@ -76,15 +71,15 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
                 .map_err(provider_err)?
                 .error_for_status()
                 .map_err(provider_err)?;
-            let submission_response: TogetherVideoSubmitResponse =
+            let job: TogetherVideoJob =
                 response::read_json(submission_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
-            if let Some(err) = submission_response.error {
-                let msg = err.message.unwrap_or_else(|| "Submit failed".to_string());
-                return Err(AppError::new("provider_request_failed", msg));
+            if let Some(error) = job.error {
+                let message = error.message.unwrap_or_else(|| "Submit failed".to_string());
+                return Err(AppError::new("provider_request_failed", message));
             }
 
-            let task_id = submission_response
+            let task_id = job
                 .id
                 .ok_or_else(|| AppError::new("invalid_response", "Together returned no task ID"))?;
 
@@ -103,7 +98,7 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
-            let endpoint = together_endpoint(&ctx.endpoint);
+            let endpoint = together_video_endpoint(&ctx.endpoint);
             let client = http_client();
 
             let query_response = client
@@ -114,21 +109,14 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
                 .map_err(provider_err)?
                 .error_for_status()
                 .map_err(provider_err)?;
-            let query_response: TogetherVideoQueryResponse =
+            let job: TogetherVideoJob =
                 response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
-            if let Some(err) = query_response.error {
-                let msg = err.message.unwrap_or_else(|| "Query failed".to_string());
-                return Ok(VideoGenerationStatus::Failed { error_message: msg });
-            }
-
-            let status = query_response.status.as_deref().unwrap_or("unknown");
-            match status {
-                "completed" | "succeeded" => {
-                    let video_url = query_response
+            match job.status.as_deref().unwrap_or_default() {
+                "completed" => {
+                    let video_url = job
                         .outputs
-                        .and_then(|mut videos| videos.pop())
-                        .and_then(|out| out.url)
+                        .and_then(|outputs| outputs.video_url)
                         .ok_or_else(|| {
                             AppError::new(
                                 "invalid_response",
@@ -137,12 +125,23 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
                         })?;
                     Ok(VideoGenerationStatus::Succeeded { video_url })
                 }
-                "processing" | "pending" | "queued" => {
-                    Ok(VideoGenerationStatus::Processing { progress_pct: None })
+                "queued" => Ok(VideoGenerationStatus::Pending { progress_pct: None }),
+                "in_progress" => Ok(VideoGenerationStatus::Processing { progress_pct: None }),
+                "failed" | "cancelled" => {
+                    let message = job
+                        .error
+                        .and_then(|error| error.message)
+                        .unwrap_or_else(|| {
+                            format!("Together video task {}", job.status.unwrap_or_default())
+                        });
+                    Ok(VideoGenerationStatus::Failed {
+                        error_message: message,
+                    })
                 }
-                _ => Ok(VideoGenerationStatus::Failed {
-                    error_message: format!("Together video task ended with status: {status}"),
-                }),
+                unknown => Err(AppError::new(
+                    "invalid_response",
+                    format!("Together returned an unknown video task status: {unknown}"),
+                )),
             }
         })
     }
@@ -160,13 +159,14 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
     }
 }
 
-fn together_endpoint(raw: &str) -> String {
+/// Together serves chat and images from `/v1` but video jobs from `/v2`.
+fn together_video_endpoint(raw: &str) -> String {
     let base = raw.trim().trim_end_matches('/');
-    if base.ends_with("/v1") {
-        base.to_string()
-    } else {
-        format!("{base}/v1")
-    }
+    let root = base
+        .strip_suffix("/v2")
+        .or_else(|| base.strip_suffix("/v1"))
+        .unwrap_or(base);
+    format!("{root}/v2")
 }
 
 fn provider_err(e: impl std::fmt::Display) -> AppError {

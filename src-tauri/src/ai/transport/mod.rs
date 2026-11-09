@@ -4,8 +4,8 @@ pub(crate) mod response;
 mod security;
 
 pub use client::http_client;
-pub(crate) use security::validate_endpoint;
 pub use security::SecurityContext;
+pub(crate) use security::{endpoint_with_suffix, validate_endpoint};
 
 #[cfg(test)]
 mod tests;

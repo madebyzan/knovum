@@ -18,8 +18,13 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ toggle: [enabled: boolean] }>();
 const { t } = useI18n();
+// Only a resolved command entry can actually launch the agent; an installed
+// application without its CLI cannot, so enabling stays blocked until then.
+const available = computed(
+  () => Boolean(props.installation?.executablePath) && !props.checking && !props.checkFailed,
+);
 const needsSetup = computed(() =>
-  Boolean(props.installation && !props.installation.executablePath && !props.checking && !props.checkFailed),
+  Boolean(props.installation && !props.installation.executablePath && !props.checking),
 );
 
 const statusMessageKey = computed(() => {
@@ -44,14 +49,15 @@ const statusMessageKey = computed(() => {
       </div>
       <div class="flex items-center gap-2">
         <AgentConnectionHelp v-if="needsSetup" :agent="agent" :label="t(statusMessageKey)" />
-        <UiBadge
-          v-else
-          :variant="installation?.executablePath && !checking && !checkFailed ? 'success' : 'neutral'"
-          size="sm"
-        >
+        <UiBadge v-else :variant="available ? 'success' : 'neutral'" size="sm">
           {{ t(statusMessageKey) }}
         </UiBadge>
-        <UiButton size="sm" :variant="enabled ? 'ghost' : 'secondary'" @click="emit('toggle', !enabled)">
+        <UiButton
+          size="sm"
+          :variant="enabled ? 'ghost' : 'secondary'"
+          :disabled="!enabled && !available"
+          @click="emit('toggle', !enabled)"
+        >
           {{ t(enabled ? "settings.agents.disable" : "settings.agents.enable") }}
         </UiButton>
       </div>

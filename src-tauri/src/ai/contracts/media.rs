@@ -1,4 +1,5 @@
 use futures::future::BoxFuture;
+use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
 
@@ -107,6 +108,24 @@ pub type VideoGenerationStageCallback<'a> =
     Box<dyn Fn(&str) -> Result<(), String> + Send + Sync + 'a>;
 
 pub trait VideoGenerationCapability: Send + Sync {
+    /// True when the video API only accepts references it can fetch by URL, so
+    /// the shared layer has to deliver them through the provider's file API
+    /// first. False when the request body carries the pixels inline.
+    fn consumes_uploaded_references(&self) -> bool {
+        false
+    }
+
+    /// Auth headers the provider requires on its own result URLs (Gemini's
+    /// file CDN, OpenRouter's unsigned content URL). Public URLs need none.
+    fn result_download_headers(
+        &self,
+        ctx: &SecurityContext,
+        url: &reqwest::Url,
+    ) -> AppResult<HeaderMap> {
+        let _ = (ctx, url);
+        Ok(HeaderMap::new())
+    }
+
     fn submit<'a>(
         &'a self,
         ctx: &'a SecurityContext,

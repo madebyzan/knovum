@@ -80,7 +80,7 @@ const PROVIDERS: &[ProviderDescriptor] = &[
         ProviderKind::Grok,
         "xAI",
         "https://api.x.ai/v1/",
-        TEXT_VISION_IMAGE,
+        TEXT_VISION_MEDIA,
     ),
     define_provider(
         ProviderKind::Groq,
@@ -104,7 +104,7 @@ const PROVIDERS: &[ProviderDescriptor] = &[
         ProviderKind::StepFun,
         "StepFun",
         "https://api.stepfun.com/v1/",
-        TEXT_VISION_MEDIA,
+        TEXT_VISION,
     ),
     define_provider(
         ProviderKind::Moonshot,
@@ -133,19 +133,79 @@ const PROVIDERS: &[ProviderDescriptor] = &[
     define_provider(
         ProviderKind::MiniMax,
         "MiniMax",
-        "https://api.minimax.chat/v1/",
+        "https://api.minimax.cn/v1/",
         TEXT_VISION_MEDIA,
     ),
     define_provider(
         ProviderKind::Kling,
         "Kling AI",
-        "https://api.klingai.com/",
+        "https://api-beijing.klingai.com/",
         MEDIA,
     ),
     define_provider(
         ProviderKind::Ollama,
         "Ollama",
         "http://localhost:11434/",
+        TEXT_VISION,
+    ),
+    define_provider(
+        ProviderKind::Perplexity,
+        "Perplexity AI",
+        "https://api.perplexity.ai/",
+        TEXT,
+    ),
+    define_provider(
+        ProviderKind::Cohere,
+        "Cohere",
+        "https://api.cohere.ai/compatibility/v1/",
+        TEXT,
+    ),
+    define_provider(
+        ProviderKind::Baidu,
+        "Baidu Qianfan",
+        "https://qianfan.baidubce.com/v2/",
+        TEXT_VISION_IMAGE,
+    ),
+    define_provider(
+        ProviderKind::Hunyuan,
+        "Tencent Hunyuan",
+        "https://api.hunyuan.cloud.tencent.com/v1/",
+        TEXT_VISION,
+    ),
+    define_provider(
+        ProviderKind::Baichuan,
+        "Baichuan AI",
+        "https://api.baichuan-ai.com/v1/",
+        TEXT,
+    ),
+    define_provider(
+        ProviderKind::SenseNova,
+        "SenseNova",
+        "https://token.sensenova.cn/v1/",
+        TEXT_VISION_IMAGE,
+    ),
+    define_provider(
+        ProviderKind::Spark,
+        "iFlytek Spark",
+        "https://spark-api-open.xf-yun.com/v1/",
+        TEXT,
+    ),
+    define_provider(
+        ProviderKind::Cerebras,
+        "Cerebras",
+        "https://api.cerebras.ai/v1/",
+        TEXT_VISION,
+    ),
+    define_provider(
+        ProviderKind::Fireworks,
+        "Fireworks AI",
+        "https://api.fireworks.ai/inference/v1/",
+        TEXT_VISION,
+    ),
+    define_provider(
+        ProviderKind::LmStudio,
+        "LM Studio",
+        "http://localhost:1234/v1/",
         TEXT_VISION,
     ),
 ];
@@ -189,7 +249,17 @@ pub const fn builtin_agent_protocol(kind: ProviderKind) -> Option<ChatModelProto
         | ProviderKind::StepFun
         | ProviderKind::Moonshot
         | ProviderKind::Doubao
-        | ProviderKind::MiniMax => Some(ChatModelProtocol::OpenAiChat),
+        | ProviderKind::MiniMax
+        | ProviderKind::Perplexity
+        | ProviderKind::Cohere
+        | ProviderKind::Baidu
+        | ProviderKind::Hunyuan
+        | ProviderKind::Baichuan
+        | ProviderKind::SenseNova
+        | ProviderKind::Spark
+        | ProviderKind::Cerebras
+        | ProviderKind::Fireworks
+        | ProviderKind::LmStudio => Some(ChatModelProtocol::OpenAiChat),
     }
 }
 

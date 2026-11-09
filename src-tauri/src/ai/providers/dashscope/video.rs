@@ -14,6 +14,11 @@ use crate::foundation::app_error::{AppError, AppResult};
 pub struct DashScopeVideoAdapter;
 
 impl VideoGenerationCapability for DashScopeVideoAdapter {
+    /// Wan only fetches references by URL; inline pixels are not accepted.
+    fn consumes_uploaded_references(&self) -> bool {
+        true
+    }
+
     fn submit<'a>(
         &'a self,
         ctx: &'a SecurityContext,
@@ -31,12 +36,21 @@ impl VideoGenerationCapability for DashScopeVideoAdapter {
                 req.duration_seconds,
                 &req.reference_images,
             );
-            let submission_response = client
+            let mut submission_request = client
                 .post(format!(
                     "{endpoint}/services/aigc/video-generation/video-synthesis"
                 ))
                 .bearer_auth(secret)
-                .header("X-DashScope-Async", "enable")
+                .header("X-DashScope-Async", "enable");
+            if req
+                .reference_images
+                .iter()
+                .any(|reference| reference.starts_with("oss://"))
+            {
+                submission_request =
+                    submission_request.header("X-DashScope-OssResourceResolve", "enable");
+            }
+            let submission_response = submission_request
                 .json(&request_body)
                 .send()
                 .await

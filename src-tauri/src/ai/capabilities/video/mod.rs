@@ -37,8 +37,12 @@ pub async fn generate(
         AppError::capability_not_supported(request.target.provider(), "video generation")
     })?;
 
-    let prepared_images =
-        prepare_reference_images(&request.target, request.reference_images).await?;
+    let prepared_images = prepare_reference_images(
+        &request.target,
+        request.reference_images,
+        video_generation.consumes_uploaded_references(),
+    )
+    .await?;
     let ctx = SecurityContext::from_target(&request.target).await?;
     let req = VideoGenerationInput {
         prompt: request.prompt,
@@ -55,15 +59,12 @@ pub async fn generate(
 async fn prepare_reference_images(
     target: &ModelExecutionTarget,
     images: Vec<String>,
+    consumes_uploads: bool,
 ) -> AppResult<Vec<String>> {
     let mut prepared_images = Vec::with_capacity(images.len());
     let mut inline_bytes = 0;
-    let provider = resolve_provider(target.model_provider_kind()?);
-    let can_upload = provider.as_file_upload().is_some();
     for item in images {
-        if item.starts_with("http://")
-            || item.starts_with("https://")
-            || item.starts_with("dashscope://")
+        if item.starts_with("http://") || item.starts_with("https://") || item.starts_with("oss://")
         {
             prepared_images.push(item);
         } else if let Some(encoded_reference) = item.strip_prefix("data:") {
@@ -72,7 +73,7 @@ async fn prepare_reference_images(
                 .ok_or_else(|| AppError::invalid("Reference image data URI is invalid"))?;
             let decoded_bytes =
                 decode_reference_image(base64_payload, super::files::MAX_UPLOAD_BYTES)?;
-            if can_upload {
+            if consumes_uploads {
                 let upload_ref = super::files::upload_file_bytes(
                     target,
                     decoded_bytes,
@@ -87,7 +88,7 @@ async fn prepare_reference_images(
         } else {
             let path = std::path::Path::new(&item);
             if path.is_file() {
-                if can_upload {
+                if consumes_uploads {
                     let upload_ref = super::files::upload_file_path(target, path).await?;
                     let effective_reference = upload_ref.access_url.unwrap_or(upload_ref.file_id);
                     prepared_images.push(effective_reference);

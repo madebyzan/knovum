@@ -1,5 +1,4 @@
 use genai::{
-    adapter::AdapterKind,
     chat::{
         Binary, ChatMessage, ChatOptions, ChatRequest, ChatResponseFormat, ContentPart,
         MessageContent,
@@ -92,32 +91,8 @@ pub async fn analyze_image(
 }
 
 fn service_target(ctx: &SecurityContext, kind: ProviderKind) -> AppResult<ServiceTarget> {
-    let adapter = match kind {
-        ProviderKind::OpenAi
-        | ProviderKind::OpenAiCompatible
-        | ProviderKind::OpenRouter
-        | ProviderKind::DeepSeek
-        | ProviderKind::Grok
-        | ProviderKind::Groq
-        | ProviderKind::Mistral
-        | ProviderKind::Together
-        | ProviderKind::StepFun
-        | ProviderKind::Moonshot
-        | ProviderKind::Doubao
-        | ProviderKind::MiniMax
-        | ProviderKind::Zhipu
-        | ProviderKind::SiliconFlow => AdapterKind::OpenAI,
-
-        ProviderKind::Anthropic => AdapterKind::Anthropic,
-        ProviderKind::Gemini => AdapterKind::Gemini,
-        ProviderKind::DashScope => AdapterKind::Aliyun,
-        ProviderKind::Ollama => AdapterKind::Ollama,
-        _ => {
-            return Err(AppError::unsupported(
-                "Vision is not supported on this provider",
-            ))
-        }
-    };
+    let adapter = crate::ai::model_turn::genai_adapter(kind)
+        .ok_or_else(|| AppError::unsupported("Vision is not supported on this provider"))?;
 
     let endpoint = format!("{}/", ctx.endpoint.trim_end_matches('/'));
     let auth = match &ctx.api_key {

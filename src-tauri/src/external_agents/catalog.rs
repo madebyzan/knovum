@@ -6,7 +6,10 @@ use crate::ai::contracts::{
 pub(super) enum AcpLaunch {
     Codex,
     Claude,
-    Executable { arguments: &'static [&'static str] },
+    Executable {
+        arguments: &'static [&'static str],
+        env: &'static [(&'static str, &'static str)],
+    },
     Server,
 }
 
@@ -15,10 +18,26 @@ pub(super) enum AcpLaunch {
 /// trip before every answer — while an exact version already in its cache starts offline. The
 /// pin is also what `trusted_session_mode` was checked against: an adapter that renames its
 /// session modes reaches users only with the release that updates both.
-pub(super) const CODEX_ADAPTER: &str = "@agentclientprotocol/codex-acp@2.3.0";
-pub(super) const CLAUDE_ADAPTER: &str = "@agentclientprotocol/claude-agent-acp@0.97.0";
+pub(super) const CODEX_ADAPTER: &str = "@agentclientprotocol/codex-acp@2.6.0";
+pub(super) const CLAUDE_ADAPTER: &str = "@agentclientprotocol/claude-agent-acp@0.101.1";
 
 impl AcpLaunch {
+    /// The launch facts (executable names, arguments, environment) mirror each Agent's entry
+    /// in the ACP registry or its official ACP documentation; they are not a Knovum invention.
+    pub const fn executable(arguments: &'static [&'static str]) -> Self {
+        Self::Executable {
+            arguments,
+            env: &[],
+        }
+    }
+
+    pub const fn executable_with_env(
+        arguments: &'static [&'static str],
+        env: &'static [(&'static str, &'static str)],
+    ) -> Self {
+        Self::Executable { arguments, env }
+    }
+
     pub const fn trusted_session_mode(self) -> Option<&'static str> {
         match self {
             Self::Codex => Some("agent-full-access"),
@@ -84,73 +103,63 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         ExternalAgentKind::GeminiCli,
         "Google Gemini CLI",
         &["gemini"],
-        AcpLaunch::Executable {
-            arguments: &["--acp"],
-        },
+        AcpLaunch::executable(&["--acp"]),
     ),
     agent(
         ExternalAgentKind::GithubCopilot,
         "GitHub Copilot",
         &["copilot"],
-        AcpLaunch::Executable {
-            arguments: &["--acp"],
-        },
+        AcpLaunch::executable(&["--acp"]),
     ),
     agent(
         ExternalAgentKind::OpenCode,
         "OpenCode",
         &["opencode"],
-        AcpLaunch::Executable {
-            arguments: &["acp"],
-        },
+        AcpLaunch::executable(&["acp"]),
     ),
     agent(
         ExternalAgentKind::QwenCode,
         "Qwen Code",
         &["qwen"],
-        AcpLaunch::Executable {
-            arguments: &["--acp", "--experimental-skills"],
-        },
+        AcpLaunch::executable(&["--acp", "--experimental-skills"]),
     ),
     agent(
         ExternalAgentKind::QoderCli,
         "Qoder CLI",
-        &["qodercli"],
-        AcpLaunch::Executable {
-            arguments: &["--acp"],
-        },
+        &["qodercli", "qoder"],
+        AcpLaunch::executable(&["--acp"]),
+    ),
+    // The China edition ships as its own CLI (@qodercn-ai/qoderclicn) with distinct
+    // binaries; qoder.cn docs specify `qodercn --acp` for ACP clients.
+    agent(
+        ExternalAgentKind::QoderCn,
+        "Qoder CLI CN",
+        &["qodercn", "qoderclicn"],
+        AcpLaunch::executable(&["--acp"]),
     ),
     agent(
         ExternalAgentKind::KimiCli,
         "Kimi CLI",
         &["kimi"],
-        AcpLaunch::Executable {
-            arguments: &["acp"],
-        },
+        AcpLaunch::executable(&["acp"]),
     ),
     agent(
         ExternalAgentKind::AuggieCli,
         "Augment Auggie",
         &["auggie"],
-        AcpLaunch::Executable {
-            arguments: &["--acp"],
-        },
+        AcpLaunch::executable_with_env(&["--acp"], &[("AUGMENT_DISABLE_AUTO_UPDATE", "1")]),
     ),
     agent(
         ExternalAgentKind::Cline,
         "Cline",
         &["cline"],
-        AcpLaunch::Executable {
-            arguments: &["--acp"],
-        },
+        AcpLaunch::executable(&["--acp"]),
     ),
     agent(
         ExternalAgentKind::Cursor,
         "Cursor",
         &["cursor-agent"],
-        AcpLaunch::Executable {
-            arguments: &["acp"],
-        },
+        AcpLaunch::executable(&["acp"]),
     ),
     RegisteredAgent {
         desktop_client: Some(DesktopClient {
@@ -166,4 +175,118 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
             AcpLaunch::Server,
         )
     },
+    agent(
+        ExternalAgentKind::GrokBuild,
+        "xAI Grok Build",
+        &["grok"],
+        AcpLaunch::executable(&["agent", "stdio"]),
+    ),
+    agent(
+        ExternalAgentKind::Goose,
+        "Block Goose",
+        &["goose"],
+        AcpLaunch::executable(&["acp"]),
+    ),
+    agent(
+        ExternalAgentKind::OpenInterpreter,
+        "Open Interpreter",
+        &["interpreter"],
+        AcpLaunch::executable(&["acp"]),
+    ),
+    agent(
+        ExternalAgentKind::Trae,
+        "Trae",
+        &["traecli"],
+        AcpLaunch::executable(&["acp", "serve"]),
+    ),
+    agent(
+        ExternalAgentKind::OpenHands,
+        "OpenHands",
+        &["openhands"],
+        AcpLaunch::executable(&["acp"]),
+    ),
+    agent(
+        ExternalAgentKind::Junie,
+        "JetBrains Junie",
+        &["junie"],
+        AcpLaunch::executable(&["--acp=true"]),
+    ),
+    agent(
+        ExternalAgentKind::MistralVibe,
+        "Mistral Vibe",
+        &["vibe-acp"],
+        AcpLaunch::executable(&[]),
+    ),
+    agent(
+        ExternalAgentKind::Codebuddy,
+        "Tencent Codebuddy",
+        &["codebuddy", "codebuddy-code", "cbc"],
+        AcpLaunch::executable(&["--acp"]),
+    ),
+    agent(
+        ExternalAgentKind::MiniMaxCode,
+        "MiniMax Code",
+        &["mcode"],
+        AcpLaunch::executable(&["acp"]),
+    ),
+    agent(
+        ExternalAgentKind::PiAcp,
+        "pi ACP",
+        &["pi-acp"],
+        AcpLaunch::executable(&[]),
+    ),
+    agent(
+        ExternalAgentKind::Hermes,
+        "Nous Hermes",
+        &["hermes", "hermes-acp"],
+        AcpLaunch::executable(&["acp"]),
+    ),
+    agent(
+        ExternalAgentKind::OpenClaw,
+        "OpenClaw",
+        &["openclaw"],
+        AcpLaunch::executable(&["acp"]),
+    ),
+    agent(
+        ExternalAgentKind::Devin,
+        "Devin",
+        &["devin"],
+        AcpLaunch::executable(&["acp"]),
+    ),
+    agent(
+        ExternalAgentKind::GlmAgent,
+        "GLM Agent",
+        &["glm-acp-agent"],
+        AcpLaunch::executable(&[]),
+    ),
+    agent(
+        ExternalAgentKind::Amp,
+        "Amp",
+        &["amp-acp"],
+        AcpLaunch::executable(&[]),
+    ),
+    agent(
+        ExternalAgentKind::FactoryDroid,
+        "Factory Droid",
+        &["droid"],
+        AcpLaunch::executable_with_env(
+            &["exec", "--output-format", "acp-daemon"],
+            &[
+                ("DROID_DISABLE_AUTO_UPDATE", "true"),
+                ("FACTORY_DROID_AUTO_UPDATE_ENABLED", "false"),
+            ],
+        ),
+    ),
+    agent(
+        ExternalAgentKind::Poolside,
+        "Poolside",
+        &["pool"],
+        AcpLaunch::executable(&["acp"]),
+    ),
+    agent(
+        ExternalAgentKind::Bob,
+        "IBM Bob",
+        &["bob"],
+        AcpLaunch::executable(&["acp"]),
+    ),
 ];

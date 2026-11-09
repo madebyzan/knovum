@@ -39,16 +39,18 @@ async fn execute(
 ) -> Result<Vec<u8>, String> {
     let secret = ctx.require_api_key().map_err(|error| error.to_string())?;
     let endpoint = endpoint(&ctx.endpoint);
-    let (path, body) = protocol::request(reference_url, prompt);
+    let (path, body) = protocol::request(&ctx.model, reference_url, prompt);
     if cancellation.is_cancelled() {
         return Err("Image generation was cancelled".into());
     }
-    let request = http_client()
+    let mut request = http_client()
         .post(format!("{endpoint}/{path}"))
         .bearer_auth(secret)
-        .header("X-DashScope-Async", "enable")
-        .json(&body)
-        .send();
+        .header("X-DashScope-Async", "enable");
+    if reference_url.starts_with("oss://") {
+        request = request.header("X-DashScope-OssResourceResolve", "enable");
+    }
+    let request = request.json(&body).send();
     let response = tokio::select! {
         _ = cancellation.cancelled() => return Err("Image generation was cancelled".into()),
         response = request => response.map_err(provider_error)?,
