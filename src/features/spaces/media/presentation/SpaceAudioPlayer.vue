@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Pause, Play, X } from "@lucide/vue";
-import { computed, useTemplateRef } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
@@ -68,7 +68,16 @@ function compactWaveform(samples?: number[]) {
   return maximum > 0 ? peaks.map((peak) => Math.sqrt(peak / maximum)) : peaks;
 }
 
-defineExpose({ seekTo, togglePlayback });
+watch(
+  () => props.interactive,
+  (interactive) => {
+    if (!interactive && (playing.value || loaded.value)) {
+      unload();
+    }
+  },
+);
+
+defineExpose({ seekTo, togglePlayback, unload });
 </script>
 
 <template>

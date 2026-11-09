@@ -26,7 +26,11 @@ function togglePlayback() {
   return isAudio.value ? audioPlayer.value?.togglePlayback() : videoPlayer.value?.togglePlayback();
 }
 
-defineExpose({ seekTo, togglePlayback });
+function unload() {
+  return isAudio.value ? audioPlayer.value?.unload() : videoPlayer.value?.unload();
+}
+
+defineExpose({ seekTo, togglePlayback, unload });
 </script>
 
 <template>

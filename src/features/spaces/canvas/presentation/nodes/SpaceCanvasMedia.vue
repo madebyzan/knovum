@@ -5,9 +5,11 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../../foundation/errors/error-format";
+import type { SpaceMediaPlaybackState } from "../../../media/playback";
 import SpaceMediaPlayer from "../../../media/presentation/SpaceMediaPlayer.vue";
 import type { SpaceMediaPayload } from "../../../model/nodes/capabilities";
 import { useSpaceStore } from "../../../session/space-store";
+import { getCanvasEditorSession } from "../../editor-session";
 import { nodePayloadWork } from "./canvas-node-work";
 import SpaceCanvasProcessingState from "./SpaceCanvasProcessingState.vue";
 
@@ -19,6 +21,20 @@ const { t } = useI18n();
 const { mediaSeekRequest, mediaToggleRequest } = storeToRefs(store);
 const player = useTemplateRef<InstanceType<typeof SpaceMediaPlayer>>("player");
 const work = computed(() => nodePayloadWork(props.data));
+
+watch(
+  () => props.interactive,
+  (interactive) => {
+    if (!interactive) player.value?.unload();
+  },
+);
+
+function handlePlayback(state: SpaceMediaPlaybackState) {
+  store.updateMediaPlayback(props.id, state);
+  if (state.playing && !props.interactive) {
+    getCanvasEditorSession().selectNodes([props.id]);
+  }
+}
 
 watch([mediaToggleRequest, player], ([request]) => void consumeToggleRequest(request), {
   immediate: true,
@@ -61,7 +77,7 @@ async function consumeSeekRequest(request: typeof mediaSeekRequest.value) {
       ref="player"
       :data="data"
       :interactive="interactive"
-      @playback="store.updateMediaPlayback(id, $event)"
+      @playback="handlePlayback"
       @unload="store.clearMediaPlayback(id)"
       @playback-error="toast.error($event)"
     />
