@@ -70,7 +70,7 @@ async function handleRecord() {
             {{ t("spaces.space.empty.title") }}
           </h2>
           <svg
-            class="absolute -bottom-2 right-0 h-2 w-28 text-content-blue overflow-visible"
+            class="absolute right-0 -bottom-2 h-2 w-28 overflow-visible text-content-blue"
             viewBox="0 0 110 8"
             fill="none"
             aria-hidden="true"
@@ -84,11 +84,13 @@ async function handleRecord() {
           </svg>
         </div>
 
-        <p class="mt-2.5 text-caption text-fg-tertiary leading-relaxed">
+        <p class="mt-2.5 text-caption leading-relaxed text-fg-tertiary">
           {{ t("spaces.space.empty.description") }}
         </p>
 
-        <div class="pointer-events-auto mt-5 flex flex-wrap items-center justify-center gap-2 md:justify-start">
+        <div
+          class="pointer-events-auto mt-5 flex flex-wrap items-center justify-center gap-2 md:justify-start"
+        >
           <UiButton variant="primary" size="md" @click="createNote">
             <FileText class="size-3.5" :stroke-width="1.6" />
             <span>{{ t("spaces.space.empty.newNote") }}</span>
@@ -117,7 +119,7 @@ async function handleRecord() {
             v-for="item in SHORTCUT_HINTS"
             :key="item.key"
             type="button"
-            class="inline-flex items-center gap-1.5 hover:text-fg-primary transition-colors cursor-pointer"
+            class="inline-flex cursor-pointer items-center gap-1.5 transition-colors hover:text-fg-primary"
             @click="item.action"
           >
             <UiKbd :shortcut="item.key" variant="badge" />
