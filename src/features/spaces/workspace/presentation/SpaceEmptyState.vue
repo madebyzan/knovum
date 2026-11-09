@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiKbd from "../../../../shared/ui/UiKbd.vue";
 import { usePickerImport } from "../../assets/use-picker-import";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
@@ -52,81 +53,82 @@ async function handleRecord() {
 <template>
   <div class="pointer-events-none absolute inset-0 grid place-items-center p-6 select-none">
     <div
-      class="flex -translate-y-3 flex-col items-center gap-4 md:flex-row md:items-center md:gap-5 lg:gap-7"
+      class="flex -translate-y-3 flex-col items-center gap-6 md:flex-row md:items-center md:gap-8 lg:gap-10"
     >
-      <div class="relative flex shrink-0 items-center justify-center">
+      <div class="relative shrink-0">
         <img
           :src="elfImage"
           alt="Knowledge Mascot"
-          class="w-60 object-contain select-none md:w-72 lg:w-80"
+          class="w-64 object-contain select-none md:w-72 lg:w-80"
           draggable="false"
         />
       </div>
 
       <div class="flex max-w-md flex-col items-center text-center md:items-start md:text-left">
         <h2
-          class="text-2xl font-bold tracking-tight text-fg-primary md:text-[28px]"
+          class="text-xl font-semibold tracking-tight text-fg-primary md:text-2xl"
           :aria-label="t('spaces.space.empty.title')"
         >
           {{ t("spaces.space.empty.titlePrefix")
           }}<span class="relative inline-block text-fg-primary">
             {{ t("spaces.space.empty.titleHighlight") }}
             <svg
-              class="absolute -bottom-1.5 left-0 h-2 w-full overflow-visible text-[#1668DC]"
-              viewBox="0 0 56 6"
+              class="pointer-events-none absolute -bottom-1 left-0 h-1.5 w-full overflow-visible text-blue-400/80"
+              viewBox="0 0 56 4"
               fill="none"
               aria-hidden="true"
             >
               <path
-                d="M2 4 C18 1.5, 38 4.5, 54 2.2"
+                d="M1 3 C 18 1.2, 38 3.2, 55 1.5"
                 stroke="currentColor"
-                stroke-width="2.6"
+                stroke-width="1.8"
                 stroke-linecap="round"
               />
             </svg>
           </span>
         </h2>
 
-        <p class="mt-2.5 text-caption leading-relaxed text-fg-tertiary">
+        <p class="mt-2 text-caption leading-relaxed text-fg-tertiary">
           {{ t("spaces.space.empty.description") }}
         </p>
 
         <div
-          class="pointer-events-auto mt-6 flex flex-wrap items-center justify-center gap-2.5 md:justify-start"
+          class="pointer-events-auto mt-5 flex flex-wrap items-center justify-center gap-2.5 md:justify-start"
         >
-          <button
-            type="button"
-            class="inline-flex h-9.5 cursor-pointer items-center gap-2 rounded-lg bg-[#1668DC] px-4 text-sm font-medium text-white shadow-[0_2px_8px_rgba(22,104,220,0.28)] transition-all duration-150 hover:bg-[#155fc9] hover:shadow-[0_4px_12px_rgba(22,104,220,0.36)] active:scale-[0.98] active:bg-[#0e4da8]"
+          <UiButton
+            variant="primary"
+            size="md"
+            class="hover:bg-surface-inverse/85 active:bg-surface-inverse"
             @click="createNote"
           >
-            <FileText class="size-4 shrink-0 text-white/90" :stroke-width="1.8" />
+            <FileText class="size-3.5" :stroke-width="1.6" />
             <span>{{ t("spaces.space.empty.newNote") }}</span>
-            <span class="ml-0.5 rounded-sm bg-white/20 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-              N
-            </span>
-          </button>
+            <UiKbd shortcut="N" class="ml-0.5 opacity-70" />
+          </UiButton>
 
-          <button
-            type="button"
-            class="inline-flex h-9.5 cursor-pointer items-center gap-2 rounded-lg border border-[#d7dce5] bg-white px-3.5 text-sm font-medium text-fg-primary shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-all duration-150 hover:border-[#b0b9c9] hover:bg-gray-50/80 hover:shadow-[0_2px_6px_rgba(0,0,0,0.08)] active:scale-[0.98] dark:border-stroke-default dark:bg-surface-raised dark:hover:border-stroke-strong"
+          <UiButton
+            variant="secondary"
+            size="md"
+            class="border border-stroke-default bg-surface-raised shadow-xs hover:border-stroke-strong"
             @click="handleImport"
           >
-            <Upload class="size-4 shrink-0 text-fg-secondary" :stroke-width="1.8" />
+            <Upload class="size-3.5 text-fg-secondary" :stroke-width="1.6" />
             <span>{{ t("spaces.space.empty.importFiles") }}</span>
-          </button>
+          </UiButton>
 
-          <button
-            type="button"
-            class="inline-flex h-9.5 cursor-pointer items-center gap-2 rounded-lg border border-[#d7dce5] bg-white px-3.5 text-sm font-medium text-fg-primary shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-all duration-150 hover:border-[#b0b9c9] hover:bg-gray-50/80 hover:shadow-[0_2px_6px_rgba(0,0,0,0.08)] active:scale-[0.98] dark:border-stroke-default dark:bg-surface-raised dark:hover:border-stroke-strong"
+          <UiButton
+            variant="secondary"
+            size="md"
+            class="border border-stroke-default bg-surface-raised shadow-xs hover:border-stroke-strong"
             @click="handleRecord"
           >
-            <Mic class="size-4 shrink-0 text-fg-secondary" :stroke-width="1.8" />
+            <Mic class="size-3.5 text-fg-secondary" :stroke-width="1.6" />
             <span>{{ t("spaces.space.empty.startRecording") }}</span>
-          </button>
+          </UiButton>
         </div>
 
         <div
-          class="pointer-events-auto mt-6 flex flex-wrap items-center justify-center gap-3.5 text-caption text-fg-tertiary md:justify-start"
+          class="pointer-events-auto mt-4.5 flex flex-wrap items-center justify-center gap-3 text-caption text-fg-tertiary md:justify-start"
         >
           <span class="inline-flex items-center gap-1.5 text-caption">
             <Keyboard class="size-3.5 shrink-0 opacity-70" :stroke-width="1.5" />
