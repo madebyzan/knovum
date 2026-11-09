@@ -20,9 +20,14 @@ use super::contracts::{TranslationRunInput, TranslationStepConfiguration};
 
 static COORDINATOR: LazyLock<BatchCoordinator> = LazyLock::new(BatchCoordinator::default);
 
+/// Translated lines keyed by line index, or the batch failure message.
+type BatchResult = Result<HashMap<usize, String>, String>;
+/// One shared, lazily-filled batch result per run.
+type BatchCell = Arc<OnceCell<BatchResult>>;
+
 #[derive(Default)]
 pub(crate) struct BatchCoordinator {
-    runs: Mutex<HashMap<String, Arc<OnceCell<Result<HashMap<usize, String>, String>>>>>,
+    runs: Mutex<HashMap<String, BatchCell>>,
 }
 
 pub(crate) async fn get_batched_line(
