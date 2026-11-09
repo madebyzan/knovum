@@ -5,8 +5,12 @@
   "sampleTitle": "Willkommen bei Knovum",
   "inbox": "Posteingang",
   "empty": {
-    "title": "Wissensraum aufbauen",
-    "description": "Dateien ablegen, Notizen festhalten oder Seiten speichern – Ideen verbinden und Neues schaffen"
+    "title": "Wissen wachsen lassen",
+    "description": "Inspirationen sammeln, Quellen ordnen und Gedanken festhalten für Ihren Wissensraum.",
+    "newNote": "Neue Notiz",
+    "importFiles": "Dateien importieren",
+    "startRecording": "Aufnahme starten",
+    "keyboardHint": "Oder direkt auf der Leinwand drücken:"
   },
   "rename": "Leerzeichen umbenennen",
   "tabs": {

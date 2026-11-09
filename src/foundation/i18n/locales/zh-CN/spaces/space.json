@@ -5,8 +5,12 @@
   "sampleTitle": "欢迎使用 Knovum",
   "inbox": "收集箱",
   "empty": {
-    "title": "开始构建知识空间",
-    "description": "拖入文件、记录便签或保存网页，在画布中理清脉络、深入创作"
+    "title": "让知识，在这里生长",
+    "description": "收集灵感、整理资料、记录思考，构建属于你的知识空间。",
+    "newNote": "新建笔记",
+    "importFiles": "导入资料",
+    "startRecording": "开始录音",
+    "keyboardHint": "也可以直接在画布上按"
   },
   "rename": "重命名空间",
   "tabs": {

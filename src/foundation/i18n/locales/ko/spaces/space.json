@@ -5,8 +5,12 @@
   "sampleTitle": "Knovum에 오신 것을 환영합니다",
   "inbox": "받은편지함",
   "empty": {
-    "title": "지식 공간 시작하기",
-    "description": "파일, 노트, 웹페이지를 담아 맥락을 연결하고 새로운 결과물을 만들어 보세요"
+    "title": "지식이 자라나는 곳",
+    "description": "영감을 모으고 자료를 정리하며 생각을 기록하여 나만의 지식 공간을 만드세요.",
+    "newNote": "새 노트",
+    "importFiles": "자료 가져오기",
+    "startRecording": "녹음 시작",
+    "keyboardHint": "캔버스에서 바로 키를 누를 수도 있습니다:"
   },
   "rename": "작업공간 이름 바꾸기",
   "tabs": {
