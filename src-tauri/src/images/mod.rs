@@ -1,8 +1,9 @@
 mod background_removal;
 mod edited;
+pub(crate) mod matting;
 
 pub(crate) use background_removal::pixels::{
-    mask_at as saliency_mask, model_input as saliency_input,
+    mask_at as saliency_mask, model_input_for_spec_id as saliency_input_for_spec,
 };
 pub(crate) use background_removal::remove_background;
 pub(crate) use edited::render_source_as;

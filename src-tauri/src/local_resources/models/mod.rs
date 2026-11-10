@@ -31,9 +31,9 @@ pub struct ModelStatus {
     pub download_size: u64,
 }
 
-pub(crate) fn installation_path<R: Runtime>(
+pub(crate) fn snapshot_directory<R: Runtime>(
     app: &AppHandle<R>,
-    descriptor: ModelDescriptor,
+    snapshot: snapshots::SnapshotKind,
 ) -> Result<PathBuf, String> {
     app.path()
         .app_data_dir()
@@ -41,10 +41,16 @@ pub(crate) fn installation_path<R: Runtime>(
         .map(|root| {
             root.join("local-resources")
                 .join("models")
-                .join(descriptor.snapshot.name())
-                .join(descriptor.snapshot.digest())
-                .join(descriptor.file)
+                .join(snapshot.name())
+                .join(snapshot.digest())
         })
+}
+
+pub(crate) fn installation_path<R: Runtime>(
+    app: &AppHandle<R>,
+    descriptor: ModelDescriptor,
+) -> Result<PathBuf, String> {
+    Ok(snapshot_directory(app, descriptor.snapshot)?.join(descriptor.file))
 }
 
 pub(crate) fn status<R: Runtime>(

@@ -69,22 +69,22 @@ fn transcription_alternatives_own_complete_distinct_snapshots() {
 }
 
 #[test]
-fn full_image_model_has_its_own_snapshot_and_frozen_execution_identity() {
-    let compact = LocalModelId::U2netp;
-    let full = LocalModelId::U2net;
-    let snapshot = full.snapshot().unwrap();
-    assert_ne!(compact.snapshot(), full.snapshot());
-    assert_eq!(snapshot.total_bytes(), 175_997_641);
-    assert!(full.preparation().models().unwrap() == snapshot.models());
+fn segmentation_choices_have_distinct_snapshots_and_frozen_execution_identities() {
+    let birefnet = LocalModelId::BirefnetLite;
+    let rmbg = LocalModelId::Rmbg14;
+    let snapshot = birefnet.snapshot().unwrap();
+    assert_ne!(birefnet.snapshot(), rmbg.snapshot());
+    assert_eq!(snapshot.total_bytes(), 224_005_088);
+    assert!(birefnet.preparation().models().unwrap() == snapshot.models());
     assert_ne!(
-        compact.image_segmentation_spec().unwrap(),
-        full.image_segmentation_spec().unwrap()
+        birefnet.image_segmentation_spec().unwrap(),
+        rmbg.image_segmentation_spec().unwrap()
     );
     for model in [
-        compact,
-        LocalModelId::Silueta,
-        LocalModelId::U2netHumanSeg,
-        full,
+        birefnet,
+        rmbg,
+        LocalModelId::IsnetDis,
+        LocalModelId::IsnetAnime,
     ] {
         assert!(super::super::model_selection::is_selectable(model));
         let file = catalog::descriptor(model.snapshot().unwrap().models()[0]);

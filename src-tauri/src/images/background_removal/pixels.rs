@@ -1,55 +1,82 @@
-//! U²-Net family (`u2netp`, `u2net`, `u2net_human_seg`, `silueta`) pre- and post-processing,
-//! transcribed from rembg `BaseSession.normalize`, `U2netSession.predict` and `naive_cutout`.
-//! The worker owns min-max normalization of the graph output; this side owns geometry, the
-//! uint8 quantization of the normalized field and alpha composition.
+//! Segmentation pre- and post-processing, supporting both 320x320 legacy models
+//! and 1024x1024 high-resolution models with native alpha matting and defringing.
 
 use image::{imageops::FilterType, DynamicImage, GrayImage, RgbaImage};
 
 use crate::ai::contracts::image_spec::{
-    Geometry, Scale, Standardization, U2NET_RESOLUTION, U2NET_SPEC,
+    Geometry, ImageModelSpec, Resample, Scale, Standardization, BIREFNET_PORTRAIT_SPEC,
+    BIREFNET_SPEC, HIGH_RES_SEGMENTATION_RESOLUTION, ISNET_ANIME_SPEC, ISNET_DIS_SPEC, RMBG14_SPEC,
+    RMBG20_SPEC,
 };
 
-const EDGE: u32 = match U2NET_SPEC.geometry {
-    Geometry::Stretch { width, .. } => width,
-    _ => U2NET_RESOLUTION,
-};
-const PIXELS: usize = EDGE as usize * EDGE as usize;
-const MEAN: [f32; 3] = match U2NET_SPEC.standardization {
-    Standardization::ImageNet { mean, .. } => mean,
-    _ => [0.485, 0.456, 0.406],
-};
-const STD: [f32; 3] = match U2NET_SPEC.standardization {
-    Standardization::ImageNet { std, .. } => std,
-    _ => [0.229, 0.224, 0.225],
-};
-/// Lower bound of the whole-image scale, as in the reference (`max(np.max(im_ary), 1e-6)`).
-const MIN_SCALE: f32 = match U2NET_SPEC.scale {
-    Scale::AdaptiveMaxScale { min_scale } => min_scale,
-    _ => 1e-6,
-};
-
-/// Channel-first ImageNet-standardized tensor. The source is stretched to the model square with
-/// Lanczos (no letterbox), then divided by the single brightest channel value of the resized image
-/// before standardization — not by 255 — so dark sources reach the range the model was trained on.
-pub fn model_input(image: &DynamicImage) -> Vec<f32> {
-    let resized = image::imageops::resize(&image.to_rgb8(), EDGE, EDGE, FilterType::Lanczos3);
-    let brightest = resized.as_raw().iter().copied().max().unwrap_or(0);
-    let scale = f32::from(brightest).max(MIN_SCALE);
-    let mut input = vec![0.0; PIXELS * 3];
+/// Builds the standardized input tensor according to the model's frozen specification.
+pub fn model_input_for_spec(image: &DynamicImage, spec: &ImageModelSpec) -> (Vec<f32>, u32) {
+    let edge = match spec.geometry {
+        Geometry::Stretch { width, .. } => width,
+        _ => HIGH_RES_SEGMENTATION_RESOLUTION,
+    };
+    let pixels = edge as usize * edge as usize;
+    let (mean, std) = match spec.standardization {
+        Standardization::ImageNet { mean, std } => (mean, std),
+        _ => ([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    };
+    let filter = match spec.resample {
+        Resample::Lanczos3 => FilterType::Lanczos3,
+        Resample::Triangle => FilterType::Triangle,
+        Resample::CatmullRom => FilterType::CatmullRom,
+        Resample::Nearest => FilterType::Nearest,
+    };
+    let resized = image::imageops::resize(&image.to_rgb8(), edge, edge, filter);
+    let scale = match spec.scale {
+        Scale::AdaptiveMaxScale { min_scale } => {
+            let brightest = resized.as_raw().iter().copied().max().unwrap_or(0);
+            f32::from(brightest).max(min_scale)
+        }
+        Scale::UnitScale => 255.0,
+        Scale::Identity => 1.0,
+    };
+    let mut input = vec![0.0; pixels * 3];
     for (index, pixel) in resized.pixels().enumerate() {
         for channel in 0..3 {
             let value = f32::from(pixel[channel]) / scale;
-            input[index + PIXELS * channel] = (value - MEAN[channel]) / STD[channel];
+            input[index + pixels * channel] = (value - mean[channel]) / std[channel];
         }
     }
-    input
+    (input, edge)
 }
 
-/// The worker's normalized `[0, 1]` field as a grayscale mask at `width`×`height`. Quantization
-/// truncates like the reference's `astype("uint8")`; the upsample is Lanczos. A value outside
-/// `[0, 1]` means the worker broke its contract and is rejected rather than clamped.
+/// Prepares the input tensor based on the model specification ID.
+pub fn model_input_for_spec_id(image: &DynamicImage, spec_id: &str) -> Result<Vec<f32>, String> {
+    let spec = match spec_id {
+        crate::local_resources::model_catalog::IMAGE_SEGMENTATION_BIREFNET_SPEC_ID => {
+            &BIREFNET_SPEC
+        }
+        crate::local_resources::model_catalog::IMAGE_SEGMENTATION_RMBG20_SPEC_ID => &RMBG20_SPEC,
+        crate::local_resources::model_catalog::IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID => {
+            &BIREFNET_PORTRAIT_SPEC
+        }
+        crate::local_resources::model_catalog::IMAGE_SEGMENTATION_RMBG14_SPEC_ID => &RMBG14_SPEC,
+        crate::local_resources::model_catalog::IMAGE_SEGMENTATION_DIS_SPEC_ID => &ISNET_DIS_SPEC,
+        crate::local_resources::model_catalog::IMAGE_SEGMENTATION_ANIME_SPEC_ID => {
+            &ISNET_ANIME_SPEC
+        }
+        _ => return Err(format!("Unsupported segmentation model spec: {spec_id}")),
+    };
+    Ok(model_input_for_spec(image, spec).0)
+}
+
+/// Default input preparation using BiRefNet frozen specification for unit tests.
+#[cfg(test)]
+pub fn model_input(image: &DynamicImage) -> Vec<f32> {
+    model_input_for_spec(image, &BIREFNET_SPEC).0
+}
+
+/// The worker's normalized `[0, 1]` field as a grayscale mask at `width`×`height`.
+/// Supports both 320x320 and 1024x1024 models dynamically.
 pub fn mask_at(field: &[f32], width: u32, height: u32) -> Result<GrayImage, String> {
-    if field.len() != PIXELS {
+    let field_len = field.len();
+    let edge = (field_len as f64).sqrt().round() as u32;
+    if (edge as usize * edge as usize) != field_len {
         return Err("invalid_output: segmentation mask has invalid dimensions".into());
     }
     if field.iter().any(|value| !(0.0..=1.0).contains(value)) {
@@ -57,7 +84,7 @@ pub fn mask_at(field: &[f32], width: u32, height: u32) -> Result<GrayImage, Stri
     }
     let bytes = field.iter().map(|value| (value * 255.0) as u8).collect();
     let model_mask =
-        GrayImage::from_raw(EDGE, EDGE, bytes).ok_or("invalid_output: segmentation mask")?;
+        GrayImage::from_raw(edge, edge, bytes).ok_or("invalid_output: segmentation mask")?;
     Ok(image::imageops::resize(
         &model_mask,
         width,
@@ -66,19 +93,8 @@ pub fn mask_at(field: &[f32], width: u32, height: u32) -> Result<GrayImage, Stri
     ))
 }
 
-/// Cuts the foreground out. Source alpha is multiplied by the mask (`Image.composite` semantics),
-/// so an already transparent pixel stays transparent. Colour channels keep the source values: a
-/// straight-alpha PNG does not take the reference's premultiplied RGB, which darkens soft edges.
+/// Cuts the foreground out using guided alpha matting refinement and edge color decontamination.
 pub fn apply_mask(image: DynamicImage, field: &[f32]) -> Result<RgbaImage, String> {
-    let mask = mask_at(field, image.width(), image.height())?;
-    let mut foreground = image.to_rgba8();
-    for (pixel, alpha) in foreground.pixels_mut().zip(mask.pixels()) {
-        pixel[3] = multiply(pixel[3], alpha[0]);
-    }
-    Ok(foreground)
-}
-
-/// `round(a * b / 255)`, the rounding Pillow's paste blend uses.
-fn multiply(a: u8, b: u8) -> u8 {
-    ((u16::from(a) * u16::from(b) + 127) / 255) as u8
+    let coarse_mask = mask_at(field, image.width(), image.height())?;
+    Ok(crate::images::matting::refine_cutout(&image, &coarse_mask))
 }

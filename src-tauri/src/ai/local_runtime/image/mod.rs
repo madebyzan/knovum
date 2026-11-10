@@ -13,28 +13,15 @@ use crate::{
     ai::contracts::{
         image_wire::{
             ImageSegmentParams, ImageSegmentation, ImageSegmentationExecutionIdentity,
-            TensorDataType, TensorFileReference, IMAGE_SEGMENTATION_HUMAN_SPEC_ID,
-            IMAGE_SEGMENTATION_INPUT_BYTES, IMAGE_SEGMENTATION_MASK_BYTES,
-            IMAGE_SEGMENTATION_QUALITY_SPEC_ID, IMAGE_SEGMENTATION_RESOLUTION,
-            IMAGE_SEGMENTATION_SILUETA_SPEC_ID, IMAGE_SEGMENTATION_SPEC_ID,
+            TensorDataType, TensorFileReference, IMAGE_SEGMENTATION_ANIME_SPEC_ID,
+            IMAGE_SEGMENTATION_BIREFNET_SPEC_ID, IMAGE_SEGMENTATION_DIS_SPEC_ID,
+            IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID, IMAGE_SEGMENTATION_RMBG14_SPEC_ID,
+            IMAGE_SEGMENTATION_RMBG20_SPEC_ID,
         },
         runtime::{RuntimeCapability, RuntimeModel},
     },
     local_resources::{models::catalog::ModelKind, preparation::PreparedModels},
 };
-
-const INPUT_SHAPE: [u32; 4] = [
-    1,
-    3,
-    IMAGE_SEGMENTATION_RESOLUTION,
-    IMAGE_SEGMENTATION_RESOLUTION,
-];
-const MASK_SHAPE: [u32; 4] = [
-    1,
-    1,
-    IMAGE_SEGMENTATION_RESOLUTION,
-    IMAGE_SEGMENTATION_RESOLUTION,
-];
 
 pub(crate) async fn segment_image<R: Runtime>(
     app: &AppHandle<R>,
@@ -44,12 +31,20 @@ pub(crate) async fn segment_image<R: Runtime>(
     cancellation: &CancellationToken,
 ) -> Result<Vec<f32>, String> {
     validate_input(&input)?;
+    let edge = ((input.len() / 3) as f64).sqrt().round() as u32;
+    let input_shape = [1, 3, edge, edge];
+    let mask_shape = [1, 1, edge, edge];
+    let input_bytes = 3 * u64::from(edge) * u64::from(edge) * 4;
+    let mask_bytes = u64::from(edge) * u64::from(edge) * 4;
+
     let model_spec_id = identity.model_spec_id;
     let model = match model_spec_id {
-        IMAGE_SEGMENTATION_SPEC_ID => ModelKind::ImageSegmentation,
-        IMAGE_SEGMENTATION_SILUETA_SPEC_ID => ModelKind::ImageSegmentationSilueta,
-        IMAGE_SEGMENTATION_HUMAN_SPEC_ID => ModelKind::ImageSegmentationHuman,
-        IMAGE_SEGMENTATION_QUALITY_SPEC_ID => ModelKind::ImageSegmentationQuality,
+        IMAGE_SEGMENTATION_BIREFNET_SPEC_ID => ModelKind::ImageSegmentationBiRefNet,
+        IMAGE_SEGMENTATION_RMBG20_SPEC_ID => ModelKind::ImageSegmentationRmbg20,
+        IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID => ModelKind::ImageSegmentationPortrait,
+        IMAGE_SEGMENTATION_RMBG14_SPEC_ID => ModelKind::ImageSegmentationRmbg14,
+        IMAGE_SEGMENTATION_DIS_SPEC_ID => ModelKind::ImageSegmentationDis,
+        IMAGE_SEGMENTATION_ANIME_SPEC_ID => ModelKind::ImageSegmentationAnime,
         _ => return Err("unsupported_model: image segmentation identity is unavailable".into()),
     };
     let model_path = resources.path(model)?;
@@ -82,9 +77,9 @@ pub(crate) async fn segment_image<R: Runtime>(
         budget_ms: identity.budget_ms,
         tensor_ref: TensorFileReference {
             file_name: tensor_name,
-            byte_length: IMAGE_SEGMENTATION_INPUT_BYTES,
+            byte_length: input_bytes,
             sha256: tensor_sha256,
-            shape: INPUT_SHAPE,
+            shape: input_shape,
             data_type: TensorDataType::Float32LittleEndian,
         },
     };
@@ -106,9 +101,9 @@ pub(crate) async fn segment_image<R: Runtime>(
         || output.attempt_epoch != identity.attempt_epoch
         || output.model_spec_id != model_spec_id
         || output.mask_ref.file_name != expected_mask
-        || output.mask_ref.byte_length != IMAGE_SEGMENTATION_MASK_BYTES
+        || output.mask_ref.byte_length != mask_bytes
         || !valid_sha256(&output.mask_ref.sha256)
-        || output.mask_ref.shape != MASK_SHAPE
+        || output.mask_ref.shape != mask_shape
         || !matches!(
             output.mask_ref.data_type,
             TensorDataType::Float32LittleEndian
@@ -121,7 +116,7 @@ pub(crate) async fn segment_image<R: Runtime>(
     let mask_sha256 = output.mask_ref.sha256;
     let reading = {
         let path = mask_path.clone();
-        crate::foundation::blocking::run(move || read_mask(&path, &mask_sha256)).await
+        crate::foundation::blocking::run(move || read_mask(&path, mask_bytes, &mask_sha256)).await
     };
     let _ = tokio::fs::remove_file(&mask_path).await;
     match reading {

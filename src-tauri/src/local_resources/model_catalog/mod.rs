@@ -17,14 +17,18 @@ use super::{
 pub(crate) const VOXCPM2_FULL_SPEC_ID: &str = "voxcpm2-2b-gguf-orig-v1";
 pub(crate) const VOXCPM2_BF16_SPEC_ID: &str = "voxcpm2-2b-gguf-bf16-v1";
 pub(crate) const VOXCPM2_Q8_SPEC_ID: &str = "voxcpm2-2b-gguf-q8_0-v1";
-pub const IMAGE_SEGMENTATION_SPEC_ID: &str =
-    "u2netp-onnx:309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8-v2";
-pub const IMAGE_SEGMENTATION_SILUETA_SPEC_ID: &str =
-    "silueta-onnx:75da6c8d2f8096ec743d071951be73b4a8bc7b3e51d9a6625d63644f90ffeedb-v2";
-pub const IMAGE_SEGMENTATION_HUMAN_SPEC_ID: &str =
-    "u2net-human-seg-onnx:01eb6a29a5c4d8edb30b56adad9bb3a2a0535338e480724a213e0acfd2d1c73c-v2";
-pub const IMAGE_SEGMENTATION_QUALITY_SPEC_ID: &str =
-    "u2net-onnx:8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491-v2";
+pub const IMAGE_SEGMENTATION_BIREFNET_SPEC_ID: &str =
+    "birefnet-general-lite-onnx:5600024376f572a557870a5eb0afb1e5961636bef4e1e22132025467d0f03333-v1";
+pub const IMAGE_SEGMENTATION_RMBG20_SPEC_ID: &str =
+    "rmbg-2.0-onnx:6db79b5ac18a5a7af3b32f25d8e2580d8dca444d8a77249d72700eed425f269f-v1";
+pub const IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID: &str =
+    "birefnet-portrait-onnx:1ba1c8ff5a7bbfadc8d8d13fb11d7be793f91f23d9d466549e37a854f6668f99-v1";
+pub const IMAGE_SEGMENTATION_RMBG14_SPEC_ID: &str =
+    "rmbg-1.4-onnx:8cafcf770b06757c4eaced21b1a88e57fd2b66de01b8045f35f01535ba742e0f-v1";
+pub const IMAGE_SEGMENTATION_DIS_SPEC_ID: &str =
+    "isnet-general-use-onnx:60920e99c45464f2ba57bee2ad08c919a52bbf852739e96947fbb4358c0d964a-v1";
+pub const IMAGE_SEGMENTATION_ANIME_SPEC_ID: &str =
+    "isnet-anime-onnx:f15622d853e8260172812b657053460e20806f04b9e05147d49af7bed31a6e99-v1";
 
 #[derive(
     Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS,
@@ -46,10 +50,12 @@ pub enum LocalModelId {
     VoxCpm2Q8,
     Qwen3Aligner,
     Qwen3AlignerQ8,
-    U2netp,
-    Silueta,
-    U2netHumanSeg,
-    U2net,
+    BirefnetLite,
+    Rmbg20,
+    BirefnetPortrait,
+    Rmbg14,
+    IsnetDis,
+    IsnetAnime,
     RealEsrganGeneralX4v3,
     RealEsrganX4plus,
     Migan,
@@ -121,10 +127,12 @@ pub const MODELS: &[LocalModelId] = &[
     LocalModelId::SherpaDiarizationEres2netLarge,
     LocalModelId::Spleeter2Stems,
     LocalModelId::Spleeter2StemsFull,
-    LocalModelId::U2netp,
-    LocalModelId::Silueta,
-    LocalModelId::U2netHumanSeg,
-    LocalModelId::U2net,
+    LocalModelId::BirefnetLite,
+    LocalModelId::Rmbg20,
+    LocalModelId::BirefnetPortrait,
+    LocalModelId::Rmbg14,
+    LocalModelId::IsnetDis,
+    LocalModelId::IsnetAnime,
     LocalModelId::RealEsrganGeneralX4v3,
     LocalModelId::RealEsrganX4plus,
     LocalModelId::Migan,
@@ -152,10 +160,12 @@ impl LocalModelId {
     fn group(self) -> LocalModelGroup {
         match self {
             Self::Qwen3Embedding | Self::PpOcrV6Small => LocalModelGroup::Knowledge,
-            Self::U2netp
-            | Self::Silueta
-            | Self::U2netHumanSeg
-            | Self::U2net
+            Self::BirefnetLite
+            | Self::Rmbg20
+            | Self::BirefnetPortrait
+            | Self::Rmbg14
+            | Self::IsnetDis
+            | Self::IsnetAnime
             | Self::RealEsrganGeneralX4v3
             | Self::RealEsrganX4plus
             | Self::Migan
@@ -206,10 +216,12 @@ impl LocalModelId {
                 (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty()).then_some(S::SpeechAlignment)
             }
             Self::Qwen3AlignerQ8 => Some(S::SpeechAlignmentQ8),
-            Self::U2netp => Some(S::ImageSegmentation),
-            Self::Silueta => Some(S::ImageSegmentationSilueta),
-            Self::U2netHumanSeg => Some(S::ImageSegmentationHuman),
-            Self::U2net => Some(S::ImageSegmentationQuality),
+            Self::BirefnetLite => Some(S::ImageSegmentationBiRefNet),
+            Self::Rmbg20 => Some(S::ImageSegmentationRmbg20),
+            Self::BirefnetPortrait => Some(S::ImageSegmentationPortrait),
+            Self::Rmbg14 => Some(S::ImageSegmentationRmbg14),
+            Self::IsnetDis => Some(S::ImageSegmentationDis),
+            Self::IsnetAnime => Some(S::ImageSegmentationAnime),
             Self::Spleeter2Stems => Some(S::SpeechSeparation),
             Self::Spleeter2StemsFull => Some(S::SpeechSeparationFull),
             Self::SherpaDiarization => Some(S::Diarization(catalog::DiarizationVariant::Int8)),
@@ -258,9 +270,11 @@ impl LocalModelId {
             | Self::DepthAnythingV2SmallUint8
             | Self::DepthAnythingV2Small
             | Self::PpOcrV6Small
-            | Self::Silueta
-            | Self::U2netHumanSeg
-            | Self::U2net
+            | Self::Rmbg20
+            | Self::BirefnetPortrait
+            | Self::Rmbg14
+            | Self::IsnetDis
+            | Self::IsnetAnime
             | Self::VoxCpm2Bf16
             | Self::VoxCpm2Q8
             | Self::Qwen3AlignerQ8
@@ -273,7 +287,7 @@ impl LocalModelId {
             Self::MossNano => ResourcePreparationTarget::SpeechSynthesis,
             Self::VoxCpm2 => ResourcePreparationTarget::VoiceDesign,
             Self::Qwen3Aligner => ResourcePreparationTarget::SpeechAlignment,
-            Self::U2netp => ResourcePreparationTarget::ImageSegmentation,
+            Self::BirefnetLite => ResourcePreparationTarget::ImageSegmentation,
             Self::Spleeter2Stems => ResourcePreparationTarget::SpeechSeparation,
             Self::SherpaDiarization => ResourcePreparationTarget::SpeechDiarization,
         }

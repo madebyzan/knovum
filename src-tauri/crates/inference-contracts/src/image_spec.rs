@@ -119,18 +119,133 @@ pub struct ImageModelSpec {
     pub provenance: Provenance,
 }
 
-pub const U2NET_RESOLUTION: u32 = 320;
+pub const HIGH_RES_SEGMENTATION_RESOLUTION: u32 = 1024;
 
-/// Frozen specification for U²-Net family segmentation models (`u2netp`, `u2net`, `u2net_human_seg`, `silueta`).
-pub const U2NET_SPEC: ImageModelSpec = ImageModelSpec {
-    scale: Scale::AdaptiveMaxScale { min_scale: 1e-6 },
+/// Frozen specification for BiRefNet high-resolution bilateral reference segmentation (`birefnet-general-lite`).
+pub const BIREFNET_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::UnitScale,
     standardization: Standardization::ImageNet {
         mean: [0.485, 0.456, 0.406],
         std: [0.229, 0.224, 0.225],
     },
     geometry: Geometry::Stretch {
-        width: U2NET_RESOLUTION,
-        height: U2NET_RESOLUTION,
+        width: HIGH_RES_SEGMENTATION_RESOLUTION,
+        height: HIGH_RES_SEGMENTATION_RESOLUTION,
+    },
+    resample: Resample::Triangle,
+    output_head: OutputHead::Single,
+    output_field: OutputField::RawScalarField {
+        normalize: OutputNormalization::MinMax,
+    },
+    provenance: Provenance {
+        reference: "https://huggingface.co/onnx-community/BiRefNet_lite-ONNX",
+        revision: "de15b22ba131738a16dff04aab8bdf8dc32e3ac1",
+        shipped_processor: Some("preprocessor_config.json"),
+    },
+};
+
+/// Frozen specification for RMBG-2.0 state-of-the-art background removal (`briaai/RMBG-2.0`).
+pub const RMBG20_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::UnitScale,
+    standardization: Standardization::ImageNet {
+        mean: [0.485, 0.456, 0.406],
+        std: [0.229, 0.224, 0.225],
+    },
+    geometry: Geometry::Stretch {
+        width: HIGH_RES_SEGMENTATION_RESOLUTION,
+        height: HIGH_RES_SEGMENTATION_RESOLUTION,
+    },
+    resample: Resample::Triangle,
+    output_head: OutputHead::Single,
+    output_field: OutputField::RawScalarField {
+        normalize: OutputNormalization::MinMax,
+    },
+    provenance: Provenance {
+        reference: "https://huggingface.co/briaai/RMBG-2.0",
+        revision: "fcd7830ebd0cc92c5e6262da225a7cc41f2a9afd",
+        shipped_processor: Some("preprocessor_config.json"),
+    },
+};
+
+/// Frozen specification for BiRefNet Portrait fine human hair and fur segmentation (`birefnet-portrait`).
+pub const BIREFNET_PORTRAIT_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::UnitScale,
+    standardization: Standardization::ImageNet {
+        mean: [0.485, 0.456, 0.406],
+        std: [0.229, 0.224, 0.225],
+    },
+    geometry: Geometry::Stretch {
+        width: HIGH_RES_SEGMENTATION_RESOLUTION,
+        height: HIGH_RES_SEGMENTATION_RESOLUTION,
+    },
+    resample: Resample::Triangle,
+    output_head: OutputHead::Single,
+    output_field: OutputField::RawScalarField {
+        normalize: OutputNormalization::MinMax,
+    },
+    provenance: Provenance {
+        reference: "https://huggingface.co/onnx-community/BiRefNet-portrait-ONNX",
+        revision: "dd7167f6a8b54ff7efc29a4c988938d79866464f",
+        shipped_processor: Some("preprocessor_config.json"),
+    },
+};
+
+/// Frozen specification for RMBG-1.4 high-resolution background removal (`briaai/RMBG-1.4`).
+pub const RMBG14_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::UnitScale,
+    standardization: Standardization::ImageNet {
+        mean: [0.5, 0.5, 0.5],
+        std: [1.0, 1.0, 1.0],
+    },
+    geometry: Geometry::Stretch {
+        width: HIGH_RES_SEGMENTATION_RESOLUTION,
+        height: HIGH_RES_SEGMENTATION_RESOLUTION,
+    },
+    resample: Resample::Lanczos3,
+    output_head: OutputHead::Single,
+    output_field: OutputField::RawScalarField {
+        normalize: OutputNormalization::MinMax,
+    },
+    provenance: Provenance {
+        reference: "https://huggingface.co/briaai/RMBG-1.4",
+        revision: "2ceba5a5efaec153162aedea169f76caf9b46cf8",
+        shipped_processor: Some("preprocessor_config.json"),
+    },
+};
+
+/// Frozen specification for IS-Net / DIS high-resolution segmentation (`isnet-general-use`).
+pub const ISNET_DIS_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::AdaptiveMaxScale { min_scale: 1e-6 },
+    standardization: Standardization::ImageNet {
+        mean: [0.5, 0.5, 0.5],
+        std: [1.0, 1.0, 1.0],
+    },
+    geometry: Geometry::Stretch {
+        width: HIGH_RES_SEGMENTATION_RESOLUTION,
+        height: HIGH_RES_SEGMENTATION_RESOLUTION,
+    },
+    resample: Resample::Lanczos3,
+    output_head: OutputHead::FirstOfSupervision,
+    output_field: OutputField::RawScalarField {
+        normalize: OutputNormalization::MinMax,
+    },
+    provenance: Provenance {
+        reference: "https://github.com/danielgatis/rembg",
+        revision: "cd3a3d6767a7859efea31ef0f2f373582cf06d82",
+        shipped_processor: None,
+    },
+};
+
+/// Frozen specification for IS-Net Anime high-resolution segmentation (`isnet-anime`).
+pub const ISNET_ANIME_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::AdaptiveMaxScale { min_scale: 1e-6 },
+    standardization: Standardization::ImageNet {
+        mean: [0.5, 0.5, 0.5],
+        std: [1.0, 1.0, 1.0],
+    },
+    geometry: Geometry::Stretch {
+        width: HIGH_RES_SEGMENTATION_RESOLUTION,
+        height: HIGH_RES_SEGMENTATION_RESOLUTION,
     },
     resample: Resample::Lanczos3,
     output_head: OutputHead::FirstOfSupervision,

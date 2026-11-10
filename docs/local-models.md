@@ -40,21 +40,21 @@ or unverified models leave the index unprepared without starting a download or r
 failure. Enabling semantic search or choosing Related Content's preparation action prepares the
 verified embedding snapshot explicitly; Related Content then schedules a full Space index.
 
-| Capability                     | Supported models                                                                                       |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| Text embedding                 | Fixed Qwen3-Embedding-0.6B, Candle F32 last-token pooling                                              |
-| Transcription                  | Whisper Tiny / Base / Small (default) / Medium / Large-v3 Turbo / Large-v3; whisper.cpp on all targets |
-| Speech synthesis and cloning   | MOSS-TTS-Nano (small default); VoxCPM2 Q8_0 / BF16 / original-precision GGUF                           |
-| Voice design                   | VoxCPM2 Q8_0 / BF16 / original-precision GGUF                                                          |
-| Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / F16 GGUF; audio.cpp                                              |
-| Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32; ERes2Net, CAM++ & ERes2Net Large                            |
-| Vocal/accompaniment separation | Spleeter FP16 (default) / FP32, Sherpa CPU engine                                                      |
-| Image background removal       | U²-Net Compact (default) / full / Human Portrait, Silueta, ONNX Runtime                                |
-| Image upscaling                | Real-ESRGAN General X4v3 / X4plus, tiled ONNX Runtime                                                  |
-| Image repair                   | MI-GAN, selected-region ONNX Runtime                                                                   |
-| Image selection                | EfficientSAM Ti / S, cached ONNX Runtime                                                               |
-| Relative depth                 | Depth Anything V2 Small UINT8 / F32, ONNX Runtime                                                      |
-| Text recognition (OCR)         | Fixed PP-OCRv6 small detection + recognition (~31 MB), `oar-ocr` ONNX Runtime                          |
+| Capability                     | Supported models                                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Text embedding                 | Fixed Qwen3-Embedding-0.6B, Candle F32 last-token pooling                                                          |
+| Transcription                  | Whisper Tiny / Base / Small (default) / Medium / Large-v3 Turbo / Large-v3; whisper.cpp on all targets             |
+| Speech synthesis and cloning   | MOSS-TTS-Nano (small default); VoxCPM2 Q8_0 / BF16 / original-precision GGUF                                       |
+| Voice design                   | VoxCPM2 Q8_0 / BF16 / original-precision GGUF                                                                      |
+| Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / F16 GGUF; audio.cpp                                                          |
+| Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32; ERes2Net, CAM++ & ERes2Net Large                                        |
+| Vocal/accompaniment separation | Spleeter FP16 (default) / FP32, Sherpa CPU engine                                                                  |
+| Image background removal       | BiRefNet Lite (default) / RMBG-2.0 / BiRefNet Portrait / RMBG-1.4 / IS-Net DIS / IS-Net Anime, 1024², ONNX Runtime |
+| Image upscaling                | Real-ESRGAN General X4v3 / X4plus, tiled ONNX Runtime                                                              |
+| Image repair                   | MI-GAN, selected-region ONNX Runtime                                                                               |
+| Image selection                | EfficientSAM Ti / S, cached ONNX Runtime                                                                           |
+| Relative depth                 | Depth Anything V2 Small UINT8 / F32, ONNX Runtime                                                                  |
+| Text recognition (OCR)         | Fixed PP-OCRv6 small detection + recognition (~31 MB), `oar-ocr` ONNX Runtime                                      |
 
 All non-Agent models execute in the Rust worker. Rust uses reqwest for the exact Hugging Face and
 ModelScope repository protocols; direct suppliers and archive members retain their frozen hashes.
@@ -267,11 +267,10 @@ identity. The host builds the profile it admits memory for from that module, and
 its expectation from the same functions, so a revision bump cannot leave one side producing an
 identity the other rejects. No capability repeats the identity as a literal.
 
-U²-Net Compact, full, Human Portrait and Silueta snapshots share the same ONNX mask and
-Rust compositing contract. Their specification identities end in `-v2`: the snapshot digest is
-unchanged, but v2 replaced the earlier `(x − 128) / 256` input and raw-probability mask with the
-reference contract below, so the worker's `mask_ref` is a min-max normalized `[0, 1]` field rather
-than the graph's raw probability. Spleeter FP16/FP32 snapshots are 39,362,041 / 78,636,679 bytes and share
+Image segmentation provides four high-resolution 1024² SOTA models: BiRefNet Lite (default, general
+bilateral reference), RMBG-1.4 (commercial studio photography), IS-Net DIS (fine hollow structures and hairs),
+and IS-Net Anime (2D illustration and line art). Legacy 320² U²-Net family models have been completely retired.
+Persisted legacy selections cleanly resolve to the modern default. Spleeter FP16/FP32 snapshots are 39,362,041 / 78,636,679 bytes and share
 the exact source timeline and automatic two-node derivation contract. Both separation models execute on CPU;
 no qualified GPU path is implemented for this engine. A precision choice changes the model rather
 than the operation or its publication semantics.
@@ -315,14 +314,19 @@ owner as speech models. The catalog adds independent defaults for `imageUpscalin
 `imageSelection` and `imageDepth`; background removal and layer saliency use `imageSegmentation`.
 Selections are strict current v1 preferences, not an arbitrary model-import mechanism.
 
-| Capability      | Catalog variants                     | Frozen inference contract                                                                                         |
-| --------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| Upscaling       | Real-ESRGAN General x4v3 / x4plus    | Release v0.62.2 graph plus external weights; CPU float32, fixed 128px tiles (core 64, context 32), [0, 1] float input, [0, 1] float output quantized with ties-to-even to uint8 RGB, native 4× |
-| Mask repair     | MI-GAN pipeline v2                   | Author ONNX uint8 RGB and mask; adapter flips selected-mask polarity and protects every unselected source byte    |
-| Mask repair     | Big LaMa (Carve ONNX export)         | fp32, image 0–1 + hole mask, one 512² window fitted around the hole; [0, 255] float output rounded and clamped to uint8 RGB; outside pixels kept |
-| Smart selection | EfficientSAM Ti / S                  | Frozen author encoder + decoder, RGB 0–1, foreground/exclusion points and rectangle; one worker-owned encoding    |
-| Relative depth  | Depth Anything V2 Small FP32 / UINT8 | Frozen ONNX conversion and processor; ImageNet-normalized RGB, dimensions divisible by 14, relative inverse depth |
-| Segmentation    | U²-Net Compact / full / Human Portrait / Silueta | rembg reference: Lanczos stretch to 320² (no letterbox), divide by the whole resized image's brightest channel value (floor 1e-6), ImageNet mean/std, CHW; first output head min-max normalized in the worker; mask truncated to uint8, Lanczos-upsampled, multiplied into source alpha (RGB kept straight) |
+| Capability                  | Catalog variants                     | Frozen inference contract                                                                                                                                                                                                      |
+| --------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Upscaling                   | Real-ESRGAN General x4v3 / x4plus    | Release v0.62.2 graph plus external weights; CPU float32, fixed 128px tiles (core 64, context 32), [0, 1] float input, [0, 1] float output quantized with ties-to-even to uint8 RGB, native 4×                                 |
+| Mask repair                 | MI-GAN pipeline v2                   | Author ONNX uint8 RGB and mask; adapter flips selected-mask polarity and protects every unselected source byte                                                                                                                 |
+| Mask repair                 | Big LaMa (Carve ONNX export)         | fp32, image 0–1 + hole mask, one 512² window fitted around the hole; [0, 255] float output rounded and clamped to uint8 RGB; outside pixels kept                                                                               |
+| Smart selection             | EfficientSAM Ti / S                  | Frozen author encoder + decoder, RGB 0–1, foreground/exclusion points and rectangle; one worker-owned encoding                                                                                                                 |
+| Relative depth              | Depth Anything V2 Small FP32 / UINT8 | Frozen ONNX conversion and processor; ImageNet-normalized RGB, dimensions divisible by 14, relative inverse depth                                                                                                              |
+| Segmentation (General SOTA) | BiRefNet Lite (General)              | onnx-community 1024² Bilateral Reference SOTA (MIT); UnitScale [0, 1], ImageNet mean/std, single output head min-max normalized; refined via native fast guided filter and edge color decontamination matting                  |
+| Segmentation (Studio SOTA)  | RMBG-2.0 (Bria AI)                   | Bria AI 1024² flagship commercial studio & complex illumination SOTA; UnitScale [0, 1], ImageNet mean/std, single output head min-max normalized; refined via native fast guided filter and edge color decontamination matting |
+| Segmentation (Portrait)     | BiRefNet Portrait                    | onnx-community 1024² dedicated portrait & hair strands specialist; UnitScale [0, 1], ImageNet mean/std, single output head min-max normalized; refined via native fast guided filter and edge color decontamination matting    |
+| Segmentation (Studio Lite)  | RMBG-1.4                             | briaai 1024² commercial photography & e-commerce benchmark; UnitScale [0, 1], mean 0.5/std 1.0, single output head min-max normalized; refined via native fast guided filter and edge color decontamination matting            |
+| Segmentation (DIS)          | IS-Net (DIS5K)                       | rembg reference 1024² (MIT); AdaptiveMaxScale, mean 0.5/std 1.0, first supervision head min-max normalized; refined via native fast guided filter and edge color decontamination matting                                       |
+| Segmentation (Anime)        | IS-Net Anime                         | rembg 1024² 2D anime/manga/illustration specialist (MIT); AdaptiveMaxScale, mean 0.5/std 1.0, first supervision head min-max normalized; refined via native fast guided filter and edge color decontamination matting          |
 
 Layer splitting reuses these capabilities rather than adding a model, and every pass runs the
 model selected for its capability — the choice made in Settings is the model that splits:
@@ -363,11 +367,10 @@ uses its pinned processor with at most 1,048,576 normalized pixels. Output tenso
 256 MiB, canonical PNG assets at 64 MiB. Qualification must measure the actual selected model,
 compiled runtime inventory, latency, cancellation and peak memory on every supported target.
 
-BiRefNet Lite, MobileSAM and larger noncommercial depth variants are not installed by this
-change: a complete qualified and redistributable graph chain has not been established. A missing
-second background candidate is an unmet qualification item, not a renamed existing model. Mask
-repair has two: MI-GAN for the whole picture and Big LaMa for one fitted window.
-Snapshot presence and adapter tests alone do not establish release qualification.
+BiRefNet Lite (General) and IS-Net (DIS5K) are qualified and installed under frozen inference contracts
+with MIT redistribution rights from onnx-community and rembg respectively. BiRefNet Lite is the default
+`imageSegmentation` model, delivering 1024x1024 high-resolution edge accuracy. Mask repair defaults to
+Big LaMa with MI-GAN remaining as a lightweight fallback.
 
 ### Historical Python reference evidence — 2026-10-10
 

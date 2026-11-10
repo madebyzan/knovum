@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 
 use super::{filesystem, model_catalog::LocalModelId, preparation::locks};
 use crate::foundation::app_error::AppError;
@@ -25,20 +25,22 @@ pub async fn remove_model(app: AppHandle, model: LocalModelId) -> Result<(), App
         ));
     }
     crate::foundation::blocking::run(move || {
-        let models_root = app
-            .path()
-            .app_data_dir()
-            .map_err(|error| error.to_string())?
-            .join("local-resources/models");
-        filesystem::verify_managed_root(&app, &models_root)?;
         let snapshot = model.snapshot().ok_or("Model snapshot is unavailable")?;
-        let parent = models_root.join(snapshot.name());
+        let target = super::models::snapshot_directory(&app, snapshot)?;
+        let parent = target
+            .parent()
+            .ok_or("Model snapshot root is unavailable")?;
         if !parent.exists() {
             return Ok(());
         }
-        filesystem::verify_regular_directory(&parent)?;
-        let target = parent.join(snapshot.digest());
-        filesystem::remove_owned_directory(&target, &parent)
+        filesystem::verify_managed_root(
+            &app,
+            parent
+                .parent()
+                .ok_or("Model resource root is unavailable")?,
+        )?;
+        filesystem::verify_regular_directory(parent)?;
+        filesystem::remove_owned_directory(&target, parent)
     })
     .await?;
     drop(usage);

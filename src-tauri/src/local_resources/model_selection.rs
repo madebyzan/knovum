@@ -39,9 +39,9 @@ impl Group {
         match self {
             Self::Transcription => LocalModelId::WhisperSmall,
             Self::SpeechSynthesis => LocalModelId::MossNano,
-            Self::ImageSegmentation => LocalModelId::U2netp,
+            Self::ImageSegmentation => LocalModelId::BirefnetLite,
             Self::ImageUpscaling => LocalModelId::RealEsrganGeneralX4v3,
-            Self::ImageInpainting => LocalModelId::Migan,
+            Self::ImageInpainting => LocalModelId::Lama,
             Self::ImageSelection => LocalModelId::EfficientSamTi,
             Self::ImageDepth => LocalModelId::DepthAnythingV2Small,
 
@@ -74,10 +74,12 @@ fn group(model: LocalModelId) -> Option<Group> {
         LocalModelId::DepthAnythingV2SmallUint8 | LocalModelId::DepthAnythingV2Small => {
             Some(Group::ImageDepth)
         }
-        LocalModelId::U2netp
-        | LocalModelId::Silueta
-        | LocalModelId::U2netHumanSeg
-        | LocalModelId::U2net => Some(Group::ImageSegmentation),
+        LocalModelId::BirefnetLite
+        | LocalModelId::Rmbg20
+        | LocalModelId::BirefnetPortrait
+        | LocalModelId::Rmbg14
+        | LocalModelId::IsnetDis
+        | LocalModelId::IsnetAnime => Some(Group::ImageSegmentation),
         LocalModelId::Spleeter2Stems | LocalModelId::Spleeter2StemsFull => {
             Some(Group::SpeechSeparation)
         }
@@ -106,6 +108,13 @@ pub(crate) fn validate_persisted_value(key: &str, value: serde_json::Value) -> R
     .into_iter()
     .find(|group| group.key() == key)
     .ok_or("Unknown local model selection")?;
+    if expected == Group::ImageSegmentation {
+        if let Some(val) = value.as_str() {
+            if matches!(val, "u2netp" | "silueta" | "u2netHumanSeg" | "u2net") {
+                return Ok(());
+            }
+        }
+    }
     let model: LocalModelId = serde_json::from_value(value)
         .map_err(|error| format!("Invalid local model selection: {error}"))?;
     if group(model) != Some(expected) {
@@ -135,7 +144,7 @@ fn selected<R: Runtime>(app: &AppHandle<R>, group: Group) -> Result<LocalModelId
         .store("settings.json")
         .map_err(|error| error.to_string())?;
     match store.get(group.key()) {
-        Some(raw) => read_selection(raw, group),
+        Some(raw) => Ok(read_selection(raw, group).unwrap_or(group.default_model())),
         None => Ok(group.default_model()),
     }
 }

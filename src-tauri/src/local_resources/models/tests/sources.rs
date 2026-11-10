@@ -5,7 +5,7 @@ use super::super::{
 
 #[test]
 fn fixed_hub_urls_preserve_revision_and_encode_nested_file_names() {
-    let source = sources::for_snapshot(SnapshotKind::ImageSegmentation).unwrap();
+    let source = sources::for_snapshot(SnapshotKind::ImageSegmentationDis).unwrap();
     assert_eq!(source.url("nested/a b.onnx").as_str(), "https://huggingface.co/tomjackson2023/rembg/resolve/cd3a3d6767a7859efea31ef0f2f373582cf06d82/nested/a%20b.onnx");
     let source = sources::for_snapshot(SnapshotKind::TextEmbedding).unwrap();
     let url = source.url("nested/a+b.json");
@@ -42,10 +42,12 @@ fn catalog_owns_one_pinned_source_per_snapshot() {
 fn all_sources_pin_full_revisions_and_bundle_files_have_one_owner() {
     for snapshot in [
         SnapshotKind::TextEmbedding,
-        SnapshotKind::ImageSegmentation,
-        SnapshotKind::ImageSegmentationSilueta,
-        SnapshotKind::ImageSegmentationHuman,
-        SnapshotKind::ImageSegmentationQuality,
+        SnapshotKind::ImageSegmentationBiRefNet,
+        SnapshotKind::ImageSegmentationRmbg20,
+        SnapshotKind::ImageSegmentationPortrait,
+        SnapshotKind::ImageSegmentationRmbg14,
+        SnapshotKind::ImageSegmentationDis,
+        SnapshotKind::ImageSegmentationAnime,
         SnapshotKind::SpeechSeparation,
         SnapshotKind::SpeechSeparationFull,
     ] {

@@ -87,12 +87,27 @@ pub(crate) fn for_snapshot(snapshot: SnapshotKind) -> Option<HubSource> {
             repository: "Qwen/Qwen3-Embedding-0.6B",
             revision: "dd3e37eb506b3addbd930037796e25d349ae9010",
         },
-        SnapshotKind::ImageSegmentation
-        | SnapshotKind::ImageSegmentationSilueta
-        | SnapshotKind::ImageSegmentationHuman
-        | SnapshotKind::ImageSegmentationQuality => HubSource::HuggingFace {
-            repository: "tomjackson2023/rembg",
-            revision: "cd3a3d6767a7859efea31ef0f2f373582cf06d82",
+        SnapshotKind::ImageSegmentationDis | SnapshotKind::ImageSegmentationAnime => {
+            HubSource::HuggingFace {
+                repository: "tomjackson2023/rembg",
+                revision: "cd3a3d6767a7859efea31ef0f2f373582cf06d82",
+            }
+        }
+        SnapshotKind::ImageSegmentationBiRefNet => HubSource::HuggingFace {
+            repository: "onnx-community/BiRefNet_lite-ONNX",
+            revision: "de15b22ba131738a16dff04aab8bdf8dc32e3ac1",
+        },
+        SnapshotKind::ImageSegmentationRmbg20 => HubSource::HuggingFace {
+            repository: "yamura4/RMBG-2.0-ONNX",
+            revision: "fcd7830ebd0cc92c5e6262da225a7cc41f2a9afd",
+        },
+        SnapshotKind::ImageSegmentationPortrait => HubSource::HuggingFace {
+            repository: "onnx-community/BiRefNet-portrait-ONNX",
+            revision: "dd7167f6a8b54ff7efc29a4c988938d79866464f",
+        },
+        SnapshotKind::ImageSegmentationRmbg14 => HubSource::HuggingFace {
+            repository: "briaai/RMBG-1.4",
+            revision: "2ceba5a5efaec153162aedea169f76caf9b46cf8",
         },
         SnapshotKind::SpeechSeparationFull => HubSource::HuggingFace {
             repository: "csukuangfj/sherpa-onnx-spleeter-2stems",

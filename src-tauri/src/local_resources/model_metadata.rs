@@ -228,29 +228,43 @@ pub(crate) fn metadata(model: LocalModelId) -> LocalModelMetadata {
             Unused,
             Any,
         ),
-        LocalModelId::U2netp => (
-            "U²-Net · Compact",
+        LocalModelId::BirefnetLite => (
+            "BiRefNet · General 1024",
             Capability::ImageSegmentation,
             NONE,
             Unused,
             Any,
         ),
-        LocalModelId::Silueta => (
-            "Silueta · Balanced",
+        LocalModelId::Rmbg20 => (
+            "RMBG 2.0 · SOTA 1024",
             Capability::ImageSegmentation,
             NONE,
             Unused,
             Any,
         ),
-        LocalModelId::U2netHumanSeg => (
-            "U²-Net · Portrait",
+        LocalModelId::BirefnetPortrait => (
+            "BiRefNet · Portrait 1024",
             Capability::ImageSegmentation,
             NONE,
             Unused,
             Any,
         ),
-        LocalModelId::U2net => (
-            "U²-Net · Full",
+        LocalModelId::Rmbg14 => (
+            "RMBG 1.4 · Studio 1024",
+            Capability::ImageSegmentation,
+            NONE,
+            Unused,
+            Any,
+        ),
+        LocalModelId::IsnetDis => (
+            "IS-Net (DIS) · High-Res 1024",
+            Capability::ImageSegmentation,
+            NONE,
+            Unused,
+            Any,
+        ),
+        LocalModelId::IsnetAnime => (
+            "IS-Net (Anime) · 1024",
             Capability::ImageSegmentation,
             NONE,
             Unused,

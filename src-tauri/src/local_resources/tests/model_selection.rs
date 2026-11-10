@@ -5,7 +5,7 @@ fn model_preferences_are_strict_and_belong_to_their_capability() {
         (Group::Transcription, LocalModelId::WhisperTiny),
         (Group::SpeechSynthesis, LocalModelId::VoxCpm2),
         (Group::SpeechSynthesis, LocalModelId::VoxCpm2Q8),
-        (Group::ImageSegmentation, LocalModelId::U2net),
+        (Group::ImageSegmentation, LocalModelId::Rmbg14),
         (Group::ImageUpscaling, LocalModelId::RealEsrganX4plus),
         (Group::ImageInpainting, LocalModelId::Migan),
         (Group::ImageInpainting, LocalModelId::Lama),
@@ -65,5 +65,17 @@ fn an_image_capability_resolves_through_the_choice_its_models_belong_to() {
                 "{model:?} is chosen where its capability is resolved"
             );
         }
+    }
+}
+
+#[test]
+fn retired_segmentation_selections_migrate_to_birefnet_default() {
+    for legacy in ["u2netp", "silueta", "u2netHumanSeg", "u2net"] {
+        let raw = serde_json::json!({"schemaVersion": 1, "value": legacy});
+        assert_eq!(
+            read_selection(raw, Group::ImageSegmentation)
+                .unwrap_or(Group::ImageSegmentation.default_model()),
+            LocalModelId::BirefnetLite
+        );
     }
 }

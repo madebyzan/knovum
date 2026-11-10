@@ -27,7 +27,9 @@ pub(crate) async fn remove_background<R: Runtime>(
     resources: &PreparedModels,
     cancellation: &CancellationToken,
 ) -> Result<BackgroundRemovalOutput, String> {
-    let (image, input) = crate::foundation::blocking::run(move || prepare_input(&source)).await?;
+    let spec_id = identity.model_spec_id;
+    let (image, input) =
+        crate::foundation::blocking::run(move || prepare_input(&source, spec_id)).await?;
     if cancellation.is_cancelled() {
         return Err("cancelled".into());
     }
@@ -44,7 +46,7 @@ pub(crate) async fn remove_background<R: Runtime>(
     Ok(output)
 }
 
-fn prepare_input(source: &[u8]) -> Result<(DynamicImage, Vec<f32>), String> {
+fn prepare_input(source: &[u8], spec_id: &str) -> Result<(DynamicImage, Vec<f32>), String> {
     if source.is_empty() || source.len() as u64 > MAX_SOURCE_BYTES {
         return Err("Background-removal input must be a non-empty PNG up to 64 MiB".into());
     }
@@ -57,7 +59,7 @@ fn prepare_input(source: &[u8]) -> Result<(DynamicImage, Vec<f32>), String> {
     reader.limits(limits);
     let image = reader.decode().map_err(|error| error.to_string())?;
     validate_dimensions(image.dimensions())?;
-    let input = pixels::model_input(&image);
+    let input = pixels::model_input_for_spec_id(&image, spec_id)?;
     Ok((image, input))
 }
 

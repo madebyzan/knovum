@@ -27,7 +27,7 @@ const source: SpaceCanvasNode<SpaceImagePayload> = {
     knowledgeRevision: "node1:frozen",
   },
 };
-const execution = { type: "local", model: "u2netp", specId: "u2netp-spec" } as const;
+const execution = { type: "local", model: "birefnetLite", specId: "birefnet-spec" } as const;
 beforeEach(() => {
   calls.space.activeSpaceId = "origin";
   calls.start.mockReset().mockResolvedValue({ runId: "run" });
@@ -59,7 +59,7 @@ it("submits one durable cutout invocation pinned to the selected model and sourc
 it("admits the selected local model before submitting, and submits nothing it refused", async () => {
   calls.admit.mockResolvedValue(false);
   expect(await createImageCutout(source)).toBeUndefined();
-  expect(calls.admit).toHaveBeenCalledWith([{ kind: "localModel", model: "u2netp" }]);
+  expect(calls.admit).toHaveBeenCalledWith([{ kind: "localModel", model: "birefnetLite" }]);
   expect(calls.start).not.toHaveBeenCalled();
 });
 it("does not select another model when the chosen model is unavailable", async () => {
@@ -72,7 +72,7 @@ it("does not select another model when the chosen model is unavailable", async (
         selected: true,
       },
       {
-        execution: { ...execution, model: "u2net" },
+        execution: { ...execution, model: "rmbg14" },
         capability: "imageSegmentation",
         availability: { state: "ready" },
         selected: false,

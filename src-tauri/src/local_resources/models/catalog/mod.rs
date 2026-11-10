@@ -54,10 +54,12 @@ pub enum ModelKind {
     DiarizationPart(DiarizationPart),
     MossNanoPart(MossNanoPart),
     WhisperPart(WhisperPart),
-    ImageSegmentation,
-    ImageSegmentationSilueta,
-    ImageSegmentationHuman,
-    ImageSegmentationQuality,
+    ImageSegmentationBiRefNet,
+    ImageSegmentationRmbg20,
+    ImageSegmentationPortrait,
+    ImageSegmentationRmbg14,
+    ImageSegmentationDis,
+    ImageSegmentationAnime,
     TextEmbeddingConfig,
     TextEmbeddingModules,
     TextEmbeddingPoolingConfig,
@@ -87,13 +89,17 @@ pub enum ModelKind {
 }
 
 pub(crate) const TRANSCRIPTION_MODELS: &[ModelKind] = WhisperVariant::Small.models();
-pub(crate) const IMAGE_SEGMENTATION_MODELS: &[ModelKind] = &[ModelKind::ImageSegmentation];
-pub(crate) const IMAGE_SEGMENTATION_SILUETA_MODELS: &[ModelKind] =
-    &[ModelKind::ImageSegmentationSilueta];
-pub(crate) const IMAGE_SEGMENTATION_HUMAN_MODELS: &[ModelKind] =
-    &[ModelKind::ImageSegmentationHuman];
-pub(crate) const IMAGE_SEGMENTATION_QUALITY_MODELS: &[ModelKind] =
-    &[ModelKind::ImageSegmentationQuality];
+pub(crate) const IMAGE_SEGMENTATION_BIREFNET_MODELS: &[ModelKind] =
+    &[ModelKind::ImageSegmentationBiRefNet];
+pub(crate) const IMAGE_SEGMENTATION_RMBG20_MODELS: &[ModelKind] =
+    &[ModelKind::ImageSegmentationRmbg20];
+pub(crate) const IMAGE_SEGMENTATION_PORTRAIT_MODELS: &[ModelKind] =
+    &[ModelKind::ImageSegmentationPortrait];
+pub(crate) const IMAGE_SEGMENTATION_RMBG14_MODELS: &[ModelKind] =
+    &[ModelKind::ImageSegmentationRmbg14];
+pub(crate) const IMAGE_SEGMENTATION_DIS_MODELS: &[ModelKind] = &[ModelKind::ImageSegmentationDis];
+pub(crate) const IMAGE_SEGMENTATION_ANIME_MODELS: &[ModelKind] =
+    &[ModelKind::ImageSegmentationAnime];
 pub(crate) const TEXT_EMBEDDING_MODELS: &[ModelKind] = &[
     ModelKind::TextEmbeddingConfig,
     ModelKind::TextEmbeddingModules,
@@ -134,36 +140,52 @@ pub(crate) const SPEECH_ALIGNMENT_MODELS: &[ModelKind] = QWEN3_FORCED_ALIGNER_MO
 #[cfg(not(knovum_supported_desktop))]
 pub(crate) const SPEECH_ALIGNMENT_MODELS: &[ModelKind] = &[];
 
-pub(crate) const IMAGE_SEGMENTATION: ModelDescriptor = ModelDescriptor {
-    snapshot: SnapshotKind::ImageSegmentation,
-    file: "u2netp.onnx",
+pub(crate) const IMAGE_SEGMENTATION_BIREFNET: ModelDescriptor = ModelDescriptor {
+    snapshot: SnapshotKind::ImageSegmentationBiRefNet,
+    file: "onnx/model.onnx",
 
-    sha256: "309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8",
-    download_size: 4_574_861,
+    sha256: "5600024376f572a557870a5eb0afb1e5961636bef4e1e22132025467d0f03333",
+    download_size: 224_005_088,
 };
 
-pub(crate) const IMAGE_SEGMENTATION_SILUETA: ModelDescriptor = ModelDescriptor {
-    snapshot: SnapshotKind::ImageSegmentationSilueta,
-    file: "silueta.onnx",
+pub(crate) const IMAGE_SEGMENTATION_RMBG20: ModelDescriptor = ModelDescriptor {
+    snapshot: SnapshotKind::ImageSegmentationRmbg20,
+    file: "onnx/model.onnx",
 
-    sha256: "75da6c8d2f8096ec743d071951be73b4a8bc7b3e51d9a6625d63644f90ffeedb",
-    download_size: 44_173_029,
+    sha256: "6db79b5ac18a5a7af3b32f25d8e2580d8dca444d8a77249d72700eed425f269f",
+    download_size: 1_023_275_319,
 };
 
-pub(crate) const IMAGE_SEGMENTATION_HUMAN: ModelDescriptor = ModelDescriptor {
-    snapshot: SnapshotKind::ImageSegmentationHuman,
-    file: "u2net_human_seg.onnx",
+pub(crate) const IMAGE_SEGMENTATION_PORTRAIT: ModelDescriptor = ModelDescriptor {
+    snapshot: SnapshotKind::ImageSegmentationPortrait,
+    file: "onnx/model.onnx",
 
-    sha256: "01eb6a29a5c4d8edb30b56adad9bb3a2a0535338e480724a213e0acfd2d1c73c",
-    download_size: 175_997_641,
+    sha256: "1ba1c8ff5a7bbfadc8d8d13fb11d7be793f91f23d9d466549e37a854f6668f99",
+    download_size: 972_666_916,
 };
 
-pub(crate) const IMAGE_SEGMENTATION_QUALITY: ModelDescriptor = ModelDescriptor {
-    snapshot: SnapshotKind::ImageSegmentationQuality,
-    file: "u2net.onnx",
+pub(crate) const IMAGE_SEGMENTATION_RMBG14: ModelDescriptor = ModelDescriptor {
+    snapshot: SnapshotKind::ImageSegmentationRmbg14,
+    file: "onnx/model.onnx",
 
-    sha256: "8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491",
-    download_size: 175_997_641,
+    sha256: "8cafcf770b06757c4eaced21b1a88e57fd2b66de01b8045f35f01535ba742e0f",
+    download_size: 176_153_355,
+};
+
+pub(crate) const IMAGE_SEGMENTATION_DIS: ModelDescriptor = ModelDescriptor {
+    snapshot: SnapshotKind::ImageSegmentationDis,
+    file: "isnet-general-use.onnx",
+
+    sha256: "60920e99c45464f2ba57bee2ad08c919a52bbf852739e96947fbb4358c0d964a",
+    download_size: 178_648_008,
+};
+
+pub(crate) const IMAGE_SEGMENTATION_ANIME: ModelDescriptor = ModelDescriptor {
+    snapshot: SnapshotKind::ImageSegmentationAnime,
+    file: "isnet-anime.onnx",
+
+    sha256: "f15622d853e8260172812b657053460e20806f04b9e05147d49af7bed31a6e99",
+    download_size: 176_069_933,
 };
 
 pub(crate) const fn descriptor(kind: ModelKind) -> ModelDescriptor {
@@ -172,10 +194,12 @@ pub(crate) const fn descriptor(kind: ModelKind) -> ModelDescriptor {
         ModelKind::DiarizationPart(part) => part.descriptor(),
         ModelKind::MossNanoPart(part) => part.descriptor(),
         ModelKind::WhisperPart(part) => part.descriptor(),
-        ModelKind::ImageSegmentation => IMAGE_SEGMENTATION,
-        ModelKind::ImageSegmentationSilueta => IMAGE_SEGMENTATION_SILUETA,
-        ModelKind::ImageSegmentationHuman => IMAGE_SEGMENTATION_HUMAN,
-        ModelKind::ImageSegmentationQuality => IMAGE_SEGMENTATION_QUALITY,
+        ModelKind::ImageSegmentationBiRefNet => IMAGE_SEGMENTATION_BIREFNET,
+        ModelKind::ImageSegmentationRmbg20 => IMAGE_SEGMENTATION_RMBG20,
+        ModelKind::ImageSegmentationPortrait => IMAGE_SEGMENTATION_PORTRAIT,
+        ModelKind::ImageSegmentationRmbg14 => IMAGE_SEGMENTATION_RMBG14,
+        ModelKind::ImageSegmentationDis => IMAGE_SEGMENTATION_DIS,
+        ModelKind::ImageSegmentationAnime => IMAGE_SEGMENTATION_ANIME,
         ModelKind::TextEmbeddingConfig => TEXT_EMBEDDING_CONFIG,
         ModelKind::TextEmbeddingModules => TEXT_EMBEDDING_MODULES,
         ModelKind::TextEmbeddingPoolingConfig => TEXT_EMBEDDING_POOLING_CONFIG,

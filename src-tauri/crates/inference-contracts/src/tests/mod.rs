@@ -78,7 +78,8 @@ fn image_specs_match_provenance_and_processor_config() {
     use crate::image_compute::ImageModelVariant;
     use crate::image_spec::{
         Geometry, OutputField, OutputHead, OutputNormalization, Scale, Standardization,
-        DEPTH_ANYTHING_V2_SPEC, U2NET_RESOLUTION, U2NET_SPEC,
+        BIREFNET_SPEC, DEPTH_ANYTHING_V2_SPEC, HIGH_RES_SEGMENTATION_RESOLUTION, ISNET_ANIME_SPEC,
+        ISNET_DIS_SPEC, RMBG14_SPEC,
     };
     use serde_json::Value;
 
@@ -129,21 +130,30 @@ fn image_specs_match_provenance_and_processor_config() {
     );
     assert_eq!(DEPTH_ANYTHING_V2_SPEC.scale, Scale::UnitScale);
 
-    // U2-Net spec invariant checks
-    assert_eq!(
-        U2NET_SPEC.geometry,
-        Geometry::Stretch {
-            width: U2NET_RESOLUTION,
-            height: U2NET_RESOLUTION,
-        }
-    );
-    assert_eq!(U2NET_SPEC.output_head, OutputHead::FirstOfSupervision);
-    assert_eq!(
-        U2NET_SPEC.output_field,
-        OutputField::RawScalarField {
-            normalize: OutputNormalization::MinMax,
-        }
-    );
+    // High-resolution segmentation specs invariant checks
+    for (spec, expected_head) in [
+        (&BIREFNET_SPEC, OutputHead::Single),
+        (&RMBG20_SPEC, OutputHead::Single),
+        (&BIREFNET_PORTRAIT_SPEC, OutputHead::Single),
+        (&RMBG14_SPEC, OutputHead::Single),
+        (&ISNET_DIS_SPEC, OutputHead::FirstOfSupervision),
+        (&ISNET_ANIME_SPEC, OutputHead::FirstOfSupervision),
+    ] {
+        assert_eq!(
+            spec.geometry,
+            Geometry::Stretch {
+                width: HIGH_RES_SEGMENTATION_RESOLUTION,
+                height: HIGH_RES_SEGMENTATION_RESOLUTION,
+            }
+        );
+        assert_eq!(spec.output_head, expected_head);
+        assert_eq!(
+            spec.output_field,
+            OutputField::RawScalarField {
+                normalize: OutputNormalization::MinMax,
+            }
+        );
+    }
 
     // Ensure all defined variant specs resolve and have non-empty provenance
     for variant in [

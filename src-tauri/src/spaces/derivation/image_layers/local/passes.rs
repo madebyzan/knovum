@@ -83,7 +83,10 @@ impl Pass<'_> {
             input_revision: self.revision.into(),
             budget_ms: SEGMENTATION_BUDGET_MS,
         };
-        let input = crate::images::saliency_input(&image::DynamicImage::ImageRgba8(source.clone()));
+        let input = crate::images::saliency_input_for_spec(
+            &image::DynamicImage::ImageRgba8(source.clone()),
+            identity.model_spec_id,
+        )?;
         let field = crate::ai::local_runtime::segment_image(
             self.app,
             input,
@@ -92,7 +95,12 @@ impl Pass<'_> {
             self.cancellation,
         )
         .await?;
-        Ok(crate::images::saliency_mask(&field, source.width(), source.height())?.into_raw())
+        let coarse = crate::images::saliency_mask(&field, source.width(), source.height())?;
+        let refined = crate::images::matting::refine_mask(
+            &image::DynamicImage::ImageRgba8(source.clone()),
+            &coarse,
+        );
+        Ok(refined.into_raw())
     }
 
     /// Discovery ranks, upsampled to the source. Rank `0` is unassigned.

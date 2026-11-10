@@ -1,7 +1,8 @@
 use super::{
-    catalog, transcription_snapshot, LocalModelId, IMAGE_SEGMENTATION_HUMAN_SPEC_ID,
-    IMAGE_SEGMENTATION_QUALITY_SPEC_ID, IMAGE_SEGMENTATION_SILUETA_SPEC_ID,
-    IMAGE_SEGMENTATION_SPEC_ID, MODELS, VOXCPM2_BF16_SPEC_ID, VOXCPM2_FULL_SPEC_ID,
+    catalog, transcription_snapshot, LocalModelId, IMAGE_SEGMENTATION_ANIME_SPEC_ID,
+    IMAGE_SEGMENTATION_BIREFNET_SPEC_ID, IMAGE_SEGMENTATION_DIS_SPEC_ID,
+    IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID, IMAGE_SEGMENTATION_RMBG14_SPEC_ID,
+    IMAGE_SEGMENTATION_RMBG20_SPEC_ID, MODELS, VOXCPM2_BF16_SPEC_ID, VOXCPM2_FULL_SPEC_ID,
     VOXCPM2_Q8_SPEC_ID,
 };
 
@@ -72,10 +73,12 @@ impl LocalModelId {
     }
     pub(crate) fn image_segmentation_spec(self) -> Result<&'static str, String> {
         match self {
-            Self::U2netp => Ok(IMAGE_SEGMENTATION_SPEC_ID),
-            Self::Silueta => Ok(IMAGE_SEGMENTATION_SILUETA_SPEC_ID),
-            Self::U2netHumanSeg => Ok(IMAGE_SEGMENTATION_HUMAN_SPEC_ID),
-            Self::U2net => Ok(IMAGE_SEGMENTATION_QUALITY_SPEC_ID),
+            Self::BirefnetLite => Ok(IMAGE_SEGMENTATION_BIREFNET_SPEC_ID),
+            Self::Rmbg20 => Ok(IMAGE_SEGMENTATION_RMBG20_SPEC_ID),
+            Self::BirefnetPortrait => Ok(IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID),
+            Self::Rmbg14 => Ok(IMAGE_SEGMENTATION_RMBG14_SPEC_ID),
+            Self::IsnetDis => Ok(IMAGE_SEGMENTATION_DIS_SPEC_ID),
+            Self::IsnetAnime => Ok(IMAGE_SEGMENTATION_ANIME_SPEC_ID),
             _ => Err("Model does not support image segmentation".into()),
         }
     }

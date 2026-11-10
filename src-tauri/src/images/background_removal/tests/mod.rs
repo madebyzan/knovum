@@ -1,8 +1,9 @@
 use image::{DynamicImage, Rgba, RgbaImage};
 
-use super::pixels::{apply_mask, mask_at, model_input};
+use super::pixels::{apply_mask, mask_at, model_input, model_input_for_spec};
+use crate::ai::contracts::image_spec::ISNET_DIS_SPEC;
 
-const PIXELS: usize = 320 * 320;
+const PIXELS: usize = 1024 * 1024;
 
 fn standardized(value: f32, channel: usize) -> f32 {
     const MEAN: [f32; 3] = [0.485, 0.456, 0.406];
@@ -23,11 +24,13 @@ fn model_input_is_channel_first_and_imagenet_standardized() {
 #[test]
 fn model_input_scales_by_the_brightest_value_of_the_whole_image() {
     let image = DynamicImage::ImageRgba8(RgbaImage::from_pixel(1, 1, Rgba([120, 60, 0, 255])));
-    let input = model_input(&image);
-    assert!((input[0] - standardized(1.0, 0)).abs() < 1e-5);
-    assert!((input[PIXELS] - standardized(0.5, 1)).abs() < 1e-5);
+    let (input, _) = model_input_for_spec(&image, &ISNET_DIS_SPEC);
+    // IS-Net standardization mean: [0.5, 0.5, 0.5], std: [1.0, 1.0, 1.0]
+    assert!((input[0] - (1.0 - 0.5) / 1.0).abs() < 1e-5);
+    assert!((input[PIXELS] - (0.5 - 0.5) / 1.0).abs() < 1e-5);
     let black = DynamicImage::ImageRgba8(RgbaImage::from_pixel(1, 1, Rgba([0, 0, 0, 255])));
-    assert!(model_input(&black).iter().all(|value| value.is_finite()));
+    let (black_input, _) = model_input_for_spec(&black, &ISNET_DIS_SPEC);
+    assert!(black_input.iter().all(|value| value.is_finite()));
 }
 
 #[test]

@@ -27,7 +27,7 @@ impl ResourcePreparationTarget {
                 (!catalog::TRANSCRIPTION_MODELS.is_empty()).then_some(catalog::TRANSCRIPTION_MODELS)
             }
             Self::TextEmbedding => Some(catalog::TEXT_EMBEDDING_MODELS),
-            Self::ImageSegmentation => Some(catalog::IMAGE_SEGMENTATION_MODELS),
+            Self::ImageSegmentation => Some(catalog::IMAGE_SEGMENTATION_BIREFNET_MODELS),
             Self::SpeechSynthesis => Some(catalog::MOSS_NANO_MODELS),
             Self::VoiceDesign => Some(catalog::VOXCPM2_MODELS),
             Self::Model { model } => model.snapshot().map(|snapshot| snapshot.models()),
