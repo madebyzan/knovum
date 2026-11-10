@@ -1,6 +1,6 @@
 use crate::images::{
-    depth::normalize,
     inpainting::{composite, context_window, known_mask},
+    scalar_field::normalize,
     upscaling::quantize,
 };
 
@@ -26,7 +26,7 @@ fn inpainting_inverts_supplier_polarity_and_preserves_unselected_channels() {
 }
 
 #[test]
-fn depth_rejects_invalid_fields_and_normalizes_relative_extremes() {
+fn scalar_fields_reject_invalid_values_and_normalize_relative_extremes() {
     assert_eq!(normalize(&[2.0, 4.0, 6.0]).unwrap(), [0.0, 0.5, 1.0]);
     assert!(normalize(&[1.0, 1.0]).is_err());
     assert!(normalize(&[1.0, f32::INFINITY]).is_err());

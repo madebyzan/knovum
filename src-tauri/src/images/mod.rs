@@ -2,7 +2,7 @@ mod background_removal;
 mod edited;
 
 pub(crate) use background_removal::pixels::{
-    model_input as saliency_input, MODEL_RESOLUTION as SALIENCY_EDGE,
+    mask_at as saliency_mask, model_input as saliency_input,
 };
 pub(crate) use background_removal::remove_background;
 pub(crate) use edited::render_source_as;

@@ -1,11 +1,16 @@
 use std::path::Path;
 
 use knovum_inference_contracts::image_wire::{
-    ImageSegmentParams, ImageSegmentation, TensorDataType,
+    ImageSegmentParams, ImageSegmentation, TensorDataType, IMAGE_SEGMENTATION_INPUT_BYTES,
+    IMAGE_SEGMENTATION_RESOLUTION,
 };
 use ort::{session::Session, value::Tensor};
 
-use super::session;
+use super::{scalar_field, session};
+
+const EDGE: u32 = IMAGE_SEGMENTATION_RESOLUTION;
+const INPUT_SHAPE: [u32; 4] = [1, 3, EDGE, EDGE];
+const MASK_SHAPE: [u32; 4] = [1, 1, EDGE, EDGE];
 use crate::{artifact, cancellation::Cancellation};
 
 pub(super) struct Segmentation {
@@ -45,14 +50,18 @@ impl Segmentation {
         params: ImageSegmentParams,
         cancellation: &Cancellation,
     ) -> Result<ImageSegmentation, String> {
-        if params.tensor_ref.shape != [1, 3, 320, 320]
+        if params.tensor_ref.shape != INPUT_SHAPE
             || params.tensor_ref.data_type != TensorDataType::Float32LittleEndian
         {
             return Err("invalid_input: segmentation requires a 320x320 float RGB tensor".into());
         }
-        let bytes = artifact::read_tensor(work, &params.tensor_ref, 3 * 320 * 320 * 4)?;
-        let tensor = Tensor::from_array(([1usize, 3, 320, 320], session::floats(&bytes)))
-            .map_err(|error| format!("invalid_input: {error}"))?;
+        let bytes =
+            artifact::read_tensor(work, &params.tensor_ref, IMAGE_SEGMENTATION_INPUT_BYTES)?;
+        let tensor = Tensor::from_array((
+            INPUT_SHAPE.map(|value| value as usize),
+            session::floats(&bytes),
+        ))
+        .map_err(|error| format!("invalid_input: {error}"))?;
         let options = cancellation.run_options()?;
         let outputs = self
             .session
@@ -62,15 +71,17 @@ impl Segmentation {
         let (shape, values) = outputs[self.output_name.as_str()]
             .try_extract_tensor::<f32>()
             .map_err(|error| format!("invalid_output: {error}"))?;
-        if shape.as_ref() != [1, 1, 320, 320] {
+        if shape.as_ref() != MASK_SHAPE.map(i64::from) {
             return Err("invalid_output: segmentation mask shape differs".into());
         }
+        // Reference post-processing: the first head's field stretched to the full [0, 1] range.
+        let field = scalar_field::normalize(values)?;
         let mask_ref = artifact::write_tensor(
             work,
             &format!("mask-{}.f32", params.request_id),
-            [1, 1, 320, 320],
+            MASK_SHAPE,
             TensorDataType::Float32LittleEndian,
-            &session::float_bytes(values)?,
+            &session::float_bytes(&field)?,
         )?;
         Ok(ImageSegmentation {
             request_id: params.request_id,

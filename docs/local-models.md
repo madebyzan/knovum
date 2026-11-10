@@ -268,7 +268,10 @@ its expectation from the same functions, so a revision bump cannot leave one sid
 identity the other rejects. No capability repeats the identity as a literal.
 
 U²-Net Compact, full, Human Portrait and Silueta snapshots share the same ONNX mask and
-Rust compositing contract. Spleeter FP16/FP32 snapshots are 39,362,041 / 78,636,679 bytes and share
+Rust compositing contract. Their specification identities end in `-v2`: the snapshot digest is
+unchanged, but v2 replaced the earlier `(x − 128) / 256` input and raw-probability mask with the
+reference contract below, so the worker's `mask_ref` is a min-max normalized `[0, 1]` field rather
+than the graph's raw probability. Spleeter FP16/FP32 snapshots are 39,362,041 / 78,636,679 bytes and share
 the exact source timeline and automatic two-node derivation contract. Both separation models execute on CPU;
 no qualified GPU path is implemented for this engine. A precision choice changes the model rather
 than the operation or its publication semantics.
@@ -309,7 +312,7 @@ This preserves the selected voice identity. See the [pinned official VoxCPM2 mod
 
 Image resources use the same snapshot installer, verification, preparation task, leases and removal
 owner as speech models. The catalog adds independent defaults for `imageUpscaling`, `imageInpainting`,
-`imageSelection` and `imageDepth`; background removal keeps `imageSegmentation` and its existing default.
+`imageSelection` and `imageDepth`; background removal and layer saliency use `imageSegmentation`.
 Selections are strict current v1 preferences, not an arbitrary model-import mechanism.
 
 | Capability      | Catalog variants                     | Frozen inference contract                                                                                         |
@@ -319,6 +322,7 @@ Selections are strict current v1 preferences, not an arbitrary model-import mech
 | Mask repair     | Big LaMa (Carve ONNX export)         | fp32, image 0–1 + hole mask, one 512² window fitted around the hole; outside pixels kept                          |
 | Smart selection | EfficientSAM Ti / S                  | Frozen author encoder + decoder, RGB 0–1, foreground/exclusion points and rectangle; one worker-owned encoding    |
 | Relative depth  | Depth Anything V2 Small FP32 / UINT8 | Frozen ONNX conversion and processor; ImageNet-normalized RGB, dimensions divisible by 14, relative inverse depth |
+| Segmentation    | U²-Net Compact / full / Human Portrait / Silueta | rembg reference: Lanczos stretch to 320² (no letterbox), divide by the whole resized image's brightest channel value (floor 1e-6), ImageNet mean/std, CHW; first output head min-max normalized in the worker; mask truncated to uint8, Lanczos-upsampled, multiplied into source alpha (RGB kept straight) |
 
 Layer splitting reuses these capabilities rather than adding a model, and every pass runs the
 model selected for its capability — the choice made in Settings is the model that splits:

@@ -23,7 +23,7 @@ use crate::{
 };
 use image::{
     imageops::{self, FilterType},
-    GrayImage, Luma, Rgba, RgbaImage,
+    GrayImage, Rgba, RgbaImage,
 };
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
@@ -70,7 +70,7 @@ pub(super) struct Field {
 }
 
 impl Pass<'_> {
-    /// Soft foreground probability, upsampled to the source so it can serve as a subject alpha.
+    /// Soft foreground field, normalized like background removal and upsampled to the source so it can serve as a subject alpha.
     pub(super) async fn saliency(&self, source: &RgbaImage) -> Result<Vec<u8>, AppError> {
         let model = self.models.saliency;
         let resources = self.prepare(model).await?;
@@ -83,7 +83,6 @@ impl Pass<'_> {
             input_revision: self.revision.into(),
             budget_ms: SEGMENTATION_BUDGET_MS,
         };
-        let edge = crate::images::SALIENCY_EDGE as u32;
         let input = crate::images::saliency_input(&image::DynamicImage::ImageRgba8(source.clone()));
         let field = crate::ai::local_runtime::segment_image(
             self.app,
@@ -93,19 +92,7 @@ impl Pass<'_> {
             self.cancellation,
         )
         .await?;
-        if field.len() != (edge * edge) as usize {
-            return Err("Invalid saliency field".into());
-        }
-        let field = GrayImage::from_fn(edge, edge, |x, y| {
-            Luma([(field[(y * edge + x) as usize].clamp(0.0, 1.0) * 255.0).round() as u8])
-        });
-        Ok(imageops::resize(
-            &field,
-            source.width(),
-            source.height(),
-            FilterType::Triangle,
-        )
-        .into_raw())
+        Ok(crate::images::saliency_mask(&field, source.width(), source.height())?.into_raw())
     }
 
     /// Discovery ranks, upsampled to the source. Rank `0` is unassigned.

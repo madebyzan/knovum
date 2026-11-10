@@ -46,11 +46,11 @@ pub(crate) async fn remove_background<R: Runtime>(
 
 fn prepare_input(source: &[u8]) -> Result<(DynamicImage, Vec<f32>), String> {
     if source.is_empty() || source.len() as u64 > MAX_SOURCE_BYTES {
-        return Err("Background-removal input must be a non-empty image up to 64 MiB".into());
+        return Err("Background-removal input must be a non-empty PNG up to 64 MiB".into());
     }
-    let mut reader = ImageReader::new(Cursor::new(source))
-        .with_guessed_format()
-        .map_err(|error| error.to_string())?;
+    // The source is always the engine-rendered PNG of what the user sees, so orientation is
+    // already applied and no other format is accepted at this boundary.
+    let mut reader = ImageReader::with_format(Cursor::new(source), ImageFormat::Png);
     let mut limits = Limits::default();
     limits.max_image_width = Some(MAX_IMAGE_DIMENSION);
     limits.max_image_height = Some(MAX_IMAGE_DIMENSION);

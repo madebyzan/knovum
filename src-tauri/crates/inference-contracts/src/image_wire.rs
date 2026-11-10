@@ -2,8 +2,10 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub const IMAGE_SEGMENTATION_RESOLUTION: u32 = 320;
-pub const IMAGE_SEGMENTATION_INPUT_BYTES: u64 = 3 * 320 * 320 * 4;
-pub const IMAGE_SEGMENTATION_MASK_BYTES: u64 = 320 * 320 * 4;
+pub const IMAGE_SEGMENTATION_PIXELS: u64 =
+    IMAGE_SEGMENTATION_RESOLUTION as u64 * IMAGE_SEGMENTATION_RESOLUTION as u64;
+pub const IMAGE_SEGMENTATION_INPUT_BYTES: u64 = 3 * IMAGE_SEGMENTATION_PIXELS * 4;
+pub const IMAGE_SEGMENTATION_MASK_BYTES: u64 = IMAGE_SEGMENTATION_PIXELS * 4;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
@@ -44,5 +46,7 @@ pub struct ImageSegmentation {
     pub request_id: String,
     pub attempt_epoch: u64,
     pub model_spec_id: String,
+    /// Foreground field normalized by the worker to the full `[0, 1]` range (min-max over the
+    /// graph's first output head), not the graph's raw probability.
     pub mask_ref: TensorFileReference,
 }

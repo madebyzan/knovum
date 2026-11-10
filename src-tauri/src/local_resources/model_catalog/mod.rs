@@ -18,13 +18,13 @@ pub(crate) const VOXCPM2_FULL_SPEC_ID: &str = "voxcpm2-2b-gguf-orig-v1";
 pub(crate) const VOXCPM2_BF16_SPEC_ID: &str = "voxcpm2-2b-gguf-bf16-v1";
 pub(crate) const VOXCPM2_Q8_SPEC_ID: &str = "voxcpm2-2b-gguf-q8_0-v1";
 pub const IMAGE_SEGMENTATION_SPEC_ID: &str =
-    "u2netp-onnx:309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8-v1";
+    "u2netp-onnx:309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8-v2";
 pub const IMAGE_SEGMENTATION_SILUETA_SPEC_ID: &str =
-    "silueta-onnx:75da6c8d2f8096ec743d071951be73b4a8bc7b3e51d9a6625d63644f90ffeedb-v1";
+    "silueta-onnx:75da6c8d2f8096ec743d071951be73b4a8bc7b3e51d9a6625d63644f90ffeedb-v2";
 pub const IMAGE_SEGMENTATION_HUMAN_SPEC_ID: &str =
-    "u2net-human-seg-onnx:01eb6a29a5c4d8edb30b56adad9bb3a2a0535338e480724a213e0acfd2d1c73c-v1";
+    "u2net-human-seg-onnx:01eb6a29a5c4d8edb30b56adad9bb3a2a0535338e480724a213e0acfd2d1c73c-v2";
 pub const IMAGE_SEGMENTATION_QUALITY_SPEC_ID: &str =
-    "u2net-onnx:8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491-v1";
+    "u2net-onnx:8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491-v2";
 
 #[derive(
     Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS,
