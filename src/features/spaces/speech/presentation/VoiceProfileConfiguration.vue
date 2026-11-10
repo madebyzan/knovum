@@ -8,6 +8,7 @@ import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiBadge from "../../../../shared/ui/UiBadge.vue";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import type { VoiceProfileHistory } from "../../contracts/generated/VoiceProfileHistory";
 import { LABEL_BY_VOICE_ENGINE } from "../voice-options";
 import { activeVoiceProfileRevision } from "../voice-profile";
@@ -20,7 +21,7 @@ const props = defineProps<{
   disabled: boolean;
   isDefault?: boolean;
   /** Audition state owned by the library, because only one voice may be heard at a time. */
-  audition: { playing: boolean; busy: boolean; peak: () => number };
+  audition: { playing: boolean; generating?: boolean | undefined; busy: boolean; peak: () => number };
 }>();
 const emit = defineEmits<{
   dirty: [value: boolean];
@@ -64,9 +65,11 @@ const menuItems = computed(() => [
   },
   ...(props.profile.archivedAt
     ? [
-        { separator: true },
         {
-          label: t("common.delete"),
+          label:
+            props.profile.referencedBindingCount > 0
+              ? `${t("common.delete")} (${t("spaces.speech.voice.delete.inUseDisabled")})`
+              : t("common.delete"),
           icon: Trash2,
           destructive: true,
           disabled: props.disabled || props.profile.referencedBindingCount > 0,
@@ -101,16 +104,23 @@ function setDirty(value: boolean) {
     <article>
       <div class="flex min-h-(--knovum-setting-min-height) items-center gap-3 px-4 py-3">
         <UiIconButton
-          :label="audition.playing ? t('spaces.speech.preview.stop') : t('spaces.speech.preview.action')"
+          :label="
+            audition.generating
+              ? t('spaces.speech.preview.synthesizing')
+              : audition.playing
+                ? t('spaces.speech.preview.stop')
+                : t('spaces.speech.preview.action')
+          "
           size="sm"
-          :active="audition.playing"
+          :active="audition.playing || audition.generating"
           :disabled="disabled || audition.busy"
           data-testid="voice-audition"
           @click="emit('audition')"
         >
-          <component :is="audition.playing ? Pause : Play" class="size-3.5" />
+          <UiSpinner v-if="audition.generating" size="sm" />
+          <component :is="audition.playing ? Pause : Play" v-else class="size-3.5" />
         </UiIconButton>
-        <VoiceWaveform :peak="audition.peak" :active="audition.playing" />
+        <VoiceWaveform :peak="audition.peak" :active="audition.playing" :generating="audition.generating" />
         <div class="min-w-0 flex-1">
           <div class="flex min-w-0 items-center gap-2">
             <strong class="truncate text-body-lg font-medium text-fg-primary">{{ profile.name }}</strong>

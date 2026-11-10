@@ -3,11 +3,8 @@ import type { SpeechPreviewAudioChunk } from "../contracts/generated/SpeechPrevi
 const MAX_QUEUED_BYTES = 16 * 1024 * 1024;
 const MAX_AUDIO_AHEAD_SECONDS = 120;
 const START_DELAY_SECONDS = 0.03;
-const JITTER_BUFFER_SECONDS = 0.8;
 
-function isPcmByte(value: number) {
-  return Number.isInteger(value) && value >= 0 && value <= 255;
-}
+const isPcmByte = (value: number) => Number.isInteger(value) && value >= 0 && value <= 255;
 const isValidPcm = (pcm: number[], count: number) => pcm.length > 0 && pcm.length === count * 2;
 const isValidRate = (rate: number, exp?: number) =>
   Number.isSafeInteger(rate) && rate > 0 && (exp === undefined || rate === exp);
@@ -32,6 +29,7 @@ export class PreviewAudioQueue {
   private pending: SpeechPreviewAudioChunk[] = [];
   private pendingSeconds = 0;
   private epoch = 0;
+  private readonly endedListeners = new Set<() => void>();
 
   constructor(private readonly setPlaying: (playing: boolean) => void) {}
 
@@ -72,15 +70,8 @@ export class PreviewAudioQueue {
     this.expectedSeq += 1;
     this.sampleRate = chunk.sampleRate;
     const duration = chunk.sampleCount / chunk.sampleRate;
-    const underrun =
-      this.sources.size === 0 && chunk.seq > 1 && context.currentTime > this.scheduledUntilSeconds;
-    if (underrun || this.pending.length > 0) {
-      this.pending.push(chunk);
-      this.pendingSeconds += duration;
-      if (this.pendingSeconds >= JITTER_BUFFER_SECONDS) this.flush();
-      return;
-    }
-    this.scheduleChunk(context, chunk);
+    this.pending.push(chunk);
+    this.pendingSeconds += duration;
   }
 
   flush() {
@@ -89,7 +80,21 @@ export class PreviewAudioQueue {
     const queued = this.pending;
     this.pending = [];
     this.pendingSeconds = 0;
+    this.scheduledUntilSeconds = Math.max(
+      context.currentTime + START_DELAY_SECONDS,
+      this.scheduledUntilSeconds,
+    );
     for (const chunk of queued) this.scheduleChunk(context, chunk);
+  }
+
+  waitUntilEnded(): Promise<void> {
+    if (this.sources.size === 0 && this.pending.length === 0) return Promise.resolve();
+    return new Promise<void>((resolve) => this.endedListeners.add(resolve));
+  }
+
+  private notifyEnded() {
+    this.endedListeners.forEach((listener) => listener());
+    this.endedListeners.clear();
   }
 
   private scheduleChunk(context: AudioContext, chunk: SpeechPreviewAudioChunk) {
@@ -117,7 +122,10 @@ export class PreviewAudioQueue {
       this.completionListenerBySource.delete(source);
       this.queuedBytes = Math.max(0, this.queuedBytes - byteLength);
       source.disconnect();
-      if (this.sources.size === 0) this.setPlaying(false);
+      if (this.sources.size === 0) {
+        this.setPlaying(false);
+        this.notifyEnded();
+      }
     };
     this.completionListenerBySource.set(source, completed);
     source.addEventListener("ended", completed, { once: true });
@@ -152,6 +160,7 @@ export class PreviewAudioQueue {
     this.scheduledUntilSeconds = 0;
     this.queuedBytes = 0;
     this.setPlaying(false);
+    this.notifyEnded();
     if (context && context.state !== "closed") void context.close();
   }
 

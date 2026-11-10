@@ -2,12 +2,13 @@ import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
-import { defineComponent, h, reactive, shallowRef } from "vue";
+import { defineComponent, h, inject, reactive, shallowRef, type Ref } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
 import { DEFAULT_AI_MODEL_SETTINGS } from "../../../foundation/ai/schema/model-settings";
 import { i18n } from "../../../foundation/i18n/instance";
 import { archiveSettingsKey, type ArchiveSettingsContract } from "../../../shared/contracts/archive-settings";
+import { overlayScopeVisibleKey } from "../../../shared/contracts/overlay-scope-visibility";
 import UiSettingsHeaderActions from "../../../shared/ui/UiSettingsHeaderActions.vue";
 import SettingsSidebar from "../navigation/SettingsSidebar.vue";
 import SettingsView from "../SettingsView.vue";
@@ -146,3 +147,35 @@ it.each(["loading", "ready", "failed"])(
     expect(warnings.mock.calls.filter(([message]) => message.includes("non-element root node"))).toEqual([]);
   },
 );
+
+it("provides active overlay scope visibility to child panes", async () => {
+  let scopeVisible: Readonly<Ref<boolean>> | undefined;
+  const Consumer = defineComponent({
+    setup() {
+      scopeVisible = inject(overlayScopeVisibleKey);
+      return () => h("div");
+    },
+  });
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: "/settings", component: SettingsView }],
+  });
+  await router.push("/settings?pane=extensions");
+  const archive = {
+    archivedSpaces: shallowRef([]),
+    loading: shallowRef(false),
+    reload: async () => {},
+    restoreSpace: async () => {},
+    permanentlyDeleteSpace: async () => {},
+  };
+  const wrapper = mount(SettingsView, {
+    props: {
+      extensionsComponent: Consumer,
+      voiceLibraryComponent: Consumer,
+      returnToWorkspace: async () => {},
+    },
+    global: { plugins: [createPinia(), i18n, router], provide: { [archiveSettingsKey as symbol]: archive } },
+  });
+  onTestFinished(() => wrapper.unmount());
+  expect(scopeVisible?.value).toBe(true);
+});

@@ -16,7 +16,8 @@
   "archived": "已歸檔",
   "delete": {
     "title": "永久刪除音色",
-    "description": "刪除已歸檔音色及其全部版本。被項目引用的音色無法刪除。"
+    "description": "刪除已歸檔音色及其全部版本。被項目引用的音色無法刪除。",
+    "inUseDisabled": "被引用中無法刪除"
   },
   "label": "音色",
   "clone": {

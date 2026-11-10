@@ -16,7 +16,8 @@
   "archived": "Archivé",
   "delete": {
     "title": "Supprimer définitivement la voix",
-    "description": "Supprimez cette voix archivée et toutes ses révisions. Une voix utilisée par un projet ne peut pas être supprimée."
+    "description": "Supprimez cette voix archivée et toutes ses révisions. Une voix utilisée par un projet ne peut pas être supprimée.",
+    "inUseDisabled": "en cours d'utilisation"
   },
   "label": "Voix",
   "clone": {

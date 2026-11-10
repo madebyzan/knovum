@@ -6,7 +6,8 @@ const props = defineProps<{
   /** Reads the loudest audible sample, from 0 to 1. */
   peak: () => number;
   active: boolean;
-  bars?: number;
+  generating?: boolean | undefined;
+  bars?: number | undefined;
 }>();
 
 const BARS = props.bars ?? 28;
@@ -40,9 +41,13 @@ watch(
     <span
       v-for="(level, index) in levels"
       :key="index"
-      class="w-0.5 rounded-full bg-fg-tertiary transition-[height] duration-75"
-      :class="active ? 'bg-fg-accent' : 'bg-stroke-divider'"
-      :style="{ height: `${Math.max(2, Math.round(level * 20))}px` }"
+      class="w-0.5 rounded-full transition-[height,background-color] duration-75"
+      :class="[active ? 'bg-fg-accent' : generating ? 'animate-pulse bg-fg-accent/60' : 'bg-stroke-divider']"
+      :style="{
+        height: generating
+          ? `${Math.max(4, Math.round(10 + Math.sin(index * 0.45) * 6))}px`
+          : `${Math.max(2, Math.round(level * 20))}px`,
+      }"
     />
   </div>
 </template>
