@@ -74,7 +74,7 @@ const PROVIDERS: &[ProviderDescriptor] = &[
         ProviderKind::DeepSeek,
         "DeepSeek",
         "https://api.deepseek.com/",
-        TEXT,
+        TEXT_VISION,
     ),
     define_provider(
         ProviderKind::Grok,
@@ -168,9 +168,9 @@ const PROVIDERS: &[ProviderDescriptor] = &[
     ),
     define_provider(
         ProviderKind::Hunyuan,
-        "Tencent Hunyuan",
-        "https://api.hunyuan.cloud.tencent.com/v1/",
-        TEXT_VISION,
+        "Tencent TokenHub",
+        "https://tokenhub.tencentmaas.com/v1/",
+        TEXT_VISION_MEDIA,
     ),
     define_provider(
         ProviderKind::Baichuan,

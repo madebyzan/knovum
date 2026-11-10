@@ -4,6 +4,7 @@ pub mod dashscope;
 pub mod doubao;
 pub mod gemini;
 pub mod grok;
+pub mod hunyuan;
 pub mod image_references;
 pub mod kling;
 pub mod minimax;
@@ -19,6 +20,7 @@ use dashscope::DashScopeProvider;
 use doubao::DoubaoProvider;
 use gemini::GeminiProvider;
 use grok::GrokProvider;
+use hunyuan::HunyuanProvider;
 use kling::KlingProvider;
 use minimax::MiniMaxProvider;
 use moonshot::MoonshotProvider;
@@ -44,6 +46,7 @@ pub fn resolve_provider(kind: ProviderKind) -> &'static dyn AiProvider {
     static SILICONFLOW: OnceLock<SiliconFlowProvider> = OnceLock::new();
     static KLING: OnceLock<KlingProvider> = OnceLock::new();
     static GROK: OnceLock<GrokProvider> = OnceLock::new();
+    static HUNYUAN: OnceLock<HunyuanProvider> = OnceLock::new();
     static GROQ: OnceLock<OpenAiProvider> = OnceLock::new();
     static MISTRAL: OnceLock<OpenAiProvider> = OnceLock::new();
     static TOGETHER: OnceLock<TogetherProvider> = OnceLock::new();
@@ -77,12 +80,12 @@ pub fn resolve_provider(kind: ProviderKind) -> &'static dyn AiProvider {
         ProviderKind::SenseNova => {
             SENSENOVA.get_or_init(|| OpenAiProvider::new(ProviderKind::SenseNova))
         }
+        ProviderKind::Hunyuan => HUNYUAN.get_or_init(HunyuanProvider::new),
         ProviderKind::Anthropic
         | ProviderKind::DeepSeek
         | ProviderKind::Ollama
         | ProviderKind::Perplexity
         | ProviderKind::Cohere
-        | ProviderKind::Hunyuan
         | ProviderKind::Baichuan
         | ProviderKind::Spark
         | ProviderKind::Cerebras
