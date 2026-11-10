@@ -42,9 +42,7 @@ watch(
       v-for="(level, index) in levels"
       :key="index"
       class="w-0.5 rounded-full transition-[height,background-color] duration-75"
-      :class="[
-        active ? 'bg-fg-accent' : generating ? 'bg-fg-accent/60 animate-pulse' : 'bg-stroke-divider',
-      ]"
+      :class="[active ? 'bg-fg-accent' : generating ? 'animate-pulse bg-fg-accent/60' : 'bg-stroke-divider']"
       :style="{
         height: generating
           ? `${Math.max(4, Math.round(10 + Math.sin(index * 0.45) * 6))}px`

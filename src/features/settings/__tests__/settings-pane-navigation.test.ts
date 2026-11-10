@@ -169,7 +169,11 @@ it("provides active overlay scope visibility to child panes", async () => {
     permanentlyDeleteSpace: async () => {},
   };
   const wrapper = mount(SettingsView, {
-    props: { extensionsComponent: Consumer, voiceLibraryComponent: Consumer, returnToWorkspace: async () => {} },
+    props: {
+      extensionsComponent: Consumer,
+      voiceLibraryComponent: Consumer,
+      returnToWorkspace: async () => {},
+    },
     global: { plugins: [createPinia(), i18n, router], provide: { [archiveSettingsKey as symbol]: archive } },
   });
   onTestFinished(() => wrapper.unmount());

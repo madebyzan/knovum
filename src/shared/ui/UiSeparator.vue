@@ -23,7 +23,7 @@ const props = withDefaults(
     :decorative="decorative"
     :class="
       cn(
-        'bg-stroke-divider shrink-0',
+        'shrink-0 bg-stroke-divider',
         orientation === 'horizontal' ? 'h-px w-full' : 'h-3.5 w-px',
         props.class,
       )

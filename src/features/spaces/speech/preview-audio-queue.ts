@@ -80,7 +80,10 @@ export class PreviewAudioQueue {
     const queued = this.pending;
     this.pending = [];
     this.pendingSeconds = 0;
-    this.scheduledUntilSeconds = Math.max(context.currentTime + START_DELAY_SECONDS, this.scheduledUntilSeconds);
+    this.scheduledUntilSeconds = Math.max(
+      context.currentTime + START_DELAY_SECONDS,
+      this.scheduledUntilSeconds,
+    );
     for (const chunk of queued) this.scheduleChunk(context, chunk);
   }
 
@@ -161,7 +164,10 @@ export class PreviewAudioQueue {
     if (context && context.state !== "closed") void context.close();
   }
 
-  private accepts(context: AudioContext | undefined, chunk: SpeechPreviewAudioChunk): context is AudioContext {
+  private accepts(
+    context: AudioContext | undefined,
+    chunk: SpeechPreviewAudioChunk,
+  ): context is AudioContext {
     return Boolean(
       context && context.state !== "closed" && chunk.requestId === this.requestId && chunk.attemptEpoch === 0,
     );

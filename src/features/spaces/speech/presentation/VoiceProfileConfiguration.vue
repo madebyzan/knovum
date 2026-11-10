@@ -37,7 +37,12 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const isEditorDirty = shallowRef(false);
 const activeRevision = computed(() => activeVoiceProfileRevision(props.profile));
-watch(() => props.expanded, (expanded) => { if (!expanded) isEditorDirty.value = false; });
+watch(
+  () => props.expanded,
+  (expanded) => {
+    if (!expanded) isEditorDirty.value = false;
+  },
+);
 const menuItems = computed(() => [
   ...(!props.profile.archivedAt && !props.isDefault
     ? [

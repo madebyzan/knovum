@@ -19,15 +19,21 @@ class FakeAudioSource {
   private ended: EventListener | undefined;
   connect() {}
   disconnect() {}
-  start(time?: number) { this.startedAt = time; }
-  stop() { this.stopped = true; }
+  start(time?: number) {
+    this.startedAt = time;
+  }
+  stop() {
+    this.stopped = true;
+  }
   addEventListener(_type: string, listener: EventListenerOrEventListenerObject) {
     this.ended = typeof listener === "function" ? listener : (event) => listener.handleEvent(event);
   }
   removeEventListener(_type: string, listener: EventListenerOrEventListenerObject) {
     if (this.ended === listener) this.ended = undefined;
   }
-  finish() { this.ended?.(new Event("ended")); }
+  finish() {
+    this.ended?.(new Event("ended"));
+  }
 }
 
 class FakeAudioContext {
@@ -49,7 +55,9 @@ class FakeAudioContext {
     await this.resumeGate;
     if (this.state !== "closed") this.state = "running";
   }
-  async close() { this.state = "closed"; }
+  async close() {
+    this.state = "closed";
+  }
   createBuffer() {
     const buffer = new FakeAudioBuffer();
     this.buffers.push(buffer);

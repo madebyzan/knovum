@@ -104,7 +104,9 @@ it("shows synthesizing indicator when audition is generating", () => {
       audition: { playing: false, generating: true, busy: false, peak: () => 0 },
     },
     global: {
-      plugins: [createI18n({ legacy: false, locale: "zh-CN", fallbackLocale: false, messages: localeMessages })],
+      plugins: [
+        createI18n({ legacy: false, locale: "zh-CN", fallbackLocale: false, messages: localeMessages }),
+      ],
       stubs: { VoiceProfileEditor: true },
     },
   });
@@ -123,7 +125,9 @@ it("renders more actions dropdown trigger when overlay scope is active", () => {
       audition: { playing: false, busy: false, peak: () => 0 },
     },
     global: {
-      plugins: [createI18n({ legacy: false, locale: "zh-CN", fallbackLocale: false, messages: localeMessages })],
+      plugins: [
+        createI18n({ legacy: false, locale: "zh-CN", fallbackLocale: false, messages: localeMessages }),
+      ],
       stubs: { VoiceProfileEditor: true },
     },
   });
