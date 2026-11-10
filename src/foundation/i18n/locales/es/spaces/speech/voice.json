@@ -16,7 +16,8 @@
   "archived": "Archivado",
   "delete": {
     "title": "Eliminar voz permanentemente",
-    "description": "Elimine esta voz archivada y todas sus revisiones. Una voz utilizada por un proyecto no se puede eliminar."
+    "description": "Elimine esta voz archivada y todas sus revisiones. Una voz utilizada por un proyecto no se puede eliminar.",
+    "inUseDisabled": "en uso"
   },
   "label": "Voz",
   "clone": {

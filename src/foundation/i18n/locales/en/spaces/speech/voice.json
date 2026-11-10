@@ -16,7 +16,8 @@
   "archived": "Archived",
   "delete": {
     "title": "Delete voice permanently",
-    "description": "Delete this archived voice and all of its revisions. A voice used by a project cannot be deleted."
+    "description": "Delete this archived voice and all of its revisions. A voice used by a project cannot be deleted.",
+    "inUseDisabled": "in use by projects"
   },
   "label": "Voice",
   "clone": {

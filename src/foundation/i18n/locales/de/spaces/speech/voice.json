@@ -16,7 +16,8 @@
   "archived": "Archiviert",
   "delete": {
     "title": "Stimme dauerhaft löschen",
-    "description": "Löschen Sie diese archivierte Stimme und alle ihre Überarbeitungen. Eine von einem Projekt verwendete Stimme kann nicht gelöscht werden."
+    "description": "Löschen Sie diese archivierte Stimme und alle ihre Überarbeitungen. Eine von einem Projekt verwendete Stimme kann nicht gelöscht werden.",
+    "inUseDisabled": "in Verwendung"
   },
   "label": "Stimme",
   "clone": {

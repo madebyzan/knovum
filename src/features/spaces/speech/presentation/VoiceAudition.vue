@@ -43,7 +43,7 @@ const progressLabel = computed(() => {
       <UiSpinner size="sm" />
       <span>{{ progressLabel }}</span>
     </div>
-    <SpeechMediaPlayer v-if="preview" kind="audio" :source="preview.source" />
+    <SpeechMediaPlayer v-if="preview" kind="audio" :source="preview.source" @play="stopListening" />
     <p v-if="error" class="text-caption text-fg-danger">{{ error }}</p>
     <div class="flex items-center justify-between gap-2 border-t border-stroke-divider pt-3">
       <div class="flex items-center gap-2">
@@ -51,8 +51,10 @@ const progressLabel = computed(() => {
           size="sm"
           :disabled="disabled || Boolean(jobId) || !text.trim()"
           @click="previewSource(text.trim(), source, {})"
-          >{{ t("spaces.speech.preview.action") }}</UiButton
         >
+          <UiSpinner v-if="Boolean(jobId)" size="sm" />
+          {{ Boolean(jobId) ? t("spaces.speech.preview.synthesizing") : t("spaces.speech.preview.action") }}
+        </UiButton>
         <UiButton v-if="jobId" size="sm" @click="cancel">{{ t("common.cancel") }}</UiButton>
         <UiButton v-if="listening" size="sm" @click="stopListening">{{
           t("spaces.speech.preview.stop")

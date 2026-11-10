@@ -7,7 +7,6 @@ const noop = () => undefined;
 
 class FakeAudioBuffer {
   samples: Float32Array | undefined;
-
   copyToChannel(samples: Float32Array) {
     this.samples = samples;
   }
@@ -18,35 +17,22 @@ class FakeAudioSource {
   startedAt: number | undefined;
   stopped = false;
   private ended: EventListener | undefined;
-
   connect() {}
   disconnect() {}
-
-  start(time?: number) {
-    this.startedAt = time;
-  }
-
-  stop() {
-    this.stopped = true;
-  }
-
+  start(time?: number) { this.startedAt = time; }
+  stop() { this.stopped = true; }
   addEventListener(_type: string, listener: EventListenerOrEventListenerObject) {
     this.ended = typeof listener === "function" ? listener : (event) => listener.handleEvent(event);
   }
-
   removeEventListener(_type: string, listener: EventListenerOrEventListenerObject) {
     if (this.ended === listener) this.ended = undefined;
   }
-
-  finish() {
-    this.ended?.(new Event("ended"));
-  }
+  finish() { this.ended?.(new Event("ended")); }
 }
 
 class FakeAudioContext {
   static instances: FakeAudioContext[] = [];
   static resumeGates: Promise<void>[] = [];
-
   state: AudioContextState = "suspended";
   currentTime = 0;
   readonly destination = {} as AudioDestinationNode;
@@ -59,28 +45,21 @@ class FakeAudioContext {
     this.resumeGate = FakeAudioContext.resumeGates.shift();
     FakeAudioContext.instances.push(this);
   }
-
   async resume() {
     await this.resumeGate;
     if (this.state !== "closed") this.state = "running";
   }
-
-  async close() {
-    this.state = "closed";
-  }
-
+  async close() { this.state = "closed"; }
   createBuffer() {
     const buffer = new FakeAudioBuffer();
     this.buffers.push(buffer);
     return buffer as unknown as AudioBuffer;
   }
-
   createBufferSource() {
     const source = new FakeAudioSource();
     this.sources.push(source);
     return source as unknown as AudioBufferSourceNode;
   }
-
   createAnalyser() {
     const analyser = new FakeAnalyser();
     this.analysers.push(analyser);
@@ -88,29 +67,24 @@ class FakeAudioContext {
   }
 }
 
-/** Reports the amplitude the test asks for, so a waveform assertion measures real audio handling. */
 class FakeAnalyser {
   fftSize = 2048;
   amplitude = 0;
-
   connect() {}
   disconnect() {}
-
   getByteTimeDomainData(target: Uint8Array) {
     target.fill(128 + Math.round(this.amplitude * 127));
   }
 }
 
-function chunk(requestId: string, seq: number): SpeechPreviewAudioChunk {
-  return {
-    requestId,
-    attemptEpoch: 0,
-    seq,
-    sampleRate: 8_000,
-    sampleCount: 2,
-    pcm16: [0, 0, 0xff, 0x7f],
-  };
-}
+const chunk = (requestId: string, seq: number): SpeechPreviewAudioChunk => ({
+  requestId,
+  attemptEpoch: 0,
+  seq,
+  sampleRate: 8_000,
+  sampleCount: 2,
+  pcm16: [0, 0, 0xff, 0x7f],
+});
 
 beforeEach(() => {
   FakeAudioContext.instances = [];
@@ -127,6 +101,8 @@ describe("speech preview audio queue", () => {
 
     expect(await queue.start("request-1")).toBe(true);
     queue.enqueue(chunk("request-1", 1));
+    expect(() => queue.enqueue(chunk("request-1", 3))).toThrow("Preview audio chunk contract is invalid");
+    queue.flush();
 
     const context = FakeAudioContext.instances[0];
     const source = context?.sources[0];
@@ -134,28 +110,20 @@ describe("speech preview audio queue", () => {
     expect(source?.startedAt).toBeCloseTo(0.03);
     expect(Array.from(samples ?? [])).toEqual([0, 32_767 / 32_768]);
     expect(playing).toEqual([false, true]);
-    expect(() => queue.enqueue(chunk("request-1", 3))).toThrow("Preview audio chunk contract is invalid");
 
     source?.finish();
     expect(playing.at(-1)).toBe(false);
   });
 
-  it("buffers successive chunks on underrun and plays them smoothly on flush", async () => {
+  it("buffers successive chunks during generation and plays them smoothly on flush", async () => {
     const queue = new PreviewAudioQueue(() => undefined);
     expect(await queue.start("request-1")).toBe(true);
 
     const context = FakeAudioContext.instances[0]!;
     queue.enqueue(chunk("request-1", 1));
-    expect(context.sources).toHaveLength(1);
-
-    context.sources[0]!.finish();
-    context.currentTime = 5.0;
-
     queue.enqueue(chunk("request-1", 2));
-    expect(context.sources).toHaveLength(1);
-
     queue.enqueue(chunk("request-1", 3));
-    expect(context.sources).toHaveLength(1);
+    expect(context.sources).toHaveLength(0);
 
     queue.flush();
     expect(context.sources).toHaveLength(3);
@@ -169,10 +137,12 @@ describe("speech preview audio queue", () => {
     queue.enqueue(chunk("request-1", 1));
     queue.stop("request-1");
     queue.enqueue(chunk("request-2", 1));
+    queue.flush();
     expect(FakeAudioContext.instances[1]?.sources).toHaveLength(1);
 
     queue.stop("request-2");
     queue.enqueue(chunk("request-2", 2));
+    queue.flush();
     expect(FakeAudioContext.instances[1]?.sources).toHaveLength(1);
     expect(FakeAudioContext.instances[1]?.state).toBe("closed");
   });
@@ -193,6 +163,7 @@ describe("speech preview audio queue", () => {
     releaseFirst();
     expect(await first).toBe(false);
     queue.enqueue(chunk("request-2", 1));
+    queue.flush();
     expect(FakeAudioContext.instances[1]?.sources).toHaveLength(1);
     expect(FakeAudioContext.instances[0]?.state).toBe("closed");
   });
@@ -209,9 +180,31 @@ it("reports the amplitude of the audio being heard and silence once it stops", a
   expect(queue.peak()).toBe(0);
 
   queue.enqueue(chunk("job", 1));
+  expect(queue.peak()).toBe(0);
+
+  queue.flush();
   analyser.amplitude = 0.5;
   expect(queue.peak()).toBeCloseTo(0.5, 1);
 
   queue.stop();
   expect(queue.peak()).toBe(0);
+});
+
+it("waits until all scheduled chunks finish playing", async () => {
+  const queue = new PreviewAudioQueue(() => {});
+  await queue.start("job");
+  const context = FakeAudioContext.instances[0]!;
+
+  queue.enqueue(chunk("job", 1));
+  queue.flush();
+  let finished = false;
+  const waiting = queue.waitUntilEnded().then(() => {
+    finished = true;
+    return true;
+  });
+
+  expect(finished).toBe(false);
+  context.sources[0]!.finish();
+  await waiting;
+  expect(finished).toBe(true);
 });
