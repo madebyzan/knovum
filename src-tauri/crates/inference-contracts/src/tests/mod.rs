@@ -72,3 +72,92 @@ fn layer_discovery_bounds_are_shared_by_both_sides_of_the_worker_boundary() {
     const { assert!(MAX_DISCOVERED_LAYERS < u8::MAX) };
     const { assert!(MAX_DISCOVERY_SEEDS > MAX_DISCOVERED_LAYERS as usize) };
 }
+
+#[test]
+fn image_specs_match_provenance_and_processor_config() {
+    use crate::image_compute::ImageModelVariant;
+    use crate::image_spec::{
+        Geometry, OutputField, OutputHead, OutputNormalization, Scale, Standardization,
+        DEPTH_ANYTHING_V2_SPEC, U2NET_RESOLUTION, U2NET_SPEC,
+    };
+    use serde_json::Value;
+
+    // L10: Verify Depth Anything V2 spec matches the shipped preprocessor_config.json metadata
+    let processor_raw = r#"{
+        "do_normalize": true,
+        "do_pad": false,
+        "do_rescale": true,
+        "do_resize": true,
+        "ensure_multiple_of": 14,
+        "image_mean": [0.485, 0.456, 0.406],
+        "image_processor_type": "DPTImageProcessor",
+        "image_std": [0.229, 0.224, 0.225],
+        "keep_aspect_ratio": true,
+        "resample": 3,
+        "rescale_factor": 0.00392156862745098,
+        "size": {"height": 518, "width": 518},
+        "size_divisor": null
+    }"#;
+    let config: Value = serde_json::from_str(processor_raw).unwrap();
+    let expected_patch = config["ensure_multiple_of"].as_u64().unwrap() as u32;
+    let expected_edge = config["size"]["height"].as_u64().unwrap() as u32;
+    assert_eq!(
+        DEPTH_ANYTHING_V2_SPEC.geometry,
+        Geometry::ShortestEdgePatchAligned {
+            edge: expected_edge,
+            patch: expected_patch,
+        }
+    );
+    let mean: Vec<f32> = config["image_mean"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_f64().unwrap() as f32)
+        .collect();
+    let std: Vec<f32> = config["image_std"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_f64().unwrap() as f32)
+        .collect();
+    assert_eq!(
+        DEPTH_ANYTHING_V2_SPEC.standardization,
+        Standardization::ImageNet {
+            mean: [mean[0], mean[1], mean[2]],
+            std: [std[0], std[1], std[2]],
+        }
+    );
+    assert_eq!(DEPTH_ANYTHING_V2_SPEC.scale, Scale::UnitScale);
+
+    // U2-Net spec invariant checks
+    assert_eq!(
+        U2NET_SPEC.geometry,
+        Geometry::Stretch {
+            width: U2NET_RESOLUTION,
+            height: U2NET_RESOLUTION,
+        }
+    );
+    assert_eq!(U2NET_SPEC.output_head, OutputHead::FirstOfSupervision);
+    assert_eq!(
+        U2NET_SPEC.output_field,
+        OutputField::RawScalarField {
+            normalize: OutputNormalization::MinMax,
+        }
+    );
+
+    // Ensure all defined variant specs resolve and have non-empty provenance
+    for variant in [
+        ImageModelVariant::RealEsrganGeneralX4v3,
+        ImageModelVariant::RealEsrganX4plus,
+        ImageModelVariant::Migan,
+        ImageModelVariant::Lama,
+        ImageModelVariant::EfficientSamTi,
+        ImageModelVariant::EfficientSamS,
+        ImageModelVariant::DepthAnythingV2SmallUint8,
+        ImageModelVariant::DepthAnythingV2Small,
+    ] {
+        let spec = variant.spec().expect("variant must have a frozen spec");
+        assert!(!spec.provenance.reference.is_empty());
+        assert!(!spec.provenance.revision.is_empty());
+    }
+}

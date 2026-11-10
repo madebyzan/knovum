@@ -5,14 +5,28 @@
 
 use image::{imageops::FilterType, DynamicImage, GrayImage, RgbaImage};
 
-use crate::ai::contracts::image_wire::IMAGE_SEGMENTATION_RESOLUTION;
+use crate::ai::contracts::image_spec::{
+    Geometry, Scale, Standardization, U2NET_RESOLUTION, U2NET_SPEC,
+};
 
-const EDGE: u32 = IMAGE_SEGMENTATION_RESOLUTION;
+const EDGE: u32 = match U2NET_SPEC.geometry {
+    Geometry::Stretch { width, .. } => width,
+    _ => U2NET_RESOLUTION,
+};
 const PIXELS: usize = EDGE as usize * EDGE as usize;
-const MEAN: [f32; 3] = [0.485, 0.456, 0.406];
-const STD: [f32; 3] = [0.229, 0.224, 0.225];
+const MEAN: [f32; 3] = match U2NET_SPEC.standardization {
+    Standardization::ImageNet { mean, .. } => mean,
+    _ => [0.485, 0.456, 0.406],
+};
+const STD: [f32; 3] = match U2NET_SPEC.standardization {
+    Standardization::ImageNet { std, .. } => std,
+    _ => [0.229, 0.224, 0.225],
+};
 /// Lower bound of the whole-image scale, as in the reference (`max(np.max(im_ary), 1e-6)`).
-const MIN_SCALE: f32 = 1e-6;
+const MIN_SCALE: f32 = match U2NET_SPEC.scale {
+    Scale::AdaptiveMaxScale { min_scale } => min_scale,
+    _ => 1e-6,
+};
 
 /// Channel-first ImageNet-standardized tensor. The source is stretched to the model square with
 /// Lanczos (no letterbox), then divided by the single brightest channel value of the resized image

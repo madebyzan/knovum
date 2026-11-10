@@ -1,0 +1,237 @@
+//! Frozen specifications for local image models. Defines input scaling, channel standardization,
+//! geometry transformation, resampling filter, output head selection, and output field semantics
+//! as a single neutral source of truth shared by both host and worker crates.
+
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+/// How pixel values map to numerical tensor inputs.
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum Scale {
+    /// Divided by 255.0: maps `[0, 255]` to `[0.0, 1.0]`.
+    UnitScale,
+    /// Divided by `max(np.max(image), min_scale)`: adaptive whole-image scalar normalization.
+    AdaptiveMaxScale { min_scale: f32 },
+    /// Raw unnormalized uint8 values.
+    Identity,
+}
+
+/// Channel-wise affine standardization.
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum Standardization {
+    /// No standardization applied.
+    None,
+    /// Standard ImageNet mean and standard deviation.
+    ImageNet { mean: [f32; 3], std: [f32; 3] },
+}
+
+/// Geometry transformation from source image to model input tensor.
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum Geometry {
+    /// Stretched to fixed `width` × `height`, ignoring aspect ratio. (U²-Net: 320×320).
+    Stretch { width: u32, height: u32 },
+    /// Resized such that the longest edge does not exceed `edge`. (EfficientSAM: 2048).
+    LongestEdge { edge: u32 },
+    /// Resized maintaining aspect ratio, with the shortest edge target and aligned to `patch`. (Depth: 518 / 14).
+    ShortestEdgePatchAligned { edge: u32, patch: u32 },
+    /// Full original source at native resolution. (MI-GAN).
+    WholeSource,
+    /// Tiled execution with core and context overlap. (Real-ESRGAN: core 64, context 32, tile 128).
+    Tiled { core: u32, context: u32 },
+    /// Fitted window around the target hole. (Big LaMa: 512, context share 0.5, min context 32).
+    FittedWindow {
+        edge: u32,
+        context_share: f32,
+        min_context: u32,
+    },
+}
+
+/// Neutral resampling filter representation.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(rename_all = "snake_case")]
+pub enum Resample {
+    Lanczos3,
+    CatmullRom,
+    Triangle,
+    Nearest,
+}
+
+/// Selection of output head from the ONNX graph outputs.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum OutputHead {
+    /// Single output tensor `[1, 1, H, W]` or `[1, 3, H, W]`.
+    Single,
+    /// First head of multi-supervision outputs (`ort_outs[0][:, 0, :, :]`).
+    FirstOfSupervision,
+    /// Selection candidate heads ranked by score (e.g. EfficientSAM: 3 candidate heads).
+    BestOfScored { count: usize },
+}
+
+/// Normalization applied to scalar fields.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(rename_all = "snake_case")]
+pub enum OutputNormalization {
+    /// Min-max normalized across all elements to `[0.0, 1.0]`.
+    MinMax,
+}
+
+/// Semantics of the model's output tensor field.
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum OutputField {
+    /// Raw scalar field requiring post-processing normalization. (U²-Net, Depth).
+    RawScalarField { normalize: OutputNormalization },
+    /// Already in normalized probability `[0.0, 1.0]`.
+    ProbabilityFullRange,
+    /// Float RGB in `[0.0, 1.0]` range quantized to uint8. (Real-ESRGAN).
+    UnitRgb,
+    /// Float RGB in `[0.0, scale]` range quantized to uint8. (Big LaMa with scale = 255.0).
+    ScaledRgb { scale: f32 },
+    /// Direct uint8 RGB pixels. (MI-GAN).
+    Uint8Rgb,
+    /// Logits evaluated relative to decision threshold offset. (EfficientSAM with offset = 0.0).
+    Logits { decision_offset: f32 },
+}
+
+/// Provenance metadata tracking the origin, reference implementation, and revision.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct Provenance {
+    pub reference: &'static str,
+    pub revision: &'static str,
+    pub shipped_processor: Option<&'static str>,
+}
+
+/// Complete frozen inference specification for an image model.
+#[derive(Clone, Copy, Debug, PartialEq, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct ImageModelSpec {
+    pub scale: Scale,
+    pub standardization: Standardization,
+    pub geometry: Geometry,
+    pub resample: Resample,
+    pub output_head: OutputHead,
+    pub output_field: OutputField,
+    pub provenance: Provenance,
+}
+
+pub const U2NET_RESOLUTION: u32 = 320;
+
+/// Frozen specification for U²-Net family segmentation models (`u2netp`, `u2net`, `u2net_human_seg`, `silueta`).
+pub const U2NET_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::AdaptiveMaxScale { min_scale: 1e-6 },
+    standardization: Standardization::ImageNet {
+        mean: [0.485, 0.456, 0.406],
+        std: [0.229, 0.224, 0.225],
+    },
+    geometry: Geometry::Stretch {
+        width: U2NET_RESOLUTION,
+        height: U2NET_RESOLUTION,
+    },
+    resample: Resample::Lanczos3,
+    output_head: OutputHead::FirstOfSupervision,
+    output_field: OutputField::RawScalarField {
+        normalize: OutputNormalization::MinMax,
+    },
+    provenance: Provenance {
+        reference: "https://github.com/danielgatis/rembg",
+        revision: "cd3a3d6767a7859efea31ef0f2f373582cf06d82",
+        shipped_processor: None,
+    },
+};
+
+/// Frozen specification for Depth Anything V2 Small (`depth-anything-v2-small-fp32` / `uint8`).
+pub const DEPTH_ANYTHING_V2_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::UnitScale,
+    standardization: Standardization::ImageNet {
+        mean: [0.485, 0.456, 0.406],
+        std: [0.229, 0.224, 0.225],
+    },
+    geometry: Geometry::ShortestEdgePatchAligned {
+        edge: 518,
+        patch: 14,
+    },
+    resample: Resample::CatmullRom,
+    output_head: OutputHead::Single,
+    output_field: OutputField::RawScalarField {
+        normalize: OutputNormalization::MinMax,
+    },
+    provenance: Provenance {
+        reference: "https://github.com/DepthAnything/Depth-Anything-V2",
+        revision: "4472b7362082ad9968fee890ca0f1e5aca36b93d",
+        shipped_processor: Some("preprocessor_config.json"),
+    },
+};
+
+/// Frozen specification for Real-ESRGAN upscaling models (`x4plus`, `general-x4v3`).
+pub const REAL_ESRGAN_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::UnitScale,
+    standardization: Standardization::None,
+    geometry: Geometry::Tiled {
+        core: 64,
+        context: 32,
+    },
+    resample: Resample::Nearest,
+    output_head: OutputHead::Single,
+    output_field: OutputField::UnitRgb,
+    provenance: Provenance {
+        reference: "https://github.com/xinntao/Real-ESRGAN",
+        revision: "qai-hub-v0.62.2",
+        shipped_processor: None,
+    },
+};
+
+/// Frozen specification for MI-GAN mask repair (`migan_pipeline_v2`).
+pub const MIGAN_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::Identity,
+    standardization: Standardization::None,
+    geometry: Geometry::WholeSource,
+    resample: Resample::Nearest,
+    output_head: OutputHead::Single,
+    output_field: OutputField::Uint8Rgb,
+    provenance: Provenance {
+        reference: "https://github.com/Picsart-AI-Research/MI-GAN",
+        revision: "406830d0fa60666da0071c342ad2fbc8f30c5c64",
+        shipped_processor: None,
+    },
+};
+
+/// Frozen specification for Big LaMa mask repair (`lama_fp32.onnx`).
+pub const LAMA_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::UnitScale,
+    standardization: Standardization::None,
+    geometry: Geometry::FittedWindow {
+        edge: 512,
+        context_share: 0.5,
+        min_context: 32,
+    },
+    resample: Resample::Triangle,
+    output_head: OutputHead::Single,
+    output_field: OutputField::ScaledRgb { scale: 255.0 },
+    provenance: Provenance {
+        reference: "https://github.com/advimman/lama",
+        revision: "c3c0c9e468934d62e79c329e35d82dd09ff8c444",
+        shipped_processor: None,
+    },
+};
+
+/// Frozen specification for EfficientSAM selection models (`ti`, `s`).
+pub const EFFICIENT_SAM_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::UnitScale,
+    standardization: Standardization::None,
+    geometry: Geometry::LongestEdge { edge: 2048 },
+    resample: Resample::Lanczos3,
+    output_head: OutputHead::BestOfScored { count: 3 },
+    output_field: OutputField::Logits {
+        decision_offset: 0.0,
+    },
+    provenance: Provenance {
+        reference: "https://github.com/yformer/EfficientSAM",
+        revision: "1cf49585c39567bfc49e991ab8eb31f491ad4877",
+        shipped_processor: None,
+    },
+};

@@ -317,9 +317,9 @@ Selections are strict current v1 preferences, not an arbitrary model-import mech
 
 | Capability      | Catalog variants                     | Frozen inference contract                                                                                         |
 | --------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| Upscaling       | Real-ESRGAN General x4v3 / x4plus    | Release v0.62.2 graph plus external weights; CPU float32, fixed 128px tiles, native 4×                            |
+| Upscaling       | Real-ESRGAN General x4v3 / x4plus    | Release v0.62.2 graph plus external weights; CPU float32, fixed 128px tiles (core 64, context 32), [0, 1] float input, [0, 1] float output quantized with ties-to-even to uint8 RGB, native 4× |
 | Mask repair     | MI-GAN pipeline v2                   | Author ONNX uint8 RGB and mask; adapter flips selected-mask polarity and protects every unselected source byte    |
-| Mask repair     | Big LaMa (Carve ONNX export)         | fp32, image 0–1 + hole mask, one 512² window fitted around the hole; outside pixels kept                          |
+| Mask repair     | Big LaMa (Carve ONNX export)         | fp32, image 0–1 + hole mask, one 512² window fitted around the hole; [0, 255] float output rounded and clamped to uint8 RGB; outside pixels kept |
 | Smart selection | EfficientSAM Ti / S                  | Frozen author encoder + decoder, RGB 0–1, foreground/exclusion points and rectangle; one worker-owned encoding    |
 | Relative depth  | Depth Anything V2 Small FP32 / UINT8 | Frozen ONNX conversion and processor; ImageNet-normalized RGB, dimensions divisible by 14, relative inverse depth |
 | Segmentation    | U²-Net Compact / full / Human Portrait / Silueta | rembg reference: Lanczos stretch to 320² (no letterbox), divide by the whole resized image's brightest channel value (floor 1e-6), ImageNet mean/std, CHW; first output head min-max normalized in the worker; mask truncated to uint8, Lanczos-upsampled, multiplied into source alpha (RGB kept straight) |
@@ -440,7 +440,9 @@ Use actual candidate outputs and reviewed measurements rather than a repository 
 Record each target's model specification, snapshot digest, execution configuration, worker/runtime
 digests and device, and freeze load/warm/RSS/cancellation limits before capturing results.
 Every model profile must cover hair, product edges, transparency, text, anime, repeated textures,
-large selections, thin images and EXIF orientation. Retain source/license, original bytes, operation
+large selections, thin images and EXIF orientation. Background removal and layer segmentation
+consume canonical rendered PNGs from the engine where EXIF orientation has already been applied
+at render time; unrendered external JPEGs are rejected at the boundary. Retain source/license, original bytes, operation
 grid and selection mask with hashes so the execution can be reproduced.
 
 Upscaling must return native 4× RGB, repair must preserve unselected RGB exactly, selection must be

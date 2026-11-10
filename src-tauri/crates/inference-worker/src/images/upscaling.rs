@@ -1,11 +1,18 @@
 use super::session;
 use crate::cancellation::Cancellation;
+use knovum_inference_contracts::image_spec::{Geometry, REAL_ESRGAN_SPEC};
 use ort::{session::Session, value::Tensor};
 use std::path::Path;
 
-const TILE: usize = 128;
-const CONTEXT: usize = 32;
-const CORE: usize = 64;
+const CORE: usize = match REAL_ESRGAN_SPEC.geometry {
+    Geometry::Tiled { core, .. } => core as usize,
+    _ => 64,
+};
+const CONTEXT: usize = match REAL_ESRGAN_SPEC.geometry {
+    Geometry::Tiled { context, .. } => context as usize,
+    _ => 32,
+};
+const TILE: usize = CORE + 2 * CONTEXT;
 
 pub(super) struct Upscaling {
     session: Session,

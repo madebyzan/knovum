@@ -4,16 +4,28 @@ use image::{
     imageops::{self, FilterType},
     GrayImage, Luma, Rgb, RgbImage,
 };
-use knovum_inference_contracts::image_compute::ImageModelVariant;
+use knovum_inference_contracts::{
+    image_compute::ImageModelVariant,
+    image_spec::{Geometry, LAMA_SPEC},
+};
 use ort::{session::Session, value::Tensor};
 use std::path::Path;
 
 /// Big LaMa's graph reads one fixed square.
-const LAMA_EDGE: u32 = 512;
+const LAMA_EDGE: u32 = match LAMA_SPEC.geometry {
+    Geometry::FittedWindow { edge, .. } => edge,
+    _ => 512,
+};
 /// Context kept on every side of a hole, as a share of the hole's longer side: the model continues
 /// what surrounds the hole, so it must see enough of it.
-const CONTEXT_SHARE: f32 = 0.5;
-const MIN_CONTEXT: u32 = 32;
+const CONTEXT_SHARE: f32 = match LAMA_SPEC.geometry {
+    Geometry::FittedWindow { context_share, .. } => context_share,
+    _ => 0.5,
+};
+const MIN_CONTEXT: u32 = match LAMA_SPEC.geometry {
+    Geometry::FittedWindow { min_context, .. } => min_context,
+    _ => 32,
+};
 
 /// How a model takes the source. MI-GAN's pipeline export reads the source at any size; Big LaMa
 /// reads a fixed square, so the hole is painted inside a context window fitted to that square.

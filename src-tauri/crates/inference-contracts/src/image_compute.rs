@@ -52,6 +52,22 @@ impl ImageModelVariant {
             Self::PpOcrV6Small => RuntimeCapability::ImageTextRecognition,
         }
     }
+    pub const fn spec(self) -> Option<&'static crate::image_spec::ImageModelSpec> {
+        match self {
+            Self::RealEsrganGeneralX4v3 | Self::RealEsrganX4plus => {
+                Some(&crate::image_spec::REAL_ESRGAN_SPEC)
+            }
+            Self::Migan => Some(&crate::image_spec::MIGAN_SPEC),
+            Self::Lama => Some(&crate::image_spec::LAMA_SPEC),
+            Self::EfficientSamTi | Self::EfficientSamS => {
+                Some(&crate::image_spec::EFFICIENT_SAM_SPEC)
+            }
+            Self::DepthAnythingV2SmallUint8 | Self::DepthAnythingV2Small => {
+                Some(&crate::image_spec::DEPTH_ANYTHING_V2_SPEC)
+            }
+            Self::PpOcrV6Small => None,
+        }
+    }
 }
 
 use super::image_wire::{ImageSegmentParams, TensorFileReference};

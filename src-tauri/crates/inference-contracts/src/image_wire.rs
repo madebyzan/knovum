@@ -1,7 +1,8 @@
+use crate::image_spec::U2NET_RESOLUTION;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub const IMAGE_SEGMENTATION_RESOLUTION: u32 = 320;
+pub const IMAGE_SEGMENTATION_RESOLUTION: u32 = U2NET_RESOLUTION;
 pub const IMAGE_SEGMENTATION_PIXELS: u64 =
     IMAGE_SEGMENTATION_RESOLUTION as u64 * IMAGE_SEGMENTATION_RESOLUTION as u64;
 pub const IMAGE_SEGMENTATION_INPUT_BYTES: u64 = 3 * IMAGE_SEGMENTATION_PIXELS * 4;
@@ -46,7 +47,7 @@ pub struct ImageSegmentation {
     pub request_id: String,
     pub attempt_epoch: u64,
     pub model_spec_id: String,
-    /// Foreground field normalized by the worker to the full `[0, 1]` range (min-max over the
-    /// graph's first output head), not the graph's raw probability.
+    // Foreground field normalized by the worker to the full `[0, 1]` range (min-max over the
+    // graph's first output head), not the graph's raw probability.
     pub mask_ref: TensorFileReference,
 }

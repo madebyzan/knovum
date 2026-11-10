@@ -308,7 +308,9 @@ resource paths, or publishes engine results to Space storage.
 ### Rust inference and retained Agent Python
 
 `src-tauri/crates/inference-contracts` owns the strict neutral wire types shared by the host and
-private worker. The host imports neutral contracts and compiled-library build metadata, never inference execution APIs.
+private worker, as well as `ImageModelSpec` which serves as the single source of truth for all local
+image model preprocessing scaling, standardization, geometry, and output field semantics across
+process boundaries. The host imports neutral contracts and compiled-library build metadata, never inference execution APIs.
 `inference-worker` owns bounded framing, request admission and independent reader/compute threads;
 `embedding`, `images` and `speech` own their capability adapters. Compiled libraries receive only
 verified models and request-scoped inputs. Business authorization and publication remain with the

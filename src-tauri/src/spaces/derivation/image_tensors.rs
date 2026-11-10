@@ -3,7 +3,11 @@
 //! layer splitting read them from here instead of restating them per feature.
 
 use crate::ai::{
-    contracts::image_wire::TensorDataType, local_runtime::image::compute::ImageTensor,
+    contracts::{
+        image_spec::{Geometry, Standardization, DEPTH_ANYTHING_V2_SPEC, EFFICIENT_SAM_SPEC},
+        image_wire::TensorDataType,
+    },
+    local_runtime::image::compute::ImageTensor,
 };
 use image::{
     imageops::{self, FilterType},
@@ -12,10 +16,25 @@ use image::{
 use std::io::Cursor;
 
 /// EfficientSAM admits four megapixels, which is one 2048 pixel long edge.
-const SELECTION_LONG_EDGE: u32 = 2048;
+const SELECTION_LONG_EDGE: u32 = match EFFICIENT_SAM_SPEC.geometry {
+    Geometry::LongestEdge { edge } => edge,
+    _ => 2048,
+};
 /// Depth-Anything expects a 518 pixel short edge aligned to its patch size of 14.
-const DEPTH_EDGE: f64 = 518.0;
-const DEPTH_PATCH: f64 = 14.0;
+const DEPTH_EDGE: f64 = match DEPTH_ANYTHING_V2_SPEC.geometry {
+    Geometry::ShortestEdgePatchAligned { edge, .. } => edge as f64,
+    _ => 518.0,
+};
+const DEPTH_PATCH: f64 = match DEPTH_ANYTHING_V2_SPEC.geometry {
+    Geometry::ShortestEdgePatchAligned { patch, .. } => patch as f64,
+    _ => 14.0,
+};
+const DEPTH_MEAN_STD: [(f32, f32); 3] = match DEPTH_ANYTHING_V2_SPEC.standardization {
+    Standardization::ImageNet { mean, std } => {
+        [(mean[0], std[0]), (mean[1], std[1]), (mean[2], std[2])]
+    }
+    _ => [(0.485, 0.229), (0.456, 0.224), (0.406, 0.225)],
+};
 
 pub(super) fn decode(bytes: &[u8]) -> Result<RgbaImage, String> {
     let mut reader = ImageReader::with_format(Cursor::new(bytes), ImageFormat::Png);
@@ -78,10 +97,7 @@ pub(super) fn depth_tensor(source: &RgbaImage) -> Result<ImageTensor, String> {
     }
     let resized = imageops::resize(source, width, height, FilterType::CatmullRom);
     let mut bytes = Vec::with_capacity(width as usize * height as usize * 12);
-    for (channel, (mean, deviation)) in [(0.485, 0.229), (0.456, 0.224), (0.406, 0.225)]
-        .into_iter()
-        .enumerate()
-    {
+    for (channel, &(mean, deviation)) in DEPTH_MEAN_STD.iter().enumerate() {
         for pixel in resized.pixels() {
             bytes.extend_from_slice(
                 &((f32::from(pixel[channel]) / 255.0 - mean) / deviation).to_le_bytes(),
