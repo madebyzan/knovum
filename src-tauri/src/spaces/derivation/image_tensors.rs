@@ -4,36 +4,31 @@
 
 use crate::ai::{
     contracts::{
-        image_spec::{Geometry, Standardization, DEPTH_ANYTHING_V2_SPEC, EFFICIENT_SAM_SPEC},
+        image_spec::{Geometry, Standardization, DEPTH_ANYTHING_V2_SPEC},
         image_wire::TensorDataType,
     },
     local_runtime::image::compute::ImageTensor,
 };
 use image::{
     imageops::{self, FilterType},
-    DynamicImage, ImageFormat, ImageReader, Limits, RgbaImage,
+    ImageFormat, ImageReader, Limits, RgbaImage,
 };
 use std::io::Cursor;
 
-/// EfficientSAM admits four megapixels, which is one 2048 pixel long edge.
-const SELECTION_LONG_EDGE: u32 = match EFFICIENT_SAM_SPEC.geometry {
-    Geometry::LongestEdge { edge } => edge,
-    _ => 2048,
-};
 /// Depth-Anything expects a 518 pixel short edge aligned to its patch size of 14.
 const DEPTH_EDGE: f64 = match DEPTH_ANYTHING_V2_SPEC.geometry {
     Geometry::ShortestEdgePatchAligned { edge, .. } => edge as f64,
-    _ => 518.0,
+    _ => panic!("frozen depth geometry"),
 };
 const DEPTH_PATCH: f64 = match DEPTH_ANYTHING_V2_SPEC.geometry {
     Geometry::ShortestEdgePatchAligned { patch, .. } => patch as f64,
-    _ => 14.0,
+    _ => panic!("frozen depth geometry"),
 };
 const DEPTH_MEAN_STD: [(f32, f32); 3] = match DEPTH_ANYTHING_V2_SPEC.standardization {
     Standardization::ImageNet { mean, std } => {
         [(mean[0], std[0]), (mean[1], std[1]), (mean[2], std[2])]
     }
-    _ => [(0.485, 0.229), (0.456, 0.224), (0.406, 0.225)],
+    _ => panic!("frozen depth standardization"),
 };
 
 pub(super) fn decode(bytes: &[u8]) -> Result<RgbaImage, String> {
@@ -66,22 +61,7 @@ pub(crate) fn rgb_tensor(image: &RgbaImage) -> ImageTensor {
     }
 }
 
-/// Reduces the source to the selection budget before building its RGB tensor.
-pub(super) fn selection_input(original: &RgbaImage) -> ImageTensor {
-    if original.width().max(original.height()) > SELECTION_LONG_EDGE {
-        let reduced = DynamicImage::ImageRgba8(original.clone())
-            .resize(
-                SELECTION_LONG_EDGE,
-                SELECTION_LONG_EDGE,
-                FilterType::Lanczos3,
-            )
-            .to_rgba8();
-        rgb_tensor(&reduced)
-    } else {
-        rgb_tensor(original)
-    }
-}
-
+/// Patch-aligned short-edge resize with ImageNet normalisation, as the depth processor expects.
 pub(super) fn depth_tensor(source: &RgbaImage) -> Result<ImageTensor, String> {
     let scale_h = DEPTH_EDGE / f64::from(source.height());
     let scale_w = DEPTH_EDGE / f64::from(source.width());

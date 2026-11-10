@@ -215,10 +215,9 @@ fn image_choices_prepare_their_complete_snapshot_without_recursion() {
     let choices = [
         LocalModelId::RealEsrganGeneralX4v3,
         LocalModelId::RealEsrganX4plus,
-        LocalModelId::Migan,
         LocalModelId::Lama,
-        LocalModelId::EfficientSamTi,
-        LocalModelId::EfficientSamS,
+        LocalModelId::MobileSam,
+        LocalModelId::Sam2HieraTiny,
         LocalModelId::DepthAnythingV2SmallUint8,
         LocalModelId::DepthAnythingV2Small,
     ];
@@ -238,11 +237,8 @@ fn image_choices_prepare_their_complete_snapshot_without_recursion() {
         assert!(super::super::models::sources::for_snapshot(snapshot).is_none());
     }
     assert!(
-        LocalModelId::EfficientSamTi
-            .snapshot()
-            .unwrap()
-            .total_bytes()
-            < LocalModelId::EfficientSamS
+        LocalModelId::MobileSam.snapshot().unwrap().total_bytes()
+            < LocalModelId::Sam2HieraTiny
                 .snapshot()
                 .unwrap()
                 .total_bytes()

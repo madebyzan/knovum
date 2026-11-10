@@ -16,10 +16,9 @@
 pub enum ImageModelVariant {
     RealEsrganGeneralX4v3,
     RealEsrganX4plus,
-    Migan,
     Lama,
-    EfficientSamTi,
-    EfficientSamS,
+    MobileSam,
+    Sam2HieraTiny,
     DepthAnythingV2SmallUint8,
     DepthAnythingV2Small,
     PpOcrV6Small,
@@ -30,10 +29,9 @@ impl ImageModelVariant {
         match self {
             Self::RealEsrganGeneralX4v3 => "real-esrgan-general-x4v3",
             Self::RealEsrganX4plus => "real-esrgan-x4plus",
-            Self::Migan => "mi-gan",
             Self::Lama => "lama",
-            Self::EfficientSamTi => "efficient-sam-ti",
-            Self::EfficientSamS => "efficient-sam-s",
+            Self::MobileSam => "mobile-sam",
+            Self::Sam2HieraTiny => "sam2-hiera-tiny",
             Self::DepthAnythingV2SmallUint8 => "depth-anything-v2-small-uint8",
             Self::DepthAnythingV2Small => "depth-anything-v2-small-fp32",
             Self::PpOcrV6Small => "pp-ocrv6-small",
@@ -44,8 +42,8 @@ impl ImageModelVariant {
             Self::RealEsrganGeneralX4v3 | Self::RealEsrganX4plus => {
                 RuntimeCapability::ImageUpscaling
             }
-            Self::Migan | Self::Lama => RuntimeCapability::ImageInpainting,
-            Self::EfficientSamTi | Self::EfficientSamS => RuntimeCapability::ImageSelection,
+            Self::Lama => RuntimeCapability::ImageInpainting,
+            Self::MobileSam | Self::Sam2HieraTiny => RuntimeCapability::ImageSelection,
             Self::DepthAnythingV2SmallUint8 | Self::DepthAnythingV2Small => {
                 RuntimeCapability::ImageDepth
             }
@@ -57,11 +55,9 @@ impl ImageModelVariant {
             Self::RealEsrganGeneralX4v3 | Self::RealEsrganX4plus => {
                 Some(&crate::image_spec::REAL_ESRGAN_SPEC)
             }
-            Self::Migan => Some(&crate::image_spec::MIGAN_SPEC),
             Self::Lama => Some(&crate::image_spec::LAMA_SPEC),
-            Self::EfficientSamTi | Self::EfficientSamS => {
-                Some(&crate::image_spec::EFFICIENT_SAM_SPEC)
-            }
+            Self::MobileSam => Some(&crate::image_spec::MOBILE_SAM_SPEC),
+            Self::Sam2HieraTiny => Some(&crate::image_spec::SAM2_HIERA_TINY_SPEC),
             Self::DepthAnythingV2SmallUint8 | Self::DepthAnythingV2Small => {
                 Some(&crate::image_spec::DEPTH_ANYTHING_V2_SPEC)
             }

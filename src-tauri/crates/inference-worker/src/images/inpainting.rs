@@ -4,63 +4,39 @@ use image::{
     imageops::{self, FilterType},
     GrayImage, Luma, Rgb, RgbImage,
 };
-use knovum_inference_contracts::{
-    image_compute::ImageModelVariant,
-    image_spec::{Geometry, LAMA_SPEC},
-};
+use knovum_inference_contracts::image_spec::{Geometry, LAMA_SPEC};
 use ort::{session::Session, value::Tensor};
 use std::path::Path;
 
 /// Big LaMa's graph reads one fixed square.
 const LAMA_EDGE: u32 = match LAMA_SPEC.geometry {
     Geometry::FittedWindow { edge, .. } => edge,
-    _ => 512,
+    _ => panic!("frozen LaMa geometry"),
 };
 /// Context kept on every side of a hole, as a share of the hole's longer side: the model continues
 /// what surrounds the hole, so it must see enough of it.
 const CONTEXT_SHARE: f32 = match LAMA_SPEC.geometry {
     Geometry::FittedWindow { context_share, .. } => context_share,
-    _ => 0.5,
+    _ => panic!("frozen LaMa geometry"),
 };
 const MIN_CONTEXT: u32 = match LAMA_SPEC.geometry {
     Geometry::FittedWindow { min_context, .. } => min_context,
-    _ => 32,
+    _ => panic!("frozen LaMa geometry"),
 };
-
-/// How a model takes the source. MI-GAN's pipeline export reads the source at any size; Big LaMa
-/// reads a fixed square, so the hole is painted inside a context window fitted to that square.
-#[derive(Clone, Copy)]
-enum Reading {
-    WholeSource,
-    FittedWindow,
-}
 
 pub(super) struct Inpainting {
     session: Session,
-    reading: Reading,
-    output: &'static str,
 }
 
 impl Inpainting {
-    pub(super) fn new(
-        directory: &Path,
-        variant: ImageModelVariant,
-        threads: u8,
-    ) -> Result<Self, String> {
-        let (file, output, reading) = match variant {
-            ImageModelVariant::Migan => ("migan_pipeline_v2.onnx", "result", Reading::WholeSource),
-            ImageModelVariant::Lama => ("lama_fp32.onnx", "output", Reading::FittedWindow),
-            _ => return Err("runtime_mismatch: model does not inpaint".into()),
-        };
+    pub(super) fn new(directory: &Path, threads: u8) -> Result<Self, String> {
         Ok(Self {
             session: session::load(
-                &directory.join(file),
+                &directory.join("lama_fp32.onnx"),
                 threads,
                 &["image", "mask"],
-                &[output],
+                &["output"],
             )?,
-            reading,
-            output,
         })
     }
 
@@ -81,43 +57,8 @@ impl Inpainting {
         {
             return Err("invalid_input: inpainting tensor shapes differ".into());
         }
-        let painted = match self.reading {
-            Reading::WholeSource => self.whole_source(shape, image, mask, cancellation)?,
-            Reading::FittedWindow => {
-                self.fitted_window((width, height), image, mask, cancellation)?
-            }
-        };
+        let painted = self.fitted_window((width, height), image, mask, cancellation)?;
         composite(image, &painted, mask)
-    }
-
-    fn whole_source(
-        &mut self,
-        shape: [u32; 4],
-        image: &[u8],
-        mask: &[u8],
-        cancellation: &Cancellation,
-    ) -> Result<Vec<u8>, String> {
-        let [_, _, height, width] = shape;
-        let input = Tensor::from_array((shape.map(|value| value as usize), image.to_vec()))
-            .map_err(|error| format!("invalid_input: {error}"))?;
-        let known = Tensor::from_array((
-            [1usize, 1, height as usize, width as usize],
-            known_mask(mask)?,
-        ))
-        .map_err(|error| format!("invalid_input: {error}"))?;
-        let options = cancellation.run_options()?;
-        let outputs = self
-            .session
-            .run_with_options(ort::inputs!["image" => input, "mask" => known], &options)
-            .map_err(|error| format!("invalid_output: {error}"))?;
-        cancellation.check()?;
-        let (actual, pixels) = outputs[self.output]
-            .try_extract_tensor::<u8>()
-            .map_err(|error| format!("invalid_output: {error}"))?;
-        if actual.as_ref() != shape.map(i64::from) {
-            return Err("invalid_output: inpainting output shape differs".into());
-        }
-        Ok(pixels.to_vec())
     }
 
     /// Paints the hole inside a window around it, resampled to the model's square and back. A hole
@@ -173,7 +114,7 @@ impl Inpainting {
             )
             .map_err(|error| format!("invalid_output: {error}"))?;
         cancellation.check()?;
-        let (actual, values) = outputs[self.output]
+        let (actual, values) = outputs["output"]
             .try_extract_tensor::<f32>()
             .map_err(|error| format!("invalid_output: {error}"))?;
         if actual.as_ref() != [1, 3, i64::from(LAMA_EDGE), i64::from(LAMA_EDGE)]
@@ -241,12 +182,6 @@ fn validate_mask(mask: &[u8]) -> Result<(), String> {
         return Err("invalid_input: inpainting requires a nonempty binary mask".into());
     }
     Ok(())
-}
-
-/// MI-GAN reads the pixels to keep (`255`) rather than the pixels to paint.
-pub(super) fn known_mask(mask: &[u8]) -> Result<Vec<u8>, String> {
-    validate_mask(mask)?;
-    Ok(mask.iter().map(|value| 255 - value).collect())
 }
 
 pub(super) fn composite(source: &[u8], output: &[u8], mask: &[u8]) -> Result<Vec<u8>, String> {

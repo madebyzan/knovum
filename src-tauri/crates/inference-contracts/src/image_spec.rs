@@ -13,7 +13,8 @@ pub enum Scale {
     UnitScale,
     /// Divided by `max(np.max(image), min_scale)`: adaptive whole-image scalar normalization.
     AdaptiveMaxScale { min_scale: f32 },
-    /// Raw unnormalized uint8 values.
+    /// Raw `[0, 255]` pixel values passed through unscaled. (MobileSAM: the encoder bakes its own
+    /// padding and normalization.)
     Identity,
 }
 
@@ -31,14 +32,13 @@ pub enum Standardization {
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Geometry {
-    /// Stretched to fixed `width` × `height`, ignoring aspect ratio. (U²-Net: 320×320).
+    /// Stretched to fixed `width` × `height`, ignoring aspect ratio. (Segmentation: 1024×1024,
+    /// SAM 2.1: 1024×1024.)
     Stretch { width: u32, height: u32 },
-    /// Resized such that the longest edge does not exceed `edge`. (EfficientSAM: 2048).
+    /// Resized such that the longest edge does not exceed `edge`. (MobileSAM: 1024.)
     LongestEdge { edge: u32 },
     /// Resized maintaining aspect ratio, with the shortest edge target and aligned to `patch`. (Depth: 518 / 14).
     ShortestEdgePatchAligned { edge: u32, patch: u32 },
-    /// Full original source at native resolution. (MI-GAN).
-    WholeSource,
     /// Tiled execution with core and context overlap. (Real-ESRGAN: core 64, context 32, tile 128).
     Tiled { core: u32, context: u32 },
     /// Fitted window around the target hole. (Big LaMa: 512, context share 0.5, min context 32).
@@ -67,7 +67,7 @@ pub enum OutputHead {
     Single,
     /// First head of multi-supervision outputs (`ort_outs[0][:, 0, :, :]`).
     FirstOfSupervision,
-    /// Selection candidate heads ranked by score (e.g. EfficientSAM: 3 candidate heads).
+    /// Selection candidate heads ranked by score (e.g. SAM 2.1: 3 candidate heads).
     BestOfScored { count: usize },
 }
 
@@ -83,7 +83,7 @@ pub enum OutputNormalization {
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum OutputField {
-    /// Raw scalar field requiring post-processing normalization. (U²-Net, Depth).
+    /// Raw scalar field requiring post-processing normalization. (Depth, segmentation.)
     RawScalarField { normalize: OutputNormalization },
     /// Already in normalized probability `[0.0, 1.0]`.
     ProbabilityFullRange,
@@ -91,9 +91,8 @@ pub enum OutputField {
     UnitRgb,
     /// Float RGB in `[0.0, scale]` range quantized to uint8. (Big LaMa with scale = 255.0).
     ScaledRgb { scale: f32 },
-    /// Direct uint8 RGB pixels. (MI-GAN).
-    Uint8Rgb,
-    /// Logits evaluated relative to decision threshold offset. (EfficientSAM with offset = 0.0).
+    /// Logits evaluated relative to decision threshold offset. (MobileSAM and SAM 2.1 with
+    /// offset = 0.0.)
     Logits { decision_offset: f32 },
 }
 
@@ -300,17 +299,46 @@ pub const REAL_ESRGAN_SPEC: ImageModelSpec = ImageModelSpec {
     },
 };
 
-/// Frozen specification for MI-GAN mask repair (`migan_pipeline_v2`).
-pub const MIGAN_SPEC: ImageModelSpec = ImageModelSpec {
+/// Frozen specification for MobileSAM interactive selection (`mobile_sam_20230629`). The encoder
+/// takes raw `[0, 255]` HWC pixels resized so the longest edge is 1024 and bakes its own padding
+/// and normalization; the decoder emits single-mask logits at 256×256 with a predicted IoU.
+pub const MOBILE_SAM_SPEC: ImageModelSpec = ImageModelSpec {
     scale: Scale::Identity,
     standardization: Standardization::None,
-    geometry: Geometry::WholeSource,
-    resample: Resample::Nearest,
+    geometry: Geometry::LongestEdge { edge: 1024 },
+    resample: Resample::Triangle,
     output_head: OutputHead::Single,
-    output_field: OutputField::Uint8Rgb,
+    output_field: OutputField::Logits {
+        decision_offset: 0.0,
+    },
     provenance: Provenance {
-        reference: "https://github.com/Picsart-AI-Research/MI-GAN",
-        revision: "406830d0fa60666da0071c342ad2fbc8f30c5c64",
+        reference: "https://huggingface.co/vietanhdev/segment-anything-onnx-models",
+        revision: "9effc01a9e135621d710d49159f1ffb0b6f724dc",
+        shipped_processor: None,
+    },
+};
+
+/// Frozen specification for SAM 2.1 Hiera-Tiny interactive selection (`sam2.1_hiera_tiny_20260221`).
+/// The encoder stretches the source to 1024×1024 and expects unit-scaled ImageNet-standardized
+/// CHW pixels; the decoder emits three candidate mask logits at 256×256 with predicted IoUs.
+pub const SAM2_HIERA_TINY_SPEC: ImageModelSpec = ImageModelSpec {
+    scale: Scale::UnitScale,
+    standardization: Standardization::ImageNet {
+        mean: [0.485, 0.456, 0.406],
+        std: [0.229, 0.224, 0.225],
+    },
+    geometry: Geometry::Stretch {
+        width: 1024,
+        height: 1024,
+    },
+    resample: Resample::Triangle,
+    output_head: OutputHead::BestOfScored { count: 3 },
+    output_field: OutputField::Logits {
+        decision_offset: 0.0,
+    },
+    provenance: Provenance {
+        reference: "https://huggingface.co/vietanhdev/segment-anything-2.1-onnx-models",
+        revision: "6a3ac868340a3196a349050a6efae22a5acc0330",
         shipped_processor: None,
     },
 };
@@ -330,23 +358,6 @@ pub const LAMA_SPEC: ImageModelSpec = ImageModelSpec {
     provenance: Provenance {
         reference: "https://github.com/advimman/lama",
         revision: "c3c0c9e468934d62e79c329e35d82dd09ff8c444",
-        shipped_processor: None,
-    },
-};
-
-/// Frozen specification for EfficientSAM selection models (`ti`, `s`).
-pub const EFFICIENT_SAM_SPEC: ImageModelSpec = ImageModelSpec {
-    scale: Scale::UnitScale,
-    standardization: Standardization::None,
-    geometry: Geometry::LongestEdge { edge: 2048 },
-    resample: Resample::Lanczos3,
-    output_head: OutputHead::BestOfScored { count: 3 },
-    output_field: OutputField::Logits {
-        decision_offset: 0.0,
-    },
-    provenance: Provenance {
-        reference: "https://github.com/yformer/EfficientSAM",
-        revision: "1cf49585c39567bfc49e991ab8eb31f491ad4877",
         shipped_processor: None,
     },
 };

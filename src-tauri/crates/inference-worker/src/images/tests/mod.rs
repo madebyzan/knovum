@@ -1,5 +1,5 @@
 use crate::images::{
-    inpainting::{composite, context_window, known_mask},
+    inpainting::{composite, context_window},
     scalar_field::normalize,
     upscaling::quantize,
 };
@@ -14,11 +14,8 @@ fn upscale_quantization_matches_numpy_ties_to_even_and_clipping() {
 }
 
 #[test]
-fn inpainting_inverts_supplier_polarity_and_preserves_unselected_channels() {
+fn inpainting_composites_only_the_masked_pixels() {
     let mask = [0, 255];
-    assert_eq!(known_mask(&mask).unwrap(), [255, 0]);
-    assert!(known_mask(&[0, 0]).is_err());
-    assert!(known_mask(&[0, 127]).is_err());
     assert_eq!(
         composite(&[1, 2, 3, 4, 5, 6], &[7, 8, 9, 10, 11, 12], &mask).unwrap(),
         [1, 8, 3, 10, 5, 12]

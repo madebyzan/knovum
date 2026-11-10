@@ -25,7 +25,7 @@ fn obsolete_embedding_identity_or_unadmitted_threads_fail_before_model_loading()
     params.device_profile.execution_profile_id = execution_profile::embedding("cpu", 4);
     params.model = Model::ImageVariant {
         path: "/not-loaded".into(),
-        variant: ImageModelVariant::Migan,
+        variant: ImageModelVariant::Lama,
     };
     assert!(admit(&params).is_err());
 }

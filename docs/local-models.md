@@ -51,8 +51,8 @@ verified embedding snapshot explicitly; Related Content then schedules a full Sp
 | Vocal/accompaniment separation | Spleeter FP16 (default) / FP32, Sherpa CPU engine                                                                  |
 | Image background removal       | BiRefNet Lite (default) / RMBG-2.0 / BiRefNet Portrait / RMBG-1.4 / IS-Net DIS / IS-Net Anime, 1024², ONNX Runtime |
 | Image upscaling                | Real-ESRGAN General X4v3 / X4plus, tiled ONNX Runtime                                                              |
-| Image repair                   | MI-GAN, selected-region ONNX Runtime                                                                               |
-| Image selection                | EfficientSAM Ti / S, cached ONNX Runtime                                                                           |
+| Image repair                   | Big LaMa, selected-region ONNX Runtime                                                                             |
+| Image selection                | MobileSAM (default) / SAM 2.1 Hiera-Tiny, cached ONNX Runtime                                                      |
 | Relative depth                 | Depth Anything V2 Small UINT8 / F32, ONNX Runtime                                                                  |
 | Text recognition (OCR)         | Fixed PP-OCRv6 small detection + recognition (~31 MB), `oar-ocr` ONNX Runtime                                      |
 
@@ -317,9 +317,9 @@ Selections are strict current v1 preferences, not an arbitrary model-import mech
 | Capability                  | Catalog variants                     | Frozen inference contract                                                                                                                                                                                                      |
 | --------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Upscaling                   | Real-ESRGAN General x4v3 / x4plus    | Release v0.62.2 graph plus external weights; CPU float32, fixed 128px tiles (core 64, context 32), [0, 1] float input, [0, 1] float output quantized with ties-to-even to uint8 RGB, native 4×                                 |
-| Mask repair                 | MI-GAN pipeline v2                   | Author ONNX uint8 RGB and mask; adapter flips selected-mask polarity and protects every unselected source byte                                                                                                                 |
 | Mask repair                 | Big LaMa (Carve ONNX export)         | fp32, image 0–1 + hole mask, one 512² window fitted around the hole; [0, 255] float output rounded and clamped to uint8 RGB; outside pixels kept                                                                               |
-| Smart selection             | EfficientSAM Ti / S                  | Frozen author encoder + decoder, RGB 0–1, foreground/exclusion points and rectangle; one worker-owned encoding                                                                                                                 |
+| Smart selection             | MobileSAM                            | Frozen samexporter encoder + decoder (Apache-2.0); aspect-preserving 1024 long-edge encoder on raw RGB 0–255, logits mask from foreground/exclusion points and rectangle; one worker-owned encoding                            |
+| Smart selection             | SAM 2.1 Hiera-Tiny                   | Frozen samexporter encoder + decoder (Apache-2.0); stretch 1024² ImageNet-normalized encoder, three cached embeddings, best of three candidate masks by IoU; one worker-owned encoding                                         |
 | Relative depth              | Depth Anything V2 Small FP32 / UINT8 | Frozen ONNX conversion and processor; ImageNet-normalized RGB, dimensions divisible by 14, relative inverse depth                                                                                                              |
 | Segmentation (General SOTA) | BiRefNet Lite (General)              | onnx-community 1024² Bilateral Reference SOTA (MIT); UnitScale [0, 1], ImageNet mean/std, single output head min-max normalized; refined via native fast guided filter and edge color decontamination matting                  |
 | Segmentation (Studio SOTA)  | RMBG-2.0 (Bria AI)                   | Bria AI 1024² flagship commercial studio & complex illumination SOTA; UnitScale [0, 1], ImageNet mean/std, single output head min-max normalized; refined via native fast guided filter and edge color decontamination matting |
@@ -353,7 +353,7 @@ duplicates, so exploration is paid for in decoder passes rather than in false la
 
 The resource catalog is authoritative for immutable URLs, exact hashes, file sets and bytes. Every
 snapshot includes its license; depth also includes its processor and conversion model card.
-Real-ESRGAN installation verifies the compressed archive and every extracted graph/data member;
+Real-ESRGAN and SAM installation verify the compressed archive and every extracted member;
 transfer size is distinct from installed size. Complete multi-file snapshots are required before use.
 The capability specification incorporates the complete snapshot digest. The sealed inference runtime and its
 existing ONNX Runtime 1.22.1 are reused; no Torch training dependency or second download service is added.
@@ -362,17 +362,22 @@ Initial CPU admission reservations are conservative guards, not measured perform
 Upscaling admits at most 4,194,304 rendered source pixels and a 4096px side; inference uses 128px
 context tiles and publishes the requested 2K/4K/8K image. Repair/selection/depth admit at most
 16,777,216 rendered source pixels. The existing image renderer also bounds original sides at 10,000px.
-Selection reduces the encoding input to a 2048px bounding size; depth
+Selection sends the full source and the SAM encoders run inside their own 1024px frame; depth
 uses its pinned processor with at most 1,048,576 normalized pixels. Output tensors are bounded at
 256 MiB, canonical PNG assets at 64 MiB. Qualification must measure the actual selected model,
 compiled runtime inventory, latency, cancellation and peak memory on every supported target.
 
 BiRefNet Lite (General) and IS-Net (DIS5K) are qualified and installed under frozen inference contracts
 with MIT redistribution rights from onnx-community and rembg respectively. BiRefNet Lite is the default
-`imageSegmentation` model, delivering 1024x1024 high-resolution edge accuracy. Mask repair defaults to
-Big LaMa with MI-GAN remaining as a lightweight fallback.
+`imageSegmentation` model, delivering 1024x1024 high-resolution edge accuracy. Mask repair is
+Big LaMa; smart selection is MobileSAM (default) with SAM 2.1 Hiera-Tiny as the quality choice,
+both Apache-2.0 samexporter ONNX exports pinned by revision.
 
 ### Historical Python reference evidence — 2026-10-10
+
+The `migan`, `efficientSamTi` and `efficientSamS` rows below record the retired lineup; the current
+catalog ships Big LaMa, MobileSAM and SAM 2.1 Hiera-Tiny, which require their own qualification
+measurements.
 
 Seven frozen graphs were loaded and inferred through their source adapters with the installed
 macOS x64 historical Python LightInference ONNX Runtime 1.22.1, CPU provider, four intra-op threads and

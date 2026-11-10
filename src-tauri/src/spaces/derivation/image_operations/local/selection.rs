@@ -114,6 +114,6 @@ pub(in super::super) async fn preview(
 
 pub(super) fn prepare_source(bytes: &[u8]) -> Result<(RgbaImage, ImageTensor), String> {
     let original = image_tensors::decode(bytes)?;
-    let input = image_tensors::selection_input(&original);
+    let input = image_tensors::rgb_tensor(&original);
     Ok((original, input))
 }

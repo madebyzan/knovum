@@ -66,10 +66,9 @@
     "spleeter2StemsFull": "Separación vocal y de acompañamiento de total precisión; audio hasta diez minutos.",
     "realEsrganGeneralX4v3": "Mejora de imagen general compacta. Inferencia nativa ×4; La salida se puede dimensionar en 2K, 4K u 8K.",
     "realEsrganX4plus": "Modelo completo de mejora de imagen general; tiempos de procesamiento de CPU más largos.",
-    "migan": "Reparación con cepillo o selección inteligente. Se conservan los píxeles no seleccionados; sin búsqueda de objetos guiada por texto.",
     "lama": "Repara áreas grandes y completa con más naturalidad texturas repetitivas como paredes, cielo y césped.",
-    "efficientSamTi": "Selección compacta de puntos y cajas con puntos de exclusión. Produce una máscara binaria, no un matiz al nivel del cabello.",
-    "efficientSamS": "Modelo de selección de puntos y cuadros más grande con los mismos controles de edición.",
+    "mobileSam": "Selección rápida de puntos y cajas con puntos de exclusión. Produce una máscara binaria, no un matiz al nivel del cabello.",
+    "sam2HieraTiny": "Selección de puntos y cuadros de calidad SAM 2.1 con los mismos controles de edición; más lenta en CPU.",
     "depthAnythingV2Small": "Profundidad inversa relativa de total precisión. Los objetos cercanos parecen más brillantes; Esta no es una medida de distancia.",
     "depthAnythingV2SmallUint8": "Modelo de profundidad inversa relativa cuantificado más pequeño. Los objetos cercanos parecen más brillantes; Esta no es una medida de distancia."
   },

@@ -1,7 +1,7 @@
 use knovum_inference_contracts::image_compute::{ImageSelectionPoint, ImageSelectionRect};
 
-/// Builds the decoder prompt tensors. EfficientSAM takes prompt coordinates in source pixels and
-/// distinguishes prompt kinds through labels: `1` marks a foreground point, `0` a background
+/// Builds the decoder prompt tensors. SAM decoders take prompt coordinates in source pixels and
+/// distinguish prompt kinds through labels: `1` marks a foreground point, `0` a background
 /// point, and `2`/`3` the two corners of a box.
 pub(super) fn build(
     points: &[ImageSelectionPoint],

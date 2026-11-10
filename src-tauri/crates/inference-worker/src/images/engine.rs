@@ -40,10 +40,9 @@ impl ImageEngine {
                 upscaling::Upscaling::new(directory, variant == V::RealEsrganX4plus, threads)
                     .map(ImageEngine::Upscaling)
             }
-            V::Migan | V::Lama => inpainting::Inpainting::new(directory, variant, threads)
-                .map(ImageEngine::Inpainting),
-            V::EfficientSamTi | V::EfficientSamS => {
-                selection::Selection::new(directory, variant == V::EfficientSamS, threads)
+            V::Lama => inpainting::Inpainting::new(directory, threads).map(ImageEngine::Inpainting),
+            V::MobileSam | V::Sam2HieraTiny => {
+                selection::Selection::new(directory, variant == V::Sam2HieraTiny, threads)
                     .map(ImageEngine::Selection)
             }
             V::DepthAnythingV2SmallUint8 | V::DepthAnythingV2Small => {

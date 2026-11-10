@@ -42,7 +42,7 @@ impl Group {
             Self::ImageSegmentation => LocalModelId::BirefnetLite,
             Self::ImageUpscaling => LocalModelId::RealEsrganGeneralX4v3,
             Self::ImageInpainting => LocalModelId::Lama,
-            Self::ImageSelection => LocalModelId::EfficientSamTi,
+            Self::ImageSelection => LocalModelId::MobileSam,
             Self::ImageDepth => LocalModelId::DepthAnythingV2Small,
 
             Self::SpeechSeparation => LocalModelId::Spleeter2Stems,
@@ -69,8 +69,8 @@ fn group(model: LocalModelId) -> Option<Group> {
         LocalModelId::RealEsrganGeneralX4v3 | LocalModelId::RealEsrganX4plus => {
             Some(Group::ImageUpscaling)
         }
-        LocalModelId::Migan | LocalModelId::Lama => Some(Group::ImageInpainting),
-        LocalModelId::EfficientSamTi | LocalModelId::EfficientSamS => Some(Group::ImageSelection),
+        LocalModelId::Lama => Some(Group::ImageInpainting),
+        LocalModelId::MobileSam | LocalModelId::Sam2HieraTiny => Some(Group::ImageSelection),
         LocalModelId::DepthAnythingV2SmallUint8 | LocalModelId::DepthAnythingV2Small => {
             Some(Group::ImageDepth)
         }
@@ -108,13 +108,6 @@ pub(crate) fn validate_persisted_value(key: &str, value: serde_json::Value) -> R
     .into_iter()
     .find(|group| group.key() == key)
     .ok_or("Unknown local model selection")?;
-    if expected == Group::ImageSegmentation {
-        if let Some(val) = value.as_str() {
-            if matches!(val, "u2netp" | "silueta" | "u2netHumanSeg" | "u2net") {
-                return Ok(());
-            }
-        }
-    }
     let model: LocalModelId = serde_json::from_value(value)
         .map_err(|error| format!("Invalid local model selection: {error}"))?;
     if group(model) != Some(expected) {

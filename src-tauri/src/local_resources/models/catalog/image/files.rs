@@ -3,17 +3,9 @@ use crate::local_resources::models::{
     model_archive::ModelArchive, sources::huggingface_resolve_url,
 };
 
-const SAM_REPO: (&str, &str) = (
-    "yunyangx/EfficientSAM",
-    "1cf49585c39567bfc49e991ab8eb31f491ad4877",
-);
 const DEPTH_REPO: (&str, &str) = (
     "onnx-community/depth-anything-v2-small",
     "4472b7362082ad9968fee890ca0f1e5aca36b93d",
-);
-const MIGAN_REPO: (&str, &str) = (
-    "andraniksargsyan/migan",
-    "406830d0fa60666da0071c342ad2fbc8f30c5c64",
 );
 /// Carve's ONNX export of the authors' Big LaMa; its README states the export is the original
 /// model's, so the license is the authors'.
@@ -54,35 +46,30 @@ pub(super) const fn metadata(part: ImageModelPart) -> (&'static str, &'static st
             "28fada125730d3c87d504d48dd8332837f65811ec431a570ea4919ba3eee3287",
             66_737_664,
         ),
-        F::MiganWeights => (
-            "migan_pipeline_v2.onnx",
-            "6f1f3530a1a2324b19752018ce756088b07973cda8d7d890034ace5c8a48c40b",
-            28_079_181,
-        ),
         F::LamaWeights => (
             "lama_fp32.onnx",
             "1faef5301d78db7dda502fe59966957ec4b79dd64e16f03ed96913c7a4eb68d6",
             208_044_816,
         ),
-        F::TiEncoder => (
-            "efficientsam_ti_encoder.onnx",
-            "84ed466ffcc5c1f8d08409bc34a23bb364ab2c15e402cb12d4335a42be0e0951",
-            24_799_761,
+        F::MobileSamEncoder => (
+            "mobile_sam.encoder.onnx",
+            "20deef402855b31222b528f52b04807e41ebe47216ac0e39a0729f43491a0209",
+            28_157_093,
         ),
-        F::TiDecoder => (
-            "efficientsam_ti_decoder.onnx",
-            "a62f8fa5ea080447c0689418d69e58f1e83e0b7adf9c142e2bd9bcc8045c0b11",
-            16_565_728,
+        F::MobileSamDecoder => (
+            "sam_vit_h_4b8939.decoder.onnx",
+            "22cf85e35d14182f4b4712364264c06b22edbef63f065189586f080ef4e2f325",
+            16_500_272,
         ),
-        F::SEncoder => (
-            "efficientsam_s_encoder.onnx",
-            "3eea4544db4647570ca5bea8ab6bbe057f2fc767ad089c14b8f67f482a2493ed",
-            89_558_337,
+        F::Sam2Encoder => (
+            "sam2.1_hiera_tiny.encoder.onnx",
+            "667384d1e686de6828b841ac8a24db0fafa2b3452494225f82eeedac56141230",
+            109_471_931,
         ),
-        F::SDecoder => (
-            "efficientsam_s_decoder.onnx",
-            "d40a537f617c8ced3b2034b6971bc16cc291c49d3d80f740a394cdb78f0e1d06",
-            16_565_728,
+        F::Sam2Decoder => (
+            "sam2.1_hiera_tiny.decoder.onnx",
+            "c40f5aa7d37b681cd500481a85d44839fd81c93dce1e86271a2c866470d22105",
+            16_519_561,
         ),
         F::DepthUint8Weights => (
             "model_uint8.onnx",
@@ -130,18 +117,13 @@ pub(super) const fn metadata(part: ImageModelPart) -> (&'static str, &'static st
                 "4a699ec4863d96a91fc265948a0c90033f7e8735d515524dcf3444736406e0c2",
                 1_519,
             ),
-            V::Migan => (
-                "LICENSE",
-                "13348eaaebc0b07b0faf3a92db04e0858737713a917d064b599c87cac05b571f",
-                1_082,
-            ),
             V::Lama => (
                 "LICENSE",
                 "4ceeeac5a802e86c413c22b16cce8e9a22027b0250c97e6f8ac97c14cf0542c0",
                 11_348,
             ),
-            V::EfficientSamTi
-            | V::EfficientSamS
+            V::MobileSam
+            | V::Sam2HieraTiny
             | V::DepthAnythingV2SmallUint8
             | V::DepthAnythingV2Small => (
                 "LICENSE",
@@ -154,13 +136,16 @@ pub(super) const fn metadata(part: ImageModelPart) -> (&'static str, &'static st
 
 pub(super) fn url(part: ImageModelPart) -> String {
     match part.file {
-        F::GeneralGraph | F::GeneralWeights | F::X4plusGraph | F::X4plusWeights => {
+        F::GeneralGraph
+        | F::GeneralWeights
+        | F::X4plusGraph
+        | F::X4plusWeights
+        | F::MobileSamEncoder
+        | F::MobileSamDecoder
+        | F::Sam2Encoder
+        | F::Sam2Decoder => {
             unreachable!("These files belong to the frozen release archive")
         }
-        F::TiEncoder | F::TiDecoder | F::SEncoder | F::SDecoder => {
-            huggingface_resolve_url(SAM_REPO.0, SAM_REPO.1, metadata(part).0)
-        }
-        F::MiganWeights => huggingface_resolve_url(MIGAN_REPO.0, MIGAN_REPO.1, metadata(part).0),
         F::LamaWeights => huggingface_resolve_url(LAMA_REPO.0, LAMA_REPO.1, metadata(part).0),
         F::DepthUint8Weights | F::DepthFp32Weights => {
             huggingface_resolve_url(DEPTH_REPO.0, DEPTH_REPO.1, &format!("onnx/{}", metadata(part).0))
@@ -179,12 +164,14 @@ pub(super) fn url(part: ImageModelPart) -> String {
             V::RealEsrganGeneralX4v3 | V::RealEsrganX4plus => {
                 "https://raw.githubusercontent.com/xinntao/Real-ESRGAN/a4abfb2979a7bbff3f69f58f58ae324608821e27/LICENSE".into()
             }
-            V::Migan => huggingface_resolve_url(MIGAN_REPO.0, MIGAN_REPO.1, "LICENSE"),
             V::Lama => {
                 "https://raw.githubusercontent.com/advimman/lama/786f5936b27fb3dacd2b1ad799e4de968ea697e7/LICENSE".into()
             }
-            V::EfficientSamTi | V::EfficientSamS => {
-                "https://raw.githubusercontent.com/yformer/EfficientSAM/d525f622e6f640acf5a0fc37c7ca1f243da5bde0/LICENSE".into()
+            V::MobileSam => {
+                "https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/f706ad9c4eb7f219c00d9050e46328518ffb65d2/LICENSE".into()
+            }
+            V::Sam2HieraTiny => {
+                "https://raw.githubusercontent.com/facebookresearch/sam2/2b90b9f5ceec907a1c18123530e92e794ad901a4/LICENSE".into()
             }
             V::DepthAnythingV2SmallUint8 | V::DepthAnythingV2Small => {
                 "https://raw.githubusercontent.com/DepthAnything/Depth-Anything-V2/a561b849ebae10a6f5ef49e26c83cbbcd36c71bf/LICENSE".into()
@@ -199,15 +186,29 @@ pub(super) const fn archive(variant: V) -> Option<ModelArchive> {
             url: "https://qaihub-public-assets.s3.us-west-2.amazonaws.com/qai-hub-models/models/real_esrgan_general_x4v3/releases/v0.62.2/real_esrgan_general_x4v3-onnx-float.zip",
             sha256: "19e208e88e906097a9df3fc5ca2318cb745c26a556348dc48fce562f36c49d38",
             bytes: 4_540_894,
-            directory: "real_esrgan_general_x4v3-onnx-float",
+            directory: Some("real_esrgan_general_x4v3-onnx-float"),
             members: &[F::GeneralGraph, F::GeneralWeights],
         },
         V::RealEsrganX4plus => ModelArchive {
             url: "https://qaihub-public-assets.s3.us-west-2.amazonaws.com/qai-hub-models/models/real_esrgan_x4plus/releases/v0.62.2/real_esrgan_x4plus-onnx-float.zip",
             sha256: "e6cb215390f3800b56baa0e9140907d81f5143a4b96c184a635c79dfee2e28df",
             bytes: 62_174_026,
-            directory: "real_esrgan_x4plus-onnx-float",
+            directory: Some("real_esrgan_x4plus-onnx-float"),
             members: &[F::X4plusGraph, F::X4plusWeights],
+        },
+        V::MobileSam => ModelArchive {
+            url: "https://huggingface.co/vietanhdev/segment-anything-onnx-models/resolve/9effc01a9e135621d710d49159f1ffb0b6f724dc/mobile_sam_20230629.zip",
+            sha256: "41aff2660b7531becfee21fb257c49933ddc892c554507bdb775bf504d443942",
+            bytes: 36_655_105,
+            directory: None,
+            members: &[F::MobileSamEncoder, F::MobileSamDecoder],
+        },
+        V::Sam2HieraTiny => ModelArchive {
+            url: "https://huggingface.co/vietanhdev/segment-anything-2.1-onnx-models/resolve/6a3ac868340a3196a349050a6efae22a5acc0330/sam2.1_hiera_tiny_20260221.zip",
+            sha256: "c602cb3f6fd297312a415f885f0df3f0eef9fbb334b069c9d30e828f2ae7c69a",
+            bytes: 116_507_723,
+            directory: None,
+            members: &[F::Sam2Encoder, F::Sam2Decoder],
         },
         _ => return None,
     })

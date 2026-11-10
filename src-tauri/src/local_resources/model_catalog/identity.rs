@@ -72,15 +72,49 @@ impl LocalModelId {
             )
     }
     pub(crate) fn image_segmentation_spec(self) -> Result<&'static str, String> {
-        match self {
-            Self::BirefnetLite => Ok(IMAGE_SEGMENTATION_BIREFNET_SPEC_ID),
-            Self::BirefnetPortrait => Ok(IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID),
-            Self::Rmbg14 => Ok(IMAGE_SEGMENTATION_RMBG14_SPEC_ID),
-            Self::Rmbg20 => Ok(IMAGE_SEGMENTATION_RMBG20_SPEC_ID),
-            Self::IsnetAnime => Ok(IMAGE_SEGMENTATION_ANIME_SPEC_ID),
-            Self::IsnetDis => Ok(IMAGE_SEGMENTATION_DIS_SPEC_ID),
-            _ => Err("Model does not support image segmentation".into()),
-        }
+        self.segmentation_identity().map(|(spec_id, _)| spec_id)
+    }
+    pub(crate) fn segmentation_spec(
+        self,
+    ) -> Result<&'static crate::ai::contracts::image_spec::ImageModelSpec, String> {
+        self.segmentation_identity().map(|(_, spec)| spec)
+    }
+    /// Spec id and frozen execution spec are paired in one match so they cannot drift.
+    fn segmentation_identity(
+        self,
+    ) -> Result<
+        (
+            &'static str,
+            &'static crate::ai::contracts::image_spec::ImageModelSpec,
+        ),
+        String,
+    > {
+        use crate::ai::contracts::image_spec::{
+            BIREFNET_PORTRAIT_SPEC, BIREFNET_SPEC, ISNET_ANIME_SPEC, ISNET_DIS_SPEC, RMBG14_SPEC,
+            RMBG20_SPEC,
+        };
+        Ok(match self {
+            Self::BirefnetLite => (IMAGE_SEGMENTATION_BIREFNET_SPEC_ID, &BIREFNET_SPEC),
+            Self::BirefnetPortrait => {
+                (IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID, &BIREFNET_PORTRAIT_SPEC)
+            }
+            Self::Rmbg14 => (IMAGE_SEGMENTATION_RMBG14_SPEC_ID, &RMBG14_SPEC),
+            Self::Rmbg20 => (IMAGE_SEGMENTATION_RMBG20_SPEC_ID, &RMBG20_SPEC),
+            Self::IsnetAnime => (IMAGE_SEGMENTATION_ANIME_SPEC_ID, &ISNET_ANIME_SPEC),
+            Self::IsnetDis => (IMAGE_SEGMENTATION_DIS_SPEC_ID, &ISNET_DIS_SPEC),
+            _ => return Err("Model does not support image segmentation".into()),
+        })
+    }
+    pub(crate) fn from_image_segmentation_spec(spec: &str) -> Result<Self, String> {
+        MODELS
+            .iter()
+            .copied()
+            .find(|model| {
+                model
+                    .image_segmentation_spec()
+                    .is_ok_and(|value| value == spec)
+            })
+            .ok_or_else(|| format!("Unsupported segmentation model spec: {spec}"))
     }
     pub(crate) fn from_separation_spec(spec: &str) -> Result<Self, String> {
         MODELS

@@ -284,17 +284,10 @@ pub(crate) fn metadata(model: LocalModelId) -> LocalModelMetadata {
             Unused,
             Any,
         ),
-        LocalModelId::Migan => ("MI-GAN", Capability::ImageInpainting, NONE, Unused, Any),
         LocalModelId::Lama => ("Big LaMa", Capability::ImageInpainting, NONE, Unused, Any),
-        LocalModelId::EfficientSamTi => (
-            "EfficientSAM · Ti",
-            Capability::ImageSelection,
-            NONE,
-            Unused,
-            Any,
-        ),
-        LocalModelId::EfficientSamS => (
-            "EfficientSAM · S",
+        LocalModelId::MobileSam => ("MobileSAM", Capability::ImageSelection, NONE, Unused, Any),
+        LocalModelId::Sam2HieraTiny => (
+            "SAM 2.1 · Hiera-Tiny",
             Capability::ImageSelection,
             NONE,
             Unused,

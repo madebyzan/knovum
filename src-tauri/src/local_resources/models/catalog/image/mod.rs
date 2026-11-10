@@ -19,12 +19,11 @@ pub enum ImageModelFile {
     GeneralWeights,
     X4plusGraph,
     X4plusWeights,
-    MiganWeights,
     LamaWeights,
-    TiEncoder,
-    TiDecoder,
-    SEncoder,
-    SDecoder,
+    MobileSamEncoder,
+    MobileSamDecoder,
+    Sam2Encoder,
+    Sam2Decoder,
     DepthUint8Weights,
     DepthFp32Weights,
     DepthProcessor,
@@ -75,16 +74,6 @@ impl ImageModelCatalog for ImageModelVariant {
                     file: ImageModelFile::License,
                 }),
             ],
-            Self::Migan => &[
-                ModelKind::ImagePart(ImageModelPart {
-                    variant: Self::Migan,
-                    file: ImageModelFile::MiganWeights,
-                }),
-                ModelKind::ImagePart(ImageModelPart {
-                    variant: Self::Migan,
-                    file: ImageModelFile::License,
-                }),
-            ],
             Self::Lama => &[
                 ModelKind::ImagePart(ImageModelPart {
                     variant: Self::Lama,
@@ -95,31 +84,31 @@ impl ImageModelCatalog for ImageModelVariant {
                     file: ImageModelFile::License,
                 }),
             ],
-            Self::EfficientSamTi => &[
+            Self::MobileSam => &[
                 ModelKind::ImagePart(ImageModelPart {
-                    variant: Self::EfficientSamTi,
-                    file: ImageModelFile::TiEncoder,
+                    variant: Self::MobileSam,
+                    file: ImageModelFile::MobileSamEncoder,
                 }),
                 ModelKind::ImagePart(ImageModelPart {
-                    variant: Self::EfficientSamTi,
-                    file: ImageModelFile::TiDecoder,
+                    variant: Self::MobileSam,
+                    file: ImageModelFile::MobileSamDecoder,
                 }),
                 ModelKind::ImagePart(ImageModelPart {
-                    variant: Self::EfficientSamTi,
+                    variant: Self::MobileSam,
                     file: ImageModelFile::License,
                 }),
             ],
-            Self::EfficientSamS => &[
+            Self::Sam2HieraTiny => &[
                 ModelKind::ImagePart(ImageModelPart {
-                    variant: Self::EfficientSamS,
-                    file: ImageModelFile::SEncoder,
+                    variant: Self::Sam2HieraTiny,
+                    file: ImageModelFile::Sam2Encoder,
                 }),
                 ModelKind::ImagePart(ImageModelPart {
-                    variant: Self::EfficientSamS,
-                    file: ImageModelFile::SDecoder,
+                    variant: Self::Sam2HieraTiny,
+                    file: ImageModelFile::Sam2Decoder,
                 }),
                 ModelKind::ImagePart(ImageModelPart {
-                    variant: Self::EfficientSamS,
+                    variant: Self::Sam2HieraTiny,
                     file: ImageModelFile::License,
                 }),
             ],

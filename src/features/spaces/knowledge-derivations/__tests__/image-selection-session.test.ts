@@ -16,13 +16,13 @@ vi.mock("../image-operation", () => ({
       {
         capability: "imageSelection",
         selected: true,
-        execution: { type: "local", model: "efficientSamTi", specId: "spec" },
+        execution: { type: "local", model: "mobileSam", specId: "spec" },
         availability: { state: "ready" },
       },
       {
         capability: "imageInpainting",
         selected: true,
-        execution: { type: "local", model: "migan", specId: "migan-spec" },
+        execution: { type: "local", model: "lama", specId: "lama-spec" },
         availability: { state: "ready" },
       },
       {
@@ -122,14 +122,14 @@ it("keeps prompts entered while Settings models load", async () => {
   store.addPoint(0.3, 0.4);
   finishLoading();
   await opening;
-  expect(store.active?.execution).toMatchObject({ model: "efficientSamTi" });
+  expect(store.active?.execution).toMatchObject({ model: "mobileSam" });
   expect(store.active?.selection.points).toHaveLength(1);
 });
 
 it("ignores models returned for a closed session when the same node reopens", async () => {
   const store = useImageSelectionSessionStore();
   const capabilities = structuredClone(await getImageOperationCapabilities());
-  capabilities.targets[0]!.execution = { type: "local", model: "efficientSamS", specId: "old-session" };
+  capabilities.targets[0]!.execution = { type: "local", model: "sam2HieraTiny", specId: "old-session" };
   let finishLoading!: () => void;
   vi.mocked(getImageOperationCapabilities).mockImplementationOnce(
     () =>
@@ -142,7 +142,7 @@ it("ignores models returned for a closed session when the same node reopens", as
   await store.begin(imageSourceNode());
   finishLoading();
   await opening;
-  expect(store.active?.execution).toMatchObject({ model: "efficientSamTi", specId: "spec" });
+  expect(store.active?.execution).toMatchObject({ model: "mobileSam", specId: "spec" });
 });
 it("discards the draft and its undo history when the source revision changes", async () => {
   const store = useImageSelectionSessionStore();
@@ -164,15 +164,15 @@ it("repairs with the Settings-selected repair model, drawing the mask with the s
   const node = imageSourceNode();
   context.space!.nodes = [node];
   await store.begin(node);
-  expect(store.active?.repair).toMatchObject({ model: "migan" });
+  expect(store.active?.repair).toMatchObject({ model: "lama" });
   store.addPoint(0.3, 0.4);
   vi.mocked(deriveImageSelection).mockResolvedValueOnce(undefined);
   await store.submit("repair");
   expect(deriveImageSelection).toHaveBeenLastCalledWith(node, {
     effect: "repair",
     selection: expect.objectContaining({ points: [expect.objectContaining({ x: 0.3 })] }),
-    selectionModel: { type: "local", model: "efficientSamTi", specId: "spec" },
-    repairModel: { type: "local", model: "migan", specId: "migan-spec" },
+    selectionModel: { type: "local", model: "mobileSam", specId: "spec" },
+    repairModel: { type: "local", model: "lama", specId: "lama-spec" },
   });
 });
 

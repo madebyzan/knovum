@@ -30,7 +30,7 @@ function session() {
     useImageSelectionPreview(() => ({
       node,
       spaceId: "space",
-      execution: { type: "local", model: "efficientSamTi", specId: "spec" },
+      execution: { type: "local", model: "mobileSam", specId: "spec" },
       selection,
     })),
   )!;

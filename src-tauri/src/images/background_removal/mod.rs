@@ -28,7 +28,7 @@ pub(crate) async fn remove_background<R: Runtime>(
     cancellation: &CancellationToken,
 ) -> Result<BackgroundRemovalOutput, String> {
     let spec_id = identity.model_spec_id;
-    let (image, input) =
+    let (image, input, edge) =
         crate::foundation::blocking::run(move || prepare_input(&source, spec_id)).await?;
     if cancellation.is_cancelled() {
         return Err("cancelled".into());
@@ -39,14 +39,15 @@ pub(crate) async fn remove_background<R: Runtime>(
     if cancellation.is_cancelled() {
         return Err("cancelled".into());
     }
-    let output = crate::foundation::blocking::run(move || compose_output(image, mask)).await?;
+    let output =
+        crate::foundation::blocking::run(move || compose_output(image, mask, edge)).await?;
     if cancellation.is_cancelled() {
         return Err("cancelled".into());
     }
     Ok(output)
 }
 
-fn prepare_input(source: &[u8], spec_id: &str) -> Result<(DynamicImage, Vec<f32>), String> {
+fn prepare_input(source: &[u8], spec_id: &str) -> Result<(DynamicImage, Vec<f32>, u32), String> {
     if source.is_empty() || source.len() as u64 > MAX_SOURCE_BYTES {
         return Err("Background-removal input must be a non-empty PNG up to 64 MiB".into());
     }
@@ -60,11 +61,15 @@ fn prepare_input(source: &[u8], spec_id: &str) -> Result<(DynamicImage, Vec<f32>
     let image = reader.decode().map_err(|error| error.to_string())?;
     validate_dimensions(image.dimensions())?;
     let input = pixels::model_input_for_spec_id(&image, spec_id)?;
-    Ok((image, input))
+    Ok((image, input.0, input.1))
 }
 
-fn compose_output(image: DynamicImage, mask: Vec<f32>) -> Result<BackgroundRemovalOutput, String> {
-    let foreground = pixels::apply_mask(image, &mask)?;
+fn compose_output(
+    image: DynamicImage,
+    mask: Vec<f32>,
+    edge: u32,
+) -> Result<BackgroundRemovalOutput, String> {
+    let foreground = pixels::apply_mask(image, &mask, edge)?;
     let (width, height) = foreground.dimensions();
     let mut output = Cursor::new(Vec::new());
     DynamicImage::ImageRgba8(foreground)

@@ -58,10 +58,9 @@ pub enum LocalModelId {
     IsnetDis,
     RealEsrganGeneralX4v3,
     RealEsrganX4plus,
-    Migan,
     Lama,
-    EfficientSamTi,
-    EfficientSamS,
+    MobileSam,
+    Sam2HieraTiny,
     DepthAnythingV2SmallUint8,
     DepthAnythingV2Small,
     PpOcrV6Small,
@@ -135,10 +134,9 @@ pub const MODELS: &[LocalModelId] = &[
     LocalModelId::IsnetDis,
     LocalModelId::RealEsrganGeneralX4v3,
     LocalModelId::RealEsrganX4plus,
-    LocalModelId::Migan,
     LocalModelId::Lama,
-    LocalModelId::EfficientSamTi,
-    LocalModelId::EfficientSamS,
+    LocalModelId::MobileSam,
+    LocalModelId::Sam2HieraTiny,
     LocalModelId::DepthAnythingV2SmallUint8,
     LocalModelId::DepthAnythingV2Small,
 ];
@@ -168,10 +166,9 @@ impl LocalModelId {
             | Self::IsnetAnime
             | Self::RealEsrganGeneralX4v3
             | Self::RealEsrganX4plus
-            | Self::Migan
             | Self::Lama
-            | Self::EfficientSamTi
-            | Self::EfficientSamS
+            | Self::MobileSam
+            | Self::Sam2HieraTiny
             | Self::DepthAnythingV2SmallUint8
             | Self::DepthAnythingV2Small => LocalModelGroup::Images,
             Self::WhisperSmall
@@ -236,10 +233,9 @@ impl LocalModelId {
                 Some(S::Image(catalog::ImageModelVariant::RealEsrganGeneralX4v3))
             }
             Self::RealEsrganX4plus => Some(S::Image(catalog::ImageModelVariant::RealEsrganX4plus)),
-            Self::Migan => Some(S::Image(catalog::ImageModelVariant::Migan)),
             Self::Lama => Some(S::Image(catalog::ImageModelVariant::Lama)),
-            Self::EfficientSamTi => Some(S::Image(catalog::ImageModelVariant::EfficientSamTi)),
-            Self::EfficientSamS => Some(S::Image(catalog::ImageModelVariant::EfficientSamS)),
+            Self::MobileSam => Some(S::Image(catalog::ImageModelVariant::MobileSam)),
+            Self::Sam2HieraTiny => Some(S::Image(catalog::ImageModelVariant::Sam2HieraTiny)),
             Self::DepthAnythingV2SmallUint8 => Some(S::Image(
                 catalog::ImageModelVariant::DepthAnythingV2SmallUint8,
             )),
@@ -263,10 +259,9 @@ impl LocalModelId {
             | Self::WhisperLargeV3
             | Self::RealEsrganGeneralX4v3
             | Self::RealEsrganX4plus
-            | Self::Migan
             | Self::Lama
-            | Self::EfficientSamTi
-            | Self::EfficientSamS
+            | Self::MobileSam
+            | Self::Sam2HieraTiny
             | Self::DepthAnythingV2SmallUint8
             | Self::DepthAnythingV2Small
             | Self::PpOcrV6Small

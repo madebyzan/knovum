@@ -83,7 +83,7 @@ impl Pass<'_> {
             input_revision: self.revision.into(),
             budget_ms: SEGMENTATION_BUDGET_MS,
         };
-        let input = crate::images::saliency_input_for_spec(
+        let (input, edge) = crate::images::saliency_input_for_spec(
             &image::DynamicImage::ImageRgba8(source.clone()),
             identity.model_spec_id,
         )?;
@@ -95,7 +95,7 @@ impl Pass<'_> {
             self.cancellation,
         )
         .await?;
-        let coarse = crate::images::saliency_mask(&field, source.width(), source.height())?;
+        let coarse = crate::images::saliency_mask(&field, edge, source.width(), source.height())?;
         let refined = crate::images::matting::refine_mask(
             &image::DynamicImage::ImageRgba8(source.clone()),
             &coarse,
@@ -113,7 +113,7 @@ impl Pass<'_> {
         let tensor = self
             .compute(
                 self.models.selection,
-                image_tensors::selection_input(source),
+                image_tensors::rgb_tensor(source),
                 ImageTensorOperation::DiscoverLayers { seeds, max_layers },
             )
             .await?;

@@ -7,9 +7,8 @@ fn model_preferences_are_strict_and_belong_to_their_capability() {
         (Group::SpeechSynthesis, LocalModelId::VoxCpm2Q8),
         (Group::ImageSegmentation, LocalModelId::Rmbg14),
         (Group::ImageUpscaling, LocalModelId::RealEsrganX4plus),
-        (Group::ImageInpainting, LocalModelId::Migan),
         (Group::ImageInpainting, LocalModelId::Lama),
-        (Group::ImageSelection, LocalModelId::EfficientSamS),
+        (Group::ImageSelection, LocalModelId::Sam2HieraTiny),
         (Group::ImageDepth, LocalModelId::DepthAnythingV2SmallUint8),
         (Group::SpeechAlignment, LocalModelId::Qwen3AlignerQ8),
         (Group::SpeechSeparation, LocalModelId::Spleeter2StemsFull),
@@ -69,13 +68,28 @@ fn an_image_capability_resolves_through_the_choice_its_models_belong_to() {
 }
 
 #[test]
-fn retired_segmentation_selections_migrate_to_birefnet_default() {
-    for legacy in ["u2netp", "silueta", "u2netHumanSeg", "u2net"] {
+fn retired_selections_fall_back_to_the_capability_default() {
+    for (legacy, group, default) in [
+        (
+            "u2net",
+            Group::ImageSegmentation,
+            LocalModelId::BirefnetLite,
+        ),
+        (
+            "efficientSamTi",
+            Group::ImageSelection,
+            LocalModelId::MobileSam,
+        ),
+        ("migan", Group::ImageInpainting, LocalModelId::Lama),
+    ] {
         let raw = serde_json::json!({"schemaVersion": 1, "value": legacy});
         assert_eq!(
-            read_selection(raw, Group::ImageSegmentation)
-                .unwrap_or(Group::ImageSegmentation.default_model()),
-            LocalModelId::BirefnetLite
+            read_selection(raw, group).unwrap_or(group.default_model()),
+            default
         );
     }
+    assert_eq!(
+        Group::ImageSelection.default_model(),
+        LocalModelId::MobileSam
+    );
 }

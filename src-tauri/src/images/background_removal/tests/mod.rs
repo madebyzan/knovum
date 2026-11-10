@@ -3,7 +3,8 @@ use image::{DynamicImage, Rgba, RgbaImage};
 use super::pixels::{apply_mask, mask_at, model_input, model_input_for_spec};
 use crate::ai::contracts::image_spec::ISNET_DIS_SPEC;
 
-const PIXELS: usize = 1024 * 1024;
+const EDGE: u32 = 1024;
+const PIXELS: usize = (EDGE * EDGE) as usize;
 
 fn standardized(value: f32, channel: usize) -> f32 {
     const MEAN: [f32; 3] = [0.485, 0.456, 0.406];
@@ -36,7 +37,7 @@ fn model_input_scales_by_the_brightest_value_of_the_whole_image() {
 #[test]
 fn mask_multiplies_source_alpha_at_original_resolution() {
     let image = DynamicImage::ImageRgba8(RgbaImage::from_pixel(2, 3, Rgba([12, 34, 56, 200])));
-    let foreground = apply_mask(image, &vec![0.5; PIXELS]).unwrap();
+    let foreground = apply_mask(image, &vec![0.5; PIXELS], EDGE).unwrap();
     assert_eq!(foreground.dimensions(), (2, 3));
     // 0.5 truncates to 127, and 200 * 127 / 255 rounds to 100.
     assert_eq!(foreground.get_pixel(0, 0), &Rgba([12, 34, 56, 100]));
@@ -44,6 +45,6 @@ fn mask_multiplies_source_alpha_at_original_resolution() {
 
 #[test]
 fn mask_rejects_a_field_the_worker_did_not_normalize() {
-    assert!(mask_at(&vec![1.5; PIXELS], 2, 2).is_err());
-    assert!(mask_at(&vec![0.5; PIXELS - 1], 2, 2).is_err());
+    assert!(mask_at(&vec![1.5; PIXELS], EDGE, 2, 2).is_err());
+    assert!(mask_at(&vec![0.5; PIXELS - 1], EDGE, 2, 2).is_err());
 }

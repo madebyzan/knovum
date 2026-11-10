@@ -78,8 +78,9 @@ fn image_specs_match_provenance_and_processor_config() {
     use crate::image_compute::ImageModelVariant;
     use crate::image_spec::{
         Geometry, OutputField, OutputHead, OutputNormalization, Scale, Standardization,
-        BIREFNET_SPEC, DEPTH_ANYTHING_V2_SPEC, HIGH_RES_SEGMENTATION_RESOLUTION, ISNET_ANIME_SPEC,
-        ISNET_DIS_SPEC, RMBG14_SPEC,
+        BIREFNET_PORTRAIT_SPEC, BIREFNET_SPEC, DEPTH_ANYTHING_V2_SPEC,
+        HIGH_RES_SEGMENTATION_RESOLUTION, ISNET_ANIME_SPEC, ISNET_DIS_SPEC, MOBILE_SAM_SPEC,
+        RMBG14_SPEC, RMBG20_SPEC, SAM2_HIERA_TINY_SPEC,
     };
     use serde_json::Value;
 
@@ -155,14 +156,51 @@ fn image_specs_match_provenance_and_processor_config() {
         );
     }
 
+    // Interactive selection specs: frozen from the samexporter ONNX artifacts. MobileSAM's
+    // encoder bakes padding and normalization, so the caller only resizes the longest edge and
+    // passes raw values; SAM 2.1 stretches to a fixed square and standardizes caller-side.
+    assert_eq!(
+        MOBILE_SAM_SPEC.geometry,
+        Geometry::LongestEdge { edge: 1024 }
+    );
+    assert_eq!(MOBILE_SAM_SPEC.scale, Scale::Identity);
+    assert_eq!(MOBILE_SAM_SPEC.standardization, Standardization::None);
+    assert_eq!(MOBILE_SAM_SPEC.output_head, OutputHead::Single);
+    assert_eq!(
+        SAM2_HIERA_TINY_SPEC.geometry,
+        Geometry::Stretch {
+            width: 1024,
+            height: 1024
+        }
+    );
+    assert_eq!(SAM2_HIERA_TINY_SPEC.scale, Scale::UnitScale);
+    assert_eq!(
+        SAM2_HIERA_TINY_SPEC.standardization,
+        Standardization::ImageNet {
+            mean: [0.485, 0.456, 0.406],
+            std: [0.229, 0.224, 0.225],
+        }
+    );
+    assert_eq!(
+        SAM2_HIERA_TINY_SPEC.output_head,
+        OutputHead::BestOfScored { count: 3 }
+    );
+    for spec in [&MOBILE_SAM_SPEC, &SAM2_HIERA_TINY_SPEC] {
+        assert_eq!(
+            spec.output_field,
+            OutputField::Logits {
+                decision_offset: 0.0
+            }
+        );
+    }
+
     // Ensure all defined variant specs resolve and have non-empty provenance
     for variant in [
         ImageModelVariant::RealEsrganGeneralX4v3,
         ImageModelVariant::RealEsrganX4plus,
-        ImageModelVariant::Migan,
         ImageModelVariant::Lama,
-        ImageModelVariant::EfficientSamTi,
-        ImageModelVariant::EfficientSamS,
+        ImageModelVariant::MobileSam,
+        ImageModelVariant::Sam2HieraTiny,
         ImageModelVariant::DepthAnythingV2SmallUint8,
         ImageModelVariant::DepthAnythingV2Small,
     ] {

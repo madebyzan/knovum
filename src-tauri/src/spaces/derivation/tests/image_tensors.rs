@@ -1,4 +1,4 @@
-use crate::spaces::derivation::image_tensors::{depth_tensor, rgb_tensor, selection_input};
+use crate::spaces::derivation::image_tensors::{depth_tensor, rgb_tensor};
 use image::RgbaImage;
 
 fn gradient(width: u32, height: u32) -> RgbaImage {
@@ -17,16 +17,6 @@ fn rgb_tensors_are_planar_and_drop_alpha() {
         &[128, 128, 128, 128],
         "blue plane is last"
     );
-}
-
-#[test]
-fn selection_input_reduces_sources_beyond_the_four_megapixel_budget() {
-    let within = selection_input(&gradient(2048, 1024));
-    assert_eq!(within.shape, [1, 3, 1024, 2048], "the budget edge is kept");
-    let reduced = selection_input(&gradient(4096, 2048));
-    assert_eq!(reduced.shape, [1, 3, 1024, 2048]);
-    let [_, _, height, width] = reduced.shape;
-    assert!(u64::from(height) * u64::from(width) <= 4_194_304);
 }
 
 #[test]

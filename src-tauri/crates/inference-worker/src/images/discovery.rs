@@ -41,7 +41,9 @@ pub(super) fn discover(
     let mut candidates = Vec::new();
     for (seed, point) in seeds.iter().enumerate() {
         cancellation.check()?;
-        if let Some(candidate) = probe_seed(selection, point, seed, probe, cancellation)? {
+        if let Some(candidate) =
+            probe_seed(selection, point, seed, (height, width), probe, cancellation)?
+        {
             candidates.push(candidate);
         }
     }
@@ -54,11 +56,12 @@ fn probe_seed(
     selection: &mut Selection,
     point: &ImageSelectionPoint,
     seed: usize,
-    (height, width): (u32, u32),
+    source: (u32, u32),
+    probe: (u32, u32),
     cancellation: &Cancellation,
 ) -> Result<Option<Candidate>, String> {
-    let (coords, labels) = super::prompts::foreground_point(point, height, width)?;
-    let decoded = selection.decode(coords, labels, (height, width), cancellation)?;
+    let (coords, labels) = super::prompts::foreground_point(point, source.0, source.1)?;
+    let decoded = selection.decode(coords, labels, probe, cancellation)?;
     let mask = decoded.mask(0.0).collect::<Vec<_>>();
     let area = mask.iter().filter(|inside| **inside).count();
     let ratio = area as f32 / mask.len() as f32;
