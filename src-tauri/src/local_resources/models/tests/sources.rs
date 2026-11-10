@@ -43,8 +43,8 @@ fn all_sources_pin_full_revisions_and_bundle_files_have_one_owner() {
     for snapshot in [
         SnapshotKind::TextEmbedding,
         SnapshotKind::ImageSegmentationBiRefNet,
-        SnapshotKind::ImageSegmentationRmbg20,
         SnapshotKind::ImageSegmentationPortrait,
+        SnapshotKind::ImageSegmentationRmbg20,
         SnapshotKind::ImageSegmentationRmbg14,
         SnapshotKind::ImageSegmentationDis,
         SnapshotKind::ImageSegmentationAnime,

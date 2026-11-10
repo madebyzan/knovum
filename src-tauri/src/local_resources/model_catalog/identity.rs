@@ -74,11 +74,11 @@ impl LocalModelId {
     pub(crate) fn image_segmentation_spec(self) -> Result<&'static str, String> {
         match self {
             Self::BirefnetLite => Ok(IMAGE_SEGMENTATION_BIREFNET_SPEC_ID),
-            Self::Rmbg20 => Ok(IMAGE_SEGMENTATION_RMBG20_SPEC_ID),
             Self::BirefnetPortrait => Ok(IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID),
             Self::Rmbg14 => Ok(IMAGE_SEGMENTATION_RMBG14_SPEC_ID),
-            Self::IsnetDis => Ok(IMAGE_SEGMENTATION_DIS_SPEC_ID),
+            Self::Rmbg20 => Ok(IMAGE_SEGMENTATION_RMBG20_SPEC_ID),
             Self::IsnetAnime => Ok(IMAGE_SEGMENTATION_ANIME_SPEC_ID),
+            Self::IsnetDis => Ok(IMAGE_SEGMENTATION_DIS_SPEC_ID),
             _ => Err("Model does not support image segmentation".into()),
         }
     }

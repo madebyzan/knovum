@@ -97,13 +97,13 @@ pub(crate) fn for_snapshot(snapshot: SnapshotKind) -> Option<HubSource> {
             repository: "onnx-community/BiRefNet_lite-ONNX",
             revision: "de15b22ba131738a16dff04aab8bdf8dc32e3ac1",
         },
-        SnapshotKind::ImageSegmentationRmbg20 => HubSource::HuggingFace {
-            repository: "yamura4/RMBG-2.0-ONNX",
-            revision: "fcd7830ebd0cc92c5e6262da225a7cc41f2a9afd",
-        },
         SnapshotKind::ImageSegmentationPortrait => HubSource::HuggingFace {
             repository: "onnx-community/BiRefNet-portrait-ONNX",
             revision: "dd7167f6a8b54ff7efc29a4c988938d79866464f",
+        },
+        SnapshotKind::ImageSegmentationRmbg20 => HubSource::HuggingFace {
+            repository: "yamura4/RMBG-2.0-ONNX",
+            revision: "fcd7830ebd0cc92c5e6262da225a7cc41f2a9afd",
         },
         SnapshotKind::ImageSegmentationRmbg14 => HubSource::HuggingFace {
             repository: "briaai/RMBG-1.4",

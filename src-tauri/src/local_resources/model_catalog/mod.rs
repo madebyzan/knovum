@@ -51,11 +51,11 @@ pub enum LocalModelId {
     Qwen3Aligner,
     Qwen3AlignerQ8,
     BirefnetLite,
-    Rmbg20,
     BirefnetPortrait,
     Rmbg14,
-    IsnetDis,
+    Rmbg20,
     IsnetAnime,
+    IsnetDis,
     RealEsrganGeneralX4v3,
     RealEsrganX4plus,
     Migan,
@@ -128,11 +128,11 @@ pub const MODELS: &[LocalModelId] = &[
     LocalModelId::Spleeter2Stems,
     LocalModelId::Spleeter2StemsFull,
     LocalModelId::BirefnetLite,
-    LocalModelId::Rmbg20,
     LocalModelId::BirefnetPortrait,
     LocalModelId::Rmbg14,
-    LocalModelId::IsnetDis,
+    LocalModelId::Rmbg20,
     LocalModelId::IsnetAnime,
+    LocalModelId::IsnetDis,
     LocalModelId::RealEsrganGeneralX4v3,
     LocalModelId::RealEsrganX4plus,
     LocalModelId::Migan,
@@ -217,11 +217,11 @@ impl LocalModelId {
             }
             Self::Qwen3AlignerQ8 => Some(S::SpeechAlignmentQ8),
             Self::BirefnetLite => Some(S::ImageSegmentationBiRefNet),
-            Self::Rmbg20 => Some(S::ImageSegmentationRmbg20),
             Self::BirefnetPortrait => Some(S::ImageSegmentationPortrait),
             Self::Rmbg14 => Some(S::ImageSegmentationRmbg14),
-            Self::IsnetDis => Some(S::ImageSegmentationDis),
+            Self::Rmbg20 => Some(S::ImageSegmentationRmbg20),
             Self::IsnetAnime => Some(S::ImageSegmentationAnime),
+            Self::IsnetDis => Some(S::ImageSegmentationDis),
             Self::Spleeter2Stems => Some(S::SpeechSeparation),
             Self::Spleeter2StemsFull => Some(S::SpeechSeparationFull),
             Self::SherpaDiarization => Some(S::Diarization(catalog::DiarizationVariant::Int8)),
@@ -270,11 +270,11 @@ impl LocalModelId {
             | Self::DepthAnythingV2SmallUint8
             | Self::DepthAnythingV2Small
             | Self::PpOcrV6Small
-            | Self::Rmbg20
             | Self::BirefnetPortrait
             | Self::Rmbg14
-            | Self::IsnetDis
+            | Self::Rmbg20
             | Self::IsnetAnime
+            | Self::IsnetDis
             | Self::VoxCpm2Bf16
             | Self::VoxCpm2Q8
             | Self::Qwen3AlignerQ8

@@ -40,8 +40,8 @@ pub(crate) async fn segment_image<R: Runtime>(
     let model_spec_id = identity.model_spec_id;
     let model = match model_spec_id {
         IMAGE_SEGMENTATION_BIREFNET_SPEC_ID => ModelKind::ImageSegmentationBiRefNet,
-        IMAGE_SEGMENTATION_RMBG20_SPEC_ID => ModelKind::ImageSegmentationRmbg20,
         IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID => ModelKind::ImageSegmentationPortrait,
+        IMAGE_SEGMENTATION_RMBG20_SPEC_ID => ModelKind::ImageSegmentationRmbg20,
         IMAGE_SEGMENTATION_RMBG14_SPEC_ID => ModelKind::ImageSegmentationRmbg14,
         IMAGE_SEGMENTATION_DIS_SPEC_ID => ModelKind::ImageSegmentationDis,
         IMAGE_SEGMENTATION_ANIME_SPEC_ID => ModelKind::ImageSegmentationAnime,

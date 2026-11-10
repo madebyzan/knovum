@@ -55,8 +55,8 @@ pub enum ModelKind {
     MossNanoPart(MossNanoPart),
     WhisperPart(WhisperPart),
     ImageSegmentationBiRefNet,
-    ImageSegmentationRmbg20,
     ImageSegmentationPortrait,
+    ImageSegmentationRmbg20,
     ImageSegmentationRmbg14,
     ImageSegmentationDis,
     ImageSegmentationAnime,
@@ -91,10 +91,10 @@ pub enum ModelKind {
 pub(crate) const TRANSCRIPTION_MODELS: &[ModelKind] = WhisperVariant::Small.models();
 pub(crate) const IMAGE_SEGMENTATION_BIREFNET_MODELS: &[ModelKind] =
     &[ModelKind::ImageSegmentationBiRefNet];
-pub(crate) const IMAGE_SEGMENTATION_RMBG20_MODELS: &[ModelKind] =
-    &[ModelKind::ImageSegmentationRmbg20];
 pub(crate) const IMAGE_SEGMENTATION_PORTRAIT_MODELS: &[ModelKind] =
     &[ModelKind::ImageSegmentationPortrait];
+pub(crate) const IMAGE_SEGMENTATION_RMBG20_MODELS: &[ModelKind] =
+    &[ModelKind::ImageSegmentationRmbg20];
 pub(crate) const IMAGE_SEGMENTATION_RMBG14_MODELS: &[ModelKind] =
     &[ModelKind::ImageSegmentationRmbg14];
 pub(crate) const IMAGE_SEGMENTATION_DIS_MODELS: &[ModelKind] = &[ModelKind::ImageSegmentationDis];
@@ -148,20 +148,20 @@ pub(crate) const IMAGE_SEGMENTATION_BIREFNET: ModelDescriptor = ModelDescriptor 
     download_size: 224_005_088,
 };
 
-pub(crate) const IMAGE_SEGMENTATION_RMBG20: ModelDescriptor = ModelDescriptor {
-    snapshot: SnapshotKind::ImageSegmentationRmbg20,
-    file: "onnx/model.onnx",
-
-    sha256: "6db79b5ac18a5a7af3b32f25d8e2580d8dca444d8a77249d72700eed425f269f",
-    download_size: 1_023_275_319,
-};
-
 pub(crate) const IMAGE_SEGMENTATION_PORTRAIT: ModelDescriptor = ModelDescriptor {
     snapshot: SnapshotKind::ImageSegmentationPortrait,
     file: "onnx/model.onnx",
 
     sha256: "1ba1c8ff5a7bbfadc8d8d13fb11d7be793f91f23d9d466549e37a854f6668f99",
     download_size: 972_666_916,
+};
+
+pub(crate) const IMAGE_SEGMENTATION_RMBG20: ModelDescriptor = ModelDescriptor {
+    snapshot: SnapshotKind::ImageSegmentationRmbg20,
+    file: "onnx/model.onnx",
+
+    sha256: "6db79b5ac18a5a7af3b32f25d8e2580d8dca444d8a77249d72700eed425f269f",
+    download_size: 1_023_275_319,
 };
 
 pub(crate) const IMAGE_SEGMENTATION_RMBG14: ModelDescriptor = ModelDescriptor {
@@ -195,8 +195,8 @@ pub(crate) const fn descriptor(kind: ModelKind) -> ModelDescriptor {
         ModelKind::MossNanoPart(part) => part.descriptor(),
         ModelKind::WhisperPart(part) => part.descriptor(),
         ModelKind::ImageSegmentationBiRefNet => IMAGE_SEGMENTATION_BIREFNET,
-        ModelKind::ImageSegmentationRmbg20 => IMAGE_SEGMENTATION_RMBG20,
         ModelKind::ImageSegmentationPortrait => IMAGE_SEGMENTATION_PORTRAIT,
+        ModelKind::ImageSegmentationRmbg20 => IMAGE_SEGMENTATION_RMBG20,
         ModelKind::ImageSegmentationRmbg14 => IMAGE_SEGMENTATION_RMBG14,
         ModelKind::ImageSegmentationDis => IMAGE_SEGMENTATION_DIS,
         ModelKind::ImageSegmentationAnime => IMAGE_SEGMENTATION_ANIME,

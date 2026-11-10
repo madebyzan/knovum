@@ -75,8 +75,8 @@ fn group(model: LocalModelId) -> Option<Group> {
             Some(Group::ImageDepth)
         }
         LocalModelId::BirefnetLite
-        | LocalModelId::Rmbg20
         | LocalModelId::BirefnetPortrait
+        | LocalModelId::Rmbg20
         | LocalModelId::Rmbg14
         | LocalModelId::IsnetDis
         | LocalModelId::IsnetAnime => Some(Group::ImageSegmentation),

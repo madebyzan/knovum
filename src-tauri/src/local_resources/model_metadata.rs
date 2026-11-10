@@ -235,15 +235,15 @@ pub(crate) fn metadata(model: LocalModelId) -> LocalModelMetadata {
             Unused,
             Any,
         ),
-        LocalModelId::Rmbg20 => (
-            "RMBG 2.0 · SOTA 1024",
+        LocalModelId::BirefnetPortrait => (
+            "BiRefNet · Portrait 1024",
             Capability::ImageSegmentation,
             NONE,
             Unused,
             Any,
         ),
-        LocalModelId::BirefnetPortrait => (
-            "BiRefNet · Portrait 1024",
+        LocalModelId::Rmbg20 => (
+            "RMBG 2.0 · SOTA 1024",
             Capability::ImageSegmentation,
             NONE,
             Unused,
