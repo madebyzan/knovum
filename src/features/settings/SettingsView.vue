@@ -32,7 +32,10 @@ const route = useRoute();
 useSettingsLeaveCoordinator();
 // Settings is its own surface: overlays inside it must not follow the
 // workspace's active state, which the shell scope would otherwise hide.
-provide(overlayScopeVisibleKey, computed(() => true));
+provide(
+  overlayScopeVisibleKey,
+  computed(() => true),
+);
 const activePane = computed<SettingsPaneId>(() => {
   const value = Array.isArray(route.query.pane) ? route.query.pane[0] : route.query.pane;
   return resolveSettingsPaneId(value) ?? "appearance";
