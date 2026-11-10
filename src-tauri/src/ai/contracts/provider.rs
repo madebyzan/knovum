@@ -1,10 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-use super::{
-    files::FileUploadCapability,
-    media::{ImageGenerationCapability, VideoGenerationCapability},
-};
+use super::media::{ImageGenerationCapability, VideoGenerationCapability};
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, ts_rs::TS, schemars::JsonSchema,
@@ -201,10 +198,6 @@ pub trait AiProvider: Send + Sync {
     }
 
     fn as_video_generation(&self) -> Option<&dyn VideoGenerationCapability> {
-        None
-    }
-
-    fn as_file_upload(&self) -> Option<&dyn FileUploadCapability> {
         None
     }
 }

@@ -13,6 +13,7 @@ pub mod foundation;
 mod images;
 mod local_resources;
 mod media;
+mod object_storage;
 mod preferences;
 mod secrets;
 mod spaces;

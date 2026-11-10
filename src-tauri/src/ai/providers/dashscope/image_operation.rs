@@ -3,31 +3,18 @@ use std::time::{Duration, Instant};
 use tokio_util::sync::CancellationToken;
 
 use super::{endpoint, image_operation_protocol as protocol};
-use crate::ai::contracts::FileUploadCapability;
+use crate::ai::providers::image_references;
 use crate::ai::transport::{http_client, response, SecurityContext};
 
-/// DashScope has a file API, so the pixels are uploaded and referenced by URL
-/// instead of being inlined into the request body.
+/// The qwen-image edit protocol accepts a public URL or an inline data URI,
+/// so the reference follows the shared object-storage-or-inline rule.
 pub async fn generate_from_reference(
     ctx: &SecurityContext,
     reference_png: Vec<u8>,
     prompt: &str,
     cancellation: &CancellationToken,
 ) -> Result<Vec<u8>, String> {
-    let upload = super::DashScopeFileUploadAdapter.upload_ephemeral_file(
-        ctx,
-        reference_png,
-        "image/png",
-        "reference.png",
-    );
-    let uploaded = tokio::select! {
-        _ = cancellation.cancelled() => return Err("Image generation was cancelled".into()),
-        uploaded = upload => uploaded.map_err(|error| error.to_string())?,
-    };
-    let reference = uploaded
-        .access_url
-        .filter(|url| !url.is_empty())
-        .ok_or("DashScope image upload returned no file URL")?;
+    let reference = image_references::deliver_png(&reference_png, cancellation).await?;
     execute(ctx, &reference, prompt, cancellation).await
 }
 
@@ -43,14 +30,12 @@ async fn execute(
     if cancellation.is_cancelled() {
         return Err("Image generation was cancelled".into());
     }
-    let mut request = http_client()
+    let request = http_client()
         .post(format!("{endpoint}/{path}"))
         .bearer_auth(secret)
-        .header("X-DashScope-Async", "enable");
-    if reference_url.starts_with("oss://") {
-        request = request.header("X-DashScope-OssResourceResolve", "enable");
-    }
-    let request = request.json(&body).send();
+        .header("X-DashScope-Async", "enable")
+        .json(&body)
+        .send();
     let response = tokio::select! {
         _ = cancellation.cancelled() => return Err("Image generation was cancelled".into()),
         response = request => response.map_err(provider_error)?,

@@ -1,0 +1,39 @@
+{
+  "title": "Archiviazione oggetti",
+  "description": "Collega un bucket compatibile con S3 in modo che i modelli cloud ricevano immagini e video tramite URL invece di dati inline. Funziona con Tencent COS, Alibaba OSS e qualsiasi servizio compatibile con S3.",
+  "connection": {
+    "title": "Connessione",
+    "description": "Posizione e identità del bucket. Le credenziali sono salvate separatamente nel database locale dei segreti.",
+    "endpoint": "Endpoint",
+    "endpointPlaceholder": "https://cos.ap-guangzhou.myqcloud.com",
+    "region": "Regione",
+    "regionPlaceholder": "ap-guangzhou",
+    "bucket": "Bucket",
+    "publicBaseUrl": "URL pubblico di base",
+    "publicBaseUrlDescription": "Dominio pubblico o CDN facoltativo che serve gli oggetti caricati.",
+    "configured": "Configurato"
+  },
+  "credentials": {
+    "title": "Credenziali",
+    "description": "Lascia il campo vuoto per mantenere il valore salvato.",
+    "accessKeyId": "ID chiave di accesso",
+    "secretAccessKey": "Chiave di accesso segreta"
+  },
+  "actions": {
+    "save": "Salva",
+    "test": "Prova connessione",
+    "remove": "Rimuovi",
+    "saved": "Impostazioni di archiviazione salvate",
+    "saveFailed": "Impossibile salvare le impostazioni di archiviazione",
+    "testSuccess": "La connessione all'archiviazione funziona",
+    "testFailed": "Connessione all'archiviazione non riuscita",
+    "removed": "Configurazione di archiviazione rimossa",
+    "removeFailed": "Impossibile rimuovere la configurazione di archiviazione",
+    "loadFailed": "Impossibile leggere le impostazioni di archiviazione",
+    "removeConfirm": {
+      "title": "Rimuovere l'archiviazione oggetti?",
+      "description": "La configurazione del bucket e le credenziali salvate verranno eliminate da questo dispositivo.",
+      "confirm": "Rimuovi"
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "title": "物件儲存",
+  "description": "連接一個 S3 相容的儲存桶，雲端模型將透過 URL 取得圖片和影片，而不再內聯傳輸資料。支援騰訊雲 COS、阿里雲 OSS 及任何 S3 相容服務。",
+  "connection": {
+    "title": "連接設定",
+    "description": "儲存桶的位置與識別。憑證單獨儲存在本機金鑰資料庫中。",
+    "endpoint": "端點",
+    "endpointPlaceholder": "https://cos.ap-guangzhou.myqcloud.com",
+    "region": "區域",
+    "regionPlaceholder": "ap-guangzhou",
+    "bucket": "儲存桶",
+    "publicBaseUrl": "公開存取網域",
+    "publicBaseUrlDescription": "選用：用於公開存取上傳物件的儲存桶網域或 CDN。",
+    "configured": "已設定"
+  },
+  "credentials": {
+    "title": "憑證",
+    "description": "留空表示保留已儲存的值。",
+    "accessKeyId": "存取金鑰 ID",
+    "secretAccessKey": "存取金鑰 Secret"
+  },
+  "actions": {
+    "save": "儲存",
+    "test": "測試連線",
+    "remove": "移除",
+    "saved": "物件儲存設定已儲存",
+    "saveFailed": "無法儲存物件儲存設定",
+    "testSuccess": "物件儲存連線正常",
+    "testFailed": "物件儲存連線失敗",
+    "removed": "物件儲存設定已移除",
+    "removeFailed": "無法移除物件儲存設定",
+    "loadFailed": "無法讀取物件儲存設定",
+    "removeConfirm": {
+      "title": "移除物件儲存？",
+      "description": "儲存桶設定及其已儲存的憑證將從此裝置上刪除。",
+      "confirm": "移除"
+    }
+  }
+}

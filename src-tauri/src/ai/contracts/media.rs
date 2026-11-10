@@ -108,11 +108,10 @@ pub type VideoGenerationStageCallback<'a> =
     Box<dyn Fn(&str) -> Result<(), String> + Send + Sync + 'a>;
 
 pub trait VideoGenerationCapability: Send + Sync {
-    /// True when the video API only accepts references it can fetch by URL, so
-    /// the shared layer has to deliver them through the provider's file API
-    /// first. False when the request body carries the pixels inline.
-    fn consumes_uploaded_references(&self) -> bool {
-        false
+    /// False when the API cannot fetch a reference from a public URL and the
+    /// pixels have to travel inline in the request body (Veo).
+    fn accepts_reference_urls(&self) -> bool {
+        true
     }
 
     /// Auth headers the provider requires on its own result URLs (Gemini's

@@ -29,6 +29,17 @@ pub async fn analyze_image(
     if !image.is_image() {
         return Err(AppError::invalid("Vision analysis requires an image file"));
     }
+    // With user-configured object storage the provider fetches the image by
+    // URL; without it the pixels travel inline as the file was read.
+    let image = if crate::object_storage::available().await {
+        let bytes = tokio::fs::read(&request.source)
+            .await
+            .map_err(|e| AppError::invalid(e.to_string()))?;
+        let url = crate::object_storage::upload_media(bytes, &image.content_type).await?;
+        Binary::from_url(image.content_type, url, image.name)
+    } else {
+        image
+    };
 
     let content = MessageContent::from_parts(vec![
         ContentPart::Text(request.instruction.clone()),

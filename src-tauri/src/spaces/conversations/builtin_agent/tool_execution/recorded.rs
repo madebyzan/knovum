@@ -55,7 +55,7 @@ pub(super) async fn invoke(
     .await?;
     let outcome = match outcome {
         ToolInvocationOutcome::Completed(mut value) => {
-            let media = tool_operations::media::project(&mut value, &context.target);
+            let media = tool_operations::media::project(&mut value, &context.target).await?;
             AgentToolOutcome::Completed { value, media }
         }
         ToolInvocationOutcome::AwaitUser {

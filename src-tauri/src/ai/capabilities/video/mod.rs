@@ -38,9 +38,8 @@ pub async fn generate(
     })?;
 
     let prepared_images = prepare_reference_images(
-        &request.target,
         request.reference_images,
-        video_generation.consumes_uploaded_references(),
+        video_generation.accepts_reference_urls(),
     )
     .await?;
     let ctx = SecurityContext::from_target(&request.target).await?;
@@ -56,60 +55,50 @@ pub async fn generate(
         .await
 }
 
+/// Reference delivery follows one rule: with user-configured object storage
+/// the pixels are uploaded once and the API fetches them by URL; without it
+/// they travel inline as a data URI, inside the request-size budget.
 async fn prepare_reference_images(
-    target: &ModelExecutionTarget,
     images: Vec<String>,
-    consumes_uploads: bool,
+    accepts_urls: bool,
 ) -> AppResult<Vec<String>> {
+    let storage_available = accepts_urls && crate::object_storage::available().await;
     let mut prepared_images = Vec::with_capacity(images.len());
     let mut inline_bytes = 0;
     for item in images {
-        if item.starts_with("http://") || item.starts_with("https://") || item.starts_with("oss://")
-        {
+        if item.starts_with("http://") || item.starts_with("https://") {
             prepared_images.push(item);
-        } else if let Some(encoded_reference) = item.strip_prefix("data:") {
+            continue;
+        }
+        let (media_type, bytes) = if let Some(encoded_reference) = item.strip_prefix("data:") {
             let (mime_part, base64_payload) = encoded_reference
                 .split_once(";base64,")
                 .ok_or_else(|| AppError::invalid("Reference image data URI is invalid"))?;
             let decoded_bytes =
                 decode_reference_image(base64_payload, super::files::MAX_UPLOAD_BYTES)?;
-            if consumes_uploads {
-                let upload_ref = super::files::upload_file_bytes(
-                    target,
-                    decoded_bytes,
-                    mime_part,
-                    "reference_image.png",
-                )
-                .await?;
-                prepared_images.push(upload_ref.access_url.unwrap_or(upload_ref.file_id));
-            } else {
-                push_inline_reference(&mut prepared_images, &mut inline_bytes, item)?;
-            }
+            (mime_part.to_owned(), decoded_bytes)
         } else {
             let path = std::path::Path::new(&item);
-            if path.is_file() {
-                if consumes_uploads {
-                    let upload_ref = super::files::upload_file_path(target, path).await?;
-                    let effective_reference = upload_ref.access_url.unwrap_or(upload_ref.file_id);
-                    prepared_images.push(effective_reference);
-                } else {
-                    let bytes =
-                        super::files::read_file_bounded(path, super::files::MAX_UPLOAD_BYTES)
-                            .await?;
-                    let mime = mime_guess::from_path(path)
-                        .first_or_octet_stream()
-                        .to_string();
-                    use base64::Engine;
-                    let encoded = base64::engine::general_purpose::STANDARD.encode(bytes);
-                    push_inline_reference(
-                        &mut prepared_images,
-                        &mut inline_bytes,
-                        format!("data:{mime};base64,{encoded}"),
-                    )?;
-                }
-            } else {
+            if !path.is_file() {
                 return Err(AppError::invalid("Reference image path is unavailable"));
             }
+            let bytes = super::files::read_file_bounded(path, super::files::MAX_UPLOAD_BYTES).await?;
+            let mime = mime_guess::from_path(path)
+                .first_or_octet_stream()
+                .to_string();
+            (mime, bytes)
+        };
+        if storage_available {
+            let url = crate::object_storage::upload_media(bytes, &media_type).await?;
+            prepared_images.push(url);
+        } else {
+            use base64::Engine;
+            let encoded = base64::engine::general_purpose::STANDARD.encode(bytes);
+            push_inline_reference(
+                &mut prepared_images,
+                &mut inline_bytes,
+                format!("data:{media_type};base64,{encoded}"),
+            )?;
         }
     }
     Ok(prepared_images)

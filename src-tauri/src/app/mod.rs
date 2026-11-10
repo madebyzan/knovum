@@ -47,6 +47,7 @@ fn base_builder() -> Builder<Wry> {
         .plugin(desktop::plugin())
         .plugin(resources::plugin())
         .plugin(secrets::plugin())
+        .plugin(crate::object_storage::plugin())
         .plugin(ai::plugin())
         .plugin(extensions::plugin())
         .plugin(spaces::plugin());
@@ -115,6 +116,7 @@ fn finish(builder: Builder<Wry>) -> tauri::App<Wry> {
             desktop::install(app.handle());
             task_projection::install(app.handle());
             secrets::install(app.handle()).map_err(std::io::Error::other)?;
+            crate::object_storage::install(app.handle()).map_err(std::io::Error::other)?;
             updater::setup(app.handle())?;
             crate::external_agents::install(app.handle());
             Ok(())

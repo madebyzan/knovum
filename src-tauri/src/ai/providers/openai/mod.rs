@@ -1,18 +1,15 @@
 mod image;
-mod upload;
 
 pub use image::OpenAiImageAdapter;
-pub use upload::OpenAiFileUploadAdapter;
 
 use crate::ai::contracts::{
-    AiProvider, ExecutionCapability, FileUploadCapability, ImageGenerationCapability, ProviderKind,
+    AiProvider, ExecutionCapability, ImageGenerationCapability, ProviderKind,
 };
 use crate::ai::providers::registry;
 
 pub struct OpenAiProvider {
     kind: ProviderKind,
     image: OpenAiImageAdapter,
-    upload: OpenAiFileUploadAdapter,
 }
 
 impl OpenAiProvider {
@@ -20,7 +17,6 @@ impl OpenAiProvider {
         Self {
             kind,
             image: OpenAiImageAdapter,
-            upload: OpenAiFileUploadAdapter,
         }
     }
 }
@@ -35,13 +31,5 @@ impl AiProvider for OpenAiProvider {
                 .contains(&ExecutionCapability::ImageGeneration)
         });
         declares_image.then_some(&self.image as &dyn ImageGenerationCapability)
-    }
-
-    fn as_file_upload(&self) -> Option<&dyn FileUploadCapability> {
-        if self.kind == ProviderKind::OpenAi {
-            Some(&self.upload)
-        } else {
-            None
-        }
     }
 }

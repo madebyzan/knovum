@@ -1,18 +1,12 @@
-mod upload;
+use crate::ai::contracts::AiProvider;
 
-pub use upload::MoonshotFileUploadAdapter;
-
-use crate::ai::contracts::{AiProvider, FileUploadCapability};
-
-pub struct MoonshotProvider {
-    upload: MoonshotFileUploadAdapter,
-}
+/// Moonshot chat runs on the shared OpenAI-compatible wire; the provider
+/// carries no additional capabilities.
+pub struct MoonshotProvider;
 
 impl MoonshotProvider {
     pub fn new() -> Self {
-        Self {
-            upload: MoonshotFileUploadAdapter,
-        }
+        Self
     }
 }
 
@@ -22,8 +16,4 @@ impl Default for MoonshotProvider {
     }
 }
 
-impl AiProvider for MoonshotProvider {
-    fn as_file_upload(&self) -> Option<&dyn FileUploadCapability> {
-        Some(&self.upload)
-    }
-}
+impl AiProvider for MoonshotProvider {}

@@ -8,7 +8,7 @@ use serde_json::Value;
 use sqlx::SqlitePool;
 
 use crate::spaces::conversations::{contracts::ConversationAttachment, upload};
-pub(in crate::spaces::conversations) use image::image_input_from_file;
+pub(in crate::spaces::conversations) use image::{image_input_from_file, image_part};
 use image::ImageAttachmentContent;
 
 struct ResolvedPart {
@@ -43,30 +43,26 @@ pub(crate) struct ResolvedContext {
 }
 
 impl ResolvedContext {
-    pub(in crate::spaces::conversations) fn initial_message(
+    pub(in crate::spaces::conversations) async fn initial_message(
         &self,
         input_id: String,
         user_prompt: &str,
         conversation_context: Option<&str>,
-    ) -> crate::agent_runtime::protocol::messages::AgentInputMessage {
+    ) -> Result<crate::agent_runtime::protocol::messages::AgentInputMessage, String> {
         use crate::agent_runtime::protocol::messages::{
             AgentContentPart, AgentInputMessage, AgentInputRole,
         };
-        use base64::Engine;
         let mut content = vec![AgentContentPart::Text {
             text: self.text(user_prompt, conversation_context),
         }];
         for image in &self.images {
-            content.push(AgentContentPart::Image {
-                mime_type: image.media_type.into(),
-                data: base64::engine::general_purpose::STANDARD.encode(&image.bytes),
-            });
+            content.push(image_part(image.bytes.clone(), image.media_type).await?);
         }
-        AgentInputMessage {
+        Ok(AgentInputMessage {
             id: input_id,
             role: AgentInputRole::User,
             content,
-        }
+        })
     }
 
     pub(crate) fn agent_prompt(

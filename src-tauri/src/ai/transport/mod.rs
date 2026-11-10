@@ -1,5 +1,4 @@
 mod client;
-pub(crate) mod file_upload;
 pub(crate) mod response;
 mod security;
 

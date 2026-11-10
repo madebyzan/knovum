@@ -1,0 +1,39 @@
+{
+  "title": "Almacenamiento de objetos",
+  "description": "Conecta un bucket compatible con S3 para que los modelos en la nube reciban imágenes y vídeos por URL en lugar de datos en línea. Funciona con Tencent COS, Alibaba OSS y cualquier servicio compatible con S3.",
+  "connection": {
+    "title": "Conexión",
+    "description": "Ubicación e identidad del bucket. Las credenciales se guardan por separado en la base de datos local de secretos.",
+    "endpoint": "Punto de conexión",
+    "endpointPlaceholder": "https://cos.ap-guangzhou.myqcloud.com",
+    "region": "Región",
+    "regionPlaceholder": "ap-guangzhou",
+    "bucket": "Bucket",
+    "publicBaseUrl": "URL base pública",
+    "publicBaseUrlDescription": "Dominio público o CDN opcional que sirve los objetos subidos.",
+    "configured": "Configurado"
+  },
+  "credentials": {
+    "title": "Credenciales",
+    "description": "Deja un campo en blanco para conservar el valor guardado.",
+    "accessKeyId": "ID de clave de acceso",
+    "secretAccessKey": "Clave de acceso secreta"
+  },
+  "actions": {
+    "save": "Guardar",
+    "test": "Probar conexión",
+    "remove": "Eliminar",
+    "saved": "Ajustes de almacenamiento guardados",
+    "saveFailed": "No se pudieron guardar los ajustes de almacenamiento",
+    "testSuccess": "La conexión de almacenamiento funciona",
+    "testFailed": "Falló la conexión de almacenamiento",
+    "removed": "Configuración de almacenamiento eliminada",
+    "removeFailed": "No se pudo eliminar la configuración de almacenamiento",
+    "loadFailed": "No se pudieron leer los ajustes de almacenamiento",
+    "removeConfirm": {
+      "title": "¿Eliminar el almacenamiento de objetos?",
+      "description": "La configuración del bucket y sus credenciales guardadas se eliminarán de este dispositivo.",
+      "confirm": "Eliminar"
+    }
+  }
+}

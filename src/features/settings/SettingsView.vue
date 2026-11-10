@@ -18,6 +18,7 @@ import { getSettingsDefinition } from "./navigation/settings-registry";
 import SettingsSidebar from "./navigation/SettingsSidebar.vue";
 import { useSettingsLeaveCoordinator } from "./navigation/use-settings-leave-coordinator";
 import NotificationsSettingsPane from "./notifications/NotificationsSettingsPane.vue";
+import ObjectStorageSettingsPane from "./object-storage/ObjectStorageSettingsPane.vue";
 import ShortcutsSettingsPane from "./shortcuts/ShortcutsSettingsPane.vue";
 import UsageSettingsPane from "./usage/UsageSettingsPane.vue";
 
@@ -75,6 +76,7 @@ const componentByPaneId = {
   extensions: toRaw(props.extensionsComponent),
   usage: UsageSettingsPane,
   data: BackupSettingsPane,
+  objectStorage: ObjectStorageSettingsPane,
   archivedSpaces: ArchivedSpacesSettingsPane,
   about: AboutSettingsPane,
   appearance: AppearanceSettingsPane,

@@ -57,7 +57,18 @@ impl VideoGenerationCapability for HunyuanVideoAdapter {
             match req.reference_images.first() {
                 // Carrying a picture switches the job to image-to-video and
                 // the picture then decides the frame, like the API specifies.
-                Some(reference) => body["image"] = json!(reference),
+                // TokenHub splits the two shapes into separate fields: a
+                // public URL goes to `image_url`, inline pixels go to `image`
+                // as bare base64 without the data-URI prefix.
+                Some(reference) if reference.starts_with("http://") || reference.starts_with("https://") => {
+                    body["image_url"] = json!(reference);
+                }
+                Some(reference) => {
+                    let base64 = reference
+                        .split_once(";base64,")
+                        .map_or(reference.as_str(), |(_, payload)| payload);
+                    body["image"] = json!(base64);
+                }
                 None => body["aspect_ratio"] = json!(req.ratio),
             };
 

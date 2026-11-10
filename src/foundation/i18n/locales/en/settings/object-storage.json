@@ -1,0 +1,39 @@
+{
+  "title": "Object Storage",
+  "description": "Connect an S3-compatible bucket so cloud models receive images and videos by URL instead of inline data. Works with Tencent COS, Alibaba OSS, and any S3-compatible service.",
+  "connection": {
+    "title": "Connection",
+    "description": "Bucket location and identity. Credentials are stored separately in the local secrets database.",
+    "endpoint": "Endpoint",
+    "endpointPlaceholder": "https://cos.ap-guangzhou.myqcloud.com",
+    "region": "Region",
+    "regionPlaceholder": "ap-guangzhou",
+    "bucket": "Bucket",
+    "publicBaseUrl": "Public base URL",
+    "publicBaseUrlDescription": "Optional public bucket domain or CDN that serves the uploaded objects.",
+    "configured": "Configured"
+  },
+  "credentials": {
+    "title": "Credentials",
+    "description": "Leave a field blank to keep the saved value.",
+    "accessKeyId": "Access key ID",
+    "secretAccessKey": "Secret access key"
+  },
+  "actions": {
+    "save": "Save",
+    "test": "Test connection",
+    "remove": "Remove",
+    "saved": "Object storage settings saved",
+    "saveFailed": "Could not save object storage settings",
+    "testSuccess": "Object storage connection works",
+    "testFailed": "Object storage connection failed",
+    "removed": "Object storage configuration removed",
+    "removeFailed": "Could not remove object storage configuration",
+    "loadFailed": "Could not read object storage settings",
+    "removeConfirm": {
+      "title": "Remove object storage?",
+      "description": "The bucket configuration and its saved credentials will be deleted from this device.",
+      "confirm": "Remove"
+    }
+  }
+}

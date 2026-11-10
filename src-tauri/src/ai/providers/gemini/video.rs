@@ -16,6 +16,12 @@ use crate::foundation::public_network::same_origin;
 pub struct GeminiVideoAdapter;
 
 impl VideoGenerationCapability for GeminiVideoAdapter {
+    /// Veo only accepts pure base64 pixels, never a URL, so references stay
+    /// inline instead of taking an object-storage round trip.
+    fn accepts_reference_urls(&self) -> bool {
+        false
+    }
+
     fn submit<'a>(
         &'a self,
         ctx: &'a SecurityContext,

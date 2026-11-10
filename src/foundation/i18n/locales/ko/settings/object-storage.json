@@ -1,0 +1,39 @@
+{
+  "title": "객체 스토리지",
+  "description": "S3 호환 버킷을 연결하면 클라우드 모델이 인라인 데이터 대신 URL로 이미지와 동영상을 받습니다. Tencent COS, Alibaba OSS 및 모든 S3 호환 서비스를 지원합니다.",
+  "connection": {
+    "title": "연결 설정",
+    "description": "버킷 위치와 식별 정보입니다. 자격 증명은 로컬 시크릿 데이터베이스에 별도로 저장됩니다.",
+    "endpoint": "엔드포인트",
+    "endpointPlaceholder": "https://cos.ap-guangzhou.myqcloud.com",
+    "region": "리전",
+    "regionPlaceholder": "ap-guangzhou",
+    "bucket": "버킷",
+    "publicBaseUrl": "공개 기본 URL",
+    "publicBaseUrlDescription": "업로드된 객체를 제공하는 공개 버킷 도메인 또는 CDN(선택 사항).",
+    "configured": "구성됨"
+  },
+  "credentials": {
+    "title": "자격 증명",
+    "description": "비워 두면 저장된 값이 유지됩니다.",
+    "accessKeyId": "액세스 키 ID",
+    "secretAccessKey": "비밀 액세스 키"
+  },
+  "actions": {
+    "save": "저장",
+    "test": "연결 테스트",
+    "remove": "제거",
+    "saved": "객체 스토리지 설정이 저장되었습니다",
+    "saveFailed": "객체 스토리지 설정을 저장할 수 없습니다",
+    "testSuccess": "객체 스토리지 연결이 정상입니다",
+    "testFailed": "객체 스토리지 연결에 실패했습니다",
+    "removed": "객체 스토리지 구성이 제거되었습니다",
+    "removeFailed": "객체 스토리지 구성을 제거할 수 없습니다",
+    "loadFailed": "객체 스토리지 설정을 읽을 수 없습니다",
+    "removeConfirm": {
+      "title": "객체 스토리지를 제거할까요?",
+      "description": "버킷 구성과 저장된 자격 증명이 이 기기에서 삭제됩니다.",
+      "confirm": "제거"
+    }
+  }
+}

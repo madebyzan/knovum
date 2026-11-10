@@ -3,11 +3,10 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use tokio_util::sync::CancellationToken;
 
-use super::GeminiFileUploadAdapter;
 use crate::ai::{
     contracts::{
-        FileUploadCapability, GeneratedImage, ImageGenerationCapability, ImageGenerationInput,
-        ImageReference, ImageReferenceSupport,
+        GeneratedImage, ImageGenerationCapability, ImageGenerationInput, ImageReference,
+        ImageReferenceSupport,
     },
     transport::{http_client, response, SecurityContext},
 };
@@ -151,25 +150,16 @@ async fn uploaded_part(
     reference: &ImageReference,
     cancellation: &CancellationToken,
 ) -> AppResult<Value> {
-    let upload = GeminiFileUploadAdapter.upload_ephemeral_file(
+    let upload = super::upload::upload_ephemeral_file(
         ctx,
         reference.png.clone(),
         "image/png",
         "reference.png",
     );
-    let uploaded = tokio::select! {
+    let file_uri = tokio::select! {
         _ = cancellation.cancelled() => return Err(AppError::cancelled("Image generation was cancelled")),
         uploaded = upload => uploaded?,
     };
-    let file_uri = uploaded
-        .access_url
-        .filter(|uri| !uri.is_empty())
-        .ok_or_else(|| {
-            AppError::new(
-                "invalid_response",
-                "Gemini image upload returned no file URI",
-            )
-        })?;
     Ok(json!({ "fileData": { "mimeType": "image/png", "fileUri": file_uri } }))
 }
 
