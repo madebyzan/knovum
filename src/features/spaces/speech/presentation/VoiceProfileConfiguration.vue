@@ -60,7 +60,6 @@ const menuItems = computed(() => [
   },
   ...(props.profile.archivedAt
     ? [
-        { separator: true },
         {
           label:
             props.profile.referencedBindingCount > 0
