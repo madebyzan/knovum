@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, nextTick, toRaw, watch, type Component } from "vue";
+import { computed, nextTick, provide, shallowRef, toRaw, watch, type Component } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
 
+import { overlayScopeVisibleKey } from "../../shared/contracts/overlay-scope-visibility";
 import UiScrollArea from "../../shared/ui/UiScrollArea.vue";
 import AboutSettingsPane from "./about/AboutSettingsPane.vue";
 import AiProvidersSettingsPane from "./ai/AiProvidersSettingsPane.vue";
@@ -29,6 +30,7 @@ const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
 useSettingsLeaveCoordinator();
+provide(overlayScopeVisibleKey, shallowRef(true));
 const activePane = computed<SettingsPaneId>(() => {
   const value = Array.isArray(route.query.pane) ? route.query.pane[0] : route.query.pane;
   return resolveSettingsPaneId(value) ?? "appearance";
