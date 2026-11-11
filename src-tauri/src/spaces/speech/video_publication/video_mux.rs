@@ -3,7 +3,48 @@ use tokio_util::sync::CancellationToken;
 
 use super::SAMPLE_RATE;
 
-/// Publishes the dubbed video.
+/// How the source picture enters the published MP4.
+#[derive(Debug, PartialEq, Eq)]
+pub(super) enum Picture {
+    /// The stream is copied untouched: MP4 carries it and players read it as tagged.
+    Copy,
+    /// The stream is copied under the sample-entry tag every player reads. FFmpeg writes HEVC
+    /// as `hev1` by default, which QuickTime, Safari and iOS refuse; `hvc1` plays everywhere.
+    CopyTagged(&'static str),
+    /// MP4 cannot carry the codec (ProRes, DNxHD, …): the picture is encoded to H.264.
+    Encode,
+}
+
+impl Picture {
+    pub(super) fn of(codec: &str) -> Self {
+        match codec {
+            "h264" | "av1" | "vp9" | "mpeg4" => Self::Copy,
+            "hevc" => Self::CopyTagged("hvc1"),
+            _ => Self::Encode,
+        }
+    }
+
+    fn arguments(&self) -> Result<Vec<&'static str>, String> {
+        Ok(match self {
+            Self::Copy => vec!["-c:v", "copy"],
+            Self::CopyTagged(tag) => vec!["-c:v", "copy", "-tag:v", tag],
+            Self::Encode => vec![
+                "-c:v",
+                crate::spaces::derivation::platform_h264_encoder()?,
+                "-b:v",
+                "8M",
+                "-maxrate",
+                "12M",
+                "-bufsize",
+                "16M",
+                "-pix_fmt",
+                "yuv420p",
+            ],
+        })
+    }
+}
+
+/// Publishes the dubbed video. The picture is copied whenever MP4 carries it ([`Picture`]).
 ///
 /// Every published track is as long as the verified picture, stated here rather than negotiated:
 /// each one is padded and then trimmed to the sample count the picture was measured at. The
@@ -24,6 +65,11 @@ pub(super) fn mux_video(
     } else {
         dubbed
     };
+    let picture = Picture::of(&crate::media::ffmpeg::video_codec(
+        ffmpeg,
+        video,
+        cancellation,
+    )?);
     let mut command = Command::new(ffmpeg);
     command
         .args(["-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-i"])
@@ -41,8 +87,9 @@ pub(super) fn mux_video(
             "default",
             "-metadata:s:a:0",
             "title=Dubbed",
-            "-c:v",
-            "copy",
+        ])
+        .args(picture.arguments()?)
+        .args([
             "-c:a",
             "aac",
             "-ac",

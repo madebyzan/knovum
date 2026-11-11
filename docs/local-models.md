@@ -326,6 +326,14 @@ consecutive segments, no one else between, no pause beyond a dialogue pause — 
 boundary to the model's maximum reference length. Speakers who never speak five seconds on end are
 not offered.
 
+### Publishing the dubbed video
+
+The picture is never re-encoded when MP4 can carry it (`video_publication/video_mux.rs::Picture`,
+one probe of the source's codec via `media::ffmpeg::video_codec`): H.264, AV1, VP9 and MPEG-4 are
+copied; HEVC is copied under the `hvc1` sample-entry tag, because FFmpeg's default `hev1` is
+refused by QuickTime, Safari and iOS; a codec MP4 cannot hold (ProRes, DNxHD, …) is encoded to
+H.264 with the video editor's settings instead of failing the dub.
+
 ### Cloning families
 
 IndexTTS2, Qwen3-TTS (Base) and Fun-CosyVoice3 clone a reference recording of 5–15 seconds through

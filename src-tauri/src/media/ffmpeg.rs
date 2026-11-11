@@ -110,3 +110,63 @@ pub(crate) fn has_audio(
         Err(error)
     }
 }
+
+/// The codec of `source`'s first video stream, as FFmpeg names it (`h264`, `hevc`, `prores`…),
+/// read from the stream summary FFmpeg prints for its input.
+pub(crate) fn video_codec(
+    ffmpeg: &Path,
+    source: &Path,
+    cancellation: &CancellationToken,
+) -> Result<String, String> {
+    let mut codec = None;
+    let child = Command::new(ffmpeg)
+        .args(["-nostdin", "-hide_banner", "-loglevel", "info", "-i"])
+        .arg(source)
+        .args([
+            "-map",
+            "0:v:0",
+            "-c",
+            "copy",
+            "-frames:v",
+            "0",
+            "-f",
+            "null",
+            "-",
+        ])
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|error| format!("Unable to inspect media video: {error}"))?;
+    let exit = subprocess::wait_with_stderr(child, cancellation, "cancelled", |line| {
+        if codec.is_none() {
+            codec = stream_codec(line, "Video");
+        }
+        Ok(())
+    })?;
+    if !exit.status.success() {
+        return Err(subprocess::diagnostic_error(
+            &exit.diagnostics,
+            "Unable to inspect media video",
+        ));
+    }
+    codec.ok_or_else(|| "Media has no video stream".into())
+}
+
+/// The codec named by an FFmpeg input summary line for a stream of `kind`, such as
+/// `  Stream #0:0[0x1](und): Video: hevc (Main) (hvc1 / 0x31637668), yuv420p…`.
+fn stream_codec(line: &str, kind: &str) -> Option<String> {
+    let line = line.trim_start();
+    if !line.starts_with("Stream #0:") {
+        return None;
+    }
+    let (_, description) = line.split_once(&format!(": {kind}: "))?;
+    let codec = description
+        .split(|character: char| character.is_whitespace() || character == ',')
+        .next()?;
+    (!codec.is_empty()).then(|| codec.to_owned())
+}
+
+#[cfg(test)]
+#[path = "tests/ffmpeg.rs"]
+mod tests;
