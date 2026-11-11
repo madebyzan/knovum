@@ -57,7 +57,10 @@ pub(super) async fn stage_tensor(path: &std::path::Path, bytes: &[u8]) -> Result
 }
 
 pub(super) fn validate_input(input: &[f32]) -> Result<(), String> {
-    if input.is_empty() || !input.len().is_multiple_of(3) || input.iter().any(|value| !value.is_finite()) {
+    if input.is_empty()
+        || !input.len().is_multiple_of(3)
+        || input.iter().any(|value| !value.is_finite())
+    {
         return Err("invalid_input: image segmentation tensor is invalid".into());
     }
     let pixels = input.len() / 3;
