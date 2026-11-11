@@ -3,36 +3,38 @@
   "description": "S3 互換バケットに接続すると、クラウドモデルはインラインデータではなく URL で画像や動画を受け取ります。Tencent COS、Alibaba OSS、その他 S3 互換サービスに対応しています。",
   "connection": {
     "title": "接続設定",
-    "description": "バケットの場所と識別情報。認証情報はローカルのシークレットデータベースに別途保存されます。",
+    "description": "バケットの場所と識別情報。入力完了時に自動保存されます。",
     "endpoint": "エンドポイント",
     "endpointPlaceholder": "https://cos.ap-guangzhou.myqcloud.com",
+    "endpointDescription": "https:// で始まる S3 互換サービスエンドポイント",
     "region": "リージョン",
     "regionPlaceholder": "ap-guangzhou",
+    "regionDescription": "バケットがホストされている地域コード",
     "bucket": "バケット",
+    "bucketDescription": "バケット識別名（3〜63文字）",
     "publicBaseUrl": "公開ベース URL",
-    "publicBaseUrlDescription": "アップロードしたオブジェクトを配信する公開バケットドメインまたは CDN（任意）。",
-    "configured": "設定済み"
+    "publicBaseUrlDescription": "アップロードしたオブジェクトを配信する公開バケットドメインまたは CDN（任意）。"
   },
   "credentials": {
     "title": "認証情報",
-    "description": "空白のままにすると保存済みの値が保持されます。",
+    "description": "認証情報はローカルのシークレットデータベースに自動保存されます。",
     "accessKeyId": "アクセスキー ID",
     "secretAccessKey": "シークレットアクセスキー"
   },
+  "status": {
+    "testing": "テスト中..."
+  },
   "actions": {
-    "save": "保存",
     "test": "接続テスト",
     "remove": "削除",
-    "saved": "オブジェクトストレージ設定を保存しました",
-    "saveFailed": "オブジェクトストレージ設定を保存できませんでした",
-    "testSuccess": "オブジェクトストレージの接続は正常です",
+    "testSuccess": "オブジェクトストレージの接続に成功しました",
     "testFailed": "オブジェクトストレージの接続に失敗しました",
     "removed": "オブジェクトストレージ設定を削除しました",
     "removeFailed": "オブジェクトストレージ設定を削除できませんでした",
-    "loadFailed": "オブジェクトストレージ設定を読み取れませんでした",
+    "loadFailed": "オブジェクトストレージ設定を読み込めませんでした",
     "removeConfirm": {
       "title": "オブジェクトストレージを削除しますか？",
-      "description": "バケット設定と保存済みの認証情報はこのデバイスから削除されます。",
+      "description": "バケット設定と保存された認証情報はこのデバイスから削除されます。",
       "confirm": "削除"
     }
   }

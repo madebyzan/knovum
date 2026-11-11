@@ -3,28 +3,30 @@
   "description": "连接一个 S3 兼容的存储桶，云端模型将通过 URL 获取图片和视频，而不再内联传输数据。支持腾讯云 COS、阿里云 OSS 及任何 S3 兼容服务。",
   "connection": {
     "title": "连接配置",
-    "description": "存储桶的位置与标识。凭据单独保存在本地密钥数据库中。",
+    "description": "存储桶的位置与标识。失焦或回车即自动保存。",
     "endpoint": "端点",
     "endpointPlaceholder": "https://cos.ap-guangzhou.myqcloud.com",
+    "endpointDescription": "S3 兼容服务端点，须以 https:// 开头",
     "region": "区域",
     "regionPlaceholder": "ap-guangzhou",
+    "regionDescription": "存储桶所在的地域标识代码",
     "bucket": "存储桶",
+    "bucketDescription": "存储空间唯一名称标识（3-63 字符）",
     "publicBaseUrl": "公开访问域名",
-    "publicBaseUrlDescription": "可选：用于公开访问上传对象的存储桶域名或 CDN。",
-    "configured": "已配置"
+    "publicBaseUrlDescription": "可选：用于公开访问上传对象的存储桶域名或 CDN。"
   },
   "credentials": {
     "title": "凭据",
-    "description": "留空表示保留已保存的值。",
+    "description": "凭据自动保存在本地密钥数据库中。",
     "accessKeyId": "访问密钥 ID",
     "secretAccessKey": "访问密钥 Secret"
   },
+  "status": {
+    "testing": "测试中..."
+  },
   "actions": {
-    "save": "保存",
     "test": "测试连接",
     "remove": "移除",
-    "saved": "对象存储设置已保存",
-    "saveFailed": "无法保存对象存储设置",
     "testSuccess": "对象存储连接正常",
     "testFailed": "对象存储连接失败",
     "removed": "对象存储配置已移除",

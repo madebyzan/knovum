@@ -5,7 +5,7 @@ import { z } from "zod";
 import type { ObjectStorageSettings } from "../../shared/contracts/generated/ObjectStorageSettings";
 import { invokeCommand } from "../ipc/invoke-command";
 import { deleteSecret } from "../secrets/secret-store";
-import { objectStorageSettingsSchema } from "./schema";
+import { objectStorageSettingsSchema } from "./schema/object-storage-settings";
 
 const SETTINGS_FILE = "settings.json";
 const SETTINGS_KEY = "storage.objectStorage";

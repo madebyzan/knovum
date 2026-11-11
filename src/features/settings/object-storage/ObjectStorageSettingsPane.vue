@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { Activity, Trash2 } from "@lucide/vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { ZodError } from "zod";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import {
@@ -11,34 +12,52 @@ import {
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
+import UiSettingsHeaderActions from "../../../shared/ui/UiSettingsHeaderActions.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
+import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import PreferenceField from "../components/PreferenceField.vue";
 import SecretPreferenceField from "../components/SecretPreferenceField.vue";
-import { useObjectStorageForm } from "./use-object-storage-form";
+import { useObjectStorageEditing } from "./use-object-storage-editing";
 
 const { t } = useI18n();
-const form = useObjectStorageForm();
+const form = useObjectStorageEditing();
 
-function describe(error: unknown) {
-  if (error instanceof ZodError) return error.issues[0]?.message ?? getErrorMessage(error);
-  return getErrorMessage(error);
-}
-
-async function save() {
-  try {
-    await form.save();
-    toast.success(t("settings.objectStorage.actions.saved"));
-  } catch (error) {
-    toast.error(`${t("settings.objectStorage.actions.saveFailed")}: ${describe(error)}`);
-  }
-}
+const connectionFields = computed(
+  () =>
+    [
+      {
+        key: "endpoint",
+        labelKey: "settings.objectStorage.connection.endpoint",
+        descriptionKey: "settings.objectStorage.connection.endpointDescription",
+        placeholder: t("settings.objectStorage.connection.endpointPlaceholder"),
+      },
+      {
+        key: "region",
+        labelKey: "settings.objectStorage.connection.region",
+        descriptionKey: "settings.objectStorage.connection.regionDescription",
+        placeholder: t("settings.objectStorage.connection.regionPlaceholder"),
+      },
+      {
+        key: "bucket",
+        labelKey: "settings.objectStorage.connection.bucket",
+        descriptionKey: "settings.objectStorage.connection.bucketDescription",
+        placeholder: "knovum-media",
+      },
+      {
+        key: "publicBaseUrl",
+        labelKey: "settings.objectStorage.connection.publicBaseUrl",
+        descriptionKey: "settings.objectStorage.connection.publicBaseUrlDescription",
+        placeholder: "https://cdn.example.com",
+      },
+    ] as const,
+);
 
 async function test() {
   try {
     await form.test();
     toast.success(t("settings.objectStorage.actions.testSuccess"));
   } catch (error) {
-    toast.error(`${t("settings.objectStorage.actions.testFailed")}: ${describe(error)}`);
+    toast.error(`${t("settings.objectStorage.actions.testFailed")}: ${getErrorMessage(error)}`);
   }
 }
 
@@ -54,85 +73,81 @@ async function remove() {
     await form.remove();
     toast.success(t("settings.objectStorage.actions.removed"));
   } catch (error) {
-    toast.error(`${t("settings.objectStorage.actions.removeFailed")}: ${describe(error)}`);
+    toast.error(`${t("settings.objectStorage.actions.removeFailed")}: ${getErrorMessage(error)}`);
   }
 }
 </script>
 
 <template>
   <div class="space-y-6" data-testid="object-storage-settings-pane">
+    <UiSettingsHeaderActions>
+      <UiButton
+        size="sm"
+        variant="secondary"
+        :disabled="form.busy.value || !form.canTest.value"
+        @click="test"
+      >
+        <UiSpinner v-if="form.testing.value" size="sm" />
+        <Activity v-else class="size-3.5" />
+        {{
+          form.testing.value
+            ? t("settings.objectStorage.status.testing")
+            : t("settings.objectStorage.actions.test")
+        }}
+      </UiButton>
+
+      <UiButton
+        v-if="form.configured.value || form.hasAnySecret.value"
+        size="sm"
+        variant="ghost"
+        :disabled="form.busy.value"
+        class="text-fg-secondary hover:text-fg-danger"
+        @click="remove"
+      >
+        <Trash2 class="size-3.5" />
+        {{ t("settings.objectStorage.actions.remove") }}
+      </UiButton>
+    </UiSettingsHeaderActions>
+
     <p class="max-w-2xl text-body text-fg-secondary">
       {{ t("settings.objectStorage.description") }}
     </p>
+
     <UiSettingsSection
       id="settings-object-storage-connection"
       :title="t('settings.objectStorage.connection.title')"
       :description="t('settings.objectStorage.connection.description')"
     >
-      <PreferenceField :label="t('settings.objectStorage.connection.endpoint')">
-        <UiInput
-          v-model="form.draft.value.endpoint"
-          class="w-80"
-          :disabled="form.busy.value"
-          :placeholder="t('settings.objectStorage.connection.endpointPlaceholder')"
-          :aria-label="t('settings.objectStorage.connection.endpoint')"
-        />
-      </PreferenceField>
-      <PreferenceField :label="t('settings.objectStorage.connection.region')">
-        <UiInput
-          v-model="form.draft.value.region"
-          class="w-80"
-          :disabled="form.busy.value"
-          :placeholder="t('settings.objectStorage.connection.regionPlaceholder')"
-          :aria-label="t('settings.objectStorage.connection.region')"
-        />
-      </PreferenceField>
-      <PreferenceField :label="t('settings.objectStorage.connection.bucket')">
-        <UiInput
-          v-model="form.draft.value.bucket"
-          class="w-80"
-          :disabled="form.busy.value"
-          placeholder="knovum-media"
-          :aria-label="t('settings.objectStorage.connection.bucket')"
-        />
-      </PreferenceField>
       <PreferenceField
-        :label="t('settings.objectStorage.connection.publicBaseUrl')"
-        :description="t('settings.objectStorage.connection.publicBaseUrlDescription')"
+        v-for="field in connectionFields"
+        :key="field.key"
+        :label="t(field.labelKey)"
+        :description="t(field.descriptionKey)"
       >
-        <UiInput
-          v-model="form.draft.value.publicBaseUrl"
-          class="w-80"
-          :disabled="form.busy.value"
-          placeholder="https://cdn.example.com"
-          :aria-label="t('settings.objectStorage.connection.publicBaseUrl')"
-        />
+        <div class="flex flex-col items-end gap-1">
+          <UiInput
+            v-model="form.draft.value[field.key]"
+            class="w-96"
+            :class="
+              form.fieldErrors.value[field.key] ? 'border-stroke-danger focus:border-stroke-danger' : ''
+            "
+            :disabled="form.busy.value"
+            :placeholder="field.placeholder"
+            :aria-label="t(field.labelKey)"
+            @blur="form.saveField"
+            @commit="form.saveField"
+          />
+          <span v-if="form.fieldErrors.value[field.key]" class="text-caption-sm text-fg-danger">
+            {{ form.fieldErrors.value[field.key] }}
+          </span>
+        </div>
       </PreferenceField>
-      <div class="flex flex-wrap items-center gap-2 border-t border-stroke-divider px-4 py-3">
-        <UiButton variant="primary" :disabled="form.busy.value" @click="save">
-          {{ t("settings.objectStorage.actions.save") }}
-        </UiButton>
-        <UiButton :disabled="form.busy.value || !form.configured.value" @click="test">
-          {{ t("settings.objectStorage.actions.test") }}
-        </UiButton>
-        <span
-          v-if="form.configured.value"
-          class="rounded-sm bg-surface-success-subtle px-1.5 py-0.5 text-caption-sm text-fg-success"
-          >{{ t("settings.objectStorage.connection.configured") }}</span
-        >
-        <UiButton
-          variant="dangerSubtle"
-          class="ml-auto"
-          :disabled="form.busy.value || !form.configured.value"
-          @click="remove"
-        >
-          {{ t("settings.objectStorage.actions.remove") }}
-        </UiButton>
-      </div>
     </UiSettingsSection>
+
     <p v-if="form.loadError.value" class="text-caption text-fg-danger" role="alert">
       {{ t("settings.objectStorage.actions.loadFailed") }}: {{ form.loadError.value }}
     </p>
+
     <UiSettingsSection
       id="settings-object-storage-credentials"
       :title="t('settings.objectStorage.credentials.title')"
@@ -142,11 +157,13 @@ async function remove() {
         :label="t('settings.objectStorage.credentials.accessKeyId')"
         :secret-key="OBJECT_STORAGE_ACCESS_KEY_ID"
         :disabled="form.busy.value"
+        @change="form.onSecretChange('accessKeyId', $event)"
       />
       <SecretPreferenceField
         :label="t('settings.objectStorage.credentials.secretAccessKey')"
         :secret-key="OBJECT_STORAGE_SECRET_ACCESS_KEY"
         :disabled="form.busy.value"
+        @change="form.onSecretChange('secretAccessKey', $event)"
       />
     </UiSettingsSection>
   </div>

@@ -11,20 +11,19 @@
     "bucket": "Bucket",
     "publicBaseUrl": "URL base pública",
     "publicBaseUrlDescription": "Dominio público o CDN opcional que sirve los objetos subidos.",
-    "configured": "Configurado"
+    "endpointDescription": "Punto de conexión",
+    "regionDescription": "Región",
+    "bucketDescription": "Bucket"
   },
   "credentials": {
     "title": "Credenciales",
-    "description": "Deja un campo en blanco para conservar el valor guardado.",
+    "description": "Las credenciales se guardan automáticamente en la base de datos local de secretos.",
     "accessKeyId": "ID de clave de acceso",
     "secretAccessKey": "Clave de acceso secreta"
   },
   "actions": {
-    "save": "Guardar",
     "test": "Probar conexión",
     "remove": "Eliminar",
-    "saved": "Ajustes de almacenamiento guardados",
-    "saveFailed": "No se pudieron guardar los ajustes de almacenamiento",
     "testSuccess": "La conexión de almacenamiento funciona",
     "testFailed": "Falló la conexión de almacenamiento",
     "removed": "Configuración de almacenamiento eliminada",
@@ -35,5 +34,8 @@
       "description": "La configuración del bucket y sus credenciales guardadas se eliminarán de este dispositivo.",
       "confirm": "Eliminar"
     }
+  },
+  "status": {
+    "testing": "..."
   }
 }

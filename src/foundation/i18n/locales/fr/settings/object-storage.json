@@ -11,20 +11,19 @@
     "bucket": "Bucket",
     "publicBaseUrl": "URL publique de base",
     "publicBaseUrlDescription": "Domaine public ou CDN optionnel servant les objets téléversés.",
-    "configured": "Configuré"
+    "endpointDescription": "Point de terminaison",
+    "regionDescription": "Région",
+    "bucketDescription": "Bucket"
   },
   "credentials": {
     "title": "Identifiants",
-    "description": "Laissez un champ vide pour conserver la valeur enregistrée.",
+    "description": "Les identifiants sont enregistrés automatiquement dans la base de données locale des secrets.",
     "accessKeyId": "ID de clé d'accès",
     "secretAccessKey": "Clé d'accès secrète"
   },
   "actions": {
-    "save": "Enregistrer",
     "test": "Tester la connexion",
     "remove": "Supprimer",
-    "saved": "Paramètres de stockage enregistrés",
-    "saveFailed": "Impossible d'enregistrer les paramètres de stockage",
     "testSuccess": "La connexion au stockage fonctionne",
     "testFailed": "Échec de la connexion au stockage",
     "removed": "Configuration du stockage supprimée",
@@ -35,5 +34,8 @@
       "description": "La configuration du bucket et ses identifiants enregistrés seront supprimés de cet appareil.",
       "confirm": "Supprimer"
     }
+  },
+  "status": {
+    "testing": "..."
   }
 }

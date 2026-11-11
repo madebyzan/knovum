@@ -24,6 +24,13 @@ fn rejects_non_https_endpoints() {
 }
 
 #[test]
+fn rejects_urls_with_embedded_credentials() {
+    let mut settings = valid();
+    settings.endpoint = "https://user:pass@cos.ap-guangzhou.myqcloud.com".to_owned();
+    assert!(validate(&settings).is_err());
+}
+
+#[test]
 fn rejects_invalid_buckets_and_regions() {
     let mut settings = valid();
     settings.bucket = "AB".to_owned();
@@ -48,6 +55,14 @@ fn public_url_prefers_the_configured_base() {
     };
     assert_eq!(
         with_base.public_url("knovum/2026/11/abc.png"),
+        "https://cdn.example.com/knovum/2026/11/abc.png"
+    );
+    let with_trailing_slash = ObjectStorageSettings {
+        public_base_url: Some("https://cdn.example.com/".to_owned()),
+        ..valid()
+    };
+    assert_eq!(
+        with_trailing_slash.public_url("knovum/2026/11/abc.png"),
         "https://cdn.example.com/knovum/2026/11/abc.png"
     );
 }

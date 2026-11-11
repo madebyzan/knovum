@@ -44,7 +44,7 @@ impl ObjectStorageSettings {
     /// or CDN) when present, otherwise the path-style transfer URL.
     pub(crate) fn public_url(&self, key: &str) -> String {
         match &self.public_base_url {
-            Some(base) => format!("{base}/{key}"),
+            Some(base) => format!("{}/{key}", base.trim_end_matches('/')),
             None => self.object_url(key),
         }
     }
@@ -118,7 +118,11 @@ fn validate(settings: &ObjectStorageSettings) -> AppResult<()> {
 fn validate_https_url(value: &str, label: &str) -> AppResult<()> {
     let url = reqwest::Url::parse(value)
         .map_err(|_| AppError::invalid(format!("Object storage {label} is not a valid URL")))?;
-    if url.scheme() != "https" || url.host_str().unwrap_or_default().is_empty() {
+    if url.scheme() != "https"
+        || url.host_str().unwrap_or_default().is_empty()
+        || !url.username().is_empty()
+        || url.password().is_some()
+    {
         return Err(AppError::invalid(format!(
             "Object storage {label} must be an https:// URL with a host"
         )));

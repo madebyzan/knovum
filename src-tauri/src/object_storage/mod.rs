@@ -1,5 +1,4 @@
 mod settings;
-mod sigv4;
 mod transfer;
 
 use std::sync::OnceLock;
@@ -11,7 +10,6 @@ use crate::foundation::app_error::{AppError, AppResult};
 pub use settings::ObjectStorageSettings;
 
 static APP: OnceLock<AppHandle> = OnceLock::new();
-static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
 
 pub(crate) fn install(app: &AppHandle) -> Result<(), String> {
     APP.set(app.clone())
@@ -21,15 +19,6 @@ pub(crate) fn install(app: &AppHandle) -> Result<(), String> {
 fn app() -> AppResult<&'static AppHandle> {
     APP.get()
         .ok_or_else(|| AppError::internal("Object storage is not initialized"))
-}
-
-fn client() -> &'static reqwest::Client {
-    CLIENT.get_or_init(|| {
-        crate::foundation::http::client_builder()
-            .timeout(std::time::Duration::from_secs(300))
-            .build()
-            .expect("object storage client builds")
-    })
 }
 
 /// True when both the settings envelope and the credentials are present, so

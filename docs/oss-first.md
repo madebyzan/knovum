@@ -218,6 +218,32 @@ Detailed data and interaction contracts live in [spaces.md](spaces.md),
   disabled. Provider-specific URL parsers and oEmbed clients would duplicate that registry.
 - VoiceStudio was reviewed as a workflow and engine reference, not imported as application code.
   Knovum reuses its own Space authorization, managed assets, node ownership and durable task model.
+- Cloud-model media delivery uploads generated media to user-configured S3-compatible storage and
+  hands providers a public URL. `object_store` owns the S3 protocol; Knovum retains settings
+  validation, secrets access, content-addressed keys, the upload bound and public-URL policy.
+
+  ```text
+  Capability and requirements: single-object PutObject of 1–64 MiB generated media to a
+  user-configured HTTPS S3-compatible endpoint with path-style addressing and a free-form region;
+  a connection test performs put/head/delete; credentials come from secrets.db; delivery returns
+  the configured public base URL or the path-style object URL.
+  GitHub and registry candidates: object_store (apache/arrow-rs-object-store), aws-sdk-s3,
+  rust-s3, hand-written SigV4 plus reqwest (the previous implementation).
+  Maintenance, security, license and platform evidence: object_store 0.13.2 is an Apache Arrow
+  project, MIT/Apache-2.0 (deny.toml-allowed), already in the compiled graph through lancedb;
+  enabling its aws feature reuses the locked reqwest 0.12 (rustls), ring, hyper and tokio and adds
+  only quick-xml 0.39 and md-5 0.10.
+  Selected implementation: object_store with the aws feature, declared directly and exact-pinned.
+  It owns SigV4 signing, request construction, retries and S3 error surfaces; the hand-written
+  signer and transfer glue are removed.
+  Rejected alternatives and exact unmet requirements: aws-sdk-s3 adds the full AWS SDK
+  configuration/smithy runtime for three single-object operations; rust-s3 introduces a second S3
+  client family outside the existing dependency graph; the hand-written signer duplicates a
+  maintained protocol implementation and rejects any key needing percent-encoding or query
+  parameters.
+  Tauri/security capability impact: none. The same two storage commands and capability scope
+  remain; credentials stay in secrets.db and never reach the WebView.
+  ```
 
 FFmpeg and its compiled dependency closure require exact inventory, license and corresponding-source review before
 distribution. Runtime topology is in [system-architecture.md](system-architecture.md); package

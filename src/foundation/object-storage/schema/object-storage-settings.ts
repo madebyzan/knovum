@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { ObjectStorageSettings } from "../../shared/contracts/generated/ObjectStorageSettings";
+import type { ObjectStorageSettings } from "../../../shared/contracts/generated/ObjectStorageSettings";
 
 const INVALID_HTTPS_URL = "Must be an https:// URL with a host";
 const INVALID_BUCKET = "Bucket must be 3-63 characters of lowercase letters, numbers, '.' or '-'";
