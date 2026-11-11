@@ -125,20 +125,20 @@
 以下能力都在本地运行。首次使用需要某个模型的功能时才会下载该模型，下载后按固定的 SHA-256 校验，
 也可以在设置中删除。下载进度和取消操作都在任务中心里。
 
-| 能力                     | 模型                                                | 运行时       |
-| ------------------------ | --------------------------------------------------- | ------------ |
-| 语音转写                 | Whisper Tiny / Small（默认）/ Large-v3 + Silero VAD | whisper.cpp  |
-| 说话人分离               | Pyannote 3.0 + ERes2Net                             | sherpa-onnx  |
-| 人声 / 伴奏分离          | HTDemucs                                            | audio.cpp    |
-| 语音合成、声音克隆与设计 | MOSS-TTS-Nano、VoxCPM2                              | audio.cpp    |
-| 逐词字幕对齐             | Qwen3 Forced Aligner                                | audio.cpp    |
-| 语义搜索向量             | Qwen3-Embedding-0.6B                                | Candle       |
-| 去除背景                 | U²-Net                                              | ONNX Runtime |
-| 图像超分辨率             | Real-ESRGAN                                         | ONNX Runtime |
-| 局部修复                 | MI-GAN                                              | ONNX Runtime |
-| 智能选区                 | EfficientSAM                                        | ONNX Runtime |
-| 相对深度估计             | Depth Anything V2                                   | ONNX Runtime |
-| 文字识别（扫描件、截图） | PP-OCRv6 small                                      | ONNX Runtime |
+| 能力                     | 模型                                                         | 运行时       |
+| ------------------------ | ------------------------------------------------------------ | ------------ |
+| 语音转写                 | Whisper Tiny / Small（默认）/ Large-v3 + Silero VAD          | whisper.cpp  |
+| 说话人分离               | Pyannote 3.0 + ERes2Net                                      | sherpa-onnx  |
+| 人声 / 伴奏分离          | HTDemucs                                                     | audio.cpp    |
+| 语音合成、声音克隆与设计 | MOSS-TTS-Nano、VoxCPM2、IndexTTS2、Qwen3-TTS、Fun-CosyVoice3 | audio.cpp    |
+| 逐词字幕对齐             | Qwen3 Forced Aligner                                         | audio.cpp    |
+| 语义搜索向量             | Qwen3-Embedding-0.6B                                         | Candle       |
+| 去除背景                 | U²-Net                                                       | ONNX Runtime |
+| 图像超分辨率             | Real-ESRGAN                                                  | ONNX Runtime |
+| 局部修复                 | MI-GAN                                                       | ONNX Runtime |
+| 智能选区                 | EfficientSAM                                                 | ONNX Runtime |
+| 相对深度估计             | Depth Anything V2                                            | ONNX Runtime |
+| 文字识别（扫描件、截图） | PP-OCRv6 small                                               | ONNX Runtime |
 
 在 Apple 芯片上，向量化与转写使用 Metal 加速。以上能力都不需要 Ollama 或其他模型服务器。
 

@@ -148,6 +148,7 @@ async fn execute_inner(
                 },
                 style: None,
                 seed: u64::from(request.seed),
+                duration_scale: None,
                 profile: SynthesisProfile {
                     engine: request.model.wire_engine(),
                     language: request.language.clone(),

@@ -1,18 +1,25 @@
 use crate::{
-    ai::local_runtime::{admission::Priority, speech},
+    ai::{
+        contracts::speech_wire::MIN_DURATION_SCALE,
+        local_runtime::{admission::Priority, speech},
+    },
     spaces::{
         runs::AttemptClaim,
         speech::{
             contracts::{SpeechSegmentExecution, VoiceExecution},
-            execution::{parse_config, synthesis_params, SynthesisAttempt, DURATION_FIT_TAKES},
+            execution::{
+                parse_config, synthesis_params, DurationFit, PreparedSynthesis, SynthesisAttempt,
+                Take,
+            },
         },
     },
 };
 
 /// Synthesizes one line. A line without a physical video window renders once at the voice
-/// revision's frozen seed. A duration-fitted line spends up to [`DURATION_FIT_TAKES`] takes over
-/// procedurally derived seeds, returns the first take that fits, and otherwise keeps the shortest
-/// overrun so the time-fitting stage has the least material to compress.
+/// revision's frozen seed. A line with one is brought to its window the way its engine allows
+/// ([`DurationFit`]): an engine that controls duration regenerates an overrunning line at the
+/// scale that fits; any other spends its takes over derived seeds, returns the first that fits,
+/// and otherwise keeps the shortest overrun so the time-fitting stage has the least to compress.
 pub(super) async fn synthesize(
     app: &tauri::AppHandle,
     claim: &AttemptClaim,
@@ -31,60 +38,114 @@ pub(super) async fn synthesize(
         &mut |_| {},
     )
     .await?;
-    let base_seed = parse_config(&voice.synthesis_config)?.seed;
-    let window_ms = fit.map(|(start_ms, end_ms)| (end_ms - start_ms) as u64);
-    let takes = if window_ms.is_some() {
-        DURATION_FIT_TAKES
-    } else {
-        1
+    let line = Line {
+        app,
+        claim,
+        voice,
+        segment,
+        model: &model,
+        attempt,
     };
-    let mut best: Option<speech::SynthesizedAudio> = None;
-    for take in 0..takes {
-        if claim.cancellation.is_cancelled() {
+    let seed = parse_config(&voice.synthesis_config)?.seed;
+    let natural = Take {
+        seed,
+        duration_scale: None,
+    };
+    let Some(window_ms) = fit.map(|(start_ms, end_ms)| (end_ms - start_ms) as u64) else {
+        return line.render(natural, attempt.input_revision).await;
+    };
+    match DurationFit::of(&voice.engine_id)? {
+        DurationFit::Scale => {
+            let audio = line.render(natural, attempt.input_revision).await?;
+            let spoken_ms = duration_ms(&audio);
+            if spoken_ms <= window_ms {
+                return Ok(audio);
+            }
+            let scale = (window_ms as f32 / spoken_ms as f32).clamp(MIN_DURATION_SCALE, 1.0);
+            line.render(
+                Take {
+                    seed,
+                    duration_scale: Some(scale),
+                },
+                &format!("{}-scaled", attempt.input_revision),
+            )
+            .await
+        }
+        DurationFit::Takes(takes) => {
+            let mut best: Option<speech::SynthesizedAudio> = None;
+            for take in 0..takes {
+                let input_revision = if take == 0 {
+                    attempt.input_revision.to_owned()
+                } else {
+                    format!("{}-take{take}", attempt.input_revision)
+                };
+                let audio = line
+                    .render(
+                        Take {
+                            seed: seed.wrapping_add(take),
+                            duration_scale: None,
+                        },
+                        &input_revision,
+                    )
+                    .await?;
+                let spoken_ms = duration_ms(&audio);
+                if spoken_ms <= window_ms {
+                    return Ok(audio);
+                }
+                if best
+                    .as_ref()
+                    .is_none_or(|previous| spoken_ms < duration_ms(previous))
+                {
+                    best = Some(audio);
+                }
+            }
+            best.ok_or_else(|| "invalid_state: duration fitting produced no synthesis take".into())
+        }
+    }
+}
+
+/// Everything one rendering of a line shares with the others.
+struct Line<'a> {
+    app: &'a tauri::AppHandle,
+    claim: &'a AttemptClaim,
+    voice: &'a VoiceExecution,
+    segment: &'a SpeechSegmentExecution,
+    model: &'a PreparedSynthesis,
+    attempt: SynthesisAttempt<'a>,
+}
+
+impl Line<'_> {
+    async fn render(
+        &self,
+        take: Take,
+        input_revision: &str,
+    ) -> Result<speech::SynthesizedAudio, String> {
+        if self.claim.cancellation.is_cancelled() {
             return Err("cancelled: speech synthesis was cancelled".into());
         }
-        let input_revision = if take == 0 {
-            attempt.input_revision.to_owned()
-        } else {
-            format!("{}-take{take}", attempt.input_revision)
-        };
         let params = synthesis_params(
-            app,
-            voice,
-            &segment.normalized_text,
-            segment.delivery_instruction.as_deref(),
-            base_seed.wrapping_add(take),
+            self.app,
+            self.voice,
+            &self.segment.normalized_text,
+            self.segment.delivery_instruction.as_deref(),
+            take,
             SynthesisAttempt {
-                input_revision: &input_revision,
-                ..attempt
+                input_revision,
+                ..self.attempt
             },
         )?;
-        let audio = model
+        self.model
             .synthesize(
-                app,
+                self.app,
                 params,
                 speech::SynthesisExecution {
-                    cancellation: &claim.cancellation,
+                    cancellation: &self.claim.cancellation,
                     priority: Priority::Background,
                     on_chunk: None,
                 },
             )
-            .await?;
-        let Some(window_ms) = window_ms else {
-            return Ok(audio);
-        };
-        let spoken_ms = duration_ms(&audio);
-        if spoken_ms <= window_ms {
-            return Ok(audio);
-        }
-        if best
-            .as_ref()
-            .is_none_or(|previous| spoken_ms < duration_ms(previous))
-        {
-            best = Some(audio);
-        }
+            .await
     }
-    best.ok_or_else(|| "invalid_state: duration fitting produced no synthesis take".to_owned())
 }
 
 fn duration_ms(audio: &speech::SynthesizedAudio) -> u64 {

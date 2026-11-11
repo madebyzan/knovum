@@ -194,15 +194,11 @@ fn voxcpm2_choices_freeze_distinct_complete_snapshots() {
     assert!(q8.snapshot().unwrap().total_bytes() < full.snapshot().unwrap().total_bytes());
     for model in [full, bf16, q8] {
         assert_eq!(
-            LocalModelId::from_voxcpm2_spec(model.voxcpm2_spec().unwrap()).unwrap(),
+            LocalModelId::from_voice_spec(model.voice_spec().unwrap()).unwrap(),
             model
         );
         assert!(super::super::model_selection::is_selectable(model));
         let snapshot = model.snapshot().unwrap();
-        assert!(
-            model.voxcpm2_models().unwrap() == snapshot.models(),
-            "Selected model files differ from the snapshot for {model:?}"
-        );
         assert!(snapshot
             .models()
             .iter()
@@ -278,4 +274,35 @@ fn a_hardware_figure_describes_the_machine_and_never_withholds_a_model() {
             "{model:?} changed its machine-level claim"
         );
     }
+}
+
+#[test]
+fn cloning_voices_resolve_by_specification_to_one_weights_file_and_its_licence() {
+    use crate::ai::contracts::speech_wire::SpeechSynthesisEngine as E;
+    for (model, engine) in [
+        (LocalModelId::IndexTts2, E::IndexTts2),
+        (LocalModelId::IndexTts2F16, E::IndexTts2),
+        (LocalModelId::Qwen3Tts, E::Qwen3Tts),
+        (LocalModelId::Qwen3TtsBf16, E::Qwen3Tts),
+        (LocalModelId::Qwen3TtsSmall, E::Qwen3Tts),
+        (LocalModelId::CosyVoice3, E::CosyVoice3),
+    ] {
+        assert_eq!(model.voice_engine(), Some(engine));
+        assert_eq!(
+            LocalModelId::from_voice_spec(model.voice_spec().unwrap()).unwrap(),
+            model
+        );
+        assert!(super::super::model_selection::is_selectable(model));
+        let snapshot = model.snapshot().unwrap();
+        let files: Vec<_> = snapshot
+            .models()
+            .iter()
+            .map(|kind| catalog::descriptor(*kind))
+            .collect();
+        assert_eq!(files.len(), 2);
+        assert!(files.iter().all(|file| file.snapshot == snapshot));
+        assert!(files.iter().any(|file| file.file.ends_with(".gguf")));
+        assert!(files.iter().any(|file| file.file == "LICENSE"));
+    }
+    assert!(LocalModelId::from_voice_spec("moss-tts-nano-100m-onnx-bundled-v2").is_err());
 }

@@ -8,6 +8,8 @@ mod separation;
 pub use moss_nano::MossNanoPart;
 pub(crate) use moss_nano::MOSS_NANO_MODELS;
 pub use separation::{SeparationFile, SeparationPart, SeparationVariant};
+mod voices;
+pub use voices::{VoiceFile, VoicePart, VoiceVariant};
 mod alignment;
 pub(crate) use alignment::{
     QWEN3_ALIGNER_Q8_MODELS, QWEN3_ALIGNER_Q8_REVISION, QWEN3_FORCED_ALIGNER_REVISION,
@@ -53,6 +55,7 @@ pub enum ModelKind {
     MossNanoPart(MossNanoPart),
     WhisperPart(WhisperPart),
     SeparationPart(SeparationPart),
+    VoicePart(VoicePart),
     ImageSegmentation,
     ImageSegmentationSilueta,
     ImageSegmentationHuman,
@@ -163,6 +166,7 @@ pub(crate) const fn descriptor(kind: ModelKind) -> ModelDescriptor {
         ModelKind::MossNanoPart(part) => part.descriptor(),
         ModelKind::WhisperPart(part) => part.descriptor(),
         ModelKind::SeparationPart(part) => part.descriptor(),
+        ModelKind::VoicePart(part) => part.descriptor(),
         ModelKind::ImageSegmentation => IMAGE_SEGMENTATION,
         ModelKind::ImageSegmentationSilueta => IMAGE_SEGMENTATION_SILUETA,
         ModelKind::ImageSegmentationHuman => IMAGE_SEGMENTATION_HUMAN,
@@ -200,6 +204,7 @@ pub(super) fn direct_url(kind: ModelKind) -> String {
         ModelKind::WhisperPart(part) => part.url(),
         ModelKind::MossNanoPart(part) => part.url(),
         ModelKind::SeparationPart(part) => part.url(),
+        ModelKind::VoicePart(part) => part.url(),
         ModelKind::Qwen3ForcedAlignerWeights
         | ModelKind::Qwen3ForcedAlignerLicense
         | ModelKind::Qwen3ForcedAlignerReadme

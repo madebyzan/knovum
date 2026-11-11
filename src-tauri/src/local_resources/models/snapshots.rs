@@ -10,6 +10,7 @@ pub(crate) enum SnapshotKind {
     Diarization(catalog::DiarizationVariant),
     Whisper(catalog::WhisperVariant),
     Separation(catalog::SeparationVariant),
+    Voice(catalog::VoiceVariant),
     ImageSegmentation,
     ImageSegmentationSilueta,
     ImageSegmentationHuman,
@@ -56,6 +57,7 @@ impl SnapshotKind {
             Self::SpeechAlignment => "qwen3-forced-aligner-0.6b-f16-bundled",
             Self::SpeechAlignmentQ8 => "qwen3-forced-aligner-0.6b-q8_0",
             Self::Separation(variant) => variant.snapshot_name(),
+            Self::Voice(variant) => variant.snapshot_name(),
             Self::Diarization(variant) => variant.revision(),
         }
     }
@@ -76,6 +78,7 @@ impl SnapshotKind {
             Self::SpeechAlignment => catalog::QWEN3_FORCED_ALIGNER_MODELS,
             Self::SpeechAlignmentQ8 => catalog::QWEN3_ALIGNER_Q8_MODELS,
             Self::Separation(variant) => variant.models(),
+            Self::Voice(variant) => variant.models(),
             Self::Diarization(variant) => variant.models(),
         }
     }

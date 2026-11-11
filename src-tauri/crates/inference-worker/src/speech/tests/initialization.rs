@@ -1,5 +1,5 @@
 use knovum_inference_contracts::{
-    execution_profile::{moss_nano, separation, whisper, WHISPER_VARIANTS},
+    execution_profile::{moss_nano, separation, voice, whisper, WHISPER_VARIANTS},
     image_compute::ImageModelVariant,
     runtime::{RuntimeCapability, RuntimeInitializeParams, RuntimeModel},
 };
@@ -117,5 +117,26 @@ fn diarization_rejects_a_profile_that_differs_from_its_frozen_precision() {
         );
         input.device_profile.execution_profile_id = "other-precision".into();
         assert!(super::super::diarization::admit(&input).is_err());
+    }
+}
+
+#[test]
+fn cloning_rejects_a_profile_that_differs_from_its_model_or_probed_device() {
+    for (spec, file) in [
+        ("index-tts2-q8_0-v1", "index-tts2-q8_0.gguf"),
+        (
+            "qwen3-tts-1.7b-q8_0-v1",
+            "qwen3-tts-12hz-1.7b-base-q8_0_v2.gguf",
+        ),
+        ("cosyvoice3-0.5b-q8_0-v1", "cosyvoice3-q8_0.gguf"),
+    ] {
+        let mut input = params(spec, &voice(spec, "cpu").unwrap());
+        input.capability = RuntimeCapability::SpeechSynthesis;
+        assert_eq!(
+            super::super::cloning::admit(&input).unwrap().0,
+            std::path::Path::new("/not-loaded").join(file)
+        );
+        input.device_profile.execution_profile_id = voice(spec, "vulkan").unwrap();
+        assert!(super::super::cloning::admit(&input).is_err());
     }
 }

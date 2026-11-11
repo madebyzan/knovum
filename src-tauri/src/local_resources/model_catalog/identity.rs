@@ -21,19 +21,44 @@ impl LocalModelId {
             _ => Err("Model does not support VoxCPM2 synthesis".into()),
         }
     }
-    pub(crate) fn from_voxcpm2_spec(spec: &str) -> Result<Self, String> {
-        [Self::VoxCpm2, Self::VoxCpm2Bf16, Self::VoxCpm2Q8]
-            .into_iter()
-            .find(|model| model.voxcpm2_spec().is_ok_and(|value| value == spec))
-            .ok_or("runtime_mismatch: VoxCPM2 model specification is unsupported".into())
-    }
-    pub(crate) fn voxcpm2_models(self) -> Result<&'static [catalog::ModelKind], String> {
+    pub(crate) const fn voice_variant(self) -> Option<catalog::VoiceVariant> {
+        use catalog::VoiceVariant as V;
         match self {
-            Self::VoxCpm2 => Ok(catalog::VOXCPM2_MODELS),
-            Self::VoxCpm2Bf16 => Ok(catalog::VOXCPM2_BF16_MODELS),
-            Self::VoxCpm2Q8 => Ok(catalog::VOXCPM2_Q8_MODELS),
-            _ => Err("Model does not support VoxCPM2 synthesis".into()),
+            Self::IndexTts2 => Some(V::IndexTts2),
+            Self::IndexTts2F16 => Some(V::IndexTts2F16),
+            Self::Qwen3Tts => Some(V::Qwen3Tts),
+            Self::Qwen3TtsBf16 => Some(V::Qwen3TtsBf16),
+            Self::Qwen3TtsSmall => Some(V::Qwen3TtsSmall),
+            Self::CosyVoice3 => Some(V::CosyVoice3),
+            _ => None,
         }
+    }
+    /// The engine an audio.cpp voice model speaks with; MOSS-TTS-Nano is not one.
+    pub(crate) const fn voice_engine(
+        self,
+    ) -> Option<crate::ai::contracts::speech_wire::SpeechSynthesisEngine> {
+        use crate::ai::contracts::speech_wire::SpeechSynthesisEngine as E;
+        match self {
+            Self::VoxCpm2 | Self::VoxCpm2Bf16 | Self::VoxCpm2Q8 => Some(E::VoxCpm2),
+            Self::IndexTts2 | Self::IndexTts2F16 => Some(E::IndexTts2),
+            Self::Qwen3Tts | Self::Qwen3TtsBf16 | Self::Qwen3TtsSmall => Some(E::Qwen3Tts),
+            Self::CosyVoice3 => Some(E::CosyVoice3),
+            _ => None,
+        }
+    }
+    /// The identity an audio.cpp voice model is stored and leased under.
+    pub(crate) fn voice_spec(self) -> Result<&'static str, String> {
+        match self.voice_variant() {
+            Some(variant) => Ok(variant.spec_id()),
+            None => self.voxcpm2_spec(),
+        }
+    }
+    pub(crate) fn from_voice_spec(spec: &str) -> Result<Self, String> {
+        MODELS
+            .iter()
+            .copied()
+            .find(|model| model.voice_spec().is_ok_and(|value| value == spec))
+            .ok_or("runtime_mismatch: voice model specification is unsupported".into())
     }
     pub(crate) fn from_alignment_spec(spec: &str) -> Result<Self, String> {
         [Self::Qwen3Aligner, Self::Qwen3AlignerQ8]

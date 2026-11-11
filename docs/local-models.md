@@ -40,21 +40,21 @@ or unverified models leave the index unprepared without starting a download or r
 failure. Enabling semantic search or choosing Related Content's preparation action prepares the
 verified embedding snapshot explicitly; Related Content then schedules a full Space index.
 
-| Capability                     | Supported models                                                                                       |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| Text embedding                 | Fixed Qwen3-Embedding-0.6B, Candle F32 last-token pooling                                              |
-| Transcription                  | Whisper Tiny / Base / Small (default) / Medium / Large-v3 Turbo / Large-v3; whisper.cpp on all targets |
-| Speech synthesis and cloning   | MOSS-TTS-Nano (small default); VoxCPM2 Q8_0 / BF16 / original-precision GGUF                           |
-| Voice design                   | VoxCPM2 Q8_0 / BF16 / original-precision GGUF                                                          |
-| Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / F16 GGUF; audio.cpp                                              |
-| Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32; ERes2Net, CAM++ & ERes2Net Large                            |
-| Vocal/accompaniment separation | HTDemucs Q8_0 (default) / F16, audio.cpp GGUF on Metal, Vulkan or CPU                                  |
-| Image background removal       | U²-Net Compact (default) / full / Human Portrait, Silueta, ONNX Runtime                                |
-| Image upscaling                | Real-ESRGAN General X4v3 / X4plus, tiled ONNX Runtime                                                  |
-| Image repair                   | MI-GAN, selected-region ONNX Runtime                                                                   |
-| Image selection                | EfficientSAM Ti / S, cached ONNX Runtime                                                               |
-| Relative depth                 | Depth Anything V2 Small UINT8 / F32, ONNX Runtime                                                      |
-| Text recognition (OCR)         | Fixed PP-OCRv6 small detection + recognition (~31 MB), `oar-ocr` ONNX Runtime                          |
+| Capability                     | Supported models                                                                                                                               |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Text embedding                 | Fixed Qwen3-Embedding-0.6B, Candle F32 last-token pooling                                                                                      |
+| Transcription                  | Whisper Tiny / Base / Small (default) / Medium / Large-v3 Turbo / Large-v3; whisper.cpp on all targets                                         |
+| Speech synthesis and cloning   | MOSS-TTS-Nano (small default); VoxCPM2; IndexTTS2 Q8_0 / F16; Qwen3-TTS 1.7B Q8_0 / BF16, 0.6B Q8_0; Fun-CosyVoice3 0.5B Q8_0 (audio.cpp GGUF) |
+| Voice design                   | VoxCPM2 Q8_0 / BF16 / original-precision GGUF                                                                                                  |
+| Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / F16 GGUF; audio.cpp                                                                                      |
+| Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32; ERes2Net, CAM++ & ERes2Net Large                                                                    |
+| Vocal/accompaniment separation | HTDemucs Q8_0 (default) / F16, audio.cpp GGUF on Metal, Vulkan or CPU                                                                          |
+| Image background removal       | U²-Net Compact (default) / full / Human Portrait, Silueta, ONNX Runtime                                                                        |
+| Image upscaling                | Real-ESRGAN General X4v3 / X4plus, tiled ONNX Runtime                                                                                          |
+| Image repair                   | MI-GAN, selected-region ONNX Runtime                                                                                                           |
+| Image selection                | EfficientSAM Ti / S, cached ONNX Runtime                                                                                                       |
+| Relative depth                 | Depth Anything V2 Small UINT8 / F32, ONNX Runtime                                                                                              |
+| Text recognition (OCR)         | Fixed PP-OCRv6 small detection + recognition (~31 MB), `oar-ocr` ONNX Runtime                                                                  |
 
 All non-Agent models execute in the Rust worker. Rust uses reqwest for the exact Hugging Face and
 ModelScope repository protocols; direct suppliers and archive members retain their frozen hashes.
@@ -310,6 +310,33 @@ First-time voice design passes the description without a reference transcript. O
 candidate is selected, its immutable recording and matching text form the reference for exact
 cloning. The design description remains provenance, rather than being reapplied during generation.
 This preserves the selected voice identity. See the [pinned official VoxCPM2 model card](https://huggingface.co/openbmb/VoxCPM2/resolve/32279effe8c19989596f05d353d1447f51d9e915/README.md).
+
+### Cloning families
+
+IndexTTS2, Qwen3-TTS (Base) and Fun-CosyVoice3 clone a reference recording of 5–15 seconds through
+the audio.cpp C ABI (`inference-worker/src/speech/cloning.rs`), from one pinned GGUF of
+`audio-cpp/audio.cpp-gguf` beside its upstream licence (IndexTTS2: bilibili model licence;
+Qwen3-TTS and CosyVoice: Apache-2.0). Each GGUF embeds its configuration and tokenizer. Output is
+resampled once to 48 kHz; every voice revision renders at 48 kHz and normal speed.
+
+| Family         | Transcript                                          | Delivery instruction | Duration     |
+| -------------- | --------------------------------------------------- | -------------------- | ------------ |
+| IndexTTS2      | not used (clones from the recording)                | emotion text         | controlled   |
+| Qwen3-TTS      | optional; with it, in-context cloning, else timbre  | none                 | its own pace |
+| Fun-CosyVoice3 | optional; with it `zero_shot`, else `cross_lingual` | `instruct` template  | its own pace |
+
+The engine table lives in `speech_wire::SpeechSynthesisEngine` (`accepts_style`,
+`controls_duration`, `max_reference_duration_ms`); the stored-revision admission rule is one
+function, `spaces/speech/execution/voice.rs::admit`, used by production and by project
+validation alike; `delivery_instruction::supports` derives the library's instruction flag.
+
+**Fitting a dub line to its window** (`run_execution/segment/synthesis.rs`, `DurationFit`): an
+engine that controls duration renders the line naturally once and, if it overruns, renders it
+again at `window / spoken` of its natural length (never below `MIN_DURATION_SCALE` = 0.75 — below
+that the model itself sounds rushed). Every other engine spends three takes over derived seeds and
+keeps the first that fits, else the shortest. Whatever still overruns is time-compressed by the mix
+(at most 1.25×) and then delays the next line — speech is never truncated. Both strategies are
+part of the cached render identity (`durationFit.minimumScale` vs `durationFit.takes`).
 
 ## Image inference snapshots
 

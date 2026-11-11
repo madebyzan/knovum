@@ -103,7 +103,7 @@ async fn load_selected(
     sqlx::query_as::<_, VoiceLibraryRevision>(
         "SELECT p.id AS profile_id,p.name,p.source_kind,r.id AS revision_id,r.revision,(r.id=p.active_revision_id) AS is_active,r.engine_id,r.model_spec_id, \
          r.language,r.preset_voice_id, \
-         (r.engine_id='voxcpm2' AND p.source_kind='reference' AND r.reference_text IS NULL) AS supports_delivery_instruction, \
+         r.reference_text, \
          p.archived_at,p.updated_at FROM spaces_voice_profiles p \
          JOIN spaces_voice_candidates c ON c.selected_voice_profile_id=p.id \
          JOIN spaces_voice_revisions r ON r.id=c.selected_voice_revision_id AND r.profile_id=p.id \
@@ -113,5 +113,6 @@ async fn load_selected(
     .fetch_optional(pool)
     .await
     .map_err(db::sql_error)?
+    .map(VoiceLibraryRevision::read)
     .ok_or("Selected voice candidate has no matching voice revision".into())
 }

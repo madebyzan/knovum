@@ -65,7 +65,13 @@ fn group(model: LocalModelId) -> Option<Group> {
         LocalModelId::MossNano
         | LocalModelId::VoxCpm2
         | LocalModelId::VoxCpm2Bf16
-        | LocalModelId::VoxCpm2Q8 => Some(Group::SpeechSynthesis),
+        | LocalModelId::VoxCpm2Q8
+        | LocalModelId::IndexTts2
+        | LocalModelId::IndexTts2F16
+        | LocalModelId::Qwen3Tts
+        | LocalModelId::Qwen3TtsBf16
+        | LocalModelId::Qwen3TtsSmall
+        | LocalModelId::CosyVoice3 => Some(Group::SpeechSynthesis),
         LocalModelId::RealEsrganGeneralX4v3 | LocalModelId::RealEsrganX4plus => {
             Some(Group::ImageUpscaling)
         }

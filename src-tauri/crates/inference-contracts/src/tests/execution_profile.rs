@@ -1,5 +1,5 @@
 use super::{
-    alignment, embedding, image, moss_nano, separation, threaded, whisper, WHISPER_VARIANTS,
+    alignment, embedding, image, moss_nano, separation, threaded, voice, whisper, WHISPER_VARIANTS,
 };
 use crate::runtime::RuntimeCapability;
 
@@ -80,4 +80,22 @@ fn separation_profiles_name_their_precision_and_probed_device() {
     );
     assert!(separation("htdemucs-q8_0-v1", "cuda").is_none());
     assert!(separation("spleeter-2stems-fp16-cpu-v1", "cpu").is_none());
+}
+
+#[test]
+fn voice_profiles_keep_the_frozen_voxcpm2_identity_and_name_new_families_by_backend() {
+    assert_eq!(
+        voice("voxcpm2-2b-gguf-q8_0-v1", "mps").as_deref(),
+        Some("voxcpm2-mps-gguf-q8_0-v1")
+    );
+    assert_eq!(
+        voice("index-tts2-q8_0-v1", "vulkan").as_deref(),
+        Some("index-tts2-q8_0-vulkan-bundled-v2")
+    );
+    assert_eq!(
+        voice("cosyvoice3-0.5b-q8_0-v1", "cpu").as_deref(),
+        Some("cosyvoice3-0.5b-q8_0-cpu-bundled-v2")
+    );
+    assert!(voice("index-tts2-q8_0-v1", "cuda").is_none());
+    assert!(voice("moss-tts-nano-100m-onnx-bundled-v2", "cpu").is_none());
 }

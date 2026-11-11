@@ -1,6 +1,6 @@
 use super::{
     contracts::{ResourcePreparationProgress, ResourcePreparationTarget},
-    prepare_models, requests, PreparedModels, PreparedVoxCpm2Model, RESOURCE_PREPARATION_CANCELLED,
+    prepare_models, requests, PreparedModels, PreparedVoiceModel, RESOURCE_PREPARATION_CANCELLED,
 };
 use crate::local_resources::models::catalog::ModelKind;
 use tauri::{AppHandle, Runtime};
@@ -21,26 +21,25 @@ pub async fn prepare_models_for_job<R: Runtime>(
     prepare_models_for_request(app, kinds, request, business_cancellation, progress).await
 }
 
-pub async fn prepare_voxcpm2_for_job<R: Runtime>(
+/// Prepares the audio.cpp voice model a voice revision names by its stored specification.
+pub async fn prepare_voice_for_job<R: Runtime>(
     app: &AppHandle<R>,
     model_spec_id: &str,
     job_id: &str,
     title: &str,
     business_cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
-) -> Result<PreparedVoxCpm2Model, String> {
+) -> Result<PreparedVoiceModel, String> {
     let model =
-        crate::local_resources::model_catalog::LocalModelId::from_voxcpm2_spec(model_spec_id)?;
+        crate::local_resources::model_catalog::LocalModelId::from_voice_spec(model_spec_id)?;
+    let kinds = model
+        .snapshot()
+        .ok_or("Voice model is unavailable on this platform")?
+        .models();
     let request = requests::begin(job_id, title, model.preparation())?;
-    let models = prepare_models_for_request(
-        app,
-        model.voxcpm2_models()?,
-        request,
-        business_cancellation,
-        progress,
-    )
-    .await?;
-    PreparedVoxCpm2Model::from_models(models, model)
+    let models =
+        prepare_models_for_request(app, kinds, request, business_cancellation, progress).await?;
+    PreparedVoiceModel::from_models(models, model)
 }
 
 pub(crate) async fn prepare_models_for_request<R: Runtime>(

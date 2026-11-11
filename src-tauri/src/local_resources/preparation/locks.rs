@@ -14,7 +14,8 @@ use crate::local_resources::models::{
     catalog::{self, ModelKind},
 };
 
-pub struct PreparedVoxCpm2Model {
+/// An audio.cpp voice model (VoxCPM2 or a cloning family), held prepared for one job.
+pub struct PreparedVoiceModel {
     directory: PathBuf,
     model: super::super::model_catalog::LocalModelId,
     _models: PreparedModels,
@@ -46,12 +47,15 @@ impl PreparedDiarizationModel {
     }
 }
 
-impl PreparedVoxCpm2Model {
+impl PreparedVoiceModel {
     pub fn from_models(
         models: PreparedModels,
         model: super::super::model_catalog::LocalModelId,
     ) -> Result<Self, String> {
-        let directory = models.directory(model.voxcpm2_models()?)?;
+        let snapshot = model
+            .snapshot()
+            .ok_or("Voice model is unavailable on this platform")?;
+        let directory = models.directory(snapshot.models())?;
         Ok(Self {
             directory,
             model,
@@ -63,8 +67,8 @@ impl PreparedVoxCpm2Model {
         &self.directory
     }
 
-    pub(crate) fn spec_id(&self) -> Result<&'static str, String> {
-        self.model.voxcpm2_spec()
+    pub(crate) fn model(&self) -> super::super::model_catalog::LocalModelId {
+        self.model
     }
 }
 

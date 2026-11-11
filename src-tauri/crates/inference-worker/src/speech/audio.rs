@@ -7,6 +7,31 @@ use std::{
     path::{Path, PathBuf},
 };
 
+/// Mono `samples` at `from` Hz, resampled to `to` Hz with every source frame accounted for: the
+/// result is exactly `len * to / from` frames, so a timeline never drifts across a conversion.
+pub(crate) fn resample(samples: Vec<f32>, from: u32, to: u32) -> Result<Vec<f32>, String> {
+    use audioadapter_buffers::owned::InterleavedOwned;
+    use rubato::{Fft, FixedSync, Resampler};
+    if from == to {
+        return Ok(samples);
+    }
+    let frames = samples.len();
+    let expected = (frames as u64 * u64::from(to) / u64::from(from)) as usize;
+    let source = InterleavedOwned::new_from(samples, 1, frames)
+        .map_err(|error| format!("invalid_input: {error}"))?;
+    let mut resampler = Fft::<f32>::new(from as usize, to as usize, 1024, 1, FixedSync::Both)
+        .map_err(|error| format!("resource_exhausted: {error}"))?;
+    let mut resampled = resampler
+        .process_all(&source, frames, None)
+        .map_err(|error| format!("inference_failed: {error}"))?
+        .take_data();
+    if resampled.len() < expected {
+        return Err("invalid_output: resampler omitted the source tail".into());
+    }
+    resampled.truncate(expected);
+    Ok(resampled)
+}
+
 pub(crate) struct Audio {
     pub(crate) samples: Vec<f32>,
     pub(crate) channels: u16,

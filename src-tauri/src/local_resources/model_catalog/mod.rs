@@ -44,6 +44,12 @@ pub enum LocalModelId {
     VoxCpm2,
     VoxCpm2Bf16,
     VoxCpm2Q8,
+    IndexTts2,
+    IndexTts2F16,
+    Qwen3Tts,
+    Qwen3TtsBf16,
+    Qwen3TtsSmall,
+    CosyVoice3,
     Qwen3Aligner,
     Qwen3AlignerQ8,
     U2netp,
@@ -113,6 +119,12 @@ pub const MODELS: &[LocalModelId] = &[
     LocalModelId::VoxCpm2Q8,
     LocalModelId::VoxCpm2Bf16,
     LocalModelId::VoxCpm2,
+    LocalModelId::IndexTts2,
+    LocalModelId::IndexTts2F16,
+    LocalModelId::Qwen3Tts,
+    LocalModelId::Qwen3TtsBf16,
+    LocalModelId::Qwen3TtsSmall,
+    LocalModelId::CosyVoice3,
     LocalModelId::Qwen3Aligner,
     LocalModelId::Qwen3AlignerQ8,
     LocalModelId::SherpaDiarization,
@@ -176,6 +188,12 @@ impl LocalModelId {
             | Self::VoxCpm2
             | Self::VoxCpm2Bf16
             | Self::VoxCpm2Q8
+            | Self::IndexTts2
+            | Self::IndexTts2F16
+            | Self::Qwen3Tts
+            | Self::Qwen3TtsBf16
+            | Self::Qwen3TtsSmall
+            | Self::CosyVoice3
             | Self::Qwen3Aligner
             | Self::Qwen3AlignerQ8
             | Self::HtDemucs
@@ -202,6 +220,12 @@ impl LocalModelId {
             Self::VoxCpm2 => Some(S::VoxCpm2),
             Self::VoxCpm2Bf16 => Some(S::VoxCpm2Bf16),
             Self::VoxCpm2Q8 => Some(S::VoxCpm2Q8),
+            Self::IndexTts2
+            | Self::IndexTts2F16
+            | Self::Qwen3Tts
+            | Self::Qwen3TtsBf16
+            | Self::Qwen3TtsSmall
+            | Self::CosyVoice3 => self.voice_variant().map(S::Voice),
             Self::Qwen3Aligner => {
                 (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty()).then_some(S::SpeechAlignment)
             }
@@ -262,6 +286,12 @@ impl LocalModelId {
             | Self::U2net
             | Self::VoxCpm2Bf16
             | Self::VoxCpm2Q8
+            | Self::IndexTts2
+            | Self::IndexTts2F16
+            | Self::Qwen3Tts
+            | Self::Qwen3TtsBf16
+            | Self::Qwen3TtsSmall
+            | Self::CosyVoice3
             | Self::Qwen3AlignerQ8
             | Self::HtDemucsF16
             | Self::SherpaDiarizationCampplus

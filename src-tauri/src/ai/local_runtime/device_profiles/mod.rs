@@ -41,6 +41,17 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
 ) -> Result<MemoryRequirement, String> {
     let id = device_profile.execution_profile_id.as_str();
     let device = device_profile.device.as_str();
+    if let (
+        RuntimeCapability::SpeechSynthesis,
+        Some((load_peak_gib, inference_peak_gib, profile_name)),
+    ) = (capability, voice::cloning_footprint(id, device))
+    {
+        return Ok(MemoryRequirement {
+            load_peak_bytes: load_peak_gib * GIB,
+            inference_peak_bytes: inference_peak_gib * GIB,
+            profile_name,
+        });
+    }
     let (load_peak_gib, inference_peak_gib, profile_name) = match (capability, id, device) {
         (RuntimeCapability::Embedding, _, "cpu" | "mps")
             if threaded_profile(

@@ -172,6 +172,48 @@ pub(crate) fn metadata(model: LocalModelId) -> LocalModelMetadata {
             // one. A smaller file is not a smaller process.
             QualifiedOnGib(32),
         ),
+        LocalModelId::IndexTts2 => (
+            "IndexTTS2 · Q8",
+            Capability::SpeechSynthesis,
+            CLONING,
+            Unused,
+            QualifiedOnGib(16),
+        ),
+        LocalModelId::IndexTts2F16 => (
+            "IndexTTS2 · F16",
+            Capability::SpeechSynthesis,
+            CLONING,
+            Unused,
+            QualifiedOnGib(24),
+        ),
+        LocalModelId::Qwen3Tts => (
+            "Qwen3-TTS · 1.7B / Q8",
+            Capability::SpeechSynthesis,
+            CLONING,
+            OptionalConfirmed,
+            QualifiedOnGib(16),
+        ),
+        LocalModelId::Qwen3TtsBf16 => (
+            "Qwen3-TTS · 1.7B / BF16",
+            Capability::SpeechSynthesis,
+            CLONING,
+            OptionalConfirmed,
+            QualifiedOnGib(16),
+        ),
+        LocalModelId::Qwen3TtsSmall => (
+            "Qwen3-TTS · 0.6B / Q8",
+            Capability::SpeechSynthesis,
+            CLONING,
+            OptionalConfirmed,
+            QualifiedOnGib(8),
+        ),
+        LocalModelId::CosyVoice3 => (
+            "Fun-CosyVoice3 · 0.5B / Q8",
+            Capability::SpeechSynthesis,
+            CLONING,
+            OptionalConfirmed,
+            QualifiedOnGib(16),
+        ),
         LocalModelId::Qwen3Aligner => (
             "Qwen3 Forced Aligner · 0.6B / F16",
             Capability::SpeechAlignment,
@@ -313,13 +355,12 @@ pub(crate) fn metadata(model: LocalModelId) -> LocalModelMetadata {
             min_ms: crate::ai::contracts::speech_wire::VOICE_REFERENCE_MIN_DURATION_MS,
             max_ms: crate::ai::contracts::speech_wire::MOSS_NANO_MAX_REFERENCE_DURATION_MS,
         }),
-        LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Bf16 | LocalModelId::VoxCpm2Q8 => {
-            Some(LocalModelReferenceDuration {
+        _ => model
+            .voice_engine()
+            .map(|engine| LocalModelReferenceDuration {
                 min_ms: crate::ai::contracts::speech_wire::VOICE_REFERENCE_MIN_DURATION_MS,
-                max_ms: crate::ai::contracts::speech_wire::VOXCPM2_MAX_REFERENCE_DURATION_MS,
-            })
-        }
-        _ => None,
+                max_ms: engine.max_reference_duration_ms(),
+            }),
     };
     LocalModelMetadata {
         name,
