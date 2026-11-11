@@ -1,98 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { SpeechPreviewAudioChunk } from "../../contracts/generated/SpeechPreviewAudioChunk";
 import { PreviewAudioQueue } from "../preview-audio-queue";
+import { chunk, FakeAudioContext } from "./support/preview-audio-fakes";
 
 const noop = () => undefined;
-
-class FakeAudioBuffer {
-  samples: Float32Array | undefined;
-  copyToChannel(samples: Float32Array) {
-    this.samples = samples;
-  }
-}
-
-class FakeAudioSource {
-  buffer: AudioBuffer | null = null;
-  startedAt: number | undefined;
-  stopped = false;
-  private ended: EventListener | undefined;
-  connect() {}
-  disconnect() {}
-  start(time?: number) {
-    this.startedAt = time;
-  }
-  stop() {
-    this.stopped = true;
-  }
-  addEventListener(_type: string, listener: EventListenerOrEventListenerObject) {
-    this.ended = typeof listener === "function" ? listener : (event) => listener.handleEvent(event);
-  }
-  removeEventListener(_type: string, listener: EventListenerOrEventListenerObject) {
-    if (this.ended === listener) this.ended = undefined;
-  }
-  finish() {
-    this.ended?.(new Event("ended"));
-  }
-}
-
-class FakeAudioContext {
-  static instances: FakeAudioContext[] = [];
-  static resumeGates: Promise<void>[] = [];
-  state: AudioContextState = "suspended";
-  currentTime = 0;
-  readonly destination = {} as AudioDestinationNode;
-  readonly sources: FakeAudioSource[] = [];
-  readonly analysers: FakeAnalyser[] = [];
-  readonly buffers: FakeAudioBuffer[] = [];
-  private readonly resumeGate: Promise<void> | undefined;
-
-  constructor() {
-    this.resumeGate = FakeAudioContext.resumeGates.shift();
-    FakeAudioContext.instances.push(this);
-  }
-  async resume() {
-    await this.resumeGate;
-    if (this.state !== "closed") this.state = "running";
-  }
-  async close() {
-    this.state = "closed";
-  }
-  createBuffer() {
-    const buffer = new FakeAudioBuffer();
-    this.buffers.push(buffer);
-    return buffer as unknown as AudioBuffer;
-  }
-  createBufferSource() {
-    const source = new FakeAudioSource();
-    this.sources.push(source);
-    return source as unknown as AudioBufferSourceNode;
-  }
-  createAnalyser() {
-    const analyser = new FakeAnalyser();
-    this.analysers.push(analyser);
-    return analyser as unknown as AnalyserNode;
-  }
-}
-
-class FakeAnalyser {
-  fftSize = 2048;
-  amplitude = 0;
-  connect() {}
-  disconnect() {}
-  getByteTimeDomainData(target: Uint8Array) {
-    target.fill(128 + Math.round(this.amplitude * 127));
-  }
-}
-
-const chunk = (requestId: string, seq: number): SpeechPreviewAudioChunk => ({
-  requestId,
-  attemptEpoch: 0,
-  seq,
-  sampleRate: 8_000,
-  sampleCount: 2,
-  pcm16: [0, 0, 0xff, 0x7f],
-});
 
 beforeEach(() => {
   FakeAudioContext.instances = [];
@@ -175,44 +86,44 @@ describe("speech preview audio queue", () => {
     expect(FakeAudioContext.instances[1]?.sources).toHaveLength(1);
     expect(FakeAudioContext.instances[0]?.state).toBe("closed");
   });
-});
 
-it("reports the amplitude of the audio being heard and silence once it stops", async () => {
-  const queue = new PreviewAudioQueue(() => {});
-  await queue.start("job");
-  const context = FakeAudioContext.instances[0]!;
-  const analyser = context.analysers[0]!;
+  it("reports the amplitude of the audio being heard and silence once it stops", async () => {
+    const queue = new PreviewAudioQueue(() => {});
+    await queue.start("job");
+    const context = FakeAudioContext.instances[0]!;
+    const analyser = context.analysers[0]!;
 
-  // Nothing is scheduled yet: a waveform must draw a flat line rather than invent movement.
-  analyser.amplitude = 1;
-  expect(queue.peak()).toBe(0);
+    // Nothing is scheduled yet: a waveform must draw a flat line rather than invent movement.
+    analyser.amplitude = 1;
+    expect(queue.peak()).toBe(0);
 
-  queue.enqueue(chunk("job", 1));
-  expect(queue.peak()).toBe(0);
+    queue.enqueue(chunk("job", 1));
+    expect(queue.peak()).toBe(0);
 
-  queue.flush();
-  analyser.amplitude = 0.5;
-  expect(queue.peak()).toBeCloseTo(0.5, 1);
+    queue.flush();
+    analyser.amplitude = 0.5;
+    expect(queue.peak()).toBeCloseTo(0.5, 1);
 
-  queue.stop();
-  expect(queue.peak()).toBe(0);
-});
-
-it("waits until all scheduled chunks finish playing", async () => {
-  const queue = new PreviewAudioQueue(() => {});
-  await queue.start("job");
-  const context = FakeAudioContext.instances[0]!;
-
-  queue.enqueue(chunk("job", 1));
-  queue.flush();
-  let finished = false;
-  const waiting = queue.waitUntilEnded().then(() => {
-    finished = true;
-    return true;
+    queue.stop();
+    expect(queue.peak()).toBe(0);
   });
 
-  expect(finished).toBe(false);
-  context.sources[0]!.finish();
-  await waiting;
-  expect(finished).toBe(true);
+  it("waits until all scheduled chunks finish playing", async () => {
+    const queue = new PreviewAudioQueue(() => {});
+    await queue.start("job");
+    const context = FakeAudioContext.instances[0]!;
+
+    queue.enqueue(chunk("job", 1));
+    queue.flush();
+    let finished = false;
+    const waiting = queue.waitUntilEnded().then(() => {
+      finished = true;
+      return true;
+    });
+
+    expect(finished).toBe(false);
+    context.sources[0]!.finish();
+    await waiting;
+    expect(finished).toBe(true);
+  });
 });
