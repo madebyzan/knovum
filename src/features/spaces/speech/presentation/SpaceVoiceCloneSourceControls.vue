@@ -13,17 +13,23 @@ import {
   nodeActionLabelState,
 } from "../../canvas/presentation/selection/node-action-label";
 import { formatDurationMs } from "../../media/format-duration";
+import type { SpeakerReference } from "../speaker-references";
 import SpeechMediaPlayer from "./SpeechMediaPlayer.vue";
 import type { useCanvasVoiceClone } from "./use-canvas-voice-clone";
 import VoiceCandidateOptions from "./VoiceCandidateOptions.vue";
 import VoiceReferenceSelection from "./VoiceReferenceSelection.vue";
+import VoiceReferenceSpeakers from "./VoiceReferenceSpeakers.vue";
 
 const props = defineProps<{
   form: ReturnType<typeof useCanvasVoiceClone>["form"];
   reference: ReturnType<typeof useCanvasVoiceClone>["reference"];
+  speakers: readonly SpeakerReference[];
   compact: boolean;
 }>();
-const emit = defineEmits<{ playbackError: [message: string | undefined] }>();
+const emit = defineEmits<{
+  playbackError: [message: string | undefined];
+  selectSpeaker: [speaker: SpeakerReference];
+}>();
 const openPopover = defineModel<"range" | "options" | undefined>("openPopover", { required: true });
 const { t } = useI18n();
 const player = useTemplateRef("player");
@@ -68,6 +74,7 @@ function auditionSelection() {
       v-model:reference-transcript="form.referenceTranscript"
       v-model:reference-duration="form.referenceDuration"
       v-model:language="form.language"
+      v-model:isolate-voice="form.isolateVoice"
       fixed-source
       :disabled="form.busy || form.preparingReference"
       :modes="form.modes"
@@ -99,6 +106,14 @@ function auditionSelection() {
         </button></ToolbarButton
       ></template
     >
+    <VoiceReferenceSpeakers
+      v-if="speakers.length"
+      :speakers="speakers"
+      :start="reference.start"
+      :end="reference.end"
+      :disabled="form.busy || form.preparingReference || reference.durationMs === undefined"
+      @select="emit('selectSpeaker', $event)"
+    />
     <VoiceReferenceSelection
       v-model:start="reference.start"
       v-model:end="reference.end"

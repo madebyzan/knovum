@@ -26,6 +26,7 @@ const {
   supportsDesign,
   referenceTranscript,
   referenceDuration,
+  isolateVoice,
   language,
   description,
   reference,
@@ -71,6 +72,7 @@ async function saveCandidate(candidateId: string, name: string) {
       v-model:reference-transcript="referenceTranscript"
       v-model:reference-duration="referenceDuration"
       v-model:language="language"
+      v-model:isolate-voice="isolateVoice"
       :fixed-source="Boolean(sourceNode || sourceKind)"
       :disabled="busy || preparingReference"
       :modes="modes"

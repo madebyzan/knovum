@@ -107,6 +107,10 @@ pub enum VoiceCandidateSource {
         reference_text_confirmed: bool,
         #[serde(default)]
         design_prompt: Option<String>,
+        /// Clone the voice alone: the selection's vocals are separated from music and effects
+        /// before they become the reference, so the clone does not carry the soundtrack.
+        #[serde(default)]
+        isolate_voice: bool,
     },
     Designed {
         description: String,

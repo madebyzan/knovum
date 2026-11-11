@@ -244,6 +244,7 @@ fn validate_and_normalize_request(request: &mut DraftVoiceCandidateRequest) -> R
             reference_text,
             reference_text_confirmed,
             design_prompt,
+            ..
         } => {
             let duration_bounds = request.model.reference_duration();
             let text = reference_text

@@ -311,6 +311,21 @@ candidate is selected, its immutable recording and matching text form the refere
 cloning. The design description remains provenance, rather than being reapplied during generation.
 This preserves the selected voice identity. See the [pinned official VoxCPM2 model card](https://huggingface.co/openbmb/VoxCPM2/resolve/32279effe8c19989596f05d353d1447f51d9e915/README.md).
 
+### Cloning an original speaker
+
+A clone of a film or video speaker must not carry its soundtrack. **Isolate voice** (on by default,
+`VoiceCandidateSource::Reference.isolateVoice`) separates the selected clip with the chosen
+separation model through the same pipeline as a dub's background
+(`source_separation/separate.rs`) and freezes the vocals, conformed to the reference format, as
+the candidate's reference (`voice_candidates/source_snapshot.rs::isolate`). The transcript review
+still reads the selection as recorded; the frozen reference — and so every render — is the voice.
+
+When the node's current transcript tells speakers apart, the clone bar offers each speaker as a
+one-click selection (`speech/speaker-references.ts`): their longest uninterrupted turn — their own
+consecutive segments, no one else between, no pause beyond a dialogue pause — cut at a segment
+boundary to the model's maximum reference length. Speakers who never speak five seconds on end are
+not offered.
+
 ### Cloning families
 
 IndexTTS2, Qwen3-TTS (Base) and Fun-CosyVoice3 clone a reference recording of 5–15 seconds through

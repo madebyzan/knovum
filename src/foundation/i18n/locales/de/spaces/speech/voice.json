@@ -38,5 +38,9 @@
     "reference": "Referenzstimme",
     "designed": "Gestaltete Stimme"
   },
-  "options": "Spracheinstellungen"
+  "options": "Spracheinstellungen",
+  "isolate": {
+    "label": "Stimme isolieren",
+    "hint": "Trennt die Stimme vor dem Klonen von Musik und Effekten, damit der Klon keinen Soundtrack mitträgt."
+  }
 }

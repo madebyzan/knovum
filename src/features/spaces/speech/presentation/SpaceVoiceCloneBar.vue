@@ -20,7 +20,7 @@ import { useCanvasVoiceClone } from "./use-canvas-voice-clone";
 const props = defineProps<{ node: SpaceCanvasNode; availableWidth?: number | undefined }>();
 const emit = defineEmits<{ close: [] }>();
 const { t, locale } = useI18n();
-const { form, reference, save } = useCanvasVoiceClone(toRef(props, "node"));
+const { form, reference, speakers, selectSpeaker, save } = useCanvasVoiceClone(toRef(props, "node"));
 const playbackError = shallowRef<string>();
 const referenceActionLabel = computed(() =>
   t(reference.jobId ? "common.cancel" : "spaces.speech.reference.prepare"),
@@ -83,7 +83,9 @@ watch(
         v-model:open-popover="sourcePopover"
         :form="form"
         :reference="reference"
+        :speakers="speakers"
         :compact="compact"
+        @select-speaker="selectSpeaker"
         @playback-error="playbackError = $event"
       />
       <ToolbarSeparator class="mx-0.5 h-4 w-px bg-stroke-divider" />

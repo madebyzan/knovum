@@ -38,5 +38,9 @@
     "reference": "Voz de referencia",
     "designed": "Voz diseñada"
   },
-  "options": "Configuración de voz"
+  "options": "Configuración de voz",
+  "isolate": {
+    "label": "Aislar la voz",
+    "hint": "Separa la voz de la música y los efectos antes de clonar, para que el clon no arrastre la banda sonora."
+  }
 }
