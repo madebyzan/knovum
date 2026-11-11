@@ -35,6 +35,7 @@ export function imageSelectionModelScenarios() {
     capabilities.targets = capabilities.targets.filter((target) => target.capability !== "imageInpainting");
     vi.mocked(getImageOperationCapabilities).mockResolvedValueOnce(capabilities);
     await store.begin(node);
+    store.addPoint(0.3, 0.4);
     expect(store.canSubmit).toBe(true);
     expect(store.canRepair).toBe(false);
     const before = vi.mocked(deriveImageSelection).mock.calls.length;

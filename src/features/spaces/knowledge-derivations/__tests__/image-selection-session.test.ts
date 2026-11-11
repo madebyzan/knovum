@@ -38,12 +38,13 @@ vi.mock("../image-selection-derivation", async (importOriginal) => ({
   ...(await importOriginal<typeof SelectionDerivationModule>()),
   deriveImageSelection: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
 }));
+// The preview is still drawing: it never gates the actions.
 vi.mock("../use-image-selection-preview", async () => {
   const { shallowRef } = await import("vue");
   return {
     useImageSelectionPreview: () => ({
-      maskSource: shallowRef<string>("mask"),
-      busy: shallowRef(false),
+      maskSource: shallowRef<string>(),
+      busy: shallowRef(true),
       error: shallowRef<string>(),
       queue: vi.fn<() => void>(),
       clear: vi.fn<() => void>(),
@@ -54,6 +55,7 @@ import { getImageOperationCapabilities } from "../image-operation";
 import { deriveImageSelection } from "../image-selection-derivation";
 import { useImageSelectionSessionStore } from "../image-selection-session-store";
 import { imageSelectionModelScenarios } from "./image-selection-model-scenarios";
+import { imageSelectionPromptScenarios } from "./image-selection-prompt-scenarios";
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -91,6 +93,7 @@ it("discards a stale draft after an in-flight derivation fails", async () => {
   const node = imageSourceNode();
   context.space!.nodes = [node];
   await store.begin(node);
+  store.addPoint(0.3, 0.4);
   let rejectDerivation!: (cause: Error) => void;
   vi.mocked(deriveImageSelection).mockImplementationOnce(
     () =>
@@ -177,3 +180,4 @@ it("repairs with the Settings-selected repair model, drawing the mask with the s
 });
 
 imageSelectionModelScenarios();
+imageSelectionPromptScenarios();
