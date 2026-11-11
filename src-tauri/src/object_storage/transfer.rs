@@ -19,7 +19,15 @@ pub(crate) async fn upload_media(bytes: Vec<u8>, media_type: &str) -> AppResult<
     let configuration = settings::load(app()?)?;
     let credentials = settings::read_credentials().await?;
     let key = object_key(&bytes, media_type);
-    transfer("PUT", &configuration, &credentials, &key, Some(media_type), &bytes).await?;
+    transfer(
+        "PUT",
+        &configuration,
+        &credentials,
+        &key,
+        Some(media_type),
+        &bytes,
+    )
+    .await?;
     Ok(configuration.public_url(&key))
 }
 
@@ -82,7 +90,10 @@ async fn transfer(
         .send()
         .await
         .map_err(|error| {
-            AppError::new("object_storage_request_failed", error.without_url().to_string())
+            AppError::new(
+                "object_storage_request_failed",
+                error.without_url().to_string(),
+            )
         })?;
     if !response.status().is_success() {
         let status = response.status();

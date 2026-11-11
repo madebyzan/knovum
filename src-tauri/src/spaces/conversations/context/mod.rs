@@ -8,8 +8,8 @@ use serde_json::Value;
 use sqlx::SqlitePool;
 
 use crate::spaces::conversations::{contracts::ConversationAttachment, upload};
-pub(in crate::spaces::conversations) use image::{image_input_from_file, image_part};
 use image::ImageAttachmentContent;
+pub(in crate::spaces::conversations) use image::{image_input_from_file, image_part};
 
 struct ResolvedPart {
     manifest: Value,

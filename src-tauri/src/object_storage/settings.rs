@@ -32,7 +32,12 @@ pub struct ObjectStorageSettings {
 impl ObjectStorageSettings {
     /// Path-style object location used for signing and transfers.
     pub(crate) fn object_url(&self, key: &str) -> String {
-        format!("{}/{}/{}", self.endpoint.trim_end_matches('/'), self.bucket, key)
+        format!(
+            "{}/{}/{}",
+            self.endpoint.trim_end_matches('/'),
+            self.bucket,
+            key
+        )
     }
 
     /// Location handed to models: the configured public base (a bucket domain
@@ -63,9 +68,10 @@ pub(crate) fn load(app: &tauri::AppHandle) -> AppResult<ObjectStorageSettings> {
     let raw = store
         .get(SETTINGS_KEY)
         .ok_or_else(|| AppError::not_configured("Object storage is not configured"))?;
-    let envelope: Envelope<ObjectStorageSettings> = serde_json::from_value(raw).map_err(|error| {
-        AppError::invalid(format!("Object storage settings are invalid: {error}"))
-    })?;
+    let envelope: Envelope<ObjectStorageSettings> =
+        serde_json::from_value(raw).map_err(|error| {
+            AppError::invalid(format!("Object storage settings are invalid: {error}"))
+        })?;
     if envelope.schema_version != SCHEMA_VERSION {
         return Err(AppError::invalid(
             "Object storage settings schema is unsupported",
@@ -122,9 +128,9 @@ fn validate_https_url(value: &str, label: &str) -> AppResult<()> {
 
 fn validate_bucket(bucket: &str) -> AppResult<()> {
     let valid = (3..=63).contains(&bucket.len())
-        && bucket
-            .bytes()
-            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || b".-".contains(&byte))
+        && bucket.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || b".-".contains(&byte)
+        })
         && !bucket.starts_with(['-', '.'])
         && !bucket.ends_with(['-', '.'])
         && !bucket.contains("..");

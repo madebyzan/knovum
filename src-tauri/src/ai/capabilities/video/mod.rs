@@ -82,7 +82,8 @@ async fn prepare_reference_images(
             if !path.is_file() {
                 return Err(AppError::invalid("Reference image path is unavailable"));
             }
-            let bytes = super::files::read_file_bounded(path, super::files::MAX_UPLOAD_BYTES).await?;
+            let bytes =
+                super::files::read_file_bounded(path, super::files::MAX_UPLOAD_BYTES).await?;
             let mime = mime_guess::from_path(path)
                 .first_or_octet_stream()
                 .to_string();

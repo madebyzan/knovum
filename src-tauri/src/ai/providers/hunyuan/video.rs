@@ -60,7 +60,9 @@ impl VideoGenerationCapability for HunyuanVideoAdapter {
                 // TokenHub splits the two shapes into separate fields: a
                 // public URL goes to `image_url`, inline pixels go to `image`
                 // as bare base64 without the data-URI prefix.
-                Some(reference) if reference.starts_with("http://") || reference.starts_with("https://") => {
+                Some(reference)
+                    if reference.starts_with("http://") || reference.starts_with("https://") =>
+                {
                     body["image_url"] = json!(reference);
                 }
                 Some(reference) => {

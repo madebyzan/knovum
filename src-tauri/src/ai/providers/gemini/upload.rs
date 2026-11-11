@@ -56,9 +56,8 @@ pub(super) async fn upload_ephemeral_file(
         })?
         .to_string();
 
-    let upload_url = crate::ai::transport::validate_endpoint(&upload_url).map_err(|_| {
-        AppError::new("invalid_response", "Gemini returned an invalid upload URL")
-    })?;
+    let upload_url = crate::ai::transport::validate_endpoint(&upload_url)
+        .map_err(|_| AppError::new("invalid_response", "Gemini returned an invalid upload URL"))?;
     let authority = crate::ai::transport::validate_endpoint(endpoint)?;
     if !crate::foundation::public_network::same_origin(&authority, &upload_url) {
         return Err(AppError::new(

@@ -36,12 +36,7 @@ pub(crate) fn authorization(
         hex::encode(Sha256::digest(canonical_request.as_bytes()))
     );
     let signature = hex::encode(hmac_digest(
-        &signing_key(
-            &credentials.secret_access_key,
-            &date_stamp,
-            region,
-            SERVICE,
-        ),
+        &signing_key(&credentials.secret_access_key, &date_stamp, region, SERVICE),
         string_to_sign.as_bytes(),
     ));
     Ok(SignedHeaders {
@@ -108,7 +103,12 @@ impl CanonicalHeaders {
     }
 }
 
-fn signing_key(secret_access_key: &str, date_stamp: &str, region: &str, service: &str) -> hmac::Key {
+fn signing_key(
+    secret_access_key: &str,
+    date_stamp: &str,
+    region: &str,
+    service: &str,
+) -> hmac::Key {
     let mut key = hmac::Key::new(
         hmac::HMAC_SHA256,
         format!("AWS4{secret_access_key}").as_bytes(),
@@ -128,9 +128,11 @@ pub(crate) fn ensure_signable_url(url: &reqwest::Url) -> AppResult<()> {
     // The canonical request signs the path verbatim; generated object keys are
     // percent-encoding free, and anything else would silently sign the wrong
     // resource.
-    if url.path().bytes().any(|byte| {
-        !(byte.is_ascii_alphanumeric() || b"/.-_".contains(&byte))
-    }) || url.query().is_some()
+    if url
+        .path()
+        .bytes()
+        .any(|byte| !(byte.is_ascii_alphanumeric() || b"/.-_".contains(&byte)))
+        || url.query().is_some()
     {
         return Err(AppError::invalid(
             "Object storage URLs may not contain a query or characters that need percent-encoding",

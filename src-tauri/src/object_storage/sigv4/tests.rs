@@ -57,7 +57,9 @@ fn authorization_signs_the_canonical_put_shape() {
 
 #[test]
 fn authorization_without_content_type_omits_it_from_signed_headers() {
-    let url = "https://bucket.oss-cn-hangzhou.aliyuncs.com/key".parse().unwrap();
+    let url = "https://bucket.oss-cn-hangzhou.aliyuncs.com/key"
+        .parse()
+        .unwrap();
     let signed = authorization(
         "HEAD",
         &url,

@@ -10,9 +10,7 @@ mod tests;
 pub use image::DashScopeImageAdapter;
 pub use video::DashScopeVideoAdapter;
 
-use crate::ai::contracts::{
-    AiProvider, ImageGenerationCapability, VideoGenerationCapability,
-};
+use crate::ai::contracts::{AiProvider, ImageGenerationCapability, VideoGenerationCapability};
 
 pub struct DashScopeProvider {
     image: DashScopeImageAdapter,
