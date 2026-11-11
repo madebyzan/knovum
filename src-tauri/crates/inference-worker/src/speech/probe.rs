@@ -6,7 +6,7 @@ pub(crate) fn devices(manifest: &Path, digest: &str, reserve: u64) -> Result<Str
     let path = ffi::library(&runtime, "knovum_voice")?;
     let api = unsafe { ffi::voice::VoiceApi::from_library(ffi::load(&path)?) }
         .map_err(|error| format!("runtime_mismatch: {error}"))?;
-    if unsafe { api.knovum_voice_abi() } != 3 {
+    if unsafe { api.knovum_voice_abi() } != ffi::VOICE_BRIDGE_ABI {
         return Err("runtime_mismatch: voice C ABI differs".into());
     }
     let flags = unsafe { api.knovum_audio_devices(reserve) };

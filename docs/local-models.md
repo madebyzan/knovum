@@ -300,6 +300,11 @@ export/import. Its effect depends on the reference voice and language; it is not
 control. MOSS presets, exact-transcript clones and saved designed voices do not expose this control.
 The backend reports instruction support explicitly; the UI does not infer engine compatibility.
 
+A reference recording with its exact transcript is cloned by continuation — VoxCPM2's "ultimate
+cloning": the recording is both the continuation prompt and the voice reference, so the new line
+carries every nuance of the reference. Style guidance and delivery instructions apply only to a
+recording cloned without its transcript.
+
 First-time voice design passes the description without a reference transcript. Once a designed
 candidate is selected, its immutable recording and matching text form the reference for exact
 cloning. The design description remains provenance, rather than being reapplied during generation.

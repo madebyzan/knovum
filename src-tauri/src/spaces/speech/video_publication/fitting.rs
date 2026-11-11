@@ -9,15 +9,12 @@ use tokio_util::sync::CancellationToken;
 use super::{mixing::TimedRender, SAMPLE_RATE};
 use crate::spaces::speech::publication::hash_file;
 
-/// How much faster a line may be played to fit before the next speaker or the end of the picture.
+/// How much faster a line may be played to land in its time.
 ///
-/// Time-compressed speech stays clearly intelligible at natural pitch up to about 1.4x, and within
-/// that band speaking the complete line faster always beats truncating it mid-word. Truncation to
-/// the available room remains the last resort for lines that still overrun after duration-aware
-/// synthesis and translation shortening.
-/// Speech is NEVER slowed down below 1.0x: shorter dialogue plays at pristine natural rate,
-/// leaving natural pauses and breathing room rather than introducing phase distortion or metallic rasping.
-pub const MAX_COMPRESSION: f64 = 1.4;
+/// Time-compressed speech keeps its natural pitch and stays fully intelligible to about 1.25×;
+/// beyond that it is audibly hurried, and a line that still needs more room takes it from the
+/// lines after it instead. Speech is never slowed down to fill time.
+pub(super) const MAX_COMPRESSION: f64 = 1.25;
 
 /// The fade every placed line ends with: long enough to avoid a click, short enough to be
 /// inaudible as a fade.
@@ -38,76 +35,58 @@ impl Placement {
     }
 }
 
-/// Decides how every line is heard to maintain strict video synchronization with zero drift.
-/// Dialogue is spoken in script order: each line anchors to its absolute subtitle onset timestamp.
-/// If speech finishes within its window or within the following silence gap, it plays at 1.0x pristine
-/// rate without any audio stretching. If a line would collide with the next speaker, it compresses cleanly
-/// within acoustic limits so that subsequent speakers always start on time.
+/// Decides how every line is heard. Every line is heard whole — a word is never cut.
+///
+/// A line starts at its subtitle onset, or as soon as the line before it has finished. It aims to
+/// end with its subtitle interval and is compressed up to [`MAX_COMPRESSION`] to do so; what is
+/// still left over is spoken into the silence before the next line, at most that fast again, and
+/// past the next onset only when the line cannot fit at all, delaying the next line by exactly
+/// that much. The delay is absorbed by the next silence long enough to hold it. Dialogue that
+/// cannot end before the picture does is refused before anything is rendered, naming how much
+/// longer it is, because the only alternative is dialogue nobody hears.
 pub(super) fn plan(timed: &[TimedRender], video_samples: u64) -> Result<Vec<Placement>, String> {
     let mut placements = Vec::with_capacity(timed.len());
     let mut cursor = 0;
     for (index, item) in timed.iter().enumerate() {
         let start = item.start_sample.max(cursor);
-        let picture = video_samples.saturating_sub(start);
-        if picture == 0 {
-            // The picture is over, so this line cannot be heard.
-            continue;
-        }
         let next = timed
             .get(index + 1)
-            .map_or(video_samples, |next| next.start_sample);
-        let placement = placement(
+            .map_or(video_samples, |next| next.start_sample.min(video_samples));
+        let natural = natural_samples(item)?;
+        // Its own interval, then the silence before the next line (for the last line, the rest
+        // of the picture). A target already behind the start allows nothing and gives way.
+        let window_end = (item.start_sample + item.window_samples).min(next);
+        let tempo = [window_end, next]
+            .into_iter()
+            .map(|end| tempo_to_end_by(natural, start, end))
+            .find(|tempo| *tempo <= MAX_COMPRESSION)
+            .unwrap_or(MAX_COMPRESSION);
+        let sample_count = scaled(natural, tempo);
+        let end = start + sample_count;
+        if end > video_samples {
+            return Err(format!(
+                "Dubbed dialogue runs {:.2} s past the end of the video; shorten the last lines",
+                (end - video_samples) as f64 / f64::from(SAMPLE_RATE)
+            ));
+        }
+        placements.push(Placement {
             index,
-            item,
-            Room {
-                start,
-                next,
-                picture,
-            },
-        )?;
-        cursor = placement.end_sample();
-        placements.push(placement);
+            start_sample: start,
+            sample_count,
+            tempo,
+        });
+        cursor = end;
     }
     Ok(placements)
 }
 
-/// The time a line really has: when it can start speaking, when the next line is due, and how
-/// much picture is left.
-struct Room {
-    start: u64,
-    next: u64,
-    picture: u64,
-}
-
-fn placement(index: usize, item: &TimedRender, room: Room) -> Result<Placement, String> {
-    let natural = natural_samples(item)?;
-    let delay_samples = room.start.saturating_sub(item.start_sample);
-    let window = item.window_samples.saturating_sub(delay_samples);
-    let max_room = room
-        .next
-        .saturating_sub(room.start)
-        .min(room.picture)
-        .max(1);
-    let preferred = window.max(1);
-
-    let (tempo, sample_count) = if natural <= preferred || natural <= max_room {
-        // Speech fits within its window or within the silence gap before the next speaker.
-        // Keep 1.0x pristine neural audio: zero atempo filtering, zero metallic artifacts.
-        (1.0, natural.min(max_room))
-    } else {
-        // Speech exceeds the room before the next line: accelerate cleanly up to MAX_COMPRESSION.
-        let raw_tempo = natural as f64 / max_room as f64;
-        let t = raw_tempo.min(MAX_COMPRESSION);
-        let count = scaled(natural, t).min(max_room);
-        (t, count)
-    };
-
-    Ok(Placement {
-        index,
-        start_sample: room.start,
-        sample_count,
-        tempo,
-    })
+/// The rate at which `natural` samples spoken from `start` end by `end`: never below the natural
+/// rate, and infinite when there is no time at all.
+fn tempo_to_end_by(natural: u64, start: u64, end: u64) -> f64 {
+    match end.checked_sub(start) {
+        Some(room) if room > 0 => (natural as f64 / room as f64).max(1.0),
+        _ => f64::INFINITY,
+    }
 }
 
 /// How long a line is at the rate it was spoken, in the sample rate the mix works in.
@@ -144,8 +123,8 @@ pub(super) fn render(
         format!("atempo={:.9},", placement.tempo)
     };
     let samples = placement.sample_count;
-    // Every placed line ends with a short fade, so a line the picture cuts short never clicks. A
-    // line that ends in its own silence fades that silence and is unchanged.
+    // The time-stretched line is trimmed to its exact placed length, which can end a waveform
+    // mid-cycle; a fade too short to hear as one keeps that edge from clicking.
     let fade_start = samples.saturating_sub(FADE_SAMPLES) as f64 / f64::from(SAMPLE_RATE);
     let fade = FADE_SAMPLES.min(samples) as f64 / f64::from(SAMPLE_RATE);
     let filter = format!(

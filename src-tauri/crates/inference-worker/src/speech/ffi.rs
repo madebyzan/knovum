@@ -43,6 +43,9 @@ pub(super) mod audio {
     include!(concat!(env!("OUT_DIR"), "/AudioApi.rs"));
 }
 
+/// The `knovum_voice` bridge ABI this worker is built against (`voice_bridge.cpp`).
+pub(super) const VOICE_BRIDGE_ABI: i32 = 4;
+
 /// Resolves a pinned speech library inside the runtime this worker verified.
 ///
 /// Library naming belongs here; inventory membership belongs to [`VerifiedRuntime`], which holds
