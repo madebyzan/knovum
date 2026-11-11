@@ -81,6 +81,7 @@ pub(crate) fn for_snapshot(snapshot: SnapshotKind) -> Option<HubSource> {
         | SnapshotKind::VoxCpm2Q8
         | SnapshotKind::SpeechAlignment
         | SnapshotKind::SpeechAlignmentQ8
+        | SnapshotKind::Separation(_)
         | SnapshotKind::Diarization(_) => return None,
         SnapshotKind::Whisper(_) => return None,
         SnapshotKind::TextEmbedding => HubSource::ModelScope {
@@ -93,14 +94,6 @@ pub(crate) fn for_snapshot(snapshot: SnapshotKind) -> Option<HubSource> {
         | SnapshotKind::ImageSegmentationQuality => HubSource::HuggingFace {
             repository: "tomjackson2023/rembg",
             revision: "cd3a3d6767a7859efea31ef0f2f373582cf06d82",
-        },
-        SnapshotKind::SpeechSeparationFull => HubSource::HuggingFace {
-            repository: "csukuangfj/sherpa-onnx-spleeter-2stems",
-            revision: "7001ba316a615cacddb3f9ef3ec416661a277e26",
-        },
-        SnapshotKind::SpeechSeparation => HubSource::HuggingFace {
-            repository: "csukuangfj/sherpa-onnx-spleeter-2stems-fp16",
-            revision: "93ba771920ade509f8cbd6825b1a90856c797e08",
         },
     })
 }

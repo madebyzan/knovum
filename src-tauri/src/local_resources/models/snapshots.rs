@@ -9,6 +9,7 @@ pub(crate) enum SnapshotKind {
     Image(catalog::ImageModelVariant),
     Diarization(catalog::DiarizationVariant),
     Whisper(catalog::WhisperVariant),
+    Separation(catalog::SeparationVariant),
     ImageSegmentation,
     ImageSegmentationSilueta,
     ImageSegmentationHuman,
@@ -20,8 +21,6 @@ pub(crate) enum SnapshotKind {
     VoxCpm2Q8,
     SpeechAlignment,
     SpeechAlignmentQ8,
-    SpeechSeparation,
-    SpeechSeparationFull,
 }
 
 #[derive(Clone, Serialize, schemars::JsonSchema)]
@@ -56,8 +55,7 @@ impl SnapshotKind {
             Self::VoxCpm2Q8 => "voxcpm2-q8_0",
             Self::SpeechAlignment => "qwen3-forced-aligner-0.6b-f16-bundled",
             Self::SpeechAlignmentQ8 => "qwen3-forced-aligner-0.6b-q8_0",
-            Self::SpeechSeparation => "spleeter-2stems-fp16",
-            Self::SpeechSeparationFull => "spleeter-2stems-fp32",
+            Self::Separation(variant) => variant.snapshot_name(),
             Self::Diarization(variant) => variant.revision(),
         }
     }
@@ -77,8 +75,7 @@ impl SnapshotKind {
             Self::VoxCpm2Q8 => catalog::VOXCPM2_Q8_MODELS,
             Self::SpeechAlignment => catalog::QWEN3_FORCED_ALIGNER_MODELS,
             Self::SpeechAlignmentQ8 => catalog::QWEN3_ALIGNER_Q8_MODELS,
-            Self::SpeechSeparation => catalog::SPEECH_SEPARATION_MODELS,
-            Self::SpeechSeparationFull => catalog::SPEECH_SEPARATION_FULL_MODELS,
+            Self::Separation(variant) => variant.models(),
             Self::Diarization(variant) => variant.models(),
         }
     }

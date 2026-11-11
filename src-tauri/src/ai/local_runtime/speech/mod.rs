@@ -191,7 +191,7 @@ fn transcription_model_directory<'a>(
     co_located_model_directory(resources, kinds)
 }
 
-fn co_located_model_directory<'a>(
+pub(super) fn co_located_model_directory<'a>(
     resources: &'a PreparedModels,
     kinds: &[ModelKind],
 ) -> Result<&'a Path, String> {

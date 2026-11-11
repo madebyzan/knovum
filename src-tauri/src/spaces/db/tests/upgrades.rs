@@ -336,3 +336,79 @@ async fn upgrading_0_3_2_admits_prompt_guided_reference_voice_candidates() {
     .await
     .expect("prompt guidance is a reference candidate field");
 }
+
+/// 0.3.x accepted ten minutes of media for source separation, the most Spleeter held in memory.
+/// HTDemucs streams its source, so upgrading rebuilds the table around a six-hour bound and keeps
+/// every stored separation with the (since retired) model that made it.
+#[tokio::test]
+async fn upgrading_0_3_x_admits_six_hour_source_separations() {
+    let pool = shipped(5).await;
+    for statement in [
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
+        "INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) \
+         VALUES('talk','s','video',0,0,'{\"kind\":\"video\",\"title\":\"Talk\"}',1,1)",
+    ] {
+        sqlx::query(statement).execute(&pool).await.expect("fixture");
+    }
+    for run in ["spleeter", "htdemucs"] {
+        sqlx::query(
+            "INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind, \
+             state,policy_snapshot,input_snapshot,budget,created_at,updated_at,completed_at) \
+             VALUES($1,'space','s','user',$1,'workflow','succeeded','{}', \
+             '{\"workflow\":\"speech_source_separation_v1\"}','{}',1,1,1)",
+        )
+        .bind(run)
+        .execute(&pool)
+        .await
+        .expect("run");
+    }
+    let separate = |id: &'static str, model: &'static str, duration_ms: i64| {
+        let pool = pool.clone();
+        async move {
+            let samples = duration_ms * 441 / 10;
+            sqlx::query(
+                "INSERT INTO spaces_speech_source_separations( \
+                 id,space_id,run_id,source_node_id,source_asset_path,source_revision, \
+                 source_duration_ms,model_spec_id,background_asset_path,vocals_asset_path, \
+                 vocals_sha256,background_sha256,background_sample_rate,background_sample_count, \
+                 background_duration_ms,created_at) \
+                 VALUES($1,'s',$1,'talk','/talk.mp4',$2,$3,$4,$5,$6,$7,$8,44100,$9,$3,1)",
+            )
+            .bind(id)
+            .bind(format!("sha256:{}", "a".repeat(64)))
+            .bind(duration_ms)
+            .bind(model)
+            .bind(format!("/{id}-background.wav"))
+            .bind(format!("/{id}-vocals.wav"))
+            .bind("b".repeat(64))
+            .bind("c".repeat(64))
+            .bind(samples)
+            .execute(&pool)
+            .await
+        }
+    };
+    separate("spleeter", "spleeter-2stems-fp16-cpu-v1", 600_000)
+        .await
+        .expect("stored separation");
+
+    super::super::migrate(&pool).await.expect("upgrade");
+
+    assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
+    let carried: Vec<(String, String, i64)> = sqlx::query_as(
+        "SELECT id,model_spec_id,source_duration_ms FROM spaces_speech_source_separations",
+    )
+    .fetch_all(&pool)
+    .await
+    .expect("carried separation");
+    assert_eq!(
+        carried,
+        [(
+            "spleeter".to_owned(),
+            "spleeter-2stems-fp16-cpu-v1".to_owned(),
+            600_000
+        )]
+    );
+    separate("htdemucs", "htdemucs-q8_0-v1", 21_600_000)
+        .await
+        .expect("a six-hour separation is admitted");
+}

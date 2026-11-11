@@ -1,5 +1,5 @@
 use knovum_inference_contracts::{
-    execution_profile::{moss_nano, whisper, WHISPER_VARIANTS},
+    execution_profile::{moss_nano, separation, whisper, WHISPER_VARIANTS},
     image_compute::ImageModelVariant,
     runtime::{RuntimeCapability, RuntimeInitializeParams, RuntimeModel},
 };
@@ -83,16 +83,27 @@ fn moss_rejects_a_wrong_profile_or_zero_threads_before_graph_loading() {
 }
 
 #[test]
-fn sherpa_rejects_a_profile_that_differs_from_its_frozen_precision() {
-    for spec in ["spleeter-2stems-fp16-cpu-v1", "spleeter-2stems-fp32-cpu-v1"] {
-        let mut input = params(spec, spec);
+fn separation_rejects_a_profile_that_differs_from_its_model_or_probed_device() {
+    for (spec, file) in [
+        ("htdemucs-q8_0-v1", "htdemucs-q8_0.gguf"),
+        ("htdemucs-f16-v1", "htdemucs-f16.gguf"),
+    ] {
+        let mut input = params(spec, &separation(spec, "cpu").unwrap());
+        input.capability = RuntimeCapability::SpeechSeparation;
         assert_eq!(
             super::super::separation::admit(&input).unwrap(),
-            "/not-loaded"
+            std::path::Path::new("/not-loaded").join(file)
         );
-        input.device_profile.execution_profile_id = "other-precision".into();
+        input.device_profile.execution_profile_id = separation(spec, "mps").unwrap();
+        assert!(super::super::separation::admit(&input).is_err());
+        input.device_profile.execution_profile_id = separation(spec, "cpu").unwrap();
+        input.model = image_variant();
         assert!(super::super::separation::admit(&input).is_err());
     }
+}
+
+#[test]
+fn diarization_rejects_a_profile_that_differs_from_its_frozen_precision() {
     for spec in [
         "sherpa-diarization-cpu-v1",
         "sherpa-diarization-campplus-cpu-v1",

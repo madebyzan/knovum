@@ -61,7 +61,18 @@ pub(super) async fn publish_video<R: Runtime>(
         return Err("Video dubbing has no complete timed render set".into());
     }
     let config = super::video_config::parse(output_config)?;
-    let digest = policy::assembly_digest(renders, windows, output_config);
+    let auto_separation = config
+        .uses_auto_video_background()
+        .then(|| crate::local_resources::model_selection::speech_separation(app))
+        .transpose()?;
+    let digest = policy::assembly_digest(
+        renders,
+        windows,
+        output_config,
+        auto_separation
+            .map(|model| model.separation_spec())
+            .transpose()?,
+    );
     let directory = assets::asset_directory(app)?
         .join("speech")
         .join(project_id)
@@ -135,12 +146,13 @@ pub(super) async fn publish_video<R: Runtime>(
         fs::remove_dir_all(&work).map_err(|error| error.to_string())?;
     }
     fs::create_dir_all(&work).map_err(|error| error.to_string())?;
-    let build_background = if config.uses_auto_video_background() {
+    let build_background = if let Some(model) = auto_separation {
         let attempt_epoch = u64::try_from(claim.execution_epoch)
             .map_err(|_| "Video assembly execution epoch is invalid")?;
         match auto_background::resolve(auto_background::AutoBackgroundContext {
             app,
             pool,
+            model,
             project_id,
             job_id: &claim.attempt_id,
             attempt_epoch,

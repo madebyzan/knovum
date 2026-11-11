@@ -1,6 +1,3 @@
-pub(crate) use separation::{
-    SPLEETER_ACCOMPANIMENT, SPLEETER_FULL_ACCOMPANIMENT, SPLEETER_FULL_VOCALS, SPLEETER_VOCALS,
-};
 mod image;
 pub(crate) use image::ImageModelCatalog;
 pub use image::{ImageModelFile, ImageModelPart, ImageModelVariant};
@@ -10,6 +7,7 @@ pub use diarization::{DiarizationPart, DiarizationVariant};
 mod separation;
 pub use moss_nano::MossNanoPart;
 pub(crate) use moss_nano::MOSS_NANO_MODELS;
+pub use separation::{SeparationFile, SeparationPart, SeparationVariant};
 mod alignment;
 pub(crate) use alignment::{
     QWEN3_ALIGNER_Q8_MODELS, QWEN3_ALIGNER_Q8_REVISION, QWEN3_FORCED_ALIGNER_REVISION,
@@ -54,6 +52,7 @@ pub enum ModelKind {
     DiarizationPart(DiarizationPart),
     MossNanoPart(MossNanoPart),
     WhisperPart(WhisperPart),
+    SeparationPart(SeparationPart),
     ImageSegmentation,
     ImageSegmentationSilueta,
     ImageSegmentationHuman,
@@ -80,10 +79,6 @@ pub enum ModelKind {
     Qwen3ForcedAlignerWeights,
     Qwen3ForcedAlignerLicense,
     Qwen3ForcedAlignerReadme,
-    SpleeterAccompaniment,
-    SpleeterVocals,
-    SpleeterFullAccompaniment,
-    SpleeterFullVocals,
 }
 
 pub(crate) const TRANSCRIPTION_MODELS: &[ModelKind] = WhisperVariant::Small.models();
@@ -123,12 +118,7 @@ pub(crate) const QWEN3_FORCED_ALIGNER_MODELS: &[ModelKind] = &[
     ModelKind::Qwen3ForcedAlignerLicense,
     ModelKind::Qwen3ForcedAlignerReadme,
 ];
-pub(crate) const SPEECH_SEPARATION_MODELS: &[ModelKind] =
-    &[ModelKind::SpleeterAccompaniment, ModelKind::SpleeterVocals];
-pub(crate) const SPEECH_SEPARATION_FULL_MODELS: &[ModelKind] = &[
-    ModelKind::SpleeterFullAccompaniment,
-    ModelKind::SpleeterFullVocals,
-];
+pub(crate) const SPEECH_SEPARATION_MODELS: &[ModelKind] = SeparationVariant::HtDemucs.models();
 #[cfg(knovum_supported_desktop)]
 pub(crate) const SPEECH_ALIGNMENT_MODELS: &[ModelKind] = QWEN3_FORCED_ALIGNER_MODELS;
 #[cfg(not(knovum_supported_desktop))]
@@ -172,6 +162,7 @@ pub(crate) const fn descriptor(kind: ModelKind) -> ModelDescriptor {
         ModelKind::DiarizationPart(part) => part.descriptor(),
         ModelKind::MossNanoPart(part) => part.descriptor(),
         ModelKind::WhisperPart(part) => part.descriptor(),
+        ModelKind::SeparationPart(part) => part.descriptor(),
         ModelKind::ImageSegmentation => IMAGE_SEGMENTATION,
         ModelKind::ImageSegmentationSilueta => IMAGE_SEGMENTATION_SILUETA,
         ModelKind::ImageSegmentationHuman => IMAGE_SEGMENTATION_HUMAN,
@@ -200,10 +191,6 @@ pub(crate) const fn descriptor(kind: ModelKind) -> ModelDescriptor {
         ModelKind::Qwen3ForcedAlignerLicense => alignment::QWEN3_ALIGNER_F16_LICENSE,
         ModelKind::Qwen3ForcedAlignerReadme => alignment::QWEN3_ALIGNER_F16_README,
         ModelKind::Qwen3ForcedAlignerWeights => QWEN3_FORCED_ALIGNER_WEIGHTS,
-        ModelKind::SpleeterAccompaniment => SPLEETER_ACCOMPANIMENT,
-        ModelKind::SpleeterVocals => SPLEETER_VOCALS,
-        ModelKind::SpleeterFullAccompaniment => SPLEETER_FULL_ACCOMPANIMENT,
-        ModelKind::SpleeterFullVocals => SPLEETER_FULL_VOCALS,
     }
 }
 
@@ -212,6 +199,7 @@ pub(super) fn direct_url(kind: ModelKind) -> String {
         ModelKind::ImagePart(part) => part.url(),
         ModelKind::WhisperPart(part) => part.url(),
         ModelKind::MossNanoPart(part) => part.url(),
+        ModelKind::SeparationPart(part) => part.url(),
         ModelKind::Qwen3ForcedAlignerWeights
         | ModelKind::Qwen3ForcedAlignerLicense
         | ModelKind::Qwen3ForcedAlignerReadme

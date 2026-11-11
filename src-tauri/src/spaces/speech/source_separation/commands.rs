@@ -32,8 +32,9 @@ pub async fn start_speech_source_separation(
     request: StartSpeechSourceSeparationRequest,
 ) -> Result<RunObservation, AppError> {
     require_canonical_uuid(&request.request_id, "Source separation request identity")?;
-    if request.source.duration_ms == 0 || request.source.duration_ms > 600_000 {
-        return Err("Source separation requires media lasting no more than ten minutes".into());
+    if request.source.duration_ms == 0 || request.source.duration_ms > super::media::MAX_DURATION_MS
+    {
+        return Err(super::media::TOO_LONG.into());
     }
     for label in [&request.vocals_label, &request.background_label] {
         if label.trim().is_empty() || label.chars().count() > 80 {
@@ -72,7 +73,6 @@ pub async fn start_speech_source_separation(
     )
     .await?;
     let model = crate::local_resources::model_selection::speech_separation(&app)?;
-    crate::ai::local_runtime::device_profiles::speech_separation(model)?;
     let now = crate::foundation::clock::unix_time_millis()?;
     let scope = RunScope::Space {
         space_id: request.space_id.clone(),

@@ -12,7 +12,7 @@ fn model_preferences_are_strict_and_belong_to_their_capability() {
         (Group::ImageSelection, LocalModelId::EfficientSamS),
         (Group::ImageDepth, LocalModelId::DepthAnythingV2SmallUint8),
         (Group::SpeechAlignment, LocalModelId::Qwen3AlignerQ8),
-        (Group::SpeechSeparation, LocalModelId::Spleeter2StemsFull),
+        (Group::SpeechSeparation, LocalModelId::HtDemucsF16),
         (
             Group::SpeechDiarization,
             LocalModelId::SherpaDiarizationFull,
@@ -66,4 +66,30 @@ fn an_image_capability_resolves_through_the_choice_its_models_belong_to() {
             );
         }
     }
+}
+
+#[test]
+fn a_retired_model_choice_resolves_to_its_capability_default_and_restores() {
+    for retired in ["spleeter2Stems", "spleeter2StemsFull"] {
+        let raw = serde_json::json!({"schemaVersion": 1, "value": retired});
+        assert_eq!(
+            read_selection(raw, Group::SpeechSeparation).unwrap(),
+            LocalModelId::HtDemucs
+        );
+        assert!(validate_persisted_value(
+            "localResources.speechSeparation",
+            serde_json::json!(retired)
+        )
+        .is_ok());
+        assert!(read_selection(
+            serde_json::json!({"schemaVersion": 1, "value": retired}),
+            Group::Transcription
+        )
+        .is_err());
+    }
+    assert!(read_selection(
+        serde_json::json!({"schemaVersion": 1, "value": "neverAModel"}),
+        Group::SpeechSeparation
+    )
+    .is_err());
 }

@@ -129,7 +129,7 @@
 | ------------------------ | --------------------------------------------------- | ------------ |
 | 语音转写                 | Whisper Tiny / Small（默认）/ Large-v3 + Silero VAD | whisper.cpp  |
 | 说话人分离               | Pyannote 3.0 + ERes2Net                             | sherpa-onnx  |
-| 人声 / 伴奏分离          | Spleeter                                            | sherpa-onnx  |
+| 人声 / 伴奏分离          | HTDemucs                                            | audio.cpp    |
 | 语音合成、声音克隆与设计 | MOSS-TTS-Nano、VoxCPM2                              | audio.cpp    |
 | 逐词字幕对齐             | Qwen3 Forced Aligner                                | audio.cpp    |
 | 语义搜索向量             | Qwen3-Embedding-0.6B                                | Candle       |

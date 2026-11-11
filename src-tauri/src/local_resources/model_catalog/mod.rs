@@ -59,8 +59,8 @@ pub enum LocalModelId {
     DepthAnythingV2SmallUint8,
     DepthAnythingV2Small,
     PpOcrV6Small,
-    Spleeter2Stems,
-    Spleeter2StemsFull,
+    HtDemucs,
+    HtDemucsF16,
     SherpaDiarization,
     SherpaDiarizationCampplus,
     SherpaDiarizationFull,
@@ -119,8 +119,8 @@ pub const MODELS: &[LocalModelId] = &[
     LocalModelId::SherpaDiarizationCampplus,
     LocalModelId::SherpaDiarizationFull,
     LocalModelId::SherpaDiarizationEres2netLarge,
-    LocalModelId::Spleeter2Stems,
-    LocalModelId::Spleeter2StemsFull,
+    LocalModelId::HtDemucs,
+    LocalModelId::HtDemucsF16,
     LocalModelId::U2netp,
     LocalModelId::Silueta,
     LocalModelId::U2netHumanSeg,
@@ -178,8 +178,8 @@ impl LocalModelId {
             | Self::VoxCpm2Q8
             | Self::Qwen3Aligner
             | Self::Qwen3AlignerQ8
-            | Self::Spleeter2Stems
-            | Self::Spleeter2StemsFull
+            | Self::HtDemucs
+            | Self::HtDemucsF16
             | Self::SherpaDiarization
             | Self::SherpaDiarizationCampplus
             | Self::SherpaDiarizationFull
@@ -210,8 +210,7 @@ impl LocalModelId {
             Self::Silueta => Some(S::ImageSegmentationSilueta),
             Self::U2netHumanSeg => Some(S::ImageSegmentationHuman),
             Self::U2net => Some(S::ImageSegmentationQuality),
-            Self::Spleeter2Stems => Some(S::SpeechSeparation),
-            Self::Spleeter2StemsFull => Some(S::SpeechSeparationFull),
+            Self::HtDemucs | Self::HtDemucsF16 => self.separation().map(S::Separation),
             Self::SherpaDiarization => Some(S::Diarization(catalog::DiarizationVariant::Int8)),
             Self::SherpaDiarizationCampplus => {
                 Some(S::Diarization(catalog::DiarizationVariant::Campplus))
@@ -264,7 +263,7 @@ impl LocalModelId {
             | Self::VoxCpm2Bf16
             | Self::VoxCpm2Q8
             | Self::Qwen3AlignerQ8
-            | Self::Spleeter2StemsFull
+            | Self::HtDemucsF16
             | Self::SherpaDiarizationCampplus
             | Self::SherpaDiarizationFull
             | Self::SherpaDiarizationEres2netLarge => {
@@ -274,7 +273,7 @@ impl LocalModelId {
             Self::VoxCpm2 => ResourcePreparationTarget::VoiceDesign,
             Self::Qwen3Aligner => ResourcePreparationTarget::SpeechAlignment,
             Self::U2netp => ResourcePreparationTarget::ImageSegmentation,
-            Self::Spleeter2Stems => ResourcePreparationTarget::SpeechSeparation,
+            Self::HtDemucs => ResourcePreparationTarget::SpeechSeparation,
             Self::SherpaDiarization => ResourcePreparationTarget::SpeechDiarization,
         }
     }

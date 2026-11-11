@@ -9,6 +9,12 @@ pub const MOSS_NANO_MAX_REFERENCE_DURATION_MS: u64 = 30_000;
 pub const VOICE_REFERENCE_FRAME_TOLERANCE_SAMPLES: u32 = 16;
 pub const MAX_SYNTHESIS_TEXT_CHARACTERS: usize = 2_000;
 
+/// Source separation reads and writes 16-bit stereo PCM at this rate.
+pub const SEPARATION_SAMPLE_RATE: u32 = 44_100;
+/// The longest source a separation accepts: six hours, the most a stereo 16-bit WAV stem can hold
+/// at [`SEPARATION_SAMPLE_RATE`] within the format's 32-bit data size.
+pub const SEPARATION_MAX_DURATION_MS: u64 = 6 * 60 * 60 * 1_000;
+
 pub const fn voice_reference_sample_bounds(
     min_duration_ms: u64,
     max_duration_ms: u64,

@@ -523,7 +523,7 @@ attempt; chapter and measurement checkpoints are cleared after final publication
 
 Audio and video nodes start a durable source-separation Run bound to their exact node identity,
 managed source asset and source revision. Rust decodes the audio track to a fixed 44.1 kHz stereo
-PCM timeline and runs the selected pinned Spleeter two-stem CPU profile. Its one publication
+PCM timeline and runs the selected pinned HTDemucs profile on the probed backend. Its one publication
 transaction creates vocals and background audio nodes, two active system `derives-from` relations
 to the original node, the result receipt and the shared canvas layout/history change. Source bytes
 and node content are unchanged. A missing output, stale source, cancelled Run or expired attempt

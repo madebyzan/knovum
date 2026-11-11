@@ -1,6 +1,7 @@
 pub(crate) mod alignment;
 mod artifacts;
 pub(crate) mod audio;
+mod audiocpp;
 pub(crate) mod credits;
 pub(crate) mod diarization;
 pub(crate) mod ffi;

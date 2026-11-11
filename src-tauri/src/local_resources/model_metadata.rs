@@ -214,15 +214,15 @@ pub(crate) fn metadata(model: LocalModelId) -> LocalModelMetadata {
             Unused,
             Any,
         ),
-        LocalModelId::Spleeter2Stems => (
-            "Spleeter · 2 stems / FP16",
+        LocalModelId::HtDemucs => (
+            "HTDemucs · Q8",
             Capability::SpeechSeparation,
             NONE,
             Unused,
             Any,
         ),
-        LocalModelId::Spleeter2StemsFull => (
-            "Spleeter · 2 stems / FP32",
+        LocalModelId::HtDemucsF16 => (
+            "HTDemucs · F16",
             Capability::SpeechSeparation,
             NONE,
             Unused,

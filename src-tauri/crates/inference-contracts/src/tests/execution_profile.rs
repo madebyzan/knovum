@@ -1,4 +1,6 @@
-use super::{alignment, embedding, image, moss_nano, threaded, whisper, WHISPER_VARIANTS};
+use super::{
+    alignment, embedding, image, moss_nano, separation, threaded, whisper, WHISPER_VARIANTS,
+};
 use crate::runtime::RuntimeCapability;
 
 /// The identities are a cross-process handshake: pin them so a rename has to be deliberate.
@@ -64,4 +66,18 @@ fn alignment_identities_do_not_reinterpret_obsolete_values() {
         assert!(alignment(spec, "cuda").is_none());
     }
     assert!(alignment("qwen3-forced-aligner-0.6b-v1", "cpu").is_none());
+}
+
+#[test]
+fn separation_profiles_name_their_precision_and_probed_device() {
+    assert_eq!(
+        separation("htdemucs-q8_0-v1", "mps").as_deref(),
+        Some("htdemucs-q8_0-mps-bundled-v2")
+    );
+    assert_eq!(
+        separation("htdemucs-f16-v1", "cpu").as_deref(),
+        Some("htdemucs-f16-cpu-bundled-v2")
+    );
+    assert!(separation("htdemucs-q8_0-v1", "cuda").is_none());
+    assert!(separation("spleeter-2stems-fp16-cpu-v1", "cpu").is_none());
 }

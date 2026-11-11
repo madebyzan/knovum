@@ -9,10 +9,14 @@ use crate::{
 pub(crate) mod alignment;
 pub(in crate::ai::local_runtime) mod backend_probe;
 pub(crate) mod embedding;
+pub(crate) mod separation;
 pub(crate) mod voice;
 
 const GIB: u64 = 1024 * 1024 * 1024;
 pub(super) const EMBEDDING_PEAK_GIB: u64 = 4;
+/// HTDemucs reads one minute of stereo per call (plus overlap), split by audio.cpp into its own
+/// short segments, so its working set does not grow with the source.
+const SEPARATION_PEAK_GIB: u64 = 3;
 
 #[derive(Debug)]
 pub(super) struct MemoryRequirement {
@@ -135,11 +139,18 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
             | "sherpa-diarization-fp32-cpu-v1",
             "cpu",
         ) => (1, 2, "Sherpa-ONNX speaker diarization CPU"),
-        (
-            RuntimeCapability::SpeechSeparation,
-            "spleeter-2stems-fp16-cpu-v1" | "spleeter-2stems-fp32-cpu-v1",
-            "cpu",
-        ) => (2, 8, "Spleeter 2-stem CPU"),
+        (RuntimeCapability::SpeechSeparation, _, _)
+            if separation::execution_id(LocalModelId::HtDemucs, device)
+                .is_ok_and(|expected| expected == id) =>
+        {
+            (1, SEPARATION_PEAK_GIB, "HTDemucs Q8 GGUF")
+        }
+        (RuntimeCapability::SpeechSeparation, _, _)
+            if separation::execution_id(LocalModelId::HtDemucsF16, device)
+                .is_ok_and(|expected| expected == id) =>
+        {
+            (1, SEPARATION_PEAK_GIB, "HTDemucs F16 GGUF")
+        }
         (RuntimeCapability::SpeechSynthesis, "voxcpm2-mps-gguf-orig-v1", "mps") => {
             (20, 24, "VoxCPM2 audio.cpp Metal GGUF")
         }
@@ -200,22 +211,6 @@ pub(super) fn memory_snapshot() -> Result<MemorySnapshot, String> {
         return Err("resource_exhausted: Platform memory statistics are invalid".into());
     }
     Ok(snapshot)
-}
-
-pub(crate) fn speech_separation(
-    model: crate::local_resources::model_catalog::LocalModelId,
-) -> Result<RuntimeDeviceProfile, String> {
-    #[cfg(not(knovum_supported_desktop))]
-    return Err(
-        "unsupported_device: Source separation requires macOS arm64/x64 or Windows x64".into(),
-    );
-    #[cfg(knovum_supported_desktop)]
-    Ok(RuntimeDeviceProfile {
-        device: "cpu".into(),
-        execution_profile_id: model.separation_spec()?.into(),
-        cpu_threads: crate::ai::local_runtime::compute_budget::ComputeBudget::detect()?
-            .model_threads,
-    })
 }
 
 #[cfg(test)]

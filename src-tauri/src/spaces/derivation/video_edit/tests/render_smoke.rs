@@ -95,9 +95,13 @@ fn renders_transitions_holes_images_and_audio_with_the_production_graph() {
         &ffmpeg,
         &["-i", &video, "-map", "0:v", "-c:v", "copy", "-an", &silent],
     );
-    assert!(
-        !super::super::source_audio::inspect(&ffmpeg, &silent, &CancellationToken::new()).unwrap()
-    );
+    assert!(!crate::media::ffmpeg::has_audio(
+        &ffmpeg,
+        std::path::Path::new(&silent),
+        &CancellationToken::new(),
+        super::super::CANCELLED
+    )
+    .unwrap());
     let encoder = crate::spaces::derivation::video_output::platform_h264_encoder().unwrap();
     for kind in [
         VideoTransitionKind::Dissolve,

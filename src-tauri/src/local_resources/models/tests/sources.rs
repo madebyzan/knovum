@@ -46,8 +46,6 @@ fn all_sources_pin_full_revisions_and_bundle_files_have_one_owner() {
         SnapshotKind::ImageSegmentationSilueta,
         SnapshotKind::ImageSegmentationHuman,
         SnapshotKind::ImageSegmentationQuality,
-        SnapshotKind::SpeechSeparation,
-        SnapshotKind::SpeechSeparationFull,
     ] {
         let revision = match sources::for_snapshot(snapshot).unwrap() {
             HubSource::HuggingFace { revision, .. } | HubSource::ModelScope { revision, .. } => {
@@ -105,6 +103,40 @@ fn compiled_voice_snapshot_pins_weights_and_notices_without_a_hub_runtime() {
         assert!(snapshot.files().iter().any(|file| file.path == weight));
         for kind in snapshot.models() {
             assert!(super::super::catalog::direct_url(*kind).starts_with("https://"));
+            assert_eq!(super::super::catalog::descriptor(*kind).snapshot, snapshot);
+        }
+    }
+}
+
+#[test]
+fn separation_snapshots_pin_the_htdemucs_export_and_its_licence() {
+    use super::super::catalog::SeparationVariant;
+    for (variant, weights, bytes) in [
+        (
+            SeparationVariant::HtDemucs,
+            "htdemucs-q8_0.gguf",
+            61_941_855,
+        ),
+        (
+            SeparationVariant::HtDemucsF16,
+            "htdemucs-f16.gguf",
+            84_060_255,
+        ),
+    ] {
+        let snapshot = SnapshotKind::Separation(variant);
+        assert!(sources::for_snapshot(snapshot).is_none());
+        assert_eq!(
+            snapshot.files().iter().map(|f| f.path).collect::<Vec<_>>(),
+            vec![weights, "LICENSE"]
+        );
+        assert_eq!(snapshot.total_bytes(), bytes);
+        for kind in snapshot.models() {
+            let url = super::super::catalog::direct_url(*kind);
+            assert!(url.starts_with("https://"));
+            assert!(
+                url.contains("/73ce4162f6cce370dd533c6782b772135c1b2a8e/")
+                    || url.ends_with("/LICENSE")
+            );
             assert_eq!(super::super::catalog::descriptor(*kind).snapshot, snapshot);
         }
     }

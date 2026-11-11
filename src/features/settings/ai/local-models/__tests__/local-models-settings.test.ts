@@ -86,7 +86,7 @@ it.each([
   ["whisperTiny", "transcription"],
   ["voxCpm2", "speechSynthesis"],
   ["u2net", "imageSegmentation"],
-  ["spleeter2StemsFull", "speechSeparation"],
+  ["htDemucsF16", "speechSeparation"],
   ["sherpaDiarizationFull", "speechDiarization"],
 ] as const)("selects a verified %s default without altering existing voices", async (id, capability) => {
   const wrapper = render({ id, capability, selectable: true, installed: true, verified: true });

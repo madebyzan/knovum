@@ -100,14 +100,14 @@ fn full_image_model_has_its_own_snapshot_and_frozen_execution_identity() {
 
 #[test]
 fn separation_choices_have_distinct_complete_snapshots_and_execution_identities() {
-    let compact = LocalModelId::Spleeter2Stems;
-    let full = LocalModelId::Spleeter2StemsFull;
+    let compact = LocalModelId::HtDemucs;
+    let full = LocalModelId::HtDemucsF16;
     assert_ne!(compact.snapshot(), full.snapshot());
     assert_ne!(
         compact.separation_spec().unwrap(),
         full.separation_spec().unwrap()
     );
-    assert_eq!(full.snapshot().unwrap().total_bytes(), 78_636_679);
+    assert_eq!(full.snapshot().unwrap().total_bytes(), 84_060_255);
     for model in [compact, full] {
         assert!(super::super::model_selection::is_selectable(model));
         assert_eq!(

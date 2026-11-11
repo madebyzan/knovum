@@ -69,6 +69,17 @@ pub fn alignment(model_spec_id: &str, device: &str) -> Option<String> {
         .then(|| format!("qwen3-forced-aligner-0.6b-{precision}-{device}-{REVISION}"))
 }
 
+/// HTDemucs source separation on a probed GGUF backend.
+pub fn separation(model_spec_id: &str, device: &str) -> Option<String> {
+    let precision = match model_spec_id {
+        "htdemucs-q8_0-v1" => "q8_0",
+        "htdemucs-f16-v1" => "f16",
+        _ => return None,
+    };
+    matches!(device, "cpu" | "mps" | "vulkan")
+        .then(|| format!("htdemucs-{precision}-{device}-{REVISION}"))
+}
+
 #[cfg(test)]
 #[path = "tests/execution_profile.rs"]
 mod tests;

@@ -86,12 +86,17 @@ impl LocalModelId {
             .find(|model| model.separation_spec().is_ok_and(|value| value == spec))
             .ok_or("runtime_mismatch: source separation model specification is unsupported".into())
     }
-    pub(crate) fn separation_spec(self) -> Result<&'static str, String> {
+    pub(crate) const fn separation(self) -> Option<catalog::SeparationVariant> {
         match self {
-            Self::Spleeter2Stems => Ok("spleeter-2stems-fp16-cpu-v1"),
-            Self::Spleeter2StemsFull => Ok("spleeter-2stems-fp32-cpu-v1"),
-            _ => Err("Model does not support source separation".into()),
+            Self::HtDemucs => Some(catalog::SeparationVariant::HtDemucs),
+            Self::HtDemucsF16 => Some(catalog::SeparationVariant::HtDemucsF16),
+            _ => None,
         }
+    }
+    pub(crate) fn separation_spec(self) -> Result<&'static str, String> {
+        self.separation()
+            .map(catalog::SeparationVariant::spec_id)
+            .ok_or_else(|| "Model does not support source separation".into())
     }
     pub(crate) fn is_essential(self, transcription: Self) -> bool {
         self == Self::Qwen3Embedding || self == transcription

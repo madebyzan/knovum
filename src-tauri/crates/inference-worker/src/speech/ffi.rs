@@ -67,10 +67,7 @@ pub(super) fn library(runtime: &VerifiedRuntime, name: &str) -> Result<PathBuf, 
     runtime.member(&relative)
 }
 
-/// Loads the pinned Sherpa C API from the verified runtime.
-///
-/// Both Sherpa capabilities load the same pinned library, so its supplier version is established
-/// here once instead of in whichever capability remembered to check it.
+/// Loads the pinned Sherpa C API from the verified runtime and establishes its supplier version.
 pub(super) fn sherpa_api(runtime: &VerifiedRuntime) -> Result<sherpa::SherpaApi, String> {
     let api =
         unsafe { sherpa::SherpaApi::from_library(load(&library(runtime, "sherpa-onnx-c-api")?)?) }

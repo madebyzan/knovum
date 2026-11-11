@@ -150,7 +150,7 @@ cancellation appear in the Task Center.
 | ---------------------------------------- | ------------------------------------------------------ | ------------ |
 | Speech transcription                     | Whisper Tiny / Small (default) / Large-v3 + Silero VAD | whisper.cpp  |
 | Speaker diarization                      | Pyannote 3.0 + ERes2Net                                | sherpa-onnx  |
-| Vocal / accompaniment separation         | Spleeter                                               | sherpa-onnx  |
+| Vocal / accompaniment separation         | HTDemucs                                               | audio.cpp    |
 | Speech synthesis, voice cloning & design | MOSS-TTS-Nano, VoxCPM2                                 | audio.cpp    |
 | Word-level transcript alignment          | Qwen3 Forced Aligner                                   | audio.cpp    |
 | Semantic-search embeddings               | Qwen3-Embedding-0.6B                                   | Candle       |

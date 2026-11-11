@@ -48,7 +48,7 @@ verified embedding snapshot explicitly; Related Content then schedules a full Sp
 | Voice design                   | VoxCPM2 Q8_0 / BF16 / original-precision GGUF                                                          |
 | Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / F16 GGUF; audio.cpp                                              |
 | Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32; ERes2Net, CAM++ & ERes2Net Large                            |
-| Vocal/accompaniment separation | Spleeter FP16 (default) / FP32, Sherpa CPU engine                                                      |
+| Vocal/accompaniment separation | HTDemucs Q8_0 (default) / F16, audio.cpp GGUF on Metal, Vulkan or CPU                                  |
 | Image background removal       | U²-Net Compact (default) / full / Human Portrait, Silueta, ONNX Runtime                                |
 | Image upscaling                | Real-ESRGAN General X4v3 / X4plus, tiled ONNX Runtime                                                  |
 | Image repair                   | MI-GAN, selected-region ONNX Runtime                                                                   |
@@ -131,17 +131,18 @@ automatic or provide one exact known count from 1 through 32. Sherpa clustering 
 arbitrary minimum/maximum constraints; the product does not simulate them. Existing durable job
 columns retain the automatic/exact-count invariant. Target-platform acceptance must measure automatic
 speaker-count and turn quality; a successful known-count sample does not qualify automatic counting.
-Video source separation uses the two fixed
-selected Spleeter FP16 or FP32 ONNX pair through sherpa-onnx on CPU. Rust converts the source to 44.1 kHz stereo
-PCM, verifies both stems on the same sample timeline and persists both candidate stems.
-The frozen Sherpa STFT/ISTFT reconstructs complete 1,024-sample hops. The adapter pads the input
-to a complete hop and at least one 4,096-sample window before inference, then crops both stems
-back to the exact original frame count. It rejects an unexpected reconstruction length; the Rust
-publication boundary retains its exact source-timeline check. This follows the
-[pinned supplier's STFT implementation](https://github.com/k2-fsa/sherpa-onnx/blob/v1.13.8/sherpa-onnx/csrc/offline-source-separation-spleeter-impl.h).
-Because sherpa's Spleeter implementation materializes the full STFT and masks, one request is
-limited to ten minutes; longer videos must be split explicitly before separation and are never
-silently truncated.
+Source separation runs Meta's Hybrid Transformer Demucs (HTDemucs, MIT) as the audio.cpp GGUF
+export, Q8_0 by default or F16, on the GPU backend the bundled audio.cpp library reports (Metal,
+Vulkan) or the CPU. Rust converts the source to 44.1 kHz stereo PCM; the worker streams it through
+the model in one-minute blocks that overlap their neighbours by four seconds on each side and
+cross-fades every seam linearly, so memory does not grow with the source and no block edge is
+audible. HTDemucs estimates drums, bass, other and vocals; the background is the sum of every stem
+but vocals, which is Demucs' own two-stem definition. One request accepts up to six hours — the
+most a stereo 16-bit WAV stem holds at 44.1 kHz (`speech_wire::SEPARATION_MAX_DURATION_MS`) — and
+a longer source is refused, never truncated. Both stems are checked against the exact source
+sample timeline before publication.
+Spleeter, the previous engine, is retired: a stored choice of it resolves to HTDemucs, and a
+separation it produced keeps its recorded model identity.
 The model separates vocals and accompaniment; it does not establish that spoken dialogue was fully
 removed or that every environmental sound was preserved. The candidate therefore remains unusable
 as a video background until the user auditions and explicitly accepts it.
@@ -268,10 +269,10 @@ its expectation from the same functions, so a revision bump cannot leave one sid
 identity the other rejects. No capability repeats the identity as a literal.
 
 U²-Net Compact, full, Human Portrait and Silueta snapshots share the same ONNX mask and
-Rust compositing contract. Spleeter FP16/FP32 snapshots are 39,362,041 / 78,636,679 bytes and share
-the exact source timeline and automatic two-node derivation contract. Both separation models execute on CPU;
-no qualified GPU path is implemented for this engine. A precision choice changes the model rather
-than the operation or its publication semantics.
+Rust compositing contract. HTDemucs Q8_0/F16 snapshots (weights plus the Demucs MIT licence) are
+61,941,855 / 84,060,255 bytes and share the exact source timeline and automatic two-node derivation
+contract. A precision choice changes the model rather than the operation or its publication
+semantics.
 
 Speaker variants use the shared snapshot installer, preparation, leases and removal path. Their
 public sources need no account or import. The supported clustering controls follow the
