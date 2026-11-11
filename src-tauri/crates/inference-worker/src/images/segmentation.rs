@@ -5,7 +5,7 @@ use knovum_inference_contracts::image_wire::{
 };
 use ort::{session::Session, value::Tensor};
 
-use super::{scalar_field, session};
+use super::session;
 use crate::{artifact, cancellation::Cancellation};
 
 pub(super) struct Segmentation {
@@ -72,14 +72,14 @@ impl Segmentation {
         if out_shape.as_ref() != expected_mask_shape.map(i64::from) {
             return Err("invalid_output: segmentation mask shape differs".into());
         }
-        // Reference post-processing: the first head's field stretched to the full [0, 1] range.
-        let field = scalar_field::normalize(values)?;
+        // The field leaves the worker as the graph produced it; how it reads as coverage is part of
+        // the model's specification, which the host owns.
         let mask_ref = artifact::write_tensor(
             work,
             &format!("mask-{}.f32", params.request_id),
             expected_mask_shape,
             TensorDataType::Float32LittleEndian,
-            &session::float_bytes(&field)?,
+            &session::float_bytes(values)?,
         )?;
         Ok(ImageSegmentation {
             request_id: params.request_id,

@@ -1,6 +1,6 @@
 //! Pure binary-region geometry shared by the derivations that read structure from pixels: layer
-//! splitting cleans the masks its models return, and sticker-sheet slicing reads its stickers off
-//! the sheet. A mask is one `bool` per pixel in row-major order; every function here is total over
+//! splitting cleans the masks its models return, removal decides what a repair must repaint, and
+//! sticker-sheet slicing reads its stickers off the sheet. A mask is one `bool` per pixel in row-major order; every function here is total over
 //! a mask that matches its dimensions and never allocates more than a few masks of its size.
 
 /// One 8-connected run of mask pixels.
@@ -163,6 +163,15 @@ pub(crate) fn dilate(mask: &[bool], (width, height): (u32, u32), radius: u32) ->
         }
     }
     grown
+}
+
+/// The pixels a repair must repaint to remove `subjects`: every one grown by a margin. A mask stops
+/// at a subject's edge, but the antialiased rim, a motion smear or a contact shadow still carries
+/// the subject's colour just outside it; left as known context, the repair would extend that colour
+/// into the backdrop as a ghost outline of what was removed.
+pub(crate) fn removal_holes(subjects: &[bool], (width, height): (u32, u32)) -> Vec<bool> {
+    let margin = (width.min(height) / 100).max(3);
+    dilate(subjects, (width, height), margin)
 }
 
 /// Shrinks `mask` by `radius` pixels: a pixel survives only when every pixel of its neighbourhood

@@ -85,8 +85,11 @@ impl Worker {
             budget_ms: runtime.initialization_budget_ms(model_bytes),
         };
         let initialization = Duration::from_millis(params.budget_ms);
-        let memory_reservation =
-            admission::reserve_memory(params.capability, &params.device_profile)?;
+        let memory_reservation = admission::reserve_memory(
+            params.capability,
+            &params.capability_spec_id,
+            &params.device_profile,
+        )?;
         let mut command = runtime.command(params.device_profile.cpu_threads);
         #[cfg(unix)]
         {

@@ -3,7 +3,7 @@ use crate::{
         execution_profile,
         runtime::{RuntimeCapability, RuntimeDeviceProfile},
     },
-    local_resources::model_catalog::LocalModelId,
+    local_resources::{model_catalog::LocalModelId, models::catalog::SegmentationModel},
 };
 
 pub(crate) mod alignment;
@@ -29,6 +29,26 @@ impl MemoryRequirement {
 
 pub(super) use crate::local_resources::system_memory::MemorySnapshot;
 
+/// The reservation for one worker: the execution profile it runs under and the model it loads.
+/// Background-removal models share one execution profile yet differ several-fold in memory, so
+/// their inference peak is the model's own; every other capability's models fit its profile's.
+pub(in crate::ai::local_runtime) fn worker_memory_requirement(
+    capability: RuntimeCapability,
+    model_spec_id: &str,
+    device_profile: &RuntimeDeviceProfile,
+) -> Result<MemoryRequirement, String> {
+    let requirement = memory_requirement(capability, device_profile)?;
+    if capability != RuntimeCapability::ImageSegmentation {
+        return Ok(requirement);
+    }
+    let model = SegmentationModel::from_spec_id(model_spec_id)?.spec();
+    Ok(MemoryRequirement {
+        inference_peak_bytes: model.peak_memory_gib * GIB,
+        profile_name: model.snapshot_name,
+        ..requirement
+    })
+}
+
 /// Conservative process peak reservations tied to exact frozen execution profiles.
 /// Release qualification must validate them and raise any budget below a measured peak.
 pub(in crate::ai::local_runtime) fn memory_requirement(
@@ -49,6 +69,7 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         (RuntimeCapability::ImageSegmentation, _, "cpu")
             if image_profile(device_profile, capability) =>
         {
+            // The inference peak is the model's (`worker_memory_requirement`).
             (1, 1, "Image segmentation CPU")
         }
         (RuntimeCapability::ImageUpscaling, _, "cpu")

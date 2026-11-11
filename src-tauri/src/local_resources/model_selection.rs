@@ -75,10 +75,9 @@ fn group(model: LocalModelId) -> Option<Group> {
             Some(Group::ImageDepth)
         }
         LocalModelId::BirefnetLite
+        | LocalModelId::BirefnetGeneral
         | LocalModelId::BirefnetPortrait
-        | LocalModelId::Rmbg20
-        | LocalModelId::Rmbg14
-        | LocalModelId::IsnetDis
+        | LocalModelId::Ben2Base
         | LocalModelId::IsnetAnime => Some(Group::ImageSegmentation),
         LocalModelId::Spleeter2Stems | LocalModelId::Spleeter2StemsFull => {
             Some(Group::SpeechSeparation)

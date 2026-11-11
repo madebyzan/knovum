@@ -13,14 +13,11 @@ use crate::{
     ai::contracts::{
         image_wire::{
             ImageSegmentParams, ImageSegmentation, ImageSegmentationExecutionIdentity,
-            TensorDataType, TensorFileReference, IMAGE_SEGMENTATION_ANIME_SPEC_ID,
-            IMAGE_SEGMENTATION_BIREFNET_SPEC_ID, IMAGE_SEGMENTATION_DIS_SPEC_ID,
-            IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID, IMAGE_SEGMENTATION_RMBG14_SPEC_ID,
-            IMAGE_SEGMENTATION_RMBG20_SPEC_ID,
+            TensorDataType, TensorFileReference,
         },
         runtime::{RuntimeCapability, RuntimeModel},
     },
-    local_resources::{models::catalog::ModelKind, preparation::PreparedModels},
+    local_resources::{models::catalog::SegmentationModel, preparation::PreparedModels},
 };
 
 pub(crate) async fn segment_image<R: Runtime>(
@@ -38,16 +35,7 @@ pub(crate) async fn segment_image<R: Runtime>(
     let mask_bytes = u64::from(edge) * u64::from(edge) * 4;
 
     let model_spec_id = identity.model_spec_id;
-    let model = match model_spec_id {
-        IMAGE_SEGMENTATION_BIREFNET_SPEC_ID => ModelKind::ImageSegmentationBiRefNet,
-        IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID => ModelKind::ImageSegmentationPortrait,
-        IMAGE_SEGMENTATION_RMBG20_SPEC_ID => ModelKind::ImageSegmentationRmbg20,
-        IMAGE_SEGMENTATION_RMBG14_SPEC_ID => ModelKind::ImageSegmentationRmbg14,
-        IMAGE_SEGMENTATION_DIS_SPEC_ID => ModelKind::ImageSegmentationDis,
-        IMAGE_SEGMENTATION_ANIME_SPEC_ID => ModelKind::ImageSegmentationAnime,
-        _ => return Err("unsupported_model: image segmentation identity is unavailable".into()),
-    };
-    let model_path = resources.path(model)?;
+    let model_path = resources.path(SegmentationModel::from_spec_id(model_spec_id)?.weights())?;
     let mut lease = session::acquire(
         app,
         Priority::Interactive,

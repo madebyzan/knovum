@@ -1,13 +1,16 @@
-//! Tensor preparation shared by the image derivations. The layouts and normalisation constants
-//! below belong to the ONNX models themselves, so both the single-output image operations and
-//! layer splitting read them from here instead of restating them per feature.
+//! Model inputs shared by the image derivations. The layouts and normalisation constants belong to
+//! the models themselves, so both the single-output image operations and layer splitting read
+//! them from here instead of restating them per feature.
 
-use crate::ai::{
-    contracts::{
-        image_spec::{Geometry, Standardization, DEPTH_ANYTHING_V2_SPEC},
-        image_wire::TensorDataType,
+use crate::{
+    ai::{
+        contracts::{
+            image_spec::DEPTH_ANYTHING_V2_INPUT,
+            image_wire::{ImageSegmentationExecutionIdentity, TensorDataType},
+        },
+        local_runtime::image::compute::ImageTensor,
     },
-    local_runtime::image::compute::ImageTensor,
+    local_resources::model_catalog::LocalModelId,
 };
 use image::{
     imageops::{self, FilterType},
@@ -15,21 +18,26 @@ use image::{
 };
 use std::io::Cursor;
 
-/// Depth-Anything expects a 518 pixel short edge aligned to its patch size of 14.
-const DEPTH_EDGE: f64 = match DEPTH_ANYTHING_V2_SPEC.geometry {
-    Geometry::ShortestEdgePatchAligned { edge, .. } => edge as f64,
-    _ => panic!("frozen depth geometry"),
-};
-const DEPTH_PATCH: f64 = match DEPTH_ANYTHING_V2_SPEC.geometry {
-    Geometry::ShortestEdgePatchAligned { patch, .. } => patch as f64,
-    _ => panic!("frozen depth geometry"),
-};
-const DEPTH_MEAN_STD: [(f32, f32); 3] = match DEPTH_ANYTHING_V2_SPEC.standardization {
-    Standardization::ImageNet { mean, std } => {
-        [(mean[0], std[0]), (mean[1], std[1]), (mean[2], std[2])]
-    }
-    _ => panic!("frozen depth standardization"),
-};
+/// One segmentation pass over a fixed-resolution tensor. Loading the model is bounded by the
+/// worker's own startup budget.
+const SEGMENTATION_BUDGET_MS: u64 = 120_000;
+
+/// The identity a derivation's background-removal pass runs under.
+pub(super) fn segmentation_identity(
+    model: LocalModelId,
+    owner_id: &str,
+    input_revision: String,
+) -> Result<ImageSegmentationExecutionIdentity, String> {
+    Ok(ImageSegmentationExecutionIdentity {
+        model_spec_id: model.image_segmentation_spec()?,
+        owner_kind: "space-derivation".into(),
+        owner_id: owner_id.into(),
+        attempt_id: owner_id.into(),
+        attempt_epoch: 1,
+        input_revision,
+        budget_ms: SEGMENTATION_BUDGET_MS,
+    })
+}
 
 pub(super) fn decode(bytes: &[u8]) -> Result<RgbaImage, String> {
     let mut reader = ImageReader::with_format(Cursor::new(bytes), ImageFormat::Png);
@@ -63,8 +71,9 @@ pub(crate) fn rgb_tensor(image: &RgbaImage) -> ImageTensor {
 
 /// Patch-aligned short-edge resize with ImageNet normalisation, as the depth processor expects.
 pub(super) fn depth_tensor(source: &RgbaImage) -> Result<ImageTensor, String> {
-    let scale_h = DEPTH_EDGE / f64::from(source.height());
-    let scale_w = DEPTH_EDGE / f64::from(source.width());
+    let edge = f64::from(DEPTH_ANYTHING_V2_INPUT.short_edge);
+    let scale_h = edge / f64::from(source.height());
+    let scale_w = edge / f64::from(source.width());
     let scale = if (1.0 - scale_h).abs() < (1.0 - scale_w).abs() {
         scale_h
     } else {
@@ -77,10 +86,13 @@ pub(super) fn depth_tensor(source: &RgbaImage) -> Result<ImageTensor, String> {
     }
     let resized = imageops::resize(source, width, height, FilterType::CatmullRom);
     let mut bytes = Vec::with_capacity(width as usize * height as usize * 12);
-    for (channel, &(mean, deviation)) in DEPTH_MEAN_STD.iter().enumerate() {
+    for channel in 0..3 {
         for pixel in resized.pixels() {
             bytes.extend_from_slice(
-                &((f32::from(pixel[channel]) / 255.0 - mean) / deviation).to_le_bytes(),
+                &DEPTH_ANYTHING_V2_INPUT
+                    .standardization
+                    .apply(channel, pixel[channel])
+                    .to_le_bytes(),
             );
         }
     }
@@ -92,5 +104,6 @@ pub(super) fn depth_tensor(source: &RgbaImage) -> Result<ImageTensor, String> {
 }
 
 fn patch_aligned(edge: f64) -> u32 {
-    (((edge / DEPTH_PATCH).round_ties_even() as u32) * DEPTH_PATCH as u32).max(DEPTH_PATCH as u32)
+    let patch = DEPTH_ANYTHING_V2_INPUT.patch;
+    ((edge / f64::from(patch)).round_ties_even() as u32 * patch).max(patch)
 }

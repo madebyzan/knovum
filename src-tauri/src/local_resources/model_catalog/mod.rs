@@ -17,18 +17,6 @@ use super::{
 pub(crate) const VOXCPM2_FULL_SPEC_ID: &str = "voxcpm2-2b-gguf-orig-v1";
 pub(crate) const VOXCPM2_BF16_SPEC_ID: &str = "voxcpm2-2b-gguf-bf16-v1";
 pub(crate) const VOXCPM2_Q8_SPEC_ID: &str = "voxcpm2-2b-gguf-q8_0-v1";
-pub const IMAGE_SEGMENTATION_BIREFNET_SPEC_ID: &str =
-    "birefnet-general-lite-onnx:5600024376f572a557870a5eb0afb1e5961636bef4e1e22132025467d0f03333-v1";
-pub const IMAGE_SEGMENTATION_RMBG20_SPEC_ID: &str =
-    "rmbg-2.0-onnx:6db79b5ac18a5a7af3b32f25d8e2580d8dca444d8a77249d72700eed425f269f-v1";
-pub const IMAGE_SEGMENTATION_PORTRAIT_SPEC_ID: &str =
-    "birefnet-portrait-onnx:1ba1c8ff5a7bbfadc8d8d13fb11d7be793f91f23d9d466549e37a854f6668f99-v1";
-pub const IMAGE_SEGMENTATION_RMBG14_SPEC_ID: &str =
-    "rmbg-1.4-onnx:8cafcf770b06757c4eaced21b1a88e57fd2b66de01b8045f35f01535ba742e0f-v1";
-pub const IMAGE_SEGMENTATION_DIS_SPEC_ID: &str =
-    "isnet-general-use-onnx:60920e99c45464f2ba57bee2ad08c919a52bbf852739e96947fbb4358c0d964a-v1";
-pub const IMAGE_SEGMENTATION_ANIME_SPEC_ID: &str =
-    "isnet-anime-onnx:f15622d853e8260172812b657053460e20806f04b9e05147d49af7bed31a6e99-v1";
 
 #[derive(
     Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS,
@@ -51,11 +39,10 @@ pub enum LocalModelId {
     Qwen3Aligner,
     Qwen3AlignerQ8,
     BirefnetLite,
+    BirefnetGeneral,
     BirefnetPortrait,
-    Rmbg14,
-    Rmbg20,
+    Ben2Base,
     IsnetAnime,
-    IsnetDis,
     RealEsrganGeneralX4v3,
     RealEsrganX4plus,
     Lama,
@@ -127,11 +114,10 @@ pub const MODELS: &[LocalModelId] = &[
     LocalModelId::Spleeter2Stems,
     LocalModelId::Spleeter2StemsFull,
     LocalModelId::BirefnetLite,
+    LocalModelId::BirefnetGeneral,
     LocalModelId::BirefnetPortrait,
-    LocalModelId::Rmbg14,
-    LocalModelId::Rmbg20,
+    LocalModelId::Ben2Base,
     LocalModelId::IsnetAnime,
-    LocalModelId::IsnetDis,
     LocalModelId::RealEsrganGeneralX4v3,
     LocalModelId::RealEsrganX4plus,
     LocalModelId::Lama,
@@ -159,10 +145,9 @@ impl LocalModelId {
         match self {
             Self::Qwen3Embedding | Self::PpOcrV6Small => LocalModelGroup::Knowledge,
             Self::BirefnetLite
-            | Self::Rmbg20
+            | Self::BirefnetGeneral
             | Self::BirefnetPortrait
-            | Self::Rmbg14
-            | Self::IsnetDis
+            | Self::Ben2Base
             | Self::IsnetAnime
             | Self::RealEsrganGeneralX4v3
             | Self::RealEsrganX4plus
@@ -213,12 +198,11 @@ impl LocalModelId {
                 (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty()).then_some(S::SpeechAlignment)
             }
             Self::Qwen3AlignerQ8 => Some(S::SpeechAlignmentQ8),
-            Self::BirefnetLite => Some(S::ImageSegmentationBiRefNet),
-            Self::BirefnetPortrait => Some(S::ImageSegmentationPortrait),
-            Self::Rmbg14 => Some(S::ImageSegmentationRmbg14),
-            Self::Rmbg20 => Some(S::ImageSegmentationRmbg20),
-            Self::IsnetAnime => Some(S::ImageSegmentationAnime),
-            Self::IsnetDis => Some(S::ImageSegmentationDis),
+            Self::BirefnetLite
+            | Self::BirefnetGeneral
+            | Self::BirefnetPortrait
+            | Self::Ben2Base
+            | Self::IsnetAnime => self.segmentation().map(S::ImageSegmentation),
             Self::Spleeter2Stems => Some(S::SpeechSeparation),
             Self::Spleeter2StemsFull => Some(S::SpeechSeparationFull),
             Self::SherpaDiarization => Some(S::Diarization(catalog::DiarizationVariant::Int8)),
@@ -265,11 +249,10 @@ impl LocalModelId {
             | Self::DepthAnythingV2SmallUint8
             | Self::DepthAnythingV2Small
             | Self::PpOcrV6Small
+            | Self::BirefnetGeneral
             | Self::BirefnetPortrait
-            | Self::Rmbg14
-            | Self::Rmbg20
+            | Self::Ben2Base
             | Self::IsnetAnime
-            | Self::IsnetDis
             | Self::VoxCpm2Bf16
             | Self::VoxCpm2Q8
             | Self::Qwen3AlignerQ8

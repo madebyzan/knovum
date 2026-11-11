@@ -3,7 +3,7 @@ use super::{from_saliency, ImageSelectionPoint, MAX_DISCOVERY_SEEDS};
 const EDGE: u32 = 128;
 
 /// A saliency field with a flat, low background and filled subject blobs. Real fields are
-/// upsampled from a 320px model output, so a subject is always a blob rather than a lone pixel.
+/// upsampled from a 1024px model output, so a subject is always a blob rather than a lone pixel.
 fn saliency(blobs: &[[u32; 4]]) -> Vec<u8> {
     let mut field = vec![4_u8; (EDGE * EDGE) as usize];
     for [left, top, width, height] in blobs {

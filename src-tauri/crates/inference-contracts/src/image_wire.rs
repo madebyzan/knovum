@@ -1,12 +1,5 @@
-use crate::image_spec::HIGH_RES_SEGMENTATION_RESOLUTION;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-pub const IMAGE_SEGMENTATION_RESOLUTION: u32 = HIGH_RES_SEGMENTATION_RESOLUTION;
-pub const IMAGE_SEGMENTATION_PIXELS: u64 =
-    IMAGE_SEGMENTATION_RESOLUTION as u64 * IMAGE_SEGMENTATION_RESOLUTION as u64;
-pub const IMAGE_SEGMENTATION_INPUT_BYTES: u64 = 3 * IMAGE_SEGMENTATION_PIXELS * 4;
-pub const IMAGE_SEGMENTATION_MASK_BYTES: u64 = IMAGE_SEGMENTATION_PIXELS * 4;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
@@ -47,7 +40,7 @@ pub struct ImageSegmentation {
     pub request_id: String,
     pub attempt_epoch: u64,
     pub model_spec_id: String,
-    // Foreground field normalized by the worker to the full `[0, 1]` range (min-max over the
-    // graph's first output head), not the graph's raw probability.
+    // The graph's first output exactly as it produced it: logits or probabilities, as the model's
+    // specification on the host states. The worker only checks that it is finite.
     pub mask_ref: TensorFileReference,
 }

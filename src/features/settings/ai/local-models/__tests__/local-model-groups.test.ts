@@ -31,7 +31,7 @@ function model(
 it("separates images, audio and fixed knowledge resources independent of catalog order", () => {
   const entries = [
     model("birefnetLite", "imageSegmentation", "images"),
-    model("rmbg14", "imageSegmentation", "images"),
+    model("ben2Base", "imageSegmentation", "images"),
     model("mossNano", "speechSynthesis"),
     model("qwen3Embedding", "embedding", "knowledge"),
     model("whisperSmall", "transcription"),
@@ -39,7 +39,7 @@ it("separates images, audio and fixed knowledge resources independent of catalog
   const groups = buildLocalModelGroups(entries);
   expect(groups.map(({ id }) => id)).toEqual(["knowledge", "audio", "images"]);
   expect(groups[1]!.capabilities.map(({ id }) => id)).toEqual(["speechSynthesis", "transcription"]);
-  expect(groups[2]!.capabilities[0]!.models.map(({ id }) => id)).toEqual(["birefnetLite", "rmbg14"]);
+  expect(groups[2]!.capabilities[0]!.models.map(({ id }) => id)).toEqual(["birefnetLite", "ben2Base"]);
   expect(groups.flatMap(({ capabilities }) => capabilities.flatMap(({ models }) => models))).toHaveLength(5);
 });
 

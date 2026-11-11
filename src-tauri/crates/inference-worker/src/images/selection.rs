@@ -6,7 +6,7 @@ use image::{
 };
 use knovum_inference_contracts::{
     image_compute::{ImageSelectionPoint, ImageSelectionRect},
-    image_spec::{Geometry, Standardization, MOBILE_SAM_SPEC, SAM2_HIERA_TINY_SPEC},
+    image_spec::{MOBILE_SAM_LONGEST_EDGE, SAM2_EDGE, SAM2_STANDARDIZATION},
 };
 use ort::{
     session::{RunOptions, Session, SessionOutputs},
@@ -14,28 +14,6 @@ use ort::{
 };
 use std::path::Path;
 
-/// MobileSAM resizes the longest edge and bakes padding and normalization into its encoder.
-const SAM1_EDGE: u32 = match MOBILE_SAM_SPEC.geometry {
-    Geometry::LongestEdge { edge } => edge,
-    _ => panic!("frozen MobileSAM geometry"),
-};
-/// SAM 2.1 stretches the source into a fixed square and standardizes caller-side.
-const SAM2_WIDTH: u32 = match SAM2_HIERA_TINY_SPEC.geometry {
-    Geometry::Stretch { width, .. } => width,
-    _ => panic!("frozen SAM 2.1 geometry"),
-};
-const SAM2_HEIGHT: u32 = match SAM2_HIERA_TINY_SPEC.geometry {
-    Geometry::Stretch { height, .. } => height,
-    _ => panic!("frozen SAM 2.1 geometry"),
-};
-const SAM2_MEAN: [f32; 3] = match SAM2_HIERA_TINY_SPEC.standardization {
-    Standardization::ImageNet { mean, .. } => mean,
-    _ => panic!("frozen SAM 2.1 standardization"),
-};
-const SAM2_STD: [f32; 3] = match SAM2_HIERA_TINY_SPEC.standardization {
-    Standardization::ImageNet { std, .. } => std,
-    _ => panic!("frozen SAM 2.1 standardization"),
-};
 /// Both families score masks over a 256² logits grid.
 const MASK_GRID: usize = 256;
 const GRID_PIXELS: usize = MASK_GRID * MASK_GRID;
@@ -55,6 +33,15 @@ impl DecodedPrompt {
     /// Thresholds the mask; logits above `threshold` are inside it.
     pub(super) fn mask(&self, threshold: f32) -> impl Iterator<Item = bool> + '_ {
         self.logits.iter().map(move |value| *value > threshold)
+    }
+
+    /// The decoder's belief that each pixel is inside, as `[0, 255]` coverage. The logits were
+    /// resampled bilinearly before this, so the edge is the decoder's own soft transition rather
+    /// than a staircase cut at the threshold; `128` is exactly the decision boundary.
+    fn coverage(&self) -> impl Iterator<Item = u8> + '_ {
+        self.logits
+            .iter()
+            .map(|logit| (255.0 / (1.0 + (-logit).exp())).round() as u8)
     }
 }
 
@@ -143,10 +130,7 @@ impl Selection {
         cancellation.check()?;
         self.encode(shape, image, identity, cancellation)?;
         let decoded = self.decode(coords, labels, (height, width), cancellation)?;
-        Ok(decoded
-            .mask(0.0)
-            .map(|inside| if inside { 255 } else { 0 })
-            .collect())
+        Ok(decoded.coverage().collect())
     }
 
     /// Encodes the source unless the cached embeddings already belong to it. The encoder is the
@@ -259,18 +243,18 @@ fn encode_sam2(
 ) -> Result<Vec<Vec<f32>>, String> {
     let resized = imageops::resize(
         &rgb_image(shape, image),
-        SAM2_WIDTH,
-        SAM2_HEIGHT,
+        SAM2_EDGE,
+        SAM2_EDGE,
         FilterType::Triangle,
     );
     let pixels = resized.as_raw();
     let tensor = Tensor::from_array((
-        [1usize, 3, SAM2_HEIGHT as usize, SAM2_WIDTH as usize],
+        [1usize, 3, SAM2_EDGE as usize, SAM2_EDGE as usize],
         (0..3)
             .flat_map(|channel| {
-                pixels.chunks_exact(3).map(move |pixel| {
-                    (f32::from(pixel[channel]) / 255.0 - SAM2_MEAN[channel]) / SAM2_STD[channel]
-                })
+                pixels
+                    .chunks_exact(3)
+                    .map(move |pixel| SAM2_STANDARDIZATION.apply(channel, pixel[channel]))
             })
             .collect::<Vec<_>>(),
     ))
@@ -386,7 +370,7 @@ fn decode_sam2(
 
 /// SAM 1's longest-edge resize, rounded exactly like the reference implementation.
 fn preprocess_shape(height: u32, width: u32) -> (u32, u32) {
-    let scale = f64::from(SAM1_EDGE) / f64::from(height.max(width));
+    let scale = f64::from(MOBILE_SAM_LONGEST_EDGE) / f64::from(height.max(width));
     (
         (f64::from(height) * scale + 0.5) as u32,
         (f64::from(width) * scale + 0.5) as u32,
@@ -417,8 +401,8 @@ fn sam1_prompt(
 /// Scales source-pixel prompt coordinates into SAM 2.1's stretched square.
 fn sam2_coords(coords: Vec<f32>, (height, width): (u32, u32)) -> Vec<f32> {
     let (x_scale, y_scale) = (
-        SAM2_WIDTH as f32 / width as f32,
-        SAM2_HEIGHT as f32 / height as f32,
+        SAM2_EDGE as f32 / width as f32,
+        SAM2_EDGE as f32 / height as f32,
     );
     coords
         .iter()
@@ -434,9 +418,9 @@ fn sam1_postprocess(masks: &[f32], resized: (u32, u32), target: (u32, u32)) -> V
     let upscaled = resize_logits(
         masks,
         (MASK_GRID as u32, MASK_GRID as u32),
-        (SAM1_EDGE, SAM1_EDGE),
+        (MOBILE_SAM_LONGEST_EDGE, MOBILE_SAM_LONGEST_EDGE),
     );
-    let stride = SAM1_EDGE as usize;
+    let stride = MOBILE_SAM_LONGEST_EDGE as usize;
     let cropped = upscaled
         .chunks(stride)
         .take(resized.0 as usize)

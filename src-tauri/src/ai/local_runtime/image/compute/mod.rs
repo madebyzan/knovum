@@ -7,6 +7,7 @@ use crate::{
             ImageComputation, ImageComputationOutput, ImageComputeParams, ImageSelectionPoint,
             ImageSelectionRect,
         },
+        image_spec::REAL_ESRGAN_TILING,
         image_wire::{TensorDataType, TensorFileReference},
         runtime::{RuntimeCapability, RuntimeModel},
     },
@@ -227,7 +228,11 @@ fn output_shape(
     }
     Ok(match operation {
         ImageTensorOperation::Upscale if u64::from(height) * u64::from(width) <= 4_194_304 => {
-            ([1, 3, height * 4, width * 4], TensorDataType::Uint8)
+            let factor = REAL_ESRGAN_TILING.factor;
+            (
+                [1, 3, height * factor, width * factor],
+                TensorDataType::Uint8,
+            )
         }
         ImageTensorOperation::Upscale => {
             return Err("invalid_input: upscale source exceeds the tile budget".into())

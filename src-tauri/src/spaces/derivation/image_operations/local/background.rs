@@ -1,15 +1,12 @@
 use super::super::{output::CanonicalImage, source::SourceImage};
 use crate::{
-    ai::contracts::image_wire::ImageSegmentationExecutionIdentity,
     foundation::app_error::AppError,
     local_resources::{model_catalog::LocalModelId, preparation},
+    spaces::derivation::image_tensors,
 };
+use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
-
-/// Background removal runs one segmentation pass over a fixed-resolution tensor. Loading the model
-/// is bounded by the worker's own startup budget.
-const SEGMENTATION_BUDGET_MS: u64 = 120_000;
 
 pub(super) async fn execute(
     app: &AppHandle,
@@ -27,18 +24,11 @@ pub(super) async fn execute(
         &mut |_| {},
     )
     .await?;
-    let identity = ImageSegmentationExecutionIdentity {
-        model_spec_id: model.image_segmentation_spec()?,
-        owner_kind: "space-derivation".into(),
-        owner_id: owner_id.into(),
-        attempt_id: owner_id.into(),
-        attempt_epoch: 1,
-        input_revision: format!(
-            "sha256:{}",
-            hex::encode(<sha2::Sha256 as sha2::Digest>::digest(&source.bytes))
-        ),
-        budget_ms: SEGMENTATION_BUDGET_MS,
-    };
+    let identity = image_tensors::segmentation_identity(
+        model,
+        owner_id,
+        format!("sha256:{}", hex::encode(Sha256::digest(&source.bytes))),
+    )?;
     let image = crate::images::remove_background(
         app,
         source.bytes.clone(),
@@ -48,10 +38,7 @@ pub(super) async fn execute(
     )
     .await?;
     Ok(CanonicalImage {
-        digest: format!(
-            "sha256:{}",
-            hex::encode(<sha2::Sha256 as sha2::Digest>::digest(&image.png))
-        ),
+        digest: format!("sha256:{}", hex::encode(Sha256::digest(&image.png))),
         png: image.png,
         width: image.width,
         height: image.height,

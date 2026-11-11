@@ -72,7 +72,7 @@ it("does not select another model when the chosen model is unavailable", async (
         selected: true,
       },
       {
-        execution: { ...execution, model: "rmbg14" },
+        execution: { ...execution, model: "ben2Base" },
         capability: "imageSegmentation",
         availability: { state: "ready" },
         selected: false,

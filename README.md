@@ -154,7 +154,7 @@ cancellation appear in the Task Center.
 | Speech synthesis, voice cloning & design | MOSS-TTS-Nano, VoxCPM2                                 | audio.cpp    |
 | Word-level transcript alignment          | Qwen3 Forced Aligner                                   | audio.cpp    |
 | Semantic-search embeddings               | Qwen3-Embedding-0.6B                                   | Candle       |
-| Background removal                       | BiRefNet, RMBG, IS-Net                                 | ONNX Runtime |
+| Background removal                       | BiRefNet, BEN2, IS-Net Anime                           | ONNX Runtime |
 | Image upscaling                          | Real-ESRGAN                                            | ONNX Runtime |
 | Inpainting / repair                      | Big LaMa                                               | ONNX Runtime |
 | Smart selection                          | MobileSAM, SAM 2.1 Hiera-Tiny                          | ONNX Runtime |

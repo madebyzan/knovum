@@ -1,5 +1,6 @@
-use super::{scalar_field::normalize, session};
+use super::session;
 use crate::cancellation::Cancellation;
+use knovum_inference_contracts::image_spec::DEPTH_ANYTHING_V2_INPUT;
 use ort::{session::Session, value::Tensor};
 use std::path::Path;
 
@@ -31,10 +32,11 @@ impl Depth {
         cancellation: &Cancellation,
     ) -> Result<Vec<u8>, String> {
         let [batch, channels, height, width] = shape;
+        let patch = DEPTH_ANYTHING_V2_INPUT.patch;
         if batch != 1
             || channels != 3
-            || height % 14 != 0
-            || width % 14 != 0
+            || !height.is_multiple_of(patch)
+            || !width.is_multiple_of(patch)
             || u64::from(height) * u64::from(width) > 1_048_576
         {
             return Err("invalid_input: depth tensor exceeds its processor budget".into());
@@ -53,6 +55,23 @@ impl Depth {
         if actual.as_ref() != [1, i64::from(height), i64::from(width)] {
             return Err("invalid_output: depth shape differs".into());
         }
-        session::float_bytes(&normalize(values)?)
+        session::float_bytes(&relative(values)?)
     }
+}
+
+/// Depth Anything predicts relative inverse depth with no fixed scale, so the field is published
+/// stretched to `[0, 1]`. A non-finite or constant field is an invalid output.
+pub(super) fn relative(values: &[f32]) -> Result<Vec<f32>, String> {
+    if values.is_empty() || values.iter().any(|value| !value.is_finite()) {
+        return Err("invalid_output: invalid depth field".into());
+    }
+    let low = values.iter().copied().fold(f32::INFINITY, f32::min);
+    let high = values.iter().copied().fold(f32::NEG_INFINITY, f32::max);
+    if high <= low || !(high - low).is_finite() {
+        return Err("invalid_output: constant or overflowing depth field".into());
+    }
+    Ok(values
+        .iter()
+        .map(|value| (value - low) / (high - low))
+        .collect())
 }

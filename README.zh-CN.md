@@ -133,7 +133,7 @@
 | 语音合成、声音克隆与设计 | MOSS-TTS-Nano、VoxCPM2                              | audio.cpp    |
 | 逐词字幕对齐             | Qwen3 Forced Aligner                                | audio.cpp    |
 | 语义搜索向量             | Qwen3-Embedding-0.6B                                | Candle       |
-| 去除背景                 | BiRefNet、RMBG、IS-Net                              | ONNX Runtime |
+| 去除背景                 | BiRefNet、BEN2、IS-Net Anime                        | ONNX Runtime |
 | 图像超分辨率             | Real-ESRGAN                                         | ONNX Runtime |
 | 局部修复                 | Big LaMa                                            | ONNX Runtime |
 | 智能选区                 | MobileSAM、SAM 2.1 Hiera-Tiny                       | ONNX Runtime |

@@ -66,7 +66,7 @@ pub(super) fn prepare(
 }
 
 pub(super) fn materialize(
-    mut source: RgbaImage,
+    source: RgbaImage,
     tensor: ImageTensor,
     operation: &ImageOperation,
     cancellation: &CancellationToken,
@@ -94,14 +94,15 @@ pub(super) fn materialize(
             ))
         }
         ImageOperation::ExtractSelection { .. } => {
-            let field = image::GrayImage::from_raw(width, height, tensor.bytes)
-                .ok_or("Invalid selected-region mask")?;
-            let selection =
-                imageops::resize(&field, source.width(), source.height(), FilterType::Nearest);
-            for (pixel, selected) in source.pixels_mut().zip(selection.pixels()) {
-                pixel[3] = (u16::from(pixel[3]) * u16::from(selected[0]) / 255) as u8;
+            if (width, height) != source.dimensions() {
+                return Err("Invalid selected-region mask".into());
             }
-            DynamicImage::ImageRgba8(source)
+            let coverage = tensor
+                .bytes
+                .iter()
+                .map(|value| f32::from(*value) / 255.0)
+                .collect::<Vec<_>>();
+            DynamicImage::ImageRgba8(crate::images::cut_out(&source, &coverage))
         }
         ImageOperation::Upscale { .. }
         | ImageOperation::RemoveObject { .. }

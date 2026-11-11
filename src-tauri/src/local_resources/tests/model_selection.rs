@@ -5,7 +5,7 @@ fn model_preferences_are_strict_and_belong_to_their_capability() {
         (Group::Transcription, LocalModelId::WhisperTiny),
         (Group::SpeechSynthesis, LocalModelId::VoxCpm2),
         (Group::SpeechSynthesis, LocalModelId::VoxCpm2Q8),
-        (Group::ImageSegmentation, LocalModelId::Rmbg14),
+        (Group::ImageSegmentation, LocalModelId::Ben2Base),
         (Group::ImageUpscaling, LocalModelId::RealEsrganX4plus),
         (Group::ImageInpainting, LocalModelId::Lama),
         (Group::ImageSelection, LocalModelId::Sam2HieraTiny),
@@ -72,6 +72,21 @@ fn retired_selections_fall_back_to_the_capability_default() {
     for (legacy, group, default) in [
         (
             "u2net",
+            Group::ImageSegmentation,
+            LocalModelId::BirefnetLite,
+        ),
+        (
+            "rmbg14",
+            Group::ImageSegmentation,
+            LocalModelId::BirefnetLite,
+        ),
+        (
+            "rmbg20",
+            Group::ImageSegmentation,
+            LocalModelId::BirefnetLite,
+        ),
+        (
+            "isnetDis",
             Group::ImageSegmentation,
             LocalModelId::BirefnetLite,
         ),

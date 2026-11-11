@@ -3,7 +3,6 @@ mod discovery;
 mod engine;
 mod inpainting;
 mod prompts;
-mod scalar_field;
 mod segmentation;
 mod selection;
 mod session;

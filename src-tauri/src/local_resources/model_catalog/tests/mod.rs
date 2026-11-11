@@ -70,28 +70,29 @@ fn transcription_alternatives_own_complete_distinct_snapshots() {
 
 #[test]
 fn segmentation_choices_have_distinct_snapshots_and_frozen_execution_identities() {
-    let birefnet = LocalModelId::BirefnetLite;
-    let rmbg = LocalModelId::Rmbg14;
-    let snapshot = birefnet.snapshot().unwrap();
-    assert_ne!(birefnet.snapshot(), rmbg.snapshot());
+    let default = LocalModelId::BirefnetLite;
+    let snapshot = default.snapshot().unwrap();
     assert_eq!(snapshot.total_bytes(), 224_005_088);
-    assert!(birefnet.preparation().models().unwrap() == snapshot.models());
-    assert_ne!(
-        birefnet.image_segmentation_spec().unwrap(),
-        rmbg.image_segmentation_spec().unwrap()
+    assert!(default.preparation().models().unwrap() == snapshot.models());
+    let choices = MODELS
+        .iter()
+        .copied()
+        .filter(|model| model.capability() == LocalModelCapability::ImageSegmentation)
+        .collect::<Vec<_>>();
+    assert_eq!(
+        choices.len(),
+        catalog::SegmentationModel::ALL.len(),
+        "every background-removal model is offered once"
     );
-    for model in [
-        birefnet,
-        rmbg,
-        LocalModelId::IsnetDis,
-        LocalModelId::IsnetAnime,
-    ] {
+    let mut spec_ids = std::collections::HashSet::new();
+    let mut snapshots = std::collections::HashSet::new();
+    for model in choices {
         assert!(super::super::model_selection::is_selectable(model));
+        let spec_id = model.image_segmentation_spec().unwrap();
         let file = catalog::descriptor(model.snapshot().unwrap().models()[0]);
-        assert!(model
-            .image_segmentation_spec()
-            .unwrap()
-            .contains(file.sha256));
+        assert!(spec_id.contains(file.sha256));
+        assert!(spec_ids.insert(spec_id));
+        assert!(snapshots.insert(model.snapshot().unwrap()));
     }
     assert!(LocalModelId::Qwen3Embedding
         .image_segmentation_spec()

@@ -1,6 +1,6 @@
 use crate::images::{
-    inpainting::{composite, context_window},
-    scalar_field::normalize,
+    depth::relative,
+    inpainting::{context_window, feather, feather_width, windows},
     upscaling::quantize,
 };
 
@@ -14,19 +14,10 @@ fn upscale_quantization_matches_numpy_ties_to_even_and_clipping() {
 }
 
 #[test]
-fn inpainting_composites_only_the_masked_pixels() {
-    let mask = [0, 255];
-    assert_eq!(
-        composite(&[1, 2, 3, 4, 5, 6], &[7, 8, 9, 10, 11, 12], &mask).unwrap(),
-        [1, 8, 3, 10, 5, 12]
-    );
-}
-
-#[test]
-fn scalar_fields_reject_invalid_values_and_normalize_relative_extremes() {
-    assert_eq!(normalize(&[2.0, 4.0, 6.0]).unwrap(), [0.0, 0.5, 1.0]);
-    assert!(normalize(&[1.0, 1.0]).is_err());
-    assert!(normalize(&[1.0, f32::INFINITY]).is_err());
+fn depth_fields_reject_invalid_values_and_stretch_relative_extremes() {
+    assert_eq!(relative(&[2.0, 4.0, 6.0]).unwrap(), [0.0, 0.5, 1.0]);
+    assert!(relative(&[1.0, 1.0]).is_err());
+    assert!(relative(&[1.0, f32::INFINITY]).is_err());
 }
 
 #[test]
@@ -57,5 +48,68 @@ fn a_window_keeps_context_around_a_large_hole_and_stays_inside_the_source() {
         [left, top, right, bottom],
         [0, 0, 300, 200],
         "a small source is read whole"
+    );
+}
+
+fn mask_with(holes: &[[u32; 4]], (width, height): (u32, u32)) -> Vec<u8> {
+    let mut mask = vec![0; (width * height) as usize];
+    for [left, top, right, bottom] in holes {
+        for y in *top..=*bottom {
+            for x in *left..=*right {
+                mask[(y * width + x) as usize] = 255;
+            }
+        }
+    }
+    mask
+}
+
+#[test]
+fn holes_far_apart_are_painted_in_their_own_windows_at_source_scale() {
+    let dimensions = (4000, 3000);
+    let mask = mask_with(
+        &[[100, 100, 119, 119], [3800, 2800, 3819, 2819]],
+        dimensions,
+    );
+    let painted = windows(&mask, dimensions);
+    assert_eq!(painted.len(), 2);
+    for [left, top, right, bottom] in painted {
+        assert_eq!(
+            (right - left, bottom - top),
+            (512, 512),
+            "read at the model's own scale"
+        );
+    }
+}
+
+#[test]
+fn holes_whose_context_overlaps_share_one_window() {
+    let dimensions = (4000, 3000);
+    let mask = mask_with(
+        &[[1000, 1000, 1019, 1019], [1200, 1000, 1219, 1019]],
+        dimensions,
+    );
+    let painted = windows(&mask, dimensions);
+    assert_eq!(painted.len(), 1);
+    let [left, _, right, _] = painted[0];
+    assert!(
+        left <= 1000 && right > 1219,
+        "the shared window covers both holes"
+    );
+}
+
+#[test]
+fn the_fill_fades_out_just_beyond_the_hole() {
+    // One hole pixel in the middle of a 7-pixel row, feathered over two pixels.
+    let holes = [0, 0, 0, 255, 0, 0, 0];
+    let weights = feather(&holes, (7, 1), 2);
+    let expected = [0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0, 2.0 / 3.0, 1.0 / 3.0, 0.0];
+    for (weight, expected) in weights.iter().zip(expected) {
+        assert!((weight - expected).abs() < 1e-6, "{weights:?}");
+    }
+    assert_eq!(feather_width(512), 1, "unscaled windows blend one pixel");
+    assert_eq!(
+        feather_width(2048),
+        4,
+        "one pixel per source pixel a model pixel covers"
     );
 }
