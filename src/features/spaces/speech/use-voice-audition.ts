@@ -36,10 +36,15 @@ export function useVoiceAudition(sampleText: () => string) {
     error: preview.error,
     stop,
     audition,
-    stateFor: (profileId: string) => ({
-      playing: auditioningId.value === profileId,
-      busy: auditioningId.value !== undefined && auditioningId.value !== profileId,
-      peak: preview.peak,
-    }),
+    stateFor: (profileId: string) => {
+      const isTarget = auditioningId.value === profileId;
+      const generating = isTarget && Boolean(preview.jobId?.value);
+      return {
+        generating,
+        playing: isTarget && !generating,
+        busy: auditioningId.value !== undefined && !isTarget,
+        peak: preview.peak,
+      };
+    },
   };
 }

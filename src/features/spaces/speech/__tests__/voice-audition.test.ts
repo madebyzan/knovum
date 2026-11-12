@@ -4,11 +4,13 @@ const mocks = vi.hoisted(() => ({
   previewSelection: vi.fn<(text: string, revisionId: string, lexicon: object) => Promise<void>>(),
   reset: vi.fn<() => void>(),
   peak: vi.fn<() => number>(),
+  jobId: { value: undefined as string | undefined },
 }));
 
 vi.mock("../use-speech-preview", () => ({
   useSpeechPreview: () => ({
     error: { value: undefined },
+    jobId: mocks.jobId,
     previewSelection: mocks.previewSelection,
     reset: mocks.reset,
     peak: mocks.peak,
@@ -22,6 +24,7 @@ describe("voice audition", () => {
     mocks.previewSelection.mockReset().mockResolvedValue();
     mocks.reset.mockReset();
     mocks.peak.mockReset().mockReturnValue(0);
+    mocks.jobId.value = undefined;
   });
 
   it("synthesises the sample line with the voice's active revision", async () => {
@@ -63,5 +66,18 @@ describe("voice audition", () => {
 
     expect(mocks.previewSelection).toHaveBeenCalledOnce();
     expect(audition.stateFor("voice-1").playing).toBe(false);
+  });
+
+  it("distinguishes between generating and playing state", () => {
+    const audition = useVoiceAudition(() => "Sample line");
+    mocks.previewSelection.mockReturnValue(new Promise(() => {}));
+    mocks.jobId.value = "job-1";
+
+    void audition.audition("voice-1", "revision-9");
+
+    expect(audition.stateFor("voice-1")).toMatchObject({ generating: true, playing: false });
+
+    mocks.jobId.value = undefined;
+    expect(audition.stateFor("voice-1")).toMatchObject({ generating: false, playing: true });
   });
 });

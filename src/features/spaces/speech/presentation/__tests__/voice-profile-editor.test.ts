@@ -94,3 +94,43 @@ it.each([
   onTestFinished(() => wrapper.unmount());
   expect(wrapper.text()).toContain(expected);
 });
+
+it("shows synthesizing indicator when audition is generating", () => {
+  const wrapper = mount(VoiceProfileConfiguration, {
+    props: {
+      profile,
+      expanded: false,
+      disabled: false,
+      audition: { playing: false, generating: true, busy: false, peak: () => 0 },
+    },
+    global: {
+      plugins: [
+        createI18n({ legacy: false, locale: "zh-CN", fallbackLocale: false, messages: localeMessages }),
+      ],
+      stubs: { VoiceProfileEditor: true },
+    },
+  });
+  onTestFinished(() => wrapper.unmount());
+  const auditionButton = wrapper.get('[data-testid="voice-audition"]');
+  expect(auditionButton.attributes("aria-label")).toContain("正在合成试听语音...");
+  expect(wrapper.findComponent({ name: "UiSpinner" }).exists()).toBe(true);
+});
+
+it("renders more actions dropdown trigger when overlay scope is active", () => {
+  const wrapper = mount(VoiceProfileConfiguration, {
+    props: {
+      profile,
+      expanded: false,
+      disabled: false,
+      audition: { playing: false, busy: false, peak: () => 0 },
+    },
+    global: {
+      plugins: [
+        createI18n({ legacy: false, locale: "zh-CN", fallbackLocale: false, messages: localeMessages }),
+      ],
+      stubs: { VoiceProfileEditor: true },
+    },
+  });
+  onTestFinished(() => wrapper.unmount());
+  expect(wrapper.find('button[aria-label="更多"]').exists()).toBe(true);
+});

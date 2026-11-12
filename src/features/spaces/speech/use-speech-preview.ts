@@ -128,6 +128,8 @@ export function useSpeechPreview() {
       );
       audioQueue.flush();
       commitPreviewOutput(output, nextJobId, previousPath);
+      clearJob(nextJobId);
+      await audioQueue.waitUntilEnded();
     } catch (cause) {
       audioQueue.stop(nextJobId);
       reportPreviewFailure(cause, nextJobId);

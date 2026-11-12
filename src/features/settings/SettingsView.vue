@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, provide, toRaw, watch, type Component } from "vue";
+import { computed, nextTick, provide, shallowRef, toRaw, watch, type Component } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
 
@@ -33,10 +33,7 @@ const route = useRoute();
 useSettingsLeaveCoordinator();
 // Settings is its own surface: overlays inside it must not follow the
 // workspace's active state, which the shell scope would otherwise hide.
-provide(
-  overlayScopeVisibleKey,
-  computed(() => true),
-);
+provide(overlayScopeVisibleKey, shallowRef(true));
 const activePane = computed<SettingsPaneId>(() => {
   const value = Array.isArray(route.query.pane) ? route.query.pane[0] : route.query.pane;
   return resolveSettingsPaneId(value) ?? "appearance";

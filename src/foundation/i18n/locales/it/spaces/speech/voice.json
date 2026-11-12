@@ -16,7 +16,8 @@
   "archived": "Archiviato",
   "delete": {
     "title": "Elimina voce in modo permanente",
-    "description": "Elimina questa voce archiviata e tutte le relative revisioni. Non è possibile eliminare una voce utilizzata da un progetto."
+    "description": "Elimina questa voce archiviata e tutte le relative revisioni. Non è possibile eliminare una voce utilizzata da un progetto.",
+    "inUseDisabled": "in uso"
   },
   "label": "Voce",
   "clone": {

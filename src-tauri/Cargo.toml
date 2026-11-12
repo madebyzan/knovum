@@ -16,7 +16,7 @@ license = "MIT"
 name = "knovum"
 publish = false
 default-run = "knovum"
-version = "0.3.2"
+version = "0.3.3"
 description = "Local-first desktop knowledge space"
 authors = ["Zan"]
 license.workspace = true
@@ -106,7 +106,7 @@ arrow-schema = "58.4.0"
 object_store = { version = "=0.13.2", default-features = false, features = ["aws"] }
 
 # Spaces knowledge server
-rmcp = { version = "=3.5.1", features = [
+rmcp = { version = "=3.9.0", features = [
   "client",
   "auth",
   "elicitation",
