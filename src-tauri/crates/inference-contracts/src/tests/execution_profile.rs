@@ -1,5 +1,6 @@
 use super::{
-    alignment, embedding, image, moss_nano, separation, threaded, voice, whisper, WHISPER_VARIANTS,
+    alignment, embedding, image, moss_nano, qwen3_asr, separation, threaded, voice, whisper,
+    WHISPER_VARIANTS,
 };
 use crate::runtime::RuntimeCapability;
 
@@ -80,6 +81,23 @@ fn separation_profiles_name_their_precision_and_probed_device() {
     );
     assert!(separation("htdemucs-q8_0-v1", "cuda").is_none());
     assert!(separation("spleeter-2stems-fp16-cpu-v1", "cpu").is_none());
+}
+
+#[test]
+fn qwen3_asr_profiles_name_their_precision_and_probed_device() {
+    for (spec, precision) in [
+        ("qwen3-asr-1.7b-q8_0-v1", "q8_0"),
+        ("qwen3-asr-1.7b-f16-v1", "f16"),
+    ] {
+        for device in ["cpu", "mps", "vulkan"] {
+            assert_eq!(
+                qwen3_asr(spec, device).unwrap(),
+                format!("qwen3-asr-1.7b-{precision}-{device}-bundled-v2")
+            );
+        }
+        assert!(qwen3_asr(spec, "cuda").is_none());
+    }
+    assert!(qwen3_asr("qwen3-asr-1.7b-v1", "cpu").is_none());
 }
 
 #[test]

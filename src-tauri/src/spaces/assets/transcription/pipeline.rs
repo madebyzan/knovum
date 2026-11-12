@@ -13,8 +13,8 @@ use crate::{
         contracts::{
             runtime::RuntimeDeviceProfile,
             speech_wire::{
-                AsrEngine, AsrProfile, AudioFileReference, InferenceRequestIdentity,
-                LanguagePolicy, SpeechTranscribeParams,
+                AsrProfile, AudioFileReference, InferenceRequestIdentity, LanguagePolicy,
+                SpeechTranscribeParams,
             },
         },
         local_runtime::{admission::Priority, speech},
@@ -50,10 +50,7 @@ impl TranscriptionPipeline<'_> {
         let profile_id = profile.id;
         let model_kind = self.resources.transcription_model()?.transcription_models()[0];
         let provenance = TranscriptProvenance {
-            engine_id: match &engine {
-                AsrEngine::WhisperCpp => "whisper-cpp",
-            }
-            .into(),
+            engine_id: engine.id().into(),
             model_spec_id: profile_id.clone(),
             model_revision: crate::local_resources::models::catalog::descriptor(model_kind)
                 .snapshot

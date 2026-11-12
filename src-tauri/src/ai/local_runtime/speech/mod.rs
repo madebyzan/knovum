@@ -207,6 +207,7 @@ pub(super) fn co_located_model_directory<'a>(
 fn model_kind_name(kind: ModelKind) -> &'static str {
     match kind {
         ModelKind::WhisperPart(_) => "whisper model part",
+        ModelKind::Qwen3AsrPart(_) => "Qwen3-ASR model part",
         _ => "non-ASR model",
     }
 }

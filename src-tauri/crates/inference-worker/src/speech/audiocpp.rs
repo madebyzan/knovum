@@ -243,6 +243,19 @@ impl Drop for Output<'_> {
 }
 
 impl Output<'_> {
+    /// The transcript a recognition task produced, beside its detected or requested language
+    /// label. An empty language means the model found no speech to attribute a language to.
+    pub(super) fn transcript(&self) -> Result<(String, String), String> {
+        let mut text = ptr::null();
+        let mut language = ptr::null();
+        self.session.check(unsafe {
+            self.session
+                .api
+                .audiocpp_result_text(self.handle, &mut text, &mut language)
+        })?;
+        Ok((self.text(text)?, self.text(language)?))
+    }
+
     pub(super) fn words(&self) -> Result<Vec<Word>, String> {
         let api = &self.session.api;
         let count = unsafe { api.audiocpp_result_word_count(self.handle) };

@@ -9,6 +9,7 @@ use crate::{
 pub(crate) mod alignment;
 pub(in crate::ai::local_runtime) mod backend_probe;
 pub(crate) mod embedding;
+pub(crate) mod qwen3_asr;
 pub(crate) mod separation;
 pub(crate) mod voice;
 
@@ -17,6 +18,18 @@ pub(super) const EMBEDDING_PEAK_GIB: u64 = 4;
 /// HTDemucs reads one minute of stereo per call (plus overlap), split by audio.cpp into its own
 /// short segments, so its working set does not grow with the source.
 const SEPARATION_PEAK_GIB: u64 = 3;
+/// Qwen3-ASR is a 1.7B audio-language model: its encoder windows a region while the text decoder
+/// generates, so the working set is the weights plus one region's activations, not the source.
+const QWEN3_ASR_Q8_PEAK_GIB: u64 = 8;
+const QWEN3_ASR_F16_PEAK_GIB: u64 = 12;
+
+fn qwen3_asr_peak_gib(model: LocalModelId) -> Result<u64, String> {
+    match model {
+        LocalModelId::Qwen3Asr => Ok(QWEN3_ASR_Q8_PEAK_GIB),
+        LocalModelId::Qwen3AsrF16 => Ok(QWEN3_ASR_F16_PEAK_GIB),
+        _ => Err("Model does not support Qwen3-ASR transcription".into()),
+    }
+}
 
 #[derive(Debug)]
 pub(super) struct MemoryRequirement {
@@ -129,6 +142,18 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
             if id == execution_profile::whisper("large-v3", device, "f16") =>
         {
             (5, 7, "Whisper.cpp large-v3 F16")
+        }
+        (RuntimeCapability::SpeechTranscription, _, _)
+            if qwen3_asr::execution_id(LocalModelId::Qwen3Asr, device)
+                .is_ok_and(|expected| expected == id) =>
+        {
+            (5, QWEN3_ASR_Q8_PEAK_GIB, "Qwen3-ASR 1.7B Q8 GGUF")
+        }
+        (RuntimeCapability::SpeechTranscription, _, _)
+            if qwen3_asr::execution_id(LocalModelId::Qwen3AsrF16, device)
+                .is_ok_and(|expected| expected == id) =>
+        {
+            (7, QWEN3_ASR_F16_PEAK_GIB, "Qwen3-ASR 1.7B F16 GGUF")
         }
         (RuntimeCapability::SpeechAlignment, _, _)
             if alignment::execution_id(LocalModelId::Qwen3Aligner, device)

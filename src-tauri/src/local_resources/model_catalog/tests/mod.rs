@@ -11,6 +11,8 @@ fn required_transcription_follows_the_selected_model() {
         LocalModelId::WhisperLargeV3TurboQ8,
         LocalModelId::WhisperLargeV3Turbo,
         LocalModelId::WhisperLargeV3,
+        LocalModelId::Qwen3Asr,
+        LocalModelId::Qwen3AsrF16,
     ];
     for selected in variants {
         assert!(LocalModelId::Qwen3Embedding.is_essential(selected));
@@ -123,6 +125,38 @@ fn separation_choices_have_distinct_complete_snapshots_and_execution_identities(
             .all(|part| catalog::descriptor(*part).snapshot == snapshot));
     }
     assert!(LocalModelId::WhisperSmall.separation_spec().is_err());
+}
+
+#[test]
+fn qwen3_asr_choices_own_complete_snapshots_and_execution_identities() {
+    let compact = LocalModelId::Qwen3Asr;
+    let full = LocalModelId::Qwen3AsrF16;
+    assert_ne!(compact.snapshot(), full.snapshot());
+    assert_ne!(
+        compact.qwen3_asr_spec().unwrap(),
+        full.qwen3_asr_spec().unwrap()
+    );
+    assert_eq!(compact.snapshot().unwrap().total_bytes(), 2_473_930_579);
+    assert_eq!(full.snapshot().unwrap().total_bytes(), 4_088_573_779);
+    for model in [compact, full] {
+        assert!(model.is_transcription());
+        assert!(super::super::model_selection::is_selectable(model));
+        let snapshot = model.snapshot().unwrap();
+        assert!(model.transcription_models() == snapshot.models());
+        assert!(model.preparation().models().unwrap() == snapshot.models());
+        assert_eq!(snapshot.models().len(), 4);
+        assert!(super::super::models::sources::for_snapshot(snapshot).is_none());
+        for kind in snapshot.models() {
+            let file = catalog::descriptor(*kind);
+            assert_eq!(file.snapshot, snapshot);
+            assert_eq!(file.sha256.len(), 64);
+            let catalog::ModelKind::Qwen3AsrPart(part) = kind else {
+                panic!("Qwen3-ASR snapshots own Qwen3-ASR parts")
+            };
+            assert!(part.url().starts_with("https://"));
+        }
+    }
+    assert!(LocalModelId::WhisperSmall.qwen3_asr_spec().is_err());
 }
 
 #[test]
@@ -262,14 +296,22 @@ fn a_hardware_figure_describes_the_machine_and_never_withholds_a_model() {
     assert_eq!(qualified.advisory_bytes(None), None);
 
     // Every model states what it needs, so a larger one added later cannot arrive without an
-    // answer; VoxCPM2 is the only family currently making a machine-level claim.
+    // answer; the voice cloning and design families are the ones making a machine-level claim.
     for &model in MODELS {
         let declared = matches!(metadata(model).memory, LocalModelMemory::QualifiedOnGib(_));
         assert_eq!(
             declared,
             matches!(
                 model,
-                LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Bf16 | LocalModelId::VoxCpm2Q8
+                LocalModelId::VoxCpm2
+                    | LocalModelId::VoxCpm2Bf16
+                    | LocalModelId::VoxCpm2Q8
+                    | LocalModelId::IndexTts2
+                    | LocalModelId::IndexTts2F16
+                    | LocalModelId::Qwen3Tts
+                    | LocalModelId::Qwen3TtsBf16
+                    | LocalModelId::Qwen3TtsSmall
+                    | LocalModelId::CosyVoice3
             ),
             "{model:?} changed its machine-level claim"
         );

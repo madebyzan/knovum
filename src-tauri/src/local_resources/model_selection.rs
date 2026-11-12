@@ -61,7 +61,9 @@ fn group(model: LocalModelId) -> Option<Group> {
         | LocalModelId::WhisperMediumFull
         | LocalModelId::WhisperLargeV3TurboQ8
         | LocalModelId::WhisperLargeV3Turbo
-        | LocalModelId::WhisperLargeV3 => Some(Group::Transcription),
+        | LocalModelId::WhisperLargeV3
+        | LocalModelId::Qwen3Asr
+        | LocalModelId::Qwen3AsrF16 => Some(Group::Transcription),
         LocalModelId::MossNano
         | LocalModelId::VoxCpm2
         | LocalModelId::VoxCpm2Bf16

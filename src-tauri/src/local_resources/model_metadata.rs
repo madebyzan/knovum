@@ -142,6 +142,20 @@ pub(crate) fn metadata(model: LocalModelId) -> LocalModelMetadata {
             Unused,
             Any,
         ),
+        LocalModelId::Qwen3Asr => (
+            "Qwen3-ASR · 1.7B / Q8",
+            Capability::Transcription,
+            NONE,
+            Unused,
+            Any,
+        ),
+        LocalModelId::Qwen3AsrF16 => (
+            "Qwen3-ASR · 1.7B / F16",
+            Capability::Transcription,
+            NONE,
+            Unused,
+            Any,
+        ),
         LocalModelId::MossNano => (
             "MOSS-TTS-Nano · 100M",
             Capability::SpeechSynthesis,

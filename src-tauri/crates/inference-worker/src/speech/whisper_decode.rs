@@ -1,4 +1,4 @@
-use super::{audio::Audio, ffi::whisper::*, transcription::Engine};
+use super::{audio::Audio, ffi::whisper::*, whisper::Engine};
 use crate::{cancellation::Cancellation, protocol::Output};
 use knovum_inference_contracts::speech_wire::{
     InferenceRequestIdentity, LanguagePolicy, SpeechProgressEvent, SpeechProgressEventType,

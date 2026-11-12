@@ -45,6 +45,8 @@
     "whisperLargeV3TurboQ8": "Transcription rapide de grands modèles avec des poids quantifiés.",
     "whisperLargeV3Turbo": "Transcription rapide et de haute précision pour grand modèle.",
     "whisperLargeV3": "Transcription plus précise avec des temps de traitement plus longs.",
+    "qwen3Asr": "Transcription multilingue avec un chinois et un anglais solides ; le minutage des mots vient de l’alignement.",
+    "qwen3AsrF16": "Transcription multilingue en pleine précision avec un chinois et un anglais solides.",
     "qwen3Embedding": "Pour la recherche sémantique locale.",
     "mossNano": "Discours léger en chinois et en anglais avec voix prédéfinies et clonage de voix.",
     "voxCpm2": "Modèle complet pour le clonage et la conception vocale.",

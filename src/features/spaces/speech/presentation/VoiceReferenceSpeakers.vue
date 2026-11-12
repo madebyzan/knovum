@@ -26,7 +26,7 @@ function selected(speaker: SpeakerReference) {
         v-for="speaker in speakers"
         :key="speaker.speakerId"
         type="button"
-        class="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-caption transition-colors disabled:opacity-50"
+        class="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-caption transition-colors disabled:opacity-40"
         :class="
           selected(speaker)
             ? 'border-stroke-strong bg-surface-selected text-fg-primary'

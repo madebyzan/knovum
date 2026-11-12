@@ -1257,7 +1257,8 @@
     "AsrEngine": {
       "type": "string",
       "enum": [
-        "whisper_cpp"
+        "whisper_cpp",
+        "qwen3_asr"
       ]
     },
     "LanguagePolicy": {

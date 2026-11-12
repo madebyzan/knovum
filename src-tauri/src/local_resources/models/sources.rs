@@ -82,6 +82,7 @@ pub(crate) fn for_snapshot(snapshot: SnapshotKind) -> Option<HubSource> {
         | SnapshotKind::SpeechAlignment
         | SnapshotKind::SpeechAlignmentQ8
         | SnapshotKind::Separation(_)
+        | SnapshotKind::Qwen3Asr(_)
         | SnapshotKind::Voice(_)
         | SnapshotKind::Diarization(_) => return None,
         SnapshotKind::Whisper(_) => return None,

@@ -21,7 +21,7 @@ fn main() {
         (
             "audiocpp.h",
             "AudioApi",
-            r"audiocpp_(abi_version|last_error|registry_create|registry_free|model_load|model_free|session_create|session_free|session_run|request_create|request_free|request_set_(text|text_language|audio|voice_audio|option)|result_free|result_(audio|word_count|word|named_audio_count|named_audio))",
+            r"audiocpp_(abi_version|last_error|registry_create|registry_free|model_load|model_free|session_create|session_free|session_run|request_create|request_free|request_set_(text|text_language|audio|voice_audio|option)|result_free|result_(audio|text|word_count|word|named_audio_count|named_audio))",
         ),
     ] {
         let header = format!("ffi-headers/{file}");

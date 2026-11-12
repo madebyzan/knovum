@@ -106,10 +106,21 @@ pub enum LanguagePolicy {
     Fixed,
 }
 
-#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[derive(Clone, Copy, Debug, Deserialize, JsonSchema, PartialEq, Eq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 pub enum AsrEngine {
     WhisperCpp,
+    Qwen3Asr,
+}
+
+impl AsrEngine {
+    /// The provenance label a transcript records for the engine that produced it.
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::WhisperCpp => "whisper-cpp",
+            Self::Qwen3Asr => "qwen3-asr",
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]

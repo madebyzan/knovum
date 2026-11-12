@@ -40,6 +40,8 @@ pub enum LocalModelId {
     WhisperLargeV3TurboQ8,
     WhisperLargeV3Turbo,
     WhisperLargeV3,
+    Qwen3Asr,
+    Qwen3AsrF16,
     MossNano,
     VoxCpm2,
     VoxCpm2Bf16,
@@ -115,6 +117,8 @@ pub const MODELS: &[LocalModelId] = &[
     LocalModelId::WhisperLargeV3TurboQ8,
     LocalModelId::WhisperLargeV3Turbo,
     LocalModelId::WhisperLargeV3,
+    LocalModelId::Qwen3Asr,
+    LocalModelId::Qwen3AsrF16,
     LocalModelId::MossNano,
     LocalModelId::VoxCpm2Q8,
     LocalModelId::VoxCpm2Bf16,
@@ -184,6 +188,8 @@ impl LocalModelId {
             | Self::WhisperLargeV3TurboQ8
             | Self::WhisperLargeV3Turbo
             | Self::WhisperLargeV3
+            | Self::Qwen3Asr
+            | Self::Qwen3AsrF16
             | Self::MossNano
             | Self::VoxCpm2
             | Self::VoxCpm2Bf16
@@ -216,6 +222,7 @@ impl LocalModelId {
             | Self::WhisperLargeV3TurboQ8
             | Self::WhisperLargeV3Turbo
             | Self::WhisperLargeV3 => Some(transcription_snapshot(self)),
+            Self::Qwen3Asr | Self::Qwen3AsrF16 => self.qwen3_asr_variant().map(S::Qwen3Asr),
             Self::MossNano => Some(S::MossNano),
             Self::VoxCpm2 => Some(S::VoxCpm2),
             Self::VoxCpm2Bf16 => Some(S::VoxCpm2Bf16),
@@ -272,6 +279,8 @@ impl LocalModelId {
             | Self::WhisperLargeV3TurboQ8
             | Self::WhisperLargeV3Turbo
             | Self::WhisperLargeV3
+            | Self::Qwen3Asr
+            | Self::Qwen3AsrF16
             | Self::RealEsrganGeneralX4v3
             | Self::RealEsrganX4plus
             | Self::Migan

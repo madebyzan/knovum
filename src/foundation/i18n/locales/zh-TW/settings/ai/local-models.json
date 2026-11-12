@@ -45,6 +45,8 @@
     "whisperLargeV3TurboQ8": "快速大模型轉錄，量化權重處理更高效。",
     "whisperLargeV3Turbo": "快速高精度大模型轉錄。",
     "whisperLargeV3": "轉錄較準確，處理時間較長。",
+    "qwen3Asr": "多語種轉錄，中英文表現更強；詞級時間由對齊階段提供。",
+    "qwen3AsrF16": "全精度多語種轉錄，中英文表現更強。",
     "qwen3Embedding": "用於本地語義檢索。",
     "mossNano": "輕量中英文語音合成，支援預設音色與音色克隆。",
     "voxCpm2": "音色克隆與設計，完整版本。",

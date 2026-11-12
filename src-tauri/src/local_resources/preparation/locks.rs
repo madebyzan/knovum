@@ -97,13 +97,16 @@ impl PreparedModels {
     ) -> Result<super::super::model_catalog::LocalModelId, String> {
         use super::super::{
             model_catalog::LocalModelId as M,
-            models::{catalog::WhisperVariant as V, snapshots::SnapshotKind as S},
+            models::{
+                catalog::{Qwen3AsrVariant as Q, WhisperVariant as V},
+                snapshots::SnapshotKind as S,
+            },
         };
         let snapshots = self
             .paths
             .keys()
             .map(|kind| catalog::descriptor(*kind).snapshot)
-            .filter(|snapshot| matches!(snapshot, S::Whisper(_)))
+            .filter(|snapshot| matches!(snapshot, S::Whisper(_) | S::Qwen3Asr(_)))
             .collect::<std::collections::HashSet<_>>();
         if snapshots.len() != 1 {
             return Err(
@@ -123,6 +126,8 @@ impl PreparedModels {
             S::Whisper(V::LargeV3TurboQ8) => Ok(M::WhisperLargeV3TurboQ8),
             S::Whisper(V::LargeV3Turbo) => Ok(M::WhisperLargeV3Turbo),
             S::Whisper(V::LargeV3) => Ok(M::WhisperLargeV3),
+            S::Qwen3Asr(Q::Qwen3Asr) => Ok(M::Qwen3Asr),
+            S::Qwen3Asr(Q::Qwen3AsrF16) => Ok(M::Qwen3AsrF16),
             _ => unreachable!("Only ASR snapshots remain after filtering"),
         }
     }

@@ -3,7 +3,7 @@ use knovum_inference_contracts::speech_wire::{AudioFileReference, SynthesizedAud
 use sha2::{Digest, Sha256};
 use std::{
     fs::{self, File},
-    io::{BufReader, BufWriter, Cursor, Read},
+    io::{BufReader, BufWriter, Read},
     path::{Path, PathBuf},
 };
 
@@ -253,6 +253,7 @@ pub(crate) fn pcm16(value: f32) -> i16 {
         .clamp(-32_768.0, 32_767.0) as i16
 }
 
+#[cfg(test)]
 pub(crate) fn write_wave(
     directory: &Path,
     name: &str,
@@ -269,7 +270,7 @@ pub(crate) fn write_wave(
     {
         return Err("invalid_output: audio samples exceed their output contract".into());
     }
-    let mut bytes = Cursor::new(Vec::with_capacity(samples.len() * 2 + 44));
+    let mut bytes = std::io::Cursor::new(Vec::with_capacity(samples.len() * 2 + 44));
     let spec = hound::WavSpec {
         channels,
         sample_rate: rate,

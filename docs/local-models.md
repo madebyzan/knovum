@@ -43,7 +43,7 @@ verified embedding snapshot explicitly; Related Content then schedules a full Sp
 | Capability                     | Supported models                                                                                                                               |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | Text embedding                 | Fixed Qwen3-Embedding-0.6B, Candle F32 last-token pooling                                                                                      |
-| Transcription                  | Whisper Tiny / Base / Small (default) / Medium / Large-v3 Turbo / Large-v3; whisper.cpp on all targets                                         |
+| Transcription                  | Whisper Tiny / Base / Small (default) / Medium / Large-v3 Turbo / Large-v3 (whisper.cpp); Qwen3-ASR 1.7B Q8_0 / F16 (audio.cpp GGUF)           |
 | Speech synthesis and cloning   | MOSS-TTS-Nano (small default); VoxCPM2; IndexTTS2 Q8_0 / F16; Qwen3-TTS 1.7B Q8_0 / BF16, 0.6B Q8_0; Fun-CosyVoice3 0.5B Q8_0 (audio.cpp GGUF) |
 | Voice design                   | VoxCPM2 Q8_0 / BF16 / original-precision GGUF                                                                                                  |
 | Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / F16 GGUF; audio.cpp                                                                                      |
@@ -91,6 +91,17 @@ the inference slot and ready to receive the request, so waiting behind another c
 consume it, and a worker holds its weights before it accepts any request, so loading them cannot
 consume it either. Waiting for the slot is bounded by cancellation alone,
 because every holder executes under its own budget and therefore always releases the slot.
+
+Qwen3-ASR 1.7B (Apache-2.0) is an optional audio.cpp transcription engine in Q8_0 and F16. It reuses
+the same pinned whisper.cpp Silero 6.2.0 VAD to select speech regions on the original waveform, then
+transcribes each region as one segment; audio.cpp splits a long region into its own bounded 30-second
+chunks and merges their text, so memory and the generation budget stay flat regardless of source
+length. It runs on the probed audio.cpp backend (Metal, Vulkan or CPU). A region carries its text and
+source span but no word spans: word timing is left to the separate Qwen3 Forced Aligner stage, so a
+Qwen3-ASR transcript has `segment_only` timing until it is aligned. Language detection holds for the
+whole request after the first region attributes a language, and the model's language labels are
+normalised to ISO codes. Its compute budget allows forty times the input duration for Q8_0 and sixty
+times for F16 on CPU, with ten- and fifteen-minute minima, capped at six hours.
 
 Forced alignment and speaker diarization are separate optional speech stages. Neither is required
 to complete plain ASR. Qwen3 Forced Aligner is prepared only for a user-selected range no longer

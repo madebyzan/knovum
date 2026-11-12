@@ -1,4 +1,4 @@
-use super::transcription::Engine;
+use super::whisper::Engine;
 use crate::cancellation::Cancellation;
 use knovum_inference_contracts::speech_wire::LanguagePolicy;
 use std::{

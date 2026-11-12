@@ -1,8 +1,7 @@
 use super::{
-    catalog, transcription_snapshot, LocalModelId, IMAGE_SEGMENTATION_HUMAN_SPEC_ID,
-    IMAGE_SEGMENTATION_QUALITY_SPEC_ID, IMAGE_SEGMENTATION_SILUETA_SPEC_ID,
-    IMAGE_SEGMENTATION_SPEC_ID, MODELS, VOXCPM2_BF16_SPEC_ID, VOXCPM2_FULL_SPEC_ID,
-    VOXCPM2_Q8_SPEC_ID,
+    catalog, LocalModelId, IMAGE_SEGMENTATION_HUMAN_SPEC_ID, IMAGE_SEGMENTATION_QUALITY_SPEC_ID,
+    IMAGE_SEGMENTATION_SILUETA_SPEC_ID, IMAGE_SEGMENTATION_SPEC_ID, MODELS, VOXCPM2_BF16_SPEC_ID,
+    VOXCPM2_FULL_SPEC_ID, VOXCPM2_Q8_SPEC_ID,
 };
 
 impl LocalModelId {
@@ -137,9 +136,27 @@ impl LocalModelId {
                 | Self::WhisperLargeV3TurboQ8
                 | Self::WhisperLargeV3Turbo
                 | Self::WhisperLargeV3
+                | Self::Qwen3Asr
+                | Self::Qwen3AsrF16
         )
     }
     pub(crate) fn transcription_models(self) -> &'static [catalog::ModelKind] {
-        transcription_snapshot(self).models()
+        self.snapshot()
+            .expect("A transcription model owns a complete snapshot")
+            .models()
+    }
+    pub(crate) const fn qwen3_asr_variant(self) -> Option<catalog::Qwen3AsrVariant> {
+        use catalog::Qwen3AsrVariant as V;
+        match self {
+            Self::Qwen3Asr => Some(V::Qwen3Asr),
+            Self::Qwen3AsrF16 => Some(V::Qwen3AsrF16),
+            _ => None,
+        }
+    }
+    /// The identity a Qwen3-ASR transcription model is stored and leased under.
+    pub(crate) fn qwen3_asr_spec(self) -> Result<&'static str, String> {
+        self.qwen3_asr_variant()
+            .map(catalog::Qwen3AsrVariant::spec_id)
+            .ok_or_else(|| "Model does not support Qwen3-ASR transcription".into())
     }
 }

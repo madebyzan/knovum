@@ -19,9 +19,7 @@ pub(crate) fn engine_id() -> Result<&'static str, String> {
     crate::ai::local_runtime::speech::transcription_profile(
         crate::local_resources::model_catalog::LocalModelId::WhisperSmall,
     )
-    .map(|profile| match profile.engine {
-        crate::ai::contracts::speech_wire::AsrEngine::WhisperCpp => "whisper-cpp",
-    })
+    .map(|profile| profile.engine.id())
 }
 
 #[derive(Clone, Serialize, serde::Deserialize, ts_rs::TS)]

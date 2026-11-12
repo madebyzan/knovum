@@ -104,6 +104,17 @@ pub fn separation(model_spec_id: &str, device: &str) -> Option<String> {
         .then(|| format!("htdemucs-{precision}-{device}-{REVISION}"))
 }
 
+/// Qwen3-ASR transcription on a probed audio.cpp backend.
+pub fn qwen3_asr(model_spec_id: &str, device: &str) -> Option<String> {
+    let precision = match model_spec_id {
+        "qwen3-asr-1.7b-q8_0-v1" => "q8_0",
+        "qwen3-asr-1.7b-f16-v1" => "f16",
+        _ => return None,
+    };
+    matches!(device, "cpu" | "mps" | "vulkan")
+        .then(|| format!("qwen3-asr-1.7b-{precision}-{device}-{REVISION}"))
+}
+
 #[cfg(test)]
 #[path = "tests/execution_profile.rs"]
 mod tests;
