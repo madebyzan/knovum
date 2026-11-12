@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
 
 const root = new URL("../../../src-tauri/", import.meta.url);
@@ -43,4 +43,12 @@ test("Windows keeps its native caption and supported configuration", () => {
   assert.equal(window.decorations, true);
   assert.equal(window.visible, false);
   assert.equal(Object.hasOwn(window, "noRedirectionBitmap"), false);
+});
+
+test("capability files and the enabled capability list stay in sync", () => {
+  const directory = new URL("capabilities/", root);
+  const identifiers = readdirSync(directory)
+    .filter((name) => name.endsWith(".json"))
+    .map((name) => JSON.parse(readFileSync(new URL(name, directory), "utf8")).identifier);
+  assert.deepEqual(identifiers.sort(), [...base.app.security.capabilities].sort());
 });
