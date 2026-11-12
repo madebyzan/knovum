@@ -1,8 +1,8 @@
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{SocketAddr, TcpListener};
 
-use super::super::upload::GeminiFileUploadAdapter;
-use crate::ai::{contracts::FileUploadCapability, transport::SecurityContext};
+use super::super::upload::upload_ephemeral_file;
+use crate::ai::transport::SecurityContext;
 
 #[tokio::test]
 async fn upload_does_not_send_file_bytes_to_a_returned_cross_origin_url() {
@@ -10,15 +10,14 @@ async fn upload_does_not_send_file_bytes_to_a_returned_cross_origin_url() {
     destination.set_nonblocking(true).unwrap();
     let destination_address = destination.local_addr().unwrap();
     let (context, server) = upload_origin(move |_| format!("http://{destination_address}/upload"));
-    let error = GeminiFileUploadAdapter
-        .upload_ephemeral_file(
-            &context,
-            b"private file bytes".to_vec(),
-            "text/plain",
-            "file.txt",
-        )
-        .await
-        .unwrap_err();
+    let error = upload_ephemeral_file(
+        &context,
+        b"private file bytes".to_vec(),
+        "text/plain",
+        "file.txt",
+    )
+    .await
+    .unwrap_err();
     assert_eq!(error.code, "invalid_response");
     server.join().unwrap();
     assert_eq!(
@@ -32,15 +31,14 @@ async fn upload_transport_error_does_not_expose_the_upload_session() {
     let (context, server) = upload_origin(|address| {
         format!("http://{address}/upload?upload_id=private-session-marker")
     });
-    let error = GeminiFileUploadAdapter
-        .upload_ephemeral_file(
-            &context,
-            b"private file bytes".to_vec(),
-            "text/plain",
-            "file.txt",
-        )
-        .await
-        .unwrap_err();
+    let error = upload_ephemeral_file(
+        &context,
+        b"private file bytes".to_vec(),
+        "text/plain",
+        "file.txt",
+    )
+    .await
+    .unwrap_err();
     server.join().unwrap();
     assert_eq!(error.code, "provider_request_failed");
     assert!(!error.message.contains("private-session-marker"));

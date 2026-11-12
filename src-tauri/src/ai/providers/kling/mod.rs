@@ -1,3 +1,4 @@
+mod auth;
 mod image;
 mod image_task;
 mod video;

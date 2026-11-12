@@ -44,18 +44,23 @@ pub(super) fn runtime(
                     agent.descriptor.display_name, agent.descriptor.executable_names.join(", ")),
             )
         })?;
-    let config = match agent.launch {
+    let mut config = match agent.launch {
         AcpLaunch::Codex => {
             node_adapter(CODEX_ADAPTER, path)?.env("CODEX_PATH", executable.to_string_lossy())
         }
         AcpLaunch::Claude => node_adapter(CLAUDE_ADAPTER, path)?
             .env("CLAUDE_CODE_EXECUTABLE", executable.to_string_lossy()),
-        AcpLaunch::Executable { arguments } => {
-            AcpAgentConfig::new(executable).args(arguments.iter().copied())
+        AcpLaunch::Executable { arguments, env } => {
+            let mut launched = AcpAgentConfig::new(executable).args(arguments.iter().copied());
+            for (name, value) in env {
+                launched = launched.env(*name, *value);
+            }
+            launched
         }
         AcpLaunch::Server => AcpAgentConfig::new(executable),
     };
-    Ok(AcpAgent::new(config.env("PATH", path).envs(environment)))
+    config = config.env("PATH", path).envs(environment);
+    Ok(AcpAgent::new(config))
 }
 
 fn node_adapter(package: &str, path: &str) -> AppResult<AcpAgentConfig> {

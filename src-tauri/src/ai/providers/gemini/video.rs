@@ -1,4 +1,6 @@
+use base64::{engine::general_purpose::STANDARD, Engine};
 use futures::future::BoxFuture;
+use reqwest::header::{HeaderMap, HeaderValue};
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
@@ -9,10 +11,17 @@ use crate::ai::{
     transport::{http_client, response, SecurityContext},
 };
 use crate::foundation::app_error::{AppError, AppResult};
+use crate::foundation::public_network::same_origin;
 
 pub struct GeminiVideoAdapter;
 
 impl VideoGenerationCapability for GeminiVideoAdapter {
+    /// Veo only accepts pure base64 pixels, never a URL, so references stay
+    /// inline instead of taking an object-storage round trip.
+    fn accepts_reference_urls(&self) -> bool {
+        false
+    }
+
     fn submit<'a>(
         &'a self,
         ctx: &'a SecurityContext,
@@ -20,11 +29,7 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
-            let model = if ctx.model.is_empty() {
-                "veo-2.0-generate-001"
-            } else {
-                ctx.model.as_str()
-            };
+            let model = ctx.model.as_str();
 
             let ratio = match req.ratio.as_str() {
                 "9:16" | "portrait" => "9:16",
@@ -37,11 +42,18 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
                 "aspectRatio": ratio,
             });
             if let Some(first_img) = req.reference_images.first() {
-                let pure_payload = first_img
-                    .split_once(";base64,")
-                    .map(|(_, b)| b)
-                    .unwrap_or(first_img);
-                instance["image"] = serde_json::json!({ "bytesBase64Encoded": pure_payload });
+                // Veo only accepts pure base64 pixels, never a URL.
+                let encoded = if let Some((_, payload)) = first_img.split_once(";base64,") {
+                    payload.to_string()
+                } else if first_img.starts_with("http://") || first_img.starts_with("https://") {
+                    let bytes = response::download_image(first_img).await?;
+                    STANDARD.encode(bytes)
+                } else {
+                    return Err(AppError::invalid(
+                        "Veo reference images must be a data URI or an http(s) URL",
+                    ));
+                };
+                instance["image"] = serde_json::json!({ "bytesBase64Encoded": encoded });
             }
 
             let payload = serde_json::json!({
@@ -148,6 +160,27 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
         Box::pin(async move {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })
+    }
+
+    fn result_download_headers(
+        &self,
+        ctx: &SecurityContext,
+        url: &reqwest::Url,
+    ) -> AppResult<HeaderMap> {
+        let mut headers = HeaderMap::new();
+        // Veo result URLs served from the configured endpoint need the API key.
+        if same_origin(
+            url,
+            &crate::ai::transport::validate_endpoint(&ctx.endpoint)?,
+        ) {
+            headers.insert(
+                "x-goog-api-key",
+                HeaderValue::from_str(ctx.require_api_key()?).map_err(|_| {
+                    AppError::invalid("Gemini API key is not a valid request header")
+                })?,
+            );
+        }
+        Ok(headers)
     }
 }
 

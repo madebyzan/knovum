@@ -68,9 +68,20 @@ pub(crate) fn validate_endpoint(base_url: &str) -> AppResult<reqwest::Url> {
     Ok(endpoint)
 }
 
+/// Normalizes a provider base URL to a fixed API suffix, leaving bases that
+/// already point at that suffix untouched.
+pub(crate) fn endpoint_with_suffix(raw: &str, suffix: &str) -> String {
+    let trimmed = raw.trim().trim_end_matches('/');
+    if trimmed.ends_with(suffix) {
+        trimmed.to_string()
+    } else {
+        format!("{trimmed}{suffix}")
+    }
+}
+
 async fn resolve_secret(provider: &str, secret_key: &str) -> AppResult<Option<String>> {
     let key_name = secret_key.trim();
-    let is_local = provider == "ollama";
+    let is_local = matches!(provider, "ollama" | "lmstudio");
     if is_local && key_name.is_empty() {
         return Ok(None);
     }

@@ -2,24 +2,19 @@ mod image;
 mod image_operation;
 mod image_operation_protocol;
 mod protocol;
-mod upload;
 mod video;
 
 #[cfg(test)]
 mod tests;
 
 pub use image::DashScopeImageAdapter;
-pub use upload::DashScopeFileUploadAdapter;
 pub use video::DashScopeVideoAdapter;
 
-use crate::ai::contracts::{
-    AiProvider, FileUploadCapability, ImageGenerationCapability, VideoGenerationCapability,
-};
+use crate::ai::contracts::{AiProvider, ImageGenerationCapability, VideoGenerationCapability};
 
 pub struct DashScopeProvider {
     image: DashScopeImageAdapter,
     video: DashScopeVideoAdapter,
-    upload: DashScopeFileUploadAdapter,
 }
 
 impl DashScopeProvider {
@@ -27,7 +22,6 @@ impl DashScopeProvider {
         Self {
             image: DashScopeImageAdapter,
             video: DashScopeVideoAdapter,
-            upload: DashScopeFileUploadAdapter,
         }
     }
 }
@@ -45,10 +39,6 @@ impl AiProvider for DashScopeProvider {
 
     fn as_video_generation(&self) -> Option<&dyn VideoGenerationCapability> {
         Some(&self.video)
-    }
-
-    fn as_file_upload(&self) -> Option<&dyn FileUploadCapability> {
-        Some(&self.upload)
     }
 }
 

@@ -8,8 +8,19 @@ use serde::{Deserialize, Serialize};
     deny_unknown_fields
 )]
 pub(crate) enum AgentContentPart {
-    Text { text: String },
-    Image { mime_type: String, data: String },
+    Text {
+        text: String,
+    },
+    /// Inline pixels, used when no object storage is configured.
+    Image {
+        mime_type: String,
+        data: String,
+    },
+    /// A public object-storage URL the model fetches instead of inline pixels.
+    ImageLink {
+        mime_type: String,
+        url: String,
+    },
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]

@@ -73,7 +73,11 @@ pub async fn start(
         let history = repository::load_history(pool, &ids.conversation_id, &ids.branch_id).await?;
         let now = crate::foundation::clock::unix_time_millis()?;
         let grant = identity::grant(&request, &ids, &catalog, now);
-        let messages = vec![context.initial_message(ids.input_id(), &request.prompt, None)];
+        let messages = vec![
+            context
+                .initial_message(ids.input_id(), &request.prompt, None)
+                .await?,
+        ];
         let (session, messages) = persistence::persist_task(
             pool,
             persistence::NewBuiltinAgentTaskState {

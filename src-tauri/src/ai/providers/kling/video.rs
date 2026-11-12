@@ -20,11 +20,7 @@ impl VideoGenerationCapability for KlingVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
-            let model = if ctx.model.is_empty() {
-                "kling-v1"
-            } else {
-                ctx.model.as_str()
-            };
+            let model = ctx.model.as_str();
 
             let ratio = match req.ratio.as_str() {
                 "9:16" | "portrait" => "9:16",
@@ -62,7 +58,7 @@ impl VideoGenerationCapability for KlingVideoAdapter {
 
             let submission_response = client
                 .post(&submit_url)
-                .bearer_auth(api_key)
+                .bearer_auth(super::auth::bearer_token(api_key)?)
                 .json(&payload)
                 .send()
                 .await
@@ -107,7 +103,7 @@ impl VideoGenerationCapability for KlingVideoAdapter {
             let query_url = format!("{endpoint}/v1/videos/{query_path}");
             let query_response = client
                 .get(&query_url)
-                .bearer_auth(api_key)
+                .bearer_auth(super::auth::bearer_token(api_key)?)
                 .send()
                 .await
                 .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?

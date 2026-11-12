@@ -1,0 +1,10 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "object-storage",
+  "description": "Main-window access to the user-configured S3-compatible object storage.",
+  "windows": ["main"],
+  "permissions": [
+    "storage:allow-validate-object-storage-settings",
+    "storage:allow-test-object-storage-connection"
+  ]
+}

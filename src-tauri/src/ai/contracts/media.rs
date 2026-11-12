@@ -1,4 +1,5 @@
 use futures::future::BoxFuture;
+use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
 
@@ -107,6 +108,23 @@ pub type VideoGenerationStageCallback<'a> =
     Box<dyn Fn(&str) -> Result<(), String> + Send + Sync + 'a>;
 
 pub trait VideoGenerationCapability: Send + Sync {
+    /// False when the API cannot fetch a reference from a public URL and the
+    /// pixels have to travel inline in the request body (Veo).
+    fn accepts_reference_urls(&self) -> bool {
+        true
+    }
+
+    /// Auth headers the provider requires on its own result URLs (Gemini's
+    /// file CDN, OpenRouter's unsigned content URL). Public URLs need none.
+    fn result_download_headers(
+        &self,
+        ctx: &SecurityContext,
+        url: &reqwest::Url,
+    ) -> AppResult<HeaderMap> {
+        let _ = (ctx, url);
+        Ok(HeaderMap::new())
+    }
+
     fn submit<'a>(
         &'a self,
         ctx: &'a SecurityContext,

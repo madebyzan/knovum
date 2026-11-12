@@ -3,31 +3,18 @@ use std::time::{Duration, Instant};
 use tokio_util::sync::CancellationToken;
 
 use super::{endpoint, image_operation_protocol as protocol};
-use crate::ai::contracts::FileUploadCapability;
+use crate::ai::providers::image_references;
 use crate::ai::transport::{http_client, response, SecurityContext};
 
-/// DashScope has a file API, so the pixels are uploaded and referenced by URL
-/// instead of being inlined into the request body.
+/// The qwen-image edit protocol accepts a public URL or an inline data URI,
+/// so the reference follows the shared object-storage-or-inline rule.
 pub async fn generate_from_reference(
     ctx: &SecurityContext,
     reference_png: Vec<u8>,
     prompt: &str,
     cancellation: &CancellationToken,
 ) -> Result<Vec<u8>, String> {
-    let upload = super::DashScopeFileUploadAdapter.upload_ephemeral_file(
-        ctx,
-        reference_png,
-        "image/png",
-        "reference.png",
-    );
-    let uploaded = tokio::select! {
-        _ = cancellation.cancelled() => return Err("Image generation was cancelled".into()),
-        uploaded = upload => uploaded.map_err(|error| error.to_string())?,
-    };
-    let reference = uploaded
-        .access_url
-        .filter(|url| !url.is_empty())
-        .ok_or("DashScope image upload returned no file URL")?;
+    let reference = image_references::deliver_png(&reference_png, cancellation).await?;
     execute(ctx, &reference, prompt, cancellation).await
 }
 
@@ -39,7 +26,7 @@ async fn execute(
 ) -> Result<Vec<u8>, String> {
     let secret = ctx.require_api_key().map_err(|error| error.to_string())?;
     let endpoint = endpoint(&ctx.endpoint);
-    let (path, body) = protocol::request(reference_url, prompt);
+    let (path, body) = protocol::request(&ctx.model, reference_url, prompt);
     if cancellation.is_cancelled() {
         return Err("Image generation was cancelled".into());
     }

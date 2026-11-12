@@ -1,0 +1,41 @@
+{
+  "title": "Objektspeicher",
+  "description": "Verbinden Sie einen S3-kompatiblen Bucket, damit Cloud-Modelle Bilder und Videos per URL statt als Inline-Daten erhalten. Funktioniert mit Tencent COS, Alibaba OSS und jedem S3-kompatiblen Dienst.",
+  "connection": {
+    "title": "Verbindung",
+    "description": "Ort und Identität des Buckets. Zugangsdaten werden getrennt in der lokalen Schlüsseldatenbank gespeichert.",
+    "endpoint": "Endpunkt",
+    "endpointPlaceholder": "https://cos.ap-guangzhou.myqcloud.com",
+    "region": "Region",
+    "regionPlaceholder": "ap-guangzhou",
+    "bucket": "Bucket",
+    "publicBaseUrl": "Öffentliche Basis-URL",
+    "publicBaseUrlDescription": "Optionale öffentliche Bucket-Domain oder CDN, die die hochgeladenen Objekte ausliefert.",
+    "endpointDescription": "Endpunkt",
+    "regionDescription": "Region",
+    "bucketDescription": "Bucket"
+  },
+  "credentials": {
+    "title": "Zugangsdaten",
+    "description": "Zugangsdaten werden automatisch in der lokalen Secrets-Datenbank gespeichert.",
+    "accessKeyId": "Access-Key-ID",
+    "secretAccessKey": "Geheimer Zugriffsschlüssel"
+  },
+  "actions": {
+    "test": "Verbindung testen",
+    "remove": "Entfernen",
+    "testSuccess": "Objektspeicherverbindung funktioniert",
+    "testFailed": "Objektspeicherverbindung fehlgeschlagen",
+    "removed": "Objektspeicherkonfiguration entfernt",
+    "removeFailed": "Objektspeicherkonfiguration konnte nicht entfernt werden",
+    "loadFailed": "Objektspeicher-Einstellungen konnten nicht gelesen werden",
+    "removeConfirm": {
+      "title": "Objektspeicher entfernen?",
+      "description": "Die Bucket-Konfiguration und ihre gespeicherten Zugangsdaten werden von diesem Gerät gelöscht.",
+      "confirm": "Entfernen"
+    }
+  },
+  "status": {
+    "testing": "..."
+  }
+}

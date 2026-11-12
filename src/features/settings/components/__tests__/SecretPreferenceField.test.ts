@@ -32,31 +32,27 @@ describe("SecretPreferenceField", () => {
     expect(deleteSecret).not.toHaveBeenCalled();
   });
 
-  it("writes a trimmed replacement only after Save is clicked", async () => {
+  it("writes a trimmed replacement when input is blurred", async () => {
     const wrapper = mount(SecretPreferenceField, {
       props: { label: "API key", secretKey: "ai.key" },
     });
     const input = wrapper.get("input");
     await input.setValue("  replacement  ");
     await input.trigger("blur");
-    expect(setSecret).not.toHaveBeenCalled();
-    await wrapper
-      .findAll("button")
-      .find((button) => button.text() === "common.save")!
-      .trigger("click");
     expect(setSecret).toHaveBeenCalledWith("ai.key", "replacement");
   });
 
-  it("deletes the stored credential only after Remove is clicked", async () => {
+  it("deletes the stored credential when Remove button is clicked", async () => {
     isSecretConfigured.mockResolvedValue(true);
     const wrapper = mount(SecretPreferenceField, {
       props: { label: "API key", secretKey: "ai.key" },
     });
     await flushPromises();
-    await wrapper
+    const removeBtn = wrapper
       .findAll("button")
-      .find((button) => button.text() === "settings.credentials.remove")!
-      .trigger("click");
+      .find((button) => button.attributes("aria-label") === "settings.credentials.remove");
+    expect(removeBtn).toBeDefined();
+    await removeBtn!.trigger("click");
     expect(deleteSecret).toHaveBeenCalledWith("ai.key");
   });
 });

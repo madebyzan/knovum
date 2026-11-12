@@ -1,20 +1,15 @@
-mod upload;
 mod video;
 
-pub use upload::ZhipuFileUploadAdapter;
 pub use video::ZhipuVideoAdapter;
 
 use crate::ai::{
-    contracts::{
-        AiProvider, FileUploadCapability, ImageGenerationCapability, VideoGenerationCapability,
-    },
+    contracts::{AiProvider, ImageGenerationCapability, VideoGenerationCapability},
     providers::openai::OpenAiImageAdapter,
 };
 
 pub struct ZhipuProvider {
     image: OpenAiImageAdapter,
     video: ZhipuVideoAdapter,
-    upload: ZhipuFileUploadAdapter,
 }
 
 impl ZhipuProvider {
@@ -22,7 +17,6 @@ impl ZhipuProvider {
         Self {
             image: OpenAiImageAdapter,
             video: ZhipuVideoAdapter,
-            upload: ZhipuFileUploadAdapter,
         }
     }
 }
@@ -40,9 +34,5 @@ impl AiProvider for ZhipuProvider {
 
     fn as_video_generation(&self) -> Option<&dyn VideoGenerationCapability> {
         Some(&self.video)
-    }
-
-    fn as_file_upload(&self) -> Option<&dyn FileUploadCapability> {
-        Some(&self.upload)
     }
 }

@@ -12,6 +12,7 @@ const SETTINGS_PANE_IDS = [
   "extensions",
   "usage",
   "data",
+  "objectStorage",
   "archivedSpaces",
   "about",
 ] as const;

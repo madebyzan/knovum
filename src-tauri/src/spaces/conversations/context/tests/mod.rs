@@ -24,11 +24,14 @@ async fn space_snapshot_remains_distinct_from_the_user_input() {
             next_offset: None,
         },
     };
-    let message = context.initial_message(
-        "input:test".into(),
-        "What is in this Space?",
-        Some("Created Girl earlier"),
-    );
+    let message = context
+        .initial_message(
+            "input:test".into(),
+            "What is in this Space?",
+            Some("Created Girl earlier"),
+        )
+        .await
+        .expect("initial message");
     let crate::agent_runtime::protocol::messages::AgentContentPart::Text { text } =
         &message.content[0]
     else {

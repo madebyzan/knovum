@@ -6,17 +6,13 @@ mod video;
 mod tests;
 
 pub use image::GeminiImageAdapter;
-pub use upload::GeminiFileUploadAdapter;
 pub use video::GeminiVideoAdapter;
 
-use crate::ai::contracts::{
-    AiProvider, FileUploadCapability, ImageGenerationCapability, VideoGenerationCapability,
-};
+use crate::ai::contracts::{AiProvider, ImageGenerationCapability, VideoGenerationCapability};
 
 pub struct GeminiProvider {
     image: GeminiImageAdapter,
     video: GeminiVideoAdapter,
-    upload: GeminiFileUploadAdapter,
 }
 
 impl GeminiProvider {
@@ -24,7 +20,6 @@ impl GeminiProvider {
         Self {
             image: GeminiImageAdapter,
             video: GeminiVideoAdapter,
-            upload: GeminiFileUploadAdapter,
         }
     }
 }
@@ -42,9 +37,5 @@ impl AiProvider for GeminiProvider {
 
     fn as_video_generation(&self) -> Option<&dyn VideoGenerationCapability> {
         Some(&self.video)
-    }
-
-    fn as_file_upload(&self) -> Option<&dyn FileUploadCapability> {
-        Some(&self.upload)
     }
 }

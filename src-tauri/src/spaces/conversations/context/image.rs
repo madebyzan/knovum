@@ -30,14 +30,31 @@ pub(super) async fn thumbnail(path: std::path::PathBuf) -> Result<String, String
 pub(in crate::spaces::conversations) async fn image_input_from_file(
     path: &std::path::Path,
 ) -> Result<crate::agent_runtime::protocol::messages::AgentContentPart, String> {
-    use base64::Engine;
     let image = read_image_attachment(path).await?;
-    Ok(
-        crate::agent_runtime::protocol::messages::AgentContentPart::Image {
-            mime_type: image.media_type.into(),
-            data: base64::engine::general_purpose::STANDARD.encode(image.bytes),
-        },
-    )
+    image_part(image.bytes, image.media_type).await
+}
+
+/// Conversation images follow one delivery rule: with user-configured object
+/// storage the model receives a URL; without it the pixels travel inline.
+pub(in crate::spaces::conversations) async fn image_part(
+    bytes: Vec<u8>,
+    media_type: &str,
+) -> Result<crate::agent_runtime::protocol::messages::AgentContentPart, String> {
+    use crate::agent_runtime::protocol::messages::AgentContentPart;
+    if crate::object_storage::available().await {
+        let url = crate::object_storage::upload_media(bytes, media_type)
+            .await
+            .map_err(|error| error.to_string())?;
+        return Ok(AgentContentPart::ImageLink {
+            mime_type: media_type.into(),
+            url,
+        });
+    }
+    use base64::Engine;
+    Ok(AgentContentPart::Image {
+        mime_type: media_type.into(),
+        data: base64::engine::general_purpose::STANDARD.encode(bytes),
+    })
 }
 
 pub(super) async fn read_image_attachment(

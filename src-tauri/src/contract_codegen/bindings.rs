@@ -191,6 +191,7 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::ai::usage::contracts::UsageReport::export_all,
         crate::ai::usage::contracts::UsageReportRequest::export_all,
         crate::ai::settings::contracts::AiSettings::export_all,
+        crate::object_storage::ObjectStorageSettings::export_all,
         crate::ai::contracts::ProviderKind::export_all,
         crate::ai::contracts::ChatModelProtocol::export_all,
         crate::ai::contracts::runtime::RuntimeInitializeParams::export_all,
