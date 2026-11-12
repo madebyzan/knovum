@@ -1,0 +1,41 @@
+{
+  "title": "Stockage d'objets",
+  "description": "Connectez un bucket compatible S3 pour que les modèles cloud reçoivent images et vidéos par URL plutôt qu'en données inline. Compatible Tencent COS, Alibaba OSS et tout service compatible S3.",
+  "connection": {
+    "title": "Connexion",
+    "description": "Emplacement et identité du bucket. Les identifiants sont conservés séparément dans la base de secrets locale.",
+    "endpoint": "Point de terminaison",
+    "endpointPlaceholder": "https://cos.ap-guangzhou.myqcloud.com",
+    "region": "Région",
+    "regionPlaceholder": "ap-guangzhou",
+    "bucket": "Bucket",
+    "publicBaseUrl": "URL publique de base",
+    "publicBaseUrlDescription": "Domaine public ou CDN optionnel servant les objets téléversés.",
+    "endpointDescription": "Point de terminaison",
+    "regionDescription": "Région",
+    "bucketDescription": "Bucket"
+  },
+  "credentials": {
+    "title": "Identifiants",
+    "description": "Les identifiants sont enregistrés automatiquement dans la base de données locale des secrets.",
+    "accessKeyId": "ID de clé d'accès",
+    "secretAccessKey": "Clé d'accès secrète"
+  },
+  "actions": {
+    "test": "Tester la connexion",
+    "remove": "Supprimer",
+    "testSuccess": "La connexion au stockage fonctionne",
+    "testFailed": "Échec de la connexion au stockage",
+    "removed": "Configuration du stockage supprimée",
+    "removeFailed": "Impossible de supprimer la configuration du stockage",
+    "loadFailed": "Impossible de lire les paramètres de stockage",
+    "removeConfirm": {
+      "title": "Supprimer le stockage d'objets ?",
+      "description": "La configuration du bucket et ses identifiants enregistrés seront supprimés de cet appareil.",
+      "confirm": "Supprimer"
+    }
+  },
+  "status": {
+    "testing": "..."
+  }
+}

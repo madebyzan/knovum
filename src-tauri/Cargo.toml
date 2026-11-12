@@ -16,7 +16,7 @@ license = "MIT"
 name = "knovum"
 publish = false
 default-run = "knovum"
-version = "0.3.2"
+version = "0.3.3"
 description = "Local-first desktop knowledge space"
 authors = ["Zan"]
 license.workspace = true
@@ -103,9 +103,10 @@ fnv = "1.0.7"
 lancedb = "=0.37.1"
 arrow-array = "58.4.0"
 arrow-schema = "58.4.0"
+object_store = { version = "=0.13.2", default-features = false, features = ["aws"] }
 
 # Spaces knowledge server
-rmcp = { version = "=3.5.1", features = [
+rmcp = { version = "=3.9.0", features = [
   "client",
   "auth",
   "elicitation",
@@ -131,7 +132,7 @@ percent-encoding = "=2.3.2"
 axum = "=0.8.9"
 tokio-util = { version = "=0.7.19", features = ["codec"] }
 walkdir = "2.5.0"
-agent-client-protocol = { version = "=3.0.0", features = ["process"] }
+agent-client-protocol = { version = "=3.6.0", features = ["process"] }
 chrono = { version = "=0.4.45", default-features = false, features = ["clock", "serde"] }
 schemars = "=1.2.2"
 ts-rs = { version = "=12.0.1", features = ["no-serde-warnings", "serde-compat", "serde-json-impl"] }

@@ -1,5 +1,4 @@
 use genai::{
-    adapter::AdapterKind,
     chat::{
         Binary, ChatMessage, ChatOptions, ChatRequest, ChatResponseFormat, ContentPart,
         MessageContent,
@@ -30,6 +29,17 @@ pub async fn analyze_image(
     if !image.is_image() {
         return Err(AppError::invalid("Vision analysis requires an image file"));
     }
+    // With user-configured object storage the provider fetches the image by
+    // URL; without it the pixels travel inline as the file was read.
+    let image = if crate::object_storage::available().await {
+        let bytes = tokio::fs::read(&request.source)
+            .await
+            .map_err(|e| AppError::invalid(e.to_string()))?;
+        let url = crate::object_storage::upload_media(bytes, &image.content_type).await?;
+        Binary::from_url(image.content_type, url, image.name)
+    } else {
+        image
+    };
 
     let content = MessageContent::from_parts(vec![
         ContentPart::Text(request.instruction.clone()),
@@ -92,32 +102,8 @@ pub async fn analyze_image(
 }
 
 fn service_target(ctx: &SecurityContext, kind: ProviderKind) -> AppResult<ServiceTarget> {
-    let adapter = match kind {
-        ProviderKind::OpenAi
-        | ProviderKind::OpenAiCompatible
-        | ProviderKind::OpenRouter
-        | ProviderKind::DeepSeek
-        | ProviderKind::Grok
-        | ProviderKind::Groq
-        | ProviderKind::Mistral
-        | ProviderKind::Together
-        | ProviderKind::StepFun
-        | ProviderKind::Moonshot
-        | ProviderKind::Doubao
-        | ProviderKind::MiniMax
-        | ProviderKind::Zhipu
-        | ProviderKind::SiliconFlow => AdapterKind::OpenAI,
-
-        ProviderKind::Anthropic => AdapterKind::Anthropic,
-        ProviderKind::Gemini => AdapterKind::Gemini,
-        ProviderKind::DashScope => AdapterKind::Aliyun,
-        ProviderKind::Ollama => AdapterKind::Ollama,
-        _ => {
-            return Err(AppError::unsupported(
-                "Vision is not supported on this provider",
-            ))
-        }
-    };
+    let adapter = crate::ai::model_turn::genai_adapter(kind)
+        .ok_or_else(|| AppError::unsupported("Vision is not supported on this provider"))?;
 
     let endpoint = format!("{}/", ctx.endpoint.trim_end_matches('/'));
     let auth = match &ctx.api_key {

@@ -48,8 +48,25 @@ const fn sources(provider: ProviderKind) -> Sources {
         ProviderKind::Moonshot => &["moonshotai-cn", "moonshotai"],
         ProviderKind::Doubao => &["volcengine"],
         ProviderKind::MiniMax => &["minimax-cn", "minimax"],
-        // A local server's limits are its own runtime configuration, not a published fact.
-        ProviderKind::Ollama | ProviderKind::Kling => &[],
+        ProviderKind::Perplexity => &["perplexity"],
+        ProviderKind::Cohere => &["cohere"],
+        // models.dev publishes Hunyuan limits across Tencent's three plan catalogs.
+        ProviderKind::Hunyuan => &[
+            "tencent-tokenhub",
+            "tencent-token-plan",
+            "tencent-coding-plan",
+        ],
+        ProviderKind::SenseNova => &["sensenova"],
+        ProviderKind::Cerebras => &["cerebras"],
+        ProviderKind::Fireworks => &["fireworks-ai"],
+        // Baidu, Baichuan, and Spark are absent from models.dev; a local server's limits
+        // are its own runtime configuration, not a published fact.
+        ProviderKind::Baidu
+        | ProviderKind::Baichuan
+        | ProviderKind::Spark
+        | ProviderKind::Ollama
+        | ProviderKind::LmStudio
+        | ProviderKind::Kling => &[],
     })
 }
 

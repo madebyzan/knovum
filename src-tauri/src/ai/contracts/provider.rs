@@ -1,10 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-use super::{
-    files::FileUploadCapability,
-    media::{ImageGenerationCapability, VideoGenerationCapability},
-};
+use super::media::{ImageGenerationCapability, VideoGenerationCapability};
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, ts_rs::TS, schemars::JsonSchema,
@@ -49,6 +46,26 @@ pub enum ProviderKind {
     MiniMax,
     #[serde(rename = "ollama")]
     Ollama,
+    #[serde(rename = "perplexity")]
+    Perplexity,
+    #[serde(rename = "cohere")]
+    Cohere,
+    #[serde(rename = "baidu")]
+    Baidu,
+    #[serde(rename = "hunyuan")]
+    Hunyuan,
+    #[serde(rename = "baichuan")]
+    Baichuan,
+    #[serde(rename = "sensenova")]
+    SenseNova,
+    #[serde(rename = "spark")]
+    Spark,
+    #[serde(rename = "cerebras")]
+    Cerebras,
+    #[serde(rename = "fireworks")]
+    Fireworks,
+    #[serde(rename = "lmstudio")]
+    LmStudio,
 }
 
 #[derive(
@@ -120,6 +137,16 @@ impl ProviderKind {
             "doubao" => Some(Self::Doubao),
             "minimax" => Some(Self::MiniMax),
             "ollama" => Some(Self::Ollama),
+            "perplexity" => Some(Self::Perplexity),
+            "cohere" => Some(Self::Cohere),
+            "baidu" => Some(Self::Baidu),
+            "hunyuan" => Some(Self::Hunyuan),
+            "baichuan" => Some(Self::Baichuan),
+            "sensenova" => Some(Self::SenseNova),
+            "spark" => Some(Self::Spark),
+            "cerebras" => Some(Self::Cerebras),
+            "fireworks" => Some(Self::Fireworks),
+            "lmstudio" => Some(Self::LmStudio),
             _ => None,
         }
     }
@@ -145,6 +172,16 @@ impl ProviderKind {
             Self::Doubao => "doubao",
             Self::MiniMax => "minimax",
             Self::Ollama => "ollama",
+            Self::Perplexity => "perplexity",
+            Self::Cohere => "cohere",
+            Self::Baidu => "baidu",
+            Self::Hunyuan => "hunyuan",
+            Self::Baichuan => "baichuan",
+            Self::SenseNova => "sensenova",
+            Self::Spark => "spark",
+            Self::Cerebras => "cerebras",
+            Self::Fireworks => "fireworks",
+            Self::LmStudio => "lmstudio",
         }
     }
 }
@@ -161,10 +198,6 @@ pub trait AiProvider: Send + Sync {
     }
 
     fn as_video_generation(&self) -> Option<&dyn VideoGenerationCapability> {
-        None
-    }
-
-    fn as_file_upload(&self) -> Option<&dyn FileUploadCapability> {
         None
     }
 }

@@ -41,7 +41,7 @@ impl AiProvider for MiniMaxProvider {
 fn endpoint(raw: &str) -> String {
     let trimmed = raw.trim().trim_end_matches('/');
     if trimmed.is_empty() {
-        "https://api.minimax.chat/v1".to_string()
+        "https://api.minimax.cn/v1".to_string()
     } else if trimmed.ends_with("/v1") {
         trimmed.to_string()
     } else {

@@ -1,22 +1,22 @@
-mod upload;
+mod video;
 
-pub use upload::GrokFileUploadAdapter;
+pub use video::GrokVideoAdapter;
 
 use crate::ai::{
-    contracts::{AiProvider, FileUploadCapability, ImageGenerationCapability},
+    contracts::{AiProvider, ImageGenerationCapability, VideoGenerationCapability},
     providers::openai::OpenAiImageAdapter,
 };
 
 pub struct GrokProvider {
     image: OpenAiImageAdapter,
-    upload: GrokFileUploadAdapter,
+    video: GrokVideoAdapter,
 }
 
 impl GrokProvider {
     pub fn new() -> Self {
         Self {
             image: OpenAiImageAdapter,
-            upload: GrokFileUploadAdapter,
+            video: GrokVideoAdapter,
         }
     }
 }
@@ -32,7 +32,7 @@ impl AiProvider for GrokProvider {
         Some(&self.image)
     }
 
-    fn as_file_upload(&self) -> Option<&dyn FileUploadCapability> {
-        Some(&self.upload)
+    fn as_video_generation(&self) -> Option<&dyn VideoGenerationCapability> {
+        Some(&self.video)
     }
 }

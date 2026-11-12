@@ -49,11 +49,7 @@ impl VideoGenerationCapability for SiliconFlowVideoAdapter {
             let endpoint = siliconflow_endpoint(&ctx.endpoint);
             let client = http_client();
 
-            let model = if ctx.model.is_empty() {
-                "THUDM/CogVideoX-5b"
-            } else {
-                ctx.model.as_str()
-            };
+            let model = ctx.model.as_str();
 
             let mut body = serde_json::json!({
                 "model": model,

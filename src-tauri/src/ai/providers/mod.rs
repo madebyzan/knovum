@@ -4,6 +4,7 @@ pub mod dashscope;
 pub mod doubao;
 pub mod gemini;
 pub mod grok;
+pub mod hunyuan;
 pub mod image_references;
 pub mod kling;
 pub mod minimax;
@@ -12,7 +13,6 @@ pub mod openai;
 pub mod openrouter;
 pub mod registry;
 pub mod siliconflow;
-pub mod stepfun;
 pub mod together;
 pub mod zhipu;
 
@@ -20,13 +20,13 @@ use dashscope::DashScopeProvider;
 use doubao::DoubaoProvider;
 use gemini::GeminiProvider;
 use grok::GrokProvider;
+use hunyuan::HunyuanProvider;
 use kling::KlingProvider;
 use minimax::MiniMaxProvider;
 use moonshot::MoonshotProvider;
 use openai::OpenAiProvider;
 use openrouter::OpenRouterProvider;
 use siliconflow::SiliconFlowProvider;
-use stepfun::StepFunProvider;
 use together::TogetherProvider;
 use zhipu::ZhipuProvider;
 
@@ -46,13 +46,16 @@ pub fn resolve_provider(kind: ProviderKind) -> &'static dyn AiProvider {
     static SILICONFLOW: OnceLock<SiliconFlowProvider> = OnceLock::new();
     static KLING: OnceLock<KlingProvider> = OnceLock::new();
     static GROK: OnceLock<GrokProvider> = OnceLock::new();
+    static HUNYUAN: OnceLock<HunyuanProvider> = OnceLock::new();
     static GROQ: OnceLock<OpenAiProvider> = OnceLock::new();
     static MISTRAL: OnceLock<OpenAiProvider> = OnceLock::new();
     static TOGETHER: OnceLock<TogetherProvider> = OnceLock::new();
-    static STEPFUN: OnceLock<StepFunProvider> = OnceLock::new();
+    static STEPFUN: OnceLock<OpenAiProvider> = OnceLock::new();
     static MOONSHOT: OnceLock<MoonshotProvider> = OnceLock::new();
     static DOUBAO: OnceLock<DoubaoProvider> = OnceLock::new();
     static MINIMAX: OnceLock<MiniMaxProvider> = OnceLock::new();
+    static BAIDU: OnceLock<OpenAiProvider> = OnceLock::new();
+    static SENSENOVA: OnceLock<OpenAiProvider> = OnceLock::new();
 
     match kind {
         ProviderKind::OpenAi => OPENAI.get_or_init(|| OpenAiProvider::new(ProviderKind::OpenAi)),
@@ -60,10 +63,8 @@ pub fn resolve_provider(kind: ProviderKind) -> &'static dyn AiProvider {
             OPENAI_COMPATIBLE.get_or_init(|| OpenAiProvider::new(ProviderKind::OpenAiCompatible))
         }
         ProviderKind::OpenRouter => OPENROUTER.get_or_init(OpenRouterProvider::new),
-        ProviderKind::Anthropic => &NO_MEDIA,
         ProviderKind::Gemini => GEMINI.get_or_init(GeminiProvider::new),
         ProviderKind::DashScope => DASHSCOPE.get_or_init(DashScopeProvider::new),
-        ProviderKind::DeepSeek => &NO_MEDIA,
         ProviderKind::Zhipu => ZHIPU.get_or_init(ZhipuProvider::new),
         ProviderKind::SiliconFlow => SILICONFLOW.get_or_init(SiliconFlowProvider::new),
         ProviderKind::Kling => KLING.get_or_init(KlingProvider::new),
@@ -71,10 +72,24 @@ pub fn resolve_provider(kind: ProviderKind) -> &'static dyn AiProvider {
         ProviderKind::Groq => GROQ.get_or_init(|| OpenAiProvider::new(ProviderKind::Groq)),
         ProviderKind::Mistral => MISTRAL.get_or_init(|| OpenAiProvider::new(ProviderKind::Mistral)),
         ProviderKind::Together => TOGETHER.get_or_init(TogetherProvider::new),
-        ProviderKind::StepFun => STEPFUN.get_or_init(StepFunProvider::new),
+        ProviderKind::StepFun => STEPFUN.get_or_init(|| OpenAiProvider::new(ProviderKind::StepFun)),
         ProviderKind::Moonshot => MOONSHOT.get_or_init(MoonshotProvider::new),
         ProviderKind::Doubao => DOUBAO.get_or_init(DoubaoProvider::new),
         ProviderKind::MiniMax => MINIMAX.get_or_init(MiniMaxProvider::new),
-        ProviderKind::Ollama => &NO_MEDIA,
+        ProviderKind::Baidu => BAIDU.get_or_init(|| OpenAiProvider::new(ProviderKind::Baidu)),
+        ProviderKind::SenseNova => {
+            SENSENOVA.get_or_init(|| OpenAiProvider::new(ProviderKind::SenseNova))
+        }
+        ProviderKind::Hunyuan => HUNYUAN.get_or_init(HunyuanProvider::new),
+        ProviderKind::Anthropic
+        | ProviderKind::DeepSeek
+        | ProviderKind::Ollama
+        | ProviderKind::Perplexity
+        | ProviderKind::Cohere
+        | ProviderKind::Baichuan
+        | ProviderKind::Spark
+        | ProviderKind::Cerebras
+        | ProviderKind::Fireworks
+        | ProviderKind::LmStudio => &NO_MEDIA,
     }
 }

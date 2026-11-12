@@ -7,7 +7,7 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    transport::{http_client, response, SecurityContext},
+    transport::{endpoint_with_suffix, http_client, response, SecurityContext},
 };
 use crate::foundation::app_error::{AppError, AppResult};
 
@@ -41,14 +41,10 @@ impl VideoGenerationCapability for DoubaoVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
-            let endpoint = doubao_endpoint(&ctx.endpoint);
+            let endpoint = endpoint_with_suffix(&ctx.endpoint, "/api/v3");
             let client = http_client();
 
-            let model = if ctx.model.is_empty() {
-                "doubao-video-generation"
-            } else {
-                ctx.model.as_str()
-            };
+            let model = ctx.model.as_str();
 
             let mut content = vec![serde_json::json!({
                 "type": "text",
@@ -104,7 +100,7 @@ impl VideoGenerationCapability for DoubaoVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
-            let endpoint = doubao_endpoint(&ctx.endpoint);
+            let endpoint = endpoint_with_suffix(&ctx.endpoint, "/api/v3");
             let client = http_client();
 
             let query_response = client
@@ -160,15 +156,6 @@ impl VideoGenerationCapability for DoubaoVideoAdapter {
         Box::pin(async move {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })
-    }
-}
-
-fn doubao_endpoint(raw: &str) -> String {
-    let trimmed = raw.trim().trim_end_matches('/');
-    if trimmed.ends_with("/api/v3") {
-        trimmed.to_string()
-    } else {
-        format!("{trimmed}/api/v3")
     }
 }
 

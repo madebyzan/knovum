@@ -36,11 +36,7 @@ impl ImageGenerationCapability for KlingImageAdapter {
         cancellation: &'a CancellationToken,
     ) -> BoxFuture<'a, AppResult<GeneratedImage>> {
         Box::pin(async move {
-            let model = if ctx.model.is_empty() {
-                "kling-v1"
-            } else {
-                ctx.model.as_str()
-            };
+            let model = ctx.model.as_str();
             let (path, payload) = match req.references.first() {
                 Some(reference) => ("images/omni-image", omni_payload(model, req, reference)?),
                 None => (
@@ -56,7 +52,7 @@ impl ImageGenerationCapability for KlingImageAdapter {
 
             let submit = http_client()
                 .post(format!("{}/v1/{path}", ctx.endpoint.trim_end_matches('/')))
-                .bearer_auth(ctx.require_api_key()?)
+                .bearer_auth(super::auth::bearer_token(ctx.require_api_key()?)?)
                 .json(&payload)
                 .send();
             let submission_response = tokio::select! {

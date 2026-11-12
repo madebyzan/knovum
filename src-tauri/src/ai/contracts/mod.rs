@@ -4,7 +4,6 @@ pub mod embedding;
 pub mod embedding_wire;
 pub use knovum_inference_contracts::execution_profile;
 pub mod external_agent;
-pub mod files;
 pub use knovum_inference_contracts::image_compute;
 pub use knovum_inference_contracts::image_spec;
 pub mod image_wire;
@@ -21,7 +20,6 @@ pub use external_agent::{
 
 pub use chat::{ChatRequest, ChatResponse, StreamFrame, StreamFrameStream, TokenUsage};
 pub use embedding::{EmbeddingCapability, EmbeddingResponse};
-pub use files::{FileUploadCapability, UploadedFileReference};
 pub use media::{
     GeneratedImage, GeneratedVideo, ImageGenerationCapability, ImageGenerationInput,
     ImageReference, ImageReferenceSupport, VideoGenerationCapability, VideoGenerationInput,

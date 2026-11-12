@@ -46,11 +46,7 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
             let endpoint = endpoint(&ctx.endpoint);
             let client = http_client();
 
-            let model = if ctx.model.is_empty() {
-                "image-01"
-            } else {
-                ctx.model.as_str()
-            };
+            let model = ctx.model.as_str();
 
             let ratio = match req.require_aspect_ratio()? {
                 requested @ ("16:9" | "9:16" | "4:3" | "3:4") => requested,

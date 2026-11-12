@@ -21,11 +21,7 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
-            let model = if ctx.model.is_empty() {
-                "video-01"
-            } else {
-                ctx.model.as_str()
-            };
+            let model = ctx.model.as_str();
             let mut payload = serde_json::json!({ "prompt": req.prompt, "model": model });
             if let Some(first_frame) = req.reference_images.first() {
                 payload["first_frame_image"] = serde_json::json!(first_frame);

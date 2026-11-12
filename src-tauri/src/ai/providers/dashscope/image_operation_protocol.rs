@@ -37,11 +37,15 @@ pub struct ChoiceContent {
     pub image: Option<String>,
 }
 
-pub fn request(reference_url: &str, prompt: &str) -> (&'static str, serde_json::Value) {
+pub fn request(
+    model: &str,
+    reference_url: &str,
+    prompt: &str,
+) -> (&'static str, serde_json::Value) {
     (
         "services/aigc/image-generation/generation",
         serde_json::json!({
-            "model": "qwen-image-3.0-pro",
+            "model": model,
             "input": { "messages": [{
                 "role": "user",
                 "content": [{ "image": reference_url }, { "text": prompt }]

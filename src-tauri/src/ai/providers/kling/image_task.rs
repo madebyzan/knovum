@@ -28,7 +28,7 @@ pub(super) async fn poll(
         }
         let image_download = client
             .get(&url)
-            .bearer_auth(ctx.require_api_key()?)
+            .bearer_auth(super::auth::bearer_token(ctx.require_api_key()?)?)
             .send()
             .await
             .map_err(provider_error)?;

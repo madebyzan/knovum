@@ -18,6 +18,7 @@ import { getSettingsDefinition } from "./navigation/settings-registry";
 import SettingsSidebar from "./navigation/SettingsSidebar.vue";
 import { useSettingsLeaveCoordinator } from "./navigation/use-settings-leave-coordinator";
 import NotificationsSettingsPane from "./notifications/NotificationsSettingsPane.vue";
+import ObjectStorageSettingsPane from "./object-storage/ObjectStorageSettingsPane.vue";
 import ShortcutsSettingsPane from "./shortcuts/ShortcutsSettingsPane.vue";
 import UsageSettingsPane from "./usage/UsageSettingsPane.vue";
 
@@ -30,6 +31,8 @@ const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
 useSettingsLeaveCoordinator();
+// Settings is its own surface: overlays inside it must not follow the
+// workspace's active state, which the shell scope would otherwise hide.
 provide(overlayScopeVisibleKey, shallowRef(true));
 const activePane = computed<SettingsPaneId>(() => {
   const value = Array.isArray(route.query.pane) ? route.query.pane[0] : route.query.pane;
@@ -70,6 +73,7 @@ const componentByPaneId = {
   extensions: toRaw(props.extensionsComponent),
   usage: UsageSettingsPane,
   data: BackupSettingsPane,
+  objectStorage: ObjectStorageSettingsPane,
   archivedSpaces: ArchivedSpacesSettingsPane,
   about: AboutSettingsPane,
   appearance: AppearanceSettingsPane,

@@ -15,6 +15,7 @@ import type { Component } from "vue";
 import { AI_ROUTING_SETTINGS_DEFINITION } from "../ai/routing-settings-definition";
 import { AI_PROVIDERS_SETTINGS_DEFINITION } from "../ai/settings-definition";
 import { BACKUP_SETTINGS_DEFINITION } from "../backup/settings-definition";
+import { OBJECT_STORAGE_SETTINGS_DEFINITION } from "../object-storage/settings-definition";
 import type { SettingsPaneId } from "./settings-pane";
 
 export type SettingsGroupId = "general" | "intelligence" | "data" | "information";
@@ -137,6 +138,7 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
     icon: Activity,
   },
   BACKUP_SETTINGS_DEFINITION,
+  OBJECT_STORAGE_SETTINGS_DEFINITION,
   {
     id: "archivedSpaces",
     group: "data",

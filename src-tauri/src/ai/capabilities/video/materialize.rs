@@ -63,7 +63,8 @@ pub async fn materialize(
         match generation_status {
             VideoGenerationStatus::Succeeded { video_url } => {
                 stage("downloadingVideo").map_err(AppError::invalid)?;
-                let video_bytes = super::output::materialize(ctx, &video_url, cancellation).await?;
+                let video_bytes =
+                    super::output::materialize(adapter, ctx, &video_url, cancellation).await?;
 
                 return Ok(GeneratedVideo {
                     bytes: video_bytes,

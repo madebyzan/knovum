@@ -6,7 +6,7 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    transport::{http_client, response, SecurityContext},
+    transport::{endpoint_with_suffix, http_client, response, SecurityContext},
 };
 use crate::foundation::app_error::{AppError, AppResult};
 
@@ -20,11 +20,7 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
-            let model = if ctx.model.is_empty() {
-                "cogvideox"
-            } else {
-                ctx.model.as_str()
-            };
+            let model = ctx.model.as_str();
 
             let mut payload = serde_json::json!({
                 "model": model,
@@ -34,7 +30,7 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
                 payload["image_url"] = serde_json::json!(img);
             }
 
-            let endpoint = zhipu_endpoint(&ctx.endpoint);
+            let endpoint = endpoint_with_suffix(&ctx.endpoint, "/api/paas/v4");
             let submit_url = format!("{endpoint}/videos/generations");
             let client = http_client();
 
@@ -74,7 +70,7 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
-            let endpoint = zhipu_endpoint(&ctx.endpoint);
+            let endpoint = endpoint_with_suffix(&ctx.endpoint, "/api/paas/v4");
             let client = http_client();
             let query_url = format!("{endpoint}/async-result/{task_id}");
 
@@ -128,15 +124,6 @@ fn parse_status(status: &str, payload: &serde_json::Value) -> AppResult<VideoGen
             "invalid_response",
             "Zhipu returned an unknown video task status",
         )),
-    }
-}
-
-fn zhipu_endpoint(raw: &str) -> String {
-    let trimmed = raw.trim().trim_end_matches('/');
-    if trimmed.ends_with("/api/paas/v4") {
-        trimmed.to_string()
-    } else {
-        format!("{trimmed}/api/paas/v4")
     }
 }
 

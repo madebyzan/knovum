@@ -1,3 +1,5 @@
+import type { SpeechPreviewAudioChunk } from "../../../contracts/generated/SpeechPreviewAudioChunk";
+
 export class FakeAudioBuffer {
   samples: Float32Array | undefined;
   copyToChannel(samples: Float32Array) {
@@ -76,4 +78,15 @@ export class FakeAudioContext {
     this.analysers.push(analyser);
     return analyser as unknown as AnalyserNode;
   }
+}
+
+export function chunk(requestId: string, seq: number): SpeechPreviewAudioChunk {
+  return {
+    requestId,
+    attemptEpoch: 0,
+    seq,
+    sampleRate: 8_000,
+    sampleCount: 2,
+    pcm16: [0, 0, 0xff, 0x7f],
+  };
 }

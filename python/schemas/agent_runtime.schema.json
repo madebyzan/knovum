@@ -367,6 +367,7 @@
           ]
         },
         {
+          "description": "Inline pixels, used when no object storage is configured.",
           "type": "object",
           "properties": {
             "mimeType": {
@@ -385,6 +386,28 @@
             "type",
             "mimeType",
             "data"
+          ]
+        },
+        {
+          "description": "A public object-storage URL the model fetches instead of inline pixels.",
+          "type": "object",
+          "properties": {
+            "mimeType": {
+              "type": "string"
+            },
+            "url": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "image_link"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "mimeType",
+            "url"
           ]
         }
       ]

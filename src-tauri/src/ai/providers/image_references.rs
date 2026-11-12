@@ -2,9 +2,8 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use serde::Deserialize;
 use tokio_util::sync::CancellationToken;
 
-use super::grok::GrokFileUploadAdapter;
 use crate::ai::{
-    contracts::{FileUploadCapability, ProviderKind},
+    contracts::ProviderKind,
     transport::{http_client, response, SecurityContext},
 };
 
@@ -18,7 +17,6 @@ pub(crate) const MAX_INLINE_REFERENCE_BYTES: usize = 8 * 1024 * 1024;
 /// generating from text, with the image attached.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum ReferenceApi {
-    /// Uploads the file first and references it by ID.
     Grok,
     Doubao,
     OpenRouter,
@@ -73,6 +71,23 @@ struct ImageContentReference {
     url: Option<String>,
 }
 
+/// Reference delivery follows one rule: with user-configured object storage
+/// the pixels are uploaded once and the API fetches them by URL; without it
+/// they travel inline as a data URI, inside the request-size budget.
+pub(crate) async fn deliver_png(
+    image: &[u8],
+    cancellation: &CancellationToken,
+) -> Result<String, String> {
+    if crate::object_storage::available().await {
+        let upload = crate::object_storage::upload_media(image.to_vec(), "image/png");
+        return tokio::select! {
+            _ = cancellation.cancelled() => Err("Image generation was cancelled".into()),
+            url = upload => url.map_err(|error| error.to_string()),
+        };
+    }
+    Ok(format!("data:image/png;base64,{}", STANDARD.encode(image)))
+}
+
 pub(crate) async fn generate_from_reference(
     api: ReferenceApi,
     ctx: &SecurityContext,
@@ -81,33 +96,22 @@ pub(crate) async fn generate_from_reference(
     cancellation: &CancellationToken,
 ) -> Result<Vec<u8>, String> {
     let endpoint = ctx.endpoint.trim_end_matches('/');
+    let reference = deliver_png(image, cancellation).await?;
     let (path, body) = match api {
-        ReferenceApi::Grok => {
-            let upload = GrokFileUploadAdapter.upload_ephemeral_file(
-                ctx,
-                image.to_vec(),
-                "image/png",
-                "source.png",
-            );
-            let uploaded = tokio::select! {
-                _ = cancellation.cancelled() => return Err("Image generation was cancelled".into()),
-                uploaded = upload => uploaded.map_err(|error| error.to_string())?,
-            };
-            (
-                "images/edits",
-                serde_json::json!({
+        ReferenceApi::Grok => (
+            "images/edits",
+            serde_json::json!({
                 "model": ctx.model,
                 "prompt": prompt,
-                "image": {"file_id": uploaded.file_id},
-                }),
-            )
-        }
+                "image": reference,
+            }),
+        ),
         ReferenceApi::Doubao => (
             "images/generations",
             serde_json::json!({
                 "model": ctx.model,
                 "prompt": prompt,
-                "image": inline(image),
+                "image": reference,
                 "response_format": "url",
             }),
         ),
@@ -118,7 +122,7 @@ pub(crate) async fn generate_from_reference(
                 "prompt": prompt,
                 "input_references": [{
                     "type": "image_url",
-                    "image_url": {"url": inline(image)},
+                    "image_url": {"url": reference},
                 }],
             }),
         ),
@@ -127,7 +131,7 @@ pub(crate) async fn generate_from_reference(
             serde_json::json!({
                 "model": ctx.model,
                 "prompt": prompt,
-                "image": inline(image),
+                "image": reference,
             }),
         ),
     };
@@ -171,9 +175,4 @@ pub(crate) async fn generate_from_reference(
         _ = cancellation.cancelled() => Err("Image generation was cancelled".into()),
         bytes = response::download_image(&url) => bytes.map_err(|error| error.to_string()),
     }
-}
-
-/// Only for APIs that accept nothing but an inline image.
-fn inline(image: &[u8]) -> String {
-    format!("data:image/png;base64,{}", STANDARD.encode(image))
 }

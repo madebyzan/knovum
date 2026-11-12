@@ -1,19 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { SpeechPreviewAudioChunk } from "../../contracts/generated/SpeechPreviewAudioChunk";
 import { PreviewAudioQueue } from "../preview-audio-queue";
-import { FakeAudioContext } from "./fake-audio-context";
+import { chunk, FakeAudioContext } from "./support/preview-audio-fakes";
 
 const noop = () => undefined;
-
-const chunk = (requestId: string, seq: number): SpeechPreviewAudioChunk => ({
-  requestId,
-  attemptEpoch: 0,
-  seq,
-  sampleRate: 8_000,
-  sampleCount: 2,
-  pcm16: [0, 0, 0xff, 0x7f],
-});
 
 beforeEach(() => {
   FakeAudioContext.instances = [];
@@ -96,44 +86,44 @@ describe("speech preview audio queue", () => {
     expect(FakeAudioContext.instances[1]?.sources).toHaveLength(1);
     expect(FakeAudioContext.instances[0]?.state).toBe("closed");
   });
-});
 
-it("reports the amplitude of the audio being heard and silence once it stops", async () => {
-  const queue = new PreviewAudioQueue(() => {});
-  await queue.start("job");
-  const context = FakeAudioContext.instances[0]!;
-  const analyser = context.analysers[0]!;
+  it("reports the amplitude of the audio being heard and silence once it stops", async () => {
+    const queue = new PreviewAudioQueue(() => {});
+    await queue.start("job");
+    const context = FakeAudioContext.instances[0]!;
+    const analyser = context.analysers[0]!;
 
-  // Nothing is scheduled yet: a waveform must draw a flat line rather than invent movement.
-  analyser.amplitude = 1;
-  expect(queue.peak()).toBe(0);
+    // Nothing is scheduled yet: a waveform must draw a flat line rather than invent movement.
+    analyser.amplitude = 1;
+    expect(queue.peak()).toBe(0);
 
-  queue.enqueue(chunk("job", 1));
-  expect(queue.peak()).toBe(0);
+    queue.enqueue(chunk("job", 1));
+    expect(queue.peak()).toBe(0);
 
-  queue.flush();
-  analyser.amplitude = 0.5;
-  expect(queue.peak()).toBeCloseTo(0.5, 1);
+    queue.flush();
+    analyser.amplitude = 0.5;
+    expect(queue.peak()).toBeCloseTo(0.5, 1);
 
-  queue.stop();
-  expect(queue.peak()).toBe(0);
-});
-
-it("waits until all scheduled chunks finish playing", async () => {
-  const queue = new PreviewAudioQueue(() => {});
-  await queue.start("job");
-  const context = FakeAudioContext.instances[0]!;
-
-  queue.enqueue(chunk("job", 1));
-  queue.flush();
-  let finished = false;
-  const waiting = queue.waitUntilEnded().then(() => {
-    finished = true;
-    return true;
+    queue.stop();
+    expect(queue.peak()).toBe(0);
   });
 
-  expect(finished).toBe(false);
-  context.sources[0]!.finish();
-  await waiting;
-  expect(finished).toBe(true);
+  it("waits until all scheduled chunks finish playing", async () => {
+    const queue = new PreviewAudioQueue(() => {});
+    await queue.start("job");
+    const context = FakeAudioContext.instances[0]!;
+
+    queue.enqueue(chunk("job", 1));
+    queue.flush();
+    let finished = false;
+    const waiting = queue.waitUntilEnded().then(() => {
+      finished = true;
+      return true;
+    });
+
+    expect(finished).toBe(false);
+    context.sources[0]!.finish();
+    await waiting;
+    expect(finished).toBe(true);
+  });
 });

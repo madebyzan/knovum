@@ -19,8 +19,10 @@ def content_blocks(parts: list[AgentContentPart]) -> list[str | dict[str, Any]]:
         value = part.root
         if value.type == "text":
             blocks.append({"type": "text", "text": value.text})
-        else:
+        elif value.type == "image":
             blocks.append({"type": "image", "base64": value.data, "mime_type": value.mime_type})
+        else:
+            blocks.append({"type": "image", "url": value.url, "mime_type": value.mime_type})
     return blocks
 
 

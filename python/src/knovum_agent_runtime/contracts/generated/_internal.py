@@ -130,9 +130,22 @@ class AgentContentPartVariant2(WireModel):
     type: Literal["image"]
 
 
-class AgentContentPart(RootModel[AgentContentPartVariant1 | AgentContentPartVariant2]):
+class AgentContentPartVariant3(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    mime_type: Annotated[str, Field(alias="mimeType")]
+    url: str
+    type: Literal["image_link"]
+
+
+class AgentContentPart(
+    RootModel[
+        AgentContentPartVariant1 | AgentContentPartVariant2 | AgentContentPartVariant3
+    ]
+):
     root: Annotated[
-        AgentContentPartVariant1 | AgentContentPartVariant2,
+        AgentContentPartVariant1 | AgentContentPartVariant2 | AgentContentPartVariant3,
         Field(title="messages.AgentContentPart"),
     ]
 

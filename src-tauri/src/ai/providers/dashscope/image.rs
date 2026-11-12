@@ -89,7 +89,7 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
                     }]
                 },
                 "parameters": {
-                    "size": image_size(req.require_aspect_ratio()?),
+                    "size": image_size(&ctx.model, req.require_aspect_ratio()?),
                     "n": 1,
                     "prompt_extend": true,
                     "watermark": false
@@ -152,12 +152,24 @@ fn extract_image(output: OutputPayload) -> Option<(String, Option<String>)> {
         .find_map(|c| c.image.map(|url| (url, None)))
 }
 
-fn image_size(ratio: &str) -> &'static str {
+/// qwen-image-max/plus only accept five fixed sizes; the other qwen-image
+/// models take any size inside their documented range, so the request keeps
+/// the exact frame.
+fn image_size(model: &str, ratio: &str) -> &'static str {
+    if model.starts_with("qwen-image-max") || model.starts_with("qwen-image-plus") {
+        return match ratio {
+            "3:2" | "16:9" => "1664*928",
+            "4:3" => "1472*1104",
+            "3:4" => "1104*1472",
+            "2:3" | "9:16" => "928*1664",
+            _ => "1328*1328",
+        };
+    }
     match ratio {
-        "3:2" => "1536*1024",
-        "2:3" => "1024*1536",
+        "3:2" | "4:3" => "1536*1024",
+        "2:3" | "3:4" => "1024*1536",
         "16:9" => "1920*1080",
         "9:16" => "1080*1920",
-        _ => "2048*2048",
+        _ => "1328*1328",
     }
 }
