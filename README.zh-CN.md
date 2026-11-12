@@ -126,10 +126,10 @@ Knovum 通过仅限本机回环的 MCP 服务器，向兼容的桌面 Agent 提�
 
 ## 下载与开始使用
 
-| 平台 | 系统要求 | 安装包 |
-| --- | --- | --- |
-| macOS | macOS 14 及以上，Apple 芯片 | `Knovum_<版本>_aarch64.dmg` |
-| macOS | macOS 14 及以上，Intel | `Knovum_<版本>_x64.dmg` |
+| 平台    | 系统要求                    | 安装包                        |
+| ------- | --------------------------- | ----------------------------- |
+| macOS   | macOS 14 及以上，Apple 芯片 | `Knovum_<版本>_aarch64.dmg`   |
+| macOS   | macOS 14 及以上，Intel      | `Knovum_<版本>_x64.dmg`       |
 | Windows | Windows 10 2004 及以上，x64 | `Knovum_<版本>_x64-setup.exe` |
 
 **[下载最新版本](https://github.com/madebyzan/knovum/releases/latest)**
@@ -183,10 +183,10 @@ OCR、Whisper 转写和图像处理等端侧能力会在首次使用时下载模
 - **Windows：** 配置永久用户环境变量。按 `Win + R`，输入 `sysdm.cpl`，打开**高级 → 环境变量**，添加变量 `HF_ENDPOINT`，值为 `https://hf-mirror.com`。也可以在命令提示符中运行 `setx HF_ENDPOINT "https://hf-mirror.com"`，然后重启 Knovum。
 - **macOS / Linux：** 在 Shell 配置文件（如 `~/.zshrc` 或 `~/.bashrc`）中添加：
 
-~~~~bash
+```bash
 echo 'export HF_ENDPOINT="https://hf-mirror.com"' >> ~/.zshrc
 source ~/.zshrc
-~~~~
+```
 
 下载后的模型文件会按固定的 SHA-256 摘要校验。
 
@@ -210,20 +210,20 @@ source ~/.zshrc
 
 以下能力都在本地运行。首次使用时下载所需模型，按固定的 SHA-256 摘要校验，也可以在设置中删除。
 
-| 能力 | 模型 | 运行时 |
-| --- | --- | --- |
-| 语音转写 | Whisper（默认）/ Qwen3-ASR 1.7B + Silero VAD | whisper.cpp / audio.cpp |
-| 说话人分离 | Pyannote 3.0 + ERes2Net | sherpa-onnx |
-| 人声 / 伴奏分离 | HTDemucs | audio.cpp |
-| 语音合成、声音克隆与设计 | MOSS-TTS-Nano、VoxCPM2、IndexTTS2、Qwen3-TTS、Fun-CosyVoice3 | audio.cpp |
-| 逐词字幕对齐 | Qwen3 Forced Aligner | audio.cpp |
-| 语义搜索向量 | Qwen3-Embedding-0.6B | Candle |
-| 去除背景 | BiRefNet、BEN2、IS-Net Anime | ONNX Runtime |
-| 图像超分辨率 | Real-ESRGAN | ONNX Runtime |
-| 局部修复 | Big LaMa | ONNX Runtime |
-| 智能选区 | MobileSAM、SAM 2.1 Hiera-Tiny | ONNX Runtime |
-| 相对深度估计 | Depth Anything V2 | ONNX Runtime |
-| 文字识别（扫描件、截图） | PP-OCRv6 small | ONNX Runtime |
+| 能力                     | 模型                                                         | 运行时                  |
+| ------------------------ | ------------------------------------------------------------ | ----------------------- |
+| 语音转写                 | Whisper（默认）/ Qwen3-ASR 1.7B + Silero VAD                 | whisper.cpp / audio.cpp |
+| 说话人分离               | Pyannote 3.0 + ERes2Net                                      | sherpa-onnx             |
+| 人声 / 伴奏分离          | HTDemucs                                                     | audio.cpp               |
+| 语音合成、声音克隆与设计 | MOSS-TTS-Nano、VoxCPM2、IndexTTS2、Qwen3-TTS、Fun-CosyVoice3 | audio.cpp               |
+| 逐词字幕对齐             | Qwen3 Forced Aligner                                         | audio.cpp               |
+| 语义搜索向量             | Qwen3-Embedding-0.6B                                         | Candle                  |
+| 去除背景                 | BiRefNet、BEN2、IS-Net Anime                                 | ONNX Runtime            |
+| 图像超分辨率             | Real-ESRGAN                                                  | ONNX Runtime            |
+| 局部修复                 | Big LaMa                                                     | ONNX Runtime            |
+| 智能选区                 | MobileSAM、SAM 2.1 Hiera-Tiny                                | ONNX Runtime            |
+| 相对深度估计             | Depth Anything V2                                            | ONNX Runtime            |
+| 文字识别（扫描件、截图） | PP-OCRv6 small                                               | ONNX Runtime            |
 
 在 Apple 芯片上，向量化与转写使用 Metal 加速。以上能力都不需要 Ollama 或其他模型服务器。
 
@@ -231,25 +231,25 @@ source ~/.zshrc
 
 需要 **Node.js 22.13+** 与 **Corepack**、`rust-toolchain.toml` 中固定的 Rust 工具链，以及桌面构建使用的本地工具：**uv**、**CMake**、**Protobuf** 和 **LLVM/libclang**。具体版本见 [docs/installation.md](docs/installation.md)。
 
-~~~~bash
+```bash
 git clone https://github.com/madebyzan/knovum.git
 cd knovum
 corepack enable
 pnpm install --frozen-lockfile
 pnpm desktop:dev
-~~~~
+```
 
 首次构建会编译本地推理组件，耗时较长；之后启动会更快。
 
-| 命令 | 用途 |
-| --- | --- |
-| `pnpm desktop:dev` | 启动桌面应用，并准备好 Agent 环境 |
-| `pnpm check` | 完整质量门禁：Web、Rust 和 Python |
-| `pnpm check:web` | 类型检查、oxlint、dependency-cruiser、Vitest、knip、jscpd 和 oxfmt |
-| `pnpm check:rust` | cargo fmt、clippy（`-D warnings`）和工作区测试 |
-| `pnpm check:python` | Agent 运行时的 ruff、mypy（strict）与 pytest |
-| `pnpm e2e` | 基于调试构建运行 WebdriverIO 端到端测试 |
-| `pnpm package` | 为当前平台构建桌面安装包 |
+| 命令                | 用途                                                               |
+| ------------------- | ------------------------------------------------------------------ |
+| `pnpm desktop:dev`  | 启动桌面应用，并准备好 Agent 环境                                  |
+| `pnpm check`        | 完整质量门禁：Web、Rust 和 Python                                  |
+| `pnpm check:web`    | 类型检查、oxlint、dependency-cruiser、Vitest、knip、jscpd 和 oxfmt |
+| `pnpm check:rust`   | cargo fmt、clippy（`-D warnings`）和工作区测试                     |
+| `pnpm check:python` | Agent 运行时的 ruff、mypy（strict）与 pytest                       |
+| `pnpm e2e`          | 基于调试构建运行 WebdriverIO 端到端测试                            |
+| `pnpm package`      | 为当前平台构建桌面安装包                                           |
 
 CI 会在 macOS（Apple 芯片与 Intel）和 Windows 上运行这些检查。推送 `v*` 标签会构建 macOS 与 Windows 安装包，并生成一个草稿 GitHub Release。
 
