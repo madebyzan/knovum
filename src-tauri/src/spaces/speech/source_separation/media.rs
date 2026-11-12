@@ -10,10 +10,13 @@ use sha2::{Digest, Sha256};
 use tauri::Manager;
 use tokio_util::sync::CancellationToken;
 
-pub(in crate::spaces::speech) const SAMPLE_RATE: u32 = 44_100;
-pub(super) const MAX_SAMPLE_COUNT: u64 = SAMPLE_RATE as u64 * 10 * 60;
+pub(super) use crate::ai::contracts::speech_wire::{
+    SEPARATION_MAX_DURATION_MS as MAX_DURATION_MS, SEPARATION_SAMPLE_RATE as SAMPLE_RATE,
+};
+pub(super) const MAX_SAMPLE_COUNT: u64 = SAMPLE_RATE as u64 * (MAX_DURATION_MS / 1_000);
+pub(super) const TOO_LONG: &str = "Source separation requires media lasting no more than six hours";
 
-pub(in crate::spaces::speech) fn extract_audio(
+pub(super) fn extract_audio(
     ffmpeg: &Path,
     source: &Path,
     target: &Path,
@@ -58,9 +61,7 @@ pub(in crate::spaces::speech) fn extract_audio(
         cancellation,
         "Source separation was cancelled",
         |_| match target.metadata() {
-            Ok(metadata) if metadata.len() > max_bytes => Err(
-                "Source separation requires decoded audio lasting no more than ten minutes".into(),
-            ),
+            Ok(metadata) if metadata.len() > max_bytes => Err(TOO_LONG.into()),
             Ok(_) => Ok(()),
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
             Err(error) => Err(format!(
@@ -107,20 +108,19 @@ pub(in crate::spaces::speech) fn pcm_wav_metadata(path: &Path) -> Result<(u64, u
     }
     let sample_count = metadata.sample_count;
     if sample_count == 0 || sample_count > MAX_SAMPLE_COUNT {
-        return Err(
-            "Source separation requires decoded audio lasting no more than ten minutes".into(),
-        );
+        return Err(TOO_LONG.into());
     }
     Ok((metadata.byte_length, sample_count))
 }
 
-/// Separation scales with the audio it splits, so its budget does too. Loading the model is
+/// Separation scales with the audio it splits, so its budget does too: four times the source
+/// covers HTDemucs on a CPU, with ten minutes as a floor for short sources. Loading the model is
 /// bounded by the worker's own startup budget.
-pub(in crate::spaces::speech) fn budget_ms(duration_ms: u64) -> u64 {
-    duration_ms.saturating_mul(3).max(10 * 60 * 1_000)
+pub(super) fn budget_ms(duration_ms: u64) -> u64 {
+    duration_ms.saturating_mul(4).max(10 * 60 * 1_000)
 }
 
-pub(in crate::spaces::speech) fn hash_file(
+pub(super) fn hash_file(
     path: &Path,
     cancellation: &CancellationToken,
     deadline: Instant,

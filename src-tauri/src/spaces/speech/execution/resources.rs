@@ -4,16 +4,18 @@ use crate::{
         local_runtime::{device_profiles, speech},
     },
     local_resources::preparation::{
-        self, contracts::ResourcePreparationProgress, PreparedModels, PreparedVoxCpm2Model,
+        self, contracts::ResourcePreparationProgress, PreparedModels, PreparedVoiceModel,
     },
 };
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
+/// The model a voice revision speaks with, prepared for one job: MOSS-TTS-Nano on the CPU, or an
+/// audio.cpp voice model (VoxCPM2 or a cloning family) on its probed backend.
 pub(in crate::spaces::speech) enum PreparedSynthesis {
     MossNano(PreparedModels),
-    VoxCpm2 {
-        model: PreparedVoxCpm2Model,
+    Voice {
+        model: PreparedVoiceModel,
         profile: RuntimeDeviceProfile,
     },
 }
@@ -27,39 +29,36 @@ pub(in crate::spaces::speech) async fn prepare_synthesis(
     cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
 ) -> Result<PreparedSynthesis, String> {
-    match engine {
-        "moss_nano" => {
-            if model_spec_id != super::MOSS_NANO_MODEL_SPEC_ID {
-                return Err("runtime_mismatch: MOSS engine and model specification differ".into());
-            }
-            Ok(PreparedSynthesis::MossNano(
-                preparation::prepare_models_for_job(
-                    app,
-                    preparation::contracts::ResourcePreparationTarget::SpeechSynthesis,
-                    job_id,
-                    title,
-                    cancellation,
-                    progress,
-                )
-                .await?,
-            ))
+    if engine == "moss_nano" {
+        if model_spec_id != super::MOSS_NANO_MODEL_SPEC_ID {
+            return Err("runtime_mismatch: MOSS engine and model specification differ".into());
         }
-        "voxcpm2" => {
-            let model = preparation::prepare_voxcpm2_for_job(
+        return Ok(PreparedSynthesis::MossNano(
+            preparation::prepare_models_for_job(
                 app,
-                model_spec_id,
+                preparation::contracts::ResourcePreparationTarget::SpeechSynthesis,
                 job_id,
                 title,
                 cancellation,
                 progress,
             )
-            .await?;
-            let profile =
-                synthesis_device_profile(app, engine, model_spec_id, cancellation).await?;
-            Ok(PreparedSynthesis::VoxCpm2 { model, profile })
-        }
-        _ => Err("Voice synthesis engine is unsupported".into()),
+            .await?,
+        ));
     }
+    let model = preparation::prepare_voice_for_job(
+        app,
+        model_spec_id,
+        job_id,
+        title,
+        cancellation,
+        progress,
+    )
+    .await?;
+    if model.model().voice_engine().map(|engine| engine.id()) != Some(engine) {
+        return Err("runtime_mismatch: voice engine and model specification differ".into());
+    }
+    let profile = synthesis_device_profile(app, engine, model_spec_id, cancellation).await?;
+    Ok(PreparedSynthesis::Voice { model, profile })
 }
 
 impl PreparedSynthesis {
@@ -80,8 +79,8 @@ impl PreparedSynthesis {
                 )
                 .await
             }
-            Self::VoxCpm2 { model, profile } => {
-                speech::synthesize_voxcpm2(app, model, profile.clone(), params, execution).await
+            Self::Voice { model, profile } => {
+                speech::synthesize_voice(app, model, profile.clone(), params, execution).await
             }
         }
     }
@@ -98,10 +97,9 @@ pub(in crate::spaces::speech) async fn synthesis_device_profile(
             Ok(super::moss_nano_device_profile())
         }
         "moss_nano" => Err("runtime_mismatch: MOSS engine and model specification differ".into()),
-        "voxcpm2" => {
+        _ => {
             let runtime = crate::local_resources::runtimes::inference::resolve(app)?;
             device_profiles::voice::profile(&runtime, model_spec_id, cancellation).await
         }
-        _ => Err("Speech voice uses an unsupported engine".into()),
     }
 }

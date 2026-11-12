@@ -2,8 +2,7 @@ use super::parse_config;
 use crate::ai::contracts::speech_wire::{
     AudioFileReference, InferenceRequestIdentity, SpeechSynthesisEngine, SpeechSynthesizeParams,
     SynthesisProfile, VoiceRevisionReference, VoiceSourceKind,
-    DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS, MOSS_NANO_MAX_REFERENCE_DURATION_MS,
-    VOICE_REFERENCE_MIN_DURATION_MS, VOXCPM2_MAX_REFERENCE_DURATION_MS,
+    DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS, VOICE_REFERENCE_MIN_DURATION_MS,
 };
 use crate::spaces::{
     assets,
@@ -26,14 +25,22 @@ pub(in crate::spaces::speech) struct SynthesisAttempt<'a> {
     pub attempt_epoch: u64,
 }
 
-/// `seed` is explicit because duration-fitted lines derive per-take seeds procedurally from the
-/// voice revision's frozen seed; every other caller passes the frozen seed itself.
+/// How one rendering of a line is generated: the seed, and for an engine that controls duration,
+/// the share of its natural length it is generated at.
+#[derive(Clone, Copy)]
+pub(in crate::spaces::speech) struct Take {
+    pub seed: u32,
+    pub duration_scale: Option<f32>,
+}
+
+/// `take` is explicit because duration-fitted lines derive further takes from the voice
+/// revision's frozen seed; every other caller passes the frozen seed itself at natural length.
 pub(in crate::spaces::speech) fn synthesis_params(
     app: &tauri::AppHandle,
     voice: &VoiceExecution,
     text: &str,
     delivery_instruction: Option<&str>,
-    seed: u32,
+    take: Take,
     attempt: SynthesisAttempt<'_>,
 ) -> Result<SpeechSynthesizeParams, String> {
     let config = parse_config(&voice.synthesis_config)?;
@@ -45,11 +52,8 @@ pub(in crate::spaces::speech) fn synthesis_params(
             voice.reference_text.as_deref(),
         ),
     )?;
-    let engine = match voice.engine_id.as_str() {
-        "moss_nano" => SpeechSynthesisEngine::MossNano,
-        "voxcpm2" => SpeechSynthesisEngine::VoxCpm2,
-        _ => return Err("Voice revision engine is unsupported".into()),
-    };
+    let engine = SpeechSynthesisEngine::from_id(&voice.engine_id)
+        .ok_or("Voice revision engine is unsupported")?;
     let reference = if voice.source_kind == "preset" {
         None
     } else {
@@ -70,7 +74,8 @@ pub(in crate::spaces::speech) fn synthesis_params(
         text: text.to_owned(),
         voice_revision,
         style: style.map(str::to_owned),
-        seed: u64::from(seed),
+        seed: u64::from(take.seed),
+        duration_scale: take.duration_scale,
         profile: SynthesisProfile {
             engine,
             language: voice.language.clone(),
@@ -99,11 +104,13 @@ fn frozen_voice_revision(
                 None,
             ),
             ("moss_nano", "reference") => (VoiceSourceKind::Reference, None, None),
-            ("voxcpm2", "reference" | "designed") => (
+            ("voxcpm2", "reference" | "designed") | ("qwen3_tts" | "cosyvoice3", "reference") => (
                 VoiceSourceKind::Reference,
                 None,
                 voice.reference_text.clone(),
             ),
+            // IndexTTS2 conditions on the recording alone; a transcript has nowhere to go.
+            ("index_tts2", "reference") => (VoiceSourceKind::Reference, None, None),
             _ => return Err("Voice revision engine and source are incompatible".into()),
         };
     Ok(VoiceRevisionReference {
@@ -113,8 +120,9 @@ fn frozen_voice_revision(
         reference_audio,
         reference_text,
         // Saved designs reuse the selected immutable recording, rather than designing a new voice.
-        // Reference voices with design prompts maintain their style guidance.
-        design_prompt: if voice.source_kind == "reference" {
+        // A reference recording keeps its style guidance only when it is cloned from the recording
+        // alone; with its exact transcript it is cloned by continuation, as spoken.
+        design_prompt: if voice.source_kind == "reference" && voice.reference_text.is_none() {
             voice.design_description.clone()
         } else {
             None
@@ -144,21 +152,16 @@ fn reference_audio(
     if sha256 != expected {
         return Err("Reference voice audio differs from its immutable revision".into());
     }
-    let (min_ms, max_ms) = match (voice.engine_id.as_str(), voice.source_kind.as_str()) {
-        ("moss_nano", _) => (
-            VOICE_REFERENCE_MIN_DURATION_MS,
-            MOSS_NANO_MAX_REFERENCE_DURATION_MS,
-        ),
-        ("voxcpm2", "designed") => (
-            DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS,
-            VOXCPM2_MAX_REFERENCE_DURATION_MS,
-        ),
-        ("voxcpm2", _) => (
-            VOICE_REFERENCE_MIN_DURATION_MS,
-            VOXCPM2_MAX_REFERENCE_DURATION_MS,
-        ),
-        _ => return Err("Voice revision engine is unsupported".into()),
+    let engine = SpeechSynthesisEngine::from_id(&voice.engine_id)
+        .ok_or("Voice revision engine is unsupported")?;
+    // A designed voice's recording is VoxCPM2's own output, which may be shorter than a recording a
+    // person supplies.
+    let min_ms = if voice.source_kind == "designed" {
+        DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS
+    } else {
+        VOICE_REFERENCE_MIN_DURATION_MS
     };
+    let max_ms = engine.max_reference_duration_ms();
     let reference =
         crate::spaces::speech::voice_assets::reference_metadata_with_bounds(&path, min_ms, max_ms)?;
     if reference.sha256 != sha256 {

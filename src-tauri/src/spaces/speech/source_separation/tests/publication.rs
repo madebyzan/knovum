@@ -12,7 +12,7 @@ use serde_json::json;
 use std::path::Path;
 use tokio_util::sync::CancellationToken;
 
-const MODEL_SPEC_ID: &str = "spleeter-2stems-fp16-cpu-v1";
+const MODEL_SPEC_ID: &str = "htdemucs-q8_0-v1";
 
 #[tokio::test]
 async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_nodes_atomically() {
@@ -54,7 +54,7 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
             space_id: "space".into(),
         },
         node_kind: "speech_source_separation".into(),
-        configuration: json!({"sourceNodeId":"media","vocalsLabel":"Vocals","backgroundLabel":"Background","source":source(),"model":"spleeter2Stems"}),
+        configuration: json!({"sourceNodeId":"media","vocalsLabel":"Vocals","backgroundLabel":"Background","source":source(),"model":"htDemucs"}),
         resolved_input: json!({}),
         policy_snapshot: json!({}),
         budget: json!({}),
@@ -347,7 +347,7 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
         MODEL_SPEC_ID
     );
     let mut changed_claim = claim;
-    changed_claim.configuration = json!({"sourceNodeId":"media","vocalsLabel":"Vocals","backgroundLabel":"Background","source":source(), "model":"spleeter2StemsFull"});
+    changed_claim.configuration = json!({"sourceNodeId":"media","vocalsLabel":"Vocals","backgroundLabel":"Background","source":source(), "model":"htDemucsF16"});
     assert!(!is_publication_for_claim(
         &changed_claim,
         &space_id,
@@ -356,7 +356,7 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
     ));
     let mut full_publication = publication;
     full_publication.model_spec_id =
-        crate::local_resources::model_catalog::LocalModelId::Spleeter2StemsFull
+        crate::local_resources::model_catalog::LocalModelId::HtDemucsF16
             .separation_spec()
             .unwrap()
             .into();

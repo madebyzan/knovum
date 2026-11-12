@@ -13,5 +13,7 @@
   "play": "재생 선택",
   "sourceChanged": "오디오 노드 소스가 변경되었습니다. 음성 참조를 준비하기 전에 노드를 새로 고치십시오.",
   "selection": "{seconds}가 선택됨 · 양쪽 끝을 드래그",
-  "prepared": "선택이 인식되었습니다"
+  "prepared": "선택이 인식되었습니다",
+  "speakers": "화자",
+  "speakerHint": "이 화자가 끊김 없이 말하는 가장 긴 구간 선택"
 }

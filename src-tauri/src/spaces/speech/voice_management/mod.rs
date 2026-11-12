@@ -150,16 +150,15 @@ fn revision_config(
     speed: f32,
     seed: u32,
 ) -> Result<super::contracts::VoiceSynthesisConfig, String> {
-    let sample_rate = match engine_id {
-        "moss_nano" if speed == 1.0 => 48_000,
-        "voxcpm2" if speed == 1.0 => 48_000,
-        "moss_nano" => return Err("MOSS-TTS-Nano requires normal speed".into()),
-        "voxcpm2" => return Err("VoxCPM2 uses its fixed speed profile".into()),
-        _ => return Err("Voice engine is unsupported".into()),
-    };
+    // Every engine renders at 48 kHz and normal speed; pace is the mix's job, never the voice's.
+    crate::ai::contracts::speech_wire::SpeechSynthesisEngine::from_id(engine_id)
+        .ok_or("Voice engine is unsupported")?;
+    if speed != 1.0 {
+        return Err("Voice revisions speak at normal speed".into());
+    }
     Ok(super::contracts::VoiceSynthesisConfig {
         speed,
-        sample_rate,
+        sample_rate: 48_000,
         seed,
     })
 }

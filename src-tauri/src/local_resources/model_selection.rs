@@ -45,7 +45,7 @@ impl Group {
             Self::ImageSelection => LocalModelId::EfficientSamTi,
             Self::ImageDepth => LocalModelId::DepthAnythingV2Small,
 
-            Self::SpeechSeparation => LocalModelId::Spleeter2Stems,
+            Self::SpeechSeparation => LocalModelId::HtDemucs,
             Self::SpeechDiarization => LocalModelId::SherpaDiarization,
             Self::SpeechAlignment => LocalModelId::Qwen3AlignerQ8,
         }
@@ -61,11 +61,19 @@ fn group(model: LocalModelId) -> Option<Group> {
         | LocalModelId::WhisperMediumFull
         | LocalModelId::WhisperLargeV3TurboQ8
         | LocalModelId::WhisperLargeV3Turbo
-        | LocalModelId::WhisperLargeV3 => Some(Group::Transcription),
+        | LocalModelId::WhisperLargeV3
+        | LocalModelId::Qwen3Asr
+        | LocalModelId::Qwen3AsrF16 => Some(Group::Transcription),
         LocalModelId::MossNano
         | LocalModelId::VoxCpm2
         | LocalModelId::VoxCpm2Bf16
-        | LocalModelId::VoxCpm2Q8 => Some(Group::SpeechSynthesis),
+        | LocalModelId::VoxCpm2Q8
+        | LocalModelId::IndexTts2
+        | LocalModelId::IndexTts2F16
+        | LocalModelId::Qwen3Tts
+        | LocalModelId::Qwen3TtsBf16
+        | LocalModelId::Qwen3TtsSmall
+        | LocalModelId::CosyVoice3 => Some(Group::SpeechSynthesis),
         LocalModelId::RealEsrganGeneralX4v3 | LocalModelId::RealEsrganX4plus => {
             Some(Group::ImageUpscaling)
         }
@@ -78,9 +86,7 @@ fn group(model: LocalModelId) -> Option<Group> {
         | LocalModelId::Silueta
         | LocalModelId::U2netHumanSeg
         | LocalModelId::U2net => Some(Group::ImageSegmentation),
-        LocalModelId::Spleeter2Stems | LocalModelId::Spleeter2StemsFull => {
-            Some(Group::SpeechSeparation)
-        }
+        LocalModelId::HtDemucs | LocalModelId::HtDemucsF16 => Some(Group::SpeechSeparation),
         LocalModelId::SherpaDiarization
         | LocalModelId::SherpaDiarizationCampplus
         | LocalModelId::SherpaDiarizationFull
@@ -89,6 +95,14 @@ fn group(model: LocalModelId) -> Option<Group> {
         _ => None,
     }
 }
+
+/// Models a person could once choose and the catalogue has since retired, by their persisted id.
+/// A stored choice of one is no choice any more: the capability uses its default, and a backup
+/// carrying one restores. Every other unknown id is a corrupt preference.
+const RETIRED: &[(&str, Group)] = &[
+    ("spleeter2Stems", Group::SpeechSeparation),
+    ("spleeter2StemsFull", Group::SpeechSeparation),
+];
 
 pub(crate) fn validate_persisted_value(key: &str, value: serde_json::Value) -> Result<(), String> {
     let expected = [
@@ -106,28 +120,39 @@ pub(crate) fn validate_persisted_value(key: &str, value: serde_json::Value) -> R
     .into_iter()
     .find(|group| group.key() == key)
     .ok_or("Unknown local model selection")?;
-    let model: LocalModelId = serde_json::from_value(value)
-        .map_err(|error| format!("Invalid local model selection: {error}"))?;
-    if group(model) != Some(expected) {
-        return Err("Invalid local model selection".into());
-    }
-    Ok(())
+    chosen(&value, expected).map(drop)
 }
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct Selection {
+struct Selection<Value> {
     schema_version: u8,
-    value: LocalModelId,
+    value: Value,
+}
+
+/// The model a persisted model id names for `expected`, or `None` when it names a retired one.
+fn chosen(value: &serde_json::Value, expected: Group) -> Result<Option<LocalModelId>, String> {
+    if RETIRED
+        .iter()
+        .any(|(id, group)| *group == expected && value.as_str() == Some(*id))
+    {
+        return Ok(None);
+    }
+    let model: LocalModelId = serde_json::from_value(value.clone())
+        .map_err(|error| format!("Invalid local model selection: {error}"))?;
+    if group(model) != Some(expected) {
+        return Err("Invalid local model selection".into());
+    }
+    Ok(Some(model))
 }
 
 fn read_selection(raw: serde_json::Value, expected: Group) -> Result<LocalModelId, String> {
-    let selection: Selection = serde_json::from_value(raw)
+    let selection: Selection<serde_json::Value> = serde_json::from_value(raw)
         .map_err(|error| format!("Invalid local model selection: {error}"))?;
-    if selection.schema_version != 1 || group(selection.value) != Some(expected) {
+    if selection.schema_version != 1 {
         return Err("Invalid local model selection".into());
     }
-    Ok(selection.value)
+    Ok(chosen(&selection.value, expected)?.unwrap_or(expected.default_model()))
 }
 
 fn selected<R: Runtime>(app: &AppHandle<R>, group: Group) -> Result<LocalModelId, String> {

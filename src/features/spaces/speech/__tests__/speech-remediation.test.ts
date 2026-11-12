@@ -172,7 +172,7 @@ describe("speech architecture policies", () => {
       source: { ...video },
       background,
       vocals: { ...background, assetPath: "/managed/vocals.wav" },
-      modelSpecId: "spleeter-2stems-fp16-cpu-v1",
+      modelSpecId: "htdemucs-q8_0-v1",
     };
     const separated = selectSeparatedBackground(config, publication);
     publication.source.assetPath = "/changed.mp4";

@@ -4,6 +4,7 @@ mod execution;
 pub(in crate::spaces::speech) mod media;
 pub(super) mod publication;
 mod repository;
+pub(in crate::spaces::speech) mod separate;
 
 #[cfg(test)]
 mod tests;

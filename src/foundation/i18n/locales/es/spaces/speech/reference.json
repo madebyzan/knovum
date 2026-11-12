@@ -13,5 +13,7 @@
   "play": "Selección de reproducción",
   "sourceChanged": "La fuente del nodo de audio cambió. Actualiza el nodo antes de preparar una referencia de voz.",
   "selection": "{seconds} seleccionados · Arrastre cualquiera de los extremos",
-  "prepared": "Selección reconocida"
+  "prepared": "Selección reconocida",
+  "speakers": "Hablantes",
+  "speakerHint": "Seleccionar la intervención continua más larga de este hablante"
 }

@@ -261,7 +261,7 @@ construction and approval gates are in [packaging.md](packaging.md) and [release
   output is qualified against the official F32 reference, and the new index identity rejects old data.
 - whisper.cpp replaces MLX and Faster Whisper. The upstream MIT C API is used directly; whisper-rs
   was rejected because its Unlicense dependency is outside the repository's approved policy.
-- Sherpa owns public ungated diarization and Spleeter separation. Its compiled build disables TTS
+- Sherpa owns public ungated diarization; audio.cpp owns HTDemucs separation. Sherpa's build disables TTS
   and eSpeak, Python, PortAudio and server examples. No training framework is conveyed.
 - reqwest is the existing maintained streaming client for pinned Hub HTTP protocols. hf-hub was
   compared but does not cover ModelScope plus this strict resume contract. The narrow Rust code

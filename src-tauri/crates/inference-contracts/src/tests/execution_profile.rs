@@ -1,4 +1,7 @@
-use super::{alignment, embedding, image, moss_nano, threaded, whisper, WHISPER_VARIANTS};
+use super::{
+    alignment, embedding, image, moss_nano, qwen3_asr, separation, threaded, voice, whisper,
+    WHISPER_VARIANTS,
+};
 use crate::runtime::RuntimeCapability;
 
 /// The identities are a cross-process handshake: pin them so a rename has to be deliberate.
@@ -64,4 +67,53 @@ fn alignment_identities_do_not_reinterpret_obsolete_values() {
         assert!(alignment(spec, "cuda").is_none());
     }
     assert!(alignment("qwen3-forced-aligner-0.6b-v1", "cpu").is_none());
+}
+
+#[test]
+fn separation_profiles_name_their_precision_and_probed_device() {
+    assert_eq!(
+        separation("htdemucs-q8_0-v1", "mps").as_deref(),
+        Some("htdemucs-q8_0-mps-bundled-v2")
+    );
+    assert_eq!(
+        separation("htdemucs-f16-v1", "cpu").as_deref(),
+        Some("htdemucs-f16-cpu-bundled-v2")
+    );
+    assert!(separation("htdemucs-q8_0-v1", "cuda").is_none());
+    assert!(separation("spleeter-2stems-fp16-cpu-v1", "cpu").is_none());
+}
+
+#[test]
+fn qwen3_asr_profiles_name_their_precision_and_probed_device() {
+    for (spec, precision) in [
+        ("qwen3-asr-1.7b-q8_0-v1", "q8_0"),
+        ("qwen3-asr-1.7b-f16-v1", "f16"),
+    ] {
+        for device in ["cpu", "mps", "vulkan"] {
+            assert_eq!(
+                qwen3_asr(spec, device).unwrap(),
+                format!("qwen3-asr-1.7b-{precision}-{device}-bundled-v2")
+            );
+        }
+        assert!(qwen3_asr(spec, "cuda").is_none());
+    }
+    assert!(qwen3_asr("qwen3-asr-1.7b-v1", "cpu").is_none());
+}
+
+#[test]
+fn voice_profiles_keep_the_frozen_voxcpm2_identity_and_name_new_families_by_backend() {
+    assert_eq!(
+        voice("voxcpm2-2b-gguf-q8_0-v1", "mps").as_deref(),
+        Some("voxcpm2-mps-gguf-q8_0-v1")
+    );
+    assert_eq!(
+        voice("index-tts2-q8_0-v1", "vulkan").as_deref(),
+        Some("index-tts2-q8_0-vulkan-bundled-v2")
+    );
+    assert_eq!(
+        voice("cosyvoice3-0.5b-q8_0-v1", "cpu").as_deref(),
+        Some("cosyvoice3-0.5b-q8_0-cpu-bundled-v2")
+    );
+    assert!(voice("index-tts2-q8_0-v1", "cuda").is_none());
+    assert!(voice("moss-tts-nano-100m-onnx-bundled-v2", "cpu").is_none());
 }

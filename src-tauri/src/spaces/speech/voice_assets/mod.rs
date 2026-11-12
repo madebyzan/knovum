@@ -100,6 +100,29 @@ pub(super) fn prepare_reference_clip_with_bounds(
     )
 }
 
+/// A recording Knovum produced itself (an isolated voice), brought to the reference format in full.
+pub(super) fn conform_reference(
+    app: &AppHandle,
+    source: &Path,
+    output: &Path,
+    cancellation: &CancellationToken,
+    duration_bounds_ms: (u64, u64),
+) -> Result<AudioFileReference, String> {
+    let length = fs::metadata(source)
+        .map_err(|error| error.to_string())?
+        .len();
+    decode_reference(
+        app,
+        source,
+        output,
+        length,
+        cancellation,
+        None,
+        duration_bounds_ms,
+    )
+    .map(|(_, audio)| audio)
+}
+
 fn decode_reference(
     app: &AppHandle,
     source: &Path,

@@ -217,19 +217,16 @@ fn validate_and_normalize_request(request: &mut DraftVoiceCandidateRequest) -> R
     {
         return Err("Voice candidate language or sample text is invalid".into());
     }
-    if request.model == super::VoiceModel::MossNano
-        && !matches!(
+    if !request.model.accepts_transcript()
+        && matches!(
             &request.source,
             VoiceCandidateSource::Reference {
-                reference_text: None,
-                design_prompt: None,
+                reference_text: Some(_),
                 ..
             }
         )
     {
-        return Err(
-            "MOSS-TTS-Nano supports audio-reference cloning without transcript conditioning or design prompts".into(),
-        );
+        return Err("Selected voice model clones from the recording without a transcript".into());
     }
     match &mut request.source {
         VoiceCandidateSource::Designed { description } => {
@@ -247,6 +244,7 @@ fn validate_and_normalize_request(request: &mut DraftVoiceCandidateRequest) -> R
             reference_text,
             reference_text_confirmed,
             design_prompt,
+            ..
         } => {
             let duration_bounds = request.model.reference_duration();
             let text = reference_text

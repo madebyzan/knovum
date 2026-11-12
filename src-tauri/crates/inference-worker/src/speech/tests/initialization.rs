@@ -1,5 +1,5 @@
 use knovum_inference_contracts::{
-    execution_profile::{moss_nano, whisper, WHISPER_VARIANTS},
+    execution_profile::{moss_nano, qwen3_asr, separation, voice, whisper, WHISPER_VARIANTS},
     image_compute::ImageModelVariant,
     runtime::{RuntimeCapability, RuntimeInitializeParams, RuntimeModel},
 };
@@ -30,15 +30,31 @@ fn transcription_rejects_an_execution_identity_that_does_not_match_its_model() {
     for (model, precision) in WHISPER_VARIANTS {
         let spec = whisper(model, "cpu", precision);
         let mut input = params(&spec, &spec);
-        assert_eq!(
-            super::super::transcription::admit(&input).unwrap(),
-            "/not-loaded"
-        );
+        assert_eq!(super::super::whisper::admit(&input).unwrap(), "/not-loaded");
         input.device_profile.execution_profile_id = "obsolete-whisper".into();
-        assert!(super::super::transcription::admit(&input).is_err());
+        assert!(super::super::whisper::admit(&input).is_err());
         input.device_profile.execution_profile_id = spec;
         input.model = image_variant();
-        assert!(super::super::transcription::admit(&input).is_err());
+        assert!(super::super::whisper::admit(&input).is_err());
+    }
+}
+
+#[test]
+fn qwen3_asr_rejects_a_profile_that_differs_from_its_model_or_probed_device() {
+    for spec in ["qwen3-asr-1.7b-q8_0-v1", "qwen3-asr-1.7b-f16-v1"] {
+        let mut input = params(spec, &qwen3_asr(spec, "cpu").unwrap());
+        assert_eq!(
+            super::super::qwen3_asr::admit(&input).unwrap(),
+            "/not-loaded"
+        );
+        input.device_profile.execution_profile_id = qwen3_asr(spec, "vulkan").unwrap();
+        assert!(super::super::qwen3_asr::admit(&input).is_err());
+        input.device_profile.execution_profile_id = qwen3_asr(spec, "cpu").unwrap();
+        input.device_profile.cpu_threads = 0;
+        assert!(super::super::qwen3_asr::admit(&input).is_err());
+        input.device_profile.cpu_threads = 4;
+        input.model = image_variant();
+        assert!(super::super::qwen3_asr::admit(&input).is_err());
     }
 }
 
@@ -83,16 +99,27 @@ fn moss_rejects_a_wrong_profile_or_zero_threads_before_graph_loading() {
 }
 
 #[test]
-fn sherpa_rejects_a_profile_that_differs_from_its_frozen_precision() {
-    for spec in ["spleeter-2stems-fp16-cpu-v1", "spleeter-2stems-fp32-cpu-v1"] {
-        let mut input = params(spec, spec);
+fn separation_rejects_a_profile_that_differs_from_its_model_or_probed_device() {
+    for (spec, file) in [
+        ("htdemucs-q8_0-v1", "htdemucs-q8_0.gguf"),
+        ("htdemucs-f16-v1", "htdemucs-f16.gguf"),
+    ] {
+        let mut input = params(spec, &separation(spec, "cpu").unwrap());
+        input.capability = RuntimeCapability::SpeechSeparation;
         assert_eq!(
             super::super::separation::admit(&input).unwrap(),
-            "/not-loaded"
+            std::path::Path::new("/not-loaded").join(file)
         );
-        input.device_profile.execution_profile_id = "other-precision".into();
+        input.device_profile.execution_profile_id = separation(spec, "mps").unwrap();
+        assert!(super::super::separation::admit(&input).is_err());
+        input.device_profile.execution_profile_id = separation(spec, "cpu").unwrap();
+        input.model = image_variant();
         assert!(super::super::separation::admit(&input).is_err());
     }
+}
+
+#[test]
+fn diarization_rejects_a_profile_that_differs_from_its_frozen_precision() {
     for spec in [
         "sherpa-diarization-cpu-v1",
         "sherpa-diarization-campplus-cpu-v1",
@@ -106,5 +133,26 @@ fn sherpa_rejects_a_profile_that_differs_from_its_frozen_precision() {
         );
         input.device_profile.execution_profile_id = "other-precision".into();
         assert!(super::super::diarization::admit(&input).is_err());
+    }
+}
+
+#[test]
+fn cloning_rejects_a_profile_that_differs_from_its_model_or_probed_device() {
+    for (spec, file) in [
+        ("index-tts2-q8_0-v1", "index-tts2-q8_0.gguf"),
+        (
+            "qwen3-tts-1.7b-q8_0-v1",
+            "qwen3-tts-12hz-1.7b-base-q8_0_v2.gguf",
+        ),
+        ("cosyvoice3-0.5b-q8_0-v1", "cosyvoice3-q8_0.gguf"),
+    ] {
+        let mut input = params(spec, &voice(spec, "cpu").unwrap());
+        input.capability = RuntimeCapability::SpeechSynthesis;
+        assert_eq!(
+            super::super::cloning::admit(&input).unwrap().0,
+            std::path::Path::new("/not-loaded").join(file)
+        );
+        input.device_profile.execution_profile_id = voice(spec, "vulkan").unwrap();
+        assert!(super::super::cloning::admit(&input).is_err());
     }
 }

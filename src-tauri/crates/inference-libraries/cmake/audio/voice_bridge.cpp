@@ -22,7 +22,7 @@ struct VoiceHandle {
 static thread_local std::string failure;
 extern "C" {
 KNOVUM_VOICE_API const char *knovum_voice_error() { return failure.c_str(); }
-KNOVUM_VOICE_API int knovum_voice_abi() { return 3; }
+KNOVUM_VOICE_API int knovum_voice_abi() { return 4; }
 KNOVUM_VOICE_API int knovum_audio_devices(uint64_t minimum_free_bytes) {
     try {
         int device_flags = 1;
@@ -67,7 +67,7 @@ KNOVUM_VOICE_API void *knovum_voice_open(const char *path, int device, int threa
 }
 KNOVUM_VOICE_API void knovum_voice_close(void *opaque) { delete static_cast<VoiceHandle *>(opaque); }
 KNOVUM_VOICE_API int knovum_voice_generate(void *opaque, const char *text, const float *reference, size_t reference_count,
-                          const char * /*prompt_text*/, unsigned int seed, int max_tokens, Callback callback, void *context) {
+                          const char *prompt_text, unsigned int seed, int max_tokens, Callback callback, void *context) {
     try {
         failure.clear();
         auto &session = dynamic_cast<runtime::IStreamingVoiceTaskSession &>(*static_cast<VoiceHandle *>(opaque)->session);
@@ -77,8 +77,16 @@ KNOVUM_VOICE_API int knovum_voice_generate(void *opaque, const char *text, const
                            {"retry_badcase", "false"}};
         if (reference_count) {
             runtime::AudioBuffer audio{16000, 1, std::vector<float>(reference, reference + reference_count)};
+            // With its exact transcript the recording is also the continuation prompt: VoxCPM2's
+            // "ultimate cloning", which carries every nuance of the reference into the new line.
+            if (prompt_text) {
+                request.audio_input = audio;
+                request.options["prompt_text"] = prompt_text;
+            }
             request.voice = runtime::VoiceCondition{};
             request.voice->speaker = runtime::VoiceReference{audio, std::nullopt};
+        } else if (prompt_text) {
+            throw std::runtime_error("VoxCPM2 prompt text requires its recording");
         }
         session.prepare(runtime::build_preparation_request(request));
         session.set_stream_event_sink([&](const runtime::StreamEvent &event) {

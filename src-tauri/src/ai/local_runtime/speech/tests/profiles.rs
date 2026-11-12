@@ -71,3 +71,35 @@ fn expensive_cpu_asr_is_admitted_without_unbounded_or_non_asr_deadlines() {
     }
     assert!(transcription_budget_ms(LocalModelId::MossNano, 4_000).is_err());
 }
+
+#[test]
+fn qwen3_asr_profiles_carry_their_precision_and_a_memory_identity_on_every_backend() {
+    for (model, compute_type) in [
+        (LocalModelId::Qwen3Asr, "q8_0"),
+        (LocalModelId::Qwen3AsrF16, "f16"),
+    ] {
+        let profile = transcription_profile(model).unwrap();
+        assert!(matches!(profile.engine, AsrEngine::Qwen3Asr));
+        assert_eq!(profile.compute_type, compute_type);
+        for device in ["cpu", "mps", "vulkan"] {
+            let id = crate::ai::contracts::execution_profile::qwen3_asr(
+                model.qwen3_asr_spec().unwrap(),
+                device,
+            )
+            .unwrap();
+            crate::ai::local_runtime::device_profiles::memory_requirement(
+                RuntimeCapability::SpeechTranscription,
+                &RuntimeDeviceProfile {
+                    device: device.into(),
+                    execution_profile_id: id,
+                    cpu_threads: 1,
+                },
+            )
+            .unwrap();
+        }
+        assert_eq!(
+            transcription_budget_ms(model, u64::MAX).unwrap(),
+            6 * 60 * 60 * 1_000
+        );
+    }
+}

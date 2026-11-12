@@ -1,4 +1,4 @@
-use super::{credits::Credits, moss::Moss, stream::Publisher, voxcpm::VoxCpm};
+use super::{cloning::Cloner, credits::Credits, moss::Moss, stream::Publisher, voxcpm::VoxCpm};
 use crate::{cancellation::Cancellation, initialization::VerifiedRuntime, protocol::Output};
 use knovum_inference_contracts::{
     runtime::{RuntimeAckChunkParams, RuntimeInitializeParams},
@@ -24,6 +24,7 @@ impl Acknowledgements {
 pub(crate) enum Synthesizer {
     Moss(Box<Moss>),
     Vox(Box<VoxCpm>),
+    Clone(Box<Cloner>),
 }
 impl Synthesizer {
     pub(crate) fn new(
@@ -35,7 +36,7 @@ impl Synthesizer {
             "voxcpm2-2b-gguf-orig-v1" | "voxcpm2-2b-gguf-bf16-v1" | "voxcpm2-2b-gguf-q8_0-v1" => {
                 Ok(Self::Vox(Box::new(VoxCpm::new(params, runtime)?)))
             }
-            _ => Err("runtime_mismatch: synthesis model is unsupported".into()),
+            _ => Ok(Self::Clone(Box::new(Cloner::new(params, runtime)?))),
         }
     }
     pub(crate) fn synthesize(
@@ -54,11 +55,14 @@ impl Synthesizer {
         {
             return Err("invalid_input: synthesis requires bounded text, a 32-bit seed and the 48 kHz normal-speed profile".into());
         }
-        if !matches!(
-            (&*self, &params.profile.engine),
-            (Self::Moss(_), SpeechSynthesisEngine::MossNano)
-                | (Self::Vox(_), SpeechSynthesisEngine::VoxCpm2)
-        ) {
+        let engine = match self {
+            Self::Moss(_) => SpeechSynthesisEngine::MossNano,
+            Self::Vox(_) => SpeechSynthesisEngine::VoxCpm2,
+            Self::Clone(cloner) => cloner.family().engine(),
+        };
+        if engine != params.profile.engine
+            || (params.duration_scale.is_some() && !engine.controls_duration())
+        {
             return Err("runtime_mismatch: synthesis engine differs from its model".into());
         }
         let credits = Arc::new(Credits::new(
@@ -75,6 +79,7 @@ impl Synthesizer {
             match self {
                 Self::Moss(engine) => engine.generate(&params, &mut publisher, cancel)?,
                 Self::Vox(engine) => engine.generate(&params, &mut publisher, cancel)?,
+                Self::Clone(engine) => engine.generate(&params, &mut publisher, cancel)?,
             }
             cancel.check()?;
             publisher.finish()

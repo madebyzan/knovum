@@ -77,6 +77,7 @@ async fn publish_snapshot(
         start_ms,
         end_ms,
         source_revision,
+        isolate_voice,
         ..
     } = &request.source
     else {
@@ -106,13 +107,13 @@ async fn publish_snapshot(
     .await?;
     let original = source.to_owned();
     let prepared = part.clone();
-    let published = target.clone();
     let reviewed_revision = source_revision.clone();
     let duration_bounds = request.model.reference_duration();
     let handle = app.clone();
     let cancel = cancellation.clone();
+    let isolation = directory.join(format!(".{}.isolation", request.request_id));
     let preparation: Result<ReferenceSourceSnapshot, String> = async {
-        let audio = crate::foundation::blocking::run(move || -> Result<_, String> {
+        let clip = crate::foundation::blocking::run(move || -> Result<_, String> {
             let (revision, audio) = super::super::voice_assets::prepare_reference_clip_with_bounds(
                 &handle,
                 &original,
@@ -128,10 +129,24 @@ async fn publish_snapshot(
                         .into(),
                 );
             }
-            std::fs::rename(&prepared, &published).map_err(|error| error.to_string())?;
             Ok(audio)
         })
         .await?;
+        let audio = if *isolate_voice {
+            isolate(
+                app,
+                request,
+                &part,
+                &clip,
+                &isolation,
+                interval.1 - interval.0,
+                cancellation,
+            )
+            .await?
+        } else {
+            clip
+        };
+        std::fs::rename(&part, &target).map_err(|error| error.to_string())?;
         super::super::asset_publication::seal_unowned(pool, &publication_id, &audio.sha256).await?;
         Ok(ReferenceSourceSnapshot {
             asset_path: target.to_string_lossy().into_owned(),
@@ -144,12 +159,75 @@ async fn publish_snapshot(
     match preparation {
         Ok(snapshot) => Ok((snapshot, publication_id)),
         Err(error) => {
+            if isolation.exists() {
+                std::fs::remove_dir_all(&isolation).map_err(|cleanup| {
+                    format!("{error}; voice isolation cleanup failed: {cleanup}")
+                })?;
+            }
             super::super::asset_publication::abandon(app, pool, &publication_id)
                 .await
                 .map_err(|cleanup| format!("{error}; voice source cleanup failed: {cleanup}"))?;
             Err(error)
         }
     }
+}
+
+/// Replaces the clip at `part` with the voice alone: the clip is separated by the chosen
+/// separation model and its vocals are brought back to the reference format in its place.
+async fn isolate(
+    app: &tauri::AppHandle,
+    request: &DraftVoiceCandidateRequest,
+    part: &std::path::Path,
+    clip: &crate::ai::contracts::speech_wire::AudioFileReference,
+    workspace: &std::path::Path,
+    duration_ms: u64,
+    cancellation: &tokio_util::sync::CancellationToken,
+) -> Result<crate::ai::contracts::speech_wire::AudioFileReference, String> {
+    use super::super::source_separation::separate::{self, Requester, Separation};
+    let request_id = request.request_id.as_str();
+    let bounds = request.model.reference_duration();
+    std::fs::create_dir(workspace).map_err(|error| error.to_string())?;
+    let vocals = workspace.join("vocals.wav");
+    let background = workspace.join("background.wav");
+    separate::separate(Separation {
+        app,
+        model: crate::local_resources::model_selection::speech_separation(app)?,
+        path: part,
+        source: &crate::spaces::speech::video_config::SpeechMediaSource {
+            asset_path: part.to_string_lossy().into_owned(),
+            source_revision: format!("sha256:{}", clip.sha256),
+            duration_ms,
+        },
+        requester: Requester {
+            request_id,
+            owner_kind: "voice_candidate_isolation",
+            owner_id: request_id,
+            attempt_id: request_id,
+            attempt_epoch: 0,
+        },
+        workspace,
+        targets: crate::ai::local_runtime::separation::SeparationTargets {
+            vocals: &vocals,
+            background: &background,
+        },
+        cancellation,
+    })
+    .await?;
+    let (app, part, workspace) = (app.clone(), part.to_owned(), workspace.to_owned());
+    let cancellation = cancellation.clone();
+    crate::foundation::blocking::run(move || {
+        std::fs::remove_file(&part).map_err(|error| error.to_string())?;
+        let audio = super::super::voice_assets::conform_reference(
+            &app,
+            &vocals,
+            &part,
+            &cancellation,
+            (bounds.min_ms, bounds.max_ms),
+        )?;
+        std::fs::remove_dir_all(&workspace).map_err(|error| error.to_string())?;
+        Ok(audio)
+    })
+    .await
 }
 
 pub(super) fn validate_source_metadata(metadata: &std::fs::Metadata) -> Result<(), String> {

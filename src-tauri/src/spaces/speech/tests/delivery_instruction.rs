@@ -3,6 +3,27 @@ use crate::spaces::speech::delivery_instruction;
 #[test]
 fn delivery_is_available_only_for_instruction_capable_reference_voices() {
     assert!(delivery_instruction::supports("voxcpm2", "reference", None));
+    // IndexTTS2 takes an emotion text and CosyVoice3 an instruction, with or without a transcript.
+    assert!(delivery_instruction::supports(
+        "index_tts2",
+        "reference",
+        None
+    ));
+    assert!(delivery_instruction::supports(
+        "cosyvoice3",
+        "reference",
+        Some("Sample")
+    ));
+    assert!(!delivery_instruction::supports(
+        "qwen3_tts",
+        "reference",
+        None
+    ));
+    assert!(!delivery_instruction::supports(
+        "unknown",
+        "reference",
+        None
+    ));
     for (engine, source, transcript) in [
         ("moss_nano", "reference", None),
         ("voxcpm2", "designed", Some("Sample")),

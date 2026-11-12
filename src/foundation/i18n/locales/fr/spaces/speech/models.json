@@ -4,7 +4,13 @@
     "mossNano": "Voix prédéfinies compactes en chinois et en anglais et clonage de référence. Processeur uniquement ; vitesse normale.",
     "voxCpm2": "Précision totale · Clonage et conception de la voix. Nécessite au moins 32 Gio de mémoire.",
     "voxCpm2Bf16": "Précision BF16 · Clonage et conception de la voix. Nécessite au moins 32 Gio de mémoire.",
-    "voxCpm2Q8": "Quantifié · Téléchargement et utilisation du disque réduits. Nécessite toujours au moins 32 Gio de mémoire."
+    "voxCpm2Q8": "Quantifié · Téléchargement et utilisation du disque réduits. Nécessite toujours au moins 32 Gio de mémoire.",
+    "indexTts2": "Q8 · Clone un enregistrement et génère chaque réplique à son temps, sans accélérer la voix. Recommandé avec 16 Gio de mémoire.",
+    "indexTts2F16": "F16 · Fidélité IndexTTS2 maximale, calée sur chaque réplique. Recommandé avec 24 Gio de mémoire.",
+    "qwen3Tts": "1.7B Q8 · Clonage naturel en dix langues ; une transcription confirmée reprend aussi le jeu de la référence. Recommandé avec 16 Gio de mémoire.",
+    "qwen3TtsBf16": "1.7B BF16 · Le clonage Qwen3-TTS le plus fidèle en dix langues. Recommandé avec 16 Gio de mémoire.",
+    "qwen3TtsSmall": "0.6B Q8 · Clonage rapide en dix langues avec 8 Gio de mémoire.",
+    "cosyVoice3": "0.5B Q8 · Clone un enregistrement et suit l'indication de jeu de chaque réplique. Recommandé avec 16 Gio de mémoire."
   },
   "specs": "Détails du modèle"
 }

@@ -52,7 +52,15 @@ pub struct VoiceLibraryRevision {
     pub revision_id: String,
     pub revision: i64,
     pub is_active: bool,
+    /// Derived from the engine, source and transcript by [`delivery_instruction::supports`]
+    /// once the row is read (see [`VoiceLibraryRevision::read`]); never computed in SQL.
+    ///
+    /// [`delivery_instruction::supports`]: super::delivery_instruction::supports
+    #[sqlx(skip)]
     pub supports_delivery_instruction: bool,
+    #[serde(skip)]
+    #[ts(skip)]
+    pub reference_text: Option<String>,
     pub engine_id: String,
     pub model_spec_id: String,
     pub language: String,
@@ -348,4 +356,16 @@ pub(super) struct SpeechSegmentExecution {
     pub delivery_instruction: Option<String>,
     pub voice_revision_id: String,
     pub language: String,
+}
+
+impl VoiceLibraryRevision {
+    /// A row as read from the library, with what follows from its stored configuration settled.
+    pub(super) fn read(mut self) -> Self {
+        self.supports_delivery_instruction = super::delivery_instruction::supports(
+            &self.engine_id,
+            &self.source_kind,
+            self.reference_text.as_deref(),
+        );
+        self
+    }
 }

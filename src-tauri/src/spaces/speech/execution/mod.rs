@@ -1,9 +1,11 @@
-pub(super) use voice::{input_digest, load_voice, DURATION_FIT_TAKES};
+pub(super) use voice::{admit, input_digest, load_voice, DurationFit, VOICE_QUERY};
 mod voice;
-pub(super) use request::{synthesis_params, SynthesisAttempt};
+pub(super) use request::{synthesis_params, SynthesisAttempt, Take};
 mod request;
 mod resources;
-pub(in crate::spaces::speech) use resources::{prepare_synthesis, synthesis_device_profile};
+pub(in crate::spaces::speech) use resources::{
+    prepare_synthesis, synthesis_device_profile, PreparedSynthesis,
+};
 
 use sha2::{Digest, Sha256};
 use tauri::ipc::Channel;
@@ -102,7 +104,10 @@ pub async fn preview_voice(
         &voice,
         &normalized,
         delivery,
-        voice_config.seed,
+        Take {
+            seed: voice_config.seed,
+            duration_scale: None,
+        },
         SynthesisAttempt {
             request_id: &request.job_id,
             owner_kind: "speech_preview",

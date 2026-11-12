@@ -13,5 +13,7 @@
   "play": "Sélection de lecture",
   "sourceChanged": "La source du nœud audio a changé. Actualisez le nœud avant de préparer une référence vocale.",
   "selection": "{seconds}s sélectionnés · Faites glisser l'une ou l'autre extrémité",
-  "prepared": "Sélection reconnue"
+  "prepared": "Sélection reconnue",
+  "speakers": "Locuteurs",
+  "speakerHint": "Sélectionner la plus longue prise de parole continue de ce locuteur"
 }

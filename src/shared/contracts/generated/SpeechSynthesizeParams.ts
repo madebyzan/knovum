@@ -2,7 +2,12 @@
 import type { SynthesisProfile } from "./SynthesisProfile";
 import type { VoiceRevisionReference } from "./VoiceRevisionReference";
 
-export type SpeechSynthesizeParams = { text: string, voiceRevision: VoiceRevisionReference, style: string | null, seed: number, profile: SynthesisProfile, requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, 
+export type SpeechSynthesizeParams = { text: string, voiceRevision: VoiceRevisionReference, style: string | null, seed: number, profile: SynthesisProfile, 
+/**
+ * The share of its natural length the line is generated at, for an engine that
+ * [controls duration](SpeechSynthesisEngine::controls_duration); `None` speaks it naturally.
+ */
+durationScale: number | null, requestId: string, ownerKind: string, ownerId: string, attemptId: string, attemptEpoch: number, inputRevision: string, modelSpecId: string, 
 /**
  * Milliseconds of execution the worker may spend on this request, measured from the moment
  * the worker admits it. A budget is relative because only the executor knows when the work

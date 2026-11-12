@@ -15,6 +15,7 @@ fn request() -> DraftVoiceCandidateRequest {
             reference_text: None,
             reference_text_confirmed: false,
             design_prompt: None,
+            isolate_voice: false,
         },
     }
 }

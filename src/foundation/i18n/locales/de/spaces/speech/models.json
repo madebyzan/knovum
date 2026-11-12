@@ -4,7 +4,13 @@
     "mossNano": "Kompakte chinesische und englische voreingestellte Stimmen und Referenzklonen. Nur CPU; normale Geschwindigkeit.",
     "voxCpm2": "Volle Präzision · Klonen und Entwerfen von Stimmen. Erfordert mindestens 32 GiB Speicher.",
     "voxCpm2Bf16": "BF16-Präzision · Klonen und Entwerfen von Stimmen. Erfordert mindestens 32 GiB Speicher.",
-    "voxCpm2Q8": "Quantisiert · Geringerer Download- und Festplattenverbrauch. Erfordert immer noch mindestens 32 GiB Speicher."
+    "voxCpm2Q8": "Quantisiert · Geringerer Download- und Festplattenverbrauch. Erfordert immer noch mindestens 32 GiB Speicher.",
+    "indexTts2": "Q8 · Klont eine Aufnahme und erzeugt jede Zeile passend zu ihrer Zeit, ohne die Stimme zu beschleunigen. Empfohlen ab 16 GiB Speicher.",
+    "indexTts2F16": "F16 · Höchste IndexTTS2-Treue, zeilengenau getimt. Empfohlen ab 24 GiB Speicher.",
+    "qwen3Tts": "1.7B Q8 · Natürliches Klonen in zehn Sprachen; ein bestätigtes Transkript übernimmt auch den Vortrag der Referenz. Empfohlen ab 16 GiB Speicher.",
+    "qwen3TtsBf16": "1.7B BF16 · Das getreueste Qwen3-TTS-Klonen in zehn Sprachen. Empfohlen ab 16 GiB Speicher.",
+    "qwen3TtsSmall": "0.6B Q8 · Schnelles Klonen in zehn Sprachen mit 8 GiB Speicher.",
+    "cosyVoice3": "0.5B Q8 · Klont eine Aufnahme und folgt der Vortragsanweisung jeder Zeile. Empfohlen ab 16 GiB Speicher."
   },
   "specs": "Modelldetails"
 }

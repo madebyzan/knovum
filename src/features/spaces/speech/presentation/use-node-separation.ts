@@ -6,6 +6,9 @@ import { useSpaceStore } from "../../session/space-store";
 import { useSourceSeparation } from "../use-source-separation";
 import { useSpeechMediaSources } from "../use-speech-media-sources";
 
+/** The longest media source separation accepts (`speech_wire::SEPARATION_MAX_DURATION_MS`). */
+const SEPARATION_MAX_DURATION_MS = 6 * 60 * 60 * 1000;
+
 export function useNodeSeparation(node: Readonly<Ref<SpaceCanvasNode | undefined>>) {
   const store = useSpaceStore();
   const { videos, backgrounds } = useSpeechMediaSources();
@@ -15,7 +18,7 @@ export function useNodeSeparation(node: Readonly<Ref<SpaceCanvasNode | undefined
   );
   const unavailableReason = computed(() => {
     if (!store.activeSpaceId || !source.value) return "spaces.speech.separation.sourceUnavailable";
-    if (source.value.durationMs > 600_000) return "spaces.speech.separation.tooLong";
+    if (source.value.durationMs > SEPARATION_MAX_DURATION_MS) return "spaces.speech.separation.tooLong";
     return undefined;
   });
   watch(

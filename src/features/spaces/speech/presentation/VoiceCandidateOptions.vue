@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import type { LocalModelReferenceDuration } from "../../../../shared/contracts/generated/LocalModelReferenceDuration";
 import type { LocalModelReferenceTranscript } from "../../../../shared/contracts/generated/LocalModelReferenceTranscript";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
+import UiSwitch from "../../../../shared/ui/UiSwitch.vue";
 import type { VoiceModel } from "../../contracts/generated/VoiceModel";
 import VoiceCandidateModelSelect from "./VoiceCandidateModelSelect.vue";
 
@@ -17,6 +18,7 @@ const referenceTranscript = defineModel<LocalModelReferenceTranscript>("referenc
 });
 const referenceDuration = defineModel<LocalModelReferenceDuration | undefined>("referenceDuration");
 const supportsDesign = defineModel<boolean>("supportsDesign", { default: false });
+const isolateVoice = defineModel<boolean>("isolateVoice", { required: true });
 defineProps<{
   fixedSource: boolean;
   disabled: boolean;
@@ -59,6 +61,19 @@ const { t } = useI18n();
           :disabled="disabled"
         />
       </label>
+      <div v-if="mode === 'reference'" class="flex items-start justify-between gap-3">
+        <span class="min-w-0 space-y-0.5">
+          <span class="block text-caption font-medium text-fg-secondary">
+            {{ t("spaces.speech.voice.isolate.label") }}
+          </span>
+          <span class="block text-caption text-fg-tertiary">{{ t("spaces.speech.voice.isolate.hint") }}</span>
+        </span>
+        <UiSwitch
+          v-model="isolateVoice"
+          :label="t('spaces.speech.voice.isolate.label')"
+          :disabled="disabled"
+        />
+      </div>
     </div>
   </div>
 </template>

@@ -11,7 +11,6 @@ mod proxy_registry;
 mod registry;
 mod render;
 mod render_inputs;
-mod source_audio;
 mod sources;
 mod start;
 mod timing;

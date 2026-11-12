@@ -1,7 +1,6 @@
 use super::{
     clip_filter::asset,
     contracts::VideoAssetKind,
-    source_audio,
     start::VideoEditSource,
     timing::{duration_ms, seconds},
 };
@@ -37,7 +36,12 @@ pub(super) fn prepare(
             match inspection_by_path.get(path) {
                 Some(value) => *value,
                 None => {
-                    let value = source_audio::inspect(ffmpeg, path, cancellation)?;
+                    let value = crate::media::ffmpeg::has_audio(
+                        ffmpeg,
+                        Path::new(path),
+                        cancellation,
+                        super::CANCELLED,
+                    )?;
                     inspection_by_path.insert(path, value);
                     value
                 }

@@ -1257,7 +1257,8 @@
     "AsrEngine": {
       "type": "string",
       "enum": [
-        "whisper_cpp"
+        "whisper_cpp",
+        "qwen3_asr"
       ]
     },
     "LanguagePolicy": {
@@ -1849,6 +1850,14 @@
         },
         "profile": {
           "$ref": "#/$defs/SynthesisProfile"
+        },
+        "durationScale": {
+          "description": "The share of its natural length the line is generated at, for an engine that\n[controls duration](SpeechSynthesisEngine::controls_duration); `None` speaks it naturally.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "float"
         }
       },
       "additionalProperties": false,
@@ -1952,7 +1961,10 @@
       "type": "string",
       "enum": [
         "moss_nano",
-        "vox_cpm2"
+        "vox_cpm2",
+        "index_tts2",
+        "qwen3_tts",
+        "cosy_voice3"
       ]
     },
     "SpeechSynthesisChunkEvent": {

@@ -11,24 +11,24 @@ use tokio_util::sync::CancellationToken;
 
 use super::{
     admission::Priority,
-    speech::{self, Execution},
+    device_profiles,
+    speech::{self, co_located_model_directory, Execution},
 };
 use crate::{
     ai::contracts::{
         runtime::RuntimeDeviceProfile,
         speech_wire::{
             InferenceRequestIdentity, SpeechSeparateParams, SpeechSeparation,
-            SynthesizedAudioFileReference,
+            SynthesizedAudioFileReference, SEPARATION_MAX_DURATION_MS,
+            SEPARATION_SAMPLE_RATE as SAMPLE_RATE,
         },
     },
-    local_resources::{models::catalog, preparation::PreparedModels},
+    local_resources::{model_catalog::LocalModelId, preparation::PreparedModels},
 };
 
-const SAMPLE_RATE: u32 = 44_100;
 const CHANNELS: u16 = 2;
-const MAX_DURATION_SECONDS: u64 = 10 * 60;
-const MAX_STEM_BYTES: u64 =
-    SAMPLE_RATE as u64 * CHANNELS as u64 * 2 * MAX_DURATION_SECONDS + 65_536;
+const MAX_SAMPLE_COUNT: u64 = SAMPLE_RATE as u64 * (SEPARATION_MAX_DURATION_MS / 1_000);
+const MAX_STEM_BYTES: u64 = MAX_SAMPLE_COUNT * CHANNELS as u64 * 2 + 65_536;
 
 pub(crate) struct SeparatedAudio {
     pub(crate) vocals: SeparatedAudioMetadata,
@@ -41,6 +41,7 @@ pub(crate) struct SeparatedAudioMetadata {
     pub(crate) sample_count: u64,
 }
 
+#[derive(Clone, Copy)]
 pub(crate) struct SeparationTargets<'a> {
     pub(crate) vocals: &'a Path,
     pub(crate) background: &'a Path,
@@ -55,13 +56,16 @@ pub(crate) async fn separate_to_paths<R: Runtime>(
     priority: Priority,
     targets: SeparationTargets<'_>,
 ) -> Result<SeparatedAudio, String> {
-    if device_profile.device != "cpu" {
-        return Err("unsupported_device: Spleeter source separation requires CPU".into());
+    let model = LocalModelId::from_separation_spec(&params.identity.model_spec_id)?;
+    if device_profile.execution_profile_id
+        != device_profiles::separation::execution_id(model, &device_profile.device)?
+    {
+        return Err("runtime_mismatch: source separation model and device profile differ".into());
     }
-    if device_profile.execution_profile_id != params.identity.model_spec_id {
-        return Err("runtime_mismatch: source separation device and model profiles differ".into());
-    }
-    let model_path = co_located_model_directory(resources, &params.identity.model_spec_id)?;
+    let snapshot = model
+        .snapshot()
+        .ok_or("Source separation model snapshot is unavailable")?;
+    let model_path = co_located_model_directory(resources, snapshot.models())?;
     speech::execute(
         Execution {
             app,
@@ -95,9 +99,7 @@ fn finish(
     }
     validate_reference(&separation.vocals_ref)?;
     validate_reference(&separation.background_ref)?;
-    if separation.sample_count == 0
-        || separation.sample_count > SAMPLE_RATE as u64 * MAX_DURATION_SECONDS
-    {
+    if separation.sample_count == 0 || separation.sample_count > MAX_SAMPLE_COUNT {
         return Err("invalid_output: source separation returned an invalid timeline".into());
     }
     // Publishing the stems is the last stretch of the same request, so it continues under the
@@ -266,32 +268,6 @@ fn validate_wav(path: &Path, sample_count: u64) -> Result<(), String> {
         return Err("invalid_output: source separation WAV metadata differs".into());
     }
     Ok(())
-}
-
-fn co_located_model_directory<'a>(
-    resources: &'a PreparedModels,
-    spec: &str,
-) -> Result<&'a Path, String> {
-    use crate::local_resources::model_catalog::LocalModelId;
-    let model = LocalModelId::from_separation_spec(spec)?;
-    let kinds = model
-        .preparation()
-        .models()
-        .expect("Separation models own a snapshot");
-    let anchor = resources.path(kinds[0])?;
-    let directory = anchor
-        .parent()
-        .ok_or("runtime_mismatch: Spleeter model directory is missing")?;
-    for kind in kinds {
-        let expected = directory.join(catalog::descriptor(*kind).file);
-        if resources.path(*kind)? != expected {
-            return Err(format!(
-                "runtime_mismatch: Spleeter model part {} is not co-located",
-                catalog::descriptor(*kind).file
-            ));
-        }
-    }
-    Ok(directory)
 }
 
 #[cfg(test)]

@@ -19,15 +19,20 @@ pub(in crate::spaces::speech) fn verified_source<R: Runtime>(
 
 /// Identifies how a mix is built, so a published dub is only reused while the rules that produced
 /// it still hold. It changes whenever dialogue placement or the final mix graph changes.
-const MIX_RULES: &str = "dubbing-mix-v3-loudness-mastered";
+const MIX_RULES: &str = "dubbing-mix-v4-whole-lines";
 
 pub(super) fn assembly_digest(
     renders: &[SpeechSegmentRenderOutput],
     windows: &[(Option<i64>, Option<i64>)],
     config: &serde_json::Value,
+    background_separation_model: Option<&str>,
 ) -> String {
     let mut digest = Sha256::new();
     digest.update(MIX_RULES.as_bytes());
+    // A background separated from the video during assembly depends on the model separating it.
+    if let Some(model) = background_separation_model {
+        digest.update(model.as_bytes());
+    }
     for (render, window) in renders.iter().zip(windows) {
         digest.update(render.segment_id.as_bytes());
         digest.update(render.sha256.as_bytes());

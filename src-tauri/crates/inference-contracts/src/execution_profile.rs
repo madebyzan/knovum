@@ -69,6 +69,52 @@ pub fn alignment(model_spec_id: &str, device: &str) -> Option<String> {
         .then(|| format!("qwen3-forced-aligner-0.6b-{precision}-{device}-{REVISION}"))
 }
 
+/// A voice model on a probed audio.cpp backend. VoxCPM2 keeps the identity its first release froze
+/// into stored renders; the cloning families name their precision and backend like every newer
+/// GGUF profile.
+pub fn voice(model_spec_id: &str, device: &str) -> Option<String> {
+    if !matches!(device, "cpu" | "mps" | "vulkan") {
+        return None;
+    }
+    let voxcpm2 = |quantization: &str| format!("voxcpm2-{device}-gguf-{quantization}-v1");
+    Some(match model_spec_id {
+        "voxcpm2-2b-gguf-orig-v1" => voxcpm2("orig"),
+        "voxcpm2-2b-gguf-bf16-v1" => voxcpm2("bf16"),
+        "voxcpm2-2b-gguf-q8_0-v1" => voxcpm2("q8_0"),
+        "index-tts2-q8_0-v1"
+        | "index-tts2-f16-v1"
+        | "qwen3-tts-1.7b-q8_0-v1"
+        | "qwen3-tts-1.7b-bf16-v1"
+        | "qwen3-tts-0.6b-q8_0-v1"
+        | "cosyvoice3-0.5b-q8_0-v1" => {
+            format!("{}-{device}-{REVISION}", model_spec_id.strip_suffix("-v1")?)
+        }
+        _ => return None,
+    })
+}
+
+/// HTDemucs source separation on a probed GGUF backend.
+pub fn separation(model_spec_id: &str, device: &str) -> Option<String> {
+    let precision = match model_spec_id {
+        "htdemucs-q8_0-v1" => "q8_0",
+        "htdemucs-f16-v1" => "f16",
+        _ => return None,
+    };
+    matches!(device, "cpu" | "mps" | "vulkan")
+        .then(|| format!("htdemucs-{precision}-{device}-{REVISION}"))
+}
+
+/// Qwen3-ASR transcription on a probed audio.cpp backend.
+pub fn qwen3_asr(model_spec_id: &str, device: &str) -> Option<String> {
+    let precision = match model_spec_id {
+        "qwen3-asr-1.7b-q8_0-v1" => "q8_0",
+        "qwen3-asr-1.7b-f16-v1" => "f16",
+        _ => return None,
+    };
+    matches!(device, "cpu" | "mps" | "vulkan")
+        .then(|| format!("qwen3-asr-1.7b-{precision}-{device}-{REVISION}"))
+}
+
 #[cfg(test)]
 #[path = "tests/execution_profile.rs"]
 mod tests;

@@ -523,7 +523,7 @@ attempt; chapter and measurement checkpoints are cleared after final publication
 
 Audio and video nodes start a durable source-separation Run bound to their exact node identity,
 managed source asset and source revision. Rust decodes the audio track to a fixed 44.1 kHz stereo
-PCM timeline and runs the selected pinned Spleeter two-stem CPU profile. Its one publication
+PCM timeline and runs the selected pinned HTDemucs profile on the probed backend. Its one publication
 transaction creates vocals and background audio nodes, two active system `derives-from` relations
 to the original node, the result receipt and the shared canvas layout/history change. Source bytes
 and node content are unchanged. A missing output, stale source, cancelled Run or expired attempt
@@ -611,10 +611,12 @@ is bounded to 3,000 characters. Audio-only references remain supported, and infe
 never saved as a confirmed cloning condition.
 
 A subtitle interval is the target a dubbed line aims at, not a condition it must meet. A line is
-spoken at its own pace and fitted when the mix is planned: it is compressed by up to 1.25× to land
-inside its interval, and a line that needs more than that keeps speaking into the room before the
-next one rather than being cut or refused. Nothing is slowed down to fill an interval, no line is
-heard past the end of the video, and overlapping dialogue is represented by explicit lanes. The
+spoken at its own pace and fitted when the mix is planned: it is compressed by up to 1.25× to end
+with its interval; a line that needs more keeps speaking into the silence before the next line, and
+a line that cannot fit even there is heard whole and delays the next line by exactly the overrun,
+which the next long enough silence absorbs. A word is never cut, nothing is slowed down to fill an
+interval, and no two lines are heard at once. Dialogue that cannot end before the picture does is
+refused before anything is rendered, stating how much longer it is. The
 editor offers source-voice mute or a separately imported background track. Knovum does not claim to
 retain environmental sound because no legally distributable, qualified dialogue-separation model is
 selected.

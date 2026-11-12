@@ -24,13 +24,13 @@ use crate::{
         speech_wire::{
             AsrEngine, InferenceRequestIdentity, SpeechAlignParams, SpeechAlignment,
             SpeechDiarization, SpeechDiarizeParams, SpeechProgressEvent, SpeechSeparateParams,
-            SpeechSeparation, SpeechSynthesis, SpeechSynthesisEngine, SpeechSynthesizeParams,
-            SpeechTranscribeParams, SpeechTranscriptArtifact, SpeechTranscription,
+            SpeechSeparation, SpeechSynthesis, SpeechSynthesizeParams, SpeechTranscribeParams,
+            SpeechTranscriptArtifact, SpeechTranscription,
         },
     },
     local_resources::{
         models::catalog::{self, ModelKind},
-        preparation::{PreparedModels, PreparedVoxCpm2Model},
+        preparation::{PreparedModels, PreparedVoiceModel},
     },
 };
 
@@ -118,14 +118,15 @@ pub(crate) async fn synthesize<R: Runtime>(
     .await
 }
 
-pub(crate) async fn synthesize_voxcpm2<R: Runtime>(
+/// Synthesis on an audio.cpp voice model: VoxCPM2 or one of the cloning families.
+pub(crate) async fn synthesize_voice<R: Runtime>(
     app: &AppHandle<R>,
-    model: &PreparedVoxCpm2Model,
+    model: &PreparedVoiceModel,
     device_profile: RuntimeDeviceProfile,
     params: SpeechSynthesizeParams,
     options: SynthesisExecution<'_>,
 ) -> Result<SynthesizedAudio, String> {
-    validate_voxcpm2_profile(model, &device_profile, &params)?;
+    validate_voice_profile(model, &device_profile, &params)?;
     let SynthesisExecution {
         cancellation,
         priority,
@@ -147,33 +148,24 @@ pub(crate) async fn synthesize_voxcpm2<R: Runtime>(
     .await
 }
 
-fn validate_voxcpm2_profile(
-    model: &PreparedVoxCpm2Model,
+fn validate_voice_profile(
+    model: &PreparedVoiceModel,
     device_profile: &RuntimeDeviceProfile,
     params: &SpeechSynthesizeParams,
 ) -> Result<(), String> {
-    if !matches!(params.profile.engine, SpeechSynthesisEngine::VoxCpm2)
-        || params.profile.sample_rate != 48_000
-    {
-        return Err("runtime_mismatch: VoxCPM2 requires its 48 kHz synthesis profile".into());
+    let model = model.model();
+    if model.voice_engine() != Some(params.profile.engine) || params.profile.sample_rate != 48_000 {
+        return Err("runtime_mismatch: voice request differs from its 48 kHz model profile".into());
     }
-    let model_spec_id = model.spec_id()?;
+    let model_spec_id = model.voice_spec()?;
     if params.identity.model_spec_id != model_spec_id {
-        return Err("runtime_mismatch: VoxCPM2 request differs from its prepared model".into());
+        return Err("runtime_mismatch: voice request differs from its prepared model".into());
     }
-    let quantization = match model_spec_id {
-        crate::local_resources::model_catalog::VOXCPM2_FULL_SPEC_ID => "orig",
-        crate::local_resources::model_catalog::VOXCPM2_BF16_SPEC_ID => "bf16",
-        crate::local_resources::model_catalog::VOXCPM2_Q8_SPEC_ID => "q8_0",
-        _ => return Err("runtime_mismatch: VoxCPM2 model specification is unsupported".into()),
-    };
-    if !matches!(device_profile.device.as_str(), "cpu" | "mps" | "vulkan")
-        || device_profile.execution_profile_id
-            != format!("voxcpm2-{}-gguf-{quantization}-v1", device_profile.device)
+    if crate::ai::contracts::execution_profile::voice(model_spec_id, &device_profile.device)
+        .as_deref()
+        != Some(device_profile.execution_profile_id.as_str())
     {
-        return Err(
-            "runtime_mismatch: VoxCPM2 execution backend differs from its frozen profile".into(),
-        );
+        return Err("runtime_mismatch: voice backend differs from its frozen profile".into());
     }
     Ok(())
 }
@@ -191,7 +183,7 @@ fn transcription_model_directory<'a>(
     co_located_model_directory(resources, kinds)
 }
 
-fn co_located_model_directory<'a>(
+pub(super) fn co_located_model_directory<'a>(
     resources: &'a PreparedModels,
     kinds: &[ModelKind],
 ) -> Result<&'a Path, String> {
@@ -215,6 +207,7 @@ fn co_located_model_directory<'a>(
 fn model_kind_name(kind: ModelKind) -> &'static str {
     match kind {
         ModelKind::WhisperPart(_) => "whisper model part",
+        ModelKind::Qwen3AsrPart(_) => "Qwen3-ASR model part",
         _ => "non-ASR model",
     }
 }

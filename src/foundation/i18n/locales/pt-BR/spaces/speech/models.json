@@ -4,7 +4,13 @@
     "mossNano": "Vozes predefinidas compactas em chinês e inglês e clonagem de referência. Somente CPU; velocidade normal.",
     "voxCpm2": "Precisão total · Clonagem e design de voz. Requer pelo menos 32 GiB de memória.",
     "voxCpm2Bf16": "Precisão BF16 · Clonagem e design de voz. Requer pelo menos 32 GiB de memória.",
-    "voxCpm2Q8": "Quantizado · Menor download e uso de disco. Ainda requer pelo menos 32 GiB de memória."
+    "voxCpm2Q8": "Quantizado · Menor download e uso de disco. Ainda requer pelo menos 32 GiB de memória.",
+    "indexTts2": "Q8 · Clona uma gravação e gera cada fala no seu tempo, sem acelerar a voz. Recomendado com 16 GiB de memória.",
+    "indexTts2F16": "F16 · Máxima fidelidade do IndexTTS2, cronometrada por fala. Recomendado com 24 GiB de memória.",
+    "qwen3Tts": "1.7B Q8 · Clonagem natural em dez idiomas; uma transcrição confirmada mantém também a interpretação da referência. Recomendado com 16 GiB de memória.",
+    "qwen3TtsBf16": "1.7B BF16 · A clonagem Qwen3-TTS mais fiel em dez idiomas. Recomendado com 16 GiB de memória.",
+    "qwen3TtsSmall": "0.6B Q8 · Clonagem rápida em dez idiomas com 8 GiB de memória.",
+    "cosyVoice3": "0.5B Q8 · Clona uma gravação e segue a instrução de interpretação de cada fala. Recomendado com 16 GiB de memória."
   },
   "specs": "Detalhes do modelo"
 }

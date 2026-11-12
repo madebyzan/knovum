@@ -10,30 +10,28 @@ pub enum VoiceModel {
     VoxCpm2,
     VoxCpm2Bf16,
     VoxCpm2Q8,
+    IndexTts2,
+    IndexTts2F16,
+    Qwen3Tts,
+    Qwen3TtsBf16,
+    Qwen3TtsSmall,
+    CosyVoice3,
 }
 
 impl VoiceModel {
-    pub(crate) fn engine(self) -> &'static str {
-        match self {
-            Self::MossNano => "moss_nano",
-            Self::VoxCpm2 | Self::VoxCpm2Bf16 | Self::VoxCpm2Q8 => "voxcpm2",
-        }
-    }
-    pub(crate) fn specification(self) -> &'static str {
-        match self {
-            Self::MossNano => super::super::execution::MOSS_NANO_MODEL_SPEC_ID,
-            Self::VoxCpm2 => super::MODEL_SPEC_ID,
-            Self::VoxCpm2Bf16 => super::BF16_MODEL_SPEC_ID,
-            Self::VoxCpm2Q8 => super::Q8_MODEL_SPEC_ID,
-        }
-    }
-    pub(crate) fn wire_engine(self) -> crate::ai::contracts::speech_wire::SpeechSynthesisEngine {
-        use crate::ai::contracts::speech_wire::SpeechSynthesisEngine as E;
-        match self {
-            Self::MossNano => E::MossNano,
-            Self::VoxCpm2 | Self::VoxCpm2Bf16 | Self::VoxCpm2Q8 => E::VoxCpm2,
-        }
-    }
+    const ALL: [Self; 10] = [
+        Self::MossNano,
+        Self::VoxCpm2,
+        Self::VoxCpm2Bf16,
+        Self::VoxCpm2Q8,
+        Self::IndexTts2,
+        Self::IndexTts2F16,
+        Self::Qwen3Tts,
+        Self::Qwen3TtsBf16,
+        Self::Qwen3TtsSmall,
+        Self::CosyVoice3,
+    ];
+
     pub(crate) fn local_model_id(self) -> crate::local_resources::model_catalog::LocalModelId {
         use crate::local_resources::model_catalog::LocalModelId as M;
         match self {
@@ -41,6 +39,29 @@ impl VoiceModel {
             Self::VoxCpm2 => M::VoxCpm2,
             Self::VoxCpm2Bf16 => M::VoxCpm2Bf16,
             Self::VoxCpm2Q8 => M::VoxCpm2Q8,
+            Self::IndexTts2 => M::IndexTts2,
+            Self::IndexTts2F16 => M::IndexTts2F16,
+            Self::Qwen3Tts => M::Qwen3Tts,
+            Self::Qwen3TtsBf16 => M::Qwen3TtsBf16,
+            Self::Qwen3TtsSmall => M::Qwen3TtsSmall,
+            Self::CosyVoice3 => M::CosyVoice3,
+        }
+    }
+    pub(crate) fn wire_engine(self) -> crate::ai::contracts::speech_wire::SpeechSynthesisEngine {
+        self.local_model_id()
+            .voice_engine()
+            .unwrap_or(crate::ai::contracts::speech_wire::SpeechSynthesisEngine::MossNano)
+    }
+    pub(crate) fn engine(self) -> &'static str {
+        self.wire_engine().id()
+    }
+    pub(crate) fn specification(self) -> &'static str {
+        match self {
+            Self::MossNano => super::super::execution::MOSS_NANO_MODEL_SPEC_ID,
+            _ => self
+                .local_model_id()
+                .voice_spec()
+                .expect("every audio.cpp voice model has a specification"),
         }
     }
     pub(crate) fn reference_duration(
@@ -50,19 +71,21 @@ impl VoiceModel {
             .reference_duration
             .expect("Synthesis models declare reference audio duration bounds")
     }
+    /// Only VoxCPM2 designs a voice from a description.
     pub(crate) fn supports_design(self) -> bool {
-        matches!(self, Self::VoxCpm2 | Self::VoxCpm2Bf16 | Self::VoxCpm2Q8)
+        self.wire_engine() == crate::ai::contracts::speech_wire::SpeechSynthesisEngine::VoxCpm2
+    }
+    /// Whether a confirmed transcript of the reference conditions the clone. MOSS-TTS-Nano and
+    /// IndexTTS2 clone from the recording alone.
+    pub(crate) fn accepts_transcript(self) -> bool {
+        use crate::ai::contracts::speech_wire::SpeechSynthesisEngine as E;
+        !matches!(self.wire_engine(), E::MossNano | E::IndexTts2)
     }
     pub(crate) fn from_specification(value: &str) -> Result<Self, String> {
-        [
-            Self::MossNano,
-            Self::VoxCpm2,
-            Self::VoxCpm2Bf16,
-            Self::VoxCpm2Q8,
-        ]
-        .into_iter()
-        .find(|model| model.specification() == value)
-        .ok_or_else(|| "Voice model specification is unsupported".into())
+        Self::ALL
+            .into_iter()
+            .find(|model| model.specification() == value)
+            .ok_or_else(|| "Voice model specification is unsupported".into())
     }
 }
 
@@ -84,6 +107,10 @@ pub enum VoiceCandidateSource {
         reference_text_confirmed: bool,
         #[serde(default)]
         design_prompt: Option<String>,
+        /// Clone the voice alone: the selection's vocals are separated from music and effects
+        /// before they become the reference, so the clone does not carry the soundtrack.
+        #[serde(default)]
+        isolate_voice: bool,
     },
     Designed {
         description: String,
