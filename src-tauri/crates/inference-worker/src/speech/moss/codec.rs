@@ -4,13 +4,11 @@ use crate::{
     cancellation::Cancellation,
     onnx::{self, Values},
 };
-use audioadapter_buffers::owned::InterleavedOwned;
 use knovum_inference_contracts::speech_wire::{
     voice_reference_sample_bounds, AudioFileReference, MOSS_NANO_MAX_REFERENCE_DURATION_MS,
     VOICE_REFERENCE_MIN_DURATION_MS, VOICE_REFERENCE_SAMPLE_RATE,
 };
 use ort::session::Session;
-use rubato::{Fft, FixedSync, Resampler};
 
 pub(super) struct Codec {
     pub(super) encoder: Session,
@@ -96,19 +94,7 @@ impl Codec {
         if input.frames() < min_samples as usize {
             return Err("invalid_input: reference audio must last five to thirty seconds".into());
         }
-        let frames = input.frames();
-        let source = InterleavedOwned::new_from(input.samples, 1, frames)
-            .map_err(|error| format!("invalid_input: {error}"))?;
-        let mut resampler = Fft::<f32>::new(16_000, 48_000, 1024, 1, FixedSync::Both)
-            .map_err(|error| format!("resource_exhausted: {error}"))?;
-        let mut samples = resampler
-            .process_all(&source, frames, None)
-            .map_err(|error| format!("inference_failed: {error}"))?
-            .take_data();
-        if samples.len() < frames * 3 {
-            return Err("invalid_output: reference resampler omitted source tail".into());
-        }
-        samples.truncate(frames * 3);
+        let samples = audio::resample(input.samples, 16_000, 48_000)?;
         cancel.check()?;
         let frames = samples.len();
         let mut stereo = Vec::with_capacity(frames * 2);

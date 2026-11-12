@@ -2,6 +2,7 @@ use super::{audio, ffi, stream::Publisher};
 use crate::{cancellation::Cancellation, initialization::VerifiedRuntime};
 use ffi::voice::*;
 use knovum_inference_contracts::{
+    execution_profile::voice,
     runtime::RuntimeInitializeParams,
     speech_wire::{
         voice_reference_sample_bounds, SpeechSynthesizeParams, VoiceSourceKind,
@@ -31,17 +32,15 @@ impl Drop for Engine {
 /// Admits a VoxCPM2 profile and returns its quantized weight file and snapshot. Pure in its
 /// initialization message, so an obsolete specification is rejected before a library is loaded.
 pub(super) fn admit(params: &RuntimeInitializeParams) -> Result<(&'static str, &str), String> {
-    let (quantization, weights) = match params.capability_spec_id.as_str() {
-        "voxcpm2-2b-gguf-orig-v1" => ("orig", "voxcpm2-orig.gguf"),
-        "voxcpm2-2b-gguf-bf16-v1" => ("bf16", "voxcpm2-bf16.gguf"),
-        "voxcpm2-2b-gguf-q8_0-v1" => ("q8_0", "voxcpm2-q8_0.gguf"),
+    let weights = match params.capability_spec_id.as_str() {
+        "voxcpm2-2b-gguf-orig-v1" => "voxcpm2-orig.gguf",
+        "voxcpm2-2b-gguf-bf16-v1" => "voxcpm2-bf16.gguf",
+        "voxcpm2-2b-gguf-q8_0-v1" => "voxcpm2-q8_0.gguf",
         _ => return Err("runtime_mismatch: VoxCPM2 model specification differs".into()),
     };
-    let device = params.device_profile.device.as_str();
-    if !matches!(device, "cpu" | "mps" | "vulkan")
-        || !(1..=8).contains(&params.device_profile.cpu_threads)
-        || params.device_profile.execution_profile_id
-            != format!("voxcpm2-{device}-gguf-{quantization}-v1")
+    if !(1..=8).contains(&params.device_profile.cpu_threads)
+        || voice(&params.capability_spec_id, &params.device_profile.device).as_deref()
+            != Some(params.device_profile.execution_profile_id.as_str())
     {
         return Err("runtime_mismatch: VoxCPM2 model specification differs".into());
     }
@@ -57,7 +56,7 @@ impl VoxCpm {
         let api =
             unsafe { VoiceApi::from_library(ffi::load(&ffi::library(runtime, "knovum_voice")?)?) }
                 .map_err(|error| format!("runtime_mismatch: {error}"))?;
-        if unsafe { api.knovum_voice_abi() } != 3 {
+        if unsafe { api.knovum_voice_abi() } != ffi::VOICE_BRIDGE_ABI {
             return Err("runtime_mismatch: VoxCPM2 bridge ABI differs".into());
         }
         let device = match params.device_profile.device.as_str() {
@@ -185,10 +184,22 @@ fn inputs(params: &SpeechSynthesizeParams, cancel: &Cancellation) -> Result<Cond
                         .into(),
                 );
             }
-            if let Some(text) = &voice.reference_text {
-                if text.trim().is_empty() {
+            // A recording with its exact transcript is cloned by continuation, which reproduces the
+            // reference as spoken; style controls belong to cloning from the recording alone.
+            if let Some(transcript) = &voice.reference_text {
+                if transcript.trim().is_empty() {
                     return Err("invalid_input: transcript cloning reference text is empty".into());
                 }
+                if voice.design_prompt.is_some() || params.style.is_some() {
+                    return Err(
+                        "invalid_input: transcript cloning does not accept style controls".into(),
+                    );
+                }
+                return Ok((
+                    params.text.clone(),
+                    Some(audio.samples),
+                    Some(transcript.clone()),
+                ));
             }
             let controls = [voice.design_prompt.as_deref(), params.style.as_deref()]
                 .into_iter()

@@ -77,13 +77,13 @@ fn exact_profiles_resolve_to_their_declared_peaks() {
         ),
         (
             RuntimeCapability::SpeechSeparation,
-            profile("cpu", "spleeter-2stems-fp16-cpu-v1", 4),
-            8,
+            profile("cpu", "htdemucs-q8_0-cpu-bundled-v2", 4),
+            3,
         ),
         (
             RuntimeCapability::SpeechSeparation,
-            profile("cpu", "spleeter-2stems-fp32-cpu-v1", 4),
-            8,
+            profile("mps", "htdemucs-f16-mps-bundled-v2", 4),
+            3,
         ),
         (
             RuntimeCapability::SpeechDiarization,

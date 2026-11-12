@@ -11,7 +11,7 @@ fn model_preferences_are_strict_and_belong_to_their_capability() {
         (Group::ImageSelection, LocalModelId::Sam2HieraTiny),
         (Group::ImageDepth, LocalModelId::DepthAnythingV2SmallUint8),
         (Group::SpeechAlignment, LocalModelId::Qwen3AlignerQ8),
-        (Group::SpeechSeparation, LocalModelId::Spleeter2StemsFull),
+        (Group::SpeechSeparation, LocalModelId::HtDemucsF16),
         (
             Group::SpeechDiarization,
             LocalModelId::SherpaDiarizationFull,
@@ -69,42 +69,38 @@ fn an_image_capability_resolves_through_the_choice_its_models_belong_to() {
 
 #[test]
 fn retired_selections_fall_back_to_the_capability_default() {
-    for (legacy, group, default) in [
-        (
-            "u2net",
-            Group::ImageSegmentation,
-            LocalModelId::BirefnetLite,
-        ),
-        (
-            "rmbg14",
-            Group::ImageSegmentation,
-            LocalModelId::BirefnetLite,
-        ),
-        (
-            "rmbg20",
-            Group::ImageSegmentation,
-            LocalModelId::BirefnetLite,
-        ),
-        (
-            "isnetDis",
-            Group::ImageSegmentation,
-            LocalModelId::BirefnetLite,
-        ),
-        (
-            "efficientSamTi",
-            Group::ImageSelection,
-            LocalModelId::MobileSam,
-        ),
-        ("migan", Group::ImageInpainting, LocalModelId::Lama),
+    for (legacy, group) in [
+        ("rmbg14", Group::ImageSegmentation),
+        ("rmbg20", Group::ImageSegmentation),
+        ("isnetDis", Group::ImageSegmentation),
     ] {
         let raw = serde_json::json!({"schemaVersion": 1, "value": legacy});
         assert_eq!(
             read_selection(raw, group).unwrap_or(group.default_model()),
-            default
+            group.default_model()
         );
     }
     assert_eq!(
         Group::ImageSelection.default_model(),
         LocalModelId::MobileSam
     );
+}
+
+#[test]
+fn a_retired_model_choice_resolves_to_its_capability_default_and_restores() {
+    for &(retired, group) in RETIRED {
+        let raw = serde_json::json!({"schemaVersion": 1, "value": retired});
+        assert_eq!(read_selection(raw, group).unwrap(), group.default_model());
+        assert!(validate_persisted_value(group.key(), serde_json::json!(retired)).is_ok());
+        assert!(read_selection(
+            serde_json::json!({"schemaVersion": 1, "value": retired}),
+            Group::Transcription
+        )
+        .is_err());
+    }
+    assert!(read_selection(
+        serde_json::json!({"schemaVersion": 1, "value": "neverAModel"}),
+        Group::SpeechSeparation
+    )
+    .is_err());
 }

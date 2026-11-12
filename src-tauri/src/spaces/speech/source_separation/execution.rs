@@ -7,19 +7,13 @@ use sqlx::SqlitePool;
 use super::super::video_config::SpeechMediaSource;
 use super::{
     contracts::SpeechSourceSeparationPublication,
-    media::{budget_ms, extract_audio, hash_file, pcm_wav_metadata, workspace, SAMPLE_RATE},
+    media::{budget_ms, hash_file, workspace},
     repository::{commit_publication, find_publication, load_publication},
     SeparationConfiguration,
 };
 use crate::{
-    ai::{
-        contracts::speech_wire::{
-            AudioFileReference, InferenceRequestIdentity, SpeechSeparateParams,
-        },
-        local_runtime::{admission::Priority, separation},
-    },
+    ai::local_runtime::separation::{SeparatedAudio, SeparationTargets},
     foundation::app_error::AppError,
-    local_resources::{preparation, tools},
     spaces::{
         db,
         runs::{AttemptClaim, StepOutcome},
@@ -59,15 +53,16 @@ pub(crate) async fn execute(
         }
     }
     let workspace = workspace(app, &claim.attempt_id)?;
-    let extracted = workspace.join("source.wav");
     let separation = execute_inner(
         app,
         claim,
         &config.source,
         &source,
-        &extracted,
-        &vocals_part,
-        &background_part,
+        &workspace,
+        SeparationTargets {
+            vocals: &vocals_part,
+            background: &background_part,
+        },
     )
     .await;
     let metadata = match separation {
@@ -193,71 +188,29 @@ fn completed(publication: SpeechSourceSeparationPublication) -> Result<StepOutco
 async fn execute_inner(
     app: &tauri::AppHandle,
     claim: &AttemptClaim,
-    source_ref: &SpeechMediaSource,
-    source: &Path,
-    extracted: &Path,
-    vocals: &Path,
-    background: &Path,
-) -> Result<separation::SeparatedAudio, String> {
-    let config = SeparationConfiguration::from_claim(claim)?;
-    let device_profile =
-        crate::ai::local_runtime::device_profiles::speech_separation(config.model)?;
-    let ffmpeg = tools::resolve_ffmpeg(app)?.ok_or("FFmpeg runtime is unavailable")?;
-    extract_audio(&ffmpeg, source, extracted, &claim.cancellation)?;
-    crate::file_inspection::verify_content_revision(source, &source_ref.source_revision)?;
-    let (byte_length, sample_count) = pcm_wav_metadata(extracted)?;
-    let sha256 = hash_file(
-        extracted,
-        &claim.cancellation,
-        hash_deadline(source_ref.duration_ms),
-    )?;
-    let models = preparation::prepare_models_for_job(
+    source: &SpeechMediaSource,
+    path: &Path,
+    workspace: &Path,
+    targets: SeparationTargets<'_>,
+) -> Result<SeparatedAudio, String> {
+    super::separate::separate(super::separate::Separation {
         app,
-        config.model.preparation(),
-        &claim.attempt_id,
-        "Preparing source separation",
-        &claim.cancellation,
-        &mut |_| {},
-    )
-    .await?;
-    let identity = InferenceRequestIdentity {
-        request_id: claim.run_id.clone(),
-        owner_kind: "speech_source_separation".into(),
-        owner_id: claim.run_id.clone(),
-        attempt_id: claim.attempt_id.clone(),
-        attempt_epoch: u64::try_from(claim.execution_epoch)
-            .map_err(|_| "Source separation execution epoch is invalid")?,
-        input_revision: source_ref.source_revision.clone(),
-        model_spec_id: config.model.separation_spec()?.into(),
-        budget_ms: budget_ms(source_ref.duration_ms),
-    };
-    let metadata = separation::separate_to_paths(
-        app,
-        &models,
-        device_profile,
-        SpeechSeparateParams {
-            identity,
-            audio_ref: AudioFileReference {
-                path: extracted.to_string_lossy().into_owned(),
-                media_type: "audio/wav".into(),
-                byte_length,
-                sha256,
-                sample_rate: SAMPLE_RATE,
-                channels: 2,
-                sample_format: "pcm_s16le".into(),
-            },
+        model: SeparationConfiguration::from_claim(claim)?.model,
+        path,
+        source,
+        requester: super::separate::Requester {
+            request_id: &claim.run_id,
+            owner_kind: "speech_source_separation",
+            owner_id: &claim.run_id,
+            attempt_id: &claim.attempt_id,
+            attempt_epoch: u64::try_from(claim.execution_epoch)
+                .map_err(|_| "Source separation execution epoch is invalid")?,
         },
-        &claim.cancellation,
-        Priority::Background,
-        separation::SeparationTargets { vocals, background },
-    )
-    .await?;
-    if metadata.background.sample_count != sample_count {
-        let _ = fs::remove_file(vocals);
-        let _ = fs::remove_file(background);
-        return Err("invalid_output: separated background timeline differs from its source".into());
-    }
-    Ok(metadata)
+        workspace,
+        targets,
+        cancellation: &claim.cancellation,
+    })
+    .await
 }
 
 /// Hashing the staged audio is local I/O, so it shares the separation budget, started where the

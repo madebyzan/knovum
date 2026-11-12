@@ -61,7 +61,7 @@ fn existing_run_idempotence_requires_the_exact_workflow_space_and_source() {
         source: source(),
     };
     let input =
-        json!({"workflow":WORKFLOW,"sourceNodeId":request.source_node_id,"vocalsLabel":request.vocals_label,"backgroundLabel":request.background_label,"source":request.source.clone(),"model":"spleeter2Stems"})
+        json!({"workflow":WORKFLOW,"sourceNodeId":request.source_node_id,"vocalsLabel":request.vocals_label,"backgroundLabel":request.background_label,"source":request.source.clone(),"model":"htDemucs"})
             .to_string();
     assert!(matches_existing_request(
         "space", "workflow", &input, &request
@@ -92,7 +92,7 @@ fn wav_metadata_accepts_exact_limit_and_rejects_one_extra_frame() {
     wav_fixture::write_sparse_wav(&over, MAX_SAMPLE_COUNT + 1);
     assert!(pcm_wav_metadata(&over)
         .unwrap_err()
-        .contains("no more than ten minutes"));
+        .contains("no more than six hours"));
     fs::remove_dir_all(root).unwrap();
 }
 

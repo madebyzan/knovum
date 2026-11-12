@@ -146,20 +146,20 @@ These capabilities run locally. Each model downloads the first time you use a fe
 is verified against a pinned SHA-256, and can be removed again from Settings. Progress and
 cancellation appear in the Task Center.
 
-| Capability                               | Model                                                  | Runtime      |
-| ---------------------------------------- | ------------------------------------------------------ | ------------ |
-| Speech transcription                     | Whisper Tiny / Small (default) / Large-v3 + Silero VAD | whisper.cpp  |
-| Speaker diarization                      | Pyannote 3.0 + ERes2Net                                | sherpa-onnx  |
-| Vocal / accompaniment separation         | Spleeter                                               | sherpa-onnx  |
-| Speech synthesis, voice cloning & design | MOSS-TTS-Nano, VoxCPM2                                 | audio.cpp    |
-| Word-level transcript alignment          | Qwen3 Forced Aligner                                   | audio.cpp    |
-| Semantic-search embeddings               | Qwen3-Embedding-0.6B                                   | Candle       |
-| Background removal                       | BiRefNet, BEN2, IS-Net Anime                           | ONNX Runtime |
-| Image upscaling                          | Real-ESRGAN                                            | ONNX Runtime |
-| Inpainting / repair                      | Big LaMa                                               | ONNX Runtime |
-| Smart selection                          | MobileSAM, SAM 2.1 Hiera-Tiny                          | ONNX Runtime |
-| Relative depth                           | Depth Anything V2                                      | ONNX Runtime |
-| Text recognition (scans, screenshots)    | PP-OCRv6 small                                         | ONNX Runtime |
+| Capability                               | Model                                                        | Runtime                 |
+| ---------------------------------------- | ------------------------------------------------------------ | ----------------------- |
+| Speech transcription                     | Whisper (default) / Qwen3-ASR 1.7B + Silero VAD              | whisper.cpp / audio.cpp |
+| Speaker diarization                      | Pyannote 3.0 + ERes2Net                                      | sherpa-onnx             |
+| Vocal / accompaniment separation         | HTDemucs                                                     | audio.cpp               |
+| Speech synthesis, voice cloning & design | MOSS-TTS-Nano, VoxCPM2, IndexTTS2, Qwen3-TTS, Fun-CosyVoice3 | audio.cpp               |
+| Word-level transcript alignment          | Qwen3 Forced Aligner                                         | audio.cpp               |
+| Semantic-search embeddings               | Qwen3-Embedding-0.6B                                         | Candle                  |
+| Background removal                       | BiRefNet, BEN2, IS-Net Anime                                 | ONNX Runtime            |
+| Image upscaling                          | Real-ESRGAN                                                  | ONNX Runtime            |
+| Inpainting / repair                      | Big LaMa                                                     | ONNX Runtime            |
+| Smart selection                          | MobileSAM, SAM 2.1 Hiera-Tiny                                | ONNX Runtime            |
+| Relative depth                           | Depth Anything V2                                            | ONNX Runtime            |
+| Text recognition (scans, screenshots)    | PP-OCRv6 small                                               | ONNX Runtime            |
 
 Embeddings and transcription use Metal on Apple Silicon. No Ollama or other model server is needed
 for any of the above.

@@ -41,7 +41,7 @@ const published: SpeechSourceSeparationPublication = {
   source: video,
   background: { ...video, assetPath: "/background.wav" },
   vocals: { ...video, assetPath: "/vocals.wav" },
-  modelSpecId: "spleeter",
+  modelSpecId: "htdemucs-q8_0-v1",
 };
 const config: VideoDubbingOutputConfig = {
   format: "mp4",
@@ -102,7 +102,7 @@ it("retains a saved background while catalog retrieval fails and offers retry", 
     backgroundSeparation: {
       separationId: "published",
       source: video,
-      modelSpecId: "spleeter",
+      modelSpecId: "htdemucs-q8_0-v1",
     },
   });
   await flushPromises();

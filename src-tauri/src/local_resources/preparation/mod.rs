@@ -11,9 +11,7 @@ mod coordinator;
 mod installation;
 mod jobs;
 mod model_plan;
-pub(crate) use jobs::{
-    prepare_models_for_job, prepare_models_for_request, prepare_voxcpm2_for_job,
-};
+pub(crate) use jobs::{prepare_models_for_job, prepare_models_for_request, prepare_voice_for_job};
 pub(crate) mod locks;
 pub(crate) mod requests;
 pub(crate) mod shared_installation;
@@ -21,7 +19,7 @@ pub(crate) mod shared_installation;
 use contracts::{ResourcePreparationProgress, ResourcePreparationStage};
 
 pub use locks::{
-    acquire_verified_models, PreparedDiarizationModel, PreparedModels, PreparedVoxCpm2Model,
+    acquire_verified_models, PreparedDiarizationModel, PreparedModels, PreparedVoiceModel,
 };
 
 pub const RESOURCE_PREPARATION_CANCELLED: &str = "local-resource-preparation-cancelled";

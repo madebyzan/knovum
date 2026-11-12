@@ -80,6 +80,7 @@ pub async fn export_video_dubbing_asset(
         match auto_background::resolve(auto_background::AutoBackgroundContext {
             app: &app,
             pool,
+            model: crate::local_resources::model_selection::speech_separation(&app)?,
             project_id: &request.project_id,
             job_id: &request.job_id,
             attempt_epoch: 0,

@@ -43,6 +43,9 @@ pub(super) mod audio {
     include!(concat!(env!("OUT_DIR"), "/AudioApi.rs"));
 }
 
+/// The `knovum_voice` bridge ABI this worker is built against (`voice_bridge.cpp`).
+pub(super) const VOICE_BRIDGE_ABI: i32 = 4;
+
 /// Resolves a pinned speech library inside the runtime this worker verified.
 ///
 /// Library naming belongs here; inventory membership belongs to [`VerifiedRuntime`], which holds
@@ -64,10 +67,7 @@ pub(super) fn library(runtime: &VerifiedRuntime, name: &str) -> Result<PathBuf, 
     runtime.member(&relative)
 }
 
-/// Loads the pinned Sherpa C API from the verified runtime.
-///
-/// Both Sherpa capabilities load the same pinned library, so its supplier version is established
-/// here once instead of in whichever capability remembered to check it.
+/// Loads the pinned Sherpa C API from the verified runtime and establishes its supplier version.
 pub(super) fn sherpa_api(runtime: &VerifiedRuntime) -> Result<sherpa::SherpaApi, String> {
     let api =
         unsafe { sherpa::SherpaApi::from_library(load(&library(runtime, "sherpa-onnx-c-api")?)?) }

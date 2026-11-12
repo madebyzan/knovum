@@ -13,5 +13,7 @@
   "play": "Seleção de reprodução",
   "sourceChanged": "A origem do nó de áudio foi alterada. Atualize o nó antes de preparar uma referência de voz.",
   "selection": "{seconds}s selecionados · Arraste uma das extremidades",
-  "prepared": "Seleção reconhecida"
+  "prepared": "Seleção reconhecida",
+  "speakers": "Falantes",
+  "speakerHint": "Selecionar a fala contínua mais longa deste falante"
 }

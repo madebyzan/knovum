@@ -32,7 +32,7 @@ pub(super) async fn validate<R: Runtime>(
     cancellation: &CancellationToken,
 ) -> Result<String, String> {
     let model = crate::local_resources::model_selection::transcription(app)?;
-    let profile = speech::transcription_profile(model)?;
+    let profile = speech::transcription_execution_profile(app, model, cancellation).await?;
     let reader = hound::WavReader::open(&reference.path).map_err(|error| error.to_string())?;
     let expected_duration_ms = u64::from(reader.duration()) * 1_000 / 16_000;
     drop(reader);

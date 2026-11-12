@@ -10,12 +10,13 @@ pub async fn list_voices(pool: &sqlx::SqlitePool) -> Result<Vec<VoiceLibraryRevi
     sqlx::query_as(
         "SELECT p.id AS profile_id,p.name,p.source_kind,r.id AS revision_id,r.revision, \
          r.id=p.active_revision_id AS is_active,r.engine_id,r.model_spec_id,r.language,r.preset_voice_id, \
-         (r.engine_id='voxcpm2' AND p.source_kind='reference' AND r.reference_text IS NULL) AS supports_delivery_instruction, \
+         r.reference_text, \
          p.archived_at,p.updated_at FROM spaces_voice_profiles p JOIN spaces_voice_revisions r ON r.profile_id=p.id \
          ORDER BY p.archived_at IS NOT NULL,p.updated_at DESC,r.id=p.active_revision_id DESC,r.revision DESC",
     )
     .fetch_all(pool)
     .await
+    .map(|rows: Vec<VoiceLibraryRevision>| rows.into_iter().map(VoiceLibraryRevision::read).collect())
     .map_err(db::sql_error)
 }
 
@@ -90,32 +91,22 @@ pub async fn require_voice(
     voice_revision_id: &str,
     delivery_instruction: Option<&str>,
 ) -> Result<String, String> {
-    let voice: Option<(String, String, String, Option<String>)> = sqlx::query_as(
-        "SELECT r.language,r.engine_id,v.source_kind,r.reference_text FROM spaces_voice_revisions r \
-         JOIN spaces_voice_profiles v ON v.id=r.profile_id \
-         WHERE r.id=? AND ( \
-           (v.source_kind IN ('preset','reference') AND r.engine_id='moss_nano' AND r.model_spec_id=?) OR \
-           (v.source_kind IN ('reference','designed') AND r.engine_id='voxcpm2' \
-             AND r.model_spec_id IN (?,?,?) \
-             AND r.reference_asset_id IS NOT NULL AND r.reference_source_revision IS NOT NULL \
-             AND (v.source_kind='reference' OR \
-               (r.reference_text IS NOT NULL AND length(trim(r.reference_text)) > 0))))",
-    )
-    .bind(voice_revision_id)
-    .bind(super::execution::MOSS_NANO_MODEL_SPEC_ID)
-    .bind(super::voice_candidates::MODEL_SPEC_ID)
-    .bind(super::voice_candidates::BF16_MODEL_SPEC_ID)
-    .bind(super::voice_candidates::Q8_MODEL_SPEC_ID)
-    .fetch_optional(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    let (language, engine, source, transcript) =
-        voice.ok_or("A compatible voice revision is required")?;
+    let voice: super::contracts::VoiceExecution = sqlx::query_as(super::execution::VOICE_QUERY)
+        .bind(voice_revision_id)
+        .fetch_optional(&mut **tx)
+        .await
+        .map_err(db::sql_error)?
+        .ok_or("A compatible voice revision is required")?;
+    super::execution::admit(&voice).map_err(|_| "A compatible voice revision is required")?;
     super::delivery_instruction::validate(
         delivery_instruction,
-        super::delivery_instruction::supports(&engine, &source, transcript.as_deref()),
+        super::delivery_instruction::supports(
+            &voice.engine_id,
+            &voice.source_kind,
+            voice.reference_text.as_deref(),
+        ),
     )?;
-    Ok(language)
+    Ok(voice.language)
 }
 
 pub(super) async fn load_segments(

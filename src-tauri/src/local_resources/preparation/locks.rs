@@ -14,7 +14,8 @@ use crate::local_resources::models::{
     catalog::{self, ModelKind},
 };
 
-pub struct PreparedVoxCpm2Model {
+/// An audio.cpp voice model (VoxCPM2 or a cloning family), held prepared for one job.
+pub struct PreparedVoiceModel {
     directory: PathBuf,
     model: super::super::model_catalog::LocalModelId,
     _models: PreparedModels,
@@ -46,12 +47,15 @@ impl PreparedDiarizationModel {
     }
 }
 
-impl PreparedVoxCpm2Model {
+impl PreparedVoiceModel {
     pub fn from_models(
         models: PreparedModels,
         model: super::super::model_catalog::LocalModelId,
     ) -> Result<Self, String> {
-        let directory = models.directory(model.voxcpm2_models()?)?;
+        let snapshot = model
+            .snapshot()
+            .ok_or("Voice model is unavailable on this platform")?;
+        let directory = models.directory(snapshot.models())?;
         Ok(Self {
             directory,
             model,
@@ -63,8 +67,8 @@ impl PreparedVoxCpm2Model {
         &self.directory
     }
 
-    pub(crate) fn spec_id(&self) -> Result<&'static str, String> {
-        self.model.voxcpm2_spec()
+    pub(crate) fn model(&self) -> super::super::model_catalog::LocalModelId {
+        self.model
     }
 }
 
@@ -93,13 +97,16 @@ impl PreparedModels {
     ) -> Result<super::super::model_catalog::LocalModelId, String> {
         use super::super::{
             model_catalog::LocalModelId as M,
-            models::{catalog::WhisperVariant as V, snapshots::SnapshotKind as S},
+            models::{
+                catalog::{Qwen3AsrVariant as Q, WhisperVariant as V},
+                snapshots::SnapshotKind as S,
+            },
         };
         let snapshots = self
             .paths
             .keys()
             .map(|kind| catalog::descriptor(*kind).snapshot)
-            .filter(|snapshot| matches!(snapshot, S::Whisper(_)))
+            .filter(|snapshot| matches!(snapshot, S::Whisper(_) | S::Qwen3Asr(_)))
             .collect::<std::collections::HashSet<_>>();
         if snapshots.len() != 1 {
             return Err(
@@ -119,6 +126,8 @@ impl PreparedModels {
             S::Whisper(V::LargeV3TurboQ8) => Ok(M::WhisperLargeV3TurboQ8),
             S::Whisper(V::LargeV3Turbo) => Ok(M::WhisperLargeV3Turbo),
             S::Whisper(V::LargeV3) => Ok(M::WhisperLargeV3),
+            S::Qwen3Asr(Q::Qwen3Asr) => Ok(M::Qwen3Asr),
+            S::Qwen3Asr(Q::Qwen3AsrF16) => Ok(M::Qwen3AsrF16),
             _ => unreachable!("Only ASR snapshots remain after filtering"),
         }
     }

@@ -40,21 +40,21 @@ or unverified models leave the index unprepared without starting a download or r
 failure. Enabling semantic search or choosing Related Content's preparation action prepares the
 verified embedding snapshot explicitly; Related Content then schedules a full Space index.
 
-| Capability                     | Supported models                                                                                       |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| Text embedding                 | Fixed Qwen3-Embedding-0.6B, Candle F32 last-token pooling                                              |
-| Transcription                  | Whisper Tiny / Base / Small (default) / Medium / Large-v3 Turbo / Large-v3; whisper.cpp on all targets |
-| Speech synthesis and cloning   | MOSS-TTS-Nano (small default); VoxCPM2 Q8_0 / BF16 / original-precision GGUF                           |
-| Voice design                   | VoxCPM2 Q8_0 / BF16 / original-precision GGUF                                                          |
-| Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / F16 GGUF; audio.cpp                                              |
-| Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32; ERes2Net, CAM++ & ERes2Net Large                            |
-| Vocal/accompaniment separation | Spleeter FP16 (default) / FP32, Sherpa CPU engine                                                      |
-| Image background removal       | BiRefNet Lite (default) / General / Portrait, BEN2 Base, IS-Net Anime; 1024², ONNX Runtime             |
-| Image upscaling                | Real-ESRGAN General X4v3 / X4plus, tiled ONNX Runtime                                                  |
-| Image repair                   | Big LaMa, selected-region ONNX Runtime                                                                 |
-| Image selection                | MobileSAM (default) / SAM 2.1 Hiera-Tiny, cached ONNX Runtime                                          |
-| Relative depth                 | Depth Anything V2 Small UINT8 / F32, ONNX Runtime                                                      |
-| Text recognition (OCR)         | Fixed PP-OCRv6 small detection + recognition (~31 MB), `oar-ocr` ONNX Runtime                          |
+| Capability                     | Supported models                                                                                                                               |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Text embedding                 | Fixed Qwen3-Embedding-0.6B, Candle F32 last-token pooling                                                                                      |
+| Transcription                  | Whisper Tiny / Base / Small (default) / Medium / Large-v3 Turbo / Large-v3 (whisper.cpp); Qwen3-ASR 1.7B Q8_0 / F16 (audio.cpp GGUF)           |
+| Speech synthesis and cloning   | MOSS-TTS-Nano (small default); VoxCPM2; IndexTTS2 Q8_0 / F16; Qwen3-TTS 1.7B Q8_0 / BF16, 0.6B Q8_0; Fun-CosyVoice3 0.5B Q8_0 (audio.cpp GGUF) |
+| Voice design                   | VoxCPM2 Q8_0 / BF16 / original-precision GGUF                                                                                                  |
+| Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / F16 GGUF; audio.cpp                                                                                      |
+| Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32; ERes2Net, CAM++ & ERes2Net Large                                                                    |
+| Vocal/accompaniment separation | HTDemucs Q8_0 (default) / F16, audio.cpp GGUF on Metal, Vulkan or CPU                                                                          |
+| Image background removal       | BiRefNet Lite (default) / General / Portrait, BEN2 Base, IS-Net Anime; 1024², ONNX Runtime                                                     |
+| Image upscaling                | Real-ESRGAN General X4v3 / X4plus, tiled ONNX Runtime                                                                                          |
+| Image repair                   | Big LaMa, selected-region ONNX Runtime                                                                                                         |
+| Image selection                | MobileSAM (default) / SAM 2.1 Hiera-Tiny, cached ONNX Runtime                                                                                  |
+| Relative depth                 | Depth Anything V2 Small UINT8 / F32, ONNX Runtime                                                                                              |
+| Text recognition (OCR)         | Fixed PP-OCRv6 small detection + recognition (~31 MB), `oar-ocr` ONNX Runtime                                                                  |
 
 All non-Agent models execute in the Rust worker. Rust uses reqwest for the exact Hugging Face and
 ModelScope repository protocols; direct suppliers and archive members retain their frozen hashes.
@@ -91,6 +91,17 @@ the inference slot and ready to receive the request, so waiting behind another c
 consume it, and a worker holds its weights before it accepts any request, so loading them cannot
 consume it either. Waiting for the slot is bounded by cancellation alone,
 because every holder executes under its own budget and therefore always releases the slot.
+
+Qwen3-ASR 1.7B (Apache-2.0) is an optional audio.cpp transcription engine in Q8_0 and F16. It reuses
+the same pinned whisper.cpp Silero 6.2.0 VAD to select speech regions on the original waveform, then
+transcribes each region as one segment; audio.cpp splits a long region into its own bounded 30-second
+chunks and merges their text, so memory and the generation budget stay flat regardless of source
+length. It runs on the probed audio.cpp backend (Metal, Vulkan or CPU). A region carries its text and
+source span but no word spans: word timing is left to the separate Qwen3 Forced Aligner stage, so a
+Qwen3-ASR transcript has `segment_only` timing until it is aligned. Language detection holds for the
+whole request after the first region attributes a language, and the model's language labels are
+normalised to ISO codes. Its compute budget allows forty times the input duration for Q8_0 and sixty
+times for F16 on CPU, with ten- and fifteen-minute minima, capped at six hours.
 
 Forced alignment and speaker diarization are separate optional speech stages. Neither is required
 to complete plain ASR. Qwen3 Forced Aligner is prepared only for a user-selected range no longer
@@ -131,17 +142,18 @@ automatic or provide one exact known count from 1 through 32. Sherpa clustering 
 arbitrary minimum/maximum constraints; the product does not simulate them. Existing durable job
 columns retain the automatic/exact-count invariant. Target-platform acceptance must measure automatic
 speaker-count and turn quality; a successful known-count sample does not qualify automatic counting.
-Video source separation uses the two fixed
-selected Spleeter FP16 or FP32 ONNX pair through sherpa-onnx on CPU. Rust converts the source to 44.1 kHz stereo
-PCM, verifies both stems on the same sample timeline and persists both candidate stems.
-The frozen Sherpa STFT/ISTFT reconstructs complete 1,024-sample hops. The adapter pads the input
-to a complete hop and at least one 4,096-sample window before inference, then crops both stems
-back to the exact original frame count. It rejects an unexpected reconstruction length; the Rust
-publication boundary retains its exact source-timeline check. This follows the
-[pinned supplier's STFT implementation](https://github.com/k2-fsa/sherpa-onnx/blob/v1.13.8/sherpa-onnx/csrc/offline-source-separation-spleeter-impl.h).
-Because sherpa's Spleeter implementation materializes the full STFT and masks, one request is
-limited to ten minutes; longer videos must be split explicitly before separation and are never
-silently truncated.
+Source separation runs Meta's Hybrid Transformer Demucs (HTDemucs, MIT) as the audio.cpp GGUF
+export, Q8_0 by default or F16, on the GPU backend the bundled audio.cpp library reports (Metal,
+Vulkan) or the CPU. Rust converts the source to 44.1 kHz stereo PCM; the worker streams it through
+the model in one-minute blocks that overlap their neighbours by four seconds on each side and
+cross-fades every seam linearly, so memory does not grow with the source and no block edge is
+audible. HTDemucs estimates drums, bass, other and vocals; the background is the sum of every stem
+but vocals, which is Demucs' own two-stem definition. One request accepts up to six hours — the
+most a stereo 16-bit WAV stem holds at 44.1 kHz (`speech_wire::SEPARATION_MAX_DURATION_MS`) — and
+a longer source is refused, never truncated. Both stems are checked against the exact source
+sample timeline before publication.
+Spleeter, the previous engine, is retired: a stored choice of it resolves to HTDemucs, and a
+separation it produced keeps its recorded model identity.
 The model separates vocals and accompaniment; it does not establish that spoken dialogue was fully
 removed or that every environmental sound was preserved. The candidate therefore remains unusable
 as a video background until the user auditions and explicitly accepts it.
@@ -272,10 +284,10 @@ and downloaded from its author's or the ONNX community's own repository: BiRefNe
 BiRefNet General and BiRefNet Portrait (MIT), BEN2 Base (MIT) and IS-Net Anime (SkyTNT, Apache-2.0).
 Bria's RMBG models are not offered: their weights are licensed for non-commercial use only and
 gated behind an account. A persisted selection of a retired model (U²-Net, RMBG-1.4, RMBG-2.0,
-IS-Net DIS) resolves to the default. Spleeter FP16/FP32 snapshots are 39,362,041 / 78,636,679 bytes and share
-the exact source timeline and automatic two-node derivation contract. Both separation models execute on CPU;
-no qualified GPU path is implemented for this engine. A precision choice changes the model rather
-than the operation or its publication semantics.
+IS-Net DIS, Spleeter) resolves to the default. HTDemucs Q8_0/F16 snapshots (weights plus the Demucs
+MIT licence) are 61,941,855 / 84,060,255 bytes and share the exact source timeline and automatic
+two-node derivation contract. A precision choice changes the model rather than the operation or its
+publication semantics.
 
 Speaker variants use the shared snapshot installer, preparation, leases and removal path. Their
 public sources need no account or import. The supported clustering controls follow the
@@ -304,10 +316,65 @@ export/import. Its effect depends on the reference voice and language; it is not
 control. MOSS presets, exact-transcript clones and saved designed voices do not expose this control.
 The backend reports instruction support explicitly; the UI does not infer engine compatibility.
 
+A reference recording with its exact transcript is cloned by continuation — VoxCPM2's "ultimate
+cloning": the recording is both the continuation prompt and the voice reference, so the new line
+carries every nuance of the reference. Style guidance and delivery instructions apply only to a
+recording cloned without its transcript.
+
 First-time voice design passes the description without a reference transcript. Once a designed
 candidate is selected, its immutable recording and matching text form the reference for exact
 cloning. The design description remains provenance, rather than being reapplied during generation.
 This preserves the selected voice identity. See the [pinned official VoxCPM2 model card](https://huggingface.co/openbmb/VoxCPM2/resolve/32279effe8c19989596f05d353d1447f51d9e915/README.md).
+
+### Cloning an original speaker
+
+A clone of a film or video speaker must not carry its soundtrack. **Isolate voice** (on by default,
+`VoiceCandidateSource::Reference.isolateVoice`) separates the selected clip with the chosen
+separation model through the same pipeline as a dub's background
+(`source_separation/separate.rs`) and freezes the vocals, conformed to the reference format, as
+the candidate's reference (`voice_candidates/source_snapshot.rs::isolate`). The transcript review
+still reads the selection as recorded; the frozen reference — and so every render — is the voice.
+
+When the node's current transcript tells speakers apart, the clone bar offers each speaker as a
+one-click selection (`speech/speaker-references.ts`): their longest uninterrupted turn — their own
+consecutive segments, no one else between, no pause beyond a dialogue pause — cut at a segment
+boundary to the model's maximum reference length. Speakers who never speak five seconds on end are
+not offered.
+
+### Publishing the dubbed video
+
+The picture is never re-encoded when MP4 can carry it (`video_publication/video_mux.rs::Picture`,
+one probe of the source's codec via `media::ffmpeg::video_codec`): H.264, AV1, VP9 and MPEG-4 are
+copied; HEVC is copied under the `hvc1` sample-entry tag, because FFmpeg's default `hev1` is
+refused by QuickTime, Safari and iOS; a codec MP4 cannot hold (ProRes, DNxHD, …) is encoded to
+H.264 with the video editor's settings instead of failing the dub.
+
+### Cloning families
+
+IndexTTS2, Qwen3-TTS (Base) and Fun-CosyVoice3 clone a reference recording of 5–15 seconds through
+the audio.cpp C ABI (`inference-worker/src/speech/cloning.rs`), from one pinned GGUF of
+`audio-cpp/audio.cpp-gguf` beside its upstream licence (IndexTTS2: bilibili model licence;
+Qwen3-TTS and CosyVoice: Apache-2.0). Each GGUF embeds its configuration and tokenizer. Output is
+resampled once to 48 kHz; every voice revision renders at 48 kHz and normal speed.
+
+| Family         | Transcript                                          | Delivery instruction | Duration     |
+| -------------- | --------------------------------------------------- | -------------------- | ------------ |
+| IndexTTS2      | not used (clones from the recording)                | emotion text         | controlled   |
+| Qwen3-TTS      | optional; with it, in-context cloning, else timbre  | none                 | its own pace |
+| Fun-CosyVoice3 | optional; with it `zero_shot`, else `cross_lingual` | `instruct` template  | its own pace |
+
+The engine table lives in `speech_wire::SpeechSynthesisEngine` (`accepts_style`,
+`controls_duration`, `max_reference_duration_ms`); the stored-revision admission rule is one
+function, `spaces/speech/execution/voice.rs::admit`, used by production and by project
+validation alike; `delivery_instruction::supports` derives the library's instruction flag.
+
+**Fitting a dub line to its window** (`run_execution/segment/synthesis.rs`, `DurationFit`): an
+engine that controls duration renders the line naturally once and, if it overruns, renders it
+again at `window / spoken` of its natural length (never below `MIN_DURATION_SCALE` = 0.75 — below
+that the model itself sounds rushed). Every other engine spends three takes over derived seeds and
+keeps the first that fits, else the shortest. Whatever still overruns is time-compressed by the mix
+(at most 1.25×) and then delays the next line — speech is never truncated. Both strategies are
+part of the cached render identity (`durationFit.minimumScale` vs `durationFit.takes`).
 
 ## Image inference snapshots
 

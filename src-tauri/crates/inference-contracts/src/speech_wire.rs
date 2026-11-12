@@ -6,8 +6,20 @@ pub const VOICE_REFERENCE_MIN_DURATION_MS: u64 = 5_000;
 pub const DESIGNED_VOICE_REFERENCE_MIN_DURATION_MS: u64 = 1_000;
 pub const VOXCPM2_MAX_REFERENCE_DURATION_MS: u64 = 15_000;
 pub const MOSS_NANO_MAX_REFERENCE_DURATION_MS: u64 = 30_000;
+/// The longest reference the audio.cpp cloning families (IndexTTS2, Qwen3-TTS, CosyVoice3) take;
+/// each conditions on a short prompt and degrades, not improves, past it.
+pub const CLONING_MAX_REFERENCE_DURATION_MS: u64 = 15_000;
+/// The most an engine that controls duration may shorten a line by generating it shorter. Below
+/// this the speech is audibly rushed in the model itself; the rest is left to time compression.
+pub const MIN_DURATION_SCALE: f32 = 0.75;
 pub const VOICE_REFERENCE_FRAME_TOLERANCE_SAMPLES: u32 = 16;
 pub const MAX_SYNTHESIS_TEXT_CHARACTERS: usize = 2_000;
+
+/// Source separation reads and writes 16-bit stereo PCM at this rate.
+pub const SEPARATION_SAMPLE_RATE: u32 = 44_100;
+/// The longest source a separation accepts: six hours, the most a stereo 16-bit WAV stem can hold
+/// at [`SEPARATION_SAMPLE_RATE`] within the format's 32-bit data size.
+pub const SEPARATION_MAX_DURATION_MS: u64 = 6 * 60 * 60 * 1_000;
 
 pub const fn voice_reference_sample_bounds(
     min_duration_ms: u64,
@@ -94,10 +106,21 @@ pub enum LanguagePolicy {
     Fixed,
 }
 
-#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[derive(Clone, Copy, Debug, Deserialize, JsonSchema, PartialEq, Eq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 pub enum AsrEngine {
     WhisperCpp,
+    Qwen3Asr,
+}
+
+impl AsrEngine {
+    /// The provenance label a transcript records for the engine that produced it.
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::WhisperCpp => "whisper-cpp",
+            Self::Qwen3Asr => "qwen3-asr",
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
@@ -284,11 +307,61 @@ pub struct VoiceRevisionReference {
     pub design_prompt: Option<String>,
 }
 
-#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 pub enum SpeechSynthesisEngine {
     MossNano,
     VoxCpm2,
+    IndexTts2,
+    Qwen3Tts,
+    CosyVoice3,
+}
+
+impl SpeechSynthesisEngine {
+    pub const ALL: [Self; 5] = [
+        Self::MossNano,
+        Self::VoxCpm2,
+        Self::IndexTts2,
+        Self::Qwen3Tts,
+        Self::CosyVoice3,
+    ];
+
+    /// The identity a voice revision stores (`spaces_voice_revisions.engine_id`).
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::MossNano => "moss_nano",
+            Self::VoxCpm2 => "voxcpm2",
+            Self::IndexTts2 => "index_tts2",
+            Self::Qwen3Tts => "qwen3_tts",
+            Self::CosyVoice3 => "cosyvoice3",
+        }
+    }
+
+    pub fn from_id(id: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|engine| engine.id() == id)
+    }
+
+    /// Whether a line's delivery instruction reaches the engine. Qwen3-TTS's cloning model has no
+    /// style input, and MOSS-TTS-Nano none at all.
+    pub const fn accepts_style(self) -> bool {
+        matches!(self, Self::VoxCpm2 | Self::IndexTts2 | Self::CosyVoice3)
+    }
+
+    /// Whether the engine generates a line to a requested length (`duration_scale`), rather than
+    /// only at its own pace.
+    pub const fn controls_duration(self) -> bool {
+        matches!(self, Self::IndexTts2)
+    }
+
+    pub const fn max_reference_duration_ms(self) -> u64 {
+        match self {
+            Self::MossNano => MOSS_NANO_MAX_REFERENCE_DURATION_MS,
+            Self::VoxCpm2 => VOXCPM2_MAX_REFERENCE_DURATION_MS,
+            Self::IndexTts2 | Self::Qwen3Tts | Self::CosyVoice3 => {
+                CLONING_MAX_REFERENCE_DURATION_MS
+            }
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
@@ -310,6 +383,9 @@ pub struct SpeechSynthesizeParams {
     pub style: Option<String>,
     pub seed: u64,
     pub profile: SynthesisProfile,
+    /// The share of its natural length the line is generated at, for an engine that
+    /// [controls duration](SpeechSynthesisEngine::controls_duration); `None` speaks it naturally.
+    pub duration_scale: Option<f32>,
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]

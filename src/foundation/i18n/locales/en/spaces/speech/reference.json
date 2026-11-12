@@ -13,5 +13,7 @@
   "play": "Play selection",
   "sourceChanged": "The audio node source changed. Refresh the node before preparing a voice reference.",
   "selection": "{seconds}s selected · Drag either end",
-  "prepared": "Selection recognized"
+  "prepared": "Selection recognized",
+  "speakers": "Speakers",
+  "speakerHint": "Select this speaker's longest uninterrupted turn"
 }

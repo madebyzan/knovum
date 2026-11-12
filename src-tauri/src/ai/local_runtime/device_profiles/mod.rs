@@ -9,10 +9,27 @@ use crate::{
 pub(crate) mod alignment;
 pub(in crate::ai::local_runtime) mod backend_probe;
 pub(crate) mod embedding;
+pub(crate) mod qwen3_asr;
+pub(crate) mod separation;
 pub(crate) mod voice;
 
 const GIB: u64 = 1024 * 1024 * 1024;
 pub(super) const EMBEDDING_PEAK_GIB: u64 = 4;
+/// HTDemucs reads one minute of stereo per call (plus overlap), split by audio.cpp into its own
+/// short segments, so its working set does not grow with the source.
+const SEPARATION_PEAK_GIB: u64 = 3;
+/// Qwen3-ASR is a 1.7B audio-language model: its encoder windows a region while the text decoder
+/// generates, so the working set is the weights plus one region's activations, not the source.
+const QWEN3_ASR_Q8_PEAK_GIB: u64 = 8;
+const QWEN3_ASR_F16_PEAK_GIB: u64 = 12;
+
+fn qwen3_asr_peak_gib(model: LocalModelId) -> Result<u64, String> {
+    match model {
+        LocalModelId::Qwen3Asr => Ok(QWEN3_ASR_Q8_PEAK_GIB),
+        LocalModelId::Qwen3AsrF16 => Ok(QWEN3_ASR_F16_PEAK_GIB),
+        _ => Err("Model does not support Qwen3-ASR transcription".into()),
+    }
+}
 
 #[derive(Debug)]
 pub(super) struct MemoryRequirement {
@@ -57,6 +74,17 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
 ) -> Result<MemoryRequirement, String> {
     let id = device_profile.execution_profile_id.as_str();
     let device = device_profile.device.as_str();
+    if let (
+        RuntimeCapability::SpeechSynthesis,
+        Some((load_peak_gib, inference_peak_gib, profile_name)),
+    ) = (capability, voice::cloning_footprint(id, device))
+    {
+        return Ok(MemoryRequirement {
+            load_peak_bytes: load_peak_gib * GIB,
+            inference_peak_bytes: inference_peak_gib * GIB,
+            profile_name,
+        });
+    }
     let (load_peak_gib, inference_peak_gib, profile_name) = match (capability, id, device) {
         (RuntimeCapability::Embedding, _, "cpu" | "mps")
             if threaded_profile(
@@ -136,6 +164,18 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         {
             (5, 7, "Whisper.cpp large-v3 F16")
         }
+        (RuntimeCapability::SpeechTranscription, _, _)
+            if qwen3_asr::execution_id(LocalModelId::Qwen3Asr, device)
+                .is_ok_and(|expected| expected == id) =>
+        {
+            (5, QWEN3_ASR_Q8_PEAK_GIB, "Qwen3-ASR 1.7B Q8 GGUF")
+        }
+        (RuntimeCapability::SpeechTranscription, _, _)
+            if qwen3_asr::execution_id(LocalModelId::Qwen3AsrF16, device)
+                .is_ok_and(|expected| expected == id) =>
+        {
+            (7, QWEN3_ASR_F16_PEAK_GIB, "Qwen3-ASR 1.7B F16 GGUF")
+        }
         (RuntimeCapability::SpeechAlignment, _, _)
             if alignment::execution_id(LocalModelId::Qwen3Aligner, device)
                 .is_ok_and(|expected| expected == id) =>
@@ -156,11 +196,18 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
             | "sherpa-diarization-fp32-cpu-v1",
             "cpu",
         ) => (1, 2, "Sherpa-ONNX speaker diarization CPU"),
-        (
-            RuntimeCapability::SpeechSeparation,
-            "spleeter-2stems-fp16-cpu-v1" | "spleeter-2stems-fp32-cpu-v1",
-            "cpu",
-        ) => (2, 8, "Spleeter 2-stem CPU"),
+        (RuntimeCapability::SpeechSeparation, _, _)
+            if separation::execution_id(LocalModelId::HtDemucs, device)
+                .is_ok_and(|expected| expected == id) =>
+        {
+            (1, SEPARATION_PEAK_GIB, "HTDemucs Q8 GGUF")
+        }
+        (RuntimeCapability::SpeechSeparation, _, _)
+            if separation::execution_id(LocalModelId::HtDemucsF16, device)
+                .is_ok_and(|expected| expected == id) =>
+        {
+            (1, SEPARATION_PEAK_GIB, "HTDemucs F16 GGUF")
+        }
         (RuntimeCapability::SpeechSynthesis, "voxcpm2-mps-gguf-orig-v1", "mps") => {
             (20, 24, "VoxCPM2 audio.cpp Metal GGUF")
         }
@@ -221,22 +268,6 @@ pub(super) fn memory_snapshot() -> Result<MemorySnapshot, String> {
         return Err("resource_exhausted: Platform memory statistics are invalid".into());
     }
     Ok(snapshot)
-}
-
-pub(crate) fn speech_separation(
-    model: crate::local_resources::model_catalog::LocalModelId,
-) -> Result<RuntimeDeviceProfile, String> {
-    #[cfg(not(knovum_supported_desktop))]
-    return Err(
-        "unsupported_device: Source separation requires macOS arm64/x64 or Windows x64".into(),
-    );
-    #[cfg(knovum_supported_desktop)]
-    Ok(RuntimeDeviceProfile {
-        device: "cpu".into(),
-        execution_profile_id: model.separation_spec()?.into(),
-        cpu_threads: crate::ai::local_runtime::compute_budget::ComputeBudget::detect()?
-            .model_threads,
-    })
 }
 
 #[cfg(test)]

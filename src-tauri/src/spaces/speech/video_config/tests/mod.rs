@@ -2,7 +2,7 @@ use super::*;
 use crate::local_resources::model_catalog::LocalModelId;
 
 #[test]
-fn dubbing_keeps_both_separation_models_and_rejects_foreign_provenance() {
+fn dubbing_keeps_separations_by_any_model_including_retired_ones_and_rejects_foreign_provenance() {
     let source = SpeechMediaSource {
         asset_path: "/managed/video.mp4".into(),
         source_revision: format!("sha256:{}", "a".repeat(64)),
@@ -28,20 +28,20 @@ fn dubbing_keeps_both_separation_models_and_rejects_foreign_provenance() {
         source_dialogue_intervals: Vec::new(),
         retain_original_track: true,
     };
-    for model in [
-        LocalModelId::Spleeter2Stems,
-        LocalModelId::Spleeter2StemsFull,
+    assert!(
+        validate(&config).is_err(),
+        "a separation always names its model"
+    );
+    for model_spec_id in [
+        LocalModelId::HtDemucs.separation_spec().unwrap(),
+        LocalModelId::HtDemucsF16.separation_spec().unwrap(),
+        "spleeter-2stems-fp16-cpu-v1",
     ] {
-        config.background_separation.as_mut().unwrap().model_spec_id =
-            model.separation_spec().unwrap().into();
+        config.background_separation.as_mut().unwrap().model_spec_id = model_spec_id.into();
         assert!(validate(&config).is_ok());
     }
-    config.background_separation.as_mut().unwrap().model_spec_id = "unknown-model".into();
-    assert!(validate(&config).is_err());
-    config.background_separation.as_mut().unwrap().model_spec_id = LocalModelId::Spleeter2StemsFull
-        .separation_spec()
-        .unwrap()
-        .into();
+    config.background_separation.as_mut().unwrap().model_spec_id =
+        LocalModelId::HtDemucsF16.separation_spec().unwrap().into();
     config
         .background_separation
         .as_mut()

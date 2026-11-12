@@ -29,6 +29,8 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
   const preparingReference = shallowRef(false);
   const transcript = shallowRef("");
   const transcriptConfirmed = shallowRef(false);
+  // Most recordings worth cloning from — films, interviews, videos — carry music or effects.
+  const isolateVoice = shallowRef(true);
   const initialText = t("spaces.speech.voice.candidate.sample");
   const text = shallowRef(initialText);
   watch(
@@ -85,7 +87,8 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
       model.value !== initialModel.value ||
       language.value !== "zh-CN" ||
       Boolean(description.value.trim() || reference.value || transcript.value.trim()) ||
-      text.value !== initialText,
+      text.value !== initialText ||
+      !isolateVoice.value,
   );
 
   function buildSource(): VoiceCandidateSource | undefined {
@@ -105,6 +108,7 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
       referenceText: usesTranscript ? transcript.value.trim() || null : null,
       referenceTextConfirmed: usesTranscript && transcriptConfirmed.value,
       designPrompt: prompt || null,
+      isolateVoice: isolateVoice.value,
     };
   }
 
@@ -135,6 +139,7 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
     preparingReference,
     transcript,
     transcriptConfirmed,
+    isolateVoice,
     text,
     candidates,
     activeRunId,

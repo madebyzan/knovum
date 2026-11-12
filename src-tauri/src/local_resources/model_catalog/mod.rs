@@ -32,10 +32,18 @@ pub enum LocalModelId {
     WhisperLargeV3TurboQ8,
     WhisperLargeV3Turbo,
     WhisperLargeV3,
+    Qwen3Asr,
+    Qwen3AsrF16,
     MossNano,
     VoxCpm2,
     VoxCpm2Bf16,
     VoxCpm2Q8,
+    IndexTts2,
+    IndexTts2F16,
+    Qwen3Tts,
+    Qwen3TtsBf16,
+    Qwen3TtsSmall,
+    CosyVoice3,
     Qwen3Aligner,
     Qwen3AlignerQ8,
     BirefnetLite,
@@ -51,8 +59,8 @@ pub enum LocalModelId {
     DepthAnythingV2SmallUint8,
     DepthAnythingV2Small,
     PpOcrV6Small,
-    Spleeter2Stems,
-    Spleeter2StemsFull,
+    HtDemucs,
+    HtDemucsF16,
     SherpaDiarization,
     SherpaDiarizationCampplus,
     SherpaDiarizationFull,
@@ -101,18 +109,26 @@ pub const MODELS: &[LocalModelId] = &[
     LocalModelId::WhisperLargeV3TurboQ8,
     LocalModelId::WhisperLargeV3Turbo,
     LocalModelId::WhisperLargeV3,
+    LocalModelId::Qwen3Asr,
+    LocalModelId::Qwen3AsrF16,
     LocalModelId::MossNano,
     LocalModelId::VoxCpm2Q8,
     LocalModelId::VoxCpm2Bf16,
     LocalModelId::VoxCpm2,
+    LocalModelId::IndexTts2,
+    LocalModelId::IndexTts2F16,
+    LocalModelId::Qwen3Tts,
+    LocalModelId::Qwen3TtsBf16,
+    LocalModelId::Qwen3TtsSmall,
+    LocalModelId::CosyVoice3,
     LocalModelId::Qwen3Aligner,
     LocalModelId::Qwen3AlignerQ8,
     LocalModelId::SherpaDiarization,
     LocalModelId::SherpaDiarizationCampplus,
     LocalModelId::SherpaDiarizationFull,
     LocalModelId::SherpaDiarizationEres2netLarge,
-    LocalModelId::Spleeter2Stems,
-    LocalModelId::Spleeter2StemsFull,
+    LocalModelId::HtDemucs,
+    LocalModelId::HtDemucsF16,
     LocalModelId::BirefnetLite,
     LocalModelId::BirefnetGeneral,
     LocalModelId::BirefnetPortrait,
@@ -164,14 +180,22 @@ impl LocalModelId {
             | Self::WhisperLargeV3TurboQ8
             | Self::WhisperLargeV3Turbo
             | Self::WhisperLargeV3
+            | Self::Qwen3Asr
+            | Self::Qwen3AsrF16
             | Self::MossNano
             | Self::VoxCpm2
             | Self::VoxCpm2Bf16
             | Self::VoxCpm2Q8
+            | Self::IndexTts2
+            | Self::IndexTts2F16
+            | Self::Qwen3Tts
+            | Self::Qwen3TtsBf16
+            | Self::Qwen3TtsSmall
+            | Self::CosyVoice3
             | Self::Qwen3Aligner
             | Self::Qwen3AlignerQ8
-            | Self::Spleeter2Stems
-            | Self::Spleeter2StemsFull
+            | Self::HtDemucs
+            | Self::HtDemucsF16
             | Self::SherpaDiarization
             | Self::SherpaDiarizationCampplus
             | Self::SherpaDiarizationFull
@@ -190,10 +214,17 @@ impl LocalModelId {
             | Self::WhisperLargeV3TurboQ8
             | Self::WhisperLargeV3Turbo
             | Self::WhisperLargeV3 => Some(transcription_snapshot(self)),
+            Self::Qwen3Asr | Self::Qwen3AsrF16 => self.qwen3_asr_variant().map(S::Qwen3Asr),
             Self::MossNano => Some(S::MossNano),
             Self::VoxCpm2 => Some(S::VoxCpm2),
             Self::VoxCpm2Bf16 => Some(S::VoxCpm2Bf16),
             Self::VoxCpm2Q8 => Some(S::VoxCpm2Q8),
+            Self::IndexTts2
+            | Self::IndexTts2F16
+            | Self::Qwen3Tts
+            | Self::Qwen3TtsBf16
+            | Self::Qwen3TtsSmall
+            | Self::CosyVoice3 => self.voice_variant().map(S::Voice),
             Self::Qwen3Aligner => {
                 (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty()).then_some(S::SpeechAlignment)
             }
@@ -203,8 +234,7 @@ impl LocalModelId {
             | Self::BirefnetPortrait
             | Self::Ben2Base
             | Self::IsnetAnime => self.segmentation().map(S::ImageSegmentation),
-            Self::Spleeter2Stems => Some(S::SpeechSeparation),
-            Self::Spleeter2StemsFull => Some(S::SpeechSeparationFull),
+            Self::HtDemucs | Self::HtDemucsF16 => self.separation().map(S::Separation),
             Self::SherpaDiarization => Some(S::Diarization(catalog::DiarizationVariant::Int8)),
             Self::SherpaDiarizationCampplus => {
                 Some(S::Diarization(catalog::DiarizationVariant::Campplus))
@@ -241,6 +271,8 @@ impl LocalModelId {
             | Self::WhisperLargeV3TurboQ8
             | Self::WhisperLargeV3Turbo
             | Self::WhisperLargeV3
+            | Self::Qwen3Asr
+            | Self::Qwen3AsrF16
             | Self::RealEsrganGeneralX4v3
             | Self::RealEsrganX4plus
             | Self::Lama
@@ -255,8 +287,14 @@ impl LocalModelId {
             | Self::IsnetAnime
             | Self::VoxCpm2Bf16
             | Self::VoxCpm2Q8
+            | Self::IndexTts2
+            | Self::IndexTts2F16
+            | Self::Qwen3Tts
+            | Self::Qwen3TtsBf16
+            | Self::Qwen3TtsSmall
+            | Self::CosyVoice3
             | Self::Qwen3AlignerQ8
-            | Self::Spleeter2StemsFull
+            | Self::HtDemucsF16
             | Self::SherpaDiarizationCampplus
             | Self::SherpaDiarizationFull
             | Self::SherpaDiarizationEres2netLarge => {
@@ -266,7 +304,7 @@ impl LocalModelId {
             Self::VoxCpm2 => ResourcePreparationTarget::VoiceDesign,
             Self::Qwen3Aligner => ResourcePreparationTarget::SpeechAlignment,
             Self::BirefnetLite => ResourcePreparationTarget::ImageSegmentation,
-            Self::Spleeter2Stems => ResourcePreparationTarget::SpeechSeparation,
+            Self::HtDemucs => ResourcePreparationTarget::SpeechSeparation,
             Self::SherpaDiarization => ResourcePreparationTarget::SpeechDiarization,
         }
     }

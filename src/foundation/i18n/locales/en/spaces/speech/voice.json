@@ -38,5 +38,9 @@
     "reference": "Reference voice",
     "designed": "Designed voice"
   },
-  "options": "Voice settings"
+  "options": "Voice settings",
+  "isolate": {
+    "label": "Isolate voice",
+    "hint": "Separate the voice from music and effects before cloning, so the clone does not carry the soundtrack."
+  }
 }

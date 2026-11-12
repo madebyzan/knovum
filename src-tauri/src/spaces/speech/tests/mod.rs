@@ -328,3 +328,13 @@ fn synthesis_seed_affects_cache_and_is_required_in_current_config() {
     )
     .is_err());
 }
+
+#[test]
+fn an_engine_that_controls_duration_fits_by_scale_and_the_rest_by_takes() {
+    use super::execution::DurationFit;
+    assert_eq!(DurationFit::of("index_tts2").unwrap(), DurationFit::Scale);
+    for engine in ["voxcpm2", "qwen3_tts", "cosyvoice3", "moss_nano"] {
+        assert_eq!(DurationFit::of(engine).unwrap(), DurationFit::Takes(3));
+    }
+    assert!(DurationFit::of("unknown").is_err());
+}

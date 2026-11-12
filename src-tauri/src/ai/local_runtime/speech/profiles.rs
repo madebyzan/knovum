@@ -24,6 +24,8 @@ pub(crate) fn transcription_budget_ms(
             LocalModelId::WhisperSmall => (16, 3 * 60 * 1_000),
             LocalModelId::WhisperBase => (10, 2 * 60 * 1_000),
             LocalModelId::WhisperTiny => (8, 2 * 60 * 1_000),
+            LocalModelId::Qwen3Asr => (40, 10 * 60 * 1_000),
+            LocalModelId::Qwen3AsrF16 => (60, 15 * 60 * 1_000),
             _ => (4, 120_000),
         }
     } else {
@@ -37,6 +39,17 @@ pub(crate) fn transcription_budget_ms(
 pub(crate) fn transcription_profile(model: LocalModelId) -> Result<TranscriptionProfile, String> {
     let metal = cfg!(all(target_os = "macos", target_arch = "aarch64"));
     let device = if metal { "mps" } else { "cpu" };
+    if let Some(variant) = model.qwen3_asr_variant() {
+        // The synchronous profile names the engine and precision; the probed backend device is
+        // resolved by `transcription_execution_profile` before a run.
+        return Ok(TranscriptionProfile {
+            engine: AsrEngine::Qwen3Asr,
+            device: "cpu",
+            compute_type: variant.compute_type(),
+            id: execution_profile::qwen3_asr(variant.spec_id(), "cpu")
+                .expect("A Qwen3-ASR variant owns a CPU execution profile"),
+        });
+    }
     let (variant, compute_type) = match model {
         LocalModelId::WhisperTiny => ("tiny", "q8_0"),
         LocalModelId::WhisperBase => ("base", "q8_0"),
@@ -57,12 +70,37 @@ pub(crate) fn transcription_profile(model: LocalModelId) -> Result<Transcription
 }
 
 pub(crate) async fn transcription_execution_profile<R: tauri::Runtime>(
-    _app: &tauri::AppHandle<R>,
+    app: &tauri::AppHandle<R>,
     model: LocalModelId,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<TranscriptionProfile, String> {
     if cancellation.is_cancelled() {
         return Err("cancelled".into());
+    }
+    if let Some(variant) = model.qwen3_asr_variant() {
+        let runtime = crate::foundation::blocking::run({
+            let app = app.clone();
+            move || crate::local_resources::runtimes::inference::resolve(&app)
+        })
+        .await?;
+        let profile = crate::ai::local_runtime::device_profiles::qwen3_asr::profile(
+            &runtime,
+            model,
+            cancellation,
+        )
+        .await?;
+        let device = match profile.device.as_str() {
+            "cpu" => "cpu",
+            "mps" => "mps",
+            "vulkan" => "vulkan",
+            _ => return Err("unsupported_device: Qwen3-ASR backend is unsupported".into()),
+        };
+        return Ok(TranscriptionProfile {
+            engine: AsrEngine::Qwen3Asr,
+            device,
+            compute_type: variant.compute_type(),
+            id: profile.execution_profile_id,
+        });
     }
     transcription_profile(model)
 }

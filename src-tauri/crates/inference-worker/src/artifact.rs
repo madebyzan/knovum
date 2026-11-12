@@ -73,6 +73,16 @@ pub(crate) fn open_regular(path: &Path) -> Result<File, String> {
     Ok(file)
 }
 
+/// Establishes that a supplied weight is a regular file within its frozen size bound, once, while
+/// the worker initializes rather than on every request that reads it.
+pub(crate) fn bounded_weight(path: &Path, maximum: u64, subject: &str) -> Result<(), String> {
+    let file = open_regular(path)?;
+    if !(1..=maximum).contains(&file.metadata().map_err(|error| error.to_string())?.len()) {
+        return Err(format!("model_corrupt: {subject} weight size is invalid"));
+    }
+    Ok(())
+}
+
 pub(crate) fn read_tensor(
     directory: &Path,
     reference: &TensorFileReference,

@@ -324,3 +324,15 @@ fn combined_mix_is_mastered_to_the_program_reference() {
         measured.input_tp
     );
 }
+
+#[test]
+fn the_picture_is_copied_when_mp4_carries_it_and_hevc_is_tagged_for_every_player() {
+    use video_mux::Picture;
+    for codec in ["h264", "av1", "vp9", "mpeg4"] {
+        assert_eq!(Picture::of(codec), Picture::Copy);
+    }
+    assert_eq!(Picture::of("hevc"), Picture::CopyTagged("hvc1"));
+    for codec in ["prores", "dnxhd", "mjpeg"] {
+        assert_eq!(Picture::of(codec), Picture::Encode);
+    }
+}
