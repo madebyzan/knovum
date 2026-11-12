@@ -76,6 +76,13 @@ fn main() {
                 tauri_build::InlinedPlugin::new().commands(&["get", "inspect", "set", "delete"]),
             )
             .plugin(
+                "storage",
+                tauri_build::InlinedPlugin::new().commands(&[
+                    "validate_object_storage_settings",
+                    "test_object_storage_connection",
+                ]),
+            )
+            .plugin(
                 "ai",
                 tauri_build::InlinedPlugin::new().commands(&[
                     "await_ai_runtime",
