@@ -50,5 +50,5 @@ test("capability files and the enabled capability list stay in sync", () => {
   const identifiers = readdirSync(directory)
     .filter((name) => name.endsWith(".json"))
     .map((name) => JSON.parse(readFileSync(new URL(name, directory), "utf8")).identifier);
-  assert.deepEqual(identifiers.sort(), [...base.app.security.capabilities].sort());
+  assert.deepEqual(identifiers.toSorted(), base.app.security.capabilities.toSorted());
 });
