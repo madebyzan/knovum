@@ -263,14 +263,21 @@ fn a_hardware_figure_describes_the_machine_and_never_withholds_a_model() {
     assert_eq!(qualified.advisory_bytes(None), None);
 
     // Every model states what it needs, so a larger one added later cannot arrive without an
-    // answer; VoxCPM2 is the only family currently making a machine-level claim.
+    // answer. VoxCPM2 claims the machine it was qualified on; the BiRefNet and BEN2 segmentation
+    // models claim the smallest machine whose budget admits their reserved segmentation peak.
     for &model in MODELS {
         let declared = matches!(metadata(model).memory, LocalModelMemory::QualifiedOnGib(_));
         assert_eq!(
             declared,
             matches!(
                 model,
-                LocalModelId::VoxCpm2 | LocalModelId::VoxCpm2Bf16 | LocalModelId::VoxCpm2Q8
+                LocalModelId::VoxCpm2
+                    | LocalModelId::VoxCpm2Bf16
+                    | LocalModelId::VoxCpm2Q8
+                    | LocalModelId::BirefnetLite
+                    | LocalModelId::BirefnetGeneral
+                    | LocalModelId::BirefnetPortrait
+                    | LocalModelId::Ben2Base
             ),
             "{model:?} changed its machine-level claim"
         );
