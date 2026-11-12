@@ -26,16 +26,15 @@
   },
   "actions": {
     "test": "测试连接",
-    "remove": "移除",
     "testSuccess": "对象存储连接正常",
     "testFailed": "对象存储连接失败",
-    "removed": "对象存储配置已移除",
-    "removeFailed": "无法移除对象存储配置",
-    "loadFailed": "无法读取对象存储设置",
-    "removeConfirm": {
-      "title": "移除对象存储？",
-      "description": "存储桶配置及其已保存的凭据将从此设备上删除。",
-      "confirm": "移除"
-    }
+    "loadFailed": "无法读取对象存储设置"
+  },
+  "validation": {
+    "endpointRequired": "请填写服务端点。",
+    "endpointInvalid": "端点必须是带主机名的 https:// URL。",
+    "regionRequired": "请填写区域代码。",
+    "bucketInvalid": "存储桶须为 3–63 个字符，仅限小写字母、数字、“.”或“-”。",
+    "publicBaseUrlInvalid": "公开访问域名必须是带主机名的 https:// URL。"
   }
 }

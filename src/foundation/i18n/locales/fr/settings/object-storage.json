@@ -23,19 +23,18 @@
   },
   "actions": {
     "test": "Tester la connexion",
-    "remove": "Supprimer",
     "testSuccess": "La connexion au stockage fonctionne",
     "testFailed": "Échec de la connexion au stockage",
-    "removed": "Configuration du stockage supprimée",
-    "removeFailed": "Impossible de supprimer la configuration du stockage",
-    "loadFailed": "Impossible de lire les paramètres de stockage",
-    "removeConfirm": {
-      "title": "Supprimer le stockage d'objets ?",
-      "description": "La configuration du bucket et ses identifiants enregistrés seront supprimés de cet appareil.",
-      "confirm": "Supprimer"
-    }
+    "loadFailed": "Impossible de lire les paramètres de stockage"
   },
   "status": {
     "testing": "..."
+  },
+  "validation": {
+    "endpointRequired": "Saisissez le point de terminaison du service.",
+    "endpointInvalid": "Le point de terminaison doit être une URL https:// avec un hôte.",
+    "regionRequired": "Saisissez le code de région.",
+    "bucketInvalid": "Le bucket doit comporter 3 à 63 caractères : minuscules, chiffres, « . » ou « - ».",
+    "publicBaseUrlInvalid": "L'URL de base publique doit être une URL https:// avec un hôte."
   }
 }

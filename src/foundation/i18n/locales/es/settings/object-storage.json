@@ -23,19 +23,18 @@
   },
   "actions": {
     "test": "Probar conexión",
-    "remove": "Eliminar",
     "testSuccess": "La conexión de almacenamiento funciona",
     "testFailed": "Falló la conexión de almacenamiento",
-    "removed": "Configuración de almacenamiento eliminada",
-    "removeFailed": "No se pudo eliminar la configuración de almacenamiento",
-    "loadFailed": "No se pudieron leer los ajustes de almacenamiento",
-    "removeConfirm": {
-      "title": "¿Eliminar el almacenamiento de objetos?",
-      "description": "La configuración del bucket y sus credenciales guardadas se eliminarán de este dispositivo.",
-      "confirm": "Eliminar"
-    }
+    "loadFailed": "No se pudieron leer los ajustes de almacenamiento"
   },
   "status": {
     "testing": "..."
+  },
+  "validation": {
+    "endpointRequired": "Introduce el endpoint del servicio.",
+    "endpointInvalid": "El endpoint debe ser una URL https:// con host.",
+    "regionRequired": "Introduce el código de región.",
+    "bucketInvalid": "El bucket debe tener 3–63 caracteres: minúsculas, números, «.» o «-».",
+    "publicBaseUrlInvalid": "La URL base pública debe ser una URL https:// con host."
   }
 }

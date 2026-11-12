@@ -126,11 +126,11 @@ You can also hand a task to a desktop Agent that brings its own credentials. Key
 
 ## Download and get started
 
-| Platform | Requirement | Installer |
-| --- | --- | --- |
-| macOS | macOS 14 or later, Apple Silicon | `Knovum_<version>_aarch64.dmg` |
-| macOS | macOS 14 or later, Intel | `Knovum_<version>_x64.dmg` |
-| Windows | Windows 10 version 2004 or later, x64 | `Knovum_<version>_x64-setup.exe` |
+| Platform | Requirement                           | Installer                        |
+| -------- | ------------------------------------- | -------------------------------- |
+| macOS    | macOS 14 or later, Apple Silicon      | `Knovum_<version>_aarch64.dmg`   |
+| macOS    | macOS 14 or later, Intel              | `Knovum_<version>_x64.dmg`       |
+| Windows  | Windows 10 version 2004 or later, x64 | `Knovum_<version>_x64-setup.exe` |
 
 **[Download the latest release](https://github.com/madebyzan/knovum/releases/latest)**
 
@@ -183,10 +183,10 @@ On-device capabilities such as OCR, Whisper transcription, and image processing 
 - **Windows:** Set a persistent user environment variable. Press `Win + R`, enter `sysdm.cpl`, then open **Advanced → Environment Variables**. Add `HF_ENDPOINT` with the value `https://hf-mirror.com`. Alternatively, run `setx HF_ENDPOINT "https://hf-mirror.com"` in Command Prompt and restart Knovum.
 - **macOS / Linux:** Add the following to your shell configuration, such as `~/.zshrc` or `~/.bashrc`:
 
-~~~~bash
+```bash
 echo 'export HF_ENDPOINT="https://hf-mirror.com"' >> ~/.zshrc
 source ~/.zshrc
-~~~~
+```
 
 Downloaded model files are verified against pinned SHA-256 digests.
 
@@ -210,20 +210,20 @@ Yes. Knovum is free and open-source software under the [MIT License](LICENSE). Y
 
 The following capabilities run locally. Models are downloaded on first use, verified against pinned SHA-256 digests, and can be removed from Settings.
 
-| Capability | Model | Runtime |
-| --- | --- | --- |
-| Speech transcription | Whisper (default) / Qwen3-ASR 1.7B + Silero VAD | whisper.cpp / audio.cpp |
-| Speaker diarization | Pyannote 3.0 + ERes2Net | sherpa-onnx |
-| Vocal / accompaniment separation | HTDemucs | audio.cpp |
-| Speech synthesis, voice cloning & design | MOSS-TTS-Nano, VoxCPM2, IndexTTS2, Qwen3-TTS, Fun-CosyVoice3 | audio.cpp |
-| Word-level transcript alignment | Qwen3 Forced Aligner | audio.cpp |
-| Semantic-search embeddings | Qwen3-Embedding-0.6B | Candle |
-| Background removal | BiRefNet, BEN2, IS-Net Anime | ONNX Runtime |
-| Image upscaling | Real-ESRGAN | ONNX Runtime |
-| Inpainting / repair | Big LaMa | ONNX Runtime |
-| Smart selection | MobileSAM, SAM 2.1 Hiera-Tiny | ONNX Runtime |
-| Relative depth | Depth Anything V2 | ONNX Runtime |
-| Text recognition (scans, screenshots) | PP-OCRv6 small | ONNX Runtime |
+| Capability                               | Model                                                        | Runtime                 |
+| ---------------------------------------- | ------------------------------------------------------------ | ----------------------- |
+| Speech transcription                     | Whisper (default) / Qwen3-ASR 1.7B + Silero VAD              | whisper.cpp / audio.cpp |
+| Speaker diarization                      | Pyannote 3.0 + ERes2Net                                      | sherpa-onnx             |
+| Vocal / accompaniment separation         | HTDemucs                                                     | audio.cpp               |
+| Speech synthesis, voice cloning & design | MOSS-TTS-Nano, VoxCPM2, IndexTTS2, Qwen3-TTS, Fun-CosyVoice3 | audio.cpp               |
+| Word-level transcript alignment          | Qwen3 Forced Aligner                                         | audio.cpp               |
+| Semantic-search embeddings               | Qwen3-Embedding-0.6B                                         | Candle                  |
+| Background removal                       | BiRefNet, BEN2, IS-Net Anime                                 | ONNX Runtime            |
+| Image upscaling                          | Real-ESRGAN                                                  | ONNX Runtime            |
+| Inpainting / repair                      | Big LaMa                                                     | ONNX Runtime            |
+| Smart selection                          | MobileSAM, SAM 2.1 Hiera-Tiny                                | ONNX Runtime            |
+| Relative depth                           | Depth Anything V2                                            | ONNX Runtime            |
+| Text recognition (scans, screenshots)    | PP-OCRv6 small                                               | ONNX Runtime            |
 
 Embeddings and transcription use Metal on Apple Silicon. None of the capabilities above requires Ollama or another model server.
 
@@ -231,25 +231,25 @@ Embeddings and transcription use Metal on Apple Silicon. None of the capabilitie
 
 You need **Node.js 22.13+** with **Corepack**, the Rust toolchain pinned in `rust-toolchain.toml`, and the native tooling used by the desktop build: **uv**, **CMake**, **Protobuf**, and **LLVM/libclang**. See [docs/installation.md](docs/installation.md) for exact versions.
 
-~~~~bash
+```bash
 git clone https://github.com/madebyzan/knovum.git
 cd knovum
 corepack enable
 pnpm install --frozen-lockfile
 pnpm desktop:dev
-~~~~
+```
 
 The first build compiles the native inference worker and takes longer; later starts are faster.
 
-| Command | Purpose |
-| --- | --- |
-| `pnpm desktop:dev` | Run the desktop app with the Agent environment prepared |
-| `pnpm check` | Full quality gate: web, Rust, and Python |
-| `pnpm check:web` | Typecheck, oxlint, dependency-cruiser, Vitest, knip, jscpd, and oxfmt |
-| `pnpm check:rust` | cargo fmt, clippy (`-D warnings`), and workspace tests |
-| `pnpm check:python` | ruff, mypy (strict), and pytest for the Agent runtime |
-| `pnpm e2e` | WebdriverIO end-to-end run against a debug build |
-| `pnpm package` | Build desktop bundles for the current platform |
+| Command             | Purpose                                                               |
+| ------------------- | --------------------------------------------------------------------- |
+| `pnpm desktop:dev`  | Run the desktop app with the Agent environment prepared               |
+| `pnpm check`        | Full quality gate: web, Rust, and Python                              |
+| `pnpm check:web`    | Typecheck, oxlint, dependency-cruiser, Vitest, knip, jscpd, and oxfmt |
+| `pnpm check:rust`   | cargo fmt, clippy (`-D warnings`), and workspace tests                |
+| `pnpm check:python` | ruff, mypy (strict), and pytest for the Agent runtime                 |
+| `pnpm e2e`          | WebdriverIO end-to-end run against a debug build                      |
+| `pnpm package`      | Build desktop bundles for the current platform                        |
 
 CI runs these checks on macOS (Apple Silicon and Intel) and Windows. Pushing a `v*` tag builds the macOS and Windows packages into a draft GitHub Release.
 

@@ -15,6 +15,7 @@ export const DYNAMIC_LOCALE_KEY_PREFIXES = [
   "spaces.speech.voice.origins.",
   "settings.agents.connections.",
   "settings.routing.routes.",
+  "settings.objectStorage.validation.",
   "shell.commandUnavailable.",
   "spaces.canvas.align.",
   "spaces.canvas.distribute.",

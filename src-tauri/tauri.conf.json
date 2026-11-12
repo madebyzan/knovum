@@ -36,6 +36,7 @@
         "local-resources",
         "integrations",
         "ai-runtime",
+        "object-storage",
         "agent-extensions",
         "app-updater",
         "dictation"

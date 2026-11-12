@@ -14,7 +14,7 @@ import { useSettingsLeaveContext } from "../../../../foundation/lifecycle/use-se
 import type { ConnectorDefinition } from "../../../../shared/contracts/generated/ConnectorDefinition";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import UiInput from "../../../../shared/ui/UiInput.vue";
+import UiSecretInput from "../../../../shared/ui/UiSecretInput.vue";
 
 /**
  * Connecting a service. A service is connected once, so this is a single action rather than a
@@ -113,12 +113,11 @@ async function cancel() {
     </p>
     <label v-for="name in names" :key="name" class="block space-y-1.5 text-caption text-fg-secondary"
       >{{ name
-      }}<UiInput
+      }}<UiSecretInput
         :model-value="fields[name] ?? ''"
-        @update:model-value="fields[name] = $event"
-        type="password"
-        autocomplete="off"
+        :aria-label="name"
         :disabled="busy"
+        @update:model-value="fields[name] = $event"
     /></label>
     <p v-if="busy" role="status" class="text-caption text-fg-secondary">
       {{ $t("extensions.accounts.pending") }}
