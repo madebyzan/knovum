@@ -23,19 +23,18 @@
   },
   "actions": {
     "test": "Prova connessione",
-    "remove": "Rimuovi",
     "testSuccess": "La connessione all'archiviazione funziona",
     "testFailed": "Connessione all'archiviazione non riuscita",
-    "removed": "Configurazione di archiviazione rimossa",
-    "removeFailed": "Impossibile rimuovere la configurazione di archiviazione",
-    "loadFailed": "Impossibile leggere le impostazioni di archiviazione",
-    "removeConfirm": {
-      "title": "Rimuovere l'archiviazione oggetti?",
-      "description": "La configurazione del bucket e le credenziali salvate verranno eliminate da questo dispositivo.",
-      "confirm": "Rimuovi"
-    }
+    "loadFailed": "Impossibile leggere le impostazioni di archiviazione"
   },
   "status": {
     "testing": "..."
+  },
+  "validation": {
+    "endpointRequired": "Inserisci l'endpoint del servizio.",
+    "endpointInvalid": "L'endpoint deve essere un URL https:// con host.",
+    "regionRequired": "Inserisci il codice della regione.",
+    "bucketInvalid": "Il bucket deve avere 3–63 caratteri: minuscole, numeri, '.' o '-'.",
+    "publicBaseUrlInvalid": "L'URL base pubblico deve essere un URL https:// con host."
   }
 }

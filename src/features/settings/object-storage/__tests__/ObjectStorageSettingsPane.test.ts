@@ -7,21 +7,19 @@ const saveObjectStorageSettings = vi.hoisted(() =>
   vi.fn<(settings: ObjectStorageSettings) => Promise<void>>(),
 );
 const loadObjectStorageSettings = vi.hoisted(() => vi.fn<() => Promise<ObjectStorageSettings | null>>());
-const removeObjectStorageConfiguration = vi.hoisted(() => vi.fn<() => Promise<void>>());
 const testObjectStorageConnection = vi.hoisted(() => vi.fn<() => Promise<void>>());
-const isSecretConfigured = vi.hoisted(() => vi.fn<(key: string) => Promise<boolean>>());
+const getSecret = vi.hoisted(() => vi.fn<(key: string) => Promise<string | null>>());
 
 vi.mock("../../../../foundation/object-storage/object-storage-settings", () => ({
   OBJECT_STORAGE_ACCESS_KEY_ID: "storage.ak",
   OBJECT_STORAGE_SECRET_ACCESS_KEY: "storage.sk",
   loadObjectStorageSettings,
   saveObjectStorageSettings,
-  removeObjectStorageConfiguration,
   testObjectStorageConnection,
 }));
 
 vi.mock("../../../../foundation/secrets/secret-store", () => ({
-  isSecretConfigured,
+  getSecret,
   setSecret: vi.fn<(key: string, secret: string) => Promise<void>>(),
   deleteSecret: vi.fn<(key: string) => Promise<void>>(),
 }));
@@ -47,9 +45,8 @@ describe("ObjectStorageSettingsPane", () => {
 
     loadObjectStorageSettings.mockResolvedValue(null);
     saveObjectStorageSettings.mockResolvedValue(undefined);
-    removeObjectStorageConfiguration.mockResolvedValue(undefined);
     testObjectStorageConnection.mockResolvedValue(undefined);
-    isSecretConfigured.mockResolvedValue(false);
+    getSecret.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -93,5 +90,45 @@ describe("ObjectStorageSettingsPane", () => {
       bucket: "my-bucket",
       publicBaseUrl: null,
     });
+  });
+
+  it("keeps validation silent until a field is touched", async () => {
+    const wrapper = mount(ObjectStorageSettingsPane);
+    await flushPromises();
+
+    const inputs = wrapper.findAll("input");
+    await inputs[0]!.setValue("https://cos.ap-guangzhou.myqcloud.com");
+    await inputs[0]!.trigger("blur");
+    expect(wrapper.text()).not.toContain("settings.objectStorage.validation");
+
+    await inputs[1]!.trigger("blur");
+    expect(wrapper.text()).toContain("settings.objectStorage.validation.regionRequired");
+  });
+
+  it("disables Test connection until both credentials are stored", async () => {
+    loadObjectStorageSettings.mockResolvedValue({
+      endpoint: "https://cos.ap-guangzhou.myqcloud.com",
+      region: "ap-guangzhou",
+      bucket: "my-bucket",
+      publicBaseUrl: null,
+    });
+    getSecret.mockResolvedValue(null);
+    mount(ObjectStorageSettingsPane);
+    await flushPromises();
+
+    expect((headerActions.querySelector("button") as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("enables Test connection from live field values without requiring a save", async () => {
+    getSecret.mockResolvedValue("stored-key");
+    const wrapper = mount(ObjectStorageSettingsPane);
+    await flushPromises();
+
+    const inputs = wrapper.findAll("input");
+    await inputs[0]!.setValue("https://cos.ap-guangzhou.myqcloud.com");
+    await inputs[1]!.setValue("ap-guangzhou");
+    await inputs[2]!.setValue("my-bucket");
+
+    expect((headerActions.querySelector("button") as HTMLButtonElement).disabled).toBe(false);
   });
 });

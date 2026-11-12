@@ -26,16 +26,15 @@
   },
   "actions": {
     "test": "Test connection",
-    "remove": "Remove",
     "testSuccess": "Object storage connection works",
     "testFailed": "Object storage connection failed",
-    "removed": "Object storage configuration removed",
-    "removeFailed": "Could not remove object storage configuration",
-    "loadFailed": "Could not read object storage settings",
-    "removeConfirm": {
-      "title": "Remove object storage?",
-      "description": "The bucket configuration and its saved credentials will be deleted from this device.",
-      "confirm": "Remove"
-    }
+    "loadFailed": "Could not read object storage settings"
+  },
+  "validation": {
+    "endpointRequired": "Enter the service endpoint.",
+    "endpointInvalid": "Endpoint must be an https:// URL with a host.",
+    "regionRequired": "Enter the region code.",
+    "bucketInvalid": "Bucket must be 3–63 characters of lowercase letters, numbers, '.' or '-'.",
+    "publicBaseUrlInvalid": "Public base URL must be an https:// URL with a host."
   }
 }

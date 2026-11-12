@@ -23,19 +23,18 @@
   },
   "actions": {
     "test": "Verbindung testen",
-    "remove": "Entfernen",
     "testSuccess": "Objektspeicherverbindung funktioniert",
     "testFailed": "Objektspeicherverbindung fehlgeschlagen",
-    "removed": "Objektspeicherkonfiguration entfernt",
-    "removeFailed": "Objektspeicherkonfiguration konnte nicht entfernt werden",
-    "loadFailed": "Objektspeicher-Einstellungen konnten nicht gelesen werden",
-    "removeConfirm": {
-      "title": "Objektspeicher entfernen?",
-      "description": "Die Bucket-Konfiguration und ihre gespeicherten Zugangsdaten werden von diesem Gerät gelöscht.",
-      "confirm": "Entfernen"
-    }
+    "loadFailed": "Objektspeicher-Einstellungen konnten nicht gelesen werden"
   },
   "status": {
     "testing": "..."
+  },
+  "validation": {
+    "endpointRequired": "Bitte den Dienst-Endpunkt eingeben.",
+    "endpointInvalid": "Der Endpunkt muss eine https://-URL mit Host sein.",
+    "regionRequired": "Bitte den Regionscode eingeben.",
+    "bucketInvalid": "Der Bucket muss aus 3–63 Zeichen (Kleinbuchstaben, Ziffern, „.“ oder „-“) bestehen.",
+    "publicBaseUrlInvalid": "Die öffentliche Basis-URL muss eine https://-URL mit Host sein."
   }
 }

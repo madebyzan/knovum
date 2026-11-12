@@ -26,16 +26,15 @@
   },
   "actions": {
     "test": "測試連線",
-    "remove": "移除",
     "testSuccess": "物件儲存連線正常",
     "testFailed": "物件儲存連線失敗",
-    "removed": "物件儲存設定已移除",
-    "removeFailed": "無法移除物件儲存設定",
-    "loadFailed": "無法讀取物件儲存設定",
-    "removeConfirm": {
-      "title": "移除物件儲存？",
-      "description": "儲存桶設定及其已儲存的憑證將從此裝置上刪除。",
-      "confirm": "移除"
-    }
+    "loadFailed": "無法讀取物件儲存設定"
+  },
+  "validation": {
+    "endpointRequired": "請填寫服務端點。",
+    "endpointInvalid": "端點必須是帶主機名稱的 https:// URL。",
+    "regionRequired": "請填寫區域代碼。",
+    "bucketInvalid": "儲存桶須為 3–63 個字元，僅限小寫字母、數字、「.」或「-」。",
+    "publicBaseUrlInvalid": "公開存取網域必須是帶主機名稱的 https:// URL。"
   }
 }

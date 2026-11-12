@@ -2,37 +2,42 @@ import { z } from "zod";
 
 import type { ObjectStorageSettings } from "../../../shared/contracts/generated/ObjectStorageSettings";
 
-const INVALID_HTTPS_URL = "Must be an https:// URL with a host";
-const INVALID_BUCKET = "Bucket must be 3-63 characters of lowercase letters, numbers, '.' or '-'";
+const VALIDATION = "settings.objectStorage.validation";
+const BUCKET_INVALID = `${VALIDATION}.bucketInvalid`;
 
-function httpsUrlSchema() {
+function httpsUrlSchema(requiredKey: string, invalidKey: string) {
   return z
     .string()
     .trim()
-    .min(1)
+    .min(1, { message: requiredKey })
     .superRefine((value, context) => {
       if (!URL.canParse(value)) {
-        context.addIssue({ code: "custom", message: INVALID_HTTPS_URL });
+        context.addIssue({ code: "custom", message: invalidKey });
         return;
       }
       const url = new URL(value);
       if (url.protocol !== "https:" || !url.hostname || url.username || url.password) {
-        context.addIssue({ code: "custom", message: INVALID_HTTPS_URL });
+        context.addIssue({ code: "custom", message: invalidKey });
       }
     });
 }
 
 export const objectStorageSettingsSchema: z.ZodType<ObjectStorageSettings> = z
   .object({
-    endpoint: httpsUrlSchema(),
-    region: z.string().trim().min(1),
+    endpoint: httpsUrlSchema(`${VALIDATION}.endpointRequired`, `${VALIDATION}.endpointInvalid`),
+    region: z
+      .string()
+      .trim()
+      .min(1, { message: `${VALIDATION}.regionRequired` }),
     bucket: z
       .string()
       .trim()
-      .min(3)
-      .max(63)
-      .regex(/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/, INVALID_BUCKET)
-      .refine((value) => !value.includes(".."), INVALID_BUCKET),
-    publicBaseUrl: z.nullable(httpsUrlSchema()),
+      .min(3, { message: BUCKET_INVALID })
+      .max(63, { message: BUCKET_INVALID })
+      .regex(/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/, { message: BUCKET_INVALID })
+      .refine((value) => !value.includes(".."), { message: BUCKET_INVALID }),
+    publicBaseUrl: z.nullable(
+      httpsUrlSchema(`${VALIDATION}.publicBaseUrlInvalid`, `${VALIDATION}.publicBaseUrlInvalid`),
+    ),
   })
   .strict();

@@ -4,14 +4,10 @@ import type { ZodIssue } from "zod";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import {
   loadObjectStorageSettings,
-  OBJECT_STORAGE_ACCESS_KEY_ID,
-  OBJECT_STORAGE_SECRET_ACCESS_KEY,
-  removeObjectStorageConfiguration,
   saveObjectStorageSettings,
   testObjectStorageConnection,
 } from "../../../foundation/object-storage/object-storage-settings";
 import { objectStorageSettingsSchema } from "../../../foundation/object-storage/schema/object-storage-settings";
-import { isSecretConfigured } from "../../../foundation/secrets/secret-store";
 
 export interface ObjectStorageDraft {
   endpoint: string;
@@ -19,6 +15,8 @@ export interface ObjectStorageDraft {
   bucket: string;
   publicBaseUrl: string;
 }
+
+export type ObjectStorageField = keyof ObjectStorageDraft;
 
 const EMPTY_DRAFT: ObjectStorageDraft = {
   endpoint: "",
@@ -54,33 +52,30 @@ function parseDraft(draft: ObjectStorageDraft) {
 
 export function useObjectStorageEditing() {
   const draft = ref<ObjectStorageDraft>({ ...EMPTY_DRAFT });
-  const configured = shallowRef(false);
   const busy = shallowRef(false);
   const loadError = shallowRef("");
   const testing = shallowRef(false);
   const hasAccessKey = shallowRef(false);
   const hasSecretKey = shallowRef(false);
-  const fieldErrors = ref<Record<string, string>>({});
+  const touched = ref<Partial<Record<ObjectStorageField, boolean>>>({});
+  const issues = ref<Record<string, string>>({});
 
-  async function checkCredentials() {
-    try {
-      const [accessKeyConfigured, secretKeyConfigured] = await Promise.all([
-        isSecretConfigured(OBJECT_STORAGE_ACCESS_KEY_ID),
-        isSecretConfigured(OBJECT_STORAGE_SECRET_ACCESS_KEY),
-      ]);
-      hasAccessKey.value = accessKeyConfigured;
-      hasSecretKey.value = secretKeyConfigured;
-    } catch {
-      // ignore
+  const fieldErrors = computed(() => {
+    const visible: Record<string, string> = {};
+    for (const [field, message] of Object.entries(issues.value)) {
+      if (touched.value[field as ObjectStorageField]) visible[field] = message;
     }
-  }
+    return visible;
+  });
+
+  const canTest = computed(
+    () => parseDraft(draft.value)?.success === true && hasAccessKey.value && hasSecretKey.value,
+  );
 
   onMounted(async () => {
     try {
-      await checkCredentials();
       const settings = await loadObjectStorageSettings();
       if (!settings) return;
-      configured.value = true;
       draft.value = {
         endpoint: settings.endpoint,
         region: settings.region,
@@ -92,10 +87,7 @@ export function useObjectStorageEditing() {
     }
   });
 
-  const canTest = computed(() => configured.value && hasAccessKey.value && hasSecretKey.value);
-  const hasAnySecret = computed(() => hasAccessKey.value || hasSecretKey.value);
-
-  async function withBusyGuard(action: () => Promise<void>) {
+  async function withBusyGuard(action: () => Promise<unknown>) {
     if (busy.value) return;
     busy.value = true;
     try {
@@ -105,46 +97,32 @@ export function useObjectStorageEditing() {
     }
   }
 
-  async function saveField() {
+  async function persist() {
     const parsed = parseDraft(draft.value);
-    if (!parsed) {
-      fieldErrors.value = {};
-      return;
-    }
-    if (!parsed.success) {
-      fieldErrors.value = extractIssues(parsed.error.issues);
-      return;
-    }
-
-    fieldErrors.value = {};
-    await withBusyGuard(async () => {
-      await saveObjectStorageSettings(parsed.data);
-      configured.value = true;
-      draft.value = {
-        endpoint: parsed.data.endpoint,
-        region: parsed.data.region,
-        bucket: parsed.data.bucket,
-        publicBaseUrl: parsed.data.publicBaseUrl ?? "",
-      };
-    });
+    if (!parsed || !parsed.success) return false;
+    await saveObjectStorageSettings(parsed.data);
+    draft.value = {
+      endpoint: parsed.data.endpoint,
+      region: parsed.data.region,
+      bucket: parsed.data.bucket,
+      publicBaseUrl: parsed.data.publicBaseUrl ?? "",
+    };
+    return true;
   }
 
-  async function remove() {
-    await withBusyGuard(async () => {
-      await removeObjectStorageConfiguration();
-      configured.value = false;
-      hasAccessKey.value = false;
-      hasSecretKey.value = false;
-      draft.value = { ...EMPTY_DRAFT };
-      fieldErrors.value = {};
-    });
+  async function saveField(field: ObjectStorageField) {
+    touched.value = { ...touched.value, [field]: true };
+    const parsed = parseDraft(draft.value);
+    issues.value = parsed && !parsed.success ? extractIssues(parsed.error.issues) : {};
+    if (!parsed || !parsed.success) return;
+    await withBusyGuard(persist);
   }
 
   async function test() {
     await withBusyGuard(async () => {
       testing.value = true;
       try {
-        await testObjectStorageConnection();
+        if (await persist()) await testObjectStorageConnection();
       } finally {
         testing.value = false;
       }
@@ -158,15 +136,12 @@ export function useObjectStorageEditing() {
 
   return {
     draft,
-    configured,
     busy,
     loadError,
     testing,
     canTest,
-    hasAnySecret,
     fieldErrors,
     saveField,
-    remove,
     test,
     onSecretChange,
   };

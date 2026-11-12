@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Activity, Trash2 } from "@lucide/vue";
+import { Activity } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -9,7 +9,6 @@ import {
   OBJECT_STORAGE_ACCESS_KEY_ID,
   OBJECT_STORAGE_SECRET_ACCESS_KEY,
 } from "../../../foundation/object-storage/object-storage-settings";
-import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSettingsHeaderActions from "../../../shared/ui/UiSettingsHeaderActions.vue";
@@ -21,6 +20,12 @@ import { useObjectStorageEditing } from "./use-object-storage-editing";
 
 const { t } = useI18n();
 const form = useObjectStorageEditing();
+
+const fieldMessages = computed(() => {
+  const messages: Record<string, string> = {};
+  for (const [field, key] of Object.entries(form.fieldErrors.value)) messages[field] = t(key);
+  return messages;
+});
 
 const connectionFields = computed(
   () =>
@@ -60,22 +65,6 @@ async function test() {
     toast.error(`${t("settings.objectStorage.actions.testFailed")}: ${getErrorMessage(error)}`);
   }
 }
-
-async function remove() {
-  const confirmed = await confirmAction({
-    title: t("settings.objectStorage.actions.removeConfirm.title"),
-    description: t("settings.objectStorage.actions.removeConfirm.description"),
-    confirmLabel: t("settings.objectStorage.actions.removeConfirm.confirm"),
-    danger: true,
-  });
-  if (!confirmed) return;
-  try {
-    await form.remove();
-    toast.success(t("settings.objectStorage.actions.removed"));
-  } catch (error) {
-    toast.error(`${t("settings.objectStorage.actions.removeFailed")}: ${getErrorMessage(error)}`);
-  }
-}
 </script>
 
 <template>
@@ -94,18 +83,6 @@ async function remove() {
             ? t("settings.objectStorage.status.testing")
             : t("settings.objectStorage.actions.test")
         }}
-      </UiButton>
-
-      <UiButton
-        v-if="form.configured.value || form.hasAnySecret.value"
-        size="sm"
-        variant="ghost"
-        :disabled="form.busy.value"
-        class="text-fg-secondary hover:text-fg-danger"
-        @click="remove"
-      >
-        <Trash2 class="size-3.5" />
-        {{ t("settings.objectStorage.actions.remove") }}
       </UiButton>
     </UiSettingsHeaderActions>
 
@@ -128,17 +105,15 @@ async function remove() {
           <UiInput
             v-model="form.draft.value[field.key]"
             class="w-96"
-            :class="
-              form.fieldErrors.value[field.key] ? 'border-stroke-danger focus:border-stroke-danger' : ''
-            "
+            :class="fieldMessages[field.key] ? 'border-stroke-danger focus:border-stroke-danger' : ''"
             :disabled="form.busy.value"
             :placeholder="field.placeholder"
             :aria-label="t(field.labelKey)"
-            @blur="form.saveField"
-            @commit="form.saveField"
+            @blur="form.saveField(field.key)"
+            @commit="form.saveField(field.key)"
           />
-          <span v-if="form.fieldErrors.value[field.key]" class="text-caption-sm text-fg-danger">
-            {{ form.fieldErrors.value[field.key] }}
+          <span v-if="fieldMessages[field.key]" class="text-caption-sm text-fg-danger">
+            {{ fieldMessages[field.key] }}
           </span>
         </div>
       </PreferenceField>

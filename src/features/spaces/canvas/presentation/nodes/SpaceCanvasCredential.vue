@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Eye, EyeOff, KeyRound, LockKeyhole, Pencil } from "@lucide/vue";
+import { KeyRound, LockKeyhole, Pencil } from "@lucide/vue";
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -7,6 +7,7 @@ import UiButton from "../../../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../../../shared/ui/UiDialog.vue";
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../../shared/ui/UiInput.vue";
+import UiSecretInput from "../../../../../shared/ui/UiSecretInput.vue";
 import { useCredentialEditor } from "../../../credentials/use-credential-editor";
 import { useNodeDraft } from "../../../inspection/presentation/use-node-draft";
 import type { SpaceCredentialPayload } from "../../../model/nodes/node-payload";
@@ -22,14 +23,12 @@ const {
   open,
   loading,
   saving,
-  reveal,
   title,
   secret,
   username,
   password,
   canSave,
   openEditor: openCredentialEditor,
-  toggleReveal,
   save,
 } = useCredentialEditor(props);
 const nodeDraft = useNodeDraft(computed(() => props.id));
@@ -100,30 +99,12 @@ const kindLabel = computed(() =>
             ? t("spaces.credentials.apiKey")
             : t("spaces.credentials.password")
         }}</span>
-        <span class="flex min-w-0 items-center gap-1.5">
-          <UiInput
-            v-if="data.credentialKind === 'api-key'"
-            v-model="secret"
-            class="flex-1"
-            :disabled="loading || saving"
-            :type="reveal ? 'text' : 'password'"
-          />
-          <UiInput
-            v-else
-            v-model="password"
-            class="flex-1"
-            :disabled="loading || saving"
-            :type="reveal ? 'text' : 'password'"
-          />
-          <UiIconButton
-            :disabled="loading || saving"
-            :label="reveal ? t('common.hideSecret') : t('common.showSecret')"
-            @click="toggleReveal()"
-          >
-            <EyeOff v-if="reveal" class="size-3.5" />
-            <Eye v-else class="size-3.5" />
-          </UiIconButton>
-        </span>
+        <UiSecretInput
+          v-if="data.credentialKind === 'api-key'"
+          v-model="secret"
+          :disabled="loading || saving"
+        />
+        <UiSecretInput v-else v-model="password" :disabled="loading || saving" />
       </label>
     </div>
     <template #footer>

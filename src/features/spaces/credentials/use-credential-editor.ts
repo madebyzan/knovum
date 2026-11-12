@@ -1,4 +1,3 @@
-import { useToggle } from "@vueuse/core";
 import { computed, onScopeDispose, shallowRef, watch } from "vue";
 import { toast } from "vue-sonner";
 
@@ -19,8 +18,6 @@ export function useCredentialEditor(options: CredentialEditorOptions) {
   const loaded = shallowRef(false);
   const saving = shallowRef(false);
   let request = 0;
-  const reveal = shallowRef(false);
-  const toggleReveal = useToggle(reveal);
   const title = shallowRef("");
   const secret = shallowRef("");
   const username = shallowRef("");
@@ -115,7 +112,6 @@ export function useCredentialEditor(options: CredentialEditorOptions) {
   }
 
   function clearDraft() {
-    reveal.value = false;
     loaded.value = false;
     secret.value = "";
     username.value = "";
@@ -127,14 +123,12 @@ export function useCredentialEditor(options: CredentialEditorOptions) {
     open,
     loading,
     saving,
-    reveal,
     title,
     secret,
     username,
     password,
     canSave,
     openEditor,
-    toggleReveal,
     save,
   };
 }
