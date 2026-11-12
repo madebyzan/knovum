@@ -39,6 +39,15 @@ ignore = [
   # VACUUM INTO copies that carry no WAL. Upgrading sqlx past that bound retires this entry; adding
   # another ignored advisory here does not.
   { id = "RUSTSEC-2026-0459", reason = "needs a foreign sibling -wal with a mismatched page size; restore stages only the exact ROOTS database paths and no sidecar, and live WAL files are written by Knovum itself" },
+  # quick-xml 0.39.4 reaches this build only through object_store =0.13.2, exact-pinned here and
+  # shared with the lancedb =0.37.1 / arrow 58 graph, which requires quick-xml ^0.39. The patched
+  # 0.41 is therefore unreachable without upgrading object_store and the vector store. object_store
+  # parses object-storage XML with the quick-xml serde deserializer and Writer, never NsReader, and
+  # its S3 client (the only enabled cloud feature) talks HTTPS to the user's own configured endpoint.
+  # Upgrading object_store past quick-xml 0.41 retires both entries; adding another ignored advisory
+  # here does not.
+  { id = "RUSTSEC-2026-0194", reason = "the quadratic duplicate-attribute check is reached only deserializing well-formed object-storage API responses from the user's own configured HTTPS endpoint, which never carry duplicate attribute names" },
+  { id = "RUSTSEC-2026-0195", reason = "affects NsReader namespace resolution; object_store uses the quick-xml serde deserializer and Writer, never NsReader" },
 ]
 
 [licenses]
