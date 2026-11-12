@@ -8,7 +8,7 @@ it("uses the selected target rather than the first available model", () => {
   const chosen = blockedImageCapabilities().targets[0]!;
   chosen.availability = { state: "ready" };
   const alternative = { ...chosen, selected: false, label: "Alternative" };
-  alternative.execution = { type: "local", model: "efficientSamTi", specId: "alternative" };
+  alternative.execution = { type: "local", model: "mobileSam", specId: "alternative" };
   expect(selectedImageTarget([alternative, chosen])).toEqual(chosen.execution);
 });
 

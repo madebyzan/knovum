@@ -90,12 +90,6 @@ pub(crate) fn for_snapshot(snapshot: SnapshotKind) -> Option<HubSource> {
             repository: "Qwen/Qwen3-Embedding-0.6B",
             revision: "dd3e37eb506b3addbd930037796e25d349ae9010",
         },
-        SnapshotKind::ImageSegmentation
-        | SnapshotKind::ImageSegmentationSilueta
-        | SnapshotKind::ImageSegmentationHuman
-        | SnapshotKind::ImageSegmentationQuality => HubSource::HuggingFace {
-            repository: "tomjackson2023/rembg",
-            revision: "cd3a3d6767a7859efea31ef0f2f373582cf06d82",
-        },
+        SnapshotKind::ImageSegmentation(model) => model.spec().source.clone(),
     })
 }

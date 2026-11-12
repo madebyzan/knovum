@@ -71,29 +71,30 @@ fn transcription_alternatives_own_complete_distinct_snapshots() {
 }
 
 #[test]
-fn full_image_model_has_its_own_snapshot_and_frozen_execution_identity() {
-    let compact = LocalModelId::U2netp;
-    let full = LocalModelId::U2net;
-    let snapshot = full.snapshot().unwrap();
-    assert_ne!(compact.snapshot(), full.snapshot());
-    assert_eq!(snapshot.total_bytes(), 175_997_641);
-    assert!(full.preparation().models().unwrap() == snapshot.models());
-    assert_ne!(
-        compact.image_segmentation_spec().unwrap(),
-        full.image_segmentation_spec().unwrap()
+fn segmentation_choices_have_distinct_snapshots_and_frozen_execution_identities() {
+    let default = LocalModelId::BirefnetLite;
+    let snapshot = default.snapshot().unwrap();
+    assert_eq!(snapshot.total_bytes(), 224_005_088);
+    assert!(default.preparation().models().unwrap() == snapshot.models());
+    let choices = MODELS
+        .iter()
+        .copied()
+        .filter(|model| model.capability() == LocalModelCapability::ImageSegmentation)
+        .collect::<Vec<_>>();
+    assert_eq!(
+        choices.len(),
+        catalog::SegmentationModel::ALL.len(),
+        "every background-removal model is offered once"
     );
-    for model in [
-        compact,
-        LocalModelId::Silueta,
-        LocalModelId::U2netHumanSeg,
-        full,
-    ] {
+    let mut spec_ids = std::collections::HashSet::new();
+    let mut snapshots = std::collections::HashSet::new();
+    for model in choices {
         assert!(super::super::model_selection::is_selectable(model));
+        let spec_id = model.image_segmentation_spec().unwrap();
         let file = catalog::descriptor(model.snapshot().unwrap().models()[0]);
-        assert!(model
-            .image_segmentation_spec()
-            .unwrap()
-            .contains(file.sha256));
+        assert!(spec_id.contains(file.sha256));
+        assert!(spec_ids.insert(spec_id));
+        assert!(snapshots.insert(model.snapshot().unwrap()));
     }
     assert!(LocalModelId::Qwen3Embedding
         .image_segmentation_spec()
@@ -245,10 +246,9 @@ fn image_choices_prepare_their_complete_snapshot_without_recursion() {
     let choices = [
         LocalModelId::RealEsrganGeneralX4v3,
         LocalModelId::RealEsrganX4plus,
-        LocalModelId::Migan,
         LocalModelId::Lama,
-        LocalModelId::EfficientSamTi,
-        LocalModelId::EfficientSamS,
+        LocalModelId::MobileSam,
+        LocalModelId::Sam2HieraTiny,
         LocalModelId::DepthAnythingV2SmallUint8,
         LocalModelId::DepthAnythingV2Small,
     ];
@@ -268,11 +268,8 @@ fn image_choices_prepare_their_complete_snapshot_without_recursion() {
         assert!(super::super::models::sources::for_snapshot(snapshot).is_none());
     }
     assert!(
-        LocalModelId::EfficientSamTi
-            .snapshot()
-            .unwrap()
-            .total_bytes()
-            < LocalModelId::EfficientSamS
+        LocalModelId::MobileSam.snapshot().unwrap().total_bytes()
+            < LocalModelId::Sam2HieraTiny
                 .snapshot()
                 .unwrap()
                 .total_bytes()
@@ -296,7 +293,9 @@ fn a_hardware_figure_describes_the_machine_and_never_withholds_a_model() {
     assert_eq!(qualified.advisory_bytes(None), None);
 
     // Every model states what it needs, so a larger one added later cannot arrive without an
-    // answer; the voice cloning and design families are the ones making a machine-level claim.
+    // answer. VoxCPM2 and the voice cloning and design families claim the machine they were
+    // qualified on; the BiRefNet and BEN2 segmentation models claim the smallest machine whose
+    // budget admits their reserved segmentation peak.
     for &model in MODELS {
         let declared = matches!(metadata(model).memory, LocalModelMemory::QualifiedOnGib(_));
         assert_eq!(
@@ -312,6 +311,10 @@ fn a_hardware_figure_describes_the_machine_and_never_withholds_a_model() {
                     | LocalModelId::Qwen3TtsBf16
                     | LocalModelId::Qwen3TtsSmall
                     | LocalModelId::CosyVoice3
+                    | LocalModelId::BirefnetLite
+                    | LocalModelId::BirefnetGeneral
+                    | LocalModelId::BirefnetPortrait
+                    | LocalModelId::Ben2Base
             ),
             "{model:?} changed its machine-level claim"
         );

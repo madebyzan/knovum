@@ -6,17 +6,19 @@ use crate::{
     },
     foundation::app_error::AppError,
     local_resources::model_catalog::{LocalModelCapability, LocalModelId},
-    spaces::derivation::image_tensors,
+    spaces::derivation::{image_tensors, regions},
 };
 use base64::{engine::general_purpose::STANDARD, Engine};
-use image::{
-    imageops::{self, FilterType},
-    DynamicImage, ImageFormat, RgbaImage,
-};
+use image::{imageops::FilterType, DynamicImage, ImageFormat, RgbaImage};
 use std::io::Cursor;
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
+/// Coverage at or above this is inside the selection: the decoder's own decision boundary.
+const INSIDE: u8 = 128;
+
+/// How much of every source pixel the selection covers, as `[0, 255]` at the source's resolution:
+/// the decoder's soft edge, with brushed strokes added in full.
 pub(super) async fn compute(
     app: &AppHandle,
     model: LocalModelId,
@@ -48,34 +50,25 @@ pub(super) async fn compute(
     let selection = selection.clone();
     let token = cancellation.clone();
     crate::foundation::blocking::run(move || {
-        let field = image::GrayImage::from_raw(tensor.shape[3], tensor.shape[2], tensor.bytes)
-            .ok_or("Invalid selected-region mask")?;
-        let mut field = imageops::resize(
-            &field,
-            original.width(),
-            original.height(),
-            FilterType::Nearest,
-        );
+        let (width, height) = original.dimensions();
+        if tensor.shape != [1, 1, height, width] || tensor.data_type != TensorDataType::Uint8 {
+            return Err("Invalid selected-region mask".to_owned());
+        }
+        let mut coverage = tensor.bytes;
         if !selection.strokes.is_empty() {
-            let brush = super::super::mask::rasterize(
-                original.width(),
-                original.height(),
-                &selection.strokes,
-                &token,
-            )?;
-            for (mask, brush) in field.pixels_mut().zip(brush.pixels()) {
-                mask[0] = mask[0].max(brush[0]);
+            let brush = super::super::mask::rasterize(width, height, &selection.strokes, &token)?;
+            for (value, brush) in coverage.iter_mut().zip(brush.pixels()) {
+                *value = (*value).max(brush[0]);
             }
         }
-        if !field.pixels().any(|pixel| pixel[0] != 0) {
+        if !coverage.iter().any(|value| *value >= INSIDE) {
             return Err("No foreground was selected; adjust the prompts".to_owned());
         }
-        let shape = [1, 1, original.height(), original.width()];
         Ok((
             original,
             ImageTensor {
-                bytes: field.into_raw(),
-                shape,
+                bytes: coverage,
+                shape: [1, 1, height, width],
                 data_type: TensorDataType::Uint8,
             },
         ))
@@ -99,7 +92,7 @@ pub(in super::super) async fn preview(
         let mut png = Vec::new();
         let image = DynamicImage::ImageLuma8(field);
         let preview = if image.width().max(image.height()) > 2048 {
-            image.resize(2048, 2048, FilterType::Nearest)
+            image.resize(2048, 2048, FilterType::Triangle)
         } else {
             image
         };
@@ -112,8 +105,26 @@ pub(in super::super) async fn preview(
     .map_err(Into::into)
 }
 
+/// The pixels removing the selection repaints, as a binary mask: everything inside it, grown so the
+/// subject's rim and contact shadow go with it.
+pub(super) fn removal_hole(selection: ImageTensor) -> ImageTensor {
+    let [_, _, height, width] = selection.shape;
+    let inside = selection
+        .bytes
+        .iter()
+        .map(|value| *value >= INSIDE)
+        .collect::<Vec<_>>();
+    ImageTensor {
+        bytes: regions::removal_holes(&inside, (width, height))
+            .into_iter()
+            .map(|hole| if hole { 255 } else { 0 })
+            .collect(),
+        ..selection
+    }
+}
+
 pub(super) fn prepare_source(bytes: &[u8]) -> Result<(RgbaImage, ImageTensor), String> {
     let original = image_tensors::decode(bytes)?;
-    let input = image_tensors::selection_input(&original);
+    let input = image_tensors::rgb_tensor(&original);
     Ok((original, input))
 }

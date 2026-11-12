@@ -69,9 +69,14 @@ fn admission() -> Arc<Admission> {
 
 pub(super) fn reserve_memory(
     capability: RuntimeCapability,
+    model_spec_id: &str,
     device_profile: &RuntimeDeviceProfile,
 ) -> Result<MemoryReservation, String> {
-    let requirement = super::device_profiles::memory_requirement(capability, device_profile)?;
+    let requirement = super::device_profiles::worker_memory_requirement(
+        capability,
+        model_spec_id,
+        device_profile,
+    )?;
     let peak_bytes = requirement.peak_bytes();
     let snapshot = super::device_profiles::memory_snapshot()?;
     let admission = admission();

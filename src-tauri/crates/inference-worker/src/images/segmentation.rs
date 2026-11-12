@@ -45,30 +45,39 @@ impl Segmentation {
         params: ImageSegmentParams,
         cancellation: &Cancellation,
     ) -> Result<ImageSegmentation, String> {
-        if params.tensor_ref.shape != [1, 3, 320, 320]
+        let shape = params.tensor_ref.shape;
+        if shape[0] != 1
+            || shape[1] != 3
+            || shape[2] != shape[3]
             || params.tensor_ref.data_type != TensorDataType::Float32LittleEndian
         {
-            return Err("invalid_input: segmentation requires a 320x320 float RGB tensor".into());
+            return Err("invalid_input: segmentation requires a square float RGB tensor".into());
         }
-        let bytes = artifact::read_tensor(work, &params.tensor_ref, 3 * 320 * 320 * 4)?;
-        let tensor = Tensor::from_array(([1usize, 3, 320, 320], session::floats(&bytes)))
-            .map_err(|error| format!("invalid_input: {error}"))?;
+        let edge = shape[2];
+        let input_bytes = 3 * u64::from(edge) * u64::from(edge) * 4;
+        let bytes = artifact::read_tensor(work, &params.tensor_ref, input_bytes)?;
+        let tensor =
+            Tensor::from_array((shape.map(|value| value as usize), session::floats(&bytes)))
+                .map_err(|error| format!("invalid_input: {error}"))?;
         let options = cancellation.run_options()?;
         let outputs = self
             .session
             .run_with_options(ort::inputs![self.input_name.as_str() => tensor], &options)
             .map_err(|error| format!("invalid_output: {error}"))?;
         cancellation.check()?;
-        let (shape, values) = outputs[self.output_name.as_str()]
+        let (out_shape, values) = outputs[self.output_name.as_str()]
             .try_extract_tensor::<f32>()
             .map_err(|error| format!("invalid_output: {error}"))?;
-        if shape.as_ref() != [1, 1, 320, 320] {
+        let expected_mask_shape: [u32; 4] = [1, 1, edge, edge];
+        if out_shape.as_ref() != expected_mask_shape.map(i64::from) {
             return Err("invalid_output: segmentation mask shape differs".into());
         }
+        // The field leaves the worker as the graph produced it; how it reads as coverage is part of
+        // the model's specification, which the host owns.
         let mask_ref = artifact::write_tensor(
             work,
             &format!("mask-{}.f32", params.request_id),
-            [1, 1, 320, 320],
+            expected_mask_shape,
             TensorDataType::Float32LittleEndian,
             &session::float_bytes(values)?,
         )?;

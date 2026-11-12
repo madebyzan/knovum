@@ -191,6 +191,58 @@ fn every_canonical_threaded_profile_has_a_memory_manifest() {
 }
 
 #[test]
+fn a_background_removal_worker_reserves_its_own_models_peak() {
+    use crate::local_resources::models::catalog::SegmentationModel;
+    let capability = RuntimeCapability::ImageSegmentation;
+    let value = profile("cpu", &execution_profile::image(capability, 2).unwrap(), 2);
+    for model in SegmentationModel::ALL {
+        let spec = model.spec();
+        let requirement = worker_memory_requirement(capability, spec.spec_id, &value).unwrap();
+        assert_eq!(requirement.peak_bytes(), spec.peak_memory_gib * GIB);
+        assert_eq!(requirement.profile_name, spec.snapshot_name);
+    }
+    assert!(
+        worker_memory_requirement(capability, "isnet-general-use-onnx:retired", &value).is_err()
+    );
+}
+
+/// The machine a background-removal model advertises must be one that admits it.
+#[test]
+fn a_background_removal_models_advertised_machine_admits_its_peak() {
+    use crate::local_resources::{
+        model_catalog::MODELS,
+        model_metadata::{metadata, LocalModelMemory},
+    };
+    for model in MODELS {
+        let Some(segmentation) = model.segmentation() else {
+            continue;
+        };
+        let peak = segmentation.spec().peak_memory_gib * GIB;
+        let smallest = match metadata(*model).memory {
+            // `Any` promises the smallest machine Knovum supports.
+            LocalModelMemory::Any => 8 * GIB,
+            LocalModelMemory::QualifiedOnGib(gib) => gib * GIB,
+        };
+        assert!(
+            inference_memory_budget(smallest) >= peak,
+            "{model:?} advertises a machine that cannot admit it"
+        );
+    }
+}
+
+#[test]
+fn other_workers_reserve_their_execution_profiles_peak() {
+    let capability = RuntimeCapability::ImageUpscaling;
+    let value = profile("cpu", &execution_profile::image(capability, 2).unwrap(), 2);
+    assert_eq!(
+        worker_memory_requirement(capability, "any-upscaler", &value)
+            .unwrap()
+            .peak_bytes(),
+        memory_requirement(capability, &value).unwrap().peak_bytes()
+    );
+}
+
+#[test]
 fn inference_budget_preserves_system_memory_and_caps_inference_share() {
     assert_eq!(inference_memory_budget(3 * GIB), 0);
     assert_eq!(inference_memory_budget(12 * GIB), 8 * GIB);

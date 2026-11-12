@@ -70,8 +70,8 @@ fn cancelled_materialization_cannot_publish() {
 }
 
 #[test]
-fn selection_preparation_keeps_small_sources_and_reduces_only_large_sources() {
-    for (width, height, expected) in [(128, 96, [1, 3, 96, 128]), (4096, 64, [1, 3, 32, 2048])] {
+fn selection_preparation_sends_the_source_at_its_original_resolution() {
+    for (width, height) in [(128, 96), (4096, 64)] {
         let source = RgbaImage::from_pixel(width, height, Rgba([10, 20, 30, 127]));
         let mut bytes = Vec::new();
         DynamicImage::ImageRgba8(source.clone())
@@ -82,7 +82,7 @@ fn selection_preparation_keeps_small_sources_and_reduces_only_large_sources() {
             .unwrap();
         let (original, input) = super::selection::prepare_source(&bytes).unwrap();
         assert_eq!(original, source);
-        assert_eq!(input.shape, expected);
-        assert_eq!(input.bytes.len(), (expected[2] * expected[3] * 3) as usize);
+        assert_eq!(input.shape, [1, 3, height, width]);
+        assert_eq!(input.bytes.len(), (width * height * 3) as usize);
     }
 }

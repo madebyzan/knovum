@@ -21,7 +21,7 @@ fn params(spec: &str, execution: &str) -> RuntimeInitializeParams {
 fn image_variant() -> RuntimeModel {
     RuntimeModel::ImageVariant {
         path: "/not-loaded".into(),
-        variant: ImageModelVariant::Migan,
+        variant: ImageModelVariant::Lama,
     }
 }
 

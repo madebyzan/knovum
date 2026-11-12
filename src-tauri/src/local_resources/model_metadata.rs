@@ -284,29 +284,38 @@ pub(crate) fn metadata(model: LocalModelId) -> LocalModelMetadata {
             Unused,
             Any,
         ),
-        LocalModelId::U2netp => (
-            "U²-Net · Compact",
+        // The smallest machine whose inference budget admits the model's reserved peak
+        // (`SegmentationSpec::peak_memory_gib`).
+        LocalModelId::BirefnetLite => (
+            "BiRefNet · Lite",
             Capability::ImageSegmentation,
             NONE,
             Unused,
-            Any,
+            QualifiedOnGib(16),
         ),
-        LocalModelId::Silueta => (
-            "Silueta · Balanced",
+        LocalModelId::BirefnetGeneral => (
+            "BiRefNet · General",
             Capability::ImageSegmentation,
             NONE,
             Unused,
-            Any,
+            QualifiedOnGib(24),
         ),
-        LocalModelId::U2netHumanSeg => (
-            "U²-Net · Portrait",
+        LocalModelId::BirefnetPortrait => (
+            "BiRefNet · Portrait",
             Capability::ImageSegmentation,
             NONE,
             Unused,
-            Any,
+            QualifiedOnGib(24),
         ),
-        LocalModelId::U2net => (
-            "U²-Net · Full",
+        LocalModelId::Ben2Base => (
+            "BEN2 · Base",
+            Capability::ImageSegmentation,
+            NONE,
+            Unused,
+            QualifiedOnGib(16),
+        ),
+        LocalModelId::IsnetAnime => (
+            "IS-Net · Anime",
             Capability::ImageSegmentation,
             NONE,
             Unused,
@@ -326,17 +335,10 @@ pub(crate) fn metadata(model: LocalModelId) -> LocalModelMetadata {
             Unused,
             Any,
         ),
-        LocalModelId::Migan => ("MI-GAN", Capability::ImageInpainting, NONE, Unused, Any),
         LocalModelId::Lama => ("Big LaMa", Capability::ImageInpainting, NONE, Unused, Any),
-        LocalModelId::EfficientSamTi => (
-            "EfficientSAM · Ti",
-            Capability::ImageSelection,
-            NONE,
-            Unused,
-            Any,
-        ),
-        LocalModelId::EfficientSamS => (
-            "EfficientSAM · S",
+        LocalModelId::MobileSam => ("MobileSAM", Capability::ImageSelection, NONE, Unused, Any),
+        LocalModelId::Sam2HieraTiny => (
+            "SAM 2.1 · Hiera-Tiny",
             Capability::ImageSelection,
             NONE,
             Unused,

@@ -16,6 +16,14 @@ export type ImageSelectionDerivationInput =
       repairModel: LocalImageTarget;
     };
 
+/**
+ * Whether the selection model has something to read: it is prompted by points and a box, so brush
+ * strokes alone only refine a selection and cannot start one.
+ */
+export function promptsSelection(selection: ImageSelection) {
+  return Boolean(selection.boxRect || selection.points.some((point) => point.foreground));
+}
+
 /** Build only the requested effect; extracting has no repair-model dependency. */
 export function selectionDerivationInput(
   draft: {

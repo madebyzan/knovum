@@ -2,6 +2,7 @@ use super::{depth, discovery, inpainting, segmentation, selection, text_recognit
 use crate::{artifact, cancellation::Cancellation};
 use knovum_inference_contracts::{
     image_compute::{ImageComputation, ImageComputeParams, ImageModelVariant},
+    image_spec::REAL_ESRGAN_TILING,
     image_wire::TensorDataType,
     runtime::{RuntimeInitializeParams, RuntimeModel},
 };
@@ -40,10 +41,9 @@ impl ImageEngine {
                 upscaling::Upscaling::new(directory, variant == V::RealEsrganX4plus, threads)
                     .map(ImageEngine::Upscaling)
             }
-            V::Migan | V::Lama => inpainting::Inpainting::new(directory, variant, threads)
-                .map(ImageEngine::Inpainting),
-            V::EfficientSamTi | V::EfficientSamS => {
-                selection::Selection::new(directory, variant == V::EfficientSamS, threads)
+            V::Lama => inpainting::Inpainting::new(directory, threads).map(ImageEngine::Inpainting),
+            V::MobileSam | V::Sam2HieraTiny => {
+                selection::Selection::new(directory, variant == V::Sam2HieraTiny, threads)
                     .map(ImageEngine::Selection)
             }
             V::DepthAnythingV2SmallUint8 | V::DepthAnythingV2Small => {
@@ -70,7 +70,12 @@ impl ImageEngine {
             (Self::Upscaling(engine), ImageComputation::Upscale, TensorDataType::Uint8) => {
                 Ok(Computed {
                     pixels: engine.execute(shape, input, cancel)?,
-                    shape: [1, 3, height * 4, width * 4],
+                    shape: [
+                        1,
+                        3,
+                        height * REAL_ESRGAN_TILING.factor,
+                        width * REAL_ESRGAN_TILING.factor,
+                    ],
                     data_type: TensorDataType::Uint8,
                 })
             }

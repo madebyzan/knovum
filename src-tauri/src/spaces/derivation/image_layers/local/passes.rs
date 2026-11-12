@@ -4,10 +4,7 @@
 
 use crate::{
     ai::{
-        contracts::{
-            image_compute::ImageSelectionPoint,
-            image_wire::{ImageSegmentationExecutionIdentity, TensorDataType},
-        },
+        contracts::{image_compute::ImageSelectionPoint, image_wire::TensorDataType},
         local_runtime::image::compute::{
             self, ImageComputeRequest, ImageTensor, ImageTensorOperation,
         },
@@ -23,12 +20,12 @@ use crate::{
 };
 use image::{
     imageops::{self, FilterType},
-    GrayImage, Luma, Rgba, RgbaImage,
+    GrayImage, Rgba, RgbaImage,
 };
+use std::sync::Arc;
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
-const SEGMENTATION_BUDGET_MS: u64 = 120_000;
 /// Discovery and inpainting run one pass each over a staged tensor; loading the model is bounded
 /// by the worker's own startup budget.
 const COMPUTE_BUDGET_MS: u64 = 20 * 60 * 1_000;
@@ -70,42 +67,25 @@ pub(super) struct Field {
 }
 
 impl Pass<'_> {
-    /// Soft foreground probability, upsampled to the source so it can serve as a subject alpha.
+    /// The subject's coverage from the background-removal model, at the source's resolution, so
+    /// it can serve as the subject layer's soft edge.
     pub(super) async fn saliency(&self, source: &RgbaImage) -> Result<Vec<u8>, AppError> {
         let model = self.models.saliency;
         let resources = self.prepare(model).await?;
-        let identity = ImageSegmentationExecutionIdentity {
-            model_spec_id: model.image_segmentation_spec()?,
-            owner_kind: "space-derivation".into(),
-            owner_id: self.owner_id.into(),
-            attempt_id: self.owner_id.into(),
-            attempt_epoch: 1,
-            input_revision: self.revision.into(),
-            budget_ms: SEGMENTATION_BUDGET_MS,
-        };
-        let edge = crate::images::SALIENCY_EDGE as u32;
-        let input = crate::images::saliency_input(&image::DynamicImage::ImageRgba8(source.clone()));
-        let field = crate::ai::local_runtime::segment_image(
+        let identity =
+            image_tensors::segmentation_identity(model, self.owner_id, self.revision.into())?;
+        let coverage = crate::images::subject_coverage(
             self.app,
-            input,
+            Arc::new(source.clone()),
             &identity,
             &resources,
             self.cancellation,
         )
         .await?;
-        if field.len() != (edge * edge) as usize {
-            return Err("Invalid saliency field".into());
-        }
-        let field = GrayImage::from_fn(edge, edge, |x, y| {
-            Luma([(field[(y * edge + x) as usize].clamp(0.0, 1.0) * 255.0).round() as u8])
-        });
-        Ok(imageops::resize(
-            &field,
-            source.width(),
-            source.height(),
-            FilterType::Triangle,
-        )
-        .into_raw())
+        Ok(coverage
+            .into_iter()
+            .map(|value| (value * 255.0).round() as u8)
+            .collect())
     }
 
     /// Discovery ranks, upsampled to the source. Rank `0` is unassigned.
@@ -118,7 +98,7 @@ impl Pass<'_> {
         let tensor = self
             .compute(
                 self.models.selection,
-                image_tensors::selection_input(source),
+                image_tensors::rgb_tensor(source),
                 ImageTensorOperation::DiscoverLayers { seeds, max_layers },
             )
             .await?;

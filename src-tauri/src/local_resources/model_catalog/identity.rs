@@ -1,7 +1,6 @@
 use super::{
-    catalog, LocalModelId, IMAGE_SEGMENTATION_HUMAN_SPEC_ID, IMAGE_SEGMENTATION_QUALITY_SPEC_ID,
-    IMAGE_SEGMENTATION_SILUETA_SPEC_ID, IMAGE_SEGMENTATION_SPEC_ID, MODELS, VOXCPM2_BF16_SPEC_ID,
-    VOXCPM2_FULL_SPEC_ID, VOXCPM2_Q8_SPEC_ID,
+    catalog::{self, SegmentationModel},
+    LocalModelId, MODELS, VOXCPM2_BF16_SPEC_ID, VOXCPM2_FULL_SPEC_ID, VOXCPM2_Q8_SPEC_ID,
 };
 
 impl LocalModelId {
@@ -94,14 +93,21 @@ impl LocalModelId {
                 "runtime_mismatch: speaker diarization model specification is unsupported".into(),
             )
     }
+    /// The background-removal model this choice runs, if it is one.
+    pub(crate) const fn segmentation(self) -> Option<SegmentationModel> {
+        Some(match self {
+            Self::BirefnetLite => SegmentationModel::BirefnetLite,
+            Self::BirefnetGeneral => SegmentationModel::BirefnetGeneral,
+            Self::BirefnetPortrait => SegmentationModel::BirefnetPortrait,
+            Self::Ben2Base => SegmentationModel::Ben2Base,
+            Self::IsnetAnime => SegmentationModel::IsnetAnime,
+            _ => return None,
+        })
+    }
     pub(crate) fn image_segmentation_spec(self) -> Result<&'static str, String> {
-        match self {
-            Self::U2netp => Ok(IMAGE_SEGMENTATION_SPEC_ID),
-            Self::Silueta => Ok(IMAGE_SEGMENTATION_SILUETA_SPEC_ID),
-            Self::U2netHumanSeg => Ok(IMAGE_SEGMENTATION_HUMAN_SPEC_ID),
-            Self::U2net => Ok(IMAGE_SEGMENTATION_QUALITY_SPEC_ID),
-            _ => Err("Model does not support image segmentation".into()),
-        }
+        self.segmentation()
+            .map(|model| model.spec().spec_id)
+            .ok_or_else(|| "Model does not support image segmentation".into())
     }
     pub(crate) fn from_separation_spec(spec: &str) -> Result<Self, String> {
         MODELS

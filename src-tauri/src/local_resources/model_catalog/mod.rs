@@ -17,14 +17,6 @@ use super::{
 pub(crate) const VOXCPM2_FULL_SPEC_ID: &str = "voxcpm2-2b-gguf-orig-v1";
 pub(crate) const VOXCPM2_BF16_SPEC_ID: &str = "voxcpm2-2b-gguf-bf16-v1";
 pub(crate) const VOXCPM2_Q8_SPEC_ID: &str = "voxcpm2-2b-gguf-q8_0-v1";
-pub const IMAGE_SEGMENTATION_SPEC_ID: &str =
-    "u2netp-onnx:309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8-v1";
-pub const IMAGE_SEGMENTATION_SILUETA_SPEC_ID: &str =
-    "silueta-onnx:75da6c8d2f8096ec743d071951be73b4a8bc7b3e51d9a6625d63644f90ffeedb-v1";
-pub const IMAGE_SEGMENTATION_HUMAN_SPEC_ID: &str =
-    "u2net-human-seg-onnx:01eb6a29a5c4d8edb30b56adad9bb3a2a0535338e480724a213e0acfd2d1c73c-v1";
-pub const IMAGE_SEGMENTATION_QUALITY_SPEC_ID: &str =
-    "u2net-onnx:8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491-v1";
 
 #[derive(
     Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS,
@@ -54,16 +46,16 @@ pub enum LocalModelId {
     CosyVoice3,
     Qwen3Aligner,
     Qwen3AlignerQ8,
-    U2netp,
-    Silueta,
-    U2netHumanSeg,
-    U2net,
+    BirefnetLite,
+    BirefnetGeneral,
+    BirefnetPortrait,
+    Ben2Base,
+    IsnetAnime,
     RealEsrganGeneralX4v3,
     RealEsrganX4plus,
-    Migan,
     Lama,
-    EfficientSamTi,
-    EfficientSamS,
+    MobileSam,
+    Sam2HieraTiny,
     DepthAnythingV2SmallUint8,
     DepthAnythingV2Small,
     PpOcrV6Small,
@@ -137,16 +129,16 @@ pub const MODELS: &[LocalModelId] = &[
     LocalModelId::SherpaDiarizationEres2netLarge,
     LocalModelId::HtDemucs,
     LocalModelId::HtDemucsF16,
-    LocalModelId::U2netp,
-    LocalModelId::Silueta,
-    LocalModelId::U2netHumanSeg,
-    LocalModelId::U2net,
+    LocalModelId::BirefnetLite,
+    LocalModelId::BirefnetGeneral,
+    LocalModelId::BirefnetPortrait,
+    LocalModelId::Ben2Base,
+    LocalModelId::IsnetAnime,
     LocalModelId::RealEsrganGeneralX4v3,
     LocalModelId::RealEsrganX4plus,
-    LocalModelId::Migan,
     LocalModelId::Lama,
-    LocalModelId::EfficientSamTi,
-    LocalModelId::EfficientSamS,
+    LocalModelId::MobileSam,
+    LocalModelId::Sam2HieraTiny,
     LocalModelId::DepthAnythingV2SmallUint8,
     LocalModelId::DepthAnythingV2Small,
 ];
@@ -168,16 +160,16 @@ impl LocalModelId {
     fn group(self) -> LocalModelGroup {
         match self {
             Self::Qwen3Embedding | Self::PpOcrV6Small => LocalModelGroup::Knowledge,
-            Self::U2netp
-            | Self::Silueta
-            | Self::U2netHumanSeg
-            | Self::U2net
+            Self::BirefnetLite
+            | Self::BirefnetGeneral
+            | Self::BirefnetPortrait
+            | Self::Ben2Base
+            | Self::IsnetAnime
             | Self::RealEsrganGeneralX4v3
             | Self::RealEsrganX4plus
-            | Self::Migan
             | Self::Lama
-            | Self::EfficientSamTi
-            | Self::EfficientSamS
+            | Self::MobileSam
+            | Self::Sam2HieraTiny
             | Self::DepthAnythingV2SmallUint8
             | Self::DepthAnythingV2Small => LocalModelGroup::Images,
             Self::WhisperSmall
@@ -237,10 +229,11 @@ impl LocalModelId {
                 (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty()).then_some(S::SpeechAlignment)
             }
             Self::Qwen3AlignerQ8 => Some(S::SpeechAlignmentQ8),
-            Self::U2netp => Some(S::ImageSegmentation),
-            Self::Silueta => Some(S::ImageSegmentationSilueta),
-            Self::U2netHumanSeg => Some(S::ImageSegmentationHuman),
-            Self::U2net => Some(S::ImageSegmentationQuality),
+            Self::BirefnetLite
+            | Self::BirefnetGeneral
+            | Self::BirefnetPortrait
+            | Self::Ben2Base
+            | Self::IsnetAnime => self.segmentation().map(S::ImageSegmentation),
             Self::HtDemucs | Self::HtDemucsF16 => self.separation().map(S::Separation),
             Self::SherpaDiarization => Some(S::Diarization(catalog::DiarizationVariant::Int8)),
             Self::SherpaDiarizationCampplus => {
@@ -254,10 +247,9 @@ impl LocalModelId {
                 Some(S::Image(catalog::ImageModelVariant::RealEsrganGeneralX4v3))
             }
             Self::RealEsrganX4plus => Some(S::Image(catalog::ImageModelVariant::RealEsrganX4plus)),
-            Self::Migan => Some(S::Image(catalog::ImageModelVariant::Migan)),
             Self::Lama => Some(S::Image(catalog::ImageModelVariant::Lama)),
-            Self::EfficientSamTi => Some(S::Image(catalog::ImageModelVariant::EfficientSamTi)),
-            Self::EfficientSamS => Some(S::Image(catalog::ImageModelVariant::EfficientSamS)),
+            Self::MobileSam => Some(S::Image(catalog::ImageModelVariant::MobileSam)),
+            Self::Sam2HieraTiny => Some(S::Image(catalog::ImageModelVariant::Sam2HieraTiny)),
             Self::DepthAnythingV2SmallUint8 => Some(S::Image(
                 catalog::ImageModelVariant::DepthAnythingV2SmallUint8,
             )),
@@ -283,16 +275,16 @@ impl LocalModelId {
             | Self::Qwen3AsrF16
             | Self::RealEsrganGeneralX4v3
             | Self::RealEsrganX4plus
-            | Self::Migan
             | Self::Lama
-            | Self::EfficientSamTi
-            | Self::EfficientSamS
+            | Self::MobileSam
+            | Self::Sam2HieraTiny
             | Self::DepthAnythingV2SmallUint8
             | Self::DepthAnythingV2Small
             | Self::PpOcrV6Small
-            | Self::Silueta
-            | Self::U2netHumanSeg
-            | Self::U2net
+            | Self::BirefnetGeneral
+            | Self::BirefnetPortrait
+            | Self::Ben2Base
+            | Self::IsnetAnime
             | Self::VoxCpm2Bf16
             | Self::VoxCpm2Q8
             | Self::IndexTts2
@@ -311,7 +303,7 @@ impl LocalModelId {
             Self::MossNano => ResourcePreparationTarget::SpeechSynthesis,
             Self::VoxCpm2 => ResourcePreparationTarget::VoiceDesign,
             Self::Qwen3Aligner => ResourcePreparationTarget::SpeechAlignment,
-            Self::U2netp => ResourcePreparationTarget::ImageSegmentation,
+            Self::BirefnetLite => ResourcePreparationTarget::ImageSegmentation,
             Self::HtDemucs => ResourcePreparationTarget::SpeechSeparation,
             Self::SherpaDiarization => ResourcePreparationTarget::SpeechDiarization,
         }

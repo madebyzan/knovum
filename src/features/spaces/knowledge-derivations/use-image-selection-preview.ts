@@ -4,10 +4,9 @@ import { toast } from "vue-sonner";
 
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import { promptsSelection } from "./image-selection-derivation";
 import { previewImageSelection, type SelectionPreviewInput } from "./image-selection-preview";
-function hasForeground(selection: SelectionPreviewInput["selection"]) {
-  return selection.boxRect || selection.points.some((point) => point.foreground);
-}
+
 export function useImageSelectionPreview(input: () => SelectionPreviewInput | undefined) {
   const maskSource = shallowRef<string>();
   const busy = shallowRef(false);
@@ -28,7 +27,7 @@ export function useImageSelectionPreview(input: () => SelectionPreviewInput | un
     if (previewJobId) return;
     const version = revision;
     const current = input();
-    if (!current || !hasForeground(current.selection)) {
+    if (!current || !promptsSelection(current.selection)) {
       busy.value = false;
       return;
     }

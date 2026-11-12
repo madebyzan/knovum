@@ -150,7 +150,7 @@ async fn selection_extraction_publishes_a_photo_without_depth_metadata() {
     let (pool, mut request, _) = fixture().await;
     sqlx::query("UPDATE spaces_knowledge_derivations SET action_kind='extract-image-selection' WHERE id='job'")
         .execute(&pool).await.unwrap();
-    let model = LocalModelId::EfficientSamTi;
+    let model = LocalModelId::MobileSam;
     request.operation = ImageOperation::ExtractSelection {
         selection: super::super::contracts::ImageSelection {
             points: vec![crate::ai::contracts::image_compute::ImageSelectionPoint {

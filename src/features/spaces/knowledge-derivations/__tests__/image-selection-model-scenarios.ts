@@ -11,7 +11,7 @@ export function imageSelectionModelScenarios() {
     const node = imageSourceNode();
     await store.begin(node);
     const changed = structuredClone(await getImageOperationCapabilities());
-    changed.targets[0]!.execution = { type: "local", model: "efficientSamS", specId: "changed" };
+    changed.targets[0]!.execution = { type: "local", model: "sam2HieraTiny", specId: "changed" };
     changed.targets[1]!.selected = false;
     changed.targets[2]!.selected = true;
     vi.mocked(getImageOperationCapabilities).mockResolvedValueOnce(changed);
@@ -22,8 +22,8 @@ export function imageSelectionModelScenarios() {
     expect(deriveImageSelection).toHaveBeenLastCalledWith(
       node,
       expect.objectContaining({
-        selectionModel: { type: "local", model: "efficientSamTi", specId: "spec" },
-        repairModel: { type: "local", model: "migan", specId: "migan-spec" },
+        selectionModel: { type: "local", model: "mobileSam", specId: "spec" },
+        repairModel: { type: "local", model: "lama", specId: "lama-spec" },
       }),
     );
   });
@@ -35,6 +35,7 @@ export function imageSelectionModelScenarios() {
     capabilities.targets = capabilities.targets.filter((target) => target.capability !== "imageInpainting");
     vi.mocked(getImageOperationCapabilities).mockResolvedValueOnce(capabilities);
     await store.begin(node);
+    store.addPoint(0.3, 0.4);
     expect(store.canSubmit).toBe(true);
     expect(store.canRepair).toBe(false);
     const before = vi.mocked(deriveImageSelection).mock.calls.length;
@@ -46,7 +47,7 @@ export function imageSelectionModelScenarios() {
       node,
       expect.objectContaining({
         effect: "extract",
-        selectionModel: { type: "local", model: "efficientSamTi", specId: "spec" },
+        selectionModel: { type: "local", model: "mobileSam", specId: "spec" },
       }),
     );
     expect(vi.mocked(deriveImageSelection).mock.lastCall?.[1]).not.toHaveProperty("repairModel");

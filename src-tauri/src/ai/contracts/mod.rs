@@ -5,6 +5,7 @@ pub mod embedding_wire;
 pub use knovum_inference_contracts::execution_profile;
 pub mod external_agent;
 pub use knovum_inference_contracts::image_compute;
+pub use knovum_inference_contracts::image_spec;
 pub mod image_wire;
 pub mod media;
 pub mod model_turn;

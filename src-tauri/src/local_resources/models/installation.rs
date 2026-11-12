@@ -3,7 +3,7 @@ use std::{fs, path::Path};
 use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
 
-use super::{catalog, download, installation_path, snapshots::SnapshotKind};
+use super::{catalog, download, installation_path, snapshot_directory, snapshots::SnapshotKind};
 use crate::local_resources::{
     filesystem,
     preparation::{
@@ -40,10 +40,7 @@ pub(crate) async fn install<R: Runtime>(
     progress: &mut impl FnMut(ResourcePreparationProgress),
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
-    let anchor = installation_path(app, catalog::descriptor(snapshot.models()[0]))?;
-    let target = anchor
-        .parent()
-        .ok_or("Model snapshot parent is unavailable")?;
+    let target = snapshot_directory(app, snapshot)?;
     let parent = target
         .parent()
         .ok_or("Model snapshot root is unavailable")?;
@@ -70,8 +67,8 @@ pub(crate) async fn install<R: Runtime>(
         return Err(RESOURCE_PREPARATION_CANCELLED.into());
     }
     progress(update(snapshot, ResourcePreparationStage::Installing));
-    filesystem::remove_owned_directory(target, parent)?;
-    fs::rename(&staging, target).map_err(|error| error.to_string())?;
+    filesystem::remove_owned_directory(&target, parent)?;
+    fs::rename(&staging, &target).map_err(|error| error.to_string())?;
     progress(update(snapshot, ResourcePreparationStage::Ready));
     Ok(())
 }

@@ -8,7 +8,11 @@ import type { ImageSelection } from "../contracts/generated/ImageSelection";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
-import { deriveImageSelection, selectionDerivationInput } from "./image-selection-derivation";
+import {
+  deriveImageSelection,
+  promptsSelection,
+  selectionDerivationInput,
+} from "./image-selection-derivation";
 import { loadSelectionModels, type LocalImageTarget } from "./image-selection-models";
 import { pinSource, releaseWhenSourceChanges, type SourcePin } from "./source-pin";
 import { useImageSelectionPreview } from "./use-image-selection-preview";
@@ -50,7 +54,11 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
       active.value.selection.strokes.length < 100 &&
       remainingPoints.value >= 2,
   );
-  const canSubmit = computed(() => Boolean(maskSource.value && !busy.value && !submitting.value));
+  // The Run reads the prompts, not the preview, so it is offered as soon as the prompts select
+  // something — the preview is feedback the user may wait for, never a gate.
+  const canSubmit = computed(
+    () => !!active.value?.execution && promptsSelection(active.value.selection) && !submitting.value,
+  );
   const canRepair = computed(() => canSubmit.value && !!active.value && !!active.value.repair);
   const canUndo = computed(() => Boolean(history.length && !submitting.value));
 

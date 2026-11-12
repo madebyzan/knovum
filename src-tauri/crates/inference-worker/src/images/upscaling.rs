@@ -1,11 +1,14 @@
 use super::session;
 use crate::cancellation::Cancellation;
+use knovum_inference_contracts::image_spec::REAL_ESRGAN_TILING;
 use ort::{session::Session, value::Tensor};
 use std::path::Path;
 
-const TILE: usize = 128;
-const CONTEXT: usize = 32;
-const CORE: usize = 64;
+const TILE: usize = REAL_ESRGAN_TILING.tile as usize;
+const CONTEXT: usize = REAL_ESRGAN_TILING.context as usize;
+const CORE: usize = REAL_ESRGAN_TILING.core() as usize;
+const FACTOR: usize = REAL_ESRGAN_TILING.factor as usize;
+const OUTPUT_TILE: usize = TILE * FACTOR;
 
 pub(super) struct Upscaling {
     session: Session,
@@ -39,7 +42,7 @@ impl Upscaling {
         if batch != 1 || channels != 3 || height * width > 4_194_304 {
             return Err("invalid_input: upscale source exceeds tile budget".into());
         }
-        let mut output = vec![0u8; 3 * height * width * 16];
+        let mut output = vec![0u8; 3 * height * width * FACTOR * FACTOR];
         for top in (0..height).step_by(CORE) {
             for left in (0..width).step_by(CORE) {
                 let input = tile(source, height, width, top, left);
@@ -54,18 +57,22 @@ impl Upscaling {
                 let (actual, pixels) = outputs["upscaled_image"]
                     .try_extract_tensor::<f32>()
                     .map_err(|error| format!("invalid_output: {error}"))?;
-                if actual.as_ref() != [1, 3, 512, 512]
+                if actual.as_ref() != [1, 3, OUTPUT_TILE as i64, OUTPUT_TILE as i64]
                     || pixels.iter().any(|value| !value.is_finite())
                 {
                     return Err("invalid_output: invalid upscale tile".into());
                 }
                 for channel in 0..3 {
-                    for row in 0..(height - top).min(CORE) * 4 {
-                        for column in 0..(width - left).min(CORE) * 4 {
-                            let value = pixels
-                                [(channel * 512 + row + CONTEXT * 4) * 512 + column + CONTEXT * 4];
-                            output[(channel * height * 4 + top * 4 + row) * width * 4
-                                + left * 4
+                    for row in 0..(height - top).min(CORE) * FACTOR {
+                        for column in 0..(width - left).min(CORE) * FACTOR {
+                            let value = pixels[(channel * OUTPUT_TILE + row + CONTEXT * FACTOR)
+                                * OUTPUT_TILE
+                                + column
+                                + CONTEXT * FACTOR];
+                            output[(channel * height * FACTOR + top * FACTOR + row)
+                                * width
+                                * FACTOR
+                                + left * FACTOR
                                 + column] = quantize(value)?;
                         }
                     }

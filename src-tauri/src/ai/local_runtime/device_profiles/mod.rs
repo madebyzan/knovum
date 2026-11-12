@@ -3,7 +3,7 @@ use crate::{
         execution_profile,
         runtime::{RuntimeCapability, RuntimeDeviceProfile},
     },
-    local_resources::model_catalog::LocalModelId,
+    local_resources::{model_catalog::LocalModelId, models::catalog::SegmentationModel},
 };
 
 pub(crate) mod alignment;
@@ -46,6 +46,26 @@ impl MemoryRequirement {
 
 pub(super) use crate::local_resources::system_memory::MemorySnapshot;
 
+/// The reservation for one worker: the execution profile it runs under and the model it loads.
+/// Background-removal models share one execution profile yet differ several-fold in memory, so
+/// their inference peak is the model's own; every other capability's models fit its profile's.
+pub(in crate::ai::local_runtime) fn worker_memory_requirement(
+    capability: RuntimeCapability,
+    model_spec_id: &str,
+    device_profile: &RuntimeDeviceProfile,
+) -> Result<MemoryRequirement, String> {
+    let requirement = memory_requirement(capability, device_profile)?;
+    if capability != RuntimeCapability::ImageSegmentation {
+        return Ok(requirement);
+    }
+    let model = SegmentationModel::from_spec_id(model_spec_id)?.spec();
+    Ok(MemoryRequirement {
+        inference_peak_bytes: model.peak_memory_gib * GIB,
+        profile_name: model.snapshot_name,
+        ..requirement
+    })
+}
+
 /// Conservative process peak reservations tied to exact frozen execution profiles.
 /// Release qualification must validate them and raise any budget below a measured peak.
 pub(in crate::ai::local_runtime) fn memory_requirement(
@@ -77,7 +97,8 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         (RuntimeCapability::ImageSegmentation, _, "cpu")
             if image_profile(device_profile, capability) =>
         {
-            (1, 1, "U2Net image segmentation CPU")
+            // The inference peak is the model's (`worker_memory_requirement`).
+            (1, 1, "Image segmentation CPU")
         }
         (RuntimeCapability::ImageUpscaling, _, "cpu")
             if image_profile(device_profile, capability) =>
@@ -87,13 +108,13 @@ pub(in crate::ai::local_runtime) fn memory_requirement(
         (RuntimeCapability::ImageInpainting, _, "cpu")
             if image_profile(device_profile, capability) =>
         {
-            // MI-GAN and Big LaMa (fp32, 512² window; measured 1.0 GiB process peak).
+            // Big LaMa (fp32, 512² window; measured 1.0 GiB process peak).
             (1, 2, "Image inpainting CPU")
         }
         (RuntimeCapability::ImageSelection, _, "cpu")
             if image_profile(device_profile, capability) =>
         {
-            (2, 3, "EfficientSAM CPU")
+            (2, 3, "SAM selection CPU")
         }
         (RuntimeCapability::ImageDepth, _, "cpu") if image_profile(device_profile, capability) => {
             (1, 2, "Depth Anything Small CPU")

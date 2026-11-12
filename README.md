@@ -154,10 +154,10 @@ cancellation appear in the Task Center.
 | Speech synthesis, voice cloning & design | MOSS-TTS-Nano, VoxCPM2, IndexTTS2, Qwen3-TTS, Fun-CosyVoice3 | audio.cpp               |
 | Word-level transcript alignment          | Qwen3 Forced Aligner                                         | audio.cpp               |
 | Semantic-search embeddings               | Qwen3-Embedding-0.6B                                         | Candle                  |
-| Background removal                       | U²-Net                                                       | ONNX Runtime            |
+| Background removal                       | BiRefNet, BEN2, IS-Net Anime                                 | ONNX Runtime            |
 | Image upscaling                          | Real-ESRGAN                                                  | ONNX Runtime            |
-| Inpainting / repair                      | MI-GAN                                                       | ONNX Runtime            |
-| Smart selection                          | EfficientSAM                                                 | ONNX Runtime            |
+| Inpainting / repair                      | Big LaMa                                                     | ONNX Runtime            |
+| Smart selection                          | MobileSAM, SAM 2.1 Hiera-Tiny                                | ONNX Runtime            |
 | Relative depth                           | Depth Anything V2                                            | ONNX Runtime            |
 | Text recognition (scans, screenshots)    | PP-OCRv6 small                                               | ONNX Runtime            |
 

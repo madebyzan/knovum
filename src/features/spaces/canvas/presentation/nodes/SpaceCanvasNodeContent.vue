@@ -46,6 +46,12 @@ const contentInteractive = computed(() => {
         imageSelectionSession.active?.nodeId === props.node.id))
   );
 });
+const isCropping = computed(
+  () =>
+    props.node.data.kind === "image" &&
+    imageEditSession.active?.nodeId === props.node.id &&
+    imageEditSession.active.tool === "crop",
+);
 const presentation = computed(() => spaceCanvasNodePresentation(props.node.data));
 const isText = computed(() => props.node.data.kind === "text");
 const isNote = computed(() => props.node.data.kind === "note");
@@ -66,8 +72,10 @@ const textPresentation = computed(() =>
 
 <template>
   <article
-    class="flex size-full min-h-0 flex-col overflow-hidden text-fg-primary select-none"
+    class="flex size-full min-h-0 flex-col text-fg-primary select-none"
     :class="[
+      // Crop handles deliberately protrude past the frame; clipping would cut them in half.
+      !isCropping && 'overflow-hidden',
       visualOnly && 'relative',
       isText
         ? 'bg-transparent'

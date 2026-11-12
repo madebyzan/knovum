@@ -5,7 +5,9 @@ use super::super::ModelDescriptor;
 use crate::local_resources::verification;
 
 const DESCRIPTOR: ModelDescriptor = ModelDescriptor {
-    snapshot: super::super::snapshots::SnapshotKind::ImageSegmentation,
+    snapshot: super::super::snapshots::SnapshotKind::ImageSegmentation(
+        super::super::catalog::SegmentationModel::IsnetAnime,
+    ),
     file: "model.bin",
 
     sha256: "9372c470eeadd5ecd9c3c74c2b3cb633f8e2f2fad799250a0f70d652b6b825e4",

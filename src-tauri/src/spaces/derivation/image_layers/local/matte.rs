@@ -160,9 +160,10 @@ fn compact(decomposition: Decomposition) -> Decomposition {
 }
 
 /// Width of the edge band, in source pixels, over which the salient layer takes saliency's soft
-/// coverage. Saliency is read at 320px, so this is about two of its pixels at the source's scale.
+/// coverage. Saliency is read at 1024 pixels, so this is about two of its pixels at the source's
+/// scale.
 fn edge_band((width, height): (u32, u32)) -> u32 {
-    (width.max(height) / 160).max(2)
+    (width.max(height) / 512).max(2)
 }
 
 /// The layer that holds the salient subject, with an alpha whose edge comes from saliency and
@@ -205,19 +206,15 @@ pub(super) fn salient_edge(
     Some((owner, alpha))
 }
 
-/// The backdrop pixels a completion pass must paint: every subject, grown by a margin. A mask
-/// stops at the subject's edge, but the antialiased rim, a motion smear or a contact shadow still
-/// carries the subject's colour just outside it; left as known context, completion would extend
-/// that colour into the backdrop as a ghost outline of what was lifted.
+/// The backdrop pixels a completion pass must paint: every subject that was lifted, with the rim
+/// it leaves behind.
 pub(super) fn backdrop_holes(decomposition: &Decomposition) -> Vec<bool> {
-    let dimensions = (decomposition.width, decomposition.height);
     let subjects = decomposition
         .labels
         .iter()
         .map(|label| *label != 0)
         .collect::<Vec<_>>();
-    let margin = (decomposition.width.min(decomposition.height) / 100).max(3);
-    regions::dilate(&subjects, dimensions, margin)
+    regions::removal_holes(&subjects, (decomposition.width, decomposition.height))
 }
 
 #[cfg(test)]

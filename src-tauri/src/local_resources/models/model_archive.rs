@@ -19,7 +19,9 @@ pub(crate) struct ModelArchive {
     pub url: &'static str,
     pub sha256: &'static str,
     pub bytes: u64,
-    pub directory: &'static str,
+    /// Root directory the members live under inside the zip; `None` for archives whose members
+    /// sit at the top level.
+    pub directory: Option<&'static str>,
     pub members: &'static [ImageModelFile],
 }
 
@@ -87,7 +89,10 @@ impl ModelArchive {
                 return Err(RESOURCE_PREPARATION_CANCELLED.into());
             }
             let descriptor = catalog::descriptor(kind);
-            let member_name = format!("{}/{}", self.directory, descriptor.file);
+            let member_name = match self.directory {
+                Some(directory) => format!("{directory}/{}", descriptor.file),
+                None => descriptor.file.to_owned(),
+            };
             let mut member = archive
                 .by_name(&member_name)
                 .map_err(|error| error.to_string())?;

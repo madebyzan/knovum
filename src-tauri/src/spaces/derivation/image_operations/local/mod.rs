@@ -50,7 +50,7 @@ pub(super) async fn execute(
             if selection_model.image_spec()? != *selection_spec_id {
                 return Err("Selection model specification changed".into());
             }
-            let (source_image, mask) = selection::compute(
+            let (source_image, coverage) = selection::compute(
                 app,
                 *selection_model,
                 selection,
@@ -59,8 +59,12 @@ pub(super) async fn execute(
                 cancellation,
             )
             .await?;
-            let input = crate::spaces::derivation::image_tensors::rgb_tensor(&source_image);
-            (source_image, input, ImageTensorOperation::Inpaint(mask))
+            let (source_image, input, hole) = crate::foundation::blocking::run(move || {
+                let input = crate::spaces::derivation::image_tensors::rgb_tensor(&source_image);
+                Ok::<_, String>((source_image, input, selection::removal_hole(coverage)))
+            })
+            .await?;
+            (source_image, input, ImageTensorOperation::Inpaint(hole))
         }
         _ => {
             let source_bytes = source.bytes.clone();

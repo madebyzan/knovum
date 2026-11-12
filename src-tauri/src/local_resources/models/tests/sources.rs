@@ -5,8 +5,11 @@ use super::super::{
 
 #[test]
 fn fixed_hub_urls_preserve_revision_and_encode_nested_file_names() {
-    let source = sources::for_snapshot(SnapshotKind::ImageSegmentation).unwrap();
-    assert_eq!(source.url("nested/a b.onnx").as_str(), "https://huggingface.co/tomjackson2023/rembg/resolve/cd3a3d6767a7859efea31ef0f2f373582cf06d82/nested/a%20b.onnx");
+    let source = sources::for_snapshot(SnapshotKind::ImageSegmentation(
+        super::super::catalog::SegmentationModel::IsnetAnime,
+    ))
+    .unwrap();
+    assert_eq!(source.url("nested/a b.onnx").as_str(), "https://huggingface.co/skytnt/anime-seg/resolve/493cb60893f47441b26ec4fb9a306bce9e342982/nested/a%20b.onnx");
     let source = sources::for_snapshot(SnapshotKind::TextEmbedding).unwrap();
     let url = source.url("nested/a+b.json");
     assert_eq!(url.path(), "/api/v1/models/Qwen/Qwen3-Embedding-0.6B/repo");
@@ -40,13 +43,10 @@ fn catalog_owns_one_pinned_source_per_snapshot() {
 
 #[test]
 fn all_sources_pin_full_revisions_and_bundle_files_have_one_owner() {
-    for snapshot in [
-        SnapshotKind::TextEmbedding,
-        SnapshotKind::ImageSegmentation,
-        SnapshotKind::ImageSegmentationSilueta,
-        SnapshotKind::ImageSegmentationHuman,
-        SnapshotKind::ImageSegmentationQuality,
-    ] {
+    let segmentation = super::super::catalog::SegmentationModel::ALL
+        .into_iter()
+        .map(SnapshotKind::ImageSegmentation);
+    for snapshot in std::iter::once(SnapshotKind::TextEmbedding).chain(segmentation) {
         let revision = match sources::for_snapshot(snapshot).unwrap() {
             HubSource::HuggingFace { revision, .. } | HubSource::ModelScope { revision, .. } => {
                 revision

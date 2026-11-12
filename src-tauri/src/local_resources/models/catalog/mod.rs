@@ -1,6 +1,9 @@
 mod image;
 pub(crate) use image::ImageModelCatalog;
 pub use image::{ImageModelFile, ImageModelPart, ImageModelVariant};
+mod segmentation;
+pub use segmentation::SegmentationModel;
+pub(crate) use segmentation::{CoverageField, SegmentationSpec, SquareFit};
 mod diarization;
 mod moss_nano;
 pub use diarization::{DiarizationPart, DiarizationVariant};
@@ -56,13 +59,10 @@ pub enum ModelKind {
     DiarizationPart(DiarizationPart),
     MossNanoPart(MossNanoPart),
     WhisperPart(WhisperPart),
+    ImageSegmentation(SegmentationModel),
     SeparationPart(SeparationPart),
     Qwen3AsrPart(Qwen3AsrPart),
     VoicePart(VoicePart),
-    ImageSegmentation,
-    ImageSegmentationSilueta,
-    ImageSegmentationHuman,
-    ImageSegmentationQuality,
     TextEmbeddingConfig,
     TextEmbeddingModules,
     TextEmbeddingPoolingConfig,
@@ -88,13 +88,6 @@ pub enum ModelKind {
 }
 
 pub(crate) const TRANSCRIPTION_MODELS: &[ModelKind] = WhisperVariant::Small.models();
-pub(crate) const IMAGE_SEGMENTATION_MODELS: &[ModelKind] = &[ModelKind::ImageSegmentation];
-pub(crate) const IMAGE_SEGMENTATION_SILUETA_MODELS: &[ModelKind] =
-    &[ModelKind::ImageSegmentationSilueta];
-pub(crate) const IMAGE_SEGMENTATION_HUMAN_MODELS: &[ModelKind] =
-    &[ModelKind::ImageSegmentationHuman];
-pub(crate) const IMAGE_SEGMENTATION_QUALITY_MODELS: &[ModelKind] =
-    &[ModelKind::ImageSegmentationQuality];
 pub(crate) const TEXT_EMBEDDING_MODELS: &[ModelKind] = &[
     ModelKind::TextEmbeddingConfig,
     ModelKind::TextEmbeddingModules,
@@ -130,51 +123,16 @@ pub(crate) const SPEECH_ALIGNMENT_MODELS: &[ModelKind] = QWEN3_FORCED_ALIGNER_MO
 #[cfg(not(knovum_supported_desktop))]
 pub(crate) const SPEECH_ALIGNMENT_MODELS: &[ModelKind] = &[];
 
-pub(crate) const IMAGE_SEGMENTATION: ModelDescriptor = ModelDescriptor {
-    snapshot: SnapshotKind::ImageSegmentation,
-    file: "u2netp.onnx",
-
-    sha256: "309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8",
-    download_size: 4_574_861,
-};
-
-pub(crate) const IMAGE_SEGMENTATION_SILUETA: ModelDescriptor = ModelDescriptor {
-    snapshot: SnapshotKind::ImageSegmentationSilueta,
-    file: "silueta.onnx",
-
-    sha256: "75da6c8d2f8096ec743d071951be73b4a8bc7b3e51d9a6625d63644f90ffeedb",
-    download_size: 44_173_029,
-};
-
-pub(crate) const IMAGE_SEGMENTATION_HUMAN: ModelDescriptor = ModelDescriptor {
-    snapshot: SnapshotKind::ImageSegmentationHuman,
-    file: "u2net_human_seg.onnx",
-
-    sha256: "01eb6a29a5c4d8edb30b56adad9bb3a2a0535338e480724a213e0acfd2d1c73c",
-    download_size: 175_997_641,
-};
-
-pub(crate) const IMAGE_SEGMENTATION_QUALITY: ModelDescriptor = ModelDescriptor {
-    snapshot: SnapshotKind::ImageSegmentationQuality,
-    file: "u2net.onnx",
-
-    sha256: "8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491",
-    download_size: 175_997_641,
-};
-
 pub(crate) const fn descriptor(kind: ModelKind) -> ModelDescriptor {
     match kind {
         ModelKind::ImagePart(part) => part.descriptor(),
         ModelKind::DiarizationPart(part) => part.descriptor(),
         ModelKind::MossNanoPart(part) => part.descriptor(),
         ModelKind::WhisperPart(part) => part.descriptor(),
+        ModelKind::ImageSegmentation(model) => model.descriptor(),
         ModelKind::SeparationPart(part) => part.descriptor(),
         ModelKind::Qwen3AsrPart(part) => part.descriptor(),
         ModelKind::VoicePart(part) => part.descriptor(),
-        ModelKind::ImageSegmentation => IMAGE_SEGMENTATION,
-        ModelKind::ImageSegmentationSilueta => IMAGE_SEGMENTATION_SILUETA,
-        ModelKind::ImageSegmentationHuman => IMAGE_SEGMENTATION_HUMAN,
-        ModelKind::ImageSegmentationQuality => IMAGE_SEGMENTATION_QUALITY,
         ModelKind::TextEmbeddingConfig => TEXT_EMBEDDING_CONFIG,
         ModelKind::TextEmbeddingModules => TEXT_EMBEDDING_MODULES,
         ModelKind::TextEmbeddingPoolingConfig => TEXT_EMBEDDING_POOLING_CONFIG,

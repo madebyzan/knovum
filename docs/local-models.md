@@ -49,10 +49,10 @@ verified embedding snapshot explicitly; Related Content then schedules a full Sp
 | Transcript alignment           | Qwen3 Forced Aligner Q8_0 (default) / F16 GGUF; audio.cpp                                                                                      |
 | Speaker recognition            | Sherpa Pyannote 3.0 INT8 (default) / FP32; ERes2Net, CAM++ & ERes2Net Large                                                                    |
 | Vocal/accompaniment separation | HTDemucs Q8_0 (default) / F16, audio.cpp GGUF on Metal, Vulkan or CPU                                                                          |
-| Image background removal       | U²-Net Compact (default) / full / Human Portrait, Silueta, ONNX Runtime                                                                        |
+| Image background removal       | BiRefNet Lite (default) / General / Portrait, BEN2 Base, IS-Net Anime; 1024², ONNX Runtime                                                     |
 | Image upscaling                | Real-ESRGAN General X4v3 / X4plus, tiled ONNX Runtime                                                                                          |
-| Image repair                   | MI-GAN, selected-region ONNX Runtime                                                                                                           |
-| Image selection                | EfficientSAM Ti / S, cached ONNX Runtime                                                                                                       |
+| Image repair                   | Big LaMa, selected-region ONNX Runtime                                                                                                         |
+| Image selection                | MobileSAM (default) / SAM 2.1 Hiera-Tiny, cached ONNX Runtime                                                                                  |
 | Relative depth                 | Depth Anything V2 Small UINT8 / F32, ONNX Runtime                                                                                              |
 | Text recognition (OCR)         | Fixed PP-OCRv6 small detection + recognition (~31 MB), `oar-ocr` ONNX Runtime                                                                  |
 
@@ -279,11 +279,15 @@ identity. The host builds the profile it admits memory for from that module, and
 its expectation from the same functions, so a revision bump cannot leave one side producing an
 identity the other rejects. No capability repeats the identity as a literal.
 
-U²-Net Compact, full, Human Portrait and Silueta snapshots share the same ONNX mask and
-Rust compositing contract. HTDemucs Q8_0/F16 snapshots (weights plus the Demucs MIT licence) are
-61,941,855 / 84,060,255 bytes and share the exact source timeline and automatic two-node derivation
-contract. A precision choice changes the model rather than the operation or its publication
-semantics.
+Background removal offers five 1024² models, every one under a licence that permits commercial use
+and downloaded from its author's or the ONNX community's own repository: BiRefNet Lite (default),
+BiRefNet General and BiRefNet Portrait (MIT), BEN2 Base (MIT) and IS-Net Anime (SkyTNT, Apache-2.0).
+Bria's RMBG models are not offered: their weights are licensed for non-commercial use only and
+gated behind an account. A persisted selection of a retired model (U²-Net, RMBG-1.4, RMBG-2.0,
+IS-Net DIS, Spleeter) resolves to the default. HTDemucs Q8_0/F16 snapshots (weights plus the Demucs
+MIT licence) are 61,941,855 / 84,060,255 bytes and share the exact source timeline and automatic
+two-node derivation contract. A precision choice changes the model rather than the operation or its
+publication semantics.
 
 Speaker variants use the shared snapshot installer, preparation, leases and removal path. Their
 public sources need no account or import. The supported clustering controls follow the
@@ -376,16 +380,32 @@ part of the cached render identity (`durationFit.minimumScale` vs `durationFit.t
 
 Image resources use the same snapshot installer, verification, preparation task, leases and removal
 owner as speech models. The catalog adds independent defaults for `imageUpscaling`, `imageInpainting`,
-`imageSelection` and `imageDepth`; background removal keeps `imageSegmentation` and its existing default.
+`imageSelection` and `imageDepth`; background removal and layer saliency use `imageSegmentation`.
 Selections are strict current v1 preferences, not an arbitrary model-import mechanism.
 
-| Capability      | Catalog variants                     | Frozen inference contract                                                                                         |
-| --------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| Upscaling       | Real-ESRGAN General x4v3 / x4plus    | Release v0.62.2 graph plus external weights; CPU float32, fixed 128px tiles, native 4×                            |
-| Mask repair     | MI-GAN pipeline v2                   | Author ONNX uint8 RGB and mask; adapter flips selected-mask polarity and protects every unselected source byte    |
-| Mask repair     | Big LaMa (Carve ONNX export)         | fp32, image 0–1 + hole mask, one 512² window fitted around the hole; outside pixels kept                          |
-| Smart selection | EfficientSAM Ti / S                  | Frozen author encoder + decoder, RGB 0–1, foreground/exclusion points and rectangle; one worker-owned encoding    |
-| Relative depth  | Depth Anything V2 Small FP32 / UINT8 | Frozen ONNX conversion and processor; ImageNet-normalized RGB, dimensions divisible by 14, relative inverse depth |
+| Capability         | Catalog variants                     | Frozen inference contract                                                                                                                                                                                                      |
+| ------------------ | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Upscaling          | Real-ESRGAN General x4v3 / x4plus    | Release v0.62.2 graph plus external weights; CPU float32, fixed 128px tiles (core 108, context 10 as in the reference `tile_pad`), [0, 1] float input, [0, 1] float output quantized with ties-to-even to uint8 RGB, native 4× |
+| Mask repair        | Big LaMa (Carve ONNX export)         | fp32, image 0–1 + hole mask; one 512² window per group of holes whose context overlaps, so distant holes keep their own scale; [0, 255] float output rounded to uint8 RGB, feathered over one pixel per resampled pixel        |
+| Smart selection    | MobileSAM                            | Frozen samexporter encoder + decoder (Apache-2.0); aspect-preserving 1024 long-edge encoder on raw RGB 0–255; logits resampled bilinearly to the source, published as sigmoid coverage                                         |
+| Smart selection    | SAM 2.1 Hiera-Tiny                   | Frozen samexporter encoder + decoder (Apache-2.0); stretch 1024² ImageNet-normalized encoder, best of three candidate masks by IoU; logits resampled bilinearly, published as sigmoid coverage                                 |
+| Relative depth     | Depth Anything V2 Small FP32 / UINT8 | Frozen ONNX conversion and processor; ImageNet-normalized RGB, dimensions divisible by 14, relative inverse depth stretched to [0, 1]                                                                                          |
+| Background removal | BiRefNet Lite / General / Portrait   | onnx-community exports (MIT); stretch 1024², ImageNet mean/std; graph ends in a convolution, so its output is logits read through a sigmoid                                                                                    |
+| Background removal | BEN2 Base                            | PramaLLC's own export (MIT); stretch 1024², [0, 1] input without standardization; graph ends in a sigmoid, output is coverage                                                                                                  |
+| Background removal | IS-Net Anime                         | SkyTNT anime-segmentation (Apache-2.0); letterboxed 1024² on black, [0, 1] input; graph ends in a sigmoid, output is coverage                                                                                                  |
+
+Every background-removal model is one row of `local_resources/models/catalog/segmentation.rs`:
+source, file, digest, input placement, standardization, output reading and the worker peak admission
+reserves for it (the models share one execution profile but differ several-fold in memory). The worker runs the graph
+and returns its output untouched; the host reads coverage from it exactly as the model's author does
+(sigmoid for logits, the value itself for probabilities — never a min-max stretch, which turns a
+confident subject translucent and an empty image into a full one), crops the letterbox, and resamples
+it bilinearly to the source in floating point. `images::cut_out` then lifts the subject: coverage
+becomes alpha and every soft edge gets the subject's own colour from Blur-Fusion foreground
+estimation (Forte & Pitié, ICIP 2021), so no halo of the original backdrop travels with the cut-out.
+Selection extraction uses the same `cut_out` over SAM's soft coverage; removing a selection repaints
+everything inside the decoder's boundary grown by the same rim layer splitting uses
+(`regions::removal_holes`).
 
 Layer splitting reuses these capabilities rather than adding a model, and every pass runs the
 model selected for its capability — the choice made in Settings is the model that splits:
@@ -412,7 +432,7 @@ duplicates, so exploration is paid for in decoder passes rather than in false la
 
 The resource catalog is authoritative for immutable URLs, exact hashes, file sets and bytes. Every
 snapshot includes its license; depth also includes its processor and conversion model card.
-Real-ESRGAN installation verifies the compressed archive and every extracted graph/data member;
+Real-ESRGAN and SAM installation verify the compressed archive and every extracted member;
 transfer size is distinct from installed size. Complete multi-file snapshots are required before use.
 The capability specification incorporates the complete snapshot digest. The sealed inference runtime and its
 existing ONNX Runtime 1.22.1 are reused; no Torch training dependency or second download service is added.
@@ -421,18 +441,22 @@ Initial CPU admission reservations are conservative guards, not measured perform
 Upscaling admits at most 4,194,304 rendered source pixels and a 4096px side; inference uses 128px
 context tiles and publishes the requested 2K/4K/8K image. Repair/selection/depth admit at most
 16,777,216 rendered source pixels. The existing image renderer also bounds original sides at 10,000px.
-Selection reduces the encoding input to a 2048px bounding size; depth
+Selection sends the full source and the SAM encoders run inside their own 1024px frame; depth
 uses its pinned processor with at most 1,048,576 normalized pixels. Output tensors are bounded at
 256 MiB, canonical PNG assets at 64 MiB. Qualification must measure the actual selected model,
 compiled runtime inventory, latency, cancellation and peak memory on every supported target.
 
-BiRefNet Lite, MobileSAM and larger noncommercial depth variants are not installed by this
-change: a complete qualified and redistributable graph chain has not been established. A missing
-second background candidate is an unmet qualification item, not a renamed existing model. Mask
-repair has two: MI-GAN for the whole picture and Big LaMa for one fitted window.
-Snapshot presence and adapter tests alone do not establish release qualification.
+BiRefNet Lite (General) and IS-Net (DIS5K) are qualified and installed under frozen inference contracts
+with MIT redistribution rights from onnx-community and rembg respectively. BiRefNet Lite is the default
+`imageSegmentation` model, delivering 1024x1024 high-resolution edge accuracy. Mask repair is
+Big LaMa; smart selection is MobileSAM (default) with SAM 2.1 Hiera-Tiny as the quality choice,
+both Apache-2.0 samexporter ONNX exports pinned by revision.
 
 ### Historical Python reference evidence — 2026-10-10
+
+The `migan`, `efficientSamTi` and `efficientSamS` rows below record the retired lineup; the current
+catalog ships Big LaMa, MobileSAM and SAM 2.1 Hiera-Tiny, which require their own qualification
+measurements.
 
 Seven frozen graphs were loaded and inferred through their source adapters with the installed
 macOS x64 historical Python LightInference ONNX Runtime 1.22.1, CPU provider, four intra-op threads and
@@ -503,11 +527,14 @@ Use actual candidate outputs and reviewed measurements rather than a repository 
 Record each target's model specification, snapshot digest, execution configuration, worker/runtime
 digests and device, and freeze load/warm/RSS/cancellation limits before capturing results.
 Every model profile must cover hair, product edges, transparency, text, anime, repeated textures,
-large selections, thin images and EXIF orientation. Retain source/license, original bytes, operation
+large selections, thin images and EXIF orientation. Background removal and layer segmentation
+consume canonical rendered PNGs from the engine where EXIF orientation has already been applied
+at render time; unrendered external JPEGs are rejected at the boundary. Retain source/license, original bytes, operation
 grid and selection mask with hashes so the execution can be reproduced.
 
-Upscaling must return native 4× RGB, repair must preserve unselected RGB exactly, selection must be
-binary, and depth must be finite, nonconstant and normalized. Review edges, alpha composition and
+Upscaling must return native 4× RGB, repair must change nothing beyond its holes and their feather,
+selection coverage must be soft at the edge and solid inside, and depth must be finite, nonconstant
+and normalized. Review edges, alpha composition and
 tile seams visually with named notes; numeric validity alone does not establish visual quality.
 Measure cancellation during active inference separately from rejecting a pre-cancelled request.
 Missing model execution, reference-only runs or missing reviews cannot qualify a release; synthetic

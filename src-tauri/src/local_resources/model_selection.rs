@@ -39,10 +39,10 @@ impl Group {
         match self {
             Self::Transcription => LocalModelId::WhisperSmall,
             Self::SpeechSynthesis => LocalModelId::MossNano,
-            Self::ImageSegmentation => LocalModelId::U2netp,
+            Self::ImageSegmentation => LocalModelId::BirefnetLite,
             Self::ImageUpscaling => LocalModelId::RealEsrganGeneralX4v3,
-            Self::ImageInpainting => LocalModelId::Migan,
-            Self::ImageSelection => LocalModelId::EfficientSamTi,
+            Self::ImageInpainting => LocalModelId::Lama,
+            Self::ImageSelection => LocalModelId::MobileSam,
             Self::ImageDepth => LocalModelId::DepthAnythingV2Small,
 
             Self::SpeechSeparation => LocalModelId::HtDemucs,
@@ -77,15 +77,16 @@ fn group(model: LocalModelId) -> Option<Group> {
         LocalModelId::RealEsrganGeneralX4v3 | LocalModelId::RealEsrganX4plus => {
             Some(Group::ImageUpscaling)
         }
-        LocalModelId::Migan | LocalModelId::Lama => Some(Group::ImageInpainting),
-        LocalModelId::EfficientSamTi | LocalModelId::EfficientSamS => Some(Group::ImageSelection),
+        LocalModelId::Lama => Some(Group::ImageInpainting),
+        LocalModelId::MobileSam | LocalModelId::Sam2HieraTiny => Some(Group::ImageSelection),
         LocalModelId::DepthAnythingV2SmallUint8 | LocalModelId::DepthAnythingV2Small => {
             Some(Group::ImageDepth)
         }
-        LocalModelId::U2netp
-        | LocalModelId::Silueta
-        | LocalModelId::U2netHumanSeg
-        | LocalModelId::U2net => Some(Group::ImageSegmentation),
+        LocalModelId::BirefnetLite
+        | LocalModelId::BirefnetGeneral
+        | LocalModelId::BirefnetPortrait
+        | LocalModelId::Ben2Base
+        | LocalModelId::IsnetAnime => Some(Group::ImageSegmentation),
         LocalModelId::HtDemucs | LocalModelId::HtDemucsF16 => Some(Group::SpeechSeparation),
         LocalModelId::SherpaDiarization
         | LocalModelId::SherpaDiarizationCampplus
@@ -100,6 +101,13 @@ fn group(model: LocalModelId) -> Option<Group> {
 /// A stored choice of one is no choice any more: the capability uses its default, and a backup
 /// carrying one restores. Every other unknown id is a corrupt preference.
 const RETIRED: &[(&str, Group)] = &[
+    ("u2netp", Group::ImageSegmentation),
+    ("silueta", Group::ImageSegmentation),
+    ("u2netHumanSeg", Group::ImageSegmentation),
+    ("u2net", Group::ImageSegmentation),
+    ("migan", Group::ImageInpainting),
+    ("efficientSamTi", Group::ImageSelection),
+    ("efficientSamS", Group::ImageSelection),
     ("spleeter2Stems", Group::SpeechSeparation),
     ("spleeter2StemsFull", Group::SpeechSeparation),
 ];
@@ -160,7 +168,7 @@ fn selected<R: Runtime>(app: &AppHandle<R>, group: Group) -> Result<LocalModelId
         .store("settings.json")
         .map_err(|error| error.to_string())?;
     match store.get(group.key()) {
-        Some(raw) => read_selection(raw, group),
+        Some(raw) => Ok(read_selection(raw, group).unwrap_or(group.default_model())),
         None => Ok(group.default_model()),
     }
 }

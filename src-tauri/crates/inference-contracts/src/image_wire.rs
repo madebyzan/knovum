@@ -1,10 +1,6 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub const IMAGE_SEGMENTATION_RESOLUTION: u32 = 320;
-pub const IMAGE_SEGMENTATION_INPUT_BYTES: u64 = 3 * 320 * 320 * 4;
-pub const IMAGE_SEGMENTATION_MASK_BYTES: u64 = 320 * 320 * 4;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 pub enum TensorDataType {
@@ -44,5 +40,7 @@ pub struct ImageSegmentation {
     pub request_id: String,
     pub attempt_epoch: u64,
     pub model_spec_id: String,
+    // The graph's first output exactly as it produced it: logits or probabilities, as the model's
+    // specification on the host states. The worker only checks that it is finite.
     pub mask_ref: TensorFileReference,
 }

@@ -1,4 +1,4 @@
-//! Seed points for layer discovery. EfficientSAM is prompt driven, so a split can only contain
+//! Seed points for layer discovery. The SAM decoders are prompt driven, so a split can only contain
 //! objects that were prompted: an object nobody asks about is painted into the backdrop. The
 //! encoder embedding is computed once per source and reused, so one extra seed costs one cheap
 //! decoder pass over a small probe. Seeds are therefore spent generously and in two kinds:

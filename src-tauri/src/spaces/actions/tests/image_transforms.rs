@@ -13,7 +13,7 @@ fn image_actions_bind_the_operation_and_model_specification() {
     for field in ["model", "specId"] {
         let mut invalid = parameters.clone();
         invalid["execution"][field] = if field == "model" {
-            json!(LocalModelId::Migan)
+            json!(LocalModelId::Lama)
         } else {
             json!("obsolete-spec")
         };
@@ -26,7 +26,7 @@ fn image_actions_bind_the_operation_and_model_specification() {
 
 #[test]
 fn local_inpainting_does_not_claim_text_guided_generation() {
-    let model = LocalModelId::Migan;
+    let model = LocalModelId::Lama;
     let definition = super::super::require("remove-image-object").unwrap();
     let parameters = json!({"title":"Repaired image", "operation":{"kind":"remove-object-prompt", "prompt":"Remove the chair"},
         "execution":{"type":"local", "model":model, "specId":model.image_spec().unwrap()}});

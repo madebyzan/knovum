@@ -33,7 +33,7 @@ export function blockedImageCapabilities(): ImageOperationCapabilities {
   return {
     targets: [
       {
-        execution: { type: "local", model: "migan", specId: "spec" },
+        execution: { type: "local", model: "lama", specId: "spec" },
         label: "MI-GAN",
         capability: "imageInpainting",
         availability: blocked,
