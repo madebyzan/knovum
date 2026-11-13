@@ -42,10 +42,10 @@
   function switchLanguage(next) {
     const brand = document.querySelector(".brand");
     if (!brand) return;
-    const rootPath = new URL(brand.getAttribute("href"), globalThis.location.href).pathname.replace(/index\.html$/, "");
-    const currentRoute = globalThis.location.pathname.slice(rootPath.length).replace(/^\/+/, "") || "index.html";
-    const route = currentRoute.replace(/^zh\//, "");
-    globalThis.location.assign(rootPath + (next === "zh" ? "zh/" : "") + route);
+    const localizedRoot = new URL(brand.getAttribute("href"), globalThis.location.href).pathname.replace(/index\.html$/, "");
+    const siteRoot = localizedRoot.replace(/zh\/$/, "");
+    const route = globalThis.location.pathname.slice(localizedRoot.length);
+    globalThis.location.assign(siteRoot + (next === "zh" ? "zh/" : "") + route);
   }
 
   function updateMenuLabel() {
