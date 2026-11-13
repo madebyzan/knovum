@@ -36,7 +36,7 @@ jobs:
           python3 website/scripts/generate_sitemap.py \
             --base-url "$SITE_BASE_URL" \
             --apply-html
-          find website -name "*.html" -exec sed -i "s|https://madebyzan.github.io/knovum/assets/social-card.png|$SITE_BASE_URL/assets/social-card.png|g" {} +
+          find website -name "*.html" -exec sed -i "s|https://madebyzan.github.io/knovum/assets/social-card.png|$SITE_BASE_URL/assets/social-card.png|g; s|https://madebyzan.github.io/knovum/assets/social-card-zh.png|$SITE_BASE_URL/assets/social-card-zh.png|g" {} +
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
