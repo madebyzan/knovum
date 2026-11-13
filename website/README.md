@@ -21,7 +21,7 @@ python3 -m http.server 4174 --directory website
 
 Then open [http://localhost:4174](http://localhost:4174).
 
-No package install or build step is required.
+No package install or build step is required. Run the same lightweight checks used by CI with `node --check website/script.js` and `python3 website/scripts/check_site.py` from the repository root.
 
 ## Design and implementation
 
