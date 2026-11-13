@@ -4,10 +4,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 import xml.etree.ElementTree as ET
-from html import escape as escape_html
+from html import escape as escape_html, unescape as unescape_html
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
@@ -134,6 +135,56 @@ def configure_html(base_url: str, pages: list[Path]) -> None:
             else "Knovum social preview: a local-first workspace for connected knowledge, research, and creation."
         )
         locale = "zh_CN" if is_chinese_page(path) else "en_US"
+        article_relative = path.relative_to(ROOT).as_posix().split("/")
+        is_guide_article = (
+            "guides" in article_relative
+            and path.stem not in {"index", "404"}
+        )
+
+        if is_guide_article:
+            generated_schema_pattern = re.compile(
+                r'\s*<script\b(?=[^>]*data-generated-by=["\']knovum-seo["\'])[^>]*>.*?</script>',
+                re.IGNORECASE | re.DOTALL,
+            )
+            html = generated_schema_pattern.sub("", html)
+            headline_match = re.search(r"<h1\b[^>]*>([\s\S]*?)</h1>", html, re.IGNORECASE)
+            description_match = re.search(
+                r'<meta\s+name=["\']description["\']\s+content=(["\'])(.*?)\1',
+                html,
+                re.IGNORECASE | re.DOTALL,
+            )
+            if not headline_match or not description_match:
+                raise ValueError(f"{path.relative_to(ROOT)} is missing article headline or description")
+            headline = re.sub(r"\s+", " ", unescape_html(re.sub(r"<[^>]+>", " ", headline_match.group(1)))).strip()
+            description = unescape_html(description_match.group(2)).strip()
+            language_root = f"{base_url}/zh/" if is_chinese_page(path) else f"{base_url}/"
+            hub_url = f"{language_root}guides/"
+            article_data = {
+                "@context": "https://schema.org",
+                "@type": "Article",
+                "headline": headline,
+                "description": description,
+                "image": [image_url],
+                "mainEntityOfPage": {"@type": "WebPage", "@id": url},
+                "url": url,
+                "inLanguage": "zh-CN" if is_chinese_page(path) else "en",
+                "articleSection": "知识指南" if is_chinese_page(path) else "Guides",
+                "publisher": {"@type": "Organization", "name": "Knovum", "url": base_url + "/"},
+            }
+            breadcrumb_data = {
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": 1, "name": "首页" if is_chinese_page(path) else "Home", "item": language_root},
+                    {"@type": "ListItem", "position": 2, "name": "知识指南" if is_chinese_page(path) else "Guides", "item": hub_url},
+                    {"@type": "ListItem", "position": 3, "name": headline, "item": url},
+                ],
+            }
+            for schema in (article_data, breadcrumb_data):
+                marker = f'<script type="application/ld+json" data-generated-by="knovum-seo">{json.dumps(schema, ensure_ascii=False, separators=(",", ":"))}</script>'
+                if "</head>" not in html:
+                    raise ValueError(f"{path.relative_to(ROOT)} has no closing head tag")
+                html = html.replace("</head>", f"  {marker}\n</head>", 1)
 
         html = upsert_meta(html, "property", "og:image", image_url, required=True)
         html = upsert_meta(html, "name", "twitter:image", image_url, required=True)

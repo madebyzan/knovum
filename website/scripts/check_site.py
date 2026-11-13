@@ -206,11 +206,23 @@ def main() -> None:
                 if not parsed_image.path.endswith("/assets/" + expected_file):
                     errors.append(f"{name}: expected localized social image {expected_file}")
 
+        structured_types: set[str] = set()
         for payload in audit.json_ld_payloads:
             try:
-                json.loads(payload)
+                structured = json.loads(payload)
+                if isinstance(structured, dict) and isinstance(structured.get("@type"), str):
+                    structured_types.add(structured["@type"])
             except json.JSONDecodeError as exc:
                 errors.append(f"{name}: invalid JSON-LD structured data: {exc}")
+
+        is_guide_article = (
+            ("guides/" in name or name.startswith("zh/guides/"))
+            and Path(name).stem not in {"index", "404"}
+        )
+        if is_guide_article:
+            for required_type in ("Article", "BreadcrumbList"):
+                if required_type not in structured_types:
+                    errors.append(f"{name}: missing {required_type} JSON-LD structured data")
 
         if args.require_seo_output:
             if not expected_base:
