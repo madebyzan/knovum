@@ -103,7 +103,7 @@ fnv = "1.0.7"
 lancedb = "=0.37.1"
 arrow-array = "58.4.0"
 arrow-schema = "58.4.0"
-object_store = { version = "=0.13.2", default-features = false, features = ["aws"] }
+object_store = { version = "=0.14.2", default-features = false, features = ["aws"] }
 
 # Spaces knowledge server
 rmcp = { version = "=3.9.0", features = [
