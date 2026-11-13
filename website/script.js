@@ -9,11 +9,6 @@
   const metaDescription = document.querySelector('meta[name="description"]');
   body.classList.add("js-enabled");
 
-  function setMetaContent(selector, value) {
-    const element = document.querySelector(selector);
-    if (element) element.setAttribute("content", value);
-  }
-
   const pageMeta = {
     en: {
       home: ["Knovum | Local-First Knowledge Management & AI Research Workspace", "Knovum is a free, open-source local-first knowledge management workspace for desktop research, source-grounded AI answers, semantic search, and creation."],
@@ -83,21 +78,14 @@
     const [title, description] = pageMeta[language][page] || pageMeta[language].home;
     document.title = title;
     if (metaDescription) metaDescription.setAttribute("content", description);
-    setMetaContent('meta[property="og:title"]', title);
-    setMetaContent('meta[property="og:description"]', description);
-    setMetaContent('meta[name="twitter:title"]', title);
-    setMetaContent('meta[name="twitter:description"]', description);
-    setMetaContent('meta[property="og:locale"]', language === "zh" ? "zh_CN" : "en_US");
-    const socialImage = language === "zh" ? "social-card-zh.png" : "social-card.png";
+    const social = language === "zh"
+      ? ["zh_CN", "social-card-zh.png", "Knovum 中文分享预览图：本地优先的知识工作空间，连接资料、研究与创作。"]
+      : ["en_US", "social-card.png", "Knovum social preview: a local-first workspace for connected knowledge, research, and creation."];
+    [["meta[property='og:title']", title], ["meta[property='og:description']", description], ["meta[name='twitter:title']", title], ["meta[name='twitter:description']", description], ["meta[property='og:locale']", social[0]], ["meta[property='og:image:alt']", social[2]], ["meta[name='twitter:image:alt']", social[2]]].forEach(([selector, value]) => document.querySelector(selector)?.setAttribute("content", value));
     ["meta[property='og:image']", "meta[name='twitter:image']"].forEach((selector) => {
       const image = document.querySelector(selector);
-      if (image) image.setAttribute("content", image.content.replace(/social-card(?:-zh)?\.png(?=([?#]|$))/, socialImage));
+      if (image) image.setAttribute("content", image.content.replace(/social-card(?:-zh)?\.png(?=([?#]|$))/, social[1]));
     });
-    const imageAlt = language === "zh"
-      ? "Knovum 中文分享预览图：本地优先的知识工作空间，连接资料、研究与创作。"
-      : "Knovum social preview: a local-first workspace for connected knowledge, research, and creation.";
-    setMetaContent('meta[property="og:image:alt"]', imageAlt);
-    setMetaContent('meta[name="twitter:image:alt"]', imageAlt);
     if (languageButton) {
       languageButton.textContent = language === "en" ? "中文" : "EN";
       languageButton.setAttribute("aria-label", language === "en" ? "Switch to Chinese" : "切换到英文");
