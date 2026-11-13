@@ -37,25 +37,16 @@
   };
 
   const page = body.dataset.page || "home";
-  const safeStorage = {
-    get(key) {
-      try {
-        return globalThis.localStorage.getItem(key);
-      } catch {
-        return null;
-      }
-    },
-    set(key, value) {
-      try {
-        globalThis.localStorage.setItem(key, value);
-      } catch {
-        // Storage can be disabled by the browser.
-      }
-    }
-  };
-  const savedLanguage = safeStorage.get("knovum-language");
-  const pageLanguage = body.dataset.locale === "zh" ? "zh" : "en";
-  let language = savedLanguage === "zh" || savedLanguage === "en" ? savedLanguage : pageLanguage;
+  let language = body.dataset.locale === "zh" ? "zh" : "en";
+
+  function switchLanguage(next) {
+    const brand = document.querySelector(".brand");
+    if (!brand) return;
+    const rootPath = new URL(brand.getAttribute("href"), globalThis.location.href).pathname.replace(/index\.html$/, "");
+    const currentRoute = globalThis.location.pathname.slice(rootPath.length).replace(/^\/+/, "") || "index.html";
+    const route = currentRoute.replace(/^zh\//, "");
+    globalThis.location.assign(rootPath + (next === "zh" ? "zh/" : "") + route);
+  }
 
   function updateMenuLabel() {
     if (!menuButton) return;
@@ -68,7 +59,6 @@
 
   function setLanguage(next) {
     language = next;
-    safeStorage.set("knovum-language", language);
     root.lang = language === "zh" ? "zh-CN" : "en";
 
     document.querySelectorAll("[data-en][data-zh]").forEach((element) => {
@@ -78,14 +68,6 @@
     const [title, description] = pageMeta[language][page] || pageMeta[language].home;
     document.title = title;
     if (metaDescription) metaDescription.setAttribute("content", description);
-    const social = language === "zh"
-      ? ["zh_CN", "social-card-zh.png", "Knovum 中文分享预览图：本地优先的知识工作空间，连接资料、研究与创作。"]
-      : ["en_US", "social-card.png", "Knovum social preview: a local-first workspace for connected knowledge, research, and creation."];
-    [["meta[property='og:title']", title], ["meta[property='og:description']", description], ["meta[name='twitter:title']", title], ["meta[name='twitter:description']", description], ["meta[property='og:locale']", social[0]], ["meta[property='og:image:alt']", social[2]], ["meta[name='twitter:image:alt']", social[2]]].forEach(([selector, value]) => document.querySelector(selector)?.setAttribute("content", value));
-    ["meta[property='og:image']", "meta[name='twitter:image']"].forEach((selector) => {
-      const image = document.querySelector(selector);
-      if (image) image.setAttribute("content", image.content.replace(/social-card(?:-zh)?\.png(?=([?#]|$))/, social[1]));
-    });
     if (languageButton) {
       languageButton.textContent = language === "en" ? "中文" : "EN";
       languageButton.setAttribute("aria-label", language === "en" ? "Switch to Chinese" : "切换到英文");
@@ -94,7 +76,7 @@
   }
 
   if (languageButton) {
-    languageButton.addEventListener("click", () => setLanguage(language === "en" ? "zh" : "en"));
+    languageButton.addEventListener("click", () => switchLanguage(language === "en" ? "zh" : "en"));
   }
 
   function closeMenu() {
