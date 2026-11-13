@@ -11,6 +11,9 @@ on:
 permissions:
   contents: read
 
+env:
+  SITE_BASE_URL: https://madebyzan.github.io/knovum
+
 concurrency:
   group: github-pages
   cancel-in-progress: true
@@ -23,11 +26,17 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+      - name: Render social sharing card as PNG
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes librsvg2-bin
+          rsvg-convert --width 1200 --height 630 --output website/assets/social-card.png website/assets/social-card.svg
       - name: Generate production SEO metadata and sitemap
         run: |
           python3 website/scripts/generate_sitemap.py \
-            --base-url "https://madebyzan.github.io/knovum" \
+            --base-url "$SITE_BASE_URL" \
             --apply-html
+          find website -name "*.html" -exec sed -i "s|https://madebyzan.github.io/knovum/assets/social-card.png|$SITE_BASE_URL/assets/social-card.png|g" {} +
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

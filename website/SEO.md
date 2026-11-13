@@ -59,7 +59,7 @@ The source tree already includes:
 
 The transition hostname for this repository is `https://madebyzan.github.io/knovum/`. The `deploy-website.yml` workflow builds the sitemap and absolute canonical / Open Graph / hreflang tags for this project path, then deploys the `website/` directory to GitHub Pages after changes reach `main`. The repository must have **Settings → Pages → Build and deployment → Source = GitHub Actions** enabled once by a repository administrator.
 
-The social preview artwork lives at `website/assets/social-card.svg`. Open Graph uses this branded 1200×630 vector card; Twitter/X uses the existing real product screenshot as a broadly supported PNG fallback. Once a custom domain is selected, change the `--base-url` in `.github/workflows/deploy-website.yml` and add the matching GitHub Pages custom-domain configuration / DNS records. Do not keep the GitHub Pages URL as canonical after the domain migration.
+The social preview artwork lives at `website/assets/social-card.svg`. The workflow renders the branded 1200×630 vector artwork to a PNG before deployment; Open Graph and Twitter/X both point to that broadly supported PNG. The source SVG remains editable in the repository. Once a custom domain is selected, change the `--base-url` in `.github/workflows/deploy-website.yml` and add the matching GitHub Pages custom-domain configuration / DNS records. Do not keep the GitHub Pages URL as canonical after the domain migration.
 
 After the permanent production hostname is confirmed, run:
 
