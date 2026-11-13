@@ -49,11 +49,12 @@ The source tree already includes:
 - Responsive viewport and index/follow metadata for public pages.
 - `noindex,follow` on both 404 pages; 404 URLs are excluded from the sitemap.
 - Open Graph and Twitter summary metadata.
-- SoftwareApplication structured data on the home page and visible FAQPage structured data on the download page.
+- SoftwareApplication structured data on the home page, visible FAQPage structured data on the download page, and localized Article + BreadcrumbList JSON-LD on every guide article.
 - English and Simplified Chinese static routes.
 - Internal links between product, privacy, download, and relevant guides.
 - Search-crawler rules that allow search/grounding agents while separately controlling training crawlers.
-- A link, anchor, metadata, asset, and accessibility checker in `scripts/check_site.py`.
+- A link, anchor, metadata, local-image asset, structured-data, contrast, and accessibility checker in `scripts/check_site.py`.
+- First-party product imagery is copied from the repository and converted to responsive-width WebP during the build; the site does not hotlink its own screenshots from `raw.githubusercontent.com`.
 
 ### GitHub Pages transition
 
@@ -61,7 +62,7 @@ The transition hostname for this repository is `https://madebyzan.github.io/knov
 
 GitHub Pages project sites are served below `/knovum/`, while the robots exclusion protocol is defined at the hostname root. Therefore, the project-scoped `website/robots.txt` is retained for the site and future custom-domain migration, but do not assume crawlers will use `/knovum/robots.txt` as the host-level robots policy. Submit `https://madebyzan.github.io/knovum/sitemap.xml` directly in Google Search Console and Bing Webmaster Tools during the transition.
 
-The social preview artwork lives in `website/assets/social-card.svg` and `website/assets/social-card-zh.svg`. The workflow renders localized 1200×630 vector artwork to PNG before deployment; English pages use the English card and Simplified Chinese pages use the Chinese card. Open Graph and Twitter/X both point to broadly supported PNGs. The source SVGs remain editable in the repository. Once a custom domain is selected, change the `--base-url` in `.github/workflows/deploy-website.yml` and add the matching GitHub Pages custom-domain configuration / DNS records. Do not keep the GitHub Pages URL as canonical after the domain migration.
+The social preview artwork lives in `website/assets/social-card.svg` and `website/assets/social-card-zh.svg`. Product screenshots are optimized to WebP from the maintained source images during CI, while the application icon is copied into the website asset directory. The workflow renders localized 1200×630 vector artwork to PNG before deployment; English pages use the English card and Simplified Chinese pages use the Chinese card. Open Graph and Twitter/X both point to broadly supported PNGs. The source SVGs remain editable in the repository. Once a custom domain is selected, change the `--base-url` in `.github/workflows/deploy-website.yml` and add the matching GitHub Pages custom-domain configuration / DNS records. Do not keep the GitHub Pages URL as canonical after the domain migration.
 
 After the permanent production hostname is confirmed, run:
 
@@ -69,7 +70,7 @@ After the permanent production hostname is confirmed, run:
 python3 website/scripts/generate_sitemap.py --base-url https://knovum.example --apply-html
 ```
 
-This generates an absolute-URL XML sitemap, adds the sitemap directive to `robots.txt`, and writes canonical, Open Graph URL, and `hreflang` tags (en, zh-CN, x-default) to matching language pages. Replace the placeholder with the real HTTPS site origin before publishing.
+This generates an absolute-URL XML sitemap, adds the sitemap directive to `robots.txt`, writes canonical, Open Graph URL, and `hreflang` tags (en, zh-CN, x-default) to matching language pages, and adds Article / BreadcrumbList structured data to the long-tail guide pages. Replace the placeholder with the real HTTPS site origin before publishing.
 
 ## Measurement after launch
 
