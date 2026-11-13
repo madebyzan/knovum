@@ -25,6 +25,7 @@ class PageAudit(HTMLParser):
         self.ids: list[str] = []
         self.links: list[str] = []
         self.images_without_alt: list[str] = []
+        self.images: list[str] = []
         self.meta_names: set[str] = set()
         self.meta_properties: set[str] = set()
         self.meta_values: dict[str, list[str]] = {}
@@ -74,8 +75,12 @@ class PageAudit(HTMLParser):
                 rel = set((attributes.get("rel") or "").lower().split())
                 if not {"noopener", "noreferrer"} & rel:
                     self.external_blank_without_rel.append(href)
-        if tag == "img" and "alt" not in attributes:
-            self.images_without_alt.append(attributes.get("src") or "(missing src)")
+        if tag == "img":
+            image_src = attributes.get("src") or ""
+            if image_src:
+                self.images.append(image_src)
+            if "alt" not in attributes:
+                self.images_without_alt.append(image_src or "(missing src)")
         if tag == "link":
             rel_tokens = set((attributes.get("rel") or "").lower().split())
             href = attributes.get("href") or ""
@@ -254,7 +259,7 @@ def main() -> None:
                 if unquote(parsed.fragment) not in target_ids:
                     errors.append(f"{name}: missing anchor target: {href}")
 
-        for asset in audit.stylesheets + audit.scripts:
+        for asset in audit.stylesheets + audit.scripts + audit.images:
             parsed = urlsplit(asset)
             if parsed.scheme or parsed.netloc:
                 continue
