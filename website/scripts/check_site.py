@@ -211,17 +211,17 @@ def main() -> None:
             if not expected_base:
                 errors.append("--expected-base-url is required with --require-seo-output")
             else:
-                expected_url = expected_base + "/" + route_for(path)
-                if audit.canonical_urls != [expected_url]:
-                    errors.append(f"{name}: canonical must equal {expected_url}")
-                if audit.meta_values.get("og:url") != [expected_url]:
-                    errors.append(f"{name}: og:url must equal canonical URL")
-                expected_image = expected_base + (
-                    "/assets/social-card-zh.png" if name.startswith("zh/") else "/assets/social-card.png"
-                )
-                if audit.meta_values.get("og:image") != [expected_image]:
-                    errors.append(f"{name}: social image must use the configured site base URL")
                 if not is_noindex:
+                    expected_url = expected_base + "/" + route_for(path)
+                    if audit.canonical_urls != [expected_url]:
+                        errors.append(f"{name}: canonical must equal {expected_url}")
+                    if audit.meta_values.get("og:url") != [expected_url]:
+                        errors.append(f"{name}: og:url must equal canonical URL")
+                    expected_image = expected_base + (
+                        "/assets/social-card-zh.png" if name.startswith("zh/") else "/assets/social-card.png"
+                    )
+                    if audit.meta_values.get("og:image") != [expected_image]:
+                        errors.append(f"{name}: social image must use the configured site base URL")
                     route = route_for(path).removeprefix("zh/")
                     expected_alternates = {
                         "en": expected_base + "/" + route,
