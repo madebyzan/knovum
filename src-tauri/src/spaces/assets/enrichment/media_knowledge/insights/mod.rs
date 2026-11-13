@@ -14,15 +14,11 @@ use crate::{
 
 pub(super) async fn generate(
     app: &AppHandle,
-    selection: Option<ai::tasks::TaskTargetSelection>,
+    selection: ai::tasks::TaskTargetSelection,
     knowledge: &Value,
     progress: &Channel<MediaTranscriptionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<Value, AppError> {
-    let selection = match selection {
-        Some(selected) => selected,
-        None => ai::settings::default_selection(app, ai::contracts::RoutingPurpose::Knowledge)?,
-    };
     let target = ai::settings::resolve_task(
         app,
         selection,

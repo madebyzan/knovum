@@ -4,7 +4,10 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { openAiSettings } from "../../../../foundation/ai/ai-settings-navigation";
+import AiExecutionTargetField from "../../../../foundation/ai/AiExecutionTargetField.vue";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import { useLocalModelsQuery } from "../../../../foundation/runtime/use-local-models-query";
+import type { TaskTarget } from "../../../../shared/contracts/generated/TaskTarget";
 import { imageActionAvailability } from "../../canvas/presentation/images/image-action-availability";
 import { imageActionHelp } from "../../canvas/presentation/images/image-action-help";
 import {
@@ -13,6 +16,10 @@ import {
   useImageSourceDimensionsStore,
 } from "../../canvas/presentation/images/image-source-dimensions-store";
 import type { ImageExecutionTarget } from "../../contracts/generated/ImageExecutionTarget";
+import {
+  preferredVerifiedImageTarget,
+  verifiedImageTargetOptions,
+} from "../../knowledge-derivations/image-model-targets";
 import { useImageRemovalSessionStore } from "../../knowledge-derivations/image-removal-session-store";
 import { useImageOperationCapabilities } from "../../knowledge-derivations/use-image-operation-capabilities";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -28,16 +35,22 @@ const dimensions = useImageSourceDimensionsStore();
 const open = computed(() => removal.active?.nodeId === props.node.id);
 const capability = useImageOperationCapabilities(open);
 const mode = computed(() => removal.active?.mode ?? "mask");
+const localModels = useLocalModelsQuery(() => open.value && mode.value === "mask");
 const selectedExecution = shallowRef<ImageExecutionTarget>();
-const targetOptions = computed(
+const remoteTarget = shallowRef<TaskTarget>();
+const configuredOptions = computed(
   () => capability.data.value?.targets.filter((target) => target.capability === "imageInpainting") ?? [],
+);
+const targetOptions = computed(() =>
+  verifiedImageTargetOptions(configuredOptions.value, localModels.data.value ?? [], "imageInpainting"),
 );
 const target = computed(() =>
   selectedExecution.value
-    ? targetOptions.value.find(
+    ? configuredOptions.value.find(
         (option) => JSON.stringify(option.execution) === JSON.stringify(selectedExecution.value),
       )
-    : targetOptions.value.find((option) => option.selected),
+    : (preferredVerifiedImageTarget(targetOptions.value) ??
+      configuredOptions.value.find((option) => option.selected)),
 );
 const availability = computed(() =>
   imageActionAvailability({
@@ -83,7 +96,13 @@ function openProviderSettings() {
 function generate() {
   if (!canGenerate.value) return;
   void removal
-    .generate(mode.value === "mask" ? target.value?.execution : undefined)
+    .generate(
+      mode.value === "mask"
+        ? target.value?.execution
+        : remoteTarget.value
+          ? { type: "remote", target: remoteTarget.value }
+          : undefined,
+    )
     .catch((error) => toast.error(getErrorMessage(error)));
 }
 onMounted(async () => {
@@ -98,12 +117,20 @@ onMounted(async () => {
     class="w-max max-w-[calc(100vw-2rem)] rounded-panel border border-stroke-strong bg-surface-overlay p-3 shadow-popover"
   >
     <SpaceImageExecutionSelect
-      v-if="mode === 'mask'"
+      v-if="mode === 'mask' && targetOptions.length > 1"
       class="mb-3"
       :options="targetOptions"
       :execution="target?.execution"
       :disabled="removal.submitting"
       @select="selectedExecution = $event"
+    />
+    <AiExecutionTargetField
+      v-if="mode === 'prompt'"
+      v-model="remoteTarget"
+      purpose="image-generation"
+      compact
+      hide-when-single
+      class="mb-3 w-56"
     />
     <SpaceImageObjectRemovalControls
       :mode="mode"

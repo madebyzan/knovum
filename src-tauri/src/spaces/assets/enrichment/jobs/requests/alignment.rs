@@ -14,6 +14,7 @@ pub async fn request_media_alignment(
     node_id: String,
     expected_revision: u32,
     mut segment_ids: Vec<String>,
+    model: crate::local_resources::model_catalog::LocalModelId,
 ) -> Result<String, AppError> {
     if expected_revision == 0 || segment_ids.is_empty() || segment_ids.len() > 8 {
         return Err(AppError::invalid(
@@ -32,7 +33,6 @@ pub async fn request_media_alignment(
         ));
     }
 
-    let model = crate::local_resources::model_selection::speech_alignment(&app)?;
     let model_spec_id = model.alignment_spec()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;

@@ -62,6 +62,7 @@ pub(super) async fn prepare(
                 request.id.clone(),
                 source.path.clone(),
                 request.source_revision.clone(),
+                request.transcription_model,
                 speech_progress,
                 cancellation.clone(),
             )

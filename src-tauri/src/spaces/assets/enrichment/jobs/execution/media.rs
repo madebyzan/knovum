@@ -55,11 +55,13 @@ pub(super) async fn transcribe(
     {
         return Err("Transcription requires current media analysis".into());
     }
+    let model = transcription::frozen_model(app, job_id).await?;
     let mut transcript = transcription::start_transcription(
         app.clone(),
         job_id.to_owned(),
         source.clone(),
         request.source_revision.clone(),
+        model,
         progress,
     )
     .await?;

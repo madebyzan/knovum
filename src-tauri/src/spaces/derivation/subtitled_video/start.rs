@@ -45,7 +45,7 @@ pub async fn start(
         PreparedSubtitles::Recognize => {
             format!(
                 "{}+ffmpeg:libass+platform-h264",
-                transcription::engine_id()?
+                transcription::engine_id(request.transcription_model)?
             )
         }
     };

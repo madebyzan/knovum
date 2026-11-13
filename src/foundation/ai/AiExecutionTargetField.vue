@@ -17,6 +17,7 @@ const props = defineProps<{
   purpose: RoutingPurpose;
   disabled?: boolean | undefined;
   compact?: boolean | undefined;
+  hideWhenSingle?: boolean | undefined;
   class?: HTMLAttributes["class"];
 }>();
 const target = defineModel<TaskTarget | undefined>();
@@ -38,6 +39,15 @@ const options = computed(() =>
   ),
 );
 const value = computed(() => (target.value ? JSON.stringify(target.value) : ""));
+const showSelect = computed(
+  () => !props.hideWhenSingle || !ready.value || Boolean(loadError.value) || options.value.length !== 1,
+);
+const showField = computed(
+  () =>
+    Boolean(loadError.value) ||
+    showSelect.value ||
+    (!props.compact && ready.value && options.value.length === 0),
+);
 
 function isSelectableExecutionTarget(encodedTarget: string): boolean {
   return options.value.some((option) => option.value === encodedTarget);
@@ -74,7 +84,7 @@ onMounted(load);
 </script>
 
 <template>
-  <div :class="[props.class, compact && 'flex min-w-0 items-center gap-1']">
+  <div v-if="showField" :class="[props.class, compact && 'flex min-w-0 items-center gap-1']">
     <div
       v-if="loadError"
       :class="
@@ -93,6 +103,7 @@ onMounted(load);
     </div>
     <template v-else-if="compact">
       <UiSelect
+        v-if="showSelect"
         :model-value="value"
         :label="t('ai.target.label')"
         :options="options"
@@ -119,7 +130,7 @@ onMounted(load);
         </UiButton>
       </div>
     </div>
-    <label v-else class="block space-y-1.5 text-label font-medium">
+    <label v-else-if="showSelect" class="block space-y-1.5 text-label font-medium">
       {{ t("ai.target.label") }}
       <UiSelect
         :model-value="value"

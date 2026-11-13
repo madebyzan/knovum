@@ -71,12 +71,7 @@ async function openPreview() {
         >{{ durationLabel }}</span
       >
     </div>
-    <div v-if="visual" class="mt-4">
-      <h3 class="mb-1.5 text-label font-medium text-fg-primary">
-        {{ $t("spaces.inspector.content") }}
-      </h3>
-      <SpaceVisualAnalysis :node="node" />
-    </div>
+    <SpaceVisualAnalysis v-if="visual" :node="node" class="mt-4" />
     <div v-if="excerpt" class="mt-4">
       <h3 class="mb-1.5 text-label font-medium text-fg-primary">
         {{ $t("spaces.inspector.excerpts.content") }}

@@ -3,6 +3,8 @@ import { Check, Pencil, RotateCcw, X } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { ModelChoiceOption } from "../../../../foundation/ai/model-choice";
+import ModelChoiceTrigger from "../../../../foundation/ai/ModelChoiceTrigger.vue";
 import UiExpandableText from "../../../../shared/ui/UiExpandableText.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
@@ -14,8 +16,9 @@ const props = defineProps<{
   disabled?: boolean;
   canRegenerate?: boolean;
   regenerateDisabledReason?: string | undefined;
+  regenerateOptions?: readonly ModelChoiceOption[] | undefined;
 }>();
-const emit = defineEmits<{ save: [summary: string]; regenerate: [] }>();
+const emit = defineEmits<{ save: [summary: string]; regenerate: [targetId?: string] }>();
 const { t } = useI18n();
 const editing = ref(false);
 const draft = ref(props.summary);
@@ -62,13 +65,21 @@ function saveMediaSummary() {
         /></UiIconButton>
       </template>
       <template v-else>
-        <UiIconButton
-          :label="regenerateDisabledReason || t('spaces.media.analysis.insights.regenerate')"
-          size="sm"
+        <ModelChoiceTrigger
+          :options="regenerateOptions ?? []"
           :disabled="!canRegenerate || !nodeDraft.available.value"
-          @click="emit('regenerate')"
-          ><RotateCcw class="size-3"
-        /></UiIconButton>
+          @select="(id) => emit('regenerate', id)"
+        >
+          <template #trigger="{ multiple }">
+            <UiIconButton
+              :label="regenerateDisabledReason || t('spaces.media.analysis.insights.regenerate')"
+              size="sm"
+              :disabled="!canRegenerate || !nodeDraft.available.value"
+              @click="!multiple && emit('regenerate')"
+              ><RotateCcw class="size-3"
+            /></UiIconButton>
+          </template>
+        </ModelChoiceTrigger>
         <UiIconButton
           :label="t('common.edit')"
           size="sm"

@@ -75,6 +75,8 @@ async fn accepts_user_edited_text_on_first_translation_save() {
         },
         background: None,
         background_separation: None,
+        auto_background_separation_model:
+            crate::local_resources::model_catalog::LocalModelId::HtDemucs,
         preserve_original_outside_dialogue: false,
         source_dialogue_intervals: Vec::new(),
         retain_original_track: false,

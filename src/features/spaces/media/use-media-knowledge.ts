@@ -1,10 +1,12 @@
 import { storeToRefs } from "pinia";
-import { computed, ref, type Ref } from "vue";
+import { computed, ref, shallowRef, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { admitAiRequirements } from "../../../foundation/ai/ai-readiness-admission";
+import { preferredLocalModel } from "../../../foundation/ai/local-model-choice";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import type { LocalModelId } from "../../../shared/contracts/generated/LocalModelId";
 import { getCanvasEditorSession } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/use-node-operation-gate";
 import { refreshEnrichmentJobs } from "../enrichment/enrichment-jobs-query";
@@ -15,7 +17,6 @@ import {
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload } from "../model/nodes/capabilities";
 import { useSpaceStore } from "../session/space-store";
-import { spaceMediaAnalysisLabels } from "./analysis-labels";
 import {
   editMediaChapter,
   editMediaSummary,
@@ -25,6 +26,7 @@ import {
 } from "./knowledge-editing";
 import type { SpaceTranscriptEdit } from "./schema/knowledge";
 import { requestMediaAlignment } from "./transcription";
+import { useMediaInsights } from "./use-media-insights";
 
 export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   const store = useSpaceStore();
@@ -32,6 +34,8 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   const { mediaAnalysisIds, mediaAnalysisPreviews, mediaPlayback } = storeToRefs(store);
   const { t } = useI18n();
   const transcriptOpen = ref(false);
+  const transcriptionModel = shallowRef<LocalModelId>();
+  const alignmentModel = shallowRef<LocalModelId>();
   const alignmentSubmitting = ref(false);
   const submitting = ref(false);
   const { status } = useNodeEnrichmentStatus(
@@ -65,6 +69,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
       canDerive.value && !analyzing.value && !stale.value && knowledge.value?.transcript.segments.length,
     ),
   );
+  const mediaInsights = useMediaInsights(node, () => canGenerateInsights.value, store.generateMediaInsights);
   const insightsDisabledReason = computed(() => {
     if (analyzing.value) return t("spaces.media.analysis.inProgress");
     if (stale.value) return t("spaces.media.analysis.knowledge.stale");
@@ -80,12 +85,14 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
       mediaContent.value.mediaAnalysis?.sourceRevision === mediaContent.value.sourceRevision,
     ),
   );
-  async function analyze() {
+  async function analyze(chosenModel?: LocalModelId) {
     if (!canTranscribe.value) return;
     submitting.value = true;
     try {
       if (!(await admitAiRequirements([{ kind: "localCapability", capability: "transcription" }]))) return;
-      await store.analyzeMedia(node.value.id);
+      const model = chosenModel ?? transcriptionModel.value ?? (await preferredLocalModel("transcription"));
+      if (!model) return;
+      await store.analyzeMedia(node.value.id, model);
       await refreshEnrichmentJobs();
     } catch (error) {
       toast.error(getErrorMessage(error));
@@ -93,14 +100,22 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
       submitting.value = false;
     }
   }
-  async function alignSegments(segmentIds: string[]) {
+  async function alignSegments(segmentIds: string[], chosenModel?: LocalModelId) {
     const current = knowledge.value;
     const spaceId = store.activeSpaceId;
     if (!spaceId || !current || !canGenerateInsights.value || alignmentSubmitting.value) return;
     alignmentSubmitting.value = true;
     try {
       if (!(await admitAiRequirements([{ kind: "localCapability", capability: "speechAlignment" }]))) return;
-      await requestMediaAlignment(spaceId, node.value.id, current.transcript.revision, segmentIds);
+      const model = chosenModel ?? alignmentModel.value ?? (await preferredLocalModel("speechAlignment"));
+      if (!model) return;
+      await requestMediaAlignment({
+        spaceId,
+        nodeId: node.value.id,
+        expectedRevision: current.transcript.revision,
+        segmentIds,
+        model,
+      });
       await refreshEnrichmentJobs();
     } catch (error) {
       toast.error(getErrorMessage(error));
@@ -111,14 +126,6 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   function seek(positionMs: number) {
     getCanvasEditorSession().reveal([node.value.id], "focus");
     store.requestMediaSeek(node.value.id, positionMs);
-  }
-  async function generateInsights() {
-    if (!canGenerateInsights.value) return;
-    try {
-      await store.generateMediaInsights(node.value.id, spaceMediaAnalysisLabels());
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    }
   }
   async function saveKnowledge(next: NonNullable<typeof knowledge.value>) {
     if (!canEdit.value) {
@@ -134,23 +141,17 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
       data: { ...data, mediaKnowledge: next },
     });
   }
-  async function saveSummary(summary: string) {
-    if (knowledge.value) await saveKnowledge(editMediaSummary(knowledge.value, summary));
-  }
-  async function saveChapter(index: number, title: string, summary: string) {
-    if (knowledge.value) await saveKnowledge(editMediaChapter(knowledge.value, index, { title, summary }));
-  }
-  async function shiftChapter(index: number, direction: -1 | 1) {
-    if (knowledge.value) await saveKnowledge(shiftMediaChapterStart(knowledge.value, index, direction));
-  }
-  async function saveSegment(payload: SpaceTranscriptEdit) {
-    if (knowledge.value)
-      await saveKnowledge(editTranscriptSegment(knowledge.value, payload.index, payload.text));
+  async function editKnowledge(
+    transform: (current: NonNullable<typeof knowledge.value>) => NonNullable<typeof knowledge.value>,
+  ) {
+    if (knowledge.value) await saveKnowledge(transform(knowledge.value));
   }
   return {
     transcriptOpen,
     alignmentSubmitting,
     alignSegments,
+    transcriptionModel,
+    alignmentModel,
     analyzing,
     analysisPreview,
     knowledge,
@@ -166,10 +167,13 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     insightsDisabledReason,
     analyze,
     seek,
-    generateInsights,
-    saveSummary,
-    saveChapter,
-    shiftChapter,
-    saveSegment,
+    ...mediaInsights,
+    saveSummary: (summary: string) => editKnowledge((k) => editMediaSummary(k, summary)),
+    saveChapter: (index: number, title: string, summary: string) =>
+      editKnowledge((k) => editMediaChapter(k, index, { title, summary })),
+    shiftChapter: (index: number, direction: -1 | 1) =>
+      editKnowledge((k) => shiftMediaChapterStart(k, index, direction)),
+    saveSegment: (payload: SpaceTranscriptEdit) =>
+      editKnowledge((k) => editTranscriptSegment(k, payload.index, payload.text)),
   };
 }

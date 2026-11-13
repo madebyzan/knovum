@@ -2,15 +2,30 @@ import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, expect, it, vi } from "vitest";
 import { nextTick, reactive } from "vue";
 
-import { imageSourceNode } from "../../__tests__/support/image-operation-fixtures";
+import {
+  imageSourceNode,
+  imageTargetOption as target,
+  localModelAvailability as model,
+} from "../../__tests__/support/image-operation-fixtures";
 import type { ImageOperationTargetOption } from "../../contracts/generated/ImageOperationTargetOption";
 import type * as SelectionDerivationModule from "../image-selection-derivation";
 
 const context = vi.hoisted(() => ({ space: null as null | Record<string, unknown> }));
 vi.mock("../../session/space-store", () => ({ useSpaceStore: () => context.space! }));
+vi.mock("../../../../foundation/query/query-client", () => ({
+  queryClient: {
+    fetchQuery: vi
+      .fn<() => Promise<unknown>>()
+      .mockResolvedValue([
+        model("mobileSam", "imageSelection", { selected: true }),
+        model("sam2HieraTiny", "imageSelection"),
+        model("lama", "imageInpainting", { selected: true }),
+      ]),
+  },
+}));
 vi.mock("../image-operation", () => ({
   selectedImageTarget: (targets: readonly ImageOperationTargetOption[]) =>
-    targets.find((target) => target.selected)!.execution,
+    targets.find((option) => option.selected)!.execution,
   getImageOperationCapabilities: vi.fn<() => Promise<unknown>>().mockResolvedValue({
     targets: [
       {
@@ -19,18 +34,8 @@ vi.mock("../image-operation", () => ({
         execution: { type: "local", model: "mobileSam", specId: "spec" },
         availability: { state: "ready" },
       },
-      {
-        capability: "imageInpainting",
-        selected: true,
-        execution: { type: "local", model: "lama", specId: "lama-spec" },
-        availability: { state: "ready" },
-      },
-      {
-        capability: "imageInpainting",
-        selected: false,
-        execution: { type: "local", model: "lama", specId: "lama-spec" },
-        availability: { state: "ready" },
-      },
+      target("lama", "imageInpainting", { selected: true }),
+      target("lama", "imageInpainting"),
     ],
   }),
 }));

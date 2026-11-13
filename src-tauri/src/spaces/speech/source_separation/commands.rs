@@ -72,7 +72,8 @@ pub async fn start_speech_source_separation(
         &request.source,
     )
     .await?;
-    let model = crate::local_resources::model_selection::speech_separation(&app)?;
+    let model = request.model;
+    model.separation_spec()?;
     let now = crate::foundation::clock::unix_time_millis()?;
     let scope = RunScope::Space {
         space_id: request.space_id.clone(),
@@ -188,6 +189,7 @@ pub(super) fn matches_existing_request(
             && input.vocals_label == request.vocals_label
             && input.background_label == request.background_label
             && input.source == request.source
+            && input.model == request.model
             && input.model.separation_spec().is_ok()
     })
 }

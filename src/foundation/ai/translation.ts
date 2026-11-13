@@ -2,6 +2,7 @@ import { Channel } from "@tauri-apps/api/core";
 
 import type { TaskCompletionOutput } from "../../shared/contracts/generated/TaskCompletionOutput";
 import type { TaskStreamEvent } from "../../shared/contracts/generated/TaskStreamEvent";
+import type { TaskTarget } from "../../shared/contracts/generated/TaskTarget";
 import type { TranslationCommandRequest } from "../../shared/contracts/generated/TranslationCommandRequest";
 import { invokeCommand } from "../ipc/invoke-command";
 import { aiExecutionTargetPayload, loadAiExecutionTarget } from "./ai-execution";
@@ -41,6 +42,7 @@ export const LABEL_KEY_BY_TRANSLATION_TARGET: Record<TranslationTarget, string> 
 export interface TranslationInput {
   text: string;
   target: TranslationTarget;
+  executionTarget?: TaskTarget | undefined;
 }
 
 export async function translateTextStream(
@@ -51,7 +53,7 @@ export async function translateTextStream(
 ): Promise<string> {
   signal.throwIfAborted();
   if (!request.text.trim()) return "";
-  const executionTarget = await loadAiExecutionTarget("translation");
+  const executionTarget = await loadAiExecutionTarget("translation", request.executionTarget);
   signal.throwIfAborted();
   const channel = new Channel<TaskStreamEvent>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes events through onmessage.

@@ -2,6 +2,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { computed, onScopeDispose, shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { preferredLocalModel } from "../../../foundation/ai/local-model-choice";
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { PreparedVoiceReference } from "../contracts/generated/PreparedVoiceReference";
@@ -105,6 +106,21 @@ export function useVoiceReferenceEditor(
       if (isCurrent(version)) error.value = getErrorMessage(cause);
     }
   }
+  async function prepareReference(job: string, version: number): Promise<PreparedVoiceReference | undefined> {
+    const validationModel = await preferredLocalModel("transcription");
+    if (!validationModel || !isCurrent(version)) return undefined;
+    const prepared = await prepareVoiceReference({
+      jobId: job,
+      sourcePath: path.value,
+      language: props.language,
+      startMs: Math.round(Number(start.value) * 1000),
+      endMs: Math.round(Number(end.value) * 1000),
+      model: validationModel,
+    });
+    if (props.sourceNode && prepared.sourceRevision !== props.sourceNode.data.sourceRevision)
+      throw new Error(t("spaces.speech.reference.sourceChanged"));
+    return prepared;
+  }
   async function prepare() {
     if (!canPrepare.value) return;
     const version = ++epoch;
@@ -114,16 +130,8 @@ export function useVoiceReferenceEditor(
     model.value = undefined;
     error.value = undefined;
     try {
-      const prepared = await prepareVoiceReference({
-        jobId: job,
-        sourcePath: path.value,
-        language: props.language,
-        startMs: Math.round(Number(start.value) * 1000),
-        endMs: Math.round(Number(end.value) * 1000),
-      });
-      if (props.sourceNode && prepared.sourceRevision !== props.sourceNode.data.sourceRevision)
-        throw new Error(t("spaces.speech.reference.sourceChanged"));
-      if (isCurrent(version)) {
+      const prepared = await prepareReference(job, version);
+      if (prepared && isCurrent(version)) {
         model.value = prepared;
         error.value = undefined;
       }

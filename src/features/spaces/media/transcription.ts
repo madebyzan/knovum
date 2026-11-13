@@ -1,21 +1,20 @@
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
+import type { LocalModelId } from "../../../shared/contracts/generated/LocalModelId";
 
-export function requestMediaTranscription(spaceId: string, nodeId: string) {
-  return invokeCommand<string>("plugin:spaces|request_media_transcription", { spaceId, nodeId });
+export function requestMediaTranscription(spaceId: string, nodeId: string, model?: LocalModelId) {
+  return invokeCommand<string>("plugin:spaces|request_media_transcription", { spaceId, nodeId, model });
 }
 
-export function requestMediaAlignment(
-  spaceId: string,
-  nodeId: string,
-  expectedRevision: number,
-  segmentIds: string[],
-) {
-  return invokeCommand<string>("plugin:spaces|request_media_alignment", {
-    spaceId,
-    nodeId,
-    expectedRevision,
-    segmentIds,
-  });
+type MediaAlignmentRequest = {
+  spaceId: string;
+  nodeId: string;
+  expectedRevision: number;
+  segmentIds: string[];
+  model?: LocalModelId | undefined;
+};
+
+export function requestMediaAlignment(request: MediaAlignmentRequest) {
+  return invokeCommand<string>("plugin:spaces|request_media_alignment", request);
 }
 
 type MediaDiarizationRequest = {
@@ -23,6 +22,7 @@ type MediaDiarizationRequest = {
   nodeId: string;
   expectedRevision: number;
   numSpeakers: number | null;
+  model?: LocalModelId | undefined;
 };
 
 export function requestMediaDiarization(request: MediaDiarizationRequest) {

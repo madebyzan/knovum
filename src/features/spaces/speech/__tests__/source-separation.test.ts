@@ -16,6 +16,9 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("../source-separation-ipc", () => mocks);
 vi.mock("../../runs/resource-run-observation", () => mocks);
+vi.mock("../../../../foundation/ai/local-model-choice", () => ({
+  preferredLocalModel: async () => "htDemucs" as const,
+}));
 vi.mock("vue-i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof vueI18n>()),
   useI18n: () => ({ t: (key: string) => key }),
@@ -113,6 +116,7 @@ it("keeps the submitted derivation in task observation after its node UI closes"
     spaceId: "space",
     sourceNodeId: "source",
     source,
+    model: "htDemucs",
     vocalsLabel: "spaces.speech.separation.stems.vocals",
     backgroundLabel: "spaces.speech.separation.stems.background",
   });

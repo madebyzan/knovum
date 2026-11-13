@@ -95,6 +95,7 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::spaces::derivation::image_operations::selection_preview::ImageSelectionPreviewRequest::export_all,
         crate::spaces::derivation::image_operations::selection_preview::ImageSelectionPreview::export_all,
         crate::spaces::derivation::image_operations::contracts::ImageOperationCapabilities::export_all,
+        crate::spaces::derivation::image_layers::ImageLayersModels::export_all,
         crate::spaces::package::SpacePackageProgress::export_all,
         crate::foundation::app_error::AppError::export_all,
         crate::backup::contracts::MaintenanceReceipt::export_all,

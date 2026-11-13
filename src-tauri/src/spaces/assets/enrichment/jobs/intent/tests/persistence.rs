@@ -175,7 +175,7 @@ async fn execution_choice_is_frozen_at_creation_and_survives_retry_and_restart()
     );
     assert_eq!(
         persistence::freeze_target(&pool, id, &next).await.unwrap(),
-        next
+        first
     );
 }
 

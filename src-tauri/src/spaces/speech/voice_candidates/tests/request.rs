@@ -16,6 +16,9 @@ fn request() -> DraftVoiceCandidateRequest {
             reference_text_confirmed: false,
             design_prompt: None,
             isolate_voice: false,
+            reference_validation_model:
+                crate::local_resources::model_catalog::LocalModelId::WhisperSmall,
+            isolation_model: crate::local_resources::model_catalog::LocalModelId::HtDemucs,
         },
     }
 }
@@ -92,5 +95,27 @@ fn reference_cloning_supports_optional_design_prompt_on_capable_models() {
         *design_prompt = Some("沉稳男声".into());
     }
     value.model = super::super::VoiceModel::MossNano;
+    assert!(validate_request(&value).is_err());
+}
+
+#[test]
+fn reference_validation_and_isolation_models_must_match_their_capability() {
+    let mut value = request();
+    if let VoiceCandidateSource::Reference {
+        reference_validation_model,
+        ..
+    } = &mut value.source
+    {
+        *reference_validation_model = crate::local_resources::model_catalog::LocalModelId::HtDemucs;
+    }
+    assert!(validate_request(&value).is_err());
+
+    let mut value = request();
+    if let VoiceCandidateSource::Reference {
+        isolation_model, ..
+    } = &mut value.source
+    {
+        *isolation_model = crate::local_resources::model_catalog::LocalModelId::WhisperSmall;
+    }
     assert!(validate_request(&value).is_err());
 }

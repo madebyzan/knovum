@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 
 import { createSpaceNode } from "../canvas/node";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
+import { localModelAvailability } from "./support/image-operation-fixtures";
 import { transcriptFixture } from "./support/media-transcript-fixture";
 
 const context = vi.hoisted(() => ({
@@ -51,17 +52,21 @@ it("starts one local video Action, with no Workflow, transcript resource or mode
   const calls: Array<[string, unknown]> = [];
   mockIPC((command, args) => {
     calls.push([command, args]);
+    if (command === "plugin:local-resources|get_model_catalog")
+      return [localModelAvailability("whisperSmall", "transcription", { selected: true, group: "audio" })];
     store.activeSpaceId = "other-space";
     return { id: "run", scope: { kind: "space", spaceId: "space" } };
   });
   await addVideoSubtitles(source);
-  expect(calls).toHaveLength(1);
-  expect(calls[0]![0]).toBe("plugin:spaces|start_space_action");
-  expect(calls[0]![1]).toMatchObject({
+  expect(calls.map(([command]) => command)).toEqual([
+    "plugin:local-resources|get_model_catalog",
+    "plugin:spaces|start_space_action",
+  ]);
+  expect(calls[1]![1]).toMatchObject({
     request: {
       spaceId: "space",
       actionId: "add-video-subtitles",
-      parameters: {},
+      parameters: { transcriptionModel: "whisperSmall" },
       sources: [{ nodeId: "source", sourceRevision: "knowledge:1", revisionBasis: "knowledge" }],
       target: null,
     },
@@ -85,7 +90,25 @@ it("starts nothing when the transcription model it needs is not admitted", async
 
 it("needs no local model when the video already has a transcript to subtitle from", async () => {
   context.admit.mockResolvedValue(true);
-  mockIPC(() => ({ id: "run", scope: { kind: "space", spaceId: "space" } }));
+  mockIPC((command) =>
+    command === "plugin:local-resources|get_model_catalog"
+      ? [localModelAvailability("whisperSmall", "transcription", { group: "audio" })]
+      : { id: "run", scope: { kind: "space", spaceId: "space" } },
+  );
   await addVideoSubtitles(video(true));
   expect(context.admit).toHaveBeenCalledWith([]);
+});
+
+it("freezes an explicitly chosen transcription model without reading the catalog", async () => {
+  context.admit.mockResolvedValue(true);
+  const calls: Array<[string, unknown]> = [];
+  mockIPC((command, args) => {
+    calls.push([command, args]);
+    return { id: "run", scope: { kind: "space", spaceId: "space" } };
+  });
+  await addVideoSubtitles(video(), "whisperLargeV3Turbo");
+  expect(calls.map(([command]) => command)).toEqual(["plugin:spaces|start_space_action"]);
+  expect(calls[0]![1]).toMatchObject({
+    request: { parameters: { transcriptionModel: "whisperLargeV3Turbo" } },
+  });
 });

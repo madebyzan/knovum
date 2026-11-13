@@ -12,10 +12,12 @@ pub async fn request_media_diarization(
     node_id: String,
     expected_revision: u32,
     num_speakers: Option<u16>,
+    model: crate::local_resources::model_catalog::LocalModelId,
 ) -> Result<String, AppError> {
     validate_bounds(expected_revision, num_speakers, num_speakers)?;
     let minimum_speakers = num_speakers;
     let maximum_speakers = num_speakers;
+    let model_spec = model.diarization_variant()?.spec_id();
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let raw: String = sqlx::query_scalar(
@@ -54,7 +56,7 @@ pub async fn request_media_diarization(
         return Err(AppError::invalid("Transcript segment timing is invalid"));
     }
     if let Some(row) = sqlx::query(
-        "SELECT j.id,r.expected_transcript_revision,r.minimum_speakers,r.maximum_speakers \
+        "SELECT j.id,r.expected_transcript_revision,r.minimum_speakers,r.maximum_speakers,r.model_spec_id \
          FROM spaces_enrichment_jobs j JOIN spaces_media_diarization_requests r ON r.job_id=j.id \
          WHERE j.space_id=$1 AND j.node_id=$2 AND j.job_type='diarize_media_transcript' \
            AND j.source_revision=$3 AND j.status IN ('pending','running','awaiting_configuration')",
@@ -74,6 +76,7 @@ pub async fn request_media_diarization(
         if queued_revision == i64::from(expected_revision)
             && queued_minimum == minimum_speakers.map(i64::from)
             && queued_maximum == maximum_speakers.map(i64::from)
+            && row.try_get::<String, _>("model_spec_id").map_err(db::sql_error)? == model_spec
         {
             return Ok(row.try_get("id").map_err(db::sql_error)?);
         }
@@ -81,8 +84,6 @@ pub async fn request_media_diarization(
             "A different diarization request is already active",
         ));
     }
-    let model = crate::local_resources::model_selection::speech_diarization(&app)?;
-    let model_spec = model.diarization_variant()?.spec_id();
     let now = crate::foundation::clock::unix_time_millis()?;
     let id = uuid::Uuid::new_v4().to_string();
     sqlx::query("INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) VALUES($1,$2,$3,'diarize_media_transcript','pending',$4,0,$5,$5)")

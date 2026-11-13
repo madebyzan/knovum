@@ -54,6 +54,7 @@ const config: VideoDubbingOutputConfig = {
   preserveOriginalOutsideDialogue: false,
   sourceDialogueIntervals: [],
   retainOriginalTrack: true,
+  autoBackgroundSeparationModel: "htDemucs",
 };
 function render(
   overrides: Partial<VideoDubbingOutputConfig> = {},

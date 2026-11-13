@@ -38,6 +38,7 @@ it("prevents synthesis while the dubbing script is being translated and releases
         preserveOriginalOutsideDialogue: false,
         sourceDialogueIntervals: [],
         retainOriginalTrack: true,
+        autoBackgroundSeparationModel: "htDemucs",
       },
     },
     segments: [

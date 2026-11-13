@@ -163,6 +163,7 @@ describe("speech architecture policies", () => {
       preserveOriginalOutsideDialogue: false,
       sourceDialogueIntervals: [{ startMs: 0, endMs: 1000 }],
       retainOriginalTrack: true,
+      autoBackgroundSeparationModel: "htDemucs" as const,
     };
     const publication: SpeechSourceSeparationPublication = {
       separationId: "separation",

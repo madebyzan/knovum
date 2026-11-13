@@ -20,6 +20,7 @@ pub struct PrepareVoiceReferenceRequest {
     pub language: String,
     pub start_ms: u64,
     pub end_ms: u64,
+    pub model: crate::local_resources::model_catalog::LocalModelId,
 }
 
 #[derive(Serialize, ts_rs::TS)]
@@ -31,6 +32,7 @@ pub struct PreparedVoiceReference {
     pub start_ms: u64,
     pub end_ms: u64,
     pub transcript: String,
+    pub model: crate::local_resources::model_catalog::LocalModelId,
 }
 
 #[tauri::command]
@@ -51,6 +53,9 @@ pub async fn prepare_voice_reference(
             "Voice reference selection must be five to thirty seconds within a twelve-hour source"
                 .into(),
         );
+    }
+    if !request.model.is_transcription() {
+        return Err("Voice reference validation requires a speech recognition model".into());
     }
     let (cancellation, _lease) = cancellation::acquire(&request.job_id)?;
     let source = assets::authorize_media_source(&app, Path::new(&request.source_path))?;
@@ -101,6 +106,7 @@ pub async fn prepare_voice_reference(
             &request.language,
             audio,
             None,
+            request.model,
             &cancellation,
         )
         .await?;
@@ -113,6 +119,7 @@ pub async fn prepare_voice_reference(
             start_ms: request.start_ms,
             end_ms: request.end_ms,
             transcript,
+            model: request.model,
         })
     }
     .await;

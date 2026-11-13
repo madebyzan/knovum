@@ -1,6 +1,8 @@
 import type { AiRequirement } from "../../../foundation/ai/ai-readiness";
 import { admitAiRequirements } from "../../../foundation/ai/ai-readiness-admission";
+import { preferredLocalModel } from "../../../foundation/ai/local-model-choice";
 import { i18n } from "../../../foundation/i18n/instance";
+import type { LocalModelId } from "../../../shared/contracts/generated/LocalModelId";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { startDerivationAction } from "./start-action";
 
@@ -19,10 +21,12 @@ function subtitleRequirements(source: SpaceCanvasNode): readonly AiRequirement[]
     : [{ kind: "localCapability", capability: "transcription" }];
 }
 
-export async function addVideoSubtitles(source: SpaceCanvasNode) {
+export async function addVideoSubtitles(source: SpaceCanvasNode, transcriptionModel?: LocalModelId) {
   if (!canAddVideoSubtitles(source) || !source.data.knowledgeRevision) return;
   const sourceRevision = source.data.knowledgeRevision;
   if (!(await admitAiRequirements(subtitleRequirements(source)))) return;
+  const model = transcriptionModel ?? (await preferredLocalModel("transcription"));
+  if (!model) return;
   return startDerivationAction({
     actionId: "add-video-subtitles",
     sources: [
@@ -33,7 +37,7 @@ export async function addVideoSubtitles(source: SpaceCanvasNode) {
         revisionBasis: "knowledge",
       },
     ],
-    parameters: {},
+    parameters: { transcriptionModel: model },
     title: i18n.global.t("spaces.creation.video.subtitles.task"),
   });
 }

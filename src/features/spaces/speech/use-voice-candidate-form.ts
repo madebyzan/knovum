@@ -1,6 +1,7 @@
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { preferredLocalModel } from "../../../foundation/ai/local-model-choice";
 import type { LocalModelReferenceDuration } from "../../../shared/contracts/generated/LocalModelReferenceDuration";
 import type { LocalModelReferenceTranscript } from "../../../shared/contracts/generated/LocalModelReferenceTranscript";
 import type { PreparedVoiceReference } from "../contracts/generated/PreparedVoiceReference";
@@ -91,12 +92,14 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
       !isolateVoice.value,
   );
 
-  function buildSource(): VoiceCandidateSource | undefined {
+  async function buildSource(): Promise<VoiceCandidateSource | undefined> {
     if (mode.value === "designed") {
       return { kind: "designed", description: description.value.trim() };
     }
     const prepared = reference.value;
     if (!prepared) return undefined;
+    const isolationModel = await preferredLocalModel("speechSeparation");
+    if (!isolationModel) return undefined;
     const usesTranscript = referenceTranscript.value === "optionalConfirmed";
     const prompt = supportsDesign.value ? description.value.trim() : "";
     return {
@@ -109,12 +112,14 @@ export function useVoiceCandidateForm(requestedSourceKind?: () => VoiceCandidate
       referenceTextConfirmed: usesTranscript && transcriptConfirmed.value,
       designPrompt: prompt || null,
       isolateVoice: isolateVoice.value,
+      referenceValidationModel: prepared.model,
+      isolationModel,
     };
   }
 
-  function generate() {
+  async function generate() {
     if (!ready.value || busy.value) return;
-    const candidateSource = buildSource();
+    const candidateSource = await buildSource();
     if (!candidateSource) return;
     void draft({
       model: model.value,

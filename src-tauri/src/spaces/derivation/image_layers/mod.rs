@@ -4,7 +4,10 @@
 //!
 //! [`image_set`]: super::image_set
 
+mod contracts;
 mod local;
+
+pub(crate) use contracts::ImageLayersModels;
 
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
@@ -35,9 +38,20 @@ pub(crate) async fn split_for_action(
     authority: &ExecutionAuthority,
     cancellation: &CancellationToken,
 ) -> Result<Vec<CompletedDerivationOutput>, AppError> {
+    let models = request.models.clone().ok_or_else(|| {
+        AppError::new("action-input-invalid", "Image layers require frozen models")
+    })?;
+    models
+        .validate()
+        .map_err(|error| AppError::new("action-input-invalid", error))?;
     let owner = request.id.clone();
-    image_set::derive(app, &SET, request, authority, cancellation, |png| {
-        local::split(app, png, &owner, cancellation)
-    })
+    image_set::derive(
+        app,
+        &SET,
+        request,
+        authority,
+        cancellation,
+        move |png| async move { local::split(app, png, &owner, cancellation, models).await },
+    )
     .await
 }

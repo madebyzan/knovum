@@ -2,6 +2,7 @@
 //! schema, carries representative rows through the migration, and checks that the upgraded library
 //! is the one a fresh install creates, with the rows it had.
 
+use serde_json::{json, Value};
 use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
 
 /// A library exactly as `version` left it.
@@ -411,4 +412,160 @@ async fn upgrading_0_3_x_admits_six_hour_source_separations() {
     separate("htdemucs", "htdemucs-q8_0-v1", 21_600_000)
         .await
         .expect("a six-hour separation is admitted");
+}
+
+/// 0.6.x read the model from Settings at execution time. Upgrading freezes the shipped default
+/// into every choice that was already submitted — the transcription request, the active subtitle
+/// run, the active reference candidate and the dubbing revision — so a retry keeps the model the
+/// work was started with instead of silently following a later Settings change.
+#[tokio::test]
+async fn upgrading_0_6_x_freezes_user_model_choices() {
+    use crate::local_resources::model_catalog::LocalModelId;
+    let pool = shipped(6).await;
+    for statement in [
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
+        "INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) \
+         VALUES('media','s','video',0,0,'{\"kind\":\"video\",\"title\":\"Talk\"}',1,1)",
+    ] {
+        sqlx::query(statement).execute(&pool).await.expect("fixture");
+    }
+    sqlx::query(
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,created_at,updated_at) \
+         VALUES('transcribe','s','media','transcribe_media','pending','sha256:x',0,1,1)",
+    )
+    .execute(&pool)
+    .await
+    .expect("transcription job");
+
+    let subtitle_input =
+        json!({"actionId":"add-video-subtitles","actionVersion":1,"parameters":{},"inputs":{}});
+    for (run, state, completed_at) in [
+        ("subtitle", "running", None),
+        ("subtitle-done", "succeeded", Some(2_i64)),
+    ] {
+        sqlx::query(
+            "INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state, \
+             policy_snapshot,input_snapshot,budget,created_at,updated_at,completed_at) \
+             VALUES($1,'space','s','user','local-user','action',$2,'{}',$3,'{}',1,1,$4)",
+        )
+        .bind(run)
+        .bind(state)
+        .bind(subtitle_input.to_string())
+        .bind(completed_at)
+        .execute(&pool)
+        .await
+        .expect("subtitle run");
+    }
+    sqlx::query(
+        "INSERT INTO spaces_run_steps(id,run_id,definition_node_id,instance_path,node_kind,state,resolved_input,created_at,updated_at) \
+         VALUES('subtitle-step','subtitle','action','action','action','ready',$1,1,1)",
+    )
+    .bind(subtitle_input.to_string())
+    .execute(&pool)
+    .await
+    .expect("subtitle step");
+
+    sqlx::query(
+        "INSERT INTO spaces_runs(id,scope_kind,home_space_id,principal_kind,principal_id,kind,state, \
+         policy_snapshot,input_snapshot,budget,created_at,updated_at) \
+         VALUES('candidate','application',NULL,'user','local-user','workflow','running','{}',$1,'{}',1,1)",
+    )
+    .bind(json!({"workflow":"speech_voice_candidate_v1","requestDigest":"d","referenceSource":null}).to_string())
+    .execute(&pool)
+    .await
+    .expect("candidate run");
+    let candidate_config = json!({
+        "request":{"model":"mossNano","requestId":"candidate","language":"en","text":"hi","seed":0,
+            "source":{"kind":"reference","sourcePath":"/v.wav","sourceRevision":"sha256:x",
+                "startMs":0,"endMs":10000,"referenceText":null,"referenceTextConfirmed":false,"isolateVoice":true}},
+        "referenceSource":null
+    });
+    sqlx::query(
+        "INSERT INTO spaces_run_steps(id,run_id,definition_node_id,instance_path,node_kind,state,configuration,resolved_input,created_at,updated_at) \
+         VALUES('candidate-step','candidate','candidate','candidate','speech_voice_candidate','ready',$1,'{}',1,1)",
+    )
+    .bind(candidate_config.to_string())
+    .execute(&pool)
+    .await
+    .expect("candidate step");
+
+    sqlx::query(
+        "INSERT INTO spaces_speech_projects(id,space_id,source_node_id,project_type,title,created_at,updated_at) \
+         VALUES('dub','s','media','video_dubbing','Dub',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .expect("dubbing project");
+    let dub_config = json!({
+        "format":"mp4","video":{"assetPath":"/media.mp4","sourceRevision":format!("sha256:{}", "a".repeat(64)),"durationMs":1000},
+        "background":null,"backgroundSeparation":null,"voiceGainDb":0,"backgroundGainDb":0,"translation":null,
+        "preserveOriginalOutsideDialogue":false,"sourceDialogueIntervals":[],"retainOriginalTrack":false
+    });
+    sqlx::query(
+        "INSERT INTO spaces_speech_project_revisions(id,project_id,revision,source_revision,pronunciation_lexicon,output_config,created_at) \
+         VALUES('dub-rev','dub',1,'sha256:x','{}',$1,1)",
+    )
+    .bind(dub_config.to_string())
+    .execute(&pool)
+    .await
+    .expect("dubbing revision");
+
+    super::super::migrate(&pool).await.expect("upgrade");
+    assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
+
+    let frozen: String = sqlx::query_scalar(
+        "SELECT model_spec_id FROM spaces_media_transcription_requests WHERE job_id='transcribe'",
+    )
+    .fetch_one(&pool)
+    .await
+    .expect("frozen transcription model");
+    assert_eq!(
+        frozen,
+        serde_json::to_string(&LocalModelId::WhisperSmall).unwrap()
+    );
+
+    let run_input: String =
+        sqlx::query_scalar("SELECT input_snapshot FROM spaces_runs WHERE id='subtitle'")
+            .fetch_one(&pool)
+            .await
+            .expect("subtitle run input");
+    let value: Value = serde_json::from_str(&run_input).unwrap();
+    assert_eq!(value["parameters"]["transcriptionModel"], "whisperSmall");
+    let step_input: String =
+        sqlx::query_scalar("SELECT resolved_input FROM spaces_run_steps WHERE id='subtitle-step'")
+            .fetch_one(&pool)
+            .await
+            .expect("subtitle step input");
+    let value: Value = serde_json::from_str(&step_input).unwrap();
+    assert_eq!(value["parameters"]["transcriptionModel"], "whisperSmall");
+    let done: String =
+        sqlx::query_scalar("SELECT input_snapshot FROM spaces_runs WHERE id='subtitle-done'")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    let done: Value = serde_json::from_str(&done).unwrap();
+    assert!(done["parameters"].get("transcriptionModel").is_none());
+
+    let raw: String =
+        sqlx::query_scalar("SELECT configuration FROM spaces_run_steps WHERE id='candidate-step'")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    let value: Value = serde_json::from_str(&raw).unwrap();
+    assert_eq!(
+        value["request"]["source"]["referenceValidationModel"],
+        "whisperSmall"
+    );
+    assert_eq!(value["request"]["source"]["isolationModel"], "htDemucs");
+
+    let raw: String = sqlx::query_scalar(
+        "SELECT output_config FROM spaces_speech_project_revisions WHERE id='dub-rev'",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    let value: Value = serde_json::from_str(&raw).unwrap();
+    assert_eq!(value["autoBackgroundSeparationModel"], "htDemucs");
+    crate::spaces::speech::video_config::parse(&value)
+        .expect("the upgraded dubbing config parses with its frozen model");
 }

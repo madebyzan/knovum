@@ -93,6 +93,7 @@ it("loads video configuration as an isolated editable draft from a structured re
     preserveOriginalOutsideDialogue: false,
     sourceDialogueIntervals: [],
     retainOriginalTrack: false,
+    autoBackgroundSeparationModel: "htDemucs",
   };
   const project: SpeechProjectSnapshot = {
     project: {

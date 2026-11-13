@@ -17,6 +17,10 @@
     "model": "{provider}·{model}로 실행됨",
     "desktopAgent": "{name} · 데스크탑 에이전트에 의해 실행됨"
   },
+  "modelChoice": {
+    "default": "기본",
+    "run": "실행"
+  },
   "languages": {
     "zhCn": "중국어 간체",
     "zhTw": "중국어 번체",

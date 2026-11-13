@@ -36,6 +36,8 @@ pub(super) fn start<R: Runtime>(
     }
     let id = uuid::Uuid::new_v4().to_string();
     let capture = (|| {
+        let model = crate::local_resources::model_selection::transcription(app)
+            .map_err(|error| DictationFailure::classified("local_resource_unavailable", error))?;
         let target = insertion::capture_target()
             .map_err(|error| DictationFailure::classified("dictation_target_unavailable", error))?;
         let directory = app
@@ -50,16 +52,17 @@ pub(super) fn start<R: Runtime>(
         })?;
         let wav = directory.join(format!("{id}.wav"));
         let recorder = Box::new(Recorder::start(&id, sender.clone())?);
-        Ok::<_, DictationFailure>((target, wav, recorder))
+        Ok::<_, DictationFailure>((target, wav, recorder, model))
     })();
     match capture {
-        Ok((target, wav, recorder)) => {
+        Ok((target, wav, recorder, model)) => {
             let target_name = target.display_name().to_owned();
             *active = ActiveSession::Recording {
                 id: id.clone(),
                 target,
                 recorder,
                 wav,
+                model,
             };
             completion::publish(
                 app,
@@ -89,6 +92,7 @@ pub(super) async fn stop<R: Runtime>(
         target,
         recorder,
         wav,
+        model,
     } = session
     else {
         *active = session;
@@ -121,29 +125,46 @@ pub(super) async fn stop<R: Runtime>(
     spawn_transcription(
         app.clone(),
         sender.clone(),
-        id,
-        target,
-        wav,
-        recording,
-        cancellation,
+        TranscriptionJob {
+            session_id: id,
+            target,
+            wav,
+            recording,
+            model,
+            cancellation,
+        },
     );
+}
+
+struct TranscriptionJob {
+    session_id: String,
+    target: insertion::InsertionTarget,
+    wav: std::path::PathBuf,
+    recording: RecordedAudio,
+    model: crate::local_resources::model_catalog::LocalModelId,
+    cancellation: CancellationToken,
 }
 
 fn spawn_transcription<R: Runtime>(
     app: AppHandle<R>,
     sender: UnboundedSender<DictationAction>,
-    session_id: String,
-    target: insertion::InsertionTarget,
-    wav: std::path::PathBuf,
-    recording: RecordedAudio,
-    cancellation: CancellationToken,
+    job: TranscriptionJob,
 ) {
     tauri::async_runtime::spawn(async move {
+        let TranscriptionJob {
+            session_id,
+            target,
+            wav,
+            recording,
+            model,
+            cancellation,
+        } = job;
         let capture = transcription::transcribe(
             &app,
             &session_id,
             wav.clone(),
             recording,
+            model,
             &cancellation,
             &mut |progress| {
                 let _ = sender.send(DictationAction::PreparationProgress {

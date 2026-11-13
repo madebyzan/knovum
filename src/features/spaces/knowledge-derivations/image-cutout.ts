@@ -1,3 +1,4 @@
+import type { ImageExecutionTarget } from "../contracts/generated/ImageExecutionTarget";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { deriveImage } from "./image-operation";
 
@@ -8,7 +9,7 @@ export function canRemoveImageBackground(node: SpaceCanvasNode | undefined): boo
   );
 }
 
-export async function createImageCutout(source: SpaceCanvasNode) {
+export async function createImageCutout(source: SpaceCanvasNode, execution?: ImageExecutionTarget) {
   if (!canRemoveImageBackground(source)) return;
-  return deriveImage(source, { kind: "remove-background" });
+  return deriveImage(source, { kind: "remove-background" }, { execution });
 }

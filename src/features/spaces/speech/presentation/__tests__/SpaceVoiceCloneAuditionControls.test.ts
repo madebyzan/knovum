@@ -1,9 +1,11 @@
+import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { flushPromises, mount } from "@vue/test-utils";
 import { ToolbarRoot } from "reka-ui";
-import { expect, it, onTestFinished, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { computed, defineComponent, h, reactive, shallowRef } from "vue";
 
 import { i18n } from "../../../../../foundation/i18n/instance";
+import { localModelAvailability } from "../../../__tests__/support/image-operation-fixtures";
 import { useVoiceCandidateForm } from "../../use-voice-candidate-form";
 import type { useVoiceCandidates } from "../../use-voice-candidates";
 import type { PlayableVoiceCandidate } from "../../voice-candidate-selection";
@@ -12,6 +14,14 @@ import type { useCanvasVoiceClone } from "../use-canvas-voice-clone";
 
 const mocks = vi.hoisted(() => ({ candidates: vi.fn<typeof useVoiceCandidates>() }));
 vi.mock("../../use-voice-candidates", () => ({ useVoiceCandidates: mocks.candidates }));
+beforeEach(() => {
+  mockIPC((command) => {
+    if (command !== "plugin:local-resources|get_model_catalog")
+      throw new Error(`Unexpected command: ${command}`);
+    return [localModelAvailability("htDemucs", "speechSeparation", { group: "audio" })];
+  });
+});
+afterEach(clearMocks);
 const candidate: PlayableVoiceCandidate = {
   model: "mossNano",
   candidateId: "candidate",
@@ -64,6 +74,7 @@ function render() {
         startMs: 0,
         endMs: 10000,
         transcript: "Reference",
+        model: "whisperSmall",
       };
       return () =>
         h(

@@ -72,6 +72,7 @@ const UPSCALE_SIZES = [2048, 4096, 8192] as const;
     </template>
     <div class="border-b border-stroke-divider p-1 pb-2">
       <SpaceImageExecutionSelect
+        v-if="targetOptions.length > 1"
         :options="targetOptions"
         :execution="executionOption?.execution"
         @select="selectExecution"

@@ -152,6 +152,20 @@ pub(super) struct VisualizationParameters {
 #[serde(deny_unknown_fields)]
 pub(super) struct EmptyParameters {}
 
+#[derive(Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(super) struct ImageLayersParameters {
+    #[schemars(length(min = 1, max = 512))]
+    title: String,
+    models: crate::spaces::derivation::image_layers::ImageLayersModels,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(super) struct SubtitleParameters {
+    transcription_model: crate::local_resources::model_catalog::LocalModelId,
+}
+
 schema!(purpose, PurposeParameters);
 schema!(note, NoteParameters);
 schema!(knowledge_changes, KnowledgeChangesParameters);
@@ -165,3 +179,5 @@ schema!(meeting_summary, MeetingSummaryParameters);
 schema!(social_copy, SocialCopyParameters);
 schema!(visualization, VisualizationParameters);
 schema!(empty, EmptyParameters);
+schema!(image_layers, ImageLayersParameters);
+schema!(subtitles, SubtitleParameters);

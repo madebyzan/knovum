@@ -15,6 +15,7 @@ import {
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { EditorTransformAction } from "../../../shared/contracts/generated/EditorTransformAction";
 import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
+import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import { clearReasoningTrace } from "./tiptap-reasoning-trace";
 import { actionSource, applyGeneratedText, markReasoning } from "./tiptap-writing-text";
 
@@ -28,6 +29,8 @@ interface EditorWritingJob {
 export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefined>>) {
   const { t } = useI18n();
   const runningAction = shallowRef<RunningAction>();
+  const writingTarget = shallowRef<TaskTarget>();
+  const translationTarget = shallowRef<TaskTarget>();
   let activeJob: EditorWritingJob | undefined;
   const tones = computed(
     () =>
@@ -100,9 +103,10 @@ export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefin
     const { job, source } = claimed;
     const instance = job.editor;
     const isCurrent = () => activeJob === job && !instance.isDestroyed;
+    const target = purpose === "writing" ? writingTarget.value : translationTarget.value;
     try {
       // The task is claimed before admission, so the editor stays busy while it is decided.
-      if (!(await admitAiRequirements([{ kind: "routed", purpose }])) || !isCurrent()) return;
+      if (!(await admitAiRequirements([{ kind: "routed", purpose, target }])) || !isCurrent()) return;
       markReasoning(instance, source);
       const generated = await transform(source.text, job.id, job.cancellation.signal);
       if (isCurrent()) applyResult(instance, actionContext, source, generated);
@@ -119,17 +123,38 @@ export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefin
 
   async function run(action: EditorTransformAction) {
     await executeTransformAction(action, action, "writing", (text, jobId, signal) =>
-      transformEditorTextStream({ action, text, jobId, signal, onEvent: () => {} }),
+      transformEditorTextStream({
+        action,
+        text,
+        jobId,
+        signal,
+        target: writingTarget.value,
+        onEvent: () => {},
+      }),
     );
   }
 
   async function runTranslation(target: TranslationTarget) {
     await executeTransformAction(`translate:${target}`, "improve", "translation", (text, jobId, signal) =>
-      translateTextStream({ text, target }, jobId, () => {}, signal),
+      translateTextStream(
+        { text, target, executionTarget: translationTarget.value },
+        jobId,
+        () => {},
+        signal,
+      ),
     );
   }
 
-  return { runningAction: readonly(runningAction), cancel, tones, translations, run, runTranslation };
+  return {
+    runningAction: readonly(runningAction),
+    writingTarget,
+    translationTarget,
+    cancel,
+    tones,
+    translations,
+    run,
+    runTranslation,
+  };
 }
 
 export type SpaceTiptapWritingTools = ReturnType<typeof useSpaceTiptapWritingTools>;

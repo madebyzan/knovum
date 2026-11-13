@@ -5,8 +5,12 @@ import { useI18n } from "vue-i18n";
 import { canStartWith, type AiRequirement } from "../../../../foundation/ai/ai-readiness";
 import { admitAiRequirements } from "../../../../foundation/ai/ai-readiness-admission";
 import AiReadinessNotice from "../../../../foundation/ai/AiReadinessNotice.vue";
+import { preferredLocalModel } from "../../../../foundation/ai/local-model-choice";
+import ModelChoiceTrigger from "../../../../foundation/ai/ModelChoiceTrigger.vue";
 import { useAiReadiness } from "../../../../foundation/ai/use-ai-readiness";
+import { useLocalModelOptions } from "../../../../foundation/ai/use-model-choice-options";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import type { LocalModelId } from "../../../../shared/contracts/generated/LocalModelId";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import { refreshEnrichmentJobs } from "../../enrichment/enrichment-jobs-query";
@@ -24,6 +28,7 @@ const { t } = useI18n();
 const store = useSpaceStore();
 const REQUIREMENTS: readonly AiRequirement[] = [{ kind: "localCapability", capability: "speechDiarization" }];
 const readiness = useAiReadiness(REQUIREMENTS);
+const { options: diarizationModels } = useLocalModelOptions(() => "speechDiarization");
 const numSpeakers = shallowRef("");
 const submitting = shallowRef(false);
 const error = shallowRef<string>();
@@ -38,18 +43,21 @@ const canStart = computed(
   () => countValid.value && props.durationMs <= 7_200_000 && canStartWith(readiness.value),
 );
 
-async function start() {
+async function start(chosenModel?: LocalModelId) {
   const spaceId = store.activeSpaceId;
   if (!spaceId || props.disabled || submitting.value || !canStart.value) return;
   submitting.value = true;
   error.value = undefined;
   try {
     if (!(await admitAiRequirements(REQUIREMENTS))) return;
+    const selectedModel = chosenModel ?? (await preferredLocalModel("speechDiarization"));
+    if (!selectedModel) return;
     await requestMediaDiarization({
       spaceId,
       nodeId: props.nodeId,
       expectedRevision: props.revision,
       numSpeakers: numSpeakers.value ? Number(numSpeakers.value) : null,
+      model: selectedModel,
     });
     await refreshEnrichmentJobs();
   } catch (cause) {
@@ -80,9 +88,17 @@ async function start() {
         :disabled="disabled || submitting"
       />
     </label>
-    <UiButton size="sm" :disabled="disabled || submitting || !canStart" @click="start">{{
-      t("spaces.transcript.speakers.generate")
-    }}</UiButton>
+    <ModelChoiceTrigger
+      :options="diarizationModels"
+      :disabled="disabled || submitting || !canStart"
+      @select="(id) => void start(id as LocalModelId)"
+    >
+      <template #trigger="{ multiple }">
+        <UiButton size="sm" :disabled="disabled || submitting || !canStart" @click="!multiple && start()">{{
+          t("spaces.transcript.speakers.generate")
+        }}</UiButton>
+      </template>
+    </ModelChoiceTrigger>
     <AiReadinessNotice :readiness="readiness" />
     <p v-if="error" class="text-caption text-fg-danger" role="alert">{{ error }}</p>
   </section>

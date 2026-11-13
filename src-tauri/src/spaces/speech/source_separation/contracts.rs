@@ -12,6 +12,7 @@ pub struct StartSpeechSourceSeparationRequest {
     pub vocals_label: String,
     pub background_label: String,
     pub source: SpeechMediaSource,
+    pub model: crate::local_resources::model_catalog::LocalModelId,
 }
 
 #[derive(Clone, Debug, Serialize, ts_rs::TS)]

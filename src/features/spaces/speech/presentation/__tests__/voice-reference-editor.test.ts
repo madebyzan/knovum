@@ -2,6 +2,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent } from "vue";
 
+import type * as LocalModelChoice from "../../../../../foundation/ai/local-model-choice";
 import { createAppError } from "../../../../../foundation/errors/app-error";
 import { i18n } from "../../../../../foundation/i18n/instance";
 import type { PreparedVoiceReference } from "../../../contracts/generated/PreparedVoiceReference";
@@ -20,6 +21,10 @@ vi.mock("../../ipc", () => ({ cancelSpeechGeneration: mocks.cancel }));
 vi.mock("../../voice-reference-ipc", () => ({
   authorizeVoiceReferenceSource: mocks.authorize,
   prepareVoiceReference: mocks.prepare,
+}));
+vi.mock("../../../../../foundation/ai/local-model-choice", async (importOriginal) => ({
+  ...(await importOriginal<typeof LocalModelChoice>()),
+  preferredLocalModel: async () => "whisperSmall" as const,
 }));
 const Player = defineComponent({ name: "SpeechMediaPlayer", emits: ["loaded"], template: "<div />" });
 
@@ -83,6 +88,7 @@ it("releases parent busy state when a preparing editor is closed", async () => {
     startMs: 0,
     endMs: 10_000,
     transcript: "Reference",
+    model: "whisperSmall",
   });
   await flushPromises();
   expect(wrapper.emitted("update:modelValue")).toBeUndefined();

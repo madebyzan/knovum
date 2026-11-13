@@ -1,7 +1,9 @@
 import { computed, onScopeDispose, readonly, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { preferredLocalModel } from "../../../foundation/ai/local-model-choice";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import type { LocalModelId } from "../../../shared/contracts/generated/LocalModelId";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource";
 import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
@@ -69,25 +71,37 @@ export function useSourceSeparation() {
     }
   }
 
-  async function start(spaceId: string, sourceNodeId: string, source: SpeechMediaSource) {
+  function observeStartedRun(run: RunObservation, currentEpoch: number) {
+    // The shared observer owns task lifetime and refreshes published nodes even after selection changes.
+    if (currentEpoch !== observationEpoch || TERMINAL_STATES.has(run.state))
+      observeResourceRun(run, t("spaces.speech.separation.task"));
+    if (currentEpoch === observationEpoch) observe(run, currentEpoch);
+  }
+
+  async function start(
+    spaceId: string,
+    sourceNodeId: string,
+    source: SpeechMediaSource,
+    model?: LocalModelId,
+  ) {
     if (isBusy.value || activeRunId.value) return;
     const currentEpoch = ++observationEpoch;
     isPreparing.value = true;
     error.value = undefined;
     runState.value = undefined;
     try {
+      const separationModel = model ?? (await preferredLocalModel("speechSeparation"));
+      if (!separationModel) return;
       const run = await startSpeechSourceSeparation({
         requestId: crypto.randomUUID(),
         spaceId,
         sourceNodeId,
         source,
+        model: separationModel,
         vocalsLabel: t("spaces.speech.separation.stems.vocals"),
         backgroundLabel: t("spaces.speech.separation.stems.background"),
       });
-      // The shared observer owns task lifetime and refreshes published nodes even after selection changes.
-      if (currentEpoch !== observationEpoch || TERMINAL_STATES.has(run.state))
-        observeResourceRun(run, t("spaces.speech.separation.task"));
-      if (currentEpoch === observationEpoch) observe(run, currentEpoch);
+      observeStartedRun(run, currentEpoch);
     } catch (cause) {
       if (currentEpoch === observationEpoch) error.value = getErrorMessage(cause);
     } finally {

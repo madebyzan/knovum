@@ -1,3 +1,4 @@
+import type { LocalModelId } from "../../../shared/contracts/generated/LocalModelId";
 import type { CreateSpeechProjectRequest } from "../contracts/generated/CreateSpeechProjectRequest";
 import type { ProjectOutputConfig } from "../contracts/generated/ProjectOutputConfig";
 import type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource";
@@ -8,6 +9,7 @@ export function speechProjectInput(
   node: SpaceCanvasNode,
   projectType: NodeSpeechProjectType,
   video?: SpeechMediaSource,
+  separationModel?: LocalModelId,
 ):
   | (Omit<CreateSpeechProjectRequest, "spaceId" | "sourceNodeId"> & { outputConfig: ProjectOutputConfig })
   | undefined {
@@ -15,7 +17,7 @@ export function speechProjectInput(
   if (projectType === "short_dubbing")
     return { title, projectType, outputConfig: { format: "wav", wavPrecision: "pcm16" } };
   if (projectType === "video_dubbing") {
-    if (!video) return;
+    if (!video || !separationModel) return;
     return {
       title,
       projectType,
@@ -30,6 +32,7 @@ export function speechProjectInput(
         preserveOriginalOutsideDialogue: false,
         sourceDialogueIntervals: [],
         retainOriginalTrack: false,
+        autoBackgroundSeparationModel: separationModel,
       },
     };
   }

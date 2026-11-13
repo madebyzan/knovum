@@ -81,7 +81,7 @@ async fn local_video_action_has_one_idempotent_run_and_no_intermediate_resources
     let request = request(
         "add-video-subtitles",
         &[("video", &revision)],
-        json!({}),
+        json!({"transcriptionModel":"whisperSmall"}),
         None,
     );
     let run = start(&pool, &request).await.unwrap();

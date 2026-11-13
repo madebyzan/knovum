@@ -25,6 +25,7 @@ pub struct RenderSubtitledVideoRequest {
     pub output_node_id: String,
     pub source_revision: String,
     pub knowledge_revision: String,
+    pub transcription_model: crate::local_resources::model_catalog::LocalModelId,
 }
 
 #[derive(Clone, Serialize)]

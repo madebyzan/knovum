@@ -17,6 +17,10 @@
     "model": "{provider}・{model}で実行",
     "desktopAgent": "{name} · デスクトップエージェントによって実行"
   },
+  "modelChoice": {
+    "default": "既定",
+    "run": "実行"
+  },
   "languages": {
     "zhCn": "簡体字中国語",
     "zhTw": "繁体字中国語",

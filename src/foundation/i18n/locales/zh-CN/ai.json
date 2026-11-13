@@ -17,6 +17,10 @@
     "model": "由 {provider} · {model} 执行",
     "desktopAgent": "由 {name} · 桌面 Agent 执行"
   },
+  "modelChoice": {
+    "default": "默认",
+    "run": "执行"
+  },
   "languages": {
     "zhCn": "简体中文",
     "zhTw": "繁體中文",

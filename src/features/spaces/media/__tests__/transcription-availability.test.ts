@@ -1,13 +1,14 @@
 import { defineStore, setActivePinia, createPinia } from "pinia";
-import { beforeEach, expect, it, vi } from "vitest";
+import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { effectScope, ref, shallowRef } from "vue";
 
+import type { LocalModelId } from "../../../../shared/contracts/generated/LocalModelId";
 import type { NodeEnrichmentStatus } from "../../enrichment/use-node-enrichment-status";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useMediaKnowledge } from "../use-media-knowledge";
 
 const mocks = vi.hoisted(() => ({
-  analyze: vi.fn<(nodeId: string) => Promise<string>>(),
+  analyze: vi.fn<(nodeId: string, model?: LocalModelId) => Promise<string>>(),
   refresh: vi.fn<() => Promise<void>>(),
   error: vi.fn<(message: string) => void>(),
 }));
@@ -29,6 +30,9 @@ vi.mock("../../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (k
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.error } }));
 vi.mock("../../../../foundation/ai/ai-readiness-admission", () => ({
   admitAiRequirements: () => Promise.resolve(true),
+}));
+vi.mock("../../../../foundation/ai/local-model-choice", () => ({
+  preferredLocalModel: async () => "whisperSmall" as const,
 }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 const allowed = shallowRef(true);
@@ -71,7 +75,7 @@ it("starts an analyzed source and makes its Rust task visible immediately", asyn
     const operation = scope.run(() => useMediaKnowledge(ref(mediaNode())))!;
     expect(operation.canTranscribe.value).toBe(true);
     await operation.analyze();
-    expect(mocks.analyze).toHaveBeenCalledWith("audio");
+    expect(mocks.analyze).toHaveBeenCalledWith("audio", "whisperSmall");
     expect(mocks.refresh).toHaveBeenCalledOnce();
   } finally {
     scope.stop();
@@ -161,9 +165,18 @@ it("allows retranscription even when a current transcript already exists", async
     expect(operation.transcribed.value).toBe(true);
     expect(operation.canTranscribe.value).toBe(true);
     await operation.analyze();
-    expect(mocks.analyze).toHaveBeenCalledWith("audio");
+    expect(mocks.analyze).toHaveBeenCalledWith("audio", "whisperSmall");
     expect(mocks.refresh).toHaveBeenCalledOnce();
   } finally {
     scope.stop();
   }
+});
+
+it("freezes the chosen transcription model into the request", async () => {
+  const scope = effectScope();
+  onTestFinished(() => scope.stop());
+  const operation = scope.run(() => useMediaKnowledge(ref(mediaNode())))!;
+  operation.transcriptionModel.value = "whisperLargeV3Turbo";
+  await operation.analyze();
+  expect(mocks.analyze).toHaveBeenCalledWith("audio", "whisperLargeV3Turbo");
 });

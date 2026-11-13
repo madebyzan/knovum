@@ -1,7 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
-import { shallowRef } from "vue";
+import { ref, shallowRef } from "vue";
 
 import { i18n } from "../../../../../foundation/i18n/instance";
 import { workspaceRightSidebarKey } from "../../../../../shared/contracts/workspace-right-sidebar";
@@ -41,6 +41,20 @@ vi.mock("../../tiptap-extensions", async () => {
   const { Markdown } = await import("@tiptap/markdown");
   return { createSpaceTiptapExtensions: () => [StarterKit, Markdown] };
 });
+vi.mock("../../../../../foundation/ai/ai-settings-store", async () => {
+  const { DEFAULT_AI_MODEL_SETTINGS } = await import("../../../../../foundation/ai/schema/model-settings");
+  return {
+    useAiSettingsStore: () => ({
+      settings: ref(DEFAULT_AI_MODEL_SETTINGS),
+      ready: ref(false),
+      loadError: ref(undefined),
+      ensureLoaded: async () => {},
+    }),
+  };
+});
+vi.mock("../../../../../foundation/ai/use-execution-catalog-query", () => ({
+  useExecutionCatalogQuery: () => ({ data: ref({ agents: [] }) }),
+}));
 
 const tab: SpaceEditorTab = { id: "document-tab", kind: "document", nodeId: "node", spaceId: "space" };
 

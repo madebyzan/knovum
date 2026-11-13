@@ -16,6 +16,7 @@ mod ordering;
 mod passes;
 mod seeds;
 
+use super::ImageLayersModels;
 use crate::{
     ai::contracts::image_compute::MAX_DISCOVERED_LAYERS, foundation::app_error::AppError,
     spaces::derivation::image_tensors,
@@ -55,9 +56,10 @@ pub(super) async fn split(
     png: Vec<u8>,
     owner_id: &str,
     cancellation: &CancellationToken,
+    models: ImageLayersModels,
 ) -> Result<Vec<Vec<u8>>, AppError> {
     let source = crate::foundation::blocking::run(move || image_tensors::decode(&png)).await?;
-    let layers = decompose(app, &source, owner_id, cancellation).await?;
+    let layers = decompose(app, &source, owner_id, cancellation, &models).await?;
     let token = cancellation.clone();
     crate::foundation::blocking::run(move || compose::encode(&source, &layers, &token))
         .await
@@ -69,9 +71,10 @@ async fn decompose(
     source: &RgbaImage,
     owner_id: &str,
     cancellation: &CancellationToken,
+    models: &ImageLayersModels,
 ) -> Result<Layers, AppError> {
     let revision = format!("sha256:{}", hex::encode(Sha256::digest(source.as_raw())));
-    let models = passes::Models::selected(app)?;
+    let models = passes::Models::frozen(models)?;
     let pass = passes::Pass {
         app,
         models: &models,

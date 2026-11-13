@@ -1,6 +1,7 @@
 import type { Ref } from "vue";
 
 import type { CanvasRect } from "../../canvas/contracts/canvas-editor-port";
+import type { ImageExecutionTarget } from "../../contracts/generated/ImageExecutionTarget";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { CreationIntentId } from "../catalog/creation-intent-definitions";
 import type { CreationSource } from "../catalog/creation-source";
@@ -31,8 +32,9 @@ export function createDerivationActions({ canRun, single, sources, bounds }: Der
       );
   }
 
-  const handlerByIntent: Record<CreationIntentId, () => void> = {
-    "remove-image-background": () => void (single.value && createImageCutout(single.value)),
+  const handlerByIntent: Record<CreationIntentId, (execution?: ImageExecutionTarget) => void> = {
+    "remove-image-background": (execution) =>
+      void (single.value && createImageCutout(single.value, execution)),
     "split-image-layers": () => void (single.value && deriveImageSet("split-image-layers", single.value)),
     "slice-sticker-sheet": () => void (single.value && deriveImageSet("slice-sticker-sheet", single.value)),
     "add-video-subtitles": () => void (single.value && addVideoSubtitles(single.value)),
@@ -41,8 +43,8 @@ export function createDerivationActions({ canRun, single, sources, bounds }: Der
     "generate-video": () => generate("video"),
   };
 
-  function run(actionId: CreationIntentId) {
-    if (canRun(actionId)) handlerByIntent[actionId]();
+  function run(actionId: CreationIntentId, execution?: ImageExecutionTarget) {
+    if (canRun(actionId)) handlerByIntent[actionId](execution);
   }
 
   return { run };

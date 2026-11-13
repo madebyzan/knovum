@@ -63,8 +63,7 @@ pub(super) async fn publish_video<R: Runtime>(
     let config = super::video_config::parse(output_config)?;
     let auto_separation = config
         .uses_auto_video_background()
-        .then(|| crate::local_resources::model_selection::speech_separation(app))
-        .transpose()?;
+        .then_some(config.auto_background_separation_model);
     let digest = policy::assembly_digest(
         renders,
         windows,

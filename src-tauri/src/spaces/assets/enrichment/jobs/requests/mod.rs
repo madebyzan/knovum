@@ -2,14 +2,20 @@ pub(crate) mod alignment;
 pub(crate) mod diarization;
 
 use super::job::EnrichmentJobType;
+use crate::ai::tasks::TaskTargetSelection;
 use crate::foundation::app_error::AppError;
+use crate::local_resources::model_catalog::LocalModelId;
 use crate::spaces::db;
 use serde::{de::IntoDeserializer, Deserialize};
 use sqlx::Row;
 use tauri::AppHandle;
 
 #[tauri::command]
-pub async fn retry_enrichment_job(app: AppHandle, job_id: String) -> Result<(), AppError> {
+pub async fn retry_enrichment_job(
+    app: AppHandle,
+    job_id: String,
+    target: Option<TaskTargetSelection>,
+) -> Result<(), AppError> {
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let row = sqlx::query("SELECT j.space_id,j.node_id,j.job_type,j.source_revision,n.data FROM spaces_enrichment_jobs j JOIN spaces_nodes n ON n.space_id=j.space_id AND n.id=j.node_id AND n.deleted_at IS NULL WHERE j.id=$1 AND j.status IN ('failed','cancelled')")
@@ -46,14 +52,6 @@ pub async fn retry_enrichment_job(app: AppHandle, job_id: String) -> Result<(), 
                 "Transcript revision is obsolete; request alignment for the edited segments".into(),
             );
         }
-        let model = crate::local_resources::model_selection::speech_alignment(&app)?;
-        let model_spec_id = model.alignment_spec()?;
-        sqlx::query("UPDATE spaces_media_alignment_requests SET model_spec_id=$1 WHERE job_id=$2")
-            .bind(model_spec_id)
-            .bind(&job_id)
-            .execute(&mut *tx)
-            .await
-            .map_err(db::sql_error)?;
     }
     if kind == EnrichmentJobType::DiarizeMediaTranscript {
         let expected: i64 = sqlx::query_scalar(
@@ -64,24 +62,13 @@ pub async fn retry_enrichment_job(app: AppHandle, job_id: String) -> Result<(), 
         {
             return Err("Transcript revision is obsolete; request diarization again".into());
         }
-        let model = crate::local_resources::model_selection::speech_diarization(&app)?;
-        let model_spec_id = model.diarization_variant()?.spec_id();
-        sqlx::query(
-            "UPDATE spaces_media_diarization_requests SET model_spec_id=$1 WHERE job_id=$2",
-        )
-        .bind(model_spec_id)
-        .bind(&job_id)
-        .execute(&mut *tx)
-        .await
-        .map_err(db::sql_error)?;
     }
-    let target = if kind == EnrichmentJobType::AnalyzeVisual {
-        super::intent::selection(&app)?
-    } else {
-        None
+    let replacement = match kind {
+        EnrichmentJobType::AnalyzeVisual => target,
+        _ => None,
     };
-    let executed = sqlx::query("UPDATE spaces_enrichment_jobs SET status='pending',error=NULL,execution_target=$1,updated_at=$2 WHERE id=$3 AND status IN ('failed','cancelled')")
-        .bind(target.map(sqlx::types::Json)).bind(crate::foundation::clock::unix_time_millis()?).bind(job_id).execute(&mut *tx).await.map_err(db::sql_error)?;
+    let executed = sqlx::query("UPDATE spaces_enrichment_jobs SET status='pending',error=NULL,execution_target=COALESCE($1,execution_target),updated_at=$2 WHERE id=$3 AND status IN ('failed','cancelled')")
+        .bind(replacement.map(sqlx::types::Json)).bind(crate::foundation::clock::unix_time_millis()?).bind(job_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     db::require_one(
         executed,
         "Only failed or cancelled enrichment can be retried",
@@ -96,7 +83,13 @@ pub async fn request_media_transcription(
     app: AppHandle,
     space_id: String,
     node_id: String,
+    model: LocalModelId,
 ) -> Result<String, AppError> {
+    if !model.is_transcription() {
+        return Err(AppError::invalid(
+            "Transcription requires a speech recognition model",
+        ));
+    }
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let raw: String = sqlx::query_scalar(
@@ -126,6 +119,15 @@ pub async fn request_media_transcription(
         None,
     )
     .await?;
+    sqlx::query(
+        "INSERT INTO spaces_media_transcription_requests(job_id,model_spec_id) VALUES($1,$2) \
+         ON CONFLICT(job_id) DO NOTHING",
+    )
+    .bind(&id)
+    .bind(sqlx::types::Json(model))
+    .execute(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     crate::spaces::runs::announce_change();
     Ok(id)
@@ -136,8 +138,8 @@ pub async fn request_visual_analysis(
     app: AppHandle,
     space_id: String,
     node_id: String,
+    target: TaskTargetSelection,
 ) -> Result<String, AppError> {
-    let target = super::intent::selection(&app)?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let raw: String = sqlx::query_scalar(
@@ -157,7 +159,7 @@ pub async fn request_visual_analysis(
         &node_id,
         EnrichmentJobType::AnalyzeVisual,
         &revision,
-        target,
+        Some(target),
     )
     .await?;
     tx.commit().await.map_err(db::sql_error)?;

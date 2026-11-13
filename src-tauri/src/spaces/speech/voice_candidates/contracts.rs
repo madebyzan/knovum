@@ -111,6 +111,8 @@ pub enum VoiceCandidateSource {
         /// before they become the reference, so the clone does not carry the soundtrack.
         #[serde(default)]
         isolate_voice: bool,
+        reference_validation_model: crate::local_resources::model_catalog::LocalModelId,
+        isolation_model: crate::local_resources::model_catalog::LocalModelId,
     },
     Designed {
         description: String,

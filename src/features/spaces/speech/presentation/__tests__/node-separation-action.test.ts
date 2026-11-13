@@ -1,6 +1,8 @@
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { flushPromises, mount } from "@vue/test-utils";
 import { ToolbarRoot } from "reka-ui";
-import { expect, it, onTestFinished, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, h, shallowRef } from "vue";
 
 import { i18n } from "../../../../../foundation/i18n/instance";
@@ -24,6 +26,14 @@ vi.mock("../../../../../foundation/ai/ai-readiness-admission", () => ({
 vi.mock("../../use-source-separation", () => ({
   useSourceSeparation: mocks.separation,
 }));
+beforeEach(() => {
+  mockIPC((command) => {
+    if (command !== "plugin:local-resources|get_model_catalog")
+      throw new Error(`Unexpected command: ${command}`);
+    return [];
+  });
+});
+afterEach(clearMocks);
 const revision = `sha256:${"a".repeat(64)}`;
 const node: SpaceCanvasNode = {
   id: "source",
@@ -38,6 +48,7 @@ const node: SpaceCanvasNode = {
     mediaAnalysis: { schemaVersion: 1, sourceRevision: revision, durationMs: 30_000, waveform: [] },
   },
 };
+const source = { assetPath: "/source.wav", sourceRevision: revision, durationMs: 30_000 };
 function render(nodes = [node]) {
   mocks.store.nodes = nodes;
   type Separation = ReturnType<typeof useSourceSeparation>;
@@ -68,9 +79,9 @@ function render(nodes = [node]) {
             separating: Boolean(separation.activeRunId.value),
             separationBusy: separation.isBusy.value,
             separationUnavailableReason: unavailableReason.value,
-            onSeparate: () => {
+            onSeparate: (chosenModel?: Parameters<typeof startSeparation>[0]) => {
               operation.value = "separate";
-              if (!separation.activeRunId.value) void startSeparation();
+              if (!separation.activeRunId.value) void startSeparation(chosenModel);
             },
           }),
         ),
@@ -79,9 +90,7 @@ function render(nodes = [node]) {
           {
             node,
             operation: operation.value,
-            "onUpdate:operation": (next: NodeSpeechOperation | undefined) => {
-              operation.value = next;
-            },
+            "onUpdate:operation": (next: NodeSpeechOperation | undefined) => (operation.value = next),
           },
           {
             separation: ({ close }: { close: () => void }) =>
@@ -92,7 +101,12 @@ function render(nodes = [node]) {
     },
   });
   const wrapper = mount(Operation, {
-    global: { plugins: [i18n] },
+    global: {
+      plugins: [
+        i18n,
+        [VueQueryPlugin, { queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }) }],
+      ],
+    },
   });
   onTestFinished(() => {
     wrapper.unmount();
@@ -105,13 +119,17 @@ it("starts separation immediately and exposes its task in a nonmodal contextual 
   await flushPromises();
   await wrapper.get('[data-operation="separate"]').trigger("click");
   await flushPromises();
-  expect(separation.start).toHaveBeenCalledWith("space", "source", {
-    assetPath: "/source.wav",
-    sourceRevision: revision,
-    durationMs: 30_000,
-  });
+  expect(separation.start).toHaveBeenCalledWith("space", "source", source, undefined);
   expect(wrapper.getComponent(SpaceNodeSpeechActions).emitted("begin")).toBeUndefined();
   expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
+});
+
+it("separates with the model chosen for the node", async () => {
+  const { wrapper, separation } = render();
+  await flushPromises();
+  wrapper.getComponent(SpaceNodeSpeechActions).vm.$emit("separate", "htDemucsF16");
+  await flushPromises();
+  expect(separation.start).toHaveBeenCalledWith("space", "source", source, "htDemucsF16");
 });
 it("opens a running separation without cancelling it and uses an explicit cancel action", async () => {
   const { wrapper, separation, state } = render();

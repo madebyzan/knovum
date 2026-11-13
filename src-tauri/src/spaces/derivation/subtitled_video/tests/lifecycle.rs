@@ -44,6 +44,7 @@ async fn fixture(with_transcript: bool) -> (SqlitePool, RenderSubtitledVideoRequ
         output_node_id: "output".into(),
         source_revision: "asset:1".into(),
         knowledge_revision: source["knowledgeRevision"].as_str().unwrap().into(),
+        transcription_model: crate::local_resources::model_catalog::LocalModelId::WhisperSmall,
     };
     let mut tx = db::begin_write(&pool).await.unwrap();
     repository::initialize_empty_in_transaction(&mut tx, "space")
@@ -151,7 +152,7 @@ async fn automatic_subtitles_publish_only_a_derived_video_and_leave_source_uncha
 #[tokio::test]
 async fn untranscribed_video_requires_a_qualified_recognition_engine() {
     let (pool, request, _) = fixture(false).await;
-    let engine = crate::spaces::assets::transcription::engine_id();
+    let engine = crate::spaces::assets::transcription::engine_id(request.transcription_model);
     let completion = start::start(&pool, &request, &authority()).await;
     match engine {
         Ok(_) => {

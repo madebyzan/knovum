@@ -20,7 +20,7 @@ import { INPUT_BASE_CLASSES, POPUP_ANIMATE_CLASSES, POPOVER_SURFACE_CLASSES } fr
 export interface SelectOption<Value extends string = string> {
   value: Value;
   label: string;
-  description?: string;
+  description?: string | undefined;
   disabled?: boolean;
 }
 

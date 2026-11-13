@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ImageExecutionTarget } from "../../../contracts/generated/ImageExecutionTarget";
 import type { ImageEditTool } from "../../../image-editing/image-edit-session-store";
 import SpaceImageDepthAction from "../../../image-editing/presentation/SpaceImageDepthAction.vue";
 import type {
@@ -32,7 +33,7 @@ const emit = defineEmits<{
   beginComment: [];
   beginRemoval: [];
   beginSelection: [];
-  runDirect: [actionId: DirectImageDerivation];
+  runDirect: [actionId: DirectImageDerivation, execution?: ImageExecutionTarget];
 }>();
 /** The decomposition family has its own controls here, so the creation submenu does not repeat it. */
 const FAMILY_DERIVATIONS: readonly CreationIntentId[] = [
@@ -66,7 +67,7 @@ const FAMILY_DERIVATIONS: readonly CreationIntentId[] = [
         :removal-reason="removalReason"
         :selection-availability="selectionAvailability"
         :selection-reason="selectionReason"
-        @run-direct="emit('runDirect', $event)"
+        @run-direct="(actionId, execution) => emit('runDirect', actionId, execution)"
         @begin-removal="emit('beginRemoval')"
         @begin-selection="emit('beginSelection')"
       />

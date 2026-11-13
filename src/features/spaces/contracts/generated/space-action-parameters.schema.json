@@ -22,7 +22,7 @@
       "$ref": "#/$defs/ImageTransformParameters"
     },
     "split-image-layers": {
-      "$ref": "#/$defs/EmptyParameters"
+      "$ref": "#/$defs/ImageLayersParameters"
     },
     "slice-sticker-sheet": {
       "$ref": "#/$defs/EmptyParameters"
@@ -70,7 +70,7 @@
       "$ref": "#/$defs/VideoParameters"
     },
     "add-video-subtitles": {
-      "$ref": "#/$defs/EmptyParameters"
+      "$ref": "#/$defs/SubtitleParameters"
     }
   },
   "$defs": {
@@ -541,6 +541,50 @@
         },
         "execution": {
           "$ref": "#/$defs/ImageExecutionTarget"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ImageLayersModels": {
+      "description": "The frozen model each layer pass runs on. The canvas chooses these before the Run starts, so a\nsplit never mixes two choices of one capability and a retry replays the same models.",
+      "type": "object",
+      "properties": {
+        "saliency": {
+          "$ref": "#/$defs/ImageExecutionTarget"
+        },
+        "selection": {
+          "$ref": "#/$defs/ImageExecutionTarget"
+        },
+        "depth": {
+          "$ref": "#/$defs/ImageExecutionTarget"
+        },
+        "inpainting": {
+          "$ref": "#/$defs/ImageExecutionTarget"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "saliency",
+        "selection",
+        "depth",
+        "inpainting"
+      ]
+    },
+    "ImageLayersParameters": {
+      "required": [
+        "title",
+        "models"
+      ],
+      "title": "ImageLayersParameters",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "models": {
+          "$ref": "#/$defs/ImageLayersModels"
         }
       },
       "additionalProperties": false
@@ -1065,6 +1109,19 @@
             10,
             15
           ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "SubtitleParameters": {
+      "required": [
+        "transcriptionModel"
+      ],
+      "title": "SubtitleParameters",
+      "type": "object",
+      "properties": {
+        "transcriptionModel": {
+          "$ref": "#/$defs/LocalModelId"
         }
       },
       "additionalProperties": false

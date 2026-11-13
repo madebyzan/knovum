@@ -29,11 +29,16 @@ const voice: VoiceLibraryRevision = {
   updatedAt: 1,
 };
 function project(projectType: "audiobook" | "video_dubbing"): SpeechProjectSnapshot {
-  const input = speechProjectInput(source, projectType, {
-    assetPath: "/video.mp4",
-    sourceRevision: `sha256:${"a".repeat(64)}`,
-    durationMs: 1000,
-  })!;
+  const input = speechProjectInput(
+    source,
+    projectType,
+    {
+      assetPath: "/video.mp4",
+      sourceRevision: `sha256:${"a".repeat(64)}`,
+      durationMs: 1000,
+    },
+    "htDemucs",
+  )!;
   return {
     project: {
       id: "project",

@@ -96,7 +96,8 @@ async fn video_production_requires_the_current_node_asset_and_revision() {
             "sourceRevision":format!("sha256:{}", "a".repeat(64)),"durationMs":1000},
         "background":null,"backgroundSeparation":null,"translation":null,
         "voiceGainDb":0,"backgroundGainDb":-12,"preserveOriginalOutsideDialogue":false,
-        "sourceDialogueIntervals":[],"retainOriginalTrack":false
+        "sourceDialogueIntervals":[],"retainOriginalTrack":false,
+        "autoBackgroundSeparationModel":"htDemucs"
     }))
     .unwrap();
     let mut tx = pool.begin().await.unwrap();

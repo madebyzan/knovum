@@ -4,6 +4,12 @@ import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import ModelChoiceTrigger from "../../../../foundation/ai/ModelChoiceTrigger.vue";
+import {
+  useLocalModelOptions,
+  useRoutedTargetOptions,
+} from "../../../../foundation/ai/use-model-choice-options";
+import type { LocalModelId } from "../../../../shared/contracts/generated/LocalModelId";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import SpaceNodeEnrichmentStatus from "../../enrichment/presentation/SpaceNodeEnrichmentStatus.vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -42,6 +48,18 @@ const {
   alignSegments,
   alignmentSubmitting,
 } = useMediaKnowledge(currentNode);
+
+const {
+  options: knowledgeTargets,
+  defaultTarget: defaultKnowledgeTarget,
+  targetForId: knowledgeTargetForId,
+} = useRoutedTargetOptions(() => "knowledge");
+const { options: transcriptionModels } = useLocalModelOptions(() => "transcription");
+
+function runInsights(targetId?: string) {
+  const target = targetId ? knowledgeTargetForId(targetId) : defaultKnowledgeTarget.value;
+  void generateInsights(target);
+}
 </script>
 
 <template>
@@ -59,15 +77,23 @@ const {
         <span>{{ t("spaces.media.analysis.knowledge.stale") }}</span>
       </div>
       <div v-if="!insights" class="mt-3">
-        <button
-          type="button"
-          class="h-(--knovum-control-height-md) w-full rounded-md bg-surface-accent px-2.5 text-label font-medium text-fg-on-accent transition-colors hover:bg-surface-accent-hover disabled:opacity-40"
+        <ModelChoiceTrigger
+          :options="knowledgeTargets"
           :disabled="!canGenerateInsights"
-          :title="insightsDisabledReason"
-          @click="generateInsights"
+          @select="runInsights"
         >
-          {{ t("spaces.media.analysis.insights.generate") }}
-        </button>
+          <template #trigger="{ multiple }">
+            <button
+              type="button"
+              class="h-(--knovum-control-height-md) w-full rounded-md bg-surface-accent px-2.5 text-label font-medium text-fg-on-accent transition-colors hover:bg-surface-accent-hover disabled:opacity-40"
+              :disabled="!canGenerateInsights"
+              :title="insightsDisabledReason"
+              @click="!multiple && runInsights()"
+            >
+              {{ t("spaces.media.analysis.insights.generate") }}
+            </button>
+          </template>
+        </ModelChoiceTrigger>
       </div>
       <SpaceMediaSummaryEditor
         v-if="insights"
@@ -77,8 +103,9 @@ const {
         :disabled="stale || !canEdit"
         :can-regenerate="canGenerateInsights"
         :regenerate-disabled-reason="insightsDisabledReason"
+        :regenerate-options="knowledgeTargets"
         @save="saveSummary"
-        @regenerate="generateInsights"
+        @regenerate="runInsights"
       />
       <div v-if="insights" class="mt-4">
         <h4 class="text-caption-sm font-semibold tracking-wide text-fg-tertiary uppercase">
@@ -118,14 +145,22 @@ const {
                 {{ knowledge.transcript.segments.length }}
               </span>
             </CollapsibleTrigger>
-            <UiIconButton
-              :label="t('spaces.media.player.retranscribe')"
-              size="sm"
+            <ModelChoiceTrigger
+              :options="transcriptionModels"
               :disabled="!canTranscribe || alignmentSubmitting"
-              @click="analyze"
+              @select="(id) => analyze(id as LocalModelId)"
             >
-              <RotateCcw class="size-3" />
-            </UiIconButton>
+              <template #trigger="{ multiple }">
+                <UiIconButton
+                  :label="t('spaces.media.player.retranscribe')"
+                  size="sm"
+                  :disabled="!canTranscribe || alignmentSubmitting"
+                  @click="!multiple && analyze()"
+                >
+                  <RotateCcw class="size-3" />
+                </UiIconButton>
+              </template>
+            </ModelChoiceTrigger>
           </div>
           <CollapsibleContent class="mt-2">
             <SpaceDiarizationControl

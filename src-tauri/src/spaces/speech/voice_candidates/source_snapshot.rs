@@ -186,12 +186,18 @@ async fn isolate(
     use super::super::source_separation::separate::{self, Requester, Separation};
     let request_id = request.request_id.as_str();
     let bounds = request.model.reference_duration();
+    let VoiceCandidateSource::Reference {
+        isolation_model, ..
+    } = &request.source
+    else {
+        return Err("Voice candidate has no reference selection".into());
+    };
     std::fs::create_dir(workspace).map_err(|error| error.to_string())?;
     let vocals = workspace.join("vocals.wav");
     let background = workspace.join("background.wav");
     separate::separate(Separation {
         app,
-        model: crate::local_resources::model_selection::speech_separation(app)?,
+        model: *isolation_model,
         path: part,
         source: &crate::spaces::speech::video_config::SpeechMediaSource {
             asset_path: part.to_string_lossy().into_owned(),

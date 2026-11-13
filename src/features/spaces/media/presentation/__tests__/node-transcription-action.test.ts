@@ -11,6 +11,10 @@ vi.mock("../../use-media-knowledge", () => ({
   useMediaKnowledge: () => ({ canTranscribe, transcribed, transcribing, analyzing, analyze: mocks.analyze }),
 }));
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("../../../../../foundation/runtime/use-local-models-query", () => ({
+  localModelsQueryOptions: { queryKey: ["local-resources", "models"] },
+  useLocalModelsQuery: () => ({ data: { value: [] } }),
+}));
 const canTranscribe = shallowRef(true);
 const transcribed = shallowRef(false);
 const transcribing = shallowRef(false);

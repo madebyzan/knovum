@@ -119,6 +119,8 @@ fn stems_preserve_stereo_original_outside_source_dialogue_and_timed_voice() {
             end_ms: 1500,
         }],
         retain_original_track: true,
+        auto_background_separation_model:
+            crate::local_resources::model_catalog::LocalModelId::HtDemucs,
     };
     let cancel = CancellationToken::new();
     let tool = ffmpeg();
@@ -283,6 +285,8 @@ fn combined_mix_is_mastered_to_the_program_reference() {
         preserve_original_outside_dialogue: false,
         source_dialogue_intervals: vec![],
         retain_original_track: false,
+        auto_background_separation_model:
+            crate::local_resources::model_catalog::LocalModelId::HtDemucs,
     };
     let render = SpeechSegmentRenderOutput {
         segment_id: "segment".into(),

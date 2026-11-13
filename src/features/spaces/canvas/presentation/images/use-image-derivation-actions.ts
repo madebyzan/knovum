@@ -4,10 +4,16 @@ import { toast } from "vue-sonner";
 import { openAiSettings } from "../../../../../foundation/ai/ai-settings-navigation";
 import { useAiReadiness } from "../../../../../foundation/ai/use-ai-readiness";
 import { getErrorMessage } from "../../../../../foundation/errors/error-format";
+import { useLocalModelsQuery } from "../../../../../foundation/runtime/use-local-models-query";
 import { canRunAction } from "../../../../../shared/contracts/action-availability";
+import type { TaskTarget } from "../../../../../shared/contracts/generated/TaskTarget";
 import type { ImageExecutionTarget } from "../../../contracts/generated/ImageExecutionTarget";
 import type { ImageOperation } from "../../../contracts/generated/ImageOperation";
 import { imageEditOf, rotatedImageSize } from "../../../image-editing/image-edit";
+import {
+  preferredVerifiedImageTarget,
+  verifiedImageTargetOptions,
+} from "../../../knowledge-derivations/image-model-targets";
 import { deriveImage } from "../../../knowledge-derivations/image-operation";
 import { useImageOperationCapabilities } from "../../../knowledge-derivations/use-image-operation-capabilities";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
@@ -28,16 +34,26 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
   const imageDimensions = useImageSourceDimensionsStore();
   const nodeOperations = useNodeOperationGate();
   const capabilities = useImageOperationCapabilities(open);
+  const localModels = useLocalModelsQuery(() => mode === "upscale" && open.value);
   const busy = shallowRef(false);
   const selectedExecution = shallowRef<ImageExecutionTarget>();
-  const targetOptions = computed(
+  const remoteTarget = shallowRef<TaskTarget>();
+  const configuredOptions = computed(
     () => capabilities.data.value?.targets.filter((option) => option.capability === "imageUpscaling") ?? [],
+  );
+  const targetOptions = computed(() =>
+    verifiedImageTargetOptions(configuredOptions.value, localModels.data.value ?? [], "imageUpscaling"),
   );
   const executionOption = computed(() => {
     const selected = selectedExecution.value;
-    return selected
-      ? targetOptions.value.find((option) => JSON.stringify(option.execution) === JSON.stringify(selected))
-      : targetOptions.value.find((option) => option.selected);
+    if (selected)
+      return configuredOptions.value.find(
+        (option) => JSON.stringify(option.execution) === JSON.stringify(selected),
+      );
+    return (
+      preferredVerifiedImageTarget(targetOptions.value) ??
+      configuredOptions.value.find((option) => option.selected)
+    );
   });
   const readiness = useAiReadiness(() => {
     const execution = mode === "upscale" ? executionOption.value?.execution : undefined;
@@ -60,7 +76,9 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
         : mode === "upscale"
           ? executionOption.value?.availability
           : capabilities.data.value?.multiAngle,
-      failed: capabilities.isError.value && !capabilities.isFetching.value,
+      failed:
+        (capabilities.isError.value || (mode === "upscale" && localModels.isError.value)) &&
+        !capabilities.isFetching.value,
       busy: busy.value,
     }),
   );
@@ -92,7 +110,12 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
     busy.value = true;
     try {
       await deriveImage(node.value, operation, {
-        execution: mode === "upscale" ? executionOption.value?.execution : undefined,
+        execution:
+          mode === "upscale"
+            ? executionOption.value?.execution
+            : remoteTarget.value
+              ? { type: "remote", target: remoteTarget.value }
+              : undefined,
       });
     } catch (error) {
       toast.error(getErrorMessage(error));
@@ -105,6 +128,7 @@ export function useImageDerivationActions({ node, mode, open, close }: ImageDeri
     busy,
     targetOptions,
     executionOption,
+    remoteTarget,
     selectExecution: (execution: ImageExecutionTarget) => (selectedExecution.value = execution),
     availability,
     readiness,

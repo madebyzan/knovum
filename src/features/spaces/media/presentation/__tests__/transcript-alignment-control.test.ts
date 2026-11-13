@@ -1,5 +1,7 @@
-import { mount } from "@vue/test-utils";
-import { beforeEach, expect, it, vi } from "vitest";
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
+import { flushPromises, mount } from "@vue/test-utils";
+import { afterEach, beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { shallowRef } from "vue";
 import type * as VueI18n from "vue-i18n";
 
@@ -33,11 +35,22 @@ const aligner: LocalModelAvailability = {
 };
 beforeEach(() => {
   readiness.current = shallowRef<AiReadiness>({ state: "ready" });
+  mockIPC((command) => {
+    if (command !== "plugin:local-resources|get_model_catalog")
+      throw new Error(`Unexpected command: ${command}`);
+    return [];
+  });
 });
+afterEach(clearMocks);
 
 function render() {
   return mount(SpaceTranscriptAlignmentControl, {
     props: { disabled: false, canAlign: true, selectedCount: 2 },
+    global: {
+      plugins: [
+        [VueQueryPlugin, { queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }) }],
+      ],
+    },
   });
 }
 
@@ -63,4 +76,43 @@ it("shows a model-query failure and prevents a request with unknown resource sta
   const wrapper = render();
   expect(wrapper.get('[role="alert"]').text()).toContain("Local models couldn't be checked.");
   expect(wrapper.get('[data-testid="transcript-align"]').attributes("disabled")).toBeDefined();
+});
+
+it("opens a one-click popover when multiple aligner models are downloaded", async () => {
+  mockIPC((command) => {
+    if (command !== "plugin:local-resources|get_model_catalog")
+      throw new Error(`Unexpected command: ${command}`);
+    return [
+      { ...aligner, installed: true, verified: true, selected: true },
+      {
+        ...aligner,
+        id: "qwen3Aligner",
+        name: "Qwen3 FP16",
+        installed: true,
+        verified: true,
+        selected: false,
+      },
+    ];
+  });
+  const wrapper = mount(SpaceTranscriptAlignmentControl, {
+    attachTo: document.body,
+    props: { disabled: false, canAlign: true, selectedCount: 2 },
+    global: {
+      plugins: [
+        [VueQueryPlugin, { queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }) }],
+      ],
+    },
+  });
+  onTestFinished(() => wrapper.unmount());
+  await flushPromises();
+  await wrapper.get('[data-testid="transcript-align"]').trigger("click");
+  await flushPromises();
+  expect(wrapper.emitted("align")).toBeUndefined();
+  const option = Array.from(document.body.querySelectorAll("button")).find((button) =>
+    button.textContent?.includes("Qwen3 FP16"),
+  );
+  expect(option).toBeDefined();
+  option!.click();
+  await flushPromises();
+  expect(wrapper.emitted("align")?.at(-1)).toEqual(["qwen3Aligner"]);
 });

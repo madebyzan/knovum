@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick, reactive, shallowRef } from "vue";
 import type * as VueI18n from "vue-i18n";
 
+import type { LocalModelAvailability } from "../../../shared/contracts/generated/LocalModelAvailability";
 import type { ImageOperationCapabilities } from "../contracts/generated/ImageOperationCapabilities";
 import type { CreationIntentId } from "../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -11,6 +12,7 @@ import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import {
   blockedImageCapabilities,
   imageSourceNode,
+  localModelAvailability,
   selectedImageIntents,
 } from "./support/image-operation-fixtures";
 
@@ -22,6 +24,7 @@ const context = vi.hoisted(() => ({
     isError: ReturnType<typeof shallowRef<boolean>>;
   },
   allowed: true,
+  models: [] as LocalModelAvailability[],
   derive: vi.fn<(...args: unknown[]) => Promise<void>>(),
 }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => context.space! }));
@@ -31,6 +34,10 @@ vi.mock("../canvas/use-node-operation-gate", () => ({
 vi.mock("../knowledge-derivations/image-operation", () => ({ deriveImage: context.derive }));
 vi.mock("../knowledge-derivations/use-image-operation-capabilities", () => ({
   useImageOperationCapabilities: () => context.capabilities!,
+}));
+vi.mock("../../../foundation/runtime/use-local-models-query", () => ({
+  localModelsQueryOptions: { queryKey: ["local-resources", "models"] },
+  useLocalModelsQuery: () => ({ data: { value: context.models } }),
 }));
 vi.mock("../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("vue-router", () => ({ useRouter: () => ({ push: vi.fn<() => Promise<void>>() }) }));
@@ -48,6 +55,7 @@ beforeEach(() => {
   setActivePinia(createPinia());
   context.allowed = true;
   context.derive.mockReset().mockResolvedValue(undefined);
+  context.models = [localModelAvailability("lama", "imageInpainting")];
   node = imageSourceNode();
   context.space = reactive({ activeSpaceId: "space", nodes: [node] });
   context.capabilities = {

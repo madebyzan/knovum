@@ -29,9 +29,10 @@ const catalog = useLocalModelsQuery();
 const operation = computed<LocalModelOperation>(() =>
   props.sourceKind === "reference" ? "voiceCloning" : "voiceDesign",
 );
-const models = computed(() =>
+const supportedModels = computed(() =>
   (catalog.data.value ?? []).filter((entry) => entry.operations.includes(operation.value)),
 );
+const models = computed(() => supportedModels.value.filter((entry) => entry.verified));
 const options = computed(() =>
   models.value.map((entry) => ({
     value: entry.id,
@@ -44,7 +45,7 @@ watch(
   [() => props.sourceKind, () => props.disabled, () => catalog.data.value],
   ([kind, disabled]) => {
     if (disabled || !catalog.data.value) return;
-    const choices = models.value;
+    const choices = models.value.length > 0 ? models.value : supportedModels.value;
     if (initializedSource === kind && choices.some((entry) => entry.id === model.value)) return;
     const preferred = choices.find((entry) => entry.selected);
     // Default to a model this machine is comfortable with; a heavier one stays one click away.
@@ -77,7 +78,7 @@ watchEffect(() => {
 
 <template>
   <div class="min-w-0 space-y-1">
-    <label class="block space-y-1.5 text-caption font-medium text-fg-secondary">
+    <label v-if="options.length > 1" class="block space-y-1.5 text-caption font-medium text-fg-secondary">
       <span>{{ t("spaces.speech.models.label") }}</span>
       <UiSelect
         v-model="model"

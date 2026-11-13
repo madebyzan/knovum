@@ -116,6 +116,11 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
     active.value = { ...active.value, selection: history.pop()! };
     queue();
   }
+  function setModel(execution: LocalImageTarget) {
+    if (!active.value || submitting.value) return;
+    active.value = { ...active.value, execution };
+    queue();
+  }
   function cancel() {
     if (submitting.value) return;
     clear();
@@ -168,6 +173,7 @@ export const useImageSelectionSessionStore = defineStore("spaces-image-selection
     setBox,
     addStroke,
     undo,
+    setModel,
     cancel,
     submit,
   };

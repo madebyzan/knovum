@@ -59,6 +59,7 @@ fn existing_run_idempotence_requires_the_exact_workflow_space_and_source() {
         vocals_label: "Vocals".into(),
         background_label: "Background".into(),
         source: source(),
+        model: crate::local_resources::model_catalog::LocalModelId::HtDemucs,
     };
     let input =
         json!({"workflow":WORKFLOW,"sourceNodeId":request.source_node_id,"vocalsLabel":request.vocals_label,"backgroundLabel":request.background_label,"source":request.source.clone(),"model":"htDemucs"})
@@ -71,6 +72,15 @@ fn existing_run_idempotence_requires_the_exact_workflow_space_and_source() {
     ));
     assert!(!matches_existing_request(
         "space", "action", &input, &request
+    ));
+    let other_model =
+        json!({"workflow":WORKFLOW,"sourceNodeId":request.source_node_id,"vocalsLabel":request.vocals_label,"backgroundLabel":request.background_label,"source":request.source.clone(),"model":"htDemucsF16"})
+            .to_string();
+    assert!(!matches_existing_request(
+        "space",
+        "workflow",
+        &other_model,
+        &request
     ));
     assert!(!matches_existing_request(
         "space",

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue";
 
+import { preferredLocalModelId } from "../../../../foundation/ai/local-model-choice";
+import { useLocalModelsQuery } from "../../../../foundation/runtime/use-local-models-query";
 import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
@@ -47,11 +49,14 @@ const {
 );
 
 const { videos } = useSpeechMediaSources();
+const catalog = useLocalModelsQuery();
+const separationModel = computed(() => preferredLocalModelId(catalog.data.value ?? [], "speechSeparation"));
 const initialInput = computed(() =>
   speechProjectInput(
     props.node,
     props.projectType,
     videos.value.find((video) => video.id === props.node.id)?.source,
+    separationModel.value,
   ),
 );
 const initializationAttempted = shallowRef(false);

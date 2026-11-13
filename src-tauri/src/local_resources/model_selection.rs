@@ -201,16 +201,8 @@ fn image_group(capability: LocalModelCapability) -> Option<Group> {
     }
 }
 
-pub(crate) fn speech_separation<R: Runtime>(app: &AppHandle<R>) -> Result<LocalModelId, String> {
-    selected(app, Group::SpeechSeparation)
-}
-
 pub(crate) fn speech_diarization<R: Runtime>(app: &AppHandle<R>) -> Result<LocalModelId, String> {
     selected(app, Group::SpeechDiarization)
-}
-
-pub(crate) fn speech_alignment<R: Runtime>(app: &AppHandle<R>) -> Result<LocalModelId, String> {
-    selected(app, Group::SpeechAlignment)
 }
 
 pub(crate) fn is_selectable(model: LocalModelId) -> bool {

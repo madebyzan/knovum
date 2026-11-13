@@ -5,6 +5,7 @@ import { search } from "fast-fuzzy";
 import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { LocalModelId } from "../../../../shared/contracts/generated/LocalModelId";
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
 import UiSwitch from "../../../../shared/ui/UiSwitch.vue";
 import type { SpaceTranscriptEdit } from "../schema/knowledge";
@@ -22,7 +23,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   seek: [positionMs: number];
   save: [payload: SpaceTranscriptEdit];
-  align: [segmentIds: string[]];
+  align: [segmentIds: string[], model?: LocalModelId];
 }>();
 const { t } = useI18n();
 const scroller = useTemplateRef<HTMLDivElement>("scroller");
@@ -109,7 +110,7 @@ async function remeasure() {
       :disabled="Boolean(alignmentDisabled)"
       :can-align="canAlign"
       :selected-count="selected.length"
-      @align="emit('align', [...selected])"
+      @align="(model) => emit('align', [...selected], model)"
     />
     <div ref="scroller" class="h-80 overflow-y-auto">
       <div class="relative w-full" :style="{ height: `${totalSize}px` }">

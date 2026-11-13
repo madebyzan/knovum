@@ -23,13 +23,15 @@ import {
 } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
+import AiExecutionTargetField from "../../../../foundation/ai/AiExecutionTargetField.vue";
 import type { SpaceTiptapWritingTools } from "../use-space-tiptap-writing-tools";
 
 const props = withDefaults(defineProps<{ writing: SpaceTiptapWritingTools; compact?: boolean }>(), {
   compact: false,
 });
 const { t } = useI18n();
-const { runningAction, tones, translations, run, runTranslation } = props.writing;
+const { runningAction, writingTarget, translationTarget, tones, translations, run, runTranslation } =
+  props.writing;
 const ITEM_CLASS =
   "flex h-9 w-full cursor-default items-center gap-2.5 rounded-md px-2.5 text-left text-label text-fg-primary outline-none transition-colors hover:bg-surface-control-hover data-[highlighted]:bg-surface-control-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-40";
 const SUBMENU_CLASS =
@@ -59,6 +61,13 @@ const SUBMENU_CLASS =
         :side-offset="7"
         class="z-50 w-60 rounded-xl border border-stroke-default bg-surface-overlay p-1.5 shadow-popover outline-none"
       >
+        <AiExecutionTargetField
+          v-model="writingTarget"
+          purpose="writing"
+          compact
+          hide-when-single
+          class="mb-1 border-b border-stroke-divider pb-1"
+        />
         <DropdownMenuItem :class="ITEM_CLASS" @select="run('fix_grammar')">
           <SpellCheck2 class="size-3.5 text-fg-secondary" />{{ t("spaces.richtext.ai.actions.fixGrammar") }}
         </DropdownMenuItem>
@@ -113,6 +122,13 @@ const SUBMENU_CLASS =
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="SUBMENU_CLASS">
+              <AiExecutionTargetField
+                v-model="translationTarget"
+                purpose="translation"
+                compact
+                hide-when-single
+                class="mb-1 border-b border-stroke-divider pb-1"
+              />
               <DropdownMenuItem
                 v-for="option in translations"
                 :key="option[0]"

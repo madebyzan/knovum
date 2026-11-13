@@ -20,7 +20,11 @@ vi.mock("vue-i18n", async (importOriginal) => ({
   useI18n: () => ({ t: (key: string) => key }),
 }));
 
-function entry(modelId: "mossNano" | "voxCpm2" | "voxCpm2Q8", selected: boolean): LocalModelAvailability {
+function entry(
+  modelId: "mossNano" | "voxCpm2" | "voxCpm2Q8",
+  selected: boolean,
+  verified = true,
+): LocalModelAvailability {
   const vox = modelId !== "mossNano";
   return {
     id: modelId,
@@ -34,10 +38,10 @@ function entry(modelId: "mossNano" | "voxCpm2" | "voxCpm2Q8", selected: boolean)
     referenceDuration: { minMs: 5_000, maxMs: vox ? 15_000 : 30_000 },
     essential: false,
     fixed: false,
-    installed: true,
-    verified: true,
+    installed: verified,
+    verified,
     totalBytes: modelId === "voxCpm2" ? 500 : modelId === "voxCpm2Q8" ? 300 : 100,
-    installedBytes: 100,
+    installedBytes: verified ? 100 : 0,
     memoryAdvisoryBytes: null,
   };
 }
@@ -112,4 +116,11 @@ it("selects a compatible model after a disabled form becomes editable", async ()
   expect(wrapper.emitted("update:modelValue")).toBeUndefined();
   await wrapper.setProps({ disabled: false });
   expect(wrapper.emitted("update:modelValue")).toEqual([["voxCpm2Q8"]]);
+});
+
+it("excludes un-downloaded models and hides the selector when fewer than two models are downloaded", () => {
+  mocks.models!.value = [entry("mossNano", false, false), entry("voxCpm2Q8", true, true)];
+  const wrapper = render("reference");
+  expect(wrapper.emitted("update:modelValue")).toEqual([["voxCpm2Q8"]]);
+  expect(wrapper.findComponent({ name: "UiSelect" }).exists()).toBe(false);
 });

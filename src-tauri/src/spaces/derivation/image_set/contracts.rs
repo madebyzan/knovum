@@ -1,6 +1,8 @@
 use serde::Deserialize;
 use serde_json::Value;
 
+use super::super::image_layers::ImageLayersModels;
+
 /// A derivation that publishes a set of images whose size the source decides: the layers a picture
 /// separates into, the stickers a sheet carries. Everything that differs between such sets is
 /// stated here once; reserving, opening, settling and failing the set is shared.
@@ -32,6 +34,8 @@ pub struct ImageSetRequest {
     pub source_node_id: String,
     pub source_revision: String,
     pub source_edit: Value,
+    #[serde(default)]
+    pub models: Option<ImageLayersModels>,
 }
 
 pub fn validate(request: &ImageSetRequest) -> Result<(), String> {
@@ -42,6 +46,9 @@ pub fn validate(request: &ImageSetRequest) -> Result<(), String> {
     identity(&request.source_revision, "Image set source revision")?;
     if !(request.source_edit.is_null() || request.source_edit.is_object()) {
         return Err("Image set source edit must be an object or null".into());
+    }
+    if let Some(models) = &request.models {
+        models.validate()?;
     }
     Ok(())
 }

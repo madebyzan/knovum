@@ -37,11 +37,10 @@ pub(crate) async fn transcribe<R: Runtime>(
     session_id: &str,
     wav: PathBuf,
     recording: RecordedAudio,
+    model: crate::local_resources::model_catalog::LocalModelId,
     cancellation: &CancellationToken,
     progress: &mut (impl FnMut(preparation::contracts::ResourcePreparationProgress) + Send),
 ) -> Result<TranscriptionOutcome, DictationFailure> {
-    let model = crate::local_resources::model_selection::transcription(app)
-        .map_err(|error| DictationFailure::classified("local_resource_unavailable", error))?;
     let resources = preparation::prepare_models_for_job(
         app,
         preparation::contracts::ResourcePreparationTarget::Model { model },

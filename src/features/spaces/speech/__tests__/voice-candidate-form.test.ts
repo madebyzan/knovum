@@ -1,6 +1,8 @@
-import { afterEach, expect, it, vi } from "vitest";
+import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { effectScope, shallowRef } from "vue";
 
+import { localModelAvailability } from "../../__tests__/support/image-operation-fixtures";
 import { useVoiceCandidateForm } from "../use-voice-candidate-form";
 
 const draft = vi.hoisted(() => vi.fn<(request: { seed: number }) => void>());
@@ -12,6 +14,13 @@ vi.mock("../use-voice-candidates", () => ({
     draft,
   }),
 }));
+beforeEach(() => {
+  mockIPC((command) => {
+    if (command !== "plugin:local-resources|get_model_catalog")
+      throw new Error(`Unexpected command: ${command}`);
+    return [localModelAvailability("htDemucs", "speechSeparation", { group: "audio" })];
+  });
+});
 
 const scopes: ReturnType<typeof effectScope>[] = [];
 function setup() {
@@ -20,12 +29,13 @@ function setup() {
   return scope.run(() => useVoiceCandidateForm())!;
 }
 afterEach(() => {
+  clearMocks();
   scopes.splice(0).forEach((scope) => scope.stop());
   vi.clearAllMocks();
   vi.restoreAllMocks();
 });
 
-it("generates distinct voice proposals while preserving each submitted seed", () => {
+it("generates distinct voice proposals while preserving each submitted seed", async () => {
   vi.spyOn(crypto, "getRandomValues")
     .mockReturnValueOnce(new Uint32Array([42]))
     .mockReturnValueOnce(new Uint32Array([43]));
@@ -34,8 +44,8 @@ it("generates distinct voice proposals while preserving each submitted seed", ()
   form.model.value = "voxCpm2";
   form.description.value = "A clear adult voice";
   form.modelAvailable.value = true;
-  form.generate();
-  form.generate();
+  await form.generate();
+  await form.generate();
   expect(draft).toHaveBeenCalledTimes(2);
   expect(draft.mock.calls[0]?.[0].seed).toBe(42);
   expect(draft.mock.calls[1]?.[0].seed).toBe(43);
@@ -43,7 +53,7 @@ it("generates distinct voice proposals while preserving each submitted seed", ()
   expect(draft.mock.calls[0]?.[0]).not.toHaveProperty("authorized");
 });
 
-it("submits confirmed reference text according to the selected model contract", () => {
+it("submits confirmed reference text according to the selected model contract", async () => {
   const form = setup();
   form.model.value = "voxCpm2Q8";
   form.referenceTranscript.value = "optionalConfirmed";
@@ -54,17 +64,18 @@ it("submits confirmed reference text according to the selected model contract", 
     startMs: 0,
     endMs: 20_000,
     transcript: "Sample text",
+    model: "whisperSmall",
   };
   form.transcriptConfirmed.value = true;
   form.modelAvailable.value = true;
   expect(form.ready.value).toBe(false);
   form.reference.value = {
-    ...form.reference.value,
+    ...form.reference.value!,
     endMs: 15_000,
   };
   form.transcriptConfirmed.value = true;
   expect(form.ready.value).toBe(true);
-  form.generate();
+  await form.generate();
   expect(draft).toHaveBeenCalledWith(
     expect.objectContaining({
       model: "voxCpm2Q8",
@@ -86,7 +97,7 @@ it("treats the adopted machine model as the pristine baseline", () => {
   expect(form.dirty.value).toBe(true);
 });
 
-it("submits reference audio with optional design prompt when supported", () => {
+it("submits reference audio with optional design prompt when supported", async () => {
   const form = setup();
   form.model.value = "voxCpm2";
   form.supportsDesign.value = true;
@@ -98,10 +109,11 @@ it("submits reference audio with optional design prompt when supported", () => {
     startMs: 0,
     endMs: 8_000,
     transcript: "",
+    model: "whisperSmall",
   };
   form.modelAvailable.value = true;
   expect(form.ready.value).toBe(true);
-  form.generate();
+  await form.generate();
   expect(draft).toHaveBeenCalledWith(
     expect.objectContaining({
       model: "voxCpm2",

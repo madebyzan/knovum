@@ -1,5 +1,7 @@
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { flushPromises, mount } from "@vue/test-utils";
-import { afterEach, expect, it, onTestFinished, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { shallowRef } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
@@ -38,6 +40,23 @@ vi.mock("../../use-speech-workspace", () => ({
     settleRevisionSave: vi.fn<() => Promise<void>>(),
   }),
 }));
+beforeEach(() => {
+  mockIPC((command) => {
+    if (command !== "plugin:local-resources|get_model_catalog")
+      throw new Error(`Unexpected command: ${command}`);
+    return [
+      {
+        id: "htDemucs",
+        name: "HTDemucs",
+        capability: "speechSeparation",
+        totalBytes: 1,
+        verified: true,
+        selected: true,
+      },
+    ];
+  });
+});
+afterEach(clearMocks);
 afterEach(() => {
   loading.value = true;
   initializationReady.value = true;
@@ -64,7 +83,11 @@ function render(projectType: "short_dubbing" | "audiobook" | "video_dubbing" = "
   const wrapper = mount(SpaceNodeSpeechEditor, {
     props: { node, projectType },
     global: {
-      plugins: [i18n, router],
+      plugins: [
+        i18n,
+        router,
+        [VueQueryPlugin, { queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }) }],
+      ],
       stubs: { SpeechProjectEditor: true, SpaceUnsavedChangesDialog: true },
     },
   });

@@ -243,6 +243,7 @@ async fn prepare_source(
         VoiceCandidateSource::Reference {
             reference_text,
             design_prompt,
+            reference_validation_model,
             ..
         } => {
             let snapshot = configuration
@@ -271,6 +272,7 @@ async fn prepare_source(
                 &request.language,
                 audio.clone(),
                 text,
+                *reference_validation_model,
                 &claim.cancellation,
             )
             .await

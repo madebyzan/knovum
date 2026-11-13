@@ -2,30 +2,44 @@
 import { Captions, Scissors } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
+import ModelChoiceTrigger from "../../../../foundation/ai/ModelChoiceTrigger.vue";
+import { useLocalModelOptions } from "../../../../foundation/ai/use-model-choice-options";
+import type { LocalModelId } from "../../../../shared/contracts/generated/LocalModelId";
 import SpaceCanvasActionTrigger from "./SpaceCanvasActionTrigger.vue";
 
 defineProps<{ compact?: boolean; menuItem?: boolean; canAddSubtitles: boolean }>();
-const emit = defineEmits<{ edit: []; addSubtitles: [] }>();
+const emit = defineEmits<{ edit: []; addSubtitles: [model?: LocalModelId] }>();
 const { t } = useI18n();
-const TOOLS = [
-  { id: "edit", icon: Scissors, label: "spaces.media.videoEditor.edit" },
-  { id: "subtitles", icon: Captions, label: "spaces.creation.video.subtitles.add" },
-] as const;
-function invoke(actionId: "edit" | "subtitles") {
-  if (actionId === "edit") emit("edit");
-  else emit("addSubtitles");
-}
+const { options: transcriptionOptions } = useLocalModelOptions(() => "transcription");
 </script>
 
 <template>
   <SpaceCanvasActionTrigger
-    v-for="tool in TOOLS"
-    :key="tool.id"
-    :label="t(tool.label)"
-    :icon="tool.icon"
+    :label="t('spaces.media.videoEditor.edit')"
+    :icon="Scissors"
     :compact="compact"
     :menu-item="menuItem"
-    :disabled="tool.id === 'subtitles' && !canAddSubtitles"
-    @invoke="invoke(tool.id)"
+    @invoke="emit('edit')"
   />
+  <ModelChoiceTrigger
+    :options="transcriptionOptions"
+    :menu-item="menuItem"
+    :disabled="!canAddSubtitles"
+    @select="(id) => emit('addSubtitles', id as LocalModelId)"
+  >
+    <template #menu-trigger>
+      <Captions class="size-3.5" />
+      <span class="min-w-0 flex-1">{{ t("spaces.creation.video.subtitles.add") }}</span>
+    </template>
+    <template #trigger="{ multiple }">
+      <SpaceCanvasActionTrigger
+        :label="t('spaces.creation.video.subtitles.add')"
+        :icon="Captions"
+        :compact="compact"
+        :menu-item="menuItem"
+        :disabled="!canAddSubtitles"
+        @invoke="!multiple && emit('addSubtitles')"
+      />
+    </template>
+  </ModelChoiceTrigger>
 </template>

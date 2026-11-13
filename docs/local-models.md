@@ -265,8 +265,10 @@ file sizes and hashes. Settings groups its entries by knowledge, audio and image
 shows effect/hardware guidance, download and installed size, verification, progress, cancellation
 and idle removal. The UI does not maintain another model allowlist or package selector.
 
-Each selectable capability has an independent strict v1 preference. A new request reads its default
-once and persists the selected model in the durable request/configuration or derivation engine.
+Each selectable capability has an independent strict v1 preference. Starting a capability with
+several verified downloads offers a choice preselected with that preference; one verified download
+runs without asking. A new request resolves its model once and persists the selected model in the
+durable request/configuration or derivation engine.
 Preparation, admission, worker identity, render caches, retries, provenance and package restore use
 that frozen identity. Changing defaults affects new work only. Existing voices, projects, queued
 requests and accepted outputs retain their model. Removing an idle optional snapshot preserves its

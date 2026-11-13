@@ -3,6 +3,7 @@ import { ToolbarRoot } from "reka-ui";
 import { computed, nextTick, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { LocalModelId } from "../../../../../shared/contracts/generated/LocalModelId";
 import UiActionHelp from "../../../../../shared/ui/UiActionHelp.vue";
 import type {
   CreationIntentDecisions,
@@ -40,9 +41,9 @@ watch(speechOperation, (operation, previous) => {
   if (!operation && previous) focusOperation.value = previous;
 });
 const { separation, unavailableReason, startSeparation } = useNodeSeparation(toRef(props, "node"));
-function beginSeparation() {
+function beginSeparation(model?: LocalModelId) {
   speechOperation.value = "separate";
-  if (!separation.activeRunId.value) void startSeparation();
+  if (!separation.activeRunId.value) void startSeparation(model);
 }
 const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(props.node) : []));
 const bar = useTemplateRef<HTMLElement>("bar");

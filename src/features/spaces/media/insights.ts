@@ -1,6 +1,7 @@
 import { Channel } from "@tauri-apps/api/core";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
+import type { TaskTargetSelection } from "../../../shared/contracts/generated/TaskTargetSelection";
 import type { MediaTranscriptionProgress } from "../contracts/generated/MediaTranscriptionProgress";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 
@@ -9,6 +10,7 @@ interface MediaInsightsInput {
   nodeId: string;
   jobId: string;
   expectedRevision: string;
+  target: TaskTargetSelection;
 }
 
 export async function generateMediaInsights(

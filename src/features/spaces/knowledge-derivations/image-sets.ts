@@ -1,4 +1,5 @@
 import { i18n } from "../../../foundation/i18n/instance";
+import type { ImageLayersModels } from "../contracts/generated/ImageLayersModels";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { startDerivationAction } from "./start-action";
 
@@ -22,14 +23,19 @@ export function canDeriveImageSet(node: SpaceCanvasNode | undefined): boolean {
   );
 }
 
-export async function deriveImageSet(actionId: ImageSetActionId, source: SpaceCanvasNode) {
+export async function deriveImageSet(
+  actionId: ImageSetActionId,
+  source: SpaceCanvasNode,
+  models?: ImageLayersModels,
+) {
   if (!canDeriveImageSet(source) || source.data.kind !== "image") return;
   const sourceRevision = source.data.knowledgeRevision;
   if (!sourceRevision) return;
+  const title = `${source.data.title} · ${i18n.global.t(IMAGE_SET_TITLES[actionId])}`.slice(0, 512);
   return startDerivationAction({
     actionId,
     sources: [{ nodeId: source.id, title: source.data.title, sourceRevision, revisionBasis: "knowledge" }],
-    parameters: {},
-    title: `${source.data.title} · ${i18n.global.t(IMAGE_SET_TITLES[actionId])}`.slice(0, 512),
+    parameters: actionId === "split-image-layers" && models ? { title, models } : {},
+    title,
   });
 }

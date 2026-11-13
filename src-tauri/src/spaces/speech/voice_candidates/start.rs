@@ -244,8 +244,18 @@ fn validate_and_normalize_request(request: &mut DraftVoiceCandidateRequest) -> R
             reference_text,
             reference_text_confirmed,
             design_prompt,
+            reference_validation_model,
+            isolation_model,
             ..
         } => {
+            if !reference_validation_model.is_transcription()
+                || isolation_model.separation_spec().is_err()
+            {
+                return Err(
+                    "Reference validation and isolation require speech recognition and separation models"
+                        .into(),
+                );
+            }
             let duration_bounds = request.model.reference_duration();
             let text = reference_text
                 .as_deref()

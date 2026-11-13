@@ -14,6 +14,10 @@ import SpaceNodeSpeechControls from "../SpaceNodeSpeechControls.vue";
 vi.mock("../../../session/space-store", () => ({
   useSpaceStore: () => ({ activeSpaceId: "space", nodes: [] }),
 }));
+vi.mock("../../../../../foundation/runtime/use-local-models-query", () => ({
+  localModelsQueryOptions: { queryKey: ["local-resources", "models"] },
+  useLocalModelsQuery: () => ({ data: { value: [] } }),
+}));
 const i18n = createI18n({ legacy: false, locale: "en", messages: localeMessages });
 const node: SpaceCanvasNode = {
   id: "note",

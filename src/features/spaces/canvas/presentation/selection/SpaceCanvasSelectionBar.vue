@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import type { ImageExecutionTarget } from "../../../contracts/generated/ImageExecutionTarget";
 import type {
   CreationIntentDecisions,
   CreationIntentId,
@@ -19,7 +20,7 @@ defineProps<{
   angleNodeId: string | undefined;
 }>();
 const emit = defineEmits<{
-  invokeDerivation: [actionId: CreationIntentId];
+  invokeDerivation: [actionId: CreationIntentId, execution?: ImageExecutionTarget];
   "update:angleNodeId": [nodeId: string | undefined];
 }>();
 const speechOperation = defineModel<NodeSpeechOperation | undefined>("speechOperation");
@@ -42,7 +43,7 @@ const singleSection = computed(
     :available-width="availableWidth"
     :angle-open="angleNodeId === actions.selectedImageNode.value.id"
     @update:angle-open="emit('update:angleNodeId', $event ? singleNode?.id : undefined)"
-    @invoke-derivation="emit('invokeDerivation', $event)"
+    @invoke-derivation="(actionId, execution) => emit('invokeDerivation', actionId, execution)"
   />
   <SpaceCanvasSectionActionBar
     v-else-if="singleSection"

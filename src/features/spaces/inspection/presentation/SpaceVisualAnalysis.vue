@@ -5,7 +5,12 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { admitAiRequirements } from "../../../../foundation/ai/ai-readiness-admission";
+import ModelChoiceTrigger from "../../../../foundation/ai/ModelChoiceTrigger.vue";
+import { useRoutedTargetOptions } from "../../../../foundation/ai/use-model-choice-options";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import type { TaskTarget } from "../../../../shared/contracts/generated/TaskTarget";
+import type { TaskTargetSelection } from "../../../../shared/contracts/generated/TaskTargetSelection";
 import UiBadge from "../../../../shared/ui/UiBadge.vue";
 import UiExpandableText from "../../../../shared/ui/UiExpandableText.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
@@ -28,6 +33,11 @@ const { jobs, loading, refresh } = useNodeEnrichmentStatus(
 );
 const submitting = shallowRef(false);
 const visualJob = computed(() => jobs.value.find((job) => job.jobType === "analyze_visual"));
+const {
+  options: visualTargets,
+  defaultTarget: defaultVisualTarget,
+  targetForId: visualTargetForId,
+} = useRoutedTargetOptions(() => "visual-understanding");
 const recognitionJob = computed(() => jobs.value.find((job) => job.jobType === "recognize_text"));
 const recognizedText = useRecognizedText(
   activeSpaceId,
@@ -48,17 +58,34 @@ const canRequestVisual = computed(() => {
   if (data.kind === "video") return Boolean(data.sourceRevision && data.previewPath);
   return false;
 });
+const canReanalyze = computed(
+  () => canRequestVisual.value && (!visualJob.value || visualJob.value.status === "awaiting_configuration"),
+);
 
 const visibleTags = computed(() => {
   const tags = knowledge.value?.tags ?? [];
   return tagsExpanded.value ? tags : tags.slice(0, TAG_LIMIT);
 });
 
-async function reanalyze() {
-  if (!activeSpaceId.value || submitting.value || !canRequestVisual.value) return;
+function targetFromSelection(selection: TaskTargetSelection | null | undefined): TaskTarget | undefined {
+  if (!selection) return undefined;
+  return selection.type === "model"
+    ? { type: "model", connectionId: selection.connectionId, modelId: selection.modelId }
+    : { type: "agent", runtimeKind: selection.runtimeKind };
+}
+
+async function reanalyze(targetId?: string) {
+  if (!activeSpaceId.value || submitting.value || !canReanalyze.value) return;
+  const target = targetId
+    ? visualTargetForId(targetId)
+    : (defaultVisualTarget.value ?? targetFromSelection(visualJob.value?.executionTarget));
+  if (!target) {
+    await admitAiRequirements([{ kind: "routed", purpose: "visual-understanding" }]);
+    return;
+  }
   submitting.value = true;
   try {
-    await requestVisualAnalysis(activeSpaceId.value, props.node.id);
+    await requestVisualAnalysis(activeSpaceId.value, props.node.id, target);
     await refresh();
   } catch (error) {
     toast.error(getErrorMessage(error));
@@ -70,23 +97,39 @@ async function reanalyze() {
 
 <template>
   <div>
+    <div class="mb-1.5 flex items-center justify-between gap-2">
+      <h3 class="text-label font-medium text-fg-primary">
+        {{ t("spaces.inspector.content") }}
+      </h3>
+      <ModelChoiceTrigger
+        v-if="canReanalyze"
+        :options="visualTargets"
+        :disabled="submitting"
+        @select="(id) => void reanalyze(id)"
+      >
+        <template #trigger="{ multiple }">
+          <UiIconButton
+            :label="t('spaces.processing.visual.reanalyze')"
+            size="sm"
+            :disabled="submitting"
+            @click="!multiple && reanalyze()"
+          >
+            <RotateCcw class="size-3" />
+          </UiIconButton>
+        </template>
+      </ModelChoiceTrigger>
+    </div>
     <div v-if="knowledge" class="flex items-start gap-2">
       <UiExpandableText
         :text="knowledge.description"
         :clamp-lines="4"
         class="min-w-0 flex-1 text-body leading-relaxed text-fg-secondary"
       />
-      <UiIconButton
-        v-if="!visualJob && canRequestVisual"
-        :label="t('spaces.processing.visual.reanalyze')"
-        size="sm"
-        :disabled="submitting"
-        @click="reanalyze"
-      >
-        <RotateCcw class="size-3" />
-      </UiIconButton>
     </div>
     <SpaceEnrichmentJobStatus :job="visualJob" @retried="refresh" />
+    <p v-if="!visualJob && !knowledge && !loading" class="text-caption leading-relaxed text-fg-tertiary">
+      {{ t("spaces.knowledge.visual.empty") }}
+    </p>
     <SpaceRecognizedText class="mt-3" :text="recognizedText(null)" :job="recognitionJob" @retried="refresh" />
     <div v-if="knowledge?.tags.length" class="mt-3 space-y-1">
       <h4 class="text-caption font-medium text-fg-tertiary">
@@ -112,21 +155,6 @@ async function reanalyze() {
           />
         </button>
       </div>
-    </div>
-    <div
-      v-if="!visualJob && !knowledge && !loading"
-      class="flex items-center justify-between gap-2 text-caption leading-relaxed text-fg-tertiary"
-    >
-      <p>{{ t("spaces.knowledge.visual.empty") }}</p>
-      <UiIconButton
-        v-if="canRequestVisual"
-        :label="t('spaces.processing.visual.reanalyze')"
-        size="sm"
-        :disabled="submitting"
-        @click="reanalyze"
-      >
-        <RotateCcw class="size-3" />
-      </UiIconButton>
     </div>
   </div>
 </template>

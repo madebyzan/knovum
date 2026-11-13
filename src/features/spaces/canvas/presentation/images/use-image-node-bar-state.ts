@@ -2,6 +2,7 @@ import { computed, onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
 
 import { availableWhen, canRunAction } from "../../../../../shared/contracts/action-availability";
 import { useImageCommentSessionStore } from "../../../comments/image-comment-session-store";
+import type { ImageExecutionTarget } from "../../../contracts/generated/ImageExecutionTarget";
 import {
   useImageEditSessionStore,
   type ImageEditTool,
@@ -12,23 +13,24 @@ import type {
 } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
 import { useImageRemovalSessionStore } from "../../../knowledge-derivations/image-removal-session-store";
 import { useImageSelectionSessionStore } from "../../../knowledge-derivations/image-selection-session-store";
+import { deriveImageSet } from "../../../knowledge-derivations/image-sets";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
 import { useNodeOperationGate } from "../../use-node-operation-gate";
 import { imageToolAvailability, type ImageActionAvailability } from "./image-action-availability";
 import { imageActionHelp } from "./image-action-help";
+import { DIRECT_DERIVATIONS, type DirectImageDerivation } from "./image-derivation-actions";
 import { useImageSourceDimensionsStore } from "./image-source-dimensions-store";
+import { useImageLayersChoice } from "./use-image-layers-choice";
 
 type ImagePopover = "upscale";
 
-/** Image derivations the node bar offers as a single click. */
-const DIRECT_DERIVATIONS = ["remove-image-background", "split-image-layers", "slice-sticker-sheet"] as const;
-export type DirectImageDerivation = (typeof DIRECT_DERIVATIONS)[number];
+export type { DirectImageDerivation } from "./image-derivation-actions";
 
 export function useImageNodeBarState(
   node: Readonly<Ref<SpaceCanvasNode<SpaceImagePayload>>>,
   derivations: Readonly<Ref<CreationIntentDecisions>>,
-  invokeDerivation: (actionId: CreationIntentId) => void,
+  invokeDerivation: (actionId: CreationIntentId, execution?: ImageExecutionTarget) => void,
 ) {
   const session = useImageEditSessionStore();
   const imageDimensions = useImageSourceDimensionsStore();
@@ -36,6 +38,9 @@ export function useImageNodeBarState(
   const removal = useImageRemovalSessionStore();
   const nodeOperations = useNodeOperationGate();
   const comments = useImageCommentSessionStore();
+  const layersChoice = useImageLayersChoice(
+    (models) => void deriveImageSet("split-image-layers", node.value, models),
+  );
   const openPopover = shallowRef<ImagePopover>();
   const activeTool = computed(() =>
     session.active?.nodeId === node.value.id ? session.active.tool : undefined,
@@ -122,29 +127,32 @@ export function useImageNodeBarState(
     comments.begin(node.value.id);
   }
 
-  function runDirectDerivation(actionId: DirectImageDerivation) {
+  function runDirectDerivation(actionId: DirectImageDerivation, execution?: ImageExecutionTarget) {
     if (!nodeOperations.allows("derive") || !canRunAction(availabilityByDerivation.value[actionId])) return;
     openPopover.value = undefined;
-    invokeDerivation(actionId);
+    if (actionId === "split-image-layers") void layersChoice.begin();
+    else invokeDerivation(actionId, execution);
+  }
+
+  function cancelNodeSessions(nodeId: string | undefined) {
+    if (imageSelection.active?.nodeId === nodeId) imageSelection.cancel();
+    if (removal.active?.nodeId === nodeId) removal.cancel();
+    if (comments.activeNodeId === nodeId) comments.cancel();
   }
 
   watch(
     () => node.value.id,
     (_next, previous) => {
       openPopover.value = undefined;
-      if (imageSelection.active?.nodeId === previous) imageSelection.cancel();
-      if (removal.active?.nodeId === previous) removal.cancel();
-      if (comments.activeNodeId === previous) comments.cancel();
+      layersChoice.cancel();
+      cancelNodeSessions(previous);
     },
   );
-  onBeforeUnmount(() => {
-    if (imageSelection.active?.nodeId === node.value.id) imageSelection.cancel();
-    if (removal.active?.nodeId === node.value.id) removal.cancel();
-    if (comments.activeNodeId === node.value.id) comments.cancel();
-  });
+  onBeforeUnmount(() => cancelNodeSessions(node.value.id));
 
   return {
     openPopover,
+    layersChoice,
     activeTool,
     removing,
     commenting,

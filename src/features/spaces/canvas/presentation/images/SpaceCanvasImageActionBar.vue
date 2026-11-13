@@ -3,6 +3,7 @@ import { ToolbarRoot } from "reka-ui";
 import { computed, nextTick, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { ImageExecutionTarget } from "../../../contracts/generated/ImageExecutionTarget";
 import SpaceCanvasImageEditing from "../../../image-editing/presentation/SpaceCanvasImageEditing.vue";
 import SpaceCanvasObjectRemoval from "../../../image-editing/presentation/SpaceCanvasObjectRemoval.vue";
 import SpaceImageAngleInspector from "../../../image-editing/presentation/SpaceImageAngleInspector.vue";
@@ -34,7 +35,7 @@ const props = defineProps<{
   angleOpen: boolean;
 }>();
 const emit = defineEmits<{
-  invokeDerivation: [actionId: CreationIntentId];
+  invokeDerivation: [actionId: CreationIntentId, execution?: ImageExecutionTarget];
   "update:angleOpen": [open: boolean];
 }>();
 const { t, locale } = useI18n();
@@ -57,8 +58,9 @@ const {
   setPopover,
   beginComment,
   runDirectDerivation,
-} = useImageNodeBarState(toRef(props, "node"), toRef(props, "derivations"), (actionId) =>
-  emit("invokeDerivation", actionId),
+  layersChoice,
+} = useImageNodeBarState(toRef(props, "node"), toRef(props, "derivations"), (actionId, execution) =>
+  emit("invokeDerivation", actionId, execution),
 );
 const imageSelection = useImageSelectionSessionStore();
 const selecting = computed(() => imageSelection.active?.nodeId === props.node.id);
@@ -93,7 +95,7 @@ watch(
   <SpaceImageAngleInspector v-else-if="angleOpen" :node="node" @close="emit('update:angleOpen', false)" />
   <SpaceImageCommentModeBar v-else-if="commenting" />
   <div
-    v-if="!selecting && !activeTool && !removing && !commenting && !angleOpen"
+    v-else
     ref="bar"
     class="w-max"
     :class="ready ? 'visible' : 'invisible'"
@@ -127,9 +129,12 @@ watch(
         :removal-reason="removalReason"
         :selection-availability="selectionAvailability"
         :selection-reason="selectionReason"
+        :layers-groups="layersChoice.pending.value?.groups"
         @run-direct="runDirectDerivation"
         @begin-removal="beginRemoval"
         @begin-selection="beginSelection"
+        @run-layers="layersChoice.run"
+        @cancel-layers="layersChoice.cancel"
       />
       <SpaceCanvasImageAngleTrigger
         :compact="compact"

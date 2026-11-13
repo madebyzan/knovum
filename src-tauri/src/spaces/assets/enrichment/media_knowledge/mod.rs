@@ -23,7 +23,7 @@ pub async fn generate_media_insights(
     job_id: String,
     expected_revision: String,
     on_progress: Channel<MediaTranscriptionProgress>,
-    target: Option<crate::ai::tasks::TaskTargetSelection>,
+    target: crate::ai::tasks::TaskTargetSelection,
 ) -> Result<Value, AppError> {
     let (cancellation, _lease) = crate::ai::executions::acquire(job_id)?;
     let data = super::node_payload::load_node_content(&app, &space_id, &node_id).await?;

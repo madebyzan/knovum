@@ -6,6 +6,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     foundation::blocking,
+    local_resources::model_catalog::LocalModelId,
     local_resources::preparation,
     media::transcript::{MediaTranscript, TranscriptSegment},
     spaces::assets::{authorize_spaces_asset, media_analysis},
@@ -15,11 +16,25 @@ use pipeline::TranscriptionPipeline;
 pub(crate) mod alignment;
 pub(crate) mod diarization;
 
-pub(crate) fn engine_id() -> Result<&'static str, String> {
-    crate::ai::local_runtime::speech::transcription_profile(
-        crate::local_resources::model_catalog::LocalModelId::WhisperSmall,
+pub(crate) fn engine_id(model: LocalModelId) -> Result<&'static str, String> {
+    crate::ai::local_runtime::speech::transcription_profile(model)
+        .map(|profile| profile.engine.id())
+}
+
+/// The model frozen when the transcription was requested, read back instead of today's Settings.
+pub(in crate::spaces) async fn frozen_model(
+    app: &tauri::AppHandle,
+    job_id: &str,
+) -> Result<LocalModelId, String> {
+    let raw: String = sqlx::query_scalar(
+        "SELECT model_spec_id FROM spaces_media_transcription_requests WHERE job_id=$1",
     )
-    .map(|profile| profile.engine.id())
+    .bind(job_id)
+    .fetch_optional(crate::spaces::db::pool(app).await?)
+    .await
+    .map_err(crate::spaces::db::sql_error)?
+    .ok_or("Transcription request payload is missing")?;
+    serde_json::from_str(&raw).map_err(|error| format!("Transcription model is invalid: {error}"))
 }
 
 #[derive(Clone, Serialize, serde::Deserialize, ts_rs::TS)]
@@ -62,6 +77,7 @@ pub(in crate::spaces::assets) async fn start_transcription(
     job_id: String,
     source_path: String,
     source_revision: String,
+    model: LocalModelId,
     on_progress: Channel<MediaTranscriptionProgress>,
 ) -> Result<MediaTranscript, String> {
     let (cancellation, _lease) = registry::acquire(job_id.clone())?;
@@ -70,6 +86,7 @@ pub(in crate::spaces::assets) async fn start_transcription(
         job_id,
         source_path,
         source_revision,
+        model,
         on_progress,
         cancellation,
     )
@@ -81,19 +98,17 @@ pub(in crate::spaces) async fn transcribe_media(
     job_id: String,
     source_path: String,
     source_revision: String,
+    model: LocalModelId,
     on_progress: Channel<MediaTranscriptionProgress>,
     cancellation: CancellationToken,
 ) -> Result<MediaTranscript, String> {
-    crate::ai::local_runtime::speech::transcription_profile(
-        crate::local_resources::model_catalog::LocalModelId::WhisperSmall,
-    )?;
+    crate::ai::local_runtime::speech::transcription_profile(model)?;
     let source = authorize_spaces_asset(&app, Path::new(&source_path))?;
     let inspected = source.clone();
     let revision = source_revision;
     let expected = revision.clone();
     blocking::run(move || crate::file_inspection::verify_content_revision(&inspected, &expected))
         .await?;
-    let model = crate::local_resources::model_selection::transcription(&app)?;
     let prepared = preparation::prepare_models_for_job(
         &app,
         preparation::contracts::ResourcePreparationTarget::Model { model },

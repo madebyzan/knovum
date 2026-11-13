@@ -1,21 +1,35 @@
 <script setup lang="ts">
 import { Undo2, MousePointer2, SquareDashed, Paintbrush, X } from "@lucide/vue";
-import { nextTick, onMounted, useTemplateRef } from "vue";
+import { computed, nextTick, onMounted, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import { useLocalModelsQuery } from "../../../../foundation/runtime/use-local-models-query";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
+import { verifiedImageTargetOptions } from "../../knowledge-derivations/image-model-targets";
 import {
   useImageSelectionSessionStore,
   type ImageSelectionTool,
 } from "../../knowledge-derivations/image-selection-session-store";
+import { useImageOperationCapabilities } from "../../knowledge-derivations/use-image-operation-capabilities";
+import SpaceImageExecutionSelect from "./SpaceImageExecutionSelect.vue";
 import SpaceImageRangeSlider from "./SpaceImageRangeSlider.vue";
 
 const { t } = useI18n();
 const selection = useImageSelectionSessionStore();
 const surface = useTemplateRef<HTMLElement>("surface");
+const open = computed(() => Boolean(selection.active));
+const capabilities = useImageOperationCapabilities(open);
+const localModels = useLocalModelsQuery(open);
+const modelOptions = computed(() =>
+  verifiedImageTargetOptions(
+    capabilities.data.value?.targets ?? [],
+    localModels.data.value ?? [],
+    "imageSelection",
+  ),
+);
 const TOOLS = [
   { id: "include", labelKey: "spaces.media.imageEditor.selection.include", icon: MousePointer2 },
   { id: "exclude", labelKey: "spaces.media.imageEditor.selection.exclude", icon: MousePointer2 },
@@ -57,6 +71,13 @@ onMounted(async () => {
         /></UiButton>
       </div>
     </header>
+    <SpaceImageExecutionSelect
+      v-if="modelOptions.length > 1"
+      :options="modelOptions"
+      :execution="selection.active?.execution"
+      :disabled="selection.submitting"
+      @select="(execution) => execution.type === 'local' && selection.setModel(execution)"
+    />
     <div
       class="grid grid-cols-4 gap-0.5 rounded-panel bg-surface-control p-0.5"
       role="group"

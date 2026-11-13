@@ -1,5 +1,9 @@
+import type { LocalModelAvailability } from "../../../../shared/contracts/generated/LocalModelAvailability";
+import type { LocalModelCapability } from "../../../../shared/contracts/generated/LocalModelCapability";
+import type { LocalModelId } from "../../../../shared/contracts/generated/LocalModelId";
 import { createSpaceNode } from "../../canvas/node";
 import type { ImageOperationCapabilities } from "../../contracts/generated/ImageOperationCapabilities";
+import type { ImageOperationTargetOption } from "../../contracts/generated/ImageOperationTargetOption";
 import { decideCreationIntents } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 
@@ -49,5 +53,48 @@ export function blockedImageCapabilities(): ImageOperationCapabilities {
     promptRemoval: blocked,
     upscale: blocked,
     multiAngle: blocked,
+  };
+}
+
+export function localModelAvailability(
+  id: LocalModelId,
+  capability: LocalModelCapability,
+  overrides: Partial<LocalModelAvailability> = {},
+): LocalModelAvailability {
+  return {
+    id,
+    name: id,
+    capability,
+    operations: [],
+    referenceTranscript: "unused",
+    referenceDuration: null,
+    group: "images",
+    essential: false,
+    selected: false,
+    selectable: true,
+    fixed: false,
+    totalBytes: 1024,
+    installedBytes: 1024,
+    installed: true,
+    verified: true,
+    memoryAdvisoryBytes: null,
+    ...overrides,
+  };
+}
+
+export function imageTargetOption(
+  modelId: LocalModelId,
+  capability: LocalModelCapability,
+  overrides: Partial<ImageOperationTargetOption> = {},
+): ImageOperationTargetOption {
+  return {
+    execution: { type: "local", model: modelId, specId: `${modelId}-spec` },
+    label: modelId,
+    capability,
+    availability: { state: "ready" },
+    selected: false,
+    maximumSide: null,
+    maximumPixels: null,
+    ...overrides,
   };
 }

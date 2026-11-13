@@ -13,6 +13,10 @@ import SpaceNodeSpeechControls from "../SpaceNodeSpeechControls.vue";
 vi.mock("../../../session/space-store", () => ({
   useSpaceStore: () => ({ activeSpaceId: "space", nodes: [] }),
 }));
+vi.mock("../../../../../foundation/runtime/use-local-models-query", () => ({
+  localModelsQueryOptions: { queryKey: ["local-resources", "models"] },
+  useLocalModelsQuery: () => ({ data: { value: [] } }),
+}));
 const SpeechOperation = defineComponent({
   props: { node: { type: Object as PropType<SpaceCanvasNode>, required: true } },
   setup(props) {

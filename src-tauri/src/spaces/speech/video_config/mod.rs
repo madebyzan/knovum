@@ -28,6 +28,7 @@ pub struct VideoDubbingOutputConfig {
     pub preserve_original_outside_dialogue: bool,
     pub source_dialogue_intervals: Vec<SourceDialogueInterval>,
     pub retain_original_track: bool,
+    pub auto_background_separation_model: crate::local_resources::model_catalog::LocalModelId,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
@@ -95,6 +96,12 @@ pub(crate) fn validate(config: &VideoDubbingOutputConfig) -> Result<(), String> 
     {
         return Err("Preserving original ambience requires source dialogue intervals and a separated or source-video background".into());
     }
+    config
+        .auto_background_separation_model
+        .separation_spec()
+        .map_err(|_| {
+            "Video dubbing auto-background requires a source separation model".to_owned()
+        })?;
     separation::validate(config)?;
     if let Some(translation) = &config.translation {
         crate::ai::capabilities::translation::validate_target(&translation.target_language)

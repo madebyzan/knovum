@@ -27,6 +27,8 @@ fn dubbing_keeps_separations_by_any_model_including_retired_ones_and_rejects_for
         preserve_original_outside_dialogue: false,
         source_dialogue_intervals: Vec::new(),
         retain_original_track: true,
+        auto_background_separation_model:
+            crate::local_resources::model_catalog::LocalModelId::HtDemucs,
     };
     assert!(
         validate(&config).is_err(),
@@ -72,6 +74,8 @@ fn auto_video_background_allows_preserving_original_outside_dialogue_without_man
             end_ms: 2_000,
         }],
         retain_original_track: true,
+        auto_background_separation_model:
+            crate::local_resources::model_catalog::LocalModelId::HtDemucs,
     };
     assert!(config.uses_auto_video_background());
     assert!(validate(&config).is_ok());

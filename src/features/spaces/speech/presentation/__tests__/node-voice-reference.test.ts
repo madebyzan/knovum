@@ -2,6 +2,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent } from "vue";
 
+import type * as LocalModelChoice from "../../../../../foundation/ai/local-model-choice";
 import { i18n } from "../../../../../foundation/i18n/instance";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type * as ipc from "../../voice-reference-ipc";
@@ -14,6 +15,10 @@ const { prepare, cancel } = vi.hoisted(() => ({
 vi.mock("@tauri-apps/api/core", () => ({ convertFileSrc: (path: string) => path }));
 vi.mock("../../voice-reference-ipc", () => ({ prepareVoiceReference: prepare }));
 vi.mock("../../ipc", () => ({ cancelSpeechGeneration: cancel }));
+vi.mock("../../../../../foundation/ai/local-model-choice", async (importOriginal) => ({
+  ...(await importOriginal<typeof LocalModelChoice>()),
+  preferredLocalModel: async () => "whisperSmall" as const,
+}));
 const Player = defineComponent({
   name: "SpeechMediaPlayer",
   props: ["kind", "source"],
@@ -70,6 +75,7 @@ it.each(["audio", "video"] as const)(
       startMs: 5_000,
       endMs: 15_000,
       transcript: "Interview",
+      model: "whisperSmall",
     });
     const wrapper = mount(VoiceReferenceEditor, {
       props: { sourceNode: node, language: "en", disabled: false },

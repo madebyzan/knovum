@@ -1,10 +1,13 @@
 import type { Ref } from "vue";
 
+import { aiExecutionTargetPayload, loadAiExecutionTarget } from "../../../foundation/ai/ai-execution";
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { formatBytes } from "../../../foundation/format/bytes";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
+import type { LocalModelId } from "../../../shared/contracts/generated/LocalModelId";
+import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
@@ -34,21 +37,28 @@ interface SpaceMediaActionsContext {
 export function createSpaceMediaActions(context: SpaceMediaActionsContext) {
   let seekNonce = 0;
   let toggleNonce = 0;
-  async function analyzeMedia(nodeId: string) {
+  async function analyzeMedia(nodeId: string, model?: LocalModelId) {
     const spaceId = requireSpace();
-    return requestMediaTranscription(spaceId, nodeId);
+    return requestMediaTranscription(spaceId, nodeId, model);
   }
-  async function generateMediaInsights(nodeId: string, labels: SpaceMediaAnalysisLabels, taskId?: string) {
+  async function generateMediaInsights(
+    nodeId: string,
+    labels: SpaceMediaAnalysisLabels,
+    target: TaskTarget,
+    taskId?: string,
+  ) {
     if (context.analysisIds.value.includes(nodeId)) return;
     const spaceId = requireSpace();
     const expectedRevision = requireKnowledgeRevision(context.nodes.value, nodeId);
+    const selectedTarget = { ...target };
     const jobId = taskId ?? crypto.randomUUID();
     const tasks = useTaskStore();
     beginInsightsTask(tasks, jobId, labels, Boolean(taskId));
     context.analysisIds.value = [...context.analysisIds.value, nodeId];
     try {
+      const executionTarget = await loadAiExecutionTarget("knowledge", selectedTarget);
       const mediaPayload = await generateInsights(
-        { spaceId, nodeId, jobId, expectedRevision },
+        { spaceId, nodeId, jobId, expectedRevision, target: aiExecutionTargetPayload(executionTarget) },
         ({ stage, progress, resources }) =>
           tasks.progress(jobId, progress, formatInsightsStage(labels, stage, resources)),
       );
@@ -59,7 +69,7 @@ export function createSpaceMediaActions(context: SpaceMediaActionsContext) {
         tasks.cancelled(jobId);
       } else {
         if (!taskId) tasks.fail(jobId, getErrorMessage(error));
-        tasks.setRetry(jobId, () => generateMediaInsights(nodeId, labels, jobId));
+        tasks.setRetry(jobId, () => generateMediaInsights(nodeId, labels, selectedTarget, jobId));
         throw error;
       }
     } finally {

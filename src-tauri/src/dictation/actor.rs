@@ -16,6 +16,7 @@ pub(super) enum ActiveSession {
         target: InsertionTarget,
         recorder: Box<Recorder>,
         wav: std::path::PathBuf,
+        model: crate::local_resources::model_catalog::LocalModelId,
     },
     Transcribing {
         id: String,

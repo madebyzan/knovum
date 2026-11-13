@@ -23,6 +23,7 @@ fn automatic_action_projects_one_video_with_distinct_asset_and_knowledge_revisio
         ("id".into(), json!("job")),
         ("spaceId".into(), json!("space")),
         ("outputNodeId".into(), json!("output")),
+        ("transcriptionModel".into(), json!("whisperSmall")),
     ]));
     let decoded: RenderSubtitledVideoRequest =
         serde_json::from_value(Value::Object(request)).unwrap();

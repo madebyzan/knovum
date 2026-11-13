@@ -18,6 +18,7 @@ it("keeps original-interval playback compact while the selected canvas video rem
     preserveOriginalOutsideDialogue: false,
     sourceDialogueIntervals: [],
     retainOriginalTrack: true,
+    autoBackgroundSeparationModel: "htDemucs",
   };
   const wrapper = mount(VideoSourceControls, {
     props: { modelValue: config, lines: [], voiceOptions: [], disabled: false },

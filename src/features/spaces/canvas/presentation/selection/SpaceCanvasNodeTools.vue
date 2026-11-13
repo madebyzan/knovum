@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, toRef } from "vue";
 
+import type { LocalModelId } from "../../../../../shared/contracts/generated/LocalModelId";
 import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
+import { addVideoSubtitles } from "../../../knowledge-derivations/subtitled-video";
 import SpaceNodeTranscriptionAction from "../../../media/presentation/SpaceNodeTranscriptionAction.vue";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import {
@@ -31,7 +33,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   invokeDerivation: [actionId: CreationIntentId];
   beginSpeech: [operation: NodeSpeechOperation];
-  separate: [];
+  separate: [model?: LocalModelId];
 }>();
 const { primary } = useNodePrimaryAction(toRef(props, "node"), props.actions);
 const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(props.node) : []));
@@ -55,7 +57,10 @@ const isMedia = computed(() => props.node?.data.kind === "audio" || props.node?.
     :menu-item="menuItem"
     :can-add-subtitles="derivations['add-video-subtitles'].state === 'ready'"
     @edit="actions.editVideo"
-    @add-subtitles="emit('invokeDerivation', 'add-video-subtitles')"
+    @add-subtitles="
+      (model) =>
+        model && node ? void addVideoSubtitles(node, model) : emit('invokeDerivation', 'add-video-subtitles')
+    "
   />
   <SpaceNodeSpeechActions
     v-if="!minimal && node && speechOperations.length"
@@ -65,7 +70,7 @@ const isMedia = computed(() => props.node?.data.kind === "audio" || props.node?.
     :separating="separating"
     :separation-busy="separationBusy"
     :separation-unavailable-reason="separationUnavailableReason"
-    @separate="emit('separate')"
+    @separate="emit('separate', $event)"
     @begin="emit('beginSpeech', $event)"
   />
   <SpaceNodeTranscriptionAction

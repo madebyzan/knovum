@@ -2,6 +2,7 @@
 //! for its capability and owns that model's preparation, so a missing model surfaces as that pass
 //! failing, not as a half-built stack.
 
+use super::super::ImageLayersModels;
 use crate::{
     ai::{
         contracts::{image_compute::ImageSelectionPoint, image_wire::TensorDataType},
@@ -10,12 +11,7 @@ use crate::{
         },
     },
     foundation::app_error::AppError,
-    local_resources::{
-        model_catalog::{LocalModelCapability, LocalModelId},
-        model_selection,
-        models::snapshots::SnapshotKind,
-        preparation,
-    },
+    local_resources::{model_catalog::LocalModelId, models::snapshots::SnapshotKind, preparation},
     spaces::derivation::image_tensors,
 };
 use image::{
@@ -39,13 +35,13 @@ pub(super) struct Models {
 }
 
 impl Models {
-    pub(super) fn selected(app: &AppHandle) -> Result<Self, String> {
-        use LocalModelCapability as C;
+    pub(super) fn frozen(models: &ImageLayersModels) -> Result<Self, String> {
+        let [saliency, selection, depth, inpainting] = models.model_ids()?;
         Ok(Self {
-            saliency: model_selection::image(app, C::ImageSegmentation)?,
-            selection: model_selection::image(app, C::ImageSelection)?,
-            depth: model_selection::image(app, C::ImageDepth)?,
-            inpainting: model_selection::image(app, C::ImageInpainting)?,
+            saliency,
+            selection,
+            depth,
+            inpainting,
         })
     }
 }

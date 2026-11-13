@@ -17,6 +17,10 @@
     "model": "Ausgeführt mit {provider} · {model}",
     "desktopAgent": "Ausgeführt durch {name} · Desktop-Agent"
   },
+  "modelChoice": {
+    "default": "Standard",
+    "run": "Ausführen"
+  },
   "languages": {
     "zhCn": "Chinesisch (vereinfacht)",
     "zhTw": "Chinesisch (traditionell)",
