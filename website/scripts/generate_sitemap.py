@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate canonical URLs, language alternates, robots sitemap, and XML sitemap."""
+"""Generate canonical URLs, localized metadata, robots sitemap, and XML sitemap."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import argparse
 import re
 import sys
 import xml.etree.ElementTree as ET
+from html import escape as escape_html
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
@@ -47,6 +48,10 @@ def public_url(base_url: str, path: Path) -> str:
     return base_url + "/" + route.lstrip("/")
 
 
+def is_chinese_page(path: Path) -> bool:
+    return path.relative_to(ROOT).parts[0] == "zh"
+
+
 def language_pair(path: Path) -> tuple[Path | None, Path | None]:
     relative = path.relative_to(ROOT)
     if relative.parts and relative.parts[0] == "zh":
@@ -67,34 +72,43 @@ def build_sitemap(base_url: str, pages: list[Path]) -> ET.Element:
         ET.SubElement(entry, f"{{{HTML_NAMESPACE}}}loc").text = public_url(base_url, path)
         english, chinese = language_pair(path)
         if english and chinese:
-            ET.SubElement(
-                entry,
-                f"{{{XHTML_NAMESPACE}}}link",
-                {
-                    "rel": "alternate",
-                    "hreflang": "en",
-                    "href": public_url(base_url, english),
-                },
-            )
-            ET.SubElement(
-                entry,
-                f"{{{XHTML_NAMESPACE}}}link",
-                {
-                    "rel": "alternate",
-                    "hreflang": "zh-CN",
-                    "href": public_url(base_url, chinese),
-                },
-            )
-            ET.SubElement(
-                entry,
-                f"{{{XHTML_NAMESPACE}}}link",
-                {
-                    "rel": "alternate",
-                    "hreflang": "x-default",
-                    "href": public_url(base_url, english),
-                },
-            )
+            for language, target in (
+                ("en", english),
+                ("zh-CN", chinese),
+                ("x-default", english),
+            ):
+                ET.SubElement(
+                    entry,
+                    f"{{{XHTML_NAMESPACE}}}link",
+                    {
+                        "rel": "alternate",
+                        "hreflang": language,
+                        "href": public_url(base_url, target),
+                    },
+                )
     return urlset
+
+
+def upsert_meta(html: str, attribute: str, key: str, value: str, *, required: bool = False) -> str:
+    pattern = re.compile(
+        rf'<meta\s+{re.escape(attribute)}=["\']{re.escape(key)}["\']'
+        rf'\s+content=["\'][^"\']*["\']\s*/?>',
+        re.IGNORECASE,
+    )
+    replacement = (
+        f'<meta {attribute}="{escape_html(key, quote=True)}" '
+        f'content="{escape_html(value, quote=True)}">'
+    )
+    html, count = pattern.subn(lambda _: replacement, html)
+    if count > 1:
+        raise ValueError(f"duplicate meta {attribute}={key}")
+    if count == 0:
+        if required:
+            raise ValueError(f"missing meta {attribute}={key}")
+        if "</head>" not in html:
+            raise ValueError("page has no closing head tag")
+        html = html.replace("</head>", f"  {replacement}\n</head>", 1)
+    return html
 
 
 def configure_html(base_url: str, pages: list[Path]) -> None:
@@ -104,19 +118,44 @@ def configure_html(base_url: str, pages: list[Path]) -> None:
 
     for path in pages:
         html = path.read_text(encoding="utf-8")
+        if re.search(r"<meta\s+<meta\b", html, re.IGNORECASE):
+            raise ValueError(f"{path.relative_to(ROOT)} contains malformed nested meta markup")
+
         html = canonical_pattern.sub("", html)
         html = alternate_pattern.sub("", html)
         html = og_url_pattern.sub("", html)
 
         url = public_url(base_url, path)
-        tags = [f'<link rel="canonical" href="{url}">', f'<meta property="og:url" content="{url}">']
+        image_name = "social-card-zh.png" if is_chinese_page(path) else "social-card.png"
+        image_url = f"{base_url}/assets/{image_name}"
+        image_alt = (
+            "Knovum 中文分享预览图：本地优先的知识工作空间，连接资料、研究与创作。"
+            if is_chinese_page(path)
+            else "Knovum social preview: a local-first workspace for connected knowledge, research, and creation."
+        )
+        locale = "zh_CN" if is_chinese_page(path) else "en_US"
+
+        html = upsert_meta(html, "property", "og:image", image_url, required=True)
+        html = upsert_meta(html, "name", "twitter:image", image_url, required=True)
+        html = upsert_meta(html, "property", "og:image:alt", image_alt)
+        html = upsert_meta(html, "name", "twitter:image:alt", image_alt)
+        html = upsert_meta(html, "property", "og:locale", locale)
+        html = upsert_meta(html, "property", "og:image:type", "image/png")
+        html = upsert_meta(html, "property", "og:image:width", "1200")
+        html = upsert_meta(html, "property", "og:image:height", "630")
+        html = upsert_meta(html, "name", "twitter:card", "summary_large_image")
+
+        tags = [
+            f'<link rel="canonical" href="{escape_html(url, quote=True)}">',
+            f'<meta property="og:url" content="{escape_html(url, quote=True)}">',
+        ]
         english, chinese = language_pair(path)
         if english and chinese:
             tags.extend(
                 [
-                    f'<link rel="alternate" hreflang="en" href="{public_url(base_url, english)}">',
-                    f'<link rel="alternate" hreflang="zh-CN" href="{public_url(base_url, chinese)}">',
-                    f'<link rel="alternate" hreflang="x-default" href="{public_url(base_url, english)}">',
+                    f'<link rel="alternate" hreflang="en" href="{escape_html(public_url(base_url, english), quote=True)}">',
+                    f'<link rel="alternate" hreflang="zh-CN" href="{escape_html(public_url(base_url, chinese), quote=True)}">',
+                    f'<link rel="alternate" hreflang="x-default" href="{escape_html(public_url(base_url, english), quote=True)}">',
                 ]
             )
         if "</head>" not in html:
@@ -135,13 +174,13 @@ def configure_robots(base_url: str, robots_path: Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base-url", required=True, help="Production origin, e.g. https://knovum.app")
+    parser.add_argument("--base-url", required=True, help="Public site URL, e.g. https://knovum.app")
     parser.add_argument("--output", type=Path, default=ROOT / "sitemap.xml")
     parser.add_argument("--robots-output", type=Path, default=ROOT / "robots.txt")
     parser.add_argument(
         "--apply-html",
         action="store_true",
-        help="Write absolute canonical, Open Graph, and hreflang links into each HTML page",
+        help="Write absolute canonical, social image, Open Graph, and hreflang metadata",
     )
     args = parser.parse_args()
 
@@ -163,7 +202,7 @@ def main() -> int:
 
     print(f"Generated {args.output} with {len(pages)} canonical page URLs.")
     if args.apply_html:
-        print(f"Applied canonical and hreflang metadata to {len(pages)} HTML pages.")
+        print(f"Applied canonical, social-image, and hreflang metadata to {len(pages)} HTML pages.")
     print(f"Updated sitemap directive in {args.robots_output}.")
     return 0
 

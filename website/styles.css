@@ -180,8 +180,8 @@ h1 em,h2 em { color: var(--sage-dark); font-family: var(--serif); font-weight: 4
 .footer-bottom { min-height:59px; display:flex; align-items:center; justify-content:space-between; gap:15px; border-top:1px solid var(--line); color:#858d80; font-size:8px; }
 .footer-bottom a { display:inline-flex; align-items:center; gap:9px; color:#606d5d; }
 .footer-bottom a span:last-child { font-size:13px; }
-[data-reveal] { opacity:0; transform:translateY(18px); transition:opacity .75s ease,transform .75s var(--ease); }
-[data-reveal].is-visible { opacity:1; transform:translateY(0); }
+body.js-enabled [data-reveal] { opacity:0; transform:translateY(18px); transition:opacity .75s ease,transform .75s var(--ease); }
+body.js-enabled [data-reveal].is-visible { opacity:1; transform:translateY(0); }
 body.is-ready .hero-copy { animation:hero-copy-in .8s .08s var(--ease) both; }
 body.is-ready .hero-visual { animation:hero-visual-in .95s .16s var(--ease) both; }
 @keyframes hero-copy-in { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
