@@ -41,4 +41,6 @@ Product capabilities, storage behavior, supported platforms, installer names, an
 
 ## Publishing
 
-The directory can be deployed as a static site without a compilation step. Point a static host's publish/output directory at `website/`. A production domain, hosting provider, and DNS are intentionally not assumed here.
+The transition deployment is configured in `.github/workflows/deploy-website.yml`. After merging to `main`, enable **Settings → Pages → Build and deployment → Source = GitHub Actions** once. The workflow generates the GitHub Pages sitemap, canonical URLs, Open Graph URLs, and language alternates, then publishes `website/` automatically to `https://madebyzan.github.io/knovum/`.
+
+When the permanent domain is ready, update the workflow's `--base-url`, configure the custom domain in GitHub Pages, add the DNS records, and verify the new host in Google Search Console and Bing Webmaster Tools. The site remains static and dependency-free.
