@@ -30,6 +30,13 @@ jobs:
         run: node --check website/script.js
       - name: Validate website pages, links, and assets
         run: python3 website/scripts/check_site.py
+      - name: Validate localized social sharing cards
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes librsvg2-bin fonts-noto-cjk
+          rsvg-convert --width 1200 --height 630 --output "$RUNNER_TEMP/social-card.png" website/assets/social-card.svg
+          rsvg-convert --width 1200 --height 630 --output "$RUNNER_TEMP/social-card-zh.png" website/assets/social-card-zh.svg
+          python3 -c "import struct; from pathlib import Path; files=list(Path('$RUNNER_TEMP').glob('social-card*.png')); assert len(files)==2; assert all(struct.unpack('>II', p.read_bytes()[16:24])==(1200,630) for p in files)"
       - name: Smoke-test sitemap and hreflang generation
         run: |
           python3 website/scripts/generate_sitemap.py \
