@@ -34,7 +34,7 @@ packaging = [
   "packageurl-python==0.17.6",
 ]
 contracts = ["datamodel-code-generator==0.83.0"]
-quality = ["mypy==2.4.0", "pydantic==2.13.5", "pytest==9.1.1", "ruff==0.16.10"]
+quality = ["mypy==2.4.1", "pydantic==2.13.5", "pytest==9.1.1", "ruff==0.16.10"]
 
 [tool.ruff]
 target-version = "py311"
