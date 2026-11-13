@@ -1,4 +1,4 @@
-(() => {
+{
   const root = document.documentElement;
   const body = document.body;
   const languageButton = document.querySelector(".language-toggle");
@@ -181,4 +181,4 @@
 
   setLanguage(language);
   globalThis.requestAnimationFrame(() => body.classList.add("is-ready"));
-})();
+}
