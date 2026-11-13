@@ -1,394 +1,213 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f1efe8" />
-    <meta name="color-scheme" content="light" />
-    <meta name="description" content="Knovum is a local-first knowledge workspace for collecting sources, connecting ideas, asking grounded questions, and creating work you can trace back." />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Knovum — A place for everything you're learning." />
-    <meta property="og:description" content="Bring your knowledge together. Make it useful. A local-first workspace for research, learning, and creation." />
-    <meta property="og:image" content="https://raw.githubusercontent.com/madebyzan/knovum/main/docs/assets/readme/screenshot.png" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/madebyzan/knovum/main/public/app-icon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css" />
-    <title>Knovum — A place for everything you're learning.</title>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "Knovum",
-        "applicationCategory": "ProductivityApplication",
-        "operatingSystem": "macOS 14 or later; Windows 10 version 2004 or later",
-        "license": "https://github.com/madebyzan/knovum/blob/main/LICENSE",
-        "downloadUrl": "https://github.com/madebyzan/knovum/releases/latest",
-        "description": "A local-first desktop workspace for gathering, exploring, and creating with your own knowledge."
-      }
-    </script>
-  </head>
-  <body>
-    <a class="skip-link" href="#main" data-en="Skip to content" data-zh="跳转到正文">Skip to content</a>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f2f0e9">
+  <meta name="description" content="Knovum is a local-first workspace for gathering, connecting, and creating with your own knowledge.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Knovum">
+  <meta property="og:title" content="Knovum — Bring your knowledge together.">
+  <meta property="og:description" content="A local-first knowledge workspace for research, learning, and creation.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/madebyzan/knovum/main/docs/assets/readme/screenshot.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/madebyzan/knovum/main/public/app-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;650;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Knovum — Bring your knowledge together.</title>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Knovum",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "macOS 14 or later; Windows 10 version 2004 or later",
+      "license": "https://github.com/madebyzan/knovum/blob/main/LICENSE",
+      "downloadUrl": "https://github.com/madebyzan/knovum/releases/latest",
+      "description": "A local-first desktop workspace for gathering, exploring, and creating with your own knowledge."
+    }
+  </script>
+</head>
+<body data-page="home">
+  <a class="skip-link" href="#main" data-en="Skip to content" data-zh="跳转到正文">Skip to content</a>
+  <div class="reading-progress" aria-hidden="true"><span></span></div>
+  <div class="announcement">
+    <span class="announcement__dot" aria-hidden="true"></span>
+    <p data-en="A calm, capable space for your most important work." data-zh="为重要的思考与创作，留一处从容的空间。">A calm, capable space for your most important work.</p>
+    <a href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"><span data-en="Explore the latest release" data-zh="查看最新版本">Explore the latest release</span><span aria-hidden="true">↗</span></a>
+  </div>
 
-    <div class="announcement">
-      <span class="announcement__mark" aria-hidden="true"></span>
-      <p data-en="A thoughtful workspace for everything you're learning." data-zh="为你正在探索的一切，留一处安静的空间。">A thoughtful workspace for everything you're learning.</p>
-      <a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">
-        <span data-en="Explore the project" data-zh="了解项目">Explore the project</span>
-        <span aria-hidden="true">↗</span>
+  <header class="site-header">
+    <div class="nav-shell">
+      <a class="brand" href="./index.html" aria-label="Knovum home">
+        <img src="https://raw.githubusercontent.com/madebyzan/knovum/main/public/app-icon.png" alt="" width="34" height="34">
+        <span>knovum</span>
       </a>
+      <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-navigation"><span></span><span></span></button>
+      <nav class="primary-nav" id="primary-navigation" aria-label="Main navigation">
+        <a class="nav-link" href="./product.html" data-en="Product" data-zh="产品">Product</a>
+        <a class="nav-link" href="./privacy.html" data-en="Privacy" data-zh="隐私">Privacy</a>
+        <a class="nav-link" href="./download.html" data-en="Download" data-zh="下载">Download</a>
+        <details class="nav-menu">
+          <summary><span data-en="Explore" data-zh="探索">Explore</span><span class="chevron" aria-hidden="true"></span></summary>
+          <div class="nav-menu__panel">
+            <a href="./about.html"><strong data-en="About Knovum" data-zh="关于 Knovum">About Knovum</strong><small data-en="The thinking behind the workspace" data-zh="关于产品的理念与方向">The thinking behind the workspace</small></a>
+            <a href="https://github.com/madebyzan/knovum/tree/main/docs" target="_blank" rel="noreferrer"><strong data-en="Documentation" data-zh="项目文档">Documentation</strong><small data-en="Guides, concepts, and technical details" data-zh="使用指南、产品概念与技术细节">Guides, concepts, and technical details</small></a>
+            <a href="https://github.com/madebyzan/knovum/releases" target="_blank" rel="noreferrer"><strong data-en="Release notes" data-zh="版本记录">Release notes</strong><small data-en="What's new in Knovum" data-zh="了解每个版本的新变化">What's new in Knovum</small></a>
+          </div>
+        </details>
+        <a class="nav-link nav-github" href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
+      <div class="nav-actions">
+        <button class="language-toggle" type="button" aria-label="Switch language">中文</button>
+        <a class="button button--small button--dark" href="./download.html"><span data-en="Get Knovum" data-zh="获取 Knovum">Get Knovum</span><span aria-hidden="true">↗</span></a>
+      </div>
     </div>
+  </header>
 
-    <header class="site-header" id="top">
-      <div class="nav-shell">
-        <a class="brand" href="#top" aria-label="Knovum home">
-          <img src="https://raw.githubusercontent.com/madebyzan/knovum/main/public/app-icon.png" alt="" width="34" height="34" />
-          <span>knovum</span>
-        </a>
-
-        <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-navigation">
-          <span></span><span></span>
-        </button>
-
-        <nav class="primary-nav" id="primary-navigation" aria-label="Main navigation">
-          <a href="#workspace" data-en="Workspace" data-zh="工作空间">Workspace</a>
-          <a href="#how-it-works" data-en="How it works" data-zh="使用方式">How it works</a>
-          <a href="#privacy" data-en="Privacy" data-zh="隐私">Privacy</a>
-          <a href="#faq" data-en="FAQ" data-zh="常见问题">FAQ</a>
-          <a class="nav-github" href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">
-            GitHub <span aria-hidden="true">↗</span>
-          </a>
-        </nav>
-
-        <div class="nav-actions">
-          <button class="language-toggle" type="button" aria-label="Switch language">中文</button>
-          <a class="button button--small button--dark" href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer">
-            <span data-en="Get Knovum" data-zh="获取 Knovum">Get Knovum</span>
-            <span aria-hidden="true">↗</span>
-          </a>
+  <main id="main">
+    <section class="hero section-wrap">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="eyebrow__line"></span><span data-en="A LOCAL-FIRST KNOWLEDGE WORKSPACE" data-zh="本地优先的知识工作空间">A LOCAL-FIRST KNOWLEDGE WORKSPACE</span></div>
+        <h1><span data-en="Bring your knowledge" data-zh="让知识汇聚">Bring your knowledge</span><br><em data-en="into focus." data-zh="让思路清晰。">into focus.</em></h1>
+        <p class="hero-lede" data-en="A considered space for the things you collect, the connections you make, and the work that grows from them. All on your device." data-zh="为你收集的资料、建立的联系，以及由此生长的作品，提供一个有条理的空间。所有内容都在你的设备上。">A considered space for the things you collect, the connections you make, and the work that grows from them. All on your device.</p>
+        <div class="hero-actions">
+          <a class="button button--dark" href="./download.html"><span data-en="Discover Knovum" data-zh="了解并获取 Knovum">Discover Knovum</span><span class="button-arrow" aria-hidden="true">↗</span></a>
+          <a class="text-link" href="./product.html"><span data-en="Explore the workspace" data-zh="探索工作空间">Explore the workspace</span><span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-meta">
+          <span><i aria-hidden="true">✳</i><span data-en="Free & open source" data-zh="免费开源">Free & open source</span></span>
+          <span><i aria-hidden="true">⌂</i><span data-en="No account required" data-zh="无需注册账号">No account required</span></span>
+          <span><i aria-hidden="true">◉</i><span data-en="Your library stays local" data-zh="资料库保存在本地">Your library stays local</span></span>
         </div>
       </div>
-    </header>
-
-    <main id="main">
-      <section class="hero section-wrap">
-        <div class="hero-copy">
-          <div class="eyebrow"><span class="eyebrow__line"></span><span data-en="A LOCAL-FIRST KNOWLEDGE WORKSPACE" data-zh="本地优先的知识工作空间">A LOCAL-FIRST KNOWLEDGE WORKSPACE</span></div>
-          <h1>
-            <span data-en="Give your ideas" data-zh="让你的想法">Give your ideas</span>
-            <br />
-            <em data-en="room to grow." data-zh="自由生长。">room to grow.</em>
-          </h1>
-          <p class="hero-lede" data-en="Knovum brings your notes, research, media, and ideas into one living space — so you can connect what you know and create what comes next." data-zh="Knovum 将笔记、研究资料、媒体与想法汇聚到一个持续生长的空间，让你连接已有认知，并创造下一步。">Knovum brings your notes, research, media, and ideas into one living space — so you can connect what you know and create what comes next.</p>
-          <div class="hero-actions">
-            <a class="button button--dark" href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer">
-              <span data-en="Download Knovum" data-zh="下载 Knovum">Download Knovum</span>
-              <span class="button__arrow" aria-hidden="true">↗</span>
-            </a>
-            <a class="text-link" href="#workspace">
-              <span data-en="Explore the workspace" data-zh="探索工作空间">Explore the workspace</span>
-              <span aria-hidden="true">↓</span>
-            </a>
-          </div>
-          <div class="hero-notes">
-            <span><i aria-hidden="true">✳</i><span data-en="Free & open source" data-zh="免费开源">Free & open source</span></span>
-            <span><i aria-hidden="true">⌂</i><span data-en="No account required" data-zh="无需注册账号">No account required</span></span>
-            <span><i aria-hidden="true">◉</i><span data-en="Your data stays local" data-zh="数据留在本机">Your data stays local</span></span>
-          </div>
+      <div class="hero-visual" data-reveal>
+        <div class="visual-label"><span><i class="status-dot"></i><span data-en="THE KNOVUM WORKSPACE" data-zh="KNOVUM 工作空间">THE KNOVUM WORKSPACE</span></span><span>01 / 05</span></div>
+        <div class="product-frame">
+          <img src="https://raw.githubusercontent.com/madebyzan/knovum/main/docs/assets/readme/screenshot.png" alt="Knovum desktop workspace with source material, connected knowledge objects, and an answer with citations." width="1600" height="1000" fetchpriority="high">
         </div>
+        <div class="visual-caption"><span data-en="A living space for your knowledge." data-zh="让知识在一个空间里持续生长。">A living space for your knowledge.</span><span data-en="Real product · Current interface" data-zh="真实产品 · 当前界面">Real product · Current interface</span></div>
+        <span class="visual-index" aria-hidden="true">K / 01</span>
+      </div>
+    </section>
 
-        <div class="hero-art reveal">
-          <div class="art-topline">
-            <span><span class="status-dot"></span><span data-en="A SPACE OF YOUR OWN" data-zh="属于你的空间">A SPACE OF YOUR OWN</span></span>
-            <span>KNOVUM / 01</span>
-          </div>
-          <div class="app-window">
-            <img
-              src="https://raw.githubusercontent.com/madebyzan/knovum/main/docs/assets/readme/screenshot.png"
-              alt="Knovum desktop workspace showing connected sources, evidence, a knowledge canvas, and an answer with source citations."
-              width="1600"
-              height="1000"
-              fetchpriority="high"
-            />
-          </div>
-          <div class="art-caption">
-            <span data-en="Your sources, connected." data-zh="让资料彼此连接。">Your sources, connected.</span>
-            <span data-en="One canvas. Many ways forward." data-zh="一张画布，更多可能。">One canvas. Many ways forward.</span>
-          </div>
-          <div class="art-index" aria-hidden="true">K / 01</div>
-        </div>
-      </section>
+    <section class="principle-rail" aria-label="Knovum principles">
+      <div class="principle-rail__inner">
+        <span data-en="THINK IN CONTEXT" data-zh="在上下文中思考">THINK IN CONTEXT</span><i></i>
+        <span data-en="FOLLOW THE SOURCES" data-zh="让来源清晰可循">FOLLOW THE SOURCES</span><i></i>
+        <span data-en="KEEP YOUR DATA CLOSE" data-zh="让数据留在身边">KEEP YOUR DATA CLOSE</span><i></i>
+        <span data-en="CREATE WITH INTENTION" data-zh="有意识地创造">CREATE WITH INTENTION</span>
+      </div>
+    </section>
 
-      <section class="proof-strip" aria-label="Knovum principles">
-        <div class="proof-strip__inner">
-          <span data-en="THINK IN CONTEXT" data-zh="在上下文中思考">THINK IN CONTEXT</span>
-          <span class="proof-divider" aria-hidden="true"></span>
-          <span data-en="FOLLOW THE SOURCES" data-zh="让来源清晰可循">FOLLOW THE SOURCES</span>
-          <span class="proof-divider" aria-hidden="true"></span>
-          <span data-en="KEEP WHAT MATTERS" data-zh="留住真正重要的东西">KEEP WHAT MATTERS</span>
-          <span class="proof-divider" aria-hidden="true"></span>
-          <span data-en="CREATE WITH INTENTION" data-zh="有意识地创造">CREATE WITH INTENTION</span>
-        </div>
-      </section>
-
-      <section class="intro section-wrap" id="workspace">
-        <div class="section-kicker"><span>01</span><span data-en="THE WORKSPACE" data-zh="工作空间">THE WORKSPACE</span></div>
-        <div class="intro-grid">
-          <h2 data-en="Not another place to ask. A place to think." data-zh="不只是提问的地方，更是认真思考的地方。">Not another place to ask. A place to think.</h2>
-          <div class="intro-copy">
-            <p data-en="Most work starts with fragments: a paper, a saved page, a passing thought, a conversation. Knovum gives those fragments somewhere to meet — and gives the ideas that emerge somewhere to live." data-zh="很多工作都始于碎片：一篇论文、一个网页、一闪而过的念头，或一段对话。Knovum 让这些碎片相遇，也让由此产生的想法有处安放。">Most work starts with fragments: a paper, a saved page, a passing thought, a conversation. Knovum gives those fragments somewhere to meet — and gives the ideas that emerge somewhere to live.</p>
-            <a class="underlined-link" href="#how-it-works">
-              <span data-en="See how it comes together" data-zh="看看它如何串联一切">See how it comes together</span>
-              <span aria-hidden="true">↗</span>
-            </a>
-          </div>
-        </div>
-
-        <div class="feature-grid">
-          <article class="feature feature--large">
-            <div class="feature__head">
-              <span class="feature-number">01 / SPACES</span>
-              <span class="feature-symbol" aria-hidden="true">⌘</span>
-            </div>
-            <h3 data-en="A canvas for the way you think." data-zh="一张顺着思路展开的画布。">A canvas for the way you think.</h3>
-            <p data-en="Bring notes, webpages, PDFs, recordings, video, images, and code into one visual space. Arrange them freely, group related material, and let connections become visible." data-zh="将笔记、网页、PDF、录音、视频、图片和代码放进同一个可视空间。自由排列、归组，让材料之间的联系逐渐清晰。">Bring notes, webpages, PDFs, recordings, video, images, and code into one visual space. Arrange them freely, group related material, and let connections become visible.</p>
-            <div class="feature-foot"><span data-en="ONE SPACE, MANY FORMATS" data-zh="一个空间，多种格式">ONE SPACE, MANY FORMATS</span><span aria-hidden="true">↗</span></div>
-          </article>
-
-          <article class="feature">
-            <div class="feature__head">
-              <span class="feature-number">02 / ANSWERS</span>
-              <span class="feature-symbol feature-symbol--quote" aria-hidden="true">“</span>
-            </div>
-            <h3 data-en="Answers with a way back." data-zh="每个答案，都有迹可循。">Answers with a way back.</h3>
-            <p data-en="Ask questions about your own material. Follow citations back to the exact passage, PDF page, or moment in a recording." data-zh="围绕自己的资料提问。通过引用回到准确的原文段落、PDF 页码，或录音中的具体时间点。">Ask questions about your own material. Follow citations back to the exact passage, PDF page, or moment in a recording.</p>
-            <div class="feature-foot"><span data-en="SOURCE-GROUNDED" data-zh="基于来源">SOURCE-GROUNDED</span><span aria-hidden="true">↗</span></div>
-          </article>
-
-          <article class="feature">
-            <div class="feature__head">
-              <span class="feature-number">03 / SEARCH</span>
-              <span class="feature-symbol" aria-hidden="true">⌕</span>
-            </div>
-            <h3 data-en="Find the thread, not just the word." data-zh="找到线索，而不只是关键词。">Find the thread, not just the word.</h3>
-            <p data-en="Search by exact terms or by meaning across one Space or your entire library. Your semantic index runs on your machine." data-zh="在单个 Space 或整个资料库中，按关键词或语义查找。语义索引在你的设备上运行。">Search by exact terms or by meaning across one Space or your entire library. Your semantic index runs on your machine.</p>
-            <div class="feature-foot"><span data-en="LOCAL SEARCH" data-zh="本地搜索">LOCAL SEARCH</span><span aria-hidden="true">↗</span></div>
-          </article>
-
-          <article class="feature">
-            <div class="feature__head">
-              <span class="feature-number">04 / CREATION</span>
-              <span class="feature-symbol" aria-hidden="true">✳</span>
-            </div>
-            <h3 data-en="Make something from what you know." data-zh="把已有认知，变成新的作品。">Make something from what you know.</h3>
-            <p data-en="Turn selected material into documents and media. Keep a record of the sources, revisions, and tools behind every result." data-zh="将选中的资料转化为文档与媒体，并保留每个结果背后的来源、版本和工具记录。">Turn selected material into documents and media. Keep a record of the sources, revisions, and tools behind every result.</p>
-            <div class="feature-foot"><span data-en="TRACEABLE CREATION" data-zh="创作过程可追溯">TRACEABLE CREATION</span><span aria-hidden="true">↗</span></div>
-          </article>
-
-          <article class="feature feature--wide">
-            <div class="feature__head">
-              <span class="feature-number">05 / YOUR TOOLCHAIN</span>
-              <span class="feature-symbol" aria-hidden="true">⌁</span>
-            </div>
-            <div class="feature-wide-content">
-              <div>
-                <h3 data-en="Bring the tools you already trust." data-zh="连接你一直信任的工具。">Bring the tools you already trust.</h3>
-                <p data-en="Choose a model provider, connect a compatible local endpoint, or hand work to a desktop Agent. Knovum stays focused on your knowledge — not on locking you into a model." data-zh="选择已有的模型服务商，连接兼容的本地端点，或交给桌面 Agent 处理。Knovum 始终围绕你的知识展开，而不是把你锁定在某个模型里。">Choose a model provider, connect a compatible local endpoint, or hand work to a desktop Agent. Knovum stays focused on your knowledge — not on locking you into a model.</p>
-              </div>
-              <div class="provider-list" aria-label="Supported provider examples">
-                <span>OpenAI</span><span>Anthropic</span><span>Gemini</span><span>DeepSeek</span><span>Ollama</span><span>OpenRouter</span><span>ACP</span><span>MCP</span>
-              </div>
-            </div>
-            <div class="feature-foot"><span data-en="YOUR CHOICE, YOUR WORKFLOW" data-zh="你的选择，你的工作流">YOUR CHOICE, YOUR WORKFLOW</span><span aria-hidden="true">↗</span></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="workflow-section" id="how-it-works">
-        <div class="section-wrap workflow-shell">
-          <div class="section-kicker section-kicker--light"><span>02</span><span data-en="A NATURAL FLOW" data-zh="自然的工作流">A NATURAL FLOW</span></div>
-          <div class="workflow-heading">
-            <h2 data-en="From scattered sources to considered work." data-zh="从分散资料，到有据可依的成果。">From scattered sources to considered work.</h2>
-            <p data-en="A simple rhythm for research, learning, and making." data-zh="为研究、学习与创作建立一种自然节奏。">A simple rhythm for research, learning, and making.</p>
-          </div>
-
-          <div class="workflow-layout">
-            <div class="workflow-steps">
-              <article class="workflow-step">
-                <span class="workflow-step__number">01</span>
-                <div>
-                  <h3 data-en="Collect without overthinking." data-zh="先收集，不必急着整理。">Collect without overthinking.</h3>
-                  <p data-en="Save a link, drop in a file, add a note, or bring in a recording. Everything has a place to land." data-zh="保存链接、拖入文件、写下笔记，或导入录音。所有内容都有一个可以暂存的地方。">Save a link, drop in a file, add a note, or bring in a recording. Everything has a place to land.</p>
-                </div>
-              </article>
-              <article class="workflow-step">
-                <span class="workflow-step__number">02</span>
-                <div>
-                  <h3 data-en="Arrange what belongs together." data-zh="把有关联的内容放在一起。">Arrange what belongs together.</h3>
-                  <p data-en="Shape a Space with sections, groups, and meaningful connections between ideas, claims, and evidence." data-zh="用分区、分组，以及想法、主张和证据之间的关联，逐步搭建自己的 Space。">Shape a Space with sections, groups, and meaningful connections between ideas, claims, and evidence.</p>
-                </div>
-              </article>
-              <article class="workflow-step">
-                <span class="workflow-step__number">03</span>
-                <div>
-                  <h3 data-en="Explore, then verify." data-zh="深入探索，再回到来源核对。">Explore, then verify.</h3>
-                  <p data-en="Search across your library, ask questions, and inspect the passages behind an answer before you rely on it." data-zh="搜索整个资料库、提出问题，并在采纳答案前检查它所依据的原始段落。">Search across your library, ask questions, and inspect the passages behind an answer before you rely on it.</p>
-                </div>
-              </article>
-              <article class="workflow-step">
-                <span class="workflow-step__number">04</span>
-                <div>
-                  <h3 data-en="Create, with the context intact." data-zh="保留上下文，继续创造。">Create, with the context intact.</h3>
-                  <p data-en="Turn a selection into a document, image, video, or voice track — and keep its path back to the source." data-zh="将选中内容变成文档、图片、视频或语音，同时保留通往来源的线索。">Turn a selection into a document, image, video, or voice track — and keep its path back to the source.</p>
-                </div>
-              </article>
-            </div>
-
-            <figure class="workflow-visual reveal">
-              <img
-                src="https://raw.githubusercontent.com/madebyzan/knovum/main/docs/assets/readme/source-to-work.png"
-                alt="A visual overview of the Knovum process: collect sources, connect ideas, ask questions, and create traceable work."
-                loading="lazy"
-                width="1600"
-                height="1000"
-              />
-              <figcaption>
-                <span data-en="THE KNOWLEDGE LOOP" data-zh="知识的循环">THE KNOWLEDGE LOOP</span>
-                <span data-en="01 — 04" data-zh="01 — 04">01 — 04</span>
-              </figcaption>
-            </figure>
-          </div>
-        </div>
-      </section>
-
-      <section class="privacy-section section-wrap" id="privacy">
-        <div class="section-kicker"><span>03</span><span data-en="BUILT AROUND TRUST" data-zh="以信任为基础">BUILT AROUND TRUST</span></div>
-        <div class="privacy-grid">
-          <div class="privacy-lead">
-            <p class="privacy-overline" data-en="YOUR KNOWLEDGE IS PERSONAL." data-zh="你的知识，属于你自己。">YOUR KNOWLEDGE IS PERSONAL.</p>
-            <h2><span data-en="Your library." data-zh="你的资料库。">Your library.</span><br /><em data-en="Your machine." data-zh="你的设备。">Your machine.</em></h2>
-            <p class="privacy-summary" data-en="Knovum is local-first by design. Your Spaces, files, extracted text, search indexes, and backups live in local application data — not in a Knovum cloud." data-zh="Knovum 从设计之初就采用本地优先架构。你的 Spaces、文件、提取文本、搜索索引和备份都保存在本地应用数据中，而不是 Knovum 云端。">Knovum is local-first by design. Your Spaces, files, extracted text, search indexes, and backups live in local application data — not in a Knovum cloud.</p>
-          </div>
-
-          <div class="privacy-points">
-            <article class="privacy-point">
-              <span class="privacy-point__icon" aria-hidden="true">⌂</span>
-              <div>
-                <h3 data-en="No account. No Knovum cloud." data-zh="无需账号，也没有 Knovum 云服务。">No account. No Knovum cloud.</h3>
-                <p data-en="Start using Knovum without signing up or handing your library to a hosted service." data-zh="无需注册，也不必把自己的资料库交给托管服务。">Start using Knovum without signing up or handing your library to a hosted service.</p>
-              </div>
-            </article>
-            <article class="privacy-point">
-              <span class="privacy-point__icon" aria-hidden="true">◉</span>
-              <div>
-                <h3 data-en="Local capabilities, on your device." data-zh="本地能力，在你的设备上运行。">Local capabilities, on your device.</h3>
-                <p data-en="Editing, keyword and semantic search, transcription, OCR, and supported speech and image tools can run locally after their models are downloaded." data-zh="编辑、关键词与语义搜索、转录、OCR，以及支持的语音和图像工具，在下载模型后都可以在本机运行。">Editing, keyword and semantic search, transcription, OCR, and supported speech and image tools can run locally after their models are downloaded.</p>
-              </div>
-            </article>
-            <article class="privacy-point">
-              <span class="privacy-point__icon" aria-hidden="true">↗</span>
-              <div>
-                <h3 data-en="Cloud AI stays your choice." data-zh="是否使用云端 AI，由你决定。">Cloud AI stays your choice.</h3>
-                <p data-en="When you choose a cloud model, Knovum sends only the context needed for that task to the provider you selected. Their terms and settings apply." data-zh="当你选择云端模型时，Knovum 只会向你选定的服务商发送完成该任务所需的上下文。数据处理遵循该服务商的条款与设置。">When you choose a cloud model, Knovum sends only the context needed for that task to the provider you selected. Their terms and settings apply.</p>
-              </div>
-            </article>
-          </div>
-        </div>
-        <div class="privacy-footnote">
-          <span data-en="OPEN SOURCE · MIT LICENSE" data-zh="开放源代码 · MIT 许可证">OPEN SOURCE · MIT LICENSE</span>
-          <a href="https://github.com/madebyzan/knovum/blob/main/LICENSE" target="_blank" rel="noreferrer"><span data-en="Read the license" data-zh="查看许可证">Read the license</span><span aria-hidden="true">↗</span></a>
-        </div>
-      </section>
-
-      <section class="download-section">
-        <div class="download-orbit" aria-hidden="true"></div>
-        <div class="download-inner section-wrap">
-          <div class="section-kicker section-kicker--light"><span>04</span><span data-en="MAKE SPACE FOR WHAT'S NEXT" data-zh="为下一步，留出空间">MAKE SPACE FOR WHAT'S NEXT</span></div>
-          <p class="download-pretitle" data-en="A LITTLE MORE ROOM TO THINK." data-zh="给思考多一点空间。">A LITTLE MORE ROOM TO THINK.</p>
-          <h2 data-en="Bring your knowledge together." data-zh="让知识汇聚，让想法发生。">Bring your knowledge together.</h2>
-          <p class="download-lede" data-en="Free, open source, and ready for your desktop." data-zh="免费、开源，为桌面工作而生。">Free, open source, and ready for your desktop.</p>
-          <div class="download-actions">
-            <a class="button button--cream" href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer">
-              <span data-en="Download the latest release" data-zh="下载最新版本">Download the latest release</span>
-              <span aria-hidden="true">↗</span>
-            </a>
-            <a class="download-source-link" href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">
-              <span data-en="View source on GitHub" data-zh="在 GitHub 查看源代码">View source on GitHub</span>
-              <span aria-hidden="true">↗</span>
-            </a>
-          </div>
-          <div class="platforms">
-            <div class="platform">
-              <span class="platform__icon" aria-hidden="true">⌘</span>
-              <div><strong>macOS</strong><span data-en="14 or later · Apple Silicon & Intel" data-zh="14 或更新版本 · Apple 芯片与 Intel">14 or later · Apple Silicon & Intel</span></div>
-            </div>
-            <div class="platform">
-              <span class="platform__icon platform__icon--windows" aria-hidden="true">▦</span>
-              <div><strong>Windows</strong><span data-en="10 (version 2004+) · x64" data-zh="10（版本 2004+）· x64">10 (version 2004+) · x64</span></div>
-            </div>
-          </div>
-          <p class="download-note" data-en="Installers are not yet notarized by Apple or Authenticode-signed. Your operating system may ask you to confirm the first launch." data-zh="安装包目前尚未通过 Apple 公证或 Authenticode 签名。首次启动时，操作系统可能会要求你确认。">Installers are not yet notarized by Apple or Authenticode-signed. Your operating system may ask you to confirm the first launch.</p>
-        </div>
-      </section>
-
-      <section class="faq-section section-wrap" id="faq">
-        <div class="section-kicker"><span>05</span><span data-en="GOOD TO KNOW" data-zh="你可能还想了解">GOOD TO KNOW</span></div>
-        <div class="faq-layout">
-          <div class="faq-heading">
-            <h2 data-en="A few things, clearly answered." data-zh="关于 Knovum，几个清晰的答案。">A few things, clearly answered.</h2>
-            <p data-en="Still curious? The project documentation is open to everyone." data-zh="还有其他疑问？项目文档对所有人开放。">Still curious? The project documentation is open to everyone.</p>
-            <a class="underlined-link" href="https://github.com/madebyzan/knovum/tree/main/docs" target="_blank" rel="noreferrer"><span data-en="Read the documentation" data-zh="阅读项目文档">Read the documentation</span><span aria-hidden="true">↗</span></a>
-          </div>
-          <div class="faq-list">
-            <details class="faq-item" open>
-              <summary><span data-en="Does Knovum work offline?" data-zh="Knovum 可以离线使用吗？">Does Knovum work offline?</span><span class="faq-plus" aria-hidden="true"></span></summary>
-              <p data-en="Yes. Editing, organizing, keyword and semantic search, transcription, speaker recognition, OCR, speech synthesis, and the listed on-device image tools run on your machine once their models are downloaded. Cloud-model actions need an internet connection." data-zh="可以。下载所需模型后，编辑、整理、关键词与语义搜索、转录、说话人识别、OCR、语音合成及列出的本地图像工具都能在本机运行。只有调用云端模型的操作需要网络连接。">Yes. Editing, organizing, keyword and semantic search, transcription, speaker recognition, OCR, speech synthesis, and the listed on-device image tools run on your machine once their models are downloaded. Cloud-model actions need an internet connection.</p>
-            </details>
-            <details class="faq-item">
-              <summary><span data-en="Do I need an AI account?" data-zh="我需要 AI 服务账号吗？">Do I need an AI account?</span><span class="faq-plus" aria-hidden="true"></span></summary>
-              <p data-en="No account is needed to use Knovum or its local capabilities. AI answers and generation require a model connection: a cloud provider, a compatible local endpoint, or a desktop Agent." data-zh="使用 Knovum 及其本地功能不需要任何账号。AI 问答与生成需要连接模型服务，可以是云端服务商、兼容的本地端点，或桌面 Agent。">No account is needed to use Knovum or its local capabilities. AI answers and generation require a model connection: a cloud provider, a compatible local endpoint, or a desktop Agent.</p>
-            </details>
-            <details class="faq-item">
-              <summary><span data-en="Where is my data stored?" data-zh="我的数据存储在哪里？">Where is my data stored?</span><span class="faq-plus" aria-hidden="true"></span></summary>
-              <p data-en="Your library lives in local application data. Knovum does not operate a cloud service or upload your library. When you deliberately use a cloud model, the context required for that task is sent to the provider you selected." data-zh="你的资料库存储在本地应用数据中。Knovum 不运营云服务，也不会上传你的整个资料库。当你主动使用云端模型时，只有该任务所需的上下文会发送给你选定的服务商。">Your library lives in local application data. Knovum does not operate a cloud service or upload your library. When you deliberately use a cloud model, the context required for that task is sent to the provider you selected.</p>
-            </details>
-            <details class="faq-item">
-              <summary><span data-en="What can I bring into a Space?" data-zh="我可以向 Space 添加哪些内容？">What can I bring into a Space?</span><span class="faq-plus" aria-hidden="true"></span></summary>
-              <p data-en="Notes, webpages, YouTube and other supported video links, recordings, PDFs, Office documents, images, code, and ordinary files. You can also import and export canvases in the open JSON Canvas format." data-zh="笔记、网页、YouTube 等受支持的视频链接、录音、PDF、Office 文档、图片、代码和普通文件。你也可以通过开放的 JSON Canvas 格式导入和导出画布。">Notes, webpages, YouTube and other supported video links, recordings, PDFs, Office documents, images, code, and ordinary files. You can also import and export canvases in the open JSON Canvas format.</p>
-            </details>
-            <details class="faq-item">
-              <summary><span data-en="Is Knovum free and open source?" data-zh="Knovum 是免费开源软件吗？">Is Knovum free and open source?</span><span class="faq-plus" aria-hidden="true"></span></summary>
-              <p data-en="Yes. Knovum is free and open-source software under the MIT License. You can use, inspect, modify, and distribute it under the terms of that license." data-zh="是的。Knovum 是基于 MIT 许可证发布的免费开源软件。你可以根据许可证条款使用、查看、修改和分发它。">Yes. Knovum is free and open-source software under the MIT License. You can use, inspect, modify, and distribute it under the terms of that license.</p>
-            </details>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <div class="footer-main section-wrap">
-        <div class="footer-brand">
-          <a class="brand brand--footer" href="#top">
-            <img src="https://raw.githubusercontent.com/madebyzan/knovum/main/public/app-icon.png" alt="" width="32" height="32" />
-            <span>knovum</span>
-          </a>
-          <p data-en="Bring your knowledge together. Make it useful." data-zh="让知识汇聚，让它真正有用。">Bring your knowledge together. Make it useful.</p>
-        </div>
-        <div class="footer-links">
-          <div><span class="footer-label" data-en="EXPLORE" data-zh="探索">EXPLORE</span><a href="#workspace" data-en="Workspace" data-zh="工作空间">Workspace</a><a href="#how-it-works" data-en="How it works" data-zh="使用方式">How it works</a><a href="#privacy" data-en="Privacy" data-zh="隐私">Privacy</a></div>
-          <div><span class="footer-label" data-en="PROJECT" data-zh="项目">PROJECT</span><a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer" data-en="Releases" data-zh="版本发布">Releases</a><a href="https://github.com/madebyzan/knovum/blob/main/LICENSE" target="_blank" rel="noreferrer" data-en="MIT License" data-zh="MIT 许可证">MIT License</a></div>
+    <section class="section-wrap section-block home-intro">
+      <div class="section-kicker"><span>01</span><span data-en="A BETTER PLACE TO THINK" data-zh="更好的思考空间">A BETTER PLACE TO THINK</span></div>
+      <div class="split-heading">
+        <h2 data-en="Your work is more than a collection of files." data-zh="你的工作，不只是文件的集合。">Your work is more than a collection of files.</h2>
+        <div class="split-copy">
+          <p data-en="A useful idea rarely arrives all at once. It takes shape across articles, notes, conversations, recordings, and half-finished thoughts. Knovum gives them a shared context — so the next connection is easier to see." data-zh="一个真正有用的想法，很少一次成形。它散落在文章、笔记、对话、录音和未完成的思绪里。Knovum 为它们建立共同的上下文，让下一条联系更容易浮现。">A useful idea rarely arrives all at once. It takes shape across articles, notes, conversations, recordings, and half-finished thoughts. Knovum gives them a shared context — so the next connection is easier to see.</p>
+          <a class="underlined-link" href="./product.html"><span data-en="Meet your workspace" data-zh="认识你的工作空间">Meet your workspace</span><span aria-hidden="true">↗</span></a>
         </div>
       </div>
-      <div class="footer-bottom section-wrap">
-        <span>© <span id="year"></span> Knovum</span>
-        <span data-en="Made for curious minds." data-zh="为好奇心而造。">Made for curious minds.</span>
-        <a href="#top"><span data-en="Back to top" data-zh="返回顶部">Back to top</span><span aria-hidden="true">↑</span></a>
+      <div class="home-feature-grid">
+        <article class="home-feature home-feature--tall">
+          <div class="feature-top"><span>01 / SPACE</span><span class="feature-glyph" aria-hidden="true">⌘</span></div>
+          <h3 data-en="A canvas that makes room for your thinking." data-zh="一张为思考留出空间的画布。">A canvas that makes room for your thinking.</h3>
+          <p data-en="Bring mixed media into one visual space. Arrange freely, group related material, and connect ideas with evidence." data-zh="把多种媒体放进同一个可视空间。自由排列、整理相关资料，并用证据连接想法。">Bring mixed media into one visual space. Arrange freely, group related material, and connect ideas with evidence.</p>
+          <a class="feature-more" href="./product.html#spaces"><span data-en="Explore Spaces" data-zh="探索 Spaces">Explore Spaces</span><span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="home-feature">
+          <div class="feature-top"><span>02 / UNDERSTAND</span><span class="feature-glyph" aria-hidden="true">“</span></div>
+          <h3 data-en="Answers that show their work." data-zh="每个答案，都交代依据。">Answers that show their work.</h3>
+          <p data-en="Ask about your material and follow citations to the exact passage, PDF page, or timestamp." data-zh="围绕自己的资料提问，并通过引用回到准确段落、PDF 页码或录音时间点。">Ask about your material and follow citations to the exact passage, PDF page, or timestamp.</p>
+          <a class="feature-more" href="./product.html#grounded-answers"><span data-en="Explore grounded answers" data-zh="了解引用溯源">Explore grounded answers</span><span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="home-feature">
+          <div class="feature-top"><span>03 / CREATE</span><span class="feature-glyph" aria-hidden="true">✳</span></div>
+          <h3 data-en="New work, with its context intact." data-zh="保留上下文，创造新的成果。">New work, with its context intact.</h3>
+          <p data-en="Make documents and media from selected knowledge, with a record of the sources and revisions behind them." data-zh="从选中的知识创建文档与媒体，并保留背后的来源和版本记录。">Make documents and media from selected knowledge, with a record of the sources and revisions behind them.</p>
+          <a class="feature-more" href="./product.html#creation"><span data-en="Explore creation" data-zh="了解内容创作">Explore creation</span><span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="home-feature home-feature--wide">
+          <div class="wide-feature-copy">
+            <div class="feature-top"><span>04 / LOCAL-FIRST</span><span class="feature-glyph" aria-hidden="true">⌂</span></div>
+            <h3 data-en="Your knowledge belongs with you." data-zh="你的知识，始终由你掌握。">Your knowledge belongs with you.</h3>
+            <p data-en="Your library is stored on your device. Use local capabilities where available, and choose when a task should involve a cloud provider." data-zh="你的资料库存储在本地设备。可用的本地能力尽可能在设备上运行；是否让任务使用云端服务商，由你选择。">Your library is stored on your device. Use local capabilities where available, and choose when a task should involve a cloud provider.</p>
+            <a class="feature-more" href="./privacy.html"><span data-en="Understand the privacy model" data-zh="了解隐私机制">Understand the privacy model</span><span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="wide-feature-note" aria-label="Local-first architecture">
+            <span class="orbit orbit--one"></span><span class="orbit orbit--two"></span><span class="orbit orbit--three"></span>
+            <div class="local-core"><span>YOUR<br>SPACE</span><small data-en="ON YOUR DEVICE" data-zh="保存在本地">ON YOUR DEVICE</small></div>
+          </div>
+        </article>
       </div>
-    </footer>
+    </section>
 
-    <script src="./script.js" defer></script>
-  </body>
+    <section class="workflow-section">
+      <div class="section-wrap section-block">
+        <div class="section-kicker section-kicker--light"><span>02</span><span data-en="A NATURAL WAY OF WORKING" data-zh="自然的工作方式">A NATURAL WAY OF WORKING</span></div>
+        <div class="workflow-heading">
+          <h2 data-en="From scattered sources to considered work." data-zh="从分散资料，到有据可依的成果。">From scattered sources to considered work.</h2>
+          <p data-en="A simple rhythm for research, learning, and creation." data-zh="为研究、学习与创作建立一种自然节奏。">A simple rhythm for research, learning, and creation.</p>
+        </div>
+        <div class="workflow-layout">
+          <div class="workflow-list">
+            <article class="workflow-step"><span>01</span><div><h3 data-en="Collect without overthinking." data-zh="先收集，不必急着整理。">Collect without overthinking.</h3><p data-en="Save links, add files, capture ideas, or bring in a recording. Everything has a place to land." data-zh="保存链接、添加文件、记录想法或导入录音。所有内容都有可以暂存的地方。">Save links, add files, capture ideas, or bring in a recording. Everything has a place to land.</p></div></article>
+            <article class="workflow-step"><span>02</span><div><h3 data-en="Arrange what belongs together." data-zh="把有关联的内容放在一起。">Arrange what belongs together.</h3><p data-en="Shape a Space with sections, groups, and meaningful relationships between ideas and evidence." data-zh="用分区、分组，以及想法与证据之间的语义关系，逐步搭建自己的 Space。">Shape a Space with sections, groups, and meaningful relationships between ideas and evidence.</p></div></article>
+            <article class="workflow-step"><span>03</span><div><h3 data-en="Explore, then verify." data-zh="深入探索，再回到来源核对。">Explore, then verify.</h3><p data-en="Search by keyword or meaning, ask questions, and inspect the passages behind an answer." data-zh="按关键词或语义搜索、提出问题，并检查答案所依据的原始内容。">Search by keyword or meaning, ask questions, and inspect the passages behind an answer.</p></div></article>
+            <article class="workflow-step"><span>04</span><div><h3 data-en="Create with the context intact." data-zh="保留上下文，继续创造。">Create with the context intact.</h3><p data-en="Turn selected material into a document or media resource, and keep its path back to the sources." data-zh="将选中资料变成文档或媒体成果，同时保留通往来源的线索。">Turn selected material into a document or media resource, and keep its path back to the sources.</p></div></article>
+          </div>
+          <figure class="workflow-figure" data-reveal>
+            <img src="https://raw.githubusercontent.com/madebyzan/knovum/main/docs/assets/readme/source-to-work.png" alt="Knovum workflow: collect sources, connect ideas, ask questions, and create traceable work." loading="lazy" width="1600" height="1000">
+            <figcaption><span data-en="THE KNOWLEDGE LOOP" data-zh="知识的循环">THE KNOWLEDGE LOOP</span><span>01 — 04</span></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-wrap section-block trust-section">
+      <div class="section-kicker"><span>03</span><span data-en="BUILT AROUND TRUST" data-zh="以信任为基础">BUILT AROUND TRUST</span></div>
+      <div class="trust-grid">
+        <div class="trust-lead">
+          <p class="eyebrow-text" data-en="YOUR KNOWLEDGE IS PERSONAL." data-zh="你的知识，属于你自己。">YOUR KNOWLEDGE IS PERSONAL.</p>
+          <h2><span data-en="Your library." data-zh="你的资料库。">Your library.</span><br><em data-en="Your machine." data-zh="你的设备。">Your machine.</em></h2>
+          <p data-en="Knovum does not require an account and does not run a Knovum cloud service. Your Spaces, files, extracted text, search indexes, and backups live in local application data." data-zh="Knovum 无需注册账号，也不运行 Knovum 云服务。你的 Spaces、文件、提取文本、搜索索引和备份都保存在本地应用数据中。">Knovum does not require an account and does not run a Knovum cloud service. Your Spaces, files, extracted text, search indexes, and backups live in local application data.</p>
+          <a class="underlined-link" href="./privacy.html"><span data-en="Read how privacy works" data-zh="了解隐私如何实现">Read how privacy works</span><span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="trust-points">
+          <article><span class="trust-icon" aria-hidden="true">⌂</span><div><h3 data-en="Local by design" data-zh="本地优先的设计">Local by design</h3><p data-en="Your knowledge library and search index are stored on your machine." data-zh="知识资料库与搜索索引都保存在你的设备上。">Your knowledge library and search index are stored on your machine.</p></div></article>
+          <article><span class="trust-icon" aria-hidden="true">◉</span><div><h3 data-en="Useful without a model account" data-zh="无需模型账号也能使用">Useful without a model account</h3><p data-en="Editing, organization, local search, transcription, OCR, and other supported on-device capabilities do not require a cloud AI account." data-zh="编辑、整理、本地搜索、转录、OCR 等受支持的本地功能，不需要云端 AI 账号。">Editing, organization, local search, transcription, OCR, and other supported on-device capabilities do not require a cloud AI account.</p></div></article>
+          <article><span class="trust-icon" aria-hidden="true">↗</span><div><h3 data-en="Cloud use stays explicit" data-zh="云端使用保持明确">Cloud use stays explicit</h3><p data-en="When you choose a cloud model, only the context needed for that task is sent to the provider you selected." data-zh="当你选择云端模型时，只有该任务所需的上下文会发送给你选定的服务商。">When you choose a cloud model, only the context needed for that task is sent to the provider you selected.</p></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing-cta">
+      <div class="closing-orbit" aria-hidden="true"></div>
+      <div class="section-wrap closing-inner">
+        <div class="section-kicker section-kicker--light"><span>04</span><span data-en="MAKE ROOM FOR WHAT'S NEXT" data-zh="为下一步，留出空间">MAKE ROOM FOR WHAT'S NEXT</span></div>
+        <p class="closing-overline" data-en="A LITTLE MORE ROOM TO THINK." data-zh="给思考多一点空间。">A LITTLE MORE ROOM TO THINK.</p>
+        <h2 data-en="Bring your knowledge together." data-zh="让知识汇聚，让想法发生。">Bring your knowledge together.</h2>
+        <p data-en="Free, open source, and ready for your desktop." data-zh="免费、开源，为桌面工作而生。">Free, open source, and ready for your desktop.</p>
+        <div class="closing-actions"><a class="button button--cream" href="./download.html"><span data-en="Find your version" data-zh="选择你的版本">Find your version</span><span aria-hidden="true">↗</span></a><a class="closing-secondary" href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer"><span data-en="Explore the source" data-zh="查看源代码">Explore the source</span><span aria-hidden="true">↗</span></a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="section-wrap footer-main">
+      <div class="footer-brand"><a class="brand brand--footer" href="./index.html"><img src="https://raw.githubusercontent.com/madebyzan/knovum/main/public/app-icon.png" alt="" width="32" height="32"><span>knovum</span></a><p data-en="Bring your knowledge together. Make it useful." data-zh="让知识汇聚，让它真正有用。">Bring your knowledge together. Make it useful.</p><span class="footer-motto" data-en="MADE FOR CURIOUS MINDS." data-zh="为好奇心而造。">MADE FOR CURIOUS MINDS.</span></div>
+      <div class="footer-links">
+        <div><span class="footer-label" data-en="THE PRODUCT" data-zh="产品">THE PRODUCT</span><a href="./product.html" data-en="Overview" data-zh="产品概览">Overview</a><a href="./privacy.html" data-en="Privacy" data-zh="隐私">Privacy</a><a href="./download.html" data-en="Download" data-zh="下载">Download</a></div>
+        <div><span class="footer-label" data-en="DISCOVER" data-zh="了解更多">DISCOVER</span><a href="./about.html" data-en="About" data-zh="关于">About</a><a href="https://github.com/madebyzan/knovum/tree/main/docs" target="_blank" rel="noreferrer" data-en="Documentation" data-zh="项目文档">Documentation</a><a href="https://github.com/madebyzan/knovum/releases" target="_blank" rel="noreferrer" data-en="Release notes" data-zh="版本记录">Release notes</a></div>
+        <div><span class="footer-label" data-en="OPEN SOURCE" data-zh="开源项目">OPEN SOURCE</span><a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://github.com/madebyzan/knovum/blob/main/LICENSE" target="_blank" rel="noreferrer" data-en="MIT License" data-zh="MIT 许可证">MIT License</a><a href="https://github.com/madebyzan/knovum/issues" target="_blank" rel="noreferrer" data-en="Report an issue" data-zh="反馈问题">Report an issue</a></div>
+      </div>
+    </div>
+    <div class="section-wrap footer-bottom"><span>© <span data-year></span> Knovum</span><span data-en="Thoughtfully made. Openly shared." data-zh="认真打造，开放共享。">Thoughtfully made. Openly shared.</span><a href="#top"><span data-en="Back to top" data-zh="返回顶部">Back to top</span><span aria-hidden="true">↑</span></a></div>
+  </footer>
+  <script src="./script.js" defer></script>
+</body>
 </html>

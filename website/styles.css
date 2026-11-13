@@ -618,3 +618,11 @@ h1 em, h2 em { color: #748572; font-family: var(--serif); font-weight: 400; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .reveal { opacity: 1; transform: none; }
 }
+
+
+/* Not-found page */
+.not-found { min-height:100vh; width:min(760px,calc(100% - 48px)); margin:auto; padding:48px 0; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; }
+.not-found__code { margin-top:88px; color:#8a9286; font:500 9px/1.4 var(--mono); letter-spacing:.15em; }
+.not-found h1 { margin:24px 0 17px; font-size:clamp(45px,7vw,70px); font-weight:500; line-height:1.02; letter-spacing:-.07em; }
+.not-found h1 em { color:var(--sage-dark); font-family:var(--serif); font-weight:400; }
+.not-found p { max-width:450px; margin:0 0 29px; color:#727a70; font-size:12px; line-height:1.9; }
