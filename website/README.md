@@ -9,6 +9,7 @@ The public-facing Knovum website is a standalone, dependency-free static site in
 - `privacy.html` — local-first architecture and cloud-provider boundary
 - `download.html` — supported platforms, installation notes, and source build
 - `about.html` — product principles, architecture, and open-source community
+- `guides/` — four long-tail educational guides plus a guide index, with matching static Simplified Chinese routes under `zh/`
 - `404.html` — custom not-found page
 
 ## Run locally
@@ -31,6 +32,8 @@ No package install or build step is required. Run the same lightweight checks us
 - Motion is progressive enhancement: scroll reveal, page entry, navigation, hover transitions, and reading progress. Reduced-motion preferences are respected.
 - Semantic HTML, keyboard focus states, skip links, descriptive image alternative text, metadata, and structured software-application data.
 - Real product screenshots and the maintained application icon are reused from the repository. The site deliberately does not present generated mockups as real product features.
+
+See [SEO.md](SEO.md) for the page-to-intent map, GEO content principles, technical search checklist, and post-launch measurement plan.
 
 ## Content source of truth
 

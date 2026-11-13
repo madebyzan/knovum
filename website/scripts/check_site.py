@@ -8,7 +8,11 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-PAGES = ("index.html", "product.html", "privacy.html", "download.html", "about.html", "404.html")
+PAGES = tuple(
+    path.relative_to(ROOT).as_posix()
+    for path in sorted(ROOT.rglob("*.html"))
+    if path.is_file()
+)
 
 
 class PageAudit(HTMLParser):
@@ -43,14 +47,20 @@ class PageAudit(HTMLParser):
                 rel = set((attributes.get("rel") or "").lower().split())
                 if not {"noopener", "noreferrer"} & rel:
                     self.external_blank_without_rel.append(href)
-        if tag == "img":
-            if "alt" not in attributes:
-                self.images_without_alt.append(attributes.get("src") or "(missing src)")
+        if tag == "img" and "alt" not in attributes:
+            self.images_without_alt.append(attributes.get("src") or "(missing src)")
         if tag == "link" and "stylesheet" in (attributes.get("rel") or "").lower():
             if attributes.get("href"):
                 self.stylesheets.append(attributes["href"] or "")
         if tag == "script" and attributes.get("src"):
             self.scripts.append(attributes["src"] or "")
+
+
+def resolve_local_target(page: Path, href_path: str) -> Path:
+    decoded_path = unquote(href_path)
+    if decoded_path.startswith("/"):
+        return (ROOT / decoded_path.lstrip("/")).resolve()
+    return (page.parent / decoded_path).resolve()
 
 
 def fail(message: str) -> None:
@@ -59,12 +69,11 @@ def fail(message: str) -> None:
 
 def main() -> None:
     errors: list[str] = []
+    if not PAGES:
+        fail("no HTML pages were found")
+
     for name in PAGES:
         path = ROOT / name
-        if not path.is_file():
-            errors.append(f"missing page: {name}")
-            continue
-
         audit = PageAudit()
         try:
             audit.feed(path.read_text(encoding="utf-8"))
@@ -82,26 +91,27 @@ def main() -> None:
             errors.append(f"{name}: missing responsive viewport metadata")
         if "description" not in audit.meta_names:
             errors.append(f"{name}: missing meta description")
+        if "robots" not in audit.meta_names:
+            errors.append(f"{name}: missing robots meta")
         if audit.images_without_alt:
             errors.append(f"{name}: images missing alt text: {', '.join(audit.images_without_alt)}")
         if audit.external_blank_without_rel:
-            errors.append(f"{name}: target=_blank links missing rel=noopener/noreferrer: {', '.join(audit.external_blank_without_rel)}")
+            errors.append(f"{name}: target=_blank links must include both noopener and noreferrer: {', '.join(audit.external_blank_without_rel)}")
 
         known_ids = set(audit.ids)
         for href in audit.links:
             parsed = urlsplit(href)
-            if parsed.scheme or parsed.netloc or href.startswith(("mailto:", "tel:")):
+            if parsed.scheme or parsed.netloc or href.startswith(("mailto:", "tel:", "javascript:")):
                 continue
-            destination_name = unquote(parsed.path) if parsed.path else name
-            destination = (ROOT / destination_name).resolve()
+            destination = resolve_local_target(path, parsed.path) if parsed.path else path.resolve()
             if not destination.is_relative_to(ROOT.resolve()):
                 errors.append(f"{name}: link escapes website directory: {href}")
                 continue
-            if destination_name and not destination.is_file():
+            if parsed.path and not destination.is_file():
                 errors.append(f"{name}: missing local link target: {href}")
                 continue
             if parsed.fragment:
-                if destination_name and destination_name.endswith(".html") and destination_name != name:
+                if parsed.path and destination != path.resolve():
                     target_audit = PageAudit()
                     target_audit.feed(destination.read_text(encoding="utf-8"))
                     target_ids = set(target_audit.ids)
@@ -114,7 +124,7 @@ def main() -> None:
             parsed = urlsplit(asset)
             if parsed.scheme or parsed.netloc:
                 continue
-            asset_path = (ROOT / unquote(parsed.path)).resolve()
+            asset_path = resolve_local_target(path, parsed.path)
             if not asset_path.is_relative_to(ROOT.resolve()) or not asset_path.is_file():
                 errors.append(f"{name}: missing local asset: {asset}")
 
@@ -131,7 +141,10 @@ def main() -> None:
             print(f"::error::{error}")
         fail(f"{len(errors)} issue(s) found")
 
-    print(f"Website checks passed: {len(PAGES)} pages, local links, anchors, metadata, assets, and accessibility basics.")
+    print(
+        f"Website checks passed: {len(PAGES)} pages, local links, anchors, "
+        "metadata, assets, and accessibility basics."
+    )
 
 
 if __name__ == "__main__":

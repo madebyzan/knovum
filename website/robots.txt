@@ -1,7 +1,6 @@
 # Search crawlers
 User-agent: *
 Allow: /
-Disallow: /404.html
 
 # Search visibility in ChatGPT
 User-agent: OAI-SearchBot
@@ -30,4 +29,4 @@ Disallow: /
 User-agent: ClaudeBot
 Disallow: /
 
-# Add the absolute Sitemap URL after the production hostname is confirmed.
+# The production sitemap directive is added by website/scripts/generate_sitemap.py.

@@ -30,3 +30,10 @@ jobs:
         run: node --check website/script.js
       - name: Validate website pages, links, and assets
         run: python3 website/scripts/check_site.py
+      - name: Smoke-test sitemap and hreflang generation
+        run: |
+          python3 website/scripts/generate_sitemap.py \
+            --base-url https://example.invalid \
+            --output "$RUNNER_TEMP/sitemap.xml" \
+            --robots-output "$RUNNER_TEMP/robots.txt"
+          python3 -c "import xml.etree.ElementTree as ET; ET.parse('$RUNNER_TEMP/sitemap.xml')"
