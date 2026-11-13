@@ -285,7 +285,7 @@ def main() -> None:
             return (max(first, second) + 0.05) / (min(first, second) + 0.05)
 
         for variable in ("--muted", "--accent-text"):
-            match = re.search(rf"{re.escape(variable)}\s*:\s*(#[0-9a-fA-F]{6})", css)
+            match = re.search(rf"{re.escape(variable)}\s*:\s*(#[0-9a-fA-F]{{6}})", css)
             if not match:
                 errors.append(f"styles.css: missing accessible color token {variable}")
                 continue
