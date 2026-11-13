@@ -18,7 +18,7 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 
-# Search visibility and grounding in Google Gemini
+# Gemini Apps / Vertex AI grounding and Gemini model improvement (not Google Search indexing)
 User-agent: Google-Extended
 Allow: /
 

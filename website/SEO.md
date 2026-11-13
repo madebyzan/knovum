@@ -38,7 +38,7 @@ GEO is treated as discoverability and citation readiness across search experienc
 - Distinguish product facts from general advice. State what Knovum does, what is optional, what requires downloaded models, and what depends on a selected third-party provider.
 - Keep source claims, platform requirements, version details, and supported formats aligned with the README, DESIGN.md, and technical documentation.
 - Use real product images with descriptive alt text. Do not present generated UI mockups as shipped product features.
-- Allow search crawlers such as OAI-SearchBot and Claude-SearchBot separately from foundation-model training crawlers. See `robots.txt` and the crawler documentation.
+- Allow `OAI-SearchBot` and `Claude-SearchBot` for search discovery while disallowing the separate `GPTBot` and `ClaudeBot` training crawlers. `Google-Extended` is intentionally allowed for Gemini Apps / Vertex AI grounding and model improvement; it is not a Google Search crawler and does not affect Google Search inclusion or ranking. Review these choices against the providers’ current crawler documentation before moving to the permanent domain: [Google](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers), [OpenAI](https://developers.openai.com/api/docs/bots), and [Anthropic](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler).
 - Do not add `llms.txt`, hidden keyword blocks, fake author profiles, fabricated reviews, or mass-produced doorway pages as ranking shortcuts. Google does not require special GEO files or markup for AI features.
 
 ## Technical SEO checklist
