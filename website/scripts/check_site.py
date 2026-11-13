@@ -271,6 +271,27 @@ def main() -> None:
             errors.append("styles.css: missing reduced-motion support")
         if "@media (max-width:" not in css:
             errors.append("styles.css: missing responsive breakpoint")
+
+        def relative_luminance(hex_color: str) -> float:
+            channels = [int(hex_color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+            linear = [
+                channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4
+                for channel in channels
+            ]
+            return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+        def contrast_ratio(foreground: str, background: str) -> float:
+            first, second = relative_luminance(foreground), relative_luminance(background)
+            return (max(first, second) + 0.05) / (min(first, second) + 0.05)
+
+        for variable in ("--muted", "--accent-text"):
+            match = re.search(rf"{re.escape(variable)}\s*:\s*(#[0-9a-fA-F]{6})", css)
+            if not match:
+                errors.append(f"styles.css: missing accessible color token {variable}")
+                continue
+            for surface in ("#f2f0e9", "#e8e6dd", "#e0dfd6"):
+                if contrast_ratio(match.group(1), surface) < 4.5:
+                    errors.append(f"styles.css: {variable} contrast is below WCAG AA on {surface}")
     else:
         errors.append("missing styles.css")
 
