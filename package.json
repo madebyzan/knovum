@@ -55,7 +55,7 @@
     "@tiptap/extensions": "3.31.4",
     "@tiptap/markdown": "3.31.4",
     "@tiptap/pm": "3.31.4",
-    "@tiptap/starter-kit": "3.31.4",
+    "@tiptap/starter-kit": "3.33.0",
     "@tiptap/vue-3": "3.31.4",
     "@vueuse/core": "^15.0.0",
     "clsx": "^2.1.1",
