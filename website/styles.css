@@ -2909,3 +2909,64 @@ body.is-ready .hero-visual {
     font-size: 25px;
   }
 }
+
+
+/* Optional first-party product imagery */
+.optional-image {
+  width: min(var(--measure), calc(100% - 2 * var(--gutter)));
+  margin: 24px auto 58px;
+  padding: 10px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 42px rgba(30, 35, 30, 0.075);
+}
+
+.optional-image[hidden] {
+  display: none !important;
+}
+
+.optional-image img {
+  display: block;
+  width: 100%;
+  max-height: 620px;
+  height: auto;
+  object-fit: contain;
+  background: var(--paper-shadow);
+}
+
+.optional-image figcaption {
+  padding: 12px 4px 2px;
+  color: var(--text-secondary);
+  font: 500 9px/1.6 var(--mono);
+  letter-spacing: 0.025em;
+}
+
+.optional-image--wide {
+  margin-top: 34px;
+  margin-bottom: 70px;
+}
+
+.platform-card .optional-image {
+  width: 100%;
+  margin: 20px 0;
+  padding: 6px;
+  box-shadow: none;
+}
+
+.platform-card .optional-image img {
+  aspect-ratio: 16 / 9;
+  max-height: 220px;
+}
+
+@media (max-width: 760px) {
+  .optional-image {
+    width: calc(100% - 44px);
+    margin-top: 20px;
+    margin-bottom: 42px;
+    padding: 6px;
+  }
+
+  .optional-image figcaption {
+    font-size: 8px;
+  }
+}
