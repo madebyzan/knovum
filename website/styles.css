@@ -2970,7 +2970,6 @@ body.is-ready .hero-visual {
   }
 }
 
-
 /* Accessible, infinitely looping image tours */
 .image-carousel {
   width: min(var(--measure), calc(100% - 2 * var(--gutter)));

@@ -45,10 +45,7 @@
 
     document.querySelectorAll("[data-en-label][data-zh-label]").forEach((element) => {
       if (element.hasAttribute("data-carousel-toggle")) return;
-      element.setAttribute(
-        "aria-label",
-        localizedText(element.dataset.enLabel, element.dataset.zhLabel),
-      );
+      element.setAttribute("aria-label", localizedText(element.dataset.enLabel, element.dataset.zhLabel));
     });
 
     document.querySelectorAll("[data-carousel-toggle]").forEach((element) => {
@@ -60,9 +57,7 @@
 
       const labelElement = element.querySelector("span");
       if (labelElement) {
-        labelElement.textContent = isPaused
-          ? localizedText("Play", "播放")
-          : localizedText("Pause", "暂停");
+        labelElement.textContent = isPaused ? localizedText("Play", "播放") : localizedText("Pause", "暂停");
       }
     });
 
@@ -197,8 +192,7 @@
       let hasFocus = false;
       let isInViewport = true;
 
-      const availableSlides = () =>
-        slides.filter((slide) => !slide.hidden && slide.isConnected);
+      const availableSlides = () => slides.filter((slide) => !slide.hidden && slide.isConnected);
 
       const setToggleLabel = () => {
         if (!toggleButton) return;
@@ -237,9 +231,7 @@
         if (counter) {
           const index = visibleSlides.indexOf(activeSlide) + 1;
           counter.textContent =
-            String(index).padStart(2, "0") +
-            " / " +
-            String(visibleSlides.length).padStart(2, "0");
+            String(index).padStart(2, "0") + " / " + String(visibleSlides.length).padStart(2, "0");
         }
 
         const hasMultipleSlides = visibleSlides.length > 1;
