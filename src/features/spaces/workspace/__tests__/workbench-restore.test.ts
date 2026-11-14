@@ -1,6 +1,4 @@
-import { flushPromises } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick, ref } from "vue";
 
 import { createTestSpace } from "../../__tests__/support/session-context";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -10,8 +8,7 @@ import type { loadSpaceSessionProjection } from "../../session/space-projection"
 import { createSpaceSessionContext } from "../../session/space-session-composition";
 import type { SpaceSessionContext } from "../space-session-context";
 import { restoreWorkbench } from "../workbench-restore-actions";
-import { useWorkbenchSessionPersistence, type WorkbenchSession } from "../workbench-session";
-import { createSpaceCanvasTab, createSpaceEditorTab, type SpaceWorkbenchTab } from "../workbench-tab";
+import type { WorkbenchSession } from "../workbench-session";
 
 type Projection = Awaited<ReturnType<typeof loadSpaceSessionProjection>>;
 const repository = vi.hoisted(() => ({
@@ -138,36 +135,5 @@ describe("restoreWorkbench", () => {
 
     expect(strip(context)).toEqual(["inbox"]);
     expect(localStorage.getItem(SESSION_KEY)).toBeNull();
-  });
-});
-
-describe("useWorkbenchSessionPersistence", () => {
-  afterEach(() => localStorage.clear());
-
-  it("saves the strip once ready and leaves out the tabs of an unsaved draft", async () => {
-    const draft = createTestSpace({ id: "draft", kind: "space", title: "Draft" });
-    const canvas = createSpaceCanvasTab("inbox");
-    const editor = createSpaceEditorTab("inbox", "video", "clip");
-    const source = {
-      ready: ref(false),
-      tabs: ref<readonly SpaceWorkbenchTab[]>([canvas, createSpaceCanvasTab("draft"), editor]),
-      activeTabId: ref<string | undefined>(editor.id),
-      draftSpace: ref<Space | undefined>(draft),
-    };
-    useWorkbenchSessionPersistence(source);
-
-    source.activeTabId.value = canvas.id;
-    await nextTick();
-    expect(localStorage.getItem(SESSION_KEY)).toBeNull();
-
-    source.ready.value = true;
-    await flushPromises();
-    expect(JSON.parse(localStorage.getItem(SESSION_KEY)!)).toEqual({
-      tabs: [
-        { kind: "space", spaceId: "inbox" },
-        { kind: "video", spaceId: "inbox", nodeId: "clip" },
-      ],
-      activeIndex: 0,
-    });
   });
 });

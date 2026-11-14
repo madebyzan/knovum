@@ -1,7 +1,5 @@
-import { watch, type Ref } from "vue";
 import { z } from "zod";
 
-import type { Space } from "../model/space";
 import { isSpaceEditorTab, type SpaceWorkbenchTab } from "./workbench-tab";
 
 const WORKBENCH_SESSION_KEY = "knovum.workspace.workbench";
@@ -49,38 +47,23 @@ export function takeWorkbenchSession(): WorkbenchSession | undefined {
   }
 }
 
-/** Describes the strip without the tabs of an unsaved draft, which has nothing to reopen. */
-function captureWorkbenchSession(
+/** Saves the strip as the next launch should reopen it, leaving out the tabs of an unsaved draft. */
+export function saveWorkbenchSession(
   tabs: readonly SpaceWorkbenchTab[],
   activeTabId: string | undefined,
   draftSpaceId: string | undefined,
-): WorkbenchSession {
+): void {
   const saved = tabs.filter(({ spaceId }) => spaceId !== draftSpaceId);
   const activeIndex = saved.findIndex(({ id }) => id === activeTabId);
-  return { tabs: saved.map(savedTab), activeIndex: activeIndex < 0 ? null : activeIndex };
+  const session: WorkbenchSession = {
+    tabs: saved.map(savedTab),
+    activeIndex: activeIndex < 0 ? null : activeIndex,
+  };
+  globalThis.localStorage.setItem(WORKBENCH_SESSION_KEY, JSON.stringify(session));
 }
 
 function savedTab(tab: SpaceWorkbenchTab): SavedWorkbenchTab {
   return isSpaceEditorTab(tab)
     ? { kind: tab.kind, spaceId: tab.spaceId, nodeId: tab.nodeId }
     : { kind: tab.kind, spaceId: tab.spaceId };
-}
-
-interface WorkbenchSessionSource {
-  ready: Ref<boolean>;
-  tabs: Ref<readonly SpaceWorkbenchTab[]>;
-  activeTabId: Ref<string | undefined>;
-  draftSpace: Ref<Space | undefined>;
-}
-
-/** Saves the strip whenever it changes once the workbench is ready, so a relaunch reopens it. */
-export function useWorkbenchSessionPersistence(source: WorkbenchSessionSource) {
-  watch(
-    [source.ready, source.tabs, source.activeTabId, source.draftSpace],
-    ([ready, tabs, activeTabId, draftSpace]) => {
-      if (!ready) return;
-      const session = captureWorkbenchSession(tabs, activeTabId, draftSpace?.id);
-      globalThis.localStorage.setItem(WORKBENCH_SESSION_KEY, JSON.stringify(session));
-    },
-  );
 }

@@ -40,7 +40,7 @@ function optionsFor(group: ImageLayersChoiceGroup) {
   return group.options.map((option) => ({
     value: option.id,
     label: option.name,
-    description: option.detail,
+    description: option.description,
   }));
 }
 </script>

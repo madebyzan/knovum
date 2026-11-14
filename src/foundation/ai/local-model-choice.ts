@@ -19,7 +19,7 @@ export function localModelChoiceOptions(
     .map((model) => ({
       id: model.id,
       name: model.name,
-      detail: formatBytes(model.totalBytes),
+      description: formatBytes(model.totalBytes),
       runnable: model.verified,
       preferred: model.selected,
     }));

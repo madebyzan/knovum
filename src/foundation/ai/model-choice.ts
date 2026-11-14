@@ -2,7 +2,7 @@
 export interface ModelChoiceOption {
   readonly id: string;
   readonly name: string;
-  readonly detail?: string | undefined;
+  readonly description?: string | undefined;
   readonly runnable: boolean;
   readonly preferred: boolean;
 }

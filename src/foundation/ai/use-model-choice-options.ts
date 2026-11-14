@@ -63,7 +63,7 @@ export function useRoutedTargetOptions(purpose: () => RoutingPurpose) {
       return {
         id: option.value,
         name,
-        detail: t(option.target.type === "model" ? "ai.target.modelApi" : "ai.target.desktopAgent"),
+        description: t(option.target.type === "model" ? "ai.target.modelApi" : "ai.target.desktopAgent"),
         runnable: true,
         preferred: option.value === configuredKey,
       };
