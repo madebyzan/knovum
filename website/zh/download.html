@@ -231,19 +231,19 @@
               </li>
               <li><span data-en="Intel" data-zh="Intel">Intel</span><strong>x64</strong></li>
             </ul>
-            <a
-              class="button button--dark"
-              href="https://github.com/madebyzan/knovum/releases/latest"
-              target="_blank"
-              rel="noreferrer"
-              ><span data-en="Get macOS installer" data-zh="获取 macOS 安装包">获取 macOS 安装包</span
-              ><span>↗</span></a
-            ><small
-              data-en="Choose the .dmg ending in aarch64 for Apple Silicon or x64 for Intel."
-              data-zh="Apple 芯片请选择文件名以 aarch64.dmg 结尾的安装包；Intel Mac 请选择以 x64.dmg 结尾的安装包。"
-              >Apple 芯片请选择文件名以 aarch64.dmg 结尾的安装包；Intel Mac 请选择以 x64.dmg
-              结尾的安装包。</small
-            >
+            <div class="platform-download-actions">
+              <a class="button button--dark" href="https://github.com/madebyzan/knovum/releases/latest" data-release-asset="macos-arm64">
+                <span data-en="Apple Silicon (.dmg)" data-zh="Apple 芯片 (.dmg)">Apple 芯片 (.dmg)</span><span aria-hidden="true">↓</span>
+              </a>
+              <a class="button button--outline" href="https://github.com/madebyzan/knovum/releases/latest" data-release-asset="macos-x64">
+                <span data-en="Intel (.dmg)" data-zh="Intel (.dmg)">Intel (.dmg)</span><span aria-hidden="true">↓</span>
+              </a>
+            </div>
+            <small class="release-version-note">
+              <span data-en="Latest release" data-zh="最新版本">最新版本</span>:
+              <strong data-release-version>—</strong>
+              <span data-en=" · Downloads the matching installer directly." data-zh=" · 直接下载对应安装包。"> · 直接下载对应安装包。</span>
+            </small>
           </article>
           <article class="platform-card platform-card--featured">
             <div class="platform-card__top">
@@ -262,18 +262,16 @@
               <li><span data-en="Architecture" data-zh="架构">架构</span><strong>x64</strong></li>
               <li><span data-en="Installer" data-zh="安装包">安装包</span><strong>.exe</strong></li>
             </ul>
-            <a
-              class="button button--dark"
-              href="https://github.com/madebyzan/knovum/releases/latest"
-              target="_blank"
-              rel="noreferrer"
-              ><span data-en="Get Windows installer" data-zh="获取 Windows 安装包">获取 Windows 安装包</span
-              ><span>↗</span></a
-            ><small
-              data-en="Choose the Windows installer ending in x64-setup.exe."
-              data-zh="请选择文件名以 x64-setup.exe 结尾的 Windows 安装包。"
-              >请选择文件名以 x64-setup.exe 结尾的 Windows 安装包。</small
-            >
+            <div class="platform-download-actions">
+              <a class="button button--dark" href="https://github.com/madebyzan/knovum/releases/latest" data-release-asset="windows-x64">
+                <span data-en="Download x64 installer" data-zh="下载 x64 安装包">下载 x64 安装包</span><span aria-hidden="true">↓</span>
+              </a>
+            </div>
+            <small class="release-version-note">
+              <span data-en="Latest release" data-zh="最新版本">最新版本</span>:
+              <strong data-release-version>—</strong>
+              <span data-en=" · Windows 10 2004 or later." data-zh=" · 需要 Windows 10 2004 或更高版本。"> · 需要 Windows 10 2004 或更高版本。</span>
+            </small>
           </article>
         </div>
         <p
