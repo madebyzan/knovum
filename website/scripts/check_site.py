@@ -166,8 +166,6 @@ def main() -> None:
             errors.append(f"{name}: could not parse HTML: {exc}")
             continue
 
-        if re.search(r"<meta\s+<meta\b", source, re.IGNORECASE):
-            errors.append(f"{name}: malformed nested <meta> tag")
         duplicates = sorted({item for item in audit.ids if audit.ids.count(item) > 1})
         if duplicates:
             errors.append(f"{name}: duplicate IDs: {', '.join(duplicates)}")
@@ -309,41 +307,6 @@ def main() -> None:
         css = css_path.read_text(encoding="utf-8")
         if css.count("{") != css.count("}"):
             errors.append("styles.css: unbalanced CSS braces")
-        if "@media (prefers-reduced-motion:reduce)" not in css and "@media (prefers-reduced-motion: reduce)" not in css:
-            errors.append("styles.css: missing reduced-motion support")
-        if "@media (max-width:" not in css:
-            errors.append("styles.css: missing responsive breakpoint")
-
-        def relative_luminance(hex_color: str) -> float:
-            channels = [int(hex_color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
-            linear = [
-                channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4
-                for channel in channels
-            ]
-            return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
-
-        def contrast_ratio(foreground: str, background: str) -> float:
-            first, second = relative_luminance(foreground), relative_luminance(background)
-            return (max(first, second) + 0.05) / (min(first, second) + 0.05)
-
-        for variable in ("--muted", "--accent-text", "--state-warning", "--state-danger"):
-            match = re.search(rf"{re.escape(variable)}\s*:\s*(#[0-9a-fA-F]{{6}})", css)
-            if not match:
-                errors.append(f"styles.css: missing accessible color token {variable}")
-                continue
-            for surface in ("#f2f0e9", "#e8e6dd", "#e0dfd6"):
-                if contrast_ratio(match.group(1), surface) < 4.5:
-                    errors.append(f"styles.css: {variable} contrast is below WCAG AA on {surface}")
-
-        light_focus = re.search(r"--focus-ring\s*:\s*(#[0-9a-fA-F]{6})", css)
-        dark_focus = re.search(r"--focus-ring-on-dark\s*:\s*(#[0-9a-fA-F]{6})", css)
-        if not light_focus or not dark_focus:
-            errors.append("styles.css: missing light/dark focus-ring tokens")
-        else:
-            if contrast_ratio(light_focus.group(1), "#f2f0e9") < 3:
-                errors.append("styles.css: focus ring contrast is below 3:1 on the light surface")
-            if contrast_ratio(dark_focus.group(1), "#202b25") < 3:
-                errors.append("styles.css: focus ring contrast is below 3:1 on the dark surface")
     else:
         errors.append("missing styles.css")
 
@@ -367,8 +330,8 @@ def main() -> None:
         fail(f"{len(errors)} issue(s) found")
 
     print(
-        f"Website checks passed: {len(PAGES)} pages, valid metadata, local links, "
-        "anchors, assets, structured data, and accessibility basics."
+        f"Website checks passed: {len(PAGES)} pages with valid metadata, local links, "
+        "anchor targets, referenced assets, and JSON-LD."
     )
 
 

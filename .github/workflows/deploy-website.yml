@@ -30,10 +30,8 @@ jobs:
       - name: Render localized social cards
         run: |
           sudo apt-get update
-          sudo apt-get install --yes librsvg2-bin fonts-noto-cjk webp
+          sudo apt-get install --yes librsvg2-bin fonts-noto-cjk
           cp public/app-icon.png website/assets/app-icon.png
-          cwebp -quiet -q 88 -m 6 -resize 1920 0 docs/assets/readme/screenshot.png -o website/assets/product-screenshot.webp
-          cwebp -quiet -q 88 -m 6 -resize 1920 0 docs/assets/readme/source-to-work.png -o website/assets/source-to-work.webp
           rsvg-convert --width 1200 --height 630 --output website/assets/social-card.png website/assets/social-card.svg
           rsvg-convert --width 1200 --height 630 --output website/assets/social-card-zh.png website/assets/social-card-zh.svg
       - name: Generate SEO metadata and sitemap

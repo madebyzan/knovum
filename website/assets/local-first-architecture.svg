@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="t d">
+<title id="t">Knovum local-first data flow · 本地优先的数据流</title>
+<desc id="d">Your library (SQLite, LanceDB, managed files, secrets, backups) stays in local application data on your device. Only the selection and context needed for one task is sent to the cloud model provider you configure, and the answer with citations returns to the canvas. There is no Knovum account and no Knovum cloud.
+你的资料库保存在设备的本地应用数据中；只有本次任务所需的选中内容与上下文会发送给你选定的云端服务商，答案与引用回到画布。没有 Knovum 账号，也没有 Knovum 云服务。</desc>
+<defs>
+<linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4f1e8"/><stop offset="1" stop-color="#e7e5d9"/></linearGradient>
+<linearGradient id="panel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#34463b"/><stop offset="1" stop-color="#1c2922"/></linearGradient>
+<linearGradient id="card" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#faf8f1"/><stop offset="1" stop-color="#eeeade"/></linearGradient>
+<radialGradient id="glow"><stop stop-color="#b7c4a9" stop-opacity=".45"/><stop offset="1" stop-color="#b7c4a9" stop-opacity="0"/></radialGradient>
+<pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#647264" stroke-opacity=".12"/></pattern>
+<filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#142019" flood-opacity=".14"/></filter>
+<marker id="toCloud" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L12 6 0 12z" fill="#5d7359"/></marker>
+<marker id="toDevice" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L12 6 0 12z" fill="#b18d65"/></marker>
+</defs>
+<style>
+.m{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:2.2px}
+.s{font-family:"Helvetica Neue",Arial,"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif}
+.cjk{font-family:"Noto Sans CJK SC","PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif}
+.k{font-size:10.5px;fill:#8b9486}
+.row{font-size:15px;fill:#2b332b}
+.rowz{font-size:12.5px;fill:#7f887c}
+.ser{font-family:"Instrument Serif",Georgia,"Times New Roman",serif}
+</style>
+<rect width="1600" height="900" fill="url(#paper)"/><rect width="1600" height="900" fill="url(#grid)"/>
+<circle cx="1290" cy="90" r="400" fill="url(#glow)"/>
+
+<text class="m" x="64" y="80" font-size="12" letter-spacing="3.4" fill="#7d887c">KNOVUM — LOCAL-FIRST DATA FLOW</text>
+<text class="s" x="64" y="138" font-size="36" font-weight="500" fill="#202a23">Local is the home.<tspan class="ser" font-weight="400" font-style="italic" fill="#768a76"> Cloud is an explicit choice.</tspan></text>
+<text class="cjk" x="66" y="174" font-size="18" fill="#596259">本地是默认归属，云端是明确选择。</text>
+
+<!-- 01 device -->
+<g filter="url(#shadow)"><rect x="64" y="214" width="560" height="522" rx="22" fill="url(#panel)"/></g>
+<text class="m" x="96" y="258" fill="#b9c8b3">01 / YOUR DEVICE</text>
+<text class="s" x="96" y="296" font-size="22" fill="#f2f0e6">macOS · Windows app</text>
+<text class="cjk" x="98" y="322" font-size="14" fill="#b3c1ad">桌面应用 · 你的设备</text>
+<rect x="96" y="340" width="496" height="250" rx="14" fill="#f7f5ee"/>
+<text class="m" x="120" y="372" fill="#7b857a">LOCAL APPLICATION DATA</text>
+<text class="cjk" x="568" y="372" font-size="11" fill="#8b9486" text-anchor="end">本地应用数据</text>
+<g>
+<rect x="120" y="388" width="18" height="18" rx="5" fill="#b8c5ad"/><text class="row" x="150" y="402">SQLite — Space structure, objects</text><text class="cjk rowz" x="568" y="402" text-anchor="end">结构与知识对象</text>
+<rect x="120" y="426" width="18" height="18" rx="5" fill="#d3b28c"/><text class="row" x="150" y="440">Managed files — PDF, images, audio</text><text class="cjk rowz" x="568" y="440" text-anchor="end">来源文件</text>
+<rect x="120" y="464" width="18" height="18" rx="5" fill="#9eaf9a"/><text class="row" x="150" y="478">LanceDB — semantic index</text><text class="cjk rowz" x="568" y="478" text-anchor="end">语义索引</text>
+<rect x="120" y="502" width="18" height="18" rx="5" fill="#768a76"/><text class="row" x="150" y="516">secrets.db — provider API keys</text><text class="cjk rowz" x="568" y="516" text-anchor="end">密钥，不写日志</text>
+<rect x="120" y="540" width="18" height="18" rx="5" fill="#c2c8bb"/><text class="row" x="150" y="554">Backups &amp; export — OPML, Markdown</text><text class="cjk rowz" x="568" y="554" text-anchor="end">备份与导出</text>
+</g>
+<rect x="96" y="606" width="496" height="106" rx="14" fill="#f2f0e9" fill-opacity=".08" stroke="#d8e0d1" stroke-opacity=".3"/>
+<text class="m" x="120" y="634" fill="#b9c8b3">ON-DEVICE MODELS · OPTIONAL</text>
+<text class="cjk" x="568" y="634" font-size="11" fill="#a9b8a4" text-anchor="end">下载后在本机运行</text>
+<g class="s" font-size="12" fill="#e4e8dd">
+<rect x="120" y="648" width="54" height="26" rx="8" fill="#f2f0e9" fill-opacity=".14"/><text x="147" y="665" text-anchor="middle">OCR</text>
+<rect x="182" y="648" width="116" height="26" rx="8" fill="#f2f0e9" fill-opacity=".14"/><text x="240" y="665" text-anchor="middle">Transcription</text>
+<rect x="306" y="648" width="96" height="26" rx="8" fill="#f2f0e9" fill-opacity=".14"/><text x="354" y="665" text-anchor="middle">Speaker ID</text>
+<rect x="120" y="680" width="140" height="26" rx="8" fill="#f2f0e9" fill-opacity=".14"/><text x="190" y="697" text-anchor="middle">Speech synthesis</text>
+<rect x="268" y="680" width="102" height="26" rx="8" fill="#f2f0e9" fill-opacity=".14"/><text x="319" y="697" text-anchor="middle">Image tools</text>
+<rect x="378" y="680" width="96" height="26" rx="8" fill="#f2f0e9" fill-opacity=".14"/><text x="426" y="697" text-anchor="middle">Embeddings</text>
+</g>
+
+<!-- boundary lane -->
+<path d="M636 224V726M964 224V726" stroke="#a9a696" stroke-opacity=".55" stroke-dasharray="3 7"/>
+<text class="m" x="800" y="252" text-anchor="middle" fill="#7d887c">EXPLICIT BOUNDARY</text>
+<text class="cjk" x="800" y="276" font-size="13" fill="#596259" text-anchor="middle">边界清晰 · 选择明确</text>
+<path d="M660 344H936" stroke="#5d7359" stroke-width="2.5" marker-end="url(#toCloud)"/>
+<text class="s" x="800" y="326" font-size="14" fill="#43503f" text-anchor="middle">Selection + context</text>
+<text class="cjk" x="800" y="370" font-size="12" fill="#7b857a" text-anchor="middle">选中内容与上下文</text>
+<path d="M940 474H664" stroke="#b18d65" stroke-width="2.5" marker-end="url(#toDevice)"/>
+<text class="s" x="800" y="456" font-size="14" fill="#6b5638" text-anchor="middle">Answer + citations</text>
+<text class="cjk" x="800" y="500" font-size="12" fill="#7b857a" text-anchor="middle">答案与引用回到画布</text>
+<rect x="657" y="566" width="286" height="60" rx="14" fill="#f7f5ee" stroke="#cfcabb"/>
+<text class="m" x="800" y="592" text-anchor="middle" font-size="11" letter-spacing="1.6" fill="#52644f">NOTHING LEAVES BY DEFAULT</text>
+<text class="cjk" x="800" y="614" font-size="12" fill="#7b857a" text-anchor="middle">默认不上传任何内容</text>
+
+<!-- 02 provider -->
+<g filter="url(#shadow)"><rect x="976" y="214" width="560" height="300" rx="22" fill="url(#card)"/></g>
+<text class="m" x="1008" y="258" fill="#8a7a5f">02 / PROVIDER YOU SELECT</text>
+<text class="s" x="1008" y="296" font-size="22" fill="#202a23">Cloud model provider</text>
+<text class="cjk" x="1010" y="322" font-size="14" fill="#596259">云端模型服务商 · 由你在设置中配置</text>
+<g>
+<circle cx="1014" cy="359" r="4" fill="#b18d65"/><text class="row" x="1032" y="364">Task-scoped request only</text><text class="cjk rowz" x="1504" y="364" text-anchor="end">只发送本次任务所需</text>
+<circle cx="1014" cy="395" r="4" fill="#b18d65"/><text class="row" x="1032" y="400">Provider terms apply</text><text class="cjk rowz" x="1504" y="400" text-anchor="end">遵循服务商的条款与政策</text>
+<circle cx="1014" cy="431" r="4" fill="#b18d65"/><text class="row" x="1032" y="436">Your library is not a training feed</text><text class="cjk rowz" x="1504" y="436" text-anchor="end">资料库不用于训练</text>
+</g>
+<text class="cjk" x="1008" y="480" font-size="13" fill="#7b857a">本地优先不代表全部离线，关键在于边界清晰。</text>
+
+<!-- 03 not in the architecture -->
+<rect x="976" y="544" width="560" height="192" rx="22" fill="#e9e6db" stroke="#cfcbbe" stroke-dasharray="6 5"/>
+<text class="m" x="1008" y="586" fill="#8d8878">03 / NOT IN THE ARCHITECTURE</text>
+<g stroke="#8d8878" stroke-width="2" fill="none"><circle cx="1024" cy="620" r="14"/><path d="M1014 630 1034 610"/></g>
+<text class="s" x="1052" y="628" font-size="20" fill="#5f5b50">No Knovum account. No Knovum cloud.</text>
+<text class="row" x="1052" y="672" font-size="14.5">No hosted library, no sync server</text><text class="cjk rowz" x="1504" y="672" text-anchor="end">无托管资料库与同步服务</text>
+<text class="row" x="1052" y="702" font-size="14.5">You protect and back up the device</text><text class="cjk rowz" x="1504" y="702" text-anchor="end">设备安全与备份由你负责</text>
+
+<path d="M64 772H1536" stroke="#7b887b" stroke-opacity=".25"/>
+<text class="m" x="64" y="800" letter-spacing="2.4" fill="#7d887c">STORED LOCALLY · 本地保存</text>
+<text class="s" x="64" y="828" font-size="13" fill="#596259">Space structure · managed files · extracted text · semantic index · backups</text>
+<text class="cjk" x="64" y="854" font-size="12.5" fill="#7b857a">Space 结构、托管文件、提取文本、语义索引与备份</text>
+<text class="m" x="1536" y="800" font-size="10" letter-spacing="2" fill="#788276" text-anchor="end">KNOVUM / OPEN SOURCE</text>
+<text class="m" x="1536" y="828" font-size="10" letter-spacing="2" fill="#8b9486" text-anchor="end">NO ACCOUNT · NO SERVER</text>
+</svg>
