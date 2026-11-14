@@ -103,7 +103,7 @@
     if (!href || href.startsWith("#")) return;
     const target = new URL(href, globalThis.location.href);
     if (target.origin !== globalThis.location.origin) return;
-    const normalizePath = (pathname) => pathname.replace(/index\\.html$/, "").replace(/\\/$/, "");
+    const normalizePath = (pathname) => pathname.replace(/index\.html$/, "").replace(/\\/$/, "");
     if (normalizePath(target.pathname) === normalizePath(globalThis.location.pathname)) {
       link.setAttribute("aria-current", "page");
     } else {
@@ -157,11 +157,11 @@
 
     const latestReleaseUrl = "https://github.com/madebyzan/knovum/releases/latest";
     const assetPatterns = {
-      "macos-arm64": /_aarch64\\.dmg$/i,
-      "macos-x64": /_x64\\.dmg$/i,
-      "windows-x64": /_x64-setup\\.exe$/i,
+      "macos-arm64": /_aarch64\.dmg$/i,
+      "macos-x64": /_x64\.dmg$/i,
+      "windows-x64": /_x64-setup\.exe$/i,
     };
-    const controller = new AbortController();
+    const controller = new globalThis.AbortController();
     const timeout = globalThis.setTimeout(() => controller.abort(), 5000);
 
     try {
