@@ -103,7 +103,7 @@
     if (!href || href.startsWith("#")) return;
     const target = new URL(href, globalThis.location.href);
     if (target.origin !== globalThis.location.origin) return;
-    const normalizePath = (pathname) => pathname.replace(/index\.html$/, "").replace(/\\/$/, "");
+    const normalizePath = (pathname) => pathname.replace(/index\.html$/, "").replace(/\/$/, "");
     if (normalizePath(target.pathname) === normalizePath(globalThis.location.pathname)) {
       link.setAttribute("aria-current", "page");
     } else {
