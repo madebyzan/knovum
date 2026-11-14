@@ -1,5 +1,6 @@
 :root {
   color-scheme: light;
+  /* Brand palette */
   --paper: #f2f0e9;
   --paper-raised: #f7f5ee;
   --paper-shadow: #e8e5dc;
@@ -15,6 +16,23 @@
   --sage-dark: #768a76;
   --ochre: #ba956b;
   --cream: #f5f2e9;
+
+  /* Semantic roles */
+  --surface-page: var(--paper);
+  --surface-raised: var(--paper-raised);
+  --surface-subtle: var(--paper-shadow);
+  --text-primary: var(--ink);
+  --text-secondary: var(--muted);
+  --text-accent: var(--accent-text);
+  --border-subtle: var(--line);
+  --border-inverse: var(--line-dark);
+  --focus-ring: #52644f;
+  --focus-ring-on-dark: #d7ddcf;
+  --state-success: #52644f;
+  --state-warning: #8a623a;
+  --state-danger: #9a4d43;
+
+  /* Typography and layout */
   --serif: "Instrument Serif", Georgia, serif;
   --sans: "DM Sans", "Helvetica Neue", sans-serif;
   --mono: "DM Mono", monospace;
@@ -1021,11 +1039,14 @@ body.is-ready .hero-visual {
     transform: translateY(0) scale(1);
   }
 }
-a:focus-visible,
-button:focus-visible,
-summary:focus-visible {
-  outline: 2px solid #87977e;
+:where(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
   outline-offset: 4px;
+}
+
+:where(.workflow-section, .install-section, .closing-cta)
+  :where(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline-color: var(--focus-ring-on-dark);
 }
 @media (min-width: 1500px) {
   .hero {
@@ -1361,6 +1382,10 @@ summary:focus-visible {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms !important;
   }
   [data-reveal] {
     opacity: 1;
@@ -1837,7 +1862,7 @@ summary:focus-visible {
   margin-top: 35px;
 }
 .platform-card {
-  min-height: 390px;
+  min-height: 430px;
   padding: 27px 29px;
   display: flex;
   flex-direction: column;
@@ -1882,8 +1907,9 @@ summary:focus-visible {
 }
 .platform-card > p {
   margin: 5px 0 18px;
-  color: #5b6359;
-  font-size: 10px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
 }
 .platform-card ul {
   margin: 0 0 21px;
@@ -1897,30 +1923,51 @@ summary:focus-visible {
   gap: 15px;
   padding: 10px 0;
   border-bottom: 1px solid var(--line);
-  color: #5b6359;
-  font-size: 9px;
+  color: var(--text-secondary);
+  font-size: 11px;
 }
 .platform-card li strong {
   color: #3f4b40;
   font-weight: 600;
 }
-.platform-card .button {
-  align-self: flex-start;
-  min-height: 46px;
+.platform-download-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
   margin-top: auto;
 }
+
+.platform-download-actions .button {
+  min-height: 44px;
+  padding-inline: 14px;
+  gap: 12px;
+  font-size: 10px;
+}
+
+.button--outline {
+  color: var(--forest);
+  background: transparent;
+  border-color: rgba(32, 43, 37, 0.28);
+}
+
+.button--outline:hover {
+  background: rgba(255, 255, 255, 0.38);
+  border-color: rgba(32, 43, 37, 0.48);
+}
+
 .platform-card > small {
   display: block;
   max-width: 410px;
   margin-top: 13px;
-  color: #5b6359;
-  font-size: 8px;
-  line-height: 1.7;
+  color: var(--text-secondary);
+  font-size: 10px;
+  line-height: 1.75;
 }
 .platform-unavailable {
   margin: 18px 0 0;
-  color: #5b6359;
-  font-size: 9px;
+  color: var(--text-secondary);
+  font-size: 11px;
 }
 .install-section {
   background: var(--forest);
