@@ -2910,7 +2910,6 @@ body.is-ready .hero-visual {
   }
 }
 
-
 /* Optional first-party product imagery */
 .optional-image {
   width: min(var(--measure), calc(100% - 2 * var(--gutter)));

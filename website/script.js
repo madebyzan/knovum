@@ -98,20 +98,17 @@
     }
   }
 
+  const normalizePath = (pathname) => pathname.replace(/index\.html$/, "").replace(/\/$/, "");
   document.querySelectorAll(".primary-nav a[href]").forEach((link) => {
     const href = link.getAttribute("href");
     if (!href || href.startsWith("#")) return;
     const target = new URL(href, globalThis.location.href);
     if (target.origin !== globalThis.location.origin) return;
-    const normalizePath = (pathname) => pathname.replace(/index\.html$/, "").replace(/\/$/, "");
     const targetPath = normalizePath(target.pathname);
     const currentPath = normalizePath(globalThis.location.pathname);
     if (targetPath === currentPath) {
       link.setAttribute("aria-current", "page");
-    } else if (
-      targetPath.endsWith("/guides") &&
-      currentPath.startsWith(targetPath + "/")
-    ) {
+    } else if (targetPath.endsWith("/guides") && currentPath.startsWith(targetPath + "/")) {
       link.setAttribute("aria-current", "location");
     } else {
       link.removeAttribute("aria-current");
@@ -164,12 +161,20 @@
       const source = figure.dataset.optionalImage;
       if (!image || !source) return;
 
-      image.addEventListener("load", () => {
-        figure.hidden = false;
-      }, { once: true });
-      image.addEventListener("error", () => {
-        figure.remove();
-      }, { once: true });
+      image.addEventListener(
+        "load",
+        () => {
+          figure.hidden = false;
+        },
+        { once: true },
+      );
+      image.addEventListener(
+        "error",
+        () => {
+          figure.remove();
+        },
+        { once: true },
+      );
       image.src = source;
     });
 
@@ -177,9 +182,13 @@
       document.querySelectorAll("img[data-localized-src]").forEach((image) => {
         const localizedImage = new Image();
         localizedImage.decoding = "async";
-        localizedImage.addEventListener("load", () => {
-          image.src = localizedImage.src;
-        }, { once: true });
+        localizedImage.addEventListener(
+          "load",
+          () => {
+            image.src = localizedImage.src;
+          },
+          { once: true },
+        );
         localizedImage.src = image.dataset.localizedSrc;
       });
     }
