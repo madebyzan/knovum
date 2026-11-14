@@ -104,8 +104,15 @@
     const target = new URL(href, globalThis.location.href);
     if (target.origin !== globalThis.location.origin) return;
     const normalizePath = (pathname) => pathname.replace(/index\.html$/, "").replace(/\/$/, "");
-    if (normalizePath(target.pathname) === normalizePath(globalThis.location.pathname)) {
+    const targetPath = normalizePath(target.pathname);
+    const currentPath = normalizePath(globalThis.location.pathname);
+    if (targetPath === currentPath) {
       link.setAttribute("aria-current", "page");
+    } else if (
+      targetPath.endsWith("/guides") &&
+      currentPath.startsWith(targetPath + "/")
+    ) {
+      link.setAttribute("aria-current", "location");
     } else {
       link.removeAttribute("aria-current");
     }
