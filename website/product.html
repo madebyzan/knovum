@@ -186,17 +186,22 @@
         </div>
       </section>
 
-<div class="image-carousel" data-image-carousel role="region" aria-roledescription="carousel"
-  aria-label="Knovum product screenshots">
-  <div class="image-carousel__heading">
-    <div>
-      <p class="eyebrow-text" data-en="PRODUCT IMAGE TOUR" data-zh="产品界面浏览">PRODUCT IMAGE TOUR</p>
-      <h2 data-en="A closer look at Knovum." data-zh="进一步了解 Knovum。">A closer look at Knovum.</h2>
-    </div>
-    <span class="image-carousel__counter" data-carousel-counter aria-live="off">01 / 04</span>
-  </div>
-  <div class="image-carousel__stage">
-    <figure
+      <div
+        class="image-carousel"
+        data-image-carousel
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Knovum product screenshots"
+      >
+        <div class="image-carousel__heading">
+          <div>
+            <p class="eyebrow-text" data-en="PRODUCT IMAGE TOUR" data-zh="产品界面浏览">PRODUCT IMAGE TOUR</p>
+            <h2 data-en="A closer look at Knovum." data-zh="进一步了解 Knovum。">A closer look at Knovum.</h2>
+          </div>
+          <span class="image-carousel__counter" data-carousel-counter aria-live="off">01 / 04</span>
+        </div>
+        <div class="image-carousel__stage">
+          <figure
             class="optional-image optional-image--wide image-carousel__slide"
             data-optional-image="./assets/pdf-citations.webp"
             hidden
@@ -205,14 +210,14 @@
               alt="PDF passage highlighting and source-level citations."
               width="1600"
               height="900"
-              loading="lazy"
+              loading="eager"
               decoding="async"
             />
             <figcaption>
               <span data-en="Passage-level citations" data-zh="段落级来源引用">Passage-level citations</span>
             </figcaption>
           </figure>
-    <figure
+          <figure
             class="optional-image optional-image--wide image-carousel__slide"
             data-optional-image="./assets/knowledge-objects.webp"
             hidden
@@ -221,14 +226,14 @@
               alt="Connections between concepts, questions, claims, evidence, experiments, and decisions."
               width="1600"
               height="900"
-              loading="lazy"
+              loading="eager"
               decoding="async"
             />
             <figcaption>
               <span data-en="Structured knowledge" data-zh="结构化知识">Structured knowledge</span>
             </figcaption>
           </figure>
-    <figure
+          <figure
             class="optional-image optional-image--wide image-carousel__slide"
             data-optional-image="./assets/semantic-search.webp"
             hidden
@@ -237,14 +242,14 @@
               alt="Knovum semantic search across notes and PDFs."
               width="1600"
               height="900"
-              loading="lazy"
+              loading="eager"
               decoding="async"
             />
             <figcaption>
               <span data-en="Search by meaning" data-zh="按意义搜索">Search by meaning</span>
             </figcaption>
           </figure>
-    <figure
+          <figure
             class="optional-image optional-image--wide image-carousel__slide"
             data-optional-image="./assets/creation-workflow.webp"
             hidden
@@ -253,33 +258,51 @@
               alt="A real workflow turning selected source material into traceable work."
               width="1600"
               height="900"
-              loading="lazy"
+              loading="eager"
               decoding="async"
             />
             <figcaption>
               <span data-en="Traceable creation" data-zh="可追溯的创作">Traceable creation</span>
             </figcaption>
           </figure>
-  </div>
-  <div class="image-carousel__controls">
-    <p class="image-carousel__hint" data-en="Automatically loops through the workspace, citations, search, and creation tools." data-zh="自动循环展示工作空间、来源引用、搜索与创作功能。">Automatically loops through the workspace, citations, search, and creation tools.</p>
-    <div class="image-carousel__buttons">
-      <button type="button" class="image-carousel__button" data-carousel-prev
-        data-en-label="Previous image" data-zh-label="上一张图片" aria-label="Previous image">
-        <span aria-hidden="true">←</span>
-      </button>
-      <button type="button" class="image-carousel__button image-carousel__toggle" data-carousel-toggle
-        aria-pressed="true" data-en-label="Pause automatic playback" data-zh-label="暂停自动播放"
-        aria-label="Pause automatic playback">
-        <span data-en="Pause" data-zh="暂停">Pause</span>
-      </button>
-      <button type="button" class="image-carousel__button" data-carousel-next
-        data-en-label="Next image" data-zh-label="下一张图片" aria-label="Next image">
-        <span aria-hidden="true">→</span>
-      </button>
-    </div>
-  </div>
-</div>
+        </div>
+        <div class="image-carousel__controls">
+          <p class="image-carousel__hint" data-en="Automatically loops through the workspace, citations, search, and creation tools." data-zh="自动循环展示工作空间、来源引用、搜索与创作功能。">Automatically loops through the workspace, citations, search, and creation tools.</p>
+          <div class="image-carousel__buttons">
+            <button
+              type="button"
+              class="image-carousel__button"
+              data-carousel-prev
+              data-en-label="Previous image"
+              data-zh-label="上一张图片"
+              aria-label="Previous image"
+            >
+              <span aria-hidden="true">←</span>
+            </button>
+            <button
+              type="button"
+              class="image-carousel__button image-carousel__toggle"
+              data-carousel-toggle
+              aria-pressed="true"
+              data-en-label="Pause automatic playback"
+              data-zh-label="暂停自动播放"
+              aria-label="Pause automatic playback"
+            >
+              <span data-en="Pause" data-zh="暂停">Pause</span>
+            </button>
+            <button
+              type="button"
+              class="image-carousel__button"
+              data-carousel-next
+              data-en-label="Next image"
+              data-zh-label="下一张图片"
+              aria-label="Next image"
+            >
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
 
       <section class="section-wrap content-section" id="spaces">
