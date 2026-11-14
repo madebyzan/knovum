@@ -14,17 +14,17 @@ The website should consistently communicate three things:
 
 ## Page-to-intent map
 
-| Page | Primary search intent | Primary English query family | Chinese query family |
-| --- | --- | --- | --- |
-| `index.html` | Discover the product category | local-first knowledge management software; desktop AI research workspace; open-source knowledge workspace | 本地优先知识管理软件；桌面 AI 研究工作空间；开源知识管理工具 |
-| `product.html` | Evaluate product capabilities | infinite canvas for research; research workspace with citations; semantic search for notes and PDFs; source-cited AI answers | 无限画布研究工具；带来源引用的研究工作空间；笔记与 PDF 语义搜索 |
-| `privacy.html` | Understand data custody | private knowledge base for desktop; local-first AI workspace; keep research notes on device | 本地知识库；隐私知识管理软件；数据保存在本地的 AI 工作空间 |
-| `download.html` | Install the product | Knovum download; free open-source macOS knowledge app; Windows knowledge workspace | Knovum 下载；macOS 知识管理软件；Windows 桌面知识库 |
-| `about.html` | Establish project identity and trust | Knovum open source; local-first knowledge workspace project | Knovum 开源项目；本地优先知识工作空间 |
-| `guides/local-first-knowledge-management.html` | Learn the category and trade-offs | what is local-first knowledge management; local-first vs cloud-first knowledge base | 什么是本地优先知识管理；本地知识库与云端知识库区别 |
-| `guides/infinite-canvas-for-research.html` | Learn a research workflow | how to use an infinite canvas for research; visual research workspace | 如何用无限画布做研究；视觉化研究工作流 |
-| `guides/source-grounded-ai-research.html` | Evaluate evidence quality | AI research with source citations; how to verify AI answers | AI 研究如何引用来源；如何核验 AI 答案 |
-| `guides/semantic-search-for-notes-and-pdfs.html` | Understand retrieval | semantic search for notes and PDFs; keyword vs semantic search | 笔记与 PDF 语义搜索；关键词搜索与语义搜索区别 |
+| Page                                             | Primary search intent                | Primary English query family                                                                                                 | Chinese query family                                            |
+| ------------------------------------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `index.html`                                     | Discover the product category        | local-first knowledge management software; desktop AI research workspace; open-source knowledge workspace                    | 本地优先知识管理软件；桌面 AI 研究工作空间；开源知识管理工具    |
+| `product.html`                                   | Evaluate product capabilities        | infinite canvas for research; research workspace with citations; semantic search for notes and PDFs; source-cited AI answers | 无限画布研究工具；带来源引用的研究工作空间；笔记与 PDF 语义搜索 |
+| `privacy.html`                                   | Understand data custody              | private knowledge base for desktop; local-first AI workspace; keep research notes on device                                  | 本地知识库；隐私知识管理软件；数据保存在本地的 AI 工作空间      |
+| `download.html`                                  | Install the product                  | Knovum download; free open-source macOS knowledge app; Windows knowledge workspace                                           | Knovum 下载；macOS 知识管理软件；Windows 桌面知识库             |
+| `about.html`                                     | Establish project identity and trust | Knovum open source; local-first knowledge workspace project                                                                  | Knovum 开源项目；本地优先知识工作空间                           |
+| `guides/local-first-knowledge-management.html`   | Learn the category and trade-offs    | what is local-first knowledge management; local-first vs cloud-first knowledge base                                          | 什么是本地优先知识管理；本地知识库与云端知识库区别              |
+| `guides/infinite-canvas-for-research.html`       | Learn a research workflow            | how to use an infinite canvas for research; visual research workspace                                                        | 如何用无限画布做研究；视觉化研究工作流                          |
+| `guides/source-grounded-ai-research.html`        | Evaluate evidence quality            | AI research with source citations; how to verify AI answers                                                                  | AI 研究如何引用来源；如何核验 AI 答案                           |
+| `guides/semantic-search-for-notes-and-pdfs.html` | Understand retrieval                 | semantic search for notes and PDFs; keyword vs semantic search                                                               | 笔记与 PDF 语义搜索；关键词搜索与语义搜索区别                   |
 
 Keep each page focused on its assigned intent. Link related pages where it helps the reader continue, rather than repeating the same paragraph and heading across multiple URLs.
 

@@ -13,7 +13,10 @@
   function switchLanguage(next) {
     const brand = document.querySelector(".brand");
     if (!brand) return;
-    const localizedRoot = new URL(brand.getAttribute("href"), globalThis.location.href).pathname.replace(/index\.html$/, "");
+    const localizedRoot = new URL(brand.getAttribute("href"), globalThis.location.href).pathname.replace(
+      /index\.html$/,
+      "",
+    );
     const siteRoot = localizedRoot.replace(/zh\/$/, "");
     const route = globalThis.location.pathname.slice(localizedRoot.length);
     globalThis.location.assign(siteRoot + (next === "zh" ? "zh/" : "") + route);
@@ -22,9 +25,14 @@
   function updateMenuLabel() {
     if (!menuButton) return;
     const isOpen = menuButton.getAttribute("aria-expanded") === "true";
-    const label = language === "en"
-      ? (isOpen ? "Close navigation" : "Open navigation")
-      : (isOpen ? "关闭导航" : "打开导航");
+    const label =
+      language === "en"
+        ? isOpen
+          ? "Close navigation"
+          : "Open navigation"
+        : isOpen
+          ? "关闭导航"
+          : "打开导航";
     menuButton.setAttribute("aria-label", label);
   }
 
@@ -81,22 +89,32 @@
     if (header) header.classList.toggle("is-scrolled", globalThis.scrollY > 12);
     frameRequested = false;
   }
-  globalThis.addEventListener("scroll", () => {
-    if (frameRequested) return;
-    frameRequested = true;
-    globalThis.requestAnimationFrame(updateScrollState);
-  }, { passive: true });
+  globalThis.addEventListener(
+    "scroll",
+    () => {
+      if (frameRequested) return;
+      frameRequested = true;
+      globalThis.requestAnimationFrame(updateScrollState);
+    },
+    { passive: true },
+  );
   updateScrollState();
 
   const revealItems = document.querySelectorAll("[data-reveal]");
-  if ("IntersectionObserver" in globalThis && !globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    const observer = new globalThis.IntersectionObserver((entries, currentObserver) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("is-visible");
-        currentObserver.unobserve(entry.target);
-      });
-    }, { threshold: 0.12, rootMargin: "0px 0px -24px 0px" });
+  if (
+    "IntersectionObserver" in globalThis &&
+    !globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
+    const observer = new globalThis.IntersectionObserver(
+      (entries, currentObserver) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          currentObserver.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -24px 0px" },
+    );
     revealItems.forEach((item) => observer.observe(item));
   } else {
     revealItems.forEach((item) => item.classList.add("is-visible"));

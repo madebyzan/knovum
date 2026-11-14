@@ -1,70 +1,577 @@
 <!doctype html>
-<html lang="zh-CN"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><meta name="theme-color" content="#f2f0e9">
-<meta name="description" content="下载适用于 macOS 和 Windows 的免费开源 Knovum 知识工作空间，查看系统要求、安装说明和源代码构建方法。">
-<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"><meta property="og:type" content="website"><meta property="og:site_name" content="Knovum"><meta property="og:title" content="下载 Knovum｜免费开源 macOS 与 Windows 知识管理软件"><meta property="og:description" content="下载适用于 macOS 和 Windows 的免费开源 Knovum 知识工作空间，查看系统要求、安装说明和源代码构建方法。"><meta property="og:image" content="https://madebyzan.github.io/knovum/assets/social-card-zh.png"><meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="下载 Knovum｜免费开源 macOS 与 Windows 知识管理软件">
-<meta name="twitter:description" content="下载适用于 macOS 和 Windows 的免费开源 Knovum 知识工作空间，查看系统要求、安装说明和源代码构建方法。">
-<meta name="twitter:image" content="https://madebyzan.github.io/knovum/assets/social-card-zh.png">
-<link rel="icon" type="image/png" href="../assets/app-icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;650;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"><link rel="stylesheet" href="../styles.css"><title>下载 Knovum｜免费开源 macOS 与 Windows 知识管理软件</title><script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Knovum 免费吗？","acceptedAnswer":{"@type":"Answer","text":"是的。Knovum 是基于 MIT 许可证发布的免费开源软件。"}},{"@type":"Question","name":"需要 AI 服务账号吗？","acceptedAnswer":{"@type":"Answer","text":"使用 Knovum 及其本地功能不需要账号。云端 AI 问答与生成需要连接你选择的模型服务。"}},{"@type":"Question","name":"为什么模型需要单独下载？","acceptedAnswer":{"@type":"Answer","text":"本地能力会在首次需要时下载对应模型。这样可以减小初始安装体积，也允许你在不再需要时从设置中移除模型。"}},{"@type":"Question","name":"支持 Linux 吗？","acceptedAnswer":{"@type":"Answer","text":"当前版本暂不支持 Linux 与 Windows ARM。最新支持的安装包请以版本发布页面为准。"}}]}</script>
-  <meta property="og:image:alt" content="Knovum — a local-first workspace for connected knowledge, research, and creation.">
-  <meta property="og:image:type" content="image/png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-</head>
-<body id="top" data-page="download" data-locale="zh"><a class="skip-link" href="#main" data-en="Skip to content" data-zh="跳转到正文">跳转到正文</a><div class="reading-progress" aria-hidden="true"><span></span></div>
-<div class="announcement"><span class="announcement__dot" aria-hidden="true"></span><p data-en="A calm, capable space for your most important work." data-zh="为重要的思考与创作，留一处从容的空间。">为重要的思考与创作，留一处从容的空间。</p><a href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"><span data-en="Explore the latest release" data-zh="查看最新版本">查看最新版本</span><span aria-hidden="true">↗</span></a></div>
-  <header class="site-header"><div class="nav-shell">
-    <a class="brand" href="./index.html" aria-label="Knovum home"><img src="../assets/app-icon.png" alt="" width="34" height="34"><span>knovum</span></a>
-    <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-navigation"><span></span><span></span></button>
-    <nav class="primary-nav" id="primary-navigation" aria-label="Main navigation">
-      <a class="nav-link" href="./product.html"  data-en="Product" data-zh="产品">产品</a>
-      <a class="nav-link" href="./privacy.html"  data-en="Privacy" data-zh="隐私">隐私</a>
-      <a class="nav-link" href="./download.html" aria-current="page" data-en="Download" data-zh="下载">下载</a><a class="nav-link" href="./guides/index.html" data-en="Guides" data-zh="指南">指南</a>
-      <details class="nav-menu"><summary><span data-en="Explore" data-zh="探索">探索</span><span class="chevron" aria-hidden="true"></span></summary>
-        <div class="nav-menu__panel">
-          <a href="./about.html"><strong data-en="About Knovum" data-zh="关于 Knovum">关于 Knovum</strong><small data-en="The thinking behind the workspace" data-zh="关于产品的理念与方向">关于产品的理念与方向</small></a>
-          <a href="https://github.com/madebyzan/knovum/tree/main/docs" target="_blank" rel="noreferrer"><strong data-en="Documentation" data-zh="项目文档">项目文档</strong><small data-en="Guides, concepts, and technical details" data-zh="使用指南、产品概念与技术细节">使用指南、产品概念与技术细节</small></a>
-          <a href="https://github.com/madebyzan/knovum/releases" target="_blank" rel="noreferrer"><strong data-en="Release notes" data-zh="版本记录">版本记录</strong><small data-en="What's new in Knovum" data-zh="了解每个版本的新变化">了解每个版本的新变化</small></a>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f2f0e9" />
+    <meta
+      name="description"
+      content="下载适用于 macOS 和 Windows 的免费开源 Knovum 知识工作空间，查看系统要求、安装说明和源代码构建方法。"
+    />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Knovum" />
+    <meta property="og:title" content="下载 Knovum｜免费开源 macOS 与 Windows 知识管理软件" />
+    <meta
+      property="og:description"
+      content="下载适用于 macOS 和 Windows 的免费开源 Knovum 知识工作空间，查看系统要求、安装说明和源代码构建方法。"
+    />
+    <meta property="og:image" content="https://madebyzan.github.io/knovum/assets/social-card-zh.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="下载 Knovum｜免费开源 macOS 与 Windows 知识管理软件" />
+    <meta
+      name="twitter:description"
+      content="下载适用于 macOS 和 Windows 的免费开源 Knovum 知识工作空间，查看系统要求、安装说明和源代码构建方法。"
+    />
+    <meta name="twitter:image" content="https://madebyzan.github.io/knovum/assets/social-card-zh.png" />
+    <link rel="icon" type="image/png" href="../assets/app-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;650;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+    <title>下载 Knovum｜免费开源 macOS 与 Windows 知识管理软件</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Knovum 免费吗？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "是的。Knovum 是基于 MIT 许可证发布的免费开源软件。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "需要 AI 服务账号吗？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "使用 Knovum 及其本地功能不需要账号。云端 AI 问答与生成需要连接你选择的模型服务。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "为什么模型需要单独下载？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "本地能力会在首次需要时下载对应模型。这样可以减小初始安装体积，也允许你在不再需要时从设置中移除模型。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "支持 Linux 吗？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "当前版本暂不支持 Linux 与 Windows ARM。最新支持的安装包请以版本发布页面为准。"
+            }
+          }
+        ]
+      }
+    </script>
+    <meta
+      property="og:image:alt"
+      content="Knovum — a local-first workspace for connected knowledge, research, and creation."
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+  </head>
+  <body id="top" data-page="download" data-locale="zh">
+    <a class="skip-link" href="#main" data-en="Skip to content" data-zh="跳转到正文">跳转到正文</a>
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <div class="announcement">
+      <span class="announcement__dot" aria-hidden="true"></span>
+      <p
+        data-en="A calm, capable space for your most important work."
+        data-zh="为重要的思考与创作，留一处从容的空间。"
+      >
+        为重要的思考与创作，留一处从容的空间。
+      </p>
+      <a href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"
+        ><span data-en="Explore the latest release" data-zh="查看最新版本">查看最新版本</span
+        ><span aria-hidden="true">↗</span></a
+      >
+    </div>
+    <header class="site-header">
+      <div class="nav-shell">
+        <a class="brand" href="./index.html" aria-label="Knovum home"
+          ><img src="../assets/app-icon.png" alt="" width="34" height="34" /><span>knovum</span></a
+        >
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="Open navigation"
+          aria-expanded="false"
+          aria-controls="primary-navigation"
+        >
+          <span></span><span></span>
+        </button>
+        <nav class="primary-nav" id="primary-navigation" aria-label="Main navigation">
+          <a class="nav-link" href="./product.html" data-en="Product" data-zh="产品">产品</a>
+          <a class="nav-link" href="./privacy.html" data-en="Privacy" data-zh="隐私">隐私</a>
+          <a class="nav-link" href="./download.html" aria-current="page" data-en="Download" data-zh="下载"
+            >下载</a
+          ><a class="nav-link" href="./guides/index.html" data-en="Guides" data-zh="指南">指南</a>
+          <details class="nav-menu">
+            <summary>
+              <span data-en="Explore" data-zh="探索">探索</span
+              ><span class="chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="nav-menu__panel">
+              <a href="./about.html"
+                ><strong data-en="About Knovum" data-zh="关于 Knovum">关于 Knovum</strong
+                ><small data-en="The thinking behind the workspace" data-zh="关于产品的理念与方向"
+                  >关于产品的理念与方向</small
+                ></a
+              >
+              <a href="https://github.com/madebyzan/knovum/tree/main/docs" target="_blank" rel="noreferrer"
+                ><strong data-en="Documentation" data-zh="项目文档">项目文档</strong
+                ><small
+                  data-en="Guides, concepts, and technical details"
+                  data-zh="使用指南、产品概念与技术细节"
+                  >使用指南、产品概念与技术细节</small
+                ></a
+              >
+              <a href="https://github.com/madebyzan/knovum/releases" target="_blank" rel="noreferrer"
+                ><strong data-en="Release notes" data-zh="版本记录">版本记录</strong
+                ><small data-en="What's new in Knovum" data-zh="了解每个版本的新变化"
+                  >了解每个版本的新变化</small
+                ></a
+              >
+            </div>
+          </details>
+          <a
+            class="nav-link nav-github"
+            href="https://github.com/madebyzan/knovum"
+            target="_blank"
+            rel="noreferrer"
+            >GitHub ↗</a
+          >
+        </nav>
+        <div class="nav-actions">
+          <button class="language-toggle" type="button" aria-label="Switch language">中文</button
+          ><a class="button button--small button--dark" href="./download.html"
+            ><span data-en="Get Knovum" data-zh="获取 Knovum">获取 Knovum</span
+            ><span aria-hidden="true">↗</span></a
+          >
         </div>
-      </details>
-      <a class="nav-link nav-github" href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a>
-    </nav>
-    <div class="nav-actions"><button class="language-toggle" type="button" aria-label="Switch language">中文</button><a class="button button--small button--dark" href="./download.html"><span data-en="Get Knovum" data-zh="获取 Knovum">获取 Knovum</span><span aria-hidden="true">↗</span></a></div>
-  </div></header><main id="main">
-<section class="page-hero section-wrap"><div class="page-hero__copy"><div class="breadcrumb"><a href="./index.html" data-en="Home" data-zh="首页">首页</a><span>/</span><span data-en="Download" data-zh="下载">下载</span></div>
-<div class="eyebrow"><span class="eyebrow__line"></span><span data-en="YOUR DESKTOP, YOUR SPACE" data-zh="你的桌面，你的空间">你的桌面，你的空间</span></div>
-<h1 data-en="A little more room to think." data-zh="给思考多一点空间。">给思考多一点空间。</h1>
-<p data-en="Knovum is free, open-source desktop software for macOS and Windows. Choose the installer that matches your device, or build from source." data-zh="Knovum 是面向 macOS 和 Windows 的免费开源桌面软件。选择与你的设备匹配的安装包，也可以从源代码自行构建。">Knovum 是面向 macOS 和 Windows 的免费开源桌面软件。选择与你的设备匹配的安装包，也可以从源代码自行构建。</p>
-<div class="page-hero__actions"><a class="button button--dark" href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"><span data-en="Open latest release" data-zh="打开最新版本">打开最新版本</span><span>↗</span></a><a class="text-link" href="#platforms"><span data-en="Choose your platform" data-zh="选择平台">选择平台</span><span>↓</span></a></div>
-</div><div class="page-hero__aside" data-reveal><span class="aside-index">DOWNLOAD / 01</span><p data-en="Free. Open source. Yours to run." data-zh="免费 · 开源 · 由你运行">免费 · 开源 · 由你运行</p><span class="aside-rule"></span><small data-en="No Knovum account is required to get started." data-zh="开始使用 Knovum 不需要注册账号。">开始使用 Knovum 不需要注册账号。</small></div></section>
+      </div>
+    </header>
+    <main id="main">
+      <section class="page-hero section-wrap">
+        <div class="page-hero__copy">
+          <div class="breadcrumb">
+            <a href="./index.html" data-en="Home" data-zh="首页">首页</a><span>/</span
+            ><span data-en="Download" data-zh="下载">下载</span>
+          </div>
+          <div class="eyebrow">
+            <span class="eyebrow__line"></span
+            ><span data-en="YOUR DESKTOP, YOUR SPACE" data-zh="你的桌面，你的空间">你的桌面，你的空间</span>
+          </div>
+          <h1 data-en="A little more room to think." data-zh="给思考多一点空间。">给思考多一点空间。</h1>
+          <p
+            data-en="Knovum is free, open-source desktop software for macOS and Windows. Choose the installer that matches your device, or build from source."
+            data-zh="Knovum 是面向 macOS 和 Windows 的免费开源桌面软件。选择与你的设备匹配的安装包，也可以从源代码自行构建。"
+          >
+            Knovum 是面向 macOS 和 Windows
+            的免费开源桌面软件。选择与你的设备匹配的安装包，也可以从源代码自行构建。
+          </p>
+          <div class="page-hero__actions">
+            <a
+              class="button button--dark"
+              href="https://github.com/madebyzan/knovum/releases/latest"
+              target="_blank"
+              rel="noreferrer"
+              ><span data-en="Open latest release" data-zh="打开最新版本">打开最新版本</span><span>↗</span></a
+            ><a class="text-link" href="#platforms"
+              ><span data-en="Choose your platform" data-zh="选择平台">选择平台</span><span>↓</span></a
+            >
+          </div>
+        </div>
+        <div class="page-hero__aside" data-reveal>
+          <span class="aside-index">DOWNLOAD / 01</span>
+          <p data-en="Free. Open source. Yours to run." data-zh="免费 · 开源 · 由你运行">
+            免费 · 开源 · 由你运行
+          </p>
+          <span class="aside-rule"></span
+          ><small
+            data-en="No Knovum account is required to get started."
+            data-zh="开始使用 Knovum 不需要注册账号。"
+            >开始使用 Knovum 不需要注册账号。</small
+          >
+        </div>
+      </section>
 
-<section class="section-wrap download-platforms" id="platforms"><div class="section-kicker"><span>01</span><span data-en="CHOOSE YOUR PLATFORM" data-zh="选择你的平台">选择你的平台</span></div><div class="platform-grid">
-<article class="platform-card"><div class="platform-card__top"><span class="platform-icon" aria-hidden="true">⌘</span><span class="platform-status" data-en="AVAILABLE" data-zh="可用">可用</span></div><h2>macOS</h2><p data-en="For Apple Silicon and Intel Macs." data-zh="适用于 Apple 芯片与 Intel Mac。">适用于 Apple 芯片与 Intel Mac。</p><ul><li><span data-en="Minimum version" data-zh="最低版本">最低版本</span><strong>macOS 14+</strong></li><li><span data-en="Apple Silicon" data-zh="Apple 芯片">Apple 芯片</span><strong>aarch64</strong></li><li><span data-en="Intel" data-zh="Intel">Intel</span><strong>x64</strong></li></ul><a class="button button--dark" href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"><span data-en="Get macOS installer" data-zh="获取 macOS 安装包">获取 macOS 安装包</span><span>↗</span></a><small data-en="Choose the .dmg ending in aarch64 for Apple Silicon or x64 for Intel." data-zh="Apple 芯片请选择文件名以 aarch64.dmg 结尾的安装包；Intel Mac 请选择以 x64.dmg 结尾的安装包。">Apple 芯片请选择文件名以 aarch64.dmg 结尾的安装包；Intel Mac 请选择以 x64.dmg 结尾的安装包。</small></article>
-<article class="platform-card platform-card--featured"><div class="platform-card__top"><span class="platform-icon platform-icon--windows" aria-hidden="true">▦</span><span class="platform-status" data-en="AVAILABLE" data-zh="可用">可用</span></div><h2>Windows</h2><p data-en="For x64 Windows PCs." data-zh="适用于 x64 Windows 电脑。">适用于 x64 Windows 电脑。</p><ul><li><span data-en="Minimum version" data-zh="最低版本">最低版本</span><strong>Windows 10 2004+</strong></li><li><span data-en="Architecture" data-zh="架构">架构</span><strong>x64</strong></li><li><span data-en="Installer" data-zh="安装包">安装包</span><strong>.exe</strong></li></ul><a class="button button--dark" href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"><span data-en="Get Windows installer" data-zh="获取 Windows 安装包">获取 Windows 安装包</span><span>↗</span></a><small data-en="Choose the Windows installer ending in x64-setup.exe." data-zh="请选择文件名以 x64-setup.exe 结尾的 Windows 安装包。">请选择文件名以 x64-setup.exe 结尾的 Windows 安装包。</small></article>
-</div><p class="platform-unavailable" data-en="Linux and Windows on ARM are not supported at this time." data-zh="目前暂不支持 Linux 和 Windows ARM 设备。">目前暂不支持 Linux 和 Windows ARM 设备。</p></section>
+      <section class="section-wrap download-platforms" id="platforms">
+        <div class="section-kicker">
+          <span>01</span><span data-en="CHOOSE YOUR PLATFORM" data-zh="选择你的平台">选择你的平台</span>
+        </div>
+        <div class="platform-grid">
+          <article class="platform-card">
+            <div class="platform-card__top">
+              <span class="platform-icon" aria-hidden="true">⌘</span
+              ><span class="platform-status" data-en="AVAILABLE" data-zh="可用">可用</span>
+            </div>
+            <h2>macOS</h2>
+            <p data-en="For Apple Silicon and Intel Macs." data-zh="适用于 Apple 芯片与 Intel Mac。">
+              适用于 Apple 芯片与 Intel Mac。
+            </p>
+            <ul>
+              <li>
+                <span data-en="Minimum version" data-zh="最低版本">最低版本</span><strong>macOS 14+</strong>
+              </li>
+              <li>
+                <span data-en="Apple Silicon" data-zh="Apple 芯片">Apple 芯片</span><strong>aarch64</strong>
+              </li>
+              <li><span data-en="Intel" data-zh="Intel">Intel</span><strong>x64</strong></li>
+            </ul>
+            <a
+              class="button button--dark"
+              href="https://github.com/madebyzan/knovum/releases/latest"
+              target="_blank"
+              rel="noreferrer"
+              ><span data-en="Get macOS installer" data-zh="获取 macOS 安装包">获取 macOS 安装包</span
+              ><span>↗</span></a
+            ><small
+              data-en="Choose the .dmg ending in aarch64 for Apple Silicon or x64 for Intel."
+              data-zh="Apple 芯片请选择文件名以 aarch64.dmg 结尾的安装包；Intel Mac 请选择以 x64.dmg 结尾的安装包。"
+              >Apple 芯片请选择文件名以 aarch64.dmg 结尾的安装包；Intel Mac 请选择以 x64.dmg
+              结尾的安装包。</small
+            >
+          </article>
+          <article class="platform-card platform-card--featured">
+            <div class="platform-card__top">
+              <span class="platform-icon platform-icon--windows" aria-hidden="true">▦</span
+              ><span class="platform-status" data-en="AVAILABLE" data-zh="可用">可用</span>
+            </div>
+            <h2>Windows</h2>
+            <p data-en="For x64 Windows PCs." data-zh="适用于 x64 Windows 电脑。">
+              适用于 x64 Windows 电脑。
+            </p>
+            <ul>
+              <li>
+                <span data-en="Minimum version" data-zh="最低版本">最低版本</span
+                ><strong>Windows 10 2004+</strong>
+              </li>
+              <li><span data-en="Architecture" data-zh="架构">架构</span><strong>x64</strong></li>
+              <li><span data-en="Installer" data-zh="安装包">安装包</span><strong>.exe</strong></li>
+            </ul>
+            <a
+              class="button button--dark"
+              href="https://github.com/madebyzan/knovum/releases/latest"
+              target="_blank"
+              rel="noreferrer"
+              ><span data-en="Get Windows installer" data-zh="获取 Windows 安装包">获取 Windows 安装包</span
+              ><span>↗</span></a
+            ><small
+              data-en="Choose the Windows installer ending in x64-setup.exe."
+              data-zh="请选择文件名以 x64-setup.exe 结尾的 Windows 安装包。"
+              >请选择文件名以 x64-setup.exe 结尾的 Windows 安装包。</small
+            >
+          </article>
+        </div>
+        <p
+          class="platform-unavailable"
+          data-en="Linux and Windows on ARM are not supported at this time."
+          data-zh="目前暂不支持 Linux 和 Windows ARM 设备。"
+        >
+          目前暂不支持 Linux 和 Windows ARM 设备。
+        </p>
+      </section>
 
-<section class="install-section"><div class="section-wrap section-block"><div class="section-kicker section-kicker--light"><span>02</span><span data-en="A GOOD PLACE TO START" data-zh="从这里开始">从这里开始</span></div><h2 data-en="Start with a small piece of your world." data-zh="从身边的一小部分知识开始。">从身边的一小部分知识开始。</h2><p class="install-intro" data-en="You don't need to reorganize everything before opening Knovum. Start with material you're already working with." data-zh="打开 Knovum 之前，不必先整理好所有资料。从你正在处理的内容开始即可。">打开 Knovum 之前，不必先整理好所有资料。从你正在处理的内容开始即可。</p>
-<div class="install-steps"><article><span>01</span><div><h3 data-en="Create a Space" data-zh="创建一个 Space">创建一个 Space</h3><p data-en="Give a project, topic, or question its own place." data-zh="为一个项目、主题或问题建立自己的空间。">为一个项目、主题或问题建立自己的空间。</p></div></article><article><span>02</span><div><h3 data-en="Bring in a few sources" data-zh="添加几份资料">添加几份资料</h3><p data-en="Save a webpage, import a PDF, add a note, or drop in a recording." data-zh="保存一个网页、导入 PDF、添加笔记，或拖入录音。">保存一个网页、导入 PDF、添加笔记，或拖入录音。</p></div></article><article><span>03</span><div><h3 data-en="Write down one question" data-zh="写下一个问题">写下一个问题</h3><p data-en="Give your material a direction. Connect an answer back to the evidence as you go." data-zh="为资料设定一个方向，并在探索过程中将答案与证据连接起来。">为资料设定一个方向，并在探索过程中将答案与证据连接起来。</p></div></article></div></div></section>
+      <section class="install-section">
+        <div class="section-wrap section-block">
+          <div class="section-kicker section-kicker--light">
+            <span>02</span><span data-en="A GOOD PLACE TO START" data-zh="从这里开始">从这里开始</span>
+          </div>
+          <h2 data-en="Start with a small piece of your world." data-zh="从身边的一小部分知识开始。">
+            从身边的一小部分知识开始。
+          </h2>
+          <p
+            class="install-intro"
+            data-en="You don't need to reorganize everything before opening Knovum. Start with material you're already working with."
+            data-zh="打开 Knovum 之前，不必先整理好所有资料。从你正在处理的内容开始即可。"
+          >
+            打开 Knovum 之前，不必先整理好所有资料。从你正在处理的内容开始即可。
+          </p>
+          <div class="install-steps">
+            <article>
+              <span>01</span>
+              <div>
+                <h3 data-en="Create a Space" data-zh="创建一个 Space">创建一个 Space</h3>
+                <p
+                  data-en="Give a project, topic, or question its own place."
+                  data-zh="为一个项目、主题或问题建立自己的空间。"
+                >
+                  为一个项目、主题或问题建立自己的空间。
+                </p>
+              </div>
+            </article>
+            <article>
+              <span>02</span>
+              <div>
+                <h3 data-en="Bring in a few sources" data-zh="添加几份资料">添加几份资料</h3>
+                <p
+                  data-en="Save a webpage, import a PDF, add a note, or drop in a recording."
+                  data-zh="保存一个网页、导入 PDF、添加笔记，或拖入录音。"
+                >
+                  保存一个网页、导入 PDF、添加笔记，或拖入录音。
+                </p>
+              </div>
+            </article>
+            <article>
+              <span>03</span>
+              <div>
+                <h3 data-en="Write down one question" data-zh="写下一个问题">写下一个问题</h3>
+                <p
+                  data-en="Give your material a direction. Connect an answer back to the evidence as you go."
+                  data-zh="为资料设定一个方向，并在探索过程中将答案与证据连接起来。"
+                >
+                  为资料设定一个方向，并在探索过程中将答案与证据连接起来。
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
 
-<section class="section-wrap requirements-section"><div class="section-kicker"><span>03</span><span data-en="BEFORE YOU INSTALL" data-zh="安装前须知">安装前须知</span></div><div class="requirements-grid"><div><h2 data-en="A transparent note about first launch." data-zh="关于首次启动，有件事需要说明。">关于首次启动，有件事需要说明。</h2><p data-en="Current builds are not yet notarized by Apple or Authenticode-signed. macOS and Windows may ask you to confirm the first launch. Updates after that are delivered in the app and verified against the release signature." data-zh="当前版本尚未通过 Apple 公证或 Authenticode 签名。macOS 和 Windows 可能会在首次启动时要求你确认。之后的更新会在应用内交付，并根据版本签名进行验证。">当前版本尚未通过 Apple 公证或 Authenticode 签名。macOS 和 Windows 可能会在首次启动时要求你确认。之后的更新会在应用内交付，并根据版本签名进行验证。</p></div><div class="notice-card"><span class="notice-card__label" data-en="FIRST LAUNCH" data-zh="首次启动">首次启动</span><p data-en="Only download installers from the official Knovum GitHub releases page. Check that the asset matches your operating system and processor architecture." data-zh="请只从 Knovum 官方 GitHub Releases 页面下载安装包，并确认资源与你的操作系统和处理器架构相匹配。">请只从 Knovum 官方 GitHub Releases 页面下载安装包，并确认资源与你的操作系统和处理器架构相匹配。</p><a href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"><span data-en="Official release page" data-zh="官方版本页面">官方版本页面</span><span>↗</span></a></div></div></section>
+      <section class="section-wrap requirements-section">
+        <div class="section-kicker">
+          <span>03</span><span data-en="BEFORE YOU INSTALL" data-zh="安装前须知">安装前须知</span>
+        </div>
+        <div class="requirements-grid">
+          <div>
+            <h2 data-en="A transparent note about first launch." data-zh="关于首次启动，有件事需要说明。">
+              关于首次启动，有件事需要说明。
+            </h2>
+            <p
+              data-en="Current builds are not yet notarized by Apple or Authenticode-signed. macOS and Windows may ask you to confirm the first launch. Updates after that are delivered in the app and verified against the release signature."
+              data-zh="当前版本尚未通过 Apple 公证或 Authenticode 签名。macOS 和 Windows 可能会在首次启动时要求你确认。之后的更新会在应用内交付，并根据版本签名进行验证。"
+            >
+              当前版本尚未通过 Apple 公证或 Authenticode 签名。macOS 和 Windows
+              可能会在首次启动时要求你确认。之后的更新会在应用内交付，并根据版本签名进行验证。
+            </p>
+          </div>
+          <div class="notice-card">
+            <span class="notice-card__label" data-en="FIRST LAUNCH" data-zh="首次启动">首次启动</span>
+            <p
+              data-en="Only download installers from the official Knovum GitHub releases page. Check that the asset matches your operating system and processor architecture."
+              data-zh="请只从 Knovum 官方 GitHub Releases 页面下载安装包，并确认资源与你的操作系统和处理器架构相匹配。"
+            >
+              请只从 Knovum 官方 GitHub Releases 页面下载安装包，并确认资源与你的操作系统和处理器架构相匹配。
+            </p>
+            <a href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"
+              ><span data-en="Official release page" data-zh="官方版本页面">官方版本页面</span
+              ><span>↗</span></a
+            >
+          </div>
+        </div>
+      </section>
 
-<section class="section-wrap source-build-section"><div class="section-kicker"><span>04</span><span data-en="BUILD FROM SOURCE" data-zh="从源代码构建">从源代码构建</span></div><div class="source-build-grid"><div><h2 data-en="Prefer to build it yourself?" data-zh="更喜欢自己构建？">更喜欢自己构建？</h2><p data-en="Knovum is open source under the MIT License. The repository documents the toolchain and build process." data-zh="Knovum 基于 MIT 许可证开源。仓库文档提供了工具链与构建流程。">Knovum 基于 MIT 许可证开源。仓库文档提供了工具链与构建流程。</p><a class="underlined-link" href="https://github.com/madebyzan/knovum/blob/main/docs/installation.md" target="_blank" rel="noreferrer"><span data-en="Read installation requirements" data-zh="阅读安装要求">阅读安装要求</span><span>↗</span></a></div><div class="code-panel"><div class="code-panel__top"><span>TERMINAL</span><button class="copy-command" type="button" data-copy="git clone https://github.com/madebyzan/knovum.git&#10;cd knovum&#10;corepack enable&#10;pnpm install --frozen-lockfile&#10;pnpm desktop:dev"><span data-en="Copy" data-zh="复制">复制</span><span aria-hidden="true">⧉</span></button></div><pre><code>git clone https://github.com/madebyzan/knovum.git
+      <section class="section-wrap source-build-section">
+        <div class="section-kicker">
+          <span>04</span><span data-en="BUILD FROM SOURCE" data-zh="从源代码构建">从源代码构建</span>
+        </div>
+        <div class="source-build-grid">
+          <div>
+            <h2 data-en="Prefer to build it yourself?" data-zh="更喜欢自己构建？">更喜欢自己构建？</h2>
+            <p
+              data-en="Knovum is open source under the MIT License. The repository documents the toolchain and build process."
+              data-zh="Knovum 基于 MIT 许可证开源。仓库文档提供了工具链与构建流程。"
+            >
+              Knovum 基于 MIT 许可证开源。仓库文档提供了工具链与构建流程。
+            </p>
+            <a
+              class="underlined-link"
+              href="https://github.com/madebyzan/knovum/blob/main/docs/installation.md"
+              target="_blank"
+              rel="noreferrer"
+              ><span data-en="Read installation requirements" data-zh="阅读安装要求">阅读安装要求</span
+              ><span>↗</span></a
+            >
+          </div>
+          <div class="code-panel">
+            <div class="code-panel__top">
+              <span>TERMINAL</span
+              ><button
+                class="copy-command"
+                type="button"
+                data-copy="git clone https://github.com/madebyzan/knovum.git&#10;cd knovum&#10;corepack enable&#10;pnpm install --frozen-lockfile&#10;pnpm desktop:dev"
+              >
+                <span data-en="Copy" data-zh="复制">复制</span><span aria-hidden="true">⧉</span>
+              </button>
+            </div>
+            <pre><code>git clone https://github.com/madebyzan/knovum.git
 cd knovum
 corepack enable
 pnpm install --frozen-lockfile
-pnpm desktop:dev</code></pre><p data-en="Toolchain: Node.js 22.13+, Corepack, the pinned Rust toolchain, uv, CMake, Protobuf, and LLVM/libclang." data-zh="工具链要求：Node.js 22.13+、Corepack、项目固定的 Rust 工具链、uv、CMake、Protobuf 与 LLVM/libclang。">工具链要求：Node.js 22.13+、Corepack、项目固定的 Rust 工具链、uv、CMake、Protobuf 与 LLVM/libclang。</p></div></div></section>
+pnpm desktop:dev</code></pre>
+            <p
+              data-en="Toolchain: Node.js 22.13+, Corepack, the pinned Rust toolchain, uv, CMake, Protobuf, and LLVM/libclang."
+              data-zh="工具链要求：Node.js 22.13+、Corepack、项目固定的 Rust 工具链、uv、CMake、Protobuf 与 LLVM/libclang。"
+            >
+              工具链要求：Node.js 22.13+、Corepack、项目固定的 Rust 工具链、uv、CMake、Protobuf 与
+              LLVM/libclang。
+            </p>
+          </div>
+        </div>
+      </section>
 
-<section class="section-wrap download-faq"><div class="section-kicker"><span>05</span><span data-en="DOWNLOAD QUESTIONS" data-zh="下载相关问题">下载相关问题</span></div><div class="faq-layout"><div class="faq-heading"><h2 data-en="Before you get going." data-zh="开始之前，你可能想知道。">开始之前，你可能想知道。</h2><p data-en="More details are available in the project documentation." data-zh="更多细节可以在项目文档中找到。">更多细节可以在项目文档中找到。</p><a class="underlined-link" href="https://github.com/madebyzan/knovum/tree/main/docs" target="_blank" rel="noreferrer"><span data-en="Browse documentation" data-zh="浏览项目文档">浏览项目文档</span><span>↗</span></a></div><div class="faq-list">
-<details class="faq-item" open><summary><span data-en="Is Knovum free?" data-zh="Knovum 免费吗？">Knovum 免费吗？</span><span class="faq-plus"></span></summary><p data-en="Yes. Knovum is free and open-source software under the MIT License." data-zh="是的。Knovum 是基于 MIT 许可证发布的免费开源软件。">是的。Knovum 是基于 MIT 许可证发布的免费开源软件。</p></details>
-<details class="faq-item"><summary><span data-en="Does it need an AI account?" data-zh="需要 AI 服务账号吗？">需要 AI 服务账号吗？</span><span class="faq-plus"></span></summary><p data-en="No account is needed for Knovum or its local capabilities. Cloud AI answers and generation need a model connection you choose." data-zh="使用 Knovum 及其本地功能不需要账号。云端 AI 问答与生成需要连接你选择的模型服务。">使用 Knovum 及其本地功能不需要账号。云端 AI 问答与生成需要连接你选择的模型服务。</p></details>
-<details class="faq-item"><summary><span data-en="Why are models downloaded separately?" data-zh="为什么模型需要单独下载？">为什么模型需要单独下载？</span><span class="faq-plus"></span></summary><p data-en="On-device capabilities download their model files when first needed. This keeps initial installation smaller and lets you remove models from Settings when you no longer need them." data-zh="本地能力会在首次需要时下载对应模型。这样可以减小初始安装体积，也允许你在不再需要时从设置中移除模型。">本地能力会在首次需要时下载对应模型。这样可以减小初始安装体积，也允许你在不再需要时从设置中移除模型。</p></details>
-<details class="faq-item"><summary><span data-en="Is Linux supported?" data-zh="支持 Linux 吗？">支持 Linux 吗？</span><span class="faq-plus"></span></summary><p data-en="Linux and Windows on ARM are not supported by the current release. See the release page for the latest supported installers." data-zh="当前版本暂不支持 Linux 与 Windows ARM。最新支持的安装包请以版本发布页面为准。">当前版本暂不支持 Linux 与 Windows ARM。最新支持的安装包请以版本发布页面为准。</p></details>
-</div></div></section></main>  <footer class="site-footer"><div class="section-wrap footer-main">
-    <div class="footer-brand"><a class="brand brand--footer" href="./index.html"><img src="../assets/app-icon.png" alt="" width="31" height="31"><span>knovum</span></a><p data-en="Bring your knowledge together. Make it useful." data-zh="让知识汇聚，让它真正有用。">让知识汇聚，让它真正有用。</p><span class="footer-motto" data-en="MADE FOR CURIOUS MINDS." data-zh="为好奇心而造。">为好奇心而造。</span></div>
-    <div class="footer-links">
-      <div><span class="footer-label" data-en="THE PRODUCT" data-zh="产品">产品</span><a href="./product.html" data-en="Overview" data-zh="产品概览">产品概览</a><a href="./privacy.html" data-en="Privacy" data-zh="隐私">隐私</a><a href="./download.html" data-en="Download" data-zh="下载">下载</a></div>
-      <div><span class="footer-label" data-en="DISCOVER" data-zh="了解更多">了解更多</span><a href="./about.html" data-en="About" data-zh="关于">关于</a><a href="./guides/index.html" data-en="Guides" data-zh="指南">指南</a><a href="https://github.com/madebyzan/knovum/tree/main/docs" target="_blank" rel="noreferrer" data-en="Documentation" data-zh="项目文档">项目文档</a><a href="https://github.com/madebyzan/knovum/releases" target="_blank" rel="noreferrer" data-en="Release notes" data-zh="版本记录">版本记录</a></div>
-      <div><span class="footer-label" data-en="OPEN SOURCE" data-zh="开源项目">开源项目</span><a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://github.com/madebyzan/knovum/blob/main/LICENSE" target="_blank" rel="noreferrer" data-en="MIT License" data-zh="MIT 许可证">MIT 许可证</a><a href="https://github.com/madebyzan/knovum/issues" target="_blank" rel="noreferrer" data-en="Report an issue" data-zh="反馈问题">反馈问题</a></div>
-    </div>
-  </div><div class="section-wrap footer-bottom"><span>© <span data-year></span> Knovum</span><span data-en="Thoughtfully made. Openly shared." data-zh="认真打造，开放共享。">认真打造，开放共享。</span><a href="#top"><span data-en="Back to top" data-zh="返回顶部">返回顶部</span><span aria-hidden="true">↑</span></a></div></footer><script src="../script.js" defer></script></body></html>
+      <section class="section-wrap download-faq">
+        <div class="section-kicker">
+          <span>05</span><span data-en="DOWNLOAD QUESTIONS" data-zh="下载相关问题">下载相关问题</span>
+        </div>
+        <div class="faq-layout">
+          <div class="faq-heading">
+            <h2 data-en="Before you get going." data-zh="开始之前，你可能想知道。">
+              开始之前，你可能想知道。
+            </h2>
+            <p
+              data-en="More details are available in the project documentation."
+              data-zh="更多细节可以在项目文档中找到。"
+            >
+              更多细节可以在项目文档中找到。
+            </p>
+            <a
+              class="underlined-link"
+              href="https://github.com/madebyzan/knovum/tree/main/docs"
+              target="_blank"
+              rel="noreferrer"
+              ><span data-en="Browse documentation" data-zh="浏览项目文档">浏览项目文档</span
+              ><span>↗</span></a
+            >
+          </div>
+          <div class="faq-list">
+            <details class="faq-item" open>
+              <summary>
+                <span data-en="Is Knovum free?" data-zh="Knovum 免费吗？">Knovum 免费吗？</span
+                ><span class="faq-plus"></span>
+              </summary>
+              <p
+                data-en="Yes. Knovum is free and open-source software under the MIT License."
+                data-zh="是的。Knovum 是基于 MIT 许可证发布的免费开源软件。"
+              >
+                是的。Knovum 是基于 MIT 许可证发布的免费开源软件。
+              </p>
+            </details>
+            <details class="faq-item">
+              <summary>
+                <span data-en="Does it need an AI account?" data-zh="需要 AI 服务账号吗？"
+                  >需要 AI 服务账号吗？</span
+                ><span class="faq-plus"></span>
+              </summary>
+              <p
+                data-en="No account is needed for Knovum or its local capabilities. Cloud AI answers and generation need a model connection you choose."
+                data-zh="使用 Knovum 及其本地功能不需要账号。云端 AI 问答与生成需要连接你选择的模型服务。"
+              >
+                使用 Knovum 及其本地功能不需要账号。云端 AI 问答与生成需要连接你选择的模型服务。
+              </p>
+            </details>
+            <details class="faq-item">
+              <summary>
+                <span data-en="Why are models downloaded separately?" data-zh="为什么模型需要单独下载？"
+                  >为什么模型需要单独下载？</span
+                ><span class="faq-plus"></span>
+              </summary>
+              <p
+                data-en="On-device capabilities download their model files when first needed. This keeps initial installation smaller and lets you remove models from Settings when you no longer need them."
+                data-zh="本地能力会在首次需要时下载对应模型。这样可以减小初始安装体积，也允许你在不再需要时从设置中移除模型。"
+              >
+                本地能力会在首次需要时下载对应模型。这样可以减小初始安装体积，也允许你在不再需要时从设置中移除模型。
+              </p>
+            </details>
+            <details class="faq-item">
+              <summary>
+                <span data-en="Is Linux supported?" data-zh="支持 Linux 吗？">支持 Linux 吗？</span
+                ><span class="faq-plus"></span>
+              </summary>
+              <p
+                data-en="Linux and Windows on ARM are not supported by the current release. See the release page for the latest supported installers."
+                data-zh="当前版本暂不支持 Linux 与 Windows ARM。最新支持的安装包请以版本发布页面为准。"
+              >
+                当前版本暂不支持 Linux 与 Windows ARM。最新支持的安装包请以版本发布页面为准。
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="section-wrap footer-main">
+        <div class="footer-brand">
+          <a class="brand brand--footer" href="./index.html"
+            ><img src="../assets/app-icon.png" alt="" width="31" height="31" /><span>knovum</span></a
+          >
+          <p data-en="Bring your knowledge together. Make it useful." data-zh="让知识汇聚，让它真正有用。">
+            让知识汇聚，让它真正有用。
+          </p>
+          <span class="footer-motto" data-en="MADE FOR CURIOUS MINDS." data-zh="为好奇心而造。"
+            >为好奇心而造。</span
+          >
+        </div>
+        <div class="footer-links">
+          <div>
+            <span class="footer-label" data-en="THE PRODUCT" data-zh="产品">产品</span
+            ><a href="./product.html" data-en="Overview" data-zh="产品概览">产品概览</a
+            ><a href="./privacy.html" data-en="Privacy" data-zh="隐私">隐私</a
+            ><a href="./download.html" data-en="Download" data-zh="下载">下载</a>
+          </div>
+          <div>
+            <span class="footer-label" data-en="DISCOVER" data-zh="了解更多">了解更多</span
+            ><a href="./about.html" data-en="About" data-zh="关于">关于</a
+            ><a href="./guides/index.html" data-en="Guides" data-zh="指南">指南</a
+            ><a
+              href="https://github.com/madebyzan/knovum/tree/main/docs"
+              target="_blank"
+              rel="noreferrer"
+              data-en="Documentation"
+              data-zh="项目文档"
+              >项目文档</a
+            ><a
+              href="https://github.com/madebyzan/knovum/releases"
+              target="_blank"
+              rel="noreferrer"
+              data-en="Release notes"
+              data-zh="版本记录"
+              >版本记录</a
+            >
+          </div>
+          <div>
+            <span class="footer-label" data-en="OPEN SOURCE" data-zh="开源项目">开源项目</span
+            ><a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a
+            ><a
+              href="https://github.com/madebyzan/knovum/blob/main/LICENSE"
+              target="_blank"
+              rel="noreferrer"
+              data-en="MIT License"
+              data-zh="MIT 许可证"
+              >MIT 许可证</a
+            ><a
+              href="https://github.com/madebyzan/knovum/issues"
+              target="_blank"
+              rel="noreferrer"
+              data-en="Report an issue"
+              data-zh="反馈问题"
+              >反馈问题</a
+            >
+          </div>
+        </div>
+      </div>
+      <div class="section-wrap footer-bottom">
+        <span>© <span data-year></span> Knovum</span
+        ><span data-en="Thoughtfully made. Openly shared." data-zh="认真打造，开放共享。"
+          >认真打造，开放共享。</span
+        ><a href="#top"
+          ><span data-en="Back to top" data-zh="返回顶部">返回顶部</span><span aria-hidden="true">↑</span></a
+        >
+      </div>
+    </footer>
+    <script src="../script.js" defer></script>
+  </body>
+</html>
