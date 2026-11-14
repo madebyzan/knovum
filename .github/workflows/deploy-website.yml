@@ -1,0 +1,72 @@
+name: Deploy website to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "website/**"
+      - ".github/workflows/deploy-website.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SITE_BASE_URL: https://madebyzan.github.io/knovum
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Render localized social cards
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes librsvg2-bin fonts-noto-cjk
+          cp public/app-icon.png website/assets/app-icon.png
+          rsvg-convert --width 1200 --height 630 --output website/assets/social-card.png website/assets/social-card.svg
+          rsvg-convert --width 1200 --height 630 --output website/assets/social-card-zh.png website/assets/social-card-zh.svg
+      - name: Generate SEO metadata and sitemap
+        run: |
+          python3 website/scripts/generate_sitemap.py \
+            --base-url "$SITE_BASE_URL" \
+            --apply-html
+      - name: Validate deployable website
+        run: |
+          node --check website/script.js
+          python3 website/scripts/check_site.py \
+            --require-seo-output \
+            --expected-base-url "$SITE_BASE_URL"
+      - name: Stage only public website files
+        run: |
+          mkdir -p website/_site
+          cp website/*.html website/_site/
+          cp website/styles.css website/script.js website/robots.txt website/sitemap.xml website/_site/
+          cp -R website/assets website/guides website/zh website/_site/
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/_site
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

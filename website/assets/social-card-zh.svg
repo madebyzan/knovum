@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+<title id="title">Knovum｜本地优先知识工作空间</title><desc id="desc">让知识汇聚，让思路清晰。为研究、学习与创作而设计。</desc>
+<defs>
+<linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4f1e8"/><stop offset="1" stop-color="#e7e5d9"/></linearGradient>
+<linearGradient id="panel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#34463b"/><stop offset="1" stop-color="#1c2922"/></linearGradient>
+<radialGradient id="glow"><stop stop-color="#b7c4a9" stop-opacity=".5"/><stop offset="1" stop-color="#b7c4a9" stop-opacity="0"/></radialGradient>
+<pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#647264" stroke-opacity=".12"/></pattern>
+<filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#142019" flood-opacity=".16"/></filter>
+</defs>
+<rect width="1200" height="630" fill="url(#paper)"/><rect width="1200" height="630" fill="url(#grid)"/><circle cx="1010" cy="70" r="360" fill="url(#glow)"/>
+<g transform="translate(76 70)">
+<rect width="48" height="48" rx="14" fill="#26362c"/><path d="M12 34V14h5l14 13V14h5v20h-5L17 21v13z" fill="#e8e8dc"/>
+<text x="64" y="34" font-family="Arial,sans-serif" font-size="31" letter-spacing="-1.4" fill="#26332b">knovum</text>
+<text x="0" y="112" font-family="Noto Sans CJK SC,sans-serif" font-size="16" letter-spacing="3" fill="#758073">本地优先的知识工作空间</text>
+<text x="0" y="220" font-family="Noto Serif CJK SC,serif" font-size="76" fill="#202a23">让知识汇聚，</text>
+<text x="0" y="310" font-family="Noto Serif CJK SC,serif" font-size="86" fill="#526b57">让思路清晰。</text>
+<text x="2" y="374" font-family="Noto Sans CJK SC,sans-serif" font-size="21" fill="#596259">为研究、学习与创作，留一处从容的空间。</text>
+<g transform="translate(0 442)" font-family="Noto Sans CJK SC,sans-serif" font-size="15" fill="#687368"><text x="0">免费开源</text><circle cx="105" cy="-5" r="3" fill="#b18d65"/><text x="128">本地优先</text><circle cx="235" cy="-5" r="3" fill="#b18d65"/><text x="258">来源可溯</text></g>
+</g>
+<g transform="translate(790 118)" filter="url(#shadow)">
+<rect width="338" height="390" rx="20" fill="url(#panel)"/><rect x="16" y="16" width="306" height="358" rx="12" fill="url(#grid)" stroke="#d8e0d1" stroke-opacity=".2"/>
+<g fill="none" stroke="#c2d0bd" stroke-opacity=".7" stroke-width="1.5"><path d="M85 115L190 82 253 165 160 240 70 218 85 115Z"/><path d="M85 115L160 240M190 82L160 240M253 165L70 218"/></g>
+<rect x="49" y="78" width="74" height="74" rx="12" fill="#e8e5d9"/><path d="M66 98h39M66 109h29M66 120h34" stroke="#788474" stroke-width="3" stroke-linecap="round"/>
+<rect x="158" y="48" width="72" height="68" rx="12" fill="#b8c5ad"/><circle cx="194" cy="78" r="14" fill="#526b57"/>
+<rect x="219" y="140" width="76" height="76" rx="12" fill="#d3b28c"/><path d="M238 161h38M238 173h27M238 185h32" stroke="#705b44" stroke-width="3" stroke-linecap="round"/>
+<rect x="127" y="214" width="90" height="88" rx="12" fill="#f0eee4"/><path d="M145 237h54M145 250h44M145 263h50M145 276h34" stroke="#71806e" stroke-width="3" stroke-linecap="round"/>
+<circle cx="67" cy="238" r="20" fill="#9eaf9a"/><circle cx="67" cy="238" r="7" fill="#35473a"/>
+<text x="30" y="344" font-family="Arial,sans-serif" font-size="10" letter-spacing="2.2" fill="#d4dfd0">CONNECT · UNDERSTAND · CREATE</text>
+</g>
+<path d="M0 596H1200" stroke="#7b887b" stroke-opacity=".25"/><text x="1124" y="615" text-anchor="end" font-family="Arial,sans-serif" font-size="10" letter-spacing="2" fill="#788276">KNOVUM / OPEN SOURCE</text>
+</svg>

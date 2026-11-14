@@ -1,0 +1,32 @@
+# Search crawlers
+User-agent: *
+Allow: /
+
+# Search visibility in ChatGPT
+User-agent: OAI-SearchBot
+Allow: /
+
+# Search visibility in Claude
+User-agent: Claude-SearchBot
+Allow: /
+
+# Search visibility in Bing
+User-agent: Bingbot
+Allow: /
+
+# Search visibility in Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+# Gemini Apps / Vertex AI grounding and Gemini model improvement (not Google Search indexing)
+User-agent: Google-Extended
+Allow: /
+
+# Foundation-model training is a separate permission from search indexing.
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+# The production sitemap directive is added by website/scripts/generate_sitemap.py.

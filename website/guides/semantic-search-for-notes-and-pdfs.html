@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f2f0e9" />
+    <meta
+      name="description"
+      content="Understand semantic search for notes and PDFs, how it differs from keyword search, how local vector indexes work, and how to improve retrieval across a personal research library."
+    />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Knovum" />
+    <meta property="og:title" content="Semantic Search for Notes and PDFs: A Practical Guide | Knovum" />
+    <meta
+      property="og:description"
+      content="Understand semantic search for notes and PDFs, how it differs from keyword search, how local vector indexes work, and how to improve retrieval across a personal research library."
+    />
+    <meta property="og:image" content="https://madebyzan.github.io/knovum/assets/social-card.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Semantic Search for Notes and PDFs: A Practical Guide | Knovum" />
+    <meta
+      name="twitter:description"
+      content="Understand semantic search for notes and PDFs, how it differs from keyword search, how local vector indexes work, and how to improve retrieval across a personal research library."
+    />
+    <meta name="twitter:image" content="https://madebyzan.github.io/knovum/assets/social-card.png" />
+    <link rel="icon" type="image/png" href="../assets/app-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;650;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+    <title>Semantic Search for Notes and PDFs: A Practical Guide | Knovum</title>
+    <meta
+      property="og:image:alt"
+      content="Knovum — a local-first workspace for connected knowledge, research, and creation."
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+  </head>
+  <body
+    id="top"
+    data-page="guide-semantic-search"
+    data-seo-title-en="Semantic Search for Notes and PDFs: A Practical Guide | Knovum"
+    data-seo-description-en="Understand semantic search for notes and PDFs, how it differs from keyword search, how local vector indexes work, and how to improve retrieval across a personal research library."
+  >
+    <a class="skip-link" href="#main" data-en="Skip to content" data-zh="跳转到正文">Skip to content</a>
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <div class="announcement">
+      <span class="announcement__dot"></span>
+      <p
+        data-en="A calm, capable space for your most important work."
+        data-zh="为重要的思考与创作，留一处从容的空间。"
+      >
+        A calm, capable space for your most important work.
+      </p>
+      <a href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"
+        ><span data-en="Explore the latest release" data-zh="查看最新版本">Explore the latest release</span
+        ><span>↗</span></a
+      >
+    </div>
+    <header class="site-header">
+      <div class="nav-shell">
+        <a class="brand" href="../index.html" aria-label="Knovum home"
+          ><img src="../assets/app-icon.png" alt="" width="34" height="34" /><span>knovum</span></a
+        >
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="Open navigation"
+          aria-expanded="false"
+          aria-controls="primary-navigation"
+        >
+          <span></span><span></span>
+        </button>
+        <nav class="primary-nav" id="primary-navigation" aria-label="Main navigation">
+          <a class="nav-link" href="../product.html" data-en="Product" data-zh="产品">Product</a>
+          <a class="nav-link" href="../privacy.html" data-en="Privacy" data-zh="隐私">Privacy</a>
+          <a class="nav-link" href="../download.html" data-en="Download" data-zh="下载">Download</a>
+          <a class="nav-link" href="./index.html" data-en="Guides" data-zh="指南" aria-current="page"
+            >Guides</a
+          >
+          <a
+            class="nav-link nav-github"
+            href="https://github.com/madebyzan/knovum"
+            target="_blank"
+            rel="noreferrer"
+            >GitHub ↗</a
+          >
+        </nav>
+        <div class="nav-actions">
+          <button class="language-toggle" type="button" aria-label="Switch language">中文</button
+          ><a class="button button--small button--dark" href="../download.html"
+            ><span data-en="Get Knovum" data-zh="获取 Knovum">Get Knovum</span><span>↗</span></a
+          >
+        </div>
+      </div>
+    </header>
+    <main id="main">
+      <section class="article-hero section-wrap">
+        <div class="breadcrumb">
+          <a href="../index.html" data-en="Home" data-zh="首页">Home</a><span>/</span
+          ><a href="./index.html" data-en="Guides" data-zh="指南">Guides</a><span>/</span
+          ><span data-en="Semantic search for notes and PDFs" data-zh="笔记与 PDF 语义搜索"
+            >Semantic search for notes and PDFs</span
+          >
+        </div>
+        <div class="eyebrow">
+          <span class="eyebrow__line"></span
+          ><span data-en="KNOWLEDGE RETRIEVAL / FIELD NOTE 04" data-zh="知识检索 / 指南 04"
+            >KNOWLEDGE RETRIEVAL / FIELD NOTE 04</span
+          >
+        </div>
+        <h1
+          data-en="Semantic search for notes and PDFs: how it works"
+          data-zh="笔记与 PDF 语义搜索：它如何工作"
+        >
+          Semantic search for notes and PDFs: how it works
+        </h1>
+        <p
+          class="article-deck"
+          data-en="Find relevant passages even when your query uses different words from the source. Learn where semantic search helps, where keywords still matter, and how to keep retrieval useful."
+          data-zh="即使查询使用的词语与来源原文不同，也能找到相关段落。了解语义搜索适用的场景、关键词仍然重要的地方，以及如何让检索保持有效。"
+        >
+          Find relevant passages even when your query uses different words from the source. Learn where
+          semantic search helps, where keywords still matter, and how to keep retrieval useful.
+        </p>
+        <div class="article-meta">
+          <span
+            data-en="A practical guide to meaning-based search in personal knowledge libraries"
+            data-zh="关于个人知识库语义检索的实用指南"
+            >A practical guide to meaning-based search in personal knowledge libraries</span
+          ><span>KNOVUM / 04</span>
+        </div>
+      </section>
+      <article class="section-wrap article-layout">
+        <aside class="article-aside">
+          <span data-en="IN THIS GUIDE" data-zh="本篇内容">IN THIS GUIDE</span
+          ><a href="#definition" data-en="What semantic search means" data-zh="语义搜索的含义"
+            >What semantic search means</a
+          ><a href="#keyword-vs-semantic" data-en="Keyword vs semantic" data-zh="关键词与语义搜索"
+            >Keyword vs semantic</a
+          ><a href="#how-it-works" data-en="How it works" data-zh="工作原理">How it works</a
+          ><a href="#better-results" data-en="Improve results" data-zh="改善检索结果">Improve results</a
+          ><a
+            href="#retrieval-workflow"
+            data-en="A practical workflow for better semantic search"
+            data-zh="提升语义搜索效果的实用流程"
+            >A practical workflow for better semantic search</a
+          >
+        </aside>
+        <div class="article-body">
+          <p class="article-answer">
+            <strong data-en="Direct answer:" data-zh="直接回答：">Direct answer:</strong>
+            <span
+              data-en="Semantic search finds notes and document passages by meaning rather than requiring an exact word match. It represents text as numerical embeddings and retrieves items whose meaning is close to the query. Keyword search remains useful for exact names, identifiers, dates, and phrases, so the two approaches work best together."
+              data-zh="语义搜索按内容含义查找笔记和文档段落，而不要求查询词与原文完全一致。它会把文本转换成数值向量，并检索与问题含义接近的内容。关键词搜索仍适合查找精确名称、编号、日期和短语，因此两种方式结合使用效果更好。"
+              >Semantic search finds notes and document passages by meaning rather than requiring an exact
+              word match. It represents text as numerical embeddings and retrieves items whose meaning is
+              close to the query. Keyword search remains useful for exact names, identifiers, dates, and
+              phrases, so the two approaches work best together.</span
+            >
+          </p>
+          <h2
+            id="definition"
+            data-en="What is semantic search for notes and PDFs?"
+            data-zh="笔记与 PDF 的语义搜索是什么？"
+          >
+            What is semantic search for notes and PDFs?
+          </h2>
+          <p
+            data-en="Semantic search converts text into embeddings — numerical representations that capture aspects of meaning. A search query is converted in the same way, then compared with indexed passages. The system can retrieve a passage about a concept even if the query uses a related phrase rather than the exact words in the document."
+            data-zh="语义搜索会把文本转换为 embedding（向量表示），用数值形式表达文本含义的某些特征。查询也会以相同方式转换，再与已索引的段落进行比较。因此，即使查询使用相关表达而非文档中的原词，系统仍有机会找到讨论该概念的段落。"
+          >
+            Semantic search converts text into embeddings — numerical representations that capture aspects of
+            meaning. A search query is converted in the same way, then compared with indexed passages. The
+            system can retrieve a passage about a concept even if the query uses a related phrase rather than
+            the exact words in the document.
+          </p>
+          <h2
+            id="keyword-vs-semantic"
+            data-en="Keyword search vs semantic search"
+            data-zh="关键词搜索与语义搜索"
+          >
+            Keyword search vs semantic search
+          </h2>
+          <p
+            data-en="Keyword search is precise when you know the term you need. It is good for a paper title, an author's name, a product identifier, a date, or a distinctive quoted sentence. Semantic search is useful when you remember the idea but not the phrase, or when different authors describe the same concept in different language."
+            data-zh="当你知道需要查找的术语时，关键词搜索非常精确，适合查找论文标题、作者姓名、产品编号、日期或特定引文。语义搜索则适合你记得一个想法但不记得具体措辞，或不同作者用不同语言描述同一概念的情况。"
+          >
+            Keyword search is precise when you know the term you need. It is good for a paper title, an
+            author's name, a product identifier, a date, or a distinctive quoted sentence. Semantic search is
+            useful when you remember the idea but not the phrase, or when different authors describe the same
+            concept in different language.
+          </p>
+          <div class="comparison-table">
+            <div>
+              <strong data-en="Keyword search" data-zh="关键词搜索">Keyword search</strong>
+              <p
+                data-en="Matches exact terms, phrases, and identifiers. Best when wording is known."
+                data-zh="匹配精确术语、短语和编号。适合已知具体措辞的场景。"
+              >
+                Matches exact terms, phrases, and identifiers. Best when wording is known.
+              </p>
+            </div>
+            <div>
+              <strong data-en="Semantic search" data-zh="语义搜索">Semantic search</strong>
+              <p
+                data-en="Matches related meaning and concepts. Best when you remember the topic, not the exact wording."
+                data-zh="匹配相关含义与概念。适合记得主题、但不记得原词的场景。"
+              >
+                Matches related meaning and concepts. Best when you remember the topic, not the exact wording.
+              </p>
+            </div>
+          </div>
+          <h2
+            id="how-it-works"
+            data-en="How does local semantic search work?"
+            data-zh="本地语义搜索如何工作？"
+          >
+            How does local semantic search work?
+          </h2>
+          <ol>
+            <li>
+              <strong data-en="Extract text." data-zh="提取文本。">Extract text.</strong>
+              <span
+                data-en="The application reads supported documents and makes their text searchable. Scanned pages may require OCR before their contents can be searched."
+                data-zh="应用读取受支持的文档，并让其中的文本可供搜索。扫描页可能需要先经过 OCR 识别，才能检索其中内容。"
+                >The application reads supported documents and makes their text searchable. Scanned pages may
+                require OCR before their contents can be searched.</span
+              >
+            </li>
+            <li>
+              <strong data-en="Split into passages." data-zh="切分段落。">Split into passages.</strong>
+              <span
+                data-en="Long documents are divided into smaller chunks so retrieval can point to a relevant part instead of returning an entire file."
+                data-zh="长文档会被切分成较小的文本块，使检索能够指向相关部分，而不是只返回整个文件。"
+                >Long documents are divided into smaller chunks so retrieval can point to a relevant part
+                instead of returning an entire file.</span
+              >
+            </li>
+            <li>
+              <strong data-en="Create embeddings." data-zh="生成向量。">Create embeddings.</strong>
+              <span
+                data-en="An embedding model turns each passage into a vector. A local-first application can run supported embedding models on the device after they are downloaded."
+                data-zh="向量模型将每个段落转换为向量。本地优先应用可以在下载受支持的向量模型后，于设备上执行这一步。"
+                >An embedding model turns each passage into a vector. A local-first application can run
+                supported embedding models on the device after they are downloaded.</span
+              >
+            </li>
+            <li>
+              <strong data-en="Retrieve relevant passages." data-zh="检索相关段落。"
+                >Retrieve relevant passages.</strong
+              >
+              <span
+                data-en="The query is embedded and compared against the index. Results should still be reviewed in their original context."
+                data-zh="查询被转换为向量并与索引进行比较。检索结果仍应回到原始上下文中检查。"
+                >The query is embedded and compared against the index. Results should still be reviewed in
+                their original context.</span
+              >
+            </li>
+          </ol>
+          <h2
+            id="better-results"
+            data-en="How to get better semantic search results"
+            data-zh="如何获得更好的语义搜索结果"
+          >
+            How to get better semantic search results
+          </h2>
+          <ul>
+            <li
+              data-en="Ask a specific question rather than entering a broad topic such as “science” or “management”."
+              data-zh="提出具体问题，不要只输入“科学”或“管理”这类宽泛主题。"
+            >
+              Ask a specific question rather than entering a broad topic such as “science” or “management”.
+            </li>
+            <li
+              data-en="Include the context you remember: the decision, comparison, mechanism, or claim you are trying to find."
+              data-zh="加入你记得的上下文：想查找的决策、比较、机制或主张。"
+            >
+              Include the context you remember: the decision, comparison, mechanism, or claim you are trying
+              to find.
+            </li>
+            <li
+              data-en="Use keyword search for exact names and identifiers, then use semantic search to discover related explanations."
+              data-zh="精确名称和编号使用关键词搜索，再用语义搜索发现相关解释。"
+            >
+              Use keyword search for exact names and identifiers, then use semantic search to discover related
+              explanations.
+            </li>
+            <li
+              data-en="Check document extraction quality. Missing OCR text or incomplete imports cannot be retrieved."
+              data-zh="检查文档提取质量。没有 OCR 文本或导入不完整的内容无法被检索。"
+            >
+              Check document extraction quality. Missing OCR text or incomplete imports cannot be retrieved.
+            </li>
+            <li
+              data-en="Treat similarity as relevance, not proof. Open the source passage before relying on it."
+              data-zh="把相似度视为相关性，而不是证据。依赖结果前应打开原始段落。"
+            >
+              Treat similarity as relevance, not proof. Open the source passage before relying on it.
+            </li>
+          </ul>
+          <h2
+            id="retrieval-workflow"
+            data-en="A practical workflow for better semantic search"
+            data-zh="提升语义搜索效果的实用流程"
+          >
+            A practical workflow for better semantic search
+          </h2>
+          <p
+            data-en="Start by deciding what a successful result looks like. If you need a file name, project code, person, or exact phrase, use keyword search. If you remember the idea but not the wording, describe the relationship or question in natural language. For difficult searches, run both approaches and compare the results instead of assuming one method is always better."
+            data-zh="先明确什么样的结果才算成功。如果要找文件名、项目编号、人名或确切短语，使用关键词搜索。如果记得的是观点而非原文措辞，就用自然语言描述关系或问题。对于复杂检索，可以同时尝试两种方式并比较结果，而不是假设某一种方法永远更好。"
+          >
+            Start by deciding what a successful result looks like. If you need a file name, project code,
+            person, or exact phrase, use keyword search. If you remember the idea but not the wording,
+            describe the relationship or question in natural language. For difficult searches, run both
+            approaches and compare the results instead of assuming one method is always better.
+          </p>
+          <ul>
+            <li
+              data-en="Search for one concept at a time; split a question that contains several unrelated requests."
+              data-zh="一次搜索一个概念；如果问题包含多个无关请求，先拆开检索。"
+            >
+              Search for one concept at a time; split a question that contains several unrelated requests.
+            </li>
+            <li
+              data-en="Include context such as the decision, method, outcome, or comparison you remember."
+              data-zh="加入你记得的上下文，例如决策、方法、结果或比较维度。"
+            >
+              Include context such as the decision, method, outcome, or comparison you remember.
+            </li>
+            <li
+              data-en="Narrow the search to a Space or document set when the library is large."
+              data-zh="资料库较大时，将范围缩小到某个 Space 或文档集合。"
+            >
+              Narrow the search to a Space or document set when the library is large.
+            </li>
+            <li
+              data-en="Open the original passage and confirm that it answers the question before citing it."
+              data-zh="引用结果前，打开原始段落并确认它确实回答了问题。"
+            >
+              Open the original passage and confirm that it answers the question before citing it.
+            </li>
+          </ul>
+          <p
+            data-en="Search quality also depends on the material being indexed. Scanned PDFs need usable OCR text; tables, columns, captions, and unusual layouts can be extracted imperfectly. Very short fragments may lack enough context to represent their meaning, while overly broad chunks can mix several topics. When a document is missing from results, check import status and extracted text before assuming the search model failed."
+            data-zh="检索质量也取决于被索引的材料。扫描版 PDF 需要可用的 OCR 文本；表格、分栏、图注和特殊版式可能无法完美提取。过短的片段缺少表达含义所需的上下文，过宽的片段又可能混合多个主题。如果某份文档没有出现在结果中，应先检查导入状态和提取文本，再判断是否是搜索模型的问题。"
+          >
+            Search quality also depends on the material being indexed. Scanned PDFs need usable OCR text;
+            tables, columns, captions, and unusual layouts can be extracted imperfectly. Very short fragments
+            may lack enough context to represent their meaning, while overly broad chunks can mix several
+            topics. When a document is missing from results, check import status and extracted text before
+            assuming the search model failed.
+          </p>
+          <p
+            data-en="Knovum combines keyword and semantic search across a Space or the full library. Its local-first design keeps the knowledge library and semantic index in local application data; local model files can be downloaded when a capability needs them."
+            data-zh="Knovum 将关键词与语义搜索结合，可在单个 Space 或整个资料库中检索。本地优先设计让知识资料库与语义索引保存在本地应用数据中；需要某项能力时，可以再下载对应本地模型。"
+          >
+            Knovum combines keyword and semantic search across a Space or the full library. Its local-first
+            design keeps the knowledge library and semantic index in local application data; local model files
+            can be downloaded when a capability needs them.
+          </p>
+          <a class="button button--dark" href="../product.html#search"
+            ><span data-en="Explore search in Knovum" data-zh="了解 Knovum 搜索能力"
+              >Explore search in Knovum</span
+            ><span>↗</span></a
+          >
+        </div>
+      </article>
+    </main>
+    <footer class="site-footer">
+      <div class="section-wrap footer-main">
+        <div class="footer-brand">
+          <a class="brand brand--footer" href="../index.html"
+            ><img src="../assets/app-icon.png" alt="" width="31" height="31" /><span>knovum</span></a
+          >
+          <p data-en="Bring your knowledge together. Make it useful." data-zh="让知识汇聚，让它真正有用。">
+            Bring your knowledge together. Make it useful.
+          </p>
+          <span class="footer-motto" data-en="MADE FOR CURIOUS MINDS." data-zh="为好奇心而造。"
+            >MADE FOR CURIOUS MINDS.</span
+          >
+        </div>
+        <div class="footer-links">
+          <div>
+            <span class="footer-label" data-en="THE PRODUCT" data-zh="产品">THE PRODUCT</span
+            ><a href="../product.html" data-en="Overview" data-zh="产品概览">Overview</a
+            ><a href="../privacy.html" data-en="Privacy" data-zh="隐私">Privacy</a
+            ><a href="../download.html" data-en="Download" data-zh="下载">Download</a>
+          </div>
+          <div>
+            <span class="footer-label" data-en="LEARN" data-zh="了解更多">LEARN</span
+            ><a href="./index.html" data-en="Guides" data-zh="知识指南">Guides</a
+            ><a href="../about.html" data-en="About" data-zh="关于">About</a
+            ><a
+              href="https://github.com/madebyzan/knovum/tree/main/docs"
+              target="_blank"
+              rel="noreferrer"
+              data-en="Documentation"
+              data-zh="项目文档"
+              >Documentation</a
+            >
+          </div>
+          <div>
+            <span class="footer-label" data-en="OPEN SOURCE" data-zh="开源项目">OPEN SOURCE</span
+            ><a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a
+            ><a
+              href="https://github.com/madebyzan/knovum/blob/main/LICENSE"
+              target="_blank"
+              rel="noreferrer"
+              data-en="MIT License"
+              data-zh="MIT 许可证"
+              >MIT License</a
+            >
+          </div>
+        </div>
+      </div>
+      <div class="section-wrap footer-bottom">
+        <span>© <span data-year></span> Knovum</span
+        ><span data-en="Thoughtfully made. Openly shared." data-zh="认真打造，开放共享。"
+          >Thoughtfully made. Openly shared.</span
+        ><a href="#top"><span data-en="Back to top" data-zh="返回顶部">Back to top</span><span>↑</span></a>
+      </div>
+    </footer>
+    <script src="../script.js" defer></script>
+  </body>
+</html>

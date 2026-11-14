@@ -1,0 +1,83 @@
+name: Website quality
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "website/**"
+      - ".github/workflows/website.yml"
+      - ".github/workflows/deploy-website.yml"
+  push:
+    branches: [main]
+    paths:
+      - "website/**"
+      - ".github/workflows/website.yml"
+      - ".github/workflows/deploy-website.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  website:
+    name: Static website checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check website JavaScript
+        run: node --check website/script.js
+      - name: Render both localized social cards
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes librsvg2-bin fonts-noto-cjk
+          cp public/app-icon.png website/assets/app-icon.png
+          rsvg-convert --width 1200 --height 630 --output website/assets/social-card.png website/assets/social-card.svg
+          rsvg-convert --width 1200 --height 630 --output website/assets/social-card-zh.png website/assets/social-card-zh.svg
+      - name: Generate production SEO output
+        run: |
+          python3 website/scripts/generate_sitemap.py \
+            --base-url https://example.invalid \
+            --output "$RUNNER_TEMP/sitemap.xml" \
+            --robots-output "$RUNNER_TEMP/robots.txt" \
+            --apply-html
+      - name: Validate final website output
+        run: |
+          python3 website/scripts/check_site.py \
+            --require-seo-output \
+            --expected-base-url https://example.invalid
+      - name: Smoke-test sitemap coverage and language alternates
+        run: |
+          python3 - "$RUNNER_TEMP/sitemap.xml" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          base_url = "https://example.invalid"
+          pages = sorted(path for path in Path("website").rglob("*.html") if path.name.lower() != "404.html")
+          def public_url(path):
+              relative = path.relative_to("website").as_posix()
+              if relative == "index.html":
+                  route = ""
+              elif relative.endswith("/index.html"):
+                  route = relative[:-len("index.html")]
+              else:
+                  route = relative
+              return base_url + "/" + route
+
+          root = ET.parse(sys.argv[1]).getroot()
+          namespaces = {
+              "sm": "http://www.sitemaps.org/schemas/sitemap/0.9",
+              "xhtml": "http://www.w3.org/1999/xhtml",
+          }
+          entries = root.findall("sm:url", namespaces)
+          expected_urls = {public_url(path) for path in pages}
+          actual_urls = {entry.findtext("sm:loc", default="", namespaces=namespaces) for entry in entries}
+          assert actual_urls == expected_urls, f"sitemap mismatch; missing={expected_urls - actual_urls}, unexpected={actual_urls - expected_urls}"
+          assert len(entries) == len(expected_urls), "sitemap contains duplicate page URLs"
+          assert all("404.html" not in url for url in actual_urls)
+          assert all(len(entry.findall("xhtml:link", namespaces)) == 3 for entry in entries)
+          PY

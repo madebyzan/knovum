@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f2f0e9" />
+    <meta
+      name="description"
+      content="Learn what local-first knowledge management means, how local storage and cloud AI differ, the trade-offs to consider, and how to build a knowledge library you control."
+    />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Knovum" />
+    <meta
+      property="og:title"
+      content="What Is Local-First Knowledge Management? A Practical Guide | Knovum"
+    />
+    <meta
+      property="og:description"
+      content="Learn what local-first knowledge management means, how local storage and cloud AI differ, the trade-offs to consider, and how to build a knowledge library you control."
+    />
+    <meta property="og:image" content="https://madebyzan.github.io/knovum/assets/social-card.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="What Is Local-First Knowledge Management? A Practical Guide | Knovum"
+    />
+    <meta
+      name="twitter:description"
+      content="Learn what local-first knowledge management means, how local storage and cloud AI differ, the trade-offs to consider, and how to build a knowledge library you control."
+    />
+    <meta name="twitter:image" content="https://madebyzan.github.io/knovum/assets/social-card.png" />
+    <link rel="icon" type="image/png" href="../assets/app-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;650;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+    <title>What Is Local-First Knowledge Management? A Practical Guide | Knovum</title>
+    <meta
+      property="og:image:alt"
+      content="Knovum — a local-first workspace for connected knowledge, research, and creation."
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+  </head>
+  <body
+    id="top"
+    data-page="guide-local-first"
+    data-seo-title-en="What Is Local-First Knowledge Management? A Practical Guide | Knovum"
+    data-seo-description-en="Learn what local-first knowledge management means, how local storage and cloud AI differ, the trade-offs to consider, and how to build a knowledge library you control."
+  >
+    <a class="skip-link" href="#main" data-en="Skip to content" data-zh="跳转到正文">Skip to content</a>
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <div class="announcement">
+      <span class="announcement__dot"></span>
+      <p
+        data-en="A calm, capable space for your most important work."
+        data-zh="为重要的思考与创作，留一处从容的空间。"
+      >
+        A calm, capable space for your most important work.
+      </p>
+      <a href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"
+        ><span data-en="Explore the latest release" data-zh="查看最新版本">Explore the latest release</span
+        ><span>↗</span></a
+      >
+    </div>
+    <header class="site-header">
+      <div class="nav-shell">
+        <a class="brand" href="../index.html" aria-label="Knovum home"
+          ><img src="../assets/app-icon.png" alt="" width="34" height="34" /><span>knovum</span></a
+        >
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="Open navigation"
+          aria-expanded="false"
+          aria-controls="primary-navigation"
+        >
+          <span></span><span></span>
+        </button>
+        <nav class="primary-nav" id="primary-navigation" aria-label="Main navigation">
+          <a class="nav-link" href="../product.html" data-en="Product" data-zh="产品">Product</a>
+          <a class="nav-link" href="../privacy.html" data-en="Privacy" data-zh="隐私">Privacy</a>
+          <a class="nav-link" href="../download.html" data-en="Download" data-zh="下载">Download</a>
+          <a class="nav-link" href="./index.html" data-en="Guides" data-zh="指南" aria-current="page"
+            >Guides</a
+          >
+          <a
+            class="nav-link nav-github"
+            href="https://github.com/madebyzan/knovum"
+            target="_blank"
+            rel="noreferrer"
+            >GitHub ↗</a
+          >
+        </nav>
+        <div class="nav-actions">
+          <button class="language-toggle" type="button" aria-label="Switch language">中文</button
+          ><a class="button button--small button--dark" href="../download.html"
+            ><span data-en="Get Knovum" data-zh="获取 Knovum">Get Knovum</span><span>↗</span></a
+          >
+        </div>
+      </div>
+    </header>
+    <main id="main">
+      <section class="article-hero section-wrap">
+        <div class="breadcrumb">
+          <a href="../index.html" data-en="Home" data-zh="首页">Home</a><span>/</span
+          ><a href="./index.html" data-en="Guides" data-zh="指南">Guides</a><span>/</span
+          ><span data-en="Local-first knowledge management" data-zh="本地优先知识管理"
+            >Local-first knowledge management</span
+          >
+        </div>
+        <div class="eyebrow">
+          <span class="eyebrow__line"></span
+          ><span data-en="KNOWLEDGE SYSTEMS / FIELD NOTE 01" data-zh="知识系统 / 指南 01"
+            >KNOWLEDGE SYSTEMS / FIELD NOTE 01</span
+          >
+        </div>
+        <h1 data-en="What is local-first knowledge management?" data-zh="什么是本地优先知识管理？">
+          What is local-first knowledge management?
+        </h1>
+        <p
+          class="article-deck"
+          data-en="A practical explanation of where your notes, documents, indexes, and AI workflows live — and what to look for in a private knowledge workspace."
+          data-zh="从笔记、文档、索引到 AI 工作流，了解数据实际存放在哪里，以及选择私有知识工作空间时应该关注什么。"
+        >
+          A practical explanation of where your notes, documents, indexes, and AI workflows live — and what to
+          look for in a private knowledge workspace.
+        </p>
+        <div class="article-meta">
+          <span
+            data-en="A guide to data ownership and desktop knowledge tools"
+            data-zh="关于数据所有权与桌面知识工具的指南"
+            >A guide to data ownership and desktop knowledge tools</span
+          ><span>KNOVUM / 01</span>
+        </div>
+      </section>
+      <article class="section-wrap article-layout">
+        <aside class="article-aside">
+          <span data-en="IN THIS GUIDE" data-zh="本篇内容">IN THIS GUIDE</span
+          ><a href="#definition" data-en="What local-first means" data-zh="本地优先的含义"
+            >What local-first means</a
+          ><a href="#local-vs-cloud" data-en="Local-first vs cloud-first" data-zh="本地优先与云优先"
+            >Local-first vs cloud-first</a
+          ><a href="#data-boundary" data-en="Where data goes" data-zh="数据流向">Where data goes</a
+          ><a href="#trade-offs" data-en="Trade-offs" data-zh="需要权衡的因素">Trade-offs</a
+          ><a href="#checklist" data-en="Selection checklist" data-zh="选择清单">Selection checklist</a
+          ><a
+            href="#workflow-design"
+            data-en="Build a dependable local-first workflow"
+            data-zh="建立可靠的本地优先工作流"
+            >Build a dependable local-first workflow</a
+          >
+        </aside>
+        <div class="article-body">
+          <p class="article-answer">
+            <strong data-en="Direct answer:" data-zh="直接回答：">Direct answer:</strong>
+            <span
+              data-en="Local-first knowledge management means your primary knowledge library is stored and managed on your own device. The application may connect to external services when you choose them, but the library itself does not depend on a vendor-hosted account or cloud database."
+              data-zh="本地优先知识管理，是指你的核心知识资料库由自己的设备保存和管理。应用仍可以在你主动选择时连接外部服务，但资料库本身不依赖厂商托管的账号体系或云端数据库。"
+              >Local-first knowledge management means your primary knowledge library is stored and managed on
+              your own device. The application may connect to external services when you choose them, but the
+              library itself does not depend on a vendor-hosted account or cloud database.</span
+            >
+          </p>
+          <h2
+            id="definition"
+            data-en="What does local-first mean for a knowledge base?"
+            data-zh="本地优先对知识库意味着什么？"
+          >
+            What does local-first mean for a knowledge base?
+          </h2>
+          <p
+            data-en="A local-first knowledge base treats the device as the primary home for your information. Notes, imported documents, extracted text, indexes, and application data are stored locally rather than requiring every read and write to pass through a hosted service."
+            data-zh="本地优先知识库把个人设备作为信息的主要归属地。笔记、导入的文档、提取文本、索引和应用数据都保存在本地，而不是要求每次读取和写入都经过托管服务。"
+          >
+            A local-first knowledge base treats the device as the primary home for your information. Notes,
+            imported documents, extracted text, indexes, and application data are stored locally rather than
+            requiring every read and write to pass through a hosted service.
+          </p>
+          <p
+            data-en="The distinction is about the default data boundary, not a promise that every feature works without the internet. A desktop app can be local-first and still offer optional cloud-model connections, remote tools, or online updates."
+            data-zh="关键在于数据默认存放在哪里，而不是承诺每个功能都能完全离线。桌面应用可以采用本地优先架构，同时提供可选的云端模型连接、远程工具或在线更新。"
+          >
+            The distinction is about the default data boundary, not a promise that every feature works without
+            the internet. A desktop app can be local-first and still offer optional cloud-model connections,
+            remote tools, or online updates.
+          </p>
+          <div class="article-callout">
+            <span data-en="THE IMPORTANT QUESTION" data-zh="最重要的问题">THE IMPORTANT QUESTION</span>
+            <p
+              data-en="Where is the source of truth for your knowledge — your device, or a service you rent access to?"
+              data-zh="你的知识以哪里为准 — 自己的设备，还是一个需要持续租用访问权的服务？"
+            >
+              Where is the source of truth for your knowledge — your device, or a service you rent access to?
+            </p>
+          </div>
+          <h2
+            id="local-vs-cloud"
+            data-en="Local-first vs cloud-first knowledge management"
+            data-zh="本地优先与云优先知识管理"
+          >
+            Local-first vs cloud-first knowledge management
+          </h2>
+          <p
+            data-en="A cloud-first knowledge tool commonly stores the canonical copy of your library on the provider's servers and synchronizes clients against that service. A local-first tool keeps the canonical library on your device and makes any remote transfer a separate, visible part of a workflow."
+            data-zh="云优先知识工具通常把资料库的权威副本保存在服务商服务器上，再通过该服务同步各个客户端。本地优先工具则把资料库保存在自己的设备上，并把任何远程传输作为工作流中独立且明确的一步。"
+          >
+            A cloud-first knowledge tool commonly stores the canonical copy of your library on the provider's
+            servers and synchronizes clients against that service. A local-first tool keeps the canonical
+            library on your device and makes any remote transfer a separate, visible part of a workflow.
+          </p>
+          <ul>
+            <li
+              data-en="Data custody: know which files and indexes live on your machine."
+              data-zh="数据保管：清楚哪些文件与索引保存在自己的设备上。"
+            >
+              Data custody: know which files and indexes live on your machine.
+            </li>
+            <li
+              data-en="Offline resilience: local editing and local tools can continue without a provider connection, subject to the feature and model required."
+              data-zh="离线韧性：在功能和模型条件允许的情况下，本地编辑与工具可在没有服务商连接时继续工作。"
+            >
+              Offline resilience: local editing and local tools can continue without a provider connection,
+              subject to the feature and model required.
+            </li>
+            <li
+              data-en="Portability: understand how to back up, export, and move your library."
+              data-zh="可迁移性：了解如何备份、导出和迁移资料库。"
+            >
+              Portability: understand how to back up, export, and move your library.
+            </li>
+          </ul>
+          <h2
+            id="data-boundary"
+            data-en="What happens when you use cloud AI?"
+            data-zh="使用云端 AI 时会发生什么？"
+          >
+            What happens when you use cloud AI?
+          </h2>
+          <p
+            data-en="Local-first does not remove the provider boundary. If you ask a cloud model to summarize a selected document, the selected text or other task context must be sent to that provider to produce the answer. The application should make the destination and scope understandable, while the provider's own privacy terms govern its handling of the request."
+            data-zh="本地优先并不会消除服务商边界。如果你要求云端模型总结一份选中的文档，选中的文本或其他任务上下文就必须发送给该服务商，才能生成答案。应用应让数据目的地和范围清晰可见，而服务商如何处理请求，则由其自身隐私条款决定。"
+          >
+            Local-first does not remove the provider boundary. If you ask a cloud model to summarize a
+            selected document, the selected text or other task context must be sent to that provider to
+            produce the answer. The application should make the destination and scope understandable, while
+            the provider's own privacy terms govern its handling of the request.
+          </p>
+          <p
+            data-en="Knovum keeps its Space data and managed knowledge library in local application data. Supported on-device capabilities can run locally after their models are downloaded. When a user chooses a cloud model, Knovum sends the context required for that task to the selected provider; this is not the same as uploading the entire library to a Knovum cloud."
+            data-zh="Knovum 将 Space 数据和托管知识资料库存储在本地应用数据中。下载所需模型后，受支持的设备端能力可以在本机运行。当用户选择云端模型时，Knovum 会向所选服务商发送该任务需要的上下文；这并不等同于把整个资料库上传到 Knovum 云端。"
+          >
+            Knovum keeps its Space data and managed knowledge library in local application data. Supported
+            on-device capabilities can run locally after their models are downloaded. When a user chooses a
+            cloud model, Knovum sends the context required for that task to the selected provider; this is not
+            the same as uploading the entire library to a Knovum cloud.
+          </p>
+          <h2
+            id="trade-offs"
+            data-en="What are the trade-offs of a local-first app?"
+            data-zh="本地优先应用有哪些取舍？"
+          >
+            What are the trade-offs of a local-first app?
+          </h2>
+          <p
+            data-en="Local-first gives you more direct custody, but it also makes device maintenance your responsibility. You should maintain backups, understand where local application data is stored, and plan how you will move the library to another machine. Optional cloud features may still require connectivity and may be subject to provider charges."
+            data-zh="本地优先让你更直接地掌握数据，但也意味着设备维护由你负责。你需要定期备份，了解本地应用数据的保存位置，并规划如何将资料库迁移到另一台设备。可选的云端功能仍可能需要网络连接，也可能产生服务商费用。"
+          >
+            Local-first gives you more direct custody, but it also makes device maintenance your
+            responsibility. You should maintain backups, understand where local application data is stored,
+            and plan how you will move the library to another machine. Optional cloud features may still
+            require connectivity and may be subject to provider charges.
+          </p>
+          <h2
+            id="checklist"
+            data-en="A checklist for choosing local-first knowledge management software"
+            data-zh="选择本地优先知识管理软件的检查清单"
+          >
+            A checklist for choosing local-first knowledge management software
+          </h2>
+          <ul>
+            <li
+              data-en="Can you use the core library without creating a vendor account?"
+              data-zh="不创建厂商账号，是否仍能使用核心资料库？"
+            >
+              Can you use the core library without creating a vendor account?
+            </li>
+            <li
+              data-en="Are the original files, extracted text, and search indexes stored locally?"
+              data-zh="原始文件、提取文本和搜索索引是否保存在本地？"
+            >
+              Are the original files, extracted text, and search indexes stored locally?
+            </li>
+            <li
+              data-en="Does the application explain what is sent to a selected AI provider?"
+              data-zh="应用是否说明发送给所选 AI 服务商的数据范围？"
+            >
+              Does the application explain what is sent to a selected AI provider?
+            </li>
+            <li
+              data-en="Can you export or back up your work in documented formats?"
+              data-zh="能否使用有文档说明的格式导出或备份工作成果？"
+            >
+              Can you export or back up your work in documented formats?
+            </li>
+            <li
+              data-en="Can you inspect sources behind generated answers and outputs?"
+              data-zh="能否检查生成答案和成果背后的原始来源？"
+            >
+              Can you inspect sources behind generated answers and outputs?
+            </li>
+          </ul>
+          <h2
+            id="workflow-design"
+            data-en="Build a dependable local-first workflow"
+            data-zh="建立可靠的本地优先工作流"
+          >
+            Build a dependable local-first workflow
+          </h2>
+          <p
+            data-en="Start by identifying the authoritative copy of each kind of information. Keep original files, notes, extracted text, and indexes inside the local library, and make it clear when a task crosses into a cloud service. A useful product should show which provider receives a request and let you choose the material that is shared."
+            data-zh="先确定每类信息的权威副本在哪里。将原始文件、笔记、提取文本和索引保存在本地资料库中，并明确标示任务何时进入云端服务。好的产品应说明请求会发送给哪家服务商，并让你决定共享哪些材料。"
+          >
+            Start by identifying the authoritative copy of each kind of information. Keep original files,
+            notes, extracted text, and indexes inside the local library, and make it clear when a task crosses
+            into a cloud service. A useful product should show which provider receives a request and let you
+            choose the material that is shared.
+          </p>
+          <p
+            data-en="Then plan for recovery, not just storage. A local database is still vulnerable to a lost device, disk failure, accidental deletion, or a damaged import. Keep regular backups, test that you can restore one, and periodically export important work in formats you can inspect without the original application."
+            data-zh="接着要规划恢复方式，而不只是考虑存储位置。本地数据库仍可能受到设备丢失、磁盘故障、误删或导入损坏的影响。定期备份、实际测试恢复流程，并定期以无需原应用也能查看的格式导出重要成果。"
+          >
+            Then plan for recovery, not just storage. A local database is still vulnerable to a lost device,
+            disk failure, accidental deletion, or a damaged import. Keep regular backups, test that you can
+            restore one, and periodically export important work in formats you can inspect without the
+            original application.
+          </p>
+          <ul>
+            <li
+              data-en="Separate local storage from optional synchronization; do not assume one implies the other."
+              data-zh="区分本地存储与可选同步，不要认为有前者就一定有后者。"
+            >
+              Separate local storage from optional synchronization; do not assume one implies the other.
+            </li>
+            <li
+              data-en="Check whether backups include original files, indexes, and application metadata."
+              data-zh="确认备份是否包含原始文件、索引和应用元数据。"
+            >
+              Check whether backups include original files, indexes, and application metadata.
+            </li>
+            <li
+              data-en="Review what a cloud task sends before using it with sensitive material."
+              data-zh="将敏感材料用于云端任务前，先检查实际发送的数据。"
+            >
+              Review what a cloud task sends before using it with sensitive material.
+            </li>
+          </ul>
+          <p
+            data-en="Local-first is a data-ownership choice, not an automatic security guarantee. Device encryption, operating-system accounts, backup destinations, and the privacy practices of any connected provider still matter. Evaluate the complete path — from import to backup to optional AI request — rather than relying on a single product label."
+            data-zh="本地优先代表数据归属方式，并不自动等于安全保证。设备加密、操作系统账户、备份目的地，以及所连接服务商的隐私实践仍然重要。应评估从导入、备份到可选 AI 请求的完整链路，而不是只依赖一个产品标签。"
+          >
+            Local-first is a data-ownership choice, not an automatic security guarantee. Device encryption,
+            operating-system accounts, backup destinations, and the privacy practices of any connected
+            provider still matter. Evaluate the complete path — from import to backup to optional AI request —
+            rather than relying on a single product label.
+          </p>
+          <h2 data-en="Explore a local-first workspace" data-zh="探索本地优先工作空间">
+            Explore a local-first workspace
+          </h2>
+          <p
+            data-en="Knovum is a free, MIT-licensed desktop knowledge workspace for macOS and Windows. Explore how its Spaces, local search, source-linked answers, and traceable creation fit together."
+            data-zh="Knovum 是一款面向 macOS 和 Windows 的免费 MIT 许可证桌面知识工作空间。了解它如何把 Spaces、本地搜索、来源引用答案和可追溯创作整合在一起。"
+          >
+            Knovum is a free, MIT-licensed desktop knowledge workspace for macOS and Windows. Explore how its
+            Spaces, local search, source-linked answers, and traceable creation fit together.
+          </p>
+          <a class="button button--dark" href="../product.html"
+            ><span data-en="Explore the product" data-zh="探索产品">Explore the product</span
+            ><span>↗</span></a
+          >
+        </div>
+      </article>
+    </main>
+    <footer class="site-footer">
+      <div class="section-wrap footer-main">
+        <div class="footer-brand">
+          <a class="brand brand--footer" href="../index.html"
+            ><img src="../assets/app-icon.png" alt="" width="31" height="31" /><span>knovum</span></a
+          >
+          <p data-en="Bring your knowledge together. Make it useful." data-zh="让知识汇聚，让它真正有用。">
+            Bring your knowledge together. Make it useful.
+          </p>
+          <span class="footer-motto" data-en="MADE FOR CURIOUS MINDS." data-zh="为好奇心而造。"
+            >MADE FOR CURIOUS MINDS.</span
+          >
+        </div>
+        <div class="footer-links">
+          <div>
+            <span class="footer-label" data-en="THE PRODUCT" data-zh="产品">THE PRODUCT</span
+            ><a href="../product.html" data-en="Overview" data-zh="产品概览">Overview</a
+            ><a href="../privacy.html" data-en="Privacy" data-zh="隐私">Privacy</a
+            ><a href="../download.html" data-en="Download" data-zh="下载">Download</a>
+          </div>
+          <div>
+            <span class="footer-label" data-en="LEARN" data-zh="了解更多">LEARN</span
+            ><a href="./index.html" data-en="Guides" data-zh="知识指南">Guides</a
+            ><a href="../about.html" data-en="About" data-zh="关于">About</a
+            ><a
+              href="https://github.com/madebyzan/knovum/tree/main/docs"
+              target="_blank"
+              rel="noreferrer"
+              data-en="Documentation"
+              data-zh="项目文档"
+              >Documentation</a
+            >
+          </div>
+          <div>
+            <span class="footer-label" data-en="OPEN SOURCE" data-zh="开源项目">OPEN SOURCE</span
+            ><a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a
+            ><a
+              href="https://github.com/madebyzan/knovum/blob/main/LICENSE"
+              target="_blank"
+              rel="noreferrer"
+              data-en="MIT License"
+              data-zh="MIT 许可证"
+              >MIT License</a
+            >
+          </div>
+        </div>
+      </div>
+      <div class="section-wrap footer-bottom">
+        <span>© <span data-year></span> Knovum</span
+        ><span data-en="Thoughtfully made. Openly shared." data-zh="认真打造，开放共享。"
+          >Thoughtfully made. Openly shared.</span
+        ><a href="#top"><span data-en="Back to top" data-zh="返回顶部">Back to top</span><span>↑</span></a>
+      </div>
+    </footer>
+    <script src="../script.js" defer></script>
+  </body>
+</html>

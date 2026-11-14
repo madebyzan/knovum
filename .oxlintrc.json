@@ -84,6 +84,13 @@
           }
         ]
       }
+    },
+    {
+      "files": ["website/**/*.js"],
+      "rules": {
+        "max-lines": "off",
+        "unicorn/consistent-function-scoping": "off"
+      }
     }
   ]
 }

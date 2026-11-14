@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f2f0e9" />
+    <meta
+      name="description"
+      content="关于本地优先知识管理、无限画布研究、来源依据型 AI 答案，以及笔记与 PDF 语义搜索的实用指南。"
+    />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Knovum" />
+    <meta property="og:title" content="知识指南｜研究、本地优先软件与 AI 来源引用 — Knovum" />
+    <meta
+      property="og:description"
+      content="关于本地优先知识管理、无限画布研究、来源依据型 AI 答案，以及笔记与 PDF 语义搜索的实用指南。"
+    />
+    <meta property="og:image" content="https://madebyzan.github.io/knovum/assets/social-card-zh.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="知识指南｜研究、本地优先软件与 AI 来源引用 — Knovum" />
+    <meta
+      name="twitter:description"
+      content="关于本地优先知识管理、无限画布研究、来源依据型 AI 答案，以及笔记与 PDF 语义搜索的实用指南。"
+    />
+    <meta name="twitter:image" content="https://madebyzan.github.io/knovum/assets/social-card-zh.png" />
+    <link rel="icon" type="image/png" href="../../assets/app-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;650;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../styles.css" />
+    <title>知识指南｜研究、本地优先软件与 AI 来源引用 — Knovum</title>
+    <meta
+      property="og:image:alt"
+      content="Knovum — a local-first workspace for connected knowledge, research, and creation."
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+  </head>
+  <body
+    id="top"
+    data-page="guides"
+    data-locale="zh"
+    data-seo-title-en="Knowledge Guides for Research, Local-First Software & AI Citations | Knovum"
+    data-seo-description-en="Practical guides to local-first knowledge management, infinite-canvas research, source-grounded AI answers, and semantic search for notes and PDFs."
+    data-seo-title-zh="知识指南｜研究、本地优先软件与 AI 来源引用 — Knovum"
+    data-seo-description-zh="关于本地优先知识管理、无限画布研究、来源依据型 AI 答案，以及笔记与 PDF 语义搜索的实用指南。"
+  >
+    <a class="skip-link" href="#main" data-en="Skip to content" data-zh="跳转到正文">跳转到正文</a>
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <div class="announcement">
+      <span class="announcement__dot"></span>
+      <p
+        data-en="A calm, capable space for your most important work."
+        data-zh="为重要的思考与创作，留一处从容的空间。"
+      >
+        为重要的思考与创作，留一处从容的空间。
+      </p>
+      <a href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"
+        ><span data-en="Explore the latest release" data-zh="查看最新版本">查看最新版本</span
+        ><span>↗</span></a
+      >
+    </div>
+    <header class="site-header">
+      <div class="nav-shell">
+        <a class="brand" href="../index.html" aria-label="Knovum home"
+          ><img src="../../assets/app-icon.png" alt="" width="34" height="34" /><span>knovum</span></a
+        >
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="Open navigation"
+          aria-expanded="false"
+          aria-controls="primary-navigation"
+        >
+          <span></span><span></span>
+        </button>
+        <nav class="primary-nav" id="primary-navigation" aria-label="Main navigation">
+          <a class="nav-link" href="../product.html" data-en="Product" data-zh="产品">产品</a>
+          <a class="nav-link" href="../privacy.html" data-en="Privacy" data-zh="隐私">隐私</a>
+          <a class="nav-link" href="../download.html" data-en="Download" data-zh="下载">下载</a>
+          <a class="nav-link" href="./index.html" data-en="Guides" data-zh="指南" aria-current="page"
+            >Guides</a
+          >
+          <a
+            class="nav-link nav-github"
+            href="https://github.com/madebyzan/knovum"
+            target="_blank"
+            rel="noreferrer"
+            >GitHub ↗</a
+          >
+        </nav>
+        <div class="nav-actions">
+          <button class="language-toggle" type="button" aria-label="Switch language">中文</button
+          ><a class="button button--small button--dark" href="../download.html"
+            ><span data-en="Get Knovum" data-zh="获取 Knovum">获取 Knovum</span><span>↗</span></a
+          >
+        </div>
+      </div>
+    </header>
+    <main id="main">
+      <section class="article-hero section-wrap">
+        <div class="breadcrumb">
+          <a href="../index.html" data-en="Home" data-zh="首页">首页</a><span>/</span
+          ><span data-en="Guides" data-zh="指南">指南</span>
+        </div>
+        <div class="eyebrow">
+          <span class="eyebrow__line"></span
+          ><span data-en="FIELD NOTES / KNOVUM LIBRARY" data-zh="实用指南 / KNOVUM 知识库"
+            >实用指南 / KNOVUM 知识库</span
+          >
+        </div>
+        <h1 data-en="Guides for thinking with your knowledge." data-zh="与你的知识一起思考的实用指南。">
+          与你的知识一起思考的实用指南。
+        </h1>
+        <p
+          class="article-deck"
+          data-en="Clear, practical notes on local-first knowledge management, research workflows, source citations, and semantic search. Written to explain the ideas — not just the product."
+          data-zh="关于本地优先知识管理、研究工作流、来源引用与语义搜索的清晰实用说明。我们希望解释这些理念，而不只是介绍产品。"
+        >
+          关于本地优先知识管理、研究工作流、来源引用与语义搜索的清晰实用说明。我们希望解释这些理念，而不只是介绍产品。
+        </p>
+      </section>
+      <section class="section-wrap guide-index">
+        <div class="section-kicker">
+          <span>01</span><span data-en="KNOWLEDGE & RESEARCH" data-zh="知识与研究">知识与研究</span>
+        </div>
+        <div class="guide-card-grid">
+          <a class="guide-card" href="./local-first-knowledge-management.html"
+            ><span class="guide-card__index">FIELD NOTE / 01</span>
+            <h2
+              data-en="Local-First Knowledge Management"
+              data-zh="什么是本地优先知识管理？一份实用指南｜Knovum"
+            >
+              什么是本地优先知识管理？一份实用指南｜Knovum
+            </h2>
+            <p
+              data-en="What local-first means, what stays on-device, and the trade-offs to consider."
+              data-zh="了解本地优先知识管理的含义、本地存储与云端 AI 的区别、需要权衡的因素，以及如何建立由自己掌控的知识库。"
+            >
+              了解本地优先知识管理的含义、本地存储与云端 AI
+              的区别、需要权衡的因素，以及如何建立由自己掌控的知识库。
+            </p>
+            <span class="guide-card__read"
+              ><span data-en="Read the guide" data-zh="阅读指南">阅读指南</span><span>↗</span></span
+            ></a
+          ><a class="guide-card" href="./infinite-canvas-for-research.html"
+            ><span class="guide-card__index">FIELD NOTE / 02</span>
+            <h2 data-en="Infinite Canvas for Research" data-zh="如何用无限画布开展研究与知识整理｜Knovum">
+              如何用无限画布开展研究与知识整理｜Knovum
+            </h2>
+            <p
+              data-en="How to use a spatial workspace to connect sources, questions, evidence, and emerging ideas."
+              data-zh="了解无限画布如何帮助研究、文献回顾、知识地图、来源归组、证据追踪和视觉思考，而不必一开始就套用固定大纲。"
+            >
+              了解无限画布如何帮助研究、文献回顾、知识地图、来源归组、证据追踪和视觉思考，而不必一开始就套用固定大纲。
+            </p>
+            <span class="guide-card__read"
+              ><span data-en="Read the guide" data-zh="阅读指南">阅读指南</span><span>↗</span></span
+            ></a
+          ><a class="guide-card" href="./source-grounded-ai-research.html"
+            ><span class="guide-card__index">FIELD NOTE / 03</span>
+            <h2
+              data-en="AI Research with Source Citations"
+              data-zh="带来源引用的 AI 研究：如何核验每一个答案｜Knovum"
+            >
+              带来源引用的 AI 研究：如何核验每一个答案｜Knovum
+            </h2>
+            <p
+              data-en="How to verify AI answers against original passages, documents, and source revisions."
+              data-zh="了解什么是来源依据型 AI 研究、段落级引用如何工作、如何对照 PDF 和笔记核验主张，以及为什么生成答案仍需人工审查。"
+            >
+              了解什么是来源依据型 AI 研究、段落级引用如何工作、如何对照 PDF
+              和笔记核验主张，以及为什么生成答案仍需人工审查。
+            </p>
+            <span class="guide-card__read"
+              ><span data-en="Read the guide" data-zh="阅读指南">阅读指南</span><span>↗</span></span
+            ></a
+          ><a class="guide-card" href="./semantic-search-for-notes-and-pdfs.html"
+            ><span class="guide-card__index">FIELD NOTE / 04</span>
+            <h2 data-en="Semantic Search for Notes & PDFs" data-zh="笔记与 PDF 语义搜索实用指南｜Knovum">
+              笔记与 PDF 语义搜索实用指南｜Knovum
+            </h2>
+            <p
+              data-en="How meaning-based retrieval complements keyword search across a research library."
+              data-zh="了解笔记与 PDF 语义搜索、它与关键词搜索的区别、本地向量索引如何工作，以及如何改善个人研究资料库的检索效果。"
+            >
+              了解笔记与 PDF
+              语义搜索、它与关键词搜索的区别、本地向量索引如何工作，以及如何改善个人研究资料库的检索效果。
+            </p>
+            <span class="guide-card__read"
+              ><span data-en="Read the guide" data-zh="阅读指南">阅读指南</span><span>↗</span></span
+            ></a
+          >
+        </div>
+        <p
+          class="guide-index-note"
+          data-en="These guides explain general concepts and workflows. Product behavior and supported features are described in the product pages and project documentation."
+          data-zh="这些指南用于解释通用概念与工作方式。具体产品行为和受支持的功能，请以产品页面和项目文档为准。"
+        >
+          这些指南用于解释通用概念与工作方式。具体产品行为和受支持的功能，请以产品页面和项目文档为准。
+        </p>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="section-wrap footer-main">
+        <div class="footer-brand">
+          <a class="brand brand--footer" href="../index.html"
+            ><img src="../../assets/app-icon.png" alt="" width="31" height="31" /><span>knovum</span></a
+          >
+          <p data-en="Bring your knowledge together. Make it useful." data-zh="让知识汇聚，让它真正有用。">
+            让知识汇聚，让它真正有用。
+          </p>
+          <span class="footer-motto" data-en="MADE FOR CURIOUS MINDS." data-zh="为好奇心而造。"
+            >为好奇心而造。</span
+          >
+        </div>
+        <div class="footer-links">
+          <div>
+            <span class="footer-label" data-en="THE PRODUCT" data-zh="产品">产品</span
+            ><a href="../product.html" data-en="Overview" data-zh="产品概览">产品概览</a
+            ><a href="../privacy.html" data-en="Privacy" data-zh="隐私">隐私</a
+            ><a href="../download.html" data-en="Download" data-zh="下载">下载</a>
+          </div>
+          <div>
+            <span class="footer-label" data-en="LEARN" data-zh="了解更多">了解更多</span
+            ><a href="./index.html" data-en="Guides" data-zh="知识指南">知识指南</a
+            ><a href="../about.html" data-en="About" data-zh="关于">关于</a
+            ><a
+              href="https://github.com/madebyzan/knovum/tree/main/docs"
+              target="_blank"
+              rel="noreferrer"
+              data-en="Documentation"
+              data-zh="项目文档"
+              >项目文档</a
+            >
+          </div>
+          <div>
+            <span class="footer-label" data-en="OPEN SOURCE" data-zh="开源项目">开源项目</span
+            ><a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a
+            ><a
+              href="https://github.com/madebyzan/knovum/blob/main/LICENSE"
+              target="_blank"
+              rel="noreferrer"
+              data-en="MIT License"
+              data-zh="MIT 许可证"
+              >MIT 许可证</a
+            >
+          </div>
+        </div>
+      </div>
+      <div class="section-wrap footer-bottom">
+        <span>© <span data-year></span> Knovum</span
+        ><span data-en="Thoughtfully made. Openly shared." data-zh="认真打造，开放共享。"
+          >认真打造，开放共享。</span
+        ><a href="#top"><span data-en="Back to top" data-zh="返回顶部">返回顶部</span><span>↑</span></a>
+      </div>
+    </footer>
+    <script src="../../script.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f2f0e9" />
+    <meta
+      name="description"
+      content="了解 Knovum 如何在本地保存知识、支持设备端搜索与处理、保护 API 密钥，并明确控制云端 AI 数据传输。"
+    />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Knovum" />
+    <meta property="og:title" content="隐私知识库｜本地优先桌面应用 — Knovum" />
+    <meta
+      property="og:description"
+      content="了解 Knovum 如何在本地保存知识、支持设备端搜索与处理、保护 API 密钥，并明确控制云端 AI 数据传输。"
+    />
+    <meta property="og:image" content="https://madebyzan.github.io/knovum/assets/social-card-zh.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="隐私知识库｜本地优先桌面应用 — Knovum" />
+    <meta
+      name="twitter:description"
+      content="了解 Knovum 如何在本地保存知识、支持设备端搜索与处理、保护 API 密钥，并明确控制云端 AI 数据传输。"
+    />
+    <meta name="twitter:image" content="https://madebyzan.github.io/knovum/assets/social-card-zh.png" />
+    <link rel="icon" type="image/png" href="../assets/app-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;650;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+    <title>隐私知识库｜本地优先桌面应用 — Knovum</title>
+    <meta
+      property="og:image:alt"
+      content="Knovum — a local-first workspace for connected knowledge, research, and creation."
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+  </head>
+  <body id="top" data-page="privacy" data-locale="zh">
+    <a class="skip-link" href="#main" data-en="Skip to content" data-zh="跳转到正文">跳转到正文</a>
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <div class="announcement">
+      <span class="announcement__dot" aria-hidden="true"></span>
+      <p
+        data-en="A calm, capable space for your most important work."
+        data-zh="为重要的思考与创作，留一处从容的空间。"
+      >
+        为重要的思考与创作，留一处从容的空间。
+      </p>
+      <a href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"
+        ><span data-en="Explore the latest release" data-zh="查看最新版本">查看最新版本</span
+        ><span aria-hidden="true">↗</span></a
+      >
+    </div>
+    <header class="site-header">
+      <div class="nav-shell">
+        <a class="brand" href="./index.html" aria-label="Knovum home"
+          ><img src="../assets/app-icon.png" alt="" width="34" height="34" /><span>knovum</span></a
+        >
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="Open navigation"
+          aria-expanded="false"
+          aria-controls="primary-navigation"
+        >
+          <span></span><span></span>
+        </button>
+        <nav class="primary-nav" id="primary-navigation" aria-label="Main navigation">
+          <a class="nav-link" href="./product.html" data-en="Product" data-zh="产品">产品</a>
+          <a class="nav-link" href="./privacy.html" aria-current="page" data-en="Privacy" data-zh="隐私"
+            >隐私</a
+          >
+          <a class="nav-link" href="./download.html" data-en="Download" data-zh="下载">下载</a
+          ><a class="nav-link" href="./guides/index.html" data-en="Guides" data-zh="指南">指南</a>
+          <details class="nav-menu">
+            <summary>
+              <span data-en="Explore" data-zh="探索">探索</span
+              ><span class="chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="nav-menu__panel">
+              <a href="./about.html"
+                ><strong data-en="About Knovum" data-zh="关于 Knovum">关于 Knovum</strong
+                ><small data-en="The thinking behind the workspace" data-zh="关于产品的理念与方向"
+                  >关于产品的理念与方向</small
+                ></a
+              >
+              <a href="https://github.com/madebyzan/knovum/tree/main/docs" target="_blank" rel="noreferrer"
+                ><strong data-en="Documentation" data-zh="项目文档">项目文档</strong
+                ><small
+                  data-en="Guides, concepts, and technical details"
+                  data-zh="使用指南、产品概念与技术细节"
+                  >使用指南、产品概念与技术细节</small
+                ></a
+              >
+              <a href="https://github.com/madebyzan/knovum/releases" target="_blank" rel="noreferrer"
+                ><strong data-en="Release notes" data-zh="版本记录">版本记录</strong
+                ><small data-en="What's new in Knovum" data-zh="了解每个版本的新变化"
+                  >了解每个版本的新变化</small
+                ></a
+              >
+            </div>
+          </details>
+          <a
+            class="nav-link nav-github"
+            href="https://github.com/madebyzan/knovum"
+            target="_blank"
+            rel="noreferrer"
+            >GitHub ↗</a
+          >
+        </nav>
+        <div class="nav-actions">
+          <button class="language-toggle" type="button" aria-label="Switch language">中文</button
+          ><a class="button button--small button--dark" href="./download.html"
+            ><span data-en="Get Knovum" data-zh="获取 Knovum">获取 Knovum</span
+            ><span aria-hidden="true">↗</span></a
+          >
+        </div>
+      </div>
+    </header>
+    <main id="main">
+      <section class="page-hero section-wrap">
+        <div class="page-hero__copy">
+          <div class="breadcrumb">
+            <a href="./index.html" data-en="Home" data-zh="首页">首页</a><span>/</span
+            ><span data-en="Privacy" data-zh="隐私">隐私</span>
+          </div>
+          <div class="eyebrow">
+            <span class="eyebrow__line"></span
+            ><span data-en="LOCAL-FIRST, BY DESIGN" data-zh="从设计之初，就以本地优先"
+              >从设计之初，就以本地优先</span
+            >
+          </div>
+          <h1 data-en="Your knowledge should stay yours." data-zh="你的知识，应该始终属于你。">
+            你的知识，应该始终属于你。
+          </h1>
+          <p
+            data-en="Knovum is built around a simple boundary: your library lives on your device. When you choose to use a cloud model, only the context needed for that task is sent to the provider you selected."
+            data-zh="Knovum 围绕一个简单边界构建：你的资料库存储在本地设备。当你选择使用云端模型时，只有该任务需要的上下文会发送给你选定的服务商。"
+          >
+            Knovum
+            围绕一个简单边界构建：你的资料库存储在本地设备。当你选择使用云端模型时，只有该任务需要的上下文会发送给你选定的服务商。
+          </p>
+          <div class="page-hero__actions">
+            <a class="button button--dark" href="#data-boundary"
+              ><span data-en="Understand the data boundary" data-zh="了解数据边界">了解数据边界</span
+              ><span>↓</span></a
+            >
+          </div>
+        </div>
+        <div class="page-hero__aside" data-reveal>
+          <span class="aside-index">PRIVACY / 01</span>
+          <p data-en="Your library. Your device. Your decision." data-zh="你的资料库 · 你的设备 · 你的决定">
+            你的资料库 · 你的设备 · 你的决定
+          </p>
+          <span class="aside-rule"></span
+          ><small
+            data-en="Local-first does not mean every optional service is offline. The boundary is explicit."
+            data-zh="本地优先不代表所有可选服务都离线运行，关键在于边界清晰、选择明确。"
+            >本地优先不代表所有可选服务都离线运行，关键在于边界清晰、选择明确。</small
+          >
+        </div>
+      </section>
+      <figure
+        class="optional-image optional-image--wide"
+        data-optional-image="../assets/local-first-architecture.svg"
+        hidden
+      >
+        <img
+          alt="Knovum 本地数据与可选云端 AI 的数据流示意图。"
+          width="1600"
+          height="900"
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption>
+          <span data-en="Local-first data flow" data-zh="本地优先的数据流">Local-first data flow</span>
+        </figcaption>
+      </figure>
+
+      <section class="section-wrap privacy-statement" id="data-boundary">
+        <div class="section-kicker">
+          <span>01</span><span data-en="THE DATA BOUNDARY" data-zh="数据边界">数据边界</span>
+        </div>
+        <div class="privacy-statement__grid">
+          <h2
+            data-en="No Knovum account. No Knovum cloud."
+            data-zh="无需 Knovum 账号，也没有 Knovum 云服务。"
+          >
+            无需 Knovum 账号，也没有 Knovum 云服务。
+          </h2>
+          <div>
+            <p
+              data-en="Knovum does not require an account and does not operate a hosted knowledge service. Your Spaces, source files, extracted text, search indexes, and backups are stored in local application data on your device."
+              data-zh="Knovum 无需账号，也不运营托管式知识服务。你的 Spaces、来源文件、提取文本、搜索索引和备份都存储在设备的本地应用数据中。"
+            >
+              Knovum 无需账号，也不运营托管式知识服务。你的
+              Spaces、来源文件、提取文本、搜索索引和备份都存储在设备的本地应用数据中。
+            </p>
+            <p
+              data-en="That means Knovum itself is not a place where your library is uploaded and synchronized. It also means you are responsible for protecting and backing up the device where your library lives."
+              data-zh="这意味着 Knovum 本身不会成为上传和同步整个资料库的云端位置。同时，你需要自行保护并备份保存资料库的设备。"
+            >
+              这意味着 Knovum
+              本身不会成为上传和同步整个资料库的云端位置。同时，你需要自行保护并备份保存资料库的设备。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="privacy-map-section">
+        <div class="section-wrap section-block">
+          <div class="section-kicker section-kicker--light">
+            <span>02</span
+            ><span data-en="WHERE THINGS HAPPEN" data-zh="数据与任务发生在哪里">数据与任务发生在哪里</span>
+          </div>
+          <h2
+            data-en="Local is the home. Cloud is an explicit choice."
+            data-zh="本地是默认归属，云端是明确选择。"
+          >
+            本地是默认归属，云端是明确选择。
+          </h2>
+          <div class="data-flow">
+            <article class="data-flow__card">
+              <span class="data-flow__eyebrow">01 / ON YOUR DEVICE</span>
+              <div class="data-flow__icon">⌂</div>
+              <h3 data-en="Your knowledge library" data-zh="你的知识资料库">你的知识资料库</h3>
+              <p
+                data-en="Spaces, files, extracted text, and managed assets stay in local application data. SQLite stores structure; LanceDB supports semantic search."
+                data-zh="Spaces、文件、提取文本与托管资源保存在本地应用数据中。SQLite 存储结构，LanceDB 支持语义搜索。"
+              >
+                Spaces、文件、提取文本与托管资源保存在本地应用数据中。SQLite 存储结构，LanceDB 支持语义搜索。
+              </p>
+              <span class="data-flow__tag" data-en="LOCAL STORAGE" data-zh="本地存储">本地存储</span>
+            </article>
+            <article class="data-flow__card">
+              <span class="data-flow__eyebrow">02 / ON YOUR DEVICE</span>
+              <div class="data-flow__icon">◉</div>
+              <h3 data-en="Supported local capabilities" data-zh="受支持的本地能力">受支持的本地能力</h3>
+              <p
+                data-en="Editing, keyword and semantic search, transcription, speaker recognition, OCR, speech synthesis, and listed image tools can run locally after model downloads."
+                data-zh="下载模型后，编辑、关键词与语义搜索、转录、说话人识别、OCR、语音合成及列出的图像工具都可以在本机运行。"
+              >
+                下载模型后，编辑、关键词与语义搜索、转录、说话人识别、OCR、语音合成及列出的图像工具都可以在本机运行。
+              </p>
+              <span class="data-flow__tag" data-en="LOCAL PROCESSING" data-zh="本地处理">本地处理</span>
+            </article>
+            <article class="data-flow__card data-flow__card--cloud">
+              <span class="data-flow__eyebrow">03 / WHEN YOU CHOOSE</span>
+              <div class="data-flow__icon">↗</div>
+              <h3 data-en="A provider you select" data-zh="由你选择的服务商">由你选择的服务商</h3>
+              <p
+                data-en="For a cloud-model answer or generation task, Knovum sends the selection and context needed for that task to the provider you chose. That provider's terms apply."
+                data-zh="使用云端模型回答或生成内容时，Knovum 会向你选定的服务商发送该任务所需的选中内容与上下文。数据处理遵循该服务商的条款。"
+              >
+                使用云端模型回答或生成内容时，Knovum
+                会向你选定的服务商发送该任务所需的选中内容与上下文。数据处理遵循该服务商的条款。
+              </p>
+              <span class="data-flow__tag" data-en="TASK-SCOPED TRANSFER" data-zh="按任务范围传输"
+                >按任务范围传输</span
+              >
+            </article>
+          </div>
+          <p
+            class="privacy-caveat"
+            data-en="A cloud provider's handling of requests is governed by that provider's own terms, privacy policy, and account settings."
+            data-zh="云端服务商如何处理请求，由该服务商自己的条款、隐私政策和账号设置决定。"
+          >
+            云端服务商如何处理请求，由该服务商自己的条款、隐私政策和账号设置决定。
+          </p>
+        </div>
+      </section>
+
+      <section class="section-wrap privacy-details">
+        <div class="section-kicker">
+          <span>03</span
+          ><span data-en="WHAT STAYS LOCAL" data-zh="哪些内容保存在本地">哪些内容保存在本地</span>
+        </div>
+        <div class="privacy-details__grid">
+          <div>
+            <h2 data-en="Your library is not a training feed." data-zh="你的资料库，不是某个服务的训练素材。">
+              你的资料库，不是某个服务的训练素材。
+            </h2>
+            <p
+              data-en="Knovum's architecture keeps the knowledge store on your device. Local application data includes the Space structure, managed content, extracted text, semantic index, and backups."
+              data-zh="Knovum 的架构将知识库保留在设备上。本地应用数据包括 Space 结构、托管内容、提取文本、语义索引和备份。"
+            >
+              Knovum 的架构将知识库保留在设备上。本地应用数据包括 Space
+              结构、托管内容、提取文本、语义索引和备份。
+            </p>
+          </div>
+          <div class="privacy-facts">
+            <article>
+              <span>01</span>
+              <div>
+                <strong data-en="Library data" data-zh="资料库数据">资料库数据</strong>
+                <p
+                  data-en="SQLite, LanceDB, and local managed files."
+                  data-zh="SQLite、LanceDB 与本地托管文件。"
+                >
+                  SQLite、LanceDB 与本地托管文件。
+                </p>
+              </div>
+            </article>
+            <article>
+              <span>02</span>
+              <div>
+                <strong data-en="Provider credentials" data-zh="服务商凭据">服务商凭据</strong>
+                <p
+                  data-en="API keys are stored in a dedicated local secrets database and are not written to logs."
+                  data-zh="API 密钥存储在独立的本地密钥数据库中，不会写入日志。"
+                >
+                  API 密钥存储在独立的本地密钥数据库中，不会写入日志。
+                </p>
+              </div>
+            </article>
+            <article>
+              <span>03</span>
+              <div>
+                <strong data-en="Model files" data-zh="模型文件">模型文件</strong>
+                <p
+                  data-en="Downloaded when a feature needs them, verified against pinned SHA-256 digests, and removable from Settings."
+                  data-zh="在功能需要时下载，通过固定的 SHA-256 摘要校验，并可在设置中移除。"
+                >
+                  在功能需要时下载，通过固定的 SHA-256 摘要校验，并可在设置中移除。
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-wrap privacy-details privacy-details--border">
+        <div class="section-kicker">
+          <span>04</span
+          ><span data-en="A CLEAR-EYED APPROACH" data-zh="清晰而诚实的边界">清晰而诚实的边界</span>
+        </div>
+        <div class="privacy-details__grid">
+          <div>
+            <h2
+              data-en="Local-first is a design choice, not a blanket promise."
+              data-zh="本地优先是一项设计选择，不是笼统承诺。"
+            >
+              本地优先是一项设计选择，不是笼统承诺。
+            </h2>
+            <p
+              data-en="Some capabilities are local after their models are downloaded. AI answers and generation can use cloud services when you configure and choose them. Knovum makes that distinction explicit; it does not make third-party provider policies on your behalf."
+              data-zh="部分能力在下载模型后可在本机运行。AI 问答与生成则可以在配置并主动选择后使用云端服务。Knovum 会明确区分两者，但无法替第三方服务商决定其数据政策。"
+            >
+              部分能力在下载模型后可在本机运行。AI 问答与生成则可以在配置并主动选择后使用云端服务。Knovum
+              会明确区分两者，但无法替第三方服务商决定其数据政策。
+            </p>
+          </div>
+          <div class="privacy-callout">
+            <span class="eyebrow-text" data-en="THE PRINCIPLE" data-zh="我们的原则">我们的原则</span>
+            <p
+              data-en="Keep your library close. Make every external handoff intentional."
+              data-zh="让资料库留在身边，让每一次外部传输都有明确目的。"
+            >
+              让资料库留在身边，让每一次外部传输都有明确目的。
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="mini-cta">
+        <div class="section-wrap mini-cta__inner">
+          <div>
+            <span
+              class="eyebrow-text"
+              data-en="BUILT TO KEEP YOU IN CONTROL."
+              data-zh="让控制权始终在你手中。"
+              >让控制权始终在你手中。</span
+            >
+            <h2 data-en="Work with your knowledge, on your terms." data-zh="用自己的方式，和知识一起工作。">
+              用自己的方式，和知识一起工作。
+            </h2>
+          </div>
+          <a class="button button--dark" href="./download.html"
+            ><span data-en="Explore Knovum" data-zh="了解 Knovum">了解 Knovum</span><span>↗</span></a
+          >
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="section-wrap footer-main">
+        <div class="footer-brand">
+          <a class="brand brand--footer" href="./index.html"
+            ><img src="../assets/app-icon.png" alt="" width="31" height="31" /><span>knovum</span></a
+          >
+          <p data-en="Bring your knowledge together. Make it useful." data-zh="让知识汇聚，让它真正有用。">
+            让知识汇聚，让它真正有用。
+          </p>
+          <span class="footer-motto" data-en="MADE FOR CURIOUS MINDS." data-zh="为好奇心而造。"
+            >为好奇心而造。</span
+          >
+        </div>
+        <div class="footer-links">
+          <div>
+            <span class="footer-label" data-en="THE PRODUCT" data-zh="产品">产品</span
+            ><a href="./product.html" data-en="Overview" data-zh="产品概览">产品概览</a
+            ><a href="./privacy.html" data-en="Privacy" data-zh="隐私">隐私</a
+            ><a href="./download.html" data-en="Download" data-zh="下载">下载</a>
+          </div>
+          <div>
+            <span class="footer-label" data-en="DISCOVER" data-zh="了解更多">了解更多</span
+            ><a href="./about.html" data-en="About" data-zh="关于">关于</a
+            ><a href="./guides/index.html" data-en="Guides" data-zh="指南">指南</a
+            ><a
+              href="https://github.com/madebyzan/knovum/tree/main/docs"
+              target="_blank"
+              rel="noreferrer"
+              data-en="Documentation"
+              data-zh="项目文档"
+              >项目文档</a
+            ><a
+              href="https://github.com/madebyzan/knovum/releases"
+              target="_blank"
+              rel="noreferrer"
+              data-en="Release notes"
+              data-zh="版本记录"
+              >版本记录</a
+            >
+          </div>
+          <div>
+            <span class="footer-label" data-en="OPEN SOURCE" data-zh="开源项目">开源项目</span
+            ><a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a
+            ><a
+              href="https://github.com/madebyzan/knovum/blob/main/LICENSE"
+              target="_blank"
+              rel="noreferrer"
+              data-en="MIT License"
+              data-zh="MIT 许可证"
+              >MIT 许可证</a
+            ><a
+              href="https://github.com/madebyzan/knovum/issues"
+              target="_blank"
+              rel="noreferrer"
+              data-en="Report an issue"
+              data-zh="反馈问题"
+              >反馈问题</a
+            >
+          </div>
+        </div>
+      </div>
+      <div class="section-wrap footer-bottom">
+        <span>© <span data-year></span> Knovum</span
+        ><span data-en="Thoughtfully made. Openly shared." data-zh="认真打造，开放共享。"
+          >认真打造，开放共享。</span
+        ><a href="#top"
+          ><span data-en="Back to top" data-zh="返回顶部">返回顶部</span><span aria-hidden="true">↑</span></a
+        >
+      </div>
+    </footer>
+    <script src="../script.js" defer></script>
+  </body>
+</html>
