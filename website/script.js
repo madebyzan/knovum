@@ -151,6 +151,35 @@
     revealItems.forEach((item) => item.classList.add("is-visible"));
   }
 
+  function loadOptionalImages() {
+    document.querySelectorAll("[data-optional-image]").forEach((figure) => {
+      const image = figure.querySelector("img");
+      const source = figure.dataset.optionalImage;
+      if (!image || !source) return;
+
+      image.addEventListener("load", () => {
+        figure.hidden = false;
+      }, { once: true });
+      image.addEventListener("error", () => {
+        figure.remove();
+      }, { once: true });
+      image.src = source;
+    });
+
+    if (language === "zh") {
+      document.querySelectorAll("img[data-localized-src]").forEach((image) => {
+        const localizedImage = new Image();
+        localizedImage.decoding = "async";
+        localizedImage.addEventListener("load", () => {
+          image.src = localizedImage.src;
+        }, { once: true });
+        localizedImage.src = image.dataset.localizedSrc;
+      });
+    }
+  }
+
+  loadOptionalImages();
+
   async function updateReleaseDownloads() {
     const links = [...document.querySelectorAll("[data-release-asset]")];
     if (!links.length || typeof globalThis.fetch !== "function") return;
