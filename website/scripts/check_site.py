@@ -43,6 +43,8 @@ class PageAudit(HTMLParser):
         self.stylesheets: list[str] = []
         self.scripts: list[str] = []
         self.release_assets: list[str] = []
+        self.optional_images: list[str] = []
+        self.localized_images: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attributes = dict(attrs)
@@ -78,6 +80,10 @@ class PageAudit(HTMLParser):
                     self.external_blank_without_rel.append(href)
         if tag == "a" and attributes.get("data-release-asset"):
             self.release_assets.append(attributes["data-release-asset"] or "")
+        if attributes.get("data-optional-image"):
+            self.optional_images.append(attributes["data-optional-image"] or "")
+        if attributes.get("data-localized-src"):
+            self.localized_images.append(attributes["data-localized-src"] or "")
         if tag == "img":
             image_src = attributes.get("src") or ""
             if image_src:
@@ -179,6 +185,14 @@ def main() -> None:
             errors.append(f"{name}: expected exactly one h1, found {audit.h1_count}")
         if audit.images_without_alt:
             errors.append(f"{name}: images missing alt text: {', '.join(audit.images_without_alt)}")
+        for optional_asset in audit.optional_images + audit.localized_images:
+            parsed_optional = urlsplit(optional_asset)
+            if parsed_optional.scheme or parsed_optional.netloc or not parsed_optional.path:
+                errors.append(f"{name}: optional image must use a local path: {optional_asset}")
+                continue
+            optional_path = resolve_local_target(path, parsed_optional.path)
+            if not optional_path.is_relative_to(ROOT.resolve()):
+                errors.append(f"{name}: optional image escapes website directory: {optional_asset}")
         if audit.external_blank_without_rel:
             errors.append(
                 f"{name}: target=_blank links must include noopener or noreferrer: "
