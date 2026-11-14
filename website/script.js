@@ -42,6 +42,22 @@
     document.querySelectorAll("[data-en][data-zh]").forEach((element) => {
       element.textContent = element.dataset[language];
     });
+    document.querySelectorAll("[data-en-label][data-zh-label]").forEach((element) => {
+      const isToggle = element.hasAttribute("data-carousel-toggle");
+      if (isToggle) return;
+      element.setAttribute("aria-label", language === "en" ? element.dataset.enLabel : element.dataset.zhLabel);
+    });
+    document.querySelectorAll("[data-carousel-toggle]").forEach((element) => {
+      const isPaused = element.dataset.paused === "true";
+      const label = isPaused
+        ? language === "en" ? "Resume automatic playback" : "恢复自动播放"
+        : language === "en" ? "Pause automatic playback" : "暂停自动播放";
+      element.setAttribute("aria-label", label);
+      const text = element.querySelector("span");
+      if (text) text.textContent = isPaused
+        ? language === "en" ? "Play" : "播放"
+        : language === "en" ? "Pause" : "暂停";
+    });
 
     if (languageButton) {
       languageButton.textContent = language === "en" ? "中文" : "EN";
@@ -155,6 +171,163 @@
     revealItems.forEach((item) => item.classList.add("is-visible"));
   }
 
+  const imageCarouselRefreshers = new WeakMap();
+
+  function setupImageCarousels() {
+    document.querySelectorAll("[data-image-carousel]").forEach((carousel) => {
+      const slides = [...carousel.querySelectorAll(".image-carousel__slide")];
+      const previousButton = carousel.querySelector("[data-carousel-prev]");
+      const nextButton = carousel.querySelector("[data-carousel-next]");
+      const toggleButton = carousel.querySelector("[data-carousel-toggle]");
+      const counter = carousel.querySelector("[data-carousel-counter]");
+      const reducedMotion = globalThis.matchMedia("(prefers-reduced-motion: reduce)");
+      let activeSlide = null;
+      let intervalId = null;
+      let isPausedByUser = reducedMotion.matches;
+      let isHovered = false;
+      let hasFocus = false;
+      let isInViewport = true;
+
+      const availableSlides = () => slides.filter((slide) => !slide.hidden && slide.isConnected);
+      const setToggleLabel = () => {
+        if (!toggleButton) return;
+        const label = isPausedByUser
+          ? language === "en"
+            ? "Resume automatic playback"
+            : "恢复自动播放"
+          : language === "en"
+            ? "Pause automatic playback"
+            : "暂停自动播放";
+        toggleButton.dataset.paused = String(isPausedByUser);
+        toggleButton.setAttribute("aria-pressed", String(!isPausedByUser));
+        toggleButton.setAttribute("aria-label", label);
+        const text = toggleButton.querySelector("span");
+        if (text) text.textContent = isPausedByUser
+          ? language === "en" ? "Play" : "播放"
+          : language === "en" ? "Pause" : "暂停";
+      };
+
+      const refresh = () => {
+        const visibleSlides = availableSlides();
+        if (!visibleSlides.length) {
+          carousel.classList.remove("is-ready");
+          return;
+        }
+        if (!visibleSlides.includes(activeSlide)) activeSlide = visibleSlides[0];
+
+        visibleSlides.forEach((slide) => {
+          const isActive = slide === activeSlide;
+          slide.classList.toggle("is-active", isActive);
+          slide.setAttribute("aria-hidden", String(!isActive));
+        });
+
+        carousel.classList.add("is-ready");
+        if (counter) {
+          const index = visibleSlides.indexOf(activeSlide) + 1;
+          counter.textContent = String(index).padStart(2, "0") + " / " +
+            String(visibleSlides.length).padStart(2, "0");
+        }
+        const hasMultipleSlides = visibleSlides.length > 1;
+        if (previousButton) previousButton.hidden = !hasMultipleSlides;
+        if (nextButton) nextButton.hidden = !hasMultipleSlides;
+        if (toggleButton) toggleButton.hidden = !hasMultipleSlides;
+      };
+
+      const showSlide = (nextIndex) => {
+        const visibleSlides = availableSlides();
+        if (!visibleSlides.length) return;
+        const currentIndex = Math.max(0, visibleSlides.indexOf(activeSlide));
+        const targetIndex = (nextIndex + visibleSlides.length) % visibleSlides.length;
+        activeSlide = visibleSlides[targetIndex];
+        refresh();
+        if (targetIndex === currentIndex) return;
+      };
+
+      const stopAutoplay = () => {
+        if (intervalId === null) return;
+        globalThis.clearInterval(intervalId);
+        intervalId = null;
+      };
+
+      const syncAutoplay = () => {
+        stopAutoplay();
+        if (
+          isPausedByUser ||
+          isHovered ||
+          hasFocus ||
+          !isInViewport ||
+          document.visibilityState === "hidden" ||
+          reducedMotion.matches ||
+          availableSlides().length < 2
+        ) return;
+        intervalId = globalThis.setInterval(() => {
+          const visibleSlides = availableSlides();
+          const currentIndex = visibleSlides.indexOf(activeSlide);
+          showSlide(currentIndex + 1);
+        }, 5600);
+      };
+
+      previousButton?.addEventListener("click", () => {
+        const visibleSlides = availableSlides();
+        showSlide(visibleSlides.indexOf(activeSlide) - 1);
+        syncAutoplay();
+      });
+      nextButton?.addEventListener("click", () => {
+        const visibleSlides = availableSlides();
+        showSlide(visibleSlides.indexOf(activeSlide) + 1);
+        syncAutoplay();
+      });
+      toggleButton?.addEventListener("click", () => {
+        isPausedByUser = !isPausedByUser;
+        setToggleLabel();
+        syncAutoplay();
+      });
+
+      carousel.addEventListener("mouseenter", () => {
+        isHovered = true;
+        syncAutoplay();
+      });
+      carousel.addEventListener("mouseleave", () => {
+        isHovered = false;
+        syncAutoplay();
+      });
+      carousel.addEventListener("focusin", () => {
+        hasFocus = true;
+        syncAutoplay();
+      });
+      carousel.addEventListener("focusout", (event) => {
+        hasFocus = Boolean(event.relatedTarget && carousel.contains(event.relatedTarget));
+        syncAutoplay();
+      });
+      document.addEventListener("visibilitychange", syncAutoplay);
+      if (reducedMotion.addEventListener) {
+        reducedMotion.addEventListener("change", () => {
+          if (reducedMotion.matches) isPausedByUser = true;
+          setToggleLabel();
+          syncAutoplay();
+        });
+      }
+
+      if ("IntersectionObserver" in globalThis) {
+        const observer = new globalThis.IntersectionObserver(([entry]) => {
+          isInViewport = entry.isIntersecting;
+          syncAutoplay();
+        });
+        observer.observe(carousel);
+      }
+
+      imageCarouselRefreshers.set(carousel, () => {
+        refresh();
+        syncAutoplay();
+      });
+      setToggleLabel();
+      refresh();
+      syncAutoplay();
+    });
+  }
+
+  setupImageCarousels();
+
   function loadOptionalImages() {
     document.querySelectorAll("[data-optional-image]").forEach((figure) => {
       const image = figure.querySelector("img");
@@ -165,13 +338,17 @@
         "load",
         () => {
           figure.hidden = false;
+          const carousel = figure.closest("[data-image-carousel]");
+          if (carousel) imageCarouselRefreshers.get(carousel)?.();
         },
         { once: true },
       );
       image.addEventListener(
         "error",
         () => {
+          const carousel = figure.closest("[data-image-carousel]");
           figure.remove();
+          if (carousel) imageCarouselRefreshers.get(carousel)?.();
         },
         { once: true },
       );
