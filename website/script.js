@@ -42,21 +42,28 @@
     document.querySelectorAll("[data-en][data-zh]").forEach((element) => {
       element.textContent = element.dataset[language];
     });
+
     document.querySelectorAll("[data-en-label][data-zh-label]").forEach((element) => {
-      const isToggle = element.hasAttribute("data-carousel-toggle");
-      if (isToggle) return;
-      element.setAttribute("aria-label", language === "en" ? element.dataset.enLabel : element.dataset.zhLabel);
+      if (element.hasAttribute("data-carousel-toggle")) return;
+      element.setAttribute(
+        "aria-label",
+        localizedText(element.dataset.enLabel, element.dataset.zhLabel),
+      );
     });
+
     document.querySelectorAll("[data-carousel-toggle]").forEach((element) => {
       const isPaused = element.dataset.paused === "true";
       const label = isPaused
-        ? language === "en" ? "Resume automatic playback" : "恢复自动播放"
-        : language === "en" ? "Pause automatic playback" : "暂停自动播放";
+        ? localizedText("Resume automatic playback", "恢复自动播放")
+        : localizedText("Pause automatic playback", "暂停自动播放");
       element.setAttribute("aria-label", label);
-      const text = element.querySelector("span");
-      if (text) text.textContent = isPaused
-        ? language === "en" ? "Play" : "播放"
-        : language === "en" ? "Pause" : "暂停";
+
+      const labelElement = element.querySelector("span");
+      if (labelElement) {
+        labelElement.textContent = isPaused
+          ? localizedText("Play", "播放")
+          : localizedText("Pause", "暂停");
+      }
     });
 
     if (languageButton) {
@@ -173,6 +180,8 @@
 
   const imageCarouselRefreshers = new WeakMap();
 
+  const localizedText = (english, chinese) => (language === "en" ? english : chinese);
+
   function setupImageCarousels() {
     document.querySelectorAll("[data-image-carousel]").forEach((carousel) => {
       const slides = [...carousel.querySelectorAll(".image-carousel__slide")];
@@ -188,31 +197,34 @@
       let hasFocus = false;
       let isInViewport = true;
 
-      const availableSlides = () => slides.filter((slide) => !slide.hidden && slide.isConnected);
+      const availableSlides = () =>
+        slides.filter((slide) => !slide.hidden && slide.isConnected);
+
       const setToggleLabel = () => {
         if (!toggleButton) return;
         const label = isPausedByUser
-          ? language === "en"
-            ? "Resume automatic playback"
-            : "恢复自动播放"
-          : language === "en"
-            ? "Pause automatic playback"
-            : "暂停自动播放";
+          ? localizedText("Resume automatic playback", "恢复自动播放")
+          : localizedText("Pause automatic playback", "暂停自动播放");
+
         toggleButton.dataset.paused = String(isPausedByUser);
         toggleButton.setAttribute("aria-pressed", String(!isPausedByUser));
         toggleButton.setAttribute("aria-label", label);
-        const text = toggleButton.querySelector("span");
-        if (text) text.textContent = isPausedByUser
-          ? language === "en" ? "Play" : "播放"
-          : language === "en" ? "Pause" : "暂停";
+
+        const labelElement = toggleButton.querySelector("span");
+        if (labelElement) {
+          labelElement.textContent = isPausedByUser
+            ? localizedText("Play", "播放")
+            : localizedText("Pause", "暂停");
+        }
       };
 
       const refresh = () => {
         const visibleSlides = availableSlides();
-        if (!visibleSlides.length) {
+        if (visibleSlides.length === 0) {
           carousel.classList.remove("is-ready");
           return;
         }
+
         if (!visibleSlides.includes(activeSlide)) activeSlide = visibleSlides[0];
 
         visibleSlides.forEach((slide) => {
@@ -224,23 +236,28 @@
         carousel.classList.add("is-ready");
         if (counter) {
           const index = visibleSlides.indexOf(activeSlide) + 1;
-          counter.textContent = String(index).padStart(2, "0") + " / " +
+          counter.textContent =
+            String(index).padStart(2, "0") +
+            " / " +
             String(visibleSlides.length).padStart(2, "0");
         }
+
         const hasMultipleSlides = visibleSlides.length > 1;
         if (previousButton) previousButton.hidden = !hasMultipleSlides;
         if (nextButton) nextButton.hidden = !hasMultipleSlides;
-        if (toggleButton) toggleButton.hidden = !hasMultipleSlides || reducedMotion.matches;
+        if (toggleButton) {
+          toggleButton.hidden = !hasMultipleSlides || reducedMotion.matches;
+        }
       };
 
       const showSlide = (nextIndex) => {
         const visibleSlides = availableSlides();
-        if (!visibleSlides.length) return;
-        const currentIndex = Math.max(0, visibleSlides.indexOf(activeSlide));
-        const targetIndex = (nextIndex + visibleSlides.length) % visibleSlides.length;
+        if (visibleSlides.length === 0) return;
+
+        const slideCount = visibleSlides.length;
+        const targetIndex = ((nextIndex % slideCount) + slideCount) % slideCount;
         activeSlide = visibleSlides[targetIndex];
         refresh();
-        if (targetIndex === currentIndex) return;
       };
 
       const stopAutoplay = () => {
@@ -259,11 +276,13 @@
           document.visibilityState === "hidden" ||
           reducedMotion.matches ||
           availableSlides().length < 2
-        ) return;
+        ) {
+          return;
+        }
+
         intervalId = globalThis.setInterval(() => {
           const visibleSlides = availableSlides();
-          const currentIndex = visibleSlides.indexOf(activeSlide);
-          showSlide(currentIndex + 1);
+          showSlide(visibleSlides.indexOf(activeSlide) + 1);
         }, 5600);
       };
 
@@ -272,11 +291,13 @@
         showSlide(visibleSlides.indexOf(activeSlide) - 1);
         syncAutoplay();
       });
+
       nextButton?.addEventListener("click", () => {
         const visibleSlides = availableSlides();
         showSlide(visibleSlides.indexOf(activeSlide) + 1);
         syncAutoplay();
       });
+
       toggleButton?.addEventListener("click", () => {
         isPausedByUser = !isPausedByUser;
         setToggleLabel();
@@ -287,19 +308,24 @@
         isHovered = true;
         syncAutoplay();
       });
+
       carousel.addEventListener("mouseleave", () => {
         isHovered = false;
         syncAutoplay();
       });
+
       carousel.addEventListener("focusin", () => {
         hasFocus = true;
         syncAutoplay();
       });
+
       carousel.addEventListener("focusout", (event) => {
         hasFocus = Boolean(event.relatedTarget && carousel.contains(event.relatedTarget));
         syncAutoplay();
       });
+
       document.addEventListener("visibilitychange", syncAutoplay);
+
       if (reducedMotion.addEventListener) {
         reducedMotion.addEventListener("change", () => {
           if (reducedMotion.matches) isPausedByUser = true;
@@ -321,6 +347,7 @@
         refresh();
         syncAutoplay();
       });
+
       setToggleLabel();
       refresh();
       syncAutoplay();
