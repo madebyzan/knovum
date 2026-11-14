@@ -230,7 +230,7 @@
         const hasMultipleSlides = visibleSlides.length > 1;
         if (previousButton) previousButton.hidden = !hasMultipleSlides;
         if (nextButton) nextButton.hidden = !hasMultipleSlides;
-        if (toggleButton) toggleButton.hidden = !hasMultipleSlides;
+        if (toggleButton) toggleButton.hidden = !hasMultipleSlides || reducedMotion.matches;
       };
 
       const showSlide = (nextIndex) => {
@@ -304,6 +304,7 @@
         reducedMotion.addEventListener("change", () => {
           if (reducedMotion.matches) isPausedByUser = true;
           setToggleLabel();
+          refresh();
           syncAutoplay();
         });
       }
@@ -352,6 +353,7 @@
         },
         { once: true },
       );
+      image.loading = "eager";
       image.src = source;
     });
 
