@@ -69,16 +69,46 @@
       navigation.classList.toggle("is-open", !isOpen);
       updateMenuLabel();
     });
+
     navigation.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeMenu();
+
+    document.addEventListener("pointerdown", (event) => {
+      if (menuButton.getAttribute("aria-expanded") === "true" && header && !header.contains(event.target)) {
+        closeMenu();
+      }
+      const openDropdown = navigation.querySelector(".nav-menu[open]");
+      if (openDropdown && !openDropdown.contains(event.target)) openDropdown.removeAttribute("open");
     });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      const wasOpen = menuButton.getAttribute("aria-expanded") === "true";
+      closeMenu();
+      if (wasOpen) menuButton.focus();
+    });
+
+    const desktopLayout = globalThis.matchMedia("(min-width: 761px)");
+    const resetMenuForDesktop = (event) => {
+      if (event.matches) closeMenu();
+    };
+    if (desktopLayout.addEventListener) {
+      desktopLayout.addEventListener("change", resetMenuForDesktop);
+    } else {
+      desktopLayout.addListener(resetMenuForDesktop);
+    }
   }
 
-  const currentFile = globalThis.location.pathname.split("/").pop() || "index.html";
   document.querySelectorAll(".primary-nav a[href]").forEach((link) => {
-    const targetFile = link.getAttribute("href")?.split("#")[0];
-    if (targetFile && targetFile === currentFile) link.setAttribute("aria-current", "page");
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("#")) return;
+    const target = new URL(href, globalThis.location.href);
+    if (target.origin !== globalThis.location.origin) return;
+    const normalizePath = (pathname) => pathname.replace(/index\\.html$/, "").replace(/\\/$/, "");
+    if (normalizePath(target.pathname) === normalizePath(globalThis.location.pathname)) {
+      link.setAttribute("aria-current", "page");
+    } else {
+      link.removeAttribute("aria-current");
+    }
   });
 
   let frameRequested = false;
@@ -99,6 +129,7 @@
     { passive: true },
   );
   updateScrollState();
+  globalThis.addEventListener("resize", updateScrollState, { passive: true });
 
   const revealItems = document.querySelectorAll("[data-reveal]");
   if (
@@ -119,6 +150,54 @@
   } else {
     revealItems.forEach((item) => item.classList.add("is-visible"));
   }
+
+  async function updateReleaseDownloads() {
+    const links = [...document.querySelectorAll("[data-release-asset]")];
+    if (!links.length || typeof globalThis.fetch !== "function") return;
+
+    const latestReleaseUrl = "https://github.com/madebyzan/knovum/releases/latest";
+    const assetPatterns = {
+      "macos-arm64": /_aarch64\\.dmg$/i,
+      "macos-x64": /_x64\\.dmg$/i,
+      "windows-x64": /_x64-setup\\.exe$/i,
+    };
+    const controller = new AbortController();
+    const timeout = globalThis.setTimeout(() => controller.abort(), 5000);
+
+    try {
+      const response = await globalThis.fetch(
+        "https://api.github.com/repos/madebyzan/knovum/releases/latest",
+        {
+          headers: { Accept: "application/vnd.github+json" },
+          signal: controller.signal,
+        },
+      );
+      if (!response.ok) throw new Error("Latest release lookup failed");
+
+      const release = await response.json();
+      const assets = Array.isArray(release.assets) ? release.assets : [];
+
+      links.forEach((link) => {
+        const pattern = assetPatterns[link.dataset.releaseAsset];
+        const asset = pattern && assets.find((candidate) => pattern.test(candidate.name || ""));
+        link.href = asset?.browser_download_url || release.html_url || latestReleaseUrl;
+        link.dataset.releaseReady = asset?.browser_download_url ? "true" : "false";
+      });
+
+      document.querySelectorAll("[data-release-version]").forEach((element) => {
+        element.textContent = release.tag_name || "—";
+      });
+    } catch {
+      links.forEach((link) => {
+        link.href = latestReleaseUrl;
+        link.dataset.releaseReady = "false";
+      });
+    } finally {
+      globalThis.clearTimeout(timeout);
+    }
+  }
+
+  void updateReleaseDownloads();
 
   async function copyCommand(button) {
     const label = button.querySelector("[data-en]");
