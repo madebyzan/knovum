@@ -42,6 +42,7 @@ class PageAudit(HTMLParser):
         self.external_blank_without_rel: list[str] = []
         self.stylesheets: list[str] = []
         self.scripts: list[str] = []
+        self.release_assets: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attributes = dict(attrs)
@@ -75,6 +76,8 @@ class PageAudit(HTMLParser):
                 rel = set((attributes.get("rel") or "").lower().split())
                 if not {"noopener", "noreferrer"} & rel:
                     self.external_blank_without_rel.append(href)
+        if tag == "a" and attributes.get("data-release-asset"):
+            self.release_assets.append(attributes["data-release-asset"] or "")
         if tag == "img":
             image_src = attributes.get("src") or ""
             if image_src:
@@ -181,6 +184,14 @@ def main() -> None:
                 f"{name}: target=_blank links must include noopener or noreferrer: "
                 + ", ".join(audit.external_blank_without_rel)
             )
+        if Path(name).name == "download.html":
+            required_downloads = {"macos-arm64", "macos-x64", "windows-x64"}
+            found_downloads = set(audit.release_assets)
+            if found_downloads != required_downloads:
+                errors.append(
+                    f"{name}: expected release download targets {sorted(required_downloads)}, "
+                    f"found {sorted(found_downloads)}"
+                )
 
         is_noindex = any("noindex" in value.lower() for value in audit.meta_values.get("robots", []))
         if not is_noindex:
@@ -301,7 +312,7 @@ def main() -> None:
             first, second = relative_luminance(foreground), relative_luminance(background)
             return (max(first, second) + 0.05) / (min(first, second) + 0.05)
 
-        for variable in ("--muted", "--accent-text"):
+        for variable in ("--muted", "--accent-text", "--state-warning", "--state-danger"):
             match = re.search(rf"{re.escape(variable)}\s*:\s*(#[0-9a-fA-F]{{6}})", css)
             if not match:
                 errors.append(f"styles.css: missing accessible color token {variable}")
@@ -309,6 +320,16 @@ def main() -> None:
             for surface in ("#f2f0e9", "#e8e6dd", "#e0dfd6"):
                 if contrast_ratio(match.group(1), surface) < 4.5:
                     errors.append(f"styles.css: {variable} contrast is below WCAG AA on {surface}")
+
+        light_focus = re.search(r"--focus-ring\s*:\s*(#[0-9a-fA-F]{6})", css)
+        dark_focus = re.search(r"--focus-ring-on-dark\s*:\s*(#[0-9a-fA-F]{6})", css)
+        if not light_focus or not dark_focus:
+            errors.append("styles.css: missing light/dark focus-ring tokens")
+        else:
+            if contrast_ratio(light_focus.group(1), "#f2f0e9") < 3:
+                errors.append("styles.css: focus ring contrast is below 3:1 on the light surface")
+            if contrast_ratio(dark_focus.group(1), "#202b25") < 3:
+                errors.append("styles.css: focus ring contrast is below 3:1 on the dark surface")
     else:
         errors.append("missing styles.css")
 
