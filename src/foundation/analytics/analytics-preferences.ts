@@ -6,7 +6,7 @@ import { invokeCommand } from "../ipc/invoke-command";
 
 type PersistedPreferences = {
   enabled: boolean;
-  installationId: string;
+  installationId: string | null;
   lastSentDate: string | null;
 };
 
@@ -38,10 +38,21 @@ export const useAnalyticsPreferencesStore = defineStore("analytics-preferences",
     try {
       const store = await getPersistence();
       const preferences = await store.get<PersistedPreferences>(STORE_KEY);
-      if (preferences?.enabled) {
-        enabled.value = true;
+
+      if (preferences) {
+        enabled.value = preferences.enabled;
         installationId = preferences.installationId;
         lastSentDate = preferences.lastSentDate;
+      } else {
+        const defaults: PersistedPreferences = {
+          enabled: true,
+          installationId: globalThis.crypto.randomUUID(),
+          lastSentDate: null,
+        };
+        await persistPreferences(defaults);
+        enabled.value = defaults.enabled;
+        installationId = defaults.installationId;
+        lastSentDate = defaults.lastSentDate;
       }
     } catch {
       enabled.value = false;
@@ -55,23 +66,22 @@ export const useAnalyticsPreferencesStore = defineStore("analytics-preferences",
   async function setEnabled(next: boolean) {
     if (!ready.value) throw new Error("Usage analytics preferences have not been loaded.");
 
-    const store = await getPersistence();
-    if (next) {
-      const nextInstallationId = installationId ?? globalThis.crypto.randomUUID();
-      await persistPreferences({
-        enabled: true,
-        installationId: nextInstallationId,
-        lastSentDate,
-      });
-      installationId = nextInstallationId;
-      enabled.value = true;
-    } else {
-      await store.delete(STORE_KEY);
-      await store.save();
-      enabled.value = false;
-      installationId = null;
-      lastSentDate = null;
-    }
+    const nextPreferences: PersistedPreferences = next
+      ? {
+          enabled: true,
+          installationId: installationId ?? globalThis.crypto.randomUUID(),
+          lastSentDate,
+        }
+      : {
+          enabled: false,
+          installationId: null,
+          lastSentDate: null,
+        };
+
+    await persistPreferences(nextPreferences);
+    enabled.value = nextPreferences.enabled;
+    installationId = nextPreferences.installationId;
+    lastSentDate = nextPreferences.lastSentDate;
     attemptedThisRun = false;
   }
 
