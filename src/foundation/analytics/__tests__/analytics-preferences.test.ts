@@ -77,17 +77,20 @@ it("does not resend an installation already recorded for the current UTC day", a
   expect(calls.invoke).not.toHaveBeenCalled();
 });
 
-it("persists opt-out across launches and creates a fresh identifier when re-enabled", async () => {
+it("persists opt-out, clears the ID, and prevents duplicate activity after same-day re-enable", async () => {
   const store = useAnalyticsPreferencesStore();
   await store.load();
   const initialId = (calls.stored as { installationId: string }).installationId;
+
+  await expect(store.recordAppStarted()).resolves.toBe("sent");
+  expect(calls.invoke).toHaveBeenCalledOnce();
 
   await store.setEnabled(false);
   expect(store.enabled).toBe(false);
   expect(calls.stored).toEqual({
     enabled: false,
     installationId: null,
-    lastSentDate: null,
+    lastSentDate: utcToday(),
   });
   await expect(store.recordAppStarted()).resolves.toBe("disabled");
 
@@ -96,9 +99,10 @@ it("persists opt-out across launches and creates a fresh identifier when re-enab
   await nextLaunch.load();
   expect(nextLaunch.enabled).toBe(false);
   await expect(nextLaunch.recordAppStarted()).resolves.toBe("disabled");
-  expect(calls.invoke).not.toHaveBeenCalled();
 
   await nextLaunch.setEnabled(true);
   expect(nextLaunch.enabled).toBe(true);
   expect((calls.stored as { installationId: string }).installationId).not.toBe(initialId);
+  await expect(nextLaunch.recordAppStarted()).resolves.toBe("disabled");
+  expect(calls.invoke).toHaveBeenCalledOnce();
 });
