@@ -31,7 +31,7 @@ beforeEach(() => {
   calls.invoke.mockResolvedValue("sent");
 });
 
-it("enables fresh installations and records one daily app-start event", async () => {
+it("enables installations without a saved preference and records one daily app-start event", async () => {
   const store = useAnalyticsPreferencesStore();
   await store.load();
 
