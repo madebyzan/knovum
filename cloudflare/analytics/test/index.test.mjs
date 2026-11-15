@@ -54,6 +54,21 @@ test("accepts the minimal app-start event and stores only a one-way digest", asy
   assert.equal(DB.calls[0].values[4], "macos");
 });
 
+test("rejects oversized request bodies before parsing", async () => {
+  const DB = createDatabase();
+  const request = new Request("https://analytics.example.workers.dev/event", {
+    method: "POST",
+    body: "x".repeat(1024),
+  });
+  const response = await worker.fetch(request, {
+    DB,
+    INSTALLATION_HASH_SALT: "a".repeat(64),
+  });
+
+  assert.equal(response.status, 413);
+  assert.equal(DB.calls.length, 0);
+});
+
 test("rejects extra fields so content cannot be smuggled into the event", async () => {
   const DB = createDatabase();
   const response = await worker.fetch(

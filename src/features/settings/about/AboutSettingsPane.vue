@@ -6,8 +6,8 @@ import { onMounted, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { useAnalyticsPreferencesStore } from "../../../foundation/analytics/analytics-preferences";
+import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { useUpdateStore } from "../../../foundation/updates/update-store";
 import { isApplicationLeaveCancelled } from "../../../shared/contracts/application-leave";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";

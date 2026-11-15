@@ -2,7 +2,7 @@
 
 This optional endpoint receives at most one daily `app_started` event from desktop installations that explicitly enable **Settings → About → Anonymous usage analytics**.
 
-The Worker stores only an HMAC-SHA-256 digest of a random installation identifier, the UTC activity date, app version, platform, and event name. The original identifier is never written to D1. Rows older than 90 days are deleted by the daily Cron Trigger. The Worker does not write request IP addresses, request headers, note/file content, prompts, paths, credentials, account details, names, or email addresses to D1 or application logs.
+The Worker stores only an HMAC-SHA-256 digest of a random installation identifier, the UTC activity date, app version, platform, and event name. The original identifier is never written to D1. Rows older than 90 days are deleted by the daily Cron Trigger. The Worker does not write request IP addresses, request headers, note/file content, prompts, paths, credentials, account details, names, or email addresses to D1 or application logs. Cloudflare may process connection metadata under its own service terms.
 
 The public website uses Cloudflare Web Analytics separately. Neither integration is active until its account-specific configuration is supplied.
 

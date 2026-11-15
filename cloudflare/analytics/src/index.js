@@ -12,6 +12,30 @@ function json(status, body) {
   });
 }
 
+async function readBoundedBody(request) {
+  const reader = request.body?.getReader();
+  if (!reader) return "";
+  const decoder = new TextDecoder();
+  let bytes = 0;
+  let body = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > MAX_BODY_BYTES) {
+        await reader.cancel().catch(() => {});
+        return null;
+      }
+      body += decoder.decode(value, { stream: true });
+    }
+    return body + decoder.decode();
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 function validatePayload(value) {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
   const keys = Object.keys(value).sort();
@@ -55,10 +79,8 @@ export default {
 
     let raw;
     try {
-      const body = await request.text();
-      if (new TextEncoder().encode(body).byteLength > MAX_BODY_BYTES) {
-        return json(413, { error: "payload_too_large" });
-      }
+      const body = await readBoundedBody(request);
+      if (body === null) return json(413, { error: "payload_too_large" });
       raw = JSON.parse(body);
     } catch {
       return json(400, { error: "invalid_json" });

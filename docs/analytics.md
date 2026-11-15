@@ -7,7 +7,7 @@ Knovum has two independent, opt-in-by-configuration measurement paths:
 
 The desktop event contains only a random installation UUID, the app version, platform, and event name. The native Rust host owns the HTTPS request; the WebView CSP is not widened. The Worker HMACs the UUID before persistence and stores only the digest, UTC day, version, platform, and event name. Daily rows are deleted after 90 days. Disabling consent clears the local UUID and prevents future requests. Network or service failures never block startup or normal product work.
 
-No Spaces, node content, extracted text, file names or paths, search queries, prompts, generated outputs, API credentials, account identifiers, personal names, email addresses, or IP addresses are written by the desktop Worker to D1. The event schema rejects extra fields and unsupported event types.
+No Spaces, node content, extracted text, file names or paths, search queries, prompts, generated outputs, API credentials, account identifiers, personal names, email addresses, or request IP addresses are written by the desktop Worker to D1. Cloudflare may process connection metadata under its own service terms. The event schema rejects extra fields and unsupported event types.
 
 ## Build configuration
 
