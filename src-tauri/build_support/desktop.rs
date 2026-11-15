@@ -2,6 +2,7 @@ pub(crate) const COMMANDS: &[&str] = &[
     "set_locale",
     "set_workspace_menu_state",
     "open_main_window",
+    "send_analytics_event",
     "mark_exit_coordinator_ready",
     "acknowledge_app_exit_request",
     "fail_startup",

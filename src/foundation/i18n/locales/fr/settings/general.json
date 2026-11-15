@@ -27,5 +27,13 @@
     "data": "Données & archives",
     "information": "Information"
   },
-  "saveFailed": "Impossible d'enregistrer les paramètres"
+  "saveFailed": "Impossible d'enregistrer les paramètres",
+  "analytics": {
+    "title": "Statistiques d’utilisation",
+    "description": "Activées par défaut. Knovum envoie au maximum un événement de démarrage par jour UTC. Vous pouvez désactiver cette option à tout moment.",
+    "enabled": "Partager les statistiques d’utilisation",
+    "privacy": "L’événement contient uniquement un identifiant d’installation aléatoire, la version de l’application, la plateforme du système et le nom de l’événement. Il n’inclut jamais vos Spaces, fichiers, notes, recherches ni contenus d’IA.",
+    "notConfigured": "Les statistiques d’utilisation ne sont pas configurées dans cette version ; aucun événement n’a été envoyé.",
+    "unavailable": "Les statistiques d’utilisation sont temporairement indisponibles. Knovum continue de fonctionner normalement."
+  }
 }

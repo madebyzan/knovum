@@ -27,5 +27,13 @@
     "data": "Datos y archivos",
     "information": "Información"
   },
-  "saveFailed": "No se pudo guardar la configuración"
+  "saveFailed": "No se pudo guardar la configuración",
+  "analytics": {
+    "title": "Análisis de uso",
+    "description": "Activado de forma predeterminada. Knovum envía como máximo un evento de inicio por día UTC. Puedes desactivarlo cuando quieras.",
+    "enabled": "Compartir estadísticas de uso",
+    "privacy": "El evento solo contiene un ID de instalación aleatorio, la versión de la aplicación, la plataforma del sistema operativo y el nombre del evento. Nunca incluye tus Spaces, archivos, notas, búsquedas ni contenido de IA.",
+    "notConfigured": "El análisis de uso no está configurado en esta versión, por lo que no se han enviado eventos.",
+    "unavailable": "El análisis de uso no está disponible temporalmente. Knovum seguirá funcionando con normalidad."
+  }
 }

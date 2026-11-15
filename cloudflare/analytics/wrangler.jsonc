@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "knovum-analytics",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-15",
+  "observability": {
+    "enabled": false,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "knovum-analytics",
+      "database_id": "e58f2bea-1b1b-4dbf-8417-ee7d02f813ee",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "triggers": {
+    "crons": ["17 3 * * *"],
+  },
+}

@@ -3,6 +3,7 @@ pub(crate) mod associated_app;
 mod exit;
 pub(crate) mod file_drop;
 pub(crate) use exit::AppExitRequest;
+mod analytics;
 mod editing;
 mod locale;
 pub(crate) use editing::EditingCommand;
@@ -103,6 +104,7 @@ pub fn plugin() -> TauriPlugin<Wry> {
             set_locale,
             set_workspace_menu_state,
             open_main_window,
+            analytics::send_analytics_event,
             exit::mark_exit_coordinator_ready,
             exit::acknowledge_app_exit_request,
             exit::decide_app_exit_request,
