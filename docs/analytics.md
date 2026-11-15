@@ -3,7 +3,7 @@
 Knovum has two independent analytics paths:
 
 - The public website uses Cloudflare Web Analytics when the GitHub Actions variable CLOUDFLARE_WEB_ANALYTICS_TOKEN is configured. Without the token, the beacon is not loaded.
-- The desktop app sends at most one app_started event per installation per UTC day when the Worker endpoint is configured. Usage analytics is enabled by default when no preference has been saved, including on existing installations without a saved choice and can be disabled at any time in Settings → About. An explicit opt-out from an earlier version remains disabled after upgrading.
+- The desktop app sends at most one app_started event per installation per UTC day when the Worker endpoint is configured. Usage analytics is enabled by default when no preference has been saved, including for existing installations without a saved choice. It can be disabled at any time in Settings → About. An explicit opt-out from an earlier version remains disabled after upgrading.
 
 The desktop event contains only a random installation UUID, the app version, platform, and event name. The native Rust host owns the HTTPS request; the WebView CSP is not widened. The Worker HMACs the UUID before persistence and stores only the digest, UTC day, version, platform, and event name. Daily rows are deleted after 90 days. Disabling analytics clears the local installation identifier and stops future requests. Network or service failures never block startup or normal product work.
 

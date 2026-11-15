@@ -1,6 +1,6 @@
 # Knovum desktop analytics Worker
 
-This optional endpoint receives at most one daily `app_started` event from each installation where the endpoint is configured. Usage analytics is enabled by default when no preference has been saved, including on existing installations without a saved choice and can be disabled in **Settings → About**. An explicit opt-out from an earlier release remains disabled after upgrading.
+This optional endpoint receives at most one daily `app_started` event from each installation where the endpoint is configured. Usage analytics is enabled by default when no preference has been saved, including for existing installations without a saved choice. It can be disabled in **Settings → About**. An explicit opt-out from an earlier release remains disabled after upgrading.
 
 The Worker stores only an HMAC-SHA-256 digest of a random installation identifier, the UTC activity date, app version, platform, and event name. The original identifier is never written to D1. Rows older than 90 days are deleted by the daily Cron Trigger. The Worker does not write request IP addresses, request headers, note/file content, prompts, paths, credentials, account details, names, or email addresses to D1 or application logs. Cloudflare may process connection metadata under its own service terms.
 
