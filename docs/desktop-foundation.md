@@ -39,11 +39,11 @@ traffic lights; Windows retains its native caption. New custom caption controls 
 decision. Only the `main` window is authorized. A new window requires an explicit use case, lifetime,
 route/context transfer, and dedicated Tauri capability scope.
 
-## Optional usage analytics
+## Usage analytics
 
-The renderer persists analytics consent locally in a dedicated store, independent of core preferences. Consent defaults to off. When enabled, it creates a random installation UUID and asks the desktop command to send only one `app_started` event per launch. The native command owns the HTTPS request, enforces a credential-free HTTPS endpoint compiled into the release, and uses a short timeout. An unset endpoint, an unavailable service, or a quota failure is a no-op for application startup and normal work.
+The renderer stores the analytics preference locally in a dedicated Tauri store, independent of core preferences. Usage analytics is enabled for fresh installations; an explicit opt-out saved by an earlier version remains disabled after upgrading. The **Settings → About** switch can disable reporting at any time. When enabled, the renderer creates a random installation UUID and asks the desktop command to send at most one `app_started` event per installation per UTC day. The native command owns the HTTPS request, enforces a credential-free HTTPS endpoint compiled into the release, and uses a short timeout. An unset endpoint, an unavailable service, or a quota failure is a no-op for application startup and normal work.
 
-The Worker accepts a closed event schema, HMACs the installation UUID before writing to D1, deduplicates by installation and UTC day, and deletes records after 90 days. It does not persist raw identifiers or request IP addresses. Disabling consent clears the local installation UUID and stops future requests. The renderer receives no general-purpose HTTP capability and the WebView CSP is unchanged.
+The Worker accepts a closed event schema, HMACs the installation UUID before writing to D1, deduplicates by installation and UTC day, and deletes records after 90 days. The stored identifier is pseudonymous; the original UUID is not persisted. The Worker does not write request IP addresses to D1. Disabling analytics clears the local installation UUID and stops future requests. The renderer receives no general-purpose HTTP capability and the WebView CSP is unchanged.
 
 ## Failure isolation
 
