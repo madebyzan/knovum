@@ -75,7 +75,7 @@ export const useAnalyticsPreferencesStore = defineStore("analytics-preferences",
       : {
           enabled: false,
           installationId: null,
-          lastSentDate: null,
+          lastSentDate,
         };
 
     await persistPreferences(nextPreferences);
