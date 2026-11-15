@@ -7,6 +7,7 @@ const calls = vi.hoisted(() => ({
   load: vi.fn<() => Promise<unknown>>(),
   get: vi.fn<() => Promise<unknown>>(),
   set: vi.fn<(key: string, value: unknown) => Promise<void>>(),
+  delete: vi.fn<(key: string) => Promise<void>>(),
   save: vi.fn<() => Promise<void>>(),
   invoke: vi.fn<(command: string, args?: { installationId: string }) => Promise<unknown>>(),
   stored: undefined as unknown,
@@ -15,7 +16,7 @@ const calls = vi.hoisted(() => ({
 vi.mock("@tauri-apps/plugin-store", () => ({ load: calls.load }));
 vi.mock("../../ipc/invoke-command", () => ({ invokeCommand: calls.invoke }));
 
-const disk = { get: calls.get, set: calls.set, save: calls.save };
+const disk = { get: calls.get, set: calls.set, delete: calls.delete, save: calls.save };
 const installationId = "f1f2f34a-9fc2-4d9c-8b6e-29c137bbfbe4";
 
 beforeEach(() => {
@@ -27,17 +28,30 @@ beforeEach(() => {
   calls.set.mockImplementation(async (_key, value) => {
     calls.stored = value;
   });
+  calls.delete.mockImplementation(async () => {
+    calls.stored = undefined;
+  });
   calls.save.mockResolvedValue(undefined);
   calls.invoke.mockResolvedValue("sent");
 });
 
-it("enables installations without a saved preference and records one daily app-start event", async () => {
+it("keeps analytics disabled until the user enables it", async () => {
   const store = useAnalyticsPreferencesStore();
   await store.load();
 
+  expect(store.enabled).toBe(false);
+  await expect(store.recordAppStarted()).resolves.toBe("disabled");
+  expect(calls.invoke).not.toHaveBeenCalled();
+  expect(calls.set).not.toHaveBeenCalled();
+});
+
+it("records one daily app-start event after the user opts in", async () => {
+  const store = useAnalyticsPreferencesStore();
+  await store.load();
+  await store.setEnabled(true);
+
   expect(store.enabled).toBe(true);
   expect(calls.stored).toMatchObject({
-    schemaVersion: 1,
     enabled: true,
     installationId: expect.stringMatching(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
@@ -52,26 +66,8 @@ it("enables installations without a saved preference and records one daily app-s
   expect(calls.invoke).toHaveBeenCalledOnce();
 });
 
-it("preserves an explicit opt-out saved by the previous preference format", async () => {
-  calls.stored = {
-    schemaVersion: 1,
-    enabled: false,
-    installationId: null,
-    lastSentDate: null,
-  };
-
-  const store = useAnalyticsPreferencesStore();
-  await store.load();
-
-  expect(store.enabled).toBe(false);
-  await expect(store.recordAppStarted()).resolves.toBe("disabled");
-  expect(calls.invoke).not.toHaveBeenCalled();
-  expect(calls.set).not.toHaveBeenCalled();
-});
-
 it("does not resend an installation already recorded for the current UTC day", async () => {
   calls.stored = {
-    schemaVersion: 1,
     enabled: true,
     installationId,
     lastSentDate: new Date().toISOString().slice(0, 10),
@@ -84,17 +80,19 @@ it("does not resend an installation already recorded for the current UTC day", a
   expect(calls.invoke).not.toHaveBeenCalled();
 });
 
-it("clears the installation identifier on opt-out and creates a new one on opt-in", async () => {
+it("deletes the local identifier and persisted preference when the user opts out", async () => {
   const store = useAnalyticsPreferencesStore();
   await store.load();
+  await store.setEnabled(true);
   const initialId = (calls.stored as { installationId: string }).installationId;
 
   await store.setEnabled(false);
   expect(store.enabled).toBe(false);
-  expect(calls.stored).toMatchObject({ enabled: false, installationId: null, lastSentDate: null });
+  expect(calls.delete).toHaveBeenCalledWith("consent");
+  expect(calls.stored).toBeUndefined();
+  await expect(store.recordAppStarted()).resolves.toBe("disabled");
 
   await store.setEnabled(true);
   expect(store.enabled).toBe(true);
-  expect(calls.stored).toMatchObject({ enabled: true });
   expect((calls.stored as { installationId: string }).installationId).not.toBe(initialId);
 });
