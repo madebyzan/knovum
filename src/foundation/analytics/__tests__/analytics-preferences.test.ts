@@ -4,11 +4,11 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { useAnalyticsPreferencesStore } from "../analytics-preferences";
 
 const calls = vi.hoisted(() => ({
-  load: vi.fn(),
-  get: vi.fn(),
-  set: vi.fn(),
-  save: vi.fn(),
-  invoke: vi.fn(),
+  load: vi.fn<() => Promise<unknown>>(),
+  get: vi.fn<() => Promise<unknown>>(),
+  set: vi.fn<(key: string, value: unknown) => Promise<void>>(),
+  save: vi.fn<() => Promise<void>>(),
+  invoke: vi.fn<(command: string, args?: { installationId: string }) => Promise<unknown>>(),
   stored: undefined as unknown,
 }));
 

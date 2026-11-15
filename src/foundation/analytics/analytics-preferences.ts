@@ -18,32 +18,30 @@ const STORE_KEY = "consent";
 const INSTALLATION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const UTC_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isInstallationId(value: unknown): value is string {
+  return typeof value === "string" && INSTALLATION_ID_PATTERN.test(value);
+}
+
+function parseLastSentDate(value: unknown): string | null {
+  return typeof value === "string" && UTC_DATE_PATTERN.test(value) ? value : null;
+}
+
 function parsePersistedPreferences(raw: unknown): PersistedPreferences | null {
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return null;
-
-  const value = raw as Record<string, unknown>;
-  if (value.schemaVersion !== 1 || typeof value.enabled !== "boolean") return null;
-  if (!value.enabled) {
-    return {
-      schemaVersion: 1,
-      enabled: false,
-      installationId: null,
-      lastSentDate: null,
-    };
+  if (!isRecord(raw) || raw.schemaVersion !== 1 || typeof raw.enabled !== "boolean") return null;
+  if (!raw.enabled) {
+    return { schemaVersion: 1, enabled: false, installationId: null, lastSentDate: null };
   }
-
-  if (typeof value.installationId !== "string" || !INSTALLATION_ID_PATTERN.test(value.installationId)) {
-    return null;
-  }
+  if (!isInstallationId(raw.installationId)) return null;
 
   return {
     schemaVersion: 1,
     enabled: true,
-    installationId: value.installationId,
-    lastSentDate:
-      typeof value.lastSentDate === "string" && UTC_DATE_PATTERN.test(value.lastSentDate)
-        ? value.lastSentDate
-        : null,
+    installationId: raw.installationId,
+    lastSentDate: parseLastSentDate(raw.lastSentDate),
   };
 }
 
