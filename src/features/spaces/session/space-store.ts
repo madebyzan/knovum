@@ -3,6 +3,8 @@ import { watch } from "vue";
 
 import { i18n } from "../../../foundation/i18n/instance";
 import { createSpacePlacement } from "../canvas/navigation-requests";
+import { createStructureIndex } from "../model/structure/structure-index";
+import { reconcileGroupScopePath, sameGroupScopePath } from "../model/structure/structure-queries";
 import type { SpacePersistenceState } from "../workspace/persistence-state";
 import { syncInboxTitle } from "../workspace/space-title-actions";
 import { useSpaceActions } from "./actions/use-space-actions";
@@ -27,6 +29,18 @@ export const useSpaceStore = defineStore("spaces", () => {
       state.editorLocateRequest.value = undefined;
       state.findOpen.value = false;
       state.globalFindOpen.value = false;
+    },
+    { flush: "sync" },
+  );
+  watch(
+    state.editSnapshot,
+    (snapshot) => {
+      if (!state.groupScopePath.value.length) return;
+      const next = reconcileGroupScopePath(
+        state.groupScopePath.value,
+        createStructureIndex(snapshot.structure),
+      );
+      if (!sameGroupScopePath(state.groupScopePath.value, next)) state.groupScopePath.value = next;
     },
     { flush: "sync" },
   );

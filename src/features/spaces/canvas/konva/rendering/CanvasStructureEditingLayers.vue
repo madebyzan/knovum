@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type Konva from "konva";
 
-import type { CanvasSurfaceProps } from "../../contracts/canvas-surface";
 import type { SectionResizeCorner } from "../interaction/structure-gesture-preview";
 import type { useKonvaCanvasRuntime } from "../use-konva-canvas-runtime";
 import CanvasStructureInteractionLayer from "./CanvasStructureInteractionLayer.vue";
@@ -10,7 +9,6 @@ const props = defineProps<{
   runtime: ReturnType<typeof useKonvaCanvasRuntime>;
   interactive: boolean;
   selectionChromeVisible: boolean;
-  groupScopePath: CanvasSurfaceProps["groupScopePath"];
 }>();
 function beginSectionResize(
   structureNodeId: string,
@@ -35,7 +33,6 @@ function beginGroupTransform(structureNodeId: string, event: Konva.KonvaEventObj
 <template>
   <CanvasStructureInteractionLayer
     :groups="runtime.structure.structureScene.value.groups"
-    :group-scope-path="groupScopePath"
     :group-transform-enabled="runtime.canTransformGroups.value"
     :interactive="interactive"
     :selection-chrome-visible="selectionChromeVisible"

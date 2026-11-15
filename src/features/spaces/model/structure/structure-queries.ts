@@ -48,6 +48,67 @@ export function groupScopePathFor(
     .map((structureNode) => structureNode.id);
 }
 
+/** Keep the deepest prefix of `currentScopePath` that remains valid and strictly encloses selection. */
+export function reconcileGroupScopePath(
+  currentScopePath: readonly StructureNodeId[],
+  index: StructureIndex,
+  selection?: {
+    readonly nodeIds: readonly string[];
+    readonly structureNodeIds: readonly StructureNodeId[];
+  },
+): StructureNodeId[] {
+  let scopePath = validGroupScopePrefix(currentScopePath, index);
+  if (!scopePath.length || !selection) return scopePath;
+  const targetIds = selectedStructureIds(selection.nodeIds, selection.structureNodeIds, index);
+  for (const id of targetIds) {
+    const prefix = sharedGroupPrefixLength(scopePath, groupScopePathFor(id, index));
+    if (prefix === 0) return [];
+    scopePath = scopePath.slice(0, prefix);
+  }
+  return scopePath;
+}
+
+export function sameGroupScopePath(a: readonly StructureNodeId[], b: readonly StructureNodeId[]) {
+  return a.length === b.length && a.every((id, idx) => id === b[idx]);
+}
+
+function validGroupScopePrefix(
+  currentScopePath: readonly StructureNodeId[],
+  index: StructureIndex,
+): StructureNodeId[] {
+  let scopePath: StructureNodeId[] = [];
+  for (const id of currentScopePath) {
+    if (index.structureById.get(id)?.kind !== "group") break;
+    scopePath = groupScopePathFor(id, index).concat(id);
+  }
+  return scopePath;
+}
+
+function selectedStructureIds(
+  nodeIds: readonly string[],
+  structureNodeIds: readonly StructureNodeId[],
+  index: StructureIndex,
+): StructureNodeId[] {
+  return [
+    ...structureNodeIds.filter((id) => index.structureById.has(id)),
+    ...nodeIds.flatMap((nodeId) => {
+      const id = index.structureNodeIdByNodeId.get(nodeId);
+      return id ? [id] : [];
+    }),
+  ];
+}
+
+function sharedGroupPrefixLength(
+  scopePath: readonly StructureNodeId[],
+  ancestors: readonly StructureNodeId[],
+): number {
+  const limit = Math.min(scopePath.length, ancestors.length);
+  for (let i = 0; i < limit; i += 1) {
+    if (scopePath[i] !== ancestors[i]) return i;
+  }
+  return limit;
+}
+
 /** Display endpoint only; knowledge relations retain their original NodeId endpoints. */
 export function visibleRepresentativeForNode(
   nodeId: string,

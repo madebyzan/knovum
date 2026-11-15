@@ -14,7 +14,6 @@ import type { CanvasPalette } from "./use-canvas-palette";
 
 const props = defineProps<{
   groups: readonly ProjectedGroup[];
-  groupScopePath: readonly string[];
   interactive: boolean;
   selectionChromeVisible: boolean;
   groupTransformEnabled: boolean;
@@ -41,16 +40,9 @@ const emit = defineEmits<{
   transformStart: [structureNodeId: string, event: Konva.KonvaEventObject<DragEvent>];
   transform: [transform: GroupHandleTransform];
 }>();
-const selectedGroups = computed(() => {
-  const scopeId = props.groupScopePath.at(-1) ?? null;
-  return props.groups.filter(
-    ({ group, visible }) =>
-      visible &&
-      props.selectedIds.has(group.id) &&
-      (group.parentId === scopeId ||
-        (scopeId === null && props.sections.some(({ section }) => section.id === group.parentId))),
-  );
-});
+const selectedGroups = computed(() =>
+  props.groups.filter(({ group, visible }) => visible && props.selectedIds.has(group.id)),
+);
 const sectionLayer = useTemplateRef<VueKonvaRef<Konva.Layer>>("sectionLayer");
 const groupLayer = useTemplateRef<VueKonvaRef<Konva.Layer>>("groupLayer");
 

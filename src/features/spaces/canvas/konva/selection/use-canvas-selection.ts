@@ -14,6 +14,7 @@ interface CanvasSelectionOptions {
   structureBoundsById: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>;
   sectionBounds: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>;
   changed(selection: CanvasSelectionSnapshot): void;
+  onEmptyStageCommit?(): void;
   structureSelectionForNode(nodeId: string): string | undefined;
 }
 export function useCanvasSelection(options: CanvasSelectionOptions) {
@@ -22,6 +23,7 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
   const relationIds = shallowRef(new Set<string>());
   const marquee = useCanvasMarqueeSelection({
     clear,
+    onEmptyCommit: options.onEmptyStageCommit,
     layouts: options.layouts,
     nodeIds,
     sectionBounds: options.sectionBounds,

@@ -104,7 +104,6 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         :runtime="runtime"
         :interactive="interactive"
         :selection-chrome-visible="selectionChromeVisible"
-        :group-scope-path="groupScopePath"
       />
       <CanvasMarquee
         :bounds="runtime.selection.marqueeRect.value"

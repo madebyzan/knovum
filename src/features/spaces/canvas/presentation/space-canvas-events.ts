@@ -1,6 +1,10 @@
 import { i18n } from "../../../../foundation/i18n/instance";
 import { createStructureIndex } from "../../model/structure/structure-index";
-import { groupScopePathFor } from "../../model/structure/structure-queries";
+import {
+  groupScopePathFor,
+  reconcileGroupScopePath,
+  sameGroupScopePath,
+} from "../../model/structure/structure-queries";
 import type { createCanvasSelectionActions } from "../../session/actions/canvas-selection-actions";
 import { useSpaceStore } from "../../session/space-store";
 import { sectionDrawCandidateIds } from "../../structure/section-draw-candidates";
@@ -55,6 +59,9 @@ export function createSpaceCanvasEvents(options: SpaceCanvasEventOptions): Canva
       store.groupScopePath = store.groupScopePath.slice(0, -1);
       return true;
     },
+    onClearGroupScope() {
+      store.groupScopePath = [];
+    },
     onCopyNodes: options.selection.copyNodes,
     onDeleteRelations: (relationIds) =>
       operations.allowsGestureCommit() ? store.revokeRelations(relationIds) : Promise.resolve(),
@@ -70,7 +77,16 @@ export function createSpaceCanvasEvents(options: SpaceCanvasEventOptions): Canva
     onDirectManipulationChange: options.contentLayout.updateDirectManipulation,
     onMutationPendingChange: options.contentLayout.updateMutationPending,
     onReady: options.attachEditor,
-    onSelectionChange: updateCanvasSelectionProjection,
+    onSelectionChange(selection) {
+      updateCanvasSelectionProjection(selection);
+      if (!store.groupScopePath.length) return;
+      const next = reconcileGroupScopePath(
+        store.groupScopePath,
+        createStructureIndex(store.editSnapshot.structure),
+        selection,
+      );
+      if (!sameGroupScopePath(store.groupScopePath, next)) store.groupScopePath = next;
+    },
     onViewportChange: updateCanvasViewportProjection,
   };
 }

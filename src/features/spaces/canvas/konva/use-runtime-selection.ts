@@ -34,6 +34,7 @@ export function useRuntimeSelection(
         ),
     ),
     changed: props.events.onSelectionChange,
+    onEmptyStageCommit: props.events.onClearGroupScope,
     structureSelectionForNode: projections.structureSelectionForNode,
   });
   const transformPolicy = computed(() =>

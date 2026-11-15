@@ -7,6 +7,7 @@ import { selectionRectIntersects } from "./selection-geometry";
 
 interface CanvasMarqueeSelectionOptions {
   clear(): void;
+  onEmptyCommit?: (() => void) | undefined;
   layouts: Readonly<Ref<readonly CanvasNodeLayoutV1[]>>;
   nodeIds: Ref<Set<string>>;
   sectionBounds: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>;
@@ -17,6 +18,7 @@ interface CanvasMarqueeSelectionOptions {
 
 export function useCanvasMarqueeSelection(options: CanvasMarqueeSelectionOptions) {
   const marquee = shallowRef<{ start: { x: number; y: number }; end: { x: number; y: number } }>();
+  let additive = false;
   const marqueeRect = computed(() => {
     const value = marquee.value;
     if (!value) return undefined;
@@ -33,7 +35,8 @@ export function useCanvasMarqueeSelection(options: CanvasMarqueeSelectionOptions
     const point = event.target.getStage()?.getRelativePointerPosition();
     if (!point) return false;
     marquee.value = { start: point, end: point };
-    if (!(event.evt.metaKey || event.evt.ctrlKey || event.evt.shiftKey)) options.clear();
+    additive = Boolean(event.evt.metaKey || event.evt.ctrlKey || event.evt.shiftKey);
+    if (!additive) options.clear();
     return true;
   }
 
@@ -45,7 +48,9 @@ export function useCanvasMarqueeSelection(options: CanvasMarqueeSelectionOptions
 
   function end() {
     const bounds = marqueeRect.value;
+    const wasAdditive = additive;
     marquee.value = undefined;
+    additive = false;
     if (!bounds) return;
     const nextNodes = new Set(options.nodeIds.value);
     const nextStructureNodeIds = new Set(options.structureNodeIds.value);
@@ -63,13 +68,23 @@ export function useCanvasMarqueeSelection(options: CanvasMarqueeSelectionOptions
     options.nodeIds.value = nextNodes;
     options.structureNodeIds.value = nextStructureNodeIds;
     options.notify();
+    if (isEmptyStageCommit(wasAdditive, nextNodes, nextStructureNodeIds)) options.onEmptyCommit?.();
   }
 
   function cancel() {
     marquee.value = undefined;
+    additive = false;
   }
 
   return { begin, cancel, end, marqueeRect, move };
+}
+
+function isEmptyStageCommit(
+  additive: boolean,
+  nodeIds: ReadonlySet<string>,
+  structureNodeIds: ReadonlySet<string>,
+) {
+  return !additive && !nodeIds.size && !structureNodeIds.size;
 }
 
 function contains(outer: CanvasRect, inner: CanvasRect) {

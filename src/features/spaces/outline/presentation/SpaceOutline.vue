@@ -72,9 +72,10 @@ async function open(structureNodeId: string) {
   const structureNode = index.value.structureById.get(structureNodeId);
   if (!structureNode) return;
   if (structureNode.kind === "group") {
-    store.groupScopePath = [...groupScopePathFor(structureNode.id, index.value), structureNode.id];
     expand([structureNode.id]);
-    editor.selectStructureNodes([structureNode.id]);
+    editor.clearSelection();
+    store.groupScopePath = [...groupScopePathFor(structureNode.id, index.value), structureNode.id];
+    editor.reveal([structureNode.id], "ensure-visible");
     return;
   }
   if (structureNode.kind === "section") {
