@@ -1,4 +1,5 @@
 const APP_STARTED_EVENT = "app_started";
+const EXPECTED_KEYS = "appVersion,event,installationId,platform";
 const INSTALLATION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const VERSION_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 const ALLOWED_PLATFORMS = new Set(["macos", "windows"]);
@@ -13,45 +14,34 @@ function json(status, body) {
 }
 
 async function readBoundedBody(request) {
-  const reader = request.body?.getReader();
-  if (!reader) return "";
+  if (!request.body) return "";
   const decoder = new TextDecoder();
   let bytes = 0;
   let body = "";
 
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      bytes += value.byteLength;
-      if (bytes > MAX_BODY_BYTES) {
-        await reader.cancel().catch(() => {});
-        return null;
-      }
-      body += decoder.decode(value, { stream: true });
-    }
-    return body + decoder.decode();
-  } finally {
-    reader.releaseLock();
+  for await (const chunk of request.body) {
+    bytes += chunk.byteLength;
+    if (bytes > MAX_BODY_BYTES) return null;
+    body += decoder.decode(chunk, { stream: true });
   }
+  return body + decoder.decode();
+}
+
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function validatePayload(value) {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
-  const keys = Object.keys(value).sort();
-  if (keys.join(",") !== "appVersion,event,installationId,platform") return null;
-  if (value.event !== APP_STARTED_EVENT) return null;
-  if (typeof value.installationId !== "string" || !INSTALLATION_ID_PATTERN.test(value.installationId)) {
-    return null;
-  }
-  if (typeof value.appVersion !== "string" || !VERSION_PATTERN.test(value.appVersion)) return null;
-  if (typeof value.platform !== "string" || !ALLOWED_PLATFORMS.has(value.platform)) return null;
-  return {
-    installationId: value.installationId.toLowerCase(),
-    event: value.event,
-    appVersion: value.appVersion,
-    platform: value.platform,
-  };
+  if (!isRecord(value)) return null;
+  if (Object.keys(value).toSorted().join(",") !== EXPECTED_KEYS) return null;
+
+  const { installationId, event, appVersion, platform } = value;
+  if (event !== APP_STARTED_EVENT) return null;
+  if (typeof installationId !== "string" || !INSTALLATION_ID_PATTERN.test(installationId)) return null;
+  if (typeof appVersion !== "string" || !VERSION_PATTERN.test(appVersion)) return null;
+  if (typeof platform !== "string" || !ALLOWED_PLATFORMS.has(platform)) return null;
+
+  return { installationId: installationId.toLowerCase(), event, appVersion, platform };
 }
 
 async function hashInstallationId(installationId, salt) {
@@ -66,6 +56,32 @@ async function hashInstallationId(installationId, salt) {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+async function parseEventRequest(request) {
+  const contentLength = Number(request.headers.get("content-length") || "0");
+  if (contentLength > MAX_BODY_BYTES) return { error: "payload_too_large", status: 413 };
+
+  try {
+    const body = await readBoundedBody(request);
+    if (body === null) return { error: "payload_too_large", status: 413 };
+    const event = validatePayload(JSON.parse(body));
+    return event ? { event } : { error: "invalid_event", status: 400 };
+  } catch {
+    return { error: "invalid_json", status: 400 };
+  }
+}
+
+async function persistEvent(event, env) {
+  const installationHash = await hashInstallationId(event.installationId, env.INSTALLATION_HASH_SALT);
+  const activityDate = new Date().toISOString().slice(0, 10);
+  await env.DB.prepare(
+    "INSERT INTO desktop_daily_active (installation_hash, activity_date, event_name, app_version, platform) " +
+      "VALUES (?1, ?2, ?3, ?4, ?5) " +
+      "ON CONFLICT (installation_hash, activity_date, event_name) DO NOTHING",
+  )
+    .bind(installationHash, activityDate, event.event, event.appVersion, event.platform)
+    .run();
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -74,31 +90,11 @@ export default {
       return json(503, { error: "analytics_unavailable" });
     }
 
-    const contentLength = Number(request.headers.get("content-length") || "0");
-    if (contentLength > MAX_BODY_BYTES) return json(413, { error: "payload_too_large" });
-
-    let raw;
-    try {
-      const body = await readBoundedBody(request);
-      if (body === null) return json(413, { error: "payload_too_large" });
-      raw = JSON.parse(body);
-    } catch {
-      return json(400, { error: "invalid_json" });
-    }
-
-    const event = validatePayload(raw);
-    if (!event) return json(400, { error: "invalid_event" });
+    const parsed = await parseEventRequest(request);
+    if ("error" in parsed) return json(parsed.status, { error: parsed.error });
 
     try {
-      const installationHash = await hashInstallationId(event.installationId, env.INSTALLATION_HASH_SALT);
-      const activityDate = new Date().toISOString().slice(0, 10);
-      await env.DB.prepare(
-        "INSERT INTO desktop_daily_active (installation_hash, activity_date, event_name, app_version, platform) " +
-          "VALUES (?1, ?2, ?3, ?4, ?5) " +
-          "ON CONFLICT (installation_hash, activity_date, event_name) DO NOTHING",
-      )
-        .bind(installationHash, activityDate, event.event, event.appVersion, event.platform)
-        .run();
+      await persistEvent(parsed.event, env);
       return new Response(null, { status: 204, headers: { "cache-control": "no-store" } });
     } catch {
       // Free-tier quota exhaustion or a transient database failure must never affect the desktop app.

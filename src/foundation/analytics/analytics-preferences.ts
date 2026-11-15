@@ -17,6 +17,28 @@ const STORE_FILE = "analytics-consent.json";
 const INSTALLATION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const UTC_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+function parsePersistedConsent(raw: unknown): PersistedConsent | null {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return null;
+  const value = raw as Record<string, unknown>;
+  const id = value.installationId;
+  if (
+    value.schemaVersion !== 1 ||
+    value.enabled !== true ||
+    typeof id !== "string" ||
+    !INSTALLATION_ID_PATTERN.test(id)
+  ) {
+    return null;
+  }
+
+  const date = value.lastSentDate;
+  return {
+    schemaVersion: 1,
+    enabled: true,
+    installationId: id,
+    lastSentDate: typeof date === "string" && UTC_DATE_PATTERN.test(date) ? date : null,
+  };
+}
+
 export const useAnalyticsPreferencesStore = defineStore("analytics-preferences", () => {
   const enabled = shallowRef(false);
   const ready = shallowRef(false);
@@ -33,22 +55,11 @@ export const useAnalyticsPreferencesStore = defineStore("analytics-preferences",
   async function load() {
     try {
       const store = await getPersistence();
-      const raw = await store.get<unknown>("consent");
-      if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return;
-      const value = raw as Record<string, unknown>;
-      const id = value.installationId;
-      if (
-        value.schemaVersion === 1 &&
-        value.enabled === true &&
-        typeof id === "string" &&
-        INSTALLATION_ID_PATTERN.test(id)
-      ) {
-        enabled.value = true;
-        installationId = id;
-        lastSentDate =
-          typeof value.lastSentDate === "string" && UTC_DATE_PATTERN.test(value.lastSentDate)
-            ? value.lastSentDate
-            : null;
+      const consent = parsePersistedConsent(await store.get<unknown>("consent"));
+      if (consent) {
+        enabled.value = consent.enabled;
+        installationId = consent.installationId;
+        lastSentDate = consent.lastSentDate;
       }
     } catch {
       enabled.value = false;
