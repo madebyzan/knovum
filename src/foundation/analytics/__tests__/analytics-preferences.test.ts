@@ -7,7 +7,6 @@ const calls = vi.hoisted(() => ({
   load: vi.fn<() => Promise<unknown>>(),
   get: vi.fn<() => Promise<unknown>>(),
   set: vi.fn<(key: string, value: unknown) => Promise<void>>(),
-  delete: vi.fn<(key: string) => Promise<void>>(),
   save: vi.fn<() => Promise<void>>(),
   invoke: vi.fn<(command: string, args?: { installationId: string }) => Promise<unknown>>(),
   stored: undefined as unknown,
@@ -16,8 +15,9 @@ const calls = vi.hoisted(() => ({
 vi.mock("@tauri-apps/plugin-store", () => ({ load: calls.load }));
 vi.mock("../../ipc/invoke-command", () => ({ invokeCommand: calls.invoke }));
 
-const disk = { get: calls.get, set: calls.set, delete: calls.delete, save: calls.save };
+const disk = { get: calls.get, set: calls.set, save: calls.save };
 const installationId = "f1f2f34a-9fc2-4d9c-8b6e-29c137bbfbe4";
+const utcToday = () => new Date().toISOString().slice(0, 10);
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -28,27 +28,13 @@ beforeEach(() => {
   calls.set.mockImplementation(async (_key, value) => {
     calls.stored = value;
   });
-  calls.delete.mockImplementation(async () => {
-    calls.stored = undefined;
-  });
   calls.save.mockResolvedValue(undefined);
   calls.invoke.mockResolvedValue("sent");
 });
 
-it("keeps analytics disabled until the user enables it", async () => {
+it("enables analytics on first launch and persists a new installation identifier", async () => {
   const store = useAnalyticsPreferencesStore();
   await store.load();
-
-  expect(store.enabled).toBe(false);
-  await expect(store.recordAppStarted()).resolves.toBe("disabled");
-  expect(calls.invoke).not.toHaveBeenCalled();
-  expect(calls.set).not.toHaveBeenCalled();
-});
-
-it("records one daily app-start event after the user opts in", async () => {
-  const store = useAnalyticsPreferencesStore();
-  await store.load();
-  await store.setEnabled(true);
 
   expect(store.enabled).toBe(true);
   expect(calls.stored).toMatchObject({
@@ -58,11 +44,22 @@ it("records one daily app-start event after the user opts in", async () => {
     ),
     lastSentDate: null,
   });
+  expect(calls.save).toHaveBeenCalledOnce();
+});
+
+it("sends the first app-start event automatically and only once per UTC day across launches", async () => {
+  const store = useAnalyticsPreferencesStore();
+  await store.load();
 
   await expect(store.recordAppStarted()).resolves.toBe("sent");
   expect(calls.invoke).toHaveBeenCalledOnce();
-  expect(calls.stored).toMatchObject({ lastSentDate: new Date().toISOString().slice(0, 10) });
-  await store.recordAppStarted();
+  expect(calls.stored).toMatchObject({ lastSentDate: utcToday() });
+
+  setActivePinia(createPinia());
+  const nextLaunch = useAnalyticsPreferencesStore();
+  await nextLaunch.load();
+
+  await expect(nextLaunch.recordAppStarted()).resolves.toBe("disabled");
   expect(calls.invoke).toHaveBeenCalledOnce();
 });
 
@@ -70,7 +67,7 @@ it("does not resend an installation already recorded for the current UTC day", a
   calls.stored = {
     enabled: true,
     installationId,
-    lastSentDate: new Date().toISOString().slice(0, 10),
+    lastSentDate: utcToday(),
   };
 
   const store = useAnalyticsPreferencesStore();
@@ -80,19 +77,28 @@ it("does not resend an installation already recorded for the current UTC day", a
   expect(calls.invoke).not.toHaveBeenCalled();
 });
 
-it("deletes the local identifier and persisted preference when the user opts out", async () => {
+it("persists opt-out across launches and creates a fresh identifier when re-enabled", async () => {
   const store = useAnalyticsPreferencesStore();
   await store.load();
-  await store.setEnabled(true);
   const initialId = (calls.stored as { installationId: string }).installationId;
 
   await store.setEnabled(false);
   expect(store.enabled).toBe(false);
-  expect(calls.delete).toHaveBeenCalledWith("consent");
-  expect(calls.stored).toBeUndefined();
+  expect(calls.stored).toEqual({
+    enabled: false,
+    installationId: null,
+    lastSentDate: null,
+  });
   await expect(store.recordAppStarted()).resolves.toBe("disabled");
 
-  await store.setEnabled(true);
-  expect(store.enabled).toBe(true);
+  setActivePinia(createPinia());
+  const nextLaunch = useAnalyticsPreferencesStore();
+  await nextLaunch.load();
+  expect(nextLaunch.enabled).toBe(false);
+  await expect(nextLaunch.recordAppStarted()).resolves.toBe("disabled");
+  expect(calls.invoke).not.toHaveBeenCalled();
+
+  await nextLaunch.setEnabled(true);
+  expect(nextLaunch.enabled).toBe(true);
   expect((calls.stored as { installationId: string }).installationId).not.toBe(initialId);
 });
