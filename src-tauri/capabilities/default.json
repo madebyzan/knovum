@@ -2,7 +2,9 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main-desktop",
   "description": "Permissions required by the current desktop shell.",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
     "core:window:allow-set-theme",
@@ -21,6 +23,7 @@
     "desktop:allow-set-locale",
     "desktop:allow-set-workspace-menu-state",
     "desktop:allow-open-main-window",
+    "desktop:allow-send-analytics-event",
     "desktop:allow-mark-exit-coordinator-ready",
     "desktop:allow-acknowledge-app-exit-request",
     "desktop:allow-fail-startup",

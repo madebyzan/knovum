@@ -27,5 +27,13 @@
     "data": "數據與歸檔",
     "information": "資訊"
   },
-  "saveFailed": "無法儲存配置"
+  "saveFailed": "無法儲存配置",
+  "analytics": {
+    "title": "匿名使用情況統計",
+    "description": "分享最少量的每日應用程式啟動事件，協助改進 Knovum。此功能預設為關閉。",
+    "enabled": "允許匿名使用情況統計",
+    "privacy": "僅傳送隨機安裝識別碼、應用程式版本與系統平台，不會收集資料庫內容。",
+    "notConfigured": "此版本尚未設定統計服務位址，未傳送任何事件。",
+    "unavailable": "統計服務暫時無法使用，Knovum 仍會正常運作。"
+  }
 }

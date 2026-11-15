@@ -27,5 +27,13 @@
     "data": "Datos y archivos",
     "information": "Información"
   },
-  "saveFailed": "No se pudo guardar la configuración"
+  "saveFailed": "No se pudo guardar la configuración",
+  "analytics": {
+    "title": "Estadísticas de uso anónimas",
+    "description": "Comparte un evento diario mínimo de inicio de la aplicación para ayudar a mejorar Knovum. Está desactivado de forma predeterminada.",
+    "enabled": "Permitir estadísticas de uso anónimas",
+    "privacy": "Solo se envían un identificador de instalación aleatorio, la versión de la aplicación y la plataforma. No se recopila contenido de la biblioteca.",
+    "notConfigured": "Este build no tiene configurado el endpoint de analítica; no se envió ningún evento.",
+    "unavailable": "Las estadísticas no están disponibles temporalmente. Knovum seguirá funcionando con normalidad."
+  }
 }

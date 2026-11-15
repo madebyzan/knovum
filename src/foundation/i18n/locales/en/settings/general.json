@@ -27,5 +27,13 @@
     "data": "Data & archives",
     "information": "Information"
   },
-  "saveFailed": "Could not save settings"
+  "saveFailed": "Could not save settings",
+  "analytics": {
+    "title": "Anonymous usage analytics",
+    "description": "Share a minimal daily app-start event to help improve Knovum. It is off by default.",
+    "enabled": "Allow anonymous usage analytics",
+    "privacy": "Only a random installation ID, app version, and platform are sent. No library content is collected.",
+    "notConfigured": "Analytics is not configured in this build; no event was sent.",
+    "unavailable": "Analytics is temporarily unavailable. Knovum will continue working normally."
+  }
 }

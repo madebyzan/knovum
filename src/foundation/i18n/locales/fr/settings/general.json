@@ -27,5 +27,13 @@
     "data": "Données & archives",
     "information": "Information"
   },
-  "saveFailed": "Impossible d'enregistrer les paramètres"
+  "saveFailed": "Impossible d'enregistrer les paramètres",
+  "analytics": {
+    "title": "Statistiques d’utilisation anonymes",
+    "description": "Partagez un événement quotidien minimal de démarrage pour améliorer Knovum. Désactivé par défaut.",
+    "enabled": "Autoriser les statistiques d’utilisation anonymes",
+    "privacy": "Seuls un identifiant d’installation aléatoire, la version de l’application et la plateforme sont envoyés. Aucun contenu de la bibliothèque n’est collecté.",
+    "notConfigured": "Le point de terminaison des statistiques n’est pas configuré dans cette version ; aucun événement n’a été envoyé.",
+    "unavailable": "Les statistiques sont temporairement indisponibles. Knovum continue de fonctionner normalement."
+  }
 }

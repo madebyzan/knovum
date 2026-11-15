@@ -4,6 +4,7 @@ import { nextTick } from "vue";
 import type { Router } from "vue-router";
 
 import { installAiSettingsNavigation } from "../foundation/ai/ai-settings-navigation";
+import { useAnalyticsPreferencesStore } from "../foundation/analytics/analytics-preferences";
 import { useBootstrapStore } from "../foundation/bootstrap/bootstrap-store";
 import { formatErrorDiagnostic } from "../foundation/errors/error-format";
 import { invokeCommand } from "../foundation/ipc/invoke-command";
@@ -38,6 +39,9 @@ export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
       useShortcutsStore(pinia).load(),
       installWindowActivityState(),
     ]);
+    const analytics = useAnalyticsPreferencesStore(pinia);
+    await analytics.load();
+    void analytics.recordAppStarted();
     await invokeCommand("plugin:spaces|await_space_runtime");
     await restoreWorkspaceSession(router);
     await router.isReady();

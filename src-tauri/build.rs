@@ -11,6 +11,7 @@ fn main() {
         println!("cargo:rerun-if-changed={source}");
     }
     println!("cargo:rerun-if-changed=../package.json");
+    println!("cargo:rerun-if-env-changed=KNOVUM_ANALYTICS_ENDPOINT");
     println!("cargo:rustc-check-cfg=cfg(knovum_supported_desktop)");
     let os = std::env::var("CARGO_CFG_TARGET_OS").expect("Cargo target OS");
     let arch = std::env::var("CARGO_CFG_TARGET_ARCH").expect("Cargo target architecture");

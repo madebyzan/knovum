@@ -99,6 +99,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           KNOVUM_UPDATER_ENDPOINT: https://github.com/${{ github.repository }}/releases/latest/download/latest.json
+          KNOVUM_ANALYTICS_ENDPOINT: ${{ vars.KNOVUM_ANALYTICS_ENDPOINT }}
           KNOVUM_UPDATER_PUBKEY: ${{ vars.KNOVUM_UPDATER_PUBKEY }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
@@ -123,6 +124,8 @@ jobs:
           updaterJsonPreferNsis: true
       - name: Build QA package
         if: github.event_name == 'workflow_dispatch'
+        env:
+          KNOVUM_ANALYTICS_ENDPOINT: ${{ vars.KNOVUM_ANALYTICS_ENDPOINT }}
         run: pnpm package --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
       - uses: actions/upload-artifact@v4
         if: github.event_name == 'workflow_dispatch'

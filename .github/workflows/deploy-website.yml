@@ -27,6 +27,29 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+      - name: Configure optional Cloudflare Web Analytics
+        env:
+          CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          token = os.environ.get("CLOUDFLARE_WEB_ANALYTICS_TOKEN", "").strip()
+          if token and not re.fullmatch(r"[A-Za-z0-9_-]{16,128}", token):
+              raise SystemExit("CLOUDFLARE_WEB_ANALYTICS_TOKEN has an unexpected format")
+          path = Path("website/script.js")
+          source = path.read_text(encoding="utf-8")
+          marker = 'const CLOUDFLARE_WEB_ANALYTICS_TOKEN = "";'
+          if source.count(marker) != 1:
+              raise SystemExit("Cloudflare Web Analytics token marker was not found exactly once")
+          path.write_text(
+              source.replace(marker, "const CLOUDFLARE_WEB_ANALYTICS_TOKEN = " + json.dumps(token) + ";"),
+              encoding="utf-8",
+          )
+          PY
       - name: Render localized social cards
         run: |
           sudo apt-get update

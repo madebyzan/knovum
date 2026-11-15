@@ -8,6 +8,19 @@
   const progress = document.querySelector(".reading-progress span");
   body.classList.add("js-enabled");
 
+  const CLOUDFLARE_WEB_ANALYTICS_TOKEN = "";
+
+  function installCloudflareWebAnalytics() {
+    if (!CLOUDFLARE_WEB_ANALYTICS_TOKEN || globalThis.location.protocol !== "https:") return;
+    const beacon = document.createElement("script");
+    beacon.type = "module";
+    beacon.src = "https://static.cloudflareinsights.com/beacon.min.js";
+    beacon.dataset.cfBeacon = JSON.stringify({ token: CLOUDFLARE_WEB_ANALYTICS_TOKEN });
+    document.head.append(beacon);
+  }
+
+  installCloudflareWebAnalytics();
+
   const language = body.dataset.locale === "zh" ? "zh" : "en";
 
   function switchLanguage(next) {

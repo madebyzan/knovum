@@ -27,5 +27,13 @@
     "data": "Dati e archivi",
     "information": "Informazioni"
   },
-  "saveFailed": "Impossibile salvare le impostazioni"
+  "saveFailed": "Impossibile salvare le impostazioni",
+  "analytics": {
+    "title": "Statistiche di utilizzo anonime",
+    "description": "Condividi un evento giornaliero minimo di avvio dell'app per contribuire a migliorare Knovum. Disattivato per impostazione predefinita.",
+    "enabled": "Consenti statistiche di utilizzo anonime",
+    "privacy": "Vengono inviati solo un ID di installazione casuale, la versione dell'app e la piattaforma. Nessun contenuto della raccolta viene raccolto.",
+    "notConfigured": "L'endpoint di analisi non è configurato in questa build; non è stato inviato alcun evento.",
+    "unavailable": "Le statistiche non sono temporaneamente disponibili. Knovum continuerà a funzionare normalmente."
+  }
 }
