@@ -1,6 +1,6 @@
 # Knovum desktop analytics Worker
 
-This optional endpoint receives at most one daily `app_started` event from desktop installations that explicitly enable **Settings → About → Anonymous usage analytics**.
+This optional endpoint receives at most one daily `app_started` event from each installation where the endpoint is configured. Usage analytics is enabled by default for fresh installations and can be disabled in **Settings → About**. An explicit opt-out from an earlier release remains disabled after upgrading.
 
 The Worker stores only an HMAC-SHA-256 digest of a random installation identifier, the UTC activity date, app version, platform, and event name. The original identifier is never written to D1. Rows older than 90 days are deleted by the daily Cron Trigger. The Worker does not write request IP addresses, request headers, note/file content, prompts, paths, credentials, account details, names, or email addresses to D1 or application logs. Cloudflare may process connection metadata under its own service terms.
 
@@ -43,7 +43,7 @@ From this directory:
 
    The endpoint is the deployed Worker URL plus `/event`, for example `https://knovum-analytics.<your-account>.workers.dev/event`.
 
-5. In the GitHub repository, open **Settings → Secrets and variables → Actions → Variables** and add `KNOVUM_ANALYTICS_ENDPOINT` with that HTTPS URL. The release workflow embeds it into desktop packages at build time. It is a public endpoint, not a credential. If the variable is absent, desktop builds do not send requests even when a user enables consent.
+5. In the GitHub repository, open **Settings → Secrets and variables → Actions → Variables** and add `KNOVUM_ANALYTICS_ENDPOINT` with that HTTPS URL. The release workflow embeds it into desktop packages at build time. It is a public endpoint, not a credential. If the variable is absent, desktop builds do not send requests even though the local preference defaults to enabled.
 
 ## Enable website analytics
 
@@ -90,7 +90,7 @@ GROUP BY platform;
 
 Cloudflare currently documents a Workers Free allowance of 100,000 requests per day and 10 ms CPU time per HTTP request. D1 Free currently includes 5 million rows read per day, 100,000 rows written per day, 500 MB per database, and 5 GB total storage per account. Daily limits reset at 00:00 UTC. On Free, D1 requests fail after a daily read/write quota is reached until the reset; this Worker responds with HTTP 503 and the desktop app continues normally.
 
-The desktop app sends at most one request per opted-in installation per UTC day, and D1 uses a conflict-safe no-op insert to keep the stored row unique. The database keeps a 90-day window. Monitor the account's Free quota and stored data. If a quota is reached, leave the service unavailable until the reset or reduce usage; do not upgrade to a Paid plan. Cloudflare can change plan limits, so re-check the official pricing and limits before deployment.
+The desktop app sends at most one request per enabled installation per UTC day, and D1 uses a conflict-safe no-op insert to keep the stored row unique. The database keeps a 90-day window. Monitor the account's Free quota and stored data. If a quota is reached, leave the service unavailable until the reset or reduce usage; do not upgrade to a Paid plan. Cloudflare can change plan limits, so re-check the official pricing and limits before deployment.
 
 ## Local checks
 

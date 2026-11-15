@@ -29,11 +29,11 @@
   },
   "saveFailed": "Impossibile salvare le impostazioni",
   "analytics": {
-    "title": "Statistiche di utilizzo anonime",
-    "description": "Condividi un evento giornaliero minimo di avvio dell'app per contribuire a migliorare Knovum. Disattivato per impostazione predefinita.",
-    "enabled": "Consenti statistiche di utilizzo anonime",
-    "privacy": "Vengono inviati solo un ID di installazione casuale, la versione dell'app e la piattaforma. Nessun contenuto della raccolta viene raccolto.",
-    "notConfigured": "L'endpoint di analisi non è configurato in questa build; non è stato inviato alcun evento.",
-    "unavailable": "Le statistiche non sono temporaneamente disponibili. Knovum continuerà a funzionare normalmente."
+    "title": "Statistiche di utilizzo",
+    "description": "Attive per impostazione predefinita. Knovum invia al massimo un evento di avvio al giorno per aiutarci a capire quante installazioni sono attive. Puoi disattivarle in qualsiasi momento.",
+    "enabled": "Condividi le statistiche di utilizzo",
+    "privacy": "L’evento contiene solo un ID di installazione casuale, la versione dell’app, la piattaforma del sistema operativo e il nome dell’evento. Non include mai Spaces, file, note, ricerche o contenuti AI.",
+    "notConfigured": "Le statistiche di utilizzo non sono configurate in questa versione, quindi non è stato inviato alcun evento.",
+    "unavailable": "Le statistiche di utilizzo non sono temporaneamente disponibili. Knovum continua a funzionare normalmente."
   }
 }

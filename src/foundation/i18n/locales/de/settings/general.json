@@ -29,11 +29,11 @@
   },
   "saveFailed": "Die Einstellungen konnten nicht gespeichert werden",
   "analytics": {
-    "title": "Anonyme Nutzungsstatistiken",
-    "description": "Teile ein minimales tägliches App-Start-Ereignis, um Knovum zu verbessern. Standardmäßig deaktiviert.",
-    "enabled": "Anonyme Nutzungsstatistiken erlauben",
-    "privacy": "Es werden nur eine zufällige Installations-ID, die App-Version und die Plattform gesendet. Inhalte deiner Bibliothek werden nicht erfasst.",
-    "notConfigured": "In diesem Build ist kein Analyse-Endpunkt konfiguriert; es wurde kein Ereignis gesendet.",
-    "unavailable": "Die Analyse ist vorübergehend nicht verfügbar. Knovum funktioniert normal weiter."
+    "title": "Nutzungsanalyse",
+    "description": "Standardmäßig aktiviert. Knovum sendet höchstens einmal täglich ein App-Start-Ereignis, damit wir aktive Installationen besser verstehen. Du kannst dies jederzeit deaktivieren.",
+    "enabled": "Nutzungsanalyse teilen",
+    "privacy": "Das Ereignis enthält nur eine zufällige Installations-ID, die App-Version, die Plattform und den Ereignisnamen. Spaces, Dateien, Notizen, Suchanfragen und KI-Inhalte werden nicht übertragen.",
+    "notConfigured": "Für diesen Build ist kein Analyse-Endpunkt konfiguriert. Es wurden keine Ereignisse gesendet.",
+    "unavailable": "Die Nutzungsanalyse ist vorübergehend nicht verfügbar. Knovum funktioniert weiterhin normal."
   }
 }

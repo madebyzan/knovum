@@ -4,7 +4,7 @@ import { shallowRef } from "vue";
 
 import { invokeCommand } from "../ipc/invoke-command";
 
-type PersistedConsent = {
+type PersistedPreferences = {
   schemaVersion: 1;
   enabled: boolean;
   installationId: string | null;
@@ -14,28 +14,36 @@ type PersistedConsent = {
 type AnalyticsDeliveryResult = "sent" | "not_configured" | "unavailable" | "disabled";
 
 const STORE_FILE = "analytics-consent.json";
+const STORE_KEY = "consent";
 const INSTALLATION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const UTC_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
-function parsePersistedConsent(raw: unknown): PersistedConsent | null {
+function parsePersistedPreferences(raw: unknown): PersistedPreferences | null {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return null;
+
   const value = raw as Record<string, unknown>;
-  const id = value.installationId;
-  if (
-    value.schemaVersion !== 1 ||
-    value.enabled !== true ||
-    typeof id !== "string" ||
-    !INSTALLATION_ID_PATTERN.test(id)
-  ) {
+  if (value.schemaVersion !== 1 || typeof value.enabled !== "boolean") return null;
+  if (!value.enabled) {
+    return {
+      schemaVersion: 1,
+      enabled: false,
+      installationId: null,
+      lastSentDate: null,
+    };
+  }
+
+  if (typeof value.installationId !== "string" || !INSTALLATION_ID_PATTERN.test(value.installationId)) {
     return null;
   }
 
-  const date = value.lastSentDate;
   return {
     schemaVersion: 1,
     enabled: true,
-    installationId: id,
-    lastSentDate: typeof date === "string" && UTC_DATE_PATTERN.test(date) ? date : null,
+    installationId: value.installationId,
+    lastSentDate:
+      typeof value.lastSentDate === "string" && UTC_DATE_PATTERN.test(value.lastSentDate)
+        ? value.lastSentDate
+        : null,
   };
 }
 
@@ -52,14 +60,42 @@ export const useAnalyticsPreferencesStore = defineStore("analytics-preferences",
     return persistence;
   }
 
+  async function persistPreferences(value: PersistedPreferences) {
+    const store = await getPersistence();
+    await store.set(STORE_KEY, value);
+    await store.save();
+  }
+
+  function currentPreferences(): PersistedPreferences {
+    return {
+      schemaVersion: 1,
+      enabled: enabled.value,
+      installationId,
+      lastSentDate,
+    };
+  }
+
   async function load() {
     try {
       const store = await getPersistence();
-      const consent = parsePersistedConsent(await store.get<unknown>("consent"));
-      if (consent) {
-        enabled.value = consent.enabled;
-        installationId = consent.installationId;
-        lastSentDate = consent.lastSentDate;
+      const raw = await store.get<unknown>(STORE_KEY);
+      if (raw === undefined || raw === null) {
+        enabled.value = true;
+        installationId = globalThis.crypto.randomUUID();
+        lastSentDate = null;
+        await persistPreferences(currentPreferences());
+      } else {
+        const preferences = parsePersistedPreferences(raw);
+        if (preferences) {
+          enabled.value = preferences.enabled;
+          installationId = preferences.installationId;
+          lastSentDate = preferences.lastSentDate;
+        } else {
+          // Unknown or damaged state must not silently opt an existing installation in.
+          enabled.value = false;
+          installationId = null;
+          lastSentDate = null;
+        }
       }
     } catch {
       enabled.value = false;
@@ -71,26 +107,24 @@ export const useAnalyticsPreferencesStore = defineStore("analytics-preferences",
   }
 
   async function setEnabled(next: boolean) {
-    if (!ready.value) throw new Error("Analytics consent has not been loaded.");
-    const nextInstallationId = next ? (installationId ?? globalThis.crypto.randomUUID()) : null;
-    const nextLastSentDate = next ? lastSentDate : null;
-    const value: PersistedConsent = {
+    if (!ready.value) throw new Error("Usage analytics preferences have not been loaded.");
+
+    const nextPreferences: PersistedPreferences = {
       schemaVersion: 1,
       enabled: next,
-      installationId: nextInstallationId,
-      lastSentDate: nextLastSentDate,
+      installationId: next ? (installationId ?? globalThis.crypto.randomUUID()) : null,
+      lastSentDate: next ? lastSentDate : null,
     };
-    const store = await getPersistence();
-    await store.set("consent", value);
-    await store.save();
-    enabled.value = next;
-    installationId = nextInstallationId;
-    lastSentDate = nextLastSentDate;
+    await persistPreferences(nextPreferences);
+    enabled.value = nextPreferences.enabled;
+    installationId = nextPreferences.installationId;
+    lastSentDate = nextPreferences.lastSentDate;
     attemptedThisRun = false;
   }
 
   async function recordAppStarted(): Promise<AnalyticsDeliveryResult> {
     if (!ready.value || !enabled.value || !installationId) return "disabled";
+
     const today = new Date().toISOString().slice(0, 10);
     if (attemptedThisRun || lastSentDate === today) return "disabled";
     attemptedThisRun = true;
@@ -100,15 +134,8 @@ export const useAnalyticsPreferencesStore = defineStore("analytics-preferences",
         installationId,
       });
       if (result === "sent") {
-        const store = await getPersistence();
-        await store.set("consent", {
-          schemaVersion: 1,
-          enabled: true,
-          installationId,
-          lastSentDate: today,
-        } satisfies PersistedConsent);
-        await store.save();
         lastSentDate = today;
+        await persistPreferences(currentPreferences());
       }
       return result;
     } catch {

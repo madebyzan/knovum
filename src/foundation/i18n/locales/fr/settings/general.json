@@ -29,11 +29,11 @@
   },
   "saveFailed": "Impossible d'enregistrer les paramètres",
   "analytics": {
-    "title": "Statistiques d’utilisation anonymes",
-    "description": "Partagez un événement quotidien minimal de démarrage pour améliorer Knovum. Désactivé par défaut.",
-    "enabled": "Autoriser les statistiques d’utilisation anonymes",
-    "privacy": "Seuls un identifiant d’installation aléatoire, la version de l’application et la plateforme sont envoyés. Aucun contenu de la bibliothèque n’est collecté.",
-    "notConfigured": "Le point de terminaison des statistiques n’est pas configuré dans cette version ; aucun événement n’a été envoyé.",
-    "unavailable": "Les statistiques sont temporairement indisponibles. Knovum continue de fonctionner normalement."
+    "title": "Statistiques d’utilisation",
+    "description": "Activées par défaut. Knovum envoie au maximum un événement de démarrage par jour pour nous aider à comprendre le nombre d’installations actives. Vous pouvez désactiver cette option à tout moment.",
+    "enabled": "Partager les statistiques d’utilisation",
+    "privacy": "L’événement contient uniquement un identifiant d’installation aléatoire, la version de l’application, la plateforme du système et le nom de l’événement. Il n’inclut jamais vos Spaces, fichiers, notes, recherches ni contenus d’IA.",
+    "notConfigured": "Les statistiques d’utilisation ne sont pas configurées dans cette version ; aucun événement n’a été envoyé.",
+    "unavailable": "Les statistiques d’utilisation sont temporairement indisponibles. Knovum continue de fonctionner normalement."
   }
 }

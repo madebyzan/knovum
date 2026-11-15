@@ -29,11 +29,11 @@
   },
   "saveFailed": "Não foi possível salvar as configurações",
   "analytics": {
-    "title": "Estatísticas de uso anônimas",
-    "description": "Compartilhe um evento diário mínimo de inicialização para ajudar a melhorar o Knovum. Desativado por padrão.",
-    "enabled": "Permitir estatísticas de uso anônimas",
-    "privacy": "Somente um identificador aleatório de instalação, a versão do aplicativo e a plataforma são enviados. Nenhum conteúdo da biblioteca é coletado.",
-    "notConfigured": "O endpoint de análise não está configurado nesta versão; nenhum evento foi enviado.",
-    "unavailable": "As estatísticas estão temporariamente indisponíveis. O Knovum continuará funcionando normalmente."
+    "title": "Análise de uso",
+    "description": "Ativada por padrão. O Knovum envia no máximo um evento de inicialização por dia para ajudar a entender quantas instalações estão ativas. Você pode desativar essa opção a qualquer momento.",
+    "enabled": "Compartilhar análise de uso",
+    "privacy": "O evento contém apenas um ID aleatório de instalação, a versão do aplicativo, a plataforma do sistema operacional e o nome do evento. Ele nunca inclui seus Spaces, arquivos, notas, pesquisas ou conteúdo de IA.",
+    "notConfigured": "A análise de uso não está configurada nesta versão, portanto nenhum evento foi enviado.",
+    "unavailable": "A análise de uso está temporariamente indisponível. O Knovum continuará funcionando normalmente."
   }
 }

@@ -29,11 +29,11 @@
   },
   "saveFailed": "Could not save settings",
   "analytics": {
-    "title": "Anonymous usage analytics",
-    "description": "Share a minimal daily app-start event to help improve Knovum. It is off by default.",
-    "enabled": "Allow anonymous usage analytics",
-    "privacy": "Only a random installation ID, app version, and platform are sent. No library content is collected.",
-    "notConfigured": "Analytics is not configured in this build; no event was sent.",
-    "unavailable": "Analytics is temporarily unavailable. Knovum will continue working normally."
+    "title": "Usage analytics",
+    "description": "Enabled by default. Knovum sends at most one app-start event per day to help us understand active installations. You can turn this off at any time.",
+    "enabled": "Share usage analytics",
+    "privacy": "The event contains only a random installation ID, app version, operating-system platform, and event name. It never includes your Spaces, files, notes, searches, or AI content.",
+    "notConfigured": "Usage analytics is not configured in this build, so no events have been sent.",
+    "unavailable": "Usage analytics is temporarily unavailable. Knovum continues to work normally."
   }
 }
