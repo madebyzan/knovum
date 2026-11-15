@@ -43,7 +43,7 @@ From this directory:
 
    The endpoint is the deployed Worker URL plus `/event`, for example `https://knovum-analytics.<your-account>.workers.dev/event`.
 
-5. In the GitHub repository, open **Settings → Secrets and variables → Actions → Variables** and add `KNOVUM_ANALYTICS_ENDPOINT` with that HTTPS URL. The release workflow embeds it into desktop packages at build time. It is a public endpoint, not a credential. If the variable is absent, desktop builds do not send requests even though the local preference defaults to enabled.
+5. In the GitHub repository, open **Settings → Secrets and variables → Actions → Variables** and add `KNOVUM_ANALYTICS_ENDPOINT` with that HTTPS URL. The release workflow embeds it into desktop packages at build time. It is a public endpoint, not a credential. If the variable is absent, desktop builds do not send requests, even after the user enables analytics in the app.
 
 ## Enable website analytics
 
