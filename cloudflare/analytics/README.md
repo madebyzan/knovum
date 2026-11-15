@@ -1,6 +1,6 @@
 # Knovum desktop analytics Worker
 
-This optional endpoint receives at most one daily `app_started` event from each installation where the endpoint is configured. Usage analytics is disabled by default. It sends events only after the user enables sharing in **Settings → About**, and can be disabled at any time.
+This endpoint receives at most one daily `app_started` event from each installation when the endpoint is configured. Desktop usage analytics is enabled by default on first launch. Users can disable it at any time in **Settings → About**; the opt-out is saved across restarts.
 
 The Worker stores only an HMAC-SHA-256 digest of a random installation identifier, the UTC activity date, app version, platform, and event name. The original identifier is never written to D1. Rows older than 90 days are deleted by the daily Cron Trigger. The Worker does not write request IP addresses, request headers, note/file content, prompts, paths, credentials, account details, names, or email addresses to D1 or application logs. Cloudflare may process connection metadata under its own service terms.
 
@@ -43,7 +43,7 @@ From this directory:
 
    The endpoint is the deployed Worker URL plus `/event`, for example `https://knovum-analytics.<your-account>.workers.dev/event`.
 
-5. In the GitHub repository, open **Settings → Secrets and variables → Actions → Variables** and add `KNOVUM_ANALYTICS_ENDPOINT` with that HTTPS URL. The release workflow embeds it into desktop packages at build time. It is a public endpoint, not a credential. If the variable is absent, desktop builds do not send requests, even after the user enables analytics in the app.
+5. In the GitHub repository, open **Settings → Secrets and variables → Actions → Variables** and add `KNOVUM_ANALYTICS_ENDPOINT` with that HTTPS URL. The release workflow embeds it into desktop packages at build time. It is a public endpoint, not a credential. When configured, the desktop app starts sending daily events automatically unless the user has turned analytics off in Settings → About. If the variable is absent, no events are sent.
 
 ## Enable website analytics
 
@@ -55,36 +55,14 @@ The GitHub Pages site is not hosted on Cloudflare, so the manual Web Analytics b
 
 ## Inspect desktop usage
 
-Open the D1 database in the Cloudflare dashboard, or use Wrangler's D1 query command. Daily active installations:
+Open the D1 database in the Cloudflare dashboard and use its SQL console. The ready-to-run reports are in [`queries/metrics.sql`](queries/metrics.sql):
 
-```sql
-SELECT activity_date, COUNT(DISTINCT installation_hash) AS daily_active_installations
-FROM desktop_daily_active
-WHERE event_name = 'app_started'
-GROUP BY activity_date
-ORDER BY activity_date DESC
-LIMIT 90;
-```
+- Daily trend: DAU, rolling 7-day WAU, rolling 30-day MAU, and first-seen installations for each UTC activity date.
+- Cohort retention: strict day-1, day-7, and day-30 return rates grouped by the first activity date observed in the retained dataset.
 
-Monthly active installations:
+These are installation-based metrics: one pseudonymous installation identifier represents one installation, not a verified person or account. Activity dates are UTC. Because raw daily records are retained for 90 days, all rolling metrics and cohort reports are limited to that retained window. "First-seen installations" means first observed within the retained data; it cannot distinguish a brand-new install from an older install that returns after more than 90 days away.
 
-```sql
-SELECT substr(activity_date, 1, 7) AS month,
-       COUNT(DISTINCT installation_hash) AS monthly_active_installations
-FROM desktop_daily_active
-WHERE event_name = 'app_started'
-GROUP BY month
-ORDER BY month DESC;
-```
-
-Platform breakdown for the last 30 days:
-
-```sql
-SELECT platform, COUNT(DISTINCT installation_hash) AS active_installations
-FROM desktop_daily_active
-WHERE activity_date >= date('now', '-30 days')
-GROUP BY platform;
-```
+The desktop app does not currently include a hosted analytics dashboard. Run the SQL in the D1 console to inspect the figures.
 
 ## Free-tier guardrails
 
