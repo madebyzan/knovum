@@ -37,14 +37,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="space-y-1">
+  <section class="space-y-1.5">
     <div class="flex items-center gap-2">
-      <UiButton size="sm" variant="ghost" :disabled="disabled || importing" @click="importScript()">
+      <UiButton size="sm" variant="secondary" :disabled="disabled || importing" @click="importScript()">
         <FileUp class="size-3.5" />{{ t("spaces.speech.project.importManuscript") }}
       </UiButton>
+      <UiButton v-if="importing" size="sm" variant="ghost" @click="cancel">{{ t("common.cancel") }}</UiButton>
     </div>
-    <UiButton v-if="importing" size="sm" @click="cancel">{{ t("common.cancel") }}</UiButton>
-    <p v-if="importing" class="text-caption text-fg-secondary" role="status">{{ t("common.loading") }}</p>
+    <p v-if="importing" class="text-caption-sm text-fg-secondary" role="status">{{ t("common.loading") }}</p>
     <p v-if="error" class="text-caption-sm text-fg-danger">{{ error }}</p>
   </section>
 </template>

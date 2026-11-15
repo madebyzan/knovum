@@ -11,15 +11,24 @@ const emit = defineEmits<{ close: [] }>();
 </script>
 
 <template>
-  <header class="flex shrink-0 items-center gap-2 border-b border-stroke-divider px-3 py-2">
+  <header class="flex h-10 shrink-0 items-center gap-2 border-b border-stroke-divider px-3">
     <component
       :is="NODE_SPEECH_OPERATIONS[projectType].icon"
-      class="size-4 shrink-0 text-fg-secondary"
-      :stroke-width="1.6"
+      class="size-3.5 shrink-0 text-fg-secondary"
+      :stroke-width="1.7"
     />
-    <h2 class="min-w-0 flex-1 text-caption font-medium" :title="node.data.title">
-      {{ $t(NODE_SPEECH_OPERATIONS[projectType].label) }}
-    </h2>
+    <div class="flex min-w-0 flex-1 items-baseline gap-1.5">
+      <h2 class="shrink-0 text-label font-semibold text-fg-primary">
+        {{ $t(NODE_SPEECH_OPERATIONS[projectType].label) }}
+      </h2>
+      <span
+        v-if="node.data.title"
+        class="min-w-0 truncate text-caption text-fg-tertiary"
+        :title="node.data.title"
+      >
+        · {{ node.data.title }}
+      </span>
+    </div>
     <UiIconButton :label="$t('common.close')" size="sm" tooltip @click="emit('close')"
       ><X class="size-3.5"
     /></UiIconButton>

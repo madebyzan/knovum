@@ -105,22 +105,24 @@ defineExpose({ seekTo, pause });
     />
     <div
       v-if="showControls"
-      class="flex items-center gap-2 rounded-md border border-stroke-divider bg-surface-control px-2 py-1"
+      class="flex items-center gap-2.5 rounded-lg border border-stroke-default bg-surface-panel px-2.5 py-1.5"
     >
       <UiIconButton
         :label="playback.playing.value ? t('common.pause') : t('spaces.media.player.play')"
         size="sm"
+        tone="primary"
         @click="toggle"
       >
-        <Pause v-if="playback.playing.value" class="size-3.5" fill="currentColor" />
-        <Play v-else class="size-3.5" fill="currentColor" />
+        <Pause v-if="playback.playing.value" class="size-3" fill="currentColor" />
+        <Play v-else class="ml-0.5 size-3" fill="currentColor" />
       </UiIconButton>
       <SpaceMediaTimeline
+        tone="control"
         :current-ms="playback.currentMs.value"
         :duration-ms="playback.durationMs.value"
         @seek="seek"
       />
-      <span class="shrink-0 text-caption-sm text-fg-secondary tabular-nums">
+      <span class="shrink-0 text-caption-sm font-medium text-fg-secondary tabular-nums">
         {{ formatDurationMs(playback.currentMs.value) }} / {{ formatDurationMs(playback.durationMs.value) }}
       </span>
     </div>

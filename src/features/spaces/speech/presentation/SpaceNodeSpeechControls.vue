@@ -1,12 +1,19 @@
 <script setup lang="ts">
-import { nextTick, useTemplateRef, watch } from "vue";
+import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { POPOVER_SURFACE_CLASSES } from "../../../../shared/ui/ui-classes";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
 import { NODE_SPEECH_OPERATIONS, type NodeSpeechOperation } from "./node-speech-operations";
 import SpaceNodeSpeechEditor from "./SpaceNodeSpeechEditor.vue";
 import SpaceVoiceCloneBar from "./SpaceVoiceCloneBar.vue";
+
+const INSPECTOR_WIDTH_CLASSES: Record<Exclude<NodeSpeechOperation, "clone" | "separate">, string> = {
+  short_dubbing: "w-[min(22.5rem,calc(100vw-2rem))]",
+  audiobook: "w-[min(24.5rem,calc(100vw-2rem))]",
+  video_dubbing: "w-[min(25rem,calc(100vw-2rem))]",
+};
 
 const props = defineProps<{
   node?: SpaceCanvasNode | undefined;
@@ -22,6 +29,14 @@ async function close() {
   if (projectEditorRef.value && !(await projectEditorRef.value.requestClose())) return;
   operation.value = undefined;
 }
+const panelStyle = computed(() => {
+  const maxHeight = Math.min(props.availableHeight ?? 520, 520);
+  return {
+    maxWidth: props.availableWidth === undefined ? undefined : `${props.availableWidth}px`,
+    maxHeight: `${maxHeight}px`,
+    "--speech-scroll-max-h": `${Math.max(180, maxHeight - 124)}px`,
+  };
+});
 watch([() => props.node?.id, () => props.node?.data.sourceRevision, () => store.activeSpaceId], () => {
   operation.value = undefined;
 });
@@ -56,11 +71,12 @@ watch(
     <section
       v-else
       tabindex="-1"
-      class="flex max-h-[calc(100vh-8rem)] w-[min(24rem,calc(100vw-2rem))] max-w-full flex-col overflow-hidden rounded-panel border border-stroke-strong bg-surface-overlay shadow-popover"
-      :style="{
-        maxWidth: availableWidth === undefined ? undefined : `${availableWidth}px`,
-        maxHeight: availableHeight === undefined ? undefined : `${availableHeight}px`,
-      }"
+      :class="[
+        'flex max-w-full flex-col overflow-hidden outline-none',
+        POPOVER_SURFACE_CLASSES,
+        INSPECTOR_WIDTH_CLASSES[operation],
+      ]"
+      :style="panelStyle"
       :aria-label="t(NODE_SPEECH_OPERATIONS[operation].label)"
       :data-source-node-id="node.id"
     >

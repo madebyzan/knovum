@@ -65,7 +65,7 @@ const virtualizer = useVirtualizer(
         ]),
       ].toSorted((a, b) => a - b),
     getItemKey: (index: number) => props.lines[index]!.key,
-    estimateSize: () => 260,
+    estimateSize: () => 152,
     overscan: 4,
   })),
 );
@@ -88,28 +88,29 @@ function measureLine(element: Element | ComponentPublicInstance | null) {
 <template>
   <div
     v-if="lines.length > 1"
-    class="bg-surface-subtle mb-3 flex items-center justify-between gap-3 rounded-lg border border-stroke-divider px-3 py-2 text-caption"
+    class="mb-2 flex items-center gap-1.5 rounded-md bg-surface-control px-2 py-1.5 text-caption"
   >
-    <span class="font-medium text-fg-secondary">{{ t("spaces.speech.videoDubbing.batchVoiceLabel") }}</span>
-    <div class="flex items-center gap-2">
-      <UiSelect
-        v-model="batchVoiceId"
-        size="sm"
-        class="w-56"
-        :options="voiceOptions"
-        :label="t('spaces.speech.voice.label')"
-        :placeholder="t('spaces.speech.library.selection.placeholder')"
-        :disabled
-      />
-      <UiButton
-        size="sm"
-        variant="secondary"
-        :disabled="disabled || !batchVoiceId"
-        @click="batchVoiceId && emit('applyAll', batchVoiceId)"
-      >
-        {{ t("spaces.speech.videoDubbing.applyToAllLines") }}
-      </UiButton>
-    </div>
+    <span class="shrink-0 font-medium whitespace-nowrap text-fg-secondary">
+      {{ t("spaces.speech.videoDubbing.batchVoiceLabel") }}
+    </span>
+    <UiSelect
+      v-model="batchVoiceId"
+      size="sm"
+      class="min-w-0 flex-1"
+      :options="voiceOptions"
+      :label="t('spaces.speech.voice.label')"
+      :placeholder="t('spaces.speech.library.selection.placeholder')"
+      :disabled
+    />
+    <UiButton
+      size="sm"
+      variant="secondary"
+      class="shrink-0"
+      :disabled="disabled || !batchVoiceId"
+      @click="batchVoiceId && emit('applyAll', batchVoiceId)"
+    >
+      {{ t("spaces.speech.videoDubbing.applyToAllLines") }}
+    </UiButton>
   </div>
   <div
     ref="linesRef"
@@ -131,6 +132,7 @@ function measureLine(element: Element | ComponentPublicInstance | null) {
       :style="{ transform: `translateY(${row.start - scrollMargin}px)` }"
     >
       <VideoDubbingLineEditor
+        :index="row.index"
         :model-value="lines[row.index]!"
         :voice-options
         :delivery-instruction-voice-ids

@@ -51,16 +51,56 @@ async function addChapter() {
   await nextTick();
   chaptersRef.value?.focusLastChapter();
 }
-const pages = computed(() => [
-  { value: "script", label: t("spaces.speech.project.script.label") },
-  { value: "voices", label: t("spaces.speech.project.roleBindings.label") },
-  { value: "settings", label: t("spaces.speech.project.settings") },
-]);
 const draft = useAudiobookDraft(
   () => props.project,
   () => props.voices,
 );
 const voiceOptions = computed(() => voiceRevisionOptions(props.voices, draft.selectedVoiceRevisionIds.value));
+const roleUsageCounts = computed(() => {
+  const counts = new Map<string, number>();
+  for (const chapter of draft.chapters.value) {
+    for (const paragraph of chapter.paragraphs) {
+      counts.set(paragraph.speakerKey, (counts.get(paragraph.speakerKey) ?? 0) + 1);
+    }
+  }
+  return counts;
+});
+const paragraphCount = computed(() =>
+  draft.chapters.value.reduce((total, chapter) => total + chapter.paragraphs.length, 0),
+);
+const rolesInvalid = computed(() => {
+  const validIds = new Set(props.voices.map((voice) => voice.revisionId));
+  return draft.roles.value.some((role) => !validIds.has(role.voiceRevisionId));
+});
+const settingsInvalid = computed(
+  () =>
+    !draft.lexicon.isValid.value ||
+    (draft.output.format.value === "wav" && Boolean(draft.output.metadata.value.cover)),
+);
+const pages = computed(() => [
+  {
+    value: "script",
+    label: t("spaces.speech.project.script.label"),
+    badge: draft.chapters.value.length || undefined,
+  },
+  {
+    value: "voices",
+    label: t("spaces.speech.project.roleBindings.label"),
+    badge: draft.roles.value.length || undefined,
+    invalid: rolesInvalid.value,
+  },
+  {
+    value: "settings",
+    label: t("spaces.speech.project.settings"),
+    invalid: settingsInvalid.value,
+  },
+]);
+const outputSummary = computed(
+  () => `${draft.output.format.value.toUpperCase()} · ${Number(draft.output.sampleRate.value) / 1000} kHz`,
+);
+const lexiconSummary = computed(() =>
+  draft.lexicon.entries.value.length ? String(draft.lexicon.entries.value.length) : undefined,
+);
 function forwardPreview(
   text: string,
   voiceRevisionId: string,
@@ -82,26 +122,32 @@ watchEffect(() =>
     v-model="page"
     :items="pages"
     :label="t('spaces.speech.project.editorPages')"
-    :invalid-page="
-      !draft.lexicon.isValid.value ||
-      (draft.output.format.value === 'wav' && Boolean(draft.output.metadata.value.cover))
-        ? 'settings'
-        : undefined
-    "
+    :invalid-page="settingsInvalid ? 'settings' : undefined"
   >
     <SpeechEditorPage value="script" :active="page">
-      <AudiobookScriptImport
-        :node="sourceNode"
-        :disabled="disabled"
-        :initialize="project.project.activeRevision === 1 && !project.segments.length"
-        @imported="draft.importScript($event)"
-        @initialized="draft.initializeFromScript($event)"
-        @busy="importing = $event"
-      />
-      <p v-if="!draft.chapters.value.length && !importing" class="text-caption text-fg-secondary">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <AudiobookScriptImport
+          :node="sourceNode"
+          :disabled="disabled"
+          :initialize="project.project.activeRevision === 1 && !project.segments.length"
+          @imported="draft.importScript($event)"
+          @initialized="draft.initializeFromScript($event)"
+          @busy="importing = $event"
+        />
+        <span v-if="draft.chapters.value.length" class="text-caption-sm text-fg-tertiary tabular-nums">
+          {{ draft.chapters.value.length }} · {{ paragraphCount }}
+        </span>
+      </div>
+      <div
+        v-if="!draft.chapters.value.length && !importing"
+        class="rounded-panel border border-dashed border-stroke-default px-3 py-5 text-center text-caption text-fg-secondary"
+      >
         {{ t("spaces.speech.project.emptyManuscript") }}
-      </p>
-      <p v-if="draft.configurationError.value" class="text-caption-sm text-fg-danger">
+      </div>
+      <p
+        v-if="draft.configurationError.value"
+        class="rounded-panel bg-surface-danger-subtle px-3 py-2 text-caption-sm text-fg-danger"
+      >
         {{ t("spaces.speech.audiobook.configurationInvalid") }}
       </p>
       <AudiobookChapterEditor
@@ -111,7 +157,7 @@ watchEffect(() =>
         :disabled="editingDisabled"
         @preview="forwardPreview"
       />
-      <UiButton size="sm" variant="ghost" :disabled="editingDisabled" @click="addChapter">
+      <UiButton size="sm" variant="secondary" :disabled="editingDisabled" @click="addChapter">
         <Plus class="size-3.5" />{{ t("spaces.speech.audiobook.addChapter") }}
       </UiButton>
     </SpeechEditorPage>
@@ -120,6 +166,7 @@ watchEffect(() =>
         :roles="draft.roles.value"
         :voice-options="voiceOptions"
         :used-role-keys="draft.usedRoleKeys.value"
+        :role-usage-counts="roleUsageCounts"
         :disabled="editingDisabled"
         @add="draft.addRole(t('spaces.speech.project.defaultRole'))"
         @rename="draft.renameRole"
@@ -133,6 +180,7 @@ watchEffect(() =>
       </SpeechSettingsDisclosure>
       <SpeechSettingsDisclosure
         :title="t('spaces.speech.audiobook.outputSettings')"
+        :summary="outputSummary"
         :is-invalid="draft.output.format.value === 'wav' && Boolean(draft.output.metadata.value.cover)"
       >
         <AudiobookOutputSettings
@@ -154,6 +202,7 @@ watchEffect(() =>
       </SpeechSettingsDisclosure>
       <SpeechSettingsDisclosure
         :title="t('spaces.speech.audiobook.lexicon.title')"
+        :summary="lexiconSummary"
         :is-invalid="!draft.lexicon.isValid.value"
       >
         <PronunciationLexiconEditor

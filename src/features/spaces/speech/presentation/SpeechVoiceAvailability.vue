@@ -11,13 +11,17 @@ const hasVoice = computed(() => props.voices.some((voice) => voice.isActive && v
 </script>
 
 <template>
-  <p v-if="!hasVoice" class="text-caption text-fg-secondary" role="status">
-    {{ t("spaces.speech.library.selection.empty") }}
+  <div
+    v-if="!hasVoice"
+    class="flex flex-wrap items-center justify-between gap-2 rounded-md bg-surface-control px-2.5 py-2 text-caption text-fg-secondary"
+    role="status"
+  >
+    <span>{{ t("spaces.speech.library.selection.empty") }}</span>
     <RouterLink
-      class="text-fg-accent underline"
+      class="shrink-0 font-medium text-fg-accent hover:underline"
       data-testid="manage-voices"
       :to="{ path: '/settings', query: { pane: 'voices' } }"
       >{{ t("spaces.speech.library.manage") }}</RouterLink
     >
-  </p>
+  </div>
 </template>

@@ -120,10 +120,12 @@ function selectLanguage(value: string) {
 </script>
 
 <template>
-  <section class="space-y-2">
-    <p class="text-caption text-fg-secondary">{{ t("spaces.speech.translation.description") }}</p>
-    <div class="flex flex-wrap items-end gap-2">
-      <label class="min-w-32 flex-1 space-y-1 text-caption text-fg-secondary">
+  <section class="space-y-2 rounded-md border border-stroke-default bg-surface-raised p-2.5">
+    <p class="text-caption leading-relaxed text-fg-secondary">
+      {{ t("spaces.speech.translation.description") }}
+    </p>
+    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <label class="block min-w-0 space-y-1 text-caption-sm font-medium text-fg-secondary">
         <span>{{ t("spaces.speech.translation.language") }}</span>
         <UiSelect
           size="sm"
@@ -134,7 +136,7 @@ function selectLanguage(value: string) {
           @update:model-value="selectLanguage"
         />
       </label>
-      <label class="min-w-32 flex-1 space-y-1 text-caption text-fg-secondary">
+      <label class="block min-w-0 space-y-1 text-caption-sm font-medium text-fg-secondary">
         <span>{{ t("spaces.speech.translation.model") }}</span>
         <UiSelect
           size="sm"
@@ -146,22 +148,30 @@ function selectLanguage(value: string) {
           @update:model-value="target = targets.find(({ value }) => value === $event)?.target"
         />
       </label>
-      <UiButton size="sm" :disabled="disabled || translating || !target || lineCount === 0" @click="translate"
-        ><Languages class="size-3.5" />{{ t("spaces.speech.translation.translate") }}</UiButton
-      >
-      <UiButton v-if="activeRunId" size="sm" variant="dangerSubtle" :disabled="cancelling" @click="cancel">
-        <Square class="size-3.5" />{{ t("spaces.speech.translation.cancel") }}
-      </UiButton>
     </div>
-    <label class="block space-y-1 text-caption text-fg-secondary">
-      <span>{{ t("spaces.speech.translation.terms") }}</span>
-      <UiInput
-        size="sm"
-        v-model="preservedTerms"
-        :placeholder="t('spaces.speech.translation.termsPlaceholder')"
-        :disabled="disabled || translating"
-      />
-    </label>
+    <div class="flex flex-wrap items-end gap-2">
+      <label class="min-w-44 flex-1 space-y-1 text-caption-sm font-medium text-fg-secondary">
+        <span>{{ t("spaces.speech.translation.terms") }}</span>
+        <UiInput
+          size="sm"
+          v-model="preservedTerms"
+          :placeholder="t('spaces.speech.translation.termsPlaceholder')"
+          :disabled="disabled || translating"
+        />
+      </label>
+      <div class="flex shrink-0 items-center gap-1.5">
+        <UiButton
+          size="sm"
+          variant="secondary"
+          :disabled="disabled || translating || !target || lineCount === 0"
+          @click="translate"
+          ><Languages class="size-3.5" />{{ t("spaces.speech.translation.translate") }}</UiButton
+        >
+        <UiButton v-if="activeRunId" size="sm" variant="dangerSubtle" :disabled="cancelling" @click="cancel">
+          <Square class="size-3.5" />{{ t("spaces.speech.translation.cancel") }}
+        </UiButton>
+      </div>
+    </div>
     <AiReadinessNotice :readiness="readiness" />
     <p v-if="error" class="text-caption text-fg-danger" role="alert">
       {{ t("spaces.speech.translation.failed") }}: {{ error }}

@@ -11,6 +11,7 @@ import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibrar
 import type { ChapterDraft } from "../audiobook-draft";
 import type { useAudiobookDraft } from "../use-audiobook-draft";
 import AudiobookChapterHeader from "./AudiobookChapterHeader.vue";
+import SpeechDeliveryInstructionField from "./SpeechDeliveryInstructionField.vue";
 
 const props = defineProps<{
   draft: ReturnType<typeof useAudiobookDraft>;
@@ -52,12 +53,12 @@ function supportsDeliveryInstruction(speakerKey: string) {
 </script>
 
 <template>
-  <div ref="editorRef" class="space-y-3">
+  <div ref="editorRef" class="space-y-2.5">
     <section
       v-for="(chapter, chapterIndex) in draft.chapters.value"
       :key="chapter.key"
       :data-chapter="chapter.key"
-      class="space-y-2 border-t border-stroke-divider pt-2"
+      class="space-y-2 rounded-lg bg-surface-control/75 p-2"
     >
       <AudiobookChapterHeader
         v-model:title="chapter.title"
@@ -67,68 +68,89 @@ function supportsDeliveryInstruction(speakerKey: string) {
         @move="draft.moveChapter(chapterIndex, $event)"
         @remove="draft.removeChapter(chapterIndex)"
       />
-      <div v-for="(paragraph, paragraphIndex) in chapter.paragraphs" :key="paragraph.key" class="space-y-1.5">
-        <UiTextarea
-          v-model="paragraph.text"
-          data-testid="audiobook-paragraph"
-          :rows="4"
-          :aria-label="t('spaces.speech.project.script.label')"
-          :maxlength="1000000"
-          :disabled="disabled"
-          :placeholder="t('spaces.speech.project.script.placeholder')"
-        />
-        <div class="flex items-center gap-1">
-          <UiSelect
-            :model-value="paragraph.speakerKey"
-            size="sm"
-            class="w-32 min-w-0"
-            :label="t('spaces.speech.project.role')"
-            :options="roleOptions"
+      <div class="space-y-1.5">
+        <div
+          v-for="(paragraph, paragraphIndex) in chapter.paragraphs"
+          :key="paragraph.key"
+          class="rounded-md border border-stroke-default bg-surface-raised transition-colors focus-within:border-stroke-focus"
+        >
+          <div class="flex items-center justify-between gap-1 border-b border-stroke-divider px-1.5 py-1">
+            <div class="flex min-w-0 items-center gap-1">
+              <span class="px-1 font-mono text-caption-sm text-fg-tertiary tabular-nums">
+                #{{ paragraphIndex + 1 }}
+              </span>
+              <UiSelect
+                :model-value="paragraph.speakerKey"
+                size="sm"
+                class="h-6 w-28 min-w-0 border-transparent bg-transparent px-1.5 text-caption font-medium shadow-none hover:border-transparent hover:bg-surface-control focus:border-stroke-focus"
+                :label="t('spaces.speech.project.role')"
+                :options="roleOptions"
+                :disabled="disabled"
+                @update:model-value="draft.setParagraphSpeaker(paragraph, $event)"
+              />
+            </div>
+            <div class="flex shrink-0 items-center gap-0.5">
+              <span class="px-1 text-caption-sm text-fg-tertiary tabular-nums">
+                {{ [...paragraph.text.trim()].length }}
+              </span>
+              <UiIconButton
+                size="sm"
+                tooltip
+                :label="t('spaces.speech.preview.action')"
+                :disabled="
+                  disabled ||
+                  !draft.lexicon.isValid.value ||
+                  !paragraph.text.trim() ||
+                  !draft.roleVoiceRevisionId(paragraph.speakerKey)
+                "
+                @click="
+                  emit(
+                    'preview',
+                    [...paragraph.text.trim()].slice(0, 500).join(''),
+                    draft.roleVoiceRevisionId(paragraph.speakerKey),
+                    draft.lexicon.serializeLexicon(),
+                    paragraph.deliveryInstruction.trim() || undefined,
+                  )
+                "
+                ><Play class="size-3.5"
+              /></UiIconButton>
+              <UiIconButton
+                size="sm"
+                tooltip
+                class="hover:text-fg-danger"
+                :label="t('spaces.speech.audiobook.removeParagraph')"
+                :disabled="disabled"
+                @click="draft.removeParagraph(chapter, paragraphIndex)"
+                ><Trash2 class="size-3.5"
+              /></UiIconButton>
+            </div>
+          </div>
+          <UiTextarea
+            v-model="paragraph.text"
+            data-testid="audiobook-paragraph"
+            :rows="2"
+            class="border-0 bg-transparent px-2 py-1.5 shadow-none hover:border-0 focus:border-0"
+            :aria-label="t('spaces.speech.project.script.label')"
+            :maxlength="1000000"
             :disabled="disabled"
-            @update:model-value="draft.setParagraphSpeaker(paragraph, $event)"
+            :placeholder="t('spaces.speech.project.script.placeholder')"
           />
-          <UiIconButton
-            size="sm"
-            tooltip
-            :label="t('spaces.speech.preview.action')"
-            :disabled="
-              disabled ||
-              !draft.lexicon.isValid.value ||
-              !paragraph.text.trim() ||
-              !draft.roleVoiceRevisionId(paragraph.speakerKey)
-            "
-            @click="
-              emit(
-                'preview',
-                [...paragraph.text.trim()].slice(0, 500).join(''),
-                draft.roleVoiceRevisionId(paragraph.speakerKey),
-                draft.lexicon.serializeLexicon(),
-                paragraph.deliveryInstruction.trim() || undefined,
-              )
-            "
-            ><Play class="size-3.5"
-          /></UiIconButton>
-          <UiIconButton
-            size="sm"
-            tooltip
-            class="hover:text-fg-danger"
-            :label="t('spaces.speech.audiobook.removeParagraph')"
-            :disabled="disabled"
-            @click="draft.removeParagraph(chapter, paragraphIndex)"
-            ><Trash2 class="size-3.5"
-          /></UiIconButton>
+          <div v-if="supportsDeliveryInstruction(paragraph.speakerKey)" class="px-2 pb-1.5">
+            <SpeechDeliveryInstructionField
+              v-model="paragraph.deliveryInstruction"
+              :disabled="disabled"
+              collapsible
+              surface="muted"
+            />
+          </div>
         </div>
-        <UiTextarea
-          v-if="supportsDeliveryInstruction(paragraph.speakerKey)"
-          v-model="paragraph.deliveryInstruction"
-          :rows="2"
-          :maxlength="500"
-          :disabled="disabled"
-          :placeholder="t('spaces.speech.project.deliveryInstruction.placeholder')"
-          :aria-label="t('spaces.speech.project.deliveryInstruction.label')"
-        />
       </div>
-      <UiButton size="sm" variant="ghost" :disabled="disabled" @click="addParagraph(chapter)"
+      <UiButton
+        size="sm"
+        variant="ghost"
+        class="w-full justify-center text-fg-secondary"
+        :disabled="disabled"
+        @click="addParagraph(chapter)"
         ><Plus class="size-3.5" />{{ t("spaces.speech.audiobook.addParagraph") }}</UiButton
       >
     </section>

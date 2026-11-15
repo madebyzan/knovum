@@ -65,3 +65,15 @@ it("supports toolbar-owned controls without rendering another set of playback co
   expect(play).toHaveBeenCalledOnce();
   expect(media.currentTime).toBe(2);
 });
+
+it("uses control-surface contrast styling on its timeline slider", () => {
+  const wrapper = mount(SpeechMediaPlayer, {
+    props: { kind: "audio", source: "/audition.wav" },
+    global: { plugins: [i18n] },
+  });
+  onTestFinished(() => wrapper.unmount());
+  const html = wrapper.html();
+  expect(html).toContain("bg-stroke-strong");
+  expect(html).toContain("bg-fg-primary");
+  expect(html).not.toContain("bg-white/25");
+});

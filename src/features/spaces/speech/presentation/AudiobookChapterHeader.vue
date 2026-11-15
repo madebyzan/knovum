@@ -26,40 +26,45 @@ const title = computed({
 
 <template>
   <div class="flex items-center gap-1">
+    <span class="shrink-0 px-1 font-mono text-caption-sm text-fg-tertiary tabular-nums select-none">
+      {{ String(index + 1).padStart(2, "0") }}
+    </span>
     <UiInput
       v-model="title"
-      class="min-w-0 flex-1 border-transparent bg-transparent font-medium shadow-none hover:bg-surface-control"
+      class="min-w-0 flex-1 border-transparent bg-transparent font-medium text-fg-primary shadow-none hover:border-transparent hover:bg-surface-control focus:border-stroke-focus focus:bg-surface-raised"
       size="sm"
       :placeholder="t('spaces.speech.audiobook.chapterTitle')"
       :aria-label="t('spaces.speech.audiobook.chapterTitle')"
       :disabled="disabled"
     />
-    <UiIconButton
-      v-if="count > 1"
-      size="sm"
-      tooltip
-      :label="t('spaces.speech.audiobook.moveUp')"
-      :disabled="disabled || index === 0"
-      @click="emit('move', -1)"
-      ><ArrowUp class="size-3.5"
-    /></UiIconButton>
-    <UiIconButton
-      v-if="count > 1"
-      size="sm"
-      tooltip
-      :label="t('spaces.speech.audiobook.moveDown')"
-      :disabled="disabled || index === count - 1"
-      @click="emit('move', 1)"
-      ><ArrowDown class="size-3.5"
-    /></UiIconButton>
-    <UiIconButton
-      size="sm"
-      tooltip
-      class="hover:text-fg-danger"
-      :label="t('spaces.speech.audiobook.removeChapter')"
-      :disabled="disabled"
-      @click="emit('remove')"
-      ><Trash2 class="size-3.5"
-    /></UiIconButton>
+    <div class="flex shrink-0 items-center gap-0.5">
+      <UiIconButton
+        v-if="count > 1"
+        size="sm"
+        tooltip
+        :label="t('spaces.speech.audiobook.moveUp')"
+        :disabled="disabled || index === 0"
+        @click="emit('move', -1)"
+        ><ArrowUp class="size-3.5"
+      /></UiIconButton>
+      <UiIconButton
+        v-if="count > 1"
+        size="sm"
+        tooltip
+        :label="t('spaces.speech.audiobook.moveDown')"
+        :disabled="disabled || index === count - 1"
+        @click="emit('move', 1)"
+        ><ArrowDown class="size-3.5"
+      /></UiIconButton>
+      <UiIconButton
+        size="sm"
+        tooltip
+        class="hover:text-fg-danger"
+        :label="t('spaces.speech.audiobook.removeChapter')"
+        :disabled="disabled"
+        @click="emit('remove')"
+        ><Trash2 class="size-3.5"
+      /></UiIconButton>
+    </div>
   </div>
 </template>

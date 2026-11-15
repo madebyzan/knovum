@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ScrollAreaRoot, ScrollAreaScrollbar, ScrollAreaThumb, ScrollAreaViewport } from "reka-ui";
 import { useTemplateRef } from "vue";
-import type { HTMLAttributes } from "vue";
+import type { HTMLAttributes, StyleValue } from "vue";
 
 import { cn } from "./cn";
 
 const props = defineProps<{
   class?: HTMLAttributes["class"];
   viewportClass?: HTMLAttributes["class"];
+  viewportStyle?: StyleValue | undefined;
 }>();
 const emit = defineEmits<{ scroll: [] }>();
 const viewport = useTemplateRef<{ viewportElement: HTMLElement }>("viewport");
@@ -23,6 +24,7 @@ defineExpose({
     <ScrollAreaViewport
       ref="viewport"
       :class="cn('relative size-full overscroll-contain', props.viewportClass)"
+      :style="props.viewportStyle"
       @scroll.passive="emit('scroll')"
       ><slot
     /></ScrollAreaViewport>

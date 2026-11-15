@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef, type DeepReadonly } from "vue";
+import { computed, shallowRef, useTemplateRef, type CSSProperties, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
+import UiProgress from "../../../../shared/ui/UiProgress.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import type { SaveSpeechProjectRevisionRequest } from "../../contracts/generated/SaveSpeechProjectRevisionRequest";
 import type { SpeechAudioOutput } from "../../contracts/generated/SpeechAudioOutput";
@@ -74,6 +75,15 @@ const canGenerate = computed(
     !editorDisabled.value &&
     (Boolean(draftInput.value) || (!isDirty.value && props.project.segments.length > 0)),
 );
+const hasStatusDock = computed(
+  () => props.previewing || props.generating || (Boolean(props.preview) && !isDirty.value),
+);
+const scrollMaxHeightStyle = computed<CSSProperties>(() => ({
+  maxHeight: hasStatusDock.value
+    ? "min(19rem, calc(var(--speech-scroll-max-h, 23rem) - 3.5rem))"
+    : "min(23rem, var(--speech-scroll-max-h, 23rem))",
+}));
+
 function stageLabel(stage: SpeechGenerationProgress["stage"]) {
   if (stage === "preparing") return t("spaces.speech.project.stages.preparing");
   if (stage === "synthesizing") return t("spaces.speech.project.stages.synthesizing");
@@ -96,11 +106,22 @@ function updateDraft(
   draftInput.value = input;
   emit("draftState", value, input);
 }
+
+function submitOnShortcut(event: KeyboardEvent) {
+  if (!(event.metaKey || event.ctrlKey) || event.key !== "Enter" || !canGenerate.value) return;
+  event.preventDefault();
+  emit("generate", draftInput.value);
+}
 </script>
 
 <template>
-  <section class="flex min-h-0 flex-col">
-    <UiScrollArea ref="scrollerRef" class="max-h-96 min-h-0" viewport-class="max-h-[inherit]">
+  <section class="flex min-h-0 flex-1 flex-col" @keydown="submitOnShortcut">
+    <UiScrollArea
+      ref="scrollerRef"
+      class="min-h-0 flex-1"
+      :style="scrollMaxHeightStyle"
+      :viewport-style="scrollMaxHeightStyle"
+    >
       <div class="space-y-3 p-3">
         <SpeechVoiceAvailability :voices="voices" />
         <ShortDubbingEditor
@@ -132,12 +153,6 @@ function updateDraft(
           @preview="(...args) => emit('preview', ...args)"
           @busy="isOperationBusy = $event"
         />
-        <SpeechMediaPlayer
-          v-if="preview && !isDirty"
-          kind="audio"
-          :source="preview.source"
-          @play="emit('stopListening')"
-        />
         <SpeechSettingsDisclosure
           v-if="project.project.projectType === 'video_dubbing' && project.segments.length && !isDirty"
           :title="t('spaces.speech.videoDubbing.delivery')"
@@ -155,13 +170,31 @@ function updateDraft(
         </SpeechSettingsDisclosure>
       </div>
     </UiScrollArea>
-    <div v-if="previewing || generating" class="shrink-0 px-3 pb-2" role="status">
-      <p v-if="generating" class="text-caption-sm text-fg-tertiary">
-        {{ t("spaces.speech.project.generatingInTasks") }}
-      </p>
-      <p v-else-if="progress" class="text-caption-sm text-fg-tertiary">
-        {{ stageLabel(progress.stage) }} · {{ progress.completed }}/{{ progress.total }}
-      </p>
+    <div v-if="hasStatusDock" class="shrink-0 space-y-2 border-t border-stroke-divider px-3 py-2">
+      <div v-if="previewing || generating" class="space-y-1.5" role="status">
+        <div class="flex items-center justify-between gap-2 text-caption-sm text-fg-secondary tabular-nums">
+          <span>{{
+            generating
+              ? t("spaces.speech.project.generatingInTasks")
+              : progress
+                ? stageLabel(progress.stage)
+                : t("spaces.speech.preview.preparing")
+          }}</span>
+          <span v-if="!generating && progress" class="text-fg-tertiary">
+            {{ progress.completed }}/{{ progress.total }}
+          </span>
+        </div>
+        <UiProgress
+          :value="generating || !progress ? null : progress.completed"
+          :max="progress ? Math.max(progress.total, 1) : 100"
+        />
+      </div>
+      <SpeechMediaPlayer
+        v-if="preview && !isDirty"
+        kind="audio"
+        :source="preview.source"
+        @play="emit('stopListening')"
+      />
     </div>
     <SpeechProjectActions
       :can-generate="canGenerate"

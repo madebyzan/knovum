@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { FileUp } from "@lucide/vue";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { computed, onScopeDispose, shallowRef, useTemplateRef, watch } from "vue";
@@ -79,31 +80,40 @@ defineExpose({ audition: (startMs: number, endMs: number) => player.value?.seekT
 </script>
 
 <template>
-  <section class="space-y-2">
+  <section class="space-y-2.5">
     <SpeechMediaPlayer
       ref="player"
       kind="video"
       :preview="false"
       :source="convertFileSrc(config.video.assetPath)"
     />
-    <UiButton size="sm" :disabled="disabled || importing" @click="importSubtitles">{{
-      t("spaces.speech.videoDubbing.importSubtitles")
-    }}</UiButton>
+    <div class="flex flex-wrap items-center gap-1.5">
+      <UiButton size="sm" variant="secondary" :disabled="disabled || importing" @click="importSubtitles">
+        <FileUp class="size-3.5" />
+        {{ t("spaces.speech.videoDubbing.importSubtitles") }}
+      </UiButton>
+      <slot name="actions" />
+    </div>
     <p v-if="error" class="text-caption text-fg-danger">{{ error }}</p>
-    <div v-for="speaker in speakers" :key="speaker.key" class="flex items-center gap-2">
-      <span class="max-w-24 shrink-0 truncate text-caption text-fg-secondary" :title="speaker.key">{{
-        speaker.key
-      }}</span>
-      <UiSelect
-        class="min-w-0 flex-1"
-        :model-value="speaker.revisionId"
-        size="sm"
-        :options="voiceOptions"
-        :label="t('spaces.speech.voice.label')"
-        :placeholder="t('spaces.speech.videoDubbing.mixedVoiceBindings')"
-        :disabled
-        @update:model-value="emit('bind', speaker.key, $event)"
-      />
+    <div
+      v-if="speakers.length"
+      class="divide-y divide-stroke-divider overflow-hidden rounded-md border border-stroke-default bg-surface-raised"
+    >
+      <div v-for="speaker in speakers" :key="speaker.key" class="flex items-center gap-2 px-2 py-1">
+        <span class="w-20 shrink-0 truncate text-caption font-medium text-fg-secondary" :title="speaker.key">
+          {{ speaker.key }}
+        </span>
+        <UiSelect
+          class="min-w-0 flex-1 border-transparent bg-transparent shadow-none hover:border-transparent hover:bg-surface-control focus:border-stroke-focus"
+          :model-value="speaker.revisionId"
+          size="sm"
+          :options="voiceOptions"
+          :label="t('spaces.speech.voice.label')"
+          :placeholder="t('spaces.speech.videoDubbing.mixedVoiceBindings')"
+          :disabled
+          @update:model-value="emit('bind', speaker.key, $event)"
+        />
+      </div>
     </div>
   </section>
 </template>

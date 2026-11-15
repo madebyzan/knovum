@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plus } from "@lucide/vue";
+import { Languages, Plus } from "@lucide/vue";
 import { computed, shallowRef, useTemplateRef, watch, watchEffect, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -13,6 +13,7 @@ import { deliveryInstructionVoiceIds, voiceRevisionOptions } from "../voice-opti
 import PronunciationLexiconEditor from "./PronunciationLexiconEditor.vue";
 import SpeechEditorPage from "./SpeechEditorPage.vue";
 import SpeechEditorTabs from "./SpeechEditorTabs.vue";
+import type { SpeechSegmentedTabItem } from "./SpeechSegmentedTabs.vue";
 import SpeechSettingsDisclosure from "./SpeechSettingsDisclosure.vue";
 import VideoDubbingLines from "./VideoDubbingLines.vue";
 import VideoDubbingMixSettings from "./VideoDubbingMixSettings.vue";
@@ -36,18 +37,34 @@ const emit = defineEmits<{
 }>();
 const { t } = useI18n();
 const page = shallowRef("script");
-const pages = computed(() => [
-  { value: "script", label: t("spaces.speech.project.script.label") },
-  { value: "mixing", label: t("spaces.speech.videoDubbing.mixingSettings") },
-]);
+const translationOpen = shallowRef(false);
 const translationBusy = shallowRef(false);
 const editingDisabled = computed(() => props.disabled || translationBusy.value);
-watch(translationBusy, (value) => emit("busy", value), { immediate: true });
+watch(
+  translationBusy,
+  (value) => {
+    if (value) translationOpen.value = true;
+    emit("busy", value);
+  },
+  { immediate: true },
+);
 const sourceControls = useTemplateRef("sourceControls");
 const draft = useVideoDubbingDraft(
   () => props.project,
   () => props.voices,
 );
+const pages = computed<SpeechSegmentedTabItem[]>(() => [
+  {
+    value: "script",
+    label: t("spaces.speech.project.script.label"),
+    badge: draft.lines.value.length || undefined,
+  },
+  {
+    value: "mixing",
+    label: t("spaces.speech.videoDubbing.mixingSettings"),
+    invalid: !draft.lexicon.isValid.value,
+  },
+]);
 const { videos } = useSpeechMediaSources();
 const transcript = computed(
   () =>
@@ -107,20 +124,45 @@ function previewLine(text: string, voiceRevisionId: string, instruction?: string
         :disabled="editingDisabled"
         @bind="draft.bindSpeaker"
         @imported="draft.importSubtitles"
-      />
-      <p v-if="!draft.lines.value.length" class="text-caption text-fg-secondary">
-        {{ t("spaces.speech.project.emptyVideoScript") }}
-      </p>
-      <UiButton
-        v-if="transcript && !draft.lines.value.length"
-        size="sm"
-        :disabled="editingDisabled"
-        @click="draft.importTranscript(transcript)"
       >
-        {{ t("spaces.speech.videoDubbing.importTranscript") }}
-      </UiButton>
+        <template v-if="draft.lines.value.length" #actions>
+          <UiButton
+            size="sm"
+            :variant="translationOpen ? 'secondary' : 'ghost'"
+            :aria-expanded="translationOpen"
+            :disabled="editingDisabled"
+            @click="translationOpen = !translationOpen"
+          >
+            <Languages class="size-3.5" />
+            {{ t("spaces.speech.translation.translate") }}
+          </UiButton>
+        </template>
+      </VideoSourceControls>
+      <div
+        v-if="!draft.lines.value.length"
+        class="space-y-2.5 rounded-panel border border-dashed border-stroke-default bg-surface-panel p-4 text-center"
+      >
+        <p class="text-caption leading-relaxed text-fg-secondary">
+          {{ t("spaces.speech.project.emptyVideoScript") }}
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-2">
+          <UiButton
+            v-if="transcript"
+            size="sm"
+            variant="secondary"
+            :disabled="editingDisabled"
+            @click="draft.importTranscript(transcript)"
+          >
+            {{ t("spaces.speech.videoDubbing.importTranscript") }}
+          </UiButton>
+          <UiButton size="sm" variant="ghost" :disabled="editingDisabled" @click="draft.addLine()"
+            ><Plus class="size-3.5" />{{ t("spaces.speech.videoDubbing.addLine") }}</UiButton
+          >
+        </div>
+      </div>
       <VideoTranslationControls
         v-if="draft.lines.value.length"
+        v-show="translationOpen"
         :project-id="project.project.id"
         :expected-revision="project.project.activeRevision"
         :line-count="draft.lines.value.length"
@@ -143,11 +185,14 @@ function previewLine(text: string, voiceRevisionId: string, instruction?: string
         @update="draft.updateLine"
         @apply-all="draft.applyVoiceToAll"
       />
-      <div class="flex gap-2">
-        <UiButton size="sm" variant="ghost" :disabled="editingDisabled" @click="draft.addLine()"
-          ><Plus class="size-3.5" />{{ t("spaces.speech.videoDubbing.addLine") }}</UiButton
-        >
-      </div>
+      <UiButton
+        v-if="draft.lines.value.length"
+        size="sm"
+        variant="ghost"
+        :disabled="editingDisabled"
+        @click="draft.addLine()"
+        ><Plus class="size-3.5" />{{ t("spaces.speech.videoDubbing.addLine") }}</UiButton
+      >
     </SpeechEditorPage>
     <SpeechEditorPage value="mixing" :active="page">
       <VideoDubbingMixSettings
@@ -162,6 +207,7 @@ function previewLine(text: string, voiceRevisionId: string, instruction?: string
       />
       <SpeechSettingsDisclosure
         :title="t('spaces.speech.audiobook.lexicon.title')"
+        :summary="draft.lexicon.entries.value.length ? String(draft.lexicon.entries.value.length) : undefined"
         :is-invalid="!draft.lexicon.isValid.value"
       >
         <PronunciationLexiconEditor

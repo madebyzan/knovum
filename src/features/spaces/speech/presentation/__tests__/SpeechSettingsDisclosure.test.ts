@@ -41,3 +41,9 @@ it("exposes invalid settings immediately and again if validation fails later", a
   expect(wrapper.get("input").isVisible()).toBe(true);
   expect(wrapper.get("button").attributes("aria-expanded")).toBe("true");
 });
+it("renders an optional summary badge only when summary text is provided", async () => {
+  const wrapper = render();
+  expect(wrapper.get("button").text()).toBe("Mix");
+  await wrapper.setProps({ summary: "0 dB" });
+  expect(wrapper.get("button").text()).toContain("0 dB");
+});

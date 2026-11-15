@@ -105,15 +105,22 @@ defineExpose({ requestClose });
 </script>
 
 <template>
-  <div class="flex min-h-0 flex-col" :aria-busy="loading || creatingProject">
+  <div class="flex min-h-0 flex-1 flex-col" :aria-busy="loading || creatingProject">
     <SpeechNodeEditorHeader :node :project-type @close="emit('close')" />
-    <div v-if="errors.length" class="space-y-1 bg-surface-danger-subtle px-3 py-2" role="alert">
+    <div
+      v-if="errors.length"
+      class="space-y-1 border-b border-stroke-divider bg-surface-danger-subtle px-3.5 py-2"
+      role="alert"
+    >
       <p v-for="message in errors" :key="message" class="text-caption text-fg-danger">{{ message }}</p>
     </div>
-    <div v-if="loading || creatingProject" class="flex items-center gap-2 p-3 text-caption text-fg-secondary">
+    <div
+      v-if="loading || creatingProject"
+      class="flex items-center gap-2 p-3.5 text-caption text-fg-secondary"
+    >
       <UiSpinner size="sm" />{{ $t("common.loading") }}
     </div>
-    <div v-if="!loading && !creatingProject && !selectedProject" class="space-y-2 p-3">
+    <div v-if="!loading && !creatingProject && !selectedProject" class="space-y-2 p-3.5">
       <p v-if="!initialInput" class="text-caption text-fg-secondary" role="status">
         {{ $t("spaces.speech.project.sourceNotReady") }}
       </p>
