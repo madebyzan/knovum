@@ -9,8 +9,8 @@
       "binding": "DB",
       "database_name": "knovum-analytics",
       "database_id": "REPLACE_WITH_DATABASE_ID",
-      "migrations_dir": "migrations"
-    }
+      "migrations_dir": "migrations",
+    },
   ],
-  "triggers": { "crons": ["17 3 * * *"] }
+  "triggers": { "crons": ["17 3 * * *"] },
 }

@@ -71,10 +71,10 @@ test("rejects oversized request bodies before parsing", async () => {
 
 test("rejects extra fields so content cannot be smuggled into the event", async () => {
   const DB = createDatabase();
-  const response = await worker.fetch(
-    createRequest({ ...payload, note: "private note text" }),
-    { DB, INSTALLATION_HASH_SALT: "a".repeat(64) },
-  );
+  const response = await worker.fetch(createRequest({ ...payload, note: "private note text" }), {
+    DB,
+    INSTALLATION_HASH_SALT: "a".repeat(64),
+  });
 
   assert.equal(response.status, 400);
   assert.equal(DB.calls.length, 0);
@@ -82,14 +82,14 @@ test("rejects extra fields so content cannot be smuggled into the event", async 
 
 test("rejects unsupported event names and platforms", async () => {
   const DB = createDatabase();
-  const badEvent = await worker.fetch(
-    createRequest({ ...payload, event: "search_performed" }),
-    { DB, INSTALLATION_HASH_SALT: "a".repeat(64) },
-  );
-  const badPlatform = await worker.fetch(
-    createRequest({ ...payload, platform: "unknown" }),
-    { DB, INSTALLATION_HASH_SALT: "a".repeat(64) },
-  );
+  const badEvent = await worker.fetch(createRequest({ ...payload, event: "search_performed" }), {
+    DB,
+    INSTALLATION_HASH_SALT: "a".repeat(64),
+  });
+  const badPlatform = await worker.fetch(createRequest({ ...payload, platform: "unknown" }), {
+    DB,
+    INSTALLATION_HASH_SALT: "a".repeat(64),
+  });
 
   assert.equal(badEvent.status, 400);
   assert.equal(badPlatform.status, 400);
@@ -102,10 +102,10 @@ test("returns a non-success response when the Worker has no configured D1 or sal
 });
 
 test("does not expose a method or route other than the event endpoint", async () => {
-  const getResponse = await worker.fetch(
-    new Request("https://analytics.example.workers.dev/event"),
-    { DB: createDatabase(), INSTALLATION_HASH_SALT: "a".repeat(64) },
-  );
+  const getResponse = await worker.fetch(new Request("https://analytics.example.workers.dev/event"), {
+    DB: createDatabase(),
+    INSTALLATION_HASH_SALT: "a".repeat(64),
+  });
   const otherRoute = await worker.fetch(
     new Request("https://analytics.example.workers.dev/metrics", { method: "POST" }),
     { DB: createDatabase(), INSTALLATION_HASH_SALT: "a".repeat(64) },

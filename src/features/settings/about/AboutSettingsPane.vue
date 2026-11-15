@@ -86,10 +86,10 @@ async function perform(action: () => Promise<unknown>) {
         />
       </PreferenceField>
       <p v-if="analyticsStatus === 'not_configured'" class="px-4 text-caption text-fg-secondary">
-        {{ t('settings.general.analytics.notConfigured') }}
+        {{ t("settings.general.analytics.notConfigured") }}
       </p>
       <p v-else-if="analyticsStatus === 'unavailable'" class="px-4 text-caption text-fg-secondary">
-        {{ t('settings.general.analytics.unavailable') }}
+        {{ t("settings.general.analytics.unavailable") }}
       </p>
     </UiSettingsSection>
     <UiSettingsSection :title="t('updates.title')" :description="t('updates.description')">
