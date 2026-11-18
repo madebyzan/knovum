@@ -62,5 +62,12 @@ minimumReleaseAgeExclude:
   - vite@8.3.3
 
 # Clipboard uses Valibot primitives compatible with 1.4.2; remove when upstream updates.
+# Undici overrides stay strictly within existing ^6 / ^7 ranges for wdio/cheerio transitive security patches.
 overrides:
   "tauri-plugin-clipboard-api@2.1.11>valibot": "1.4.2"
+  "undici@^6": ">=6.29.1 <7"
+  "undici@^7": ">=7.30.1 <8"
+
+auditConfig:
+  ignoreGhsas:
+    - GHSA-fc5q-39xc-vjpf

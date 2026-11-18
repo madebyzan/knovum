@@ -96,6 +96,10 @@ hide an advisory are prohibited.
 - `tauri-plugin-clipboard-api@2.1.11 > valibot` is overridden to `1.4.2`. Remove the override when a
   compatible plugin release selects a supported secure Valibot version and the valid and malformed
   clipboard payload regressions pass.
+- `undici@^6` (`>=6.29.1 <7`) and `undici@^7` (`>=7.30.1 <8`) are overridden within their existing
+  major ranges for dev-only WebdriverIO / Cheerio E2E tooling (`GHSA-4w7w-5xrc-9h26` and related
+  disclosures). Remove the overrides once `@wdio/*` / `cheerio` lockfile resolution admits those
+  patched versions directly and `pnpm e2e` / `pnpm check:web` pass.
 
 No exception constitutes platform, distribution or legal approval.
 

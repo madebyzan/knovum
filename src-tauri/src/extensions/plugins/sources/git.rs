@@ -121,7 +121,7 @@ fn read_objects(
                 client: client.clone(),
                 origin: origin.clone(),
             },
-            gix::url::parse(origin.as_str()).map_err(|error| error.erased())?,
+            gix::url::parse(origin.as_str())?,
             gix::protocol::transport::Protocol::V2,
             false,
         );

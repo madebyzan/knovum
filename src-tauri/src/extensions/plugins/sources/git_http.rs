@@ -1,7 +1,7 @@
+use gix::error::{ErrorExt as _, ResultExt as _};
 use gix::protocol::transport::client::blocking_io::http::{
     self, GetResponse, Http, PostBodyDataKind, PostResponse,
 };
-use gix::{error::ResultExt, ExnMessageResult, ExnResult};
 use std::{
     io::{self, BufRead, BufReader, Cursor, Read, Write},
     sync::{Arc, Mutex},
@@ -50,7 +50,7 @@ impl Http for GitHttp {
         url: &str,
         _base_url: &str,
         headers: impl IntoIterator<Item = impl AsRef<str>>,
-    ) -> ExnMessageResult<GetResponse<Reader, Reader>> {
+    ) -> gix::Result<GetResponse<Reader, Reader>> {
         let response = self
             .request(url, headers, reqwest::Method::GET)
             .and_then(send)
@@ -70,7 +70,7 @@ impl Http for GitHttp {
         _base_url: &str,
         headers: impl IntoIterator<Item = impl AsRef<str>>,
         _body: PostBodyDataKind,
-    ) -> ExnMessageResult<PostResponse<Reader, Reader, GitUpload>> {
+    ) -> gix::Result<PostResponse<Reader, Reader, GitUpload>> {
         let request = self
             .request(url, headers, reqwest::Method::POST)
             .or_raise(|| gix::error::message("Git HTTPS fetch request failed"))?;
@@ -95,12 +95,9 @@ impl Http for GitHttp {
             })),
         })
     }
-    fn configure(&mut self, config: &dyn std::any::Any) -> ExnResult {
+    fn configure(&mut self, config: &dyn std::any::Any) -> gix::Result<()> {
         if !config.is::<http::Options>() {
-            return Err(gix::error::Exn::new(gix::error::message(
-                "Git transport configuration is invalid",
-            ))
-            .erased());
+            return Err(gix::error::message("Git transport configuration is invalid").raise());
         }
         Ok(())
     }
