@@ -3334,9 +3334,9 @@ dependencies = [
 
 [[package]]
 name = "encoding_rs"
-version = "0.8.42"
+version = "0.8.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e985e0451871ad22fb8d2b6b076e2028a502a0d3950998c2c5c0a4f9b5d9679"
+checksum = "89253175e704ab869b04f9db224d38630e0211a53841a79181deae0889e169f5"
 dependencies = [
  "cfg-if 1.0.5",
  "core_detect",
@@ -3352,7 +3352,7 @@ version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fba3fe847045ecff794b9c138293a80db914678c453ad63fbf0c6a9eb6e00b22"
 dependencies = [
- "encoding_rs 0.8.42",
+ "encoding_rs 0.8.44",
 ]
 
 [[package]]
@@ -4774,7 +4774,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8df8d50fda4684c6ec366f75e4082ab6fc3d437d3deec30ff88462710b68d17"
 dependencies = [
  "bstr",
- "encoding_rs 0.8.42",
+ "encoding_rs 0.8.44",
  "gix-attributes",
  "gix-command",
  "gix-error",
@@ -6903,7 +6903,7 @@ dependencies = [
  "cpal",
  "docx-rs",
  "dunce",
- "encoding_rs 0.8.42",
+ "encoding_rs 0.8.44",
  "flate2",
  "fnv",
  "fontdb 0.24.0",
@@ -7966,7 +7966,7 @@ dependencies = [
  "csv",
  "daachorse 2.1.1",
  "derive_builder",
- "encoding_rs 0.8.42",
+ "encoding_rs 0.8.44",
  "encoding_rs_io",
  "glob",
  "log",
@@ -8068,7 +8068,7 @@ dependencies = [
  "cbc",
  "chrono",
  "ecb",
- "encoding_rs 0.8.42",
+ "encoding_rs 0.8.44",
  "flate2",
  "getrandom 0.4.3",
  "indexmap 2.14.2",
@@ -9288,7 +9288,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96174357b389a992d7864db7a7a10a1254b82716cdfc40bee54f1da1234291bf"
 dependencies = [
  "atoi_simd",
- "encoding_rs 0.8.42",
+ "encoding_rs 0.8.44",
  "fast-float2",
  "flate2",
  "log",
@@ -10162,7 +10162,7 @@ version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e660451e55124f798a69a5af3f49ccfbefbd41910eefd25caf2393e1f3473ec1"
 dependencies = [
- "encoding_rs 0.8.42",
+ "encoding_rs 0.8.44",
  "memchr",
  "serde",
 ]
@@ -10653,7 +10653,7 @@ checksum = "eddd3ca559203180a307f12d114c268abf583f59b03cb906fd0b3ff8646c1147"
 dependencies = [
  "base64 0.22.1",
  "bytes",
- "encoding_rs 0.8.42",
+ "encoding_rs 0.8.44",
  "futures-core",
  "futures-util",
  "h2",
@@ -10699,7 +10699,7 @@ checksum = "16a1cfa75cc186dd73d5818e510e042e40927bccc9c236b061cea97e1eb08029"
 dependencies = [
  "base64 0.23.1",
  "bytes",
- "encoding_rs 0.8.42",
+ "encoding_rs 0.8.44",
  "futures-channel",
  "futures-core",
  "futures-util",
