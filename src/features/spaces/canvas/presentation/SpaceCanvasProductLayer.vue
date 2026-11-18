@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useCanvasGeneratorStore } from "../../knowledge-derivations/generators/generator-store";
 import { useSelectionDerivations } from "../../knowledge-derivations/selection/use-selection-derivations";
+import type { SpaceRelation } from "../../model/relations/relation";
 import SpaceCanvasSceneControls from "../../scenes/presentation/SpaceCanvasSceneControls.vue";
 import SpaceFind from "../../search/presentation/SpaceFind.vue";
 import SpaceGlobalFind from "../../search/presentation/SpaceGlobalFind.vue";
@@ -13,6 +14,7 @@ import { useSpaceStore } from "../../session/space-store";
 import { useCanvasToolStore } from "../canvas-tool-store";
 import { getCanvasEditorSession } from "../editor-session";
 import { useCanvasSelectionProjection } from "../use-canvas-selection-projection";
+import SpaceCanvasMinimap from "./minimap/SpaceCanvasMinimap.vue";
 import { canvasSelectionGap } from "./selection/canvas-selection-gap";
 import SpaceCanvasRelationBar from "./selection/SpaceCanvasRelationBar.vue";
 import SpaceCanvasSelectionAnchor from "./selection/SpaceCanvasSelectionAnchor.vue";
@@ -27,6 +29,7 @@ defineProps<{
   canvasToViewportPoint(point: { x: number; y: number }): { x: number; y: number };
   empty: boolean;
   navigationEnabled: boolean;
+  relations: readonly SpaceRelation[];
   error?: string;
   fileHover: boolean;
   fileHoverPosition?: { x: number; y: number };
@@ -48,7 +51,7 @@ const derivations = useSelectionDerivations(selectedNodes);
 const generators = useCanvasGeneratorStore();
 const emit = defineEmits<{ dismissError: [] }>();
 const CANVAS_CHROME_INSETS = { top: 8, right: 16, bottom: 8, left: 16 } as const;
-const { chromeRects } = useCanvasChromeRects();
+const { chromeRects, hostSize } = useCanvasChromeRects();
 const singleCanvasObjectSelected = computed(
   () =>
     editorSession.selection.value.nodeIds.length + editorSession.selection.value.structureNodeIds.length ===
@@ -105,6 +108,13 @@ const selectionBarGap = computed(() =>
           <Star class="size-3" :stroke-width="1.55" />
         </UiIconButton>
       </div>
+    </div>
+    <div ref="minimapChrome" class="pointer-events-none absolute right-1 bottom-1">
+      <SpaceCanvasMinimap
+        :navigation-enabled="navigationEnabled"
+        :host-size="hostSize"
+        :relations="relations"
+      />
     </div>
     <SpaceCanvasSelectionAnchor
       v-if="

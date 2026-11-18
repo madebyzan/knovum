@@ -2,7 +2,7 @@ import { compact, intersectionBy } from "es-toolkit";
 
 import type { CanvasRect, CanvasViewport } from "../../contracts/canvas-editor-port";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
-import { screenPointFromCanvas, zoomViewportAt } from "./viewport-math";
+import { screenPointFromCanvas, zoomViewportAt } from "../../viewport-math";
 
 /** Canvas layout nodeIds are schema-unique, so the intersection cannot drop a layout. */
 function layoutNodeId(item: CanvasNodeLayoutV1 | string) {

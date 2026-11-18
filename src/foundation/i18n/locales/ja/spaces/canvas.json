@@ -172,5 +172,12 @@
   "addContent": {
     "title": "コンテンツの追加",
     "importFiles": "ファイルをインポート…"
+  },
+  "minimap": {
+    "title": "ミニマップ",
+    "show": "ミニマップを表示",
+    "hide": "ミニマップを非表示",
+    "toggle": "ミニマップを切り替え",
+    "viewport": "現在の表示範囲"
   }
 }

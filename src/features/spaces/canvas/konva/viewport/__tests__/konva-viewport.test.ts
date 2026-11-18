@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { canvasPointFromScreen, zoomViewportAt } from "../../../viewport-math";
 import { fitCanvasObjects } from "../canvas-editor-navigation";
-import { canvasPointFromScreen, zoomViewportAt } from "../viewport-math";
 
 describe("Konva canvas viewport", () => {
   it("keeps the canvas point under the pointer stable while zooming", () => {

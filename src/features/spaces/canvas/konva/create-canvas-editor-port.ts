@@ -3,6 +3,7 @@ import { createStructureIndex } from "../../model/structure/structure-index";
 import type { CanvasEditorPort, CanvasPoint } from "../contracts/canvas-editor-port";
 import { canvasAppearanceUpdate } from "../schema/document";
 import type { CanvasNodeAppearance } from "../schema/document";
+import { canvasPointFromScreen, screenPointFromCanvas } from "../viewport-math";
 import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";
 import { createCanvasEditorSelection } from "./canvas-editor-selection";
 import { createCanvasContentHeightFitting } from "./content-height-fitting";
@@ -14,7 +15,6 @@ import {
   setCanvasZoom,
   zoomCanvasViewport,
 } from "./viewport/canvas-editor-navigation";
-import { canvasPointFromScreen, screenPointFromCanvas } from "./viewport/viewport-math";
 
 export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEditorPort {
   const animatedNavigation = { ...options, setViewport: options.animateViewport };

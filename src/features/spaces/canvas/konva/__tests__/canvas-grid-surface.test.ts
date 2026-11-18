@@ -2,8 +2,8 @@ import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 
+import type { CanvasPalette } from "../../use-canvas-palette";
 import CanvasGridSurface from "../rendering/CanvasGridSurface.vue";
-import type { CanvasPalette } from "../rendering/use-canvas-palette";
 import { createCanvasCamera } from "../viewport/canvas-camera";
 
 const palette = { grid: "#abcdef" } as unknown as CanvasPalette;

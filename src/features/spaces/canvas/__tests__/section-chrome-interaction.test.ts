@@ -12,7 +12,7 @@ import { i18n } from "../../../../foundation/i18n/instance";
 import type { ProjectedSection } from "../document/structure-scene";
 import CanvasSectionChrome from "../konva/rendering/CanvasSectionChrome.vue";
 import CanvasSectionResizeHandles from "../konva/rendering/CanvasSectionResizeHandles.vue";
-import type { CanvasPalette } from "../konva/rendering/use-canvas-palette";
+import type { CanvasPalette } from "../use-canvas-palette";
 
 type KonvaPointerHandlers = {
   onPointerenter(event: Konva.KonvaEventObject<PointerEvent>): void;

@@ -4,6 +4,7 @@ import { computed, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import type { VueKonvaRef } from "vue-konva/core";
 
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
+import type { CanvasPalette } from "../../use-canvas-palette";
 import type { CanvasGestureFeedback, CanvasSnapGuide } from "../interaction/canvas-snapping";
 import type { CanvasConnectorDraft } from "../interaction/connector-gesture-controller";
 import type { CanvasScene, CanvasSceneRelation } from "../scene/canvas-scene";
@@ -17,7 +18,6 @@ import CanvasNodeShape from "./CanvasNodeShape.vue";
 import CanvasRelationsLayer from "./CanvasRelationsLayer.vue";
 import CanvasSelectionTransformer from "./CanvasSelectionTransformer.vue";
 import { useCanvasOverviewLayer } from "./use-canvas-overview-layer";
-import type { CanvasPalette } from "./use-canvas-palette";
 import { sceneNodesInPaintOrder, useCanvasSceneLayerProjection } from "./use-canvas-scene-layer-projection";
 
 function relayPointerDown(nodeId: string, event: Konva.KonvaEventObject<PointerEvent>) {

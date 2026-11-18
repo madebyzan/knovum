@@ -172,5 +172,12 @@
   "addContent": {
     "title": "Inhalt hinzufügen",
     "importFiles": "Dateien importieren…"
+  },
+  "minimap": {
+    "title": "Minikarte",
+    "show": "Minikarte anzeigen",
+    "hide": "Minikarte ausblenden",
+    "toggle": "Minikarte ein-/ausblenden",
+    "viewport": "Aktueller Ansichtsbereich"
   }
 }

@@ -77,6 +77,7 @@ const CANVAS_SHORTCUTS: readonly ShortcutItemDefinition[] = [
   withExtra(def("spaces.zoom-to-selection", "spaces.canvas.zoom.toSelection", "Shift+1", "canvas"), {
     keybindings: ["Shift+Digit1"],
   }),
+  def("spaces.toggle-minimap", "spaces.canvas.minimap.toggle", "M", "canvas"),
   def("spaces.cancel-canvas-interaction", "spaces.canvas.cancelInteraction", "Escape", "canvas"),
   def("spaces.ask", "spaces.conversation.evidence.ask", "$mod+Enter", "canvas"),
   def("spaces.find", "spaces.search.find.title", "$mod+F", "canvas"),

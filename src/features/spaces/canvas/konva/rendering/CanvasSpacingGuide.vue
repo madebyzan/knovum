@@ -2,8 +2,8 @@
 import { computed } from "vue";
 import { Group as KonvaGroup, Line as KonvaLine, Text as KonvaText } from "vue-konva/core";
 
+import type { CanvasPalette } from "../../use-canvas-palette";
 import type { CanvasSnapGuide } from "../interaction/canvas-snapping";
-import type { CanvasPalette } from "./use-canvas-palette";
 
 const props = defineProps<{ guide: CanvasSnapGuide; zoom: number; palette: CanvasPalette }>();
 const measurement = computed(() => {

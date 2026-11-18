@@ -1,7 +1,7 @@
 import Konva from "konva";
 
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
-import type { CanvasPalette } from "../rendering/use-canvas-palette";
+import type { CanvasPalette } from "../../use-canvas-palette";
 import type { CanvasScene } from "../scene/canvas-scene";
 import { restingRelations } from "../scene/scene-relations";
 import { loadCanvasOverviewImages } from "./assets";

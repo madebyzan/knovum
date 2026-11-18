@@ -12,9 +12,9 @@ import "konva/lib/shapes/Rect";
 // oxlint-disable-next-line import/no-unassigned-import
 import "konva/lib/shapes/Text";
 
+import type { CanvasPalette } from "../../use-canvas-palette";
 import type { CanvasGestureFeedback } from "../interaction/canvas-snapping";
 import CanvasSpacingGuide from "./CanvasSpacingGuide.vue";
-import type { CanvasPalette } from "./use-canvas-palette";
 
 const props = defineProps<{
   feedback: CanvasGestureFeedback | undefined;

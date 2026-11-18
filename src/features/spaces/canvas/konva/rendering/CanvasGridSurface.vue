@@ -2,8 +2,8 @@
 import { useId, useTemplateRef, watch } from "vue";
 
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
+import type { CanvasPalette } from "../../use-canvas-palette";
 import type { CanvasCamera } from "../viewport/canvas-camera";
-import type { CanvasPalette } from "./use-canvas-palette";
 
 const GRID_SPACING = 25;
 const DOT_RADIUS = 1.1;

@@ -5,9 +5,9 @@ import { Group as KonvaGroup } from "vue-konva/core";
 
 import { createSpaceNotePayload } from "../../document-editing/tiptap-content";
 import CanvasNodeShape from "../konva/rendering/CanvasNodeShape.vue";
-import type { CanvasPalette } from "../konva/rendering/use-canvas-palette";
 import type { CanvasSceneNode } from "../konva/scene/canvas-scene";
 import { createSpaceNode } from "../node";
+import type { CanvasPalette } from "../use-canvas-palette";
 
 const sceneNode = {
   node: createSpaceNode(createSpaceNotePayload("Note"), { x: 0, y: 0 }, "note"),

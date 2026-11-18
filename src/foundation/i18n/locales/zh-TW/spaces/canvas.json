@@ -172,5 +172,12 @@
   "addContent": {
     "title": "添加內容",
     "importFiles": "導入文件…"
+  },
+  "minimap": {
+    "title": "小地圖",
+    "show": "顯示小地圖",
+    "hide": "隱藏小地圖",
+    "toggle": "切換小地圖",
+    "viewport": "目前檢視區"
   }
 }

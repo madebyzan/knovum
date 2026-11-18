@@ -176,6 +176,7 @@ const canvasEvents = createSpaceCanvasEvents({
       :canvas-to-viewport-point="canvasToViewportPoint"
       :empty="initialEmpty"
       :navigation-enabled="hasCanvasObjects"
+      :relations="visibleRelations"
       :file-hover="imports.fileHover.value"
       v-bind="{
         ...(canvasError ? { error: canvasError } : {}),

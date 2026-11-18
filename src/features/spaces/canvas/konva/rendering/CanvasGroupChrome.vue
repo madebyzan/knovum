@@ -11,12 +11,12 @@ import {
 
 import { canvasChromeMetrics } from "../../canvas-chrome-metrics";
 import type { ProjectedGroup } from "../../document/structure-scene";
+import type { CanvasPalette } from "../../use-canvas-palette";
 import {
   groupHandleTransform,
   type GroupHandleOrigin,
   type GroupHandleTransform,
 } from "../interaction/group-handle-transform";
-import type { CanvasPalette } from "./use-canvas-palette";
 
 type GroupHandleKind = "rotate" | "scale";
 const HANDLES: readonly GroupHandleKind[] = ["rotate", "scale"];

@@ -88,6 +88,13 @@ export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarC
       },
       run: () => session.activeEditor.value?.zoomToSelection(),
     }),
+    command("spaces.toggle-minimap", t("spaces.canvas.minimap.toggle"), {
+      shortcut: SPACE_COMMAND_SHORTCUTS.toggleMinimap,
+      availability: () => availableWhen(store.editSnapshot.structure.length > 0, "selection_not_eligible"),
+      run: () => {
+        store.minimapOpen = !store.minimapOpen;
+      },
+    }),
     command("spaces.previous-scene", t("spaces.scenes.previous"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.previousScene,
       category: "navigation",

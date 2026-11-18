@@ -2,9 +2,9 @@ import type Konva from "konva";
 import { computed, shallowRef, type Ref } from "vue";
 
 import type { CanvasHostEvents } from "../../contracts/canvas-editor";
+import { canvasPointFromScreen } from "../../viewport-math";
 import type { CanvasScene } from "../scene/canvas-scene";
 import type { useStageViewport } from "../viewport/use-stage-viewport";
-import { canvasPointFromScreen } from "../viewport/viewport-math";
 import { ConnectorGestureController, type CanvasConnectorDraft } from "./connector-gesture-controller";
 import { createConnectorTargetIndex } from "./connector-target-index";
 import { useCanvasEdgeAutoPan } from "./use-canvas-edge-auto-pan";
