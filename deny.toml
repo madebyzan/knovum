@@ -19,17 +19,19 @@ ignore = [
   { id = "RUSTSEC-2026-0391", reason = "affects stream::raw::{Encoder,Decoder}::with_context, which neither arrow-ipc nor lance-encoding calls" },
   { id = "RUSTSEC-2026-0398", reason = "affects seekable::Seekable::decompress, and the seekable feature is not enabled; enabled are arrays, legacy, std, zdict_builder" },
   { id = "RUSTSEC-2026-0403", reason = "affects stream::write::Decoder; dependents use only zstd::bulk and stream::copy_decode, which the advisory lists as unaffected" },
-  # zip 8.6.0 stays in the graph only through exact-pinned dependents whose latest releases
-  # still require zip ^8.6: docx-rs =0.4.22 in the app crate, oar-ocr =0.10.2 and
-  # candle-core =0.11.0 in the sealed inference worker. The advisory lives in the symlink
-  # branch of ZipArchive::extract_internal, which only the extract()/extract_to() family
-  # reaches; all three dependents read zip entries into memory (Cursor/BufReader with
-  # by_index/by_name) and never extract to disk, and oar-ocr and candle-core read only
-  # SHA-256-pinned model archives. Every untrusted-archive extraction the application owns
-  # (Space packages, books, plugin sources, file inspection, updater) runs on zip 9.3.0.
-  # Upgrading docx-rs, oar-ocr and candle-core to zip 9 releases retires this entry; adding
-  # another ignored advisory here does not.
-  { id = "RUSTSEC-2026-0429", reason = "affects the symlink branch of ZipArchive::extract_internal reached only through extract()/extract_to(); docx-rs, oar-ocr and candle-core read entries into memory and never call them" },
+  # zip 8.6.0 stays in the graph only through docx-rs =0.4.22 (its newest published release,
+  # which requires zip ^8.6). Knovum calls docx-rs solely in `documents::generation::docx` via
+  # `Docx::build().pack(&mut cursor)` to generate `.docx` output, enabling only `zip` deflate
+  # features (neither `aes-crypto` nor `legacy-zip` is enabled) and never calling
+  # `ZipArchive::extract`, `ZipStreamReader`, or `by_name_decrypt`. Every untrusted-archive
+  # extraction the application owns (Space packages, books, plugin sources, file inspection,
+  # updater) runs on zip 9.3.0. Upgrading docx-rs to a zip 9 release retires these entries;
+  # adding another ignored advisory here does not.
+  { id = "RUSTSEC-2026-0429", reason = "affects ZipArchive::extract()/extract_to(); docx-rs only packs generated DOCX output in memory and never extracts archives" },
+  { id = "RUSTSEC-2026-0545", reason = "affects AES entries via aes-crypto/by_name_decrypt; aes-crypto is not enabled on zip 8.6.0 and docx-rs only generates DOCX output" },
+  { id = "RUSTSEC-2026-0546", reason = "affects ZipArchive::extract()/extract_unwrapped_root_dir(); docx-rs only packs generated DOCX output and never calls extract" },
+  { id = "RUSTSEC-2026-0547", reason = "affects legacy-zip decoders (Shrink/Reduce/Implode); legacy-zip is not enabled on zip 8.6.0 and docx-rs only generates DOCX output" },
+  { id = "RUSTSEC-2026-0548", reason = "affects ZipStreamReader extraction mismatches; docx-rs only packs generated DOCX output and never uses ZipStreamReader" },
   # libsqlite3-sys 0.37.0 bundles SQLite 3.51.3 and reaches this build only through sqlx 0.9.0, the
   # newest published sqlx, whose sqlx-sqlite requires libsqlite3-sys >=0.30.1, <0.38.0. The patched
   # 0.39 is unreachable until sqlx publishes a release that admits it. The advisory needs a database
