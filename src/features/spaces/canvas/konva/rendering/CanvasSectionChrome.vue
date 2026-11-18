@@ -6,12 +6,12 @@ import { Group as KonvaGroup, Line as KonvaLine, Rect as KonvaRect, Text as Konv
 import { SECTION_HEADER_HEIGHT } from "../../../model/structure/section-metrics";
 import type { SectionDropPreview } from "../../../structure/section-drop-reparent";
 import type { ProjectedSection } from "../../document/structure-scene";
+import type { CanvasPalette } from "../../use-canvas-palette";
 import type { SectionResizeCorner } from "../interaction/structure-gesture-preview";
 import CanvasSectionCollapseToggle from "./CanvasSectionCollapseToggle.vue";
 import CanvasSectionContentCount from "./CanvasSectionContentCount.vue";
 import CanvasSectionDropFeedback from "./CanvasSectionDropFeedback.vue";
 import CanvasSectionResizeHandles from "./CanvasSectionResizeHandles.vue";
-import type { CanvasPalette } from "./use-canvas-palette";
 
 const props = defineProps<{
   interactive: boolean;

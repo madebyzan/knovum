@@ -4,11 +4,11 @@ import { computed, onBeforeUnmount, onScopeDispose, reactive, shallowRef, watch,
 
 import { isScrollableTarget } from "../../../../../foundation/dom/scrollable-target";
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
+import { normalizedWheelDelta, zoomViewportAt } from "../../viewport-math";
 import { createCameraPan } from "./camera-pan";
 import { createCanvasCamera } from "./canvas-camera";
 import { useStageSurfaceSize } from "./use-stage-surface-size";
 import { useViewportSpaceKey } from "./use-viewport-space-key";
-import { normalizedWheelDelta, zoomViewportAt } from "./viewport-math";
 
 interface StageViewportOptions {
   host: Readonly<Ref<HTMLElement | null>>;

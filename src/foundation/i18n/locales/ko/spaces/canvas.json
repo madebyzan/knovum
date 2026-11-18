@@ -172,5 +172,12 @@
   "addContent": {
     "title": "콘텐츠 추가",
     "importFiles": "파일 가져오기…"
+  },
+  "minimap": {
+    "title": "미니맵",
+    "show": "미니맵 표시",
+    "hide": "미니맵 숨기기",
+    "toggle": "미니맵 전환",
+    "viewport": "현재 뷰포트"
   }
 }

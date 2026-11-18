@@ -53,7 +53,10 @@
     "createEmpty": "New section",
     "removeOnly": "Remove section only",
     "backgroundFailed": "Unable to load the section background image",
-    "drop": { "enter": "Release to move into section", "leave": "Release to move out of section" },
+    "drop": {
+      "enter": "Release to move into section",
+      "leave": "Release to move out of section"
+    },
     "fitToContents": "Fit section to contents",
     "untitled": "Untitled section",
     "collapse": "Collapse section",
@@ -169,5 +172,12 @@
   "addContent": {
     "title": "Add content",
     "importFiles": "Import files…"
+  },
+  "minimap": {
+    "title": "Mini map",
+    "show": "Show mini map",
+    "hide": "Hide mini map",
+    "toggle": "Toggle mini map",
+    "viewport": "Current viewport"
   }
 }

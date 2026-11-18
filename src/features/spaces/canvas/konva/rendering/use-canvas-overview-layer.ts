@@ -3,10 +3,10 @@ import Konva from "konva";
 import { onScopeDispose, watch, type Ref } from "vue";
 
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
+import type { CanvasPalette } from "../../use-canvas-palette";
 import { canvasOverviewImageSource, loadCanvasOverviewImage } from "../overview/assets";
 import { canvasOverviewLabelled, createCanvasOverviewNode } from "../overview/nodes";
 import type { CanvasSceneNode } from "../scene/canvas-scene";
-import type { CanvasPalette } from "./use-canvas-palette";
 
 interface CanvasOverviewLayerOptions {
   layer: Readonly<Ref<Konva.Layer | undefined>>;

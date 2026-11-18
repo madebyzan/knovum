@@ -5,6 +5,7 @@ export const SPACE_COMMAND_SHORTCUTS = {
   nextScene: "Alt+]",
   previousScene: "Alt+[",
   resetZoom: "$mod+0",
+  toggleMinimap: "M",
   zoomIn: "$mod+=",
   zoomOut: "$mod+-",
   zoomToFit: "Shift+2",

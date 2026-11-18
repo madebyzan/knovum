@@ -5,7 +5,7 @@ import { Label as KonvaLabel, Tag as KonvaTag, Text as KonvaText } from "vue-kon
 import "konva/lib/shapes/Label";
 
 import type { SectionDropPreview } from "../../../structure/section-drop-reparent";
-import type { CanvasPalette } from "./use-canvas-palette";
+import type { CanvasPalette } from "../../use-canvas-palette";
 
 defineProps<{ action: SectionDropPreview["kind"]; palette: CanvasPalette; zoom: number }>();
 const { t } = useI18n();

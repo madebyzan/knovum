@@ -172,5 +172,12 @@
   "addContent": {
     "title": "Agregar contenido",
     "importFiles": "Importar archivos…"
+  },
+  "minimap": {
+    "title": "Minimapa",
+    "show": "Mostrar minimapa",
+    "hide": "Ocultar minimapa",
+    "toggle": "Alternar minimapa",
+    "viewport": "Vista actual"
   }
 }

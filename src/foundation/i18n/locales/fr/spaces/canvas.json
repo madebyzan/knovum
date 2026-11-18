@@ -172,5 +172,12 @@
   "addContent": {
     "title": "Ajouter du contenu",
     "importFiles": "Importer des fichiers…"
+  },
+  "minimap": {
+    "title": "Mini-carte",
+    "show": "Afficher la mini-carte",
+    "hide": "Masquer la mini-carte",
+    "toggle": "Afficher ou masquer la mini-carte",
+    "viewport": "Zone visible actuelle"
   }
 }

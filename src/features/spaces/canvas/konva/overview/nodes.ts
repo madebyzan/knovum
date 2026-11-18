@@ -1,7 +1,7 @@
 import Konva from "konva";
 
 import { DEFAULT_CANVAS_TEXT_FONT_SIZE } from "../../node-size";
-import type { CanvasPalette } from "../rendering/use-canvas-palette";
+import type { CanvasPalette } from "../../use-canvas-palette";
 import type { CanvasSceneNode } from "../scene/canvas-scene";
 
 interface CanvasOverviewNodeOptions {

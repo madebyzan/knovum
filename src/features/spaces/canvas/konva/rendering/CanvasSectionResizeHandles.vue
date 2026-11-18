@@ -5,8 +5,8 @@ import { Circle as KonvaCircle } from "vue-konva/core";
 
 import { canvasChromeMetrics } from "../../canvas-chrome-metrics";
 import type { ProjectedSection } from "../../document/structure-scene";
+import type { CanvasPalette } from "../../use-canvas-palette";
 import type { SectionResizeCorner } from "../interaction/structure-gesture-preview";
-import type { CanvasPalette } from "./use-canvas-palette";
 
 const CORNERS = ["north-west", "north-east", "south-west", "south-east"] as const;
 const props = defineProps<{

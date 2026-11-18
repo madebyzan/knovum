@@ -4,8 +4,8 @@ import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapsh
 import type { CanvasHostEvents } from "../contracts/canvas-editor";
 import type { CanvasPoint, CanvasRect, CanvasViewport } from "../contracts/canvas-editor-port";
 import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../schema/document";
+import type { CanvasPalette } from "../use-canvas-palette";
 import type { CanvasDocumentModel } from "./document/canvas-document-model";
-import type { CanvasPalette } from "./rendering/use-canvas-palette";
 import type { CanvasScene } from "./scene/canvas-scene";
 
 export type CanvasFrameMutation = () =>

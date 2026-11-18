@@ -3,7 +3,7 @@ import type Konva from "konva";
 import { shallowRef } from "vue";
 import { Group as KonvaGroup, Line as KonvaLine, Rect as KonvaRect } from "vue-konva/core";
 
-import type { CanvasPalette } from "./use-canvas-palette";
+import type { CanvasPalette } from "../../use-canvas-palette";
 
 defineProps<{ x: number; collapsed: boolean; palette: CanvasPalette }>();
 const emit = defineEmits<{ toggle: [] }>();

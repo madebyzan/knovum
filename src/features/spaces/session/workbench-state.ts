@@ -65,5 +65,6 @@ export function createSpaceUiState() {
     relationKindFilter: ref<RelationKind[]>([]),
     relationStatusFilter: ref<RelationStatus[]>(["active", "contested"]),
     savedQueryFilter: ref<SpaceSavedViewFilter>({}),
+    minimapOpen: ref(false),
   };
 }

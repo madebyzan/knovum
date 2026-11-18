@@ -1,7 +1,7 @@
 import { useEventListener, useMutationObserver } from "@vueuse/core";
 import { shallowRef } from "vue";
 
-import type { CanvasNodeAppearance, CanvasRelationColor } from "../../schema/document";
+import type { CanvasNodeAppearance, CanvasRelationColor } from "./schema/document";
 
 type CanvasFillPreset = NonNullable<CanvasNodeAppearance["fill"]>;
 

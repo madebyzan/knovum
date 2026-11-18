@@ -4,8 +4,8 @@ import { shallowRef } from "vue";
 
 import CanvasGroupChrome from "../canvas/konva/rendering/CanvasGroupChrome.vue";
 import CanvasStructureInteractionLayer from "../canvas/konva/rendering/CanvasStructureInteractionLayer.vue";
-import type { CanvasPalette } from "../canvas/konva/rendering/use-canvas-palette";
 import { useCanvasMarqueeSelection } from "../canvas/konva/selection/use-canvas-marquee-selection";
+import type { CanvasPalette } from "../canvas/use-canvas-palette";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { reconcileGroupScopePath } from "../model/structure/structure-queries";
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Group as KonvaGroup, Rect as KonvaRect, Text as KonvaText } from "vue-konva/core";
 
-import type { CanvasPalette } from "./use-canvas-palette";
+import type { CanvasPalette } from "../../use-canvas-palette";
 
 defineProps<{ x: number; width: number; text: string; palette: CanvasPalette }>();
 </script>

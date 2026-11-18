@@ -5,8 +5,8 @@ import { effectScope, nextTick, shallowRef } from "vue";
 import { createSpaceNotePayload } from "../../../document-editing/tiptap-content";
 import { createSpaceNode } from "../../node";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
+import type { CanvasPalette } from "../../use-canvas-palette";
 import { useCanvasOverviewLayer } from "../rendering/use-canvas-overview-layer";
-import type { CanvasPalette } from "../rendering/use-canvas-palette";
 import type { CanvasSceneNode } from "../scene/canvas-scene";
 import { projectCanvasScene } from "../scene/scene-projection";
 

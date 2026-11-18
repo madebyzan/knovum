@@ -9,8 +9,11 @@ export function useCanvasChromeRects() {
   const topChrome = useTemplateRef<HTMLElement>("topChrome");
   const focusChrome = useTemplateRef<HTMLElement>("focusChrome");
   const viewChrome = useTemplateRef<HTMLElement>("viewChrome");
+  const minimapChrome = useTemplateRef<HTMLElement>("minimapChrome");
   const root = useElementBounding(chromeRoot);
-  const controls = [topChrome, focusChrome, viewChrome].map((element) => useElementBounding(element));
+  const controls = [topChrome, focusChrome, viewChrome, minimapChrome].map((element) =>
+    useElementBounding(element),
+  );
   const chromeRects = computed<SurfaceRect[]>(() =>
     controls
       .filter(({ width, height }) => width.value > 0 && height.value > 0)
@@ -21,5 +24,9 @@ export function useCanvasChromeRects() {
         bottom: y.value - root.y.value + height.value + 6,
       })),
   );
-  return { chromeRects };
+  const hostSize = computed(() => ({
+    width: Math.max(0, root.width.value),
+    height: Math.max(0, root.height.value),
+  }));
+  return { chromeRects, hostSize };
 }

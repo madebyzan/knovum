@@ -6,11 +6,11 @@ import type { VueKonvaRef } from "vue-konva/core";
 
 import type { SectionDropPreview } from "../../../structure/section-drop-reparent";
 import type { ProjectedGroup, ProjectedSection } from "../../document/structure-scene";
+import type { CanvasPalette } from "../../use-canvas-palette";
 import type { GroupHandleTransform } from "../interaction/group-handle-transform";
 import type { SectionResizeCorner } from "../interaction/structure-gesture-preview";
 import CanvasGroupChrome from "./CanvasGroupChrome.vue";
 import CanvasSectionChrome from "./CanvasSectionChrome.vue";
-import type { CanvasPalette } from "./use-canvas-palette";
 
 const props = defineProps<{
   groups: readonly ProjectedGroup[];

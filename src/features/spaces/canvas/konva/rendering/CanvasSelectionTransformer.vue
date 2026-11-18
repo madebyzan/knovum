@@ -8,6 +8,7 @@ import "konva/lib/shapes/Transformer";
 
 import { canvasChromeMetrics } from "../../canvas-chrome-metrics";
 import type { CanvasNodeFrame } from "../../schema/document";
+import type { CanvasPalette } from "../../use-canvas-palette";
 import { captureCanvasNodeRefs } from "../interaction/canvas-node-access";
 import type { CanvasSnapGuide } from "../interaction/canvas-snapping";
 import {
@@ -19,7 +20,6 @@ import {
 import { canvasResizeAnchors, isProportionalResizeAnchor } from "../selection/canvas-resize-anchors";
 import { constrainSelectionTransform } from "../selection/selection-transform-geometry";
 import type { CanvasSelectionTransformPolicy } from "../selection/selection-transform-policy";
-import type { CanvasPalette } from "./use-canvas-palette";
 
 const props = defineProps<{
   interactive: boolean;

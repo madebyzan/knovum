@@ -2,7 +2,7 @@
 import { Layer as KonvaLayer, Rect as KonvaRect } from "vue-konva/core";
 
 import type { CanvasRect } from "../../contracts/canvas-editor-port";
-import type { CanvasPalette } from "./use-canvas-palette";
+import type { CanvasPalette } from "../../use-canvas-palette";
 
 defineProps<{
   bounds: readonly CanvasRect[];

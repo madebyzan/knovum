@@ -8,9 +8,9 @@ import "konva/lib/shapes/Arrow";
 import "konva/lib/shapes/Circle";
 
 import { canvasChromeMetrics } from "../../canvas-chrome-metrics";
+import type { CanvasPalette } from "../../use-canvas-palette";
 import type { CanvasSceneNode } from "../scene/canvas-scene";
 import { connectorControlCenter, type CanvasConnectorSide } from "../scene/connector-geometry";
-import type { CanvasPalette } from "./use-canvas-palette";
 
 const SIDES: readonly CanvasConnectorSide[] = ["top", "right", "bottom", "left"];
 const props = defineProps<{
