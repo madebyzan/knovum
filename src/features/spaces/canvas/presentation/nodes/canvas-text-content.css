@@ -6,12 +6,42 @@
 
 .canvas-text-prose p,
 .canvas-text-prose ul,
-.canvas-text-prose ol {
+.canvas-text-prose ol,
+.canvas-text-prose h1,
+.canvas-text-prose h2,
+.canvas-text-prose h3,
+.canvas-text-prose h4,
+.canvas-text-prose h5,
+.canvas-text-prose h6,
+.canvas-text-prose blockquote,
+.canvas-text-prose pre {
   margin: 0;
 }
 
 .canvas-text-prose p:empty::before {
   content: "\00a0";
+}
+
+.canvas-text-prose h1,
+.canvas-text-prose h2,
+.canvas-text-prose h3,
+.canvas-text-prose h4,
+.canvas-text-prose h5,
+.canvas-text-prose h6 {
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.canvas-text-prose h1 {
+  font-size: 1.35em;
+}
+
+.canvas-text-prose h2 {
+  font-size: 1.2em;
+}
+
+.canvas-text-prose h3 {
+  font-size: 1.08em;
 }
 
 .canvas-text-prose ul,
@@ -25,4 +55,72 @@
 
 .canvas-text-prose ol {
   list-style: decimal;
+}
+
+.canvas-text-prose ul[data-type="taskList"] {
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+.canvas-text-prose ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4em;
+}
+
+.canvas-text-prose blockquote {
+  border-inline-start: 2px solid var(--color-stroke-strong);
+  padding-inline-start: 0.75em;
+  opacity: 0.85;
+}
+
+.canvas-text-prose code {
+  border-radius: 0.25rem;
+  background: var(--color-surface-control);
+  padding: 0.1em 0.28em;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.canvas-text-prose pre {
+  overflow-x: auto;
+  border-radius: 0.375rem;
+  background: var(--color-surface-control);
+  padding: 0.45em 0.6em;
+}
+
+.canvas-text-prose pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.canvas-text-prose hr {
+  margin-block: 0.5em;
+  border: 0;
+  border-top: 1px solid var(--color-stroke-strong);
+}
+
+.canvas-text-prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+}
+
+.canvas-text-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.canvas-text-prose th,
+.canvas-text-prose td {
+  border: 1px solid var(--color-stroke-strong);
+  padding: 0.25em 0.4em;
+  vertical-align: top;
+}
+
+.canvas-text-prose mark {
+  border-radius: 0.18rem;
+  padding: 0.05em 0.18em;
 }

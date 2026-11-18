@@ -1,4 +1,5 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
+import { getSchema } from "@tiptap/core";
 import { FileHandler } from "@tiptap/extension-file-handler";
 import { FindAndReplace } from "@tiptap/extension-find-and-replace";
 import { Highlight } from "@tiptap/extension-highlight";
@@ -40,16 +41,17 @@ const SpaceImage = Image.extend({
   },
 });
 
-export function createSpaceTiptapExtensions(
-  placeholder: string,
-  onImageError: ImageErrorHandler,
-  openCitation: (index: number) => void,
-) {
-  const handleImages = (editor: SpaceTiptapImageEditor, files: File[], position?: number) => {
-    void insertSpaceTiptapImages(editor, files, position).catch(onImageError);
-  };
+interface RichTextSchemaOptions {
+  readonly includeColor: boolean;
+  readonly interactiveSurface: boolean;
+}
+
+/**
+ * Shared rich-text schema across the document tab editor, canvas inline editor, and canvas HTML
+ * preview renderer so content saved in any surface always round-trips through every other surface.
+ */
+function createRichTextSchemaExtensions(options: RichTextSchemaOptions) {
   return [
-    EditingResponder,
     StarterKit.configure({
       heading: { levels: [1, 2, 3, 4, 5, 6] },
       link: { openOnClick: false, defaultProtocol: "https" },
@@ -60,25 +62,48 @@ export function createSpaceTiptapExtensions(
     SpaceImage.configure({
       allowBase64: false,
       inline: false,
-      resize: {
-        enabled: true,
-        directions: ["left", "right"],
-        minWidth: 80,
-        minHeight: 48,
-        alwaysPreserveAspectRatio: true,
-      },
+      ...(options.interactiveSurface
+        ? {
+            resize: {
+              enabled: true,
+              directions: ["left", "right"],
+              minWidth: 80,
+              minHeight: 48,
+              alwaysPreserveAspectRatio: true,
+            },
+          }
+        : {}),
     }),
+    Subscript,
+    Superscript,
+    TextStyle,
+    ...(options.includeColor ? [Color] : []),
+    FontSize,
+    TextAlign.configure({ types: ["heading", "paragraph"] }),
+    Typography,
+    TableKit.configure(
+      options.interactiveSurface ? { table: { resizable: true, lastColumnResizable: true } } : {},
+    ),
+  ];
+}
+
+export function createSpaceTiptapExtensions(
+  placeholder: string,
+  onImageError: ImageErrorHandler,
+  openCitation: (index: number) => void,
+) {
+  const handleImages = (editor: SpaceTiptapImageEditor, files: File[], position?: number) => {
+    void insertSpaceTiptapImages(editor, files, position).catch(onImageError);
+  };
+  return [
+    EditingResponder,
+    ...createRichTextSchemaExtensions({ includeColor: false, interactiveSurface: true }),
     FileHandler.configure({
       allowedMimeTypes: TIPTAP_IMAGE_MIME_TYPES,
       consumePasteEvent: true,
       onDrop: (editor, files, position) => handleImages(editor, files, position),
       onPaste: (editor, files) => handleImages(editor, files),
     }),
-    Subscript,
-    Superscript,
-    TextAlign.configure({ types: ["heading", "paragraph"] }),
-    Typography,
-    TableKit.configure({ table: { resizable: true, lastColumnResizable: true } }),
     Markdown.configure({
       indentation: { style: "space", size: 2 },
       markedOptions: { gfm: true, breaks: false },
@@ -93,19 +118,13 @@ export function createSpaceTiptapExtensions(
 export function createCanvasTextExtensions(placeholder: string, kind: "note" | "text" = "text") {
   return [
     EditingResponder,
-    StarterKit.configure({
-      heading: false,
-      codeBlock: false,
-      horizontalRule: false,
-      link: { openOnClick: false, defaultProtocol: "https" },
-    }),
-    TaskList,
-    TaskItem.configure({ nested: true }),
-    TextStyle,
-    ...(kind === "text" ? [Color] : []),
-    FontSize,
-    TextAlign.configure({ types: ["paragraph"] }),
-    Typography,
+    ...createRichTextSchemaExtensions({ includeColor: kind === "text", interactiveSurface: false }),
     Placeholder.configure({ placeholder }),
   ];
+}
+
+export function createCanvasTextSchema(kind: "note" | "text" = "text") {
+  return getSchema(
+    createRichTextSchemaExtensions({ includeColor: kind === "text", interactiveSurface: false }),
+  );
 }
