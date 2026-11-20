@@ -7,19 +7,22 @@ import type { Space } from "../model/space";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import type { SpaceScene } from "../scenes/scene";
 import type { SpaceSessionContent } from "../session/space-projection";
+import type { RightSidebarPrimaryView, RightSidebarView } from "../session/workbench-state";
 import type { createEditorSessions } from "./editor-sessions";
+import type { SpaceViewRefs, SpaceViewSession } from "./space-view-session";
 import type { SpaceWorkbenchTabState } from "./workbench-tab-state";
 
-export interface SpaceSessionContext extends SpaceWorkbenchTabState {
+export interface SpaceSessionContext extends SpaceWorkbenchTabState, SpaceViewRefs {
   editors: ReturnType<typeof createEditorSessions>;
   captureOverview(): void;
   spaces: Ref<Space[]>;
   draftSpace: Ref<Space | undefined>;
   nodes: Ref<SpaceCanvasNode[]>;
   editSnapshot: Ref<SpaceEditSnapshot>;
-  groupScopePath: Ref<string[]>;
   scenes: Ref<SpaceScene[]>;
   relations: Ref<SpaceRelation[]>;
+  rightSidebarView: Ref<RightSidebarView>;
+  sourceReturnView: Ref<RightSidebarPrimaryView>;
   ready: Ref<boolean>;
   loading: Ref<boolean>;
   history: SpaceHistoryState;
@@ -34,12 +37,14 @@ export interface SpaceSessionContext extends SpaceWorkbenchTabState {
 }
 
 /**
- * What an open Space keeps while another Space is active: the content it last showed and its undo
- * history. Returning to it shows that content at once; it is then revalidated in the background,
- * because work may have published into the Space meanwhile. Released with the Space's last tab.
+ * What an open Space keeps while another Space is active: the content it last showed, its view
+ * context and its undo history. Returning to it shows that content at once; it is then revalidated
+ * in the background, because work may have published into the Space meanwhile. Released with the
+ * Space's last tab.
  */
 interface RetainedSpaceSession {
   content: SpaceSessionContent;
+  view: SpaceViewSession;
   undoStack: readonly ReversibleSpaceChange[];
   redoStack: readonly ReversibleSpaceChange[];
 }

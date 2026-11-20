@@ -18,6 +18,7 @@ const preferencesSchema = z
     textSize: z.enum(preferenceTextSizes),
     locale: z.enum(preferenceLocales),
     backgroundTaskNotifications: z.boolean().default(preferenceDefaults.backgroundTaskNotifications),
+    restorePreviousWorkspace: z.boolean().default(preferenceDefaults.restorePreviousWorkspace),
     workbench: z
       .object({
         sidebarVisible: z.boolean().default(preferenceDefaults.workbench.sidebarVisible),

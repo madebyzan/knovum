@@ -8,6 +8,7 @@ import { loadSpaceSessionProjection, type SpaceSessionContent } from "../session
 import { emptySpaceContent, switchSpaceSession } from "./retained-space-sessions";
 import { markSpaceOpenedAndTrack } from "./space-creation";
 import type { SpaceSessionContext } from "./space-session-context";
+import type { SpaceViewSession } from "./space-view-session";
 import { referencedSpaceIds } from "./workbench-tab";
 import { discardSpaceWorkbenchTabs } from "./workbench-tab-state";
 
@@ -74,8 +75,9 @@ export function activateSpaceSession(
   context: SpaceSessionContext,
   spaceId: string,
   content: SpaceSessionContent,
+  initialView?: SpaceViewSession,
 ) {
-  switchSpaceSession(context, spaceId, content);
+  switchSpaceSession(context, spaceId, content, initialView);
   scheduleSpaceKnowledgeIndex(spaceId);
 }
 

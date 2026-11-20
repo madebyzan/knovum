@@ -59,6 +59,11 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
         labelKey: "settings.appearance.language.label",
         descriptionKey: "settings.appearance.language.description",
       },
+      {
+        id: "settings-appearance-restore-workspace",
+        labelKey: "settings.appearance.startup.restoreWorkspace.label",
+        descriptionKey: "settings.appearance.startup.restoreWorkspace.description",
+      },
     ],
   },
   {

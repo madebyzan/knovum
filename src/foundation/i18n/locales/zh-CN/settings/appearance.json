@@ -46,5 +46,12 @@
       "russian": "Русский",
       "brazilianPortuguese": "巴西葡萄牙语"
     }
+  },
+  "startup": {
+    "title": "启动",
+    "restoreWorkspace": {
+      "label": "启动时恢复上次工作区",
+      "description": "重新打开上次会话中的标签页、画布视图和侧边栏。"
+    }
   }
 }

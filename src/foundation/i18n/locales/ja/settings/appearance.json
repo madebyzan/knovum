@@ -46,5 +46,12 @@
       "russian": "ロシア語",
       "brazilianPortuguese": "ポルトガル語（ブラジル）"
     }
+  },
+  "startup": {
+    "title": "起動",
+    "restoreWorkspace": {
+      "label": "起動時に前回のワークスペースを復元",
+      "description": "前回のセッションのタブ、キャンバス表示、サイドバーを再度開きます。"
+    }
   }
 }

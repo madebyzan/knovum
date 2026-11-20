@@ -90,7 +90,7 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
   });
   const editors = createEditorSurfaceActions(spaceContext);
   useEditorSessionProjection(state, (tabId) => closeWorkbenchTab(spaceContext, tabId));
-  useWorkbenchSessionPersistence(state);
+  useWorkbenchSessionPersistence(spaceContext);
   const context = createRightSidebarActions(
     state,
     placement,
@@ -117,8 +117,8 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
   });
   return {
     ...actions,
-    initialize: async (inboxTitle: string) => {
-      if (await actions.initialize(inboxTitle))
+    initialize: async (inboxTitle: string, restorePreviousWorkspace = true) => {
+      if (await actions.initialize(inboxTitle, restorePreviousWorkspace))
         await seedSampleSpace(spaceContext, state, canvasImport.importJsonCanvas).catch((error: unknown) => {
           toast.error(getErrorMessage(error));
         });

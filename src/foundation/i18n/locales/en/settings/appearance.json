@@ -46,5 +46,12 @@
       "russian": "Russian",
       "brazilianPortuguese": "Brazilian Portuguese"
     }
+  },
+  "startup": {
+    "title": "Startup",
+    "restoreWorkspace": {
+      "label": "Restore previous workspace on startup",
+      "description": "Reopen your tabs, canvas views, and sidebars from the last session."
+    }
   }
 }

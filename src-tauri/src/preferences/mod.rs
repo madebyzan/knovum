@@ -86,6 +86,8 @@ pub struct Preferences {
     pub locale: LocalePreference,
     #[serde(default = "Preferences::default_background_task_notifications")]
     pub background_task_notifications: bool,
+    #[serde(default = "Preferences::default_restore_previous_workspace")]
+    pub restore_previous_workspace: bool,
     #[serde(default)]
     pub workbench: WorkbenchPreferences,
 }
@@ -98,6 +100,7 @@ impl Default for Preferences {
             text_size: TextSizePreference::Default,
             locale: LocalePreference::System,
             background_task_notifications: Self::default_background_task_notifications(),
+            restore_previous_workspace: Self::default_restore_previous_workspace(),
             workbench: WorkbenchPreferences::default(),
         }
     }
@@ -105,6 +108,10 @@ impl Default for Preferences {
 
 impl Preferences {
     fn default_background_task_notifications() -> bool {
+        true
+    }
+
+    fn default_restore_previous_workspace() -> bool {
         true
     }
 

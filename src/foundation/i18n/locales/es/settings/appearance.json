@@ -46,5 +46,12 @@
       "russian": "Ruso",
       "brazilianPortuguese": "Portugués de Brasil"
     }
+  },
+  "startup": {
+    "title": "Inicio",
+    "restoreWorkspace": {
+      "label": "Restaurar el espacio de trabajo anterior al iniciar",
+      "description": "Vuelve a abrir las pestañas, vistas del lienzo y barras laterales de la última sesión."
+    }
   }
 }

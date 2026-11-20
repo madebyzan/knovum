@@ -46,5 +46,12 @@
       "russian": "俄文",
       "brazilianPortuguese": "巴西葡萄牙語"
     }
+  },
+  "startup": {
+    "title": "啟動",
+    "restoreWorkspace": {
+      "label": "啟動時還原上次工作區",
+      "description": "重新開啟上次工作階段中的分頁、畫布檢視與側邊欄。"
+    }
   }
 }

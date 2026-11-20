@@ -24,7 +24,12 @@ const drafts = useNodeOperationDraftsStore();
 let renameLease: number | undefined;
 const sidebar = inject(workspaceSidebarKey)!;
 const { t } = useI18n();
-const expandedIds = shallowRef<string[]>([]);
+const expandedIds = computed({
+  get: () => store.outlineExpandedIds,
+  set: (value) => {
+    store.outlineExpandedIds = value;
+  },
+});
 const editingId = shallowRef<string>();
 const structure = computed(() => store.editSnapshot.structure);
 const index = computed(() => createStructureIndex(structure.value));
@@ -137,7 +142,6 @@ watch(
   () => store.activeSpaceId,
   () => {
     finishRename();
-    expandedIds.value = [];
   },
 );
 onBeforeUnmount(finishRename);

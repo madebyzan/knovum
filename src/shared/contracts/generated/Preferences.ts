@@ -5,4 +5,4 @@ import type { TextSizePreference } from "./TextSizePreference";
 import type { ThemePreference } from "./ThemePreference";
 import type { WorkbenchPreferences } from "./WorkbenchPreferences";
 
-export type Preferences = { theme: ThemePreference, density: DensityPreference, textSize: TextSizePreference, locale: LocalePreference, backgroundTaskNotifications: boolean, workbench: WorkbenchPreferences, };
+export type Preferences = { theme: ThemePreference, density: DensityPreference, textSize: TextSizePreference, locale: LocalePreference, backgroundTaskNotifications: boolean, restorePreviousWorkspace: boolean, workbench: WorkbenchPreferences, };

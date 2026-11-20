@@ -46,5 +46,12 @@
       "russian": "러시아어",
       "brazilianPortuguese": "포르투갈어(브라질)"
     }
+  },
+  "startup": {
+    "title": "시작",
+    "restoreWorkspace": {
+      "label": "시작 시 이전 작업 공간 복원",
+      "description": "이전 세션의 탭, 캔버스 보기 및 사이드바를 다시 엽니다."
+    }
   }
 }
