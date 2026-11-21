@@ -177,6 +177,8 @@
     "loadFailed": "Não foi possível carregar os tipos de esquema"
   },
   "visual": {
-    "empty": "Nenhuma análise de imagem ainda"
+    "empty": "Nenhuma análise de imagem ainda",
+    "keywords": "Palavras-chave visuais",
+    "adoptKeyword": "Adicionar \"{keyword}\" às tags"
   }
 }

@@ -177,6 +177,8 @@
     "loadFailed": "無法載入 Schema 類型"
   },
   "visual": {
-    "empty": "暫無影像分析內容"
+    "empty": "暫無影像分析內容",
+    "keywords": "視覺關鍵詞",
+    "adoptKeyword": "將「{keyword}」加入標籤"
   }
 }

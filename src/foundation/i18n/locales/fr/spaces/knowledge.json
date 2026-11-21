@@ -177,6 +177,8 @@
     "loadFailed": "Impossible de charger les types de schéma"
   },
   "visual": {
-    "empty": "Aucune analyse d'image pour l'instant"
+    "empty": "Aucune analyse d'image pour l'instant",
+    "keywords": "Mots-clés visuels",
+    "adoptKeyword": "Ajouter « {keyword} » aux étiquettes"
   }
 }

@@ -177,6 +177,8 @@
     "loadFailed": "Impossibile caricare i tipi di schema"
   },
   "visual": {
-    "empty": "Nessuna analisi dell'immagine ancora"
+    "empty": "Nessuna analisi dell'immagine ancora",
+    "keywords": "Parole chiave visive",
+    "adoptKeyword": "Aggiungi \"{keyword}\" ai tag"
   }
 }
