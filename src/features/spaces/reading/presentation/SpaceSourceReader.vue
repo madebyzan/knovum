@@ -138,8 +138,8 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
       />
       <div
         v-if="readerKind && readMounted"
-        class="absolute inset-0 flex flex-col overflow-hidden"
-        :class="activePane === 'read' ? 'visible' : 'pointer-events-none invisible'"
+        class="absolute inset-0 isolate z-0 flex flex-col overflow-hidden"
+        :class="activePane !== 'read' && 'pointer-events-none invisible'"
         :inert="activePane !== 'read'"
       >
         <SpaceSourceReaderSurface
@@ -156,7 +156,7 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
           @surface-selection="surfaceSelection = $event"
         />
       </div>
-      <SpaceReaderInfoSurface v-if="activePane === 'info'" class="absolute inset-0" :node="sourceNode" />
+      <SpaceReaderInfoSurface v-if="activePane === 'info'" class="absolute inset-0 z-10" :node="sourceNode" />
     </div>
     <UiDragGhost
       v-if="drag.drag.value"

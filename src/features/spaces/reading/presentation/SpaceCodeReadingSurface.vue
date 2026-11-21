@@ -161,7 +161,7 @@ watch([viewMode, reader.activeMatchLine, () => highlightedRange.value?.start], (
       <SpaceReaderWebviewHost
         v-if="canPreview && store.activeSpaceId"
         class="absolute inset-0"
-        :class="viewMode === 'preview' ? 'visible' : 'pointer-events-none invisible'"
+        :class="viewMode !== 'preview' && 'pointer-events-none invisible'"
         :inert="viewMode !== 'preview'"
         :active="viewMode === 'preview'"
         :asset="{ spaceId: store.activeSpaceId, nodeId: node.id, revision: node.data.sourceRevision }"
@@ -171,7 +171,7 @@ watch([viewMode, reader.activeMatchLine, () => highlightedRange.value?.start], (
         v-if="codeMounted"
         ref="viewport"
         class="absolute inset-0"
-        :class="viewMode === 'code' ? 'visible' : 'pointer-events-none invisible'"
+        :class="viewMode !== 'code' && 'pointer-events-none invisible'"
         :inert="viewMode !== 'code'"
         :raw-lines="reader.rawLines.value"
         :highlighted-lines="reader.highlightedLines.value"

@@ -105,14 +105,14 @@ watch(
     <div class="relative min-h-0 flex-1 overflow-hidden">
       <SpaceReaderWebviewHost
         class="absolute inset-0"
-        :class="viewMode === 'web' ? 'visible' : 'pointer-events-none invisible'"
+        :class="viewMode !== 'web' && 'pointer-events-none invisible'"
         :inert="viewMode !== 'web'"
         :active="viewMode === 'web'"
         :url="node.data.url"
       />
       <div
         class="absolute inset-0 flex flex-col overflow-hidden"
-        :class="viewMode === 'reader' ? 'visible' : 'pointer-events-none invisible'"
+        :class="viewMode !== 'reader' && 'pointer-events-none invisible'"
         :inert="viewMode !== 'reader'"
       >
         <SpaceWebsiteArticle
