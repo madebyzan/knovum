@@ -9,8 +9,20 @@ use crate::ai::{
 };
 use crate::foundation::app_error::AppResult;
 
-use genai::adapter::AdapterKind;
+use std::sync::OnceLock;
+
+use genai::{adapter::AdapterKind, Client};
 use tokio_util::sync::CancellationToken;
+
+/// Shared genai client backed by Knovum's pooled, timeout-bounded, redirect-hardened HTTP client.
+pub(crate) fn genai_client() -> &'static Client {
+    static CLIENT: OnceLock<Client> = OnceLock::new();
+    CLIENT.get_or_init(|| {
+        Client::builder()
+            .with_reqwest(crate::ai::transport::http_client().clone())
+            .build()
+    })
+}
 
 static OPENAI: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::OpenAI);
 static ANTHROPIC: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::Anthropic);

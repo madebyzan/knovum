@@ -76,7 +76,6 @@ async fn reserved_outputs_carry_their_lineage_and_settle_without_touching_the_so
         &["source".to_owned()],
         "Track separated from its source media",
         "run",
-        None,
     )
     .await
     .unwrap();
@@ -93,7 +92,7 @@ async fn reserved_outputs_carry_their_lineage_and_settle_without_touching_the_so
     assert_eq!(history_count, 2, "the two reserved nodes are one edit");
 
     let mut tx = db::begin_write(&pool).await.unwrap();
-    settle(&mut tx, "space", "source", &STEMS.map(published), None)
+    settle(&mut tx, "space", "source", &STEMS.map(published))
         .await
         .unwrap();
     tx.commit().await.unwrap();
@@ -162,9 +161,7 @@ async fn an_output_that_was_never_reserved_cannot_be_settled() {
     )
     .await
     .unwrap();
-    assert!(
-        settle(&mut tx, "space", "source", &[published("vocals")], None)
-            .await
-            .is_err()
-    );
+    assert!(settle(&mut tx, "space", "source", &[published("vocals")])
+        .await
+        .is_err());
 }

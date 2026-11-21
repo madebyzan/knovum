@@ -35,7 +35,6 @@ pub(in crate::spaces::assets::enrichment) async fn publish(
         },
         fields,
         None,
-        None,
     )
     .await?;
     tx.commit().await.map_err(crate::spaces::db::sql_error)?;

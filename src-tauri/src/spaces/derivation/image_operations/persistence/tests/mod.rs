@@ -34,7 +34,7 @@ async fn fixture() -> (SqlitePool, DeriveImageRequest, Value) {
             {"id":"output","kind":"image","initialX":400,"initialY":0,"width":300,"height":200,"sizingMode":"frame","data":output,"sourceChunks":[]}
         ]
     })).unwrap();
-    crate::spaces::nodes::tests::insert_many_in_transaction(&mut tx, nodes, None)
+    crate::spaces::nodes::tests::insert_many_in_transaction(&mut tx, nodes)
         .await
         .unwrap();
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES('job','space','output','generate-image-depth',1,'local:test','running',1,1)")
@@ -83,7 +83,6 @@ async fn complete(
             execution_epoch: 0,
         },
         token,
-        None,
     )
     .await
 }

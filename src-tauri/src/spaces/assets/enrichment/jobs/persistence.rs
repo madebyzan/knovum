@@ -12,18 +12,6 @@ enum ArchivedSpaces {
     Exclude,
 }
 
-pub(crate) async fn freeze_target(
-    pool: &sqlx::SqlitePool,
-    job_id: &str,
-    target: &crate::ai::tasks::TaskTargetSelection,
-) -> Result<crate::ai::tasks::TaskTargetSelection, String> {
-    let frozen: Option<sqlx::types::Json<crate::ai::tasks::TaskTargetSelection>> = sqlx::query_scalar("UPDATE spaces_enrichment_jobs SET execution_target=COALESCE(execution_target,$1) WHERE id=$2 AND status IN ('pending','awaiting_configuration') RETURNING execution_target")
-        .bind(sqlx::types::Json(target)).bind(job_id).fetch_optional(pool).await.map_err(db::sql_error)?;
-    Ok(frozen
-        .ok_or("Enrichment intent no longer permits execution preparation")?
-        .0)
-}
-
 pub(crate) async fn claim_job(
     pool: &sqlx::SqlitePool,
     job_id: &str,

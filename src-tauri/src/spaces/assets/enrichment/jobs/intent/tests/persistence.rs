@@ -32,7 +32,7 @@ async fn synchronize(pool: &SqlitePool, data: &Value) {
         .execute(&mut *tx)
         .await
         .unwrap();
-    synchronize_for_node(&mut tx, "space", "node", data, 2, None)
+    synchronize_for_node(&mut tx, "space", "node", data, 2)
         .await
         .unwrap();
     tx.commit().await.unwrap();
@@ -121,33 +121,17 @@ async fn current_schema_rejects_both_obsolete_visual_job_names() {
 }
 
 #[tokio::test]
-async fn execution_choice_is_frozen_at_creation_and_survives_retry_and_restart() {
-    use crate::ai::{contracts::ExternalAgentKind, tasks::TaskTargetSelection};
+async fn automatic_visual_jobs_stay_unbound_to_follow_current_settings() {
     let data = read(json!({"kind":"image","title":"Image","sourceRevision":"asset-1"}));
     let pool = fixture(&data).await;
-    let first = TaskTargetSelection::Agent {
-        runtime_kind: ExternalAgentKind::Codex,
-    };
-    let next = TaskTargetSelection::Agent {
-        runtime_kind: ExternalAgentKind::QoderCli,
-    };
     let mut tx = pool.begin().await.unwrap();
-    synchronize_for_node(&mut tx, "space", "node", &data, 2, Some(&first))
+    synchronize_for_node(&mut tx, "space", "node", &data, 2)
         .await
         .unwrap();
     tx.commit().await.unwrap();
     let jobs = persistence::list_actionable(&pool, None).await.unwrap();
     let id = &jobs[0].id;
-    assert_eq!(jobs[0].execution_target, Some(first.clone()));
-    assert_eq!(
-        persistence::freeze_target(&pool, id, &next).await.unwrap(),
-        first
-    );
-    let mut tx = pool.begin().await.unwrap();
-    synchronize_for_node(&mut tx, "space", "node", &data, 3, Some(&next))
-        .await
-        .unwrap();
-    tx.commit().await.unwrap();
+    assert_eq!(jobs[0].execution_target, None);
     sqlx::query("UPDATE spaces_enrichment_jobs SET status='running' WHERE id=$1")
         .bind(id)
         .execute(&pool)
@@ -155,28 +139,14 @@ async fn execution_choice_is_frozen_at_creation_and_survives_retry_and_restart()
         .unwrap();
     persistence::reconcile_interrupted(&pool, 4).await.unwrap();
     let jobs = persistence::list_actionable(&pool, None).await.unwrap();
-    assert_eq!(jobs[0].execution_target, Some(first.clone()));
-    sqlx::query("UPDATE spaces_enrichment_jobs SET status='failed' WHERE id=$1")
-        .bind(id)
-        .execute(&pool)
-        .await
-        .unwrap();
-    persistence::set_status(&pool, id, "'failed'", "pending", None, 5)
-        .await
-        .unwrap();
-    assert_eq!(
-        persistence::freeze_target(&pool, id, &next).await.unwrap(),
-        first
-    );
+    assert_eq!(jobs[0].execution_target, None);
     assert!(
         persistence::defer_for_configuration(&pool, id, "missing key".into(), 6)
             .await
             .unwrap()
     );
-    assert_eq!(
-        persistence::freeze_target(&pool, id, &next).await.unwrap(),
-        first
-    );
+    let jobs = persistence::list_actionable(&pool, None).await.unwrap();
+    assert_eq!(jobs[0].execution_target, None);
 }
 
 #[tokio::test]
@@ -212,10 +182,10 @@ async fn actionable_projection_identifies_each_live_job_owner_across_spaces() {
         .unwrap();
 
     let mut tx = pool.begin().await.unwrap();
-    synchronize_for_node(&mut tx, "space", "node", &data, 2, None)
+    synchronize_for_node(&mut tx, "space", "node", &data, 2)
         .await
         .unwrap();
-    synchronize_for_node(&mut tx, "other", "other-node", &other, 3, None)
+    synchronize_for_node(&mut tx, "other", "other-node", &other, 3)
         .await
         .unwrap();
     tx.commit().await.unwrap();

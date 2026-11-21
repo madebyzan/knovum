@@ -19,7 +19,6 @@ pub async fn complete(
     output: RenderedVideo,
     authority: &super::super::action_execution::ExecutionAuthority,
     cancellation: &CancellationToken,
-    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<CompletedDerivationOutput, AppError> {
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
@@ -40,8 +39,7 @@ pub async fn complete(
     pending_output::validate_unpublished_asset(&data)?;
     apply_output(&mut data, &source, &output, now)?;
     crate::spaces::knowledge::validation::validate_node(&mut tx, &row.0, "video", &data).await?;
-    crate::spaces::derivation::persist_output_node(&mut tx, &row.2, &data, now, enrichment_target)
-        .await?;
+    crate::spaces::derivation::persist_output_node(&mut tx, &row.2, &data, now).await?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
         .bind(now).bind(derivation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     if cancellation.is_cancelled() {

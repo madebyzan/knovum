@@ -94,7 +94,6 @@ async fn change_failure_rolls_back_objects_created_earlier_in_transaction() {
         std::slice::from_ref(&existing),
         crate::spaces::knowledge::events::EventActor::new("human", Some("user")),
         1,
-        None,
     )
     .await
     .expect("insert existing node");

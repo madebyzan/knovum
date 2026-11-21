@@ -42,15 +42,7 @@ pub(super) async fn publish(
     db::require_one(claim, "Agent output publication is already active")?;
     super::staging::cleanup(app, pool, run_id).await?;
     let outputs = super::staging::stage(app, pool, run_id, workspace).await?;
-    let publication = commit(
-        pool,
-        conversation_id,
-        run_id,
-        space_id,
-        &outputs,
-        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
-    )
-    .await;
+    let publication = commit(pool, conversation_id, run_id, space_id, &outputs).await;
     if let Err(error) = publication {
         return match super::staging::cleanup(app, pool, run_id).await {
             Ok(()) => Err(error),
@@ -94,7 +86,6 @@ async fn commit(
     run_id: &str,
     space_id: &str,
     outputs: &[super::staging::StagedOutput],
-    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), AppError> {
     let mut tx = db::begin_write(pool).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
@@ -115,16 +106,7 @@ async fn commit(
     let mut references =
         crate::spaces::conversations::outputs::collect(&mut tx, space_id, &principal).await?;
     if !outputs.is_empty() {
-        insert_outputs(
-            &mut tx,
-            space_id,
-            conversation_id,
-            outputs,
-            &sources,
-            now,
-            enrichment_target,
-        )
-        .await?;
+        insert_outputs(&mut tx, space_id, conversation_id, outputs, &sources, now).await?;
         for output in outputs {
             references.push(ConversationMessageOutput {
                 node_id: output.node.id.clone(),
@@ -218,7 +200,6 @@ async fn insert_outputs(
     outputs: &[super::staging::StagedOutput],
     sources: &[String],
     now: i64,
-    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), AppError> {
     let (mut snapshot, revision) = structure::repository::load_in_transaction(tx, space_id).await?;
     let before = structure::history::capture(tx, space_id, &snapshot).await?;
@@ -258,7 +239,6 @@ async fn insert_outputs(
             std::slice::from_ref(&node),
             knowledge::events::EventActor::new("external_agent", Some(principal_id)),
             now,
-            enrichment_target,
         )
         .await?;
         for source in sources {

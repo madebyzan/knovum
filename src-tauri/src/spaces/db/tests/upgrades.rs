@@ -569,3 +569,62 @@ async fn upgrading_0_6_x_freezes_user_model_choices() {
     crate::spaces::speech::video_config::parse(&value)
         .expect("the upgraded dubbing config parses with its frozen model");
 }
+
+#[tokio::test]
+async fn upgrading_0_0_7_unfreezes_unfinished_visual_targets() {
+    let pool = shipped(7).await;
+    sqlx::query(
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .expect("space");
+    sqlx::query(
+        "INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) \
+         VALUES('n','s','image',0,0,'{\"kind\":\"image\",\"title\":\"Pic\",\"sourceRevision\":\"rev\"}',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .expect("node");
+    let target = r#"{"type":"agent","runtimeKind":"open_code"}"#;
+    for (id, status, rev) in [
+        ("pending-visual", "pending", "rev-1"),
+        ("running-visual", "running", "rev-2"),
+        ("failed-visual", "failed", "rev-3"),
+        ("waiting-visual", "awaiting_configuration", "rev-4"),
+        ("done-visual", "succeeded", "rev-5"),
+        ("cancelled-visual", "cancelled", "rev-6"),
+    ] {
+        sqlx::query(
+            "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,execution_target,created_at,updated_at) \
+             VALUES($1,'s','n','analyze_visual',$2,$3,$4,1,1)",
+        )
+        .bind(id)
+        .bind(status)
+        .bind(rev)
+        .bind(target)
+        .execute(&pool)
+        .await
+        .expect("visual job");
+    }
+
+    super::super::migrate(&pool).await.expect("upgrade");
+
+    assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
+    let rows: Vec<(String, Option<String>)> =
+        sqlx::query_as("SELECT id, execution_target FROM spaces_enrichment_jobs ORDER BY id")
+            .fetch_all(&pool)
+            .await
+            .expect("visual jobs");
+    assert_eq!(
+        rows,
+        [
+            ("cancelled-visual".into(), Some(target.into())),
+            ("done-visual".into(), Some(target.into())),
+            ("failed-visual".into(), None),
+            ("pending-visual".into(), None),
+            ("running-visual".into(), None),
+            ("waiting-visual".into(), None),
+        ]
+    );
+}

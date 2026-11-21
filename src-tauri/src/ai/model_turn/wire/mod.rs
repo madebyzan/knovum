@@ -5,7 +5,7 @@ use futures::future::BoxFuture;
 use genai::{
     adapter::AdapterKind,
     resolver::{AuthData, Endpoint},
-    Client, ModelIden, ServiceTarget,
+    ModelIden, ServiceTarget,
 };
 
 use crate::ai::{
@@ -45,7 +45,7 @@ impl ModelTurnCapability for GenAiModelTurnAdapter {
         request: &'a ModelTurnRequest,
     ) -> BoxFuture<'a, AppResult<ModelTurnResponse>> {
         Box::pin(async move {
-            let response = Client::default()
+            let response = super::genai_client()
                 .exec_chat(
                     service_target(self.adapter_kind, context),
                     to_genai_request(request)?,

@@ -62,7 +62,6 @@ pub(super) async fn reserve(
         sources,
         lineage,
         &authority.run_id,
-        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
     )
     .await?;
     Ok(tx.commit().await.map_err(db::sql_error)?)
@@ -77,7 +76,6 @@ pub(crate) async fn reserve_in_transaction(
     sources: &[String],
     lineage: &'static str,
     run_id: &str,
-    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), AppError> {
     let (mut snapshot, base) = structure::repository::load_in_transaction(tx, space_id).await?;
     let before = structure::history::capture(tx, space_id, &snapshot).await?;
@@ -125,7 +123,6 @@ pub(crate) async fn reserve_in_transaction(
             &inserts,
             crate::spaces::knowledge::events::EventActor::new("system", Some(run_id)),
             now,
-            enrichment_target,
         )
         .await?;
         for insert in &inserts {

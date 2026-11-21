@@ -40,6 +40,7 @@ pub async fn execute_job(
     app: AppHandle,
     request: RunEnrichmentJobRequest,
     progress: Channel<MediaTranscriptionProgress>,
+    _permit: OwnedSemaphorePermit,
 ) -> Result<EnrichmentJobOutput, AppError> {
     let seed = EnqueueEnrichmentJobRequest {
         space_id: request.space_id.clone(),
@@ -48,7 +49,6 @@ pub async fn execute_job(
         source_revision: request.source_revision.clone(),
     };
     super::validate_request(&seed)?;
-    let _permit = lane(request.job_type).await?;
     if !super::claim(&app, &request.job_id, &seed).await? {
         return Err(AppError::new(
             "enrichment_already_running",
@@ -139,7 +139,7 @@ async fn execute(
     })
 }
 
-async fn lane(job_type: EnrichmentJobType) -> Result<OwnedSemaphorePermit, AppError> {
+pub(super) fn try_acquire_lane(job_type: EnrichmentJobType) -> Option<OwnedSemaphorePermit> {
     static ANALYSIS: OnceLock<Arc<Semaphore>> = OnceLock::new();
     static MEDIA: OnceLock<Arc<Semaphore>> = OnceLock::new();
     static VISUAL: OnceLock<Arc<Semaphore>> = OnceLock::new();
@@ -154,11 +154,7 @@ async fn lane(job_type: EnrichmentJobType) -> Result<OwnedSemaphorePermit, AppEr
         }
         EnrichmentJobType::ParseDocument => DOCUMENT.get_or_init(|| Arc::new(Semaphore::new(1))),
         EnrichmentJobType::RecognizeText => RECOGNITION.get_or_init(|| Arc::new(Semaphore::new(1))),
-        _ => VISUAL.get_or_init(|| Arc::new(Semaphore::new(1))),
+        EnrichmentJobType::AnalyzeVisual => VISUAL.get_or_init(|| Arc::new(Semaphore::new(1))),
     };
-    semaphore
-        .clone()
-        .acquire_owned()
-        .await
-        .map_err(|_| AppError::internal("Enrichment lane is unavailable"))
+    semaphore.clone().try_acquire_owned().ok()
 }

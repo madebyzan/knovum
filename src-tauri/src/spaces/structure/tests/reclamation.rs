@@ -20,7 +20,6 @@ async fn deleted_photo() -> SqlitePool {
                 "data":{"kind":"image","title":"Photo","assetPath":"/managed/photo.png","fileName":"photo.png"}}]
         }))
         .unwrap(),
-        None,
     )
     .await
     .unwrap();

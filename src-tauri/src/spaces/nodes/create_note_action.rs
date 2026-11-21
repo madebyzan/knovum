@@ -53,7 +53,6 @@ pub(crate) async fn execute(
             Some(&principal.id),
         ),
         now,
-        None, // Notes do not create visual enrichment.
     )
     .await?;
     let edit_revision =

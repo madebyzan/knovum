@@ -1,13 +1,17 @@
+use std::time::Duration;
+
 use genai::{
     chat::{
         Binary, ChatMessage, ChatOptions, ChatRequest, ChatResponseFormat, ContentPart,
         MessageContent,
     },
     resolver::{AuthData, Endpoint},
-    Client, ModelIden, ServiceTarget,
+    ModelIden, ServiceTarget,
 };
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
+
+const VISION_REQUEST_TIMEOUT: Duration = Duration::from_secs(180);
 
 use crate::ai::{
     contracts::ProviderKind,
@@ -66,12 +70,20 @@ pub async fn analyze_image(
         options = options.with_max_tokens(max);
     }
 
-    let client = Client::default();
+    let client = crate::ai::model_turn::genai_client();
     let response = tokio::select! {
         _ = cancellation.cancelled() => {
             return Err(AppError::cancelled("Visual analysis was cancelled"));
         }
-        vision_completion = client.exec_chat(target, chat, Some(&options)) => vision_completion,
+        vision_completion = tokio::time::timeout(
+            VISION_REQUEST_TIMEOUT,
+            client.exec_chat(target, chat, Some(&options)),
+        ) => vision_completion.map_err(|_| {
+            AppError::new(
+                "provider_request_failed",
+                "Visual analysis request timed out after 3 minutes",
+            )
+        })?,
     }
     .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 

@@ -82,7 +82,6 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
         vocals,
         &metadata,
         1_000,
-        None,
     )
     .await
     .unwrap_err();
@@ -117,7 +116,6 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
             vocals,
             &metadata,
             1_000,
-            None,
         );
         tokio::pin!(pending);
         std::future::poll_fn(|context| {
@@ -154,7 +152,6 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
         vocals,
         &metadata,
         1_000,
-        None,
     )
     .await
     .unwrap_err();
@@ -217,7 +214,6 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
         vocals,
         &metadata,
         1_000,
-        None,
     )
     .await
     .unwrap_err();
@@ -245,7 +241,6 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
             vocals,
             &metadata,
             1_000,
-            None,
         )
         .await
         .unwrap_err(),
@@ -259,7 +254,6 @@ async fn publication_commit_requires_a_live_attempt_and_publishes_two_related_no
         vocals,
         &metadata,
         1_000,
-        None,
     )
     .await
     .unwrap();

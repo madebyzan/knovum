@@ -67,7 +67,7 @@ pub async fn retry_enrichment_job(
         EnrichmentJobType::AnalyzeVisual => target,
         _ => None,
     };
-    let executed = sqlx::query("UPDATE spaces_enrichment_jobs SET status='pending',error=NULL,execution_target=COALESCE($1,execution_target),updated_at=$2 WHERE id=$3 AND status IN ('failed','cancelled')")
+    let executed = sqlx::query("UPDATE spaces_enrichment_jobs SET status='pending',error=NULL,execution_target=$1,updated_at=$2 WHERE id=$3 AND status IN ('failed','cancelled')")
         .bind(replacement.map(sqlx::types::Json)).bind(crate::foundation::clock::unix_time_millis()?).bind(job_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     db::require_one(
         executed,

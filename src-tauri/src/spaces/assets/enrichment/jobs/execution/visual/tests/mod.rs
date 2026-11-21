@@ -19,13 +19,16 @@ async fn agent_only_visual_uses_prepared_input_without_model_transport() {
         image,
         tokio_util::sync::CancellationToken::new(),
         &revision,
+        LocalePreference::SimplifiedChinese,
     )
     .await
     .unwrap();
     spy.assert_agent_only();
     {
         let inputs = spy.inputs.lock().unwrap();
-        assert_eq!(inputs[0].max_tokens, Some(8192));
+        assert_eq!(inputs[0].max_tokens, Some(MAX_OUTPUT_TOKENS));
+        assert!(inputs[0].instruction.contains("Simplified Chinese (zh-CN)"));
+        assert!(inputs[0].instruction.contains("3-6 high-signal"));
         for limit in [
             visual::MAX_DESCRIPTION,
             visual::MAX_DETECTED_TEXT,
@@ -68,7 +71,8 @@ async fn invalid_visual_responses_are_rejected() {
             agent_target(ExecutionCapability::VisionUnderstanding),
             std::path::PathBuf::from("/authorized/image.png"),
             tokio_util::sync::CancellationToken::new(),
-            "rendered-source-revision"
+            "rendered-source-revision",
+            LocalePreference::English,
         )
         .await
         .is_err());
@@ -99,6 +103,7 @@ async fn oversized_and_empty_visual_fields_are_rejected() {
             std::path::PathBuf::from("/authorized/image.png"),
             tokio_util::sync::CancellationToken::new(),
             "source",
+            LocalePreference::English,
         )
         .await
         .unwrap_err();
@@ -125,6 +130,7 @@ async fn visual_limits_use_utf16_and_include_text_separators() {
             std::path::PathBuf::from("/authorized/image.png"),
             tokio_util::sync::CancellationToken::new(),
             "source",
+            LocalePreference::English,
         )
         .await;
         assert_eq!(interpretation.is_ok(), valid);
@@ -149,6 +155,7 @@ async fn inference_failure_keeps_its_code_and_message() {
             std::path::PathBuf::from("/authorized/image.png"),
             tokio_util::sync::CancellationToken::new(),
             "source",
+            LocalePreference::English,
         )
         .await
         .unwrap_err();

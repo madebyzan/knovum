@@ -63,7 +63,6 @@ pub(crate) async fn persist_output_node(
     node_id: &str,
     payload: &serde_json::Value,
     now: i64,
-    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), AppError> {
     let settled = sqlx::query(
         "UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=$3 AND deleted_at IS NULL",
@@ -82,12 +81,7 @@ pub(crate) async fn persist_output_node(
         .await
         .map_err(crate::spaces::db::sql_error)?;
     crate::spaces::assets::enrichment::jobs::intent::synchronize_for_node(
-        tx,
-        &space_id,
-        node_id,
-        payload,
-        now,
-        enrichment_target,
+        tx, &space_id, node_id, payload, now,
     )
     .await?;
     if !matches!(payload["kind"].as_str(), Some("image" | "video" | "file")) {

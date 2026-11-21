@@ -148,7 +148,6 @@ pub(super) async fn execute_audiobook(
         &config.revision_id,
         &output,
         None,
-        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
     )
     .await
     {

@@ -34,7 +34,7 @@ pub(in crate::spaces) async fn insert_source_in_transaction(
     data: serde_json::Value,
 ) -> Result<(), String> {
     let request = insert_request(space_id, &format!("{node_id}-create"), node_id, kind, data);
-    insert_many_in_transaction(tx, request, None)
+    insert_many_in_transaction(tx, request)
         .await
         .map(|_| ())
         .map_err(|e| e.to_string())
@@ -83,7 +83,7 @@ async fn parallel_imports_append_without_a_caller_revision() {
         let pool = pool.clone();
         async move {
             let mut tx = db::begin_write(&pool).await.unwrap();
-            let created = insert_many_in_transaction(&mut tx, request, None)
+            let created = insert_many_in_transaction(&mut tx, request)
                 .await
                 .expect("import appends to the Space it is committed against");
             tx.commit().await.unwrap();
@@ -117,7 +117,7 @@ async fn parallel_imports_append_without_a_caller_revision() {
 async fn create_note(pool: &sqlx::SqlitePool) -> CreatedNodes {
     let mut tx = db::begin_write(pool).await.unwrap();
     let request = insert_request("space", "create-note", "note", "note", source_note("Idea"));
-    let created = insert_many_in_transaction(&mut tx, request, None)
+    let created = insert_many_in_transaction(&mut tx, request)
         .await
         .expect("a note is created");
     tx.commit().await.unwrap();
@@ -184,7 +184,7 @@ async fn resetting_image_edits_replaces_every_reading_of_the_picture_through_the
     sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('node','space','image',0,0,$1,1,1)")
         .bind(before.to_string()).execute(&pool).await.unwrap();
     let mut tx = pool.begin().await.unwrap();
-    jobs::intent::synchronize_for_node(&mut tx, "space", "node", &before, 1, None)
+    jobs::intent::synchronize_for_node(&mut tx, "space", "node", &before, 1)
         .await
         .unwrap();
     let edited = jobs::revision::visual_revision(&before).unwrap().unwrap();
@@ -204,7 +204,6 @@ async fn resetting_image_edits_replaces_every_reading_of_the_picture_through_the
         }],
         "human",
         2,
-        None,
     )
     .await
     .unwrap();
