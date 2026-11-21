@@ -28,6 +28,7 @@ vi.mock("../outline/presentation/use-structure-outline-menu", () => ({
 const store = reactive({
   activeSpaceId: "space",
   outlineRenameStructureNodeId: null as string | null,
+  outlineExpandedIds: [] as string[],
   nodes: [{ id: "note", data: { title: "Note" } }],
   editSnapshot: {
     structure: [

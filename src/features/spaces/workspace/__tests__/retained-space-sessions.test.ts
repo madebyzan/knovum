@@ -100,3 +100,21 @@ it("keeps the object of every node a revalidation found unchanged", async () => 
   expect(context.nodes.value[0]).toBe(kept);
   expect(shownNodeIds(context)).toEqual(["research-note", "published-meanwhile"]);
 });
+
+it("preserves per-Space group scope, active scene, and outline expansion across switches", async () => {
+  const context = await withResearchRetained();
+  await openSpace(context, "research");
+  context.groupScopePath.value = ["grp-1"];
+  context.activeSceneId.value = "scene-1";
+  context.outlineExpandedIds.value = ["sec-1"];
+
+  await openSpace(context, "inbox");
+  expect(context.groupScopePath.value).toEqual([]);
+  expect(context.activeSceneId.value).toBeUndefined();
+  expect(context.outlineExpandedIds.value).toEqual([]);
+
+  await openSpace(context, "research");
+  expect(context.groupScopePath.value).toEqual(["grp-1"]);
+  expect(context.activeSceneId.value).toBe("scene-1");
+  expect(context.outlineExpandedIds.value).toEqual(["sec-1"]);
+});

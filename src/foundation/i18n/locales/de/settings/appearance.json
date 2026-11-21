@@ -46,5 +46,12 @@
       "russian": "Russisch",
       "brazilianPortuguese": "Brasilianisches Portugiesisch"
     }
+  },
+  "startup": {
+    "title": "Start",
+    "restoreWorkspace": {
+      "label": "Vorherigen Arbeitsbereich beim Start wiederherstellen",
+      "description": "Öffnet Tabs, Canvas-Ansichten und Seitenleisten der letzten Sitzung erneut."
+    }
   }
 }

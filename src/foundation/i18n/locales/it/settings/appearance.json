@@ -46,5 +46,12 @@
       "russian": "Russo",
       "brazilianPortuguese": "Portoghese brasiliano"
     }
+  },
+  "startup": {
+    "title": "Avvio",
+    "restoreWorkspace": {
+      "label": "Ripristina l’area di lavoro precedente all’avvio",
+      "description": "Riapre schede, viste del canvas e barre laterali dell’ultima sessione."
+    }
   }
 }

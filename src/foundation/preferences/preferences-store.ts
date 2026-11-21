@@ -25,14 +25,25 @@ import {
 
 const SETTINGS_FILE = "settings.json";
 const SETTINGS_KEY = "preferences";
-const currentWindow = getCurrentWindow();
+let cachedWindow: ReturnType<typeof getCurrentWindow> | undefined;
 let systemTheme: Theme = "light";
 let osLocale: AppLocale = "en";
 let stopThemeListener: (() => void) | undefined;
 
+function currentWindow() {
+  return (cachedWindow ??= getCurrentWindow());
+}
+
 function snapshot(state: Preferences): Preferences {
   return {
-    ...pick(state, ["theme", "density", "textSize", "locale", "backgroundTaskNotifications"]),
+    ...pick(state, [
+      "theme",
+      "density",
+      "textSize",
+      "locale",
+      "backgroundTaskNotifications",
+      "restorePreviousWorkspace",
+    ]),
     workbench: { ...state.workbench },
   };
 }
@@ -75,8 +86,9 @@ export const usePreferencesStore = defineStore("preferences", () => {
     return serialize(async () => {
       loaded = false;
       const store = await load(SETTINGS_FILE, { autoSave: false });
+      const window = currentWindow();
       const [theme, locale, raw] = await Promise.all([
-        currentWindow.theme(),
+        window.theme(),
         getOsLocale(),
         store.get<unknown>(SETTINGS_KEY),
       ]);
@@ -88,13 +100,13 @@ export const usePreferencesStore = defineStore("preferences", () => {
         Object.assign(preferences, decodePreferences(raw));
       }
 
-      await currentWindow.setTheme(preferences.theme === "system" ? null : preferences.theme);
+      await window.setTheme(preferences.theme === "system" ? null : preferences.theme);
       await syncSystemLocale(preferences.locale);
       await syncTaskNotifications(preferences.backgroundTaskNotifications);
       applyPreferences(snapshot(preferences));
 
       if (!stopThemeListener) {
-        stopThemeListener = await currentWindow.onThemeChanged(({ payload }) => {
+        stopThemeListener = await window.onThemeChanged(({ payload }) => {
           systemTheme = payload;
           if (preferences.theme === "system") applyPreferences(snapshot(preferences));
         });
@@ -126,33 +138,22 @@ export const usePreferencesStore = defineStore("preferences", () => {
 
   function setTheme(theme: ThemePreference) {
     return mutate(async () => {
-      await currentWindow.setTheme(theme === "system" ? null : theme);
+      await currentWindow().setTheme(theme === "system" ? null : theme);
       preferences.theme = theme;
     });
   }
 
-  function setDensity(density: DensityPreference) {
-    return mutate(() => {
-      preferences.density = density;
-    });
-  }
-
-  function setTextSize(textSize: TextSizePreference) {
-    return mutate(() => {
-      preferences.textSize = textSize;
-    });
-  }
+  const setDensity = (density: DensityPreference) => mutate(() => void (preferences.density = density));
+  const setTextSize = (textSize: TextSizePreference) => mutate(() => void (preferences.textSize = textSize));
+  const setWorkbenchLayout = (layout: WorkbenchPreferences) =>
+    mutate(() => void Object.assign(preferences.workbench, layout));
+  const setRestorePreviousWorkspace = (enabled: boolean) =>
+    mutate(() => void (preferences.restorePreviousWorkspace = enabled));
 
   function setLocale(locale: LocalePreference) {
     return mutate(async () => {
       await syncSystemLocale(locale);
       preferences.locale = locale;
-    });
-  }
-
-  function setWorkbenchLayout(layout: WorkbenchPreferences) {
-    return mutate(() => {
-      Object.assign(preferences.workbench, layout);
     });
   }
 
@@ -173,6 +174,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
     setLocale,
     setWorkbenchLayout,
     setBackgroundTaskNotifications,
+    setRestorePreviousWorkspace,
   };
 });
 

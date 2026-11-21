@@ -24,7 +24,11 @@ export async function returnToWorkspace(router: Router): Promise<void> {
   await router.push(path && router.resolve(path).name === "spaces" ? path : "/spaces");
 }
 
-export async function restoreWorkspaceSession(router: Router): Promise<void> {
+export async function restoreWorkspaceSession(router: Router, enabled = true): Promise<void> {
+  if (!enabled) {
+    globalThis.localStorage.removeItem(LAST_ROUTE_KEY);
+    return;
+  }
   const path = readRoute(LAST_ROUTE_KEY);
   if (!path || router.resolve(path).matched.length === 0) return;
   await router.replace(path);

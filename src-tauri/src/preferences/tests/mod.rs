@@ -14,6 +14,7 @@ fn absent_optional_preferences_preserve_saved_choices() {
         json!({
             "theme": "dark", "density": "comfortable", "textSize": "large", "locale": "zh-CN",
             "backgroundTaskNotifications": true,
+            "restorePreviousWorkspace": true,
             "workbench": {
                 "sidebarVisible": true, "sidebarWidth": 224,
                 "rightSidebarVisible": false, "rightSidebarWidth": 380
@@ -26,11 +27,13 @@ fn absent_optional_preferences_preserve_saved_choices() {
 fn partial_layout_preserves_explicit_false_values() {
     let preferences: Preferences = serde_json::from_value(json!({
         "theme": "system", "density": "compact", "textSize": "default", "locale": "system",
-        "backgroundTaskNotifications": false, "workbench": { "sidebarVisible": false }
+        "backgroundTaskNotifications": false, "restorePreviousWorkspace": false,
+        "workbench": { "sidebarVisible": false }
     }))
     .unwrap();
     preferences.validate().unwrap();
     assert!(!preferences.background_task_notifications);
+    assert!(!preferences.restore_previous_workspace);
     assert!(!preferences.workbench.sidebar_visible);
     assert_eq!(preferences.workbench.sidebar_width, 224);
     assert!(!preferences.workbench.right_sidebar_visible);
@@ -45,6 +48,8 @@ fn invalid_preferences_remain_errors() {
     for invalid in [
         json!({ "backgroundTaskNotifications": null }),
         json!({ "backgroundTaskNotifications": "true" }),
+        json!({ "restorePreviousWorkspace": null }),
+        json!({ "restorePreviousWorkspace": "true" }),
         json!({ "workbench": null }),
         json!({ "workbench": { "sidebarWidth": 199 } }),
         json!({ "workbench": { "rightSidebarWidth": 481 } }),

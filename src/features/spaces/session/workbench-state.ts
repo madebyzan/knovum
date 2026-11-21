@@ -6,6 +6,7 @@ import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
 import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
+import { DEFAULT_RELATION_STATUS_FILTER } from "../workspace/space-view-session";
 
 export interface RevealRequest {
   ids: string[];
@@ -59,11 +60,13 @@ export function createSpaceUiState() {
     sourceReturnView: ref<RightSidebarPrimaryView>("ask"),
     editorLocateRequest: ref<EditorLocateRequest>(),
     canvasFocusIds: ref<string[]>([]),
+    activeSceneId: ref<string | undefined>(),
+    outlineExpandedIds: shallowRef<string[]>([]),
     outlineFocusRequest: shallowRef(0),
     outlineRenameStructureNodeId: shallowRef<string | null>(null),
     thumbnailDirty: ref(true),
     relationKindFilter: ref<RelationKind[]>([]),
-    relationStatusFilter: ref<RelationStatus[]>(["active", "contested"]),
+    relationStatusFilter: ref<RelationStatus[]>([...DEFAULT_RELATION_STATUS_FILTER]),
     savedQueryFilter: ref<SpaceSavedViewFilter>({}),
     minimapOpen: ref(false),
   };

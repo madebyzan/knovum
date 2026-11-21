@@ -10,6 +10,7 @@ import { markSpaceOpenedAndTrack } from "./space-creation";
 import { activateSpaceSession } from "./space-session-actions";
 import type { SpaceSessionContext } from "./space-session-context";
 import { transitionActiveSpaceSession } from "./space-transition";
+import { restoreSpaceViewSession } from "./space-view-session";
 import { takeWorkbenchSession, type SavedWorkbenchTab, type WorkbenchSession } from "./workbench-session";
 import {
   createSpaceCanvasTab,
@@ -29,14 +30,18 @@ interface ReopenedStrip {
 }
 
 /**
- * Opens the workbench with the tab strip the window last showed. A saved tab returns only while
- * what it shows still exists, so tabs of archived or deleted Spaces and of content that left its
- * Space drop out. The permanent Inbox tab is always present; the saved active tab stays active when
- * it returned, otherwise the Inbox does. Every Space a tab references is loaded, as it is for any
- * open tab: the active one becomes the session and the others are retained behind it.
+ * Opens the workbench with the session the window last showed when startup restoration is enabled.
+ * Every saved Space, editor tab and Space view context is revalidated against current persisted
+ * content; items that left the Space drop out cleanly. The permanent Inbox tab is always present
+ * and becomes active when restoration is disabled or the saved active tab did not return.
  */
-export async function restoreWorkbench(context: SpaceSessionContext, inbox: Space) {
-  const saved = takeWorkbenchSession();
+export async function restoreWorkbench(
+  context: SpaceSessionContext,
+  inbox: Space,
+  restorePreviousWorkspace = true,
+) {
+  const taken = takeWorkbenchSession();
+  const saved = restorePreviousWorkspace ? taken : undefined;
   const available = new Set(
     context.spaces.value.filter(({ archivedAt }) => archivedAt === null).map(({ id }) => id),
   );
@@ -44,7 +49,7 @@ export async function restoreWorkbench(context: SpaceSessionContext, inbox: Spac
   const contents = await loadSpaceContents([inbox.id, ...candidates.map(({ spaceId }) => spaceId)]);
   const strip = reopenStrip(saved, candidates, contents, inbox.id);
   await markSpaceOpenedAndTrack(context, strip.active.spaceId);
-  await transitionActiveSpaceSession(context, () => applyStrip(context, strip, contents));
+  await transitionActiveSpaceSession(context, () => applyStrip(context, strip, contents, saved));
   recordWorkbenchNavigation(context, strip.active.id);
 }
 
@@ -85,14 +90,32 @@ async function applyStrip(
   context: SpaceSessionContext,
   { entries, active }: ReopenedStrip,
   contents: ReadonlyMap<string, SpaceSessionContent>,
+  saved: WorkbenchSession | undefined,
 ) {
   const tabs = entries.map(({ tab }) => tab);
   for (const spaceId of referencedSpaceIds(tabs)) {
-    if (spaceId !== active.spaceId) retainSpaceSession(context, spaceId, contents.get(spaceId)!);
+    if (spaceId === active.spaceId) continue;
+    const content = contents.get(spaceId)!;
+    retainSpaceSession(
+      context,
+      spaceId,
+      content,
+      restoreSpaceViewSession(saved?.spaceViews[spaceId], content),
+    );
   }
-  activateSpaceSession(context, active.spaceId, contents.get(active.spaceId)!);
+  const activeContent = contents.get(active.spaceId)!;
+  activateSpaceSession(
+    context,
+    active.spaceId,
+    activeContent,
+    restoreSpaceViewSession(saved?.spaceViews[active.spaceId], activeContent),
+  );
   for (const entry of entries) {
     if ("node" in entry) context.editors.open(entry.tab, entry.node);
+  }
+  if (saved) {
+    context.rightSidebarView.value = saved.rightSidebarView;
+    context.sourceReturnView.value = saved.rightSidebarView;
   }
   context.tabs.value = tabs;
   selectWorkbenchTab(context, active.id);

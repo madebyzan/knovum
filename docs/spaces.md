@@ -33,8 +33,13 @@ deleting a Space prepares all its editor owners; cancelling a later decision nev
 drafts or executes a prepared discard. Actual application exit prepares every retained editor
 through the existing window close coordinator. Successful durable writes need not be rolled back
 after a later cancellation. The Inbox canvas tab is permanent, so the workbench always retains one
-tab. Tabs and unsaved memory drafts do not survive application restart. Documents and video
-projects are stored by the same editor autosave, each in its own durable owner.
+tab. When **Restore previous workspace on startup** (`restorePreviousWorkspace`, enabled by default)
+is on, relaunching Knovum restores the saved tab strip, active tab, sidebar and Inspector open
+states, Inspector primary view (`ask` or `inspect`), per-Space Group scope, active Saved View,
+Outline container disclosures, and canvas camera. When disabled, startup opens cleanly at the Inbox
+with default sidebar visibility. Unsaved memory drafts do not survive an unexpected crash; normal
+navigation and application exit flush documents and video projects through the same editor autosave,
+each in its own durable owner.
 
 Document sessions own their drafts; retained Tiptap instances own document history and selection.
 Video sessions own project drafts, history, the selected item, playback position and the rejection
