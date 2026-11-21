@@ -26,7 +26,7 @@ pub(super) async fn stream_text(
     let options = to_genai_options(&request)
         .with_capture_usage(true)
         .with_capture_tool_calls(true);
-    let client = super::genai_client();
+    let client = super::genai_streaming_client();
     let response = tokio::select! {
         biased;
         _ = cancellation.cancelled() => return Err(AppError::cancelled("Text stream was cancelled")),

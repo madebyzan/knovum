@@ -24,6 +24,17 @@ pub(crate) fn genai_client() -> &'static Client {
     })
 }
 
+/// Shared genai client for streaming turns: enforces connect + per-read idle timeouts without
+/// capping total stream duration while tokens keep flowing.
+pub(crate) fn genai_streaming_client() -> &'static Client {
+    static CLIENT: OnceLock<Client> = OnceLock::new();
+    CLIENT.get_or_init(|| {
+        Client::builder()
+            .with_reqwest(crate::ai::transport::streaming_http_client().clone())
+            .build()
+    })
+}
+
 static OPENAI: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::OpenAI);
 static ANTHROPIC: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::Anthropic);
 static GEMINI: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::Gemini);
