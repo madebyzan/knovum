@@ -9,6 +9,7 @@ import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useContextDock } from "../../canvas/use-context-dock";
 import SpaceInspectorSection from "../../inspection/presentation/SpaceInspectorSection.vue";
+import { classifyReadableSource } from "../../reading/source-reader-target";
 import { useSpaceStore } from "../../session/space-store";
 import { changedSources, currentSourceRevision, type SpaceProvenance } from "../model/provenance";
 import { reviewProvenance } from "../provenance-actions";
@@ -34,6 +35,15 @@ const updates = computed(() =>
 );
 
 function open({ record, title }: (typeof updates.value)[number]) {
+  const sourceData = nodeById.value.get(record.sourceNodeId);
+  if (sourceData && classifyReadableSource(sourceData)) {
+    store.openSourceReader({
+      nodeId: record.sourceNodeId,
+      locator: record.locator,
+      quote: record.quote,
+    });
+    return;
+  }
   dock.openSource(
     { nodeId: record.sourceNodeId, nodeTitle: title, locator: record.locator, text: record.quote },
     { reveal: false },

@@ -85,6 +85,22 @@ export function refreshSpaceAsset(spaceId: string, nodeId: string): Promise<Spac
   return request;
 }
 
+export function saveEditableSpaceAsset(
+  spaceId: string,
+  nodeId: string,
+  bytes: Uint8Array,
+): Promise<SpaceNodePayload | undefined> {
+  return invokeCommand<SpaceNodePayload | null>("plugin:spaces|save_editable_asset", {
+    spaceId,
+    nodeId,
+    bytes: Array.from(bytes),
+  }).then((data) => data ?? undefined);
+}
+
+export function persistSpaceImageBytes(bytes: Uint8Array): Promise<{ path: string; sourceRevision: string }> {
+  return invokeCommand("plugin:spaces|persist_clipboard_image", { bytes: Array.from(bytes) });
+}
+
 export function openSpaceAsset(sourcePath: string): Promise<void> {
   return invokeCommand("plugin:spaces|open_asset", { sourcePath });
 }

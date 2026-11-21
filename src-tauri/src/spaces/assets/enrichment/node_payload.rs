@@ -3,7 +3,7 @@ use sqlx::Row;
 
 use crate::spaces::db;
 
-pub(super) async fn load_node_content(
+pub(in crate::spaces) async fn load_node_content(
     app: &tauri::AppHandle,
     space_id: &str,
     node_id: &str,
@@ -22,7 +22,7 @@ pub(super) async fn load_node_content(
     serde_json::from_str(&raw).map_err(db::json_error)
 }
 
-pub(super) fn required_string(data: &Value, key: &str) -> Result<String, String> {
+pub(in crate::spaces) fn required_string(data: &Value, key: &str) -> Result<String, String> {
     data.get(key)
         .and_then(Value::as_str)
         .filter(|value| !value.is_empty())

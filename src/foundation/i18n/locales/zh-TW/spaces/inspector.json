@@ -50,5 +50,30 @@
     "empty": "當前空間暫無相關內容。",
     "explanation": "根據內容語義在當前空間中發現關聯；結果不會自動建立連線。"
   },
-  "containedItems": "包含 {count} 項內容"
+  "containedItems": "包含 {count} 項內容",
+  "reader": {
+    "readerMode": "閱讀模式",
+    "liveWeb": "內建網頁",
+    "decreaseFontSize": "縮小字體",
+    "increaseFontSize": "放大字體",
+    "searchPlaceholder": "在文件中尋找…",
+    "outline": "目錄",
+    "highlight": "螢光標註",
+    "addText": "新增文字",
+    "draw": "畫筆批註",
+    "wrapLines": "自動換行",
+    "singleSlide": "單頁檢視",
+    "continuousSlides": "連續瀏覽",
+    "markup": "標註",
+    "thumbnails": "縮圖",
+    "highlights": "摘錄",
+    "areaCapture": "框選截圖",
+    "viewOptions": "檢視選項",
+    "singlePage": "單頁連續",
+    "twoPageSpread": "雙頁對開",
+    "fitPage": "符合整頁",
+    "rotateClockwise": "旋轉 90°",
+    "typeHere": "輸入文字…",
+    "preview": "預覽"
+  }
 }

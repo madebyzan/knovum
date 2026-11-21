@@ -6,6 +6,7 @@ import SpaceInspectorSection from "../../inspection/presentation/SpaceInspectorS
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceKnowledgeHistory from "./SpaceKnowledgeHistory.vue";
+import SpaceProvenanceSources from "./SpaceProvenanceSources.vue";
 import SpaceRelations from "./SpaceRelations.vue";
 import SpaceSourceUpdates from "./SpaceSourceUpdates.vue";
 import SpaceTags from "./SpaceTags.vue";
@@ -21,6 +22,14 @@ const hasRelations = computed(() =>
 
 <template>
   <SpaceSourceUpdates :key="node.id" :node-id="node.id" />
+
+  <SpaceProvenanceSources
+    v-if="node.data.kind !== 'object'"
+    class="border-b border-stroke-divider px-4 py-3"
+    target-kind="node"
+    :target-id="node.id"
+    removable
+  />
 
   <SpaceInspectorSection
     :title="$t('spaces.knowledge.relations.title')"

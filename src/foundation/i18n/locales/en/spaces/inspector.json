@@ -50,5 +50,30 @@
     "empty": "No related content in this Space yet.",
     "explanation": "Discover related content in this Space by meaning. Results do not create connections."
   },
-  "containedItems": "{count} contained items"
+  "containedItems": "{count} contained items",
+  "reader": {
+    "readerMode": "Reader",
+    "liveWeb": "Web view",
+    "decreaseFontSize": "Smaller text",
+    "increaseFontSize": "Larger text",
+    "searchPlaceholder": "Find in document…",
+    "outline": "Table of contents",
+    "highlight": "Highlight",
+    "addText": "Add text",
+    "draw": "Draw",
+    "wrapLines": "Wrap lines",
+    "singleSlide": "Slide view",
+    "continuousSlides": "Continuous view",
+    "markup": "Markup",
+    "thumbnails": "Thumbnails",
+    "highlights": "Excerpts",
+    "areaCapture": "Capture area",
+    "viewOptions": "View options",
+    "singlePage": "Single page",
+    "twoPageSpread": "Two-page spread",
+    "fitPage": "Fit page",
+    "rotateClockwise": "Rotate 90°",
+    "typeHere": "Type here…",
+    "preview": "Preview"
+  }
 }

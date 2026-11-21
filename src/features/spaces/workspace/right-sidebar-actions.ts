@@ -1,6 +1,7 @@
 import type { SpacePlacement } from "../canvas/navigation-requests";
 import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
+import { classifyReadableSource, type SourceReaderRequest } from "../reading/source-reader-target";
 import type { SpaceState } from "../session/session-state";
 import type { RightSidebarPrimaryView } from "../session/workbench-state";
 
@@ -69,12 +70,29 @@ export function createRightSidebarActions(
     state.editorLocateRequest.value = { nodeId: node.id, locator: target.locator, nonce: Date.now() };
   }
 
+  function openSourceReader(request: SourceReaderRequest) {
+    const node = state.nodes.value.find((candidate) => candidate.id === request.nodeId && !candidate.hidden);
+    if (!node || !classifyReadableSource(node.data)) return;
+    state.readingTarget.value = {
+      nodeId: node.id,
+      locator: request.locator,
+      quote: request.quote ?? request.locator?.quote?.exact,
+      nonce: Date.now(),
+    };
+  }
+
+  function closeSourceReader() {
+    state.readingTarget.value = undefined;
+  }
+
   return {
     setRightSidebarView,
     requestAsk,
     clearAskScopeRequest,
     openSource,
     closeSource,
+    openSourceReader,
+    closeSourceReader,
     openEditorAtSource,
   };
 }

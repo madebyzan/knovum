@@ -1,0 +1,119 @@
+/* Knovum native styling for pdf.js AnnotationEditor and Obsidian PDF++-style
+   bidirectional provenance highlight overlays. Suppresses Firefox's native .editToolbar
+   and <input type="color"> popups so all controls stay strictly inside Knovum's own UI. */
+.pdf-reader {
+  --editor-selection-outline: 1.5px solid var(--color-stroke-focus);
+  --focus-outline-around: none;
+  --hover-outline: 1px dashed var(--color-stroke-strong);
+  --hover-outline-around: none;
+  --unfocus-outline: 1px solid transparent;
+  --resizer-size: 7px;
+  --resizer-shift: calc(0px - (var(--resizer-size) + 2px) / 2);
+  --resizer-bg-color: var(--color-surface-raised);
+  --editorInk-editing-cursor: crosshair;
+  --editorFreeText-editing-cursor: text;
+  --editorTextHighlight-editing-cursor: text;
+  --editorFreeHighlight-editing-cursor: crosshair;
+  --draw-cursor: crosshair;
+}
+
+.pdf-reader.area-capture-active {
+  cursor: crosshair;
+}
+
+.pdf-reader.area-capture-active :deep(.textLayer) {
+  pointer-events: none;
+}
+
+.pdf-reader :deep(.page) {
+  margin: 0.5rem auto 0.75rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
+
+.pdf-reader :deep(.knovum-pdf-provenance-layer) {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.pdf-reader :deep(.knovum-pdf-highlight-mark) {
+  position: absolute;
+  pointer-events: auto;
+  cursor: pointer;
+  border: 0;
+  border-radius: 2px;
+  background-color: rgb(250 204 21 / 0.32);
+  mix-blend-mode: multiply;
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.pdf-reader :deep(.knovum-pdf-highlight-mark:hover) {
+  background-color: rgb(250 204 21 / 0.52);
+  box-shadow: 0 0 0 1px rgb(217 119 6 / 0.5);
+}
+
+.pdf-reader :deep(.knovum-pdf-highlight-mark[data-active="true"]) {
+  background-color: rgb(250 204 21 / 0.55);
+  box-shadow: 0 0 0 2px rgb(217 119 6 / 0.75);
+}
+
+.pdf-reader :deep(.knovum-pdf-crop-mark) {
+  position: absolute;
+  pointer-events: auto;
+  cursor: pointer;
+  border-radius: 3px;
+  border: 1.5px dashed rgb(37 99 235 / 0.65);
+  background-color: rgb(37 99 235 / 0.06);
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.pdf-reader :deep(.knovum-pdf-crop-mark:hover),
+.pdf-reader :deep(.knovum-pdf-crop-mark[data-active="true"]) {
+  border-style: solid;
+  border-color: rgb(37 99 235 / 0.9);
+  background-color: rgb(37 99 235 / 0.12);
+}
+
+/* Suppress Firefox's floating .editToolbar and OS color-panel popups completely;
+   Knovum's own SpacePdfMarkupBar owns tool, color, size, and delete controls. */
+.pdf-reader :deep(.editToolbar) {
+  display: none !important;
+}
+
+.pdf-reader :deep(.annotationEditorLayer .freeTextEditor .internal) {
+  font-family: var(--font-sans);
+  line-height: 1.45;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+.pdf-reader :deep(.annotationEditorLayer .freeTextEditor .internal:empty::before) {
+  content: var(--pdf-freetext-placeholder, "Type here...");
+  color: var(--color-fg-tertiary);
+}
+
+.pdf-reader
+  :deep(
+    .annotationEditorLayer
+      :is(.freeTextEditor, .inkEditor, .highlightEditor).selectedEditor::before
+  ) {
+  display: none;
+}
+
+.pdf-reader :deep(.annotationEditorLayer .highlightEditor.selectedEditor) {
+  outline: 1.5px solid var(--color-stroke-focus);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.pdf-reader :deep(.annotationEditorLayer .resizers > .resizer) {
+  border: 1.5px solid var(--color-stroke-focus);
+  border-radius: 9999px;
+  background: var(--color-surface-raised);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.18);
+}

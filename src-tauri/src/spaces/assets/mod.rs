@@ -1,7 +1,8 @@
-mod access;
+pub(in crate::spaces) mod access;
 pub(crate) mod audio;
 pub(crate) mod canvas_thumbnail;
 pub(crate) mod commands;
+pub(crate) mod edit;
 pub(crate) mod enrichment;
 pub(crate) mod export;
 pub(crate) mod external_open;

@@ -13,6 +13,7 @@ import { pdfDocumentPath } from "../../assets/file-presentation";
 import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { createSourceEvidence } from "../../document-editing/knowledge-capture";
 import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
+import { isReadableSourceNode } from "../../reading/source-reader-target";
 import { useSpaceStore } from "../../session/space-store";
 import { loadDocumentContext } from "../sources/document-context";
 import { knowledgeLocationLabel } from "./knowledge-location-label";
@@ -36,6 +37,7 @@ export function useSourcePeek() {
     () => platform() === "windows" && ["word", "slides", "sheet"].includes(location.value?.kind ?? ""),
   );
   const editableSource = computed(() => ["note", "markdown"].includes(node.value?.data.kind ?? ""));
+  const readableSource = computed(() => isReadableSourceNode(node.value));
   const pdfReader = computed(() => {
     const payload = node.value?.data;
     const target = sourcePeek.value;
@@ -43,10 +45,7 @@ export function useSourcePeek() {
     if (!target || !path) return undefined;
     const cited = target.locator.location;
     return {
-      title: target.nodeTitle,
-      path,
       page: cited.kind === "pdf" ? cited.page : undefined,
-      passage: target.locator.quote?.exact ?? target.text,
     };
   });
   const hasAsset = computed(() => Boolean(node.value && isSpaceManagedAssetPayload(node.value.data)));
@@ -74,6 +73,20 @@ export function useSourcePeek() {
     () => sourceContextQuery.error.value,
     (error) => toast.error(getErrorMessage(error)),
   );
+  async function openInReader() {
+    const target = sourcePeek.value;
+    if (!target) return;
+    try {
+      await store.openSpaceCanvas();
+      store.openSourceReader({
+        nodeId: target.nodeId,
+        locator: target.locator,
+        quote: target.locator.quote?.exact ?? target.text,
+      });
+    } catch (error) {
+      if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
+    }
+  }
   async function revealSource() {
     const target = sourcePeek.value;
     if (!target) return;
@@ -124,8 +137,10 @@ export function useSourcePeek() {
     sourceContext,
     preciseExternal,
     editableSource,
+    readableSource,
     hasAsset,
     pdfReader,
+    openInReader,
     revealSource,
     extractSource,
     openSourceExternally,

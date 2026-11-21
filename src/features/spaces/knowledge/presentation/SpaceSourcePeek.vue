@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { ArrowUpRight, Clock, FileEdit, FilePlus2, FileText, LocateFixed, Quote } from "@lucide/vue";
+import {
+  ArrowUpRight,
+  BookOpen,
+  Clock,
+  FileEdit,
+  FilePlus2,
+  FileText,
+  LocateFixed,
+  Quote,
+} from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -28,8 +37,10 @@ const {
   sourceContext,
   preciseExternal,
   editableSource,
+  readableSource,
   hasAsset,
   pdfReader,
+  openInReader,
   revealSource,
   extractSource,
   openSourceExternally,
@@ -109,7 +120,23 @@ const {
     </div>
 
     <footer class="shrink-0 space-y-2 border-t border-(--knovum-window-border-color) bg-surface-panel p-3">
-      <SpacePdfReaderButton v-if="pdfReader" v-bind="pdfReader" size="md" class="w-full justify-center" />
+      <SpacePdfReaderButton
+        v-if="pdfReader"
+        :page="pdfReader.page"
+        size="md"
+        class="w-full justify-center"
+        @open="openInReader"
+      />
+      <UiButton
+        v-else-if="readableSource"
+        variant="secondary"
+        size="md"
+        class="w-full justify-center gap-1.5"
+        @click="openInReader"
+      >
+        <BookOpen class="size-3.5" />
+        <span>{{ t("spaces.inspector.showSource") }}</span>
+      </UiButton>
       <UiButton
         variant="primary"
         size="md"

@@ -51,6 +51,32 @@ The retained canvas preserves camera, selection and Group scope during same-Spac
 gestures and inline input suspend; inactive canvas navigation requests wait until canvas is active.
 Canvas Outline and contextual side panes belong only to the canvas; editors own their local controls.
 Document citation previews close on content handoff without discarding the document session.
+Source Reading Mode (`reading/presentation/SpaceSourceReader.vue`) opens a resizable split pane
+beside the live canvas for readable source nodes (PDFs, Word `.docx`, Saved Websites, Audio/Video
+transcripts, Spreadsheets, Presentations, Code, Markdown and Notes). PDFs open in an embedded
+`pdfjs-dist` viewer with a 3-tab sidebar (lazy page thumbnails, bookmark outline and linked
+excerpts), bidirectional `SpaceProvenance` highlight overlays painted directly onto pages,
+rectangular area-crop capture (`Alt`+drag or Area tool, persisted as Retina PNG Canvas image nodes
+with `pdf.rects` provenance), spread/rotation/fit view options, in-document find (`⌘F`), lightweight
+native PDF markup (highlight, freetext, ink saved atomically through Rust `save_editable_asset`),
+a rendered-Markdown extracted-text view and page-scoped OCR drawer; `.docx` files render natively
+via `docx-preview` with auto-fit width, in-document search and a structured text toggle; Excel
+workbooks provide a formula/cell inspector bar, live search and bottom worksheet tabs; Presentations
+provide a full-width single-slide stage with bottom filmstrip, speaker notes/OCR drawer and a
+continuous-scroll toggle; Saved Websites offer an offline editorial Reader view alongside an
+isolated Tauri native child WebView (`"source-reader-web"`, restricted to `http`/`https`/`about`
+with no Tauri IPC capabilities) and direct external browser launch; Markdown and Notes render on a
+full-bleed editorial surface with heading TOC jumps, font-size controls, `shiki` code highlighting
+and one-click editing; Code files render with line-numbered `shiki` highlighting, word wrap and
+in-file search.
+Selecting a passage in any reader surface resolves a source-revision-bound `KnowledgeLocator` (PDF
+page, Word section, website section and offsets, media time range, Markdown/Note offsets, code lines
+or document chunk location) and exposes a floating toolbar (also reachable via right-click or direct
+pointer drag onto the canvas) to create a Sticky Note, extract a structured Evidence object, append
+to an existing Note/Markdown item or quote into the conversation. Every captured or appended item
+records a single undoable canvas edit, `derives-from` relation and `SpaceProvenance` record.
+Selecting a captured node's provenance or its node-bar source action navigates the split reader
+directly back to the cited page, timestamp or section with the passage highlighted.
 
 An open document/video tab protects its live resource's existence and Space ownership, even while
 inactive or while the library is shown. Deletion, deletion of containing Groups/Sections, and

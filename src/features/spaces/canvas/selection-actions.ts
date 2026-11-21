@@ -10,6 +10,7 @@ import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodeKind } from "../model/nodes/node-payload";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { groupScopePathFor } from "../model/structure/structure-queries";
+import { classifyReadableSource } from "../reading/source-reader-target";
 import { useSpaceStore } from "../session/space-store";
 import { getCanvasEditorSession } from "./editor-session";
 
@@ -64,6 +65,8 @@ const OPEN_HANDLER_BY_NODE_KIND: Partial<Record<SpaceNodeKind, OpenHandler>> = {
   },
 };
 
+const IN_APP_READER_KINDS = new Set(["pdf", "word", "slides", "document", "code"]);
+
 export async function openSpaceNode(node?: SpaceCanvasNode) {
   const store = useSpaceStore();
 
@@ -77,6 +80,11 @@ export async function openSpaceNode(node?: SpaceCanvasNode) {
     const spaceId = store.activeSpaceId;
     if (!spaceId) throw new Error("Image Space is unavailable");
     await invokeCommand("plugin:spaces|preview_image", { spaceId, nodeId: node.id });
+    return;
+  }
+  const readerKind = classifyReadableSource(node.data);
+  if (readerKind && IN_APP_READER_KINDS.has(readerKind)) {
+    store.openSourceReader({ nodeId: node.id });
     return;
   }
   if (isSpaceManagedAssetPayload(node.data)) await previewSpaceAsset(node.data.assetPath);

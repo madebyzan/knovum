@@ -1,6 +1,7 @@
 import { useTextSelection } from "@vueuse/core";
 import { computed, type ShallowRef } from "vue";
 
+import { extractReaderRangeText, rangeCoversPoint } from "../../reading/reader-location-resolvers";
 import type { AnswerPassage } from "../answer-capture";
 
 /** Half the selection bar's width: keeps the bar inside the message when a selection reaches an edge. */
@@ -39,36 +40,15 @@ export function useAnswerSelection(container: Readonly<ShallowRef<HTMLElement | 
 
   /** Whether a viewport point is on the selected words, where a press starts dragging them. */
   function covers(point: { x: number; y: number }) {
-    return [...(range.value?.getClientRects() ?? [])].some(
-      (box) => point.x >= box.left && point.x <= box.right && point.y >= box.top && point.y <= box.bottom,
-    );
+    return rangeCoversPoint(range.value, point);
   }
 
   return { passage, anchor, covers, clear: () => selection.value?.removeAllRanges() };
 }
 
-// Elements that start a new line in the answer's rendered Markdown.
-const BLOCKS = new Set([
-  "P",
-  "LI",
-  "H1",
-  "H2",
-  "H3",
-  "H4",
-  "H5",
-  "H6",
-  "BLOCKQUOTE",
-  "PRE",
-  "TR",
-  "DIV",
-  "TABLE",
-  "UL",
-  "OL",
-]);
-
 /** The selection inside `host` as a passage, or nothing when it holds no words. */
 export function rangePassage(range: Range, host: HTMLElement): AnswerPassage | undefined {
-  const text = rangeText(range);
+  const text = extractReaderRangeText(range);
   return text ? { text, citations: citedAround(range, host) } : undefined;
 }
 
@@ -90,35 +70,4 @@ function citedAround(range: Range, host: HTMLElement) {
   if (last) around.setEndAfter(last);
   const badges = around.cloneContents().querySelectorAll<HTMLElement>(".ui-citation[data-citation-index]");
   return [...new Set([...badges].map((badge) => Number(badge.dataset.citationIndex)))];
-}
-
-/**
- * The selected words as the reader sees them, one line per block. Citation badges are left out:
- * WebKit includes `user-select: none` text in a selection, and a stray "2" would end up in the note.
- */
-function rangeText(range: Range) {
-  const fragment = range.cloneContents();
-  for (const badge of fragment.querySelectorAll(".ui-citation")) {
-    // The space before a badge goes with it, as in `withoutCitationMarkers`: "Q3 [C1]." reads "Q3.".
-    const before = badge.previousSibling;
-    if (before?.nodeType === Node.TEXT_NODE) before.textContent = before.textContent!.replace(/[ \t]+$/u, "");
-    badge.remove();
-  }
-  const lines: string[] = [""];
-  const walk = (node: Node) => {
-    if (node.nodeType === Node.TEXT_NODE) lines[lines.length - 1] += node.textContent ?? "";
-    else if (node instanceof HTMLBRElement) lines.push("");
-    else if (node instanceof HTMLTableCellElement && node.previousElementSibling)
-      lines[lines.length - 1] += "\t";
-    const block = node instanceof Element && BLOCKS.has(node.tagName);
-    if (block) lines.push("");
-    node.childNodes.forEach(walk);
-    if (block) lines.push("");
-  };
-  fragment.childNodes.forEach(walk);
-  return lines
-    .map((line) => line.replace(/[ \t]+$/u, "").replace(/ {2,}/gu, " "))
-    .join("\n")
-    .replace(/\n{3,}/gu, "\n\n")
-    .trim();
 }

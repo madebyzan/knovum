@@ -10,6 +10,7 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { nodeIcon } from "../../canvas/presentation/node-icon";
 import { useContextDock } from "../../canvas/use-context-dock";
+import { isReadableSourceNode } from "../../reading/source-reader-target";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceProvenanceTargetKind } from "../model/provenance";
 import { attachProvenanceFromPeek, detachProvenance } from "../provenance-actions";
@@ -86,6 +87,15 @@ async function remove(provenanceId: string) {
 }
 function openSource(source: (typeof sources.value)[number]) {
   const { record } = source;
+  const sourceNode = nodeById.value.get(record.sourceNodeId);
+  if (isReadableSourceNode(sourceNode)) {
+    store.openSourceReader({
+      nodeId: record.sourceNodeId,
+      locator: record.locator,
+      quote: record.quote,
+    });
+    return;
+  }
   dock.openSource(
     {
       nodeId: record.sourceNodeId,

@@ -6,6 +6,7 @@ import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
 import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
+import type { SourceReadingTarget } from "../reading/source-reader-target";
 
 export interface RevealRequest {
   ids: string[];
@@ -57,6 +58,7 @@ export function createSpaceUiState() {
     sceneCue: ref<SceneCue>(),
     sourcePeek: ref<KnowledgePeekTarget>(),
     sourceReturnView: ref<RightSidebarPrimaryView>("ask"),
+    readingTarget: shallowRef<SourceReadingTarget>(),
     editorLocateRequest: ref<EditorLocateRequest>(),
     canvasFocusIds: ref<string[]>([]),
     outlineFocusRequest: shallowRef(0),

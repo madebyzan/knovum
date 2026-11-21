@@ -50,5 +50,30 @@
     "empty": "Aucun contenu associé dans cet espace de travail pour le moment.",
     "explanation": "Découvrez le contenu connexe dans cet espace de travail par sens. Les résultats ne créent pas de liens."
   },
-  "containedItems": "{count} contenait des éléments"
+  "containedItems": "{count} contenait des éléments",
+  "reader": {
+    "readerMode": "Mode lecture",
+    "liveWeb": "Vue Web",
+    "decreaseFontSize": "Réduire le texte",
+    "increaseFontSize": "Agrandir le texte",
+    "searchPlaceholder": "Rechercher dans le document…",
+    "outline": "Table des matières",
+    "highlight": "Surligner",
+    "addText": "Ajouter du texte",
+    "draw": "Dessiner",
+    "wrapLines": "Retour à la ligne",
+    "singleSlide": "Vue diapositive",
+    "continuousSlides": "Vue continue",
+    "markup": "Annoter",
+    "thumbnails": "Miniatures",
+    "highlights": "Extraits",
+    "areaCapture": "Capturer une zone",
+    "viewOptions": "Options d’affichage",
+    "singlePage": "Page unique",
+    "twoPageSpread": "Double page",
+    "fitPage": "Ajuster à la page",
+    "rotateClockwise": "Pivoter 90°",
+    "typeHere": "Saisissez du texte…",
+    "preview": "Aperçu"
+  }
 }

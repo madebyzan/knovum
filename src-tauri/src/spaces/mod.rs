@@ -19,6 +19,7 @@ pub(crate) mod nodes;
 pub(crate) mod package;
 mod previews;
 pub(crate) mod queries;
+pub(crate) mod reader_webview;
 mod recovery;
 mod run_control;
 mod run_execution;

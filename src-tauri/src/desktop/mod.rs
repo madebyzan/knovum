@@ -10,6 +10,7 @@ pub(crate) use editing::EditingCommand;
 #[cfg(target_os = "macos")]
 mod menu;
 mod navigation;
+pub(crate) use navigation::{READER_PREVIEW_SCHEME, SOURCE_READER_WEBVIEW_LABEL};
 mod startup;
 pub(crate) mod system_font;
 pub(crate) mod system_preview;

@@ -10,6 +10,7 @@ import type {
   CreationIntentId,
 } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
+import { useNodeReaderAction } from "../../../reading/use-node-reader-action";
 import {
   nodeSpeechOperationIds,
   type NodeSpeechOperation,
@@ -57,6 +58,7 @@ const { compact, minimal, ready } = useNodeActionBarDensity(
   densityIdentity,
 );
 const { primary, asksInstead } = useNodePrimaryAction(toRef(props, "node"), props.actions);
+const readerAction = useNodeReaderAction(toRef(props, "node"));
 watch(
   [ready, focusOperation],
   async ([isReady, operation]) => {
@@ -148,6 +150,7 @@ const textKind = computed(() => {
       </SpaceCanvasSelectionMenu>
       <SpaceCanvasNodeAccessActions
         :export-target="actions.exportTarget.value"
+        :reader-action="readerAction"
         @inspect="actions.inspect"
         @save="actions.exportFormat"
       />

@@ -176,4 +176,22 @@ describe("editing responder chain from the macOS Application Menu", () => {
     expect(platformEdits()).toEqual(["copy"]);
     expect(canvas.copy.run).not.toHaveBeenCalled();
   });
+
+  it("routes undo and redo to a non-text surface that registers editor history, such as PDF markup", async () => {
+    const canvas = canvasCommands();
+    registerAppCommands(Object.values(canvas));
+    html(`<div id="pdf"><div id="ink" tabindex="0"></div></div>`);
+    const history = { undo: vi.fn<() => void>(), redo: vi.fn<() => void>() };
+    const release = registerEditorHistory(byId("pdf"), history);
+    byId("ink").focus();
+
+    await runEditingCommand("undo");
+    await runEditingCommand("redo");
+    await settle();
+
+    expect(history.undo).toHaveBeenCalledOnce();
+    expect(history.redo).toHaveBeenCalledOnce();
+    expect(canvas.undo.run).not.toHaveBeenCalled();
+    release();
+  });
 });

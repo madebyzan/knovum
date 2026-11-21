@@ -38,14 +38,25 @@ describe("application command shortcuts", () => {
     unbind();
   });
 
-  it("leaves a bare key to the focused control and keeps it for the canvas otherwise", async () => {
+  it("leaves a bare key to the focused control or bare-key surface and keeps it for the canvas otherwise", async () => {
     const quickLook = command("Space");
-    const unbind = bindCommandShortcuts([quickLook]);
-    for (const target of [mounted("button"), mounted("a"), mounted("div", { role: "menuitem" })]) {
+    const deleteNode = command("Backspace");
+    const unbind = bindCommandShortcuts([quickLook, deleteNode]);
+    const scoped = mounted("div", { "data-bare-key-scope": "" });
+    const scopedChild = document.createElement("div");
+    scoped.append(scopedChild);
+    for (const target of [
+      mounted("button"),
+      mounted("a"),
+      mounted("div", { role: "menuitem" }),
+      scopedChild,
+    ]) {
       expect(press(target, SPACE_PRESS).defaultPrevented).toBe(false);
     }
+    expect(press(scopedChild, { key: "Backspace", code: "Backspace" }).defaultPrevented).toBe(false);
     await settle();
     expect(quickLook.run).not.toHaveBeenCalled();
+    expect(deleteNode.run).not.toHaveBeenCalled();
 
     press(mounted("div"), SPACE_PRESS);
     await settle();

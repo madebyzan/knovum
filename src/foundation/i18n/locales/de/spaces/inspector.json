@@ -50,5 +50,30 @@
     "empty": "Noch kein verwandter Inhalt in diesem Arbeitsbereich.",
     "explanation": "Entdecken Sie verwandte Inhalte in diesem Arbeitsbereich nach Bedeutung. Ergebnisse schaffen keine Verbindungen."
   },
-  "containedItems": "{count} enthielt Elemente"
+  "containedItems": "{count} enthielt Elemente",
+  "reader": {
+    "readerMode": "Lesemodus",
+    "liveWeb": "Webansicht",
+    "decreaseFontSize": "Text verkleinern",
+    "increaseFontSize": "Text vergrößern",
+    "searchPlaceholder": "Im Dokument suchen…",
+    "outline": "Inhaltsverzeichnis",
+    "highlight": "Hervorheben",
+    "addText": "Text hinzufügen",
+    "draw": "Zeichnen",
+    "wrapLines": "Zeilenumbruch",
+    "singleSlide": "Folienansicht",
+    "continuousSlides": "Fortlaufende Ansicht",
+    "markup": "Markieren",
+    "thumbnails": "Miniaturen",
+    "highlights": "Auszüge",
+    "areaCapture": "Bereich erfassen",
+    "viewOptions": "Ansichtsoptionen",
+    "singlePage": "Einzelseite",
+    "twoPageSpread": "Doppelseite",
+    "fitPage": "Ganze Seite",
+    "rotateClockwise": "90° drehen",
+    "typeHere": "Text eingeben…",
+    "preview": "Vorschau"
+  }
 }

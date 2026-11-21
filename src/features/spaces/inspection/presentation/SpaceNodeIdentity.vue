@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUpRight, LocateFixed, Pencil } from "@lucide/vue";
+import { ArrowUpRight, BookOpen, LocateFixed, Pencil } from "@lucide/vue";
 import { camelCase } from "es-toolkit";
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -11,6 +11,7 @@ import UiInput from "../../../../shared/ui/UiInput.vue";
 import { nodeIcon } from "../../canvas/presentation/node-icon";
 import { isSpaceNodeOpenable, openSpaceNode, selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { useNodeReaderAction } from "../../reading/use-node-reader-action";
 import { useNodeDraft } from "./use-node-draft";
 
 const props = defineProps<{
@@ -23,6 +24,7 @@ const titleInput = useTemplateRef<InstanceType<typeof UiInput>>("titleInput");
 const editing = shallowRef(false);
 const saving = shallowRef(false);
 const nodeDraft = useNodeDraft(computed(() => props.node.id));
+const readerAction = useNodeReaderAction(() => props.node);
 const typeLabel = computed(() => t(`spaces.nodeTypes.${camelCase(props.node.data.kind)}`));
 const kindIcon = computed(() => nodeIcon(props.node.data.kind));
 const modifiedAt = computed(() => {
@@ -118,7 +120,16 @@ async function open() {
       {{ t("spaces.inspector.fields.modified") }} · {{ modifiedAt }}
     </p>
     <div class="mt-3 flex flex-wrap items-center gap-1.5">
-      <UiButton v-if="isSpaceNodeOpenable(node)" size="sm" @click="open">
+      <UiButton v-if="readerAction" size="sm" @click="readerAction.run()">
+        <BookOpen class="size-3" />
+        {{ t(readerAction.labelKey) }}
+      </UiButton>
+      <UiButton
+        v-if="isSpaceNodeOpenable(node)"
+        size="sm"
+        :variant="readerAction ? 'secondary' : 'primary'"
+        @click="open"
+      >
         {{ t("spaces.inspector.openContent") }}
         <ArrowUpRight class="size-3" />
       </UiButton>

@@ -50,5 +50,30 @@
     "empty": "Aún no hay contenido relacionado en este espacio de trabajo.",
     "explanation": "Descubra contenido relacionado en este espacio de trabajo por significado. Los resultados no crean conexiones."
   },
-  "containedItems": "{count} elementos contenidos"
+  "containedItems": "{count} elementos contenidos",
+  "reader": {
+    "readerMode": "Modo lectura",
+    "liveWeb": "Vista web",
+    "decreaseFontSize": "Reducir texto",
+    "increaseFontSize": "Aumentar texto",
+    "searchPlaceholder": "Buscar en el documento…",
+    "outline": "Índice",
+    "highlight": "Resaltar",
+    "addText": "Añadir texto",
+    "draw": "Dibujar",
+    "wrapLines": "Ajuste de línea",
+    "singleSlide": "Vista de diapositiva",
+    "continuousSlides": "Vista continua",
+    "markup": "Anotar",
+    "thumbnails": "Miniaturas",
+    "highlights": "Extractos",
+    "areaCapture": "Capturar área",
+    "viewOptions": "Opciones de vista",
+    "singlePage": "Página única",
+    "twoPageSpread": "Dos páginas",
+    "fitPage": "Ajustar página",
+    "rotateClockwise": "Girar 90°",
+    "typeHere": "Escribe aquí…",
+    "preview": "Vista previa"
+  }
 }

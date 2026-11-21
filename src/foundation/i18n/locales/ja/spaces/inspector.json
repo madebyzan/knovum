@@ -50,5 +50,30 @@
     "empty": "このワークスペースにはまだ関連コンテンツがありません。",
     "explanation": "このワークスペース内の関連コンテンツを意味別に見つけます。結果はつながりを生み出しません。"
   },
-  "containedItems": "{count} に含まれるアイテム"
+  "containedItems": "{count} に含まれるアイテム",
+  "reader": {
+    "readerMode": "リーダー",
+    "liveWeb": "Web ビュー",
+    "decreaseFontSize": "文字を小さく",
+    "increaseFontSize": "文字を大きく",
+    "searchPlaceholder": "ドキュメント内を検索…",
+    "outline": "目次",
+    "highlight": "ハイライト",
+    "addText": "テキストを追加",
+    "draw": "描画",
+    "wrapLines": "折り返し",
+    "singleSlide": "スライド表示",
+    "continuousSlides": "連続表示",
+    "markup": "マークアップ",
+    "thumbnails": "サムネイル",
+    "highlights": "抜粋",
+    "areaCapture": "範囲キャプチャ",
+    "viewOptions": "表示オプション",
+    "singlePage": "単一ページ",
+    "twoPageSpread": "見開き表示",
+    "fitPage": "ページ全体",
+    "rotateClockwise": "90°回転",
+    "typeHere": "テキストを入力…",
+    "preview": "プレビュー"
+  }
 }
