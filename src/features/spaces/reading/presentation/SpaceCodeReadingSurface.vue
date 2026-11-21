@@ -3,9 +3,9 @@ import { Check, Code2, Copy, Eye, Search, WrapText } from "@lucide/vue";
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiFindBar from "../../../../shared/ui/UiFindBar.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
 import UiSegmentedControl from "../../../../shared/ui/UiSegmentedControl.vue";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import type { KnowledgeChunk } from "../../knowledge/model/schema/persisted-chunk";
@@ -105,19 +105,18 @@ watch([viewMode, reader.activeMatchLine, () => highlightedRange.value?.start], (
   <div class="flex h-full min-h-0 flex-col bg-surface-canvas outline-none" tabindex="-1" @keydown="onKeyDown">
     <div
       data-reader-ignore-selection
-      class="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider bg-surface-panel px-2.5 select-none"
+      class="flex h-8.5 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider/60 bg-surface-raised px-3 select-none"
     >
-      <div class="flex items-center gap-2 text-caption-sm text-fg-secondary">
+      <div class="flex min-w-0 items-center gap-2 text-caption-sm text-fg-tertiary">
         <UiSegmentedControl v-if="canPreview" v-model="viewMode" :options="modeOptions" />
-        <span
-          class="rounded-sm border border-stroke-divider bg-surface-raised px-1.5 py-0.5 font-mono font-semibold uppercase"
-          >{{ reader.language.value || node.data.previewLanguage }}</span
-        >
-        <span v-if="viewMode === 'code'" class="text-fg-tertiary tabular-nums"
+        <span class="shrink-0 font-mono font-medium uppercase">{{
+          reader.language.value || node.data.previewLanguage
+        }}</span>
+        <span v-if="viewMode === 'code'" class="truncate tabular-nums"
           >{{ reader.rawLines.value.length }} lines</span
         >
       </div>
-      <div class="flex items-center gap-1">
+      <div class="flex shrink-0 items-center gap-0.5">
         <UiIconButton
           v-if="viewMode === 'code'"
           :label="t('spaces.inspector.reader.searchPlaceholder')"
@@ -126,7 +125,7 @@ watch([viewMode, reader.activeMatchLine, () => highlightedRange.value?.start], (
           :class="reader.findOpen.value && 'bg-surface-control text-fg-primary'"
           @click="toggleFind"
         >
-          <Search class="size-3.5" />
+          <Search class="size-3.5" :stroke-width="1.6" />
         </UiIconButton>
         <UiIconButton
           v-if="viewMode === 'code'"
@@ -136,13 +135,17 @@ watch([viewMode, reader.activeMatchLine, () => highlightedRange.value?.start], (
           :class="wrapLines && 'bg-surface-control text-fg-primary'"
           @click="wrapLines = !wrapLines"
         >
-          <WrapText class="size-3.5" />
+          <WrapText class="size-3.5" :stroke-width="1.6" />
         </UiIconButton>
-        <UiButton variant="secondary" size="sm" class="gap-1" @click="copyAll">
-          <Check v-if="copied" class="size-3 text-fg-accent" />
-          <Copy v-else class="size-3" />
-          <span>{{ copied ? t("common.copied") : t("common.copy") }}</span>
-        </UiButton>
+        <UiIconButton
+          :label="copied ? t('common.copied') : t('common.copy')"
+          size="sm"
+          tooltip
+          @click="copyAll"
+        >
+          <Check v-if="copied" class="size-3.5 text-fg-accent" :stroke-width="1.75" />
+          <Copy v-else class="size-3.5" :stroke-width="1.6" />
+        </UiIconButton>
       </div>
     </div>
     <UiFindBar
@@ -176,6 +179,7 @@ watch([viewMode, reader.activeMatchLine, () => highlightedRange.value?.start], (
         :active-match-line="reader.activeMatchLine.value"
         :highlighted-range="highlightedRange"
       />
+      <UiScrollEdgeFade v-if="viewMode === 'code'" surface="raised" top-class="h-4" bottom-class="h-8" />
     </div>
   </div>
 </template>

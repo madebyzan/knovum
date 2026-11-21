@@ -7,12 +7,18 @@ import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import type { ExportTarget } from "../../../assets/export/target";
 import type { NodeReaderAction } from "../../../reading/use-node-reader-action";
 import SpaceCanvasExportMenu from "./SpaceCanvasExportMenu.vue";
+import SpaceCanvasTagsPopover from "./SpaceCanvasTagsPopover.vue";
 
-/** How a node is read rather than changed. A kind may lead the group with its own way of reading. */
-defineProps<{
-  exportTarget: ExportTarget | undefined;
-  readerAction?: NodeReaderAction | undefined;
-}>();
+/** How a node is read, inspected, batch-tagged, or exported directly from its canvas action bar. */
+withDefaults(
+  defineProps<{
+    exportTarget: ExportTarget | undefined;
+    readerAction?: NodeReaderAction | undefined;
+    showInfo?: boolean;
+    showTags?: boolean;
+  }>(),
+  { showInfo: true, showTags: false },
+);
 const emit = defineEmits<{ inspect: []; save: [format: string] }>();
 const { t } = useI18n();
 </script>
@@ -22,14 +28,15 @@ const { t } = useI18n();
     <slot />
     <ToolbarButton v-if="readerAction" as-child>
       <UiIconButton :label="t(readerAction.labelKey)" tooltip @click="readerAction.run()">
-        <BookOpen class="size-4.5" :stroke-width="1.6" />
+        <BookOpen class="size-4" :stroke-width="1.6" />
       </UiIconButton>
     </ToolbarButton>
-    <ToolbarButton as-child>
+    <ToolbarButton v-else-if="showInfo" as-child>
       <UiIconButton :label="t('spaces.inspector.title')" tooltip @click="emit('inspect')">
-        <Info class="size-4.5" :stroke-width="1.6" />
+        <Info class="size-4" :stroke-width="1.6" />
       </UiIconButton>
     </ToolbarButton>
+    <SpaceCanvasTagsPopover v-if="showTags" />
     <SpaceCanvasExportMenu :target="exportTarget" @save="emit('save', $event)" />
   </div>
 </template>

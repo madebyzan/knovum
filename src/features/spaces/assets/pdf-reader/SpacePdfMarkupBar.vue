@@ -46,7 +46,7 @@ const { t } = useI18n();
 <template>
   <div
     data-reader-ignore-selection
-    class="flex min-h-9 shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-stroke-divider bg-surface-raised px-2 py-1 select-none"
+    class="flex min-h-8.5 shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-stroke-divider/70 bg-surface-raised px-3 py-1 select-none"
   >
     <div class="flex flex-wrap items-center gap-1.5">
       <div class="inline-flex rounded-md border border-stroke-divider bg-surface-control p-0.5">

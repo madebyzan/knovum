@@ -48,7 +48,7 @@ function chooseNote(targetId: string) {
   <div
     role="toolbar"
     :aria-label="t('spaces.conversation.capture.selection')"
-    class="flex flex-col rounded-lg border border-stroke-default bg-surface-raised p-1 shadow-popover select-none"
+    class="flex flex-col rounded-panel border border-stroke-strong bg-surface-overlay p-1 shadow-popover backdrop-blur-md select-none"
     @mousedown.prevent
   >
     <div class="flex items-center gap-0.5">
@@ -56,23 +56,23 @@ function chooseNote(targetId: string) {
         type="button"
         :aria-label="t('spaces.conversation.capture.saveSelection')"
         :disabled="!canSave"
-        class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-caption font-medium text-fg-primary transition-colors hover:bg-surface-control-hover disabled:opacity-40"
+        class="inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-caption font-medium text-fg-primary transition-colors hover:bg-surface-control-hover active:bg-surface-control-pressed disabled:opacity-40"
         @click="emit('createNote')"
       >
-        <StickyNote class="size-3.5 text-fg-secondary" />
+        <StickyNote class="size-3.5 text-fg-secondary" :stroke-width="1.65" />
         <span class="whitespace-nowrap">{{ t("spaces.conversation.capture.saveSelection") }}</span>
       </button>
       <button
         type="button"
         :aria-label="t('spaces.conversation.evidence.extract')"
         :disabled="!canSave"
-        class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-caption font-medium text-fg-primary transition-colors hover:bg-surface-control-hover disabled:opacity-40"
+        class="inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-caption font-medium text-fg-primary transition-colors hover:bg-surface-control-hover active:bg-surface-control-pressed disabled:opacity-40"
         @click="emit('createEvidence')"
       >
-        <FilePlus2 class="size-3.5 text-fg-secondary" />
+        <FilePlus2 class="size-3.5 text-fg-secondary" :stroke-width="1.65" />
         <span class="whitespace-nowrap">{{ t("spaces.conversation.evidence.extract") }}</span>
       </button>
-      <span class="mx-0.5 h-4 w-px bg-stroke-divider" aria-hidden="true" />
+      <span class="mx-1 h-4 w-px bg-stroke-divider" aria-hidden="true" />
       <UiIconButton
         v-if="selectedAppendTarget || existingNoteTargets.length"
         :label="

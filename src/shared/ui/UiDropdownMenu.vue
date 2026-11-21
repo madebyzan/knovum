@@ -86,6 +86,7 @@ const props = withDefaults(
               v-else-if="item.checked !== undefined"
               :checked="item.checked"
               :disabled="item.disabled"
+              :trailing-check="Boolean(item.icon)"
               @select="item.onSelect?.($event)"
             >
               <component :is="item.icon" v-if="item.icon" class="size-3 shrink-0" />

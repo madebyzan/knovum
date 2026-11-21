@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { StickyNote } from "@lucide/vue";
+import { FilePlus2, StickyNote } from "@lucide/vue";
 import { computed, shallowRef, useTemplateRef, watch } from "vue";
 
 import UiDragGhost from "../../../../shared/ui/UiDragGhost.vue";
 import { usePointerDrag } from "../../../../shared/ui/use-pointer-drag";
-import { useContextDock } from "../../canvas/use-context-dock";
 import type { KnowledgeLocation } from "../../knowledge/model/schema/chunk";
-import { useSpaceStore } from "../../session/space-store";
 import {
   resolveChunkRangeLocation,
   resolveMediaRangeLocation,
@@ -15,50 +13,33 @@ import {
   resolveSlideRangeLocation,
   resolveWebsiteRangeLocation,
 } from "../reader-location-resolvers";
-import { classifyReadableSource, defaultSourceLocation } from "../source-reader-target";
+import { defaultSourceLocation } from "../source-reader-target";
 import { useReadingChunks } from "../use-reading-chunks";
+import SpaceReaderInfoSurface from "./SpaceReaderInfoSurface.vue";
 import SpaceReaderSelectionBar from "./SpaceReaderSelectionBar.vue";
 import SpaceSourceReaderHeader from "./SpaceSourceReaderHeader.vue";
 import SpaceSourceReaderSurface from "./SpaceSourceReaderSurface.vue";
-import { useReaderCapture } from "./use-reader-capture";
+import { useReaderCapture, type ReaderDropTarget } from "./use-reader-capture";
 import {
   useReaderSelection,
   type SourceReaderPassage,
   type SurfaceSelectionState,
 } from "./use-reader-selection";
+import { useSourceReaderState } from "./use-source-reader-state";
 
-const store = useSpaceStore();
-const dock = useContextDock();
+const readerState = useSourceReaderState();
+const { store, target, sourceNode, readerKind, activePane, readMounted, targetQuote, canBack, canForward } =
+  readerState;
 const body = useTemplateRef<HTMLElement>("body");
 const currentPdfPage = shallowRef(1);
+const headerMenuOpen = shallowRef(false);
 const surfaceSelection = shallowRef<SurfaceSelectionState>();
-const target = computed(() => store.readingTarget);
-const sourceNode = computed(() =>
-  target.value ? store.nodes.find((node) => node.id === target.value?.nodeId && !node.hidden) : undefined,
-);
-const readerKind = computed(() =>
-  sourceNode.value ? classifyReadableSource(sourceNode.value.data) : undefined,
-);
-const targetQuote = computed(() => target.value?.quote ?? target.value?.locator?.quote?.exact);
 
-watch(
-  [target, sourceNode, readerKind],
-  ([currentTarget, currentNode, currentKind]) => {
-    if (currentTarget && (!currentNode || !currentKind)) store.closeSourceReader();
-  },
-  { flush: "post" },
+const readingChunks = useReadingChunks(
+  () => store.activeSpaceId,
+  sourceNode,
+  computed(() => (readMounted.value ? readerKind.value : undefined)),
 );
-
-watch(
-  () => target.value?.nonce,
-  (nonce) => {
-    // Collapse the redundant Details inspector when entering Read & Organize mode so Reader + Canvas have room.
-    if (nonce !== undefined && store.rightSidebarView === "inspect") dock.closeDock();
-  },
-  { immediate: true },
-);
-
-const readingChunks = useReadingChunks(() => store.activeSpaceId, sourceNode, readerKind);
 
 function resolveLocation(range: Range, host: HTMLElement): KnowledgeLocation | undefined {
   const kind = readerKind.value;
@@ -83,20 +64,19 @@ function clearAllSelections() {
   surfaceSelection.value = undefined;
 }
 
-watch(
-  () => [sourceNode.value?.id, target.value?.nonce] as const,
-  () => {
-    clearAllSelections();
-    currentPdfPage.value = 1;
-  },
-);
+watch([() => sourceNode.value?.id, () => target.value?.nonce, activePane], () => {
+  clearAllSelections();
+  currentPdfPage.value = 1;
+});
 
-const drag = usePointerDrag({
-  targetAt: capture.canvasPointAt,
+const drag = usePointerDrag<SourceReaderPassage, ReaderDropTarget>({
+  targetAt: capture.dropTargetAt,
   tap: clearAllSelections,
-  drop: (passage: SourceReaderPassage, point) => {
+  drop: (passage, dropTarget) => {
     clearAllSelections();
-    return capture.createNote(passage, point);
+    return dropTarget.kind === "append"
+      ? capture.appendToNode(passage, dropTarget.nodeId)
+      : capture.createNote(passage, dropTarget.point);
   },
 });
 
@@ -114,13 +94,27 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
 
 <template>
   <aside
-    v-if="sourceNode && readerKind"
+    v-if="sourceNode"
     data-source-reader
     data-bare-key-scope
-    :data-reader-kind="readerKind"
-    class="flex h-full min-h-0 min-w-0 flex-col border-r border-stroke-divider bg-surface-panel"
+    :data-reader-kind="readerKind ?? 'info'"
+    :data-reader-pane="activePane"
+    class="flex h-full min-h-0 min-w-0 flex-col border-r border-(--knovum-window-border-color) bg-surface-panel"
   >
-    <SpaceSourceReaderHeader :node="sourceNode" @close="store.closeSourceReader()" />
+    <SpaceSourceReaderHeader
+      v-model:menu-open="headerMenuOpen"
+      :node="sourceNode"
+      :pane="activePane"
+      :readable="Boolean(readerKind)"
+      :can-back="canBack"
+      :can-forward="canForward"
+      :follows-selection="store.readingFollowsSelection"
+      :locator="target?.locator"
+      @update:pane="store.setReadingPane"
+      @step-history="store.stepReadingHistory"
+      @toggle-follow="store.readingFollowsSelection = !store.readingFollowsSelection"
+      @close="store.closeSourceReader()"
+    />
     <div
       ref="body"
       data-reader-body
@@ -129,7 +123,7 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
       @contextmenu="selection.onContextMenu"
     >
       <SpaceReaderSelectionBar
-        v-if="activeAnchor && !drag.drag.value"
+        v-if="activePane === 'read' && activeAnchor && !drag.drag.value"
         class="absolute z-30 -translate-x-1/2"
         :class="activeAnchor.placement === 'top' && '-translate-y-full'"
         :style="{ left: `${activeAnchor.left}px`, top: `${activeAnchor.top}px` }"
@@ -142,18 +136,27 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
         @ask="runAction((passage) => capture.askAboutPassage(passage))"
         @copy="runAction((passage) => capture.copyPassage(passage))"
       />
-      <SpaceSourceReaderSurface
-        :node="sourceNode"
-        :kind="readerKind"
-        :chunks="readingChunks.chunks.value"
-        :loading="readingChunks.loading.value"
-        :recognized-pdf-pages="readingChunks.recognizedPdfPages.value"
-        :recognized-text="readingChunks.recognizedText"
-        :locator="target?.locator"
-        :quote="targetQuote"
-        @pdf-page-change="currentPdfPage = $event"
-        @surface-selection="surfaceSelection = $event"
-      />
+      <div
+        v-if="readerKind && readMounted"
+        class="absolute inset-0 flex flex-col overflow-hidden"
+        :class="activePane === 'read' ? 'visible' : 'pointer-events-none invisible'"
+        :inert="activePane !== 'read'"
+      >
+        <SpaceSourceReaderSurface
+          :node="sourceNode"
+          :kind="readerKind"
+          :chunks="readingChunks.chunks.value"
+          :loading="readingChunks.loading.value"
+          :recognized-pdf-pages="readingChunks.recognizedPdfPages.value"
+          :recognized-text="readingChunks.recognizedText"
+          :locator="target?.locator"
+          :quote="targetQuote"
+          :visible="activePane === 'read' && !headerMenuOpen"
+          @pdf-page-change="currentPdfPage = $event"
+          @surface-selection="surfaceSelection = $event"
+        />
+      </div>
+      <SpaceReaderInfoSurface v-if="activePane === 'info'" class="absolute inset-0" :node="sourceNode" />
     </div>
     <UiDragGhost
       v-if="drag.drag.value"
@@ -161,8 +164,11 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
       :y="drag.drag.value.y"
       :droppable="drag.drag.value.target !== undefined"
     >
-      <StickyNote class="size-3.5 shrink-0" />
-      <span class="truncate">{{ drag.drag.value.item.text }}</span>
+      <FilePlus2 v-if="drag.drag.value.target?.kind === 'append'" class="size-3.5 shrink-0" />
+      <StickyNote v-else class="size-3.5 shrink-0" />
+      <span class="truncate">{{
+        drag.drag.value.target?.kind === "append" ? drag.drag.value.target.title : drag.drag.value.item.text
+      }}</span>
     </UiDragGhost>
   </aside>
 </template>

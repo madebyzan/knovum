@@ -35,6 +35,11 @@ export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarC
     ).map(({ id }) => id);
   };
 
+  const hasSelection = () => {
+    const { nodeIds, structureNodeIds, relationIds } = session.selection.value;
+    return Boolean(nodeIds.length || structureNodeIds.length || relationIds.length);
+  };
+
   return computed<readonly AppCommand[]>(() => [
     ...CANVAS_TOOL_COMMANDS.map((toolCommand) =>
       command(`spaces.tool-${toolCommand.tool}`, t(toolCommand.title), {
@@ -49,8 +54,11 @@ export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarC
     ),
     command("spaces.cancel-canvas-interaction", t("spaces.canvas.cancelInteraction"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.cancelInteraction,
-      run: () =>
-        tools.tool !== "select" ? tools.resetTool() : session.activeEditor.value?.cancelInteraction(),
+      run: () => {
+        if (tools.tool !== "select") tools.resetTool();
+        else if (!hasSelection() && store.readingTarget) store.closeSourceReader();
+        else session.activeEditor.value?.cancelInteraction();
+      },
     }),
     command("spaces.zoom-in", t("spaces.canvas.zoom.in"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.zoomIn,
@@ -77,15 +85,7 @@ export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarC
     command("spaces.zoom-to-selection", t("spaces.canvas.zoom.toSelection"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.zoomToSelection,
       keybindings: SPACE_COMMAND_KEYBINDINGS.zoomToSelection,
-      availability: () => {
-        const selection = session.selection.value;
-        return availableWhen(
-          Boolean(
-            selection.nodeIds.length || selection.structureNodeIds.length || selection.relationIds.length,
-          ),
-          "no_selection",
-        );
-      },
+      availability: () => availableWhen(hasSelection(), "no_selection"),
       run: () => session.activeEditor.value?.zoomToSelection(),
     }),
     command("spaces.toggle-minimap", t("spaces.canvas.minimap.toggle"), {
@@ -93,6 +93,19 @@ export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarC
       availability: () => availableWhen(store.editSnapshot.structure.length > 0, "selection_not_eligible"),
       run: () => {
         store.minimapOpen = !store.minimapOpen;
+      },
+    }),
+    command("spaces.toggle-reader", t("spaces.inspector.reader.read"), {
+      shortcut: SPACE_COMMAND_SHORTCUTS.toggleReader,
+      availability: () =>
+        availableWhen(selectedNodes().length === 1 || Boolean(store.readingTarget), "no_selection"),
+      run: () => {
+        const node = selectedNodes()[0];
+        if (!node || (selectedNodes().length === 1 && store.readingTarget?.nodeId === node.id)) {
+          store.closeSourceReader();
+          return;
+        }
+        store.openSourceReader({ nodeId: node.id });
       },
     }),
     command("spaces.previous-scene", t("spaces.scenes.previous"), {

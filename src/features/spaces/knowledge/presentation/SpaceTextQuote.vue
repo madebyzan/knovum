@@ -17,16 +17,12 @@ const parts = computed(() => {
 </script>
 
 <template>
-  <div class="relative border-l-2 border-surface-accent/70 py-0.5 pl-3">
-    <p class="text-body leading-relaxed whitespace-pre-wrap text-fg-primary">
-      <template v-for="(part, index) in parts" :key="index">
-        <mark
-          v-if="part.match"
-          class="rounded border-b border-surface-accent/40 bg-surface-selected/90 px-1 py-0.5 font-medium text-fg-primary"
-          >{{ part.text }}</mark
-        >
-        <span v-else :class="hasExact ? 'text-fg-secondary' : 'text-fg-primary'">{{ part.text }}</span>
-      </template>
-    </p>
-  </div>
+  <p class="whitespace-pre-wrap text-fg-primary">
+    <template v-for="(part, index) in parts" :key="index">
+      <mark v-if="part.match" class="rounded-xs bg-surface-selected/90 px-0.5 font-medium text-fg-primary">{{
+        part.text
+      }}</mark>
+      <span v-else :class="hasExact ? 'text-fg-secondary' : 'text-fg-primary'">{{ part.text }}</span>
+    </template>
+  </p>
 </template>

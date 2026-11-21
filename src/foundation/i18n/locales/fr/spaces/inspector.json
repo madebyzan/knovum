@@ -1,5 +1,4 @@
 {
-  "itemsSelected": "Élément {count} sélectionné | Articles {count} sélectionnés",
   "title": "Détails",
   "basicInformation": "Général",
   "showSource": "Vue source",
@@ -28,16 +27,13 @@
   "recognizedText": "Texte reconnu par OCR",
   "excerpts": {
     "title": "Extrait · {title}",
-    "line": "— {title} · {location}",
-    "content": "Extrait du contenu"
+    "line": "— {title} · {location}"
   },
   "openSource": "Localiser le nœud source",
   "targetSpace": "Espace de travail cible",
   "none": "Non défini",
   "renameHint": "Cliquez pour renommer",
-  "openContent": "Contenu ouvert",
   "content": "Contenu",
-  "playVideo": "Lire la vidéo",
   "related": {
     "title": "Contenu associé",
     "show": "Afficher plus",
@@ -50,8 +46,8 @@
     "empty": "Aucun contenu associé dans cet espace de travail pour le moment.",
     "explanation": "Découvrez le contenu connexe dans cet espace de travail par sens. Les résultats ne créent pas de liens."
   },
-  "containedItems": "{count} contenait des éléments",
   "reader": {
+    "read": "Lecture",
     "readerMode": "Mode lecture",
     "liveWeb": "Vue Web",
     "decreaseFontSize": "Réduire le texte",
@@ -74,6 +70,7 @@
     "fitPage": "Ajuster à la page",
     "rotateClockwise": "Pivoter 90°",
     "typeHere": "Saisissez du texte…",
-    "preview": "Aperçu"
+    "preview": "Aperçu",
+    "followSelection": "Suivre la sélection"
   }
 }

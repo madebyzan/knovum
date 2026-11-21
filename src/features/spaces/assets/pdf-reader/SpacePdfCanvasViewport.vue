@@ -2,6 +2,7 @@
 import { computed, toRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
 import type { PdfNormalizedRect } from "../../reading/pdf-rect-geometry";
 import { usePdfAreaSelect } from "./use-pdf-area-select";
 
@@ -31,13 +32,14 @@ defineExpose({ container, viewer });
   >
     <div
       ref="container"
-      class="pdf-reader absolute inset-0 overflow-auto bg-surface-control/75"
+      class="pdf-reader absolute inset-0 overflow-auto bg-surface-muted"
       :class="areaMode && 'area-capture-active'"
       :style="readerCssVars"
       @mousedown="areaSelect.onMouseDown"
     >
       <div ref="viewer" class="pdfViewer" />
     </div>
+    <UiScrollEdgeFade surface="muted" top-class="h-5" bottom-class="h-8" />
     <div
       v-if="areaSelect.marquee.value"
       class="pointer-events-none absolute z-30 rounded-[2px] border-[1.5px] border-surface-accent bg-surface-accent/12"

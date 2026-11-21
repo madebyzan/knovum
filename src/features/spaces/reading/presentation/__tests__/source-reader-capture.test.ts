@@ -49,7 +49,8 @@ vi.mock("../../../canvas/editor-session", async (importOriginal) => ({
 vi.mock("../../../canvas/use-context-dock", () => ({
   useContextDock: () => ({
     openAsk: () => {},
-    openInspect: () => {},
+    openNodeInfo: () => {},
+    openKnowledgeHealth: () => {},
     openSource: () => {},
     closeDock: () => void (mocks.dockClosed += 1),
   }),
@@ -94,7 +95,6 @@ function mountReader() {
   store.spaces = [createTestSpace({ id: "inbox", kind: "inbox", title: "Inbox" })];
   store.tabs = [tab];
   store.activeTabId = tab.id;
-  store.rightSidebarView = "inspect";
   store.nodes = [websiteNode, makeNode("note-1", createSpaceNotePayload("Key Takeaways", "Initial note"))];
   store.recordHistoryMutation = async (fn: () => Promise<void>) => await fn();
   store.addContent = async (payload: SpaceNodePayload, position?: { x: number; y: number }) => {
@@ -137,9 +137,9 @@ describe("SpaceSourceReader Read & Organize flow", () => {
     vi.clearAllMocks();
   });
 
-  it("auto-closes the redundant inspect sidebar and creates Note/Evidence with section locators", async () => {
-    const { wrapper } = mountReader();
-    expect(mocks.dockClosed).toBe(1);
+  it("creates Note/Evidence with section locators and switches between read and info panes", async () => {
+    const { wrapper, store } = mountReader();
+    expect(wrapper.get("[data-source-reader]").attributes("data-reader-pane")).toBe("read");
 
     await selectPassage(
       wrapper.element,
@@ -172,6 +172,10 @@ describe("SpaceSourceReader Read & Organize flow", () => {
       kind: "object",
       properties: { observation: "The experiment also indicates strong recall." },
     });
+
+    store.setReadingPane("info");
+    await nextTick();
+    expect(wrapper.get("[data-source-reader]").attributes("data-reader-pane")).toBe("info");
   });
 
   it("opens an explicit note picker before appending when no canvas note is selected", async () => {

@@ -2,11 +2,6 @@ import type { PdfNormalizedRect } from "../../reading/pdf-rect-geometry";
 import type { PdfBookmark } from "./pdf-outline";
 import type { RenderedPdfCrop } from "./pdf-region-render";
 
-export interface PdfTextPage {
-  page: number;
-  text: string;
-}
-
 export type PdfAnnotationTool = "none" | "highlight" | "freetext" | "ink";
 export type PdfSpreadMode = 0 | 1 | 2;
 

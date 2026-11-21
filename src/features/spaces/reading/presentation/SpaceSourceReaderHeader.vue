@@ -1,66 +1,101 @@
 <script setup lang="ts">
-import { ArrowUpRight, LocateFixed, X } from "@lucide/vue";
+import { BookOpen, ChevronLeft, ChevronRight, Info, MoreHorizontal, X } from "@lucide/vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { openSpaceAsset } from "../../assets/asset-operations";
+import UiSegmentedControl from "../../../../shared/ui/UiSegmentedControl.vue";
 import { nodeIcon } from "../../canvas/presentation/node-icon";
-import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
+import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
+import type { SourceReaderPane } from "../source-reader-target";
+import SpaceReaderTitleInput from "./SpaceReaderTitleInput.vue";
+import { useReaderHeaderMenu } from "./use-reader-header-menu";
 
-const props = defineProps<{ node: SpaceCanvasNode }>();
-const emit = defineEmits<{ close: [] }>();
+const props = defineProps<{
+  node: SpaceCanvasNode;
+  pane: SourceReaderPane;
+  readable: boolean;
+  canBack: boolean;
+  canForward: boolean;
+  followsSelection: boolean;
+  locator?: KnowledgeLocator | undefined;
+}>();
+
+const menuOpen = defineModel<boolean>("menuOpen", { default: false });
+
+const emit = defineEmits<{
+  "update:pane": [pane: SourceReaderPane];
+  stepHistory: [delta: -1 | 1];
+  toggleFollow: [];
+  close: [];
+}>();
+
 const { t } = useI18n();
-
-async function openExternally() {
-  const data = props.node.data;
-  if (!isSpaceManagedAssetPayload(data)) return;
-  try {
-    await openSpaceAsset(data.assetPath);
-  } catch (error) {
-    toast.error(getErrorMessage(error));
-  }
-}
+const paneOptions = computed(() => [
+  { value: "read" as const, title: t("spaces.inspector.reader.read"), icon: BookOpen },
+  { value: "info" as const, title: t("spaces.inspector.title"), icon: Info },
+]);
+const menuItems = useReaderHeaderMenu({
+  node: () => props.node,
+  followsSelection: () => props.followsSelection,
+  locator: () => props.locator,
+  onToggleFollow: () => emit("toggleFollow"),
+});
 </script>
 
 <template>
   <header
     data-reader-ignore-selection
-    class="flex h-10 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider bg-surface-panel px-3 select-none"
+    class="flex h-(--knovum-titlebar-height) shrink-0 items-center justify-between gap-2 border-b border-(--knovum-window-border-color) bg-surface-panel px-3 select-none"
   >
-    <div class="flex min-w-0 items-center gap-2">
+    <div class="flex min-w-0 flex-1 items-center gap-1">
+      <div v-if="canBack || canForward" class="mr-0.5 flex shrink-0 items-center">
+        <UiIconButton
+          :label="t('spaces.space.back')"
+          size="sm"
+          tooltip
+          :disabled="!canBack"
+          @click="emit('stepHistory', -1)"
+        >
+          <ChevronLeft class="size-3.5" :stroke-width="1.65" />
+        </UiIconButton>
+        <UiIconButton
+          :label="t('spaces.space.forward')"
+          size="sm"
+          tooltip
+          :disabled="!canForward"
+          @click="emit('stepHistory', 1)"
+        >
+          <ChevronRight class="size-3.5" :stroke-width="1.65" />
+        </UiIconButton>
+      </div>
       <component
         :is="nodeIcon(node.data.kind)"
-        class="size-4 shrink-0 text-fg-secondary"
+        class="size-3.5 shrink-0 text-fg-tertiary"
         :stroke-width="1.6"
       />
-      <h2 class="truncate text-label font-semibold text-fg-primary" :title="node.data.title">
-        {{ node.data.title }}
-      </h2>
+      <SpaceReaderTitleInput :node="node" />
     </div>
-    <div class="flex shrink-0 items-center gap-0.5">
-      <UiIconButton
-        :label="t('spaces.canvas.revealInCanvas')"
-        size="sm"
-        tooltip
-        @click="selectAndRevealSpaceNode(node.id)"
-      >
-        <LocateFixed class="size-3.5" />
-      </UiIconButton>
-      <UiIconButton
-        v-if="isSpaceManagedAssetPayload(node.data)"
-        :label="t('spaces.importExport.openExternally')"
-        size="sm"
-        tooltip
-        @click="openExternally"
-      >
-        <ArrowUpRight class="size-3.5" />
-      </UiIconButton>
+
+    <div class="flex shrink-0 items-center gap-1">
+      <UiSegmentedControl
+        v-if="readable"
+        :model-value="pane"
+        :options="paneOptions"
+        icon-only
+        @update:model-value="emit('update:pane', $event)"
+      />
+      <UiDropdownMenu v-model:open="menuOpen" :items="menuItems" align="end" class="min-w-44">
+        <template #trigger>
+          <UiIconButton :label="t('common.more')" size="sm" tooltip>
+            <MoreHorizontal class="size-3.5" :stroke-width="1.6" />
+          </UiIconButton>
+        </template>
+      </UiDropdownMenu>
       <UiIconButton :label="t('common.close')" size="sm" tooltip @click="emit('close')">
-        <X class="size-3.5" />
+        <X class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
     </div>
   </header>

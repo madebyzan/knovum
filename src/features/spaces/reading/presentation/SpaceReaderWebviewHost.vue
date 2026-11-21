@@ -160,19 +160,19 @@ onBeforeUnmount(() => {
     <div
       v-if="showAddressBar && url"
       data-reader-ignore-selection
-      class="flex shrink-0 items-center gap-1 border-b border-stroke-divider bg-surface-panel px-2.5 py-1 select-none"
+      class="flex h-8.5 shrink-0 items-center gap-1 border-b border-stroke-divider/70 bg-surface-raised px-3 select-none"
     >
       <UiIconButton :label="t('spaces.space.back')" size="sm" tooltip @click="navigate('back')">
-        <ArrowLeft class="size-3.5" />
+        <ArrowLeft class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
       <UiIconButton :label="t('spaces.space.forward')" size="sm" tooltip @click="navigate('forward')">
-        <ArrowRight class="size-3.5" />
+        <ArrowRight class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
       <UiIconButton :label="t('common.refresh')" size="sm" tooltip @click="navigate('reload')">
-        <RotateCw class="size-3.5" />
+        <RotateCw class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
       <span
-        class="ml-1 min-w-0 flex-1 truncate rounded-md border border-stroke-divider/70 bg-surface-control px-2.5 py-0.5 text-caption-sm text-fg-secondary"
+        class="ml-1 min-w-0 flex-1 truncate rounded-md bg-surface-control/75 px-2.5 py-0.5 text-caption-sm text-fg-secondary"
         :title="url"
       >
         {{ url }}

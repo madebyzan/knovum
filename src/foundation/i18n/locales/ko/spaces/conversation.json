@@ -122,7 +122,7 @@
     "noSources": "일치하는 소스 없음",
     "plan": "계획"
   },
-  "askSelection": "선택 요청",
+  "askSelection": "Knovum에게 질문",
   "extensions": {
     "label": "대화 확장 프로그램",
     "unavailable": "선택한 확장 프로그램을 사용할 수 없습니다. 선택 사항을 검토합니다.",

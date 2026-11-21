@@ -11,7 +11,8 @@
     "refreshFailed": "网页抓取失败"
   },
   "preview": {
-    "system": "预览",
+    "quickLook": "快速查看",
+    "system": "打开",
     "show": "预览视图",
     "instantUnavailable": {
       "title": "暂无即时预览",
@@ -64,6 +65,5 @@
     "resource": "正在导入资源",
     "preparing": "正在复制并校验资源…",
     "processing": "正在解析资源…"
-  },
-  "openInEditor": "在外部编辑器中打开"
+  }
 }

@@ -1,23 +1,19 @@
 <script setup lang="ts">
-import { ArrowUpRight, BookOpenText, Globe, Search } from "@lucide/vue";
-import { openUrl } from "@tauri-apps/plugin-opener";
+import { BookOpenText, Globe } from "@lucide/vue";
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import UiButton from "../../../../shared/ui/UiButton.vue";
-import UiFindBar from "../../../../shared/ui/UiFindBar.vue";
-import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import UiOutlineRail, { type UiOutlineItem } from "../../../../shared/ui/UiOutlineRail.vue";
+import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
 import UiSegmentedControl from "../../../../shared/ui/UiSegmentedControl.vue";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceWebsitePayload } from "../../model/nodes/node-payload";
-import SpaceReaderFontControls from "./SpaceReaderFontControls.vue";
-import SpaceReaderOutlineBar, { type ReaderOutlineAnchor } from "./SpaceReaderOutlineBar.vue";
+import SpaceReaderProseToolbar from "./SpaceReaderProseToolbar.vue";
 import SpaceReaderWebviewHost from "./SpaceReaderWebviewHost.vue";
 import SpaceWebsiteArticle from "./SpaceWebsiteArticle.vue";
 import { useDomBlockFind } from "./use-dom-block-find";
+import { useReaderActiveAnchor } from "./use-reader-active-anchor";
 import { useReaderTypography } from "./use-reader-typography";
 
 const props = defineProps<{
@@ -46,9 +42,24 @@ const sections = computed(() => {
   const fallback = props.node.data.contentPreview?.trim() || props.node.data.description?.trim();
   return fallback ? [{ heading: undefined, text: fallback }] : [];
 });
-const sectionAnchors = computed<readonly ReaderOutlineAnchor[]>(() =>
-  sections.value.flatMap((sec, index) => (sec.heading ? [{ key: index, label: sec.heading }] : [])),
-);
+const outlineItems = computed<readonly UiOutlineItem[]>(() => {
+  const items = sections.value.flatMap((sec, index) =>
+    sec.heading ? [{ id: String(index), label: sec.heading, level: 2 }] : [],
+  );
+  return items.length > 1 ? items : [];
+});
+const outlineAnchor = useReaderActiveAnchor({
+  scroller: articleScroller,
+  selector: "[data-section-index]",
+  keyOf: (el) => el.dataset.sectionIndex,
+  validIds: () => outlineItems.value.map((item) => item.id),
+  sourceKey: () => [props.node.id, sections.value.length, viewMode.value],
+  enabled: () => viewMode.value === "reader" && outlineItems.value.length > 0,
+});
+
+function jumpToSection(id: string | number) {
+  outlineAnchor.scrollTo(String(id), article.value?.sectionElement(id));
+}
 const activeIndex = computed(() => {
   const targetSection =
     props.locator?.location.kind === "website" ? props.locator.location.section : undefined;
@@ -59,14 +70,6 @@ const activeIndex = computed(() => {
   const needle = props.quote?.trim();
   return needle ? sections.value.findIndex((item) => item.text.includes(needle)) : -1;
 });
-
-async function openOriginal() {
-  try {
-    await openUrl(props.node.data.url);
-  } catch (error) {
-    toast.error(getErrorMessage(error));
-  }
-}
 
 watch(
   () => props.node.id,
@@ -82,7 +85,7 @@ watch(
     if (activeIndex.value < 0) return;
     viewMode.value = "reader";
     await nextTick();
-    article.value?.scrollToSection(activeIndex.value);
+    jumpToSection(activeIndex.value);
   },
   { immediate: true },
 );
@@ -94,45 +97,11 @@ watch(
     tabindex="-1"
     @keydown="find.onKeyDown"
   >
-    <div
-      data-reader-ignore-selection
-      class="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider bg-surface-panel px-2.5 select-none"
-    >
-      <UiSegmentedControl v-model="viewMode" :options="modeOptions" />
-      <div class="flex items-center gap-1.5">
-        <UiIconButton
-          v-if="viewMode === 'reader'"
-          :label="t('spaces.inspector.reader.searchPlaceholder')"
-          size="sm"
-          tooltip
-          :class="find.open.value && 'bg-surface-control text-fg-primary'"
-          @click="find.toggle()"
-        >
-          <Search class="size-3.5" />
-        </UiIconButton>
-        <SpaceReaderFontControls
-          v-if="viewMode === 'reader'"
-          :can-decrease="typography.canDecrease.value"
-          :can-increase="typography.canIncrease.value"
-          @decrease="typography.decrease()"
-          @increase="typography.increase()"
-        />
-        <UiButton variant="secondary" size="sm" class="shrink-0 gap-1" @click="openOriginal">
-          <span>{{ t("spaces.canvas.nodeActions.openOriginal") }}</span>
-          <ArrowUpRight class="size-3.5" />
-        </UiButton>
-      </div>
-    </div>
-
-    <UiFindBar
-      v-if="viewMode === 'reader' && find.open.value"
-      v-model="find.query.value"
-      :match-current="find.matched.value.length ? find.matchIndex.value + 1 : 0"
-      :match-total="find.matched.value.length"
-      @next="find.next()"
-      @prev="find.prev()"
-      @close="find.reset()"
-    />
+    <SpaceReaderProseToolbar :show-controls="viewMode === 'reader'" :find="find" :typography="typography">
+      <template #leading>
+        <UiSegmentedControl v-model="viewMode" :options="modeOptions" />
+      </template>
+    </SpaceReaderProseToolbar>
     <div class="relative min-h-0 flex-1 overflow-hidden">
       <SpaceReaderWebviewHost
         class="absolute inset-0"
@@ -146,13 +115,6 @@ watch(
         :class="viewMode === 'reader' ? 'visible' : 'pointer-events-none invisible'"
         :inert="viewMode !== 'reader'"
       >
-        <div
-          v-if="sectionAnchors.length > 1"
-          data-reader-ignore-selection
-          class="shrink-0 border-b border-stroke-divider bg-surface-panel/70 px-3 py-1.5 select-none"
-        >
-          <SpaceReaderOutlineBar :anchors="sectionAnchors" @select="article?.scrollToSection($event)" />
-        </div>
         <SpaceWebsiteArticle
           ref="article"
           :website="node.data"
@@ -160,6 +122,13 @@ watch(
           :active-index="activeIndex"
           :quote="quote"
           :prose-style="typography.proseStyle.value"
+        />
+        <UiScrollEdgeFade surface="raised" />
+        <UiOutlineRail
+          :items="outlineItems"
+          :active-id="outlineAnchor.activeId.value"
+          :label="t('spaces.inspector.reader.outline')"
+          @select="jumpToSection"
         />
       </div>
     </div>

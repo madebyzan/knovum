@@ -17,7 +17,7 @@ const { t } = useI18n();
     <template #trigger>
       <ToolbarButton as-child>
         <UiIconButton :label="t('spaces.canvas.nodeActions.export')" tooltip :disabled="!target">
-          <Download class="size-4.5" :stroke-width="1.6" />
+          <Download class="size-4" :stroke-width="1.6" />
         </UiIconButton>
       </ToolbarButton>
     </template>

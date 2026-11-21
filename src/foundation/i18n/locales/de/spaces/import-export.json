@@ -11,7 +11,8 @@
     "refreshFailed": "Webinhalt konnte nicht abgerufen werden"
   },
   "preview": {
-    "system": "Vorschau",
+    "quickLook": "Übersicht",
+    "system": "Öffnen",
     "show": "Vorschauansicht",
     "instantUnavailable": {
       "title": "Keine sofortige Vorschau",
@@ -64,6 +65,5 @@
     "resource": "Ressource wird importiert",
     "preparing": "Ressourcen kopieren und überprüfen…",
     "processing": "Parsing-Ressourcen…"
-  },
-  "openInEditor": "Im externen Editor öffnen"
+  }
 }

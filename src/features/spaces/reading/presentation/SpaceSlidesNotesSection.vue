@@ -14,7 +14,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <div :data-slide-number="slide.slideNumber" class="space-y-3">
+  <div :data-slide-number="slide.slideNumber" class="space-y-3 text-body leading-relaxed">
     <div v-for="block in slide.textBlocks" :key="block.chunkIndex" :data-chunk-index="block.chunkIndex">
       <SpaceTextQuote :text="block.text" :exact="exactQuote" />
     </div>

@@ -17,9 +17,11 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <div class="flex h-9 shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-panel px-2.5">
+  <div
+    class="flex h-8.5 shrink-0 items-center gap-2 border-b border-stroke-divider/70 bg-surface-raised px-3"
+  >
     <span
-      class="min-w-12 shrink-0 rounded-sm border border-stroke-divider bg-surface-raised px-1.5 py-0.5 text-center font-mono text-caption-sm font-semibold text-fg-secondary"
+      class="min-w-12 shrink-0 rounded-sm bg-surface-control px-1.5 py-0.5 text-center font-mono text-caption-sm font-medium text-fg-secondary"
     >
       {{ address }}
     </span>

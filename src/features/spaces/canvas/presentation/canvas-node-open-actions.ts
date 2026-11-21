@@ -1,15 +1,7 @@
-import {
-  ArrowUpRight,
-  Code2,
-  ExternalLink,
-  FileText,
-  Image as ImageIcon,
-  Pencil,
-  Play,
-  Volume2,
-} from "@lucide/vue";
+import { ArrowUpRight, ExternalLink, Eye, Pencil } from "@lucide/vue";
 import type { Component } from "vue";
 
+import { hasSystemQuickLook, systemPreviewLabelKey } from "../../assets/asset-preview";
 import type { SpaceNodeKind } from "../../model/nodes/node-payload";
 
 export interface NodeOpenAction {
@@ -17,19 +9,26 @@ export interface NodeOpenAction {
   icon: Component;
 }
 
-/**
- * Opening is a kind-specific surface, so only the kinds that have one are listed. A kind absent
- * here has nothing to open: text, credential and knowledge-object nodes carry their content on the
- * card itself, and the action bar leads with another action for them.
- */
-export const OPEN_ACTION_BY_NODE_KIND: Partial<Record<SpaceNodeKind, NodeOpenAction>> = {
+const FIXED_OPEN_ACTION_BY_KIND: Partial<Record<SpaceNodeKind, NodeOpenAction>> = {
   note: { label: "common.edit", icon: Pencil },
   markdown: { label: "common.edit", icon: Pencil },
   website: { label: "spaces.canvas.nodeActions.openOriginal", icon: ExternalLink },
   portal: { label: "spaces.canvas.nodeActions.goToTarget", icon: ArrowUpRight },
-  image: { label: "spaces.canvas.nodeActions.viewLarge", icon: ImageIcon },
-  video: { label: "spaces.canvas.nodeActions.openVideo", icon: Play },
-  audio: { label: "spaces.canvas.nodeActions.openAudio", icon: Volume2 },
-  file: { label: "spaces.canvas.nodeActions.openFile", icon: FileText },
-  code: { label: "spaces.canvas.nodeActions.viewCode", icon: Code2 },
 };
+
+const SYSTEM_PREVIEW_NODE_KINDS = new Set<SpaceNodeKind>(["image", "video", "audio", "file", "code"]);
+
+/**
+ * Resolves the primary open action for a canvas node kind. Managed assets use macOS Quick Look on
+ * macOS and open in the default associated application on Windows/Linux, so both label and icon
+ * match the platform behavior. Kinds absent here lead with Ask Knovum instead.
+ */
+export function resolveNodeOpenAction(kind: SpaceNodeKind): NodeOpenAction | undefined {
+  const fixed = FIXED_OPEN_ACTION_BY_KIND[kind];
+  if (fixed) return fixed;
+  if (!SYSTEM_PREVIEW_NODE_KINDS.has(kind)) return undefined;
+  return {
+    label: systemPreviewLabelKey(),
+    icon: hasSystemQuickLook() ? Eye : ArrowUpRight,
+  };
+}

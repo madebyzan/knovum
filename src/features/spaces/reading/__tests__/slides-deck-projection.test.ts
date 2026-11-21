@@ -106,4 +106,64 @@ describe("slides-deck-projection", () => {
     expect(slides[1]!.slideNumber).toBe(2);
     expect(slides[1]!.textBlocks).toEqual([{ chunkIndex: 1, text: "Branching rules" }]);
   });
+
+  it("omits OCR passages that duplicate extracted slide text blocks", () => {
+    const payload: SpaceFilePayload = {
+      kind: "file",
+      title: "Deck.pptx",
+      fileName: "Deck.pptx",
+      assetPath: "/assets/deck.pptx",
+      sourceRevision: "sha256:ppt2",
+      documentCoverage: {
+        schemaVersion: 1,
+        parser: "office-oxide",
+        sourceRevision: "sha256:ppt2",
+        pageCount: 1,
+        pagesRequiringRecognition: [],
+        pagesWithExtractedText: [1],
+        pagesWithoutExtractableContent: [],
+        resources: [
+          {
+            id: RES_1,
+            path: "/assets/s1.png",
+            mediaType: "image/png",
+            width: 1920,
+            height: 1080,
+            byteSize: 512,
+          },
+        ],
+        occurrences: [
+          {
+            id: "occ-1",
+            location: { kind: "slides", slide: 1 },
+            context: "",
+            altText: null,
+            resourceId: RES_1,
+            pdfInput: null,
+            unavailable: null,
+          },
+        ],
+        warnings: [],
+      },
+    };
+    const chunks: KnowledgeChunk[] = [
+      {
+        id: "c1",
+        spaceId: "space",
+        nodeId: "ppt",
+        origin: "source",
+        sourceRevision: "sha256:ppt2",
+        kind: "slide",
+        text: "Git branching\nPR Review Process",
+        createdAt: 1,
+        updatedAt: 1,
+        locator: { sourceRevision: "sha256:ppt2", location: { kind: "slides", slide: 1, element: 0 } },
+      },
+    ];
+
+    const slides = projectPresentationSlides(payload, chunks, () => "Git branching   PR Review Process");
+    expect(slides).toHaveLength(1);
+    expect(slides[0]!.textBlocks).toHaveLength(1);
+    expect(slides[0]!.ocrPassages).toEqual([]);
+  });
 });

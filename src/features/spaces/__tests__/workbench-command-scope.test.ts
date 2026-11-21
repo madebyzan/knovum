@@ -1,6 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { expect, it, onTestFinished, vi } from "vitest";
+import { ref } from "vue";
 
 import { i18n } from "../../../foundation/i18n/instance";
 import { deferred } from "../../../shared/__tests__/support/deferred";
@@ -49,7 +50,7 @@ it("routes commands and contextual panes to the active work surface", async () =
     {
       setup() {
         commands = useSpaceCommands({
-          sidebar: { reveal: () => {} },
+          sidebar: { pinned: ref(false), reveal: () => {}, collapse: () => {} },
           rightSidebar: { open: () => {}, close: () => {} },
         });
         return () => null;
@@ -76,11 +77,11 @@ it("routes commands and contextual panes to the active work surface", async () =
     nodeTitle: "Note",
     locator: { sourceRevision: "1", location: { kind: "note" } },
   });
-  expect(store.sourcePeek?.nodeId).toBe("note");
+  expect(store.readingTarget?.nodeId).toBe("note");
   expect(openPane).not.toHaveBeenCalled();
   expect(store.revealRequest).toBeUndefined();
   await store.openVideoEditor("video");
-  expect(store.sourcePeek).toBeUndefined();
+  expect(store.readingTarget).toBeUndefined();
   expect(commands.value.map(({ id }) => id)).toContain("video-edit.undo");
   expect(commands.value.map(({ id }) => id)).not.toContain("document.undo");
   expect(store.workbench.rightSidebar).toBe(false);

@@ -68,8 +68,10 @@ const identity = computed(
     </template>
     <SpaceCanvasSelectionMenu :actions="actions" :derivations="derivations" node-bar />
     <SpaceCanvasNodeAccessActions
+      v-if="actions.exportTarget.value"
       :export-target="actions.exportTarget.value"
-      @inspect="actions.inspect"
+      :show-info="false"
+      :show-tags="false"
       @save="actions.exportFormat"
     />
   </SpaceCanvasActionToolbar>

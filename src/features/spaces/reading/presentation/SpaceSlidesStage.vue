@@ -20,7 +20,7 @@ const emit = defineEmits<{ previous: []; next: [] }>();
   <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
     <div
       :data-slide-number="slide.slideNumber"
-      class="group/stage relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-surface-control/65 p-3"
+      class="group/stage relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-surface-muted p-4"
     >
       <button
         v-if="canPrevious"

@@ -26,17 +26,14 @@ const previewImageSrc = computed(() =>
 
 defineExpose({
   scroller,
-  scrollToSection: (index: string | number) => {
-    scroller.value
-      ?.querySelector<HTMLElement>(`[data-section-index="${index}"]`)
-      ?.scrollIntoView({ behavior: "smooth", block: "center" });
-  },
+  sectionElement: (index: string | number) =>
+    scroller.value?.querySelector<HTMLElement>(`[data-section-index="${index}"]`) ?? null,
 });
 </script>
 
 <template>
-  <div ref="scroller" class="min-h-0 flex-1 overflow-y-auto bg-surface-raised px-7 py-6">
-    <div class="mx-auto max-w-[68ch]">
+  <div ref="scroller" class="min-h-0 flex-1 overflow-y-auto bg-surface-raised pt-7 pr-12 pb-14 pl-8">
+    <div class="mx-auto max-w-[66ch]">
       <header data-reader-ignore-selection class="border-b border-stroke-divider pb-4 select-none">
         <div class="flex min-w-0 items-center gap-2 text-caption font-medium text-fg-secondary">
           <img v-if="faviconSrc" :src="faviconSrc" alt="" class="size-4 shrink-0 rounded-xs object-contain" />

@@ -6,7 +6,6 @@ import type { PdfAnnotationTool, PdfReaderSession } from "./pdf-editor-params";
 interface PdfShortcutOptions {
   container: Readonly<Ref<HTMLDivElement | null>>;
   session: Readonly<ShallowRef<PdfReaderSession | undefined>>;
-  viewMode: Readonly<Ref<"pdf" | "text">>;
   areaMode: Ref<boolean>;
   findOpen: Ref<boolean>;
   modified: Readonly<Ref<boolean>>;
@@ -55,7 +54,7 @@ export function usePdfReaderShortcuts(options: PdfShortcutOptions) {
       }
       return;
     }
-    if (!(event.metaKey || event.ctrlKey) || options.viewMode.value !== "pdf") return;
+    if (!(event.metaKey || event.ctrlKey)) return;
     const action = cmdActions[event.key.toLowerCase()];
     if (!action) return;
     event.preventDefault();

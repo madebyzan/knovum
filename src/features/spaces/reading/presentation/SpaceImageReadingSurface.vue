@@ -87,7 +87,7 @@ watch(
   <div class="flex h-full min-h-0 flex-col bg-surface-canvas outline-none" tabindex="-1" @keydown="onKeyDown">
     <div
       data-reader-ignore-selection
-      class="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider bg-surface-panel px-2.5 select-none"
+      class="flex h-8.5 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider/70 bg-surface-canvas px-3 select-none"
     >
       <span class="truncate text-caption-sm text-fg-tertiary tabular-nums">
         {{ dimensionsLabel ?? node.data.fileName }}
@@ -142,7 +142,7 @@ watch(
 
     <div
       data-reader-ignore-selection
-      class="flex min-h-0 flex-1 overflow-auto bg-surface-control/75 p-4 select-none"
+      class="flex min-h-0 flex-1 overflow-auto bg-surface-muted p-5 select-none"
     >
       <img
         :src="imageSrc"

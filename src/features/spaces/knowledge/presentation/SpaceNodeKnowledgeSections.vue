@@ -36,12 +36,12 @@ const hasRelations = computed(() =>
     :icon="Layers"
     :default-expanded="hasRelations"
   >
-    <SpaceRelations />
+    <SpaceRelations :node="node" />
   </SpaceInspectorSection>
 
   <SpaceKnowledgeHistory v-if="node.data.kind === 'object'" :node="node" />
 
   <SpaceInspectorSection :title="$t('spaces.tags.title')" :icon="Tag" :default-expanded="true">
-    <SpaceTags mode="selection" />
+    <SpaceTags :target-nodes="[node]" />
   </SpaceInspectorSection>
 </template>

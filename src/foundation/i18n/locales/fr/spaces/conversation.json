@@ -122,7 +122,7 @@
     "noSources": "Aucune source correspondante",
     "plan": "Plan"
   },
-  "askSelection": "Demander la sélection",
+  "askSelection": "Demander à Knovum",
   "extensions": {
     "label": "Extensions de conversation",
     "unavailable": "Une extension sélectionnée n'est pas disponible. Vérifiez la sélection.",

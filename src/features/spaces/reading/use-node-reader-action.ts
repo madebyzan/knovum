@@ -7,7 +7,7 @@ import { isReadableSourceNode } from "./source-reader-target";
 
 export interface NodeReaderAction {
   mode: "read" | "locate-source";
-  labelKey: "spaces.inspector.showSource" | "spaces.conversation.sourcePeek.open";
+  labelKey: "spaces.inspector.reader.read" | "spaces.conversation.sourcePeek.open";
   run: () => void;
 }
 
@@ -46,7 +46,7 @@ export function useNodeReaderAction(node: MaybeRefOrGetter<SpaceCanvasNode | und
     if (isReadable.value) {
       return {
         mode: "read",
-        labelKey: "spaces.inspector.showSource",
+        labelKey: "spaces.inspector.reader.read",
         run: () => store.openSourceReader({ nodeId: target.id }),
       };
     }

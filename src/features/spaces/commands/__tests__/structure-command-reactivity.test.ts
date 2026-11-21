@@ -44,7 +44,7 @@ it("captures the store in setup and translates commands and new groups in the ac
       setup() {
         commands = useSpaceStructureCommands({
           selectedStructureNodeIds: () => selection.value,
-          sidebar: { reveal: vi.fn<() => void>() },
+          sidebar: { pinned: shallowRef(false), reveal: vi.fn<() => void>(), collapse: vi.fn<() => void>() },
         });
         return () => null;
       },

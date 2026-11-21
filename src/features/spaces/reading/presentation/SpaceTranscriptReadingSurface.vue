@@ -7,6 +7,7 @@ import { ToolbarRoot } from "reka-ui";
 import { computed, nextTick, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import SpaceTextQuote from "../../knowledge/presentation/SpaceTextQuote.vue";
 import { formatDurationMs } from "../../media/format-duration";
@@ -97,41 +98,43 @@ watch(
       @seek="seekTo"
       @time-update="updateActiveSegment"
     />
-    <div
-      v-if="segments.length"
-      ref="scroller"
-      class="min-h-0 flex-1 divide-y divide-stroke-divider/50 overflow-y-auto bg-surface-raised"
-    >
+    <div v-if="segments.length" class="relative flex min-h-0 flex-1 overflow-hidden">
       <div
-        v-for="segment in visibleSegments"
-        :key="segment.id"
-        :data-segment-start-ms="segment.startMs"
-        :data-segment-end-ms="segment.endMs"
-        class="flex items-start gap-3 px-4 py-3 transition-colors"
-        :class="
-          activeSegmentId === segment.id ? 'bg-surface-accent-subtle/35' : 'hover:bg-surface-control/35'
-        "
+        ref="scroller"
+        class="min-h-0 flex-1 divide-y divide-stroke-divider/50 overflow-y-auto bg-surface-raised pt-1 pb-10"
       >
-        <button
-          data-reader-ignore-selection
-          type="button"
-          class="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-sm bg-surface-control px-1.5 py-0.5 font-mono text-caption-sm text-fg-secondary tabular-nums select-none hover:bg-surface-control-hover hover:text-fg-primary"
-          @click="seekTo(segment.startMs)"
+        <div
+          v-for="segment in visibleSegments"
+          :key="segment.id"
+          :data-segment-start-ms="segment.startMs"
+          :data-segment-end-ms="segment.endMs"
+          class="flex items-start gap-3 px-4 py-3 transition-colors"
+          :class="
+            activeSegmentId === segment.id ? 'bg-surface-accent-subtle/35' : 'hover:bg-surface-control/35'
+          "
         >
-          <Clock class="size-2.5 text-fg-tertiary" />
-          <span>{{ formatDurationMs(segment.startMs) }}</span>
-        </button>
-        <div class="min-w-0 flex-1">
-          <SpaceTextQuote :text="segment.text" :exact="isHighlightedSegment(segment) ? quote : undefined" />
+          <button
+            data-reader-ignore-selection
+            type="button"
+            class="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-sm bg-surface-control px-1.5 py-0.5 font-mono text-caption-sm text-fg-secondary tabular-nums select-none hover:bg-surface-control-hover hover:text-fg-primary"
+            @click="seekTo(segment.startMs)"
+          >
+            <Clock class="size-2.5 text-fg-tertiary" />
+            <span>{{ formatDurationMs(segment.startMs) }}</span>
+          </button>
+          <div class="min-w-0 flex-1 text-body leading-relaxed">
+            <SpaceTextQuote :text="segment.text" :exact="isHighlightedSegment(segment) ? quote : undefined" />
+          </div>
         </div>
+        <p
+          v-if="!visibleSegments.length"
+          data-reader-ignore-selection
+          class="p-4 text-center text-caption text-fg-tertiary select-none"
+        >
+          {{ t("spaces.transcript.text.noMatches") }}
+        </p>
       </div>
-      <p
-        v-if="!visibleSegments.length"
-        data-reader-ignore-selection
-        class="p-4 text-center text-caption text-fg-tertiary select-none"
-      >
-        {{ t("spaces.transcript.text.noMatches") }}
-      </p>
+      <UiScrollEdgeFade surface="raised" top-class="h-5" bottom-class="h-9" />
     </div>
     <div
       v-else

@@ -1,21 +1,23 @@
 <script setup lang="ts">
-import { Pencil, Search } from "@lucide/vue";
 import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiButton from "../../../../shared/ui/UiButton.vue";
-import UiFindBar from "../../../../shared/ui/UiFindBar.vue";
-import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
+import UiOutlineRail, { type UiOutlineItem } from "../../../../shared/ui/UiOutlineRail.vue";
+import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceMarkdownPayload, SpaceNotePayload } from "../../model/nodes/node-payload";
-import { useSpaceStore } from "../../session/space-store";
 import { highlightContainerCodeBlocks } from "../code-highlighter";
-import { extractMarkdownHeadings, extractTiptapHeadings, noteReadingHtml } from "../note-reading-html";
-import SpaceReaderFontControls from "./SpaceReaderFontControls.vue";
-import SpaceReaderOutlineBar, { type ReaderOutlineAnchor } from "./SpaceReaderOutlineBar.vue";
+import {
+  extractMarkdownHeadings,
+  extractTiptapHeadings,
+  noteReadingHtml,
+  scrollProseToLocator,
+} from "../note-reading-html";
+import SpaceReaderProseToolbar from "./SpaceReaderProseToolbar.vue";
 import { useDomBlockFind } from "./use-dom-block-find";
+import { useReaderActiveAnchor } from "./use-reader-active-anchor";
 import { useReaderTheme } from "./use-reader-theme";
 import { useReaderTypography } from "./use-reader-typography";
 
@@ -26,9 +28,9 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-const store = useSpaceStore();
 const { isDark } = useReaderTheme();
 const typography = useReaderTypography();
+const scrollerRef = useTemplateRef<HTMLDivElement>("scroller");
 const proseRef = useTemplateRef<HTMLElement>("prose");
 const find = useDomBlockFind(proseRef);
 
@@ -52,39 +54,29 @@ const showInlineTitle = computed(() => {
       .toLowerCase() !== title
   );
 });
-const outlineAnchors = computed<readonly ReaderOutlineAnchor[]>(() => {
+const outlineItems = computed<readonly UiOutlineItem[]>(() => {
   const list =
     props.node.data.kind === "markdown"
       ? extractMarkdownHeadings(props.node.data.text)
       : extractTiptapHeadings(props.node.data.tiptapContent);
-  return list.length > 1 ? list.map((h) => ({ key: h.index, label: h.text })) : [];
+  return list.length > 1 ? list.map((h) => ({ id: String(h.index), label: h.text, level: h.level })) : [];
+});
+const outlineAnchor = useReaderActiveAnchor({
+  scroller: scrollerRef,
+  selector: "[data-reader-prose] h1, [data-reader-prose] h2, [data-reader-prose] h3, [data-reader-prose] h4",
+  keyOf: (_el, index) => String(index),
+  validIds: () => outlineItems.value.map((item) => item.id),
+  sourceKey: () => [props.node.id, markdownText.value, noteHtml.value],
+  enabled: () => outlineItems.value.length > 0,
 });
 
-function scrollToHeading(index: string | number) {
-  proseRef.value
-    ?.querySelectorAll<HTMLElement>("h1, h2, h3, h4")
-    .item(Number(index))
-    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+function scrollToHeading(id: string) {
+  const el = proseRef.value?.querySelectorAll<HTMLElement>("h1, h2, h3, h4").item(Number(id));
+  outlineAnchor.scrollTo(id, el);
 }
 function scrollToLocator() {
-  const container = proseRef.value;
-  if (!container) return;
-  const targetHeading =
-    props.locator?.location.kind === "markdown" ? props.locator.location.heading?.trim() : undefined;
-  if (targetHeading) {
-    const match = [...container.querySelectorAll<HTMLElement>("h1, h2, h3, h4")].find(
-      (h) => h.textContent?.trim() === targetHeading,
-    );
-    if (match) {
-      match.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
-  }
-  const needle = props.quote?.trim();
-  if (!needle) return;
-  [...container.querySelectorAll<HTMLElement>("p, li, blockquote, pre, h1, h2, h3, h4")]
-    .find((el) => el.textContent?.includes(needle))
-    ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  const heading = props.locator?.location.kind === "markdown" ? props.locator.location.heading : undefined;
+  scrollProseToLocator(proseRef.value, heading, props.quote);
 }
 
 watch(
@@ -116,70 +108,44 @@ watch(
     tabindex="-1"
     @keydown="find.onKeyDown"
   >
-    <div
-      data-reader-ignore-selection
-      class="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider bg-surface-panel px-2.5 select-none"
-    >
-      <SpaceReaderOutlineBar :anchors="outlineAnchors" @select="scrollToHeading" />
-      <div class="flex shrink-0 items-center gap-1.5">
-        <UiIconButton
-          :label="t('spaces.inspector.reader.searchPlaceholder')"
-          size="sm"
-          tooltip
-          :class="find.open.value && 'bg-surface-control text-fg-primary'"
-          @click="find.toggle()"
-        >
-          <Search class="size-3.5" />
-        </UiIconButton>
-        <SpaceReaderFontControls
-          :can-decrease="typography.canDecrease.value"
-          :can-increase="typography.canIncrease.value"
-          @decrease="typography.decrease()"
-          @increase="typography.increase()"
-        />
-        <UiButton variant="secondary" size="sm" class="gap-1" @click="store.openDocumentEditor(node.id)">
-          <Pencil class="size-3" />
-          <span>{{ t("common.edit") }}</span>
-        </UiButton>
+    <SpaceReaderProseToolbar :find="find" :typography="typography" />
+    <div class="relative flex min-h-0 flex-1 overflow-hidden">
+      <div ref="scroller" class="min-h-0 flex-1 overflow-y-auto bg-surface-raised pt-7 pr-12 pb-14 pl-8">
+        <article class="mx-auto max-w-[66ch]">
+          <h1
+            v-if="showInlineTitle"
+            data-reader-ignore-selection
+            class="mb-5 text-[1.45rem] leading-tight font-semibold tracking-tight break-words text-fg-primary select-none"
+          >
+            {{ node.data.title }}
+          </h1>
+          <div
+            v-if="!isEmpty"
+            ref="prose"
+            data-reader-prose
+            class="reader-prose select-text"
+            :style="typography.proseStyle.value"
+          >
+            <UiMarkdown v-if="isMarkdown" :content="markdownText" class="!text-inherit" />
+            <!-- eslint-disable-next-line vue/no-v-html -- sanitized with DOMPurify in noteReadingHtml -->
+            <div v-else v-html="noteHtml" />
+          </div>
+          <p
+            v-else
+            data-reader-ignore-selection
+            class="py-10 text-center text-caption text-fg-tertiary select-none"
+          >
+            {{ t("spaces.conversation.sourcePeek.noText") }}
+          </p>
+        </article>
       </div>
-    </div>
-    <UiFindBar
-      v-if="find.open.value"
-      v-model="find.query.value"
-      :match-current="find.matched.value.length ? find.matchIndex.value + 1 : 0"
-      :match-total="find.matched.value.length"
-      @next="find.next()"
-      @prev="find.prev()"
-      @close="find.reset()"
-    />
-    <div class="min-h-0 flex-1 overflow-y-auto bg-surface-raised px-7 py-6">
-      <article class="mx-auto max-w-[68ch]">
-        <h1
-          v-if="showInlineTitle"
-          data-reader-ignore-selection
-          class="mb-5 text-[1.45rem] leading-tight font-semibold tracking-tight break-words text-fg-primary select-none"
-        >
-          {{ node.data.title }}
-        </h1>
-        <div
-          v-if="!isEmpty"
-          ref="prose"
-          data-reader-prose
-          class="reader-prose select-text"
-          :style="typography.proseStyle.value"
-        >
-          <UiMarkdown v-if="isMarkdown" :content="markdownText" class="!text-inherit" />
-          <!-- eslint-disable-next-line vue/no-v-html -- sanitized with DOMPurify in noteReadingHtml -->
-          <div v-else v-html="noteHtml" />
-        </div>
-        <p
-          v-else
-          data-reader-ignore-selection
-          class="py-10 text-center text-caption text-fg-tertiary select-none"
-        >
-          {{ t("spaces.conversation.sourcePeek.noText") }}
-        </p>
-      </article>
+      <UiScrollEdgeFade surface="raised" />
+      <UiOutlineRail
+        :items="outlineItems"
+        :active-id="outlineAnchor.activeId.value"
+        :label="t('spaces.inspector.reader.outline')"
+        @select="scrollToHeading"
+      />
     </div>
   </div>
 </template>

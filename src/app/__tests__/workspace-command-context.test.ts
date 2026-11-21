@@ -37,7 +37,7 @@ const store = reactive({
   nodes: [],
   scenes: [],
   focusSpaceLibrarySearch: vi.fn<() => void>(),
-  setRightSidebarView: vi.fn<(view: string) => void>(),
+  requestAsk: vi.fn<(scope: unknown, options: unknown) => void>(),
 });
 
 it("composes feature commands after shell operations exist, with context available to descendants", async () => {
@@ -46,7 +46,7 @@ it("composes feature commands after shell operations exist, with context availab
   const Dock = defineComponent({
     setup() {
       const dock = useContextDock();
-      return () => h("button", { onClick: () => dock.openAsk() }, "Ask");
+      return () => h("button", { onClick: () => dock.openAsk("space") }, "Ask");
     },
   });
   const Shell = defineComponent({
@@ -73,7 +73,7 @@ it("composes feature commands after shell operations exist, with context availab
     const [ask, find] = wrapper.findAll("button");
     await ask!.trigger("click");
     await find!.trigger("click");
-    expect(store.setRightSidebarView).toHaveBeenCalledWith("ask");
+    expect(store.requestAsk).toHaveBeenCalledWith("space", {});
     expect(store.focusSpaceLibrarySearch).toHaveBeenCalledOnce();
     expect(warnings.mock.calls.filter(([message]) => message.includes("injection"))).toEqual([]);
   } finally {

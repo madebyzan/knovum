@@ -43,7 +43,7 @@ onMounted(() => {
 <template>
   <div
     data-reader-ignore-selection
-    class="flex h-9 shrink-0 items-center gap-1.5 border-b border-stroke-divider bg-surface-panel px-2.5 select-none"
+    class="flex h-8.5 shrink-0 items-center gap-1.5 border-b border-stroke-divider/70 bg-surface-raised px-3 select-none"
   >
     <Search class="size-3.5 shrink-0 text-fg-tertiary" />
     <input

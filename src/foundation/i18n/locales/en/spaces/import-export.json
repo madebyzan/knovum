@@ -11,7 +11,8 @@
     "refreshFailed": "Failed to fetch web content"
   },
   "preview": {
-    "system": "Preview",
+    "quickLook": "Quick Look",
+    "system": "Open",
     "show": "Preview view",
     "instantUnavailable": {
       "title": "No instant preview",
@@ -64,6 +65,5 @@
     "resource": "Importing resource",
     "preparing": "Copying and verifying resources…",
     "processing": "Parsing resources…"
-  },
-  "openInEditor": "Open in external editor"
+  }
 }

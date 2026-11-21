@@ -1,20 +1,19 @@
 <script setup lang="ts">
-import { Search } from "@lucide/vue";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiFindBar from "../../../../shared/ui/UiFindBar.vue";
-import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import UiOutlineRail, { type UiOutlineItem } from "../../../../shared/ui/UiOutlineRail.vue";
+import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import type { KnowledgeChunk } from "../../knowledge/model/schema/persisted-chunk";
 import { knowledgeLocationLabel } from "../../knowledge/presentation/knowledge-location-label";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { projectDocumentBlocks, type DocumentRenderBlock } from "../document-block-projection";
 import SpaceDocumentBlock from "./SpaceDocumentBlock.vue";
-import SpaceReaderFontControls from "./SpaceReaderFontControls.vue";
-import SpaceReaderOutlineBar, { type ReaderOutlineAnchor } from "./SpaceReaderOutlineBar.vue";
+import SpaceReaderProseToolbar from "./SpaceReaderProseToolbar.vue";
 import { useDomBlockFind } from "./use-dom-block-find";
+import { useReaderActiveAnchor } from "./use-reader-active-anchor";
 import { useReaderTypography } from "./use-reader-typography";
 
 const props = defineProps<{
@@ -32,9 +31,9 @@ const find = useDomBlockFind(scroller, { selector: "[data-chunk-index]" });
 const blocks = computed(() => projectDocumentBlocks(props.chunks, props.node.data));
 const figures = computed(() =>
   props.node.data.kind === "file"
-    ? (props.node.data.documentCoverage?.resources ?? []).map((res) => ({
-        id: res.id,
-        src: convertFileSrc(res.path),
+    ? (props.node.data.documentCoverage?.resources ?? []).map((r) => ({
+        id: r.id,
+        src: convertFileSrc(r.path),
       }))
     : [],
 );
@@ -44,16 +43,25 @@ function anchorLabel(block: DocumentRenderBlock): string | undefined {
   return block.kind === "heading" ? block.text : block.sectionLabel;
 }
 
-const outlineAnchors = computed<readonly ReaderOutlineAnchor[]>(() => {
+const outlineItems = computed<readonly UiOutlineItem[]>(() => {
   const seen = new Set<string>();
-  const anchors: ReaderOutlineAnchor[] = [];
+  const items: UiOutlineItem[] = [];
   for (const block of blocks.value) {
     const label = anchorLabel(block);
     if (!label || seen.has(label)) continue;
     seen.add(label);
-    anchors.push({ key: block.chunkIndex, label });
+    items.push({ id: String(block.chunkIndex), label, level: block.kind === "heading" ? 1 : 2 });
   }
-  return anchors.length > 1 ? anchors : [];
+  return items.length > 1 ? items : [];
+});
+
+const outlineAnchor = useReaderActiveAnchor({
+  scroller,
+  selector: "[data-chunk-index]",
+  keyOf: (el) => el.dataset.chunkIndex,
+  validIds: () => outlineItems.value.map((item) => item.id),
+  sourceKey: () => [props.node.id, blocks.value.length],
+  enabled: () => outlineItems.value.length > 0,
 });
 
 const activeChunkIndex = computed(() => {
@@ -69,9 +77,8 @@ const activeChunkIndex = computed(() => {
 });
 
 function scrollToChunk(chunkIndex: string | number) {
-  scroller.value
-    ?.querySelector<HTMLElement>(`[data-chunk-index="${chunkIndex}"]`)
-    ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  const el = scroller.value?.querySelector<HTMLElement>(`[data-chunk-index="${chunkIndex}"]`);
+  outlineAnchor.scrollTo(String(chunkIndex), el);
 }
 
 watch(
@@ -95,86 +102,62 @@ watch(
     tabindex="-1"
     @keydown="find.onKeyDown"
   >
-    <div
-      data-reader-ignore-selection
-      class="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider bg-surface-panel px-2.5 select-none"
-    >
-      <SpaceReaderOutlineBar :anchors="outlineAnchors" @select="scrollToChunk" />
-      <div class="flex shrink-0 items-center gap-1.5">
-        <UiIconButton
-          :label="t('spaces.inspector.reader.searchPlaceholder')"
-          size="sm"
-          tooltip
-          :class="find.open.value && 'bg-surface-control text-fg-primary'"
-          @click="find.toggle()"
-        >
-          <Search class="size-3.5" />
-        </UiIconButton>
-        <SpaceReaderFontControls
-          :can-decrease="typography.canDecrease.value"
-          :can-increase="typography.canIncrease.value"
-          @decrease="typography.decrease()"
-          @increase="typography.increase()"
-        />
-      </div>
-    </div>
-
-    <UiFindBar
-      v-if="find.open.value"
-      v-model="find.query.value"
-      :match-current="find.matched.value.length ? find.matchIndex.value + 1 : 0"
-      :match-total="find.matched.value.length"
-      @next="find.next()"
-      @prev="find.prev()"
-      @close="find.reset()"
-    />
-
-    <div ref="scroller" class="min-h-0 flex-1 overflow-y-auto bg-surface-raised px-7 py-6">
-      <div
-        v-if="blocks.length"
-        class="reader-prose mx-auto max-w-[68ch] space-y-4"
-        :style="typography.proseStyle.value"
-      >
-        <SpaceDocumentBlock
-          v-for="(block, idx) in blocks"
-          :key="block.id"
-          :block="block"
-          :show-slide-header="
-            block.slideNumber !== undefined &&
-            (idx === 0 || blocks[idx - 1]?.slideNumber !== block.slideNumber)
-          "
-          :show-section-label="
-            Boolean(
-              block.sectionLabel &&
-              block.kind !== 'heading' &&
-              (idx === 0 || blocks[idx - 1]?.sectionLabel !== block.sectionLabel),
-            )
-          "
-          :active="block.chunkIndex === activeChunkIndex"
-          :exact-quote="block.chunkIndex === activeChunkIndex ? quote : undefined"
-        />
+    <SpaceReaderProseToolbar :find="find" :typography="typography" />
+    <div class="relative flex min-h-0 flex-1 overflow-hidden">
+      <div ref="scroller" class="min-h-0 flex-1 overflow-y-auto bg-surface-raised pt-7 pr-12 pb-14 pl-8">
         <div
-          v-if="figures.length"
-          data-reader-ignore-selection
-          class="grid grid-cols-2 gap-3 border-t border-stroke-divider pt-4"
+          v-if="blocks.length"
+          class="reader-prose mx-auto max-w-[66ch] space-y-4"
+          :style="typography.proseStyle.value"
         >
-          <img
-            v-for="figure in figures"
-            :key="figure.id"
-            :src="figure.src"
-            alt=""
-            class="max-h-48 w-full rounded-lg border border-stroke-divider bg-surface-control object-contain"
-            loading="lazy"
+          <SpaceDocumentBlock
+            v-for="(block, idx) in blocks"
+            :key="block.id"
+            :block="block"
+            :show-slide-header="
+              block.slideNumber !== undefined &&
+              (idx === 0 || blocks[idx - 1]?.slideNumber !== block.slideNumber)
+            "
+            :show-section-label="
+              Boolean(
+                block.sectionLabel &&
+                block.kind !== 'heading' &&
+                (idx === 0 || blocks[idx - 1]?.sectionLabel !== block.sectionLabel),
+              )
+            "
+            :active="block.chunkIndex === activeChunkIndex"
+            :exact-quote="block.chunkIndex === activeChunkIndex ? quote : undefined"
           />
+          <div
+            v-if="figures.length"
+            data-reader-ignore-selection
+            class="grid grid-cols-2 gap-3 border-t border-stroke-divider pt-4"
+          >
+            <img
+              v-for="figure in figures"
+              :key="figure.id"
+              :src="figure.src"
+              alt=""
+              class="max-h-48 w-full rounded-lg border border-stroke-divider bg-surface-control object-contain"
+              loading="lazy"
+            />
+          </div>
         </div>
+        <p
+          v-else-if="!loading"
+          data-reader-ignore-selection
+          class="p-6 text-center text-caption text-fg-tertiary select-none"
+        >
+          {{ t("spaces.conversation.sourcePeek.noText") }}
+        </p>
       </div>
-      <p
-        v-else-if="!loading"
-        data-reader-ignore-selection
-        class="p-6 text-center text-caption text-fg-tertiary select-none"
-      >
-        {{ t("spaces.conversation.sourcePeek.noText") }}
-      </p>
+      <UiScrollEdgeFade surface="raised" />
+      <UiOutlineRail
+        :items="outlineItems"
+        :active-id="outlineAnchor.activeId.value"
+        :label="t('spaces.inspector.reader.outline')"
+        @select="scrollToChunk"
+      />
     </div>
   </div>
 </template>

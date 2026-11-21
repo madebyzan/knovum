@@ -65,6 +65,10 @@ function collectSlideVisuals(
   }
 }
 
+function normalizeComparableText(text: string): string {
+  return text.replace(/\s+/gu, " ").trim();
+}
+
 export function projectPresentationSlides(
   payload: SpaceFilePayload,
   chunks: readonly KnowledgeChunk[],
@@ -82,10 +86,17 @@ export function projectPresentationSlides(
 
   return [...bySlide.entries()]
     .toSorted(([left], [right]) => left - right)
-    .map(([slideNumber, entry]) => ({
-      slideNumber,
-      images: entry.images,
-      textBlocks: entry.textBlocks,
-      ocrPassages: entry.ocrPassages,
-    }));
+    .map(([slideNumber, entry]) => {
+      const combinedBlocks = normalizeComparableText(entry.textBlocks.map((b) => b.text).join(" "));
+      const uniqueOcr = entry.ocrPassages.filter((passage) => {
+        const normalized = normalizeComparableText(passage);
+        return normalized.length > 0 && !combinedBlocks.includes(normalized);
+      });
+      return {
+        slideNumber,
+        images: entry.images,
+        textBlocks: entry.textBlocks,
+        ocrPassages: uniqueOcr,
+      };
+    });
 }

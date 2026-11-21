@@ -122,7 +122,7 @@
     "noSources": "No hay fuentes coincidentes",
     "plan": "Plan"
   },
-  "askSelection": "Preguntar selección",
+  "askSelection": "Preguntar a Knovum",
   "extensions": {
     "label": "Extensiones de conversación",
     "unavailable": "Una extensión seleccionada no está disponible. Revisa la selección.",

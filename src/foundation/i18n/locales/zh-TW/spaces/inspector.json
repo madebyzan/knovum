@@ -1,5 +1,4 @@
 {
-  "itemsSelected": "已選取 {count} 項",
   "title": "詳情",
   "basicInformation": "基本訊息",
   "showSource": "原文視圖",
@@ -28,16 +27,13 @@
   "recognizedText": "OCR 辨識文字",
   "excerpts": {
     "title": "摘錄 · {title}",
-    "line": "— {title} · {location}",
-    "content": "內容摘錄"
+    "line": "— {title} · {location}"
   },
   "openSource": "定位原始節點",
   "targetSpace": "目標空間",
   "none": "未設定",
   "renameHint": "點擊重命名",
-  "openContent": "打開內容",
   "content": "內容",
-  "playVideo": "播放影片",
   "related": {
     "title": "相關內容",
     "show": "看更多",
@@ -50,8 +46,8 @@
     "empty": "當前空間暫無相關內容。",
     "explanation": "根據內容語義在當前空間中發現關聯；結果不會自動建立連線。"
   },
-  "containedItems": "包含 {count} 項內容",
   "reader": {
+    "read": "閱讀",
     "readerMode": "閱讀模式",
     "liveWeb": "內建網頁",
     "decreaseFontSize": "縮小字體",
@@ -74,6 +70,7 @@
     "fitPage": "符合整頁",
     "rotateClockwise": "旋轉 90°",
     "typeHere": "輸入文字…",
-    "preview": "預覽"
+    "preview": "預覽",
+    "followSelection": "隨選取自動切換"
   }
 }

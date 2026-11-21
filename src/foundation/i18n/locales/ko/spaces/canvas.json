@@ -8,11 +8,6 @@
     "label": "노드 작업",
     "openOriginal": "원본 열기",
     "goToTarget": "대상으로 이동",
-    "viewLarge": "이미지 보기",
-    "openVideo": "비디오 열기",
-    "openAudio": "오디오 열기",
-    "viewCode": "코드 보기",
-    "openFile": "파일 열기",
     "export": "내보내기"
   },
   "zoom": {

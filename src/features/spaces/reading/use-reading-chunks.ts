@@ -6,7 +6,7 @@ import { listCurrentKnowledgeChunks } from "../knowledge/persistence/chunk-opera
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SourceReaderKind } from "./source-reader-target";
 
-const CHUNK_READER_KINDS = new Set<SourceReaderKind>(["pdf", "word", "slides", "document", "code", "image"]);
+const CHUNK_READER_KINDS = new Set<SourceReaderKind>(["slides", "document", "code", "image"]);
 const OCR_READER_KINDS = new Set<SourceReaderKind>(["pdf", "slides", "image"]);
 
 function collectRecognizedPdfPages(

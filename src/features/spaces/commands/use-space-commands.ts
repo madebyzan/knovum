@@ -3,6 +3,7 @@ import { useI18n } from "vue-i18n";
 
 import type { AppCommand } from "../../../shared/contracts/app-command";
 import type { WorkspaceCommandContext } from "../../../shared/contracts/workspace-definition";
+import { systemPreviewLabelKey } from "../assets/asset-preview";
 import { activeCanvasExchangePort as activeExchange } from "../canvas-exchange/canvas-exchange-session";
 import { getCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
@@ -122,13 +123,20 @@ export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandCont
           run: () => activeEditor.value?.nudgeSelection({ x: input.x, y: input.y }),
         }))
       : [];
-    const preview = spacePreviewCommand(store.nodes, selectedIds(), t("spaces.importExport.preview.system"));
+    const preview = spacePreviewCommand(store.nodes, selectedIds(), t(systemPreviewLabelKey()));
+    const knowledgeHealthCommand: AppCommand = {
+      id: "spaces.knowledge-health",
+      title: t("spaces.knowledge.health.title"),
+      category: "canvas",
+      run: () => store.openKnowledgeHealth(),
+    };
     return [
       ...workbenchTabCommands.value,
       ...guardSelectionCommands(editingCommands, nodeOperations.allows),
       ...guardCanvasExchangeCommands(exchangeCommands, nodeOperations.allows),
       ...guardAllCommands(nudgeCommands, "structure", nodeOperations.allows),
       ...guardNavigationCommands(canvasNavigationCommands.value, nodeOperations.allows),
+      knowledgeHealthCommand,
       ...(preview ? [preview] : []),
     ];
   });

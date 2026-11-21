@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, inject, provide } from "vue";
 
+import { overlayScopeVisibleKey } from "../../../../shared/contracts/overlay-scope-visibility";
 import { pdfDocumentPath } from "../../assets/file-presentation";
-import type { PdfTextPage } from "../../assets/pdf-reader/pdf-editor-params";
 import SpacePdfReader from "../../assets/pdf-reader/SpacePdfReader.vue";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import type { KnowledgeChunk } from "../../knowledge/model/schema/persisted-chunk";
@@ -30,16 +30,26 @@ import SpaceWebsiteReadingSurface from "./SpaceWebsiteReadingSurface.vue";
 import SpaceWordReadingSurface from "./SpaceWordReadingSurface.vue";
 import type { SurfaceSelectionState } from "./use-reader-selection";
 
-const props = defineProps<{
-  node: SpaceCanvasNode;
-  kind: SourceReaderKind;
-  chunks: readonly KnowledgeChunk[];
-  loading: boolean;
-  recognizedPdfPages: ReadonlyMap<number, readonly string[]>;
-  recognizedText: (resourceId: string) => string | undefined;
-  locator?: KnowledgeLocator | undefined;
-  quote?: string | undefined;
-}>();
+const props = withDefaults(
+  defineProps<{
+    node: SpaceCanvasNode;
+    kind: SourceReaderKind;
+    chunks: readonly KnowledgeChunk[];
+    loading: boolean;
+    recognizedPdfPages: ReadonlyMap<number, readonly string[]>;
+    recognizedText: (resourceId: string) => string | undefined;
+    locator?: KnowledgeLocator | undefined;
+    quote?: string | undefined;
+    visible?: boolean;
+  }>(),
+  { visible: true },
+);
+
+const parentVisible = inject(overlayScopeVisibleKey, undefined);
+provide(
+  overlayScopeVisibleKey,
+  computed(() => (parentVisible?.value ?? true) && props.visible),
+);
 
 const emit = defineEmits<{
   pdfPageChange: [page: number];
@@ -51,20 +61,6 @@ const pdfTargetPage = computed(() =>
   props.locator?.location.kind === "pdf" ? props.locator.location.page : undefined,
 );
 const isSpreadsheet = computed(() => isSpreadsheetPayload(props.node.data));
-
-const pdfTextPages = computed<readonly PdfTextPage[]>(() => {
-  if (props.kind !== "pdf") return [];
-  const byPage = new Map<number, string[]>();
-  for (const chunk of props.chunks) {
-    if (chunk.locator.location.kind !== "pdf") continue;
-    const list = byPage.get(chunk.locator.location.page) ?? [];
-    list.push(chunk.text);
-    byPage.set(chunk.locator.location.page, list);
-  }
-  return [...byPage.entries()]
-    .toSorted(([left], [right]) => left - right)
-    .map(([page, parts]) => ({ page, text: parts.join("\n\n") }));
-});
 </script>
 
 <template>
@@ -74,16 +70,12 @@ const pdfTextPages = computed<readonly PdfTextPage[]>(() => {
     :path="pdfPath"
     :page="pdfTargetPage"
     :passage="quote"
-    :text-pages="pdfTextPages"
     :recognized-pages="recognizedPdfPages"
     @page-change="emit('pdfPageChange', $event)"
   />
   <SpaceWordReadingSurface
     v-else-if="kind === 'word' && node.data.kind === 'file'"
     :node="node as SpaceCanvasNode<SpaceFilePayload>"
-    :chunks="chunks"
-    :loading="loading"
-    :locator="locator"
     :quote="quote"
   />
   <SpaceSlidesReadingSurface

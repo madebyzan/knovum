@@ -28,6 +28,10 @@ export interface AppendNoteTarget {
   title: string;
 }
 
+export type ReaderDropTarget =
+  | { kind: "create"; point: CanvasPoint }
+  | { kind: "append"; nodeId: string; title: string };
+
 export function useReaderCapture(sourceNode: Readonly<Ref<SpaceCanvasNode | undefined>>) {
   const store = useSpaceStore();
   const gate = useNodeOperationGate();
@@ -137,7 +141,29 @@ export function useReaderCapture(sourceNode: Readonly<Ref<SpaceCanvasNode | unde
     async copyPassage(passage: SourceReaderPassage) {
       await writeText(passage.text).catch((error: unknown) => toast.error(getErrorMessage(error)));
     },
-    canvasPointAt: (point: CanvasPoint) =>
-      canSave.value ? currentCanvasEditor()?.canvasPointAt(point) : undefined,
+    dropTargetAt(clientPoint: CanvasPoint): ReaderDropTarget | undefined {
+      const editor = currentCanvasEditor();
+      const point = editor?.canvasPointAt(clientPoint);
+      if (!point) return undefined;
+      if (canAppend.value) {
+        const hit = editor
+          ?.getDocument()
+          .nodes.toReversed()
+          .find(
+            ({ nodeId, frame }) =>
+              point.x >= frame.x &&
+              point.x <= frame.x + frame.width &&
+              point.y >= frame.y &&
+              point.y <= frame.y + frame.height &&
+              nodeId !== sourceNode.value?.id,
+          );
+        const node = hit
+          ? store.nodes.find((n) => n.id === hit.nodeId && !n.hidden && acceptsPassage(n.data))
+          : undefined;
+        if (node)
+          return { kind: "append", nodeId: node.id, title: truncateUtf16(node.data.title, TITLE_UNITS) };
+      }
+      return canSave.value ? { kind: "create", point } : undefined;
+    },
   };
 }

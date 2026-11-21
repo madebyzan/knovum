@@ -50,14 +50,14 @@ const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(pro
 const bar = useTemplateRef<HTMLElement>("bar");
 const densityIdentity = computed(
   () =>
-    `${locale.value}:${props.node?.id}:${props.node?.data.kind}:${speechOperations.value.join(",")}:${props.actions.state.value.canOpen}:${Boolean(props.actions.selectedVideoNode.value)}:${Boolean(props.actions.state.value.section)}`,
+    `${locale.value}:${props.node?.id}:${props.node?.data.kind}:${speechOperations.value.join(",")}:${props.actions.state.value.canAsk}:${props.actions.state.value.canOpen}:${Boolean(props.actions.selectedVideoNode.value)}:${Boolean(props.actions.state.value.section)}`,
 );
 const { compact, minimal, ready } = useNodeActionBarDensity(
   bar,
   toRef(props, "availableWidth"),
   densityIdentity,
 );
-const { primary, asksInstead } = useNodePrimaryAction(toRef(props, "node"), props.actions);
+const { primary } = useNodePrimaryAction(toRef(props, "node"), props.actions);
 const readerAction = useNodeReaderAction(toRef(props, "node"));
 watch(
   [ready, focusOperation],
@@ -123,10 +123,10 @@ const textKind = computed(() => {
         :actions="actions"
         :derivations="derivations"
         node-bar
-        :exclude-ask="asksInstead"
         :node-tools-visible="
           minimal &&
-          (Boolean(primary) ||
+          (actions.state.value.canAsk ||
+            Boolean(primary) ||
             Boolean(speechOperations.length) ||
             isMedia ||
             Boolean(actions.selectedVideoNode.value))

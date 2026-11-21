@@ -28,7 +28,7 @@ const continuousView = useTemplateRef<InstanceType<typeof SpaceSlidesContinuousV
 const activeSlideNumber = shallowRef(1);
 const layoutMode = shallowRef<"single" | "continuous">("single");
 const showFilmstrip = shallowRef(true);
-const showNotes = shallowRef(true);
+const showNotes = shallowRef(false);
 
 const slides = computed(() => projectPresentationSlides(props.node.data, props.chunks, props.recognizedText));
 const totalSlides = computed(() => slides.value.length);
@@ -41,6 +41,9 @@ const currentHasNotes = computed(() => {
   const slide = currentSlide.value;
   return Boolean(slide?.images.length && (slide.textBlocks.length || slide.ocrPassages.length));
 });
+const deckHasNotes = computed(() =>
+  slides.value.some((slide) => slide.images.length && (slide.textBlocks.length || slide.ocrPassages.length)),
+);
 const layoutOptions = computed(() => [
   { value: "single" as const, title: t("spaces.inspector.reader.singleSlide"), icon: GalleryHorizontalEnd },
   { value: "continuous" as const, title: t("spaces.inspector.reader.continuousSlides"), icon: Rows2 },
@@ -93,7 +96,7 @@ watch(
     <div
       v-if="totalSlides"
       data-reader-ignore-selection
-      class="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider bg-surface-panel px-2.5 select-none"
+      class="flex h-8.5 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider/70 bg-surface-canvas px-3 select-none"
     >
       <div class="flex items-center gap-2">
         <UiSegmentedControl v-if="totalSlides > 1" v-model="layoutMode" :options="layoutOptions" icon-only />
@@ -103,7 +106,7 @@ watch(
       </div>
       <div class="flex items-center gap-0.5">
         <UiIconButton
-          v-if="layoutMode === 'single' && currentHasNotes"
+          v-if="layoutMode === 'single' ? currentHasNotes : deckHasNotes"
           :label="t('spaces.inspector.extractedDocumentText')"
           size="sm"
           tooltip
@@ -166,6 +169,7 @@ watch(
       v-else-if="slides.length"
       ref="continuousView"
       :slides="slides"
+      :show-notes="showNotes"
       :target-slide="targetSlide"
       :quote="quote"
       @hover-slide="activeSlideNumber = $event"

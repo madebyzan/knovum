@@ -17,8 +17,11 @@ export type SourceReaderKind =
   | "markdown"
   | "note";
 
+export type SourceReaderPane = "read" | "info";
+
 export interface SourceReadingTarget {
   nodeId: string;
+  pane: SourceReaderPane;
   locator?: KnowledgeLocator | undefined;
   quote?: string | undefined;
   nonce: number;
@@ -26,8 +29,14 @@ export interface SourceReadingTarget {
 
 export interface SourceReaderRequest {
   nodeId: string;
+  pane?: SourceReaderPane | undefined;
   locator?: KnowledgeLocator | undefined;
   quote?: string | undefined;
+}
+
+export interface SourceReadingHistoryEntry {
+  nodeId: string;
+  pane: SourceReaderPane;
 }
 
 function hasExtractedFileText(payload: Extract<SpaceNodePayload, { kind: "file" }>): boolean {

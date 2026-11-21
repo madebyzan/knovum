@@ -122,7 +122,7 @@
     "noSources": "沒有找到相關資料",
     "plan": "執行計劃"
   },
-  "askSelection": "詢問選項",
+  "askSelection": "問 Knovum",
   "extensions": {
     "label": "對話擴充",
     "unavailable": "所選擴充已不可用，請重新選擇。",

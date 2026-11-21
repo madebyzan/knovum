@@ -76,7 +76,8 @@ export function useCanvasSelectionActions() {
   }
 
   function inspect() {
-    dock.openInspect();
+    const node = selectedNodes.value[0];
+    if (node) dock.openNodeInfo(node.id);
   }
 
   function ask() {

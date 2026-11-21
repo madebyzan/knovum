@@ -11,7 +11,8 @@
     "refreshFailed": "웹 콘텐츠를 가져오지 못했습니다."
   },
   "preview": {
-    "system": "미리보기",
+    "quickLook": "훑어보기",
+    "system": "열기",
     "show": "미리보기 보기",
     "instantUnavailable": {
       "title": "즉시 미리보기 없음",
@@ -64,6 +65,5 @@
     "resource": "리소스 가져오기",
     "preparing": "리소스 복사 및 확인 중…",
     "processing": "리소스 구문 분석 중..."
-  },
-  "openInEditor": "외부 편집기에서 열기"
+  }
 }

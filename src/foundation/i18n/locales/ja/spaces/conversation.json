@@ -122,7 +122,7 @@
     "noSources": "一致するソースはありません",
     "plan": "計画"
   },
-  "askSelection": "選択を尋ねる",
+  "askSelection": "Knovumに質問",
   "extensions": {
     "label": "会話拡張",
     "unavailable": "選択した拡張機能は使用できません。選択内容を確認します。",

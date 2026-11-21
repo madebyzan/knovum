@@ -9,8 +9,6 @@ import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { nodeIcon } from "../../canvas/presentation/node-icon";
-import { useContextDock } from "../../canvas/use-context-dock";
-import { isReadableSourceNode } from "../../reading/source-reader-target";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceProvenanceTargetKind } from "../model/provenance";
 import { attachProvenanceFromPeek, detachProvenance } from "../provenance-actions";
@@ -24,18 +22,24 @@ const props = defineProps<{
   removable?: boolean;
 }>();
 const store = useSpaceStore();
-const dock = useContextDock();
-const { activeSpaceId, nodes, sourcePeek } = storeToRefs(store);
+const { activeSpaceId, nodes, readingTarget } = storeToRefs(store);
 const { t } = useI18n();
 const provenanceQuery = useSpaceProvenanceQuery(activeSpaceId, props.targetKind, () => props.targetId);
 const provenance = computed(() => provenanceQuery.data.value ?? []);
 const mutating = shallowRef(false);
-const attachable = computed(() => {
-  const peek = sourcePeek.value;
-  return peek && (!props.attachNodeIds || props.attachNodeIds.includes(peek.nodeId)) ? peek : undefined;
-});
-
 const nodeById = computed(() => new Map(nodes.value.map((node) => [node.id, node])));
+const attachable = computed(() => {
+  const reading = readingTarget.value;
+  if (!reading?.locator || reading.nodeId === props.targetId) return undefined;
+  if (props.attachNodeIds && !props.attachNodeIds.includes(reading.nodeId)) return undefined;
+  const node = nodeById.value.get(reading.nodeId);
+  return {
+    nodeId: reading.nodeId,
+    nodeTitle: node?.data.title ?? reading.nodeId,
+    locator: reading.locator,
+    ...(reading.quote ? { text: reading.quote } : {}),
+  };
+});
 const sources = computed(() =>
   provenance.value.map((record) => {
     const node = nodeById.value.get(record.sourceNodeId);
@@ -87,24 +91,12 @@ async function remove(provenanceId: string) {
 }
 function openSource(source: (typeof sources.value)[number]) {
   const { record } = source;
-  const sourceNode = nodeById.value.get(record.sourceNodeId);
-  if (isReadableSourceNode(sourceNode)) {
-    store.openSourceReader({
-      nodeId: record.sourceNodeId,
-      locator: record.locator,
-      quote: record.quote,
-    });
-    return;
-  }
-  dock.openSource(
-    {
-      nodeId: record.sourceNodeId,
-      nodeTitle: source.title,
-      locator: record.locator,
-      text: record.quote,
-    },
-    { reveal: false },
-  );
+  store.openSourceReader({
+    nodeId: record.sourceNodeId,
+    locator: record.locator,
+    quote: record.quote,
+    pane: "read",
+  });
 }
 </script>
 

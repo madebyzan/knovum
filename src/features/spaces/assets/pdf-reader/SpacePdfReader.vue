@@ -6,12 +6,10 @@ import UiFindBar from "../../../../shared/ui/UiFindBar.vue";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
-import type { PdfTextPage } from "./pdf-editor-params";
 import SpacePdfCanvasViewport from "./SpacePdfCanvasViewport.vue";
 import SpacePdfMarkupBar from "./SpacePdfMarkupBar.vue";
 import SpacePdfOcrDrawer from "./SpacePdfOcrDrawer.vue";
 import SpacePdfSidebar from "./SpacePdfSidebar.vue";
-import SpacePdfTextView from "./SpacePdfTextView.vue";
 import SpacePdfToolbar from "./SpacePdfToolbar.vue";
 import { usePdfMarkup } from "./use-pdf-markup";
 import { usePdfProvenanceOverlay } from "./use-pdf-provenance-overlay";
@@ -24,7 +22,6 @@ const props = defineProps<{
   path: string;
   page?: number | undefined;
   passage?: string | undefined;
-  textPages?: readonly PdfTextPage[] | undefined;
   recognizedPages?: ReadonlyMap<number, readonly string[]> | undefined;
 }>();
 const emit = defineEmits<{ pageChange: [page: number] }>();
@@ -33,7 +30,6 @@ const store = useSpaceStore();
 const canvasViewport = useTemplateRef<InstanceType<typeof SpacePdfCanvasViewport>>("canvasViewport");
 const container = computed(() => canvasViewport.value?.container ?? null);
 const viewer = computed(() => canvasViewport.value?.viewer ?? null);
-const viewMode = shallowRef<"pdf" | "text">("pdf");
 const sidebarOpen = shallowRef(false);
 const areaMode = shallowRef(false);
 const findOpen = shallowRef(false);
@@ -60,7 +56,6 @@ const markup = usePdfMarkup(lifecycle.session);
 const onKeyDown = usePdfReaderShortcuts({
   container,
   session: lifecycle.session,
-  viewMode,
   areaMode,
   findOpen,
   modified: lifecycle.modified,
@@ -101,9 +96,7 @@ watchDebounced(findQuery, (q) => findOpen.value && lifecycle.session.value?.find
 <template>
   <div class="flex h-full min-h-0 flex-col bg-surface-canvas outline-none" tabindex="-1" @keydown="onKeyDown">
     <SpacePdfToolbar
-      v-model:view-mode="viewMode"
       :session="lifecycle.session.value"
-      :has-text-view="Boolean(textPages?.length)"
       :sidebar-open="sidebarOpen"
       :find-open="findOpen"
       :area-mode="areaMode"
@@ -121,7 +114,7 @@ watchDebounced(findQuery, (q) => findOpen.value && lifecycle.session.value?.find
       @set-spread="lifecycle.setSpread"
     />
     <SpacePdfMarkupBar
-      v-if="viewMode === 'pdf' && markup.open.value"
+      v-if="markup.open.value"
       :markup="markup"
       :session="lifecycle.session.value"
       :modified="lifecycle.modified.value"
@@ -131,7 +124,7 @@ watchDebounced(findQuery, (q) => findOpen.value && lifecycle.session.value?.find
       @done="toggleMarkup"
     />
     <UiFindBar
-      v-if="viewMode === 'pdf' && findOpen"
+      v-if="findOpen"
       v-model="findQuery"
       :match-current="lifecycle.findMatches.value.current"
       :match-total="lifecycle.findMatches.value.total"
@@ -139,45 +132,34 @@ watchDebounced(findQuery, (q) => findOpen.value && lifecycle.session.value?.find
       @prev="lifecycle.session.value?.find(findQuery, 'prev')"
       @close="toggleFind"
     />
-    <div class="relative min-h-0 flex-1 overflow-hidden">
-      <div
-        class="absolute inset-0 flex flex-col overflow-hidden"
-        :class="viewMode === 'pdf' ? 'visible' : 'pointer-events-none invisible'"
-        :inert="viewMode !== 'pdf'"
-      >
-        <p v-if="lifecycle.failure.value" class="p-6 text-center text-caption text-fg-danger" role="alert">
-          {{ lifecycle.failure.value }}
-        </p>
-        <div class="flex min-h-0 flex-1 overflow-hidden">
-          <SpacePdfSidebar
-            v-if="sidebarOpen && lifecycle.pageCount.value"
-            :session="lifecycle.session.value"
-            :page-count="lifecycle.pageCount.value"
-            :current-page="lifecycle.currentPage.value"
-            :outline="lifecycle.outlineEntries.value"
-            :links="sourceLinks.links.value"
-            :highlighted-pages="sourceLinks.highlightedPages.value"
-            @go-to-page="lifecycle.session.value?.goToPage($event)"
-            @jump-link="jumpLink"
-            @reveal-canvas="selectAndRevealSpaceNode($event, 'focus')"
-          />
-          <SpacePdfCanvasViewport
-            ref="canvasViewport"
-            :area-mode="areaMode"
-            :markup-open="markup.open.value"
-            @area-capture="(page, rect) => ((areaMode = false), void lifecycle.captureArea(page, rect))"
-          />
-        </div>
-        <SpacePdfOcrDrawer
-          v-if="pageRecognizedPassages.length"
-          :page="lifecycle.currentPage.value"
-          :passages="pageRecognizedPassages"
+    <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+      <p v-if="lifecycle.failure.value" class="p-6 text-center text-caption text-fg-danger" role="alert">
+        {{ lifecycle.failure.value }}
+      </p>
+      <div class="flex min-h-0 flex-1 overflow-hidden">
+        <SpacePdfSidebar
+          v-if="sidebarOpen && lifecycle.pageCount.value"
+          :session="lifecycle.session.value"
+          :page-count="lifecycle.pageCount.value"
+          :current-page="lifecycle.currentPage.value"
+          :outline="lifecycle.outlineEntries.value"
+          :links="sourceLinks.links.value"
+          :highlighted-pages="sourceLinks.highlightedPages.value"
+          @go-to-page="lifecycle.session.value?.goToPage($event)"
+          @jump-link="jumpLink"
+          @reveal-canvas="selectAndRevealSpaceNode($event, 'focus')"
+        />
+        <SpacePdfCanvasViewport
+          ref="canvasViewport"
+          :area-mode="areaMode"
+          :markup-open="markup.open.value"
+          @area-capture="(page, rect) => ((areaMode = false), void lifecycle.captureArea(page, rect))"
         />
       </div>
-      <SpacePdfTextView
-        v-if="viewMode === 'text' && textPages?.length"
-        class="absolute inset-0"
-        :pages="textPages"
+      <SpacePdfOcrDrawer
+        v-if="pageRecognizedPassages.length"
+        :page="lifecycle.currentPage.value"
+        :passages="pageRecognizedPassages"
       />
     </div>
   </div>

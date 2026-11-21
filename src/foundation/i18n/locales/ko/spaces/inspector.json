@@ -1,5 +1,4 @@
 {
-  "itemsSelected": "{count} 항목 선택됨",
   "title": "세부정보",
   "basicInformation": "일반",
   "showSource": "소스 보기",
@@ -28,16 +27,13 @@
   "recognizedText": "OCR 인식 텍스트",
   "excerpts": {
     "title": "발췌 · {title}",
-    "line": "— {title} · {location}",
-    "content": "콘텐츠 발췌"
+    "line": "— {title} · {location}"
   },
   "openSource": "소스 노드 찾기",
   "targetSpace": "대상 작업공간",
   "none": "설정되지 않음",
   "renameHint": "이름을 바꾸려면 클릭하세요",
-  "openContent": "콘텐츠 열기",
   "content": "콘텐츠",
-  "playVideo": "비디오 재생",
   "related": {
     "title": "관련 콘텐츠",
     "show": "자세히 보기",
@@ -50,8 +46,8 @@
     "empty": "이 작업공간에는 아직 관련 콘텐츠가 없습니다.",
     "explanation": "의미별로 이 작업공간에서 관련 콘텐츠를 찾아보세요. 결과는 연결을 생성하지 않습니다."
   },
-  "containedItems": "{count} 포함 아이템",
   "reader": {
+    "read": "읽기",
     "readerMode": "읽기 모드",
     "liveWeb": "웹 보기",
     "decreaseFontSize": "글자 작게",
@@ -74,6 +70,7 @@
     "fitPage": "페이지 맞춤",
     "rotateClockwise": "90° 회전",
     "typeHere": "텍스트 입력…",
-    "preview": "미리보기"
+    "preview": "미리보기",
+    "followSelection": "선택에 따라 자동 전환"
   }
 }

@@ -1,5 +1,4 @@
 {
-  "itemsSelected": "已选中 {count} 项",
   "title": "详情",
   "basicInformation": "基本信息",
   "showSource": "原文视图",
@@ -28,16 +27,13 @@
   "recognizedText": "OCR 识别文本",
   "excerpts": {
     "title": "摘录 · {title}",
-    "line": "— {title} · {location}",
-    "content": "内容摘录"
+    "line": "— {title} · {location}"
   },
   "openSource": "定位原始节点",
   "targetSpace": "目标空间",
   "none": "未设置",
   "renameHint": "点击重命名",
-  "openContent": "打开内容",
   "content": "内容",
-  "playVideo": "播放视频",
   "related": {
     "title": "相关内容",
     "show": "查看更多",
@@ -50,8 +46,8 @@
     "empty": "当前空间暂无相关内容。",
     "explanation": "根据内容语义在当前空间中发现关联；结果不会自动建立连线。"
   },
-  "containedItems": "包含 {count} 项内容",
   "reader": {
+    "read": "阅读",
     "readerMode": "阅读模式",
     "liveWeb": "内置网页",
     "decreaseFontSize": "减小字号",
@@ -74,6 +70,7 @@
     "fitPage": "适应整页",
     "rotateClockwise": "旋转 90°",
     "typeHere": "输入文字…",
-    "preview": "预览"
+    "preview": "预览",
+    "followSelection": "随选中自动切换"
   }
 }

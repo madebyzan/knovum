@@ -11,7 +11,8 @@
     "refreshFailed": "Falha ao buscar conteúdo da web"
   },
   "preview": {
-    "system": "Visualização",
+    "quickLook": "Visualização Rápida",
+    "system": "Abrir",
     "show": "Visualização prévia",
     "instantUnavailable": {
       "title": "Sem visualização instantânea",
@@ -64,6 +65,5 @@
     "resource": "Importando recurso",
     "preparing": "Copiando e verificando recursos…",
     "processing": "Analisando recursos…"
-  },
-  "openInEditor": "Abrir em editor externo"
+  }
 }

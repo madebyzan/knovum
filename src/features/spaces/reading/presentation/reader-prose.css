@@ -89,11 +89,9 @@
 }
 
 .reader-prose blockquote {
-  border-left: 3px solid var(--color-stroke-strong);
-  background-color: var(--color-surface-control);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  border-left: 2px solid var(--color-stroke-strong);
   color: var(--color-fg-secondary);
-  padding: 0.65em 1em;
+  padding: 0.15em 0 0.15em 1.05em;
 }
 
 .reader-prose blockquote > p:first-child {
@@ -108,20 +106,19 @@
 
 .reader-prose code {
   font-family: var(--font-mono);
-  font-size: 0.86em;
+  font-size: 0.85em;
   background-color: var(--color-surface-control);
-  border: 1px solid var(--color-stroke-divider);
   border-radius: var(--radius-sm);
-  padding: 0.1em 0.35em;
+  padding: 0.12em 0.36em;
 }
 
 .reader-prose pre {
-  background-color: var(--color-surface-control);
+  background-color: var(--color-surface-muted);
   border: 1px solid var(--color-stroke-divider);
   border-radius: var(--radius-lg);
   overflow-x: auto;
-  padding: 0.9rem 1.05rem;
-  line-height: 1.62;
+  padding: 0.95rem 1.1rem;
+  line-height: 1.64;
 }
 
 .reader-prose pre code {

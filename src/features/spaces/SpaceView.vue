@@ -14,11 +14,11 @@ import UiButton from "../../shared/ui/UiButton.vue";
 import UiSplitterHandle from "../../shared/ui/UiSplitterHandle.vue";
 import SpaceCanvas from "./canvas/presentation/SpaceCanvas.vue";
 import { selectAndRevealSpaceNode } from "./canvas/selection-actions";
-import { useContextDock } from "./canvas/use-context-dock";
 import { restoreConversationRuns } from "./conversation/conversation-run-observation";
 import { enrichmentProjectionKey } from "./enrichment/enrichment-projection-key";
 import { useEnrichmentTaskProjection } from "./enrichment/use-enrichment-task-projection";
 import SpaceImageEditLeaveDialog from "./image-editing/presentation/SpaceImageEditLeaveDialog.vue";
+import SpaceKnowledgeHealthDialog from "./knowledge/presentation/SpaceKnowledgeHealthDialog.vue";
 import SpaceAudioRecordingDock from "./media/presentation/SpaceAudioRecordingDock.vue";
 import SpaceSourceReader from "./reading/presentation/SpaceSourceReader.vue";
 import { useSpaceStore } from "./session/space-store";
@@ -33,7 +33,6 @@ const { t } = useI18n();
 const initializationError = shallowRef<Error>();
 const initializing = shallowRef(false);
 onBeforeUnmount(registerWindowCloseCommit(store.commitActiveSession));
-const dock = useContextDock();
 const enrichmentJobs = useEnrichmentTaskProjection({
   ready,
   openNode: async (spaceId, nodeId) => {
@@ -42,7 +41,7 @@ const enrichmentJobs = useEnrichmentTaskProjection({
       throw new Error(t("spaces.processing.nodeUnavailable"));
     await nextTick();
     selectAndRevealSpaceNode(nodeId);
-    dock.openInspect();
+    store.openSourceReader({ nodeId, pane: "read" });
   },
 });
 provide(enrichmentProjectionKey, enrichmentJobs);
@@ -112,6 +111,7 @@ onMounted(() => void initialize());
         </section>
         <SpaceEditorSurfaces />
         <SpaceImageEditLeaveDialog />
+        <SpaceKnowledgeHealthDialog v-model:open="store.knowledgeHealthOpen" />
       </div>
     </div>
   </main>
