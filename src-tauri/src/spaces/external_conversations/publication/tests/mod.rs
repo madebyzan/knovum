@@ -1,5 +1,5 @@
 use super::*;
-use serde_json::json;
+use serde_json::{json, Value};
 
 async fn fixture() -> sqlx::SqlitePool {
     let pool = sqlx::sqlite::SqlitePoolOptions::new()
@@ -195,6 +195,83 @@ async fn a_deliverable_derives_from_the_nodes_its_turn_was_given() {
     assert_eq!(
         relations,
         [("derived".into(), "source".into(), "derives-from".into())]
+    );
+}
+
+#[tokio::test]
+async fn a_deliverable_derives_from_sources_cited_by_the_turn_even_without_attachments() {
+    let pool = fixture().await;
+    let mut tx = db::begin_write(&pool).await.unwrap();
+    nodes::tests::insert_many_in_transaction(
+        &mut tx,
+        nodes::contracts::InsertNodesRequest {
+            space_id: "space".into(),
+            mutation_id: "sources-create".into(),
+            target_parent_id: None,
+            nodes: vec![
+                insert_node("video", "markdown"),
+                insert_node("brief", "markdown"),
+            ],
+        },
+    )
+    .await
+    .unwrap();
+    tx.commit().await.unwrap();
+
+    sqlx::query("UPDATE spaces_conversation_messages SET content=$1 WHERE id='reply'")
+        .bind(
+            json!({
+                "parts": [{"type": "text", "text": "Summary citing [C2]."}],
+                "runId": "run",
+                "citations": [
+                    {"index": 2, "state": "current", "nodeId": "video", "chunkId": "node:video"},
+                    {"index": 3, "state": "detached", "nodeTitle": "Gone"}
+                ]
+            })
+            .to_string(),
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+
+    let brief_rev: String = sqlx::query_scalar(
+        "SELECT source_revision FROM spaces_knowledge_chunks WHERE id='node:brief'",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    sqlx::query(
+        "INSERT INTO spaces_run_citations(run_id,ordinal,chunk_id,source_revision,node_id,node_title,locator,quote,created_at) \
+         VALUES('run',1,'node:brief',$1,'brief','Report','{}','Findings',1)",
+    )
+    .bind(&brief_rev)
+    .execute(&pool)
+    .await
+    .unwrap();
+
+    let mut report = output("report", "markdown");
+    report.node.data["text"] = json!("Detailed report grounded in [C1].");
+    let plain = output("summary", "markdown");
+
+    commit(&pool, "session", "run", "space", &[report, plain])
+        .await
+        .unwrap();
+
+    // `report` carries its own `[C1]` citation to `brief`, so it links strictly to `brief`
+    // without pulling in `video` from the chat reply; `summary` has no inline markers, so it
+    // falls back to the reply's live citation (`video`) and ignores the detached `ghost`.
+    let relations: Vec<(String, String, String)> = sqlx::query_as(
+        "SELECT source_id,target_id,kind FROM spaces_relations WHERE space_id='space' ORDER BY source_id,target_id",
+    )
+    .fetch_all(&pool)
+    .await
+    .unwrap();
+    assert_eq!(
+        relations,
+        [
+            ("report".into(), "brief".into(), "derives-from".into()),
+            ("summary".into(), "video".into(), "derives-from".into()),
+        ]
     );
 }
 

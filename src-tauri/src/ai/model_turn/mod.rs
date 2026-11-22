@@ -133,4 +133,4 @@ fn adapter_kind(provider: ProviderKind) -> AppResult<AdapterKind> {
 }
 
 pub(crate) use wire::GenAiModelTurnAdapter;
-pub(crate) use wire::{to_genai_options, to_genai_request};
+pub(crate) use wire::{service_target, to_genai_options, to_genai_request};

@@ -1,9 +1,11 @@
+mod sources;
+
 use std::path::Path;
 
-use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 
+use self::sources::ResolvedSources;
 use crate::{
     foundation::app_error::AppError,
     spaces::{
@@ -98,7 +100,15 @@ async fn commit(
     .fetch_one(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    let sources = current_sources(&mut tx, space_id, &snapshot).await?;
+    let sources = sources::resolve(
+        &mut tx,
+        space_id,
+        conversation_id,
+        run_id,
+        &snapshot,
+        outputs,
+    )
+    .await?;
     let principal = crate::spaces::authorization::Principal {
         kind: crate::spaces::authorization::PrincipalKind::ExternalAgent,
         id: conversation_id.to_owned(),
@@ -155,50 +165,12 @@ async fn commit(
     Ok(())
 }
 
-async fn current_sources(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-    snapshot: &str,
-) -> Result<Vec<String>, AppError> {
-    let input: Value = serde_json::from_str(snapshot).map_err(db::json_error)?;
-    let attachments = input
-        .get("attachments")
-        .and_then(Value::as_array)
-        .ok_or("Agent run has no attachment manifest")?;
-    let mut sources = Vec::new();
-    for entry in attachments {
-        if entry["source"] != "node" {
-            continue;
-        }
-        let node_id = entry["nodeId"]
-            .as_str()
-            .ok_or("Agent attachment has no canvas node identity")?;
-        let present: Option<i64> = sqlx::query_scalar(
-            "SELECT 1 FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
-        )
-        .bind(node_id)
-        .bind(space_id)
-        .fetch_optional(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-        if present.is_some() && !sources.iter().any(|source| source == node_id) {
-            sources.push(node_id.to_owned());
-        }
-    }
-    Ok(sources)
-}
-
-/// What a deliverable's `derives-from` Relation says: the canvas nodes the user handed the Agent
-/// for the turn were its inputs, exactly as a selection is an Action's. It states the process,
-/// not that the content was taken from them.
-const LINEAGE: &str = "Made by a desktop Agent in a turn given this as input";
-
 async fn insert_outputs(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     principal_id: &str,
     outputs: &[super::staging::StagedOutput],
-    sources: &[String],
+    sources: &ResolvedSources,
     now: i64,
 ) -> Result<(), AppError> {
     let (mut snapshot, revision) = structure::repository::load_in_transaction(tx, space_id).await?;
@@ -209,7 +181,7 @@ async fn insert_outputs(
         &snapshot.structure,
         &snapshot.layouts,
         DerivedOutputs {
-            sources,
+            sources: &sources.placement_sources,
             reserved: &[],
             members: outputs
                 .iter()
@@ -218,7 +190,9 @@ async fn insert_outputs(
         },
     )
     .await?;
-    for (output, cell) in outputs.iter().zip(&cells) {
+    for ((output, cell), output_sources) in
+        outputs.iter().zip(&cells).zip(sources.per_output.iter())
+    {
         let mut node = output.node.clone();
         node.initial_x = cell.x;
         node.initial_y = cell.y;
@@ -241,9 +215,14 @@ async fn insert_outputs(
             now,
         )
         .await?;
-        for source in sources {
+        for source in output_sources {
             crate::spaces::derivation::relations::derives_from(
-                tx, space_id, &node.id, source, LINEAGE, now,
+                tx,
+                space_id,
+                &node.id,
+                &source.node_id,
+                source.lineage,
+                now,
             )
             .await?;
         }

@@ -70,3 +70,19 @@ pub(super) async fn insert(
     .map_err(db::sql_error)?;
     Ok(())
 }
+
+pub(super) async fn update_metadata(
+    tx: &mut Transaction<'_, Sqlite>,
+    chunk_id: &str,
+    metadata: &Value,
+    now: i64,
+) -> Result<(), String> {
+    sqlx::query("UPDATE spaces_knowledge_chunks SET metadata=$1, updated_at=$2 WHERE id=$3")
+        .bind(sqlx::types::Json(metadata))
+        .bind(now)
+        .bind(chunk_id)
+        .execute(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
+    Ok(())
+}

@@ -1,21 +1,29 @@
 mod artifact;
+mod budget;
 
 use std::{path::PathBuf, sync::Arc, time::Duration};
 use tauri::{AppHandle, Manager};
 use tokio_util::sync::CancellationToken;
 
+use self::budget::{await_with_budget, ActivityClock, TimeoutBudget};
 use super::artifacts as agent_artifacts;
 use crate::ai::{contracts::ExternalAgentKind, tasks::completion::TaskInput};
 use crate::foundation::app_error::{AppError, AppResult};
 
 const TEXT_OUTPUT_FILE: &str = "response.txt";
-const COMPLETION_TIMEOUT: Duration = Duration::from_secs(180);
-const ARTIFACT_TIMEOUT: Duration = Duration::from_secs(900);
+const COMPLETION_BUDGET: TimeoutBudget = TimeoutBudget {
+    idle: Duration::from_secs(180),
+    max: Duration::from_secs(900),
+};
+const ARTIFACT_BUDGET: TimeoutBudget = TimeoutBudget {
+    idle: Duration::from_secs(300),
+    max: Duration::from_secs(900),
+};
 
 struct OutputSpec {
     name: &'static str,
     limit: u64,
-    timeout: Duration,
+    budget: TimeoutBudget,
 }
 
 struct TaskWorkspace(PathBuf);
@@ -53,7 +61,7 @@ pub(crate) async fn complete(
         OutputSpec {
             name: TEXT_OUTPUT_FILE,
             limit: 4 * 1024 * 1024,
-            timeout: COMPLETION_TIMEOUT,
+            budget: COMPLETION_BUDGET,
         },
         cancellation,
     )
@@ -86,12 +94,12 @@ pub(crate) async fn artifact(
         ArtifactFormat::Png => OutputSpec {
             name: "image.png",
             limit: 32 * 1024 * 1024,
-            timeout: ARTIFACT_TIMEOUT,
+            budget: ARTIFACT_BUDGET,
         },
         ArtifactFormat::Mp4 => OutputSpec {
             name: "video.mp4",
             limit: 512 * 1024 * 1024,
-            timeout: ARTIFACT_TIMEOUT,
+            budget: ARTIFACT_BUDGET,
         },
     };
     delegate(app, kind, instruction, sources, spec, cancellation).await
@@ -131,34 +139,28 @@ async fn delegate(
             }
         })?;
     let session_cancellation = cancellation.child_token();
+    let activity = ActivityClock::now();
+    let activity_probe = activity.clone();
     let execution = super::session::run(
         kind,
         workspace.0.clone(),
         prompt,
         session_cancellation.clone(),
-        Arc::new(|_| Ok(())),
+        Arc::new(move |_| {
+            activity_probe.touch();
+            Ok(())
+        }),
         Vec::new(),
     );
-    tokio::pin!(execution);
-    tokio::select! {
-        biased;
-        outcome = &mut execution => {
-            let reason = outcome?;
-            if reason != agent_client_protocol::schema::v1::StopReason::EndTurn {
-                return Err(AppError::new("invalid_response", format!("Desktop Agent did not complete its task: {reason:?}")));
-            }
-        },
-        _ = tokio::time::sleep(spec.timeout) => {
-            session_cancellation.cancel();
-            let _ = execution.await;
-            return Err(AppError::new(
-                "provider_request_failed",
-                format!(
-                    "Desktop Agent task exceeded its {} minute time budget",
-                    spec.timeout.as_secs() / 60
-                ),
-            ));
-        }
+    let outcome = await_with_budget(execution, activity, spec.budget, &session_cancellation)
+        .await
+        .map_err(budget::BudgetExceeded::into_error)?;
+    let reason = outcome?;
+    if reason != agent_client_protocol::schema::v1::StopReason::EndTurn {
+        return Err(AppError::new(
+            "invalid_response",
+            format!("Desktop Agent did not complete its task: {reason:?}"),
+        ));
     }
     if cancellation.is_cancelled() {
         return Err(AppError::cancelled("AI task was cancelled"));

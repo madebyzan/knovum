@@ -1,14 +1,13 @@
 mod revisions;
+mod sync;
 mod validation;
 mod write;
 
 use sqlx::{Sqlite, Transaction};
 
-use write::{expected_revision, insert};
+use write::expected_revision;
 
 use super::{grounding, indexing::KnowledgeChunkInput};
-
-use crate::spaces::db;
 
 pub(in crate::spaces) use revisions::{load_revision_contracts, NodeChunkRevisions};
 use validation::validate_origin;
@@ -61,11 +60,7 @@ pub(in crate::spaces) async fn replace_role(
     }
     let expected_revision = expected_revision(tx, space_id, node_id, origin).await?;
     validate_chunks(origin, chunks, &expected_revision)?;
-    delete_chunks(tx, (space_id, node_id), origin, Some(role)).await?;
-    for chunk in chunks {
-        insert(tx, space_id, node_id, origin, chunk, now).await?;
-    }
-    Ok(())
+    sync::sync_chunks(tx, (space_id, node_id), (origin, Some(role)), chunks, now).await
 }
 
 fn validate_chunks(
@@ -93,40 +88,7 @@ pub(crate) async fn clear(
     origin: &str,
 ) -> Result<(), String> {
     validate_origin(origin)?;
-    delete_chunks(tx, (space_id, node_id), origin, None).await
-}
-
-/// Deletes an origin's passages, or only those of one metadata role, detaching their citations.
-async fn delete_chunks(
-    tx: &mut Transaction<'_, Sqlite>,
-    (space_id, node_id): (&str, &str),
-    origin: &str,
-    role: Option<&str>,
-) -> Result<(), String> {
-    let old_ids = sqlx::query_scalar::<_, String>(
-        "SELECT id FROM spaces_knowledge_chunks WHERE node_id=$1 AND space_id=$2 AND origin=$3 \
-         AND ($4 IS NULL OR json_extract(metadata,'$.role')=$4)",
-    )
-    .bind(node_id)
-    .bind(space_id)
-    .bind(origin)
-    .bind(role)
-    .fetch_all(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    grounding::references::detach_chunks(tx, space_id, &old_ids).await?;
-    sqlx::query(
-        "DELETE FROM spaces_knowledge_chunks WHERE node_id=$1 AND space_id=$2 AND origin=$3 \
-         AND ($4 IS NULL OR json_extract(metadata,'$.role')=$4)",
-    )
-    .bind(node_id)
-    .bind(space_id)
-    .bind(origin)
-    .bind(role)
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    Ok(())
+    sync::delete_all(tx, (space_id, node_id), origin, None).await
 }
 
 pub(crate) async fn detach_canonical(
@@ -183,11 +145,7 @@ async fn replace_internal(
     } = input;
     validate_origin(origin)?;
     validate_chunks(origin, chunks, expected_revision)?;
-    delete_chunks(tx, (space_id, node_id), origin, None).await?;
-    for chunk in chunks {
-        insert(tx, space_id, node_id, origin, chunk, now).await?;
-    }
-    Ok(())
+    sync::sync_chunks(tx, (space_id, node_id), (origin, None), chunks, now).await
 }
 
 #[cfg(test)]

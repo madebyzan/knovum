@@ -26,7 +26,7 @@ impl GenAiModelTurnAdapter {
     }
 }
 
-pub(super) fn service_target(adapter: AdapterKind, context: &SecurityContext) -> ServiceTarget {
+pub(crate) fn service_target(adapter: AdapterKind, context: &SecurityContext) -> ServiceTarget {
     let auth = context
         .api_key
         .as_ref()
