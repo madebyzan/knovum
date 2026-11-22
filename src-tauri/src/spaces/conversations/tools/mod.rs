@@ -131,10 +131,14 @@ fn description(definition: &SpaceActionDefinition) -> String {
         }
         "list-space-contents" => "List current canvas resources, including unindexed images, videos, files and notes. Paginate with nextOffset; this is the authoritative inventory, independent of search indexing.".into(),
         "search-knowledge" => {
-            "Search indexed content in the current Space using keywords. Returns revision-aware excerpts, locators and each passage's cite id; empty matches do not mean the canvas is empty."
+            "Search indexed content in the current Space (supports '|' OR branches, optional nodeIds/roles filters, and mode='nodes' for a per-node hit survey or default mode='passages' for compact excerpts with locators and cite ids)."
                 .into()
         }
-        "read-node" => "Read one exact current canvas node by ID, including its content and indexed passages with their cite ids. Images are delivered as actual visual input to vision-capable models, including current crop, rotation and adjustments. A local assetPath alone is not visual evidence; original asset files remain available after output workspace cleanup.".into(),
+        "read-node" => "Read one exact current canvas node by ID with semantic metadata, summary/chapters, chunk counts, and the first page of ordered passages with cite ids. Use read-node-chunks to paginate remaining passages. Images are delivered as actual visual input to vision-capable models.".into(),
+        "read-node-chunks" => "Read a node's indexed passages in natural reading order (time, page, slide, line, or document order), filtered by role, paginated via offset/limit, or centered on a search hit via aroundChunkId + contextChunks, with each passage's cite id.".into(),
+        "list-object-types" => "List system and custom structured knowledge object types (Claim, Decision, Question, Evidence, Concept, Experiment), required fields, valid statuses, and relation kinds for commit-knowledge-changes.".into(),
+        "list-relations" => "List active and contested knowledge relations in the Space, optionally filtered by nodeId or relation kind.".into(),
+        "commit-knowledge-changes" => "Atomically create or update structured knowledge objects (Decision, Question, Claim, Evidence, Concept, Experiment), create or update relations, and attach provenance (prefer add-cited-provenance with citeId).".into(),
         "draft-document" => "Create an editable document from selected knowledge resources.".into(),
         "draft-script" => "Draft an editable video script from selected resources.".into(),
         "summarize-meeting" => "Create an editable summary from a meeting transcript.".into(),

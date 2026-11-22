@@ -90,10 +90,13 @@ pub enum SpaceActionOutputContract {
     Image,
     KnowledgeChangeReceipt,
     KnowledgeNode,
+    NodeChunks,
+    ObjectTypes,
     ResourceReceipt,
     SearchResults,
     SpaceEditReceipt,
     SpaceContents,
+    SpaceRelations,
     Video,
 }
 

@@ -8,12 +8,12 @@ pub(super) const REBUILD_REQUIRED: &str = "knowledge-semantic-index-rebuild-requ
 /// name a generation, they do not read its row — so its lifecycle (when it was built, when it took
 /// over) is read where it is reported, not carried along.
 #[derive(Debug, Clone)]
-pub(super) struct IndexGeneration {
+pub(crate) struct IndexGeneration {
     pub id: String,
     pub embedding_spec_id: String,
 }
 
-pub(super) async fn active(
+pub(crate) async fn active(
     pool: &SqlitePool,
     space_id: &str,
     embedding_spec_id: &str,
@@ -23,7 +23,7 @@ pub(super) async fn active(
         .ok_or_else(|| REBUILD_REQUIRED.to_owned())
 }
 
-pub(super) async fn find_active(
+pub(crate) async fn find_active(
     pool: &SqlitePool,
     space_id: &str,
     embedding_spec_id: &str,

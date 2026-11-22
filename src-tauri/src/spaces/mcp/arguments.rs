@@ -8,12 +8,34 @@ pub(super) struct SearchArgs {
     pub(super) query: String,
     #[serde(default = "default_limit")]
     pub(super) limit: i64,
+    #[serde(default)]
+    pub(super) node_ids: Option<Vec<String>>,
+    #[serde(default)]
+    pub(super) roles: Option<Vec<String>>,
+    #[serde(default)]
+    pub(super) mode: crate::spaces::queries::knowledge_projection::SearchOutputMode,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(super) struct NodeArgs {
     pub(super) space_id: String,
     pub(super) node_id: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(super) struct NodeChunksArgs {
+    pub(super) space_id: String,
+    pub(super) node_id: String,
+    #[serde(default)]
+    pub(super) role: Option<String>,
+    #[serde(default)]
+    pub(super) offset: i64,
+    #[serde(default = "default_chunk_limit")]
+    pub(super) limit: i64,
+    #[serde(default)]
+    pub(super) around_chunk_id: Option<String>,
+    #[serde(default)]
+    pub(super) context_chunks: Option<i64>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -29,6 +51,17 @@ pub(super) struct AssetArgs {
 pub(super) struct ContentsArgs {
     pub(super) space_id: String,
     pub(super) offset: i64,
+    pub(super) limit: i64,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(super) struct RelationsArgs {
+    pub(super) space_id: String,
+    #[serde(default)]
+    pub(super) node_id: Option<String>,
+    #[serde(default)]
+    pub(super) kind: Option<String>,
+    #[serde(default = "default_chunk_limit")]
     pub(super) limit: i64,
 }
 
@@ -74,23 +107,37 @@ pub(super) struct SpaceArgs {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(super) struct RunArgs {
+pub(super) struct ListActionsArgs {
     pub(super) space_id: String,
-    pub(super) run_id: String,
+    #[serde(default)]
+    pub(super) action_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(super) struct RunEventsArgs {
+pub(super) struct GetRunArgs {
     pub(super) space_id: String,
     pub(super) run_id: String,
+    #[serde(default)]
+    pub(super) include_events: bool,
     #[serde(default)]
     pub(super) after_sequence: i64,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(super) struct RetryRunArgs {
+#[serde(rename_all = "snake_case")]
+pub(super) enum RunControlCommand {
+    Pause,
+    Resume,
+    Cancel,
+    Retry,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(super) struct ControlRunArgs {
     pub(super) space_id: String,
     pub(super) run_id: String,
+    pub(super) command: RunControlCommand,
+    #[serde(default)]
     pub(super) step_ids: Vec<String>,
 }
 
@@ -109,6 +156,9 @@ pub(super) struct InvokeActionArgs {
 
 fn default_limit() -> i64 {
     30
+}
+fn default_chunk_limit() -> i64 {
+    50
 }
 fn default_depth() -> usize {
     6

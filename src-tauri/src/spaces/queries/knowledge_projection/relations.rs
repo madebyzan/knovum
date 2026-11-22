@@ -1,10 +1,66 @@
 use std::collections::{HashMap, VecDeque};
 
 use serde_json::{json, Value};
-use sqlx::Row;
+use sqlx::{Row, SqliteConnection};
 use tauri::AppHandle;
 
 use crate::spaces::db;
+
+pub(crate) async fn list_relations(
+    connection: &mut SqliteConnection,
+    space_id: &str,
+    node_id: Option<&str>,
+    kind: Option<&str>,
+    limit: i64,
+) -> Result<Value, String> {
+    let limit = limit.clamp(1, 200);
+    let node_id = node_id.map(str::trim).filter(|value| !value.is_empty());
+    let kind = kind.map(str::trim).filter(|value| !value.is_empty());
+    let rows = sqlx::query(
+        "SELECT r.id, r.source_id, COALESCE(json_extract(s.data,'$.title'), s.kind) AS source_title, \
+           r.target_id, COALESCE(json_extract(t.data,'$.title'), t.kind) AS target_title, \
+           r.kind, r.status, r.rationale, r.confidence, r.updated_at \
+         FROM spaces_relations r \
+         JOIN spaces_nodes s ON s.id=r.source_id AND s.space_id=r.space_id AND s.deleted_at IS NULL \
+         JOIN spaces_nodes t ON t.id=r.target_id AND t.space_id=r.space_id AND t.deleted_at IS NULL \
+         WHERE r.space_id=$1 AND r.status IN ('active','contested') \
+           AND ($2 IS NULL OR r.source_id=$2 OR r.target_id=$2) \
+           AND ($3 IS NULL OR r.kind=$3) \
+         ORDER BY r.updated_at DESC, r.id LIMIT $4",
+    )
+    .bind(space_id)
+    .bind(node_id)
+    .bind(kind)
+    .bind(limit)
+    .fetch_all(&mut *connection)
+    .await
+    .map_err(db::sql_error)?;
+
+    let relations = rows
+        .into_iter()
+        .map(|row| {
+            let mut item = json!({
+                "id": row.try_get::<String, _>("id").map_err(db::sql_error)?,
+                "sourceId": row.try_get::<String, _>("source_id").map_err(db::sql_error)?,
+                "sourceTitle": row.try_get::<String, _>("source_title").map_err(db::sql_error)?,
+                "targetId": row.try_get::<String, _>("target_id").map_err(db::sql_error)?,
+                "targetTitle": row.try_get::<String, _>("target_title").map_err(db::sql_error)?,
+                "kind": row.try_get::<String, _>("kind").map_err(db::sql_error)?,
+                "status": row.try_get::<String, _>("status").map_err(db::sql_error)?,
+                "rationale": row.try_get::<String, _>("rationale").map_err(db::sql_error)?,
+                "updatedAt": row.try_get::<i64, _>("updated_at").map_err(db::sql_error)?,
+            });
+            if let Some(confidence) = row
+                .try_get::<Option<f64>, _>("confidence")
+                .map_err(db::sql_error)?
+            {
+                item["confidence"] = Value::from(confidence);
+            }
+            Ok(item)
+        })
+        .collect::<Result<Vec<Value>, String>>()?;
+    Ok(Value::Array(relations))
+}
 
 pub(crate) async fn find_relation_path(
     app: &AppHandle,

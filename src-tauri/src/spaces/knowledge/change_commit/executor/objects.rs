@@ -1,12 +1,18 @@
+use std::collections::{HashMap, HashSet};
+
 use serde_json::{Map, Value};
 use sqlx::{Sqlite, Transaction};
 
 use super::state::{resolve_node, ApplyState};
+use super::CommitContext;
+use crate::spaces::derivation::placement::{
+    self as derivation_placement, DerivedOutputs, SetMember,
+};
 use crate::spaces::knowledge::change_commit::{
     contracts::KnowledgeChange,
     mutations::{self, ObjectInsert, ObjectUpdate},
 };
-use crate::spaces::knowledge::events;
+use crate::spaces::knowledge::{events, grounding::ResolvedRunCitation};
 use crate::spaces::{nodes::contracts::InsertNode, structure};
 
 const OBJECT_WIDTH: f64 = 256.0;
@@ -14,13 +20,24 @@ const OBJECT_HEIGHT: f64 = 176.0;
 
 pub(super) async fn create(
     tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-    actor: events::EventActor<'_>,
+    context: CommitContext<'_>,
     operations: &[KnowledgeChange],
-    now: i64,
     placement: &mut structure::repository::SpaceStructureSnapshot,
     state: &mut ApplyState,
 ) -> Result<(), String> {
+    let CommitContext {
+        space_id,
+        actor,
+        now,
+    } = context;
+    let planned_positions = plan_auto_positions(
+        tx,
+        space_id,
+        operations,
+        &state.citation_by_cite_id,
+        placement,
+    )
+    .await?;
     for operation in operations {
         let KnowledgeChange::CreateObject {
             temp_id,
@@ -49,12 +66,15 @@ pub(super) async fn create(
                 .ok_or_else(|| "Knowledge object type validation failed".to_string())?;
         let (initial_x, initial_y) = match position {
             Some(position) => (position.x, position.y),
-            None => structure::place_new_content(
-                &placement.structure,
-                &placement.layouts,
-                OBJECT_WIDTH,
-                OBJECT_HEIGHT,
-            )?,
+            None => match planned_positions.get(temp_id.as_str()) {
+                Some(&(x, y)) => (x, y),
+                None => structure::place_new_content(
+                    &placement.structure,
+                    &placement.layouts,
+                    OBJECT_WIDTH,
+                    OBJECT_HEIGHT,
+                )?,
+            },
         };
         let node = InsertNode {
             id: id.clone(),
@@ -91,14 +111,109 @@ pub(super) async fn create(
     Ok(())
 }
 
-pub(super) async fn update(
+/// Clusters newly extracted knowledge objects beside their linked canvas source nodes using
+/// the shared derivation placement solver instead of scattering them across empty canvas space.
+async fn plan_auto_positions(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    actor: events::EventActor<'_>,
     operations: &[KnowledgeChange],
-    now: i64,
+    citation_by_cite_id: &HashMap<String, ResolvedRunCitation>,
+    placement: &structure::repository::SpaceStructureSnapshot,
+) -> Result<HashMap<String, (f64, f64)>, String> {
+    let temp_nodes: HashSet<&str> = operations
+        .iter()
+        .filter_map(|op| match op {
+            KnowledgeChange::CreateObject { temp_id, .. } => Some(temp_id.as_str()),
+            _ => None,
+        })
+        .collect();
+    let auto_temps: Vec<&str> = operations
+        .iter()
+        .filter_map(|op| match op {
+            KnowledgeChange::CreateObject {
+                temp_id,
+                position: None,
+                ..
+            } => Some(temp_id.as_str()),
+            _ => None,
+        })
+        .collect();
+    if auto_temps.is_empty() {
+        return Ok(HashMap::new());
+    }
+    let mut source_ids = Vec::new();
+    let mut push_source = |candidate: &str| {
+        if !temp_nodes.contains(candidate) && !source_ids.iter().any(|id| id == candidate) {
+            source_ids.push(candidate.to_owned());
+        }
+    };
+    for operation in operations {
+        match operation {
+            KnowledgeChange::CreateRelation {
+                source_id,
+                target_id,
+                ..
+            } => {
+                if temp_nodes.contains(source_id.as_str()) {
+                    push_source(target_id);
+                }
+                if temp_nodes.contains(target_id.as_str()) {
+                    push_source(source_id);
+                }
+            }
+            KnowledgeChange::AddProvenance { source_node_id, .. } => {
+                push_source(source_node_id);
+            }
+            KnowledgeChange::AddCitedProvenance { cite_id, .. } => {
+                if let Some(resolved) = citation_by_cite_id.get(cite_id.as_str()) {
+                    push_source(&resolved.source_node_id);
+                }
+            }
+            _ => {}
+        }
+    }
+    if source_ids.is_empty() {
+        return Ok(HashMap::new());
+    }
+    let size = structure::Size {
+        width: OBJECT_WIDTH,
+        height: OBJECT_HEIGHT,
+    };
+    let empty_data = Value::Object(Map::new());
+    let members = auto_temps
+        .iter()
+        .map(|_| SetMember::new(&empty_data, &size, structure::SizingMode::Frame))
+        .collect();
+    let cells = derivation_placement::plan(
+        tx,
+        space_id,
+        &placement.structure,
+        &placement.layouts,
+        DerivedOutputs {
+            sources: &source_ids,
+            reserved: &[],
+            members,
+        },
+    )
+    .await?;
+    Ok(auto_temps
+        .into_iter()
+        .zip(cells)
+        .map(|(temp_id, cell)| (temp_id.to_owned(), (cell.x, cell.y)))
+        .collect())
+}
+
+pub(super) async fn update(
+    tx: &mut Transaction<'_, Sqlite>,
+    context: CommitContext<'_>,
+    operations: &[KnowledgeChange],
     state: &ApplyState,
 ) -> Result<(), String> {
+    let CommitContext {
+        space_id,
+        actor,
+        now,
+    } = context;
     for operation in operations {
         let KnowledgeChange::UpdateObject {
             node_id,

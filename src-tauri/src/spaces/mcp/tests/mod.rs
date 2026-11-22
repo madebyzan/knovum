@@ -40,6 +40,9 @@ fn canvas_read_tools_are_discoverable_with_space_scoped_arguments() {
         "list_space_contents",
         "search_knowledge",
         "get_node",
+        "read_node_chunks",
+        "list_object_types",
+        "list_relations",
         "get_node_asset",
     ] {
         let tool = tools
@@ -55,5 +58,25 @@ fn canvas_read_tools_are_discoverable_with_space_scoped_arguments() {
                 .iter()
                 .any(|field| field == "asset_revision"));
         }
+    }
+    let search = tools
+        .iter()
+        .find(|tool| tool.name == "search_knowledge")
+        .expect("search_knowledge");
+    assert!(search.input_schema["properties"].get("node_ids").is_some());
+    assert!(search.input_schema["properties"].get("roles").is_some());
+    assert!(tools.iter().any(|tool| tool.name == "get_run"));
+    assert!(tools.iter().any(|tool| tool.name == "control_run"));
+    for removed in [
+        "list_run_events",
+        "pause_run",
+        "resume_run",
+        "cancel_run",
+        "retry_run",
+    ] {
+        assert!(
+            !tools.iter().any(|tool| tool.name == removed),
+            "{removed} should be consolidated into get_run / control_run"
+        );
     }
 }

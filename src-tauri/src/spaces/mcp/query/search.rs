@@ -2,28 +2,32 @@ use rmcp::ErrorData as McpError;
 use tauri::AppHandle;
 
 use super::super::support::{json_text, mcp_error};
-use crate::spaces::knowledge::grounding::{number_passages, Reading};
+use super::number_if_present;
+use crate::spaces::knowledge::grounding::Reading;
 use crate::spaces::mcp::arguments::SearchArgs;
-use crate::spaces::queries::knowledge_projection;
+use crate::spaces::queries::knowledge_projection::{self, SearchFilter, SearchOutputMode};
 
 pub(in crate::spaces::mcp) async fn search_knowledge(
     app: &AppHandle,
     run_id: &str,
     args: SearchArgs,
 ) -> Result<String, McpError> {
-    let pool = crate::spaces::db::pool(app).await.map_err(mcp_error)?;
-    let mut tx = crate::spaces::db::begin_write(pool)
-        .await
-        .map_err(mcp_error)?;
-    let mut value =
-        knowledge_projection::search_knowledge(&mut tx, &args.space_id, &args.query, args.limit)
-            .await
-            .map_err(mcp_error)?;
-    number_passages(&mut tx, run_id, Reading::Search, &mut value)
-        .await
-        .map_err(mcp_error)?;
-    tx.commit()
-        .await
-        .map_err(|error| mcp_error(error.to_string()))?;
+    let mode = args.mode;
+    let mut value = knowledge_projection::search_knowledge_hybrid(
+        app,
+        &args.space_id,
+        &SearchFilter {
+            query: args.query,
+            limit: args.limit,
+            node_ids: args.node_ids,
+            roles: args.roles,
+            mode,
+        },
+    )
+    .await
+    .map_err(mcp_error)?;
+    if mode == SearchOutputMode::Passages {
+        number_if_present(app, run_id, Reading::Search, &mut value).await?;
+    }
     json_text(value)
 }

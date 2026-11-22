@@ -18,7 +18,7 @@ use crate::spaces::db;
 pub(crate) enum Reading {
     /// A search projection: an array of matches, each one chunk.
     Search,
-    /// A node read: the node with its indexed `chunks`.
+    /// A node read or paginated chunk read: an object with its indexed `chunks`.
     Node,
 }
 
@@ -26,10 +26,68 @@ impl Reading {
     pub(crate) fn of_action(action_id: &str) -> Option<Self> {
         match action_id {
             "search-knowledge" => Some(Self::Search),
-            "read-node" => Some(Self::Node),
+            "read-node" | "read-node-chunks" => Some(Self::Node),
             _ => None,
         }
     }
+}
+
+pub(crate) struct ResolvedRunCitation {
+    pub(crate) source_node_id: String,
+    pub(crate) source_revision: String,
+    pub(crate) locator: Value,
+    pub(crate) quote: String,
+}
+
+/// Resolves a citation marker issued during `run_id` (such as `"C12"`) into authoritative
+/// provenance fields from `spaces_run_citations`, verified against `space_id`.
+pub(crate) async fn resolve_run_citation(
+    connection: &mut SqliteConnection,
+    space_id: &str,
+    run_id: &str,
+    cite_id: &str,
+) -> Result<ResolvedRunCitation, String> {
+    let ordinal = parse_cite_id(cite_id)?;
+    let row = sqlx::query(
+        "SELECT r.node_id, r.source_revision, r.locator, r.quote \
+         FROM spaces_run_citations r \
+         JOIN spaces_semantic_nodes n ON n.id = r.node_id AND n.space_id = $1 \
+         WHERE r.run_id = $2 AND r.ordinal = $3",
+    )
+    .bind(space_id)
+    .bind(run_id)
+    .bind(ordinal)
+    .fetch_optional(&mut *connection)
+    .await
+    .map_err(db::sql_error)?
+    .ok_or_else(|| {
+        format!(
+            "citation-unavailable: citeId {cite_id} was not issued in this run or its node is no longer in this Space"
+        )
+    })?;
+    let raw_locator: String = row.try_get("locator").map_err(db::sql_error)?;
+    Ok(ResolvedRunCitation {
+        source_node_id: row.try_get("node_id").map_err(db::sql_error)?,
+        source_revision: row.try_get("source_revision").map_err(db::sql_error)?,
+        locator: serde_json::from_str(&raw_locator).map_err(db::json_error)?,
+        quote: row.try_get("quote").map_err(db::sql_error)?,
+    })
+}
+
+pub(crate) fn parse_cite_id(cite_id: &str) -> Result<i64, String> {
+    let trimmed = cite_id.trim();
+    let digits = trimmed
+        .strip_prefix('C')
+        .ok_or_else(|| format!("citation-invalid: citeId must have the form C1, got {cite_id}"))?;
+    let ordinal = digits
+        .parse::<i64>()
+        .map_err(|_| format!("citation-invalid: citeId must have the form C1, got {cite_id}"))?;
+    if ordinal <= 0 {
+        return Err(format!(
+            "citation-invalid: citeId ordinal must be positive, got {cite_id}"
+        ));
+    }
+    Ok(ordinal)
 }
 
 /// Adds the Run's `cite` id to every passage in `result`, numbering passages

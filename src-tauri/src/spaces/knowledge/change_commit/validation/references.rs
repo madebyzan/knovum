@@ -54,6 +54,7 @@ fn references_available(
             target_id,
             ..
         } => node_ok(source_id) && node_ok(target_id),
+        KnowledgeChange::UpdateRelation { relation_id, .. } => relation_ok(relation_id),
         KnowledgeChange::AddProvenance {
             target_kind,
             target_id,
@@ -66,6 +67,17 @@ fn references_available(
                 } else {
                     node_ok(target_id)
                 }
+        }
+        KnowledgeChange::AddCitedProvenance {
+            target_kind,
+            target_id,
+            ..
+        } => {
+            if target_kind == "relation" {
+                relation_ok(target_id)
+            } else {
+                node_ok(target_id)
+            }
         }
     }
 }

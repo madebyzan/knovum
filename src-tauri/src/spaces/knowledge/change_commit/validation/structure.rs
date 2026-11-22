@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use super::super::contracts::KnowledgeChange;
-use crate::spaces::knowledge::{locator, provenance, relations, validation};
+use crate::spaces::knowledge::{grounding, locator, provenance, relations, validation};
 
 const MAX_CHANGE_SET_OPERATIONS: usize = 512;
 
@@ -63,6 +63,28 @@ fn validate_operation(
             relations::validate_rationale(rationale)?;
             relations::validate_confidence(*confidence)?;
         }
+        KnowledgeChange::UpdateRelation {
+            relation_id,
+            status,
+            rationale,
+            confidence,
+        } => {
+            if relation_id.trim().is_empty() {
+                return Err("Knowledge Change Set relation ID is required".into());
+            }
+            if status.is_none() && rationale.is_none() && confidence.is_none() {
+                return Err(
+                    "Knowledge Change Set update-relation requires at least one field".into(),
+                );
+            }
+            if let Some(status) = status {
+                relations::validate_current_status(status)?;
+            }
+            if let Some(rationale) = rationale {
+                relations::validate_rationale(rationale)?;
+            }
+            relations::validate_confidence(*confidence)?;
+        }
         KnowledgeChange::AddProvenance {
             target_kind,
             source_revision,
@@ -76,6 +98,14 @@ fn validate_operation(
             }
             locator::validate(value, Some(source_revision))?;
             provenance::validation::validate_quote(quote)?;
+        }
+        KnowledgeChange::AddCitedProvenance {
+            target_kind,
+            cite_id,
+            ..
+        } => {
+            provenance::validation::validate_target_kind(target_kind)?;
+            grounding::resolve_run_citation_id_syntax(cite_id)?;
         }
     }
     Ok(())

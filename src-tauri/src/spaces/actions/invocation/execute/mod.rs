@@ -74,16 +74,28 @@ async fn execute(
         SpaceActionExecutionMode::Immediate => {
             let mut action_output = crate::spaces::action_execution::execute_immediate(
                 tx,
-                &authorization.principal,
-                &request.invocation_id,
-                &request.space_id,
-                &request.action_id,
-                &request.parameters,
-                now,
+                crate::spaces::action_execution::ImmediateActionRequest {
+                    principal: &authorization.principal,
+                    run_id: request.parent_run_id.as_deref(),
+                    invocation_id: &request.invocation_id,
+                    space_id: &request.space_id,
+                    action_id: &request.action_id,
+                    parameters: &request.parameters,
+                    now,
+                },
             )
             .await?;
-            let reading =
-                crate::spaces::knowledge::grounding::Reading::of_action(&request.action_id);
+            let is_node_survey = request.action_id == "search-knowledge"
+                && request
+                    .parameters
+                    .get("mode")
+                    .and_then(serde_json::Value::as_str)
+                    == Some("nodes");
+            let reading = (!is_node_survey)
+                .then(|| {
+                    crate::spaces::knowledge::grounding::Reading::of_action(&request.action_id)
+                })
+                .flatten();
             if let (Some(run_id), Some(reading)) = (request.parent_run_id.as_deref(), reading) {
                 crate::spaces::knowledge::grounding::number_passages(
                     tx,
