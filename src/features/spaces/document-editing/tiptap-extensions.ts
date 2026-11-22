@@ -22,6 +22,7 @@ import {
   TIPTAP_IMAGE_MIME_TYPES,
   type SpaceTiptapImageEditor,
 } from "./tiptap-images";
+import { MarkdownPaste } from "./tiptap-markdown-paste";
 import { ReasoningTrace } from "./tiptap-reasoning-trace";
 
 type ImageErrorHandler = (error: unknown) => void;
@@ -87,6 +88,16 @@ function createRichTextSchemaExtensions(options: RichTextSchemaOptions) {
   ];
 }
 
+function createMarkdownExtensions() {
+  return [
+    Markdown.configure({
+      indentation: { style: "space", size: 2 },
+      markedOptions: { gfm: true, breaks: false },
+    }),
+    MarkdownPaste,
+  ];
+}
+
 export function createSpaceTiptapExtensions(
   placeholder: string,
   onImageError: ImageErrorHandler,
@@ -104,10 +115,7 @@ export function createSpaceTiptapExtensions(
       onDrop: (editor, files, position) => handleImages(editor, files, position),
       onPaste: (editor, files) => handleImages(editor, files),
     }),
-    Markdown.configure({
-      indentation: { style: "space", size: 2 },
-      markedOptions: { gfm: true, breaks: false },
-    }),
+    ...createMarkdownExtensions(),
     FindAndReplace.configure({ searchDebounceMs: 120, injectCSS: false }),
     Placeholder.configure({ placeholder }),
     ReasoningTrace,
@@ -119,6 +127,7 @@ export function createCanvasTextExtensions(placeholder: string, kind: "note" | "
   return [
     EditingResponder,
     ...createRichTextSchemaExtensions({ includeColor: kind === "text", interactiveSurface: false }),
+    ...createMarkdownExtensions(),
     Placeholder.configure({ placeholder }),
   ];
 }
