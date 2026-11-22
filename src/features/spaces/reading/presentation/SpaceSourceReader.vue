@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { FilePlus2, StickyNote } from "@lucide/vue";
+import { useElementSize } from "@vueuse/core";
 import { computed, shallowRef, useTemplateRef, watch } from "vue";
 
 import UiDragGhost from "../../../../shared/ui/UiDragGhost.vue";
@@ -20,11 +21,7 @@ import SpaceReaderSelectionBar from "./SpaceReaderSelectionBar.vue";
 import SpaceSourceReaderHeader from "./SpaceSourceReaderHeader.vue";
 import SpaceSourceReaderSurface from "./SpaceSourceReaderSurface.vue";
 import { useReaderCapture, type ReaderDropTarget } from "./use-reader-capture";
-import {
-  useReaderSelection,
-  type SourceReaderPassage,
-  type SurfaceSelectionState,
-} from "./use-reader-selection";
+import { useReaderSelection, type SourceReaderPassage, type SurfaceSelectionState } from "./use-reader-selection";
 import { useSourceReaderState } from "./use-source-reader-state";
 
 const props = withDefaults(defineProps<{ host?: SourceReaderHost }>(), { host: "canvas" });
@@ -33,6 +30,7 @@ const readerState = useSourceReaderState(props.host);
 const { store, target, sourceNode, readerKind, activePane, readMounted, targetQuote, canBack, canForward } =
   readerState;
 const body = useTemplateRef<HTMLElement>("body");
+const { width: bodyWidth } = useElementSize(body);
 const currentPdfPage = shallowRef(1);
 const headerMenuOpen = shallowRef(false);
 const surfaceSelection = shallowRef<SurfaceSelectionState>();
@@ -130,9 +128,8 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
     >
       <SpaceReaderSelectionBar
         v-if="isCanvasHost && activePane === 'read' && activeAnchor && !drag.drag.value"
-        class="absolute z-30 -translate-x-1/2"
-        :class="activeAnchor.placement === 'top' && '-translate-y-full'"
-        :style="{ left: `${activeAnchor.left}px`, top: `${activeAnchor.top}px` }"
+        :anchor="activeAnchor"
+        :container-width="bodyWidth"
         :can-save="capture.canSave.value"
         :selected-append-target="capture.selectedAppendTarget.value"
         :existing-note-targets="capture.existingNoteTargets.value"

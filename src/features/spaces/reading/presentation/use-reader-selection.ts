@@ -4,7 +4,7 @@ import { computed, onBeforeUnmount, shallowRef, type ShallowRef } from "vue";
 import type { KnowledgeLocation } from "../../knowledge/model/schema/chunk";
 import { extractReaderRangeText, rangeCoversPoint } from "../reader-location-resolvers";
 
-const BAR_HALF_WIDTH = 176;
+const EDGE_MARGIN = 8;
 const TOP_CLEARANCE = 44;
 
 export interface SourceReaderPassage {
@@ -32,10 +32,7 @@ function anchorSelectionBar(
   if (box.width === 0 && box.height === 0) return undefined;
   if (box.bottom < frame.top + 8 || box.top > frame.bottom - 8) return undefined;
   const center = box.left - frame.left + box.width / 2;
-  const left = Math.min(
-    Math.max(center, BAR_HALF_WIDTH),
-    Math.max(frame.width - BAR_HALF_WIDTH, BAR_HALF_WIDTH),
-  );
+  const left = Math.min(Math.max(center, EDGE_MARGIN), Math.max(frame.width - EDGE_MARGIN, EDGE_MARGIN));
   const relativeTop = box.top - frame.top;
   if (relativeTop >= TOP_CLEARANCE) {
     return { left, top: Math.max(8, relativeTop - 6), placement: "top" };

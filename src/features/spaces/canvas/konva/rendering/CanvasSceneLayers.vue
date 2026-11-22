@@ -101,16 +101,6 @@ watch(interactionLayer, syncInteractionCanvas, { flush: "post" });
 </script>
 
 <template>
-  <CanvasRelationsLayer
-    :interactive="interactive"
-    :connector-draft="connectorDraft"
-    :palette="palette"
-    :relations="visibleRelations"
-    :relation-preview-by-id="relationPreviewById"
-    :selected-relation-ids="selectedRelationIds"
-    :zoom="zoom"
-    @pointer-down="(relationIds, event) => emit('relationPointerDown', relationIds, event)"
-  />
   <KonvaCanvasLayer ref="overviewLayer" :config="{ id: 'canvas-overview-layer', listening: false }" />
   <KonvaCanvasLayer :config="{ id: 'canvas-node-layer', listening: interactive }">
     <CanvasNodeShape
@@ -128,6 +118,16 @@ watch(interactionLayer, syncInteractionCanvas, { flush: "post" });
     />
   </KonvaCanvasLayer>
   <KonvaCanvasLayer :config="{ id: 'canvas-drag-layer', listening: false }" />
+  <CanvasRelationsLayer
+    :interactive="interactive"
+    :connector-draft="connectorDraft"
+    :palette="palette"
+    :relations="visibleRelations"
+    :relation-preview-by-id="relationPreviewById"
+    :selected-relation-ids="selectedRelationIds"
+    :zoom="zoom"
+    @pointer-down="(relationIds, event) => emit('relationPointerDown', relationIds, event)"
+  />
   <KonvaCanvasLayer v-if="selectedFrames.length || connectorDraft || feedback" ref="interactionLayer">
     <CanvasSelectionTransformer
       v-if="stage && !connectorDraft"

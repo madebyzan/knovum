@@ -7,17 +7,15 @@ import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import type { ExportTarget } from "../../../assets/export/target";
 import type { NodeReaderAction } from "../../../reading/use-node-reader-action";
 import SpaceCanvasExportMenu from "./SpaceCanvasExportMenu.vue";
-import SpaceCanvasTagsPopover from "./SpaceCanvasTagsPopover.vue";
 
-/** How a node is read, inspected, batch-tagged, or exported directly from its canvas action bar. */
+/** How a node is read, inspected, or exported directly from its canvas action bar. */
 withDefaults(
   defineProps<{
     exportTarget: ExportTarget | undefined;
     readerAction?: NodeReaderAction | undefined;
     showInfo?: boolean;
-    showTags?: boolean;
   }>(),
-  { showInfo: true, showTags: false },
+  { showInfo: true },
 );
 const emit = defineEmits<{ inspect: []; save: [format: string] }>();
 const { t } = useI18n();
@@ -36,7 +34,6 @@ const { t } = useI18n();
         <Info class="size-4" :stroke-width="1.6" />
       </UiIconButton>
     </ToolbarButton>
-    <SpaceCanvasTagsPopover v-if="showTags" />
     <SpaceCanvasExportMenu :target="exportTarget" @save="emit('save', $event)" />
   </div>
 </template>

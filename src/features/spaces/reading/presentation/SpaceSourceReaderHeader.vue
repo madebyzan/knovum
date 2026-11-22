@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, ChevronLeft, ChevronRight, Info, MoreHorizontal, X } from "@lucide/vue";
+import { BookOpen, ChevronLeft, ChevronRight, LayoutList, MoreHorizontal, X } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -36,7 +36,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const paneOptions = computed(() => [
   { value: "read" as const, title: t("spaces.inspector.reader.read"), icon: BookOpen },
-  { value: "info" as const, title: t("spaces.inspector.title"), icon: Info },
+  { value: "info" as const, title: t("spaces.inspector.title"), icon: LayoutList },
 ]);
 const menuItems = useReaderHeaderMenu({
   node: () => props.node,

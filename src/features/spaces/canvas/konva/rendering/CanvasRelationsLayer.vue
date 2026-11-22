@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { Arrow as KonvaArrow } from "vue-konva/core";
+import type Konva from "konva";
+import { useTemplateRef, watch } from "vue";
+import { Arrow as KonvaArrow, type VueKonvaRef } from "vue-konva/core";
 // oxlint-disable-next-line import/no-unassigned-import
 import "konva/lib/shapes/Arrow";
 
@@ -20,12 +22,25 @@ defineProps<{
   zoom: number;
 }>();
 const emit = defineEmits<{ pointerDown: [relationIds: readonly string[], event: PointerEvent] }>();
+const relationsLayer = useTemplateRef<VueKonvaRef<Konva.Layer>>("relationsLayer");
+
+function syncRelationsCanvas() {
+  const canvas = relationsLayer.value?.getNode().getNativeCanvasElement();
+  if (!canvas) return;
+  // Sits above DOM node cards (z-17) so curves are never occluded, while staying below
+  // world overlays (sibling z-18) and Konva selection/connector handles (z-20).
+  canvas.style.zIndex = "18";
+  canvas.style.pointerEvents = "none";
+}
+
+watch(relationsLayer, syncRelationsCanvas, { flush: "post" });
 </script>
 
 <template>
   <KonvaCanvasLayer
     v-if="relations.length || connectorDraft"
-    :config="{ perfectDrawEnabled: false, listening: interactive }"
+    ref="relationsLayer"
+    :config="{ id: 'canvas-relations-layer', perfectDrawEnabled: false, listening: interactive }"
   >
     <CanvasRelationShape
       v-for="relation in relations"
@@ -49,12 +64,12 @@ const emit = defineEmits<{ pointerDown: [relationIds: readonly string[], event: 
         bezier: true,
         stroke: palette.accent,
         fill: palette.accent,
-        strokeWidth: 2.25 / zoom,
-        pointerLength: 9 / zoom,
-        pointerWidth: 8 / zoom,
+        strokeWidth: 1.5 / zoom,
+        pointerLength: 7 / zoom,
+        pointerWidth: 6 / zoom,
         lineCap: 'round',
         lineJoin: 'round',
-        dash: connectorDraft.target ? undefined : [6 / zoom, 4 / zoom],
+        dash: connectorDraft.target ? undefined : [5 / zoom, 4 / zoom],
         listening: false,
       }"
     />

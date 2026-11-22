@@ -113,9 +113,9 @@ const identity = computed(() =>
       @invoke-derivation="emit('invokeDerivation', $event)"
     />
     <SpaceCanvasNodeAccessActions
+      v-if="actions.exportTarget.value"
       :export-target="actions.exportTarget.value"
       :show-info="false"
-      show-tags
       @save="actions.exportFormat"
     />
   </SpaceCanvasActionToolbar>

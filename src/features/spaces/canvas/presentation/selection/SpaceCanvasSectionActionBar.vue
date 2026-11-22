@@ -71,7 +71,6 @@ const identity = computed(
       v-if="actions.exportTarget.value"
       :export-target="actions.exportTarget.value"
       :show-info="false"
-      :show-tags="false"
       @save="actions.exportFormat"
     />
   </SpaceCanvasActionToolbar>
