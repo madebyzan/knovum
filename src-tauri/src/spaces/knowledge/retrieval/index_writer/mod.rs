@@ -1,3 +1,5 @@
+use std::fmt;
+
 use arrow_array::RecordBatchIterator;
 use lancedb::Connection;
 use serde::Deserialize;
@@ -17,6 +19,26 @@ use super::{
 
 const MAX_EMBEDDING_BATCH: usize = 64;
 
+#[derive(Debug)]
+pub(crate) enum PublishError {
+    StaleRevision(String),
+    Failed(String),
+}
+
+impl fmt::Display for PublishError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::StaleRevision(message) | Self::Failed(message) => formatter.write_str(message),
+        }
+    }
+}
+
+impl From<String> for PublishError {
+    fn from(message: String) -> Self {
+        Self::Failed(message)
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct KnowledgeEmbeddingInput {
@@ -31,7 +53,7 @@ pub(crate) struct KnowledgeEmbeddingInput {
 pub(crate) async fn upsert_embeddings<R: Runtime>(
     app: AppHandle<R>,
     embeddings: Vec<KnowledgeEmbeddingInput>,
-) -> Result<usize, String> {
+) -> Result<usize, PublishError> {
     let pool = db::pool(&app).await?;
     let index = connect_retrieval_db(&app).await?;
     publish_embeddings(pool, &index, embeddings).await
@@ -41,7 +63,7 @@ pub(super) async fn publish_embeddings(
     pool: &SqlitePool,
     index: &Connection,
     embeddings: Vec<KnowledgeEmbeddingInput>,
-) -> Result<usize, String> {
+) -> Result<usize, PublishError> {
     validate_batch(&embeddings)?;
     // Serialize current-chunk validation, pending invalidations and index publication.
     // Model inference has already completed before this short write boundary begins.
