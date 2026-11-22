@@ -3,8 +3,8 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { nodeExportFormats } from "./formats";
+import { serializePayloadExport } from "./payloads";
 import { safeExportFileName } from "./naming";
-import { payloadExports } from "./payloads";
 import { DEFAULT_EXPORT_FORMAT, selectionExportFormats } from "./selection-formats";
 import type { ExportTarget } from "./target";
 
@@ -25,15 +25,17 @@ export function selectionExportTarget(spaceId: string, nodes: readonly SpaceCanv
         offers,
       );
       if (!admitted.formats.includes(format)) throw new Error("The selection cannot use this export format");
-      const members = snapshot.map((node, index) => {
-        const extension = format === DEFAULT_EXPORT_FORMAT ? offers[index]!.formats[0]! : format;
-        const payload = payloadExports(node.data).find((item) => item.extension === extension);
-        return {
-          nodeId: node.id,
-          fileName: `${safeExportFileName(node.data.title) || node.data.kind}.${extension}`,
-          text: payload?.text(),
-        };
-      });
+      const members = await Promise.all(
+        snapshot.map(async (node, index) => {
+          const extension = format === DEFAULT_EXPORT_FORMAT ? offers[index]!.formats[0]! : format;
+          const text = await serializePayloadExport(node, extension);
+          return {
+            nodeId: node.id,
+            fileName: `${safeExportFileName(node.data.title) || node.data.kind}.${extension}`,
+            text,
+          };
+        }),
+      );
       const directoryPath = await open({ directory: true, multiple: false });
       if (!directoryPath) return false;
       const jobId = crypto.randomUUID();

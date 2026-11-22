@@ -3,7 +3,7 @@ import { ChevronRight } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
 import type { GroundedCitation } from "../../knowledge/model/schema/grounded-citation";
-import { knowledgeLocationLabel } from "../../knowledge/presentation/knowledge-location-label";
+import { knowledgeLocationLabel } from "../../knowledge/model/location-label";
 
 /** The sources an answer cites, each opening its passage while it is still current. */
 defineProps<{ citations: readonly GroundedCitation[] }>();

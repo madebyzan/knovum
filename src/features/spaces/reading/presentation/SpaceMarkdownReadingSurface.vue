@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import UiOutlineRail, { type UiOutlineItem } from "../../../../shared/ui/UiOutlineRail.vue";
 import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
+import SpaceCitationPreview from "../../conversation/presentation/SpaceCitationPreview.vue";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceMarkdownPayload, SpaceNotePayload } from "../../model/nodes/node-payload";
@@ -13,6 +14,7 @@ import { highlightContainerCodeBlocks } from "../code-highlighter";
 import { extractMarkdownHeadings, extractTiptapHeadings, noteReadingHtml } from "../note-reading-html";
 import SpaceReaderProseToolbar from "./SpaceReaderProseToolbar.vue";
 import { useDomBlockFind } from "./use-dom-block-find";
+import { useMarkdownReadingCitations } from "./use-markdown-reading-citations";
 import { useReaderActiveAnchor } from "./use-reader-active-anchor";
 import { useReaderTheme } from "./use-reader-theme";
 import { useReaderTypography } from "./use-reader-typography";
@@ -31,8 +33,10 @@ const scrollerRef = useTemplateRef<HTMLDivElement>("scroller");
 const proseRef = useTemplateRef<HTMLElement>("prose");
 const find = useDomBlockFind(proseRef);
 
+const nodeId = computed(() => props.node.id);
 const isMarkdown = computed(() => props.node.data.kind === "markdown");
 const markdownText = computed(() => (props.node.data.kind === "markdown" ? props.node.data.text : ""));
+const readingCitations = useMarkdownReadingCitations(nodeId, isMarkdown);
 const noteHtml = computed(() =>
   props.node.data.kind === "note" ? noteReadingHtml(props.node.data.tiptapContent) : "",
 );
@@ -129,8 +133,16 @@ watch(
             data-reader-prose
             class="reader-prose select-text"
             :style="typography.proseStyle.value"
+            @pointerover="readingCitations.hover.onBodyPointerOver"
+            @pointerout="readingCitations.hover.onBodyPointerOut"
           >
-            <UiMarkdown v-if="isMarkdown" :content="markdownText" class="!text-inherit" />
+            <UiMarkdown
+              v-if="isMarkdown"
+              :content="markdownText"
+              :citations="readingCitations.citationMap.value"
+              class="!text-inherit"
+              @cite="readingCitations.openCitationIndex"
+            />
             <!-- eslint-disable-next-line vue/no-v-html -- sanitized with DOMPurify in noteReadingHtml -->
             <div v-else v-html="noteHtml" />
           </div>
@@ -149,6 +161,12 @@ watch(
         :active-id="outlineAnchor.activeId.value"
         :label="t('spaces.inspector.reader.outline')"
         @select="scrollToHeading"
+      />
+      <SpaceCitationPreview
+        :state="readingCitations.hover.active.value"
+        @open="readingCitations.openCitation"
+        @preview-enter="readingCitations.hover.onPreviewPointerEnter"
+        @preview-leave="readingCitations.hover.onPreviewPointerLeave"
       />
     </div>
   </div>

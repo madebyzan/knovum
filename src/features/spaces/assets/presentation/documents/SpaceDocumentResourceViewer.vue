@@ -8,7 +8,7 @@ import UiDialog from "../../../../../shared/ui/UiDialog.vue";
 import UiExpandableText from "../../../../../shared/ui/UiExpandableText.vue";
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import SpaceRecognizedText from "../../../enrichment/presentation/SpaceRecognizedText.vue";
-import { knowledgeLocationLabelFromLocation } from "../../../knowledge/presentation/knowledge-location-label";
+import { knowledgeLocationLabelFromLocation } from "../../../knowledge/model/location-label";
 import type { ExportTarget } from "../../export/target";
 import { useExportRun } from "../../export/use-export-run";
 import { formatByteSize } from "../../format-byte-size";

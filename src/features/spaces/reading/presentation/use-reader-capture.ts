@@ -14,7 +14,7 @@ import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { quotedFollowUp } from "../../conversation/answer-capture";
 import { useConversationSessionStore } from "../../conversation/conversation-session-store";
 import { createSourceEvidence } from "../../document-editing/knowledge-capture";
-import { knowledgeLocationLabel } from "../../knowledge/presentation/knowledge-location-label";
+import { knowledgeLocationLabel } from "../../knowledge/model/location-label";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { truncateUtf16 } from "../../model/text";
 import { useSpaceStore } from "../../session/space-store";

@@ -7,7 +7,7 @@ import UiBadge from "../../../../shared/ui/UiBadge.vue";
 import { nodeIcon } from "../../canvas/presentation/node-icon";
 import { matchLocatorFor, type SpaceMatchLocator } from "../../knowledge/model/match-locator";
 import type { KnowledgeSearchMatch } from "../../knowledge/model/schema/search-match";
-import { knowledgeLocationLabel } from "../../knowledge/presentation/knowledge-location-label";
+import { knowledgeLocationLabel } from "../../knowledge/model/location-label";
 import { formatDurationMs } from "../../media/format-duration";
 import { highlightedSnippet } from "../highlighted-snippet";
 

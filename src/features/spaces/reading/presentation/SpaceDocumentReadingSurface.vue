@@ -7,7 +7,7 @@ import UiOutlineRail, { type UiOutlineItem } from "../../../../shared/ui/UiOutli
 import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import type { KnowledgeChunk } from "../../knowledge/model/schema/persisted-chunk";
-import { knowledgeLocationLabel } from "../../knowledge/presentation/knowledge-location-label";
+import { knowledgeLocationLabel } from "../../knowledge/model/location-label";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { projectDocumentBlocks, type DocumentRenderBlock } from "../document-block-projection";
 import SpaceDocumentBlock from "./SpaceDocumentBlock.vue";

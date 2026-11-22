@@ -1,11 +1,11 @@
 import { formatDurationMs } from "../../media/format-duration";
-import type { KnowledgeLocation, KnowledgeLocator } from "../model/schema/chunk";
+import type { KnowledgeLocation, KnowledgeLocator } from "./schema/chunk";
 
 export function knowledgeLocationLabel(locator: KnowledgeLocator): string {
   return knowledgeLocationLabelFromLocation(locator.location);
 }
 
-export function knowledgeLocationLabelFromLocation(location: KnowledgeLocation) {
+export function knowledgeLocationLabelFromLocation(location: KnowledgeLocation): string {
   if (location.kind === "media") return formatDurationMs(location.startMs);
   if (location.kind === "pdf") return `PDF · p.${location.page}`;
   if (location.kind === "word") return wordLocationLabel(location);

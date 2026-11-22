@@ -4,7 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { GroundedCitation } from "../../knowledge/model/schema/grounded-citation";
-import { knowledgeLocationLabel } from "../../knowledge/presentation/knowledge-location-label";
+import { knowledgeLocationLabel } from "../../knowledge/model/location-label";
 import type { CitationPreviewState } from "./use-citation-hover";
 
 const props = defineProps<{ state?: CitationPreviewState | undefined }>();
@@ -40,6 +40,7 @@ function handleOpen() {
         data-citation-preview
         :style="state.style"
         class="fixed z-50 w-76 rounded-panel border border-stroke-strong material-overlay p-2.5 shadow-popover select-none"
+        :class="isCurrent && 'cursor-pointer'"
         @pointerenter="emit('previewEnter')"
         @pointerleave="emit('previewLeave')"
         @click="handleOpen"

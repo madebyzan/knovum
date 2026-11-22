@@ -1,8 +1,8 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { chooseExportDestination } from "./destination";
 import { exportResource, exportTextFile } from "./ipc";
+import { serializePayloadExport } from "./payloads";
 import { safeExportFileName } from "./naming";
-import { payloadExports } from "./payloads";
 
 export interface NodeExportOptions {
   /** Called once work that can be cancelled begins. */
@@ -18,9 +18,9 @@ export async function exportSpaceNode(
 ): Promise<boolean> {
   const path = await chooseExportDestination(safeExportFileName(node.data.title) || node.data.kind, format);
   if (!path) return false;
-  const payload = payloadExports(node.data).find(({ extension }) => extension === format);
-  if (payload) {
-    await exportTextFile(path, payload.text());
+  const text = await serializePayloadExport(node, format);
+  if (text !== undefined) {
+    await exportTextFile(path, text);
     return true;
   }
   const jobId = crypto.randomUUID();

@@ -9,6 +9,9 @@ import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { exportSpaceMarkdown } from "../../assets/export/text";
 import { registerDocumentEditCommands } from "../../commands/document-edit-commands";
+import SpaceCitationPreview from "../../conversation/presentation/SpaceCitationPreview.vue";
+import { useCitationHover } from "../../conversation/presentation/use-citation-hover";
+import { unescapeCitationMarkers } from "../../knowledge/model/citation-markers";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceEditorSaveStatus from "../../workspace/presentation/SpaceEditorSaveStatus.vue";
 import type { SpaceEditorTab } from "../../workspace/workbench-tab";
@@ -33,7 +36,10 @@ const {
   editorLabel,
   editorNode,
   editor,
+  groundedCitations,
   headings,
+  isGroundedMarkdownDocument,
+  openGroundedCitation,
   persist,
   revealHeading,
   saveStatus,
@@ -43,6 +49,7 @@ const {
   wordCount,
 } = useSpaceTiptapEditor(props.tab, toRef(props, "active"), scrollRoot);
 const writing = useSpaceTiptapWritingTools(editor);
+const citationHover = useCitationHover(groundedCitations);
 const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot, toRef(props, "active"));
 const search = useTemplateRef<InstanceType<typeof SpaceTiptapSearch>>("search");
 const outline = useTemplateRef<InstanceType<typeof SpaceDocumentOutline>>("outline");
@@ -75,7 +82,9 @@ async function exportMarkdown() {
   if (!editor.value) return;
   try {
     await persist();
-    if (await exportSpaceMarkdown(title.value, editor.value.getMarkdown()))
+    const stripCitations = await isGroundedMarkdownDocument();
+    const markdown = unescapeCitationMarkers(editor.value.getMarkdown());
+    if (await exportSpaceMarkdown(title.value, markdown, { stripCitations }))
       toast.success(t("spaces.importExport.export.completed"));
   } catch (caught) {
     toast.error(getErrorMessage(caught));
@@ -137,9 +146,21 @@ async function exportMarkdown() {
               own concern: it stays hidden while the editor is not editable or not focused.
             -->
             <SpaceTiptapBubbleMenu v-if="editor" :editor="editor" :writing="writing" />
-            <EditorContent v-if="editor" :editor="editor" class="mt-7" />
+            <EditorContent
+              v-if="editor"
+              :editor="editor"
+              class="mt-7"
+              @pointerover="citationHover.onBodyPointerOver"
+              @pointerout="citationHover.onBodyPointerOut"
+            />
           </article>
         </div>
+        <SpaceCitationPreview
+          :state="citationHover.active.value"
+          @open="(citation) => (citationHover.dismiss(), openGroundedCitation(citation))"
+          @preview-enter="citationHover.onPreviewPointerEnter"
+          @preview-leave="citationHover.onPreviewPointerLeave"
+        />
         <SpaceDocumentOutline
           ref="outline"
           :headings="headings"

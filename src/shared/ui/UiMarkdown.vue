@@ -24,7 +24,7 @@ useMarkdownPaint(root, () => ({ content: props.content, citations: props.citatio
 
 function press(event: MouseEvent) {
   const target = event.target instanceof Element ? event.target : null;
-  const citation = target?.closest("[data-citation-index]");
+  const citation = target?.closest("[data-citation-index]:not([data-citation-preview])");
   if (citation) {
     emit("cite", Number(citation.getAttribute("data-citation-index")));
     return;

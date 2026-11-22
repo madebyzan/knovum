@@ -10,6 +10,7 @@ import UiCopyButton from "../../../../shared/ui/UiCopyButton.vue";
 import UiDragGhost from "../../../../shared/ui/UiDragGhost.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { ConversationMessage } from "../../contracts/generated/ConversationMessage";
+import { groundedCitationPeekTarget } from "../../knowledge/model/grounded-citation";
 import {
   groundedCitationSchema,
   type GroundedCitation,
@@ -55,14 +56,8 @@ const statusLabel = computed(() =>
 
 function openCitation(citation: GroundedCitation | undefined) {
   citationHover.dismiss();
-  if (citation?.state !== "current") return;
-  store.openSource({
-    nodeId: citation.nodeId,
-    nodeTitle: citation.nodeTitle,
-    chunkId: citation.chunkId,
-    locator: citation.locator,
-    text: citation.quote,
-  });
+  const target = groundedCitationPeekTarget(citation);
+  if (target) store.openSource(target);
 }
 
 async function followLink(href: string) {

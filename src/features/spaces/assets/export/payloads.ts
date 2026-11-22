@@ -1,3 +1,5 @@
+import { loadGroundedDocumentMetadata } from "../../knowledge-derivations/document/metadata";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import { formatExportMarkdown } from "../markdown-document";
@@ -29,6 +31,23 @@ export function payloadExports(data: SpaceNodePayload): readonly PayloadExport[]
   if (data.kind === "portal") return [json(() => portalDocument(data))];
   data satisfies never;
   throw new Error("Unsupported node export");
+}
+
+/**
+ * Resolves renderer-serialized export text for a node in `extension`. Grounded Markdown nodes
+ * strip Knovum internal `[Cn]` citation anchors on export so the saved `.md` file is pure prose.
+ */
+export async function serializePayloadExport(
+  node: SpaceCanvasNode,
+  extension: string,
+): Promise<string | undefined> {
+  const payload = payloadExports(node.data).find((item) => item.extension === extension);
+  if (!payload) return undefined;
+  if (node.data.kind === "markdown" && extension === "md") {
+    const metadata = await loadGroundedDocumentMetadata(node.id);
+    return formatExportMarkdown(node.data.title, node.data.text, { stripCitations: metadata !== null });
+  }
+  return payload.text();
 }
 
 export function json(value: () => unknown): PayloadExport {
