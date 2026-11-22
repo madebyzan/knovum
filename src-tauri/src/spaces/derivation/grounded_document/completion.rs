@@ -22,7 +22,7 @@ pub async fn complete(
     source_inputs::pin(&mut tx, &request.space_id, &request.inputs).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&data).map_err(db::json_error)?;
-    apply_document(&mut data, &generated.text)?;
+    apply_document(&mut data, generated.title.as_deref(), &generated.text)?;
     crate::spaces::knowledge::validation::validate_node(
         &mut tx,
         &request.space_id,
@@ -45,7 +45,11 @@ pub async fn complete(
     })
 }
 
-fn apply_document(payload: &mut Value, text: &str) -> Result<(), AppError> {
+pub(super) fn apply_document(
+    payload: &mut Value,
+    title: Option<&str>,
+    text: &str,
+) -> Result<(), AppError> {
     let text = text.trim();
     if text.is_empty() {
         return Err("Generated Markdown is empty".into());
@@ -53,6 +57,9 @@ fn apply_document(payload: &mut Value, text: &str) -> Result<(), AppError> {
     let object = payload
         .as_object_mut()
         .ok_or("Pending Markdown data is invalid")?;
+    if let Some(title) = title.map(str::trim).filter(|value| !value.is_empty()) {
+        object.insert("title".into(), title.into());
+    }
     object.insert("text".into(), text.into());
     object.remove("derivationState");
     revision::apply(payload).map(|_| ()).map_err(AppError::from)

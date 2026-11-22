@@ -105,28 +105,35 @@ fn resource_node(asset: &PreparedAsset) -> Result<ResourceNode<'_>, String> {
     })
 }
 
-fn markdown_document(name: &str, raw: &str) -> (String, String) {
-    let first = raw
-        .trim_start()
+/// Splits a leading ATX level-1 heading (`# Title`) from Markdown into `(title, body)`.
+/// Returns `None` when the document does not start with a non-empty level-1 heading.
+pub(crate) fn extract_markdown_heading(raw: &str) -> Option<(String, String)> {
+    let trimmed = raw.trim_start();
+    let first = trimmed
         .split_once('\n')
-        .map_or(raw.trim_start(), |(line, _)| line)
+        .map_or(trimmed, |(line, _)| line)
         .trim_end_matches('\r');
-    if let Some(heading) = first
+    let heading = first
         .strip_prefix('#')
-        .filter(|text| text.starts_with([' ', '\t']))
-    {
-        let heading = heading.trim();
-        let hashes = heading.trim_end_matches('#');
-        let title = if hashes.len() < heading.len() && hashes.ends_with(char::is_whitespace) {
-            hashes.trim_end()
-        } else {
-            heading
-        };
-        if !title.is_empty() {
-            let consumed = raw.len() - raw.trim_start().len() + first.len();
-            let text = raw[consumed..].trim_start_matches(['\r', '\n']);
-            return (truncate_title(title), text.to_owned());
-        }
+        .filter(|text| text.starts_with([' ', '\t']))?;
+    let heading = heading.trim();
+    let hashes = heading.trim_end_matches('#');
+    let title = if hashes.len() < heading.len() && hashes.ends_with(char::is_whitespace) {
+        hashes.trim_end()
+    } else {
+        heading
+    };
+    if title.is_empty() {
+        return None;
+    }
+    let consumed = raw.len() - trimmed.len() + first.len();
+    let text = raw[consumed..].trim_start_matches(['\r', '\n']);
+    Some((truncate_title(title), text.to_owned()))
+}
+
+fn markdown_document(name: &str, raw: &str) -> (String, String) {
+    if let Some(extracted) = extract_markdown_heading(raw) {
+        return extracted;
     }
     let lowercase = name.to_ascii_lowercase();
     let title = [".markdown", ".md"]
