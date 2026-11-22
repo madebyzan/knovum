@@ -1,9 +1,6 @@
 {
   "queue": {
-    "title": "正在处理",
-    "pending": "等待中 {count}",
-    "running": "处理中 {count}",
-    "failed": "失败 {count}"
+    "title": "正在处理"
   },
   "enrichmentJobType": {
     "analyze_visual": "视觉理解",

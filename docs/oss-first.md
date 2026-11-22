@@ -121,7 +121,23 @@ The resulting lifecycle, permissions and interaction contracts are owned by
   parser or custom fidelity renderer would duplicate mature parsers without satisfying Office
   preview fidelity.
 - Mozilla Readability owns readable webpage extraction. Knovum retains security-sensitive fetching,
-  normalization and persistence rather than maintaining selector heuristics.
+  normalization and persistence rather than maintaining selector heuristics. In-app live website
+  browsing and HTML/SVG asset preview inside Source Reading Mode share Tauri 2's native child WebView
+  (`Window::add_child`, label `"source-reader-web"`) with zero Tauri IPC capabilities, gated by
+  `desktop/navigation.rs` to `http`/`https`/`about` and the Space-authorized `knovum-preview` custom
+  URI scheme, avoiding `<iframe>` `X-Frame-Options` / main-WebView CSP blocks without broadening
+  main-WebView authority.
+- Exact-pinned [shiki](https://github.com/shikijs/shiki) (MIT) owns lazy-loaded VS Code TextMate
+  syntax highlighting for Code reading surfaces and fenced code blocks inside Markdown and Note
+  reading views, syncing with Knovum's light/dark document theme without custom regex tokenizers.
+- Lightweight PDF annotation markup (highlight, freetext, ink) and ISO PDF serialization reuse the
+  already-pinned `pdfjs-dist` `AnnotationEditor` and `saveDocument()` APIs rather than introducing
+  a second PDF engine; saved bytes pass through Rust's `%PDF-`-validated atomic `save_editable_asset`.
+- Exact-pinned [docx-preview](https://github.com/VolodymyrBaydalka/docxjs) (Apache-2.0) owns
+  client-side `.docx` page rendering in Source Reading Mode directly from managed Space assets,
+  paired with `office_oxide` structured text views for chunk-level extraction and citation matching.
+  Heavyweight runtime converters (LibreOffice, server-side rendering) were rejected for desktop
+  footprint and complexity.
 - `docx-rs` owns Markdown Word export; Typst owns content PDF export. `office_oxide` owns
   DOCX serialization from its existing Office/Note IR. This overlap is retained for an explicit
   unmet requirement: the current vendor DOCX writer does not serialize `Image.hyperlink`, while

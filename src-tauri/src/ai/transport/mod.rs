@@ -2,7 +2,7 @@ mod client;
 pub(crate) mod response;
 mod security;
 
-pub use client::http_client;
+pub use client::{http_client, streaming_http_client};
 pub use security::SecurityContext;
 pub(crate) use security::{endpoint_with_suffix, validate_endpoint};
 

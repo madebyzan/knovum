@@ -1,59 +1,94 @@
 <script setup lang="ts">
-import { FileText, Search, Waypoints } from "@lucide/vue";
+import { Compass, FileText, Map, Waypoints } from "@lucide/vue";
+import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-const emit = defineEmits<{ select: [prompt: string, selection?: string] }>();
+import UiKnovumAiIcon from "../../../../shared/ui/UiKnovumAiIcon.vue";
+import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
+import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
+import { useSpaceStore } from "../../session/space-store";
+
+const emit = defineEmits<{ select: [prompt: string] }>();
 const { t } = useI18n();
-const examples = computed(() => {
-  const topic = t("spaces.conversation.empty.topic");
-  return [
-    {
-      icon: Search,
-      label: t("spaces.conversation.empty.search"),
-      prompt: t("spaces.conversation.empty.searchPrompt", { topic }),
-      selection: topic,
-    },
-    {
-      icon: FileText,
-      label: t("spaces.conversation.empty.document"),
-      prompt: t("spaces.conversation.empty.documentPrompt", { topic }),
-      selection: topic,
-    },
-    {
-      icon: Waypoints,
-      label: t("spaces.conversation.empty.compare"),
-      prompt: t("spaces.conversation.empty.comparePrompt", { topic }),
-      selection: topic,
-    },
-  ];
+const { activeSpace, nodes } = storeToRefs(useSpaceStore());
+
+const sourceCount = computed(() => nodes.value.filter(isSpaceSemanticNode).length);
+const heading = computed(() => {
+  const space = activeSpace.value;
+  if (!space) return t("spaces.conversation.empty.title");
+  if (space.kind === "inbox") return t("spaces.space.inbox");
+  return space.title.trim() || t("spaces.conversation.empty.title");
 });
+const subtitle = computed(() =>
+  sourceCount.value > 0
+    ? t("spaces.space.nodeCount", { count: sourceCount.value }, sourceCount.value)
+    : t("spaces.conversation.empty.emptySpaceSummary"),
+);
+const prompts = computed(() =>
+  sourceCount.value > 0
+    ? [
+        {
+          icon: Map,
+          title: t("spaces.conversation.empty.overview"),
+          description: t("spaces.conversation.empty.overviewDesc"),
+          prompt: t("spaces.conversation.empty.overviewPrompt"),
+        },
+        {
+          icon: FileText,
+          title: t("spaces.conversation.empty.brief"),
+          description: t("spaces.conversation.empty.briefDesc"),
+          prompt: t("spaces.conversation.empty.briefPrompt"),
+        },
+        {
+          icon: Waypoints,
+          title: t("spaces.conversation.empty.compare"),
+          description: t("spaces.conversation.empty.compareDesc"),
+          prompt: t("spaces.conversation.empty.comparePrompt"),
+        },
+      ]
+    : [
+        {
+          icon: FileText,
+          title: t("spaces.conversation.empty.draft"),
+          description: t("spaces.conversation.empty.draftDesc"),
+          prompt: t("spaces.conversation.empty.draftPrompt"),
+        },
+        {
+          icon: Compass,
+          title: t("spaces.conversation.empty.plan"),
+          description: t("spaces.conversation.empty.planDesc"),
+          prompt: t("spaces.conversation.empty.planPrompt"),
+        },
+      ],
+);
 </script>
 
 <template>
-  <div class="w-full max-w-sm">
-    <h2 class="px-2.5 text-title-sm font-medium text-fg-primary">
-      {{ t("spaces.conversation.empty.title") }}
+  <div class="flex w-full max-w-sm flex-col items-center text-center select-none">
+    <UiKnovumAiIcon class="size-5 text-fg-primary/80" />
+    <h2 class="mt-2.5 max-w-full truncate text-title font-medium tracking-title text-fg-primary">
+      {{ heading }}
     </h2>
-    <div class="mt-3 space-y-1">
-      <button
-        v-for="example in examples"
-        :key="example.label"
-        type="button"
-        class="flex w-full items-start gap-3 rounded-md px-2.5 py-2.5 text-left transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
-        @click="emit('select', example.prompt, example.selection)"
-      >
-        <component
-          :is="example.icon"
-          class="mt-0.5 size-4 shrink-0 text-fg-tertiary"
-          :stroke-width="1.6"
-          aria-hidden="true"
-        />
-        <span class="min-w-0">
-          <span class="block text-caption-sm text-fg-tertiary">{{ example.label }}</span>
-          <span class="mt-0.5 block text-body text-fg-primary">{{ example.prompt }}</span>
-        </span>
-      </button>
+    <p class="mt-1 max-w-xs text-caption-sm leading-relaxed text-fg-tertiary tabular-nums">
+      {{ subtitle }}
+    </p>
+    <div class="mt-5 flex flex-wrap items-center justify-center gap-1.5">
+      <UiTooltip v-for="item in prompts" :key="item.title" :text="item.description" side="bottom">
+        <button
+          type="button"
+          class="inline-flex h-(--knovum-control-height-sm) items-center gap-1.5 rounded-md border border-stroke-divider bg-surface-raised px-2.5 text-caption text-fg-secondary transition-colors duration-100 hover:border-stroke-default-hover hover:bg-surface-control-hover hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
+          @click="emit('select', item.prompt)"
+        >
+          <component
+            :is="item.icon"
+            class="size-3 shrink-0 text-fg-tertiary"
+            :stroke-width="1.65"
+            aria-hidden="true"
+          />
+          <span>{{ item.title }}</span>
+        </button>
+      </UiTooltip>
     </div>
   </div>
 </template>

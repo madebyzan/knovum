@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import SpaceSourcePeek from "../../knowledge/presentation/SpaceSourcePeek.vue";
+import SpaceSourceReader from "../../reading/presentation/SpaceSourceReader.vue";
 import { useSpaceStore } from "../../session/space-store";
-import SpaceContextHeader from "../../workspace/presentation/SpaceContextHeader.vue";
 
 const store = useSpaceStore();
 </script>
 
 <template>
-  <aside
-    v-if="store.sourcePeek"
-    class="absolute inset-y-0 right-0 z-20 flex w-80 max-w-full flex-col border-l border-stroke-divider bg-surface-panel shadow-popover"
+  <div
+    v-if="store.readingTarget"
+    class="flex h-full w-[44%] max-w-160 min-w-90 shrink-0 flex-col border-l border-(--knovum-window-border-color) bg-surface-panel"
   >
-    <SpaceContextHeader :title="store.sourcePeek.nodeTitle" closable @close="store.closeSource()" />
-    <div class="min-h-0 flex-1"><SpaceSourcePeek /></div>
-  </aside>
+    <SpaceSourceReader host="document" />
+  </div>
 </template>

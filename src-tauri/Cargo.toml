@@ -40,7 +40,7 @@ dunce = "1.0.5"
 knovum-media-libraries = { path = "crates/media-libraries" }
 knovum-inference-libraries = { path = "crates/inference-libraries" }
 knovum-inference-contracts = { path = "crates/inference-contracts" }
-tauri = { version = "2.12.1", features = ["protocol-asset", "tray-icon"] }
+tauri = { version = "2.12.1", features = ["protocol-asset", "tray-icon", "unstable"] }
 tauri-plugin-clipboard = "2.1.11"
 clipboard-rs = "0.3.5"
 tauri-plugin-dialog = "2.8.1"

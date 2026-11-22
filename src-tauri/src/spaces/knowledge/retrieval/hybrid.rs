@@ -13,6 +13,11 @@ use super::search::{embed_query, search_semantic_vector};
 use super::{global_search, lancedb_store::connect_retrieval_db};
 
 const MATCH_LIMIT: usize = 80;
+const RRF_K: f64 = 61.0;
+
+pub(crate) fn rrf_rank_score(index: usize) -> f64 {
+    1.0 / (RRF_K + index as f64)
+}
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -131,7 +136,7 @@ fn add_ranked(target: &mut HashMap<String, (Value, f64)>, values: Vec<Value>, sc
             log::warn!("retrieval result for chunk {chunk_id} is missing a valid score");
             continue;
         };
-        let rank_score = 1.0 / (61.0 + index as f64);
+        let rank_score = rrf_rank_score(index);
         match target.entry(chunk_id) {
             Entry::Occupied(mut entry) => {
                 let (stored, total) = entry.get_mut();

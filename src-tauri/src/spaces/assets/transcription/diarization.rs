@@ -127,14 +127,8 @@ pub(crate) async fn diarize_media(
         Priority::Background,
     )
     .await?;
-    if diarization
-        .turns
-        .iter()
-        .any(|turn| turn.end_ms > transcript.duration_ms)
-    {
-        return Err("invalid_output: diarization turn exceeds media duration".into());
-    }
-    publish(transcript, diarization.turns, variant, payload)?;
+    let turns = clamp_turns_to_duration(diarization.turns, transcript.duration_ms)?;
+    publish(transcript, turns, variant, payload)?;
     super::send_progress(progress, "done", 100);
     Ok(())
 }
@@ -243,4 +237,56 @@ fn budget_ms(duration_ms: u64) -> u64 {
     duration_ms
         .saturating_mul(4)
         .clamp(120_000, 8 * 60 * 60 * 1_000)
+}
+
+const MAX_MEDIA_DURATION_DRIFT_MS: u64 = 1_000;
+
+fn clamp_turns_to_duration(
+    turns: Vec<SpeakerTurn>,
+    duration_ms: u64,
+) -> Result<Vec<SpeakerTurn>, String> {
+    let mut normalized = Vec::with_capacity(turns.len());
+    for mut turn in turns {
+        if turn.end_ms > duration_ms.saturating_add(MAX_MEDIA_DURATION_DRIFT_MS) {
+            return Err("invalid_output: diarization turn exceeds media duration".into());
+        }
+        turn.start_ms = turn.start_ms.min(duration_ms);
+        turn.end_ms = turn.end_ms.min(duration_ms);
+        if turn.end_ms > turn.start_ms {
+            normalized.push(turn);
+        }
+    }
+    Ok(normalized)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::clamp_turns_to_duration;
+    use crate::ai::contracts::speech_wire::SpeakerTurn;
+
+    #[test]
+    fn clamps_minor_container_duration_drift_and_rejects_large_overshoot() {
+        let turns = vec![
+            SpeakerTurn {
+                speaker_id: "0".into(),
+                start_ms: 9_000,
+                end_ms: 10_080,
+            },
+            SpeakerTurn {
+                speaker_id: "1".into(),
+                start_ms: 10_020,
+                end_ms: 10_090,
+            },
+        ];
+        let clamped = clamp_turns_to_duration(turns, 10_000).expect("minor drift should clamp");
+        assert_eq!(clamped.len(), 1);
+        assert_eq!(clamped[0].end_ms, 10_000);
+
+        let corrupt = vec![SpeakerTurn {
+            speaker_id: "0".into(),
+            start_ms: 9_000,
+            end_ms: 12_000,
+        }];
+        assert!(clamp_turns_to_duration(corrupt, 10_000).is_err());
+    }
 }

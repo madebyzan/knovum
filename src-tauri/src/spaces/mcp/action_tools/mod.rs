@@ -2,7 +2,7 @@ use rmcp::{handler::server::wrapper::Parameters, tool, tool_router, ErrorData as
 use serde_json::{json, Value};
 
 use super::{
-    arguments::{CommitKnowledgeArgs, InvokeActionArgs, SpaceArgs},
+    arguments::{CommitKnowledgeArgs, InvokeActionArgs, ListActionsArgs},
     support::{json_text, mcp_error},
     SpaceMcpServer,
 };
@@ -11,21 +11,43 @@ mod invocation;
 
 #[tool_router(router = action_router, vis = "pub(super)")]
 impl SpaceMcpServer {
-    #[tool(description = "List the authoritative Space Action catalog")]
+    #[tool(
+        description = "List available Space Actions in compact catalog form; pass action_id to inspect one Action's full parameter schema before calling invoke_space_action.",
+        annotations(read_only_hint = true)
+    )]
     async fn list_space_actions(
         &self,
-        Parameters(args): Parameters<SpaceArgs>,
+        Parameters(args): Parameters<ListActionsArgs>,
     ) -> Result<String, McpError> {
         self.require_space(&args.space_id)?;
         self.authorize_read(&args.space_id).await?;
-        // Desktop reasoning stays in the external runtime. These tools prepare/read/commit
-        // knowledge and run deterministic processing; they never route inference back to it.
-        json_text(
-            actions::definitions()
-                .iter()
-                .filter(|action| is_external_agent_action(action))
-                .collect::<Vec<_>>(),
-        )
+        if let Some(action_id) = args
+            .action_id
+            .as_deref()
+            .map(str::trim)
+            .filter(|id| !id.is_empty())
+        {
+            let definition = require_platform_action(action_id).map_err(mcp_error)?;
+            return json_text(definition);
+        }
+        // Desktop reasoning stays in the external runtime. Compact descriptors avoid dumping 20+
+        // parameter schemas into context when the Agent only needs to pick one Action.
+        let descriptors = actions::definitions()
+            .iter()
+            .filter(|action| is_external_agent_action(action))
+            .map(|action| {
+                json!({
+                    "id": action.id,
+                    "version": action.version,
+                    "impact": action.impact,
+                    "executionMode": action.execution_mode,
+                    "inputRoles": action.input_roles,
+                    "minInputs": action.min_inputs,
+                    "outputContract": action.output_contract,
+                })
+            })
+            .collect::<Vec<_>>();
+        json_text(descriptors)
     }
 
     #[tool(description = "Invoke one registered Space Action through authorization and receipts")]
@@ -58,7 +80,9 @@ impl SpaceMcpServer {
         json_text(outcome)
     }
 
-    #[tool(description = "Validate and atomically commit a Knowledge Change Set")]
+    #[tool(
+        description = "Validate and atomically commit a Knowledge Change Set: create/update structured knowledge objects (Decision, Question, Claim, Evidence, Concept, Experiment), create/update relations, and attach provenance (prefer add-cited-provenance with citeId). Call list_object_types first to get exact objectTypeIds and required fields."
+    )]
     async fn commit_knowledge_changes(
         &self,
         Parameters(args): Parameters<CommitKnowledgeArgs>,

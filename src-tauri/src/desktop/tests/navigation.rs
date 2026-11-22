@@ -35,8 +35,31 @@ fn a_link_never_takes_the_window_away_from_the_app() {
         "http://localhost:1420/",
         "mailto:someone@example.com",
         "tauri://elsewhere/",
+        "knovum-preview://localhost/token",
+        "http://knovum-preview.localhost/token",
     ] {
         assert!(!serves_app(&url(refused), None), "{refused}");
+    }
+}
+
+#[test]
+fn reader_webview_allows_http_about_and_local_preview_scheme_only() {
+    for allowed in [
+        "https://example.com/",
+        "http://localhost:8080/",
+        "about:blank",
+        "knovum-preview://localhost/abc-123",
+    ] {
+        assert!(allows_reader_webview(&url(allowed)), "{allowed}");
+    }
+    for refused in [
+        "file:///etc/passwd",
+        "tauri://localhost/",
+        "asset://localhost/foo.html",
+        "javascript:alert(1)",
+        "knovum-preview://evil.example/abc",
+    ] {
+        assert!(!allows_reader_webview(&url(refused)), "{refused}");
     }
 }
 

@@ -8,11 +8,6 @@
     "label": "Actions du nœud",
     "openOriginal": "Ouvrir l'original",
     "goToTarget": "Aller à la cible",
-    "viewLarge": "Afficher l'image",
-    "openVideo": "Ouvrir la vidéo",
-    "openAudio": "Ouvrir l'audio",
-    "viewCode": "Afficher le code",
-    "openFile": "Ouvrir le fichier",
     "export": "Exporter"
   },
   "zoom": {

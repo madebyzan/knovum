@@ -1,5 +1,4 @@
 {
-  "itemsSelected": "{count} 項目が選択されました",
   "title": "詳細",
   "basicInformation": "全般",
   "showSource": "ソース ビュー",
@@ -28,16 +27,13 @@
   "recognizedText": "OCR 認識テキスト",
   "excerpts": {
     "title": "抜粋・{title}",
-    "line": "— {title} · {location}",
-    "content": "内容の抜粋"
+    "line": "— {title} · {location}"
   },
   "openSource": "ソース ノードの検索",
   "targetSpace": "ターゲット スペース",
   "none": "未設定",
   "renameHint": "クリックして名前を変更",
-  "openContent": "コンテンツを開く",
   "content": "コンテンツ",
-  "playVideo": "ビデオの再生",
   "related": {
     "title": "関連コンテンツ",
     "show": "もっと見る",
@@ -50,5 +46,31 @@
     "empty": "このワークスペースにはまだ関連コンテンツがありません。",
     "explanation": "このワークスペース内の関連コンテンツを意味別に見つけます。結果はつながりを生み出しません。"
   },
-  "containedItems": "{count} に含まれるアイテム"
+  "reader": {
+    "read": "閲覧",
+    "readerMode": "リーダー",
+    "liveWeb": "Web ビュー",
+    "decreaseFontSize": "文字を小さく",
+    "increaseFontSize": "文字を大きく",
+    "searchPlaceholder": "ドキュメント内を検索…",
+    "outline": "目次",
+    "highlight": "ハイライト",
+    "addText": "テキストを追加",
+    "draw": "描画",
+    "wrapLines": "折り返し",
+    "singleSlide": "スライド表示",
+    "continuousSlides": "連続表示",
+    "markup": "マークアップ",
+    "thumbnails": "サムネイル",
+    "highlights": "抜粋",
+    "areaCapture": "範囲キャプチャ",
+    "viewOptions": "表示オプション",
+    "singlePage": "単一ページ",
+    "twoPageSpread": "見開き表示",
+    "fitPage": "ページ全体",
+    "rotateClockwise": "90°回転",
+    "typeHere": "テキストを入力…",
+    "preview": "プレビュー",
+    "followSelection": "選択に合わせて切替"
+  }
 }

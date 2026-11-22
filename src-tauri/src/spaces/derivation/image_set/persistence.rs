@@ -108,7 +108,6 @@ pub(super) async fn complete(
     authority.require_active(&mut *tx).await?;
     source::load(&mut *tx, request).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
-    let enrichment_target = crate::spaces::assets::enrichment::jobs::intent::selection(app)?;
     let mut completed = Vec::with_capacity(members.len());
     for (index, member) in members.iter().enumerate() {
         let output_id = set.node_id(request, index);
@@ -123,14 +122,7 @@ pub(super) async fn complete(
             &data,
         )
         .await?;
-        crate::spaces::derivation::persist_output_node(
-            &mut tx,
-            &output_id,
-            &data,
-            now,
-            enrichment_target.as_ref(),
-        )
-        .await?;
+        crate::spaces::derivation::persist_output_node(&mut tx, &output_id, &data, now).await?;
         sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2 AND status='running'")
             .bind(now).bind(&derivation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
         completed.push(CompletedDerivationOutput {

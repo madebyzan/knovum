@@ -46,20 +46,39 @@ pub(super) async fn validate_object(
     Ok(object_type_id.to_owned())
 }
 
+const ALL_OBJECT_STATUSES: &[&str] = &[
+    "draft",
+    "accepted",
+    "contested",
+    "superseded",
+    "invalidated",
+    "open",
+    "resolved",
+];
+
+pub(crate) fn valid_statuses_for_object_type(object_type_id: &str) -> &'static [&'static str] {
+    match object_type_id {
+        "system:question" => &["open", "resolved", "invalidated"],
+        "system:claim" | "system:evidence" | "system:concept" => &[
+            "draft",
+            "accepted",
+            "contested",
+            "superseded",
+            "invalidated",
+        ],
+        "system:decision" => &["draft", "accepted", "superseded", "invalidated"],
+        "system:experiment" => &["draft", "accepted", "invalidated"],
+        _ => ALL_OBJECT_STATUSES,
+    }
+}
+
 fn validate_system_object_status(object_type_id: &str, status: &str) -> Result<(), String> {
-    let valid = match object_type_id {
-        "system:question" => matches!(status, "open" | "resolved" | "invalidated"),
-        "system:claim" | "system:evidence" | "system:concept" => matches!(
-            status,
-            "draft" | "accepted" | "contested" | "superseded" | "invalidated"
-        ),
-        "system:decision" => matches!(status, "draft" | "accepted" | "superseded" | "invalidated"),
-        "system:experiment" => matches!(status, "draft" | "accepted" | "invalidated"),
-        _ => true,
-    };
-    valid.then_some(()).ok_or_else(|| {
-        format!("Status '{status}' is not valid for Knowledge Type '{object_type_id}'")
-    })
+    valid_statuses_for_object_type(object_type_id)
+        .contains(&status)
+        .then_some(())
+        .ok_or_else(|| {
+            format!("Status '{status}' is not valid for Knowledge Type '{object_type_id}'")
+        })
 }
 
 async fn validate_properties(
@@ -162,10 +181,8 @@ async fn validate_node_refs(
 }
 
 pub(crate) fn validate_object_status(status: &str) -> Result<(), String> {
-    match status {
-        "draft" | "accepted" | "contested" | "superseded" | "invalidated" | "open" | "resolved" => {
-            Ok(())
-        }
-        _ => Err("Unsupported knowledge object status".into()),
-    }
+    ALL_OBJECT_STATUSES
+        .contains(&status)
+        .then_some(())
+        .ok_or_else(|| "Unsupported knowledge object status".into())
 }

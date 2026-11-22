@@ -35,7 +35,6 @@ async fn reserve(tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>) -> Result<(), App
         &["source".to_owned()],
         "Image upscaled from its source",
         "run",
-        None,
     )
     .await
 }
@@ -104,7 +103,7 @@ async fn publishing_into_a_deleted_output_fails_instead_of_reporting_success() {
     let pool = space_with_reserved_output().await;
     trash(&pool, RESERVED).await;
     let mut tx = db::begin_write(&pool).await.unwrap();
-    let error = persist_output_node(&mut tx, RESERVED, &published(), 3, None)
+    let error = persist_output_node(&mut tx, RESERVED, &published(), 3)
         .await
         .unwrap_err();
     assert!(error.message.contains("deleted"), "{}", error.message);
@@ -147,7 +146,7 @@ async fn a_restored_output_shows_the_work_is_over_rather_than_waiting_forever() 
 async fn a_published_output_stops_waiting_and_survives_its_run_ending() {
     let pool = space_with_reserved_output().await;
     let mut tx = db::begin_write(&pool).await.unwrap();
-    persist_output_node(&mut tx, RESERVED, &published(), 3, None)
+    persist_output_node(&mut tx, RESERVED, &published(), 3)
         .await
         .unwrap();
     tx.commit().await.unwrap();
@@ -191,7 +190,6 @@ async fn a_framed_output_is_reserved_in_its_frame_and_claims_no_source_it_lacks(
         &[],
         "Image generated from its prompt",
         "run",
-        None,
     )
     .await
     .unwrap();

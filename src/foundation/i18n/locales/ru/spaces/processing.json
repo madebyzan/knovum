@@ -1,9 +1,6 @@
 {
   "queue": {
-    "title": "Обработка",
-    "pending": "Ожидается {count}",
-    "running": "Обработка {count}",
-    "failed": "Ошибка {count}"
+    "title": "Обработка"
   },
   "enrichmentJobType": {
     "analyze_visual": "Визуальное понимание",

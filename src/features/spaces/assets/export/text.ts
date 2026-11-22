@@ -1,6 +1,6 @@
 import { save } from "@tauri-apps/plugin-dialog";
 
-import { formatExportMarkdown } from "../markdown-document";
+import { formatExportMarkdown, type FormatExportMarkdownOptions } from "../markdown-document";
 import { exportTextFile } from "./ipc";
 import { exportFilter, safeExportFileName } from "./naming";
 
@@ -18,10 +18,14 @@ export async function saveSpaceTextFile(file: SpaceTextExport): Promise<boolean>
   return true;
 }
 
-export async function exportSpaceMarkdown(title: string, markdown: string): Promise<boolean> {
+export async function exportSpaceMarkdown(
+  title: string,
+  markdown: string,
+  options?: FormatExportMarkdownOptions,
+): Promise<boolean> {
   return saveSpaceTextFile({
     defaultPath: `${safeExportFileName(title) || "markdown"}.md`,
     filters: [exportFilter("md")],
-    text: formatExportMarkdown(title, markdown),
+    text: formatExportMarkdown(title, markdown, options),
   });
 }

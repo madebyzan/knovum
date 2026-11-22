@@ -8,11 +8,6 @@
     "label": "ノード アクション",
     "openOriginal": "オリジナルを開く",
     "goToTarget": "ターゲットに移動",
-    "viewLarge": "画像を表示",
-    "openVideo": "ビデオを開く",
-    "openAudio": "オープン オーディオ",
-    "viewCode": "コードの表示",
-    "openFile": "ファイルを開く",
     "export": "エクスポート"
   },
   "zoom": {

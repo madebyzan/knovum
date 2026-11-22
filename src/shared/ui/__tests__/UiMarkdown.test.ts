@@ -37,6 +37,17 @@ describe("UiMarkdown citations", () => {
     expect(wrapper.find(".ui-citation").exists()).toBe(false);
     expect(wrapper.text()).toBe("Claim [C3].");
   });
+
+  it("renders non-interactive preview badges without mutating text or emitting cite", async () => {
+    const wrapper = mount(UiMarkdown, {
+      props: { content: "Claim [C5][C43], code `[C1]`.", citations: "preview" },
+    });
+    const badges = wrapper.findAll("span.ui-citation[data-citation-preview]");
+    expect(badges.map((badge) => badge.text())).toEqual(["5", "43"]);
+    expect(wrapper.get("code").text()).toBe("[C1]");
+    await badges[0]!.trigger("click");
+    expect(wrapper.emitted("cite")).toBeUndefined();
+  });
 });
 
 describe("UiMarkdown streaming", () => {

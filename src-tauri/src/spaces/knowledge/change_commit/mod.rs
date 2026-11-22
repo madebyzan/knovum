@@ -15,11 +15,12 @@ pub(crate) use validation::{validate_references, validate_structure};
 pub async fn apply(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
+    run_id: Option<&str>,
     actor: EventActor<'_>,
     operations: Vec<KnowledgeChange>,
     now: i64,
 ) -> Result<Value, AppError> {
     validate_structure(&operations)?;
     super::events::validation::validate_actor_kind(actor.kind())?;
-    executor::execute(tx, space_id, actor, &operations, now).await
+    executor::execute(tx, space_id, run_id, actor, &operations, now).await
 }

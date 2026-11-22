@@ -26,35 +26,10 @@ pub(in crate::spaces) async fn publish(
     fields: serde_json::Map<String, Value>,
     chunks: Option<Vec<KnowledgeChunkInput>>,
 ) -> Result<Value, AppError> {
-    let target = match guard.job_id {
-        Some(id) => {
-            let raw: Option<String> = sqlx::query_scalar(
-                "SELECT execution_target FROM spaces_enrichment_jobs WHERE id=$1",
-            )
-            .bind(id)
-            .fetch_one(db::pool(app).await?)
-            .await
-            .map_err(db::sql_error)?;
-            raw.map(|raw| {
-                serde_json::from_str::<crate::ai::tasks::TaskTargetSelection>(&raw)
-                    .map_err(db::json_error)
-            })
-            .transpose()?
-        }
-        None if fields.contains_key("processingState") => super::jobs::intent::selection(app)?,
-        None => None,
-    };
     let cancellation = guard.cancellation;
     let mut tx = db::begin_write(db::pool(app).await?).await?;
-    let current = publish_in_transaction(
-        &mut tx,
-        (space_id, node_id),
-        guard,
-        fields,
-        chunks,
-        target.as_ref(),
-    )
-    .await?;
+    let current =
+        publish_in_transaction(&mut tx, (space_id, node_id), guard, fields, chunks).await?;
     if cancellation.is_some_and(|token| token.is_cancelled()) {
         return Err(AppError::new(
             "enrichment_cancelled",
@@ -77,8 +52,7 @@ pub(in crate::spaces) async fn publish_text_recognition(
 ) -> Result<Value, AppError> {
     let fields = serde_json::Map::from_iter([("textRecognition".to_owned(), record)]);
     let mut tx = db::begin_write(db::pool(app).await?).await?;
-    let current =
-        publish_in_transaction(&mut tx, (space_id, node_id), guard, fields, None, None).await?;
+    let current = publish_in_transaction(&mut tx, (space_id, node_id), guard, fields, None).await?;
     let now = crate::foundation::clock::unix_time_millis()?;
     chunk_store::replace_role(
         &mut tx,
@@ -98,7 +72,6 @@ pub(in crate::spaces) async fn publish_in_transaction(
     guard: PublicationGuard<'_>,
     fields: serde_json::Map<String, Value>,
     chunks: Option<Vec<KnowledgeChunkInput>>,
-    target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<Value, AppError> {
     if guard.cancellation.is_some_and(|token| token.is_cancelled()) {
         return Err(AppError::new(
@@ -179,7 +152,6 @@ pub(in crate::spaces) async fn publish_in_transaction(
         }],
         "system",
         now,
-        target,
     )
     .await?;
     sqlx::query("UPDATE spaces SET updated_at=$1 WHERE id=$2")

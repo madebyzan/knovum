@@ -12,17 +12,26 @@
     "manage": "Configure models and Agents…"
   },
   "empty": {
-    "title": "Try one of these tasks",
-    "topic": "[topic]",
-    "search": "Find sources",
-    "searchPrompt": "Find sources about {topic} in this Space and list where each one came from.",
-    "document": "Create a document",
-    "documentPrompt": "Create an editable overview document from sources about {topic} in this Space.",
-    "compare": "Compare ideas",
-    "comparePrompt": "Compare ideas about {topic} in this Space, including common ground, differences, and evidence."
+    "title": "Start with this Space",
+    "emptySpaceSummary": "This Space is empty — ask anything, or drop webpages, files, and media onto the canvas.",
+    "overview": "Map this Space",
+    "overviewDesc": "Summarize core themes, key findings, and connections across sources",
+    "overviewPrompt": "Review the sources in this Space and summarize the core themes, key findings, and how they connect, citing each source.",
+    "brief": "Draft a research brief",
+    "briefDesc": "Synthesize this Space into an editable document on the canvas",
+    "briefPrompt": "Synthesize the sources in this Space into a clear, editable research brief on the canvas with citations for key claims.",
+    "compare": "Compare perspectives",
+    "compareDesc": "Surface agreements, tensions, and evidence across sources",
+    "comparePrompt": "Compare the main perspectives across the sources in this Space, laying out common ground, disagreements, and cited evidence.",
+    "draft": "Draft a topic outline",
+    "draftDesc": "Create a structured note or research outline on the canvas",
+    "draftPrompt": "Create a structured research outline document on the canvas covering background, key questions, and sources to gather.",
+    "plan": "Plan a research framework",
+    "planDesc": "Break down dimensions, angles, and what evidence to collect",
+    "planPrompt": "Help me design a clear research framework: break down the main dimensions, validation angles, and types of sources worth collecting."
   },
   "input": {
-    "placeholder": "Describe a task for the Agent…",
+    "placeholder": "Ask about this Space, or describe what to build…",
     "send": "Send",
     "shortcutHint": "Enter"
   },
@@ -73,7 +82,8 @@
     "search": "Search resources in this Space",
     "none": "No matching resources",
     "remove": "Remove resource: {name}",
-    "preview": "Preview resource: {name}"
+    "preview": "Preview resource: {name}",
+    "addSelectedOne": "Attach selected · {title}"
   },
   "uploads": {
     "sizeError": "Files cannot be empty. Images must be at most 10 MiB; other files at most 20 MiB.",
@@ -122,7 +132,7 @@
     "noSources": "No matching sources",
     "plan": "Plan"
   },
-  "askSelection": "Ask selection",
+  "askSelection": "Ask Knovum",
   "extensions": {
     "label": "Conversation extensions",
     "unavailable": "A selected extension is unavailable. Review the selection.",

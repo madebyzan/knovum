@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use super::super::{into_source, publish_embeddings};
+use super::super::{into_source, publish_embeddings, PublishError};
 use super::fixture::Fixture;
 use crate::spaces::{
     db,
@@ -87,7 +87,11 @@ async fn stale_embedding_cannot_replace_current_vectors() {
     let error = publish_embeddings(&fixture.pool, &fixture.index, fixture.input())
         .await
         .expect_err("stale input");
-    assert!(error.contains("no longer has source revision"), "{error}");
+    assert!(matches!(error, PublishError::StaleRevision(_)), "{error}");
+    assert!(
+        error.to_string().contains("no longer has source revision"),
+        "{error}"
+    );
     assert_eq!(fixture.rows().await, 1);
 }
 

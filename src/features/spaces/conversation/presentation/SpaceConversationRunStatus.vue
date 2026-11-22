@@ -47,7 +47,7 @@ const toolWaitMessage = computed(() => {
 <template>
   <div
     v-if="state === 'waiting' && recoveryMessage"
-    class="shrink-0 space-y-2 border-t border-stroke-divider px-3 py-2 text-caption text-fg-warning"
+    class="mx-3 mb-2 shrink-0 space-y-2 rounded-lg border border-stroke-warning/30 bg-surface-warning-subtle px-3 py-2 text-caption text-fg-warning"
   >
     <p>{{ recoveryMessage }}</p>
     <p>{{ t("spaces.conversation.tasks.modelRetryCost") }}</p>
@@ -57,7 +57,7 @@ const toolWaitMessage = computed(() => {
   </div>
   <div
     v-else-if="state === 'paused'"
-    class="flex shrink-0 items-center gap-2 border-t border-stroke-divider px-3 py-2 text-caption text-fg-warning"
+    class="mx-3 mb-2 flex shrink-0 items-center gap-2 rounded-lg border border-stroke-warning/30 bg-surface-warning-subtle px-3 py-2 text-caption text-fg-warning"
   >
     <span class="min-w-0 flex-1">{{ t("spaces.conversation.tasks.paused") }}</span>
     <UiButton size="sm" variant="secondary" @click="emit('resume')">{{
@@ -66,14 +66,14 @@ const toolWaitMessage = computed(() => {
   </div>
   <p
     v-else-if="state === 'waiting'"
-    class="shrink-0 border-t border-stroke-divider px-3 py-2 text-caption text-fg-secondary"
+    class="mx-3 mb-2 shrink-0 rounded-lg border border-stroke-divider bg-surface-control/60 px-3 py-2 text-caption text-fg-secondary"
   >
     {{ toolWaitMessage ?? t("spaces.conversation.tasks.waitingForResult") }}
   </p>
   <p
     v-if="error"
     role="alert"
-    class="flex shrink-0 items-start gap-2 border-t border-stroke-danger/30 bg-surface-danger-subtle px-3 py-2 text-caption text-fg-danger"
+    class="mx-3 mb-2 flex shrink-0 items-start gap-2 rounded-lg border border-stroke-danger/30 bg-surface-danger-subtle px-3 py-2 text-caption text-fg-danger"
   >
     <AlertCircle class="mt-0.5 size-3.5 shrink-0" />
     <span class="min-w-0 wrap-break-word">{{ error }}</span>

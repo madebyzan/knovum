@@ -12,17 +12,26 @@
     "manage": "Configurer les modèles et les agents…"
   },
   "empty": {
-    "title": "Essayez l'une de ces tâches",
-    "topic": "[sujet]",
-    "search": "Rechercher les sources",
-    "searchPrompt": "Recherchez des sources sur {topic} dans cet espace de travail et indiquez la provenance de chacune.",
-    "document": "Créer un document",
-    "documentPrompt": "Créez un document de présentation modifiable à partir de sources sur {topic} dans cet espace de travail.",
-    "compare": "Comparer les idées",
-    "comparePrompt": "Comparez les idées sur {topic} dans cet espace de travail, y compris les points communs, les différences et les preuves."
+    "title": "Commencer dans cet espace",
+    "emptySpaceSummary": "Cet espace est vide — posez une question ou déposez des pages web, fichiers et médias sur le canevas.",
+    "overview": "Cartographier l’espace",
+    "overviewDesc": "Résumer thèmes clés, constats et liens entre les sources",
+    "overviewPrompt": "Analyse les sources de cet espace et résume les thèmes clés, les principaux constats et leurs liens en citant chaque source.",
+    "brief": "Rédiger une note de synthèse",
+    "briefDesc": "Synthétiser les sources dans un document modifiable sur le canevas",
+    "briefPrompt": "Synthétise les sources de cet espace dans une note de recherche claire et modifiable sur le canevas, avec les citations clés.",
+    "compare": "Comparer les points de vue",
+    "compareDesc": "Faire ressortir convergences, divergences et preuves",
+    "comparePrompt": "Compare les principaux points de vue présents dans cet espace en listant les points communs, les divergences et les preuves citées.",
+    "draft": "Ébaucher un plan",
+    "draftDesc": "Créer une note structurée ou un plan de recherche sur le canevas",
+    "draftPrompt": "Crée sur le canevas un plan de recherche structuré couvrant le contexte, les questions clés et les sources à réunir.",
+    "plan": "Structurer un cadre d’étude",
+    "planDesc": "Décomposer les axes d’analyse et les sources à collecter",
+    "planPrompt": "Aide-moi à définir un cadre de recherche clair : axes principaux, angles de vérification et types de sources à rassembler."
   },
   "input": {
-    "placeholder": "Décrire une tâche pour l'agent…",
+    "placeholder": "Posez une question sur cet espace ou décrivez ce qu’il faut créer…",
     "send": "Envoyer",
     "shortcutHint": "Entrée"
   },
@@ -73,7 +82,8 @@
     "search": "Rechercher des ressources dans cet espace de travail",
     "none": "Aucune ressource correspondante",
     "remove": "Supprimer la ressource : {name}",
-    "preview": "Ressource d'aperçu : {name}"
+    "preview": "Ressource d'aperçu : {name}",
+    "addSelectedOne": "Joindre la sélection · {title}"
   },
   "uploads": {
     "sizeError": "Les fichiers ne peuvent pas être vides. Les images doivent faire au maximum 10 Mio ; autres fichiers au maximum 20 Mio.",
@@ -122,7 +132,7 @@
     "noSources": "Aucune source correspondante",
     "plan": "Plan"
   },
-  "askSelection": "Demander la sélection",
+  "askSelection": "Demander à Knovum",
   "extensions": {
     "label": "Extensions de conversation",
     "unavailable": "Une extension sélectionnée n'est pas disponible. Vérifiez la sélection.",

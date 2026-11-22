@@ -11,7 +11,8 @@
     "refreshFailed": "網頁抓取失敗"
   },
   "preview": {
-    "system": "預覽",
+    "quickLook": "快速查看",
+    "system": "開啟",
     "show": "預覽視圖",
     "instantUnavailable": {
       "title": "暫無即時預覽",
@@ -64,6 +65,5 @@
     "resource": "正在導入資源",
     "preparing": "正在複製併校驗資源…",
     "processing": "正在解析資源…"
-  },
-  "openInEditor": "在外部編輯器中開啟"
+  }
 }

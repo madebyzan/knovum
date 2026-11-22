@@ -58,5 +58,18 @@ describe("markdown-document codec", () => {
     it("returns markdown as-is when title is blank", () => {
       expect(formatExportMarkdown("   ", "Body content.")).toBe("Body content.");
     });
+
+    it("strips internal citation anchors cleanly when exporting a grounded document", () => {
+      const exported = formatExportMarkdown("Report", "Key insight [C3][C5]. Keep `[C3]` literal.", {
+        stripCitations: true,
+      });
+      expect(exported).toBe("# Report\n\nKey insight. Keep `[C3]` literal.");
+    });
+
+    it("preserves non-grounded markdown verbatim when stripCitations is false", () => {
+      expect(formatExportMarkdown("Report", "Body [C1].", { stripCitations: false })).toBe(
+        "# Report\n\nBody [C1].",
+      );
+    });
   });
 });

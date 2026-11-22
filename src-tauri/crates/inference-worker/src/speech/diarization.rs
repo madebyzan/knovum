@@ -133,25 +133,14 @@ impl Diarizer {
                 }
                 let converted: Result<(), String> = (|| {
                     for segment in unsafe { std::slice::from_raw_parts(segments, count as usize) } {
-                        let (start, end) = (segment.start, segment.end);
-                        if !start.is_finite()
-                            || !end.is_finite()
-                            || start < 0.0
-                            || end <= start
-                            || f64::from(end) > audio.frames() as f64 / 16_000.0 + 0.001
-                            || segment.speaker < 0
-                            || segment.speaker >= 32
-                        {
-                            return Err(
-                                "invalid_output: diarization returned an invalid speaker timeline"
-                                    .into(),
-                            );
+                        if let Some(turn) = normalize_segment(
+                            segment.start,
+                            segment.end,
+                            segment.speaker,
+                            audio.frames(),
+                        )? {
+                            turns.push(turn);
                         }
-                        turns.push(SpeakerTurn {
-                            speaker_id: segment.speaker.to_string(),
-                            start_ms: (f64::from(start) * 1000.0).round() as u64,
-                            end_ms: (f64::from(end) * 1000.0).round() as u64,
-                        });
                     }
                     Ok(())
                 })();
@@ -206,4 +195,67 @@ fn configuration(clusters: i32) -> SherpaOnnxOfflineSpeakerDiarizationConfig {
 }
 unsafe extern "C" fn observe(_done: i32, _total: i32, pointer: *mut std::ffi::c_void) -> i32 {
     i32::from(unsafe { &*pointer.cast::<Cancellation>() }.check().is_err())
+}
+
+/// Pyannote segmentation quantizes turn boundaries to sliding-window frames, so the trailing
+/// turn can exceed exact PCM sample length by tens to hundreds of milliseconds. Clamp minor
+/// frame-grid overshoot to the audio end while still rejecting corrupted timelines.
+const MAX_TIMELINE_OVERSHOOT_SECS: f64 = 1.0;
+const MAX_SPEAKER_CLUSTER_ID: i32 = 1024;
+
+fn normalize_segment(
+    start: f32,
+    end: f32,
+    speaker: i32,
+    audio_frames: usize,
+) -> Result<Option<SpeakerTurn>, String> {
+    let duration_secs = audio_frames as f64 / 16_000.0;
+    let duration_ms = (duration_secs * 1000.0).round() as u64;
+    if !start.is_finite()
+        || !end.is_finite()
+        || start < 0.0
+        || end <= start
+        || f64::from(end) > duration_secs + MAX_TIMELINE_OVERSHOOT_SECS
+        || !(0..MAX_SPEAKER_CLUSTER_ID).contains(&speaker)
+    {
+        return Err(format!(
+            "invalid_output: diarization returned an invalid speaker timeline (start={start}, end={end}, speaker={speaker}, duration={duration_secs:.3}s)"
+        ));
+    }
+    let start_ms = ((f64::from(start) * 1000.0).round() as u64).min(duration_ms);
+    let end_ms = ((f64::from(end) * 1000.0).round() as u64).min(duration_ms);
+    if end_ms <= start_ms {
+        return Ok(None);
+    }
+    Ok(Some(SpeakerTurn {
+        speaker_id: speaker.to_string(),
+        start_ms,
+        end_ms,
+    }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_segment;
+
+    #[test]
+    fn clamps_pyannote_frame_overshoot_at_audio_tail() {
+        let turn = normalize_segment(9.5, 10.12, 1, 160_000)
+            .expect("frame-grid tail overshoot should clamp cleanly")
+            .expect("turn should remain non-empty");
+        assert_eq!(turn.speaker_id, "1");
+        assert_eq!(turn.start_ms, 9_500);
+        assert_eq!(turn.end_ms, 10_000);
+    }
+
+    #[test]
+    fn allows_auto_detected_clusters_above_32_and_rejects_corrupt_timelines() {
+        let turn = normalize_segment(1.0, 2.0, 35, 160_000)
+            .expect("auto clustering above 32 should be accepted")
+            .expect("turn should remain non-empty");
+        assert_eq!(turn.speaker_id, "35");
+        assert!(normalize_segment(1.0, 12.0, 0, 160_000).is_err());
+        assert!(normalize_segment(2.0, 1.0, 0, 160_000).is_err());
+        assert!(normalize_segment(1.0, 2.0, -1, 160_000).is_err());
+    }
 }

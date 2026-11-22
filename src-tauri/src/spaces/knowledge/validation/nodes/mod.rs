@@ -14,7 +14,7 @@ use sqlx::{Sqlite, Transaction};
 
 use self::payload::validate_payload_shape;
 
-pub(crate) use object::validate_object_status;
+pub(crate) use object::{valid_statuses_for_object_type, validate_object_status};
 pub(in crate::spaces) use projection::{validate_query_filter, validate_same_space_node};
 
 pub(super) async fn validate_node(

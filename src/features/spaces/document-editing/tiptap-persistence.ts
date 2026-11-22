@@ -1,5 +1,6 @@
 import { createKeyedSerialQueue } from "../../../foundation/async/keyed-serial-queue";
 import { i18n } from "../../../foundation/i18n/instance";
+import { unescapeCitationMarkers } from "../knowledge/model/citation-markers";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceMarkdownPayload, SpaceNotePayload, SpaceNodePayload } from "../model/nodes/node-payload";
 import { tiptapContentSchema } from "../model/nodes/schema/content";
@@ -60,7 +61,7 @@ function pendingSave(
 
 function markdownSave(node: MarkdownNode, context: SaveContext) {
   const { state, editor } = context;
-  const text = editor.getMarkdown();
+  const text = unescapeCitationMarkers(editor.getMarkdown());
   const title =
     state.title.value.trim() || firstLine(text) || i18n.global.t("spaces.editor.markdown.untitled");
   const contentChanged = state.revision.value > state.persistedRevision.value;

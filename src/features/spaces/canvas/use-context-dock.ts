@@ -8,7 +8,6 @@ import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import { useSpaceStore } from "../session/space-store";
 import type { AskSidebarOptions, OpenSourceOptions } from "../workspace/right-sidebar-actions";
-import { getCanvasEditorSession } from "./editor-session";
 
 export function useContextDock() {
   const rightSidebar = inject(workspaceRightSidebarKey);
@@ -18,36 +17,30 @@ export function useContextDock() {
 
 export function createContextDock(rightSidebar: WorkspaceRightSidebarController) {
   const store = useSpaceStore();
-  const editorSession = getCanvasEditorSession();
 
-  function openInspect() {
-    store.setRightSidebarView("inspect");
-    rightSidebar.open();
+  function openNodeInfo(nodeId: string) {
+    store.openSourceReader({ nodeId, pane: "info" });
   }
 
   function openKnowledgeHealth() {
-    editorSession.clearSelection();
-    openInspect();
+    store.openKnowledgeHealth();
   }
 
   function openAsk(scope?: ConversationScope, options: AskSidebarOptions = {}) {
     if (scope) store.requestAsk(scope, options);
-    else store.setRightSidebarView("ask");
     rightSidebar.open();
   }
 
   function openSource(target: KnowledgePeekTarget, options: OpenSourceOptions = {}) {
     store.openSource(target, options);
-    if (store.workbench.rightSidebar) rightSidebar.open();
   }
 
   function closeDock() {
-    if (store.rightSidebarView === "source") store.closeSource();
     rightSidebar.close();
   }
 
   return {
-    openInspect,
+    openNodeInfo,
     openKnowledgeHealth,
     openAsk,
     openSource,

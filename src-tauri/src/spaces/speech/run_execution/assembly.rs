@@ -130,7 +130,6 @@ pub(super) async fn execute(
         &config.revision_id,
         &output,
         cover,
-        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
     )
     .await;
     if let Err(error) = committed {

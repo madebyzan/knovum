@@ -38,6 +38,7 @@ pub async fn commit_knowledge_changes<R: Runtime>(
     let committed_changes = change_commit::apply(
         &mut tx,
         &changes.space_id,
+        None,
         super::events::EventActor::new("human", Some(&changes.actor)),
         changes.operations,
         now,

@@ -1,5 +1,5 @@
 use futures::{Stream, StreamExt};
-use genai::{adapter::AdapterKind, chat::ChatStreamEvent, Client};
+use genai::{adapter::AdapterKind, chat::ChatStreamEvent};
 use tokio_util::sync::CancellationToken;
 
 use super::{to_genai_options, to_genai_request, wire::service_target};
@@ -26,7 +26,7 @@ pub(super) async fn stream_text(
     let options = to_genai_options(&request)
         .with_capture_usage(true)
         .with_capture_tool_calls(true);
-    let client = Client::default();
+    let client = super::genai_streaming_client();
     let response = tokio::select! {
         biased;
         _ = cancellation.cancelled() => return Err(AppError::cancelled("Text stream was cancelled")),

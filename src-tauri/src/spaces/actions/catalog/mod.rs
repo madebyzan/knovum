@@ -12,8 +12,8 @@ use definition::{
 };
 use parameters::{
     contents, empty, image, image_layers, image_transform, knowledge_changes, meeting_summary,
-    node, note, purpose, question, script, search, social_copy, space_edit, subtitles, video,
-    visualization,
+    node, node_chunks, note, purpose, question, relations, script, search, social_copy, space_edit,
+    subtitles, video, visualization,
 };
 
 pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
@@ -106,6 +106,30 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         Output::SearchResults,
     ),
     query_action("read-node", None, None, &[], node, Output::KnowledgeNode),
+    query_action(
+        "read-node-chunks",
+        None,
+        None,
+        &[],
+        node_chunks,
+        Output::NodeChunks,
+    ),
+    query_action(
+        "list-object-types",
+        None,
+        None,
+        &[],
+        empty,
+        Output::ObjectTypes,
+    ),
+    query_action(
+        "list-relations",
+        None,
+        None,
+        &[],
+        relations,
+        Output::SpaceRelations,
+    ),
     durable_query_action(
         "answer-question",
         ExecutionCapability::TextGeneration,

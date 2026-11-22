@@ -22,7 +22,7 @@ const { t } = useI18n();
       <ArrowLeft class="size-3.5" :stroke-width="1.55" />
     </UiIconButton>
     <slot name="leading" />
-    <div class="min-w-0 flex-1">
+    <div v-if="title || subtitle" class="min-w-0 flex-1">
       <h2 v-if="title" class="truncate text-title-sm font-semibold tracking-title">{{ title }}</h2>
       <p v-if="subtitle" class="mt-0.5 truncate text-caption-sm text-fg-tertiary">{{ subtitle }}</p>
     </div>

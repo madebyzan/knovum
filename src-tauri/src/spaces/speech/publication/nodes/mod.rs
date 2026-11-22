@@ -29,7 +29,6 @@ pub(in crate::spaces::speech) async fn settle(
     space_id: &str,
     source_node_id: &str,
     outputs: &[MediaNodeOutput],
-    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
     let source = load_node_payload(tx, space_id, source_node_id)
         .await?
@@ -49,7 +48,7 @@ pub(in crate::spaces::speech) async fn settle(
             .ok_or("Speech output node kind is invalid")?
             .to_owned();
         crate::spaces::knowledge::validation::validate_node(tx, space_id, &kind, &data).await?;
-        derivation::persist_output_node(tx, &output.node_id, &data, now, enrichment_target)
+        derivation::persist_output_node(tx, &output.node_id, &data, now)
             .await
             .map_err(|error| error.message)?;
     }

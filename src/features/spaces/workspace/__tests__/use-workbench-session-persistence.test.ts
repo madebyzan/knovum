@@ -4,7 +4,6 @@ import { nextTick, ref, shallowRef } from "vue";
 
 import { createTestSpace } from "../../__tests__/support/session-context";
 import type { Space } from "../../model/space";
-import type { RightSidebarPrimaryView, RightSidebarView } from "../../session/workbench-state";
 import { defaultSpaceViewSession, type SpaceViewSession } from "../space-view-session";
 import { useWorkbenchSessionPersistence } from "../use-workbench-session-persistence";
 import { createSpaceCanvasTab, createSpaceEditorTab, type SpaceWorkbenchTab } from "../workbench-tab";
@@ -38,8 +37,6 @@ describe("useWorkbenchSessionPersistence", () => {
       activeTabId: ref<string | undefined>(editor.id),
       activeSpaceId: ref<string | undefined>("inbox"),
       draftSpace: ref<Space | undefined>(draft),
-      rightSidebarView: ref<RightSidebarView>("source"),
-      sourceReturnView: ref<RightSidebarPrimaryView>("inspect"),
       groupScopePath: ref<string[]>([]),
       activeSceneId: ref<string | undefined>(),
       outlineExpandedIds: shallowRef<string[]>(["inbox-sec"]),
@@ -60,7 +57,6 @@ describe("useWorkbenchSessionPersistence", () => {
         { kind: "video", spaceId: "inbox", nodeId: "clip" },
       ],
       activeIndex: 0,
-      rightSidebarView: "inspect",
       spaceViews: {
         inbox: { outlineExpandedIds: ["inbox-sec"] },
         research: {

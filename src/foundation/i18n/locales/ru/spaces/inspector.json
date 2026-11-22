@@ -1,5 +1,4 @@
 {
-  "itemsSelected": "Выбран {count} элемент | Выбрано {count} элемента | Выбрано {count} элементов",
   "title": "Подробнее",
   "basicInformation": "Общие",
   "showSource": "Вид исходного кода",
@@ -28,16 +27,13 @@
   "recognizedText": "Текст, распознанный OCR",
   "excerpts": {
     "title": "Отрывок · {title}",
-    "line": "— {title} · {location}",
-    "content": "Отрывок из контента"
+    "line": "— {title} · {location}"
   },
   "openSource": "Найти исходный узел",
   "targetSpace": "Целевое пространство",
   "none": "Не установлено",
   "renameHint": "Нажмите, чтобы переименовать",
-  "openContent": "Открытый контент",
   "content": "Содержимое",
-  "playVideo": "Воспроизвести видео",
   "related": {
     "title": "Похожий контент",
     "show": "Показать больше",
@@ -50,5 +46,31 @@
     "empty": "В этой рабочей области пока нет связанного контента.",
     "explanation": "Откройте для себя связанный контент в этом рабочем пространстве по смыслу. Результаты не создают связей."
   },
-  "containedItems": "{count} содержал предметы"
+  "reader": {
+    "read": "Чтение",
+    "readerMode": "Режим чтения",
+    "liveWeb": "Веб-просмотр",
+    "decreaseFontSize": "Уменьшить текст",
+    "increaseFontSize": "Увеличить текст",
+    "searchPlaceholder": "Поиск в документе…",
+    "outline": "Оглавление",
+    "highlight": "Выделить",
+    "addText": "Добавить текст",
+    "draw": "Рисовать",
+    "wrapLines": "Перенос строк",
+    "singleSlide": "По слайдам",
+    "continuousSlides": "Непрерывно",
+    "markup": "Разметка",
+    "thumbnails": "Миниатюры",
+    "highlights": "Выдержки",
+    "areaCapture": "Захват области",
+    "viewOptions": "Параметры вида",
+    "singlePage": "Одна страница",
+    "twoPageSpread": "Разворот",
+    "fitPage": "По странице",
+    "rotateClockwise": "Повернуть на 90°",
+    "typeHere": "Введите текст…",
+    "preview": "Предпросмотр",
+    "followSelection": "Переключать по выбору"
+  }
 }

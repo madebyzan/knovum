@@ -177,6 +177,8 @@
     "loadFailed": "Schematypen konnten nicht geladen werden"
   },
   "visual": {
-    "empty": "Noch keine Bildanalyse"
+    "empty": "Noch keine Bildanalyse",
+    "keywords": "Visuelle Schlüsselwörter",
+    "adoptKeyword": "„{keyword}“ zu Schlagwörtern hinzufügen"
   }
 }

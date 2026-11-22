@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, toRef } from "vue";
+import { useI18n } from "vue-i18n";
 
 import type { LocalModelId } from "../../../../../shared/contracts/generated/LocalModelId";
+import UiKnovumAiIcon from "../../../../../shared/ui/UiKnovumAiIcon.vue";
 import type {
   CreationIntentDecisions,
   CreationIntentId,
@@ -35,6 +37,7 @@ const emit = defineEmits<{
   beginSpeech: [operation: NodeSpeechOperation];
   separate: [model?: LocalModelId];
 }>();
+const { t } = useI18n();
 const { primary } = useNodePrimaryAction(toRef(props, "node"), props.actions);
 const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(props.node) : []));
 const isMedia = computed(() => props.node?.data.kind === "audio" || props.node?.data.kind === "video");
@@ -42,12 +45,20 @@ const isMedia = computed(() => props.node?.data.kind === "audio" || props.node?.
 
 <template>
   <SpaceCanvasActionTrigger
+    v-if="actions.state.value.canAsk && !minimal"
+    :label="t('spaces.conversation.askSelection')"
+    :icon="UiKnovumAiIcon"
+    :compact="compact"
+    :menu-item="menuItem"
+    class="font-medium text-fg-primary"
+    @invoke="actions.ask"
+  />
+  <SpaceCanvasActionTrigger
     v-if="primary && !minimal"
     :label="primary.label"
     :icon="primary.icon"
     :compact="compact"
     :menu-item="menuItem"
-    class="font-medium text-fg-primary"
     @invoke="primary.run"
   />
   <slot />

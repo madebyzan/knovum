@@ -11,7 +11,8 @@
     "refreshFailed": "Web コンテンツの取得に失敗しました"
   },
   "preview": {
-    "system": "プレビュー",
+    "quickLook": "クイックルック",
+    "system": "開く",
     "show": "プレビュー ビュー",
     "instantUnavailable": {
       "title": "インスタント プレビューなし",
@@ -64,6 +65,5 @@
     "resource": "リソースのインポート",
     "preparing": "リソースをコピーして検証しています…",
     "processing": "リソースを解析中…"
-  },
-  "openInEditor": "外部エディタで開く"
+  }
 }

@@ -49,12 +49,21 @@ function focusedTextResponder(intent: EditingCommand, focused: Element | null): 
   return history ? { kind: "editor-history", history } : PLATFORM;
 }
 
+function registeredHistoryResponder(
+  intent: EditingCommand,
+  focused: Element | null,
+): EditingResponder | undefined {
+  if ((intent !== "undo" && intent !== "redo") || !focused) return undefined;
+  const history = editorHistoryAt(focused);
+  return history ? { kind: "editor-history", history } : undefined;
+}
+
 export function resolveEditingResponder(
   intent: EditingCommand,
   commands: readonly AppCommand[],
   focused: Element | null = document.activeElement,
 ): EditingResponder {
-  const typing = focusedTextResponder(intent, focused);
+  const typing = focusedTextResponder(intent, focused) ?? registeredHistoryResponder(intent, focused);
   if (typing) return typing;
   if ((intent === "copy" || intent === "cut") && hasActionableTextSelection(focused)) return PLATFORM;
   // Nothing on the page is being edited, so the active surface acts on its own content. Without

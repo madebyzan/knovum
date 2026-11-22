@@ -13,14 +13,13 @@ pub(crate) async fn synchronize_for_node(
     node_id: &str,
     payload: &Value,
     now: i64,
-    target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
     if source_revision(payload).is_none() {
         return Ok(());
     }
     cancel_obsolete(tx, space_id, node_id, payload, now).await?;
     for (job_type, revision) in required_jobs(payload)? {
-        enqueue(tx, space_id, node_id, &revision, job_type, now, target).await?;
+        enqueue(tx, space_id, node_id, &revision, job_type, now).await?;
     }
     Ok(())
 }
@@ -166,7 +165,7 @@ pub(crate) async fn enqueue_missing_recognition(pool: &SqlitePool, now: i64) -> 
             .try_get("space_id")
             .map_err(crate::spaces::db::sql_error)?;
         let job = EnrichmentJobType::RecognizeText;
-        enqueue(&mut tx, &space_id, &node_id, &revision, job, now, None).await?;
+        enqueue(&mut tx, &space_id, &node_id, &revision, job, now).await?;
     }
     tx.commit().await.map_err(crate::spaces::db::sql_error)
 }
@@ -187,6 +186,9 @@ fn visual_knowledge_is_current(data: &Value, source_revision: &str) -> bool {
             .is_some_and(|description| !description.trim().is_empty())
 }
 
+/// Background enrichment leaves `execution_target` unset so visual analysis resolves the user's
+/// active Visual Understanding route when the job starts. Explicit per-node requests set a target
+/// through `requests::request_visual_analysis`.
 async fn enqueue(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
@@ -194,11 +196,10 @@ async fn enqueue(
     source_revision: &str,
     job_type: EnrichmentJobType,
     now: i64,
-    target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
     sqlx::query(
         "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,execution_target,attempts,error,created_at,updated_at) \
-         SELECT $1,$2,$3,$4,$5,$6,$8,0,NULL,$7,$7 \
+         SELECT $1,$2,$3,$4,$5,$6,NULL,0,NULL,$7,$7 \
          WHERE NOT EXISTS (SELECT 1 FROM spaces_enrichment_jobs \
            WHERE space_id=$2 AND node_id=$3 AND job_type=$4 AND source_revision=$6 AND status IN ('failed','cancelled')) \
          ON CONFLICT(space_id,node_id,job_type,source_revision) WHERE status IN ('pending','running','awaiting_configuration') \
@@ -211,7 +212,6 @@ async fn enqueue(
     .bind(STATUS_PENDING)
     .bind(source_revision)
     .bind(now)
-    .bind(target.filter(|_| job_type == EnrichmentJobType::AnalyzeVisual).map(sqlx::types::Json))
     .execute(&mut **tx)
     .await
     .map_err(crate::spaces::db::sql_error)?;
@@ -220,17 +220,3 @@ async fn enqueue(
 
 #[cfg(test)]
 mod tests;
-
-/// Capture policy at the node mutation boundary; execution validates runtime readiness later.
-pub(in crate::spaces) fn selection<R: tauri::Runtime>(
-    app: &tauri::AppHandle<R>,
-) -> Result<Option<crate::ai::tasks::TaskTargetSelection>, String> {
-    match crate::ai::settings::default_selection(
-        app,
-        crate::ai::contracts::RoutingPurpose::VisualUnderstanding,
-    ) {
-        Ok(target) => Ok(Some(target)),
-        Err(error) if error.is_not_configured() => Ok(None),
-        Err(error) => Err(error.to_string()),
-    }
-}

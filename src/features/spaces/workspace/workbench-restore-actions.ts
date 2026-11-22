@@ -113,10 +113,6 @@ async function applyStrip(
   for (const entry of entries) {
     if ("node" in entry) context.editors.open(entry.tab, entry.node);
   }
-  if (saved) {
-    context.rightSidebarView.value = saved.rightSidebarView;
-    context.sourceReturnView.value = saved.rightSidebarView;
-  }
   context.tabs.value = tabs;
   selectWorkbenchTab(context, active.id);
   await nextTick();

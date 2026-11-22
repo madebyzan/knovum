@@ -9,6 +9,9 @@ import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { exportSpaceMarkdown } from "../../assets/export/text";
 import { registerDocumentEditCommands } from "../../commands/document-edit-commands";
+import SpaceCitationPreview from "../../conversation/presentation/SpaceCitationPreview.vue";
+import { useCitationHover } from "../../conversation/presentation/use-citation-hover";
+import { unescapeCitationMarkers } from "../../knowledge/model/citation-markers";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceEditorSaveStatus from "../../workspace/presentation/SpaceEditorSaveStatus.vue";
 import type { SpaceEditorTab } from "../../workspace/workbench-tab";
@@ -33,7 +36,10 @@ const {
   editorLabel,
   editorNode,
   editor,
+  groundedCitations,
   headings,
+  isGroundedMarkdownDocument,
+  openGroundedCitation,
   persist,
   revealHeading,
   saveStatus,
@@ -43,6 +49,7 @@ const {
   wordCount,
 } = useSpaceTiptapEditor(props.tab, toRef(props, "active"), scrollRoot);
 const writing = useSpaceTiptapWritingTools(editor);
+const citationHover = useCitationHover(groundedCitations);
 const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot, toRef(props, "active"));
 const search = useTemplateRef<InstanceType<typeof SpaceTiptapSearch>>("search");
 const outline = useTemplateRef<InstanceType<typeof SpaceDocumentOutline>>("outline");
@@ -75,7 +82,9 @@ async function exportMarkdown() {
   if (!editor.value) return;
   try {
     await persist();
-    if (await exportSpaceMarkdown(title.value, editor.value.getMarkdown()))
+    const stripCitations = await isGroundedMarkdownDocument();
+    const markdown = unescapeCitationMarkers(editor.value.getMarkdown());
+    if (await exportSpaceMarkdown(title.value, markdown, { stripCitations }))
       toast.success(t("spaces.importExport.export.completed"));
   } catch (caught) {
     toast.error(getErrorMessage(caught));
@@ -109,42 +118,60 @@ async function exportMarkdown() {
     <div v-if="editor && !error && !suspended" class="border-b border-stroke-divider bg-surface-chrome/80">
       <SpaceTiptapToolbar :editor="editor" />
     </div>
-    <div class="relative flex min-h-0 flex-1">
-      <div ref="scrollRoot" class="relative min-h-0 flex-1 overflow-auto" @scroll.passive="syncActiveHeading">
+    <div class="flex min-h-0 flex-1">
+      <div class="relative flex min-h-0 flex-1">
         <div
-          v-if="imageDragging"
-          class="pointer-events-none sticky top-2 z-40 mx-2 -mb-18 flex h-16 items-center justify-center gap-2 rounded-panel border border-dashed border-stroke-accent bg-surface-overlay/92 text-label font-medium text-fg-accent shadow-popover backdrop-blur"
+          ref="scrollRoot"
+          class="relative min-h-0 flex-1 overflow-auto"
+          @scroll.passive="syncActiveHeading"
         >
-          <ImagePlus class="size-4" />{{ t("spaces.richtext.image.dropNow") }}
+          <div
+            v-if="imageDragging"
+            class="pointer-events-none sticky top-2 z-40 mx-2 -mb-18 flex h-16 items-center justify-center gap-2 rounded-panel border border-dashed border-stroke-accent bg-surface-overlay/92 text-label font-medium text-fg-accent shadow-popover backdrop-blur"
+          >
+            <ImagePlus class="size-4" />{{ t("spaces.richtext.image.dropNow") }}
+          </div>
+          <article class="mx-auto min-h-full w-full max-w-3xl px-10 py-12 sm:px-14">
+            <input
+              v-model="title"
+              :disabled="!!error || suspended"
+              class="w-full bg-transparent text-display font-semibold tracking-title text-fg-primary outline-none placeholder:text-fg-tertiary"
+              :aria-label="t('spaces.editor.markdown.title')"
+              :placeholder="
+                editorNode.data.kind === 'note'
+                  ? t('spaces.editor.note.new')
+                  : t('spaces.editor.markdown.untitled')
+              "
+              @blur="persist"
+            />
+            <!--
+              The bubble menu moves its root element out of this tree and into the ProseMirror
+              plugin, so its lifetime must follow the editor instance. Visibility is the plugin's
+              own concern: it stays hidden while the editor is not editable or not focused.
+            -->
+            <SpaceTiptapBubbleMenu v-if="editor" :editor="editor" :writing="writing" />
+            <EditorContent
+              v-if="editor"
+              :editor="editor"
+              class="mt-7"
+              @pointerover="citationHover.onBodyPointerOver"
+              @pointerout="citationHover.onBodyPointerOut"
+            />
+          </article>
         </div>
-        <article class="mx-auto min-h-full w-full max-w-3xl px-10 py-12 sm:px-14">
-          <input
-            v-model="title"
-            :disabled="!!error || suspended"
-            class="w-full bg-transparent text-display font-semibold tracking-title text-fg-primary outline-none placeholder:text-fg-tertiary"
-            :aria-label="t('spaces.editor.markdown.title')"
-            :placeholder="
-              editorNode.data.kind === 'note'
-                ? t('spaces.editor.note.new')
-                : t('spaces.editor.markdown.untitled')
-            "
-            @blur="persist"
-          />
-          <!--
-            The bubble menu moves its root element out of this tree and into the ProseMirror
-            plugin, so its lifetime must follow the editor instance. Visibility is the plugin's
-            own concern: it stays hidden while the editor is not editable or not focused.
-          -->
-          <SpaceTiptapBubbleMenu v-if="editor" :editor="editor" :writing="writing" />
-          <EditorContent v-if="editor" :editor="editor" class="mt-7" />
-        </article>
+        <SpaceCitationPreview
+          :state="citationHover.active.value"
+          @open="(citation) => (citationHover.dismiss(), openGroundedCitation(citation))"
+          @preview-enter="citationHover.onPreviewPointerEnter"
+          @preview-leave="citationHover.onPreviewPointerLeave"
+        />
+        <SpaceDocumentOutline
+          ref="outline"
+          :headings="headings"
+          :active-id="activeHeadingId"
+          @select="revealHeading"
+        />
       </div>
-      <SpaceDocumentOutline
-        ref="outline"
-        :headings="headings"
-        :active-id="activeHeadingId"
-        @select="revealHeading"
-      />
       <SpaceDocumentSource v-if="active" />
     </div>
   </section>

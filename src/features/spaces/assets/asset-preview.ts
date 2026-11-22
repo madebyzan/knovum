@@ -1,4 +1,18 @@
+import { platform } from "@tauri-apps/plugin-os";
+
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
+
+export function hasSystemQuickLook(): boolean {
+  return platform() === "macos";
+}
+
+export function systemPreviewLabelKey():
+  | "spaces.importExport.preview.quickLook"
+  | "spaces.importExport.preview.system" {
+  return hasSystemQuickLook()
+    ? "spaces.importExport.preview.quickLook"
+    : "spaces.importExport.preview.system";
+}
 
 /**
  * Shows a file the way the platform shows content: Quick Look on macOS, the associated application

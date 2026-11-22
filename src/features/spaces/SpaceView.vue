@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { AlertTriangle } from "@lucide/vue";
 import { storeToRefs } from "pinia";
+import { SplitterGroup, SplitterPanel } from "reka-ui";
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -11,14 +12,16 @@ import { registerWindowCloseCommit } from "../../foundation/lifecycle/window-clo
 import { usePreferencesStore } from "../../foundation/preferences/preferences-store";
 import { overlayScopeVisibleKey } from "../../shared/contracts/overlay-scope-visibility";
 import UiButton from "../../shared/ui/UiButton.vue";
+import UiSplitterHandle from "../../shared/ui/UiSplitterHandle.vue";
 import SpaceCanvas from "./canvas/presentation/SpaceCanvas.vue";
 import { selectAndRevealSpaceNode } from "./canvas/selection-actions";
-import { useContextDock } from "./canvas/use-context-dock";
 import { restoreConversationRuns } from "./conversation/conversation-run-observation";
 import { enrichmentProjectionKey } from "./enrichment/enrichment-projection-key";
 import { useEnrichmentTaskProjection } from "./enrichment/use-enrichment-task-projection";
 import SpaceImageEditLeaveDialog from "./image-editing/presentation/SpaceImageEditLeaveDialog.vue";
+import SpaceKnowledgeHealthDialog from "./knowledge/presentation/SpaceKnowledgeHealthDialog.vue";
 import SpaceAudioRecordingDock from "./media/presentation/SpaceAudioRecordingDock.vue";
+import SpaceSourceReader from "./reading/presentation/SpaceSourceReader.vue";
 import { useSpaceStore } from "./session/space-store";
 import SpaceLibrary from "./workspace/presentation/library/SpaceLibrary.vue";
 import SpaceEditorSurfaces from "./workspace/presentation/SpaceEditorSurfaces.vue";
@@ -32,7 +35,6 @@ const { t } = useI18n();
 const initializationError = shallowRef<Error>();
 const initializing = shallowRef(false);
 onBeforeUnmount(registerWindowCloseCommit(store.commitActiveSession));
-const dock = useContextDock();
 const enrichmentJobs = useEnrichmentTaskProjection({
   ready,
   openNode: async (spaceId, nodeId) => {
@@ -41,7 +43,7 @@ const enrichmentJobs = useEnrichmentTaskProjection({
       throw new Error(t("spaces.processing.nodeUnavailable"));
     await nextTick();
     selectAndRevealSpaceNode(nodeId);
-    dock.openInspect();
+    store.openSourceReader({ nodeId, pane: "read" });
   },
 });
 provide(enrichmentProjectionKey, enrichmentJobs);
@@ -80,9 +82,29 @@ onMounted(() => void initialize());
     </div>
     <div v-else-if="store.ready" class="flex min-h-0 flex-1 flex-col">
       <div class="relative min-h-0 flex-1">
-        <section class="absolute inset-0 outline-none">
-          <SpaceCanvas :rendering-enabled="canvasVisible" />
-        </section>
+        <SplitterGroup direction="horizontal" class="absolute inset-0 outline-none">
+          <template v-if="store.readingTarget && store.workbench.canvas">
+            <SplitterPanel
+              id="source-reader"
+              :order="1"
+              :min-size="25"
+              :default-size="44"
+              :max-size="68"
+              class="flex min-h-0 flex-col"
+            >
+              <SpaceSourceReader host="canvas" />
+            </SplitterPanel>
+            <UiSplitterHandle />
+          </template>
+          <SplitterPanel
+            id="space-canvas"
+            :order="2"
+            :min-size="32"
+            class="relative flex min-h-0 flex-col outline-none"
+          >
+            <SpaceCanvas :rendering-enabled="canvasVisible" />
+          </SplitterPanel>
+        </SplitterGroup>
         <SpaceAudioRecordingDock
           class="pointer-events-auto absolute bottom-3 left-1/2 z-50 -translate-x-1/2"
         />
@@ -91,6 +113,7 @@ onMounted(() => void initialize());
         </section>
         <SpaceEditorSurfaces />
         <SpaceImageEditLeaveDialog />
+        <SpaceKnowledgeHealthDialog v-model:open="store.knowledgeHealthOpen" />
       </div>
     </div>
   </main>

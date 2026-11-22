@@ -5,7 +5,7 @@ use sqlx::{Sqlite, Transaction};
 
 use super::model::revision;
 
-pub(crate) use nodes::validate_object_status;
+pub(crate) use nodes::{valid_statuses_for_object_type, validate_object_status};
 pub(in crate::spaces) use nodes::{validate_query_filter, validate_same_space_node};
 
 pub(crate) async fn validate_node(

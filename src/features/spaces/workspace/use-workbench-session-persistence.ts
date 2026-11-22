@@ -1,7 +1,6 @@
 import { watch, type Ref } from "vue";
 
 import type { Space } from "../model/space";
-import type { RightSidebarPrimaryView, RightSidebarView } from "../session/workbench-state";
 import {
   captureSavedSpaceView,
   serializeSpaceViewSession,
@@ -22,8 +21,6 @@ export interface WorkbenchSessionSource extends Pick<
   activeTabId: Ref<string | undefined>;
   activeSpaceId: Ref<string | undefined>;
   draftSpace: Ref<Space | undefined>;
-  rightSidebarView: Ref<RightSidebarView>;
-  sourceReturnView: Ref<RightSidebarPrimaryView>;
   runtime: {
     retained: ReadonlyMap<string, { view: SpaceViewSession }>;
   };
@@ -54,8 +51,6 @@ function collectSessionInput(source: WorkbenchSessionSource): SaveWorkbenchSessi
     tabs: source.tabs.value,
     activeTabId: source.activeTabId.value,
     draftSpaceId: source.draftSpace.value?.id,
-    rightSidebarView: source.rightSidebarView.value,
-    sourceReturnView: source.sourceReturnView.value,
     spaceViews,
   };
 }

@@ -12,17 +12,26 @@
     "manage": "Configura modelli e agenti..."
   },
   "empty": {
-    "title": "Prova una di queste attività",
-    "topic": "[argomento]",
-    "search": "Trova fonti",
-    "searchPrompt": "Trova le fonti su {topic} in quest'area di lavoro ed elenca da dove provengono ciascuna.",
-    "document": "Crea un documento",
-    "documentPrompt": "Crea un documento di panoramica modificabile dalle fonti su {topic} in questa area di lavoro.",
-    "compare": "Confronta idee",
-    "comparePrompt": "Confronta le idee su {topic} in questo spazio di lavoro, compresi i punti comuni, le differenze e le prove."
+    "title": "Inizia da questo spazio",
+    "emptySpaceSummary": "Questo spazio è vuoto — fai una domanda o trascina pagine web, file e media sulla tela.",
+    "overview": "Mappa lo spazio",
+    "overviewDesc": "Riassumi temi principali, risultati chiave e connessioni tra le fonti",
+    "overviewPrompt": "Esamina le fonti in questo spazio e riassumi i temi centrali, i risultati chiave e i collegamenti tra loro citando ogni fonte.",
+    "brief": "Crea un brief di ricerca",
+    "briefDesc": "Sintetizza le fonti in un documento modificabile sulla tela",
+    "briefPrompt": "Sintetizza le fonti in questo spazio in un brief di ricerca chiaro e modificabile sulla tela, con citazioni per i punti principali.",
+    "compare": "Confronta punti di vista",
+    "compareDesc": "Evidenzia convergenze, divergenze e prove tra le fonti",
+    "comparePrompt": "Confronta i principali punti di vista presenti nelle fonti di questo spazio, indicando punti comuni, divergenze e prove citate.",
+    "draft": "Abbozza una scaletta",
+    "draftDesc": "Crea una nota strutturata o una scaletta di ricerca sulla tela",
+    "draftPrompt": "Crea sulla tela una scaletta di ricerca strutturata con contesto, domande chiave e fonti da raccogliere.",
+    "plan": "Imposta un quadro di ricerca",
+    "planDesc": "Scomponi dimensioni, angolazioni e fonti da raccogliere",
+    "planPrompt": "Aiutami a definire un quadro di ricerca chiaro: dimensioni principali, angoli di verifica e tipi di fonti utili."
   },
   "input": {
-    "placeholder": "Descrivi un compito per l'agente...",
+    "placeholder": "Fai una domanda su questo spazio o descrivi cosa creare…",
     "send": "Invia",
     "shortcutHint": "Invio"
   },
@@ -73,7 +82,8 @@
     "search": "Cerca risorse in quest'area di lavoro",
     "none": "Nessuna risorsa corrispondente",
     "remove": "Rimuovi risorsa: {name}",
-    "preview": "Risorsa di anteprima: {name}"
+    "preview": "Risorsa di anteprima: {name}",
+    "addSelectedOne": "Allega selezione · {title}"
   },
   "uploads": {
     "sizeError": "I file non possono essere vuoti. Le immagini devono avere una dimensione massima di 10 MiB; altri file al massimo 20 MiB.",
@@ -122,7 +132,7 @@
     "noSources": "Nessuna fonte corrispondente",
     "plan": "Piano"
   },
-  "askSelection": "Chiedi selezione",
+  "askSelection": "Chiedi a Knovum",
   "extensions": {
     "label": "Estensioni di conversazione",
     "unavailable": "Un'estensione selezionata non è disponibile. Rivedi la selezione.",

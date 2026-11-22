@@ -16,7 +16,6 @@ import {
 } from "../editor-session";
 import CanvasSurfaceHost from "../host/CanvasSurfaceHost.vue";
 import { isSpaceNodeOpenable, openSpaceNode } from "../selection-actions";
-import { useContextDock } from "../use-context-dock";
 import { useNodeOperationGate } from "../use-node-operation-gate";
 import { createCanvasContentLayoutCoordinator } from "./canvas-content-layout-coordinator";
 import { createCanvasNodeContentPersistence } from "./canvas-node-content-persistence";
@@ -42,7 +41,6 @@ const createTextNode = useCanvasTextCreation();
 const editorSession = getCanvasEditorSession();
 const operations = useNodeOperationGate();
 const canCommitCanvasGestures = computed(() => operations.allowsGestureCommit());
-const dock = useContextDock();
 const canvasRoot = useTemplateRef<HTMLElement>("canvasRoot");
 const selection = createCanvasSelectionActions();
 const persistNodeContent = createCanvasNodeContentPersistence();
@@ -106,7 +104,7 @@ async function activateNode(nodeId: string) {
     return;
   editorSession.selectNodes([nodeId]);
   if (isSpaceNodeOpenable(node)) await openSpaceNode(node);
-  else dock.openInspect();
+  else store.openSourceReader({ nodeId, pane: "info" });
 }
 
 const canvasEvents = createSpaceCanvasEvents({

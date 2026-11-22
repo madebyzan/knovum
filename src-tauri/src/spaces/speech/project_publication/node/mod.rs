@@ -20,7 +20,6 @@ pub(super) async fn settle(
     run_id: &str,
     output: &SpeechAudioOutput,
     cover: Option<GeneratedPreview>,
-    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
     let (space_id, source_node_id, project_type): (String, String, String) = sqlx::query_as(
         "SELECT p.space_id,p.source_node_id,p.project_type FROM spaces_speech_projects p \
@@ -48,7 +47,6 @@ pub(super) async fn settle(
             derived,
             cover,
         }],
-        enrichment_target,
     )
     .await
 }

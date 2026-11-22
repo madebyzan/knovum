@@ -23,7 +23,7 @@ const plan = computed<AgentPlanItem[]>(() => {
 <template>
   <section
     v-if="plan.length"
-    class="space-y-1 border-l border-stroke-divider pl-3 text-caption text-fg-secondary"
+    class="ml-1.5 space-y-1 border-l-2 border-stroke-divider/80 pl-3 text-caption text-fg-secondary"
     :aria-label="$t('spaces.conversation.activity.plan')"
   >
     <div v-for="(item, index) in plan" :key="index" class="flex items-start gap-2 py-1">

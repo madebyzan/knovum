@@ -177,6 +177,8 @@
     "loadFailed": "스키마 유형을 로드할 수 없습니다."
   },
   "visual": {
-    "empty": "아직 이미지 분석이 없습니다."
+    "empty": "아직 이미지 분석이 없습니다.",
+    "keywords": "시각 키워드",
+    "adoptKeyword": "\"{keyword}\" 태그에 추가"
   }
 }

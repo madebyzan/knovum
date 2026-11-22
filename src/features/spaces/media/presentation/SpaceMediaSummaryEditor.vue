@@ -52,15 +52,15 @@ function saveMediaSummary() {
 
 <template>
   <div>
-    <div class="flex items-center gap-2">
-      <h4 class="flex-1 text-caption-sm font-semibold tracking-wide text-fg-tertiary uppercase">
+    <div class="flex items-center gap-1">
+      <h4 class="flex-1 text-caption font-medium text-fg-tertiary">
         {{ t("spaces.media.analysis.summary") }}
       </h4>
       <template v-if="editing">
-        <UiIconButton :label="t('common.cancel')" size="sm" @click="cancelSummaryEdit"
+        <UiIconButton :label="t('common.cancel')" tooltip size="sm" @click="cancelSummaryEdit"
           ><X class="size-3"
         /></UiIconButton>
-        <UiIconButton :label="t('common.save')" size="sm" @click="saveMediaSummary"
+        <UiIconButton :label="t('common.save')" tooltip size="sm" @click="saveMediaSummary"
           ><Check class="size-3"
         /></UiIconButton>
       </template>
@@ -73,6 +73,7 @@ function saveMediaSummary() {
           <template #trigger="{ multiple }">
             <UiIconButton
               :label="regenerateDisabledReason || t('spaces.media.analysis.insights.regenerate')"
+              tooltip
               size="sm"
               :disabled="!canRegenerate || !nodeDraft.available.value"
               @click="!multiple && emit('regenerate')"
@@ -82,6 +83,7 @@ function saveMediaSummary() {
         </ModelChoiceTrigger>
         <UiIconButton
           :label="t('common.edit')"
+          tooltip
           size="sm"
           :disabled="disabled || !nodeDraft.available.value"
           @click="beginSummaryEdit"
@@ -89,12 +91,20 @@ function saveMediaSummary() {
         /></UiIconButton>
       </template>
     </div>
-    <UiTextarea v-if="editing" v-model="draft" class="mt-1.5" :rows="5" />
+    <UiTextarea
+      v-if="editing"
+      v-model="draft"
+      class="mt-1.5"
+      :rows="5"
+      @keydown.esc.stop.prevent="cancelSummaryEdit"
+      @keydown.meta.enter.stop.prevent="saveMediaSummary"
+      @keydown.ctrl.enter.stop.prevent="saveMediaSummary"
+    />
     <UiExpandableText
       v-else
       :text="summary"
       :clamp-lines="4"
-      class="mt-1.5 text-caption leading-relaxed text-fg-secondary"
+      class="mt-1 text-body leading-relaxed text-fg-secondary"
     />
   </div>
 </template>

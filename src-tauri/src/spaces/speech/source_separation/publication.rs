@@ -72,7 +72,6 @@ pub(super) async fn publish(
     background: &Path,
     vocals: &Path,
     metadata: &SeparatedAudio,
-    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
     let space_id = claim.scope.require_space_id()?;
     super::media::require_owned_source(tx, space_id, &config.source_node_id, &config.source)
@@ -95,12 +94,5 @@ pub(super) async fn publish(
             cover: None,
         })
         .collect::<Vec<_>>();
-    nodes::settle(
-        tx,
-        space_id,
-        &config.source_node_id,
-        &outputs,
-        enrichment_target,
-    )
-    .await
+    nodes::settle(tx, space_id, &config.source_node_id, &outputs).await
 }

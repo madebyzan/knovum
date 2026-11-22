@@ -14,7 +14,7 @@ use crate::{
 
 use super::{
     generation::{self, IndexGeneration},
-    index_writer::{upsert_embeddings, KnowledgeEmbeddingInput},
+    index_writer::{upsert_embeddings, KnowledgeEmbeddingInput, PublishError},
 };
 
 struct KnowledgeChunkSource {
@@ -28,6 +28,7 @@ struct KnowledgeChunkSource {
 /// are bounded separately, so this number no longer has to absorb them.
 const BATCH_ENCODE_BUDGET_MS: u64 = 120_000;
 const REBUILD_BATCH_SIZE: usize = 8;
+const MAX_CONSECUTIVE_STALE_BATCHES: usize = 3;
 
 /// What a pass encodes: the generation it writes into, the scope it covers, and whether finishing
 /// it makes that generation the one answering searches. Reusing a live generation fills gaps in
@@ -56,6 +57,7 @@ pub(super) async fn run<R: Runtime>(
     } = build;
     let pool = db::pool(&app).await?;
     let mut indexed = 0usize;
+    let mut consecutive_stale = 0usize;
     let started = std::time::Instant::now();
     // Counted once: this pass encodes the work it found, and reports what it finds later as more
     // encoded rather than as a shifting denominator.
@@ -136,7 +138,26 @@ pub(super) async fn run<R: Runtime>(
             return Err(super::rebuild::CANCELLED.into());
         }
         let expected = inputs.len();
-        let written = upsert_embeddings(app.clone(), inputs).await?;
+        let written = match upsert_embeddings(app.clone(), inputs).await {
+            Ok(written) => {
+                consecutive_stale = 0;
+                written
+            }
+            Err(PublishError::StaleRevision(reason)) => {
+                consecutive_stale += 1;
+                if consecutive_stale > MAX_CONSECUTIVE_STALE_BATCHES {
+                    return Err(reason);
+                }
+                log::debug!(
+                    "knowledge_index space={} event=batch_superseded attempt={} reason={}",
+                    space_id,
+                    consecutive_stale,
+                    reason
+                );
+                continue;
+            }
+            Err(PublishError::Failed(error)) => return Err(error),
+        };
         if written != expected {
             return Err("Knowledge indexing did not persist its complete batch".to_owned());
         }

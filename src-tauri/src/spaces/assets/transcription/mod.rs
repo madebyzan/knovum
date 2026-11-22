@@ -21,20 +21,24 @@ pub(crate) fn engine_id(model: LocalModelId) -> Result<&'static str, String> {
         .map(|profile| profile.engine.id())
 }
 
-/// The model frozen when the transcription was requested, read back instead of today's Settings.
-pub(in crate::spaces) async fn frozen_model(
+/// Explicit transcription requests run their frozen model; automatic background transcription
+/// follows the active transcription model in Settings.
+pub(in crate::spaces) async fn resolve_model(
     app: &tauri::AppHandle,
     job_id: &str,
 ) -> Result<LocalModelId, String> {
-    let raw: String = sqlx::query_scalar(
+    let raw: Option<String> = sqlx::query_scalar(
         "SELECT model_spec_id FROM spaces_media_transcription_requests WHERE job_id=$1",
     )
     .bind(job_id)
     .fetch_optional(crate::spaces::db::pool(app).await?)
     .await
-    .map_err(crate::spaces::db::sql_error)?
-    .ok_or("Transcription request payload is missing")?;
-    serde_json::from_str(&raw).map_err(|error| format!("Transcription model is invalid: {error}"))
+    .map_err(crate::spaces::db::sql_error)?;
+    match raw {
+        Some(raw) => serde_json::from_str(&raw)
+            .map_err(|error| format!("Transcription model is invalid: {error}")),
+        None => crate::local_resources::model_selection::transcription(app),
+    }
 }
 
 #[derive(Clone, Serialize, serde::Deserialize, ts_rs::TS)]

@@ -45,6 +45,15 @@
     "read-node": {
       "$ref": "#/$defs/NodeParameters"
     },
+    "read-node-chunks": {
+      "$ref": "#/$defs/NodeChunksParameters"
+    },
+    "list-object-types": {
+      "$ref": "#/$defs/EmptyParameters"
+    },
+    "list-relations": {
+      "$ref": "#/$defs/RelationsParameters"
+    },
     "answer-question": {
       "$ref": "#/$defs/QuestionParameters"
     },
@@ -749,6 +758,41 @@
         {
           "type": "object",
           "properties": {
+            "relationId": {
+              "type": "string"
+            },
+            "status": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "rationale": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "confidence": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "format": "double"
+            },
+            "op": {
+              "type": "string",
+              "const": "update-relation"
+            }
+          },
+          "required": [
+            "op",
+            "relationId"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
             "targetKind": {
               "type": "string"
             },
@@ -782,6 +826,31 @@
             "locator",
             "sourceRevision",
             "quote"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "targetKind": {
+              "type": "string"
+            },
+            "targetId": {
+              "type": "string"
+            },
+            "citeId": {
+              "description": "Citation id returned by search_knowledge, get_node, or read_node_chunks in this run (e.g. C12)",
+              "type": "string"
+            },
+            "op": {
+              "type": "string",
+              "const": "add-cited-provenance"
+            }
+          },
+          "required": [
+            "op",
+            "targetKind",
+            "targetId",
+            "citeId"
           ]
         }
       ]
@@ -858,6 +927,20 @@
       },
       "additionalProperties": false
     },
+    "SearchOutputMode": {
+      "oneOf": [
+        {
+          "description": "Returns individual matched passages with excerpts, locators, and cite ids.",
+          "type": "string",
+          "const": "passages"
+        },
+        {
+          "description": "Aggregates hits per node (hit count + top excerpt) for low-token Space-wide surveys.",
+          "type": "string",
+          "const": "nodes"
+        }
+      ]
+    },
     "SearchParameters": {
       "required": [
         "query",
@@ -875,6 +958,29 @@
           "format": "uint8",
           "minimum": 1,
           "maximum": 100
+        },
+        "nodeIds": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "default": null
+        },
+        "roles": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "default": null
+        },
+        "mode": {
+          "$ref": "#/$defs/SearchOutputMode"
         }
       },
       "additionalProperties": false
@@ -892,6 +998,85 @@
         }
       },
       "additionalProperties": false
+    },
+    "NodeChunksParameters": {
+      "required": [
+        "nodeId"
+      ],
+      "title": "NodeChunksParameters",
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "offset": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0,
+          "default": 0
+        },
+        "limit": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 50
+        },
+        "aroundChunkId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "contextChunks": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint8",
+          "minimum": 0,
+          "maximum": 25,
+          "default": null
+        }
+      },
+      "additionalProperties": false
+    },
+    "RelationsParameters": {
+      "additionalProperties": false,
+      "title": "RelationsParameters",
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "kind": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "limit": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 1,
+          "maximum": 200,
+          "default": 50
+        }
+      }
     },
     "QuestionParameters": {
       "required": [

@@ -177,6 +177,8 @@
     "loadFailed": "スキーマタイプをロードできませんでした"
   },
   "visual": {
-    "empty": "画像解析はまだ行われていません"
+    "empty": "画像解析はまだ行われていません",
+    "keywords": "視覚キーワード",
+    "adoptKeyword": "「{keyword}」をタグに追加"
   }
 }

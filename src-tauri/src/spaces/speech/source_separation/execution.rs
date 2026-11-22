@@ -119,7 +119,6 @@ pub(crate) async fn execute(
         &vocals,
         &metadata,
         duration_ms,
-        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
     )
     .await;
     let _ = fs::remove_dir_all(&workspace);

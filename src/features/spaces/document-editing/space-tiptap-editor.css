@@ -28,9 +28,29 @@
   line-height: 1.35;
   font-weight: 650;
 }
+:deep(.space-tiptap-prose h4),
+:deep(.space-tiptap-prose h5),
+:deep(.space-tiptap-prose h6) {
+  margin-top: 1.1em;
+  font-size: var(--text-body-lg);
+  line-height: 1.4;
+  font-weight: 650;
+}
 :deep(.space-tiptap-prose ul:not([data-type="taskList"])),
 :deep(.space-tiptap-prose ol) {
   padding-left: 1.45rem;
+}
+:deep(.space-tiptap-prose li + li) {
+  margin-top: 0.28em;
+}
+:deep(.space-tiptap-prose li > ul),
+:deep(.space-tiptap-prose li > ol) {
+  margin-top: 0.28em;
+}
+:deep(.space-tiptap-prose hr) {
+  border: 0;
+  border-top: 1px solid var(--color-stroke-divider);
+  margin-block: 1.5em;
 }
 :deep(.space-tiptap-prose ul) {
   list-style: disc;
@@ -168,26 +188,15 @@
   animation: reasoning-trace-shimmer 1.6s ease-in-out infinite;
   box-decoration-break: clone;
 }
-:deep(.space-tiptap-prose .grounded-citation) {
-  cursor: pointer;
-  border-radius: 0.2rem;
-  background: color-mix(in srgb, var(--color-fg-accent) 10%, transparent);
-  padding-inline: 0.16rem;
-  color: var(--color-fg-accent);
+:deep(.space-tiptap-prose .grounded-citation-source) {
   font-size: 0;
-  font-weight: 650;
-  white-space: nowrap;
+  line-height: 0;
+  letter-spacing: 0;
+  color: transparent;
 }
 
-:deep(.space-tiptap-prose .grounded-citation::after) {
-  content: attr(data-citation-label);
-  font-size: 0.72rem;
-}
-
-:deep(.space-tiptap-prose .grounded-citation:hover),
-:deep(.space-tiptap-prose .grounded-citation:focus-visible) {
-  background: color-mix(in srgb, var(--color-fg-accent) 18%, transparent);
-  outline: 1px solid color-mix(in srgb, var(--color-fg-accent) 40%, transparent);
+:deep(.space-tiptap-prose .ui-citation + .grounded-citation-source + .ui-citation) {
+  margin-inline-start: 0.0625rem;
 }
 
 :deep(.space-tiptap-prose mark) {

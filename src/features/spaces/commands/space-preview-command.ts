@@ -1,4 +1,5 @@
 import type { AppCommand } from "../../../shared/contracts/app-command";
+import { previewSpaceAsset } from "../assets/asset-preview";
 import { openSpaceNode } from "../canvas/selection-actions";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
@@ -12,11 +13,12 @@ export function spacePreviewCommand(
   const node = nodes.find(
     (candidate) => selected.has(candidate.id) && isSpaceManagedAssetPayload(candidate.data),
   );
-  if (!node) return undefined;
+  if (!node || !isSpaceManagedAssetPayload(node.data)) return undefined;
+  const assetPath = node.data.assetPath;
   return {
     id: "spaces.system-preview",
     title,
     category: "canvas",
-    run: () => openSpaceNode(node),
+    run: () => (node.data.kind === "image" ? openSpaceNode(node) : previewSpaceAsset(assetPath)),
   };
 }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LocateFixed } from "@lucide/vue";
 import { useVirtualizer } from "@tanstack/vue-virtual";
 import { sumBy } from "es-toolkit";
 import { search } from "fast-fuzzy";
@@ -6,8 +7,9 @@ import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicIns
 import { useI18n } from "vue-i18n";
 
 import type { LocalModelId } from "../../../../shared/contracts/generated/LocalModelId";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
-import UiSwitch from "../../../../shared/ui/UiSwitch.vue";
 import type { SpaceTranscriptEdit } from "../schema/knowledge";
 import type { SpaceTranscriptSegment } from "../schema/transcript";
 import SpaceTranscriptAlignmentControl from "./SpaceTranscriptAlignmentControl.vue";
@@ -69,7 +71,7 @@ const virtualizer = useVirtualizer(
   computed(() => ({
     count: visibleIndices.value.length,
     getScrollElement: () => scroller.value,
-    estimateSize: () => 44,
+    estimateSize: () => 34,
     overscan: 8,
   })),
 );
@@ -94,51 +96,65 @@ async function remeasure() {
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-panel border border-stroke-divider bg-surface-muted/45">
-    <div class="flex items-center gap-2 border-b border-stroke-divider p-2">
+  <div class="space-y-2">
+    <div class="flex items-center gap-1.5">
       <UiSearchInput
         v-model="query"
+        size="sm"
         class="min-w-0 flex-1"
         :placeholder="t('spaces.transcript.text.search')"
       />
-      <label class="flex shrink-0 items-center gap-1.5 text-caption-sm text-fg-tertiary">
-        {{ t("spaces.media.player.followPlayback") }}
-        <UiSwitch v-model="autoFollow" :label="t('spaces.media.player.followPlayback')" />
-      </label>
+      <UiIconButton
+        :label="t('spaces.media.player.followPlayback')"
+        :active="autoFollow"
+        tooltip
+        size="sm"
+        @click="autoFollow = !autoFollow"
+      >
+        <LocateFixed class="size-3.5" :stroke-width="1.6" />
+      </UiIconButton>
     </div>
     <SpaceTranscriptAlignmentControl
+      v-if="selected.length > 0"
       :disabled="Boolean(alignmentDisabled)"
       :can-align="canAlign"
       :selected-count="selected.length"
       @align="(model) => emit('align', [...selected], model)"
     />
-    <div ref="scroller" class="h-80 overflow-y-auto">
-      <div class="relative w-full" :style="{ height: `${totalSize}px` }">
-        <SpaceTranscriptSegmentEditor
-          v-for="row in rows"
-          :key="visibleIndices[row.index]!"
-          :node-id="nodeId"
-          :ref="measureElement"
-          :data-index="row.index"
-          class="absolute top-0 left-0 w-full"
-          :style="{ transform: `translateY(${row.start}px)` }"
-          :segment="segments[visibleIndices[row.index]!]!"
-          :index="visibleIndices[row.index]!"
-          :active="visibleIndices[row.index] === activeIndex"
-          :selected="selected.includes(segments[visibleIndices[row.index]!]!.id)"
-          :selection-disabled="
-            alignmentDisabled ||
-            (selected.length >= 8 && !selected.includes(segments[visibleIndices[row.index]!]!.id))
-          "
-          @select="selectSegment(segments[visibleIndices[row.index]!]!.id, $event)"
-          v-bind="disabled === undefined ? {} : { disabled }"
-          @seek="emit('seek', $event)"
-          @save="emit('save', $event)"
-          @editing="remeasure"
-        />
+    <div class="relative -mx-1.5 overflow-hidden">
+      <div ref="scroller" class="h-80 overflow-y-auto overscroll-contain pt-0.5 pb-2">
+        <div class="relative w-full" :style="{ height: `${totalSize}px` }">
+          <div
+            v-for="row in rows"
+            :key="visibleIndices[row.index]!"
+            :ref="measureElement"
+            :data-index="row.index"
+            class="absolute top-0 left-0 w-full"
+            :style="{ transform: `translateY(${row.start}px)` }"
+          >
+            <SpaceTranscriptSegmentEditor
+              :node-id="nodeId"
+              :segment="segments[visibleIndices[row.index]!]!"
+              :index="visibleIndices[row.index]!"
+              :active="visibleIndices[row.index] === activeIndex"
+              :selected="selected.includes(segments[visibleIndices[row.index]!]!.id)"
+              :selection-active="selected.length > 0"
+              :selection-disabled="
+                alignmentDisabled ||
+                (selected.length >= 8 && !selected.includes(segments[visibleIndices[row.index]!]!.id))
+              "
+              @select="selectSegment(segments[visibleIndices[row.index]!]!.id, $event)"
+              v-bind="disabled === undefined ? {} : { disabled }"
+              @seek="emit('seek', $event)"
+              @save="emit('save', $event)"
+              @editing="remeasure"
+            />
+          </div>
+        </div>
       </div>
+      <UiScrollEdgeFade surface="panel" top-class="h-3" bottom-class="h-5" />
     </div>
-    <p v-if="!visibleIndices.length" class="p-4 text-center text-caption text-fg-tertiary">
+    <p v-if="!visibleIndices.length" class="py-4 text-center text-caption text-fg-tertiary">
       {{ t("spaces.transcript.text.noMatches") }}
     </p>
   </div>

@@ -1,5 +1,4 @@
 {
-  "itemsSelected": "Item {count} selecionado | Itens {count} selecionados",
   "title": "Detalhes",
   "basicInformation": "Geral",
   "showSource": "Visualização da fonte",
@@ -28,16 +27,13 @@
   "recognizedText": "Texto reconhecido por OCR",
   "excerpts": {
     "title": "Trecho · {title}",
-    "line": "— {title} · {location}",
-    "content": "Trecho do conteúdo"
+    "line": "— {title} · {location}"
   },
   "openSource": "Localizar nó de origem",
   "targetSpace": "Espaço de destino",
   "none": "Não definido",
   "renameHint": "Clique para renomear",
-  "openContent": "Conteúdo aberto",
   "content": "Conteúdo",
-  "playVideo": "Reproduzir vídeo",
   "related": {
     "title": "Conteúdo relacionado",
     "show": "Mostrar mais",
@@ -50,5 +46,31 @@
     "empty": "Ainda não há conteúdo relacionado neste espaço de trabalho.",
     "explanation": "Descubra conteúdo relacionado neste espaço de trabalho por significado. Os resultados não criam conexões."
   },
-  "containedItems": "{count} continha itens"
+  "reader": {
+    "read": "Ler",
+    "readerMode": "Modo leitura",
+    "liveWeb": "Visualização web",
+    "decreaseFontSize": "Diminuir texto",
+    "increaseFontSize": "Aumentar texto",
+    "searchPlaceholder": "Localizar no documento…",
+    "outline": "Sumário",
+    "highlight": "Destacar",
+    "addText": "Adicionar texto",
+    "draw": "Desenhar",
+    "wrapLines": "Quebra de linha",
+    "singleSlide": "Modo slide",
+    "continuousSlides": "Modo contínuo",
+    "markup": "Anotar",
+    "thumbnails": "Miniaturas",
+    "highlights": "Trechos",
+    "areaCapture": "Capturar área",
+    "viewOptions": "Opções de exibição",
+    "singlePage": "Página única",
+    "twoPageSpread": "Duas páginas",
+    "fitPage": "Ajustar página",
+    "rotateClockwise": "Girar 90°",
+    "typeHere": "Digite aqui…",
+    "preview": "Visualizar",
+    "followSelection": "Alternar ao selecionar"
+  }
 }

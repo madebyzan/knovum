@@ -9,7 +9,8 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { useContextDock } from "../canvas/use-context-dock";
 import { loadGroundedDocumentMetadata } from "../knowledge-derivations/document/metadata";
-import { findGroundedCitation } from "../knowledge/model/grounded-citation";
+import { findGroundedCitation, groundedCitationPeekTarget } from "../knowledge/model/grounded-citation";
+import type { GroundedCitation } from "../knowledge/model/schema/grounded-citation";
 import type { SpaceEditorPayload } from "../model/nodes/capabilities";
 import { useSpaceStore } from "../session/space-store";
 import type { SpaceEditorTab } from "../workspace/workbench-tab";
@@ -34,8 +35,33 @@ export function useSpaceTiptapEditor(
   const session = useDocumentSessionStore().sessions.get(tab.id);
   if (!session) throw new Error("Document session is unavailable");
   const editorNode = session.node;
+  const groundedCitations = shallowRef<readonly GroundedCitation[]>([]);
   const statistics = createTiptapTextStatistics();
   const headings = shallowRef<ReturnType<typeof spaceTiptapHeadings>>([]);
+  let citationsNonce = 0;
+
+  async function refreshGroundedCitations() {
+    citationsNonce += 1;
+    const current = citationsNonce;
+    const node = editorNode.value;
+    if (node.data.kind !== "markdown") {
+      groundedCitations.value = [];
+      return;
+    }
+    try {
+      const metadata = await loadGroundedDocumentMetadata(node.id);
+      if (current === citationsNonce) groundedCitations.value = metadata?.citations ?? [];
+    } catch {
+      if (current === citationsNonce) groundedCitations.value = [];
+    }
+  }
+
+  function openGroundedCitation(citation: GroundedCitation) {
+    if (!active.value) return;
+    const target = groundedCitationPeekTarget(citation);
+    if (target) dock.openSource(target);
+  }
+
   const derive = useDebounceFn(() => {
     const instance = editor.value;
     if (!instance || instance.isDestroyed) return;
@@ -51,17 +77,14 @@ export function useSpaceTiptapEditor(
       async (index) => {
         const node = editorNode.value;
         if (!active.value || node.data.kind !== "markdown") return;
-        const metadata = await loadGroundedDocumentMetadata(node.id);
-        if (!active.value) return;
-        const citation = findGroundedCitation(metadata?.citations, index);
-        if (!citation || citation.state !== "current" || !citation.chunkId) return;
-        dock.openSource({
-          nodeId: citation.nodeId,
-          nodeTitle: citation.nodeTitle,
-          chunkId: citation.chunkId,
-          locator: citation.locator,
-          text: citation.quote,
-        });
+        const cached = findGroundedCitation(groundedCitations.value, index);
+        if (cached) {
+          openGroundedCitation(cached);
+          return;
+        }
+        await refreshGroundedCitations();
+        const citation = findGroundedCitation(groundedCitations.value, index);
+        if (citation) openGroundedCitation(citation);
       },
     ),
     ...editorContent(editorNode.value.data),
@@ -107,6 +130,19 @@ export function useSpaceTiptapEditor(
     () => editor.value,
     () => headings.value,
   );
+  watch(
+    [() => editorNode.value.id, () => editorNode.value.data.kind, session.contentVersion],
+    () => {
+      void refreshGroundedCitations();
+    },
+    { immediate: true },
+  );
+  async function isGroundedMarkdownDocument() {
+    if (editorNode.value.data.kind !== "markdown") return false;
+    const metadata = await loadGroundedDocumentMetadata(editorNode.value.id);
+    groundedCitations.value = metadata?.citations ?? [];
+    return metadata !== null;
+  }
   onBeforeUnmount(() => {
     derive.cancel();
     statistics.dispose();
@@ -116,7 +152,10 @@ export function useSpaceTiptapEditor(
     ...saving,
     editor,
     editorNode,
+    groundedCitations,
     headings,
+    isGroundedMarkdownDocument,
+    openGroundedCitation,
     error: session.error,
     editorLabel: computed(() =>
       t(editorNode.value.data.kind === "note" ? "spaces.nodeTypes.note" : "spaces.nodeTypes.markdown"),

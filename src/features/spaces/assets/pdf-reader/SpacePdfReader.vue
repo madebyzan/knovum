@@ -1,130 +1,166 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, Maximize2, ZoomIn, ZoomOut } from "@lucide/vue";
-import { convertFileSrc } from "@tauri-apps/api/core";
-import { shallowRef, useTemplateRef, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { watchDebounced } from "@vueuse/core";
+import { computed, ref, shallowRef, useTemplateRef, watch } from "vue";
 
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import UiDialog from "../../../../shared/ui/UiDialog.vue";
-import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { openPdfReader, type PdfReaderSession } from "./pdf-reader-session";
+import UiFindBar from "../../../../shared/ui/UiFindBar.vue";
+import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { useSpaceStore } from "../../session/space-store";
+import SpacePdfCanvasViewport from "./SpacePdfCanvasViewport.vue";
+import SpacePdfMarkupBar from "./SpacePdfMarkupBar.vue";
+import SpacePdfOcrDrawer from "./SpacePdfOcrDrawer.vue";
+import SpacePdfSidebar from "./SpacePdfSidebar.vue";
+import SpacePdfToolbar from "./SpacePdfToolbar.vue";
+import { usePdfMarkup } from "./use-pdf-markup";
+import { usePdfProvenanceOverlay } from "./use-pdf-provenance-overlay";
+import { usePdfReaderLifecycle } from "./use-pdf-reader-lifecycle";
+import { usePdfReaderShortcuts } from "./use-pdf-reader-shortcuts";
+import { usePdfSourceLinks, type PdfProvenanceLink } from "./use-pdf-source-links";
 
-const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{
-  title: string;
+  node?: SpaceCanvasNode | undefined;
   path: string;
   page?: number | undefined;
   passage?: string | undefined;
+  recognizedPages?: ReadonlyMap<number, readonly string[]> | undefined;
 }>();
-const { t } = useI18n();
-const container = useTemplateRef<HTMLDivElement>("container");
-const viewer = useTemplateRef<HTMLDivElement>("viewer");
-const session = shallowRef<PdfReaderSession>();
-const currentPage = shallowRef(1);
-const pageCount = shallowRef(0);
-const failure = shallowRef<string>();
+const emit = defineEmits<{ pageChange: [page: number] }>();
 
-async function start(containerElement: HTMLDivElement, viewerElement: HTMLDivElement) {
-  failure.value = undefined;
-  try {
-    const opened = await openPdfReader({
-      container: containerElement,
-      viewer: viewerElement,
-      url: convertFileSrc(props.path),
-      page: props.page ?? 1,
-      passage: props.passage,
-      onPageChange(current, total) {
-        currentPage.value = current;
-        pageCount.value = total;
-      },
-    });
-    // The dialog may have closed while the document loaded; nothing would ever release this one.
-    if (open.value) session.value = opened;
-    else await opened.close();
-  } catch (error) {
-    failure.value = getErrorMessage(error);
-  }
+const store = useSpaceStore();
+const canvasViewport = useTemplateRef<InstanceType<typeof SpacePdfCanvasViewport>>("canvasViewport");
+const container = computed(() => canvasViewport.value?.container ?? null);
+const viewer = computed(() => canvasViewport.value?.viewer ?? null);
+const sidebarOpen = shallowRef(false);
+const areaMode = shallowRef(false);
+const findOpen = shallowRef(false);
+const findQuery = ref("");
+
+const sourceLinks = usePdfSourceLinks(() => props.node?.id);
+const provenanceOverlay = usePdfProvenanceOverlay(
+  viewer,
+  sourceLinks.links,
+  computed(() => props.passage),
+  (targetNodeId) => selectAndRevealSpaceNode(targetNodeId, "focus"),
+);
+const lifecycle = usePdfReaderLifecycle({
+  container,
+  viewer,
+  getNode: () => props.node,
+  getPath: () => props.path,
+  getInitialPage: () => props.page,
+  getPassage: () => props.passage,
+  onPageChange: (page) => emit("pageChange", page),
+  onPageRendered: (page) => provenanceOverlay.syncPage(page),
+});
+const markup = usePdfMarkup(lifecycle.session);
+const onKeyDown = usePdfReaderShortcuts({
+  container,
+  session: lifecycle.session,
+  areaMode,
+  findOpen,
+  modified: lifecycle.modified,
+  markupOpen: markup.open,
+  markupTool: markup.tool,
+  selectMarkupTool: markup.selectTool,
+  toggleMarkup: markup.toggle,
+  savePdf: lifecycle.savePdf,
+});
+
+const pageRecognizedPassages = computed(() => props.recognizedPages?.get(lifecycle.currentPage.value) ?? []);
+
+function toggleArea() {
+  areaMode.value = !areaMode.value;
+  if (areaMode.value && markup.open.value) markup.toggle();
+}
+function toggleMarkup() {
+  if (!markup.open.value) areaMode.value = false;
+  markup.toggle();
+}
+function toggleFind() {
+  findOpen.value = !findOpen.value;
+  if (findOpen.value) return;
+  findQuery.value = "";
+  lifecycle.session.value?.clearFind();
+}
+function jumpLink(link: PdfProvenanceLink) {
+  lifecycle.session.value?.navigate(link.page, link.targetKind === "image" ? undefined : link.quote);
 }
 
-watch([container, viewer], ([containerElement, viewerElement]) => {
-  if (containerElement && viewerElement) void start(containerElement, viewerElement);
-  else {
-    void session.value?.close();
-    session.value = undefined;
-  }
+watch(lifecycle.session, () => {
+  markup.reset();
+  areaMode.value = false;
 });
+watchDebounced(findQuery, (q) => findOpen.value && lifecycle.session.value?.find(q), { debounce: 120 });
 </script>
 
 <template>
-  <UiDialog
-    v-model:open="open"
-    :title="title"
-    :description="
-      pageCount
-        ? t('spaces.inspector.pdfReader.position', { page: currentPage, total: pageCount })
-        : undefined
-    "
-    size="wide"
-    class="h-[calc(100vh-3rem)] max-w-6xl"
-    body-class="relative min-h-0 flex-1 overflow-hidden p-0"
-  >
-    <template #actions>
-      <UiIconButton
-        :label="t('spaces.inspector.pdfReader.previousPage')"
-        size="sm"
-        tooltip
-        :disabled="!session || currentPage <= 1"
-        @click="session?.goToPage(currentPage - 1)"
-      >
-        <ChevronLeft class="size-3.5" />
-      </UiIconButton>
-      <UiIconButton
-        :label="t('spaces.inspector.pdfReader.nextPage')"
-        size="sm"
-        tooltip
-        :disabled="!session || currentPage >= pageCount"
-        @click="session?.goToPage(currentPage + 1)"
-      >
-        <ChevronRight class="size-3.5" />
-      </UiIconButton>
-      <UiIconButton
-        :label="t('spaces.inspector.pdfReader.zoomOut')"
-        size="sm"
-        tooltip
-        :disabled="!session"
-        @click="session?.zoom(-1)"
-      >
-        <ZoomOut class="size-3.5" />
-      </UiIconButton>
-      <UiIconButton
-        :label="t('spaces.inspector.pdfReader.zoomIn')"
-        size="sm"
-        tooltip
-        :disabled="!session"
-        @click="session?.zoom(1)"
-      >
-        <ZoomIn class="size-3.5" />
-      </UiIconButton>
-      <UiIconButton
-        :label="t('spaces.inspector.pdfReader.fitWidth')"
-        size="sm"
-        tooltip
-        :disabled="!session"
-        @click="session?.fitWidth()"
-      >
-        <Maximize2 class="size-3.5" />
-      </UiIconButton>
-    </template>
-    <p v-if="failure" class="p-6 text-center text-caption text-fg-danger" role="alert">{{ failure }}</p>
-    <!-- pdf.js requires its scroll container to be absolutely positioned. -->
-    <div ref="container" class="pdf-reader absolute inset-0 overflow-auto bg-surface-control">
-      <div ref="viewer" class="pdfViewer" />
+  <div class="flex h-full min-h-0 flex-col bg-surface-canvas outline-none" tabindex="-1" @keydown="onKeyDown">
+    <SpacePdfToolbar
+      :session="lifecycle.session.value"
+      :sidebar-open="sidebarOpen"
+      :find-open="findOpen"
+      :area-mode="areaMode"
+      :markup-open="markup.open.value"
+      :can-markup="Boolean(node && store.activeSpaceId)"
+      :modified="lifecycle.modified.value"
+      :current-page="lifecycle.currentPage.value"
+      :page-count="lifecycle.pageCount.value"
+      :scale-percent="lifecycle.scalePercent.value"
+      :spread-mode="lifecycle.spreadMode.value"
+      @toggle-sidebar="sidebarOpen = !sidebarOpen"
+      @toggle-find="toggleFind"
+      @toggle-area="toggleArea"
+      @toggle-markup="toggleMarkup"
+      @set-spread="lifecycle.setSpread"
+    />
+    <SpacePdfMarkupBar
+      v-if="markup.open.value"
+      :markup="markup"
+      :session="lifecycle.session.value"
+      :modified="lifecycle.modified.value"
+      :saving="lifecycle.saving.value"
+      @discard="lifecycle.reload()"
+      @save="lifecycle.savePdf()"
+      @done="toggleMarkup"
+    />
+    <UiFindBar
+      v-if="findOpen"
+      v-model="findQuery"
+      :match-current="lifecycle.findMatches.value.current"
+      :match-total="lifecycle.findMatches.value.total"
+      @next="lifecycle.session.value?.find(findQuery, 'next')"
+      @prev="lifecycle.session.value?.find(findQuery, 'prev')"
+      @close="toggleFind"
+    />
+    <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+      <p v-if="lifecycle.failure.value" class="p-6 text-center text-caption text-fg-danger" role="alert">
+        {{ lifecycle.failure.value }}
+      </p>
+      <div class="flex min-h-0 flex-1 overflow-hidden">
+        <SpacePdfSidebar
+          v-if="sidebarOpen && lifecycle.pageCount.value"
+          :session="lifecycle.session.value"
+          :page-count="lifecycle.pageCount.value"
+          :current-page="lifecycle.currentPage.value"
+          :outline="lifecycle.outlineEntries.value"
+          :links="sourceLinks.links.value"
+          :highlighted-pages="sourceLinks.highlightedPages.value"
+          @go-to-page="lifecycle.session.value?.goToPage($event)"
+          @jump-link="jumpLink"
+          @reveal-canvas="selectAndRevealSpaceNode($event, 'focus')"
+        />
+        <SpacePdfCanvasViewport
+          ref="canvasViewport"
+          :area-mode="areaMode"
+          :markup-open="markup.open.value"
+          @area-capture="(page, rect) => ((areaMode = false), void lifecycle.captureArea(page, rect))"
+        />
+      </div>
+      <SpacePdfOcrDrawer
+        v-if="pageRecognizedPassages.length"
+        :page="lifecycle.currentPage.value"
+        :passages="pageRecognizedPassages"
+      />
     </div>
-  </UiDialog>
+  </div>
 </template>
-
-<style scoped>
-.pdf-reader :deep(.page) {
-  margin: 0 auto 0.75rem;
-}
-</style>

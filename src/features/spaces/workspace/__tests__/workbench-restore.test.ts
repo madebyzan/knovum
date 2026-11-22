@@ -93,7 +93,7 @@ describe("restoreWorkbench", () => {
   });
   afterEach(() => localStorage.clear());
 
-  it("reopens tabs, per-Space view context, and inspector view", async () => {
+  it("reopens tabs and per-Space view context", async () => {
     const { context, opened } = workbench([inbox, research]);
     save({
       tabs: [
@@ -102,7 +102,6 @@ describe("restoreWorkbench", () => {
         { kind: "document", spaceId: "research", nodeId: "brief" },
       ],
       activeIndex: 2,
-      rightSidebarView: "inspect",
       spaceViews: {
         research: {
           groupScopePath: ["grp-1", "deleted-group"],
@@ -114,7 +113,6 @@ describe("restoreWorkbench", () => {
     await restoreWorkbench(context, inbox);
     expect(strip(context)).toEqual(["inbox", "research", "document:brief"]);
     expect(context.activeTab.value).toMatchObject({ kind: "document", nodeId: "brief" });
-    expect(context.rightSidebarView.value).toBe("inspect");
     expect(context.groupScopePath.value).toEqual(["grp-1"]);
     expect(context.activeSceneId.value).toBe("scene-1");
     expect(context.canvasFocusIds.value).toEqual(["brief"]);
@@ -130,12 +128,10 @@ describe("restoreWorkbench", () => {
     save({
       tabs: [spaceTab("inbox"), spaceTab("research")],
       activeIndex: 1,
-      rightSidebarView: "inspect",
       spaceViews: { research: { activeSceneId: "scene-1", groupScopePath: ["grp-1"] } },
     });
     await restoreWorkbench(disabled.context, inbox, false);
     expect(strip(disabled.context)).toEqual(["inbox"]);
-    expect(disabled.context.rightSidebarView.value).toBe("ask");
     expect(localStorage.getItem(SESSION_KEY)).toBeNull();
 
     const filtered = workbench([inbox, research, plans]);
@@ -148,7 +144,6 @@ describe("restoreWorkbench", () => {
         { kind: "video", spaceId: "research", nodeId: "brief" },
       ],
       activeIndex: 2,
-      rightSidebarView: "ask",
       spaceViews: {},
     });
     await restoreWorkbench(filtered.context, inbox);
@@ -156,7 +151,7 @@ describe("restoreWorkbench", () => {
     expect(filtered.context.activeSpaceId.value).toBe("inbox");
     expect(filtered.opened).toEqual([]);
 
-    save({ tabs: [spaceTab("inbox")], activeIndex: 0, rightSidebarView: "ask", spaceViews: {} });
+    save({ tabs: [spaceTab("inbox")], activeIndex: 0, spaceViews: {} });
     repository.load.mockRejectedValueOnce(new Error("database unavailable"));
     await expect(restoreWorkbench(workbench().context, inbox)).rejects.toThrow("database unavailable");
     expect(localStorage.getItem(SESSION_KEY)).toBeNull();

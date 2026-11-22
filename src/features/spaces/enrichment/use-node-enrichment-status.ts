@@ -1,11 +1,8 @@
 import { useQuery } from "@tanstack/vue-query";
-import { computed, shallowRef, type Ref } from "vue";
-import { toast } from "vue-sonner";
+import { computed, type Ref } from "vue";
 
-import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { EnrichmentJobState } from "../contracts/generated/EnrichmentJobState";
 import type { EnrichmentJobType } from "../contracts/generated/EnrichmentJobType";
-import { retryEnrichmentJob } from "./enrichment-jobs";
 import { enrichmentJobsQuery } from "./enrichment-jobs-query";
 
 export const MEDIA_ENRICHMENT_JOB_TYPES: readonly EnrichmentJobType[] = [
@@ -29,7 +26,6 @@ export function useNodeEnrichmentStatus(
   nodeId: Ref<string | undefined>,
   jobTypes?: readonly EnrichmentJobType[],
 ) {
-  const retrying = shallowRef(false);
   const allowedTypes = jobTypes ? new Set<EnrichmentJobType>(jobTypes) : undefined;
   const query = useQuery(computed(() => enrichmentJobsQuery(Boolean(spaceId.value && nodeId.value))));
   const jobs = computed<EnrichmentJobState[]>(() => {
@@ -48,24 +44,7 @@ export function useNodeEnrichmentStatus(
     if (spaceId.value && nodeId.value) await query.refetch();
   }
 
-  async function retryFailed() {
-    const failed = jobs.value.filter((job) => job.status === "failed");
-    if (!failed.length || !spaceId.value || retrying.value) return;
-    retrying.value = true;
-    try {
-      for (const job of failed) {
-        // oxlint-disable-next-line eslint/no-await-in-loop -- Retries share the node's projection stream.
-        await retryEnrichmentJob(job.id);
-      }
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    } finally {
-      retrying.value = false;
-      await refresh();
-    }
-  }
-
-  return { status, jobs, loading: query.isPending, retrying, refresh, retryFailed };
+  return { status, jobs, loading: query.isPending, refresh };
 }
 
 function summarizeNodeEnrichment(jobs: readonly EnrichmentJobState[]): NodeEnrichmentStatus {

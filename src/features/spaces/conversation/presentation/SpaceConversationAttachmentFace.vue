@@ -19,27 +19,27 @@ const fileType = computed(() => attachmentFileType(props.title));
 </script>
 
 <template>
-  <span v-if="image" class="relative flex size-20 items-center justify-center bg-surface-muted">
+  <span v-if="image" class="relative flex size-14 items-center justify-center bg-surface-muted">
     <img v-if="thumbnail" :src="thumbnail" alt="" class="size-full object-cover" />
-    <FileImage v-else class="size-5 text-fg-tertiary" :stroke-width="1.5" />
+    <FileImage v-else class="size-4.5 text-fg-tertiary" :stroke-width="1.5" />
     <span
       v-if="linked"
       class="absolute bottom-1 left-1 rounded-sm bg-surface-overlay/90 p-0.5 text-fg-accent"
     >
-      <Link2 class="size-3" />
+      <Link2 class="size-2.5" />
     </span>
   </span>
-  <span v-else class="flex h-14 w-60 max-w-full min-w-0 items-center gap-2.5 px-2.5">
+  <span v-else class="flex h-11 w-48 max-w-full min-w-0 items-center gap-2 px-2">
     <span
-      class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface-muted"
+      class="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface-muted"
     >
       <img v-if="thumbnail" :src="thumbnail" alt="" class="size-full object-cover" />
-      <File v-else class="size-4.5 text-fg-secondary" :stroke-width="1.5" />
+      <File v-else class="size-3.5 text-fg-secondary" :stroke-width="1.5" />
     </span>
-    <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
+    <span class="flex min-w-0 flex-1 flex-col text-left">
       <span class="truncate text-caption font-medium text-fg-primary">{{ title }}</span>
       <span class="flex min-w-0 items-center gap-1 text-caption-sm text-fg-tertiary">
-        <Link2 v-if="linked" class="size-3 shrink-0 text-fg-accent" />
+        <Link2 v-if="linked" class="size-2.5 shrink-0 text-fg-accent" />
         <span class="truncate">{{
           fileType ??
           $t(

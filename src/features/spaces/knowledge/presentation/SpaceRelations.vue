@@ -11,19 +11,21 @@ import { confirmAction } from "../../../../shared/ui/confirm-action";
 import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import { useCanvasSelectionProjection } from "../../canvas/use-canvas-selection-projection";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { isSymmetricRelationKind } from "../../model/relations/relation";
 import { useSpaceStore } from "../../session/space-store";
 import { isSpaceSemanticNode } from "../model/semantic-node";
 import { showSpaceRelationKindMenu } from "./relation-kind-menu";
 import SpaceRelationGroup from "./SpaceRelationGroup.vue";
 
+const props = defineProps<{ node?: SpaceCanvasNode | undefined }>();
 const store = useSpaceStore();
 const { nodes, relations: relationState } = storeToRefs(store);
 const { selectedNodes } = useCanvasSelectionProjection(nodes);
 const { t } = useI18n();
 
 const selected = computed(() => {
-  const node = selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined;
+  const node = props.node ?? (selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined);
   return node && isSpaceSemanticNode(node) ? node : undefined;
 });
 

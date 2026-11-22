@@ -1,5 +1,5 @@
 use super::*;
-use serde_json::json;
+use serde_json::{json, Value};
 
 async fn fixture() -> sqlx::SqlitePool {
     let pool = sqlx::sqlite::SqlitePoolOptions::new()
@@ -60,7 +60,6 @@ async fn publishes_nodes_message_and_run_in_one_commit() {
         "run",
         "space",
         &[output("report", "markdown")],
-        None,
     )
     .await
     .unwrap();
@@ -91,7 +90,6 @@ async fn invalid_output_rolls_back_all_publication_state() {
         "run",
         "space",
         &[output("good", "markdown"), output("bad", "invalid")],
-        None
     )
     .await
     .is_err());
@@ -130,7 +128,6 @@ async fn existing_agent_created_node_is_attached_without_duplicate_import() {
         std::slice::from_ref(&node),
         knowledge::events::EventActor::new("external_agent", Some("session")),
         2,
-        None,
     )
     .await
     .unwrap();
@@ -142,9 +139,7 @@ async fn existing_agent_created_node_is_attached_without_duplicate_import() {
     assert!(super::super::repository::has_turn_output(&pool, "turn")
         .await
         .unwrap());
-    commit(&pool, "session", "run", "space", &[], None)
-        .await
-        .unwrap();
+    commit(&pool, "session", "run", "space", &[]).await.unwrap();
     let content: String =
         sqlx::query_scalar("SELECT content FROM spaces_conversation_messages WHERE id='reply'")
             .fetch_one(&pool)
@@ -171,7 +166,6 @@ async fn a_deliverable_derives_from_the_nodes_its_turn_was_given() {
             target_parent_id: None,
             nodes: vec![insert_node("source", "markdown")],
         },
-        None,
     )
     .await
     .unwrap();
@@ -187,7 +181,6 @@ async fn a_deliverable_derives_from_the_nodes_its_turn_was_given() {
         "run",
         "space",
         &[output("derived", "markdown")],
-        None,
     )
     .await
     .unwrap();
@@ -206,6 +199,83 @@ async fn a_deliverable_derives_from_the_nodes_its_turn_was_given() {
 }
 
 #[tokio::test]
+async fn a_deliverable_derives_from_sources_cited_by_the_turn_even_without_attachments() {
+    let pool = fixture().await;
+    let mut tx = db::begin_write(&pool).await.unwrap();
+    nodes::tests::insert_many_in_transaction(
+        &mut tx,
+        nodes::contracts::InsertNodesRequest {
+            space_id: "space".into(),
+            mutation_id: "sources-create".into(),
+            target_parent_id: None,
+            nodes: vec![
+                insert_node("video", "markdown"),
+                insert_node("brief", "markdown"),
+            ],
+        },
+    )
+    .await
+    .unwrap();
+    tx.commit().await.unwrap();
+
+    sqlx::query("UPDATE spaces_conversation_messages SET content=$1 WHERE id='reply'")
+        .bind(
+            json!({
+                "parts": [{"type": "text", "text": "Summary citing [C2]."}],
+                "runId": "run",
+                "citations": [
+                    {"index": 2, "state": "current", "nodeId": "video", "chunkId": "node:video"},
+                    {"index": 3, "state": "detached", "nodeTitle": "Gone"}
+                ]
+            })
+            .to_string(),
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+
+    let brief_rev: String = sqlx::query_scalar(
+        "SELECT source_revision FROM spaces_knowledge_chunks WHERE id='node:brief'",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    sqlx::query(
+        "INSERT INTO spaces_run_citations(run_id,ordinal,chunk_id,source_revision,node_id,node_title,locator,quote,created_at) \
+         VALUES('run',1,'node:brief',$1,'brief','Report','{}','Findings',1)",
+    )
+    .bind(&brief_rev)
+    .execute(&pool)
+    .await
+    .unwrap();
+
+    let mut report = output("report", "markdown");
+    report.node.data["text"] = json!("Detailed report grounded in [C1].");
+    let plain = output("summary", "markdown");
+
+    commit(&pool, "session", "run", "space", &[report, plain])
+        .await
+        .unwrap();
+
+    // `report` carries its own `[C1]` citation to `brief`, so it links strictly to `brief`
+    // without pulling in `video` from the chat reply; `summary` has no inline markers, so it
+    // falls back to the reply's live citation (`video`) and ignores the detached `ghost`.
+    let relations: Vec<(String, String, String)> = sqlx::query_as(
+        "SELECT source_id,target_id,kind FROM spaces_relations WHERE space_id='space' ORDER BY source_id,target_id",
+    )
+    .fetch_all(&pool)
+    .await
+    .unwrap();
+    assert_eq!(
+        relations,
+        [
+            ("report".into(), "brief".into(), "derives-from".into()),
+            ("summary".into(), "video".into(), "derives-from".into()),
+        ]
+    );
+}
+
+#[tokio::test]
 async fn cancel_request_prevents_publication() {
     let pool = fixture().await;
     sqlx::query("UPDATE spaces_runs SET cancel_requested_at=3 WHERE id='run'")
@@ -218,7 +288,6 @@ async fn cancel_request_prevents_publication() {
         "run",
         "space",
         &[output("late", "markdown")],
-        None
     )
     .await
     .is_err());
@@ -246,7 +315,6 @@ async fn disconnected_session_keeps_completed_turn_outputs_retryable() {
         "run",
         "space",
         &[output("report", "markdown")],
-        None,
     )
     .await
     .unwrap();
@@ -273,7 +341,6 @@ async fn publication_failure_is_retryable_and_receipts_are_released_atomically()
         "run",
         "space",
         &[output("report", "markdown")],
-        None,
     )
     .await
     .unwrap();
@@ -287,7 +354,6 @@ async fn publication_failure_is_retryable_and_receipts_are_released_atomically()
         "run",
         "space",
         &[output("duplicate", "markdown")],
-        None
     )
     .await
     .is_err());
@@ -307,7 +373,6 @@ async fn unfinished_children_block_publication_and_failed_children_are_visible()
         "run",
         "space",
         &[output("too-early", "markdown")],
-        None
     )
     .await
     .is_err());
@@ -321,7 +386,6 @@ async fn unfinished_children_block_publication_and_failed_children_are_visible()
         "run",
         "space",
         &[output("report", "markdown")],
-        None,
     )
     .await
     .unwrap();
@@ -345,7 +409,5 @@ async fn cancelling_run_immediately_cancels_all_descendants() {
     let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_runs WHERE cancel_requested_at IS NOT NULL AND execution_epoch=1")
             .fetch_one(&pool).await.unwrap();
     assert_eq!(count, 3);
-    assert!(commit(&pool, "session", "run", "space", &[], None)
-        .await
-        .is_err());
+    assert!(commit(&pool, "session", "run", "space", &[]).await.is_err());
 }

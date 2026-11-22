@@ -32,6 +32,12 @@ pub(crate) enum KnowledgeChange {
         rationale: String,
         confidence: Option<f64>,
     },
+    UpdateRelation {
+        relation_id: String,
+        status: Option<String>,
+        rationale: Option<String>,
+        confidence: Option<f64>,
+    },
     AddProvenance {
         target_kind: String,
         target_id: String,
@@ -44,6 +50,14 @@ pub(crate) enum KnowledgeChange {
         locator: Value,
         source_revision: String,
         quote: String,
+    },
+    AddCitedProvenance {
+        target_kind: String,
+        target_id: String,
+        #[schemars(
+            description = "Citation id returned by search_knowledge, get_node, or read_node_chunks in this run (e.g. C12)"
+        )]
+        cite_id: String,
     },
 }
 

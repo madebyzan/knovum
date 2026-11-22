@@ -21,8 +21,11 @@ fn registry_definitions_are_coherent() {
             .get("properties")
             .and_then(serde_json::Value::as_object);
         assert!(
-            !definition.input_roles.is_empty()
-                || properties.is_some_and(|properties| !properties.is_empty())
+            definition.impact == super::SpaceActionImpact::ReadOnly
+                || !definition.input_roles.is_empty()
+                || properties.is_some_and(|properties| !properties.is_empty()),
+            "{}",
+            definition.id
         );
         assert_eq!(
             definition.execution_capability.is_some(),

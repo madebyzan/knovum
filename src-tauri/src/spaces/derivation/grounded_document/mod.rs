@@ -112,13 +112,34 @@ async fn execute(
         cancellation,
     )
     .await?;
-    let citations = grounding::prompt::citations(&completion.text, &sources, &request.space_id)?;
+    let (title, text, citations) =
+        finalize_generated_document(&completion.text, &sources, &request.space_id)?;
     Ok(GeneratedDocument {
-        text: completion.text,
+        title,
+        text,
         execution_source: completion.execution_source,
         usage: completion.usage,
         citations,
     })
+}
+
+pub(super) fn finalize_generated_document(
+    raw: &str,
+    sources: &[Value],
+    current_space_id: &str,
+) -> Result<(Option<String>, String, Value), String> {
+    let (title, body) = match crate::spaces::assets::node_payload::extract_markdown_heading(raw) {
+        Some((heading, body)) if !body.trim().is_empty() => {
+            let clean = grounding::prompt::strip_citation_markers(&heading)
+                .trim()
+                .to_owned();
+            ((!clean.is_empty()).then_some(clean), body)
+        }
+        _ => (None, raw.to_owned()),
+    };
+    let (text, citations) =
+        grounding::prompt::finalize_citations(&body, sources, current_space_id)?;
+    Ok((title, text, citations))
 }
 
 /// The passages of the selected resources that serve the document's purpose.
@@ -150,6 +171,7 @@ async fn retrieve(
 }
 
 struct GeneratedDocument {
+    title: Option<String>,
     text: String,
     execution_source: ExecutionSource,
     usage: Option<crate::ai::contracts::TokenUsage>,

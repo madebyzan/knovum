@@ -1,0 +1,65 @@
+/* Canonical inline citation badge shared across Conversation, Reading Surface, and Document Editor. */
+.ui-citation {
+  display: inline-flex;
+  min-width: 1rem;
+  height: 0.9375rem;
+  align-items: center;
+  justify-content: center;
+  margin-inline: 0.125rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-control);
+  padding-inline: 0.25rem;
+  color: var(--color-fg-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: 0;
+  vertical-align: 0.14rem;
+  white-space: nowrap;
+  user-select: none;
+  box-shadow: inset 0 0 0 0.5px var(--color-stroke-default);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.ui-citation + .ui-citation {
+  margin-inline-start: 0.0625rem;
+}
+
+button.ui-citation,
+.ui-citation[role="button"] {
+  cursor: pointer;
+  color: var(--color-fg-accent);
+  background-color: var(--color-surface-accent-subtle);
+  box-shadow: inset 0 0 0 0.5px color-mix(in oklch, var(--color-stroke-accent) 20%, transparent);
+}
+
+button.ui-citation:hover,
+.ui-citation[role="button"]:hover {
+  background-color: var(--color-surface-selected);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--color-stroke-accent) 34%, transparent);
+}
+
+button.ui-citation:focus-visible,
+.ui-citation[role="button"]:focus-visible {
+  outline: 2px solid var(--color-stroke-focus);
+  outline-offset: 1px;
+}
+
+.ui-citation[data-citation-detached] {
+  cursor: help;
+  opacity: 0.78;
+}
+
+.ui-citation[data-citation-preview] {
+  pointer-events: none;
+  cursor: default;
+  color: var(--color-fg-accent);
+  background-color: var(--color-surface-accent-subtle);
+  box-shadow: inset 0 0 0 0.5px color-mix(in oklch, var(--color-stroke-accent) 20%, transparent);
+}

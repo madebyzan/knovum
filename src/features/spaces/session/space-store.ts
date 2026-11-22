@@ -22,12 +22,20 @@ export const useSpaceStore = defineStore("spaces", () => {
   watch(
     state.surface,
     () => {
-      state.sourcePeek.value = undefined;
-      if (state.rightSidebarView.value === "source")
-        state.rightSidebarView.value = state.sourceReturnView.value;
+      state.readingTarget.value = undefined;
       state.editorLocateRequest.value = undefined;
       state.findOpen.value = false;
       state.globalFindOpen.value = false;
+    },
+    { flush: "sync" },
+  );
+  watch(
+    state.activeSpaceId,
+    () => {
+      state.readingTarget.value = undefined;
+      state.readingHistory.value = [];
+      state.readingHistoryIndex.value = -1;
+      state.knowledgeHealthOpen.value = false;
     },
     { flush: "sync" },
   );

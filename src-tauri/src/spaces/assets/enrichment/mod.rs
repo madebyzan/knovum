@@ -201,7 +201,7 @@ pub(crate) mod document;
 mod fields;
 pub(crate) mod jobs;
 pub(crate) mod media_knowledge;
-mod node_payload;
+pub(in crate::spaces) mod node_payload;
 pub(super) mod persistence;
 mod pipeline;
 pub(crate) mod recognized_text;

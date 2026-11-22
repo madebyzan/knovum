@@ -36,14 +36,7 @@ pub async fn complete(
     pending_output::validate_separate_asset(&data, source_path)?;
     apply_output(&mut data, &source, &output, now)?;
     crate::spaces::knowledge::validation::validate_node(&mut tx, &row.0, "video", &data).await?;
-    crate::spaces::derivation::persist_output_node(
-        &mut tx,
-        &row.2,
-        &data,
-        now,
-        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
-    )
-    .await?;
+    crate::spaces::derivation::persist_output_node(&mut tx, &row.2, &data, now).await?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
         .bind(now).bind(derivation_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;

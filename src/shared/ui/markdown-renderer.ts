@@ -3,11 +3,11 @@ import MarkdownIt, { type MarkdownIt as MarkdownItInstance, type StateCore, type
 import { linkDestination } from "../contracts/link-destination";
 
 /**
- * Citation markers an answer may carry, keyed by index: `true` when the cited
- * passage can still be opened. Supplied per render through the markdown-it
- * environment, so one renderer serves every message.
+ * Citation markers an answer or grounded document may carry, keyed by index: `true` when the
+ * cited passage can still be opened. `"preview"` renders any `[Cn]` marker as a non-interactive
+ * superscript badge for glanceable surfaces (such as canvas cards) without altering text.
  */
-export type MarkdownCitations = ReadonlyMap<number, boolean>;
+export type MarkdownCitations = ReadonlyMap<number, boolean> | "preview";
 
 type CitationEnvironment = { citations?: MarkdownCitations };
 
@@ -15,14 +15,16 @@ const CITATION_MARKER = /^\[C([1-9]\d*)\]/u;
 
 interface CitationMeta {
   index: number;
-  openable: boolean;
+  mode: "openable" | "detached" | "preview";
 }
 
 function citationHtml(meta: CitationMeta | undefined): string {
   if (!meta) throw new Error("Citation token carries no citation");
-  return meta.openable
-    ? `<button type="button" class="ui-citation" data-citation-index="${meta.index}">${meta.index}</button>`
-    : `<span class="ui-citation" data-citation-detached="">${meta.index}</span>`;
+  if (meta.mode === "openable")
+    return `<button type="button" class="ui-citation" data-citation-index="${meta.index}">${meta.index}</button>`;
+  if (meta.mode === "preview")
+    return `<span class="ui-citation" data-citation-index="${meta.index}" data-citation-preview="">${meta.index}</span>`;
+  return `<span class="ui-citation" data-citation-index="${meta.index}" data-citation-detached="">${meta.index}</span>`;
 }
 
 export interface MarkdownRendererOptions {
@@ -69,11 +71,12 @@ export function createMarkdownRenderer({
     if (!citations || state.src.charCodeAt(state.pos) !== 0x5b) return false;
     const match = CITATION_MARKER.exec(state.src.slice(state.pos));
     const index = match ? Number(match[1]) : Number.NaN;
-    const openable = citations.get(index);
-    if (!match || openable === undefined) return false;
+    if (!match) return false;
+    const mode = resolveCitationMode(citations, index);
+    if (!mode) return false;
     if (!silent) {
       const token = state.push("citation", "", 0);
-      token.meta = { index, openable } satisfies CitationMeta;
+      token.meta = { index, mode } satisfies CitationMeta;
     }
     state.pos += match[0].length;
     return true;
@@ -81,4 +84,11 @@ export function createMarkdownRenderer({
   md.renderer.rules.citation = (tokens, index) =>
     citationHtml(tokens[index]?.meta as CitationMeta | undefined);
   return md;
+}
+
+function resolveCitationMode(citations: MarkdownCitations, index: number): CitationMeta["mode"] | undefined {
+  if (citations === "preview") return "preview";
+  const openable = citations.get(index);
+  if (openable === undefined) return undefined;
+  return openable ? "openable" : "detached";
 }

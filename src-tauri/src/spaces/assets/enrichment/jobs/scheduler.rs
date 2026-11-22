@@ -2,7 +2,7 @@ use std::{collections::HashSet, time::Duration};
 
 use serde::{de::IntoDeserializer, Deserialize, Serialize};
 use tauri::{ipc::Channel, AppHandle, Emitter};
-use tokio::task::JoinSet;
+use tokio::{sync::OwnedSemaphorePermit, task::JoinSet};
 
 use crate::{ai::tasks::TaskTargetSelection, foundation::app_error::AppError};
 
@@ -78,9 +78,16 @@ async fn dispatch(
         if active.contains(&node) || active.len() >= 32 {
             continue;
         }
-        let selection = match execution_choice(app, &job, &mut readiness).await {
+        // Acquire the job's lane before marking the node active or resolving its routed target:
+        // a busy visual lane must never starve OCR/transcription on the same node, and queued
+        // background jobs must read the latest Settings when their turn actually arrives.
+        let Some(permit) = super::execution::try_acquire_lane(job.job_type) else {
+            continue;
+        };
+        let target = match execution_choice(app, &job, &mut readiness).await {
             Ok(selection) => selection,
             Err(error) if error.is_not_configured() => {
+                drop(permit);
                 persistence::defer_for_configuration(
                     pool,
                     &job.id,
@@ -91,6 +98,7 @@ async fn dispatch(
                 continue;
             }
             Err(error) => {
+                drop(permit);
                 persistence::set_status(
                     pool,
                     &job.id,
@@ -103,14 +111,10 @@ async fn dispatch(
                 continue;
             }
         };
-        let target = match selection {
-            Some(target) => Some(persistence::freeze_target(pool, &job.id, &target).await?),
-            None => None,
-        };
         active.insert(node.clone());
         let app = app.clone();
         workers.spawn(async move {
-            execute(&app, pool, job, target).await?;
+            execute(&app, pool, job, target, permit).await?;
             Ok(node)
         });
     }
@@ -169,6 +173,7 @@ async fn execute(
     pool: &sqlx::SqlitePool,
     job: super::job::EnrichmentJobState,
     target: Option<crate::ai::tasks::TaskTargetSelection>,
+    permit: OwnedSemaphorePermit,
 ) -> Result<(), String> {
     let update = EnrichmentJobUpdate {
         job_id: job.id.clone(),
@@ -198,7 +203,7 @@ async fn execute(
         source_revision: job.source_revision,
         vision_target: target,
     };
-    let execution = super::execution::execute_job(app.clone(), request, progress).await;
+    let execution = super::execution::execute_job(app.clone(), request, progress, permit).await;
     let mut completed = update;
     match execution {
         Ok(output) => completed.data = Some(output.data),

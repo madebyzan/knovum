@@ -10,15 +10,12 @@ use std::path::{Path, PathBuf};
 use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 
-use crate::{
-    ai::tasks::TaskTargetSelection,
-    spaces::{
-        derivation::{
-            output_paths,
-            pending_output::{self, PendingOutput},
-        },
-        structure::Size,
+use crate::spaces::{
+    derivation::{
+        output_paths,
+        pending_output::{self, PendingOutput},
     },
+    structure::Size,
 };
 
 /// Audio has no picture to size itself by, so the canvas gives it a strip.
@@ -27,27 +24,21 @@ const AUDIO_FOOTPRINT: Size = Size {
     height: 80.0,
 };
 
-/// What reserving an output needs of the application: where managed assets live, and who would
-/// read the published content. Resolved once, where the Run is asked for.
+/// What reserving an output needs of the application: where managed assets live.
 pub(super) struct OutputContext {
     asset_directory: PathBuf,
-    enrichment_target: Option<TaskTargetSelection>,
 }
 
 impl OutputContext {
     pub(super) fn resolve(app: &AppHandle) -> Result<Self, String> {
         Ok(Self {
             asset_directory: crate::spaces::assets::asset_directory(app)?,
-            enrichment_target: crate::spaces::assets::enrichment::jobs::intent::selection(app)?,
         })
     }
 
     #[cfg(test)]
     pub(super) fn for_tests(asset_directory: PathBuf) -> Self {
-        Self {
-            asset_directory,
-            enrichment_target: None,
-        }
+        Self { asset_directory }
     }
 
     fn directory(&self) -> &Path {
@@ -101,7 +92,6 @@ pub(super) async fn reserve(
         &[source_node_id.to_owned()],
         lineage,
         run_id,
-        context.enrichment_target.as_ref(),
     )
     .await
     .map_err(|error| error.message)

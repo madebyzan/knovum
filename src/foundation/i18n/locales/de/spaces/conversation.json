@@ -12,17 +12,26 @@
     "manage": "Modelle und Agenten konfigurieren…"
   },
   "empty": {
-    "title": "Probieren Sie eine dieser Aufgaben aus",
-    "topic": "[Thema]",
-    "search": "Quellen finden",
-    "searchPrompt": "Finden Sie in diesem Arbeitsbereich Quellen zu {topic} und listen Sie auf, woher die einzelnen Quellen stammen.",
-    "document": "Dokument erstellen",
-    "documentPrompt": "Erstellen Sie in diesem Arbeitsbereich ein bearbeitbares Übersichtsdokument aus Quellen zu {topic}.",
-    "compare": "Ideen vergleichen",
-    "comparePrompt": "Vergleichen Sie in diesem Arbeitsbereich Ideen zu {topic}, einschließlich Gemeinsamkeiten, Unterschieden und Beweisen."
+    "title": "Mit diesem Space starten",
+    "emptySpaceSummary": "Dieser Space ist leer – stelle eine Frage oder ziehe Webseiten, Dateien und Medien auf das Canvas.",
+    "overview": "Space überblicken",
+    "overviewDesc": "Kernthemen, Erkenntnisse und Verbindungen zwischen Quellen bündeln",
+    "overviewPrompt": "Werte die Quellen in diesem Space aus und fasse Kernthemen, zentrale Erkenntnisse und Zusammenhänge mit Quellenangaben zusammen.",
+    "brief": "Research-Brief erstellen",
+    "briefDesc": "Quellen zu einem bearbeitbaren Dokument auf dem Canvas verdichten",
+    "briefPrompt": "Fasse die Quellen in diesem Space zu einem klar gegliederten, bearbeitbaren Research-Brief auf dem Canvas mit Quellenbelegen zusammen.",
+    "compare": "Perspektiven vergleichen",
+    "compareDesc": "Gemeinsamkeiten, Widersprüche und Belege herausarbeiten",
+    "comparePrompt": "Vergleiche die wichtigsten Perspektiven aus den Quellen in diesem Space und stelle Gemeinsamkeiten, Unterschiede und Belege gegenüber.",
+    "draft": "Themen-Gliederung entwerfen",
+    "draftDesc": "Strukturierte Notiz oder Recherche-Gliederung auf dem Canvas anlegen",
+    "draftPrompt": "Erstelle eine strukturierte Recherche-Gliederung auf dem Canvas mit Hintergrund, Kernfragen und zu sammelnden Quellen.",
+    "plan": "Recherche-Rahmen planen",
+    "planDesc": "Fragestellungen strukturieren und relevante Quellentypen planen",
+    "planPrompt": "Hilf mir, einen klaren Recherche-Rahmen zu entwerfen: zentrale Dimensionen, Prüfwinkel und sinnvolle Quellentypen."
   },
   "input": {
-    "placeholder": "Beschreiben Sie eine Aufgabe für den Agenten ...",
+    "placeholder": "Frage zu diesem Space stellen oder Inhalt entwerfen…",
     "send": "Senden",
     "shortcutHint": "Eingeben"
   },
@@ -73,7 +82,8 @@
     "search": "Durchsuchen Sie Ressourcen in diesem Arbeitsbereich",
     "none": "Keine passenden Ressourcen",
     "remove": "Ressource entfernen: {name}",
-    "preview": "Vorschauressource: {name}"
+    "preview": "Vorschauressource: {name}",
+    "addSelectedOne": "Auswahl anhängen · {title}"
   },
   "uploads": {
     "sizeError": "Dateien dürfen nicht leer sein. Bilder dürfen höchstens 10 MiB groß sein; andere Dateien maximal 20 MiB.",
@@ -122,7 +132,7 @@
     "noSources": "Keine passenden Quellen",
     "plan": "Planen"
   },
-  "askSelection": "Auswahl fragen",
+  "askSelection": "Knovum fragen",
   "extensions": {
     "label": "Konversationserweiterungen",
     "unavailable": "Eine ausgewählte Erweiterung ist nicht verfügbar. Überprüfen Sie die Auswahl.",

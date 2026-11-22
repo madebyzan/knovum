@@ -1,6 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createSpacePlacement } from "../canvas/navigation-requests";
+import { createSpaceNode } from "../canvas/node";
+import { createSpaceNotePayload } from "../document-editing/tiptap-content";
 import { createSpaceState } from "../session/session-state";
 import { createRightSidebarActions } from "../workspace/right-sidebar-actions";
 import { openTestSpaceTab } from "./support/session-context";
@@ -8,6 +10,19 @@ import { openTestSpaceTab } from "./support/session-context";
 function setup() {
   const state = createSpaceState();
   openTestSpaceTab(state, "inbox");
+  state.nodes.value = [
+    createSpaceNode(createSpaceNotePayload("Research"), { x: 0, y: 0 }, "note-1"),
+    createSpaceNode(
+      { kind: "video", title: "Interview", fileName: "a.mp4", assetPath: "/a.mp4" },
+      { x: 0, y: 0 },
+      "video-1",
+    ),
+    createSpaceNode(
+      { kind: "object", title: "Claim", objectTypeId: "claim", status: "open", properties: {} },
+      { x: 0, y: 0 },
+      "object-1",
+    ),
+  ];
   const placement = createSpacePlacement({
     insertionPoint: state.insertionPoint,
     revealRequest: state.revealRequest,
@@ -16,59 +31,50 @@ function setup() {
     selectionClearNonce: state.selectionClearNonce,
     sceneCue: state.sceneCue,
   });
-  const requestMediaSeek = vi.fn<(nodeId: string, timeMs: number) => void>();
   return {
     state,
-    actions: createRightSidebarActions(state, placement, requestMediaSeek, async () => {}),
-    requestMediaSeek,
+    actions: createRightSidebarActions(state, placement, async () => {}),
   };
 }
 
-describe("Space context dock actions", () => {
+describe("Space context dock and reader actions", () => {
   it("opens Ask with an explicit contextual scope request", () => {
     const { state, actions } = setup();
     actions.requestAsk("selection");
-    expect(state.rightSidebarView.value).toBe("ask");
     expect(state.askScopeRequest.value).toMatchObject({ scope: "selection", restart: false });
   });
 
-  it("returns a citation source to the previous Ask mode", () => {
+  it("routes media citations directly to the unified Source Reader without triggering canvas playback", () => {
     const { state, actions } = setup();
-    actions.setRightSidebarView("ask");
-    actions.openSource(
-      {
-        nodeId: "note-1",
-        nodeTitle: "Research",
-        locator: {
-          sourceRevision: "1",
-          location: { kind: "note" },
-        },
-        text: "Evidence",
-      },
-      { reveal: false },
-    );
-    expect(state.rightSidebarView.value).toBe("source");
-    actions.closeSource();
-    expect(state.rightSidebarView.value).toBe("ask");
-  });
-
-  it("returns inspector evidence to Inspect mode and seeks media evidence", () => {
-    const { state, actions, requestMediaSeek } = setup();
-    actions.setRightSidebarView("inspect");
     actions.openSource(
       {
         nodeId: "video-1",
         nodeTitle: "Interview",
-        locator: {
-          sourceRevision: "1",
-          location: { kind: "media", startMs: 1200, endMs: 2400 },
-        },
+        locator: { sourceRevision: "1", location: { kind: "media", startMs: 1200, endMs: 2400 } },
+        text: "Key quote",
       },
       { reveal: false },
     );
-    expect(requestMediaSeek).toHaveBeenCalledWith("video-1", 1200);
-    actions.closeSource();
-    expect(state.rightSidebarView.value).toBe("inspect");
+    expect(state.readingTarget.value).toMatchObject({
+      nodeId: "video-1",
+      pane: "read",
+      quote: "Key quote",
+      locator: { sourceRevision: "1", location: { kind: "media", startMs: 1200, endMs: 2400 } },
+    });
+    expect(state.mediaSeekRequest.value).toBeUndefined();
+  });
+
+  it("opens non-readable objects in info pane and supports history back/forward", () => {
+    const { state, actions } = setup();
+    actions.openSourceReader({ nodeId: "note-1", pane: "read" });
+    actions.openSourceReader({ nodeId: "object-1" });
+    expect(state.readingTarget.value).toMatchObject({ nodeId: "object-1", pane: "info" });
+
+    actions.stepReadingHistory(-1);
+    expect(state.readingTarget.value).toMatchObject({ nodeId: "note-1", pane: "read" });
+
+    actions.stepReadingHistory(1);
+    expect(state.readingTarget.value).toMatchObject({ nodeId: "object-1", pane: "info" });
   });
 
   it("reveals cited nodes without changing the user's canvas scale", () => {

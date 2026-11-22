@@ -102,7 +102,8 @@ pub(super) async fn answer(
         )
         .await?;
     }
-    let citations = prompt::citations(&completion.text, &sources, &request.space_id)?;
-    Ok(json!({"answer":completion.text,"citations":citations,
+    let (answer, citations) =
+        prompt::finalize_citations(&completion.text, &sources, &request.space_id)?;
+    Ok(json!({"answer":answer,"citations":citations,
         "executionSource":completion.execution_source,"usage":completion.usage}))
 }

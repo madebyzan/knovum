@@ -107,4 +107,14 @@ describe("canvas preview projection", () => {
     expect(markdown.truncated).toBe(true);
     expect(projectMarkdownPreview(payload, 2)).toBe(markdown);
   });
+
+  it("preserves Markdown text faithfully without stripping markers or mutilating punctuation", () => {
+    const preview = projectMarkdownPreview(
+      { text: "# Report\n\nEmma Watson discussed merchandise [C5][C43]. Literal `[C5]` stays." },
+      4,
+    );
+    expect(preview.projectedSource).toBe(
+      "# Report\n\nEmma Watson discussed merchandise [C5][C43]. Literal `[C5]` stays.",
+    );
+  });
 });

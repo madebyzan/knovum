@@ -7,6 +7,7 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiCopyButton from "../../../../shared/ui/UiCopyButton.vue";
 import { formatByteSize } from "../../assets/format-byte-size";
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { mediaProviderDisplayName } from "../../media/provider-display-name";
@@ -24,6 +25,8 @@ interface MetadataField {
   label: string;
   value: string | undefined;
   multiline?: boolean;
+  copyable?: boolean;
+  tabular?: boolean;
 }
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
@@ -49,29 +52,31 @@ const fields = computed(() => {
       label: t("spaces.importExport.fileName"),
       value: asset?.fileName === data.title ? undefined : asset?.fileName,
     },
-    { label: t("spaces.inspector.fields.size"), value: formatByteSize(asset?.size) },
+    { label: t("spaces.inspector.fields.size"), value: formatByteSize(asset?.size), tabular: true },
     {
       label: t("spaces.inspector.fields.modified"),
       value: modifiedAtLabel(asset?.modifiedAt),
+      tabular: true,
     },
   ];
   return allFields.filter((row): row is MetadataField & { value: string } => Boolean(row.value));
 });
 
-function sourceField(data: SpaceNodePayload) {
+function sourceField(data: SpaceNodePayload): MetadataField {
   const originalUrl = isSpaceMediaPayload(data) && Boolean(data.origin);
   return {
     label: t(originalUrl ? "spaces.inspector.fields.originalUrl" : "spaces.inspector.fields.source"),
     value: sourceUrl(data),
+    copyable: true,
   };
 }
 
-function websiteFields(data: SpaceNodePayload) {
+function websiteFields(data: SpaceNodePayload): MetadataField[] {
   if (!isSpaceWebsitePayload(data)) return [];
   return [
     { label: t("spaces.inspector.fields.siteName"), value: data.siteName },
     { label: t("spaces.inspector.fields.description"), value: data.description, multiline: true },
-    { label: t("spaces.inspector.fields.canonicalUrl"), value: data.canonicalUrl },
+    { label: t("spaces.inspector.fields.canonicalUrl"), value: data.canonicalUrl, copyable: true },
   ];
 }
 
@@ -115,17 +120,32 @@ async function refreshWebsite() {
 </script>
 
 <template>
-  <dl class="space-y-0.5">
-    <div v-for="row in fields" :key="row.label" class="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-2 py-1.5">
-      <dt class="text-caption text-fg-tertiary">{{ row.label }}</dt>
-      <dd class="min-w-0 text-caption text-fg-secondary">
-        <span class="block" :class="row.multiline ? 'line-clamp-3' : 'truncate'" :title="row.value">{{
-          row.value
-        }}</span>
+  <dl class="space-y-1.5">
+    <div
+      v-for="row in fields"
+      :key="row.label"
+      class="group grid grid-cols-[5.25rem_minmax(0,1fr)] items-baseline gap-x-3"
+    >
+      <dt class="truncate text-caption text-fg-tertiary">{{ row.label }}</dt>
+      <dd class="flex min-w-0 items-center gap-1 text-caption text-fg-secondary">
+        <span
+          class="min-w-0 flex-1"
+          :class="[
+            row.multiline ? 'line-clamp-3 leading-relaxed' : 'truncate',
+            row.tabular && 'tabular-nums',
+          ]"
+          :title="row.value"
+          >{{ row.value }}</span
+        >
+        <UiCopyButton
+          v-if="row.copyable"
+          :text="row.value"
+          class="-my-1 shrink-0 opacity-0 transition-opacity duration-100 group-hover:opacity-100 focus-visible:opacity-100"
+        />
       </dd>
     </div>
   </dl>
-  <div v-if="node.data.kind === 'website'" class="mt-2">
+  <div v-if="node.data.kind === 'website'" class="mt-2.5">
     <UiButton
       size="sm"
       variant="secondary"

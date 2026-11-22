@@ -127,7 +127,6 @@ async fn undo_keeps_a_size_the_edit_never_changed() {
                 "data":{"kind":"image","title":"Photo","assetPath":"/managed/photo.png","fileName":"photo.png"}}]
         }))
         .unwrap(),
-        None,
     )
     .await
     .unwrap();

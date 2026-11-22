@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { LocateFixed, Search, TriangleAlert } from "@lucide/vue";
+import { LocateFixed, Search, Sparkles, TriangleAlert } from "@lucide/vue";
+import { camelCase } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { computed, shallowRef, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -8,6 +9,7 @@ import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { nodeIcon } from "../../canvas/presentation/node-icon";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
+import SpaceInspectorSection from "../../inspection/presentation/SpaceInspectorSection.vue";
 import { useSpaceStore } from "../../session/space-store";
 import { useRelatedContent } from "../queries/use-related-content";
 
@@ -58,89 +60,86 @@ function retry() {
 </script>
 
 <template>
-  <section class="mx-4 border-t border-stroke-divider py-1.5">
-    <header class="flex min-h-interaction items-center gap-2 px-1">
-      <h3 class="flex-1 text-label font-medium text-fg-primary">
-        {{ t("spaces.inspector.related.title") }}
-      </h3>
-      <button
-        v-if="items.length > 3"
-        type="button"
-        class="rounded-md px-1 text-caption text-fg-secondary hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
-        :aria-expanded="expanded"
-        @click="expanded = !expanded"
-      >
-        {{ t(expanded ? "spaces.inspector.related.showLess" : "spaces.inspector.related.show") }}
-      </button>
-    </header>
+  <SpaceInspectorSection :title="t('spaces.inspector.related.title')" :icon="Sparkles" :count="items.length">
     <div
       v-if="
         !preparing &&
         (query.isError.value || (indexStatus === 'unavailable' && query.data.value?.state === 'unindexed'))
       "
-      class="flex items-start gap-2 px-1 py-2 text-caption text-fg-danger"
+      class="flex items-start gap-2 rounded-lg border border-stroke-danger/30 bg-surface-danger-subtle px-2.5 py-2 text-caption text-fg-danger"
     >
-      <TriangleAlert class="mt-0.5 size-3 shrink-0" />
+      <TriangleAlert class="mt-0.5 size-3.5 shrink-0" />
       <div>
         <p>{{ t("spaces.inspector.related.unavailable") }}</p>
         <button type="button" class="mt-1 underline" @click="retry">{{ t("common.retry") }}</button>
       </div>
     </div>
-    <div
-      v-else-if="pending"
-      class="flex items-center gap-2 px-1 py-2 text-caption text-fg-tertiary"
-      role="status"
-    >
+    <div v-else-if="pending" class="flex items-center gap-2 py-1 text-caption text-fg-tertiary" role="status">
       <UiSpinner size="sm" />{{ t("spaces.inspector.related.indexing") }}
     </div>
     <div
       v-else-if="query.data.value?.state === 'unindexed'"
-      class="px-1 py-2 text-caption leading-relaxed text-fg-tertiary"
+      class="py-1 text-caption leading-relaxed text-fg-tertiary"
     >
       <p>{{ t("spaces.inspector.related.notIndexed") }}</p>
-      <button type="button" class="mt-1 text-fg-secondary underline" @click="prepare">
+      <button type="button" class="mt-1 text-fg-secondary underline hover:text-fg-primary" @click="prepare">
         {{ t("spaces.inspector.related.prepare") }}
       </button>
     </div>
     <p
       v-else-if="query.data.value?.state === 'no_content'"
-      class="px-1 py-2 text-caption leading-relaxed text-fg-tertiary"
+      class="py-1 text-caption leading-relaxed text-fg-tertiary"
     >
       {{ t("spaces.inspector.related.noContent") }}
     </p>
-    <div v-else-if="!items.length" class="flex items-center gap-2 px-1 py-2 text-caption text-fg-tertiary">
-      <Search class="size-3.5" :stroke-width="1.5" />{{ t("spaces.inspector.related.empty") }}
+    <div v-else-if="!items.length" class="flex items-center gap-2 py-1 text-caption text-fg-tertiary">
+      <Search class="size-3.5 shrink-0" :stroke-width="1.5" />{{ t("spaces.inspector.related.empty") }}
     </div>
-    <div v-else>
-      <p v-if="expanded" class="px-1 pb-1 text-caption leading-relaxed text-fg-tertiary">
+    <div v-else class="space-y-0.5">
+      <p v-if="expanded" class="pb-1 text-caption leading-relaxed text-fg-tertiary">
         {{ t("spaces.inspector.related.explanation") }}
       </p>
       <button
         v-for="item in visibleItems"
         :key="item.nodeId"
         type="button"
-        class="flex w-full items-center gap-2.5 rounded-md px-1 py-1.5 text-left transition-colors hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
+        class="group -mx-1.5 flex w-[calc(100%+0.75rem)] items-center gap-2.5 rounded-md px-1.5 py-1.5 text-left transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
         :aria-label="`${t('spaces.canvas.revealInCanvas')}: ${item.nodeTitle}`"
         @click="reveal(item.nodeId)"
       >
         <span
-          class="grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-surface-control text-fg-tertiary"
+          class="grid size-7 shrink-0 place-items-center overflow-hidden rounded-[5px] bg-surface-control text-fg-tertiary ring-1 ring-stroke-divider/60 ring-inset"
         >
           <img
             v-if="item.thumbnail"
             :src="item.thumbnail"
             alt=""
-            class="size-full object-contain"
+            class="size-full object-cover"
             loading="lazy"
             decoding="async"
           />
-          <component :is="nodeIcon(item.nodeKind)" v-else class="size-4" :stroke-width="1.5" />
+          <component :is="nodeIcon(item.nodeKind)" v-else class="size-3.5" :stroke-width="1.5" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block truncate text-label font-medium text-fg-primary">{{ item.nodeTitle }}</span>
+          <span class="block truncate text-caption font-medium text-fg-primary">{{ item.nodeTitle }}</span>
+          <span class="block truncate text-caption-sm text-fg-tertiary">{{
+            t(`spaces.nodeTypes.${camelCase(item.nodeKind)}`)
+          }}</span>
         </span>
-        <LocateFixed class="size-3.5 shrink-0 text-fg-tertiary" :stroke-width="1.6" />
+        <LocateFixed
+          class="size-3.5 shrink-0 text-fg-tertiary opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-visible:opacity-100"
+          :stroke-width="1.6"
+        />
+      </button>
+      <button
+        v-if="items.length > 3"
+        type="button"
+        class="-mx-1.5 mt-0.5 inline-flex items-center rounded-md px-1.5 py-1 text-caption-sm font-medium text-fg-tertiary transition-colors duration-100 hover:bg-surface-control-hover hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
+        :aria-expanded="expanded"
+        @click="expanded = !expanded"
+      >
+        {{ t(expanded ? "spaces.inspector.related.showLess" : "spaces.inspector.related.show") }}
       </button>
     </div>
-  </section>
+  </SpaceInspectorSection>
 </template>

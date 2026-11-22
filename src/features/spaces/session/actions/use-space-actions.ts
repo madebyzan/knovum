@@ -91,12 +91,7 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
   const editors = createEditorSurfaceActions(spaceContext);
   useEditorSessionProjection(state, (tabId) => closeWorkbenchTab(spaceContext, tabId));
   useWorkbenchSessionPersistence(spaceContext);
-  const context = createRightSidebarActions(
-    state,
-    placement,
-    media.requestMediaSeek,
-    editors.openDocumentEditor,
-  );
+  const context = createRightSidebarActions(state, placement, editors.openDocumentEditor);
   const view = createSpaceViewActions(state, placement);
   const actions = assembleSpaceActions({
     state,

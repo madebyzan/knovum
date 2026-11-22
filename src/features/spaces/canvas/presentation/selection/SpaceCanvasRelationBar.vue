@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, GitBranch, MessageSquareText } from "@lucide/vue";
+import { Check, PenLine } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, shallowRef, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
@@ -19,6 +19,7 @@ import { getCanvasEditorSession } from "../../editor-session";
 import { CANVAS_RELATION_COLORS, type CanvasRelationColor } from "../../schema/document";
 import { CANVAS_ACTION_BAR_CLASSES } from "../canvas-action-classes";
 import SpaceCanvasColorSwatches from "../SpaceCanvasColorSwatches.vue";
+import SpaceCanvasRelationKindIcon from "./SpaceCanvasRelationKindIcon.vue";
 
 const store = useSpaceStore();
 const { relations } = storeToRefs(store);
@@ -116,7 +117,7 @@ function setColor(value: string) {
           :label="t('spaces.knowledge.relations.title')"
           :title="t('spaces.knowledge.relations.title')"
         >
-          <GitBranch class="size-4.5" :stroke-width="1.6" />
+          <SpaceCanvasRelationKindIcon class="size-4" />
         </UiIconButton>
       </template>
       <UiDropdownMenuItem
@@ -135,7 +136,7 @@ function setColor(value: string) {
           :label="t('spaces.knowledge.relations.rationale.label')"
           :title="t('spaces.knowledge.relations.rationale.label')"
         >
-          <MessageSquareText class="size-4.5" :stroke-width="1.6" />
+          <PenLine class="size-4" :stroke-width="1.6" />
         </UiIconButton>
       </template>
       <label class="text-caption-sm font-medium text-fg-tertiary">

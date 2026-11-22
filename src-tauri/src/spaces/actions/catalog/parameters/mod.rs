@@ -59,27 +59,69 @@ pub(super) struct SpaceEditParameters {
 
 #[derive(Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(super) struct SearchParameters {
+pub(crate) struct SearchParameters {
     #[schemars(length(min = 1))]
-    query: String,
+    pub(crate) query: String,
     #[schemars(range(min = 1, max = 100))]
-    limit: u8,
+    pub(crate) limit: u8,
+    #[serde(default)]
+    pub(crate) node_ids: Option<Vec<String>>,
+    #[serde(default)]
+    pub(crate) roles: Option<Vec<String>>,
+    #[serde(default)]
+    pub(crate) mode: crate::spaces::queries::knowledge_projection::SearchOutputMode,
 }
 
 #[derive(Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(super) struct ContentsParameters {
+pub(crate) struct ContentsParameters {
     #[schemars(range(min = 0))]
-    offset: u32,
+    pub(crate) offset: u32,
     #[schemars(range(min = 1, max = 100))]
-    limit: u8,
+    pub(crate) limit: u8,
 }
 
 #[derive(Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(super) struct NodeParameters {
+pub(crate) struct NodeParameters {
     #[schemars(length(min = 1))]
-    node_id: String,
+    pub(crate) node_id: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct NodeChunksParameters {
+    #[schemars(length(min = 1))]
+    pub(crate) node_id: String,
+    #[serde(default)]
+    pub(crate) role: Option<String>,
+    #[serde(default)]
+    #[schemars(range(min = 0))]
+    pub(crate) offset: u32,
+    #[serde(default = "default_chunk_limit")]
+    #[schemars(range(min = 1, max = 100))]
+    pub(crate) limit: u8,
+    #[serde(default)]
+    pub(crate) around_chunk_id: Option<String>,
+    #[serde(default)]
+    #[schemars(range(min = 0, max = 25))]
+    pub(crate) context_chunks: Option<u8>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct RelationsParameters {
+    #[serde(default)]
+    pub(crate) node_id: Option<String>,
+    #[serde(default)]
+    pub(crate) kind: Option<String>,
+    #[serde(default = "default_chunk_limit")]
+    #[schemars(range(min = 1, max = 200))]
+    pub(crate) limit: u8,
+}
+
+fn default_chunk_limit() -> u8 {
+    50
 }
 
 #[derive(Deserialize, JsonSchema)]
@@ -173,6 +215,8 @@ schema!(space_edit, SpaceEditParameters);
 schema!(contents, ContentsParameters);
 schema!(search, SearchParameters);
 schema!(node, NodeParameters);
+schema!(node_chunks, NodeChunksParameters);
+schema!(relations, RelationsParameters);
 schema!(question, QuestionParameters);
 schema!(script, ScriptParameters);
 schema!(meeting_summary, MeetingSummaryParameters);

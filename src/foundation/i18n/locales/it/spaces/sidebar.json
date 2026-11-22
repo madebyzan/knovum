@@ -5,7 +5,6 @@
   "editorOutline": {
     "title": "Struttura del documento"
   },
-  "rightSidebarViews": "Visualizzazioni della barra laterale destra",
   "rename": {
     "nameRequired": "Inserisci un nome.",
     "failed": "Impossibile salvare il nome. Premi Invio per riprovare."

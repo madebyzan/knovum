@@ -177,6 +177,8 @@
     "loadFailed": "Could not load schema types"
   },
   "visual": {
-    "empty": "No image analysis yet"
+    "empty": "No image analysis yet",
+    "keywords": "Visual keywords",
+    "adoptKeyword": "Add \"{keyword}\" to tags"
   }
 }

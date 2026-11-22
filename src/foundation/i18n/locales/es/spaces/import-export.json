@@ -11,7 +11,8 @@
     "refreshFailed": "No se pudo recuperar el contenido web"
   },
   "preview": {
-    "system": "Vista previa",
+    "quickLook": "Vista rápida",
+    "system": "Abrir",
     "show": "Vista previa",
     "instantUnavailable": {
       "title": "Sin vista previa instantánea",
@@ -64,6 +65,5 @@
     "resource": "Importando recurso",
     "preparing": "Copiando y verificando recursos...",
     "processing": "Análisis de recursos…"
-  },
-  "openInEditor": "Abrir en editor externo"
+  }
 }

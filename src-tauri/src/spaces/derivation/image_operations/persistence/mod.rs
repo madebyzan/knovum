@@ -84,19 +84,9 @@ pub async fn complete(
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<CompletedDerivationOutput, AppError> {
     let pool = db::pool(app).await?;
-    let target = crate::spaces::assets::enrichment::jobs::intent::selection(app)?;
-    let target = target.as_ref();
     let path = output_file::write(app, &image.png).await?;
-    let completed = complete_persistence(
-        pool,
-        request,
-        &image,
-        &path,
-        authority,
-        cancellation,
-        target,
-    )
-    .await;
+    let completed =
+        complete_persistence(pool, request, &image, &path, authority, cancellation).await;
     if completed.is_err() {
         let _ = tokio::fs::remove_file(&path).await;
     }
@@ -110,7 +100,6 @@ async fn complete_persistence(
     path: &Path,
     authority: &super::super::action_execution::ExecutionAuthority,
     cancellation: &tokio_util::sync::CancellationToken,
-    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<CompletedDerivationOutput, AppError> {
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
@@ -139,16 +128,7 @@ async fn complete_persistence(
         .map_err(db::json_error)
         .map_err(AppError::from)?;
     pending_output::validate_unpublished_asset(&data)?;
-    persist(
-        &mut tx,
-        request,
-        &mut data,
-        &source,
-        image,
-        path,
-        enrichment_target,
-    )
-    .await?;
+    persist(&mut tx, request, &mut data, &source, image, path).await?;
     if cancellation.is_cancelled() {
         return Err("Image operation was cancelled".into());
     }
@@ -169,7 +149,6 @@ async fn persist(
     source: &Value,
     image: &CanonicalImage,
     path: &Path,
-    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), AppError> {
     let now = crate::foundation::clock::unix_time_millis()?;
     let asset_path = path.to_string_lossy();
@@ -207,14 +186,8 @@ async fn persist(
     revision::apply(payload)?;
     crate::spaces::knowledge::validation::validate_node(tx, &request.space_id, "image", payload)
         .await?;
-    crate::spaces::derivation::persist_output_node(
-        tx,
-        &request.output_node_id,
-        payload,
-        now,
-        enrichment_target,
-    )
-    .await?;
+    crate::spaces::derivation::persist_output_node(tx, &request.output_node_id, payload, now)
+        .await?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2 AND status='running'")
         .bind(now).bind(&request.id).execute(&mut **tx).await.map_err(db::sql_error)?;
     sqlx::query("UPDATE spaces SET updated_at=$1 WHERE id=$2")

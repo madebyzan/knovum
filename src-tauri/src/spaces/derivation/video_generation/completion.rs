@@ -60,14 +60,8 @@ pub async fn complete(
     revision::apply(&mut data)?;
     crate::spaces::knowledge::validation::validate_node(&mut tx, &request.space_id, "video", &data)
         .await?;
-    crate::spaces::derivation::persist_output_node(
-        &mut tx,
-        &request.output_node_id,
-        &data,
-        now,
-        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
-    )
-    .await?;
+    crate::spaces::derivation::persist_output_node(&mut tx, &request.output_node_id, &data, now)
+        .await?;
     sqlx::query("INSERT INTO spaces_generated_videos(derivation_id,prompt,aspect_ratio,duration_seconds,execution_source,operation_id) VALUES($1,$2,$3,$4,$5,$6)")
         .bind(&request.id).bind(&request.prompt).bind(request.aspect_ratio.as_str()).bind(request.duration_seconds)
         .bind(sqlx::types::Json(&generated.execution_source)).bind(generated.operation_id)

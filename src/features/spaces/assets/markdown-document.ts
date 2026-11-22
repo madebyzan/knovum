@@ -1,4 +1,10 @@
+import { stripCitationMarkers } from "../knowledge/model/citation-markers";
 import { truncateUtf16 } from "../model/text";
+
+export interface FormatExportMarkdownOptions {
+  /** Strips Knovum internal `[Cn]` citation markers so exported prose stays clean and standalone. */
+  stripCitations?: boolean;
+}
 
 const LEADING_H1_PATTERN = /^\s*#[ \t]+(.+?)(?:\s+#+)?[ \t]*(?:\r?\n|$)/u;
 
@@ -17,12 +23,17 @@ export function extractImportedMarkdownDocument(name: string, rawText: string) {
   };
 }
 
-export function formatExportMarkdown(title: string, markdown: string): string {
+export function formatExportMarkdown(
+  title: string,
+  markdown: string,
+  options?: FormatExportMarkdownOptions,
+): string {
+  const body = options?.stripCitations ? stripCitationMarkers(markdown) : markdown;
   const trimmedTitle = title.trim();
-  const trimmedMarkdown = markdown.trim();
-  if (!trimmedTitle) return markdown;
-  if (/^#\s+/u.test(trimmedMarkdown)) return markdown;
-  return trimmedMarkdown ? `# ${trimmedTitle}\n\n${markdown.trimStart()}` : `# ${trimmedTitle}\n`;
+  const trimmedMarkdown = body.trim();
+  if (!trimmedTitle) return body;
+  if (/^#\s+/u.test(trimmedMarkdown)) return body;
+  return trimmedMarkdown ? `# ${trimmedTitle}\n\n${body.trimStart()}` : `# ${trimmedTitle}\n`;
 }
 
 function markdownTitle(name: string) {

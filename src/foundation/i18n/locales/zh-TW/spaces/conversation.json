@@ -12,17 +12,26 @@
     "manage": "配置模型與 Agent…"
   },
   "empty": {
-    "title": "試試這些任務",
-    "topic": "【主題】",
-    "search": "找資料",
-    "searchPrompt": "在這個空間中尋找與{topic}相關的資料，並列出來源。",
-    "document": "建立文檔",
-    "documentPrompt": "結合這個空間中關於{topic}的資料，建立一份可編輯的概覽文件。",
-    "compare": "梳理觀點",
-    "comparePrompt": "比較這個空間中關於{topic}的不同觀點，列出共同點、分歧和依據。"
+    "title": "圍繞目前空間開始",
+    "emptySpaceSummary": "目前空間尚無資料，可直接提問，或將網頁、文件與影音拖入畫布。",
+    "overview": "梳理空間脈絡",
+    "overviewDesc": "總結核心主題、關鍵發現與資料之間的關聯",
+    "overviewPrompt": "梳理目前空間的全部資料，總結核心主題、關鍵發現與資料之間的關聯，並標明來源。",
+    "brief": "建立研究簡報",
+    "briefDesc": "整合空間資料，在畫布建立一份可編輯的溯源文件",
+    "briefPrompt": "整合目前空間的資料，在畫布中建立一份結構清晰、可編輯的研究簡報文件，並附上關鍵依據的來源引用。",
+    "compare": "對比觀點與分歧",
+    "compareDesc": "找出多份資料之間的共識、差異與原始依據",
+    "comparePrompt": "對比目前空間多份資料中的核心觀點，梳理共識、分歧與各自依據，並標註來源。",
+    "draft": "起草主題文件",
+    "draftDesc": "在畫布中快速建立一份結構化筆記或研究大綱",
+    "draftPrompt": "幫我在畫布中起草一份結構化的研究大綱文件，先從背景、核心問題與待收集資料三個部分展開。",
+    "plan": "規劃研究架構",
+    "planDesc": "拆解問題維度，列出值得收集的資料方向",
+    "planPrompt": "幫我規劃一個清晰的研究架構：拆解關鍵問題維度、驗證角度，以及建議收集哪些類型的資料。"
   },
   "input": {
-    "placeholder": "向 Agent 描述任務…",
+    "placeholder": "圍繞目前空間提問，或描述想整理的內容…",
     "send": "傳送",
     "shortcutHint": "Enter"
   },
@@ -73,7 +82,8 @@
     "search": "搜尋目前空間的資料",
     "none": "沒有相符的可用資料",
     "remove": "移除資料：{name}",
-    "preview": "預覽資料：{name}"
+    "preview": "預覽資料：{name}",
+    "addSelectedOne": "引用畫布選取 · {title}"
   },
   "uploads": {
     "sizeError": "文件不能為空；圖片不能超過 10 MiB，其他文件不能超過 20 MiB。",
@@ -122,7 +132,7 @@
     "noSources": "沒有找到相關資料",
     "plan": "執行計劃"
   },
-  "askSelection": "詢問選項",
+  "askSelection": "問 Knovum",
   "extensions": {
     "label": "對話擴充",
     "unavailable": "所選擴充已不可用，請重新選擇。",

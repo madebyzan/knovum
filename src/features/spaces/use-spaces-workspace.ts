@@ -12,9 +12,7 @@ export function useSpacesWorkspace(): WorkspaceDefinition {
     rightSidebar: defineAsyncComponent(() => import("./workspace/presentation/SpaceRightSidebar.vue")),
     toolbarLeading: defineAsyncComponent(() => import("./workspace/presentation/SpaceHistoryControls.vue")),
     rightSidebarLayout: { defaultSize: 380, minSize: 300, maxSize: 480 },
-    openDefaultRightSidebar: () => {
-      store.setRightSidebarView("ask");
-    },
+    openDefaultRightSidebar: () => {},
     rightSidebarAvailable: computed(() => store.workbench.rightSidebar),
     currentScope: computed(() =>
       store.activeSpace

@@ -12,17 +12,26 @@
     "manage": "Configurar modelos e agentes…"
   },
   "empty": {
-    "title": "Experimente uma destas tarefas",
-    "topic": "[tópico]",
-    "search": "Encontrar fontes",
-    "searchPrompt": "Encontre fontes sobre {topic} neste espaço de trabalho e liste a origem de cada uma delas.",
-    "document": "Criar um documento",
-    "documentPrompt": "Crie um documento de visão geral editável a partir de fontes sobre {topic} nesta área de trabalho.",
-    "compare": "Comparar ideias",
-    "comparePrompt": "Compare ideias sobre {topic} neste espaço de trabalho, incluindo pontos em comum, diferenças e evidências."
+    "title": "Comece por este espaço",
+    "emptySpaceSummary": "Este espaço está vazio — pergunte qualquer coisa ou arraste páginas, arquivos e mídias para a tela.",
+    "overview": "Mapear o espaço",
+    "overviewDesc": "Resuma temas centrais, achados e conexões entre fontes",
+    "overviewPrompt": "Analise as fontes deste espaço e resuma os temas centrais, os principais achados e como se conectam, citando cada fonte.",
+    "brief": "Gerar relatório de pesquisa",
+    "briefDesc": "Sintetize as fontes em um documento editável na tela",
+    "briefPrompt": "Sintetize as fontes deste espaço em um relatório de pesquisa claro e editável na tela, com citações para os pontos principais.",
+    "compare": "Comparar perspectivas",
+    "compareDesc": "Destaque consensos, divergências e evidências entre fontes",
+    "comparePrompt": "Compare as principais perspectivas nas fontes deste espaço, destacando pontos em comum, divergências e evidências citadas.",
+    "draft": "Rascunhar estrutura",
+    "draftDesc": "Crie uma nota estruturada ou roteiro de pesquisa na tela",
+    "draftPrompt": "Crie na tela um roteiro de pesquisa estruturado com contexto, perguntas-chave e fontes a reunir.",
+    "plan": "Planejar estrutura de estudo",
+    "planDesc": "Divida dimensões, ângulos e tipos de fontes para coletar",
+    "planPrompt": "Ajude-me a montar uma estrutura clara de pesquisa: dimensões principais, ângulos de validação e tipos de fontes para coletar."
   },
   "input": {
-    "placeholder": "Descreva uma tarefa para o Agente…",
+    "placeholder": "Pergunte sobre este espaço ou descreva o que deseja criar…",
     "send": "Enviar",
     "shortcutHint": "Digitar"
   },
@@ -73,7 +82,8 @@
     "search": "Pesquisar recursos neste espaço de trabalho",
     "none": "Sem recursos correspondentes",
     "remove": "Remover recurso: {name}",
-    "preview": "Recurso de visualização: {name}"
+    "preview": "Recurso de visualização: {name}",
+    "addSelectedOne": "Anexar seleção · {title}"
   },
   "uploads": {
     "sizeError": "Os arquivos não podem estar vazios. As imagens devem ter no máximo 10 MiB; outros arquivos no máximo 20 MiB.",
@@ -122,7 +132,7 @@
     "noSources": "Sem fontes correspondentes",
     "plan": "Plano"
   },
-  "askSelection": "Perguntar seleção",
+  "askSelection": "Perguntar ao Knovum",
   "extensions": {
     "label": "Extensões de conversa",
     "unavailable": "Uma extensão selecionada não está disponível. Revise a seleção.",

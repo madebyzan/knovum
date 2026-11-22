@@ -5,7 +5,21 @@
 
 use tauri::{Runtime, Url, Webview};
 
+pub const SOURCE_READER_WEBVIEW_LABEL: &str = "source-reader-web";
+pub const READER_PREVIEW_SCHEME: &str = "knovum-preview";
+
 pub(super) fn allows<R: Runtime>(webview: &Webview<R>, url: &Url) -> bool {
+    if webview.label() == SOURCE_READER_WEBVIEW_LABEL {
+        let allowed = allows_reader_webview(url);
+        if !allowed {
+            log::warn!(
+                "Refused to navigate {} to unsupported {} URL",
+                webview.label(),
+                url.scheme()
+            );
+        }
+        return allowed;
+    }
     let dev_url = tauri::is_dev()
         .then(|| tauri::Manager::config(webview).build.dev_url.as_ref())
         .flatten();
@@ -18,6 +32,14 @@ pub(super) fn allows<R: Runtime>(webview: &Webview<R>, url: &Url) -> bool {
         );
     }
     allowed
+}
+
+fn allows_reader_webview(url: &Url) -> bool {
+    match url.scheme() {
+        "http" | "https" | "about" => true,
+        READER_PREVIEW_SCHEME => url.host_str() == Some("localhost"),
+        _ => false,
+    }
 }
 
 /// What the app itself serves: its one page (routing lives in the fragment), its assets, and

@@ -1,7 +1,7 @@
 pub(crate) mod arrow_batch;
 pub(crate) mod chunk_loader;
 mod current_chunks;
-mod generation;
+pub(crate) mod generation;
 mod generation_build;
 mod global_search;
 pub(crate) mod hybrid;

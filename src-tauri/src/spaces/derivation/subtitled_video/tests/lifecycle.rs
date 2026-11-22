@@ -57,7 +57,7 @@ async fn fixture(with_transcript: bool) -> (SqlitePool, RenderSubtitledVideoRequ
             {"id":"output","kind":"video","initialX":400,"initialY":0,"width":300,"height":200,"sizingMode":"frame","data":output,"sourceChunks":[]}
         ]
     })).unwrap();
-    crate::spaces::nodes::tests::insert_many_in_transaction(&mut tx, nodes, None)
+    crate::spaces::nodes::tests::insert_many_in_transaction(&mut tx, nodes)
         .await
         .unwrap();
     tx.commit().await.unwrap();
@@ -95,7 +95,6 @@ async fn automatic_subtitles_publish_only_a_derived_video_and_leave_source_uncha
         rendered(),
         &authority(),
         &CancellationToken::new(),
-        None,
     )
     .await
     .unwrap();
@@ -192,7 +191,7 @@ async fn source_change_and_cancellation_prevent_publication() {
             cancellation.cancel();
         }
         assert!(
-            persistence::complete(&pool, "job", rendered(), &authority(), &cancellation, None)
+            persistence::complete(&pool, "job", rendered(), &authority(), &cancellation)
                 .await
                 .is_err()
         );

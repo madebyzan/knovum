@@ -1,5 +1,4 @@
 {
-  "itemsSelected": "{count} Element ausgewählt | {count} Elemente ausgewählt",
   "title": "Details",
   "basicInformation": "Allgemein",
   "showSource": "Quellenansicht",
@@ -28,16 +27,13 @@
   "recognizedText": "OCR-erkannter Text",
   "excerpts": {
     "title": "Auszug · {title}",
-    "line": "— {title} · {location}",
-    "content": "Inhaltsauszug"
+    "line": "— {title} · {location}"
   },
   "openSource": "Quellknoten suchen",
   "targetSpace": "Zielarbeitsbereich",
   "none": "Nicht festgelegt",
   "renameHint": "Zum Umbenennen klicken",
-  "openContent": "Offener Inhalt",
   "content": "Inhalt",
-  "playVideo": "Video abspielen",
   "related": {
     "title": "Verwandter Inhalt",
     "show": "Mehr anzeigen",
@@ -50,5 +46,31 @@
     "empty": "Noch kein verwandter Inhalt in diesem Arbeitsbereich.",
     "explanation": "Entdecken Sie verwandte Inhalte in diesem Arbeitsbereich nach Bedeutung. Ergebnisse schaffen keine Verbindungen."
   },
-  "containedItems": "{count} enthielt Elemente"
+  "reader": {
+    "read": "Lesen",
+    "readerMode": "Lesemodus",
+    "liveWeb": "Webansicht",
+    "decreaseFontSize": "Text verkleinern",
+    "increaseFontSize": "Text vergrößern",
+    "searchPlaceholder": "Im Dokument suchen…",
+    "outline": "Inhaltsverzeichnis",
+    "highlight": "Hervorheben",
+    "addText": "Text hinzufügen",
+    "draw": "Zeichnen",
+    "wrapLines": "Zeilenumbruch",
+    "singleSlide": "Folienansicht",
+    "continuousSlides": "Fortlaufende Ansicht",
+    "markup": "Markieren",
+    "thumbnails": "Miniaturen",
+    "highlights": "Auszüge",
+    "areaCapture": "Bereich erfassen",
+    "viewOptions": "Ansichtsoptionen",
+    "singlePage": "Einzelseite",
+    "twoPageSpread": "Doppelseite",
+    "fitPage": "Ganze Seite",
+    "rotateClockwise": "90° drehen",
+    "typeHere": "Text eingeben…",
+    "preview": "Vorschau",
+    "followSelection": "Bei Auswahl wechseln"
+  }
 }

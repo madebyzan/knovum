@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import type { RightSidebarPrimaryView, RightSidebarView } from "../session/workbench-state";
 import { savedSpaceViewSchema, type SavedSpaceViewSession } from "./space-view-session";
 import { isSpaceEditorTab, type SpaceWorkbenchTab } from "./workbench-tab";
 
@@ -16,7 +15,6 @@ const workbenchSessionSchema = z
   .object({
     tabs: z.array(savedTabSchema),
     activeIndex: z.number().int().nonnegative().nullable(),
-    rightSidebarView: z.enum(["ask", "inspect"]),
     spaceViews: z.record(nonEmptyId, savedSpaceViewSchema),
   })
   .strict()
@@ -33,7 +31,6 @@ export type SavedWorkbenchTab = z.infer<typeof savedTabSchema>;
 export interface WorkbenchSession {
   readonly tabs: readonly SavedWorkbenchTab[];
   readonly activeIndex: number | null;
-  readonly rightSidebarView: RightSidebarPrimaryView;
   readonly spaceViews: Readonly<Record<string, SavedSpaceViewSession>>;
 }
 
@@ -41,8 +38,6 @@ export interface SaveWorkbenchSessionInput {
   readonly tabs: readonly SpaceWorkbenchTab[];
   readonly activeTabId: string | undefined;
   readonly draftSpaceId: string | undefined;
-  readonly rightSidebarView: RightSidebarView;
-  readonly sourceReturnView: RightSidebarPrimaryView;
   readonly spaceViews: ReadonlyMap<string, SavedSpaceViewSession>;
 }
 
@@ -74,7 +69,6 @@ export function saveWorkbenchSession(input: SaveWorkbenchSessionInput): void {
   const session: WorkbenchSession = {
     tabs: saved.map(savedTab),
     activeIndex: activeIndex < 0 ? null : activeIndex,
-    rightSidebarView: input.rightSidebarView === "source" ? input.sourceReturnView : input.rightSidebarView,
     spaceViews,
   };
   globalThis.localStorage.setItem(WORKBENCH_SESSION_KEY, JSON.stringify(session));

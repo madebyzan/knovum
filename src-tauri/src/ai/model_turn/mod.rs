@@ -9,8 +9,31 @@ use crate::ai::{
 };
 use crate::foundation::app_error::AppResult;
 
-use genai::adapter::AdapterKind;
+use std::sync::OnceLock;
+
+use genai::{adapter::AdapterKind, Client};
 use tokio_util::sync::CancellationToken;
+
+/// Shared genai client backed by Knovum's pooled, timeout-bounded, redirect-hardened HTTP client.
+pub(crate) fn genai_client() -> &'static Client {
+    static CLIENT: OnceLock<Client> = OnceLock::new();
+    CLIENT.get_or_init(|| {
+        Client::builder()
+            .with_reqwest(crate::ai::transport::http_client().clone())
+            .build()
+    })
+}
+
+/// Shared genai client for streaming turns: enforces connect + per-read idle timeouts without
+/// capping total stream duration while tokens keep flowing.
+pub(crate) fn genai_streaming_client() -> &'static Client {
+    static CLIENT: OnceLock<Client> = OnceLock::new();
+    CLIENT.get_or_init(|| {
+        Client::builder()
+            .with_reqwest(crate::ai::transport::streaming_http_client().clone())
+            .build()
+    })
+}
 
 static OPENAI: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::OpenAI);
 static ANTHROPIC: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::Anthropic);
@@ -110,4 +133,4 @@ fn adapter_kind(provider: ProviderKind) -> AppResult<AdapterKind> {
 }
 
 pub(crate) use wire::GenAiModelTurnAdapter;
-pub(crate) use wire::{to_genai_options, to_genai_request};
+pub(crate) use wire::{service_target, to_genai_options, to_genai_request};

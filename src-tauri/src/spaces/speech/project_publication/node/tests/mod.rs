@@ -49,7 +49,6 @@ async fn fixture(
         &["source".to_owned()],
         "Speech narrated from source text",
         "run",
-        None,
     )
     .await
     .unwrap();
@@ -76,7 +75,7 @@ async fn publication_settles_the_reserved_node_and_retries_are_idempotent() {
     .await;
     for _ in 0..2 {
         let mut tx = db::begin_write(&pool).await.unwrap();
-        super::settle(&mut tx, "project", "run", &output(), None, None)
+        super::settle(&mut tx, "project", "run", &output(), None)
             .await
             .unwrap();
         tx.commit().await.unwrap();
@@ -108,11 +107,9 @@ async fn publication_settles_the_reserved_node_and_retries_are_idempotent() {
     let mut changed = output();
     changed.sha256 = "b".repeat(64);
     let mut tx = db::begin_write(&pool).await.unwrap();
-    assert!(
-        super::settle(&mut tx, "project", "run", &changed, None, None)
-            .await
-            .is_err()
-    );
+    assert!(super::settle(&mut tx, "project", "run", &changed, None)
+        .await
+        .is_err());
 }
 
 #[tokio::test]
@@ -135,7 +132,7 @@ async fn a_dubbed_video_gets_its_own_cover_and_keeps_only_what_the_new_voice_lea
     let mut dubbed = output();
     dubbed.path = "/managed/dubbed.mp4".into();
     let mut tx = db::begin_write(&pool).await.unwrap();
-    super::settle(&mut tx, "project", "run", &dubbed, Some(cover), None)
+    super::settle(&mut tx, "project", "run", &dubbed, Some(cover))
         .await
         .unwrap();
     tx.commit().await.unwrap();
@@ -175,7 +172,7 @@ async fn publication_is_atomic_and_a_deleted_source_cannot_receive_outputs() {
     )
     .await;
     let mut tx = db::begin_write(&pool).await.unwrap();
-    super::settle(&mut tx, "project", "run", &output(), None, None)
+    super::settle(&mut tx, "project", "run", &output(), None)
         .await
         .unwrap();
     tx.rollback().await.unwrap();
@@ -191,11 +188,9 @@ async fn publication_is_atomic_and_a_deleted_source_cannot_receive_outputs() {
         .await
         .unwrap();
     let mut tx = db::begin_write(&pool).await.unwrap();
-    assert!(
-        super::settle(&mut tx, "project", "run", &output(), None, None)
-            .await
-            .is_err()
-    );
+    assert!(super::settle(&mut tx, "project", "run", &output(), None)
+        .await
+        .is_err());
 }
 
 #[tokio::test]

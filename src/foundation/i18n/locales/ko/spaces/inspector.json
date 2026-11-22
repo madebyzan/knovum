@@ -1,5 +1,4 @@
 {
-  "itemsSelected": "{count} 항목 선택됨",
   "title": "세부정보",
   "basicInformation": "일반",
   "showSource": "소스 보기",
@@ -28,16 +27,13 @@
   "recognizedText": "OCR 인식 텍스트",
   "excerpts": {
     "title": "발췌 · {title}",
-    "line": "— {title} · {location}",
-    "content": "콘텐츠 발췌"
+    "line": "— {title} · {location}"
   },
   "openSource": "소스 노드 찾기",
   "targetSpace": "대상 작업공간",
   "none": "설정되지 않음",
   "renameHint": "이름을 바꾸려면 클릭하세요",
-  "openContent": "콘텐츠 열기",
   "content": "콘텐츠",
-  "playVideo": "비디오 재생",
   "related": {
     "title": "관련 콘텐츠",
     "show": "자세히 보기",
@@ -50,5 +46,31 @@
     "empty": "이 작업공간에는 아직 관련 콘텐츠가 없습니다.",
     "explanation": "의미별로 이 작업공간에서 관련 콘텐츠를 찾아보세요. 결과는 연결을 생성하지 않습니다."
   },
-  "containedItems": "{count} 포함 아이템"
+  "reader": {
+    "read": "읽기",
+    "readerMode": "읽기 모드",
+    "liveWeb": "웹 보기",
+    "decreaseFontSize": "글자 작게",
+    "increaseFontSize": "글자 크게",
+    "searchPlaceholder": "문서에서 찾기…",
+    "outline": "목차",
+    "highlight": "하이라이트",
+    "addText": "텍스트 추가",
+    "draw": "그리기",
+    "wrapLines": "자동 줄바꿈",
+    "singleSlide": "슬라이드 보기",
+    "continuousSlides": "연속 보기",
+    "markup": "마크업",
+    "thumbnails": "썸네일",
+    "highlights": "발췌",
+    "areaCapture": "영역 캡처",
+    "viewOptions": "보기 옵션",
+    "singlePage": "단일 페이지",
+    "twoPageSpread": "두 페이지 보기",
+    "fitPage": "페이지 맞춤",
+    "rotateClockwise": "90° 회전",
+    "typeHere": "텍스트 입력…",
+    "preview": "미리보기",
+    "followSelection": "선택에 따라 자동 전환"
+  }
 }

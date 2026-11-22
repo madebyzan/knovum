@@ -43,6 +43,12 @@ pub(crate) fn set_locale<R: Runtime>(
     Ok(())
 }
 
+pub(crate) fn current_locale<R: Runtime>(app: &AppHandle<R>) -> LocalePreference {
+    app.try_state::<TaskHub>()
+        .and_then(|hub| hub.locale.lock().ok().map(|guard| *guard))
+        .unwrap_or(LocalePreference::System)
+}
+
 #[tauri::command]
 pub(crate) fn enable_task_notifications<R: Runtime>(app: AppHandle<R>) {
     set_task_notifications(&app, true);

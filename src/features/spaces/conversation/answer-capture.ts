@@ -1,3 +1,4 @@
+import { stripCitationMarkers } from "../knowledge/model/citation-markers";
 import type { SpaceMarkdownPayload } from "../model/nodes/node-payload";
 import { truncateUtf16 } from "../model/text";
 
@@ -8,11 +9,9 @@ export interface AnswerPassage {
 }
 
 const TITLE_UNITS = 80;
-// `[C3]` resolves to a source only inside its answer; on the canvas it would point at nothing.
-const CITATION_MARKERS = /[ \t]*\[C[1-9]\d*\]/gu;
 
 export function withoutCitationMarkers(markdown: string) {
-  return markdown.replace(CITATION_MARKERS, "");
+  return stripCitationMarkers(markdown);
 }
 
 /** The first line of an answer as a node title: its words, without Markdown syntax. */

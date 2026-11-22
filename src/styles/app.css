@@ -1,6 +1,7 @@
 @import "tailwindcss" source("../");
 @import "tw-animate-css";
 @import "./tokens.css";
+@import "../shared/ui/citation-badge.css";
 @import "../features/spaces/space-tokens.css";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));

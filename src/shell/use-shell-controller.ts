@@ -107,7 +107,11 @@ export function useShellController(
     document.getElementById("workspace-right-sidebar-toggle")?.focus();
   }
   const rightSidebar = { open: openRightSidebar, close: closeRightSidebar };
-  const sidebar = { reveal: () => setSidebarPinned(true) };
+  const sidebar = {
+    pinned: computed(() => sidebarPinned.value),
+    reveal: () => setSidebarPinned(true),
+    collapse: () => setSidebarPinned(false),
+  };
   provide(workspaceRightSidebarKey, rightSidebar);
   provide(workspaceSidebarKey, sidebar);
   const workspaceCommands = workspace.useCommands({ sidebar, rightSidebar });

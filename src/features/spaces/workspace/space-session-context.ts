@@ -7,7 +7,6 @@ import type { Space } from "../model/space";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import type { SpaceScene } from "../scenes/scene";
 import type { SpaceSessionContent } from "../session/space-projection";
-import type { RightSidebarPrimaryView, RightSidebarView } from "../session/workbench-state";
 import type { createEditorSessions } from "./editor-sessions";
 import type { SpaceViewRefs, SpaceViewSession } from "./space-view-session";
 import type { SpaceWorkbenchTabState } from "./workbench-tab-state";
@@ -21,8 +20,6 @@ export interface SpaceSessionContext extends SpaceWorkbenchTabState, SpaceViewRe
   editSnapshot: Ref<SpaceEditSnapshot>;
   scenes: Ref<SpaceScene[]>;
   relations: Ref<SpaceRelation[]>;
-  rightSidebarView: Ref<RightSidebarView>;
-  sourceReturnView: Ref<RightSidebarPrimaryView>;
   ready: Ref<boolean>;
   loading: Ref<boolean>;
   history: SpaceHistoryState;

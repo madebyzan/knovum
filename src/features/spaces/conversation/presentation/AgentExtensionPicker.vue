@@ -8,6 +8,7 @@ import type { AgentExtensionAvailability } from "../../../../shared/contracts/ge
 import type { AgentExtensionSelection } from "../../../../shared/contracts/generated/AgentExtensionSelection";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import ConversationMcpSelection from "./ConversationMcpSelection.vue";
@@ -70,18 +71,17 @@ const extensionGroups = computed(() =>
 <template>
   <UiPopover side="top" align="end" class="w-80 max-w-[calc(100vw-24px)] p-0">
     <template #trigger>
-      <UiButton
+      <UiIconButton
+        :label="$t('spaces.conversation.extensions.label')"
+        tooltip
         size="sm"
-        variant="ghost"
         :disabled="disabled"
-        :aria-label="$t('spaces.conversation.extensions.label')"
-        :title="$t('spaces.conversation.extensions.label')"
-        class="gap-1 px-2"
+        :class="count ? 'flex h-(--knovum-control-height-sm) w-auto items-center gap-1 px-2' : undefined"
         data-testid="conversation-extension-picker"
       >
-        <Puzzle class="size-3.5" />
+        <Puzzle class="size-3.5" :stroke-width="1.6" />
         <span v-if="count" class="text-caption tabular-nums">{{ count }}</span>
-      </UiButton>
+      </UiIconButton>
     </template>
     <header class="px-3 py-2.5 text-label font-medium text-fg-primary">
       {{ $t("spaces.conversation.extensions.label") }}

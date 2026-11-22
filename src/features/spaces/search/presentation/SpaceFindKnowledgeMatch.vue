@@ -5,9 +5,9 @@ import { useI18n } from "vue-i18n";
 
 import UiBadge from "../../../../shared/ui/UiBadge.vue";
 import { nodeIcon } from "../../canvas/presentation/node-icon";
+import { knowledgeLocationLabel } from "../../knowledge/model/location-label";
 import { matchLocatorFor, type SpaceMatchLocator } from "../../knowledge/model/match-locator";
 import type { KnowledgeSearchMatch } from "../../knowledge/model/schema/search-match";
-import { knowledgeLocationLabel } from "../../knowledge/presentation/knowledge-location-label";
 import { formatDurationMs } from "../../media/format-duration";
 import { highlightedSnippet } from "../highlighted-snippet";
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { GitBranch, MoreHorizontal, Pencil, Plus } from "@lucide/vue";
 import { storeToRefs } from "pinia";
-import { computed, shallowRef, watch } from "vue";
+import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -10,8 +10,8 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
+import UiKnovumAiIcon from "../../../../shared/ui/UiKnovumAiIcon.vue";
 import SpaceContextHeader from "../../workspace/presentation/SpaceContextHeader.vue";
-import SpaceRightSidebarViewPicker from "../../workspace/presentation/SpaceRightSidebarViewPicker.vue";
 import { useConversationSessionStore } from "../conversation-session-store";
 import SpaceConversationHistory from "./SpaceConversationHistory.vue";
 
@@ -29,8 +29,18 @@ const {
 const historyOpen = shallowRef(false);
 const renaming = shallowRef(false);
 const titleDraft = shallowRef("");
+const titleInput = useTemplateRef<InstanceType<typeof UiInput>>("titleInput");
+
+async function beginRename() {
+  if (!selectedConversation.value) return;
+  titleDraft.value = selectedConversation.value.title;
+  renaming.value = true;
+  await nextTick();
+  titleInput.value?.focus();
+}
+
 const actions = computed(() => [
-  { label: t("common.rename"), onSelect: () => (renaming.value = true) },
+  { label: t("common.rename"), onSelect: () => void beginRename() },
   { label: t("common.export"), onSelect: () => void session.exportSelected() },
   {
     label: t(showingArchived.value ? "common.restore" : "common.archive"),
@@ -57,6 +67,7 @@ watch(selectedConversation, (conversation) => {
 });
 
 async function saveTitle() {
+  if (!renaming.value) return;
   await session.renameSelected(titleDraft.value);
   renaming.value = false;
 }
@@ -64,7 +75,38 @@ async function saveTitle() {
 
 <template>
   <SpaceContextHeader>
-    <template #leading><SpaceRightSidebarViewPicker /></template>
+    <template #leading>
+      <div class="flex min-w-0 flex-1 items-center gap-1.5">
+        <UiKnovumAiIcon class="size-4 shrink-0 text-fg-secondary" />
+        <UiInput
+          v-if="renaming"
+          ref="titleInput"
+          v-model="titleDraft"
+          size="sm"
+          class="min-w-0 flex-1 text-label font-semibold"
+          @blur="saveTitle"
+          @commit.prevent="saveTitle"
+          @cancel.prevent="renaming = false"
+        />
+        <button
+          v-else-if="selectedConversation"
+          type="button"
+          class="group/title flex min-w-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-left transition-colors hover:bg-surface-control-hover"
+          :title="selectedConversation.title"
+          @click="beginRename"
+        >
+          <h2 class="truncate text-label font-semibold tracking-title text-fg-primary">
+            {{ selectedConversation.title }}
+          </h2>
+          <Pencil
+            class="size-3 shrink-0 text-fg-tertiary opacity-0 transition-opacity duration-120 group-hover/title:opacity-100"
+          />
+        </button>
+        <h2 v-else class="truncate text-label font-semibold tracking-title text-fg-primary">
+          {{ t("spaces.conversation.title") }}
+        </h2>
+      </div>
+    </template>
     <template #actions>
       <UiDropdownMenu v-if="branches.length > 1" :items="branchItems" align="end">
         <template #trigger>
@@ -90,45 +132,19 @@ async function saveTitle() {
       <UiIconButton
         :label="t('spaces.conversation.conversations.create')"
         size="sm"
+        tooltip
         :disabled="loading"
         @click="session.selectConversation('')"
       >
-        <Plus class="size-3.5" />
+        <Plus class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
       <UiDropdownMenu v-if="selectedConversation" :items="actions">
         <template #trigger>
-          <UiIconButton :label="t('spaces.conversation.conversations.actions')" size="sm">
-            <MoreHorizontal class="size-3.5" />
+          <UiIconButton :label="t('spaces.conversation.conversations.actions')" size="sm" tooltip>
+            <MoreHorizontal class="size-3.5" :stroke-width="1.6" />
           </UiIconButton>
         </template>
       </UiDropdownMenu>
     </template>
   </SpaceContextHeader>
-  <div
-    v-if="selectedConversation && !renaming"
-    class="flex h-7.5 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider bg-surface-control/25 px-3 text-caption"
-  >
-    <span class="truncate font-medium text-fg-secondary" :title="selectedConversation.title">
-      {{ selectedConversation.title }}
-    </span>
-    <UiIconButton
-      :label="t('common.rename')"
-      size="sm"
-      class="size-5 shrink-0 text-fg-tertiary hover:text-fg-primary"
-      @click="renaming = true"
-    >
-      <Pencil class="size-3" />
-    </UiIconButton>
-  </div>
-  <form
-    v-else-if="renaming"
-    class="flex shrink-0 gap-1 border-b border-stroke-divider bg-surface-panel p-2"
-    @submit.prevent="saveTitle"
-  >
-    <UiInput v-model="titleDraft" class="min-w-0 flex-1" autofocus />
-    <UiButton size="sm" variant="primary" type="submit">{{ t("common.save") }}</UiButton>
-    <UiButton size="sm" variant="ghost" type="button" @click="renaming = false">{{
-      t("common.cancel")
-    }}</UiButton>
-  </form>
 </template>

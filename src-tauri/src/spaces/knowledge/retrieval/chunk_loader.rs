@@ -2,7 +2,7 @@ use sqlx::{Row, Sqlite, Transaction};
 
 use crate::spaces::db;
 
-use super::schema::IndexedKnowledgeChunk;
+use super::{index_writer::PublishError, schema::IndexedKnowledgeChunk};
 
 #[derive(Debug)]
 pub(super) struct EmbeddingSource {
@@ -16,11 +16,11 @@ pub(super) struct EmbeddingSource {
 
 /// Loads the persisted chunk metadata for each embedding input and combines it with the
 /// caller-provided vector under the publication write transaction. Revision mismatch
-/// is an explicit stale-job failure.
+/// returns [`PublishError::StaleRevision`] so callers can discard stale batches cleanly.
 pub(super) async fn load_indexed_chunks(
     tx: &mut Transaction<'_, Sqlite>,
     embeddings: Vec<EmbeddingSource>,
-) -> Result<Vec<IndexedKnowledgeChunk>, String> {
+) -> Result<Vec<IndexedKnowledgeChunk>, PublishError> {
     if embeddings.is_empty() {
         return Ok(Vec::new());
     }
@@ -61,10 +61,10 @@ pub(super) async fn load_indexed_chunks(
             None => None,
         };
         let row = row.ok_or_else(|| {
-            format!(
+            PublishError::StaleRevision(format!(
                 "Knowledge chunk {} no longer has source revision {}",
                 embedding.chunk_id, embedding.source_revision
-            )
+            ))
         })?;
         chunks.push(IndexedKnowledgeChunk {
             generation_id: embedding.generation_id,

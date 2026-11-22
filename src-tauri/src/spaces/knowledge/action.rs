@@ -10,6 +10,7 @@ use crate::{
 pub(crate) async fn commit_changes(
     tx: &mut Transaction<'_, Sqlite>,
     principal: &Principal,
+    run_id: Option<&str>,
     space_id: &str,
     parameters: &Value,
     now: i64,
@@ -34,5 +35,5 @@ pub(crate) async fn commit_changes(
         principal.kind.event_actor_kind(),
         Some(principal.id.as_str()),
     );
-    change_commit::apply(tx, space_id, actor, operations, now).await
+    change_commit::apply(tx, space_id, run_id, actor, operations, now).await
 }

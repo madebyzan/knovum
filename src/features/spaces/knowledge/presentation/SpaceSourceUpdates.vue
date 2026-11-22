@@ -7,7 +7,6 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { useContextDock } from "../../canvas/use-context-dock";
 import SpaceInspectorSection from "../../inspection/presentation/SpaceInspectorSection.vue";
 import { useSpaceStore } from "../../session/space-store";
 import { changedSources, currentSourceRevision, type SpaceProvenance } from "../model/provenance";
@@ -16,7 +15,6 @@ import { useSpaceProvenanceQuery } from "../queries/use-space-provenance-query";
 
 const props = defineProps<{ nodeId: string }>();
 const store = useSpaceStore();
-const dock = useContextDock();
 const { activeSpaceId, nodes } = storeToRefs(store);
 const { t } = useI18n();
 const provenance = useSpaceProvenanceQuery(activeSpaceId, "node", () => props.nodeId);
@@ -33,11 +31,13 @@ const updates = computed(() =>
   })),
 );
 
-function open({ record, title }: (typeof updates.value)[number]) {
-  dock.openSource(
-    { nodeId: record.sourceNodeId, nodeTitle: title, locator: record.locator, text: record.quote },
-    { reveal: false },
-  );
+function open({ record }: (typeof updates.value)[number]) {
+  store.openSourceReader({
+    nodeId: record.sourceNodeId,
+    locator: record.locator,
+    quote: record.quote,
+    pane: "read",
+  });
 }
 
 async function markReviewed(record: SpaceProvenance) {
@@ -60,23 +60,29 @@ async function markReviewed(record: SpaceProvenance) {
     v-if="updates.length"
     :title="t('spaces.knowledge.sourceUpdates.title')"
     :icon="FileClock"
+    :count="updates.length"
   >
-    <p class="px-1 text-caption text-fg-tertiary">{{ t("spaces.knowledge.sourceUpdates.hint") }}</p>
-    <div class="mt-1 space-y-0.5">
-      <div v-for="update in updates" :key="update.record.id" class="flex items-start gap-1">
+    <p class="text-caption leading-relaxed text-fg-tertiary">
+      {{ t("spaces.knowledge.sourceUpdates.hint") }}
+    </p>
+    <div class="mt-1.5 space-y-0.5">
+      <div v-for="update in updates" :key="update.record.id" class="group flex items-start gap-1">
         <button
           type="button"
-          class="flex min-w-0 flex-1 items-start gap-2 rounded-md px-1 py-1.5 text-left hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
+          class="-mx-1.5 flex min-w-0 flex-1 items-start gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
           :title="t('spaces.knowledge.sourceUpdates.open')"
           @click="open(update)"
         >
           <span class="min-w-0 flex-1">
-            <span class="block truncate text-label text-fg-primary">{{ update.title }}</span>
+            <span class="block truncate text-caption font-medium text-fg-primary">{{ update.title }}</span>
             <span v-if="update.record.quote" class="mt-0.5 line-clamp-2 block text-caption text-fg-secondary">
               “{{ update.record.quote }}”
             </span>
           </span>
-          <ArrowUpRight class="mt-1 size-3 shrink-0 text-fg-tertiary" :stroke-width="1.5" />
+          <ArrowUpRight
+            class="mt-1 size-3 shrink-0 text-fg-tertiary opacity-0 transition-opacity duration-100 group-focus-within:opacity-100 group-hover:opacity-100"
+            :stroke-width="1.6"
+          />
         </button>
         <UiIconButton
           :label="t('spaces.knowledge.sourceUpdates.reviewed')"

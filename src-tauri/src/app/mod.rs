@@ -14,6 +14,10 @@ pub(crate) fn run() {
 
 fn base_builder() -> Builder<Wry> {
     let builder = Builder::default()
+        .register_uri_scheme_protocol(
+            desktop::READER_PREVIEW_SCHEME,
+            spaces::reader_webview::handle_preview_protocol,
+        )
         .invoke_handler(tauri::generate_handler![
             updater::get_update_state,
             updater::check_for_update,

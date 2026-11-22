@@ -98,10 +98,17 @@ async fn editable(
         .begin()
         .await
         .map_err(crate::spaces::db::sql_error)?;
-    let citations = super::citations::load(&mut tx, node_id).await?;
+    let is_grounded = super::citations::is_grounded(&mut tx, node_id).await?;
     tx.commit().await.map_err(crate::spaces::db::sql_error)?;
     let markdown = match required(payload, "kind")? {
-        "markdown" => Some(required(payload, "text")?.to_owned()),
+        "markdown" => {
+            let text = required(payload, "text")?;
+            Some(if is_grounded {
+                crate::spaces::knowledge::grounding::prompt::strip_citation_markers(text)
+            } else {
+                text.to_owned()
+            })
+        }
         _ => None,
     };
     // Plain text carries image alternative text, so it never needs the bytes.
@@ -120,7 +127,7 @@ async fn editable(
         Some(markdown) => DocumentInput::Markdown(DocumentSource {
             title,
             markdown,
-            citations,
+            citations: vec![],
             images,
         }),
         None => DocumentInput::Note(NoteSource {
@@ -129,7 +136,7 @@ async fn editable(
                 .get("tiptapContent")
                 .ok_or("Note document content is required")?
                 .clone(),
-            citations,
+            citations: vec![],
             images,
         }),
     })

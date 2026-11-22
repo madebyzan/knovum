@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Group, LayoutGrid, Link2, Sparkles, SquareDashed } from "@lucide/vue";
+import { Group, LayoutGrid, Link2, SquareDashed } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import UiKnovumAiIcon from "../../../../../shared/ui/UiKnovumAiIcon.vue";
 import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
 import type {
   CreationIntentDecisions,
@@ -49,6 +50,19 @@ const identity = computed(() =>
     :identity="identity"
   >
     <SpaceCanvasActionTrigger
+      v-if="state.canAsk"
+      :label="t('spaces.conversation.askSelection')"
+      :icon="UiKnovumAiIcon"
+      :compact="compact"
+      class="font-medium text-fg-primary"
+      @invoke="actions.ask"
+    />
+    <UiSeparator
+      v-if="state.canAsk && (state.arrangement.autoLayout || state.arrangement.align)"
+      orientation="vertical"
+      class="mx-0.5 h-4"
+    />
+    <SpaceCanvasActionTrigger
       v-if="state.arrangement.autoLayout"
       :label="t('spaces.canvas.arrange.tidy')"
       :icon="LayoutGrid"
@@ -87,13 +101,6 @@ const identity = computed(() =>
       compact
       @invoke="actions.connect"
     />
-    <SpaceCanvasActionTrigger
-      v-if="state.canAsk"
-      :label="t('spaces.conversation.askSelection')"
-      :icon="Sparkles"
-      compact
-      @invoke="actions.ask"
-    />
     <SpaceSelectionMoveMenu
       v-if="state.structureNodeIds.length"
       :disabled="!actions.editorProtection.canTransfer.value"
@@ -106,8 +113,9 @@ const identity = computed(() =>
       @invoke-derivation="emit('invokeDerivation', $event)"
     />
     <SpaceCanvasNodeAccessActions
+      v-if="actions.exportTarget.value"
       :export-target="actions.exportTarget.value"
-      @inspect="actions.inspect"
+      :show-info="false"
       @save="actions.exportFormat"
     />
   </SpaceCanvasActionToolbar>

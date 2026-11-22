@@ -20,8 +20,6 @@ export function createSpaceSessionContext(
     relationKindFilter: state.relationKindFilter,
     relationStatusFilter: state.relationStatusFilter,
     savedQueryFilter: state.savedQueryFilter,
-    rightSidebarView: state.rightSidebarView,
-    sourceReturnView: state.sourceReturnView,
     scenes: state.scenes,
     relations: state.relations,
     ready: state.ready,

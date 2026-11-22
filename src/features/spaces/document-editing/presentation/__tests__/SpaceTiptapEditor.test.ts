@@ -10,6 +10,7 @@ import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
 import type { SpaceEditorTab } from "../../../workspace/workbench-tab";
 import { useDocumentSessionStore } from "../../document-session-store";
 import { createSpaceNotePayload } from "../../tiptap-content";
+import type * as TiptapExtensions from "../../tiptap-extensions";
 import SpaceTiptapEditor from "../SpaceTiptapEditor.vue";
 
 type ContentChange = { id: string; data: SpaceNodePayload };
@@ -36,10 +37,11 @@ vi.mock("../../../../../foundation/file-drop/events", () => ({
   isFileDropInside: () => false,
   listenForFileDrops: vi.fn<() => Promise<() => void>>(() => Promise.resolve(() => {})),
 }));
-vi.mock("../../tiptap-extensions", async () => {
+vi.mock("../../tiptap-extensions", async (importOriginal) => {
+  const actual = await importOriginal<typeof TiptapExtensions>();
   const { StarterKit } = await import("@tiptap/starter-kit");
   const { Markdown } = await import("@tiptap/markdown");
-  return { createSpaceTiptapExtensions: () => [StarterKit, Markdown] };
+  return { ...actual, createSpaceTiptapExtensions: () => [StarterKit, Markdown] };
 });
 vi.mock("../../../../../foundation/ai/ai-settings-store", async () => {
   const { DEFAULT_AI_MODEL_SETTINGS } = await import("../../../../../foundation/ai/schema/model-settings");

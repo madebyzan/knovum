@@ -5,7 +5,6 @@
   "editorOutline": {
     "title": "Структура документа"
   },
-  "rightSidebarViews": "Виды правой боковой панели",
   "rename": {
     "nameRequired": "Введите имя",
     "failed": "Имя не удалось сохранить. Нажмите Enter, чтобы повторить попытку."

@@ -169,7 +169,7 @@ pub(super) async fn restore_nodes(
         // Trashing cancelled the node's enrichment; restoring it owes whatever its data still asks
         // for. Vision's execution choice is resolved when the job is dispatched.
         crate::spaces::assets::enrichment::jobs::intent::synchronize_for_node(
-            tx, space_id, id, &data, now, None,
+            tx, space_id, id, &data, now,
         )
         .await?;
         crate::spaces::knowledge::events::append(

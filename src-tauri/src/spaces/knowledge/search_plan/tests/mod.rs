@@ -24,3 +24,20 @@ fn decomposes_cjk_sentences_into_searchable_subterms() {
     let odd = build("知识库管理").expect("plan");
     assert_eq!(odd.terms, ["知识", "库管理"]);
 }
+
+#[test]
+fn splits_pipe_separated_alternatives_into_or_branches() {
+    let fts = build("merchandise | ice cream").expect("fts or plan");
+    assert_eq!(
+        fts.branches,
+        vec![vec!["merchandise"], vec!["ice", "cream"]]
+    );
+    assert_eq!(
+        fts.fts_query.as_deref(),
+        Some("(\"merchandise\") OR (\"ice\" AND \"cream\")")
+    );
+
+    let mixed = build("merchandise | 周边").expect("mixed or plan");
+    assert_eq!(mixed.branches, vec![vec!["merchandise"], vec!["周边"]]);
+    assert!(mixed.fts_query.is_none());
+}

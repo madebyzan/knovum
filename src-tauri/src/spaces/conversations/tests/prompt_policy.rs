@@ -23,3 +23,10 @@ fn the_builtin_agent_is_told_its_working_directory_and_this_computers_shell() {
     assert!(policy.contains(&super::super::shell::instructions()));
     assert!(policy.ends_with(&space_snapshot("{}")));
 }
+
+#[test]
+fn desktop_agents_keep_internal_cite_ids_out_of_deliverable_files() {
+    let policy = desktop_agent(false);
+    assert!(policy.contains("never put Knovum internal cite IDs"));
+    assert!(CONVERSATION_CITATIONS.contains("never inside deliverable files"));
+}

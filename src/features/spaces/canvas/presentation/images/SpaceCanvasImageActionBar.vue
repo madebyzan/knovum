@@ -16,6 +16,7 @@ import type {
 import { useImageSelectionSessionStore } from "../../../knowledge-derivations/image-selection-session-store";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
+import { useNodeReaderAction } from "../../../reading/use-node-reader-action";
 import { CANVAS_ACTION_BAR_CLASSES } from "../canvas-action-classes";
 import SpaceCanvasNodeAccessActions from "../selection/SpaceCanvasNodeAccessActions.vue";
 import type { useCanvasSelectionActions } from "../selection/use-canvas-selection-actions";
@@ -39,6 +40,7 @@ const emit = defineEmits<{
   "update:angleOpen": [open: boolean];
 }>();
 const { t, locale } = useI18n();
+const readerAction = useNodeReaderAction(toRef(props, "node"));
 const {
   openPopover,
   activeTool,
@@ -161,6 +163,7 @@ watch(
       />
       <SpaceCanvasNodeAccessActions
         :export-target="actions.exportTarget.value"
+        :reader-action="readerAction"
         @inspect="actions.inspect"
         @save="actions.exportFormat"
       >

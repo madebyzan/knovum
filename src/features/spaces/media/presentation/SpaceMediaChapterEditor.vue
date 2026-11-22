@@ -60,40 +60,43 @@ function save() {
 
 <template>
   <article
-    class="group flex items-start gap-2 rounded-md px-2 py-1.5 transition-colors duration-100 hover:bg-surface-control-hover"
-    :class="
-      active ? 'bg-(--knovum-sidebar-item-bg-selected) font-medium text-fg-primary' : 'text-fg-secondary'
-    "
+    class="group -mx-1.5 flex items-start gap-1 rounded-md px-1.5 py-1 transition-colors duration-100 hover:bg-surface-control-hover"
+    :class="active ? 'bg-(--knovum-sidebar-item-bg-selected) text-fg-primary' : 'text-fg-secondary'"
   >
     <button
       type="button"
-      class="w-10 shrink-0 pt-0.5 text-left font-mono text-caption-sm font-medium text-fg-tertiary tabular-nums hover:text-fg-primary"
+      class="flex min-w-0 flex-1 items-start gap-2 rounded-sm py-0.5 text-left focus-visible:outline-2 focus-visible:outline-stroke-focus"
       :title="t('spaces.transcript.chapters.seek')"
       @click="emit('seek', chapter.startMs)"
     >
-      {{ formatDurationMs(chapter.startMs) }}
-    </button>
-
-    <div class="min-w-0 flex-1 space-y-0.5">
-      <strong class="block text-caption leading-snug font-medium break-words text-fg-primary">
-        {{ chapter.title }}
-      </strong>
-      <p
-        v-if="chapter.summary"
-        class="text-caption-sm leading-relaxed break-words whitespace-pre-wrap text-fg-secondary"
+      <span
+        class="w-10 shrink-0 pt-0.5 font-mono text-caption-sm font-medium tabular-nums"
+        :class="active ? 'text-fg-accent' : 'text-fg-tertiary'"
       >
-        {{ chapter.summary }}
-      </p>
-    </div>
+        {{ formatDurationMs(chapter.startMs) }}
+      </span>
+      <span class="min-w-0 flex-1 space-y-0.5">
+        <strong class="block text-caption leading-snug font-medium wrap-break-word text-fg-primary">
+          {{ chapter.title }}
+        </strong>
+        <span
+          v-if="chapter.summary"
+          class="block text-caption-sm leading-relaxed wrap-break-word whitespace-pre-wrap text-fg-tertiary"
+        >
+          {{ chapter.summary }}
+        </span>
+      </span>
+    </button>
 
     <UiIconButton
       :label="t('common.edit')"
+      tooltip
       size="sm"
       :disabled="disabled || !nodeDraft.available.value"
-      class="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+      class="shrink-0 opacity-0 transition-opacity duration-100 group-focus-within:opacity-100 group-hover:opacity-100"
       @click="openEdit"
     >
-      <Pencil class="size-3 text-fg-tertiary hover:text-fg-primary" />
+      <Pencil class="size-3" />
     </UiIconButton>
 
     <UiDialog v-model:open="dialogOpen" :title="t('spaces.transcript.chapters.edit')">

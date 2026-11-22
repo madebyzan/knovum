@@ -5,6 +5,7 @@ import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
 
 import { overlayScopeVisibleKey } from "../../shared/contracts/overlay-scope-visibility";
 import UiScrollArea from "../../shared/ui/UiScrollArea.vue";
+import UiScrollEdgeFade from "../../shared/ui/UiScrollEdgeFade.vue";
 import AboutSettingsPane from "./about/AboutSettingsPane.vue";
 import AiProvidersSettingsPane from "./ai/AiProvidersSettingsPane.vue";
 import AiRoutingSettingsPane from "./ai/AiRoutingSettingsPane.vue";
@@ -135,12 +136,7 @@ function selectPane(pane: SettingsPaneId, setting?: string) {
             </Transition>
           </div>
         </UiScrollArea>
-        <div
-          class="pointer-events-none absolute inset-x-0 top-0 h-8 bg-linear-to-b from-surface-canvas to-transparent"
-        />
-        <div
-          class="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-surface-canvas to-transparent"
-        />
+        <UiScrollEdgeFade surface="canvas" top-class="h-8" bottom-class="h-12" />
       </div>
     </div>
   </main>

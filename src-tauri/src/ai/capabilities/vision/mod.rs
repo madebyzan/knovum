@@ -1,16 +1,10 @@
-use genai::{
-    chat::{
-        Binary, ChatMessage, ChatOptions, ChatRequest, ChatResponseFormat, ContentPart,
-        MessageContent,
-    },
-    resolver::{AuthData, Endpoint},
-    Client, ModelIden, ServiceTarget,
+use genai::chat::{
+    Binary, ChatMessage, ChatOptions, ChatRequest, ChatResponseFormat, ContentPart, MessageContent,
 };
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
-    contracts::ProviderKind,
     models::{CompletionOutput, ImageAnalysisRequest},
     transport::SecurityContext,
 };
@@ -23,7 +17,9 @@ pub async fn analyze_image(
 ) -> AppResult<CompletionOutput> {
     validate(&request)?;
     let ctx = SecurityContext::from_target(&request.target).await?;
-    let target = service_target(&ctx, request.target.model_provider_kind()?)?;
+    let adapter = crate::ai::model_turn::genai_adapter(request.target.model_provider_kind()?)
+        .ok_or_else(|| AppError::unsupported("Vision is not supported on this provider"))?;
+    let target = crate::ai::model_turn::service_target(adapter, &ctx);
 
     let image = Binary::from_file(&request.source).map_err(|e| AppError::invalid(e.to_string()))?;
     if !image.is_image() {
@@ -66,7 +62,7 @@ pub async fn analyze_image(
         options = options.with_max_tokens(max);
     }
 
-    let client = Client::default();
+    let client = crate::ai::model_turn::genai_client();
     let response = tokio::select! {
         _ = cancellation.cancelled() => {
             return Err(AppError::cancelled("Visual analysis was cancelled"));
@@ -98,22 +94,6 @@ pub async fn analyze_image(
         provider: request.target.provider().to_string(),
         model: request.target.model().to_string(),
         usage,
-    })
-}
-
-fn service_target(ctx: &SecurityContext, kind: ProviderKind) -> AppResult<ServiceTarget> {
-    let adapter = crate::ai::model_turn::genai_adapter(kind)
-        .ok_or_else(|| AppError::unsupported("Vision is not supported on this provider"))?;
-
-    let endpoint = format!("{}/", ctx.endpoint.trim_end_matches('/'));
-    let auth = match &ctx.api_key {
-        Some(k) => AuthData::from_single(k.clone()),
-        None => AuthData::None,
-    };
-    Ok(ServiceTarget {
-        endpoint: Endpoint::from_owned(endpoint),
-        auth,
-        model: ModelIden::new(adapter, ctx.model.clone()),
     })
 }
 

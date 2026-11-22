@@ -1,9 +1,6 @@
 {
   "queue": {
-    "title": "Verarbeitung",
-    "pending": "Ausstehend {count}",
-    "running": "Verarbeitung {count}",
-    "failed": "Fehlgeschlagen {count}"
+    "title": "Verarbeitung"
   },
   "enrichmentJobType": {
     "analyze_visual": "Visuelles Verständnis",
