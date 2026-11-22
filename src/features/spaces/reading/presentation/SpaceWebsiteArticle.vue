@@ -56,11 +56,8 @@ defineExpose({
           :key="index"
           :data-website-section="section.heading ?? ''"
           :data-section-index="index"
+          :data-reader-citation-block="index === activeIndex ? '' : undefined"
           class="space-y-2 rounded-lg transition-colors"
-          :class="
-            index === activeIndex &&
-            '-mx-2.5 border-l-2 border-stroke-accent bg-surface-accent-subtle/45 px-2.5 py-2'
-          "
         >
           <h2 v-if="section.heading">{{ section.heading }}</h2>
           <SpaceTextQuote

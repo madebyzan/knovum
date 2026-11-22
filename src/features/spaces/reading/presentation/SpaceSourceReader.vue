@@ -13,7 +13,7 @@ import {
   resolveSlideRangeLocation,
   resolveWebsiteRangeLocation,
 } from "../reader-location-resolvers";
-import { defaultSourceLocation } from "../source-reader-target";
+import { defaultSourceLocation, type SourceReaderHost } from "../source-reader-target";
 import { useReadingChunks } from "../use-reading-chunks";
 import SpaceReaderInfoSurface from "./SpaceReaderInfoSurface.vue";
 import SpaceReaderSelectionBar from "./SpaceReaderSelectionBar.vue";
@@ -27,7 +27,9 @@ import {
 } from "./use-reader-selection";
 import { useSourceReaderState } from "./use-source-reader-state";
 
-const readerState = useSourceReaderState();
+const props = withDefaults(defineProps<{ host?: SourceReaderHost }>(), { host: "canvas" });
+const isCanvasHost = props.host === "canvas";
+const readerState = useSourceReaderState(props.host);
 const { store, target, sourceNode, readerKind, activePane, readMounted, targetQuote, canBack, canForward } =
   readerState;
 const body = useTemplateRef<HTMLElement>("body");
@@ -81,6 +83,7 @@ const drag = usePointerDrag<SourceReaderPassage, ReaderDropTarget>({
 });
 
 function onMouseDown(event: MouseEvent) {
+  if (!isCanvasHost) return;
   const passage = selection.passage.value;
   if (passage && selection.covers({ x: event.clientX, y: event.clientY })) drag.start(event, passage);
 }
@@ -97,13 +100,16 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
     v-if="sourceNode"
     data-source-reader
     data-bare-key-scope
+    :data-reader-host="host"
     :data-reader-kind="readerKind ?? 'info'"
     :data-reader-pane="activePane"
-    class="flex h-full min-h-0 min-w-0 flex-col border-r border-(--knovum-window-border-color) bg-surface-panel"
+    class="flex h-full min-h-0 min-w-0 flex-col bg-surface-panel"
+    :class="isCanvasHost && 'border-r border-(--knovum-window-border-color)'"
   >
     <SpaceSourceReaderHeader
       v-model:menu-open="headerMenuOpen"
       :node="sourceNode"
+      :host="host"
       :pane="activePane"
       :readable="Boolean(readerKind)"
       :can-back="canBack"
@@ -123,7 +129,7 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
       @contextmenu="selection.onContextMenu"
     >
       <SpaceReaderSelectionBar
-        v-if="activePane === 'read' && activeAnchor && !drag.drag.value"
+        v-if="isCanvasHost && activePane === 'read' && activeAnchor && !drag.drag.value"
         class="absolute z-30 -translate-x-1/2"
         :class="activeAnchor.placement === 'top' && '-translate-y-full'"
         :style="{ left: `${activeAnchor.left}px`, top: `${activeAnchor.top}px` }"

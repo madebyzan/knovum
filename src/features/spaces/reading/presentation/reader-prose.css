@@ -1,4 +1,6 @@
 /* Editorial long-form reading typography shared by Markdown, Note, Website Reader, and PDF text views. */
+@import "./reader-citation-highlight.css";
+
 .reader-prose {
   --reader-size: calc(0.95rem * var(--reader-font-scale, 1));
   color: var(--color-fg-primary);
@@ -164,43 +166,6 @@
 .reader-prose mark {
   border-radius: var(--radius-xs);
   padding-inline: 0.15em;
-}
-
-.reader-prose [data-reader-citation-hit] {
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface-accent-subtle);
-  box-shadow:
-    -6px 0 0 var(--color-surface-accent-subtle),
-    6px 0 0 var(--color-surface-accent-subtle),
-    -8px 0 0 var(--color-stroke-accent);
-  transition: background-color 150ms ease;
-}
-
-.reader-prose mark[data-citation-mark] {
-  background-color: var(--color-surface-selected);
-  color: var(--color-fg-primary);
-  font-weight: 500;
-  border-radius: var(--radius-xs);
-  padding: 0.04em 0.16em;
-}
-
-@keyframes reader-citation-arrive {
-  0% {
-    background-color: var(--color-surface-selected);
-  }
-  100% {
-    background-color: var(--color-surface-accent-subtle);
-  }
-}
-
-.reader-prose [data-reader-citation-pulse] {
-  animation: reader-citation-arrive 600ms var(--ease-standard) 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reader-prose [data-reader-citation-pulse] {
-    animation: none;
-  }
 }
 
 [data-reader-find-active] {

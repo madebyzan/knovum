@@ -9,12 +9,13 @@ import UiSegmentedControl from "../../../../shared/ui/UiSegmentedControl.vue";
 import { nodeIcon } from "../../canvas/presentation/node-icon";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SourceReaderPane } from "../source-reader-target";
+import type { SourceReaderHost, SourceReaderPane } from "../source-reader-target";
 import SpaceReaderTitleInput from "./SpaceReaderTitleInput.vue";
 import { useReaderHeaderMenu } from "./use-reader-header-menu";
 
 const props = defineProps<{
   node: SpaceCanvasNode;
+  host: SourceReaderHost;
   pane: SourceReaderPane;
   readable: boolean;
   canBack: boolean;
@@ -76,24 +77,33 @@ const menuItems = useReaderHeaderMenu({
         class="size-3.5 shrink-0 text-fg-tertiary"
         :stroke-width="1.6"
       />
-      <SpaceReaderTitleInput :node="node" />
+      <SpaceReaderTitleInput v-if="host === 'canvas'" :node="node" />
+      <h2
+        v-else
+        :title="node.data.title"
+        class="min-w-0 truncate px-1 text-label font-semibold tracking-title text-fg-primary"
+      >
+        {{ node.data.title }}
+      </h2>
     </div>
 
     <div class="flex shrink-0 items-center gap-1">
-      <UiSegmentedControl
-        v-if="readable"
-        :model-value="pane"
-        :options="paneOptions"
-        icon-only
-        @update:model-value="emit('update:pane', $event)"
-      />
-      <UiDropdownMenu v-model:open="menuOpen" :items="menuItems" align="end" class="min-w-44">
-        <template #trigger>
-          <UiIconButton :label="t('common.more')" size="sm" tooltip>
-            <MoreHorizontal class="size-3.5" :stroke-width="1.6" />
-          </UiIconButton>
-        </template>
-      </UiDropdownMenu>
+      <template v-if="host === 'canvas'">
+        <UiSegmentedControl
+          v-if="readable"
+          :model-value="pane"
+          :options="paneOptions"
+          icon-only
+          @update:model-value="emit('update:pane', $event)"
+        />
+        <UiDropdownMenu v-model:open="menuOpen" :items="menuItems" align="end" class="min-w-44">
+          <template #trigger>
+            <UiIconButton :label="t('common.more')" size="sm" tooltip>
+              <MoreHorizontal class="size-3.5" :stroke-width="1.6" />
+            </UiIconButton>
+          </template>
+        </UiDropdownMenu>
+      </template>
       <UiIconButton :label="t('common.close')" size="sm" tooltip @click="emit('close')">
         <X class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>

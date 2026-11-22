@@ -18,6 +18,7 @@ export type SourceReaderKind =
   | "note";
 
 export type SourceReaderPane = "read" | "info";
+export type SourceReaderHost = "canvas" | "document";
 
 export interface SourceReadingTarget {
   nodeId: string;

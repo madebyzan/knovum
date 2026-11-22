@@ -14,8 +14,8 @@ defineProps<{
 <template>
   <div
     :data-chunk-index="block.chunkIndex"
+    :data-reader-citation-block="active ? '' : undefined"
     class="space-y-2 rounded-lg transition-colors"
-    :class="active && '-mx-2.5 border-l-2 border-stroke-accent bg-surface-accent-subtle/45 px-2.5 py-2'"
   >
     <div
       v-if="showSlideHeader"

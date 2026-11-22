@@ -71,9 +71,9 @@ function scrollToHighlighted() {
   if (matched) scrollToSegment(matched.startMs, "center");
 }
 function segmentRowClass(segment: SpaceTranscriptSegment) {
-  if (isHighlightedSegment(segment)) return "border-stroke-accent bg-surface-accent-subtle/50";
-  if (activeSegmentId.value === segment.id) return "border-transparent bg-surface-control/75";
-  return "border-transparent hover:bg-surface-control-hover/55";
+  if (isHighlightedSegment(segment)) return "";
+  if (activeSegmentId.value === segment.id) return "bg-surface-control/75";
+  return "hover:bg-surface-control-hover/55";
 }
 function seekTo(startMs: number, autoplay = true) {
   updateActiveSegment(startMs);
@@ -127,7 +127,7 @@ watch(
     <div v-if="segments.length" class="relative flex min-h-0 flex-1 overflow-hidden">
       <div
         ref="scroller"
-        class="min-h-0 flex-1 space-y-0.5 overflow-y-auto bg-surface-raised py-2 pb-10"
+        class="transcript-rows min-h-0 flex-1 space-y-0.5 overflow-y-auto bg-surface-raised py-2 pb-10"
         :class="chapterOutline.length ? 'pr-10 pl-3' : 'px-3'"
       >
         <div
@@ -136,7 +136,8 @@ watch(
           :data-segment-start-ms="segment.startMs"
           :data-segment-end-ms="segment.endMs"
           :data-cited-segment="isHighlightedSegment(segment) ? '' : undefined"
-          class="flex items-baseline gap-2.5 rounded-md border-l-2 px-2 py-2 transition-colors duration-100"
+          :data-active-segment="activeSegmentId === segment.id ? '' : undefined"
+          class="relative flex items-baseline gap-2.5 rounded-lg px-2.5 py-2 transition-colors duration-120"
           :class="segmentRowClass(segment)"
         >
           <button
@@ -183,3 +184,5 @@ watch(
     </div>
   </div>
 </template>
+
+<style src="./reader-citation-highlight.css"></style>

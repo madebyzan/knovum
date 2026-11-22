@@ -1,0 +1,154 @@
+/* Unified low-chroma citation highlight language across Markdown, Note, Document, Website, and Transcript readers. */
+.reader-prose {
+  isolation: isolate;
+}
+
+.reader-prose [data-reader-citation-hit] {
+  --citation-wash: color-mix(in oklch, var(--color-surface-accent) 7%, transparent);
+  --citation-rail: color-mix(in oklch, var(--color-stroke-accent) 68%, transparent);
+  --citation-pad-x: 0.7em;
+  --citation-left: calc(var(--citation-pad-x) * -1);
+  position: relative;
+}
+
+.reader-prose li[data-reader-citation-hit] {
+  /* Align list highlight edge cleanly with sibling headings/paragraphs while preserving bullet rhythm. */
+  --citation-left: calc(-1.5em - var(--citation-pad-x));
+}
+
+.reader-prose [data-reader-citation-hit]::before {
+  content: "";
+  position: absolute;
+  inset: -0.22em calc(var(--citation-pad-x) * -1) -0.22em var(--citation-left);
+  z-index: -1;
+  border-radius: var(--radius-md);
+  background-color: var(--citation-wash);
+  pointer-events: none;
+  transition: background-color 180ms var(--ease-standard);
+}
+
+.reader-prose [data-reader-citation-hit]::after {
+  content: "";
+  position: absolute;
+  top: 0.12em;
+  bottom: 0.12em;
+  left: var(--citation-left);
+  width: 2px;
+  border-radius: 9999px;
+  background-color: var(--citation-rail);
+  pointer-events: none;
+}
+
+/* Merge adjacent highlighted list items into one continuous editorial block. */
+.reader-prose li[data-reader-citation-hit]:has(+ li[data-reader-citation-hit])::before,
+.reader-prose li[data-reader-citation-hit]:has(+ li[data-reader-citation-hit])::after {
+  bottom: -0.24em;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.reader-prose li[data-reader-citation-hit] + li[data-reader-citation-hit]::before,
+.reader-prose li[data-reader-citation-hit] + li[data-reader-citation-hit]::after {
+  top: -0.22em;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.reader-prose mark[data-citation-mark] {
+  background-color: color-mix(in oklch, var(--color-surface-accent) 14%, transparent);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0.04em 0.16em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.reader-prose :is(h1, h2, h3, h4)[data-reader-citation-hit] mark[data-citation-mark] {
+  background-color: transparent;
+  padding: 0;
+}
+
+@keyframes reader-citation-arrive {
+  0% {
+    background-color: color-mix(in oklch, var(--color-surface-accent) 16%, transparent);
+  }
+  100% {
+    background-color: var(--citation-wash);
+  }
+}
+
+.reader-prose [data-reader-citation-pulse]::before {
+  animation: reader-citation-arrive 680ms var(--ease-standard) 1;
+}
+
+/* Block-level citation cue for Document and Website reader sections. */
+.reader-prose [data-reader-citation-block] {
+  position: relative;
+  margin-inline: -0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-lg);
+  background-color: color-mix(in oklch, var(--color-surface-accent) 7%, transparent);
+}
+
+.reader-prose [data-reader-citation-block]::before {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  left: 0;
+  width: 2px;
+  border-radius: 9999px;
+  background-color: color-mix(in oklch, var(--color-stroke-accent) 70%, transparent);
+  pointer-events: none;
+}
+
+/* Contiguous cited transcript passages: fuse adjacent rows into one seamless highlighted range. */
+.transcript-rows [data-cited-segment] {
+  background-color: color-mix(in oklch, var(--color-surface-accent) 7%, transparent);
+}
+
+.transcript-rows [data-cited-segment][data-active-segment] {
+  background-color: color-mix(in oklch, var(--color-surface-accent) 13%, transparent);
+}
+
+.transcript-rows [data-cited-segment]::before {
+  content: "";
+  position: absolute;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  left: 0;
+  width: 2px;
+  border-radius: 9999px;
+  background-color: color-mix(in oklch, var(--color-stroke-accent) 70%, transparent);
+  pointer-events: none;
+}
+
+.transcript-rows [data-cited-segment]:has(+ [data-cited-segment]) {
+  margin-block-end: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.transcript-rows [data-cited-segment]:has(+ [data-cited-segment])::before {
+  bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.transcript-rows [data-cited-segment] + [data-cited-segment] {
+  margin-block-start: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.transcript-rows [data-cited-segment] + [data-cited-segment]::before {
+  top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader-prose [data-reader-citation-pulse]::before {
+    animation: none;
+  }
+}

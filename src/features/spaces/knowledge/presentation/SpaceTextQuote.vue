@@ -23,7 +23,7 @@ const parts = computed(() => {
       <mark
         v-if="part.match"
         data-citation-mark
-        class="rounded-xs bg-surface-selected px-0.5 font-medium text-fg-primary ring-1 ring-stroke-accent/25"
+        class="rounded-[3px] bg-surface-selected/80 px-0.5 text-fg-primary [-webkit-box-decoration-break:clone] [box-decoration-break:clone]"
         >{{ part.text }}</mark
       >
       <span v-else :class="hasExact ? 'text-fg-secondary' : 'text-fg-primary'">{{ part.text }}</span>

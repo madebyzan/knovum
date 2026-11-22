@@ -90,7 +90,7 @@ onMounted(() => void initialize());
               :max-size="68"
               class="flex min-h-0 flex-col"
             >
-              <SpaceSourceReader />
+              <SpaceSourceReader host="canvas" />
             </SplitterPanel>
             <UiSplitterHandle />
           </template>
