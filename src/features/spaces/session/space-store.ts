@@ -3,10 +3,9 @@ import { watch } from "vue";
 
 import { i18n } from "../../../foundation/i18n/instance";
 import { createSpacePlacement } from "../canvas/navigation-requests";
-import { createStructureIndex } from "../model/structure/structure-index";
-import { reconcileGroupScopePath, sameGroupScopePath } from "../model/structure/structure-queries";
 import type { SpacePersistenceState } from "../workspace/persistence-state";
 import { syncInboxTitle } from "../workspace/space-title-actions";
+import { reconcileSpaceViewStructure } from "../workspace/space-view-session";
 import { useSpaceActions } from "./actions/use-space-actions";
 import { createSpaceState, spaceSessionBindings } from "./session-state";
 
@@ -43,12 +42,16 @@ export const useSpaceStore = defineStore("spaces", () => {
   watch(
     state.editSnapshot,
     (snapshot) => {
-      if (!state.groupScopePath.value.length) return;
-      const next = reconcileGroupScopePath(
-        state.groupScopePath.value,
-        createStructureIndex(snapshot.structure),
-      );
-      if (!sameGroupScopePath(state.groupScopePath.value, next)) state.groupScopePath.value = next;
+      reconcileSpaceViewStructure(state, snapshot.structure);
+    },
+    { flush: "sync" },
+  );
+  watch(
+    state.scenes,
+    (scenes) => {
+      if (state.activeSceneId.value && !scenes.some((scene) => scene.id === state.activeSceneId.value)) {
+        state.activeSceneId.value = undefined;
+      }
     },
     { flush: "sync" },
   );

@@ -1,17 +1,17 @@
 import type { SpacePlacement } from "../../canvas/navigation-requests";
-import { snapshotSpaceQueryFilter } from "../../knowledge/model/query-filter";
-import {
-  findSemanticRelationPath,
-  queryMatchingNodes,
-  relationNeighborhood,
-} from "../../knowledge/model/relation-graph";
-import type { SpaceSavedViewFilter } from "../../knowledge/model/saved-view-filter";
+import { findSemanticRelationPath, relationNeighborhood } from "../../knowledge/model/relation-graph";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { contentNodeIdsWithin } from "../../model/structure/structure-queries";
+import {
+  applySceneProjection,
+  buildSceneViewProjection,
+  clearSceneProjection,
+} from "../../workspace/space-view-session";
 import type { SpaceState } from "../session-state";
 
 export function createSpaceViewActions(state: SpaceState, placement: SpacePlacement) {
   function focusSection(sectionId: string) {
+    state.activeSceneId.value = undefined;
     state.canvasFocusIds.value = contentNodeIdsWithin(
       [sectionId],
       createStructureIndex(state.editSnapshot.value.structure),
@@ -19,6 +19,7 @@ export function createSpaceViewActions(state: SpaceState, placement: SpacePlacem
   }
 
   function focusNeighborhood(nodeId: string, depth = 1) {
+    state.activeSceneId.value = undefined;
     const ids = relationNeighborhood(state.relations.value, [nodeId], depth);
     state.canvasFocusIds.value = [...ids];
   }
@@ -26,6 +27,7 @@ export function createSpaceViewActions(state: SpaceState, placement: SpacePlacem
   function focusRelationPath(sourceId: string, targetId: string) {
     const path = findSemanticRelationPath(state.relations.value, sourceId, targetId);
     if (!path.length) return false;
+    state.activeSceneId.value = undefined;
     const ids = new Set(path);
     state.canvasFocusIds.value = [...ids];
     return true;
@@ -34,23 +36,15 @@ export function createSpaceViewActions(state: SpaceState, placement: SpacePlacem
   async function openSceneView(sceneId: string) {
     const scene = state.scenes.value.find((candidate) => candidate.id === sceneId);
     if (!scene) return;
-    const viewport = { x: scene.viewportX, y: scene.viewportY, zoom: scene.viewportZoom };
-    state.relationKindFilter.value = [...scene.relationKinds];
-    state.relationStatusFilter.value = [...scene.relationStatuses];
-    state.savedQueryFilter.value = snapshotSpaceQueryFilter(scene.queryFilter);
-    const dynamicIds = hasQueryFilter(scene.queryFilter)
-      ? queryMatchingNodes({
-          nodes: state.nodes.value,
-          relations: state.relations.value,
-          filter: scene.queryFilter,
-        }).map((node) => node.id)
-      : contentNodeIdsWithin(
-          scene.focusStructureNodeIds,
-          createStructureIndex(state.editSnapshot.value.structure),
-        );
-    const ids = new Set(dynamicIds);
-    state.canvasFocusIds.value = [...ids];
-    placement.requestViewport(viewport);
+    applySceneProjection(
+      state,
+      buildSceneViewProjection(scene, {
+        nodes: state.nodes.value,
+        relations: state.relations.value,
+        editSnapshot: state.editSnapshot.value,
+      }),
+    );
+    placement.requestViewport({ x: scene.viewportX, y: scene.viewportY, zoom: scene.viewportZoom });
     placement.announceScene(scene, "opened");
   }
 
@@ -58,15 +52,7 @@ export function createSpaceViewActions(state: SpaceState, placement: SpacePlacem
     focusSection,
     focusNeighborhood,
     focusRelationPath,
-    clearCanvasFocus: () => {
-      state.canvasFocusIds.value = [];
-    },
+    clearCanvasFocus: () => clearSceneProjection(state),
     openSceneView,
   };
-}
-
-function hasQueryFilter(filter: SpaceSavedViewFilter) {
-  return Object.values(filter).some((value) =>
-    Array.isArray(value) ? value.length > 0 : value !== undefined && value !== "",
-  );
 }

@@ -9,6 +9,7 @@ import { toast } from "vue-sonner";
 import { normalizeError } from "../../foundation/errors/app-error";
 import { getErrorMessage } from "../../foundation/errors/error-format";
 import { registerWindowCloseCommit } from "../../foundation/lifecycle/window-close-coordinator";
+import { usePreferencesStore } from "../../foundation/preferences/preferences-store";
 import { overlayScopeVisibleKey } from "../../shared/contracts/overlay-scope-visibility";
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiSplitterHandle from "../../shared/ui/UiSplitterHandle.vue";
@@ -26,6 +27,7 @@ import SpaceLibrary from "./workspace/presentation/library/SpaceLibrary.vue";
 import SpaceEditorSurfaces from "./workspace/presentation/SpaceEditorSurfaces.vue";
 
 const store = useSpaceStore();
+const preferences = usePreferencesStore();
 const workspaceVisible = inject(overlayScopeVisibleKey)!;
 const canvasVisible = computed(() => workspaceVisible.value && store.workbench.canvas);
 const { ready, surface } = storeToRefs(store);
@@ -51,7 +53,7 @@ async function initialize() {
   initializing.value = true;
   initializationError.value = undefined;
   try {
-    await store.initialize(t("spaces.space.inbox"));
+    await store.initialize(t("spaces.space.inbox"), preferences.restorePreviousWorkspace);
     void restoreConversationRuns().catch((caught: unknown) => {
       toast.error(getErrorMessage(caught));
     });

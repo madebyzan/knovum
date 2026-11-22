@@ -27,6 +27,9 @@ export function useSceneNavigation() {
     stopRecentTimer,
   };
   const activeSceneId = computed(() => {
+    if (store.activeSceneId && scenes.value.some((scene) => scene.id === store.activeSceneId)) {
+      return store.activeSceneId;
+    }
     const viewport = editorSession.viewport.value;
     if (!viewport) return undefined;
     return scenes.value.find(

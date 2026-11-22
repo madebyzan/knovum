@@ -124,6 +124,7 @@ it("loads absent optional preferences without rewriting disk and saves a complet
       textSize: "large",
       locale: "zh-CN",
       backgroundTaskNotifications: true,
+      restorePreviousWorkspace: true,
       workbench: {
         sidebarVisible: true,
         sidebarWidth: 224,

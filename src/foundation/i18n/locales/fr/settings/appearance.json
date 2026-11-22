@@ -46,5 +46,12 @@
       "russian": "Russe",
       "brazilianPortuguese": "Portugais du Brésil"
     }
+  },
+  "startup": {
+    "title": "Démarrage",
+    "restoreWorkspace": {
+      "label": "Restaurer l’espace de travail précédent au démarrage",
+      "description": "Rouvre vos onglets, vues du canevas et barres latérales de la dernière session."
+    }
   }
 }

@@ -15,11 +15,12 @@ import type {
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import type { SelectOption } from "../../../shared/ui/UiSelect.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
+import UiSwitch from "../../../shared/ui/UiSwitch.vue";
 import PreferenceField from "../components/PreferenceField.vue";
 
 const { t } = useI18n();
 const preferences = usePreferencesStore();
-const { theme, density, textSize, locale } = storeToRefs(preferences);
+const { theme, density, textSize, locale, restorePreviousWorkspace } = storeToRefs(preferences);
 
 async function updatePreference(operation: () => Promise<void>) {
   try {
@@ -111,6 +112,20 @@ const languages = computed<readonly SelectOption<LocalePreference>[]>(() => [
         :label="t('settings.appearance.language.label')"
         :options="languages"
         @update:model-value="updatePreference(() => preferences.setLocale($event))"
+      />
+    </PreferenceField>
+  </UiSettingsSection>
+  <UiSettingsSection :title="t('settings.appearance.startup.title')">
+    <PreferenceField
+      id="settings-appearance-restore-workspace"
+      tabindex="-1"
+      :label="t('settings.appearance.startup.restoreWorkspace.label')"
+      :description="t('settings.appearance.startup.restoreWorkspace.description')"
+    >
+      <UiSwitch
+        :model-value="restorePreviousWorkspace"
+        :label="t('settings.appearance.startup.restoreWorkspace.label')"
+        @update:model-value="updatePreference(() => preferences.setRestorePreviousWorkspace($event))"
       />
     </PreferenceField>
   </UiSettingsSection>

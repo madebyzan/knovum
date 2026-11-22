@@ -64,6 +64,7 @@ const editor = {
 const store = reactive({
   activeSpaceId: "space",
   outlineRenameStructureNodeId: null,
+  outlineExpandedIds: [] as string[],
   groupScopePath: [] as string[],
   nodes: [{ id: "image", data: { kind: "image", title: "Original" } }],
   editSnapshot: {

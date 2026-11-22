@@ -12,6 +12,7 @@ vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
 vi.mock("@tauri-apps/plugin-log", () => ({ error: async () => {} }));
 vi.mock("../../../foundation/preferences/preferences-store", () => ({
   usePreferencesStore: () => ({
+    restorePreviousWorkspace: true,
     workbench: { sidebarVisible: true, sidebarWidth: 260, rightSidebarVisible: true, rightSidebarWidth: 380 },
     setWorkbenchLayout: async () => {},
   }),

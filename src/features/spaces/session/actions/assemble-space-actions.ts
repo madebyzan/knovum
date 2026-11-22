@@ -76,7 +76,8 @@ export function assembleSpaceActions(input: SpaceActionsInput) {
     relationStatuses: state.relationStatusFilter,
     queryFilter: state.savedQueryFilter,
   };
-  const initialize = (title: string) => initializeSpaces(spaceContext, title);
+  const initialize = (title: string, restorePreviousWorkspace = true) =>
+    initializeSpaces(spaceContext, title, restorePreviousWorkspace);
   const openSpace = async (spaceId: string) => {
     await navigateToSpace(spaceContext, spaceId);
   };

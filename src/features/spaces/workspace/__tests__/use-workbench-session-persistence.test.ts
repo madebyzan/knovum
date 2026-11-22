@@ -1,9 +1,10 @@
 import { flushPromises } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { nextTick, ref } from "vue";
+import { nextTick, ref, shallowRef } from "vue";
 
 import { createTestSpace } from "../../__tests__/support/session-context";
 import type { Space } from "../../model/space";
+import { defaultSpaceViewSession, type SpaceViewSession } from "../space-view-session";
 import { useWorkbenchSessionPersistence } from "../use-workbench-session-persistence";
 import { createSpaceCanvasTab, createSpaceEditorTab, type SpaceWorkbenchTab } from "../workbench-tab";
 
@@ -12,15 +13,34 @@ const SESSION_KEY = "knovum.workspace.workbench";
 describe("useWorkbenchSessionPersistence", () => {
   afterEach(() => localStorage.clear());
 
-  it("saves the strip once ready and leaves out the tabs of an unsaved draft", async () => {
+  it("saves the workbench session once ready and omits draft Spaces", async () => {
     const draft = createTestSpace({ id: "draft", kind: "space", title: "Draft" });
     const canvas = createSpaceCanvasTab("inbox");
+    const research = createSpaceCanvasTab("research");
     const editor = createSpaceEditorTab("inbox", "video", "clip");
+    const retained = new Map<string, { view: SpaceViewSession }>([
+      [
+        "research",
+        {
+          view: {
+            ...defaultSpaceViewSession(),
+            groupScopePath: ["grp-1"],
+            activeSceneId: "scene-1",
+            outlineExpandedIds: ["sec-1"],
+          },
+        },
+      ],
+    ]);
     const source = {
       ready: ref(false),
-      tabs: ref<readonly SpaceWorkbenchTab[]>([canvas, createSpaceCanvasTab("draft"), editor]),
+      tabs: ref<readonly SpaceWorkbenchTab[]>([canvas, research, createSpaceCanvasTab("draft"), editor]),
       activeTabId: ref<string | undefined>(editor.id),
+      activeSpaceId: ref<string | undefined>("inbox"),
       draftSpace: ref<Space | undefined>(draft),
+      groupScopePath: ref<string[]>([]),
+      activeSceneId: ref<string | undefined>(),
+      outlineExpandedIds: shallowRef<string[]>(["inbox-sec"]),
+      runtime: { retained },
     };
     useWorkbenchSessionPersistence(source);
 
@@ -33,9 +53,18 @@ describe("useWorkbenchSessionPersistence", () => {
     expect(JSON.parse(localStorage.getItem(SESSION_KEY)!)).toEqual({
       tabs: [
         { kind: "space", spaceId: "inbox" },
+        { kind: "space", spaceId: "research" },
         { kind: "video", spaceId: "inbox", nodeId: "clip" },
       ],
       activeIndex: 0,
+      spaceViews: {
+        inbox: { outlineExpandedIds: ["inbox-sec"] },
+        research: {
+          groupScopePath: ["grp-1"],
+          activeSceneId: "scene-1",
+          outlineExpandedIds: ["sec-1"],
+        },
+      },
     });
   });
 });

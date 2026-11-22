@@ -1,20 +1,21 @@
 import { z } from "zod";
 
+import { savedSpaceViewSchema, type SavedSpaceViewSession } from "./space-view-session";
 import { isSpaceEditorTab, type SpaceWorkbenchTab } from "./workbench-tab";
 
 const WORKBENCH_SESSION_KEY = "knovum.workspace.workbench";
+const nonEmptyId = z.string().min(1);
 
 const savedTabSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("space"), spaceId: z.string().min(1) }).strict(),
-  z
-    .object({ kind: z.enum(["document", "video"]), spaceId: z.string().min(1), nodeId: z.string().min(1) })
-    .strict(),
+  z.object({ kind: z.literal("space"), spaceId: nonEmptyId }).strict(),
+  z.object({ kind: z.enum(["document", "video"]), spaceId: nonEmptyId, nodeId: nonEmptyId }).strict(),
 ]);
 
 const workbenchSessionSchema = z
   .object({
     tabs: z.array(savedTabSchema),
     activeIndex: z.number().int().nonnegative().nullable(),
+    spaceViews: z.record(nonEmptyId, savedSpaceViewSchema),
   })
   .strict()
   .refine(({ tabs, activeIndex }) => activeIndex === null || activeIndex < tabs.length);
@@ -23,12 +24,21 @@ const workbenchSessionSchema = z
 export type SavedWorkbenchTab = z.infer<typeof savedTabSchema>;
 
 /**
- * The tab strip as the window last showed it. It is disposable navigation state: it never holds
- * content, and the Spaces and nodes it names are revalidated when it is restored.
+ * The workbench session as the window last showed it. It is disposable navigation and view state:
+ * it never holds document/media content, and every Space, node, group and Saved View it names is
+ * revalidated when it is restored.
  */
 export interface WorkbenchSession {
   readonly tabs: readonly SavedWorkbenchTab[];
   readonly activeIndex: number | null;
+  readonly spaceViews: Readonly<Record<string, SavedSpaceViewSession>>;
+}
+
+export interface SaveWorkbenchSessionInput {
+  readonly tabs: readonly SpaceWorkbenchTab[];
+  readonly activeTabId: string | undefined;
+  readonly draftSpaceId: string | undefined;
+  readonly spaceViews: ReadonlyMap<string, SavedSpaceViewSession>;
 }
 
 /**
@@ -47,17 +57,19 @@ export function takeWorkbenchSession(): WorkbenchSession | undefined {
   }
 }
 
-/** Saves the strip as the next launch should reopen it, leaving out the tabs of an unsaved draft. */
-export function saveWorkbenchSession(
-  tabs: readonly SpaceWorkbenchTab[],
-  activeTabId: string | undefined,
-  draftSpaceId: string | undefined,
-): void {
-  const saved = tabs.filter(({ spaceId }) => spaceId !== draftSpaceId);
-  const activeIndex = saved.findIndex(({ id }) => id === activeTabId);
+/** Saves the workbench session as the next launch should reopen it, omitting any unsaved draft Space. */
+export function saveWorkbenchSession(input: SaveWorkbenchSessionInput): void {
+  const saved = input.tabs.filter(({ spaceId }) => spaceId !== input.draftSpaceId);
+  const activeIndex = saved.findIndex(({ id }) => id === input.activeTabId);
+  const persistedSpaceIds = new Set(saved.map(({ spaceId }) => spaceId));
+  const spaceViews: Record<string, SavedSpaceViewSession> = {};
+  for (const [spaceId, view] of input.spaceViews) {
+    if (persistedSpaceIds.has(spaceId)) spaceViews[spaceId] = view;
+  }
   const session: WorkbenchSession = {
     tabs: saved.map(savedTab),
     activeIndex: activeIndex < 0 ? null : activeIndex,
+    spaceViews,
   };
   globalThis.localStorage.setItem(WORKBENCH_SESSION_KEY, JSON.stringify(session));
 }

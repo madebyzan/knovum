@@ -11,4 +11,4 @@ export const preferenceLocales = ["system","en","zh-CN","zh-TW","ja","ko","fr","
 export const routingCapabilities = {"writing":"text-generation","knowledge":"text-generation","visual-understanding":"vision-understanding","translation":"text-generation","image-generation":"image-generation","video-generation":"video-generation"} as const;
 export const preferencesSchemaVersion = 1 as const;
 export const workbenchWidthLimits = {"sidebar":[200,320],"rightSidebar":[300,480]} as const;
-export const preferenceDefaults = {"theme":"system","density":"compact","textSize":"default","locale":"system","backgroundTaskNotifications":true,"workbench":{"sidebarVisible":true,"sidebarWidth":224,"rightSidebarVisible":false,"rightSidebarWidth":380}} as const;
+export const preferenceDefaults = {"theme":"system","density":"compact","textSize":"default","locale":"system","backgroundTaskNotifications":true,"restorePreviousWorkspace":true,"workbench":{"sidebarVisible":true,"sidebarWidth":224,"rightSidebarVisible":false,"rightSidebarWidth":380}} as const;

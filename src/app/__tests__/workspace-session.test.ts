@@ -61,4 +61,15 @@ describe("workspace session persistence", () => {
 
     expect(router.currentRoute.value.fullPath).toBe("/settings?pane=aiProviders");
   });
+
+  it("skips route restoration and clears the remembered route when startup restore is disabled", async () => {
+    localStorage.setItem("knovum.workspace.lastRoute", "/settings?pane=aiProviders");
+    const router = createTestRouter();
+    await router.push("/spaces");
+
+    await restoreWorkspaceSession(router, false);
+
+    expect(router.currentRoute.value.fullPath).toBe("/spaces");
+    expect(localStorage.getItem("knovum.workspace.lastRoute")).toBeNull();
+  });
 });

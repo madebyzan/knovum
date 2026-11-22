@@ -8,6 +8,7 @@ const current = {
   textSize: "default",
   locale: "system",
   backgroundTaskNotifications: true,
+  restorePreviousWorkspace: true,
   workbench: {
     sidebarVisible: true,
     sidebarWidth: 224,
@@ -47,29 +48,43 @@ describe("preferences schema", () => {
     );
   });
   it("initializes absent optional preferences without changing saved choices", () => {
-    const { workbench: _workbench, backgroundTaskNotifications: _notifications, ...saved } = current;
+    const {
+      workbench: _workbench,
+      backgroundTaskNotifications: _notifications,
+      restorePreviousWorkspace: _restore,
+      ...saved
+    } = current;
     const raw = { schemaVersion: 1, value: { ...saved, locale: "zh-CN" } };
     expect(decodePreferences(raw)).toEqual({ ...current, locale: "zh-CN" });
     expect(raw.value).not.toHaveProperty("workbench");
     expect(raw.value).not.toHaveProperty("backgroundTaskNotifications");
+    expect(raw.value).not.toHaveProperty("restorePreviousWorkspace");
   });
 
   it("initializes each absent optional section independently", () => {
     const { workbench: _workbench, ...missingWorkbench } = current;
     const { backgroundTaskNotifications: _notifications, ...missingNotifications } = current;
+    const { restorePreviousWorkspace: _restore, ...missingRestore } = current;
     expect(decodePreferences({ schemaVersion: 1, value: missingWorkbench })).toEqual(current);
     expect(decodePreferences({ schemaVersion: 1, value: missingNotifications })).toEqual(current);
+    expect(decodePreferences({ schemaVersion: 1, value: missingRestore })).toEqual(current);
   });
 
   it("keeps explicit false values and fills absent layout fields", () => {
     expect(
       decodePreferences({
         schemaVersion: 1,
-        value: { ...current, backgroundTaskNotifications: false, workbench: { sidebarVisible: false } },
+        value: {
+          ...current,
+          backgroundTaskNotifications: false,
+          restorePreviousWorkspace: false,
+          workbench: { sidebarVisible: false },
+        },
       }),
     ).toEqual({
       ...current,
       backgroundTaskNotifications: false,
+      restorePreviousWorkspace: false,
       workbench: { ...current.workbench, sidebarVisible: false },
     });
   });
@@ -84,6 +99,8 @@ describe("preferences schema", () => {
   it.each([
     { backgroundTaskNotifications: null },
     { backgroundTaskNotifications: "true" },
+    { restorePreviousWorkspace: null },
+    { restorePreviousWorkspace: "true" },
     { workbench: null },
     { workbench: { sidebarWidth: 199 } },
     { workbench: { rightSidebarWidth: 481 } },

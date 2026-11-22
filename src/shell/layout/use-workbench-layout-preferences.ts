@@ -5,13 +5,19 @@ import { toast } from "vue-sonner";
 
 import { formatErrorDiagnostic } from "../../foundation/errors/error-format";
 import { usePreferencesStore } from "../../foundation/preferences/preferences-store";
+import { preferenceDefaults } from "../../shared/contracts/generated/contract-values";
 
 export function useWorkbenchLayoutPreferences() {
   const { t } = useI18n();
   const preferences = usePreferencesStore();
-  const sidebarPinned = shallowRef(preferences.workbench.sidebarVisible);
+  const restore = preferences.restorePreviousWorkspace;
+  const sidebarPinned = shallowRef(
+    restore ? preferences.workbench.sidebarVisible : preferenceDefaults.workbench.sidebarVisible,
+  );
   const sidebarWidth = shallowRef(preferences.workbench.sidebarWidth);
-  const rightSidebarOpen = shallowRef(preferences.workbench.rightSidebarVisible);
+  const rightSidebarOpen = shallowRef(
+    restore ? preferences.workbench.rightSidebarVisible : preferenceDefaults.workbench.rightSidebarVisible,
+  );
   const rightSidebarWidth = shallowRef(preferences.workbench.rightSidebarWidth);
 
   function persist() {

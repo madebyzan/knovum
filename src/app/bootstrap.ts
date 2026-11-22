@@ -43,7 +43,7 @@ export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
     await analytics.load();
     void analytics.recordAppStarted();
     await invokeCommand("plugin:spaces|await_space_runtime");
-    await restoreWorkspaceSession(router);
+    await restoreWorkspaceSession(router, usePreferencesStore(pinia).restorePreviousWorkspace);
     await router.isReady();
     installWorkspaceSessionPersistence(router);
     state.ready();

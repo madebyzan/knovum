@@ -401,7 +401,7 @@ serialized Store mutation path. The TypeScript and Rust decoders must agree wher
 schema.
 
 The preference defaults are owned by `src-tauri/src/preferences/mod.rs` and exported as `preferenceDefaults` for
-the frontend. `backgroundTaskNotifications`, `workbench`, and individual workbench layout fields
+the frontend. `backgroundTaskNotifications`, `restorePreviousWorkspace`, `workbench`, and individual workbench layout fields
 are optional on disk; absence uses their declared product defaults while existing choices remain
 unchanged. The theme, density, text size, and locale remain required. Adding a nonessential preference
 must declare its absence semantics in both decoders; removing or changing a field's meaning is a
@@ -410,10 +410,12 @@ optional in the normalized application state or canonical saved value.
 
 Disposable navigation state uses `localStorage`, so optional session restoration cannot make Store a
 bootstrap dependency: `app/workspace-session.ts` keeps the last workspace route and
-`workspace/workbench-session.ts` keeps the tab strip, which names Spaces and nodes but never holds
-content. Each value is schema-checked and discarded when invalid; the strip is consumed by the one
-restore that reads it. Secrets never enter Store, `localStorage`, Pinia persistence, feature
-databases, logs, or query cache.
+`workspace/workbench-session.ts` keeps the workbench session (tab strip, active tab, Inspector
+primary view, and per-Space view context owned by `workspace/space-view-session.ts`: Group scope,
+active Saved View, and Outline disclosures), which names Spaces and nodes but never holds content.
+Each value is schema-checked and discarded when invalid; the session is consumed by the one restore
+that reads it and skipped when `restorePreviousWorkspace` is disabled. Secrets never enter Store,
+`localStorage`, Pinia persistence, feature databases, logs, or query cache.
 
 ## IPC and schema ownership
 

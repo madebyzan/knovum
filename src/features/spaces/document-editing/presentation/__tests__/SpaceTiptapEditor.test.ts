@@ -10,6 +10,7 @@ import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
 import type { SpaceEditorTab } from "../../../workspace/workbench-tab";
 import { useDocumentSessionStore } from "../../document-session-store";
 import { createSpaceNotePayload } from "../../tiptap-content";
+import type * as TiptapExtensions from "../../tiptap-extensions";
 import SpaceTiptapEditor from "../SpaceTiptapEditor.vue";
 
 type ContentChange = { id: string; data: SpaceNodePayload };
@@ -37,7 +38,7 @@ vi.mock("../../../../../foundation/file-drop/events", () => ({
   listenForFileDrops: vi.fn<() => Promise<() => void>>(() => Promise.resolve(() => {})),
 }));
 vi.mock("../../tiptap-extensions", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../../tiptap-extensions")>();
+  const actual = await importOriginal<typeof TiptapExtensions>();
   const { StarterKit } = await import("@tiptap/starter-kit");
   const { Markdown } = await import("@tiptap/markdown");
   return { ...actual, createSpaceTiptapExtensions: () => [StarterKit, Markdown] };
