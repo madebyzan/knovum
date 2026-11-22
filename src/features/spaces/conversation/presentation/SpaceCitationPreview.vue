@@ -3,8 +3,8 @@ import { ArrowUpRight } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { GroundedCitation } from "../../knowledge/model/schema/grounded-citation";
 import { knowledgeLocationLabel } from "../../knowledge/model/location-label";
+import type { GroundedCitation } from "../../knowledge/model/schema/grounded-citation";
 import type { CitationPreviewState } from "./use-citation-hover";
 
 const props = defineProps<{ state?: CitationPreviewState | undefined }>();

@@ -66,9 +66,7 @@ function nodeHasInlineMarkdown(node: JSONContent): boolean {
   return node.content?.some(nodeHasInlineMarkdown) ?? false;
 }
 
-function sanitizeMarks(
-  rawMarks: NonNullable<JSONContent["marks"]>,
-): NonNullable<JSONContent["marks"]> {
+function sanitizeMarks(rawMarks: NonNullable<JSONContent["marks"]>): NonNullable<JSONContent["marks"]> {
   const sanitized: NonNullable<JSONContent["marks"]> = [];
   for (const mark of rawMarks) {
     if (mark.type !== "link") {
@@ -76,9 +74,7 @@ function sanitizeMarks(
       continue;
     }
     const href =
-      typeof mark.attrs?.href === "string"
-        ? normalizeUrl(mark.attrs.href, SAFE_LINK_PROTOCOLS)
-        : undefined;
+      typeof mark.attrs?.href === "string" ? normalizeUrl(mark.attrs.href, SAFE_LINK_PROTOCOLS) : undefined;
     if (!href) continue;
     sanitized.push({
       type: mark.type,
@@ -90,9 +86,7 @@ function sanitizeMarks(
 
 function sanitizeImageNode(node: JSONContent): JSONContent | null {
   const src =
-    typeof node.attrs?.src === "string"
-      ? normalizeUrl(node.attrs.src, SAFE_IMAGE_PROTOCOLS)
-      : undefined;
+    typeof node.attrs?.src === "string" ? normalizeUrl(node.attrs.src, SAFE_IMAGE_PROTOCOLS) : undefined;
   return src ? { ...node, attrs: Object.assign({}, node.attrs, { src }) } : null;
 }
 

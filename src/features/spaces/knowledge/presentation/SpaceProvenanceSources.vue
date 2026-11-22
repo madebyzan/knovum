@@ -10,10 +10,10 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { nodeIcon } from "../../canvas/presentation/node-icon";
 import { useSpaceStore } from "../../session/space-store";
+import { knowledgeLocationLabel } from "../model/location-label";
 import type { SpaceProvenanceTargetKind } from "../model/provenance";
 import { attachProvenanceFromPeek, detachProvenance } from "../provenance-actions";
 import { useSpaceProvenanceQuery } from "../queries/use-space-provenance-query";
-import { knowledgeLocationLabel } from "../model/location-label";
 
 const props = defineProps<{
   targetKind: SpaceProvenanceTargetKind;

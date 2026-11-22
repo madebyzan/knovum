@@ -17,9 +17,7 @@ function createEditor(content: string, openCitation = vi.fn<(index: number) => v
 
 describe("createGroundedCitationExtension", () => {
   it("renders grounded citations using the shared ui-citation button widget and skips code", () => {
-    const { editor, openCitation } = createEditor(
-      "Claim [C5][C43] with `[C2]`.\n\n```txt\n[C9]\n```\n",
-    );
+    const { editor, openCitation } = createEditor("Claim [C5][C43] with `[C2]`.\n\n```txt\n[C9]\n```\n");
     try {
       const badges = Array.from(editor.view.dom.querySelectorAll<HTMLButtonElement>("button.ui-citation"));
       expect(badges.map((badge) => badge.textContent)).toEqual(["5", "43"]);

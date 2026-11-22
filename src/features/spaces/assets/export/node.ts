@@ -1,8 +1,8 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { chooseExportDestination } from "./destination";
 import { exportResource, exportTextFile } from "./ipc";
-import { serializePayloadExport } from "./payloads";
 import { safeExportFileName } from "./naming";
+import { serializePayloadExport } from "./payloads";
 
 export interface NodeExportOptions {
   /** Called once work that can be cancelled begins. */

@@ -95,7 +95,7 @@ async function start(chosenModel?: LocalModelId) {
           type="number"
           min="1"
           max="32"
-          class="h-full w-18 [appearance:textfield] border-r border-stroke-divider/80 bg-surface-control/45 px-2 text-center text-caption-sm text-fg-primary tabular-nums outline-none placeholder:text-fg-tertiary focus:bg-surface-raised disabled:opacity-45 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          class="h-full w-18 [appearance:textfield] border-r border-stroke-divider/80 bg-surface-control/45 px-2 text-center text-caption-sm text-fg-primary tabular-nums outline-none placeholder:text-fg-tertiary focus:bg-surface-raised disabled:opacity-40 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           :aria-label="t('spaces.transcript.speakers.count')"
           :title="t('spaces.transcript.speakers.count')"
           :placeholder="t('spaces.transcript.speakers.automatic')"
@@ -110,7 +110,7 @@ async function start(chosenModel?: LocalModelId) {
           <template #trigger="{ multiple }">
             <button
               type="button"
-              class="inline-flex h-full items-center gap-1.5 px-2.5 text-caption font-medium text-fg-primary transition-colors hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-stroke-focus active:bg-surface-control-pressed disabled:pointer-events-none disabled:opacity-45"
+              class="inline-flex h-full items-center gap-1.5 px-2.5 text-caption font-medium text-fg-primary transition-colors hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-stroke-focus active:bg-surface-control-pressed disabled:pointer-events-none disabled:opacity-40"
               :disabled="disabled || submitting || !canStart || Boolean(runningStatus)"
               @click="!multiple && start()"
             >

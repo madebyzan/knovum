@@ -36,10 +36,11 @@ vi.mock("../../../../../foundation/file-drop/events", () => ({
   isFileDropInside: () => false,
   listenForFileDrops: vi.fn<() => Promise<() => void>>(() => Promise.resolve(() => {})),
 }));
-vi.mock("../../tiptap-extensions", async () => {
+vi.mock("../../tiptap-extensions", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../tiptap-extensions")>();
   const { StarterKit } = await import("@tiptap/starter-kit");
   const { Markdown } = await import("@tiptap/markdown");
-  return { createSpaceTiptapExtensions: () => [StarterKit, Markdown] };
+  return { ...actual, createSpaceTiptapExtensions: () => [StarterKit, Markdown] };
 });
 vi.mock("../../../../../foundation/ai/ai-settings-store", async () => {
   const { DEFAULT_AI_MODEL_SETTINGS } = await import("../../../../../foundation/ai/schema/model-settings");

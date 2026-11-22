@@ -5,7 +5,9 @@ use super::{finalize_citations, format_location, format_sources, strip_citation_
 #[test]
 fn formats_media_and_document_locations() {
     assert_eq!(
-        format_location(&json!({"location": {"kind": "media", "startMs": 98_000, "endMs": 105_000}})),
+        format_location(
+            &json!({"location": {"kind": "media", "startMs": 98_000, "endMs": 105_000}})
+        ),
         Some("01:38-01:45".into())
     );
     assert_eq!(

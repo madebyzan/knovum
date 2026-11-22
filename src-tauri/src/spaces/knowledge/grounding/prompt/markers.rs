@@ -21,7 +21,8 @@ pub(crate) fn finalize_citations(
 ) -> Result<(String, Value), String> {
     let mut remap: HashMap<usize, usize> = HashMap::new();
     let mut ordered_sources: Vec<(usize, usize)> = Vec::new();
-    let rewritten = rewrite_citation_markers(answer, sources.len(), &mut remap, &mut ordered_sources);
+    let rewritten =
+        rewrite_citation_markers(answer, sources.len(), &mut remap, &mut ordered_sources);
     let mut citations = Vec::with_capacity(ordered_sources.len());
     for (compact_index, original_index) in ordered_sources {
         let Some(source) = original_index
@@ -185,7 +186,10 @@ fn is_closing_fence(trimmed: &str, fence_char: char, min_len: usize) -> bool {
 }
 
 fn count_byte(bytes: &[u8], start: usize, target: u8) -> usize {
-    bytes[start..].iter().take_while(|&&byte| byte == target).count()
+    bytes[start..]
+        .iter()
+        .take_while(|&&byte| byte == target)
+        .count()
 }
 
 fn find_closing_backticks(rest: &str, ticks: usize) -> Option<usize> {

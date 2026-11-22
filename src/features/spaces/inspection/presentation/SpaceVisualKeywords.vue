@@ -66,7 +66,7 @@ async function adoptKeyword(keyword: string) {
           :disabled="!canAdopt"
           :title="t('spaces.knowledge.visual.adoptKeyword', { keyword })"
           :aria-label="t('spaces.knowledge.visual.adoptKeyword', { keyword })"
-          class="group inline-flex h-5 cursor-pointer items-center gap-1 rounded-md border border-dashed border-stroke-default px-1.5 text-caption-sm text-fg-secondary transition-colors duration-120 select-none hover:border-stroke-strong hover:bg-surface-control-hover hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:cursor-default disabled:opacity-50"
+          class="group inline-flex h-5 cursor-pointer items-center gap-1 rounded-md border border-dashed border-stroke-default px-1.5 text-caption-sm text-fg-secondary transition-colors duration-120 select-none hover:border-stroke-strong hover:bg-surface-control-hover hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:cursor-default disabled:opacity-40"
           @click="adoptKeyword(keyword)"
         >
           <Plus class="size-2.5 shrink-0 text-fg-tertiary transition-colors group-hover:text-fg-primary" />

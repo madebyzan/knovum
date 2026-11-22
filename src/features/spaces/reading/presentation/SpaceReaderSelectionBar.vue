@@ -133,7 +133,12 @@ function chooseNote(targetId: string) {
         >
           <ListPlus class="size-3.5" />
         </UiIconButton>
-        <UiIconButton :label="t('spaces.conversation.capture.followUp')" tooltip size="sm" @click="emit('ask')">
+        <UiIconButton
+          :label="t('spaces.conversation.capture.followUp')"
+          tooltip
+          size="sm"
+          @click="emit('ask')"
+        >
           <MessageSquareQuote class="size-3.5" />
         </UiIconButton>
         <UiIconButton :label="t('spaces.conversation.messages.copy')" tooltip size="sm" @click="emit('copy')">

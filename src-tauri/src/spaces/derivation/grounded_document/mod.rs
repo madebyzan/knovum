@@ -137,7 +137,8 @@ pub(super) fn finalize_generated_document(
         }
         _ => (None, raw.to_owned()),
     };
-    let (text, citations) = grounding::prompt::finalize_citations(&body, sources, current_space_id)?;
+    let (text, citations) =
+        grounding::prompt::finalize_citations(&body, sources, current_space_id)?;
     Ok((title, text, citations))
 }
 

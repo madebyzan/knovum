@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { isLocatorCurrent } from "../knowledge/model/location";
-import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
 import { knowledgeLocationLabel } from "../knowledge/model/location-label";
+import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
 import { highlightedSnippet } from "../search/highlighted-snippet";
 
 function locator(location: KnowledgeLocator["location"], sourceRevision = "sha256:source"): KnowledgeLocator {

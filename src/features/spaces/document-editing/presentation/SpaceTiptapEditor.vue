@@ -120,7 +120,11 @@ async function exportMarkdown() {
     </div>
     <div class="flex min-h-0 flex-1">
       <div class="relative flex min-h-0 flex-1">
-        <div ref="scrollRoot" class="relative min-h-0 flex-1 overflow-auto" @scroll.passive="syncActiveHeading">
+        <div
+          ref="scrollRoot"
+          class="relative min-h-0 flex-1 overflow-auto"
+          @scroll.passive="syncActiveHeading"
+        >
           <div
             v-if="imageDragging"
             class="pointer-events-none sticky top-2 z-40 mx-2 -mb-18 flex h-16 items-center justify-center gap-2 rounded-panel border border-dashed border-stroke-accent bg-surface-overlay/92 text-label font-medium text-fg-accent shadow-popover backdrop-blur"

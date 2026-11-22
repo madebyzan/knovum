@@ -21,7 +21,11 @@ import SpaceReaderSelectionBar from "./SpaceReaderSelectionBar.vue";
 import SpaceSourceReaderHeader from "./SpaceSourceReaderHeader.vue";
 import SpaceSourceReaderSurface from "./SpaceSourceReaderSurface.vue";
 import { useReaderCapture, type ReaderDropTarget } from "./use-reader-capture";
-import { useReaderSelection, type SourceReaderPassage, type SurfaceSelectionState } from "./use-reader-selection";
+import {
+  useReaderSelection,
+  type SourceReaderPassage,
+  type SurfaceSelectionState,
+} from "./use-reader-selection";
 import { useSourceReaderState } from "./use-source-reader-state";
 
 const props = withDefaults(defineProps<{ host?: SourceReaderHost }>(), { host: "canvas" });

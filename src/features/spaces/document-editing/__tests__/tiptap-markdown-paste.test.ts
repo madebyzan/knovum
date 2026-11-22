@@ -15,7 +15,11 @@ const editors: Editor[] = [];
 function createEditor(content = "", surface: "document" | "canvas" = "document"): Editor {
   const extensions =
     surface === "document"
-      ? createSpaceTiptapExtensions("", () => undefined, () => undefined)
+      ? createSpaceTiptapExtensions(
+          "",
+          () => undefined,
+          () => undefined,
+        )
       : createCanvasTextExtensions("", "note");
   const editor = new Editor({ content, extensions });
   editors.push(editor);
@@ -31,7 +35,8 @@ function dispatchPaste(editor: Editor, payload: PastePayload): ClipboardEvent {
       getData: (type: string) => {
         if (type === "text/plain") return payload.plain ?? "";
         if (type === "text/html") return payload.html ?? "";
-        if (type === "vscode-editor-data" && payload.vscodeMode) return JSON.stringify({ mode: payload.vscodeMode });
+        if (type === "vscode-editor-data" && payload.vscodeMode)
+          return JSON.stringify({ mode: payload.vscodeMode });
         return "";
       },
     },
@@ -75,7 +80,13 @@ describe("MarkdownPaste", () => {
     });
 
     expect(event.defaultPrevented).toBe(true);
-    expect(nonEmptyBlockTypes(editor)).toEqual(["heading", "paragraph", "heading", "bulletList", "orderedList"]);
+    expect(nonEmptyBlockTypes(editor)).toEqual([
+      "heading",
+      "paragraph",
+      "heading",
+      "bulletList",
+      "orderedList",
+    ]);
     expect(editor.getHTML()).not.toContain("## ");
     expect(editor.getHTML()).toContain("<strong>有价值</strong>");
     expect(editor.commands.undo()).toBe(true);
@@ -149,7 +160,9 @@ describe("MarkdownPaste", () => {
     expect(nonEmptyBlockTypes(pasteInto({ plain: "普通纯文本段落，没有 Markdown 语法。" }).editor)).toEqual([
       "paragraph",
     ]);
-    expect(pasteInto({ plain: "https://knovum.app/docs" }).editor.getText()).toContain("https://knovum.app/docs");
+    expect(pasteInto({ plain: "https://knovum.app/docs" }).editor.getText()).toContain(
+      "https://knovum.app/docs",
+    );
 
     const codeEditor = createEditor("<pre><code></code></pre>");
     codeEditor.commands.setTextSelection(1);
@@ -164,7 +177,8 @@ describe("MarkdownPaste", () => {
     expect(unsafe.editor.getText()).toContain("click");
 
     const gfm = pasteInto({
-      plain: "> 一段引用说明\n\n| 栏目 | 状态 |\n| --- | --- |\n| 视频分析 | 完成 |\n\n- [x] 已验证\n- [ ] 待补充\n\n```ts\nconst count = 42;\n```",
+      plain:
+        "> 一段引用说明\n\n| 栏目 | 状态 |\n| --- | --- |\n| 视频分析 | 完成 |\n\n- [x] 已验证\n- [ ] 待补充\n\n```ts\nconst count = 42;\n```",
     });
     expect(gfm.event.defaultPrevented).toBe(true);
     expect(nonEmptyBlockTypes(gfm.editor)).toEqual(["blockquote", "table", "taskList", "codeBlock"]);

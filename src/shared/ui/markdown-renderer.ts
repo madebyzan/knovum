@@ -86,10 +86,7 @@ export function createMarkdownRenderer({
   return md;
 }
 
-function resolveCitationMode(
-  citations: MarkdownCitations,
-  index: number,
-): CitationMeta["mode"] | undefined {
+function resolveCitationMode(citations: MarkdownCitations, index: number): CitationMeta["mode"] | undefined {
   if (citations === "preview") return "preview";
   const openable = citations.get(index);
   if (openable === undefined) return undefined;

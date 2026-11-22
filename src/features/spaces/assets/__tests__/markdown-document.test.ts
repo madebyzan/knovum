@@ -60,11 +60,9 @@ describe("markdown-document codec", () => {
     });
 
     it("strips internal citation anchors cleanly when exporting a grounded document", () => {
-      const exported = formatExportMarkdown(
-        "Report",
-        "Key insight [C3][C5]. Keep `[C3]` literal.",
-        { stripCitations: true },
-      );
+      const exported = formatExportMarkdown("Report", "Key insight [C3][C5]. Keep `[C3]` literal.", {
+        stripCitations: true,
+      });
       expect(exported).toBe("# Report\n\nKey insight. Keep `[C3]` literal.");
     });
 
