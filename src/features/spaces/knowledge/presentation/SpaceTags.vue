@@ -102,24 +102,24 @@ async function updateTags(update: (tags: readonly string[]) => string[]) {
           </button>
         </div>
       </div>
-      <div v-if="selectionTagCounts.size" class="mt-2 flex flex-wrap gap-1">
+      <div v-if="selectionTagCounts.size" class="mt-2 flex flex-wrap gap-1.5">
         <span
           v-for="[tag, count] in selectionTagCounts"
           :key="tag"
-          class="inline-flex h-(--knovum-control-height-sm) items-center gap-1 rounded-md bg-surface-control pr-1 pl-2 text-caption text-fg-secondary"
+          class="inline-flex h-6 items-center gap-1 rounded-md bg-surface-control pr-1 pl-2 text-caption text-fg-primary"
         >
-          {{ tag }}
-          <span v-if="count !== activeNodes.length" class="text-caption-sm text-fg-tertiary"
+          <span>{{ tag }}</span>
+          <span v-if="count !== activeNodes.length" class="text-caption-sm text-fg-tertiary tabular-nums"
             >{{ count }}/{{ activeNodes.length }}</span
           >
           <button
             type="button"
             :disabled="saving || !nodeOperations.allows('edit')"
-            class="grid size-5 place-items-center rounded-md hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
+            class="grid size-4 place-items-center rounded-sm text-fg-tertiary transition-colors duration-100 hover:bg-surface-danger-subtle hover:text-fg-danger focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:pointer-events-none disabled:opacity-40"
             :aria-label="t('spaces.tags.remove', { tag })"
             @click="removeTag(tag)"
           >
-            <X class="size-3" />
+            <X class="size-2.5" :stroke-width="1.8" />
           </button>
         </span>
       </div>

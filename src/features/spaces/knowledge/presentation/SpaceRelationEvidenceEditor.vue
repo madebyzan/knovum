@@ -85,17 +85,20 @@ async function saveRationale() {
       <button
         v-else
         type="button"
-        class="flex min-h-16 w-full items-start gap-2 rounded-md border border-stroke-default bg-surface-muted px-2.5 py-2 text-left hover:border-stroke-default-hover hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
+        class="group/rationale -mx-1.5 flex w-[calc(100%+0.75rem)] items-start gap-2 rounded-md px-1.5 py-1 text-left transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
         :aria-label="`${t(relation.rationale.trim() ? 'common.edit' : 'spaces.knowledge.relations.rationale.add')} ${t('spaces.knowledge.relations.rationale.label')}`"
         @click="beginEdit"
       >
         <span
-          class="min-w-0 flex-1 text-body leading-relaxed whitespace-pre-wrap"
-          :class="relation.rationale.trim() ? 'text-fg-primary' : 'text-fg-tertiary'"
+          class="min-w-0 flex-1 text-caption leading-relaxed whitespace-pre-wrap"
+          :class="relation.rationale.trim() ? 'text-fg-secondary' : 'text-fg-tertiary'"
         >
           {{ relation.rationale.trim() || t("spaces.knowledge.relations.rationale.placeholder") }}
         </span>
-        <Pencil class="mt-0.5 size-3.5 shrink-0 text-fg-tertiary" :stroke-width="1.6" />
+        <Pencil
+          class="mt-0.5 size-3 shrink-0 text-fg-tertiary opacity-0 transition-opacity duration-100 group-hover/rationale:opacity-100 group-focus-visible/rationale:opacity-100"
+          :stroke-width="1.6"
+        />
       </button>
     </div>
     <SpaceProvenanceSources

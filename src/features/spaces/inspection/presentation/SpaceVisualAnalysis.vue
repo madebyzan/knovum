@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RotateCcw } from "@lucide/vue";
+import { RotateCcw, ScanEye } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
@@ -20,6 +20,7 @@ import { useNodeEnrichmentStatus } from "../../enrichment/use-node-enrichment-st
 import { useRecognizedText } from "../../enrichment/use-recognized-text";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useSpaceStore } from "../../session/space-store";
+import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 import SpaceVisualKeywords from "./SpaceVisualKeywords.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
@@ -88,13 +89,9 @@ async function reanalyze(targetId?: string) {
 </script>
 
 <template>
-  <div>
-    <div class="mb-1.5 flex items-center justify-between gap-2">
-      <h3 class="text-label font-medium text-fg-primary">
-        {{ t("spaces.inspector.content") }}
-      </h3>
+  <SpaceInspectorSection :title="t('spaces.inspector.content')" :icon="ScanEye">
+    <template v-if="canReanalyze" #actions>
       <ModelChoiceTrigger
-        v-if="canReanalyze"
         :options="visualTargets"
         :disabled="submitting"
         @select="(id) => void reanalyze(id)"
@@ -102,6 +99,7 @@ async function reanalyze(targetId?: string) {
         <template #trigger="{ multiple }">
           <UiIconButton
             :label="t('spaces.processing.visual.reanalyze')"
+            tooltip
             size="sm"
             :disabled="submitting"
             @click="!multiple && reanalyze()"
@@ -110,19 +108,18 @@ async function reanalyze(targetId?: string) {
           </UiIconButton>
         </template>
       </ModelChoiceTrigger>
-    </div>
-    <div v-if="knowledge" class="flex items-start gap-2">
-      <UiExpandableText
-        :text="knowledge.description"
-        :clamp-lines="4"
-        class="min-w-0 flex-1 text-body leading-relaxed text-fg-secondary"
-      />
-    </div>
+    </template>
+    <UiExpandableText
+      v-if="knowledge"
+      :text="knowledge.description"
+      :clamp-lines="4"
+      class="text-body leading-relaxed text-fg-secondary"
+    />
     <SpaceEnrichmentJobStatus :job="visualJob" @retried="refresh" />
     <p v-if="!visualJob && !knowledge && !loading" class="text-caption leading-relaxed text-fg-tertiary">
       {{ t("spaces.knowledge.visual.empty") }}
     </p>
     <SpaceRecognizedText class="mt-3" :text="recognizedText(null)" :job="recognitionJob" @retried="refresh" />
     <SpaceVisualKeywords v-if="knowledge?.tags.length" class="mt-3" :node="node" :keywords="knowledge.tags" />
-  </div>
+  </SpaceInspectorSection>
 </template>

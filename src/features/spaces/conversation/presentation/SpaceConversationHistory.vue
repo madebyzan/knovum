@@ -64,22 +64,31 @@ function toggleArchived() {
 <template>
   <UiPopover v-model:open="open" side="bottom" align="end" class="w-80 max-w-[calc(100vw-24px)] p-0">
     <template #trigger>
-      <UiIconButton
-        :label="$t('spaces.conversation.conversations.history')"
-        :title="$t('spaces.conversation.conversations.history')"
-        size="sm"
-      >
-        <History class="size-3.5" />
+      <UiIconButton :label="$t('spaces.conversation.conversations.history')" tooltip size="sm">
+        <History class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
     </template>
-    <div class="px-3 pt-3 pb-2">
-      <h2 class="mb-2 text-title-sm font-semibold text-fg-primary">
-        {{
-          archived
-            ? t("spaces.conversation.conversations.archived")
-            : t("spaces.conversation.conversations.history")
-        }}
-      </h2>
+    <div class="px-2.5 pt-2.5 pb-2">
+      <div class="mb-2 flex items-center justify-between gap-2 px-0.5">
+        <h2 class="text-caption font-semibold text-fg-secondary">
+          {{
+            archived
+              ? t("spaces.conversation.conversations.archived")
+              : t("spaces.conversation.conversations.history")
+          }}
+        </h2>
+        <button
+          type="button"
+          class="rounded-md px-1.5 py-0.5 text-caption-sm text-fg-tertiary transition-colors duration-100 hover:bg-surface-control-hover hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
+          @click="toggleArchived"
+        >
+          {{
+            archived
+              ? t("spaces.conversation.conversations.backToRecent")
+              : t("spaces.conversation.conversations.viewArchived")
+          }}
+        </button>
+      </div>
       <UiSearchInput
         v-model="query"
         autofocus
@@ -89,48 +98,39 @@ function toggleArchived() {
         @update:model-value="refreshSearch()"
       />
     </div>
-    <div class="max-h-80 min-h-0 overflow-y-auto px-2 pb-2">
-      <div v-for="group in groups" :key="group.key" class="mt-1">
-        <p class="px-2 py-1.5 text-caption-sm text-fg-tertiary">{{ group.label }}</p>
+    <div class="max-h-80 min-h-0 overflow-y-auto px-1.5 pb-2">
+      <div v-for="group in groups" :key="group.key" class="mt-1 first:mt-0">
+        <p class="px-2 py-1 text-caption-sm font-medium text-fg-tertiary">{{ group.label }}</p>
         <button
           v-for="conversation in group.items"
           :key="conversation.id"
           type="button"
-          class="flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-2 text-left text-caption transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
+          class="flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-caption transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
           :class="
-            conversation.id === selectedId ? 'bg-surface-accent-subtle text-fg-primary' : 'text-fg-secondary'
+            conversation.id === selectedId
+              ? 'bg-surface-control font-medium text-fg-primary'
+              : 'text-fg-secondary'
           "
           :aria-current="conversation.id === selectedId ? 'true' : undefined"
           @click="choose(conversation.id)"
         >
           <span class="min-w-0 flex-1 truncate">{{ conversation.title }}</span>
           <time
-            class="shrink-0 text-caption-sm text-fg-tertiary"
+            class="shrink-0 text-caption-sm font-normal text-fg-tertiary tabular-nums"
             :datetime="new Date(conversation.updatedAt).toISOString()"
           >
             {{ timeFormatter.format(conversation.updatedAt) }}
           </time>
-          <Check v-if="conversation.id === selectedId" class="size-3.5 shrink-0 text-fg-accent" />
+          <Check v-if="conversation.id === selectedId" class="size-3.5 shrink-0 text-fg-secondary" />
         </button>
       </div>
       <div
         v-if="!conversations.length"
-        class="flex items-center justify-center gap-2 px-2 py-5 text-caption text-fg-tertiary"
+        class="flex items-center justify-center gap-2 px-2 py-6 text-caption text-fg-tertiary"
       >
-        <History class="size-4" :stroke-width="1.5" />
+        <History class="size-3.5" :stroke-width="1.5" />
         {{ t("spaces.conversation.conversations.none") }}
       </div>
     </div>
-    <button
-      type="button"
-      class="w-full border-t border-stroke-divider px-3 py-2.5 text-center text-caption text-fg-accent transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
-      @click="toggleArchived"
-    >
-      {{
-        archived
-          ? t("spaces.conversation.conversations.backToRecent")
-          : t("spaces.conversation.conversations.viewArchived")
-      }}
-    </button>
   </UiPopover>
 </template>

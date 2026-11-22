@@ -150,6 +150,7 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
           :recognized-pdf-pages="readingChunks.recognizedPdfPages.value"
           :recognized-text="readingChunks.recognizedText"
           :locator="target?.locator"
+          :locate-nonce="target?.nonce"
           :quote="targetQuote"
           :visible="activePane === 'read' && !headerMenuOpen"
           @pdf-page-change="currentPdfPage = $event"

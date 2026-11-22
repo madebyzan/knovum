@@ -3,19 +3,15 @@ import { computed, ref, shallowRef, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { admitAiRequirements } from "../../../foundation/ai/ai-readiness-admission";
-import { preferredLocalModel } from "../../../foundation/ai/local-model-choice";
-import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { LocalModelId } from "../../../shared/contracts/generated/LocalModelId";
-import { getCanvasEditorSession } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/use-node-operation-gate";
-import { refreshEnrichmentJobs } from "../enrichment/enrichment-jobs-query";
 import {
   MEDIA_ENRICHMENT_JOB_TYPES,
   useNodeEnrichmentStatus,
 } from "../enrichment/use-node-enrichment-status";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload } from "../model/nodes/capabilities";
+import { buildSourceReaderLocator, classifyReadableSource } from "../reading/source-reader-target";
 import { useSpaceStore } from "../session/space-store";
 import {
   editMediaChapter,
@@ -24,6 +20,7 @@ import {
   mediaKnowledgeIsStale,
   shiftMediaChapterStart,
 } from "./knowledge-editing";
+import { runLocalMediaTask } from "./run-local-media-task";
 import type { SpaceTranscriptEdit } from "./schema/knowledge";
 import { requestMediaAlignment } from "./transcription";
 import { useMediaInsights } from "./use-media-insights";
@@ -38,19 +35,21 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   const alignmentModel = shallowRef<LocalModelId>();
   const alignmentSubmitting = ref(false);
   const submitting = ref(false);
-  const { status } = useNodeEnrichmentStatus(
+  const { status, jobs } = useNodeEnrichmentStatus(
     computed(() => store.activeSpaceId),
     computed(() => node.value.id),
     MEDIA_ENRICHMENT_JOB_TYPES,
   );
+  const diarizationJob = computed(() => jobs.value.find((job) => job.jobType === "diarize_media_transcript"));
   const transcribing = computed(() => submitting.value || Boolean(status.value.transcribing));
-  const analyzing = computed(
-    () =>
+  const analyzing = computed(() =>
+    Boolean(
       submitting.value ||
-      status.value.pending > 0 ||
-      status.value.running > 0 ||
-      status.value.waiting > 0 ||
+      status.value.pending ||
+      status.value.running ||
+      status.value.waiting ||
       mediaAnalysisIds.value.includes(node.value.id),
+    ),
   );
   const analysisPreview = computed(() => mediaAnalysisPreviews.value[node.value.id]);
   const mediaContent = computed(() => (isSpaceMediaPayload(node.value.data) ? node.value.data : undefined));
@@ -85,66 +84,58 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
       mediaContent.value.mediaAnalysis?.sourceRevision === mediaContent.value.sourceRevision,
     ),
   );
-  async function analyze(chosenModel?: LocalModelId) {
-    if (!canTranscribe.value) return;
-    submitting.value = true;
-    try {
-      if (!(await admitAiRequirements([{ kind: "localCapability", capability: "transcription" }]))) return;
-      const model = chosenModel ?? transcriptionModel.value ?? (await preferredLocalModel("transcription"));
-      if (!model) return;
-      await store.analyzeMedia(node.value.id, model);
-      await refreshEnrichmentJobs();
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    } finally {
-      submitting.value = false;
-    }
+  function analyze(chosenModel?: LocalModelId) {
+    if (!canTranscribe.value) return Promise.resolve();
+    return runLocalMediaTask("transcription", submitting, chosenModel ?? transcriptionModel.value, (model) =>
+      store.analyzeMedia(node.value.id, model),
+    );
   }
-  async function alignSegments(segmentIds: string[], chosenModel?: LocalModelId) {
+  function alignSegments(segmentIds: string[], chosenModel?: LocalModelId) {
     const current = knowledge.value;
     const spaceId = store.activeSpaceId;
-    if (!spaceId || !current || !canGenerateInsights.value || alignmentSubmitting.value) return;
-    alignmentSubmitting.value = true;
-    try {
-      if (!(await admitAiRequirements([{ kind: "localCapability", capability: "speechAlignment" }]))) return;
-      const model = chosenModel ?? alignmentModel.value ?? (await preferredLocalModel("speechAlignment"));
-      if (!model) return;
-      await requestMediaAlignment({
-        spaceId,
-        nodeId: node.value.id,
-        expectedRevision: current.transcript.revision,
-        segmentIds,
-        model,
-      });
-      await refreshEnrichmentJobs();
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    } finally {
-      alignmentSubmitting.value = false;
+    if (!spaceId || !current || !canGenerateInsights.value || alignmentSubmitting.value) {
+      return Promise.resolve();
     }
+    return runLocalMediaTask(
+      "speechAlignment",
+      alignmentSubmitting,
+      chosenModel ?? alignmentModel.value,
+      (model) =>
+        requestMediaAlignment({
+          spaceId,
+          nodeId: node.value.id,
+          expectedRevision: current.transcript.revision,
+          segmentIds,
+          model,
+        }),
+    );
   }
   function seek(positionMs: number) {
-    getCanvasEditorSession().reveal([node.value.id], "focus");
-    store.requestMediaSeek(node.value.id, positionMs);
-  }
-  async function saveKnowledge(next: NonNullable<typeof knowledge.value>) {
-    if (!canEdit.value) {
-      toast.error(t("spaces.creation.shared.finishNodeOperation"));
-      return;
-    }
-    if (stale.value) throw new Error(t("spaces.media.analysis.knowledge.stale"));
-    const data = node.value.data;
-    if (!isSpaceMediaPayload(data)) throw new Error(t("spaces.media.analysis.knowledge.stale"));
-    await store.saveNodeContent({
-      id: node.value.id,
-      expectedContent: data,
-      data: { ...data, mediaKnowledge: next },
+    if (classifyReadableSource(node.value.data) !== "media") return;
+    const locator = buildSourceReaderLocator(node.value.data, {
+      kind: "media",
+      startMs: positionMs,
+      endMs: positionMs + 1_000,
     });
+    store.openSourceReader({ nodeId: node.value.id, pane: "read", locator });
   }
   async function editKnowledge(
     transform: (current: NonNullable<typeof knowledge.value>) => NonNullable<typeof knowledge.value>,
   ) {
-    if (knowledge.value) await saveKnowledge(transform(knowledge.value));
+    if (!knowledge.value) return;
+    if (!canEdit.value) {
+      toast.error(t("spaces.creation.shared.finishNodeOperation"));
+      return;
+    }
+    const data = node.value.data;
+    if (stale.value || !isSpaceMediaPayload(data)) {
+      throw new Error(t("spaces.media.analysis.knowledge.stale"));
+    }
+    await store.saveNodeContent({
+      id: node.value.id,
+      expectedContent: data,
+      data: { ...data, mediaKnowledge: transform(knowledge.value) },
+    });
   }
   return {
     transcriptOpen,
@@ -163,6 +154,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     canTranscribe,
     transcribed,
     transcribing,
+    diarizationJob,
     canGenerateInsights,
     insightsDisabledReason,
     analyze,

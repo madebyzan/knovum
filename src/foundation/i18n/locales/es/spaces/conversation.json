@@ -12,17 +12,26 @@
     "manage": "Configurar modelos y agentes…"
   },
   "empty": {
-    "title": "Pruebe una de estas tareas",
-    "topic": "[tema]",
-    "search": "Buscar fuentes",
-    "searchPrompt": "Encuentre fuentes sobre {topic} en este espacio de trabajo y enumere de dónde vino cada una.",
-    "document": "Crear un documento",
-    "documentPrompt": "Cree un documento de descripción general editable a partir de fuentes sobre {topic} en este espacio de trabajo.",
-    "compare": "Comparar ideas",
-    "comparePrompt": "Compare ideas sobre {topic} en este espacio de trabajo, incluidos puntos en común, diferencias y evidencia."
+    "title": "Empieza en este espacio",
+    "emptySpaceSummary": "Este espacio está vacío: pregunta lo que quieras o arrastra páginas web, archivos y medios al lienzo.",
+    "overview": "Resumir el espacio",
+    "overviewDesc": "Sintetiza temas clave, hallazgos y conexiones entre fuentes",
+    "overviewPrompt": "Revisa las fuentes de este espacio y resume los temas principales, los hallazgos clave y cómo se relacionan, citando cada fuente.",
+    "brief": "Crear informe de investigación",
+    "briefDesc": "Integra el espacio en un documento editable en el lienzo",
+    "briefPrompt": "Sintetiza las fuentes de este espacio en un informe de investigación claro y editable en el lienzo, con citas para las afirmaciones clave.",
+    "compare": "Comparar puntos de vista",
+    "compareDesc": "Identifica consensos, diferencias y evidencia en las fuentes",
+    "comparePrompt": "Compara los principales puntos de vista de las fuentes de este espacio, detallando puntos en común, desacuerdos y evidencia citada.",
+    "draft": "Borrador de esquema",
+    "draftDesc": "Crea una nota estructurada o un esquema de investigación en el lienzo",
+    "draftPrompt": "Crea en el lienzo un esquema de investigación estructurado con contexto, preguntas clave y fuentes por recopilar.",
+    "plan": "Diseñar marco de estudio",
+    "planDesc": "Desglosa dimensiones, enfoques y qué evidencia recopilar",
+    "planPrompt": "Ayúdame a diseñar un marco de investigación claro: dimensiones clave, ángulos de validación y tipos de fuentes útiles."
   },
   "input": {
-    "placeholder": "Describe una tarea para el Agente...",
+    "placeholder": "Pregunta sobre este espacio o describe qué quieres crear…",
     "send": "Enviar",
     "shortcutHint": "Entrar"
   },
@@ -73,7 +82,8 @@
     "search": "Buscar recursos en este espacio de trabajo",
     "none": "No hay recursos coincidentes",
     "remove": "Eliminar recurso: {name}",
-    "preview": "Recurso de vista previa: {name}"
+    "preview": "Recurso de vista previa: {name}",
+    "addSelectedOne": "Adjuntar selección · {title}"
   },
   "uploads": {
     "sizeError": "Los archivos no pueden estar vacíos. Las imágenes deben tener como máximo 10 MiB; otros archivos como máximo 20 MiB.",

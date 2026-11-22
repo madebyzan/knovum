@@ -106,13 +106,13 @@ onMounted(() => void settings.ensureLoaded());
         <UiButton
           variant="ghost"
           size="sm"
-          class="max-w-full min-w-0 justify-start px-1.5 text-fg-secondary"
+          class="max-w-full min-w-0 justify-start gap-1.5 rounded-lg bg-surface-control/55 px-2 text-caption font-medium text-fg-secondary hover:bg-surface-control hover:text-fg-primary"
           :disabled="!settings.ready"
         >
-          <Monitor v-if="target?.type === 'agent'" class="size-3 shrink-0" />
-          <Bot v-else class="size-3 shrink-0" />
+          <Monitor v-if="target?.type === 'agent'" class="size-3.5 shrink-0 text-fg-tertiary" />
+          <Bot v-else class="size-3.5 shrink-0 text-fg-tertiary" />
           <span class="min-w-0 truncate">{{ selectedLabel }}</span>
-          <ChevronDown class="size-3 shrink-0" />
+          <ChevronDown class="size-3 shrink-0 text-fg-tertiary" />
         </UiButton>
       </template>
       <DropdownMenuRadioGroup :model-value="selectedKey">

@@ -1,9 +1,6 @@
 {
   "queue": {
-    "title": "処理",
-    "pending": "保留中 {count}",
-    "running": "{count}の処理中",
-    "failed": "失敗しました {count}"
+    "title": "処理"
   },
   "enrichmentJobType": {
     "analyze_visual": "視覚的理解",

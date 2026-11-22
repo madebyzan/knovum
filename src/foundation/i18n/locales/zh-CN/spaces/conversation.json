@@ -12,17 +12,26 @@
     "manage": "配置模型与 Agent…"
   },
   "empty": {
-    "title": "试试这些任务",
-    "topic": "【主题】",
-    "search": "找资料",
-    "searchPrompt": "在这个空间中查找与{topic}相关的资料，并列出来源。",
-    "document": "创建文档",
-    "documentPrompt": "结合这个空间中关于{topic}的资料，创建一份可编辑的概览文档。",
-    "compare": "梳理观点",
-    "comparePrompt": "比较这个空间中关于{topic}的不同观点，列出共同点、分歧和依据。"
+    "title": "围绕当前空间开始",
+    "emptySpaceSummary": "当前空间暂无资料，可直接提问，或往画布拖入网页、文档与音视频。",
+    "overview": "梳理空间脉络",
+    "overviewDesc": "总结核心主题、关键发现与资料之间的关联",
+    "overviewPrompt": "梳理当前空间的全部资料，总结核心主题、关键发现和资料之间的关联，并标明来源。",
+    "brief": "生成研究简报",
+    "briefDesc": "整合空间资料，在画布创建一份可编辑的溯源文档",
+    "briefPrompt": "整合当前空间的资料，在画布中创建一份结构清晰、可编辑的研究简报文档，并附上关键依据的来源引用。",
+    "compare": "对比观点与分歧",
+    "compareDesc": "找出多份资料之间的共识、差异与原始依据",
+    "comparePrompt": "对比当前空间多份资料中的核心观点，梳理共识、分歧与各自依据，并标注来源。",
+    "draft": "起草主题文档",
+    "draftDesc": "在画布中快速创建一份结构化笔记或研究大纲",
+    "draftPrompt": "帮我在画布中起草一份结构化的研究大纲文档，先从背景、核心问题和待收集资料三个部分展开。",
+    "plan": "规划研究框架",
+    "planDesc": "拆解问题维度，列出值得收集的资料方向",
+    "planPrompt": "帮我规划一个清晰的研究框架：拆解关键问题维度、验证角度，以及建议收集哪些类型的资料。"
   },
   "input": {
-    "placeholder": "向 Agent 描述任务…",
+    "placeholder": "围绕当前空间提问，或描述想整理的内容…",
     "send": "发送",
     "shortcutHint": "Enter"
   },
@@ -73,7 +82,8 @@
     "search": "搜索当前空间的资料",
     "none": "没有匹配的可用资料",
     "remove": "移除资料：{name}",
-    "preview": "预览资料：{name}"
+    "preview": "预览资料：{name}",
+    "addSelectedOne": "引用画布选中 · {title}"
   },
   "uploads": {
     "sizeError": "文件不能为空；图片不能超过 10 MiB，其他文件不能超过 20 MiB。",

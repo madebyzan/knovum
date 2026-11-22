@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { CornerUpLeft } from "@lucide/vue";
-import { storeToRefs } from "pinia";
 import { computed, nextTick, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import { quotedFollowUp } from "../answer-capture";
 import { useConversationSessionStore } from "../conversation-session-store";
 import AgentExtensionPicker from "./AgentExtensionPicker.vue";
@@ -15,77 +15,44 @@ import SpaceConversationHeader from "./SpaceConversationHeader.vue";
 import SpaceConversationMessages from "./SpaceConversationMessages.vue";
 import SpaceConversationRunStatus from "./SpaceConversationRunStatus.vue";
 
-const conversationSession = useConversationSessionStore();
-const {
-  messages,
-  extensionSelection,
-  extensionAvailability,
-  extensionsLoading,
-  extensionsError,
-  eventsByRunId,
-  activityError,
-  selectedConversationId,
-  prompt,
-  target,
-  activeRunId,
-  activeConversationId,
-  visibleTaskState,
-  visibleWaitReason,
-  canPause,
-  loading,
-  loadingOlder,
-  hasOlder,
-  visibleError,
-  visibleLive,
-  visibleAttachments,
-  attachmentCandidates,
-  attachmentError,
-  draftError,
-  restorationError,
-  restoringDraft,
-  reacquireFileNames,
-  pickingFiles,
-  scrollTopByConversationId,
-} = storeToRefs(conversationSession);
+const session = useConversationSessionStore();
 const composer = useTemplateRef<InstanceType<typeof SpaceConversationComposer>>("composer");
 const { t } = useI18n();
 // Three different things were one "busy" flag: a conversation that cannot take a question yet, an
-// answer being produced, and a run that exists and can therefore be stopped. The composer needs
-// all three kept apart — otherwise loading an extension list offers a stop button that stops
-// nothing.
+// answer being produced, and a run that exists and can therefore be stopped.
 const composerDisabled = computed(
   () =>
-    restoringDraft.value ||
-    Boolean(restorationError.value) ||
-    extensionsLoading.value ||
-    Boolean(extensionsError.value),
+    session.restoringDraft ||
+    Boolean(session.restorationError) ||
+    session.extensionsLoading ||
+    Boolean(session.extensionsError),
 );
-const running = computed(() => loading.value || Boolean(activeRunId.value));
+const running = computed(() => session.loading || Boolean(session.activeRunId));
 const producing = computed(
   () =>
     running.value &&
-    (!visibleTaskState.value ||
-      visibleTaskState.value === "queued" ||
-      visibleTaskState.value === "running" ||
-      (visibleTaskState.value === "waiting" && visibleWaitReason.value === "executor")),
+    (!session.visibleTaskState ||
+      session.visibleTaskState === "queued" ||
+      session.visibleTaskState === "running" ||
+      (session.visibleTaskState === "waiting" && session.visibleWaitReason === "executor")),
 );
 const composerError = computed(() => {
-  if (restorationError.value) return restorationError.value;
-  if (draftError.value) return draftError.value;
-  if (reacquireFileNames.value.length)
-    return t("spaces.conversation.uploads.reacquire", { names: reacquireFileNames.value.join(", ") });
-  return attachmentError.value;
+  if (session.restorationError) return session.restorationError;
+  if (session.draftError) return session.draftError;
+  if (session.reacquireFileNames.length)
+    return t("spaces.conversation.uploads.reacquire", { names: session.reacquireFileNames.join(", ") });
+  return session.attachmentError;
 });
 
-async function applySuggestion(value: string, selection?: string) {
-  prompt.value = value;
+async function applySuggestion(value: string) {
+  session.prompt = value;
   await nextTick();
-  composer.value?.focus(selection);
+  composer.value?.focus();
 }
 
 async function previewAttachment(key: string) {
   try {
-    await conversationSession.previewAttachment(key);
+    await session.previewAttachment(key);
   } catch (error) {
     toast.error(getErrorMessage(error));
   }
@@ -96,80 +63,86 @@ async function previewAttachment(key: string) {
   <section class="flex h-full min-h-0 min-w-0 flex-col bg-surface-panel">
     <SpaceConversationHeader />
     <button
-      v-if="activeRunId && activeConversationId && activeConversationId !== selectedConversationId"
+      v-if="
+        session.activeRunId &&
+        session.activeConversationId &&
+        session.activeConversationId !== session.selectedConversationId
+      "
       type="button"
-      class="flex shrink-0 items-center gap-1.5 border-b border-stroke-divider bg-surface-control px-3 py-2 text-left text-caption text-fg-primary hover:bg-surface-control-hover"
-      @click="conversationSession.selectConversation(activeConversationId)"
+      class="mx-3 mt-2 flex shrink-0 items-center gap-2 rounded-lg border border-stroke-divider/80 bg-surface-raised px-2.5 py-1.5 text-left text-caption text-fg-secondary transition-colors duration-100 hover:border-stroke-default-hover hover:bg-surface-control-hover hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
+      @click="session.selectConversation(session.activeConversationId)"
     >
+      <UiSpinner size="sm" />
+      <span class="min-w-0 flex-1 truncate">{{
+        $t("spaces.conversation.conversations.returnToRunning")
+      }}</span>
       <CornerUpLeft class="size-3.5 shrink-0 text-fg-tertiary" />
-      {{ $t("spaces.conversation.conversations.returnToRunning") }}
     </button>
     <div class="min-h-0 min-w-0 flex-1">
       <SpaceConversationMessages
         class="h-full"
-        :scroll-key="selectedConversationId"
-        :saved-scroll-top="scrollTopByConversationId[selectedConversationId]"
-        :messages="messages"
-        :events-by-run-id="eventsByRunId"
-        :active-run-id="activeRunId"
-        :busy="loading"
+        :scroll-key="session.selectedConversationId"
+        :saved-scroll-top="session.scrollTopByConversationId[session.selectedConversationId]"
+        :messages="session.messages"
+        :events-by-run-id="session.eventsByRunId"
+        :active-run-id="session.activeRunId"
+        :busy="session.loading"
         :producing="producing"
-        :has-draft="Boolean(prompt.trim())"
-        :preparing="loading && !activeRunId"
-        :live="visibleLive"
-        :has-older="hasOlder"
-        :loading-older="loadingOlder"
-        @load-older="conversationSession.loadOlder"
-        @branch="conversationSession.branchFrom"
-        @regenerate="conversationSession.regenerate"
-        @scroll-position="conversationSession.rememberScroll"
+        :preparing="session.loading && !session.activeRunId"
+        :live="session.visibleLive"
+        :has-older="session.hasOlder"
+        :loading-older="session.loadingOlder"
+        @load-older="session.loadOlder"
+        @branch="session.branchFrom"
+        @regenerate="session.regenerate"
+        @scroll-position="session.rememberScroll"
         @suggest="applySuggestion"
-        @quote="applySuggestion(quotedFollowUp($event, prompt))"
-        @inspect-activity="conversationSession.inspectActivity"
+        @quote="applySuggestion(quotedFollowUp($event, session.prompt))"
+        @inspect-activity="session.inspectActivity"
       />
     </div>
     <ConversationToolInterventions
-      v-if="activeRunId && visibleTaskState === 'waiting'"
-      :run-id="activeRunId"
-      :revision="conversationSession.activityRevision"
+      v-if="session.activeRunId && session.visibleTaskState === 'waiting'"
+      :run-id="session.activeRunId"
+      :revision="session.activityRevision"
     />
     <SpaceConversationRunStatus
-      :state="visibleTaskState"
-      :wait-reason="visibleWaitReason"
-      :error="visibleError || activityError"
-      @resume="conversationSession.resume"
-      @retry-model="conversationSession.retryModel"
+      :state="session.visibleTaskState"
+      :wait-reason="session.visibleWaitReason"
+      :error="session.visibleError || session.activityError"
+      @resume="session.resume"
+      @retry-model="session.retryModel"
     />
     <SpaceConversationComposer
       ref="composer"
-      v-model="prompt"
-      v-model:target="target"
-      :attachments="visibleAttachments"
-      :attachment-candidates="attachmentCandidates"
+      v-model="session.prompt"
+      v-model:target="session.target"
+      :attachments="session.visibleAttachments"
+      :attachment-candidates="session.attachmentCandidates"
       :attachment-error="composerError"
-      :picking-files="pickingFiles"
-      :unresolved-file-names="reacquireFileNames"
+      :picking-files="session.pickingFiles"
+      :unresolved-file-names="session.reacquireFileNames"
       :running="running"
-      :cancellable="Boolean(activeRunId)"
+      :cancellable="Boolean(session.activeRunId)"
       :disabled="composerDisabled"
-      :can-pause="canPause"
-      @add-selection="conversationSession.addSelectedAttachments"
-      @add-attachment="(id) => conversationSession.addNodeAttachments([id])"
-      @choose-files="conversationSession.chooseFiles"
-      @drop-files="conversationSession.chooseFiles($event)"
-      @discard-file-reference="conversationSession.discardFileReference"
-      @remove-attachment="conversationSession.removeAttachment"
+      :can-pause="session.canPause"
+      @add-selection="session.addSelectedAttachments"
+      @add-attachment="(id) => session.addNodeAttachments([id])"
+      @choose-files="session.chooseFiles"
+      @drop-files="session.chooseFiles($event)"
+      @discard-file-reference="session.discardFileReference"
+      @remove-attachment="session.removeAttachment"
       @preview-attachment="previewAttachment"
-      @send="conversationSession.send"
-      @cancel="conversationSession.cancel"
-      @pause="conversationSession.pause"
+      @send="session.send"
+      @cancel="session.cancel"
+      @pause="session.pause"
     >
       <template #extensions>
         <AgentExtensionPicker
-          v-model="extensionSelection"
-          :availability="extensionAvailability"
+          v-model="session.extensionSelection"
+          :availability="session.extensionAvailability"
           :disabled="composerDisabled || running"
-          :error="extensionsError"
+          :error="session.extensionsError"
         />
       </template>
     </SpaceConversationComposer>

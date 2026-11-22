@@ -20,6 +20,7 @@ const props = defineProps<{
   loading: boolean;
   recognizedText: (resourceId: string) => string | undefined;
   locator?: KnowledgeLocator | undefined;
+  locateNonce?: number | undefined;
   quote?: string | undefined;
 }>();
 
@@ -76,12 +77,15 @@ function onKeyDown(event: KeyboardEvent) {
 }
 
 watch(
-  () => [props.node.id, targetSlide.value, totalSlides.value] as const,
+  () => [props.node.id, targetSlide.value, totalSlides.value, props.locateNonce] as const,
   ([, slideNumber, count], prev) => {
     if (!count) return;
     if (slideNumber !== undefined) {
       activeSlideNumber.value = slideNumber;
       showNotes.value = true;
+      if (layoutMode.value === "continuous") {
+        void nextTick(() => continuousView.value?.scrollToSlide(slideNumber));
+      }
       return;
     }
     if (prev?.[0] !== props.node.id || !slides.value.some((s) => s.slideNumber === activeSlideNumber.value))

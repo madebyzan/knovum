@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BookOpenText, Globe } from "@lucide/vue";
-import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, nextTick, onMounted, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiOutlineRail, { type UiOutlineItem } from "../../../../shared/ui/UiOutlineRail.vue";
@@ -19,6 +19,7 @@ import { useReaderTypography } from "./use-reader-typography";
 const props = defineProps<{
   node: SpaceCanvasNode<SpaceWebsitePayload>;
   locator?: KnowledgeLocator | undefined;
+  locateNonce?: number | undefined;
   quote?: string | undefined;
 }>();
 
@@ -71,6 +72,20 @@ const activeIndex = computed(() => {
   return needle ? sections.value.findIndex((item) => item.text.includes(needle)) : -1;
 });
 
+async function locateActiveSection() {
+  if (activeIndex.value < 0) return;
+  viewMode.value = "reader";
+  await nextTick();
+  const section = article.value?.sectionElement(activeIndex.value);
+  const mark = section?.querySelector<HTMLElement>("mark[data-citation-mark]");
+  if (mark) {
+    mark.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  jumpToSection(activeIndex.value);
+}
+
+onMounted(() => void locateActiveSection());
 watch(
   () => props.node.id,
   () => {
@@ -80,14 +95,9 @@ watch(
   { immediate: true },
 );
 watch(
-  () => [props.locator, props.quote, sections.value.length] as const,
-  async () => {
-    if (activeIndex.value < 0) return;
-    viewMode.value = "reader";
-    await nextTick();
-    jumpToSection(activeIndex.value);
-  },
-  { immediate: true },
+  () => [props.locator, props.quote, props.locateNonce, sections.value.length] as const,
+  () => void locateActiveSection(),
+  { flush: "post" },
 );
 </script>
 

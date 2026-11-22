@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createSpacePlacement } from "../canvas/navigation-requests";
 import { createSpaceNode } from "../canvas/node";
@@ -31,11 +31,9 @@ function setup() {
     selectionClearNonce: state.selectionClearNonce,
     sceneCue: state.sceneCue,
   });
-  const requestMediaSeek = vi.fn<(nodeId: string, timeMs: number) => void>();
   return {
     state,
-    actions: createRightSidebarActions(state, placement, requestMediaSeek, async () => {}),
-    requestMediaSeek,
+    actions: createRightSidebarActions(state, placement, async () => {}),
   };
 }
 
@@ -46,8 +44,8 @@ describe("Space context dock and reader actions", () => {
     expect(state.askScopeRequest.value).toMatchObject({ scope: "selection", restart: false });
   });
 
-  it("routes citations directly to the unified Source Reader and seeks media", () => {
-    const { state, actions, requestMediaSeek } = setup();
+  it("routes media citations directly to the unified Source Reader without triggering canvas playback", () => {
+    const { state, actions } = setup();
     actions.openSource(
       {
         nodeId: "video-1",
@@ -61,8 +59,9 @@ describe("Space context dock and reader actions", () => {
       nodeId: "video-1",
       pane: "read",
       quote: "Key quote",
+      locator: { sourceRevision: "1", location: { kind: "media", startMs: 1200, endMs: 2400 } },
     });
-    expect(requestMediaSeek).toHaveBeenCalledWith("video-1", 1200);
+    expect(state.mediaSeekRequest.value).toBeUndefined();
   });
 
   it("opens non-readable objects in info pane and supports history back/forward", () => {

@@ -22,7 +22,6 @@ export interface OpenSourceOptions {
 export function createRightSidebarActions(
   state: SpaceState,
   placement: SpacePlacement,
-  requestMediaSeek: (nodeId: string, timeMs: number) => void,
   openDocumentEditor: (nodeId: string) => Promise<void>,
 ) {
   function requestAsk(scope: ConversationScope, options: AskSidebarOptions = {}) {
@@ -60,6 +59,11 @@ export function createRightSidebarActions(
     state.readingHistoryIndex.value = trimmed.length - 1;
   }
 
+  function nextReadingNonce() {
+    const previous = state.readingTarget.value?.nonce ?? 0;
+    return Math.max(Date.now(), previous + 1);
+  }
+
   function openSourceReader(request: SourceReaderRequest) {
     const pane = resolvePane(request.nodeId, request.pane);
     if (!pane) return;
@@ -69,7 +73,7 @@ export function createRightSidebarActions(
       pane,
       locator: request.locator,
       quote: request.quote ?? request.locator?.quote?.exact,
-      nonce: Date.now(),
+      nonce: nextReadingNonce(),
     };
   }
 
@@ -110,9 +114,6 @@ export function createRightSidebarActions(
     });
     if (state.surface.value.kind === "canvas" && options.reveal !== false) {
       placement.requestReveal([target.nodeId], "ensure-visible");
-    }
-    if (state.surface.value.kind === "canvas" && target.locator.location.kind === "media") {
-      requestMediaSeek(target.nodeId, target.locator.location.startMs);
     }
   }
 

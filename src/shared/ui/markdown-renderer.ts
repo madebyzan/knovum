@@ -22,7 +22,7 @@ function citationHtml(meta: CitationMeta | undefined): string {
   if (!meta) throw new Error("Citation token carries no citation");
   return meta.openable
     ? `<button type="button" class="ui-citation" data-citation-index="${meta.index}">${meta.index}</button>`
-    : `<span class="ui-citation" data-citation-detached="">${meta.index}</span>`;
+    : `<span class="ui-citation" data-citation-index="${meta.index}" data-citation-detached="">${meta.index}</span>`;
 }
 
 export interface MarkdownRendererOptions {

@@ -1,9 +1,6 @@
 {
   "queue": {
-    "title": "처리 중",
-    "pending": "{count} 보류 중",
-    "running": "{count} 처리 중",
-    "failed": "{count} 실패"
+    "title": "처리 중"
   },
   "enrichmentJobType": {
     "analyze_visual": "시각적 이해",

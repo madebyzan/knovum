@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import AiExecutionSourceLabel from "../../../../foundation/ai/AiExecutionSourceLabel.vue";
+import UiExpandableText from "../../../../shared/ui/UiExpandableText.vue";
 import type { GeneratedVideoMetadata } from "../../contracts/generated/GeneratedVideoMetadata";
 import type { VisualizationMetadata } from "../../contracts/generated/VisualizationMetadata";
 import SpaceDerivationSources from "./SpaceDerivationSources.vue";
@@ -25,13 +26,20 @@ const metaLine = computed(() => {
 </script>
 
 <template>
-  <div class="space-y-4 text-caption">
-    <div class="space-y-1 text-fg-secondary">
-      <p>
-        <AiExecutionSourceLabel :source="metadata.executionSource" />
-      </p>
-      <p>{{ description }}</p>
-      <p class="text-fg-tertiary">{{ metaLine }}</p>
+  <div class="space-y-3 text-caption">
+    <div class="space-y-1.5">
+      <div class="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-caption-sm">
+        <span class="font-medium text-fg-secondary">
+          <AiExecutionSourceLabel :source="metadata.executionSource" />
+        </span>
+        <span class="text-fg-tertiary tabular-nums">{{ metaLine }}</span>
+      </div>
+      <UiExpandableText
+        v-if="description"
+        :text="description"
+        :clamp-lines="3"
+        class="text-caption leading-relaxed text-fg-secondary"
+      />
     </div>
     <SpaceDerivationSources :sources="metadata.sources" />
   </div>

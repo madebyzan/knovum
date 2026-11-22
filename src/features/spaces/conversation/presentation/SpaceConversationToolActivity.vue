@@ -79,19 +79,19 @@ function toggleTool(event: Event) {
         class="size-3.5 shrink-0 text-fg-tertiary transition-transform duration-150 group-open/tool:rotate-90"
       />
     </component>
-    <div v-if="expanded && hasToolContent(item)" class="min-w-0 pb-1 pl-5 text-fg-tertiary">
-      <p v-if="item.context !== undefined" class="wrap-break-word whitespace-pre-wrap">
+    <div v-if="expanded && hasToolContent(item)" class="mt-1 min-w-0 space-y-1.5 pb-1 pl-5 text-fg-tertiary">
+      <p v-if="item.context !== undefined" class="wrap-break-word whitespace-pre-wrap text-fg-secondary">
         {{ formatToolContent(item.context) }}
       </p>
       <SpaceConversationSearchMatches v-if="item.outputName === 'search-knowledge'" :value="item.output" />
       <pre
         v-else-if="item.output !== undefined"
-        class="font-mono text-caption-sm wrap-break-word whitespace-pre-wrap"
+        class="max-h-48 overflow-auto rounded-md border border-stroke-divider/70 bg-surface-muted/80 px-2.5 py-2 font-mono text-caption-sm wrap-break-word whitespace-pre-wrap text-fg-secondary"
         >{{ formatToolContent(item.output) }}</pre>
       <button
         v-if="createdNodeId(item.output)"
         type="button"
-        class="mt-1 text-fg-accent hover:underline focus-visible:outline-2 focus-visible:outline-stroke-focus"
+        class="inline-flex text-fg-accent hover:underline focus-visible:outline-2 focus-visible:outline-stroke-focus"
         @click="store.requestReveal([createdNodeId(item.output)!], 'focus')"
       >
         {{ $t("spaces.conversation.actions.viewCreated") }}

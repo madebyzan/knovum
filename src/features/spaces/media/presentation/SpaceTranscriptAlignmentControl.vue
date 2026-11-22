@@ -17,7 +17,7 @@ const { options: alignmentModels } = useLocalModelOptions(() => "speechAlignment
 </script>
 
 <template>
-  <div class="space-y-1.5 border-b border-stroke-divider p-2">
+  <div class="space-y-1.5 rounded-lg bg-surface-control/55 px-2.5 py-2">
     <div class="flex items-center gap-2">
       <ModelChoiceTrigger
         :options="alignmentModels"
@@ -27,6 +27,7 @@ const { options: alignmentModels } = useLocalModelOptions(() => "speechAlignment
         <template #trigger="{ multiple }">
           <UiButton
             size="sm"
+            variant="secondary"
             data-testid="transcript-align"
             :disabled="props.disabled || !canAlign || !canStartWith(readiness)"
             @click="!multiple && emit('align')"

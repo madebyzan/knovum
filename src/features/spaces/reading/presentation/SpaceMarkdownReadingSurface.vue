@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, useTemplateRef, watch } from "vue";
+import { computed, nextTick, onMounted, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
@@ -8,13 +8,9 @@ import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceMarkdownPayload, SpaceNotePayload } from "../../model/nodes/node-payload";
+import { applyProseCitationHighlight } from "../citation-highlight";
 import { highlightContainerCodeBlocks } from "../code-highlighter";
-import {
-  extractMarkdownHeadings,
-  extractTiptapHeadings,
-  noteReadingHtml,
-  scrollProseToLocator,
-} from "../note-reading-html";
+import { extractMarkdownHeadings, extractTiptapHeadings, noteReadingHtml } from "../note-reading-html";
 import SpaceReaderProseToolbar from "./SpaceReaderProseToolbar.vue";
 import { useDomBlockFind } from "./use-dom-block-find";
 import { useReaderActiveAnchor } from "./use-reader-active-anchor";
@@ -24,6 +20,7 @@ import { useReaderTypography } from "./use-reader-typography";
 const props = defineProps<{
   node: SpaceCanvasNode<SpaceMarkdownPayload | SpaceNotePayload>;
   locator?: KnowledgeLocator | undefined;
+  locateNonce?: number | undefined;
   quote?: string | undefined;
 }>();
 
@@ -74,11 +71,13 @@ function scrollToHeading(id: string) {
   const el = proseRef.value?.querySelectorAll<HTMLElement>("h1, h2, h3, h4").item(Number(id));
   outlineAnchor.scrollTo(id, el);
 }
-function scrollToLocator() {
+async function locateAndHighlight() {
+  await nextTick();
   const heading = props.locator?.location.kind === "markdown" ? props.locator.location.heading : undefined;
-  scrollProseToLocator(proseRef.value, heading, props.quote);
+  applyProseCitationHighlight(proseRef.value, { heading, quote: props.quote });
 }
 
+onMounted(() => void locateAndHighlight());
 watch(
   [proseRef, markdownText, noteHtml, isDark],
   async ([container]) => {
@@ -93,12 +92,17 @@ watch(
   () => find.reset(),
 );
 watch(
-  () => [props.node.id, props.locator, props.quote] as const,
-  async () => {
-    await nextTick();
-    scrollToLocator();
-  },
-  { immediate: true },
+  () =>
+    [
+      props.node.id,
+      props.locator,
+      props.quote,
+      props.locateNonce,
+      markdownText.value,
+      noteHtml.value,
+    ] as const,
+  () => void locateAndHighlight(),
+  { flush: "post" },
 );
 </script>
 

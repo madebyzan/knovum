@@ -22,6 +22,7 @@ const props = defineProps<{
   node: SpaceCanvasNode<SpaceCodePayload>;
   chunks: readonly KnowledgeChunk[];
   locator?: KnowledgeLocator | undefined;
+  locateNonce?: number | undefined;
 }>();
 
 const { t } = useI18n();
@@ -64,19 +65,16 @@ function stepMatch(delta: 1 | -1) {
   const line = reader.matchedLineNumbers.value[reader.matchCursor.value];
   if (line !== undefined) viewport.value?.scrollToLine(line);
 }
-function openCodeFind() {
+function toggleFind() {
+  if (reader.findOpen.value) return reader.resetFind();
   viewMode.value = "code";
   reader.findOpen.value = true;
 }
-function toggleFind() {
-  if (reader.findOpen.value) reader.resetFind();
-  else openCodeFind();
-}
 function onKeyDown(event: KeyboardEvent) {
-  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "f") {
-    event.preventDefault();
-    openCodeFind();
-  }
+  if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "f") return;
+  event.preventDefault();
+  viewMode.value = "code";
+  reader.findOpen.value = true;
 }
 async function copyAll() {
   const text = await reader.ensureLoaded();
@@ -86,19 +84,20 @@ async function copyAll() {
   globalThis.setTimeout(() => (copied.value = false), 1500);
 }
 
-watch(
-  () => [props.node.id, canPreview.value, props.locator?.location.kind] as const,
-  ([, previewable, locKind]) => {
-    viewMode.value = previewable && locKind !== "code" ? "preview" : "code";
-    codeMounted.value = viewMode.value === "code";
-    reader.resetFind();
-  },
-);
-watch([viewMode, reader.activeMatchLine, () => highlightedRange.value?.start], ([mode, match, start]) => {
-  if (mode === "code") codeMounted.value = true;
-  const targetLine = match ?? (mode === "code" ? start : undefined);
-  if (targetLine !== undefined) void nextTick(() => viewport.value?.scrollToLine(targetLine));
+watch([() => props.node.id, canPreview, () => props.locator?.location.kind], ([, previewable, locKind]) => {
+  viewMode.value = previewable && locKind !== "code" ? "preview" : "code";
+  codeMounted.value = viewMode.value === "code";
+  reader.resetFind();
 });
+watch(
+  [viewMode, reader.activeMatchLine, () => highlightedRange.value?.start, () => props.locateNonce],
+  ([mode, match, start]) => {
+    if (mode === "code") codeMounted.value = true;
+    const line = match ?? (mode === "code" ? start : undefined);
+    if (line !== undefined) void nextTick(() => viewport.value?.scrollToLine(line));
+  },
+  { flush: "post" },
+);
 </script>
 
 <template>

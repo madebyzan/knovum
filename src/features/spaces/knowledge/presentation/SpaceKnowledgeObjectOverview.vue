@@ -71,28 +71,32 @@ function reveal(nodeId: string) {
     </div>
 
     <section v-if="data.summary">
-      <h4 class="text-caption-sm font-semibold tracking-wide text-fg-tertiary uppercase">
+      <h4 class="text-caption font-medium text-fg-tertiary">
         {{ t("spaces.knowledge.summary") }}
       </h4>
-      <p class="mt-1.5 text-caption leading-relaxed whitespace-pre-wrap text-fg-primary">
+      <p class="mt-1 text-body leading-relaxed whitespace-pre-wrap text-fg-secondary">
         {{ data.summary }}
       </p>
     </section>
 
-    <dl v-if="fields.length" class="space-y-2">
-      <div v-for="field in fields" :key="field.key" class="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2">
-        <dt class="text-caption text-fg-tertiary">{{ field.label }}</dt>
+    <dl v-if="fields.length" class="space-y-1.5">
+      <div
+        v-for="field in fields"
+        :key="field.key"
+        class="grid grid-cols-[5.25rem_minmax(0,1fr)] items-baseline gap-x-3"
+      >
+        <dt class="truncate text-caption text-fg-tertiary">{{ field.label }}</dt>
         <dd class="min-w-0 text-caption text-fg-secondary">
           <button
             v-if="field.targetNodeId"
             type="button"
-            class="inline-flex max-w-full items-center gap-1.5 rounded-md bg-surface-control px-2 py-1 text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
+            class="inline-flex max-w-full items-center gap-1.5 rounded-md bg-surface-control px-2 py-0.5 text-caption text-fg-secondary transition-colors hover:bg-surface-control-hover hover:text-fg-primary"
             @click="reveal(field.targetNodeId)"
           >
             <Link2 class="size-3 shrink-0 text-fg-tertiary" />
             <span class="truncate">{{ field.value }}</span>
           </button>
-          <span v-else class="block whitespace-pre-wrap">{{ field.value }}</span>
+          <span v-else class="block leading-relaxed whitespace-pre-wrap">{{ field.value }}</span>
         </dd>
       </div>
     </dl>

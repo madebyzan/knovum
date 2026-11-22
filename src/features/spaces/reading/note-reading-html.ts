@@ -70,23 +70,3 @@ export function extractTiptapHeadings(content: TiptapJsonNode): readonly ReaderO
   walk(content);
   return headings;
 }
-
-/** Scrolls a rendered Markdown/Note prose container to a cited heading or quoted text snippet. */
-export function scrollProseToLocator(container: HTMLElement | null, heading?: string, quote?: string): void {
-  if (!container) return;
-  const targetHeading = heading?.trim();
-  if (targetHeading) {
-    const match = [...container.querySelectorAll<HTMLElement>("h1, h2, h3, h4")].find(
-      (h) => h.textContent?.trim() === targetHeading,
-    );
-    if (match) {
-      match.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
-  }
-  const needle = quote?.trim();
-  if (!needle) return;
-  [...container.querySelectorAll<HTMLElement>("p, li, blockquote, pre, h1, h2, h3, h4")]
-    .find((el) => el.textContent?.includes(needle))
-    ?.scrollIntoView({ behavior: "smooth", block: "center" });
-}

@@ -71,9 +71,9 @@ watch(
 </script>
 
 <template>
-  <article class="flex min-w-0 flex-col gap-3">
+  <article class="flex min-w-0 flex-col gap-2.5">
     <SpaceConversationMessage v-if="turn.prompt" :message="turn.prompt" :busy="busy" />
-    <div v-if="turn.runId || waiting || blocks.length" class="flex min-w-0 flex-col gap-3">
+    <div v-if="turn.runId || waiting || blocks.length" class="flex min-w-0 flex-col gap-2.5">
       <SpaceConversationPlan v-if="turn.runId" :events="events" :active="turn.active" />
       <p v-if="waiting" role="status" class="flex items-center py-1 text-caption text-fg-secondary">
         <SpaceConversationShimmerText indicator>{{ $t(waiting) }}</SpaceConversationShimmerText>
@@ -97,7 +97,7 @@ watch(
         <UiMarkdown
           v-else
           :content="block.text"
-          class="text-body leading-relaxed wrap-break-word text-fg-primary"
+          class="w-full min-w-0 text-body leading-relaxed wrap-break-word text-fg-primary"
         />
       </template>
     </div>

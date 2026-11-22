@@ -22,7 +22,7 @@ const unfinished = computed(() => props.items.some((item) => isUnfinished(item, 
 <template>
   <details class="group/activity w-full text-caption text-fg-secondary">
     <summary
-      class="flex w-fit max-w-full cursor-pointer list-none items-center gap-1.5 rounded-md py-1 select-none hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus [&::-webkit-details-marker]:hidden"
+      class="-ml-1.5 flex w-fit max-w-full cursor-pointer list-none items-center gap-1.5 rounded-md px-1.5 py-1 transition-colors select-none hover:bg-surface-control/70 hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus [&::-webkit-details-marker]:hidden"
     >
       <SpaceConversationShimmerText v-if="current" indicator>
         {{ $t("spaces.conversation.activity.running", { count: items.length }) }}
@@ -40,11 +40,11 @@ const unfinished = computed(() => props.items.some((item) => isUnfinished(item, 
         class="size-3.5 shrink-0 text-fg-tertiary transition-transform duration-150 group-open/activity:rotate-90"
       />
     </summary>
-    <div class="mt-1 space-y-1 border-l border-stroke-divider pl-3">
+    <div class="mt-1 ml-1.5 space-y-1 border-l-2 border-stroke-divider/80 pl-3">
       <SpaceConversationToolActivity
         v-for="item in items"
         :key="item.id"
-        class="py-1"
+        class="py-0.5"
         :item="item"
         :active="active"
       />

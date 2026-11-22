@@ -57,7 +57,10 @@ defineExpose({
           :data-website-section="section.heading ?? ''"
           :data-section-index="index"
           class="space-y-2 rounded-lg transition-colors"
-          :class="index === activeIndex && '-mx-2 bg-surface-accent-subtle/35 p-2'"
+          :class="
+            index === activeIndex &&
+            '-mx-2.5 border-l-2 border-stroke-accent bg-surface-accent-subtle/45 px-2.5 py-2'
+          "
         >
           <h2 v-if="section.heading">{{ section.heading }}</h2>
           <SpaceTextQuote

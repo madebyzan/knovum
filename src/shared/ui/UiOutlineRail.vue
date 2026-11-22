@@ -6,6 +6,7 @@ export interface UiOutlineItem {
   id: string;
   label: string;
   level: number;
+  meta?: string | undefined;
 }
 
 const props = withDefaults(
@@ -97,6 +98,9 @@ const relativeDepth = (level: number) => Math.max(0, level - minLevel.value);
             :aria-current="item.id === activeId ? 'location' : undefined"
             @click="emit('select', item.id)"
           >
+            <span v-if="item.meta" class="shrink-0 font-mono text-caption-sm text-fg-tertiary tabular-nums">{{
+              item.meta
+            }}</span>
             <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
           </button>
         </nav>

@@ -14,6 +14,7 @@ import { useDomBlockFind } from "./use-dom-block-find";
 const props = defineProps<{
   node: SpaceCanvasNode<SpaceFilePayload>;
   quote?: string | undefined;
+  locateNonce?: number | undefined;
 }>();
 
 const { t } = useI18n();
@@ -50,6 +51,13 @@ function onKeyDown(event: KeyboardEvent) {
 watch(
   () => props.node.id,
   () => find.reset(),
+);
+watch(
+  () => [props.quote, props.locateNonce] as const,
+  ([quote]) => {
+    if (!docx.rendering.value && quote?.trim()) find.runFind(quote);
+  },
+  { flush: "post" },
 );
 </script>
 

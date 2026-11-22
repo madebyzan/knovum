@@ -39,6 +39,7 @@ const props = withDefaults(
     recognizedPdfPages: ReadonlyMap<number, readonly string[]>;
     recognizedText: (resourceId: string) => string | undefined;
     locator?: KnowledgeLocator | undefined;
+    locateNonce?: number | undefined;
     quote?: string | undefined;
     visible?: boolean;
   }>(),
@@ -77,6 +78,7 @@ const isSpreadsheet = computed(() => isSpreadsheetPayload(props.node.data));
     v-else-if="kind === 'word' && node.data.kind === 'file'"
     :node="node as SpaceCanvasNode<SpaceFilePayload>"
     :quote="quote"
+    :locate-nonce="locateNonce"
   />
   <SpaceSlidesReadingSurface
     v-else-if="kind === 'slides' && node.data.kind === 'file'"
@@ -85,6 +87,7 @@ const isSpreadsheet = computed(() => isSpreadsheetPayload(props.node.data));
     :loading="loading"
     :recognized-text="recognizedText"
     :locator="locator"
+    :locate-nonce="locateNonce"
     :quote="quote"
   />
   <SpaceMarkdownReadingSurface
@@ -93,18 +96,21 @@ const isSpreadsheet = computed(() => isSpreadsheetPayload(props.node.data));
     "
     :node="node as SpaceCanvasNode<SpaceMarkdownPayload | SpaceNotePayload>"
     :locator="locator"
+    :locate-nonce="locateNonce"
     :quote="quote"
   />
   <SpaceWebsiteReadingSurface
     v-else-if="kind === 'website' && node.data.kind === 'website'"
     :node="node as SpaceCanvasNode<SpaceWebsitePayload>"
     :locator="locator"
+    :locate-nonce="locateNonce"
     :quote="quote"
   />
   <SpaceTranscriptReadingSurface
     v-else-if="kind === 'media' && (node.data.kind === 'video' || node.data.kind === 'audio')"
     :node="node as SpaceCanvasNode<SpaceVideoPayload | SpaceAudioPayload>"
     :locator="locator"
+    :locate-nonce="locateNonce"
     :quote="quote"
   />
   <SpaceImageReadingSurface
@@ -119,6 +125,7 @@ const isSpreadsheet = computed(() => isSpreadsheetPayload(props.node.data));
     :node="node as SpaceCanvasNode<SpaceCodePayload>"
     :chunks="chunks"
     :locator="locator"
+    :locate-nonce="locateNonce"
   />
   <SpaceSpreadsheetReadingSurface
     v-else-if="isSpreadsheet"
@@ -135,6 +142,7 @@ const isSpreadsheet = computed(() => isSpreadsheetPayload(props.node.data));
     :chunks="chunks"
     :loading="loading"
     :locator="locator"
+    :locate-nonce="locateNonce"
     :quote="quote"
   />
 </template>

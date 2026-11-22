@@ -51,6 +51,9 @@ const { hovering: fileHover } = useConversationFileDrop(composerRoot, {
   blocked: () => props.pickingFiles,
   drop: (paths) => emit("dropFiles", paths),
 });
+const selectedUnattached = computed(() =>
+  props.attachmentCandidates.filter(({ selected, attached }) => selected && !attached),
+);
 const canSend = computed(
   () =>
     Boolean(prompt.value.trim() && target.value && targetAvailable.value) &&
@@ -60,14 +63,12 @@ const canSend = computed(
     !props.unresolvedFileNames.length,
 );
 defineExpose({
-  /** Focuses the prompt with `selection` selected, or the caret after the text already there. */
-  focus(selection?: string) {
+  /** Focuses the prompt with the caret at the end of the current draft. */
+  focus() {
     const input = textarea.value;
-    input?.focus();
     if (!input) return;
-    const start = selection ? prompt.value.indexOf(selection) : -1;
-    if (start >= 0) input.setSelectionRange(start, start + (selection?.length ?? 0));
-    else input.setSelectionRange(prompt.value.length, prompt.value.length);
+    input.focus();
+    input.setSelectionRange(prompt.value.length, prompt.value.length);
   },
 });
 
@@ -82,7 +83,7 @@ function submit(event?: KeyboardEvent) {
   <footer class="min-w-0 shrink-0 bg-surface-panel px-3 pt-1 pb-3">
     <div
       ref="composerRoot"
-      class="relative min-w-0 rounded-panel border border-stroke-default bg-surface-raised shadow-control transition-colors focus-within:border-stroke-focus"
+      class="relative min-w-0 rounded-panel border border-stroke-default bg-surface-raised shadow-control transition-colors duration-150 focus-within:border-stroke-strong"
     >
       <div
         v-if="fileHover"
@@ -94,6 +95,9 @@ function submit(event?: KeyboardEvent) {
       <SpaceConversationAttachmentTray
         :attachments="attachments"
         :unresolved-file-names="unresolvedFileNames"
+        :selected-candidates="selectedUnattached"
+        :show-selection-hint="!running"
+        @add-selection="emit('addSelection')"
         @discard-reference="emit('discardFileReference', $event)"
         @remove="emit('removeAttachment', $event)"
         @preview="emit('previewAttachment', $event)"
@@ -102,14 +106,14 @@ function submit(event?: KeyboardEvent) {
         ref="textarea"
         v-model="prompt"
         rows="1"
-        class="composer-input block max-h-48 min-h-11 w-full resize-none overflow-y-auto border-0 bg-transparent px-3 pt-3 pb-1 text-body text-fg-primary outline-none placeholder:text-fg-tertiary"
+        class="block max-h-48 min-h-[52px] w-full resize-none overflow-y-auto border-0 bg-transparent px-3.5 pt-3 pb-1.5 text-body leading-relaxed text-fg-primary outline-none placeholder:text-fg-tertiary"
         :aria-label="$t('spaces.conversation.input.placeholder')"
         :placeholder="$t('spaces.conversation.input.placeholder')"
         @keydown.enter.exact="submit"
         @keydown.meta.enter="submit"
         @keydown.ctrl.enter="submit"
       />
-      <div class="flex min-w-0 items-center gap-1 px-2 pb-2">
+      <div class="flex min-w-0 items-center gap-1.5 px-2.5 pt-0.5 pb-2.5">
         <SpaceConversationAttachmentPicker
           :candidates="attachmentCandidates"
           :picking-files="pickingFiles"
@@ -149,11 +153,12 @@ function submit(event?: KeyboardEvent) {
           :label="$t('spaces.conversation.input.send')"
           :shortcut="$t('spaces.conversation.input.shortcutHint')"
           size="sm"
-          tone="primary"
+          :tone="canSend ? 'primary' : 'neutral'"
+          :class="!canSend && 'rounded-full bg-surface-control text-fg-tertiary'"
           :disabled="!canSend"
           @click="submit()"
         >
-          <ArrowUp class="size-4" :stroke-width="2.25" />
+          <ArrowUp class="size-4" :stroke-width="2.1" />
         </UiIconButton>
       </div>
     </div>
@@ -162,12 +167,3 @@ function submit(event?: KeyboardEvent) {
     </p>
   </footer>
 </template>
-
-<style scoped>
-.composer-input {
-  scrollbar-width: none;
-}
-.composer-input::-webkit-scrollbar {
-  display: none;
-}
-</style>

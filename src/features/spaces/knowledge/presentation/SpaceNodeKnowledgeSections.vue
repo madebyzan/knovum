@@ -13,11 +13,13 @@ import SpaceTags from "./SpaceTags.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const store = useSpaceStore();
-const hasRelations = computed(() =>
-  store.relations.some(
-    (relation) => relation.sourceId === props.node.id || relation.targetId === props.node.id,
-  ),
+const relationCount = computed(
+  () =>
+    store.relations.filter(
+      (relation) => relation.sourceId === props.node.id || relation.targetId === props.node.id,
+    ).length,
 );
+const tagCount = computed(() => props.node.data.tags?.length ?? 0);
 </script>
 
 <template>
@@ -25,7 +27,7 @@ const hasRelations = computed(() =>
 
   <SpaceProvenanceSources
     v-if="node.data.kind !== 'object'"
-    class="border-b border-stroke-divider px-4 py-3"
+    class="mx-4 border-t border-stroke-divider/70 py-3"
     target-kind="node"
     :target-id="node.id"
     removable
@@ -34,14 +36,20 @@ const hasRelations = computed(() =>
   <SpaceInspectorSection
     :title="$t('spaces.knowledge.relations.title')"
     :icon="Layers"
-    :default-expanded="hasRelations"
+    :count="relationCount"
+    :default-expanded="relationCount > 0"
   >
     <SpaceRelations :node="node" />
   </SpaceInspectorSection>
 
   <SpaceKnowledgeHistory v-if="node.data.kind === 'object'" :node="node" />
 
-  <SpaceInspectorSection :title="$t('spaces.tags.title')" :icon="Tag" :default-expanded="true">
+  <SpaceInspectorSection
+    :title="$t('spaces.tags.title')"
+    :icon="Tag"
+    :count="tagCount"
+    :default-expanded="true"
+  >
     <SpaceTags :target-nodes="[node]" />
   </SpaceInspectorSection>
 </template>

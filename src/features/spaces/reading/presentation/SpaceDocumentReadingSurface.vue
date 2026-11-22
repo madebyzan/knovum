@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { computed, nextTick, useTemplateRef, watch } from "vue";
+import { computed, nextTick, onMounted, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiOutlineRail, { type UiOutlineItem } from "../../../../shared/ui/UiOutlineRail.vue";
@@ -21,6 +21,7 @@ const props = defineProps<{
   chunks: readonly KnowledgeChunk[];
   loading: boolean;
   locator?: KnowledgeLocator | undefined;
+  locateNonce?: number | undefined;
   quote?: string | undefined;
 }>();
 
@@ -81,18 +82,27 @@ function scrollToChunk(chunkIndex: string | number) {
   outlineAnchor.scrollTo(String(chunkIndex), el);
 }
 
+async function locateActiveChunk() {
+  if (activeChunkIndex.value < 0) return;
+  await nextTick();
+  const el = scroller.value?.querySelector<HTMLElement>(`[data-chunk-index="${activeChunkIndex.value}"]`);
+  const mark = el?.querySelector<HTMLElement>("mark[data-citation-mark]");
+  if (mark) {
+    mark.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  scrollToChunk(activeChunkIndex.value);
+}
+
+onMounted(() => void locateActiveChunk());
 watch(
   () => props.node.id,
   () => find.reset(),
 );
 watch(
-  () => [props.locator, props.quote, blocks.value.length] as const,
-  async () => {
-    if (activeChunkIndex.value < 0) return;
-    await nextTick();
-    scrollToChunk(activeChunkIndex.value);
-  },
-  { immediate: true },
+  () => [props.locator, props.quote, props.locateNonce, blocks.value.length] as const,
+  () => void locateActiveChunk(),
+  { flush: "post" },
 );
 </script>
 
