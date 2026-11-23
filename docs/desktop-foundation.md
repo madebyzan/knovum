@@ -83,6 +83,16 @@ Rendered Markdown links external destinations, keeps local ones only for a surfa
 (`UiMarkdown` `local-links`), keeps any other link's label as text, and links bare text only when it
 spells out its scheme, so file names never become hosts.
 
+Source Reading Mode adds one child WebView inside `main` (`desktop::SOURCE_READER_WEBVIEW_LABEL`),
+which requires Tauri's `unstable` Cargo feature for `Window::add_child`. It is the only carrier of
+foreign content in the product, so `desktop::navigation` decides by label: that label may follow
+`http`, `https` and `about` plus the `knovum-preview` scheme, and every other label keeps the rule
+above. No capability grants it anything — no shipped capability declares a `remote` origin, so an
+external page reaches no command or plugin — and its drag-and-drop handler is disabled. Managed
+HTML/SVG preview bytes are served through `knovum-preview` as one token-bound payload that Rust
+authorized for that node, and the scheme handler refuses any other webview label; a live website
+loads in its own origin with no Knovum authority attached.
+
 A conversation follows a local link in a persisted message through `follow_conversation_link`
 (`spaces/conversations/links`): a file opens in its system application, and only one Knovum can vouch
 for — a deliverable the Agent wrote in its working directory (publication empties it, so the path is
@@ -175,9 +185,11 @@ System preview opens one authorized managed asset through the OS adapter. It doe
 renderer path or filesystem capability. Unsupported preview providers report unavailability explicitly.
 
 Background document rendering for analysis is separate from interactive system preview. It uses bounded
-native resources and produces private analysis input; it does not expose a source-page rendering command
-or custom document reader to the WebView. Original files open through their associated desktop
-application.
+native resources and produces private analysis input; it exposes no source-page rendering command to the
+WebView. Reading is a third path: Source Reading Mode renders managed assets with its own viewers, in the
+product WebView over the Space asset scope and in the child WebView over `knovum-preview`. It reuses no
+analysis command and grants no general filesystem reach. Original files still open through their
+associated desktop application.
 
 ## Local resources
 
