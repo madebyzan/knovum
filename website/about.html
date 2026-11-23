@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#f2f0e9" />
+    <meta name="theme-color" content="#f3f0e8" />
     <meta
       name="description"
       content="Learn about Knovum's local-first philosophy, open-source foundations, technical architecture, and community."
@@ -25,24 +25,28 @@
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="About Knovum | Open-Source Knowledge Workspace" />
-    <meta name="twitter:description" content="Learn about Knovum" />
+    <meta
+      name="twitter:description"
+      content="Learn about Knovum's local-first philosophy, open-source foundations, technical architecture, and community."
+    />
     <meta name="twitter:image" content="https://madebyzan.github.io/knovum/assets/social-card.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <link rel="icon" type="image/png" href="./assets/app-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;650;700&family=Instrument+Serif:ital@0;1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
     <title>About Knovum | Open-Source Knowledge Workspace</title>
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
   </head>
   <body id="top" data-page="about">
     <a class="skip-link" href="#main" data-en="Skip to content" data-zh="跳转到正文">Skip to content</a>
     <div class="reading-progress" aria-hidden="true"><span></span></div>
+
     <div class="announcement">
       <span class="announcement__dot" aria-hidden="true"></span>
       <p
@@ -52,52 +56,47 @@
         A calm, capable space for your most important work.
       </p>
       <a href="https://github.com/madebyzan/knovum/releases/latest" target="_blank" rel="noreferrer"
-        ><span data-en="Explore the latest release" data-zh="查看最新版本">Explore the latest release</span
-        ><span aria-hidden="true">↗</span></a
+        ><span data-en="Explore the latest release" data-zh="查看最新版本">Explore the latest release</span>
+        <span aria-hidden="true">↗</span></a
       >
     </div>
+
     <header class="site-header">
-      <div class="nav-shell">
-        <a class="brand" href="./index.html" aria-label="Knovum home"
-          ><img src="./assets/app-icon.png" alt="" width="34" height="34" /><span>knovum</span></a
-        >
-        <button
-          class="menu-toggle"
-          type="button"
-          aria-label="Open navigation"
-          aria-expanded="false"
-          aria-controls="primary-navigation"
-        >
-          <span></span><span></span>
-        </button>
+      <div class="wrap nav-shell">
+        <a class="brand" href="./index.html" aria-label="Knovum home">
+          <img src="./assets/app-icon.png" alt="" width="32" height="32" />
+          <span class="brand__name">Knov<em>um</em></span>
+        </a>
         <nav class="primary-nav" id="primary-navigation" aria-label="Main navigation">
           <a class="nav-link" href="./product.html" data-en="Product" data-zh="产品">Product</a>
           <a class="nav-link" href="./privacy.html" data-en="Privacy" data-zh="隐私">Privacy</a>
-          <a class="nav-link" href="./download.html" data-en="Download" data-zh="下载">Download</a
-          ><a class="nav-link" href="./guides/index.html" data-en="Guides" data-zh="指南">Guides</a>
+          <a class="nav-link" href="./download.html" data-en="Download" data-zh="下载">Download</a>
+          <a class="nav-link" href="./guides/index.html" data-en="Guides" data-zh="指南">Guides</a>
           <details class="nav-menu">
             <summary>
-              <span data-en="Explore" data-zh="探索">Explore</span
-              ><span class="chevron" aria-hidden="true"></span>
+              <span data-en="Explore" data-zh="探索">Explore</span>
+              <span class="nav-menu__chevron" aria-hidden="true"></span>
             </summary>
             <div class="nav-menu__panel">
-              <a href="./about.html"
-                ><strong data-en="About Knovum" data-zh="关于 Knovum">About Knovum</strong
-                ><small data-en="The thinking behind the workspace" data-zh="关于产品的理念与方向"
+              <a href="./about.html" aria-current="page"
+                ><strong data-en="About Knovum" data-zh="关于 Knovum">About Knovum</strong>
+                <small
+                  data-en="The thinking behind the workspace"
+                  data-zh="关于产品的理念与方向"
                   >The thinking behind the workspace</small
                 ></a
               >
               <a href="https://github.com/madebyzan/knovum/tree/main/docs" target="_blank" rel="noreferrer"
-                ><strong data-en="Documentation" data-zh="项目文档">Documentation</strong
-                ><small
+                ><strong data-en="Documentation" data-zh="项目文档">Documentation</strong>
+                <small
                   data-en="Guides, concepts, and technical details"
                   data-zh="使用指南、产品概念与技术细节"
                   >Guides, concepts, and technical details</small
                 ></a
               >
               <a href="https://github.com/madebyzan/knovum/releases" target="_blank" rel="noreferrer"
-                ><strong data-en="Release notes" data-zh="版本记录">Release notes</strong
-                ><small data-en="What's new in Knovum" data-zh="了解每个版本的新变化"
+                ><strong data-en="Release notes" data-zh="版本记录">Release notes</strong>
+                <small data-en="What's new in Knovum" data-zh="了解每个版本的新变化"
                   >What's new in Knovum</small
                 ></a
               >
@@ -108,127 +107,194 @@
             href="https://github.com/madebyzan/knovum"
             target="_blank"
             rel="noreferrer"
-            >GitHub ↗</a
+            >GitHub <span aria-hidden="true">↗</span></a
           >
         </nav>
         <div class="nav-actions">
-          <button class="language-toggle" type="button" aria-label="Switch language">中文</button
-          ><a class="button button--small button--dark" href="./download.html"
-            ><span data-en="Get Knovum" data-zh="获取 Knovum">Get Knovum</span
-            ><span aria-hidden="true">↗</span></a
+          <button class="language-toggle" type="button" aria-label="Switch language">中文</button>
+          <a class="button button--small" href="./download.html"
+            ><span data-en="Get Knovum" data-zh="获取 Knovum">Get Knovum</span>
+            <span class="button__arrow" aria-hidden="true">↗</span></a
           >
+          <button
+            class="menu-toggle"
+            type="button"
+            aria-label="Open navigation"
+            aria-expanded="false"
+            aria-controls="primary-navigation"
+          >
+            <span></span><span></span>
+          </button>
         </div>
       </div>
     </header>
+
     <main id="main">
-      <section class="page-hero section-wrap">
-        <div class="page-hero__copy">
-          <div class="breadcrumb">
-            <a href="./index.html" data-en="Home" data-zh="首页">Home</a><span>/</span
-            ><span data-en="About" data-zh="关于">About</span>
-          </div>
-          <div class="eyebrow">
-            <span class="eyebrow__line"></span
-            ><span data-en="THE IDEA BEHIND KNOVUM" data-zh="Knovum 背后的理念">THE IDEA BEHIND KNOVUM</span>
-          </div>
-          <h1
-            data-en="Knowledge is something you build, not just store."
-            data-zh="知识不是被存起来的，而是逐渐构建出来的。"
-          >
-            Knowledge is something you build, not just store.
-          </h1>
-          <p
-            data-en="Knovum is a local-first desktop workspace for gathering, exploring, and creating with your own knowledge. It brings the source material and the thinking that grows from it into one place."
-            data-zh="Knovum 是一款本地优先的桌面知识工作空间，用于收集、探索和创造自己的知识。它让原始资料与由此生长出的思考在同一处相遇。"
-          >
-            Knovum is a local-first desktop workspace for gathering, exploring, and creating with your own
-            knowledge. It brings the source material and the thinking that grows from it into one place.
-          </p>
-          <div class="page-hero__actions">
-            <a
-              class="button button--dark"
-              href="https://github.com/madebyzan/knovum"
-              target="_blank"
-              rel="noreferrer"
-              ><span data-en="Explore the open-source project" data-zh="探索开源项目"
-                >Explore the open-source project</span
-              ><span>↗</span></a
-            >
-          </div>
-        </div>
-        <div class="page-hero__aside" data-reveal>
-          <span class="aside-index">ABOUT / 01</span>
-          <p data-en="Thoughtful. Capable. Calm. Open." data-zh="周到 · 能力 · 从容 · 开放">
-            Thoughtful. Capable. Calm. Open.
-          </p>
-          <span class="aside-rule"></span
-          ><small
-            data-en="A tool should help you think more clearly, not ask for your attention."
-            data-zh="工具应该帮助你更清晰地思考，而不是不断索取你的注意力。"
-            >A tool should help you think more clearly, not ask for your attention.</small
-          >
-        </div>
-      </section>
-      <figure
-        class="optional-image optional-image--wide"
-        data-optional-image="./assets/about-workspace-overview.webp"
-        hidden
-      >
-        <img
-          alt="A real view of the Knovum desktop knowledge workspace."
-          width="1600"
-          height="900"
-          loading="lazy"
-          decoding="async"
-        />
-        <figcaption>
-          <span data-en="Inside the workspace" data-zh="走进 Knovum 工作空间">Inside the workspace</span>
-        </figcaption>
-      </figure>
-
-      <section class="section-wrap about-manifesto">
-        <div class="section-kicker">
-          <span>01</span
-          ><span data-en="WHY WE'RE BUILDING THIS" data-zh="我们为什么这样做">WHY WE'RE BUILDING THIS</span>
-        </div>
-        <div class="manifesto-grid">
-          <h2
-            data-en="The tools we use should respect the work we put into knowing."
-            data-zh="我们使用的工具，应该尊重我们为理解世界所付出的努力。"
-          >
-            The tools we use should respect the work we put into knowing.
-          </h2>
+      <section class="page-hero">
+        <div class="wrap page-hero__grid">
           <div>
-            <p
-              data-en="Research and creative work rarely happen in a straight line. Sources arrive from different places and in different formats. Ideas change as evidence accumulates. Useful outputs need to retain their connection to the material that shaped them."
-              data-zh="研究与创作很少沿着一条直线前进。资料来自不同地方，形式各不相同；随着证据积累，想法也会改变。真正有用的成果，应该保留它与原始材料之间的联系。"
-            >
-              Research and creative work rarely happen in a straight line. Sources arrive from different
-              places and in different formats. Ideas change as evidence accumulates. Useful outputs need to
-              retain their connection to the material that shaped them.
+            <nav class="breadcrumb" aria-label="Breadcrumb">
+              <a href="./index.html" data-en="Home" data-zh="首页">Home</a>
+              <span aria-hidden="true">/</span>
+              <span data-en="About" data-zh="关于">About</span>
+            </nav>
+            <p class="kicker" data-en="The idea behind Knovum" data-zh="Knovum 背后的理念">
+              The idea behind Knovum
             </p>
-            <p
-              data-en="Knovum is an attempt to give that process a durable home — one that stays under your control and can grow with the questions you care about."
-              data-zh="Knovum 希望为这个过程提供一个长期的归属：由你掌控，并随着你关心的问题不断生长。"
+            <h1
+              class="display"
+              data-reveal="mask"
+              data-en="Knowledge is something you build, not just store."
+              data-zh="知识不是被存起来的，而是逐渐构建出来的。"
             >
-              Knovum is an attempt to give that process a durable home — one that stays under your control and
-              can grow with the questions you care about.
+              Knowledge is something you build, not just store.
+            </h1>
+            <p
+              class="lede"
+              data-en="Knovum is a local-first desktop workspace for gathering, exploring, and creating with your own knowledge. It brings the source material and the thinking that grows from it into one place."
+              data-zh="Knovum 是一款本地优先的桌面知识工作空间，用于收集、探索和创造自己的知识。它让原始资料与由此生长出的思考在同一处相遇。"
+            >
+              Knovum is a local-first desktop workspace for gathering, exploring, and creating with your own
+              knowledge. It brings the source material and the thinking that grows from it into one place.
             </p>
+            <div class="hero__actions">
+              <a
+                class="button"
+                href="https://github.com/madebyzan/knovum"
+                target="_blank"
+                rel="noreferrer"
+                ><span data-en="Explore the open-source project" data-zh="探索开源项目"
+                  >Explore the open-source project</span
+                >
+                <span class="button__arrow" aria-hidden="true">↗</span></a
+              >
+              <a class="link-arrow" href="#manifesto"
+                ><span data-en="Why we're building this" data-zh="我们为什么这样做"
+                  >Why we're building this</span
+                >
+                <svg
+                  class="link-arrow__icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 5v14" /><path d="m6 13 6 6 6-6" />
+                </svg></a
+              >
+            </div>
           </div>
+          <aside class="page-hero__aside" data-reveal>
+            <span class="mono">ABOUT / 01</span>
+            <p data-en="Thoughtful. Capable. Calm. Open." data-zh="周到 · 能力 · 从容 · 开放">
+              Thoughtful. Capable. Calm. Open.
+            </p>
+            <small
+              data-en="A tool should help you think more clearly, not ask for your attention."
+              data-zh="工具应该帮助你更清晰地思考，而不是不断索取你的注意力。"
+              >A tool should help you think more clearly, not ask for your attention.</small
+            >
+          </aside>
         </div>
       </section>
 
-      <section class="about-principles">
-        <div class="section-wrap section-block">
-          <div class="section-kicker section-kicker--light">
-            <span>02</span><span data-en="WHAT WE BELIEVE" data-zh="我们坚持的原则">WHAT WE BELIEVE</span>
+      <div class="wrap">
+        <figure class="plate" data-reveal>
+          <img
+            src="./assets/about-workspace-overview.webp"
+            alt="A real view of the Knovum desktop knowledge workspace."
+            loading="lazy"
+            width="1600"
+            height="900"
+          />
+          <figcaption class="plate__caption">
+            <strong data-en="Inside the workspace" data-zh="走进 Knovum 工作空间"
+              >Inside the workspace</strong
+            >
+            <span data-en="Real desktop build" data-zh="真实桌面版本">Real desktop build</span>
+          </figcaption>
+        </figure>
+      </div>
+
+      <div class="wrap">
+        <section class="detail" id="manifesto">
+          <p class="kicker">
+            <span class="kicker__num" aria-hidden="true">01</span>
+            <span data-en="Why we're building this" data-zh="我们为什么这样做"
+              >Why we're building this</span
+            >
+          </p>
+          <div class="detail__split">
+            <div data-reveal>
+              <h2
+                class="display"
+                data-en="The tools we use should respect the work we put into knowing."
+                data-zh="我们使用的工具，应该尊重我们为理解世界所付出的努力。"
+              >
+                The tools we use should respect the work we put into knowing.
+              </h2>
+            </div>
+            <div data-reveal>
+              <p
+                class="lede"
+                data-en="Research and creative work rarely happen in a straight line. Sources arrive from different places and in different formats. Ideas change as evidence accumulates. Useful outputs need to retain their connection to the material that shaped them."
+                data-zh="研究与创作很少沿着一条直线前进。资料来自不同地方，形式各不相同；随着证据积累，想法也会改变。真正有用的成果，应该保留它与原始材料之间的联系。"
+              >
+                Research and creative work rarely happen in a straight line. Sources arrive from different
+                places and in different formats. Ideas change as evidence accumulates. Useful outputs need to
+                retain their connection to the material that shaped them.
+              </p>
+              <p
+                class="lede"
+                data-en="Knovum is an attempt to give that process a durable home — one that stays under your control and can grow with the questions you care about."
+                data-zh="Knovum 希望为这个过程提供一个长期的归属：由你掌控，并随着你关心的问题不断生长。"
+              >
+                Knovum is an attempt to give that process a durable home — one that stays under your control
+                and can grow with the questions you care about.
+              </p>
+            </div>
           </div>
-          <h2 data-en="A few principles shape every decision." data-zh="几个原则，决定每一个设计选择。">
-            A few principles shape every decision.
-          </h2>
-          <div class="principle-grid">
-            <article>
-              <span>01</span>
+        </section>
+      </div>
+
+      <section class="section section--tint">
+        <div class="wrap">
+          <p class="kicker">
+            <span class="kicker__num" aria-hidden="true">02</span>
+            <span data-en="What we believe" data-zh="我们坚持的原则">What we believe</span>
+          </p>
+          <div class="split-head">
+            <h2
+              class="display"
+              data-reveal="mask"
+              data-en="A few principles shape every decision."
+              data-zh="几个原则，决定每一个设计选择。"
+            >
+              A few principles shape every decision.
+            </h2>
+          </div>
+          <div class="cap-grid">
+            <article class="cap" data-reveal>
+              <svg
+                class="cap__icon"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
+              <span class="cap__tag">PRINCIPLE / 01</span>
               <h3 data-en="Knowledge first" data-zh="知识优先">Knowledge first</h3>
               <p
                 data-en="AI is a capability, not the product's identity. Start from the material and the outcome a person is trying to reach."
@@ -238,8 +304,22 @@
                 person is trying to reach.
               </p>
             </article>
-            <article>
-              <span>02</span>
+            <article class="cap" data-reveal style="--d: 1">
+              <svg
+                class="cap__icon"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" />
+              </svg>
+              <span class="cap__tag">PRINCIPLE / 02</span>
               <h3 data-en="Context stays visible" data-zh="上下文始终可见">Context stays visible</h3>
               <p
                 data-en="Sources, revisions, and relationships should be inspectable. A result should not become detached from how it came to be."
@@ -249,8 +329,23 @@
                 detached from how it came to be.
               </p>
             </article>
-            <article>
-              <span>03</span>
+            <article class="cap" data-reveal style="--d: 2">
+              <svg
+                class="cap__icon"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="3" y="4" width="18" height="7" rx="1.5" /><rect x="3" y="13" width="18" height="7" rx="1.5" />
+                <path d="M7 7.5h.01" /><path d="M7 16.5h.01" />
+              </svg>
+              <span class="cap__tag">PRINCIPLE / 03</span>
               <h3 data-en="Your data, your ground" data-zh="数据由你掌控">Your data, your ground</h3>
               <p
                 data-en="The knowledge library is local-first. External model use is a choice with a clear provider boundary."
@@ -260,8 +355,22 @@
                 boundary.
               </p>
             </article>
-            <article>
-              <span>04</span>
+            <article class="cap" data-reveal style="--d: 3">
+              <svg
+                class="cap__icon"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m8 6-5 6 5 6" /><path d="m16 6 5 6-5 6" />
+              </svg>
+              <span class="cap__tag">PRINCIPLE / 04</span>
               <h3 data-en="Open by nature" data-zh="开放是产品的一部分">Open by nature</h3>
               <p
                 data-en="Knovum is MIT-licensed open-source software. Formats and integrations should help your knowledge remain portable."
@@ -275,149 +384,254 @@
         </div>
       </section>
 
-      <section class="section-wrap architecture-section">
-        <div class="section-kicker">
-          <span>03</span><span data-en="UNDER THE SURFACE" data-zh="产品背后的技术">UNDER THE SURFACE</span>
-        </div>
-        <div class="architecture-grid">
-          <div>
-            <h2
-              data-en="A native desktop app, built for serious work."
-              data-zh="为深度工作打造的原生桌面应用。"
+      <div class="wrap">
+        <section class="detail">
+          <p class="kicker">
+            <span class="kicker__num" aria-hidden="true">03</span>
+            <span data-en="Under the surface" data-zh="产品背后的技术">Under the surface</span>
+          </p>
+          <div class="detail__split">
+            <div data-reveal>
+              <h2
+                class="display"
+                data-en="A native desktop app, built for serious work."
+                data-zh="为深度工作打造的原生桌面应用。"
+              >
+                A native desktop app, built for serious work.
+              </h2>
+              <p
+                class="lede"
+                data-en="Knovum combines a native Rust core with a Vue-based interface. Local storage, search, media processing, and model runtimes are designed to work together without requiring a hosted Knovum service."
+                data-zh="Knovum 将 Rust 原生核心与 Vue 界面结合。本地存储、搜索、媒体处理和模型运行时协同工作，不需要托管式 Knovum 服务。"
+              >
+                Knovum combines a native Rust core with a Vue-based interface. Local storage, search, media
+                processing, and model runtimes are designed to work together without requiring a hosted
+                Knovum service.
+              </p>
+              <a
+                class="link-arrow"
+                href="https://github.com/madebyzan/knovum/blob/main/docs/system-architecture.md"
+                target="_blank"
+                rel="noreferrer"
+                ><span data-en="Read the system architecture" data-zh="阅读系统架构"
+                  >Read the system architecture</span
+                >
+                <svg
+                  class="link-arrow__icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 17 17 7" /><path d="M9 7h8v8" />
+                </svg></a
+              >
+            </div>
+            <dl class="platform__specs" data-reveal style="align-self: start">
+              <div>
+                <dt data-en="Desktop" data-zh="桌面框架">Desktop</dt>
+                <dd>Tauri 2</dd>
+              </div>
+              <div>
+                <dt data-en="Core" data-zh="核心">Core</dt>
+                <dd>Rust</dd>
+              </div>
+              <div>
+                <dt data-en="Interface" data-zh="界面">Interface</dt>
+                <dd>Vue 3 · TypeScript</dd>
+              </div>
+              <div>
+                <dt data-en="Data" data-zh="数据">Data</dt>
+                <dd>SQLite · LanceDB</dd>
+              </div>
+              <div>
+                <dt data-en="Canvas" data-zh="画布">Canvas</dt>
+                <dd>Konva</dd>
+              </div>
+              <div>
+                <dt data-en="Local inference" data-zh="本地推理">Local inference</dt>
+                <dd>Candle · ONNX Runtime</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <section class="detail">
+          <p class="kicker">
+            <span class="kicker__num" aria-hidden="true">04</span>
+            <span data-en="Open to the community" data-zh="向社区开放">Open to the community</span>
+          </p>
+          <div class="detail__split">
+            <div data-reveal>
+              <h2
+                class="display"
+                data-en="Good tools are better when people can inspect and improve them."
+                data-zh="好的工具，应该允许人们理解它、检查它，并一起改进。"
+              >
+                Good tools are better when people can inspect and improve them.
+              </h2>
+              <p
+                class="lede"
+                data-en="Knovum is released under the MIT License. Read the code, explore the documentation, report an issue, or contribute a focused improvement."
+                data-zh="Knovum 基于 MIT 许可证发布。你可以阅读代码、探索文档、反馈问题，或贡献一项具体改进。"
+              >
+                Knovum is released under the MIT License. Read the code, explore the documentation, report an
+                issue, or contribute a focused improvement.
+              </p>
+            </div>
+            <div class="detail__list" data-reveal>
+              <a
+                class="detail__item"
+                href="https://github.com/madebyzan/knovum"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span class="detail__num" aria-hidden="true">↗</span>
+                <div>
+                  <h3>GitHub</h3>
+                  <p data-en="Source code and project activity" data-zh="源代码与项目动态"
+                    >Source code and project activity</p
+                  >
+                </div>
+              </a>
+              <a
+                class="detail__item"
+                href="https://github.com/madebyzan/knovum/tree/main/docs"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span class="detail__num" aria-hidden="true">↗</span>
+                <div>
+                  <h3 data-en="Documentation" data-zh="项目文档">Documentation</h3>
+                  <p data-en="Product and technical guides" data-zh="产品与技术指南"
+                    >Product and technical guides</p
+                  >
+                </div>
+              </a>
+              <a
+                class="detail__item"
+                href="https://github.com/madebyzan/knovum/discussions"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span class="detail__num" aria-hidden="true">↗</span>
+                <div>
+                  <h3 data-en="Discussions" data-zh="讨论区">Discussions</h3>
+                  <p data-en="Ideas and community conversations" data-zh="想法与社区交流"
+                    >Ideas and community conversations</p
+                  >
+                </div>
+              </a>
+              <a
+                class="detail__item"
+                href="https://github.com/madebyzan/knovum/issues"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span class="detail__num" aria-hidden="true">↗</span>
+                <div>
+                  <h3 data-en="Issues" data-zh="问题反馈">Issues</h3>
+                  <p data-en="Bug reports and focused requests" data-zh="错误报告与功能建议"
+                    >Bug reports and focused requests</p
+                  >
+                </div>
+              </a>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="band--dark">
+        <div class="band__orbit" aria-hidden="true"></div>
+        <div class="wrap band__inner">
+          <p
+            class="mono band__overline"
+            data-en="A space that belongs to you."
+            data-zh="一个真正属于你的空间。"
+          >
+            A space that belongs to you.
+          </p>
+          <h2
+            class="display"
+            data-reveal="mask"
+            data-en="Bring your knowledge together."
+            data-zh="让知识汇聚，让想法发生。"
+          >
+            Bring your knowledge together.
+          </h2>
+          <div class="band__actions">
+            <a class="button button--light" href="./download.html"
+              ><span data-en="Get Knovum" data-zh="获取 Knovum">Get Knovum</span>
+              <span class="button__arrow" aria-hidden="true">↗</span></a
             >
-              A native desktop app, built for serious work.
-            </h2>
-            <p
-              data-en="Knovum combines a native Rust core with a Vue-based interface. Local storage, search, media processing, and model runtimes are designed to work together without requiring a hosted Knovum service."
-              data-zh="Knovum 将 Rust 原生核心与 Vue 界面结合。本地存储、搜索、媒体处理和模型运行时协同工作，不需要托管式 Knovum 服务。"
-            >
-              Knovum combines a native Rust core with a Vue-based interface. Local storage, search, media
-              processing, and model runtimes are designed to work together without requiring a hosted Knovum
-              service.
-            </p>
             <a
-              class="underlined-link"
-              href="https://github.com/madebyzan/knovum/blob/main/docs/system-architecture.md"
+              class="link-arrow"
+              href="https://github.com/madebyzan/knovum"
               target="_blank"
               rel="noreferrer"
-              ><span data-en="Read the system architecture" data-zh="阅读系统架构"
-                >Read the system architecture</span
-              ><span>↗</span></a
+              ><span data-en="Explore the open-source project" data-zh="探索开源项目"
+                >Explore the open-source project</span
+              >
+              <svg
+                class="link-arrow__icon"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M7 17 17 7" /><path d="M9 7h8v8" />
+              </svg></a
             >
           </div>
-          <div class="stack-list">
-            <div><span>DESKTOP</span><strong>Tauri 2</strong></div>
-            <div><span>CORE</span><strong>Rust</strong></div>
-            <div><span>INTERFACE</span><strong>Vue 3 · TypeScript</strong></div>
-            <div><span>DATA</span><strong>SQLite · LanceDB</strong></div>
-            <div><span>CANVAS</span><strong>Konva</strong></div>
-            <div><span>LOCAL INFERENCE</span><strong>Candle · ONNX Runtime</strong></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section-wrap community-section">
-        <div class="section-kicker">
-          <span>04</span
-          ><span data-en="OPEN TO THE COMMUNITY" data-zh="向社区开放">OPEN TO THE COMMUNITY</span>
-        </div>
-        <div class="community-grid">
-          <div>
-            <h2
-              data-en="Good tools are better when people can inspect and improve them."
-              data-zh="好的工具，应该允许人们理解它、检查它，并一起改进。"
-            >
-              Good tools are better when people can inspect and improve them.
-            </h2>
-            <p
-              data-en="Knovum is released under the MIT License. Read the code, explore the documentation, report an issue, or contribute a focused improvement."
-              data-zh="Knovum 基于 MIT 许可证发布。你可以阅读代码、探索文档、反馈问题，或贡献一项具体改进。"
-            >
-              Knovum is released under the MIT License. Read the code, explore the documentation, report an
-              issue, or contribute a focused improvement.
-            </p>
-          </div>
-          <div class="community-links">
-            <a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer"
-              ><span
-                ><strong>GitHub</strong
-                ><small data-en="Source code and project activity" data-zh="源代码与项目动态"
-                  >Source code and project activity</small
-                ></span
-              ><b>↗</b></a
-            ><a href="https://github.com/madebyzan/knovum/tree/main/docs" target="_blank" rel="noreferrer"
-              ><span
-                ><strong data-en="Documentation" data-zh="项目文档">Documentation</strong
-                ><small data-en="Product and technical guides" data-zh="产品与技术指南"
-                  >Product and technical guides</small
-                ></span
-              ><b>↗</b></a
-            ><a href="https://github.com/madebyzan/knovum/discussions" target="_blank" rel="noreferrer"
-              ><span
-                ><strong data-en="Discussions" data-zh="讨论区">Discussions</strong
-                ><small data-en="Ideas and community conversations" data-zh="想法与社区交流"
-                  >Ideas and community conversations</small
-                ></span
-              ><b>↗</b></a
-            ><a href="https://github.com/madebyzan/knovum/issues" target="_blank" rel="noreferrer"
-              ><span
-                ><strong data-en="Issues" data-zh="问题反馈">Issues</strong
-                ><small data-en="Bug reports and focused requests" data-zh="错误报告与功能建议"
-                  >Bug reports and focused requests</small
-                ></span
-              ><b>↗</b></a
-            >
-          </div>
-        </div>
-      </section>
-      <section class="mini-cta">
-        <div class="section-wrap mini-cta__inner">
-          <div>
-            <span class="eyebrow-text" data-en="A SPACE THAT BELONGS TO YOU." data-zh="一个真正属于你的空间。"
-              >A SPACE THAT BELONGS TO YOU.</span
-            >
-            <h2 data-en="Bring your knowledge together." data-zh="让知识汇聚，让想法发生。">
-              Bring your knowledge together.
-            </h2>
-          </div>
-          <a class="button button--dark" href="./download.html"
-            ><span data-en="Get Knovum" data-zh="获取 Knovum">Get Knovum</span><span>↗</span></a
-          >
         </div>
       </section>
     </main>
-    <footer class="site-footer">
-      <div class="section-wrap footer-main">
-        <div class="footer-brand">
-          <a class="brand brand--footer" href="./index.html"
-            ><img src="./assets/app-icon.png" alt="" width="31" height="31" /><span>knovum</span></a
+
+    <footer class="footer">
+      <div class="wrap footer__main">
+        <div>
+          <p class="footer__word">Knov<em>um</em></p>
+          <p
+            class="footer__tagline"
+            data-en="Bring your knowledge together. Make it useful."
+            data-zh="让知识汇聚，让它真正有用。"
           >
-          <p data-en="Bring your knowledge together. Make it useful." data-zh="让知识汇聚，让它真正有用。">
             Bring your knowledge together. Make it useful.
           </p>
-          <span class="footer-motto" data-en="MADE FOR CURIOUS MINDS." data-zh="为好奇心而造。"
-            >MADE FOR CURIOUS MINDS.</span
+          <span class="footer__motto" data-en="Made for curious minds." data-zh="为好奇心而造。"
+            >Made for curious minds.</span
           >
         </div>
-        <div class="footer-links">
-          <div>
-            <span class="footer-label" data-en="THE PRODUCT" data-zh="产品">THE PRODUCT</span
-            ><a href="./product.html" data-en="Overview" data-zh="产品概览">Overview</a
-            ><a href="./privacy.html" data-en="Privacy" data-zh="隐私">Privacy</a
-            ><a href="./download.html" data-en="Download" data-zh="下载">Download</a>
+        <div class="footer__cols">
+          <div class="footer__col">
+            <span class="footer__label" data-en="The product" data-zh="产品">The product</span>
+            <a href="./product.html" data-en="Overview" data-zh="产品概览">Overview</a>
+            <a href="./privacy.html" data-en="Privacy" data-zh="隐私">Privacy</a>
+            <a href="./download.html" data-en="Download" data-zh="下载">Download</a>
           </div>
-          <div>
-            <span class="footer-label" data-en="DISCOVER" data-zh="了解更多">DISCOVER</span
-            ><a href="./about.html" data-en="About" data-zh="关于">About</a
-            ><a href="./guides/index.html" data-en="Guides" data-zh="指南">Guides</a
-            ><a
+          <div class="footer__col">
+            <span class="footer__label" data-en="Discover" data-zh="了解更多">Discover</span>
+            <a href="./about.html" data-en="About" data-zh="关于">About</a>
+            <a href="./guides/index.html" data-en="Guides" data-zh="指南">Guides</a>
+            <a
               href="https://github.com/madebyzan/knovum/tree/main/docs"
               target="_blank"
               rel="noreferrer"
               data-en="Documentation"
               data-zh="项目文档"
               >Documentation</a
-            ><a
+            >
+            <a
               href="https://github.com/madebyzan/knovum/releases"
               target="_blank"
               rel="noreferrer"
@@ -426,17 +640,18 @@
               >Release notes</a
             >
           </div>
-          <div>
-            <span class="footer-label" data-en="OPEN SOURCE" data-zh="开源项目">OPEN SOURCE</span
-            ><a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a
-            ><a
+          <div class="footer__col">
+            <span class="footer__label" data-en="Open source" data-zh="开源项目">Open source</span>
+            <a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a>
+            <a
               href="https://github.com/madebyzan/knovum/blob/main/LICENSE"
               target="_blank"
               rel="noreferrer"
               data-en="MIT License"
               data-zh="MIT 许可证"
               >MIT License</a
-            ><a
+            >
+            <a
               href="https://github.com/madebyzan/knovum/issues"
               target="_blank"
               rel="noreferrer"
@@ -447,13 +662,14 @@
           </div>
         </div>
       </div>
-      <div class="section-wrap footer-bottom">
-        <span>© <span data-year></span> Knovum</span
-        ><span data-en="Thoughtfully made. Openly shared." data-zh="认真打造，开放共享。"
+      <div class="wrap footer__bottom">
+        <span>© <span data-year></span> Knovum</span>
+        <span data-en="Thoughtfully made. Openly shared." data-zh="认真打造，开放共享。"
           >Thoughtfully made. Openly shared.</span
-        ><a href="#top"
-          ><span data-en="Back to top" data-zh="返回顶部">Back to top</span
-          ><span aria-hidden="true">↑</span></a
+        >
+        <a href="#top"
+          ><span data-en="Back to top" data-zh="返回顶部">Back to top</span>
+          <span aria-hidden="true">↑</span></a
         >
       </div>
     </footer>

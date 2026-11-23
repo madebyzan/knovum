@@ -1,16 +1,20 @@
 {
-  const root = document.documentElement;
   const body = document.body;
-  const languageButton = document.querySelector(".language-toggle");
-  const menuButton = document.querySelector(".menu-toggle");
-  const navigation = document.querySelector(".primary-nav");
   const header = document.querySelector(".site-header");
-  const progress = document.querySelector(".reading-progress span");
-  body.classList.add("js-enabled");
+  const navigation = document.querySelector(".primary-nav");
+  const menuButton = document.querySelector(".menu-toggle");
+  const languageButton = document.querySelector(".language-toggle");
+  const progressBar = document.querySelector(".reading-progress span");
 
   const CLOUDFLARE_WEB_ANALYTICS_TOKEN = "";
 
-  function installCloudflareWebAnalytics() {
+  const language = body.dataset.locale === "zh" ? "zh" : "en";
+  const text = (en, zh) => (language === "zh" ? zh : en);
+  const reducedMotion = globalThis.matchMedia("(prefers-reduced-motion: reduce)");
+
+  body.classList.add("js-enabled");
+
+  function installAnalytics() {
     if (!CLOUDFLARE_WEB_ANALYTICS_TOKEN || globalThis.location.protocol !== "https:") return;
     const beacon = document.createElement("script");
     beacon.type = "module";
@@ -19,9 +23,22 @@
     document.head.append(beacon);
   }
 
-  installCloudflareWebAnalytics();
+  function applyLanguage() {
+    document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
 
-  const language = body.dataset.locale === "zh" ? "zh" : "en";
+    for (const element of document.querySelectorAll("[data-en][data-zh]")) {
+      element.textContent = element.dataset[language];
+    }
+    for (const element of document.querySelectorAll("[data-en-label][data-zh-label]")) {
+      if (element.hasAttribute("data-carousel-toggle")) continue;
+      element.setAttribute("aria-label", text(element.dataset.enLabel, element.dataset.zhLabel));
+    }
+    if (languageButton) {
+      languageButton.textContent = language === "en" ? "中文" : "EN";
+      languageButton.setAttribute("aria-label", text("Switch to Chinese", "切换到英文"));
+    }
+    syncMenuLabel();
+  }
 
   function switchLanguage(next) {
     const brand = document.querySelector(".brand");
@@ -35,461 +52,378 @@
     globalThis.location.assign(siteRoot + (next === "zh" ? "zh/" : "") + route);
   }
 
-  function updateMenuLabel() {
+  /* ------------------------------ navigation ----------------------------- */
+
+  function syncMenuLabel() {
     if (!menuButton) return;
-    const isOpen = menuButton.getAttribute("aria-expanded") === "true";
-    const label =
-      language === "en"
-        ? isOpen
-          ? "Close navigation"
-          : "Open navigation"
-        : isOpen
-          ? "关闭导航"
-          : "打开导航";
-    menuButton.setAttribute("aria-label", label);
+    const open = menuButton.getAttribute("aria-expanded") === "true";
+    menuButton.setAttribute("aria-label", open ? text("Close navigation", "关闭导航") : text("Open navigation", "打开导航"));
   }
 
-  function applyPageLanguage() {
-    root.lang = language === "zh" ? "zh-CN" : "en";
-
-    document.querySelectorAll("[data-en][data-zh]").forEach((element) => {
-      element.textContent = element.dataset[language];
-    });
-
-    document.querySelectorAll("[data-en-label][data-zh-label]").forEach((element) => {
-      if (element.hasAttribute("data-carousel-toggle")) return;
-      element.setAttribute("aria-label", localizedText(element.dataset.enLabel, element.dataset.zhLabel));
-    });
-
-    document.querySelectorAll("[data-carousel-toggle]").forEach((element) => {
-      const isPaused = element.dataset.paused === "true";
-      const label = isPaused
-        ? localizedText("Resume automatic playback", "恢复自动播放")
-        : localizedText("Pause automatic playback", "暂停自动播放");
-      element.setAttribute("aria-label", label);
-
-      const labelElement = element.querySelector("span");
-      if (labelElement) {
-        labelElement.textContent = isPaused ? localizedText("Play", "播放") : localizedText("Pause", "暂停");
-      }
-    });
-
-    if (languageButton) {
-      languageButton.textContent = language === "en" ? "中文" : "EN";
-      languageButton.setAttribute("aria-label", language === "en" ? "Switch to Chinese" : "切换到英文");
-    }
-    updateMenuLabel();
-  }
-
-  if (languageButton) {
-    languageButton.addEventListener("click", () => switchLanguage(language === "en" ? "zh" : "en"));
-  }
-
-  function closeMenu() {
+  function setMenu(open) {
     if (!navigation || !menuButton) return;
-    navigation.classList.remove("is-open");
-    menuButton.setAttribute("aria-expanded", "false");
-    navigation.querySelectorAll("details[open]").forEach((item) => item.removeAttribute("open"));
-    updateMenuLabel();
+    navigation.classList.toggle("is-open", open);
+    menuButton.setAttribute("aria-expanded", String(open));
+    body.style.overflow = open ? "hidden" : "";
+    if (!open) navigation.querySelectorAll("details[open]").forEach((item) => item.removeAttribute("open"));
+    syncMenuLabel();
   }
 
-  if (menuButton && navigation) {
+  function initNavigation() {
+    if (!menuButton || !navigation) return;
     menuButton.addEventListener("click", () => {
-      const isOpen = menuButton.getAttribute("aria-expanded") === "true";
-      menuButton.setAttribute("aria-expanded", String(!isOpen));
-      navigation.classList.toggle("is-open", !isOpen);
-      updateMenuLabel();
+      setMenu(menuButton.getAttribute("aria-expanded") !== "true");
     });
-
-    navigation.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
-
+    navigation.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => setMenu(false));
+    });
     document.addEventListener("pointerdown", (event) => {
-      if (menuButton.getAttribute("aria-expanded") === "true" && header && !header.contains(event.target)) {
-        closeMenu();
+      if (menuButton.getAttribute("aria-expanded") === "true" && !header.contains(event.target)) {
+        setMenu(false);
       }
-      const openDropdown = navigation.querySelector(".nav-menu[open]");
-      if (openDropdown && !openDropdown.contains(event.target)) openDropdown.removeAttribute("open");
+      const openMenu = navigation.querySelector(".nav-menu[open]");
+      if (openMenu && !openMenu.contains(event.target)) openMenu.removeAttribute("open");
     });
-
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
       const wasOpen = menuButton.getAttribute("aria-expanded") === "true";
-      closeMenu();
+      setMenu(false);
       if (wasOpen) menuButton.focus();
     });
+    globalThis.matchMedia("(min-width: 901px)").addEventListener("change", (event) => {
+      if (event.matches) setMenu(false);
+    });
+  }
 
-    const desktopLayout = globalThis.matchMedia("(min-width: 761px)");
-    const resetMenuForDesktop = (event) => {
-      if (event.matches) closeMenu();
+  function markCurrentPage() {
+    const normalize = (pathname) => pathname.replace(/index\.html$/, "").replace(/\/$/, "");
+    const currentPath = normalize(globalThis.location.pathname);
+    for (const link of document.querySelectorAll(".primary-nav a[href]")) {
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#")) continue;
+      const target = new URL(href, globalThis.location.href);
+      if (target.origin !== globalThis.location.origin) continue;
+      const targetPath = normalize(target.pathname);
+      if (targetPath === currentPath) link.setAttribute("aria-current", "page");
+      else if (targetPath.endsWith("/guides") && currentPath.startsWith(targetPath + "/"))
+        link.setAttribute("aria-current", "location");
+      else link.removeAttribute("aria-current");
+    }
+  }
+
+  /* ---------------------------- scroll effects ---------------------------- */
+
+  function initScrollEffects() {
+    let frameRequested = false;
+    const update = () => {
+      const scrollable = document.documentElement.scrollHeight - globalThis.innerHeight;
+      const amount = scrollable > 0 ? Math.min(1, Math.max(0, globalThis.scrollY / scrollable)) : 0;
+      if (progressBar) progressBar.style.transform = `scaleX(${amount})`;
+      if (header) header.classList.toggle("is-scrolled", globalThis.scrollY > 8);
+      frameRequested = false;
     };
-    if (desktopLayout.addEventListener) {
-      desktopLayout.addEventListener("change", resetMenuForDesktop);
-    } else {
-      desktopLayout.addListener(resetMenuForDesktop);
-    }
-  }
-
-  const normalizePath = (pathname) => pathname.replace(/index\.html$/, "").replace(/\/$/, "");
-  document.querySelectorAll(".primary-nav a[href]").forEach((link) => {
-    const href = link.getAttribute("href");
-    if (!href || href.startsWith("#")) return;
-    const target = new URL(href, globalThis.location.href);
-    if (target.origin !== globalThis.location.origin) return;
-    const targetPath = normalizePath(target.pathname);
-    const currentPath = normalizePath(globalThis.location.pathname);
-    if (targetPath === currentPath) {
-      link.setAttribute("aria-current", "page");
-    } else if (targetPath.endsWith("/guides") && currentPath.startsWith(targetPath + "/")) {
-      link.setAttribute("aria-current", "location");
-    } else {
-      link.removeAttribute("aria-current");
-    }
-  });
-
-  let frameRequested = false;
-  function updateScrollState() {
-    const scrollable = document.documentElement.scrollHeight - globalThis.innerHeight;
-    const amount = scrollable > 0 ? Math.min(1, Math.max(0, globalThis.scrollY / scrollable)) : 0;
-    if (progress) progress.style.transform = "scaleX(" + amount + ")";
-    if (header) header.classList.toggle("is-scrolled", globalThis.scrollY > 12);
-    frameRequested = false;
-  }
-  globalThis.addEventListener(
-    "scroll",
-    () => {
+    const request = () => {
       if (frameRequested) return;
       frameRequested = true;
-      globalThis.requestAnimationFrame(updateScrollState);
-    },
-    { passive: true },
-  );
-  updateScrollState();
-  globalThis.addEventListener("resize", updateScrollState, { passive: true });
-
-  const revealItems = document.querySelectorAll("[data-reveal]");
-  if (
-    "IntersectionObserver" in globalThis &&
-    !globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches
-  ) {
-    const observer = new globalThis.IntersectionObserver(
-      (entries, currentObserver) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add("is-visible");
-          currentObserver.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -24px 0px" },
-    );
-    revealItems.forEach((item) => observer.observe(item));
-  } else {
-    revealItems.forEach((item) => item.classList.add("is-visible"));
+      globalThis.requestAnimationFrame(update);
+    };
+    globalThis.addEventListener("scroll", request, { passive: true });
+    globalThis.addEventListener("resize", request, { passive: true });
+    update();
   }
 
-  const imageCarouselRefreshers = new WeakMap();
+  function initReveal() {
+    const items = [...document.querySelectorAll("[data-reveal]")];
+    const showAll = () => items.forEach((item) => item.classList.add("is-visible"));
+    if (!("IntersectionObserver" in globalThis) || reducedMotion.matches) {
+      showAll();
+      return;
+    }
+    // Clip-path masked elements report an empty intersection rect while hidden,
+    // so observe an unclipped anchor (the parent) instead of the element itself.
+    const anchors = new Map();
+    for (const item of items) {
+      const anchor = item.dataset.reveal === "mask" && item.parentElement ? item.parentElement : item;
+      const group = anchors.get(anchor);
+      if (group) group.push(item);
+      else anchors.set(anchor, [item]);
+    }
+    const observer = new IntersectionObserver(
+      (entries, current) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          for (const item of anchors.get(entry.target) || []) item.classList.add("is-visible");
+          current.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -8% 0px" },
+    );
+    for (const anchor of anchors.keys()) observer.observe(anchor);
+  }
 
-  const localizedText = (english, chinese) => (language === "en" ? english : chinese);
+  /* ------------------------------- carousel ------------------------------- */
 
-  function setupImageCarousels() {
+  function initCarousels() {
     document.querySelectorAll("[data-image-carousel]").forEach((carousel) => {
-      const slides = [...carousel.querySelectorAll(".image-carousel__slide")];
-      const previousButton = carousel.querySelector("[data-carousel-prev]");
+      const slides = [...carousel.querySelectorAll(".image-carousel__slide, .carousel__slide")];
+      const prevButton = carousel.querySelector("[data-carousel-prev]");
       const nextButton = carousel.querySelector("[data-carousel-next]");
       const toggleButton = carousel.querySelector("[data-carousel-toggle]");
       const counter = carousel.querySelector("[data-carousel-counter]");
-      const reducedMotion = globalThis.matchMedia("(prefers-reduced-motion: reduce)");
-      let activeSlide = null;
-      let intervalId = null;
-      let isPausedByUser = reducedMotion.matches;
-      let isHovered = false;
-      let hasFocus = false;
-      let isInViewport = true;
+      let active = null;
+      let timer = null;
+      let pausedByUser = reducedMotion.matches;
+      let hovered = false;
+      let focused = false;
+      let inViewport = true;
 
-      const availableSlides = () => slides.filter((slide) => !slide.hidden && slide.isConnected);
+      const visibleSlides = () => slides.filter((slide) => !slide.hidden && slide.isConnected);
 
-      const setToggleLabel = () => {
+      const syncToggle = () => {
         if (!toggleButton) return;
-        const label = isPausedByUser
-          ? localizedText("Resume automatic playback", "恢复自动播放")
-          : localizedText("Pause automatic playback", "暂停自动播放");
-
-        toggleButton.dataset.paused = String(isPausedByUser);
-        toggleButton.setAttribute("aria-pressed", String(!isPausedByUser));
-        toggleButton.setAttribute("aria-label", label);
-
-        const labelElement = toggleButton.querySelector("span");
-        if (labelElement) {
-          labelElement.textContent = isPausedByUser
-            ? localizedText("Play", "播放")
-            : localizedText("Pause", "暂停");
-        }
+        toggleButton.dataset.paused = String(pausedByUser);
+        toggleButton.setAttribute("aria-pressed", String(!pausedByUser));
+        toggleButton.setAttribute(
+          "aria-label",
+          pausedByUser ? text("Resume automatic playback", "恢复自动播放") : text("Pause automatic playback", "暂停自动播放"),
+        );
+        const label = toggleButton.querySelector("span");
+        if (label) label.textContent = pausedByUser ? text("Play", "播放") : text("Pause", "暂停");
       };
 
-      const refresh = () => {
-        const visibleSlides = availableSlides();
-        if (visibleSlides.length === 0) {
+      const render = () => {
+        const list = visibleSlides();
+        if (!list.length) {
           carousel.classList.remove("is-ready");
           return;
         }
-
-        if (!visibleSlides.includes(activeSlide)) activeSlide = visibleSlides[0];
-
-        visibleSlides.forEach((slide) => {
-          const isActive = slide === activeSlide;
+        if (!list.includes(active)) active = list[0];
+        for (const slide of list) {
+          const isActive = slide === active;
           slide.classList.toggle("is-active", isActive);
           slide.setAttribute("aria-hidden", String(!isActive));
-        });
-
+        }
         carousel.classList.add("is-ready");
         if (counter) {
-          const index = visibleSlides.indexOf(activeSlide) + 1;
-          counter.textContent =
-            String(index).padStart(2, "0") + " / " + String(visibleSlides.length).padStart(2, "0");
+          const pad = (value) => String(value).padStart(2, "0");
+          counter.textContent = `${pad(list.indexOf(active) + 1)} / ${pad(list.length)}`;
         }
-
-        const hasMultipleSlides = visibleSlides.length > 1;
-        if (previousButton) previousButton.hidden = !hasMultipleSlides;
-        if (nextButton) nextButton.hidden = !hasMultipleSlides;
-        if (toggleButton) {
-          toggleButton.hidden = !hasMultipleSlides || reducedMotion.matches;
-        }
+        const multiple = list.length > 1;
+        if (prevButton) prevButton.hidden = !multiple;
+        if (nextButton) nextButton.hidden = !multiple;
+        if (toggleButton) toggleButton.hidden = !multiple || reducedMotion.matches;
       };
 
-      const showSlide = (nextIndex) => {
-        const visibleSlides = availableSlides();
-        if (visibleSlides.length === 0) return;
-
-        const slideCount = visibleSlides.length;
-        const targetIndex = ((nextIndex % slideCount) + slideCount) % slideCount;
-        activeSlide = visibleSlides[targetIndex];
-        refresh();
-      };
-
-      const stopAutoplay = () => {
-        if (intervalId === null) return;
-        globalThis.clearInterval(intervalId);
-        intervalId = null;
+      const show = (index) => {
+        const list = visibleSlides();
+        if (!list.length) return;
+        active = list[((index % list.length) + list.length) % list.length];
+        render();
       };
 
       const syncAutoplay = () => {
-        stopAutoplay();
-        if (
-          isPausedByUser ||
-          isHovered ||
-          hasFocus ||
-          !isInViewport ||
+        if (timer !== null) {
+          globalThis.clearInterval(timer);
+          timer = null;
+        }
+        const idle =
+          pausedByUser ||
+          hovered ||
+          focused ||
+          !inViewport ||
           document.visibilityState === "hidden" ||
           reducedMotion.matches ||
-          availableSlides().length < 2
-        ) {
-          return;
-        }
-
-        intervalId = globalThis.setInterval(() => {
-          const visibleSlides = availableSlides();
-          showSlide(visibleSlides.indexOf(activeSlide) + 1);
-        }, 5600);
+          visibleSlides().length < 2;
+        if (idle) return;
+        timer = globalThis.setInterval(() => {
+          const list = visibleSlides();
+          show(list.indexOf(active) + 1);
+        }, 6000);
       };
 
-      previousButton?.addEventListener("click", () => {
-        const visibleSlides = availableSlides();
-        showSlide(visibleSlides.indexOf(activeSlide) - 1);
+      prevButton?.addEventListener("click", () => {
+        show(visibleSlides().indexOf(active) - 1);
         syncAutoplay();
       });
-
       nextButton?.addEventListener("click", () => {
-        const visibleSlides = availableSlides();
-        showSlide(visibleSlides.indexOf(activeSlide) + 1);
+        show(visibleSlides().indexOf(active) + 1);
         syncAutoplay();
       });
-
       toggleButton?.addEventListener("click", () => {
-        isPausedByUser = !isPausedByUser;
-        setToggleLabel();
+        pausedByUser = !pausedByUser;
+        syncToggle();
         syncAutoplay();
       });
-
       carousel.addEventListener("mouseenter", () => {
-        isHovered = true;
+        hovered = true;
         syncAutoplay();
       });
-
       carousel.addEventListener("mouseleave", () => {
-        isHovered = false;
+        hovered = false;
         syncAutoplay();
       });
-
       carousel.addEventListener("focusin", () => {
-        hasFocus = true;
+        focused = true;
         syncAutoplay();
       });
-
       carousel.addEventListener("focusout", (event) => {
-        hasFocus = Boolean(event.relatedTarget && carousel.contains(event.relatedTarget));
+        focused = Boolean(event.relatedTarget && carousel.contains(event.relatedTarget));
         syncAutoplay();
       });
-
       document.addEventListener("visibilitychange", syncAutoplay);
-
-      if (reducedMotion.addEventListener) {
-        reducedMotion.addEventListener("change", () => {
-          if (reducedMotion.matches) isPausedByUser = true;
-          setToggleLabel();
-          refresh();
-          syncAutoplay();
-        });
-      }
-
-      if ("IntersectionObserver" in globalThis) {
-        const observer = new globalThis.IntersectionObserver(([entry]) => {
-          isInViewport = entry.isIntersecting;
-          syncAutoplay();
-        });
-        observer.observe(carousel);
-      }
-
-      imageCarouselRefreshers.set(carousel, () => {
-        refresh();
+      reducedMotion.addEventListener("change", () => {
+        if (reducedMotion.matches) pausedByUser = true;
+        syncToggle();
+        render();
         syncAutoplay();
       });
+      if ("IntersectionObserver" in globalThis) {
+        new IntersectionObserver(([entry]) => {
+          inViewport = entry.isIntersecting;
+          syncAutoplay();
+        }).observe(carousel);
+      }
+      carousel.refreshCarousel = () => {
+        render();
+        syncAutoplay();
+      };
 
-      setToggleLabel();
-      refresh();
+      syncToggle();
+      render();
       syncAutoplay();
     });
   }
 
-  setupImageCarousels();
+  /* --------------------------- deferred imagery ---------------------------- */
 
-  function loadOptionalImages() {
-    document.querySelectorAll("[data-optional-image]").forEach((figure) => {
+  function initOptionalImages() {
+    for (const figure of document.querySelectorAll("[data-optional-image]")) {
       const image = figure.querySelector("img");
       const source = figure.dataset.optionalImage;
-      if (!image || !source) return;
-
+      if (!image || !source) continue;
+      const carousel = figure.closest("[data-image-carousel]");
       image.addEventListener(
         "load",
         () => {
           figure.hidden = false;
-          const carousel = figure.closest("[data-image-carousel]");
-          if (carousel) imageCarouselRefreshers.get(carousel)?.();
+          carousel?.refreshCarousel?.();
         },
         { once: true },
       );
       image.addEventListener(
         "error",
         () => {
-          const carousel = figure.closest("[data-image-carousel]");
           figure.remove();
-          if (carousel) imageCarouselRefreshers.get(carousel)?.();
+          carousel?.refreshCarousel?.();
         },
         { once: true },
       );
       image.loading = "eager";
       image.src = source;
-    });
+    }
 
-    if (language === "zh") {
-      document.querySelectorAll("img[data-localized-src]").forEach((image) => {
-        const localizedImage = new Image();
-        localizedImage.decoding = "async";
-        localizedImage.addEventListener(
-          "load",
-          () => {
-            image.src = localizedImage.src;
-          },
-          { once: true },
-        );
-        localizedImage.src = image.dataset.localizedSrc;
-      });
+    if (language !== "zh") return;
+    for (const image of document.querySelectorAll("img[data-localized-src]")) {
+      const localized = new Image();
+      localized.decoding = "async";
+      localized.addEventListener(
+        "load",
+        () => {
+          image.src = localized.src;
+        },
+        { once: true },
+      );
+      localized.src = image.dataset.localizedSrc;
     }
   }
 
-  loadOptionalImages();
+  /* --------------------------- release downloads --------------------------- */
 
-  async function updateReleaseDownloads() {
+  async function initReleaseDownloads() {
     const links = [...document.querySelectorAll("[data-release-asset]")];
     if (!links.length || typeof globalThis.fetch !== "function") return;
-
-    const latestReleaseUrl = "https://github.com/madebyzan/knovum/releases/latest";
-    const assetPatterns = {
+    const latestUrl = "https://github.com/madebyzan/knovum/releases/latest";
+    const patterns = {
       "macos-arm64": /_aarch64\.dmg$/i,
       "macos-x64": /_x64\.dmg$/i,
       "windows-x64": /_x64-setup\.exe$/i,
     };
-    const controller = new globalThis.AbortController();
+    const controller = new AbortController();
     const timeout = globalThis.setTimeout(() => controller.abort(), 5000);
-
     try {
-      const response = await globalThis.fetch(
-        "https://api.github.com/repos/madebyzan/knovum/releases/latest",
-        {
-          headers: { Accept: "application/vnd.github+json" },
-          signal: controller.signal,
-        },
-      );
-      if (!response.ok) throw new Error("Latest release lookup failed");
-
+      const response = await fetch("https://api.github.com/repos/madebyzan/knovum/releases/latest", {
+        headers: { Accept: "application/vnd.github+json" },
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error("release lookup failed");
       const release = await response.json();
       const assets = Array.isArray(release.assets) ? release.assets : [];
-
-      links.forEach((link) => {
-        const pattern = assetPatterns[link.dataset.releaseAsset];
-        const asset = pattern && assets.find((candidate) => pattern.test(candidate.name || ""));
-        link.href = asset?.browser_download_url || release.html_url || latestReleaseUrl;
+      for (const link of links) {
+        const asset = assets.find((candidate) => patterns[link.dataset.releaseAsset]?.test(candidate.name || ""));
+        link.href = asset?.browser_download_url || release.html_url || latestUrl;
         link.dataset.releaseReady = asset?.browser_download_url ? "true" : "false";
-      });
-
+      }
       document.querySelectorAll("[data-release-version]").forEach((element) => {
         element.textContent = release.tag_name || "—";
       });
     } catch {
-      links.forEach((link) => {
-        link.href = latestReleaseUrl;
+      for (const link of links) {
+        link.href = latestUrl;
         link.dataset.releaseReady = "false";
-      });
+      }
     } finally {
       globalThis.clearTimeout(timeout);
     }
   }
 
-  void updateReleaseDownloads();
+  /* ------------------------------ small parts ------------------------------ */
 
-  async function copyCommand(button) {
-    const label = button.querySelector("[data-en]");
-    const originalText = label.dataset[language] || label.textContent;
-    const command = button.dataset.copy.replace(/&#10;/g, "\n");
-
-    try {
-      await globalThis.navigator.clipboard.writeText(command);
-      label.textContent = language === "en" ? "Copied" : "已复制";
-      globalThis.setTimeout(() => {
-        label.textContent = originalText;
-      }, 1800);
-    } catch {
-      label.textContent = language === "en" ? "Select to copy" : "请手动复制";
-    }
+  function initCopyButtons() {
+    document.querySelectorAll("[data-copy]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const label = button.querySelector("[data-en]");
+        const original = label?.dataset[language] || label?.textContent || "";
+        try {
+          await globalThis.navigator.clipboard.writeText(button.dataset.copy.replace(/&#10;/g, "\n"));
+          if (label) label.textContent = text("Copied", "已复制");
+        } catch {
+          if (label) label.textContent = text("Select to copy", "请手动复制");
+        }
+        globalThis.setTimeout(() => {
+          if (label) label.textContent = original;
+        }, 1800);
+      });
+    });
   }
 
-  document.querySelectorAll("[data-copy]").forEach((button) => {
-    button.addEventListener("click", () => {
-      void copyCommand(button);
+  function initFaq() {
+    const items = [...document.querySelectorAll(".faq__item")];
+    items.forEach((item) => {
+      item.addEventListener("toggle", () => {
+        if (!item.open) return;
+        items.forEach((other) => {
+          if (other !== item) other.open = false;
+        });
+      });
     });
-  });
+  }
 
+  installAnalytics();
+  initNavigation();
+  markCurrentPage();
+  initScrollEffects();
+  initReveal();
+  initCarousels();
+  initOptionalImages();
+  initCopyButtons();
+  initFaq();
+  void initReleaseDownloads();
   document.querySelectorAll("[data-year]").forEach((element) => {
     element.textContent = String(new Date().getFullYear());
   });
-
-  document.querySelectorAll(".faq-item").forEach((item) => {
-    item.addEventListener("toggle", () => {
-      if (!item.open) return;
-      document.querySelectorAll(".faq-item").forEach((other) => {
-        if (other !== item) other.open = false;
-      });
-    });
-  });
-
-  applyPageLanguage();
+  if (languageButton) {
+    languageButton.addEventListener("click", () => switchLanguage(language === "en" ? "zh" : "en"));
+  }
+  applyLanguage();
   globalThis.requestAnimationFrame(() => body.classList.add("is-ready"));
 }

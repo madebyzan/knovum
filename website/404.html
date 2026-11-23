@@ -2,30 +2,50 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#f2f0e9" />
-    <meta
-      name="description"
-      content="The page could not be found. Return to the Knovum knowledge workspace."
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f3f0e8" />
+    <meta name="description" content="The page could not be found. Return to the Knovum knowledge workspace." />
     <meta name="robots" content="noindex,follow" />
-    <title>Page not found — Knovum</title>
-    <link rel="icon" type="image/png" href="assets/app-icon.png" />
+    <link rel="icon" type="image/png" href="./assets/app-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
+    <title>Page not found — Knovum</title>
   </head>
-  <body>
-    <main class="not-found">
-      <a class="brand" href="./index.html"
-        ><img src="assets/app-icon.png" width="34" height="34" alt="" /><span>knovum</span></a
-      ><span class="not-found__code">404 / NOT FOUND</span>
-      <h1>This page wandered off.<br /><em>Let's find your way back.</em></h1>
-      <p>The page you're looking for may have moved, or the address may be incomplete.</p>
-      <a class="button button--dark" href="./index.html">Return to Knovum <span>↗</span></a>
+  <body id="top" data-page="not-found">
+    <main class="notfound">
+      <div class="wrap" style="display: grid; justify-items: center">
+        <a class="brand" href="./index.html" aria-label="Knovum home">
+          <img src="./assets/app-icon.png" alt="" width="32" height="32" />
+          <span class="brand__name">Knov<em>um</em></span>
+        </a>
+        <p class="notfound__code" aria-hidden="true">4<span>0</span>4</p>
+        <h1 class="display" data-en="This page wandered off." data-zh="这个页面走丢了。">
+          This page wandered off.
+        </h1>
+        <p
+          data-en="The page you're looking for may have moved, or the address may be incomplete."
+          data-zh="你要找的页面可能已被移动，或地址不完整。"
+        >
+          The page you're looking for may have moved, or the address may be incomplete.
+        </p>
+        <div class="notfound__actions">
+          <a class="button" href="./index.html"
+            ><span data-en="Return to Knovum" data-zh="返回 Knovum 首页">Return to Knovum</span>
+            <span class="button__arrow" aria-hidden="true">↗</span></a
+          >
+          <a class="link-arrow" href="./guides/index.html"
+            ><span data-en="Read the guides" data-zh="阅读指南">Read the guides</span>
+            <span aria-hidden="true">→</span></a
+          >
+        </div>
+      </div>
     </main>
+    <script src="./script.js" defer></script>
   </body>
 </html>

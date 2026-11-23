@@ -26,7 +26,7 @@ No package install or build step is required. Run the same lightweight checks us
 
 ## Design and implementation
 
-- Editorial visual system: warm paper, restrained forest green, sage and ochre accents, DM Sans, Instrument Serif, and DM Mono.
+- Editorial visual system: warm paper ground with forest ink, moss and ochre accents; Instrument Serif display, Newsreader prose, DM Sans body, and DM Mono labels, all driven by the tokens in `styles.css`.
 - Responsive navigation and layouts for desktop, tablet, and mobile.
 - English and Simplified Chinese content on every first-party page. The selected language is remembered in local storage when available.
 - Motion is progressive enhancement: scroll reveal, page entry, navigation, hover transitions, and reading progress. Reduced-motion preferences are respected.

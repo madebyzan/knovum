@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#f2f0e9" />
+    <meta name="theme-color" content="#f3f0e8" />
     <meta
       name="description"
       content="Knovum is a free, open-source local-first knowledge management workspace for desktop research, source-grounded AI answers, semantic search, and creation."
@@ -30,11 +30,14 @@
       content="Knovum is a free, open-source local-first knowledge management workspace for desktop research, source-grounded AI answers, semantic search, and creation."
     />
     <meta name="twitter:image" content="https://madebyzan.github.io/knovum/assets/social-card.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <link rel="icon" type="image/png" href="./assets/app-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;650;700&family=Instrument+Serif:ital@0;1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
@@ -66,13 +69,11 @@
         "sameAs": "https://github.com/madebyzan/knovum"
       }
     </script>
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
   </head>
   <body id="top" data-page="home">
     <a class="skip-link" href="#main" data-en="Skip to content" data-zh="跳转到正文">Skip to content</a>
     <div class="reading-progress" aria-hidden="true"><span></span></div>
+
     <div class="announcement">
       <span class="announcement__dot" aria-hidden="true"></span>
       <p
@@ -88,48 +89,41 @@
     </div>
 
     <header class="site-header">
-      <div class="nav-shell">
+      <div class="wrap nav-shell">
         <a class="brand" href="./index.html" aria-label="Knovum home">
-          <img src="./assets/app-icon.png" alt="" width="34" height="34" />
-          <span>knovum</span>
+          <img src="./assets/app-icon.png" alt="" width="32" height="32" />
+          <span class="brand__name">Knov<em>um</em></span>
         </a>
-        <button
-          class="menu-toggle"
-          type="button"
-          aria-label="Open navigation"
-          aria-expanded="false"
-          aria-controls="primary-navigation"
-        >
-          <span></span><span></span>
-        </button>
         <nav class="primary-nav" id="primary-navigation" aria-label="Main navigation">
           <a class="nav-link" href="./product.html" data-en="Product" data-zh="产品">Product</a>
           <a class="nav-link" href="./privacy.html" data-en="Privacy" data-zh="隐私">Privacy</a>
-          <a class="nav-link" href="./download.html" data-en="Download" data-zh="下载">Download</a
-          ><a class="nav-link" href="./guides/index.html" data-en="Guides" data-zh="指南">Guides</a>
+          <a class="nav-link" href="./download.html" data-en="Download" data-zh="下载">Download</a>
+          <a class="nav-link" href="./guides/index.html" data-en="Guides" data-zh="指南">Guides</a>
           <details class="nav-menu">
             <summary>
-              <span data-en="Explore" data-zh="探索">Explore</span
-              ><span class="chevron" aria-hidden="true"></span>
+              <span data-en="Explore" data-zh="探索">Explore</span>
+              <span class="nav-menu__chevron" aria-hidden="true"></span>
             </summary>
             <div class="nav-menu__panel">
               <a href="./about.html"
-                ><strong data-en="About Knovum" data-zh="关于 Knovum">About Knovum</strong
-                ><small data-en="The thinking behind the workspace" data-zh="关于产品的理念与方向"
+                ><strong data-en="About Knovum" data-zh="关于 Knovum">About Knovum</strong>
+                <small
+                  data-en="The thinking behind the workspace"
+                  data-zh="关于产品的理念与方向"
                   >The thinking behind the workspace</small
                 ></a
               >
               <a href="https://github.com/madebyzan/knovum/tree/main/docs" target="_blank" rel="noreferrer"
-                ><strong data-en="Documentation" data-zh="项目文档">Documentation</strong
-                ><small
+                ><strong data-en="Documentation" data-zh="项目文档">Documentation</strong>
+                <small
                   data-en="Guides, concepts, and technical details"
                   data-zh="使用指南、产品概念与技术细节"
                   >Guides, concepts, and technical details</small
                 ></a
               >
               <a href="https://github.com/madebyzan/knovum/releases" target="_blank" rel="noreferrer"
-                ><strong data-en="Release notes" data-zh="版本记录">Release notes</strong
-                ><small data-en="What's new in Knovum" data-zh="了解每个版本的新变化"
+                ><strong data-en="Release notes" data-zh="版本记录">Release notes</strong>
+                <small data-en="What's new in Knovum" data-zh="了解每个版本的新变化"
                   >What's new in Knovum</small
                 ></a
               >
@@ -145,188 +139,346 @@
         </nav>
         <div class="nav-actions">
           <button class="language-toggle" type="button" aria-label="Switch language">中文</button>
-          <a class="button button--small button--dark" href="./download.html"
-            ><span data-en="Get Knovum" data-zh="获取 Knovum">Get Knovum</span
-            ><span aria-hidden="true">↗</span></a
+          <a class="button button--small" href="./download.html"
+            ><span data-en="Get Knovum" data-zh="获取 Knovum">Get Knovum</span>
+            <span class="button__arrow" aria-hidden="true">↗</span></a
           >
+          <button
+            class="menu-toggle"
+            type="button"
+            aria-label="Open navigation"
+            aria-expanded="false"
+            aria-controls="primary-navigation"
+          >
+            <span></span><span></span>
+          </button>
         </div>
       </div>
     </header>
 
     <main id="main">
-      <section class="hero section-wrap">
-        <div class="hero-copy">
-          <div class="eyebrow">
-            <span class="eyebrow__line"></span
-            ><span data-en="A LOCAL-FIRST KNOWLEDGE WORKSPACE" data-zh="本地优先的知识工作空间"
-              >A LOCAL-FIRST KNOWLEDGE WORKSPACE</span
+      <section class="hero">
+        <div class="wrap hero__grid">
+          <div class="hero__copy">
+            <p class="kicker" data-en="A local-first knowledge workspace" data-zh="本地优先的知识工作空间">
+              A local-first knowledge workspace
+            </p>
+            <h1 class="display hero__title" data-reveal="mask">
+              <span data-en="Bring your knowledge" data-zh="让知识汇聚">Bring your knowledge</span><br />
+              <em data-en="into focus." data-zh="让思路清晰。">into focus.</em>
+            </h1>
+            <p
+              class="lede hero__lede"
+              data-en="A considered space for the things you collect, the connections you make, and the work that grows from them. All on your device."
+              data-zh="为你收集的资料、建立的联系，以及由此生长的作品，提供一个有条理的空间。所有内容都在你的设备上。"
             >
+              A considered space for the things you collect, the connections you make, and the work that grows
+              from them. All on your device.
+            </p>
+            <div class="hero__actions">
+              <a class="button" href="./download.html"
+                ><span data-en="Discover Knovum" data-zh="了解并获取 Knovum">Discover Knovum</span>
+                <span class="button__arrow" aria-hidden="true">↗</span></a
+              >
+              <a class="link-arrow" href="./product.html"
+                ><span data-en="Explore the workspace" data-zh="探索工作空间">Explore the workspace</span>
+                <svg
+                  class="link-arrow__icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 17 17 7" /><path d="M9 7h8v8" />
+                </svg></a
+              >
+            </div>
+            <ul class="hero__meta">
+              <li>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 3v18" /><path d="m4.2 7.5 15.6 9" /><path d="m19.8 7.5-15.6 9" />
+                </svg>
+                <span data-en="Free & open source" data-zh="免费开源">Free & open source</span>
+              </li>
+              <li>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m5 12.5 4.5 4.5L19 7" />
+                </svg>
+                <span data-en="No account required" data-zh="无需注册账号">No account required</span>
+              </li>
+              <li>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M4 11 12 4l8 7" /><path d="M6 9.5V20h12V9.5" />
+                </svg>
+                <span data-en="Your library stays local" data-zh="资料库保存在本地">Your library stays local</span>
+              </li>
+            </ul>
           </div>
-          <h1>
-            <span data-en="Bring your knowledge" data-zh="让知识汇聚">Bring your knowledge</span><br /><em
-              data-en="into focus."
-              data-zh="让思路清晰。"
-              >into focus.</em
-            >
-          </h1>
-          <p
-            class="hero-lede"
-            data-en="A considered space for the things you collect, the connections you make, and the work that grows from them. All on your device."
-            data-zh="为你收集的资料、建立的联系，以及由此生长的作品，提供一个有条理的空间。所有内容都在你的设备上。"
-          >
-            A considered space for the things you collect, the connections you make, and the work that grows
-            from them. All on your device.
+          <div class="hero__visual" data-reveal>
+            <figure class="plate">
+              <img
+                src="./assets/product-screenshot.webp"
+                alt="Knovum desktop workspace with source material, connected knowledge objects, and an answer with citations."
+                width="1600"
+                height="1000"
+                fetchpriority="high"
+              />
+              <figcaption class="plate__caption">
+                <strong data-en="The Knovum workspace" data-zh="Knovum 工作空间">The Knovum workspace</strong>
+                <span data-en="Real product · current interface" data-zh="真实产品 · 当前界面"
+                  >Real product · current interface</span
+                >
+              </figcaption>
+            </figure>
+            <span class="plate__index" aria-hidden="true">K/01</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="rail">
+        <div class="rail__track">
+          <span class="rail__item" data-en="Think in context" data-zh="在上下文中思考">Think in context</span>
+          <span class="rail__item" data-en="Follow the sources" data-zh="让来源清晰可循">Follow the sources</span>
+          <span class="rail__item" data-en="Keep your data close" data-zh="让数据留在身边">Keep your data close</span>
+          <span class="rail__item" data-en="Create with intention" data-zh="有意识地创造">Create with intention</span>
+          <span class="rail__item" aria-hidden="true" data-en="Think in context" data-zh="在上下文中思考">Think in context</span>
+          <span class="rail__item" aria-hidden="true" data-en="Follow the sources" data-zh="让来源清晰可循">Follow the sources</span>
+          <span class="rail__item" aria-hidden="true" data-en="Keep your data close" data-zh="让数据留在身边">Keep your data close</span>
+          <span class="rail__item" aria-hidden="true" data-en="Create with intention" data-zh="有意识地创造">Create with intention</span>
+        </div>
+      </div>
+
+      <section class="section">
+        <div class="wrap">
+          <p class="kicker">
+            <span class="kicker__num" aria-hidden="true">01</span>
+            <span data-en="A better place to think" data-zh="更好的思考空间">A better place to think</span>
           </p>
-          <div class="hero-actions">
-            <a class="button button--dark" href="./download.html"
-              ><span data-en="Discover Knovum" data-zh="了解并获取 Knovum">Discover Knovum</span
-              ><span class="button-arrow" aria-hidden="true">↗</span></a
-            >
-            <a class="text-link" href="./product.html"
-              ><span data-en="Explore the workspace" data-zh="探索工作空间">Explore the workspace</span
-              ><span aria-hidden="true">↓</span></a
-            >
+          <div class="split-head">
+            <h2 class="display" data-reveal="mask" data-en="Your work is more than a collection of files." data-zh="你的工作，不只是文件的集合。">
+              Your work is more than a collection of files.
+            </h2>
+            <div class="split-head__copy" data-reveal>
+              <p
+                class="lede"
+                data-en="A useful idea rarely arrives all at once. It takes shape across articles, notes, conversations, recordings, and half-finished thoughts. Knovum gives them a shared context — so the next connection is easier to see."
+                data-zh="一个真正有用的想法，很少一次成形。它散落在文章、笔记、对话、录音和未完成的思绪里。Knovum 为它们建立共同的上下文，让下一条联系更容易浮现。"
+              >
+                A useful idea rarely arrives all at once. It takes shape across articles, notes, conversations,
+                recordings, and half-finished thoughts. Knovum gives them a shared context — so the next
+                connection is easier to see.
+              </p>
+              <a class="link-arrow" href="./product.html"
+                ><span data-en="Meet your workspace" data-zh="认识你的工作空间">Meet your workspace</span>
+                <svg
+                  class="link-arrow__icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 17 17 7" /><path d="M9 7h8v8" />
+                </svg></a
+              >
+            </div>
           </div>
-          <div class="hero-meta">
-            <span
-              ><i aria-hidden="true">✳</i
-              ><span data-en="Free & open source" data-zh="免费开源">Free & open source</span></span
-            >
-            <span
-              ><i aria-hidden="true">⌂</i
-              ><span data-en="No account required" data-zh="无需注册账号">No account required</span></span
-            >
-            <span
-              ><i aria-hidden="true">◉</i
-              ><span data-en="Your library stays local" data-zh="资料库保存在本地"
-                >Your library stays local</span
-              ></span
-            >
-          </div>
-        </div>
-        <div class="hero-visual" data-reveal>
-          <div class="visual-label">
-            <span
-              ><i class="status-dot"></i
-              ><span data-en="THE KNOVUM WORKSPACE" data-zh="KNOVUM 工作空间"
-                >THE KNOVUM WORKSPACE</span
-              ></span
-            ><span>01 / 05</span>
-          </div>
-          <div class="product-frame">
-            <img
-              src="./assets/product-screenshot.webp"
-              alt="Knovum desktop workspace with source material, connected knowledge objects, and an answer with citations."
-              width="1600"
-              height="1000"
-              fetchpriority="high"
-            />
-          </div>
-          <div class="visual-caption">
-            <span data-en="A living space for your knowledge." data-zh="让知识在一个空间里持续生长。"
-              >A living space for your knowledge.</span
-            ><span data-en="Real product · Current interface" data-zh="真实产品 · 当前界面"
-              >Real product · Current interface</span
-            >
-          </div>
-          <span class="visual-index" aria-hidden="true">K / 01</span>
-        </div>
-      </section>
 
-      <section class="principle-rail" aria-label="Knovum principles">
-        <div class="principle-rail__inner">
-          <span data-en="THINK IN CONTEXT" data-zh="在上下文中思考">THINK IN CONTEXT</span><i></i>
-          <span data-en="FOLLOW THE SOURCES" data-zh="让来源清晰可循">FOLLOW THE SOURCES</span><i></i>
-          <span data-en="KEEP YOUR DATA CLOSE" data-zh="让数据留在身边">KEEP YOUR DATA CLOSE</span><i></i>
-          <span data-en="CREATE WITH INTENTION" data-zh="有意识地创造">CREATE WITH INTENTION</span>
-        </div>
-      </section>
+          <div class="feature-grid">
+            <article class="feature" data-reveal>
+              <div class="feature__top">
+                <span>01 / Space</span>
+                <svg
+                  class="feature__icon"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="5" cy="12" r="2.5" /><circle cx="19" cy="6" r="2.5" /><circle cx="19" cy="18" r="2.5" />
+                  <path d="m7.3 10.9 9.4-3.8" /><path d="m7.3 13.1 9.4 3.8" />
+                </svg>
+              </div>
+              <h3 data-en="A canvas that makes room for your thinking." data-zh="一张为思考留出空间的画布。">
+                A canvas that makes room for your thinking.
+              </h3>
+              <p
+                data-en="Bring mixed media into one visual space. Arrange freely, group related material, and connect ideas with evidence."
+                data-zh="把多种媒体放进同一个可视空间。自由排列、整理相关资料，并用证据连接想法。"
+              >
+                Bring mixed media into one visual space. Arrange freely, group related material, and connect
+                ideas with evidence.
+              </p>
+              <a class="link-arrow feature__link" href="./product.html#spaces"
+                ><span data-en="Explore Spaces" data-zh="探索 Spaces">Explore Spaces</span>
+                <svg
+                  class="link-arrow__icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 17 17 7" /><path d="M9 7h8v8" />
+                </svg></a
+              >
+            </article>
 
-      <section class="section-wrap section-block home-intro">
-        <div class="section-kicker">
-          <span>01</span
-          ><span data-en="A BETTER PLACE TO THINK" data-zh="更好的思考空间">A BETTER PLACE TO THINK</span>
-        </div>
-        <div class="split-heading">
-          <h2 data-en="Your work is more than a collection of files." data-zh="你的工作，不只是文件的集合。">
-            Your work is more than a collection of files.
-          </h2>
-          <div class="split-copy">
-            <p
-              data-en="A useful idea rarely arrives all at once. It takes shape across articles, notes, conversations, recordings, and half-finished thoughts. Knovum gives them a shared context — so the next connection is easier to see."
-              data-zh="一个真正有用的想法，很少一次成形。它散落在文章、笔记、对话、录音和未完成的思绪里。Knovum 为它们建立共同的上下文，让下一条联系更容易浮现。"
-            >
-              A useful idea rarely arrives all at once. It takes shape across articles, notes, conversations,
-              recordings, and half-finished thoughts. Knovum gives them a shared context — so the next
-              connection is easier to see.
-            </p>
-            <a class="underlined-link" href="./product.html"
-              ><span data-en="Meet your workspace" data-zh="认识你的工作空间">Meet your workspace</span
-              ><span aria-hidden="true">↗</span></a
-            >
-          </div>
-        </div>
-        <div class="home-feature-grid">
-          <article class="home-feature home-feature--tall">
-            <div class="feature-top">
-              <span>01 / SPACE</span><span class="feature-glyph" aria-hidden="true">⌘</span>
-            </div>
-            <h3 data-en="A canvas that makes room for your thinking." data-zh="一张为思考留出空间的画布。">
-              A canvas that makes room for your thinking.
-            </h3>
-            <p
-              data-en="Bring mixed media into one visual space. Arrange freely, group related material, and connect ideas with evidence."
-              data-zh="把多种媒体放进同一个可视空间。自由排列、整理相关资料，并用证据连接想法。"
-            >
-              Bring mixed media into one visual space. Arrange freely, group related material, and connect
-              ideas with evidence.
-            </p>
-            <a class="feature-more" href="./product.html#spaces"
-              ><span data-en="Explore Spaces" data-zh="探索 Spaces">Explore Spaces</span
-              ><span aria-hidden="true">↗</span></a
-            >
-          </article>
-          <article class="home-feature">
-            <div class="feature-top">
-              <span>02 / UNDERSTAND</span><span class="feature-glyph" aria-hidden="true">“</span>
-            </div>
-            <h3 data-en="Answers that show their work." data-zh="每个答案，都交代依据。">
-              Answers that show their work.
-            </h3>
-            <p
-              data-en="Ask about your material and follow citations to the exact passage, PDF page, or timestamp."
-              data-zh="围绕自己的资料提问，并通过引用回到准确段落、PDF 页码或录音时间点。"
-            >
-              Ask about your material and follow citations to the exact passage, PDF page, or timestamp.
-            </p>
-            <a class="feature-more" href="./product.html#grounded-answers"
-              ><span data-en="Explore grounded answers" data-zh="了解引用溯源">Explore grounded answers</span
-              ><span aria-hidden="true">↗</span></a
-            >
-          </article>
-          <article class="home-feature">
-            <div class="feature-top">
-              <span>03 / CREATE</span><span class="feature-glyph" aria-hidden="true">✳</span>
-            </div>
-            <h3 data-en="New work, with its context intact." data-zh="保留上下文，创造新的成果。">
-              New work, with its context intact.
-            </h3>
-            <p
-              data-en="Make documents and media from selected knowledge, with a record of the sources and revisions behind them."
-              data-zh="从选中的知识创建文档与媒体，并保留背后的来源和版本记录。"
-            >
-              Make documents and media from selected knowledge, with a record of the sources and revisions
-              behind them.
-            </p>
-            <a class="feature-more" href="./product.html#creation"
-              ><span data-en="Explore creation" data-zh="了解内容创作">Explore creation</span
-              ><span aria-hidden="true">↗</span></a
-            >
-          </article>
-          <article class="home-feature home-feature--wide">
-            <div class="wide-feature-copy">
-              <div class="feature-top">
-                <span>04 / LOCAL-FIRST</span><span class="feature-glyph" aria-hidden="true">⌂</span>
+            <article class="feature" data-reveal style="--d: 1">
+              <div class="feature__top">
+                <span>02 / Understand</span>
+                <svg
+                  class="feature__icon"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M9.5 7h-4v5h3l-1.5 4.5" /><path d="M18.5 7h-4v5h3l-1.5 4.5" />
+                </svg>
+              </div>
+              <h3 data-en="Answers that show their work." data-zh="每个答案，都交代依据。">
+                Answers that show their work.
+              </h3>
+              <p
+                data-en="Ask about your material and follow citations to the exact passage, PDF page, or timestamp."
+                data-zh="围绕自己的资料提问，并通过引用回到准确段落、PDF 页码或录音时间点。"
+              >
+                Ask about your material and follow citations to the exact passage, PDF page, or timestamp.
+              </p>
+              <a class="link-arrow feature__link" href="./product.html#grounded-answers"
+                ><span data-en="Explore grounded answers" data-zh="了解引用溯源">Explore grounded answers</span>
+                <svg
+                  class="link-arrow__icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 17 17 7" /><path d="M9 7h8v8" />
+                </svg></a
+              >
+            </article>
+
+            <article class="feature" data-reveal style="--d: 2">
+              <div class="feature__top">
+                <span>03 / Create</span>
+                <svg
+                  class="feature__icon"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 3v18" /><path d="m4.2 7.5 15.6 9" /><path d="m19.8 7.5-15.6 9" />
+                </svg>
+              </div>
+              <h3 data-en="New work, with its context intact." data-zh="保留上下文，创造新的成果。">
+                New work, with its context intact.
+              </h3>
+              <p
+                data-en="Make documents and media from selected knowledge, with a record of the sources and revisions behind them."
+                data-zh="从选中的知识创建文档与媒体，并保留背后的来源和版本记录。"
+              >
+                Make documents and media from selected knowledge, with a record of the sources and revisions
+                behind them.
+              </p>
+              <a class="link-arrow feature__link" href="./product.html#creation"
+                ><span data-en="Explore creation" data-zh="了解内容创作">Explore creation</span>
+                <svg
+                  class="link-arrow__icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 17 17 7" /><path d="M9 7h8v8" />
+                </svg></a
+              >
+            </article>
+
+            <article class="feature" data-reveal style="--d: 3">
+              <div class="feature__top">
+                <span>04 / Local-first</span>
+                <svg
+                  class="feature__icon"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 3 5 6v6c0 4.4 3 7.4 7 9 4-1.6 7-4.6 7-9V6l-7-3Z" />
+                </svg>
               </div>
               <h3 data-en="Your knowledge belongs with you." data-zh="你的知识，始终由你掌握。">
                 Your knowledge belongs with you.
@@ -338,45 +490,73 @@
                 Your library is stored on your device. Use local capabilities where available, and choose when
                 a task should involve a cloud provider.
               </p>
-              <a class="feature-more" href="./privacy.html"
-                ><span data-en="Understand the privacy model" data-zh="了解隐私机制"
-                  >Understand the privacy model</span
-                ><span aria-hidden="true">↗</span></a
+              <a class="link-arrow feature__link" href="./privacy.html"
+                ><span data-en="Understand the privacy model" data-zh="了解隐私机制">Understand the privacy model</span>
+                <svg
+                  class="link-arrow__icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 17 17 7" /><path d="M9 7h8v8" />
+                </svg></a
               >
-            </div>
-            <div class="wide-feature-note" aria-label="Local-first architecture">
-              <span class="orbit orbit--one"></span><span class="orbit orbit--two"></span
-              ><span class="orbit orbit--three"></span>
-              <div class="local-core">
-                <span>YOUR<br />SPACE</span
-                ><small data-en="ON YOUR DEVICE" data-zh="保存在本地">ON YOUR DEVICE</small>
+            </article>
+
+            <article class="feature feature--wide" data-reveal>
+              <div>
+                <div class="feature__top">
+                  <span>05 / Architecture</span>
+                </div>
+                <h3 data-en="Everything orbits your device." data-zh="一切都围绕你的设备运转。">
+                  Everything orbits your device.
+                </h3>
+                <p
+                  data-en="Spaces, files, extracted text, and search indexes live in local application data. Cloud models join only when you invite them, and only for the task at hand."
+                  data-zh="Space、文件、提取文本与搜索索引都保存在本地应用数据中。云端模型只有在你主动选择时才会参与，且仅服务于当前任务。"
+                >
+                  Spaces, files, extracted text, and search indexes live in local application data. Cloud
+                  models join only when you invite them, and only for the task at hand.
+                </p>
               </div>
-            </div>
-          </article>
+              <div class="orbit" aria-hidden="true">
+                <span class="orbit__ring orbit__ring--1"></span>
+                <span class="orbit__ring orbit__ring--2"></span>
+                <span class="orbit__ring orbit__ring--3"></span>
+                <span class="orbit__core"
+                  ><span>YOUR<br />SPACE</span>
+                  <small data-en="ON YOUR DEVICE" data-zh="保存在本地">ON YOUR DEVICE</small></span
+                >
+              </div>
+            </article>
+          </div>
         </div>
       </section>
 
-      <section class="workflow-section">
-        <div class="section-wrap section-block">
-          <div class="section-kicker section-kicker--light">
-            <span>02</span
-            ><span data-en="A NATURAL WAY OF WORKING" data-zh="自然的工作方式">A NATURAL WAY OF WORKING</span>
-          </div>
-          <div class="workflow-heading">
-            <h2 data-en="From scattered sources to considered work." data-zh="从分散资料，到有据可依的成果。">
-              From scattered sources to considered work.
-            </h2>
-            <p
-              data-en="A simple rhythm for research, learning, and creation."
-              data-zh="为研究、学习与创作建立一种自然节奏。"
-            >
-              A simple rhythm for research, learning, and creation.
-            </p>
-          </div>
-          <div class="workflow-layout">
-            <div class="workflow-list">
-              <article class="workflow-step">
-                <span>01</span>
+      <section class="section section--dark">
+        <div class="wrap">
+          <p class="kicker">
+            <span class="kicker__num" aria-hidden="true">02</span>
+            <span data-en="A natural way of working" data-zh="自然的工作方式">A natural way of working</span>
+          </p>
+          <div class="workflow">
+            <div class="workflow__aside">
+              <h2 class="display" data-reveal="mask" data-en="From scattered sources to considered work." data-zh="从分散资料，到有据可依的成果。">
+                From scattered sources to considered work.
+              </h2>
+              <p class="lede" data-en="A simple rhythm for research, learning, and creation." data-zh="为研究、学习与创作建立一种自然节奏。">
+                A simple rhythm for research, learning, and creation.
+              </p>
+            </div>
+            <div class="workflow__steps">
+              <article class="step" data-reveal>
+                <span class="step__num" aria-hidden="true">01</span>
                 <div>
                   <h3 data-en="Collect without overthinking." data-zh="先收集，不必急着整理。">
                     Collect without overthinking.
@@ -390,8 +570,8 @@
                   </p>
                 </div>
               </article>
-              <article class="workflow-step">
-                <span>02</span>
+              <article class="step" data-reveal style="--d: 1">
+                <span class="step__num" aria-hidden="true">02</span>
                 <div>
                   <h3 data-en="Arrange what belongs together." data-zh="把有关联的内容放在一起。">
                     Arrange what belongs together.
@@ -405,8 +585,8 @@
                   </p>
                 </div>
               </article>
-              <article class="workflow-step">
-                <span>03</span>
+              <article class="step" data-reveal style="--d: 2">
+                <span class="step__num" aria-hidden="true">03</span>
                 <div>
                   <h3 data-en="Explore, then verify." data-zh="深入探索，再回到来源核对。">
                     Explore, then verify.
@@ -419,8 +599,8 @@
                   </p>
                 </div>
               </article>
-              <article class="workflow-step">
-                <span>04</span>
+              <article class="step" data-reveal style="--d: 3">
+                <span class="step__num" aria-hidden="true">04</span>
                 <div>
                   <h3 data-en="Create with the context intact." data-zh="保留上下文，继续创造。">
                     Create with the context intact.
@@ -435,7 +615,9 @@
                 </div>
               </article>
             </div>
-            <figure class="workflow-figure" data-reveal>
+          </div>
+          <figure class="workflow__figure" data-reveal>
+            <div class="plate">
               <img
                 src="./assets/source-to-work.webp"
                 alt="Knovum workflow: collect sources, connect ideas, ask questions, and create traceable work."
@@ -443,157 +625,218 @@
                 width="1600"
                 height="1000"
               />
-              <figcaption>
-                <span data-en="THE KNOWLEDGE LOOP" data-zh="知识的循环">THE KNOWLEDGE LOOP</span
-                ><span>01 — 04</span>
-              </figcaption>
-            </figure>
-          </div>
+            </div>
+            <figcaption>
+              <span data-en="The knowledge loop" data-zh="知识的循环">The knowledge loop</span>
+              <span aria-hidden="true">01 — 04</span>
+            </figcaption>
+          </figure>
         </div>
       </section>
 
-      <section class="section-wrap section-block trust-section">
-        <div class="section-kicker">
-          <span>03</span><span data-en="BUILT AROUND TRUST" data-zh="以信任为基础">BUILT AROUND TRUST</span>
-        </div>
-        <div class="trust-grid">
-          <div class="trust-lead">
-            <p class="eyebrow-text" data-en="YOUR KNOWLEDGE IS PERSONAL." data-zh="你的知识，属于你自己。">
-              YOUR KNOWLEDGE IS PERSONAL.
-            </p>
-            <h2>
-              <span data-en="Your library." data-zh="你的资料库。">Your library.</span><br /><em
-                data-en="Your machine."
-                data-zh="你的设备。"
-                >Your machine.</em
-              >
-            </h2>
-            <p
-              data-en="Knovum does not require an account and does not run a Knovum cloud service. Your Spaces, files, extracted text, search indexes, and backups live in local application data."
-              data-zh="Knovum 无需注册账号，也不运行 Knovum 云服务。你的 Spaces、文件、提取文本、搜索索引和备份都保存在本地应用数据中。"
-            >
-              Knovum does not require an account and does not run a Knovum cloud service. Your Spaces, files,
-              extracted text, search indexes, and backups live in local application data.
-            </p>
-            <a class="underlined-link" href="./privacy.html"
-              ><span data-en="Read how privacy works" data-zh="了解隐私如何实现">Read how privacy works</span
-              ><span aria-hidden="true">↗</span></a
-            >
-          </div>
-          <div class="trust-points">
-            <article>
-              <span class="trust-icon" aria-hidden="true">⌂</span>
-              <div>
-                <h3 data-en="Local by design" data-zh="本地优先的设计">Local by design</h3>
-                <p
-                  data-en="Your knowledge library and search index are stored on your machine."
-                  data-zh="知识资料库与搜索索引都保存在你的设备上。"
-                >
-                  Your knowledge library and search index are stored on your machine.
-                </p>
-              </div>
-            </article>
-            <article>
-              <span class="trust-icon" aria-hidden="true">◉</span>
-              <div>
-                <h3 data-en="Useful without a model account" data-zh="无需模型账号也能使用">
-                  Useful without a model account
-                </h3>
-                <p
-                  data-en="Editing, organization, local search, transcription, OCR, and other supported on-device capabilities do not require a cloud AI account."
-                  data-zh="编辑、整理、本地搜索、转录、OCR 等受支持的本地功能，不需要云端 AI 账号。"
-                >
-                  Editing, organization, local search, transcription, OCR, and other supported on-device
-                  capabilities do not require a cloud AI account.
-                </p>
-              </div>
-            </article>
-            <article>
-              <span class="trust-icon" aria-hidden="true">↗</span>
-              <div>
-                <h3 data-en="Cloud use stays explicit" data-zh="云端使用保持明确">
-                  Cloud use stays explicit
-                </h3>
-                <p
-                  data-en="When you choose a cloud model, only the context needed for that task is sent to the provider you selected."
-                  data-zh="当你选择云端模型时，只有该任务所需的上下文会发送给你选定的服务商。"
-                >
-                  When you choose a cloud model, only the context needed for that task is sent to the provider
-                  you selected.
-                </p>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="closing-cta">
-        <div class="closing-orbit" aria-hidden="true"></div>
-        <div class="section-wrap closing-inner">
-          <div class="section-kicker section-kicker--light">
-            <span>04</span
-            ><span data-en="MAKE ROOM FOR WHAT'S NEXT" data-zh="为下一步，留出空间"
-              >MAKE ROOM FOR WHAT'S NEXT</span
-            >
-          </div>
-          <p class="closing-overline" data-en="A LITTLE MORE ROOM TO THINK." data-zh="给思考多一点空间。">
-            A LITTLE MORE ROOM TO THINK.
+      <section class="section">
+        <div class="wrap">
+          <p class="kicker">
+            <span class="kicker__num" aria-hidden="true">03</span>
+            <span data-en="Built around trust" data-zh="以信任为基础">Built around trust</span>
           </p>
-          <h2 data-en="Bring your knowledge together." data-zh="让知识汇聚，让想法发生。">
+          <div class="trust">
+            <div class="trust__lead" data-reveal>
+              <p class="mono" data-en="Your knowledge is personal." data-zh="你的知识，属于你自己。">
+                Your knowledge is personal.
+              </p>
+              <h2 class="display">
+                <span data-en="Your library." data-zh="你的资料库。">Your library.</span><br />
+                <em data-en="Your machine." data-zh="你的设备。">Your machine.</em>
+              </h2>
+              <p
+                class="lede"
+                data-en="Knovum does not require an account and does not run a Knovum cloud service. Your Spaces, files, extracted text, search indexes, and backups live in local application data."
+                data-zh="Knovum 无需注册账号，也不运行 Knovum 云服务。你的 Spaces、文件、提取文本、搜索索引和备份都保存在本地应用数据中。"
+              >
+                Knovum does not require an account and does not run a Knovum cloud service. Your Spaces, files,
+                extracted text, search indexes, and backups live in local application data.
+              </p>
+              <a class="link-arrow" href="./privacy.html"
+                ><span data-en="Read how privacy works" data-zh="了解隐私如何实现">Read how privacy works</span>
+                <svg
+                  class="link-arrow__icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 17 17 7" /><path d="M9 7h8v8" />
+                </svg></a
+              >
+            </div>
+            <div class="trust__list">
+              <article class="trust__item" data-reveal>
+                <span class="trust__icon" aria-hidden="true">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M4 11 12 4l8 7" /><path d="M6 9.5V20h12V9.5" />
+                  </svg>
+                </span>
+                <div>
+                  <h3 data-en="Local by design" data-zh="本地优先的设计">Local by design</h3>
+                  <p
+                    data-en="Your knowledge library and search index are stored on your machine."
+                    data-zh="知识资料库与搜索索引都保存在你的设备上。"
+                  >
+                    Your knowledge library and search index are stored on your machine.
+                  </p>
+                </div>
+              </article>
+              <article class="trust__item" data-reveal style="--d: 1">
+                <span class="trust__icon" aria-hidden="true">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  >
+                    <circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="2.5" />
+                  </svg>
+                </span>
+                <div>
+                  <h3 data-en="Useful without a model account" data-zh="无需模型账号也能使用">
+                    Useful without a model account
+                  </h3>
+                  <p
+                    data-en="Editing, organization, local search, transcription, OCR, and other supported on-device capabilities do not require a cloud AI account."
+                    data-zh="编辑、整理、本地搜索、转录、OCR 等受支持的本地功能，不需要云端 AI 账号。"
+                  >
+                    Editing, organization, local search, transcription, OCR, and other supported on-device
+                    capabilities do not require a cloud AI account.
+                  </p>
+                </div>
+              </article>
+              <article class="trust__item" data-reveal style="--d: 2">
+                <span class="trust__icon" aria-hidden="true">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M7 17 17 7" /><path d="M9 7h8v8" />
+                  </svg>
+                </span>
+                <div>
+                  <h3 data-en="Cloud use stays explicit" data-zh="云端使用保持明确">Cloud use stays explicit</h3>
+                  <p
+                    data-en="When you choose a cloud model, only the context needed for that task is sent to the provider you selected."
+                    data-zh="当你选择云端模型时，只有该任务所需的上下文会发送给你选定的服务商。"
+                  >
+                    When you choose a cloud model, only the context needed for that task is sent to the
+                    provider you selected.
+                  </p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band--dark">
+        <div class="band__orbit" aria-hidden="true"></div>
+        <div class="wrap band__inner">
+          <p class="mono band__overline" data-en="A little more room to think." data-zh="给思考多一点空间。">
+            A little more room to think.
+          </p>
+          <h2 class="display" data-reveal="mask" data-en="Bring your knowledge together." data-zh="让知识汇聚，让想法发生。">
             Bring your knowledge together.
           </h2>
           <p data-en="Free, open source, and ready for your desktop." data-zh="免费、开源，为桌面工作而生。">
             Free, open source, and ready for your desktop.
           </p>
-          <div class="closing-actions">
-            <a class="button button--cream" href="./download.html"
-              ><span data-en="Find your version" data-zh="选择你的版本">Find your version</span
-              ><span aria-hidden="true">↗</span></a
-            ><a
-              class="closing-secondary"
+          <div class="band__actions">
+            <a class="button button--light" href="./download.html"
+              ><span data-en="Find your version" data-zh="选择你的版本">Find your version</span>
+              <span class="button__arrow" aria-hidden="true">↗</span></a
+            >
+            <a
+              class="link-arrow"
               href="https://github.com/madebyzan/knovum"
               target="_blank"
               rel="noreferrer"
-              ><span data-en="Explore the source" data-zh="查看源代码">Explore the source</span
-              ><span aria-hidden="true">↗</span></a
+              ><span data-en="Explore the source" data-zh="查看源代码">Explore the source</span>
+              <svg
+                class="link-arrow__icon"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M7 17 17 7" /><path d="M9 7h8v8" />
+              </svg></a
             >
           </div>
         </div>
       </section>
     </main>
 
-    <footer class="site-footer">
-      <div class="section-wrap footer-main">
-        <div class="footer-brand">
-          <a class="brand brand--footer" href="./index.html"
-            ><img src="./assets/app-icon.png" alt="" width="32" height="32" /><span>knovum</span></a
+    <footer class="footer">
+      <div class="wrap footer__main">
+        <div>
+          <p class="footer__word">Knov<em>um</em></p>
+          <p
+            class="footer__tagline"
+            data-en="Bring your knowledge together. Make it useful."
+            data-zh="让知识汇聚，让它真正有用。"
           >
-          <p data-en="Bring your knowledge together. Make it useful." data-zh="让知识汇聚，让它真正有用。">
             Bring your knowledge together. Make it useful.
           </p>
-          <span class="footer-motto" data-en="MADE FOR CURIOUS MINDS." data-zh="为好奇心而造。"
-            >MADE FOR CURIOUS MINDS.</span
+          <span class="footer__motto" data-en="Made for curious minds." data-zh="为好奇心而造。"
+            >Made for curious minds.</span
           >
         </div>
-        <div class="footer-links">
-          <div>
-            <span class="footer-label" data-en="THE PRODUCT" data-zh="产品">THE PRODUCT</span
-            ><a href="./product.html" data-en="Overview" data-zh="产品概览">Overview</a
-            ><a href="./privacy.html" data-en="Privacy" data-zh="隐私">Privacy</a
-            ><a href="./download.html" data-en="Download" data-zh="下载">Download</a>
+        <div class="footer__cols">
+          <div class="footer__col">
+            <span class="footer__label" data-en="The product" data-zh="产品">The product</span>
+            <a href="./product.html" data-en="Overview" data-zh="产品概览">Overview</a>
+            <a href="./privacy.html" data-en="Privacy" data-zh="隐私">Privacy</a>
+            <a href="./download.html" data-en="Download" data-zh="下载">Download</a>
           </div>
-          <div>
-            <span class="footer-label" data-en="DISCOVER" data-zh="了解更多">DISCOVER</span
-            ><a href="./about.html" data-en="About" data-zh="关于">About</a
-            ><a href="./guides/index.html" data-en="Guides" data-zh="指南">Guides</a
-            ><a
+          <div class="footer__col">
+            <span class="footer__label" data-en="Discover" data-zh="了解更多">Discover</span>
+            <a href="./about.html" data-en="About" data-zh="关于">About</a>
+            <a href="./guides/index.html" data-en="Guides" data-zh="指南">Guides</a>
+            <a
               href="https://github.com/madebyzan/knovum/tree/main/docs"
               target="_blank"
               rel="noreferrer"
               data-en="Documentation"
               data-zh="项目文档"
               >Documentation</a
-            ><a
+            >
+            <a
               href="https://github.com/madebyzan/knovum/releases"
               target="_blank"
               rel="noreferrer"
@@ -602,17 +845,18 @@
               >Release notes</a
             >
           </div>
-          <div>
-            <span class="footer-label" data-en="OPEN SOURCE" data-zh="开源项目">OPEN SOURCE</span
-            ><a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a
-            ><a
+          <div class="footer__col">
+            <span class="footer__label" data-en="Open source" data-zh="开源项目">Open source</span>
+            <a href="https://github.com/madebyzan/knovum" target="_blank" rel="noreferrer">GitHub ↗</a>
+            <a
               href="https://github.com/madebyzan/knovum/blob/main/LICENSE"
               target="_blank"
               rel="noreferrer"
               data-en="MIT License"
               data-zh="MIT 许可证"
               >MIT License</a
-            ><a
+            >
+            <a
               href="https://github.com/madebyzan/knovum/issues"
               target="_blank"
               rel="noreferrer"
@@ -623,13 +867,14 @@
           </div>
         </div>
       </div>
-      <div class="section-wrap footer-bottom">
-        <span>© <span data-year></span> Knovum</span
-        ><span data-en="Thoughtfully made. Openly shared." data-zh="认真打造，开放共享。"
+      <div class="wrap footer__bottom">
+        <span>© <span data-year></span> Knovum</span>
+        <span data-en="Thoughtfully made. Openly shared." data-zh="认真打造，开放共享。"
           >Thoughtfully made. Openly shared.</span
-        ><a href="#top"
-          ><span data-en="Back to top" data-zh="返回顶部">Back to top</span
-          ><span aria-hidden="true">↑</span></a
+        >
+        <a href="#top"
+          ><span data-en="Back to top" data-zh="返回顶部">Back to top</span>
+          <span aria-hidden="true">↑</span></a
         >
       </div>
     </footer>
