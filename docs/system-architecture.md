@@ -2,6 +2,8 @@
 
 Knovum is one local-first desktop application. A Tauri 2/Rust host owns the operating-system,
 storage, security, and process-runtime boundaries; one Vue 3 WebView owns product presentation.
+The only other WebView is Source Reading Mode's in-window child, which displays foreign or preview
+bytes and carries no Knovum authority.
 Spaces is the primary product experience and Settings is an application-level destination. Source
 and dependency ownership is defined in [architecture.md](architecture.md); Space and node behavior
 belongs to [spaces.md](spaces.md), and visual rules belong to [ui-system.md](ui-system.md).
@@ -33,11 +35,22 @@ Vue 3 WebView
       +-- features/    product capabilities
       |     +-- Spaces image-preview module Worker (bitmap input/output; no IPC or storage authority)
       +-- shared/      neutral contracts and durable UI compositions
+      |
+in-window child WebView "source-reader-web" (Tauri multi-webview, gated by the `unstable` feature)
+      +-- external http/https pages and the one-token `knovum-preview` asset slot
+      +-- no command, plugin or remote origin is granted to it
 ```
 
 The WebView never receives unrestricted SQL, filesystem, process, shell, credential, or model
 network access. Rust commands authorize and validate requests at the boundary, then return typed
 data and machine-readable reason codes. Vue owns localized copy and presentation.
+
+The child WebView shares the `main` window, so a capability naming that window names it too; what
+keeps it unprivileged is that no shipped capability declares a `remote` origin, so an external
+document cannot reach IPC, and `desktop::navigation` admits only `http`/`https`/`about` plus the
+`knovum-preview` scheme for its label. That scheme serves one token-bound preview at a time, only to
+that label, only for an asset Rust already authorized. The reader's document rendering (PDF, `.docx`,
+spreadsheets, code) runs in the product WebView over the bounded Space asset scope instead.
 
 Spaces shares one image-preview Worker among mounted preview consumers. The browser owns Worker and
 OffscreenCanvas execution; Spaces owns bounded resolution, active-image priority, stale-result disposal and
