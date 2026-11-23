@@ -7909,6 +7909,16 @@ dependencies = [
 ]
 
 [[package]]
+[[package]]
+name = "libsais-rs"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec55b7be74ed721889b8bc62d53e6a032d2b3b9bb60a4942b45b1e8362e64583"
+dependencies = [
+ "rayon",
+]
+
+[[package]]
 name = "libsqlite3-sys"
 version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
