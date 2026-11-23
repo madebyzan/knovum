@@ -1,6 +1,6 @@
-# Advisory databases change without the repository changing, so auditing against them on every
-# pull request turns unrelated disclosures into failed checks. They are audited here on a schedule
-# (a failed run notifies the maintainers) and again before every release in release-candidate.yml.
+# Advisory databases change without the repository changing, so audit them on a schedule
+# instead of making unrelated disclosures block pull requests or releases. Run this workflow
+# manually when an immediate audit is needed.
 # Locally: `pnpm security`.
 name: Security
 
