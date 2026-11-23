@@ -19,6 +19,12 @@ ignore = [
   { id = "RUSTSEC-2026-0391", reason = "affects stream::raw::{Encoder,Decoder}::with_context, which neither arrow-ipc nor lance-encoding calls" },
   { id = "RUSTSEC-2026-0398", reason = "affects seekable::Seekable::decompress, and the seekable feature is not enabled; enabled are arrays, legacy, std, zdict_builder" },
   { id = "RUSTSEC-2026-0403", reason = "affects stream::write::Decoder; dependents use only zstd::bulk and stream::copy_decode, which the advisory lists as unaffected" },
+  # libsais-rs 0.2.2 is yanked upstream, but remains a transitive dependency of
+  # lance-index 10.0.0, pulled in by the exact-pinned lancedb =0.37.1 used by the
+  # local LanceDB retrieval index. The release lockfile retains its published checksum
+  # and no alternate non-yanked release is available within this dependency constraint.
+  # Do not silently admit yanked dependencies: cargo-deny reports this one explicitly
+  # so any future LanceDB upgrade can remove the exception and refresh the lockfile.
   # zip 8.6.0 stays in the graph only through docx-rs =0.4.22 (its newest published release,
   # which requires zip ^8.6). Knovum calls docx-rs solely in `documents::generation::docx` via
   # `Docx::build().pack(&mut cursor)` to generate `.docx` output, enabling only `zip` deflate
