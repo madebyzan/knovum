@@ -1,18 +1,14 @@
 <script setup lang="ts">
-import { Grid2x2, Grip, Square } from "@lucide/vue";
+import { Grip, Grid2x2, Square } from "@lucide/vue";
 import { storeToRefs } from "pinia";
-import { RadioGroupItem, RadioGroupRoot } from "reka-ui";
 import { computed, shallowRef, type Component } from "vue";
 import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { CANVAS_PATTERN_LABEL_KEY } from "../../../../foundation/preferences/canvas-options";
 import { usePreferencesStore } from "../../../../foundation/preferences/preferences-store";
 import type { CanvasBackgroundPattern } from "../../../../shared/contracts/generated/CanvasBackgroundPattern";
 import { canvasBackgroundPatterns } from "../../../../shared/contracts/generated/contract-values";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import { useSpaceStore } from "../../session/space-store";
 
 const PATTERN_ICON_BY_VALUE: Readonly<Record<CanvasBackgroundPattern, Component>> = {
@@ -21,116 +17,86 @@ const PATTERN_ICON_BY_VALUE: Readonly<Record<CanvasBackgroundPattern, Component>
   none: Square,
 };
 
+/** The trigger lives in the overflow-clipped bottom toolbar, so the choices teleport to the
+ *  viewport and unfold in a row along the toolbar to the right of the measured icon. */
+const ORBIT_STEP_PX = 34;
+
 const { t } = useI18n();
 const store = useSpaceStore();
-const preferences = usePreferencesStore();
-const { canvas } = storeToRefs(preferences);
+const { canvas } = storeToRefs(usePreferencesStore());
 const open = shallowRef(false);
+const triggerWrap = shallowRef<HTMLElement>();
+const orbitCenter = shallowRef({ x: 0, y: 0 });
 
 const effectiveSpacePattern = computed(() => store.backgroundPattern ?? canvas.value.backgroundPattern);
 
-const patternOptions = computed(() =>
-  canvasBackgroundPatterns.map((value) => ({
-    value,
-    label: t(CANVAS_PATTERN_LABEL_KEY[value]),
-    icon: PATTERN_ICON_BY_VALUE[value],
-  })),
-);
-
-function isPattern(value: unknown): value is CanvasBackgroundPattern {
-  return typeof value === "string" && (canvasBackgroundPatterns as readonly string[]).includes(value);
+function toggle() {
+  if (!open.value) {
+    const rect = triggerWrap.value?.getBoundingClientRect();
+    if (rect) orbitCenter.value = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  }
+  open.value = !open.value;
 }
 
-function selectSpacePattern(value: unknown) {
-  if (isPattern(value) && value !== store.backgroundPattern) {
-    store.setBackgroundPattern(value);
-  }
+function orbitStyle(index: number) {
+  const x = open.value ? (index + 1) * ORBIT_STEP_PX : 0;
+  const stagger = open.value ? index : canvasBackgroundPatterns.length - 1 - index;
+  return {
+    left: `${orbitCenter.value.x}px`,
+    top: `${orbitCenter.value.y}px`,
+    transform: `translate(-50%, -50%) translateX(${x}px) scale(${open.value ? 1 : 0})`,
+    opacity: open.value ? "1" : "0",
+    transitionDelay: `${stagger * 45}ms`,
+  };
 }
 
-async function selectGlobalPattern(value: unknown) {
-  if (!isPattern(value) || value === canvas.value.backgroundPattern) return;
-  try {
-    await preferences.setCanvasBackgroundPattern(value);
-  } catch (error) {
-    toast.error(`${t("settings.appearance.saveFailed")}: ${getErrorMessage(error)}`);
-  }
+function pick(value: CanvasBackgroundPattern) {
+  store.setBackgroundPattern(value);
+  open.value = false;
 }
 </script>
 
 <template>
-  <UiPopover v-model:open="open" side="top" align="start" :side-offset="8" class="w-64 space-y-3 p-3">
-    <template #trigger>
-      <UiIconButton
-        :label="t('spaces.canvas.background.title')"
-        :tooltip="!open"
-        size="sm"
-        class="size-5 rounded-sm"
-        :class="
-          open
-            ? 'bg-surface-control-hover text-fg-primary'
-            : 'text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary'
-        "
-      >
-        <Grid2x2 class="size-3" :stroke-width="1.55" />
-      </UiIconButton>
-    </template>
-    <div class="space-y-1.5">
-      <div class="flex items-center justify-between gap-2">
-        <span class="text-caption font-medium text-fg-secondary">
-          {{ t("spaces.canvas.background.currentSpace") }}
-        </span>
-        <button
-          v-if="store.backgroundPattern !== undefined"
-          type="button"
-          data-action="follow-global-pattern"
-          class="rounded-sm px-1 text-caption-sm font-medium text-fg-accent transition-colors hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus focus-visible:outline-none"
-          @click="store.setBackgroundPattern(undefined)"
-        >
-          {{ t("spaces.canvas.background.followGlobal") }}
-        </button>
-      </div>
-      <RadioGroupRoot
-        :model-value="effectiveSpacePattern"
-        orientation="horizontal"
-        :aria-label="t('spaces.canvas.background.currentSpace')"
-        data-pattern-scope="space"
-        class="grid grid-cols-3 rounded-md bg-surface-control p-0.5"
-        @update:model-value="selectSpacePattern"
-      >
-        <RadioGroupItem
-          v-for="option in patternOptions"
-          :key="option.value"
-          :value="option.value"
-          class="flex h-7 cursor-default items-center justify-center gap-1.5 rounded-[5px] px-1.5 text-caption font-medium transition-[background-color,color,box-shadow] duration-100 ease-standard outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=checked]:bg-surface-raised data-[state=checked]:text-fg-primary data-[state=checked]:shadow-control data-[state=unchecked]:text-fg-secondary data-[state=unchecked]:hover:text-fg-primary"
-          @click="selectSpacePattern(option.value)"
-        >
-          <component :is="option.icon" class="size-3.5 shrink-0" :stroke-width="1.6" />
-          <span class="truncate">{{ option.label }}</span>
-        </RadioGroupItem>
-      </RadioGroupRoot>
-    </div>
-    <div class="space-y-1.5">
-      <div class="text-caption font-medium text-fg-secondary">
-        {{ t("spaces.canvas.background.globalDefault") }}
-      </div>
-      <RadioGroupRoot
-        :model-value="canvas.backgroundPattern"
-        orientation="horizontal"
-        :aria-label="t('spaces.canvas.background.globalDefault')"
-        data-pattern-scope="global"
-        class="grid grid-cols-3 rounded-md bg-surface-control p-0.5"
-        @update:model-value="selectGlobalPattern"
-      >
-        <RadioGroupItem
-          v-for="option in patternOptions"
-          :key="option.value"
-          :value="option.value"
-          class="flex h-7 cursor-default items-center justify-center gap-1.5 rounded-[5px] px-1.5 text-caption font-medium transition-[background-color,color,box-shadow] duration-100 ease-standard outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=checked]:bg-surface-raised data-[state=checked]:text-fg-primary data-[state=checked]:shadow-control data-[state=unchecked]:text-fg-secondary data-[state=unchecked]:hover:text-fg-primary"
-        >
-          <component :is="option.icon" class="size-3.5 shrink-0" :stroke-width="1.6" />
-          <span class="truncate">{{ option.label }}</span>
-        </RadioGroupItem>
-      </RadioGroupRoot>
-    </div>
-  </UiPopover>
+  <div ref="triggerWrap" @keydown.esc="open = false">
+    <UiIconButton
+      :label="t('spaces.canvas.background.title')"
+      :tooltip="!open"
+      size="sm"
+      class="size-5 rounded-sm"
+      :class="
+        open
+          ? 'bg-surface-control-hover text-fg-primary'
+          : 'text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary'
+      "
+      :aria-expanded="open"
+      @click="toggle"
+    >
+      <component :is="PATTERN_ICON_BY_VALUE[effectiveSpacePattern]" class="size-3" :stroke-width="1.55" />
+    </UiIconButton>
+  </div>
+  <Teleport to="body">
+    <div
+      v-if="open"
+      data-pattern-dismiss
+      class="fixed inset-0 z-40 cursor-default"
+      @pointerdown="open = false"
+    />
+    <button
+      v-for="(value, index) in canvasBackgroundPatterns"
+      :key="value"
+      type="button"
+      data-pattern-orbit
+      :data-pattern-value="value"
+      :aria-label="t(CANVAS_PATTERN_LABEL_KEY[value])"
+      :aria-pressed="value === effectiveSpacePattern"
+      :inert="!open"
+      :style="orbitStyle(index)"
+      :class="value === effectiveSpacePattern ? 'text-fg-accent' : 'text-fg-secondary'"
+      class="fixed z-50 flex size-7 cursor-default items-center justify-center rounded-full border border-stroke-default bg-surface-raised shadow-control transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] outline-none hover:border-stroke-strong hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus motion-reduce:transition-none"
+      @keydown.esc="open = false"
+      @click="pick(value)"
+    >
+      <component :is="PATTERN_ICON_BY_VALUE[value]" class="size-3.5" :stroke-width="1.6" />
+    </button>
+  </Teleport>
 </template>

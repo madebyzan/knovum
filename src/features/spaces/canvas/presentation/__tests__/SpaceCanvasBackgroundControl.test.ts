@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
 import { i18n } from "../../../../../foundation/i18n/instance";
-import { usePreferencesStore } from "../../../../../foundation/preferences/preferences-store";
 import { useSpaceStore } from "../../../session/space-store";
 import SpaceCanvasBackgroundControl from "../SpaceCanvasBackgroundControl.vue";
 
@@ -17,45 +16,34 @@ describe("SpaceCanvasBackgroundControl", () => {
     setActivePinia(createPinia());
   });
 
-  it("updates current Space pattern override, resets to global default, and updates global pattern", async () => {
+  it("orbits the pattern choices above the icon and applies the picked one", async () => {
     const store = useSpaceStore();
-    const preferences = usePreferencesStore();
-    const globalPatternSpy = vi.spyOn(preferences, "setCanvasBackgroundPattern").mockResolvedValue();
-
     const wrapper = mount(SpaceCanvasBackgroundControl, {
       attachTo: document.body,
       global: { plugins: [i18n] },
     });
 
-    await wrapper.get("button").trigger("click");
-    await nextTick();
+    const trigger = wrapper.get("button[aria-expanded]");
+    expect(trigger.attributes("aria-expanded")).toBe("false");
+    expect(document.body.querySelectorAll("[data-pattern-orbit]")).toHaveLength(3);
 
-    const spaceRadios = Array.from(
-      document.body.querySelectorAll<HTMLButtonElement>("[data-pattern-scope='space'] [role='radio']"),
-    );
-    const globalRadios = Array.from(
-      document.body.querySelectorAll<HTMLButtonElement>("[data-pattern-scope='global'] [role='radio']"),
-    );
-    const spaceGridButton = spaceRadios.find((button) => button.textContent?.includes("Grid"));
-    const globalNoneButton = globalRadios.find((button) => button.textContent?.includes("None"));
-    expect(spaceGridButton).toBeDefined();
-    expect(globalNoneButton).toBeDefined();
+    await trigger.trigger("click");
+    expect(trigger.attributes("aria-expanded")).toBe("true");
 
-    spaceGridButton!.click();
+    const grid = document.body.querySelector<HTMLElement>('[data-pattern-value="grid"]');
+    expect(grid?.getAttribute("aria-pressed")).toBe("false");
+    grid?.click();
     await nextTick();
     expect(store.backgroundPattern).toBe("grid");
+    expect(trigger.attributes("aria-expanded")).toBe("false");
 
-    const followGlobalButton = document.body.querySelector<HTMLButtonElement>(
-      "[data-action='follow-global-pattern']",
-    );
-    expect(followGlobalButton).not.toBeNull();
-    followGlobalButton!.click();
-    await nextTick();
-    expect(store.backgroundPattern).toBeUndefined();
+    await trigger.trigger("click");
+    const relitGrid = document.body.querySelector<HTMLElement>('[data-pattern-value="grid"]');
+    expect(relitGrid?.getAttribute("aria-pressed")).toBe("true");
 
-    globalNoneButton!.click();
+    document.body.querySelector("[data-pattern-dismiss]")?.dispatchEvent(new Event("pointerdown"));
     await nextTick();
-    expect(globalPatternSpy).toHaveBeenCalledWith("none");
+    expect(trigger.attributes("aria-expanded")).toBe("false");
 
     wrapper.unmount();
   });

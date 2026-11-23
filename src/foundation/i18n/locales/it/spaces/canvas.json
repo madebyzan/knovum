@@ -177,9 +177,6 @@
   },
   "background": {
     "title": "Sfondo dell’area di lavoro",
-    "cyclePattern": "Cambia il motivo di sfondo dell’area di lavoro",
-    "currentSpace": "Spazio attuale",
-    "globalDefault": "Predefinito globale",
-    "followGlobal": "Segui globale"
+    "cyclePattern": "Cambia il motivo di sfondo dell’area di lavoro"
   }
 }

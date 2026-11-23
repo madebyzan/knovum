@@ -177,9 +177,6 @@
   },
   "background": {
     "title": "キャンバス背景",
-    "cyclePattern": "キャンバス背景パターンを切り替え",
-    "currentSpace": "現在のスペース",
-    "globalDefault": "全体のデフォルト",
-    "followGlobal": "全体に従う"
+    "cyclePattern": "キャンバス背景パターンを切り替え"
   }
 }

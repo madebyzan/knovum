@@ -177,9 +177,6 @@
   },
   "background": {
     "title": "畫布背景",
-    "cyclePattern": "切換畫布背景圖案",
-    "currentSpace": "目前空間",
-    "globalDefault": "全域預設",
-    "followGlobal": "跟隨全域"
+    "cyclePattern": "切換畫布背景圖案"
   }
 }

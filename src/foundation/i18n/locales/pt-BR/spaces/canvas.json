@@ -177,9 +177,6 @@
   },
   "background": {
     "title": "Fundo da tela",
-    "cyclePattern": "Alternar padrão de fundo da tela",
-    "currentSpace": "Espaço atual",
-    "globalDefault": "Padrão global",
-    "followGlobal": "Seguir global"
+    "cyclePattern": "Alternar padrão de fundo da tela"
   }
 }
