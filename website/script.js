@@ -57,7 +57,10 @@
   function syncMenuLabel() {
     if (!menuButton) return;
     const open = menuButton.getAttribute("aria-expanded") === "true";
-    menuButton.setAttribute("aria-label", open ? text("Close navigation", "关闭导航") : text("Open navigation", "打开导航"));
+    menuButton.setAttribute(
+      "aria-label",
+      open ? text("Close navigation", "关闭导航") : text("Open navigation", "打开导航"),
+    );
   }
 
   function setMenu(open) {
@@ -185,7 +188,9 @@
         toggleButton.setAttribute("aria-pressed", String(!pausedByUser));
         toggleButton.setAttribute(
           "aria-label",
-          pausedByUser ? text("Resume automatic playback", "恢复自动播放") : text("Pause automatic playback", "暂停自动播放"),
+          pausedByUser
+            ? text("Resume automatic playback", "恢复自动播放")
+            : text("Pause automatic playback", "暂停自动播放"),
         );
         const label = toggleButton.querySelector("span");
         if (label) label.textContent = pausedByUser ? text("Play", "播放") : text("Pause", "暂停");
@@ -359,7 +364,9 @@
       const release = await response.json();
       const assets = Array.isArray(release.assets) ? release.assets : [];
       for (const link of links) {
-        const asset = assets.find((candidate) => patterns[link.dataset.releaseAsset]?.test(candidate.name || ""));
+        const asset = assets.find((candidate) =>
+          patterns[link.dataset.releaseAsset]?.test(candidate.name || ""),
+        );
         link.href = asset?.browser_download_url || release.html_url || latestUrl;
         link.dataset.releaseReady = asset?.browser_download_url ? "true" : "false";
       }

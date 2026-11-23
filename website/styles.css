@@ -151,8 +151,7 @@ ol {
   outline-offset: 3px;
 }
 
-:where(.section--dark, .footer, .band--dark)
-  :where(a, button, summary, [tabindex]):focus-visible {
+:where(.section--dark, .footer, .band--dark) :where(a, button, summary, [tabindex]):focus-visible {
   outline-color: var(--focus-ring-dark);
 }
 
@@ -487,7 +486,9 @@ body[data-locale="zh"] .display {
   backdrop-filter: blur(16px) saturate(1.1);
   -webkit-backdrop-filter: blur(16px) saturate(1.1);
   border-bottom: 1px solid transparent;
-  transition: border-color 0.3s var(--ease), background 0.3s var(--ease);
+  transition:
+    border-color 0.3s var(--ease),
+    background 0.3s var(--ease);
 }
 
 .site-header.is-scrolled {
@@ -646,7 +647,9 @@ body[data-locale="zh"] .display {
   font: 500 var(--text-xs) / 1 var(--font-mono);
   letter-spacing: 0.08em;
   cursor: pointer;
-  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+  transition:
+    color 0.2s var(--ease),
+    border-color 0.2s var(--ease);
 }
 
 .language-toggle:hover {
@@ -672,7 +675,9 @@ body[data-locale="zh"] .display {
   right: 0.5rem;
   height: 1.5px;
   background: var(--ink);
-  transition: transform 0.3s var(--ease), top 0.3s var(--ease);
+  transition:
+    transform 0.3s var(--ease),
+    top 0.3s var(--ease);
 }
 
 .menu-toggle span:first-child {
@@ -1136,7 +1141,10 @@ body[data-locale="zh"] .step h3 {
   border: 1px solid var(--line);
   border-radius: 50%;
   color: var(--moss);
-  transition: background 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease);
+  transition:
+    background 0.3s var(--ease),
+    color 0.3s var(--ease),
+    border-color 0.3s var(--ease);
 }
 
 .trust__item:hover .trust__icon {
@@ -1293,7 +1301,9 @@ body[data-locale="zh"] .step h3 {
   padding-block: 0.375rem;
   color: var(--cream-dim);
   font-size: var(--text-sm);
-  transition: color 0.2s var(--ease), transform 0.2s var(--ease);
+  transition:
+    color 0.2s var(--ease),
+    transform 0.2s var(--ease);
 }
 
 .footer__col a:hover {
@@ -1431,7 +1441,9 @@ body[data-locale="zh"] .step h3 {
   inset: 0;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.7s var(--ease), visibility 0.7s;
+  transition:
+    opacity 0.7s var(--ease),
+    visibility 0.7s;
 }
 
 .carousel__slide.is-active {
@@ -1501,7 +1513,10 @@ body[data-locale="zh"] .step h3 {
   font: 500 var(--text-xs) / 1 var(--font-mono);
   letter-spacing: 0.1em;
   cursor: pointer;
-  transition: background 0.25s var(--ease), color 0.25s var(--ease), border-color 0.25s var(--ease);
+  transition:
+    background 0.25s var(--ease),
+    color 0.25s var(--ease),
+    border-color 0.25s var(--ease);
 }
 
 .carousel__button:hover {
@@ -1715,7 +1730,9 @@ body[data-locale="zh"] .ktype strong {
   border: 1px solid var(--line);
   border-radius: 3px;
   background: var(--cream);
-  transition: box-shadow 0.35s var(--ease), transform 0.35s var(--ease);
+  transition:
+    box-shadow 0.35s var(--ease),
+    transform 0.35s var(--ease);
 }
 
 .platform:hover {
@@ -1895,7 +1912,9 @@ body[data-locale="zh"] .start-step h3 {
   font: 500 var(--text-xs) / 1 var(--font-mono);
   letter-spacing: 0.08em;
   cursor: pointer;
-  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+  transition:
+    color 0.2s var(--ease),
+    border-color 0.2s var(--ease);
 }
 
 .terminal__copy:hover {
@@ -2150,7 +2169,9 @@ body[data-locale="zh"] .value h3 {
   align-items: baseline;
   padding: var(--space-6) 0;
   border-bottom: 1px solid var(--line);
-  transition: padding-left 0.35s var(--ease), background 0.35s var(--ease);
+  transition:
+    padding-left 0.35s var(--ease),
+    background 0.35s var(--ease);
 }
 
 .guide-row:hover {
@@ -2449,7 +2470,9 @@ body[data-locale="zh"] .prose blockquote {
   border: 1px solid var(--line);
   border-radius: 3px;
   background: var(--cream);
-  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  transition:
+    transform 0.3s var(--ease),
+    box-shadow 0.3s var(--ease);
 }
 
 .related-card:hover {
@@ -2620,7 +2643,9 @@ body.is-ready .hero__visual {
     background: var(--paper);
     transform: translateX(100%);
     visibility: hidden;
-    transition: transform 0.5s var(--ease-out), visibility 0.5s;
+    transition:
+      transform 0.5s var(--ease-out),
+      visibility 0.5s;
     overflow-y: auto;
   }
 
@@ -2640,7 +2665,9 @@ body.is-ready .hero__visual {
     border-bottom: 1px solid var(--line-soft);
     opacity: 0;
     transform: translateY(1rem);
-    transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
+    transition:
+      opacity 0.5s var(--ease-out),
+      transform 0.5s var(--ease-out);
   }
 
   body[data-locale="zh"] .nav-link,
