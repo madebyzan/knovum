@@ -13,11 +13,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Tag, notes and advisories are platform-independent, so they are decided once on the cheapest
-  # runner. Running them inside the matrix paid for them three times on billed desktop runners and
-  # delayed the first build by their duration.
+  # Tag and reviewed release notes are platform-independent, so validate them once before the
+  # platform matrix. Advisory databases are checked by the scheduled Security workflow instead.
   prepare:
-    name: Validate tag and audit dependencies
+    name: Validate release metadata
     runs-on: ubuntu-latest
     outputs:
       notes: ${{ steps.notes.outputs.body }}
@@ -31,13 +30,6 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - uses: astral-sh/setup-uv@v10.3.3
-        with:
-          version: "0.12.23"
-      - name: Install locked dependencies
-        run: |
-          corepack enable
-          pnpm install --frozen-lockfile
       - name: Validate the tag and read its reviewed release notes
         id: notes
         if: github.event_name == 'push'
@@ -49,14 +41,6 @@ jobs:
             echo
             echo KNOVUM_RELEASE_NOTES
           } >> "$GITHUB_OUTPUT"
-      - name: Audit web and Python dependencies against current advisories
-        run: pnpm security:web && pnpm security:python
-      - name: Audit Rust dependencies and licenses
-        uses: EmbarkStudios/cargo-deny-action@v2
-        with:
-          rust-version: "1.97.1"
-          manifest-path: src-tauri/Cargo.toml
-          command: check advisories licenses
 
   build:
     name: Package ${{ matrix.platform }}
