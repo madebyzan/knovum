@@ -60,22 +60,10 @@
       "label": "Padrão de fundo",
       "description": "Escolha pontos, uma grade sutil ou uma tela limpa."
     },
-    "backdrop": {
-      "label": "Fundo ambiente",
-      "description": "Escolha um fundo suave que se adapta aos temas claro e escuro."
-    },
     "patterns": {
       "dots": "Pontos",
       "grid": "Grade",
       "none": "Nenhum"
-    },
-    "backdrops": {
-      "none": "Padrão",
-      "morningMist": "Névoa da manhã",
-      "summerGlow": "Brilho de verão",
-      "auroraSilk": "Seda boreal",
-      "quietCanopy": "Copa serena",
-      "duskTide": "Maré do crepúsculo"
     }
   }
 }

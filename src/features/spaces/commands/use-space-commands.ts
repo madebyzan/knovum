@@ -132,8 +132,8 @@ export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandCont
       title: t("spaces.canvas.background.cyclePattern"),
       category: "canvas",
       run: () =>
-        preferences.setCanvasBackgroundPattern(
-          nextCanvasBackgroundPattern(preferences.canvas.backgroundPattern),
+        store.setBackgroundPattern(
+          nextCanvasBackgroundPattern(store.backgroundPattern ?? preferences.canvas.backgroundPattern),
         ),
     };
     const knowledgeHealthCommand: AppCommand = {

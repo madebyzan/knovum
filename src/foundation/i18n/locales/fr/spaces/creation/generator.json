@@ -28,6 +28,10 @@
   "duration": "Durée",
   "generate": "Générer",
   "generating": "Génération…",
+  "blocked": {
+    "emptyPrompt": "Saisissez une instruction pour générer",
+    "noTarget": "Configurez un modèle disponible pour générer"
+  },
   "task": {
     "document": "Génération du document",
     "image": "Génération de l’image",

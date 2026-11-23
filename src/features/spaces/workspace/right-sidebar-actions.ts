@@ -1,8 +1,11 @@
+import type { CanvasBackgroundPattern } from "../../../shared/contracts/generated/CanvasBackgroundPattern";
 import type { SpacePlacement } from "../canvas/navigation-requests";
 import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import {
   classifyReadableSource,
+  SOURCE_READER_WIDTH_MAX,
+  SOURCE_READER_WIDTH_MIN,
   type SourceReaderPane,
   type SourceReaderRequest,
 } from "../reading/source-reader-target";
@@ -100,6 +103,24 @@ export function createRightSidebarActions(
     state.readingTarget.value = undefined;
     state.readingHistory.value = [];
     state.readingHistoryIndex.value = -1;
+    state.readerFocusMode.value = false;
+  }
+
+  function setReaderWidth(size: number) {
+    if (!Number.isFinite(size)) return;
+    state.readerWidth.value = Math.min(
+      SOURCE_READER_WIDTH_MAX,
+      Math.max(SOURCE_READER_WIDTH_MIN, Math.round(size * 10) / 10),
+    );
+  }
+
+  function toggleReaderFocusMode() {
+    if (!state.readingTarget.value) return;
+    state.readerFocusMode.value = !state.readerFocusMode.value;
+  }
+
+  function setBackgroundPattern(pattern: CanvasBackgroundPattern | undefined) {
+    state.backgroundPattern.value = pattern;
   }
 
   function openSource(target: KnowledgePeekTarget, options: OpenSourceOptions = {}) {
@@ -138,6 +159,9 @@ export function createRightSidebarActions(
     setReadingPane,
     stepReadingHistory,
     closeSourceReader,
+    setReaderWidth,
+    toggleReaderFocusMode,
+    setBackgroundPattern,
     openKnowledgeHealth,
     openEditorAtSource,
   };

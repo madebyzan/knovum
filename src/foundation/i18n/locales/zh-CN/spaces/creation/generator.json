@@ -28,6 +28,10 @@
   "duration": "时长",
   "generate": "生成",
   "generating": "正在生成…",
+  "blocked": {
+    "emptyPrompt": "输入提示词后生成",
+    "noTarget": "请先配置可用的生成模型"
+  },
   "task": {
     "document": "正在生成文档",
     "image": "正在生成图片",

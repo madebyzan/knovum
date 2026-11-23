@@ -84,26 +84,22 @@ async fn active_spaces(
 ) -> Result<Vec<SearchSpace>, String> {
     let rows = sqlx::query(
         "SELECT s.id,s.title,g.id AS generation_id,g.embedding_spec_id FROM spaces s \
-         LEFT JOIN spaces_retrieval_generations g ON g.space_id=s.id AND g.status='active' \
-         WHERE s.archived_at IS NULL ORDER BY s.id",
+         JOIN spaces_retrieval_generations g ON g.space_id=s.id AND g.status='active' \
+         WHERE s.archived_at IS NULL AND g.embedding_spec_id=$1 ORDER BY s.id",
     )
+    .bind(embedding_spec_id)
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;
     rows.into_iter()
         .map(|row| {
-            let id: Option<String> = row.try_get("generation_id").map_err(db::sql_error)?;
-            let spec: Option<String> = row.try_get("embedding_spec_id").map_err(db::sql_error)?;
-            let generation = IndexGeneration {
-                id: id.ok_or(REBUILD_REQUIRED)?,
-                embedding_spec_id: spec
-                    .filter(|spec| spec == embedding_spec_id)
-                    .ok_or(REBUILD_REQUIRED)?,
-            };
             Ok(SearchSpace {
                 id: row.try_get("id").map_err(db::sql_error)?,
                 title: row.try_get("title").map_err(db::sql_error)?,
-                generation,
+                generation: IndexGeneration {
+                    id: row.try_get("generation_id").map_err(db::sql_error)?,
+                    embedding_spec_id: row.try_get("embedding_spec_id").map_err(db::sql_error)?,
+                },
             })
         })
         .collect()

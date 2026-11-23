@@ -33,7 +33,14 @@
   "input": {
     "placeholder": "Frage zu diesem Space stellen oder Inhalt entwerfen…",
     "send": "Senden",
-    "shortcutHint": "Eingeben"
+    "shortcutHint": "Eingeben",
+    "blocked": {
+      "emptyPrompt": "Frage oder Anweisung eingeben, um zu senden",
+      "noTarget": "Verfügbares Modell oder Agenten zum Senden konfigurieren",
+      "notReady": "Konversation wird vorbereitet…",
+      "pickingFiles": "Dateiauswahl zuerst abschließen",
+      "unresolvedFiles": "Nicht verfügbare externe Dateien zuerst erneut verknüpfen oder entfernen"
+    }
   },
   "conversations": {
     "preparing": "Konversation wird gestartet…",

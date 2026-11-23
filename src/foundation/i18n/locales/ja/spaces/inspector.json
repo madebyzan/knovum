@@ -71,6 +71,8 @@
     "rotateClockwise": "90°回転",
     "typeHere": "テキストを入力…",
     "preview": "プレビュー",
-    "followSelection": "選択に合わせて切替"
+    "followSelection": "選択に合わせて切替",
+    "focusMode": "集中モード",
+    "exitFocusMode": "集中モードを終了"
   }
 }

@@ -2,7 +2,11 @@
 import { ArrowUp, FileUp, Pause, Square } from "@lucide/vue";
 import { useTextareaAutosize } from "@vueuse/core";
 import { computed, ref, useTemplateRef } from "vue";
+import { useI18n } from "vue-i18n";
 
+import { canStartWith } from "../../../../foundation/ai/ai-readiness";
+import AiReadinessNotice from "../../../../foundation/ai/AiReadinessNotice.vue";
+import { useAiReadiness } from "../../../../foundation/ai/use-ai-readiness";
 import { isComposing } from "../../../../foundation/dom/composition";
 import type { TaskTarget } from "../../../../shared/contracts/generated/TaskTarget";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
@@ -18,6 +22,8 @@ import { useConversationFileDrop } from "./use-conversation-file-drop";
 const prompt = defineModel<string>({ required: true });
 const target = defineModel<TaskTarget | undefined>("target");
 const targetAvailable = ref(false);
+const { t } = useI18n();
+const readiness = useAiReadiness(() => [{ kind: "routed", purpose: "knowledge", target: target.value }]);
 const props = defineProps<{
   /** An answer is being produced: the send button becomes the way to stop it. */
   running: boolean;
@@ -54,21 +60,22 @@ const { hovering: fileHover } = useConversationFileDrop(composerRoot, {
 const selectedUnattached = computed(() =>
   props.attachmentCandidates.filter(({ selected, attached }) => selected && !attached),
 );
-const canSend = computed(
-  () =>
-    Boolean(prompt.value.trim() && target.value && targetAvailable.value) &&
-    !props.running &&
-    !props.disabled &&
-    !props.pickingFiles &&
-    !props.unresolvedFileNames.length,
-);
+const sendBlockedReason = computed(() => {
+  if (props.disabled) return t("spaces.conversation.input.blocked.notReady");
+  if (props.pickingFiles) return t("spaces.conversation.input.blocked.pickingFiles");
+  if (props.unresolvedFileNames.length) return t("spaces.conversation.input.blocked.unresolvedFiles");
+  if (!target.value || !targetAvailable.value || !canStartWith(readiness.value)) {
+    return t("spaces.conversation.input.blocked.noTarget");
+  }
+  if (!prompt.value.trim()) return t("spaces.conversation.input.blocked.emptyPrompt");
+  return undefined;
+});
+const canSend = computed(() => !props.running && !sendBlockedReason.value);
 defineExpose({
   /** Focuses the prompt with the caret at the end of the current draft. */
   focus() {
-    const input = textarea.value;
-    if (!input) return;
-    input.focus();
-    input.setSelectionRange(prompt.value.length, prompt.value.length);
+    textarea.value?.focus();
+    textarea.value?.setSelectionRange(prompt.value.length, prompt.value.length);
   },
 });
 
@@ -150,8 +157,9 @@ function submit(event?: KeyboardEvent) {
         </UiIconButton>
         <UiIconButton
           v-else
-          :label="$t('spaces.conversation.input.send')"
-          :shortcut="$t('spaces.conversation.input.shortcutHint')"
+          :label="sendBlockedReason ?? t('spaces.conversation.input.send')"
+          :shortcut="canSend ? t('spaces.conversation.input.shortcutHint') : undefined"
+          tooltip
           size="sm"
           :tone="canSend ? 'primary' : 'neutral'"
           :class="!canSend && 'rounded-full bg-surface-control text-fg-tertiary'"
@@ -162,6 +170,7 @@ function submit(event?: KeyboardEvent) {
         </UiIconButton>
       </div>
     </div>
+    <AiReadinessNotice :readiness="readiness" class="pt-1.5" />
     <p v-if="attachmentError" role="alert" class="pt-1.5 text-caption text-fg-danger">
       {{ attachmentError }}
     </p>

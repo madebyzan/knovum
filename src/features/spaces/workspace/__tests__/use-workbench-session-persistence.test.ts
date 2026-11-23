@@ -4,6 +4,7 @@ import { nextTick, ref, shallowRef } from "vue";
 
 import { createTestSpace } from "../../__tests__/support/session-context";
 import type { Space } from "../../model/space";
+import { SOURCE_READER_WIDTH_DEFAULT, type SourceReadingTarget } from "../../reading/source-reader-target";
 import { defaultSpaceViewSession, type SpaceViewSession } from "../space-view-session";
 import { useWorkbenchSessionPersistence } from "../use-workbench-session-persistence";
 import { createSpaceCanvasTab, createSpaceEditorTab, type SpaceWorkbenchTab } from "../workbench-tab";
@@ -27,6 +28,10 @@ describe("useWorkbenchSessionPersistence", () => {
             groupScopePath: ["grp-1"],
             activeSceneId: "scene-1",
             outlineExpandedIds: ["sec-1"],
+            readingTarget: { nodeId: "doc-1", pane: "read", nonce: 1 },
+            readerWidth: 52,
+            readerFocusMode: true,
+            backgroundPattern: "grid",
           },
         },
       ],
@@ -40,6 +45,10 @@ describe("useWorkbenchSessionPersistence", () => {
       groupScopePath: ref<string[]>([]),
       activeSceneId: ref<string | undefined>(),
       outlineExpandedIds: shallowRef<string[]>(["inbox-sec"]),
+      readingTarget: shallowRef<SourceReadingTarget | undefined>(),
+      readerWidth: shallowRef(SOURCE_READER_WIDTH_DEFAULT),
+      readerFocusMode: shallowRef(false),
+      backgroundPattern: shallowRef<"dots" | "grid" | "none" | undefined>(),
       runtime: { retained },
     };
     useWorkbenchSessionPersistence(source);
@@ -63,6 +72,10 @@ describe("useWorkbenchSessionPersistence", () => {
           groupScopePath: ["grp-1"],
           activeSceneId: "scene-1",
           outlineExpandedIds: ["sec-1"],
+          readingTarget: { nodeId: "doc-1", pane: "read" },
+          readerWidth: 52,
+          readerFocusMode: true,
+          backgroundPattern: "grid",
         },
       },
     });

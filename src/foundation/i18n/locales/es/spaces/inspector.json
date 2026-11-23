@@ -71,6 +71,8 @@
     "rotateClockwise": "Girar 90°",
     "typeHere": "Escribe aquí…",
     "preview": "Vista previa",
-    "followSelection": "Cambiar al seleccionar"
+    "followSelection": "Cambiar al seleccionar",
+    "focusMode": "Modo enfoque",
+    "exitFocusMode": "Salir del modo enfoque"
   }
 }

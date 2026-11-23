@@ -112,28 +112,25 @@ async fn excludes_stale_chunks_and_archived_spaces() {
 }
 
 #[tokio::test]
-async fn rejects_missing_or_incompatible_active_generations() {
+async fn searches_indexed_spaces_while_skipping_unindexed_or_incompatible_generations() {
     let fixture = indexed_spaces().await;
-    assert_eq!(
-        search(
-            &fixture.pool,
-            &fixture.index,
-            &[1.0, 0.0],
-            "different-spec",
-            80
-        )
-        .await
-        .unwrap_err(),
-        generation::REBUILD_REQUIRED
-    );
+    assert!(search(
+        &fixture.pool,
+        &fixture.index,
+        &[1.0, 0.0],
+        "different-spec",
+        80
+    )
+    .await
+    .unwrap()
+    .is_empty());
     sqlx::query("UPDATE spaces_retrieval_generations SET status='retired',activated_at=NULL WHERE space_id='other'")
         .execute(&fixture.pool)
         .await
         .unwrap();
-    assert_eq!(
-        search(&fixture.pool, &fixture.index, &[1.0, 0.0], "spec", 80)
-            .await
-            .unwrap_err(),
-        generation::REBUILD_REQUIRED
-    );
+    let values = search(&fixture.pool, &fixture.index, &[1.0, 0.0], "spec", 80)
+        .await
+        .unwrap();
+    assert_eq!(values.len(), 2);
+    assert!(values.iter().all(|value| value["spaceId"] == "space"));
 }

@@ -33,7 +33,14 @@
   "input": {
     "placeholder": "围绕当前空间提问，或描述想整理的内容…",
     "send": "发送",
-    "shortcutHint": "Enter"
+    "shortcutHint": "Enter",
+    "blocked": {
+      "emptyPrompt": "输入问题或指令后发送",
+      "noTarget": "请先配置可用的模型或 Agent",
+      "notReady": "正在准备对话…",
+      "pickingFiles": "请先完成文件选择",
+      "unresolvedFiles": "请先重新选择或移除不可用的外部文件"
+    }
   },
   "conversations": {
     "preparing": "正在启动对话…",

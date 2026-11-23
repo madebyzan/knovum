@@ -177,6 +177,9 @@
   },
   "background": {
     "title": "Canvas background",
-    "cyclePattern": "Cycle canvas background pattern"
+    "cyclePattern": "Cycle canvas background pattern",
+    "currentSpace": "Current Space",
+    "globalDefault": "Global default",
+    "followGlobal": "Follow global"
   }
 }

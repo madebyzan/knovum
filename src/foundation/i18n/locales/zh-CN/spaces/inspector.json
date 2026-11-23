@@ -71,6 +71,8 @@
     "rotateClockwise": "旋转 90°",
     "typeHere": "输入文字…",
     "preview": "预览",
-    "followSelection": "随选中自动切换"
+    "followSelection": "随选中自动切换",
+    "focusMode": "专注模式",
+    "exitFocusMode": "退出专注模式"
   }
 }

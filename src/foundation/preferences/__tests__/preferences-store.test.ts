@@ -133,19 +133,17 @@ it("loads absent optional preferences without rewriting disk and saves a complet
       },
       canvas: {
         backgroundPattern: "dots",
-        backdrop: "none",
       },
     },
   });
 });
 
-it("persists canvas background pattern and backdrop updates", async () => {
+it("persists canvas background pattern updates", async () => {
   const store = usePreferencesStore();
   await store.load();
   await store.setCanvasBackgroundPattern("grid");
-  await store.setCanvasBackdrop("summer-glow");
-  expect(store.canvas).toEqual({ backgroundPattern: "grid", backdrop: "summer-glow" });
+  expect(store.canvas).toEqual({ backgroundPattern: "grid" });
   expect(calls.stored).toMatchObject({
-    value: { canvas: { backgroundPattern: "grid", backdrop: "summer-glow" } },
+    value: { canvas: { backgroundPattern: "grid" } },
   });
 });

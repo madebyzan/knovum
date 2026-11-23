@@ -71,6 +71,8 @@
     "rotateClockwise": "Повернуть на 90°",
     "typeHere": "Введите текст…",
     "preview": "Предпросмотр",
-    "followSelection": "Переключать по выбору"
+    "followSelection": "Переключать по выбору",
+    "focusMode": "Режим фокуса",
+    "exitFocusMode": "Выйти из режима фокуса"
   }
 }

@@ -60,22 +60,10 @@
       "label": "Motivo di sfondo",
       "description": "Scegli puntini, una griglia discreta o uno sfondo pulito."
     },
-    "backdrop": {
-      "label": "Sfondo d’atmosfera",
-      "description": "Scegli uno sfondo morbido che si adatta ai temi chiaro e scuro."
-    },
     "patterns": {
       "dots": "Puntini",
       "grid": "Griglia",
       "none": "Nessuno"
-    },
-    "backdrops": {
-      "none": "Predefinito",
-      "morningMist": "Foschia mattutina",
-      "summerGlow": "Luce d’estate",
-      "auroraSilk": "Seta boreale",
-      "quietCanopy": "Chioma quieta",
-      "duskTide": "Marea del tramonto"
     }
   }
 }

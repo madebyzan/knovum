@@ -177,6 +177,9 @@
   },
   "background": {
     "title": "画布背景",
-    "cyclePattern": "切换画布背景图案"
+    "cyclePattern": "切换画布背景图案",
+    "currentSpace": "当前空间",
+    "globalDefault": "全局默认",
+    "followGlobal": "跟随全局"
   }
 }

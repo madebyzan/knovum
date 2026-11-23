@@ -33,7 +33,14 @@
   "input": {
     "placeholder": "Pregunta sobre este espacio o describe qué quieres crear…",
     "send": "Enviar",
-    "shortcutHint": "Entrar"
+    "shortcutHint": "Entrar",
+    "blocked": {
+      "emptyPrompt": "Escribe una pregunta o instrucción para enviar",
+      "noTarget": "Configura un modelo o agente disponible para enviar",
+      "notReady": "Preparando conversación…",
+      "pickingFiles": "Termina primero de seleccionar los archivos",
+      "unresolvedFiles": "Vuelve a adjuntar o quita primero los archivos externos no disponibles"
+    }
   },
   "conversations": {
     "preparing": "Iniciando conversación…",

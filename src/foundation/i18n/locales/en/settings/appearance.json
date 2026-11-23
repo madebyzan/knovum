@@ -60,22 +60,10 @@
       "label": "Background pattern",
       "description": "Choose dots, a subtle grid, or a clean canvas."
     },
-    "backdrop": {
-      "label": "Ambient backdrop",
-      "description": "Choose a curated soft-focus backdrop that adapts to light and dark themes."
-    },
     "patterns": {
       "dots": "Dots",
       "grid": "Grid",
       "none": "None"
-    },
-    "backdrops": {
-      "none": "Default",
-      "morningMist": "Morning Mist",
-      "summerGlow": "Summer Glow",
-      "auroraSilk": "Aurora Silk",
-      "quietCanopy": "Quiet Canopy",
-      "duskTide": "Dusk Tide"
     }
   }
 }

@@ -33,7 +33,14 @@
   "input": {
     "placeholder": "Ask about this Space, or describe what to build…",
     "send": "Send",
-    "shortcutHint": "Enter"
+    "shortcutHint": "Enter",
+    "blocked": {
+      "emptyPrompt": "Enter a question or instruction to send",
+      "noTarget": "Configure an available model or Agent to send",
+      "notReady": "Preparing conversation…",
+      "pickingFiles": "Finish selecting files first",
+      "unresolvedFiles": "Reattach or remove unavailable external files first"
+    }
   },
   "conversations": {
     "preparing": "Starting conversation…",

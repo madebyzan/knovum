@@ -22,7 +22,6 @@ export const useSpaceStore = defineStore("spaces", () => {
   watch(
     state.surface,
     () => {
-      state.readingTarget.value = undefined;
       state.editorLocateRequest.value = undefined;
       state.findOpen.value = false;
       state.globalFindOpen.value = false;
@@ -32,9 +31,6 @@ export const useSpaceStore = defineStore("spaces", () => {
   watch(
     state.activeSpaceId,
     () => {
-      state.readingTarget.value = undefined;
-      state.readingHistory.value = [];
-      state.readingHistoryIndex.value = -1;
       state.knowledgeHealthOpen.value = false;
     },
     { flush: "sync" },

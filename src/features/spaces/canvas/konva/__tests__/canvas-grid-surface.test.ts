@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 
 import type { CanvasPalette } from "../../use-canvas-palette";
-import CanvasBackdropSurface from "../rendering/CanvasBackdropSurface.vue";
 import CanvasGridSurface from "../rendering/CanvasGridSurface.vue";
 import { createCanvasCamera } from "../viewport/canvas-camera";
 
@@ -88,16 +87,5 @@ describe("canvas grid surface", () => {
     camera.set({ x: 40, y: 40, zoom: 1 });
     camera.settle();
     expect(pattern.getAttribute("patternTransform")).toBe("translate(12.5 12.5)");
-  });
-
-  it("renders the viewport-anchored curated backdrop and contrast veil", () => {
-    const wrapper = mount(CanvasBackdropSurface, {
-      props: { backdrop: "summer-glow" },
-    });
-
-    expect(wrapper.attributes("aria-hidden")).toBe("true");
-    expect(wrapper.get("img").attributes("src")).toBeTruthy();
-    expect(wrapper.html()).toContain("var(--knovum-space-backdrop-veil)");
-    wrapper.unmount();
   });
 });

@@ -81,12 +81,13 @@ it("routes commands and contextual panes to the active work surface", async () =
   expect(openPane).not.toHaveBeenCalled();
   expect(store.revealRequest).toBeUndefined();
   await store.openVideoEditor("video");
-  expect(store.readingTarget).toBeUndefined();
+  expect(store.readingTarget?.nodeId).toBe("note");
   expect(commands.value.map(({ id }) => id)).toContain("video-edit.undo");
   expect(commands.value.map(({ id }) => id)).not.toContain("document.undo");
   expect(store.workbench.rightSidebar).toBe(false);
   await store.openSpace("inbox");
   expect(store.surface.kind).toBe("canvas");
+  expect(store.readingTarget?.nodeId).toBe("note");
   expect(store.workbench.outline).toBe(true);
   await store.activateTab(store.editorTabs.at(-1)!.id);
   expect(store.surface.kind).toBe("video");

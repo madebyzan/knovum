@@ -107,6 +107,10 @@ describe("restoreWorkbench", () => {
           groupScopePath: ["grp-1", "deleted-group"],
           activeSceneId: "scene-1",
           outlineExpandedIds: ["sec-1", "content-brief", "missing"],
+          readingTarget: { nodeId: "brief", pane: "info" },
+          readerWidth: 50,
+          readerFocusMode: true,
+          backgroundPattern: "none",
         },
       },
     });
@@ -118,6 +122,10 @@ describe("restoreWorkbench", () => {
     expect(context.canvasFocusIds.value).toEqual(["brief"]);
     expect(context.relationKindFilter.value).toEqual(["supports"]);
     expect(context.outlineExpandedIds.value).toEqual(["sec-1"]);
+    expect(context.readingTarget.value).toMatchObject({ nodeId: "brief", pane: "info" });
+    expect(context.readerWidth.value).toBe(50);
+    expect(context.readerFocusMode.value).toBe(true);
+    expect(context.backgroundPattern.value).toBe("none");
     expect([...context.runtime.retained.keys()]).toEqual(["inbox"]);
     expect(opened).toEqual(["document:brief"]);
   });

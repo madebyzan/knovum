@@ -15,7 +15,6 @@ import { invokeCommand } from "../ipc/invoke-command";
 import { isApplicationTransitioning } from "../lifecycle/application-transition";
 import {
   decodePreferences,
-  type CanvasBackdrop,
   type CanvasBackgroundPattern,
   type DensityPreference,
   type LocalePreference,
@@ -152,8 +151,6 @@ export const usePreferencesStore = defineStore("preferences", () => {
     mutate(() => void Object.assign(preferences.workbench, layout));
   const setCanvasBackgroundPattern = (pattern: CanvasBackgroundPattern) =>
     mutate(() => void (preferences.canvas.backgroundPattern = pattern));
-  const setCanvasBackdrop = (backdrop: CanvasBackdrop) =>
-    mutate(() => void (preferences.canvas.backdrop = backdrop));
   const setRestorePreviousWorkspace = (enabled: boolean) =>
     mutate(() => void (preferences.restorePreviousWorkspace = enabled));
 
@@ -181,7 +178,6 @@ export const usePreferencesStore = defineStore("preferences", () => {
     setLocale,
     setWorkbenchLayout,
     setCanvasBackgroundPattern,
-    setCanvasBackdrop,
     setBackgroundTaskNotifications,
     setRestorePreviousWorkspace,
   };

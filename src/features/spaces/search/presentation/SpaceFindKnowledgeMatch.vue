@@ -11,9 +11,20 @@ import type { KnowledgeSearchMatch } from "../../knowledge/model/schema/search-m
 import { formatDurationMs } from "../../media/format-duration";
 import { highlightedSnippet } from "../highlighted-snippet";
 
-const props = defineProps<{ match: KnowledgeSearchMatch }>();
+const props = defineProps<{
+  match: KnowledgeSearchMatch;
+  value?: unknown;
+  spaceTitle?: string | undefined;
+}>();
+const emit = defineEmits<{ select: [] }>();
 const { t } = useI18n();
 const badgeLabel = computed(() => matchBadgeLabel(props.match));
+const itemValue = computed(() => props.value ?? `match:${props.match.chunkId}`);
+const textValue = computed(() =>
+  props.spaceTitle
+    ? `${props.match.nodeTitle} ${props.spaceTitle} ${props.match.text}`
+    : `${props.match.nodeTitle} ${props.match.text}`,
+);
 
 function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
   const locator: SpaceMatchLocator = matchLocatorFor(match);
@@ -30,9 +41,10 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
 
 <template>
   <ListboxItem
-    :value="`match:${match.chunkId}`"
-    :text-value="`${match.nodeTitle} ${match.text}`"
+    :value="itemValue"
+    :text-value="textValue"
     class="flex min-h-(--knovum-command-palette-item-height) w-full cursor-default items-start gap-2.5 rounded-md px-2.5 py-2.5 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-bg-selected)"
+    @select="emit('select')"
   >
     <span
       class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md bg-surface-control text-fg-secondary"
@@ -46,6 +58,9 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
           knowledgeLocationLabel(match.locator)
         }}</span></span
       >
+      <span v-if="spaceTitle" class="mt-0.5 block truncate text-caption-sm text-fg-tertiary">{{
+        spaceTitle
+      }}</span>
       <span class="mt-0.5 line-clamp-2 block text-caption leading-relaxed text-fg-secondary"
         ><template v-for="(part, index) in highlightedSnippet(match.snippet)" :key="index"
           ><mark v-if="part.match" class="rounded-sm bg-surface-selected px-0.5 text-fg-primary">{{

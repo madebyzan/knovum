@@ -71,6 +71,8 @@
     "rotateClockwise": "Rotate 90°",
     "typeHere": "Type here…",
     "preview": "Preview",
-    "followSelection": "Auto-switch on select"
+    "followSelection": "Auto-switch on select",
+    "focusMode": "Focus mode",
+    "exitFocusMode": "Exit focus mode"
   }
 }

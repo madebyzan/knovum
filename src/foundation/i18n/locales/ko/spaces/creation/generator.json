@@ -28,6 +28,10 @@
   "duration": "길이",
   "generate": "생성",
   "generating": "생성 중…",
+  "blocked": {
+    "emptyPrompt": "프롬프트를 입력한 뒤 생성하세요",
+    "noTarget": "생성하려면 사용 가능한 모델을 설정하세요"
+  },
   "task": {
     "document": "문서 생성 중",
     "image": "이미지 생성 중",

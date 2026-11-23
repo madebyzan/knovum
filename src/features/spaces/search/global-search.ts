@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { knowledgeSearchMatchSchema } from "../knowledge/model/schema/search-match";
+import { searchSpaceKnowledgeHybrid } from "../knowledge/queries/hybrid-search";
 import type { GlobalSearchMatch } from "./search-match";
 import { markSpaceSubstring, searchTerms } from "./search-snippet";
 
@@ -20,14 +21,24 @@ const globalStructureSearchMatchSchema = z
   })
   .strict();
 
-export async function searchAcrossSpaces(value: string): Promise<GlobalSearchMatch[]> {
+export interface GlobalSearchOptions {
+  semantic?: boolean;
+  signal?: AbortSignal;
+}
+
+export async function searchAcrossSpaces(
+  value: string,
+  { semantic = false, signal }: GlobalSearchOptions = {},
+): Promise<GlobalSearchMatch[]> {
   if (!value.trim()) return [];
-  const request = { request: { query: value } };
-  const [knowledgeSource, structureSource] = await Promise.all([
-    invokeCommand<unknown>("plugin:spaces|search_knowledge_global", request),
-    invokeCommand<unknown>("plugin:spaces|search_structure_global", request),
+  const [knowledgeResponse, structureSource] = await Promise.all([
+    searchSpaceKnowledgeHybrid(null, value, {
+      semantic,
+      ...(signal ? { signal } : {}),
+    }),
+    invokeCommand<unknown>("plugin:spaces|search_structure_global", { request: { query: value } }),
   ]);
-  const knowledge = z.array(globalKnowledgeSearchMatchSchema).parse(knowledgeSource);
+  const knowledge = z.array(globalKnowledgeSearchMatchSchema).parse(knowledgeResponse.matches);
   const structure = z.array(globalStructureSearchMatchSchema).parse(structureSource);
   const terms = searchTerms(value);
   return [

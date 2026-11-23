@@ -1,3 +1,5 @@
+import type { Ref } from "vue";
+
 import { classifyFilePresentation, fileExtension, usesDocumentPreview } from "../assets/file-presentation";
 import { currentSourceRevision } from "../knowledge/model/provenance";
 import type { KnowledgeLocation, KnowledgeLocator } from "../knowledge/model/schema/chunk";
@@ -19,6 +21,10 @@ export type SourceReaderKind =
 
 export type SourceReaderPane = "read" | "info";
 export type SourceReaderHost = "canvas" | "document";
+
+export const SOURCE_READER_WIDTH_DEFAULT = 44;
+export const SOURCE_READER_WIDTH_MIN = 25;
+export const SOURCE_READER_WIDTH_MAX = 68;
 
 export interface SourceReadingTarget {
   nodeId: string;
@@ -114,4 +120,81 @@ export function defaultSourceLocation(payload: SpaceNodePayload, fallbackPage = 
   if (kind === "pdf") return { kind: "pdf", page: Math.max(1, fallbackPage) };
   if (kind === "media") return defaultMediaLocation(payload);
   return (kind ? STATIC_DEFAULT_LOCATIONS[kind] : undefined) ?? { kind: "node" };
+}
+
+export interface SavedSourceReaderState {
+  readingTarget?: { nodeId: string; pane: SourceReaderPane } | undefined;
+  readerWidth?: number | undefined;
+  readerFocusMode?: boolean | undefined;
+}
+
+export interface SourceReaderSession {
+  readingTarget: SourceReadingTarget | undefined;
+  readingHistory: readonly SourceReadingHistoryEntry[];
+  readingHistoryIndex: number;
+  readerWidth: number;
+  readerFocusMode: boolean;
+}
+
+export type SourceReaderRefs = { [K in keyof SourceReaderSession]: Ref<SourceReaderSession[K]> };
+
+export function defaultSourceReaderSession(): SourceReaderSession {
+  return {
+    readingTarget: undefined,
+    readingHistory: [],
+    readingHistoryIndex: -1,
+    readerWidth: SOURCE_READER_WIDTH_DEFAULT,
+    readerFocusMode: false,
+  };
+}
+
+export function captureSourceReaderSession(source: SourceReaderRefs): SourceReaderSession {
+  return {
+    readingTarget: source.readingTarget.value ? { ...source.readingTarget.value } : undefined,
+    readingHistory: source.readingHistory.value.map((entry) => ({ ...entry })),
+    readingHistoryIndex: source.readingHistoryIndex.value,
+    readerWidth: source.readerWidth.value,
+    readerFocusMode: source.readerFocusMode.value,
+  };
+}
+
+export function applySourceReaderSession(target: SourceReaderRefs, view: SourceReaderSession): void {
+  target.readingTarget.value = view.readingTarget ? { ...view.readingTarget } : undefined;
+  target.readingHistory.value = view.readingHistory.map((entry) => ({ ...entry }));
+  target.readingHistoryIndex.value = view.readingHistoryIndex;
+  target.readerWidth.value = view.readerWidth;
+  target.readerFocusMode.value = Boolean(view.readingTarget && view.readerFocusMode);
+}
+
+export function restoreSavedReaderState(
+  saved: SavedSourceReaderState,
+  nodes: readonly SpaceCanvasNode[],
+): SourceReaderSession {
+  const readerWidth = saved.readerWidth ?? SOURCE_READER_WIDTH_DEFAULT;
+  const target = saved.readingTarget;
+  const node = target
+    ? nodes.find((candidate) => candidate.id === target.nodeId && !candidate.hidden)
+    : undefined;
+  if (!node || !target) return { ...defaultSourceReaderSession(), readerWidth };
+  const pane: SourceReaderPane =
+    target.pane === "info" || !classifyReadableSource(node.data) ? "info" : "read";
+  return {
+    readingTarget: { nodeId: node.id, pane, nonce: 1 },
+    readingHistory: [{ nodeId: node.id, pane }],
+    readingHistoryIndex: 0,
+    readerWidth,
+    readerFocusMode: Boolean(saved.readerFocusMode),
+  };
+}
+
+export function serializeSavedReaderState(
+  view: Pick<SourceReaderSession, "readingTarget" | "readerWidth" | "readerFocusMode">,
+): SavedSourceReaderState {
+  const entry: SavedSourceReaderState = {};
+  if (view.readingTarget) {
+    entry.readingTarget = { nodeId: view.readingTarget.nodeId, pane: view.readingTarget.pane };
+  }
+  if (view.readerWidth !== SOURCE_READER_WIDTH_DEFAULT) entry.readerWidth = view.readerWidth;
+  if (view.readingTarget && view.readerFocusMode) entry.readerFocusMode = true;
+  return entry;
 }

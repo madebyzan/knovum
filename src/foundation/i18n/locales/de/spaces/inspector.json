@@ -71,6 +71,8 @@
     "rotateClockwise": "90° drehen",
     "typeHere": "Text eingeben…",
     "preview": "Vorschau",
-    "followSelection": "Bei Auswahl wechseln"
+    "followSelection": "Bei Auswahl wechseln",
+    "focusMode": "Fokusmodus",
+    "exitFocusMode": "Fokusmodus beenden"
   }
 }

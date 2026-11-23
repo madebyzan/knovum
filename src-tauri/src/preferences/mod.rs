@@ -67,31 +67,16 @@ pub enum CanvasBackgroundPattern {
     None,
 }
 
-#[derive(
-    Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS,
-)]
-#[serde(rename_all = "kebab-case")]
-pub enum CanvasBackdrop {
-    None,
-    MorningMist,
-    SummerGlow,
-    AuroraSilk,
-    QuietCanopy,
-    DuskTide,
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields, default)]
 pub struct CanvasPreferences {
     pub background_pattern: CanvasBackgroundPattern,
-    pub backdrop: CanvasBackdrop,
 }
 
 impl Default for CanvasPreferences {
     fn default() -> Self {
         Self {
             background_pattern: CanvasBackgroundPattern::Dots,
-            backdrop: CanvasBackdrop::None,
         }
     }
 }

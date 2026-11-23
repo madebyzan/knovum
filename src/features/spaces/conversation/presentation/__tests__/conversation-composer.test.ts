@@ -1,15 +1,28 @@
 import { shallowMount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { nextTick, shallowRef } from "vue";
 
+import type { AiReadiness } from "../../../../../foundation/ai/ai-readiness";
 import type { isFileDropInside, listenForFileDrops } from "../../../../../foundation/file-drop/events";
 import type { TaskTarget } from "../../../../../shared/contracts/generated/TaskTarget";
 import SpaceConversationComposer from "../SpaceConversationComposer.vue";
 
+const readinessState = vi.hoisted(() => ({ value: { state: "ready" } as AiReadiness }));
+vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("../../../../../foundation/i18n/instance", () => ({
+  i18n: { global: { t: (key: string) => key } },
+}));
+vi.mock("../../../../../foundation/ai/use-ai-readiness", () => ({
+  useAiReadiness: () => shallowRef(readinessState.value),
+}));
 vi.mock("../../../../../foundation/file-drop/events", () => ({
   listenForFileDrops: vi.fn<typeof listenForFileDrops>(async () => () => {}),
   isFileDropInside: vi.fn<typeof isFileDropInside>(() => false),
 }));
+
+beforeEach(() => {
+  readinessState.value = { state: "ready" };
+});
 
 function mountComposer(props: Record<string, unknown>) {
   return shallowMount(SpaceConversationComposer, {
@@ -84,7 +97,7 @@ describe("Agent composer", () => {
       // that was never asked for.
       await wrapper.setProps({ disabled: true });
       expect(labelled("spaces.conversation.stop")).toBeUndefined();
-      expect(labelled("spaces.conversation.input.send")?.props("disabled")).toBe(true);
+      expect(labelled("spaces.conversation.input.blocked.notReady")?.props("disabled")).toBe(true);
 
       // A request that has not been accepted yet has no run to pull: the control is there, so the
       // button does not move under the pointer, but it cannot lie about being able to stop.

@@ -5,17 +5,22 @@ import { nextTick } from "vue";
 
 import { i18n } from "../../../../../foundation/i18n/instance";
 import { usePreferencesStore } from "../../../../../foundation/preferences/preferences-store";
+import { useSpaceStore } from "../../../session/space-store";
 import SpaceCanvasBackgroundControl from "../SpaceCanvasBackgroundControl.vue";
+
+vi.mock("../../../enrichment/use-enrichment-job-observation", () => ({
+  useEnrichmentJobObservation: () => {},
+}));
 
 describe("SpaceCanvasBackgroundControl", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
   });
 
-  it("updates canvas background pattern and curated backdrop through the preferences store", async () => {
+  it("updates current Space pattern override, resets to global default, and updates global pattern", async () => {
+    const store = useSpaceStore();
     const preferences = usePreferencesStore();
-    const patternSpy = vi.spyOn(preferences, "setCanvasBackgroundPattern").mockResolvedValue();
-    const backdropSpy = vi.spyOn(preferences, "setCanvasBackdrop").mockResolvedValue();
+    const globalPatternSpy = vi.spyOn(preferences, "setCanvasBackgroundPattern").mockResolvedValue();
 
     const wrapper = mount(SpaceCanvasBackgroundControl, {
       attachTo: document.body,
@@ -25,18 +30,33 @@ describe("SpaceCanvasBackgroundControl", () => {
     await wrapper.get("button").trigger("click");
     await nextTick();
 
-    const radios = Array.from(document.body.querySelectorAll<HTMLButtonElement>("[role='radio']"));
-    const noneButton = radios.find((button) => button.textContent?.includes("None"));
-    const summerGlowButton = radios.find((button) => button.textContent?.includes("Summer Glow"));
-    expect(noneButton).toBeDefined();
-    expect(summerGlowButton).toBeDefined();
+    const spaceRadios = Array.from(
+      document.body.querySelectorAll<HTMLButtonElement>("[data-pattern-scope='space'] [role='radio']"),
+    );
+    const globalRadios = Array.from(
+      document.body.querySelectorAll<HTMLButtonElement>("[data-pattern-scope='global'] [role='radio']"),
+    );
+    const spaceGridButton = spaceRadios.find((button) => button.textContent?.includes("Grid"));
+    const globalNoneButton = globalRadios.find((button) => button.textContent?.includes("None"));
+    expect(spaceGridButton).toBeDefined();
+    expect(globalNoneButton).toBeDefined();
 
-    noneButton!.click();
-    summerGlowButton!.click();
+    spaceGridButton!.click();
     await nextTick();
+    expect(store.backgroundPattern).toBe("grid");
 
-    expect(patternSpy).toHaveBeenCalledWith("none");
-    expect(backdropSpy).toHaveBeenCalledWith("summer-glow");
+    const followGlobalButton = document.body.querySelector<HTMLButtonElement>(
+      "[data-action='follow-global-pattern']",
+    );
+    expect(followGlobalButton).not.toBeNull();
+    followGlobalButton!.click();
+    await nextTick();
+    expect(store.backgroundPattern).toBeUndefined();
+
+    globalNoneButton!.click();
+    await nextTick();
+    expect(globalPatternSpy).toHaveBeenCalledWith("none");
+
     wrapper.unmount();
   });
 });

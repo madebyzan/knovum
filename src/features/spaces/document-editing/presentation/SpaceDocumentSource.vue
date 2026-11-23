@@ -8,7 +8,8 @@ const store = useSpaceStore();
 <template>
   <div
     v-if="store.readingTarget"
-    class="flex h-full w-[44%] max-w-160 min-w-90 shrink-0 flex-col border-l border-(--knovum-window-border-color) bg-surface-panel"
+    :style="{ width: `${store.readerWidth}%` }"
+    class="flex h-full max-w-160 min-w-90 shrink-0 flex-col border-l border-(--knovum-window-border-color) bg-surface-panel"
   >
     <SpaceSourceReader host="document" />
   </div>

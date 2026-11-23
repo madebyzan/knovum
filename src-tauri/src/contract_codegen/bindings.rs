@@ -102,7 +102,6 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::preferences::Preferences::export_all,
         crate::preferences::CanvasPreferences::export_all,
         crate::preferences::CanvasBackgroundPattern::export_all,
-        crate::preferences::CanvasBackdrop::export_all,
         crate::preferences::WorkbenchPreferences::export_all,
         crate::preferences::ThemePreference::export_all,
         crate::preferences::DensityPreference::export_all,

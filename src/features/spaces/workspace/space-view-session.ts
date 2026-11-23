@@ -1,38 +1,53 @@
 import type { Ref } from "vue";
 import { z } from "zod";
 
+import type { CanvasBackgroundPattern } from "../../../shared/contracts/generated/CanvasBackgroundPattern";
+import { canvasBackgroundPatterns } from "../../../shared/contracts/generated/contract-values";
 import type { RelationKind } from "../contracts/generated/RelationKind";
 import type { RelationStatus } from "../contracts/generated/RelationStatus";
 import { snapshotSpaceQueryFilter } from "../knowledge/model/query-filter";
-import { queryMatchingNodes } from "../knowledge/model/relation-graph";
 import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceRelation } from "../model/relations/relation";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { createStructureIndex, type StructureIndex } from "../model/structure/structure-index";
+import { reconcileGroupScopePath, sameGroupScopePath } from "../model/structure/structure-queries";
 import {
-  contentNodeIdsWithin,
-  reconcileGroupScopePath,
-  sameGroupScopePath,
-} from "../model/structure/structure-queries";
+  applySourceReaderSession,
+  captureSourceReaderSession,
+  defaultSourceReaderSession,
+  restoreSavedReaderState,
+  serializeSavedReaderState,
+  SOURCE_READER_WIDTH_MAX,
+  SOURCE_READER_WIDTH_MIN,
+  type SourceReaderSession,
+} from "../reading/source-reader-target";
 import type { SpaceScene } from "../scenes/scene";
+import {
+  applySceneProjection,
+  buildSceneViewProjection,
+  type SceneProjectionContent,
+  type SceneProjectionRefs,
+} from "../scenes/scene-view-projection";
 
 export const DEFAULT_RELATION_STATUS_FILTER: readonly RelationStatus[] = ["active", "contested"];
-
 const nonEmptyId = z.string().min(1);
+const savedReaderTargetSchema = z.object({ nodeId: nonEmptyId, pane: z.enum(["read", "info"]) }).strict();
 
 export const savedSpaceViewSchema = z
   .object({
     groupScopePath: z.array(nonEmptyId).optional(),
     activeSceneId: nonEmptyId.optional(),
     outlineExpandedIds: z.array(nonEmptyId).optional(),
+    readingTarget: savedReaderTargetSchema.optional(),
+    readerWidth: z.number().min(SOURCE_READER_WIDTH_MIN).max(SOURCE_READER_WIDTH_MAX).optional(),
+    readerFocusMode: z.boolean().optional(),
+    backgroundPattern: z.enum(canvasBackgroundPatterns).optional(),
   })
   .strict();
 
 export type SavedSpaceViewSession = z.infer<typeof savedSpaceViewSchema>;
 
 /** Per-Space transient view context preserved across tab switches and startup restoration. */
-export interface SpaceViewSession {
+export interface SpaceViewSession extends SourceReaderSession {
   groupScopePath: string[];
   activeSceneId: string | undefined;
   outlineExpandedIds: string[];
@@ -40,34 +55,16 @@ export interface SpaceViewSession {
   relationKindFilter: RelationKind[];
   relationStatusFilter: RelationStatus[];
   savedQueryFilter: SpaceSavedViewFilter;
+  backgroundPattern: CanvasBackgroundPattern | undefined;
 }
 
-export interface SpaceViewRefs {
-  groupScopePath: Ref<string[]>;
-  activeSceneId: Ref<string | undefined>;
-  outlineExpandedIds: Ref<string[]>;
-  canvasFocusIds: Ref<string[]>;
-  relationKindFilter: Ref<RelationKind[]>;
-  relationStatusFilter: Ref<RelationStatus[]>;
-  savedQueryFilter: Ref<SpaceSavedViewFilter>;
-}
+export type SpaceViewRefs = { [K in keyof SpaceViewSession]: Ref<SpaceViewSession[K]> };
 
-export interface SpaceViewContent {
-  nodes: readonly SpaceCanvasNode[];
+export interface SpaceViewContent extends SceneProjectionContent {
   scenes: readonly SpaceScene[];
-  relations: readonly SpaceRelation[];
-  editSnapshot: SpaceEditSnapshot;
 }
 
-type SceneProjectionKey =
-  | "activeSceneId"
-  | "canvasFocusIds"
-  | "relationKindFilter"
-  | "relationStatusFilter"
-  | "savedQueryFilter";
-type SceneViewProjection = Pick<SpaceViewSession, SceneProjectionKey>;
-type SceneProjectionRefs = Pick<SpaceViewRefs, SceneProjectionKey>;
-type SavedSpaceViewKey = "groupScopePath" | "activeSceneId" | "outlineExpandedIds";
+export type SavedSpaceViewKey = keyof SavedSpaceViewSession;
 
 export function defaultSpaceViewSession(): SpaceViewSession {
   return {
@@ -78,6 +75,8 @@ export function defaultSpaceViewSession(): SpaceViewSession {
     relationKindFilter: [],
     relationStatusFilter: [...DEFAULT_RELATION_STATUS_FILTER],
     savedQueryFilter: {},
+    backgroundPattern: undefined,
+    ...defaultSourceReaderSession(),
   };
 }
 
@@ -90,12 +89,16 @@ export function captureSpaceViewSession(source: SpaceViewRefs): SpaceViewSession
     relationKindFilter: [...source.relationKindFilter.value],
     relationStatusFilter: [...source.relationStatusFilter.value],
     savedQueryFilter: snapshotSpaceQueryFilter(source.savedQueryFilter.value),
+    backgroundPattern: source.backgroundPattern.value,
+    ...captureSourceReaderSession(source),
   };
 }
 
 export function applySpaceViewSession(target: SpaceViewRefs, view: SpaceViewSession): void {
   target.groupScopePath.value = [...view.groupScopePath];
   target.outlineExpandedIds.value = [...view.outlineExpandedIds];
+  target.backgroundPattern.value = view.backgroundPattern;
+  applySourceReaderSession(target, view);
   applySceneProjection(target, view);
 }
 
@@ -106,16 +109,21 @@ export function captureSavedSpaceView(
     groupScopePath: source.groupScopePath.value,
     activeSceneId: source.activeSceneId.value,
     outlineExpandedIds: source.outlineExpandedIds.value,
+    readingTarget: source.readingTarget.value,
+    readerWidth: source.readerWidth.value,
+    readerFocusMode: source.readerFocusMode.value,
+    backgroundPattern: source.backgroundPattern.value,
   });
 }
 
 export function serializeSpaceViewSession(
   view: Pick<SpaceViewSession, SavedSpaceViewKey>,
 ): SavedSpaceViewSession | undefined {
-  const entry: SavedSpaceViewSession = {};
+  const entry: SavedSpaceViewSession = { ...serializeSavedReaderState(view) };
   if (view.groupScopePath.length) entry.groupScopePath = [...view.groupScopePath];
   if (view.activeSceneId) entry.activeSceneId = view.activeSceneId;
   if (view.outlineExpandedIds.length) entry.outlineExpandedIds = [...view.outlineExpandedIds];
+  if (view.backgroundPattern) entry.backgroundPattern = view.backgroundPattern;
   return Object.keys(entry).length ? entry : undefined;
 }
 
@@ -126,14 +134,11 @@ export function reconcileSpaceViewStructure(
 ): void {
   if (!target.groupScopePath.value.length && !target.outlineExpandedIds.value.length) return;
   const index = createStructureIndex(structure);
-  if (target.groupScopePath.value.length) {
-    const next = reconcileGroupScopePath(target.groupScopePath.value, index);
-    if (!sameGroupScopePath(target.groupScopePath.value, next)) target.groupScopePath.value = next;
-  }
-  if (target.outlineExpandedIds.value.length) {
-    const next = reconcileOutlineExpandedIds(target.outlineExpandedIds.value, index);
-    if (next.length !== target.outlineExpandedIds.value.length) target.outlineExpandedIds.value = next;
-  }
+  const nextScope = reconcileGroupScopePath(target.groupScopePath.value, index);
+  if (!sameGroupScopePath(target.groupScopePath.value, nextScope)) target.groupScopePath.value = nextScope;
+  const nextExpanded = reconcileOutlineExpandedIds(target.outlineExpandedIds.value, index);
+  if (nextExpanded.length !== target.outlineExpandedIds.value.length)
+    target.outlineExpandedIds.value = nextExpanded;
 }
 
 /** Revalidates a saved Space view against loaded Space content without modifying its camera. */
@@ -144,57 +149,23 @@ export function restoreSpaceViewSession(
   const base = defaultSpaceViewSession();
   if (!saved) return base;
   const index = createStructureIndex(content.editSnapshot.structure);
-  const groupScopePath = saved.groupScopePath ? reconcileGroupScopePath(saved.groupScopePath, index) : [];
-  const outlineExpandedIds = reconcileOutlineExpandedIds(saved.outlineExpandedIds ?? [], index);
   const scene = saved.activeSceneId
     ? content.scenes.find((candidate) => candidate.id === saved.activeSceneId)
     : undefined;
-  const sceneProjection = scene ? buildSceneViewProjection(scene, content) : undefined;
-  return { ...base, ...sceneProjection, groupScopePath, outlineExpandedIds };
-}
-
-/** Computes the focus/filter projection of a Saved View without modifying the canvas camera. */
-export function buildSceneViewProjection(
-  scene: SpaceScene,
-  content: Pick<SpaceViewContent, "nodes" | "relations" | "editSnapshot">,
-): SceneViewProjection {
-  const dynamicIds = hasQueryFilter(scene.queryFilter)
-    ? queryMatchingNodes({
-        nodes: content.nodes,
-        relations: content.relations,
-        filter: scene.queryFilter,
-      }).map((node) => node.id)
-    : contentNodeIdsWithin(scene.focusStructureNodeIds, createStructureIndex(content.editSnapshot.structure));
   return {
-    activeSceneId: scene.id,
-    canvasFocusIds: [...new Set(dynamicIds)],
-    relationKindFilter: [...scene.relationKinds],
-    relationStatusFilter: [...scene.relationStatuses],
-    savedQueryFilter: snapshotSpaceQueryFilter(scene.queryFilter),
+    ...base,
+    ...(scene ? buildSceneViewProjection(scene, content) : undefined),
+    ...restoreSavedReaderState(saved, content.nodes),
+    backgroundPattern: saved.backgroundPattern,
+    groupScopePath: saved.groupScopePath ? reconcileGroupScopePath(saved.groupScopePath, index) : [],
+    outlineExpandedIds: reconcileOutlineExpandedIds(saved.outlineExpandedIds ?? [], index),
   };
-}
-
-export function applySceneProjection(target: SceneProjectionRefs, projection: SceneViewProjection): void {
-  target.activeSceneId.value = projection.activeSceneId;
-  target.canvasFocusIds.value = [...projection.canvasFocusIds];
-  target.relationKindFilter.value = [...projection.relationKindFilter];
-  target.relationStatusFilter.value = [...projection.relationStatusFilter];
-  target.savedQueryFilter.value = snapshotSpaceQueryFilter(projection.savedQueryFilter);
 }
 
 export function clearSceneProjection(target: SceneProjectionRefs): void {
   applySceneProjection(target, defaultSpaceViewSession());
 }
 
-function reconcileOutlineExpandedIds(expandedIds: readonly string[], index: StructureIndex): string[] {
-  return expandedIds.filter((id) => {
-    const item = index.structureById.get(id);
-    return item !== undefined && item.kind !== "content";
-  });
-}
-
-function hasQueryFilter(filter: SpaceSavedViewFilter) {
-  return Object.values(filter).some((value) =>
-    Array.isArray(value) ? value.length > 0 : value !== undefined && value !== "",
-  );
+function reconcileOutlineExpandedIds(ids: readonly string[], index: StructureIndex): string[] {
+  return ids.filter((id) => ["section", "group"].includes(index.structureById.get(id)?.kind ?? ""));
 }

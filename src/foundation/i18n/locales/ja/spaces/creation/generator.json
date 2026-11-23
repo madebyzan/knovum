@@ -28,6 +28,10 @@
   "duration": "長さ",
   "generate": "生成",
   "generating": "生成中…",
+  "blocked": {
+    "emptyPrompt": "プロンプトを入力して生成",
+    "noTarget": "生成するには利用可能なモデルを設定してください"
+  },
   "task": {
     "document": "ドキュメントを生成中",
     "image": "画像を生成中",

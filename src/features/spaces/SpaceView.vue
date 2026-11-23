@@ -22,6 +22,7 @@ import SpaceImageEditLeaveDialog from "./image-editing/presentation/SpaceImageEd
 import SpaceKnowledgeHealthDialog from "./knowledge/presentation/SpaceKnowledgeHealthDialog.vue";
 import SpaceAudioRecordingDock from "./media/presentation/SpaceAudioRecordingDock.vue";
 import SpaceSourceReader from "./reading/presentation/SpaceSourceReader.vue";
+import { SOURCE_READER_WIDTH_MAX, SOURCE_READER_WIDTH_MIN } from "./reading/source-reader-target";
 import { useSpaceStore } from "./session/space-store";
 import SpaceLibrary from "./workspace/presentation/library/SpaceLibrary.vue";
 import SpaceEditorSurfaces from "./workspace/presentation/SpaceEditorSurfaces.vue";
@@ -29,7 +30,11 @@ import SpaceEditorSurfaces from "./workspace/presentation/SpaceEditorSurfaces.vu
 const store = useSpaceStore();
 const preferences = usePreferencesStore();
 const workspaceVisible = inject(overlayScopeVisibleKey)!;
-const canvasVisible = computed(() => workspaceVisible.value && store.workbench.canvas);
+const readerActive = computed(() => Boolean(store.readingTarget && store.workbench.canvas));
+const readerFocused = computed(() => readerActive.value && store.readerFocusMode);
+const canvasVisible = computed(
+  () => workspaceVisible.value && store.workbench.canvas && !readerFocused.value,
+);
 const { ready, surface } = storeToRefs(store);
 const { t } = useI18n();
 const initializationError = shallowRef<Error>();
@@ -83,23 +88,26 @@ onMounted(() => void initialize());
     <div v-else-if="store.ready" class="flex min-h-0 flex-1 flex-col">
       <div class="relative min-h-0 flex-1">
         <SplitterGroup direction="horizontal" class="absolute inset-0 outline-none">
-          <template v-if="store.readingTarget && store.workbench.canvas">
+          <template v-if="readerActive">
             <SplitterPanel
+              :key="`source-reader:${store.activeSpaceId ?? ''}:${readerFocused ? 'focus' : 'split'}`"
               id="source-reader"
               :order="1"
-              :min-size="25"
-              :default-size="44"
-              :max-size="68"
+              :min-size="readerFocused ? 100 : SOURCE_READER_WIDTH_MIN"
+              :default-size="readerFocused ? 100 : store.readerWidth"
+              :max-size="readerFocused ? 100 : SOURCE_READER_WIDTH_MAX"
               class="flex min-h-0 flex-col"
+              @resize="(size) => !readerFocused && store.setReaderWidth(size)"
             >
               <SpaceSourceReader host="canvas" />
             </SplitterPanel>
-            <UiSplitterHandle />
+            <UiSplitterHandle v-if="!readerFocused" />
           </template>
           <SplitterPanel
+            v-show="!readerFocused"
             id="space-canvas"
             :order="2"
-            :min-size="32"
+            :min-size="readerFocused ? 0 : 32"
             class="relative flex min-h-0 flex-col outline-none"
           >
             <SpaceCanvas :rendering-enabled="canvasVisible" />

@@ -185,10 +185,6 @@ fn export_runtime_values(output: &Path) -> Result<(), String> {
             "canvasBackgroundPatterns",
             schema_for!(crate::preferences::CanvasBackgroundPattern),
         ),
-        (
-            "canvasBackdrops",
-            schema_for!(crate::preferences::CanvasBackdrop),
-        ),
     ];
     let mut source = enum_values_source(&enums)?;
     let purposes = schema_for!(crate::ai::contracts::RoutingPurpose);

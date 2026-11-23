@@ -17,7 +17,6 @@ const current = {
   },
   canvas: {
     backgroundPattern: "dots",
-    backdrop: "none",
   },
 } as const;
 
@@ -119,7 +118,6 @@ describe("preferences schema", () => {
     { workbench: { unknown: true } },
     { canvas: null },
     { canvas: { backgroundPattern: "stripes" } },
-    { canvas: { backdrop: "neon" } },
     { canvas: { unknown: true } },
   ])("rejects malformed optional preferences: %j", (invalid) => {
     expect(() => decodePreferences({ schemaVersion: 1, value: { ...current, ...invalid } })).toThrow(

@@ -60,22 +60,10 @@
       "label": "Motif d’arrière-plan",
       "description": "Choisissez des points, une grille discrète ou un fond uni."
     },
-    "backdrop": {
-      "label": "Fond d’ambiance",
-      "description": "Choisissez un fond doux qui s’adapte aux thèmes clair et sombre."
-    },
     "patterns": {
       "dots": "Points",
       "grid": "Grille",
       "none": "Aucun"
-    },
-    "backdrops": {
-      "none": "Par défaut",
-      "morningMist": "Brume matinale",
-      "summerGlow": "Éclat d’été",
-      "auroraSilk": "Soie boréale",
-      "quietCanopy": "Canopée calme",
-      "duskTide": "Marée du soir"
     }
   }
 }

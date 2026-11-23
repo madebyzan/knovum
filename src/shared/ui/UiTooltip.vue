@@ -7,7 +7,7 @@ import {
   TooltipRoot,
   TooltipTrigger,
 } from "reka-ui";
-import type { HTMLAttributes } from "vue";
+import { shallowRef, watch, type HTMLAttributes } from "vue";
 
 import { cn } from "./cn";
 import { POPUP_ANIMATE_CLASSES } from "./ui-classes";
@@ -26,12 +26,22 @@ const props = withDefaults(
     side: "right",
   },
 );
+
+const open = shallowRef(false);
+
+// The root keeps an open tooltip mounted when it becomes disabled, and the trigger drops its
+// listeners at the same time, so nothing else would close it.
+watch(
+  () => props.disabled,
+  (disabled) => {
+    if (disabled) open.value = false;
+  },
+);
 </script>
 
 <template>
-  <slot v-if="disabled" />
-  <TooltipProvider v-else :delay-duration="300" :skip-delay-duration="100">
-    <TooltipRoot :ignore-non-keyboard-focus="true">
+  <TooltipProvider :delay-duration="300" :skip-delay-duration="100">
+    <TooltipRoot v-model:open="open" :ignore-non-keyboard-focus="true" :disabled="disabled">
       <TooltipTrigger as-child><slot /></TooltipTrigger>
       <TooltipPortal>
         <TooltipContent

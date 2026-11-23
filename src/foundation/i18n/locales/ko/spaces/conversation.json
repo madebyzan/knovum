@@ -33,7 +33,14 @@
   "input": {
     "placeholder": "이 스페이스에 대해 질문하거나 정리할 내용을 입력하세요…",
     "send": "보내기",
-    "shortcutHint": "입력하다"
+    "shortcutHint": "입력하다",
+    "blocked": {
+      "emptyPrompt": "질문이나 지시를 입력한 뒤 보내세요",
+      "noTarget": "보내려면 사용 가능한 모델이나 에이전트를 설정하세요",
+      "notReady": "대화를 준비하는 중…",
+      "pickingFiles": "파일 선택을 먼저 완료하세요",
+      "unresolvedFiles": "사용할 수 없는 외부 파일을 다시 선택하거나 제거하세요"
+    }
   },
   "conversations": {
     "preparing": "대화 시작 중…",

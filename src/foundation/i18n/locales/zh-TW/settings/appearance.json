@@ -60,22 +60,10 @@
       "label": "背景圖案",
       "description": "選擇點陣、網格或純淨無圖案畫布。"
     },
-    "backdrop": {
-      "label": "意境背景",
-      "description": "選擇策展柔焦氛圍背景，自動適配淺色與深色模式。"
-    },
     "patterns": {
       "dots": "點陣",
       "grid": "網格",
       "none": "純淨"
-    },
-    "backdrops": {
-      "none": "預設純淨",
-      "morningMist": "晨霧微光",
-      "summerGlow": "流光夏晝",
-      "auroraSilk": "浮光極晝",
-      "quietCanopy": "靜謐林影",
-      "duskTide": "潮汐暮色"
     }
   }
 }

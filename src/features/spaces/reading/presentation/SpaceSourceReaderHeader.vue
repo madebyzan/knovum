@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { BookOpen, ChevronLeft, ChevronRight, LayoutList, MoreHorizontal, X } from "@lucide/vue";
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  LayoutList,
+  Maximize2,
+  Minimize2,
+  MoreHorizontal,
+  X,
+} from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -21,6 +30,7 @@ const props = defineProps<{
   canBack: boolean;
   canForward: boolean;
   followsSelection: boolean;
+  focusMode?: boolean | undefined;
   locator?: KnowledgeLocator | undefined;
 }>();
 
@@ -30,6 +40,7 @@ const emit = defineEmits<{
   "update:pane": [pane: SourceReaderPane];
   stepHistory: [delta: -1 | 1];
   toggleFollow: [];
+  toggleFocusMode: [];
   close: [];
 }>();
 
@@ -96,6 +107,18 @@ const menuItems = useReaderHeaderMenu({
           icon-only
           @update:model-value="emit('update:pane', $event)"
         />
+        <UiIconButton
+          :label="
+            t(focusMode ? 'spaces.inspector.reader.exitFocusMode' : 'spaces.inspector.reader.focusMode')
+          "
+          :active="Boolean(focusMode)"
+          size="sm"
+          tooltip
+          @click="emit('toggleFocusMode')"
+        >
+          <Minimize2 v-if="focusMode" class="size-3.5" :stroke-width="1.6" />
+          <Maximize2 v-else class="size-3.5" :stroke-width="1.6" />
+        </UiIconButton>
         <UiDropdownMenu v-model:open="menuOpen" :items="menuItems" align="end" class="min-w-44">
           <template #trigger>
             <UiIconButton :label="t('common.more')" size="sm" tooltip>

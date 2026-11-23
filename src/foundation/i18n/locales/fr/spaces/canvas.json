@@ -177,6 +177,9 @@
   },
   "background": {
     "title": "Arrière-plan du canevas",
-    "cyclePattern": "Changer le motif d’arrière-plan du canevas"
+    "cyclePattern": "Changer le motif d’arrière-plan du canevas",
+    "currentSpace": "Cet espace",
+    "globalDefault": "Défaut global",
+    "followGlobal": "Suivre le global"
   }
 }

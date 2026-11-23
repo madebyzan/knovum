@@ -11,7 +11,7 @@ interface HybridSearchOptions {
 }
 
 export async function searchSpaceKnowledgeHybrid(
-  spaceId: string,
+  spaceId: string | null,
   query: string,
   { nodeIds, semantic = false, signal }: HybridSearchOptions = {},
 ): Promise<KnowledgeSearchResponse> {

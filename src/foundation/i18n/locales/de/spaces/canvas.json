@@ -177,6 +177,9 @@
   },
   "background": {
     "title": "Leinwandhintergrund",
-    "cyclePattern": "Hintergrundmuster der Leinwand wechseln"
+    "cyclePattern": "Hintergrundmuster der Leinwand wechseln",
+    "currentSpace": "Aktueller Space",
+    "globalDefault": "Globaler Standard",
+    "followGlobal": "Globalem folgen"
   }
 }

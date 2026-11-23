@@ -33,7 +33,14 @@
   "input": {
     "placeholder": "このスペースについて質問、または整理したい内容を入力…",
     "send": "送信",
-    "shortcutHint": "入力"
+    "shortcutHint": "入力",
+    "blocked": {
+      "emptyPrompt": "質問や指示を入力してから送信してください",
+      "noTarget": "送信するには利用可能なモデルまたはエージェントを設定してください",
+      "notReady": "会話を準備しています…",
+      "pickingFiles": "先にファイルの選択を完了してください",
+      "unresolvedFiles": "利用できない外部ファイルを再選択するか削除してください"
+    }
   },
   "conversations": {
     "preparing": "会話を開始しています…",

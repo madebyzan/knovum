@@ -177,6 +177,9 @@
   },
   "background": {
     "title": "Fondo del lienzo",
-    "cyclePattern": "Cambiar el patrón de fondo del lienzo"
+    "cyclePattern": "Cambiar el patrón de fondo del lienzo",
+    "currentSpace": "Espacio actual",
+    "globalDefault": "Predeterminado global",
+    "followGlobal": "Seguir global"
   }
 }

@@ -4,7 +4,10 @@ import { useTextareaAutosize } from "@vueuse/core";
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { canStartWith } from "../../../../../foundation/ai/ai-readiness";
 import AiExecutionTargetField from "../../../../../foundation/ai/AiExecutionTargetField.vue";
+import AiReadinessNotice from "../../../../../foundation/ai/AiReadinessNotice.vue";
+import { useAiReadiness } from "../../../../../foundation/ai/use-ai-readiness";
 import { isComposing } from "../../../../../foundation/dom/composition";
 import UiButton from "../../../../../shared/ui/UiButton.vue";
 import UiDropdownMenu from "../../../../../shared/ui/UiDropdownMenu.vue";
@@ -40,6 +43,9 @@ const target = computed({
   get: () => props.generator.target,
   set: (value) => store.update(props.generator.id, { target: value }),
 });
+const readiness = useAiReadiness(() => [
+  { kind: "routed", purpose: kind.value.purpose, target: target.value },
+]);
 const referenceMenu = computed(() => [
   {
     id: "canvas",
@@ -58,10 +64,16 @@ const referenceMenu = computed(() => [
 const blocked = computed(() => {
   if (preparing.value) return t("spaces.creation.generator.references.blocked.preparing");
   if (unreadable.value) return t("spaces.creation.generator.references.blocked.unreadable");
+  if (!target.value || !canStartWith(readiness.value)) return t("spaces.creation.generator.blocked.noTarget");
+  if (!prompt.value.trim()) return t("spaces.creation.generator.blocked.emptyPrompt");
   return undefined;
 });
 const ready = computed(
-  () => canGenerate(props.generator) && sources.value !== undefined && operations.allows("derive"),
+  () =>
+    canGenerate(props.generator) &&
+    canStartWith(readiness.value) &&
+    sources.value !== undefined &&
+    operations.allows("derive"),
 );
 
 async function upload() {
@@ -156,6 +168,7 @@ onMounted(() => {
           <ArrowUp class="size-4" :stroke-width="2.25" />
         </UiIconButton>
       </div>
+      <AiReadinessNotice :readiness="readiness" class="px-3.5 pb-2.5" />
     </div>
   </div>
 </template>

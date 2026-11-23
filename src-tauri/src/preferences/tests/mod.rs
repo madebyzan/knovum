@@ -20,7 +20,7 @@ fn absent_optional_preferences_preserve_saved_choices() {
                 "rightSidebarVisible": false, "rightSidebarWidth": 380
             },
             "canvas": {
-                "backgroundPattern": "dots", "backdrop": "none"
+                "backgroundPattern": "dots"
             }
         })
     );
@@ -46,7 +46,6 @@ fn partial_layout_preserves_explicit_false_values() {
         preferences.canvas.background_pattern,
         super::CanvasBackgroundPattern::None
     );
-    assert_eq!(preferences.canvas.backdrop, super::CanvasBackdrop::None);
 }
 
 #[test]
@@ -67,7 +66,6 @@ fn invalid_preferences_remain_errors() {
         json!({ "workbench": { "unknown": true } }),
         json!({ "canvas": null }),
         json!({ "canvas": { "backgroundPattern": "stripes" } }),
-        json!({ "canvas": { "backdrop": "neon" } }),
         json!({ "canvas": { "unknown": true } }),
         json!({ "unknown": true }),
     ] {

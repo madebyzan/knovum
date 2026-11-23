@@ -71,6 +71,8 @@
     "rotateClockwise": "旋轉 90°",
     "typeHere": "輸入文字…",
     "preview": "預覽",
-    "followSelection": "隨選取自動切換"
+    "followSelection": "隨選取自動切換",
+    "focusMode": "專注模式",
+    "exitFocusMode": "退出專注模式"
   }
 }

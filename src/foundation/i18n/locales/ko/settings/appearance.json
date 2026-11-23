@@ -60,22 +60,10 @@
       "label": "배경 패턴",
       "description": "점, 격자 또는 깔끔한 무지 캔버스를 선택합니다."
     },
-    "backdrop": {
-      "label": "분위기 배경",
-      "description": "라이트 및 다크 테마에 자연스럽게 어우러지는 배경을 선택합니다."
-    },
     "patterns": {
       "dots": "점",
       "grid": "격자",
       "none": "없음"
-    },
-    "backdrops": {
-      "none": "기본",
-      "morningMist": "아침 안개",
-      "summerGlow": "여름 윤슬",
-      "auroraSilk": "오로라 실크",
-      "quietCanopy": "고요한 숲빛",
-      "duskTide": "황혼의 물결"
     }
   }
 }

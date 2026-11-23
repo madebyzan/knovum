@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import {
-  canvasBackdrops,
   canvasBackgroundPatterns,
   preferenceDensities,
   preferenceDefaults,
@@ -45,7 +44,6 @@ const preferencesSchema = z
         backgroundPattern: z
           .enum(canvasBackgroundPatterns)
           .default(preferenceDefaults.canvas.backgroundPattern),
-        backdrop: z.enum(canvasBackdrops).default(preferenceDefaults.canvas.backdrop),
       })
       .strict()
       .prefault({}),
@@ -67,7 +65,6 @@ export type LocalePreference = Preferences["locale"];
 export type WorkbenchPreferences = Preferences["workbench"];
 type CanvasPreferences = Preferences["canvas"];
 export type CanvasBackgroundPattern = CanvasPreferences["backgroundPattern"];
-export type CanvasBackdrop = CanvasPreferences["backdrop"];
 
 export function decodePreferences(raw: unknown): Preferences {
   const current = persistedSchema.safeParse(raw);

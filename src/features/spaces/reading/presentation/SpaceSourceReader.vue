@@ -105,8 +105,9 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
     :data-reader-host="host"
     :data-reader-kind="readerKind ?? 'info'"
     :data-reader-pane="activePane"
+    :data-reader-focus="isCanvasHost && store.readerFocusMode ? '' : undefined"
     class="flex h-full min-h-0 min-w-0 flex-col bg-surface-panel"
-    :class="isCanvasHost && 'border-r border-(--knovum-window-border-color)'"
+    :class="isCanvasHost && !store.readerFocusMode && 'border-r border-(--knovum-window-border-color)'"
   >
     <SpaceSourceReaderHeader
       v-model:menu-open="headerMenuOpen"
@@ -117,10 +118,12 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
       :can-back="canBack"
       :can-forward="canForward"
       :follows-selection="store.readingFollowsSelection"
+      :focus-mode="isCanvasHost && store.readerFocusMode"
       :locator="target?.locator"
       @update:pane="store.setReadingPane"
       @step-history="store.stepReadingHistory"
       @toggle-follow="store.readingFollowsSelection = !store.readingFollowsSelection"
+      @toggle-focus-mode="store.toggleReaderFocusMode()"
       @close="store.closeSourceReader()"
     />
     <div

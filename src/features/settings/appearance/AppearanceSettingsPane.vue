@@ -5,23 +5,16 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import {
-  CANVAS_BACKDROP_LABEL_KEY,
-  CANVAS_PATTERN_LABEL_KEY,
-} from "../../../foundation/preferences/canvas-options";
+import { CANVAS_PATTERN_LABEL_KEY } from "../../../foundation/preferences/canvas-options";
 import { usePreferencesStore } from "../../../foundation/preferences/preferences-store";
 import type {
-  CanvasBackdrop,
   CanvasBackgroundPattern,
   DensityPreference,
   LocalePreference,
   TextSizePreference,
   ThemePreference,
 } from "../../../foundation/preferences/schema/preferences";
-import {
-  canvasBackdrops as canvasBackdropValues,
-  canvasBackgroundPatterns,
-} from "../../../shared/contracts/generated/contract-values";
+import { canvasBackgroundPatterns } from "../../../shared/contracts/generated/contract-values";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import type { SelectOption } from "../../../shared/ui/UiSelect.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
@@ -72,12 +65,6 @@ const canvasPatterns = computed<readonly SelectOption<CanvasBackgroundPattern>[]
   canvasBackgroundPatterns.map((value) => ({
     value,
     label: t(CANVAS_PATTERN_LABEL_KEY[value]),
-  })),
-);
-const canvasBackdrops = computed<readonly SelectOption<CanvasBackdrop>[]>(() =>
-  canvasBackdropValues.map((value) => ({
-    value,
-    label: t(CANVAS_BACKDROP_LABEL_KEY[value]),
   })),
 );
 </script>
@@ -149,19 +136,6 @@ const canvasBackdrops = computed<readonly SelectOption<CanvasBackdrop>[]>(() =>
         :label="t('settings.appearance.canvas.pattern.label')"
         :options="canvasPatterns"
         @update:model-value="updatePreference(() => preferences.setCanvasBackgroundPattern($event))"
-      />
-    </PreferenceField>
-    <PreferenceField
-      id="settings-appearance-canvas-backdrop"
-      tabindex="-1"
-      :label="t('settings.appearance.canvas.backdrop.label')"
-      :description="t('settings.appearance.canvas.backdrop.description')"
-    >
-      <UiSelect
-        :model-value="canvas.backdrop"
-        :label="t('settings.appearance.canvas.backdrop.label')"
-        :options="canvasBackdrops"
-        @update:model-value="updatePreference(() => preferences.setCanvasBackdrop($event))"
       />
     </PreferenceField>
   </UiSettingsSection>

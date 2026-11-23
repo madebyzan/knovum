@@ -33,7 +33,14 @@
   "input": {
     "placeholder": "Pergunte sobre este espaço ou descreva o que deseja criar…",
     "send": "Enviar",
-    "shortcutHint": "Digitar"
+    "shortcutHint": "Digitar",
+    "blocked": {
+      "emptyPrompt": "Digite uma pergunta ou instrução para enviar",
+      "noTarget": "Configure um modelo ou agente disponível para enviar",
+      "notReady": "Preparando conversa…",
+      "pickingFiles": "Conclua primeiro a seleção de arquivos",
+      "unresolvedFiles": "Reanexe ou remova primeiro os arquivos externos indisponíveis"
+    }
   },
   "conversations": {
     "preparing": "Iniciando conversa…",

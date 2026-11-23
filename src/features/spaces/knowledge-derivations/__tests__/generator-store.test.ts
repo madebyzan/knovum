@@ -9,8 +9,10 @@ const space = vi.hoisted(() => ({
   state: undefined as unknown as { activeSpaceId: string; nodes: { id: string }[] },
 }));
 const start = vi.hoisted(() => vi.fn<typeof startDerivationAction>());
+const admit = vi.hoisted(() => vi.fn<() => Promise<boolean>>().mockResolvedValue(true));
 vi.mock("../../session/space-store", () => ({ useSpaceStore: () => space.state }));
 vi.mock("../start-action", () => ({ startDerivationAction: start }));
+vi.mock("../../../../foundation/ai/ai-readiness-admission", () => ({ admitAiRequirements: admit }));
 vi.mock("../../../../foundation/i18n/instance", () => ({ i18n: { global: { t: (key: string) => key } } }));
 
 import { canGenerate, generatorFrame, uploadPosition } from "../generators/canvas-generator";

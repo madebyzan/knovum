@@ -101,20 +101,32 @@ it("keeps the object of every node a revalidation found unchanged", async () => 
   expect(shownNodeIds(context)).toEqual(["research-note", "published-meanwhile"]);
 });
 
-it("preserves per-Space group scope, active scene, and outline expansion across switches", async () => {
+it("preserves per-Space group scope, active scene, outline expansion, and reader state across switches", async () => {
   const context = await withResearchRetained();
   await openSpace(context, "research");
   context.groupScopePath.value = ["grp-1"];
   context.activeSceneId.value = "scene-1";
   context.outlineExpandedIds.value = ["sec-1"];
+  context.readingTarget.value = { nodeId: "research-note", pane: "read", nonce: 2 };
+  context.readerWidth.value = 54;
+  context.readerFocusMode.value = true;
+  context.backgroundPattern.value = "grid";
 
   await openSpace(context, "inbox");
   expect(context.groupScopePath.value).toEqual([]);
   expect(context.activeSceneId.value).toBeUndefined();
   expect(context.outlineExpandedIds.value).toEqual([]);
+  expect(context.readingTarget.value).toBeUndefined();
+  expect(context.readerWidth.value).toBe(44);
+  expect(context.readerFocusMode.value).toBe(false);
+  expect(context.backgroundPattern.value).toBeUndefined();
 
   await openSpace(context, "research");
   expect(context.groupScopePath.value).toEqual(["grp-1"]);
   expect(context.activeSceneId.value).toBe("scene-1");
   expect(context.outlineExpandedIds.value).toEqual(["sec-1"]);
+  expect(context.readingTarget.value).toMatchObject({ nodeId: "research-note", pane: "read" });
+  expect(context.readerWidth.value).toBe(54);
+  expect(context.readerFocusMode.value).toBe(true);
+  expect(context.backgroundPattern.value).toBe("grid");
 });

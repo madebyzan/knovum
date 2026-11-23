@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, shallowRef, watch } from "vue";
 
+import { admitAiRequirements } from "../../../../foundation/ai/ai-readiness-admission";
 import { i18n } from "../../../../foundation/i18n/instance";
 import type { RunState } from "../../contracts/generated/RunState";
 import { runOutputNodeId } from "../../runs/run-output";
@@ -29,8 +30,7 @@ export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", (
   const picking = shallowRef(false);
   /**
    * The generator whose prompt takes focus when its composer appears: one just opened is there to
-   * be written to, while pressing an existing frame selects it as an object, the way pressing a
-   * node does — so Delete removes it rather than editing its prompt.
+   * be written to, while pressing an existing frame selects it as an object.
    */
   const promptFocus = shallowRef<string>();
   const generators = computed(() => all.value.filter(({ spaceId }) => spaceId === space.activeSpaceId));
@@ -51,12 +51,11 @@ export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", (
     if (!spaceId) return;
     deactivate();
     const [aspectRatio = "1:1"] = GENERATOR_KINDS[kind].aspectRatios;
-    const origin = generatorOrigin(placement, generatorFrameSize(aspectRatio));
     const generator: CanvasGenerator = {
       id: crypto.randomUUID(),
       spaceId,
       kind,
-      ...origin,
+      ...generatorOrigin(placement, generatorFrameSize(aspectRatio)),
       prompt: "",
       aspectRatio,
       durationSeconds: 5,
@@ -140,6 +139,9 @@ export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", (
     const generator = find(id);
     if (!generator || !canGenerate(generator)) return;
     const kind = GENERATOR_KINDS[generator.kind];
+    if (!(await admitAiRequirements([{ kind: "routed", purpose: kind.purpose, target: generator.target }])))
+      return;
+    if (!find(id) || !canGenerate(find(id)!)) return;
     patch(id, { submission: "starting" });
     if (activeId.value === id) putAway();
     const run = await startDerivationAction({
@@ -150,15 +152,11 @@ export const useCanvasGeneratorStore = defineStore("spaces-canvas-generators", (
       target: generator.target,
       outputFrame: generatorFrame(generator),
       onUpdate: ({ state }) => {
-        if (UNPUBLISHED.has(state)) reopen(id);
+        // The Run ended without publishing: the frame is the person's again, with what they asked.
+        if (UNPUBLISHED.has(state) && find(id)) patch(id, { submission: undefined });
       },
     });
     if (find(id)?.submission === "starting") patch(id, { submission: run ? { runId: run.id } : undefined });
-  }
-
-  /** The Run ended without publishing: the frame is the person's again, with what they asked. */
-  function reopen(id: string) {
-    if (find(id)) patch(id, { submission: undefined });
   }
 
   watch(

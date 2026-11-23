@@ -177,6 +177,9 @@
   },
   "background": {
     "title": "캔버스 배경",
-    "cyclePattern": "캔버스 배경 패턴 전환"
+    "cyclePattern": "캔버스 배경 패턴 전환",
+    "currentSpace": "현재 스페이스",
+    "globalDefault": "전역 기본값",
+    "followGlobal": "전역 따르기"
   }
 }

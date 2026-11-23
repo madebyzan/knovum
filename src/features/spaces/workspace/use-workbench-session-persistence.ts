@@ -4,6 +4,7 @@ import type { Space } from "../model/space";
 import {
   captureSavedSpaceView,
   serializeSpaceViewSession,
+  type SavedSpaceViewKey,
   type SavedSpaceViewSession,
   type SpaceViewRefs,
   type SpaceViewSession,
@@ -12,10 +13,7 @@ import { saveWorkbenchSession, type SaveWorkbenchSessionInput } from "./workbenc
 import type { SpaceWorkbenchTab } from "./workbench-tab";
 
 /** The live workbench state persistence follows, owned by the window session. */
-export interface WorkbenchSessionSource extends Pick<
-  SpaceViewRefs,
-  "groupScopePath" | "activeSceneId" | "outlineExpandedIds"
-> {
+export interface WorkbenchSessionSource extends Pick<SpaceViewRefs, SavedSpaceViewKey> {
   ready: Ref<boolean>;
   tabs: Ref<readonly SpaceWorkbenchTab[]>;
   activeTabId: Ref<string | undefined>;

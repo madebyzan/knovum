@@ -1,11 +1,16 @@
 import { ref, shallowRef } from "vue";
 
+import type { CanvasBackgroundPattern } from "../../../shared/contracts/generated/CanvasBackgroundPattern";
 import type { RelationKind } from "../contracts/generated/RelationKind";
 import type { RelationStatus } from "../contracts/generated/RelationStatus";
 import type { ConversationScope } from "../conversation/conversation-scope";
 import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
 import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
-import type { SourceReadingHistoryEntry, SourceReadingTarget } from "../reading/source-reader-target";
+import {
+  SOURCE_READER_WIDTH_DEFAULT,
+  type SourceReadingHistoryEntry,
+  type SourceReadingTarget,
+} from "../reading/source-reader-target";
 import { DEFAULT_RELATION_STATUS_FILTER } from "../workspace/space-view-session";
 
 export interface RevealRequest {
@@ -57,6 +62,9 @@ export function createSpaceUiState() {
     readingHistory: shallowRef<readonly SourceReadingHistoryEntry[]>([]),
     readingHistoryIndex: shallowRef(-1),
     readingFollowsSelection: shallowRef(false),
+    readerWidth: shallowRef(SOURCE_READER_WIDTH_DEFAULT),
+    readerFocusMode: shallowRef(false),
+    backgroundPattern: shallowRef<CanvasBackgroundPattern>(),
     editorLocateRequest: ref<EditorLocateRequest>(),
     canvasFocusIds: ref<string[]>([]),
     activeSceneId: ref<string | undefined>(),

@@ -71,6 +71,8 @@
     "rotateClockwise": "90° 회전",
     "typeHere": "텍스트 입력…",
     "preview": "미리보기",
-    "followSelection": "선택에 따라 자동 전환"
+    "followSelection": "선택에 따라 자동 전환",
+    "focusMode": "집중 모드",
+    "exitFocusMode": "집중 모드 종료"
   }
 }

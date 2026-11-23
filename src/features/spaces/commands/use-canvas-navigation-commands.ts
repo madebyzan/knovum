@@ -26,20 +26,16 @@ export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarC
     const selected = new Set(session.selection.value.nodeIds);
     return store.nodes.filter(({ id }) => selected.has(id));
   };
-  const selectedStructureNodeIds = () => {
-    const index = createStructureIndex(store.editSnapshot.structure);
-    return currentSelectionRoots(
+  const selectedStructureNodeIds = () =>
+    currentSelectionRoots(
       session.selection.value.nodeIds,
       session.selection.value.structureNodeIds,
-      index,
+      createStructureIndex(store.editSnapshot.structure),
     ).map(({ id }) => id);
-  };
-
   const hasSelection = () => {
     const { nodeIds, structureNodeIds, relationIds } = session.selection.value;
     return Boolean(nodeIds.length || structureNodeIds.length || relationIds.length);
   };
-
   return computed<readonly AppCommand[]>(() => [
     ...CANVAS_TOOL_COMMANDS.map((toolCommand) =>
       command(`spaces.tool-${toolCommand.tool}`, t(toolCommand.title), {
@@ -56,6 +52,7 @@ export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarC
       shortcut: SPACE_COMMAND_SHORTCUTS.cancelInteraction,
       run: () => {
         if (tools.tool !== "select") tools.resetTool();
+        else if (store.readingTarget && store.readerFocusMode) store.toggleReaderFocusMode();
         else if (!hasSelection() && store.readingTarget) store.closeSourceReader();
         else session.activeEditor.value?.cancelInteraction();
       },
@@ -108,6 +105,16 @@ export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarC
         store.openSourceReader({ nodeId: node.id });
       },
     }),
+    command(
+      "spaces.toggle-reader-focus-mode",
+      t(
+        store.readerFocusMode ? "spaces.inspector.reader.exitFocusMode" : "spaces.inspector.reader.focusMode",
+      ),
+      {
+        availability: () => availableWhen(Boolean(store.readingTarget), "no_selection"),
+        run: () => store.toggleReaderFocusMode(),
+      },
+    ),
     command("spaces.previous-scene", t("spaces.scenes.previous"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.previousScene,
       category: "navigation",
@@ -156,13 +163,9 @@ export function useCanvasNavigationCommands(rightSidebar: WorkspaceRightSidebarC
       },
       run: async () => {
         const index = createStructureIndex(store.editSnapshot.structure);
-        const structureNodeIds = selectedStructureNodeIds();
-        const locked = structureNodeIds.every((id) => index.structureById.get(id)?.locked);
-        await store.executeSpaceEdit({
-          kind: "structure.set-lock",
-          rootIds: structureNodeIds,
-          locked: !locked,
-        });
+        const rootIds = selectedStructureNodeIds();
+        const locked = !rootIds.every((id) => index.structureById.get(id)?.locked);
+        await store.executeSpaceEdit({ kind: "structure.set-lock", rootIds, locked });
       },
     }),
   ]);

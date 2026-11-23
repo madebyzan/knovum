@@ -141,7 +141,7 @@ const canvasEvents = createSpaceCanvasEvents({
     </div>
     <CanvasSurfaceHost
       :key="spaceId"
-      :background="preferences.canvas"
+      :background="{ backgroundPattern: store.backgroundPattern ?? preferences.canvas.backgroundPattern }"
       :rendering-enabled="renderingEnabled"
       :events="canvasEvents"
       :persistence="store.spacePersistence(spaceId)"

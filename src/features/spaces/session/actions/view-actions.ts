@@ -2,11 +2,8 @@ import type { SpacePlacement } from "../../canvas/navigation-requests";
 import { findSemanticRelationPath, relationNeighborhood } from "../../knowledge/model/relation-graph";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { contentNodeIdsWithin } from "../../model/structure/structure-queries";
-import {
-  applySceneProjection,
-  buildSceneViewProjection,
-  clearSceneProjection,
-} from "../../workspace/space-view-session";
+import { applySceneProjection, buildSceneViewProjection } from "../../scenes/scene-view-projection";
+import { clearSceneProjection } from "../../workspace/space-view-session";
 import type { SpaceState } from "../session-state";
 
 export function createSpaceViewActions(state: SpaceState, placement: SpacePlacement) {

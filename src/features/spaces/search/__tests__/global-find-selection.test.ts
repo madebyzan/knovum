@@ -14,6 +14,12 @@ vi.mock("../use-global-find", async () => {
   return {
     useGlobalFind: () => ({
       query: shallowRef("Section"),
+      semanticSearch: {
+        enabled: shallowRef(false),
+        preparing: shallowRef(false),
+        indexing: shallowRef(false),
+        enable: vi.fn<() => void>(),
+      },
       matches: shallowRef<GlobalSearchMatch[]>([
         {
           kind: "structure",
