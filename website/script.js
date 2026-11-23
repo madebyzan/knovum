@@ -344,15 +344,14 @@
 
   /* --------------------------- release downloads --------------------------- */
 
-  async function initReleaseDownloads() {
-    const links = [...document.querySelectorAll("[data-release-asset]")];
-    if (!links.length || typeof globalThis.fetch !== "function") return;
-    const latestUrl = "https://github.com/madebyzan/knovum/releases/latest";
-    const patterns = {
-      "macos-arm64": /_aarch64\.dmg$/i,
-      "macos-x64": /_x64\.dmg$/i,
-      "windows-x64": /_x64-setup\.exe$/i,
-    };
+  const RELEASE_LATEST_URL = "https://github.com/madebyzan/knovum/releases/latest";
+  const RELEASE_ASSET_PATTERNS = {
+    "macos-arm64": /_aarch64\.dmg$/i,
+    "macos-x64": /_x64\.dmg$/i,
+    "windows-x64": /_x64-setup\.exe$/i,
+  };
+
+  async function fetchLatestRelease() {
     const controller = new AbortController();
     const timeout = globalThis.setTimeout(() => controller.abort(), 5000);
     try {
@@ -360,27 +359,41 @@
         headers: { Accept: "application/vnd.github+json" },
         signal: controller.signal,
       });
-      if (!response.ok) throw new Error("release lookup failed");
-      const release = await response.json();
-      const assets = Array.isArray(release.assets) ? release.assets : [];
-      for (const link of links) {
-        const asset = assets.find((candidate) =>
-          patterns[link.dataset.releaseAsset]?.test(candidate.name || ""),
-        );
-        link.href = asset?.browser_download_url || release.html_url || latestUrl;
-        link.dataset.releaseReady = asset?.browser_download_url ? "true" : "false";
-      }
-      document.querySelectorAll("[data-release-version]").forEach((element) => {
-        element.textContent = release.tag_name || "—";
-      });
+      if (!response.ok) return null;
+      return await response.json();
     } catch {
-      for (const link of links) {
-        link.href = latestUrl;
-        link.dataset.releaseReady = "false";
-      }
+      return null;
     } finally {
       globalThis.clearTimeout(timeout);
     }
+  }
+
+  function applyReleaseLink(link, release, assets) {
+    const asset = assets.find((candidate) =>
+      RELEASE_ASSET_PATTERNS[link.dataset.releaseAsset]?.test(candidate.name || ""),
+    );
+    link.href = asset?.browser_download_url || release.html_url || RELEASE_LATEST_URL;
+    link.dataset.releaseReady = String(Boolean(asset?.browser_download_url));
+  }
+
+  function applyFallbackLink(link) {
+    link.href = RELEASE_LATEST_URL;
+    link.dataset.releaseReady = "false";
+  }
+
+  async function initReleaseDownloads() {
+    const links = [...document.querySelectorAll("[data-release-asset]")];
+    if (!links.length || typeof globalThis.fetch !== "function") return;
+    const release = await fetchLatestRelease();
+    if (!release) {
+      links.forEach(applyFallbackLink);
+      return;
+    }
+    const assets = Array.isArray(release.assets) ? release.assets : [];
+    for (const link of links) applyReleaseLink(link, release, assets);
+    document.querySelectorAll("[data-release-version]").forEach((element) => {
+      element.textContent = release.tag_name || "—";
+    });
   }
 
   /* ------------------------------ small parts ------------------------------ */
