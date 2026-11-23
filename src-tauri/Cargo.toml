@@ -295,7 +295,11 @@ debug = 2
 [lints.rust]
 linker_messages = "allow"
 
-# Upstream security fix; remove after a compatible crates.io release includes it.
+# Upstream security fixes; remove each override after its compatible crates.io release
+# is available. The cookie patch applies the upstream fix for RUSTSEC-2026-0594:
+# private-cookie nonces must come from the OS RNG so forked processes cannot reuse them.
+# https://github.com/rwf2/cookie-rs/commit/98de6032defb10ad5e49d83fa1a9bbed1873cbe4
 # https://github.com/typst/citationberg/pull/44
 [patch.crates-io]
+cookie = { git = "https://github.com/rwf2/cookie-rs", rev = "98de6032defb10ad5e49d83fa1a9bbed1873cbe4" }
 citationberg = { git = "https://github.com/typst/citationberg", rev = "06a591e2f237d25e1dfdedac3f3d1494c496c52d" }
