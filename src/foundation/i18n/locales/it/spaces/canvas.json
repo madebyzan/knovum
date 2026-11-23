@@ -174,5 +174,9 @@
     "hide": "Nascondi minimappa",
     "toggle": "Attiva/disattiva minimappa",
     "viewport": "Vista attuale"
+  },
+  "background": {
+    "title": "Sfondo dell’area di lavoro",
+    "cyclePattern": "Cambia il motivo di sfondo dell’area di lavoro"
   }
 }

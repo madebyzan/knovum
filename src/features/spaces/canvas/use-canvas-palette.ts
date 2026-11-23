@@ -14,6 +14,7 @@ export interface CanvasPalette {
   foreground: string;
   foregroundSecondary: string;
   grid: string;
+  gridLine: string;
   measurement: string;
   contentFillByPreset: Record<CanvasFillPreset, string>;
   panel: string;
@@ -49,6 +50,7 @@ function readPalette(): CanvasPalette {
     foreground: value(styles, "--color-fg-primary"),
     foregroundSecondary: value(styles, "--color-fg-secondary"),
     grid: value(styles, "--knovum-space-grid-color"),
+    gridLine: value(styles, "--knovum-space-grid-line-color"),
     measurement: value(styles, "--color-content-amber"),
     contentFillByPreset: {
       yellow: value(styles, "--color-content-yellow-subtle"),

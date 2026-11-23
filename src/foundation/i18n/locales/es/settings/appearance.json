@@ -53,5 +53,29 @@
       "label": "Restaurar el espacio de trabajo anterior al iniciar",
       "description": "Vuelve a abrir las pestañas, vistas del lienzo y barras laterales de la última sesión."
     }
+  },
+  "canvas": {
+    "title": "Lienzo",
+    "pattern": {
+      "label": "Patrón de fondo",
+      "description": "Elige puntos, una cuadrícula sutil o un lienzo limpio."
+    },
+    "backdrop": {
+      "label": "Fondo ambiental",
+      "description": "Elige un fondo suave que se adapta a los temas claro y oscuro."
+    },
+    "patterns": {
+      "dots": "Puntos",
+      "grid": "Cuadrícula",
+      "none": "Ninguno"
+    },
+    "backdrops": {
+      "none": "Predeterminado",
+      "morningMist": "Niebla matinal",
+      "summerGlow": "Brillo de verano",
+      "auroraSilk": "Seda boreal",
+      "quietCanopy": "Follaje sereno",
+      "duskTide": "Marea al ocaso"
+    }
   }
 }

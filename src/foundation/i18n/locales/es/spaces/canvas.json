@@ -174,5 +174,9 @@
     "hide": "Ocultar minimapa",
     "toggle": "Alternar minimapa",
     "viewport": "Vista actual"
+  },
+  "background": {
+    "title": "Fondo del lienzo",
+    "cyclePattern": "Cambiar el patrón de fondo del lienzo"
   }
 }

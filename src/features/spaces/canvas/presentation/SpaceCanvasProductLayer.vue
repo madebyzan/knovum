@@ -20,6 +20,7 @@ import SpaceCanvasRelationBar from "./selection/SpaceCanvasRelationBar.vue";
 import SpaceCanvasSelectionAnchor from "./selection/SpaceCanvasSelectionAnchor.vue";
 import SpaceCanvasSelectionBar from "./selection/SpaceCanvasSelectionBar.vue";
 import { useSelectionSurfaceState } from "./selection/use-selection-surface-state";
+import SpaceCanvasBackgroundControl from "./SpaceCanvasBackgroundControl.vue";
 import SpaceCanvasFeedback from "./SpaceCanvasFeedback.vue";
 import SpaceCanvasFocusBadge from "./SpaceCanvasFocusBadge.vue";
 import SpaceCanvasToolbar from "./SpaceCanvasToolbar.vue";
@@ -79,34 +80,41 @@ const selectionBarGap = computed(() =>
       <SpaceCanvasFocusBadge :count="store.canvasFocusIds.length" @exit="store.clearCanvasFocus" />
     </div>
     <div
-      v-if="navigationEnabled"
       ref="viewChrome"
       class="pointer-events-auto absolute bottom-1 left-1 flex h-6 items-center overflow-hidden rounded-md border border-stroke-strong bg-surface-canvas"
     >
-      <SpaceCanvasViewControls />
-      <Transition
-        enter-active-class="overflow-hidden transition-[width,opacity,transform] duration-220 ease-standard motion-reduce:transition-none"
-        enter-from-class="w-0 -translate-x-1 opacity-0"
-        leave-active-class="overflow-hidden transition-[width,opacity,transform] duration-150 ease-standard motion-reduce:transition-none"
-        leave-to-class="w-0 -translate-x-1 opacity-0"
-      >
-        <div
-          v-if="!scenesCollapsed"
-          class="flex h-full w-17 shrink-0 items-center overflow-hidden border-l border-stroke-strong bg-surface-control px-0.5"
+      <template v-if="navigationEnabled">
+        <SpaceCanvasViewControls />
+        <Transition
+          enter-active-class="overflow-hidden transition-[width,opacity,transform] duration-220 ease-standard motion-reduce:transition-none"
+          enter-from-class="w-0 -translate-x-1 opacity-0"
+          leave-active-class="overflow-hidden transition-[width,opacity,transform] duration-150 ease-standard motion-reduce:transition-none"
+          leave-to-class="w-0 -translate-x-1 opacity-0"
         >
-          <SpaceCanvasSceneControls />
+          <div
+            v-if="!scenesCollapsed"
+            class="flex h-full w-17 shrink-0 items-center overflow-hidden border-l border-stroke-strong bg-surface-control px-0.5"
+          >
+            <SpaceCanvasSceneControls />
+          </div>
+        </Transition>
+        <div class="flex h-full shrink-0 items-center border-l border-stroke-strong px-0.5">
+          <UiIconButton
+            :label="t(scenesCollapsed ? 'spaces.scenes.expand' : 'spaces.scenes.collapse')"
+            tooltip
+            size="sm"
+            class="size-5 rounded-sm text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
+            @click="scenesCollapsed = !scenesCollapsed"
+          >
+            <Star class="size-3" :stroke-width="1.55" />
+          </UiIconButton>
         </div>
-      </Transition>
-      <div class="flex h-full shrink-0 items-center border-l border-stroke-strong px-0.5">
-        <UiIconButton
-          :label="t(scenesCollapsed ? 'spaces.scenes.expand' : 'spaces.scenes.collapse')"
-          tooltip
-          size="sm"
-          class="size-5 rounded-sm text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
-          @click="scenesCollapsed = !scenesCollapsed"
-        >
-          <Star class="size-3" :stroke-width="1.55" />
-        </UiIconButton>
+      </template>
+      <div
+        class="flex h-full shrink-0 items-center px-0.5"
+        :class="navigationEnabled && 'border-l border-stroke-strong'"
+      >
+        <SpaceCanvasBackgroundControl />
       </div>
     </div>
     <div ref="minimapChrome" class="pointer-events-none absolute right-1 bottom-1">

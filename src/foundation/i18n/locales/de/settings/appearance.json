@@ -53,5 +53,29 @@
       "label": "Vorherigen Arbeitsbereich beim Start wiederherstellen",
       "description": "Öffnet Tabs, Canvas-Ansichten und Seitenleisten der letzten Sitzung erneut."
     }
+  },
+  "canvas": {
+    "title": "Leinwand",
+    "pattern": {
+      "label": "Hintergrundmuster",
+      "description": "Wähle Punkte, ein feines Raster oder eine schlichte Fläche."
+    },
+    "backdrop": {
+      "label": "Atmosphärischer Hintergrund",
+      "description": "Wähle einen weichen Hintergrund, der sich an Hell und Dunkel anpasst."
+    },
+    "patterns": {
+      "dots": "Punkte",
+      "grid": "Raster",
+      "none": "Ohne"
+    },
+    "backdrops": {
+      "none": "Standard",
+      "morningMist": "Morgennebel",
+      "summerGlow": "Sommerglanz",
+      "auroraSilk": "Aurora-Seide",
+      "quietCanopy": "Stilles Laub",
+      "duskTide": "Abendgezeit"
+    }
   }
 }

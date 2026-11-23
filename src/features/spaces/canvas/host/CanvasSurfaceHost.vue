@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 
+import type { CanvasPreferences } from "../../../../shared/contracts/generated/CanvasPreferences";
 import type { CanvasExchangePort } from "../../canvas-exchange/canvas-exchange-port";
 import { createJsonCanvasExchangePort } from "../../canvas-exchange/json-canvas-exchange";
 import type {
@@ -17,6 +18,7 @@ import KonvaCanvasSurface from "../konva/KonvaCanvasSurface.vue";
 import { useCanvasDocumentSession } from "./use-canvas-document-session";
 
 const props = defineProps<{
+  background: CanvasPreferences;
   events: CanvasHostEvents;
   persistence: SpacePersistenceState;
   ensurePersisted(): Promise<void>;
@@ -97,6 +99,7 @@ onBeforeUnmount(() => {
     ref="surface"
     v-if="session.document.value"
     :key="session.surfaceKey.value"
+    :background="background"
     :document="session.document.value"
     :scene-input="sceneInput"
     :events="surfaceEvents"

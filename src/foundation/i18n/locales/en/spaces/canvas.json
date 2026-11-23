@@ -174,5 +174,9 @@
     "hide": "Hide mini map",
     "toggle": "Toggle mini map",
     "viewport": "Current viewport"
+  },
+  "background": {
+    "title": "Canvas background",
+    "cyclePattern": "Cycle canvas background pattern"
   }
 }

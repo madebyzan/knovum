@@ -174,5 +174,9 @@
     "hide": "Ocultar minimapa",
     "toggle": "Alternar minimapa",
     "viewport": "Visualização atual"
+  },
+  "background": {
+    "title": "Fundo da tela",
+    "cyclePattern": "Alternar padrão de fundo da tela"
   }
 }

@@ -57,6 +57,45 @@ pub enum LocalePreference {
     Russian,
 }
 
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum CanvasBackgroundPattern {
+    Dots,
+    Grid,
+    None,
+}
+
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS,
+)]
+#[serde(rename_all = "kebab-case")]
+pub enum CanvasBackdrop {
+    None,
+    MorningMist,
+    SummerGlow,
+    AuroraSilk,
+    QuietCanopy,
+    DuskTide,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields, default)]
+pub struct CanvasPreferences {
+    pub background_pattern: CanvasBackgroundPattern,
+    pub backdrop: CanvasBackdrop,
+}
+
+impl Default for CanvasPreferences {
+    fn default() -> Self {
+        Self {
+            background_pattern: CanvasBackgroundPattern::Dots,
+            backdrop: CanvasBackdrop::None,
+        }
+    }
+}
+
 #[derive(Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields, default)]
 pub struct WorkbenchPreferences {
@@ -90,6 +129,8 @@ pub struct Preferences {
     pub restore_previous_workspace: bool,
     #[serde(default)]
     pub workbench: WorkbenchPreferences,
+    #[serde(default)]
+    pub canvas: CanvasPreferences,
 }
 
 impl Default for Preferences {
@@ -102,6 +143,7 @@ impl Default for Preferences {
             background_task_notifications: Self::default_background_task_notifications(),
             restore_previous_workspace: Self::default_restore_previous_workspace(),
             workbench: WorkbenchPreferences::default(),
+            canvas: CanvasPreferences::default(),
         }
     }
 }

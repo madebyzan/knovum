@@ -3,6 +3,7 @@ import { Stage as KonvaStage } from "vue-konva/core";
 
 import type { CanvasNodeContentSlotProps, CanvasSurfaceProps } from "../contracts/canvas-surface";
 import type { CanvasDocumentV1 } from "../schema/document";
+import CanvasBackdropSurface from "./rendering/CanvasBackdropSurface.vue";
 import CanvasDomOverlay from "./rendering/CanvasDomOverlay.vue";
 import CanvasGridSurface from "./rendering/CanvasGridSurface.vue";
 import CanvasMarquee from "./rendering/CanvasMarquee.vue";
@@ -37,10 +38,15 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       interactionEnabled && !runtime.contextMenu.keyboard($event) && runtime.viewport.pressSpaceKey($event)
     "
   >
+    <CanvasBackdropSurface
+      v-if="renderingEnabled && background.backdrop !== 'none'"
+      :backdrop="background.backdrop"
+    />
     <CanvasGridSurface
-      v-if="renderingEnabled"
+      v-if="renderingEnabled && background.backgroundPattern !== 'none'"
       :camera="runtime.viewport.camera"
       :palette="runtime.palette.value"
+      :pattern="background.backgroundPattern"
       :surface="runtime.viewport.surface"
       :zoom="runtime.viewport.zoom.value"
     />

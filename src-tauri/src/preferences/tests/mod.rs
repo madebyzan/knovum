@@ -18,6 +18,9 @@ fn absent_optional_preferences_preserve_saved_choices() {
             "workbench": {
                 "sidebarVisible": true, "sidebarWidth": 224,
                 "rightSidebarVisible": false, "rightSidebarWidth": 380
+            },
+            "canvas": {
+                "backgroundPattern": "dots", "backdrop": "none"
             }
         })
     );
@@ -28,7 +31,8 @@ fn partial_layout_preserves_explicit_false_values() {
     let preferences: Preferences = serde_json::from_value(json!({
         "theme": "system", "density": "compact", "textSize": "default", "locale": "system",
         "backgroundTaskNotifications": false, "restorePreviousWorkspace": false,
-        "workbench": { "sidebarVisible": false }
+        "workbench": { "sidebarVisible": false },
+        "canvas": { "backgroundPattern": "none" }
     }))
     .unwrap();
     preferences.validate().unwrap();
@@ -38,6 +42,11 @@ fn partial_layout_preserves_explicit_false_values() {
     assert_eq!(preferences.workbench.sidebar_width, 224);
     assert!(!preferences.workbench.right_sidebar_visible);
     assert_eq!(preferences.workbench.right_sidebar_width, 380);
+    assert_eq!(
+        preferences.canvas.background_pattern,
+        super::CanvasBackgroundPattern::None
+    );
+    assert_eq!(preferences.canvas.backdrop, super::CanvasBackdrop::None);
 }
 
 #[test]
@@ -56,6 +65,10 @@ fn invalid_preferences_remain_errors() {
         json!({ "workbench": { "sidebarWidth": 224.5 } }),
         json!({ "workbench": { "sidebarVisible": "false" } }),
         json!({ "workbench": { "unknown": true } }),
+        json!({ "canvas": null }),
+        json!({ "canvas": { "backgroundPattern": "stripes" } }),
+        json!({ "canvas": { "backdrop": "neon" } }),
+        json!({ "canvas": { "unknown": true } }),
         json!({ "unknown": true }),
     ] {
         let mut raw = current.clone();

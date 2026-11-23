@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useId, useTemplateRef, watch } from "vue";
+import { onScopeDispose, useId, useTemplateRef, watch } from "vue";
 
+import type { CanvasBackgroundPattern } from "../../../../../shared/contracts/generated/CanvasBackgroundPattern";
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import type { CanvasPalette } from "../../use-canvas-palette";
 import type { CanvasCamera } from "../viewport/canvas-camera";
@@ -8,55 +9,67 @@ import type { CanvasCamera } from "../viewport/canvas-camera";
 const GRID_SPACING = 25;
 const DOT_RADIUS = 1.1;
 
+type VisiblePattern = Exclude<CanvasBackgroundPattern, "none">;
+
 const props = defineProps<{
   camera: CanvasCamera;
   palette: CanvasPalette;
+  pattern: VisiblePattern;
   surface: { height: number; width: number };
   zoom: number;
 }>();
-const pattern = useTemplateRef<SVGPatternElement>("pattern");
+const patternNode = useTemplateRef<SVGPatternElement>("patternNode");
 const dot = useTemplateRef<SVGCircleElement>("dot");
+const gridLines = useTemplateRef<SVGPathElement>("gridLines");
 const patternId = `canvas-grid-${useId()}`;
 
-/** Phase that keeps a dot centred on every world multiple of the spacing, for any sign of translation. */
-function phase(translation: number, cell: number) {
-  return (((translation - cell / 2) % cell) + cell) % cell;
+/** Phase that keeps pattern intersections on every world multiple of the spacing, for any translation sign. */
+function phase(translation: number, cell: number, mode: VisiblePattern) {
+  const offset = mode === "dots" ? translation - cell / 2 : translation;
+  return ((offset % cell) + cell) % cell;
 }
 
-function applyPhase(node: SVGPatternElement, camera: CanvasViewport) {
+function applyPhase(node: SVGPatternElement, camera: CanvasViewport, mode: VisiblePattern) {
   const cell = GRID_SPACING * camera.zoom;
-  node.setAttribute("patternTransform", `translate(${phase(camera.x, cell)} ${phase(camera.y, cell)})`);
+  node.setAttribute(
+    "patternTransform",
+    `translate(${phase(camera.x, cell, mode)} ${phase(camera.y, cell, mode)})`,
+  );
 }
 
-/** The cell follows the zoom, the dot does not: dots stay the same size on screen at every zoom level. */
-function applyCell(node: SVGPatternElement, circle: SVGCircleElement, camera: CanvasViewport) {
+/** The cell follows the zoom while dot radius and line stroke stay constant in screen pixels. */
+function applyCell(node: SVGPatternElement, camera: CanvasViewport, mode: VisiblePattern) {
   const cell = GRID_SPACING * camera.zoom;
   node.setAttribute("width", String(cell));
   node.setAttribute("height", String(cell));
-  circle.setAttribute("cx", String(cell / 2));
-  circle.setAttribute("cy", String(cell / 2));
-  applyPhase(node, camera);
+  if (mode === "dots" && dot.value) {
+    dot.value.setAttribute("cx", String(cell / 2));
+    dot.value.setAttribute("cy", String(cell / 2));
+  } else if (mode === "grid" && gridLines.value) {
+    gridLines.value.setAttribute("d", `M ${cell} 0 L 0 0 0 ${cell}`);
+  }
+  applyPhase(node, camera, mode);
 }
 
 watch(
-  [pattern, dot, () => props.zoom],
-  ([node, circle]) => node && circle && applyCell(node, circle, props.camera.get()),
+  [patternNode, dot, gridLines, () => props.zoom, () => props.pattern],
+  ([node]) => node && applyCell(node, props.camera.get(), props.pattern),
   { flush: "post", immediate: true },
 );
-props.camera.observeFrames((camera) => pattern.value && applyPhase(pattern.value, camera));
+/**
+ * The background pattern is an SVG pattern, written imperatively per camera frame like every other
+ * camera-anchored surface. A CSS gradient cannot hold this role: the engine pixel-snaps background
+ * geometry, making it jitter against subpixel-rendered nodes. A pattern transform interpolates in
+ * floating point and rasterizes one tile on its own compositor layer.
+ */
+onScopeDispose(
+  props.camera.observeFrames(
+    (camera) => patternNode.value && applyPhase(patternNode.value, camera, props.pattern),
+  ),
+);
 </script>
 
 <template>
-  <!--
-    The dot grid is an SVG pattern, written imperatively per camera frame like every other camera-anchored
-    surface. A CSS gradient background cannot hold this role: the engine pixel-snaps background geometry,
-    so the grid would step a whole device pixel at a time while subpixel-rendered content moves smoothly -
-    visible as the grid jittering against the nodes. A pattern transform is interpolated in floating point,
-    and one tile is rasterized rather than a viewport-sized Konva layer being refilled per frame.
-
-    It spans the stage surface rather than the host and sits on its own compositor layer, so a work-area
-    edge moving under a sidebar clips and carries the grid without ever re-rasterizing it.
-  -->
   <svg
     aria-hidden="true"
     class="pointer-events-none absolute top-0 left-0 z-0 will-change-transform"
@@ -64,8 +77,23 @@ props.camera.observeFrames((camera) => pattern.value && applyPhase(pattern.value
     :height="surface.height"
   >
     <defs>
-      <pattern :id="patternId" ref="pattern" patternUnits="userSpaceOnUse" width="25" height="25">
-        <circle ref="dot" :r="DOT_RADIUS" :fill="palette.grid" cx="12.5" cy="12.5" />
+      <pattern :id="patternId" ref="patternNode" patternUnits="userSpaceOnUse" width="25" height="25">
+        <circle
+          v-if="pattern === 'dots'"
+          ref="dot"
+          :r="DOT_RADIUS"
+          :fill="palette.grid"
+          cx="12.5"
+          cy="12.5"
+        />
+        <path
+          v-else
+          ref="gridLines"
+          d="M 25 0 L 0 0 0 25"
+          fill="none"
+          :stroke="palette.gridLine"
+          stroke-width="1"
+        />
       </pattern>
     </defs>
     <rect width="100%" height="100%" :fill="`url(#${patternId})`" />

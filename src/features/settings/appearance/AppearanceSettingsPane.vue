@@ -5,13 +5,23 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
+import {
+  CANVAS_BACKDROP_LABEL_KEY,
+  CANVAS_PATTERN_LABEL_KEY,
+} from "../../../foundation/preferences/canvas-options";
 import { usePreferencesStore } from "../../../foundation/preferences/preferences-store";
 import type {
+  CanvasBackdrop,
+  CanvasBackgroundPattern,
   DensityPreference,
   LocalePreference,
   TextSizePreference,
   ThemePreference,
 } from "../../../foundation/preferences/schema/preferences";
+import {
+  canvasBackdrops as canvasBackdropValues,
+  canvasBackgroundPatterns,
+} from "../../../shared/contracts/generated/contract-values";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import type { SelectOption } from "../../../shared/ui/UiSelect.vue";
 import UiSettingsSection from "../../../shared/ui/UiSettingsSection.vue";
@@ -20,7 +30,7 @@ import PreferenceField from "../components/PreferenceField.vue";
 
 const { t } = useI18n();
 const preferences = usePreferencesStore();
-const { theme, density, textSize, locale, restorePreviousWorkspace } = storeToRefs(preferences);
+const { theme, density, textSize, locale, restorePreviousWorkspace, canvas } = storeToRefs(preferences);
 
 async function updatePreference(operation: () => Promise<void>) {
   try {
@@ -58,6 +68,18 @@ const languages = computed<readonly SelectOption<LocalePreference>[]>(() => [
   { value: "it", label: t("settings.appearance.options.language.italian") },
   { value: "ru", label: t("settings.appearance.options.language.russian") },
 ]);
+const canvasPatterns = computed<readonly SelectOption<CanvasBackgroundPattern>[]>(() =>
+  canvasBackgroundPatterns.map((value) => ({
+    value,
+    label: t(CANVAS_PATTERN_LABEL_KEY[value]),
+  })),
+);
+const canvasBackdrops = computed<readonly SelectOption<CanvasBackdrop>[]>(() =>
+  canvasBackdropValues.map((value) => ({
+    value,
+    label: t(CANVAS_BACKDROP_LABEL_KEY[value]),
+  })),
+);
 </script>
 
 <template>
@@ -112,6 +134,34 @@ const languages = computed<readonly SelectOption<LocalePreference>[]>(() => [
         :label="t('settings.appearance.language.label')"
         :options="languages"
         @update:model-value="updatePreference(() => preferences.setLocale($event))"
+      />
+    </PreferenceField>
+  </UiSettingsSection>
+  <UiSettingsSection :title="t('settings.appearance.canvas.title')">
+    <PreferenceField
+      id="settings-appearance-canvas-pattern"
+      tabindex="-1"
+      :label="t('settings.appearance.canvas.pattern.label')"
+      :description="t('settings.appearance.canvas.pattern.description')"
+    >
+      <UiSelect
+        :model-value="canvas.backgroundPattern"
+        :label="t('settings.appearance.canvas.pattern.label')"
+        :options="canvasPatterns"
+        @update:model-value="updatePreference(() => preferences.setCanvasBackgroundPattern($event))"
+      />
+    </PreferenceField>
+    <PreferenceField
+      id="settings-appearance-canvas-backdrop"
+      tabindex="-1"
+      :label="t('settings.appearance.canvas.backdrop.label')"
+      :description="t('settings.appearance.canvas.backdrop.description')"
+    >
+      <UiSelect
+        :model-value="canvas.backdrop"
+        :label="t('settings.appearance.canvas.backdrop.label')"
+        :options="canvasBackdrops"
+        @update:model-value="updatePreference(() => preferences.setCanvasBackdrop($event))"
       />
     </PreferenceField>
   </UiSettingsSection>

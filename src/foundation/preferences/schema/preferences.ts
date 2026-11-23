@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 import {
+  canvasBackdrops,
+  canvasBackgroundPatterns,
   preferenceDensities,
   preferenceDefaults,
   preferenceLocales,
@@ -38,6 +40,15 @@ const preferencesSchema = z
       })
       .strict()
       .prefault({}),
+    canvas: z
+      .object({
+        backgroundPattern: z
+          .enum(canvasBackgroundPatterns)
+          .default(preferenceDefaults.canvas.backgroundPattern),
+        backdrop: z.enum(canvasBackdrops).default(preferenceDefaults.canvas.backdrop),
+      })
+      .strict()
+      .prefault({}),
   })
   .strict() satisfies z.ZodType<PersistedPreferences>;
 
@@ -54,6 +65,9 @@ export type DensityPreference = Preferences["density"];
 export type TextSizePreference = Preferences["textSize"];
 export type LocalePreference = Preferences["locale"];
 export type WorkbenchPreferences = Preferences["workbench"];
+type CanvasPreferences = Preferences["canvas"];
+export type CanvasBackgroundPattern = CanvasPreferences["backgroundPattern"];
+export type CanvasBackdrop = CanvasPreferences["backdrop"];
 
 export function decodePreferences(raw: unknown): Preferences {
   const current = persistedSchema.safeParse(raw);

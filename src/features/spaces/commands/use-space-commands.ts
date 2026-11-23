@@ -1,6 +1,8 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { nextCanvasBackgroundPattern } from "../../../foundation/preferences/canvas-options";
+import { usePreferencesStore } from "../../../foundation/preferences/preferences-store";
 import type { AppCommand } from "../../../shared/contracts/app-command";
 import type { WorkspaceCommandContext } from "../../../shared/contracts/workspace-definition";
 import { systemPreviewLabelKey } from "../assets/asset-preview";
@@ -30,6 +32,7 @@ import { videoEditCommands } from "./video-edit-commands";
 export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandContext) {
   const { t } = useI18n();
   const store = useSpaceStore();
+  const preferences = usePreferencesStore();
   const { activeEditor, selection, transitioning } = getCanvasEditorSession();
   const nodeOperations = useNodeOperationGate();
   const workbenchTabCommands = useWorkbenchTabCommands();
@@ -124,6 +127,15 @@ export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandCont
         }))
       : [];
     const preview = spacePreviewCommand(store.nodes, selectedIds(), t(systemPreviewLabelKey()));
+    const canvasBackgroundCommand: AppCommand = {
+      id: "spaces.cycle-canvas-background-pattern",
+      title: t("spaces.canvas.background.cyclePattern"),
+      category: "canvas",
+      run: () =>
+        preferences.setCanvasBackgroundPattern(
+          nextCanvasBackgroundPattern(preferences.canvas.backgroundPattern),
+        ),
+    };
     const knowledgeHealthCommand: AppCommand = {
       id: "spaces.knowledge-health",
       title: t("spaces.knowledge.health.title"),
@@ -136,6 +148,7 @@ export function useSpaceCommands({ sidebar, rightSidebar }: WorkspaceCommandCont
       ...guardCanvasExchangeCommands(exchangeCommands, nodeOperations.allows),
       ...guardAllCommands(nudgeCommands, "structure", nodeOperations.allows),
       ...guardNavigationCommands(canvasNavigationCommands.value, nodeOperations.allows),
+      canvasBackgroundCommand,
       knowledgeHealthCommand,
       ...(preview ? [preview] : []),
     ];

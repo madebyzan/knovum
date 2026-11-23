@@ -1,3 +1,4 @@
+import type { CanvasPreferences } from "../../../../shared/contracts/generated/CanvasPreferences";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
@@ -15,6 +16,7 @@ export interface CanvasSceneInput {
 }
 
 export interface CanvasSurfaceProps {
+  background: CanvasPreferences;
   document: CanvasDocumentV1;
   events: CanvasHostEvents;
   focusNodeIds: readonly string[];

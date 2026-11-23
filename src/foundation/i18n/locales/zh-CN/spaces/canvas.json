@@ -174,5 +174,9 @@
     "hide": "隐藏小地图",
     "toggle": "切换小地图",
     "viewport": "当前视口"
+  },
+  "background": {
+    "title": "画布背景",
+    "cyclePattern": "切换画布背景图案"
   }
 }

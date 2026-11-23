@@ -174,5 +174,9 @@
     "hide": "Masquer la mini-carte",
     "toggle": "Afficher ou masquer la mini-carte",
     "viewport": "Zone visible actuelle"
+  },
+  "background": {
+    "title": "Arrière-plan du canevas",
+    "cyclePattern": "Changer le motif d’arrière-plan du canevas"
   }
 }

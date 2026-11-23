@@ -53,5 +53,29 @@
       "label": "启动时恢复上次工作区",
       "description": "重新打开上次会话中的标签页、画布视图和侧边栏。"
     }
+  },
+  "canvas": {
+    "title": "画布",
+    "pattern": {
+      "label": "背景图案",
+      "description": "选择点阵、网格或纯净无图案画布。"
+    },
+    "backdrop": {
+      "label": "意境背景",
+      "description": "选择策展柔焦氛围背景，自动适配浅色与深色模式。"
+    },
+    "patterns": {
+      "dots": "点阵",
+      "grid": "网格",
+      "none": "纯净"
+    },
+    "backdrops": {
+      "none": "默认纯净",
+      "morningMist": "晨雾微光",
+      "summerGlow": "流光夏昼",
+      "auroraSilk": "浮光极昼",
+      "quietCanopy": "静谧林影",
+      "duskTide": "潮汐暮色"
+    }
   }
 }

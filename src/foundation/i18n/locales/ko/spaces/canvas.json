@@ -174,5 +174,9 @@
     "hide": "미니맵 숨기기",
     "toggle": "미니맵 전환",
     "viewport": "현재 뷰포트"
+  },
+  "background": {
+    "title": "캔버스 배경",
+    "cyclePattern": "캔버스 배경 패턴 전환"
   }
 }

@@ -174,5 +174,9 @@
     "hide": "Minikarte ausblenden",
     "toggle": "Minikarte ein-/ausblenden",
     "viewport": "Aktueller Ansichtsbereich"
+  },
+  "background": {
+    "title": "Leinwandhintergrund",
+    "cyclePattern": "Hintergrundmuster der Leinwand wechseln"
   }
 }

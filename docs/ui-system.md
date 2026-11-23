@@ -125,7 +125,7 @@ committing an operation. Empty search results retain concise, left-aligned guida
 Empty settings collections use `UiSettingsEmptyState` inside `UiSettingsSection`, with a centered
 icon above the message and generous vertical padding, following the Archived Spaces treatment.
 Avoid repeating the page title as a section title.
-Settings panes keep 24px between peer sections. Appearance owns theme, text size, density and language;
+Settings panes keep 24px between peer sections. Appearance owns theme, text size, density, language, canvas background (pattern and curated backdrop) and startup restoration;
 Notifications is a separate General destination. AI routing separates the application default from
 capability overrides. Local models use one settings surface per capability, with compact name/status,
 download size, installed size and trailing actions; avoid nested panel frames and shaded table headings.

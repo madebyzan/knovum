@@ -15,6 +15,10 @@ const current = {
     rightSidebarVisible: false,
     rightSidebarWidth: 380,
   },
+  canvas: {
+    backgroundPattern: "dots",
+    backdrop: "none",
+  },
 } as const;
 
 describe("preferences schema", () => {
@@ -50,6 +54,7 @@ describe("preferences schema", () => {
   it("initializes absent optional preferences without changing saved choices", () => {
     const {
       workbench: _workbench,
+      canvas: _canvas,
       backgroundTaskNotifications: _notifications,
       restorePreviousWorkspace: _restore,
       ...saved
@@ -57,20 +62,23 @@ describe("preferences schema", () => {
     const raw = { schemaVersion: 1, value: { ...saved, locale: "zh-CN" } };
     expect(decodePreferences(raw)).toEqual({ ...current, locale: "zh-CN" });
     expect(raw.value).not.toHaveProperty("workbench");
+    expect(raw.value).not.toHaveProperty("canvas");
     expect(raw.value).not.toHaveProperty("backgroundTaskNotifications");
     expect(raw.value).not.toHaveProperty("restorePreviousWorkspace");
   });
 
   it("initializes each absent optional section independently", () => {
     const { workbench: _workbench, ...missingWorkbench } = current;
+    const { canvas: _canvas, ...missingCanvas } = current;
     const { backgroundTaskNotifications: _notifications, ...missingNotifications } = current;
     const { restorePreviousWorkspace: _restore, ...missingRestore } = current;
     expect(decodePreferences({ schemaVersion: 1, value: missingWorkbench })).toEqual(current);
+    expect(decodePreferences({ schemaVersion: 1, value: missingCanvas })).toEqual(current);
     expect(decodePreferences({ schemaVersion: 1, value: missingNotifications })).toEqual(current);
     expect(decodePreferences({ schemaVersion: 1, value: missingRestore })).toEqual(current);
   });
 
-  it("keeps explicit false values and fills absent layout fields", () => {
+  it("keeps explicit false values and fills absent layout and canvas fields", () => {
     expect(
       decodePreferences({
         schemaVersion: 1,
@@ -79,6 +87,7 @@ describe("preferences schema", () => {
           backgroundTaskNotifications: false,
           restorePreviousWorkspace: false,
           workbench: { sidebarVisible: false },
+          canvas: { backgroundPattern: "none" },
         },
       }),
     ).toEqual({
@@ -86,6 +95,7 @@ describe("preferences schema", () => {
       backgroundTaskNotifications: false,
       restorePreviousWorkspace: false,
       workbench: { ...current.workbench, sidebarVisible: false },
+      canvas: { ...current.canvas, backgroundPattern: "none" },
     });
   });
 
@@ -107,6 +117,10 @@ describe("preferences schema", () => {
     { workbench: { sidebarWidth: 224.5 } },
     { workbench: { sidebarVisible: "false" } },
     { workbench: { unknown: true } },
+    { canvas: null },
+    { canvas: { backgroundPattern: "stripes" } },
+    { canvas: { backdrop: "neon" } },
+    { canvas: { unknown: true } },
   ])("rejects malformed optional preferences: %j", (invalid) => {
     expect(() => decodePreferences({ schemaVersion: 1, value: { ...current, ...invalid } })).toThrow(
       "Persisted preferences use an unsupported or invalid schema.",

@@ -174,5 +174,9 @@
     "hide": "隱藏小地圖",
     "toggle": "切換小地圖",
     "viewport": "目前檢視區"
+  },
+  "background": {
+    "title": "畫布背景",
+    "cyclePattern": "切換畫布背景圖案"
   }
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, provide, useTemplateRef, watch } from "vue";
 
+import { usePreferencesStore } from "../../../../foundation/preferences/preferences-store";
 import { overlayScopeVisibleKey } from "../../../../shared/contracts/overlay-scope-visibility";
 import { useCanvasGeneratorStore } from "../../knowledge-derivations/generators/generator-store";
 import SpaceCanvasGenerators from "../../knowledge-derivations/generators/presentation/SpaceCanvasGenerators.vue";
@@ -35,6 +36,7 @@ provide(
   computed(() => props.renderingEnabled),
 );
 const store = useSpaceStore();
+const preferences = usePreferencesStore();
 const tools = useCanvasToolStore();
 const generators = useCanvasGeneratorStore();
 const createTextNode = useCanvasTextCreation();
@@ -139,6 +141,7 @@ const canvasEvents = createSpaceCanvasEvents({
     </div>
     <CanvasSurfaceHost
       :key="spaceId"
+      :background="preferences.canvas"
       :rendering-enabled="renderingEnabled"
       :events="canvasEvents"
       :persistence="store.spacePersistence(spaceId)"

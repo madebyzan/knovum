@@ -20,6 +20,7 @@ const palette: CanvasPalette = {
   foreground: color,
   foregroundSecondary: color,
   grid: color,
+  gridLine: color,
   measurement: color,
   contentFillByPreset: { yellow: color, green: color, blue: color, pink: color, gray: color },
   panel: color,

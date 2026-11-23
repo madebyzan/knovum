@@ -60,6 +60,16 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
         descriptionKey: "settings.appearance.language.description",
       },
       {
+        id: "settings-appearance-canvas-pattern",
+        labelKey: "settings.appearance.canvas.pattern.label",
+        descriptionKey: "settings.appearance.canvas.pattern.description",
+      },
+      {
+        id: "settings-appearance-canvas-backdrop",
+        labelKey: "settings.appearance.canvas.backdrop.label",
+        descriptionKey: "settings.appearance.canvas.backdrop.description",
+      },
+      {
         id: "settings-appearance-restore-workspace",
         labelKey: "settings.appearance.startup.restoreWorkspace.label",
         descriptionKey: "settings.appearance.startup.restoreWorkspace.description",

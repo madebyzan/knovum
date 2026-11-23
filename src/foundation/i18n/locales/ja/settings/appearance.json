@@ -53,5 +53,29 @@
       "label": "起動時に前回のワークスペースを復元",
       "description": "前回のセッションのタブ、キャンバス表示、サイドバーを再度開きます。"
     }
+  },
+  "canvas": {
+    "title": "キャンバス",
+    "pattern": {
+      "label": "背景パターン",
+      "description": "ドット、グリッド、または無地のキャンバスを選択します。"
+    },
+    "backdrop": {
+      "label": "アンビエント背景",
+      "description": "ライト・ダークテーマに調和する柔らかな背景を選択します。"
+    },
+    "patterns": {
+      "dots": "ドット",
+      "grid": "グリッド",
+      "none": "なし"
+    },
+    "backdrops": {
+      "none": "標準",
+      "morningMist": "朝霧の光",
+      "summerGlow": "夏の余光",
+      "auroraSilk": "極光の絹",
+      "quietCanopy": "静寂の木漏れ日",
+      "duskTide": "暮色の潮"
+    }
   }
 }
