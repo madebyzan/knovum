@@ -78,6 +78,14 @@
               "@type": "Answer",
               "text": "Linux and Windows on ARM are not supported by the current release. See the release page for the latest supported installers."
             }
+          },
+          {
+            "@type": "Question",
+            "name": "Why does macOS say Knovum was blocked?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Current builds are not yet notarized by Apple or Authenticode-signed, so macOS asks you to confirm the app the first time it opens. Updates after that are delivered in the app and verified against the release signature. Open System Settings, go to Privacy & Security, choose Open Anyway next to the blocked Knovum entry, and confirm with an administrator password. Later launches open directly."
+            }
           }
         ]
       }
@@ -370,24 +378,9 @@
               </p>
             </article>
           </div>
-          <figure class="plate" data-reveal style="margin-top: var(--space-7)">
-            <img
-              src="./assets/download-macos.webp"
-              alt="Knovum running on macOS, showing a real desktop workspace."
-              loading="lazy"
-              width="1600"
-              height="900"
-            />
-            <figcaption class="plate__caption">
-              <strong data-en="Knovum running on macOS" data-zh="macOS 上运行的 Knovum 桌面工作空间"
-                >Knovum running on macOS</strong
-              >
-              <span data-en="Real desktop build" data-zh="真实桌面版本">Real desktop build</span>
-            </figcaption>
-          </figure>
           <p
             class="platform__note"
-            style="margin-top: var(--space-5)"
+            style="margin-top: var(--space-7)"
             data-en="Linux and Windows on ARM are not supported at this time."
             data-zh="目前暂不支持 Linux 和 Windows ARM 设备。"
           >
@@ -680,6 +673,33 @@
                   >
                     Linux and Windows on ARM are not supported by the current release. See the release page
                     for the latest supported installers.
+                  </p>
+                </div>
+              </details>
+              <details class="faq__item">
+                <summary>
+                  <span
+                    data-en="Why does macOS say Knovum was blocked?"
+                    data-zh="为什么 macOS 提示已阻止 Knovum？"
+                    >Why does macOS say Knovum was blocked?</span
+                  >
+                  <span class="faq__icon" aria-hidden="true"></span>
+                </summary>
+                <div class="faq__answer">
+                  <p
+                    data-en="Current builds are not yet notarized by Apple or Authenticode-signed, so macOS asks you to confirm the app the first time it opens. Updates after that are delivered in the app and verified against the release signature."
+                    data-zh="当前版本尚未通过 Apple 公证或 Authenticode 签名，首次打开时 macOS 会请你确认。之后的更新会在应用内交付，并根据版本签名进行验证。"
+                  >
+                    Current builds are not yet notarized by Apple or Authenticode-signed, so macOS asks you to
+                    confirm the app the first time it opens. Updates after that are delivered in the app and
+                    verified against the release signature.
+                  </p>
+                  <p
+                    data-en="Open System Settings, go to Privacy &amp; Security, choose Open Anyway next to the blocked Knovum entry, and confirm with an administrator password. Later launches open directly."
+                    data-zh="打开「系统设置 → 隐私与安全性」，找到被阻止的 Knovum 条目并点击「仍要打开」，再输入管理员密码确认。之后即可直接启动。"
+                  >
+                    Open System Settings, go to Privacy &amp; Security, choose Open Anyway next to the blocked
+                    Knovum entry, and confirm with an administrator password. Later launches open directly.
                   </p>
                 </div>
               </details>

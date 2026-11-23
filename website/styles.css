@@ -2018,6 +2018,10 @@ body[data-locale="zh"] .faq__item summary {
   line-height: 1.85;
 }
 
+.faq__answer p + p {
+  margin-top: var(--space-4);
+}
+
 /* ------------------------------- privacy --------------------------------- */
 
 .arch-figure {

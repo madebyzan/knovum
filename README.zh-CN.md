@@ -193,6 +193,15 @@ source ~/.zshrc
 </details>
 
 <details>
+<summary><strong>macOS 提示已阻止 Knovum 怎么办？</strong></summary>
+
+目前安装包尚未经过 Apple 公证，首次打开时 Gatekeeper 会请你确认。打开**系统设置 → 隐私与安全性**，找到「已阻止 Knovum 以保护你的 Mac」这条，点击**仍要打开**，再输入管理员密码确认即可。之后的启动可以直接打开。
+
+<img src="docs/assets/readme/macos-open-anyway.png" width="420" alt="macOS「隐私与安全性」设置面板，显示被阻止的 Knovum 条目，以及请求管理员密码的「仍要打开」确认对话框。" />
+
+</details>
+
+<details>
 <summary><strong>可以导入已有笔记和画布吗？</strong></summary>
 
 可以直接导入 Markdown、文档和媒体文件；画布支持通过开放的 JSON Canvas 格式（`.canvas`）导入和导出。整个 Space 也可以导出为便于迁移的 `.knovumspace` 文件。

@@ -193,6 +193,15 @@ Downloaded model files are verified against pinned SHA-256 digests.
 </details>
 
 <details>
+<summary><strong>What should I do if macOS says Knovum was blocked?</strong></summary>
+
+Releases are not notarized by Apple yet, so Gatekeeper asks you to confirm the app the first time it opens. Open **System Settings → Privacy & Security**, find the **"Knovum" was blocked to protect your Mac** entry, choose **Open Anyway**, and confirm with an administrator password. Later launches open directly.
+
+<img src="docs/assets/readme/macos-open-anyway.png" width="420" alt="macOS Privacy &amp; Security settings showing the blocked Knovum entry, and the Open Anyway confirmation dialog that asks for an administrator password." />
+
+</details>
+
+<details>
 <summary><strong>Can I bring in my existing notes and canvases?</strong></summary>
 
 Import Markdown, documents, and media files directly. Import and export canvases through the open JSON Canvas format (`.canvas`). A complete Space can also be exported as a portable `.knovumspace` package.
