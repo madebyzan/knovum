@@ -17,13 +17,11 @@ const props = defineProps<{
 /**
  * The leading column reserves at least the navigation cluster and otherwise ends exactly where the canvas
  * begins - the same expression as the sidebar slot, on the same frame of the panel clock - so the first tab
- * rides the canvas edge once it passes the cluster and waits for it before. The trailing column tracks the
- * pane it aligns with and never gets narrower than the utilities it holds.
+ * rides the canvas edge once it passes the cluster and waits for it before. The tab strip spans the rest of
+ * the titlebar up to the compact trailing utilities so opening the right context pane never crushes tabs.
  */
 const toolbarColumns = computed(
-  () =>
-    `minmax(auto, max(var(--knovum-workspace-gutter), ${props.edges.leading}px)) minmax(0, 1fr) ` +
-    `${Math.max(props.edges.trailing, 96)}px`,
+  () => `minmax(auto, max(var(--knovum-workspace-gutter), ${props.edges.leading}px)) minmax(0, 1fr) auto`,
 );
 const emit = defineEmits<{
   "toggle-sidebar": [];
@@ -55,7 +53,7 @@ const emit = defineEmits<{
         <component :is="workspace.toolbar" class="min-w-0 flex-1" />
       </div>
       <div
-        class="z-10 col-start-3 row-start-1 flex min-w-max items-center gap-1 self-center justify-self-end pr-3"
+        class="z-10 col-start-3 row-start-1 flex min-w-max items-center gap-1 self-center justify-self-end pr-3 pl-4"
       >
         <TaskCenter :current-scope="workspace.currentScope?.value" />
         <UiIconButton

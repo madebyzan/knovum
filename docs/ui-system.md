@@ -290,8 +290,10 @@ shell and component enter/leave states; do not add a motion runtime for simple o
 - the first workspace tab starts exactly on the canvas's leading edge. The toolbar's leading column is
   `minmax(auto, max(gutter, <edge>))`: never narrower than the navigation cluster, otherwise ending where
   the sidebar slot ends - the same expression on the same frame - so the tabs wait for the canvas edge and
-  then ride it. The tab column adds no inset of its own, and the trailing column ends where the canvas ends when the
-  right pane is open. Without a pinned sidebar the work area keeps one gutter of inset on every side;
+  then ride it. The tab column adds no inset of its own and spans across the window up to the compact
+  trailing utility cluster so opening or resizing the right context pane never compresses workspace tabs.
+  Tabs flex smoothly down to a readable minimum before scrolling, keeping the trailing New Space action
+  pinned beside the strip. Without a pinned sidebar the work area keeps one gutter of inset on every side;
 - a sidebar toggle states its state through `UiPanelToggleIcon`, one geometry shared by both sidebars and
   mirrored to its window edge: a window frame with a solid pane inset from it by the same padding on every
   side and concentric corners, the way a sidebar sits inside its window. Open, the pane is full width;

@@ -38,7 +38,7 @@ describe("workspace toolbar alignment", () => {
     const wrapper = mountToolbar(true);
 
     expect(columns(wrapper)).toBe(
-      "minmax(auto, max(var(--knovum-workspace-gutter), 240px)) minmax(0, 1fr) 96px",
+      "minmax(auto, max(var(--knovum-workspace-gutter), 240px)) minmax(0, 1fr) auto",
     );
     wrapper.unmount();
   });
@@ -47,7 +47,7 @@ describe("workspace toolbar alignment", () => {
     const wrapper = mountToolbar(false);
 
     expect(columns(wrapper)).toBe(
-      "minmax(auto, max(var(--knovum-workspace-gutter), 0px)) minmax(0, 1fr) 96px",
+      "minmax(auto, max(var(--knovum-workspace-gutter), 0px)) minmax(0, 1fr) auto",
     );
     expect(wrapper.get(".workspace-toolbar-content > div").classes()).toContain("min-w-max");
     wrapper.unmount();
@@ -61,21 +61,21 @@ describe("workspace toolbar alignment", () => {
     wrapper.unmount();
   });
 
-  it("takes every column from the panel clock's frame, with no transition of its own", async () => {
+  it("takes the leading column from the panel clock's frame, with no transition of its own", async () => {
     const wrapper = mountToolbar(true);
     await wrapper.setProps({ edges: { leading: 117, sidebar: 117, trailing: 0 } });
 
     expect(columns(wrapper)).toBe(
-      "minmax(auto, max(var(--knovum-workspace-gutter), 117px)) minmax(0, 1fr) 96px",
+      "minmax(auto, max(var(--knovum-workspace-gutter), 117px)) minmax(0, 1fr) auto",
     );
     wrapper.unmount();
   });
 
-  it("reserves the trailing column the right pane occupies", () => {
-    const wrapper = mountToolbar(true, 320);
+  it("keeps the full tab strip available when the right context pane opens or resizes", () => {
+    const wrapper = mountToolbar(true, 380);
 
     expect(columns(wrapper)).toBe(
-      "minmax(auto, max(var(--knovum-workspace-gutter), 240px)) minmax(0, 1fr) 320px",
+      "minmax(auto, max(var(--knovum-workspace-gutter), 240px)) minmax(0, 1fr) auto",
     );
     wrapper.unmount();
   });

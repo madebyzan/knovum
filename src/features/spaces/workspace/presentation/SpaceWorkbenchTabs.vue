@@ -95,14 +95,14 @@ watchEffect(() => {
       v-else
       activation-mode="manual"
       :model-value="activeTabId ?? ''"
-      class="min-w-0 flex-1"
+      class="flex min-w-0 flex-1 items-center gap-1"
       @update:model-value="activateTab"
     >
       <div
         ref="tabsViewport"
-        class="flex scrollbar-none items-center gap-1 overflow-x-auto py-1 [&::-webkit-scrollbar]:hidden"
+        class="flex max-w-full min-w-0 scrollbar-none items-center overflow-x-auto py-1 [&::-webkit-scrollbar]:hidden"
       >
-        <TabsList :aria-label="t('spaces.space.tabs.label')" class="flex w-max shrink-0 items-center gap-1">
+        <TabsList :aria-label="t('spaces.space.tabs.label')" class="flex min-w-0 items-center gap-1">
           <SpaceWorkbenchTab
             v-for="view in tabViews"
             :key="view.id"
@@ -111,12 +111,12 @@ watchEffect(() => {
             @context-menu="showTabMenu(view)"
           />
         </TabsList>
-        <span class="shrink-0">
-          <UiIconButton :label="t('spaces.space.new')" shortcut="$mod+T" size="sm" @click="createSpace">
-            <Plus class="size-3.5" :stroke-width="1.6" />
-          </UiIconButton>
-        </span>
       </div>
+      <span class="shrink-0">
+        <UiIconButton :label="t('spaces.space.new')" shortcut="$mod+T" size="sm" @click="createSpace">
+          <Plus class="size-3.5" :stroke-width="1.6" />
+        </UiIconButton>
+      </span>
     </TabsRoot>
   </div>
 </template>
