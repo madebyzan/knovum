@@ -92,7 +92,7 @@ watch(
         class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-6"
         @scroll.passive="updateScrollPosition"
       >
-        <div v-if="turns.length === 0 && !busy" class="flex min-h-full items-center justify-center pb-6">
+        <div v-if="turns.length === 0 && !busy" class="flex min-h-full flex-col">
           <SpaceConversationEmptyGuide @select="(value) => emit('suggest', value)" />
         </div>
         <div v-else class="relative w-full" :style="{ height: `${totalSize}px` }">

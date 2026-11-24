@@ -1,94 +1,173 @@
 <script setup lang="ts">
-import { Compass, FileText, Map, Waypoints } from "@lucide/vue";
+import { ArrowUpRight, MessageSquare } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiKnovumAiIcon from "../../../../shared/ui/UiKnovumAiIcon.vue";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
-import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import { useSpaceStore } from "../../session/space-store";
+import {
+  formatRecentConversationTimestamp,
+  selectQuickContextItems,
+  SPACE_SOURCE_CATEGORY_LABEL_KEY,
+  summarizeSpaceSources,
+  type SpaceQuickContextItem,
+} from "../conversation-empty-guide";
+import { buildEmptyConversationStarters, type ConversationStarter } from "../conversation-empty-starters";
+import { useConversationSessionStore } from "../conversation-session-store";
+import SpaceConversationContextSection from "./SpaceConversationContextSection.vue";
+
+const ROW_CLASS =
+  "group -mx-1.5 flex h-interaction w-[calc(100%+0.75rem)] items-center gap-2 rounded-md px-1.5 text-left text-label transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus";
 
 const emit = defineEmits<{ select: [prompt: string] }>();
-const { t } = useI18n();
+const { locale, t } = useI18n();
 const { activeSpace, nodes } = storeToRefs(useSpaceStore());
+const session = useConversationSessionStore();
+const { attachmentCandidates, conversations, showingArchived } = storeToRefs(session);
 
-const sourceCount = computed(() => nodes.value.filter(isSpaceSemanticNode).length);
+const inventory = computed(() => summarizeSpaceSources(nodes.value));
 const heading = computed(() => {
   const space = activeSpace.value;
   if (!space) return t("spaces.conversation.empty.title");
   if (space.kind === "inbox") return t("spaces.space.inbox");
   return space.title.trim() || t("spaces.conversation.empty.title");
 });
-const subtitle = computed(() =>
-  sourceCount.value > 0
-    ? t("spaces.space.nodeCount", { count: sourceCount.value }, sourceCount.value)
-    : t("spaces.conversation.empty.emptySpaceSummary"),
+const subtitle = computed(() => {
+  if (inventory.value.totalCount === 0) return t("spaces.conversation.empty.emptySpaceSummary");
+  const total = t(
+    "spaces.space.nodeCount",
+    { count: inventory.value.totalCount },
+    inventory.value.totalCount,
+  );
+  const breakdown = inventory.value.categories.map(({ category, count }) =>
+    t(SPACE_SOURCE_CATEGORY_LABEL_KEY[category], { count }, count),
+  );
+  return [total, ...breakdown].join(" · ");
+});
+const recentConversations = computed(() => (showingArchived.value ? [] : conversations.value.slice(0, 3)));
+const contextItems = computed(() =>
+  selectQuickContextItems(
+    attachmentCandidates.value,
+    nodes.value,
+    recentConversations.value.length > 0 ? 4 : 5,
+  ),
 );
-const prompts = computed(() =>
-  sourceCount.value > 0
-    ? [
-        {
-          icon: Map,
-          title: t("spaces.conversation.empty.overview"),
-          description: t("spaces.conversation.empty.overviewDesc"),
-          prompt: t("spaces.conversation.empty.overviewPrompt"),
-        },
-        {
-          icon: FileText,
-          title: t("spaces.conversation.empty.brief"),
-          description: t("spaces.conversation.empty.briefDesc"),
-          prompt: t("spaces.conversation.empty.briefPrompt"),
-        },
-        {
-          icon: Waypoints,
-          title: t("spaces.conversation.empty.compare"),
-          description: t("spaces.conversation.empty.compareDesc"),
-          prompt: t("spaces.conversation.empty.comparePrompt"),
-        },
-      ]
-    : [
-        {
-          icon: FileText,
-          title: t("spaces.conversation.empty.draft"),
-          description: t("spaces.conversation.empty.draftDesc"),
-          prompt: t("spaces.conversation.empty.draftPrompt"),
-        },
-        {
-          icon: Compass,
-          title: t("spaces.conversation.empty.plan"),
-          description: t("spaces.conversation.empty.planDesc"),
-          prompt: t("spaces.conversation.empty.planPrompt"),
-        },
-      ],
+const selectedTitles = computed(() =>
+  attachmentCandidates.value
+    .filter(({ selected }) => selected)
+    .map(({ title }) => title.trim())
+    .filter(Boolean),
 );
+const starters = computed(() =>
+  buildEmptyConversationStarters({
+    sourceCount: inventory.value.totalCount,
+    selectedTitles: selectedTitles.value,
+    maxCount: recentConversations.value.length > 0 ? 4 : 5,
+  }),
+);
+
+function formatStarterText(key: string, params?: Readonly<Record<string, string | number>>) {
+  if (!params) return t(key);
+  const count = typeof params.count === "number" ? params.count : undefined;
+  return count === undefined ? t(key, params) : t(key, params, count);
+}
+
+function chooseStarter(starter: ConversationStarter) {
+  if (starter.attachSelection) session.addSelectedAttachments();
+  emit("select", formatStarterText(starter.promptKey, starter.params));
+}
+
+function toggleContextItem(item: SpaceQuickContextItem) {
+  if (item.attached) session.removeAttachment(`node:${item.nodeId}`);
+  else session.addNodeAttachments([item.nodeId]);
+}
+
+function formatRecentTime(updatedAt: number) {
+  return formatRecentConversationTimestamp(
+    updatedAt,
+    locale.value,
+    t("spaces.conversation.conversations.yesterday"),
+  );
+}
 </script>
 
 <template>
-  <div class="flex w-full max-w-sm flex-col items-center text-center select-none">
-    <UiKnovumAiIcon class="size-5 text-fg-primary/80" />
-    <h2 class="mt-2.5 max-w-full truncate text-title font-medium tracking-title text-fg-primary">
-      {{ heading }}
-    </h2>
-    <p class="mt-1 max-w-xs text-caption-sm leading-relaxed text-fg-tertiary tabular-nums">
-      {{ subtitle }}
-    </p>
-    <div class="mt-5 flex flex-wrap items-center justify-center gap-1.5">
-      <UiTooltip v-for="item in prompts" :key="item.title" :text="item.description" side="bottom">
-        <button
-          type="button"
-          class="inline-flex h-(--knovum-control-height-sm) items-center gap-1.5 rounded-md border border-stroke-divider bg-surface-raised px-2.5 text-caption text-fg-secondary transition-colors duration-100 hover:border-stroke-default-hover hover:bg-surface-control-hover hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
-          @click="emit('select', item.prompt)"
+  <div class="w-full select-none">
+    <header class="pb-3.5">
+      <h2 class="truncate text-title-sm font-semibold tracking-title text-fg-primary">
+        {{ heading }}
+      </h2>
+      <p class="mt-0.5 text-caption leading-relaxed text-fg-tertiary tabular-nums">
+        {{ subtitle }}
+      </p>
+    </header>
+
+    <section class="border-t border-stroke-divider/70 py-3">
+      <h3 class="mb-1 text-caption font-medium text-fg-tertiary">
+        {{ t("spaces.conversation.empty.suggestionsHeading") }}
+      </h3>
+      <div class="space-y-0.5">
+        <UiTooltip
+          v-for="item in starters"
+          :key="item.id"
+          :text="formatStarterText(item.descriptionKey, item.params)"
+          side="left"
         >
-          <component
-            :is="item.icon"
-            class="size-3 shrink-0 text-fg-tertiary"
-            :stroke-width="1.65"
-            aria-hidden="true"
-          />
-          <span>{{ item.title }}</span>
+          <button
+            type="button"
+            :class="[ROW_CLASS, item.accent ? 'text-fg-primary' : 'text-fg-secondary hover:text-fg-primary']"
+            @click="chooseStarter(item)"
+          >
+            <component
+              :is="item.icon"
+              class="size-3.5 shrink-0"
+              :class="item.accent ? 'text-fg-accent' : 'text-fg-tertiary group-hover:text-fg-primary'"
+              :stroke-width="1.6"
+              aria-hidden="true"
+            />
+            <span class="min-w-0 flex-1 truncate">{{ formatStarterText(item.titleKey, item.params) }}</span>
+            <ArrowUpRight
+              class="size-3.5 shrink-0 text-fg-tertiary opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-visible:opacity-100"
+              :stroke-width="1.6"
+              aria-hidden="true"
+            />
+          </button>
+        </UiTooltip>
+      </div>
+    </section>
+
+    <SpaceConversationContextSection
+      :items="contextItems"
+      :total-count="attachmentCandidates.length"
+      @toggle="toggleContextItem"
+    />
+
+    <section v-if="recentConversations.length > 0" class="border-t border-stroke-divider/70 py-3">
+      <div class="mb-1 flex items-center justify-between gap-2">
+        <h3 class="text-caption font-medium text-fg-tertiary">
+          {{ t("spaces.conversation.empty.recentHeading") }}
+        </h3>
+        <span class="text-caption-sm text-fg-tertiary/80 tabular-nums">{{ conversations.length }}</span>
+      </div>
+      <div class="space-y-0.5">
+        <button
+          v-for="conversation in recentConversations"
+          :key="conversation.id"
+          type="button"
+          :class="[ROW_CLASS, 'text-fg-secondary hover:text-fg-primary']"
+          @click="session.selectConversation(conversation.id)"
+        >
+          <MessageSquare class="size-3.5 shrink-0 text-fg-tertiary" :stroke-width="1.6" aria-hidden="true" />
+          <span class="min-w-0 flex-1 truncate">{{ conversation.title }}</span>
+          <time
+            class="shrink-0 text-caption-sm text-fg-tertiary tabular-nums"
+            :datetime="new Date(conversation.updatedAt).toISOString()"
+          >
+            {{ formatRecentTime(conversation.updatedAt) }}
+          </time>
         </button>
-      </UiTooltip>
-    </div>
+      </div>
+    </section>
   </div>
 </template>

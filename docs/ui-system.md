@@ -402,7 +402,9 @@ That toggle opens Conversation as the default view. Explicit object actions open
 the document editor owns its heading Outline locally. Source opens as a temporary drill-in and returns to its originating
 view. Selection alone never changes the active view. The right pane does not change the leading sidebar width.
 Closing it releases workspace width and suspends its content until reopened; it has no hover preview.
-An empty Conversation offers short prompts that fill and focus the composer without sending. Composer
+An empty Conversation uses the same borderless inspector-section rhythm as the workbench sidebars:
+a Space content summary, compact starter prompt rows that fill and focus the composer without sending,
+quick-attach rows for live Space sources, and recent Space conversations for one-click resumption. Composer
 references stay next to the text they accompany: canvas references identify their Space source and can
 preview visual content, while local files retain a separate file identity. Both can be removed before sending.
 
