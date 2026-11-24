@@ -26,6 +26,11 @@ export const SOURCE_READER_WIDTH_DEFAULT = 44;
 export const SOURCE_READER_WIDTH_MIN = 25;
 export const SOURCE_READER_WIDTH_MAX = 68;
 
+export function clampSourceReaderWidth(size: number): number | undefined {
+  if (!Number.isFinite(size)) return undefined;
+  return Math.min(SOURCE_READER_WIDTH_MAX, Math.max(SOURCE_READER_WIDTH_MIN, Math.round(size * 10) / 10));
+}
+
 export interface SourceReadingTarget {
   nodeId: string;
   pane: SourceReaderPane;

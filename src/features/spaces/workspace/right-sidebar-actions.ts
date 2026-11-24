@@ -3,9 +3,8 @@ import type { SpacePlacement } from "../canvas/navigation-requests";
 import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import {
+  clampSourceReaderWidth,
   classifyReadableSource,
-  SOURCE_READER_WIDTH_MAX,
-  SOURCE_READER_WIDTH_MIN,
   type SourceReaderPane,
   type SourceReaderRequest,
 } from "../reading/source-reader-target";
@@ -107,11 +106,8 @@ export function createRightSidebarActions(
   }
 
   function setReaderWidth(size: number) {
-    if (!Number.isFinite(size)) return;
-    state.readerWidth.value = Math.min(
-      SOURCE_READER_WIDTH_MAX,
-      Math.max(SOURCE_READER_WIDTH_MIN, Math.round(size * 10) / 10),
-    );
+    const clamped = clampSourceReaderWidth(size);
+    if (clamped !== undefined) state.readerWidth.value = clamped;
   }
 
   function toggleReaderFocusMode() {

@@ -7,11 +7,11 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { useContextDock } from "../canvas/use-context-dock";
 import { loadGroundedDocumentMetadata } from "../knowledge-derivations/document/metadata";
 import { findGroundedCitation, groundedCitationPeekTarget } from "../knowledge/model/grounded-citation";
 import type { GroundedCitation } from "../knowledge/model/schema/grounded-citation";
 import type { SpaceEditorPayload } from "../model/nodes/capabilities";
+import type { SourceReadingTarget } from "../reading/source-reader-target";
 import { useSpaceStore } from "../session/space-store";
 import type { SpaceEditorTab } from "../workspace/workbench-tab";
 import { useDocumentSessionStore } from "./document-session-store";
@@ -31,11 +31,11 @@ export function useSpaceTiptapEditor(
   const store = useSpaceStore();
   const { editorLocateRequest } = storeToRefs(store);
   const { t } = useI18n();
-  const dock = useContextDock();
   const session = useDocumentSessionStore().sessions.get(tab.id);
   if (!session) throw new Error("Document session is unavailable");
   const editorNode = session.node;
   const groundedCitations = shallowRef<readonly GroundedCitation[]>([]);
+  const sourceReadingTarget = shallowRef<SourceReadingTarget>();
   const statistics = createTiptapTextStatistics();
   const headings = shallowRef<ReturnType<typeof spaceTiptapHeadings>>([]);
   let citationsNonce = 0;
@@ -59,7 +59,18 @@ export function useSpaceTiptapEditor(
   function openGroundedCitation(citation: GroundedCitation) {
     if (!active.value) return;
     const target = groundedCitationPeekTarget(citation);
-    if (target) dock.openSource(target);
+    if (!target) return;
+    sourceReadingTarget.value = {
+      nodeId: target.nodeId,
+      pane: "read",
+      locator: target.locator,
+      quote: target.text ?? target.locator.quote?.exact,
+      nonce: Math.max(Date.now(), (sourceReadingTarget.value?.nonce ?? 0) + 1),
+    };
+  }
+
+  function closeSourceReading() {
+    sourceReadingTarget.value = undefined;
   }
 
   const derive = useDebounceFn(() => {
@@ -156,6 +167,8 @@ export function useSpaceTiptapEditor(
     headings,
     isGroundedMarkdownDocument,
     openGroundedCitation,
+    sourceReadingTarget,
+    closeSourceReading,
     error: session.error,
     editorLabel: computed(() =>
       t(editorNode.value.data.kind === "note" ? "spaces.nodeTypes.note" : "spaces.nodeTypes.markdown"),

@@ -14,7 +14,11 @@ import {
   resolveSlideRangeLocation,
   resolveWebsiteRangeLocation,
 } from "../reader-location-resolvers";
-import { defaultSourceLocation, type SourceReaderHost } from "../source-reader-target";
+import {
+  defaultSourceLocation,
+  type SourceReaderHost,
+  type SourceReadingTarget,
+} from "../source-reader-target";
 import { useReadingChunks } from "../use-reading-chunks";
 import SpaceReaderInfoSurface from "./SpaceReaderInfoSurface.vue";
 import SpaceReaderSelectionBar from "./SpaceReaderSelectionBar.vue";
@@ -28,26 +32,31 @@ import {
 } from "./use-reader-selection";
 import { useSourceReaderState } from "./use-source-reader-state";
 
-const props = withDefaults(defineProps<{ host?: SourceReaderHost }>(), { host: "canvas" });
+const props = withDefaults(
+  defineProps<{ host?: SourceReaderHost; target?: SourceReadingTarget | undefined }>(),
+  { host: "canvas" },
+);
+const emit = defineEmits<{ close: [] }>();
 const isCanvasHost = props.host === "canvas";
-const readerState = useSourceReaderState(props.host);
-const { store, target, sourceNode, readerKind, activePane, readMounted, targetQuote, canBack, canForward } =
-  readerState;
+const reader = useSourceReaderState(
+  props.host,
+  computed(() => props.target),
+  () => emit("close"),
+);
 const body = useTemplateRef<HTMLElement>("body");
 const { width: bodyWidth } = useElementSize(body);
 const currentPdfPage = shallowRef(1);
 const headerMenuOpen = shallowRef(false);
 const surfaceSelection = shallowRef<SurfaceSelectionState>();
-
 const readingChunks = useReadingChunks(
-  () => store.activeSpaceId,
-  sourceNode,
-  computed(() => (readMounted.value ? readerKind.value : undefined)),
+  () => reader.store.activeSpaceId,
+  reader.sourceNode,
+  computed(() => (reader.readMounted.value ? reader.readerKind.value : undefined)),
 );
 
 function resolveLocation(range: Range, host: HTMLElement): KnowledgeLocation | undefined {
-  const kind = readerKind.value;
-  const node = sourceNode.value;
+  const kind = reader.readerKind.value;
+  const node = reader.sourceNode.value;
   if (!kind || !node) return undefined;
   if (kind === "pdf") return resolvePdfRangeLocation(range, currentPdfPage.value);
   if (kind === "slides") return resolveSlideRangeLocation(range);
@@ -58,7 +67,7 @@ function resolveLocation(range: Range, host: HTMLElement): KnowledgeLocation | u
 }
 
 const selection = useReaderSelection(body, resolveLocation);
-const capture = useReaderCapture(sourceNode);
+const capture = useReaderCapture(reader.sourceNode);
 const activePassage = computed(() => surfaceSelection.value?.passage ?? selection.passage.value);
 const activeAnchor = computed(() => surfaceSelection.value?.anchor ?? selection.anchor.value);
 
@@ -68,7 +77,7 @@ function clearAllSelections() {
   surfaceSelection.value = undefined;
 }
 
-watch([() => sourceNode.value?.id, () => target.value?.nonce, activePane], () => {
+watch([() => reader.sourceNode.value?.id, () => reader.target.value?.nonce, reader.activePane], () => {
   clearAllSelections();
   currentPdfPage.value = 1;
 });
@@ -99,32 +108,32 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
 
 <template>
   <aside
-    v-if="sourceNode"
+    v-if="reader.sourceNode.value"
     data-source-reader
     data-bare-key-scope
     :data-reader-host="host"
-    :data-reader-kind="readerKind ?? 'info'"
-    :data-reader-pane="activePane"
-    :data-reader-focus="isCanvasHost && store.readerFocusMode ? '' : undefined"
+    :data-reader-kind="reader.readerKind.value ?? 'info'"
+    :data-reader-pane="reader.activePane.value"
+    :data-reader-focus="isCanvasHost && reader.store.readerFocusMode ? '' : undefined"
     class="flex h-full min-h-0 min-w-0 flex-col bg-surface-panel"
-    :class="isCanvasHost && !store.readerFocusMode && 'border-r border-(--knovum-window-border-color)'"
+    :class="isCanvasHost && !reader.store.readerFocusMode && 'border-r border-(--knovum-window-border-color)'"
   >
     <SpaceSourceReaderHeader
       v-model:menu-open="headerMenuOpen"
-      :node="sourceNode"
+      :node="reader.sourceNode.value"
       :host="host"
-      :pane="activePane"
-      :readable="Boolean(readerKind)"
-      :can-back="canBack"
-      :can-forward="canForward"
-      :follows-selection="store.readingFollowsSelection"
-      :focus-mode="isCanvasHost && store.readerFocusMode"
-      :locator="target?.locator"
-      @update:pane="store.setReadingPane"
-      @step-history="store.stepReadingHistory"
-      @toggle-follow="store.readingFollowsSelection = !store.readingFollowsSelection"
-      @toggle-focus-mode="store.toggleReaderFocusMode()"
-      @close="store.closeSourceReader()"
+      :pane="reader.activePane.value"
+      :readable="Boolean(reader.readerKind.value)"
+      :can-back="reader.canBack.value"
+      :can-forward="reader.canForward.value"
+      :follows-selection="reader.store.readingFollowsSelection"
+      :focus-mode="isCanvasHost && reader.store.readerFocusMode"
+      :locator="reader.target.value?.locator"
+      @update:pane="reader.store.setReadingPane"
+      @step-history="reader.store.stepReadingHistory"
+      @toggle-follow="reader.store.readingFollowsSelection = !reader.store.readingFollowsSelection"
+      @toggle-focus-mode="reader.store.toggleReaderFocusMode()"
+      @close="reader.close()"
     />
     <div
       ref="body"
@@ -134,7 +143,7 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
       @contextmenu="selection.onContextMenu"
     >
       <SpaceReaderSelectionBar
-        v-if="isCanvasHost && activePane === 'read' && activeAnchor && !drag.drag.value"
+        v-if="isCanvasHost && reader.activePane.value === 'read' && activeAnchor && !drag.drag.value"
         :anchor="activeAnchor"
         :container-width="bodyWidth"
         :can-save="capture.canSave.value"
@@ -147,27 +156,31 @@ async function runAction(action: (passage: SourceReaderPassage) => unknown) {
         @copy="runAction((passage) => capture.copyPassage(passage))"
       />
       <div
-        v-if="readerKind && readMounted"
+        v-if="reader.readerKind.value && reader.readMounted.value"
         class="absolute inset-0 isolate z-0 flex flex-col overflow-hidden"
-        :class="activePane !== 'read' && 'pointer-events-none invisible'"
-        :inert="activePane !== 'read'"
+        :class="reader.activePane.value !== 'read' && 'pointer-events-none invisible'"
+        :inert="reader.activePane.value !== 'read'"
       >
         <SpaceSourceReaderSurface
-          :node="sourceNode"
-          :kind="readerKind"
+          :node="reader.sourceNode.value"
+          :kind="reader.readerKind.value"
           :chunks="readingChunks.chunks.value"
           :loading="readingChunks.loading.value"
           :recognized-pdf-pages="readingChunks.recognizedPdfPages.value"
           :recognized-text="readingChunks.recognizedText"
-          :locator="target?.locator"
-          :locate-nonce="target?.nonce"
-          :quote="targetQuote"
-          :visible="activePane === 'read' && !headerMenuOpen"
+          :locator="reader.target.value?.locator"
+          :locate-nonce="reader.target.value?.nonce"
+          :quote="reader.targetQuote.value"
+          :visible="reader.activePane.value === 'read' && !headerMenuOpen"
           @pdf-page-change="currentPdfPage = $event"
           @surface-selection="surfaceSelection = $event"
         />
       </div>
-      <SpaceReaderInfoSurface v-if="activePane === 'info'" class="absolute inset-0 z-10" :node="sourceNode" />
+      <SpaceReaderInfoSurface
+        v-if="reader.activePane.value === 'info'"
+        class="absolute inset-0 z-10"
+        :node="reader.sourceNode.value"
+      />
     </div>
     <UiDragGhost
       v-if="drag.drag.value"

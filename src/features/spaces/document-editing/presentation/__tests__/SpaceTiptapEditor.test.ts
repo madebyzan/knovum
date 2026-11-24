@@ -24,7 +24,6 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 vi.mock("../../../session/space-store", () => ({ useSpaceStore: () => mocks.store }));
-vi.mock("../../../canvas/use-context-dock", () => ({ useContextDock: () => ({}) }));
 vi.mock("../../tiptap-text-statistics", () => ({
   createTiptapTextStatistics: () => ({
     wordCount: 0,
