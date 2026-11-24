@@ -22,8 +22,6 @@
   "speakers": {
     "title": "說話者軌道",
     "durationLimit": "說話者分離支持最長兩小時的媒體。",
-    "generate": "辨識說話人",
-    "count": "已知人數（可選）",
-    "automatic": "自動識別"
+    "generate": "辨識說話人"
   }
 }

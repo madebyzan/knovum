@@ -22,8 +22,6 @@
   "speakers": {
     "title": "Sprecherspuren",
     "durationLimit": "Die Lautsprecheraufzeichnung unterstützt Aufnahmen von bis zu zwei Stunden.",
-    "generate": "Sprecher identifizieren",
-    "count": "Bekannte Sprecherzahl (optional)",
-    "automatic": "Automatisch"
+    "generate": "Sprecher identifizieren"
   }
 }

@@ -86,16 +86,6 @@ it("cannot start while the local model state is unknown", () => {
   expect(wrapper.find('[data-testid="ai-readiness-notice"]').exists()).toBe(true);
 });
 
-it("passes an optional known speaker count and rejects invalid counts", async () => {
-  const wrapper = render();
-  await wrapper.get("input").setValue("4");
-  await wrapper.get("button").trigger("click");
-  await flushPromises();
-  expect(mocks.request).toHaveBeenCalledWith(expect.objectContaining({ numSpeakers: 4 }));
-  await wrapper.get("input").setValue("33");
-  expect(wrapper.get("button").attributes("disabled")).toBeDefined();
-});
-
 it("displays speaker count when speakers are identified", () => {
   const wrapper = render({ speakerCount: 3 });
   expect(wrapper.text()).toContain("3");

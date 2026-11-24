@@ -22,8 +22,6 @@
   "speakers": {
     "title": "Tracce del relatore",
     "durationLimit": "La diarizzazione dell'altoparlante supporta registrazioni fino a due ore.",
-    "generate": "Identifica gli altoparlanti",
-    "count": "Conteggio degli oratori conosciuti (facoltativo)",
-    "automatic": "Automatico"
+    "generate": "Identifica gli altoparlanti"
   }
 }

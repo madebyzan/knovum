@@ -22,8 +22,6 @@
   "speakers": {
     "title": "Pistes d'enceintes",
     "durationLimit": "La diarisation des haut-parleurs prend en charge les enregistrements jusqu'à deux heures.",
-    "generate": "Identifier les intervenants",
-    "count": "Nombre de locuteurs connus (facultatif)",
-    "automatic": "Automatique"
+    "generate": "Identifier les intervenants"
   }
 }

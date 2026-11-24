@@ -22,8 +22,6 @@
   "speakers": {
     "title": "Speaker tracks",
     "durationLimit": "Speaker diarization supports recordings up to two hours.",
-    "generate": "Identify speakers",
-    "count": "Known speaker count (optional)",
-    "automatic": "Automatic"
+    "generate": "Identify speakers"
   }
 }

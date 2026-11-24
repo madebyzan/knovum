@@ -22,8 +22,6 @@
   "speakers": {
     "title": "Pistas de altavoz",
     "durationLimit": "La registro del hablante admite grabaciones de hasta dos horas.",
-    "generate": "Identificar hablantes",
-    "count": "Recuento de hablantes conocidos (opcional)",
-    "automatic": "Automático"
+    "generate": "Identificar hablantes"
   }
 }

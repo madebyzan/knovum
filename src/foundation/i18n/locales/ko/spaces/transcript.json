@@ -22,8 +22,6 @@
   "speakers": {
     "title": "스피커 트랙",
     "durationLimit": "화자 분할은 최대 2시간까지 녹음을 지원합니다.",
-    "generate": "화자 식별",
-    "count": "알려진 화자 수(선택 사항)",
-    "automatic": "자동"
+    "generate": "화자 식별"
   }
 }

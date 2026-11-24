@@ -22,8 +22,6 @@
   "speakers": {
     "title": "说话人轨道",
     "durationLimit": "说话人分离支持最长两小时的媒体。",
-    "generate": "识别说话人",
-    "count": "已知人数（可选）",
-    "automatic": "自动识别"
+    "generate": "识别说话人"
   }
 }

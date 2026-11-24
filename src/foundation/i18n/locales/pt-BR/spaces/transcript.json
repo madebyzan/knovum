@@ -22,8 +22,6 @@
   "speakers": {
     "title": "Faixas de alto-falante",
     "durationLimit": "A diarização do alto-falante suporta gravações de até duas horas.",
-    "generate": "Identificar alto-falantes",
-    "count": "Contagem de alto-falantes conhecida (opcional)",
-    "automatic": "Automático"
+    "generate": "Identificar alto-falantes"
   }
 }
