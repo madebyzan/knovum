@@ -30,8 +30,7 @@ const props = withDefaults(defineProps<{ writing: SpaceTiptapWritingTools; compa
   compact: false,
 });
 const { t } = useI18n();
-const { runningAction, writingTarget, translationTarget, tones, translations, run, runTranslation } =
-  props.writing;
+const { runningAction, writingTarget, tones, translations, run, runTranslation } = props.writing;
 const ITEM_CLASS =
   "flex h-9 w-full cursor-default items-center gap-2.5 rounded-md px-2.5 text-left text-label text-fg-primary outline-none transition-colors hover:bg-surface-control-hover data-[highlighted]:bg-surface-control-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-40";
 const SUBMENU_CLASS =
@@ -109,7 +108,7 @@ const SUBMENU_CLASS =
                 :class="ITEM_CLASS"
                 @select="run(option[0])"
               >
-                <span class="size-3.5" />{{ option[1] }}
+                {{ option[1] }}
               </DropdownMenuItem>
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
@@ -122,20 +121,13 @@ const SUBMENU_CLASS =
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="SUBMENU_CLASS">
-              <AiExecutionTargetField
-                v-model="translationTarget"
-                purpose="translation"
-                compact
-                hide-when-single
-                class="mb-1 border-b border-stroke-divider pb-1"
-              />
               <DropdownMenuItem
                 v-for="option in translations"
                 :key="option[0]"
                 :class="ITEM_CLASS"
                 @select="runTranslation(option[0])"
               >
-                <span class="size-3.5" />{{ option[1] }}
+                {{ option[1] }}
               </DropdownMenuItem>
             </DropdownMenuSubContent>
           </DropdownMenuPortal>

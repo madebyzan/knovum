@@ -30,7 +30,6 @@ export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefin
   const { t } = useI18n();
   const runningAction = shallowRef<RunningAction>();
   const writingTarget = shallowRef<TaskTarget>();
-  const translationTarget = shallowRef<TaskTarget>();
   let activeJob: EditorWritingJob | undefined;
   const tones = computed(
     () =>
@@ -103,7 +102,7 @@ export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefin
     const { job, source } = claimed;
     const instance = job.editor;
     const isCurrent = () => activeJob === job && !instance.isDestroyed;
-    const target = purpose === "writing" ? writingTarget.value : translationTarget.value;
+    const target = writingTarget.value;
     try {
       // The task is claimed before admission, so the editor stays busy while it is decided.
       if (!(await admitAiRequirements([{ kind: "routed", purpose, target }])) || !isCurrent()) return;
@@ -136,19 +135,13 @@ export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefin
 
   async function runTranslation(target: TranslationTarget) {
     await executeTransformAction(`translate:${target}`, "improve", "translation", (text, jobId, signal) =>
-      translateTextStream(
-        { text, target, executionTarget: translationTarget.value },
-        jobId,
-        () => {},
-        signal,
-      ),
+      translateTextStream({ text, target, executionTarget: writingTarget.value }, jobId, () => {}, signal),
     );
   }
 
   return {
     runningAction: readonly(runningAction),
     writingTarget,
-    translationTarget,
     cancel,
     tones,
     translations,
