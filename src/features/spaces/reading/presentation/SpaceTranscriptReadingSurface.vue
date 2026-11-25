@@ -103,6 +103,7 @@ function resetReadingState() {
   query.value = "";
   activeSegmentId.value = undefined;
   currentMs.value = 0;
+  if (scroller.value) scroller.value.scrollTop = 0;
 }
 
 onMounted(locateCurrent);

@@ -11,6 +11,7 @@ export function useTranscriptVirtualizer(
     computed(() => ({
       count: segments.value.length,
       getScrollElement: () => scroller.value,
+      getItemKey: (index: number) => segments.value[index]?.id ?? index,
       estimateSize: () => 52,
       overscan: 8,
       initialRect: { width: 600, height: 800 },
@@ -19,11 +20,11 @@ export function useTranscriptVirtualizer(
   const rows = computed(() => virtualizer.value.getVirtualItems());
   const totalSize = computed(() => virtualizer.value.getTotalSize());
 
-  watch(segments, () => virtualizer.value.measure());
+  watch(segments, () => virtualizer.value.measure(), { flush: "post" });
 
   function measureElement(element: Element | ComponentPublicInstance | null) {
-    const row = element instanceof Element ? element : element?.$el;
-    if (row instanceof Element) virtualizer.value.measureElement(row);
+    const row = element instanceof Element ? element : (element?.$el ?? null);
+    virtualizer.value.measureElement(row instanceof Element ? row : null);
   }
 
   function scrollToSegment(startMs: number, block: ScrollLogicalPosition) {

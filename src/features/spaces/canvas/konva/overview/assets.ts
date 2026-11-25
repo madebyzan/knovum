@@ -31,13 +31,7 @@ function maybeCloseEntry(entry: OverviewImageEntry) {
   entry.bitmap = undefined;
 }
 
-/** Marks an overview bitmap as actively drawn by a live canvas node so LRU eviction waits for release. */
-export function retainCanvasOverviewImage(bitmap: ImageBitmap): void {
-  const entry = entryByBitmap.get(bitmap);
-  if (entry) entry.refs += 1;
-}
-
-/** Releases a live canvas node's hold on an overview bitmap, closing it if already evicted from cache. */
+/** Releases a caller's hold on an overview bitmap, closing it once evicted and unreferenced. */
 export function releaseCanvasOverviewImage(bitmap: ImageBitmap | undefined): void {
   if (!bitmap) return;
   const entry = entryByBitmap.get(bitmap);
@@ -53,16 +47,25 @@ export function canvasOverviewImageSource({ layout, node }: CanvasSceneNode) {
     : spaceCanvasOverviewSource(node.data) || undefined;
 }
 
+function retainEntry(entry: OverviewImageEntry): Promise<ImageBitmap> {
+  entry.refs += 1;
+  return entry.promise.catch((error: unknown) => {
+    entry.refs = Math.max(0, entry.refs - 1);
+    maybeCloseEntry(entry);
+    throw error;
+  });
+}
+
 /**
- * Decodes an overview image once, downscaled to overview size, so every overview of the same
- * source — the live canvas and Space covers alike — shares one small bitmap.
+ * Decodes an overview image once, downscaled to overview size, and returns a retained bitmap
+ * owned by the caller until `releaseCanvasOverviewImage` is called.
  */
 export function loadCanvasOverviewImage(source: string): Promise<ImageBitmap> {
   const cached = entriesBySource.get(source);
   if (cached) {
     entriesBySource.delete(source);
     entriesBySource.set(source, cached);
-    return cached.promise;
+    return retainEntry(cached);
   }
   const entry: OverviewImageEntry = {
     promise: Promise.resolve() as unknown as Promise<ImageBitmap>,
@@ -72,7 +75,6 @@ export function loadCanvasOverviewImage(source: string): Promise<ImageBitmap> {
   entry.promise = overviewDecodes(() => decodeOverviewImage(source)).then((bitmap) => {
     entry.bitmap = bitmap;
     entryByBitmap.set(bitmap, entry);
-    maybeCloseEntry(entry);
     return bitmap;
   });
   entriesBySource.set(source, entry);
@@ -85,7 +87,7 @@ export function loadCanvasOverviewImage(source: string): Promise<ImageBitmap> {
     staleEntry.evicted = true;
     maybeCloseEntry(staleEntry);
   }
-  return entry.promise;
+  return retainEntry(entry);
 }
 
 async function decodeOverviewImage(source: string) {

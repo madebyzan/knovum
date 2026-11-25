@@ -19,6 +19,7 @@ type References = NonNullable<Env["references"]>;
 
 interface StreamEnvironment extends Env {
   citations?: MarkdownCitations;
+  docId?: string;
   references: References;
   footnotes?: unknown;
 }
@@ -33,7 +34,7 @@ interface StreamEnvironment extends Env {
  * source, and when one appears or changes it renders the whole source again, so a streamed answer
  * stays identical to rendering its final text at once.
  */
-export function createMarkdownStream(md: MarkdownIt, citations?: MarkdownCitations) {
+export function createMarkdownStream(md: MarkdownIt, citations?: MarkdownCitations, docId?: string) {
   let settledSource = "";
   let settled: string[] = [];
   // Definitions from settled text only: markdown-it keeps the first definition of a label, so a
@@ -43,6 +44,7 @@ export function createMarkdownStream(md: MarkdownIt, citations?: MarkdownCitatio
 
   const environment = (): StreamEnvironment => ({
     ...(citations ? { citations } : {}),
+    ...(docId ? { docId } : {}),
     references: { ...settledReferences },
   });
 

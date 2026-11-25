@@ -8,7 +8,6 @@ import {
   canvasOverviewImageSource,
   loadCanvasOverviewImage,
   releaseCanvasOverviewImage,
-  retainCanvasOverviewImage,
 } from "../overview/assets";
 import { canvasOverviewLabelled, createCanvasOverviewNode } from "../overview/nodes";
 import type { CanvasSceneNode } from "../scene/canvas-scene";
@@ -61,9 +60,11 @@ export function useCanvasOverviewLayer(options: CanvasOverviewLayerOptions) {
     void loadCanvasOverviewImage(source)
       .then((image) => {
         const drawn = drawnByNodeId.get(nodeId);
-        if (drawn?.source !== source || drawn.image === image) return undefined;
+        if (drawn?.source !== source || drawn.image === image || image.width === 0 || image.height === 0) {
+          releaseCanvasOverviewImage(image);
+          return undefined;
+        }
         releaseCanvasOverviewImage(drawn.image);
-        retainCanvasOverviewImage(image);
         drawn.image = image;
         draw(drawn);
         drawn.group.getLayer()?.batchDraw();

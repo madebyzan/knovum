@@ -2,6 +2,7 @@ import { getHTMLFromFragment } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import DOMPurify from "dompurify";
 
+import { hydrateMathHtml } from "../../../../../shared/ui/math-rendering";
 import type { TiptapJsonNode } from "../../../document-editing/tiptap-document";
 import { getCanvasTextSchema } from "../../../document-editing/tiptap-schema";
 
@@ -16,7 +17,8 @@ export function canvasTextHtml(content: TiptapJsonNode, kind: "note" | "text" = 
   const cached = htmlByContent[kind].get(content);
   if (cached !== undefined) return cached;
   const schema = getCanvasTextSchema(kind);
-  const html = DOMPurify.sanitize(getHTMLFromFragment(Node.fromJSON(schema, content).content, schema), {
+  const rawHtml = hydrateMathHtml(getHTMLFromFragment(Node.fromJSON(schema, content).content, schema));
+  const html = DOMPurify.sanitize(rawHtml, {
     ALLOWED_URI_REGEXP: ALLOWED_CANVAS_URI_REGEXP,
   });
   htmlByContent[kind].set(content, html);

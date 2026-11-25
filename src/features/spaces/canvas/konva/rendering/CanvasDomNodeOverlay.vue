@@ -25,7 +25,7 @@ const style = computed(() => ({
   width: `${effectiveFrame.value.width}px`,
   height: `${effectiveFrame.value.height}px`,
   zIndex: props.sceneNode.paintOrder,
-  transform: `translate3d(${effectiveFrame.value.x}px, ${effectiveFrame.value.y}px, 0) rotate(${effectiveFrame.value.rotation}deg)`,
+  transform: `translate(${effectiveFrame.value.x}px, ${effectiveFrame.value.y}px) rotate(${effectiveFrame.value.rotation}deg)`,
   transformOrigin: "top left",
 }));
 </script>

@@ -12,6 +12,8 @@ interface MarkdownSource {
   citations?: MarkdownCitations | undefined;
 }
 
+let nextMarkdownDocId = 0;
+
 /**
  * Paints Markdown into `root` block by block. Settled blocks are inserted once and never touched
  * again; only the open last block is replaced when the source grows, so an answer streamed one
@@ -25,8 +27,9 @@ export function useMarkdownPaint(
   options: MarkdownRendererOptions = {},
 ) {
   const md = createMarkdownRenderer(options);
+  const docId = `md${++nextMarkdownDocId}`;
   let citations: MarkdownCitations | undefined;
-  let render = createMarkdownStream(md);
+  let render = createMarkdownStream(md, undefined, docId);
   let painted = 0;
   let open: ChildNode[] = [];
 
@@ -55,7 +58,7 @@ export function useMarkdownPaint(
       // Citation markers render differently once their sources are known, so every block repaints.
       if (next.citations !== citations) {
         citations = next.citations;
-        render = createMarkdownStream(md, citations);
+        render = createMarkdownStream(md, citations, docId);
         clear(element);
       }
       paint(element, render(next.content));

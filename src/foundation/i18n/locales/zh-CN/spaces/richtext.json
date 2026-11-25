@@ -123,5 +123,15 @@
   "statistics": {
     "words": "{count} 字词",
     "characters": "{count} 字符"
+  },
+  "math": {
+    "title": "数学公式",
+    "edit": "编辑公式",
+    "inline": "行内",
+    "block": "公式块",
+    "placeholder": "例如 E = mc^2",
+    "insert": "插入",
+    "apply": "应用",
+    "delete": "删除"
   }
 }

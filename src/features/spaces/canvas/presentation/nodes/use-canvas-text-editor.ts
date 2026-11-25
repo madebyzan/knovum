@@ -5,6 +5,7 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../../foundation/errors/error-format";
 import { isDocumentEdit } from "../../../document-editing/tiptap-edits";
+import { tiptapPlainText } from "../../../document-editing/tiptap-mathematics";
 import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
 import { tiptapContentSchema } from "../../../model/nodes/schema/content";
 import { truncateUtf16 } from "../../../model/text";
@@ -128,7 +129,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
 
   async function persist(instance: Editor) {
     try {
-      const plainText = instance.state.doc.textBetween(0, instance.state.doc.content.size, "\n", "\n");
+      const plainText = tiptapPlainText(instance.state.doc);
       const tiptapContent = tiptapContentSchema.parse(instance.getJSON());
       const data: SpaceCanvasTextPayload = {
         ...options.data.value,

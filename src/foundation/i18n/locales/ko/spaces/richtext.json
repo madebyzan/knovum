@@ -123,5 +123,15 @@
   "statistics": {
     "words": "{count} 단어",
     "characters": "{count} 글자"
+  },
+  "math": {
+    "title": "수식",
+    "edit": "수식 편집",
+    "inline": "인라인",
+    "block": "블록",
+    "placeholder": "예: E = mc^2",
+    "insert": "삽입",
+    "apply": "적용",
+    "delete": "삭제"
   }
 }

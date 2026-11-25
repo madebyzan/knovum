@@ -22,6 +22,24 @@ useMarkdownPaint(root, () => ({ content: props.content, citations: props.citatio
   localLinks: props.localLinks,
 });
 
+function scrollToAnchor(id: string) {
+  const anchorTarget = Array.from(root.value?.querySelectorAll("[id]") ?? []).find(
+    (element) => element.id === id,
+  );
+  anchorTarget?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function handleLinkPress(event: MouseEvent, href: string) {
+  if (href.startsWith("#") && href.length > 1) {
+    event.preventDefault();
+    scrollToAnchor(href.slice(1));
+    return;
+  }
+  if (!props.localLinks || linkDestination(href) !== "local") return;
+  event.preventDefault();
+  emit("link", href);
+}
+
 function press(event: MouseEvent) {
   const target = event.target instanceof Element ? event.target : null;
   const citation = target?.closest("[data-citation-index]:not([data-citation-preview])");
@@ -30,9 +48,7 @@ function press(event: MouseEvent) {
     return;
   }
   const href = target?.closest("a[href]")?.getAttribute("href");
-  if (!props.localLinks || !href || linkDestination(href) !== "local") return;
-  event.preventDefault();
-  emit("link", href);
+  if (href) handleLinkPress(event, href);
 }
 </script>
 

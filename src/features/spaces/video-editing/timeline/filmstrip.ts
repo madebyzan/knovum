@@ -4,6 +4,7 @@ import { shallowRef } from "vue";
 import { assetIdentity, createAssetCache } from "../media/asset-cache";
 import type { VideoLibrary } from "../media/preview-video";
 import type { VideoAsset } from "../project";
+import { createFilmstripTileStore } from "./filmstrip-tile-cache";
 import { TIMELINE_ROWS } from "./track-geometry";
 
 /**
@@ -45,11 +46,6 @@ interface Strip {
   packets: EncodedPacketSink;
 }
 
-interface Tile {
-  image: CanvasImageSource;
-  exact: boolean;
-}
-
 const stepKey = (asset: VideoAsset, stepMs: number) => `${assetIdentity(asset)}\u0000${stepMs}`;
 const tileKey = (asset: VideoAsset, stepMs: number, index: number) =>
   `${stepKey(asset, stepMs)}\u0000${index}`;
@@ -85,21 +81,10 @@ async function decodePlan(packets: EncodedPacketSink, work: Work) {
  * source share its queue, the least recently drawn are evicted, and playback always wins the
  * decoder because a batch stops as soon as the preview starts.
  */
-function releaseTileCanvas(tile: Tile | undefined) {
-  const image = tile?.image;
-  if (
-    (typeof HTMLCanvasElement !== "undefined" && image instanceof HTMLCanvasElement) ||
-    (typeof OffscreenCanvas !== "undefined" && image instanceof OffscreenCanvas)
-  ) {
-    image.width = 0;
-    image.height = 0;
-  }
-}
-
 export function createFilmstripCache(options: FilmstripOptions) {
   /** Bumped when thumbnails land; reading it is what repaints a lane. */
   const revision = shallowRef(0);
-  const tiles = new Map<string, Tile>();
+  const tiles = createFilmstripTileStore(TILE_CAPACITY);
   /** The step each asset was last asked at; work queued for another zoom level is stale. */
   const stepByAsset = new Map<string, number>();
   const strips = createAssetCache<Strip>(async (asset) => {
@@ -113,17 +98,6 @@ export function createFilmstripCache(options: FilmstripOptions) {
   let working = false;
   let disposed = false;
 
-  function keep(key: string, tile: Tile) {
-    if (tiles.get(key)?.exact && !tile.exact) return;
-    tiles.delete(key);
-    tiles.set(key, tile);
-    while (tiles.size > TILE_CAPACITY) {
-      const oldestKey = tiles.keys().next().value!;
-      releaseTileCanvas(tiles.get(oldestKey));
-      tiles.delete(oldestKey);
-    }
-  }
-
   function enqueue(work: Work) {
     const key = stepKey(work.asset, work.stepMs);
     const queued = queue.find(
@@ -136,7 +110,7 @@ export function createFilmstripCache(options: FilmstripOptions) {
   function applyDecodedFrame(work: Work, indices: readonly number[], canvas: CanvasImageSource | undefined) {
     if (!canvas) return;
     for (const index of indices) {
-      keep(tileKey(work.asset, work.stepMs, index), { image: canvas, exact: work.exact });
+      tiles.keep(tileKey(work.asset, work.stepMs, index), { image: canvas, exact: work.exact });
     }
   }
 
@@ -195,7 +169,7 @@ export function createFilmstripCache(options: FilmstripOptions) {
       void revision.value;
       const key = tileKey(asset, stepMs, index);
       const tile = tiles.get(key);
-      if (tile) keep(key, tile);
+      if (tile) tiles.keep(key, tile);
       return tile?.image;
     },
     /** Asks for the thumbnails of one clip's visible slots, nearest the latest request first. */
@@ -214,7 +188,6 @@ export function createFilmstripCache(options: FilmstripOptions) {
       disposed = true;
       queue = [];
       strips.clear();
-      for (const tile of tiles.values()) releaseTileCanvas(tile);
       tiles.clear();
       revision.value += 1;
     },

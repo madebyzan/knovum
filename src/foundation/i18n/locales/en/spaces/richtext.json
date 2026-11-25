@@ -123,5 +123,15 @@
   "statistics": {
     "words": "{count} word | {count} words",
     "characters": "{count} character | {count} characters"
+  },
+  "math": {
+    "title": "Math equation",
+    "edit": "Edit equation",
+    "inline": "Inline",
+    "block": "Block",
+    "placeholder": "e.g. E = mc^2",
+    "insert": "Insert",
+    "apply": "Apply",
+    "delete": "Delete"
   }
 }

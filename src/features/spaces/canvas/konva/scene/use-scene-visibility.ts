@@ -92,8 +92,10 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
   );
 
   let sampled = options.camera.get();
+  let disposed = false;
 
   function updateVisibility() {
+    if (disposed) return;
     const camera = options.camera.get();
     const travel = { x: camera.x - sampled.x, y: camera.y - sampled.y };
     sampled = camera;
@@ -112,7 +114,11 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
     [options.scene, options.sections, () => options.size.width, () => options.size.height],
     scheduleVisibilityUpdate,
   );
-  onScopeDispose(options.camera.observeFrames(scheduleVisibilityUpdate));
+  const stopObserving = options.camera.observeFrames(scheduleVisibilityUpdate);
+  onScopeDispose(() => {
+    disposed = true;
+    stopObserving();
+  });
   const visibleSections = computed(() =>
     options.sections.value.filter(
       ({ section, temporarilyExpanded }) =>

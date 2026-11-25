@@ -1,46 +1,11 @@
-import { renderToString } from "katex";
 import type { MarkdownIt as MarkdownItInstance, StateBlock, StateInline } from "markdown-it";
 
-const CURRENCY_ONLY = /^\d+(?:[.,]\d+)?$/;
-
-function renderKatex(latex: string, displayMode: boolean): string {
-  return renderToString(latex, {
-    displayMode,
-    throwOnError: false,
-    strict: "ignore",
-    output: "html",
-  });
-}
-
-function isEscaped(src: string, pos: number): boolean {
-  let backslashes = 0;
-  for (let i = pos - 1; i >= 0 && src.charCodeAt(i) === 0x5c; i -= 1) backslashes += 1;
-  return backslashes % 2 === 1;
-}
-
-function isDigit(char: string | undefined): boolean {
-  return Boolean(char && /\d/.test(char));
-}
-
-function isValidInlineMathClose(src: string, end: number): boolean {
-  const prevChar = src[end - 1];
-  return Boolean(prevChar && !/\s/.test(prevChar) && !isDigit(src[end + 1]));
-}
-
-function findInlineMathClose(src: string, start: number, posMax: number): number {
-  for (let end = start + 1; end < posMax; end += 1) {
-    if (src.charCodeAt(end) !== 0x24 || isEscaped(src, end)) continue;
-    if (!isValidInlineMathClose(src, end)) continue;
-    const content = src.slice(start + 1, end).trim();
-    if (content && !CURRENCY_ONLY.test(content)) return end;
-  }
-  return -1;
-}
+import { findInlineMathClose, isDigitChar, renderKatexHtml } from "./math-rendering";
 
 function inlineMathRule(state: StateInline, silent: boolean): boolean {
   const { src, pos: start, posMax } = state;
   if (src.charCodeAt(start) !== 0x24 || src.charCodeAt(start + 1) === 0x24) return false;
-  if (isDigit(src[start - 1])) return false;
+  if (isDigitChar(src[start - 1])) return false;
   const nextChar = src[start + 1];
   if (!nextChar || /\s/.test(nextChar)) return false;
 
@@ -77,10 +42,24 @@ function pushBlockMath(state: StateBlock, content: string, startLine: number, ne
   state.line = nextLine;
 }
 
+function emitMultiLineBlockMath(
+  state: StateBlock,
+  firstLine: string,
+  startLine: number,
+  endLine: number,
+): void {
+  const close = findBlockMathClose(state, startLine, endLine);
+  const stopLine = close ? close.line : endLine;
+  const middle = state.getLines(startLine + 1, stopLine, state.tShift[startLine]!, true).trimEnd();
+  const content = [firstLine, middle, close?.trailing ?? ""].filter(Boolean).join("\n").trim();
+  pushBlockMath(state, content, startLine, close ? close.line + 1 : endLine);
+}
+
 function blockMathRule(state: StateBlock, startLine: number, endLine: number, silent: boolean): boolean {
   const startPos = state.bMarks[startLine]! + state.tShift[startLine]!;
   const maxPos = state.eMarks[startLine]!;
   if (startPos + 2 > maxPos || state.src.slice(startPos, startPos + 2) !== "$$") return false;
+  if (state.src.charCodeAt(startPos + 2) === 0x24) return false;
 
   const firstLine = state.src.slice(startPos + 2, maxPos).trim();
   if (firstLine.endsWith("$$") && firstLine.length >= 2) {
@@ -89,14 +68,7 @@ function blockMathRule(state: StateBlock, startLine: number, endLine: number, si
     if (!silent) pushBlockMath(state, content, startLine, startLine + 1);
     return true;
   }
-
-  const close = findBlockMathClose(state, startLine, endLine);
-  if (!close) return false;
-  if (!silent) {
-    const middle = state.getLines(startLine + 1, close.line, state.tShift[startLine]!, true).trimEnd();
-    const content = [firstLine, middle, close.trailing].filter(Boolean).join("\n").trim();
-    pushBlockMath(state, content, startLine, close.line + 1);
-  }
+  if (!silent) emitMultiLineBlockMath(state, firstLine, startLine, endLine);
   return true;
 }
 
@@ -105,7 +77,7 @@ export function markdownMathPlugin(md: MarkdownItInstance): void {
   md.block.ruler.after("blockquote", "math_block", blockMathRule, {
     alt: ["paragraph", "reference", "blockquote", "list"],
   });
-  md.renderer.rules.math_inline = (tokens, index) => renderKatex(tokens[index]?.content ?? "", false);
+  md.renderer.rules.math_inline = (tokens, index) => renderKatexHtml(tokens[index]?.content ?? "", false);
   md.renderer.rules.math_block = (tokens, index) =>
-    `<div class="ui-markdown-math-block">${renderKatex(tokens[index]?.content ?? "", true)}</div>\n`;
+    `<div class="ui-markdown-math-block">${renderKatexHtml(tokens[index]?.content ?? "", true)}</div>\n`;
 }
