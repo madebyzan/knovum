@@ -32,6 +32,7 @@ pub struct TranscriptionPipeline<'a> {
     pub app: &'a tauri::AppHandle,
     pub job_id: &'a str,
     pub source_revision: &'a str,
+    pub language: Option<String>,
     pub progress: &'a Channel<MediaTranscriptionProgress>,
     pub cancellation: &'a CancellationToken,
     pub resources: &'a PreparedModels,
@@ -63,6 +64,10 @@ impl TranscriptionPipeline<'_> {
         let wav = audio.wav.clone();
         let audio_ref = blocking::run(move || audio_reference(&wav)).await?;
         let request_id = uuid::Uuid::new_v4().to_string();
+        let (language_policy, language) = match &self.language {
+            Some(code) => (LanguagePolicy::Fixed, Some(code.clone())),
+            None => (LanguagePolicy::Detect, None),
+        };
         let params = SpeechTranscribeParams {
             identity: InferenceRequestIdentity {
                 request_id: request_id.clone(),
@@ -77,8 +82,8 @@ impl TranscriptionPipeline<'_> {
             audio_ref,
             profile: AsrProfile {
                 engine,
-                language_policy: LanguagePolicy::Detect,
-                language: None,
+                language_policy,
+                language,
                 device: device.into(),
                 compute_type: compute_type.into(),
                 beam_size: 5,

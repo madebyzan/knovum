@@ -78,18 +78,40 @@ pub async fn retry_enrichment_job(
     Ok(())
 }
 
+const SUPPORTED_TRANSCRIPTION_LANGUAGES: &[&str] = &[
+    "zh", "yue", "en", "ja", "ko", "fr", "de", "es", "pt", "it", "ru", "ar",
+];
+
+fn normalize_transcription_language(language: Option<String>) -> Result<Option<String>, AppError> {
+    let Some(raw) = language else {
+        return Ok(None);
+    };
+    let normalized = raw.trim().to_ascii_lowercase();
+    if normalized.is_empty() || normalized == "auto" {
+        return Ok(None);
+    }
+    if !SUPPORTED_TRANSCRIPTION_LANGUAGES.contains(&normalized.as_str()) {
+        return Err(AppError::invalid(format!(
+            "Unsupported transcription language: {raw}"
+        )));
+    }
+    Ok(Some(normalized))
+}
+
 #[tauri::command]
 pub async fn request_media_transcription(
     app: AppHandle,
     space_id: String,
     node_id: String,
     model: LocalModelId,
+    language: Option<String>,
 ) -> Result<String, AppError> {
     if !model.is_transcription() {
         return Err(AppError::invalid(
             "Transcription requires a speech recognition model",
         ));
     }
+    let language = normalize_transcription_language(language)?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let raw: String = sqlx::query_scalar(
@@ -120,11 +142,12 @@ pub async fn request_media_transcription(
     )
     .await?;
     sqlx::query(
-        "INSERT INTO spaces_media_transcription_requests(job_id,model_spec_id) VALUES($1,$2) \
-         ON CONFLICT(job_id) DO NOTHING",
+        "INSERT INTO spaces_media_transcription_requests(job_id,model_spec_id,language) \
+         VALUES($1,$2,$3) ON CONFLICT(job_id) DO NOTHING",
     )
     .bind(&id)
     .bind(sqlx::types::Json(model))
+    .bind(language)
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;

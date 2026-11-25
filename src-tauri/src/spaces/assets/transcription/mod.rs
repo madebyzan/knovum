@@ -41,6 +41,17 @@ pub(in crate::spaces) async fn resolve_model(
     }
 }
 
+async fn resolve_language(app: &tauri::AppHandle, job_id: &str) -> Result<Option<String>, String> {
+    let language: Option<Option<String>> = sqlx::query_scalar(
+        "SELECT language FROM spaces_media_transcription_requests WHERE job_id=$1",
+    )
+    .bind(job_id)
+    .fetch_optional(crate::spaces::db::pool(app).await?)
+    .await
+    .map_err(crate::spaces::db::sql_error)?;
+    Ok(language.flatten().filter(|value| !value.trim().is_empty()))
+}
+
 #[derive(Clone, Serialize, serde::Deserialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase")]
@@ -180,10 +191,12 @@ async fn transcribe(
         )
     })
     .await?;
+    let language = resolve_language(app, job_id).await?;
     let pipeline = TranscriptionPipeline {
         app,
         job_id,
         source_revision: revision,
+        language,
         progress,
         cancellation,
         resources,

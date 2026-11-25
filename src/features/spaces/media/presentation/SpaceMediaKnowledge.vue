@@ -19,6 +19,7 @@ import SpaceDiarizationControl from "./SpaceDiarizationControl.vue";
 import SpaceMediaChapterEditor from "./SpaceMediaChapterEditor.vue";
 import SpaceMediaLiveTranscript from "./SpaceMediaLiveTranscript.vue";
 import SpaceMediaSummaryEditor from "./SpaceMediaSummaryEditor.vue";
+import SpaceTranscriptionLanguageSelect from "./SpaceTranscriptionLanguageSelect.vue";
 import SpaceTranscriptNavigator from "./SpaceTranscriptNavigator.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
@@ -151,6 +152,10 @@ function runInsights(targetId?: string) {
             </ModelChoiceTrigger>
           </div>
           <CollapsibleContent class="mt-2">
+            <SpaceTranscriptionLanguageSelect
+              v-model="media.transcriptionLanguage.value"
+              :disabled="transcribeLocked"
+            />
             <SpaceDiarizationControl
               :node-id="nodeId"
               :revision="media.knowledge.value.transcript.revision"

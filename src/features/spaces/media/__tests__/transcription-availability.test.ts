@@ -8,7 +8,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useMediaKnowledge } from "../use-media-knowledge";
 
 const mocks = vi.hoisted(() => ({
-  analyze: vi.fn<(nodeId: string, model?: LocalModelId) => Promise<string>>(),
+  analyze: vi.fn<(nodeId: string, model?: LocalModelId, language?: string) => Promise<string>>(),
   refresh: vi.fn<() => Promise<void>>(),
   error: vi.fn<(message: string) => void>(),
 }));
@@ -71,15 +71,12 @@ beforeEach(() => {
 });
 it("starts an analyzed source and makes its Rust task visible immediately", async () => {
   const scope = effectScope();
-  try {
-    const operation = scope.run(() => useMediaKnowledge(ref(mediaNode())))!;
-    expect(operation.canTranscribe.value).toBe(true);
-    await operation.analyze();
-    expect(mocks.analyze).toHaveBeenCalledWith("audio", "whisperSmall");
-    expect(mocks.refresh).toHaveBeenCalledOnce();
-  } finally {
-    scope.stop();
-  }
+  onTestFinished(() => scope.stop());
+  const operation = scope.run(() => useMediaKnowledge(ref(mediaNode())))!;
+  expect(operation.canTranscribe.value).toBe(true);
+  await operation.analyze();
+  expect(mocks.analyze).toHaveBeenCalledWith("audio", "whisperSmall");
+  expect(mocks.refresh).toHaveBeenCalledOnce();
 });
 it("does not dispatch against pending media analysis or an editing gate", async () => {
   const scope = effectScope();
@@ -171,12 +168,14 @@ it("allows retranscription even when a current transcript already exists", async
     scope.stop();
   }
 });
-
-it("freezes the chosen transcription model into the request", async () => {
+it("freezes the chosen transcription model and optional language into the request", async () => {
   const scope = effectScope();
   onTestFinished(() => scope.stop());
   const operation = scope.run(() => useMediaKnowledge(ref(mediaNode())))!;
   operation.transcriptionModel.value = "whisperLargeV3Turbo";
   await operation.analyze();
   expect(mocks.analyze).toHaveBeenCalledWith("audio", "whisperLargeV3Turbo");
+  operation.transcriptionLanguage.value = "zh";
+  await operation.analyze();
+  expect(mocks.analyze).toHaveBeenLastCalledWith("audio", "whisperLargeV3Turbo", "zh");
 });
