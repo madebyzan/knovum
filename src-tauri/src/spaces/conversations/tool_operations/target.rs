@@ -96,9 +96,12 @@ impl ToolTarget<'_> {
                 .await
                 .map(Prepared::Mcp)
             }
-            Self::Command { workspace } => {
-                shell::prepare(workspace.clone(), arguments).map(Prepared::Command)
-            }
+            Self::Command { workspace } => shell::prepare(
+                workspace.clone(),
+                shell::SandboxBoundaries::from_app(app),
+                arguments,
+            )
+            .map(Prepared::Command),
         }
     }
 }

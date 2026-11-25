@@ -27,6 +27,9 @@ pub fn validate(paths: &AppPaths, journal: &Journal) -> Result<(), String> {
             .to_string_lossy();
         let excluded = name == "secrets.db"
             || name.starts_with("secrets.db-")
+            || name == "knowledge-retrieval.lance"
+            || name == "checkpoints.sqlite"
+            || name.starts_with("checkpoints.sqlite-")
             || name.ends_with("-wal")
             || name.ends_with("-shm");
         if excluded && (entry.present || entry.staged.is_some()) {
@@ -52,10 +55,15 @@ fn allowed_targets(paths: &AppPaths) -> HashSet<PathBuf> {
             append(&database, "-shm"),
         ]);
     }
+    let checkpoints = paths.data.join("agent-runtime/checkpoints.sqlite");
     allowed.extend([
         paths.data.join("settings.json"),
         paths.data.join("spaces/assets"),
         paths.data.join("agent-extensions"),
+        paths.data.join("knowledge-retrieval.lance"),
+        checkpoints.clone(),
+        append(&checkpoints, "-wal"),
+        append(&checkpoints, "-shm"),
     ]);
     allowed
 }
@@ -160,10 +168,15 @@ fn reject_staging_symlinks(root: &Path, staged: &Path) -> Result<(), String> {
 }
 
 fn validate_live_path(paths: &AppPaths, live: &Path) -> Result<(), String> {
+    let checkpoints = paths.data.join("agent-runtime/checkpoints.sqlite");
     let data_targets = [
         paths.data.join("settings.json"),
         paths.data.join("spaces/assets"),
         paths.data.join("agent-extensions"),
+        paths.data.join("knowledge-retrieval.lance"),
+        checkpoints.clone(),
+        append(&checkpoints, "-wal"),
+        append(&checkpoints, "-shm"),
     ];
     let root = if data_targets.iter().any(|target| target == live) {
         &paths.data

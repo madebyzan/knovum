@@ -153,3 +153,17 @@ def test_disconnected_peer_rejects_new_work() -> None:
             await peer.request("execute", Parameters(number=1))
 
     asyncio.run(run())
+
+
+def test_shutdown_writes_response_before_closing_peer() -> None:
+    async def run() -> None:
+        source = io.BytesIO(b'{"jsonrpc":"2.0","id":"shutdown-1","method":"agentRuntime.shutdown","params":null}\n')
+        sink = io.BytesIO()
+        async with AsyncExitStack() as lifetime:
+            peer = Peer(source, sink)
+            server = Server(peer, lifetime)
+            await peer.run(server.dispatch)
+        response = json.loads(sink.getvalue())
+        assert response == {"jsonrpc": "2.0", "id": "shutdown-1", "result": None}
+
+    asyncio.run(run())

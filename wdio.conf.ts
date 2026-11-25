@@ -2,7 +2,8 @@ import { resolve } from "node:path";
 
 const executable = process.platform === "win32" ? "knovum.exe" : "knovum";
 const cargoTargetDirectory = process.env.CARGO_TARGET_DIR ?? resolve("src-tauri", "target");
-const appBinaryPath = resolve(cargoTargetDirectory, "release", executable);
+const cargoProfile = process.env.KNOVUM_E2E_PROFILE ?? "debug";
+const appBinaryPath = resolve(cargoTargetDirectory, cargoProfile, executable);
 
 export const config: WebdriverIO.Config = {
   runner: "local",

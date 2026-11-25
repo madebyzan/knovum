@@ -1,23 +1,93 @@
-use super::SubprocessOutput;
+use super::{process_tree::ProcessTree, SubprocessOutput};
 use std::{
     collections::VecDeque,
     io::{BufRead, BufReader, Read},
-    process::Child,
+    process::{Child, Command},
     sync::mpsc,
     thread,
-    time::Duration,
+    time::{Duration, Instant},
 };
 use tokio_util::sync::CancellationToken;
 
 const POLL_INTERVAL: Duration = Duration::from_millis(40);
+const ABORT_READER_JOIN_TIMEOUT: Duration = Duration::from_secs(2);
 const DIAGNOSTIC_LIMIT: usize = 80;
 const OUTPUT_BUFFER_CAPACITY: usize = 128;
 const MAX_OUTPUT_LINE_BYTES: usize = 64 * 1024;
+
+pub(crate) struct ManagedChild {
+    child: Child,
+    tree: ProcessTree,
+}
+
+/// Spawns `command` inside its own process group (Unix) or Job Object with `CREATE_NO_WINDOW`
+/// (Windows) so cancellation terminates both the child and any grandchildren it spawned.
+pub(crate) fn spawn_managed(command: &mut Command) -> Result<ManagedChild, String> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        command.process_group(0);
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        command.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
+    }
+    #[cfg(windows)]
+    let job = super::windows_job::WindowsJob::new()?;
+    let child = command.spawn().map_err(|error| error.to_string())?;
+    let tree = ProcessTree::new_std(
+        &child,
+        #[cfg(windows)]
+        job,
+    )?;
+    Ok(ManagedChild { child, tree })
+}
 
 enum StreamLine {
     Stdout(String),
     Stderr(String),
     Error(String),
+}
+
+struct ReaderHandle {
+    handle: thread::JoinHandle<()>,
+    done: mpsc::Receiver<()>,
+}
+
+pub(crate) fn wait_managed_with_stderr(
+    managed: ManagedChild,
+    cancellation: &CancellationToken,
+    cancellation_error: &str,
+    mut on_line: impl FnMut(&str) -> Result<(), String>,
+) -> Result<SubprocessOutput, String> {
+    wait_with_streams(
+        managed.child,
+        Some(managed.tree),
+        cancellation,
+        cancellation_error,
+        false,
+        |_| Ok(()),
+        |line| on_line(line),
+    )
+}
+
+pub(crate) fn wait_managed_with_output(
+    managed: ManagedChild,
+    cancellation: &CancellationToken,
+    cancellation_error: &str,
+    on_stdout: impl FnMut(&str) -> Result<(), String>,
+    on_stderr: impl FnMut(&str) -> Result<(), String>,
+) -> Result<SubprocessOutput, String> {
+    wait_with_streams(
+        managed.child,
+        Some(managed.tree),
+        cancellation,
+        cancellation_error,
+        true,
+        on_stdout,
+        on_stderr,
+    )
 }
 
 pub(crate) fn wait_with_stderr(
@@ -28,6 +98,7 @@ pub(crate) fn wait_with_stderr(
 ) -> Result<SubprocessOutput, String> {
     wait_with_streams(
         child,
+        None,
         cancellation,
         cancellation_error,
         false,
@@ -45,6 +116,7 @@ pub(crate) fn wait_with_output(
 ) -> Result<SubprocessOutput, String> {
     wait_with_streams(
         child,
+        None,
         cancellation,
         cancellation_error,
         true,
@@ -55,6 +127,7 @@ pub(crate) fn wait_with_output(
 
 fn wait_with_streams(
     mut child: Child,
+    mut tree: Option<ProcessTree>,
     cancellation: &CancellationToken,
     cancellation_error: &str,
     read_stdout: bool,
@@ -84,7 +157,13 @@ fn wait_with_streams(
     let mut diagnostics = VecDeque::with_capacity(DIAGNOSTIC_LIMIT);
     loop {
         if cancellation.is_cancelled() {
-            return abort_process(child, readers, receiver, cancellation_error.into());
+            return abort_process(
+                child,
+                tree.as_mut(),
+                readers,
+                receiver,
+                cancellation_error.into(),
+            );
         }
         for _ in 0..OUTPUT_BUFFER_CAPACITY {
             let Ok(line) = receiver.try_recv() else {
@@ -92,11 +171,14 @@ fn wait_with_streams(
             };
             if let Err(error) = consume_line(line, &mut diagnostics, &mut on_stdout, &mut on_stderr)
             {
-                return abort_process(child, readers, receiver, error);
+                return abort_process(child, tree.as_mut(), readers, receiver, error);
             }
         }
         match child.try_wait() {
             Ok(Some(status)) => {
+                if let Some(tree) = tree.as_mut() {
+                    tree.terminate();
+                }
                 while let Ok(line) = receiver.recv() {
                     consume_line(line, &mut diagnostics, &mut on_stdout, &mut on_stderr)?;
                 }
@@ -110,6 +192,7 @@ fn wait_with_streams(
             Err(error) => {
                 return abort_process(
                     child,
+                    tree.as_mut(),
                     readers,
                     receiver,
                     format!("failed to query child process: {error}"),
@@ -123,8 +206,9 @@ fn spawn_reader(
     stream: impl Read + Send + 'static,
     sender: mpsc::SyncSender<StreamLine>,
     map_line: fn(String) -> StreamLine,
-) -> thread::JoinHandle<()> {
-    thread::spawn(move || {
+) -> ReaderHandle {
+    let (done_tx, done) = mpsc::channel();
+    let handle = thread::spawn(move || {
         let mut reader = BufReader::new(stream);
         loop {
             let mut bytes = Vec::new();
@@ -156,7 +240,9 @@ fn spawn_reader(
                 break;
             }
         }
-    })
+        let _ = done_tx.send(());
+    });
+    ReaderHandle { handle, done }
 }
 
 fn consume_line(
@@ -181,24 +267,39 @@ fn consume_line(
 
 fn abort_process(
     mut child: Child,
-    readers: Vec<thread::JoinHandle<()>>,
+    tree: Option<&mut ProcessTree>,
+    readers: Vec<ReaderHandle>,
     receiver: mpsc::Receiver<StreamLine>,
     error: String,
 ) -> Result<SubprocessOutput, String> {
+    if let Some(tree) = tree {
+        tree.terminate();
+    }
     let _ = child.kill();
     let _ = child.wait();
     drop(receiver);
-    let _ = join_readers(readers);
+    join_readers_bounded(readers, ABORT_READER_JOIN_TIMEOUT);
     Err(error)
 }
 
-fn join_readers(readers: Vec<thread::JoinHandle<()>>) -> Result<(), String> {
+fn join_readers(readers: Vec<ReaderHandle>) -> Result<(), String> {
     for reader in readers {
         reader
+            .handle
             .join()
             .map_err(|_| "process output reader panicked")?;
     }
     Ok(())
+}
+
+fn join_readers_bounded(readers: Vec<ReaderHandle>, timeout: Duration) {
+    let deadline = Instant::now() + timeout;
+    for reader in readers {
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        if reader.done.recv_timeout(remaining).is_ok() {
+            let _ = reader.handle.join();
+        }
+    }
 }
 
 #[cfg(test)]

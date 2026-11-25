@@ -1,18 +1,20 @@
-import Konva from "konva";
+import { Group } from "konva/lib/Group";
+import { Rect } from "konva/lib/shapes/Rect";
+import { Text } from "konva/lib/shapes/Text";
 
 import type { VideoOutput, VideoTextOverlay } from "../project";
 import { textAnchorX, textBoxPadding, textConfig } from "./scene-text";
 
 export interface TextNode {
-  group: Konva.Group;
-  box: Konva.Rect;
-  label: Konva.Text;
+  group: Group;
+  box: Rect;
+  label: Text;
 }
 
 export function createTextNode(itemId: string): TextNode {
-  const group = new Konva.Group({ id: itemId });
-  const box = new Konva.Rect({ listening: false });
-  const label = new Konva.Text({ name: "video-text", id: `text:${itemId}`, draggable: true });
+  const group = new Group({ id: itemId });
+  const box = new Rect({ listening: false });
+  const label = new Text({ name: "video-text", id: `text:${itemId}`, draggable: true });
   group.add(box, label);
   return { group, box, label };
 }

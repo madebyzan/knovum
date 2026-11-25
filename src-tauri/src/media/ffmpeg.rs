@@ -10,12 +10,11 @@ pub(crate) fn run(
     cancellation: &CancellationToken,
     message: &str,
 ) -> Result<(), String> {
-    let child = command
-        .stdout(Stdio::null())
-        .stderr(Stdio::piped())
-        .spawn()
+    command.stdout(Stdio::null()).stderr(Stdio::piped());
+    let managed = subprocess::spawn_managed(command)
         .map_err(|error| format!("Failed to start FFmpeg: {error}"))?;
-    let outcome = subprocess::wait_with_stderr(child, cancellation, "cancelled", |_| Ok(()))?;
+    let outcome =
+        subprocess::wait_managed_with_stderr(managed, cancellation, "cancelled", |_| Ok(()))?;
     if outcome.status.success() {
         Ok(())
     } else {
@@ -30,7 +29,8 @@ pub(crate) fn duration_us(
     cancellation: &CancellationToken,
 ) -> Result<u64, String> {
     let mut maximum_us = 0_u64;
-    let child = Command::new(ffmpeg)
+    let mut command = Command::new(ffmpeg);
+    command
         .args([
             "-hide_banner",
             "-loglevel",
@@ -44,11 +44,11 @@ pub(crate) fn duration_us(
         .arg(source)
         .args(["-map", stream, "-c", "copy", "-f", "null", "-"])
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
+        .stderr(Stdio::piped());
+    let managed = subprocess::spawn_managed(&mut command)
         .map_err(|error| format!("Failed to start FFmpeg media verification: {error}"))?;
-    let outcome = subprocess::wait_with_output(
-        child,
+    let outcome = subprocess::wait_managed_with_output(
+        managed,
         cancellation,
         "cancelled",
         |line| {
@@ -79,7 +79,8 @@ pub(crate) fn has_audio(
     cancellation: &CancellationToken,
     cancelled: &str,
 ) -> Result<bool, String> {
-    let child = Command::new(ffmpeg)
+    let mut command = Command::new(ffmpeg);
+    command
         .args(["-nostdin", "-hide_banner", "-loglevel", "error", "-i"])
         .arg(source)
         .args([
@@ -96,10 +97,10 @@ pub(crate) fn has_audio(
         ])
         .stdin(Stdio::null())
         .stdout(Stdio::null())
-        .stderr(Stdio::piped())
-        .spawn()
+        .stderr(Stdio::piped());
+    let managed = subprocess::spawn_managed(&mut command)
         .map_err(|error| format!("Unable to inspect media audio: {error}"))?;
-    let exit = subprocess::wait_with_stderr(child, cancellation, cancelled, |_| Ok(()))?;
+    let exit = subprocess::wait_managed_with_stderr(managed, cancellation, cancelled, |_| Ok(()))?;
     if exit.status.success() {
         return Ok(true);
     }
@@ -119,7 +120,8 @@ pub(crate) fn video_codec(
     cancellation: &CancellationToken,
 ) -> Result<String, String> {
     let mut codec = None;
-    let child = Command::new(ffmpeg)
+    let mut command = Command::new(ffmpeg);
+    command
         .args(["-nostdin", "-hide_banner", "-loglevel", "info", "-i"])
         .arg(source)
         .args([
@@ -135,10 +137,10 @@ pub(crate) fn video_codec(
         ])
         .stdin(Stdio::null())
         .stdout(Stdio::null())
-        .stderr(Stdio::piped())
-        .spawn()
+        .stderr(Stdio::piped());
+    let managed = subprocess::spawn_managed(&mut command)
         .map_err(|error| format!("Unable to inspect media video: {error}"))?;
-    let exit = subprocess::wait_with_stderr(child, cancellation, "cancelled", |line| {
+    let exit = subprocess::wait_managed_with_stderr(managed, cancellation, "cancelled", |line| {
         if codec.is_none() {
             codec = stream_codec(line, "Video");
         }

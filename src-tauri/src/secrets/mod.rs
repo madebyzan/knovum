@@ -8,12 +8,19 @@ use tauri::{plugin::TauriPlugin, AppHandle, Wry};
 use tokio::sync::OnceCell;
 
 const MAX_SECRET_KEY_LENGTH: usize = 128;
+const WEBVIEW_READABLE_KEY_PREFIX: &str = "spaces.credential:";
 static APP: OnceLock<AppHandle> = OnceLock::new();
 static DATABASE: OnceCell<SqlitePool> = OnceCell::const_new();
 
 pub(crate) fn install(app: &AppHandle) -> Result<(), String> {
     APP.set(app.clone())
         .map_err(|_| "secret database was initialized twice".to_owned())
+}
+
+fn is_webview_readable_key(secret_key: &str) -> bool {
+    secret_key
+        .strip_prefix(WEBVIEW_READABLE_KEY_PREFIX)
+        .is_some_and(|rest| !rest.is_empty())
 }
 
 fn validate_key(secret_key: &str) -> Result<(), String> {
@@ -54,6 +61,12 @@ pub(crate) async fn remove_secret(secret_key: &str) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn get(secret_key: String) -> Result<Option<String>, AppError> {
+    if !is_webview_readable_key(&secret_key) {
+        return Err(AppError::new(
+            "forbidden",
+            "This credential cannot be read back into the renderer",
+        ));
+    }
     Ok((read_secret(&secret_key).await)?)
 }
 

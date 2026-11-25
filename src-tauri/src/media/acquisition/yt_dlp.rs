@@ -92,11 +92,10 @@ pub(crate) fn acquire(
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
-    let child = command
-        .spawn()
+    let managed = subprocess::spawn_managed(&mut command)
         .map_err(|error| failed(format!("Unable to start prepared yt-dlp: {error}")))?;
-    let output = subprocess::wait_with_output(
-        child,
+    let output = subprocess::wait_managed_with_output(
+        managed,
         cancellation,
         ACQUISITION_CANCELLED,
         |line| report(line, progress),

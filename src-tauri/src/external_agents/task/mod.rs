@@ -141,6 +141,11 @@ async fn delegate(
     let session_cancellation = cancellation.child_token();
     let activity = ActivityClock::now();
     let activity_probe = activity.clone();
+    let permission_policy = if crate::ai::settings::is_agent_trusted(app, kind) {
+        super::permissions::PermissionPolicy::Trusted
+    } else {
+        super::permissions::PermissionPolicy::DenyElevated
+    };
     let execution = super::session::run(
         kind,
         workspace.0.clone(),
@@ -151,6 +156,7 @@ async fn delegate(
             Ok(())
         }),
         Vec::new(),
+        permission_policy,
     );
     let outcome = await_with_budget(execution, activity, spec.budget, &session_cancellation)
         .await

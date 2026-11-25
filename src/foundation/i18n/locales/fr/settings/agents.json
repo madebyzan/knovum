@@ -1,6 +1,6 @@
 {
   "title": "Agents de bureau",
-  "description": "Utilisez les agents AI pris en charge déjà installés et connectés sur cet ordinateur. Les agents activés s'exécutent avec leurs outils disponibles, leurs serveurs MCP et leurs compétences sans confirmation par action.",
+  "description": "Utilisez des agents IA compatibles déjà installés et connectés sur cet ordinateur. Par défaut, les agents de bureau demandent confirmation avant d’exécuter des actions privilégiées dans les conversations.",
   "check": "Vérifier les agents",
   "enable": "Activer",
   "disable": "Désactiver",
@@ -31,5 +31,12 @@
       "title": "Serveur ACP autonome",
       "requirements": "Téléchargez l'archive officielle ACP, conservez ses fichiers compagnon et ajoutez le répertoire du serveur à PATH."
     }
+  },
+  "trustedMode": {
+    "label": "Mode de confiance (accès complet sans confirmation)",
+    "description": "Ignore les demandes d’autorisation et autorise l’exécution automatique de commandes et la modification de fichiers. À activer uniquement si vous faites confiance à toutes les sources de vos Spaces.",
+    "confirmTitle": "Activer le mode de confiance ?",
+    "confirmDescription": "Le mode de confiance passe cet agent en accès complet et approuve automatiquement ses demandes d’autorisation sans confirmation. Des pages web ou fichiers non fiables pourraient déclencher des commandes indésirables.",
+    "confirmAction": "Activer le mode de confiance"
   }
 }

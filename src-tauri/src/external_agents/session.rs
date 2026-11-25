@@ -23,6 +23,7 @@ pub fn run(
     cancellation: CancellationToken,
     on_update: AgentUpdateHandler,
     mcp_servers: Vec<McpServer>,
+    permission_policy: super::permissions::PermissionPolicy,
 ) -> futures::future::BoxFuture<'static, AppResult<StopReason>> {
     Box::pin(run_session(
         kind,
@@ -31,6 +32,7 @@ pub fn run(
         cancellation,
         on_update,
         mcp_servers,
+        permission_policy,
     ))
 }
 
@@ -41,15 +43,17 @@ async fn run_session(
     cancellation: CancellationToken,
     on_update: AgentUpdateHandler,
     mcp_servers: Vec<McpServer>,
+    permission_policy: super::permissions::PermissionPolicy,
 ) -> AppResult<StopReason> {
     let agent = super::connection::runtime(kind, &mcp_servers, &cancellation).await?;
     let permission_cancellation = cancellation.clone();
+    let request_policy = permission_policy.clone();
     let client = Client.builder().on_receive_request(
         async move |request: RequestPermissionRequest, responder, _cx| {
-            responder.respond_with_result(super::permissions::authorize(
-                &request,
-                &permission_cancellation,
-            ))
+            let outcome =
+                super::permissions::authorize(&request, &request_policy, &permission_cancellation)
+                    .await;
+            responder.respond_with_result(outcome)
         },
         agent_client_protocol::on_receive_request!(),
     );
@@ -95,7 +99,9 @@ async fn run_session(
             .block_task()
             .run_until(async move |mut session| {
                 if let Some(request) = super::permissions::trusted_mode_request(
-                    super::registry::trusted_session_mode(kind), &session.response(),
+                    super::registry::trusted_session_mode(kind),
+                    &session.response(),
+                    &permission_policy,
                 )? {
                     session.connection().send_request(request).block_task().await?;
                 }

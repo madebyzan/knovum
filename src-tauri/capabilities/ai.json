@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "ai-runtime",
   "description": "Main-window access to the Rust AI runtime and its persistent workbench state.",
-  "windows": ["main"],
+  "webviews": ["main"],
   "permissions": [
     "ai:allow-await-ai-runtime",
     "ai:allow-cancel-job",

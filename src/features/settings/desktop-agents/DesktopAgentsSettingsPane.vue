@@ -5,7 +5,11 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
-import { disableDesktopAgent, enableDesktopAgent } from "../../../foundation/ai/execution-settings";
+import {
+  disableDesktopAgent,
+  enableDesktopAgent,
+  setDesktopAgentTrustedMode,
+} from "../../../foundation/ai/execution-settings";
 import { resetAiSettings } from "../../../foundation/ai/settings-mutations";
 import { useExecutionCatalogQuery } from "../../../foundation/ai/use-execution-catalog-query";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
@@ -45,6 +49,9 @@ function findInstallation(kind: ExternalAgentKind) {
 function isEnabled(kind: ExternalAgentKind) {
   return settings.value.desktopAgents.some((agent) => agent.kind === kind);
 }
+function isTrustedMode(kind: ExternalAgentKind) {
+  return settings.value.desktopAgents.some((agent) => agent.kind === kind && Boolean(agent.trustedMode));
+}
 
 async function setEnabled(kind: ExternalAgentKind, enabled: boolean) {
   if (!ready.value || saving.value) return;
@@ -52,6 +59,27 @@ async function setEnabled(kind: ExternalAgentKind, enabled: boolean) {
   try {
     if (enabled) await enableDesktopAgent(kind);
     else await disableDesktopAgent(kind);
+  } catch (error) {
+    toast.error(`${t("settings.general.saveFailed")}: ${getErrorMessage(error)}`);
+  } finally {
+    saving.value = false;
+  }
+}
+
+async function setTrustedMode(kind: ExternalAgentKind, trustedMode: boolean) {
+  if (!ready.value || saving.value) return;
+  if (trustedMode) {
+    const confirmed = await confirmAction({
+      title: t("settings.agents.trustedMode.confirmTitle"),
+      description: t("settings.agents.trustedMode.confirmDescription"),
+      confirmLabel: t("settings.agents.trustedMode.confirmAction"),
+      danger: true,
+    });
+    if (!confirmed) return;
+  }
+  saving.value = true;
+  try {
+    await setDesktopAgentTrustedMode(kind, trustedMode);
   } catch (error) {
     toast.error(`${t("settings.general.saveFailed")}: ${getErrorMessage(error)}`);
   } finally {
@@ -111,9 +139,11 @@ onMounted(load);
             :agent="agent"
             :installation="findInstallation(agent.kind)"
             :enabled="isEnabled(agent.kind)"
+            :trusted-mode="isTrustedMode(agent.kind)"
             :checking="inspecting"
             :check-failed="Boolean(installationError)"
             @toggle="setEnabled(agent.kind, $event)"
+            @toggle-trusted-mode="setTrustedMode(agent.kind, $event)"
           />
         </div>
       </UiSettingsSection>

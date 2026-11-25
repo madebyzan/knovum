@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use agent_client_protocol::{
     schema::v1::{
         NewSessionResponse, PermissionOptionKind, RequestPermissionOutcome,
@@ -6,10 +8,32 @@ use agent_client_protocol::{
     },
     Error,
 };
+use futures::future::BoxFuture;
 use tokio_util::sync::CancellationToken;
 
-pub(super) fn authorize(
+/// Asynchronous user-approval callback used when a Desktop Agent is not in Trusted mode.
+pub type PermissionApprover = Arc<
+    dyn Fn(
+            RequestPermissionRequest,
+            CancellationToken,
+        ) -> BoxFuture<'static, Result<RequestPermissionResponse, Error>>
+        + Send
+        + Sync,
+>;
+
+#[derive(Clone)]
+pub enum PermissionPolicy {
+    /// Explicit user opt-in: switch adapter to its full-access mode and auto-approve requests.
+    Trusted,
+    /// Default for interactive Space conversations: keep safe mode and prompt the user.
+    Interactive(PermissionApprover),
+    /// Default for non-interactive background tasks: keep safe mode and reject elevated requests.
+    DenyElevated,
+}
+
+pub(super) async fn authorize(
     request: &RequestPermissionRequest,
+    policy: &PermissionPolicy,
     cancellation: &CancellationToken,
 ) -> Result<RequestPermissionResponse, Error> {
     if cancellation.is_cancelled() {
@@ -17,6 +41,16 @@ pub(super) fn authorize(
             RequestPermissionOutcome::Cancelled,
         ));
     }
+    match policy {
+        PermissionPolicy::Trusted => select_allow(request),
+        PermissionPolicy::DenyElevated => Ok(select_reject_or_cancel(request)),
+        PermissionPolicy::Interactive(approver) => {
+            approver(request.clone(), cancellation.clone()).await
+        }
+    }
+}
+
+fn select_allow(request: &RequestPermissionRequest) -> Result<RequestPermissionResponse, Error> {
     let option = request
         .options
         .iter()
@@ -38,10 +72,33 @@ pub(super) fn authorize(
     ))
 }
 
+pub fn select_reject_or_cancel(request: &RequestPermissionRequest) -> RequestPermissionResponse {
+    if let Some(option) = request
+        .options
+        .iter()
+        .find(|option| option.kind == PermissionOptionKind::RejectOnce)
+        .or_else(|| {
+            request
+                .options
+                .iter()
+                .find(|option| option.kind == PermissionOptionKind::RejectAlways)
+        })
+    {
+        return RequestPermissionResponse::new(RequestPermissionOutcome::Selected(
+            SelectedPermissionOutcome::new(option.option_id.clone()),
+        ));
+    }
+    RequestPermissionResponse::new(RequestPermissionOutcome::Cancelled)
+}
+
 pub(super) fn trusted_mode_request(
     mode_id: Option<&str>,
     response: &NewSessionResponse,
+    policy: &PermissionPolicy,
 ) -> Result<Option<SetSessionModeRequest>, Error> {
+    if !matches!(policy, PermissionPolicy::Trusted) {
+        return Ok(None);
+    }
     let Some(mode_id) = mode_id else {
         return Ok(None);
     };

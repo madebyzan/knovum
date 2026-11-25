@@ -1,5 +1,6 @@
 use std::{
-    sync::{Arc, OnceLock},
+    collections::HashMap,
+    sync::{Arc, Mutex, OnceLock, PoisonError},
     time::Duration,
 };
 
@@ -20,11 +21,43 @@ use crate::{
             tools::AgentToolDefinition,
         },
     },
+    foundation::subprocess::process_tree::KillHandle,
     spaces::{
         conversations::execution::{binding, gateway::Gateway, ledger, projection},
         db,
     },
 };
+
+static ACTIVE_PROCESSES: OnceLock<Mutex<HashMap<String, KillHandle>>> = OnceLock::new();
+
+fn active_processes() -> &'static Mutex<HashMap<String, KillHandle>> {
+    ACTIVE_PROCESSES.get_or_init(Default::default)
+}
+
+struct ActiveProcessGuard(String);
+
+impl Drop for ActiveProcessGuard {
+    fn drop(&mut self) {
+        active_processes()
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .remove(&self.0);
+    }
+}
+
+/// Terminates any running Builtin Agent Python process trees on application exit so detached
+/// tasks cannot leave orphaned processes holding `checkpoints.sqlite`.
+pub(super) async fn shutdown() {
+    let handles: Vec<KillHandle> = active_processes()
+        .lock()
+        .unwrap_or_else(PoisonError::into_inner)
+        .drain()
+        .map(|(_, handle)| handle)
+        .collect();
+    for handle in handles {
+        handle.terminate();
+    }
+}
 
 pub(super) enum DriveOutcome {
     Completed,
@@ -41,13 +74,16 @@ pub(super) async fn drive(
     static EXECUTION: OnceLock<Semaphore> = OnceLock::new();
     let deadline = tokio::time::Instant::now()
         + super::identity::remaining_duration(&host.pool, &host.ids.run_id).await?;
-    let _permit = tokio::time::timeout_at(
-        deadline,
-        EXECUTION.get_or_init(|| Semaphore::new(1)).acquire(),
-    )
-    .await
-    .map_err(|_| "builtin-agent-duration-budget-exhausted")?
-    .map_err(|_| "builtin-agent-process-admission-closed")?;
+    let _permit = tokio::select! {
+        biased;
+        _ = cancellation.cancelled() => return Err("builtin-agent-cancelled".into()),
+        acquired = tokio::time::timeout_at(
+            deadline,
+            EXECUTION.get_or_init(|| Semaphore::new(1)).acquire(),
+        ) => acquired
+            .map_err(|_| "builtin-agent-duration-budget-exhausted")?
+            .map_err(|_| "builtin-agent-process-admission-closed")?,
+    };
     if cancellation.is_cancelled() {
         return Err("builtin-agent-cancelled".into());
     }
@@ -71,7 +107,9 @@ pub(super) async fn drive(
         &host.ids.conversation_id,
     )
     .map_err(|error| error.to_string())?;
-    std::fs::create_dir_all(&workspace).map_err(|error| error.to_string())?;
+    tokio::fs::create_dir_all(&workspace)
+        .await
+        .map_err(|error| error.to_string())?;
     let execute = AgentExecute {
         identity: host.session.identity(&host.ids.run_id),
         model,
@@ -107,6 +145,14 @@ pub(super) async fn drive(
             Process::start(&host.app, &checkpoint_path, host.clone()),
         ) => started.map_err(|_| "builtin-agent-duration-budget-exhausted")??,
     };
+    let _process_guard = process.kill_handle().map(|handle| {
+        let key = host.ids.run_id.clone();
+        active_processes()
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .insert(key.clone(), handle);
+        ActiveProcessGuard(key)
+    });
     let outcome = tokio::time::timeout_at(
         deadline,
         async {

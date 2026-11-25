@@ -344,6 +344,7 @@ fn context(completion: oneshot::Receiver<AppResult<()>>) -> ServeContext {
         kind: ExternalAgentKind::GeminiCli,
         workspace: std::env::current_dir().unwrap(),
         mcp_servers: vec![],
+        permission_policy: crate::external_agents::permissions::PermissionPolicy::DenyElevated,
         keepalive: Arc::new(()),
         completion,
     }

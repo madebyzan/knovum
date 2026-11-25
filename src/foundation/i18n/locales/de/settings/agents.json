@@ -1,6 +1,6 @@
 {
   "title": "Desktop-Agenten",
-  "description": "Verwenden Sie unterstützte AI-Agenten, die bereits auf diesem Computer installiert und angemeldet sind. Aktivierte Agenten werden mit ihren verfügbaren Tools, MCP-Servern und Fähigkeiten ohne Bestätigung pro Aktion ausgeführt.",
+  "description": "Verwenden Sie unterstützte AI-Agents, die auf diesem Computer installiert und angemeldet sind. Standardmäßig fragen Desktop-Agents vor privilegierten Aktionen in Space-Gesprächen nach.",
   "check": "Überprüfen Sie die Agenten",
   "enable": "Aktivieren",
   "disable": "Deaktivieren",
@@ -31,5 +31,12 @@
       "title": "Standalone-ACP-Server",
       "requirements": "Laden Sie das offizielle ACP-Archiv herunter, behalten Sie die Begleitdateien und fügen Sie das Serververzeichnis zu PATH hinzu."
     }
+  },
+  "trustedMode": {
+    "label": "Vertrauensmodus (unbeaufsichtigter Vollzugriff)",
+    "description": "Berechtigungsabfragen überspringen und Befehle sowie Dateibearbeitungen automatisch genehmigen. Nur aktivieren, wenn Sie allen Quellen in Ihren Spaces vertrauen.",
+    "confirmTitle": "Vertrauensmodus aktivieren?",
+    "confirmDescription": "Der Vertrauensmodus schaltet diesen Desktop-Agent in den Vollzugriff und genehmigt Berechtigungsanfragen automatisch ohne Rückfrage. Nicht vertrauenswürdige Webseiten oder Dateien können unbeabsichtigte Befehle auslösen.",
+    "confirmAction": "Vertrauensmodus aktivieren"
   }
 }

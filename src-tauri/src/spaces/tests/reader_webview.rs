@@ -1,17 +1,32 @@
 use serde_json::json;
 
 use super::{
-    build_preview_html, parse_external_http_url, preview_document_url, resolve_preview_kind,
-    validate_bounds, AssetPreviewKind, ReaderWebviewBounds,
+    build_preview_html, parse_external_http_url, preview_csp, preview_document_url,
+    resolve_preview_kind, validate_bounds, AssetPreviewKind, ReaderWebviewBounds,
 };
 
 #[test]
-fn admits_only_http_and_https_urls() {
+fn admits_only_public_http_and_https_urls() {
     assert!(parse_external_http_url("https://example.com/article").is_ok());
-    assert!(parse_external_http_url("http://localhost:8080/docs").is_ok());
+    assert!(parse_external_http_url("http://localhost:8080/docs").is_err());
+    assert!(parse_external_http_url("http://127.0.0.1:8080/docs").is_err());
+    assert!(parse_external_http_url("http://[::1]:8080/docs").is_err());
+    assert!(parse_external_http_url("http://169.254.169.254/latest").is_err());
     assert!(parse_external_http_url("file:///etc/passwd").is_err());
     assert!(parse_external_http_url("javascript:alert(1)").is_err());
     assert!(parse_external_http_url("tauri://localhost/").is_err());
+}
+
+#[test]
+fn preview_csp_blocks_network_and_keeps_svg_script_free() {
+    let svg_csp = preview_csp(AssetPreviewKind::Svg);
+    assert!(svg_csp.contains("default-src 'none'"));
+    assert!(!svg_csp.contains("script-src"));
+
+    let html_csp = preview_csp(AssetPreviewKind::Html);
+    assert!(html_csp.contains("sandbox allow-scripts"));
+    assert!(html_csp.contains("connect-src 'none'"));
+    assert!(html_csp.contains("default-src 'none'"));
 }
 
 #[test]

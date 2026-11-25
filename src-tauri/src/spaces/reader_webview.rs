@@ -19,6 +19,10 @@ use crate::foundation::app_error::AppError;
 
 const MAIN_WINDOW_LABEL: &str = "main";
 const MAX_PREVIEW_ASSET_BYTES: usize = 16 * 1024 * 1024;
+const SVG_PREVIEW_CSP: &str =
+    "default-src 'none'; style-src 'unsafe-inline'; img-src data: blob:; form-action 'none'";
+const HTML_PREVIEW_CSP: &str =
+    "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; form-action 'none'";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum AssetPreviewKind {
@@ -28,6 +32,7 @@ enum AssetPreviewKind {
 
 struct ActivePreview {
     token: String,
+    kind: AssetPreviewKind,
     bytes: Vec<u8>,
 }
 
@@ -37,15 +42,23 @@ fn preview_slot() -> &'static Mutex<Option<ActivePreview>> {
     ACTIVE_PREVIEW.get_or_init(|| Mutex::new(None))
 }
 
-fn store_active_preview(bytes: Vec<u8>) -> String {
+fn store_active_preview(kind: AssetPreviewKind, bytes: Vec<u8>) -> String {
     let token = Uuid::new_v4().to_string();
     if let Ok(mut guard) = preview_slot().lock() {
         *guard = Some(ActivePreview {
             token: token.clone(),
+            kind,
             bytes,
         });
     }
     token
+}
+
+fn preview_csp(kind: AssetPreviewKind) -> &'static str {
+    match kind {
+        AssetPreviewKind::Svg => SVG_PREVIEW_CSP,
+        AssetPreviewKind::Html => HTML_PREVIEW_CSP,
+    }
 }
 
 fn clear_active_preview() {
@@ -78,19 +91,21 @@ pub fn handle_preview_protocol<R: Runtime>(
         return empty_response(StatusCode::FORBIDDEN);
     }
     let requested = request.uri().path().trim_start_matches('/');
-    let body = preview_slot().lock().ok().and_then(|guard| {
+    let payload = preview_slot().lock().ok().and_then(|guard| {
         guard
             .as_ref()
             .filter(|active| active.token == requested)
-            .map(|active| active.bytes.clone())
+            .map(|active| (active.kind, active.bytes.clone()))
     });
-    let Some(bytes) = body else {
+    let Some((kind, bytes)) = payload else {
         return empty_response(StatusCode::NOT_FOUND);
     };
     Response::builder()
         .status(StatusCode::OK)
         .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
         .header(header::CACHE_CONTROL, "no-store")
+        .header(header::X_CONTENT_TYPE_OPTIONS, "nosniff")
+        .header(header::CONTENT_SECURITY_POLICY, preview_csp(kind))
         .body(bytes)
         .unwrap_or_else(|_| empty_response(StatusCode::INTERNAL_SERVER_ERROR))
 }
@@ -115,10 +130,12 @@ pub enum ReaderWebviewNavigation {
 fn parse_external_http_url(raw: &str) -> Result<Url, AppError> {
     let url = Url::parse(raw.trim())
         .map_err(|_| AppError::new("invalid_argument", "A valid HTTP(S) URL is required"))?;
-    if !matches!(url.scheme(), "http" | "https") || url.host_str().is_none() {
+    if !matches!(url.scheme(), "http" | "https")
+        || !crate::desktop::navigation::is_public_reader_http_url(&url)
+    {
         return Err(AppError::new(
             "invalid_argument",
-            "Only HTTP and HTTPS URLs can be opened in the embedded reader webview",
+            "Only public HTTP and HTTPS URLs can be opened in the embedded reader webview",
         ));
     }
     Ok(url)
@@ -276,7 +293,7 @@ pub async fn open_reader_asset_preview(
     })
     .await?;
     let html_bytes = build_preview_html(kind, raw_bytes)?;
-    let token = store_active_preview(html_bytes);
+    let token = store_active_preview(kind, html_bytes);
     let target = preview_document_url(&token)?;
     open_or_navigate_child_webview(&app, target, &bounds)
 }

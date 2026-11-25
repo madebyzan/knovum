@@ -114,6 +114,20 @@ pub fn ensure_agent_enabled<R: Runtime>(
     ensure_enabled(&load(app)?, kind)
 }
 
+/// Whether the user explicitly opted this Desktop Agent into unattended full-access mode.
+/// Defaults to `false` so agents ask for permission instead of silently bypassing controls.
+pub fn is_agent_trusted<R: Runtime>(
+    app: &AppHandle<R>,
+    kind: crate::ai::contracts::ExternalAgentKind,
+) -> bool {
+    load(app).is_ok_and(|settings| {
+        settings
+            .desktop_agents
+            .iter()
+            .any(|agent| agent.kind == kind && agent.enabled && agent.trusted_mode)
+    })
+}
+
 fn ensure_enabled(
     settings: &AiSettings,
     kind: crate::ai::contracts::ExternalAgentKind,

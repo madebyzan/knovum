@@ -34,5 +34,9 @@ export const desktopAgentSettingsSchema: z.ZodType<DesktopAgentSettings> = z
   .object({
     kind: externalAgentKindSchema,
     enabled: z.literal(true),
+    trustedMode: z.boolean().optional(),
   })
-  .strict();
+  .strict()
+  .transform(({ kind, enabled, trustedMode }): DesktopAgentSettings =>
+    trustedMode === undefined ? { kind, enabled } : { kind, enabled, trustedMode },
+  );

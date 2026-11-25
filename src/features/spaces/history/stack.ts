@@ -66,15 +66,44 @@ export function combineRecentSpaceHistory(state: SpaceHistoryState, startIndex: 
     ...state.undoStack.slice(0, startIndex),
     {
       undo: async () => {
-        for (const entry of entries.toReversed()) {
-          // oxlint-disable-next-line eslint/no-await-in-loop -- Compound undo must complete strictly in reverse mutation order.
-          await entry.undo();
+        const reversed = entries.toReversed();
+        const completed: ReversibleSpaceChange[] = [];
+        try {
+          for (const entry of reversed) {
+            // oxlint-disable-next-line eslint/no-await-in-loop -- Compound undo must complete strictly in reverse mutation order.
+            await entry.undo();
+            completed.push(entry);
+          }
+        } catch (error) {
+          for (const entry of completed.toReversed()) {
+            try {
+              // oxlint-disable-next-line eslint/no-await-in-loop -- Best-effort compensation restores original state before re-queueing.
+              await entry.redo();
+            } catch {
+              break;
+            }
+          }
+          throw error;
         }
       },
       redo: async () => {
-        for (const entry of entries) {
-          // oxlint-disable-next-line eslint/no-await-in-loop -- Compound redo must complete strictly in original mutation order.
-          await entry.redo();
+        const completed: ReversibleSpaceChange[] = [];
+        try {
+          for (const entry of entries) {
+            // oxlint-disable-next-line eslint/no-await-in-loop -- Compound redo must complete strictly in original mutation order.
+            await entry.redo();
+            completed.push(entry);
+          }
+        } catch (error) {
+          for (const entry of completed.toReversed()) {
+            try {
+              // oxlint-disable-next-line eslint/no-await-in-loop -- Best-effort compensation restores pre-redo state before re-queueing.
+              await entry.undo();
+            } catch {
+              break;
+            }
+          }
+          throw error;
         }
       },
     },

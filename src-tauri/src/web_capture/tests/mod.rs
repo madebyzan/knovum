@@ -54,6 +54,27 @@ async fn derived_images_reject_loopback_before_connecting() {
     assert!(error.contains("public addresses"), "{error}");
 }
 
+#[tokio::test]
+async fn capture_rejects_loopback_private_and_credentialed_urls() {
+    for blocked in [
+        "http://127.0.0.1:9/",
+        "http://[::1]:9/",
+        "http://169.254.169.254/latest/meta-data/",
+        "http://10.0.0.1/internal",
+    ] {
+        let error = super::capture(blocked).await.err().unwrap_or_default();
+        assert!(error.contains("public addresses"), "{blocked}: {error}");
+    }
+    let credentialed = super::capture("https://user:secret@example.com/")
+        .await
+        .err()
+        .unwrap_or_default();
+    assert!(
+        credentialed.contains("credential-free"),
+        "expected credential-free error, got {credentialed}"
+    );
+}
+
 #[test]
 fn decodes_declared_legacy_chinese_without_replacement() {
     let media_type = "text/html; charset=gbk".parse().unwrap();

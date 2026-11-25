@@ -7,16 +7,18 @@ import type { ExternalAgentDescriptor } from "../../../../shared/contracts/gener
 import type { ExternalAgentInstallation } from "../../../../shared/contracts/generated/ExternalAgentInstallation";
 import UiBadge from "../../../../shared/ui/UiBadge.vue";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiSwitch from "../../../../shared/ui/UiSwitch.vue";
 import AgentConnectionHelp from "./AgentConnectionHelp.vue";
 
 const props = defineProps<{
   agent: ExternalAgentDescriptor;
   installation?: ExternalAgentInstallation | undefined;
   enabled: boolean;
+  trustedMode?: boolean | undefined;
   checking: boolean;
   checkFailed: boolean;
 }>();
-const emit = defineEmits<{ toggle: [enabled: boolean] }>();
+const emit = defineEmits<{ toggle: [enabled: boolean]; toggleTrustedMode: [trustedMode: boolean] }>();
 const { t } = useI18n();
 // Only a resolved command entry can actually launch the agent; an installed
 // application without its CLI cannot, so enabling stays blocked until then.
@@ -61,6 +63,20 @@ const statusMessageKey = computed(() => {
           {{ t(enabled ? "settings.agents.disable" : "settings.agents.enable") }}
         </UiButton>
       </div>
+    </div>
+    <div
+      v-if="enabled"
+      class="mt-2.5 flex items-center justify-between gap-4 border-t border-stroke-divider pt-2.5"
+    >
+      <div class="min-w-0">
+        <p class="text-caption font-medium text-fg-secondary">{{ t("settings.agents.trustedMode.label") }}</p>
+        <p class="text-caption-sm text-fg-tertiary">{{ t("settings.agents.trustedMode.description") }}</p>
+      </div>
+      <UiSwitch
+        :model-value="Boolean(trustedMode)"
+        :label="t('settings.agents.trustedMode.label')"
+        @update:model-value="emit('toggleTrustedMode', $event)"
+      />
     </div>
   </div>
 </template>

@@ -68,8 +68,7 @@ Installing a plugin does not grant its commands to a WebView.
 
 Base capabilities cover low-risk lifecycle primitives. Clipboard, filesystem, network, preview, and
 custom commands are feature-scoped. Space databases remain behind Rust commands, and the WebView has no
-SQL capability. Provider and model traffic stays behind validated Rust boundaries; credentials are
-referenced by stable identifiers and never cross into the WebView.
+SQL capability. Provider and model traffic stays behind validated Rust boundaries; integration credentials (AI provider keys, object storage secrets, and agent connector tokens) are referenced by stable identifiers, inspected only for configured state, and never cross back into the WebView (only explicit `spaces.credential:` Space credential nodes may be read back by the renderer when opened for editing).
 
 The window shows the app and nothing else. `desktop::navigation` refuses every navigation that is not
 the app's one page (routing lives in the fragment), its asset protocol, or an `about:`/`blob:`/`data:`

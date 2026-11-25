@@ -142,6 +142,10 @@ pub async fn start(
     started.map_err(AppError::from)
 }
 
+pub(super) async fn shutdown() {
+    driver::shutdown().await;
+}
+
 pub(super) fn cancel(run_id: &str) -> Result<(), String> {
     cancellation::cancel(run_id)
 }

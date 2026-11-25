@@ -14,6 +14,10 @@ pub(crate) mod tool_operations;
 mod tools;
 pub(crate) mod upload;
 
+pub(crate) async fn shutdown() {
+    builtin_agent::shutdown().await;
+}
+
 pub(crate) fn recover_tasks(app: tauri::AppHandle) {
     builtin_agent::recover(app);
 }

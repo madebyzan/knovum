@@ -81,7 +81,7 @@ class Server:
             case "agentRuntime.shutdown":
                 if self.execution is not None:
                     self.execution.cancel()
-                self.peer.close()
+                self.peer.request_shutdown()
                 return None
         raise HostRejected(-32601, "agent-runtime-method-not-found")
 

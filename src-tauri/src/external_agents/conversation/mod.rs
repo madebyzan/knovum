@@ -33,6 +33,7 @@ struct ServeContext {
     kind: ExternalAgentKind,
     workspace: PathBuf,
     mcp_servers: Vec<McpServer>,
+    permission_policy: super::permissions::PermissionPolicy,
     keepalive: Arc<dyn Send + Sync>,
     completion: oneshot::Receiver<AppResult<()>>,
 }
@@ -59,18 +60,20 @@ async fn serve_connection(
         kind,
         workspace,
         mcp_servers,
+        permission_policy,
         keepalive: _keepalive,
         completion,
     } = context;
     let permission_cancel = cancellation.clone();
+    let request_policy = permission_policy.clone();
     let client = Client
         .builder()
         .on_receive_request(
             async move |request: RequestPermissionRequest, responder, _cx| {
-                responder.respond_with_result(super::permissions::authorize(
-                    &request,
-                    &permission_cancel,
-                ))
+                let outcome =
+                    super::permissions::authorize(&request, &request_policy, &permission_cancel)
+                        .await;
+                responder.respond_with_result(outcome)
             },
             agent_client_protocol::on_receive_request!(),
         )
@@ -98,6 +101,7 @@ async fn serve_connection(
                         if let Some(request) = super::permissions::trusted_mode_request(
                             super::registry::trusted_session_mode(kind),
                             &session.response(),
+                            &permission_policy,
                         )? {
                             session
                                 .connection()

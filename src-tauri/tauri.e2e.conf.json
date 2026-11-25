@@ -15,7 +15,7 @@
         {
           "identifier": "e2e",
           "description": "Test-only WebdriverIO capability enabled only by the E2E build flavor.",
-          "windows": ["main"],
+          "webviews": ["main"],
           "permissions": ["wdio:default", "wdio-webdriver:default"]
         }
       ]

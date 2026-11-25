@@ -1,4 +1,6 @@
-import Konva from "konva";
+import { Group } from "konva/lib/Group";
+import { Image } from "konva/lib/shapes/Image";
+import { Rect } from "konva/lib/shapes/Rect";
 
 import { layerGeometry } from "../geometry";
 import type { VideoOutput } from "../project";
@@ -6,10 +8,10 @@ import type { SceneLayer } from "./scene";
 import type { LayerStyle } from "./scene-transition";
 
 export interface LayerNode {
-  group: Konva.Group;
-  backdrop: Konva.Rect;
-  picture: Konva.Image;
-  curtain: Konva.Rect;
+  group: Group;
+  backdrop: Rect;
+  picture: Image;
+  curtain: Rect;
 }
 
 /**
@@ -18,15 +20,15 @@ export interface LayerNode {
  * like the two inputs of the export's `xfade` filter.
  */
 export function createLayerNode(clipId: string): LayerNode {
-  const group = new Konva.Group({ id: clipId });
-  const backdrop = new Konva.Rect({ listening: false });
-  const picture = new Konva.Image({
+  const group = new Group({ id: clipId });
+  const backdrop = new Rect({ listening: false });
+  const picture = new Image({
     image: undefined,
     name: "video-layer",
     id: `picture:${clipId}`,
     draggable: true,
   });
-  const curtain = new Konva.Rect({ listening: false, fill: "#000000", opacity: 0 });
+  const curtain = new Rect({ listening: false, fill: "#000000", opacity: 0 });
   group.add(backdrop, picture, curtain);
   return { group, backdrop, picture, curtain };
 }
@@ -35,7 +37,7 @@ function frameAttrs(output: VideoOutput) {
   return { x: 0, y: 0, width: output.width, height: output.height };
 }
 
-export function applyGroupStyle(group: Konva.Group, style: LayerStyle) {
+export function applyGroupStyle(group: Group, style: LayerStyle) {
   if (style.clip) {
     group.setAttrs({
       x: style.dx,

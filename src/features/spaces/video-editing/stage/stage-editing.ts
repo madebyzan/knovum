@@ -1,4 +1,5 @@
-import Konva from "konva";
+import type { Node as KonvaNode } from "konva/lib/Node";
+import { Transformer } from "konva/lib/shapes/Transformer";
 
 import { updateTextOverlay } from "../edits/text";
 import { setClipTransform } from "../edits/trim";
@@ -25,7 +26,7 @@ const SCALE_RANGE = { min: 0.05, max: 8 };
 /** Handle metrics in screen pixels; they are divided by the stage scale to stay that size. */
 const HANDLE = { anchor: 5, stroke: 1, padding: 0, rotateOffset: 14 };
 
-function targetOf(node: Konva.Node): StageTarget | undefined {
+function targetOf(node: KonvaNode): StageTarget | undefined {
   const id = node.id();
   if (id.startsWith("picture:")) return { kind: "clip", id: id.slice("picture:".length) };
   if (id.startsWith("text:")) return { kind: "text", id: id.slice("text:".length) };
@@ -36,7 +37,7 @@ function fraction(value: number) {
   return Number(value.toFixed(4));
 }
 
-function moveClip(project: VideoEditProject, id: string, node: Konva.Node) {
+function moveClip(project: VideoEditProject, id: string, node: KonvaNode) {
   return setClipTransform(project, id, {
     x: fraction((node.x() - project.output.width / 2) / project.output.width),
     y: fraction((node.y() - project.output.height / 2) / project.output.height),
@@ -47,14 +48,14 @@ function place(value: number) {
   return Math.min(1.5, Math.max(-0.5, fraction(value)));
 }
 
-function moveText(project: VideoEditProject, id: string, node: Konva.Node) {
+function moveText(project: VideoEditProject, id: string, node: KonvaNode) {
   return updateTextOverlay(project, id, {
     x: place(node.x() / project.output.width),
     y: place(node.y() / project.output.height),
   });
 }
 
-function reshapeClip(project: VideoEditProject, id: string, node: Konva.Node) {
+function reshapeClip(project: VideoEditProject, id: string, node: KonvaNode) {
   const clip = project.videoTrack.clips.find((candidate) => candidate.id === id);
   const asset = clip && project.assets.find(({ nodeId }) => nodeId === clip.assetId);
   if (!clip || !asset) return undefined;
@@ -66,7 +67,7 @@ function reshapeClip(project: VideoEditProject, id: string, node: Konva.Node) {
   });
 }
 
-function edited(project: VideoEditProject, target: StageTarget, node: Konva.Node, reshaping: boolean) {
+function edited(project: VideoEditProject, target: StageTarget, node: KonvaNode, reshaping: boolean) {
   if (target.kind === "text") return reshaping ? undefined : moveText(project, target.id, node);
   return reshaping ? reshapeClip(project, target.id, node) : moveClip(project, target.id, node);
 }
@@ -78,7 +79,7 @@ function edited(project: VideoEditProject, target: StageTarget, node: Konva.Node
  */
 export function createStageEditing(options: StageEditingOptions) {
   const palette = readStagePalette();
-  const transformer = new Konva.Transformer({
+  const transformer = new Transformer({
     keepRatio: true,
     centeredScaling: true,
     rotationSnaps: ROTATION_SNAPS,
@@ -106,7 +107,7 @@ export function createStageEditing(options: StageEditingOptions) {
     scene.overlay.batchDraw();
   }
 
-  function apply(node: Konva.Node, reshaping: boolean) {
+  function apply(node: KonvaNode, reshaping: boolean) {
     const project = options.project();
     const target = targetOf(node);
     if (!project || !target) return;

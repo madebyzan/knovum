@@ -67,11 +67,39 @@ impl ProcessTree {
         })))
     }
 
+    pub(crate) fn new_std(
+        child: &std::process::Child,
+        #[cfg(windows)] job: WindowsJob,
+    ) -> Result<Self, String> {
+        #[cfg(windows)]
+        job.assign_std(child)?;
+        #[cfg(unix)]
+        let process_group = i32::try_from(child.id())
+            .map_err(|_| "subprocess: child process id exceeds platform range")?;
+        Ok(Self(Some({
+            #[cfg(unix)]
+            {
+                KillHandle::ProcessGroup {
+                    id: process_group,
+                    terminated: Arc::new(AtomicBool::new(false)),
+                }
+            }
+            #[cfg(windows)]
+            {
+                KillHandle::Job(Arc::new(job))
+            }
+        })))
+    }
+
     pub(crate) fn handle(&self) -> KillHandle {
         self.0
             .as_ref()
             .expect("process tree has a kill handle")
             .clone()
+    }
+
+    pub(crate) fn try_handle(&self) -> Option<KillHandle> {
+        self.0.clone()
     }
 
     pub(crate) fn terminate(&mut self) {

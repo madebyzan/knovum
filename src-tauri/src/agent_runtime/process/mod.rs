@@ -132,6 +132,12 @@ impl Process {
         }
     }
 
+    pub(crate) fn kill_handle(
+        &self,
+    ) -> Option<crate::foundation::subprocess::process_tree::KillHandle> {
+        self.tree.try_handle()
+    }
+
     pub(crate) async fn terminate(&mut self) {
         self.tree.terminate();
         let _ = self.child.kill().await;

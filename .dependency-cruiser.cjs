@@ -32,13 +32,17 @@ module.exports = {
       name: "renderer-has-no-document-generation-engine",
       comment: "Document serialization belongs to Rust documents/generation; the Renderer submits intent.",
       from: { path: "^src(?:/|$)" },
-      to: { path: "^(?:pptxgenjs|docx|pdfkit)(?:/|$)" },
+      to: {
+        path: "node_modules/(?:pptxgenjs|docx|pdfkit)(?:/|$)",
+      },
     },
     {
       name: "renderer-has-no-sql-client",
       comment: "SQLite authority is Rust-only; WebView code may not import the Tauri SQL client.",
       from: { path: "^src(?:/|$)" },
-      to: { path: "^@tauri-apps/plugin-sql$" },
+      to: {
+        path: "node_modules/@tauri-apps/plugin-sql(?:/|$)",
+      },
     },
     {
       name: "shared-is-leaf",
@@ -115,9 +119,15 @@ module.exports = {
     },
     {
       name: "konva-is-confined-to-the-spaces-adapter",
-      comment: "Only the Spaces Konva adapter may depend on Konva implementation packages.",
-      from: { path: "^src/(?!features/spaces/canvas/konva(?:/|$))" },
-      to: { path: "^(?:konva(?:/|$)|vue-konva(?:/|$))" },
+      comment:
+        "Only the Spaces Konva adapters (canvas/konva and video-editing/stage) may depend on Konva packages.",
+      from: {
+        path: "^src/(?!features/spaces/(?:canvas/konva|video-editing/stage)(?:/|$))",
+        pathNot: "(?:^|/)__tests__/",
+      },
+      to: {
+        path: "node_modules/(?:konva|vue-konva)(?:/|$)",
+      },
     },
     {
       name: "spaces-business-does-not-depend-on-konva-implementation",
@@ -159,7 +169,6 @@ module.exports = {
   ].map((rule) => Object.assign(rule, { severity: "error" })),
   options: {
     doNotFollow: { path: "node_modules" },
-    exclude: "node_modules",
     tsConfig: { fileName: "tsconfig.json" },
     tsPreCompilationDeps: true,
     enhancedResolveOptions: {

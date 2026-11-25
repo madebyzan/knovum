@@ -13,6 +13,7 @@ use std::{path::PathBuf, time::Duration};
 
 use serde::Deserialize;
 use serde_json::{json, Value};
+use tauri::{AppHandle, Manager};
 
 use crate::{ai::contracts::ModelToolDefinition, extensions::contracts::McpToolPolicy};
 
@@ -55,7 +56,7 @@ pub(crate) fn policy() -> McpToolPolicy {
 /// What the built-in Agent is told about its working directory and the shell.
 pub(super) fn instructions() -> String {
     let confinement = if platform::CONFINED {
-        "Commands run in a sandbox: they may read the computer's files but write only inside the working directory and temporary directories, and they have no network access, so downloads and package installs fail."
+        "Commands run in a sandbox: they may read system files and the working directory, cannot read Knovum's internal databases, other Spaces, or personal credential directories, may write only inside the working directory and temporary directories, and have no network access, so downloads and package installs fail."
     } else {
         "Commands run with the user's own permissions, so the user approves each one before it runs: run only what the task needs, and prefer the file tools for reading and writing files."
     };
@@ -64,6 +65,21 @@ pub(super) fn instructions() -> String {
         platform::SYSTEM,
         platform::SHELL,
     )
+}
+
+#[derive(Default, Clone, Debug)]
+pub(crate) struct SandboxBoundaries {
+    pub(crate) app_config_dir: Option<PathBuf>,
+    pub(crate) app_data_dir: Option<PathBuf>,
+}
+
+impl SandboxBoundaries {
+    pub(crate) fn from_app(app: &AppHandle) -> Self {
+        Self {
+            app_config_dir: app.path().app_config_dir().ok(),
+            app_data_dir: app.path().app_data_dir().ok(),
+        }
+    }
 }
 
 #[derive(Deserialize)]
@@ -75,11 +91,16 @@ struct CommandArguments {
 
 pub(crate) struct PreparedCommand {
     workspace: PathBuf,
+    boundaries: SandboxBoundaries,
     command: String,
     timeout: Duration,
 }
 
-pub(crate) fn prepare(workspace: PathBuf, arguments: Value) -> Result<PreparedCommand, String> {
+pub(crate) fn prepare(
+    workspace: PathBuf,
+    boundaries: SandboxBoundaries,
+    arguments: Value,
+) -> Result<PreparedCommand, String> {
     jsonschema::validator_for(&definition().input_schema)
         .map_err(|error| error.to_string())?
         .validate(&arguments)
@@ -88,6 +109,7 @@ pub(crate) fn prepare(workspace: PathBuf, arguments: Value) -> Result<PreparedCo
         .map_err(|error| format!("command-arguments-invalid: {error}"))?;
     Ok(PreparedCommand {
         workspace,
+        boundaries,
         command: arguments.command,
         timeout: Duration::from_secs(arguments.timeout.unwrap_or(DEFAULT_TIMEOUT_SECONDS)),
     })
@@ -98,7 +120,8 @@ impl PreparedCommand {
     /// and returns the tool response the Agent reads, or why the command could not run.
     pub(crate) async fn execute(self, remaining: Duration) -> Result<Value, String> {
         let timeout = self.timeout.min(remaining);
-        let finished = platform::run(&self.workspace, &self.command, timeout).await?;
+        let finished =
+            platform::run(&self.workspace, &self.boundaries, &self.command, timeout).await?;
         Ok(output::tool_response(&finished, timeout))
     }
 }
