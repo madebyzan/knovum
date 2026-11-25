@@ -29,6 +29,7 @@ const {
   commands,
   toggleSidebarFromControl,
   toggleRightSidebar,
+  closeRightSidebar,
   setSidebarWidth,
   setRightSidebarWidth,
   persistLayout,
@@ -37,20 +38,26 @@ const {
   scheduleSidebarPreviewClose,
   closeSidebarPreview,
 } = useShellController(props.workspace, workspaceActive, () => emit("openSettings"));
-useResponsiveSidebarGuard({
+const { effectiveSidebarPinned, evaluateBudget, reclaimLeftSidebar } = useResponsiveSidebarGuard({
   sidebarPinned,
   sidebarWidth,
   rightSidebarOpen,
   rightSidebarWidth,
-  collapseSidebarEphemerally: () => {
-    sidebarPinned.value = false;
-    closeSidebarPreview();
-  },
+  closeSidebarPreview,
+  closeRightSidebar,
 });
+function handleToggleSidebarFromControl() {
+  if (reclaimLeftSidebar()) return;
+  toggleSidebarFromControl();
+}
+function handleCommitLayout() {
+  persistLayout();
+  evaluateBudget();
+}
 provide(overlayScopeVisibleKey, workspaceActive);
 const edges = useWorkspaceEdges({
-  sidebarPinned,
-  sidebarVisible: computed(() => sidebarPinned.value || sidebarPreview.value),
+  sidebarPinned: effectiveSidebarPinned,
+  sidebarVisible: computed(() => effectiveSidebarPinned.value || sidebarPreview.value),
   sidebarWidth,
   rightSidebarOpen,
   rightSidebarWidth,
@@ -78,17 +85,17 @@ const edges = useWorkspaceEdges({
   >
     <WorkspaceToolbar
       :workspace="workspace"
-      :sidebar-pinned="sidebarPinned"
+      :sidebar-pinned="effectiveSidebarPinned"
       :right-sidebar-open="rightSidebarOpen"
       :edges="edges"
       @toggle-right-sidebar="toggleRightSidebar"
-      @toggle-sidebar="toggleSidebarFromControl"
+      @toggle-sidebar="handleToggleSidebarFromControl"
       @preview-sidebar="openSidebarPreview"
       @cancel-sidebar-preview="armSidebarPreview"
     />
     <WorkspaceLayout
       :workspace="workspace"
-      :sidebar-pinned="sidebarPinned"
+      :sidebar-pinned="effectiveSidebarPinned"
       :sidebar-width="sidebarWidth"
       :sidebar-preview="sidebarPreview"
       :right-sidebar-open="rightSidebarOpen"
@@ -97,7 +104,7 @@ const edges = useWorkspaceEdges({
       :edges="edges"
       @set-sidebar-width="setSidebarWidth"
       @set-right-sidebar-width="setRightSidebarWidth"
-      @commit-layout="persistLayout"
+      @commit-layout="handleCommitLayout"
       @open-sidebar-preview="openSidebarPreview"
       @schedule-sidebar-close="scheduleSidebarPreviewClose"
       @close-sidebar-preview="closeSidebarPreview"

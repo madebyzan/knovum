@@ -93,7 +93,7 @@ const selectionBarGap = computed(() =>
         >
           <div
             v-if="!scenesCollapsed"
-            class="flex h-full w-17 shrink-0 items-center overflow-hidden border-l border-stroke-strong bg-surface-control px-0.5"
+            class="flex h-full w-20 shrink-0 items-center overflow-hidden border-l border-stroke-strong bg-surface-control px-0.5"
           >
             <SpaceCanvasSceneControls />
           </div>

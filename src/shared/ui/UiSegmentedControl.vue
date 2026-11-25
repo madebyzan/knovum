@@ -39,7 +39,7 @@ function handleUpdate(value: unknown) {
       :aria-label="option.title ?? option.label"
       class="inline-flex items-center gap-1 rounded-[5px] text-caption-sm font-medium transition-[background-color,color,box-shadow] duration-120 ease-standard"
       :class="[
-        iconOnly ? 'px-1.5 py-1' : 'px-2 py-0.5',
+        iconOnly ? 'min-h-6 min-w-6 justify-center px-1.5 py-1' : 'min-h-6 px-2 py-0.5',
         modelValue === option.value
           ? 'bg-surface-raised text-fg-primary shadow-control'
           : 'text-fg-secondary hover:text-fg-primary',

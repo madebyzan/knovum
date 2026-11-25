@@ -28,7 +28,7 @@ const ICONS = { space: LayoutDashboard, document: FileText, video: Film };
       <span class="truncate">{{ props.view.title }}</span>
     </TabsTrigger>
     <!-- The close button keeps a reserved slot, so the label never re-truncates on hover. -->
-    <div class="relative mr-1.5 size-4 shrink-0">
+    <div class="relative mr-1 size-6 shrink-0">
       <button
         v-if="props.view.canClose"
         type="button"

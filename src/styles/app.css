@@ -175,3 +175,9 @@
     outline-color: Highlight;
   }
 }
+
+:root[data-theme="paper"] [data-sonner-toast] {
+  background: var(--color-surface-overlay);
+  border-color: var(--color-stroke-default);
+  color: var(--color-fg-primary);
+}

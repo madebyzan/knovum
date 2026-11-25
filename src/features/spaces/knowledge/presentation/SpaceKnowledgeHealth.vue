@@ -17,7 +17,7 @@ import { useSpaceStore } from "../../session/space-store";
 import type { SpaceKnowledgeHealthIssue } from "../model/health";
 import { useSpaceKnowledgeHealthQuery } from "../queries/use-space-knowledge-health-query";
 
-const props = defineProps<{ compact?: boolean }>();
+const props = defineProps<{ compact?: boolean; inDialog?: boolean }>();
 const store = useSpaceStore();
 const { activeSpaceId } = storeToRefs(store);
 const { t } = useI18n();
@@ -72,14 +72,15 @@ function askAboutIssue(issue: SpaceKnowledgeHealthIssue) {
         :class="compact && 'mt-1 rounded-panel border border-stroke-divider bg-surface-control/15 p-2'"
       >
         <div v-if="!compact" class="flex items-center justify-between gap-2">
-          <h3 class="flex items-center gap-1.5 text-caption font-semibold text-fg-secondary">
+          <h3 v-if="!inDialog" class="flex items-center gap-1.5 text-caption font-semibold text-fg-secondary">
             <ShieldAlert class="size-3" />{{ t("spaces.knowledge.health.title") }}
           </h3>
+          <div v-else class="flex-1" />
           <UiButton size="sm" variant="ghost" :disabled="loading" @click="refetch()">
             <RefreshCw class="size-3" :class="loading && 'animate-spin'" />{{ t("common.refresh") }}
           </UiButton>
         </div>
-        <p v-if="!compact" class="mt-1 text-caption text-fg-tertiary">
+        <p v-if="!compact && !inDialog" class="mt-1 text-caption text-fg-tertiary">
           {{ t("spaces.knowledge.health.description") }}
         </p>
         <div
@@ -105,7 +106,7 @@ function askAboutIssue(issue: SpaceKnowledgeHealthIssue) {
               />
               <span class="min-w-0 flex-1">
                 <span class="block truncate text-caption font-medium text-fg-primary">{{ issue.title }}</span>
-                <span class="block text-caption-sm text-fg-tertiary">{{
+                <span class="block text-caption text-fg-tertiary">{{
                   t(`spaces.knowledge.health.issues.${issue.kind}`)
                 }}</span>
               </span>

@@ -104,6 +104,7 @@ const menuItems = useReaderHeaderMenu({
           v-if="readable"
           :model-value="pane"
           :options="paneOptions"
+          :aria-label="node.data.title"
           icon-only
           @update:model-value="emit('update:pane', $event)"
         />

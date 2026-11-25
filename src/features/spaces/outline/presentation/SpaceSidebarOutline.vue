@@ -40,10 +40,14 @@ watch(
           {{ t("spaces.sidebar.outline.title") }}
         </h2>
         <UiIconButton
-          :label="t('spaces.knowledge.health.title')"
+          :label="
+            healthIssues.length
+              ? `${t('spaces.knowledge.health.title')} (${healthIssues.length})`
+              : t('spaces.knowledge.health.title')
+          "
           size="sm"
           tooltip
-          class="h-6 w-auto min-w-6 gap-1 px-1"
+          class="h-7 w-auto min-w-7 gap-1 px-1.5"
           :class="
             healthIssues.length
               ? hasCriticalHealth

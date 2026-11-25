@@ -103,7 +103,13 @@ watch(
       class="flex h-8.5 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider/70 bg-surface-canvas px-3 select-none"
     >
       <div class="flex items-center gap-2">
-        <UiSegmentedControl v-if="totalSlides > 1" v-model="layoutMode" :options="layoutOptions" icon-only />
+        <UiSegmentedControl
+          v-if="totalSlides > 1"
+          v-model="layoutMode"
+          :options="layoutOptions"
+          :aria-label="node.data.title"
+          icon-only
+        />
         <span class="truncate text-caption font-medium text-fg-secondary tabular-nums">
           {{ t("spaces.inspector.pdfReader.position", { page: activeIndex + 1, total: totalSlides }) }}
         </span>

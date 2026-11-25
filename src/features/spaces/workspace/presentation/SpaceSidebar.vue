@@ -42,6 +42,7 @@ function navigate(operation: () => Promise<void>) {
         v-if="inbox"
         type="button"
         :data-active="surface.kind !== 'library' && activeSpaceId === inbox.id"
+        :aria-current="surface.kind !== 'library' && activeSpaceId === inbox.id ? 'page' : undefined"
         :class="ROW_CLASS"
         @click="navigate(() => store.openSpace(inbox!.id))"
         @contextmenu.prevent="showSpaceMenu(inbox)"
@@ -53,6 +54,7 @@ function navigate(operation: () => Promise<void>) {
         type="button"
         :class="ROW_CLASS"
         :data-active="surface.kind === 'library' && libraryScope === 'all'"
+        :aria-current="surface.kind === 'library' && libraryScope === 'all' ? 'page' : undefined"
         @click="navigate(() => store.showSpaceLibrary('all'))"
       >
         <LayoutGrid class="size-3.5" :stroke-width="1.55" />
@@ -62,6 +64,7 @@ function navigate(operation: () => Promise<void>) {
         type="button"
         :class="ROW_CLASS"
         :data-active="surface.kind === 'library' && libraryScope === 'recent'"
+        :aria-current="surface.kind === 'library' && libraryScope === 'recent' ? 'page' : undefined"
         @click="navigate(() => store.showSpaceLibrary('recent'))"
       >
         <Clock3 class="size-3.5" :stroke-width="1.55" />
@@ -71,6 +74,7 @@ function navigate(operation: () => Promise<void>) {
         type="button"
         :class="ROW_CLASS"
         :data-active="surface.kind === 'library' && libraryScope === 'favorites'"
+        :aria-current="surface.kind === 'library' && libraryScope === 'favorites' ? 'page' : undefined"
         @click="navigate(() => store.showSpaceLibrary('favorites'))"
       >
         <Star class="size-3.5" :stroke-width="1.55" />
@@ -81,7 +85,9 @@ function navigate(operation: () => Promise<void>) {
           v-for="space in favoriteSpaces"
           :key="space.id"
           type="button"
+          :title="space.title"
           :data-active="surface.kind !== 'library' && activeSpaceId === space.id"
+          :aria-current="surface.kind !== 'library' && activeSpaceId === space.id ? 'page' : undefined"
           :class="ROW_CLASS"
           @click="navigate(() => store.openSpace(space.id))"
           @contextmenu.prevent="showSpaceMenu(space)"

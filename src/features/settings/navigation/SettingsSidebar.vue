@@ -39,6 +39,10 @@ const primaryGroups = computed(() =>
     .map((group) => ({ ...group, settings: group.settings.filter((setting) => !setting.advanced) }))
     .filter((group) => group.settings.length > 0),
 );
+const primaryGroupsBeforeAdvanced = computed(() =>
+  primaryGroups.value.filter((group) => group.id !== "information"),
+);
+const informationGroups = computed(() => primaryGroups.value.filter((group) => group.id === "information"));
 const advancedSettings = computed(() =>
   groups.value.flatMap((group) => group.settings.filter((setting) => setting.advanced)),
 );
@@ -69,7 +73,7 @@ const visibleGroups = computed(() => {
               location: location.id,
               label: t(location.labelKey),
               description: t(location.descriptionKey),
-              searchText: `${t(location.labelKey)} ${t(location.descriptionKey)} ${setting.label}`,
+              searchText: `${t(location.labelKey)} ${t(location.descriptionKey)} ${setting.searchText}`,
             }))
           : [setting],
       ),
@@ -99,7 +103,12 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
       >
         <ArrowLeft class="size-3.5" :stroke-width="1.65" /><span>{{ t("settings.general.backToApp") }}</span>
       </button>
-      <UiSearchInput v-model="query" :placeholder="t('settings.general.search')" class="mt-2.5" />
+      <UiSearchInput
+        v-model="query"
+        :label="t('settings.general.search')"
+        :placeholder="t('settings.general.search')"
+        class="mt-2.5"
+      />
     </div>
     <UiScrollArea class="mt-4 min-h-0 flex-1">
       <nav :aria-label="t('common.settings')" class="px-3 pb-6">
@@ -114,6 +123,12 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
               :data-active="
                 props.activePane === setting.id &&
                 (setting.location ? props.activeSetting === setting.location : !props.activeSetting)
+              "
+              :aria-current="
+                props.activePane === setting.id &&
+                (setting.location ? props.activeSetting === setting.location : !props.activeSetting)
+                  ? 'page'
+                  : undefined
               "
               @click="emit('select', setting.id, setting.location)"
             >
@@ -132,7 +147,7 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
           </section>
         </template>
         <template v-else>
-          <section v-for="group in primaryGroups" :key="group.id" class="mb-4">
+          <section v-for="group in primaryGroupsBeforeAdvanced" :key="group.id" class="mb-4">
             <p class="mb-1.5 px-2 text-caption font-medium text-fg-tertiary">{{ group.label }}</p>
             <button
               v-for="setting in group.settings"
@@ -141,6 +156,7 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
               type="button"
               :class="NAV_ROW_CLASS"
               :data-active="props.activePane === setting.id"
+              :aria-current="props.activePane === setting.id ? 'page' : undefined"
               @click="emit('select', setting.id)"
             >
               <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" />
@@ -150,8 +166,9 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
           <section v-if="advancedSettings.length" class="mb-4">
             <button
               type="button"
-              class="mb-1 flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-caption font-medium text-fg-tertiary transition-colors hover:text-fg-secondary"
+              class="mb-1 flex min-h-7 w-full items-center gap-1 rounded-md px-2 py-1.5 text-left text-caption font-medium text-fg-tertiary transition-colors hover:text-fg-secondary"
               :aria-expanded="advancedExpanded"
+              aria-controls="settings-advanced-group"
               @click="advancedExpanded = !advancedExpanded"
             >
               <ChevronRight
@@ -160,7 +177,7 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
               />
               <span>{{ t("settings.general.groups.advanced") }}</span>
             </button>
-            <div v-if="advancedExpanded">
+            <div v-if="advancedExpanded" id="settings-advanced-group">
               <button
                 v-for="setting in advancedSettings"
                 :key="setting.id"
@@ -168,6 +185,7 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
                 type="button"
                 :class="NAV_ROW_CLASS"
                 :data-active="props.activePane === setting.id"
+                :aria-current="props.activePane === setting.id ? 'page' : undefined"
                 @click="emit('select', setting.id)"
               >
                 <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" />
@@ -175,8 +193,29 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
               </button>
             </div>
           </section>
+          <section v-for="group in informationGroups" :key="group.id" class="mb-4">
+            <p class="mb-1.5 px-2 text-caption font-medium text-fg-tertiary">{{ group.label }}</p>
+            <button
+              v-for="setting in group.settings"
+              :key="setting.id"
+              :data-testid="`settings-pane-${setting.id}`"
+              type="button"
+              :class="NAV_ROW_CLASS"
+              :data-active="props.activePane === setting.id"
+              :aria-current="props.activePane === setting.id ? 'page' : undefined"
+              @click="emit('select', setting.id)"
+            >
+              <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" />
+              <span>{{ setting.label }}</span>
+            </button>
+          </section>
         </template>
-        <p v-if="matchingSettings.length === 0" class="px-2 py-3 text-caption text-fg-tertiary">
+        <p
+          v-if="matchingSettings.length === 0"
+          role="status"
+          aria-live="polite"
+          class="px-2 py-3 text-caption text-fg-tertiary"
+        >
           {{ t("settings.general.noResults") }}
         </p>
       </nav>

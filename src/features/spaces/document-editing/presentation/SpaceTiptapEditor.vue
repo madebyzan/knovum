@@ -132,7 +132,7 @@ async function exportMarkdown() {
           <input
             v-model="title"
             :disabled="!!error || suspended"
-            class="w-full bg-transparent text-display font-semibold tracking-title text-fg-primary outline-none placeholder:text-fg-tertiary"
+            class="w-full rounded-md bg-transparent text-display font-semibold tracking-title text-fg-primary outline-none placeholder:text-fg-tertiary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focus"
             :aria-label="t('spaces.editor.markdown.title')"
             :placeholder="
               editorNode.data.kind === 'note'

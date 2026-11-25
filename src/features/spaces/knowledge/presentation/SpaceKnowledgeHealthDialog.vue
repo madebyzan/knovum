@@ -18,7 +18,7 @@ const { t } = useI18n();
     <div class="space-y-5">
       <SpaceRetrievalIndex />
       <div class="border-t border-stroke-divider pt-4">
-        <SpaceKnowledgeHealth />
+        <SpaceKnowledgeHealth in-dialog />
       </div>
     </div>
   </UiDialog>

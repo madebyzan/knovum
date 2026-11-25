@@ -73,7 +73,7 @@ onMounted(() => void initialize());
 </script>
 
 <template>
-  <main class="relative isolate flex h-full min-h-0 flex-col bg-surface-canvas">
+  <div class="relative isolate flex h-full min-h-0 flex-col bg-surface-canvas">
     <div v-if="initializationError" class="grid h-full place-items-center p-8 text-center">
       <div class="max-w-sm">
         <AlertTriangle class="mx-auto size-7 text-fg-warning" />
@@ -124,5 +124,5 @@ onMounted(() => void initialize());
         <SpaceKnowledgeHealthDialog v-model:open="store.knowledgeHealthOpen" />
       </div>
     </div>
-  </main>
+  </div>
 </template>

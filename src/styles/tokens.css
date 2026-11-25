@@ -112,16 +112,16 @@
   --color-stroke-strong: oklch(0.22 0.006 264 / 0.125);
   --color-stroke-warning: var(--color-amber-600);
   --color-fg-accent: var(--color-blue-600);
-  --color-fg-danger: var(--color-red-600);
+  --color-fg-danger: var(--color-red-700);
   --color-fg-inverse: var(--color-surface-canvas);
   --color-fg-on-accent: white;
   --color-fg-on-danger: white;
   --color-fg-on-image: white;
   --color-fg-primary: oklch(0.24 0.006 264);
   --color-fg-secondary: oklch(0.46 0.007 264);
-  --color-fg-success: var(--color-green-700);
+  --color-fg-success: var(--color-green-800);
   --color-fg-tertiary: oklch(0.5 0.006 264);
-  --color-fg-warning: var(--color-amber-700);
+  --color-fg-warning: var(--color-amber-800);
 
   /* Authored values extend Tailwind directly; no parallel reference scale. */
   --font-sans:
@@ -166,10 +166,6 @@
 :root[data-platform="macos"] {
   --knovum-titlebar-navigation-padding-start: 5.25rem;
 }
-:root[lang^="zh"] {
-  --tracking-title: 0em;
-  --text-body--line-height: 1.375rem;
-}
 :root[data-text-size="large"] {
   --text-caption-sm: 0.75rem;
   --text-caption-sm--line-height: 1rem;
@@ -187,6 +183,13 @@
   --text-title--line-height: 1.5rem;
   --text-display: 1.5625rem;
   --text-display--line-height: 2rem;
+}
+:root:is([lang^="zh"], [lang^="ja"], [lang^="ko"]) {
+  --tracking-title: 0em;
+  --text-body--line-height: 1.375rem;
+}
+:root[data-text-size="large"]:is([lang^="zh"], [lang^="ja"], [lang^="ko"]) {
+  --text-body--line-height: 1.5rem;
 }
 :root[data-density="comfortable"] {
   --knovum-control-height-sm: 1.875rem;
@@ -214,8 +217,8 @@
   --color-surface-accent-subtle: color-mix(in oklch, rgb(61 90 59) 10%, transparent);
   --color-surface-selected: color-mix(in oklch, rgb(61 90 59) 14%, transparent);
   --color-fg-primary: rgb(28 32 27);
-  --color-fg-secondary: rgb(73 79 69);
-  --color-fg-tertiary: rgb(92 99 87);
+  --color-fg-secondary: rgb(69 75 65);
+  --color-fg-tertiary: rgb(88 95 83);
   --color-fg-accent: rgb(53 82 51);
   --color-stroke-accent: rgb(61 90 59);
   --color-stroke-focus: color-mix(in oklch, rgb(61 90 59) 78%, transparent);
@@ -304,7 +307,18 @@
     --knovum-window-border-color: oklch(0.18 0.006 264 / 0.2);
     --color-fg-secondary: oklch(0.38 0.007 264);
     --color-fg-tertiary: oklch(0.48 0.006 264);
-    --color-stroke-focus: oklch(0.57 0.22 255 / 0.62);
+    --color-stroke-focus: var(--color-blue-700);
+  }
+
+  :root[data-theme="paper"] {
+    --color-stroke-default: rgb(28 32 27 / 0.22);
+    --color-stroke-strong: rgb(28 32 27 / 0.34);
+    --color-stroke-default-hover: rgb(28 32 27 / 0.45);
+    --color-stroke-divider: rgb(28 32 27 / 0.16);
+    --knovum-window-border-color: rgb(28 32 27 / 0.28);
+    --color-fg-secondary: rgb(46 52 44);
+    --color-fg-tertiary: rgb(66 72 62);
+    --color-stroke-focus: rgb(37 57 36);
   }
 
   :root[data-theme="dark"] {
@@ -321,6 +335,11 @@
 @media (prefers-reduced-transparency: reduce) {
   :root {
     --color-surface-overlay: oklch(0.985 0.002 255);
+  }
+
+  :root[data-theme="paper"] {
+    --color-surface-overlay: rgb(249 247 241);
+    --color-surface-raised: rgb(252 251 247);
   }
 
   :root[data-theme="dark"] {

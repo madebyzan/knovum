@@ -109,7 +109,7 @@ watch(
   >
     <SpaceReaderProseToolbar :show-controls="viewMode === 'reader'" :find="find" :typography="typography">
       <template #leading>
-        <UiSegmentedControl v-model="viewMode" :options="modeOptions" />
+        <UiSegmentedControl v-model="viewMode" :options="modeOptions" :aria-label="node.data.title" />
       </template>
     </SpaceReaderProseToolbar>
     <div class="relative min-h-0 flex-1 overflow-hidden">

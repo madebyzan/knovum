@@ -61,7 +61,7 @@ async function handleRecord() {
       <div class="relative shrink-0">
         <img
           :src="elfImage"
-          alt="Knowledge Mascot"
+          alt=""
           class="w-64 object-contain select-none md:w-72 lg:w-80"
           draggable="false"
         />
@@ -84,7 +84,7 @@ async function handleRecord() {
               <path
                 d="M 2 22 C 25 18, 70 5, 120 2 C 160 1, 210 2, 252 9 C 254 10, 254 11, 251 12 C 210 13, 160 13, 120 13 C 70 15, 25 24, 2 25 C 0 25, 0 23, 2 22 Z"
                 fill="currentColor"
-                fill-opacity="0.75"
+                fill-opacity="0.3"
               />
             </svg>
           </span>
@@ -148,7 +148,7 @@ async function handleRecord() {
             v-for="item in SHORTCUT_HINTS"
             :key="item.key"
             type="button"
-            class="inline-flex cursor-default items-center gap-1.5 transition-colors hover:text-fg-primary"
+            class="inline-flex min-h-6 cursor-default items-center gap-1.5 rounded-md px-1.5 py-0.5 transition-colors hover:bg-surface-control-hover hover:text-fg-primary"
             @click="item.action"
           >
             <UiKbd :shortcut="item.key" variant="badge" />
