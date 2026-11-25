@@ -7,7 +7,7 @@
       "y": 0,
       "width": 260,
       "height": 380,
-      "text": "Start here\nThis Space is a small worked example: should a café open a second shop? Everything in it is invented, and you can delete it at any time.\n\n1. Select the market brief and choose “Open PDF”. It opens inside Knovum.\n\n2. Page 3 of the brief and the whiteboard photo are only pixels. Knovum reads them on this computer: select one and look for “Recognized text”. The first run downloads a small model.\n\n3. Connect a model in Settings and ask: “How long is the rent-free period, and when does the shop break even?” Each answer cites its source, and a citation leads to the page.",
+      "text": "Start here\nThis Space is a small worked example: should a café open a second shop? Everything in it is invented, and you can delete it at any time.\n\n1. Select the market brief and choose “Open PDF” to read it side-by-side inside Knovum.\n\n2. Page 3 of the brief and the whiteboard photo are only pixels. Knovum reads them locally on this computer: select one and look for “Recognized text”. The first run downloads a small model.\n\n3. Use the Conversation pane on the right (connect a model or desktop Agent in Settings if needed) and ask: “How long is the rent-free period, and when does the shop break even?” Every answer cites its source, and clicking a citation jumps straight to the page.",
       "color": "3"
     },
     {

@@ -30,7 +30,7 @@
   "saveFailed": "无法保存配置",
   "analytics": {
     "title": "使用情况统计",
-    "description": "默认开启。Knovum 每个 UTC 日最多发送一次应用启动事件。你可以随时关闭。",
+    "description": "默认关闭。开启后，Knovum 每个 UTC 日最多发送一次应用启动事件。你可以随时更改。",
     "enabled": "分享使用情况统计",
     "privacy": "事件仅包含随机安装标识、应用版本、操作系统平台和事件名称，不包含你的 Spaces、文件、笔记、搜索内容或 AI 内容。",
     "notConfigured": "此版本尚未配置统计服务地址，因此不会发送事件。",

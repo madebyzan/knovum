@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileText, Keyboard, Mic, Upload } from "@lucide/vue";
+import { FileText, Globe, Keyboard, Mic, Upload } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -13,6 +13,8 @@ import { useCanvasTextCreation } from "../../canvas/presentation/use-canvas-text
 import { useNodeOperationGate } from "../../canvas/use-node-operation-gate";
 import { useSpaceStore } from "../../session/space-store";
 import elfImage from "./assets/canvas-knowledge-elf.png";
+import SpaceAddWebsiteDialog from "./creation/SpaceAddWebsiteDialog.vue";
+import { useAddMenu } from "./creation/use-add-menu";
 
 const { t } = useI18n();
 const store = useSpaceStore();
@@ -21,6 +23,7 @@ const nodeOperations = useNodeOperationGate();
 const editorSession = getCanvasEditorSession();
 const createText = useCanvasTextCreation();
 const importFromPicker = usePickerImport();
+const { websiteOpen, website, normalizedWebsite, addWebsite } = useAddMenu();
 
 const SHORTCUT_HINTS = [
   { key: "N", label: "spaces.editor.note.new", action: () => createNote() },
@@ -66,7 +69,7 @@ async function handleRecord() {
 
       <div class="flex max-w-md flex-col items-center text-center md:items-start md:text-left">
         <h2
-          class="text-xl font-semibold tracking-tight text-fg-primary md:text-2xl"
+          class="text-title font-semibold tracking-tight text-fg-primary md:text-display"
           :aria-label="t('spaces.space.empty.title')"
         >
           {{ t("spaces.space.empty.titlePrefix")
@@ -102,7 +105,7 @@ async function handleRecord() {
           >
             <FileText class="size-3.5" :stroke-width="1.6" />
             <span>{{ t("spaces.space.empty.newNote") }}</span>
-            <UiKbd shortcut="N" class="ml-0.5 opacity-70" />
+            <UiKbd shortcut="N" class="ml-0.5 text-fg-inverse opacity-80" />
           </UiButton>
 
           <UiButton
@@ -113,6 +116,16 @@ async function handleRecord() {
           >
             <Upload class="size-3.5 text-fg-secondary" :stroke-width="1.6" />
             <span>{{ t("spaces.space.empty.importFiles") }}</span>
+          </UiButton>
+
+          <UiButton
+            variant="secondary"
+            size="md"
+            class="border border-stroke-default bg-surface-raised shadow-xs hover:border-stroke-strong"
+            @click="websiteOpen = true"
+          >
+            <Globe class="size-3.5 text-fg-secondary" :stroke-width="1.6" />
+            <span>{{ t("spaces.importExport.website.add") }}</span>
           </UiButton>
 
           <UiButton
@@ -146,5 +159,11 @@ async function handleRecord() {
         </div>
       </div>
     </div>
+    <SpaceAddWebsiteDialog
+      v-model:open="websiteOpen"
+      v-model:website="website"
+      :can-submit="Boolean(normalizedWebsite) && nodeOperations.allows('create')"
+      @submit="addWebsite"
+    />
   </div>
 </template>

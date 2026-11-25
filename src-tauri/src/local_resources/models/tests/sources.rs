@@ -156,6 +156,9 @@ fn forced_alignment_uses_the_inference_f16_package() {
 
 #[test]
 fn huggingface_resolve_url_builds_standard_resolve_path_with_default_endpoint() {
+    crate::local_resources::download_source::set_active(
+        crate::local_resources::download_source::DownloadSource::HuggingFace,
+    );
     let url = sources::huggingface_resolve_url(
         "PaddlePaddle/PP-OCRv6_small_det_onnx",
         "28fe5895c24fd108c19eb3e8479f4ab385fbfc62",
@@ -164,5 +167,21 @@ fn huggingface_resolve_url_builds_standard_resolve_path_with_default_endpoint() 
     assert_eq!(
         url,
         "https://huggingface.co/PaddlePaddle/PP-OCRv6_small_det_onnx/resolve/28fe5895c24fd108c19eb3e8479f4ab385fbfc62/inference.onnx"
+    );
+}
+
+#[test]
+fn hf_mirror_download_source_rewrites_huggingface_resolve_urls() {
+    use crate::local_resources::download_source::{self, DownloadSource};
+    download_source::set_active(DownloadSource::HfMirror);
+    let url = sources::huggingface_resolve_url(
+        "PaddlePaddle/PP-OCRv6_small_det_onnx",
+        "28fe5895c24fd108c19eb3e8479f4ab385fbfc62",
+        "inference.onnx",
+    );
+    download_source::set_active(DownloadSource::HuggingFace);
+    assert_eq!(
+        url,
+        "https://hf-mirror.com/PaddlePaddle/PP-OCRv6_small_det_onnx/resolve/28fe5895c24fd108c19eb3e8479f4ab385fbfc62/inference.onnx"
     );
 }

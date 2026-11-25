@@ -1,19 +1,51 @@
 <script setup lang="ts">
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import { computed, shallowRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../../foundation/errors/error-format";
+import {
+  getModelDownloadSource,
+  setModelDownloadSource,
+  type ModelDownloadSource,
+} from "../../../../../foundation/runtime/local-resources";
+import { LOCAL_RESOURCES_QUERY_KEY } from "../../../../../foundation/runtime/local-resources-query";
 import { useLocalModelsQuery } from "../../../../../foundation/runtime/use-local-models-query";
 import type { LocalModelAvailability } from "../../../../../shared/contracts/generated/LocalModelAvailability";
 import UiButton from "../../../../../shared/ui/UiButton.vue";
 import UiSearchInput from "../../../../../shared/ui/UiSearchInput.vue";
 import UiSelect from "../../../../../shared/ui/UiSelect.vue";
 import UiSettingsSection from "../../../../../shared/ui/UiSettingsSection.vue";
+import PreferenceField from "../../../components/PreferenceField.vue";
 import { buildLocalModelGroups } from "../groups";
 import LocalModelCapability from "./LocalModelCapability.vue";
 
 const { t } = useI18n();
+const queryClient = useQueryClient();
 const models = useLocalModelsQuery();
+const downloadSourceKey = [...LOCAL_RESOURCES_QUERY_KEY, "download-source"] as const;
+const downloadSourceQuery = useQuery({
+  queryKey: downloadSourceKey,
+  queryFn: getModelDownloadSource,
+});
+const savingSource = shallowRef(false);
+const downloadSourceOptions = computed(() => [
+  { value: "huggingface", label: t("settings.ai.localModels.downloadSource.huggingface") },
+  { value: "hf-mirror", label: t("settings.ai.localModels.downloadSource.hfMirror") },
+]);
+async function updateDownloadSource(value: string) {
+  const next = value as ModelDownloadSource;
+  savingSource.value = true;
+  try {
+    await setModelDownloadSource(next);
+    queryClient.setQueryData(downloadSourceKey, next);
+  } catch (error) {
+    toast.error(t("settings.general.saveFailed"), { description: getErrorMessage(error) });
+  } finally {
+    savingSource.value = false;
+  }
+}
 const groups = computed(() => buildLocalModelGroups(models.data.value ?? []));
 const searchQuery = shallowRef("");
 const status = shallowRef("all");
@@ -49,6 +81,22 @@ const visibleCapabilities = computed(() => new Set(visibleModels.value.map((mode
     <p class="text-caption leading-normal text-fg-secondary">
       {{ t("settings.ai.localModels.description") }}
     </p>
+    <UiSettingsSection>
+      <PreferenceField
+        :label="t('settings.ai.localModels.downloadSource.label')"
+        :description="t('settings.ai.localModels.downloadSource.description')"
+      >
+        <UiSelect
+          :model-value="downloadSourceQuery.data.value ?? 'huggingface'"
+          data-testid="model-download-source"
+          class="w-48"
+          :disabled="savingSource"
+          :options="downloadSourceOptions"
+          :label="t('settings.ai.localModels.downloadSource.label')"
+          @update:model-value="updateDownloadSource"
+        />
+      </PreferenceField>
+    </UiSettingsSection>
     <UiSettingsSection v-if="models.error.value">
       <div class="flex flex-wrap items-center justify-between gap-4 p-4" role="alert">
         <p class="text-caption text-fg-danger">{{ getErrorMessage(models.error.value) }}</p>

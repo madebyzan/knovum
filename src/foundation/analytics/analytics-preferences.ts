@@ -44,15 +44,11 @@ export const useAnalyticsPreferencesStore = defineStore("analytics-preferences",
         installationId = preferences.installationId;
         lastSentDate = preferences.lastSentDate;
       } else {
-        const defaults: PersistedPreferences = {
-          enabled: true,
-          installationId: globalThis.crypto.randomUUID(),
-          lastSentDate: null,
-        };
-        await persistPreferences(defaults);
-        enabled.value = defaults.enabled;
-        installationId = defaults.installationId;
-        lastSentDate = defaults.lastSentDate;
+        // Explicit opt-in: never generate an installation identifier or send telemetry
+        // until the user actively enables usage analytics in Settings -> About.
+        enabled.value = false;
+        installationId = null;
+        lastSentDate = null;
       }
     } catch {
       enabled.value = false;

@@ -95,7 +95,7 @@ impl Default for WorkbenchPreferences {
         Self {
             sidebar_visible: true,
             sidebar_width: 224,
-            right_sidebar_visible: false,
+            right_sidebar_visible: true,
             right_sidebar_width: 380,
         }
     }

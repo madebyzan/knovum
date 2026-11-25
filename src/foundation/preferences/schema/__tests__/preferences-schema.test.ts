@@ -12,7 +12,7 @@ const current = {
   workbench: {
     sidebarVisible: true,
     sidebarWidth: 224,
-    rightSidebarVisible: false,
+    rightSidebarVisible: true,
     rightSidebarWidth: 380,
   },
   canvas: {

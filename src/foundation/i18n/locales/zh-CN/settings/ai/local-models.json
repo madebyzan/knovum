@@ -109,5 +109,11 @@
     "notInstalled": "未下载"
   },
   "cancelling": "正在取消",
-  "clearFilters": "清除筛选"
+  "clearFilters": "清除筛选",
+  "downloadSource": {
+    "label": "模型下载源",
+    "description": "选择 Hugging Face 模型文件的下载来源。直连较慢时可切换为 HF-Mirror 镜像源。",
+    "huggingface": "Hugging Face（官方）",
+    "hfMirror": "HF-Mirror（中国大陆镜像）"
+  }
 }

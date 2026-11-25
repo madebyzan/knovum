@@ -30,7 +30,7 @@
   "saveFailed": "Não foi possível salvar as configurações",
   "analytics": {
     "title": "Análise de uso",
-    "description": "Ativada por padrão. O Knovum envia no máximo um evento de inicialização por dia UTC. Você pode desativar a análise a qualquer momento.",
+    "description": "Desativado por padrão. Quando ativado, o Knovum envia no máximo um evento de inicialização por dia UTC. Você pode alterar isso a qualquer momento.",
     "enabled": "Compartilhar análise de uso",
     "privacy": "O evento contém apenas um ID aleatório de instalação, a versão do aplicativo, a plataforma do sistema operacional e o nome do evento. Ele nunca inclui seus Spaces, arquivos, notas, pesquisas ou conteúdo de IA.",
     "notConfigured": "A análise de uso não está configurada nesta versão, portanto nenhum evento foi enviado.",

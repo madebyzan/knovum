@@ -17,6 +17,7 @@ const KEYS: &[&str] = &[
     "localResources.speechSeparation",
     "localResources.speechDiarization",
     "localResources.speechAlignment",
+    "localResources.downloadSource",
 ];
 
 pub fn validate(path: &Path) -> Result<(), String> {
@@ -69,6 +70,9 @@ fn validate_value(key: &str, value: &Value) -> Result<(), String> {
         let preferences = serde_json::from_value::<crate::preferences::Preferences>(value.clone())
             .map_err(|error| format!("Preferences do not match the current schema: {error}"))?;
         return preferences.validate();
+    }
+    if key == crate::local_resources::download_source::STORE_KEY {
+        return crate::local_resources::download_source::validate_persisted_value(value.clone());
     }
     if key.starts_with("localResources.") {
         return crate::local_resources::model_selection::validate_persisted_value(

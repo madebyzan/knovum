@@ -109,5 +109,11 @@
     "notInstalled": "Nicht heruntergeladen"
   },
   "cancelling": "Abbrechen",
-  "clearFilters": "Filter löschen"
+  "clearFilters": "Filter löschen",
+  "downloadSource": {
+    "label": "Download-Quelle",
+    "description": "Wähle, von wo Hugging-Face-Modelldateien geladen werden. Wechsle zu HF-Mirror, wenn direkte Downloads langsam sind.",
+    "huggingface": "Hugging Face (Offiziell)",
+    "hfMirror": "HF-Mirror (Spiegelserver)"
+  }
 }

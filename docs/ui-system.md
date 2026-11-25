@@ -14,7 +14,9 @@ for these operations.
 Resource settings are organized around models and user capabilities. Python profiles and dependency
 installation are application-owned implementation details, without manual environment controls.
 The initiating feature prepares dependencies automatically and owns progress/cancellation through
-the Task Center. Download-region/source selection belongs to the catalog and publication configuration.
+the Task Center. Settings → Local models exposes an explicit download mirror selector (Hugging Face
+official vs. HF-Mirror) persisted in `settings.json`, while pinned model revisions remain owned by
+the catalog.
 
 Tailwind class detection is scoped to the frontend `src/` tree through the stylesheet's standard
 `source()` option. Native build inputs, packaging evidence and repository tooling are not UI class

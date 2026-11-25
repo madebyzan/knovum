@@ -9,6 +9,8 @@
     "local-resources:allow-cancel-resource-preparation",
     "local-resources:allow-list-resource-preparations",
     "local-resources:allow-get-model-catalog",
+    "local-resources:allow-get-download-source",
+    "local-resources:allow-set-download-source",
     "local-resources:allow-remove-model",
     "local-resources:allow-select-local-model"
   ]

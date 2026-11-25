@@ -129,7 +129,7 @@ it("loads absent optional preferences without rewriting disk and saves a complet
       workbench: {
         sidebarVisible: true,
         sidebarWidth: 224,
-        rightSidebarVisible: false,
+        rightSidebarVisible: true,
         rightSidebarWidth: 380,
       },
       canvas: {

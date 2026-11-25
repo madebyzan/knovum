@@ -32,9 +32,21 @@ beforeEach(() => {
   calls.invoke.mockResolvedValue("sent");
 });
 
-it("enables analytics on first launch and persists a new installation identifier", async () => {
+it("keeps analytics disabled on first launch until the user explicitly opts in", async () => {
   const store = useAnalyticsPreferencesStore();
   await store.load();
+
+  expect(store.enabled).toBe(false);
+  expect(calls.stored).toBeUndefined();
+  expect(calls.save).not.toHaveBeenCalled();
+  await expect(store.recordAppStarted()).resolves.toBe("disabled");
+  expect(calls.invoke).not.toHaveBeenCalled();
+});
+
+it("persists a new installation identifier on explicit opt-in and sends at most once per UTC day", async () => {
+  const store = useAnalyticsPreferencesStore();
+  await store.load();
+  await store.setEnabled(true);
 
   expect(store.enabled).toBe(true);
   expect(calls.stored).toMatchObject({
@@ -44,12 +56,6 @@ it("enables analytics on first launch and persists a new installation identifier
     ),
     lastSentDate: null,
   });
-  expect(calls.save).toHaveBeenCalledOnce();
-});
-
-it("sends the first app-start event automatically and only once per UTC day across launches", async () => {
-  const store = useAnalyticsPreferencesStore();
-  await store.load();
 
   await expect(store.recordAppStarted()).resolves.toBe("sent");
   expect(calls.invoke).toHaveBeenCalledOnce();
@@ -80,6 +86,7 @@ it("does not resend an installation already recorded for the current UTC day", a
 it("persists opt-out, clears the ID, and prevents duplicate activity after same-day re-enable", async () => {
   const store = useAnalyticsPreferencesStore();
   await store.load();
+  await store.setEnabled(true);
   const initialId = (calls.stored as { installationId: string }).installationId;
 
   await expect(store.recordAppStarted()).resolves.toBe("sent");

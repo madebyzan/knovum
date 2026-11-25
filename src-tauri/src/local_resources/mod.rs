@@ -7,6 +7,7 @@ use tauri::AppHandle;
 use models::{catalog::ModelKind, ModelStatus};
 
 mod download;
+pub(crate) mod download_source;
 mod filesystem;
 pub(crate) mod model_catalog;
 pub(crate) mod model_commands;
