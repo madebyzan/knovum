@@ -43,27 +43,37 @@
       "x": 296,
       "y": 424,
       "width": 550,
-      "height": 236,
-      "label": "你的思考"
+      "height": 340,
+      "label": "你的思考（论点与证据示范）"
     },
     {
       "id": "question",
       "type": "text",
       "x": 316,
-      "y": 472,
+      "y": 468,
       "width": 245,
-      "height": 168,
-      "text": "问题\nHarbor Street Coffee 该不该在 Mill Lane 41 号开店？\n\n待确认：暑期客流下滑如何应对，房东是否书面确认免租月份。",
+      "height": 124,
+      "text": "核心问题\nHarbor Street Coffee 该不该在 Mill Lane 41 号开店？\n\n待确认：暑期客流下滑如何应对，房东是否书面确认免租月份。",
       "color": "5"
+    },
+    {
+      "id": "evidence",
+      "type": "text",
+      "x": 316,
+      "y": 608,
+      "width": 245,
+      "height": 136,
+      "text": "关键证据摘录\n• 市场简报 [p.1]：日均预计 190 单，装修回本周期 14 个月。\n• 白板照片 / 简报 [p.3]：房东口头提及免租期，但尚未书面签字确认。",
+      "color": "2"
     },
     {
       "id": "draft",
       "type": "text",
       "x": 581,
-      "y": 472,
+      "y": 468,
       "width": 245,
-      "height": 168,
-      "text": "回答草稿\n如果免租期得到确认，就开。按预计每天 190 单，装修投入在第 14 个月收回。\n\n把这里换成你自己的判断。",
+      "height": 276,
+      "text": "带出处结论草稿（示范）\n建议有条件开店：若免租期获得书面确认，则推进 Mill Lane 41 号选址 [1]。\n\n依据：\n1. 按日均 190 单测算，装修投入预计在第 14 个月收回（见市场简报 p.1）。\n2. 暑期淡季波动与免租条款需在签约前闭环（见白板照片与简报 p.3）。\n\n你可以把这里换成自己的判断，或在右侧直接向 AI 追问。",
       "color": "4"
     }
   ],
@@ -75,16 +85,25 @@
       "toNode": "question",
       "toSide": "top",
       "toEnd": "arrow",
-      "label": "支撑"
+      "label": "提出"
     },
     {
-      "id": "whiteboard-question",
+      "id": "whiteboard-evidence",
       "fromNode": "whiteboard",
       "fromSide": "bottom",
-      "toNode": "question",
+      "toNode": "evidence",
       "toSide": "top",
       "toEnd": "arrow",
       "label": "支撑"
+    },
+    {
+      "id": "evidence-draft",
+      "fromNode": "evidence",
+      "fromSide": "right",
+      "toNode": "draft",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "佐证"
     },
     {
       "id": "question-draft",

@@ -21,6 +21,7 @@ import {
   type AiConnectionSubmission,
 } from "../draft";
 import { providerOptions } from "../provider-options";
+import { starterModelsForProvider } from "../starter-models";
 import AiConnectionCredentialField from "./AiConnectionCredentialField.vue";
 
 const open = defineModel<boolean>("open", { required: true });
@@ -43,7 +44,7 @@ const draft = reactive<AiConnectionSettings>(
         name: firstProvider.displayName,
         provider: firstProvider.id,
         baseUrl: firstProvider.defaultBaseUrl,
-        models: [],
+        models: starterModelsForProvider(firstProvider),
       },
 );
 const attempted = shallowRef(false);
@@ -71,6 +72,7 @@ function selectProvider(providerKind: ProviderKind) {
   if (draft.name === previous.displayName) draft.name = next.displayName;
   draft.provider = providerKind;
   draft.baseUrl = next.defaultBaseUrl;
+  if (!props.connection) draft.models = starterModelsForProvider(next);
 }
 
 function save() {

@@ -21,6 +21,16 @@ export async function loadProviderDescriptors(): Promise<ProviderDescriptor[]> {
     .parse(await invokeCommand<unknown>("plugin:ai|list_provider_descriptors"));
 }
 
+export async function detectLocalOllamaModels(): Promise<string[]> {
+  try {
+    return z
+      .array(z.string().min(1))
+      .parse(await invokeCommand<unknown>("plugin:ai|detect_local_ollama_models"));
+  } catch {
+    return [];
+  }
+}
+
 export function requireProvider(
   providers: readonly ProviderDescriptor[],
   providerKind: ProviderDescriptor["id"],
