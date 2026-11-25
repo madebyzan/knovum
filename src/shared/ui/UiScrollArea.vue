@@ -23,7 +23,7 @@ defineExpose({
   <ScrollAreaRoot :class="cn('relative overflow-hidden', props.class)">
     <ScrollAreaViewport
       ref="viewport"
-      :class="cn('relative size-full overscroll-contain', props.viewportClass)"
+      :class="cn('relative size-full overscroll-contain outline-none', props.viewportClass)"
       :style="props.viewportStyle"
       @scroll.passive="emit('scroll')"
       ><slot
