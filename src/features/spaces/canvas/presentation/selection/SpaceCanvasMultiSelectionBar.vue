@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { Group, LayoutGrid, Link2, SquareDashed } from "@lucide/vue";
+import { FilePenLine, Group, LayoutGrid, Link2, SquareDashed } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiKnovumAiIcon from "../../../../../shared/ui/UiKnovumAiIcon.vue";
 import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
+import { spaceActionLabel } from "../../../knowledge-derivations/catalog/action-label";
 import type {
   CreationIntentDecisions,
   CreationIntentId,
@@ -29,6 +30,10 @@ const props = defineProps<{
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
 const state = computed(() => props.actions.state.value);
+const canDraftDocument = computed(() => props.derivations["draft-document"].state === "ready");
+const promotedActions = computed<readonly CreationIntentId[]>(() =>
+  canDraftDocument.value ? ["draft-document"] : [],
+);
 const identity = computed(() =>
   [
     state.value.structureNodeIds.length,
@@ -38,6 +43,7 @@ const identity = computed(() =>
     state.value.canCreateSection,
     state.value.canConnect,
     state.value.canAsk,
+    canDraftDocument.value,
   ].join(":"),
 );
 </script>
@@ -57,8 +63,15 @@ const identity = computed(() =>
       class="font-medium text-fg-primary"
       @invoke="actions.ask"
     />
+    <SpaceCanvasActionTrigger
+      v-if="canDraftDocument"
+      :label="spaceActionLabel('draft-document')"
+      :icon="FilePenLine"
+      :compact="compact"
+      @invoke="emit('invokeDerivation', 'draft-document')"
+    />
     <UiSeparator
-      v-if="state.canAsk && (state.arrangement.autoLayout || state.arrangement.align)"
+      v-if="(state.canAsk || canDraftDocument) && (state.arrangement.autoLayout || state.arrangement.align)"
       orientation="vertical"
       class="mx-0.5 h-4"
     />
@@ -109,6 +122,7 @@ const identity = computed(() =>
     <SpaceCanvasSelectionMenu
       :actions="actions"
       :derivations="derivations"
+      :exclude-actions="promotedActions"
       node-bar
       @invoke-derivation="emit('invokeDerivation', $event)"
     />

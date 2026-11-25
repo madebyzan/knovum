@@ -5,6 +5,7 @@ import { search } from "fast-fuzzy";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { fuzzySearchThreshold } from "../../../shared/contracts/fuzzy-search-threshold";
 import UiScrollArea from "../../../shared/ui/UiScrollArea.vue";
 import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
 import type { SettingsPaneId } from "./settings-pane";
@@ -33,7 +34,7 @@ const groups = computed(() =>
 function fuzzySettings<T extends { searchText: string }>(value: string, candidates: T[]) {
   return search(value, candidates, {
     keySelector: (setting) => setting.searchText,
-    threshold: 0.8,
+    threshold: fuzzySearchThreshold(value, 0.7),
   });
 }
 

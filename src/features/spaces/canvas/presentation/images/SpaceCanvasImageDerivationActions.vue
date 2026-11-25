@@ -95,6 +95,7 @@ const STICKER_ACTION = {
     @update:open="!$event && emit('cancelLayers')"
   />
   <SpaceCanvasImageActionTrigger
+    v-if="menuItem"
     :availability="STICKER_ACTION.availability()"
     :reason="STICKER_ACTION.reason()"
     :icon="STICKER_ACTION.icon"

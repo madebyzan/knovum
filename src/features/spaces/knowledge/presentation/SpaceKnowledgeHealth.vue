@@ -3,13 +3,15 @@ import { AlertTriangle, CheckCircle2, ChevronDown, RefreshCw, ShieldAlert } from
 import { whenever } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import { workspaceRightSidebarKey } from "../../../../shared/contracts/workspace-right-sidebar";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import UiKnovumAiIcon from "../../../../shared/ui/UiKnovumAiIcon.vue";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceKnowledgeHealthIssue } from "../model/health";
@@ -19,6 +21,7 @@ const props = defineProps<{ compact?: boolean }>();
 const store = useSpaceStore();
 const { activeSpaceId } = storeToRefs(store);
 const { t } = useI18n();
+const rightSidebar = inject(workspaceRightSidebarKey, undefined);
 const expanded = ref(false);
 const { data, isFetching: loading, error: queryError, refetch } = useSpaceKnowledgeHealthQuery(activeSpaceId);
 const issues = computed(() => data.value ?? []);
@@ -27,6 +30,14 @@ const criticalCount = computed(() => issues.value.filter((issue) => issue.severi
 whenever(queryError, (cause) => toast.error(getErrorMessage(cause)));
 function reveal(issue: SpaceKnowledgeHealthIssue) {
   selectAndRevealSpaceNode(issue.nodeId);
+  store.knowledgeHealthOpen = false;
+}
+function askAboutIssue(issue: SpaceKnowledgeHealthIssue) {
+  selectAndRevealSpaceNode(issue.nodeId);
+  store.knowledgeHealthOpen = false;
+  if (!store.workbench.rightSidebar) return;
+  rightSidebar?.open();
+  store.requestAsk("selection", { nodeIds: [issue.nodeId] });
 }
 </script>
 
@@ -78,24 +89,38 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
           <CheckCircle2 class="size-3.5 text-fg-success" />{{ t("spaces.knowledge.health.clean") }}
         </div>
         <div v-else class="mt-1.5 space-y-1">
-          <button
+          <div
             v-for="issue in issues"
             :key="issue.id"
-            type="button"
-            class="flex w-full items-start gap-2 rounded-md border border-transparent bg-surface-control/25 p-2 text-left hover:border-stroke-divider hover:bg-surface-control-hover"
-            @click="reveal(issue)"
+            class="flex items-center gap-1 rounded-md border border-transparent bg-surface-control/25 pr-1 hover:border-stroke-divider hover:bg-surface-control-hover"
           >
-            <AlertTriangle
-              class="mt-0.5 size-3 shrink-0"
-              :class="issue.severity === 'critical' ? 'text-fg-danger' : 'text-fg-warning'"
-            />
-            <span class="min-w-0">
-              <span class="block truncate text-caption font-medium text-fg-primary">{{ issue.title }}</span>
-              <span class="block text-caption-sm text-fg-tertiary">{{
-                t(`spaces.knowledge.health.issues.${issue.kind}`)
-              }}</span>
-            </span>
-          </button>
+            <button
+              type="button"
+              class="flex min-w-0 flex-1 items-start gap-2 rounded-md p-2 text-left"
+              @click="reveal(issue)"
+            >
+              <AlertTriangle
+                class="mt-0.5 size-3 shrink-0"
+                :class="issue.severity === 'critical' ? 'text-fg-danger' : 'text-fg-warning'"
+              />
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-caption font-medium text-fg-primary">{{ issue.title }}</span>
+                <span class="block text-caption-sm text-fg-tertiary">{{
+                  t(`spaces.knowledge.health.issues.${issue.kind}`)
+                }}</span>
+              </span>
+            </button>
+            <UiIconButton
+              v-if="store.workbench.rightSidebar"
+              :label="t('spaces.conversation.askSelection')"
+              tooltip
+              size="sm"
+              class="shrink-0 text-fg-secondary hover:text-fg-primary"
+              @click.stop="askAboutIssue(issue)"
+            >
+              <UiKnovumAiIcon class="size-3.5" />
+            </UiIconButton>
+          </div>
         </div>
         <p v-if="criticalCount" class="mt-2 text-caption-sm text-fg-danger">
           {{ t("spaces.knowledge.health.critical", { count: criticalCount }) }}

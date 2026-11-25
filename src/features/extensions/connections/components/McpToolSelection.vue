@@ -87,7 +87,7 @@ function change(name: string, policy: McpToolPolicy, readOnly: boolean) {
             <UiSelect
               :model-value="permission(tool.name)?.policy ?? 'deny'"
               :label="$t('extensions.connections.tools.policy')"
-              class="w-32"
+              class="w-auto min-w-32"
               size="sm"
               :disabled="busy"
               :options="[

@@ -7,6 +7,7 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { getProductShortcuts } from "../../../foundation/shortcuts/shortcut-catalog";
 import { useShortcutsStore } from "../../../foundation/shortcuts/shortcut-store";
 import type { AppCommand, CommandCategory } from "../../../shared/contracts/app-command";
+import { fuzzySearchThreshold } from "../../../shared/contracts/fuzzy-search-threshold";
 
 const CATEGORIES: readonly CommandCategory[] = ["general", "navigation", "canvas", "editing"];
 
@@ -64,7 +65,7 @@ export function useShortcutsEditor() {
     if (!needle) return inAppCommands.value;
     return search(needle, [...inAppCommands.value], {
       keySelector: (cmd) => `${cmd.title} ${shortcutsStore.getEffectiveShortcut(cmd.id, cmd.shortcut)}`,
-      threshold: 0.6,
+      threshold: fuzzySearchThreshold(needle, 0.6),
     });
   });
 

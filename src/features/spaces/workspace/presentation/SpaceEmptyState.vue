@@ -97,15 +97,13 @@ async function handleRecord() {
         <div
           class="pointer-events-auto mt-5 flex flex-wrap items-center justify-center gap-2.5 md:justify-start"
         >
-          <UiButton
-            variant="primary"
-            size="md"
-            class="hover:bg-surface-inverse/85 active:bg-surface-inverse"
-            @click="createNote"
-          >
+          <UiButton variant="primary" size="md" @click="createNote">
             <FileText class="size-3.5" :stroke-width="1.6" />
             <span>{{ t("spaces.space.empty.newNote") }}</span>
-            <UiKbd shortcut="N" class="ml-0.5 text-fg-inverse opacity-80" />
+            <UiKbd
+              shortcut="N"
+              class="ml-0.5 rounded border border-fg-inverse/30 bg-fg-inverse/15 px-1 text-fg-inverse"
+            />
           </UiButton>
 
           <UiButton
@@ -150,7 +148,7 @@ async function handleRecord() {
             v-for="item in SHORTCUT_HINTS"
             :key="item.key"
             type="button"
-            class="inline-flex cursor-pointer items-center gap-1.5 transition-colors hover:text-fg-primary"
+            class="inline-flex cursor-default items-center gap-1.5 transition-colors hover:text-fg-primary"
             @click="item.action"
           >
             <UiKbd :shortcut="item.key" variant="badge" />

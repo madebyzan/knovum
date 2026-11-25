@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { ShieldCheck } from "@lucide/vue";
-import { inject, nextTick, useTemplateRef, watch } from "vue";
+import { ShieldAlert, ShieldCheck } from "@lucide/vue";
+import { computed, inject, nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { workspaceSidebarKey } from "../../../../shared/contracts/workspace-sidebar";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { useSpaceKnowledgeHealthQuery } from "../../knowledge/queries/use-space-knowledge-health-query";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceOutline from "./SpaceOutline.vue";
 
 const store = useSpaceStore();
 const { t } = useI18n();
 const sidebar = inject(workspaceSidebarKey)!;
+const healthQuery = useSpaceKnowledgeHealthQuery(() => store.activeSpaceId);
+const healthIssues = computed(() => healthQuery.data.value ?? []);
+const hasCriticalHealth = computed(() => healthIssues.value.some((issue) => issue.severity === "critical"));
 
 const content = useTemplateRef<HTMLElement>("content");
 
@@ -39,10 +43,21 @@ watch(
           :label="t('spaces.knowledge.health.title')"
           size="sm"
           tooltip
-          class="size-5 text-fg-tertiary hover:text-fg-primary"
+          class="h-6 w-auto min-w-6 gap-1 px-1"
+          :class="
+            healthIssues.length
+              ? hasCriticalHealth
+                ? 'text-fg-danger hover:bg-surface-danger-subtle'
+                : 'text-fg-warning hover:bg-surface-warning-subtle'
+              : 'text-fg-tertiary hover:text-fg-primary'
+          "
           @click="store.openKnowledgeHealth()"
         >
-          <ShieldCheck class="size-3.5" :stroke-width="1.6" />
+          <ShieldAlert v-if="healthIssues.length" class="size-3.5" :stroke-width="1.65" />
+          <ShieldCheck v-else class="size-3.5" :stroke-width="1.6" />
+          <span v-if="healthIssues.length" class="text-caption-sm font-medium tabular-nums">
+            {{ healthIssues.length }}
+          </span>
         </UiIconButton>
       </div>
       <div class="min-h-0 flex-1">

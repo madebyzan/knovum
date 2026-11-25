@@ -124,7 +124,7 @@ const visibleCapabilities = computed(() => new Set(visibleModels.value.map((mode
         <UiSelect
           v-model="status"
           data-testid="model-status-filter"
-          class="w-32"
+          class="w-auto min-w-32"
           :options="statusOptions"
           :label="t('settings.ai.localModels.filterLabel')"
         />

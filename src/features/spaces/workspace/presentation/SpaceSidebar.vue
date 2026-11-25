@@ -19,6 +19,12 @@ const { t } = useI18n();
 const ROW_CLASS =
   "flex h-interaction w-full items-center gap-2 rounded-md px-2 text-left text-label text-fg-secondary hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:text-fg-primary";
 const inbox = computed(() => spaces.value.find((space) => space.kind === "inbox"));
+const favoriteSpaces = computed(() =>
+  spaces.value
+    .filter((space) => space.favorite && space.kind !== "inbox" && !space.archivedAt)
+    .toSorted((a, b) => b.updatedAt - a.updatedAt)
+    .slice(0, 6),
+);
 function navigate(operation: () => Promise<void>) {
   void operation().catch((error: unknown) => {
     if (!isApplicationLeaveCancelled(error)) toast.error(getErrorMessage(error));
@@ -70,6 +76,19 @@ function navigate(operation: () => Promise<void>) {
         <Star class="size-3.5" :stroke-width="1.55" />
         {{ t("spaces.space.sections.favorites") }}
       </button>
+      <div v-if="favoriteSpaces.length" class="space-y-0.5 pl-4">
+        <button
+          v-for="space in favoriteSpaces"
+          :key="space.id"
+          type="button"
+          :data-active="surface.kind !== 'library' && activeSpaceId === space.id"
+          :class="ROW_CLASS"
+          @click="navigate(() => store.openSpace(space.id))"
+          @contextmenu.prevent="showSpaceMenu(space)"
+        >
+          <span class="min-w-0 truncate">{{ space.title }}</span>
+        </button>
+      </div>
     </nav>
     <SpaceSidebarOutline v-if="store.workbench.outline" />
     <div v-if="!store.workbench.outline" class="flex-1" />

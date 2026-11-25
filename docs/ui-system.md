@@ -362,8 +362,9 @@ native traffic-light safe area.
 
 Knovum is a single-purpose knowledge-space application. The Spaces sidebar is the leading application
 navigation surface and sits directly against the native window edge; there is no application-module rail.
-Settings is an application preference destination available through the command palette and a system shortcut;
-it is not a persistent row in the Spaces sidebar.
+The sidebar exposes Inbox, Space Library scopes (All, Recent, Favorites, plus quick-access Favorite
+Spaces), the current Space Outline (with an ambient Knowledge Health indicator), and a footer link to
+Settings; Settings is also available through the command palette and a system shortcut.
 
 The window toolbar owns native window chrome and tab navigation. Its compact
 tab strip exposes the Spaces opened in the current desktop session, with back/forward history, an explicitly
@@ -400,10 +401,12 @@ mode selector. A conversation can move from discussion to execution through user
 Task lists are shown only when the Agent uses SDK Todo; simple answers need no plan or approval
 step. Extension choices follow configured tool policies, not an inferred conversation intent.
 
-That toggle opens Conversation as the default view. Explicit object actions open Details;
-the document editor owns its heading Outline locally. Source opens as a temporary drill-in and returns to its originating
-view. Selection alone never changes the active view. The right pane does not change the leading sidebar width.
-Closing it releases workspace width and suspends its content until reopened; it has no hover preview.
+The right sidebar toggle opens Conversation. On narrow windows where keeping both sidebars open would
+squeeze the primary work area below 480px, the leading sidebar collapses ephemerally without overwriting
+the user's persisted pinned preference. Source Reading Mode and node Details (`info`) live in the
+canvas-side Source Reader pane, while the document editor owns its heading Outline locally. Selection
+alone never changes the active view unless follow-selection is enabled in Source Reader. Closing the
+right pane releases workspace width and suspends its content until reopened; it has no hover preview.
 An empty Conversation uses the same borderless inspector-section rhythm as the workbench sidebars:
 a Space content summary, compact starter prompt rows that fill and focus the composer without sending,
 quick-attach rows for live Space sources, and recent Space conversations for one-click resumption. Composer

@@ -15,7 +15,7 @@ const { t } = useI18n();
     :title="t('spaces.knowledge.health.title')"
     :description="t('spaces.knowledge.health.description')"
   >
-    <div class="max-h-[68vh] space-y-5 overflow-y-auto pr-1">
+    <div class="space-y-5">
       <SpaceRetrievalIndex />
       <div class="border-t border-stroke-divider pt-4">
         <SpaceKnowledgeHealth />
