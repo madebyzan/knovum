@@ -130,8 +130,7 @@ pub enum ReaderWebviewNavigation {
 fn parse_external_http_url(raw: &str) -> Result<Url, AppError> {
     let url = Url::parse(raw.trim())
         .map_err(|_| AppError::new("invalid_argument", "A valid HTTP(S) URL is required"))?;
-    if !matches!(url.scheme(), "http" | "https")
-        || !crate::desktop::navigation::is_public_reader_http_url(&url)
+    if !matches!(url.scheme(), "http" | "https") || !crate::desktop::is_public_reader_http_url(&url)
     {
         return Err(AppError::new(
             "invalid_argument",

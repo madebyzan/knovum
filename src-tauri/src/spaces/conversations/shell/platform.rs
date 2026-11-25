@@ -194,7 +194,7 @@ fn build_seatbelt_profile(boundaries: &SandboxBoundaries) -> Result<String, Stri
 (allow default)
 (deny network*)
 (deny file-write*)
-{deny_block}(allow file-read*
+{deny_block}(allow file-read* file-read-data file-read-xattr
     (subpath (param "WORKSPACE")))
 (allow file-write*
     (subpath (param "WORKSPACE"))

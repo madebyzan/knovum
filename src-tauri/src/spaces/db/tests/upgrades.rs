@@ -652,15 +652,22 @@ async fn upgrading_0_0_8_adds_nullable_transcription_language() {
     .execute(&pool)
     .await
     .expect("job");
+    sqlx::query(
+        "INSERT INTO spaces_media_transcription_requests(job_id,model_spec_id) \
+         VALUES('job-1','\"whisperSmall\"')",
+    )
+    .execute(&pool)
+    .await
+    .expect("transcription request");
 
     super::super::migrate(&pool).await.expect("upgrade");
 
     assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
     let language: Option<String> = sqlx::query_scalar(
-        "SELECT transcription_language FROM spaces_enrichment_jobs WHERE id='job-1'",
+        "SELECT language FROM spaces_media_transcription_requests WHERE job_id='job-1'",
     )
     .fetch_one(&pool)
     .await
-    .expect("transcription_language");
+    .expect("transcription language");
     assert_eq!(language, None);
 }
