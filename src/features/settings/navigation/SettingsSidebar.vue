@@ -5,6 +5,8 @@ import { search } from "fast-fuzzy";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { getUpdateAttentionVersion } from "../../../foundation/updates/update-presentation";
+import { useUpdateStore } from "../../../foundation/updates/update-store";
 import { fuzzySearchThreshold } from "../../../shared/contracts/fuzzy-search-threshold";
 import UiScrollArea from "../../../shared/ui/UiScrollArea.vue";
 import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
@@ -14,6 +16,8 @@ import { TITLE_KEY_BY_SETTINGS_GROUP, SETTINGS_REGISTRY } from "./settings-regis
 const props = defineProps<{ activePane: SettingsPaneId; activeSetting?: string | undefined }>();
 const emit = defineEmits<{ back: []; select: [pane: SettingsPaneId, location?: string] }>();
 const { t } = useI18n();
+const updates = useUpdateStore();
+const updateBadgeVersion = computed(() => getUpdateAttentionVersion(updates.state));
 const query = shallowRef("");
 const advancedExpanded = shallowRef(false);
 const NAV_ROW_CLASS =
@@ -160,7 +164,7 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
               @click="emit('select', setting.id)"
             >
               <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" />
-              <span>{{ setting.label }}</span>
+              <span class="min-w-0 flex-1 truncate">{{ setting.label }}</span>
             </button>
           </section>
           <section v-if="advancedSettings.length" class="mb-4">
@@ -189,7 +193,7 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
                 @click="emit('select', setting.id)"
               >
                 <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" />
-                <span>{{ setting.label }}</span>
+                <span class="min-w-0 flex-1 truncate">{{ setting.label }}</span>
               </button>
             </div>
           </section>
@@ -206,7 +210,14 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
               @click="emit('select', setting.id)"
             >
               <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" />
-              <span>{{ setting.label }}</span>
+              <span class="min-w-0 flex-1 truncate">{{ setting.label }}</span>
+              <span
+                v-if="setting.id === 'about' && updateBadgeVersion"
+                data-testid="settings-about-update-badge"
+                class="shrink-0 text-caption-sm font-medium text-fg-accent tabular-nums"
+              >
+                {{ updateBadgeVersion }}
+              </span>
             </button>
           </section>
         </template>

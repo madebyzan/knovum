@@ -26,6 +26,16 @@
     "title": "Version {version} ist verfügbar",
     "notes": "Versionshinweise"
   },
+  "ready": {
+    "title": "Version {version} ist zur Installation bereit"
+  },
+  "indicator": {
+    "available": "Update",
+    "downloading": "Wird geladen…",
+    "verifying": "Wird geprüft…",
+    "ready": "Zum Update neu starten",
+    "openSettings": "In Einstellungen anzeigen"
+  },
   "status": {
     "disabled": "Updates sind in diesem Build nicht aktiviert.",
     "idle": "Bereit, nach Updates zu suchen.",

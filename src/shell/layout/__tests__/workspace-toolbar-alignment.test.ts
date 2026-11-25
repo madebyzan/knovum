@@ -24,7 +24,12 @@ function mountToolbar(sidebarPinned: boolean, trailing = 0) {
     },
     global: {
       plugins: [i18n],
-      stubs: { TaskCenter: true, WorkspaceNavigationControls: true, UiIconButton: true },
+      stubs: {
+        TaskCenter: true,
+        WorkspaceUpdateIndicator: true,
+        WorkspaceNavigationControls: true,
+        UiIconButton: true,
+      },
     },
   });
 }

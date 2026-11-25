@@ -8,6 +8,7 @@ use crate::preferences::LocalePreference;
 mod state;
 
 const COMMAND_EVENT: &str = "knovum-run-command";
+const CHECK_FOR_UPDATES_ID: &str = "application.check-for-updates";
 const COMMAND_PALETTE_ID: &str = "shell.command-palette";
 const SETTINGS_ID: &str = "navigate.settings";
 const NEW_SPACE_ID: &str = "spaces.new-space";
@@ -22,7 +23,8 @@ const COPY_ID: &str = "editing.copy";
 const PASTE_ID: &str = "editing.paste";
 const SELECT_ALL_ID: &str = "editing.select-all";
 /// Every menu item is a renderer command, so the identifier is the whole contract between them.
-const COMMAND_IDS: [&str; 11] = [
+const COMMAND_IDS: [&str; 12] = [
+    CHECK_FOR_UPDATES_ID,
     COMMAND_PALETTE_ID,
     SETTINGS_ID,
     NEW_SPACE_ID,
@@ -39,6 +41,13 @@ const COMMAND_IDS: [&str; 11] = [
 pub fn build<R: Runtime>(app: &AppHandle<R>, locale: LocalePreference) -> tauri::Result<Menu<R>> {
     let labels = labels(locale).map_err(std::io::Error::other)?.menu;
     let menu = Menu::default(app)?;
+    let check_for_updates = MenuItem::with_id(
+        app,
+        CHECK_FOR_UPDATES_ID,
+        labels.check_for_updates,
+        true,
+        None::<&str>,
+    )?;
     let settings = MenuItem::with_id(app, SETTINGS_ID, labels.settings, true, Some("CmdOrCtrl+,"))?;
     let command_palette = MenuItem::with_id(
         app,
@@ -51,8 +60,9 @@ pub fn build<R: Runtime>(app: &AppHandle<R>, locale: LocalePreference) -> tauri:
     let default_items = menu.items()?;
     if let Some(app_menu) = default_items.first() {
         if let Some(submenu) = app_menu.as_submenu() {
-            submenu.insert(&settings, 2)?;
-            submenu.insert(&command_palette, 3)?;
+            submenu.insert(&check_for_updates, 2)?;
+            submenu.insert(&settings, 3)?;
+            submenu.insert(&command_palette, 4)?;
         }
     }
 

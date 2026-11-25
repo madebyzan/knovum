@@ -37,7 +37,7 @@ const {
   armSidebarPreview,
   scheduleSidebarPreviewClose,
   closeSidebarPreview,
-} = useShellController(props.workspace, workspaceActive, () => emit("openSettings"));
+} = useShellController(props.workspace, workspaceActive, (pane) => emit("openSettings", pane));
 const { effectiveSidebarPinned, evaluateBudget, reclaimLeftSidebar } = useResponsiveSidebarGuard({
   sidebarPinned,
   sidebarWidth,
@@ -92,6 +92,7 @@ const edges = useWorkspaceEdges({
       @toggle-sidebar="handleToggleSidebarFromControl"
       @preview-sidebar="openSidebarPreview"
       @cancel-sidebar-preview="armSidebarPreview"
+      @open-settings="(pane) => emit('openSettings', pane)"
     />
     <WorkspaceLayout
       :workspace="workspace"

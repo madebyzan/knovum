@@ -26,6 +26,16 @@
     "title": "버전 {version}를 사용할 수 있습니다",
     "notes": "릴리스 노트"
   },
+  "ready": {
+    "title": "버전 {version} 설치 준비 완료"
+  },
+  "indicator": {
+    "available": "업데이트",
+    "downloading": "업데이트 중…",
+    "verifying": "확인 중…",
+    "ready": "다시 시작하여 업데이트",
+    "openSettings": "설정에서 보기"
+  },
   "status": {
     "disabled": "이 빌드에서는 업데이트가 활성화되지 않습니다.",
     "idle": "업데이트를 확인할 준비가 되었습니다.",

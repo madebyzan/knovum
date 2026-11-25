@@ -5,6 +5,7 @@ import type { WorkspaceDefinition } from "../../shared/contracts/workspace-defin
 import UiIconButton from "../../shared/ui/UiIconButton.vue";
 import UiPanelToggleIcon from "../../shared/ui/UiPanelToggleIcon.vue";
 import TaskCenter from "../tasks/TaskCenter.vue";
+import WorkspaceUpdateIndicator from "../updates/WorkspaceUpdateIndicator.vue";
 import type { WorkspaceEdges } from "./use-workspace-edges";
 import WorkspaceNavigationControls from "./WorkspaceNavigationControls.vue";
 
@@ -28,6 +29,7 @@ const emit = defineEmits<{
   "toggle-right-sidebar": [];
   "preview-sidebar": [];
   "cancel-sidebar-preview": [];
+  "open-settings": [pane?: string];
 }>();
 </script>
 
@@ -55,6 +57,7 @@ const emit = defineEmits<{
       <div
         class="z-10 col-start-3 row-start-1 flex min-w-max items-center gap-1 self-center justify-self-end pr-3 pl-4"
       >
+        <WorkspaceUpdateIndicator @open-settings="emit('open-settings', 'about')" />
         <TaskCenter :current-scope="workspace.currentScope?.value" />
         <UiIconButton
           v-if="workspace.rightSidebarAvailable.value"

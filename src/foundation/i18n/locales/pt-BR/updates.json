@@ -26,6 +26,16 @@
     "title": "A versão {version} está disponível",
     "notes": "Notas de versão"
   },
+  "ready": {
+    "title": "A versão {version} está pronta para instalar"
+  },
+  "indicator": {
+    "available": "Atualizar",
+    "downloading": "Atualizando…",
+    "verifying": "Verificando…",
+    "ready": "Reiniciar para atualizar",
+    "openSettings": "Ver em Configurações"
+  },
   "status": {
     "disabled": "As atualizações não estão habilitadas nesta compilação.",
     "idle": "Pronto para verificar se há atualizações.",

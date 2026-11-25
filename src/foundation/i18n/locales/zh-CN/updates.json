@@ -26,6 +26,16 @@
     "title": "发现新版本 {version}",
     "notes": "更新说明"
   },
+  "ready": {
+    "title": "新版本 {version} 已准备好安装"
+  },
+  "indicator": {
+    "available": "有更新",
+    "downloading": "更新中…",
+    "verifying": "验证中…",
+    "ready": "重启更新",
+    "openSettings": "在设置中查看"
+  },
   "status": {
     "disabled": "当前构建未启用更新。",
     "idle": "可以检查更新。",

@@ -295,7 +295,13 @@ shell and component enter/leave states; do not add a motion runtime for simple o
   then ride it. The tab column adds no inset of its own and spans across the window up to the compact
   trailing utility cluster so opening or resizing the right context pane never compresses workspace tabs.
   Tabs flex smoothly down to a readable minimum before scrolling, keeping the trailing New Space action
-  pinned beside the strip. Without a pinned sidebar the work area keeps one gutter of inset on every side;
+  pinned beside the strip. When an application update is available, downloading, verifying, or ready to
+  install, the trailing utility cluster shows a compact persistent update control beside Task Center in
+  the same borderless `rounded-md` toolbar language (with the shared circular progress ring while
+  transferring, and a primary-neutral restart control once verified) that opens an in-place update
+  popover without leaving the active workspace; Settings navigation rows (`Settings` and `About`) show
+  the available version number inline in accent caption text. Without a pinned sidebar the work area
+  keeps one gutter of inset on every side;
 - a sidebar toggle states its state through `UiPanelToggleIcon`, one geometry shared by both sidebars and
   mirrored to its window edge: a window frame with a solid pane inset from it by the same padding on every
   side and concentric corners, the way a sidebar sits inside its window. Open, the pane is full width;

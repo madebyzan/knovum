@@ -49,7 +49,12 @@ it("hides unavailable panel controls while retaining the user's requested layout
     {
       global: {
         plugins: [i18n],
-        stubs: { TaskCenter: true, WorkspaceNavigationControls: true, UiIconButton: true },
+        stubs: {
+          TaskCenter: true,
+          WorkspaceNavigationControls: true,
+          WorkspaceUpdateIndicator: true,
+          UiIconButton: true,
+        },
       },
     },
   );

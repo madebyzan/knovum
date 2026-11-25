@@ -11,6 +11,7 @@ pub(super) struct Labels {
 
 #[cfg(target_os = "macos")]
 pub(super) struct MenuLabels {
+    pub check_for_updates: &'static str,
     pub command_palette: &'static str,
     pub settings: &'static str,
     pub edit: &'static str,
@@ -34,7 +35,7 @@ pub(super) struct TrayLabels {
 
 pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
     use LocalePreference::*;
-    let [_command_palette, _settings, _edit, _undo, _redo, _cut, _copy, _paste, _select_all, _file, _new_space, _reopen_closed_tab, _close_tab, _show, _quit, completed, failed] =
+    let [_check_for_updates, _command_palette, _settings, _edit, _undo, _redo, _cut, _copy, _paste, _select_all, _file, _new_space, _reopen_closed_tab, _close_tab, _show, _quit, completed, failed] =
         match locale {
             System => {
                 return Err(
@@ -42,6 +43,7 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
                 )
             }
             English => [
+                "Check for Updates…",
                 "Command Palette…",
                 "Settings…",
                 "Edit",
@@ -61,6 +63,7 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
                 "Task failed. Open Task Center for details.",
             ],
             SimplifiedChinese => [
+                "检查更新…",
                 "命令面板…",
                 "设置…",
                 "编辑",
@@ -80,6 +83,7 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
                 "任务失败。打开任务中心查看详情。",
             ],
             TraditionalChinese => [
+                "檢查更新…",
                 "命令面板…",
                 "設定…",
                 "編輯",
@@ -99,6 +103,7 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
                 "任務失敗。開啟任務中心查看詳情。",
             ],
             Japanese => [
+                "アップデートを確認…",
                 "コマンドパレット…",
                 "設定…",
                 "編集",
@@ -118,6 +123,7 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
                 "タスクが失敗しました。タスクセンターで詳細を確認してください。",
             ],
             Korean => [
+                "업데이트 확인…",
                 "명령 팔레트…",
                 "설정…",
                 "편집",
@@ -137,6 +143,7 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
                 "작업이 실패했습니다. 작업 센터에서 자세한 내용을 확인하세요.",
             ],
             French => [
+                "Vérifier les mises à jour…",
                 "Palette de commandes…",
                 "Réglages…",
                 "Édition",
@@ -156,6 +163,7 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
                 "Échec de la tâche. Consultez le centre des tâches pour plus de détails.",
             ],
             German => [
+                "Nach Updates suchen…",
                 "Befehlspalette…",
                 "Einstellungen…",
                 "Bearbeiten",
@@ -175,6 +183,7 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
                 "Aufgabe fehlgeschlagen. Weitere Informationen finden Sie im Aufgabencenter.",
             ],
             Spanish => [
+                "Buscar actualizaciones…",
                 "Paleta de comandos…",
                 "Ajustes…",
                 "Edición",
@@ -194,6 +203,7 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
                 "La tarea ha fallado. Consulta el centro de tareas para ver los detalles.",
             ],
             BrazilianPortuguese => [
+                "Verificar atualizações…",
                 "Paleta de comandos…",
                 "Configurações…",
                 "Editar",
@@ -213,6 +223,7 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
                 "A tarefa falhou. Abra a central de tarefas para ver os detalhes.",
             ],
             Italian => [
+                "Verifica aggiornamenti…",
                 "Tavolozza dei comandi…",
                 "Impostazioni…",
                 "Modifica",
@@ -232,6 +243,7 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
                 "L’attività non è riuscita. Apri il centro attività per i dettagli.",
             ],
             Russian => [
+                "Проверить наличие обновлений…",
                 "Палитра команд…",
                 "Настройки…",
                 "Правка",
@@ -254,6 +266,7 @@ pub(super) fn labels(locale: LocalePreference) -> Result<Labels, String> {
     Ok(Labels {
         #[cfg(target_os = "macos")]
         menu: MenuLabels {
+            check_for_updates: _check_for_updates,
             command_palette: _command_palette,
             settings: _settings,
             edit: _edit,

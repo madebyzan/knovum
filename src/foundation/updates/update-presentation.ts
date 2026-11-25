@@ -1,4 +1,5 @@
 import type { UpdateFailure } from "../../shared/contracts/generated/UpdateFailure";
+import type { UpdateMetadata } from "../../shared/contracts/generated/UpdateMetadata";
 import type { UpdateState } from "../../shared/contracts/generated/UpdateState";
 import { formatBytes } from "../format/bytes";
 
@@ -20,6 +21,40 @@ export const MESSAGE_KEY_BY_UPDATE_FAILURE: Record<UpdateFailure, string> = {
   signature: "updates.failure.signature",
   install: "updates.failure.install",
 };
+
+export function getUpdateRelease(state: UpdateState | null): UpdateMetadata | null {
+  return state && "release" in state ? state.release : null;
+}
+
+export function canCheckForUpdate(state: UpdateState | null): boolean {
+  return (
+    state !== null && (state.status === "idle" || state.status === "current" || state.status === "failed")
+  );
+}
+
+export function isUpdateAttentionStatus(state: UpdateState | null): boolean {
+  return state?.status === "available" || state?.status === "ready";
+}
+
+export function getUpdateAttentionVersion(state: UpdateState | null): string | null {
+  return isUpdateAttentionStatus(state) ? (getUpdateRelease(state)?.version ?? null) : null;
+}
+
+export function isUpdateToolbarVisible(state: UpdateState | null): boolean {
+  return (
+    state?.status === "available" ||
+    state?.status === "downloading" ||
+    state?.status === "verifying" ||
+    state?.status === "ready"
+  );
+}
+
+export function getUpdateStatusMessageKey(state: UpdateState | null): string {
+  if (!state) return "updates.connection.loading";
+  return state.status === "failed"
+    ? MESSAGE_KEY_BY_UPDATE_FAILURE[state.reason]
+    : LABEL_KEY_BY_UPDATE_STATUS[state.status];
+}
 
 /** How far an update has come on its way in, read for the progress bar and the line beneath it. */
 export interface UpdateTransfer {
