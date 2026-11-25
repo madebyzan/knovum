@@ -3,6 +3,7 @@ import { getSchema } from "@tiptap/core";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Image } from "@tiptap/extension-image";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
+import { Mathematics } from "@tiptap/extension-mathematics";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { TableKit } from "@tiptap/extension-table";
@@ -70,6 +71,13 @@ export function createRichTextSchemaExtensions(options: RichTextSchemaOptions) {
     TableKit.configure(
       options.interactiveSurface ? { table: { resizable: true, lastColumnResizable: true } } : {},
     ),
+    Mathematics.configure({
+      katexOptions: {
+        throwOnError: false,
+        strict: "ignore",
+        output: "html",
+      },
+    }),
   ];
 }
 

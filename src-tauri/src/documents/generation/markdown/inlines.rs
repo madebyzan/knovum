@@ -39,7 +39,10 @@ impl<'a> Reader<'a> {
         Self::check_depth(depth)?;
         Ok(match event {
             Event::Text(value) => Inline::Text(value.into_string()),
-            Event::Code(value) => Inline::Code(value.into_string()),
+            Event::Code(value) | Event::InlineMath(value) | Event::DisplayMath(value) => {
+                Inline::Code(value.into_string())
+            }
+            Event::FootnoteReference(label) => Inline::Text(format!("[^{label}]")),
             Event::SoftBreak => Inline::SoftBreak,
             Event::HardBreak => Inline::HardBreak,
             Event::TaskListMarker(checked) => Inline::Task(checked),

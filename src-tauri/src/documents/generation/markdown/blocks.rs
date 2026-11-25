@@ -34,6 +34,15 @@ impl Reader<'_> {
                 Event::Start(Tag::CodeBlock(kind)) => self.code_block(kind)?,
                 Event::Start(Tag::List(start)) => self.list(start, depth + 1)?,
                 Event::Start(Tag::Table(alignments)) => self.table(alignments, depth + 1)?,
+                Event::DisplayMath(value) => Block::Code {
+                    language: "math".into(),
+                    text: value.into_string(),
+                },
+                Event::Start(Tag::FootnoteDefinition(label)) => {
+                    let content = self.blocks(Some(TagEnd::FootnoteDefinition), depth + 1)?;
+                    self.footnotes.push((label.into_string(), content));
+                    continue;
+                }
                 Event::Rule => Block::Rule,
                 // Markdown hands a whole block to HTML to lay something out. The layout is not
                 // document content, but what it wraps is.

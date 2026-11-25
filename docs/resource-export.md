@@ -101,9 +101,9 @@ are appended as literal structured paragraphs.
 ## Markdown and Notes
 
 Markdown supports CommonMark paragraphs, H1–H6 headings, quotes, rules, line breaks, links, inline
-and block code, nested ordered/unordered lists, tables, strikethrough and task lists. Parser upgrades
-must not expand the contract implicitly through `Options::all()`. Math and footnote extensions remain
-outside the Markdown authoring contract; custom templates are not an export parameter.
+and block code, nested ordered/unordered lists, tables, strikethrough, task lists, LaTeX math
+(`$...$` / `$$...$$`), and footnotes (`[^id]`). Parser upgrades must not expand the contract
+implicitly through `Options::all()`; custom templates are not an export parameter.
 
 Markdown carries HTML, so a document is the content that markup wraps rather than the markup: text
 belongs to the document, `<br>` is a line break, an `<img>` reads as what it shows, and a tag that

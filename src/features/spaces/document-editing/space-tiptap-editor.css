@@ -204,3 +204,12 @@
   padding: 0.08em 0.22em;
   color: var(--color-black);
 }
+:deep(.space-tiptap-prose [data-type="block-math"]) {
+  overflow-x: auto;
+  padding-block: 0.45rem;
+  text-align: center;
+}
+:deep(.space-tiptap-prose [data-type="inline-math"]) {
+  display: inline-block;
+  padding-inline: 0.12rem;
+}

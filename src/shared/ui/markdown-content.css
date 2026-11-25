@@ -95,3 +95,19 @@
   padding: 0.4rem 0.55rem;
   text-align: left;
 }
+.ui-markdown :deep(.ui-markdown-math-block) {
+  overflow-x: auto;
+  padding-block: 0.35rem;
+  text-align: center;
+}
+.ui-markdown :deep(.footnotes-sep) {
+  margin-block: 1rem 0.65rem;
+}
+.ui-markdown :deep(.footnotes) {
+  font-size: var(--text-caption);
+  color: var(--color-fg-secondary);
+}
+.ui-markdown :deep(.footnote-ref a),
+.ui-markdown :deep(.footnote-backref) {
+  text-decoration: none;
+}

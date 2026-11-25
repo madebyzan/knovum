@@ -123,3 +123,26 @@ describe("UiMarkdown links", () => {
     expect(wrapper.findAll("a").map((link) => link.attributes("href"))).toEqual(["https://example.com/x"]);
   });
 });
+
+describe("UiMarkdown math and footnotes", () => {
+  it("renders inline and block LaTeX math with KaTeX while preserving currency text", () => {
+    const wrapper = mount(UiMarkdown, {
+      props: {
+        content: "Energy is $E = mc^2$ and cost is $100.\n\n$$\n\\sum_{i=1}^{n} x_i\n$$",
+      },
+    });
+    expect(wrapper.findAll(".katex").length).toBeGreaterThanOrEqual(2);
+    expect(wrapper.find(".ui-markdown-math-block .katex-display").exists()).toBe(true);
+    expect(wrapper.text()).toContain("$100");
+  });
+
+  it("renders markdown footnotes with reference and definition section", () => {
+    const wrapper = mount(UiMarkdown, {
+      props: {
+        content: "Claim with note[^1].\n\n[^1]: Supporting detail.",
+      },
+    });
+    expect(wrapper.find(".footnote-ref").exists()).toBe(true);
+    expect(wrapper.find("section.footnotes").text()).toContain("Supporting detail.");
+  });
+});

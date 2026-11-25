@@ -33,6 +33,7 @@ export default defineConfig({
           const localeMatch = /\/src\/foundation\/i18n\/locales\/([^/]+)\//.exec(id);
           if (localeMatch) return `locale-${localeMatch[1]}`;
           if (id.includes("/node_modules/pdfjs-dist/")) return "vendor-pdfjs";
+          if (id.includes("/node_modules/katex/")) return "vendor-katex";
           if (id.includes("/node_modules/@tiptap/") || id.includes("/node_modules/prosemirror-")) {
             return "vendor-tiptap";
           }

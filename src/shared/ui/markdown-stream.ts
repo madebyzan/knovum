@@ -20,6 +20,7 @@ type References = NonNullable<Env["references"]>;
 interface StreamEnvironment extends Env {
   citations?: MarkdownCitations;
   references: References;
+  footnotes?: unknown;
 }
 
 /**
@@ -69,6 +70,17 @@ export function createMarkdownStream(md: MarkdownIt, citations?: MarkdownCitatio
     let frame = environment();
     let pending = source.slice(settledSource.length);
     let tokens = md.parse(pending, frame);
+    if (frame.footnotes) {
+      if (settled.length) {
+        reset();
+        restarted = true;
+        frame = environment();
+        tokens = md.parse(source, frame);
+      }
+      definitions = JSON.stringify(frame.references);
+      const fullHtml = md.renderer.render(tokens, md.options, frame);
+      return { settled, open: DOMPurify.sanitize(fullHtml), restarted };
+    }
     if (settled.length && JSON.stringify(frame.references) !== definitions) {
       reset();
       restarted = true;

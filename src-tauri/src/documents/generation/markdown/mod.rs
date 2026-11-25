@@ -15,15 +15,35 @@ pub(super) const MAX_EVENTS: usize = 200_000;
 pub(super) const MAX_DEPTH: usize = 64;
 pub(super) const OPTIONS: Options = Options::ENABLE_TABLES
     .union(Options::ENABLE_STRIKETHROUGH)
-    .union(Options::ENABLE_TASKLISTS);
+    .union(Options::ENABLE_TASKLISTS)
+    .union(Options::ENABLE_MATH)
+    .union(Options::ENABLE_FOOTNOTES);
 
 pub(crate) fn parse(source: &DocumentSource) -> Result<Document, String> {
     validate_source(source)?;
     let mut reader = Reader {
         parser: Parser::new_ext(&source.markdown, OPTIONS),
         events: 0,
+        footnotes: Vec::new(),
     };
     let mut blocks = reader.blocks(None, 0)?;
+    if !reader.footnotes.is_empty() {
+        blocks.push(Block::Heading {
+            level: 2,
+            content: vec![Inline::Text("Footnotes".into())],
+        });
+        for (label, content) in reader.footnotes {
+            let mut labeled = vec![Inline::Strong(vec![Inline::Text(format!("[^{label}] "))])];
+            if let Some(Block::Paragraph(first)) = content.first() {
+                labeled.extend(first.iter().cloned());
+                blocks.push(Block::Paragraph(labeled));
+                blocks.extend(content.into_iter().skip(1));
+            } else {
+                blocks.push(Block::Paragraph(labeled));
+                blocks.extend(content);
+            }
+        }
+    }
     pictures::held(
         &mut blocks,
         &source
@@ -95,6 +115,7 @@ pub(super) fn validate_text(value: &str) -> Result<(), String> {
 struct Reader<'a> {
     parser: Parser<'a>,
     events: usize,
+    footnotes: Vec<(String, Vec<Block>)>,
 }
 
 impl<'a> Reader<'a> {

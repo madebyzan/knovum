@@ -31,6 +31,7 @@ fn block(node: &Node, context: &Context<'_>, depth: usize) -> Result<Element, St
         "bulletList" | "orderedList" | "taskList" => lists::parse(node, context, depth + 1, 0),
         "blockquote" => quote(node, context, depth + 1),
         "codeBlock" => code(node),
+        "blockMath" => block_math(node),
         "horizontalRule" => empty_block(node, Element::ThematicBreak),
         "table" => tables::parse(node, context, depth + 1),
         "image" => media::image(node, context),
@@ -105,6 +106,18 @@ fn code(node: &Node) -> Result<Element, String> {
     Ok(Element::CodeBlock(CodeBlock {
         language: model::string_attr(&node.attrs, "language")?.map(str::to_owned),
         content: text,
+    }))
+}
+
+fn block_math(node: &Node) -> Result<Element, String> {
+    model::allowed_attrs(&node.attrs, "blockMath", &["latex"])?;
+    if !node.content.is_empty() {
+        return Err("Tiptap blockMath must be a leaf node".into());
+    }
+    let latex = model::string_attr(&node.attrs, "latex")?.unwrap_or_default();
+    Ok(Element::CodeBlock(CodeBlock {
+        language: Some("math".into()),
+        content: latex.to_owned(),
     }))
 }
 
