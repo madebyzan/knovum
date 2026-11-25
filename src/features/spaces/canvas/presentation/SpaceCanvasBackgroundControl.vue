@@ -49,8 +49,14 @@ function measureTrigger() {
 }
 
 function toggle() {
-  if (!open.value) measureTrigger();
-  open.value = !open.value;
+  if (!open.value) {
+    measureTrigger();
+    open.value = true;
+    const activeIndex = Math.max(0, canvasBackgroundPatterns.indexOf(effectiveSpacePattern.value));
+    void nextTick(() => orbitButtons.value?.[activeIndex]?.focus());
+    return;
+  }
+  open.value = false;
 }
 
 function closeAndRestoreFocus() {
@@ -93,7 +99,7 @@ function handleOrbitKeydown(index: number, event: KeyboardEvent) {
 
 function pick(value: CanvasBackgroundPattern) {
   store.setBackgroundPattern(value);
-  open.value = false;
+  closeAndRestoreFocus();
 }
 </script>
 
@@ -166,9 +172,9 @@ function pick(value: CanvasBackgroundPattern) {
   pointer-events: auto;
   will-change: transform, opacity;
   transform: translate(-50%, -50%) translate3d(var(--orbit-x, 0px), var(--orbit-y, 0px), 0) scale(1);
-  transition-duration: 240ms, 150ms, 100ms, 100ms, 100ms;
+  transition-duration: 180ms, 140ms, 100ms, 100ms, 100ms;
   transition-timing-function:
-    cubic-bezier(0.22, 1.1, 0.36, 1), var(--ease-decelerate), var(--ease-standard), var(--ease-standard),
+    var(--ease-standard), var(--ease-decelerate), var(--ease-standard), var(--ease-standard),
     var(--ease-standard);
 }
 

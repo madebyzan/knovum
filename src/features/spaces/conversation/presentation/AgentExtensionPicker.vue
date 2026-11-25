@@ -73,7 +73,7 @@ const extensionGroups = computed(() =>
     <template #trigger>
       <UiIconButton
         :label="$t('spaces.conversation.extensions.label')"
-        tooltip
+        :title="$t('spaces.conversation.extensions.label')"
         size="sm"
         :disabled="disabled"
         :class="count ? 'flex h-(--knovum-control-height-sm) w-auto items-center gap-1 px-2' : undefined"

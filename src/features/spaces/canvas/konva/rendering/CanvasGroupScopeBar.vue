@@ -17,7 +17,7 @@ const { t } = useI18n();
     >
       {{ t("common.back") }}
     </button>
-    <span class="bg-border-default h-3 w-px" />
+    <span class="h-3 w-px bg-stroke-default" />
     <span class="max-w-72 truncate text-caption font-medium text-fg-primary">
       {{ titles.join(" / ") }}
     </span>

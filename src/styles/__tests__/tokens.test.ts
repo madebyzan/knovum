@@ -101,7 +101,7 @@ describe("design-token contract", () => {
   it("uses the product disabled and embedded surface policies", () => {
     const violations = productSources
       .filter(({ source }) =>
-        /surface-inset|(?:disabled|data-disabled|aria-disabled):opacity-(?:35|45|50|55)\b|border-l-border-warning/.test(
+        /surface-inset|(?:disabled|data-disabled|aria-disabled):opacity-(?:35|45|50|55)\b|border-l-border-warning|\b(?:bg-border-|fill-background-)/.test(
           source,
         ),
       )

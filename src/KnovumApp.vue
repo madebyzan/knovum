@@ -74,7 +74,13 @@ watch(
       <ApplicationUpdates />
       <DictationOverlay v-if="dictationSupported" />
       <UiConfirmAction />
-      <Toaster :theme="theme" position="bottom-right" :visible-toasts="4" close-button />
+      <Toaster
+        :theme="theme"
+        position="top-right"
+        :offset="{ top: '48px', right: '12px' }"
+        :visible-toasts="4"
+        close-button
+      />
     </TooltipProvider>
 
     <Transition name="bootstrap-fade">

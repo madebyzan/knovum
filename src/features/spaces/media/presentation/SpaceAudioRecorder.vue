@@ -108,7 +108,7 @@ watch(
           </div>
         </div>
 
-        <div class="bg-border-divider mx-2 h-6 w-px shrink-0" />
+        <div class="mx-2 h-6 w-px shrink-0 bg-stroke-divider" />
 
         <template v-if="controller.isRecording.value">
           <UiIconButton

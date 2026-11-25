@@ -24,7 +24,7 @@ const MODES = [
     <span class="px-2 text-label font-medium text-fg-primary">{{
       $t("spaces.media.imageComments.title")
     }}</span>
-    <ToolbarSeparator class="bg-border-divider mx-0.5 h-4 w-px" />
+    <ToolbarSeparator class="mx-0.5 h-4 w-px bg-stroke-divider" />
     <ToolbarButton v-for="item in MODES" :key="item.id" as-child>
       <UiIconButton
         :label="$t(item.label)"
@@ -36,7 +36,7 @@ const MODES = [
         <component :is="item.icon" class="size-4.5" :stroke-width="1.6" />
       </UiIconButton>
     </ToolbarButton>
-    <ToolbarSeparator class="bg-border-divider mx-0.5 h-4 w-px" />
+    <ToolbarSeparator class="mx-0.5 h-4 w-px bg-stroke-divider" />
     <ToolbarButton as-child>
       <UiIconButton :label="$t('common.cancel')" @click.stop="session.cancel()">
         <X class="size-4.5" :stroke-width="1.6" />

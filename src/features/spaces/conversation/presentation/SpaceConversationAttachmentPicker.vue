@@ -56,7 +56,11 @@ function chooseFiles() {
 <template>
   <UiPopover v-model:open="open" side="top" align="start" class="w-64 max-w-[calc(100vw-24px)] p-1.5">
     <template #trigger>
-      <UiIconButton :label="$t('spaces.conversation.attachments.add')" tooltip size="sm">
+      <UiIconButton
+        :label="$t('spaces.conversation.attachments.add')"
+        :title="$t('spaces.conversation.attachments.add')"
+        size="sm"
+      >
         <Paperclip class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
     </template>

@@ -61,8 +61,8 @@ function cleanContext(context: string, altText: string | null): string {
         <template #trigger>
           <UiIconButton
             :label="t('spaces.canvas.nodeActions.export')"
+            :title="t('spaces.canvas.nodeActions.export')"
             size="sm"
-            tooltip
             :disabled="!exportTarget"
           >
             <Download class="size-3.5" />

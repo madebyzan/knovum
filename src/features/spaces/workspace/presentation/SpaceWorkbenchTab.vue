@@ -22,7 +22,7 @@ const ICONS = { space: LayoutDashboard, document: FileText, video: Film };
   >
     <TabsTrigger
       :value="props.view.id"
-      class="flex h-full min-w-0 flex-1 items-center gap-1.5 px-3 text-left outline-none"
+      class="flex h-full min-w-0 flex-1 items-center gap-1.5 rounded-md px-3 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-stroke-focus"
     >
       <component :is="ICONS[props.view.kind]" class="size-3.5 shrink-0" :stroke-width="1.6" />
       <span class="truncate">{{ props.view.title }}</span>

@@ -83,7 +83,7 @@ const SUBMENU_CLASS =
           <span class="grid size-3.5 place-items-center text-body-lg">🙂</span
           >{{ t("spaces.richtext.ai.actions.emojify") }}
         </DropdownMenuItem>
-        <DropdownMenuSeparator class="bg-border-divider my-1 h-px" />
+        <DropdownMenuSeparator class="my-1 h-px bg-stroke-divider" />
         <DropdownMenuItem :class="ITEM_CLASS" @select="run('improve')">
           <WandSparkles class="size-3.5 text-fg-secondary" />{{ t("spaces.richtext.ai.actions.improve") }}
         </DropdownMenuItem>
@@ -93,7 +93,7 @@ const SUBMENU_CLASS =
         <DropdownMenuItem :class="ITEM_CLASS" @select="run('summarize')">
           <ListCollapse class="size-3.5 text-fg-secondary" />{{ t("spaces.richtext.ai.actions.summarize") }}
         </DropdownMenuItem>
-        <DropdownMenuSeparator class="bg-border-divider my-1 h-px" />
+        <DropdownMenuSeparator class="my-1 h-px bg-stroke-divider" />
         <DropdownMenuSub>
           <DropdownMenuSubTrigger :class="ITEM_CLASS">
             <MessageSquareMore class="size-3.5 text-fg-secondary" />

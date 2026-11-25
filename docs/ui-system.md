@@ -238,8 +238,8 @@ is not permission to hard-code a new application accent or neutral.
 ## Focus presentation
 
 The global base stylesheet resets WebView default `:focus` outlines. Pointer focus does
-not draw an outline; `:focus-visible` owns keyboard focus presentation using a restrained
-inset hairline. Controls with a dedicated keyboard indicator may override this base role.
+not draw an outline; `:focus-visible` owns keyboard focus presentation using a high-contrast
+2px inset outline (`--color-stroke-focus`). Controls with a dedicated keyboard indicator may override this base role.
 Do not blur controls, prevent pointer focus, or add input-modality event listeners to hide
 focus. Reka continues to own focus movement and restoration. Editable-field focus borders,
 menu highlighting and canvas-object selection are separate states, not button focus rings.

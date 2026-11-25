@@ -24,7 +24,12 @@ const { t } = useI18n();
 <template>
   <UiPopover align="end" content-class="w-44 p-1">
     <template #trigger>
-      <UiIconButton :label="t('spaces.inspector.reader.viewOptions')" size="sm" tooltip :disabled="disabled">
+      <UiIconButton
+        :label="t('spaces.inspector.reader.viewOptions')"
+        :title="t('spaces.inspector.reader.viewOptions')"
+        size="sm"
+        :disabled="disabled"
+      >
         <SlidersHorizontal class="size-3.5" />
       </UiIconButton>
     </template>

@@ -145,7 +145,11 @@ onMounted(() => {
       <div class="flex min-w-0 items-center gap-1 px-2 pb-2">
         <UiDropdownMenu :items="referenceMenu" side="top" align="start" :side-offset="6">
           <template #trigger>
-            <UiIconButton :label="t('spaces.creation.generator.references.add')" tooltip size="sm">
+            <UiIconButton
+              :label="t('spaces.creation.generator.references.add')"
+              :title="t('spaces.creation.generator.references.add')"
+              size="sm"
+            >
               <Plus class="size-4" :stroke-width="1.8" />
             </UiIconButton>
           </template>
