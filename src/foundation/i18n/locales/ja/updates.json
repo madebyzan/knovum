@@ -26,6 +26,16 @@
     "title": "バージョン {version} が利用可能です",
     "notes": "リリース ノート"
   },
+  "ready": {
+    "title": "バージョン {version} をインストールする準備ができました"
+  },
+  "indicator": {
+    "available": "アップデート",
+    "downloading": "更新中…",
+    "verifying": "検証中…",
+    "ready": "再起動して更新",
+    "openSettings": "設定で表示"
+  },
   "status": {
     "disabled": "このビルドでは更新は有効になっていません。",
     "idle": "アップデートをチェックする準備ができました。",

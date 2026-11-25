@@ -3,8 +3,9 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import {
-  LABEL_KEY_BY_UPDATE_STATUS,
-  MESSAGE_KEY_BY_UPDATE_FAILURE,
+  canCheckForUpdate,
+  getUpdateRelease,
+  getUpdateStatusMessageKey,
   releaseNotesBody,
   updateTransfer,
 } from "../../../foundation/updates/update-presentation";
@@ -19,20 +20,12 @@ const { t, locale } = useI18n();
 const updates = useUpdateStore();
 
 const state = computed(() => updates.state);
-const release = computed(() => (state.value && "release" in state.value ? state.value.release : null));
+const release = computed(() => getUpdateRelease(state.value));
 const failed = computed(() => state.value?.status === "failed");
-const status = computed(() => {
-  const current = state.value;
-  if (!current) return t("updates.connection.loading");
-  return t(
-    current.status === "failed"
-      ? MESSAGE_KEY_BY_UPDATE_FAILURE[current.reason]
-      : LABEL_KEY_BY_UPDATE_STATUS[current.status],
-  );
-});
+const status = computed(() => t(getUpdateStatusMessageKey(state.value)));
 const transfer = computed(() => (state.value ? updateTransfer(state.value, locale.value) : undefined));
 const notes = computed(() => (release.value ? releaseNotesBody(release.value.notes) : ""));
-const canCheck = computed(() => state.value && ["idle", "current", "failed"].includes(state.value.status));
+const canCheck = computed(() => canCheckForUpdate(state.value));
 </script>
 
 <template>

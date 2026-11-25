@@ -20,6 +20,7 @@ import {
   LABEL_KEY_BY_UPDATE_STATUS,
 } from "../foundation/updates/update-presentation";
 import { UPDATE_TASK_ID, useUpdateStore } from "../foundation/updates/update-store";
+import { isApplicationLeaveCancelled } from "../shared/contracts/application-leave";
 import type { UpdateState } from "../shared/contracts/generated/UpdateState";
 
 const updates = useUpdateStore();
@@ -27,6 +28,7 @@ const tasks = useTaskStore();
 const router = useRouter();
 const { t } = useI18n();
 const notifiedVersions = new Set<string>();
+const notifiedReadyVersions = new Set<string>();
 
 onMounted(() => {
   void updates.initialize().catch((error) => {
@@ -39,12 +41,38 @@ function reviewUpdate() {
   void router.push({ path: "/settings", query: { pane: "about" } });
 }
 
+async function installReadyUpdate() {
+  try {
+    await updates.install();
+  } catch (error) {
+    if (isApplicationLeaveCancelled(error)) return;
+    toast.error(t("updates.action.failed"));
+    void logError(`Application update installation failed: ${formatErrorDiagnostic(error)}`);
+  }
+}
+
 function announceUpdate(state: UpdateState) {
-  if (state.status !== "available" || notifiedVersions.has(state.release.version)) return;
-  notifiedVersions.add(state.release.version);
-  toast.info(t("updates.available.title", { version: state.release.version }), {
-    action: { label: t("updates.available.review"), onClick: reviewUpdate },
-  });
+  if (state.status === "available" && !notifiedVersions.has(state.release.version)) {
+    notifiedVersions.add(state.release.version);
+    toast.info(t("updates.available.title", { version: state.release.version }), {
+      duration: 8000,
+      action: { label: t("updates.available.review"), onClick: reviewUpdate },
+    });
+    return;
+  }
+  if (state.status === "ready" && !notifiedReadyVersions.has(state.release.version)) {
+    notifiedReadyVersions.add(state.release.version);
+    toast.success(t("updates.ready.title", { version: state.release.version }), {
+      duration: 10000,
+      action: {
+        label: updates.canInstall ? t("updates.install.action") : t("updates.available.review"),
+        onClick: () => {
+          if (updates.canInstall) void installReadyUpdate();
+          else reviewUpdate();
+        },
+      },
+    });
+  }
 }
 
 function reflectProgress(state: Extract<UpdateState, { status: "downloading" | "verifying" }>) {
@@ -72,6 +100,7 @@ function reflectTask(state: UpdateState) {
       reflectProgress(state);
       break;
     case "ready":
+      tasks.setOpen(UPDATE_TASK_ID, reviewUpdate);
       tasks.succeed(UPDATE_TASK_ID);
       break;
     case "failed":

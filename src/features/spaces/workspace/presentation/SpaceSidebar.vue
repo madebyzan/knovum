@@ -7,15 +7,19 @@ import { RouterLink } from "vue-router";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import { getUpdateAttentionVersion } from "../../../../foundation/updates/update-presentation";
+import { useUpdateStore } from "../../../../foundation/updates/update-store";
 import { isApplicationLeaveCancelled } from "../../../../shared/contracts/application-leave";
 import SpaceSidebarOutline from "../../outline/presentation/SpaceSidebarOutline.vue";
 import { useSpaceStore } from "../../session/space-store";
 import { useSpaceContextMenu } from "../use-space-context-menu";
 
 const store = useSpaceStore();
+const updates = useUpdateStore();
 const { show: showSpaceMenu } = useSpaceContextMenu();
 const { spaces, activeSpaceId, surface, libraryScope } = storeToRefs(store);
 const { t } = useI18n();
+const updateBadgeVersion = computed(() => getUpdateAttentionVersion(updates.state));
 const ROW_CLASS =
   "flex h-interaction w-full items-center gap-2 rounded-md px-2 text-left text-label text-fg-secondary hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:text-fg-primary";
 const inbox = computed(() => spaces.value.find((space) => space.kind === "inbox"));
@@ -76,7 +80,14 @@ function navigate(operation: () => Promise<void>) {
     <footer class="shrink-0 px-2.5 py-2">
       <RouterLink :to="{ name: 'settings' }" :class="ROW_CLASS">
         <Settings class="size-3.5" :stroke-width="1.55" />
-        {{ t("common.settings") }}
+        <span class="min-w-0 flex-1 truncate">{{ t("common.settings") }}</span>
+        <span
+          v-if="updateBadgeVersion"
+          data-testid="sidebar-settings-update-badge"
+          class="shrink-0 text-caption-sm font-medium text-fg-accent tabular-nums"
+        >
+          {{ updateBadgeVersion }}
+        </span>
       </RouterLink>
     </footer>
   </aside>

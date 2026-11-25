@@ -26,6 +26,16 @@
     "title": "Version {version} is available",
     "notes": "Release notes"
   },
+  "ready": {
+    "title": "Version {version} is ready to install"
+  },
+  "indicator": {
+    "available": "Update",
+    "downloading": "Updating…",
+    "verifying": "Verifying…",
+    "ready": "Restart to update",
+    "openSettings": "View in Settings"
+  },
   "status": {
     "disabled": "Updates are not enabled in this build.",
     "idle": "Ready to check for updates.",

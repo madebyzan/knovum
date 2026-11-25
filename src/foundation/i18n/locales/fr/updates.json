@@ -26,6 +26,16 @@
     "title": "La version {version} est disponible",
     "notes": "Notes de version"
   },
+  "ready": {
+    "title": "La version {version} est prête à être installée"
+  },
+  "indicator": {
+    "available": "Mise à jour",
+    "downloading": "Mise à jour…",
+    "verifying": "Vérification…",
+    "ready": "Redémarrer pour mettre à jour",
+    "openSettings": "Voir dans les réglages"
+  },
   "status": {
     "disabled": "Les mises à jour ne sont pas activées dans cette version.",
     "idle": "Prêt à vérifier les mises à jour.",

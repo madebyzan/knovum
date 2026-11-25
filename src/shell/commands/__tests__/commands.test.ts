@@ -24,6 +24,7 @@ function commands(workspaceActive: boolean, rightSidebarAvailable = true) {
     actions: {
       openCommandPalette: vi.fn<() => void>(),
       openSettings: vi.fn<() => void>(),
+      checkForUpdates: vi.fn<() => void>(),
       openShortcuts: vi.fn<() => void>(),
       toggleSidebar: vi.fn<() => void>(),
       toggleRightSidebar: vi.fn<() => void>(),
@@ -38,6 +39,7 @@ function commands(workspaceActive: boolean, rightSidebarAvailable = true) {
         "select-all": "select all",
       },
       settings: "settings",
+      checkForUpdates: "check for updates",
       commandPalette: "palette",
       shortcuts: "shortcuts",
       toggleSidebar: "sidebar",
@@ -74,10 +76,11 @@ describe("shell commands", () => {
     expect(spaces).toContain("view.toggle-right-sidebar");
   });
 
-  it("exposes command palette and keyboard shortcuts", () => {
+  it("exposes command palette, update check, and keyboard shortcuts", () => {
     const appCommands = commands(true);
     const ids = appCommands.map((command) => command.id);
     expect(ids).toContain("shell.command-palette");
+    expect(ids).toContain("application.check-for-updates");
     expect(ids).toContain("shell.shortcuts");
 
     const shortcuts = appCommands.find((command) => command.id === "shell.shortcuts");

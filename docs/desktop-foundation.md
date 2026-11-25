@@ -202,9 +202,12 @@ production layout is defined in [packaging.md](packaging.md).
 ## Updater and signing
 
 The updater is registered only when validated release configuration is embedded. Rust owns checks,
-selection, download, verification, and installation. Installation requires explicit user confirmation
-and the registered-save barrier. Endpoint, signing, promotion, and artifact policy belong to
-[release.md](release.md).
+selection, download, verification, and installation. Downloads and installation require explicit user
+confirmation, and installation passes the registered-save barrier. Actionable update states surface
+persistently through the toolbar update control and its in-place popover, inline version indicators on
+the Settings and About navigation rows, transient toasts on discovery and readiness, the Command
+Palette, and the macOS Application Menu's `Check for Updates…` command. Endpoint, signing, promotion,
+and artifact policy belong to [release.md](release.md).
 
 CI compilation on macOS and Windows proves source compatibility only. Lifecycle, menus, shortcuts,
 dialogs, permissions, preview, native input, progress, installation, signing, and updating require the

@@ -7,6 +7,7 @@ import type { WorkspaceDefinition } from "../../shared/contracts/workspace-defin
 interface ShellCommandActions {
   openCommandPalette: () => void;
   openSettings: () => void;
+  checkForUpdates?: () => void;
   openShortcuts?: () => void;
   toggleSidebar: () => void;
   toggleRightSidebar: () => void;
@@ -15,6 +16,7 @@ interface ShellCommandActions {
 interface ShellCommandLabels {
   editingLabelByCommand: Record<EditingCommand, string>;
   settings: string;
+  checkForUpdates?: string;
   commandPalette: string;
   shortcuts?: string;
   toggleSidebar: string;
@@ -82,6 +84,15 @@ export function createShellCommands(
       run: actions.openSettings,
     },
   ];
+
+  if (actions.checkForUpdates && labels.checkForUpdates) {
+    baseCommands.push({
+      id: "application.check-for-updates",
+      title: labels.checkForUpdates,
+      category: "general",
+      run: actions.checkForUpdates,
+    });
+  }
 
   if (actions.openShortcuts && labels.shortcuts) {
     baseCommands.push({

@@ -35,7 +35,7 @@ const {
   armSidebarPreview,
   scheduleSidebarPreviewClose,
   closeSidebarPreview,
-} = useShellController(props.workspace, workspaceActive, () => emit("openSettings"));
+} = useShellController(props.workspace, workspaceActive, (pane) => emit("openSettings", pane));
 provide(overlayScopeVisibleKey, workspaceActive);
 const edges = useWorkspaceEdges({
   sidebarPinned,
@@ -74,6 +74,7 @@ const edges = useWorkspaceEdges({
       @toggle-sidebar="toggleSidebarFromControl"
       @preview-sidebar="openSidebarPreview"
       @cancel-sidebar-preview="armSidebarPreview"
+      @open-settings="(pane) => emit('openSettings', pane)"
     />
     <WorkspaceLayout
       :workspace="workspace"

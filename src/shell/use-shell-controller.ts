@@ -1,35 +1,19 @@
-import { listen } from "@tauri-apps/api/event";
-import { error as logError } from "@tauri-apps/plugin-log";
 import { useTimeoutFn } from "@vueuse/core";
-import { computed, onMounted, onUnmounted, provide, shallowRef, watchEffect, type Ref } from "vue";
-import { useI18n } from "vue-i18n";
+import { computed, provide, shallowRef, type Ref } from "vue";
 
-import { bindCommandShortcuts } from "../foundation/commands/command-shortcuts";
-import { registerAppCommands, runAppCommandById } from "../foundation/commands/run-app-command";
-import { formatErrorDiagnostic } from "../foundation/errors/error-format";
-import { createAsyncDisposer } from "../foundation/lifecycle/async-disposer";
-import { useShortcutsStore } from "../foundation/shortcuts/shortcut-store";
 import type { WorkspaceDefinition } from "../shared/contracts/workspace-definition";
 import { workspaceRightSidebarKey } from "../shared/contracts/workspace-right-sidebar";
 import { workspaceSidebarKey } from "../shared/contracts/workspace-sidebar";
-import { createShellCommands } from "./commands/commands";
+import { useShellCommands } from "./commands/use-shell-commands";
 import { useWorkbenchLayoutPreferences } from "./layout/use-workbench-layout-preferences";
-
-function resolveShortcutsStore() {
-  try {
-    return useShortcutsStore();
-  } catch {
-    return undefined;
-  }
-}
 
 export function useShellController(
   workspace: WorkspaceDefinition,
   workspaceActive: Readonly<Ref<boolean>>,
-  openSettings: () => void,
+  openSettings: (pane?: string) => void,
 ) {
-  const { t } = useI18n();
   const commandOpen = shallowRef(false);
+  const shortcutsOpen = shallowRef(false);
   const {
     sidebarPinned,
     sidebarWidth,
@@ -115,48 +99,16 @@ export function useShellController(
   provide(workspaceRightSidebarKey, rightSidebar);
   provide(workspaceSidebarKey, sidebar);
   const workspaceCommands = workspace.useCommands({ sidebar, rightSidebar });
-  const shortcutsOpen = shallowRef(false);
-  const commands = computed(() =>
-    createShellCommands(workspace, workspaceActive.value, {
-      workspaceCommands: workspaceCommands.value,
-      actions: {
-        openCommandPalette: () => (commandOpen.value = true),
-        openSettings,
-        openShortcuts: () => (shortcutsOpen.value = true),
-        toggleSidebar: toggleSidebarPanel,
-        toggleRightSidebar,
-      },
-      labels: {
-        editingLabelByCommand: {
-          undo: t("common.undo"),
-          redo: t("common.redo"),
-          cut: t("common.cut"),
-          copy: t("common.copy"),
-          paste: t("common.paste"),
-          "select-all": t("common.selectAll"),
-        },
-        settings: t("common.settings"),
-        commandPalette: t("shell.commands.title"),
-        shortcuts: t("shell.shortcuts.title"),
-        toggleSidebar: t("shell.layout.toggleSidebar"),
-        toggleRightSidebar: t("shell.layout.toggleRightSidebar"),
-      },
-    }),
-  );
-  const menuCommandListener = createAsyncDisposer();
-  const shortcutsStore = resolveShortcutsStore();
-  watchEffect((cleanup) => {
-    cleanup(registerAppCommands(commands.value));
-    cleanup(bindCommandShortcuts(commands.value, shortcutsStore?.getEffectiveShortcut));
+  const commands = useShellCommands({
+    workspace,
+    workspaceActive,
+    workspaceCommands,
+    openCommandPalette: () => (commandOpen.value = true),
+    openSettings,
+    openShortcuts: () => (shortcutsOpen.value = true),
+    toggleSidebar: toggleSidebarPanel,
+    toggleRightSidebar,
   });
-  onMounted(() => {
-    void menuCommandListener
-      .attach(listen<string>("knovum-run-command", ({ payload }) => runAppCommandById(payload)))
-      .catch(
-        (error) => void logError(`Failed to register menu command listener: ${formatErrorDiagnostic(error)}`),
-      );
-  });
-  onUnmounted(menuCommandListener.dispose);
   return {
     commandOpen,
     shortcutsOpen,
