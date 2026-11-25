@@ -22,7 +22,8 @@
     "followSystem": "システム設定に従う",
     "theme": {
       "light": "ライト",
-      "dark": "ダーク"
+      "dark": "ダーク",
+      "paper": "ペーパー＆フォレスト"
     },
     "textSize": {
       "small": "小さい",

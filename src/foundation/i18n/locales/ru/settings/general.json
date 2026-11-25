@@ -25,7 +25,8 @@
     "intelligence": "Интеллект",
     "general": "Общие",
     "data": "Данные и архивы",
-    "information": "Информация"
+    "information": "Информация",
+    "advanced": "Дополнительно"
   },
   "saveFailed": "Не удалось сохранить настройки",
   "analytics": {

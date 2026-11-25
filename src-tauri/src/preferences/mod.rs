@@ -12,6 +12,7 @@ pub enum ThemePreference {
     System,
     Light,
     Dark,
+    Paper,
 }
 
 #[derive(Deserialize, Serialize, schemars::JsonSchema, ts_rs::TS)]

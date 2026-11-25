@@ -75,7 +75,7 @@ watch(
       <DictationOverlay v-if="dictationSupported" />
       <UiConfirmAction />
       <Toaster
-        :theme="theme"
+        :theme="theme === 'paper' ? 'light' : theme"
         position="top-right"
         :offset="{ top: '48px', right: '12px' }"
         :visible-toasts="4"

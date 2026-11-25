@@ -25,7 +25,8 @@
     "intelligence": "지능",
     "general": "일반",
     "data": "데이터 및 아카이브",
-    "information": "정보"
+    "information": "정보",
+    "advanced": "고급"
   },
   "saveFailed": "설정을 저장할 수 없습니다.",
   "analytics": {

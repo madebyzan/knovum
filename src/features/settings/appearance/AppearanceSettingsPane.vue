@@ -36,6 +36,7 @@ async function updatePreference(operation: () => Promise<void>) {
 const themes = computed<readonly SelectOption<ThemePreference>[]>(() => [
   { value: "system", label: t("settings.appearance.options.followSystem") },
   { value: "light", label: t("settings.appearance.options.theme.light") },
+  { value: "paper", label: t("settings.appearance.options.theme.paper") },
   { value: "dark", label: t("settings.appearance.options.theme.dark") },
 ]);
 const textSizes = computed<readonly SelectOption<TextSizePreference>[]>(() => [

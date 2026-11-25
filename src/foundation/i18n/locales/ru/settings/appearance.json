@@ -22,7 +22,8 @@
     "followSystem": "Как в системе",
     "theme": {
       "light": "Светлая",
-      "dark": "Тёмная"
+      "dark": "Тёмная",
+      "paper": "Бумага и лес"
     },
     "textSize": {
       "small": "Маленький",

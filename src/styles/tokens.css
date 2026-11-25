@@ -197,6 +197,37 @@
   --knovum-command-palette-item-height: 3rem;
   --knovum-setting-min-height: 3.5rem;
 }
+:root[data-theme="paper"] {
+  color-scheme: light;
+  --color-surface-chrome: rgb(236 233 223);
+  --color-surface-canvas: rgb(247 245 239);
+  --color-surface-muted: rgb(239 236 227);
+  --color-surface-panel: rgb(243 240 232);
+  --color-surface-raised: rgb(252 251 247 / 0.98);
+  --color-surface-overlay: rgb(249 247 241 / 0.98);
+  --color-surface-control: rgb(28 32 27 / 0.055);
+  --color-surface-control-hover: rgb(28 32 27 / 0.085);
+  --color-surface-control-pressed: rgb(28 32 27 / 0.12);
+  --color-surface-accent: rgb(61 90 59);
+  --color-surface-accent-hover: rgb(46 70 45);
+  --color-surface-accent-pressed: rgb(37 57 36);
+  --color-surface-accent-subtle: color-mix(in oklch, rgb(61 90 59) 10%, transparent);
+  --color-surface-selected: color-mix(in oklch, rgb(61 90 59) 14%, transparent);
+  --color-fg-primary: rgb(28 32 27);
+  --color-fg-secondary: rgb(73 79 69);
+  --color-fg-tertiary: rgb(92 99 87);
+  --color-fg-accent: rgb(53 82 51);
+  --color-stroke-accent: rgb(61 90 59);
+  --color-stroke-focus: color-mix(in oklch, rgb(61 90 59) 78%, transparent);
+  --color-stroke-default: rgb(28 32 27 / 0.09);
+  --color-stroke-strong: rgb(28 32 27 / 0.15);
+  --color-stroke-default-hover: rgb(28 32 27 / 0.24);
+  --color-stroke-divider: rgb(28 32 27 / 0.06);
+  --knovum-window-border-color: rgb(28 32 27 / 0.12);
+  --knovum-sidebar-item-bg-hover: rgb(28 32 27 / 0.055);
+  --knovum-sidebar-item-bg-selected: rgb(28 32 27 / 0.1);
+  --knovum-tab-bg-inactive: rgb(241 238 229);
+}
 :root[data-theme="dark"] {
   color-scheme: dark;
   --color-content-red: var(--color-red-400);

@@ -27,6 +27,7 @@ export interface SettingsDefinition {
   descriptionKey: string;
   searchKeys: readonly string[];
   icon: Component;
+  advanced?: boolean;
   locations?: readonly { id: string; labelKey: string; descriptionKey: string }[];
 }
 
@@ -107,6 +108,7 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
   {
     id: "voices",
     group: "intelligence",
+    advanced: true,
     titleKey: "spaces.speech.library.title",
     descriptionKey: "spaces.speech.library.description",
     searchKeys: [
@@ -142,13 +144,14 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
   {
     id: "usage",
     group: "intelligence",
+    advanced: true,
     titleKey: "settings.usage.title",
     descriptionKey: "settings.usage.description",
     searchKeys: ["settings.usage.activity.title", "settings.usage.tokens.total"],
     icon: Activity,
   },
   BACKUP_SETTINGS_DEFINITION,
-  OBJECT_STORAGE_SETTINGS_DEFINITION,
+  { ...OBJECT_STORAGE_SETTINGS_DEFINITION, advanced: true },
   {
     id: "archivedSpaces",
     group: "data",

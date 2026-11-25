@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ArrowLeft } from "@lucide/vue";
+import { ArrowLeft, ChevronRight } from "@lucide/vue";
 import { compact } from "es-toolkit";
 import { search } from "fast-fuzzy";
-import { computed, shallowRef } from "vue";
+import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { fuzzySearchThreshold } from "../../../shared/contracts/fuzzy-search-threshold";
@@ -15,6 +15,9 @@ const props = defineProps<{ activePane: SettingsPaneId; activeSetting?: string |
 const emit = defineEmits<{ back: []; select: [pane: SettingsPaneId, location?: string] }>();
 const { t } = useI18n();
 const query = shallowRef("");
+const advancedExpanded = shallowRef(false);
+const NAV_ROW_CLASS =
+  "mb-0.5 flex h-(--knovum-control-height-md) w-full items-center gap-2.5 rounded-md px-2 text-left text-body-lg text-fg-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:font-medium data-[active=true]:text-fg-primary";
 const groups = computed(() =>
   Object.entries(TITLE_KEY_BY_SETTINGS_GROUP).map(([group, titleKey]) => ({
     id: group,
@@ -22,6 +25,7 @@ const groups = computed(() =>
     settings: SETTINGS_REGISTRY.filter((definition) => definition.group === group).map((definition) => ({
       id: definition.id,
       icon: definition.icon,
+      advanced: Boolean(definition.advanced),
       locations: definition.locations,
       label: t(definition.titleKey),
       description: t(definition.descriptionKey),
@@ -29,6 +33,21 @@ const groups = computed(() =>
       searchText: [definition.titleKey, ...definition.searchKeys].map((key) => t(key)).join(" "),
     })),
   })),
+);
+const primaryGroups = computed(() =>
+  groups.value
+    .map((group) => ({ ...group, settings: group.settings.filter((setting) => !setting.advanced) }))
+    .filter((group) => group.settings.length > 0),
+);
+const advancedSettings = computed(() =>
+  groups.value.flatMap((group) => group.settings.filter((setting) => setting.advanced)),
+);
+watch(
+  () => props.activePane,
+  (pane) => {
+    if (advancedSettings.value.some((setting) => setting.id === pane)) advancedExpanded.value = true;
+  },
+  { immediate: true },
 );
 
 function fuzzySettings<T extends { searchText: string }>(value: string, candidates: T[]) {
@@ -46,9 +65,7 @@ const visibleGroups = computed(() => {
       settings: group.settings.flatMap((setting) =>
         setting.locations?.length
           ? setting.locations.map((location) => ({
-              id: setting.id,
-              icon: setting.icon,
-              locations: setting.locations,
+              ...setting,
               location: location.id,
               label: t(location.labelKey),
               description: t(location.descriptionKey),
@@ -115,21 +132,48 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
           </section>
         </template>
         <template v-else>
-          <section v-for="group in visibleGroups" :key="group.id" class="mb-4">
+          <section v-for="group in primaryGroups" :key="group.id" class="mb-4">
             <p class="mb-1.5 px-2 text-caption font-medium text-fg-tertiary">{{ group.label }}</p>
             <button
               v-for="setting in group.settings"
               :key="setting.id"
               :data-testid="`settings-pane-${setting.id}`"
               type="button"
-              class="mb-0.5 flex h-(--knovum-control-height-md) w-full items-center gap-2.5 rounded-md px-2 text-left text-body-lg text-fg-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:font-medium data-[active=true]:text-fg-primary"
+              :class="NAV_ROW_CLASS"
               :data-active="props.activePane === setting.id"
               @click="emit('select', setting.id)"
             >
-              <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" /><span>{{
-                setting.label
-              }}</span>
+              <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" />
+              <span>{{ setting.label }}</span>
             </button>
+          </section>
+          <section v-if="advancedSettings.length" class="mb-4">
+            <button
+              type="button"
+              class="mb-1 flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-caption font-medium text-fg-tertiary transition-colors hover:text-fg-secondary"
+              :aria-expanded="advancedExpanded"
+              @click="advancedExpanded = !advancedExpanded"
+            >
+              <ChevronRight
+                class="size-3 transition-transform duration-150 ease-standard"
+                :class="advancedExpanded && 'rotate-90'"
+              />
+              <span>{{ t("settings.general.groups.advanced") }}</span>
+            </button>
+            <div v-if="advancedExpanded">
+              <button
+                v-for="setting in advancedSettings"
+                :key="setting.id"
+                :data-testid="`settings-pane-${setting.id}`"
+                type="button"
+                :class="NAV_ROW_CLASS"
+                :data-active="props.activePane === setting.id"
+                @click="emit('select', setting.id)"
+              >
+                <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" />
+                <span>{{ setting.label }}</span>
+              </button>
+            </div>
           </section>
         </template>
         <p v-if="matchingSettings.length === 0" class="px-2 py-3 text-caption text-fg-tertiary">
