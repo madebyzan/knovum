@@ -1,10 +1,39 @@
+use std::sync::Mutex;
+
 use super::super::{
     snapshots::SnapshotKind,
     sources::{self, HubSource},
 };
 
+static DOWNLOAD_SOURCE_TEST_LOCK: Mutex<()> = Mutex::new(());
+
+struct DownloadSourceGuard {
+    _lock: std::sync::MutexGuard<'static, ()>,
+}
+
+impl DownloadSourceGuard {
+    fn set(source: crate::local_resources::download_source::DownloadSource) -> Self {
+        let lock = DOWNLOAD_SOURCE_TEST_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        crate::local_resources::download_source::set_active(source);
+        Self { _lock: lock }
+    }
+}
+
+impl Drop for DownloadSourceGuard {
+    fn drop(&mut self) {
+        crate::local_resources::download_source::set_active(
+            crate::local_resources::download_source::DownloadSource::HuggingFace,
+        );
+    }
+}
+
 #[test]
 fn fixed_hub_urls_preserve_revision_and_encode_nested_file_names() {
+    let _guard = DownloadSourceGuard::set(
+        crate::local_resources::download_source::DownloadSource::HuggingFace,
+    );
     let source = sources::for_snapshot(SnapshotKind::ImageSegmentation(
         super::super::catalog::SegmentationModel::IsnetAnime,
     ))
@@ -73,6 +102,9 @@ fn all_sources_pin_full_revisions_and_bundle_files_have_one_owner() {
 
 #[test]
 fn moss_joint_snapshot_is_pinned_and_downloads_without_hub_runtime() {
+    let _guard = DownloadSourceGuard::set(
+        crate::local_resources::download_source::DownloadSource::HuggingFace,
+    );
     use super::super::catalog::ModelKind;
     let snapshot = SnapshotKind::MossNano;
     assert!(sources::for_snapshot(snapshot).is_none());
@@ -156,7 +188,7 @@ fn forced_alignment_uses_the_inference_f16_package() {
 
 #[test]
 fn huggingface_resolve_url_builds_standard_resolve_path_with_default_endpoint() {
-    crate::local_resources::download_source::set_active(
+    let _guard = DownloadSourceGuard::set(
         crate::local_resources::download_source::DownloadSource::HuggingFace,
     );
     let url = sources::huggingface_resolve_url(
@@ -172,16 +204,20 @@ fn huggingface_resolve_url_builds_standard_resolve_path_with_default_endpoint() 
 
 #[test]
 fn hf_mirror_download_source_rewrites_huggingface_resolve_urls() {
-    use crate::local_resources::download_source::{self, DownloadSource};
-    download_source::set_active(DownloadSource::HfMirror);
+    let _guard =
+        DownloadSourceGuard::set(crate::local_resources::download_source::DownloadSource::HfMirror);
     let url = sources::huggingface_resolve_url(
         "PaddlePaddle/PP-OCRv6_small_det_onnx",
         "28fe5895c24fd108c19eb3e8479f4ab385fbfc62",
         "inference.onnx",
     );
-    download_source::set_active(DownloadSource::HuggingFace);
     assert_eq!(
         url,
         "https://hf-mirror.com/PaddlePaddle/PP-OCRv6_small_det_onnx/resolve/28fe5895c24fd108c19eb3e8479f4ab385fbfc62/inference.onnx"
     );
+    use super::super::catalog::{ImageModelCatalog, ImageModelVariant};
+    let archive = ImageModelVariant::MobileSam
+        .archive()
+        .expect("MobileSam archive");
+    assert!(archive.source.url().starts_with("https://hf-mirror.com/"));
 }

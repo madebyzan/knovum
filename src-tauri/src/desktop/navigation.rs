@@ -37,7 +37,12 @@ pub(super) fn allows<R: Runtime>(webview: &Webview<R>, url: &Url) -> bool {
 fn allows_reader_webview(url: &Url) -> bool {
     match url.scheme() {
         "about" => true,
-        "http" | "https" => is_public_reader_http_url(url),
+        "http" | "https" => {
+            (cfg!(target_os = "windows")
+                && url.scheme() == "http"
+                && url.host_str() == Some("knovum-preview.localhost"))
+                || is_public_reader_http_url(url)
+        }
         READER_PREVIEW_SCHEME => url.host_str() == Some("localhost"),
         _ => false,
     }

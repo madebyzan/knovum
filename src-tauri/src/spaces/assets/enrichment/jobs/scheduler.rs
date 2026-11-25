@@ -88,26 +88,42 @@ async fn dispatch(
             Ok(selection) => selection,
             Err(error) if error.is_not_configured() => {
                 drop(permit);
+                let message = error.to_string();
                 persistence::defer_for_configuration(
                     pool,
                     &job.id,
-                    error.to_string(),
+                    message.clone(),
                     crate::foundation::clock::unix_time_millis()?,
                 )
                 .await?;
+                if job.status != EnrichmentJobStatus::AwaitingConfiguration {
+                    publish_update(
+                        app,
+                        &status_update(
+                            &job,
+                            EnrichmentJobStatus::AwaitingConfiguration,
+                            Some(message),
+                        ),
+                    );
+                }
                 continue;
             }
             Err(error) => {
                 drop(permit);
+                let message = error.to_string();
                 persistence::set_status(
                     pool,
                     &job.id,
                     "'pending','awaiting_configuration'",
                     "failed",
-                    Some(error.to_string()),
+                    Some(message.clone()),
                     crate::foundation::clock::unix_time_millis()?,
                 )
                 .await?;
+                publish_update(
+                    app,
+                    &status_update(&job, EnrichmentJobStatus::Failed, Some(message)),
+                );
                 continue;
             }
         };
@@ -224,6 +240,24 @@ async fn execute(
         .map_err(crate::spaces::db::json_error)?;
     publish_update(app, &completed);
     Ok(())
+}
+
+fn status_update(
+    job: &super::job::EnrichmentJobState,
+    status: EnrichmentJobStatus,
+    error: Option<String>,
+) -> EnrichmentJobUpdate {
+    EnrichmentJobUpdate {
+        job_id: job.id.clone(),
+        space_id: job.space_id.clone(),
+        node_id: job.node_id.clone(),
+        job_type: job.job_type,
+        created_at: job.created_at,
+        status,
+        progress: None,
+        data: None,
+        error,
+    }
 }
 
 fn publish_update(app: &AppHandle, update: &EnrichmentJobUpdate) {

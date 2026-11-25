@@ -11,6 +11,7 @@ use crate::{
 const OLLAMA_TAGS_URL: &str = "http://127.0.0.1:11434/api/tags";
 const OLLAMA_PROBE_TIMEOUT: Duration = Duration::from_millis(1_500);
 const MAX_OLLAMA_MODELS: usize = 20;
+const MAX_OLLAMA_RESPONSE_BYTES: usize = 256 * 1024;
 
 #[derive(Deserialize)]
 struct OllamaTagsResponse {
@@ -33,6 +34,7 @@ pub async fn detect_external_agent_installations(
 pub async fn detect_local_ollama_models() -> Result<Vec<String>, AppError> {
     let Ok(client) = reqwest::Client::builder()
         .no_proxy()
+        .redirect(reqwest::redirect::Policy::none())
         .timeout(OLLAMA_PROBE_TIMEOUT)
         .build()
     else {
@@ -44,7 +46,19 @@ pub async fn detect_local_ollama_models() -> Result<Vec<String>, AppError> {
     if !response.status().is_success() {
         return Ok(Vec::new());
     }
-    let Ok(payload) = response.json::<OllamaTagsResponse>().await else {
+    if response
+        .content_length()
+        .is_some_and(|len| len > MAX_OLLAMA_RESPONSE_BYTES as u64)
+    {
+        return Ok(Vec::new());
+    }
+    let Ok(bytes) = response.bytes().await else {
+        return Ok(Vec::new());
+    };
+    if bytes.len() > MAX_OLLAMA_RESPONSE_BYTES {
+        return Ok(Vec::new());
+    }
+    let Ok(payload) = serde_json::from_slice::<OllamaTagsResponse>(&bytes) else {
         return Ok(Vec::new());
     };
     let mut names = Vec::new();

@@ -155,7 +155,11 @@ fn validate_asset_url(url: &Url) -> Result<(), String> {
 async fn public_response(mut url: Url, accept_header: &str) -> Result<Response, String> {
     for redirect_count in 0..=MAX_REDIRECTS {
         validate_derived_url(&url)?;
-        let host = url.host_str().ok_or("Web resource URL has no host")?;
+        let host = url
+            .host_str()
+            .ok_or("Web resource URL has no host")?
+            .trim_start_matches('[')
+            .trim_end_matches(']');
         let port = url
             .port_or_known_default()
             .ok_or("Web resource URL has no port")?;

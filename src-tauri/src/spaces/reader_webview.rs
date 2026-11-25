@@ -20,7 +20,7 @@ use crate::foundation::app_error::AppError;
 const MAIN_WINDOW_LABEL: &str = "main";
 const MAX_PREVIEW_ASSET_BYTES: usize = 16 * 1024 * 1024;
 const SVG_PREVIEW_CSP: &str =
-    "default-src 'none'; style-src 'unsafe-inline'; img-src data: blob:; form-action 'none'";
+    "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data: blob:; form-action 'none'";
 const HTML_PREVIEW_CSP: &str =
     "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; form-action 'none'";
 

@@ -7,6 +7,7 @@ use agent_client_protocol::schema::v1::{
 use rmcp::model::{ElicitRequestParams, ElicitationAction};
 use serde_json::json;
 use sqlx::SqlitePool;
+use tokio_util::sync::CancellationToken;
 
 use crate::{
     extensions::mcp::McpInteraction,
@@ -15,20 +16,24 @@ use crate::{
 };
 
 /// Tracks which conversation Run currently owns a pooled Desktop Agent runtime so ACP permission
-/// requests can surface in that Run's approval queue and never leak across turns.
+/// requests can surface in that Run's approval queue, cancel with the turn, and never leak across turns.
 #[derive(Default)]
-pub(super) struct ActiveTurnRun(Mutex<Option<(SqlitePool, String)>>);
+pub(super) struct ActiveTurnRun(Mutex<Option<(SqlitePool, String, CancellationToken)>>);
 
 impl ActiveTurnRun {
-    pub(super) fn bind(&self, pool: SqlitePool, run_id: String) {
-        *self.0.lock().unwrap_or_else(PoisonError::into_inner) = Some((pool, run_id));
+    pub(super) fn bind(&self, pool: SqlitePool, run_id: String, cancellation: CancellationToken) {
+        *self.0.lock().unwrap_or_else(PoisonError::into_inner) = Some((pool, run_id, cancellation));
     }
 
     pub(super) fn clear(&self) {
-        *self.0.lock().unwrap_or_else(PoisonError::into_inner) = None;
+        if let Some((_, _, cancellation)) =
+            self.0.lock().unwrap_or_else(PoisonError::into_inner).take()
+        {
+            cancellation.cancel();
+        }
     }
 
-    fn current(&self) -> Option<(SqlitePool, String)> {
+    fn current(&self) -> Option<(SqlitePool, String, CancellationToken)> {
         self.0
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
@@ -40,14 +45,26 @@ pub(super) fn interactive_policy(active_run: Arc<ActiveTurnRun>) -> PermissionPo
     let approver: PermissionApprover = Arc::new(move |request, cancellation| {
         let active_run = active_run.clone();
         Box::pin(async move {
-            let Some((pool, run_id)) = active_run.current() else {
+            let Some((pool, run_id, turn_cancellation)) = active_run.current() else {
                 return Ok(select_reject_or_cancel(&request));
             };
             let Some(params) = build_elicitation_params(&request) else {
                 return Ok(select_reject_or_cancel(&request));
             };
+            let combined = CancellationToken::new();
+            let trigger = combined.clone();
+            let cancel_watcher = tokio::spawn(async move {
+                tokio::select! {
+                    () = cancellation.cancelled() => trigger.cancel(),
+                    () = turn_cancellation.cancelled() => trigger.cancel(),
+                    () = trigger.cancelled() => {}
+                }
+            });
             let interaction = RunMcpInteraction { pool, run_id };
-            match interaction.elicit(params, cancellation).await {
+            let result = interaction.elicit(params, combined.clone()).await;
+            combined.cancel();
+            cancel_watcher.abort();
+            match result {
                 Ok(result) => Ok(map_elicitation_result(&request, result)),
                 Err(error) => {
                     log::warn!("Desktop Agent permission approval failed: {error}");

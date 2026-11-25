@@ -68,6 +68,7 @@ pub(super) fn instructions() -> String {
 }
 
 #[derive(Default, Clone, Debug)]
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 pub(crate) struct SandboxBoundaries {
     pub(crate) app_config_dir: Option<PathBuf>,
     pub(crate) app_data_dir: Option<PathBuf>,

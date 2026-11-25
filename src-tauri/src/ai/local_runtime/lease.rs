@@ -44,9 +44,11 @@ impl Drop for WorkerLease {
             // A future dropped mid-request leaves the worker's stdio protocol desynchronized;
             // evict it immediately and terminate it asynchronously so no caller reuses it.
             if let Some(mut worker) = self.guard.take() {
-                tokio::spawn(async move {
-                    worker.terminate().await;
-                });
+                if let Ok(handle) = tokio::runtime::Handle::try_current() {
+                    handle.spawn(async move {
+                        worker.terminate().await;
+                    });
+                }
             }
             return;
         }

@@ -628,3 +628,39 @@ async fn upgrading_0_0_7_unfreezes_unfinished_visual_targets() {
         ]
     );
 }
+
+#[tokio::test]
+async fn upgrading_0_0_8_adds_nullable_transcription_language() {
+    let pool = shipped(8).await;
+    sqlx::query(
+        "INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('s','space','S',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .expect("space");
+    sqlx::query(
+        "INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) \
+         VALUES('n','s','audio',0,0,'{\"kind\":\"audio\",\"title\":\"Talk\",\"sourceRevision\":\"r1\"}',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .expect("node");
+    sqlx::query(
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,created_at,updated_at) \
+         VALUES('job-1','s','n','transcribe_media','pending','r1',1,1)",
+    )
+    .execute(&pool)
+    .await
+    .expect("job");
+
+    super::super::migrate(&pool).await.expect("upgrade");
+
+    assert_eq!(schema(&pool).await, schema(&super::migrated().await).await);
+    let language: Option<String> = sqlx::query_scalar(
+        "SELECT transcription_language FROM spaces_enrichment_jobs WHERE id='job-1'",
+    )
+    .fetch_one(&pool)
+    .await
+    .expect("transcription_language");
+    assert_eq!(language, None);
+}

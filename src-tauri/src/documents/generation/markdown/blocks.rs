@@ -39,6 +39,7 @@ impl Reader<'_> {
                     text: value.into_string(),
                 },
                 Event::Start(Tag::FootnoteDefinition(label)) => {
+                    flush(&mut blocks, &mut loose);
                     let content = self.blocks(Some(TagEnd::FootnoteDefinition), depth + 1)?;
                     self.footnotes.push((label.into_string(), content));
                     continue;

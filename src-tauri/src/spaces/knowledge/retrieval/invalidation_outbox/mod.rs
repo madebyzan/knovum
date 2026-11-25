@@ -108,14 +108,15 @@ async fn drain_scoped(
 }
 
 /// Drains one invalidation batch without holding the SQLite write lock across LanceDB I/O:
-/// 1. Short SQLite read selects pending outbox rows.
-/// 2. Under `LANCE_WRITE_LOCK` (with no SQLite transaction open), LanceDB deletes are applied.
-/// 3. Short SQLite `BEGIN IMMEDIATE` transaction acknowledges succeeded rows and records failures.
+/// Holds `LANCE_WRITE_LOCK` across the whole select -> LanceDB delete -> SQLite acknowledge cycle
+/// so concurrent drains or embedding publishes cannot interleave, while keeping every SQLite
+/// transaction short and never holding SQLite during LanceDB I/O.
 async fn drain_batch(
     index: &Connection,
     pool: &sqlx::SqlitePool,
     space_id: Option<&str>,
 ) -> Result<usize, String> {
+    let _lance_guard = acquire_lance_write_lock().await;
     let pending = sqlx::query_as::<_, PendingInvalidation>(
         "SELECT id,space_id,node_id FROM spaces_retrieval_invalidations \
          WHERE $1 IS NULL OR space_id=$1 ORDER BY node_id IS NOT NULL,id LIMIT $2",
@@ -138,18 +139,15 @@ async fn drain_batch(
     }
     let mut settled = Vec::new();
     let mut failed = Vec::new();
-    {
-        let _lance_guard = acquire_lance_write_lock().await;
-        let table = open_knowledge_table_if_exists(index).await;
-        for (space, invalidations) in invalidations_by_space_id {
-            let outcome = match &table {
-                Ok(table) => settlement::apply(table.as_ref(), &space, &invalidations).await,
-                Err(error) => Err(error.clone()),
-            };
-            match outcome {
-                Ok(()) => settled.push((space, invalidations)),
-                Err(error) => failed.push((space, invalidations, error)),
-            }
+    let table = open_knowledge_table_if_exists(index).await;
+    for (space, invalidations) in invalidations_by_space_id {
+        let outcome = match &table {
+            Ok(table) => settlement::apply(table.as_ref(), &space, &invalidations).await,
+            Err(error) => Err(error.clone()),
+        };
+        match outcome {
+            Ok(()) => settled.push((space, invalidations)),
+            Err(error) => failed.push((space, invalidations, error)),
         }
     }
     let mut tx = db::begin_write(pool).await?;

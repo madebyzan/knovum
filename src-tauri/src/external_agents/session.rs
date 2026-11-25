@@ -49,11 +49,13 @@ async fn run_session(
     let permission_cancellation = cancellation.clone();
     let request_policy = permission_policy.clone();
     let client = Client.builder().on_receive_request(
-        async move |request: RequestPermissionRequest, responder, _cx| {
-            let outcome =
-                super::permissions::authorize(&request, &request_policy, &permission_cancellation)
-                    .await;
-            responder.respond_with_result(outcome)
+        async move |request: RequestPermissionRequest, responder, cx| {
+            let policy = request_policy.clone();
+            let cancel = permission_cancellation.clone();
+            cx.spawn(async move {
+                let outcome = super::permissions::authorize(&request, &policy, &cancel).await;
+                responder.respond_with_result(outcome)
+            })
         },
         agent_client_protocol::on_receive_request!(),
     );

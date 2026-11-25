@@ -55,7 +55,7 @@ class Peer:
         self._pending: dict[str, asyncio.Future[Any]] = {}
         self._writer = asyncio.Lock()
         self._closed = asyncio.Event()
-        self._shutdown_requested = False
+        self._shutdown_task: asyncio.Task[None] | None = None
         self._handlers: set[asyncio.Task[None]] = set()
 
     async def request(self, method: str, params: BaseModel) -> Any:
@@ -121,8 +121,8 @@ class Peer:
             await asyncio.gather(*handlers, return_exceptions=True)
 
     def request_shutdown(self) -> None:
-        """Close the peer right after the current request's response frame is written."""
-        self._shutdown_requested = True
+        """Close the peer right after the calling request's response frame is written."""
+        self._shutdown_task = asyncio.current_task()
 
     def close(self) -> None:
         self._closed.set()
@@ -185,7 +185,7 @@ class Peer:
             }
         if request_id is not None:
             await self._write(response)
-        if self._shutdown_requested:
+        if self._shutdown_task is asyncio.current_task():
             self.close()
         if failure is not None:
             _report_handler_failure(value["method"], failure)

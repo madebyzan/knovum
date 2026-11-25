@@ -137,7 +137,9 @@ impl Lease {
         run_id: &str,
         extensions: Arc<AgentExtensionSnapshot>,
     ) -> Result<(), String> {
-        self.runtime.active_run.bind(pool, run_id.to_owned());
+        self.runtime
+            .active_run
+            .bind(pool, run_id.to_owned(), self.cancellation.clone());
         if let Err(error) = self
             .runtime
             .mcp

@@ -157,13 +157,73 @@ def test_disconnected_peer_rejects_new_work() -> None:
 
 def test_shutdown_writes_response_before_closing_peer() -> None:
     async def run() -> None:
-        source = io.BytesIO(b'{"jsonrpc":"2.0","id":"shutdown-1","method":"agentRuntime.shutdown","params":null}\n')
-        sink = io.BytesIO()
-        async with AsyncExitStack() as lifetime:
-            peer = Peer(source, sink)
-            server = Server(peer, lifetime)
-            await peer.run(server.dispatch)
-        response = json.loads(sink.getvalue())
-        assert response == {"jsonrpc": "2.0", "id": "shutdown-1", "result": None}
+        host_socket, worker_socket = socket.socketpair()
+        with (
+            host_socket,
+            worker_socket,
+            host_socket.makefile("rwb", buffering=0) as host_io,
+            worker_socket.makefile("rwb", buffering=0) as worker_io,
+        ):
+            async with AsyncExitStack() as lifetime:
+                peer = Peer(worker_io, worker_io)
+                server = Server(peer, lifetime)
+                run_task = asyncio.create_task(peer.run(server.dispatch))
+                try:
+                    host_io.write(
+                        b'{"jsonrpc":"2.0","id":"shutdown-1","method":"agentRuntime.shutdown","params":null}\n'
+                    )
+                    host_io.flush()
+                    # Peer must reply and exit even though the host keeps stdin open (no EOF).
+                    line = await asyncio.wait_for(asyncio.to_thread(host_io.readline), 2)
+                    await asyncio.wait_for(run_task, 2)
+                    assert json.loads(line) == {"jsonrpc": "2.0", "id": "shutdown-1", "result": None}
+                finally:
+                    peer.close()
+                    host_socket.shutdown(socket.SHUT_RDWR)
+                    await asyncio.gather(run_task, return_exceptions=True)
+
+    asyncio.run(run())
+
+
+def test_shutdown_does_not_close_before_shutdown_handler_replies() -> None:
+    async def run() -> None:
+        host_socket, worker_socket = socket.socketpair()
+        with (
+            host_socket,
+            worker_socket,
+            host_socket.makefile("rwb", buffering=0) as host_io,
+            worker_socket.makefile("rwb", buffering=0) as worker_io,
+        ):
+            peer = Peer(worker_io, worker_io)
+            shutdown_started = asyncio.Event()
+            release_shutdown = asyncio.Event()
+
+            async def dispatch(method: str, _params: Any) -> Any:
+                if method == "slow.shutdown":
+                    peer.request_shutdown()
+                    shutdown_started.set()
+                    await release_shutdown.wait()
+                    return "bye"
+                await shutdown_started.wait()
+                return "ping"
+
+            run_task = asyncio.create_task(peer.run(dispatch))
+            try:
+                host_io.write(
+                    b'{"jsonrpc":"2.0","id":"sd","method":"slow.shutdown","params":null}\n'
+                    b'{"jsonrpc":"2.0","id":"fast","method":"fast.ping","params":null}\n'
+                )
+                host_io.flush()
+                first = json.loads(await asyncio.wait_for(asyncio.to_thread(host_io.readline), 2))
+                assert first == {"jsonrpc": "2.0", "id": "fast", "result": "ping"}
+                assert not run_task.done()
+                release_shutdown.set()
+                second = json.loads(await asyncio.wait_for(asyncio.to_thread(host_io.readline), 2))
+                await asyncio.wait_for(run_task, 2)
+                assert second == {"jsonrpc": "2.0", "id": "sd", "result": "bye"}
+            finally:
+                peer.close()
+                host_socket.shutdown(socket.SHUT_RDWR)
+                await asyncio.gather(run_task, return_exceptions=True)
 
     asyncio.run(run())

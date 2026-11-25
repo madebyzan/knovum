@@ -150,9 +150,14 @@ fn reclaim_when_idle(slot: WorkerSlot) {
     {
         return;
     }
-    tokio::spawn(async move {
+    let Ok(handle) = tokio::runtime::Handle::try_current() else {
+        IDLE_RECLAIM_SCHEDULED.store(false, Ordering::Release);
+        return;
+    };
+    handle.spawn(async move {
+        let mut delay = IDLE_TTL;
         loop {
-            tokio::time::sleep(IDLE_TTL).await;
+            tokio::time::sleep(delay).await;
             let mut guard = slot.lock().await;
             let remaining = guard
                 .as_ref()
@@ -160,7 +165,7 @@ fn reclaim_when_idle(slot: WorkerSlot) {
             match remaining {
                 Some(wait) if !wait.is_zero() => {
                     drop(guard);
-                    tokio::time::sleep(wait).await;
+                    delay = wait;
                     continue;
                 }
                 Some(_) => {

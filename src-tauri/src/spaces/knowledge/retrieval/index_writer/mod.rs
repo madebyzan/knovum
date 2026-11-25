@@ -81,41 +81,41 @@ pub(super) async fn publish_embeddings(
     for space_id in &spaces {
         invalidation_outbox::drain_space_with_connection(index, pool, space_id).await?;
     }
-    // Phase 2: write vectors to LanceDB under process-local write lock without holding SQLite.
+    // Phase 2 & 3: hold `LANCE_WRITE_LOCK` across LanceDB write and the short SQLite marker
+    // commit so no outbox drain can interleave between writing vectors and committing markers.
+    // SQLite is never held across LanceDB I/O.
     let written = chunks.len();
     let dimensions = chunks[0].dimensions;
     let batch = records_to_batch(&chunks, dimensions)?;
-    {
-        let _lance_guard = invalidation_outbox::acquire_lance_write_lock().await;
-        let existing = index
-            .table_names()
+    let _lance_guard = invalidation_outbox::acquire_lance_write_lock().await;
+    let existing = index
+        .table_names()
+        .execute()
+        .await
+        .map_err(|error| format!("Failed to inspect LanceDB retrieval tables: {error}"))?;
+    if existing.iter().any(|name| name == TABLE_KNOWLEDGE_CHUNKS) {
+        let table = index
+            .open_table(TABLE_KNOWLEDGE_CHUNKS)
             .execute()
             .await
-            .map_err(|error| format!("Failed to inspect LanceDB retrieval tables: {error}"))?;
-        if existing.iter().any(|name| name == TABLE_KNOWLEDGE_CHUNKS) {
-            let table = index
-                .open_table(TABLE_KNOWLEDGE_CHUNKS)
-                .execute()
-                .await
-                .map_err(|error| format!("Failed to open LanceDB knowledge index: {error}"))?;
-            let schema = batch.schema();
-            let data = RecordBatchIterator::new(vec![Ok(batch)], schema);
-            let mut upsert = table.merge_insert(&["generation_id", "chunk_id"]);
-            upsert
-                .when_matched_update_all(None)
-                .when_not_matched_insert_all();
-            upsert.execute(Box::new(data)).await.map_err(|error| {
-                format!("Failed to upsert LanceDB knowledge index rows: {error}")
-            })?;
-        } else {
-            index
-                .create_table(TABLE_KNOWLEDGE_CHUNKS, batch)
-                .execute()
-                .await
-                .map_err(|error| format!("Failed to create LanceDB knowledge table: {error}"))?;
-        }
+            .map_err(|error| format!("Failed to open LanceDB knowledge index: {error}"))?;
+        let schema = batch.schema();
+        let data = RecordBatchIterator::new(vec![Ok(batch)], schema);
+        let mut upsert = table.merge_insert(&["generation_id", "chunk_id"]);
+        upsert
+            .when_matched_update_all(None)
+            .when_not_matched_insert_all();
+        upsert
+            .execute(Box::new(data))
+            .await
+            .map_err(|error| format!("Failed to upsert LanceDB knowledge index rows: {error}"))?;
+    } else {
+        index
+            .create_table(TABLE_KNOWLEDGE_CHUNKS, batch)
+            .execute()
+            .await
+            .map_err(|error| format!("Failed to create LanceDB knowledge table: {error}"))?;
     }
-    // Phase 3: short SQLite write transaction to verify revisions still match and record markers.
     let mut tx = db::begin_write(pool).await?;
     generation::require_writable(&mut tx, &generation).await?;
     if let Err(stale) = verify_chunks_still_current(&mut tx, &chunks).await {

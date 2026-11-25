@@ -61,9 +61,14 @@ fn reader_webview_allows_public_http_about_and_local_preview_scheme_only() {
         "asset://localhost/foo.html",
         "javascript:alert(1)",
         "knovum-preview://evil.example/abc",
+        "https://knovum-preview.localhost/abc-123",
     ] {
         assert!(!allows_reader_webview(&url(refused)), "{refused}");
     }
+    assert_eq!(
+        allows_reader_webview(&url("http://knovum-preview.localhost/abc-123")),
+        cfg!(target_os = "windows")
+    );
 }
 
 #[test]

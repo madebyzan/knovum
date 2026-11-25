@@ -149,32 +149,46 @@ const SENSITIVE_HOME_LITERALS: &[&str] = &[".npmrc", ".netrc", ".git-credentials
 /// network. Of the rules that match, the last one decides.
 #[cfg(target_os = "macos")]
 fn build_seatbelt_profile(boundaries: &SandboxBoundaries) -> Result<String, String> {
-    let mut deny_rules = Vec::new();
-    for dir in [&boundaries.app_config_dir, &boundaries.app_data_dir]
-        .into_iter()
-        .flatten()
-    {
+    let mut full_deny_rules = Vec::new();
+    let mut data_deny_rules = Vec::new();
+    if let Some(dir) = &boundaries.app_config_dir {
         for resolved in resolve_rule_paths(dir) {
-            deny_rules.push(format!("    (subpath \"{}\")", sbpl_escape(&resolved)));
+            full_deny_rules.push(format!("    (subpath \"{}\")", sbpl_escape(&resolved)?));
+        }
+    }
+    if let Some(dir) = &boundaries.app_data_dir {
+        // Conversation workspaces live beneath `app_data_dir`: deny reading data and xattrs
+        // (blocking `secrets.db`, `spaces.db`, and directory listings) while keeping parent
+        // `file-read-metadata` traversable so `getcwd`/`realpath` inside `WORKSPACE` succeed.
+        for resolved in resolve_rule_paths(dir) {
+            data_deny_rules.push(format!("    (subpath \"{}\")", sbpl_escape(&resolved)?));
         }
     }
     if let Some(home) = std::env::var_os("HOME").map(std::path::PathBuf::from) {
         for rel in SENSITIVE_HOME_SUBPATHS {
             for resolved in resolve_rule_paths(&home.join(rel)) {
-                deny_rules.push(format!("    (subpath \"{}\")", sbpl_escape(&resolved)));
+                full_deny_rules.push(format!("    (subpath \"{}\")", sbpl_escape(&resolved)?));
             }
         }
         for rel in SENSITIVE_HOME_LITERALS {
             for resolved in resolve_rule_paths(&home.join(rel)) {
-                deny_rules.push(format!("    (literal \"{}\")", sbpl_escape(&resolved)));
+                full_deny_rules.push(format!("    (literal \"{}\")", sbpl_escape(&resolved)?));
             }
         }
     }
-    let deny_block = if deny_rules.is_empty() {
-        String::new()
-    } else {
-        format!("(deny file-read*\n{}\n)\n", deny_rules.join("\n"))
-    };
+    let mut deny_block = String::new();
+    if !full_deny_rules.is_empty() {
+        deny_block.push_str(&format!(
+            "(deny file-read*\n{}\n)\n",
+            full_deny_rules.join("\n")
+        ));
+    }
+    if !data_deny_rules.is_empty() {
+        deny_block.push_str(&format!(
+            "(deny file-read-data file-read-xattr\n{}\n)\n",
+            data_deny_rules.join("\n")
+        ));
+    }
     Ok(format!(
         r##"(version 1)
 (allow default)
@@ -221,8 +235,11 @@ fn resolve_rule_paths(path: &Path) -> Vec<String> {
 }
 
 #[cfg(target_os = "macos")]
-fn sbpl_escape(value: &str) -> String {
-    value.replace('\\', "\\\\").replace('"', "\\\"")
+fn sbpl_escape(value: &str) -> Result<String, String> {
+    if value.contains(['\0', '\n', '\r']) {
+        return Err("Sandbox path contains an unsupported control character".into());
+    }
+    Ok(value.replace('\\', "\\\\").replace('"', "\\\""))
 }
 
 #[cfg(target_os = "macos")]

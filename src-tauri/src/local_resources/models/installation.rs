@@ -95,7 +95,7 @@ fn swap_directory(
 ) -> Result<(), String> {
     let backup = parent.join(backup_name);
     filesystem::remove_owned_directory(&backup, parent)?;
-    let moved_previous = if target.exists() {
+    let moved_previous = if fs::symlink_metadata(target).is_ok() {
         fs::rename(target, &backup).map_err(|error| error.to_string())?;
         true
     } else {
