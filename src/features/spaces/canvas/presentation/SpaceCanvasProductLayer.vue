@@ -81,7 +81,7 @@ const selectionBarGap = computed(() =>
     </div>
     <div
       ref="viewChrome"
-      class="pointer-events-auto absolute bottom-1 left-1 flex h-6 items-center overflow-hidden rounded-md border border-stroke-strong bg-surface-canvas"
+      class="pointer-events-auto absolute bottom-1 left-1 flex h-7 items-center overflow-hidden rounded-md border border-stroke-strong bg-surface-canvas"
     >
       <template v-if="navigationEnabled">
         <SpaceCanvasViewControls />
@@ -103,7 +103,7 @@ const selectionBarGap = computed(() =>
             :label="t(scenesCollapsed ? 'spaces.scenes.expand' : 'spaces.scenes.collapse')"
             tooltip
             size="sm"
-            class="size-5 rounded-sm text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
+            class="size-6 rounded-sm text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
             @click="scenesCollapsed = !scenesCollapsed"
           >
             <Star class="size-3" :stroke-width="1.55" />

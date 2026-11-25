@@ -41,7 +41,7 @@ function zoomToSelection() {
 
 <template>
   <ToolbarRoot
-    class="flex h-6 cursor-default items-center gap-0.5 px-0.5 select-none"
+    class="flex h-7 cursor-default items-center gap-0.5 px-0.5 select-none"
     orientation="horizontal"
     :loop="false"
     :aria-label="t('spaces.canvas.zoom.options')"
@@ -51,7 +51,7 @@ function zoomToSelection() {
         :label="t('spaces.canvas.zoom.out')"
         :shortcut="SPACE_COMMAND_SHORTCUTS.zoomOut"
         size="sm"
-        class="size-5 rounded-sm"
+        class="size-6 rounded-sm"
         @click="zoomOut"
       >
         <Minus class="size-3" :stroke-width="1.55" />
@@ -63,7 +63,7 @@ function zoomToSelection() {
         <ToolbarButton as-child>
           <button
             type="button"
-            class="flex h-5 min-w-12 items-center justify-center gap-0.5 rounded-sm px-1 text-caption font-medium text-fg-secondary tabular-nums outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus focus-visible:ring-inset active:bg-surface-control-pressed"
+            class="flex h-6 min-w-12 items-center justify-center gap-0.5 rounded-sm px-1 text-caption font-medium text-fg-secondary tabular-nums outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus focus-visible:ring-inset active:bg-surface-control-pressed"
             :aria-label="t('spaces.canvas.zoom.options')"
           >
             {{ zoom }}%
@@ -92,7 +92,7 @@ function zoomToSelection() {
         :label="t('spaces.canvas.zoom.in')"
         :shortcut="SPACE_COMMAND_SHORTCUTS.zoomIn"
         size="sm"
-        class="size-5 rounded-sm"
+        class="size-6 rounded-sm"
         @click="zoomIn"
       >
         <Plus class="size-3" :stroke-width="1.55" />

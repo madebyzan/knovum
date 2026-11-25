@@ -11,7 +11,7 @@ import {
 import { shallowRef, watch, type FunctionalComponent, type HTMLAttributes } from "vue";
 
 import { cn } from "./cn";
-import { POPUP_ANIMATE_CLASSES } from "./ui-classes";
+import { OVERLAY_LAYER_CLASSES, POPUP_ANIMATE_CLASSES } from "./ui-classes";
 import UiKbd from "./UiKbd.vue";
 
 const Passthrough: FunctionalComponent = (_, { slots }) => slots.default?.();
@@ -60,7 +60,8 @@ watch(
           :class="
             cn(
               POPUP_ANIMATE_CLASSES,
-              'pointer-events-none z-70 rounded-md border border-stroke-default material-overlay px-2 py-1 text-caption text-fg-primary shadow-popover duration-100 ease-standard select-none',
+              OVERLAY_LAYER_CLASSES.tooltip,
+              'pointer-events-none rounded-md border border-stroke-default material-overlay px-2 py-1 text-caption text-fg-primary shadow-popover duration-100 ease-standard select-none',
               props.class,
             )
           "

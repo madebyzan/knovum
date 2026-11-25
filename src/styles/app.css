@@ -158,31 +158,6 @@
   }
 }
 
-@container workspace-toolbar (max-width: 52rem) {
-  .space-toolbar-secondary,
-  .space-tab-search {
-    display: none;
-  }
-}
-
-@container workspace-toolbar (max-width: 42rem) {
-  .space-toolbar-primary,
-  .space-view-history,
-  .space-view-overview {
-    display: none;
-  }
-
-  .space-toolbar-actions {
-    display: none;
-  }
-}
-
-@container workspace-toolbar (max-width: 30rem) {
-  .space-view-fit {
-    display: none;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

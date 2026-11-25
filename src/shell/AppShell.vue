@@ -7,6 +7,7 @@ import type { WorkspaceDefinition } from "../shared/contracts/workspace-definiti
 import CommandPalette from "./commands/CommandPalette.vue";
 import KeyboardShortcutsModal from "./commands/KeyboardShortcutsModal.vue";
 import FeatureErrorBoundary from "./FeatureErrorBoundary.vue";
+import { useResponsiveSidebarGuard } from "./layout/use-responsive-sidebar-guard";
 import { useWorkspaceEdges } from "./layout/use-workspace-edges";
 import WorkspaceLayout from "./layout/WorkspaceLayout.vue";
 import WorkspaceToolbar from "./layout/WorkspaceToolbar.vue";
@@ -36,6 +37,16 @@ const {
   scheduleSidebarPreviewClose,
   closeSidebarPreview,
 } = useShellController(props.workspace, workspaceActive, () => emit("openSettings"));
+useResponsiveSidebarGuard({
+  sidebarPinned,
+  sidebarWidth,
+  rightSidebarOpen,
+  rightSidebarWidth,
+  collapseSidebarEphemerally: () => {
+    sidebarPinned.value = false;
+    closeSidebarPreview();
+  },
+});
 provide(overlayScopeVisibleKey, workspaceActive);
 const edges = useWorkspaceEdges({
   sidebarPinned,

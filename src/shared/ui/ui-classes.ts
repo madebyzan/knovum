@@ -14,6 +14,16 @@ export const DIALOG_LAYER_CLASSES = {
 
 export type DialogLayer = keyof typeof DIALOG_LAYER_CLASSES;
 
+/**
+ * Stacking bands for non-modal floating chrome. Dictation sits above workspace views and standard
+ * dialogs; tooltips sit above confirmation dialogs (z-90) so controls inside confirmations remain
+ * labelled on hover or keyboard focus.
+ */
+export const OVERLAY_LAYER_CLASSES = {
+  dictation: "z-60",
+  tooltip: "z-100",
+} as const;
+
 export const POPOVER_SURFACE_CLASSES =
   "rounded-panel border border-stroke-strong material-overlay shadow-popover";
 

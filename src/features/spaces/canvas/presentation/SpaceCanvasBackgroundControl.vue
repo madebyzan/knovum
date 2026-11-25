@@ -109,7 +109,7 @@ function pick(value: CanvasBackgroundPattern) {
       :label="t('spaces.canvas.background.title')"
       :tooltip="!open"
       size="sm"
-      class="size-5 rounded-sm"
+      class="size-6 rounded-sm"
       :class="
         open
           ? 'bg-surface-control text-fg-primary'
