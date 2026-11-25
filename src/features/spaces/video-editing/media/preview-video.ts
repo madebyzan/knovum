@@ -41,8 +41,15 @@ interface VideoLibraryOptions {
  * and that wait is published so the editor can say what it is waiting for.
  */
 export function createVideoLibrary(options: VideoLibraryOptions) {
-  const proxyInputs = new Set<Input>();
+  const proxyInputsByKey = new Map<string, Input>();
   const converting = shallowRef<ReadonlySet<string>>(new Set());
+
+  function disposeProxy(key: string) {
+    const existing = proxyInputsByKey.get(key);
+    if (!existing) return;
+    proxyInputsByKey.delete(key);
+    existing.dispose();
+  }
 
   function setConverting(asset: VideoAsset, active: boolean) {
     const next = new Set(converting.value);
@@ -55,11 +62,13 @@ export function createVideoLibrary(options: VideoLibraryOptions) {
     setConverting(asset, true);
     try {
       const path = await prepareVideoEditProxy(mediaSourceOf(options.spaceId, asset), options.signal);
+      const key = assetIdentity(asset);
+      disposeProxy(key);
       const input = new Input({
         formats: ALL_FORMATS,
         source: new UrlSource(versionedMediaSource(path, asset.sourceRevision)!),
       });
-      proxyInputs.add(input);
+      proxyInputsByKey.set(key, input);
       const track = await input.getPrimaryVideoTrack();
       if (!track || !(await track.canDecode()))
         throw new Error("This video cannot be decoded on this device");
@@ -79,13 +88,16 @@ export function createVideoLibrary(options: VideoLibraryOptions) {
   return {
     ready: cache.ready,
     load: cache.load,
-    forget: cache.forget,
+    forget(asset: VideoAsset) {
+      disposeProxy(assetIdentity(asset));
+      return cache.forget(asset);
+    },
     /** Whether the asset is waiting for a proxy because its own codec cannot be decoded here. */
     converting: (asset: VideoAsset) => converting.value.has(assetIdentity(asset)),
     dispose() {
       cache.clear();
-      for (const input of proxyInputs) input.dispose();
-      proxyInputs.clear();
+      for (const input of proxyInputsByKey.values()) input.dispose();
+      proxyInputsByKey.clear();
     },
   };
 }

@@ -28,6 +28,22 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: ["index.html"],
+      output: {
+        manualChunks(id) {
+          const localeMatch = /\/src\/foundation\/i18n\/locales\/([^/]+)\//.exec(id);
+          if (localeMatch) return `locale-${localeMatch[1]}`;
+          if (id.includes("/node_modules/pdfjs-dist/")) return "vendor-pdfjs";
+          if (id.includes("/node_modules/@tiptap/") || id.includes("/node_modules/prosemirror-")) {
+            return "vendor-tiptap";
+          }
+          if (id.includes("/node_modules/konva/") || id.includes("/node_modules/vue-konva/")) {
+            return "vendor-konva";
+          }
+          if (id.includes("/node_modules/shiki/")) return "vendor-shiki";
+          if (id.includes("/node_modules/mediabunny/")) return "vendor-mediabunny";
+          return undefined;
+        },
+      },
     },
   },
   optimizeDeps: {

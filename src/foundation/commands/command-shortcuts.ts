@@ -45,15 +45,18 @@ function registerCommandHandlers(
   command: AppCommand,
   effective: string,
   handlers: Record<string, (event: KeyboardEvent) => void>,
+  resolveCommand: (id: string) => AppCommand | undefined,
 ) {
   for (const keybinding of resolveKeybindings(command, effective)) {
     const bareKey = !keybinding.includes("+");
+    const commandId = command.id;
     handlers[keybinding] = (event) => {
-      if (event.repeat) return;
-      if (isEditableTarget(event.target) && !command.allowInEditable) return;
+      const current = resolveCommand(commandId);
+      if (!current || event.repeat) return;
+      if (isEditableTarget(event.target) && !current.allowInEditable) return;
       if (bareKey && isInteractiveTarget(event.target)) return;
       event.preventDefault();
-      runAppCommand(command);
+      runAppCommand(current);
     };
   }
 }
@@ -70,17 +73,41 @@ function shouldSkipCommandBinding(
   return false;
 }
 
-export function bindCommandShortcuts(
+/** Stable fingerprint of the active shortcut bindings so unchanged command lists skip rebinding tinykeys. */
+export function commandShortcutSignature(
   commands: readonly AppCommand[],
   resolveShortcut?: (commandId: string, defaultShortcut?: string) => string | undefined,
+): string {
+  const appMenuOwnsShortcut = platform() === "macos";
+  const parts: string[] = [];
+  for (const command of commands) {
+    const effective = resolveShortcut?.(command.id, command.shortcut) ?? command.shortcut;
+    const isCustomized = Boolean(resolveShortcut && effective !== command.shortcut);
+    if (shouldSkipCommandBinding(command, effective, isCustomized, appMenuOwnsShortcut)) {
+      if (command.editingIntent) parts.push(`${command.id}=intent:${command.editingIntent}`);
+      continue;
+    }
+    parts.push(
+      `${command.id}=${resolveKeybindings(command, effective!).join(",")}:${command.allowInEditable ? "1" : "0"}`,
+    );
+  }
+  return parts.join("|");
+}
+
+export function bindCommandShortcuts(
+  commandsSource: readonly AppCommand[] | (() => readonly AppCommand[]),
+  resolveShortcut?: (commandId: string, defaultShortcut?: string) => string | undefined,
 ): () => void {
+  const getCommands = typeof commandsSource === "function" ? commandsSource : () => commandsSource;
+  const commands = getCommands();
   assertEditingChordsUnclaimed(commands, resolveShortcut);
   const handlerByShortcut: Record<string, (event: KeyboardEvent) => void> = {};
   const appMenuOwnsShortcut = platform() === "macos";
+  const resolveCommand = (id: string) => getCommands().find((candidate) => candidate.id === id);
 
   if (editingChordsReachWebView()) {
     for (const [chord, intent] of Object.entries(EDITING_CHORDS)) {
-      handlerByShortcut[chord] = (event) => handleEditingChord(intent, commands, event);
+      handlerByShortcut[chord] = (event) => handleEditingChord(intent, getCommands(), event);
     }
   }
   for (const command of commands) {
@@ -89,7 +116,7 @@ export function bindCommandShortcuts(
     if (shouldSkipCommandBinding(command, effective, isCustomized, appMenuOwnsShortcut)) {
       continue;
     }
-    registerCommandHandlers(command, effective!, handlerByShortcut);
+    registerCommandHandlers(command, effective!, handlerByShortcut, resolveCommand);
   }
 
   return tinykeys(globalThis.window, handlerByShortcut, {

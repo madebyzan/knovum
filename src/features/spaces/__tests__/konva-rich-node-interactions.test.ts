@@ -40,8 +40,11 @@ describe("Konva rich node interactions", () => {
     });
 
     await wrapper.setProps({ interactive: true });
-    await nextTick();
-    const editor = wrapper.findComponent(EditorContent).props("editor") as Editor;
+    const editor = await vi.waitFor(() => {
+      const content = wrapper.findComponent(EditorContent);
+      expect(content.exists()).toBe(true);
+      return content.props("editor") as Editor;
+    });
     editor.commands.setContent({
       type: "doc",
       content: [

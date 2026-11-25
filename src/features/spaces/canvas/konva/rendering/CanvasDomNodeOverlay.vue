@@ -22,19 +22,17 @@ const effectiveLayout = computed(
 );
 const effectiveFrame = computed(() => effectiveLayout.value.frame);
 const style = computed(() => ({
-  left: `${effectiveFrame.value.x}px`,
-  top: `${effectiveFrame.value.y}px`,
   width: `${effectiveFrame.value.width}px`,
   height: `${effectiveFrame.value.height}px`,
   zIndex: props.sceneNode.paintOrder,
-  transform: `rotate(${effectiveFrame.value.rotation}deg)`,
+  transform: `translate3d(${effectiveFrame.value.x}px, ${effectiveFrame.value.y}px, 0) rotate(${effectiveFrame.value.rotation}deg)`,
   transformOrigin: "top left",
 }));
 </script>
 
 <template>
   <div
-    class="pointer-events-none absolute overflow-visible"
+    class="pointer-events-none absolute top-0 left-0 overflow-visible"
     :data-canvas-node-id="sceneNode.node.id"
     :style="style"
   >

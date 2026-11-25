@@ -4,7 +4,12 @@ import { onScopeDispose, watch, type Ref } from "vue";
 
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasPalette } from "../../use-canvas-palette";
-import { canvasOverviewImageSource, loadCanvasOverviewImage } from "../overview/assets";
+import {
+  canvasOverviewImageSource,
+  loadCanvasOverviewImage,
+  releaseCanvasOverviewImage,
+  retainCanvasOverviewImage,
+} from "../overview/assets";
 import { canvasOverviewLabelled, createCanvasOverviewNode } from "../overview/nodes";
 import type { CanvasSceneNode } from "../scene/canvas-scene";
 
@@ -57,6 +62,8 @@ export function useCanvasOverviewLayer(options: CanvasOverviewLayerOptions) {
       .then((image) => {
         const drawn = drawnByNodeId.get(nodeId);
         if (drawn?.source !== source || drawn.image === image) return undefined;
+        releaseCanvasOverviewImage(drawn.image);
+        retainCanvasOverviewImage(image);
         drawn.image = image;
         draw(drawn);
         drawn.group.getLayer()?.batchDraw();
@@ -86,6 +93,7 @@ export function useCanvasOverviewLayer(options: CanvasOverviewLayerOptions) {
       drawn.sceneNode = drawing.sceneNode;
       return drawn;
     }
+    if (drawn && drawn.source !== drawing.source) releaseCanvasOverviewImage(drawn.image);
     const next: DrawnOverview = drawn
       ? Object.assign(drawn, drawing, { image: drawn.source === drawing.source ? drawn.image : undefined })
       : { ...drawing, group: new Konva.Group({ listening: false }), image: undefined };
@@ -117,6 +125,7 @@ export function useCanvasOverviewLayer(options: CanvasOverviewLayerOptions) {
     }
     for (const [nodeId, drawn] of drawnByNodeId) {
       if (drawnIds.has(nodeId)) continue;
+      releaseCanvasOverviewImage(drawn.image);
       drawn.group.destroy();
       drawnByNodeId.delete(nodeId);
     }
@@ -128,14 +137,26 @@ export function useCanvasOverviewLayer(options: CanvasOverviewLayerOptions) {
   }
 
   watch(
-    [options.layer, options.nodes, options.layoutPreviewByNodeId, options.palette, options.zoom],
+    [
+      options.layer,
+      options.nodes,
+      () => {
+        const previews = options.layoutPreviewByNodeId();
+        return previews.size === 0 ? 0 : [...previews.entries()];
+      },
+      options.palette,
+      options.zoom,
+    ],
     ([layer]) => {
       if (layer) update(layer);
     },
     { flush: "post", immediate: true },
   );
   onScopeDispose(() => {
-    for (const drawn of drawnByNodeId.values()) drawn.group.destroy();
+    for (const drawn of drawnByNodeId.values()) {
+      releaseCanvasOverviewImage(drawn.image);
+      drawn.group.destroy();
+    }
     drawnByNodeId.clear();
   });
 }

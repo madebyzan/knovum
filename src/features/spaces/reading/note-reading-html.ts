@@ -3,7 +3,7 @@ import { Node } from "@tiptap/pm/model";
 import DOMPurify from "dompurify";
 
 import type { TiptapJsonNode } from "../document-editing/tiptap-document";
-import { createCanvasTextSchema } from "../document-editing/tiptap-extensions";
+import { getCanvasTextSchema } from "../document-editing/tiptap-schema";
 
 export interface ReaderOutlineHeading {
   index: number;
@@ -11,7 +11,6 @@ export interface ReaderOutlineHeading {
   text: string;
 }
 
-const noteSchema = createCanvasTextSchema("note");
 const htmlCache = new WeakMap<TiptapJsonNode, string>();
 const ALLOWED_READER_URI_REGEXP =
   /^(?:(?:(?:f|ht)tps?|asset|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i;
@@ -22,6 +21,7 @@ const FENCE_TOGGLE = /^(?:```|~~~)/u;
 export function noteReadingHtml(content: TiptapJsonNode): string {
   const cached = htmlCache.get(content);
   if (cached !== undefined) return cached;
+  const noteSchema = getCanvasTextSchema("note");
   const rawHtml = getHTMLFromFragment(Node.fromJSON(noteSchema, content).content, noteSchema);
   const sanitized = DOMPurify.sanitize(rawHtml, {
     ALLOWED_URI_REGEXP: ALLOWED_READER_URI_REGEXP,

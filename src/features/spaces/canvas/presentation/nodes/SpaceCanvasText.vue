@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { EditorContent } from "@tiptap/vue-3";
-import { computed, toRef, watch } from "vue";
+import { computed, defineAsyncComponent, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
@@ -11,10 +10,14 @@ import type { CanvasNodeSizingMode } from "../../schema/document";
 import { CANVAS_TEXT_SURFACE_ATTRIBUTE } from "./canvas-text-surface";
 import SpaceCanvasRichText from "./SpaceCanvasRichText.vue";
 import SpaceCanvasTextPlane from "./SpaceCanvasTextPlane.vue";
-import SpaceCanvasTextSelectionBar from "./SpaceCanvasTextSelectionBar.vue";
 import { projectTiptapPreview } from "./tiptap-preview-projection";
 import { useCanvasTextEditor } from "./use-canvas-text-editor";
 import { useCanvasTextMeasurement } from "./use-canvas-text-measurement";
+
+const EditorContent = defineAsyncComponent(() =>
+  import("@tiptap/vue-3").then((module) => module.EditorContent),
+);
+const SpaceCanvasTextSelectionBar = defineAsyncComponent(() => import("./SpaceCanvasTextSelectionBar.vue"));
 
 const props = defineProps<{
   id: string;

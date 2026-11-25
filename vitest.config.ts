@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     environment: "happy-dom",
+    setupFiles: ["src/foundation/i18n/test-setup.ts"],
     include: ["src/**/*.test.ts"],
     maxWorkers: 4,
     restoreMocks: true,

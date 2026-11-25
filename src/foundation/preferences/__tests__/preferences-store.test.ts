@@ -21,6 +21,7 @@ vi.mock("@tauri-apps/api/window", () => ({
 }));
 vi.mock("../../ipc/invoke-command", () => ({ invokeCommand: async () => {} }));
 vi.mock("../../i18n/instance", () => ({
+  ensureLocaleLoaded: async () => {},
   i18n: { global: { locale: { value: "en" } } },
   systemLocale: () => "en",
 }));

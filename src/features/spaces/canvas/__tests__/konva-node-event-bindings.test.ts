@@ -29,7 +29,7 @@ describe("Konva node event bindings", () => {
   it("describes gestures in the node configuration instead of as vue listeners", () => {
     const warnings: string[] = [];
     const wrapper = shallowMount(CanvasNodeShape, {
-      props: { interactive: true, sceneNode, palette, zoom: 1 },
+      props: { interactive: true, sceneNode, palette },
       global: { config: { warnHandler: (message: string) => warnings.push(message) } },
     });
     const config = wrapper.getComponent(KonvaGroup).props("config") as Record<string, unknown>;
@@ -43,7 +43,7 @@ describe("Konva node event bindings", () => {
 
   it("reports an activation through the configured double click handler", () => {
     const wrapper = shallowMount(CanvasNodeShape, {
-      props: { interactive: true, sceneNode, palette, zoom: 1 },
+      props: { interactive: true, sceneNode, palette },
     });
     const config = wrapper.getComponent(KonvaGroup).props("config") as {
       onDblclick(): void;
@@ -57,12 +57,12 @@ describe("Konva node event bindings", () => {
 
   it("keeps handler identities stable so bindings survive a configuration update", async () => {
     const wrapper = shallowMount(CanvasNodeShape, {
-      props: { interactive: true, sceneNode, palette, zoom: 1 },
+      props: { interactive: true, sceneNode, palette },
     });
     const group = wrapper.getComponent(KonvaGroup);
     const before = group.props("config") as Record<string, unknown>;
 
-    await wrapper.setProps({ zoom: 2 });
+    await wrapper.setProps({ interactive: false });
     const after = group.props("config") as Record<string, unknown>;
 
     expect(after["onDragstart"]).toBe(before["onDragstart"]);

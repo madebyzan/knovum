@@ -1,11 +1,10 @@
-import { Editor } from "@tiptap/vue-3";
+import type { Editor } from "@tiptap/vue-3";
 import { nextTick, onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../../foundation/errors/error-format";
 import { isDocumentEdit } from "../../../document-editing/tiptap-edits";
-import { createCanvasTextExtensions } from "../../../document-editing/tiptap-extensions";
 import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
 import { tiptapContentSchema } from "../../../model/nodes/schema/content";
 import { truncateUtf16 } from "../../../model/text";
@@ -25,12 +24,14 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   const dirty = shallowRef(false);
   const editing = shallowRef(false);
   const editor = shallowRef<Editor>();
+  let editGeneration = 0;
   let detachCommit: (() => void) | undefined;
   let detachPresence: (() => void) | undefined;
   let savePromise: Promise<void> | undefined;
 
   watch(options.interactive, (interactive) => (interactive ? void beginEditing() : void leaveEditing()));
   onBeforeUnmount(() => {
+    editGeneration += 1;
     deactivateCanvasTextEditor(options.id);
     editor.value?.destroy();
     editor.value = undefined;
@@ -41,7 +42,13 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   async function beginEditing() {
     if (editing.value || !options.interactive.value) return;
     editing.value = true;
+    const generation = ++editGeneration;
     activateCanvasTextEditor(options.id);
+    const [{ Editor }, { createCanvasTextExtensions }] = await Promise.all([
+      import("@tiptap/vue-3"),
+      import("../../../document-editing/tiptap-extensions"),
+    ]);
+    if (generation !== editGeneration || !editing.value || !options.interactive.value) return;
     editor.value = new Editor({
       content: options.data.value.tiptapContent,
       editable: true,
@@ -139,6 +146,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   }
 
   function finishEditing() {
+    editGeneration += 1;
     const instance = editor.value;
     editing.value = false;
     dirty.value = false;

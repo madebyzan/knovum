@@ -109,7 +109,6 @@ watch(interactionLayer, syncInteractionCanvas, { flush: "post" });
       :key="sceneNode.node.id"
       :scene-node="sceneNode"
       :palette="palette"
-      :zoom="zoom"
       @activate="emit('activate', $event)"
       @drag-end="emit('dragEnd', $event)"
       @drag-move="(nodeId, event) => emit('dragMove', nodeId, event)"

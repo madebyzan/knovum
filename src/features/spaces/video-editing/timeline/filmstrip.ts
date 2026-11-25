@@ -85,6 +85,17 @@ async function decodePlan(packets: EncodedPacketSink, work: Work) {
  * source share its queue, the least recently drawn are evicted, and playback always wins the
  * decoder because a batch stops as soon as the preview starts.
  */
+function releaseTileCanvas(tile: Tile | undefined) {
+  const image = tile?.image;
+  if (
+    (typeof HTMLCanvasElement !== "undefined" && image instanceof HTMLCanvasElement) ||
+    (typeof OffscreenCanvas !== "undefined" && image instanceof OffscreenCanvas)
+  ) {
+    image.width = 0;
+    image.height = 0;
+  }
+}
+
 export function createFilmstripCache(options: FilmstripOptions) {
   /** Bumped when thumbnails land; reading it is what repaints a lane. */
   const revision = shallowRef(0);
@@ -100,12 +111,17 @@ export function createFilmstripCache(options: FilmstripOptions) {
   });
   let queue: Work[] = [];
   let working = false;
+  let disposed = false;
 
   function keep(key: string, tile: Tile) {
     if (tiles.get(key)?.exact && !tile.exact) return;
     tiles.delete(key);
     tiles.set(key, tile);
-    while (tiles.size > TILE_CAPACITY) tiles.delete(tiles.keys().next().value!);
+    while (tiles.size > TILE_CAPACITY) {
+      const oldestKey = tiles.keys().next().value!;
+      releaseTileCanvas(tiles.get(oldestKey));
+      tiles.delete(oldestKey);
+    }
   }
 
   function enqueue(work: Work) {
@@ -117,33 +133,50 @@ export function createFilmstripCache(options: FilmstripOptions) {
     queue = [...queue.filter((entry) => entry !== queued), { ...work, indices }];
   }
 
-  async function run(work: Work) {
-    if (stepByAsset.get(assetIdentity(work.asset)) !== work.stepMs) return;
-    const strip = await strips.load(work.asset).catch(() => undefined);
-    if (!strip) return;
-    const plan = await decodePlan(strip.packets, work);
+  function applyDecodedFrame(work: Work, indices: readonly number[], canvas: CanvasImageSource | undefined) {
+    if (!canvas) return;
+    for (const index of indices) {
+      keep(tileKey(work.asset, work.stepMs, index), { image: canvas, exact: work.exact });
+    }
+  }
+
+  function pauseRemaining(work: Work, plan: readonly { indices: number[] }[], decoded: number) {
+    const remaining = plan.slice(decoded).flatMap((step) => step.indices);
+    if (remaining.length > 0) queue.unshift({ ...work, indices: remaining });
+  }
+
+  async function decodeFrames(
+    strip: Strip,
+    work: Work,
+    plan: readonly { at: number; indices: number[] }[],
+  ): Promise<boolean> {
     let decoded = 0;
     for await (const frame of strip.frames.canvasesAtTimestamps(plan.map(({ at }) => at))) {
-      const { indices } = plan[decoded]!;
+      if (disposed) return false;
+      applyDecodedFrame(work, plan[decoded]!.indices, frame?.canvas);
       decoded += 1;
-      if (frame) {
-        for (const index of indices) {
-          keep(tileKey(work.asset, work.stepMs, index), { image: frame.canvas, exact: work.exact });
-        }
-      }
       revision.value += 1;
       if (options.suspended()) {
-        const remaining = plan.slice(decoded).flatMap((step) => step.indices);
-        if (remaining.length > 0) queue.unshift({ ...work, indices: remaining });
-        return;
+        pauseRemaining(work, plan, decoded);
+        return false;
       }
     }
-    if (!work.exact) enqueue({ ...work, exact: true });
+    return !disposed;
+  }
+
+  async function run(work: Work) {
+    if (disposed || stepByAsset.get(assetIdentity(work.asset)) !== work.stepMs) return;
+    const strip = await strips.load(work.asset).catch(() => undefined);
+    if (disposed || !strip) return;
+    const plan = await decodePlan(strip.packets, work);
+    if (await decodeFrames(strip, work, plan)) {
+      if (!work.exact) enqueue({ ...work, exact: true });
+    }
   }
 
   async function drain() {
     const work = queue.shift();
-    if (!work || options.suspended()) {
+    if (disposed || !work || options.suspended()) {
       working = false;
       return;
     }
@@ -152,7 +185,7 @@ export function createFilmstripCache(options: FilmstripOptions) {
   }
 
   function start() {
-    if (working || options.suspended() || queue.length === 0) return;
+    if (disposed || working || options.suspended() || queue.length === 0) return;
     working = true;
     void drain();
   }
@@ -167,7 +200,7 @@ export function createFilmstripCache(options: FilmstripOptions) {
     },
     /** Asks for the thumbnails of one clip's visible slots, nearest the latest request first. */
     request(asset: VideoAsset, stepMs: number, indices: number[]) {
-      if (asset.kind !== "video") return;
+      if (disposed || asset.kind !== "video") return;
       stepByAsset.set(assetIdentity(asset), stepMs);
       const missing = indices.filter((index) => !tiles.has(tileKey(asset, stepMs, index)));
       const inexact = indices.filter((index) => tiles.get(tileKey(asset, stepMs, index))?.exact === false);
@@ -178,8 +211,10 @@ export function createFilmstripCache(options: FilmstripOptions) {
     /** Playback stopped: pick the queue back up. */
     resume: start,
     dispose() {
+      disposed = true;
       queue = [];
       strips.clear();
+      for (const tile of tiles.values()) releaseTileCanvas(tile);
       tiles.clear();
       revision.value += 1;
     },

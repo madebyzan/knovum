@@ -1,10 +1,10 @@
 import { listen } from "@tauri-apps/api/event";
 import { error as logError } from "@tauri-apps/plugin-log";
 import { useTimeoutFn } from "@vueuse/core";
-import { computed, onMounted, onUnmounted, provide, shallowRef, watchEffect, type Ref } from "vue";
+import { computed, onMounted, onUnmounted, provide, shallowRef, watch, watchEffect, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { bindCommandShortcuts } from "../foundation/commands/command-shortcuts";
+import { bindCommandShortcuts, commandShortcutSignature } from "../foundation/commands/command-shortcuts";
 import { registerAppCommands, runAppCommandById } from "../foundation/commands/run-app-command";
 import { formatErrorDiagnostic } from "../foundation/errors/error-format";
 import { createAsyncDisposer } from "../foundation/lifecycle/async-disposer";
@@ -75,9 +75,10 @@ export function useShellController(
     scheduleSidebarPreviewClose();
   }
   function scheduleSidebarPreviewClose() {
-    if (sidebarPinned.value) return;
-    cancelSidebarPreviewClose();
-    startSidebarPreviewClose();
+    if (!sidebarPinned.value) {
+      cancelSidebarPreviewClose();
+      startSidebarPreviewClose();
+    }
   }
   function closeSidebarPreview() {
     cancelSidebarPreviewClose();
@@ -85,12 +86,8 @@ export function useShellController(
   }
   function toggleRightSidebar() {
     if (!workspaceActive.value || !workspace.rightSidebarAvailable.value) return;
-    if (rightSidebarOpen.value) {
-      rightSidebarRequested.value = false;
-    } else {
-      workspace.openDefaultRightSidebar();
-      rightSidebarRequested.value = true;
-    }
+    if (!rightSidebarOpen.value) workspace.openDefaultRightSidebar();
+    rightSidebarRequested.value = !rightSidebarOpen.value;
     persist();
   }
   function openRightSidebar() {
@@ -98,9 +95,7 @@ export function useShellController(
     rightSidebarRequested.value = true;
     persist();
   }
-  function setRightSidebarWidth(value: number) {
-    rightSidebarWidth.value = Math.round(value);
-  }
+  const setRightSidebarWidth = (value: number) => (rightSidebarWidth.value = Math.round(value));
   function closeRightSidebar() {
     rightSidebarRequested.value = false;
     persist();
@@ -145,10 +140,16 @@ export function useShellController(
   );
   const menuCommandListener = createAsyncDisposer();
   const shortcutsStore = resolveShortcutsStore();
-  watchEffect((cleanup) => {
-    cleanup(registerAppCommands(commands.value));
-    cleanup(bindCommandShortcuts(commands.value, shortcutsStore?.getEffectiveShortcut));
-  });
+  const shortcutSignature = computed(() =>
+    commandShortcutSignature(commands.value, shortcutsStore?.getEffectiveShortcut),
+  );
+  watchEffect((cleanup) => cleanup(registerAppCommands(commands.value)));
+  watch(
+    shortcutSignature,
+    (_next, _prev, cleanup) =>
+      cleanup(bindCommandShortcuts(() => commands.value, shortcutsStore?.getEffectiveShortcut)),
+    { immediate: true },
+  );
   onMounted(() => {
     void menuCommandListener
       .attach(listen<string>("knovum-run-command", ({ payload }) => runAppCommandById(payload)))
@@ -171,7 +172,6 @@ export function useShellController(
     setSidebarPinned,
     setSidebarWidth,
     setRightSidebarWidth,
-    /** A sash writes the width on every frame of the gesture; only the release reaches preferences. */
     persistLayout: persist,
     openSidebarPreview,
     armSidebarPreview,

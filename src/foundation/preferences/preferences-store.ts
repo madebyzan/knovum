@@ -10,7 +10,7 @@ import {
   preferenceDefaults,
   preferencesSchemaVersion,
 } from "../../shared/contracts/generated/contract-values";
-import { i18n, systemLocale, type AppLocale } from "../i18n/instance";
+import { ensureLocaleLoaded, i18n, systemLocale, type AppLocale } from "../i18n/instance";
 import { invokeCommand } from "../ipc/invoke-command";
 import { isApplicationTransitioning } from "../lifecycle/application-transition";
 import {
@@ -102,9 +102,12 @@ export const usePreferencesStore = defineStore("preferences", () => {
         Object.assign(preferences, decodePreferences(raw));
       }
 
-      await window.setTheme(preferences.theme === "system" ? null : preferences.theme);
-      await syncSystemLocale(preferences.locale);
-      await syncTaskNotifications(preferences.backgroundTaskNotifications);
+      await Promise.all([
+        window.setTheme(preferences.theme === "system" ? null : preferences.theme),
+        syncSystemLocale(preferences.locale),
+        syncTaskNotifications(preferences.backgroundTaskNotifications),
+        ensureLocaleLoaded(activeLocale(preferences.locale)),
+      ]);
       applyPreferences(snapshot(preferences));
 
       if (!stopThemeListener) {
@@ -156,7 +159,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
 
   function setLocale(locale: LocalePreference) {
     return mutate(async () => {
-      await syncSystemLocale(locale);
+      await Promise.all([syncSystemLocale(locale), ensureLocaleLoaded(activeLocale(locale))]);
       preferences.locale = locale;
     });
   }

@@ -26,24 +26,25 @@ export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
 
   try {
     await invokeCommand("plugin:backup|await_maintenance");
-    await invokeCommand("plugin:ai|await_ai_runtime");
     installSettingsPersistence(pinia);
-    await initializeExitCoordination();
     installRuntimeDiagnostics();
     installSessionTaskProjection(pinia);
     void restoreResourcePreparationTasks(pinia).catch((reason) =>
       logError(`Failed to restore resource preparation tasks: ${formatErrorDiagnostic(reason)}`),
     );
+    const preferences = usePreferencesStore(pinia);
+    const analytics = useAnalyticsPreferencesStore(pinia);
     await Promise.all([
-      usePreferencesStore(pinia).load(),
+      invokeCommand("plugin:ai|await_ai_runtime"),
+      invokeCommand("plugin:spaces|await_space_runtime"),
+      initializeExitCoordination(),
+      preferences.load(),
       useShortcutsStore(pinia).load(),
       installWindowActivityState(),
+      analytics.load(),
     ]);
-    const analytics = useAnalyticsPreferencesStore(pinia);
-    await analytics.load();
     void analytics.recordAppStarted();
-    await invokeCommand("plugin:spaces|await_space_runtime");
-    await restoreWorkspaceSession(router, usePreferencesStore(pinia).restorePreviousWorkspace);
+    await restoreWorkspaceSession(router, preferences.restorePreviousWorkspace);
     await router.isReady();
     installWorkspaceSessionPersistence(router);
     state.ready();
