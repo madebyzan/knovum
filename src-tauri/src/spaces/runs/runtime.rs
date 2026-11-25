@@ -7,6 +7,7 @@ use super::{scheduler, StepOutcome};
 
 const ERROR_RETRY_MILLIS: i64 = 5_000;
 const MAX_CONCURRENT_STEPS: usize = 4;
+const CANCEL_SETTLE_TIMEOUT: Duration = Duration::from_secs(30);
 
 pub(crate) type ExecuteStep =
     for<'a> fn(
@@ -136,14 +137,31 @@ async fn execute_attempt(
         tokio::select! {
             execution_outcome = &mut execution => break execution_outcome,
             _ = claim.cancellation.cancelled() => {
-                // Local owners await process-tree termination before releasing compute permits.
-                let _ = (&mut execution).await;
+                // Local owners await process-tree termination before releasing compute permits,
+                // bounded so a wedged step cannot permanently occupy a scheduler slot.
+                if tokio::time::timeout(CANCEL_SETTLE_TIMEOUT, &mut execution)
+                    .await
+                    .is_err()
+                {
+                    log::warn!(
+                        "Timed out waiting for cancelled Run attempt {} to settle",
+                        claim.attempt_id
+                    );
+                }
                 return Err("cancelled: Run attempt was interrupted".into());
             }
             _ = tokio::time::sleep(Duration::from_secs(10)) => {
                 if let Err(error) = scheduler::renew_lease(pool, claim).await {
                     claim.cancellation.cancel();
-                    let _ = (&mut execution).await;
+                    if tokio::time::timeout(CANCEL_SETTLE_TIMEOUT, &mut execution)
+                        .await
+                        .is_err()
+                    {
+                        log::warn!(
+                            "Timed out waiting for expired Run attempt {} to settle",
+                            claim.attempt_id
+                        );
+                    }
                     return Err(error.into());
                 }
             }

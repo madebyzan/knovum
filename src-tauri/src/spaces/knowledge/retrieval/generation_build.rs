@@ -27,7 +27,7 @@ struct KnowledgeChunkSource {
 /// loaded model. The budget covers that encode alone: the slot wait and the worker's cold start
 /// are bounded separately, so this number no longer has to absorb them.
 const BATCH_ENCODE_BUDGET_MS: u64 = 120_000;
-const REBUILD_BATCH_SIZE: usize = 8;
+const REBUILD_BATCH_SIZE: usize = 32;
 const MAX_CONSECUTIVE_STALE_BATCHES: usize = 3;
 
 /// What a pass encodes: the generation it writes into, the scope it covers, and whether finishing

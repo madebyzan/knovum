@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from langchain_anthropic import ChatAnthropic
@@ -13,6 +14,25 @@ from pydantic import SecretStr
 
 from knovum_agent_runtime.budget import ModelBudget
 from knovum_agent_runtime.contracts.generated.models import AgentModelBinding, AgentModelPurpose, ChatModelProtocol
+
+DEFAULT_CLOUD_TIMEOUT_SECONDS = 300
+DEFAULT_LOCAL_TIMEOUT_SECONDS = 600
+MIN_TIMEOUT_SECONDS = 30
+MAX_TIMEOUT_SECONDS = 3600
+
+
+def request_timeout_seconds(protocol: ChatModelProtocol) -> int:
+    """Per-request timeout generous enough for reasoning models and local CPU/GPU Ollama."""
+    default = DEFAULT_LOCAL_TIMEOUT_SECONDS if protocol == ChatModelProtocol.ollama else DEFAULT_CLOUD_TIMEOUT_SECONDS
+    raw = os.environ.get("KNOVUM_LLM_TIMEOUT_SECONDS")
+    if not raw:
+        return default
+    try:
+        parsed = int(raw.strip())
+    except ValueError:
+        return default
+    return max(MIN_TIMEOUT_SECONDS, min(MAX_TIMEOUT_SECONDS, parsed))
+
 
 # Each client's own name for the per-request output limit. It is set only when the limit is
 # published: an explicit `None` would override a client's default (Anthropic requires one).
@@ -51,12 +71,13 @@ def create_model(binding: AgentModelBinding, purpose: AgentModelPurpose) -> Base
         parameters["api_key"] = SecretStr(binding.api_key) if binding.api_key is not None else None
     if binding.max_output_tokens is not None:
         parameters[OUTPUT_LIMIT_PARAMETER[binding.protocol]] = binding.max_output_tokens
+    timeout = request_timeout_seconds(binding.protocol)
     match binding.protocol:
         case ChatModelProtocol.open_ai_chat | ChatModelProtocol.open_ai_responses:
             return ChatOpenAI(
                 **parameters,
                 base_url=binding.base_url,
-                timeout=60,
+                timeout=timeout,
                 max_retries=0,
                 stream_usage=True,
                 use_responses_api=binding.protocol == ChatModelProtocol.open_ai_responses,
@@ -67,13 +88,13 @@ def create_model(binding: AgentModelBinding, purpose: AgentModelPurpose) -> Base
                 else None,
             )
         case ChatModelProtocol.anthropic:
-            return ChatAnthropic(**parameters, base_url=binding.base_url, timeout=60, max_retries=0)
+            return ChatAnthropic(**parameters, base_url=binding.base_url, timeout=timeout, max_retries=0)
         case ChatModelProtocol.gemini:
             return ChatGoogleGenerativeAI(
                 **parameters,
                 base_url=binding.base_url,
                 api_version=binding.api_version,
-                timeout=60,
+                timeout=timeout,
                 # Google counts the initial request in attempts; zero enables defaults.
                 max_retries=1,
                 vertexai=False,
@@ -83,12 +104,12 @@ def create_model(binding: AgentModelBinding, purpose: AgentModelPurpose) -> Base
                 **parameters,
                 base_url=binding.base_url,
                 client_kwargs={
-                    "timeout": 60,
+                    "timeout": timeout,
                     **({"headers": {"Authorization": f"Bearer {binding.api_key}"}} if binding.api_key else {}),
                 },
             )
         case ChatModelProtocol.deep_seek:
-            return ChatDeepSeek(**parameters, base_url=binding.base_url, timeout=60, max_retries=0)
+            return ChatDeepSeek(**parameters, base_url=binding.base_url, timeout=timeout, max_retries=0)
         case ChatModelProtocol.groq:
-            return ChatGroq(**parameters, base_url=binding.base_url, timeout=60, max_retries=0)
+            return ChatGroq(**parameters, base_url=binding.base_url, timeout=timeout, max_retries=0)
     raise ValueError("agent-runtime-model-protocol-unsupported")

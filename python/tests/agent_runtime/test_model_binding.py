@@ -4,7 +4,13 @@ import json
 from typing import Any
 
 from knovum_agent_runtime.contracts.generated.models import AgentModelBinding, AgentModelPurpose, ChatModelProtocol
-from knovum_agent_runtime.model_binding import OUTPUT_LIMIT_PARAMETER, create_model
+from knovum_agent_runtime.model_binding import (
+    DEFAULT_CLOUD_TIMEOUT_SECONDS,
+    DEFAULT_LOCAL_TIMEOUT_SECONDS,
+    OUTPUT_LIMIT_PARAMETER,
+    create_model,
+    request_timeout_seconds,
+)
 
 
 def binding(protocol: str, model: str, **limits: int) -> AgentModelBinding:
@@ -41,3 +47,16 @@ def test_unknown_limits_leave_each_client_its_own_profile_and_default() -> None:
     assert bundled.profile is not None and bundled.profile["max_input_tokens"] > 0
     anthropic = create_model(binding("anthropic", "unlisted-model"), AgentModelPurpose.main)
     assert isinstance(anthropic.max_tokens, int) and anthropic.max_tokens > 0
+
+
+def test_request_timeout_supports_reasoning_models_local_ollama_and_env_override(monkeypatch: Any) -> None:
+    monkeypatch.delenv("KNOVUM_LLM_TIMEOUT_SECONDS", raising=False)
+    assert request_timeout_seconds(ChatModelProtocol.open_ai_responses) == DEFAULT_CLOUD_TIMEOUT_SECONDS
+    assert request_timeout_seconds(ChatModelProtocol.ollama) == DEFAULT_LOCAL_TIMEOUT_SECONDS
+
+    monkeypatch.setenv("KNOVUM_LLM_TIMEOUT_SECONDS", "900")
+    assert request_timeout_seconds(ChatModelProtocol.open_ai_chat) == 900
+    monkeypatch.setenv("KNOVUM_LLM_TIMEOUT_SECONDS", "5")
+    assert request_timeout_seconds(ChatModelProtocol.open_ai_chat) == 30
+    monkeypatch.setenv("KNOVUM_LLM_TIMEOUT_SECONDS", "not-a-number")
+    assert request_timeout_seconds(ChatModelProtocol.deep_seek) == DEFAULT_CLOUD_TIMEOUT_SECONDS

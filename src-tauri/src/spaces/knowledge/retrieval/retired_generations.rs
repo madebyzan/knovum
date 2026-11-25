@@ -1,8 +1,8 @@
-use lancedb::{table::OptimizeAction, Connection};
+use lancedb::{index::Index, table::OptimizeAction, Connection, Table};
 use sqlx::{FromRow, SqlitePool};
 use tauri::{AppHandle, Runtime};
 
-use super::{lancedb_store, predicates::escape_sql_literal};
+use super::{invalidation_outbox, lancedb_store, predicates::escape_sql_literal};
 use crate::spaces::db;
 
 static CLEANUP: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
@@ -10,6 +10,7 @@ static PENDING: tokio::sync::Notify = tokio::sync::Notify::const_new();
 
 const HISTORY_RETENTION_MS: i64 = 7 * 24 * 60 * 60 * 1000;
 const CLEANUP_INTERVAL: std::time::Duration = std::time::Duration::from_secs(60 * 60);
+const VECTOR_INDEX_MIN_ROWS: usize = 4_096;
 
 #[derive(FromRow)]
 struct RetiredGeneration {
@@ -60,13 +61,17 @@ pub(super) async fn drain_with_connection(
          AND EXISTS(SELECT 1 FROM spaces_retrieval_generations a WHERE a.space_id=g.space_id AND a.status='active') \
          ORDER BY g.created_at,g.id",
     ).bind(now.saturating_sub(HISTORY_RETENTION_MS)).fetch_all(pool).await.map_err(db::sql_error)?;
+    let table = lancedb_store::open_knowledge_table_if_exists(index).await?;
     if retired.is_empty() {
+        if let Some(table) = &table {
+            maintain_active_table(table).await;
+        }
         return Ok(());
     }
-    let table = lancedb_store::open_knowledge_table_if_exists(index).await?;
     for generation in &retired {
         if generation.cleanup_started_at.is_none() {
             if let Some(table) = &table {
+                let _lance_guard = invalidation_outbox::acquire_lance_write_lock().await;
                 let predicate = format!(
                     "space_id = '{}' AND generation_id = '{}'",
                     escape_sql_literal(&generation.space_id),
@@ -85,6 +90,7 @@ pub(super) async fn drain_with_connection(
         }
     }
     if let Some(table) = &table {
+        let _lance_guard = invalidation_outbox::acquire_lance_write_lock().await;
         // Materialize every deletion; keep the documented seven-day snapshot safety window.
         table
             .optimize(OptimizeAction::Compact {
@@ -104,6 +110,7 @@ pub(super) async fn drain_with_connection(
             })
             .await
             .map_err(|error| format!("Failed to prune retired generation history: {error}"))?;
+        ensure_table_indices(table).await;
     }
     // Retention starts after physical compaction, including a long maintenance pass.
     let completed_at = crate::foundation::clock::unix_time_millis()?.max(now);
@@ -130,4 +137,62 @@ pub(super) async fn drain_with_connection(
         }
     }
     Ok(())
+}
+
+/// Periodically compacts incremental LanceDB writes, prunes expired history, and maintains
+/// scalar/vector indices on the active table even when no generation has been retired.
+async fn maintain_active_table(table: &Table) {
+    let _lance_guard = invalidation_outbox::acquire_lance_write_lock().await;
+    if let Err(error) = table
+        .optimize(OptimizeAction::Compact {
+            options: Default::default(),
+            remap_options: None,
+        })
+        .await
+    {
+        log::warn!("Incremental LanceDB compaction skipped: {error}");
+    }
+    if let Err(error) = table
+        .optimize(OptimizeAction::Prune {
+            older_than: None,
+            delete_unverified: Some(false),
+            error_if_tagged_old_versions: Some(true),
+        })
+        .await
+    {
+        log::warn!("Incremental LanceDB prune skipped: {error}");
+    }
+    ensure_table_indices(table).await;
+}
+
+async fn ensure_table_indices(table: &Table) {
+    let Ok(rows) = table.count_rows(None).await else {
+        return;
+    };
+    if rows == 0 {
+        return;
+    }
+    let Ok(indices) = table.list_indices().await else {
+        return;
+    };
+    let has_space_index = indices
+        .iter()
+        .any(|index| index.columns.iter().any(|column| column == "space_id"));
+    if !has_space_index {
+        if let Err(error) = table
+            .create_index(&["space_id"], Index::BTree(Default::default()))
+            .execute()
+            .await
+        {
+            log::warn!("Failed to build LanceDB space_id BTree index: {error}");
+        }
+    }
+    let has_vector_index = indices
+        .iter()
+        .any(|index| index.columns.iter().any(|column| column == "vector"));
+    if !has_vector_index && rows >= VECTOR_INDEX_MIN_ROWS {
+        if let Err(error) = table.create_index(&["vector"], Index::Auto).execute().await {
+            log::warn!("Failed to build LanceDB vector index: {error}");
+        }
+    }
 }

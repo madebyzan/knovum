@@ -35,10 +35,21 @@ pub(super) struct WorkerLease {
     guard: OwnedMutexGuard<Option<Worker>>,
     _permit: admission::Permit,
     slot: WorkerSlot,
+    in_flight: bool,
 }
 
 impl Drop for WorkerLease {
     fn drop(&mut self) {
+        if self.in_flight {
+            // A future dropped mid-request leaves the worker's stdio protocol desynchronized;
+            // evict it immediately and terminate it asynchronously so no caller reuses it.
+            if let Some(mut worker) = self.guard.take() {
+                tokio::spawn(async move {
+                    worker.terminate().await;
+                });
+            }
+            return;
+        }
         super::reclaim_when_idle(self.slot.clone());
     }
 }
@@ -88,6 +99,7 @@ impl WorkerLease {
             guard,
             _permit: permit,
             slot,
+            in_flight: false,
         })
     }
 
@@ -143,6 +155,7 @@ impl WorkerLease {
         let exit = super::exit_token();
         let worker = self.guard.as_mut().ok_or("worker_crashed")?;
         let method = worker.capability.method();
+        self.in_flight = true;
         let dispatched = worker
             .send_request(
                 identity.request_id,
@@ -158,6 +171,7 @@ impl WorkerLease {
             // A request that was never dispatched already terminated its worker.
             Err(error) => {
                 *self.guard = None;
+                self.in_flight = false;
                 return Err(error);
             }
         };
@@ -180,6 +194,7 @@ impl WorkerLease {
         } else {
             worker.last_used = Instant::now();
         }
+        self.in_flight = false;
         response
     }
 }
