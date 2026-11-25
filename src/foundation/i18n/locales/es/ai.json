@@ -33,7 +33,8 @@
     "pt": "Portugués",
     "it": "Italiano",
     "ru": "Ruso",
-    "ar": "Árabe"
+    "ar": "Árabe",
+    "yue": "Cantonés"
   },
   "localModels": {
     "memoryAdvisory": "Homologado para equipos con {memory} de memoria. En este ordenador una síntesis puede rechazarse cuando falte memoria; MOSS-TTS-Nano es la alternativa más ligera."

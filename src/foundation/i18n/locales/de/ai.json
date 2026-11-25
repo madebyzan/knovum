@@ -33,7 +33,8 @@
     "pt": "Portugiesisch",
     "it": "Italienisch",
     "ru": "Russisch",
-    "ar": "Arabisch"
+    "ar": "Arabisch",
+    "yue": "Kantonesisch"
   },
   "localModels": {
     "memoryAdvisory": "Für Geräte mit {memory} Arbeitsspeicher qualifiziert. Auf diesem Computer kann eine Synthese abgelehnt werden, wenn der Speicher knapp wird; MOSS-TTS-Nano ist die leichtere Alternative."

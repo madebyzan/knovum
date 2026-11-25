@@ -14,5 +14,7 @@
   },
   "credentials": {
     "saveFailed": "연결이 저장되었지만 키를 저장할 수 없습니다. 다시 시도하세요"
-  }
+  },
+  "connectOllama": "Ollama 연결 ({count})",
+  "ollamaConnected": "로컬 Ollama에 연결했습니다 ({count}개 모델)"
 }

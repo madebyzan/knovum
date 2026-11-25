@@ -90,7 +90,7 @@ const visibleCapabilities = computed(() => new Set(visibleModels.value.map((mode
           :model-value="downloadSourceQuery.data.value ?? 'huggingface'"
           data-testid="model-download-source"
           class="w-48"
-          :disabled="savingSource"
+          :disabled="savingSource || downloadSourceQuery.isPending.value"
           :options="downloadSourceOptions"
           :label="t('settings.ai.localModels.downloadSource.label')"
           @update:model-value="updateDownloadSource"

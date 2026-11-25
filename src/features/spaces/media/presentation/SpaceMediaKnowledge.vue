@@ -19,6 +19,7 @@ import SpaceDiarizationControl from "./SpaceDiarizationControl.vue";
 import SpaceMediaChapterEditor from "./SpaceMediaChapterEditor.vue";
 import SpaceMediaLiveTranscript from "./SpaceMediaLiveTranscript.vue";
 import SpaceMediaSummaryEditor from "./SpaceMediaSummaryEditor.vue";
+import SpaceNodeTranscriptionAction from "./SpaceNodeTranscriptionAction.vue";
 import SpaceTranscriptionLanguageSelect from "./SpaceTranscriptionLanguageSelect.vue";
 import SpaceTranscriptNavigator from "./SpaceTranscriptNavigator.vue";
 
@@ -151,11 +152,12 @@ function runInsights(targetId?: string) {
               </template>
             </ModelChoiceTrigger>
           </div>
+          <SpaceTranscriptionLanguageSelect
+            v-model="media.transcriptionLanguage.value"
+            class="mt-1.5"
+            :disabled="transcribeLocked"
+          />
           <CollapsibleContent class="mt-2">
-            <SpaceTranscriptionLanguageSelect
-              v-model="media.transcriptionLanguage.value"
-              :disabled="transcribeLocked"
-            />
             <SpaceDiarizationControl
               :node-id="nodeId"
               :revision="media.knowledge.value.transcript.revision"
@@ -178,12 +180,21 @@ function runInsights(targetId?: string) {
         </div>
       </CollapsibleRoot>
     </template>
-    <p v-else class="mt-2 text-caption leading-relaxed text-fg-tertiary">
-      {{
-        media.analyzing.value
-          ? t("spaces.media.analysis.inProgress")
-          : t("spaces.media.analysis.knowledge.pending")
-      }}
-    </p>
+    <div v-else class="mt-2 space-y-2">
+      <p class="text-caption leading-relaxed text-fg-tertiary">
+        {{
+          media.analyzing.value
+            ? t("spaces.media.analysis.inProgress")
+            : t("spaces.media.analysis.knowledge.pending")
+        }}
+      </p>
+      <template v-if="media.canTranscribe.value">
+        <SpaceTranscriptionLanguageSelect
+          v-model="media.transcriptionLanguage.value"
+          :disabled="transcribeLocked"
+        />
+        <SpaceNodeTranscriptionAction :node="node" />
+      </template>
+    </div>
   </section>
 </template>

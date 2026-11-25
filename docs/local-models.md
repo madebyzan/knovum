@@ -58,6 +58,10 @@ verified embedding snapshot explicitly; Related Content then schedules a full Sp
 
 All non-Agent models execute in the Rust worker. Rust uses reqwest for the exact Hugging Face and
 ModelScope repository protocols; direct suppliers and archive members retain their frozen hashes.
+Hugging Face downloads (including single files, Hub snapshots, and Hugging Face-hosted model zip
+archives) resolve their endpoint via an explicit `HF_ENDPOINT` environment override first, and
+otherwise use the persisted `localResources.downloadSource` preference (`huggingface` default or
+`hf-mirror`, configurable in **Settings → Local models**).
 Downloads validate 206 Content-Range before appending, restart on 200, stream bounded progress and
 preserve partial bytes on cancellation. The installer verifies complete snapshots before atomic
 publication. No Python Hub SDK, Torch, MLX or inference environment remains.

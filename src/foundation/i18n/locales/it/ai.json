@@ -33,7 +33,8 @@
     "pt": "Portoghese",
     "it": "Italiano",
     "ru": "Russo",
-    "ar": "Arabo"
+    "ar": "Arabo",
+    "yue": "Cantonese"
   },
   "localModels": {
     "memoryAdvisory": "Qualificato per computer con {memory} di memoria. Su questo computer una sintesi può essere rifiutata quando la memoria scarseggia; MOSS-TTS-Nano è l'alternativa più leggera."

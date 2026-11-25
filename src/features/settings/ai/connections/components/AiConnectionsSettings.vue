@@ -3,6 +3,7 @@ import { Plus, Sparkles } from "@lucide/vue";
 import { useQuery } from "@tanstack/vue-query";
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
 import { detectLocalOllamaModels, requireProvider } from "../../../../../foundation/ai/providers";
 import type { AiConnectionSettings } from "../../../../../shared/contracts/generated/AiConnectionSettings";
@@ -10,7 +11,7 @@ import { routingCapabilities } from "../../../../../shared/contracts/generated/c
 import type { ProviderDescriptor } from "../../../../../shared/contracts/generated/ProviderDescriptor";
 import type { RoutingPurpose } from "../../../../../shared/contracts/generated/RoutingPurpose";
 import UiButton from "../../../../../shared/ui/UiButton.vue";
-import { buildOllamaDetectedModels } from "../starter-models";
+import { buildOllamaDetectedModels, filterOllamaChatModelNames } from "../starter-models";
 import { useAiConnectionEditing } from "../use-ai-connection-editing";
 import AiConnectionConfiguration from "./AiConnectionConfiguration.vue";
 import AiConnectionEditor from "./AiConnectionEditor.vue";
@@ -56,21 +57,26 @@ const ollamaProbe = useQuery({
   staleTime: 30_000,
   retry: false,
 });
-const detectedOllamaModels = computed(() => ollamaProbe.data.value ?? []);
+const detectedOllamaModels = computed(() => filterOllamaChatModelNames(ollamaProbe.data.value ?? []));
 
-function connectDetectedOllama() {
+async function connectDetectedOllama() {
   const provider = ollamaProvider.value;
   if (!provider || !detectedOllamaModels.value.length || busy.value) return;
-  void saveConnection({
+  const models = buildOllamaDetectedModels(detectedOllamaModels.value, provider);
+  if (!models.length) return;
+  await saveConnection({
     connection: {
       id: crypto.randomUUID(),
       name: provider.displayName,
       provider: "ollama",
       baseUrl: provider.defaultBaseUrl,
-      models: buildOllamaDetectedModels(detectedOllamaModels.value, provider),
+      models,
     },
     secret: undefined,
   });
+  if (!error.value) {
+    toast.success(t("settings.ai.connections.ollamaConnected", { count: models.length }));
+  }
 }
 
 const dialogOpen = computed({
@@ -113,7 +119,9 @@ watch(
           :disabled="busy"
           @click="connectDetectedOllama"
         >
-          <Sparkles class="size-3.5 text-fg-accent" />Ollama ({{ detectedOllamaModels.length }})
+          <Sparkles class="size-3.5 text-fg-accent" />{{
+            t("settings.ai.connections.connectOllama", { count: detectedOllamaModels.length })
+          }}
         </UiButton>
         <UiButton
           id="settings-ai-create-trigger"

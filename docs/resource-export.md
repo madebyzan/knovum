@@ -61,9 +61,12 @@ sound out of it is one of its encodings rather than a separate feature. `media-l
 every encoder named here, so a supplier that lacks one fails the build rather than the export.
 
 The private document worker owns synchronous parsing and serialization. Markdown is parsed with
-`pulldown-cmark`; Notes are translated directly from their validated Tiptap document into the admitted
-`office_oxide` IR. PDF text is freshly extracted from the pinned original file. Knovum keeps
-source/asset policy, format translation, presentation pagination and safe typesetting.
+`pulldown-cmark` (including `$...$` / `$$...$$` LaTeX math and footnotes, serialized as monospace
+inline formulas, `math` code blocks, and an appended `"Footnotes"` section); Notes are translated
+directly from their validated Tiptap document (including `inlineMath` and `blockMath` nodes,
+serialized as raw LaTeX expressions) into the admitted `office_oxide` IR. PDF text is freshly
+extracted from the pinned original file. Knovum keeps source/asset policy, format translation,
+presentation pagination and safe typesetting.
 
 Original-layout fidelity is outside this product boundary. Knovum does not install, bundle or
 implicitly discover an Office layout engine; every document source is read into the authoring model

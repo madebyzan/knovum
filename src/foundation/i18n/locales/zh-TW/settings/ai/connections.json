@@ -14,5 +14,7 @@
   },
   "credentials": {
     "saveFailed": "連線已儲存，但密鑰保存失敗。請重試"
-  }
+  },
+  "connectOllama": "連線本機 Ollama（{count}）",
+  "ollamaConnected": "已連線本機 Ollama（{count} 個模型）"
 }

@@ -43,27 +43,37 @@
       "x": 296,
       "y": 424,
       "width": 550,
-      "height": 236,
-      "label": "Tu análisis"
+      "height": 340,
+      "label": "Tu análisis (Ejemplo de tesis y evidencias)"
     },
     {
       "id": "question",
       "type": "text",
       "x": 316,
-      "y": 472,
+      "y": 468,
       "width": 245,
-      "height": 168,
+      "height": 124,
       "text": "La pregunta\n¿Debe Harbor Street Coffee abrir en el 41 de Mill Lane?\n\nPendiente: la caída del verano y si el propietario confirma por escrito los meses sin alquiler.",
       "color": "5"
+    },
+    {
+      "id": "evidence",
+      "type": "text",
+      "x": 316,
+      "y": 608,
+      "width": 245,
+      "height": 136,
+      "text": "Evidencias clave\n• Informe de mercado [p. 1]: 190 pedidos diarios previstos, reforma amortizada en el mes 14.\n• Pizarra e informe [p. 3]: periodo sin alquiler hablado de palabra, falta confirmación por escrito.",
+      "color": "2"
     },
     {
       "id": "draft",
       "type": "text",
       "x": 581,
-      "y": 472,
+      "y": 468,
       "width": 245,
-      "height": 168,
-      "text": "Borrador de respuesta\nAbrir, si se confirma el periodo sin alquiler. La reforma se amortiza en el mes 14 con los 190 pedidos diarios previstos.\n\nSustituye esto por tu propia opinión.",
+      "height": 276,
+      "text": "Borrador fundamentado (ejemplo)\nAvanzar con condición: abrir en el 41 de Mill Lane cuando el periodo sin alquiler se confirme por escrito.\n\nBase:\n1. La reforma se amortiza en el mes 14 con 190 pedidos/día (Informe de mercado, p. 1).\n2. Conviene cerrar la caída del verano y los meses sin alquiler antes de firmar (Pizarra e informe, p. 3).\n\nSustituye esto por tu propia opinión o pregunta a la IA a la derecha.",
       "color": "4"
     }
   ],
@@ -75,16 +85,25 @@
       "toNode": "question",
       "toSide": "top",
       "toEnd": "arrow",
-      "label": "Respalda"
+      "label": "Plantea"
     },
     {
-      "id": "whiteboard-question",
+      "id": "whiteboard-evidence",
       "fromNode": "whiteboard",
       "fromSide": "bottom",
-      "toNode": "question",
+      "toNode": "evidence",
       "toSide": "top",
       "toEnd": "arrow",
       "label": "Respalda"
+    },
+    {
+      "id": "evidence-draft",
+      "fromNode": "evidence",
+      "fromSide": "right",
+      "toNode": "draft",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "Sustenta"
     },
     {
       "id": "question-draft",

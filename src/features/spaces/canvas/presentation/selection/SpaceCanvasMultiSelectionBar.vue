@@ -71,7 +71,14 @@ const identity = computed(() =>
       @invoke="emit('invokeDerivation', 'draft-document')"
     />
     <UiSeparator
-      v-if="(state.canAsk || canDraftDocument) && (state.arrangement.autoLayout || state.arrangement.align)"
+      v-if="
+        (state.canAsk || canDraftDocument) &&
+        (state.arrangement.autoLayout ||
+          state.arrangement.align ||
+          state.canCreateGroup ||
+          state.canCreateSection ||
+          state.canConnect)
+      "
       orientation="vertical"
       class="mx-0.5 h-4"
     />

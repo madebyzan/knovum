@@ -33,7 +33,8 @@
     "pt": "葡萄牙文",
     "it": "義大利文",
     "ru": "俄文",
-    "ar": "阿拉伯文"
+    "ar": "阿拉伯文",
+    "yue": "粵語"
   },
   "localModels": {
     "memoryAdvisory": "此模型在 {memory} 記憶體的機器上完成驗證。本機記憶體吃緊時合成可能被拒絕；更輕量的選擇是 MOSS-TTS-Nano。"

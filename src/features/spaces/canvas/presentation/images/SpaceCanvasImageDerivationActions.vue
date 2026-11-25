@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Eraser, MousePointer2, ScanLine, Sticker } from "@lucide/vue";
+import { Eraser, MousePointer2, ScanLine } from "@lucide/vue";
 
 import type { ImageExecutionTarget } from "../../../contracts/generated/ImageExecutionTarget";
 import SpaceImageLayersPopover from "../../../image-editing/presentation/SpaceImageLayersPopover.vue";
@@ -51,14 +51,6 @@ const ACTIONS = [
     begin: () => emit("beginSelection"),
   },
 ] as const;
-const STICKER_ACTION = {
-  key: "slice-stickers",
-  icon: Sticker,
-  labelKey: DERIVATION_LABEL_KEY["slice-sticker-sheet"],
-  availability: () => props.availabilityByDerivation["slice-sticker-sheet"],
-  reason: () => props.reasonByDerivation["slice-sticker-sheet"],
-  begin: () => emit("runDirect", "slice-sticker-sheet"),
-} as const;
 </script>
 
 <template>
@@ -93,15 +85,5 @@ const STICKER_ACTION = {
     @invoke="emit('runDirect', 'split-image-layers')"
     @run="emit('runLayers', $event)"
     @update:open="!$event && emit('cancelLayers')"
-  />
-  <SpaceCanvasImageActionTrigger
-    v-if="menuItem"
-    :availability="STICKER_ACTION.availability()"
-    :reason="STICKER_ACTION.reason()"
-    :icon="STICKER_ACTION.icon"
-    :label-key="STICKER_ACTION.labelKey"
-    :compact="compact"
-    :menu-item="menuItem"
-    @begin="STICKER_ACTION.begin()"
   />
 </template>

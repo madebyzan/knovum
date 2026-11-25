@@ -14,5 +14,7 @@
   },
   "credentials": {
     "saveFailed": "Verbindung gespeichert, aber der Schlüssel konnte nicht gespeichert werden. Versuchen Sie es erneut"
-  }
+  },
+  "connectOllama": "Ollama verbinden ({count})",
+  "ollamaConnected": "Lokales Ollama verbunden ({count} Modelle)"
 }

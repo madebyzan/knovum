@@ -43,27 +43,37 @@
       "x": 296,
       "y": 424,
       "width": 550,
-      "height": 236,
-      "label": "Sua análise"
+      "height": 340,
+      "label": "Sua análise (Exemplo de tese e evidências)"
     },
     {
       "id": "question",
       "type": "text",
       "x": 316,
-      "y": 472,
+      "y": 468,
       "width": 245,
-      "height": 168,
+      "height": 124,
       "text": "A pergunta\nA Harbor Street Coffee deve abrir na Mill Lane, 41?\n\nEm aberto: a queda do verão e se o proprietário confirma por escrito os meses de carência.",
       "color": "5"
+    },
+    {
+      "id": "evidence",
+      "type": "text",
+      "x": 316,
+      "y": 608,
+      "width": 245,
+      "height": 136,
+      "text": "Evidências-chave\n• Relatório de mercado [p. 1]: previsão de 190 pedidos/dia, reforma paga no mês 14.\n• Quadro branco e relatório [p. 3]: carência citada verbalmente, ainda aguardando confirmação por escrito.",
+      "color": "2"
     },
     {
       "id": "draft",
       "type": "text",
       "x": 581,
-      "y": 472,
+      "y": 468,
       "width": 245,
-      "height": 168,
-      "text": "Rascunho da resposta\nAbrir, se a carência for confirmada. A reforma se paga no mês 14 com os 190 pedidos diários previstos.\n\nSubstitua isto pela sua própria opinião.",
+      "height": 276,
+      "text": "Rascunho fundamentado (exemplo)\nSeguir com condição: abrir na Mill Lane, 41 assim que a carência de aluguel for confirmada por escrito.\n\nBase:\n1. A reforma se paga no mês 14 com 190 pedidos/dia (Relatório de mercado, p. 1).\n2. A queda no verão e os meses de carência precisam ser fechados antes da assinatura (Quadro branco e relatório, p. 3).\n\nSubstitua isto pela sua opinião ou pergunte à IA na barra direita.",
       "color": "4"
     }
   ],
@@ -75,16 +85,25 @@
       "toNode": "question",
       "toSide": "top",
       "toEnd": "arrow",
-      "label": "Embasa"
+      "label": "Enquadra"
     },
     {
-      "id": "whiteboard-question",
+      "id": "whiteboard-evidence",
       "fromNode": "whiteboard",
       "fromSide": "bottom",
-      "toNode": "question",
+      "toNode": "evidence",
       "toSide": "top",
       "toEnd": "arrow",
       "label": "Embasa"
+    },
+    {
+      "id": "evidence-draft",
+      "fromNode": "evidence",
+      "fromSide": "right",
+      "toNode": "draft",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "Sustenta"
     },
     {
       "id": "question-draft",

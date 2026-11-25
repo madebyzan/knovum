@@ -14,5 +14,7 @@
   },
   "credentials": {
     "saveFailed": "Соединение сохранено, но ключ сохранить не удалось. Попробуйте еще раз"
-  }
+  },
+  "connectOllama": "Подключить Ollama ({count})",
+  "ollamaConnected": "Локальный Ollama подключён ({count} мод.)"
 }

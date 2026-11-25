@@ -11,6 +11,7 @@ const { t } = useI18n();
 
 const LANGUAGE_ENTRIES = [
   ["zh", "ai.languages.zhCn"],
+  ["yue", "ai.languages.yue"],
   ["en", "ai.languages.en"],
   ["ja", "ai.languages.ja"],
   ["ko", "ai.languages.ko"],

@@ -43,27 +43,37 @@
       "x": 296,
       "y": 424,
       "width": 550,
-      "height": 236,
-      "label": "Votre réflexion"
+      "height": 340,
+      "label": "Votre réflexion (Exemple thèse et preuves)"
     },
     {
       "id": "question",
       "type": "text",
       "x": 316,
-      "y": 472,
+      "y": 468,
       "width": 245,
-      "height": 168,
+      "height": 124,
       "text": "La question\nHarbor Street Coffee doit-il ouvrir au 41 Mill Lane ?\n\nÀ trancher : le creux de l’été, et la confirmation écrite des mois de franchise par le propriétaire.",
       "color": "5"
+    },
+    {
+      "id": "evidence",
+      "type": "text",
+      "x": 316,
+      "y": 608,
+      "width": 245,
+      "height": 136,
+      "text": "Preuves clés\n• Note de marché [p. 1] : 190 commandes/jour prévues, travaux amortis au 14e mois.\n• Tableau blanc et note [p. 3] : franchise de loyer évoquée à l’oral, confirmation écrite attendue.",
+      "color": "2"
     },
     {
       "id": "draft",
       "type": "text",
       "x": 581,
-      "y": 472,
+      "y": 468,
       "width": 245,
-      "height": 168,
-      "text": "Projet de réponse\nOuvrir, si la franchise de loyer est confirmée. Les travaux sont amortis au 14e mois avec les 190 commandes par jour prévues.\n\nRemplacez ceci par votre propre avis.",
+      "height": 276,
+      "text": "Projet de réponse sourcé (exemple)\nAvancer sous condition : ouvrir au 41 Mill Lane dès que la franchise de loyer est confirmée par écrit.\n\nBase :\n1. Les travaux atteignent le seuil de rentabilité au 14e mois à 190 commandes/jour (Note de marché, p. 1).\n2. Le creux estival et la franchise doivent être actés avant signature (Tableau blanc et note, p. 3).\n\nRemplacez ceci par votre propre avis ou interrogez l’IA à droite.",
       "color": "4"
     }
   ],
@@ -75,16 +85,25 @@
       "toNode": "question",
       "toSide": "top",
       "toEnd": "arrow",
-      "label": "Éclaire"
+      "label": "Pose"
     },
     {
-      "id": "whiteboard-question",
+      "id": "whiteboard-evidence",
       "fromNode": "whiteboard",
       "fromSide": "bottom",
-      "toNode": "question",
+      "toNode": "evidence",
       "toSide": "top",
       "toEnd": "arrow",
-      "label": "Éclaire"
+      "label": "Étaie"
+    },
+    {
+      "id": "evidence-draft",
+      "fromNode": "evidence",
+      "fromSide": "right",
+      "toNode": "draft",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "Justifie"
     },
     {
       "id": "question-draft",
