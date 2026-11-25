@@ -15,6 +15,7 @@ import type { SpaceTranscriptSegment } from "../../media/schema/transcript";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceAudioPayload, SpaceVideoPayload } from "../../model/nodes/node-payload";
 import SpaceTranscriptPlayer from "./SpaceTranscriptPlayer.vue";
+import { useTranscriptVirtualizer } from "./use-transcript-virtualizer";
 
 const props = defineProps<{
   node: SpaceCanvasNode<SpaceVideoPayload | SpaceAudioPayload>;
@@ -49,12 +50,11 @@ const visibleSegments = computed(() => {
   const needle = debouncedQuery.value.trim();
   return needle ? search(needle, segments.value, { keySelector: (s) => s.text }) : segments.value;
 });
+const { rows, totalSize, measureElement, scrollToSegment } = useTranscriptVirtualizer(
+  scroller,
+  visibleSegments,
+);
 
-function scrollToSegment(startMs: number, block: ScrollLogicalPosition) {
-  scroller.value
-    ?.querySelector<HTMLElement>(`[data-segment-start-ms="${startMs}"]`)
-    ?.scrollIntoView({ behavior: "smooth", block });
-}
 function updateActiveSegment(ms: number) {
   currentMs.value = ms;
   const hit = segments.value.find((s) => ms >= s.startMs && ms < s.endMs);
@@ -127,34 +127,50 @@ watch(
     <div v-if="segments.length" class="relative flex min-h-0 flex-1 overflow-hidden">
       <div
         ref="scroller"
-        class="transcript-rows min-h-0 flex-1 space-y-0.5 overflow-y-auto bg-surface-raised py-2 pb-10"
+        class="transcript-rows min-h-0 flex-1 overflow-y-auto bg-surface-raised py-2 pb-10"
         :class="chapterOutline.length ? 'pr-10 pl-3' : 'px-3'"
       >
-        <div
-          v-for="segment in visibleSegments"
-          :key="segment.id"
-          :data-segment-start-ms="segment.startMs"
-          :data-segment-end-ms="segment.endMs"
-          :data-cited-segment="isHighlightedSegment(segment) ? '' : undefined"
-          :data-active-segment="activeSegmentId === segment.id ? '' : undefined"
-          class="relative flex items-baseline gap-2.5 rounded-lg px-2.5 py-2 transition-colors duration-120"
-          :class="segmentRowClass(segment)"
-        >
-          <button
-            data-reader-ignore-selection
-            type="button"
-            class="w-11 shrink-0 text-left font-mono text-caption-sm tabular-nums transition-colors select-none hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
-            :class="activeSegmentId === segment.id ? 'font-medium text-fg-accent' : 'text-fg-tertiary'"
-            @click="seekTo(segment.startMs)"
+        <div v-if="visibleSegments.length" class="relative w-full" :style="{ height: `${totalSize}px` }">
+          <div
+            v-for="row in rows"
+            :key="visibleSegments[row.index]!.id"
+            :ref="measureElement"
+            :data-index="row.index"
+            class="absolute top-0 left-0 w-full pb-0.5"
+            :style="{ transform: `translateY(${row.start}px)` }"
           >
-            {{ formatDurationMs(segment.startMs) }}
-          </button>
-          <div class="min-w-0 flex-1 text-body leading-relaxed text-fg-primary">
-            <SpaceTextQuote :text="segment.text" :exact="isHighlightedSegment(segment) ? quote : undefined" />
+            <div
+              :data-segment-start-ms="visibleSegments[row.index]!.startMs"
+              :data-segment-end-ms="visibleSegments[row.index]!.endMs"
+              :data-cited-segment="isHighlightedSegment(visibleSegments[row.index]!) ? '' : undefined"
+              :data-active-segment="activeSegmentId === visibleSegments[row.index]!.id ? '' : undefined"
+              class="relative flex items-baseline gap-2.5 rounded-lg px-2.5 py-2 transition-colors duration-120"
+              :class="segmentRowClass(visibleSegments[row.index]!)"
+            >
+              <button
+                data-reader-ignore-selection
+                type="button"
+                class="w-11 shrink-0 text-left font-mono text-caption-sm tabular-nums transition-colors select-none hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
+                :class="
+                  activeSegmentId === visibleSegments[row.index]!.id
+                    ? 'font-medium text-fg-accent'
+                    : 'text-fg-tertiary'
+                "
+                @click="seekTo(visibleSegments[row.index]!.startMs)"
+              >
+                {{ formatDurationMs(visibleSegments[row.index]!.startMs) }}
+              </button>
+              <div class="min-w-0 flex-1 text-body leading-relaxed text-fg-primary">
+                <SpaceTextQuote
+                  :text="visibleSegments[row.index]!.text"
+                  :exact="isHighlightedSegment(visibleSegments[row.index]!) ? quote : undefined"
+                />
+              </div>
+            </div>
           </div>
         </div>
         <p
-          v-if="!visibleSegments.length"
+          v-else
           data-reader-ignore-selection
           class="p-4 text-center text-caption text-fg-tertiary select-none"
         >

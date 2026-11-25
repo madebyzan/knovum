@@ -36,14 +36,14 @@ const imageSelectionSession = useImageSelectionSessionStore();
 const imageRemovalSession = useImageRemovalSessionStore();
 const imageComments = useImageCommentSessionStore();
 const contentInteractive = computed(() => {
+  if (props.interactive) return true;
+  if (props.node.data.kind !== "image") return false;
   const active = imageEditSession.active;
   return (
-    props.interactive ||
-    (props.node.data.kind === "image" &&
-      (imageComments.activeNodeId === props.node.id ||
-        (active?.nodeId === props.node.id && active.tool === "crop") ||
-        imageRemovalSession.active?.nodeId === props.node.id ||
-        imageSelectionSession.active?.nodeId === props.node.id))
+    imageComments.activeNodeId === props.node.id ||
+    (active?.nodeId === props.node.id && active.tool === "crop") ||
+    imageRemovalSession.active?.nodeId === props.node.id ||
+    imageSelectionSession.active?.nodeId === props.node.id
   );
 });
 const isCropping = computed(

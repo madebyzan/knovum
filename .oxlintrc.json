@@ -55,6 +55,7 @@
     "src-tauri/target/**",
     "src-tauri/gen/**",
     "src/shared/contracts/generated/**",
+    "src/features/dictation/contracts/generated/**",
     "src/features/spaces/contracts/generated/**",
     "src/features/settings/contracts/generated/**"
   ],
