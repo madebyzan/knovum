@@ -11,7 +11,6 @@ type SettingsLocation = NonNullable<(typeof SETTINGS_REGISTRY)[number]["location
 interface SettingsNavItem {
   readonly id: SettingsPaneId;
   readonly icon: Component;
-  readonly advanced: boolean;
   readonly locations?: readonly SettingsLocation[] | undefined;
   readonly label: string;
   readonly description: string;
@@ -32,7 +31,6 @@ export function buildSettingsNavGroups(translate: (key: string) => string): Sett
     settings: SETTINGS_REGISTRY.filter((definition) => definition.group === group).map((definition) => ({
       id: definition.id,
       icon: definition.icon,
-      advanced: Boolean(definition.advanced),
       locations: definition.locations,
       label: translate(definition.titleKey),
       description: translate(definition.descriptionKey),

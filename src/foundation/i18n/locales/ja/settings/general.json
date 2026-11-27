@@ -25,8 +25,7 @@
     "intelligence": "知能",
     "general": "全般",
     "data": "データとアーカイブ",
-    "information": "情報",
-    "advanced": "詳細設定"
+    "information": "情報"
   },
   "saveFailed": "設定を保存できませんでした",
   "analytics": {

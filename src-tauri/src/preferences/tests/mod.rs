@@ -17,7 +17,7 @@ fn absent_optional_preferences_preserve_saved_choices() {
             "restorePreviousWorkspace": true,
             "workbench": {
                 "sidebarVisible": true, "sidebarWidth": 224,
-                "rightSidebarVisible": true, "rightSidebarWidth": 380
+                "rightSidebarVisible": false, "rightSidebarWidth": 380
             },
             "canvas": {
                 "backgroundPattern": "dots"
@@ -40,7 +40,7 @@ fn partial_layout_preserves_explicit_false_values() {
     assert!(!preferences.restore_previous_workspace);
     assert!(!preferences.workbench.sidebar_visible);
     assert_eq!(preferences.workbench.sidebar_width, 224);
-    assert!(preferences.workbench.right_sidebar_visible);
+    assert!(!preferences.workbench.right_sidebar_visible);
     assert_eq!(preferences.workbench.right_sidebar_width, 380);
     assert_eq!(
         preferences.canvas.background_pattern,

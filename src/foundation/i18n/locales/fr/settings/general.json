@@ -25,8 +25,7 @@
     "intelligence": "Intelligence",
     "general": "Général",
     "data": "Données & archives",
-    "information": "Information",
-    "advanced": "Avancé"
+    "information": "Information"
   },
   "saveFailed": "Impossible d'enregistrer les paramètres",
   "analytics": {

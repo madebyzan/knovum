@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ArrowLeft, ChevronRight } from "@lucide/vue";
-import { computed, shallowRef, watch } from "vue";
+import { ArrowLeft } from "@lucide/vue";
+import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getUpdateAttentionVersion } from "../../../foundation/updates/update-presentation";
@@ -17,29 +17,8 @@ const { t } = useI18n();
 const updates = useUpdateStore();
 const updateBadgeVersion = computed(() => getUpdateAttentionVersion(updates.state));
 const query = shallowRef("");
-const advancedExpanded = shallowRef(false);
 
 const groups = computed(() => buildSettingsNavGroups(t));
-const primaryGroups = computed(() =>
-  groups.value
-    .map((group) => ({ ...group, settings: group.settings.filter((setting) => !setting.advanced) }))
-    .filter((group) => group.settings.length > 0),
-);
-const primaryGroupsBeforeAdvanced = computed(() =>
-  primaryGroups.value.filter((group) => group.id !== "information"),
-);
-const informationGroups = computed(() => primaryGroups.value.filter((group) => group.id === "information"));
-const advancedSettings = computed(() =>
-  groups.value.flatMap((group) => group.settings.filter((setting) => setting.advanced)),
-);
-watch(
-  () => props.activePane,
-  (pane) => {
-    if (advancedSettings.value.some((setting) => setting.id === pane)) advancedExpanded.value = true;
-  },
-  { immediate: true },
-);
-
 const visibleGroups = computed(() => searchSettingsNavGroups(groups.value, query.value, t));
 const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => group.settings));
 
@@ -98,45 +77,7 @@ function isSearchMatchActive(id: SettingsPaneId, location?: string) {
           </section>
         </template>
         <template v-else>
-          <section v-for="group in primaryGroupsBeforeAdvanced" :key="group.id" class="mb-4">
-            <p class="mb-1.5 px-2 text-caption font-medium text-fg-tertiary">{{ group.label }}</p>
-            <SettingsNavOption
-              v-for="setting in group.settings"
-              :key="setting.id"
-              :id="setting.id"
-              :icon="setting.icon"
-              :label="setting.label"
-              :active="props.activePane === setting.id"
-              @select="emit('select', $event)"
-            />
-          </section>
-          <section v-if="advancedSettings.length" class="mb-4">
-            <button
-              type="button"
-              class="mb-1 flex min-h-7 w-full items-center gap-1 rounded-md px-2 py-1.5 text-left text-caption font-medium text-fg-tertiary transition-colors hover:text-fg-secondary"
-              :aria-expanded="advancedExpanded"
-              aria-controls="settings-advanced-group"
-              @click="advancedExpanded = !advancedExpanded"
-            >
-              <ChevronRight
-                class="size-3 transition-transform duration-150 ease-standard"
-                :class="advancedExpanded && 'rotate-90'"
-              />
-              <span>{{ t("settings.general.groups.advanced") }}</span>
-            </button>
-            <div v-if="advancedExpanded" id="settings-advanced-group">
-              <SettingsNavOption
-                v-for="setting in advancedSettings"
-                :key="setting.id"
-                :id="setting.id"
-                :icon="setting.icon"
-                :label="setting.label"
-                :active="props.activePane === setting.id"
-                @select="emit('select', $event)"
-              />
-            </div>
-          </section>
-          <section v-for="group in informationGroups" :key="group.id" class="mb-4">
+          <section v-for="group in groups" :key="group.id" class="mb-4">
             <p class="mb-1.5 px-2 text-caption font-medium text-fg-tertiary">{{ group.label }}</p>
             <SettingsNavOption
               v-for="setting in group.settings"

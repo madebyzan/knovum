@@ -25,8 +25,7 @@
     "intelligence": "智慧能力",
     "general": "一般",
     "data": "數據與歸檔",
-    "information": "資訊",
-    "advanced": "進階"
+    "information": "資訊"
   },
   "saveFailed": "無法儲存配置",
   "analytics": {

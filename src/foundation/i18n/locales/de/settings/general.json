@@ -25,8 +25,7 @@
     "intelligence": "Intelligenz",
     "general": "Allgemein",
     "data": "Daten & Archive",
-    "information": "Information",
-    "advanced": "Erweitert"
+    "information": "Information"
   },
   "saveFailed": "Die Einstellungen konnten nicht gespeichert werden",
   "analytics": {
