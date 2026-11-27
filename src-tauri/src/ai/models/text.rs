@@ -12,9 +12,10 @@ pub struct CompletionRequest {
     pub max_tokens: Option<u32>,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, ts_rs::TS)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 pub enum EditorTransformAction {
+    Custom,
     Improve,
     FixGrammar,
     Extend,

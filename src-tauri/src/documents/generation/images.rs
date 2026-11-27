@@ -1,11 +1,17 @@
 use std::{cell::Cell, collections::BTreeMap, io::Cursor};
 
 use image::ImageDecoder;
+use sha2::{Digest, Sha256};
 
-use super::document::{DocumentSource, ImageSource};
+use super::document::{DocumentSource, ImageSource, RenderedImage};
 
 pub(crate) const MAX_IMAGE_BYTES: u64 = 32 * 1024 * 1024;
 const MAX_TOTAL_BYTES: usize = 64 * 1024 * 1024;
+
+pub(crate) fn diagram_destination(source: &str) -> String {
+    let digest = Sha256::digest(source.trim().as_bytes());
+    format!("mermaid:{}", hex::encode(digest))
+}
 
 pub(super) struct Image {
     pub bytes: Vec<u8>,
@@ -17,27 +23,42 @@ pub(super) struct Images(pub(super) BTreeMap<String, Image>, pub(super) Cell<usi
 
 impl Images {
     pub fn load(source: &DocumentSource) -> Result<Self, String> {
-        Self::from_sources(&source.images)
+        Self::from_sources_and_rendered(&source.images, &source.rendered_images)
     }
 
-    pub fn from_sources(sources: &[ImageSource]) -> Result<Self, String> {
-        if sources.len() > 2_000 {
+    pub fn from_sources_and_rendered(
+        sources: &[ImageSource],
+        rendered: &[RenderedImage],
+    ) -> Result<Self, String> {
+        if sources.len().saturating_add(rendered.len()) > 2_000 {
             return Err("Document exceeds 2000 image resources".into());
         }
         let mut image_by_destination = BTreeMap::new();
-        let mut total = 0;
+        let mut total = 0usize;
         for source in sources {
             if image_by_destination.contains_key(&source.destination) {
                 return Err("Document contains duplicate image resource identities".into());
             }
             let bytes = super::input::file::read_snapshot(&source.file, MAX_IMAGE_BYTES)?;
-            total += bytes.len();
+            total = total.saturating_add(bytes.len());
             let image = decode(&bytes)?;
-            total += image.bytes.len();
+            total = total.saturating_add(image.bytes.len());
             if total > MAX_TOTAL_BYTES {
                 return Err("Document image resources exceed 64 MiB".into());
             }
             image_by_destination.insert(source.destination.clone(), image);
+        }
+        for item in rendered {
+            if image_by_destination.contains_key(&item.destination) {
+                return Err("Document contains duplicate image resource identities".into());
+            }
+            total = total.saturating_add(item.bytes.len());
+            let image = decode(&item.bytes)?;
+            total = total.saturating_add(image.bytes.len());
+            if total > MAX_TOTAL_BYTES {
+                return Err("Document image resources exceed 64 MiB".into());
+            }
+            image_by_destination.insert(item.destination.clone(), image);
         }
         Ok(Self(image_by_destination, Cell::new(0)))
     }
@@ -103,11 +124,25 @@ pub(super) fn decode(bytes: &[u8]) -> Result<Image, String> {
     let orientation = decoder.orientation().map_err(|error| error.to_string())?;
     let mut image =
         image::DynamicImage::from_decoder(decoder).map_err(|error| error.to_string())?;
+    if format == image::ImageFormat::Png
+        && orientation == image::metadata::Orientation::NoTransforms
+    {
+        return Ok(Image {
+            bytes: bytes.to_vec(),
+            width: image.width(),
+            height: image.height(),
+        });
+    }
     image.apply_orientation(orientation);
     let (width, height) = (image.width(), image.height());
     let mut output = Cursor::new(Vec::new());
+    let encoder = image::codecs::png::PngEncoder::new_with_quality(
+        &mut output,
+        image::codecs::png::CompressionType::Fast,
+        image::codecs::png::FilterType::Adaptive,
+    );
     image
-        .write_to(&mut output, image::ImageFormat::Png)
+        .write_with_encoder(encoder)
         .map_err(|error| error.to_string())?;
     if output.get_ref().len() as u64 > MAX_IMAGE_BYTES {
         return Err("Normalized document image exceeds 32 MiB".into());

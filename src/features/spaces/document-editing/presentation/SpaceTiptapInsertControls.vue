@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Minus } from "@lucide/vue";
 import type { Editor } from "@tiptap/vue-3";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { DividerBlockIcon } from "../editor-icons";
 import SpaceTiptapImageControl from "./SpaceTiptapImageControl.vue";
 import SpaceTiptapTableControl from "./SpaceTiptapTableControl.vue";
 
@@ -20,6 +20,6 @@ const { t } = useI18n();
     size="sm"
     @click="editor.chain().focus().setHorizontalRule().run()"
   >
-    <Minus class="size-3.5" :stroke-width="1.6" />
+    <DividerBlockIcon class="size-3.5" :stroke-width="1.65" />
   </UiIconButton>
 </template>

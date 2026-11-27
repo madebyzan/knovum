@@ -161,6 +161,9 @@
     "viewCreated": "결과 찾기"
   },
   "activity": {
+    "thinking": "생각하는 중…",
+    "thought": "생각 완료",
+    "thoughtFor": "{seconds}초 동안 생각함",
     "generating": "응답 생성 중…",
     "running": "작동 중 · {count} 동작",
     "finished": "완료됨 · {count} 작업 완료",

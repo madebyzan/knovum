@@ -61,25 +61,32 @@ export async function listenForFileDrops(handlers: FileDropHandlers): Promise<()
     });
   }
 
+  let hasFilePayload = false;
+  const emitHover = (position: DragDropPosition) =>
+    handlers.hover?.(true, normalizeDragPosition(position, currentPlatform, scaleFactor));
+  const emitDrop = (paths: string[], position: DragDropPosition) => {
+    const drop: FileDrop = {
+      paths,
+      position: normalizeDragPosition(position, currentPlatform, scaleFactor),
+    };
+    void Promise.resolve()
+      .then(() => handlers.drop(drop))
+      .catch((err) => logError(`File drop handler failed: ${formatErrorDiagnostic(err)}`));
+  };
+
   const unlistenDrop = await getCurrentWebview().onDragDropEvent(({ payload }) => {
-    if (payload.type === "enter" || payload.type === "over") {
-      handlers.hover?.(true, normalizeDragPosition(payload.position, currentPlatform, scaleFactor));
+    if (payload.type === "enter") {
+      hasFilePayload = payload.paths.length > 0;
+      if (hasFilePayload) emitHover(payload.position);
       return;
     }
-    if (payload.type === "drop") {
-      handlers.hover?.(false);
-      const drop: FileDrop = {
-        paths: payload.paths,
-        position: normalizeDragPosition(payload.position, currentPlatform, scaleFactor),
-      };
-      void Promise.resolve()
-        .then(() => handlers.drop(drop))
-        .catch((err) => logError(`File drop handler failed: ${formatErrorDiagnostic(err)}`));
+    if (payload.type === "over") {
+      if (hasFilePayload) emitHover(payload.position);
       return;
     }
-    if (payload.type === "leave") {
-      handlers.hover?.(false);
-    }
+    hasFilePayload = false;
+    handlers.hover?.(false);
+    if (payload.type === "drop" && payload.paths.length) emitDrop(payload.paths, payload.position);
   });
 
   return () => {

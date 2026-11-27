@@ -1,77 +1,90 @@
 :deep(.space-tiptap-prose) {
-  min-height: 32rem;
+  min-height: 28rem;
   outline: none;
   color: var(--color-fg-primary);
-  font-size: var(--text-body-lg);
-  line-height: 1.68;
+  font-size: 0.96875rem;
+  line-height: 1.72;
+  caret-color: var(--color-fg-primary);
 }
 :deep(.space-tiptap-prose > * + *) {
-  margin-top: 0.8em;
+  margin-top: 0.55em;
+}
+:deep(.space-tiptap-prose > :first-child) {
+  margin-top: 0;
 }
 :deep(.space-tiptap-prose h1) {
-  margin-top: 1.65em;
-  font-size: 1.75rem;
-  line-height: 1.2;
-  font-weight: 650;
-  letter-spacing: -0.025em;
+  margin-top: 1.55em;
+  margin-bottom: 0.2em;
+  font-size: 1.625rem;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.024em;
 }
 :deep(.space-tiptap-prose h2) {
-  margin-top: 1.45em;
-  font-size: 1.35rem;
+  margin-top: 1.35em;
+  margin-bottom: 0.18em;
+  font-size: 1.3125rem;
   line-height: 1.3;
   font-weight: 650;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.018em;
 }
 :deep(.space-tiptap-prose h3) {
-  margin-top: 1.3em;
-  font-size: 1.08rem;
-  line-height: 1.35;
+  margin-top: 1.18em;
+  margin-bottom: 0.14em;
+  font-size: 1.09375rem;
+  line-height: 1.36;
   font-weight: 650;
+  letter-spacing: -0.012em;
 }
 :deep(.space-tiptap-prose h4),
 :deep(.space-tiptap-prose h5),
 :deep(.space-tiptap-prose h6) {
-  margin-top: 1.1em;
-  font-size: var(--text-body-lg);
-  line-height: 1.4;
+  margin-top: 1.05em;
+  font-size: 0.96875rem;
+  line-height: 1.45;
   font-weight: 650;
 }
 :deep(.space-tiptap-prose ul:not([data-type="taskList"])),
 :deep(.space-tiptap-prose ol) {
-  padding-left: 1.45rem;
+  padding-left: 1.5rem;
 }
 :deep(.space-tiptap-prose li + li) {
-  margin-top: 0.28em;
+  margin-top: 0.22em;
+}
+:deep(.space-tiptap-prose li > p) {
+  margin: 0;
 }
 :deep(.space-tiptap-prose li > ul),
 :deep(.space-tiptap-prose li > ol) {
-  margin-top: 0.28em;
+  margin-top: 0.22em;
 }
-:deep(.space-tiptap-prose hr) {
-  border: 0;
-  border-top: 1px solid var(--color-stroke-divider);
-  margin-block: 1.5em;
-}
-:deep(.space-tiptap-prose ul) {
+:deep(.space-tiptap-prose ul:not([data-type="taskList"])) {
   list-style: disc;
 }
 :deep(.space-tiptap-prose ol) {
   list-style: decimal;
 }
-:deep(.space-tiptap-prose ul[data-type="taskList"]) {
-  list-style: none;
-  padding-left: 0;
+:deep(.space-tiptap-prose hr) {
+  border: 0;
+  border-top: 1px solid var(--color-stroke-default);
+  margin-block: 1.5rem;
 }
-:deep(.space-tiptap-prose ul[data-type="taskList"] li) {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.55rem;
+:deep(.space-tiptap-prose ul[data-type="taskList"] li > label) {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.3rem;
+  user-select: none;
 }
-:deep(.space-tiptap-prose ul[data-type="taskList"] label) {
-  margin-top: 0.16rem;
+:deep(.space-tiptap-prose ul[data-type="taskList"] li > label > input[type="checkbox"]) {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
 }
-:deep(.space-tiptap-prose ul[data-type="taskList"] input) {
-  accent-color: var(--color-fg-accent);
+:deep(.space-tiptap-prose ul[data-type="taskList"] li > label > input[type="checkbox"]:hover) {
+  border-color: var(--color-fg-accent);
 }
 :deep(.space-tiptap-prose img) {
   display: block;
@@ -80,35 +93,63 @@
   border-radius: var(--radius-panel);
 }
 :deep(.space-tiptap-prose blockquote) {
-  border-left: 2px solid var(--color-stroke-strong);
-  padding-left: 1rem;
+  border-left: 2.5px solid var(--color-stroke-contrast-subtle);
+  padding: 0.08rem 0 0.08rem 1rem;
   color: var(--color-fg-secondary);
+  margin-block: 0.75em;
 }
 :deep(.space-tiptap-prose a) {
   color: var(--color-fg-accent);
   text-decoration: underline;
-  text-decoration-color: color-mix(in oklab, var(--color-fg-accent) 45%, transparent);
-  text-underline-offset: 0.16em;
+  text-decoration-color: color-mix(in oklab, var(--color-fg-accent) 42%, transparent);
+  text-underline-offset: 0.18em;
+  cursor: pointer;
 }
-:deep(.space-tiptap-prose code) {
+:deep(.space-tiptap-prose :not(pre) > code) {
   border-radius: 0.3rem;
-  background: var(--color-surface-muted);
-  padding: 0.12em 0.32em;
+  border: 1px solid var(--color-stroke-divider);
+  background: var(--color-surface-control);
+  padding: 0.1em 0.34em;
   font-family: var(--font-mono);
-  font-size: 0.9em;
+  font-size: 0.85em;
+  color: var(--color-fg-primary);
 }
-:deep(.space-tiptap-prose pre) {
+:deep(.space-tiptap-prose pre:not(.space-code-pre)) {
   overflow: auto;
   border-radius: var(--radius-panel);
   background: var(--color-surface-muted);
   padding: 0.9rem 1rem;
 }
-:deep(.space-tiptap-prose pre code) {
+:deep(.space-tiptap-prose .space-code-pre) {
+  margin: 0;
+  overflow-x: auto;
+  padding: 0.35rem 1rem 0.95rem;
+  font-family: var(--font-mono);
+  font-size: 0.84375rem;
+  line-height: 1.65;
+  tab-size: 2;
+}
+:deep(.space-tiptap-prose .space-code-pre code) {
+  display: block;
   background: transparent;
+  border: 0;
   padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--color-fg-primary);
+}
+:deep(.space-tiptap-prose .space-code-block[data-wrap="true"] .space-code-pre) {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 :deep(.space-tiptap-prose .tableWrapper) {
+  margin-block: 0.95em;
   overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  border: 1px solid var(--color-stroke-default);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-canvas);
 }
 :deep(.space-tiptap-prose.resize-cursor),
 :deep(.space-tiptap-prose .resize-cursor) {
@@ -117,27 +158,39 @@
 :deep(.space-tiptap-prose .column-resize-handle) {
   position: absolute;
   top: 0;
-  right: -1px;
-  bottom: -1px;
-  width: 2px;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  width: 3px;
   background: var(--color-fg-accent);
   pointer-events: none;
 }
 :deep(.space-tiptap-prose table) {
   width: 100%;
+  margin: 0;
   border-collapse: collapse;
+  border-style: hidden;
   table-layout: fixed;
+  font-size: 0.9rem;
 }
 :deep(.space-tiptap-prose th),
 :deep(.space-tiptap-prose td) {
   position: relative;
-  border: 1px solid var(--color-stroke-strong);
-  padding: 0.45rem 0.55rem;
+  min-width: 72px;
+  border: 1px solid var(--color-stroke-default);
+  padding: 0.48rem 0.7rem;
   vertical-align: top;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+:deep(.space-tiptap-prose th > p),
+:deep(.space-tiptap-prose td > p) {
+  margin: 0;
 }
 :deep(.space-tiptap-prose th) {
   background: var(--color-surface-muted);
   font-weight: 600;
+  text-align: left;
 }
 :deep(.space-tiptap-prose .selectedCell::after) {
   position: absolute;
@@ -146,19 +199,43 @@
   content: "";
   pointer-events: none;
 }
-:deep(.space-tiptap-prose p.is-editor-empty:first-child::before) {
+:deep(.space-tiptap-prose p.is-empty::before),
+:deep(.space-tiptap-prose h1.is-empty::before),
+:deep(.space-tiptap-prose h2.is-empty::before),
+:deep(.space-tiptap-prose h3.is-empty::before),
+:deep(.space-tiptap-prose h4.is-empty::before),
+:deep(.space-tiptap-prose h5.is-empty::before),
+:deep(.space-tiptap-prose h6.is-empty::before) {
   float: left;
   height: 0;
-  color: var(--color-fg-tertiary);
+  color: color-mix(in oklab, var(--color-fg-tertiary) 68%, transparent);
   content: attr(data-placeholder);
   pointer-events: none;
 }
 :deep(.space-tiptap-prose ::selection) {
-  background: color-mix(in oklab, var(--color-fg-accent) 20%, transparent);
+  background: color-mix(in oklab, var(--color-fg-accent) 18%, transparent);
 }
 :deep(.space-tiptap-prose .ProseMirror-selectednode) {
-  outline: 2px solid var(--color-fg-accent);
-  outline-offset: 3px;
+  outline: 2px solid color-mix(in oklab, var(--color-fg-accent) 65%, transparent);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+:deep(.space-tiptap-prose .space-image-node.ProseMirror-selectednode) {
+  outline: none;
+}
+:deep(.space-tiptap-prose [data-image-caption] textarea:not(:focus)::selection) {
+  background: transparent;
+}
+:deep(.space-tiptap-prose .space-block-menu-target) {
+  border-radius: 0.375rem;
+  background: var(--color-surface-selected);
+  box-shadow:
+    -6px 0 0 0 var(--color-surface-selected),
+    6px 0 0 0 var(--color-surface-selected);
+}
+:deep(.space-tiptap-prose .space-block-dragging) {
+  opacity: 0.32;
+  transition: opacity 100ms ease;
 }
 :deep(.space-tiptap-prose .find-and-replace-result) {
   border-radius: 0.18rem;
@@ -180,9 +257,9 @@
   border-radius: 0.2rem;
   background: linear-gradient(
     90deg,
-    color-mix(in oklab, var(--color-fg-accent) 8%, transparent) 0%,
-    color-mix(in oklab, var(--color-fg-accent) 28%, transparent) 50%,
-    color-mix(in oklab, var(--color-fg-accent) 8%, transparent) 100%
+    color-mix(in oklab, var(--color-fg-accent) 10%, transparent) 0%,
+    color-mix(in oklab, var(--color-fg-accent) 26%, transparent) 50%,
+    color-mix(in oklab, var(--color-fg-accent) 10%, transparent) 100%
   );
   background-size: 200% 100%;
   animation: reasoning-trace-shimmer 1.6s ease-in-out infinite;
@@ -194,13 +271,57 @@
   letter-spacing: 0;
   color: transparent;
 }
-
 :deep(.space-tiptap-prose .ui-citation + .grounded-citation-source + .ui-citation) {
   margin-inline-start: 0.0625rem;
 }
-
+:deep(.space-tiptap-prose .space-callout-body > * + *) {
+  margin-top: 0.4em;
+}
 :deep(.space-tiptap-prose mark) {
   border-radius: 0.2rem;
-  padding: 0.08em 0.22em;
+  padding: 0.06em 0.22em;
   color: var(--color-black);
+}
+:deep(.space-tiptap-prose .tiptap-mathematics-render) {
+  border-radius: 0.375rem;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+:deep(.space-tiptap-prose .tiptap-mathematics-render--editable) {
+  cursor: pointer;
+}
+:deep(.space-tiptap-prose .tiptap-mathematics-render--editable:hover) {
+  background: var(--color-surface-control-hover);
+}
+:deep(.space-tiptap-prose [data-type="inline-math"].tiptap-mathematics-render) {
+  padding: 0.02rem 0.28rem;
+}
+:deep(.space-tiptap-prose [data-type="inline-math"][data-empty="true"]) {
+  border: 1px dashed var(--color-stroke-strong);
+  background: var(--color-surface-muted);
+  color: var(--color-fg-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+}
+:deep(.space-tiptap-prose [data-type="block-math"].tiptap-mathematics-render) {
+  display: block;
+  margin-block: 0.85em;
+  border: 1px solid transparent;
+  border-radius: var(--radius-panel);
+  padding: 0.85rem 1.25rem;
+}
+:deep(.space-tiptap-prose [data-type="block-math"].tiptap-mathematics-render--editable:hover) {
+  border-color: var(--color-stroke-divider);
+  background: color-mix(in oklab, var(--color-surface-muted) 70%, transparent);
+}
+:deep(.space-tiptap-prose [data-type="block-math"][data-empty="true"]) {
+  border-color: var(--color-stroke-default);
+  background: color-mix(in oklab, var(--color-surface-muted) 60%, transparent);
+  color: var(--color-fg-tertiary);
+  font-size: 0.875rem;
+}
+:deep(.space-tiptap-prose .space-math-editing) {
+  border-color: color-mix(in oklab, var(--color-fg-accent) 55%, transparent) !important;
+  background: color-mix(in oklab, var(--color-fg-accent) 7%, var(--color-surface-canvas)) !important;
 }

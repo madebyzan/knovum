@@ -32,15 +32,15 @@ export interface CanvasNodeOverlayPresentation {
 
 export function spaceCanvasNodePresentation(data: SpaceNodePayload): CanvasNodeOverlayPresentation {
   const subtitle = nodeSubtitle(data);
-  const mediaReady = (data.kind === "video" || data.kind === "audio") && Boolean(data.sourceRevision);
+  const isMedia = data.kind === "video" || data.kind === "audio";
   return {
     icon: ICON_BY_NODE_KIND[data.kind],
-    title: data.title,
+    title: data.title.trim() || LABEL_BY_NODE_KIND[data.kind],
     ...(subtitle ? { subtitle } : {}),
     body: describeSpaceNode(data) ?? "",
     previewSource: spaceNodePreviewSource(data),
-    mediaSource: mediaReady && (data.kind === "video" || data.kind === "audio") ? data.assetPath : "",
-    ...(data.kind === "video" || data.kind === "audio" ? { mediaKind: data.kind } : {}),
+    mediaSource: isMedia && data.sourceRevision ? data.assetPath : "",
+    ...(isMedia ? { mediaKind: data.kind } : {}),
     mono: data.kind === "code",
   };
 }

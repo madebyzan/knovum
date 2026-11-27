@@ -42,7 +42,13 @@ pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         })
         .on_event(|_app, event| {
             if matches!(event, tauri::RunEvent::Exit) {
-                tauri::async_runtime::block_on(external_conversations::shutdown());
+                tauri::async_runtime::block_on(async {
+                    futures::future::join(
+                        external_conversations::shutdown(),
+                        crate::agent_runtime::process::pool::shutdown(),
+                    )
+                    .await;
+                });
             }
         })
         .invoke_handler(command_registry::handler())

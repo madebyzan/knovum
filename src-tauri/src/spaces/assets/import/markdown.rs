@@ -14,12 +14,28 @@ pub(super) fn is_markdown(path: &Path) -> bool {
     )
 }
 
-pub(super) fn import_markdown(source: &Path, name: String) -> Result<PreparedAsset, String> {
+pub(super) fn import_markdown(
+    app: &tauri::AppHandle,
+    source: &Path,
+    name: String,
+    boundary_root: Option<&Path>,
+    claim_embedded: &mut dyn FnMut(&Path) -> Result<(), String>,
+) -> Result<PreparedAsset, String> {
     let metadata = fs::metadata(source).map_err(|error| error.to_string())?;
     if metadata.len() > MAX_MARKDOWN_BYTES {
         return Err("Markdown files must be smaller than 4 MiB".into());
     }
-    let text = fs::read_to_string(source).map_err(|_| "Markdown must be valid UTF-8".to_owned())?;
+    let raw = fs::read_to_string(source).map_err(|_| "Markdown must be valid UTF-8".to_owned())?;
+    let text = match source.parent() {
+        Some(base_dir) => super::super::markdown_media::materialize_local_media(
+            app,
+            &raw,
+            base_dir,
+            boundary_root.unwrap_or(base_dir),
+            claim_embedded,
+        )?,
+        None => raw,
+    };
     Ok(PreparedAsset {
         name,
         path: None,

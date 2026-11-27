@@ -30,6 +30,9 @@
     "create-note": {
       "$ref": "#/$defs/NoteParameters"
     },
+    "create-markdown": {
+      "$ref": "#/$defs/NoteParameters"
+    },
     "commit-knowledge-changes": {
       "$ref": "#/$defs/KnowledgeChangesParameters"
     },
@@ -1247,6 +1250,15 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 512
+        },
+        "prompt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 4000,
+          "default": null
         },
         "aspectRatio": {
           "$ref": "#/$defs/ImageAspectRatio"

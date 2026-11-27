@@ -34,7 +34,7 @@ async fn replayed_projection_commits_one_answer_plan_and_input_acknowledgement()
     sqlx::query("CREATE TABLE projection_updates(kind TEXT); CREATE TRIGGER input_acknowledged AFTER UPDATE OF input_accepted ON spaces_builtin_agent_tasks BEGIN INSERT INTO projection_updates VALUES('input'); END; CREATE TRIGGER model_committed AFTER UPDATE OF state ON spaces_builtin_agent_model_calls BEGIN INSERT INTO projection_updates VALUES('model'); END;")
         .execute(&pool).await.unwrap();
     for _ in 0..2 {
-        super::super::projection::commit(&pool, &fixture::ids(), projection())
+        super::super::projection::commit(&pool, &fixture::ids(), projection(), None)
             .await
             .unwrap();
     }
@@ -101,7 +101,7 @@ async fn settles_many_receipts_without_crossing_graph_namespaces() {
     value.model_checkpoints[0]
         .request_ids
         .push("child-receipt".into());
-    super::super::projection::commit(&pool, &fixture::ids(), value)
+    super::super::projection::commit(&pool, &fixture::ids(), value, None)
         .await
         .unwrap();
     let committed: i64 = sqlx::query_scalar(
@@ -125,8 +125,12 @@ async fn projection_rejects_a_different_thread_without_mutating_history() {
     let pool = fixture::database().await;
     let mut value = projection();
     value.thread_id = "unbound".into();
+    let thinking = Some(super::super::gateway::RecordedThinking {
+        text: "Private reasoning".into(),
+        duration_ms: 1200,
+    });
     assert!(
-        super::super::projection::commit(&pool, &fixture::ids(), value)
+        super::super::projection::commit(&pool, &fixture::ids(), value, thinking)
             .await
             .is_err()
     );
@@ -137,4 +141,40 @@ async fn projection_rejects_a_different_thread_without_mutating_history() {
             .unwrap(),
         0
     );
+    assert_eq!(
+        sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) FROM spaces_run_events WHERE kind='agent_thinking'"
+        )
+        .fetch_one(&pool)
+        .await
+        .unwrap(),
+        0
+    );
+}
+
+#[tokio::test]
+async fn projection_commits_thinking_atomically_without_polluting_assistant_message() {
+    let pool = fixture::database().await;
+    let thinking = Some(super::super::gateway::RecordedThinking {
+        text: "Comparing sources".into(),
+        duration_ms: 2400,
+    });
+    super::super::projection::commit(&pool, &fixture::ids(), projection(), thinking)
+        .await
+        .unwrap();
+    let payload: String = sqlx::query_scalar(
+        "SELECT payload FROM spaces_run_events WHERE kind='agent_thinking' LIMIT 1",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    let decoded: serde_json::Value = serde_json::from_str(&payload).unwrap();
+    assert_eq!(decoded["text"], "Comparing sources");
+    assert_eq!(decoded["durationMs"], 2400);
+    let content: String =
+        sqlx::query_scalar("SELECT content FROM spaces_conversation_messages LIMIT 1")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert!(!content.contains("Comparing sources"));
 }

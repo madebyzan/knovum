@@ -1,5 +1,5 @@
 import { basename } from "pathe";
-import { computed, shallowRef } from "vue";
+import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
@@ -10,9 +10,11 @@ import type { ConversationAttachment } from "../contracts/generated/Conversation
 import { createStructureIndex } from "../model/structure/structure-index";
 import { contentNodeIdsWithin } from "../model/structure/structure-queries";
 import { useSpaceStore } from "../session/space-store";
-import type {
-  ConversationAttachmentCandidatePresentation,
-  ConversationAttachmentPresentation,
+import {
+  attachmentKey,
+  reconcileNodeAttachmentRevisions,
+  type ConversationAttachmentCandidatePresentation,
+  type ConversationAttachmentPresentation,
 } from "./conversation-attachment-presentation";
 import { conversationNodePicture } from "./conversation-node-picture";
 import { chooseConversationUploads, inspectConversationUploads } from "./conversation-uploads";
@@ -94,14 +96,18 @@ export function useConversationAttachments() {
     addNodeAttachments([...selectedSourceNodeIds.value]);
   }
 
+  function commitAttachments(next: Map<string, ConversationAttachment>) {
+    if (next.size > 32) {
+      attachmentError.value = t("spaces.conversation.attachments.limit");
+      return;
+    }
+    attachmentError.value = undefined;
+    attachments.value = [...next.values()];
+  }
+
   function addNodeAttachments(nodeIds: readonly string[]) {
     const selected = new Set(nodeIds);
-    const next = new Map(
-      attachments.value.map((item) => [
-        item.kind === "node" ? `node:${item.nodeId}` : `file:${item.path}`,
-        item,
-      ]),
-    );
+    const next = new Map(attachments.value.map((item) => [attachmentKey(item), item]));
     for (const node of store.nodes) {
       if (!selected.has(node.id)) continue;
       const revision = node.data.knowledgeRevision ?? node.data.sourceRevision;
@@ -113,12 +119,7 @@ export function useConversationAttachments() {
           role: "source",
         });
     }
-    if (next.size > 32) {
-      attachmentError.value = t("spaces.conversation.attachments.limit");
-      return;
-    }
-    attachmentError.value = undefined;
-    attachments.value = [...next.values()];
+    commitAttachments(next);
   }
 
   async function chooseFiles(isCurrent: () => boolean, paths?: readonly string[]) {
@@ -128,23 +129,10 @@ export function useConversationAttachments() {
     try {
       const files = await (paths ? inspectConversationUploads(paths) : chooseConversationUploads());
       if (!isCurrent()) return;
-      const next = new Map(
-        attachments.value.map((item) => [
-          item.kind === "node" ? `node:${item.nodeId}` : `file:${item.path}`,
-          item,
-        ]),
-      );
+      const next = new Map(attachments.value.map((item) => [attachmentKey(item), item]));
       for (const file of files)
-        next.set(`file:${file.path}`, {
-          kind: "file",
-          path: file.path,
-          sourceRevision: file.sourceRevision,
-        });
-      if (next.size > 32) {
-        attachmentError.value = t("spaces.conversation.attachments.limit");
-        return;
-      }
-      attachments.value = [...next.values()];
+        next.set(`file:${file.path}`, { kind: "file", path: file.path, sourceRevision: file.sourceRevision });
+      commitAttachments(next);
     } catch (error) {
       if (!isCurrent()) return;
       const labelKey = attachmentErrorLabelKey(error);
@@ -155,11 +143,17 @@ export function useConversationAttachments() {
   }
 
   function removeAttachment(key: string) {
-    attachments.value = attachments.value.filter(
-      (item) => (item.kind === "node" ? `node:${item.nodeId}` : `file:${item.path}`) !== key,
-    );
+    attachments.value = attachments.value.filter((item) => attachmentKey(item) !== key);
     attachmentError.value = undefined;
   }
+
+  watch(
+    () => store.nodes,
+    (nodes) => {
+      const updated = reconcileNodeAttachmentRevisions(attachments.value, nodes);
+      if (updated) attachments.value = updated;
+    },
+  );
 
   return {
     attachments,

@@ -183,16 +183,18 @@ async fn a_tool_link_is_shown_never_fetched_or_published() {
 }
 
 #[tokio::test]
-async fn an_agents_reasoning_is_neither_shown_nor_recorded() {
+async fn an_agents_reasoning_chunk_emits_thinking_update() {
     use agent_client_protocol::schema::v1::{ContentChunk, TextContent};
 
     let update = receive(
         SessionUpdate::AgentThoughtChunk(ContentChunk::new(ContentBlock::Text(TextContent::new(
-            "private",
+            "analyzing sources",
         )))),
         &std::env::temp_dir(),
     )
     .await
     .unwrap();
-    assert!(update.is_none());
+    assert!(
+        matches!(update, Some(AgentSessionUpdate::Thinking(text)) if text == "analyzing sources")
+    );
 }

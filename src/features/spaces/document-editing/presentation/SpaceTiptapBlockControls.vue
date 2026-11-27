@@ -7,6 +7,7 @@ import { useI18n } from "vue-i18n";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { CalloutBlockIcon } from "../editor-icons";
 import { LABEL_KEY_BY_HEADING_LEVEL, HEADING_LEVELS } from "../heading-levels";
 
 const props = defineProps<{ editor: Editor }>();
@@ -79,5 +80,14 @@ const activeHeading = computed(() =>
     @click="editor.chain().focus().toggleBlockquote().run()"
   >
     <Quote class="size-3.5" :stroke-width="1.6" />
+  </UiIconButton>
+  <UiIconButton
+    :label="t('spaces.richtext.callout.title')"
+    tooltip
+    size="sm"
+    :active="editor.isActive('callout')"
+    @click="editor.chain().focus().toggleCallout('note').run()"
+  >
+    <CalloutBlockIcon class="size-3.5" :stroke-width="1.65" />
   </UiIconButton>
 </template>

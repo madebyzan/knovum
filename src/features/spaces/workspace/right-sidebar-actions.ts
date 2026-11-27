@@ -15,6 +15,7 @@ const MAX_READING_HISTORY = 20;
 export interface AskSidebarOptions {
   restart?: boolean;
   nodeIds?: string[];
+  quote?: string;
 }
 
 export interface OpenSourceOptions {
@@ -32,6 +33,7 @@ export function createRightSidebarActions(
       scope,
       restart: options.restart ?? false,
       nodeIds: options.nodeIds ?? [],
+      ...(options.quote ? { quote: options.quote } : {}),
       nonce: ++state.askScopeNonce.value,
     };
   }

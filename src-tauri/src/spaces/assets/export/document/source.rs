@@ -1,8 +1,11 @@
+use std::collections::BTreeMap;
+
+use base64::{engine::general_purpose::STANDARD, Engine};
 use serde_json::Value;
 use tauri::AppHandle;
 
 use crate::documents::generation::{
-    document::{DocumentSource, NoteSource},
+    document::{DocumentSource, NoteSource, RenderedImage},
     input::{DocumentFileSource, DocumentInput, PdfSource},
     DocumentFormat,
 };
@@ -15,12 +18,15 @@ pub(super) async fn load(
     node_id: &str,
     payload: &Value,
     format: DocumentFormat,
+    rendered_diagrams: BTreeMap<String, String>,
 ) -> Result<DocumentInput, AppError> {
     let kind = required(payload, "kind")?;
     let title = title(kind, payload)?;
     match kind {
         // A Note and a text block are the same editable content, presented differently.
-        "markdown" | "note" | "text" => editable(app, node_id, payload, format, title).await,
+        "markdown" | "note" | "text" => {
+            editable(app, node_id, payload, format, title, rendered_diagrams).await
+        }
         "website" => Ok(authored(title, super::super::capture::summary(payload)?)),
         "code" => listing(app, payload, title).await,
         "file" => file(app, payload, title),
@@ -36,6 +42,7 @@ fn authored(title: String, markdown: String) -> DocumentInput {
         markdown,
         citations: vec![],
         images: vec![],
+        rendered_images: vec![],
     })
 }
 
@@ -92,6 +99,7 @@ async fn editable(
     payload: &Value,
     format: DocumentFormat,
     title: String,
+    rendered_diagrams: BTreeMap<String, String>,
 ) -> Result<DocumentInput, AppError> {
     let mut tx = crate::spaces::db::pool(app)
         .await?
@@ -112,16 +120,18 @@ async fn editable(
         _ => None,
     };
     // Plain text carries image alternative text, so it never needs the bytes.
-    let images = if matches!(format, DocumentFormat::Text) {
-        vec![]
+    let (images, rendered_images) = if matches!(format, DocumentFormat::Text) {
+        (vec![], vec![])
     } else {
         let app = app.clone();
         let payload = payload.clone();
         let text = markdown.clone();
-        crate::foundation::blocking::run(move || {
+        let loaded_images = crate::foundation::blocking::run(move || {
             super::images::load(&app, &payload, text.as_deref())
         })
-        .await?
+        .await?;
+        let decoded_diagrams = decode_rendered_diagrams(rendered_diagrams)?;
+        (loaded_images, decoded_diagrams)
     };
     Ok(match markdown {
         Some(markdown) => DocumentInput::Markdown(DocumentSource {
@@ -129,6 +139,7 @@ async fn editable(
             markdown,
             citations: vec![],
             images,
+            rendered_images,
         }),
         None => DocumentInput::Note(NoteSource {
             title,
@@ -138,8 +149,41 @@ async fn editable(
                 .clone(),
             citations: vec![],
             images,
+            rendered_images,
         }),
     })
+}
+
+fn decode_rendered_diagrams(
+    rendered_diagrams: BTreeMap<String, String>,
+) -> Result<Vec<RenderedImage>, String> {
+    if rendered_diagrams.len() > 200 {
+        return Err("Document exceeds 200 rendered diagrams".into());
+    }
+    let mut output = Vec::with_capacity(rendered_diagrams.len());
+    let mut total = 0usize;
+    for (key, encoded) in rendered_diagrams {
+        if !key.starts_with("mermaid:") || key.len() > 96 {
+            return Err("Invalid rendered diagram key".into());
+        }
+        let bytes = STANDARD
+            .decode(encoded.as_bytes())
+            .map_err(|_| "Rendered diagram image encoding is invalid")?;
+        if bytes.is_empty()
+            || bytes.len() as u64 > crate::documents::generation::images::MAX_IMAGE_BYTES
+        {
+            return Err("Rendered diagram image size is outside the supported range".into());
+        }
+        total = total.saturating_add(bytes.len());
+        if total > 64 * 1024 * 1024 {
+            return Err("Rendered diagram images exceed 64 MiB".into());
+        }
+        output.push(RenderedImage {
+            destination: key,
+            bytes,
+        });
+    }
+    Ok(output)
 }
 
 fn file(app: &AppHandle, payload: &Value, title: String) -> Result<DocumentInput, AppError> {

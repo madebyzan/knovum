@@ -34,6 +34,9 @@ fn flatten(
                 flatten(content, &span, output)?;
             }
             Inline::HardBreak => output.push(InlineContent::LineBreak),
+            Inline::Math(latex) | Inline::DisplayMath(latex) => {
+                output.extend(super::super::math::to_ir_spans(latex, &span));
+            }
             inline => {
                 span.text = match inline {
                     Inline::Text(value) => value.clone(),

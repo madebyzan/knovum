@@ -21,18 +21,35 @@ pub(super) fn parse(node: &Node, context: &Context<'_>, depth: usize) -> Result<
     if columns == 0 || columns > 64 {
         return Err("Tiptap tables require between 1 and 64 columns".into());
     }
-    let column_widths_twips = if widths.iter().all(Option::is_none) {
-        Vec::new()
-    } else if widths.iter().all(Option::is_some) {
-        widths.into_iter().map(Option::unwrap).collect()
-    } else {
-        return Err("Tiptap table column widths must describe every column".into());
-    };
+    let column_widths_twips = resolve_column_widths(&widths);
     Ok(Element::Table(Table {
         rows,
         column_widths_twips,
         ..Default::default()
     }))
+}
+
+const DEFAULT_TABLE_WIDTH_TWIPS: u32 = 9_360;
+const MIN_COLUMN_WIDTH_TWIPS: u32 = 1_080;
+
+fn resolve_column_widths(widths: &[Option<u32>]) -> Vec<u32> {
+    if widths.iter().all(Option::is_none) {
+        return Vec::new();
+    }
+    if widths.iter().all(Option::is_some) {
+        return widths.iter().map(|width| width.unwrap()).collect();
+    }
+    let specified_sum: u32 = widths
+        .iter()
+        .flatten()
+        .fold(0u32, |acc, &width| acc.saturating_add(width));
+    let unspecified = widths.iter().filter(|width| width.is_none()).count() as u32;
+    let remaining = DEFAULT_TABLE_WIDTH_TWIPS.saturating_sub(specified_sum);
+    let fallback = (remaining / unspecified.max(1)).max(MIN_COLUMN_WIDTH_TWIPS);
+    widths
+        .iter()
+        .map(|width| width.unwrap_or(fallback))
+        .collect()
 }
 
 fn row(

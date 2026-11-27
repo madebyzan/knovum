@@ -50,7 +50,13 @@ export function createSpaceUiState() {
     findOpen: ref(false),
     globalFindOpen: ref(false),
     knowledgeHealthOpen: shallowRef(false),
-    askScopeRequest: ref<{ scope: ConversationScope; restart: boolean; nodeIds: string[]; nonce: number }>(),
+    askScopeRequest: ref<{
+      scope: ConversationScope;
+      restart: boolean;
+      nodeIds: string[];
+      quote?: string;
+      nonce: number;
+    }>(),
     askScopeNonce: ref(0),
     insertionPoint: ref({ x: 96, y: 84 }),
     revealRequest: ref<RevealRequest>(),

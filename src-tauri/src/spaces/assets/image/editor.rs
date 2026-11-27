@@ -1,4 +1,7 @@
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use image::ImageFormat;
 use uuid::Uuid;
@@ -10,15 +13,27 @@ const MAX_EDITOR_IMAGE_BYTES: usize = 20 * 1024 * 1024;
 
 pub(super) fn import_file(app: &tauri::AppHandle, source: PathBuf) -> Result<String, String> {
     authorize_source(app, &source)?;
+    import_trusted_file(app, &source)
+}
+
+pub(crate) fn import_trusted_file(app: &tauri::AppHandle, source: &Path) -> Result<String, String> {
     if !source.is_file() {
         return Err("Editor images must be regular files".into());
     }
-    let size = fs::metadata(&source)
+    let size = fs::metadata(source)
         .map_err(|error| error.to_string())?
         .len();
     let size = usize::try_from(size).map_err(|_| "Editor image size exceeds this platform")?;
     validate_size(size)?;
     let bytes = fs::read(source).map_err(|error| error.to_string())?;
+    persist_detected_bytes(app, bytes)
+}
+
+pub(crate) fn persist_detected_bytes(
+    app: &tauri::AppHandle,
+    bytes: Vec<u8>,
+) -> Result<String, String> {
+    validate_size(bytes.len())?;
     let media_type = validation::detect_media_type(&bytes)?;
     let format = format_for_media_type(media_type)?;
     persist(app, bytes, format)

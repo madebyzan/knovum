@@ -30,6 +30,13 @@ impl<'a> Reader<'a> {
     ) -> Result<(), String> {
         match event {
             Event::Html(value) | Event::InlineHtml(value) => super::html::read(&value, output),
+            Event::Text(value) => {
+                if let Some(Inline::Text(previous)) = output.last_mut() {
+                    previous.push_str(&value);
+                } else {
+                    output.push(Inline::Text(value.into_string()));
+                }
+            }
             event => output.push(self.inline(event, depth)?),
         }
         Ok(())
@@ -40,6 +47,8 @@ impl<'a> Reader<'a> {
         Ok(match event {
             Event::Text(value) => Inline::Text(value.into_string()),
             Event::Code(value) => Inline::Code(value.into_string()),
+            Event::InlineMath(value) => Inline::Math(value.into_string()),
+            Event::DisplayMath(value) => Inline::DisplayMath(value.into_string()),
             Event::SoftBreak => Inline::SoftBreak,
             Event::HardBreak => Inline::HardBreak,
             Event::TaskListMarker(checked) => Inline::Task(checked),

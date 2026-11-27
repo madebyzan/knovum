@@ -109,6 +109,10 @@ pub struct ConversationTaskAccepted {
 #[ts(export_to = "../../../features/spaces/contracts/generated/ConversationTaskUpdate.ts")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ConversationTaskUpdate {
+    ThinkingDelta {
+        task_id: String,
+        text: String,
+    },
     ContentDelta {
         task_id: String,
         text: String,

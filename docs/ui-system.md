@@ -405,7 +405,11 @@ Task lists are shown only when the Agent uses SDK Todo; simple answers need no p
 step. Extension choices follow configured tool policies, not an inferred conversation intent.
 
 That toggle opens Conversation as the default view. Explicit object actions open Details;
-the document editor owns its heading Outline locally. Source opens as a temporary drill-in and returns to its originating
+the document editor owns its heading Outline, collapsible Focus mode, Markdown source toggle,
+`/` slash commands, left-gutter block handle (`Alt+Up/Down`), contextual table and link bubble bars,
+off-main-thread Shiki code blocks, GFM callouts, and inline streaming AI co-writing panel (`⌘J`, with
+non-destructive Replace / Insert below / follow-up refinement and `@` Space source grounding) locally.
+Source opens as a temporary drill-in and returns to its originating
 view. Selection alone never changes the active view. The right pane does not change the leading sidebar width.
 Closing it releases workspace width and suspends its content until reopened; it has no hover preview.
 An empty Conversation uses the same borderless inspector-section rhythm as the workbench sidebars:

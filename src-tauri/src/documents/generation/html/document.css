@@ -25,6 +25,51 @@ blockquote {
   padding-inline-start: 1rem;
   border-inline-start: 3px solid #dadce0;
 }
+.callout {
+  margin: 1.25rem 0;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  border-inline-start: 3px solid #2563eb;
+  background: #f1f6ff;
+}
+.callout > :last-child {
+  margin-bottom: 0;
+}
+.callout-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #2563eb;
+}
+.callout-tip {
+  border-inline-start-color: #16a34a;
+  background: #effbf4;
+}
+.callout-tip .callout-title {
+  color: #16a34a;
+}
+.callout-important {
+  border-inline-start-color: #7c3aed;
+  background: #f5f1ff;
+}
+.callout-important .callout-title {
+  color: #7c3aed;
+}
+.callout-warning {
+  border-inline-start-color: #d97706;
+  background: #fff9eb;
+}
+.callout-warning .callout-title {
+  color: #d97706;
+}
+.callout-caution {
+  border-inline-start-color: #dc2626;
+  background: #fef2f2;
+}
+.callout-caution .callout-title {
+  color: #dc2626;
+}
 pre {
   overflow: auto;
   padding: 1rem;
@@ -45,6 +90,17 @@ th,
 td {
   border: 1px solid #dadce0;
   padding: 0.4rem 0.6rem;
+}
+math {
+  font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif;
+}
+math[display="block"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+  padding: 0.25em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 @media print {
   main {

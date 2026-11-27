@@ -1,9 +1,30 @@
+use std::sync::atomic::{AtomicI64, Ordering};
+
 use sqlx::SqlitePool;
 
 use crate::{
     agent_runtime::{process::Peer, protocol::control::AgentPruneThreads},
     spaces::db,
 };
+
+const PRUNE_COOLDOWN_MILLIS: i64 = 60 * 60 * 1_000;
+static LAST_PRUNED_AT: AtomicI64 = AtomicI64::new(0);
+
+/// Runs checkpoint retention at most once per [`PRUNE_COOLDOWN_MILLIS`] after a turn completes,
+/// keeping database scans and cross-process pruning off the first-token critical path.
+pub(in crate::spaces::conversations) async fn prune_if_due(
+    pool: &SqlitePool,
+    peer: &Peer,
+) -> Result<(), String> {
+    let now = crate::foundation::clock::unix_time_millis()?;
+    let last = LAST_PRUNED_AT.load(Ordering::Relaxed);
+    if last > 0 && now.saturating_sub(last) < PRUNE_COOLDOWN_MILLIS {
+        return Ok(());
+    }
+    prune(pool, peer).await?;
+    LAST_PRUNED_AT.store(now, Ordering::Relaxed);
+    Ok(())
+}
 
 pub(in crate::spaces::conversations) async fn prune(
     pool: &SqlitePool,

@@ -176,6 +176,7 @@ macro_rules! knovum_execution_commands {
 
         crate::spaces::conversations::commands::runs::start_conversation_task,
         crate::spaces::conversations::commands::runs::retry_builtin_agent_model,
+        crate::spaces::conversations::commands::runs::prepare_builtin_agent_runtime,
         crate::spaces::conversations::upload::inspect_conversation_upload,
         crate::spaces::conversations::upload::preview_conversation_upload,
         crate::spaces::conversations::commands::drafts::load_conversation_draft,

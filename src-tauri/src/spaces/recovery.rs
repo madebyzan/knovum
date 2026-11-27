@@ -15,7 +15,8 @@ pub(super) fn start(app: AppHandle) {
                 super::assets::enrichment::jobs::scheduler::start(app.clone());
                 super::structure::reclamation::start(app.clone());
                 super::conversations::recover_tasks(app.clone());
-                super::external_conversations::recover(app);
+                super::external_conversations::recover(app.clone());
+                crate::ai::models::profile::prepare(app);
             }
             Err(error) => log::error!("Space runtime initialization failed: {error}"),
         }

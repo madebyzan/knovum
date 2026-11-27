@@ -22,6 +22,10 @@ pub(super) fn write_blocks(output: &mut String, blocks: &[Block], prefix: &str) 
                 output.push('\n');
             }
             Block::Quote(children) => write_blocks(output, children, &format!("{prefix}> ")),
+            Block::Callout { kind, blocks } => {
+                output.push_str(&format!("{prefix}[{}]\n", kind.label()));
+                write_blocks(output, blocks, &format!("{prefix}> "));
+            }
             Block::List { start, items } => {
                 for (index, item) in items.iter().enumerate() {
                     let marker =
@@ -47,6 +51,10 @@ pub(super) fn write_blocks(output: &mut String, blocks: &[Block], prefix: &str) 
                 }
                 output.push('\n');
             }
+            Block::Math(latex) => {
+                write_lines(output, &super::math::to_plain(latex), prefix);
+                output.push('\n');
+            }
             Block::Rule => output.push_str(&format!("{prefix}---\n\n")),
         }
     }
@@ -65,6 +73,9 @@ pub(super) fn inline_text(content: &[Inline], include_urls: bool) -> String {
     for inline in content {
         match inline {
             Inline::Text(text) | Inline::Code(text) => output.push_str(text),
+            Inline::Math(latex) | Inline::DisplayMath(latex) => {
+                output.push_str(&super::math::to_plain(latex));
+            }
             Inline::Strong(children) | Inline::Emphasis(children) | Inline::Strike(children) => {
                 output.push_str(&inline_text(children, include_urls));
             }

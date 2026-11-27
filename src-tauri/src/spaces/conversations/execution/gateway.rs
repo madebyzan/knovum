@@ -1,4 +1,4 @@
-use std::sync::Mutex;
+use std::sync::{Mutex, PoisonError};
 
 use futures::future::BoxFuture;
 use serde::de::DeserializeOwned;
@@ -27,6 +27,38 @@ use crate::{
     },
 };
 
+const MAX_RECORDED_THINKING_BYTES: usize = 64 * 1024;
+
+#[derive(Default)]
+pub(in crate::spaces::conversations) struct PendingThinking {
+    text: String,
+    started_at: i64,
+    ended_at: Option<i64>,
+}
+
+impl PendingThinking {
+    fn append_bounded(&mut self, chunk: &str, max_bytes: usize) {
+        let remaining = max_bytes.saturating_sub(self.text.len());
+        if remaining == 0 {
+            return;
+        }
+        if chunk.len() <= remaining {
+            self.text.push_str(chunk);
+            return;
+        }
+        let mut end = remaining;
+        while end > 0 && !chunk.is_char_boundary(end) {
+            end -= 1;
+        }
+        self.text.push_str(&chunk[..end]);
+    }
+}
+
+pub(in crate::spaces::conversations) struct RecordedThinking {
+    pub(in crate::spaces::conversations) text: String,
+    pub(in crate::spaces::conversations) duration_ms: i64,
+}
+
 pub(in crate::spaces::conversations) struct Gateway {
     pub(in crate::spaces::conversations) app: tauri::AppHandle,
     pub(in crate::spaces::conversations) pool: SqlitePool,
@@ -40,6 +72,7 @@ pub(in crate::spaces::conversations) struct Gateway {
     pub(in crate::spaces::conversations) session: Session,
     pub(in crate::spaces::conversations) updates: Option<Channel<ConversationTaskUpdate>>,
     pub(in crate::spaces::conversations) last_message: Mutex<Option<String>>,
+    pub(in crate::spaces::conversations) thinking: Mutex<Option<PendingThinking>>,
 }
 
 impl Host for Gateway {
@@ -71,6 +104,7 @@ impl Host for Gateway {
                 "agentRuntime.invokeTool" => {
                     let request: AgentToolInvocation = decode(params)?;
                     self.require_identity(&request.identity).await?;
+                    self.flush_thinking().await?;
                     self.announce_tool(&request.tool_call_id);
                     crate::spaces::conversations::builtin_agent::tool_execution::invoke(
                         self, request,
@@ -81,7 +115,8 @@ impl Host for Gateway {
                     let request: AgentProjection = decode(params)?;
                     self.require_identity(&self.session.identity(&self.ids.run_id))
                         .await?;
-                    projection::commit(&self.pool, &self.ids, request).await
+                    let thinking = self.take_recorded_thinking()?;
+                    projection::commit(&self.pool, &self.ids, request, thinking).await
                 }
                 _ => Err("builtin-agent-host-method-not-found".into()),
             }
@@ -91,6 +126,7 @@ impl Host for Gateway {
     fn notify(&self, method: &str, params: Value) -> Result<(), String> {
         match method {
             "agentRuntime.contentDelta" => self.delta(decode(params)?),
+            "agentRuntime.reasoningDelta" => self.reasoning_delta(decode(params)?),
             _ => Err("builtin-agent-host-method-not-found".into()),
         }
     }
@@ -172,10 +208,18 @@ impl Gateway {
     /// stream its order.
     fn delta(&self, request: AgentContentDelta) -> Result<(), String> {
         self.require_process_identity(&request.identity)?;
+        {
+            let mut pending = self.thinking.lock().unwrap_or_else(PoisonError::into_inner);
+            if let Some(thinking) = pending.as_mut() {
+                if thinking.ended_at.is_none() {
+                    thinking.ended_at = crate::foundation::clock::unix_time_millis().ok();
+                }
+            }
+        }
         let mut last = self
             .last_message
             .lock()
-            .map_err(|_| "builtin-agent-stream-state-unavailable")?;
+            .unwrap_or_else(PoisonError::into_inner);
         if let Some(channel) = &self.updates {
             if last.as_ref().is_some_and(|id| id != &request.message_id) {
                 let _ = channel.send(ConversationTaskUpdate::ContentBoundary);
@@ -186,6 +230,73 @@ impl Gateway {
             });
         }
         *last = Some(request.message_id);
+        Ok(())
+    }
+
+    fn reasoning_delta(&self, request: AgentContentDelta) -> Result<(), String> {
+        self.require_process_identity(&request.identity)?;
+        if request.text.is_empty() {
+            return Ok(());
+        }
+        {
+            let mut pending = self.thinking.lock().unwrap_or_else(PoisonError::into_inner);
+            let now = crate::foundation::clock::unix_time_millis().unwrap_or(0);
+            let slot = pending.get_or_insert_with(|| PendingThinking {
+                text: String::new(),
+                started_at: now,
+                ended_at: None,
+            });
+            slot.ended_at = None;
+            slot.append_bounded(&request.text, MAX_RECORDED_THINKING_BYTES);
+        }
+        if let Some(channel) = &self.updates {
+            let _ = channel.send(ConversationTaskUpdate::ThinkingDelta {
+                task_id: self.ids.task_id.clone(),
+                text: request.text,
+            });
+        }
+        Ok(())
+    }
+
+    pub(in crate::spaces::conversations) fn take_recorded_thinking(
+        &self,
+    ) -> Result<Option<RecordedThinking>, String> {
+        let Some(thinking) = self
+            .thinking
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .take()
+        else {
+            return Ok(None);
+        };
+        if thinking.text.trim().is_empty() {
+            return Ok(None);
+        }
+        let now = crate::foundation::clock::unix_time_millis()?;
+        let ended = thinking.ended_at.unwrap_or(now);
+        Ok(Some(RecordedThinking {
+            text: thinking.text,
+            duration_ms: ended.saturating_sub(thinking.started_at).max(0),
+        }))
+    }
+
+    async fn flush_thinking(&self) -> Result<(), String> {
+        let Some(recorded) = self.take_recorded_thinking()? else {
+            return Ok(());
+        };
+        let now = crate::foundation::clock::unix_time_millis()?;
+        let mut tx = db::begin_write(&self.pool).await?;
+        crate::spaces::runs::append_event(
+            &mut tx,
+            &self.ids.run_id,
+            None,
+            None,
+            crate::spaces::runs::RunEventKind::AgentThinking,
+            &serde_json::json!({ "text": recorded.text, "durationMs": recorded.duration_ms }),
+            now,
+        )
+        .await?;
+        tx.commit().await.map_err(db::sql_error)?;
         Ok(())
     }
 }

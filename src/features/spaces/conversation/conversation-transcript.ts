@@ -4,24 +4,30 @@ import type { ConversationMessage } from "../contracts/generated/ConversationMes
 import type { ConversationTaskUpdate } from "../contracts/generated/ConversationTaskUpdate";
 import type { RunEvent } from "../contracts/generated/RunEvent";
 import { toolCallIdOf } from "./conversation-activity-items";
+import {
+  appendLiveThinking,
+  finishPendingThinking,
+  interleaveStoredThinking,
+  parseThinkingEvent,
+  type ThinkingStep,
+} from "./conversation-thinking-transcript";
 
 /**
- * What a run said and did, in the order it happened: the words it wrote and the tools it called
- * between them, with the stored answers where the run's text was kept as messages.
+ * What a run thought, said, and did, in the order it happened: its reasoning, the words it wrote,
+ * and the tools it called between them, with the stored answers where text was kept as messages.
  *
  * A turn is drawn from its transcript alone, whether the run is still producing or long settled.
- * The two read different sources — the live stream while it speaks, the ledger and the stored
- * messages afterwards — and both record in the order the Agent produced, so the transcript a
- * finished run reads back has the shape the live one had: nothing on screen moves when the run
- * settles, and a tool call never makes the words around it jump.
+ * Both live and settled paths preserve the exact order the Agent produced, so nothing jumps when
+ * the run finishes.
  */
 export type TranscriptStep =
+  | ThinkingStep
   | { kind: "text"; text: string }
   | { kind: "tool"; id: string }
   | { kind: "answer"; message: ConversationMessage };
 
-/** The transcript of the run being streamed: its words and where its tool calls fell. */
-export type LiveTranscript = readonly Extract<TranscriptStep, { kind: "text" | "tool" }>[];
+/** The transcript of the run being streamed: its reasoning, words, and where its tool calls fell. */
+export type LiveTranscript = readonly Extract<TranscriptStep, { kind: "thinking" | "text" | "tool" }>[];
 
 function appendText(transcript: LiveTranscript, text: string): LiveTranscript {
   const last = transcript.at(-1);
@@ -40,19 +46,19 @@ function appendTool(transcript: LiveTranscript, id: string): LiveTranscript {
 /** The live transcript after one update from the stream. */
 export function recordLiveUpdate(transcript: LiveTranscript, update: ConversationTaskUpdate): LiveTranscript {
   switch (update.type) {
+    case "thinking_delta":
+      return appendLiveThinking(transcript, update.text);
     case "content_delta":
-      return appendText(transcript, update.text);
+      return appendText(finishPendingThinking(transcript), update.text);
     case "content_boundary": {
-      // Another message begins. It is stored as its own answer, so it is its own block here.
-      const last = transcript.at(-1);
-      return last?.kind === "text" && last.text.trim()
-        ? [...transcript, { kind: "text", text: "" }]
-        : transcript;
+      const settled = finishPendingThinking(transcript);
+      const last = settled.at(-1);
+      return last?.kind === "text" && last.text.trim() ? [...settled, { kind: "text", text: "" }] : settled;
     }
     case "tool_started":
-      return appendTool(transcript, update.tool_call_id);
+      return appendTool(finishPendingThinking(transcript), update.tool_call_id);
     case "finished":
-      return transcript;
+      return finishPendingThinking(transcript);
   }
 }
 
@@ -65,27 +71,35 @@ const textPayload = z.object({ text: z.string() });
 
 /**
  * A desktop Agent's transcript is its own updates, recorded in the ledger in arrival order. Its
- * stored answer holds the words after its last tool call, so the ledger's text stops there and
- * the answer takes over.
+ * stored answer holds the words after its last tool call, while any reasoning after that tool call
+ * still belongs directly before the answer.
  */
 function agentTranscript(events: readonly RunEvent[], answers: readonly ConversationMessage[]) {
   let steps: LiveTranscript = [];
   for (const event of events) {
+    const thinking = parseThinkingEvent(event);
+    if (thinking) {
+      steps = appendLiveThinking(steps, thinking.text, event.createdAt, thinking.durationMs);
+      continue;
+    }
+    steps = finishPendingThinking(steps, event.createdAt);
     const text = event.kind === "external_agent_message" ? textPayload.safeParse(event.payload) : undefined;
     const toolCallId = toolCallIdOf(event);
     if (text?.success) steps = appendText(steps, text.data.text);
     else if (toolCallId !== undefined) steps = appendTool(steps, toolCallId);
   }
   const lastTool = steps.findLastIndex((step) => step.kind === "tool");
+  const trailingThinking = steps.slice(lastTool + 1).filter((step) => step.kind === "thinking");
   return [
     ...steps.slice(0, lastTool + 1),
+    ...trailingThinking,
     ...answers.map((message) => ({ kind: "answer", message }) as const),
   ];
 }
 
 /**
  * The built-in Agent stores each message it writes as an answer, and each tool result as a tool
- * message after the answer that called it. A call with no result yet comes last.
+ * message after the answer that called it. Reasoning events are interleaved ahead of each step.
  */
 function storedTranscript(input: RecordedTranscriptInput, calledToolIds: Iterable<string>) {
   const answerIds = new Set(input.answers.map(({ id }) => id));
@@ -101,7 +115,7 @@ function storedTranscript(input: RecordedTranscriptInput, calledToolIds: Iterabl
         }
   }
   for (const id of calledToolIds) if (!placed.has(id)) steps.push({ kind: "tool", id });
-  return steps;
+  return interleaveStoredThinking(steps, input.events);
 }
 
 interface RecordedTranscriptInput {

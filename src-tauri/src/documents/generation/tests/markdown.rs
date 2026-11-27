@@ -122,3 +122,114 @@ fn invalid_xml_characters_are_rejected_before_rendering() {
         assert!(markdown::parse(&source(value)).is_err());
     }
 }
+
+#[test]
+fn inline_and_block_math_render_across_all_export_formats() {
+    use super::super::DocumentFormat;
+    let md = "收益率为 $R_t = \\frac{P_t - P_{t-1}}{P_{t-1}}$，能量 $E = mc^2$。\n\n$$\n\\sigma = \\sqrt{\\frac{1}{N}\\sum_{i=1}^N (x_i - \\mu)^2}\n$$\n\n:::gallery{layout=\"gallery\"}\n\n&nbsp;\n\n:::";
+    let input = source(md);
+
+    let html = String::from_utf8(DocumentFormat::Html.render(&input).unwrap()).unwrap();
+    assert!(html.contains("<math "));
+    assert!(html.contains("<mfrac>"));
+    assert!(html.contains("<msqrt>"));
+    assert!(html.contains("σ") && html.contains("∑"));
+    assert!(!html.contains(":::gallery"));
+    assert!(!html.contains("&nbsp;"));
+
+    let txt = String::from_utf8(DocumentFormat::Text.render(&input).unwrap()).unwrap();
+    assert!(txt.contains("E = mc²"));
+    assert!(txt.contains("σ = √("));
+    assert!(!txt.contains(":::gallery"));
+
+    let pdf_source = super::super::pdf::tests::render_source(&input).unwrap();
+    assert!(pdf_source.contains("frac("));
+    assert!(pdf_source.contains("sqrt("));
+    assert!(!pdf_source.contains(":::gallery"));
+
+    let pdf = DocumentFormat::Pdf.render(&input).unwrap();
+    assert!(pdf.starts_with(b"%PDF-"));
+
+    let docx = DocumentFormat::Docx.render(&input).unwrap();
+    assert!(docx.starts_with(b"PK"));
+
+    let pptx = DocumentFormat::Pptx.render(&input).unwrap();
+    assert!(pptx.starts_with(b"PK"));
+}
+
+#[test]
+fn typst_math_quotes_untrusted_commands_without_code_execution() {
+    let input = source("Check $#read(\"private\") + \\evil{x}$");
+    let rendered = super::super::pdf::tests::render_source(&input).unwrap();
+    assert!(rendered.contains("\"#\""));
+    assert!(rendered.contains("\"\\\\evil\""));
+}
+
+#[test]
+fn callout_mermaid_and_cjk_inline_math_render_across_all_formats() {
+    use std::io::Cursor;
+
+    use super::super::{
+        document::{DocumentSource, RenderedImage},
+        images::diagram_destination,
+        DocumentFormat,
+    };
+
+    let diagram = "flowchart TD\n  A[\"全球宏观\"] --> B[\"中国宏观\"]";
+    let mut png = Cursor::new(Vec::new());
+    image::DynamicImage::new_rgb8(64, 32)
+        .write_to(&mut png, image::ImageFormat::Png)
+        .unwrap();
+
+    let md = format!(
+        "# 中国股市研究\n\n> [!NOTE]\n> 本文梳理研究路径。\n\n```mermaid\n{diagram}\n```\n\n\
+         | 指标 | 公式 |\n| --- | --- |\n| 市盈率 | $PE = \\frac{{P}}{{EPS}}$ |\n\n\
+         - $SMB$：规模因子；\n- $\\alpha_i$：超额收益；\n- 动量因子 $MOM$；\n- 区间 $[0, 1)$ 与 $P(A|B)$。\n"
+    );
+    let input = DocumentSource {
+        title: "中国股市研究".into(),
+        markdown: md,
+        citations: vec![],
+        images: vec![],
+        rendered_images: vec![RenderedImage {
+            destination: diagram_destination(diagram),
+            bytes: png.into_inner(),
+        }],
+    };
+
+    let html = String::from_utf8(DocumentFormat::Html.render(&input).unwrap()).unwrap();
+    assert!(html.contains("callout-note") && !html.contains("[!NOTE]"));
+    assert!(html.contains("data:image/png;base64,") && html.contains("Mermaid diagram"));
+    assert!(html.contains("<math ") && html.contains("α") && html.contains("<mfrac>"));
+
+    let docx = DocumentFormat::Docx.render(&input).unwrap();
+    let docx_zip = zip::ZipArchive::new(Cursor::new(docx)).unwrap();
+    assert!(docx_zip
+        .file_names()
+        .any(|name| name.unwrap().starts_with("word/media/")));
+
+    let pptx = DocumentFormat::Pptx.render(&input).unwrap();
+    let pptx_zip = zip::ZipArchive::new(Cursor::new(pptx)).unwrap();
+    assert!(pptx_zip
+        .file_names()
+        .any(|name| name.unwrap().starts_with("ppt/media/")));
+
+    let pdf_source = super::super::pdf::tests::render_source(&input).unwrap();
+    assert!(
+        pdf_source.contains("#align(center)[#image(\"image-0.png\""),
+        "PDF source must emit rendered Mermaid diagrams as standalone centered image blocks"
+    );
+    let pdf = DocumentFormat::Pdf.render(&input).unwrap();
+    assert!(pdf.starts_with(b"%PDF-"));
+    assert!(
+        pdf.windows(b"/Image".len())
+            .any(|window| window == b"/Image"),
+        "PDF output must embed rendered Mermaid diagram image XObjects"
+    );
+    // Verify embedded CJK font glyphs actually landed in the PDF (a Latin-only fallback PDF is tiny).
+    assert!(
+        pdf.len() > 8_000,
+        "PDF output too small ({} bytes); CJK font may be missing",
+        pdf.len()
+    );
+}

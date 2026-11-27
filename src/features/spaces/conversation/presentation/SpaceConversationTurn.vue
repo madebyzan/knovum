@@ -14,6 +14,7 @@ import SpaceConversationActivity from "./SpaceConversationActivity.vue";
 import SpaceConversationMessage from "./SpaceConversationMessage.vue";
 import SpaceConversationPlan from "./SpaceConversationPlan.vue";
 import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
+import SpaceConversationThinking from "./SpaceConversationThinking.vue";
 
 const props = defineProps<{
   turn: ConversationTurn;
@@ -79,8 +80,14 @@ watch(
         <SpaceConversationShimmerText indicator>{{ $t(waiting) }}</SpaceConversationShimmerText>
       </p>
       <template v-for="(block, index) in blocks" :key="block.key">
+        <SpaceConversationThinking
+          v-if="block.kind === 'thinking'"
+          :text="block.text"
+          :duration-ms="block.durationMs"
+          :active="turn.active && index === blocks.length - 1"
+        />
         <SpaceConversationActivity
-          v-if="block.kind === 'tools'"
+          v-else-if="block.kind === 'tools'"
           :items="block.items"
           :active="turn.active"
           :current="turn.active && index === blocks.length - 1"

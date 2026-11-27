@@ -1,6 +1,6 @@
 use pulldown_cmark::{CodeBlockKind, Event, HeadingLevel, Tag, TagEnd};
 
-use super::super::document::{Block, Inline};
+use super::super::document::{Block, CalloutKind, Inline};
 use super::Reader;
 
 impl Reader<'_> {
@@ -22,14 +22,14 @@ impl Reader<'_> {
             }
             let block = match event {
                 Event::Start(Tag::Paragraph) => {
-                    Block::Paragraph(self.inlines(TagEnd::Paragraph, depth + 1)?)
+                    paragraph_block(self.inlines(TagEnd::Paragraph, depth + 1)?)
                 }
                 Event::Start(Tag::Heading { level, .. }) => Block::Heading {
                     level: heading_level(level),
                     content: self.inlines(TagEnd::Heading(level), depth + 1)?,
                 },
                 Event::Start(Tag::BlockQuote(kind)) => {
-                    Block::Quote(self.blocks(Some(TagEnd::BlockQuote(kind)), depth + 1)?)
+                    quote_or_callout(self.blocks(Some(TagEnd::BlockQuote(kind)), depth + 1)?)
                 }
                 Event::Start(Tag::CodeBlock(kind)) => self.code_block(kind)?,
                 Event::Start(Tag::List(start)) => self.list(start, depth + 1)?,
@@ -81,6 +81,68 @@ impl Reader<'_> {
             }
         }
         Err("Unclosed Markdown code block".into())
+    }
+}
+
+fn quote_or_callout(mut blocks: Vec<Block>) -> Block {
+    let Some(Block::Paragraph(first_inlines)) = blocks.first_mut() else {
+        return Block::Quote(blocks);
+    };
+    let Some(Inline::Text(first_text)) = first_inlines.first_mut() else {
+        return Block::Quote(blocks);
+    };
+    let Some((kind, rest)) = parse_callout_marker(first_text) else {
+        return Block::Quote(blocks);
+    };
+    if rest.is_empty() {
+        first_inlines.remove(0);
+        if matches!(
+            first_inlines.first(),
+            Some(Inline::SoftBreak | Inline::HardBreak)
+        ) {
+            first_inlines.remove(0);
+        }
+    } else {
+        *first_text = rest.to_owned();
+    }
+    if first_inlines.is_empty() {
+        blocks.remove(0);
+    }
+    Block::Callout { kind, blocks }
+}
+
+fn parse_callout_marker(text: &str) -> Option<(CalloutKind, &str)> {
+    let trimmed = text.trim_start();
+    let after_open = trimmed.strip_prefix("[!")?;
+    let close = after_open.find(']')?;
+    let kind = match after_open[..close].to_ascii_uppercase().as_str() {
+        "NOTE" => CalloutKind::Note,
+        "TIP" => CalloutKind::Tip,
+        "IMPORTANT" => CalloutKind::Important,
+        "WARNING" => CalloutKind::Warning,
+        "CAUTION" => CalloutKind::Caution,
+        _ => return None,
+    };
+    let rest = &after_open[close + 1..];
+    if !rest.is_empty() && !rest.starts_with(char::is_whitespace) {
+        return None;
+    }
+    Some((kind, rest.trim_start()))
+}
+
+fn paragraph_block(content: Vec<Inline>) -> Block {
+    let mut display_math: Option<&str> = None;
+    for inline in &content {
+        match inline {
+            Inline::DisplayMath(latex) if display_math.is_none() => display_math = Some(latex),
+            Inline::SoftBreak => {}
+            Inline::Text(text) if text.trim().is_empty() => {}
+            _ => return Block::Paragraph(content),
+        }
+    }
+    match display_math {
+        Some(latex) => Block::Math(latex.to_owned()),
+        None => Block::Paragraph(content),
     }
 }
 

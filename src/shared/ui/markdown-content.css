@@ -35,15 +35,35 @@
 .ui-markdown :deep(li + li) {
   margin-top: 0.25rem;
 }
-.ui-markdown :deep(ul),
+.ui-markdown :deep(ul:not([data-type="taskList"])),
 .ui-markdown :deep(ol) {
   padding-left: 1.35rem;
 }
-.ui-markdown :deep(ul) {
+.ui-markdown :deep(ul:not([data-type="taskList"])) {
   list-style: disc;
 }
 .ui-markdown :deep(ol) {
   list-style: decimal;
+}
+.ui-markdown :deep(ul[data-type="taskList"] li) {
+  gap: 0.5rem;
+}
+.ui-markdown :deep(ul[data-type="taskList"] li > p) {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.ui-markdown :deep(ul[data-type="taskList"] label.ui-task-box) {
+  display: inline-flex;
+  align-items: center;
+  height: 1.62em;
+  flex-shrink: 0;
+}
+.ui-markdown :deep(ul[data-type="taskList"] input[type="checkbox"]) {
+  width: 0.92rem;
+  height: 0.92rem;
+  pointer-events: none;
 }
 .ui-markdown :deep(blockquote) {
   border-left: 2px solid var(--color-stroke-strong);
@@ -94,4 +114,13 @@
   border: 1px solid var(--color-stroke-divider);
   padding: 0.4rem 0.55rem;
   text-align: left;
+}
+.ui-markdown :deep([data-type="block-math"]) {
+  padding: 0.65rem 0.75rem;
+}
+.ui-markdown :deep(.ui-mermaid-diagram) {
+  padding: 0;
+}
+.ui-markdown :deep([data-type="callout"]) {
+  padding: 0.65rem 0.85rem;
 }

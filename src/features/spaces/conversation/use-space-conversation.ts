@@ -66,9 +66,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     hasOlder: pages.hasOlder,
     rememberDraft: draft.remember,
     restoreDraft: draft.restore,
-    clearBranches: () => {
-      branchSession.branches.value = [];
-    },
+    clearBranches: () => (branchSession.branches.value = []),
     loadBranches: (conversationId) => branchSession.load(conversationId),
   });
   const branchSession = useConversationBranches({
@@ -120,6 +118,9 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
       if (request.restart) await selectConversation("");
       if (spaceId.value !== requestedSpace) return;
       if (request.scope === "selection") attachmentSession.addNodeAttachments(request.nodeIds);
+      const quoted = request.quote?.trim().replace(/^/gmu, "> ");
+      if (quoted)
+        prompt.value = prompt.value.trim() ? `${prompt.value.trimEnd()}\n\n${quoted}\n\n` : `${quoted}\n\n`;
     },
     { immediate: true },
   );

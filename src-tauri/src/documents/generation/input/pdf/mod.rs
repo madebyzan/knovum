@@ -80,7 +80,7 @@ pub(super) fn render(source: &PdfSource, format: DocumentFormat) -> Result<Vec<u
             })?;
             super::super::markdown::ir::translate(
                 &parsed,
-                &super::super::images::Images::from_sources(&[])?,
+                &super::super::images::Images::from_sources_and_rendered(&[], &[])?,
             )?
             .sections
             .into_iter()

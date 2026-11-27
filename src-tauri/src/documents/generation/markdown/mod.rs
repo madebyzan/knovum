@@ -5,6 +5,7 @@ mod inlines;
 pub(crate) mod ir;
 mod ir_inlines;
 mod pictures;
+pub(crate) mod preprocess;
 
 use pulldown_cmark::{Event, Options, Parser};
 
@@ -15,12 +16,14 @@ pub(super) const MAX_EVENTS: usize = 200_000;
 pub(super) const MAX_DEPTH: usize = 64;
 pub(super) const OPTIONS: Options = Options::ENABLE_TABLES
     .union(Options::ENABLE_STRIKETHROUGH)
-    .union(Options::ENABLE_TASKLISTS);
+    .union(Options::ENABLE_TASKLISTS)
+    .union(Options::ENABLE_MATH);
 
 pub(crate) fn parse(source: &DocumentSource) -> Result<Document, String> {
     validate_source(source)?;
+    let cleaned = preprocess::clean(&source.markdown);
     let mut reader = Reader {
-        parser: Parser::new_ext(&source.markdown, OPTIONS),
+        parser: Parser::new_ext(&cleaned, OPTIONS),
         events: 0,
     };
     let mut blocks = reader.blocks(None, 0)?;
@@ -29,7 +32,13 @@ pub(crate) fn parse(source: &DocumentSource) -> Result<Document, String> {
         &source
             .images
             .iter()
-            .map(|image| image.destination.as_str())
+            .map(|image| image.destination.clone())
+            .chain(
+                source
+                    .rendered_images
+                    .iter()
+                    .map(|image| image.destination.clone()),
+            )
             .collect(),
     );
     let title = source.title.trim().to_owned();

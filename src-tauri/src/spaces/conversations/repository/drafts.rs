@@ -34,11 +34,11 @@ pub async fn load_draft(
     let Some(row) = row else {
         return Ok(None);
     };
-    let draft = parse_draft(space_id, conversation_id, row)?;
+    let mut draft = parse_draft(space_id, conversation_id, row)?;
     let (attachments, _) =
         prepare_attachments(app, &draft.attachments, &draft.reacquire_file_names, false)?;
     validate_identity(&mut connection, space_id, conversation_id).await?;
-    validate_node_attachments(&mut connection, space_id, &attachments).await?;
+    draft.attachments = reconcile_node_attachments(&mut connection, space_id, attachments).await?;
     Ok(Some(draft))
 }
 
@@ -53,13 +53,12 @@ pub async fn save_draft(
     {
         return Err("conversation-draft-invalid".into());
     }
-    let (attachments, reacquire_file_names) = prepare_attachments(
+    let (prepared_attachments, reacquire_file_names) = prepare_attachments(
         app,
         &request.attachments,
         &request.reacquire_file_names,
         true,
     )?;
-    let attachments_json = serialize_attachments(&attachments)?;
     let extensions_json = serde_json::to_string(&request.extensions).map_err(db::json_error)?;
     let reacquire_json = serde_json::to_string(&reacquire_file_names).map_err(db::json_error)?;
     if extensions_json.len() > MAX_DRAFT_JSON_BYTES || reacquire_json.len() > MAX_DRAFT_JSON_BYTES {
@@ -67,7 +66,9 @@ pub async fn save_draft(
     }
     let mut tx = db::begin_write(pool).await?;
     validate_identity(&mut tx, &request.space_id, &request.conversation_id).await?;
-    validate_node_attachments(&mut tx, &request.space_id, &attachments).await?;
+    let attachments =
+        reconcile_node_attachments(&mut tx, &request.space_id, prepared_attachments).await?;
+    let attachments_json = serialize_attachments(&attachments)?;
     sqlx::query(
         "INSERT INTO spaces_conversation_drafts
          (space_id,conversation_id,prompt,attachments,extensions,reacquire_file_names,updated_at)
@@ -240,34 +241,52 @@ fn valid_text(value: &str, max_chars: usize) -> bool {
     !value.trim().is_empty() && value.chars().count() <= max_chars
 }
 
-async fn validate_node_attachments(
+/// Reconciles attached Space nodes against SQLite's authoritative live revision:
+/// updates `source_revision` when a node has been edited (clearing any locator bound to the old
+/// revision) and omits nodes that were deleted from the Space.
+pub(super) async fn reconcile_node_attachments(
     connection: &mut SqliteConnection,
     space_id: &str,
-    attachments: &[ConversationAttachment],
-) -> Result<(), String> {
+    attachments: Vec<ConversationAttachment>,
+) -> Result<Vec<ConversationAttachment>, String> {
+    let mut reconciled = Vec::with_capacity(attachments.len());
     for attachment in attachments {
-        let ConversationAttachment::Node {
-            node_id,
-            source_revision,
-            ..
-        } = attachment
-        else {
-            continue;
-        };
-        let current: Option<String> = sqlx::query_scalar(
-            "SELECT COALESCE(json_extract(data,'$.knowledgeRevision'),json_extract(data,'$.sourceRevision'))
-             FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
-        )
-        .bind(node_id)
-        .bind(space_id)
-        .fetch_optional(&mut *connection)
-        .await
-        .map_err(db::sql_error)?;
-        if current.as_deref() != Some(source_revision) {
-            return Err("conversation-draft-attachment-stale".into());
+        match attachment {
+            ConversationAttachment::File { .. } => reconciled.push(attachment),
+            ConversationAttachment::Node {
+                node_id,
+                source_revision,
+                role,
+                locator,
+            } => {
+                let current: Option<String> = sqlx::query_scalar(
+                    "SELECT COALESCE(json_extract(data,'$.knowledgeRevision'),json_extract(data,'$.sourceRevision'))
+                     FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
+                )
+                .bind(&node_id)
+                .bind(space_id)
+                .fetch_optional(&mut *connection)
+                .await
+                .map_err(db::sql_error)?
+                .flatten();
+                let Some(current) = current else {
+                    continue;
+                };
+                let (next_revision, next_locator) = if current == source_revision {
+                    (source_revision, locator)
+                } else {
+                    (current, None)
+                };
+                reconciled.push(ConversationAttachment::Node {
+                    node_id,
+                    source_revision: next_revision,
+                    role,
+                    locator: next_locator,
+                });
+            }
         }
     }
-    Ok(())
+    Ok(reconciled)
 }
 
 pub(super) fn parse_draft(

@@ -316,3 +316,18 @@ fn a_destination_without_an_extension_names_no_format() {
             .contains("needs a file extension")
     );
 }
+
+#[test]
+fn asset_protocol_urls_decode_to_local_paths_while_remote_urls_are_ignored() {
+    use super::markdown_file::decode_asset_path;
+    assert_eq!(
+        decode_asset_path(
+            "asset://localhost/%2FUsers%2Fzand%2FLibrary%2FApplication%20Support%2Fcom.zand.knovum%2Fspaces%2Fassets%2Feditor-1.png"
+        ),
+        Some(std::path::PathBuf::from(
+            "/Users/zand/Library/Application Support/com.zand.knovum/spaces/assets/editor-1.png"
+        ))
+    );
+    assert_eq!(decode_asset_path("https://example.com/a.png"), None);
+    assert_eq!(decode_asset_path(""), None);
+}

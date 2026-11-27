@@ -1,6 +1,7 @@
 import MarkdownIt, { type MarkdownIt as MarkdownItInstance, type StateCore, type Token } from "markdown-it";
 
 import { linkDestination } from "../contracts/link-destination";
+import { registerRichMarkdownPlugins } from "./markdown-rich-plugins";
 
 /**
  * Citation markers an answer or grounded document may carry, keyed by index: `true` when the
@@ -83,6 +84,7 @@ export function createMarkdownRenderer({
   });
   md.renderer.rules.citation = (tokens, index) =>
     citationHtml(tokens[index]?.meta as CitationMeta | undefined);
+  registerRichMarkdownPlugins(md);
   return md;
 }
 

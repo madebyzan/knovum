@@ -143,48 +143,68 @@ fn smallest(left: Option<u32>, right: Option<u32>) -> Option<u32> {
 struct Loaded {
     catalog: Option<Arc<Catalog>>,
     next_attempt: i64,
+    refreshing: bool,
 }
 
 static LOADED: Mutex<Loaded> = Mutex::const_new(Loaded {
     catalog: None,
     next_attempt: 0,
+    refreshing: false,
 });
 
-/// The catalog refreshes once a day; until a refresh succeeds the last copy keeps serving.
+/// Serves the in-memory or disk-cached catalog immediately (stale-while-revalidate) and refreshes
+/// from `models.dev` in the background once a day, so chat sends never block on external network
+/// latency.
 pub(super) async fn current<R: Runtime>(app: &AppHandle<R>) -> Result<Arc<Catalog>, String> {
-    let mut loaded = LOADED.lock().await;
     let now = crate::foundation::clock::unix_time_millis()?;
     let path = app
         .path()
         .app_cache_dir()
         .map_err(|error| error.to_string())?
         .join(CACHE_FILE);
+    let mut loaded = LOADED.lock().await;
     if loaded.catalog.is_none() {
         loaded.catalog = read_cache(&path).await.map(Arc::new);
     }
-    if let Some(catalog) = loaded.catalog.as_ref().filter(|catalog| catalog.fresh(now)) {
-        return Ok(catalog.clone());
-    }
-    if now >= loaded.next_attempt {
-        match fetch(now).await {
-            Ok(catalog) => {
-                if let Err(error) = write_cache(&path, &catalog).await {
-                    log::warn!("Model limits catalog cache was not written: {error}");
-                }
-                let catalog = Arc::new(catalog);
-                loaded.catalog = Some(catalog.clone());
-                return Ok(catalog);
-            }
-            Err(error) => {
-                loaded.next_attempt = now + RETRY_AFTER_MILLIS;
-                log::warn!("models.dev catalog refresh failed: {error}");
-            }
-        }
+    let is_fresh = loaded
+        .catalog
+        .as_ref()
+        .is_some_and(|catalog| catalog.fresh(now));
+    if !is_fresh && !loaded.refreshing && now >= loaded.next_attempt {
+        loaded.refreshing = true;
+        tokio::spawn(refresh_in_background(path));
     }
     loaded
         .catalog
         .clone()
-        .ok_or_else(|| "models.dev catalog is unavailable".into())
+        .ok_or_else(|| "models.dev catalog is warming in background".into())
+}
+
+async fn refresh_in_background(path: std::path::PathBuf) {
+    let now = match crate::foundation::clock::unix_time_millis() {
+        Ok(value) => value,
+        Err(_) => {
+            LOADED.lock().await.refreshing = false;
+            return;
+        }
+    };
+    let outcome = fetch(now).await;
+    match outcome {
+        Ok(catalog) => {
+            if let Err(error) = write_cache(&path, &catalog).await {
+                log::warn!("Model limits catalog cache was not written: {error}");
+            }
+            let mut loaded = LOADED.lock().await;
+            loaded.catalog = Some(Arc::new(catalog));
+            loaded.refreshing = false;
+        }
+        Err(error) => {
+            log::warn!("models.dev catalog refresh failed: {error}");
+            let mut loaded = LOADED.lock().await;
+            loaded.next_attempt = now + RETRY_AFTER_MILLIS;
+            loaded.refreshing = false;
+        }
+    }
 }
 
 fn client() -> &'static reqwest::Client {

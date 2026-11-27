@@ -25,9 +25,18 @@ export function useWorkbenchTabViews() {
   const videos = useVideoSessionStore();
   const { t } = useI18n();
 
+  function documentTitle(tabId: string) {
+    const document = documents.sessions.get(tabId);
+    if (!document) return "";
+    const explicit = (document.state.title.value || document.node.value.data.title).trim();
+    if (explicit) return explicit;
+    return document.node.value.data.kind === "note"
+      ? t("spaces.editor.note.new")
+      : t("spaces.editor.markdown.untitled");
+  }
+
   function editorTitle(tab: SpaceEditorTab) {
-    const document = documents.sessions.get(tab.id);
-    if (tab.kind === "document") return document?.state.title.value || document?.node.value.data.title || "";
+    if (tab.kind === "document") return documentTitle(tab.id);
     return videos.sessions.get(tab.id)?.node.value.data.title ?? "";
   }
 

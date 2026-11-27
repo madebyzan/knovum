@@ -109,6 +109,12 @@ fn show(
         return;
     };
     match update {
+        AgentSessionUpdate::Thinking(text) => {
+            let _ = channel.send(ConversationTaskUpdate::ThinkingDelta {
+                task_id: run_id.to_owned(),
+                text: text.clone(),
+            });
+        }
         AgentSessionUpdate::Message(text) => {
             let _ = channel.send(ConversationTaskUpdate::ContentDelta {
                 task_id: run_id.to_owned(),

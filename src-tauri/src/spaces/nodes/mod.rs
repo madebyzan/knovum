@@ -1,6 +1,7 @@
 pub(crate) mod commands;
 mod content_size;
 pub(crate) mod contracts;
+pub(crate) mod create_markdown_action;
 pub(crate) mod create_note_action;
 mod derived;
 mod insert;

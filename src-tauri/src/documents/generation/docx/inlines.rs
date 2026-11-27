@@ -1,6 +1,12 @@
-use docx_rs::{BreakType, Hyperlink, HyperlinkType, Paragraph, Pic, Run};
+use docx_rs::{
+    AlignmentType, BreakType, Hyperlink, HyperlinkType, Paragraph, Pic, Run, VertAlignType,
+};
 
-use super::super::{document::Inline, images::Images};
+use super::super::{
+    document::Inline,
+    images::Images,
+    math::{self, MathScript},
+};
 
 #[derive(Clone, Copy, Default)]
 struct Marks {
@@ -74,6 +80,11 @@ fn append(
                 }
                 paragraph = paragraph.add_hyperlink(link);
             }
+            Inline::Math(latex) | Inline::DisplayMath(latex) => {
+                for run in math_runs(latex, marks) {
+                    paragraph = paragraph.add_run(run);
+                }
+            }
             inline => paragraph = paragraph.add_run(leaf(inline, marks, images)?),
         }
     }
@@ -109,6 +120,8 @@ fn runs(content: &[Inline], marks: Marks, images: &Images) -> Result<Vec<Run>, S
         };
         if let Some((children, marks)) = children {
             output.extend(runs(children, marks, images)?);
+        } else if let Inline::Math(latex) | Inline::DisplayMath(latex) = inline {
+            output.extend(math_runs(latex, marks));
         } else {
             output.push(leaf(inline, marks, images)?);
         }
@@ -165,6 +178,39 @@ pub(super) fn text_run(text: &str) -> Run {
         }
     }
     run.add_text(buffer)
+}
+
+pub(super) fn math_block_paragraph(latex: &str) -> Paragraph {
+    let mut paragraph = Paragraph::new().align(AlignmentType::Center);
+    for run in math_runs(latex, Marks::default()) {
+        paragraph = paragraph.add_run(run);
+    }
+    paragraph
+}
+
+fn math_runs(latex: &str, marks: Marks) -> Vec<Run> {
+    math::to_runs(latex)
+        .into_iter()
+        .map(|part| {
+            let mut run = text_run(&part.text);
+            if marks.bold || part.bold {
+                run = run.bold();
+            }
+            if marks.italic || part.italic {
+                run = run.italic();
+            }
+            if marks.strike {
+                run = run.strike();
+            }
+            if let Some(script) = part.script {
+                run.run_property = run.run_property.vert_align(match script {
+                    MathScript::Subscript => VertAlignType::SubScript,
+                    MathScript::Superscript => VertAlignType::SuperScript,
+                });
+            }
+            run
+        })
+        .collect()
 }
 
 pub(super) fn code_paragraph(text: &str) -> Paragraph {

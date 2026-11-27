@@ -16,6 +16,7 @@ use crate::foundation::subprocess::process_tree::ProcessTree;
 mod diagnostics;
 mod framing;
 mod peer;
+pub(crate) mod pool;
 pub(crate) use peer::{Host, Peer};
 
 pub(crate) struct Process {
@@ -130,6 +131,10 @@ impl Process {
                 Err("agent-runtime-initialization-failed".into())
             }
         }
+    }
+
+    pub(super) fn is_alive(&mut self) -> bool {
+        !self.listener.is_finished() && matches!(self.child.try_wait(), Ok(None))
     }
 
     pub(crate) async fn terminate(&mut self) {

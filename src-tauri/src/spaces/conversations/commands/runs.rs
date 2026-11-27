@@ -46,3 +46,8 @@ pub async fn retry_builtin_agent_model(
 ) -> Result<(), AppError> {
     Ok(builtin_agent::retry_model(app, &run_id, expected_version).await?)
 }
+
+#[tauri::command]
+pub fn prepare_builtin_agent_runtime(app: tauri::AppHandle) {
+    crate::agent_runtime::process::pool::prepare(app);
+}

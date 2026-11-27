@@ -161,6 +161,9 @@
     "viewCreated": "Localizza risultato"
   },
   "activity": {
+    "thinking": "Sta ragionando…",
+    "thought": "Ha ragionato",
+    "thoughtFor": "Ha ragionato per {seconds} s",
     "generating": "Generazione di risposta…",
     "running": "Funzionante · Azione {count} | Funzionante · Azioni {count}",
     "finished": "Completato · Azione {count} | Completato · Azioni {count}",

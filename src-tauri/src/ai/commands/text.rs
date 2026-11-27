@@ -39,14 +39,32 @@ pub async fn transform_editor_text_stream(
     on_event: Channel<TaskStreamEvent>,
 ) -> Result<TaskCompletionOutput, AppError> {
     let (cancellation, _lease) = executions::acquire(job_id).map_err(AppError::from)?;
-    execute(
+    let is_model_target = matches!(request.target, TaskTargetSelection::Model { .. });
+    let media_capabilities = if is_model_target {
+        capabilities::editor::media::EditorMediaCapabilities::detect(&app)
+    } else {
+        capabilities::editor::media::EditorMediaCapabilities::default()
+    };
+    let task_input = capabilities::editor::input(&request, media_capabilities)?;
+    let mut output = execute(
         &app,
         request.target,
-        capabilities::editor::input(request.action, request.text)?,
-        on_event,
-        cancellation,
+        task_input,
+        on_event.clone(),
+        cancellation.clone(),
     )
-    .await
+    .await?;
+    if media_capabilities.any() {
+        output.text = capabilities::editor::media::materialize_generated_media(
+            &app,
+            &output.text,
+            media_capabilities,
+            &on_event,
+            &cancellation,
+        )
+        .await?;
+    }
+    Ok(output)
 }
 
 #[tauri::command]

@@ -14,6 +14,7 @@ from pydantic import ValidationError
 from knovum_agent_runtime.budget import ModelBudget
 from knovum_agent_runtime.contracts.generated.control import AgentExecute
 from knovum_agent_runtime.execution import Execution
+from knovum_agent_runtime.projection import reasoning_text, visible_text
 from knovum_agent_runtime.transport import wire_value
 
 
@@ -132,3 +133,33 @@ def test_production_composition_streams_commits_and_does_not_replay_accepted_inp
                 assert completion[0]["messageId"] == projected[0]["messageId"]
 
     asyncio.run(run())
+
+
+def test_reasoning_extraction_separates_provider_thoughts_from_visible_text() -> None:
+    from langchain_core.messages import AIMessageChunk
+
+    deepseek = AIMessageChunk(content="结论", additional_kwargs={"reasoning_content": "先分析条件"})
+    assert reasoning_text(deepseek) == "先分析条件"
+    assert visible_text(deepseek) == "结论"
+
+    anthropic = AIMessageChunk(content=[{"type": "thinking", "thinking": "step 1"}, {"type": "text", "text": "answer"}])
+    assert reasoning_text(anthropic) == "step 1"
+    assert visible_text(anthropic) == "answer"
+
+    openai_resp = AIMessageChunk(
+        content=[
+            {"type": "reasoning", "summary": [{"type": "summary_text", "text": "plan"}]},
+            {"type": "text", "text": "done"},
+        ]
+    )
+    assert reasoning_text(openai_resp) == "plan"
+    assert visible_text(openai_resp) == "done"
+
+    gemini = AIMessageChunk(
+        content=[
+            {"type": "text", "thought": True, "text": "hidden thought"},
+            {"type": "text", "text": "visible reply"},
+        ]
+    )
+    assert reasoning_text(gemini) == "hidden thought"
+    assert visible_text(gemini) == "visible reply"
