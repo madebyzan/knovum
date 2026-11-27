@@ -53,7 +53,7 @@ const LAYOUT_OPTIONS: ReadonlyArray<{
         type="button"
         :data-testid="`image-group-layout-${option.id}`"
         :disabled="Boolean(option.minImages && imageCount < option.minImages)"
-        class="h-6 rounded-md px-2 text-[11.5px] font-medium transition-colors disabled:opacity-35"
+        class="h-6 rounded-md px-2 text-[11.5px] font-medium transition-colors disabled:pointer-events-none disabled:opacity-40"
         :class="
           layout === option.id
             ? 'bg-surface-selected text-fg-primary'
