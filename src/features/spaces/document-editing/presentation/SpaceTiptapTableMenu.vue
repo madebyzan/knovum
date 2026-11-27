@@ -47,6 +47,7 @@ watch(
 
 function shouldShowTableMenu({ editor }: { editor: CoreEditor }) {
   return (
+    !editor.isDestroyed &&
     editor.isEditable &&
     props.writing.phase.value === "closed" &&
     editor.isActive("table") &&

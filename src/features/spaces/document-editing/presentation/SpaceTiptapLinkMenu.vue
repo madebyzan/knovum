@@ -30,6 +30,7 @@ const normalizedHref = computed(() => normalizeUrl(draftHref.value, LINK_PROTOCO
 
 function shouldShowLinkMenu({ editor }: { editor: CoreEditor }) {
   const show =
+    !editor.isDestroyed &&
     editor.isEditable &&
     props.writing.phase.value === "closed" &&
     editor.isActive("link") &&

@@ -20,7 +20,8 @@ const emit = defineEmits<{ askInChat: [text: string]; convertToMath: [] }>();
 const { t } = useI18n();
 
 function shouldShowSelectionMenu({ editor }: { editor: CoreEditor }) {
-  if (!editor.isEditable || props.writing.phase.value !== "closed" || props.mathOpen) return false;
+  if (editor.isDestroyed || !editor.isEditable || props.writing.phase.value !== "closed" || props.mathOpen)
+    return false;
   const { from, to } = editor.state.selection;
   if (from === to || editor.isActive("codeBlock")) return false;
   return editor.state.doc.textBetween(from, to, " ").trim().length > 0;
