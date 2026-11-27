@@ -6,6 +6,7 @@
   "cancel": "Übersetzung abbrechen",
   "failed": "Übersetzung des Videoskripts fehlgeschlagen",
   "source": "Quelle",
-  "terms": "Beibehaltene Begriffe",
-  "termsPlaceholder": "Unverändert zu übernehmende Begriffe oder Markennamen, kommagetrennt (optional)"
+  "terms": "Nicht übersetzen",
+  "termsPlaceholder": "Namen, Marken usw., kommagetrennt",
+  "start": "Übersetzung starten"
 }

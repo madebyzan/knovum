@@ -16,6 +16,7 @@ import { getCanvasEditorSession } from "../editor-session";
 import { useCanvasSelectionProjection } from "../use-canvas-selection-projection";
 import SpaceCanvasMinimap from "./minimap/SpaceCanvasMinimap.vue";
 import { canvasSelectionGap } from "./selection/canvas-selection-gap";
+import { selectedContentNodes } from "./selection/selection-product-state";
 import SpaceCanvasRelationBar from "./selection/SpaceCanvasRelationBar.vue";
 import SpaceCanvasSelectionAnchor from "./selection/SpaceCanvasSelectionAnchor.vue";
 import SpaceCanvasSelectionBar from "./selection/SpaceCanvasSelectionBar.vue";
@@ -47,8 +48,16 @@ const {
   showActions: showSelectionActions,
 } = useSelectionSurfaceState();
 const scenesCollapsed = shallowRef(false);
-const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
-const derivations = useSelectionDerivations(selectedNodes);
+const { selection, selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
+const selectedContent = computed(() =>
+  selectedContentNodes(
+    store.nodes,
+    selection.value.nodeIds,
+    selection.value.structureNodeIds,
+    store.editSnapshot,
+  ),
+);
+const derivations = useSelectionDerivations(selectedContent);
 const generators = useCanvasGeneratorStore();
 const emit = defineEmits<{ dismissError: [] }>();
 const CANVAS_CHROME_INSETS = { top: 8, right: 16, bottom: 8, left: 16 } as const;
@@ -58,14 +67,12 @@ const singleCanvasObjectSelected = computed(
     editorSession.selection.value.nodeIds.length + editorSession.selection.value.structureNodeIds.length ===
     1,
 );
-const selectionBarGap = computed(() =>
-  canvasSelectionGap(
-    selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined,
-    store.editSnapshot.structure.some(
-      ({ id, kind }) => kind === "group" && editorSession.selection.value.structureNodeIds.includes(id),
-    ),
-  ),
-);
+const selectionBarGap = computed(() => {
+  const hasGroup = store.editSnapshot.structure.some(
+    ({ id, kind }) => kind === "group" && editorSession.selection.value.structureNodeIds.includes(id),
+  );
+  return canvasSelectionGap(selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined, hasGroup);
+});
 </script>
 <template>
   <div ref="chromeRoot" class="pointer-events-none absolute inset-0 z-30 overflow-hidden">
@@ -81,7 +88,7 @@ const selectionBarGap = computed(() =>
     </div>
     <div
       ref="viewChrome"
-      class="pointer-events-auto absolute bottom-1 left-1 flex h-7 items-center overflow-hidden rounded-md border border-stroke-strong bg-surface-canvas"
+      class="pointer-events-auto absolute bottom-1 left-1 flex h-6 items-center overflow-hidden rounded-md border border-stroke-strong bg-surface-canvas"
     >
       <template v-if="navigationEnabled">
         <SpaceCanvasViewControls />
@@ -93,7 +100,7 @@ const selectionBarGap = computed(() =>
         >
           <div
             v-if="!scenesCollapsed"
-            class="flex h-full w-20 shrink-0 items-center overflow-hidden border-l border-stroke-strong bg-surface-control px-0.5"
+            class="flex h-full w-17 shrink-0 items-center overflow-hidden border-l border-stroke-strong bg-surface-control px-0.5"
           >
             <SpaceCanvasSceneControls />
           </div>
@@ -103,7 +110,7 @@ const selectionBarGap = computed(() =>
             :label="t(scenesCollapsed ? 'spaces.scenes.expand' : 'spaces.scenes.collapse')"
             tooltip
             size="sm"
-            class="size-6 rounded-sm text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
+            class="size-5 rounded-sm text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
             @click="scenesCollapsed = !scenesCollapsed"
           >
             <Star class="size-3" :stroke-width="1.55" />
@@ -164,10 +171,8 @@ const selectionBarGap = computed(() =>
     <SpaceCanvasFeedback
       :empty="empty"
       :file-hover="fileHover"
-      v-bind="{
-        ...(error ? { error } : {}),
-        ...(fileHoverPosition ? { fileHoverPosition } : {}),
-      }"
+      :error="error"
+      :file-hover-position="fileHoverPosition"
       @dismiss-error="emit('dismissError')"
     />
     <SpaceFind v-model:open="store.findOpen" />

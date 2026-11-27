@@ -2,12 +2,13 @@ import type { ActionAvailability } from "../../../../shared/contracts/action-ava
 
 export type CreationIntentIcon =
   | "captions"
+  | "clapperboard"
   | "file-pen"
   | "image"
   | "layers"
   | "scan"
-  | "sparkles"
   | "sticker";
+type CreationIntentGroup = "create" | "utility";
 export type DerivationUnavailableReason =
   | "no-usable-source"
   | "too-many-sources"
@@ -18,6 +19,8 @@ export type CreationIntentDecision = ActionAvailability<DerivationUnavailableRea
 
 export interface CreationSelectionContext {
   readonly selectionCount: number;
+  /** Number of semantic knowledge nodes in the selection (excludes credentials, portals, plain text). */
+  readonly semanticCount: number;
   /** Resources that can be pinned and sent, whatever their index state. */
   readonly sourceCount: number;
   readonly imageCount: number;
@@ -29,6 +32,7 @@ export interface CreationSelectionContext {
 
 export interface CreationIntentDefinition {
   readonly id: string;
+  readonly group: CreationIntentGroup;
   readonly icon: CreationIntentIcon;
   readonly decide: (context: CreationSelectionContext) => CreationIntentDecision;
 }

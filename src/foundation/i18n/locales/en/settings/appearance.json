@@ -22,8 +22,7 @@
     "followSystem": "Follow system",
     "theme": {
       "light": "Light",
-      "dark": "Dark",
-      "paper": "Paper & Forest"
+      "dark": "Dark"
     },
     "textSize": {
       "small": "Small",

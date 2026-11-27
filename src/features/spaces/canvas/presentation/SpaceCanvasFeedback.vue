@@ -8,9 +8,9 @@ import SpaceEmptyState from "../../workspace/presentation/SpaceEmptyState.vue";
 
 defineProps<{
   empty: boolean;
-  error?: string;
+  error?: string | undefined;
   fileHover: boolean;
-  fileHoverPosition?: { x: number; y: number };
+  fileHoverPosition?: { x: number; y: number } | undefined;
 }>();
 const emit = defineEmits<{ dismissError: [] }>();
 const { t } = useI18n();

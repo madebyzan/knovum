@@ -8,6 +8,7 @@
     "changed": "Certaines sources ont changé après la création de cet élément."
   },
   "citations": "Citations · {count}",
+  "createAction": "Créer",
   "createFromSelection": "Créer à partir de la sélection",
   "finishNodeOperation": "Terminez ou annulez d'abord l'opération de nœud en cours.",
   "tooManySources": "Sélectionnez au maximum 32 ressources pour créer.",

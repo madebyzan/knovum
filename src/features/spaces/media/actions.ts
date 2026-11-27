@@ -37,9 +37,9 @@ interface SpaceMediaActionsContext {
 export function createSpaceMediaActions(context: SpaceMediaActionsContext) {
   let seekNonce = 0;
   let toggleNonce = 0;
-  async function analyzeMedia(nodeId: string, model?: LocalModelId, language?: string) {
+  async function analyzeMedia(nodeId: string, model?: LocalModelId) {
     const spaceId = requireSpace();
-    return requestMediaTranscription(spaceId, nodeId, model, language);
+    return requestMediaTranscription(spaceId, nodeId, model);
   }
   async function generateMediaInsights(
     nodeId: string,

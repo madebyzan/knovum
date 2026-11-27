@@ -11,7 +11,7 @@ import { routingCapabilities } from "../../../../../shared/contracts/generated/c
 import type { ProviderDescriptor } from "../../../../../shared/contracts/generated/ProviderDescriptor";
 import type { RoutingPurpose } from "../../../../../shared/contracts/generated/RoutingPurpose";
 import UiButton from "../../../../../shared/ui/UiButton.vue";
-import { buildOllamaDetectedModels, filterOllamaChatModelNames } from "../starter-models";
+import { buildOllamaDetectedModels, filterOllamaChatModelNames } from "../ollama-detected-models";
 import { useAiConnectionEditing } from "../use-ai-connection-editing";
 import AiConnectionConfiguration from "./AiConnectionConfiguration.vue";
 import AiConnectionEditor from "./AiConnectionEditor.vue";

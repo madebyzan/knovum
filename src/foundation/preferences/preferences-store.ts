@@ -50,13 +50,8 @@ function snapshot(state: Preferences): Preferences {
   };
 }
 
-function activeTheme(theme: ThemePreference): "light" | "dark" | "paper" {
+function activeTheme(theme: ThemePreference): Theme {
   return theme === "system" ? systemTheme : theme;
-}
-
-function nativeWindowTheme(theme: ThemePreference): Theme | null {
-  if (theme === "system") return null;
-  return theme === "paper" ? "light" : theme;
 }
 
 function activeLocale(locale: LocalePreference): AppLocale {
@@ -108,7 +103,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
       }
 
       await Promise.all([
-        window.setTheme(nativeWindowTheme(preferences.theme)),
+        window.setTheme(preferences.theme === "system" ? null : preferences.theme),
         syncSystemLocale(preferences.locale),
         syncTaskNotifications(preferences.backgroundTaskNotifications),
         ensureLocaleLoaded(activeLocale(preferences.locale)),
@@ -148,7 +143,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
 
   function setTheme(theme: ThemePreference) {
     return mutate(async () => {
-      await currentWindow().setTheme(nativeWindowTheme(theme));
+      await currentWindow().setTheme(theme === "system" ? null : theme);
       preferences.theme = theme;
     });
   }

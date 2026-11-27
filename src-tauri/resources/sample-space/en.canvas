@@ -15,7 +15,7 @@
       "type": "group",
       "x": 296,
       "y": 0,
-      "width": 550,
+      "width": 590,
       "height": 388,
       "label": "Sources"
     },
@@ -31,28 +31,28 @@
     {
       "id": "whiteboard",
       "type": "file",
-      "x": 546,
+      "x": 566,
       "y": 48,
-      "width": 280,
-      "height": 190,
+      "width": 300,
+      "height": 204,
       "file": "assets/mill-lane-whiteboard.png"
     },
     {
       "id": "thinking",
       "type": "group",
       "x": 296,
-      "y": 424,
-      "width": 550,
-      "height": 340,
+      "y": 432,
+      "width": 590,
+      "height": 388,
       "label": "Your thinking (Claim & Evidence example)"
     },
     {
       "id": "question",
       "type": "text",
       "x": 316,
-      "y": 468,
+      "y": 480,
       "width": 245,
-      "height": 124,
+      "height": 152,
       "text": "The question\nShould Harbor Street Coffee open at 41 Mill Lane?\n\nStill open: the summer dip, and whether the landlord confirms the rent-free months in writing.",
       "color": "5"
     },
@@ -60,19 +60,19 @@
       "id": "evidence",
       "type": "text",
       "x": 316,
-      "y": 608,
+      "y": 652,
       "width": 245,
-      "height": 136,
+      "height": 148,
       "text": "Key evidence\n• Market brief [p.1]: projected 190 orders/day, fit-out paid back in month 14.\n• Whiteboard & brief [p.3]: rent-free period discussed verbally, still awaiting written sign-off.",
       "color": "2"
     },
     {
       "id": "draft",
       "type": "text",
-      "x": 581,
-      "y": 468,
+      "x": 621,
+      "y": 480,
       "width": 245,
-      "height": 276,
+      "height": 320,
       "text": "Grounded draft answer (example)\nProceed conditionally: open at 41 Mill Lane once the rent-free period is confirmed in writing.\n\nBasis:\n1. Fit-out reaches break-even in month 14 at 190 orders/day (Market brief, p.1).\n2. Summer dip and rent-free terms need written confirmation before signing (Whiteboard & brief, p.3).\n\nReplace this with your own view, or ask AI in the right sidebar.",
       "color": "4"
     }

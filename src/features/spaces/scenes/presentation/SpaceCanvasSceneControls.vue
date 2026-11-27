@@ -98,7 +98,7 @@ async function duplicateScene(scene: SpaceScene) {
         :label="sceneLabel(-1)"
         :shortcut="SPACE_COMMAND_SHORTCUTS.previousScene"
         size="sm"
-        class="size-6 rounded-sm"
+        class="size-5 rounded-sm"
         :disabled="!canStep"
         @click="stepScene(-1)"
       >
@@ -112,7 +112,7 @@ async function duplicateScene(scene: SpaceScene) {
             :label="t('spaces.scenes.title')"
             :title="t('spaces.scenes.title')"
             size="sm"
-            class="size-6 rounded-sm"
+            class="size-5 rounded-sm"
           >
             <List class="size-3" :stroke-width="1.55" />
           </UiIconButton>
@@ -137,7 +137,7 @@ async function duplicateScene(scene: SpaceScene) {
         :label="sceneLabel(1)"
         :shortcut="SPACE_COMMAND_SHORTCUTS.nextScene"
         size="sm"
-        class="size-6 rounded-sm"
+        class="size-5 rounded-sm"
         :disabled="!canStep"
         @click="stepScene(1)"
       >

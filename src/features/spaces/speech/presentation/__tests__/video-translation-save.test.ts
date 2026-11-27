@@ -39,7 +39,7 @@ beforeEach(() => vi.clearAllMocks());
 function translateButton(wrapper: VueWrapper) {
   return wrapper
     .findAll("button")
-    .find((button) => button.text().includes("spaces.speech.translation.translate"))!;
+    .find((button) => button.text().includes("spaces.speech.translation.start"))!;
 }
 
 const store = reactive({

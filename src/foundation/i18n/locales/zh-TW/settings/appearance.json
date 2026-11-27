@@ -22,8 +22,7 @@
     "followSystem": "依系統設定",
     "theme": {
       "light": "淺色",
-      "dark": "深色",
-      "paper": "暖紙森綠"
+      "dark": "深色"
     },
     "textSize": {
       "small": "小",

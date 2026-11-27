@@ -9,7 +9,6 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { workspaceRightSidebarKey } from "../../../../shared/contracts/workspace-right-sidebar";
-import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiKnovumAiIcon from "../../../../shared/ui/UiKnovumAiIcon.vue";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
@@ -71,58 +70,82 @@ function askAboutIssue(issue: SpaceKnowledgeHealthIssue) {
       <CollapsibleContent
         :class="compact && 'mt-1 rounded-panel border border-stroke-divider bg-surface-control/15 p-2'"
       >
-        <div v-if="!compact" class="flex items-center justify-between gap-2">
-          <h3 v-if="!inDialog" class="flex items-center gap-1.5 text-caption font-semibold text-fg-secondary">
+        <div v-if="!compact && !inDialog" class="flex items-center justify-between gap-2">
+          <h3 class="flex items-center gap-1.5 text-caption font-semibold text-fg-secondary">
             <ShieldAlert class="size-3" />{{ t("spaces.knowledge.health.title") }}
           </h3>
-          <div v-else class="flex-1" />
-          <UiButton size="sm" variant="ghost" :disabled="loading" @click="refetch()">
-            <RefreshCw class="size-3" :class="loading && 'animate-spin'" />{{ t("common.refresh") }}
-          </UiButton>
+          <UiIconButton :label="t('common.refresh')" size="sm" :disabled="loading" @click="refetch()">
+            <RefreshCw class="size-3" :class="loading && 'animate-spin'" />
+          </UiIconButton>
         </div>
         <p v-if="!compact && !inDialog" class="mt-1 text-caption text-fg-tertiary">
           {{ t("spaces.knowledge.health.description") }}
         </p>
         <div
           v-if="!issues.length && !loading"
-          class="mt-3 flex items-center gap-2 text-caption text-fg-secondary"
+          class="flex items-center justify-between gap-2 text-caption text-fg-secondary"
+          :class="!inDialog && 'mt-3'"
         >
-          <CheckCircle2 class="size-3.5 text-fg-success" />{{ t("spaces.knowledge.health.clean") }}
-        </div>
-        <div v-else class="mt-1.5 space-y-1">
-          <div
-            v-for="issue in issues"
-            :key="issue.id"
-            class="flex items-center gap-1 rounded-md border border-transparent bg-surface-control/25 pr-1 hover:border-stroke-divider hover:bg-surface-control-hover"
+          <span class="flex items-center gap-2">
+            <CheckCircle2 class="size-3.5 shrink-0 text-fg-success" />
+            <span>{{ t("spaces.knowledge.health.clean") }}</span>
+          </span>
+          <UiIconButton
+            v-if="inDialog"
+            :label="t('common.refresh')"
+            size="sm"
+            :disabled="loading"
+            @click="refetch()"
           >
-            <button
-              type="button"
-              class="flex min-w-0 flex-1 items-start gap-2 rounded-md p-2 text-left"
-              @click="reveal(issue)"
-            >
-              <AlertTriangle
-                class="mt-0.5 size-3 shrink-0"
-                :class="issue.severity === 'critical' ? 'text-fg-danger' : 'text-fg-warning'"
-              />
-              <span class="min-w-0 flex-1">
-                <span class="block truncate text-caption font-medium text-fg-primary">{{ issue.title }}</span>
-                <span class="block text-caption text-fg-tertiary">{{
-                  t(`spaces.knowledge.health.issues.${issue.kind}`)
-                }}</span>
-              </span>
-            </button>
-            <UiIconButton
-              v-if="store.workbench.rightSidebar"
-              :label="t('spaces.conversation.askSelection')"
-              tooltip
-              size="sm"
-              class="shrink-0 text-fg-secondary hover:text-fg-primary"
-              @click.stop="askAboutIssue(issue)"
-            >
-              <UiKnovumAiIcon class="size-3.5" />
+            <RefreshCw class="size-3" :class="loading && 'animate-spin'" />
+          </UiIconButton>
+        </div>
+        <template v-else>
+          <div v-if="inDialog" class="mb-2 flex items-center justify-between gap-2">
+            <h3 class="flex items-center gap-1.5 text-caption font-semibold text-fg-secondary">
+              <ShieldAlert class="size-3" />{{ t("spaces.knowledge.health.title") }}
+            </h3>
+            <UiIconButton :label="t('common.refresh')" size="sm" :disabled="loading" @click="refetch()">
+              <RefreshCw class="size-3" :class="loading && 'animate-spin'" />
             </UiIconButton>
           </div>
-        </div>
+          <div class="space-y-1" :class="!inDialog && 'mt-1.5'">
+            <div
+              v-for="issue in issues"
+              :key="issue.id"
+              class="group flex items-center gap-1 rounded-md border border-transparent bg-surface-control/25 pr-1 hover:border-stroke-divider hover:bg-surface-control-hover"
+            >
+              <button
+                type="button"
+                class="flex min-w-0 flex-1 items-start gap-2 rounded-md p-2 text-left"
+                @click="reveal(issue)"
+              >
+                <AlertTriangle
+                  class="mt-0.5 size-3 shrink-0"
+                  :class="issue.severity === 'critical' ? 'text-fg-danger' : 'text-fg-warning'"
+                />
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate text-caption font-medium text-fg-primary">{{
+                    issue.title
+                  }}</span>
+                  <span class="block text-caption text-fg-tertiary">{{
+                    t(`spaces.knowledge.health.issues.${issue.kind}`)
+                  }}</span>
+                </span>
+              </button>
+              <UiIconButton
+                v-if="store.workbench.rightSidebar"
+                :label="t('spaces.conversation.askSelection')"
+                tooltip
+                size="sm"
+                class="shrink-0 text-fg-secondary opacity-0 transition-opacity group-hover:opacity-100 hover:text-fg-primary focus-visible:opacity-100"
+                @click.stop="askAboutIssue(issue)"
+              >
+                <UiKnovumAiIcon class="size-3.5" />
+              </UiIconButton>
+            </div>
+          </div>
+        </template>
         <p v-if="criticalCount" class="mt-2 text-caption-sm text-fg-danger">
           {{ t("spaces.knowledge.health.critical", { count: criticalCount }) }}
         </p>

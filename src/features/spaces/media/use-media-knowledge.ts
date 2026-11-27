@@ -32,15 +32,6 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   const { t } = useI18n();
   const transcriptOpen = ref(false);
   const transcriptionModel = shallowRef<LocalModelId>();
-  const localLanguage = shallowRef("auto");
-  const transcriptionLanguage = computed<string>({
-    get: () => store.mediaTranscriptionLanguageByNodeId?.[node.value.id] ?? localLanguage.value,
-    set: (value) => {
-      localLanguage.value = value;
-      if (store.mediaTranscriptionLanguageByNodeId)
-        store.mediaTranscriptionLanguageByNodeId[node.value.id] = value;
-    },
-  });
   const alignmentModel = shallowRef<LocalModelId>();
   const alignmentSubmitting = ref(false);
   const submitting = ref(false);
@@ -95,9 +86,8 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   );
   function analyze(chosenModel?: LocalModelId) {
     if (!canTranscribe.value) return Promise.resolve();
-    const lang = transcriptionLanguage.value !== "auto" ? transcriptionLanguage.value : undefined;
     return runLocalMediaTask("transcription", submitting, chosenModel ?? transcriptionModel.value, (model) =>
-      lang ? store.analyzeMedia(node.value.id, model, lang) : store.analyzeMedia(node.value.id, model),
+      store.analyzeMedia(node.value.id, model),
     );
   }
   function alignSegments(segmentIds: string[], chosenModel?: LocalModelId) {
@@ -152,7 +142,6 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     alignmentSubmitting,
     alignSegments,
     transcriptionModel,
-    transcriptionLanguage,
     alignmentModel,
     analyzing,
     analysisPreview,

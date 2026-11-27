@@ -6,13 +6,18 @@
   "inbox": "받은편지함",
   "empty": {
     "title": "지식이 자라나는 곳",
-    "description": "영감을 모으고 자료를 정리하며 생각을 기록하여 나만의 지식 공간을 만드세요.",
-    "newNote": "새 노트",
-    "importFiles": "자료 가져오기",
-    "startRecording": "녹음 시작",
-    "keyboardHint": "캔버스에서 바로 키를 누를 수도 있습니다:",
+    "description": "파일이나 링크를 올려 로컬에서 분석하고 바로 질문·창작하세요.",
     "titlePrefix": "지식이 ",
-    "titleHighlight": "자라나는 곳"
+    "titleHighlight": "자라나는 곳",
+    "loadSample": "예시 캔버스 불러오기",
+    "actions": {
+      "importTitle": "자료 가져오기",
+      "importDescription": "PDF·이미지·오디오·비디오 자동 로컬 OCR 및 전사",
+      "askTitle": "Knovum에게 묻기",
+      "askDescription": "스페이스 자료 기반 대화, 출처 클릭으로 원문 이동",
+      "noteTitle": "새 메모",
+      "noteDescription": "아이디어를 연결해 정리하고 선택 항목으로 AI 창작"
+    }
   },
   "rename": "작업공간 이름 바꾸기",
   "tabs": {

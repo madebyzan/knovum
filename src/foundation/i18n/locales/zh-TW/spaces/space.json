@@ -6,13 +6,18 @@
   "inbox": "收集箱",
   "empty": {
     "title": "讓知識，在這裡生長",
-    "description": "收集靈感、整理資料、記錄思考，構建屬於你的知識空間。",
-    "newNote": "新增筆記",
-    "importFiles": "匯入資料",
-    "startRecording": "開始錄音",
-    "keyboardHint": "也可以直接在畫布上按",
+    "description": "拖入檔案或貼上連結，本機解析內容，在畫布上提問與創作。",
     "titlePrefix": "讓知識，在這裡",
-    "titleHighlight": "生長"
+    "titleHighlight": "生長",
+    "loadSample": "載入範例畫布",
+    "actions": {
+      "importTitle": "匯入資料",
+      "importDescription": "PDF、圖片與影音，本機自動辨識與轉寫",
+      "askTitle": "問 Knovum",
+      "askDescription": "圍繞空間資料對話，回答可直達原文出處",
+      "noteTitle": "新增便箋",
+      "noteDescription": "記下想法與連線整理，選取即可 AI 創作"
+    }
   },
   "rename": "重新命名空間",
   "tabs": {

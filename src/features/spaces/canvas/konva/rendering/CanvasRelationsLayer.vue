@@ -28,7 +28,7 @@ function syncRelationsCanvas() {
   const canvas = relationsLayer.value?.getNode().getNativeCanvasElement();
   if (!canvas) return;
   // Sits above DOM node cards (z-17) so curves are never occluded, while staying below
-  // world overlays (sibling z-18) and Konva selection/connector handles (z-20).
+  // Konva selection/connector handles (z-20) and world overlays (sibling z-25).
   canvas.style.zIndex = "18";
   canvas.style.pointerEvents = "none";
 }

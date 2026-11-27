@@ -128,7 +128,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
 
   async function persist(instance: Editor) {
     try {
-      const plainText = instance.getText();
+      const plainText = instance.state.doc.textBetween(0, instance.state.doc.content.size, "\n", "\n");
       const tiptapContent = tiptapContentSchema.parse(instance.getJSON());
       const data: SpaceCanvasTextPayload = {
         ...options.data.value,

@@ -15,7 +15,7 @@
       "type": "group",
       "x": 296,
       "y": 0,
-      "width": 550,
+      "width": 590,
       "height": 388,
       "label": "Quellen"
     },
@@ -31,28 +31,28 @@
     {
       "id": "whiteboard",
       "type": "file",
-      "x": 546,
+      "x": 566,
       "y": 48,
-      "width": 280,
-      "height": 190,
+      "width": 300,
+      "height": 204,
       "file": "assets/mill-lane-whiteboard.png"
     },
     {
       "id": "thinking",
       "type": "group",
       "x": 296,
-      "y": 424,
-      "width": 550,
-      "height": 340,
+      "y": 432,
+      "width": 590,
+      "height": 388,
       "label": "Deine Überlegungen (These & Belege)"
     },
     {
       "id": "question",
       "type": "text",
       "x": 316,
-      "y": 468,
+      "y": 480,
       "width": 245,
-      "height": 124,
+      "height": 152,
       "text": "Die Frage\nSoll Harbor Street Coffee in der Mill Lane 41 eröffnen?\n\nNoch offen: das Sommerloch und ob der Vermieter die mietfreien Monate schriftlich bestätigt.",
       "color": "5"
     },
@@ -60,19 +60,19 @@
       "id": "evidence",
       "type": "text",
       "x": 316,
-      "y": 608,
+      "y": 652,
       "width": 245,
-      "height": 136,
+      "height": 148,
       "text": "Wichtige Belege\n• Marktbericht [S. 1]: 190 Bestellungen/Tag erwartet, Ausbau im 14. Monat bezahlt.\n• Whiteboard & Bericht [S. 3]: Mietfreie Zeit mündlich erwähnt, schriftliche Bestätigung steht aus.",
       "color": "2"
     },
     {
       "id": "draft",
       "type": "text",
-      "x": 581,
-      "y": 468,
+      "x": 621,
+      "y": 480,
       "width": 245,
-      "height": 276,
+      "height": 320,
       "text": "Belegter Antwortentwurf (Beispiel)\nUnter Vorbehalt eröffnen: Mill Lane 41 vorantreiben, sobald die mietfreie Zeit schriftlich bestätigt ist.\n\nGrundlage:\n1. Ausbau erreicht im 14. Monat die Gewinnschwelle bei 190 Bestellungen/Tag (Marktbericht, S. 1).\n2. Sommerloch und mietfreie Monate vor Unterschrift klären (Whiteboard & Bericht, S. 3).\n\nErsetze dies durch deine eigene Einschätzung oder frage die KI rechts.",
       "color": "4"
     }

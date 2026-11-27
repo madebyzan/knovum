@@ -22,8 +22,7 @@
     "followSystem": "Systemeinstellung verwenden",
     "theme": {
       "light": "Hell",
-      "dark": "Dunkel",
-      "paper": "Papier & Wald"
+      "dark": "Dunkel"
     },
     "textSize": {
       "small": "Klein",

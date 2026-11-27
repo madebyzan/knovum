@@ -8,6 +8,7 @@
     "changed": "Algunas fuentes cambiaron después de que se creó este elemento."
   },
   "citations": "Citas · {count}",
+  "createAction": "Crear",
   "createFromSelection": "Crear a partir de la selección",
   "finishNodeOperation": "Primero finalice o cancele la operación del nodo actual.",
   "tooManySources": "Selecciona como máximo 32 recursos para crear.",

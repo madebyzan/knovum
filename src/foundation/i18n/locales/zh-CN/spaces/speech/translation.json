@@ -6,6 +6,7 @@
   "cancel": "取消翻译",
   "failed": "视频脚本翻译失败",
   "source": "原文",
-  "terms": "专有名词/不翻译词",
-  "termsPlaceholder": "保留原样的专有名词或品牌名，用逗号分隔（可选）"
+  "terms": "保留原词",
+  "termsPlaceholder": "人名、品牌等，用逗号分隔",
+  "start": "开始翻译"
 }

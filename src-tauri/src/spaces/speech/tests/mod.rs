@@ -217,6 +217,17 @@ fn long_sentence_split_preserves_decimal_numbers_and_word_boundaries() {
     assert!(chunks.iter().all(|chunk| chunk.chars().count() <= 400));
 }
 
+#[test]
+fn speech_normalization_drops_non_speakable_symbols_and_empty_segments() {
+    assert_eq!(
+        super::text::normalize("Hello\u{200B} world 🔥 → done!"),
+        "Hello world done!"
+    );
+    let chunks = super::text::segment("First line. --- 🔥! Second line.").unwrap();
+    assert_eq!(chunks, vec!["First line.", "Second line."]);
+    assert!(super::text::segment("--- 🔥 ✨").is_err());
+}
+
 #[tokio::test]
 async fn voice_catalog_retains_distinct_historical_and_archived_revisions() {
     let pool = database().await;

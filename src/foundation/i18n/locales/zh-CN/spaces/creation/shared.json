@@ -8,6 +8,7 @@
     "changed": "创建此内容后，部分来源已发生变化。"
   },
   "citations": "引用 · {count}",
+  "createAction": "创作",
   "createFromSelection": "用选中项创建",
   "finishNodeOperation": "请先完成或取消当前节点操作。",
   "tooManySources": "用于创建的资源最多 32 个。",

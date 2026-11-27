@@ -6,13 +6,18 @@
   "inbox": "Inbox",
   "empty": {
     "title": "Let knowledge grow here",
-    "description": "Collect inspiration, organize sources, and record thoughts to build your knowledge space.",
-    "newNote": "New Note",
-    "importFiles": "Import Files",
-    "startRecording": "Start Recording",
-    "keyboardHint": "Or press on canvas:",
+    "description": "Drop files or paste links — indexed locally for cited Q&A and creation.",
     "titlePrefix": "Let knowledge grow ",
-    "titleHighlight": "here"
+    "titleHighlight": "here",
+    "loadSample": "Load example canvas",
+    "actions": {
+      "importTitle": "Import sources",
+      "importDescription": "PDFs, images, audio & video with local OCR and transcription",
+      "askTitle": "Ask Knovum",
+      "askDescription": "Chat with this Space and jump straight to cited pages",
+      "noteTitle": "New note",
+      "noteDescription": "Capture ideas, connect thoughts, or turn selections into drafts"
+    }
   },
   "rename": "Rename Space",
   "tabs": {

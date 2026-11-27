@@ -7,6 +7,7 @@ import type { ImageExecutionTarget } from "../../../contracts/generated/ImageExe
 import SpaceCanvasImageEditing from "../../../image-editing/presentation/SpaceCanvasImageEditing.vue";
 import SpaceCanvasObjectRemoval from "../../../image-editing/presentation/SpaceCanvasObjectRemoval.vue";
 import SpaceImageAngleInspector from "../../../image-editing/presentation/SpaceImageAngleInspector.vue";
+import SpaceImageLayersPopover from "../../../image-editing/presentation/SpaceImageLayersPopover.vue";
 import SpaceImageSelectionControls from "../../../image-editing/presentation/SpaceImageSelectionControls.vue";
 import SpaceImageUpscalePopover from "../../../image-editing/presentation/SpaceImageUpscalePopover.vue";
 import type {
@@ -14,20 +15,24 @@ import type {
   CreationIntentId,
 } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
 import { useImageSelectionSessionStore } from "../../../knowledge-derivations/image-selection-session-store";
+import { hasVisibleCreationActions } from "../../../knowledge-derivations/presentation/visible-derivation-actions";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
 import { useNodeReaderAction } from "../../../reading/use-node-reader-action";
 import { CANVAS_ACTION_BAR_CLASSES } from "../canvas-action-classes";
 import SpaceCanvasNodeAccessActions from "../selection/SpaceCanvasNodeAccessActions.vue";
+import SpaceCanvasSelectionAiActions from "../selection/SpaceCanvasSelectionAiActions.vue";
 import type { useCanvasSelectionActions } from "../selection/use-canvas-selection-actions";
 import { useNodeActionBarDensity } from "../selection/use-node-action-bar-density";
-import SpaceCanvasImageAngleTrigger from "./SpaceCanvasImageAngleTrigger.vue";
+import { useNodePrimaryAction } from "../selection/use-node-primary-action";
+import SpaceCanvasActionTrigger from "../SpaceCanvasActionTrigger.vue";
 import SpaceCanvasImageComparisonAction from "./SpaceCanvasImageComparisonAction.vue";
 import SpaceCanvasImageDerivationActions from "./SpaceCanvasImageDerivationActions.vue";
 import SpaceCanvasImageEditActions from "./SpaceCanvasImageEditActions.vue";
 import SpaceCanvasImageMenu from "./SpaceCanvasImageMenu.vue";
 import SpaceImageCommentModeBar from "./SpaceImageCommentModeBar.vue";
 import { useImageNodeBarState } from "./use-image-node-bar-state";
+
 const props = defineProps<{
   actions: ReturnType<typeof useCanvasSelectionActions>;
   derivations: CreationIntentDecisions;
@@ -40,35 +45,19 @@ const emit = defineEmits<{
   "update:angleOpen": [open: boolean];
 }>();
 const { t, locale } = useI18n();
-const readerAction = useNodeReaderAction(toRef(props, "node"));
-const {
-  openPopover,
-  activeTool,
-  removing,
-  commenting,
-  availabilityByDerivation,
-  reasonByDerivation,
-  dimensionsReady,
-  removalAvailability,
-  removalReason,
-  selectionAvailability,
-  selectionReason,
-  beginTool,
-  beginRemoval,
-  beginSelection,
-  beginAngle,
-  setPopover,
-  beginComment,
-  runDirectDerivation,
-  layersChoice,
-} = useImageNodeBarState(toRef(props, "node"), toRef(props, "derivations"), (actionId, execution) =>
+const nodeRef = toRef(props, "node");
+const readerAction = useNodeReaderAction(nodeRef);
+const { primary } = useNodePrimaryAction(nodeRef, props.actions);
+const barState = useImageNodeBarState(nodeRef, toRef(props, "derivations"), (actionId, execution) =>
   emit("invokeDerivation", actionId, execution),
 );
 const imageSelection = useImageSelectionSessionStore();
 const selecting = computed(() => imageSelection.active?.nodeId === props.node.id);
+const hasCreationActions = computed(() => hasVisibleCreationActions(props.derivations));
 const bar = useTemplateRef<HTMLElement>("bar");
 const densityIdentity = computed(
-  () => `${locale.value}:${props.node.id}:${activeTool.value ?? ""}:${removing.value}:${commenting.value}`,
+  () =>
+    `${locale.value}:${props.node.id}:${props.actions.state.value.canAsk}:${hasCreationActions.value}:${barState.activeTool.value ?? ""}:${barState.removing.value}:${barState.commenting.value}`,
 );
 const { compact, minimal, ready } = useNodeActionBarDensity(
   bar,
@@ -76,9 +65,12 @@ const { compact, minimal, ready } = useNodeActionBarDensity(
   densityIdentity,
 );
 const restoreFocus = shallowRef(false);
-watch([selecting, activeTool, removing, commenting, () => props.angleOpen], (current, previous) => {
-  if (current.every((value) => !value) && previous.some(Boolean)) restoreFocus.value = true;
-});
+watch(
+  [selecting, barState.activeTool, barState.removing, barState.commenting, () => props.angleOpen],
+  (current, previous) => {
+    if (current.every((value) => !value) && previous.some(Boolean)) restoreFocus.value = true;
+  },
+);
 watch(
   [ready, restoreFocus],
   async ([isReady, shouldRestore]) => {
@@ -90,12 +82,19 @@ watch(
   { flush: "post" },
 );
 </script>
+
 <template>
   <SpaceImageSelectionControls v-if="selecting" />
-  <SpaceCanvasImageEditing v-else-if="activeTool" :node="node" />
-  <SpaceCanvasObjectRemoval v-else-if="removing" :node="node" />
+  <SpaceCanvasImageEditing v-else-if="barState.activeTool.value" :node="node" />
+  <SpaceCanvasObjectRemoval v-else-if="barState.removing.value" :node="node" />
   <SpaceImageAngleInspector v-else-if="angleOpen" :node="node" @close="emit('update:angleOpen', false)" />
-  <SpaceImageCommentModeBar v-else-if="commenting" />
+  <SpaceImageCommentModeBar v-else-if="barState.commenting.value" />
+  <SpaceImageLayersPopover
+    v-else-if="barState.layersChoice.pending.value?.groups?.length"
+    :groups="barState.layersChoice.pending.value.groups"
+    @run="barState.layersChoice.run"
+    @cancel="barState.layersChoice.cancel"
+  />
   <div
     v-else
     ref="bar"
@@ -109,57 +108,67 @@ watch(
       :loop="false"
       :aria-label="t('spaces.canvas.nodeActions.label')"
     >
+      <SpaceCanvasSelectionAiActions
+        v-if="!minimal"
+        :can-ask="actions.state.value.canAsk"
+        :derivations="derivations"
+        :compact="compact"
+        separator
+        @ask="actions.ask"
+        @invoke-derivation="emit('invokeDerivation', $event)"
+      />
+      <SpaceCanvasActionTrigger
+        v-if="primary && !minimal"
+        :label="primary.label"
+        :icon="primary.icon"
+        :compact="compact"
+        @invoke="primary.run"
+      />
       <SpaceCanvasImageEditActions
         v-if="!node.data.imageDepth && !minimal"
         :compact="compact"
-        :dimensions-ready="dimensionsReady"
-        @begin-tool="beginTool"
-        @begin-comment="beginComment"
+        :dimensions-ready="barState.dimensionsReady.value"
+        @begin-tool="barState.beginTool"
+        @begin-comment="barState.beginComment"
       />
       <SpaceImageUpscalePopover
         :node="node"
         :compact="compact"
-        :open="openPopover === 'upscale'"
-        @update:open="setPopover('upscale', $event)"
+        :open="barState.openPopover.value === 'upscale'"
+        @update:open="barState.setPopover('upscale', $event)"
       />
       <SpaceCanvasImageDerivationActions
         v-if="!minimal"
         :compact="compact"
-        :availability-by-derivation="availabilityByDerivation"
-        :reason-by-derivation="reasonByDerivation"
-        :removal-availability="removalAvailability"
-        :removal-reason="removalReason"
-        :selection-availability="selectionAvailability"
-        :selection-reason="selectionReason"
-        :layers-groups="layersChoice.pending.value?.groups"
-        @run-direct="runDirectDerivation"
-        @begin-removal="beginRemoval"
-        @begin-selection="beginSelection"
-        @run-layers="layersChoice.run"
-        @cancel-layers="layersChoice.cancel"
-      />
-      <SpaceCanvasImageAngleTrigger
-        :compact="compact"
-        @begin="beginAngle() && emit('update:angleOpen', true)"
+        :availability-by-derivation="barState.availabilityByDerivation.value"
+        :reason-by-derivation="barState.reasonByDerivation.value"
+        :removal-availability="barState.removalAvailability.value"
+        :removal-reason="barState.removalReason.value"
+        :selection-availability="barState.selectionAvailability.value"
+        :selection-reason="barState.selectionReason.value"
+        @run-direct="barState.runDirectDerivation"
+        @begin-removal="barState.beginRemoval"
+        @begin-selection="barState.beginSelection"
       />
       <SpaceCanvasImageMenu
         :node="node"
         :actions="actions"
         :derivations="derivations"
         :minimal="minimal"
-        :dimensions-ready="dimensionsReady"
-        :availability-by-derivation="availabilityByDerivation"
-        :reason-by-derivation="reasonByDerivation"
-        :removal-availability="removalAvailability"
-        :removal-reason="removalReason"
-        :selection-availability="selectionAvailability"
-        :selection-reason="selectionReason"
+        :dimensions-ready="barState.dimensionsReady.value"
+        :availability-by-derivation="barState.availabilityByDerivation.value"
+        :reason-by-derivation="barState.reasonByDerivation.value"
+        :removal-availability="barState.removalAvailability.value"
+        :removal-reason="barState.removalReason.value"
+        :selection-availability="barState.selectionAvailability.value"
+        :selection-reason="barState.selectionReason.value"
         @invoke-derivation="emit('invokeDerivation', $event)"
-        @begin-tool="beginTool"
-        @begin-comment="beginComment"
-        @begin-removal="beginRemoval"
-        @begin-selection="beginSelection"
-        @run-direct="runDirectDerivation"
+        @begin-tool="barState.beginTool"
+        @begin-comment="barState.beginComment"
+        @begin-removal="barState.beginRemoval"
+        @begin-selection="barState.beginSelection"
+        @begin-angle="barState.beginAngle() && emit('update:angleOpen', true)"
+        @run-direct="barState.runDirectDerivation"
       />
       <SpaceCanvasNodeAccessActions
         :export-target="actions.exportTarget.value"

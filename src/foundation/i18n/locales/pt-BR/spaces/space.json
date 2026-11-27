@@ -6,13 +6,18 @@
   "inbox": "Caixa de entrada",
   "empty": {
     "title": "Deixe o conhecimento crescer aqui",
-    "description": "Reúna inspiração, organize fontes e registre pensamentos para construir seu espaço de conhecimento.",
-    "newNote": "Nova nota",
-    "importFiles": "Importar arquivos",
-    "startRecording": "Iniciar gravação",
-    "keyboardHint": "Ou pressione na tela:",
+    "description": "Arraste arquivos ou cole links — indexados localmente para perguntar e criar.",
     "titlePrefix": "Deixe o conhecimento ",
-    "titleHighlight": "crescer"
+    "titleHighlight": "crescer",
+    "loadSample": "Carregar tela de exemplo",
+    "actions": {
+      "importTitle": "Importar fontes",
+      "importDescription": "PDFs, imagens, áudio e vídeo com OCR e transcrição locais",
+      "askTitle": "Perguntar ao Knovum",
+      "askDescription": "Converse com o espaço e vá direto às fontes citadas",
+      "noteTitle": "Nova nota",
+      "noteDescription": "Conecte ideias ou crie conteúdos a partir da seleção"
+    }
   },
   "rename": "Renomear espaço",
   "tabs": {

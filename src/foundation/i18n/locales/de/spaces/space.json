@@ -6,13 +6,18 @@
   "inbox": "Posteingang",
   "empty": {
     "title": "Wissen wachsen lassen",
-    "description": "Inspirationen sammeln, Quellen ordnen und Gedanken festhalten für Ihren Wissensraum.",
-    "newNote": "Neue Notiz",
-    "importFiles": "Dateien importieren",
-    "startRecording": "Aufnahme starten",
-    "keyboardHint": "Oder direkt auf der Leinwand drücken:",
+    "description": "Dateien ablegen oder Links einfügen — lokal indexiert für Fragen und Erstellung.",
     "titlePrefix": "Wissen ",
-    "titleHighlight": "wachsen lassen"
+    "titleHighlight": "wachsen lassen",
+    "loadSample": "Beispiel-Canvas laden",
+    "actions": {
+      "importTitle": "Quellen importieren",
+      "importDescription": "PDFs, Bilder, Audio & Video mit lokaler OCR und Transkription",
+      "askTitle": "Knovum fragen",
+      "askDescription": "Fragen zum Space stellen mit direkten Quellenverweisen",
+      "noteTitle": "Neue Notiz",
+      "noteDescription": "Ideen verbinden oder aus Auswahlen direkt erstellen"
+    }
   },
   "rename": "Leerzeichen umbenennen",
   "tabs": {

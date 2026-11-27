@@ -15,7 +15,7 @@
       "type": "group",
       "x": 296,
       "y": 0,
-      "width": 550,
+      "width": 590,
       "height": 388,
       "label": "Fonti"
     },
@@ -31,28 +31,28 @@
     {
       "id": "whiteboard",
       "type": "file",
-      "x": 546,
+      "x": 566,
       "y": 48,
-      "width": 280,
-      "height": 190,
+      "width": 300,
+      "height": 204,
       "file": "assets/mill-lane-whiteboard.png"
     },
     {
       "id": "thinking",
       "type": "group",
       "x": 296,
-      "y": 424,
-      "width": 550,
-      "height": 340,
+      "y": 432,
+      "width": 590,
+      "height": 388,
       "label": "Le tue riflessioni (Esempio tesi e prove)"
     },
     {
       "id": "question",
       "type": "text",
       "x": 316,
-      "y": 468,
+      "y": 480,
       "width": 245,
-      "height": 124,
+      "height": 152,
       "text": "La domanda\nHarbor Street Coffee dovrebbe aprire al 41 di Mill Lane?\n\nAncora aperti: il calo estivo e la conferma scritta dei mesi senza canone da parte del proprietario.",
       "color": "5"
     },
@@ -60,19 +60,19 @@
       "id": "evidence",
       "type": "text",
       "x": 316,
-      "y": 608,
+      "y": 652,
       "width": 245,
-      "height": 136,
+      "height": 148,
       "text": "Prove chiave\n• Rapporto di mercato [p. 1]: previsti 190 ordini/giorno, allestimento ripagato al 14° mese.\n• Lavagna e rapporto [p. 3]: periodo senza canone discusso a voce, in attesa di conferma scritta.",
       "color": "2"
     },
     {
       "id": "draft",
       "type": "text",
-      "x": 581,
-      "y": 468,
+      "x": 621,
+      "y": 480,
       "width": 245,
-      "height": 276,
+      "height": 320,
       "text": "Bozza ragionata (esempio)\nProcedere con riserva: aprire al 41 di Mill Lane una volta confermato per iscritto il periodo senza canone.\n\nBasi:\n1. L’allestimento va in pareggio al 14° mese con 190 ordini/giorno (Rapporto di mercato, p. 1).\n2. Calo estivo e mesi senza canone vanno definiti prima della firma (Lavagna e rapporto, p. 3).\n\nSostituisci questo testo con la tua opinione o chiedi all’IA a destra.",
       "color": "4"
     }

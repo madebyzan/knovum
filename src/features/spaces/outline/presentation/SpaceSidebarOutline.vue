@@ -47,14 +47,14 @@ watch(
           "
           size="sm"
           tooltip
-          class="h-7 w-auto min-w-7 gap-1 px-1.5"
-          :class="
+          :class="[
+            healthIssues.length ? 'h-5 w-auto min-w-5 gap-1 px-1' : 'size-5',
             healthIssues.length
               ? hasCriticalHealth
                 ? 'text-fg-danger hover:bg-surface-danger-subtle'
                 : 'text-fg-warning hover:bg-surface-warning-subtle'
-              : 'text-fg-tertiary hover:text-fg-primary'
-          "
+              : 'text-fg-tertiary hover:text-fg-primary',
+          ]"
           @click="store.openKnowledgeHealth()"
         >
           <ShieldAlert v-if="healthIssues.length" class="size-3.5" :stroke-width="1.65" />

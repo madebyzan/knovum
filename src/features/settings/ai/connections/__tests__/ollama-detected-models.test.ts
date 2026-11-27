@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ProviderDescriptor } from "../../../../../shared/contracts/generated/ProviderDescriptor";
-import {
-  buildOllamaDetectedModels,
-  filterOllamaChatModelNames,
-  starterModelsForProvider,
-} from "../starter-models";
+import { buildOllamaDetectedModels, filterOllamaChatModelNames } from "../ollama-detected-models";
 
 const OLLAMA_PROVIDER: ProviderDescriptor = {
   id: "ollama",
@@ -15,7 +11,7 @@ const OLLAMA_PROVIDER: ProviderDescriptor = {
   builtinAgentProtocol: "ollama",
 };
 
-describe("starter and Ollama detected models", () => {
+describe("Ollama detected models", () => {
   it("filters embedding and reranker models and honors up to 20 chat models", () => {
     const names = [
       "nomic-embed-text:latest",
@@ -36,17 +32,5 @@ describe("starter and Ollama detected models", () => {
     const built = buildOllamaDetectedModels(names, OLLAMA_PROVIDER);
     expect(built).toHaveLength(20);
     expect(built.every((model) => model.capabilities.includes("text-generation"))).toBe(true);
-  });
-
-  it("adds vision capability to starter models when supported by provider", () => {
-    const models = starterModelsForProvider({
-      id: "openai",
-      displayName: "OpenAI",
-      capabilities: ["text-generation", "vision-understanding"],
-      defaultBaseUrl: "https://api.openai.com/v1",
-      builtinAgentProtocol: "open_ai_responses",
-    });
-    expect(models).toHaveLength(1);
-    expect(models[0]?.capabilities).toEqual(["text-generation", "vision-understanding"]);
   });
 });

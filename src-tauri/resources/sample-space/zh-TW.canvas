@@ -15,7 +15,7 @@
       "type": "group",
       "x": 296,
       "y": 0,
-      "width": 550,
+      "width": 590,
       "height": 388,
       "label": "資料"
     },
@@ -31,28 +31,28 @@
     {
       "id": "whiteboard",
       "type": "file",
-      "x": 546,
+      "x": 566,
       "y": 48,
-      "width": 280,
-      "height": 190,
+      "width": 300,
+      "height": 204,
       "file": "assets/mill-lane-whiteboard.png"
     },
     {
       "id": "thinking",
       "type": "group",
       "x": 296,
-      "y": 424,
-      "width": 550,
-      "height": 340,
+      "y": 432,
+      "width": 590,
+      "height": 388,
       "label": "你的思考（論點與證據示範）"
     },
     {
       "id": "question",
       "type": "text",
       "x": 316,
-      "y": 468,
+      "y": 480,
       "width": 245,
-      "height": 124,
+      "height": 152,
       "text": "問題\nHarbor Street Coffee 該不該在 Mill Lane 41 號開店？\n\n待確認：暑期客流下滑如何應對，房東是否書面確認免租月份。",
       "color": "5"
     },
@@ -60,19 +60,19 @@
       "id": "evidence",
       "type": "text",
       "x": 316,
-      "y": 608,
+      "y": 652,
       "width": 245,
-      "height": 136,
+      "height": 148,
       "text": "關鍵證據摘錄\n• 市場簡報 [p.1]：日均預計 190 單，裝修回本週期 14 個月。\n• 白板照片 / 簡報 [p.3]：房東口頭提及免租期，但尚未書面簽字確認。",
       "color": "2"
     },
     {
       "id": "draft",
       "type": "text",
-      "x": 581,
-      "y": 468,
+      "x": 621,
+      "y": 480,
       "width": 245,
-      "height": 276,
+      "height": 320,
       "text": "帶出處結論草稿（示範）\n建議有條件開店：若免租期獲得書面確認，則推進 Mill Lane 41 號選址。\n\n依據：\n1. 按日均 190 單測算，裝修投入預計在第 14 個月收回（見市場簡報 p.1）。\n2. 暑期淡季波動與免租條款需在簽約前確認（見白板照片與簡報 p.3）。\n\n你可以把這裡換成自己的判斷，或在右側直接向 AI 追問。",
       "color": "4"
     }

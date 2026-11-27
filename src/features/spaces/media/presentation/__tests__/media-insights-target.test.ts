@@ -17,7 +17,6 @@ import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceAudioPayload } from "../../../model/nodes/node-payload";
 import type { SpaceMediaAnalysisLabels } from "../../actions";
 import SpaceMediaKnowledge from "../SpaceMediaKnowledge.vue";
-import SpaceTranscriptionLanguageSelect from "../SpaceTranscriptionLanguageSelect.vue";
 
 const mocks = vi.hoisted(() => ({
   generate: vi.fn<(nodeId: string, labels: SpaceMediaAnalysisLabels, target: TaskTarget) => Promise<void>>(),
@@ -141,8 +140,7 @@ it("hides the single configured target but still generates with the synchronized
   const wrapper = render(node);
   await flushPromises();
 
-  expect(wrapper.findAllComponents(UiSelect)).toHaveLength(1);
-  expect(wrapper.findComponent(SpaceTranscriptionLanguageSelect).findComponent(UiSelect).exists()).toBe(true);
+  expect(wrapper.findComponent(UiSelect).exists()).toBe(false);
   await wrapper.get("button").trigger("click");
   await flushPromises();
 

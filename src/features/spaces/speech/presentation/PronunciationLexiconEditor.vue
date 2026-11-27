@@ -8,7 +8,7 @@ import UiInput from "../../../../shared/ui/UiInput.vue";
 import type { PronunciationRule } from "../use-pronunciation-lexicon";
 
 const entries = defineModel<PronunciationRule[]>({ required: true });
-defineProps<{ disabled: boolean; valid: boolean }>();
+defineProps<{ disabled: boolean; valid: boolean; hideTitle?: boolean }>();
 const { t } = useI18n();
 
 function addRule() {
@@ -30,7 +30,7 @@ function updateRule(ruleId: string, patch: Partial<Pick<PronunciationRule, "word
   <section class="space-y-2">
     <div class="flex items-center justify-between gap-2">
       <div class="min-w-0 flex-1">
-        <h3 class="text-caption font-medium text-fg-secondary">
+        <h3 v-if="!hideTitle" class="text-caption font-medium text-fg-secondary">
           {{ t("spaces.speech.audiobook.lexicon.title") }}
         </h3>
         <p class="text-caption-sm text-fg-tertiary">{{ t("spaces.speech.audiobook.lexicon.hint") }}</p>

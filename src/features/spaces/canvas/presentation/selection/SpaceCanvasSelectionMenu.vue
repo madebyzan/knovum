@@ -12,7 +12,6 @@ import {
 } from "@lucide/vue";
 import { platform } from "@tauri-apps/plugin-os";
 import { ToolbarButton } from "reka-ui";
-import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { SUBMENU_CONTENT_CLASSES } from "../../../../../shared/ui/ui-classes";
@@ -22,36 +21,25 @@ import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import UiKbd from "../../../../../shared/ui/UiKbd.vue";
 import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
 import { SPACE_COMMAND_SHORTCUTS } from "../../../commands/space-command-shortcuts";
-import type {
-  CreationIntentDecisions,
-  CreationIntentId,
-} from "../../../knowledge-derivations/catalog/creation-intent-definitions";
-import SpaceDerivationMenuItems from "../../../knowledge-derivations/presentation/SpaceDerivationMenuItems.vue";
 import SpaceCanvasArrangeMenu from "./SpaceCanvasArrangeMenu.vue";
 import SpaceCanvasLayerMenu from "./SpaceCanvasLayerMenu.vue";
 import SpaceCanvasParentMenu from "./SpaceCanvasParentMenu.vue";
 import SpaceSelectionMoveMenu from "./SpaceSelectionMoveMenu.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 
-const props = defineProps<{
+defineProps<{
   actions: ReturnType<typeof useCanvasSelectionActions>;
-  derivations: CreationIntentDecisions;
-  nodeBar?: boolean;
   nodeToolsVisible?: boolean;
-  /** Actions the caller already offers outside this menu. */
-  excludeActions?: readonly CreationIntentId[];
+  /** Section bar renders fit/collapse/focus directly, so only section dissolve stays here. */
+  sectionBar?: boolean;
+  /** Multi-selection bar renders tidy/align directly, so omit the duplicate arrange submenu. */
+  arrangeOnBar?: boolean;
 }>();
-const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
 const MENU_ITEM_CLASS =
   "flex h-interaction cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover data-[disabled]:opacity-40";
 const submenu = SUBMENU_CONTENT_CLASSES;
 const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
-const DIRECT_VIDEO_ACTIONS: readonly CreationIntentId[] = ["add-video-subtitles"];
-const excludedActions = computed(() => [
-  ...(props.excludeActions ?? []),
-  ...(props.nodeBar && props.actions.selectedVideoNode.value ? DIRECT_VIDEO_ACTIONS : []),
-]);
 </script>
 
 <template>
@@ -91,36 +79,31 @@ const excludedActions = computed(() => [
         <UiKbd shortcut="$mod+Shift+G" class="ml-auto" />
       </UiDropdownMenuItem>
       <template v-if="actions.state.value.section">
-        <UiDropdownMenuItem :disabled="!actions.state.value.canFitSection" @select="actions.fitSection">{{
-          t("spaces.canvas.sections.fitToContents")
-        }}</UiDropdownMenuItem>
-        <UiDropdownMenuItem @select="actions.toggleSectionCollapsed">
-          {{
-            t(
-              actions.state.value.section.collapsed
-                ? "spaces.canvas.sections.expand"
-                : "spaces.canvas.sections.collapse",
-            )
-          }}
-        </UiDropdownMenuItem>
+        <template v-if="!sectionBar">
+          <UiDropdownMenuItem :disabled="!actions.state.value.canFitSection" @select="actions.fitSection">{{
+            t("spaces.canvas.sections.fitToContents")
+          }}</UiDropdownMenuItem>
+          <UiDropdownMenuItem @select="actions.toggleSectionCollapsed">
+            {{
+              t(
+                actions.state.value.section.collapsed
+                  ? "spaces.canvas.sections.expand"
+                  : "spaces.canvas.sections.collapse",
+              )
+            }}
+          </UiDropdownMenuItem>
+        </template>
         <UiDropdownMenuItem
           :disabled="!actions.state.value.canEditSection"
           @select="actions.dissolveSection"
           >{{ t("spaces.canvas.sections.removeOnly") }}</UiDropdownMenuItem
         >
       </template>
-      <UiDropdownMenuItem v-if="actions.state.value.content.length" @select="actions.focus">
+      <UiDropdownMenuItem v-if="actions.state.value.content.length && !sectionBar" @select="actions.focus">
         <Focus class="size-3.5" />{{ t("spaces.scenes.focus.selection") }}
       </UiDropdownMenuItem>
-      <SpaceDerivationMenuItems
-        v-if="actions.selectedNodes.value.length"
-        :derivations="derivations"
-        :row-class="MENU_ITEM_CLASS"
-        :submenu-class="submenu"
-        :exclude="excludedActions"
-        @invoke="emit('invokeDerivation', $event)"
-      />
       <SpaceCanvasArrangeMenu
+        v-if="!arrangeOnBar"
         :availability="actions.state.value.arrangement"
         :row-class="MENU_ITEM_CLASS"
         :submenu-class="submenu"

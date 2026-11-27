@@ -1,29 +1,16 @@
 <script setup lang="ts">
-import { Layers3 } from "@lucide/vue";
+import { X } from "@lucide/vue";
 import { reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import UiPopover from "../../../../shared/ui/UiPopover.vue";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
-import type { ImageActionAvailability } from "../../canvas/presentation/images/image-action-availability";
-import { DERIVATION_LABEL_KEY } from "../../canvas/presentation/images/image-derivation-actions";
-import SpaceCanvasImageActionTrigger from "../../canvas/presentation/images/SpaceCanvasImageActionTrigger.vue";
+import { CANVAS_ACTION_BAR_CLASSES } from "../../canvas/presentation/canvas-action-classes";
 import type { ImageLayersChoiceGroup } from "../../knowledge-derivations/image-layers-models";
 
-const props = defineProps<{
-  availability: ImageActionAvailability;
-  reason: string;
-  compact?: boolean;
-  menuItem?: boolean;
-  open?: boolean;
-  groups?: ImageLayersChoiceGroup[] | undefined;
-}>();
-const emit = defineEmits<{
-  invoke: [];
-  run: [selections: Record<string, string>];
-  "update:open": [open: boolean];
-}>();
+const props = defineProps<{ groups: readonly ImageLayersChoiceGroup[] }>();
+const emit = defineEmits<{ run: [selections: Record<string, string>]; cancel: [] }>();
 const { t } = useI18n();
 const selections = reactive<Record<string, string>>({});
 
@@ -31,7 +18,7 @@ watch(
   () => props.groups,
   (groups) => {
     for (const key of Object.keys(selections)) delete selections[key];
-    for (const group of groups ?? []) selections[group.key] = group.selectedId;
+    for (const group of groups) selections[group.key] = group.selectedId;
   },
   { immediate: true },
 );
@@ -46,59 +33,36 @@ function optionsFor(group: ImageLayersChoiceGroup) {
 </script>
 
 <template>
-  <SpaceCanvasImageActionTrigger
-    v-if="menuItem"
-    :availability="availability"
-    :reason="reason"
-    :icon="Layers3"
-    :label-key="DERIVATION_LABEL_KEY['split-image-layers']"
-    :compact="compact"
-    menu-item
-    @begin="emit('invoke')"
-  />
-  <UiPopover
-    v-else
-    :open="Boolean(open && groups?.length)"
-    side="bottom"
-    align="start"
-    class="w-56 space-y-2.5 p-2.5"
-    @update:open="emit('update:open', $event)"
+  <div
+    data-testid="layers-model-bar"
+    :class="CANVAS_ACTION_BAR_CLASSES"
+    class="h-auto flex-wrap gap-2 px-2.5 py-1.5"
+    @keydown.esc.stop="emit('cancel')"
   >
-    <template #trigger>
-      <SpaceCanvasImageActionTrigger
-        :availability="availability"
-        :reason="reason"
-        :icon="Layers3"
-        :label-key="DERIVATION_LABEL_KEY['split-image-layers']"
-        :compact="compact"
-        @begin="emit('invoke')"
+    <label
+      v-for="group in groups"
+      :key="group.key"
+      class="flex items-center gap-1.5 text-caption font-medium text-fg-secondary"
+    >
+      <span class="shrink-0">{{ t(group.labelKey) }}</span>
+      <UiSelect
+        :model-value="selections[group.key]!"
+        :label="t(group.labelKey)"
+        :options="optionsFor(group)"
+        size="sm"
+        @update:model-value="(value) => (selections[group.key] = value)"
       />
-    </template>
-    <div v-if="groups?.length" data-testid="layers-model-bar" class="space-y-2">
-      <label
-        v-for="group in groups"
-        :key="group.key"
-        class="block space-y-1 text-caption font-medium text-fg-secondary"
-      >
-        {{ t(group.labelKey) }}
-        <UiSelect
-          :model-value="selections[group.key]!"
-          :label="t(group.labelKey)"
-          :options="optionsFor(group)"
-          size="sm"
-          @update:model-value="(value) => (selections[group.key] = value)"
-        />
-      </label>
-      <div class="flex justify-end pt-0.5">
-        <UiButton
-          data-testid="layers-model-run"
-          variant="primary"
-          size="sm"
-          @click="emit('run', { ...selections })"
-        >
-          {{ t("ai.modelChoice.run") }}
-        </UiButton>
-      </div>
-    </div>
-  </UiPopover>
+    </label>
+    <UiButton
+      data-testid="layers-model-run"
+      variant="primary"
+      size="sm"
+      @click="emit('run', { ...selections })"
+    >
+      {{ t("ai.modelChoice.run") }}
+    </UiButton>
+    <UiIconButton :label="t('common.cancel')" size="sm" @click="emit('cancel')">
+      <X class="size-3.5" />
+    </UiIconButton>
+  </div>
 </template>

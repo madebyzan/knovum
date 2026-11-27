@@ -1,18 +1,8 @@
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { LocalModelId } from "../../../shared/contracts/generated/LocalModelId";
 
-export function requestMediaTranscription(
-  spaceId: string,
-  nodeId: string,
-  model?: LocalModelId,
-  language?: string,
-) {
-  return invokeCommand<string>("plugin:spaces|request_media_transcription", {
-    spaceId,
-    nodeId,
-    model,
-    ...(language ? { language } : {}),
-  });
+export function requestMediaTranscription(spaceId: string, nodeId: string, model?: LocalModelId) {
+  return invokeCommand<string>("plugin:spaces|request_media_transcription", { spaceId, nodeId, model });
 }
 
 type MediaAlignmentRequest = {

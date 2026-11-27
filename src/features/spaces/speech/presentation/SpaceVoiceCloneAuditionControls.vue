@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Headphones, LoaderCircle, WandSparkles } from "@lucide/vue";
+import { AudioWaveform, Headphones, LoaderCircle } from "@lucide/vue";
 import { ToolbarButton } from "reka-ui";
 import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -65,7 +65,7 @@ watch(
             class="size-4.5 animate-spin motion-reduce:animate-none"
             :stroke-width="1.6"
           />
-          <WandSparkles v-else class="size-4.5" :stroke-width="1.6" />
+          <AudioWaveform v-else class="size-4.5" :stroke-width="1.6" />
           <span :class="[NODE_ACTION_LABEL_CLASS, nodeActionLabelState(compact)]">{{
             t("spaces.speech.voice.candidate.generate")
           }}</span>

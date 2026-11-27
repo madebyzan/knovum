@@ -22,8 +22,7 @@
     "followSystem": "Suivre le système",
     "theme": {
       "light": "Clair",
-      "dark": "Sombre",
-      "paper": "Papier & Forêt"
+      "dark": "Sombre"
     },
     "textSize": {
       "small": "Petit",

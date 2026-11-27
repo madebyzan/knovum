@@ -11,7 +11,7 @@
     "refreshFailed": "No se pudo recuperar el contenido web"
   },
   "preview": {
-    "quickLook": "Vista rápida",
+    "quickLook": "Vista previa",
     "system": "Abrir",
     "show": "Vista previa",
     "instantUnavailable": {

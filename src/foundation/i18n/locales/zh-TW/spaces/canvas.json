@@ -6,7 +6,7 @@
   },
   "nodeActions": {
     "label": "節點操作",
-    "openOriginal": "打開原文",
+    "openOriginal": "開啟網頁",
     "goToTarget": "前往目標",
     "export": "匯出"
   },

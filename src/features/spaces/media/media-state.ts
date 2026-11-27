@@ -9,7 +9,6 @@ export function createSpaceMediaState() {
     audioRecordingTarget: ref<SpaceAudioRecordingTarget>(),
     mediaAnalysisIds: ref<string[]>([]),
     mediaAnalysisPreviews: ref<Record<string, SpaceMediaAnalysisPreview>>({}),
-    mediaTranscriptionLanguageByNodeId: ref<Record<string, string>>({}),
     mediaSeekRequest: ref<SpaceMediaSeekRequest>(),
     mediaToggleRequest: ref<SpaceMediaToggleRequest>(),
     mediaPlayback: ref<{ id: string; state: SpaceMediaPlaybackState }>(),

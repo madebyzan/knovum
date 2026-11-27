@@ -6,13 +6,18 @@
   "inbox": "Boîte de réception",
   "empty": {
     "title": "Laissez grandir la connaissance ici",
-    "description": "Rassemblez vos inspirations, organisez vos sources et notez vos réflexions.",
-    "newNote": "Nouvelle note",
-    "importFiles": "Importer des fichiers",
-    "startRecording": "Démarrer l’enregistrement",
-    "keyboardHint": "Ou appuyez sur le canevas :",
+    "description": "Déposez fichiers ou liens — indexés en local pour questionner et créer.",
     "titlePrefix": "Laissez grandir la ",
-    "titleHighlight": "connaissance"
+    "titleHighlight": "connaissance",
+    "loadSample": "Charger un exemple",
+    "actions": {
+      "importTitle": "Importer des sources",
+      "importDescription": "PDF, images, audio et vidéo avec OCR et transcription locaux",
+      "askTitle": "Demander à Knovum",
+      "askDescription": "Dialoguez avec l’espace grâce aux citations cliquables",
+      "noteTitle": "Nouvelle note",
+      "noteDescription": "Reliez vos idées ou créez depuis votre sélection"
+    }
   },
   "rename": "Renommer l'espace",
   "tabs": {

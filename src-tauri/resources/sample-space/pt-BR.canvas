@@ -15,7 +15,7 @@
       "type": "group",
       "x": 296,
       "y": 0,
-      "width": 550,
+      "width": 590,
       "height": 388,
       "label": "Fontes"
     },
@@ -31,28 +31,28 @@
     {
       "id": "whiteboard",
       "type": "file",
-      "x": 546,
+      "x": 566,
       "y": 48,
-      "width": 280,
-      "height": 190,
+      "width": 300,
+      "height": 204,
       "file": "assets/mill-lane-whiteboard.png"
     },
     {
       "id": "thinking",
       "type": "group",
       "x": 296,
-      "y": 424,
-      "width": 550,
-      "height": 340,
+      "y": 432,
+      "width": 590,
+      "height": 388,
       "label": "Sua análise (Exemplo de tese e evidências)"
     },
     {
       "id": "question",
       "type": "text",
       "x": 316,
-      "y": 468,
+      "y": 480,
       "width": 245,
-      "height": 124,
+      "height": 152,
       "text": "A pergunta\nA Harbor Street Coffee deve abrir na Mill Lane, 41?\n\nEm aberto: a queda do verão e se o proprietário confirma por escrito os meses de carência.",
       "color": "5"
     },
@@ -60,19 +60,19 @@
       "id": "evidence",
       "type": "text",
       "x": 316,
-      "y": 608,
+      "y": 652,
       "width": 245,
-      "height": 136,
+      "height": 148,
       "text": "Evidências-chave\n• Relatório de mercado [p. 1]: previsão de 190 pedidos/dia, reforma paga no mês 14.\n• Quadro branco e relatório [p. 3]: carência citada verbalmente, ainda aguardando confirmação por escrito.",
       "color": "2"
     },
     {
       "id": "draft",
       "type": "text",
-      "x": 581,
-      "y": 468,
+      "x": 621,
+      "y": 480,
       "width": 245,
-      "height": 276,
+      "height": 320,
       "text": "Rascunho fundamentado (exemplo)\nSeguir com condição: abrir na Mill Lane, 41 assim que a carência de aluguel for confirmada por escrito.\n\nBase:\n1. A reforma se paga no mês 14 com 190 pedidos/dia (Relatório de mercado, p. 1).\n2. A queda no verão e os meses de carência precisam ser fechados antes da assinatura (Quadro branco e relatório, p. 3).\n\nSubstitua isto pela sua opinião ou pergunte à IA na barra direita.",
       "color": "4"
     }

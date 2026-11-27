@@ -109,7 +109,7 @@ function pick(value: CanvasBackgroundPattern) {
       :label="t('spaces.canvas.background.title')"
       :tooltip="!open"
       size="sm"
-      class="size-6 rounded-sm"
+      class="size-5 rounded-sm"
       :class="
         open
           ? 'bg-surface-control text-fg-primary'
@@ -172,9 +172,9 @@ function pick(value: CanvasBackgroundPattern) {
   pointer-events: auto;
   will-change: transform, opacity;
   transform: translate(-50%, -50%) translate3d(var(--orbit-x, 0px), var(--orbit-y, 0px), 0) scale(1);
-  transition-duration: 180ms, 140ms, 100ms, 100ms, 100ms;
+  transition-duration: 240ms, 150ms, 100ms, 100ms, 100ms;
   transition-timing-function:
-    var(--ease-standard), var(--ease-decelerate), var(--ease-standard), var(--ease-standard),
+    cubic-bezier(0.22, 1.1, 0.36, 1), var(--ease-decelerate), var(--ease-standard), var(--ease-standard),
     var(--ease-standard);
 }
 

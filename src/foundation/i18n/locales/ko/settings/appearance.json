@@ -22,8 +22,7 @@
     "followSystem": "시스템 설정 따르기",
     "theme": {
       "light": "밝게",
-      "dark": "어둡게",
-      "paper": "페이퍼 & 포레스트"
+      "dark": "어둡게"
     },
     "textSize": {
       "small": "소형",

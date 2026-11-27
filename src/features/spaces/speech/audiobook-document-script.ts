@@ -2,6 +2,7 @@ import MarkdownIt from "markdown-it";
 
 import type { AudiobookSource } from "../contracts/generated/AudiobookSource";
 import type { ImportedAudiobookScript } from "./audiobook-script";
+import { prepareSpeechMarkdown, pruneNonNarrativeDom, sanitizeSpokenText } from "./speech-text-sanitizer";
 
 function parseXml(text: string) {
   const document = new DOMParser().parseFromString(text, "application/xml");
@@ -15,14 +16,14 @@ function scriptFromMarkup(
   const chapters: ImportedAudiobookScript["chapters"] = [];
   for (const part of parts) {
     const document = new DOMParser().parseFromString(part.markup, "text/html");
-    document.querySelectorAll("script,style,nav,header,footer").forEach((element) => element.remove());
+    pruneNonNarrativeDom(document);
     document.querySelectorAll("br").forEach((element) => element.replaceWith("\n"));
     let chapter = { title: part.title.slice(0, 200), paragraphs: [] as { role: string; text: string }[] };
-    const blocks = [...document.querySelectorAll("h1,h2,p,li,blockquote,pre")].filter(
-      (element) => !element.parentElement?.closest("li,blockquote,pre"),
+    const blocks = [...document.querySelectorAll("h1,h2,p,li,blockquote")].filter(
+      (element) => !element.parentElement?.closest("li,blockquote"),
     );
     for (const block of blocks) {
-      const text = block.textContent?.trim();
+      const text = sanitizeSpokenText(block.textContent ?? "");
       if (!text) continue;
       if (block.matches("h1,h2")) {
         if (chapter.paragraphs.length) chapters.push(chapter);
@@ -42,7 +43,7 @@ export function audiobookDocumentScript(
   role: string,
 ): ImportedAudiobookScript {
   if (source.kind === "text") {
-    const markup = new MarkdownIt({ html: false, breaks: false }).render(source.text);
+    const markup = new MarkdownIt({ html: false, breaks: false }).render(prepareSpeechMarkdown(source.text));
     return scriptFromMarkup([{ title, markup }], role);
   }
   const textByArchivePath = new Map(source.entries.map((entry) => [entry.path, entry.text]));

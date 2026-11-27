@@ -6,6 +6,7 @@
   "cancel": "Cancelar traducción",
   "failed": "Error al traducir el guion del vídeo",
   "source": "Origen",
-  "terms": "Términos conservados",
-  "termsPlaceholder": "Términos o nombres de marca para mantener sin cambios, separados por comas (opcional)"
+  "terms": "Sin traducir",
+  "termsPlaceholder": "Nombres, marcas, etc., separados por comas",
+  "start": "Iniciar traducción"
 }

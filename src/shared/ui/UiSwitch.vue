@@ -18,7 +18,7 @@ const switchId = useId(props.id);
     :aria-label="label"
     :class="
       cn(
-        'relative h-5 w-9 shrink-0 rounded-full bg-surface-control ring-1 ring-stroke-strong transition-colors duration-150 ease-standard outline-none ring-inset focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-stroke-focus disabled:opacity-40 data-[state=checked]:bg-surface-accent data-[state=checked]:ring-0 dark:data-[state=checked]:bg-blue-600',
+        'relative h-5 w-9 shrink-0 rounded-full bg-surface-control transition-colors duration-150 ease-standard outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-stroke-focus disabled:opacity-40 data-[state=checked]:bg-surface-accent',
         props.class,
       )
     "

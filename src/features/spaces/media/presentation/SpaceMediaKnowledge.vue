@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { AlertTriangle, Sparkles } from "@lucide/vue";
+import { AlertTriangle, ChevronRight, RotateCcw, Sparkles } from "@lucide/vue";
+import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -8,16 +9,17 @@ import {
   useLocalModelOptions,
   useRoutedTargetOptions,
 } from "../../../../foundation/ai/use-model-choice-options";
+import type { LocalModelId } from "../../../../shared/contracts/generated/LocalModelId";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import SpaceNodeEnrichmentStatus from "../../enrichment/presentation/SpaceNodeEnrichmentStatus.vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { useMediaKnowledge } from "../use-media-knowledge";
+import SpaceDiarizationControl from "./SpaceDiarizationControl.vue";
 import SpaceMediaChapterEditor from "./SpaceMediaChapterEditor.vue";
 import SpaceMediaLiveTranscript from "./SpaceMediaLiveTranscript.vue";
 import SpaceMediaSummaryEditor from "./SpaceMediaSummaryEditor.vue";
-import SpaceMediaTranscriptCollapsible from "./SpaceMediaTranscriptCollapsible.vue";
-import SpaceNodeTranscriptionAction from "./SpaceNodeTranscriptionAction.vue";
-import SpaceTranscriptionLanguageSelect from "./SpaceTranscriptionLanguageSelect.vue";
+import SpaceTranscriptNavigator from "./SpaceTranscriptNavigator.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const { t } = useI18n();
@@ -114,38 +116,69 @@ function runInsights(targetId?: string) {
           />
         </div>
       </div>
-      <SpaceMediaTranscriptCollapsible
-        v-model:open="media.transcriptOpen.value"
-        v-model:language="media.transcriptionLanguage.value"
-        :node-id="nodeId"
-        :transcript="media.knowledge.value.transcript"
-        :transcription-models="transcriptionModels"
-        :diarization-job="media.diarizationJob.value"
-        :current-ms="media.playback.value?.currentMs"
-        :transcribe-locked="transcribeLocked"
-        :derive-locked="deriveLocked"
-        :transcript-edit-locked="transcriptEditLocked"
-        @analyze="media.analyze"
-        @seek="media.seek"
-        @save-segment="media.saveSegment"
-        @align-segments="media.alignSegments"
-      />
+      <CollapsibleRoot v-model:open="media.transcriptOpen.value" as-child>
+        <div class="mt-3.5">
+          <div class="-mx-1.5 flex items-center gap-1">
+            <CollapsibleTrigger
+              class="flex min-h-interaction min-w-0 flex-1 items-center gap-1.5 rounded-md px-1.5 text-caption font-medium text-fg-secondary transition-colors hover:bg-surface-control-hover hover:text-fg-primary"
+            >
+              <ChevronRight
+                class="size-3 shrink-0 text-fg-tertiary transition-transform duration-150 ease-standard"
+                :class="media.transcriptOpen.value && 'rotate-90'"
+              />
+              <span>{{ t("spaces.transcript.text.title") }}</span>
+              <span class="ml-auto text-caption-sm font-normal text-fg-tertiary tabular-nums">
+                {{ media.knowledge.value.transcript.language }} ·
+                {{ media.knowledge.value.transcript.segments.length }}
+              </span>
+            </CollapsibleTrigger>
+            <ModelChoiceTrigger
+              :options="transcriptionModels"
+              :disabled="transcribeLocked"
+              @select="(id) => media.analyze(id as LocalModelId)"
+            >
+              <template #trigger="{ multiple }">
+                <UiIconButton
+                  :label="t('spaces.media.player.retranscribe')"
+                  tooltip
+                  size="sm"
+                  :disabled="transcribeLocked"
+                  @click="!multiple && media.analyze()"
+                >
+                  <RotateCcw class="size-3" />
+                </UiIconButton>
+              </template>
+            </ModelChoiceTrigger>
+          </div>
+          <CollapsibleContent class="mt-2">
+            <SpaceDiarizationControl
+              :node-id="nodeId"
+              :revision="media.knowledge.value.transcript.revision"
+              :duration-ms="media.knowledge.value.transcript.durationMs"
+              :speaker-count="media.knowledge.value.transcript.speakerTracks.length"
+              :active-job="media.diarizationJob.value"
+              :disabled="deriveLocked"
+            />
+            <SpaceTranscriptNavigator
+              :node-id="nodeId"
+              :segments="media.knowledge.value.transcript.segments"
+              v-bind="media.playback.value ? { currentMs: media.playback.value.currentMs } : {}"
+              :disabled="transcriptEditLocked"
+              :alignment-disabled="deriveLocked"
+              @seek="media.seek"
+              @save="media.saveSegment"
+              @align="media.alignSegments"
+            />
+          </CollapsibleContent>
+        </div>
+      </CollapsibleRoot>
     </template>
-    <div v-else class="mt-2 space-y-2">
-      <p class="text-caption leading-relaxed text-fg-tertiary">
-        {{
-          media.analyzing.value
-            ? t("spaces.media.analysis.inProgress")
-            : t("spaces.media.analysis.knowledge.pending")
-        }}
-      </p>
-      <template v-if="media.canTranscribe.value">
-        <SpaceTranscriptionLanguageSelect
-          v-model="media.transcriptionLanguage.value"
-          :disabled="transcribeLocked"
-        />
-        <SpaceNodeTranscriptionAction :node="node" />
-      </template>
-    </div>
+    <p v-else class="mt-2 text-caption leading-relaxed text-fg-tertiary">
+      {{
+        media.analyzing.value
+          ? t("spaces.media.analysis.inProgress")
+          : t("spaces.media.analysis.knowledge.pending")
+      }}
+    </p>
   </section>
 </template>

@@ -19,7 +19,7 @@ import { createJsonCanvasImportActions } from "./json-canvas-import-actions";
 import { createSpaceMutations } from "./node-mutations";
 import { createPlacementActions } from "./placement-actions";
 import type { RelationContext } from "./relation-actions";
-import { seedSampleSpace } from "./sample-space";
+import { importSampleCanvas, seedSampleSpace } from "./sample-space";
 import { createStructureActions } from "./structure-actions";
 import { createStructureTransferActions } from "./structure-transfer-actions";
 import { createSpaceViewActions } from "./view-actions";
@@ -122,6 +122,7 @@ export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
     ...audioRecording,
     ensureActiveSpacePersisted,
     ...canvasImport,
+    importSampleSpace: () => importSampleCanvas(state, canvasImport.importJsonCanvas),
     ...structure,
   };
 }

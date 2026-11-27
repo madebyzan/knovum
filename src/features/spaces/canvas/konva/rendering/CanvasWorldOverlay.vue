@@ -32,7 +32,7 @@ function forwardWheel(event: WheelEvent) {
   <div
     :inert="!renderingEnabled"
     data-thumbnail-exclude
-    class="pointer-events-none absolute inset-0 z-[18] overflow-hidden"
+    class="pointer-events-none absolute inset-0 z-[25] overflow-hidden"
     @wheel="forwardWheel"
     @keydown.stop
     @contextmenu.stop

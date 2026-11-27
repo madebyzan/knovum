@@ -7,14 +7,6 @@
     0 5px 10px -4px rgb(15 23 42 / 0.16), 0 12px 24px -12px rgb(15 23 42 / 0.18);
 }
 
-:root[data-theme="paper"] {
-  --knovum-space-grid-color: rgb(28 32 27 / 0.22);
-  --knovum-space-grid-line-color: rgb(28 32 27 / 0.075);
-  --knovum-space-node-box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.7), 0 1px 2px rgb(28 32 27 / 0.1), 0 5px 10px -4px rgb(28 32 27 / 0.13),
-    0 12px 24px -12px rgb(28 32 27 / 0.15);
-}
-
 :root[data-theme="dark"] {
   --knovum-space-grid-color: oklch(1 0 0 / 0.2);
   --knovum-space-grid-line-color: oklch(1 0 0 / 0.075);

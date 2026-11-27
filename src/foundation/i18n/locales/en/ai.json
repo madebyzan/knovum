@@ -33,8 +33,7 @@
     "pt": "Portuguese",
     "it": "Italian",
     "ru": "Russian",
-    "ar": "Arabic",
-    "yue": "Cantonese"
+    "ar": "Arabic"
   },
   "localModels": {
     "memoryAdvisory": "Qualified for machines with {memory} of memory. On this computer a synthesis may be refused when memory runs short; MOSS-TTS-Nano is the lighter alternative."

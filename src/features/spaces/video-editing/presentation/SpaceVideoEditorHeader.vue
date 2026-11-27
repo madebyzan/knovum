@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Sparkles } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -33,7 +32,7 @@ const durationMs = computed(() => (project.value ? projectDurationMs(project.val
       :disabled="!renderable || actions.rendering.value"
       @click="actions.render"
     >
-      <Sparkles class="size-3.5" />{{ t("spaces.media.videoEditor.render.action") }}
+      {{ t("spaces.media.videoEditor.render.action") }}
     </UiButton>
   </header>
 </template>

@@ -6,7 +6,7 @@
   },
   "nodeActions": {
     "label": "ノード アクション",
-    "openOriginal": "オリジナルを開く",
+    "openOriginal": "リンクを開く",
     "goToTarget": "ターゲットに移動",
     "export": "エクスポート"
   },

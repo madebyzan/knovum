@@ -50,6 +50,7 @@ const singleSection = computed(
     :actions="actions"
     :derivations="derivations"
     :available-width="availableWidth"
+    @invoke-derivation="emit('invokeDerivation', $event)"
   />
   <SpaceCanvasNodeActionBar
     v-else-if="singleNode"
