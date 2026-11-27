@@ -1,7 +1,6 @@
 import type { Editor } from "@tiptap/vue-3";
 
 import type { EditorTransformAction } from "../../../shared/contracts/generated/EditorTransformAction";
-import { tiptapPlainText } from "./tiptap-mathematics";
 import { setReasoningTraceRange } from "./tiptap-reasoning-trace";
 
 type TransformSource = { text: string; from: number; to: number } | { text: string; insertAt: number };
@@ -17,14 +16,14 @@ export function actionSource(editor: Editor, action: EditorTransformAction): Tra
 
 function selectionSource(editor: Editor): TransformSource | undefined {
   const { from, to } = editor.state.selection;
-  return from === to ? undefined : { from, to, text: tiptapPlainText(editor.state.doc, from, to) };
+  return from === to ? undefined : { from, to, text: editor.state.doc.textBetween(from, to, "\n", "\n") };
 }
 
 function completionSource(editor: Editor): TransformSource | undefined {
   const { from, to, $from } = editor.state.selection;
-  if (from !== to) return { insertAt: to, text: tiptapPlainText(editor.state.doc, from, to) };
+  if (from !== to) return { insertAt: to, text: editor.state.doc.textBetween(from, to, "\n", "\n") };
   const blockStart = $from.start($from.depth);
-  const text = tiptapPlainText(editor.state.doc, blockStart, from);
+  const text = editor.state.doc.textBetween(blockStart, from, "\n", "\n");
   return text.trim() ? { insertAt: from, text } : undefined;
 }
 

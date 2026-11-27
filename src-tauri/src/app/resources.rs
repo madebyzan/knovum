@@ -13,8 +13,6 @@ pub fn plugin() -> TauriPlugin<Wry> {
         .invoke_handler(tauri::generate_handler![
             crate::local_resources::get_status,
             get_model_catalog,
-            crate::local_resources::download_source::get_download_source,
-            crate::local_resources::download_source::set_download_source,
             crate::local_resources::model_commands::remove_model,
             select_local_model,
             prepare_resources,

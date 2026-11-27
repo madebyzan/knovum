@@ -123,15 +123,5 @@
   "statistics": {
     "words": "{count} mot | {count} mots",
     "characters": "{count} caractère | {count} caractères"
-  },
-  "math": {
-    "title": "Formule mathématique",
-    "edit": "Modifier la formule",
-    "inline": "En ligne",
-    "block": "Bloc",
-    "placeholder": "ex. E = mc^2",
-    "insert": "Insérer",
-    "apply": "Appliquer",
-    "delete": "Supprimer"
   }
 }

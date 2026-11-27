@@ -36,7 +36,6 @@ pub async fn prepare_models<R: Runtime>(
     if kinds.iter().copied().collect::<HashSet<_>>().len() != kinds.len() {
         return Err("Model preparation contains duplicate model parts".to_string());
     }
-    let _ = crate::local_resources::download_source::load(app);
     let handle = app.clone();
     let requested = kinds.to_vec();
     let plan =

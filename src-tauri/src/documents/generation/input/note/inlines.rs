@@ -14,7 +14,6 @@ pub(super) fn plain(text: impl Into<String>) -> InlineContent {
 fn inline(node: &Node) -> Result<InlineContent, String> {
     match node.kind.as_str() {
         "text" => text(node),
-        "inlineMath" => inline_math(node),
         "hardBreak" => {
             leaf(node)?;
             Ok(InlineContent::LineBreak)
@@ -166,23 +165,6 @@ fn font_size(value: &str) -> Result<u32, String> {
         return Err("Tiptap font size is outside the supported range".into());
     }
     Ok(points.round() as u32)
-}
-
-fn inline_math(node: &Node) -> Result<InlineContent, String> {
-    model::allowed_attrs(&node.attrs, "inlineMath", &["latex"])?;
-    if node.text.is_some() || !node.content.is_empty() {
-        return Err("Tiptap inlineMath must be an empty leaf node".into());
-    }
-    let mut span = TextSpan::plain(
-        model::string_attr(&node.attrs, "latex")?
-            .unwrap_or_default()
-            .to_owned(),
-    );
-    span.font_name = Some("monospace".into());
-    for mark in &node.marks {
-        apply_mark(&mut span, mark)?;
-    }
-    Ok(InlineContent::Text(span))
 }
 
 fn leaf(node: &Node) -> Result<(), String> {

@@ -1,6 +1,6 @@
 {
   "title": "桌面 Agent",
-  "description": "使用這台電腦上已安裝並登入的 AI Agent。預設情況下，桌面 Agent 在空間對話中執行高權限操作前會請求你的確認。",
+  "description": "使用這台電腦上已安裝並登入的 AI Agent。啟用後，Agent 可直接使用其工具、MCP 服務與 Skills，不再逐項請求確認。",
   "check": "檢查 Agent",
   "enable": "啟用",
   "disable": "停用",
@@ -31,12 +31,5 @@
       "title": "獨立 ACP 服務端",
       "requirements": "需單獨下載官方 ACP 包，保留配套文件，並將服務端目錄加入 PATH。"
     }
-  },
-  "trustedMode": {
-    "label": "信任模式（免確認全權限）",
-    "description": "略過權限確認並允許此 Agent 自動執行命令與修改檔案。僅在你完全信任空間內所有來源資料時開啟。",
-    "confirmTitle": "開啟信任模式？",
-    "confirmDescription": "開啟後，此桌面 Agent 將切換至全權限模式並自動核准權限請求，不再逐項確認。空間內的不可信網頁或檔案可能誘發非預期命令。",
-    "confirmAction": "開啟信任模式"
   }
 }

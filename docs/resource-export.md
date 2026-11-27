@@ -61,12 +61,9 @@ sound out of it is one of its encodings rather than a separate feature. `media-l
 every encoder named here, so a supplier that lacks one fails the build rather than the export.
 
 The private document worker owns synchronous parsing and serialization. Markdown is parsed with
-`pulldown-cmark` (including `$...$` / `$$...$$` LaTeX math and footnotes, serialized as monospace
-inline formulas, `math` code blocks, and an appended `"Footnotes"` section); Notes are translated
-directly from their validated Tiptap document (including `inlineMath` and `blockMath` nodes,
-serialized as raw LaTeX expressions) into the admitted `office_oxide` IR. PDF text is freshly
-extracted from the pinned original file. Knovum keeps source/asset policy, format translation,
-presentation pagination and safe typesetting.
+`pulldown-cmark`; Notes are translated directly from their validated Tiptap document into the admitted
+`office_oxide` IR. PDF text is freshly extracted from the pinned original file. Knovum keeps
+source/asset policy, format translation, presentation pagination and safe typesetting.
 
 Original-layout fidelity is outside this product boundary. Knovum does not install, bundle or
 implicitly discover an Office layout engine; every document source is read into the authoring model
@@ -104,9 +101,9 @@ are appended as literal structured paragraphs.
 ## Markdown and Notes
 
 Markdown supports CommonMark paragraphs, H1–H6 headings, quotes, rules, line breaks, links, inline
-and block code, nested ordered/unordered lists, tables, strikethrough, task lists, LaTeX math
-(`$...$` / `$$...$$`), and footnotes (`[^id]`). Parser upgrades must not expand the contract
-implicitly through `Options::all()`; custom templates are not an export parameter.
+and block code, nested ordered/unordered lists, tables, strikethrough and task lists. Parser upgrades
+must not expand the contract implicitly through `Options::all()`. Math and footnote extensions remain
+outside the Markdown authoring contract; custom templates are not an export parameter.
 
 Markdown carries HTML, so a document is the content that markup wraps rather than the markup: text
 belongs to the document, `<br>` is a line break, an `<img>` reads as what it shows, and a tag that

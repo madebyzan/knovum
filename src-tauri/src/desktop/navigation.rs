@@ -36,31 +36,10 @@ pub(super) fn allows<R: Runtime>(webview: &Webview<R>, url: &Url) -> bool {
 
 fn allows_reader_webview(url: &Url) -> bool {
     match url.scheme() {
-        "about" => true,
-        "http" | "https" => {
-            (cfg!(target_os = "windows")
-                && url.scheme() == "http"
-                && url.host_str() == Some("knovum-preview.localhost"))
-                || is_public_reader_http_url(url)
-        }
+        "http" | "https" | "about" => true,
         READER_PREVIEW_SCHEME => url.host_str() == Some("localhost"),
         _ => false,
     }
-}
-
-pub(crate) fn is_public_reader_http_url(url: &Url) -> bool {
-    let Some(host) = url.host_str() else {
-        return false;
-    };
-    let lower = host.trim_end_matches('.').to_ascii_lowercase();
-    if lower == "localhost" || lower.ends_with(".localhost") || lower.ends_with(".local") {
-        return false;
-    }
-    let ip_candidate = lower.trim_start_matches('[').trim_end_matches(']');
-    if let Ok(ip) = ip_candidate.parse::<std::net::IpAddr>() {
-        return crate::foundation::public_network::public_address(ip);
-    }
-    true
 }
 
 /// What the app itself serves: its one page (routing lives in the fragment), its assets, and

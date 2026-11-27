@@ -123,15 +123,5 @@
   "statistics": {
     "words": "{count} 字詞",
     "characters": "{count} 字元"
-  },
-  "math": {
-    "title": "數學公式",
-    "edit": "編輯公式",
-    "inline": "行內",
-    "block": "公式區塊",
-    "placeholder": "例如 E = mc^2",
-    "insert": "插入",
-    "apply": "套用",
-    "delete": "刪除"
   }
 }

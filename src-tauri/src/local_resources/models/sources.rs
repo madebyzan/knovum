@@ -1,29 +1,19 @@
 use super::snapshots::SnapshotKind;
-use crate::local_resources::download_source::{self, DownloadSource};
 
 /// The default upstream Hugging Face Hub endpoint.
 pub(crate) const DEFAULT_HUGGINGFACE_HUB_ENDPOINT: &str = "https://huggingface.co";
 
-/// Community Hugging Face mirror endpoint for regions with slow direct access.
-pub(crate) const HF_MIRROR_HUB_ENDPOINT: &str = "https://hf-mirror.com";
-
 /// The default upstream ModelScope Hub endpoint.
 pub(crate) const DEFAULT_MODELSCOPE_HUB_ENDPOINT: &str = "https://modelscope.cn/api/v1/models/";
 
-/// Resolves the active Hugging Face Hub endpoint, preferring an explicit `HF_ENDPOINT`
-/// environment override and otherwise using the persisted local-model download source preference.
+/// Resolves the active Hugging Face Hub endpoint, respecting the standard `HF_ENDPOINT`
+/// environment variable override when configured.
 pub(crate) fn huggingface_hub_endpoint() -> String {
-    if let Some(override_url) = std::env::var("HF_ENDPOINT")
+    std::env::var("HF_ENDPOINT")
         .ok()
         .map(|value| value.trim_end_matches('/').to_string())
         .filter(|value| !value.is_empty())
-    {
-        return override_url;
-    }
-    match download_source::active() {
-        DownloadSource::HuggingFace => DEFAULT_HUGGINGFACE_HUB_ENDPOINT.to_string(),
-        DownloadSource::HfMirror => HF_MIRROR_HUB_ENDPOINT.to_string(),
-    }
+        .unwrap_or_else(|| DEFAULT_HUGGINGFACE_HUB_ENDPOINT.to_string())
 }
 
 /// Constructs a Hugging Face Hub resolve URL for an immutable file revision:

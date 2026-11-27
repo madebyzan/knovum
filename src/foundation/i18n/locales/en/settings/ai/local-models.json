@@ -109,11 +109,5 @@
     "notInstalled": "Not downloaded"
   },
   "cancelling": "Cancelling",
-  "clearFilters": "Clear filters",
-  "downloadSource": {
-    "label": "Download source",
-    "description": "Choose where Hugging Face model files are downloaded from. Switch to HF-Mirror if direct downloads are slow.",
-    "huggingface": "Hugging Face (Official)",
-    "hfMirror": "HF-Mirror (China mirror)"
-  }
+  "clearFilters": "Clear filters"
 }

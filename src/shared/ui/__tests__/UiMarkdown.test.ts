@@ -2,7 +2,7 @@
 // DOMPurify loses the first element of a fragment under happy-dom's parser; markdown output is
 // asserted against a spec-conformant one.
 import { mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import UiMarkdown from "../UiMarkdown.vue";
 
@@ -121,41 +121,5 @@ describe("UiMarkdown links", () => {
       props: { content: "Edit README.md and main.rs, or open https://example.com/x." },
     });
     expect(wrapper.findAll("a").map((link) => link.attributes("href"))).toEqual(["https://example.com/x"]);
-  });
-});
-
-describe("UiMarkdown math and footnotes", () => {
-  it("renders inline and block LaTeX math with KaTeX while preserving currency text", () => {
-    const wrapper = mount(UiMarkdown, {
-      props: {
-        content: "Energy is $E = mc^2$ and cost is $100.\n\n$$\n\\sum_{i=1}^{n} x_i\n$$",
-      },
-    });
-    expect(wrapper.findAll(".katex").length).toBeGreaterThanOrEqual(2);
-    expect(wrapper.find(".ui-markdown-math-block .katex-display").exists()).toBe(true);
-    expect(wrapper.text()).toContain("$100");
-  });
-
-  it("renders markdown footnotes with unique scoped IDs and scrolls in-place on click", async () => {
-    const first = mount(UiMarkdown, {
-      props: { content: "Claim with note[^1].\n\n[^1]: Supporting detail." },
-    });
-    const second = mount(UiMarkdown, {
-      props: { content: "Second note[^1].\n\n[^1]: Another detail." },
-    });
-    const firstLink = first.get(".footnote-ref a");
-    const secondLink = second.get(".footnote-ref a");
-    expect(firstLink.attributes("href")).not.toBe(secondLink.attributes("href"));
-    expect(first.find("section.footnotes").text()).toContain("Supporting detail.");
-
-    const targetItem = first.get("li.footnote-item").element;
-    const scrollSpy = vi.fn<() => void>();
-    targetItem.scrollIntoView = scrollSpy;
-    const click = new MouseEvent("click", { bubbles: true, cancelable: true });
-    firstLink.element.dispatchEvent(click);
-    expect(click.defaultPrevented).toBe(true);
-    expect(scrollSpy).toHaveBeenCalledTimes(1);
-    first.unmount();
-    second.unmount();
   });
 });

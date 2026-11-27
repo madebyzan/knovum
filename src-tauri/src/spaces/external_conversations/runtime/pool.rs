@@ -16,15 +16,12 @@ use std::{
     time::Duration,
 };
 
-use sqlx::SqlitePool;
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
-use super::permission_bridge::{self, ActiveTurnRun};
 use crate::{
     ai::contracts::ExternalAgentKind,
     extensions::contracts::AgentExtensionSnapshot,
-    external_agents::permissions::PermissionPolicy,
     spaces::mcp::agent_server::{self, AgentMcpBinding},
 };
 
@@ -36,7 +33,6 @@ pub(super) struct Wanted<'a> {
     pub(super) conversation_id: &'a str,
     pub(super) branch_id: &'a str,
     pub(super) kind: ExternalAgentKind,
-    pub(super) trusted_mode: bool,
     /// The branch's last message before this turn; `None` for a conversation that has none.
     pub(super) head: Option<&'a str>,
     pub(super) extensions: &'a Arc<AgentExtensionSnapshot>,
@@ -52,12 +48,10 @@ struct Runtime {
     id: String,
     conversation_id: String,
     kind: ExternalAgentKind,
-    trusted_mode: bool,
     branch_id: String,
     digest: String,
     workspace: PathBuf,
     mcp: Arc<AgentMcpBinding>,
-    active_run: Arc<ActiveTurnRun>,
     session: AgentSession,
     state: Mutex<RuntimeState>,
 }
@@ -93,7 +87,6 @@ impl Runtime {
 
     fn holds(&self, wanted: &Wanted<'_>, head: Option<&str>) -> bool {
         self.kind == wanted.kind
-            && self.trusted_mode == wanted.trusted_mode
             && self.branch_id == wanted.branch_id
             && self.digest == wanted.extensions.digest
             && head == wanted.head
@@ -132,24 +125,14 @@ impl Lease {
     pub(super) async fn authorize(
         &self,
         app: &AppHandle,
-        pool: SqlitePool,
         binding_id: &str,
         run_id: &str,
         extensions: Arc<AgentExtensionSnapshot>,
     ) -> Result<(), String> {
         self.runtime
-            .active_run
-            .bind(pool, run_id.to_owned(), self.cancellation.clone());
-        if let Err(error) = self
-            .runtime
             .mcp
             .begin_turn(app, binding_id, run_id, extensions)
             .await
-        {
-            self.runtime.active_run.clear();
-            return Err(error);
-        }
-        Ok(())
     }
 
     /// The Agent has seen this turn: the branch now ends with `head`.
@@ -160,7 +143,6 @@ impl Lease {
 
 impl Drop for Lease {
     fn drop(&mut self) {
-        self.runtime.active_run.clear();
         self.runtime.mcp.end_turn();
         let releases = {
             let mut state = self.runtime.state();
@@ -353,19 +335,12 @@ async fn start(app: &AppHandle, id: String, wanted: &Wanted<'_>) -> Result<Runti
         )
         .await?,
     );
-    let active_run = Arc::new(ActiveTurnRun::default());
-    let permission_policy = if wanted.trusted_mode {
-        PermissionPolicy::Trusted
-    } else {
-        permission_bridge::interactive_policy(active_run.clone())
-    };
     let keepalive: Arc<dyn Send + Sync> = mcp.clone();
     let session = crate::external_agents::conversation::start(
         id.clone(),
         wanted.kind,
         workspace.clone(),
         vec![mcp.server()],
-        permission_policy,
         keepalive,
     )
     .await
@@ -386,12 +361,10 @@ async fn start(app: &AppHandle, id: String, wanted: &Wanted<'_>) -> Result<Runti
         id,
         conversation_id,
         kind: wanted.kind,
-        trusted_mode: wanted.trusted_mode,
         branch_id: wanted.branch_id.to_owned(),
         digest: wanted.extensions.digest.clone(),
         workspace,
         mcp,
-        active_run,
         session: AgentSession {
             runtime_session_id: session.runtime_session_id,
             capabilities: session.capabilities,

@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import { ArrowLeft, ChevronRight } from "@lucide/vue";
-import { compact } from "es-toolkit";
-import { search } from "fast-fuzzy";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getUpdateAttentionVersion } from "../../../foundation/updates/update-presentation";
 import { useUpdateStore } from "../../../foundation/updates/update-store";
-import { fuzzySearchThreshold } from "../../../shared/contracts/fuzzy-search-threshold";
 import UiScrollArea from "../../../shared/ui/UiScrollArea.vue";
 import UiSearchInput from "../../../shared/ui/UiSearchInput.vue";
+import { buildSettingsNavGroups, searchSettingsNavGroups } from "./settings-navigation-groups";
 import type { SettingsPaneId } from "./settings-pane";
-import { TITLE_KEY_BY_SETTINGS_GROUP, SETTINGS_REGISTRY } from "./settings-registry";
+import SettingsNavOption from "./SettingsNavOption.vue";
 
 const props = defineProps<{ activePane: SettingsPaneId; activeSetting?: string | undefined }>();
 const emit = defineEmits<{ back: []; select: [pane: SettingsPaneId, location?: string] }>();
@@ -20,24 +18,8 @@ const updates = useUpdateStore();
 const updateBadgeVersion = computed(() => getUpdateAttentionVersion(updates.state));
 const query = shallowRef("");
 const advancedExpanded = shallowRef(false);
-const NAV_ROW_CLASS =
-  "mb-0.5 flex h-(--knovum-control-height-md) w-full items-center gap-2.5 rounded-md px-2 text-left text-body-lg text-fg-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:font-medium data-[active=true]:text-fg-primary";
-const groups = computed(() =>
-  Object.entries(TITLE_KEY_BY_SETTINGS_GROUP).map(([group, titleKey]) => ({
-    id: group,
-    label: t(titleKey),
-    settings: SETTINGS_REGISTRY.filter((definition) => definition.group === group).map((definition) => ({
-      id: definition.id,
-      icon: definition.icon,
-      advanced: Boolean(definition.advanced),
-      locations: definition.locations,
-      label: t(definition.titleKey),
-      description: t(definition.descriptionKey),
-      location: undefined as string | undefined,
-      searchText: [definition.titleKey, ...definition.searchKeys].map((key) => t(key)).join(" "),
-    })),
-  })),
-);
+
+const groups = computed(() => buildSettingsNavGroups(t));
 const primaryGroups = computed(() =>
   groups.value
     .map((group) => ({ ...group, settings: group.settings.filter((setting) => !setting.advanced) }))
@@ -58,39 +40,12 @@ watch(
   { immediate: true },
 );
 
-function fuzzySettings<T extends { searchText: string }>(value: string, candidates: T[]) {
-  return search(value, candidates, {
-    keySelector: (setting) => setting.searchText,
-    threshold: fuzzySearchThreshold(value, 0.7),
-  });
-}
-
-const visibleGroups = computed(() => {
-  const value = query.value.trim();
-  if (!value) return groups.value;
-  const candidateGroups = groups.value.map((group) =>
-    Object.assign({}, group, {
-      settings: group.settings.flatMap((setting) =>
-        setting.locations?.length
-          ? setting.locations.map((location) => ({
-              ...setting,
-              location: location.id,
-              label: t(location.labelKey),
-              description: t(location.descriptionKey),
-              searchText: `${t(location.labelKey)} ${t(location.descriptionKey)} ${setting.searchText}`,
-            }))
-          : [setting],
-      ),
-    }),
-  );
-  return compact(
-    candidateGroups.map((group) => {
-      const settings = fuzzySettings(value, group.settings);
-      return settings.length > 0 ? Object.assign({}, group, { settings }) : null;
-    }),
-  );
-});
+const visibleGroups = computed(() => searchSettingsNavGroups(groups.value, query.value, t));
 const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => group.settings));
+
+function isSearchMatchActive(id: SettingsPaneId, location?: string) {
+  return props.activePane === id && (location ? props.activeSetting === location : !props.activeSetting);
+}
 </script>
 
 <template>
@@ -124,16 +79,8 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
               :key="`${setting.id}:${setting.location ?? ''}`"
               type="button"
               class="mb-1 flex min-h-14 w-full items-start gap-2.5 rounded-md px-2 py-2 text-left transition-colors duration-100 hover:bg-(--knovum-sidebar-item-bg-hover) data-[active=true]:bg-(--knovum-sidebar-item-bg-selected)"
-              :data-active="
-                props.activePane === setting.id &&
-                (setting.location ? props.activeSetting === setting.location : !props.activeSetting)
-              "
-              :aria-current="
-                props.activePane === setting.id &&
-                (setting.location ? props.activeSetting === setting.location : !props.activeSetting)
-                  ? 'page'
-                  : undefined
-              "
+              :data-active="isSearchMatchActive(setting.id, setting.location)"
+              :aria-current="isSearchMatchActive(setting.id, setting.location) ? 'page' : undefined"
               @click="emit('select', setting.id, setting.location)"
             >
               <component
@@ -153,19 +100,15 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
         <template v-else>
           <section v-for="group in primaryGroupsBeforeAdvanced" :key="group.id" class="mb-4">
             <p class="mb-1.5 px-2 text-caption font-medium text-fg-tertiary">{{ group.label }}</p>
-            <button
+            <SettingsNavOption
               v-for="setting in group.settings"
               :key="setting.id"
-              :data-testid="`settings-pane-${setting.id}`"
-              type="button"
-              :class="NAV_ROW_CLASS"
-              :data-active="props.activePane === setting.id"
-              :aria-current="props.activePane === setting.id ? 'page' : undefined"
-              @click="emit('select', setting.id)"
-            >
-              <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" />
-              <span class="min-w-0 flex-1 truncate">{{ setting.label }}</span>
-            </button>
+              :id="setting.id"
+              :icon="setting.icon"
+              :label="setting.label"
+              :active="props.activePane === setting.id"
+              @select="emit('select', $event)"
+            />
           </section>
           <section v-if="advancedSettings.length" class="mb-4">
             <button
@@ -182,43 +125,29 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
               <span>{{ t("settings.general.groups.advanced") }}</span>
             </button>
             <div v-if="advancedExpanded" id="settings-advanced-group">
-              <button
+              <SettingsNavOption
                 v-for="setting in advancedSettings"
                 :key="setting.id"
-                :data-testid="`settings-pane-${setting.id}`"
-                type="button"
-                :class="NAV_ROW_CLASS"
-                :data-active="props.activePane === setting.id"
-                :aria-current="props.activePane === setting.id ? 'page' : undefined"
-                @click="emit('select', setting.id)"
-              >
-                <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" />
-                <span class="min-w-0 flex-1 truncate">{{ setting.label }}</span>
-              </button>
+                :id="setting.id"
+                :icon="setting.icon"
+                :label="setting.label"
+                :active="props.activePane === setting.id"
+                @select="emit('select', $event)"
+              />
             </div>
           </section>
           <section v-for="group in informationGroups" :key="group.id" class="mb-4">
             <p class="mb-1.5 px-2 text-caption font-medium text-fg-tertiary">{{ group.label }}</p>
-            <button
+            <SettingsNavOption
               v-for="setting in group.settings"
               :key="setting.id"
-              :data-testid="`settings-pane-${setting.id}`"
-              type="button"
-              :class="NAV_ROW_CLASS"
-              :data-active="props.activePane === setting.id"
-              :aria-current="props.activePane === setting.id ? 'page' : undefined"
-              @click="emit('select', setting.id)"
-            >
-              <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" />
-              <span class="min-w-0 flex-1 truncate">{{ setting.label }}</span>
-              <span
-                v-if="setting.id === 'about' && updateBadgeVersion"
-                data-testid="settings-about-update-badge"
-                class="shrink-0 text-caption-sm font-medium text-fg-accent tabular-nums"
-              >
-                {{ updateBadgeVersion }}
-              </span>
-            </button>
+              :id="setting.id"
+              :icon="setting.icon"
+              :label="setting.label"
+              :active="props.activePane === setting.id"
+              :badge="setting.id === 'about' ? (updateBadgeVersion ?? undefined) : undefined"
+              @select="emit('select', $event)"
+            />
           </section>
         </template>
         <p

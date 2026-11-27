@@ -48,9 +48,6 @@ pub(crate) struct Model {
 pub(crate) struct DesktopAgent {
     pub kind: ExternalAgentKind,
     pub enabled: bool,
-    #[serde(default)]
-    #[ts(optional, as = "Option<_>")]
-    pub trusted_mode: bool,
 }
 
 #[derive(Deserialize, ts_rs::TS)]

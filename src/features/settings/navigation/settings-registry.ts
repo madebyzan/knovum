@@ -102,7 +102,7 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
     group: "intelligence",
     titleKey: "settings.ai.localModels.title",
     descriptionKey: "settings.ai.localModels.description",
-    searchKeys: ["settings.ai.localModels.description", "settings.ai.localModels.downloadSource.label"],
+    searchKeys: ["settings.ai.localModels.description"],
     icon: HardDrive,
   },
   {

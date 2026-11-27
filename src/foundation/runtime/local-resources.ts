@@ -59,16 +59,6 @@ export function removeLocalModel(model: LocalModelId): Promise<void> {
   return invokeCommand("plugin:local-resources|remove_model", { model });
 }
 
-export type ModelDownloadSource = "huggingface" | "hf-mirror";
-
-export function getModelDownloadSource(): Promise<ModelDownloadSource> {
-  return invokeCommand("plugin:local-resources|get_download_source");
-}
-
-export function setModelDownloadSource(source: ModelDownloadSource): Promise<void> {
-  return invokeCommand("plugin:local-resources|set_download_source", { source });
-}
-
 export function selectLocalModel(model: LocalModelId): Promise<void> {
   return invokeCommand("plugin:local-resources|select_local_model", { model });
 }

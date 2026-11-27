@@ -43,32 +43,24 @@ fn a_link_never_takes_the_window_away_from_the_app() {
 }
 
 #[test]
-fn reader_webview_allows_public_http_about_and_local_preview_scheme_only() {
+fn reader_webview_allows_http_about_and_local_preview_scheme_only() {
     for allowed in [
         "https://example.com/",
+        "http://localhost:8080/",
         "about:blank",
         "knovum-preview://localhost/abc-123",
     ] {
         assert!(allows_reader_webview(&url(allowed)), "{allowed}");
     }
     for refused in [
-        "http://localhost:8080/",
-        "http://127.0.0.1:49152/mcp",
-        "http://[::1]:8080/",
-        "http://10.0.0.1/admin",
         "file:///etc/passwd",
         "tauri://localhost/",
         "asset://localhost/foo.html",
         "javascript:alert(1)",
         "knovum-preview://evil.example/abc",
-        "https://knovum-preview.localhost/abc-123",
     ] {
         assert!(!allows_reader_webview(&url(refused)), "{refused}");
     }
-    assert_eq!(
-        allows_reader_webview(&url("http://knovum-preview.localhost/abc-123")),
-        cfg!(target_os = "windows")
-    );
 }
 
 #[test]

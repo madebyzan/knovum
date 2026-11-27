@@ -31,23 +31,6 @@ export function disableDesktopAgent(kind: ExternalAgentKind): Promise<void> {
   return setDesktopAgentEnabled(kind, false);
 }
 
-export function setDesktopAgentTrustedMode(kind: ExternalAgentKind, trustedMode: boolean): Promise<void> {
-  return mutateAiSettings(async () => {
-    const store = useAiSettingsStore();
-    const previousAgents = cloneDeep(store.settings.desktopAgents);
-    const entry = store.settings.desktopAgents.find((agent) => agent.kind === kind);
-    if (!entry) return;
-    if (trustedMode) entry.trustedMode = true;
-    else delete entry.trustedMode;
-    try {
-      await store.flush();
-    } catch (error) {
-      store.settings.desktopAgents = previousAgents;
-      throw error;
-    }
-  });
-}
-
 function setDesktopAgentEnabled(kind: ExternalAgentKind, enabled: boolean): Promise<void> {
   return mutateAiSettings(async () => {
     const store = useAiSettingsStore();

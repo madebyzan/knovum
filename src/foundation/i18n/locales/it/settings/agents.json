@@ -1,6 +1,6 @@
 {
   "title": "Agenti desktop",
-  "description": "Usa gli agenti IA supportati già installati e autenticati su questo computer. Per impostazione predefinita, gli agenti desktop chiedono conferma prima di eseguire azioni privilegiate nelle conversazioni.",
+  "description": "Utilizza gli agenti AI supportati già installati e registrati su questo computer. Gli agenti abilitati funzionano con gli strumenti disponibili, i server MCP e le competenze senza conferma per azione.",
   "check": "Verifica agenti",
   "enable": "Abilita",
   "disable": "Disabilita",
@@ -31,12 +31,5 @@
       "title": "Server ACP autonomo",
       "requirements": "Scarica l'archivio ufficiale ACP, conserva i file associati e aggiungi la directory del server a PATH."
     }
-  },
-  "trustedMode": {
-    "label": "Modalità attendibile (accesso completo senza conferma)",
-    "description": "Salta le richieste di autorizzazione e consente l’esecuzione automatica di comandi e modifiche ai file. Attivala solo se ti fidi di tutte le fonti nei tuoi Space.",
-    "confirmTitle": "Attivare la modalità attendibile?",
-    "confirmDescription": "La modalità attendibile abilita l’accesso completo per questo agente desktop e approva automaticamente le richieste di autorizzazione senza conferma. Pagine web o file non attendibili potrebbero attivare comandi indesiderati.",
-    "confirmAction": "Attiva modalità attendibile"
   }
 }

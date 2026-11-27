@@ -15,31 +15,8 @@ use std::{
 use tokio_util::sync::CancellationToken;
 
 #[derive(Clone, Copy)]
-pub(crate) enum ArchiveSource {
-    Direct(&'static str),
-    HuggingFace {
-        repository: &'static str,
-        revision: &'static str,
-        file: &'static str,
-    },
-}
-
-impl ArchiveSource {
-    pub fn url(self) -> String {
-        match self {
-            Self::Direct(url) => url.to_string(),
-            Self::HuggingFace {
-                repository,
-                revision,
-                file,
-            } => super::sources::huggingface_resolve_url(repository, revision, file),
-        }
-    }
-}
-
-#[derive(Clone, Copy)]
 pub(crate) struct ModelArchive {
-    pub source: ArchiveSource,
+    pub url: &'static str,
     pub sha256: &'static str,
     pub bytes: u64,
     /// Root directory the members live under inside the zip; `None` for archives whose members
@@ -61,9 +38,8 @@ impl ModelArchive {
     ) -> Result<(), String> {
         let path = directory.join("release.zip");
         let total = snapshot.download_bytes();
-        let url = self.source.url();
         download::to_path(
-            download::client()?.get(url),
+            download::client()?.get(self.url),
             &path,
             download::DownloadPolicy {
                 maximum_bytes: self.bytes,

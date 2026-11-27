@@ -1,6 +1,6 @@
 {
   "title": "Desktop Agents",
-  "description": "Use supported AI agents already installed and signed in on this computer. By default, Desktop Agents ask before running elevated actions in Space conversations.",
+  "description": "Use supported AI agents already installed and signed in on this computer. Enabled agents run with their available tools, MCP servers, and skills without per-action confirmation.",
   "check": "Check Agents",
   "enable": "Enable",
   "disable": "Disable",
@@ -31,12 +31,5 @@
       "title": "Standalone ACP server",
       "requirements": "Download the official ACP archive, keep its companion files, and add the server directory to PATH."
     }
-  },
-  "trustedMode": {
-    "label": "Trusted mode (unattended full access)",
-    "description": "Skip permission prompts and allow this agent to run commands and edit files automatically. Only enable if you trust every source in your Spaces.",
-    "confirmTitle": "Enable Trusted mode?",
-    "confirmDescription": "Trusted mode switches this Desktop Agent to full-access execution and automatically approves its permission requests without confirmation. Untrusted web pages or files in a Space could trigger unintended commands.",
-    "confirmAction": "Enable Trusted mode"
   }
 }

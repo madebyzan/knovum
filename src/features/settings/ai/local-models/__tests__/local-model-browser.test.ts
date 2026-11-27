@@ -1,4 +1,3 @@
-import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { mount } from "@vue/test-utils";
 import { beforeEach, expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, shallowRef } from "vue";
@@ -8,12 +7,6 @@ import type { LocalModelAvailability } from "../../../../../shared/contracts/gen
 import UiSelect from "../../../../../shared/ui/UiSelect.vue";
 import LocalModelCapability from "../components/LocalModelCapability.vue";
 import LocalModelsSettings from "../components/LocalModelsSettings.vue";
-
-vi.mock("../../../../../foundation/runtime/local-resources", async (importOriginal) => ({
-  ...(await importOriginal()),
-  getModelDownloadSource: async () => "huggingface",
-  setModelDownloadSource: async () => {},
-}));
 
 const catalog: LocalModelAvailability[] = (
   [
@@ -61,13 +54,16 @@ function render() {
   const wrapper = mount(LocalModelsSettings, {
     attachTo: document.body,
     global: {
-      plugins: [i18n, [VueQueryPlugin, { queryClient: new QueryClient() }]],
+      plugins: [i18n],
       stubs: {
         LocalModelConfiguration: defineComponent({
           name: "LocalModelConfiguration",
           props: ["model"],
           emits: ["preparationChange", "failure"],
-          setup: () => ({ count: shallowRef(0) }),
+          setup() {
+            const count = shallowRef(0);
+            return { count };
+          },
           template:
             '<button :data-model-id="model.id" @click="count++">{{ model.name }} {{ count }}</button>',
         }),
@@ -77,10 +73,6 @@ function render() {
   onTestFinished(() => wrapper.unmount());
   return wrapper;
 }
-const statusFilterSelect = (wrapper: ReturnType<typeof render>) =>
-  wrapper
-    .findAllComponents(UiSelect)
-    .find((select) => select.find('[data-testid="model-status-filter"]').exists())!;
 it("shows every capability's configured model without opening its model controls", async () => {
   const wrapper = render();
   expect(wrapper.get('[data-model-group="knowledge"]').isVisible()).toBe(true);
@@ -99,7 +91,7 @@ it("finds models across capabilities and filters them by installed state", async
   await wrapper.get("input").setValue("moss");
   expect(wrapper.get('[data-model-id="mossNano"]').isVisible()).toBe(true);
   await wrapper.get("input").setValue("");
-  statusFilterSelect(wrapper).vm.$emit("update:modelValue", "installed");
+  wrapper.getComponent(UiSelect).vm.$emit("update:modelValue", "installed");
   await wrapper.vm.$nextTick();
   expect(wrapper.get('[data-model-id="whisperSmall"]').isVisible()).toBe(true);
   expect(wrapper.get('[data-model-id="qwen3Embedding"]').isVisible()).toBe(true);
@@ -161,7 +153,7 @@ it("retains expanded controls and their state after a background refresh fails",
 it("clears both filters from empty results and returns to keyboard search", async () => {
   const wrapper = render();
   await wrapper.get("input").setValue("nonexistent");
-  statusFilterSelect(wrapper).vm.$emit("update:modelValue", "installed");
+  wrapper.getComponent(UiSelect).vm.$emit("update:modelValue", "installed");
   await wrapper.vm.$nextTick();
   await wrapper.get('[data-testid="model-clear-filters"]').trigger("click");
   expect(wrapper.find('[data-testid="model-no-results"]').exists()).toBe(false);

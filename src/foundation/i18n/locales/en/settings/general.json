@@ -31,7 +31,7 @@
   "saveFailed": "Could not save settings",
   "analytics": {
     "title": "Usage analytics",
-    "description": "Disabled by default. When enabled, Knovum sends at most one app-start event per UTC day. You can change this at any time.",
+    "description": "Enabled by default. Knovum sends at most one app-start event per UTC day. You can turn it off at any time.",
     "enabled": "Share usage analytics",
     "privacy": "The event contains only a random installation ID, app version, operating-system platform, and event name. It never includes your Spaces, files, notes, searches, or AI content.",
     "notConfigured": "Usage analytics is not configured in this build, so no events have been sent.",

@@ -1,6 +1,6 @@
 {
   "title": "Agentes de escritorio",
-  "description": "Usa agentes de IA compatibles ya instalados e iniciados en este equipo. De forma predeterminada, los agentes de escritorio piden confirmación antes de ejecutar acciones con privilegios en las conversaciones.",
+  "description": "Utilice agentes AI compatibles que ya estén instalados e iniciados sesión en esta computadora. Los agentes habilitados se ejecutan con sus herramientas disponibles, servidores MCP y habilidades sin confirmación por acción.",
   "check": "Comprobar agentes",
   "enable": "Habilitar",
   "disable": "Desactivar",
@@ -31,12 +31,5 @@
       "title": "Servidor ACP independiente",
       "requirements": "Descargue el archivo oficial ACP, conserve sus archivos complementarios y agregue el directorio del servidor a PATH."
     }
-  },
-  "trustedMode": {
-    "label": "Modo de confianza (acceso total sin confirmación)",
-    "description": "Omite las solicitudes de permiso y permite ejecutar comandos y editar archivos automáticamente. Actívalo solo si confías en todas las fuentes de tus Spaces.",
-    "confirmTitle": "¿Activar el modo de confianza?",
-    "confirmDescription": "El modo de confianza cambia este agente de escritorio a acceso total y aprueba automáticamente sus solicitudes de permiso sin confirmación. Páginas web o archivos no confiables podrían desencadenar comandos no deseados.",
-    "confirmAction": "Activar modo de confianza"
   }
 }

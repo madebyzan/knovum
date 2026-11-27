@@ -12,8 +12,6 @@ import { Typography } from "@tiptap/extension-typography";
 import type { Schema } from "@tiptap/pm/model";
 import { StarterKit } from "@tiptap/starter-kit";
 
-import { createSpaceMathExtensions } from "./tiptap-mathematics";
-
 const SpaceImage = Image.extend({
   addAttributes() {
     return {
@@ -72,7 +70,6 @@ export function createRichTextSchemaExtensions(options: RichTextSchemaOptions) {
     TableKit.configure(
       options.interactiveSurface ? { table: { resizable: true, lastColumnResizable: true } } : {},
     ),
-    ...createSpaceMathExtensions(),
   ];
 }
 

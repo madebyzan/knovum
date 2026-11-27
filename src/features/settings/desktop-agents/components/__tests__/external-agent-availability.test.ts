@@ -62,18 +62,6 @@ describe("ExternalAgentAvailability", () => {
     wrapper.unmount();
   });
 
-  it("shows Trusted mode switch only when enabled and emits toggleTrustedMode", async () => {
-    const disabledWrapper = mountAgent({ enabled: false });
-    expect(disabledWrapper.find('button[role="switch"]').exists()).toBe(false);
-    disabledWrapper.unmount();
-
-    const enabledWrapper = mountAgent({ enabled: true });
-    const trustedSwitch = enabledWrapper.get('button[role="switch"]');
-    await trustedSwitch.trigger("click");
-    expect(enabledWrapper.emitted("toggleTrustedMode")).toEqual([[true]]);
-    enabledWrapper.unmount();
-  });
-
   it("blocks enabling an agent without a command entry and shows connection help", () => {
     const wrapper = mountAgent({
       installation: { kind: "claude_code", detected: false, executablePath: null },

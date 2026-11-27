@@ -6,7 +6,6 @@ use super::{repository, StartExternalConversationRequest};
 use crate::{extensions::contracts::AgentExtensionSnapshot, spaces::db};
 
 pub(super) mod lifecycle;
-mod permission_bridge;
 pub(super) mod pool;
 
 use lifecycle::mark_disconnected;
@@ -56,13 +55,11 @@ pub async fn start(
             .map(|(id, branch)| (id.as_str(), branch.as_str())),
     )
     .await?;
-    let trusted_mode = crate::ai::settings::is_agent_trusted(&app, request.runtime_kind);
     let wanted = pool::Wanted {
         space_id: &request.space_id,
         conversation_id: &conversation_id,
         branch_id: &branch_id,
         kind: request.runtime_kind,
-        trusted_mode,
         head: head.as_deref(),
         extensions: &extensions,
     };
@@ -74,9 +71,7 @@ pub async fn start(
         }
     };
     let connected = async {
-        lease
-            .authorize(&app, pool.clone(), &id, &run_id, extensions)
-            .await?;
+        lease.authorize(&app, &id, &run_id, extensions).await?;
         let on_update = super::updates::callback(pool, id.clone(), run_id.clone(), Some(updates))?;
         if let Err(error) = lifecycle::mark_connected(pool, &id, &run_id, lease.session()).await {
             super::updates::release(&id);

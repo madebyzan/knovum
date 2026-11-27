@@ -13,10 +13,8 @@ pub use media_type::WebDocumentKind;
 
 const MAX_DOCUMENT_BYTES: usize = 2 * 1024 * 1024;
 const MAX_IMAGE_BYTES: usize = 8 * 1024 * 1024;
-const MAX_REDIRECTS: usize = 10;
+const MAX_DERIVED_REDIRECTS: usize = 10;
 const USER_AGENT_VALUE: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136 Safari/537.36 Knovum/1.0";
-const CAPTURE_ACCEPT_HEADER: &str = "text/html,application/xhtml+xml,application/json,text/plain,image/avif,image/webp,image/*;q=0.8,*/*;q=0.5";
-const IMAGE_ACCEPT_HEADER: &str = "image/avif,image/webp,image/*;q=0.8,*/*;q=0.5";
 
 pub(crate) enum CapturedWebResource {
     Document {
@@ -33,7 +31,21 @@ pub(crate) enum CapturedWebResource {
 
 pub(crate) async fn capture(raw_url: &str) -> Result<CapturedWebResource, String> {
     let url = parse_url(raw_url)?;
-    let mut response = public_response(url, CAPTURE_ACCEPT_HEADER).await?;
+    let client = Client::builder()
+        .timeout(Duration::from_secs(20))
+        .build()
+        .map_err(|error| error.to_string())?;
+    let mut response = client
+        .get(url)
+        .header(USER_AGENT, USER_AGENT_VALUE)
+        .header(ACCEPT, "text/html,application/xhtml+xml,application/json,text/plain,image/avif,image/webp,image/*;q=0.8,*/*;q=0.5")
+        .header(ACCEPT_LANGUAGE, "zh-CN,zh;q=0.9,en;q=0.8")
+        .header(ACCEPT_ENCODING, "identity")
+        .send()
+        .await
+        .map_err(|error| error.to_string())?
+        .error_for_status()
+        .map_err(|error| error.to_string())?;
     let final_url = response.url().clone();
     let response_type = media_type::response_media_type(&response);
     let (mut bytes, overflow) = body::read_body_prefix(&mut response, MAX_DOCUMENT_BYTES).await?;
@@ -88,7 +100,7 @@ pub(crate) async fn capture_derived_image(
     raw_url: &str,
 ) -> Result<(Url, mime::Mime, Vec<u8>), String> {
     let url = parse_url(raw_url)?;
-    let response = public_response(url, IMAGE_ACCEPT_HEADER).await?;
+    let response = public_response(url).await?;
     read_image_response(response, MAX_IMAGE_BYTES).await
 }
 
@@ -152,17 +164,13 @@ fn validate_asset_url(url: &Url) -> Result<(), String> {
     Ok(())
 }
 
-async fn public_response(mut url: Url, accept_header: &str) -> Result<Response, String> {
-    for redirect_count in 0..=MAX_REDIRECTS {
+async fn public_response(mut url: Url) -> Result<Response, String> {
+    for redirect_count in 0..=MAX_DERIVED_REDIRECTS {
         validate_derived_url(&url)?;
-        let host = url
-            .host_str()
-            .ok_or("Web resource URL has no host")?
-            .trim_start_matches('[')
-            .trim_end_matches(']');
+        let host = url.host_str().ok_or("Derived web image URL has no host")?;
         let port = url
             .port_or_known_default()
-            .ok_or("Web resource URL has no port")?;
+            .ok_or("Derived web image URL has no port")?;
         let addresses: Vec<_> = tokio::net::lookup_host((host, port))
             .await
             .map_err(|error| error.to_string())?
@@ -172,7 +180,7 @@ async fn public_response(mut url: Url, accept_header: &str) -> Result<Response, 
                 .iter()
                 .any(|address| !public_address(address.ip()))
         {
-            return Err("Web resource must resolve only to public addresses".into());
+            return Err("Derived web image must resolve only to public addresses".into());
         }
         let client = Client::builder()
             .no_proxy()
@@ -184,7 +192,7 @@ async fn public_response(mut url: Url, accept_header: &str) -> Result<Response, 
         let response = client
             .get(url.clone())
             .header(USER_AGENT, USER_AGENT_VALUE)
-            .header(ACCEPT, accept_header)
+            .header(ACCEPT, "image/avif,image/webp,image/*;q=0.8,*/*;q=0.5")
             .header(ACCEPT_LANGUAGE, "zh-CN,zh;q=0.9,en;q=0.8")
             .header(ACCEPT_ENCODING, "identity")
             .send()
@@ -195,14 +203,14 @@ async fn public_response(mut url: Url, accept_header: &str) -> Result<Response, 
                 .error_for_status()
                 .map_err(|error| error.without_url().to_string());
         }
-        if redirect_count == MAX_REDIRECTS {
-            return Err("Web resource exceeded redirect limit".into());
+        if redirect_count == MAX_DERIVED_REDIRECTS {
+            return Err("Derived web image exceeded redirect limit".into());
         }
         let location = response
             .headers()
             .get(LOCATION)
             .and_then(|value| value.to_str().ok())
-            .ok_or("Web resource redirect has no location")?;
+            .ok_or("Derived web image redirect has no location")?;
         url = url.join(location).map_err(|error| error.to_string())?;
     }
     unreachable!("the redirect loop always returns or reaches its limit")

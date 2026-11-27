@@ -65,8 +65,6 @@ fn main() {
                 tauri_build::InlinedPlugin::new().commands(&[
                     "get_status",
                     "get_model_catalog",
-                    "get_download_source",
-                    "set_download_source",
                     "remove_model",
                     "select_local_model",
                     "prepare_resources",

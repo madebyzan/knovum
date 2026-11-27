@@ -109,11 +109,5 @@
     "notInstalled": "Не загружено"
   },
   "cancelling": "Отмена",
-  "clearFilters": "Очистить фильтры",
-  "downloadSource": {
-    "label": "Источник загрузки",
-    "description": "Выберите источник загрузки моделей Hugging Face. Переключитесь на HF-Mirror при медленном прямом подключении.",
-    "huggingface": "Hugging Face (официальный)",
-    "hfMirror": "HF-Mirror (зеркало)"
-  }
+  "clearFilters": "Очистить фильтры"
 }

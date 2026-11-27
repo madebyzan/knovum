@@ -13,7 +13,6 @@ pub async fn start(
     kind: ExternalAgentKind,
     workspace: PathBuf,
     mcp_servers: Vec<McpServer>,
-    permission_policy: super::super::permissions::PermissionPolicy,
     keepalive: Arc<dyn Send + Sync>,
 ) -> AppResult<ConversationSession> {
     let cancellation = CancellationToken::new();
@@ -29,7 +28,6 @@ pub async fn start(
             kind,
             workspace,
             mcp_servers,
-            permission_policy,
             keepalive,
             completion,
         };

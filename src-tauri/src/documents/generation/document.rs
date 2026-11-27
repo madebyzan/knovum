@@ -72,7 +72,7 @@ pub(crate) enum Alignment {
     Right,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Inline {
     Text(String),
     Strong(Vec<Inline>),

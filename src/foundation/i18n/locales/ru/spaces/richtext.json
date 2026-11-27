@@ -123,15 +123,5 @@
   "statistics": {
     "words": "{count} слово | {count} слова | {count} слов",
     "characters": "{count} символ | {count} символа | {count} символов"
-  },
-  "math": {
-    "title": "Формула",
-    "edit": "Редактировать формулу",
-    "inline": "В строке",
-    "block": "Блок",
-    "placeholder": "напр. E = mc^2",
-    "insert": "Вставить",
-    "apply": "Применить",
-    "delete": "Удалить"
   }
 }

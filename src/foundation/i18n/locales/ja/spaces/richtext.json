@@ -123,15 +123,5 @@
   "statistics": {
     "words": "{count} 語",
     "characters": "{count} 文字"
-  },
-  "math": {
-    "title": "数式",
-    "edit": "数式を編集",
-    "inline": "インライン",
-    "block": "ブロック",
-    "placeholder": "例: E = mc^2",
-    "insert": "挿入",
-    "apply": "適用",
-    "delete": "削除"
   }
 }

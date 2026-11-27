@@ -109,11 +109,5 @@
     "notInstalled": "다운로드되지 않음"
   },
   "cancelling": "취소 중",
-  "clearFilters": "필터 지우기",
-  "downloadSource": {
-    "label": "다운로드 소스",
-    "description": "Hugging Face 모델 파일을 내려받을 소스를 선택합니다. 직접 다운로드가 느리면 HF-Mirror로 전환하세요.",
-    "huggingface": "Hugging Face (공식)",
-    "hfMirror": "HF-Mirror (미러)"
-  }
+  "clearFilters": "필터 지우기"
 }

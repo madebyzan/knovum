@@ -5,7 +5,6 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import SpaceTiptapImageControl from "./SpaceTiptapImageControl.vue";
-import SpaceTiptapMathControl from "./SpaceTiptapMathControl.vue";
 import SpaceTiptapTableControl from "./SpaceTiptapTableControl.vue";
 
 defineProps<{ editor: Editor }>();
@@ -15,7 +14,6 @@ const { t } = useI18n();
 <template>
   <SpaceTiptapImageControl :editor="editor" />
   <SpaceTiptapTableControl :editor="editor" />
-  <SpaceTiptapMathControl :editor="editor" />
   <UiIconButton
     :label="t('spaces.richtext.horizontalRule')"
     tooltip

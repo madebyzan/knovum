@@ -97,7 +97,7 @@ async function exportMarkdown() {
 <template>
   <section v-show="active" class="absolute inset-0 z-30 flex min-h-0 flex-col bg-surface-canvas">
     <header
-      class="flex h-9 shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome px-3"
+      class="flex h-toolbar shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome px-3"
     >
       <component
         :is="editorNode.data.kind === 'note' ? StickyNote : FileText"
@@ -128,11 +128,11 @@ async function exportMarkdown() {
         >
           <ImagePlus class="size-4" />{{ t("spaces.richtext.image.dropNow") }}
         </div>
-        <article class="mx-auto min-h-full w-full max-w-3xl px-10 py-8 sm:px-14">
+        <article class="mx-auto min-h-full w-full max-w-3xl px-10 py-12 sm:px-14">
           <input
             v-model="title"
             :disabled="!!error || suspended"
-            class="w-full rounded-md bg-transparent text-display font-semibold tracking-title text-fg-primary outline-none placeholder:text-fg-tertiary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focus"
+            class="w-full bg-transparent text-display font-semibold tracking-title text-fg-primary outline-none placeholder:text-fg-tertiary"
             :aria-label="t('spaces.editor.markdown.title')"
             :placeholder="
               editorNode.data.kind === 'note'

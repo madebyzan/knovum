@@ -31,7 +31,7 @@
   "saveFailed": "Die Einstellungen konnten nicht gespeichert werden",
   "analytics": {
     "title": "Nutzungsanalyse",
-    "description": "Standardmäßig deaktiviert. Wenn aktiviert, sendet Knovum höchstens ein App-Start-Ereignis pro UTC-Tag. Du kannst dies jederzeit ändern.",
+    "description": "Standardmäßig aktiviert. Knovum sendet höchstens ein App-Start-Ereignis pro UTC-Tag. Du kannst die Analyse jederzeit deaktivieren.",
     "enabled": "Nutzungsanalyse teilen",
     "privacy": "Das Ereignis enthält nur eine zufällige Installations-ID, die App-Version, die Plattform und den Ereignisnamen. Spaces, Dateien, Notizen, Suchanfragen und KI-Inhalte werden nicht übertragen.",
     "notConfigured": "Für diesen Build ist kein Analyse-Endpunkt konfiguriert. Es wurden keine Ereignisse gesendet.",

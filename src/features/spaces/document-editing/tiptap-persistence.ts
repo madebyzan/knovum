@@ -7,7 +7,6 @@ import { tiptapContentSchema } from "../model/nodes/schema/content";
 import { truncateUtf16 } from "../model/text";
 import type { NodePayloadChangeInput } from "../nodes/node-operations";
 import type { EditingState } from "./editing-state";
-import { tiptapPlainText, type PlainTextReadableDoc } from "./tiptap-mathematics";
 
 type MarkdownNode = { id: string; data: SpaceMarkdownPayload };
 type NoteNode = { id: string; data: SpaceNotePayload };
@@ -16,7 +15,7 @@ type PersistEditor = {
   getMarkdown(): string;
   getJSON(): unknown;
   state: {
-    doc: PlainTextReadableDoc;
+    doc: { content: { size: number }; textBetween: (f: number, t: number, b: string, l: string) => string };
   };
 };
 
@@ -74,7 +73,7 @@ function markdownSave(node: MarkdownNode, context: SaveContext) {
 function noteSave(node: NoteNode, context: SaveContext) {
   const { state, editor } = context;
   const contentChanged = state.revision.value > state.persistedRevision.value;
-  const plainText = tiptapPlainText(editor.state.doc);
+  const plainText = editor.state.doc.textBetween(0, editor.state.doc.content.size, "\n", "\n");
   const title = state.title.value.trim() || firstLine(plainText) || i18n.global.t("spaces.editor.note.new");
   if (!contentChanged && node.data.title === title && node.data.plainText === plainText) return undefined;
   const tiptapContent = tiptapContentSchema.parse(editor.getJSON());

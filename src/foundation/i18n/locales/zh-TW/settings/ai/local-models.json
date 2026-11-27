@@ -109,11 +109,5 @@
     "notInstalled": "未下載"
   },
   "cancelling": "正在取消",
-  "clearFilters": "清除篩選",
-  "downloadSource": {
-    "label": "模型下載來源",
-    "description": "選擇 Hugging Face 模型檔案的下載來源。直連較慢時可切換為 HF-Mirror 鏡像。",
-    "huggingface": "Hugging Face（官方）",
-    "hfMirror": "HF-Mirror（鏡像站）"
-  }
+  "clearFilters": "清除篩選"
 }

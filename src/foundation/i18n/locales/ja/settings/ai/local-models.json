@@ -109,11 +109,5 @@
     "notInstalled": "ダウンロードされていません"
   },
   "cancelling": "キャンセル中",
-  "clearFilters": "フィルターのクリア",
-  "downloadSource": {
-    "label": "ダウンロード元",
-    "description": "Hugging Face モデルファイルの取得元を選択します。直接接続が遅い場合は HF-Mirror に切り替えてください。",
-    "huggingface": "Hugging Face（公式）",
-    "hfMirror": "HF-Mirror（ミラー）"
-  }
+  "clearFilters": "フィルターのクリア"
 }

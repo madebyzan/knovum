@@ -123,15 +123,5 @@
   "statistics": {
     "words": "{count} Wort | {count} Wörter",
     "characters": "{count} Zeichen"
-  },
-  "math": {
-    "title": "Formel",
-    "edit": "Formel bearbeiten",
-    "inline": "Inline",
-    "block": "Block",
-    "placeholder": "z. B. E = mc^2",
-    "insert": "Einfügen",
-    "apply": "Übernehmen",
-    "delete": "Löschen"
   }
 }

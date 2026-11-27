@@ -1,8 +1,6 @@
 import MarkdownIt, { type MarkdownIt as MarkdownItInstance, type StateCore, type Token } from "markdown-it";
-import markdownItFootnote from "markdown-it-footnote";
 
 import { linkDestination } from "../contracts/link-destination";
-import { markdownMathPlugin } from "./markdown-math-plugin";
 
 /**
  * Citation markers an answer or grounded document may carry, keyed by index: `true` when the
@@ -63,8 +61,6 @@ export function createMarkdownRenderer({
   // Only text that spells out its scheme is a link: a fuzzy domain match turns file names into
   // hosts — `README.md` is in Moldova, `main.rs` in Serbia.
   md.linkify.set({ fuzzyLink: false });
-  md.use(markdownItFootnote as unknown as (instance: MarkdownItInstance) => void);
-  md.use(markdownMathPlugin);
   md.core.ruler.push("unlink_dead_destinations", (state: StateCore) => {
     for (const block of state.tokens) {
       if (block.children) block.children = withoutDeadLinks(block.children, localLinks);

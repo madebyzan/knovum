@@ -114,28 +114,4 @@ describe("streamed markdown", () => {
     expect(frame.settled).toEqual([]);
     expect(frame.open).toBe("<p>Another answer.</p>\n");
   });
-
-  it("streams math and footnotes identically to a one-shot render", () => {
-    const source =
-      "Formula $a^2 + b^2 = c^2$ with note[^1].\n\n$$\nx = \\frac{1}{2}\n$$\n\n[^1]: Footnote body.";
-    const frame = streamed(source, 7);
-    expect(frame.settled.join("") + frame.open).toBe(oneShot(source));
-  });
-
-  it("streams multi-line block math with blank lines and leading dashes without settling prematurely", () => {
-    const source = "Intro.\n\n$$\na\n\n- b\n$$\n\nOutro.";
-    for (const step of [1, 3, 5]) {
-      const frame = streamed(source, step);
-      expect(frame.settled.join("") + frame.open).toBe(oneShot(source));
-    }
-  });
-
-  it("preserves currency amounts and shell variables as plain text", () => {
-    const source = "Costs $5 and $10, range $5-$10, env $HOME/$PATH, and math $x + y$.";
-    const rendered = oneShot(source);
-    expect(rendered).toContain("$5 and $10");
-    expect(rendered).toContain("$5-$10");
-    expect(rendered).toContain("$HOME/$PATH");
-    expect(rendered).toContain('class="katex"');
-  });
 });
